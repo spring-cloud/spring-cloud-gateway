@@ -1,0 +1,10 @@
+spring:
+  resources:
+    # TODO: how to add this programmatically
+    add-mappings: false
+  cloud:
+    gateway:
+      routes:
+        test1:
+          path: /**
+          url: http://httpbin.org

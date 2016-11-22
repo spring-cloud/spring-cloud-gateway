@@ -2,38 +2,25 @@ package org.springframework.cloud.gateway;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.SpringBootConfiguration;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.annotation.Order;
-import org.springframework.http.client.reactive.ReactorClientHttpConnector;
-import org.springframework.web.client.reactive.WebClient;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
-
 import reactor.core.publisher.Mono;
 
-@SpringBootApplication
+//TODO: move to autoconfig
+@Import(GatewayConfiguration.class)
+@SpringBootConfiguration
+@EnableAutoConfiguration
 public class SpringCloudGatewayApplication {
 
 	private static final Log log = LogFactory.getLog(SpringCloudGatewayApplication.class);
 
-	@Bean
-	public WebClient webClient() {
-		return WebClient.builder(new ReactorClientHttpConnector()).build();
-	}
-
-	// TODO: request only, how to filter response?
-	@Bean
-	@Order(500)
-	public WebFilter findRouteFilter() {
-		return (exchange, chain) -> {
-			log.info("findRoutFilter start");
-			exchange.getAttributes().put("requestUrl", "http://httpbin.org/get");
-			return chain.filter(exchange);
-		};
-	}
-
+	// TODO: only apply filters to zuul?
 	@Bean
 	@Order(501)
 	public WebFilter modifyResponseFilter() {
@@ -60,6 +47,9 @@ public class SpringCloudGatewayApplication {
 	}
 
 	public static void main(String[] args) {
-		SpringApplication.run(SpringCloudGatewayApplication.class, args);
+		new SpringApplicationBuilder()
+				.sources(SpringCloudGatewayApplication.class)
+				//TODO: howto do programatically
+				.run(args);
 	}
 }
