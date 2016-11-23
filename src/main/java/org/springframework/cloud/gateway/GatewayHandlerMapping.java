@@ -28,7 +28,7 @@ public class GatewayHandlerMapping extends AbstractUrlHandlerMapping {
 
 	protected void registerHandlers(Map<String, Route> routes) {
 		for (Route route : routes.values()) {
-			registerHandler(route.getPath(), this.gatewayWebHandler);
+			registerHandler(route.getRequestPath(), this.gatewayWebHandler);
 		}
 	}
 

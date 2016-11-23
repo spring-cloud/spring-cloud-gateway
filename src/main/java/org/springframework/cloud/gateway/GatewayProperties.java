@@ -2,6 +2,7 @@ package org.springframework.cloud.gateway;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import java.net.URI;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -27,41 +28,31 @@ public class GatewayProperties {
 
 	public static class Route {
 		private String id;
-		private String path;
-		private String host;
-		private String port;
+		private String requestPath;
+		private URI upstreamUrl;
 
-		public String getPath() {
-			return this.path;
+		public String getRequestPath() {
+			return this.requestPath;
 		}
 
-		public void setPath(String path) {
-			this.path = path;
+		public void setRequestPath(String requestPath) {
+			this.requestPath = requestPath;
 		}
 
-		public String getHost() {
-			return this.host;
+		public URI getUpstreamUrl() {
+			return upstreamUrl;
 		}
 
-		public void setHost(String host) {
-			this.host = host;
-		}
-
-		public String getPort() {
-			return port;
-		}
-
-		public void setPort(String port) {
-			this.port = port;
+		public void setUpstreamUrl(URI upstreamUrl) {
+			this.upstreamUrl = upstreamUrl;
 		}
 
 		@Override
 		public String toString() {
 			return "Route{" +
 					"id='" + id + '\'' +
-					", path='" + path + '\'' +
-					", host='" + host + '\'' +
-					", port='" + port + '\'' +
+					", requestPath='" + requestPath + '\'' +
+					", upstreamUrl='" + upstreamUrl + '\'' +
 					'}';
 		}
 	}

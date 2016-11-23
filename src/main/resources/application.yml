@@ -6,6 +6,5 @@ spring:
     gateway:
       routes:
         test1:
-          path: /**
-          host: httpbin.org
-          port: 80
+          requestPath: /**
+          upstreamUrl: http://httpbin.org:80

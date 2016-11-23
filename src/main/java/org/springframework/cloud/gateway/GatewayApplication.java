@@ -16,9 +16,9 @@ import reactor.core.publisher.Mono;
 @Import(GatewayConfiguration.class)
 @SpringBootConfiguration
 @EnableAutoConfiguration
-public class SpringCloudGatewayApplication {
+public class GatewayApplication {
 
-	private static final Log log = LogFactory.getLog(SpringCloudGatewayApplication.class);
+	private static final Log log = LogFactory.getLog(GatewayApplication.class);
 
 	// TODO: only apply filters to zuul?
 	@Bean
@@ -48,7 +48,7 @@ public class SpringCloudGatewayApplication {
 
 	public static void main(String[] args) {
 		new SpringApplicationBuilder()
-				.sources(SpringCloudGatewayApplication.class)
+				.sources(GatewayApplication.class)
 				//TODO: howto do programatically
 				.run(args);
 	}
