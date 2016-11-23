@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.annotation.Order;
 import org.springframework.web.server.ServerWebExchange;
-import org.springframework.web.server.WebFilter;
+
 import reactor.core.publisher.Mono;
 
 //TODO: move to autoconfig
