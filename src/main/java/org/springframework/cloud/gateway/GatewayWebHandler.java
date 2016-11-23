@@ -10,6 +10,7 @@ import org.springframework.web.server.WebHandler;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.net.URI;
 import java.util.Optional;
 
 /**
@@ -27,7 +28,7 @@ public class GatewayWebHandler implements WebHandler {
 
 	@Override
 	public Mono<Void> handle(ServerWebExchange exchange) {
-		Optional<String> requestUrl = exchange.getAttribute("requestUrl");
+		Optional<URI> requestUrl = exchange.getAttribute("requestUri");
 		ServerHttpRequest request = exchange.getRequest();
 		ClientRequest<Void> clientRequest = ClientRequest
 				.method(request.getMethod(), requestUrl.get())

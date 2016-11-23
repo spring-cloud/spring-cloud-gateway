@@ -7,4 +7,5 @@ spring:
       routes:
         test1:
           path: /**
-          url: http://httpbin.org
+          host: httpbin.org
+          port: 80

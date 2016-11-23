@@ -10,6 +10,7 @@ import org.springframework.util.AntPathMatcher;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
+import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
@@ -38,8 +39,12 @@ public class FindRouteFilter implements WebFilter {
 		String path = uri.getPath();
 		for (Route route : this.properties.getRoutes().values()) {
 			if (this.matcher.match(route.getPath(), path)) {
-				String url = route.getUrl() + path;
-				exchange.getAttributes().put("requestUrl", url);
+				URI requestUri = UriComponentsBuilder.fromHttpRequest(request)
+						.host(route.getHost())
+						.port(route.getPort())
+						.build(true)
+						.toUri();
+				exchange.getAttributes().put("requestUri", requestUri);
 				return chain.filter(exchange);
 			}
 		}
