@@ -1,3 +1,4 @@
+
 spring:
   resources:
     # TODO: how to add this programmatically
@@ -5,7 +6,12 @@ spring:
   cloud:
     gateway:
       routes:
-        test1:
-          requestPath: /**
-#          requestHost: '**.example.org'
+#        test1:
+#          requestPath: /**
+#          downstreamUrl: http://httpbin.org:80
+        test2:
+          requestHost: '**.example.org'
           downstreamUrl: http://httpbin.org:80
+logging:
+  level:
+    org.springframework.cloud.gateway: TRACE

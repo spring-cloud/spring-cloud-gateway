@@ -20,10 +20,9 @@ public class GatewayApplication {
 
 	private static final Log log = LogFactory.getLog(GatewayApplication.class);
 
-	// TODO: only apply filters to zuul?
 	@Bean
 	@Order(501)
-	public WebFilter modifyResponseFilter() {
+	public GatewayFilter modifyResponseFilter() {
 		return (exchange, chain) -> {
 			log.info("modifyResponseFilter start");
 			exchange.getResponse().getHeaders().add("X-My-Custom", "MyCustomValue");
@@ -33,7 +32,7 @@ public class GatewayApplication {
 
 	@Bean
 	@Order(502)
-	public WebFilter postFilter() {
+	public GatewayFilter postFilter() {
 		return (exchange, chain) -> {
 			log.info("postFilter start");
 			return chain.filter(exchange).then(postFilterWork(exchange));
@@ -49,7 +48,6 @@ public class GatewayApplication {
 	public static void main(String[] args) {
 		new SpringApplicationBuilder()
 				.sources(GatewayApplication.class)
-				//TODO: howto do programatically
 				.run(args);
 	}
 }

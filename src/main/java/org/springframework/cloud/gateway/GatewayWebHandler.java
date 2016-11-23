@@ -28,6 +28,7 @@ public class GatewayWebHandler implements WebHandler {
 
 	@Override
 	public Mono<Void> handle(ServerWebExchange exchange) {
+		//TODO: move to constant
 		Optional<URI> requestUrl = exchange.getAttribute("requestUrl");
 		ServerHttpRequest request = exchange.getRequest();
 		ClientRequest<Void> clientRequest = ClientRequest

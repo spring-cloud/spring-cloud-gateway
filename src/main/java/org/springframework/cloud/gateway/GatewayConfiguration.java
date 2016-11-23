@@ -2,7 +2,7 @@ package org.springframework.cloud.gateway;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cloud.gateway.filters.FindRouteFilter;
+import org.springframework.cloud.gateway.filters.RouteToUrlFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
@@ -22,8 +22,8 @@ public class GatewayConfiguration {
 	}
 
 	@Bean
-	public FindRouteFilter findRouteFilter(GatewayProperties properties) {
-		return new FindRouteFilter(properties);
+	public RouteToUrlFilter findRouteFilter(GatewayProperties properties) {
+		return new RouteToUrlFilter(properties);
 	}
 
 	@Bean
@@ -37,18 +37,18 @@ public class GatewayConfiguration {
 	}
 
 	@Bean
-	public GatewayHandlerMapping gatewayHandlerMapping(GatewayProperties properties, GatewayWebHandler gatewayWebHandler) {
-		return new GatewayHandlerMapping(properties, gatewayWebHandler);
+	public GatewayFilteringWebHandler gatewayFilteringWebHandler(GatewayWebHandler gatewayWebHandler, GatewayFilter[] filters) {
+		return new GatewayFilteringWebHandler(gatewayWebHandler, filters);
 	}
 
-	/*@Bean
-	public GatewayWebReactiveConfigurer gatewayWebReactiveConfiguration() {
-		return new GatewayWebReactiveConfigurer();
+	@Bean
+	public GatewayUrlHandlerMapping gatewayUrlHandlerMapping(GatewayProperties properties, GatewayFilteringWebHandler webHandler) {
+		return new GatewayUrlHandlerMapping(properties, webHandler);
 	}
 
-	public static class GatewayWebReactiveConfigurer implements WebReactiveConfigurer {
-		@Override
-		public void addResourceHandlers(ResourceHandlerRegistry registry) {
-		}
-	}*/
+	@Bean
+	public GatewayHostHandlerMapping gatewayHostHandlerMapping(GatewayProperties properties, GatewayFilteringWebHandler webHandler) {
+		return new GatewayHostHandlerMapping(properties, webHandler);
+	}
+
 }
