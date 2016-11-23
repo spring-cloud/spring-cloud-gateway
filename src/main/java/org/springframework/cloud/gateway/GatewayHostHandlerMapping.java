@@ -18,6 +18,8 @@ import org.springframework.web.server.WebHandler;
 
 import reactor.core.publisher.Mono;
 
+import static org.springframework.cloud.gateway.GatewayFilter.GATEWAY_ROUTE_ATTR;
+
 /**
  * @author Spencer Gibb
  */
@@ -123,7 +125,7 @@ public class GatewayHostHandlerMapping extends AbstractHandlerMapping {
 
 		if (handler instanceof RouteHolder) {
 			RouteHolder holder = (RouteHolder) handler;
-			exchange.getAttributes().put("gatewayRoute", holder.route);
+			exchange.getAttributes().put(GATEWAY_ROUTE_ATTR, holder.route);
 			return holder.webHandler;
 		}
 

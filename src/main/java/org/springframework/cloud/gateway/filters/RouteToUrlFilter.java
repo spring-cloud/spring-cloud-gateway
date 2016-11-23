@@ -20,6 +20,7 @@ import reactor.core.publisher.Mono;
 public class RouteToUrlFilter implements GatewayFilter, Ordered {
 
 	private static final Log log = LogFactory.getLog(RouteToUrlFilter.class);
+	public static final int ROUTE_TO_URL_FILTER_ORDER = 500;
 
 	private final GatewayProperties properties;
 
@@ -29,23 +30,21 @@ public class RouteToUrlFilter implements GatewayFilter, Ordered {
 
 	@Override
 	public int getOrder() {
-		// TODO: move to constant
-		return 500;
+		return ROUTE_TO_URL_FILTER_ORDER;
 	}
 
 	// TODO: do we really need shouldFilter or just move the if into filter?
 	@Override
 	public boolean shouldFilter(ServerWebExchange exchange) {
-		//TODO: move to constant
-		return exchange.getAttributes().containsKey("gatewayRoute");
+		return exchange.getAttributes().containsKey(GATEWAY_ROUTE_ATTR);
 	}
 
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
 		log.info("RouteToUrlFilter start");
-		Object gatewayRoute = exchange.getAttributes().get("gatewayRoute");
+		Object gatewayRoute = exchange.getAttributes().get(GATEWAY_ROUTE_ATTR);
 		if (!(gatewayRoute instanceof Route)) {
-			return Mono.error(new IllegalStateException("gatewayRoute" +
+			return Mono.error(new IllegalStateException(GATEWAY_ROUTE_ATTR +
 					" not an instance of " + Route.class.getSimpleName() +
 					", is " + gatewayRoute.getClass()));
 		}
@@ -54,8 +53,7 @@ public class RouteToUrlFilter implements GatewayFilter, Ordered {
 				.uri(route.getDownstreamUrl())
 				.build(true)
 				.toUri();
-		//TODO: move to constant
-		exchange.getAttributes().put("requestUrl", requestUrl);
+		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, requestUrl);
 		return chain.filter(exchange);
 	}
 

@@ -34,7 +34,7 @@ public class GatewayUrlHandlerMapping extends AbstractUrlHandlerMapping {
 		return super.getHandler(exchange).map(o -> {
 			if (o instanceof RouteHolder) {
 				RouteHolder holder = (RouteHolder) o;
-				exchange.getAttributes().put("gatewayRoute", holder.route);
+				exchange.getAttributes().put(GatewayFilter.GATEWAY_ROUTE_ATTR, holder.route);
 				return holder.webHandler;
 			}
 			return o;

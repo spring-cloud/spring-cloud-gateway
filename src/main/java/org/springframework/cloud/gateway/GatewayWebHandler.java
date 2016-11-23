@@ -13,6 +13,8 @@ import reactor.core.publisher.Mono;
 import java.net.URI;
 import java.util.Optional;
 
+import static org.springframework.cloud.gateway.GatewayFilter.GATEWAY_REQUEST_URL_ATTR;
+
 /**
  * @author Spencer Gibb
  */
@@ -28,8 +30,7 @@ public class GatewayWebHandler implements WebHandler {
 
 	@Override
 	public Mono<Void> handle(ServerWebExchange exchange) {
-		//TODO: move to constant
-		Optional<URI> requestUrl = exchange.getAttribute("requestUrl");
+		Optional<URI> requestUrl = exchange.getAttribute(GATEWAY_REQUEST_URL_ATTR);
 		ServerHttpRequest request = exchange.getRequest();
 		ClientRequest<Void> clientRequest = ClientRequest
 				.method(request.getMethod(), requestUrl.get())
