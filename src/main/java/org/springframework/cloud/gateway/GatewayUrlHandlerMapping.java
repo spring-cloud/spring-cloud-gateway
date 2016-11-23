@@ -21,6 +21,7 @@ public class GatewayUrlHandlerMapping extends AbstractUrlHandlerMapping {
 	public GatewayUrlHandlerMapping(GatewayProperties properties, WebHandler webHandler) {
 		this.properties = properties;
 		this.webHandler = webHandler;
+		setOrder(0);
 	}
 
 	@Override

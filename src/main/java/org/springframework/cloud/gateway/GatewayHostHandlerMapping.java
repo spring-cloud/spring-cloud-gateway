@@ -33,6 +33,7 @@ public class GatewayHostHandlerMapping extends AbstractHandlerMapping {
 	public GatewayHostHandlerMapping(GatewayProperties properties, WebHandler webHandler) {
 		this.properties = properties;
 		this.webHandler = webHandler;
+		setOrder(-1);
 	}
 
 	@Override
