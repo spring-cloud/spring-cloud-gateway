@@ -16,6 +16,8 @@ import reactor.core.publisher.Mono;
 
 import java.net.URI;
 
+import static org.springframework.util.StringUtils.hasText;
+
 /**
  * @author Spencer Gibb
  */
@@ -24,11 +26,11 @@ public class FindRouteFilter implements WebFilter, Ordered {
 	private static final Log log = LogFactory.getLog(GatewayApplication.class);
 
 	private final GatewayProperties properties;
-	private final AntPathMatcher matcher;
+	private final AntPathMatcher pathMatcher = new AntPathMatcher();
+	private final AntPathMatcher hostMatcher = new AntPathMatcher(".");
 
 	public FindRouteFilter(GatewayProperties properties) {
 		this.properties = properties;
-		this.matcher = new AntPathMatcher();
 	}
 
 	@Override
@@ -43,16 +45,26 @@ public class FindRouteFilter implements WebFilter, Ordered {
 		ServerHttpRequest request = exchange.getRequest();
 		URI uri = request.getURI();
 		String path = uri.getPath();
+		String host = uri.getHost();
 		for (Route route : this.properties.getRoutes().values()) {
-			if (this.matcher.match(route.getRequestPath(), path)) {
-				URI requestUrl = UriComponentsBuilder.fromHttpRequest(request)
-						.uri(route.getUpstreamUrl())
-						.build(true)
-						.toUri();
-				exchange.getAttributes().put("requestUrl", requestUrl);
-				return chain.filter(exchange);
+			if (hasText(route.getRequestPath())
+					&& this.pathMatcher.match(route.getRequestPath(), path)) {
+				populateRequestUrl(exchange, request, route);
+			// TODO: this stuff needs to move into GatewayHandlerMapping
+			// otherwise, only path based routing works
+			} else if (hasText(route.getRequestHost())
+					&& this.hostMatcher.match(route.getRequestHost(), host)) {
+				populateRequestUrl(exchange, request, route);
 			}
 		}
 		return chain.filter(exchange);
+	}
+
+	private void populateRequestUrl(ServerWebExchange exchange, ServerHttpRequest request, Route route) {
+		URI requestUrl = UriComponentsBuilder.fromHttpRequest(request)
+				.uri(route.getDownstreamUrl())
+				.build(true)
+				.toUri();
+		exchange.getAttributes().put("requestUrl", requestUrl);
 	}
 }

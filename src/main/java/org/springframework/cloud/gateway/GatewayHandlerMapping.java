@@ -2,6 +2,7 @@ package org.springframework.cloud.gateway;
 
 import org.springframework.beans.BeansException;
 import org.springframework.cloud.gateway.GatewayProperties.Route;
+import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.handler.AbstractUrlHandlerMapping;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -28,12 +29,10 @@ public class GatewayHandlerMapping extends AbstractUrlHandlerMapping {
 
 	protected void registerHandlers(Map<String, Route> routes) {
 		for (Route route : routes.values()) {
-			registerHandler(route.getRequestPath(), this.gatewayWebHandler);
+			if (StringUtils.hasText(route.getRequestPath())) {
+				registerHandler(route.getRequestPath(), this.gatewayWebHandler);
+			}
 		}
 	}
 
-	@Override
-	protected Object lookupHandler(String urlPath, ServerWebExchange exchange) throws Exception {
-		return super.lookupHandler(urlPath, exchange);
-	}
 }

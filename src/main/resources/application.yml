@@ -7,4 +7,5 @@ spring:
       routes:
         test1:
           requestPath: /**
-          upstreamUrl: http://httpbin.org:80
+#          requestHost: '**.example.org'
+          downstreamUrl: http://httpbin.org:80

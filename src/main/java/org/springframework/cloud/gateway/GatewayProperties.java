@@ -29,7 +29,8 @@ public class GatewayProperties {
 	public static class Route {
 		private String id;
 		private String requestPath;
-		private URI upstreamUrl;
+		private String requestHost;
+		private URI downstreamUrl;
 
 		public String getRequestPath() {
 			return this.requestPath;
@@ -39,12 +40,20 @@ public class GatewayProperties {
 			this.requestPath = requestPath;
 		}
 
-		public URI getUpstreamUrl() {
-			return upstreamUrl;
+		public String getRequestHost() {
+			return requestHost;
 		}
 
-		public void setUpstreamUrl(URI upstreamUrl) {
-			this.upstreamUrl = upstreamUrl;
+		public void setRequestHost(String requestHost) {
+			this.requestHost = requestHost;
+		}
+
+		public URI getDownstreamUrl() {
+			return downstreamUrl;
+		}
+
+		public void setDownstreamUrl(URI downstreamUrl) {
+			this.downstreamUrl = downstreamUrl;
 		}
 
 		@Override
@@ -52,7 +61,8 @@ public class GatewayProperties {
 			return "Route{" +
 					"id='" + id + '\'' +
 					", requestPath='" + requestPath + '\'' +
-					", upstreamUrl='" + upstreamUrl + '\'' +
+					", requestHost='" + requestHost + '\'' +
+					", downstreamUrl='" + downstreamUrl + '\'' +
 					'}';
 		}
 	}
