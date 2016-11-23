@@ -33,14 +33,11 @@ public class RouteToUrlFilter implements GatewayFilter, Ordered {
 		return ROUTE_TO_URL_FILTER_ORDER;
 	}
 
-	// TODO: do we really need shouldFilter or just move the if into filter?
-	@Override
-	public boolean shouldFilter(ServerWebExchange exchange) {
-		return exchange.getAttributes().containsKey(GATEWAY_ROUTE_ATTR);
-	}
-
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
+		if (!exchange.getAttributes().containsKey(GATEWAY_ROUTE_ATTR)) {
+			return chain.filter(exchange);
+		}
 		log.info("RouteToUrlFilter start");
 		Object gatewayRoute = exchange.getAttributes().get(GATEWAY_ROUTE_ATTR);
 		if (!(gatewayRoute instanceof Route)) {

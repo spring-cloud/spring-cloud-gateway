@@ -34,10 +34,6 @@ public interface GatewayFilter {
 	String GATEWAY_ROUTE_ATTR = "gatewayRoute";
 	String GATEWAY_REQUEST_URL_ATTR = "requestUrl";
 
-	default boolean shouldFilter(ServerWebExchange exchange) {
-		return true;
-	}
-
 	/**
 	 * Process the Web request and (optionally) delegate to the next
 	 * {@code WebFilter} through the given {@link WebFilterChain}.

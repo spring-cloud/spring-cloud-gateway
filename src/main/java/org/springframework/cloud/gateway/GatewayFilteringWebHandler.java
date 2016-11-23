@@ -70,11 +70,7 @@ public class GatewayFilteringWebHandler extends WebHandlerDecorator {
 		public Mono<Void> filter(ServerWebExchange exchange) {
 			if (this.index < filters.size()) {
 				GatewayFilter filter = filters.get(this.index++);
-				if (filter.shouldFilter(exchange)) {
-					return filter.filter(exchange, this);
-				} else {
-					return this.filter(exchange);
-				}
+				return filter.filter(exchange, this);
 			}
 			else {
 				return getDelegate().handle(exchange);
