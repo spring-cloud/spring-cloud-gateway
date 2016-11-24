@@ -6,12 +6,16 @@ spring:
   cloud:
     gateway:
       routes:
-        test1:
-          requestPath: /**
-          downstreamUrl: http://httpbin.org:80
+#        test1:
+#          requestPath: /**
+#          downstreamUrl: http://httpbin.org:80
         test2:
           requestHost: '**.example.org'
           downstreamUrl: http://httpbin.org:80
 logging:
   level:
     org.springframework.cloud.gateway: TRACE
+
+management:
+  context-path: /admin
+#  port: 8081
