@@ -1,4 +1,4 @@
-package org.springframework.cloud.gateway;
+package org.springframework.cloud.gateway.handler;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -8,7 +8,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.BeansException;
-import org.springframework.cloud.gateway.GatewayProperties.Route;
+import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.config.GatewayProperties;
+import org.springframework.cloud.gateway.config.GatewayProperties.Route;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -18,7 +20,7 @@ import org.springframework.web.server.WebHandler;
 
 import reactor.core.publisher.Mono;
 
-import static org.springframework.cloud.gateway.GatewayFilter.GATEWAY_ROUTE_ATTR;
+import static org.springframework.cloud.gateway.filter.GatewayFilter.GATEWAY_ROUTE_ATTR;
 
 /**
  * @author Spencer Gibb

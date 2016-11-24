@@ -7,6 +7,9 @@ import org.junit.runner.RunWith;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.embedded.LocalServerPort;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.handler.GatewayHostHandlerMapping;
+import org.springframework.cloud.gateway.handler.GatewayUrlHandlerMapping;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
@@ -26,7 +29,7 @@ import reactor.test.StepVerifier;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
-public class GatewayApplicationTests {
+public class GatewayIntegrationTests {
 
 	public static final String HANDLER_MAPPER_HEADER = "X-Gateway-Handler-Mapper-Class";
 	@LocalServerPort

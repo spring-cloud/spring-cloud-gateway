@@ -1,7 +1,9 @@
-package org.springframework.cloud.gateway;
+package org.springframework.cloud.gateway.handler;
 
 import org.springframework.beans.BeansException;
-import org.springframework.cloud.gateway.GatewayProperties.Route;
+import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.config.GatewayProperties;
+import org.springframework.cloud.gateway.config.GatewayProperties.Route;
 import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.handler.AbstractUrlHandlerMapping;
 import org.springframework.web.server.ServerWebExchange;

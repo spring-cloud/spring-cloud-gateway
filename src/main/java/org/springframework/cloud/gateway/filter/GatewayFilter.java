@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.gateway;
+package org.springframework.cloud.gateway.filter;
 
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilterChain;

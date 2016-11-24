@@ -1,12 +1,11 @@
-package org.springframework.cloud.gateway.filters;
+package org.springframework.cloud.gateway.filter;
 
 import java.net.URI;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.cloud.gateway.GatewayFilter;
-import org.springframework.cloud.gateway.GatewayProperties;
-import org.springframework.cloud.gateway.GatewayProperties.Route;
+import org.springframework.cloud.gateway.config.GatewayProperties;
+import org.springframework.cloud.gateway.config.GatewayProperties.Route;
 import org.springframework.core.Ordered;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilterChain;

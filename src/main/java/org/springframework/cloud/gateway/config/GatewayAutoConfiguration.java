@@ -1,8 +1,13 @@
-package org.springframework.cloud.gateway;
+package org.springframework.cloud.gateway.config;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cloud.gateway.filters.RouteToUrlFilter;
+import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.RouteToUrlFilter;
+import org.springframework.cloud.gateway.handler.GatewayFilteringWebHandler;
+import org.springframework.cloud.gateway.handler.GatewayHostHandlerMapping;
+import org.springframework.cloud.gateway.handler.GatewayUrlHandlerMapping;
+import org.springframework.cloud.gateway.handler.GatewayWebHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;

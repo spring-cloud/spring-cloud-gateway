@@ -1,5 +1,6 @@
-package org.springframework.cloud.gateway;
+package org.springframework.cloud.gateway.handler;
 
+import org.springframework.cloud.gateway.config.GatewayProperties;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
@@ -13,7 +14,7 @@ import reactor.core.publisher.Mono;
 import java.net.URI;
 import java.util.Optional;
 
-import static org.springframework.cloud.gateway.GatewayFilter.GATEWAY_REQUEST_URL_ATTR;
+import static org.springframework.cloud.gateway.filter.GatewayFilter.GATEWAY_REQUEST_URL_ATTR;
 
 /**
  * @author Spencer Gibb

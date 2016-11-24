@@ -1,4 +1,4 @@
-package org.springframework.cloud.gateway;
+package org.springframework.cloud.gateway.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 

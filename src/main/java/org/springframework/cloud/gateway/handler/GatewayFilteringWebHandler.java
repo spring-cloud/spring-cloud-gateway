@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.gateway;
+package org.springframework.cloud.gateway.handler;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilterChain;
 import org.springframework.web.server.WebHandler;
