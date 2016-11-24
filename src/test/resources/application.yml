@@ -1,14 +1,11 @@
 
 spring:
-  resources:
-    # TODO: how to add this programmatically
-    add-mappings: false
   cloud:
     gateway:
       routes:
-#        test1:
-#          requestPath: /**
-#          downstreamUrl: http://httpbin.org:80
+        test1:
+          requestPath: /**
+          downstreamUrl: http://httpbin.org:80
         test2:
           requestHost: '**.example.org'
           downstreamUrl: http://httpbin.org:80
