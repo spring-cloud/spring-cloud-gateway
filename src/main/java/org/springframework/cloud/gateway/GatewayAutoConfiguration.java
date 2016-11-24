@@ -13,7 +13,7 @@ import org.springframework.web.client.reactive.WebClient;
  */
 @Configuration
 @EnableConfigurationProperties
-public class GatewayConfiguration {
+public class GatewayAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean

@@ -33,6 +33,7 @@ public interface GatewayFilter {
 
 	String GATEWAY_ROUTE_ATTR = "gatewayRoute";
 	String GATEWAY_REQUEST_URL_ATTR = "requestUrl";
+	String GATEWAY_HANDLER_MAPPER_ATTR = "gatewayHandlerMapper";
 
 	/**
 	 * Process the Web request and (optionally) delegate to the next

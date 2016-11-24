@@ -45,6 +45,7 @@ public class GatewayHostHandlerMapping extends AbstractHandlerMapping {
 
 	@Override
 	protected Mono<?> getHandlerInternal(ServerWebExchange exchange) {
+		exchange.getAttributes().put(GatewayFilter.GATEWAY_HANDLER_MAPPER_ATTR, getClass().getSimpleName());
 		String host = exchange.getRequest().getHeaders().getFirst("Host");
 		Object handler;
 		try {
