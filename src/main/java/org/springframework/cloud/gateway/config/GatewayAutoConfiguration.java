@@ -6,7 +6,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.gateway.actuate.GatewayEndpoint;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
-import org.springframework.cloud.gateway.filter.RouteToUrlFilter;
+import org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter;
 import org.springframework.cloud.gateway.handler.GatewayFilteringWebHandler;
 import org.springframework.cloud.gateway.handler.GatewayHostHandlerMapping;
 import org.springframework.cloud.gateway.handler.GatewayUrlHandlerMapping;
@@ -32,8 +32,8 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	public RouteToUrlFilter findRouteFilter(GatewayProperties properties) {
-		return new RouteToUrlFilter(properties);
+	public RouteToRequestUrlFilter findRouteFilter(GatewayProperties properties) {
+		return new RouteToRequestUrlFilter(properties);
 	}
 
 	@Bean

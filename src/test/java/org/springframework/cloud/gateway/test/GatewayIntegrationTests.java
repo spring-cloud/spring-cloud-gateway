@@ -1,10 +1,10 @@
-package org.springframework.cloud.gateway;
+package org.springframework.cloud.gateway.test;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.context.embedded.LocalServerPort;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
@@ -32,6 +32,7 @@ import reactor.test.StepVerifier;
 public class GatewayIntegrationTests {
 
 	public static final String HANDLER_MAPPER_HEADER = "X-Gateway-Handler-Mapper-Class";
+
 	@LocalServerPort
 	private int port;
 
@@ -76,7 +77,7 @@ public class GatewayIntegrationTests {
 				.verify();
 	}
 
-	@SpringBootApplication
+	@SpringBootConfiguration
 	public static class TestConfig {
 
 		private static final Log log = LogFactory.getLog(TestConfig.class);

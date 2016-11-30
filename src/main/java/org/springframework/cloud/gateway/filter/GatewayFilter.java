@@ -32,7 +32,7 @@ import reactor.core.publisher.Mono;
 public interface GatewayFilter {
 
 	String GATEWAY_ROUTE_ATTR = "gatewayRoute";
-	String GATEWAY_REQUEST_URL_ATTR = "requestUrl";
+	String GATEWAY_REQUEST_URL_ATTR = "gatewayRequestUrl";
 	String GATEWAY_HANDLER_MAPPER_ATTR = "gatewayHandlerMapper";
 
 	/**
@@ -44,4 +44,14 @@ public interface GatewayFilter {
 	 */
 	Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain);
 
+	default <T> T getAttribute(ServerWebExchange exchange, String attributeName, Class<T> type) {
+		if (exchange.getAttributes().containsKey(attributeName)) {
+			Object attr = exchange.getAttributes().get(attributeName);
+			if (type.isAssignableFrom(attr.getClass())) {
+				return type.cast(attr);
+			}
+			throw new ClassCastException(attributeName + " is not of type " + type);
+		}
+		return null;
+	}
 }

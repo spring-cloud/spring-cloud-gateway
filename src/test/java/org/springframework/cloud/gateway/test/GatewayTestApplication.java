@@ -1,16 +1,14 @@
-package org.springframework.cloud.gateway;
+package org.springframework.cloud.gateway.test;
 
+import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.builder.SpringApplicationBuilder;
 
 @SpringBootConfiguration
 @EnableAutoConfiguration
 public class GatewayTestApplication {
 
 	public static void main(String[] args) {
-		new SpringApplicationBuilder()
-				.sources(GatewayTestApplication.class)
-				.run(args);
+		SpringApplication.run(GatewayTestApplication.class, args);
 	}
 }

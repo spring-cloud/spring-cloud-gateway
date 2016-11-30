@@ -16,14 +16,14 @@ import reactor.core.publisher.Mono;
 /**
  * @author Spencer Gibb
  */
-public class RouteToUrlFilter implements GatewayFilter, Ordered {
+public class RouteToRequestUrlFilter implements GatewayFilter, Ordered {
 
-	private static final Log log = LogFactory.getLog(RouteToUrlFilter.class);
+	private static final Log log = LogFactory.getLog(RouteToRequestUrlFilter.class);
 	public static final int ROUTE_TO_URL_FILTER_ORDER = 500;
 
 	private final GatewayProperties properties;
 
-	public RouteToUrlFilter(GatewayProperties properties) {
+	public RouteToRequestUrlFilter(GatewayProperties properties) {
 		this.properties = properties;
 	}
 
@@ -34,17 +34,11 @@ public class RouteToUrlFilter implements GatewayFilter, Ordered {
 
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
-		if (!exchange.getAttributes().containsKey(GATEWAY_ROUTE_ATTR)) {
+		Route route = getAttribute(exchange, GATEWAY_ROUTE_ATTR, Route.class);
+		if (route == null) {
 			return chain.filter(exchange);
 		}
-		log.info("RouteToUrlFilter start");
-		Object gatewayRoute = exchange.getAttributes().get(GATEWAY_ROUTE_ATTR);
-		if (!(gatewayRoute instanceof Route)) {
-			return Mono.error(new IllegalStateException(GATEWAY_ROUTE_ATTR +
-					" not an instance of " + Route.class.getSimpleName() +
-					", is " + gatewayRoute.getClass()));
-		}
-		Route route = (Route) gatewayRoute;
+		log.info("RouteToRequestUrlFilter start");
 		URI requestUrl = UriComponentsBuilder.fromHttpRequest(exchange.getRequest())
 				.uri(route.getDownstreamUrl())
 				.build(true)
