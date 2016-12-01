@@ -89,6 +89,7 @@ public class GatewayIntegrationTests {
 				GET("http://localhost:" + port + "/headers?foo=bar&baz")
 						.header("Host", "www.foo.org")
 						.header("X-Request-Id", "123")
+						.cookie("chocolate", "chip")
 						.build()
 		);
 

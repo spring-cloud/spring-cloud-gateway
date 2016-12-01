@@ -8,6 +8,7 @@ import org.springframework.cloud.gateway.actuate.GatewayEndpoint;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter;
 import org.springframework.cloud.gateway.handler.GatewayFilteringWebHandler;
+import org.springframework.cloud.gateway.handler.predicate.CookiePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.HeaderPredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.HostPredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.GatewayPredicateFactory;
@@ -64,18 +65,8 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	public HostPredicateFactory hostPredicateFactory() {
-		return new HostPredicateFactory();
-	}
-
-	@Bean
-	public UrlPredicateFactory urlPredicateFactory() {
-		return new UrlPredicateFactory();
-	}
-
-	@Bean
-	public MethodPredicateFactory methodPredicateFactory() {
-		return new MethodPredicateFactory();
+	public CookiePredicateFactory cookiePredicateFactory() {
+		return new CookiePredicateFactory();
 	}
 
 	@Bean
@@ -84,8 +75,23 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
+	public HostPredicateFactory hostPredicateFactory() {
+		return new HostPredicateFactory();
+	}
+
+	@Bean
+	public MethodPredicateFactory methodPredicateFactory() {
+		return new MethodPredicateFactory();
+	}
+
+	@Bean
 	public QueryPredicateFactory queryPredicateFactory() {
 		return new QueryPredicateFactory();
+	}
+
+	@Bean
+	public UrlPredicateFactory urlPredicateFactory() {
+		return new UrlPredicateFactory();
 	}
 
 	@Configuration

@@ -19,6 +19,7 @@ spring:
         - Header=X-Request-Id, \d+
         - Query=foo, ba.
         - Query=baz
+        - Cookie=chocolate, ch.p
 
       # =====================================
       - id: default_path_to_httpbin
