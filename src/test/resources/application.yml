@@ -4,14 +4,11 @@ spring:
     gateway:
       routes:
       # =====================================
-      - id: host_example_to_httpbin
-        downstreamUrl: http://httpbin.org:80
-        predicates:
-        - Host=**.example.org
+      - host_example_to_httpbin=http://httpbin.org:80, Host=**.example.org
 
       # =====================================
       - id: host_foo_path_headers_to_httpbin
-        downstreamUrl: http://httpbin.org:80
+        uri: http://httpbin.org:80
         predicates:
         - Host=**.foo.org
         - Url=/headers
@@ -23,7 +20,7 @@ spring:
 
       # =====================================
       - id: default_path_to_httpbin
-        downstreamUrl: http://httpbin.org:80
+        uri: http://httpbin.org:80
         predicates:
         - name: Url
           value: /**

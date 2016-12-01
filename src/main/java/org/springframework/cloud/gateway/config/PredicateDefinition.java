@@ -23,14 +23,14 @@ public class PredicateDefinition {
 	}
 
 	public PredicateDefinition(String text) {
-		String[] parts = text.split("=");
-		if (parts.length != 2) {
+		int eqIdx = text.indexOf("=");
+		if (eqIdx <= 0) {
 			throw new ValidationException("Unable to parse Predicate text '" + text + "'" +
 					", must be of the form name=value");
 		}
-		setName(parts[0]);
+		setName(text.substring(0, eqIdx));
 
-		String[] args = tokenizeToStringArray(parts[1], ",");
+		String[] args = tokenizeToStringArray(text.substring(eqIdx+1), ",");
 
 		setValue(args[0]);
 

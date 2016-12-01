@@ -3,25 +3,49 @@ package org.springframework.cloud.gateway.config;
 import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.validation.Valid;
+import javax.validation.ValidationException;
 import javax.validation.constraints.NotNull;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
+
+import static org.springframework.util.StringUtils.tokenizeToStringArray;
 
 /**
  * @author Spencer Gibb
  */
 public class Route {
 	@NotEmpty
-	private String id;
+	private String id = UUID.randomUUID().toString();
 
 	@NotEmpty
 	@Valid
 	private List<PredicateDefinition> predicates = new ArrayList<>();
 
 	@NotNull
-	private URI downstreamUrl;
+	private URI uri;
+
+	public Route() {}
+
+	public Route(String text) {
+		int eqIdx = text.indexOf("=");
+		if (eqIdx <= 0) {
+			throw new ValidationException("Unable to parse Predicate text '" + text + "'" +
+					", must be of the form name=value");
+		}
+
+		setId(text.substring(0, eqIdx));
+
+		String[] args = tokenizeToStringArray(text.substring(eqIdx+1), ",");
+
+		setUri(URI.create(args[0]));
+
+		for (int i=1; i < args.length; i++) {
+			this.predicates.add(new PredicateDefinition(args[i]));
+		}
+	}
 
 	public String getId() {
 		return id;
@@ -39,12 +63,12 @@ public class Route {
 		this.predicates = predicates;
 	}
 
-	public URI getDownstreamUrl() {
-		return downstreamUrl;
+	public URI getUri() {
+		return uri;
 	}
 
-	public void setDownstreamUrl(URI downstreamUrl) {
-		this.downstreamUrl = downstreamUrl;
+	public void setUri(URI uri) {
+		this.uri = uri;
 	}
 
 	@Override
@@ -54,12 +78,12 @@ public class Route {
 		Route route = (Route) o;
 		return Objects.equals(id, route.id) &&
 				Objects.equals(predicates, route.predicates) &&
-				Objects.equals(downstreamUrl, route.downstreamUrl);
+				Objects.equals(uri, route.uri);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(id, predicates, downstreamUrl);
+		return Objects.hash(id, predicates, uri);
 	}
 
 	@Override
@@ -67,7 +91,7 @@ public class Route {
 		return "Route{" +
 				"id='" + id + '\'' +
 				", predicates=" + predicates +
-				", downstreamUrl=" + downstreamUrl +
+				", uri=" + uri +
 				'}';
 	}
 }

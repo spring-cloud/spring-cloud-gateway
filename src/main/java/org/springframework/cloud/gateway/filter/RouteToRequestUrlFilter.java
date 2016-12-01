@@ -40,7 +40,7 @@ public class RouteToRequestUrlFilter implements GatewayFilter, Ordered {
 		}
 		log.info("RouteToRequestUrlFilter start");
 		URI requestUrl = UriComponentsBuilder.fromHttpRequest(exchange.getRequest())
-				.uri(route.getDownstreamUrl())
+				.uri(route.getUri())
 				.build(true)
 				.toUri();
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, requestUrl);
