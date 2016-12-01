@@ -17,6 +17,8 @@ spring:
         - Url=/headers
         - Method=GET
         - Header=X-Request-Id, \d+
+        - Query=foo, ba.
+        - Query=baz
 
       # =====================================
       - id: default_path_to_httpbin

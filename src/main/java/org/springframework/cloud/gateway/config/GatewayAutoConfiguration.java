@@ -14,6 +14,7 @@ import org.springframework.cloud.gateway.handler.predicate.GatewayPredicateFacto
 import org.springframework.cloud.gateway.handler.GatewayWebHandler;
 import org.springframework.cloud.gateway.handler.ServerWebExchangePredicateHandlerMapping;
 import org.springframework.cloud.gateway.handler.predicate.MethodPredicateFactory;
+import org.springframework.cloud.gateway.handler.predicate.QueryPredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.UrlPredicateFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -80,6 +81,11 @@ public class GatewayAutoConfiguration {
 	@Bean
 	public HeaderPredicateFactory headerPredicateFactory() {
 		return new HeaderPredicateFactory();
+	}
+
+	@Bean
+	public QueryPredicateFactory queryPredicateFactory() {
+		return new QueryPredicateFactory();
 	}
 
 	@Configuration

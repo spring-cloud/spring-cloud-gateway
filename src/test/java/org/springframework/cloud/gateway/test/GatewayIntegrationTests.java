@@ -86,7 +86,7 @@ public class GatewayIntegrationTests {
 	@Test
 	public void compositeRouteWorks() {
 		Mono<ClientResponse> result = webClient.exchange(
-				GET("http://localhost:" + port + "/headers")
+				GET("http://localhost:" + port + "/headers?foo=bar&baz")
 						.header("Host", "www.foo.org")
 						.header("X-Request-Id", "123")
 						.build()
