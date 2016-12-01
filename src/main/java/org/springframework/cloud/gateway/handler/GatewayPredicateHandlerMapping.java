@@ -130,7 +130,7 @@ public class GatewayPredicateHandlerMapping extends AbstractHandlerMapping {
 		if (found == null) {
 			throw new IllegalArgumentException("Unable to find GatewayPredicate with name " + predicate.getName());
 		}
-		return found.create(predicate.getValue(), predicate.getArgs());
+		return found.apply(predicate.getValue(), predicate.getArgs());
 	}
 
 	/**

@@ -37,7 +37,7 @@ public class UrlPredicate implements GatewayPredicate {
 	}
 
 	@Override
-	public Predicate<ServerWebExchange> create(String pattern, String[] args) {
+	public Predicate<ServerWebExchange> apply(String pattern, String[] args) {
 		return exchange -> {
 			String lookupPath = getPathHelper().getLookupPathForRequest(exchange);
 			return getPathMatcher().match(pattern, lookupPath);

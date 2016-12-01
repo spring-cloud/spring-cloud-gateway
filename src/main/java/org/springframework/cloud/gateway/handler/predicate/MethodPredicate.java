@@ -16,7 +16,7 @@ public class MethodPredicate implements GatewayPredicate {
 	}
 
 	@Override
-	public Predicate<ServerWebExchange> create(String method, String[] args) {
+	public Predicate<ServerWebExchange> apply(String method, String[] args) {
 		//TODO: caching can happen here
 		return exchange -> {
 			HttpMethod requestMethod = exchange.getRequest().getMethod();

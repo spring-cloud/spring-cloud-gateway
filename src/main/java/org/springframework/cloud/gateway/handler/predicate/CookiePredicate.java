@@ -18,7 +18,7 @@ public class CookiePredicate implements GatewayPredicate {
 	}
 
 	@Override
-	public Predicate<ServerWebExchange> create(String name, String[] args) {
+	public Predicate<ServerWebExchange> apply(String name, String[] args) {
 		//TODO: caching can happen here
 		return exchange -> {
 			Assert.isTrue(args != null && args.length == 1,

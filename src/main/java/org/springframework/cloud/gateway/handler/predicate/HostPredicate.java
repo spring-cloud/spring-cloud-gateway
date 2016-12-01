@@ -23,7 +23,7 @@ public class HostPredicate implements GatewayPredicate {
 	}
 
 	@Override
-	public Predicate<ServerWebExchange> create(String pattern, String[] args) {
+	public Predicate<ServerWebExchange> apply(String pattern, String[] args) {
 		//TODO: caching can happen here
 		return exchange -> {
 			String host = exchange.getRequest().getHeaders().getFirst("Host");

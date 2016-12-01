@@ -11,5 +11,5 @@ public interface GatewayPredicate {
 
 	String getName();
 
-	Predicate<ServerWebExchange> create(String value, String[] args);
+	Predicate<ServerWebExchange> apply(String value, String[] args);
 }

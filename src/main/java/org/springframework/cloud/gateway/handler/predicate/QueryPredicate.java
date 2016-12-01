@@ -16,7 +16,7 @@ public class QueryPredicate implements GatewayPredicate {
 	}
 
 	@Override
-	public Predicate<ServerWebExchange> create(String param, String[] args) {
+	public Predicate<ServerWebExchange> apply(String param, String[] args) {
 		//TODO: caching can happen here
 		return exchange -> {
 			String regexp = null;
