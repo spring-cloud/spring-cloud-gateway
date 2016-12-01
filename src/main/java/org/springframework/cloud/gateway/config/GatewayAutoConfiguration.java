@@ -13,7 +13,7 @@ import org.springframework.cloud.gateway.handler.predicate.HeaderPredicateFactor
 import org.springframework.cloud.gateway.handler.predicate.HostPredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.GatewayPredicateFactory;
 import org.springframework.cloud.gateway.handler.GatewayWebHandler;
-import org.springframework.cloud.gateway.handler.ServerWebExchangePredicateHandlerMapping;
+import org.springframework.cloud.gateway.handler.GatewayPredicateHandlerMapping;
 import org.springframework.cloud.gateway.handler.predicate.MethodPredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.QueryPredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.UrlPredicateFactory;
@@ -58,10 +58,10 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	public ServerWebExchangePredicateHandlerMapping serverWebExchangePredicateHandlerMapping(GatewayProperties properties,
-																							 GatewayFilteringWebHandler webHandler,
-																							 List<GatewayPredicateFactory> predicateFactories) {
-		return new ServerWebExchangePredicateHandlerMapping(webHandler, predicateFactories, properties);
+	public GatewayPredicateHandlerMapping gatewayPredicateHandlerMapping(GatewayProperties properties,
+																		 GatewayFilteringWebHandler webHandler,
+																		 List<GatewayPredicateFactory> predicateFactories) {
+		return new GatewayPredicateHandlerMapping(webHandler, predicateFactories, properties);
 	}
 
 	@Bean

@@ -22,7 +22,7 @@ import static org.springframework.cloud.gateway.filter.GatewayFilter.GATEWAY_ROU
 /**
  * @author Spencer Gibb
  */
-public class ServerWebExchangePredicateHandlerMapping extends AbstractHandlerMapping {
+public class GatewayPredicateHandlerMapping extends AbstractHandlerMapping {
 
 	private Map<String, GatewayPredicateFactory> predicateFactories = new LinkedHashMap<>();
 	private GatewayProperties properties;
@@ -30,7 +30,7 @@ public class ServerWebExchangePredicateHandlerMapping extends AbstractHandlerMap
 
 	private List<Route> routes;
 
-	public ServerWebExchangePredicateHandlerMapping(WebHandler webHandler, List<GatewayPredicateFactory> predicateFactories, GatewayProperties properties) {
+	public GatewayPredicateHandlerMapping(WebHandler webHandler, List<GatewayPredicateFactory> predicateFactories, GatewayProperties properties) {
 		this.webHandler = webHandler;
 		this.properties = properties;
 

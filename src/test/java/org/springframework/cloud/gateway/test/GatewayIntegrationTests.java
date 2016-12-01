@@ -10,7 +10,7 @@ import org.springframework.boot.context.embedded.LocalServerPort;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.config.Route;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
-import org.springframework.cloud.gateway.handler.ServerWebExchangePredicateHandlerMapping;
+import org.springframework.cloud.gateway.handler.GatewayPredicateHandlerMapping;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
@@ -51,7 +51,7 @@ public class GatewayIntegrationTests {
 				.consumeNextWith(
 						httpHeaders -> {
 							assertThat(httpHeaders.getFirst(HANDLER_MAPPER_HEADER))
-									.isEqualTo(ServerWebExchangePredicateHandlerMapping.class.getSimpleName());
+									.isEqualTo(GatewayPredicateHandlerMapping.class.getSimpleName());
 							assertThat(httpHeaders.getFirst(ROUTE_ID_HEADER))
 									.isEqualTo("default_path_to_httpbin");
 						})
@@ -74,7 +74,7 @@ public class GatewayIntegrationTests {
 							HttpHeaders httpHeaders = response.headers().asHttpHeaders();
 							HttpStatus statusCode = response.statusCode();
 							assertThat(httpHeaders.getFirst(HANDLER_MAPPER_HEADER))
-									.isEqualTo(ServerWebExchangePredicateHandlerMapping.class.getSimpleName());
+									.isEqualTo(GatewayPredicateHandlerMapping.class.getSimpleName());
 							assertThat(httpHeaders.getFirst(ROUTE_ID_HEADER))
 									.isEqualTo("host_example_to_httpbin");
 							assertThat(statusCode).isEqualTo(HttpStatus.OK);
@@ -100,7 +100,7 @@ public class GatewayIntegrationTests {
 							HttpHeaders httpHeaders = response.headers().asHttpHeaders();
 							HttpStatus statusCode = response.statusCode();
 							assertThat(httpHeaders.getFirst(HANDLER_MAPPER_HEADER))
-									.isEqualTo(ServerWebExchangePredicateHandlerMapping.class.getSimpleName());
+									.isEqualTo(GatewayPredicateHandlerMapping.class.getSimpleName());
 							assertThat(httpHeaders.getFirst(ROUTE_ID_HEADER))
 									.isEqualTo("host_foo_path_headers_to_httpbin");
 							assertThat(statusCode).isEqualTo(HttpStatus.OK);
