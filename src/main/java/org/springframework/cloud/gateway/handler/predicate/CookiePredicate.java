@@ -10,7 +10,7 @@ import org.springframework.web.server.ServerWebExchange;
 /**
  * @author Spencer Gibb
  */
-public class CookiePredicateFactory implements GatewayPredicateFactory {
+public class CookiePredicate implements GatewayPredicate {
 
 	@Override
 	public String getName() {

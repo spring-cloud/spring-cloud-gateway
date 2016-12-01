@@ -9,7 +9,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.cloud.gateway.config.GatewayProperties;
 import org.springframework.cloud.gateway.config.Route;
 import org.springframework.cloud.gateway.config.PredicateDefinition;
-import org.springframework.cloud.gateway.handler.predicate.GatewayPredicateFactory;
+import org.springframework.cloud.gateway.handler.predicate.GatewayPredicate;
 import org.springframework.web.reactive.handler.AbstractHandlerMapping;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebHandler;
@@ -24,25 +24,25 @@ import static org.springframework.cloud.gateway.filter.GatewayFilter.GATEWAY_ROU
  */
 public class GatewayPredicateHandlerMapping extends AbstractHandlerMapping {
 
-	private Map<String, GatewayPredicateFactory> predicateFactories = new LinkedHashMap<>();
+	private Map<String, GatewayPredicate> predicates = new LinkedHashMap<>();
 	private GatewayProperties properties;
 	private WebHandler webHandler;
 
 	private List<Route> routes;
 
-	public GatewayPredicateHandlerMapping(WebHandler webHandler, List<GatewayPredicateFactory> predicateFactories, GatewayProperties properties) {
+	public GatewayPredicateHandlerMapping(WebHandler webHandler, List<GatewayPredicate> predicates, GatewayProperties properties) {
 		this.webHandler = webHandler;
 		this.properties = properties;
 
-		for (GatewayPredicateFactory factory : predicateFactories) {
-			if (this.predicateFactories.containsKey(factory.getName())) {
-				this.logger.warn("A GatewayPredicateFactory named "+ factory.getName()
-						+ " already exists, class: " + this.predicateFactories.get(factory.getName())
+		for (GatewayPredicate factory : predicates) {
+			if (this.predicates.containsKey(factory.getName())) {
+				this.logger.warn("A GatewayPredicate named "+ factory.getName()
+						+ " already exists, class: " + this.predicates.get(factory.getName())
 						+ ". It will be overwritten.");
 			}
-			this.predicateFactories.put(factory.getName(), factory);
+			this.predicates.put(factory.getName(), factory);
 			if (logger.isInfoEnabled()) {
-				logger.info("Loaded GatewayPredicateFactory [" + factory.getName() + "]");
+				logger.info("Loaded GatewayPredicate [" + factory.getName() + "]");
 			}
 		}
 
@@ -126,9 +126,9 @@ public class GatewayPredicateHandlerMapping extends AbstractHandlerMapping {
 	}
 
 	private Predicate<ServerWebExchange> lookup(PredicateDefinition predicate) {
-		GatewayPredicateFactory found = this.predicateFactories.get(predicate.getName());
+		GatewayPredicate found = this.predicates.get(predicate.getName());
 		if (found == null) {
-			throw new IllegalArgumentException("Unable to find GatewayPredicateFactory with name " + predicate.getName());
+			throw new IllegalArgumentException("Unable to find GatewayPredicate with name " + predicate.getName());
 		}
 		return found.create(predicate.getValue(), predicate.getArgs());
 	}

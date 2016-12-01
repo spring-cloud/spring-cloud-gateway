@@ -9,7 +9,7 @@ import org.springframework.web.server.ServerWebExchange;
 /**
  * @author Spencer Gibb
  */
-public class HeaderPredicateFactory implements GatewayPredicateFactory {
+public class HeaderPredicate implements GatewayPredicate {
 
 	@Override
 	public String getName() {
