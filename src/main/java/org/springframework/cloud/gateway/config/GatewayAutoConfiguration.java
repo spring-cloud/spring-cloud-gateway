@@ -8,9 +8,11 @@ import org.springframework.cloud.gateway.actuate.GatewayEndpoint;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter;
 import org.springframework.cloud.gateway.handler.GatewayFilteringWebHandler;
-import org.springframework.cloud.gateway.handler.GatewayHostHandlerMapping;
-import org.springframework.cloud.gateway.handler.GatewayUrlHandlerMapping;
+import org.springframework.cloud.gateway.handler.HostPredicateFactory;
+import org.springframework.cloud.gateway.handler.GatewayPredicateFactory;
 import org.springframework.cloud.gateway.handler.GatewayWebHandler;
+import org.springframework.cloud.gateway.handler.ServerWebExchangePredicateHandlerMapping;
+import org.springframework.cloud.gateway.handler.UrlPredicateFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
@@ -52,13 +54,20 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	public GatewayUrlHandlerMapping gatewayUrlHandlerMapping(GatewayProperties properties, GatewayFilteringWebHandler webHandler) {
-		return new GatewayUrlHandlerMapping(properties, webHandler);
+	public ServerWebExchangePredicateHandlerMapping serverWebExchangePredicateHandlerMapping(GatewayProperties properties,
+																							 GatewayFilteringWebHandler webHandler,
+																							 List<GatewayPredicateFactory> predicateFactories) {
+		return new ServerWebExchangePredicateHandlerMapping(webHandler, predicateFactories, properties);
 	}
 
 	@Bean
-	public GatewayHostHandlerMapping gatewayHostHandlerMapping(GatewayProperties properties, GatewayFilteringWebHandler webHandler) {
-		return new GatewayHostHandlerMapping(properties, webHandler);
+	public HostPredicateFactory hostPredicateFactory() {
+		return new HostPredicateFactory();
+	}
+
+	@Bean
+	public UrlPredicateFactory urlPredicateFactory() {
+		return new UrlPredicateFactory();
 	}
 
 	@Configuration

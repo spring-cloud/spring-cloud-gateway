@@ -3,12 +3,28 @@ spring:
   cloud:
     gateway:
       routes:
-        test1:
-          requestPath: /**
-          downstreamUrl: http://httpbin.org:80
-        test2:
-          requestHost: '**.example.org'
-          downstreamUrl: http://httpbin.org:80
+      # =====================================
+      - id: host_example_to_httpbin
+        downstreamUrl: http://httpbin.org:80
+        predicates:
+        - name: Host
+          value: '**.example.org'
+
+      # =====================================
+      - id: host_foo_path_headers_to_httpbin
+        downstreamUrl: http://httpbin.org:80
+        predicates:
+        - name: Host
+          value: '**.foo.org'
+        - name: Url
+          value: '/headers'
+
+      # =====================================
+      - id: default_path_to_httpbin
+        downstreamUrl: http://httpbin.org:80
+        predicates:
+        - name: Url
+          value: /**
 logging:
   level:
     org.springframework.cloud.gateway: TRACE
