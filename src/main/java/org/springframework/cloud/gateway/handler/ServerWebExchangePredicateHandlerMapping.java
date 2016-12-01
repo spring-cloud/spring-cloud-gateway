@@ -8,7 +8,7 @@ import java.util.function.Predicate;
 import org.springframework.beans.BeansException;
 import org.springframework.cloud.gateway.config.GatewayProperties;
 import org.springframework.cloud.gateway.config.GatewayProperties.Route;
-import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.handler.predicate.GatewayPredicateFactory;
 import org.springframework.web.reactive.handler.AbstractHandlerMapping;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebHandler;

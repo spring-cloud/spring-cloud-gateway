@@ -8,11 +8,12 @@ import org.springframework.cloud.gateway.actuate.GatewayEndpoint;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter;
 import org.springframework.cloud.gateway.handler.GatewayFilteringWebHandler;
-import org.springframework.cloud.gateway.handler.HostPredicateFactory;
-import org.springframework.cloud.gateway.handler.GatewayPredicateFactory;
+import org.springframework.cloud.gateway.handler.predicate.HostPredicateFactory;
+import org.springframework.cloud.gateway.handler.predicate.GatewayPredicateFactory;
 import org.springframework.cloud.gateway.handler.GatewayWebHandler;
 import org.springframework.cloud.gateway.handler.ServerWebExchangePredicateHandlerMapping;
-import org.springframework.cloud.gateway.handler.UrlPredicateFactory;
+import org.springframework.cloud.gateway.handler.predicate.MethodPredicateFactory;
+import org.springframework.cloud.gateway.handler.predicate.UrlPredicateFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
@@ -68,6 +69,11 @@ public class GatewayAutoConfiguration {
 	@Bean
 	public UrlPredicateFactory urlPredicateFactory() {
 		return new UrlPredicateFactory();
+	}
+
+	@Bean
+	public MethodPredicateFactory methodPredicateFactory() {
+		return new MethodPredicateFactory();
 	}
 
 	@Configuration

@@ -1,4 +1,4 @@
-package org.springframework.cloud.gateway.handler;
+package org.springframework.cloud.gateway.handler.predicate;
 
 import org.springframework.web.server.ServerWebExchange;
 

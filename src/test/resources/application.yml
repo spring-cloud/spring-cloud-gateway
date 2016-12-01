@@ -17,7 +17,9 @@ spring:
         - name: Host
           value: '**.foo.org'
         - name: Url
-          value: '/headers'
+          value: /headers
+        - name: Method
+          value: GET
 
       # =====================================
       - id: default_path_to_httpbin
