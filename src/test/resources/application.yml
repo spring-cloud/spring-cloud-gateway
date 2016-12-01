@@ -7,19 +7,16 @@ spring:
       - id: host_example_to_httpbin
         downstreamUrl: http://httpbin.org:80
         predicates:
-        - name: Host
-          value: '**.example.org'
+        - Host=**.example.org
 
       # =====================================
       - id: host_foo_path_headers_to_httpbin
         downstreamUrl: http://httpbin.org:80
         predicates:
-        - name: Host
-          value: '**.foo.org'
-        - name: Url
-          value: /headers
-        - name: Method
-          value: GET
+        - Host=**.foo.org
+        - Url=/headers
+        - Method=GET
+        - Header=X-Request-Id, \d+
 
       # =====================================
       - id: default_path_to_httpbin

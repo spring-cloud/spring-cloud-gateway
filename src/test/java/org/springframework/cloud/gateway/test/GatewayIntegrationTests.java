@@ -8,7 +8,7 @@ import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.context.embedded.LocalServerPort;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.gateway.config.GatewayProperties.Route;
+import org.springframework.cloud.gateway.config.Route;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.handler.ServerWebExchangePredicateHandlerMapping;
 import org.springframework.context.annotation.Bean;
@@ -88,6 +88,7 @@ public class GatewayIntegrationTests {
 		Mono<ClientResponse> result = webClient.exchange(
 				GET("http://localhost:" + port + "/headers")
 						.header("Host", "www.foo.org")
+						.header("X-Request-Id", "123")
 						.build()
 		);
 

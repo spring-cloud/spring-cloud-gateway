@@ -16,7 +16,7 @@ public class MethodPredicateFactory implements GatewayPredicateFactory {
 	}
 
 	@Override
-	public Predicate<ServerWebExchange> create(String method) {
+	public Predicate<ServerWebExchange> create(String method, String[] args) {
 		//TODO: caching can happen here
 		return exchange -> {
 			HttpMethod requestMethod = exchange.getRequest().getMethod();

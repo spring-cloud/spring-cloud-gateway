@@ -7,7 +7,8 @@ import java.util.function.Predicate;
 
 import org.springframework.beans.BeansException;
 import org.springframework.cloud.gateway.config.GatewayProperties;
-import org.springframework.cloud.gateway.config.GatewayProperties.Route;
+import org.springframework.cloud.gateway.config.Route;
+import org.springframework.cloud.gateway.config.PredicateDefinition;
 import org.springframework.cloud.gateway.handler.predicate.GatewayPredicateFactory;
 import org.springframework.web.reactive.handler.AbstractHandlerMapping;
 import org.springframework.web.server.ServerWebExchange;
@@ -113,10 +114,10 @@ public class ServerWebExchangePredicateHandlerMapping extends AbstractHandlerMap
 
 
 	private Predicate<ServerWebExchange> combinePredicates(Route route) {
-		List<GatewayProperties.Predicate> predicates = route.getPredicates();
+		List<PredicateDefinition> predicates = route.getPredicates();
 		Predicate<ServerWebExchange> predicate = lookup(predicates.get(0));
 
-		for (GatewayProperties.Predicate andPredicate : predicates.subList(1, predicates.size())) {
+		for (PredicateDefinition andPredicate : predicates.subList(1, predicates.size())) {
 			Predicate<ServerWebExchange> found = lookup(andPredicate);
 			predicate = predicate.and(found);
 		}
@@ -124,12 +125,12 @@ public class ServerWebExchangePredicateHandlerMapping extends AbstractHandlerMap
 		return predicate;
 	}
 
-	private Predicate<ServerWebExchange> lookup(GatewayProperties.Predicate predicate) {
+	private Predicate<ServerWebExchange> lookup(PredicateDefinition predicate) {
 		GatewayPredicateFactory found = this.predicateFactories.get(predicate.getName());
 		if (found == null) {
 			throw new IllegalArgumentException("Unable to find GatewayPredicateFactory with name " + predicate.getName());
 		}
-		return found.create(predicate.getValue());
+		return found.create(predicate.getValue(), predicate.getArgs());
 	}
 
 	/**
