@@ -4,7 +4,6 @@ import java.net.URI;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.cloud.gateway.config.GatewayProperties;
 import org.springframework.cloud.gateway.config.Route;
 import org.springframework.core.Ordered;
 import org.springframework.web.server.ServerWebExchange;
@@ -20,12 +19,6 @@ public class RouteToRequestUrlFilter implements GatewayFilter, Ordered {
 
 	private static final Log log = LogFactory.getLog(RouteToRequestUrlFilter.class);
 	public static final int ROUTE_TO_URL_FILTER_ORDER = 500;
-
-	private final GatewayProperties properties;
-
-	public RouteToRequestUrlFilter(GatewayProperties properties) {
-		this.properties = properties;
-	}
 
 	@Override
 	public int getOrder() {

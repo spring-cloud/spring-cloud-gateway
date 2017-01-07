@@ -1,28 +1,29 @@
 package org.springframework.cloud.gateway.config;
 
+import java.util.List;
+
 import org.springframework.boot.actuate.endpoint.Endpoint;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.gateway.actuate.GatewayEndpoint;
+import org.springframework.cloud.gateway.api.RouteReader;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter;
 import org.springframework.cloud.gateway.handler.GatewayFilteringWebHandler;
+import org.springframework.cloud.gateway.handler.GatewayPredicateHandlerMapping;
+import org.springframework.cloud.gateway.handler.GatewayWebHandler;
 import org.springframework.cloud.gateway.handler.predicate.CookiePredicate;
 import org.springframework.cloud.gateway.handler.predicate.GatewayPredicate;
 import org.springframework.cloud.gateway.handler.predicate.HeaderPredicate;
 import org.springframework.cloud.gateway.handler.predicate.HostPredicate;
-import org.springframework.cloud.gateway.handler.GatewayWebHandler;
-import org.springframework.cloud.gateway.handler.GatewayPredicateHandlerMapping;
 import org.springframework.cloud.gateway.handler.predicate.MethodPredicate;
 import org.springframework.cloud.gateway.handler.predicate.QueryPredicate;
 import org.springframework.cloud.gateway.handler.predicate.UrlPredicate;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
-import org.springframework.web.client.reactive.WebClient;
-
-import java.util.List;
+import org.springframework.web.reactive.function.client.WebClient;
 
 /**
  * @author Spencer Gibb
@@ -38,8 +39,14 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	public RouteToRequestUrlFilter findRouteFilter(GatewayProperties properties) {
-		return new RouteToRequestUrlFilter(properties);
+	public RouteToRequestUrlFilter findRouteFilter() {
+		return new RouteToRequestUrlFilter();
+	}
+
+	@Bean
+	@ConditionalOnMissingBean(RouteReader.class)
+	public PropertiesRouteReader propertiesRouteReader(GatewayProperties properties) {
+		return new PropertiesRouteReader(properties);
 	}
 
 	@Bean
@@ -48,8 +55,8 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	public GatewayWebHandler gatewayController(GatewayProperties properties, WebClient webClient) {
-		return new GatewayWebHandler(properties, webClient);
+	public GatewayWebHandler gatewayController(WebClient webClient) {
+		return new GatewayWebHandler(webClient);
 	}
 
 	@Bean
@@ -58,10 +65,10 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	public GatewayPredicateHandlerMapping gatewayPredicateHandlerMapping(GatewayProperties properties,
-																		 GatewayFilteringWebHandler webHandler,
-																		 List<GatewayPredicate> predicates) {
-		return new GatewayPredicateHandlerMapping(webHandler, predicates, properties);
+	public GatewayPredicateHandlerMapping gatewayPredicateHandlerMapping(GatewayFilteringWebHandler webHandler,
+																		 List<GatewayPredicate> predicates,
+																		 RouteReader routeReader) {
+		return new GatewayPredicateHandlerMapping(webHandler, predicates, routeReader);
 	}
 
 	@Bean

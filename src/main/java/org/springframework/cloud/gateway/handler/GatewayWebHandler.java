@@ -1,31 +1,29 @@
 package org.springframework.cloud.gateway.handler;
 
-import org.springframework.cloud.gateway.config.GatewayProperties;
-import org.springframework.core.io.buffer.DataBuffer;
-import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.http.server.reactive.ServerHttpResponse;
-import org.springframework.web.client.reactive.ClientRequest;
-import org.springframework.web.client.reactive.WebClient;
-import org.springframework.web.server.ServerWebExchange;
-import org.springframework.web.server.WebHandler;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-
 import java.net.URI;
 import java.util.Optional;
 
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.http.server.reactive.ServerHttpResponse;
+import org.springframework.web.reactive.function.client.ClientRequest;
+import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.server.WebHandler;
+
 import static org.springframework.cloud.gateway.filter.GatewayFilter.GATEWAY_REQUEST_URL_ATTR;
+
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 /**
  * @author Spencer Gibb
  */
 public class GatewayWebHandler implements WebHandler {
 
-	private final GatewayProperties properties;
 	private final WebClient webClient;
 
-	public GatewayWebHandler(GatewayProperties properties, WebClient webClient) {
-		this.properties = properties;
+	public GatewayWebHandler(WebClient webClient) {
 		this.webClient = webClient;
 	}
 

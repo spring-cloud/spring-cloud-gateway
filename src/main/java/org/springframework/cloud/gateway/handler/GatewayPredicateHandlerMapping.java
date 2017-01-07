@@ -1,12 +1,14 @@
 package org.springframework.cloud.gateway.handler;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
 import org.springframework.beans.BeansException;
-import org.springframework.cloud.gateway.config.GatewayProperties;
+import org.springframework.cloud.gateway.api.RouteReader;
 import org.springframework.cloud.gateway.config.Route;
 import org.springframework.cloud.gateway.config.PredicateDefinition;
 import org.springframework.cloud.gateway.handler.predicate.GatewayPredicate;
@@ -25,14 +27,15 @@ import static org.springframework.cloud.gateway.filter.GatewayFilter.GATEWAY_ROU
 public class GatewayPredicateHandlerMapping extends AbstractHandlerMapping {
 
 	private Map<String, GatewayPredicate> predicates = new LinkedHashMap<>();
-	private GatewayProperties properties;
+	private RouteReader routeReader;
 	private WebHandler webHandler;
 
 	private List<Route> routes;
 
-	public GatewayPredicateHandlerMapping(WebHandler webHandler, List<GatewayPredicate> predicates, GatewayProperties properties) {
+	public GatewayPredicateHandlerMapping(WebHandler webHandler, List<GatewayPredicate> predicates,
+										  RouteReader routeReader) {
 		this.webHandler = webHandler;
-		this.properties = properties;
+		this.routeReader = routeReader;
 
 		for (GatewayPredicate factory : predicates) {
 			if (this.predicates.containsKey(factory.getName())) {
@@ -52,8 +55,7 @@ public class GatewayPredicateHandlerMapping extends AbstractHandlerMapping {
 	@Override
 	protected void initApplicationContext() throws BeansException {
 		super.initApplicationContext();
-		//TODO: move properties.getRoutes() to interface/impl
-		registerHandlers(this.properties.getRoutes());
+		registerHandlers(this.routeReader.getRoutes());
 	}
 
 	protected void registerHandlers(List<Route> routes) {
@@ -104,8 +106,15 @@ public class GatewayPredicateHandlerMapping extends AbstractHandlerMapping {
 				//TODO: cache predicate
 				Predicate<ServerWebExchange> predicate = combinePredicates(route);
 				if (predicate.test(exchange)) {
+					if (logger.isDebugEnabled()) {
+						logger.debug("Route matched: " + route.getId());
+					}
 					validateRoute(route, exchange);
 					return route;
+				} else {
+					if (logger.isTraceEnabled()) {
+						logger.trace("Route did not match: " + route.getId());
+					}
 				}
 			}
 		}
@@ -115,20 +124,30 @@ public class GatewayPredicateHandlerMapping extends AbstractHandlerMapping {
 
 	private Predicate<ServerWebExchange> combinePredicates(Route route) {
 		List<PredicateDefinition> predicates = route.getPredicates();
-		Predicate<ServerWebExchange> predicate = lookup(predicates.get(0));
+		Predicate<ServerWebExchange> predicate = lookup(route, predicates.get(0));
 
 		for (PredicateDefinition andPredicate : predicates.subList(1, predicates.size())) {
-			Predicate<ServerWebExchange> found = lookup(andPredicate);
+			Predicate<ServerWebExchange> found = lookup(route, andPredicate);
 			predicate = predicate.and(found);
 		}
 
 		return predicate;
 	}
 
-	private Predicate<ServerWebExchange> lookup(PredicateDefinition predicate) {
+	private Predicate<ServerWebExchange> lookup(Route route, PredicateDefinition predicate) {
 		GatewayPredicate found = this.predicates.get(predicate.getName());
 		if (found == null) {
 			throw new IllegalArgumentException("Unable to find GatewayPredicate with name " + predicate.getName());
+		}
+		if (logger.isDebugEnabled()) {
+			List<String> args;
+			if (predicate.getArgs() != null) {
+				args = Arrays.asList(predicate.getArgs());
+			} else {
+				args = Collections.emptyList();
+			}
+			logger.debug("Route " + route.getId() + " applying "+ predicate.getValue()
+					+ ", " + args + " to " + found.getName());
 		}
 		return found.apply(predicate.getValue(), predicate.getArgs());
 	}
