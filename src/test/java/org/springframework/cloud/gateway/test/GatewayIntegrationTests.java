@@ -48,13 +48,13 @@ public class GatewayIntegrationTests {
 
 		StepVerifier
 				.create(result.map(response -> response.headers().asHttpHeaders()))
-				/*.consumeNextWith(
+				.consumeNextWith(
 						httpHeaders -> {
 							assertThat(httpHeaders.getFirst(HANDLER_MAPPER_HEADER))
 									.isEqualTo(GatewayPredicateHandlerMapping.class.getSimpleName());
 							assertThat(httpHeaders.getFirst(ROUTE_ID_HEADER))
 									.isEqualTo("default_path_to_httpbin");
-						})*/
+						})
 				.expectComplete()
 				.verify();
 	}
