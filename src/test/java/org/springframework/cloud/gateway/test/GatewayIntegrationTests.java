@@ -1,7 +1,11 @@
 package org.springframework.cloud.gateway.test;
 
+import java.time.Duration;
+import java.util.Map;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.SpringBootConfiguration;
@@ -17,13 +21,16 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.web.reactive.function.client.ClientRequest;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ServerWebExchange;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
+import static org.springframework.web.reactive.function.BodyExtractors.toMono;
 import static org.springframework.web.reactive.function.client.ClientRequest.GET;
+import static org.springframework.web.reactive.function.client.ClientRequest.POST;
 
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -38,7 +45,12 @@ public class GatewayIntegrationTests {
 	@LocalServerPort
 	private int port;
 
-	private WebClient webClient = WebClient.builder(new ReactorClientHttpConnector()).build();
+	private WebClient webClient;
+
+	@Before
+	public void setup() {
+		this.webClient = WebClient.builder(new ReactorClientHttpConnector()).build();
+	}
 
 	@Test
 	public void urlRouteWorks() {
@@ -46,14 +58,16 @@ public class GatewayIntegrationTests {
 				GET("http://localhost:" + port + "/get").build()
 		);
 
-		StepVerifier
-				.create(result.map(response -> response.headers().asHttpHeaders()))
+		StepVerifier.create(result)
 				.consumeNextWith(
-						httpHeaders -> {
+						response -> {
+							HttpHeaders httpHeaders = response.headers().asHttpHeaders();
+							HttpStatus statusCode = response.statusCode();
 							assertThat(httpHeaders.getFirst(HANDLER_MAPPER_HEADER))
 									.isEqualTo(GatewayPredicateHandlerMapping.class.getSimpleName());
 							assertThat(httpHeaders.getFirst(ROUTE_ID_HEADER))
 									.isEqualTo("default_path_to_httpbin");
+							assertThat(statusCode).isEqualTo(HttpStatus.OK);
 						})
 				.expectComplete()
 				.verify();
@@ -67,8 +81,7 @@ public class GatewayIntegrationTests {
 						.build()
 		);
 
-		StepVerifier
-				.create(result)
+		StepVerifier.create(result)
 				.consumeNextWith(
 						response -> {
 							HttpHeaders httpHeaders = response.headers().asHttpHeaders();
@@ -80,7 +93,22 @@ public class GatewayIntegrationTests {
 							assertThat(statusCode).isEqualTo(HttpStatus.OK);
 						})
 				.expectComplete()
-				.verify();
+				.verify(Duration.ofSeconds(3));
+	}
+
+	@Test
+	public void postWorks() {
+		ClientRequest<Mono<String>> request = POST("http://localhost:" + port + "/post")
+				.header("Host", "www.example.org")
+				.body(Mono.just("testdata"), String.class);
+
+		Mono<Map> result = webClient.exchange(request)
+				.then(response -> response.body(toMono(Map.class)));
+
+		StepVerifier.create(result)
+				.consumeNextWith(map -> assertThat(map).containsEntry("data", "testdata"))
+				.expectComplete()
+				.verify(Duration.ofSeconds(3));
 	}
 
 	@Test
@@ -93,8 +121,7 @@ public class GatewayIntegrationTests {
 						.build()
 		);
 
-		StepVerifier
-				.create(result)
+		StepVerifier.create(result)
 				.consumeNextWith(
 						response -> {
 							HttpHeaders httpHeaders = response.headers().asHttpHeaders();

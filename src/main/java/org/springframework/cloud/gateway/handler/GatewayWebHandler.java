@@ -34,7 +34,7 @@ public class GatewayWebHandler implements WebHandler {
 		ClientRequest<Void> clientRequest = ClientRequest
 				.method(request.getMethod(), requestUrl.get())
 				.headers(request.getHeaders())
-				.build();
+				.body((r, context) -> r.writeWith(request.getBody()));
 
 		return this.webClient.exchange(clientRequest).flatMap(clientResponse -> {
 			ServerHttpResponse response = exchange.getResponse();
