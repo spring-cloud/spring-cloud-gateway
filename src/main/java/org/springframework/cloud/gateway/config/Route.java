@@ -32,7 +32,7 @@ public class Route {
 	public Route(String text) {
 		int eqIdx = text.indexOf("=");
 		if (eqIdx <= 0) {
-			throw new ValidationException("Unable to parse Predicate text '" + text + "'" +
+			throw new ValidationException("Unable to parse Route text '" + text + "'" +
 					", must be of the form name=value");
 		}
 
