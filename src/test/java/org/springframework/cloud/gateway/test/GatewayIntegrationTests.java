@@ -149,10 +149,11 @@ public class GatewayIntegrationTests {
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void addRequestHeaderFilterWorks() {
 		Mono<Map> result = webClient.exchange(
 				GET("http://localhost:" + port + "/headers")
-						.header("Host", "www.bar.org")
+						.header("Host", "www.addrequestheader.org")
 						.build()
 		).then(response -> response.body(toMono(Map.class)));
 
@@ -166,6 +167,29 @@ public class GatewayIntegrationTests {
 							})
 					.expectComplete()
 					.verify(Duration.ofSeconds(3))
+		);
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void removeRequestHeaderFilterWorks() {
+		Mono<Map> result = webClient.exchange(
+				GET("http://localhost:" + port + "/headers")
+						.header("Host", "www.removerequestheader.org")
+						.header("X-Request-Foo", "Bar")
+						.build()
+		).then(response -> response.body(toMono(Map.class)));
+
+		verify( () ->
+				StepVerifier.create(result)
+						.consumeNextWith(
+								response -> {
+									assertThat(response).containsKey("headers").isInstanceOf(Map.class);
+									Map<String, Object> headers = (Map<String, Object>) response.get("headers");
+									assertThat(headers).doesNotContainKey("X-Request-Foo");
+								})
+						.expectComplete()
+						.verify(Duration.ofSeconds(3))
 		);
 	}
 
@@ -222,7 +246,7 @@ public class GatewayIntegrationTests {
 		private static final Log log = LogFactory.getLog(TestConfig.class);
 
 		@Bean
-		@Order(501)
+		@Order(500)
 		public GatewayFilter modifyResponseFilter() {
 			return (exchange, chain) -> {
 				log.info("modifyResponseFilter start");
@@ -237,7 +261,7 @@ public class GatewayIntegrationTests {
 		}
 
 		@Bean
-		@Order(502)
+		@Order(-1)
 		public GatewayFilter postFilter() {
 			return (exchange, chain) -> {
 				log.info("postFilter start");

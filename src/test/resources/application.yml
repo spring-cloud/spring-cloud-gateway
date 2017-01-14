@@ -24,10 +24,19 @@ spring:
       - id: add_request_header_test
         uri: http://httpbin.org:80
         predicates:
-        - Host=**.bar.org
+        - Host=**.addrequestheader.org
         - Url=/headers
         filters:
         - AddRequestHeader=X-Request-Foo, Bar
+
+      # =====================================
+      - id: remove_request_header_test
+        uri: http://httpbin.org:80
+        predicates:
+        - Host=**.removerequestheader.org
+        - Url=/headers
+        filters:
+        - RemoveRequestHeader=X-Request-Foo
 
       # =====================================
       - id: rewrite_path_test

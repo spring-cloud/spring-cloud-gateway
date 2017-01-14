@@ -27,4 +27,13 @@ public class OrderedGatewayFilter implements GatewayFilter, Ordered {
 	public int getOrder() {
 		return this.order;
 	}
+
+	@Override
+	public String toString() {
+		final StringBuilder sb = new StringBuilder("OrderedGatewayFilter{");
+		sb.append("delegate=").append(delegate);
+		sb.append(", order=").append(order);
+		sb.append('}');
+		return sb.toString();
+	}
 }
