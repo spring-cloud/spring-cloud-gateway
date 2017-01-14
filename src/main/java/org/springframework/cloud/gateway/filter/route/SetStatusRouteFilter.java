@@ -1,6 +1,6 @@
-package org.springframework.cloud.gateway.filter.factory;
+package org.springframework.cloud.gateway.filter.route;
 
-import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.web.server.WebFilter;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -8,10 +8,10 @@ import reactor.core.publisher.Mono;
 /**
  * @author Spencer Gibb
  */
-public class SetStatusFilterFactory implements FilterFactory {
+public class SetStatusRouteFilter implements RouteFilter {
 
 	@Override
-	public GatewayFilter apply(String statusString, String[] args) {
+	public WebFilter apply(String statusString, String[] args) {
 		HttpStatus httpStatus;
 
 		try {

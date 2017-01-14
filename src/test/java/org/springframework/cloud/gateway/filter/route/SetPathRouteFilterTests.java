@@ -1,13 +1,15 @@
-package org.springframework.cloud.gateway.filter.factory;
+package org.springframework.cloud.gateway.filter.route;
+
+import java.util.HashMap;
 
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.handler.predicate.UrlPredicateFactory;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.http.server.reactive.MockServerHttpResponse;
 import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 import org.springframework.web.server.adapter.DefaultServerWebExchange;
 
@@ -16,12 +18,10 @@ import static org.mockito.Mockito.when;
 
 import reactor.core.publisher.Mono;
 
-import java.util.HashMap;
-
 /**
  * @author Spencer Gibb
  */
-public class SetPathFilterFactoryTests {
+public class SetPathRouteFilterTests {
 
 	@Test
 	public void rewritePathFilterWorks() {
@@ -37,7 +37,7 @@ public class SetPathFilterFactoryTests {
 	}
 
 	private void testRewriteFilter(String template, String actualPath, String expectedPath, HashMap<String, String> variables) {
-		GatewayFilter filter = new SetPathFilterFactory().apply(template, new String[]{});
+		WebFilter filter = new SetPathRouteFilter().apply(template, new String[]{});
 
 		MockServerHttpRequest request = MockServerHttpRequest
 				.get("http://localhost"+ actualPath)

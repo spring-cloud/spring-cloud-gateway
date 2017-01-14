@@ -1,15 +1,15 @@
-package org.springframework.cloud.gateway.filter.factory;
+package org.springframework.cloud.gateway.filter.route;
 
-import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.web.server.WebFilter;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 
 /**
  * @author Spencer Gibb
  */
-public class AddRequestHeaderFilterFactory implements FilterFactory {
+public class AddRequestHeaderRouteFilter implements RouteFilter {
 
 	@Override
-	public GatewayFilter apply(String header, String[] args) {
+	public WebFilter apply(String header, String[] args) {
 		validate(args, 1);
 
 		//TODO: caching can happen here

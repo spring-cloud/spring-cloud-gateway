@@ -1,9 +1,9 @@
-package org.springframework.cloud.gateway.filter.factory;
+package org.springframework.cloud.gateway.filter.route;
 
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.web.server.WebFilter;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.http.server.reactive.MockServerHttpResponse;
 import org.springframework.web.server.ServerWebExchange;
@@ -17,7 +17,7 @@ import static org.mockito.Mockito.when;
 /**
  * @author Spencer Gibb
  */
-public class RewritePathFilterFactoryTests {
+public class RewritePathRouteFilterTests {
 
 	@Test
 	public void rewritePathFilterWorks() {
@@ -30,7 +30,7 @@ public class RewritePathFilterFactoryTests {
 	}
 
 	private void testRewriteFilter(String regex, String replacement, String actualPath, String expectedPath) {
-		GatewayFilter filter = new RewritePathFilterFactory().apply(regex, new String[]{replacement});
+		WebFilter filter = new RewritePathRouteFilter().apply(regex, new String[]{replacement});
 
 		MockServerHttpRequest request = MockServerHttpRequest
 				.get("http://localhost"+ actualPath)

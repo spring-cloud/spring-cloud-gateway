@@ -1,9 +1,9 @@
-package org.springframework.cloud.gateway.filter.factory;
+package org.springframework.cloud.gateway.filter.route;
 
 import java.net.URI;
 import java.util.Map;
 
-import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.web.server.WebFilter;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.util.UriTemplate;
 
@@ -13,11 +13,11 @@ import static org.springframework.cloud.gateway.handler.predicate.UrlPredicateFa
 /**
  * @author Spencer Gibb
  */
-public class SetPathFilterFactory implements FilterFactory {
+public class SetPathRouteFilter implements RouteFilter {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public GatewayFilter apply(String template, String[] args) {
+	public WebFilter apply(String template, String[] args) {
 		UriTemplate uriTemplate = new UriTemplate(template);
 
 		//TODO: caching can happen here

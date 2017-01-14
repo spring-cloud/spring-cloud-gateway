@@ -9,24 +9,24 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.cloud.gateway.actuate.GatewayEndpoint;
 import org.springframework.cloud.gateway.api.RouteReader;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
-import org.springframework.cloud.gateway.filter.factory.AddRequestHeaderFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.AddResponseHeaderFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.FilterFactory;
 import org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter;
-import org.springframework.cloud.gateway.filter.factory.RemoveRequestHeaderFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.RemoveResponseHeaderFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.RewritePathFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.SetPathFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.SetResponseHeaderFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.SetStatusFilterFactory;
+import org.springframework.cloud.gateway.filter.route.AddRequestHeaderRouteFilter;
+import org.springframework.cloud.gateway.filter.route.AddResponseHeaderRouteFilter;
+import org.springframework.cloud.gateway.filter.route.RemoveRequestHeaderRouteFilter;
+import org.springframework.cloud.gateway.filter.route.RemoveResponseHeaderRouteFilter;
+import org.springframework.cloud.gateway.filter.route.RewritePathRouteFilter;
+import org.springframework.cloud.gateway.filter.route.RouteFilter;
+import org.springframework.cloud.gateway.filter.route.SetPathRouteFilter;
+import org.springframework.cloud.gateway.filter.route.SetResponseHeaderRouteFilter;
+import org.springframework.cloud.gateway.filter.route.SetStatusRouteFilter;
 import org.springframework.cloud.gateway.handler.GatewayFilteringWebHandler;
 import org.springframework.cloud.gateway.handler.GatewayPredicateHandlerMapping;
 import org.springframework.cloud.gateway.handler.GatewayWebHandler;
 import org.springframework.cloud.gateway.handler.predicate.CookiePredicateFactory;
+import org.springframework.cloud.gateway.handler.predicate.HeaderPredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.HostPredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.MethodPredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.PredicateFactory;
-import org.springframework.cloud.gateway.handler.predicate.HeaderPredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.QueryPredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.UrlPredicateFactory;
 import org.springframework.context.annotation.Bean;
@@ -71,7 +71,7 @@ public class GatewayAutoConfiguration {
 	@Bean
 	public GatewayFilteringWebHandler gatewayFilteringWebHandler(GatewayWebHandler gatewayWebHandler,
 																 List<GatewayFilter> filters,
-																 List<FilterFactory> filterDefinitions) {
+																 List<RouteFilter> filterDefinitions) {
 		return new GatewayFilteringWebHandler(gatewayWebHandler, filters, filterDefinitions);
 	}
 
@@ -117,43 +117,43 @@ public class GatewayAutoConfiguration {
 	// Filter Factory beans
 
 	@Bean
-	public AddRequestHeaderFilterFactory addRequestHeaderFilterFactory() {
-		return new AddRequestHeaderFilterFactory();
+	public AddRequestHeaderRouteFilter addRequestHeaderRouteFilter() {
+		return new AddRequestHeaderRouteFilter();
 	}
 
 	@Bean
-	public AddResponseHeaderFilterFactory addResponseHeaderFilterFactory() {
-		return new AddResponseHeaderFilterFactory();
+	public AddResponseHeaderRouteFilter addResponseHeaderRouteFilter() {
+		return new AddResponseHeaderRouteFilter();
 	}
 
 	@Bean
-	public RemoveRequestHeaderFilterFactory removeRequestHeaderFilterFactory() {
-		return new RemoveRequestHeaderFilterFactory();
+	public RemoveRequestHeaderRouteFilter removeRequestHeaderRouteFilter() {
+		return new RemoveRequestHeaderRouteFilter();
 	}
 
 	@Bean
-	public RemoveResponseHeaderFilterFactory removeResponseHeaderFilterFactory() {
-		return new RemoveResponseHeaderFilterFactory();
+	public RemoveResponseHeaderRouteFilter removeResponseHeaderRouteFilter() {
+		return new RemoveResponseHeaderRouteFilter();
 	}
 
 	@Bean
-	public RewritePathFilterFactory rewritePathFilterFactory() {
-		return new RewritePathFilterFactory();
+	public RewritePathRouteFilter rewritePathRouteFilter() {
+		return new RewritePathRouteFilter();
 	}
 
 	@Bean
-	public SetPathFilterFactory setPathFilterFactory() {
-		return new SetPathFilterFactory();
+	public SetPathRouteFilter setPathRouteFilter() {
+		return new SetPathRouteFilter();
 	}
 
 	@Bean
-	public SetResponseHeaderFilterFactory setResponseHeaderFilterFactory() {
-		return new SetResponseHeaderFilterFactory();
+	public SetResponseHeaderRouteFilter setResponseHeaderRouteFilter() {
+		return new SetResponseHeaderRouteFilter();
 	}
 
 	@Bean
-	public SetStatusFilterFactory setStatusFilterFactory() {
-		return new SetStatusFilterFactory();
+	public SetStatusRouteFilter setStatusRouteFilter() {
+		return new SetStatusRouteFilter();
 	}
 
 	@Configuration

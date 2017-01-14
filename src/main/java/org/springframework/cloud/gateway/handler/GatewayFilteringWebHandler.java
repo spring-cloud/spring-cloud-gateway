@@ -18,6 +18,7 @@ package org.springframework.cloud.gateway.handler;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -29,10 +30,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.cloud.gateway.config.Route;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
-import org.springframework.cloud.gateway.filter.OrderedGatewayFilter;
-import org.springframework.cloud.gateway.filter.factory.FilterFactory;
+import org.springframework.cloud.gateway.filter.route.RouteFilter;
+import org.springframework.core.Ordered;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 import org.springframework.web.server.WebHandler;
 import org.springframework.web.server.handler.WebHandlerDecorator;
@@ -53,10 +55,10 @@ public class GatewayFilteringWebHandler extends WebHandlerDecorator {
 	protected final Log logger = LogFactory.getLog(getClass());
 
 	private final List<GatewayFilter> filters;
-	private final Map<String, FilterFactory> filterDefinitions = new HashMap<>();
+	private final Map<String, RouteFilter> filterDefinitions = new HashMap<>();
 
 	public GatewayFilteringWebHandler(WebHandler targetHandler, List<GatewayFilter> filters,
-									  List<FilterFactory> filterDefinitions) {
+									  List<RouteFilter> filterDefinitions) {
 		super(targetHandler);
 		this.filters = initList(filters);
 		initList(filterDefinitions).forEach(def -> this.filterDefinitions.put(def.getName(), def));
@@ -76,7 +78,7 @@ public class GatewayFilteringWebHandler extends WebHandlerDecorator {
 	@Override
 	public Mono<Void> handle(ServerWebExchange exchange) {
 		//TODO: probably a java 8 stream way of doing this
-		ArrayList<GatewayFilter> routeFilters = new ArrayList<>(this.filters);
+		ArrayList<WebFilter> routeFilters = new ArrayList<>(loadGatewayFilters(this.filters));
 
 		Optional<Route> route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
 		if (route.isPresent() && !route.get().getFilters().isEmpty()) {
@@ -88,12 +90,24 @@ public class GatewayFilteringWebHandler extends WebHandlerDecorator {
 		return new DefaultWebFilterChain(routeFilters, getDelegate()).filter(exchange);
 	}
 
-	private List<GatewayFilter> loadFilters(Route route) {
-		List<GatewayFilter> filters = route.getFilters().stream()
+	private Collection<WebFilter> loadGatewayFilters(List<GatewayFilter> filters) {
+		return filters.stream()
+				.map(filter -> {
+					GatewayWebFilter webFilter = new GatewayWebFilter(filter);
+					if (filter instanceof Ordered) {
+						int order = ((Ordered) filter).getOrder();
+						return new OrderedWebFilter(webFilter, order);
+					}
+					return webFilter;
+				}).collect(Collectors.toList());
+	}
+
+	private List<WebFilter> loadFilters(Route route) {
+		List<WebFilter> filters = route.getFilters().stream()
 				.map(definition -> {
-					FilterFactory filter = this.filterDefinitions.get(definition.getName());
+					RouteFilter filter = this.filterDefinitions.get(definition.getName());
 					if (filter == null) {
-						throw new IllegalArgumentException("Unable to find FilterFactory with name " + definition.getName());
+						throw new IllegalArgumentException("Unable to find RouteFilter with name " + definition.getName());
 					}
 					if (logger.isDebugEnabled()) {
 						List<String> args;
@@ -109,22 +123,73 @@ public class GatewayFilteringWebHandler extends WebHandlerDecorator {
 				})
 				.collect(Collectors.toList());
 
-		ArrayList<GatewayFilter> ordered = new ArrayList<>(filters.size());
+		ArrayList<WebFilter> ordered = new ArrayList<>(filters.size());
 		for (int i = 0; i < filters.size(); i++) {
-			ordered.add(new OrderedGatewayFilter(filters.get(i), i+1));
+			ordered.add(new OrderedWebFilter(filters.get(i), i+1));
 		}
 
 		return ordered;
 	}
 
+	private static class GatewayWebFilter implements WebFilter {
+
+		private final GatewayFilter delegate;
+
+		public GatewayWebFilter(GatewayFilter delegate) {
+			this.delegate = delegate;
+		}
+
+		@Override
+		public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
+			return this.delegate.filter(exchange, chain);
+		}
+
+		@Override
+		public String toString() {
+			final StringBuilder sb = new StringBuilder("GatewayWebFilter{");
+			sb.append("delegate=").append(delegate);
+			sb.append('}');
+			return sb.toString();
+		}
+	}
+
+	public class OrderedWebFilter implements WebFilter, Ordered {
+
+		private final WebFilter delegate;
+		private final int order;
+
+		public OrderedWebFilter(WebFilter delegate, int order) {
+			this.delegate = delegate;
+			this.order = order;
+		}
+
+		@Override
+		public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
+			return this.delegate.filter(exchange, chain);
+		}
+
+		@Override
+		public int getOrder() {
+			return this.order;
+		}
+
+		@Override
+		public String toString() {
+			final StringBuilder sb = new StringBuilder("OrderedWebFilter{");
+			sb.append("delegate=").append(delegate);
+			sb.append(", order=").append(order);
+			sb.append('}');
+			return sb.toString();
+		}
+	}
 
 	private static class DefaultWebFilterChain implements WebFilterChain {
 
 		private int index;
-		private final List<GatewayFilter> filters;
+		private final List<WebFilter> filters;
 		private final WebHandler delegate;
 
-		public DefaultWebFilterChain(List<GatewayFilter> filters, WebHandler delegate) {
+		public DefaultWebFilterChain(List<WebFilter> filters, WebHandler delegate) {
 			this.filters = filters;
 			this.delegate = delegate;
 		}
@@ -132,7 +197,7 @@ public class GatewayFilteringWebHandler extends WebHandlerDecorator {
 		@Override
 		public Mono<Void> filter(ServerWebExchange exchange) {
 			if (this.index < filters.size()) {
-				GatewayFilter filter = filters.get(this.index++);
+				WebFilter filter = filters.get(this.index++);
 				return filter.filter(exchange, this);
 			}
 			else {

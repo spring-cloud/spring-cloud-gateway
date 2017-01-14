@@ -1,15 +1,15 @@
-package org.springframework.cloud.gateway.filter.factory;
+package org.springframework.cloud.gateway.filter.route;
 
-import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.web.server.WebFilter;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 
 /**
  * @author Spencer Gibb
  */
-public class RewritePathFilterFactory implements FilterFactory {
+public class RewritePathRouteFilter implements RouteFilter {
 
 	@Override
-	public GatewayFilter apply(String regex, String[] args) {
+	public WebFilter apply(String regex, String[] args) {
 		validate(args, 1);
 		String replacement = args[0].replace("$\\", "$");
 
