@@ -30,6 +30,15 @@ spring:
         - AddRequestHeader=X-Request-Foo, Bar
 
       # =====================================
+      - id: add_response_header_test
+        uri: http://httpbin.org:80
+        predicates:
+        - Host=**.addresponseheader.org
+        - Url=/headers
+        filters:
+        - AddResponseHeader=X-Request-Foo, Bar
+
+      # =====================================
       - id: remove_request_header_test
         uri: http://httpbin.org:80
         predicates:
@@ -37,6 +46,16 @@ spring:
         - Url=/headers
         filters:
         - RemoveRequestHeader=X-Request-Foo
+
+      # =====================================
+      - id: remove_response_header_test
+        uri: http://httpbin.org:80
+        predicates:
+        - Host=**.removereresponseheader.org
+        - Url=/headers
+        filters:
+        - AddResponseHeader=X-Request-Foo, Bar
+        - RemoveResponseHeader=X-Request-Foo
 
       # =====================================
       - id: rewrite_path_test

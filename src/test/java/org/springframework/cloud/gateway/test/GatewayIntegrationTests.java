@@ -38,6 +38,7 @@ import reactor.test.StepVerifier;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
+@SuppressWarnings("unchecked")
 public class GatewayIntegrationTests {
 
 	public static final String HANDLER_MAPPER_HEADER = "X-Gateway-Handler-Mapper-Class";
@@ -149,7 +150,6 @@ public class GatewayIntegrationTests {
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void addRequestHeaderFilterWorks() {
 		Mono<Map> result = webClient.exchange(
 				GET("http://localhost:" + port + "/headers")
@@ -158,15 +158,36 @@ public class GatewayIntegrationTests {
 		).then(response -> response.body(toMono(Map.class)));
 
 		verify( () ->
-			StepVerifier.create(result)
-					.consumeNextWith(
-							response -> {
-								assertThat(response).containsKey("headers").isInstanceOf(Map.class);
-								Map<String, Object> headers = (Map<String, Object>) response.get("headers");
-								assertThat(headers).containsEntry("X-Request-Foo", "Bar");
-							})
-					.expectComplete()
-					.verify(Duration.ofSeconds(3))
+				StepVerifier.create(result)
+						.consumeNextWith(
+								response -> {
+									assertThat(response).containsKey("headers").isInstanceOf(Map.class);
+									Map<String, Object> headers = (Map<String, Object>) response.get("headers");
+									assertThat(headers).containsEntry("X-Request-Foo", "Bar");
+								})
+						.expectComplete()
+						.verify(Duration.ofSeconds(3))
+		);
+	}
+
+	@Test
+	public void addResponseHeaderFilterWorks() {
+		Mono<ClientResponse> result = webClient.exchange(
+				GET("http://localhost:" + port + "/headers")
+						.header("Host", "www.addresponseheader.org")
+						.build()
+		);
+
+		verify( () ->
+				StepVerifier.create(result)
+						.consumeNextWith(
+								response -> {
+									HttpHeaders httpHeaders = response.headers().asHttpHeaders();
+									assertThat(httpHeaders.getFirst("X-Request-Foo"))
+											.isEqualTo("Bar");
+								})
+						.expectComplete()
+						.verify(Duration.ofSeconds(3))
 		);
 	}
 
@@ -187,6 +208,26 @@ public class GatewayIntegrationTests {
 									assertThat(response).containsKey("headers").isInstanceOf(Map.class);
 									Map<String, Object> headers = (Map<String, Object>) response.get("headers");
 									assertThat(headers).doesNotContainKey("X-Request-Foo");
+								})
+						.expectComplete()
+						.verify(Duration.ofSeconds(3))
+		);
+	}
+
+	@Test
+	public void removeResponseHeaderFilterWorks() {
+		Mono<ClientResponse> result = webClient.exchange(
+				GET("http://localhost:" + port + "/headers")
+						.header("Host", "www.removereresponseheader.org")
+						.build()
+		);
+
+		verify( () ->
+				StepVerifier.create(result)
+						.consumeNextWith(
+								response -> {
+									HttpHeaders httpHeaders = response.headers().asHttpHeaders();
+									assertThat(httpHeaders).doesNotContainKey("X-Request-Foo");
 								})
 						.expectComplete()
 						.verify(Duration.ofSeconds(3))
