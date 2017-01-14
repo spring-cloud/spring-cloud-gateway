@@ -235,6 +235,27 @@ public class GatewayIntegrationTests {
 	}
 
 	@Test
+	public void setResponseHeaderFilterWorks() {
+		Mono<ClientResponse> result = webClient.exchange(
+				GET("http://localhost:" + port + "/headers")
+						.header("Host", "www.setreresponseheader.org")
+						.build()
+		);
+
+		verify( () ->
+				StepVerifier.create(result)
+						.consumeNextWith(
+								response -> {
+									HttpHeaders httpHeaders = response.headers().asHttpHeaders();
+									assertThat(httpHeaders).containsKey("X-Request-Foo");
+									assertThat(httpHeaders.get("X-Request-Foo")).containsExactly("Bar");
+								})
+						.expectComplete()
+						.verify(Duration.ofSeconds(3))
+		);
+	}
+
+	@Test
 	public void postWorks() {
 		ClientRequest<Mono<String>> request = POST("http://localhost:" + port + "/post")
 				.header("Host", "www.example.org")

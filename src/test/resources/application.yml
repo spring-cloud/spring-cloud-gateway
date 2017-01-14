@@ -58,6 +58,17 @@ spring:
         - RemoveResponseHeader=X-Request-Foo
 
       # =====================================
+      - id: set_response_header_test
+        uri: http://httpbin.org:80
+        predicates:
+        - Host=**.setreresponseheader.org
+        - Url=/headers
+        filters:
+        - AddResponseHeader=X-Request-Foo, Bar1
+        - AddResponseHeader=X-Request-Foo, Bar2
+        - SetResponseHeader=X-Request-Foo, Bar
+
+      # =====================================
       - id: rewrite_path_test
         uri: http://httpbin.org:80
         predicates:
