@@ -9,7 +9,7 @@ import org.springframework.web.server.ServerWebExchange;
 /**
  * @author Spencer Gibb
  */
-public class HostPredicate implements GatewayPredicate {
+public class HostPredicateFactory implements PredicateFactory {
 
 	private PathMatcher pathMatcher = new AntPathMatcher(".");
 

@@ -30,7 +30,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.cloud.gateway.config.Route;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
-import org.springframework.cloud.gateway.filter.definition.GatewayFilterDefinition;
+import org.springframework.cloud.gateway.filter.factory.FilterFactory;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilterChain;
 import org.springframework.web.server.WebHandler;
@@ -52,10 +52,10 @@ public class GatewayFilteringWebHandler extends WebHandlerDecorator {
 	protected final Log logger = LogFactory.getLog(getClass());
 
 	private final List<GatewayFilter> filters;
-	private final Map<String, GatewayFilterDefinition> filterDefinitions = new HashMap<>();
+	private final Map<String, FilterFactory> filterDefinitions = new HashMap<>();
 
 	public GatewayFilteringWebHandler(WebHandler targetHandler, List<GatewayFilter> filters,
-									  List<GatewayFilterDefinition> filterDefinitions) {
+									  List<FilterFactory> filterDefinitions) {
 		super(targetHandler);
 		this.filters = initList(filters);
 		initList(filterDefinitions).forEach(def -> this.filterDefinitions.put(def.getName(), def));
@@ -86,9 +86,9 @@ public class GatewayFilteringWebHandler extends WebHandlerDecorator {
 	private Collection<GatewayFilter> loadFilters(Route route) {
 		return route.getFilters().stream()
 				.map(definition -> {
-					GatewayFilterDefinition filter = this.filterDefinitions.get(definition.getName());
+					FilterFactory filter = this.filterDefinitions.get(definition.getName());
 					if (filter == null) {
-						throw new IllegalArgumentException("Unable to find GatewayFilterDefinition with name " + definition.getName());
+						throw new IllegalArgumentException("Unable to find FilterFactory with name " + definition.getName());
 					}
 					if (logger.isDebugEnabled()) {
 						List<String> args;

@@ -9,20 +9,20 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.cloud.gateway.actuate.GatewayEndpoint;
 import org.springframework.cloud.gateway.api.RouteReader;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
-import org.springframework.cloud.gateway.filter.definition.AppendRequestHeaderFilter;
-import org.springframework.cloud.gateway.filter.definition.AppendResponseHeaderFilter;
-import org.springframework.cloud.gateway.filter.definition.GatewayFilterDefinition;
+import org.springframework.cloud.gateway.filter.factory.AddRequestHeaderFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.AddResponseHeaderFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.FilterFactory;
 import org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter;
 import org.springframework.cloud.gateway.handler.GatewayFilteringWebHandler;
 import org.springframework.cloud.gateway.handler.GatewayPredicateHandlerMapping;
 import org.springframework.cloud.gateway.handler.GatewayWebHandler;
-import org.springframework.cloud.gateway.handler.predicate.CookiePredicate;
-import org.springframework.cloud.gateway.handler.predicate.GatewayPredicate;
-import org.springframework.cloud.gateway.handler.predicate.HeaderPredicate;
-import org.springframework.cloud.gateway.handler.predicate.HostPredicate;
-import org.springframework.cloud.gateway.handler.predicate.MethodPredicate;
-import org.springframework.cloud.gateway.handler.predicate.QueryPredicate;
-import org.springframework.cloud.gateway.handler.predicate.UrlPredicate;
+import org.springframework.cloud.gateway.handler.predicate.CookiePredicateFactory;
+import org.springframework.cloud.gateway.handler.predicate.HostPredicateFactory;
+import org.springframework.cloud.gateway.handler.predicate.MethodPredicateFactory;
+import org.springframework.cloud.gateway.handler.predicate.PredicateFactory;
+import org.springframework.cloud.gateway.handler.predicate.HeaderPredicateFactory;
+import org.springframework.cloud.gateway.handler.predicate.QueryPredicateFactory;
+import org.springframework.cloud.gateway.handler.predicate.UrlPredicateFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
@@ -65,7 +65,7 @@ public class GatewayAutoConfiguration {
 	@Bean
 	public GatewayFilteringWebHandler gatewayFilteringWebHandler(GatewayWebHandler gatewayWebHandler,
 																 List<GatewayFilter> filters,
-																 List<GatewayFilterDefinition> filterDefinitions) {
+																 List<FilterFactory> filterDefinitions) {
 		return new GatewayFilteringWebHandler(gatewayWebHandler, filters, filterDefinitions);
 	}
 
@@ -73,51 +73,51 @@ public class GatewayAutoConfiguration {
 
 	@Bean
 	public GatewayPredicateHandlerMapping gatewayPredicateHandlerMapping(GatewayFilteringWebHandler webHandler,
-																		 List<GatewayPredicate> predicates,
+																		 List<PredicateFactory> predicates,
 																		 RouteReader routeReader) {
 		return new GatewayPredicateHandlerMapping(webHandler, predicates, routeReader);
 	}
 
 	@Bean
-	public CookiePredicate cookiePredicate() {
-		return new CookiePredicate();
+	public CookiePredicateFactory cookiePredicateFactory() {
+		return new CookiePredicateFactory();
 	}
 
 	@Bean
-	public HeaderPredicate headerPredicate() {
-		return new HeaderPredicate();
+	public HeaderPredicateFactory headerPredicateFactory() {
+		return new HeaderPredicateFactory();
 	}
 
 	@Bean
-	public HostPredicate hostPredicate() {
-		return new HostPredicate();
+	public HostPredicateFactory hostPredicateFactory() {
+		return new HostPredicateFactory();
 	}
 
 	@Bean
-	public MethodPredicate methodPredicate() {
-		return new MethodPredicate();
+	public MethodPredicateFactory methodPredicateFactory() {
+		return new MethodPredicateFactory();
 	}
 
 	@Bean
-	public QueryPredicate queryPredicate() {
-		return new QueryPredicate();
+	public QueryPredicateFactory queryPredicateFactory() {
+		return new QueryPredicateFactory();
 	}
 
 	@Bean
-	public UrlPredicate urlPredicate() {
-		return new UrlPredicate();
+	public UrlPredicateFactory urlPredicateFactory() {
+		return new UrlPredicateFactory();
 	}
 
-	// Filter beans
+	// Filter Factory beans
 
 	@Bean
-	public AppendRequestHeaderFilter appendRequestHeaderFilter() {
-		return new AppendRequestHeaderFilter();
+	public AddRequestHeaderFilterFactory addRequestHeaderFilterFactory() {
+		return new AddRequestHeaderFilterFactory();
 	}
 
 	@Bean
-	public AppendResponseHeaderFilter appendResponseHeaderFilter() {
-		return new AppendResponseHeaderFilter();
+	public AddResponseHeaderFilterFactory addResponseHeaderFilterFactory() {
+		return new AddResponseHeaderFilterFactory();
 	}
 
 	@Configuration

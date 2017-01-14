@@ -10,7 +10,7 @@ import org.springframework.web.server.support.HttpRequestPathHelper;
 /**
  * @author Spencer Gibb
  */
-public class UrlPredicate implements GatewayPredicate {
+public class UrlPredicateFactory implements PredicateFactory {
 
 	private PathMatcher pathMatcher = new AntPathMatcher();
 	private HttpRequestPathHelper pathHelper = new HttpRequestPathHelper();

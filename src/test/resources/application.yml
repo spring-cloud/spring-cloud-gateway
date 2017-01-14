@@ -18,8 +18,7 @@ spring:
         - Query=baz
         - Cookie=chocolate, ch.p
         filters:
-        - AppendRequestHeader=X-Request-Foo, Bar
-        - AppendResponseHeader=X-Response-Foo, Bar
+        - AddResponseHeader=X-Response-Foo, Bar
 
       # =====================================
       - id: host_bar_path_headers_to_httpbin
@@ -28,7 +27,7 @@ spring:
         - Host=**.bar.org
         - Url=/headers
         filters:
-        - AppendRequestHeader=X-Request-Foo, Bar
+        - AddRequestHeader=X-Request-Foo, Bar
 
       # =====================================
       - id: default_path_to_httpbin

@@ -1,17 +1,16 @@
-package org.springframework.cloud.gateway.filter.definition;
+package org.springframework.cloud.gateway.filter.factory;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
-import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.util.Assert;
 
 /**
  * @author Spencer Gibb
  */
-public class AppendResponseHeaderFilter implements GatewayFilterDefinition {
+public class AddResponseHeaderFilterFactory implements FilterFactory {
 
 	@Override
 	public String getName() {
-		return "AppendResponseHeader";
+		return "AddResponseHeader";
 	}
 
 	@Override

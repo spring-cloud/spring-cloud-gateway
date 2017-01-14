@@ -1,11 +1,11 @@
-package org.springframework.cloud.gateway.filter.definition;
+package org.springframework.cloud.gateway.filter.factory;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 
 /**
  * @author Spencer Gibb
  */
-public interface GatewayFilterDefinition {
+public interface FilterFactory {
 
 	String getName();
 

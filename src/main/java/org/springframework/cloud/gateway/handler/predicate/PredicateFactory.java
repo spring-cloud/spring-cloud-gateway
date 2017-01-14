@@ -7,7 +7,7 @@ import org.springframework.web.server.ServerWebExchange;
 /**
  * @author Spencer Gibb
  */
-public interface GatewayPredicate {
+public interface PredicateFactory {
 
 	String getName();
 

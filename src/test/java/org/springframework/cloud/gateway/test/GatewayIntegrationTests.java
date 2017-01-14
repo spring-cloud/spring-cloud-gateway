@@ -59,38 +59,48 @@ public class GatewayIntegrationTests {
 		AssertionError error = null;
 	}
 
+	@FunctionalInterface
+	interface ResultVerifier {
+		void verify();
+	}
+
+	private void verify(ResultVerifier verifier) {
+		Result result = new Result();
+		IntStream.range(0, 3).forEach( i -> {
+			try {
+				verifier.verify();
+				result.passedOnce = true;
+			} catch (AssertionError e) {
+				result.error = e;
+			}
+		});
+
+		if (!result.passedOnce && result.error != null) {
+			throw result.error;
+		}
+	}
+
 	@Test
 	public void urlRouteWorks() {
 		Mono<ClientResponse> result = webClient.exchange(
 				GET("http://localhost:" + port + "/get").build()
 		);
 
-		final Result testResult = new Result();
-
-		IntStream.range(0, 3).forEach(i -> {
-			try {
-				StepVerifier.create(result)
-						.consumeNextWith(
-								response -> {
-									HttpHeaders httpHeaders = response.headers().asHttpHeaders();
-									HttpStatus statusCode = response.statusCode();
-									assertThat(httpHeaders.getFirst(HANDLER_MAPPER_HEADER))
-											.isEqualTo(GatewayPredicateHandlerMapping.class.getSimpleName());
-									assertThat(httpHeaders.getFirst(ROUTE_ID_HEADER))
-											.isEqualTo("default_path_to_httpbin");
-									assertThat(statusCode).isEqualTo(HttpStatus.OK);
-								})
-						.expectComplete()
-						.verify(Duration.ofSeconds(3));
-				testResult.passedOnce = true;
-			} catch (AssertionError e) {
-				testResult.error = e;
-			}
-		});
-
-		if (!testResult.passedOnce && testResult.error != null) {
-			throw testResult.error;
-		}
+		verify( () ->
+			StepVerifier.create(result)
+					.consumeNextWith(
+							response -> {
+								HttpHeaders httpHeaders = response.headers().asHttpHeaders();
+								HttpStatus statusCode = response.statusCode();
+								assertThat(httpHeaders.getFirst(HANDLER_MAPPER_HEADER))
+										.isEqualTo(GatewayPredicateHandlerMapping.class.getSimpleName());
+								assertThat(httpHeaders.getFirst(ROUTE_ID_HEADER))
+										.isEqualTo("default_path_to_httpbin");
+								assertThat(statusCode).isEqualTo(HttpStatus.OK);
+							})
+					.expectComplete()
+					.verify(Duration.ofSeconds(3))
+		);
 	}
 
 	@Test
@@ -101,38 +111,42 @@ public class GatewayIntegrationTests {
 						.build()
 		);
 
-		StepVerifier.create(result)
-				.consumeNextWith(
-						response -> {
-							HttpHeaders httpHeaders = response.headers().asHttpHeaders();
-							HttpStatus statusCode = response.statusCode();
-							assertThat(httpHeaders.getFirst(HANDLER_MAPPER_HEADER))
-									.isEqualTo(GatewayPredicateHandlerMapping.class.getSimpleName());
-							assertThat(httpHeaders.getFirst(ROUTE_ID_HEADER))
-									.isEqualTo("host_example_to_httpbin");
-							assertThat(statusCode).isEqualTo(HttpStatus.OK);
-						})
-				.expectComplete()
-				.verify(Duration.ofSeconds(3));
+		verify( () ->
+			StepVerifier.create(result)
+					.consumeNextWith(
+							response -> {
+								HttpHeaders httpHeaders = response.headers().asHttpHeaders();
+								HttpStatus statusCode = response.statusCode();
+								assertThat(httpHeaders.getFirst(HANDLER_MAPPER_HEADER))
+										.isEqualTo(GatewayPredicateHandlerMapping.class.getSimpleName());
+								assertThat(httpHeaders.getFirst(ROUTE_ID_HEADER))
+										.isEqualTo("host_example_to_httpbin");
+								assertThat(statusCode).isEqualTo(HttpStatus.OK);
+							})
+					.expectComplete()
+					.verify(Duration.ofSeconds(3))
+		);
 	}
 
 	@Test
-	public void appendRequestHeaderFilterWorks() {
+	public void addRequestHeaderFilterWorks() {
 		Mono<Map> result = webClient.exchange(
 				GET("http://localhost:" + port + "/headers")
 						.header("Host", "www.bar.org")
 						.build()
 		).then(response -> response.body(toMono(Map.class)));
 
-		StepVerifier.create(result)
-				.consumeNextWith(
-						response -> {
-							assertThat(response).containsKey("headers").isInstanceOf(Map.class);
-							Map<String, Object> headers = (Map<String, Object>) response.get("headers");
-							assertThat(headers).containsEntry("X-Request-Foo", "Bar");
-						})
-				.expectComplete()
-				.verify(Duration.ofSeconds(3));
+		verify( () ->
+			StepVerifier.create(result)
+					.consumeNextWith(
+							response -> {
+								assertThat(response).containsKey("headers").isInstanceOf(Map.class);
+								Map<String, Object> headers = (Map<String, Object>) response.get("headers");
+								assertThat(headers).containsEntry("X-Request-Foo", "Bar");
+							})
+					.expectComplete()
+					.verify(Duration.ofSeconds(3))
+		);
 	}
 
 	@Test
@@ -143,23 +157,13 @@ public class GatewayIntegrationTests {
 
 		Mono<Map> result = webClient.exchange(request)
 				.then(response -> response.body(toMono(Map.class)));
-		final Result testResult = new Result();
 
-		IntStream.range(0, 3).forEach(i -> {
-			try {
-				StepVerifier.create(result)
-						.consumeNextWith(map -> assertThat(map).containsEntry("data", "testdata"))
-						.expectComplete()
-						.verify(Duration.ofSeconds(3));
-				testResult.passedOnce = true;
-			} catch (AssertionError e) {
-				testResult.error = e;
-			}
-		});
-
-		if (!testResult.passedOnce && testResult.error != null) {
-			throw testResult.error;
-		}
+		verify( () ->
+			StepVerifier.create(result)
+					.consumeNextWith(map -> assertThat(map).containsEntry("data", "testdata"))
+					.expectComplete()
+					.verify(Duration.ofSeconds(3))
+		);
 	}
 
 	@Test
@@ -172,6 +176,7 @@ public class GatewayIntegrationTests {
 						.build()
 		);
 
+		verify( () ->
 		StepVerifier.create(result)
 				.consumeNextWith(
 						response -> {
@@ -186,7 +191,8 @@ public class GatewayIntegrationTests {
 							assertThat(statusCode).isEqualTo(HttpStatus.OK);
 						})
 				.expectComplete()
-				.verify();
+				.verify()
+		);
 	}
 
 	@EnableAutoConfiguration
