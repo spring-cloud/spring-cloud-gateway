@@ -3,26 +3,25 @@ package org.springframework.cloud.gateway.handler.predicate;
 import java.util.List;
 import java.util.function.Predicate;
 
-import org.springframework.http.HttpCookie;
 import org.springframework.util.Assert;
 import org.springframework.web.server.ServerWebExchange;
 
 /**
  * @author Spencer Gibb
  */
-public class CookiePredicateFactory implements PredicateFactory {
+public class HeaderRoutePredicate implements RoutePredicate {
 
 	@Override
-	public Predicate<ServerWebExchange> apply(String name, String[] args) {
+	public Predicate<ServerWebExchange> apply(String header, String[] args) {
 		//TODO: caching can happen here
 		return exchange -> {
 			Assert.isTrue(args != null && args.length == 1,
 					"args must have one entry");
 
 			String regexp = args[0];
-			List<HttpCookie> cookies = exchange.getRequest().getCookies().get(name);
-			for (HttpCookie cookie : cookies) {
-				if (cookie.getValue().matches(regexp)) {
+			List<String> values = exchange.getRequest().getHeaders().get(header);
+			for (String value : values) {
+				if (value.matches(regexp)) {
 					return true;
 				}
 			}

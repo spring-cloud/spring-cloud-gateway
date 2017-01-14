@@ -7,7 +7,7 @@ import org.springframework.web.server.ServerWebExchange;
 /**
  * @author Spencer Gibb
  */
-public interface PredicateFactory {
+public interface RoutePredicate {
 
 	Predicate<ServerWebExchange> apply(String value, String[] args);
 }

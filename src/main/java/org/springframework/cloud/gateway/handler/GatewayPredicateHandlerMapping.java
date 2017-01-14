@@ -11,7 +11,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.cloud.gateway.api.RouteReader;
 import org.springframework.cloud.gateway.config.Route;
 import org.springframework.cloud.gateway.config.PredicateDefinition;
-import org.springframework.cloud.gateway.handler.predicate.PredicateFactory;
+import org.springframework.cloud.gateway.handler.predicate.RoutePredicate;
 import org.springframework.web.reactive.handler.AbstractHandlerMapping;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebHandler;
@@ -26,13 +26,13 @@ import static org.springframework.cloud.gateway.filter.GatewayFilter.GATEWAY_ROU
  */
 public class GatewayPredicateHandlerMapping extends AbstractHandlerMapping {
 
-	private Map<String, PredicateFactory> predicates = new LinkedHashMap<>();
+	private Map<String, RoutePredicate> predicates = new LinkedHashMap<>();
 	private RouteReader routeReader;
 	private WebHandler webHandler;
 
 	private List<Route> routes;
 
-	public GatewayPredicateHandlerMapping(WebHandler webHandler, Map<String, PredicateFactory> predicates,
+	public GatewayPredicateHandlerMapping(WebHandler webHandler, Map<String, RoutePredicate> predicates,
 										  RouteReader routeReader) {
 		this.webHandler = webHandler;
 		this.routeReader = routeReader;
@@ -40,13 +40,13 @@ public class GatewayPredicateHandlerMapping extends AbstractHandlerMapping {
 		predicates.forEach((name, factory) -> {
 			String key = normalizeName(name);
 			if (this.predicates.containsKey(key)) {
-				this.logger.warn("A PredicateFactory named "+ key
+				this.logger.warn("A RoutePredicate named "+ key
 						+ " already exists, class: " + this.predicates.get(key)
 						+ ". It will be overwritten.");
 			}
 			this.predicates.put(key, factory);
 			if (logger.isInfoEnabled()) {
-				logger.info("Loaded PredicateFactory [" + key + "]");
+				logger.info("Loaded RoutePredicate [" + key + "]");
 			}
 		});
 
@@ -54,7 +54,7 @@ public class GatewayPredicateHandlerMapping extends AbstractHandlerMapping {
 	}
 
 	private String normalizeName(String name) {
-		return name.replace(PredicateFactory.class.getSimpleName(), "");
+		return name.replace(RoutePredicate.class.getSimpleName(), "");
 	}
 
 	@Override
@@ -140,9 +140,9 @@ public class GatewayPredicateHandlerMapping extends AbstractHandlerMapping {
 	}
 
 	private Predicate<ServerWebExchange> lookup(Route route, PredicateDefinition predicate) {
-		PredicateFactory found = this.predicates.get(predicate.getName());
+		RoutePredicate found = this.predicates.get(predicate.getName());
 		if (found == null) {
-			throw new IllegalArgumentException("Unable to find PredicateFactory with name " + predicate.getName());
+			throw new IllegalArgumentException("Unable to find RoutePredicate with name " + predicate.getName());
 		}
 		if (logger.isDebugEnabled()) {
 			List<String> args;

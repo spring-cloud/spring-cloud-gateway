@@ -8,7 +8,7 @@ import org.springframework.web.server.ServerWebExchange;
 /**
  * @author Spencer Gibb
  */
-public class MethodPredicateFactory implements PredicateFactory {
+public class MethodRoutePredicate implements RoutePredicate {
 
 	@Override
 	public Predicate<ServerWebExchange> apply(String method, String[] args) {

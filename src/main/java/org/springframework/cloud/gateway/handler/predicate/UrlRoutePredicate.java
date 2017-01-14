@@ -11,7 +11,7 @@ import org.springframework.web.server.support.HttpRequestPathHelper;
 /**
  * @author Spencer Gibb
  */
-public class UrlPredicateFactory implements PredicateFactory {
+public class UrlRoutePredicate implements RoutePredicate {
 
 	public static final String URL_PREDICATE_VARS_ATTR = "urlPredicateVars";
 
