@@ -58,10 +58,14 @@ public class GatewayFilteringWebHandler extends WebHandlerDecorator {
 	private final Map<String, RouteFilter> filterDefinitions = new HashMap<>();
 
 	public GatewayFilteringWebHandler(WebHandler targetHandler, List<GatewayFilter> filters,
-									  List<RouteFilter> filterDefinitions) {
+									  Map<String, RouteFilter> filterDefinitions) {
 		super(targetHandler);
 		this.filters = initList(filters);
-		initList(filterDefinitions).forEach(def -> this.filterDefinitions.put(def.getName(), def));
+		filterDefinitions.forEach((name, def) -> this.filterDefinitions.put(nornamlizeName(name), def));
+	}
+
+	private String nornamlizeName(String name) {
+		return name.replace(RouteFilter.class.getSimpleName(), "");
 	}
 
 	private static <T> List<T> initList(List<T> list) {

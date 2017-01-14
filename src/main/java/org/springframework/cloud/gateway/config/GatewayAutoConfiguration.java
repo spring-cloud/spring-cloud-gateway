@@ -1,6 +1,7 @@
 package org.springframework.cloud.gateway.config;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.boot.actuate.endpoint.Endpoint;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -71,7 +72,7 @@ public class GatewayAutoConfiguration {
 	@Bean
 	public GatewayFilteringWebHandler gatewayFilteringWebHandler(GatewayWebHandler gatewayWebHandler,
 																 List<GatewayFilter> filters,
-																 List<RouteFilter> filterDefinitions) {
+																 Map<String, RouteFilter> filterDefinitions) {
 		return new GatewayFilteringWebHandler(gatewayWebHandler, filters, filterDefinitions);
 	}
 
@@ -116,42 +117,42 @@ public class GatewayAutoConfiguration {
 
 	// Filter Factory beans
 
-	@Bean
+	@Bean(name = "AddRequestHeaderRouteFilter")
 	public AddRequestHeaderRouteFilter addRequestHeaderRouteFilter() {
 		return new AddRequestHeaderRouteFilter();
 	}
 
-	@Bean
+	@Bean(name = "AddResponseHeaderRouteFilter")
 	public AddResponseHeaderRouteFilter addResponseHeaderRouteFilter() {
 		return new AddResponseHeaderRouteFilter();
 	}
 
-	@Bean
+	@Bean(name = "RemoveRequestHeaderRouteFilter")
 	public RemoveRequestHeaderRouteFilter removeRequestHeaderRouteFilter() {
 		return new RemoveRequestHeaderRouteFilter();
 	}
 
-	@Bean
+	@Bean(name = "RemoveResponseHeaderRouteFilter")
 	public RemoveResponseHeaderRouteFilter removeResponseHeaderRouteFilter() {
 		return new RemoveResponseHeaderRouteFilter();
 	}
 
-	@Bean
+	@Bean(name = "RewritePathRouteFilter")
 	public RewritePathRouteFilter rewritePathRouteFilter() {
 		return new RewritePathRouteFilter();
 	}
 
-	@Bean
+	@Bean(name = "SetPathRouteFilter")
 	public SetPathRouteFilter setPathRouteFilter() {
 		return new SetPathRouteFilter();
 	}
 
-	@Bean
+	@Bean(name = "SetResponseHeaderRouteFilter")
 	public SetResponseHeaderRouteFilter setResponseHeaderRouteFilter() {
 		return new SetResponseHeaderRouteFilter();
 	}
 
-	@Bean
+	@Bean(name = "SetStatusRouteFilter")
 	public SetStatusRouteFilter setStatusRouteFilter() {
 		return new SetStatusRouteFilter();
 	}
