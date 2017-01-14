@@ -44,7 +44,7 @@ public interface GatewayFilter {
 	 */
 	Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain);
 
-	default <T> T getAttribute(ServerWebExchange exchange, String attributeName, Class<T> type) {
+	static <T> T getAttribute(ServerWebExchange exchange, String attributeName, Class<T> type) {
 		if (exchange.getAttributes().containsKey(attributeName)) {
 			Object attr = exchange.getAttributes().get(attributeName);
 			if (type.isAssignableFrom(attr.getClass())) {

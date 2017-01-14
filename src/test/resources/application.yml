@@ -58,6 +58,15 @@ spring:
         - RemoveResponseHeader=X-Request-Foo
 
       # =====================================
+      - id: set_path_test
+        uri: http://httpbin.org:80
+        predicates:
+        - Host=**.setpath.org
+        - Url=/foo/{segment}
+        filters:
+        - SetPath=/{segment}
+
+      # =====================================
       - id: set_response_header_test
         uri: http://httpbin.org:80
         predicates:
@@ -69,15 +78,6 @@ spring:
         - SetResponseHeader=X-Request-Foo, Bar
 
       # =====================================
-      - id: set_status_string_test
-        uri: http://httpbin.org:80
-        predicates:
-        - Host=**.setstatusstring.org
-        - Url=/headers
-        filters:
-        - SetStatus=BAD_REQUEST
-
-      # =====================================
       - id: set_status_int_test
         uri: http://httpbin.org:80
         predicates:
@@ -85,6 +85,15 @@ spring:
         - Url=/headers
         filters:
         - SetStatus=401
+
+      # =====================================
+      - id: set_status_string_test
+        uri: http://httpbin.org:80
+        predicates:
+        - Host=**.setstatusstring.org
+        - Url=/headers
+        filters:
+        - SetStatus=BAD_REQUEST
 
       # =====================================
       - id: rewrite_path_test

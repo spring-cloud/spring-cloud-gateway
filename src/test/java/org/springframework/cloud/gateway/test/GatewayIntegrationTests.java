@@ -259,6 +259,26 @@ public class GatewayIntegrationTests {
 	}
 
 	@Test
+	public void setPathFilterWorks() {
+		Mono<ClientResponse> result = webClient.exchange(
+				GET("http://localhost:" + port + "/foo/get")
+						.header("Host", "www.setpath.org")
+						.build()
+		);
+
+		verify( () ->
+				StepVerifier.create(result)
+						.consumeNextWith(
+								response -> {
+									HttpStatus statusCode = response.statusCode();
+									assertThat(statusCode).isEqualTo(HttpStatus.OK);
+								})
+						.expectComplete()
+						.verify(Duration.ofSeconds(3))
+		);
+	}
+
+	@Test
 	public void setResponseHeaderFilterWorks() {
 		Mono<ClientResponse> result = webClient.exchange(
 				GET("http://localhost:" + port + "/headers")
@@ -281,14 +301,14 @@ public class GatewayIntegrationTests {
 
 	@Test
 	@Ignore("TODO: figure out how to set the status before response committed")
-	public void setStatusStringWorks() {
-		setStatusStringTest("www.setstatusstring.org", HttpStatus.BAD_REQUEST);
+	public void setStatusIntWorks() {
+		setStatusStringTest("www.setstatusint.org", HttpStatus.UNAUTHORIZED);
 	}
 
 	@Test
 	@Ignore("TODO: figure out how to set the status before response committed")
-	public void setStatusIntWorks() {
-		setStatusStringTest("www.setstatusint.org", HttpStatus.UNAUTHORIZED);
+	public void setStatusStringWorks() {
+		setStatusStringTest("www.setstatusstring.org", HttpStatus.BAD_REQUEST);
 	}
 
 	private void setStatusStringTest(String host, HttpStatus status) {

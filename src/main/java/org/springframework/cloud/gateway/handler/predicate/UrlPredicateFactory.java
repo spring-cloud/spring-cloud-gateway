@@ -1,5 +1,6 @@
 package org.springframework.cloud.gateway.handler.predicate;
 
+import java.util.Map;
 import java.util.function.Predicate;
 
 import org.springframework.util.AntPathMatcher;
@@ -11,6 +12,8 @@ import org.springframework.web.server.support.HttpRequestPathHelper;
  * @author Spencer Gibb
  */
 public class UrlPredicateFactory implements PredicateFactory {
+
+	public static final String URL_PREDICATE_VARS_ATTR = "urlPredicateVars";
 
 	private PathMatcher pathMatcher = new AntPathMatcher();
 	private HttpRequestPathHelper pathHelper = new HttpRequestPathHelper();
@@ -40,7 +43,12 @@ public class UrlPredicateFactory implements PredicateFactory {
 	public Predicate<ServerWebExchange> apply(String pattern, String[] args) {
 		return exchange -> {
 			String lookupPath = getPathHelper().getLookupPathForRequest(exchange);
-			return getPathMatcher().match(pattern, lookupPath);
+			boolean match = getPathMatcher().match(pattern, lookupPath);
+			if (match) {
+				Map<String, String> variables = getPathMatcher().extractUriTemplateVariables(pattern, lookupPath);
+				exchange.getAttributes().put(URL_PREDICATE_VARS_ATTR, variables);
+			}
+			return match;
 			//TODO: support trailingSlashMatch
 		};
 	}

@@ -10,6 +10,8 @@ import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilterChain;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import static org.springframework.cloud.gateway.filter.GatewayFilter.getAttribute;
+
 import reactor.core.publisher.Mono;
 
 /**
