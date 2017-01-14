@@ -69,6 +69,24 @@ spring:
         - SetResponseHeader=X-Request-Foo, Bar
 
       # =====================================
+      - id: set_status_string_test
+        uri: http://httpbin.org:80
+        predicates:
+        - Host=**.setstatusstring.org
+        - Url=/headers
+        filters:
+        - SetStatus=BAD_REQUEST
+
+      # =====================================
+      - id: set_status_int_test
+        uri: http://httpbin.org:80
+        predicates:
+        - Host=**.setstatusint.org
+        - Url=/headers
+        filters:
+        - SetStatus=401
+
+      # =====================================
       - id: rewrite_path_test
         uri: http://httpbin.org:80
         predicates:
@@ -88,6 +106,7 @@ spring:
 logging:
   level:
     org.springframework.cloud.gateway: TRACE
+    org.springframework.http.server.reactive: DEBUG
 
 management:
   context-path: /admin

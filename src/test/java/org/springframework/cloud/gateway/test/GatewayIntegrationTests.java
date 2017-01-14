@@ -7,6 +7,7 @@ import java.util.stream.IntStream;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.SpringBootConfiguration;
@@ -82,74 +83,6 @@ public class GatewayIntegrationTests {
 	}
 
 	@Test
-	public void urlRouteWorks() {
-		Mono<ClientResponse> result = webClient.exchange(
-				GET("http://localhost:" + port + "/get").build()
-		);
-
-		verify( () ->
-			StepVerifier.create(result)
-					.consumeNextWith(
-							response -> {
-								HttpHeaders httpHeaders = response.headers().asHttpHeaders();
-								HttpStatus statusCode = response.statusCode();
-								assertThat(httpHeaders.getFirst(HANDLER_MAPPER_HEADER))
-										.isEqualTo(GatewayPredicateHandlerMapping.class.getSimpleName());
-								assertThat(httpHeaders.getFirst(ROUTE_ID_HEADER))
-										.isEqualTo("default_path_to_httpbin");
-								assertThat(statusCode).isEqualTo(HttpStatus.OK);
-							})
-					.expectComplete()
-					.verify(Duration.ofSeconds(3))
-		);
-	}
-
-	@Test
-	public void hostRouteWorks() {
-		Mono<ClientResponse> result = webClient.exchange(
-				GET("http://localhost:" + port + "/get")
-						.header("Host", "www.example.org")
-						.build()
-		);
-
-		verify( () ->
-			StepVerifier.create(result)
-					.consumeNextWith(
-							response -> {
-								HttpHeaders httpHeaders = response.headers().asHttpHeaders();
-								HttpStatus statusCode = response.statusCode();
-								assertThat(httpHeaders.getFirst(HANDLER_MAPPER_HEADER))
-										.isEqualTo(GatewayPredicateHandlerMapping.class.getSimpleName());
-								assertThat(httpHeaders.getFirst(ROUTE_ID_HEADER))
-										.isEqualTo("host_example_to_httpbin");
-								assertThat(statusCode).isEqualTo(HttpStatus.OK);
-							})
-					.expectComplete()
-					.verify(Duration.ofSeconds(3))
-		);
-	}
-
-	@Test
-	public void rewritePathFilterWorks() {
-		Mono<ClientResponse> result = webClient.exchange(
-				GET("http://localhost:" + port + "/foo/get")
-						.header("Host", "www.baz.org")
-						.build()
-		);
-
-		verify( () ->
-				StepVerifier.create(result)
-						.consumeNextWith(
-								response -> {
-									HttpStatus statusCode = response.statusCode();
-									assertThat(statusCode).isEqualTo(HttpStatus.OK);
-								})
-						.expectComplete()
-						.verify(Duration.ofSeconds(3))
-		);
-	}
-
-	@Test
 	public void addRequestHeaderFilterWorks() {
 		Mono<Map> result = webClient.exchange(
 				GET("http://localhost:" + port + "/headers")
@@ -186,6 +119,77 @@ public class GatewayIntegrationTests {
 									assertThat(httpHeaders.getFirst("X-Request-Foo"))
 											.isEqualTo("Bar");
 								})
+						.expectComplete()
+						.verify(Duration.ofSeconds(3))
+		);
+	}
+
+	@Test
+	public void compositeRouteWorks() {
+		Mono<ClientResponse> result = webClient.exchange(
+				GET("http://localhost:" + port + "/headers?foo=bar&baz")
+						.header("Host", "www.foo.org")
+						.header("X-Request-Id", "123")
+						.cookie("chocolate", "chip")
+						.build()
+		);
+
+		verify( () ->
+				StepVerifier.create(result)
+						.consumeNextWith(
+								response -> {
+									HttpHeaders httpHeaders = response.headers().asHttpHeaders();
+									HttpStatus statusCode = response.statusCode();
+									assertThat(httpHeaders.getFirst(HANDLER_MAPPER_HEADER))
+											.isEqualTo(GatewayPredicateHandlerMapping.class.getSimpleName());
+									assertThat(httpHeaders.getFirst(ROUTE_ID_HEADER))
+											.isEqualTo("host_foo_path_headers_to_httpbin");
+									assertThat(httpHeaders.getFirst("X-Response-Foo"))
+											.isEqualTo("Bar");
+									assertThat(statusCode).isEqualTo(HttpStatus.OK);
+								})
+						.expectComplete()
+						.verify()
+		);
+	}
+
+	@Test
+	public void hostRouteWorks() {
+		Mono<ClientResponse> result = webClient.exchange(
+				GET("http://localhost:" + port + "/get")
+						.header("Host", "www.example.org")
+						.build()
+		);
+
+		verify( () ->
+				StepVerifier.create(result)
+						.consumeNextWith(
+								response -> {
+									HttpHeaders httpHeaders = response.headers().asHttpHeaders();
+									HttpStatus statusCode = response.statusCode();
+									assertThat(httpHeaders.getFirst(HANDLER_MAPPER_HEADER))
+											.isEqualTo(GatewayPredicateHandlerMapping.class.getSimpleName());
+									assertThat(httpHeaders.getFirst(ROUTE_ID_HEADER))
+											.isEqualTo("host_example_to_httpbin");
+									assertThat(statusCode).isEqualTo(HttpStatus.OK);
+								})
+						.expectComplete()
+						.verify(Duration.ofSeconds(3))
+		);
+	}
+
+	@Test
+	public void postWorks() {
+		ClientRequest<Mono<String>> request = POST("http://localhost:" + port + "/post")
+				.header("Host", "www.example.org")
+				.body(Mono.just("testdata"), String.class);
+
+		Mono<Map> result = webClient.exchange(request)
+				.then(response -> response.body(toMono(Map.class)));
+
+		verify( () ->
+				StepVerifier.create(result)
+						.consumeNextWith(map -> assertThat(map).containsEntry("data", "testdata"))
 						.expectComplete()
 						.verify(Duration.ofSeconds(3))
 		);
@@ -235,6 +239,26 @@ public class GatewayIntegrationTests {
 	}
 
 	@Test
+	public void rewritePathFilterWorks() {
+		Mono<ClientResponse> result = webClient.exchange(
+				GET("http://localhost:" + port + "/foo/get")
+						.header("Host", "www.baz.org")
+						.build()
+		);
+
+		verify( () ->
+				StepVerifier.create(result)
+						.consumeNextWith(
+								response -> {
+									HttpStatus statusCode = response.statusCode();
+									assertThat(statusCode).isEqualTo(HttpStatus.OK);
+								})
+						.expectComplete()
+						.verify(Duration.ofSeconds(3))
+		);
+	}
+
+	@Test
 	public void setResponseHeaderFilterWorks() {
 		Mono<ClientResponse> result = webClient.exchange(
 				GET("http://localhost:" + port + "/headers")
@@ -256,48 +280,56 @@ public class GatewayIntegrationTests {
 	}
 
 	@Test
-	public void postWorks() {
-		ClientRequest<Mono<String>> request = POST("http://localhost:" + port + "/post")
-				.header("Host", "www.example.org")
-				.body(Mono.just("testdata"), String.class);
-
-		Mono<Map> result = webClient.exchange(request)
-				.then(response -> response.body(toMono(Map.class)));
-
-		verify( () ->
-			StepVerifier.create(result)
-					.consumeNextWith(map -> assertThat(map).containsEntry("data", "testdata"))
-					.expectComplete()
-					.verify(Duration.ofSeconds(3))
-		);
+	@Ignore("TODO: figure out how to set the status before response committed")
+	public void setStatusStringWorks() {
+		setStatusStringTest("www.setstatusstring.org", HttpStatus.BAD_REQUEST);
 	}
 
 	@Test
-	public void compositeRouteWorks() {
+	@Ignore("TODO: figure out how to set the status before response committed")
+	public void setStatusIntWorks() {
+		setStatusStringTest("www.setstatusint.org", HttpStatus.UNAUTHORIZED);
+	}
+
+	private void setStatusStringTest(String host, HttpStatus status) {
 		Mono<ClientResponse> result = webClient.exchange(
-				GET("http://localhost:" + port + "/headers?foo=bar&baz")
-						.header("Host", "www.foo.org")
-						.header("X-Request-Id", "123")
-						.cookie("chocolate", "chip")
+				GET("http://localhost:" + port + "/headers")
+						.header("Host", host)
 						.build()
 		);
 
 		verify( () ->
-		StepVerifier.create(result)
-				.consumeNextWith(
-						response -> {
-							HttpHeaders httpHeaders = response.headers().asHttpHeaders();
-							HttpStatus statusCode = response.statusCode();
-							assertThat(httpHeaders.getFirst(HANDLER_MAPPER_HEADER))
-									.isEqualTo(GatewayPredicateHandlerMapping.class.getSimpleName());
-							assertThat(httpHeaders.getFirst(ROUTE_ID_HEADER))
-									.isEqualTo("host_foo_path_headers_to_httpbin");
-							assertThat(httpHeaders.getFirst("X-Response-Foo"))
-									.isEqualTo("Bar");
-							assertThat(statusCode).isEqualTo(HttpStatus.OK);
-						})
-				.expectComplete()
-				.verify()
+				StepVerifier.create(result)
+						.consumeNextWith(
+								response -> {
+									HttpStatus statusCode = response.statusCode();
+									assertThat(statusCode).isEqualTo(status);
+								})
+						.expectComplete()
+						.verify(Duration.ofSeconds(3))
+		);
+	}
+
+	@Test
+	public void urlRouteWorks() {
+		Mono<ClientResponse> result = webClient.exchange(
+				GET("http://localhost:" + port + "/get").build()
+		);
+
+		verify( () ->
+				StepVerifier.create(result)
+						.consumeNextWith(
+								response -> {
+									HttpHeaders httpHeaders = response.headers().asHttpHeaders();
+									HttpStatus statusCode = response.statusCode();
+									assertThat(httpHeaders.getFirst(HANDLER_MAPPER_HEADER))
+											.isEqualTo(GatewayPredicateHandlerMapping.class.getSimpleName());
+									assertThat(httpHeaders.getFirst(ROUTE_ID_HEADER))
+											.isEqualTo("default_path_to_httpbin");
+									assertThat(statusCode).isEqualTo(HttpStatus.OK);
+								})
+						.expectComplete()
+						.verify(Duration.ofSeconds(3))
 		);
 	}
 

@@ -17,6 +17,7 @@ import org.springframework.cloud.gateway.filter.factory.RemoveRequestHeaderFilte
 import org.springframework.cloud.gateway.filter.factory.RemoveResponseHeaderFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RewritePathFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SetResponseHeaderFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.SetStatusFilterFactory;
 import org.springframework.cloud.gateway.handler.GatewayFilteringWebHandler;
 import org.springframework.cloud.gateway.handler.GatewayPredicateHandlerMapping;
 import org.springframework.cloud.gateway.handler.GatewayWebHandler;
@@ -142,6 +143,11 @@ public class GatewayAutoConfiguration {
 	@Bean
 	public SetResponseHeaderFilterFactory setResponseHeaderFilterFactory() {
 		return new SetResponseHeaderFilterFactory();
+	}
+
+	@Bean
+	public SetStatusFilterFactory setStatusFilterFactory() {
+		return new SetStatusFilterFactory();
 	}
 
 	@Configuration
