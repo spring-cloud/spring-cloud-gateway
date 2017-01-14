@@ -24,6 +24,9 @@ public class Route {
 	@Valid
 	private List<PredicateDefinition> predicates = new ArrayList<>();
 
+	@Valid
+	private List<FilterDefinition> filters = new ArrayList<>();
+
 	@NotNull
 	private URI uri;
 
@@ -63,6 +66,14 @@ public class Route {
 		this.predicates = predicates;
 	}
 
+	public List<FilterDefinition> getFilters() {
+		return filters;
+	}
+
+	public void setFilters(List<FilterDefinition> filters) {
+		this.filters = filters;
+	}
+
 	public URI getUri() {
 		return uri;
 	}
@@ -91,6 +102,7 @@ public class Route {
 		return "Route{" +
 				"id='" + id + '\'' +
 				", predicates=" + predicates +
+				", filters=" + filters +
 				", uri=" + uri +
 				'}';
 	}

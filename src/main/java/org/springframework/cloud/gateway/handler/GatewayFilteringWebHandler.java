@@ -16,17 +16,30 @@
 
 package org.springframework.cloud.gateway.handler;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.cloud.gateway.config.Route;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.definition.GatewayFilterDefinition;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilterChain;
 import org.springframework.web.server.WebHandler;
 import org.springframework.web.server.handler.WebHandlerDecorator;
 
 import reactor.core.publisher.Mono;
+
+import static java.util.Collections.emptyList;
+import static org.springframework.cloud.gateway.filter.GatewayFilter.GATEWAY_ROUTE_ATTR;
 
 /**
  * WebHandler that delegates to a chain of {@link GatewayFilter} instances and then
@@ -36,19 +49,21 @@ import reactor.core.publisher.Mono;
  * @since 5.0
  */
 public class GatewayFilteringWebHandler extends WebHandlerDecorator {
+	protected final Log logger = LogFactory.getLog(getClass());
 
 	private final List<GatewayFilter> filters;
+	private final Map<String, GatewayFilterDefinition> filterDefinitions = new HashMap<>();
 
-
-	public GatewayFilteringWebHandler(WebHandler targetHandler, GatewayFilter... filters) {
+	public GatewayFilteringWebHandler(WebHandler targetHandler, List<GatewayFilter> filters,
+									  List<GatewayFilterDefinition> filterDefinitions) {
 		super(targetHandler);
 		this.filters = initList(filters);
+		initList(filterDefinitions).forEach(def -> this.filterDefinitions.put(def.getName(), def));
 	}
 
-	private static List<GatewayFilter> initList(GatewayFilter[] list) {
-		return (list != null ? Collections.unmodifiableList(Arrays.asList(list)) : Collections.emptyList());
+	private static <T> List<T> initList(List<T> list) {
+		return (list != null ? list : emptyList());
 	}
-
 
 	/**
 	 * Return a read-only list of the configured filters.
@@ -59,13 +74,48 @@ public class GatewayFilteringWebHandler extends WebHandlerDecorator {
 
 	@Override
 	public Mono<Void> handle(ServerWebExchange exchange) {
-		return new DefaultWebFilterChain().filter(exchange);
+		//TODO: probably a java 8 stream way of doing this
+		ArrayList<GatewayFilter> routeFilters = new ArrayList<>(this.filters);
+		Optional<Route> route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
+		if (route.isPresent() && !route.get().getFilters().isEmpty()) {
+			routeFilters.addAll(loadFilters(route.get()));
+		}
+		return new DefaultWebFilterChain(routeFilters, getDelegate()).filter(exchange);
+	}
+
+	private Collection<GatewayFilter> loadFilters(Route route) {
+		return route.getFilters().stream()
+				.map(definition -> {
+					GatewayFilterDefinition filter = this.filterDefinitions.get(definition.getName());
+					if (filter == null) {
+						throw new IllegalArgumentException("Unable to find GatewayFilterDefinition with name " + definition.getName());
+					}
+					if (logger.isDebugEnabled()) {
+						List<String> args;
+						if (definition.getArgs() != null) {
+							args = Arrays.asList(definition.getArgs());
+						} else {
+							args = Collections.emptyList();
+						}
+						logger.debug("Route " + route.getId() + " applying filter "+ definition.getValue()
+								+ ", " + args + " to " + definition.getName());
+					}
+					return filter.apply(definition.getValue(), definition.getArgs());
+				})
+				.collect(Collectors.toList());
 	}
 
 
-	private class DefaultWebFilterChain implements WebFilterChain {
+	private static class DefaultWebFilterChain implements WebFilterChain {
 
 		private int index;
+		private final List<GatewayFilter> filters;
+		private final WebHandler delegate;
+
+		public DefaultWebFilterChain(List<GatewayFilter> filters, WebHandler delegate) {
+			this.filters = filters;
+			this.delegate = delegate;
+		}
 
 		@Override
 		public Mono<Void> filter(ServerWebExchange exchange) {
@@ -74,7 +124,7 @@ public class GatewayFilteringWebHandler extends WebHandlerDecorator {
 				return filter.filter(exchange, this);
 			}
 			else {
-				return getDelegate().handle(exchange);
+				return this.delegate.handle(exchange);
 			}
 		}
 	}

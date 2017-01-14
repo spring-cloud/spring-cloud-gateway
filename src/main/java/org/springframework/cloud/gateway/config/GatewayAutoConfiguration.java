@@ -9,6 +9,9 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.cloud.gateway.actuate.GatewayEndpoint;
 import org.springframework.cloud.gateway.api.RouteReader;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.definition.AppendRequestHeaderFilter;
+import org.springframework.cloud.gateway.filter.definition.AppendResponseHeaderFilter;
+import org.springframework.cloud.gateway.filter.definition.GatewayFilterDefinition;
 import org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter;
 import org.springframework.cloud.gateway.handler.GatewayFilteringWebHandler;
 import org.springframework.cloud.gateway.handler.GatewayPredicateHandlerMapping;
@@ -60,9 +63,13 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	public GatewayFilteringWebHandler gatewayFilteringWebHandler(GatewayWebHandler gatewayWebHandler, GatewayFilter[] filters) {
-		return new GatewayFilteringWebHandler(gatewayWebHandler, filters);
+	public GatewayFilteringWebHandler gatewayFilteringWebHandler(GatewayWebHandler gatewayWebHandler,
+																 List<GatewayFilter> filters,
+																 List<GatewayFilterDefinition> filterDefinitions) {
+		return new GatewayFilteringWebHandler(gatewayWebHandler, filters, filterDefinitions);
 	}
+
+	// Predicate beans
 
 	@Bean
 	public GatewayPredicateHandlerMapping gatewayPredicateHandlerMapping(GatewayFilteringWebHandler webHandler,
@@ -99,6 +106,18 @@ public class GatewayAutoConfiguration {
 	@Bean
 	public UrlPredicate urlPredicate() {
 		return new UrlPredicate();
+	}
+
+	// Filter beans
+
+	@Bean
+	public AppendRequestHeaderFilter appendRequestHeaderFilter() {
+		return new AppendRequestHeaderFilter();
+	}
+
+	@Bean
+	public AppendResponseHeaderFilter appendResponseHeaderFilter() {
+		return new AppendResponseHeaderFilter();
 	}
 
 	@Configuration

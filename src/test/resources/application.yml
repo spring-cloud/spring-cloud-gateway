@@ -17,6 +17,18 @@ spring:
         - Query=foo, ba.
         - Query=baz
         - Cookie=chocolate, ch.p
+        filters:
+        - AppendRequestHeader=X-Request-Foo, Bar
+        - AppendResponseHeader=X-Response-Foo, Bar
+
+      # =====================================
+      - id: host_bar_path_headers_to_httpbin
+        uri: http://httpbin.org:80
+        predicates:
+        - Host=**.bar.org
+        - Url=/headers
+        filters:
+        - AppendRequestHeader=X-Request-Foo, Bar
 
       # =====================================
       - id: default_path_to_httpbin
@@ -30,4 +42,4 @@ logging:
 
 management:
   context-path: /admin
-#  port: 8081
+  port: 8081

@@ -117,6 +117,25 @@ public class GatewayIntegrationTests {
 	}
 
 	@Test
+	public void appendRequestHeaderFilterWorks() {
+		Mono<Map> result = webClient.exchange(
+				GET("http://localhost:" + port + "/headers")
+						.header("Host", "www.bar.org")
+						.build()
+		).then(response -> response.body(toMono(Map.class)));
+
+		StepVerifier.create(result)
+				.consumeNextWith(
+						response -> {
+							assertThat(response).containsKey("headers").isInstanceOf(Map.class);
+							Map<String, Object> headers = (Map<String, Object>) response.get("headers");
+							assertThat(headers).containsEntry("X-Request-Foo", "Bar");
+						})
+				.expectComplete()
+				.verify(Duration.ofSeconds(3));
+	}
+
+	@Test
 	public void postWorks() {
 		ClientRequest<Mono<String>> request = POST("http://localhost:" + port + "/post")
 				.header("Host", "www.example.org")
@@ -162,6 +181,8 @@ public class GatewayIntegrationTests {
 									.isEqualTo(GatewayPredicateHandlerMapping.class.getSimpleName());
 							assertThat(httpHeaders.getFirst(ROUTE_ID_HEADER))
 									.isEqualTo("host_foo_path_headers_to_httpbin");
+							assertThat(httpHeaders.getFirst("X-Response-Foo"))
+									.isEqualTo("Bar");
 							assertThat(statusCode).isEqualTo(HttpStatus.OK);
 						})
 				.expectComplete()
