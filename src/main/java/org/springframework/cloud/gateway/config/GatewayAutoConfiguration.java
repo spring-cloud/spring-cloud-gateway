@@ -80,37 +80,37 @@ public class GatewayAutoConfiguration {
 
 	@Bean
 	public GatewayPredicateHandlerMapping gatewayPredicateHandlerMapping(GatewayFilteringWebHandler webHandler,
-																		 List<PredicateFactory> predicates,
+																		 Map<String, PredicateFactory> predicates,
 																		 RouteReader routeReader) {
 		return new GatewayPredicateHandlerMapping(webHandler, predicates, routeReader);
 	}
 
-	@Bean
+	@Bean(name = "CookiePredicateFactory")
 	public CookiePredicateFactory cookiePredicateFactory() {
 		return new CookiePredicateFactory();
 	}
 
-	@Bean
+	@Bean(name = "HeaderPredicateFactory")
 	public HeaderPredicateFactory headerPredicateFactory() {
 		return new HeaderPredicateFactory();
 	}
 
-	@Bean
+	@Bean(name = "HostPredicateFactory")
 	public HostPredicateFactory hostPredicateFactory() {
 		return new HostPredicateFactory();
 	}
 
-	@Bean
+	@Bean(name = "MethodPredicateFactory")
 	public MethodPredicateFactory methodPredicateFactory() {
 		return new MethodPredicateFactory();
 	}
 
-	@Bean
+	@Bean(name = "QueryPredicateFactory")
 	public QueryPredicateFactory queryPredicateFactory() {
 		return new QueryPredicateFactory();
 	}
 
-	@Bean
+	@Bean(name = "UrlPredicateFactory")
 	public UrlPredicateFactory urlPredicateFactory() {
 		return new UrlPredicateFactory();
 	}

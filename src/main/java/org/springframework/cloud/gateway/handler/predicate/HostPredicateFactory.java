@@ -18,11 +18,6 @@ public class HostPredicateFactory implements PredicateFactory {
 	}
 
 	@Override
-	public String getName() {
-		return "Host";
-	}
-
-	@Override
 	public Predicate<ServerWebExchange> apply(String pattern, String[] args) {
 		//TODO: caching can happen here
 		return exchange -> {

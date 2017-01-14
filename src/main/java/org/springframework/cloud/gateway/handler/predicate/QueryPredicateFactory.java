@@ -11,11 +11,6 @@ import org.springframework.web.server.ServerWebExchange;
 public class QueryPredicateFactory implements PredicateFactory {
 
 	@Override
-	public String getName() {
-		return "Query";
-	}
-
-	@Override
 	public Predicate<ServerWebExchange> apply(String param, String[] args) {
 		//TODO: caching can happen here
 		return exchange -> {

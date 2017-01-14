@@ -35,11 +35,6 @@ public class UrlPredicateFactory implements PredicateFactory {
 	}
 
 	@Override
-	public String getName() {
-		return "Url";
-	}
-
-	@Override
 	public Predicate<ServerWebExchange> apply(String pattern, String[] args) {
 		return exchange -> {
 			String lookupPath = getPathHelper().getLookupPathForRequest(exchange);

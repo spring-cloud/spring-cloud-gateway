@@ -12,11 +12,6 @@ import org.springframework.web.server.ServerWebExchange;
 public class HeaderPredicateFactory implements PredicateFactory {
 
 	@Override
-	public String getName() {
-		return "Header";
-	}
-
-	@Override
 	public Predicate<ServerWebExchange> apply(String header, String[] args) {
 		//TODO: caching can happen here
 		return exchange -> {

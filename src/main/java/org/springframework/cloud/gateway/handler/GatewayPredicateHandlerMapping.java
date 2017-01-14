@@ -32,24 +32,29 @@ public class GatewayPredicateHandlerMapping extends AbstractHandlerMapping {
 
 	private List<Route> routes;
 
-	public GatewayPredicateHandlerMapping(WebHandler webHandler, List<PredicateFactory> predicates,
+	public GatewayPredicateHandlerMapping(WebHandler webHandler, Map<String, PredicateFactory> predicates,
 										  RouteReader routeReader) {
 		this.webHandler = webHandler;
 		this.routeReader = routeReader;
 
-		for (PredicateFactory factory : predicates) {
-			if (this.predicates.containsKey(factory.getName())) {
-				this.logger.warn("A PredicateFactory named "+ factory.getName()
-						+ " already exists, class: " + this.predicates.get(factory.getName())
+		predicates.forEach((name, factory) -> {
+			String key = normalizeName(name);
+			if (this.predicates.containsKey(key)) {
+				this.logger.warn("A PredicateFactory named "+ key
+						+ " already exists, class: " + this.predicates.get(key)
 						+ ". It will be overwritten.");
 			}
-			this.predicates.put(factory.getName(), factory);
+			this.predicates.put(key, factory);
 			if (logger.isInfoEnabled()) {
-				logger.info("Loaded PredicateFactory [" + factory.getName() + "]");
+				logger.info("Loaded PredicateFactory [" + key + "]");
 			}
-		}
+		});
 
 		setOrder(-1);
+	}
+
+	private String normalizeName(String name) {
+		return name.replace(PredicateFactory.class.getSimpleName(), "");
 	}
 
 	@Override
@@ -147,7 +152,7 @@ public class GatewayPredicateHandlerMapping extends AbstractHandlerMapping {
 				args = Collections.emptyList();
 			}
 			logger.debug("Route " + route.getId() + " applying "+ predicate.getValue()
-					+ ", " + args + " to " + found.getName());
+					+ ", " + args + " to " + predicate.getName());
 		}
 		return found.apply(predicate.getValue(), predicate.getArgs());
 	}

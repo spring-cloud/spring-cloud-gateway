@@ -9,7 +9,5 @@ import org.springframework.web.server.ServerWebExchange;
  */
 public interface PredicateFactory {
 
-	String getName();
-
 	Predicate<ServerWebExchange> apply(String value, String[] args);
 }

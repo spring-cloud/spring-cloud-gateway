@@ -13,11 +13,6 @@ import org.springframework.web.server.ServerWebExchange;
 public class CookiePredicateFactory implements PredicateFactory {
 
 	@Override
-	public String getName() {
-		return "Cookie";
-	}
-
-	@Override
 	public Predicate<ServerWebExchange> apply(String name, String[] args) {
 		//TODO: caching can happen here
 		return exchange -> {
