@@ -129,6 +129,26 @@ public class GatewayIntegrationTests {
 	}
 
 	@Test
+	public void rewritePathFilterWorks() {
+		Mono<ClientResponse> result = webClient.exchange(
+				GET("http://localhost:" + port + "/foo/get")
+						.header("Host", "www.baz.org")
+						.build()
+		);
+
+		verify( () ->
+				StepVerifier.create(result)
+						.consumeNextWith(
+								response -> {
+									HttpStatus statusCode = response.statusCode();
+									assertThat(statusCode).isEqualTo(HttpStatus.OK);
+								})
+						.expectComplete()
+						.verify(Duration.ofSeconds(3))
+		);
+	}
+
+	@Test
 	public void addRequestHeaderFilterWorks() {
 		Mono<Map> result = webClient.exchange(
 				GET("http://localhost:" + port + "/headers")

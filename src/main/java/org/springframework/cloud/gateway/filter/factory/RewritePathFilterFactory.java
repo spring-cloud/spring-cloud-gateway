@@ -6,16 +6,21 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 /**
  * @author Spencer Gibb
  */
-public class AddRequestHeaderFilterFactory implements FilterFactory {
+public class RewritePathFilterFactory implements FilterFactory {
 
 	@Override
-	public GatewayFilter apply(String header, String[] args) {
+	public GatewayFilter apply(String regex, String[] args) {
 		validate(args, 1);
+		String replacement = args[0].replace("$\\", "$");
 
 		//TODO: caching can happen here
 		return (exchange, chain) -> {
-			ServerHttpRequest request = exchange.getRequest().mutate()
-					.header(header, args[0])
+			ServerHttpRequest req = exchange.getRequest();
+			String path = req.getURI().getPath();
+			String newPath = path.replaceAll(regex, replacement);
+
+			ServerHttpRequest request = req.mutate()
+					.path(newPath)
 					.build();
 
 			return chain.filter(exchange.mutate().request(request).build());

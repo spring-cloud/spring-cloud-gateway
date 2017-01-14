@@ -18,7 +18,6 @@ package org.springframework.cloud.gateway.handler;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -30,16 +29,18 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.cloud.gateway.config.Route;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.OrderedGatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.FilterFactory;
+import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilterChain;
 import org.springframework.web.server.WebHandler;
 import org.springframework.web.server.handler.WebHandlerDecorator;
 
-import reactor.core.publisher.Mono;
-
 import static java.util.Collections.emptyList;
 import static org.springframework.cloud.gateway.filter.GatewayFilter.GATEWAY_ROUTE_ATTR;
+
+import reactor.core.publisher.Mono;
 
 /**
  * WebHandler that delegates to a chain of {@link GatewayFilter} instances and then
@@ -76,15 +77,19 @@ public class GatewayFilteringWebHandler extends WebHandlerDecorator {
 	public Mono<Void> handle(ServerWebExchange exchange) {
 		//TODO: probably a java 8 stream way of doing this
 		ArrayList<GatewayFilter> routeFilters = new ArrayList<>(this.filters);
+
 		Optional<Route> route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
 		if (route.isPresent() && !route.get().getFilters().isEmpty()) {
 			routeFilters.addAll(loadFilters(route.get()));
 		}
+
+		AnnotationAwareOrderComparator.sort(routeFilters);
+
 		return new DefaultWebFilterChain(routeFilters, getDelegate()).filter(exchange);
 	}
 
-	private Collection<GatewayFilter> loadFilters(Route route) {
-		return route.getFilters().stream()
+	private List<GatewayFilter> loadFilters(Route route) {
+		List<GatewayFilter> filters = route.getFilters().stream()
 				.map(definition -> {
 					FilterFactory filter = this.filterDefinitions.get(definition.getName());
 					if (filter == null) {
@@ -97,12 +102,19 @@ public class GatewayFilteringWebHandler extends WebHandlerDecorator {
 						} else {
 							args = Collections.emptyList();
 						}
-						logger.debug("Route " + route.getId() + " applying filter "+ definition.getValue()
+						logger.debug("Route " + route.getId() + " applying filter " + definition.getValue()
 								+ ", " + args + " to " + definition.getName());
 					}
 					return filter.apply(definition.getValue(), definition.getArgs());
 				})
 				.collect(Collectors.toList());
+
+		ArrayList<GatewayFilter> ordered = new ArrayList<>(filters.size());
+		for (int i = 0; i < filters.size(); i++) {
+			ordered.add(new OrderedGatewayFilter(filters.get(i), i+1));
+		}
+
+		return ordered;
 	}
 
 

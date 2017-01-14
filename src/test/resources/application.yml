@@ -21,13 +21,24 @@ spring:
         - AddResponseHeader=X-Response-Foo, Bar
 
       # =====================================
-      - id: host_bar_path_headers_to_httpbin
+      - id: add_request_header_test
         uri: http://httpbin.org:80
         predicates:
         - Host=**.bar.org
         - Url=/headers
         filters:
         - AddRequestHeader=X-Request-Foo, Bar
+
+      # =====================================
+      - id: rewrite_path_test
+        uri: http://httpbin.org:80
+        predicates:
+        - Host=**.baz.org
+        filters:
+        # $\ is being used as an escape
+        - RewritePath=/foo/(?<segment>.*), /$\{segment}
+        - AddRequestHeader=X-Request-Foo, Bar
+        - AddRequestHeader=X-Request-Baz, Bat
 
       # =====================================
       - id: default_path_to_httpbin
