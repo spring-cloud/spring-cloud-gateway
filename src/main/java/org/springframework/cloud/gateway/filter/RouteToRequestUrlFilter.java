@@ -5,12 +5,13 @@ import java.net.URI;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.cloud.gateway.config.Route;
+import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.core.Ordered;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilterChain;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import static org.springframework.cloud.gateway.filter.GatewayFilter.getAttribute;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.getAttribute;
 
 import reactor.core.publisher.Mono;
 
@@ -29,7 +30,7 @@ public class RouteToRequestUrlFilter implements GatewayFilter, Ordered {
 
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
-		Route route = getAttribute(exchange, GATEWAY_ROUTE_ATTR, Route.class);
+		Route route = getAttribute(exchange, ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR, Route.class);
 		if (route == null) {
 			return chain.filter(exchange);
 		}
@@ -38,7 +39,7 @@ public class RouteToRequestUrlFilter implements GatewayFilter, Ordered {
 				.uri(route.getUri())
 				.build(true)
 				.toUri();
-		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, requestUrl);
+		exchange.getAttributes().put(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR, requestUrl);
 		return chain.filter(exchange);
 	}
 

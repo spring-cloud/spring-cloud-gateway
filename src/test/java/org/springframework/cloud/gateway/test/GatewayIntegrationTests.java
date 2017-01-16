@@ -29,6 +29,8 @@ import org.springframework.web.server.ServerWebExchange;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_HANDLER_MAPPER_ATTR;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
 import static org.springframework.web.reactive.function.BodyExtractors.toMono;
 import static org.springframework.web.reactive.function.client.ClientRequest.GET;
 import static org.springframework.web.reactive.function.client.ClientRequest.POST;
@@ -41,8 +43,8 @@ import reactor.test.StepVerifier;
 @SuppressWarnings("unchecked")
 public class GatewayIntegrationTests {
 
-	public static final String HANDLER_MAPPER_HEADER = "X-Gateway-Handler-Mapper-Class";
-	public static final String ROUTE_ID_HEADER = "X-Gateway-Route-Id";
+	private static final String HANDLER_MAPPER_HEADER = "X-Gateway-Handler-Mapper-Class";
+	private static final String ROUTE_ID_HEADER = "X-Gateway-Route-Id";
 
 	@LocalServerPort
 	private int port;
@@ -361,9 +363,9 @@ public class GatewayIntegrationTests {
 		public GatewayFilter modifyResponseFilter() {
 			return (exchange, chain) -> {
 				log.info("modifyResponseFilter start");
-				String value = (String) exchange.getAttribute(GatewayFilter.GATEWAY_HANDLER_MAPPER_ATTR).orElse("N/A");
+				String value = (String) exchange.getAttribute(GATEWAY_HANDLER_MAPPER_ATTR).orElse("N/A");
 				exchange.getResponse().getHeaders().add(HANDLER_MAPPER_HEADER, value);
-				Route route = (Route) exchange.getAttribute(GatewayFilter.GATEWAY_ROUTE_ATTR).orElse(null);
+				Route route = (Route) exchange.getAttribute(GATEWAY_ROUTE_ATTR).orElse(null);
 				if (route != null) {
 					exchange.getResponse().getHeaders().add(ROUTE_ID_HEADER, route.getId());
 				}

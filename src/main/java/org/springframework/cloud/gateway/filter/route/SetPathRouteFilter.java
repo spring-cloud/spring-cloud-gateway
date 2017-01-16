@@ -7,7 +7,7 @@ import org.springframework.web.server.WebFilter;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.util.UriTemplate;
 
-import static org.springframework.cloud.gateway.filter.GatewayFilter.getAttribute;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.getAttribute;
 import static org.springframework.cloud.gateway.handler.predicate.UrlRoutePredicate.URL_PREDICATE_VARS_ATTR;
 
 /**

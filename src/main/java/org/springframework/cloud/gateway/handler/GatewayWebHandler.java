@@ -10,7 +10,8 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebHandler;
 
-import static org.springframework.cloud.gateway.filter.GatewayFilter.GATEWAY_REQUEST_URL_ATTR;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.CLIENT_RESPONSE_ATTR;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
 
 import reactor.core.publisher.Mono;
 
@@ -18,8 +19,6 @@ import reactor.core.publisher.Mono;
  * @author Spencer Gibb
  */
 public class GatewayWebHandler implements WebHandler {
-
-	public static final String CLIENT_RESPONSE_ATTR = "webHandlerClientResponse";
 
 	private final WebClient webClient;
 

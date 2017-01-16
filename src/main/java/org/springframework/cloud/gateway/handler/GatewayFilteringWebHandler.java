@@ -40,7 +40,7 @@ import org.springframework.web.server.WebHandler;
 import org.springframework.web.server.handler.WebHandlerDecorator;
 
 import static java.util.Collections.emptyList;
-import static org.springframework.cloud.gateway.filter.GatewayFilter.GATEWAY_ROUTE_ATTR;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
 
 import reactor.core.publisher.Mono;
 

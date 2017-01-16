@@ -18,8 +18,8 @@ import org.springframework.web.server.WebHandler;
 
 import reactor.core.publisher.Mono;
 
-import static org.springframework.cloud.gateway.filter.GatewayFilter.GATEWAY_HANDLER_MAPPER_ATTR;
-import static org.springframework.cloud.gateway.filter.GatewayFilter.GATEWAY_ROUTE_ATTR;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_HANDLER_MAPPER_ATTR;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
 
 /**
  * @author Spencer Gibb
