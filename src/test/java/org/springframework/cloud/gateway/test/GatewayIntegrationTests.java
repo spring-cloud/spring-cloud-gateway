@@ -7,7 +7,6 @@ import java.util.stream.IntStream;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.SpringBootConfiguration;
@@ -300,13 +299,11 @@ public class GatewayIntegrationTests {
 	}
 
 	@Test
-	@Ignore("TODO: figure out how to set the status before response committed")
 	public void setStatusIntWorks() {
 		setStatusStringTest("www.setstatusint.org", HttpStatus.UNAUTHORIZED);
 	}
 
 	@Test
-	@Ignore("TODO: figure out how to set the status before response committed")
 	public void setStatusStringWorks() {
 		setStatusStringTest("www.setstatusstring.org", HttpStatus.BAD_REQUEST);
 	}

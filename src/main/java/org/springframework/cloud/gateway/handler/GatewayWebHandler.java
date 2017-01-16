@@ -3,7 +3,6 @@ package org.springframework.cloud.gateway.handler;
 import java.net.URI;
 import java.util.Optional;
 
-import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.reactive.function.client.ClientRequest;
@@ -13,13 +12,14 @@ import org.springframework.web.server.WebHandler;
 
 import static org.springframework.cloud.gateway.filter.GatewayFilter.GATEWAY_REQUEST_URL_ATTR;
 
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
  * @author Spencer Gibb
  */
 public class GatewayWebHandler implements WebHandler {
+
+	public static final String CLIENT_RESPONSE_ATTR = "webHandlerClientResponse";
 
 	private final WebClient webClient;
 
@@ -37,11 +37,16 @@ public class GatewayWebHandler implements WebHandler {
 				.body((r, context) -> r.writeWith(request.getBody()));
 
 		return this.webClient.exchange(clientRequest).flatMap(clientResponse -> {
+			// Defer committing the response until all route filters have run
+			// Put client response as ServerWebExchange attribute and write response later WriteResponseFilter
+
+			exchange.getAttributes().put(CLIENT_RESPONSE_ATTR, clientResponse);
+
 			ServerHttpResponse response = exchange.getResponse();
+			// put headers and status so filters can modify the response
 			response.getHeaders().putAll(clientResponse.headers().asHttpHeaders());
 			response.setStatusCode(clientResponse.statusCode());
-			Flux<DataBuffer> body = clientResponse.body((inputMessage, context) -> inputMessage.getBody());
-			return response.writeWith(body);
+			return Mono.<Void>empty();
 		}).next(); // TODO: is this correct?
 	}
 }

@@ -1,8 +1,8 @@
 package org.springframework.cloud.gateway.filter.route;
 
-import org.springframework.web.server.WebFilter;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.server.WebFilter;
+
 import reactor.core.publisher.Mono;
 
 /**
@@ -24,14 +24,11 @@ public class SetStatusRouteFilter implements RouteFilter {
 
 		final HttpStatus finalStatus = httpStatus;
 
-
 		//TODO: caching can happen here
 		return (exchange, chain) ->
-			chain.filter(exchange).then(() -> setStatus(exchange, finalStatus));
-	}
-
-	protected Mono<Void> setStatus(ServerWebExchange exchange, HttpStatus status) {
-		exchange.getResponse().setStatusCode(status);
-		return Mono.empty();
+			chain.filter(exchange).then(() -> {
+				exchange.getResponse().setStatusCode(finalStatus);
+				return Mono.empty();
+			});
 	}
 }

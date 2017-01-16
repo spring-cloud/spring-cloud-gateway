@@ -55,13 +55,13 @@ public class GatewayFilteringWebHandler extends WebHandlerDecorator {
 	protected final Log logger = LogFactory.getLog(getClass());
 
 	private final List<GatewayFilter> filters;
-	private final Map<String, RouteFilter> filterDefinitions = new HashMap<>();
+	private final Map<String, RouteFilter> routeFilters = new HashMap<>();
 
 	public GatewayFilteringWebHandler(WebHandler targetHandler, List<GatewayFilter> filters,
-									  Map<String, RouteFilter> filterDefinitions) {
+									  Map<String, RouteFilter> routeFilters) {
 		super(targetHandler);
 		this.filters = initList(filters);
-		filterDefinitions.forEach((name, def) -> this.filterDefinitions.put(nornamlizeName(name), def));
+		routeFilters.forEach((name, def) -> this.routeFilters.put(nornamlizeName(name), def));
 	}
 
 	private String nornamlizeName(String name) {
@@ -86,7 +86,7 @@ public class GatewayFilteringWebHandler extends WebHandlerDecorator {
 
 		Optional<Route> route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
 		if (route.isPresent() && !route.get().getFilters().isEmpty()) {
-			routeFilters.addAll(loadFilters(route.get()));
+			routeFilters.addAll(loadRouteFilters(route.get()));
 		}
 
 		AnnotationAwareOrderComparator.sort(routeFilters);
@@ -106,10 +106,10 @@ public class GatewayFilteringWebHandler extends WebHandlerDecorator {
 				}).collect(Collectors.toList());
 	}
 
-	private List<WebFilter> loadFilters(Route route) {
+	private List<WebFilter> loadRouteFilters(Route route) {
 		List<WebFilter> filters = route.getFilters().stream()
 				.map(definition -> {
-					RouteFilter filter = this.filterDefinitions.get(definition.getName());
+					RouteFilter filter = this.routeFilters.get(definition.getName());
 					if (filter == null) {
 						throw new IllegalArgumentException("Unable to find RouteFilter with name " + definition.getName());
 					}

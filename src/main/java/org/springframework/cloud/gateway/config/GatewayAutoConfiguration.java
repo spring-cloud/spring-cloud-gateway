@@ -11,6 +11,7 @@ import org.springframework.cloud.gateway.actuate.GatewayEndpoint;
 import org.springframework.cloud.gateway.api.RouteReader;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter;
+import org.springframework.cloud.gateway.filter.WriteResponseFilter;
 import org.springframework.cloud.gateway.filter.route.AddRequestHeaderRouteFilter;
 import org.springframework.cloud.gateway.filter.route.AddResponseHeaderRouteFilter;
 import org.springframework.cloud.gateway.filter.route.RemoveRequestHeaderRouteFilter;
@@ -27,8 +28,8 @@ import org.springframework.cloud.gateway.handler.predicate.CookieRoutePredicate;
 import org.springframework.cloud.gateway.handler.predicate.HeaderRoutePredicate;
 import org.springframework.cloud.gateway.handler.predicate.HostRoutePredicate;
 import org.springframework.cloud.gateway.handler.predicate.MethodRoutePredicate;
-import org.springframework.cloud.gateway.handler.predicate.RoutePredicate;
 import org.springframework.cloud.gateway.handler.predicate.QueryRoutePredicate;
+import org.springframework.cloud.gateway.handler.predicate.RoutePredicate;
 import org.springframework.cloud.gateway.handler.predicate.UrlRoutePredicate;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -49,11 +50,6 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	public RouteToRequestUrlFilter findRouteFilter() {
-		return new RouteToRequestUrlFilter();
-	}
-
-	@Bean
 	@ConditionalOnMissingBean(RouteReader.class)
 	public PropertiesRouteReader propertiesRouteReader(GatewayProperties properties) {
 		return new PropertiesRouteReader(properties);
@@ -65,18 +61,16 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	public GatewayWebHandler gatewayController(WebClient webClient) {
+	public GatewayWebHandler gatewayWebHandler(WebClient webClient) {
 		return new GatewayWebHandler(webClient);
 	}
 
 	@Bean
-	public GatewayFilteringWebHandler gatewayFilteringWebHandler(GatewayWebHandler gatewayWebHandler,
-																 List<GatewayFilter> filters,
-																 Map<String, RouteFilter> filterDefinitions) {
-		return new GatewayFilteringWebHandler(gatewayWebHandler, filters, filterDefinitions);
+	public GatewayFilteringWebHandler gatewayFilteringWebHandler(GatewayWebHandler webHandler,
+																 List<GatewayFilter> gatewayFilters,
+																 Map<String, RouteFilter> routeFilters) {
+		return new GatewayFilteringWebHandler(webHandler, gatewayFilters, routeFilters);
 	}
-
-	// Predicate beans
 
 	@Bean
 	public GatewayPredicateHandlerMapping gatewayPredicateHandlerMapping(GatewayFilteringWebHandler webHandler,
@@ -84,6 +78,20 @@ public class GatewayAutoConfiguration {
 																		 RouteReader routeReader) {
 		return new GatewayPredicateHandlerMapping(webHandler, predicates, routeReader);
 	}
+
+	// GatewayFilter beans
+
+	@Bean
+	public RouteToRequestUrlFilter routeToRequestUrlFilter() {
+		return new RouteToRequestUrlFilter();
+	}
+
+	@Bean
+	public WriteResponseFilter writeResponseFilter() {
+		return new WriteResponseFilter();
+	}
+
+	// Predicate beans
 
 	@Bean(name = "CookieRoutePredicate")
 	public CookieRoutePredicate cookieRoutePredicate() {
