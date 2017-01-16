@@ -24,7 +24,7 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.G
 /**
  * @author Spencer Gibb
  */
-public class GatewayPredicateHandlerMapping extends AbstractHandlerMapping {
+public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 
 	private Map<String, RoutePredicate> predicates = new LinkedHashMap<>();
 	private RouteReader routeReader;
@@ -32,8 +32,8 @@ public class GatewayPredicateHandlerMapping extends AbstractHandlerMapping {
 
 	private List<Route> routes;
 
-	public GatewayPredicateHandlerMapping(WebHandler webHandler, Map<String, RoutePredicate> predicates,
-										  RouteReader routeReader) {
+	public RoutePredicateHandlerMapping(WebHandler webHandler, Map<String, RoutePredicate> predicates,
+										RouteReader routeReader) {
 		this.webHandler = webHandler;
 		this.routeReader = routeReader;
 

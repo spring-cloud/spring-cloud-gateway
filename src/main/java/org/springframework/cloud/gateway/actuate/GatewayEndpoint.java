@@ -2,7 +2,7 @@ package org.springframework.cloud.gateway.actuate;
 
 import org.springframework.boot.actuate.endpoint.AbstractEndpoint;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 
 import java.util.ArrayList;
@@ -15,9 +15,9 @@ import java.util.Map;
  */
 @ConfigurationProperties(prefix = "endpoints.gateway")
 public class GatewayEndpoint extends AbstractEndpoint<Map<String, Object>> {
-	private List<GatewayFilter> filters;
+	private List<GlobalFilter> filters;
 
-	public GatewayEndpoint(List<GatewayFilter> filters) {
+	public GatewayEndpoint(List<GlobalFilter> filters) {
 		super("gateway");
 		this.filters = filters;
 		AnnotationAwareOrderComparator.sort(this.filters);
@@ -28,7 +28,7 @@ public class GatewayEndpoint extends AbstractEndpoint<Map<String, Object>> {
 		HashMap<String, Object> map = new HashMap<>();
 
 		ArrayList<String> filterNames = new ArrayList<>();
-		for (GatewayFilter filter : this.filters) {
+		for (GlobalFilter filter : this.filters) {
 			filterNames.add(filter.getClass().getName());
 		}
 		map.put("filters", filterNames);

@@ -18,7 +18,7 @@ import reactor.core.publisher.Mono;
 /**
  * @author Spencer Gibb
  */
-public class RouteToRequestUrlFilter implements GatewayFilter, Ordered {
+public class RouteToRequestUrlFilter implements GlobalFilter, Ordered {
 
 	private static final Log log = LogFactory.getLog(RouteToRequestUrlFilter.class);
 	public static final int ROUTE_TO_URL_FILTER_ORDER = 10000;

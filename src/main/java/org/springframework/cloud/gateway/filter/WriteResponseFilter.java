@@ -19,7 +19,7 @@ import reactor.core.publisher.Mono;
 /**
  * @author Spencer Gibb
  */
-public class WriteResponseFilter implements GatewayFilter, Ordered {
+public class WriteResponseFilter implements GlobalFilter, Ordered {
 
 	private static final Log log = LogFactory.getLog(WriteResponseFilter.class);
 

@@ -18,11 +18,11 @@ import reactor.core.publisher.Mono;
 /**
  * @author Spencer Gibb
  */
-public class GatewayWebHandler implements WebHandler {
+public class WebClientRoutingWebHandler implements WebHandler {
 
 	private final WebClient webClient;
 
-	public GatewayWebHandler(WebClient webClient) {
+	public WebClientRoutingWebHandler(WebClient webClient) {
 		this.webClient = webClient;
 	}
 

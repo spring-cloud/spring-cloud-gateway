@@ -29,7 +29,7 @@ import reactor.core.publisher.Mono;
  * @author Rossen Stoyanchev
  * @since 5.0
  */
-public interface GatewayFilter {
+public interface GlobalFilter {
 
 	/**
 	 * Process the Web request and (optionally) delegate to the next

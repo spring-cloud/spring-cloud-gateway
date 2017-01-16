@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.cloud.gateway.config.Route;
-import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.route.RouteFilter;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
@@ -45,22 +45,23 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.G
 import reactor.core.publisher.Mono;
 
 /**
- * WebHandler that delegates to a chain of {@link GatewayFilter} instances and then
- * to the target {@link WebHandler}.
+ * WebHandler that delegates to a chain of {@link GlobalFilter} instances and
+ * {@link RouteFilter} instances then to the target {@link WebHandler}.
  *
  * @author Rossen Stoyanchev
- * @since 5.0
+ * @author Spencer Gibb
+ * @since 0.1
  */
-public class GatewayFilteringWebHandler extends WebHandlerDecorator {
+public class FilteringWebHandler extends WebHandlerDecorator {
 	protected final Log logger = LogFactory.getLog(getClass());
 
-	private final List<GatewayFilter> filters;
+	private final List<GlobalFilter> globalFilters;
 	private final Map<String, RouteFilter> routeFilters = new HashMap<>();
 
-	public GatewayFilteringWebHandler(WebHandler targetHandler, List<GatewayFilter> filters,
-									  Map<String, RouteFilter> routeFilters) {
+	public FilteringWebHandler(WebHandler targetHandler, List<GlobalFilter> globalFilters,
+							   Map<String, RouteFilter> routeFilters) {
 		super(targetHandler);
-		this.filters = initList(filters);
+		this.globalFilters = initList(globalFilters);
 		routeFilters.forEach((name, def) -> this.routeFilters.put(nornamlizeName(name), def));
 	}
 
@@ -73,16 +74,16 @@ public class GatewayFilteringWebHandler extends WebHandlerDecorator {
 	}
 
 	/**
-	 * Return a read-only list of the configured filters.
+	 * Return a read-only list of the configured globalFilters.
 	 */
-	public List<GatewayFilter> getFilters() {
-		return this.filters;
+	public List<GlobalFilter> getGlobalFilters() {
+		return this.globalFilters;
 	}
 
 	@Override
 	public Mono<Void> handle(ServerWebExchange exchange) {
 		//TODO: probably a java 8 stream way of doing this
-		ArrayList<WebFilter> routeFilters = new ArrayList<>(loadGatewayFilters(this.filters));
+		ArrayList<WebFilter> routeFilters = new ArrayList<>(loadFilters(this.globalFilters));
 
 		Optional<Route> route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
 		if (route.isPresent() && !route.get().getFilters().isEmpty()) {
@@ -94,10 +95,10 @@ public class GatewayFilteringWebHandler extends WebHandlerDecorator {
 		return new DefaultWebFilterChain(routeFilters, getDelegate()).filter(exchange);
 	}
 
-	private Collection<WebFilter> loadGatewayFilters(List<GatewayFilter> filters) {
+	private Collection<WebFilter> loadFilters(List<GlobalFilter> filters) {
 		return filters.stream()
 				.map(filter -> {
-					GatewayWebFilter webFilter = new GatewayWebFilter(filter);
+					WebFilterAdapter webFilter = new WebFilterAdapter(filter);
 					if (filter instanceof Ordered) {
 						int order = ((Ordered) filter).getOrder();
 						return new OrderedWebFilter(webFilter, order);
@@ -135,11 +136,11 @@ public class GatewayFilteringWebHandler extends WebHandlerDecorator {
 		return ordered;
 	}
 
-	private static class GatewayWebFilter implements WebFilter {
+	private static class WebFilterAdapter implements WebFilter {
 
-		private final GatewayFilter delegate;
+		private final GlobalFilter delegate;
 
-		public GatewayWebFilter(GatewayFilter delegate) {
+		public WebFilterAdapter(GlobalFilter delegate) {
 			this.delegate = delegate;
 		}
 
@@ -150,7 +151,7 @@ public class GatewayFilteringWebHandler extends WebHandlerDecorator {
 
 		@Override
 		public String toString() {
-			final StringBuilder sb = new StringBuilder("GatewayWebFilter{");
+			final StringBuilder sb = new StringBuilder("WebFilterAdapter{");
 			sb.append("delegate=").append(delegate);
 			sb.append('}');
 			return sb.toString();
