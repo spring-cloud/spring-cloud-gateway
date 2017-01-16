@@ -30,6 +30,15 @@ spring:
         - AddRequestHeader=X-Request-Foo, Bar
 
       # =====================================
+      - id: add_request_parameter_test
+        uri: http://httpbin.org:80
+        predicates:
+        - Host=**.addrequestparameter.org
+        - Url=/get
+        filters:
+        - AddRequestParameter=foo, bar
+
+      # =====================================
       - id: add_response_header_test
         uri: http://httpbin.org:80
         predicates:

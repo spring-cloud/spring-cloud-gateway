@@ -13,6 +13,7 @@ import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter;
 import org.springframework.cloud.gateway.filter.WriteResponseFilter;
 import org.springframework.cloud.gateway.filter.route.AddRequestHeaderRouteFilter;
+import org.springframework.cloud.gateway.filter.route.AddRequestParameterRouteFilter;
 import org.springframework.cloud.gateway.filter.route.AddResponseHeaderRouteFilter;
 import org.springframework.cloud.gateway.filter.route.RemoveRequestHeaderRouteFilter;
 import org.springframework.cloud.gateway.filter.route.RemoveResponseHeaderRouteFilter;
@@ -128,6 +129,11 @@ public class GatewayAutoConfiguration {
 	@Bean(name = "AddRequestHeaderRouteFilter")
 	public AddRequestHeaderRouteFilter addRequestHeaderRouteFilter() {
 		return new AddRequestHeaderRouteFilter();
+	}
+
+	@Bean(name = "AddRequestParameterRouteFilter")
+	public AddRequestParameterRouteFilter addRequestParameterRouteFilter() {
+		return new AddRequestParameterRouteFilter();
 	}
 
 	@Bean(name = "AddResponseHeaderRouteFilter")

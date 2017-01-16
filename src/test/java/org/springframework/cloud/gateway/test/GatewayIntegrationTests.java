@@ -45,6 +45,7 @@ public class GatewayIntegrationTests {
 
 	private static final String HANDLER_MAPPER_HEADER = "X-Gateway-Handler-Mapper-Class";
 	private static final String ROUTE_ID_HEADER = "X-Gateway-Route-Id";
+	public static final Duration DURATION = Duration.ofSeconds(3);
 
 	@LocalServerPort
 	private int port;
@@ -100,7 +101,37 @@ public class GatewayIntegrationTests {
 									assertThat(headers).containsEntry("X-Request-Foo", "Bar");
 								})
 						.expectComplete()
-						.verify(Duration.ofSeconds(3))
+						.verify(DURATION)
+		);
+	}
+
+	@Test
+	public void addRequestParameterFilterWorksBlankQuery() {
+		testRequestParameterFilter("");
+	}
+
+	@Test
+	public void addRequestParameterFilterWorksNonBlankQuery() {
+		testRequestParameterFilter("?baz=bam");
+	}
+
+	private void testRequestParameterFilter(String query) {
+		Mono<Map> result = webClient.exchange(
+				GET("http://localhost:" + port + "/get" + query)
+						.header("Host", "www.addrequestparameter.org")
+						.build()
+		).then(response -> response.body(toMono(Map.class)));
+
+		verify( () ->
+				StepVerifier.create(result)
+						.consumeNextWith(
+								response -> {
+									assertThat(response).containsKey("args").isInstanceOf(Map.class);
+									Map<String, Object> args = (Map<String, Object>) response.get("args");
+									assertThat(args).containsEntry("foo", "bar");
+								})
+						.expectComplete()
+						.verify(DURATION)
 		);
 	}
 
@@ -121,7 +152,7 @@ public class GatewayIntegrationTests {
 											.isEqualTo("Bar");
 								})
 						.expectComplete()
-						.verify(Duration.ofSeconds(3))
+						.verify(DURATION)
 		);
 	}
 
@@ -175,7 +206,7 @@ public class GatewayIntegrationTests {
 									assertThat(statusCode).isEqualTo(HttpStatus.OK);
 								})
 						.expectComplete()
-						.verify(Duration.ofSeconds(3))
+						.verify(DURATION)
 		);
 	}
 
@@ -192,7 +223,7 @@ public class GatewayIntegrationTests {
 				StepVerifier.create(result)
 						.consumeNextWith(map -> assertThat(map).containsEntry("data", "testdata"))
 						.expectComplete()
-						.verify(Duration.ofSeconds(3))
+						.verify(DURATION)
 		);
 	}
 
@@ -215,7 +246,7 @@ public class GatewayIntegrationTests {
 									assertThat(headers).doesNotContainKey("X-Request-Foo");
 								})
 						.expectComplete()
-						.verify(Duration.ofSeconds(3))
+						.verify(DURATION)
 		);
 	}
 
@@ -235,7 +266,7 @@ public class GatewayIntegrationTests {
 									assertThat(httpHeaders).doesNotContainKey("X-Request-Foo");
 								})
 						.expectComplete()
-						.verify(Duration.ofSeconds(3))
+						.verify(DURATION)
 		);
 	}
 
@@ -255,7 +286,7 @@ public class GatewayIntegrationTests {
 									assertThat(statusCode).isEqualTo(HttpStatus.OK);
 								})
 						.expectComplete()
-						.verify(Duration.ofSeconds(3))
+						.verify(DURATION)
 		);
 	}
 
@@ -275,7 +306,7 @@ public class GatewayIntegrationTests {
 									assertThat(statusCode).isEqualTo(HttpStatus.OK);
 								})
 						.expectComplete()
-						.verify(Duration.ofSeconds(3))
+						.verify(DURATION)
 		);
 	}
 
@@ -296,7 +327,7 @@ public class GatewayIntegrationTests {
 									assertThat(httpHeaders.get("X-Request-Foo")).containsExactly("Bar");
 								})
 						.expectComplete()
-						.verify(Duration.ofSeconds(3))
+						.verify(DURATION)
 		);
 	}
 
@@ -325,7 +356,7 @@ public class GatewayIntegrationTests {
 									assertThat(statusCode).isEqualTo(status);
 								})
 						.expectComplete()
-						.verify(Duration.ofSeconds(3))
+						.verify(DURATION)
 		);
 	}
 
@@ -348,7 +379,7 @@ public class GatewayIntegrationTests {
 									assertThat(statusCode).isEqualTo(HttpStatus.OK);
 								})
 						.expectComplete()
-						.verify(Duration.ofSeconds(3))
+						.verify(DURATION)
 		);
 	}
 
