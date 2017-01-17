@@ -38,7 +38,8 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = RANDOM_PORT)
+@SpringBootTest(webEnvironment = RANDOM_PORT,
+		properties = "spring.cloud.bootstrap.enabled=false")
 @SuppressWarnings("unchecked")
 public class GatewayIntegrationTests {
 
@@ -206,6 +207,29 @@ public class GatewayIntegrationTests {
 						})
 				.expectComplete()
 						.verify(DURATION)
+		);
+	}
+
+	@Test
+	public void loadBalancerFilterWorks() {
+		Mono<ClientResponse> result = webClient.exchange(
+				GET("http://localhost:" + port + "/get")
+						.header("Host", "www.loadbalancerclient.org")
+						.build()
+		);
+
+		verify( () ->
+				StepVerifier.create(result)
+						.consumeNextWith(
+								response -> {
+									HttpHeaders httpHeaders = response.headers().asHttpHeaders();
+									assertThat(httpHeaders.getFirst(ROUTE_ID_HEADER))
+											.isEqualTo("load_balancer_client_test");
+									HttpStatus statusCode = response.statusCode();
+									assertThat(statusCode).isEqualTo(HttpStatus.OK);
+								})
+						.expectComplete()
+						.verify(Duration.ofMinutes(5))
 		);
 	}
 

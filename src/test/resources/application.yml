@@ -48,6 +48,12 @@ spring:
         - AddResponseHeader=X-Request-Foo, Bar
 
       # =====================================
+      - id: load_balancer_client_test
+        uri: lb://myservice
+        predicates:
+        - Host=**.loadbalancerclient.org
+
+      # =====================================
       - id: redirect_to_test
         uri: http://httpbin.org:80
         predicates:
@@ -129,6 +135,12 @@ spring:
         predicates:
         - name: Url
           value: /**
+
+myservice:
+  ribbon:
+    NIWSServerListClassName: com.netflix.loadbalancer.ConfigurationBasedServerList
+    listOfServers: httpbin.org:80
+
 logging:
   level:
     org.springframework.cloud.gateway: TRACE

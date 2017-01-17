@@ -4,12 +4,15 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.boot.actuate.endpoint.Endpoint;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.cloud.gateway.actuate.GatewayEndpoint;
 import org.springframework.cloud.gateway.api.RouteReader;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
+import org.springframework.cloud.gateway.filter.LoadBalancerClientFilter;
 import org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter;
 import org.springframework.cloud.gateway.filter.WriteResponseFilter;
 import org.springframework.cloud.gateway.filter.route.AddRequestHeaderRouteFilter;
@@ -85,6 +88,13 @@ public class GatewayAutoConfiguration {
 	}
 
 	// GlobalFilter beans
+
+	@Bean
+	@ConditionalOnClass(LoadBalancerClient.class)
+	@ConditionalOnBean(LoadBalancerClient.class)
+	public LoadBalancerClientFilter loadBalancerClientFilter(LoadBalancerClient client) {
+		return new LoadBalancerClientFilter(client);
+	}
 
 	@Bean
 	public RouteToRequestUrlFilter routeToRequestUrlFilter() {
