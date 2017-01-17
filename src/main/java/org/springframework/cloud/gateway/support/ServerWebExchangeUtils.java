@@ -1,11 +1,15 @@
 package org.springframework.cloud.gateway.support;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 
 /**
  * @author Spencer Gibb
  */
 public class ServerWebExchangeUtils {
+	private static final Log logger = LogFactory.getLog(ServerWebExchangeUtils.class);
 
 	public static final String CLIENT_RESPONSE_ATTR = "webHandlerClientResponse";
 	public static final String GATEWAY_ROUTE_ATTR = "gatewayRoute";
@@ -27,5 +31,26 @@ public class ServerWebExchangeUtils {
 	public static boolean isResponseCommitted(ServerWebExchange exchange) {
 		Boolean responseCommitted = getAttribute(exchange, RESPONSE_COMMITTED_ATTR, Boolean.class);
 		return responseCommitted != null && responseCommitted;
+	}
+
+	public static boolean setResponseStatus(ServerWebExchange exchange, HttpStatus httpStatus) {
+		boolean response = exchange.getResponse().setStatusCode(httpStatus);
+		if (!response && logger.isWarnEnabled()) {
+			logger.warn("Unable to set status code to "+ httpStatus + ". Response already committed.");
+		}
+		return response;
+	}
+
+	public static HttpStatus parse(String statusString) {
+		HttpStatus httpStatus;
+
+		try {
+			int status = Integer.parseInt(statusString);
+			httpStatus = HttpStatus.valueOf(status);
+		} catch (NumberFormatException e) {
+			// try the enum string
+			httpStatus = HttpStatus.valueOf(statusString.toUpperCase());
+		}
+		return httpStatus;
 	}
 }
