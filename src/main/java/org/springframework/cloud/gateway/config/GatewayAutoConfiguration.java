@@ -25,7 +25,7 @@ import org.springframework.cloud.gateway.filter.route.SetResponseHeaderRouteFilt
 import org.springframework.cloud.gateway.filter.route.SetStatusRouteFilter;
 import org.springframework.cloud.gateway.handler.FilteringWebHandler;
 import org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping;
-import org.springframework.cloud.gateway.handler.WebClientRoutingWebHandler;
+import org.springframework.cloud.gateway.handler.RoutingWebHandler;
 import org.springframework.cloud.gateway.handler.predicate.CookieRoutePredicate;
 import org.springframework.cloud.gateway.handler.predicate.HeaderRoutePredicate;
 import org.springframework.cloud.gateway.handler.predicate.HostRoutePredicate;
@@ -35,8 +35,8 @@ import org.springframework.cloud.gateway.handler.predicate.RoutePredicate;
 import org.springframework.cloud.gateway.handler.predicate.UrlRoutePredicate;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.client.reactive.ReactorClientHttpConnector;
-import org.springframework.web.reactive.function.client.WebClient;
+
+import reactor.ipc.netty.http.client.HttpClient;
 
 /**
  * @author Spencer Gibb
@@ -47,8 +47,11 @@ public class GatewayAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	public WebClient webClient() {
-		return WebClient.builder(new ReactorClientHttpConnector(opts -> opts.disablePool())).build();
+	public HttpClient httpClient() {
+		return HttpClient.create(opts -> {
+			//opts.poolResources(PoolResources.elastic("proxy"));
+			opts.disablePool();
+		});
 	}
 
 	@Bean
@@ -63,21 +66,21 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	public WebClientRoutingWebHandler webClientRoutingWebHandler(WebClient webClient) {
-		return new WebClientRoutingWebHandler(webClient);
+	public RoutingWebHandler routingWebHandler(HttpClient httpClient) {
+		return new RoutingWebHandler(httpClient);
 	}
 
 	@Bean
-	public FilteringWebHandler filteringWebHandler(WebClientRoutingWebHandler webHandler,
-														  List<GlobalFilter> globalFilters,
-														  Map<String, RouteFilter> routeFilters) {
+	public FilteringWebHandler filteringWebHandler(RoutingWebHandler webHandler,
+												   List<GlobalFilter> globalFilters,
+												   Map<String, RouteFilter> routeFilters) {
 		return new FilteringWebHandler(webHandler, globalFilters, routeFilters);
 	}
 
 	@Bean
 	public RoutePredicateHandlerMapping routePredicateHandlerMapping(FilteringWebHandler webHandler,
-																	   Map<String, RoutePredicate> predicates,
-																	   RouteReader routeReader) {
+																	 Map<String, RoutePredicate> predicates,
+																	 RouteReader routeReader) {
 		return new RoutePredicateHandlerMapping(webHandler, predicates, routeReader);
 	}
 
@@ -188,3 +191,4 @@ public class GatewayAutoConfiguration {
 	}
 
 }
+

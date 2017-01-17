@@ -11,6 +11,8 @@ import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilterChain;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.getAttribute;
 
 import reactor.core.publisher.Mono;
@@ -30,7 +32,7 @@ public class RouteToRequestUrlFilter implements GlobalFilter, Ordered {
 
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
-		Route route = getAttribute(exchange, ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR, Route.class);
+		Route route = getAttribute(exchange, GATEWAY_ROUTE_ATTR, Route.class);
 		if (route == null) {
 			return chain.filter(exchange);
 		}
@@ -39,7 +41,7 @@ public class RouteToRequestUrlFilter implements GlobalFilter, Ordered {
 				.uri(route.getUri())
 				.build(true)
 				.toUri();
-		exchange.getAttributes().put(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR, requestUrl);
+		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, requestUrl);
 		return chain.filter(exchange);
 	}
 
