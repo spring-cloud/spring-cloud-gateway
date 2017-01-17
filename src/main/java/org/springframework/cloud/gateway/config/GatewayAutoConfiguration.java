@@ -14,10 +14,12 @@ import org.springframework.cloud.gateway.api.RouteReader;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.LoadBalancerClientFilter;
 import org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter;
+import org.springframework.cloud.gateway.filter.RoutingFilter;
 import org.springframework.cloud.gateway.filter.WriteResponseFilter;
 import org.springframework.cloud.gateway.filter.route.AddRequestHeaderRouteFilter;
 import org.springframework.cloud.gateway.filter.route.AddRequestParameterRouteFilter;
 import org.springframework.cloud.gateway.filter.route.AddResponseHeaderRouteFilter;
+import org.springframework.cloud.gateway.filter.route.HystrixRouteFilter;
 import org.springframework.cloud.gateway.filter.route.RedirectToRouteFilter;
 import org.springframework.cloud.gateway.filter.route.RemoveRequestHeaderRouteFilter;
 import org.springframework.cloud.gateway.filter.route.RemoveResponseHeaderRouteFilter;
@@ -74,10 +76,10 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	public FilteringWebHandler filteringWebHandler(RoutingWebHandler webHandler,
+	public FilteringWebHandler filteringWebHandler(//RoutingWebHandler webHandler,
 												   List<GlobalFilter> globalFilters,
 												   Map<String, RouteFilter> routeFilters) {
-		return new FilteringWebHandler(webHandler, globalFilters, routeFilters);
+		return new FilteringWebHandler(/*webHandler,*/ globalFilters, routeFilters);
 	}
 
 	@Bean
@@ -94,6 +96,11 @@ public class GatewayAutoConfiguration {
 	@ConditionalOnBean(LoadBalancerClient.class)
 	public LoadBalancerClientFilter loadBalancerClientFilter(LoadBalancerClient client) {
 		return new LoadBalancerClientFilter(client);
+	}
+
+	@Bean
+	public RoutingFilter routingFilter(HttpClient httpClient) {
+		return new RoutingFilter(httpClient);
 	}
 
 	@Bean
@@ -153,6 +160,11 @@ public class GatewayAutoConfiguration {
 	@Bean(name = "AddResponseHeaderRouteFilter")
 	public AddResponseHeaderRouteFilter addResponseHeaderRouteFilter() {
 		return new AddResponseHeaderRouteFilter();
+	}
+
+	@Bean(name = "HystrixRouteFilter")
+	public HystrixRouteFilter hystrixRouteFilter() {
+		return new HystrixRouteFilter();
 	}
 
 	@Bean(name = "RedirectToRouteFilter")

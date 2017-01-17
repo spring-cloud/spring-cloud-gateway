@@ -48,6 +48,22 @@ spring:
         - AddResponseHeader=X-Request-Foo, Bar
 
       # =====================================
+      - id: hystrix_failure_test
+        uri: http://httpbin.org:80
+        predicates:
+        - Host=**.hystrixfailure.org
+        filters:
+        - Hystrix=failcmd
+
+      # =====================================
+      - id: hystrix_success_test
+        uri: http://httpbin.org:80
+        predicates:
+        - Host=**.hystrixsuccess.org
+        filters:
+        - Hystrix=successcmd
+
+      # =====================================
       - id: load_balancer_client_test
         uri: lb://myservice
         predicates:
@@ -140,6 +156,8 @@ myservice:
   ribbon:
     NIWSServerListClassName: com.netflix.loadbalancer.ConfigurationBasedServerList
     listOfServers: httpbin.org:80
+
+#hystrix.command.failcmd.execution.isolation.thread.timeoutInMilliseconds: 1000
 
 logging:
   level:

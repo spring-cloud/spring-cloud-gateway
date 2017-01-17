@@ -211,6 +211,44 @@ public class GatewayIntegrationTests {
 	}
 
 	@Test
+	public void hystrixFilterWorks() {
+		Mono<ClientResponse> result = webClient.exchange(
+				GET("http://localhost:" + port + "/get")
+						.header("Host", "www.hystrixsuccess.org")
+						.build()
+		);
+
+		verify( () ->
+				StepVerifier.create(result)
+						.consumeNextWith(
+								response -> {
+									HttpHeaders httpHeaders = response.headers().asHttpHeaders();
+									assertThat(httpHeaders.getFirst(ROUTE_ID_HEADER))
+											.isEqualTo("hystrix_success_test");
+									HttpStatus statusCode = response.statusCode();
+									assertThat(statusCode).isEqualTo(HttpStatus.OK);
+								})
+						.expectComplete()
+						.verify(DURATION)
+		);
+	}
+
+	@Test
+	public void hystrixFilterTimesout() {
+		Mono<ClientResponse> result = webClient.exchange(
+				GET("http://localhost:" + port + "/delay/3")
+						.header("Host", "www.hystrixfailure.org")
+						.build()
+		);
+
+		verify( () ->
+				StepVerifier.create(result)
+						.expectError()
+						.verify()
+		);
+	}
+
+	@Test
 	public void loadBalancerFilterWorks() {
 		Mono<ClientResponse> result = webClient.exchange(
 				GET("http://localhost:" + port + "/get")
@@ -229,7 +267,7 @@ public class GatewayIntegrationTests {
 									assertThat(statusCode).isEqualTo(HttpStatus.OK);
 								})
 						.expectComplete()
-						.verify(Duration.ofMinutes(5))
+						.verify(DURATION)
 		);
 	}
 

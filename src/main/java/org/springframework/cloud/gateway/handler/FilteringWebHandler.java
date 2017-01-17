@@ -58,6 +58,11 @@ public class FilteringWebHandler extends WebHandlerDecorator {
 	private final List<GlobalFilter> globalFilters;
 	private final Map<String, RouteFilter> routeFilters = new HashMap<>();
 
+	public FilteringWebHandler(List<GlobalFilter> globalFilters,
+							   Map<String, RouteFilter> routeFilters) {
+		this(new EmptyWebHandler(), globalFilters, routeFilters);
+	}
+
 	public FilteringWebHandler(WebHandler targetHandler, List<GlobalFilter> globalFilters,
 							   Map<String, RouteFilter> routeFilters) {
 		super(targetHandler);
@@ -91,6 +96,8 @@ public class FilteringWebHandler extends WebHandlerDecorator {
 		}
 
 		AnnotationAwareOrderComparator.sort(routeFilters);
+
+		logger.debug("Sorted routeFilters: "+ routeFilters);
 
 		return new DefaultWebFilterChain(routeFilters, getDelegate()).filter(exchange);
 	}
@@ -208,6 +215,13 @@ public class FilteringWebHandler extends WebHandlerDecorator {
 			else {
 				return this.delegate.handle(exchange);
 			}
+		}
+	}
+
+	private static class EmptyWebHandler implements WebHandler {
+		@Override
+		public Mono<Void> handle(ServerWebExchange exchange) {
+			return Mono.empty();
 		}
 	}
 
