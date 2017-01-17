@@ -48,7 +48,7 @@ public class GatewayAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	public WebClient webClient() {
-		return WebClient.builder(new ReactorClientHttpConnector()).build();
+		return WebClient.builder(new ReactorClientHttpConnector(opts -> opts.disablePool())).build();
 	}
 
 	@Bean

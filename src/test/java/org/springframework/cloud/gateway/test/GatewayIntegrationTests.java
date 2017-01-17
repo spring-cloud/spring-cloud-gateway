@@ -2,7 +2,6 @@ package org.springframework.cloud.gateway.test;
 
 import java.time.Duration;
 import java.util.Map;
-import java.util.stream.IntStream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -36,7 +35,6 @@ import static org.springframework.web.reactive.function.client.ClientRequest.GET
 import static org.springframework.web.reactive.function.client.ClientRequest.POST;
 
 import reactor.core.publisher.Mono;
-import reactor.ipc.netty.resources.PoolResources;
 import reactor.test.StepVerifier;
 
 @RunWith(SpringRunner.class)
@@ -70,11 +68,11 @@ public class GatewayIntegrationTests {
 	}
 
 	private void verify(ResultVerifier verifier) {
-		Result result = new Result();
+		/*Result result = new Result();
 		IntStream.range(0, 3).forEach( i -> {
-			try {
+			try {*/
 				verifier.verify();
-				result.passedOnce = true;
+				/*result.passedOnce = true;
 			} catch (AssertionError e) {
 				result.error = e;
 			}
@@ -82,7 +80,7 @@ public class GatewayIntegrationTests {
 
 		if (!result.passedOnce && result.error != null) {
 			throw result.error;
-		}
+		}*/
 	}
 
 	@Test
