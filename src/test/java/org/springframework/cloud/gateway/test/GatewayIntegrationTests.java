@@ -36,6 +36,7 @@ import static org.springframework.web.reactive.function.client.ClientRequest.GET
 import static org.springframework.web.reactive.function.client.ClientRequest.POST;
 
 import reactor.core.publisher.Mono;
+import reactor.ipc.netty.resources.PoolResources;
 import reactor.test.StepVerifier;
 
 @RunWith(SpringRunner.class)
@@ -194,18 +195,18 @@ public class GatewayIntegrationTests {
 		);
 
 		verify( () ->
-				StepVerifier.create(result)
-						.consumeNextWith(
-								response -> {
-									HttpHeaders httpHeaders = response.headers().asHttpHeaders();
-									HttpStatus statusCode = response.statusCode();
-									assertThat(httpHeaders.getFirst(HANDLER_MAPPER_HEADER))
-											.isEqualTo(RoutePredicateHandlerMapping.class.getSimpleName());
-									assertThat(httpHeaders.getFirst(ROUTE_ID_HEADER))
-											.isEqualTo("host_example_to_httpbin");
-									assertThat(statusCode).isEqualTo(HttpStatus.OK);
-								})
-						.expectComplete()
+		StepVerifier.create(result)
+				.consumeNextWith(
+						response -> {
+							HttpHeaders httpHeaders = response.headers().asHttpHeaders();
+							HttpStatus statusCode = response.statusCode();
+							assertThat(httpHeaders.getFirst(HANDLER_MAPPER_HEADER))
+									.isEqualTo(RoutePredicateHandlerMapping.class.getSimpleName());
+							assertThat(httpHeaders.getFirst(ROUTE_ID_HEADER))
+									.isEqualTo("host_example_to_httpbin");
+							assertThat(statusCode).isEqualTo(HttpStatus.OK);
+						})
+				.expectComplete()
 						.verify(DURATION)
 		);
 	}
@@ -224,6 +225,29 @@ public class GatewayIntegrationTests {
 						.consumeNextWith(map -> assertThat(map).containsEntry("data", "testdata"))
 						.expectComplete()
 						.verify(DURATION)
+		);
+	}
+
+	@Test
+	public void redirectToFilterWorks() {
+		Mono<ClientResponse> result = webClient.exchange(
+				GET("http://localhost:" + port)
+						.header("Host", "www.redirectto.org")
+						.build()
+		);
+
+		verify( () ->
+				StepVerifier.create(result)
+						.consumeNextWith(
+								response -> {
+									HttpStatus statusCode = response.statusCode();
+									assertThat(statusCode).isEqualTo(HttpStatus.FOUND);
+									HttpHeaders httpHeaders = response.headers().asHttpHeaders();
+									assertThat(httpHeaders.getFirst(HttpHeaders.LOCATION))
+											.isEqualTo("http://example.org");
+								})
+						.expectComplete()
+						.verify()
 		);
 	}
 

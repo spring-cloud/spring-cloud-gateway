@@ -48,6 +48,14 @@ spring:
         - AddResponseHeader=X-Request-Foo, Bar
 
       # =====================================
+      - id: redirect_to_test
+        uri: http://httpbin.org:80
+        predicates:
+        - Host=**.redirectto.org
+        filters:
+        - RedirectTo=302, http://example.org
+
+      # =====================================
       - id: remove_request_header_test
         uri: http://httpbin.org:80
         predicates:
@@ -125,6 +133,7 @@ logging:
   level:
     org.springframework.cloud.gateway: TRACE
     org.springframework.http.server.reactive: DEBUG
+    reactor.ipc.netty: DEBUG
 
 management:
   context-path: /admin
