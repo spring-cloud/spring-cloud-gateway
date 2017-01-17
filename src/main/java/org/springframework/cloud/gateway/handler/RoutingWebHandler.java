@@ -46,7 +46,7 @@ public class RoutingWebHandler implements WebHandler {
 		return this.httpClient.request(method, url, req ->
 				req.options(NettyPipeline.SendOptions::flushOnEach)
 						.headers(httpHeaders)
-						//.sendHeaders()
+						.sendHeaders()
 						.send(request.getBody()
 								.map(DataBuffer::asByteBuffer)
 								.map(Unpooled::wrappedBuffer)))
