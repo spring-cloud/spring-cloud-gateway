@@ -35,7 +35,7 @@ public class WebClientRoutingWebHandler implements WebHandler {
 				.headers(request.getHeaders())
 				.body((r, context) -> r.writeWith(request.getBody()));
 
-		return this.webClient.exchange(clientRequest).flatMap(clientResponse -> {
+		return this.webClient.exchange(clientRequest).then(clientResponse -> {
 			// Defer committing the response until all route filters have run
 			// Put client response as ServerWebExchange attribute and write response later WriteResponseFilter
 
@@ -46,6 +46,6 @@ public class WebClientRoutingWebHandler implements WebHandler {
 			response.getHeaders().putAll(clientResponse.headers().asHttpHeaders());
 			response.setStatusCode(clientResponse.statusCode());
 			return Mono.<Void>empty();
-		}).next(); // TODO: is this correct?
+		});
 	}
 }
