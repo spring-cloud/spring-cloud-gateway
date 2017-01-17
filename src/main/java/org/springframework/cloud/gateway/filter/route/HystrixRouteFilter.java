@@ -33,11 +33,10 @@ public class HystrixRouteFilter implements RouteFilter {
 		return (exchange, chain) -> {
 			try {
 				RouteHystrixCommand command = new RouteHystrixCommand(setter, exchange, chain);
-				final Observable<Void> observable = command.toObservable();
 
 				return Mono.create(s -> {
-					final Subscription subscription = observable.subscribe(s::success, s::error, s::success);
-					s.setCancellation(subscription::unsubscribe);
+					Subscription sub = command.toObservable().subscribe(s::success, s::error, s::success);
+					s.setCancellation(sub::unsubscribe);
 				});
 			} catch (Exception e) {
 				throw new RuntimeException("Error running RouteHystrixCommand: " + commandName, e);
