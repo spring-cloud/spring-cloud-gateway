@@ -41,7 +41,10 @@ import org.springframework.cloud.gateway.handler.predicate.UrlRoutePredicate;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import com.netflix.hystrix.HystrixObservableCommand;
+
 import reactor.ipc.netty.http.client.HttpClient;
+import rx.RxReactiveStreams;
 
 /**
  * @author Spencer Gibb
@@ -163,6 +166,7 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean(name = "HystrixRouteFilter")
+	@ConditionalOnClass({HystrixObservableCommand.class, RxReactiveStreams.class})
 	public HystrixRouteFilter hystrixRouteFilter() {
 		return new HystrixRouteFilter();
 	}
