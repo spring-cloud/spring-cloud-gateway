@@ -42,7 +42,7 @@ public class HystrixRouteFilter implements RouteFilter {
 		private final ServerWebExchange exchange;
 		private final WebFilterChain chain;
 
-		protected RouteHystrixCommand(Setter setter, ServerWebExchange exchange, WebFilterChain chain) {
+		RouteHystrixCommand(Setter setter, ServerWebExchange exchange, WebFilterChain chain) {
 			super(setter);
 			this.exchange = exchange;
 			this.chain = chain;
