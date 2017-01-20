@@ -63,27 +63,6 @@ public class GatewayIntegrationTests {
 		AssertionError error = null;
 	}
 
-	@FunctionalInterface
-	interface ResultVerifier {
-		void verify();
-	}
-
-	private void verify(ResultVerifier verifier) {
-		/*Result result = new Result();
-		IntStream.range(0, 3).forEach( i -> {
-			try {*/
-				verifier.verify();
-				/*result.passedOnce = true;
-			} catch (AssertionError e) {
-				result.error = e;
-			}
-		});
-
-		if (!result.passedOnce && result.error != null) {
-			throw result.error;
-		}*/
-	}
-
 	@Test
 	public void addRequestHeaderFilterWorks() {
 		Mono<Map> result = webClient.exchange(
@@ -92,17 +71,15 @@ public class GatewayIntegrationTests {
 						.build()
 		).then(response -> response.body(toMono(Map.class)));
 
-		verify( () ->
-				StepVerifier.create(result)
-						.consumeNextWith(
-								response -> {
-									assertThat(response).containsKey("headers").isInstanceOf(Map.class);
-									Map<String, Object> headers = (Map<String, Object>) response.get("headers");
-									assertThat(headers).containsEntry("X-Request-Foo", "Bar");
-								})
-						.expectComplete()
-						.verify(DURATION)
-		);
+		StepVerifier.create(result)
+				.consumeNextWith(
+						response -> {
+							assertThat(response).containsKey("headers").isInstanceOf(Map.class);
+							Map<String, Object> headers = (Map<String, Object>) response.get("headers");
+							assertThat(headers).containsEntry("X-Request-Foo", "Bar");
+						})
+				.expectComplete()
+				.verify(DURATION);
 	}
 
 	@Test
@@ -122,17 +99,15 @@ public class GatewayIntegrationTests {
 						.build()
 		).then(response -> response.body(toMono(Map.class)));
 
-		verify( () ->
-				StepVerifier.create(result)
-						.consumeNextWith(
-								response -> {
-									assertThat(response).containsKey("args").isInstanceOf(Map.class);
-									Map<String, Object> args = (Map<String, Object>) response.get("args");
-									assertThat(args).containsEntry("foo", "bar");
-								})
-						.expectComplete()
-						.verify(DURATION)
-		);
+		StepVerifier.create(result)
+				.consumeNextWith(
+						response -> {
+							assertThat(response).containsKey("args").isInstanceOf(Map.class);
+							Map<String, Object> args = (Map<String, Object>) response.get("args");
+							assertThat(args).containsEntry("foo", "bar");
+						})
+				.expectComplete()
+				.verify(DURATION);
 	}
 
 	@Test
@@ -143,17 +118,15 @@ public class GatewayIntegrationTests {
 						.build()
 		);
 
-		verify( () ->
-				StepVerifier.create(result)
-						.consumeNextWith(
-								response -> {
-									HttpHeaders httpHeaders = response.headers().asHttpHeaders();
-									assertThat(httpHeaders.getFirst("X-Request-Foo"))
-											.isEqualTo("Bar");
-								})
-						.expectComplete()
-						.verify(DURATION)
-		);
+		StepVerifier.create(result)
+				.consumeNextWith(
+						response -> {
+							HttpHeaders httpHeaders = response.headers().asHttpHeaders();
+							assertThat(httpHeaders.getFirst("X-Request-Foo"))
+									.isEqualTo("Bar");
+						})
+				.expectComplete()
+				.verify(DURATION);
 	}
 
 	@Test
@@ -166,23 +139,21 @@ public class GatewayIntegrationTests {
 						.build()
 		);
 
-		verify( () ->
-				StepVerifier.create(result)
-						.consumeNextWith(
-								response -> {
-									HttpHeaders httpHeaders = response.headers().asHttpHeaders();
-									HttpStatus statusCode = response.statusCode();
-									assertThat(httpHeaders.getFirst(HANDLER_MAPPER_HEADER))
-											.isEqualTo(RoutePredicateHandlerMapping.class.getSimpleName());
-									assertThat(httpHeaders.getFirst(ROUTE_ID_HEADER))
-											.isEqualTo("host_foo_path_headers_to_httpbin");
-									assertThat(httpHeaders.getFirst("X-Response-Foo"))
-											.isEqualTo("Bar");
-									assertThat(statusCode).isEqualTo(HttpStatus.OK);
-								})
-						.expectComplete()
-						.verify()
-		);
+		StepVerifier.create(result)
+				.consumeNextWith(
+						response -> {
+							HttpHeaders httpHeaders = response.headers().asHttpHeaders();
+							HttpStatus statusCode = response.statusCode();
+							assertThat(httpHeaders.getFirst(HANDLER_MAPPER_HEADER))
+									.isEqualTo(RoutePredicateHandlerMapping.class.getSimpleName());
+							assertThat(httpHeaders.getFirst(ROUTE_ID_HEADER))
+									.isEqualTo("host_foo_path_headers_to_httpbin");
+							assertThat(httpHeaders.getFirst("X-Response-Foo"))
+									.isEqualTo("Bar");
+							assertThat(statusCode).isEqualTo(HttpStatus.OK);
+						})
+				.expectComplete()
+				.verify();
 	}
 
 	@Test
@@ -193,7 +164,6 @@ public class GatewayIntegrationTests {
 						.build()
 		);
 
-		verify( () ->
 		StepVerifier.create(result)
 				.consumeNextWith(
 						response -> {
@@ -206,8 +176,7 @@ public class GatewayIntegrationTests {
 							assertThat(statusCode).isEqualTo(HttpStatus.OK);
 						})
 				.expectComplete()
-						.verify(DURATION)
-		);
+						.verify(DURATION);
 	}
 
 	@Test
@@ -218,19 +187,17 @@ public class GatewayIntegrationTests {
 						.build()
 		);
 
-		verify( () ->
-				StepVerifier.create(result)
-						.consumeNextWith(
-								response -> {
-									HttpHeaders httpHeaders = response.headers().asHttpHeaders();
-									assertThat(httpHeaders.getFirst(ROUTE_ID_HEADER))
-											.isEqualTo("hystrix_success_test");
-									HttpStatus statusCode = response.statusCode();
-									assertThat(statusCode).isEqualTo(HttpStatus.OK);
-								})
-						.expectComplete()
-						.verify(DURATION)
-		);
+		StepVerifier.create(result)
+				.consumeNextWith(
+						response -> {
+							HttpHeaders httpHeaders = response.headers().asHttpHeaders();
+							assertThat(httpHeaders.getFirst(ROUTE_ID_HEADER))
+									.isEqualTo("hystrix_success_test");
+							HttpStatus statusCode = response.statusCode();
+							assertThat(statusCode).isEqualTo(HttpStatus.OK);
+						})
+				.expectComplete()
+				.verify(DURATION);
 	}
 
 	@Test
@@ -241,11 +208,9 @@ public class GatewayIntegrationTests {
 						.build()
 		);
 
-		verify( () ->
-				StepVerifier.create(result)
-						.expectError()
-						.verify()
-		);
+		StepVerifier.create(result)
+				.expectError() //TODO: can we get more specific as to the error?
+				.verify();
 	}
 
 	@Test
@@ -256,19 +221,17 @@ public class GatewayIntegrationTests {
 						.build()
 		);
 
-		verify( () ->
-				StepVerifier.create(result)
-						.consumeNextWith(
-								response -> {
-									HttpHeaders httpHeaders = response.headers().asHttpHeaders();
-									assertThat(httpHeaders.getFirst(ROUTE_ID_HEADER))
-											.isEqualTo("load_balancer_client_test");
-									HttpStatus statusCode = response.statusCode();
-									assertThat(statusCode).isEqualTo(HttpStatus.OK);
-								})
-						.expectComplete()
-						.verify(DURATION)
-		);
+		StepVerifier.create(result)
+				.consumeNextWith(
+						response -> {
+							HttpHeaders httpHeaders = response.headers().asHttpHeaders();
+							assertThat(httpHeaders.getFirst(ROUTE_ID_HEADER))
+									.isEqualTo("load_balancer_client_test");
+							HttpStatus statusCode = response.statusCode();
+							assertThat(statusCode).isEqualTo(HttpStatus.OK);
+						})
+				.expectComplete()
+				.verify(DURATION);
 	}
 
 	@Test
@@ -280,12 +243,10 @@ public class GatewayIntegrationTests {
 		Mono<Map> result = webClient.exchange(request)
 				.then(response -> response.body(toMono(Map.class)));
 
-		verify( () ->
-				StepVerifier.create(result)
-						.consumeNextWith(map -> assertThat(map).containsEntry("data", "testdata"))
-						.expectComplete()
-						.verify(DURATION)
-		);
+		StepVerifier.create(result)
+				.consumeNextWith(map -> assertThat(map).containsEntry("data", "testdata"))
+				.expectComplete()
+				.verify(DURATION);
 	}
 
 	@Test
@@ -296,19 +257,17 @@ public class GatewayIntegrationTests {
 						.build()
 		);
 
-		verify( () ->
-				StepVerifier.create(result)
-						.consumeNextWith(
-								response -> {
-									HttpStatus statusCode = response.statusCode();
-									assertThat(statusCode).isEqualTo(HttpStatus.FOUND);
-									HttpHeaders httpHeaders = response.headers().asHttpHeaders();
-									assertThat(httpHeaders.getFirst(HttpHeaders.LOCATION))
-											.isEqualTo("http://example.org");
-								})
-						.expectComplete()
-						.verify()
-		);
+		StepVerifier.create(result)
+				.consumeNextWith(
+						response -> {
+							HttpStatus statusCode = response.statusCode();
+							assertThat(statusCode).isEqualTo(HttpStatus.FOUND);
+							HttpHeaders httpHeaders = response.headers().asHttpHeaders();
+							assertThat(httpHeaders.getFirst(HttpHeaders.LOCATION))
+									.isEqualTo("http://example.org");
+						})
+				.expectComplete()
+				.verify(DURATION);
 	}
 
 	@Test
@@ -321,17 +280,15 @@ public class GatewayIntegrationTests {
 						.build()
 		).then(response -> response.body(toMono(Map.class)));
 
-		verify( () ->
-				StepVerifier.create(result)
-						.consumeNextWith(
-								response -> {
-									assertThat(response).containsKey("headers").isInstanceOf(Map.class);
-									Map<String, Object> headers = (Map<String, Object>) response.get("headers");
-									assertThat(headers).doesNotContainKey("X-Request-Foo");
-								})
-						.expectComplete()
-						.verify(DURATION)
-		);
+		StepVerifier.create(result)
+				.consumeNextWith(
+						response -> {
+							assertThat(response).containsKey("headers").isInstanceOf(Map.class);
+							Map<String, Object> headers = (Map<String, Object>) response.get("headers");
+							assertThat(headers).doesNotContainKey("X-Request-Foo");
+						})
+				.expectComplete()
+				.verify(DURATION);
 	}
 
 	@Test
@@ -342,16 +299,14 @@ public class GatewayIntegrationTests {
 						.build()
 		);
 
-		verify( () ->
-				StepVerifier.create(result)
-						.consumeNextWith(
-								response -> {
-									HttpHeaders httpHeaders = response.headers().asHttpHeaders();
-									assertThat(httpHeaders).doesNotContainKey("X-Request-Foo");
-								})
-						.expectComplete()
-						.verify(DURATION)
-		);
+		StepVerifier.create(result)
+				.consumeNextWith(
+						response -> {
+							HttpHeaders httpHeaders = response.headers().asHttpHeaders();
+							assertThat(httpHeaders).doesNotContainKey("X-Request-Foo");
+						})
+				.expectComplete()
+				.verify(DURATION);
 	}
 
 	@Test
@@ -362,16 +317,14 @@ public class GatewayIntegrationTests {
 						.build()
 		);
 
-		verify( () ->
-				StepVerifier.create(result)
-						.consumeNextWith(
-								response -> {
-									HttpStatus statusCode = response.statusCode();
-									assertThat(statusCode).isEqualTo(HttpStatus.OK);
-								})
-						.expectComplete()
-						.verify(DURATION)
-		);
+		StepVerifier.create(result)
+				.consumeNextWith(
+						response -> {
+							HttpStatus statusCode = response.statusCode();
+							assertThat(statusCode).isEqualTo(HttpStatus.OK);
+						})
+				.expectComplete()
+				.verify(DURATION);
 	}
 
 	@Test
@@ -382,16 +335,14 @@ public class GatewayIntegrationTests {
 						.build()
 		);
 
-		verify( () ->
-				StepVerifier.create(result)
-						.consumeNextWith(
-								response -> {
-									HttpStatus statusCode = response.statusCode();
-									assertThat(statusCode).isEqualTo(HttpStatus.OK);
-								})
-						.expectComplete()
-						.verify(DURATION)
-		);
+		StepVerifier.create(result)
+				.consumeNextWith(
+						response -> {
+							HttpStatus statusCode = response.statusCode();
+							assertThat(statusCode).isEqualTo(HttpStatus.OK);
+						})
+				.expectComplete()
+				.verify(DURATION);
 	}
 
 	@Test
@@ -402,17 +353,15 @@ public class GatewayIntegrationTests {
 						.build()
 		);
 
-		verify( () ->
-				StepVerifier.create(result)
-						.consumeNextWith(
-								response -> {
-									HttpHeaders httpHeaders = response.headers().asHttpHeaders();
-									assertThat(httpHeaders).containsKey("X-Request-Foo");
-									assertThat(httpHeaders.get("X-Request-Foo")).containsExactly("Bar");
-								})
-						.expectComplete()
-						.verify(DURATION)
-		);
+		StepVerifier.create(result)
+				.consumeNextWith(
+						response -> {
+							HttpHeaders httpHeaders = response.headers().asHttpHeaders();
+							assertThat(httpHeaders).containsKey("X-Request-Foo");
+							assertThat(httpHeaders.get("X-Request-Foo")).containsExactly("Bar");
+						})
+				.expectComplete()
+				.verify(DURATION);
 	}
 
 	@Test
@@ -432,16 +381,14 @@ public class GatewayIntegrationTests {
 						.build()
 		);
 
-		verify( () ->
-				StepVerifier.create(result)
-						.consumeNextWith(
-								response -> {
-									HttpStatus statusCode = response.statusCode();
-									assertThat(statusCode).isEqualTo(status);
-								})
-						.expectComplete()
-						.verify(DURATION)
-		);
+		StepVerifier.create(result)
+				.consumeNextWith(
+						response -> {
+							HttpStatus statusCode = response.statusCode();
+							assertThat(statusCode).isEqualTo(status);
+						})
+				.expectComplete()
+				.verify(DURATION);
 	}
 
 	@Test
@@ -450,21 +397,19 @@ public class GatewayIntegrationTests {
 				GET("http://localhost:" + port + "/get").build()
 		);
 
-		verify( () ->
-				StepVerifier.create(result)
-						.consumeNextWith(
-								response -> {
-									HttpHeaders httpHeaders = response.headers().asHttpHeaders();
-									HttpStatus statusCode = response.statusCode();
-									assertThat(httpHeaders.getFirst(HANDLER_MAPPER_HEADER))
-											.isEqualTo(RoutePredicateHandlerMapping.class.getSimpleName());
-									assertThat(httpHeaders.getFirst(ROUTE_ID_HEADER))
-											.isEqualTo("default_path_to_httpbin");
-									assertThat(statusCode).isEqualTo(HttpStatus.OK);
-								})
-						.expectComplete()
-						.verify(DURATION)
-		);
+		StepVerifier.create(result)
+				.consumeNextWith(
+						response -> {
+							HttpHeaders httpHeaders = response.headers().asHttpHeaders();
+							HttpStatus statusCode = response.statusCode();
+							assertThat(httpHeaders.getFirst(HANDLER_MAPPER_HEADER))
+									.isEqualTo(RoutePredicateHandlerMapping.class.getSimpleName());
+							assertThat(httpHeaders.getFirst(ROUTE_ID_HEADER))
+									.isEqualTo("default_path_to_httpbin");
+							assertThat(statusCode).isEqualTo(HttpStatus.OK);
+						})
+				.expectComplete()
+				.verify(DURATION);
 	}
 
 	@EnableAutoConfiguration
