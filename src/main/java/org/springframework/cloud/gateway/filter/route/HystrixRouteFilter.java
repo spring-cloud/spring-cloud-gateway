@@ -20,8 +20,6 @@ public class HystrixRouteFilter implements RouteFilter {
 
 	@Override
 	public WebFilter apply(String commandName, String[] args) {
-		//validate(args, 1);
-
 		final HystrixCommandGroupKey groupKey = HystrixCommandGroupKey.Factory.asKey(getClass().getSimpleName());
 		final HystrixCommandKey commandKey = HystrixCommandKey.Factory.asKey(commandName);
 
@@ -29,18 +27,13 @@ public class HystrixRouteFilter implements RouteFilter {
 				.withGroupKey(groupKey)
 				.andCommandKey(commandKey);
 
-		//TODO: caching can happen here
 		return (exchange, chain) -> {
-			try {
-				RouteHystrixCommand command = new RouteHystrixCommand(setter, exchange, chain);
+			RouteHystrixCommand command = new RouteHystrixCommand(setter, exchange, chain);
 
-				return Mono.create(s -> {
-					Subscription sub = command.toObservable().subscribe(s::success, s::error, s::success);
-					s.setCancellation(sub::unsubscribe);
-				});
-			} catch (Exception e) {
-				throw new RuntimeException("Error running RouteHystrixCommand: " + commandName, e);
-			}
+			return Mono.create(s -> {
+				Subscription sub = command.toObservable().subscribe(s::success, s::error, s::success);
+				s.setCancellation(sub::unsubscribe);
+			});
 		};
 	}
 
