@@ -58,6 +58,8 @@ public class FilteringWebHandler extends WebHandlerDecorator {
 	private final List<GlobalFilter> globalFilters;
 	private final Map<String, RouteFilter> routeFilters = new HashMap<>();
 
+	private final Map<String, List<WebFilter>> combinedFiltersForRoute = new HashMap<>();
+
 	public FilteringWebHandler(List<GlobalFilter> globalFilters,
 							   Map<String, RouteFilter> routeFilters) {
 		this(new EmptyWebHandler(), globalFilters, routeFilters);
@@ -87,19 +89,32 @@ public class FilteringWebHandler extends WebHandlerDecorator {
 
 	@Override
 	public Mono<Void> handle(ServerWebExchange exchange) {
-		//TODO: probably a java 8 stream way of doing this
-		ArrayList<WebFilter> routeFilters = new ArrayList<>(loadFilters(this.globalFilters));
-
 		Optional<Route> route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
-		if (route.isPresent() && !route.get().getFilters().isEmpty()) {
-			routeFilters.addAll(loadRouteFilters(route.get()));
-		}
-
-		AnnotationAwareOrderComparator.sort(routeFilters);
+		List<WebFilter> routeFilters = combineFiltersForRoute(route);
 
 		logger.debug("Sorted routeFilters: "+ routeFilters);
 
 		return new DefaultWebFilterChain(routeFilters, getDelegate()).filter(exchange);
+	}
+
+	public List<WebFilter> combineFiltersForRoute(Optional<Route> route) {
+		if (!route.isPresent()) {
+			return Collections.emptyList();
+		}
+		List<WebFilter> combinedFilters = this.combinedFiltersForRoute.get(route.get().getId());
+		if (combinedFilters == null) {
+
+			//TODO: probably a java 8 stream way of doing this
+			combinedFilters = new ArrayList<>(loadFilters(this.globalFilters));
+
+			if (route.isPresent() && !route.get().getFilters().isEmpty()) {
+				combinedFilters.addAll(loadRouteFilters(route.get()));
+			}
+
+			AnnotationAwareOrderComparator.sort(combinedFilters);
+			this.combinedFiltersForRoute.put(route.get().getId(), combinedFilters);
+		}
+		return combinedFilters;
 	}
 
 	private Collection<WebFilter> loadFilters(List<GlobalFilter> filters) {
