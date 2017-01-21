@@ -33,6 +33,7 @@ import org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping;
 import org.springframework.cloud.gateway.handler.RoutingWebHandler;
 import org.springframework.cloud.gateway.handler.predicate.AfterRoutePredicate;
 import org.springframework.cloud.gateway.handler.predicate.BeforeRoutePredicate;
+import org.springframework.cloud.gateway.handler.predicate.BetweenRoutePredicate;
 import org.springframework.cloud.gateway.handler.predicate.CookieRoutePredicate;
 import org.springframework.cloud.gateway.handler.predicate.HeaderRoutePredicate;
 import org.springframework.cloud.gateway.handler.predicate.HostRoutePredicate;
@@ -128,6 +129,11 @@ public class GatewayAutoConfiguration {
 	@Bean(name = "BeforeRoutePredicate")
 	public BeforeRoutePredicate beforeRoutePredicate() {
 		return new BeforeRoutePredicate();
+	}
+
+	@Bean(name = "BetweenRoutePredicate")
+	public BetweenRoutePredicate betweenRoutePredicate() {
+		return new BetweenRoutePredicate();
 	}
 
 	@Bean(name = "CookieRoutePredicate")
