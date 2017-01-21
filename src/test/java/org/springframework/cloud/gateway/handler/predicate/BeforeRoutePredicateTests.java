@@ -1,17 +1,13 @@
 package org.springframework.cloud.gateway.handler.predicate;
 
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-
 import org.junit.Test;
-import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
-import org.springframework.mock.http.server.reactive.MockServerHttpResponse;
-import org.springframework.web.server.ServerWebExchange;
-import org.springframework.web.server.adapter.DefaultServerWebExchange;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.cloud.gateway.handler.predicate.BetweenRoutePredicateTests.getExchange;
+import static org.springframework.cloud.gateway.handler.predicate.BetweenRoutePredicateTests.minusHours;
+import static org.springframework.cloud.gateway.handler.predicate.BetweenRoutePredicateTests.minusHoursMillis;
+import static org.springframework.cloud.gateway.handler.predicate.BetweenRoutePredicateTests.plusHours;
+import static org.springframework.cloud.gateway.handler.predicate.BetweenRoutePredicateTests.plusHoursMillis;
 
 /**
  * @author Spencer Gibb
@@ -20,42 +16,41 @@ public class BeforeRoutePredicateTests {
 
 	@Test
 	public void beforeStringWorks() {
-		String dateString = ZonedDateTime.now().minusHours(1).format(DateTimeFormatter.ISO_ZONED_DATE_TIME);
+		String dateString = minusHours(1);
 
-		final boolean result = new BeforeRoutePredicate().apply(dateString, null).test(getExchange());
+		boolean result = runPredicate(dateString);
 
-		assertThat(result).isTrue();
+		assertThat(result).isFalse();
 	}
 
 	@Test
 	public void afterStringWorks() {
-		String dateString = ZonedDateTime.now().plusHours(1).format(DateTimeFormatter.ISO_ZONED_DATE_TIME);
+		String dateString = plusHours(1);
 
-		final boolean result = new BeforeRoutePredicate().apply(dateString, null).test(getExchange());
-
-		assertThat(result).isFalse();
-	}
-
-	@Test
-	public void beforeEpochWorks() {
-		String dateString = String.valueOf(System.currentTimeMillis()-(1000*60*60));
-
-		final boolean result = new BeforeRoutePredicate().apply(dateString, null).test(getExchange());
+		boolean result = runPredicate(dateString);
 
 		assertThat(result).isTrue();
 	}
 
 	@Test
-	public void afterEpochWorks() {
-		String dateString = String.valueOf(System.currentTimeMillis()+(1000*60*60));
+	public void beforeEpochWorks() {
+		String dateString = minusHoursMillis(1);
 
-		final boolean result = new BeforeRoutePredicate().apply(dateString, null).test(getExchange());
+		final boolean result = runPredicate(dateString);
 
 		assertThat(result).isFalse();
 	}
 
-	private ServerWebExchange getExchange() {
-		final MockServerHttpRequest request = MockServerHttpRequest.get("http://example.com").build();
-		return new DefaultServerWebExchange(request, new MockServerHttpResponse());
+	@Test
+	public void afterEpochWorks() {
+		String dateString = plusHoursMillis(1);
+
+		final boolean result = runPredicate(dateString);
+
+		assertThat(result).isTrue();
+	}
+
+	private boolean runPredicate(String dateString) {
+		return new BeforeRoutePredicate().apply(dateString, null).test(getExchange());
 	}
 }
