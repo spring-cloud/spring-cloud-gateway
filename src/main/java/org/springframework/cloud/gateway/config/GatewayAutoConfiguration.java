@@ -229,8 +229,8 @@ public class GatewayAutoConfiguration {
 	protected static class GatewayActuatorConfiguration {
 
 		@Bean
-		public GatewayEndpoint gatewayEndpoint(RouteReader routeReader) {
-			return new GatewayEndpoint(routeReader);
+		public GatewayEndpoint gatewayEndpoint(RouteReader routeReader, List<GlobalFilter> globalFilters) {
+			return new GatewayEndpoint(routeReader, globalFilters);
 		}
 	}
 
