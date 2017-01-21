@@ -3,10 +3,13 @@ package org.springframework.cloud.gateway.actuate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.cloud.gateway.api.RouteReader;
 import org.springframework.cloud.gateway.config.Route;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
+import org.springframework.cloud.gateway.filter.route.RouteFilter;
+import org.springframework.cloud.gateway.handler.FilteringWebHandler;
 import org.springframework.core.Ordered;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,11 +27,16 @@ public class GatewayEndpoint {/*extends AbstractEndpoint<Map<String, Object>> {*
 
 	private RouteReader routeReader;
 	private List<GlobalFilter> globalFilters;
+	private List<RouteFilter> routeFilters;
+	private FilteringWebHandler filteringWebHandler;
 
-	public GatewayEndpoint(RouteReader routeReader, List<GlobalFilter> globalFilters) {
+	public GatewayEndpoint(RouteReader routeReader, List<GlobalFilter> globalFilters,
+						   List<RouteFilter> routeFilters, FilteringWebHandler filteringWebHandler) {
 		//super("gateway");
 		this.routeReader = routeReader;
 		this.globalFilters = globalFilters;
+		this.routeFilters = routeFilters;
+		this.filteringWebHandler = filteringWebHandler;
 	}
 
 	/*@Override
@@ -38,14 +46,24 @@ public class GatewayEndpoint {/*extends AbstractEndpoint<Map<String, Object>> {*
 
 	@GetMapping("/globalfilters")
 	public Map<String, Object> globalfilters() {
+		return getNamesToOrders(this.globalFilters);
+	}
+
+	@GetMapping("/routefilters")
+	public Map<String, Object> routefilers() {
+		return getNamesToOrders(this.routeFilters);
+	}
+
+	private <T> Map<String, Object> getNamesToOrders(List<T> list) {
 		HashMap<String, Object> filters = new HashMap<>();
 
-		for (GlobalFilter filter : this.globalFilters) {
+		for (Object o : list) {
 			Integer order = null;
-			if (filter instanceof Ordered) {
-				order = ((Ordered)filter).getOrder();
+			if (o instanceof Ordered) {
+				order = ((Ordered)o).getOrder();
 			}
-			filters.put(filter.getClass().getName(), order);
+			//filters.put(o.getClass().getName(), order);
+			filters.put(o.toString(), order);
 		}
 
 		return filters;
@@ -57,11 +75,17 @@ public class GatewayEndpoint {/*extends AbstractEndpoint<Map<String, Object>> {*
 	}
 
 	@GetMapping("/routes/{id}")
-	public Route routes(@PathVariable String id) {
+	public Route route(@PathVariable String id) {
 		return this.routeReader.getRoutes().stream()
 				.filter(route -> route.getId().equals(id))
 				.findFirst().get();
 	}
 
-	//TODO: add combined routes for a filter
+	@GetMapping("/routes/{id}/combinedfilters")
+	public Map<String, Object> combinedfilters(@PathVariable String id) {
+		final Optional<Route> route = this.routeReader.getRoutes().stream()
+				.filter(r -> r.getId().equals(id))
+				.findFirst();
+		return getNamesToOrders(this.filteringWebHandler.combineFiltersForRoute(route));
+	}
 }
