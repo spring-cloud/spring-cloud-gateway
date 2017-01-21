@@ -17,6 +17,7 @@ spring:
         - Query=foo, ba.
         - Query=baz
         - Cookie=chocolate, ch.p
+        - After=1900-01-20T17:42:47.789-07:00[America/Denver]
         filters:
         - AddResponseHeader=X-Response-Foo, Bar
 
