@@ -50,7 +50,7 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 			}
 		});
 
-		setOrder(-1);
+		setOrder(1);
 	}
 
 	private String normalizeName(String name) {

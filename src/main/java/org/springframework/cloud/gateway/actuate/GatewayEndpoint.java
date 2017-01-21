@@ -1,29 +1,29 @@
 package org.springframework.cloud.gateway.actuate;
 
-import org.springframework.boot.actuate.endpoint.AbstractEndpoint;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.cloud.gateway.filter.GlobalFilter;
-import org.springframework.core.annotation.AnnotationAwareOrderComparator;
-
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+
+import org.springframework.cloud.gateway.api.RouteReader;
+import org.springframework.cloud.gateway.config.Route;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * @author Spencer Gibb
  */
-@ConfigurationProperties(prefix = "endpoints.gateway")
-public class GatewayEndpoint extends AbstractEndpoint<Map<String, Object>> {
-	private List<GlobalFilter> filters;
+//TODO: move to new Spring Boot 2.0 actuator when ready
+//@ConfigurationProperties(prefix = "endpoints.gateway")
+@RestController
+@RequestMapping("/admin/gateway")
+public class GatewayEndpoint {
+	private RouteReader routeReader;/*extends AbstractEndpoint<Map<String, Object>> {*/
 
-	public GatewayEndpoint(List<GlobalFilter> filters) {
-		super("gateway");
-		this.filters = filters;
-		AnnotationAwareOrderComparator.sort(this.filters);
+	public GatewayEndpoint(RouteReader routeReader) {
+		//super("gateway");
+		this.routeReader = routeReader;
 	}
 
-	@Override
+	/*@Override
 	public Map<String, Object> invoke() {
 		HashMap<String, Object> map = new HashMap<>();
 
@@ -34,5 +34,10 @@ public class GatewayEndpoint extends AbstractEndpoint<Map<String, Object>> {
 		map.put("filters", filterNames);
 
 		return map;
+	}*/
+
+	@GetMapping("/routes")
+	public List<Route> routes() {
+		return this.routeReader.getRoutes();
 	}
 }
