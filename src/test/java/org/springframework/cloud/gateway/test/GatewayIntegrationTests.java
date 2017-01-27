@@ -38,8 +38,7 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = RANDOM_PORT,
-		properties = "spring.cloud.bootstrap.enabled=false")
+@SpringBootTest(webEnvironment = RANDOM_PORT)
 @SuppressWarnings("unchecked")
 public class GatewayIntegrationTests {
 

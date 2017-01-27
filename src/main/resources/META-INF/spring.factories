@@ -5,3 +5,8 @@ org.springframework.cloud.gateway.config.GatewayAutoConfiguration
 # Environment Post Processors
 org.springframework.boot.env.EnvironmentPostProcessor=\
 org.springframework.cloud.gateway.config.GatewayEnvironmentPostProcessor
+
+# Application Listeners
+org.springframework.context.ApplicationListener=\
+org.springframework.cloud.gateway.config.PreBootstrapApplicationListener,\
+org.springframework.cloud.gateway.config.PostBootstrapApplicationListener

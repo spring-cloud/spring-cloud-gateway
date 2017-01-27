@@ -9,7 +9,6 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 public class GatewayTestApplication {
 
 	public static void main(String[] args) {
-		System.setProperty("spring.cloud.bootstrap.enabled", "false"); //TODO: fix bootstrap
 		SpringApplication.run(GatewayTestApplication.class, args);
 	}
 }
