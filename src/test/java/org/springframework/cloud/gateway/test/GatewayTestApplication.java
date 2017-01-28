@@ -5,7 +5,9 @@ import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+import org.springframework.cloud.gateway.api.CachingRouteReader;
 import org.springframework.cloud.gateway.api.CompositeRouteReader;
+import org.springframework.cloud.gateway.api.RouteReader;
 import org.springframework.cloud.gateway.config.GatewayProperties;
 import org.springframework.cloud.gateway.config.PropertiesRouteReader;
 import org.springframework.cloud.gateway.discovery.DiscoveryClientRouteReader;
@@ -42,9 +44,11 @@ public class GatewayTestApplication {
 
 		@Bean
 		@Primary
-		public CompositeRouteReader compositeRouteReader(DiscoveryClientRouteReader discoveryClientRouteReader,
-														 PropertiesRouteReader propertiesRouteReader) {
-			return new CompositeRouteReader(Flux.just(discoveryClientRouteReader, propertiesRouteReader));
+		public RouteReader compositeRouteReader(DiscoveryClientRouteReader discoveryClientRouteReader,
+												PropertiesRouteReader propertiesRouteReader) {
+			final Flux<RouteReader> flux = Flux.just(discoveryClientRouteReader, propertiesRouteReader);
+			final CompositeRouteReader composite = new CompositeRouteReader(flux);
+			return new CachingRouteReader(composite);
 		}
 	}
 

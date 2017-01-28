@@ -10,6 +10,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.cloud.gateway.actuate.GatewayEndpoint;
+import org.springframework.cloud.gateway.api.CachingRouteReader;
 import org.springframework.cloud.gateway.api.RouteReader;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.LoadBalancerClientFilter;
@@ -67,8 +68,9 @@ public class GatewayAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean(RouteReader.class)
-	public PropertiesRouteReader propertiesRouteReader(GatewayProperties properties) {
-		return new PropertiesRouteReader(properties);
+	public RouteReader propertiesRouteReader(GatewayProperties properties) {
+		//TODO: how to automatically apply CachingRouteReader
+		return new CachingRouteReader(new PropertiesRouteReader(properties));
 	}
 
 	@Bean

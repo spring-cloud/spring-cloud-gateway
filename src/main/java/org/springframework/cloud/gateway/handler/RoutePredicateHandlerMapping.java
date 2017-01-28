@@ -31,8 +31,6 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 	private RouteReader routeReader;
 	private WebHandler webHandler;
 
-	private List<Route> routes;
-
 	public RoutePredicateHandlerMapping(WebHandler webHandler, Map<String, RoutePredicate> predicates,
 										RouteReader routeReader) {
 		this.webHandler = webHandler;
@@ -59,23 +57,12 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 	}
 
 	@Override
-	protected void initApplicationContext() throws BeansException {
-		super.initApplicationContext();
-		Flux<Route> routes = this.routeReader.getRoutes();
-		registerHandlers(routes.collectList().block()); //TODO: convert rest of class to Reactive
-	}
-
-	protected void registerHandlers(List<Route> routes) {
-		this.routes = routes;
-	}
-
-	@Override
 	protected Mono<?> getHandlerInternal(ServerWebExchange exchange) {
 		exchange.getAttributes().put(GATEWAY_HANDLER_MAPPER_ATTR, getClass().getSimpleName());
 
 		Route route;
 		try {
-			route = lookupRoute(this.routes, exchange);
+			route = lookupRoute(exchange);
 		}
 		catch (Exception ex) {
 			return Mono.error(ex);
@@ -107,7 +94,9 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 	}
 
 
-	protected Route lookupRoute(List<Route> routes, ServerWebExchange exchange) throws Exception {
+	protected Route lookupRoute(ServerWebExchange exchange) throws Exception {
+		List<Route> routes = this.routeReader.getRoutes().collectList().block(); //TODO: convert rest of class to Reactive
+
 		for (Route route : routes) {
 			if (!route.getPredicates().isEmpty()) {
 				//TODO: cache predicate

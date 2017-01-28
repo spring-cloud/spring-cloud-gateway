@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.springframework.cloud.gateway.api.CachingRouteReader;
 import org.springframework.cloud.gateway.api.RouteReader;
 import org.springframework.cloud.gateway.config.Route;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
@@ -13,9 +14,11 @@ import org.springframework.cloud.gateway.handler.FilteringWebHandler;
 import org.springframework.core.Ordered;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
@@ -43,8 +46,16 @@ public class GatewayEndpoint {/*extends AbstractEndpoint<Map<String, Object>> {*
 
 	/*@Override
 	public Map<String, Object> invoke() {
-
 	}*/
+
+	//TODO: this should really be a listener that responds to a RefreshEvent
+	@PostMapping("/refresh")
+	public Flux<Route> refresh() {
+		if (this.routeReader instanceof CachingRouteReader) {
+			return ((CachingRouteReader)this.routeReader).refresh();
+		}
+		return Flux.empty();
+	}
 
 	@GetMapping("/globalfilters")
 	public Map<String, Object> globalfilters() {
