@@ -53,6 +53,7 @@ public class GatewayTestApplication {
 	}
 
 	public static void main(String[] args) {
+		System.setProperty("java.net.preferIPv4Stack", "true"); //Remove when configurable
 		SpringApplication.run(GatewayTestApplication.class, args);
 	}
 }

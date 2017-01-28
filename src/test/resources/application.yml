@@ -140,6 +140,7 @@ spring:
         uri: http://httpbin.org:80
         predicates:
         - Host=**.baz.org
+        - RemoteAddr=127.0.0.1/24
         filters:
         # $\ is being used as an escape
         - RewritePath=/foo/(?<segment>.*), /$\{segment}

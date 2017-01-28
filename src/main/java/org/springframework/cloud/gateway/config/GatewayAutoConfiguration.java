@@ -40,6 +40,7 @@ import org.springframework.cloud.gateway.handler.predicate.HeaderRoutePredicate;
 import org.springframework.cloud.gateway.handler.predicate.HostRoutePredicate;
 import org.springframework.cloud.gateway.handler.predicate.MethodRoutePredicate;
 import org.springframework.cloud.gateway.handler.predicate.QueryRoutePredicate;
+import org.springframework.cloud.gateway.handler.predicate.RemoteAddrRoutePredicate;
 import org.springframework.cloud.gateway.handler.predicate.RoutePredicate;
 import org.springframework.cloud.gateway.handler.predicate.UrlRoutePredicate;
 import org.springframework.context.annotation.Bean;
@@ -162,6 +163,12 @@ public class GatewayAutoConfiguration {
 	public QueryRoutePredicate queryRoutePredicate() {
 		return new QueryRoutePredicate();
 	}
+
+	@Bean(name = "RemoteAddrRoutePredicate")
+	public RemoteAddrRoutePredicate remoteAddrRoutePredicate() {
+		return new RemoteAddrRoutePredicate();
+	}
+
 
 	@Bean(name = "UrlRoutePredicate")
 	public UrlRoutePredicate urlRoutePredicate() {

@@ -43,7 +43,11 @@ public class GatewayIntegrationTests {
 
 	private static final String HANDLER_MAPPER_HEADER = "X-Gateway-Handler-Mapper-Class";
 	private static final String ROUTE_ID_HEADER = "X-Gateway-Route-Id";
-	public static final Duration DURATION = Duration.ofSeconds(5);
+	private static final Duration DURATION = Duration.ofSeconds(5);
+
+	static {
+		System.setProperty("java.net.preferIPv4Stack", "true");
+	}
 
 	@LocalServerPort
 	private int port;
