@@ -10,7 +10,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.cloud.gateway.actuate.GatewayEndpoint;
-import org.springframework.cloud.gateway.support.CachingRouteLocator;
 import org.springframework.cloud.gateway.api.RouteLocator;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.LoadBalancerClientFilter;
@@ -43,6 +42,7 @@ import org.springframework.cloud.gateway.handler.predicate.QueryRoutePredicate;
 import org.springframework.cloud.gateway.handler.predicate.RemoteAddrRoutePredicate;
 import org.springframework.cloud.gateway.handler.predicate.RoutePredicate;
 import org.springframework.cloud.gateway.handler.predicate.UrlRoutePredicate;
+import org.springframework.cloud.gateway.support.CachingRouteLocator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -63,7 +63,7 @@ public class GatewayAutoConfiguration {
 	public HttpClient httpClient() {
 		return HttpClient.create(opts -> {
 			//opts.poolResources(PoolResources.elastic("proxy"));
-			opts.disablePool();
+			opts.disablePool(); //TODO: without we get io.netty.handler.codec.EncoderException: java.lang.IllegalStateException: unexpected message type: DefaultHttpRequest in tests
 		});
 	}
 
