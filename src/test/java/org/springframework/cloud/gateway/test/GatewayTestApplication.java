@@ -5,10 +5,16 @@ import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+import org.springframework.cloud.gateway.api.CompositeRouteReader;
+import org.springframework.cloud.gateway.config.GatewayProperties;
+import org.springframework.cloud.gateway.config.PropertiesRouteReader;
 import org.springframework.cloud.gateway.discovery.DiscoveryClientRouteReader;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
+
+import reactor.core.publisher.Flux;
 
 @SpringBootConfiguration
 @EnableAutoConfiguration
@@ -27,6 +33,18 @@ public class GatewayTestApplication {
 		@Bean
 		public DiscoveryClientRouteReader discoveryClientRouteReader(DiscoveryClient discoveryClient) {
 			return new DiscoveryClientRouteReader(discoveryClient);
+		}
+
+		@Bean
+		public PropertiesRouteReader propertiesRouteReader(GatewayProperties properties) {
+			return new PropertiesRouteReader(properties);
+		}
+
+		@Bean
+		@Primary
+		public CompositeRouteReader compositeRouteReader(DiscoveryClientRouteReader discoveryClientRouteReader,
+														 PropertiesRouteReader propertiesRouteReader) {
+			return new CompositeRouteReader(Flux.just(discoveryClientRouteReader, propertiesRouteReader));
 		}
 	}
 
