@@ -1,10 +1,10 @@
 package org.springframework.cloud.gateway.discovery;
 
 import org.springframework.cloud.client.discovery.DiscoveryClient;
-import org.springframework.cloud.gateway.api.RouteReader;
-import org.springframework.cloud.gateway.config.FilterDefinition;
-import org.springframework.cloud.gateway.config.PredicateDefinition;
-import org.springframework.cloud.gateway.config.Route;
+import org.springframework.cloud.gateway.api.RouteLocator;
+import org.springframework.cloud.gateway.api.FilterDefinition;
+import org.springframework.cloud.gateway.api.PredicateDefinition;
+import org.springframework.cloud.gateway.api.Route;
 
 import reactor.core.publisher.Flux;
 
@@ -14,12 +14,12 @@ import java.net.URI;
  * TODO: developer configuration, in zuul, this was opt out, should be opt in
  * @author Spencer Gibb
  */
-public class DiscoveryClientRouteReader implements RouteReader {
+public class DiscoveryClientRouteLocator implements RouteLocator {
 
 	private final DiscoveryClient discoveryClient;
 	private final String routeIdPrefix;
 
-	public DiscoveryClientRouteReader(DiscoveryClient discoveryClient) {
+	public DiscoveryClientRouteLocator(DiscoveryClient discoveryClient) {
 		this.discoveryClient = discoveryClient;
 		this.routeIdPrefix = this.discoveryClient.getClass().getSimpleName() + "_";
 	}

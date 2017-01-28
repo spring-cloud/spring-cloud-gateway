@@ -5,9 +5,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.springframework.cloud.gateway.api.CachingRouteReader;
-import org.springframework.cloud.gateway.api.RouteReader;
-import org.springframework.cloud.gateway.config.Route;
+import org.springframework.cloud.gateway.api.CachingRouteLocator;
+import org.springframework.cloud.gateway.api.RouteLocator;
+import org.springframework.cloud.gateway.api.Route;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.route.RouteFilter;
 import org.springframework.cloud.gateway.handler.FilteringWebHandler;
@@ -30,15 +30,15 @@ import reactor.core.publisher.Mono;
 @RequestMapping("/admin/gateway")
 public class GatewayEndpoint {/*extends AbstractEndpoint<Map<String, Object>> {*/
 
-	private RouteReader routeReader;
+	private RouteLocator routeLocator;
 	private List<GlobalFilter> globalFilters;
 	private List<RouteFilter> routeFilters;
 	private FilteringWebHandler filteringWebHandler;
 
-	public GatewayEndpoint(RouteReader routeReader, List<GlobalFilter> globalFilters,
+	public GatewayEndpoint(RouteLocator routeLocator, List<GlobalFilter> globalFilters,
 						   List<RouteFilter> routeFilters, FilteringWebHandler filteringWebHandler) {
 		//super("gateway");
-		this.routeReader = routeReader;
+		this.routeLocator = routeLocator;
 		this.globalFilters = globalFilters;
 		this.routeFilters = routeFilters;
 		this.filteringWebHandler = filteringWebHandler;
@@ -51,8 +51,8 @@ public class GatewayEndpoint {/*extends AbstractEndpoint<Map<String, Object>> {*
 	//TODO: this should really be a listener that responds to a RefreshEvent
 	@PostMapping("/refresh")
 	public Flux<Route> refresh() {
-		if (this.routeReader instanceof CachingRouteReader) {
-			return ((CachingRouteReader)this.routeReader).refresh();
+		if (this.routeLocator instanceof CachingRouteLocator) {
+			return ((CachingRouteLocator)this.routeLocator).refresh();
 		}
 		return Flux.empty();
 	}
@@ -84,19 +84,19 @@ public class GatewayEndpoint {/*extends AbstractEndpoint<Map<String, Object>> {*
 
 	@GetMapping("/routes")
 	public Mono<List<Route>> routes() {
-		return this.routeReader.getRoutes().collectList();
+		return this.routeLocator.getRoutes().collectList();
 	}
 
 	@GetMapping("/routes/{id}")
 	public Mono<Route> route(@PathVariable String id) {
-		return this.routeReader.getRoutes()
+		return this.routeLocator.getRoutes()
 				.filter(route -> route.getId().equals(id))
 				.singleOrEmpty();
 	}
 
 	@GetMapping("/routes/{id}/combinedfilters")
 	public Map<String, Object> combinedfilters(@PathVariable String id) {
-		Mono<Route> route = this.routeReader.getRoutes()
+		Mono<Route> route = this.routeLocator.getRoutes()
 				.filter(r -> r.getId().equals(id))
 				.singleOrEmpty();
 		Optional<Route> optional = Optional.ofNullable(route.block()); //TODO: remove block();

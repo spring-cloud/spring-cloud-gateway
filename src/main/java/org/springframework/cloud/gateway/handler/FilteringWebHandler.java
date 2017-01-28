@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.cloud.gateway.config.Route;
+import org.springframework.cloud.gateway.api.Route;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.route.RouteFilter;
 import org.springframework.core.Ordered;

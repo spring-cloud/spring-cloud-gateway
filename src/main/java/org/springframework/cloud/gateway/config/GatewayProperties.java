@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.cloud.gateway.api.Route;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;

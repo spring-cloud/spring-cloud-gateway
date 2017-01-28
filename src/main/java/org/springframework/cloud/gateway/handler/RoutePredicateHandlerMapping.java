@@ -7,16 +7,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
-import org.springframework.beans.BeansException;
-import org.springframework.cloud.gateway.api.RouteReader;
-import org.springframework.cloud.gateway.config.Route;
-import org.springframework.cloud.gateway.config.PredicateDefinition;
+import org.springframework.cloud.gateway.api.RouteLocator;
+import org.springframework.cloud.gateway.api.Route;
+import org.springframework.cloud.gateway.api.PredicateDefinition;
 import org.springframework.cloud.gateway.handler.predicate.RoutePredicate;
 import org.springframework.web.reactive.handler.AbstractHandlerMapping;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebHandler;
 
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_HANDLER_MAPPER_ATTR;
@@ -28,13 +26,13 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.G
 public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 
 	private Map<String, RoutePredicate> predicates = new LinkedHashMap<>();
-	private RouteReader routeReader;
+	private RouteLocator routeLocator;
 	private WebHandler webHandler;
 
 	public RoutePredicateHandlerMapping(WebHandler webHandler, Map<String, RoutePredicate> predicates,
-										RouteReader routeReader) {
+										RouteLocator routeLocator) {
 		this.webHandler = webHandler;
-		this.routeReader = routeReader;
+		this.routeLocator = routeLocator;
 
 		predicates.forEach((name, factory) -> {
 			String key = normalizeName(name);
@@ -95,7 +93,7 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 
 
 	protected Route lookupRoute(ServerWebExchange exchange) throws Exception {
-		List<Route> routes = this.routeReader.getRoutes().collectList().block(); //TODO: convert rest of class to Reactive
+		List<Route> routes = this.routeLocator.getRoutes().collectList().block(); //TODO: convert rest of class to Reactive
 
 		for (Route route : routes) {
 			if (!route.getPredicates().isEmpty()) {

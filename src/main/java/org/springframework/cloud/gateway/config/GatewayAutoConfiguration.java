@@ -10,8 +10,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.cloud.gateway.actuate.GatewayEndpoint;
-import org.springframework.cloud.gateway.api.CachingRouteReader;
-import org.springframework.cloud.gateway.api.RouteReader;
+import org.springframework.cloud.gateway.api.CachingRouteLocator;
+import org.springframework.cloud.gateway.api.RouteLocator;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.LoadBalancerClientFilter;
 import org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter;
@@ -68,10 +68,10 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnMissingBean(RouteReader.class)
-	public RouteReader propertiesRouteReader(GatewayProperties properties) {
-		//TODO: how to automatically apply CachingRouteReader
-		return new CachingRouteReader(new PropertiesRouteReader(properties));
+	@ConditionalOnMissingBean(RouteLocator.class)
+	public RouteLocator routeLocator(GatewayProperties properties) {
+		//TODO: how to automatically apply CachingRouteLocator
+		return new CachingRouteLocator(new PropertiesRouteLocator(properties));
 	}
 
 	@Bean
@@ -94,8 +94,8 @@ public class GatewayAutoConfiguration {
 	@Bean
 	public RoutePredicateHandlerMapping routePredicateHandlerMapping(FilteringWebHandler webHandler,
 																	 Map<String, RoutePredicate> predicates,
-																	 RouteReader routeReader) {
-		return new RoutePredicateHandlerMapping(webHandler, predicates, routeReader);
+																	 RouteLocator routeLocator) {
+		return new RoutePredicateHandlerMapping(webHandler, predicates, routeLocator);
 	}
 
 	// GlobalFilter beans
@@ -238,9 +238,9 @@ public class GatewayAutoConfiguration {
 	protected static class GatewayActuatorConfiguration {
 
 		@Bean
-		public GatewayEndpoint gatewayEndpoint(RouteReader routeReader, List<GlobalFilter> globalFilters,
+		public GatewayEndpoint gatewayEndpoint(RouteLocator routeLocator, List<GlobalFilter> globalFilters,
 											   List<RouteFilter> routeFilters, FilteringWebHandler filteringWebHandler) {
-			return new GatewayEndpoint(routeReader, globalFilters, routeFilters, filteringWebHandler);
+			return new GatewayEndpoint(routeLocator, globalFilters, routeFilters, filteringWebHandler);
 		}
 	}
 

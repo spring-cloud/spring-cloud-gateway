@@ -1,4 +1,4 @@
-package org.springframework.cloud.gateway.config;
+package org.springframework.cloud.gateway.api;
 
 import org.hibernate.validator.constraints.NotEmpty;
 

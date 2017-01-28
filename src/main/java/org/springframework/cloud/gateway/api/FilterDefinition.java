@@ -1,4 +1,4 @@
-package org.springframework.cloud.gateway.config;
+package org.springframework.cloud.gateway.api;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -11,23 +11,24 @@ import static org.springframework.util.StringUtils.tokenizeToStringArray;
 /**
  * @author Spencer Gibb
  */
-public class PredicateDefinition {
+public class FilterDefinition {
 	@NotNull
 	private String name;
 	private String[] args;
 
-	public PredicateDefinition() {
+	public FilterDefinition() {
 	}
 
-	public PredicateDefinition(String text) {
+	public FilterDefinition(String text) {
 		int eqIdx = text.indexOf("=");
 		if (eqIdx <= 0) {
-			throw new ValidationException("Unable to parse PredicateDefinition text '" + text + "'" +
+			throw new ValidationException("Unable to parse FilterDefinition text '" + text + "'" +
 					", must be of the form name=value");
 		}
 		setName(text.substring(0, eqIdx));
 
 		String[] args = tokenizeToStringArray(text.substring(eqIdx+1), ",");
+
 		setArgs(args);
 	}
 
@@ -51,7 +52,7 @@ public class PredicateDefinition {
 	public boolean equals(Object o) {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
-		PredicateDefinition that = (PredicateDefinition) o;
+		FilterDefinition that = (FilterDefinition) o;
 		return Objects.equals(name, that.name) &&
 				Arrays.equals(args, that.args);
 	}
@@ -63,7 +64,7 @@ public class PredicateDefinition {
 
 	@Override
 	public String toString() {
-		final StringBuilder sb = new StringBuilder("PredicateDefinition{");
+		final StringBuilder sb = new StringBuilder("FilterDefinition{");
 		sb.append("name='").append(name).append('\'');
 		sb.append(", args=").append(Arrays.toString(args));
 		sb.append('}');

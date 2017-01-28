@@ -3,19 +3,17 @@ package org.springframework.cloud.gateway.api;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.springframework.cloud.gateway.config.Route;
-
 import reactor.core.publisher.Flux;
 
 /**
  * @author Spencer Gibb
  */
-public class CachingRouteReader implements RouteReader {
+public class CachingRouteLocator implements RouteLocator {
 
-	private final RouteReader delegate;
+	private final RouteLocator delegate;
 	private final AtomicReference<List<Route>> cachedRoutes = new AtomicReference<>();
 
-	public CachingRouteReader(RouteReader delegate) {
+	public CachingRouteLocator(RouteLocator delegate) {
 		this.delegate = delegate;
 		this.cachedRoutes.compareAndSet(null, collectRoutes());
 	}
@@ -31,7 +29,7 @@ public class CachingRouteReader implements RouteReader {
 	 */
 	public Flux<Route> refresh() {
 		return Flux.fromIterable(this.cachedRoutes.getAndUpdate(
-				routes -> CachingRouteReader.this.collectRoutes()));
+				routes -> CachingRouteLocator.this.collectRoutes()));
 	}
 
 	private List<Route> collectRoutes() {

@@ -5,12 +5,12 @@ import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
-import org.springframework.cloud.gateway.api.CachingRouteReader;
-import org.springframework.cloud.gateway.api.CompositeRouteReader;
-import org.springframework.cloud.gateway.api.RouteReader;
+import org.springframework.cloud.gateway.api.CachingRouteLocator;
+import org.springframework.cloud.gateway.api.CompositeRouteLocator;
+import org.springframework.cloud.gateway.api.RouteLocator;
 import org.springframework.cloud.gateway.config.GatewayProperties;
-import org.springframework.cloud.gateway.config.PropertiesRouteReader;
-import org.springframework.cloud.gateway.discovery.DiscoveryClientRouteReader;
+import org.springframework.cloud.gateway.config.PropertiesRouteLocator;
+import org.springframework.cloud.gateway.discovery.DiscoveryClientRouteLocator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -33,22 +33,22 @@ public class GatewayTestApplication {
 	protected static class GatewayDiscoveryConfiguration {
 
 		@Bean
-		public DiscoveryClientRouteReader discoveryClientRouteReader(DiscoveryClient discoveryClient) {
-			return new DiscoveryClientRouteReader(discoveryClient);
+		public DiscoveryClientRouteLocator discoveryClientRouteLocator(DiscoveryClient discoveryClient) {
+			return new DiscoveryClientRouteLocator(discoveryClient);
 		}
 
 		@Bean
-		public PropertiesRouteReader propertiesRouteReader(GatewayProperties properties) {
-			return new PropertiesRouteReader(properties);
+		public PropertiesRouteLocator propertiesRouteLocator(GatewayProperties properties) {
+			return new PropertiesRouteLocator(properties);
 		}
 
 		@Bean
 		@Primary
-		public RouteReader compositeRouteReader(DiscoveryClientRouteReader discoveryClientRouteReader,
-												PropertiesRouteReader propertiesRouteReader) {
-			final Flux<RouteReader> flux = Flux.just(discoveryClientRouteReader, propertiesRouteReader);
-			final CompositeRouteReader composite = new CompositeRouteReader(flux);
-			return new CachingRouteReader(composite);
+		public RouteLocator compositeRouteLocator(DiscoveryClientRouteLocator discoveryClientRouteLocator,
+												 PropertiesRouteLocator propertiesRouteLocator) {
+			final Flux<RouteLocator> flux = Flux.just(discoveryClientRouteLocator, propertiesRouteLocator);
+			final CompositeRouteLocator composite = new CompositeRouteLocator(flux);
+			return new CachingRouteLocator(composite);
 		}
 	}
 

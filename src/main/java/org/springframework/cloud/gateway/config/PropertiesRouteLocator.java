@@ -1,17 +1,18 @@
 package org.springframework.cloud.gateway.config;
 
-import org.springframework.cloud.gateway.api.RouteReader;
+import org.springframework.cloud.gateway.api.Route;
+import org.springframework.cloud.gateway.api.RouteLocator;
 
 import reactor.core.publisher.Flux;
 
 /**
  * @author Spencer Gibb
  */
-public class PropertiesRouteReader implements RouteReader {
+public class PropertiesRouteLocator implements RouteLocator {
 
 	private final GatewayProperties properties;
 
-	public PropertiesRouteReader(GatewayProperties properties) {
+	public PropertiesRouteLocator(GatewayProperties properties) {
 		this.properties = properties;
 	}
 
