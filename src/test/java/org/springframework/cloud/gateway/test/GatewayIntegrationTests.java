@@ -21,18 +21,17 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.web.reactive.function.client.ClientRequest;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientOperations;
 import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.util.DefaultUriBuilderFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_HANDLER_MAPPER_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
 import static org.springframework.web.reactive.function.BodyExtractors.toMono;
-import static org.springframework.web.reactive.function.client.ClientRequest.GET;
-import static org.springframework.web.reactive.function.client.ClientRequest.POST;
 
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -49,26 +48,23 @@ public class GatewayIntegrationTests {
 	@LocalServerPort
 	private int port;
 
-	private WebClient webClient;
+	private WebClientOperations webClient;
 
 	@Before
 	public void setup() {
-		this.webClient = WebClient.builder(new ReactorClientHttpConnector()).build();
-	}
-
-	//TODO: remove once https://github.com/reactor/reactor-netty/issues/27 is fixed
-	class Result {
-		boolean passedOnce = false;
-		AssertionError error = null;
+		WebClient client = WebClient.builder(new ReactorClientHttpConnector()).build();
+		this.webClient = WebClientOperations.builder(client)
+				.uriBuilderFactory(new DefaultUriBuilderFactory("http://localhost:" + port))
+				.build();
 	}
 
 	@Test
 	public void addRequestHeaderFilterWorks() {
-		Mono<Map> result = webClient.exchange(
-				GET(baseUrl() + "/headers")
-						.header("Host", "www.addrequestheader.org")
-						.build()
-		).then(response -> response.body(toMono(Map.class)));
+		Mono<Map> result = webClient.get()
+				.uri("/headers")
+				.header("Host", "www.addrequestheader.org")
+				.exchange()
+				.then(response -> response.body(toMono(Map.class)));
 
 		StepVerifier.create(result)
 				.consumeNextWith(
@@ -92,11 +88,11 @@ public class GatewayIntegrationTests {
 	}
 
 	private void testRequestParameterFilter(String query) {
-		Mono<Map> result = webClient.exchange(
-				GET(baseUrl() + "/get" + query)
-						.header("Host", "www.addrequestparameter.org")
-						.build()
-		).then(response -> response.body(toMono(Map.class)));
+		Mono<Map> result = webClient.get()
+				.uri("/get" + query)
+				.header("Host", "www.addrequestparameter.org")
+				.exchange()
+				.then(response -> response.body(toMono(Map.class)));
 
 		StepVerifier.create(result)
 				.consumeNextWith(
@@ -111,11 +107,10 @@ public class GatewayIntegrationTests {
 
 	@Test
 	public void addResponseHeaderFilterWorks() {
-		Mono<ClientResponse> result = webClient.exchange(
-				GET(baseUrl() + "/headers")
-						.header("Host", "www.addresponseheader.org")
-						.build()
-		);
+		Mono<ClientResponse> result = webClient.get()
+				.uri("/headers")
+				.header("Host", "www.addresponseheader.org")
+				.exchange();
 
 		StepVerifier.create(result)
 				.consumeNextWith(
@@ -130,13 +125,12 @@ public class GatewayIntegrationTests {
 
 	@Test
 	public void compositeRouteWorks() {
-		Mono<ClientResponse> result = webClient.exchange(
-				GET(baseUrl() + "/headers?foo=bar&baz")
-						.header("Host", "www.foo.org")
-						.header("X-Request-Id", "123")
-						.cookie("chocolate", "chip")
-						.build()
-		);
+		Mono<ClientResponse> result = webClient.get()
+				.uri("/headers?foo=bar&baz")
+				.header("Host", "www.foo.org")
+				.header("X-Request-Id", "123")
+				.cookie("chocolate", "chip")
+				.exchange();
 
 		StepVerifier.create(result)
 				.consumeNextWith(
@@ -157,11 +151,10 @@ public class GatewayIntegrationTests {
 
 	@Test
 	public void hostRouteWorks() {
-		Mono<ClientResponse> result = webClient.exchange(
-				GET(baseUrl() + "/get")
-						.header("Host", "www.example.org")
-						.build()
-		);
+		Mono<ClientResponse> result = webClient.get()
+				.uri("/get")
+				.header("Host", "www.example.org")
+				.exchange();
 
 		StepVerifier.create(result)
 				.consumeNextWith(
@@ -180,11 +173,10 @@ public class GatewayIntegrationTests {
 
 	@Test
 	public void hystrixFilterWorks() {
-		Mono<ClientResponse> result = webClient.exchange(
-				GET(baseUrl() + "/get")
-						.header("Host", "www.hystrixsuccess.org")
-						.build()
-		);
+		Mono<ClientResponse> result = webClient.get()
+				.uri("/get")
+				.header("Host", "www.hystrixsuccess.org")
+				.exchange();
 
 		StepVerifier.create(result)
 				.consumeNextWith(
@@ -201,11 +193,10 @@ public class GatewayIntegrationTests {
 
 	@Test
 	public void hystrixFilterTimesout() {
-		Mono<ClientResponse> result = webClient.exchange(
-				GET(baseUrl() + "/delay/3")
-						.header("Host", "www.hystrixfailure.org")
-						.build()
-		);
+		Mono<ClientResponse> result = webClient.get()
+				.uri("/delay/3")
+				.header("Host", "www.hystrixfailure.org")
+				.exchange();
 
 		StepVerifier.create(result)
 				.expectError() //TODO: can we get more specific as to the error?
@@ -214,11 +205,10 @@ public class GatewayIntegrationTests {
 
 	@Test
 	public void loadBalancerFilterWorks() {
-		Mono<ClientResponse> result = webClient.exchange(
-				GET(baseUrl() + "/get")
-						.header("Host", "www.loadbalancerclient.org")
-						.build()
-		);
+		Mono<ClientResponse> result = webClient.get()
+				.uri("/get")
+				.header("Host", "www.loadbalancerclient.org")
+				.exchange();
 
 		StepVerifier.create(result)
 				.consumeNextWith(
@@ -235,11 +225,10 @@ public class GatewayIntegrationTests {
 
 	@Test
 	public void postWorks() {
-		ClientRequest<Mono<String>> request = POST(baseUrl() + "/post")
+		Mono<Map> result = webClient.post()
+				.uri("/post")
 				.header("Host", "www.example.org")
-				.body(Mono.just("testdata"), String.class);
-
-		Mono<Map> result = webClient.exchange(request)
+				.exchange(Mono.just("testdata"), String.class)
 				.then(response -> response.body(toMono(Map.class)));
 
 		StepVerifier.create(result)
@@ -250,11 +239,10 @@ public class GatewayIntegrationTests {
 
 	@Test
 	public void redirectToFilterWorks() {
-		Mono<ClientResponse> result = webClient.exchange(
-				GET(baseUrl())
-						.header("Host", "www.redirectto.org")
-						.build()
-		);
+		Mono<ClientResponse> result = webClient.get()
+				.uri("/")
+				.header("Host", "www.redirectto.org")
+				.exchange();
 
 		StepVerifier.create(result)
 				.consumeNextWith(
@@ -272,12 +260,12 @@ public class GatewayIntegrationTests {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void removeRequestHeaderFilterWorks() {
-		Mono<Map> result = webClient.exchange(
-				GET(baseUrl() + "/headers")
-						.header("Host", "www.removerequestheader.org")
-						.header("X-Request-Foo", "Bar")
-						.build()
-		).then(response -> response.body(toMono(Map.class)));
+		Mono<Map> result = webClient.get()
+				.uri("/headers")
+				.header("Host", "www.removerequestheader.org")
+				.header("X-Request-Foo", "Bar")
+				.exchange()
+				.then(response -> response.body(toMono(Map.class)));
 
 		StepVerifier.create(result)
 				.consumeNextWith(
@@ -292,11 +280,10 @@ public class GatewayIntegrationTests {
 
 	@Test
 	public void removeResponseHeaderFilterWorks() {
-		Mono<ClientResponse> result = webClient.exchange(
-				GET(baseUrl() + "/headers")
-						.header("Host", "www.removereresponseheader.org")
-						.build()
-		);
+		Mono<ClientResponse> result = webClient.get()
+				.uri("/headers")
+				.header("Host", "www.removereresponseheader.org")
+				.exchange();
 
 		StepVerifier.create(result)
 				.consumeNextWith(
@@ -310,11 +297,10 @@ public class GatewayIntegrationTests {
 
 	@Test
 	public void rewritePathFilterWorks() {
-		Mono<ClientResponse> result = webClient.exchange(
-				GET(baseUrl() + "/foo/get")
-						.header("Host", "www.baz.org")
-						.build()
-		);
+		Mono<ClientResponse> result = webClient.get()
+				.uri("/foo/get")
+				.header("Host", "www.baz.org")
+				.exchange();
 
 		StepVerifier.create(result)
 				.consumeNextWith(
@@ -328,11 +314,10 @@ public class GatewayIntegrationTests {
 
 	@Test
 	public void setPathFilterWorks() {
-		Mono<ClientResponse> result = webClient.exchange(
-				GET(baseUrl() + "/foo/get")
-						.header("Host", "www.setpath.org")
-						.build()
-		);
+		Mono<ClientResponse> result = webClient.get()
+				.uri("/foo/get")
+				.header("Host", "www.setpath.org")
+				.exchange();
 
 		StepVerifier.create(result)
 				.consumeNextWith(
@@ -346,11 +331,10 @@ public class GatewayIntegrationTests {
 
 	@Test
 	public void setResponseHeaderFilterWorks() {
-		Mono<ClientResponse> result = webClient.exchange(
-				GET(baseUrl() + "/headers")
-						.header("Host", "www.setreresponseheader.org")
-						.build()
-		);
+		Mono<ClientResponse> result = webClient.get()
+				.uri("/headers")
+				.header("Host", "www.setreresponseheader.org")
+				.exchange();
 
 		StepVerifier.create(result)
 				.consumeNextWith(
@@ -374,11 +358,10 @@ public class GatewayIntegrationTests {
 	}
 
 	private void setStatusStringTest(String host, HttpStatus status) {
-		Mono<ClientResponse> result = webClient.exchange(
-				GET(baseUrl() + "/headers")
-						.header("Host", host)
-						.build()
-		);
+		Mono<ClientResponse> result = webClient.get()
+				.uri("/headers")
+				.header("Host", host)
+				.exchange();
 
 		StepVerifier.create(result)
 				.consumeNextWith(
@@ -392,9 +375,9 @@ public class GatewayIntegrationTests {
 
 	@Test
 	public void urlRouteWorks() {
-		Mono<ClientResponse> result = webClient.exchange(
-				GET(baseUrl() + "/get").build()
-		);
+		Mono<ClientResponse> result = webClient.get()
+				.uri("/get")
+				.exchange();
 
 		StepVerifier.create(result)
 				.consumeNextWith(
@@ -409,10 +392,6 @@ public class GatewayIntegrationTests {
 						})
 				.expectComplete()
 				.verify(DURATION);
-	}
-
-	private String baseUrl() {
-		return "http://localhost:" + port;
 	}
 
 	@EnableAutoConfiguration
