@@ -11,6 +11,7 @@ import reactor.core.publisher.Flux;
 import java.net.URI;
 
 /**
+ * TODO: developer configuration, in zuul, this was opt out, should be opt in
  * @author Spencer Gibb
  */
 public class DiscoveryClientRouteReader implements RouteReader {
