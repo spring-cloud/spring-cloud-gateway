@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.springframework.cloud.gateway.api.CachingRouteLocator;
+import org.springframework.cloud.gateway.support.CachingRouteLocator;
 import org.springframework.cloud.gateway.api.RouteLocator;
 import org.springframework.cloud.gateway.api.Route;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
