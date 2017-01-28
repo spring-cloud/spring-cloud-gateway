@@ -16,9 +16,11 @@ import java.net.URI;
 public class DiscoveryClientRouteReader implements RouteReader {
 
 	private final DiscoveryClient discoveryClient;
+	private final String routeIdPrefix;
 
 	public DiscoveryClientRouteReader(DiscoveryClient discoveryClient) {
 		this.discoveryClient = discoveryClient;
+		this.routeIdPrefix = this.discoveryClient.getClass().getSimpleName() + "_";
 	}
 
 	@Override
@@ -26,6 +28,7 @@ public class DiscoveryClientRouteReader implements RouteReader {
 		return Flux.fromIterable(discoveryClient.getServices())
 				.map(serviceId -> {
 					Route route = new Route();
+					route.setId(this.routeIdPrefix + serviceId);
 					route.setUri(URI.create("lb://" + serviceId));
 
 					// add a predicate that matches the url at /serviceId/**
