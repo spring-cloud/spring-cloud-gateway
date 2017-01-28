@@ -35,7 +35,10 @@ public class UrlRoutePredicate implements RoutePredicate {
 	}
 
 	@Override
-	public Predicate<ServerWebExchange> apply(String pattern, String[] args) {
+	public Predicate<ServerWebExchange> apply(String[] args) {
+		validate(1, args);
+		String pattern = args[0];
+
 		return exchange -> {
 			String lookupPath = getPathHelper().getLookupPathForRequest(exchange);
 			boolean match = getPathMatcher().match(pattern, lookupPath);

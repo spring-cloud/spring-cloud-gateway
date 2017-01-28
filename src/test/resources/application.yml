@@ -153,7 +153,7 @@ spring:
         uri: http://httpbin.org:80
         predicates:
         - name: Url
-          value: /**
+          args: /**
 
 myservice:
   ribbon:

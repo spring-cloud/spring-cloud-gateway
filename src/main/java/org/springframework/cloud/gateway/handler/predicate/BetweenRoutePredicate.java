@@ -14,12 +14,12 @@ import org.springframework.web.server.ServerWebExchange;
 public class BetweenRoutePredicate implements RoutePredicate {
 
 	@Override
-	public Predicate<ServerWebExchange> apply(String dateString, String[] args) {
-		validate(args, 1);
+	public Predicate<ServerWebExchange> apply(String... args) {
+		validate(2, args);
 
 		//TODO: is ZonedDateTime the right thing to use?
-		final ZonedDateTime dateTime1 = parseZonedDateTime(dateString);
-		final ZonedDateTime dateTime2 = parseZonedDateTime(args[0]);
+		final ZonedDateTime dateTime1 = parseZonedDateTime(args[0]);
+		final ZonedDateTime dateTime2 = parseZonedDateTime(args[1]);
 		Assert.isTrue(dateTime1.isBefore(dateTime2));
 
 		return exchange -> {

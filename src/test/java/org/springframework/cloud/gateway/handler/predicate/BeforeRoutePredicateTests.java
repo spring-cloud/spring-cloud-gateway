@@ -51,6 +51,6 @@ public class BeforeRoutePredicateTests {
 	}
 
 	private boolean runPredicate(String dateString) {
-		return new BeforeRoutePredicate().apply(dateString, null).test(getExchange());
+		return new BeforeRoutePredicate().apply(dateString).test(getExchange());
 	}
 }

@@ -10,10 +10,10 @@ import org.springframework.web.server.ServerWebExchange;
  */
 public interface RoutePredicate {
 
-	Predicate<ServerWebExchange> apply(String value, String[] args);
+	Predicate<ServerWebExchange> apply(String... args);
 
-	default void validate(String[] args, int requiredSize) {
-		Assert.isTrue(args != null && args.length == requiredSize,
-				"args must have "+ requiredSize +" entry(s)");
+	default void validate(int minimumSize, String... args) {
+		Assert.isTrue(args != null && args.length >= minimumSize,
+				"args must have at least "+ minimumSize +" entry(s)");
 	}
 }

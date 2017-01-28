@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.function.Predicate;
 
 import org.springframework.http.HttpCookie;
-import org.springframework.util.Assert;
 import org.springframework.web.server.ServerWebExchange;
 
 /**
@@ -13,13 +12,12 @@ import org.springframework.web.server.ServerWebExchange;
 public class CookieRoutePredicate implements RoutePredicate {
 
 	@Override
-	public Predicate<ServerWebExchange> apply(String name, String[] args) {
-		//TODO: caching can happen here
-		return exchange -> {
-			Assert.isTrue(args != null && args.length == 1,
-					"args must have one entry");
+	public Predicate<ServerWebExchange> apply(String... args) {
+		validate(2, args);
+		String name = args[0];
+		String regexp = args[1];
 
-			String regexp = args[0];
+		return exchange -> {
 			List<HttpCookie> cookies = exchange.getRequest().getCookies().get(name);
 			for (HttpCookie cookie : cookies) {
 				if (cookie.getValue().matches(regexp)) {

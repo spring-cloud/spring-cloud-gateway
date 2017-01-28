@@ -11,11 +11,11 @@ import org.springframework.web.server.ServerWebExchange;
 public class HeaderRoutePredicate implements RoutePredicate {
 
 	@Override
-	public Predicate<ServerWebExchange> apply(String header, String[] args) {
-		validate(args, 1);
-		String regexp = args[0];
+	public Predicate<ServerWebExchange> apply(String... args) {
+		validate(2, args);
+		String header = args[0];
+		String regexp = args[1];
 
-		//TODO: caching can happen here
 		return exchange -> {
 
 			List<String> values = exchange.getRequest().getHeaders().get(header);

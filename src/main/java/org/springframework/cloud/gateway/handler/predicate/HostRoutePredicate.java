@@ -18,8 +18,10 @@ public class HostRoutePredicate implements RoutePredicate {
 	}
 
 	@Override
-	public Predicate<ServerWebExchange> apply(String pattern, String[] args) {
-		//TODO: caching can happen here
+	public Predicate<ServerWebExchange> apply(String[] args) {
+		validate(1, args);
+		String pattern = args[0];
+
 		return exchange -> {
 			String host = exchange.getRequest().getHeaders().getFirst("Host");
 			return this.pathMatcher.match(pattern, host);

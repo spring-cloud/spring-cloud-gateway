@@ -51,6 +51,6 @@ public class AfterRoutePredicateTests {
 	}
 
 	private boolean runPredicate(String dateString) {
-		return new AfterRoutePredicate().apply(dateString, null).test(getExchange());
+		return new AfterRoutePredicate().apply(dateString).test(getExchange());
 	}
 }

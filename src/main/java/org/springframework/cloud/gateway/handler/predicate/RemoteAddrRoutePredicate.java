@@ -19,10 +19,10 @@ public class RemoteAddrRoutePredicate implements RoutePredicate {
 	private static final Log log = LogFactory.getLog(RemoteAddrRoutePredicate.class);
 
 	@Override
-	public Predicate<ServerWebExchange> apply(String source, String[] args) {
-		List<SubnetUtils> sources = new ArrayList<>();
-		addSource(sources, source);
+	public Predicate<ServerWebExchange> apply(String... args) {
+		validate(1, args);
 
+		List<SubnetUtils> sources = new ArrayList<>();
 		if (args != null) {
 			for (String arg : args) {
 				addSource(sources, arg);
@@ -39,8 +39,8 @@ public class RemoteAddrRoutePredicate implements RoutePredicate {
 				log.warn("Remote addresses didn't match " + hostAddress + " != " + host);
 			}
 
-			for (SubnetUtils subnet : sources) {
-				if (subnet.getInfo().isInRange(hostAddress)) {
+			for (SubnetUtils source : sources) {
+				if (source.getInfo().isInRange(hostAddress)) {
 					return true;
 				}
 			}

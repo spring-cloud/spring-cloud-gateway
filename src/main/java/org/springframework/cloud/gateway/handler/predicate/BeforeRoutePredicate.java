@@ -13,8 +13,9 @@ import static org.springframework.cloud.gateway.handler.predicate.BetweenRoutePr
 public class BeforeRoutePredicate implements RoutePredicate {
 
 	@Override
-	public Predicate<ServerWebExchange> apply(String dateString, String[] args) {
-		final ZonedDateTime dateTime = parseZonedDateTime(dateString);
+	public Predicate<ServerWebExchange> apply(String... args) {
+		validate(1, args);
+		final ZonedDateTime dateTime = parseZonedDateTime(args[0]);
 
 		return exchange -> {
 			final ZonedDateTime now = ZonedDateTime.now();

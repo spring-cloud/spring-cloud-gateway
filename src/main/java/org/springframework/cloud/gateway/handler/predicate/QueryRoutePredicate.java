@@ -11,19 +11,17 @@ import org.springframework.web.server.ServerWebExchange;
 public class QueryRoutePredicate implements RoutePredicate {
 
 	@Override
-	public Predicate<ServerWebExchange> apply(String param, String[] args) {
-		//TODO: caching can happen here
+	public Predicate<ServerWebExchange> apply(String... args) {
+		validate(1, args);
+		String param = args[0];
+
 		return exchange -> {
-			String regexp = null;
-
-			if (args != null && args.length == 1) {
-				regexp = args[0];
-			}
-
-			if (regexp == null) {
+			if (args.length < 2) {
 				// check existence of header
 				return exchange.getRequest().getQueryParams().containsKey(param);
 			}
+
+			String regexp = args[1];
 
 			List<String> values = exchange.getRequest().getQueryParams().get(param);
 			for (String value : values) {

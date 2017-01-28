@@ -35,7 +35,7 @@ public class DiscoveryClientRouteReader implements RouteReader {
 					// add a predicate that matches the url at /serviceId/**
 					PredicateDefinition predicate = new PredicateDefinition();
 					predicate.setName("Url");
-					predicate.setValue("/" + serviceId + "/**");
+					predicate.setArgs("/" + serviceId + "/**");
 					route.getPredicates().add(predicate);
 
 					//TODO: support for other default predicates

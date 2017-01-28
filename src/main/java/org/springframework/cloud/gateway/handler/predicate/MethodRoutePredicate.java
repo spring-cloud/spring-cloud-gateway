@@ -11,8 +11,9 @@ import org.springframework.web.server.ServerWebExchange;
 public class MethodRoutePredicate implements RoutePredicate {
 
 	@Override
-	public Predicate<ServerWebExchange> apply(String method, String[] args) {
-		//TODO: caching can happen here
+	public Predicate<ServerWebExchange> apply(String... args) {
+		validate(1, args);
+		String method = args[0];
 		return exchange -> {
 			HttpMethod requestMethod = exchange.getRequest().getMethod();
 			return requestMethod.matches(method);

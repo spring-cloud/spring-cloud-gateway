@@ -142,10 +142,10 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 			} else {
 				args = Collections.emptyList();
 			}
-			logger.debug("Route " + route.getId() + " applying "+ predicate.getValue()
-					+ ", " + args + " to " + predicate.getName());
+			logger.debug("Route " + route.getId() + " applying "
+					+ args + " to " + predicate.getName());
 		}
-		return found.apply(predicate.getValue(), predicate.getArgs());
+		return found.apply(predicate.getArgs());
 	}
 
 	/**

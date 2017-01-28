@@ -77,7 +77,7 @@ public class BetweenRoutePredicateTests {
 	}
 
 	boolean runPredicate(String dateString1, String dateString2) {
-		return new BetweenRoutePredicate().apply(dateString1, new String[]{dateString2}).test(getExchange());
+		return new BetweenRoutePredicate().apply(dateString1, dateString2).test(getExchange());
 	}
 
 	static String minusHoursMillis(int hours) {
