@@ -35,7 +35,7 @@ public class UrlRoutePredicate implements RoutePredicate {
 	}
 
 	@Override
-	public Predicate<ServerWebExchange> apply(String[] args) {
+	public Predicate<ServerWebExchange> apply(String... args) {
 		validate(1, args);
 		String pattern = args[0];
 
