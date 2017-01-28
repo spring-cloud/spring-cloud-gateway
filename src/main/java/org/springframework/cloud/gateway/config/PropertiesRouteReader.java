@@ -2,7 +2,7 @@ package org.springframework.cloud.gateway.config;
 
 import org.springframework.cloud.gateway.api.RouteReader;
 
-import java.util.List;
+import reactor.core.publisher.Flux;
 
 /**
  * @author Spencer Gibb
@@ -16,7 +16,7 @@ public class PropertiesRouteReader implements RouteReader {
 	}
 
 	@Override
-	public List<Route> getRoutes() {
-		return this.properties.getRoutes();
+	public Flux<Route> getRoutes() {
+		return Flux.fromIterable(this.properties.getRoutes());
 	}
 }

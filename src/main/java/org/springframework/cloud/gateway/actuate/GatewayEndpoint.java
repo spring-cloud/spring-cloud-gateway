@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import reactor.core.publisher.Mono;
+
 /**
  * @author Spencer Gibb
  */
@@ -70,22 +72,23 @@ public class GatewayEndpoint {/*extends AbstractEndpoint<Map<String, Object>> {*
 	}
 
 	@GetMapping("/routes")
-	public List<Route> routes() {
-		return this.routeReader.getRoutes();
+	public Mono<List<Route>> routes() {
+		return this.routeReader.getRoutes().collectList();
 	}
 
 	@GetMapping("/routes/{id}")
-	public Route route(@PathVariable String id) {
-		return this.routeReader.getRoutes().stream()
+	public Mono<Route> route(@PathVariable String id) {
+		return this.routeReader.getRoutes()
 				.filter(route -> route.getId().equals(id))
-				.findFirst().get();
+				.singleOrEmpty();
 	}
 
 	@GetMapping("/routes/{id}/combinedfilters")
 	public Map<String, Object> combinedfilters(@PathVariable String id) {
-		final Optional<Route> route = this.routeReader.getRoutes().stream()
+		Mono<Route> route = this.routeReader.getRoutes()
 				.filter(r -> r.getId().equals(id))
-				.findFirst();
-		return getNamesToOrders(this.filteringWebHandler.combineFiltersForRoute(route));
+				.singleOrEmpty();
+		Optional<Route> optional = Optional.ofNullable(route.block()); //TODO: remove block();
+		return getNamesToOrders(this.filteringWebHandler.combineFiltersForRoute(optional));
 	}
 }

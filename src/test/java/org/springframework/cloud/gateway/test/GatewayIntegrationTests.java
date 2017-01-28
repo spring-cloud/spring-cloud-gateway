@@ -44,7 +44,7 @@ public class GatewayIntegrationTests {
 
 	private static final String HANDLER_MAPPER_HEADER = "X-Gateway-Handler-Mapper-Class";
 	private static final String ROUTE_ID_HEADER = "X-Gateway-Route-Id";
-	public static final Duration DURATION = Duration.ofSeconds(3);
+	public static final Duration DURATION = Duration.ofSeconds(5);
 
 	@LocalServerPort
 	private int port;
@@ -65,7 +65,7 @@ public class GatewayIntegrationTests {
 	@Test
 	public void addRequestHeaderFilterWorks() {
 		Mono<Map> result = webClient.exchange(
-				GET("http://localhost:" + port + "/headers")
+				GET(baseUrl() + "/headers")
 						.header("Host", "www.addrequestheader.org")
 						.build()
 		).then(response -> response.body(toMono(Map.class)));
@@ -93,7 +93,7 @@ public class GatewayIntegrationTests {
 
 	private void testRequestParameterFilter(String query) {
 		Mono<Map> result = webClient.exchange(
-				GET("http://localhost:" + port + "/get" + query)
+				GET(baseUrl() + "/get" + query)
 						.header("Host", "www.addrequestparameter.org")
 						.build()
 		).then(response -> response.body(toMono(Map.class)));
@@ -112,7 +112,7 @@ public class GatewayIntegrationTests {
 	@Test
 	public void addResponseHeaderFilterWorks() {
 		Mono<ClientResponse> result = webClient.exchange(
-				GET("http://localhost:" + port + "/headers")
+				GET(baseUrl() + "/headers")
 						.header("Host", "www.addresponseheader.org")
 						.build()
 		);
@@ -131,7 +131,7 @@ public class GatewayIntegrationTests {
 	@Test
 	public void compositeRouteWorks() {
 		Mono<ClientResponse> result = webClient.exchange(
-				GET("http://localhost:" + port + "/headers?foo=bar&baz")
+				GET(baseUrl() + "/headers?foo=bar&baz")
 						.header("Host", "www.foo.org")
 						.header("X-Request-Id", "123")
 						.cookie("chocolate", "chip")
@@ -158,7 +158,7 @@ public class GatewayIntegrationTests {
 	@Test
 	public void hostRouteWorks() {
 		Mono<ClientResponse> result = webClient.exchange(
-				GET("http://localhost:" + port + "/get")
+				GET(baseUrl() + "/get")
 						.header("Host", "www.example.org")
 						.build()
 		);
@@ -181,7 +181,7 @@ public class GatewayIntegrationTests {
 	@Test
 	public void hystrixFilterWorks() {
 		Mono<ClientResponse> result = webClient.exchange(
-				GET("http://localhost:" + port + "/get")
+				GET(baseUrl() + "/get")
 						.header("Host", "www.hystrixsuccess.org")
 						.build()
 		);
@@ -202,7 +202,7 @@ public class GatewayIntegrationTests {
 	@Test
 	public void hystrixFilterTimesout() {
 		Mono<ClientResponse> result = webClient.exchange(
-				GET("http://localhost:" + port + "/delay/3")
+				GET(baseUrl() + "/delay/3")
 						.header("Host", "www.hystrixfailure.org")
 						.build()
 		);
@@ -215,7 +215,7 @@ public class GatewayIntegrationTests {
 	@Test
 	public void loadBalancerFilterWorks() {
 		Mono<ClientResponse> result = webClient.exchange(
-				GET("http://localhost:" + port + "/get")
+				GET(baseUrl() + "/get")
 						.header("Host", "www.loadbalancerclient.org")
 						.build()
 		);
@@ -235,7 +235,7 @@ public class GatewayIntegrationTests {
 
 	@Test
 	public void postWorks() {
-		ClientRequest<Mono<String>> request = POST("http://localhost:" + port + "/post")
+		ClientRequest<Mono<String>> request = POST(baseUrl() + "/post")
 				.header("Host", "www.example.org")
 				.body(Mono.just("testdata"), String.class);
 
@@ -251,7 +251,7 @@ public class GatewayIntegrationTests {
 	@Test
 	public void redirectToFilterWorks() {
 		Mono<ClientResponse> result = webClient.exchange(
-				GET("http://localhost:" + port)
+				GET(baseUrl())
 						.header("Host", "www.redirectto.org")
 						.build()
 		);
@@ -273,7 +273,7 @@ public class GatewayIntegrationTests {
 	@SuppressWarnings("unchecked")
 	public void removeRequestHeaderFilterWorks() {
 		Mono<Map> result = webClient.exchange(
-				GET("http://localhost:" + port + "/headers")
+				GET(baseUrl() + "/headers")
 						.header("Host", "www.removerequestheader.org")
 						.header("X-Request-Foo", "Bar")
 						.build()
@@ -293,7 +293,7 @@ public class GatewayIntegrationTests {
 	@Test
 	public void removeResponseHeaderFilterWorks() {
 		Mono<ClientResponse> result = webClient.exchange(
-				GET("http://localhost:" + port + "/headers")
+				GET(baseUrl() + "/headers")
 						.header("Host", "www.removereresponseheader.org")
 						.build()
 		);
@@ -311,7 +311,7 @@ public class GatewayIntegrationTests {
 	@Test
 	public void rewritePathFilterWorks() {
 		Mono<ClientResponse> result = webClient.exchange(
-				GET("http://localhost:" + port + "/foo/get")
+				GET(baseUrl() + "/foo/get")
 						.header("Host", "www.baz.org")
 						.build()
 		);
@@ -329,7 +329,7 @@ public class GatewayIntegrationTests {
 	@Test
 	public void setPathFilterWorks() {
 		Mono<ClientResponse> result = webClient.exchange(
-				GET("http://localhost:" + port + "/foo/get")
+				GET(baseUrl() + "/foo/get")
 						.header("Host", "www.setpath.org")
 						.build()
 		);
@@ -347,7 +347,7 @@ public class GatewayIntegrationTests {
 	@Test
 	public void setResponseHeaderFilterWorks() {
 		Mono<ClientResponse> result = webClient.exchange(
-				GET("http://localhost:" + port + "/headers")
+				GET(baseUrl() + "/headers")
 						.header("Host", "www.setreresponseheader.org")
 						.build()
 		);
@@ -375,7 +375,7 @@ public class GatewayIntegrationTests {
 
 	private void setStatusStringTest(String host, HttpStatus status) {
 		Mono<ClientResponse> result = webClient.exchange(
-				GET("http://localhost:" + port + "/headers")
+				GET(baseUrl() + "/headers")
 						.header("Host", host)
 						.build()
 		);
@@ -393,7 +393,7 @@ public class GatewayIntegrationTests {
 	@Test
 	public void urlRouteWorks() {
 		Mono<ClientResponse> result = webClient.exchange(
-				GET("http://localhost:" + port + "/get").build()
+				GET(baseUrl() + "/get").build()
 		);
 
 		StepVerifier.create(result)
@@ -409,6 +409,10 @@ public class GatewayIntegrationTests {
 						})
 				.expectComplete()
 				.verify(DURATION);
+	}
+
+	private String baseUrl() {
+		return "http://localhost:" + port;
 	}
 
 	@EnableAutoConfiguration

@@ -16,6 +16,7 @@ import org.springframework.web.reactive.handler.AbstractHandlerMapping;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebHandler;
 
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_HANDLER_MAPPER_ATTR;
@@ -60,7 +61,8 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 	@Override
 	protected void initApplicationContext() throws BeansException {
 		super.initApplicationContext();
-		registerHandlers(this.routeReader.getRoutes());
+		Flux<Route> routes = this.routeReader.getRoutes();
+		registerHandlers(routes.collectList().block()); //TODO: convert rest of class to Reactive
 	}
 
 	protected void registerHandlers(List<Route> routes) {
