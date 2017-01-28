@@ -20,18 +20,19 @@ import reactor.core.publisher.Mono;
  */
 public class RedirectToRouteFilter implements RouteFilter {
 	@Override
-	public WebFilter apply(String statusString, String[] args) {
-		validate(args, 1);
+	public WebFilter apply(String... args) {
+		validate(2, args);
+		final String statusString = args[0];
+		final String uri = args[1];
 
 		final HttpStatus httpStatus = parse(statusString);
 		final URL url;
 		try {
-			url = URI.create(args[0]).toURL();
+			url = URI.create(uri).toURL();
 		} catch (MalformedURLException e) {
-			throw new IllegalArgumentException("Invalid url " + args[0], e);
+			throw new IllegalArgumentException("Invalid url " + uri, e);
 		}
 
-		//TODO: caching can happen here
 		return (exchange, chain) ->
 			chain.filter(exchange).then(() -> {
 				if (!isResponseCommitted(exchange)) {

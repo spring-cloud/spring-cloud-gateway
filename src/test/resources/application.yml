@@ -124,7 +124,8 @@ spring:
         - Host=**.setstatusint.org
         - Url=/headers
         filters:
-        - SetStatus=401
+        - name: SetStatus
+          args: 401
 
       # =====================================
       - id: set_status_string_test

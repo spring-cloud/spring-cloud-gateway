@@ -11,9 +11,10 @@ public class RemoveRequestHeaderRouteFilter implements RouteFilter {
 	public static final String FAKE_HEADER = "_______force_______";
 
 	@Override
-	public WebFilter apply(String header, String[] args) {
+	public WebFilter apply(String... args) {
+		validate(1, args);
+		final String header = args[0];
 
-		//TODO: caching can happen here
 		return (exchange, chain) -> {
 			ServerHttpRequest request = exchange.getRequest().mutate()
 					.header(FAKE_HEADER, "mutable") //TODO: is there a better way?

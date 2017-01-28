@@ -43,8 +43,9 @@ public class DiscoveryClientRouteReader implements RouteReader {
 					// add a filter that removes /serviceId by default
 					FilterDefinition filter = new FilterDefinition();
 					filter.setName("RewritePath");
-					filter.setValue("/" + serviceId + "/(?<remaining>.*)");
-					filter.setArgs(new String[]{ "/${remaining}" });
+					String regex = "/" + serviceId + "/(?<remaining>.*)";
+					String replacement = "/${remaining}";
+					filter.setArgs(regex, replacement);
 					route.getFilters().add(filter);
 
 					//TODO: support for default filters

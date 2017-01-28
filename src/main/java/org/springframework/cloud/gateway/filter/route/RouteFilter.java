@@ -8,9 +8,9 @@ import org.springframework.web.server.WebFilter;
  */
 public interface RouteFilter {
 
-	WebFilter apply(String value, String[] args);
+	WebFilter apply(String... args);
 
-	default void validate(String[] args, int requiredSize) {
+	default void validate(int requiredSize, String... args) {
 		Assert.isTrue(args != null && args.length == requiredSize,
 				"args must have "+ requiredSize +" entry(s)");
 	}

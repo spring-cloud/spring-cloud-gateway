@@ -37,7 +37,7 @@ public class SetPathRouteFilterTests {
 	}
 
 	private void testRewriteFilter(String template, String actualPath, String expectedPath, HashMap<String, String> variables) {
-		WebFilter filter = new SetPathRouteFilter().apply(template, new String[]{});
+		WebFilter filter = new SetPathRouteFilter().apply(new String[]{template});
 
 		MockServerHttpRequest request = MockServerHttpRequest
 				.get("http://localhost"+ actualPath)

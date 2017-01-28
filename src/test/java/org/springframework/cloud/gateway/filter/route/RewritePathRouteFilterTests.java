@@ -30,7 +30,7 @@ public class RewritePathRouteFilterTests {
 	}
 
 	private void testRewriteFilter(String regex, String replacement, String actualPath, String expectedPath) {
-		WebFilter filter = new RewritePathRouteFilter().apply(regex, new String[]{replacement});
+		WebFilter filter = new RewritePathRouteFilter().apply(regex, replacement);
 
 		MockServerHttpRequest request = MockServerHttpRequest
 				.get("http://localhost"+ actualPath)

@@ -143,10 +143,9 @@ public class FilteringWebHandler extends WebHandlerDecorator {
 						} else {
 							args = Collections.emptyList();
 						}
-						logger.debug("Route " + route.getId() + " applying filter " + definition.getValue()
-								+ ", " + args + " to " + definition.getName());
+						logger.debug("Route " + route.getId() + " applying filter " + args + " to " + definition.getName());
 					}
-					return filter.apply(definition.getValue(), definition.getArgs());
+					return filter.apply(definition.getArgs());
 				})
 				.collect(Collectors.toList());
 

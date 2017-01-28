@@ -9,11 +9,11 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 public class RewritePathRouteFilter implements RouteFilter {
 
 	@Override
-	public WebFilter apply(String regex, String[] args) {
-		validate(args, 1);
-		String replacement = args[0].replace("$\\", "$");
+	public WebFilter apply(String... args) {
+		validate(2, args);
+		final String regex = args[0];
+		String replacement = args[1].replace("$\\", "$");
 
-		//TODO: caching can happen here
 		return (exchange, chain) -> {
 			ServerHttpRequest req = exchange.getRequest();
 			String path = req.getURI().getPath();

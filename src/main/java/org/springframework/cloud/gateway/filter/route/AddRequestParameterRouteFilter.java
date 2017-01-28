@@ -17,10 +17,11 @@ import org.springframework.web.server.WebFilter;
 public class AddRequestParameterRouteFilter implements RouteFilter {
 
 	@Override
-	public WebFilter apply(String parameter, String[] args) {
-		validate(args, 1);
+	public WebFilter apply(String... args) {
+		validate(2, args);
+		String parameter = args[0];
+		String value = args[1];
 
-		//TODO: caching can happen here
 		return (exchange, chain) -> {
 
 			URI uri = exchange.getRequest().getURI();
@@ -37,7 +38,7 @@ public class AddRequestParameterRouteFilter implements RouteFilter {
 			//TODO urlencode?
 			query.append(parameter);
 			query.append('=');
-			query.append(args[0]);
+			query.append(value);
 
 			ServerHttpRequest request = new QueryParamServerHttpRequestBuilder(exchange.getRequest())
 					.query(query.toString())

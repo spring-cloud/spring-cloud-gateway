@@ -17,10 +17,10 @@ public class SetPathRouteFilter implements RouteFilter {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public WebFilter apply(String template, String[] args) {
-		UriTemplate uriTemplate = new UriTemplate(template);
+	public WebFilter apply(String... args) {
+		validate(1, args);
+		UriTemplate uriTemplate = new UriTemplate(args[0]);
 
-		//TODO: caching can happen here
 		return (exchange, chain) -> {
 			Map<String, String> variables = getAttribute(exchange, URL_PREDICATE_VARS_ATTR, Map.class);
 			ServerHttpRequest req = exchange.getRequest();

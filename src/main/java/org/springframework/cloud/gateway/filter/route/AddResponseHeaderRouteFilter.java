@@ -8,12 +8,13 @@ import org.springframework.web.server.WebFilter;
 public class AddResponseHeaderRouteFilter implements RouteFilter {
 
 	@Override
-	public WebFilter apply(String header, String[] args) {
-		validate(args, 1);
+	public WebFilter apply(String... args) {
+		validate(2, args);
+		final String header = args[0];
+		final String value = args[1];
 
-		//TODO: caching can happen here
 		return (exchange, chain) -> {
-			exchange.getResponse().getHeaders().add(header, args[0]);
+			exchange.getResponse().getHeaders().add(header, value);
 
 			return chain.filter(exchange);
 		};

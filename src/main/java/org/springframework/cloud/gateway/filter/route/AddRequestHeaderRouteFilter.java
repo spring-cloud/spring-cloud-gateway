@@ -9,13 +9,12 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 public class AddRequestHeaderRouteFilter implements RouteFilter {
 
 	@Override
-	public WebFilter apply(String header, String[] args) {
-		validate(args, 1);
+	public WebFilter apply(String... args) {
+		validate(2, args);
 
-		//TODO: caching can happen here
 		return (exchange, chain) -> {
 			ServerHttpRequest request = exchange.getRequest().mutate()
-					.header(header, args[0])
+					.header(args[0], args[1])
 					.build();
 
 			return chain.filter(exchange.mutate().request(request).build());

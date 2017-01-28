@@ -19,7 +19,9 @@ import rx.Subscription;
 public class HystrixRouteFilter implements RouteFilter {
 
 	@Override
-	public WebFilter apply(String commandName, String[] args) {
+	public WebFilter apply(String... args) {
+		validate(1, args);
+		final String commandName = args[0];
 		final HystrixCommandGroupKey groupKey = HystrixCommandGroupKey.Factory.asKey(getClass().getSimpleName());
 		final HystrixCommandKey commandKey = HystrixCommandKey.Factory.asKey(commandName);
 

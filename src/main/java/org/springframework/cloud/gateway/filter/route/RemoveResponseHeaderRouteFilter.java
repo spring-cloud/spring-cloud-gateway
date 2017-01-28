@@ -8,9 +8,10 @@ import org.springframework.web.server.WebFilter;
 public class RemoveResponseHeaderRouteFilter implements RouteFilter {
 
 	@Override
-	public WebFilter apply(String header, String[] args) {
+	public WebFilter apply(String... args) {
+		validate(1, args);
+		final String header = args[0];
 
-		//TODO: caching can happen here
 		return (exchange, chain) -> {
 			exchange.getResponse().getHeaders().remove(header);
 

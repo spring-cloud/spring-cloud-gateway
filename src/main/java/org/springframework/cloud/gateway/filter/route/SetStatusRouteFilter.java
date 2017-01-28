@@ -15,10 +15,10 @@ import reactor.core.publisher.Mono;
 public class SetStatusRouteFilter implements RouteFilter {
 
 	@Override
-	public WebFilter apply(String statusString, String[] args) {
-		final HttpStatus httpStatus = ServerWebExchangeUtils.parse(statusString);
+	public WebFilter apply(String... args) {
+		validate(1, args);
+		final HttpStatus httpStatus = ServerWebExchangeUtils.parse(args[0]);
 
-		//TODO: caching can happen here
 		return (exchange, chain) -> {
 
 			// option 1 (runs in filter order)

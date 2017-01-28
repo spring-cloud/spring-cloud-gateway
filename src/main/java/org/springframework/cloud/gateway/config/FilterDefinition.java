@@ -14,9 +14,6 @@ import static org.springframework.util.StringUtils.tokenizeToStringArray;
 public class FilterDefinition {
 	@NotNull
 	private String name;
-	@NotNull
-	private String value;
-
 	private String[] args;
 
 	public FilterDefinition() {
@@ -32,11 +29,7 @@ public class FilterDefinition {
 
 		String[] args = tokenizeToStringArray(text.substring(eqIdx+1), ",");
 
-		setValue(args[0]);
-
-		if (args.length > 1) {
-			setArgs(Arrays.copyOfRange(args, 1, args.length));
-		}
+		setArgs(args);
 	}
 
 	public String getName() {
@@ -47,19 +40,11 @@ public class FilterDefinition {
 		this.name = name;
 	}
 
-	public String getValue() {
-		return value;
-	}
-
-	public void setValue(String value) {
-		this.value = value;
-	}
-
 	public String[] getArgs() {
 		return args;
 	}
 
-	public void setArgs(String[] args) {
+	public void setArgs(String... args) {
 		this.args = args;
 	}
 
@@ -69,20 +54,18 @@ public class FilterDefinition {
 		if (o == null || getClass() != o.getClass()) return false;
 		FilterDefinition that = (FilterDefinition) o;
 		return Objects.equals(name, that.name) &&
-				Objects.equals(value, that.value) &&
 				Arrays.equals(args, that.args);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(name, value, args);
+		return Objects.hash(name, args);
 	}
 
 	@Override
 	public String toString() {
 		final StringBuilder sb = new StringBuilder("FilterDefinition{");
 		sb.append("name='").append(name).append('\'');
-		sb.append(", value='").append(value).append('\'');
 		sb.append(", args=").append(Arrays.toString(args));
 		sb.append('}');
 		return sb.toString();
