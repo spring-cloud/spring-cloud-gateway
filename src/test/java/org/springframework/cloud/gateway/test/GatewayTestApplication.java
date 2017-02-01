@@ -11,6 +11,7 @@ import org.springframework.cloud.gateway.api.RouteLocator;
 import org.springframework.cloud.gateway.config.GatewayProperties;
 import org.springframework.cloud.gateway.config.PropertiesRouteLocator;
 import org.springframework.cloud.gateway.discovery.DiscoveryClientRouteLocator;
+import org.springframework.cloud.gateway.support.InMemoryRouteRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -44,9 +45,10 @@ public class GatewayTestApplication {
 
 		@Bean
 		@Primary
-		public RouteLocator compositeRouteLocator(DiscoveryClientRouteLocator discoveryClientRouteLocator,
-												 PropertiesRouteLocator propertiesRouteLocator) {
-			final Flux<RouteLocator> flux = Flux.just(discoveryClientRouteLocator, propertiesRouteLocator);
+		public RouteLocator compositeRouteLocator(InMemoryRouteRepository inMemoryRouteRepository,
+												  DiscoveryClientRouteLocator discoveryClientRouteLocator,
+												  PropertiesRouteLocator propertiesRouteLocator) {
+			final Flux<RouteLocator> flux = Flux.just(inMemoryRouteRepository, discoveryClientRouteLocator, propertiesRouteLocator);
 			final CompositeRouteLocator composite = new CompositeRouteLocator(flux);
 			return new CachingRouteLocator(composite);
 		}

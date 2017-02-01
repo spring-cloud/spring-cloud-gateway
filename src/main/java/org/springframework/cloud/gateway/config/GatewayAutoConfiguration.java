@@ -11,6 +11,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.cloud.gateway.actuate.GatewayEndpoint;
 import org.springframework.cloud.gateway.api.RouteLocator;
+import org.springframework.cloud.gateway.api.RouteWriter;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.LoadBalancerClientFilter;
 import org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter;
@@ -43,6 +44,7 @@ import org.springframework.cloud.gateway.handler.predicate.RemoteAddrRoutePredic
 import org.springframework.cloud.gateway.handler.predicate.RoutePredicate;
 import org.springframework.cloud.gateway.handler.predicate.UrlRoutePredicate;
 import org.springframework.cloud.gateway.support.CachingRouteLocator;
+import org.springframework.cloud.gateway.support.InMemoryRouteRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -233,14 +235,21 @@ public class GatewayAutoConfiguration {
 		return new SetStatusRouteFilter();
 	}
 
+	//TODO: control creation
+	@Bean
+	public InMemoryRouteRepository inMemoryRouteRepository() {
+		return new InMemoryRouteRepository();
+	}
+
 	@Configuration
 	@ConditionalOnClass(Endpoint.class)
 	protected static class GatewayActuatorConfiguration {
 
 		@Bean
 		public GatewayEndpoint gatewayEndpoint(RouteLocator routeLocator, List<GlobalFilter> globalFilters,
-											   List<RouteFilter> routeFilters, FilteringWebHandler filteringWebHandler) {
-			return new GatewayEndpoint(routeLocator, globalFilters, routeFilters, filteringWebHandler);
+											   List<RouteFilter> routeFilters, FilteringWebHandler filteringWebHandler,
+											   RouteWriter routeWriter) {
+			return new GatewayEndpoint(routeLocator, globalFilters, routeFilters, filteringWebHandler, routeWriter);
 		}
 	}
 
