@@ -19,13 +19,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClientOperations;
 import org.springframework.web.server.ServerWebExchange;
-import org.springframework.web.util.DefaultUriBuilderFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -52,14 +49,13 @@ public class GatewayIntegrationTests {
 	@LocalServerPort
 	private int port;
 
-	private WebClientOperations webClient;
+	private WebClient webClient;
 
 	@Before
 	public void setup() {
-		WebClient client = WebClient.builder(new ReactorClientHttpConnector()).build();
-		this.webClient = WebClientOperations.builder(client)
-				.uriBuilderFactory(new DefaultUriBuilderFactory("http://localhost:" + port))
-				.build();
+		//TODO: how to set new ReactorClientHttpConnector()
+		String baseUri = "http://localhost:" + port;
+		this.webClient = WebClient.create(baseUri);
 	}
 
 	@Test
