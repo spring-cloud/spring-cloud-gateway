@@ -135,15 +135,14 @@ public class GatewayIntegrationTests {
 		StepVerifier.create(result)
 				.consumeNextWith(
 						response -> {
+							assertStatus(response, HttpStatus.OK);
 							HttpHeaders httpHeaders = response.headers().asHttpHeaders();
-							HttpStatus statusCode = response.statusCode();
 							assertThat(httpHeaders.getFirst(HANDLER_MAPPER_HEADER))
 									.isEqualTo(RoutePredicateHandlerMapping.class.getSimpleName());
 							assertThat(httpHeaders.getFirst(ROUTE_ID_HEADER))
 									.isEqualTo("host_foo_path_headers_to_httpbin");
 							assertThat(httpHeaders.getFirst("X-Response-Foo"))
 									.isEqualTo("Bar");
-							assertThat(statusCode).isEqualTo(HttpStatus.OK);
 						})
 				.expectComplete()
 				.verify();
@@ -159,13 +158,12 @@ public class GatewayIntegrationTests {
 		StepVerifier.create(result)
 				.consumeNextWith(
 						response -> {
+							assertStatus(response, HttpStatus.OK);
 							HttpHeaders httpHeaders = response.headers().asHttpHeaders();
-							HttpStatus statusCode = response.statusCode();
 							assertThat(httpHeaders.getFirst(HANDLER_MAPPER_HEADER))
 									.isEqualTo(RoutePredicateHandlerMapping.class.getSimpleName());
 							assertThat(httpHeaders.getFirst(ROUTE_ID_HEADER))
 									.isEqualTo("host_example_to_httpbin");
-							assertThat(statusCode).isEqualTo(HttpStatus.OK);
 						})
 				.expectComplete()
 						.verify(DURATION);
@@ -181,11 +179,10 @@ public class GatewayIntegrationTests {
 		StepVerifier.create(result)
 				.consumeNextWith(
 						response -> {
+							assertStatus(response, HttpStatus.OK);
 							HttpHeaders httpHeaders = response.headers().asHttpHeaders();
 							assertThat(httpHeaders.getFirst(ROUTE_ID_HEADER))
 									.isEqualTo("hystrix_success_test");
-							HttpStatus statusCode = response.statusCode();
-							assertThat(statusCode).isEqualTo(HttpStatus.OK);
 						})
 				.expectComplete()
 				.verify(DURATION);
@@ -213,11 +210,10 @@ public class GatewayIntegrationTests {
 		StepVerifier.create(result)
 				.consumeNextWith(
 						response -> {
+							assertStatus(response, HttpStatus.OK);
 							HttpHeaders httpHeaders = response.headers().asHttpHeaders();
 							assertThat(httpHeaders.getFirst(ROUTE_ID_HEADER))
 									.isEqualTo("load_balancer_client_test");
-							HttpStatus statusCode = response.statusCode();
-							assertThat(statusCode).isEqualTo(HttpStatus.OK);
 						})
 				.expectComplete()
 				.verify(DURATION);
@@ -247,8 +243,7 @@ public class GatewayIntegrationTests {
 		StepVerifier.create(result)
 				.consumeNextWith(
 						response -> {
-							HttpStatus statusCode = response.statusCode();
-							assertThat(statusCode).isEqualTo(HttpStatus.FOUND);
+							assertStatus(response, HttpStatus.FOUND);
 							HttpHeaders httpHeaders = response.headers().asHttpHeaders();
 							assertThat(httpHeaders.getFirst(HttpHeaders.LOCATION))
 									.isEqualTo("http://example.org");
@@ -305,8 +300,7 @@ public class GatewayIntegrationTests {
 		StepVerifier.create(result)
 				.consumeNextWith(
 						response -> {
-							HttpStatus statusCode = response.statusCode();
-							assertThat(statusCode).isEqualTo(HttpStatus.OK);
+							assertStatus(response, HttpStatus.OK);
 						})
 				.expectComplete()
 				.verify(DURATION);
@@ -322,8 +316,7 @@ public class GatewayIntegrationTests {
 		StepVerifier.create(result)
 				.consumeNextWith(
 						response -> {
-							HttpStatus statusCode = response.statusCode();
-							assertThat(statusCode).isEqualTo(HttpStatus.OK);
+							assertStatus(response, HttpStatus.OK);
 						})
 				.expectComplete()
 				.verify(DURATION);
@@ -366,8 +359,7 @@ public class GatewayIntegrationTests {
 		StepVerifier.create(result)
 				.consumeNextWith(
 						response -> {
-							HttpStatus statusCode = response.statusCode();
-							assertThat(statusCode).isEqualTo(status);
+							assertStatus(response, status);
 						})
 				.expectComplete()
 				.verify(DURATION);
@@ -382,16 +374,20 @@ public class GatewayIntegrationTests {
 		StepVerifier.create(result)
 				.consumeNextWith(
 						response -> {
+							assertStatus(response, HttpStatus.OK);
 							HttpHeaders httpHeaders = response.headers().asHttpHeaders();
-							HttpStatus statusCode = response.statusCode();
 							assertThat(httpHeaders.getFirst(HANDLER_MAPPER_HEADER))
 									.isEqualTo(RoutePredicateHandlerMapping.class.getSimpleName());
 							assertThat(httpHeaders.getFirst(ROUTE_ID_HEADER))
 									.isEqualTo("default_path_to_httpbin");
-							assertThat(statusCode).isEqualTo(HttpStatus.OK);
 						})
 				.expectComplete()
 				.verify(DURATION);
+	}
+
+	private void assertStatus(ClientResponse response, HttpStatus status) {
+		HttpStatus statusCode = response.statusCode();
+		assertThat(statusCode).isEqualTo(status);
 	}
 
 	@EnableAutoConfiguration
