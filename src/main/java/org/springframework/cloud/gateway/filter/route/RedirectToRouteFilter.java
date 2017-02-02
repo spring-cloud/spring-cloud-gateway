@@ -9,7 +9,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.server.WebFilter;
 
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.isResponseCommitted;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.parse;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.setResponseStatus;
 
@@ -35,7 +34,7 @@ public class RedirectToRouteFilter implements RouteFilter {
 
 		return (exchange, chain) ->
 			chain.filter(exchange).then(() -> {
-				if (!isResponseCommitted(exchange)) {
+				if (!exchange.getResponse().isCommitted()) {
 					setResponseStatus(exchange, httpStatus);
 
 					final ServerHttpResponse response = exchange.getResponse();

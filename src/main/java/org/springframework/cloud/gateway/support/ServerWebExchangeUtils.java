@@ -15,7 +15,6 @@ public class ServerWebExchangeUtils {
 	public static final String GATEWAY_ROUTE_ATTR = "gatewayRoute";
 	public static final String GATEWAY_REQUEST_URL_ATTR = "gatewayRequestUrl";
 	public static final String GATEWAY_HANDLER_MAPPER_ATTR = "gatewayHandlerMapper";
-	public static final String RESPONSE_COMMITTED_ATTR = "responseCommitted";
 
 	public static <T> T getAttribute(ServerWebExchange exchange, String attributeName, Class<T> type) {
 		if (exchange.getAttributes().containsKey(attributeName)) {
@@ -26,11 +25,6 @@ public class ServerWebExchangeUtils {
 			throw new ClassCastException(attributeName + " is not of type " + type);
 		}
 		return null;
-	}
-
-	public static boolean isResponseCommitted(ServerWebExchange exchange) {
-		Boolean responseCommitted = getAttribute(exchange, RESPONSE_COMMITTED_ATTR, Boolean.class);
-		return responseCommitted != null && responseCommitted;
 	}
 
 	public static boolean setResponseStatus(ServerWebExchange exchange, HttpStatus httpStatus) {

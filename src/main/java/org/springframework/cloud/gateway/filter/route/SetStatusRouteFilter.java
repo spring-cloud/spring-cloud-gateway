@@ -4,7 +4,6 @@ import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.WebFilter;
 
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.isResponseCommitted;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.setResponseStatus;
 
 import reactor.core.publisher.Mono;
@@ -31,7 +30,7 @@ public class SetStatusRouteFilter implements RouteFilter {
 			// option 2 (runs in reverse filter order)
 			return chain.filter(exchange).then(() -> {
 				// check not really needed, since it is guarded in setStatusCode, but it's a good example
-				if (!isResponseCommitted(exchange)) {
+				if (!exchange.getResponse().isCommitted()) {
 					setResponseStatus(exchange, httpStatus);
 				}
 				return Mono.empty();

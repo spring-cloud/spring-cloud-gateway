@@ -10,7 +10,6 @@ import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilterChain;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.CLIENT_RESPONSE_ATTR;
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.RESPONSE_COMMITTED_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.getAttribute;
 
 import reactor.core.publisher.Flux;
@@ -42,12 +41,6 @@ public class WriteResponseFilter implements GlobalFilter, Ordered {
 			}
 			log.trace("WriteResponseFilter start");
 			ServerHttpResponse response = exchange.getResponse();
-
-			//make other filters aware that the response has been committed
-			response.beforeCommit(() -> {
-				exchange.getAttributes().put(RESPONSE_COMMITTED_ATTR, true);
-				return Mono.empty();
-			});
 
 			NettyDataBufferFactory factory = (NettyDataBufferFactory) response.bufferFactory();
 			//TODO: what if it's not netty
