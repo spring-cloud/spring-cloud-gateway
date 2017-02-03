@@ -98,6 +98,15 @@ spring:
         - RemoveResponseHeader=X-Request-Foo
 
       # =====================================
+      - id: secure_headers_test
+        uri: http://httpbin.org:80
+        predicates:
+        - Host=**.secureheaders.org
+        - Url=/headers
+        filters:
+        - SecureHeaders
+
+      # =====================================
       - id: set_path_test
         uri: http://httpbin.org:80
         predicates:
@@ -165,8 +174,8 @@ myservice:
 logging:
   level:
     org.springframework.cloud.gateway: TRACE
-    org.springframework.http.server.reactive: DEBUG
-    reactor.ipc.netty: DEBUG
+#    org.springframework.http.server.reactive: DEBUG
+#    reactor.ipc.netty: DEBUG
 
 management:
   context-path: /admin

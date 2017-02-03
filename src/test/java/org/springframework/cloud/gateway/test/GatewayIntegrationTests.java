@@ -14,6 +14,7 @@ import org.springframework.boot.context.embedded.LocalServerPort;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.api.Route;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
+import org.springframework.cloud.gateway.filter.route.SecureHeadersProperties;
 import org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.annotation.Order;
@@ -26,6 +27,14 @@ import org.springframework.web.server.ServerWebExchange;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
+import static org.springframework.cloud.gateway.filter.route.SecureHeadersRouteFilter.CONTENT_SECURITY_POLICY_HEADER;
+import static org.springframework.cloud.gateway.filter.route.SecureHeadersRouteFilter.REFERRER_POLICY_HEADER;
+import static org.springframework.cloud.gateway.filter.route.SecureHeadersRouteFilter.STRICT_TRANSPORT_SECURITY_HEADER;
+import static org.springframework.cloud.gateway.filter.route.SecureHeadersRouteFilter.X_CONTENT_TYPE_OPTIONS_HEADER;
+import static org.springframework.cloud.gateway.filter.route.SecureHeadersRouteFilter.X_DOWNLOAD_OPTIONS_HEADER;
+import static org.springframework.cloud.gateway.filter.route.SecureHeadersRouteFilter.X_FRAME_OPTIONS_HEADER;
+import static org.springframework.cloud.gateway.filter.route.SecureHeadersRouteFilter.X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER;
+import static org.springframework.cloud.gateway.filter.route.SecureHeadersRouteFilter.X_XSS_PROTECTION_HEADER;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_HANDLER_MAPPER_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
 import static org.springframework.web.reactive.function.BodyExtractors.toMono;
@@ -307,7 +316,34 @@ public class GatewayIntegrationTests {
 	}
 
 	@Test
-	public void setPathFilterWorks() {
+	public void secureHeadersFilterWorks() {
+		Mono<ClientResponse> result = webClient.get()
+				.uri("/headers")
+				.header("Host", "www.secureheaders.org")
+				.exchange();
+
+		SecureHeadersProperties defaults = new SecureHeadersProperties();
+
+		StepVerifier.create(result)
+				.consumeNextWith(
+						response -> {
+							assertStatus(response, HttpStatus.OK);
+							HttpHeaders httpHeaders = response.headers().asHttpHeaders();
+							assertThat(httpHeaders.getFirst(X_XSS_PROTECTION_HEADER)).isEqualTo(defaults.getXssProtectionHeader());
+							assertThat(httpHeaders.getFirst(STRICT_TRANSPORT_SECURITY_HEADER)).isEqualTo(defaults.getStrictTransportSecurity());
+							assertThat(httpHeaders.getFirst(X_FRAME_OPTIONS_HEADER)).isEqualTo(defaults.getFrameOptions());
+							assertThat(httpHeaders.getFirst(X_CONTENT_TYPE_OPTIONS_HEADER)).isEqualTo(defaults.getContentTypeOptions());
+							assertThat(httpHeaders.getFirst(REFERRER_POLICY_HEADER)).isEqualTo(defaults.getReferrerPolicy());
+							assertThat(httpHeaders.getFirst(CONTENT_SECURITY_POLICY_HEADER)).isEqualTo(defaults.getContentSecurityPolicy());
+							assertThat(httpHeaders.getFirst(X_DOWNLOAD_OPTIONS_HEADER)).isEqualTo(defaults.getDownloadOptions());
+							assertThat(httpHeaders.getFirst(X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER)).isEqualTo(defaults.getPermittedCrossDomainPolicies());
+						})
+				.expectComplete()
+				.verify(DURATION);
+	}
+
+	@Test
+	public void setPathFilterDefaultValuesWork() {
 		Mono<ClientResponse> result = webClient.get()
 				.uri("/foo/get")
 				.header("Host", "www.setpath.org")

@@ -3,7 +3,6 @@ package org.springframework.cloud.gateway.api;
 import java.util.Arrays;
 import java.util.Objects;
 
-import javax.validation.ValidationException;
 import javax.validation.constraints.NotNull;
 
 import static org.springframework.util.StringUtils.tokenizeToStringArray;
@@ -22,8 +21,8 @@ public class FilterDefinition {
 	public FilterDefinition(String text) {
 		int eqIdx = text.indexOf("=");
 		if (eqIdx <= 0) {
-			throw new ValidationException("Unable to parse FilterDefinition text '" + text + "'" +
-					", must be of the form name=value");
+			setName(text);
+			return;
 		}
 		setName(text.substring(0, eqIdx));
 

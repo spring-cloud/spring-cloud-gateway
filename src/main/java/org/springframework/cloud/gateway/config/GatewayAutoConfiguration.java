@@ -26,6 +26,8 @@ import org.springframework.cloud.gateway.filter.route.RemoveRequestHeaderRouteFi
 import org.springframework.cloud.gateway.filter.route.RemoveResponseHeaderRouteFilter;
 import org.springframework.cloud.gateway.filter.route.RewritePathRouteFilter;
 import org.springframework.cloud.gateway.filter.route.RouteFilter;
+import org.springframework.cloud.gateway.filter.route.SecureHeadersProperties;
+import org.springframework.cloud.gateway.filter.route.SecureHeadersRouteFilter;
 import org.springframework.cloud.gateway.filter.route.SetPathRouteFilter;
 import org.springframework.cloud.gateway.filter.route.SetResponseHeaderRouteFilter;
 import org.springframework.cloud.gateway.filter.route.SetStatusRouteFilter;
@@ -77,11 +79,6 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	public GatewayProperties gatewayProperties() {
-		return new GatewayProperties();
-	}
-
-	@Bean
 	public RoutingWebHandler routingWebHandler(HttpClient httpClient) {
 		return new RoutingWebHandler(httpClient);
 	}
@@ -98,6 +95,18 @@ public class GatewayAutoConfiguration {
 																	 Map<String, RoutePredicate> predicates,
 																	 RouteLocator routeLocator) {
 		return new RoutePredicateHandlerMapping(webHandler, predicates, routeLocator);
+	}
+
+	// ConfigurationProperty beans
+
+	@Bean
+	public GatewayProperties gatewayProperties() {
+		return new GatewayProperties();
+	}
+
+	@Bean
+	public SecureHeadersProperties secureHeadersProperties() {
+		return new SecureHeadersProperties();
 	}
 
 	// GlobalFilter beans
@@ -223,6 +232,11 @@ public class GatewayAutoConfiguration {
 	@Bean(name = "SetPathRouteFilter")
 	public SetPathRouteFilter setPathRouteFilter() {
 		return new SetPathRouteFilter();
+	}
+
+	@Bean(name = "SecureHeadersRouteFilter")
+	public SecureHeadersRouteFilter secureHeadersRouteFilter(SecureHeadersProperties properties) {
+		return new SecureHeadersRouteFilter(properties);
 	}
 
 	@Bean(name = "SetResponseHeaderRouteFilter")
