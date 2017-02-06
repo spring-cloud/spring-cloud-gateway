@@ -67,7 +67,7 @@ public class GatewayAutoConfiguration {
 	public HttpClient httpClient() {
 		return HttpClient.create(opts -> {
 			//opts.poolResources(PoolResources.elastic("proxy"));
-			//opts.disablePool(); //TODO: without we get io.netty.handler.codec.EncoderException: java.lang.IllegalStateException: unexpected message type: DefaultHttpRequest in tests
+			//opts.disablePool();
 		});
 	}
 
@@ -84,10 +84,9 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	public FilteringWebHandler filteringWebHandler(//RoutingWebHandler webHandler,
-												   List<GlobalFilter> globalFilters,
+	public FilteringWebHandler filteringWebHandler(List<GlobalFilter> globalFilters,
 												   Map<String, RouteFilter> routeFilters) {
-		return new FilteringWebHandler(/*webHandler,*/ globalFilters, routeFilters);
+		return new FilteringWebHandler(globalFilters, routeFilters);
 	}
 
 	@Bean
