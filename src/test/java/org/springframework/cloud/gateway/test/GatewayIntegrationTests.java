@@ -20,6 +20,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -56,7 +57,7 @@ public class GatewayIntegrationTests {
 	}
 
 	@LocalServerPort
-	private int port;
+	private int port = 0;
 
 	private WebClient webClient;
 
@@ -78,8 +79,7 @@ public class GatewayIntegrationTests {
 		StepVerifier.create(result)
 				.consumeNextWith(
 						response -> {
-							assertThat(response).containsKey("headers").isInstanceOf(Map.class);
-							Map<String, Object> headers = (Map<String, Object>) response.get("headers");
+							Map<String, Object> headers = getMap(response, "headers");
 							assertThat(headers).containsEntry("X-Request-Foo", "Bar");
 						})
 				.expectComplete()
@@ -106,8 +106,7 @@ public class GatewayIntegrationTests {
 		StepVerifier.create(result)
 				.consumeNextWith(
 						response -> {
-							assertThat(response).containsKey("args").isInstanceOf(Map.class);
-							Map<String, Object> args = (Map<String, Object>) response.get("args");
+							Map<String, Object> args = getMap(response, "args");
 							assertThat(args).containsEntry("foo", "bar");
 						})
 				.expectComplete()
@@ -127,6 +126,25 @@ public class GatewayIntegrationTests {
 							HttpHeaders httpHeaders = response.headers().asHttpHeaders();
 							assertThat(httpHeaders.getFirst("X-Request-Foo"))
 									.isEqualTo("Bar");
+						})
+				.expectComplete()
+				.verify(DURATION);
+	}
+
+	@Test
+	public void complexContentTypeWorks() {
+		Mono<Map> result = webClient.get()
+				.uri("/headers")
+				.contentType(MediaType.APPLICATION_JSON_UTF8)
+				.header("Host", "www.complexcontenttype.org")
+				.exchange()
+				.then(response -> response.body(toMono(Map.class)));
+
+		StepVerifier.create(result)
+				.consumeNextWith(
+						response -> {
+							Map<String, Object> headers = getMap(response, "headers");
+							assertThat(headers).containsEntry(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_UTF8_VALUE);
 						})
 				.expectComplete()
 				.verify(DURATION);
@@ -274,8 +292,7 @@ public class GatewayIntegrationTests {
 		StepVerifier.create(result)
 				.consumeNextWith(
 						response -> {
-							assertThat(response).containsKey("headers").isInstanceOf(Map.class);
-							Map<String, Object> headers = (Map<String, Object>) response.get("headers");
+							Map<String, Object> headers = getMap(response, "headers");
 							assertThat(headers).doesNotContainKey("X-Request-Foo");
 						})
 				.expectComplete()
@@ -419,6 +436,11 @@ public class GatewayIntegrationTests {
 						})
 				.expectComplete()
 				.verify(DURATION);
+	}
+
+	private Map<String, Object> getMap(Map response, String key) {
+		assertThat(response).containsKey(key).isInstanceOf(Map.class);
+		return (Map<String, Object>) response.get(key);
 	}
 
 	private void assertStatus(ClientResponse response, HttpStatus status) {
