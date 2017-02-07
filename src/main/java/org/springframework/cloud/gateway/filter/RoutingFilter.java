@@ -11,7 +11,6 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilterChain;
-import org.springframework.web.server.WebHandler;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.CLIENT_RESPONSE_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
@@ -42,6 +41,10 @@ public class RoutingFilter implements GlobalFilter, Ordered {
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
 		Optional<URI> requestUrl = exchange.getAttribute(GATEWAY_REQUEST_URL_ATTR);
+		if (!requestUrl.isPresent()) {
+			return Mono.error(new IllegalStateException("No URI found in attribute: " + GATEWAY_REQUEST_URL_ATTR));
+		}
+
 		ServerHttpRequest request = exchange.getRequest();
 
 		final HttpMethod method = HttpMethod.valueOf(request.getMethod().toString());
