@@ -49,13 +49,6 @@ spring:
         - AddResponseHeader=X-Request-Foo, Bar
 
       # =====================================
-      - id: complex_content_type_test
-        uri: http://httpbin.org:80
-        predicates:
-        - Host=**.complexcontenttype.org
-        - Url=/headers
-
-      # =====================================
       - id: hystrix_failure_test
         uri: http://httpbin.org:80
         predicates:
@@ -181,8 +174,8 @@ myservice:
 logging:
   level:
     org.springframework.cloud.gateway: TRACE
-#    org.springframework.http.server.reactive: DEBUG
-#    reactor.ipc.netty: DEBUG
+    org.springframework.http.server.reactive: DEBUG
+    reactor.ipc.netty: DEBUG
 
 management:
   context-path: /admin

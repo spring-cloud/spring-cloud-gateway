@@ -21,7 +21,10 @@ import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ServerWebExchange;
@@ -45,6 +48,7 @@ import reactor.test.StepVerifier;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
+@DirtiesContext//(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
 @SuppressWarnings("unchecked")
 public class GatewayIntegrationTests {
 
@@ -242,6 +246,28 @@ public class GatewayIntegrationTests {
 							assertThat(httpHeaders.getFirst(ROUTE_ID_HEADER))
 									.isEqualTo("load_balancer_client_test");
 						})
+				.expectComplete()
+				.verify(DURATION);
+	}
+
+	@Test
+	public void formUrlencodedWorks() {
+		LinkedMultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+		formData.add("foo", "bar");
+		formData.add("baz", "bam");
+
+		Mono<Map> result = webClient.post()
+				.uri("/post")
+				.contentType(MediaType.APPLICATION_FORM_URLENCODED)
+				.exchange(BodyInserters.fromFormData(formData))
+				.then(response -> response.body(toMono(Map.class)));
+
+		StepVerifier.create(result)
+				.consumeNextWith(map -> {
+					Map<String, Object> form = getMap(map, "form");
+					assertThat(form).containsEntry("foo", "bar");
+					assertThat(form).containsEntry("baz", "bam");
+				})
 				.expectComplete()
 				.verify(DURATION);
 	}
