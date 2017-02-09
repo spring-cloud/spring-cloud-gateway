@@ -1,5 +1,6 @@
 package org.springframework.cloud.gateway.test;
 
+import java.nio.charset.Charset;
 import java.time.Duration;
 import java.util.Map;
 
@@ -18,12 +19,18 @@ import org.springframework.cloud.gateway.filter.route.SecureHeadersProperties;
 import org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.annotation.Order;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -64,11 +71,12 @@ public class GatewayIntegrationTests {
 	private int port = 0;
 
 	private WebClient webClient;
+	private String baseUri;
 
 	@Before
 	public void setup() {
 		//TODO: how to set new ReactorClientHttpConnector()
-		String baseUri = "http://localhost:" + port;
+		baseUri = "http://localhost:" + port;
 		this.webClient = WebClient.create(baseUri);
 	}
 
@@ -256,9 +264,10 @@ public class GatewayIntegrationTests {
 		formData.add("foo", "bar");
 		formData.add("baz", "bam");
 
+		MediaType contentType = new MediaType(MediaType.APPLICATION_FORM_URLENCODED, Charset.forName("UTF-8"));
 		Mono<Map> result = webClient.post()
 				.uri("/post")
-				.contentType(MediaType.APPLICATION_FORM_URLENCODED)
+				.contentType(contentType)
 				.exchange(BodyInserters.fromFormData(formData))
 				.then(response -> response.body(toMono(Map.class)));
 
@@ -270,6 +279,27 @@ public class GatewayIntegrationTests {
 				})
 				.expectComplete()
 				.verify(DURATION);
+	}
+
+	@Test
+	public void multipartFormDataWorks() {
+		MultiValueMap<String, Object> form = new LinkedMultiValueMap<>();
+		form.add("file", new ClassPathResource("1x1.png"));
+
+		RestTemplate restTemplate = new RestTemplate();
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+
+		HttpEntity<MultiValueMap<String, Object>> entity = new HttpEntity<>(form, headers);
+
+		ResponseEntity<Map> response = restTemplate.exchange(baseUri + "/post", HttpMethod.POST, entity, Map.class);
+
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+		Map<String, Object> files = getMap(response.getBody(), "files");
+		assertThat(files).containsKey("file");
+		assertThat((String)files.get("file")).startsWith("data:application/octet-stream;base64,");
+		System.out.println();
 	}
 
 	@Test
