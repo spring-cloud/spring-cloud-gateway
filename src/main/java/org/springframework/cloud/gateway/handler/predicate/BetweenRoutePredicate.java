@@ -20,7 +20,7 @@ public class BetweenRoutePredicate implements RoutePredicate {
 		//TODO: is ZonedDateTime the right thing to use?
 		final ZonedDateTime dateTime1 = parseZonedDateTime(args[0]);
 		final ZonedDateTime dateTime2 = parseZonedDateTime(args[1]);
-		Assert.isTrue(dateTime1.isBefore(dateTime2));
+		Assert.isTrue(dateTime1.isBefore(dateTime2), args[0] + " must be before " + args[1]);
 
 		return exchange -> {
 			final ZonedDateTime now = ZonedDateTime.now();
