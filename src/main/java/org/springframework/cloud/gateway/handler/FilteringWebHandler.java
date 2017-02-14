@@ -69,10 +69,10 @@ public class FilteringWebHandler extends WebHandlerDecorator {
 							   Map<String, RouteFilter> routeFilters) {
 		super(targetHandler);
 		this.globalFilters = initList(globalFilters);
-		routeFilters.forEach((name, def) -> this.routeFilters.put(nornamlizeName(name), def));
+		routeFilters.forEach((name, def) -> this.routeFilters.put(normalizeName(name), def));
 	}
 
-	private String nornamlizeName(String name) {
+	private String normalizeName(String name) {
 		return name.replace(RouteFilter.class.getSimpleName(), "");
 	}
 
