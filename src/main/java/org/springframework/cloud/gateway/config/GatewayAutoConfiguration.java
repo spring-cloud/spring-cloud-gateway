@@ -84,9 +84,9 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	public FilteringWebHandler filteringWebHandler(List<GlobalFilter> globalFilters,
+	public FilteringWebHandler filteringWebHandler(GatewayProperties properties, List<GlobalFilter> globalFilters,
 												   Map<String, RouteFilter> routeFilters) {
-		return new FilteringWebHandler(globalFilters, routeFilters);
+		return new FilteringWebHandler(properties, globalFilters, routeFilters);
 	}
 
 	@Bean

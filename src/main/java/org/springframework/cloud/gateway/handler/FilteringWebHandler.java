@@ -28,7 +28,9 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.cloud.gateway.api.FilterDefinition;
 import org.springframework.cloud.gateway.api.Route;
+import org.springframework.cloud.gateway.config.GatewayProperties;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.route.RouteFilter;
 import org.springframework.core.Ordered;
@@ -55,19 +57,21 @@ import reactor.core.publisher.Mono;
 public class FilteringWebHandler extends WebHandlerDecorator {
 	protected final Log logger = LogFactory.getLog(getClass());
 
+	private final GatewayProperties gatewayProperties;
 	private final List<GlobalFilter> globalFilters;
 	private final Map<String, RouteFilter> routeFilters = new HashMap<>();
 
 	private final Map<String, List<WebFilter>> combinedFiltersForRoute = new HashMap<>();
 
-	public FilteringWebHandler(List<GlobalFilter> globalFilters,
+	public FilteringWebHandler(GatewayProperties gatewayProperties, List<GlobalFilter> globalFilters,
 							   Map<String, RouteFilter> routeFilters) {
-		this(new EmptyWebHandler(), globalFilters, routeFilters);
+		this(new EmptyWebHandler(), gatewayProperties, globalFilters, routeFilters);
 	}
 
-	public FilteringWebHandler(WebHandler targetHandler, List<GlobalFilter> globalFilters,
+	public FilteringWebHandler(WebHandler targetHandler, GatewayProperties gatewayProperties, List<GlobalFilter> globalFilters,
 							   Map<String, RouteFilter> routeFilters) {
 		super(targetHandler);
+		this.gatewayProperties = gatewayProperties;
 		this.globalFilters = initList(globalFilters);
 		routeFilters.forEach((name, def) -> this.routeFilters.put(normalizeName(name), def));
 	}
@@ -107,8 +111,14 @@ public class FilteringWebHandler extends WebHandlerDecorator {
 			//TODO: probably a java 8 stream way of doing this
 			combinedFilters = new ArrayList<>(loadFilters(this.globalFilters));
 
+			//TODO: support option to apply defaults after route specific filters?
+			if (!this.gatewayProperties.getDefaultFilters().isEmpty()) {
+				combinedFilters.addAll(loadWebFilters("defaultFilters",
+						this.gatewayProperties.getDefaultFilters()));
+			}
+
 			if (route.isPresent() && !route.get().getFilters().isEmpty()) {
-				combinedFilters.addAll(loadRouteFilters(route.get()));
+				combinedFilters.addAll(loadWebFilters(route.get().getId(), route.get().getFilters()));
 			}
 
 			AnnotationAwareOrderComparator.sort(combinedFilters);
@@ -129,8 +139,8 @@ public class FilteringWebHandler extends WebHandlerDecorator {
 				}).collect(Collectors.toList());
 	}
 
-	private List<WebFilter> loadRouteFilters(Route route) {
-		List<WebFilter> filters = route.getFilters().stream()
+	private List<WebFilter> loadWebFilters(String id, List<FilterDefinition> filterDefinitions) {
+		List<WebFilter> filters = filterDefinitions.stream()
 				.map(definition -> {
 					RouteFilter filter = this.routeFilters.get(definition.getName());
 					if (filter == null) {
@@ -143,7 +153,7 @@ public class FilteringWebHandler extends WebHandlerDecorator {
 						} else {
 							args = Collections.emptyList();
 						}
-						logger.debug("Route " + route.getId() + " applying filter " + args + " to " + definition.getName());
+						logger.debug("Route " + id + " applying filter " + args + " to " + definition.getName());
 					}
 					return filter.apply(definition.getArgs());
 				})

@@ -9,11 +9,13 @@ import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.context.embedded.LocalServerPort;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.api.Route;
+import org.springframework.cloud.gateway.config.GatewayProperties;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.route.SecureHeadersProperties;
 import org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping;
@@ -72,6 +74,9 @@ public class GatewayIntegrationTests {
 
 	private WebClient webClient;
 	private String baseUri;
+
+	@Autowired
+	private GatewayProperties properties;
 
 	@Before
 	public void setup() {
@@ -185,6 +190,27 @@ public class GatewayIntegrationTests {
 						})
 				.expectComplete()
 				.verify();
+	}
+
+	@Test
+	public void defaultFiltersWorks() {
+		assertThat(this.properties.getDefaultFilters()).isNotEmpty();
+
+		Mono<ClientResponse> result = webClient.get()
+				.uri("/headers")
+				.header("Host", "www.addresponseheader.org")
+				.exchange();
+
+		StepVerifier.create(result)
+				.consumeNextWith(
+						response -> {
+							HttpHeaders httpHeaders = response.headers().asHttpHeaders();
+							assertThat(httpHeaders.getFirst("X-Response-Default-Foo"))
+									.isEqualTo("Default-Bar");
+							assertThat(httpHeaders.get("X-Response-Default-Foo")).hasSize(1);
+						})
+				.expectComplete()
+				.verify(DURATION);
 	}
 
 	@Test
