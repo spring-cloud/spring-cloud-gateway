@@ -5,6 +5,7 @@ spring:
       default-filters:
       - AddResponseHeader=X-Response-Default-Foo, Default-Bar
 
+      # TODO: breakup configuration for individual tests (though some are reused)
       routes:
       # =====================================
       - host_example_to_httpbin=http://httpbin.org:80, Host=**.example.org
