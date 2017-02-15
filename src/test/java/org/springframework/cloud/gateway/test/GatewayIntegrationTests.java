@@ -34,8 +34,7 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = RANDOM_PORT/*,
-		properties = "spring.cloud.gateway.default-filters:AddResponseHeader=\"*/)
+@SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
 @SuppressWarnings("unchecked")
 public class GatewayIntegrationTests extends BaseWebClientTests {
