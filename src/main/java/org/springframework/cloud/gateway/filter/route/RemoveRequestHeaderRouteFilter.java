@@ -8,7 +8,7 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
  */
 public class RemoveRequestHeaderRouteFilter implements RouteFilter {
 
-	public static final String FAKE_HEADER = "_______force_______";
+	private static final String FAKE_HEADER = "_______force_______";
 
 	@Override
 	public WebFilter apply(String... args) {

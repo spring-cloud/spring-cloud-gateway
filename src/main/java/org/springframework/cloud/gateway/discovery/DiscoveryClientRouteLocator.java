@@ -1,14 +1,19 @@
 package org.springframework.cloud.gateway.discovery;
 
+import java.net.URI;
+
 import org.springframework.cloud.client.discovery.DiscoveryClient;
-import org.springframework.cloud.gateway.api.RouteLocator;
 import org.springframework.cloud.gateway.api.FilterDefinition;
 import org.springframework.cloud.gateway.api.PredicateDefinition;
 import org.springframework.cloud.gateway.api.Route;
+import org.springframework.cloud.gateway.api.RouteLocator;
+import org.springframework.cloud.gateway.filter.route.RewritePathRouteFilter;
+import org.springframework.cloud.gateway.handler.predicate.UrlRoutePredicate;
+
+import static org.springframework.cloud.gateway.support.NameUtils.normalizeFilterName;
+import static org.springframework.cloud.gateway.support.NameUtils.normalizePredicateName;
 
 import reactor.core.publisher.Flux;
-
-import java.net.URI;
 
 /**
  * TODO: developer configuration, in zuul, this was opt out, should be opt in
@@ -34,7 +39,7 @@ public class DiscoveryClientRouteLocator implements RouteLocator {
 
 					// add a predicate that matches the url at /serviceId/**
 					PredicateDefinition predicate = new PredicateDefinition();
-					predicate.setName("Url");
+					predicate.setName(normalizePredicateName(UrlRoutePredicate.class));
 					predicate.setArgs("/" + serviceId + "/**");
 					route.getPredicates().add(predicate);
 
@@ -42,7 +47,7 @@ public class DiscoveryClientRouteLocator implements RouteLocator {
 
 					// add a filter that removes /serviceId by default
 					FilterDefinition filter = new FilterDefinition();
-					filter.setName("RewritePath");
+					filter.setName(normalizeFilterName(RewritePathRouteFilter.class));
 					String regex = "/" + serviceId + "/(?<remaining>.*)";
 					String replacement = "/${remaining}";
 					filter.setArgs(regex, replacement);

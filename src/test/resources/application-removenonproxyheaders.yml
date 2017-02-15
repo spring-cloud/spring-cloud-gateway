@@ -1,0 +1,16 @@
+
+spring:
+  cloud:
+    gateway:
+      default-filters:
+      - RemoveNonProxyHeaders
+      routes:
+      # =====================================
+      - id: remove_request_header_test
+        uri: http://httpbin.org:80
+        predicates:
+        - Host=**.removerequestheader.org
+        - Url=/headers
+        filters:
+        - RemoveRequestHeader=X-Request-Foo
+
