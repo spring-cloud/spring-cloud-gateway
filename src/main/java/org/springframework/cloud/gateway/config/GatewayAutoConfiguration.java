@@ -68,7 +68,7 @@ public class GatewayAutoConfiguration {
 	public HttpClient httpClient() {
 		return HttpClient.create(opts -> {
 			//opts.poolResources(PoolResources.elastic("proxy"));
-			opts.disablePool(); //TODO: why do I need this again?
+			//opts.disablePool(); //TODO: why do I need this again?
 		});
 	}
 
