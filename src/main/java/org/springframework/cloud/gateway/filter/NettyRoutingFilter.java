@@ -29,11 +29,11 @@ import reactor.ipc.netty.http.client.HttpClientRequest;
 /**
  * @author Spencer Gibb
  */
-public class RoutingFilter implements GlobalFilter, Ordered {
+public class NettyRoutingFilter implements GlobalFilter, Ordered {
 
 	private final HttpClient httpClient;
 
-	public RoutingFilter(HttpClient httpClient) {
+	public NettyRoutingFilter(HttpClient httpClient) {
 		this.httpClient = httpClient;
 	}
 

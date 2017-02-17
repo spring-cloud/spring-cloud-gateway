@@ -15,7 +15,7 @@ import org.springframework.cloud.gateway.api.RouteWriter;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.LoadBalancerClientFilter;
 import org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter;
-import org.springframework.cloud.gateway.filter.RoutingFilter;
+import org.springframework.cloud.gateway.filter.NettyRoutingFilter;
 import org.springframework.cloud.gateway.filter.WriteResponseFilter;
 import org.springframework.cloud.gateway.filter.route.AddRequestHeaderRouteFilter;
 import org.springframework.cloud.gateway.filter.route.AddRequestParameterRouteFilter;
@@ -34,7 +34,7 @@ import org.springframework.cloud.gateway.filter.route.SetResponseHeaderRouteFilt
 import org.springframework.cloud.gateway.filter.route.SetStatusRouteFilter;
 import org.springframework.cloud.gateway.handler.FilteringWebHandler;
 import org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping;
-import org.springframework.cloud.gateway.handler.RoutingWebHandler;
+import org.springframework.cloud.gateway.handler.NettyRoutingWebHandler;
 import org.springframework.cloud.gateway.handler.predicate.AfterRoutePredicate;
 import org.springframework.cloud.gateway.handler.predicate.BeforeRoutePredicate;
 import org.springframework.cloud.gateway.handler.predicate.BetweenRoutePredicate;
@@ -80,8 +80,9 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	public RoutingWebHandler routingWebHandler(HttpClient httpClient) {
-		return new RoutingWebHandler(httpClient);
+	@ConditionalOnClass(HttpClient.class)
+	public NettyRoutingWebHandler nettyRoutingWebHandler(HttpClient httpClient) {
+		return new NettyRoutingWebHandler(httpClient);
 	}
 
 	@Bean
@@ -119,8 +120,9 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	public RoutingFilter routingFilter(HttpClient httpClient) {
-		return new RoutingFilter(httpClient);
+	@ConditionalOnClass(HttpClient.class)
+	public NettyRoutingFilter routingFilter(HttpClient httpClient) {
+		return new NettyRoutingFilter(httpClient);
 	}
 
 	@Bean
