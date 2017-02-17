@@ -21,16 +21,20 @@ public class InMemoryRouteRepository implements RouteLocator, RouteWriter {
 
 	@Override
 	public Mono<Void> save(Mono<Route> route) {
-		return route.doOnNext(r -> routes.put(r.getId(), r)).then();
-		//route.subscribe(r -> );
-		//return Mono.empty();
+		return route.then( r -> {
+			routes.put(r.getId(), r);
+			return Mono.empty();
+		});
 	}
 
 	@Override
 	public Mono<Void> delete(Mono<String> routeId) {
 		return routeId.then(id -> {
-			routes.remove(id);
-			return Mono.empty();
+			if (routes.containsKey(id)) {
+				routes.remove(id);
+				return Mono.empty();
+			}
+			return Mono.error(new NotFoundException("Route not found: "+routeId));
 		});
 	}
 

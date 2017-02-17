@@ -15,6 +15,7 @@ import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.route.RouteFilter;
 import org.springframework.cloud.gateway.handler.FilteringWebHandler;
 import org.springframework.cloud.gateway.support.CachingRouteLocator;
+import org.springframework.cloud.gateway.support.NotFoundException;
 import org.springframework.core.Ordered;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -100,10 +101,7 @@ public class GatewayEndpoint {/*extends AbstractEndpoint<Map<String, Object>> {*
 	}
 
 /*
-http POST :8080/admin/gateway/routes/addreqhead2 \
-uri=http://httpbin.org/headers \
-predicates:='["Host=**.addrequestheader.org", "Url=/headers"]' \
-filters:='["AddRequestHeader=X-Request-Foo, Bar"]'
+http POST :8080/admin/gateway/routes/apiaddreqhead uri=http://httpbin.org:80 predicates:='["Host=**.apiaddrequestheader.org", "Url=/headers"]' filters:='["AddRequestHeader=X-Request-ApiFoo, ApiBar"]'
 */
 	@PostMapping("/routes/{id}")
 	public Mono<ResponseEntity<Void>> save(@PathVariable String id, @RequestBody Mono<Route> route) {
@@ -111,25 +109,25 @@ filters:='["AddRequestHeader=X-Request-Foo, Bar"]'
 			r.setId(id);
 			log.debug("Saving route: " + route);
 			return r;
-		})).then(() -> {
-			GatewayEndpoint.this.refresh();
-			return Mono.just(ResponseEntity.created(URI.create("/routes/"+id)).build());
-		});
+		})).then(() ->
+			Mono.just(ResponseEntity.created(URI.create("/routes/"+id)).build())
+		);
 	}
 
 	@DeleteMapping("/routes/{id}")
-	public Mono<ResponseEntity<Void>> delete(@PathVariable Mono<String> id) {
-		return this.routeWriter.delete(id).then(() -> {
-			GatewayEndpoint.this.refresh();
-			return Mono.just(ResponseEntity.ok().build());
-		});
+	public Mono<ResponseEntity<Object>> delete(@PathVariable String id) {
+		return this.routeWriter .delete(Mono.just(id))
+				.then(() -> Mono.just(ResponseEntity.ok().build()))
+				.otherwise(t -> t instanceof NotFoundException, t -> Mono.just(ResponseEntity.notFound().build()));
 	}
 
 	@GetMapping("/routes/{id}")
-	public Mono<Route> route(@PathVariable String id) {
+	public Mono<ResponseEntity<Route>> route(@PathVariable String id) {
 		return this.routeLocator.getRoutes()
 				.filter(route -> route.getId().equals(id))
-				.singleOrEmpty();
+				.singleOrEmpty()
+				.map(route -> ResponseEntity.ok(route))
+				.otherwiseIfEmpty(Mono.just(ResponseEntity.notFound().build()));
 	}
 
 	@GetMapping("/routes/{id}/combinedfilters")

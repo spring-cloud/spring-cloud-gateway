@@ -54,6 +54,25 @@ public class GatewayTestApplication {
 		}
 	}
 
+	@Configuration
+	@Profile("!discovery")
+	protected static class GatewayInMemoryConfiguration {
+
+		@Bean
+		public PropertiesRouteLocator propertiesRouteLocator(GatewayProperties properties) {
+			return new PropertiesRouteLocator(properties);
+		}
+
+		@Bean
+		@Primary
+		public RouteLocator compositeRouteLocator(InMemoryRouteRepository inMemoryRouteRepository,
+												  PropertiesRouteLocator propertiesRouteLocator) {
+			final Flux<RouteLocator> flux = Flux.just(inMemoryRouteRepository, propertiesRouteLocator);
+			final CompositeRouteLocator composite = new CompositeRouteLocator(flux);
+			return new CachingRouteLocator(composite);
+		}
+	}
+
 	public static void main(String[] args) {
 		System.setProperty("java.net.preferIPv4Stack", "true"); //Remove when configurable
 		SpringApplication.run(GatewayTestApplication.class, args);
