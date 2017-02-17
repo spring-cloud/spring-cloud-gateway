@@ -48,8 +48,8 @@ public class GatewayTestApplication {
 		public RouteLocator compositeRouteLocator(InMemoryRouteRepository inMemoryRouteRepository,
 												  DiscoveryClientRouteLocator discoveryClientRouteLocator,
 												  PropertiesRouteLocator propertiesRouteLocator) {
-			final Flux<RouteLocator> flux = Flux.just(inMemoryRouteRepository, discoveryClientRouteLocator, propertiesRouteLocator);
-			final CompositeRouteLocator composite = new CompositeRouteLocator(flux);
+			Flux<RouteLocator> flux = Flux.just(inMemoryRouteRepository, discoveryClientRouteLocator, propertiesRouteLocator);
+			CompositeRouteLocator composite = new CompositeRouteLocator(flux);
 			return new CachingRouteLocator(composite);
 		}
 	}
@@ -67,8 +67,8 @@ public class GatewayTestApplication {
 		@Primary
 		public RouteLocator compositeRouteLocator(InMemoryRouteRepository inMemoryRouteRepository,
 												  PropertiesRouteLocator propertiesRouteLocator) {
-			final Flux<RouteLocator> flux = Flux.just(inMemoryRouteRepository, propertiesRouteLocator);
-			final CompositeRouteLocator composite = new CompositeRouteLocator(flux);
+			Flux<RouteLocator> flux = Flux.just(inMemoryRouteRepository, propertiesRouteLocator);
+			CompositeRouteLocator composite = new CompositeRouteLocator(flux);
 			return new CachingRouteLocator(composite);
 		}
 	}
