@@ -9,7 +9,8 @@ machine:
     _JAVA_OPTIONS: "-Xms1024m -Xmx2048m"
 dependencies:
   pre:
-    - sudo apt-get update; sudo apt-get install python-httpbin
+#    - sudo apt-get update; sudo apt-get install python-httpbin
+    - pip install httpbin
   override:
     - ./mvnw -s .settings.xml -U --fail-never dependency:go-offline || true
 test:
