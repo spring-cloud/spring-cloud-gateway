@@ -8,9 +8,13 @@ machine:
   environment:
     _JAVA_OPTIONS: "-Xms1024m -Xmx2048m"
 dependencies:
+  pre:
+    - sudo apt-get update; sudo apt-get install python-httpbin
   override:
     - ./mvnw -s .settings.xml -U --fail-never dependency:go-offline || true
 test:
+  pre:
+    - python -m httpbin.core &
   override:
     - ./mvnw -s .settings.xml clean install org.jacoco:jacoco-maven-plugin:prepare-agent install -U -P sonar -nsu --batch-mode -Dmaven.test.redirectTestOutputToFile=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
   post:
