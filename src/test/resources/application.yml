@@ -1,3 +1,7 @@
+test:
+#  hostport: httpbin.org:80
+  hostport: localhost:5000
+  uri: http://${test.hostport}
 
 spring:
   cloud:
@@ -8,11 +12,11 @@ spring:
       # TODO: breakup configuration for individual tests (though some are reused)
       routes:
       # =====================================
-      - host_example_to_httpbin=http://httpbin.org:80, Host=**.example.org
+      - host_example_to_httpbin=${test.uri}, Host=**.example.org
 
       # =====================================
       - id: host_foo_path_headers_to_httpbin
-        uri: http://httpbin.org:80
+        uri: ${test.uri}
         predicates:
         - Host=**.foo.org
         - Url=/headers
@@ -27,7 +31,7 @@ spring:
 
       # =====================================
       - id: add_request_header_test
-        uri: http://httpbin.org:80
+        uri: ${test.uri}
         predicates:
         - Host=**.addrequestheader.org
         - Url=/headers
@@ -36,7 +40,7 @@ spring:
 
       # =====================================
       - id: add_request_parameter_test
-        uri: http://httpbin.org:80
+        uri: ${test.uri}
         predicates:
         - Host=**.addrequestparameter.org
         - Url=/get
@@ -45,7 +49,7 @@ spring:
 
       # =====================================
       - id: add_response_header_test
-        uri: http://httpbin.org:80
+        uri: ${test.uri}
         predicates:
         - Host=**.addresponseheader.org
         - Url=/headers
@@ -54,7 +58,7 @@ spring:
 
       # =====================================
       - id: hystrix_failure_test
-        uri: http://httpbin.org:80
+        uri: ${test.uri}
         predicates:
         - Host=**.hystrixfailure.org
         filters:
@@ -62,7 +66,7 @@ spring:
 
       # =====================================
       - id: hystrix_success_test
-        uri: http://httpbin.org:80
+        uri: ${test.uri}
         predicates:
         - Host=**.hystrixsuccess.org
         filters:
@@ -76,7 +80,7 @@ spring:
 
       # =====================================
       - id: redirect_to_test
-        uri: http://httpbin.org:80
+        uri: ${test.uri}
         predicates:
         - Host=**.redirectto.org
         filters:
@@ -84,7 +88,7 @@ spring:
 
       # =====================================
       - id: remove_request_header_test
-        uri: http://httpbin.org:80
+        uri: ${test.uri}
         predicates:
         - Host=**.removerequestheader.org
         - Url=/headers
@@ -93,7 +97,7 @@ spring:
 
       # =====================================
       - id: remove_response_header_test
-        uri: http://httpbin.org:80
+        uri: ${test.uri}
         predicates:
         - Host=**.removereresponseheader.org
         - Url=/headers
@@ -103,7 +107,7 @@ spring:
 
       # =====================================
       - id: secure_headers_test
-        uri: http://httpbin.org:80
+        uri: ${test.uri}
         predicates:
         - Host=**.secureheaders.org
         - Url=/headers
@@ -112,7 +116,7 @@ spring:
 
       # =====================================
       - id: set_path_test
-        uri: http://httpbin.org:80
+        uri: ${test.uri}
         predicates:
         - Host=**.setpath.org
         - Url=/foo/{segment}
@@ -121,7 +125,7 @@ spring:
 
       # =====================================
       - id: set_response_header_test
-        uri: http://httpbin.org:80
+        uri: ${test.uri}
         predicates:
         - Host=**.setreresponseheader.org
         - Url=/headers
@@ -132,7 +136,7 @@ spring:
 
       # =====================================
       - id: set_status_int_test
-        uri: http://httpbin.org:80
+        uri: ${test.uri}
         predicates:
         - Host=**.setstatusint.org
         - Url=/headers
@@ -142,7 +146,7 @@ spring:
 
       # =====================================
       - id: set_status_string_test
-        uri: http://httpbin.org:80
+        uri: ${test.uri}
         predicates:
         - Host=**.setstatusstring.org
         - Url=/headers
@@ -151,7 +155,7 @@ spring:
 
       # =====================================
       - id: rewrite_path_test
-        uri: http://httpbin.org:80
+        uri: ${test.uri}
         predicates:
         - Host=**.baz.org
         - RemoteAddr=127.0.0.1/24
@@ -163,7 +167,7 @@ spring:
 
       # =====================================
       - id: default_path_to_httpbin
-        uri: http://httpbin.org:80
+        uri: ${test.uri}
         predicates:
         - name: Url
           args: /**
@@ -171,7 +175,7 @@ spring:
 myservice:
   ribbon:
     NIWSServerListClassName: com.netflix.loadbalancer.ConfigurationBasedServerList
-    listOfServers: httpbin.org:80
+    listOfServers: ${test.hostport}
 
 #hystrix.command.failcmd.execution.isolation.thread.timeoutInMilliseconds: 1000
 
