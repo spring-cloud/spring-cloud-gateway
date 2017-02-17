@@ -15,7 +15,9 @@ dependencies:
     - ./mvnw -s .settings.xml -U --fail-never dependency:go-offline || true
 test:
   pre:
-    - python -m httpbin.core &
+    - python -m httpbin.core:
+          background: true
+    - sleep 3
   override:
     - ./mvnw -s .settings.xml clean install org.jacoco:jacoco-maven-plugin:prepare-agent install -U -P sonar -nsu --batch-mode -Dmaven.test.redirectTestOutputToFile=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
   post:
