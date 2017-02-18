@@ -14,8 +14,10 @@ import org.springframework.cloud.gateway.api.RouteWriter;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.route.RouteFilter;
 import org.springframework.cloud.gateway.handler.FilteringWebHandler;
-import org.springframework.cloud.gateway.support.CachingRouteLocator;
 import org.springframework.cloud.gateway.support.NotFoundException;
+import org.springframework.cloud.gateway.support.RefreshRoutesEvent;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.core.Ordered;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -26,7 +28,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
@@ -36,7 +37,7 @@ import reactor.core.publisher.Mono;
 //@ConfigurationProperties(prefix = "endpoints.gateway")
 @RestController
 @RequestMapping("/admin/gateway")
-public class GatewayEndpoint {/*extends AbstractEndpoint<Map<String, Object>> {*/
+public class GatewayEndpoint implements ApplicationEventPublisherAware {/*extends AbstractEndpoint<Map<String, Object>> {*/
 
 	private static final Log log = LogFactory.getLog(GatewayEndpoint.class);
 
@@ -45,6 +46,7 @@ public class GatewayEndpoint {/*extends AbstractEndpoint<Map<String, Object>> {*
 	private List<RouteFilter> routeFilters;
 	private FilteringWebHandler filteringWebHandler;
 	private RouteWriter routeWriter;
+	private ApplicationEventPublisher publisher;
 
 	public GatewayEndpoint(RouteLocator routeLocator, List<GlobalFilter> globalFilters,
 						   List<RouteFilter> routeFilters, FilteringWebHandler filteringWebHandler,
@@ -57,17 +59,20 @@ public class GatewayEndpoint {/*extends AbstractEndpoint<Map<String, Object>> {*
 		this.routeWriter = routeWriter;
 	}
 
+	@Override
+	public void setApplicationEventPublisher(ApplicationEventPublisher publisher) {
+		this.publisher = publisher;
+	}
+
 	/*@Override
 	public Map<String, Object> invoke() {
 	}*/
 
 	//TODO: this should really be a listener that responds to a RefreshEvent
 	@PostMapping("/refresh")
-	public Flux<Route> refresh() {
-		if (this.routeLocator instanceof CachingRouteLocator) {
-			return ((CachingRouteLocator)this.routeLocator).refresh();
-		}
-		return Flux.empty();
+	public Mono<Void> refresh() {
+	    this.publisher.publishEvent(new RefreshRoutesEvent(this));
+		return Mono.empty();
 	}
 
 	@GetMapping("/globalfilters")

@@ -24,6 +24,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
@@ -33,6 +35,8 @@ import org.springframework.cloud.gateway.api.Route;
 import org.springframework.cloud.gateway.config.GatewayProperties;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.route.RouteFilter;
+import org.springframework.cloud.gateway.support.RefreshRoutesEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.web.server.ServerWebExchange;
@@ -61,7 +65,7 @@ public class FilteringWebHandler extends WebHandlerDecorator {
 	private final List<GlobalFilter> globalFilters;
 	private final Map<String, RouteFilter> routeFilters = new HashMap<>();
 
-	private final Map<String, List<WebFilter>> combinedFiltersForRoute = new HashMap<>();
+	private final ConcurrentMap<String, List<WebFilter>> combinedFiltersForRoute = new ConcurrentHashMap<>();
 
 	public FilteringWebHandler(GatewayProperties gatewayProperties, List<GlobalFilter> globalFilters,
 							   Map<String, RouteFilter> routeFilters) {
@@ -90,6 +94,12 @@ public class FilteringWebHandler extends WebHandlerDecorator {
 	public List<GlobalFilter> getGlobalFilters() {
 		return this.globalFilters;
 	}
+
+
+    @EventListener(RefreshRoutesEvent.class)
+    /* for testing */ void handleRefresh() {
+        this.combinedFiltersForRoute.clear();
+    }
 
 	@Override
 	public Mono<Void> handle(ServerWebExchange exchange) {

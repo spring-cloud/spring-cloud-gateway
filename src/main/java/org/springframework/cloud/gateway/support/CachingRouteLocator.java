@@ -5,6 +5,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.springframework.cloud.gateway.api.Route;
 import org.springframework.cloud.gateway.api.RouteLocator;
+import org.springframework.context.event.EventListener;
 import reactor.core.publisher.Flux;
 
 /**
@@ -37,4 +38,9 @@ public class CachingRouteLocator implements RouteLocator {
 	private List<Route> collectRoutes() {
 		return this.delegate.getRoutes().collectList().block();
 	}
+
+	@EventListener(RefreshRoutesEvent.class)
+    /* for testing */ void handleRefresh() {
+        refresh();
+    }
 }
