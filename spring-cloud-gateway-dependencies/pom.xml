@@ -17,6 +17,7 @@
 	<description>Spring Cloud Gateway Dependencies</description>
 
 	<properties>
+		<commons-net.version>3.6</commons-net.version>
 	</properties>
 
 	<dependencyManagement>
@@ -34,7 +35,7 @@
 			<dependency>
 				<groupId>commons-net</groupId>
 				<artifactId>commons-net</artifactId>
-				<version>3.5</version>
+				<version>${commons-net.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
