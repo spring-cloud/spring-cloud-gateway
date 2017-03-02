@@ -1,194 +1,247 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>org.springframework.cloud.gateway</groupId>
+	<groupId>org.springframework.cloud</groupId>
 	<artifactId>spring-cloud-gateway</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-	<packaging>jar</packaging>
+	<version>1.0.0.BUILD-SNAPSHOT</version>
+	<packaging>pom</packaging>
 
-	<name>spring-cloud-gateway</name>
-	<description>Demo project for Spring Boot</description>
+	<name>Spring Cloud Gateway</name>
+	<description>Spring Cloud Gateway</description>
 
-    <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.0.0.BUILD-SNAPSHOT</version>
-        <relativePath/> <!-- lookup parent from repository -->
-    </parent>
+	<parent>
+		<groupId>org.springframework.cloud</groupId>
+		<artifactId>spring-cloud-build</artifactId>
+		<version>1.3.1.BUILD-SNAPSHOT</version>
+		<relativePath/>
+	</parent>
+	<scm>
+		<url>https://github.com/spring-cloud-incubator/spring-cloud-gateway</url>
+		<connection>scm:git:git://github.com/spring-cloud-incubator/spring-cloud-gateway.git</connection>
+		<developerConnection>scm:git:ssh://git@github.com/spring-cloud-incubator/spring-cloud-gateway.git
+		</developerConnection>
+		<tag>HEAD</tag>
+	</scm>
 
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <java.version>1.8</java.version>
-        <reactor.version>3.0.4.RELEASE</reactor.version>
-    </properties>
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0</url>
+		</license>
+	</licenses>
+	<developers>
+		<developer>
+			<id>sgibb</id>
+			<name>Spencer Gibb</name>
+			<email>sgibb at pivotal.io</email>
+			<organization>Pivotal Software, Inc.</organization>
+			<organizationUrl>http://www.spring.io</organizationUrl>
+			<roles>
+				<role>Project lead</role>
+			</roles>
+		</developer>
+	</developers>
 
-    <licenses>
-        <license>
-            <name>Apache License, Version 2.0</name>
-            <url>http://www.apache.org/licenses/LICENSE-2.0</url>
-        </license>
-    </licenses>
-    <scm>
-        <url>https://github.com/spring-cloud/spring-cloud-gateway</url>
-    </scm>
-    <developers>
-        <developer>
-            <id>sgibb</id>
-            <name>Spencer Gibb</name>
-            <email>sgibb at pivotal.io</email>
-            <organization>Pivotal Software, Inc.</organization>
-            <organizationUrl>http://www.spring.io</organizationUrl>
-            <roles>
-                <role>Project lead</role>
-            </roles>
-        </developer>
-    </developers>
-
-	<dependencies>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-actuator</artifactId>
-			<optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-webflux</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-configuration-processor</artifactId>
-			<optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-starter-ribbon</artifactId>
-			<optional>true</optional>
-			<exclusions>
-				<exclusion>
-					<groupId>com.netflix.ribbon</groupId>
-					<artifactId>ribbon-transport</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>io.reactivex</groupId>
-					<artifactId>rxnetty</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-starter-hystrix</artifactId>
-			<optional>true</optional>
-		</dependency>
-		<!-- TODO: should be part of spring-cloud-starter-netflix -->
-		<dependency>
-			<groupId>io.reactivex</groupId>
-			<artifactId>rxjava-reactive-streams</artifactId>
-			<version>1.2.1</version>
-			<optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-devtools</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>commons-net</groupId>
-			<artifactId>commons-net</artifactId>
-			<version>3.5</version>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-starter-eureka</artifactId>
-			<scope>test</scope>
-			<exclusions>
-				<exclusion>
-					<!-- TODO: this should be optional -->
-					<groupId>org.springframework.boot</groupId>
-					<artifactId>spring-boot-starter-web</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>io.projectreactor.addons</groupId>
-			<artifactId>reactor-test</artifactId>
-			<version>${reactor.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.assertj</groupId>
-			<artifactId>assertj-core</artifactId>
-			<scope>test</scope>
-		</dependency>
-	</dependencies>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<java.version>1.8</java.version>
+		<reactor.version>3.0.4.RELEASE</reactor.version>
+		<spring-boot.version>2.0.0.BUILD-SNAPSHOT</spring-boot.version>
+		<spring-cloud-commons.version>1.2.0.BUILD-SNAPSHOT</spring-cloud-commons.version>
+		<spring-cloud-netflix.version>1.3.0.BUILD-SNAPSHOT</spring-cloud-netflix.version>
+	</properties>
 
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-gateway-dependencies</artifactId>
+				<version>${project.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<dependency>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-dependencies</artifactId>
-				<version>2.0.0.BUILD-SNAPSHOT</version>
+				<version>${spring-boot.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-commons-dependencies</artifactId>
-				<version>1.2.0.BUILD-SNAPSHOT</version>
+				<version>${spring-cloud-commons.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-netflix-dependencies</artifactId>
-				<version>1.3.0.BUILD-SNAPSHOT</version>
+				<version>${spring-cloud-netflix.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-starter-ribbon</artifactId>
+				<version>${spring-cloud-netflix.version}</version>
+				<exclusions>
+					<exclusion>
+						<groupId>com.netflix.ribbon</groupId>
+						<artifactId>ribbon-transport</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>io.reactivex</groupId>
+						<artifactId>rxnetty</artifactId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-starter-eureka</artifactId>
+				<version>${spring-cloud-netflix.version}</version>
+				<exclusions>
+					<exclusion>
+						<!-- TODO: this should be optional -->
+						<groupId>org.springframework.boot</groupId>
+						<artifactId>spring-boot-starter-web</artifactId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-starter-hystrix</artifactId>
+				<version>${spring-cloud-netflix.version}</version>
+			</dependency>
+			<!-- TODO: should be part of spring-cloud-starter-netflix -->
+			<dependency>
+				<groupId>io.reactivex</groupId>
+				<artifactId>rxjava-reactive-streams</artifactId>
+				<version>1.2.1</version>
+				<optional>true</optional>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-devtools</artifactId>
+				<version>${spring-boot.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
-	<repositories>
-		<repository>
-			<id>spring-snapshots</id>
-			<name>Spring Snapshots</name>
-			<url>https://repo.spring.io/snapshot</url>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
-		</repository>
-		<repository>
-			<id>spring-milestones</id>
-			<name>Spring Milestones</name>
-			<url>https://repo.spring.io/milestone</url>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-		</repository>
-	</repositories>
-	<pluginRepositories>
-		<pluginRepository>
-			<id>spring-snapshots</id>
-			<name>Spring Snapshots</name>
-			<url>https://repo.spring.io/snapshot</url>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
-		</pluginRepository>
-		<pluginRepository>
-			<id>spring-milestones</id>
-			<name>Spring Milestones</name>
-			<url>https://repo.spring.io/milestone</url>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-		</pluginRepository>
-	</pluginRepositories>
+	<modules>
+		<module>spring-cloud-gateway-dependencies</module>
+		<module>spring-cloud-gateway-core</module>
+		<module>spring-cloud-starter-gateway</module>
+		<module>docs</module>
+	</modules>
+
+	<profiles>
+		<profile>
+			<id>spring</id>
+			<repositories>
+				<repository>
+					<id>spring-snapshots</id>
+					<name>Spring Snapshots</name>
+					<url>https://repo.spring.io/libs-snapshot-local</url>
+					<snapshots>
+						<enabled>true</enabled>
+					</snapshots>
+					<releases>
+						<enabled>false</enabled>
+					</releases>
+				</repository>
+				<repository>
+					<id>spring-milestones</id>
+					<name>Spring Milestones</name>
+					<url>https://repo.spring.io/libs-milestone-local</url>
+					<snapshots>
+						<enabled>false</enabled>
+					</snapshots>
+				</repository>
+				<repository>
+					<id>spring-releases</id>
+					<name>Spring Releases</name>
+					<url>https://repo.spring.io/release</url>
+					<snapshots>
+						<enabled>false</enabled>
+					</snapshots>
+				</repository>
+			</repositories>
+			<pluginRepositories>
+				<pluginRepository>
+					<id>spring-snapshots</id>
+					<name>Spring Snapshots</name>
+					<url>https://repo.spring.io/libs-snapshot-local</url>
+					<snapshots>
+						<enabled>true</enabled>
+					</snapshots>
+					<releases>
+						<enabled>false</enabled>
+					</releases>
+				</pluginRepository>
+				<pluginRepository>
+					<id>spring-milestones</id>
+					<name>Spring Milestones</name>
+					<url>https://repo.spring.io/libs-milestone-local</url>
+					<snapshots>
+						<enabled>false</enabled>
+					</snapshots>
+				</pluginRepository>
+				<pluginRepository>
+					<id>spring-releases</id>
+					<name>Spring Releases</name>
+					<url>https://repo.spring.io/libs-release-local</url>
+					<snapshots>
+						<enabled>false</enabled>
+					</snapshots>
+				</pluginRepository>
+			</pluginRepositories>
+		</profile>
+		<profile>
+			<id>sonar</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.jacoco</groupId>
+						<artifactId>jacoco-maven-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>pre-unit-test</id>
+								<goals>
+									<goal>prepare-agent</goal>
+								</goals>
+								<configuration>
+									<propertyName>surefireArgLine</propertyName>
+									<destFile>${project.build.directory}/jacoco.exec</destFile>
+								</configuration>
+							</execution>
+							<execution>
+								<id>post-unit-test</id>
+								<phase>test</phase>
+								<goals>
+									<goal>report</goal>
+								</goals>
+								<configuration>
+									<!-- Sets the path to the file which contains the execution data. -->
+									<dataFile>${project.build.directory}/jacoco.exec</dataFile>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-surefire-plugin</artifactId>
+						<configuration>
+							<!-- Sets the VM argument line used when unit tests are run. -->
+							<argLine>${surefireArgLine}</argLine>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 
 </project>

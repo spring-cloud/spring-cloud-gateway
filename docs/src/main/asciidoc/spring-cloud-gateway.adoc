@@ -1,0 +1,25 @@
+:github-tag: master
+:github-repo: spring-cloud-incubator/spring-cloud-gateway
+:github-raw: http://raw.github.com/{github-repo}/{github-tag}
+:github-code: http://github.com/{github-repo}/tree/{github-tag}
+:all: {asterisk}{asterisk}
+:nofooter:
+:imagesdir: ./images
+= Spring Cloud Gateway
+
+*{spring-cloud-version}*
+
+include::intro.adoc[]
+
+== TODO: Document Spring Cloud Gateway
+
+TODO: Do documentation
+
+[[gateway-starter]]
+=== How to Include Spring Cloud Gateway
+
+To include Spring Cloud Gateway in your project use the starter with group `org.springframework.cloud`
+and artifact id `spring-cloud-starter-gateway`. See the http://projects.spring.io/spring-cloud/[Spring Cloud Project page]
+for details on setting up your build system with the current Spring Cloud Release Train.
+
+
