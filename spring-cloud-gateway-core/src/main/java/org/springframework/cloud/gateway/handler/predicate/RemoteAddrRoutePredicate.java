@@ -24,7 +24,7 @@ import java.util.function.Predicate;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.commons.net.util.SubnetUtils;
+import org.springframework.cloud.gateway.support.SubnetUtils;
 import org.springframework.http.server.reactive.ReactorServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -76,7 +76,6 @@ public class RemoteAddrRoutePredicate implements RoutePredicate {
 			inclusiveHostCount = true;
 		}
 		//TODO: howto support ipv6 as well?
-		//TODO: copy SubnetUtils to remove commons-net dependency
 		SubnetUtils subnetUtils = new SubnetUtils(source);
 		subnetUtils.setInclusiveHostCount(inclusiveHostCount);
 		sources.add(subnetUtils);

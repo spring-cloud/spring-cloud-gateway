@@ -17,7 +17,6 @@
 	<description>Spring Cloud Gateway Dependencies</description>
 
 	<properties>
-		<commons-net.version>3.6</commons-net.version>
 	</properties>
 
 	<dependencyManagement>
@@ -31,11 +30,6 @@
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-starter-gateway</artifactId>
 				<version>${project.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>commons-net</groupId>
-				<artifactId>commons-net</artifactId>
-				<version>${commons-net.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
