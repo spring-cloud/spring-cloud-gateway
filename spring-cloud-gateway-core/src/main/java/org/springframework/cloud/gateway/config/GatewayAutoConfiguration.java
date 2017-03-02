@@ -77,6 +77,7 @@ import rx.RxReactiveStreams;
  * @author Spencer Gibb
  */
 @Configuration
+@ConditionalOnBean(GatewayConfiguration.Marker.class)
 @EnableConfigurationProperties
 public class GatewayAutoConfiguration {
 

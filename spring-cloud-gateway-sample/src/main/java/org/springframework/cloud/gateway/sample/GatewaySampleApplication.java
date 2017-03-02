@@ -20,6 +20,7 @@ package org.springframework.cloud.gateway.sample;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.cloud.gateway.EnableGateway;
 import org.springframework.cloud.gateway.api.RouteLocator;
 import org.springframework.cloud.gateway.config.GatewayProperties;
 import org.springframework.cloud.gateway.config.PropertiesRouteLocator;
@@ -35,6 +36,7 @@ import reactor.core.publisher.Flux;
  */
 @SpringBootConfiguration
 @EnableAutoConfiguration
+@EnableGateway
 public class GatewaySampleApplication {
 	@Bean
 	public PropertiesRouteLocator propertiesRouteLocator(GatewayProperties properties) {

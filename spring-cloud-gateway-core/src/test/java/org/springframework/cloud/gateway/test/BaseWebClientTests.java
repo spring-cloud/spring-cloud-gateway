@@ -23,6 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
 import org.springframework.boot.context.embedded.LocalServerPort;
+import org.springframework.cloud.gateway.EnableGateway;
 import org.springframework.cloud.gateway.api.Route;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.context.annotation.Bean;
@@ -61,6 +62,7 @@ public class BaseWebClientTests {
 	}
 
 	@Configuration
+	@EnableGateway
 	protected static class DefaultTestConfig {
 
 		private static final Log log = LogFactory.getLog(DefaultTestConfig.class);

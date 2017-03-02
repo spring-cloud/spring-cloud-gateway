@@ -24,6 +24,7 @@ import org.junit.runner.RunWith;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.gateway.EnableGateway;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -61,6 +62,7 @@ public class AddRequestHeaderRouteFilterIntegrationTests extends BaseWebClientTe
 
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
+	@EnableGateway
 	public static class TestConfig { }
 
 }
