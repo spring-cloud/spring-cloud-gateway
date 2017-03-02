@@ -17,7 +17,6 @@
 	<description>Spring Cloud Gateway Dependencies</description>
 
 	<properties>
-		<reactor-test.version>3.0.5.RELEASE</reactor-test.version>
 	</properties>
 
 	<dependencyManagement>
@@ -36,11 +35,6 @@
 				<groupId>commons-net</groupId>
 				<artifactId>commons-net</artifactId>
 				<version>3.5</version>
-			</dependency>
-			<dependency>
-				<groupId>io.projectreactor.addons</groupId>
-				<artifactId>reactor-test</artifactId>
-				<version>${reactor-test.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

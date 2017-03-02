@@ -48,7 +48,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<java.version>1.8</java.version>
-		<reactor.version>3.0.4.RELEASE</reactor.version>
+		<reactor.version>Aluminium-SR1</reactor.version>
 		<spring-boot.version>2.0.0.BUILD-SNAPSHOT</spring-boot.version>
 		<spring-cloud-commons.version>1.2.0.BUILD-SNAPSHOT</spring-cloud-commons.version>
 		<spring-cloud-netflix.version>1.3.0.BUILD-SNAPSHOT</spring-cloud-netflix.version>
@@ -67,6 +67,13 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-dependencies</artifactId>
 				<version>${spring-boot.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>io.projectreactor</groupId>
+				<artifactId>reactor-bom</artifactId>
+				<version>${reactor.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
