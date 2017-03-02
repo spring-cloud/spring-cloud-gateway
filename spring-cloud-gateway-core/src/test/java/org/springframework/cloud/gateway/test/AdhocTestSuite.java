@@ -27,6 +27,7 @@ import org.springframework.cloud.gateway.filter.route.HystrixRouteFilterIntegrat
 import org.springframework.cloud.gateway.filter.route.RedirectToRouteFilterIntegrationTests;
 import org.springframework.cloud.gateway.filter.route.RemoveNonProxyHeadersRouteFilterIntegrationTests;
 import org.springframework.cloud.gateway.filter.route.RemoveRequestHeaderRouteFilterIntegrationTests;
+import org.springframework.cloud.gateway.filter.route.RewritePathRouteFilterIntegrationTests;
 import org.springframework.cloud.gateway.filter.route.RewritePathRouteFilterTests;
 import org.springframework.cloud.gateway.filter.route.SecureHeadersRouteFilterIntegrationTests;
 import org.springframework.cloud.gateway.filter.route.SetPathRouteFilterIntegrationTests;
@@ -37,7 +38,7 @@ import org.springframework.cloud.gateway.handler.predicate.AfterRoutePredicateTe
 import org.springframework.cloud.gateway.handler.predicate.BeforeRoutePredicateTests;
 import org.springframework.cloud.gateway.handler.predicate.BetweenRoutePredicateTests;
 import org.springframework.cloud.gateway.handler.predicate.HostRoutePredicateIntegrationTests;
-import org.springframework.cloud.gateway.handler.predicate.UrlRoutePredicateIntegrationTests;
+import org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateIntegrationTests;
 
 /**
  * @author Spencer Gibb
@@ -53,6 +54,7 @@ import org.springframework.cloud.gateway.handler.predicate.UrlRoutePredicateInte
 		RedirectToRouteFilterIntegrationTests.class,
 		RemoveNonProxyHeadersRouteFilterIntegrationTests.class,
 		RemoveRequestHeaderRouteFilterIntegrationTests.class,
+		RewritePathRouteFilterIntegrationTests.class,
 		SecureHeadersRouteFilterIntegrationTests.class,
 		SetPathRouteFilterIntegrationTests.class,
 		SetPathRouteFilterTests.class,
@@ -64,7 +66,7 @@ import org.springframework.cloud.gateway.handler.predicate.UrlRoutePredicateInte
 		BeforeRoutePredicateTests.class,
 		BetweenRoutePredicateTests.class,
 		HostRoutePredicateIntegrationTests.class,
-		UrlRoutePredicateIntegrationTests.class,
+		PathRoutePredicateIntegrationTests.class,
 })
 public class AdhocTestSuite {
 }
