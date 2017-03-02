@@ -41,10 +41,6 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = GatewaySampleApplication.class, webEnvironment = RANDOM_PORT)
 public class GatewaySampleApplicationTests {
-	static {
-		//TODO: wait for option in boot 2.0
-		System.setProperty("java.net.preferIPv4Stack", "true");
-	}
 
 	@LocalServerPort
 	protected int port = 0;

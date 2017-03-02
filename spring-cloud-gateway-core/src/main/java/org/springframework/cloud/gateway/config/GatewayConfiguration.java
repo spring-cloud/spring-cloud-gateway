@@ -25,6 +25,7 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 public class GatewayConfiguration {
+
 	@Bean
 	public Marker gatewayMarker() {
 		return new Marker();

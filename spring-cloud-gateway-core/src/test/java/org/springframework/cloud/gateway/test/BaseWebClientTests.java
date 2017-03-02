@@ -43,11 +43,6 @@ public class BaseWebClientTests {
 	protected static final String ROUTE_ID_HEADER = "X-Gateway-Route-Id";
 	protected static final Duration DURATION = Duration.ofSeconds(5);
 
-	static {
-		//TODO: wait for option in boot 2.0
-		System.setProperty("java.net.preferIPv4Stack", "true");
-	}
-
 	@LocalServerPort
 	protected int port = 0;
 
