@@ -76,6 +76,7 @@ public class RemoteAddrRoutePredicate implements RoutePredicate {
 			inclusiveHostCount = true;
 		}
 		//TODO: howto support ipv6 as well?
+		//TODO: copy SubnetUtils to remove commons-net dependency
 		SubnetUtils subnetUtils = new SubnetUtils(source);
 		subnetUtils.setInclusiveHostCount(inclusiveHostCount);
 		sources.add(subnetUtils);
