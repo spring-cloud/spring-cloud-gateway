@@ -12,6 +12,10 @@ This project provides
 == Features
 
 * TODO: document features
+* Java 8
+* Spring Framework 5
+* Spring Boot 2
+* Dynamic routing
 
 == Building
 

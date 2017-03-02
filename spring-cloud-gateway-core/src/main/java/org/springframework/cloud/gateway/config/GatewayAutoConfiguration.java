@@ -80,13 +80,27 @@ import rx.RxReactiveStreams;
 @EnableConfigurationProperties
 public class GatewayAutoConfiguration {
 
-	@Bean
-	@ConditionalOnMissingBean
-	public HttpClient httpClient() {
-		return HttpClient.create(opts -> {
-			//opts.poolResources(PoolResources.elastic("proxy"));
-			//opts.disablePool(); //TODO: why do I need this again?
-		});
+	@Configuration
+	@ConditionalOnClass(HttpClient.class)
+	protected static class NettyConfiguration {
+		@Bean
+		@ConditionalOnMissingBean
+		public HttpClient httpClient() {
+			return HttpClient.create(opts -> {
+				//opts.poolResources(PoolResources.elastic("proxy"));
+				//opts.disablePool(); //TODO: why do I need this again?
+			});
+		}
+
+		@Bean
+		public NettyRoutingWebHandler nettyRoutingWebHandler(HttpClient httpClient) {
+			return new NettyRoutingWebHandler(httpClient);
+		}
+
+		@Bean
+		public NettyRoutingFilter routingFilter(HttpClient httpClient) {
+			return new NettyRoutingFilter(httpClient);
+		}
 	}
 
 	@Bean
@@ -94,12 +108,6 @@ public class GatewayAutoConfiguration {
 	public RouteLocator routeLocator(GatewayProperties properties) {
 		//TODO: how to automatically apply CachingRouteLocator
 		return new CachingRouteLocator(new PropertiesRouteLocator(properties));
-	}
-
-	@Bean
-	@ConditionalOnClass(HttpClient.class)
-	public NettyRoutingWebHandler nettyRoutingWebHandler(HttpClient httpClient) {
-		return new NettyRoutingWebHandler(httpClient);
 	}
 
 	@Bean
@@ -129,17 +137,14 @@ public class GatewayAutoConfiguration {
 
 	// GlobalFilter beans
 
-	@Bean
 	@ConditionalOnClass(LoadBalancerClient.class)
-	@ConditionalOnBean(LoadBalancerClient.class)
-	public LoadBalancerClientFilter loadBalancerClientFilter(LoadBalancerClient client) {
-		return new LoadBalancerClientFilter(client);
-	}
-
-	@Bean
-	@ConditionalOnClass(HttpClient.class)
-	public NettyRoutingFilter routingFilter(HttpClient httpClient) {
-		return new NettyRoutingFilter(httpClient);
+	@Configuration
+	protected static class LoadBalancerClientConfiguration {
+		@Bean
+		@ConditionalOnBean(LoadBalancerClient.class)
+		public LoadBalancerClientFilter loadBalancerClientFilter(LoadBalancerClient client) {
+			return new LoadBalancerClientFilter(client);
+		}
 	}
 
 	@Bean
@@ -222,10 +227,13 @@ public class GatewayAutoConfiguration {
 		return new AddResponseHeaderRouteFilter();
 	}
 
-	@Bean(name = "HystrixRouteFilter")
+	@Configuration
 	@ConditionalOnClass({HystrixObservableCommand.class, RxReactiveStreams.class})
-	public HystrixRouteFilter hystrixRouteFilter() {
-		return new HystrixRouteFilter();
+	protected static class HystrixConfiguration {
+		@Bean(name = "HystrixRouteFilter")
+		public HystrixRouteFilter hystrixRouteFilter() {
+			return new HystrixRouteFilter();
+		}
 	}
 
 	@Bean(name = "RedirectToRouteFilter")
