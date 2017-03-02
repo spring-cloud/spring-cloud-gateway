@@ -123,7 +123,7 @@ public class GatewayEndpoint implements ApplicationEventPublisherAware {/*extend
 	}
 
 /*
-http POST :8080/admin/gateway/routes/apiaddreqhead uri=http://httpbin.org:80 predicates:='["Host=**.apiaddrequestheader.org", "Url=/headers"]' filters:='["AddRequestHeader=X-Request-ApiFoo, ApiBar"]'
+http POST :8080/admin/gateway/routes/apiaddreqhead uri=http://httpbin.org:80 predicates:='["Host=**.apiaddrequestheader.org", "Path=/headers"]' filters:='["AddRequestHeader=X-Request-ApiFoo, ApiBar"]'
 */
 	@PostMapping("/routes/{id}")
 	public Mono<ResponseEntity<Void>> save(@PathVariable String id, @RequestBody Mono<Route> route) {

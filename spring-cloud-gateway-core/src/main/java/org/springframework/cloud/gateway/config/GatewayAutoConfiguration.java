@@ -59,10 +59,10 @@ import org.springframework.cloud.gateway.handler.predicate.CookieRoutePredicate;
 import org.springframework.cloud.gateway.handler.predicate.HeaderRoutePredicate;
 import org.springframework.cloud.gateway.handler.predicate.HostRoutePredicate;
 import org.springframework.cloud.gateway.handler.predicate.MethodRoutePredicate;
+import org.springframework.cloud.gateway.handler.predicate.PathRoutePredicate;
 import org.springframework.cloud.gateway.handler.predicate.QueryRoutePredicate;
 import org.springframework.cloud.gateway.handler.predicate.RemoteAddrRoutePredicate;
 import org.springframework.cloud.gateway.handler.predicate.RoutePredicate;
-import org.springframework.cloud.gateway.handler.predicate.UrlRoutePredicate;
 import org.springframework.cloud.gateway.support.CachingRouteLocator;
 import org.springframework.cloud.gateway.support.InMemoryRouteRepository;
 import org.springframework.context.annotation.Bean;
@@ -195,6 +195,11 @@ public class GatewayAutoConfiguration {
 		return new MethodRoutePredicate();
 	}
 
+	@Bean(name = "PathRoutePredicate")
+	public PathRoutePredicate pathRoutePredicate() {
+		return new PathRoutePredicate();
+	}
+
 	@Bean(name = "QueryRoutePredicate")
 	public QueryRoutePredicate queryRoutePredicate() {
 		return new QueryRoutePredicate();
@@ -203,12 +208,6 @@ public class GatewayAutoConfiguration {
 	@Bean(name = "RemoteAddrRoutePredicate")
 	public RemoteAddrRoutePredicate remoteAddrRoutePredicate() {
 		return new RemoteAddrRoutePredicate();
-	}
-
-
-	@Bean(name = "UrlRoutePredicate")
-	public UrlRoutePredicate urlRoutePredicate() {
-		return new UrlRoutePredicate();
 	}
 
 	// Filter Factory beans

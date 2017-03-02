@@ -20,19 +20,19 @@ package org.springframework.cloud.gateway.handler.predicate;
 import java.util.Map;
 import java.util.function.Predicate;
 
-import org.springframework.util.AntPathMatcher;
 import org.springframework.util.PathMatcher;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.support.HttpRequestPathHelper;
+import org.springframework.web.util.ParsingPathMatcher;
 
 /**
  * @author Spencer Gibb
  */
-public class UrlRoutePredicate implements RoutePredicate {
+public class PathRoutePredicate implements RoutePredicate {
 
 	public static final String URL_PREDICATE_VARS_ATTR = "urlPredicateVars";
 
-	private PathMatcher pathMatcher = new AntPathMatcher();
+	private PathMatcher pathMatcher = new ParsingPathMatcher();
 	private HttpRequestPathHelper pathHelper = new HttpRequestPathHelper();
 
 	public PathMatcher getPathMatcher() {

@@ -22,7 +22,7 @@ import java.util.HashMap;
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-import org.springframework.cloud.gateway.handler.predicate.UrlRoutePredicate;
+import org.springframework.cloud.gateway.handler.predicate.PathRoutePredicate;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.http.server.reactive.MockServerHttpResponse;
 import org.springframework.web.server.ServerWebExchange;
@@ -61,7 +61,7 @@ public class SetPathRouteFilterTests {
 				.build();
 
 		DefaultServerWebExchange exchange = new DefaultServerWebExchange(request, new MockServerHttpResponse());
-		exchange.getAttributes().put(UrlRoutePredicate.URL_PREDICATE_VARS_ATTR, variables);
+		exchange.getAttributes().put(PathRoutePredicate.URL_PREDICATE_VARS_ATTR, variables);
 
 		WebFilterChain filterChain = mock(WebFilterChain.class);
 

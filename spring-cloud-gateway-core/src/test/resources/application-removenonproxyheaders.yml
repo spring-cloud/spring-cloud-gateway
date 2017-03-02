@@ -10,7 +10,7 @@ spring:
         uri: http://httpbin.org:80
         predicates:
         - Host=**.removerequestheader.org
-        - Url=/headers
+        - Path=/headers
         filters:
         - RemoveRequestHeader=X-Request-Foo
 

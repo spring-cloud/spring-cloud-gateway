@@ -19,7 +19,7 @@ spring:
         uri: ${test.uri}
         predicates:
         - Host=**.foo.org
-        - Url=/headers
+        - Path=/headers
         - Method=GET
         - Header=X-Request-Id, \d+
         - Query=foo, ba.
@@ -34,7 +34,7 @@ spring:
         uri: ${test.uri}
         predicates:
         - Host=**.addrequestheader.org
-        - Url=/headers
+        - Path=/headers
         filters:
         - AddRequestHeader=X-Request-Foo, Bar
 
@@ -43,7 +43,7 @@ spring:
         uri: ${test.uri}
         predicates:
         - Host=**.addrequestparameter.org
-        - Url=/get
+        - Path=/get
         filters:
         - AddRequestParameter=foo, bar
 
@@ -52,7 +52,7 @@ spring:
         uri: ${test.uri}
         predicates:
         - Host=**.addresponseheader.org
-        - Url=/headers
+        - Path=/headers
         filters:
         - AddResponseHeader=X-Request-Foo, Bar
 
@@ -91,7 +91,7 @@ spring:
         uri: ${test.uri}
         predicates:
         - Host=**.removerequestheader.org
-        - Url=/headers
+        - Path=/headers
         filters:
         - RemoveRequestHeader=X-Request-Foo
 
@@ -100,7 +100,7 @@ spring:
         uri: ${test.uri}
         predicates:
         - Host=**.removereresponseheader.org
-        - Url=/headers
+        - Path=/headers
         filters:
         - AddResponseHeader=X-Request-Foo, Bar
         - RemoveResponseHeader=X-Request-Foo
@@ -110,7 +110,7 @@ spring:
         uri: ${test.uri}
         predicates:
         - Host=**.secureheaders.org
-        - Url=/headers
+        - Path=/headers
         filters:
         - SecureHeaders
 
@@ -119,7 +119,7 @@ spring:
         uri: ${test.uri}
         predicates:
         - Host=**.setpath.org
-        - Url=/foo/{segment}
+        - Path=/foo/{segment}
         filters:
         - SetPath=/{segment}
 
@@ -128,7 +128,7 @@ spring:
         uri: ${test.uri}
         predicates:
         - Host=**.setreresponseheader.org
-        - Url=/headers
+        - Path=/headers
         filters:
         - AddResponseHeader=X-Request-Foo, Bar1
         - AddResponseHeader=X-Request-Foo, Bar2
@@ -139,7 +139,7 @@ spring:
         uri: ${test.uri}
         predicates:
         - Host=**.setstatusint.org
-        - Url=/headers
+        - Path=/headers
         filters:
         - name: SetStatus
           args: 401
@@ -149,7 +149,7 @@ spring:
         uri: ${test.uri}
         predicates:
         - Host=**.setstatusstring.org
-        - Url=/headers
+        - Path=/headers
         filters:
         - SetStatus=BAD_REQUEST
 
@@ -169,7 +169,7 @@ spring:
       - id: default_path_to_httpbin
         uri: ${test.uri}
         predicates:
-        - name: Url
+        - name: Path
           args: /**
 
 myservice:

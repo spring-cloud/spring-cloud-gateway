@@ -41,10 +41,10 @@ import reactor.test.StepVerifier;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
-public class UrlRoutePredicateIntegrationTests extends BaseWebClientTests {
+public class PathRoutePredicateIntegrationTests extends BaseWebClientTests {
 
 	@Test
-	public void urlRouteWorks() {
+	public void pathRouteWorks() {
 		Mono<ClientResponse> result = webClient.get()
 				.uri("/get")
 				.exchange();
