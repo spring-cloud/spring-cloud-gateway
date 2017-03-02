@@ -11,17 +11,14 @@
 	<name>Spring Cloud Gateway Sample</name>
 	<description>Spring Cloud Gateway Sample</description>
 
-    <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.0.0.BUILD-SNAPSHOT</version>
-        <relativePath/> <!-- lookup parent from repository -->
-    </parent>
+	<parent>
+		<groupId>org.springframework.cloud</groupId>
+		<artifactId>spring-cloud-gateway</artifactId>
+		<version>1.0.0.BUILD-SNAPSHOT</version>
+		<relativePath>..</relativePath> <!-- lookup parent from repository -->
+	</parent>
 
     <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <java.version>1.8</java.version>
     </properties>
 
 	<dependencies>
