@@ -11,15 +11,128 @@
 
 include::intro.adoc[]
 
-== TODO: Document Spring Cloud Gateway
-
-TODO: Do documentation
-
 [[gateway-starter]]
-=== How to Include Spring Cloud Gateway
+== How to Include Spring Cloud Gateway
 
 To include Spring Cloud Gateway in your project use the starter with group `org.springframework.cloud`
 and artifact id `spring-cloud-starter-gateway`. See the http://projects.spring.io/spring-cloud/[Spring Cloud Project page]
 for details on setting up your build system with the current Spring Cloud Release Train.
 
+Include the `@EnableGateway` annotation on any `@Configuration` class to enable Spring Cloud Gateway.
 
+== Glossary
+
+TODO: document the meaning of terms to follow, like Route, Predicate and Filter
+
+== How It Works
+
+TODO: give an overview of how the gateway works with maybe a ascii diagram
+
+== Route Predicates
+
+Spring Cloud Gateway matches routes as part of the Spring WebFlux `HandlerMapping` infrastructure. Spring Cloud Gateway includes many built-in Route Predicates. All of these predicates match on different attributes of the HTTP request.
+
+=== After Route Predicate
+TODO: document After Route Predicate
+
+=== Before Route Predicate
+TODO: document Before Route Predicate
+
+=== Between Route Predicate
+TODO: document Between Route Predicate
+
+=== Cookie Route Predicate
+TODO: document Cookie Route Predicate
+
+=== Header Route Predicate
+TODO: document Header Route Predicate
+
+=== Host Route Predicate
+TODO: document Host Route Predicate
+
+=== Method Route Predicate
+TODO: document Method Route Predicate
+
+=== Path Route Predicate
+TODO: document Path Route Predicate
+
+=== Query Route Predicate
+TODO: document Query Route Predicate
+
+=== RemoteAddr Route Predicate
+TODO: document RemoteAddr Route Predicate
+
+== Route Filters
+
+Route filters allow the modification of the incoming HTTP request or outgoing HTTP response in some manner. Route filters are scoped to a particular route. Spring Cloud Gateway includes many built-in Route Filters.
+
+=== AddRequestHeader Route Filter
+TODO: document AddRequestHeader Route Filter
+
+=== AddRequestParameter Route Filter
+TODO: document AddRequestParameter Route Filter
+
+=== AddResponseHeader Route Filter
+TODO: document AddResponseHeader Route Filter
+
+=== Hystrix Route Filter
+TODO: document Hystrix Route Filter
+
+=== RedirectTo Route Filter
+TODO: document RedirectTo Route Filter
+
+=== RemoveNonProxyHeaders Route Filter
+TODO: document RemoveNonProxyHeaders Route Filter
+
+=== RemoveRequestHeader Route Filter
+TODO: document RemoveRequestHeader Route Filter
+
+=== RemoveResponseHeader Route Filter
+TODO: document RemoveResponseHeader Route Filter
+
+=== RewritePath Route Filter
+TODO: document RewritePath Route Filter
+
+=== SecureHeaders Route Filter
+TODO: document SecureHeaders Route Filter
+
+=== SetPath Route Filter
+TODO: document SetPath Route Filter
+
+=== SetResponseHeader Route Filter
+TODO: document SetResponseHeader Route Filter
+
+=== SetStatus Route Filter
+TODO: document SetStatus Route Filter
+
+== Global Filters
+
+TODO: document Global Filters
+
+== Configuration
+
+TODO: document configuration via Spring Boot external properties
+
+== Actuator API
+
+TODO: document the `/gateway` actuator endpoint
+
+== Developer Guide
+
+TODO: overview of writing custom integrations
+
+=== Writing Custom Route Predicates
+
+TODO: document writing Custom Route Predicates
+
+=== Writing Custom Route Filters
+
+TODO: document writing Custom Route Filters
+
+=== Writing Custom Global Filters
+
+TODO: document writing Custom Global Filters
+
+=== Writing Custom Route Locators and Writers
+
+TODO: document writing Custom Route Locators and Writers

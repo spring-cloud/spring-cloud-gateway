@@ -7,11 +7,16 @@ include::intro.adoc[]
 
 == Features
 
-* TODO: document features
 * Java 8
 * Spring Framework 5
 * Spring Boot 2
 * Dynamic routing
+* Route matching built into Spring Handler Mapping
+* Route matching on HTTP Request (Path, Method, Header, Host, etc...)
+* Filters scoped to Matching Route
+* Filters can modify downstream HTTP Request and HTTP Response (Add/Remove Headers, Add/Remove Parameters, Rewrite Path, Set Path, Hystrix, etc...)
+* API or configuration driven
+* Supports Spring Cloud `DiscoveryClient` for configuring Routes
 
 == Building
 
