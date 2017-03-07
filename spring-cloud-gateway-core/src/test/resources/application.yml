@@ -1,13 +1,15 @@
 test:
   hostport: httpbin.org:80
 #  hostport: localhost:5000
-  uri: http://${test.hostport}
+#  uri: http://${test.hostport}
+  uri: lb://testservice
 
 spring:
   cloud:
     gateway:
       default-filters:
       - AddResponseHeader=X-Response-Default-Foo, Default-Bar
+      - PrefixPath=/httpbin
 
       # TODO: breakup configuration for individual tests (though some are reused)
       routes:
@@ -172,10 +174,10 @@ spring:
         - name: Path
           args: /**
 
-myservice:
-  ribbon:
-    NIWSServerListClassName: com.netflix.loadbalancer.ConfigurationBasedServerList
-    listOfServers: ${test.hostport}
+#myservice:
+#  ribbon:
+#    NIWSServerListClassName: com.netflix.loadbalancer.ConfigurationBasedServerList
+#    listOfServers: ${test.hostport}
 
 #hystrix.command.failcmd.execution.isolation.thread.timeoutInMilliseconds: 1000
 
