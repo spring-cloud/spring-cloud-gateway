@@ -15,7 +15,7 @@
  *
  */
 
-package org.springframework.cloud.gateway.api;
+package org.springframework.cloud.gateway.model;
 
 import java.util.Arrays;
 import java.util.Objects;

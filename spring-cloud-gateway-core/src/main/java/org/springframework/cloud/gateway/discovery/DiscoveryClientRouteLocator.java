@@ -20,10 +20,10 @@ package org.springframework.cloud.gateway.discovery;
 import java.net.URI;
 
 import org.springframework.cloud.client.discovery.DiscoveryClient;
-import org.springframework.cloud.gateway.api.FilterDefinition;
-import org.springframework.cloud.gateway.api.PredicateDefinition;
-import org.springframework.cloud.gateway.api.Route;
-import org.springframework.cloud.gateway.api.RouteLocator;
+import org.springframework.cloud.gateway.model.FilterDefinition;
+import org.springframework.cloud.gateway.model.PredicateDefinition;
+import org.springframework.cloud.gateway.model.Route;
+import org.springframework.cloud.gateway.model.RouteLocator;
 import org.springframework.cloud.gateway.filter.route.RewritePathRouteFilter;
 import org.springframework.cloud.gateway.handler.predicate.PathRoutePredicate;
 

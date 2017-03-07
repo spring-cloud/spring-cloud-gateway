@@ -23,6 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
+import org.springframework.cloud.gateway.support.NotFoundException;
 import org.springframework.core.Ordered;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilterChain;
@@ -61,6 +62,10 @@ public class LoadBalancerClientFilter implements GlobalFilter, Ordered {
 		log.trace("LoadBalancerClientFilter url before: " + url);
 
 		final ServiceInstance instance = loadBalancer.choose(url.getHost());
+
+		if (instance == null) {
+			throw new NotFoundException("");
+		}
 
 		URI requestUrl = UriComponentsBuilder.fromUri(url)
 				.scheme(instance.isSecure()? "https" : "http") //TODO: support websockets
