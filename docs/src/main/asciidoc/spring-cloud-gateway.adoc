@@ -30,7 +30,7 @@ TODO: give an overview of how the gateway works with maybe a ascii diagram
 
 == Route Predicates
 
-Spring Cloud Gateway matches routes as part of the Spring WebFlux `HandlerMapping` infrastructure. Spring Cloud Gateway includes many built-in Route Predicates. All of these predicates match on different attributes of the HTTP request.
+Spring Cloud Gateway matches routes as part of the Spring WebFlux `HandlerMapping` infrastructure. Spring Cloud Gateway includes many built-in Route Predicates. All of these predicates match on different attributes of the HTTP request. Multiple Route Predicates can be combined and are combined via logical `and`.
 
 === After Route Predicate
 TODO: document After Route Predicate
@@ -80,7 +80,7 @@ spring:
 This route matches if the request has a header named `X-Request-Id` whos value matches the `\d+` regular expression (has a value of one or more digits).
 
 === Host Route Predicate
-The Host Route Predicate takes one parameters: the host name pattern. The pattern is an Ant style pattern with `.` as the separator. This predicates matches the `Host` header that matches the patter.
+The Host Route Predicate takes one parameter: the host name pattern. The pattern is an Ant style pattern with `.` as the separator. This predicates matches the `Host` header that matches the pattern.
 
 .application.yml
 [source,yaml]
@@ -100,7 +100,23 @@ This route would match if the request has a `Host` header has the value `www.som
 
 
 === Method Route Predicate
-TODO: document Method Route Predicate
+The Method Route Predicate takes one parameter: the HTTP method to match.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      # =====================================
+      - id: host_route
+        uri: http://example.org
+        predicates:
+        - Method=GET
+----
+
+This route would match if the request method was a `GET`.
 
 === Path Route Predicate
 TODO: document Path Route Predicate
