@@ -42,7 +42,7 @@ TODO: document Before Route Predicate
 TODO: document Between Route Predicate
 
 === Cookie Route Predicate
-The Cookie Route Predicate takes two parameters, the cookie name and a regular expression. This predicates matches cookies that have the given name and who's value matches the regular expression.
+The Cookie Route Predicate takes two parameters, the cookie name and a regular expression. This predicate matches cookies that have the given name and the value matches the regular expression.
 
 .application.yml
 [source,yaml]
@@ -61,7 +61,7 @@ spring:
 This route matches the request has a cookie named `chocolate` who's value matches the `ch.p` regular expression.
 
 === Header Route Predicate
-The Header Route Predicate takes two parameters, the header name and a regular expression. This predicates matches with a header that has the given name and who's value matches the regular expression.
+The Header Route Predicate takes two parameters, the header name and a regular expression. This predicate matches with a header that has the given name and the value matches the regular expression.
 
 .application.yml
 [source,yaml]
@@ -80,7 +80,24 @@ spring:
 This route matches if the request has a header named `X-Request-Id` whos value matches the `\d+` regular expression (has a value of one or more digits).
 
 === Host Route Predicate
-TODO: document Host Route Predicate
+The Host Route Predicate takes one parameters: the host name pattern. The pattern is an Ant style pattern with `.` as the separator. This predicates matches the `Host` header that matches the patter.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      # =====================================
+      - id: host_route
+        uri: http://example.org
+        predicates:
+        - Host=**.somehost.org
+----
+
+This route would match if the request has a `Host` header has the value `www.somehost.org` or `beta.somehost.org`.
+
 
 === Method Route Predicate
 TODO: document Method Route Predicate
