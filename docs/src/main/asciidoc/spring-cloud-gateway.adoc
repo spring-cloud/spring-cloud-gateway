@@ -24,10 +24,12 @@ Include the `@EnableGateway` annotation on any `@Configuration` class to enable 
 
 TODO: document the meaning of terms to follow, like Route, Predicate and Filter
 
+[[gateway-how-it-works]]
 == How It Works
 
 TODO: give an overview of how the gateway works with maybe a ascii diagram
 
+[[gateway-route-predicates]]
 == Route Predicates
 
 Spring Cloud Gateway matches routes as part of the Spring WebFlux `HandlerMapping` infrastructure. Spring Cloud Gateway includes many built-in Route Predicates. All of these predicates match on different attributes of the HTTP request. Multiple Route Predicates can be combined and are combined via logical `and`.
@@ -110,7 +112,7 @@ spring:
     gateway:
       routes:
       # =====================================
-      - id: host_route
+      - id: method_route
         uri: http://example.org
         predicates:
         - Method=GET
@@ -119,7 +121,25 @@ spring:
 This route would match if the request method was a `GET`.
 
 === Path Route Predicate
-TODO: document Path Route Predicate
+The Path Route Predicate takes one parameter: a Spring `PathMatcher` pattern.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      # =====================================
+      - id: host_route
+        uri: http://example.org
+        predicates:
+        - Path=/foo/{segment}
+----
+
+This route would match if the request path was, for example: `/foo/1` or `/foo/bar`.
+
+This predicate extracts the URI template variables (like `segment` defined in the example above) as a map of names and values and places it in the `ServerWebExchange.getAttributes()` with a key defined in `PathRoutePredicate.URL_PREDICATE_VARS_ATTR`. Those values are then available for use by <<gateway-route-filters,Route Filters>>
 
 === Query Route Predicate
 TODO: document Query Route Predicate
@@ -127,6 +147,7 @@ TODO: document Query Route Predicate
 === RemoteAddr Route Predicate
 TODO: document RemoteAddr Route Predicate
 
+[[gateway-route-filters]]
 == Route Filters
 
 Route filters allow the modification of the incoming HTTP request or outgoing HTTP response in some manner. Route filters are scoped to a particular route. Spring Cloud Gateway includes many built-in Route Filters.
