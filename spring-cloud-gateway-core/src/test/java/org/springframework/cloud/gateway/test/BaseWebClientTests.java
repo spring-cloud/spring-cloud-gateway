@@ -159,27 +159,6 @@ public class BaseWebClientTests {
 			});
 		}
 
-		@Bean(name="PrefixPathRouteFilter")
-		public RouteFilter prefixPathRouteFilter() {
-			return new RouteFilter() {
-				@Override
-				public WebFilter apply(String... args) {
-					validate(1, args);
-					final String prefix = args[0];
-					return (exchange, chain) -> {
-						ServerHttpRequest req = exchange.getRequest();
-						String newPath = prefix + req.getURI().getPath();
-
-						ServerHttpRequest request = req.mutate()
-								.path(newPath)
-								.build();
-
-						return chain.filter(exchange.mutate().request(request).build());
-					};
-				}
-			};
-		}
-
 		@Bean
 		@Order(500)
 		public GlobalFilter modifyResponseFilter() {

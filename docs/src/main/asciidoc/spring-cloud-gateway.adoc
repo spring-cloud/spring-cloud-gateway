@@ -143,6 +143,9 @@ TODO: document AddResponseHeader Route Filter
 === Hystrix Route Filter
 TODO: document Hystrix Route Filter
 
+=== PrefixPath Route Filter
+TODO: document PrefixPath Route Filter
+
 === RedirectTo Route Filter
 TODO: document RedirectTo Route Filter
 
