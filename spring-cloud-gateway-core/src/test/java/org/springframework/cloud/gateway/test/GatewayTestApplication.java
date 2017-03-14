@@ -23,7 +23,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.gateway.EnableGateway;
-import org.springframework.cloud.gateway.model.RouteLocator;
+import org.springframework.cloud.gateway.api.RouteLocator;
 import org.springframework.cloud.gateway.config.GatewayProperties;
 import org.springframework.cloud.gateway.config.PropertiesRouteLocator;
 import org.springframework.cloud.gateway.discovery.DiscoveryClientRouteLocator;

@@ -21,7 +21,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.cloud.gateway.EnableGateway;
-import org.springframework.cloud.gateway.model.RouteLocator;
+import org.springframework.cloud.gateway.api.RouteLocator;
 import org.springframework.cloud.gateway.config.GatewayProperties;
 import org.springframework.cloud.gateway.config.PropertiesRouteLocator;
 import org.springframework.cloud.gateway.support.CachingRouteLocator;

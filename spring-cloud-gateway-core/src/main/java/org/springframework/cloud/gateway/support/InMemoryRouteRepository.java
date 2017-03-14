@@ -21,8 +21,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.springframework.cloud.gateway.model.Route;
-import org.springframework.cloud.gateway.model.RouteLocator;
-import org.springframework.cloud.gateway.model.RouteWriter;
+import org.springframework.cloud.gateway.api.RouteLocator;
+import org.springframework.cloud.gateway.api.RouteWriter;
 
 import static java.util.Collections.synchronizedMap;
 

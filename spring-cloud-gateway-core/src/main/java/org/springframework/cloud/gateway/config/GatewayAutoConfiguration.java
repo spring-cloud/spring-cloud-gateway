@@ -28,8 +28,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.cloud.gateway.actuate.GatewayEndpoint;
 import org.springframework.cloud.gateway.filter.route.PrefixPathRouteFilter;
-import org.springframework.cloud.gateway.model.RouteLocator;
-import org.springframework.cloud.gateway.model.RouteWriter;
+import org.springframework.cloud.gateway.api.RouteLocator;
+import org.springframework.cloud.gateway.api.RouteWriter;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.LoadBalancerClientFilter;
 import org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter;

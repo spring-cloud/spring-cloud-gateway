@@ -18,7 +18,7 @@
 package org.springframework.cloud.gateway.config;
 
 import org.springframework.cloud.gateway.model.Route;
-import org.springframework.cloud.gateway.model.RouteLocator;
+import org.springframework.cloud.gateway.api.RouteLocator;
 
 import reactor.core.publisher.Flux;
 

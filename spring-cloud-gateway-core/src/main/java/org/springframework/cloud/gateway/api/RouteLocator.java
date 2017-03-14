@@ -15,8 +15,9 @@
  *
  */
 
-package org.springframework.cloud.gateway.model;
+package org.springframework.cloud.gateway.api;
 
+import org.springframework.cloud.gateway.model.Route;
 import reactor.core.publisher.Flux;
 
 /**

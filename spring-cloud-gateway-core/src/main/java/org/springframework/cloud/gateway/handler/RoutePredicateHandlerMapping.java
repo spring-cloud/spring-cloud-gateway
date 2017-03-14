@@ -26,7 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-import org.springframework.cloud.gateway.model.RouteLocator;
+import org.springframework.cloud.gateway.api.RouteLocator;
 import org.springframework.cloud.gateway.model.Route;
 import org.springframework.cloud.gateway.model.PredicateDefinition;
 import org.springframework.cloud.gateway.handler.predicate.RoutePredicate;
