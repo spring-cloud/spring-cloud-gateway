@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.filter.factory;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.tuple.Tuple;
 import org.springframework.web.server.WebFilter;
 
 import java.util.Arrays;
@@ -61,7 +62,7 @@ public class RemoveNonProxyHeadersWebFilterFactory implements WebFilterFactory {
 	}
 
 	@Override
-	public WebFilter apply(String... args) {
+	public WebFilter apply(Tuple args) {
 		//TODO: support filter args
 
 		return (exchange, chain) -> {

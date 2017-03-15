@@ -17,8 +17,12 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
+import org.springframework.tuple.Tuple;
 import org.springframework.web.server.WebFilter;
 import org.springframework.http.server.reactive.ServerHttpRequest;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author Spencer Gibb
@@ -28,9 +32,13 @@ public class RemoveRequestHeaderWebFilterFactory implements WebFilterFactory {
 	private static final String FAKE_HEADER = "_______force_______";
 
 	@Override
-	public WebFilter apply(String... args) {
-		validate(1, args);
-		final String header = args[0];
+	public List<String> argNames() {
+		return Arrays.asList(NAME_KEY);
+	}
+
+	@Override
+	public WebFilter apply(Tuple args) {
+		final String header = args.getString(NAME_KEY);
 
 		return (exchange, chain) -> {
 			ServerHttpRequest request = exchange.getRequest().mutate()

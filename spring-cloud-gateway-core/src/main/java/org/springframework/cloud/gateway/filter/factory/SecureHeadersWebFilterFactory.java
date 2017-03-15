@@ -18,6 +18,7 @@
 package org.springframework.cloud.gateway.filter.factory;
 
 import org.springframework.http.HttpHeaders;
+import org.springframework.tuple.Tuple;
 import org.springframework.web.server.WebFilter;
 
 /**
@@ -42,7 +43,7 @@ public class SecureHeadersWebFilterFactory implements WebFilterFactory {
 	}
 
 	@Override
-	public WebFilter apply(String... args) {
+	public WebFilter apply(Tuple args) {
 		//TODO: allow args to override properties
 
 		return (exchange, chain) -> {

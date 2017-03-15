@@ -19,11 +19,14 @@ package org.springframework.cloud.gateway.filter.factory;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
+import java.util.List;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
+import org.springframework.tuple.Tuple;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.WebFilter;
@@ -34,10 +37,14 @@ import org.springframework.web.server.WebFilter;
 public class AddRequestParameterWebFilterFactory implements WebFilterFactory {
 
 	@Override
-	public WebFilter apply(String... args) {
-		validate(2, args);
-		String parameter = args[0];
-		String value = args[1];
+	public List<String> argNames() {
+		return Arrays.asList(NAME_KEY, VALUE_KEY);
+	}
+
+	@Override
+	public WebFilter apply(Tuple args) {
+		String parameter = args.getString(NAME_KEY);
+		String value = args.getString(VALUE_KEY);
 
 		return (exchange, chain) -> {
 

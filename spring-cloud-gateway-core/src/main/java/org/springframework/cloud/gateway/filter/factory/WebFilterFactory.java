@@ -18,8 +18,12 @@
 package org.springframework.cloud.gateway.filter.factory;
 
 import org.springframework.cloud.gateway.support.NameUtils;
+import org.springframework.tuple.Tuple;
 import org.springframework.util.Assert;
 import org.springframework.web.server.WebFilter;
+
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author Spencer Gibb
@@ -27,15 +31,35 @@ import org.springframework.web.server.WebFilter;
 @FunctionalInterface
 public interface WebFilterFactory {
 
+	String NAME_KEY = "name";
+	String VALUE_KEY = "value";
+
 	//TODO: move from String... to Tuple
-	WebFilter apply(String... args);
+	WebFilter apply(Tuple args);
 
 	default String name() {
 		return NameUtils.normalizeFilterName(getClass());
 	}
 
-	default void validate(int requiredSize, String... args) {
-		Assert.isTrue(args != null && args.length == requiredSize,
+	/**
+	 * Returns hints about the number of args and the order for shortcut parsing.
+	 * @return
+	 */
+	default List<String> argNames() {
+		return Collections.emptyList();
+	}
+
+	/**
+	 * Validate supplied argument size against {@see #argNames} size.
+	 * Useful for variable arg predicates.
+	 * @return
+	 */
+	default boolean validateArgs() {
+		return true;
+	}
+
+	default void validate(int requiredSize, Tuple args) {
+		Assert.isTrue(args != null && args.size() == requiredSize,
 				"args must have "+ requiredSize +" entry(s)");
 	}
 }

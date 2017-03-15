@@ -19,21 +19,32 @@ package org.springframework.cloud.gateway.filter.factory;
 
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.http.HttpStatus;
+import org.springframework.tuple.Tuple;
 import org.springframework.web.server.WebFilter;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.setResponseStatus;
 
 import reactor.core.publisher.Mono;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * @author Spencer Gibb
  */
 public class SetStatusWebFilterFactory implements WebFilterFactory {
 
+	public static final String STATUS_KEY = "status";
+
 	@Override
-	public WebFilter apply(String... args) {
-		validate(1, args);
-		final HttpStatus httpStatus = ServerWebExchangeUtils.parse(args[0]);
+	public List<String> argNames() {
+		return Arrays.asList(STATUS_KEY);
+	}
+
+	@Override
+	public WebFilter apply(Tuple args) {
+		String status = args.getRawString(STATUS_KEY);
+		final HttpStatus httpStatus = ServerWebExchangeUtils.parse(status);
 
 		return (exchange, chain) -> {
 

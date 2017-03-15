@@ -170,10 +170,12 @@ public class RequestPredicateHandlerMapping extends AbstractHandlerMapping {
 
 		List<String> argNames = found.argNames();
 		if (!argNames.isEmpty()) {
-			// ensure size is the same for key replacement later
-			if (found.validateArgSize() && args.size() != argNames.size()) {
-				throw new IllegalArgumentException("Wrong number of arguments. Expected " + argNames
-						+ " " + argNames + ". Found "+ args.size() +" " + args +"'");
+			if (!argNames.isEmpty()) {
+				// ensure size is the same for key replacement later
+				if (found.validateArgs() && args.size() != argNames.size()) {
+					throw new IllegalArgumentException("Wrong number of arguments. Expected " + argNames
+							+ " " + argNames + ". Found " + args.size() + " " + args + "'");
+				}
 			}
 		}
 
@@ -193,6 +195,15 @@ public class RequestPredicateHandlerMapping extends AbstractHandlerMapping {
 		}
 
 		Tuple tuple = builder.build();
+
+		if (found.validateArgs()) {
+			for (String name : argNames) {
+				if (!tuple.hasFieldName(name)) {
+					throw new IllegalArgumentException("Missing argument '" + name + "'. Given " + tuple);
+				}
+			}
+		}
+
 		return found.apply(tuple);
 	}
 

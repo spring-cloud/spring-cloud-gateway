@@ -20,16 +20,20 @@ package org.springframework.cloud.gateway.filter.factory;
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-import org.springframework.web.server.WebFilter;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.http.server.reactive.MockServerHttpResponse;
 import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 import org.springframework.web.server.adapter.DefaultServerWebExchange;
-import reactor.core.publisher.Mono;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.springframework.cloud.gateway.filter.factory.RewritePathWebFilterFactory.REGEXP_KEY;
+import static org.springframework.cloud.gateway.filter.factory.RewritePathWebFilterFactory.REPLACEMENT_KEY;
+import static org.springframework.tuple.TupleBuilder.tuple;
+
+import reactor.core.publisher.Mono;
 
 /**
  * @author Spencer Gibb
@@ -47,7 +51,7 @@ public class RewritePathWebFilterFactoryTests {
 	}
 
 	private void testRewriteFilter(String regex, String replacement, String actualPath, String expectedPath) {
-		WebFilter filter = new RewritePathWebFilterFactory().apply(regex, replacement);
+		WebFilter filter = new RewritePathWebFilterFactory().apply(tuple().of(REGEXP_KEY, regex, REPLACEMENT_KEY, replacement));
 
 		MockServerHttpRequest request = MockServerHttpRequest
 				.get("http://localhost"+ actualPath)

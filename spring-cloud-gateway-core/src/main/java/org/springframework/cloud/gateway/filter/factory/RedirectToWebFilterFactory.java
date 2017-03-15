@@ -20,10 +20,13 @@ package org.springframework.cloud.gateway.filter.factory;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.List;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpResponse;
+import org.springframework.tuple.Tuple;
 import org.springframework.web.server.WebFilter;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.parse;
@@ -35,18 +38,26 @@ import reactor.core.publisher.Mono;
  * @author Spencer Gibb
  */
 public class RedirectToWebFilterFactory implements WebFilterFactory {
+
+	public static final String STATUS_KEY = "status";
+	public static final String URL_KEY = "url";
+
 	@Override
-	public WebFilter apply(String... args) {
-		validate(2, args);
-		final String statusString = args[0];
-		final String uri = args[1];
+	public List<String> argNames() {
+		return Arrays.asList(STATUS_KEY, URL_KEY);
+	}
+
+	@Override
+	public WebFilter apply(Tuple args) {
+		String statusString = args.getRawString(STATUS_KEY);
+		String urlString = args.getString(URL_KEY);
 
 		final HttpStatus httpStatus = parse(statusString);
 		final URL url;
 		try {
-			url = URI.create(uri).toURL();
+			url = URI.create(urlString).toURL();
 		} catch (MalformedURLException e) {
-			throw new IllegalArgumentException("Invalid url " + uri, e);
+			throw new IllegalArgumentException("Invalid url " + urlString, e);
 		}
 
 		return (exchange, chain) ->

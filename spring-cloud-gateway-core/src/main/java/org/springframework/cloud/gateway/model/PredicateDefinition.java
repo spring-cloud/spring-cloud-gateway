@@ -70,6 +70,10 @@ public class PredicateDefinition {
 		this.args = args;
 	}
 
+	public void addArg(String key, String value) {
+		this.args.put(key, value);
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;

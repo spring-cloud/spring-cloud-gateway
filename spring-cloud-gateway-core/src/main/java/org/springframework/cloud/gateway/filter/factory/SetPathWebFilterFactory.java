@@ -18,9 +18,12 @@
 package org.springframework.cloud.gateway.filter.factory;
 
 import java.net.URI;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.tuple.Tuple;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.util.UriTemplate;
 
@@ -32,11 +35,18 @@ import static org.springframework.web.reactive.function.server.RouterFunctions.U
  */
 public class SetPathWebFilterFactory implements WebFilterFactory {
 
+	public static final String TEMPLATE_KEY = "template";
+
+	@Override
+	public List<String> argNames() {
+		return Arrays.asList(TEMPLATE_KEY);
+	}
+
 	@Override
 	@SuppressWarnings("unchecked")
-	public WebFilter apply(String... args) {
-		validate(1, args);
-		UriTemplate uriTemplate = new UriTemplate(args[0]);
+	public WebFilter apply(Tuple args) {
+		String template = args.getString(TEMPLATE_KEY);
+		UriTemplate uriTemplate = new UriTemplate(template);
 
 		return (exchange, chain) -> {
 			Map<String, String> variables = getAttribute(exchange, URI_TEMPLATE_VARIABLES_ATTRIBUTE, Map.class);

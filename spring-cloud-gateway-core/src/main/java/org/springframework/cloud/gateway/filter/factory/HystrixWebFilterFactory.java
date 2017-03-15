@@ -17,6 +17,7 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
+import org.springframework.tuple.Tuple;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
@@ -30,15 +31,22 @@ import rx.Observable;
 import rx.RxReactiveStreams;
 import rx.Subscription;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * @author Spencer Gibb
  */
 public class HystrixWebFilterFactory implements WebFilterFactory {
 
 	@Override
-	public WebFilter apply(String... args) {
-		validate(1, args);
-		final String commandName = args[0];
+	public List<String> argNames() {
+		return Arrays.asList(NAME_KEY);
+	}
+
+	@Override
+	public WebFilter apply(Tuple args) {
+		final String commandName = args.getString(NAME_KEY);
 		final HystrixCommandGroupKey groupKey = HystrixCommandGroupKey.Factory.asKey(getClass().getSimpleName());
 		final HystrixCommandKey commandKey = HystrixCommandKey.Factory.asKey(commandName);
 

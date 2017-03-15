@@ -17,7 +17,11 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
+import org.springframework.tuple.Tuple;
 import org.springframework.web.server.WebFilter;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author Spencer Gibb
@@ -25,9 +29,13 @@ import org.springframework.web.server.WebFilter;
 public class RemoveResponseHeaderWebFilterFactory implements WebFilterFactory {
 
 	@Override
-	public WebFilter apply(String... args) {
-		validate(1, args);
-		final String header = args[0];
+	public List<String> argNames() {
+		return Arrays.asList(NAME_KEY);
+	}
+
+	@Override
+	public WebFilter apply(Tuple args) {
+		final String header = args.getString(NAME_KEY);
 
 		return (exchange, chain) -> {
 			exchange.getResponse().getHeaders().remove(header);

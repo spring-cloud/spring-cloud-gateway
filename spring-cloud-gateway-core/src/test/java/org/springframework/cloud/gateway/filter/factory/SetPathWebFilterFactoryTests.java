@@ -32,6 +32,8 @@ import org.springframework.web.server.adapter.DefaultServerWebExchange;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.springframework.cloud.gateway.filter.factory.SetPathWebFilterFactory.TEMPLATE_KEY;
+import static org.springframework.tuple.TupleBuilder.tuple;
 
 import reactor.core.publisher.Mono;
 
@@ -54,7 +56,7 @@ public class SetPathWebFilterFactoryTests {
 	}
 
 	private void testRewriteFilter(String template, String actualPath, String expectedPath, HashMap<String, String> variables) {
-		WebFilter filter = new SetPathWebFilterFactory().apply(new String[]{template});
+		WebFilter filter = new SetPathWebFilterFactory().apply(tuple().of(TEMPLATE_KEY, template));
 
 		MockServerHttpRequest request = MockServerHttpRequest
 				.get("http://localhost"+ actualPath)

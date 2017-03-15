@@ -17,7 +17,11 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
+import org.springframework.tuple.Tuple;
 import org.springframework.web.server.WebFilter;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author Spencer Gibb
@@ -25,10 +29,14 @@ import org.springframework.web.server.WebFilter;
 public class AddResponseHeaderWebFilterFactory implements WebFilterFactory {
 
 	@Override
-	public WebFilter apply(String... args) {
-		validate(2, args);
-		final String header = args[0];
-		final String value = args[1];
+	public List<String> argNames() {
+		return Arrays.asList(NAME_KEY, VALUE_KEY);
+	}
+
+	@Override
+	public WebFilter apply(Tuple args) {
+		final String header = args.getString(NAME_KEY);
+		final String value = args.getString(VALUE_KEY);
 
 		return (exchange, chain) -> {
 			exchange.getResponse().getHeaders().add(header, value);

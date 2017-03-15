@@ -39,7 +39,7 @@ public class QueryRequestPredicateFactory implements RequestPredicateFactory {
 	}
 
 	@Override
-	public boolean validateArgSize() {
+	public boolean validateArgs() {
 		return false;
 	}
 

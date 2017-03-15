@@ -151,7 +151,8 @@ spring:
         - Path=/headers
         filters:
         - name: SetStatus
-          args: 401
+          args:
+            status: 401
 
       # =====================================
       - id: set_status_string_test

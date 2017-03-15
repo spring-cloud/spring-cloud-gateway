@@ -18,18 +18,28 @@
 package org.springframework.cloud.gateway.filter.factory;
 
 import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.tuple.Tuple;
 import org.springframework.web.server.WebFilter;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author Spencer Gibb
  */
 public class PrefixPathWebFilterFactory implements WebFilterFactory {
 
+	public static final String PREFIX_KEY = "prefix";
+
+	@Override
+	public List<String> argNames() {
+		return Arrays.asList(PREFIX_KEY);
+	}
+
 	@Override
 	@SuppressWarnings("unchecked")
-	public WebFilter apply(String... args) {
-		validate(1, args);
-		final String prefix = args[0];
+	public WebFilter apply(Tuple args) {
+		final String prefix = args.getString(PREFIX_KEY);
 
 		return (exchange, chain) -> {
 			ServerHttpRequest req = exchange.getRequest();

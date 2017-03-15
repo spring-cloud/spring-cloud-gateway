@@ -18,7 +18,6 @@
 package org.springframework.cloud.gateway.handler;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -36,10 +35,13 @@ import org.springframework.cloud.gateway.model.FilterDefinition;
 import org.springframework.cloud.gateway.model.Route;
 import org.springframework.cloud.gateway.config.GatewayProperties;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
+import org.springframework.cloud.gateway.support.NameUtils;
 import org.springframework.cloud.gateway.support.RefreshRoutesEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
+import org.springframework.tuple.Tuple;
+import org.springframework.tuple.TupleBuilder;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
@@ -153,16 +155,49 @@ public class FilteringWebHandler extends WebHandlerDecorator {
 					if (filter == null) {
 						throw new IllegalArgumentException("Unable to find WebFilterFactory with name " + definition.getName());
 					}
+					Map<String, String> args = definition.getArgs();
 					if (logger.isDebugEnabled()) {
-						List<String> args;
-						if (definition.getArgs() != null) {
-							args = Arrays.asList(definition.getArgs());
-						} else {
-							args = Collections.emptyList();
-						}
 						logger.debug("Route " + id + " applying filter " + args + " to " + definition.getName());
 					}
-					return filter.apply(definition.getArgs());
+
+					//TODO: move Tuple building to common class, see RequestPredicateFactory.lookup
+					TupleBuilder builder = TupleBuilder.tuple();
+
+					List<String> argNames = filter.argNames();
+					if (!argNames.isEmpty()) {
+						// ensure size is the same for key replacement later
+						if (filter.validateArgs() && args.size() != argNames.size()) {
+							throw new IllegalArgumentException("Wrong number of arguments. Expected " + argNames
+									+ " " + argNames + ". Found " + args.size() + " " + args + "'");
+						}
+					}
+
+					int entryIdx = 0;
+					for (Map.Entry<String, String> entry : args.entrySet()) {
+						String key = entry.getKey();
+
+						// RequestPredicateFactory has name hints and this has a fake key name
+						// replace with the matching key hint
+						if (key.startsWith(NameUtils.GENERATED_NAME_PREFIX) && !argNames.isEmpty()
+								&& entryIdx < args.size()) {
+							key = argNames.get(entryIdx);
+						}
+
+						builder.put(key, entry.getValue());
+						entryIdx++;
+					}
+
+					Tuple tuple = builder.build();
+
+					if (filter.validateArgs()) {
+						for (String name : argNames) {
+							if (!tuple.hasFieldName(name)) {
+								throw new IllegalArgumentException("Missing argument '" + name + "'. Given " + tuple);
+							}
+						}
+					}
+
+					return filter.apply(tuple);
 				})
 				.collect(Collectors.toList());
 

@@ -46,11 +46,11 @@ public interface RequestPredicateFactory {
 	}
 
 	/**
-	 * Validate supplied argument size against {@see #argNames} size.
+	 * Auto validate supplied argument size against {@see #argNames} size and that an arg for each key exists.
 	 * Useful for variable arg predicates.
 	 * @return
 	 */
-	default boolean validateArgSize() {
+	default boolean validateArgs() {
 		return true;
 	}
 
