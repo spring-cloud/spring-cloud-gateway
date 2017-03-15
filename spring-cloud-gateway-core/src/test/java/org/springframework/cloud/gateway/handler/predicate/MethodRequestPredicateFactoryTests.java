@@ -41,13 +41,13 @@ import reactor.test.StepVerifier;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
-public class HostRoutePredicateIntegrationTests extends BaseWebClientTests {
+public class MethodRequestPredicateFactoryTests extends BaseWebClientTests {
 
 	@Test
 	public void hostRouteWorks() {
 		Mono<ClientResponse> result = webClient.get()
 				.uri("/get")
-				.header("Host", "www.example.org")
+				.header("Host", "www.method.org")
 				.exchange();
 
 		StepVerifier.create(result)
@@ -58,7 +58,7 @@ public class HostRoutePredicateIntegrationTests extends BaseWebClientTests {
 							assertThat(httpHeaders.getFirst(HANDLER_MAPPER_HEADER))
 									.isEqualTo(RequestPredicateHandlerMapping.class.getSimpleName());
 							assertThat(httpHeaders.getFirst(ROUTE_ID_HEADER))
-									.isEqualTo("host_example_to_httpbin");
+									.isEqualTo("method_test");
 						})
 				.expectComplete()
 				.verify(DURATION);

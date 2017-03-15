@@ -20,12 +20,12 @@ package org.springframework.cloud.gateway.filter.route;
 import java.net.URI;
 import java.util.Map;
 
-import org.springframework.web.server.WebFilter;
 import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.web.server.WebFilter;
 import org.springframework.web.util.UriTemplate;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.getAttribute;
-import static org.springframework.cloud.gateway.handler.predicate.PathRoutePredicate.URL_PREDICATE_VARS_ATTR;
+import static org.springframework.web.reactive.function.server.RouterFunctions.URI_TEMPLATE_VARIABLES_ATTRIBUTE;
 
 /**
  * @author Spencer Gibb
@@ -39,7 +39,7 @@ public class SetPathRouteFilter implements RouteFilter {
 		UriTemplate uriTemplate = new UriTemplate(args[0]);
 
 		return (exchange, chain) -> {
-			Map<String, String> variables = getAttribute(exchange, URL_PREDICATE_VARS_ATTR, Map.class);
+			Map<String, String> variables = getAttribute(exchange, URI_TEMPLATE_VARIABLES_ATTRIBUTE, Map.class);
 			ServerHttpRequest req = exchange.getRequest();
 			URI uri = uriTemplate.expand(variables);
 			String newPath = uri.getPath();

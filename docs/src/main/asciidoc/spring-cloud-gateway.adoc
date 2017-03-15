@@ -29,22 +29,22 @@ TODO: document the meaning of terms to follow, like Route, Predicate and Filter
 
 TODO: give an overview of how the gateway works with maybe a ascii diagram
 
-[[gateway-route-predicates]]
-== Route Predicates
+[[gateway-request-predicates-factories]]
+== Request Predicate Factories
 
-Spring Cloud Gateway matches routes as part of the Spring WebFlux `HandlerMapping` infrastructure. Spring Cloud Gateway includes many built-in Route Predicates. All of these predicates match on different attributes of the HTTP request. Multiple Route Predicates can be combined and are combined via logical `and`.
+Spring Cloud Gateway matches routes as part of the Spring WebFlux `HandlerMapping` infrastructure. Spring Cloud Gateway includes many built-in Request Predicate Factorys. All of these predicates match on different attributes of the HTTP request. Multiple Request Predicate Factorys can be combined and are combined via logical `and`.
 
-=== After Route Predicate
-TODO: document After Route Predicate
+=== After Request Predicate Factory
+TODO: document After Request Predicate Factory
 
-=== Before Route Predicate
-TODO: document Before Route Predicate
+=== Before Request Predicate Factory
+TODO: document Before Request Predicate Factory
 
-=== Between Route Predicate
-TODO: document Between Route Predicate
+=== Between Request Predicate Factory
+TODO: document Between Request Predicate Factory
 
-=== Cookie Route Predicate
-The Cookie Route Predicate takes two parameters, the cookie name and a regular expression. This predicate matches cookies that have the given name and the value matches the regular expression.
+=== Cookie Request Predicate Factory
+The Cookie Request Predicate Factory takes two parameters, the cookie name and a regular expression. This predicate matches cookies that have the given name and the value matches the regular expression.
 
 .application.yml
 [source,yaml]
@@ -62,8 +62,8 @@ spring:
 
 This route matches the request has a cookie named `chocolate` who's value matches the `ch.p` regular expression.
 
-=== Header Route Predicate
-The Header Route Predicate takes two parameters, the header name and a regular expression. This predicate matches with a header that has the given name and the value matches the regular expression.
+=== Header Request Predicate Factory
+The Header Request Predicate Factory takes two parameters, the header name and a regular expression. This predicate matches with a header that has the given name and the value matches the regular expression.
 
 .application.yml
 [source,yaml]
@@ -81,8 +81,8 @@ spring:
 
 This route matches if the request has a header named `X-Request-Id` whos value matches the `\d+` regular expression (has a value of one or more digits).
 
-=== Host Route Predicate
-The Host Route Predicate takes one parameter: the host name pattern. The pattern is an Ant style pattern with `.` as the separator. This predicates matches the `Host` header that matches the pattern.
+=== Host Request Predicate Factory
+The Host Request Predicate Factory takes one parameter: the host name pattern. The pattern is an Ant style pattern with `.` as the separator. This predicates matches the `Host` header that matches the pattern.
 
 .application.yml
 [source,yaml]
@@ -101,8 +101,8 @@ spring:
 This route would match if the request has a `Host` header has the value `www.somehost.org` or `beta.somehost.org`.
 
 
-=== Method Route Predicate
-The Method Route Predicate takes one parameter: the HTTP method to match.
+=== Method Request Predicate Factory
+The Method Request Predicate Factory takes one parameter: the HTTP method to match.
 
 .application.yml
 [source,yaml]
@@ -120,8 +120,8 @@ spring:
 
 This route would match if the request method was a `GET`.
 
-=== Path Route Predicate
-The Path Route Predicate takes one parameter: a Spring `PathMatcher` pattern.
+=== Path Request Predicate Factory
+The Path Request Predicate Factory takes one parameter: a Spring `PathMatcher` pattern.
 
 .application.yml
 [source,yaml]
@@ -141,11 +141,11 @@ This route would match if the request path was, for example: `/foo/1` or `/foo/b
 
 This predicate extracts the URI template variables (like `segment` defined in the example above) as a map of names and values and places it in the `ServerWebExchange.getAttributes()` with a key defined in `PathRoutePredicate.URL_PREDICATE_VARS_ATTR`. Those values are then available for use by <<gateway-route-filters,Route Filters>>
 
-=== Query Route Predicate
-TODO: document Query Route Predicate
+=== Query Request Predicate Factory
+TODO: document Query Request Predicate Factory
 
-=== RemoteAddr Route Predicate
-TODO: document RemoteAddr Route Predicate
+=== RemoteAddr Request Predicate Factory
+TODO: document RemoteAddr Request Predicate Factory
 
 [[gateway-route-filters]]
 == Route Filters
@@ -210,9 +210,9 @@ TODO: document the `/gateway` actuator endpoint
 
 TODO: overview of writing custom integrations
 
-=== Writing Custom Route Predicates
+=== Writing Custom Request Predicate Factorys
 
-TODO: document writing Custom Route Predicates
+TODO: document writing Custom Request Predicate Factorys
 
 === Writing Custom Route Filters
 

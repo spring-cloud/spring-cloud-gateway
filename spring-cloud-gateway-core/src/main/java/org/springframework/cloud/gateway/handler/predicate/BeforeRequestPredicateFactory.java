@@ -17,20 +17,26 @@
 
 package org.springframework.cloud.gateway.handler.predicate;
 
-import java.util.function.Predicate;
+import java.time.ZonedDateTime;
 
-import org.springframework.util.Assert;
-import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.reactive.function.server.RequestPredicate;
+
+import static org.springframework.cloud.gateway.handler.predicate.BetweenRequestPredicateFactory.parseZonedDateTime;
 
 /**
  * @author Spencer Gibb
  */
-public interface RoutePredicate {
+public class BeforeRequestPredicateFactory implements RequestPredicateFactory {
 
-	Predicate<ServerWebExchange> apply(String... args);
+	@Override
+	public RequestPredicate apply(String... args) {
+		validate(1, args);
+		final ZonedDateTime dateTime = parseZonedDateTime(args[0]);
 
-	default void validate(int minimumSize, String... args) {
-		Assert.isTrue(args != null && args.length >= minimumSize,
-				"args must have at least "+ minimumSize +" entry(s)");
+		return request -> {
+			final ZonedDateTime now = ZonedDateTime.now();
+			return now.isBefore(dateTime);
+		};
 	}
+
 }

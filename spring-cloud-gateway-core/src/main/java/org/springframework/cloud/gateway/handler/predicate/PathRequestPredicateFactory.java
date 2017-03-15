@@ -15,21 +15,22 @@
  *
  */
 
-package org.springframework.cloud.gateway.support;
+package org.springframework.cloud.gateway.handler.predicate;
 
-import org.springframework.cloud.gateway.filter.route.RouteFilter;
-import org.springframework.cloud.gateway.handler.predicate.RequestPredicateFactory;
+import org.springframework.web.reactive.function.server.RequestPredicate;
+import org.springframework.web.reactive.function.server.RequestPredicates;
 
 /**
  * @author Spencer Gibb
  */
-public class NameUtils {
+public class PathRequestPredicateFactory implements RequestPredicateFactory {
 
-	public static String normalizePredicateName(Class<? extends RequestPredicateFactory> clazz) {
-		return clazz.getSimpleName().replace(RequestPredicateFactory.class.getSimpleName(), "");
-	}
+	@Override
+	public RequestPredicate apply(String... args) {
+		validate(1, args);
+		String pattern = args[0];
 
-	public static String normalizeFilterName(Class<? extends RouteFilter> clazz) {
-		return clazz.getSimpleName().replace(RouteFilter.class.getSimpleName(), "");
+		//TODO: support custom PathPatternParser
+		return RequestPredicates.path(pattern);
 	}
 }

@@ -17,27 +17,30 @@
 
 package org.springframework.cloud.gateway.handler.predicate;
 
-import java.time.ZonedDateTime;
-import java.util.function.Predicate;
-
-import org.springframework.web.server.ServerWebExchange;
-
-import static org.springframework.cloud.gateway.handler.predicate.BetweenRoutePredicate.parseZonedDateTime;
+import org.springframework.util.AntPathMatcher;
+import org.springframework.util.PathMatcher;
+import org.springframework.web.reactive.function.server.RequestPredicate;
+import org.springframework.web.reactive.function.server.RequestPredicates;
 
 /**
  * @author Spencer Gibb
  */
-public class BeforeRoutePredicate implements RoutePredicate {
+public class HostRequestPredicateFactory implements RequestPredicateFactory {
 
-	@Override
-	public Predicate<ServerWebExchange> apply(String... args) {
-		validate(1, args);
-		final ZonedDateTime dateTime = parseZonedDateTime(args[0]);
+	private PathMatcher pathMatcher = new AntPathMatcher(".");
 
-		return exchange -> {
-			final ZonedDateTime now = ZonedDateTime.now();
-			return now.isBefore(dateTime);
-		};
+	public void setPathMatcher(PathMatcher pathMatcher) {
+		this.pathMatcher = pathMatcher;
 	}
 
+	@Override
+	public RequestPredicate apply(String... args) {
+		validate(1, args);
+		String pattern = args[0];
+
+		return RequestPredicates.headers(headers -> {
+			String host = headers.asHttpHeaders().getFirst("Host");
+			return this.pathMatcher.match(pattern, host);
+		});
+	}
 }

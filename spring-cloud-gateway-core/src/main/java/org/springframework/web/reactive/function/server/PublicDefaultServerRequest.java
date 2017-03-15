@@ -15,28 +15,32 @@
  *
  */
 
-package org.springframework.cloud.gateway.handler.predicate;
+package org.springframework.web.reactive.function.server;
 
-import java.time.ZonedDateTime;
-import java.util.function.Predicate;
-
+import org.springframework.http.HttpCookie;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.server.ServerWebExchange;
-
-import static org.springframework.cloud.gateway.handler.predicate.BetweenRoutePredicate.parseZonedDateTime;
 
 /**
  * @author Spencer Gibb
  */
-public class AfterRoutePredicate implements RoutePredicate {
+public class PublicDefaultServerRequest extends DefaultServerRequest {
+	private ServerWebExchange exchange;
 
-	@Override
-	public Predicate<ServerWebExchange> apply(String... args) {
-		validate(1, args);
-		final ZonedDateTime dateTime = parseZonedDateTime(args[0]);
+	public PublicDefaultServerRequest(ServerWebExchange exchange) {
+		this(exchange, HandlerStrategies.withDefaults());
+	}
 
-		return exchange -> {
-			final ZonedDateTime now = ZonedDateTime.now();
-			return now.isAfter(dateTime);
-		};
+	public PublicDefaultServerRequest(ServerWebExchange exchange, HandlerStrategies strategies) {
+		super(exchange, strategies);
+		this.exchange = exchange;
+	}
+
+	public MultiValueMap<String, HttpCookie> getCookies() {
+		return this.exchange.getRequest().getCookies();
+	}
+
+	public ServerWebExchange getExchange() {
+		return exchange;
 	}
 }

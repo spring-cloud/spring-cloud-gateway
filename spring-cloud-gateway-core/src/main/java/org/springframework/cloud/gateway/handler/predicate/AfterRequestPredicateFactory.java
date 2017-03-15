@@ -17,31 +17,25 @@
 
 package org.springframework.cloud.gateway.handler.predicate;
 
-import java.util.List;
-import java.util.function.Predicate;
+import java.time.ZonedDateTime;
 
-import org.springframework.http.HttpCookie;
-import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.reactive.function.server.RequestPredicate;
+
+import static org.springframework.cloud.gateway.handler.predicate.BetweenRequestPredicateFactory.parseZonedDateTime;
 
 /**
  * @author Spencer Gibb
  */
-public class CookieRoutePredicate implements RoutePredicate {
+public class AfterRequestPredicateFactory implements RequestPredicateFactory {
 
 	@Override
-	public Predicate<ServerWebExchange> apply(String... args) {
-		validate(2, args);
-		String name = args[0];
-		String regexp = args[1];
+	public RequestPredicate apply(String... args) {
+		validate(1, args);
+		final ZonedDateTime dateTime = parseZonedDateTime(args[0]);
 
-		return exchange -> {
-			List<HttpCookie> cookies = exchange.getRequest().getCookies().get(name);
-			for (HttpCookie cookie : cookies) {
-				if (cookie.getValue().matches(regexp)) {
-					return true;
-				}
-			}
-			return false;
+		return request -> {
+			final ZonedDateTime now = ZonedDateTime.now();
+			return now.isAfter(dateTime);
 		};
 	}
 }

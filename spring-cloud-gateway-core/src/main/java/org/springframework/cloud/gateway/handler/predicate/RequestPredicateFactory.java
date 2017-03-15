@@ -17,23 +17,19 @@
 
 package org.springframework.cloud.gateway.handler.predicate;
 
-import java.util.function.Predicate;
-
-import org.springframework.http.HttpMethod;
-import org.springframework.web.server.ServerWebExchange;
+import org.springframework.util.Assert;
+import org.springframework.web.reactive.function.server.RequestPredicate;
 
 /**
  * @author Spencer Gibb
  */
-public class MethodRoutePredicate implements RoutePredicate {
+public interface RequestPredicateFactory {
 
-	@Override
-	public Predicate<ServerWebExchange> apply(String... args) {
-		validate(1, args);
-		String method = args[0];
-		return exchange -> {
-			HttpMethod requestMethod = exchange.getRequest().getMethod();
-			return requestMethod.matches(method);
-		};
+	//TODO: use tuple instead of String array
+	RequestPredicate apply(String... args);
+
+	default void validate(int minimumSize, String... args) {
+		Assert.isTrue(args != null && args.length >= minimumSize,
+				"args must have at least "+ minimumSize +" entry(s)");
 	}
 }

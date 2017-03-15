@@ -24,12 +24,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
-import java.util.function.Predicate;
 
 import org.springframework.cloud.gateway.api.RouteLocator;
+import org.springframework.cloud.gateway.handler.predicate.RequestPredicateFactory;
 import org.springframework.cloud.gateway.model.Route;
 import org.springframework.cloud.gateway.model.PredicateDefinition;
-import org.springframework.cloud.gateway.handler.predicate.RoutePredicate;
+import org.springframework.web.reactive.function.server.PublicDefaultServerRequest;
+import org.springframework.web.reactive.function.server.RequestPredicate;
 import org.springframework.web.reactive.handler.AbstractHandlerMapping;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebHandler;
@@ -42,29 +43,29 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.G
 /**
  * @author Spencer Gibb
  */
-public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
+public class RequestPredicateHandlerMapping extends AbstractHandlerMapping {
 
 	private final RouteLocator routeLocator;
 	private final WebHandler webHandler;
-	private final Map<String, RoutePredicate> routePredicates = new LinkedHashMap<>();
+	private final Map<String, RequestPredicateFactory> routePredicates = new LinkedHashMap<>();
 	//TODO: define semeantics for refresh (ie clearing and recalculating combinedPredicates)
-	private final Map<String, Predicate<ServerWebExchange>> combinedPredicates = new ConcurrentHashMap<>();
+	private final Map<String, RequestPredicate> combinedPredicates = new ConcurrentHashMap<>();
 
-	public RoutePredicateHandlerMapping(WebHandler webHandler, Map<String, RoutePredicate> routePredicates,
-										RouteLocator routeLocator) {
+	public RequestPredicateHandlerMapping(WebHandler webHandler, Map<String, RequestPredicateFactory> routePredicates,
+										  RouteLocator routeLocator) {
 		this.webHandler = webHandler;
 		this.routeLocator = routeLocator;
 
 		routePredicates.forEach((name, factory) -> {
 			String key = normalizeName(name);
 			if (this.routePredicates.containsKey(key)) {
-				this.logger.warn("A RoutePredicate named "+ key
+				this.logger.warn("A RequestPredicateFactory named "+ key
 						+ " already exists, class: " + this.routePredicates.get(key)
 						+ ". It will be overwritten.");
 			}
 			this.routePredicates.put(key, factory);
 			if (logger.isInfoEnabled()) {
-				logger.info("Loaded RoutePredicate [" + key + "]");
+				logger.info("Loaded RequestPredicateFactory [" + key + "]");
 			}
 		});
 
@@ -72,7 +73,7 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 	}
 
 	private String normalizeName(String name) {
-		return name.replace(RoutePredicate.class.getSimpleName(), "");
+		return name.replace(RequestPredicateFactory.class.getSimpleName(), "");
 	}
 
 	@Override
@@ -109,9 +110,9 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 
 	protected Mono<Route> lookupRoute(ServerWebExchange exchange) {
 		return this.routeLocator.getRoutes()
-				//TODO: cache predicate
-				.map(route -> getRouteCombinedPredicates(route))
-				.filter(rcp -> rcp.combinedPredicate.test(exchange))
+				.map(this::getRouteCombinedPredicates)
+				//TODO: fix PublicDefaultServerRequest?
+				.filter(rcp -> rcp.combinedPredicate.test(new PublicDefaultServerRequest(exchange)))
 				.next()
 				//TODO: error handling
 				.map(rcp -> {
@@ -129,7 +130,7 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 	}
 
 	private RouteCombinedPredicates getRouteCombinedPredicates(Route route) {
-		Predicate<ServerWebExchange> predicate = this.combinedPredicates
+		RequestPredicate predicate = this.combinedPredicates
 				.computeIfAbsent(route.getId(), k -> combinePredicates(route));
 
 		return new RouteCombinedPredicates(route, predicate);
@@ -137,31 +138,31 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 
 	private class RouteCombinedPredicates {
 		private Route route;
-		private Predicate<ServerWebExchange> combinedPredicate;
+		private RequestPredicate combinedPredicate;
 
-		public RouteCombinedPredicates(Route route, Predicate<ServerWebExchange> combinedPredicate) {
+		public RouteCombinedPredicates(Route route, RequestPredicate combinedPredicate) {
 			this.route = route;
 			this.combinedPredicate = combinedPredicate;
 		}
 	}
 
 
-	private Predicate<ServerWebExchange> combinePredicates(Route route) {
+	private RequestPredicate combinePredicates(Route route) {
 		List<PredicateDefinition> predicates = route.getPredicates();
-		Predicate<ServerWebExchange> predicate = lookup(route, predicates.get(0));
+		RequestPredicate predicate = lookup(route, predicates.get(0));
 
 		for (PredicateDefinition andPredicate : predicates.subList(1, predicates.size())) {
-			Predicate<ServerWebExchange> found = lookup(route, andPredicate);
+			RequestPredicate found = lookup(route, andPredicate);
 			predicate = predicate.and(found);
 		}
 
 		return predicate;
 	}
 
-	private Predicate<ServerWebExchange> lookup(Route route, PredicateDefinition predicate) {
-		RoutePredicate found = this.routePredicates.get(predicate.getName());
+	private RequestPredicate lookup(Route route, PredicateDefinition predicate) {
+		RequestPredicateFactory found = this.routePredicates.get(predicate.getName());
 		if (found == null) {
-			throw new IllegalArgumentException("Unable to find RoutePredicate with name " + predicate.getName());
+			throw new IllegalArgumentException("Unable to find RequestPredicateFactory with name " + predicate.getName());
 		}
 		if (logger.isDebugEnabled()) {
 			List<String> args;

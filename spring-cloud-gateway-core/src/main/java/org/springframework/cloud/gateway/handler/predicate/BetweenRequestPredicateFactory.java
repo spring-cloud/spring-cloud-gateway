@@ -20,18 +20,17 @@ package org.springframework.cloud.gateway.handler.predicate;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.util.function.Predicate;
 
 import org.springframework.util.Assert;
-import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.reactive.function.server.RequestPredicate;
 
 /**
  * @author Spencer Gibb
  */
-public class BetweenRoutePredicate implements RoutePredicate {
+public class BetweenRequestPredicateFactory implements RequestPredicateFactory {
 
 	@Override
-	public Predicate<ServerWebExchange> apply(String... args) {
+	public RequestPredicate apply(String... args) {
 		validate(2, args);
 
 		//TODO: is ZonedDateTime the right thing to use?
@@ -39,7 +38,7 @@ public class BetweenRoutePredicate implements RoutePredicate {
 		final ZonedDateTime dateTime2 = parseZonedDateTime(args[1]);
 		Assert.isTrue(dateTime1.isBefore(dateTime2), args[0] + " must be before " + args[1]);
 
-		return exchange -> {
+		return request -> {
 			final ZonedDateTime now = ZonedDateTime.now();
 			return now.isAfter(dateTime1) && now.isBefore(dateTime2);
 		};

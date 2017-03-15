@@ -20,23 +20,23 @@ package org.springframework.cloud.gateway.handler.predicate;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Predicate;
+import java.util.Optional;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.cloud.gateway.support.SubnetUtils;
-import org.springframework.http.server.reactive.ReactorServerHttpRequest;
-import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.reactive.function.server.PublicDefaultServerRequest;
+import org.springframework.web.reactive.function.server.RequestPredicate;
 
 /**
  * @author Spencer Gibb
  */
-public class RemoteAddrRoutePredicate implements RoutePredicate {
+public class RemoteAddrRequestPredicateFactory implements RequestPredicateFactory {
 
-	private static final Log log = LogFactory.getLog(RemoteAddrRoutePredicate.class);
+	private static final Log log = LogFactory.getLog(RemoteAddrRequestPredicateFactory.class);
 
 	@Override
-	public Predicate<ServerWebExchange> apply(String... args) {
+	public RequestPredicate apply(String... args) {
 		validate(1, args);
 
 		List<SubnetUtils> sources = new ArrayList<>();
@@ -46,19 +46,21 @@ public class RemoteAddrRoutePredicate implements RoutePredicate {
 			}
 		}
 
-		return exchange -> {
-			ReactorServerHttpRequest request = (ReactorServerHttpRequest) exchange.getRequest();
-			InetSocketAddress remoteAddress = request.getReactorRequest().remoteAddress();
-			String hostAddress = remoteAddress.getAddress().getHostAddress();
-			String host = exchange.getRequest().getURI().getHost();
+		return req -> {
+			PublicDefaultServerRequest serverRequest = (PublicDefaultServerRequest) req;
+			Optional<InetSocketAddress> remoteAddress = serverRequest.getExchange().getRequest().getRemoteAddress();
+			if (remoteAddress.isPresent()) {
+				String hostAddress = remoteAddress.get().getAddress().getHostAddress();
+				String host = req.uri().getHost();
 
-			if (!hostAddress.equals(host)) {
-				log.warn("Remote addresses didn't match " + hostAddress + " != " + host);
-			}
+				if (!hostAddress.equals(host)) {
+					log.warn("Remote addresses didn't match " + hostAddress + " != " + host);
+				}
 
-			for (SubnetUtils source : sources) {
-				if (source.getInfo().isInRange(hostAddress)) {
-					return true;
+				for (SubnetUtils source : sources) {
+					if (source.getInfo().isInRange(hostAddress)) {
+						return true;
+					}
 				}
 			}
 

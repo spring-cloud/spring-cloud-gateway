@@ -20,33 +20,33 @@ package org.springframework.cloud.gateway.handler.predicate;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.cloud.gateway.handler.predicate.BetweenRoutePredicateTests.getExchange;
-import static org.springframework.cloud.gateway.handler.predicate.BetweenRoutePredicateTests.minusHours;
-import static org.springframework.cloud.gateway.handler.predicate.BetweenRoutePredicateTests.minusHoursMillis;
-import static org.springframework.cloud.gateway.handler.predicate.BetweenRoutePredicateTests.plusHours;
-import static org.springframework.cloud.gateway.handler.predicate.BetweenRoutePredicateTests.plusHoursMillis;
+import static org.springframework.cloud.gateway.handler.predicate.BetweenRequestPredicateFactoryTests.getRequest;
+import static org.springframework.cloud.gateway.handler.predicate.BetweenRequestPredicateFactoryTests.minusHours;
+import static org.springframework.cloud.gateway.handler.predicate.BetweenRequestPredicateFactoryTests.minusHoursMillis;
+import static org.springframework.cloud.gateway.handler.predicate.BetweenRequestPredicateFactoryTests.plusHours;
+import static org.springframework.cloud.gateway.handler.predicate.BetweenRequestPredicateFactoryTests.plusHoursMillis;
 
 /**
  * @author Spencer Gibb
  */
-public class AfterRoutePredicateTests {
+public class BeforeRequestPredicateFactoryTests {
 
 	@Test
 	public void beforeStringWorks() {
 		String dateString = minusHours(1);
 
-		final boolean result = runPredicate(dateString);
+		boolean result = runPredicate(dateString);
 
-		assertThat(result).isTrue();
+		assertThat(result).isFalse();
 	}
 
 	@Test
 	public void afterStringWorks() {
 		String dateString = plusHours(1);
 
-		final boolean result = runPredicate(dateString);
+		boolean result = runPredicate(dateString);
 
-		assertThat(result).isFalse();
+		assertThat(result).isTrue();
 	}
 
 	@Test
@@ -55,7 +55,7 @@ public class AfterRoutePredicateTests {
 
 		final boolean result = runPredicate(dateString);
 
-		assertThat(result).isTrue();
+		assertThat(result).isFalse();
 	}
 
 	@Test
@@ -64,10 +64,10 @@ public class AfterRoutePredicateTests {
 
 		final boolean result = runPredicate(dateString);
 
-		assertThat(result).isFalse();
+		assertThat(result).isTrue();
 	}
 
 	private boolean runPredicate(String dateString) {
-		return new AfterRoutePredicate().apply(dateString).test(getExchange());
+		return new BeforeRequestPredicateFactory().apply(dateString).test(getRequest());
 	}
 }

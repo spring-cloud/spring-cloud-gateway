@@ -81,6 +81,13 @@ spring:
         - Host=**.loadbalancerclient.org
 
       # =====================================
+      - id: method_test
+        uri: ${test.uri}
+        predicates:
+        - Method=GET
+        - Host=**.method.org
+
+      # =====================================
       - id: redirect_to_test
         uri: ${test.uri}
         predicates:

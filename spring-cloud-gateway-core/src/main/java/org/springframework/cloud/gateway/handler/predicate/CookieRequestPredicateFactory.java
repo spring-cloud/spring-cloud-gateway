@@ -18,31 +18,28 @@
 package org.springframework.cloud.gateway.handler.predicate;
 
 import java.util.List;
-import java.util.function.Predicate;
 
-import org.springframework.web.server.ServerWebExchange;
+import org.springframework.http.HttpCookie;
+import org.springframework.web.reactive.function.server.PublicDefaultServerRequest;
+import org.springframework.web.reactive.function.server.RequestPredicate;
 
 /**
  * @author Spencer Gibb
  */
-public class QueryRoutePredicate implements RoutePredicate {
+public class CookieRequestPredicateFactory implements RequestPredicateFactory {
 
 	@Override
-	public Predicate<ServerWebExchange> apply(String... args) {
-		validate(1, args);
-		String param = args[0];
+	public RequestPredicate apply(String... args) {
+		validate(2, args);
+		String name = args[0];
+		String regexp = args[1];
 
-		return exchange -> {
-			if (args.length < 2) {
-				// check existence of header
-				return exchange.getRequest().getQueryParams().containsKey(param);
-			}
-
-			String regexp = args[1];
-
-			List<String> values = exchange.getRequest().getQueryParams().get(param);
-			for (String value : values) {
-				if (value.matches(regexp)) {
+		return request -> {
+			//TODO: bad cast?
+			PublicDefaultServerRequest req = (PublicDefaultServerRequest) request;
+			List<HttpCookie> cookies = req.getCookies().get(name);
+			for (HttpCookie cookie : cookies) {
+				if (cookie.getValue().matches(regexp)) {
 					return true;
 				}
 			}

@@ -23,7 +23,8 @@ import java.time.format.DateTimeFormatter;
 import org.junit.Test;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.http.server.reactive.MockServerHttpResponse;
-import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.reactive.function.server.PublicDefaultServerRequest;
+import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.server.adapter.DefaultServerWebExchange;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -31,7 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Spencer Gibb
  */
-public class BetweenRoutePredicateTests {
+public class BetweenRequestPredicateFactoryTests {
 
 	@Test
 	public void beforeStringWorks() {
@@ -94,7 +95,7 @@ public class BetweenRoutePredicateTests {
 	}
 
 	boolean runPredicate(String dateString1, String dateString2) {
-		return new BetweenRoutePredicate().apply(dateString1, dateString2).test(getExchange());
+		return new BetweenRequestPredicateFactory().apply(dateString1, dateString2).test(getRequest());
 	}
 
 	static String minusHoursMillis(int hours) {
@@ -115,8 +116,8 @@ public class BetweenRoutePredicateTests {
 		return ZonedDateTime.now().plusHours(hours).format(DateTimeFormatter.ISO_ZONED_DATE_TIME);
 	}
 
-	static ServerWebExchange getExchange() {
+	static ServerRequest getRequest() {
 		final MockServerHttpRequest request = MockServerHttpRequest.get("http://example.com").build();
-		return new DefaultServerWebExchange(request, new MockServerHttpResponse());
+		return new PublicDefaultServerRequest(new DefaultServerWebExchange(request, new MockServerHttpResponse()));
 	}
 }

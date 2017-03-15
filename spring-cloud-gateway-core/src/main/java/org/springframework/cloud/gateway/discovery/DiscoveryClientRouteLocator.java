@@ -20,12 +20,12 @@ package org.springframework.cloud.gateway.discovery;
 import java.net.URI;
 
 import org.springframework.cloud.client.discovery.DiscoveryClient;
+import org.springframework.cloud.gateway.api.RouteLocator;
+import org.springframework.cloud.gateway.filter.route.RewritePathRouteFilter;
+import org.springframework.cloud.gateway.handler.predicate.PathRequestPredicateFactory;
 import org.springframework.cloud.gateway.model.FilterDefinition;
 import org.springframework.cloud.gateway.model.PredicateDefinition;
 import org.springframework.cloud.gateway.model.Route;
-import org.springframework.cloud.gateway.api.RouteLocator;
-import org.springframework.cloud.gateway.filter.route.RewritePathRouteFilter;
-import org.springframework.cloud.gateway.handler.predicate.PathRoutePredicate;
 
 import static org.springframework.cloud.gateway.support.NameUtils.normalizeFilterName;
 import static org.springframework.cloud.gateway.support.NameUtils.normalizePredicateName;
@@ -56,7 +56,7 @@ public class DiscoveryClientRouteLocator implements RouteLocator {
 
 					// add a predicate that matches the url at /serviceId/**
 					PredicateDefinition predicate = new PredicateDefinition();
-					predicate.setName(normalizePredicateName(PathRoutePredicate.class));
+					predicate.setName(normalizePredicateName(PathRequestPredicateFactory.class));
 					predicate.setArgs("/" + serviceId + "/**");
 					route.getPredicates().add(predicate);
 
