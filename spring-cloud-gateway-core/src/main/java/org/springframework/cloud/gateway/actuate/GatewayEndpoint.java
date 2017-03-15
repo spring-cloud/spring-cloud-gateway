@@ -85,6 +85,8 @@ public class GatewayEndpoint implements ApplicationEventPublisherAware {/*extend
 	public Map<String, Object> invoke() {
 	}*/
 
+	// TODO: Add uncommited or new but not active routes endpoint
+
 	//TODO: this should really be a listener that responds to a RefreshEvent
 	@PostMapping("/refresh")
 	public Mono<Void> refresh() {
