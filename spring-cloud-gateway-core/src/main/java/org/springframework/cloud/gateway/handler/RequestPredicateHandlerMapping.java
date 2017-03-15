@@ -48,33 +48,29 @@ public class RequestPredicateHandlerMapping extends AbstractHandlerMapping {
 
 	private final RouteLocator routeLocator;
 	private final WebHandler webHandler;
-	private final Map<String, RequestPredicateFactory> routePredicates = new LinkedHashMap<>();
+	private final Map<String, RequestPredicateFactory> requestPredicates = new LinkedHashMap<>();
 	//TODO: define semeantics for refresh (ie clearing and recalculating combinedPredicates)
 	private final Map<String, RequestPredicate> combinedPredicates = new ConcurrentHashMap<>();
 
-	public RequestPredicateHandlerMapping(WebHandler webHandler, Map<String, RequestPredicateFactory> routePredicates,
+	public RequestPredicateHandlerMapping(WebHandler webHandler, List<RequestPredicateFactory> requestPredicates,
 										  RouteLocator routeLocator) {
 		this.webHandler = webHandler;
 		this.routeLocator = routeLocator;
 
-		routePredicates.forEach((name, factory) -> {
-			String key = normalizeName(name);
-			if (this.routePredicates.containsKey(key)) {
+		requestPredicates.forEach(factory -> {
+			String key = factory.name();
+			if (this.requestPredicates.containsKey(key)) {
 				this.logger.warn("A RequestPredicateFactory named "+ key
-						+ " already exists, class: " + this.routePredicates.get(key)
+						+ " already exists, class: " + this.requestPredicates.get(key)
 						+ ". It will be overwritten.");
 			}
-			this.routePredicates.put(key, factory);
+			this.requestPredicates.put(key, factory);
 			if (logger.isInfoEnabled()) {
 				logger.info("Loaded RequestPredicateFactory [" + key + "]");
 			}
 		});
 
 		setOrder(1);
-	}
-
-	private String normalizeName(String name) {
-		return name.replace(RequestPredicateFactory.class.getSimpleName(), "");
 	}
 
 	@Override
@@ -161,7 +157,7 @@ public class RequestPredicateHandlerMapping extends AbstractHandlerMapping {
 
 	//TODO: decouple from HandlerMapping?
 	private RequestPredicate lookup(Route route, PredicateDefinition predicate) {
-		RequestPredicateFactory found = this.routePredicates.get(predicate.getName());
+		RequestPredicateFactory found = this.requestPredicates.get(predicate.getName());
 		if (found == null) {
 			throw new IllegalArgumentException("Unable to find RequestPredicateFactory with name " + predicate.getName());
 		}

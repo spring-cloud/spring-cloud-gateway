@@ -20,6 +20,7 @@ package org.springframework.cloud.gateway.handler.predicate;
 import java.util.Collections;
 import java.util.List;
 
+import org.springframework.cloud.gateway.support.NameUtils;
 import org.springframework.tuple.Tuple;
 import org.springframework.util.Assert;
 import org.springframework.web.reactive.function.server.RequestPredicate;
@@ -31,6 +32,10 @@ public interface RequestPredicateFactory {
 
 	RequestPredicate apply(Tuple args);
 
+	default String name() {
+		return NameUtils.normalizePredicateName(getClass());
+	}
+
 	/**
 	 * Returns hints about the number of args and the order for shortcut parsing.
 	 * @return
@@ -39,6 +44,11 @@ public interface RequestPredicateFactory {
 		return Collections.emptyList();
 	}
 
+	/**
+	 * Validate supplied argument size against {@see #argNames} size.
+	 * Useful for variable arg predicates.
+	 * @return
+	 */
 	default boolean validateArgSize() {
 		return true;
 	}

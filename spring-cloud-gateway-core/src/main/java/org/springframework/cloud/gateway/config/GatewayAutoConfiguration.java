@@ -18,7 +18,6 @@
 package org.springframework.cloud.gateway.config;
 
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.boot.actuate.endpoint.Endpoint;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -114,13 +113,13 @@ public class GatewayAutoConfiguration {
 
 	@Bean
 	public FilteringWebHandler filteringWebHandler(GatewayProperties properties, List<GlobalFilter> globalFilters,
-												   Map<String, RouteFilter> routeFilters) {
+												   List<RouteFilter> routeFilters) {
 		return new FilteringWebHandler(properties, globalFilters, routeFilters);
 	}
 
 	@Bean
 	public RequestPredicateHandlerMapping requestPredicateHandlerMapping(FilteringWebHandler webHandler,
-																	   Map<String, RequestPredicateFactory> predicates,
+																	   List<RequestPredicateFactory> predicates,
 																	   RouteLocator routeLocator) {
 		return new RequestPredicateHandlerMapping(webHandler, predicates, routeLocator);
 	}
@@ -161,69 +160,69 @@ public class GatewayAutoConfiguration {
 
 	// Request Predicate beans
 
-	@Bean(name = "AfterRequestPredicateFactory")
+	@Bean
 	public AfterRequestPredicateFactory afterRequestPredicateFactory() {
 		return new AfterRequestPredicateFactory();
 	}
 
-	@Bean(name = "BeforeRequestPredicateFactory")
+	@Bean
 	public BeforeRequestPredicateFactory beforeRequestPredicateFactory() {
 		return new BeforeRequestPredicateFactory();
 	}
 
-	@Bean(name = "BetweenRequestPredicateFactory")
+	@Bean
 	public BetweenRequestPredicateFactory betweenRequestPredicateFactory() {
 		return new BetweenRequestPredicateFactory();
 	}
 
-	@Bean(name = "CookieRequestPredicateFactory")
+	@Bean
 	public CookieRequestPredicateFactory cookieRequestPredicateFactory() {
 		return new CookieRequestPredicateFactory();
 	}
 
-	@Bean(name = "HeaderRequestPredicateFactory")
+	@Bean
 	public HeaderRequestPredicateFactory headerRequestPredicateFactory() {
 		return new HeaderRequestPredicateFactory();
 	}
 
-	@Bean(name = "HostRequestPredicateFactory")
+	@Bean
 	public HostRequestPredicateFactory hostRequestPredicateFactory() {
 		return new HostRequestPredicateFactory();
 	}
 
-	@Bean(name = "MethodRequestPredicateFactory")
+	@Bean
 	public MethodRequestPredicateFactory methodRequestPredicateFactory() {
 		return new MethodRequestPredicateFactory();
 	}
 
-	@Bean(name = "PathRequestPredicateFactory")
+	@Bean
 	public PathRequestPredicateFactory pathRequestPredicateFactory() {
 		return new PathRequestPredicateFactory();
 	}
 
-	@Bean(name = "QueryRequestPredicateFactory")
+	@Bean
 	public QueryRequestPredicateFactory queryRequestPredicateFactory() {
 		return new QueryRequestPredicateFactory();
 	}
 
-	@Bean(name = "RemoteAddrRequestPredicateFactory")
+	@Bean
 	public RemoteAddrRequestPredicateFactory remoteAddrRequestPredicateFactory() {
 		return new RemoteAddrRequestPredicateFactory();
 	}
 
 	// Filter Factory beans
 
-	@Bean(name = "AddRequestHeaderRouteFilter")
+	@Bean
 	public AddRequestHeaderRouteFilter addRequestHeaderRouteFilter() {
 		return new AddRequestHeaderRouteFilter();
 	}
 
-	@Bean(name = "AddRequestParameterRouteFilter")
+	@Bean
 	public AddRequestParameterRouteFilter addRequestParameterRouteFilter() {
 		return new AddRequestParameterRouteFilter();
 	}
 
-	@Bean(name = "AddResponseHeaderRouteFilter")
+	@Bean
 	public AddResponseHeaderRouteFilter addResponseHeaderRouteFilter() {
 		return new AddResponseHeaderRouteFilter();
 	}
@@ -231,58 +230,58 @@ public class GatewayAutoConfiguration {
 	@Configuration
 	@ConditionalOnClass({HystrixObservableCommand.class, RxReactiveStreams.class})
 	protected static class HystrixConfiguration {
-		@Bean(name = "HystrixRouteFilter")
+		@Bean
 		public HystrixRouteFilter hystrixRouteFilter() {
 			return new HystrixRouteFilter();
 		}
 	}
 
-	@Bean(name = "PrefixPathRouteFilter")
+	@Bean
 	public PrefixPathRouteFilter prefixPathRouteFilter() {
 		return new PrefixPathRouteFilter();
 	}
 
-	@Bean(name = "RedirectToRouteFilter")
+	@Bean
 	public RedirectToRouteFilter redirectToRouteFilter() {
 		return new RedirectToRouteFilter();
 	}
 
-	@Bean(name = "RemoveNonProxyHeadersRouteFilter")
+	@Bean
 	public RemoveNonProxyHeadersRouteFilter removeNonProxyHeadersRouteFilter() {
 		return new RemoveNonProxyHeadersRouteFilter();
 	}
 
-	@Bean(name = "RemoveRequestHeaderRouteFilter")
+	@Bean
 	public RemoveRequestHeaderRouteFilter removeRequestHeaderRouteFilter() {
 		return new RemoveRequestHeaderRouteFilter();
 	}
 
-	@Bean(name = "RemoveResponseHeaderRouteFilter")
+	@Bean
 	public RemoveResponseHeaderRouteFilter removeResponseHeaderRouteFilter() {
 		return new RemoveResponseHeaderRouteFilter();
 	}
 
-	@Bean(name = "RewritePathRouteFilter")
+	@Bean
 	public RewritePathRouteFilter rewritePathRouteFilter() {
 		return new RewritePathRouteFilter();
 	}
 
-	@Bean(name = "SetPathRouteFilter")
+	@Bean
 	public SetPathRouteFilter setPathRouteFilter() {
 		return new SetPathRouteFilter();
 	}
 
-	@Bean(name = "SecureHeadersRouteFilter")
+	@Bean
 	public SecureHeadersRouteFilter secureHeadersRouteFilter(SecureHeadersProperties properties) {
 		return new SecureHeadersRouteFilter(properties);
 	}
 
-	@Bean(name = "SetResponseHeaderRouteFilter")
+	@Bean
 	public SetResponseHeaderRouteFilter setResponseHeaderRouteFilter() {
 		return new SetResponseHeaderRouteFilter();
 	}
 
-	@Bean(name = "SetStatusRouteFilter")
+	@Bean
 	public SetStatusRouteFilter setStatusRouteFilter() {
 		return new SetStatusRouteFilter();
 	}

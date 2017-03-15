@@ -17,6 +17,7 @@
 
 package org.springframework.cloud.gateway.filter.route;
 
+import org.springframework.cloud.gateway.support.NameUtils;
 import org.springframework.util.Assert;
 import org.springframework.web.server.WebFilter;
 
@@ -26,6 +27,10 @@ import org.springframework.web.server.WebFilter;
 public interface RouteFilter {
 
 	WebFilter apply(String... args);
+
+	default String name() {
+		return NameUtils.normalizeFilterName(getClass());
+	}
 
 	default void validate(int requiredSize, String... args) {
 		Assert.isTrue(args != null && args.length == requiredSize,

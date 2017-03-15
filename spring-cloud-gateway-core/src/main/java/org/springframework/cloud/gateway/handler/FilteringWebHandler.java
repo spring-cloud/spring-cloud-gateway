@@ -69,20 +69,16 @@ public class FilteringWebHandler extends WebHandlerDecorator {
 	private final ConcurrentMap<String, List<WebFilter>> combinedFiltersForRoute = new ConcurrentHashMap<>();
 
 	public FilteringWebHandler(GatewayProperties gatewayProperties, List<GlobalFilter> globalFilters,
-							   Map<String, RouteFilter> routeFilters) {
+							   List<RouteFilter> routeFilters) {
 		this(new EmptyWebHandler(), gatewayProperties, globalFilters, routeFilters);
 	}
 
 	public FilteringWebHandler(WebHandler targetHandler, GatewayProperties gatewayProperties, List<GlobalFilter> globalFilters,
-							   Map<String, RouteFilter> routeFilters) {
+							   List<RouteFilter> routeFilters) {
 		super(targetHandler);
 		this.gatewayProperties = gatewayProperties;
 		this.globalFilters = initList(globalFilters);
-		routeFilters.forEach((name, def) -> this.routeFilters.put(normalizeName(name), def));
-	}
-
-	private String normalizeName(String name) {
-		return name.replace(RouteFilter.class.getSimpleName(), "");
+		routeFilters.forEach(routeFilter -> this.routeFilters.put(routeFilter.name(), routeFilter));
 	}
 
 	private static <T> List<T> initList(List<T> list) {
