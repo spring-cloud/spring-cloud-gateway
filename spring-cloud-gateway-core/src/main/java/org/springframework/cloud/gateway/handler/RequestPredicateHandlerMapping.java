@@ -17,8 +17,6 @@
 
 package org.springframework.cloud.gateway.handler;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,18 +25,20 @@ import java.util.function.Function;
 
 import org.springframework.cloud.gateway.api.RouteLocator;
 import org.springframework.cloud.gateway.handler.predicate.RequestPredicateFactory;
-import org.springframework.cloud.gateway.model.Route;
 import org.springframework.cloud.gateway.model.PredicateDefinition;
+import org.springframework.cloud.gateway.model.Route;
+import org.springframework.tuple.Tuple;
+import org.springframework.tuple.TupleBuilder;
 import org.springframework.web.reactive.function.server.PublicDefaultServerRequest;
 import org.springframework.web.reactive.function.server.RequestPredicate;
 import org.springframework.web.reactive.handler.AbstractHandlerMapping;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebHandler;
 
-import reactor.core.publisher.Mono;
-
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_HANDLER_MAPPER_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
+
+import reactor.core.publisher.Mono;
 
 /**
  * @author Spencer Gibb
@@ -165,16 +165,18 @@ public class RequestPredicateHandlerMapping extends AbstractHandlerMapping {
 			throw new IllegalArgumentException("Unable to find RequestPredicateFactory with name " + predicate.getName());
 		}
 		if (logger.isDebugEnabled()) {
-			List<String> args;
-			if (predicate.getArgs() != null) {
-				args = Arrays.asList(predicate.getArgs());
-			} else {
-				args = Collections.emptyList();
-			}
 			logger.debug("Route " + route.getId() + " applying "
-					+ args + " to " + predicate.getName());
+					+ predicate.getArgs() + " to " + predicate.getName());
 		}
-		return found.apply(predicate.getArgs());
+
+		TupleBuilder builder = TupleBuilder.tuple();
+
+		for (Map.Entry<String, String> entry : predicate.getArgs().entrySet()) {
+			builder.put(entry.getKey(), entry.getValue());
+		}
+
+		Tuple tuple = builder.build();
+		return found.apply(tuple);
 	}
 
 	/**

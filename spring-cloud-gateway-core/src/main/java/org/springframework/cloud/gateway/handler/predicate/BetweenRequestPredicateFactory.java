@@ -21,6 +21,7 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 
+import org.springframework.tuple.Tuple;
 import org.springframework.util.Assert;
 import org.springframework.web.reactive.function.server.RequestPredicate;
 
@@ -30,13 +31,14 @@ import org.springframework.web.reactive.function.server.RequestPredicate;
 public class BetweenRequestPredicateFactory implements RequestPredicateFactory {
 
 	@Override
-	public RequestPredicate apply(String... args) {
+	public RequestPredicate apply(Tuple args) {
 		validate(2, args);
 
 		//TODO: is ZonedDateTime the right thing to use?
-		final ZonedDateTime dateTime1 = parseZonedDateTime(args[0]);
-		final ZonedDateTime dateTime2 = parseZonedDateTime(args[1]);
-		Assert.isTrue(dateTime1.isBefore(dateTime2), args[0] + " must be before " + args[1]);
+		final ZonedDateTime dateTime1 = parseZonedDateTime(args.getString(0));
+		final ZonedDateTime dateTime2 = parseZonedDateTime(args.getString(1));
+		Assert.isTrue(dateTime1.isBefore(dateTime2), args.getString(0) +
+				" must be before " + args.getString(1));
 
 		return request -> {
 			final ZonedDateTime now = ZonedDateTime.now();

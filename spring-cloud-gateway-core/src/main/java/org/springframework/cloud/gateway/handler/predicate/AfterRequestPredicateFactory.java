@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.handler.predicate;
 
 import java.time.ZonedDateTime;
 
+import org.springframework.tuple.Tuple;
 import org.springframework.web.reactive.function.server.RequestPredicate;
 
 import static org.springframework.cloud.gateway.handler.predicate.BetweenRequestPredicateFactory.parseZonedDateTime;
@@ -29,9 +30,9 @@ import static org.springframework.cloud.gateway.handler.predicate.BetweenRequest
 public class AfterRequestPredicateFactory implements RequestPredicateFactory {
 
 	@Override
-	public RequestPredicate apply(String... args) {
+	public RequestPredicate apply(Tuple args) {
 		validate(1, args);
-		final ZonedDateTime dateTime = parseZonedDateTime(args[0]);
+		final ZonedDateTime dateTime = parseZonedDateTime(args.getString(0));
 
 		return request -> {
 			final ZonedDateTime now = ZonedDateTime.now();

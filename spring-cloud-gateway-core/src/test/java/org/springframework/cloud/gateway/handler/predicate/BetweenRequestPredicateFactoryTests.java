@@ -28,6 +28,7 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.server.adapter.DefaultServerWebExchange;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.tuple.TupleBuilder.tuple;
 
 /**
  * @author Spencer Gibb
@@ -95,7 +96,7 @@ public class BetweenRequestPredicateFactoryTests {
 	}
 
 	boolean runPredicate(String dateString1, String dateString2) {
-		return new BetweenRequestPredicateFactory().apply(dateString1, dateString2).test(getRequest());
+		return new BetweenRequestPredicateFactory().apply(tuple().of("1", dateString1, "2", dateString2)).test(getRequest());
 	}
 
 	static String minusHoursMillis(int hours) {

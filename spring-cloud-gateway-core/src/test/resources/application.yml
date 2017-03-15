@@ -179,7 +179,8 @@ spring:
         uri: ${test.uri}
         predicates:
         - name: Path
-          args: /**
+          args:
+            path: /**
 
 #myservice:
 #  ribbon:

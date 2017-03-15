@@ -17,6 +17,7 @@
 
 package org.springframework.cloud.gateway.handler.predicate;
 
+import org.springframework.tuple.Tuple;
 import org.springframework.web.reactive.function.server.RequestPredicate;
 import org.springframework.web.reactive.function.server.RequestPredicates;
 
@@ -26,9 +27,9 @@ import org.springframework.web.reactive.function.server.RequestPredicates;
 public class PathRequestPredicateFactory implements RequestPredicateFactory {
 
 	@Override
-	public RequestPredicate apply(String... args) {
+	public RequestPredicate apply(Tuple args) {
 		validate(1, args);
-		String pattern = args[0];
+		String pattern = args.getString(0);
 
 		//TODO: support custom PathPatternParser
 		return RequestPredicates.path(pattern);

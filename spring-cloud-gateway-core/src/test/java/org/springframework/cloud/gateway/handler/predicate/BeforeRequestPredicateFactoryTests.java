@@ -25,6 +25,7 @@ import static org.springframework.cloud.gateway.handler.predicate.BetweenRequest
 import static org.springframework.cloud.gateway.handler.predicate.BetweenRequestPredicateFactoryTests.minusHoursMillis;
 import static org.springframework.cloud.gateway.handler.predicate.BetweenRequestPredicateFactoryTests.plusHours;
 import static org.springframework.cloud.gateway.handler.predicate.BetweenRequestPredicateFactoryTests.plusHoursMillis;
+import static org.springframework.tuple.TupleBuilder.tuple;
 
 /**
  * @author Spencer Gibb
@@ -68,6 +69,6 @@ public class BeforeRequestPredicateFactoryTests {
 	}
 
 	private boolean runPredicate(String dateString) {
-		return new BeforeRequestPredicateFactory().apply(dateString).test(getRequest());
+		return new BeforeRequestPredicateFactory().apply(tuple().of("1", dateString)).test(getRequest());
 	}
 }

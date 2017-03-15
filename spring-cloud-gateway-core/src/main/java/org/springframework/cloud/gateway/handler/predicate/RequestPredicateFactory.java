@@ -17,6 +17,7 @@
 
 package org.springframework.cloud.gateway.handler.predicate;
 
+import org.springframework.tuple.Tuple;
 import org.springframework.util.Assert;
 import org.springframework.web.reactive.function.server.RequestPredicate;
 
@@ -25,11 +26,10 @@ import org.springframework.web.reactive.function.server.RequestPredicate;
  */
 public interface RequestPredicateFactory {
 
-	//TODO: use tuple instead of String array
-	RequestPredicate apply(String... args);
+	RequestPredicate apply(Tuple args);
 
-	default void validate(int minimumSize, String... args) {
-		Assert.isTrue(args != null && args.length >= minimumSize,
+	default void validate(int minimumSize, Tuple args) {
+		Assert.isTrue(args != null && args.size() >= minimumSize,
 				"args must have at least "+ minimumSize +" entry(s)");
 	}
 }

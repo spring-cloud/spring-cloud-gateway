@@ -17,6 +17,7 @@
 
 package org.springframework.cloud.gateway.handler.predicate;
 
+import org.springframework.tuple.Tuple;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.PathMatcher;
 import org.springframework.web.reactive.function.server.RequestPredicate;
@@ -34,9 +35,9 @@ public class HostRequestPredicateFactory implements RequestPredicateFactory {
 	}
 
 	@Override
-	public RequestPredicate apply(String... args) {
+	public RequestPredicate apply(Tuple args) {
 		validate(1, args);
-		String pattern = args[0];
+		String pattern = args.getString(0);
 
 		return RequestPredicates.headers(headers -> {
 			String host = headers.asHttpHeaders().getFirst("Host");

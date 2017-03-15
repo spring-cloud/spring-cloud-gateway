@@ -17,6 +17,7 @@
 
 package org.springframework.cloud.gateway.handler.predicate;
 
+import org.springframework.tuple.Tuple;
 import org.springframework.web.reactive.function.server.PublicDefaultServerRequest;
 import org.springframework.web.reactive.function.server.RequestPredicate;
 import org.springframework.web.reactive.function.server.RequestPredicates;
@@ -27,11 +28,11 @@ import org.springframework.web.reactive.function.server.RequestPredicates;
 public class QueryRequestPredicateFactory implements RequestPredicateFactory {
 
 	@Override
-	public RequestPredicate apply(String... args) {
+	public RequestPredicate apply(Tuple args) {
 		validate(1, args);
-		String param = args[0];
+		String param = args.getString(0);
 
-		if (args.length < 2) {
+		if (args.size() < 2) {
 			return req -> {
 				//TODO: ServerRequest support for query params with no value
 				PublicDefaultServerRequest request = (PublicDefaultServerRequest) req;
@@ -39,7 +40,7 @@ public class QueryRequestPredicateFactory implements RequestPredicateFactory {
 			};
 		}
 
-		String regexp = args[1];
+		String regexp = args.getString(1);
 
 		return RequestPredicates.queryParam(param, value -> value.matches(regexp));
 	}

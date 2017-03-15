@@ -17,11 +17,14 @@
 
 package org.springframework.cloud.gateway.model;
 
-import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Objects;
 
 import javax.validation.ValidationException;
 import javax.validation.constraints.NotNull;
+
+import org.springframework.cloud.gateway.support.NameUtils;
 
 import static org.springframework.util.StringUtils.tokenizeToStringArray;
 
@@ -31,7 +34,7 @@ import static org.springframework.util.StringUtils.tokenizeToStringArray;
 public class PredicateDefinition {
 	@NotNull
 	private String name;
-	private String[] args;
+	private Map<String, String> args = new LinkedHashMap<>();
 
 	public PredicateDefinition() {
 	}
@@ -45,7 +48,10 @@ public class PredicateDefinition {
 		setName(text.substring(0, eqIdx));
 
 		String[] args = tokenizeToStringArray(text.substring(eqIdx+1), ",");
-		setArgs(args);
+
+		for (int i=0; i < args.length; i++) {
+			this.args.put(NameUtils.generateName(i), args[i]);
+		}
 	}
 
 	public String getName() {
@@ -56,11 +62,11 @@ public class PredicateDefinition {
 		this.name = name;
 	}
 
-	public String[] getArgs() {
+	public Map<String, String> getArgs() {
 		return args;
 	}
 
-	public void setArgs(String... args) {
+	public void setArgs(Map<String, String> args) {
 		this.args = args;
 	}
 
@@ -70,7 +76,7 @@ public class PredicateDefinition {
 		if (o == null || getClass() != o.getClass()) return false;
 		PredicateDefinition that = (PredicateDefinition) o;
 		return Objects.equals(name, that.name) &&
-				Arrays.equals(args, that.args);
+				Objects.equals(args, that.args);
 	}
 
 	@Override
@@ -82,7 +88,7 @@ public class PredicateDefinition {
 	public String toString() {
 		final StringBuilder sb = new StringBuilder("PredicateDefinition{");
 		sb.append("name='").append(name).append('\'');
-		sb.append(", args=").append(Arrays.toString(args));
+		sb.append(", args=").append(args);
 		sb.append('}');
 		return sb.toString();
 	}

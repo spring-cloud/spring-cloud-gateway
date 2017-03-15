@@ -20,6 +20,7 @@ package org.springframework.cloud.gateway.handler.predicate;
 import java.util.List;
 
 import org.springframework.http.HttpCookie;
+import org.springframework.tuple.Tuple;
 import org.springframework.web.reactive.function.server.PublicDefaultServerRequest;
 import org.springframework.web.reactive.function.server.RequestPredicate;
 
@@ -29,10 +30,10 @@ import org.springframework.web.reactive.function.server.RequestPredicate;
 public class CookieRequestPredicateFactory implements RequestPredicateFactory {
 
 	@Override
-	public RequestPredicate apply(String... args) {
+	public RequestPredicate apply(Tuple args) {
 		validate(2, args);
-		String name = args[0];
-		String regexp = args[1];
+		String name = args.getString(0);
+		String regexp = args.getString(1);
 
 		return request -> {
 			//TODO: bad cast?

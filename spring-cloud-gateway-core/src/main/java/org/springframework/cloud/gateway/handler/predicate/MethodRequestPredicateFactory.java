@@ -18,6 +18,7 @@
 package org.springframework.cloud.gateway.handler.predicate;
 
 import org.springframework.http.HttpMethod;
+import org.springframework.tuple.Tuple;
 import org.springframework.web.reactive.function.server.RequestPredicate;
 import org.springframework.web.reactive.function.server.RequestPredicates;
 
@@ -27,9 +28,9 @@ import org.springframework.web.reactive.function.server.RequestPredicates;
 public class MethodRequestPredicateFactory implements RequestPredicateFactory {
 
 	@Override
-	public RequestPredicate apply(String... args) {
+	public RequestPredicate apply(Tuple args) {
 		validate(1, args);
-		String method = args[0];
+		String method = args.getString(0);
 		return RequestPredicates.method(HttpMethod.resolve(method));
 	}
 }

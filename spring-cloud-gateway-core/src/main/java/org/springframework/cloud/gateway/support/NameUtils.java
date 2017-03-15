@@ -24,6 +24,11 @@ import org.springframework.cloud.gateway.handler.predicate.RequestPredicateFacto
  * @author Spencer Gibb
  */
 public class NameUtils {
+	public static final String GENERATED_NAME_PREFIX = "__:_._gen__+_";
+
+	public static String generateName(int i) {
+		return GENERATED_NAME_PREFIX + i;
+	}
 
 	public static String normalizePredicateName(Class<? extends RequestPredicateFactory> clazz) {
 		return clazz.getSimpleName().replace(RequestPredicateFactory.class.getSimpleName(), "");

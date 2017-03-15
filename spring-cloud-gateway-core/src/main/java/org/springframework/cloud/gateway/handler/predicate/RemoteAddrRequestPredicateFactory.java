@@ -25,6 +25,7 @@ import java.util.Optional;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.cloud.gateway.support.SubnetUtils;
+import org.springframework.tuple.Tuple;
 import org.springframework.web.reactive.function.server.PublicDefaultServerRequest;
 import org.springframework.web.reactive.function.server.RequestPredicate;
 
@@ -36,13 +37,13 @@ public class RemoteAddrRequestPredicateFactory implements RequestPredicateFactor
 	private static final Log log = LogFactory.getLog(RemoteAddrRequestPredicateFactory.class);
 
 	@Override
-	public RequestPredicate apply(String... args) {
+	public RequestPredicate apply(Tuple args) {
 		validate(1, args);
 
 		List<SubnetUtils> sources = new ArrayList<>();
 		if (args != null) {
-			for (String arg : args) {
-				addSource(sources, arg);
+			for (Object arg : args.getValues()) {
+				addSource(sources, (String) arg);
 			}
 		}
 
