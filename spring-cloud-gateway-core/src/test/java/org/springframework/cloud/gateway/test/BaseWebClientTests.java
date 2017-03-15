@@ -28,13 +28,19 @@ import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.cloud.gateway.EnableGateway;
+import org.springframework.cloud.gateway.api.RouteDefinitionLocator;
+import org.springframework.cloud.gateway.config.PropertiesRouteDefinitionLocator;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
+import org.springframework.cloud.gateway.model.Route;
 import org.springframework.cloud.gateway.model.RouteDefinition;
+import org.springframework.cloud.gateway.support.CompositeRouteDefinitionLocator;
+import org.springframework.cloud.gateway.support.InMemoryRouteDefinitionRepository;
 import org.springframework.cloud.netflix.ribbon.RibbonClient;
 import org.springframework.cloud.netflix.ribbon.RibbonClients;
 import org.springframework.cloud.netflix.ribbon.StaticServerList;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -50,6 +56,7 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.G
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
 import static org.springframework.cloud.gateway.test.TestUtils.parseMultipart;
 
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
@@ -157,15 +164,22 @@ public class BaseWebClientTests {
 		}
 
 		@Bean
+		@Primary
+		public RouteDefinitionLocator routeDefinitionLocator(InMemoryRouteDefinitionRepository inMemoryRouteDefinitionRepository,
+															 PropertiesRouteDefinitionLocator propertiesRouteDefinitionLocator) {
+			return new CompositeRouteDefinitionLocator(Flux.just(inMemoryRouteDefinitionRepository, propertiesRouteDefinitionLocator));
+		}
+
+		@Bean
 		@Order(500)
 		public GlobalFilter modifyResponseFilter() {
 			return (exchange, chain) -> {
 				log.info("modifyResponseFilter start");
 				String value = (String) exchange.getAttribute(GATEWAY_HANDLER_MAPPER_ATTR).orElse("N/A");
 				exchange.getResponse().getHeaders().add(HANDLER_MAPPER_HEADER, value);
-				RouteDefinition routeDefinition = (RouteDefinition) exchange.getAttribute(GATEWAY_ROUTE_ATTR).orElse(null);
-				if (routeDefinition != null) {
-					exchange.getResponse().getHeaders().add(ROUTE_ID_HEADER, routeDefinition.getId());
+				Route route = (Route) exchange.getAttribute(GATEWAY_ROUTE_ATTR).orElse(null);
+				if (route != null) {
+					exchange.getResponse().getHeaders().add(ROUTE_ID_HEADER, route.getId());
 				}
 				return chain.filter(exchange);
 			};

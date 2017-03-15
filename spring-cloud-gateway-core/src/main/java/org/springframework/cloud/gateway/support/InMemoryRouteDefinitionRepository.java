@@ -20,9 +20,9 @@ package org.springframework.cloud.gateway.support;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.springframework.cloud.gateway.api.RouteDefinitionLocator;
 import org.springframework.cloud.gateway.model.RouteDefinition;
-import org.springframework.cloud.gateway.api.RouteLocator;
-import org.springframework.cloud.gateway.api.RouteWriter;
+import org.springframework.cloud.gateway.api.RouteDefinitionWriter;
 
 import static java.util.Collections.synchronizedMap;
 
@@ -32,7 +32,7 @@ import reactor.core.publisher.Mono;
 /**
  * @author Spencer Gibb
  */
-public class InMemoryRouteRepository implements RouteLocator, RouteWriter {
+public class InMemoryRouteDefinitionRepository implements RouteDefinitionLocator, RouteDefinitionWriter {
 
 	private final Map<String, RouteDefinition> routes = synchronizedMap(new LinkedHashMap<String, RouteDefinition>());
 
@@ -56,7 +56,7 @@ public class InMemoryRouteRepository implements RouteLocator, RouteWriter {
 	}
 
 	@Override
-	public Flux<RouteDefinition> getRoutes() {
+	public Flux<RouteDefinition> getRouteDefinitions() {
 		return Flux.fromIterable(routes.values());
 	}
 }

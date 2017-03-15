@@ -20,7 +20,7 @@ package org.springframework.cloud.gateway.discovery;
 import java.net.URI;
 
 import org.springframework.cloud.client.discovery.DiscoveryClient;
-import org.springframework.cloud.gateway.api.RouteLocator;
+import org.springframework.cloud.gateway.api.RouteDefinitionLocator;
 import org.springframework.cloud.gateway.filter.factory.RewritePathWebFilterFactory;
 import org.springframework.cloud.gateway.handler.predicate.PathRequestPredicateFactory;
 import org.springframework.cloud.gateway.model.FilterDefinition;
@@ -39,18 +39,18 @@ import reactor.core.publisher.Flux;
  * TODO: developer configuration, in zuul, this was opt out, should be opt in
  * @author Spencer Gibb
  */
-public class DiscoveryClientRouteLocator implements RouteLocator {
+public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLocator {
 
 	private final DiscoveryClient discoveryClient;
 	private final String routeIdPrefix;
 
-	public DiscoveryClientRouteLocator(DiscoveryClient discoveryClient) {
+	public DiscoveryClientRouteDefinitionLocator(DiscoveryClient discoveryClient) {
 		this.discoveryClient = discoveryClient;
 		this.routeIdPrefix = this.discoveryClient.getClass().getSimpleName() + "_";
 	}
 
 	@Override
-	public Flux<RouteDefinition> getRoutes() {
+	public Flux<RouteDefinition> getRouteDefinitions() {
 		return Flux.fromIterable(discoveryClient.getServices())
 				.map(serviceId -> {
 					RouteDefinition routeDefinition = new RouteDefinition();

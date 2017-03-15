@@ -15,26 +15,15 @@
  *
  */
 
-package org.springframework.cloud.gateway.config;
+package org.springframework.cloud.gateway.api;
 
 import org.springframework.cloud.gateway.model.RouteDefinition;
-import org.springframework.cloud.gateway.api.RouteLocator;
-
 import reactor.core.publisher.Flux;
 
 /**
  * @author Spencer Gibb
  */
-public class PropertiesRouteLocator implements RouteLocator {
+public interface RouteDefinitionLocator {
 
-	private final GatewayProperties properties;
-
-	public PropertiesRouteLocator(GatewayProperties properties) {
-		this.properties = properties;
-	}
-
-	@Override
-	public Flux<RouteDefinition> getRoutes() {
-		return Flux.fromIterable(this.properties.getRoutes());
-	}
+	Flux<RouteDefinition> getRouteDefinitions();
 }

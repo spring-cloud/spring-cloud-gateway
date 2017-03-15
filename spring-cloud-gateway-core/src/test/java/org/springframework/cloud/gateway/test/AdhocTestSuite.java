@@ -37,7 +37,7 @@ import org.springframework.cloud.gateway.filter.factory.SetStatusWebFilterFactor
 import org.springframework.cloud.gateway.handler.predicate.AfterRequestPredicateFactoryTests;
 import org.springframework.cloud.gateway.handler.predicate.BeforeRequestPredicateFactoryTests;
 import org.springframework.cloud.gateway.handler.predicate.BetweenRequestPredicateFactoryTests;
-import org.springframework.cloud.gateway.handler.predicate.HostRoutePredicateIntegrationTests;
+import org.springframework.cloud.gateway.handler.predicate.HostRequestPredicateFactoryTests;
 import org.springframework.cloud.gateway.handler.predicate.MethodRequestPredicateFactoryTests;
 import org.springframework.cloud.gateway.handler.predicate.PathRequestPredicateFactoryTests;
 
@@ -66,7 +66,7 @@ import org.springframework.cloud.gateway.handler.predicate.PathRequestPredicateF
 		AfterRequestPredicateFactoryTests.class,
 		BeforeRequestPredicateFactoryTests.class,
 		BetweenRequestPredicateFactoryTests.class,
-		HostRoutePredicateIntegrationTests.class,
+		HostRequestPredicateFactoryTests.class,
 		MethodRequestPredicateFactoryTests.class,
 		PathRequestPredicateFactoryTests.class,
 })

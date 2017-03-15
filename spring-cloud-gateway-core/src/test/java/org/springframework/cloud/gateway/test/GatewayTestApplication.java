@@ -23,13 +23,13 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.gateway.EnableGateway;
-import org.springframework.cloud.gateway.api.RouteLocator;
+import org.springframework.cloud.gateway.api.RouteDefinitionLocator;
 import org.springframework.cloud.gateway.config.GatewayProperties;
-import org.springframework.cloud.gateway.config.PropertiesRouteLocator;
-import org.springframework.cloud.gateway.discovery.DiscoveryClientRouteLocator;
-import org.springframework.cloud.gateway.support.CachingRouteLocator;
-import org.springframework.cloud.gateway.support.CompositeRouteLocator;
-import org.springframework.cloud.gateway.support.InMemoryRouteRepository;
+import org.springframework.cloud.gateway.config.PropertiesRouteDefinitionLocator;
+import org.springframework.cloud.gateway.discovery.DiscoveryClientRouteDefinitionLocator;
+import org.springframework.cloud.gateway.support.CachingRouteDefinitionLocator;
+import org.springframework.cloud.gateway.support.CompositeRouteDefinitionLocator;
+import org.springframework.cloud.gateway.support.InMemoryRouteDefinitionRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -53,22 +53,22 @@ public class GatewayTestApplication {
 	protected static class GatewayDiscoveryConfiguration {
 
 		@Bean
-		public DiscoveryClientRouteLocator discoveryClientRouteLocator(DiscoveryClient discoveryClient) {
-			return new DiscoveryClientRouteLocator(discoveryClient);
+		public DiscoveryClientRouteDefinitionLocator discoveryClientRouteLocator(DiscoveryClient discoveryClient) {
+			return new DiscoveryClientRouteDefinitionLocator(discoveryClient);
 		}
 
 		@Bean
-		public PropertiesRouteLocator propertiesRouteLocator(GatewayProperties properties) {
-			return new PropertiesRouteLocator(properties);
+		public PropertiesRouteDefinitionLocator propertiesRouteLocator(GatewayProperties properties) {
+			return new PropertiesRouteDefinitionLocator(properties);
 		}
 
 		@Bean
 		@Primary
-		public RouteLocator compositeRouteLocator(InMemoryRouteRepository inMemoryRouteRepository,
-												  DiscoveryClientRouteLocator discoveryClientRouteLocator,
-												  PropertiesRouteLocator propertiesRouteLocator) {
-			Flux<RouteLocator> flux = Flux.just(inMemoryRouteRepository, discoveryClientRouteLocator, propertiesRouteLocator);
-			return new CachingRouteLocator(new CompositeRouteLocator(flux));
+		public RouteDefinitionLocator compositeRouteLocator(InMemoryRouteDefinitionRepository inMemoryRouteRepository,
+															DiscoveryClientRouteDefinitionLocator discoveryClientRouteLocator,
+															PropertiesRouteDefinitionLocator propertiesRouteLocator) {
+			Flux<RouteDefinitionLocator> flux = Flux.just(inMemoryRouteRepository, discoveryClientRouteLocator, propertiesRouteLocator);
+			return new CachingRouteDefinitionLocator(new CompositeRouteDefinitionLocator(flux));
 		}
 	}
 
@@ -77,17 +77,17 @@ public class GatewayTestApplication {
 	protected static class GatewayInMemoryConfiguration {
 
 		@Bean
-		public PropertiesRouteLocator propertiesRouteLocator(GatewayProperties properties) {
-			return new PropertiesRouteLocator(properties);
+		public PropertiesRouteDefinitionLocator propertiesRouteLocator(GatewayProperties properties) {
+			return new PropertiesRouteDefinitionLocator(properties);
 		}
 
 		@Bean
 		@Primary
-		public RouteLocator compositeRouteLocator(InMemoryRouteRepository inMemoryRouteRepository,
-												  PropertiesRouteLocator propertiesRouteLocator) {
-			Flux<RouteLocator> flux = Flux.just(inMemoryRouteRepository, propertiesRouteLocator);
-			CompositeRouteLocator composite = new CompositeRouteLocator(flux);
-			return new CachingRouteLocator(composite);
+		public RouteDefinitionLocator compositeRouteLocator(InMemoryRouteDefinitionRepository inMemoryRouteRepository,
+															PropertiesRouteDefinitionLocator propertiesRouteLocator) {
+			Flux<RouteDefinitionLocator> flux = Flux.just(inMemoryRouteRepository, propertiesRouteLocator);
+			CompositeRouteDefinitionLocator composite = new CompositeRouteDefinitionLocator(flux);
+			return new CachingRouteDefinitionLocator(composite);
 		}
 	}
 

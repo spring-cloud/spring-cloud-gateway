@@ -23,7 +23,7 @@ import reactor.core.publisher.Mono;
 /**
  * @author Spencer Gibb
  */
-public interface RouteWriter {
+public interface RouteDefinitionWriter {
 
 	Mono<Void> save(Mono<RouteDefinition> route);
 

@@ -21,12 +21,12 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.cloud.gateway.EnableGateway;
-import org.springframework.cloud.gateway.api.RouteLocator;
+import org.springframework.cloud.gateway.api.RouteDefinitionLocator;
 import org.springframework.cloud.gateway.config.GatewayProperties;
-import org.springframework.cloud.gateway.config.PropertiesRouteLocator;
-import org.springframework.cloud.gateway.support.CachingRouteLocator;
-import org.springframework.cloud.gateway.support.CompositeRouteLocator;
-import org.springframework.cloud.gateway.support.InMemoryRouteRepository;
+import org.springframework.cloud.gateway.config.PropertiesRouteDefinitionLocator;
+import org.springframework.cloud.gateway.support.CachingRouteDefinitionLocator;
+import org.springframework.cloud.gateway.support.CompositeRouteDefinitionLocator;
+import org.springframework.cloud.gateway.support.InMemoryRouteDefinitionRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import reactor.core.publisher.Flux;
@@ -39,17 +39,17 @@ import reactor.core.publisher.Flux;
 @EnableGateway
 public class GatewaySampleApplication {
 	@Bean
-	public PropertiesRouteLocator propertiesRouteLocator(GatewayProperties properties) {
-		return new PropertiesRouteLocator(properties);
+	public PropertiesRouteDefinitionLocator propertiesRouteLocator(GatewayProperties properties) {
+		return new PropertiesRouteDefinitionLocator(properties);
 	}
 
 	@Bean
 	@Primary
-	public RouteLocator compositeRouteLocator(InMemoryRouteRepository inMemoryRouteRepository,
-											  PropertiesRouteLocator propertiesRouteLocator) {
-		Flux<RouteLocator> flux = Flux.just(inMemoryRouteRepository, propertiesRouteLocator);
-		CompositeRouteLocator composite = new CompositeRouteLocator(flux);
-		return new CachingRouteLocator(composite);
+	public RouteDefinitionLocator compositeRouteLocator(InMemoryRouteDefinitionRepository inMemoryRouteRepository,
+														PropertiesRouteDefinitionLocator propertiesRouteLocator) {
+		Flux<RouteDefinitionLocator> flux = Flux.just(inMemoryRouteRepository, propertiesRouteLocator);
+		CompositeRouteDefinitionLocator composite = new CompositeRouteDefinitionLocator(flux);
+		return new CachingRouteDefinitionLocator(composite);
 	}
 
 	public static void main(String[] args) {

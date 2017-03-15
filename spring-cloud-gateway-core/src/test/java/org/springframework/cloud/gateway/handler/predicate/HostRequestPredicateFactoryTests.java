@@ -41,7 +41,7 @@ import reactor.test.StepVerifier;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
-public class HostRoutePredicateIntegrationTests extends BaseWebClientTests {
+public class HostRequestPredicateFactoryTests extends BaseWebClientTests {
 
 	@Test
 	public void hostRouteWorks() {

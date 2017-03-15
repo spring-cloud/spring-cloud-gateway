@@ -25,8 +25,8 @@ import java.util.Optional;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.cloud.gateway.api.RouteLocator;
-import org.springframework.cloud.gateway.api.RouteWriter;
+import org.springframework.cloud.gateway.api.RouteDefinitionLocator;
+import org.springframework.cloud.gateway.api.RouteDefinitionWriter;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.factory.WebFilterFactory;
 import org.springframework.cloud.gateway.handler.FilteringWebHandler;
@@ -58,22 +58,22 @@ public class GatewayEndpoint implements ApplicationEventPublisherAware {/*extend
 
 	private static final Log log = LogFactory.getLog(GatewayEndpoint.class);
 
-	private RouteLocator routeLocator;
+	private RouteDefinitionLocator routeDefinitionLocator;
 	private List<GlobalFilter> globalFilters;
 	private List<WebFilterFactory> webFilterFactories;
 	private FilteringWebHandler filteringWebHandler;
-	private RouteWriter routeWriter;
+	private RouteDefinitionWriter routeDefinitionWriter;
 	private ApplicationEventPublisher publisher;
 
-	public GatewayEndpoint(RouteLocator routeLocator, List<GlobalFilter> globalFilters,
+	public GatewayEndpoint(RouteDefinitionLocator routeDefinitionLocator, List<GlobalFilter> globalFilters,
 						   List<WebFilterFactory> webFilterFactories, FilteringWebHandler filteringWebHandler,
-						   RouteWriter routeWriter) {
+						   RouteDefinitionWriter routeDefinitionWriter) {
 		//super("gateway");
-		this.routeLocator = routeLocator;
+		this.routeDefinitionLocator = routeDefinitionLocator;
 		this.globalFilters = globalFilters;
 		this.webFilterFactories = webFilterFactories;
 		this.filteringWebHandler = filteringWebHandler;
-		this.routeWriter = routeWriter;
+		this.routeDefinitionWriter = routeDefinitionWriter;
 	}
 
 	@Override
@@ -119,7 +119,7 @@ public class GatewayEndpoint implements ApplicationEventPublisherAware {/*extend
 
 	@GetMapping("/routes")
 	public Mono<List<RouteDefinition>> routes() {
-		return this.routeLocator.getRoutes().collectList();
+		return this.routeDefinitionLocator.getRouteDefinitions().collectList();
 	}
 
 /*
@@ -127,7 +127,7 @@ http POST :8080/admin/gateway/routes/apiaddreqhead uri=http://httpbin.org:80 pre
 */
 	@PostMapping("/routes/{id}")
 	public Mono<ResponseEntity<Void>> save(@PathVariable String id, @RequestBody Mono<RouteDefinition> route) {
-		return this.routeWriter.save(route.map(r ->  {
+		return this.routeDefinitionWriter.save(route.map(r ->  {
 			r.setId(id);
 			log.debug("Saving route: " + route);
 			return r;
@@ -138,14 +138,14 @@ http POST :8080/admin/gateway/routes/apiaddreqhead uri=http://httpbin.org:80 pre
 
 	@DeleteMapping("/routes/{id}")
 	public Mono<ResponseEntity<Object>> delete(@PathVariable String id) {
-		return this.routeWriter .delete(Mono.just(id))
+		return this.routeDefinitionWriter.delete(Mono.just(id))
 				.then(() -> Mono.just(ResponseEntity.ok().build()))
 				.otherwise(t -> t instanceof NotFoundException, t -> Mono.just(ResponseEntity.notFound().build()));
 	}
 
 	@GetMapping("/routes/{id}")
 	public Mono<ResponseEntity<RouteDefinition>> route(@PathVariable String id) {
-		return this.routeLocator.getRoutes()
+		return this.routeDefinitionLocator.getRouteDefinitions()
 				.filter(route -> route.getId().equals(id))
 				.singleOrEmpty()
 				.map(route -> ResponseEntity.ok(route))
@@ -154,10 +154,11 @@ http POST :8080/admin/gateway/routes/apiaddreqhead uri=http://httpbin.org:80 pre
 
 	@GetMapping("/routes/{id}/combinedfilters")
 	public Map<String, Object> combinedfilters(@PathVariable String id) {
-		Mono<RouteDefinition> route = this.routeLocator.getRoutes()
+		Mono<RouteDefinition> route = this.routeDefinitionLocator.getRouteDefinitions()
 				.filter(r -> r.getId().equals(id))
 				.singleOrEmpty();
 		Optional<RouteDefinition> optional = Optional.ofNullable(route.block()); //TODO: remove block();
-		return getNamesToOrders(this.filteringWebHandler.combineFiltersForRoute(optional));
+		//FIXME: return getNamesToOrders(this.filteringWebHandler.combineFiltersForRoute(optional));
+		return null;
 	}
 }

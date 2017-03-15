@@ -17,21 +17,11 @@
 
 package org.springframework.cloud.gateway.handler;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 import org.springframework.cloud.gateway.api.RouteLocator;
-import org.springframework.cloud.gateway.handler.predicate.RequestPredicateFactory;
-import org.springframework.cloud.gateway.model.PredicateDefinition;
-import org.springframework.cloud.gateway.model.RouteDefinition;
-import org.springframework.cloud.gateway.support.NameUtils;
-import org.springframework.tuple.Tuple;
-import org.springframework.tuple.TupleBuilder;
 import org.springframework.cloud.gateway.handler.support.ExchangeServerRequest;
-import org.springframework.web.reactive.function.server.RequestPredicate;
+import org.springframework.cloud.gateway.model.Route;
 import org.springframework.web.reactive.handler.AbstractHandlerMapping;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebHandler;
@@ -46,29 +36,12 @@ import reactor.core.publisher.Mono;
  */
 public class RequestPredicateHandlerMapping extends AbstractHandlerMapping {
 
-	private final RouteLocator routeLocator;
 	private final WebHandler webHandler;
-	private final Map<String, RequestPredicateFactory> requestPredicates = new LinkedHashMap<>();
-	//TODO: define semeantics for refresh (ie clearing and recalculating combinedPredicates)
-	private final Map<String, RequestPredicate> combinedPredicates = new ConcurrentHashMap<>();
+	private final RouteLocator routeLocator;
 
-	public RequestPredicateHandlerMapping(WebHandler webHandler, List<RequestPredicateFactory> requestPredicates,
-										  RouteLocator routeLocator) {
+	public RequestPredicateHandlerMapping(WebHandler webHandler, RouteLocator routeLocator) {
 		this.webHandler = webHandler;
 		this.routeLocator = routeLocator;
-
-		requestPredicates.forEach(factory -> {
-			String key = factory.name();
-			if (this.requestPredicates.containsKey(key)) {
-				this.logger.warn("A RequestPredicateFactory named "+ key
-						+ " already exists, class: " + this.requestPredicates.get(key)
-						+ ". It will be overwritten.");
-			}
-			this.requestPredicates.put(key, factory);
-			if (logger.isInfoEnabled()) {
-				logger.info("Loaded RequestPredicateFactory [" + key + "]");
-			}
-		});
 
 		setOrder(1);
 	}
@@ -79,7 +52,7 @@ public class RequestPredicateHandlerMapping extends AbstractHandlerMapping {
 
 		return lookupRoute(exchange)
 				.log("TRACE")
-				.then((Function<RouteDefinition, Mono<?>>) r -> {
+				.then((Function<Route, Mono<?>>) r -> {
 					if (logger.isDebugEnabled()) {
 						logger.debug("Mapping [" + getExchangeDesc(exchange) + "] to " + r);
 					}
@@ -105,18 +78,17 @@ public class RequestPredicateHandlerMapping extends AbstractHandlerMapping {
 	}
 
 
-	protected Mono<RouteDefinition> lookupRoute(ServerWebExchange exchange) {
+	protected Mono<Route> lookupRoute(ServerWebExchange exchange) {
 		return this.routeLocator.getRoutes()
-				.map(this::getRouteCombinedPredicates)
-				.filter(rcp -> rcp.combinedPredicate.test(new ExchangeServerRequest(exchange)))
+				.filter(route -> route.getRequestPredicate().test(new ExchangeServerRequest(exchange)))
 				.next()
 				//TODO: error handling
-				.map(rcp -> {
+				.map(route -> {
 					if (logger.isDebugEnabled()) {
-						logger.debug("RouteDefinition matched: " + rcp.routeDefinition.getId());
+						logger.debug("RouteDefinition matched: " + route.getId());
 					}
-					validateRoute(rcp.routeDefinition, exchange);
-					return rcp.routeDefinition;
+					validateRoute(route, exchange);
+					return route;
 				});
 
 		/* TODO: trace logging
@@ -125,98 +97,16 @@ public class RequestPredicateHandlerMapping extends AbstractHandlerMapping {
 			}*/
 	}
 
-	private RouteCombinedPredicates getRouteCombinedPredicates(RouteDefinition routeDefinition) {
-		RequestPredicate predicate = this.combinedPredicates
-				.computeIfAbsent(routeDefinition.getId(), k -> combinePredicates(routeDefinition));
-
-		return new RouteCombinedPredicates(routeDefinition, predicate);
-	}
-
-	private class RouteCombinedPredicates {
-		private RouteDefinition routeDefinition;
-		private RequestPredicate combinedPredicate;
-
-		public RouteCombinedPredicates(RouteDefinition routeDefinition, RequestPredicate combinedPredicate) {
-			this.routeDefinition = routeDefinition;
-			this.combinedPredicate = combinedPredicate;
-		}
-	}
-
-	private RequestPredicate combinePredicates(RouteDefinition routeDefinition) {
-		List<PredicateDefinition> predicates = routeDefinition.getPredicates();
-		RequestPredicate predicate = lookup(routeDefinition, predicates.get(0));
-
-		for (PredicateDefinition andPredicate : predicates.subList(1, predicates.size())) {
-			RequestPredicate found = lookup(routeDefinition, andPredicate);
-			predicate = predicate.and(found);
-		}
-
-		return predicate;
-	}
-
-	//TODO: decouple from HandlerMapping?
-	private RequestPredicate lookup(RouteDefinition routeDefinition, PredicateDefinition predicate) {
-		RequestPredicateFactory found = this.requestPredicates.get(predicate.getName());
-		if (found == null) {
-			throw new IllegalArgumentException("Unable to find RequestPredicateFactory with name " + predicate.getName());
-		}
-		Map<String, String> args = predicate.getArgs();
-		if (logger.isDebugEnabled()) {
-			logger.debug("RouteDefinition " + routeDefinition.getId() + " applying "
-					+ args + " to " + predicate.getName());
-		}
-
-		TupleBuilder builder = TupleBuilder.tuple();
-
-		List<String> argNames = found.argNames();
-		if (!argNames.isEmpty()) {
-			if (!argNames.isEmpty()) {
-				// ensure size is the same for key replacement later
-				if (found.validateArgs() && args.size() != argNames.size()) {
-					throw new IllegalArgumentException("Wrong number of arguments. Expected " + argNames
-							+ " " + argNames + ". Found " + args.size() + " " + args + "'");
-				}
-			}
-		}
-
-		int entryIdx = 0;
-		for (Map.Entry<String, String> entry : args.entrySet()) {
-			String key = entry.getKey();
-
-			// RequestPredicateFactory has name hints and this has a fake key name
-			// replace with the matching key hint
-			if (key.startsWith(NameUtils.GENERATED_NAME_PREFIX) && !argNames.isEmpty()
-					&& entryIdx < args.size()) {
-				key = argNames.get(entryIdx);
-			}
-
-			builder.put(key, entry.getValue());
-			entryIdx++;
-		}
-
-		Tuple tuple = builder.build();
-
-		if (found.validateArgs()) {
-			for (String name : argNames) {
-				if (!tuple.hasFieldName(name)) {
-					throw new IllegalArgumentException("Missing argument '" + name + "'. Given " + tuple);
-				}
-			}
-		}
-
-		return found.apply(tuple);
-	}
-
 	/**
 	 * Validate the given handler against the current request.
 	 * <p>The default implementation is empty. Can be overridden in subclasses,
 	 * for example to enforce specific preconditions expressed in URL mappings.
-	 * @param routeDefinition the RouteDefinition object to validate
+	 * @param route the Route object to validate
 	 * @param exchange current exchange
 	 * @throws Exception if validation failed
 	 */
 	@SuppressWarnings("UnusedParameters")
-	protected void validateRoute(RouteDefinition routeDefinition, ServerWebExchange exchange) {
+	protected void validateRoute(Route route, ServerWebExchange exchange) {
 	}
 
 }

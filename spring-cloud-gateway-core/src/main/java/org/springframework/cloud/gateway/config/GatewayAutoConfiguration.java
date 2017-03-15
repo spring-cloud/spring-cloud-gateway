@@ -26,8 +26,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.cloud.gateway.actuate.GatewayEndpoint;
+import org.springframework.cloud.gateway.api.RouteDefinitionLocator;
+import org.springframework.cloud.gateway.api.RouteDefinitionWriter;
 import org.springframework.cloud.gateway.api.RouteLocator;
-import org.springframework.cloud.gateway.api.RouteWriter;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.LoadBalancerClientFilter;
 import org.springframework.cloud.gateway.filter.NettyRoutingFilter;
@@ -64,7 +65,8 @@ import org.springframework.cloud.gateway.handler.predicate.QueryRequestPredicate
 import org.springframework.cloud.gateway.handler.predicate.RemoteAddrRequestPredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.RequestPredicateFactory;
 import org.springframework.cloud.gateway.support.CachingRouteLocator;
-import org.springframework.cloud.gateway.support.InMemoryRouteRepository;
+import org.springframework.cloud.gateway.support.DefaultRouteLocator;
+import org.springframework.cloud.gateway.support.InMemoryRouteDefinitionRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -105,23 +107,31 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnMissingBean(RouteLocator.class)
-	public RouteLocator routeLocator(GatewayProperties properties) {
-		//TODO: how to automatically apply CachingRouteLocator
-		return new CachingRouteLocator(new PropertiesRouteLocator(properties));
+	// @ConditionalOnMissingBean(RouteDefinitionLocator.class)
+	public PropertiesRouteDefinitionLocator propertiesRouteDefinitionLocator(GatewayProperties properties) {
+		return new PropertiesRouteDefinitionLocator(properties);
 	}
 
 	@Bean
-	public FilteringWebHandler filteringWebHandler(GatewayProperties properties, List<GlobalFilter> globalFilters,
-												   List<WebFilterFactory> webFilterFactories) {
-		return new FilteringWebHandler(properties, globalFilters, webFilterFactories);
+	@ConditionalOnMissingBean
+	public RouteLocator defaultRouteLocator(GatewayProperties properties, List<GlobalFilter> globalFilters,
+												   List<WebFilterFactory> webFilterFactories,
+												   List<RequestPredicateFactory> predicates,
+												   RouteDefinitionLocator routeDefinitionLocator) {
+		return new CachingRouteLocator(new DefaultRouteLocator(properties, routeDefinitionLocator,
+				predicates, globalFilters, webFilterFactories));
+	}
+
+	@Bean
+	public FilteringWebHandler filteringWebHandler(GatewayProperties properties,
+												   RouteLocator routeLocator) {
+		return new FilteringWebHandler(properties, routeLocator);
 	}
 
 	@Bean
 	public RequestPredicateHandlerMapping requestPredicateHandlerMapping(FilteringWebHandler webHandler,
-																	   List<RequestPredicateFactory> predicates,
 																	   RouteLocator routeLocator) {
-		return new RequestPredicateHandlerMapping(webHandler, predicates, routeLocator);
+		return new RequestPredicateHandlerMapping(webHandler, routeLocator);
 	}
 
 	// ConfigurationProperty beans
@@ -288,8 +298,8 @@ public class GatewayAutoConfiguration {
 
 	//TODO: control creation
 	@Bean
-	public InMemoryRouteRepository inMemoryRouteRepository() {
-		return new InMemoryRouteRepository();
+	public InMemoryRouteDefinitionRepository inMemoryRouteDefinitionRepository() {
+		return new InMemoryRouteDefinitionRepository();
 	}
 
 	@Configuration
@@ -297,10 +307,10 @@ public class GatewayAutoConfiguration {
 	protected static class GatewayActuatorConfiguration {
 
 		@Bean
-		public GatewayEndpoint gatewayEndpoint(RouteLocator routeLocator, List<GlobalFilter> globalFilters,
+		public GatewayEndpoint gatewayEndpoint(RouteDefinitionLocator routeDefinitionLocator, List<GlobalFilter> globalFilters,
 											   List<WebFilterFactory> webFilterFactories, FilteringWebHandler filteringWebHandler,
-											   RouteWriter routeWriter) {
-			return new GatewayEndpoint(routeLocator, globalFilters, webFilterFactories, filteringWebHandler, routeWriter);
+											   RouteDefinitionWriter routeDefinitionWriter) {
+			return new GatewayEndpoint(routeDefinitionLocator, globalFilters, webFilterFactories, filteringWebHandler, routeDefinitionWriter);
 		}
 	}
 
