@@ -17,8 +17,8 @@
 
 package org.springframework.cloud.gateway.handler.predicate;
 
+import org.springframework.cloud.gateway.handler.support.ExchangeServerRequest;
 import org.springframework.tuple.Tuple;
-import org.springframework.web.reactive.function.server.PublicDefaultServerRequest;
 import org.springframework.web.reactive.function.server.RequestPredicate;
 import org.springframework.web.reactive.function.server.RequestPredicates;
 
@@ -51,8 +51,8 @@ public class QueryRequestPredicateFactory implements RequestPredicateFactory {
 		if (!args.hasFieldName(REGEXP_KEY)) {
 			return req -> {
 				//TODO: ServerRequest support for query params with no value
-				PublicDefaultServerRequest request = (PublicDefaultServerRequest) req;
-				return request.getExchange().getRequest().getQueryParams().containsKey(param);
+				ExchangeServerRequest request = (ExchangeServerRequest) req;
+				return request.exchange().getRequest().getQueryParams().containsKey(param);
 			};
 		}
 

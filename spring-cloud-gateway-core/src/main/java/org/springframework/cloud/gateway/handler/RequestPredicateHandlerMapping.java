@@ -30,7 +30,7 @@ import org.springframework.cloud.gateway.model.Route;
 import org.springframework.cloud.gateway.support.NameUtils;
 import org.springframework.tuple.Tuple;
 import org.springframework.tuple.TupleBuilder;
-import org.springframework.web.reactive.function.server.PublicDefaultServerRequest;
+import org.springframework.cloud.gateway.handler.support.ExchangeServerRequest;
 import org.springframework.web.reactive.function.server.RequestPredicate;
 import org.springframework.web.reactive.handler.AbstractHandlerMapping;
 import org.springframework.web.server.ServerWebExchange;
@@ -108,8 +108,7 @@ public class RequestPredicateHandlerMapping extends AbstractHandlerMapping {
 	protected Mono<Route> lookupRoute(ServerWebExchange exchange) {
 		return this.routeLocator.getRoutes()
 				.map(this::getRouteCombinedPredicates)
-				//TODO: fix PublicDefaultServerRequest?
-				.filter(rcp -> rcp.combinedPredicate.test(new PublicDefaultServerRequest(exchange)))
+				.filter(rcp -> rcp.combinedPredicate.test(new ExchangeServerRequest(exchange)))
 				.next()
 				//TODO: error handling
 				.map(rcp -> {

@@ -23,7 +23,7 @@ import java.time.format.DateTimeFormatter;
 import org.junit.Test;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.http.server.reactive.MockServerHttpResponse;
-import org.springframework.web.reactive.function.server.PublicDefaultServerRequest;
+import org.springframework.cloud.gateway.handler.support.ExchangeServerRequest;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.server.adapter.DefaultServerWebExchange;
 
@@ -122,6 +122,6 @@ public class BetweenRequestPredicateFactoryTests {
 
 	static ServerRequest getRequest() {
 		final MockServerHttpRequest request = MockServerHttpRequest.get("http://example.com").build();
-		return new PublicDefaultServerRequest(new DefaultServerWebExchange(request, new MockServerHttpResponse()));
+		return new ExchangeServerRequest(new DefaultServerWebExchange(request, new MockServerHttpResponse()));
 	}
 }

@@ -26,7 +26,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.cloud.gateway.support.SubnetUtils;
 import org.springframework.tuple.Tuple;
-import org.springframework.web.reactive.function.server.PublicDefaultServerRequest;
+import org.springframework.cloud.gateway.handler.support.ExchangeServerRequest;
 import org.springframework.web.reactive.function.server.RequestPredicate;
 
 /**
@@ -48,8 +48,8 @@ public class RemoteAddrRequestPredicateFactory implements RequestPredicateFactor
 		}
 
 		return req -> {
-			PublicDefaultServerRequest serverRequest = (PublicDefaultServerRequest) req;
-			Optional<InetSocketAddress> remoteAddress = serverRequest.getExchange().getRequest().getRemoteAddress();
+			ExchangeServerRequest serverRequest = (ExchangeServerRequest) req;
+			Optional<InetSocketAddress> remoteAddress = serverRequest.exchange().getRequest().getRemoteAddress();
 			if (remoteAddress.isPresent()) {
 				String hostAddress = remoteAddress.get().getAddress().getHostAddress();
 				String host = req.uri().getHost();
