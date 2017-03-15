@@ -21,15 +21,15 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.cloud.gateway.api.RouteDefinitionLocator;
 import org.springframework.cloud.gateway.api.RouteDefinitionWriter;
+import org.springframework.cloud.gateway.api.RouteLocator;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.factory.WebFilterFactory;
-import org.springframework.cloud.gateway.handler.FilteringWebHandler;
+import org.springframework.cloud.gateway.model.Route;
 import org.springframework.cloud.gateway.model.RouteDefinition;
 import org.springframework.cloud.gateway.support.NotFoundException;
 import org.springframework.cloud.gateway.support.RefreshRoutesEvent;
@@ -61,19 +61,19 @@ public class GatewayEndpoint implements ApplicationEventPublisherAware {/*extend
 	private RouteDefinitionLocator routeDefinitionLocator;
 	private List<GlobalFilter> globalFilters;
 	private List<WebFilterFactory> webFilterFactories;
-	private FilteringWebHandler filteringWebHandler;
 	private RouteDefinitionWriter routeDefinitionWriter;
+	private RouteLocator routeLocator;
 	private ApplicationEventPublisher publisher;
 
 	public GatewayEndpoint(RouteDefinitionLocator routeDefinitionLocator, List<GlobalFilter> globalFilters,
-						   List<WebFilterFactory> webFilterFactories, FilteringWebHandler filteringWebHandler,
-						   RouteDefinitionWriter routeDefinitionWriter) {
+						   List<WebFilterFactory> webFilterFactories, RouteDefinitionWriter routeDefinitionWriter,
+						   RouteLocator routeLocator) {
 		//super("gateway");
 		this.routeDefinitionLocator = routeDefinitionLocator;
 		this.globalFilters = globalFilters;
 		this.webFilterFactories = webFilterFactories;
-		this.filteringWebHandler = filteringWebHandler;
 		this.routeDefinitionWriter = routeDefinitionWriter;
+		this.routeLocator = routeLocator;
 	}
 
 	@Override
@@ -154,11 +154,7 @@ http POST :8080/admin/gateway/routes/apiaddreqhead uri=http://httpbin.org:80 pre
 
 	@GetMapping("/routes/{id}/combinedfilters")
 	public Map<String, Object> combinedfilters(@PathVariable String id) {
-		Mono<RouteDefinition> route = this.routeDefinitionLocator.getRouteDefinitions()
-				.filter(r -> r.getId().equals(id))
-				.singleOrEmpty();
-		Optional<RouteDefinition> optional = Optional.ofNullable(route.block()); //TODO: remove block();
-		//FIXME: return getNamesToOrders(this.filteringWebHandler.combineFiltersForRoute(optional));
-		return null;
+		List<Route> routes = this.routeLocator.getRoutes().collectList().block();
+		return getNamesToOrders(routes);
 	}
 }

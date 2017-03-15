@@ -308,9 +308,9 @@ public class GatewayAutoConfiguration {
 
 		@Bean
 		public GatewayEndpoint gatewayEndpoint(RouteDefinitionLocator routeDefinitionLocator, List<GlobalFilter> globalFilters,
-											   List<WebFilterFactory> webFilterFactories, FilteringWebHandler filteringWebHandler,
-											   RouteDefinitionWriter routeDefinitionWriter) {
-			return new GatewayEndpoint(routeDefinitionLocator, globalFilters, webFilterFactories, filteringWebHandler, routeDefinitionWriter);
+											   List<WebFilterFactory> webFilterFactories, RouteDefinitionWriter routeDefinitionWriter,
+											   RouteLocator routeLocator) {
+			return new GatewayEndpoint(routeDefinitionLocator, globalFilters, webFilterFactories, routeDefinitionWriter, routeLocator);
 		}
 	}
 
