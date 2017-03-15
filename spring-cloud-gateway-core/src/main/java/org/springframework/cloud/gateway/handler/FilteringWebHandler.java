@@ -114,25 +114,25 @@ public class FilteringWebHandler extends WebHandlerDecorator {
 		if (!route.isPresent()) {
 			return Collections.emptyList();
 		}
-		List<WebFilter> combinedFilters = this.combinedFiltersForRoute.get(route.get().getId());
-		if (combinedFilters == null) {
+		List<WebFilter> combinedFilters = this.combinedFiltersForRoute.computeIfAbsent(
+				route.get().getId(), s -> {
 
 			//TODO: probably a java 8 stream way of doing this
-			combinedFilters = new ArrayList<>(loadFilters(this.globalFilters));
+			List<WebFilter> combined = new ArrayList<>(loadFilters(this.globalFilters));
 
 			//TODO: support option to apply defaults after route specific filters?
 			if (!this.gatewayProperties.getDefaultFilters().isEmpty()) {
-				combinedFilters.addAll(loadWebFilters("defaultFilters",
+				combined.addAll(loadWebFilters("defaultFilters",
 						this.gatewayProperties.getDefaultFilters()));
 			}
 
 			if (route.isPresent() && !route.get().getFilters().isEmpty()) {
-				combinedFilters.addAll(loadWebFilters(route.get().getId(), route.get().getFilters()));
+				combined.addAll(loadWebFilters(route.get().getId(), route.get().getFilters()));
 			}
 
-			AnnotationAwareOrderComparator.sort(combinedFilters);
-			this.combinedFiltersForRoute.put(route.get().getId(), combinedFilters);
-		}
+			AnnotationAwareOrderComparator.sort(combined);
+			return combined;
+		});
 		return combinedFilters;
 	}
 
