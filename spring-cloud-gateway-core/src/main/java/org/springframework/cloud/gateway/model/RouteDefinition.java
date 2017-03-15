@@ -33,7 +33,7 @@ import static org.springframework.util.StringUtils.tokenizeToStringArray;
 /**
  * @author Spencer Gibb
  */
-public class Route {
+public class RouteDefinition {
 	@NotEmpty
 	private String id = UUID.randomUUID().toString();
 
@@ -47,12 +47,12 @@ public class Route {
 	@NotNull
 	private URI uri;
 
-	public Route() {}
+	public RouteDefinition() {}
 
-	public Route(String text) {
+	public RouteDefinition(String text) {
 		int eqIdx = text.indexOf("=");
 		if (eqIdx <= 0) {
-			throw new ValidationException("Unable to parse Route text '" + text + "'" +
+			throw new ValidationException("Unable to parse RouteDefinition text '" + text + "'" +
 					", must be of the form name=value");
 		}
 
@@ -103,10 +103,10 @@ public class Route {
 	public boolean equals(Object o) {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
-		Route route = (Route) o;
-		return Objects.equals(id, route.id) &&
-				Objects.equals(predicates, route.predicates) &&
-				Objects.equals(uri, route.uri);
+		RouteDefinition routeDefinition = (RouteDefinition) o;
+		return Objects.equals(id, routeDefinition.id) &&
+				Objects.equals(predicates, routeDefinition.predicates) &&
+				Objects.equals(uri, routeDefinition.uri);
 	}
 
 	@Override
@@ -116,7 +116,7 @@ public class Route {
 
 	@Override
 	public String toString() {
-		return "Route{" +
+		return "RouteDefinition{" +
 				"id='" + id + '\'' +
 				", predicates=" + predicates +
 				", filters=" + filters +

@@ -26,7 +26,7 @@ import java.util.function.Function;
 import org.springframework.cloud.gateway.api.RouteLocator;
 import org.springframework.cloud.gateway.handler.predicate.RequestPredicateFactory;
 import org.springframework.cloud.gateway.model.PredicateDefinition;
-import org.springframework.cloud.gateway.model.Route;
+import org.springframework.cloud.gateway.model.RouteDefinition;
 import org.springframework.cloud.gateway.support.NameUtils;
 import org.springframework.tuple.Tuple;
 import org.springframework.tuple.TupleBuilder;
@@ -79,7 +79,7 @@ public class RequestPredicateHandlerMapping extends AbstractHandlerMapping {
 
 		return lookupRoute(exchange)
 				.log("TRACE")
-				.then((Function<Route, Mono<?>>) r -> {
+				.then((Function<RouteDefinition, Mono<?>>) r -> {
 					if (logger.isDebugEnabled()) {
 						logger.debug("Mapping [" + getExchangeDesc(exchange) + "] to " + r);
 					}
@@ -88,7 +88,7 @@ public class RequestPredicateHandlerMapping extends AbstractHandlerMapping {
 					return Mono.just(webHandler);
 				}).otherwiseIfEmpty(Mono.empty().then(() -> {
 					if (logger.isTraceEnabled()) {
-						logger.trace("No Route found for [" + getExchangeDesc(exchange) + "]");
+						logger.trace("No RouteDefinition found for [" + getExchangeDesc(exchange) + "]");
 					}
 					return Mono.empty();
 				}));
@@ -105,7 +105,7 @@ public class RequestPredicateHandlerMapping extends AbstractHandlerMapping {
 	}
 
 
-	protected Mono<Route> lookupRoute(ServerWebExchange exchange) {
+	protected Mono<RouteDefinition> lookupRoute(ServerWebExchange exchange) {
 		return this.routeLocator.getRoutes()
 				.map(this::getRouteCombinedPredicates)
 				.filter(rcp -> rcp.combinedPredicate.test(new ExchangeServerRequest(exchange)))
@@ -113,41 +113,41 @@ public class RequestPredicateHandlerMapping extends AbstractHandlerMapping {
 				//TODO: error handling
 				.map(rcp -> {
 					if (logger.isDebugEnabled()) {
-						logger.debug("Route matched: " + rcp.route.getId());
+						logger.debug("RouteDefinition matched: " + rcp.routeDefinition.getId());
 					}
-					validateRoute(rcp.route, exchange);
-					return rcp.route;
+					validateRoute(rcp.routeDefinition, exchange);
+					return rcp.routeDefinition;
 				});
 
 		/* TODO: trace logging
 			if (logger.isTraceEnabled()) {
-				logger.trace("Route did not match: " + route.getId());
+				logger.trace("RouteDefinition did not match: " + routeDefinition.getId());
 			}*/
 	}
 
-	private RouteCombinedPredicates getRouteCombinedPredicates(Route route) {
+	private RouteCombinedPredicates getRouteCombinedPredicates(RouteDefinition routeDefinition) {
 		RequestPredicate predicate = this.combinedPredicates
-				.computeIfAbsent(route.getId(), k -> combinePredicates(route));
+				.computeIfAbsent(routeDefinition.getId(), k -> combinePredicates(routeDefinition));
 
-		return new RouteCombinedPredicates(route, predicate);
+		return new RouteCombinedPredicates(routeDefinition, predicate);
 	}
 
 	private class RouteCombinedPredicates {
-		private Route route;
+		private RouteDefinition routeDefinition;
 		private RequestPredicate combinedPredicate;
 
-		public RouteCombinedPredicates(Route route, RequestPredicate combinedPredicate) {
-			this.route = route;
+		public RouteCombinedPredicates(RouteDefinition routeDefinition, RequestPredicate combinedPredicate) {
+			this.routeDefinition = routeDefinition;
 			this.combinedPredicate = combinedPredicate;
 		}
 	}
 
-	private RequestPredicate combinePredicates(Route route) {
-		List<PredicateDefinition> predicates = route.getPredicates();
-		RequestPredicate predicate = lookup(route, predicates.get(0));
+	private RequestPredicate combinePredicates(RouteDefinition routeDefinition) {
+		List<PredicateDefinition> predicates = routeDefinition.getPredicates();
+		RequestPredicate predicate = lookup(routeDefinition, predicates.get(0));
 
 		for (PredicateDefinition andPredicate : predicates.subList(1, predicates.size())) {
-			RequestPredicate found = lookup(route, andPredicate);
+			RequestPredicate found = lookup(routeDefinition, andPredicate);
 			predicate = predicate.and(found);
 		}
 
@@ -155,14 +155,14 @@ public class RequestPredicateHandlerMapping extends AbstractHandlerMapping {
 	}
 
 	//TODO: decouple from HandlerMapping?
-	private RequestPredicate lookup(Route route, PredicateDefinition predicate) {
+	private RequestPredicate lookup(RouteDefinition routeDefinition, PredicateDefinition predicate) {
 		RequestPredicateFactory found = this.requestPredicates.get(predicate.getName());
 		if (found == null) {
 			throw new IllegalArgumentException("Unable to find RequestPredicateFactory with name " + predicate.getName());
 		}
 		Map<String, String> args = predicate.getArgs();
 		if (logger.isDebugEnabled()) {
-			logger.debug("Route " + route.getId() + " applying "
+			logger.debug("RouteDefinition " + routeDefinition.getId() + " applying "
 					+ args + " to " + predicate.getName());
 		}
 
@@ -211,12 +211,12 @@ public class RequestPredicateHandlerMapping extends AbstractHandlerMapping {
 	 * Validate the given handler against the current request.
 	 * <p>The default implementation is empty. Can be overridden in subclasses,
 	 * for example to enforce specific preconditions expressed in URL mappings.
-	 * @param route the Route object to validate
+	 * @param routeDefinition the RouteDefinition object to validate
 	 * @param exchange current exchange
 	 * @throws Exception if validation failed
 	 */
 	@SuppressWarnings("UnusedParameters")
-	protected void validateRoute(Route route, ServerWebExchange exchange) {
+	protected void validateRoute(RouteDefinition routeDefinition, ServerWebExchange exchange) {
 	}
 
 }

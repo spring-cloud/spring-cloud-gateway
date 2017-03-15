@@ -25,7 +25,7 @@ import javax.validation.constraints.NotNull;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.cloud.gateway.model.FilterDefinition;
-import org.springframework.cloud.gateway.model.Route;
+import org.springframework.cloud.gateway.model.RouteDefinition;
 import org.springframework.cloud.gateway.filter.factory.RemoveNonProxyHeadersWebFilterFactory;
 
 import static org.springframework.cloud.gateway.support.NameUtils.normalizeFilterName;
@@ -41,7 +41,7 @@ public class GatewayProperties {
 	 */
 	@NotNull
 	@Valid
-	private List<Route> routes = new ArrayList<>();
+	private List<RouteDefinition> routes = new ArrayList<>();
 
 	/**
 	 * List of filter definitions that are applied to every route.
@@ -56,11 +56,11 @@ public class GatewayProperties {
 		return defaults;
 	}
 
-	public List<Route> getRoutes() {
+	public List<RouteDefinition> getRoutes() {
 		return routes;
 	}
 
-	public void setRoutes(List<Route> routes) {
+	public void setRoutes(List<RouteDefinition> routes) {
 		this.routes = routes;
 	}
 

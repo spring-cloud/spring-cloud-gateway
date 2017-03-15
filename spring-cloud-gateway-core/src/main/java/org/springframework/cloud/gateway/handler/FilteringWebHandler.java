@@ -32,7 +32,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.cloud.gateway.filter.factory.WebFilterFactory;
 import org.springframework.cloud.gateway.model.FilterDefinition;
-import org.springframework.cloud.gateway.model.Route;
+import org.springframework.cloud.gateway.model.RouteDefinition;
 import org.springframework.cloud.gateway.config.GatewayProperties;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.support.NameUtils;
@@ -102,7 +102,7 @@ public class FilteringWebHandler extends WebHandlerDecorator {
 
 	@Override
 	public Mono<Void> handle(ServerWebExchange exchange) {
-		Optional<Route> route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
+		Optional<RouteDefinition> route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
 		List<WebFilter> webFilters = combineFiltersForRoute(route);
 
 		logger.debug("Sorted webFilterFactories: "+ webFilters);
@@ -110,7 +110,7 @@ public class FilteringWebHandler extends WebHandlerDecorator {
 		return new DefaultWebFilterChain(webFilters, getDelegate()).filter(exchange);
 	}
 
-	public List<WebFilter> combineFiltersForRoute(Optional<Route> route) {
+	public List<WebFilter> combineFiltersForRoute(Optional<RouteDefinition> route) {
 		if (!route.isPresent()) {
 			return Collections.emptyList();
 		}
@@ -157,7 +157,7 @@ public class FilteringWebHandler extends WebHandlerDecorator {
 					}
 					Map<String, String> args = definition.getArgs();
 					if (logger.isDebugEnabled()) {
-						logger.debug("Route " + id + " applying filter " + args + " to " + definition.getName());
+						logger.debug("RouteDefinition " + id + " applying filter " + args + " to " + definition.getName());
 					}
 
 					//TODO: move Tuple building to common class, see RequestPredicateFactory.lookup

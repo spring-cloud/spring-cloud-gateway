@@ -17,7 +17,7 @@
 
 package org.springframework.cloud.gateway.support;
 
-import org.springframework.cloud.gateway.model.Route;
+import org.springframework.cloud.gateway.model.RouteDefinition;
 import org.springframework.cloud.gateway.api.RouteLocator;
 import reactor.core.publisher.Flux;
 
@@ -33,7 +33,7 @@ public class CompositeRouteLocator implements RouteLocator {
 	}
 
 	@Override
-	public Flux<Route> getRoutes() {
+	public Flux<RouteDefinition> getRoutes() {
 		return this.delegates.flatMap(RouteLocator::getRoutes);
 	}
 }

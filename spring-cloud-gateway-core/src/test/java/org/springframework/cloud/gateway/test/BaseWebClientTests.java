@@ -29,7 +29,7 @@ import org.junit.Before;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.cloud.gateway.EnableGateway;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
-import org.springframework.cloud.gateway.model.Route;
+import org.springframework.cloud.gateway.model.RouteDefinition;
 import org.springframework.cloud.netflix.ribbon.RibbonClient;
 import org.springframework.cloud.netflix.ribbon.RibbonClients;
 import org.springframework.cloud.netflix.ribbon.StaticServerList;
@@ -58,7 +58,7 @@ import reactor.core.publisher.Mono;
 public class BaseWebClientTests {
 
 	protected static final String HANDLER_MAPPER_HEADER = "X-Gateway-Handler-Mapper-Class";
-	protected static final String ROUTE_ID_HEADER = "X-Gateway-Route-Id";
+	protected static final String ROUTE_ID_HEADER = "X-Gateway-RouteDefinition-Id";
 	protected static final Duration DURATION = Duration.ofSeconds(5);
 
 	@LocalServerPort
@@ -163,9 +163,9 @@ public class BaseWebClientTests {
 				log.info("modifyResponseFilter start");
 				String value = (String) exchange.getAttribute(GATEWAY_HANDLER_MAPPER_ATTR).orElse("N/A");
 				exchange.getResponse().getHeaders().add(HANDLER_MAPPER_HEADER, value);
-				Route route = (Route) exchange.getAttribute(GATEWAY_ROUTE_ATTR).orElse(null);
-				if (route != null) {
-					exchange.getResponse().getHeaders().add(ROUTE_ID_HEADER, route.getId());
+				RouteDefinition routeDefinition = (RouteDefinition) exchange.getAttribute(GATEWAY_ROUTE_ATTR).orElse(null);
+				if (routeDefinition != null) {
+					exchange.getResponse().getHeaders().add(ROUTE_ID_HEADER, routeDefinition.getId());
 				}
 				return chain.filter(exchange);
 			};

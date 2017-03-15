@@ -25,12 +25,12 @@ import java.util.Optional;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.cloud.gateway.model.Route;
 import org.springframework.cloud.gateway.api.RouteLocator;
 import org.springframework.cloud.gateway.api.RouteWriter;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.factory.WebFilterFactory;
 import org.springframework.cloud.gateway.handler.FilteringWebHandler;
+import org.springframework.cloud.gateway.model.RouteDefinition;
 import org.springframework.cloud.gateway.support.NotFoundException;
 import org.springframework.cloud.gateway.support.RefreshRoutesEvent;
 import org.springframework.context.ApplicationEventPublisher;
@@ -118,7 +118,7 @@ public class GatewayEndpoint implements ApplicationEventPublisherAware {/*extend
 	}
 
 	@GetMapping("/routes")
-	public Mono<List<Route>> routes() {
+	public Mono<List<RouteDefinition>> routes() {
 		return this.routeLocator.getRoutes().collectList();
 	}
 
@@ -126,7 +126,7 @@ public class GatewayEndpoint implements ApplicationEventPublisherAware {/*extend
 http POST :8080/admin/gateway/routes/apiaddreqhead uri=http://httpbin.org:80 predicates:='["Host=**.apiaddrequestheader.org", "Path=/headers"]' filters:='["AddRequestHeader=X-Request-ApiFoo, ApiBar"]'
 */
 	@PostMapping("/routes/{id}")
-	public Mono<ResponseEntity<Void>> save(@PathVariable String id, @RequestBody Mono<Route> route) {
+	public Mono<ResponseEntity<Void>> save(@PathVariable String id, @RequestBody Mono<RouteDefinition> route) {
 		return this.routeWriter.save(route.map(r ->  {
 			r.setId(id);
 			log.debug("Saving route: " + route);
@@ -144,7 +144,7 @@ http POST :8080/admin/gateway/routes/apiaddreqhead uri=http://httpbin.org:80 pre
 	}
 
 	@GetMapping("/routes/{id}")
-	public Mono<ResponseEntity<Route>> route(@PathVariable String id) {
+	public Mono<ResponseEntity<RouteDefinition>> route(@PathVariable String id) {
 		return this.routeLocator.getRoutes()
 				.filter(route -> route.getId().equals(id))
 				.singleOrEmpty()
@@ -154,10 +154,10 @@ http POST :8080/admin/gateway/routes/apiaddreqhead uri=http://httpbin.org:80 pre
 
 	@GetMapping("/routes/{id}/combinedfilters")
 	public Map<String, Object> combinedfilters(@PathVariable String id) {
-		Mono<Route> route = this.routeLocator.getRoutes()
+		Mono<RouteDefinition> route = this.routeLocator.getRoutes()
 				.filter(r -> r.getId().equals(id))
 				.singleOrEmpty();
-		Optional<Route> optional = Optional.ofNullable(route.block()); //TODO: remove block();
+		Optional<RouteDefinition> optional = Optional.ofNullable(route.block()); //TODO: remove block();
 		return getNamesToOrders(this.filteringWebHandler.combineFiltersForRoute(optional));
 	}
 }

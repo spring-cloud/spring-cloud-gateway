@@ -25,7 +25,7 @@ import org.springframework.cloud.gateway.filter.factory.RewritePathWebFilterFact
 import org.springframework.cloud.gateway.handler.predicate.PathRequestPredicateFactory;
 import org.springframework.cloud.gateway.model.FilterDefinition;
 import org.springframework.cloud.gateway.model.PredicateDefinition;
-import org.springframework.cloud.gateway.model.Route;
+import org.springframework.cloud.gateway.model.RouteDefinition;
 
 import static org.springframework.cloud.gateway.filter.factory.RewritePathWebFilterFactory.REGEXP_KEY;
 import static org.springframework.cloud.gateway.filter.factory.RewritePathWebFilterFactory.REPLACEMENT_KEY;
@@ -50,18 +50,18 @@ public class DiscoveryClientRouteLocator implements RouteLocator {
 	}
 
 	@Override
-	public Flux<Route> getRoutes() {
+	public Flux<RouteDefinition> getRoutes() {
 		return Flux.fromIterable(discoveryClient.getServices())
 				.map(serviceId -> {
-					Route route = new Route();
-					route.setId(this.routeIdPrefix + serviceId);
-					route.setUri(URI.create("lb://" + serviceId));
+					RouteDefinition routeDefinition = new RouteDefinition();
+					routeDefinition.setId(this.routeIdPrefix + serviceId);
+					routeDefinition.setUri(URI.create("lb://" + serviceId));
 
 					// add a predicate that matches the url at /serviceId/**
 					PredicateDefinition predicate = new PredicateDefinition();
 					predicate.setName(normalizePredicateName(PathRequestPredicateFactory.class));
 					predicate.addArg(PATTERN_KEY, "/" + serviceId + "/**");
-					route.getPredicates().add(predicate);
+					routeDefinition.getPredicates().add(predicate);
 
 					//TODO: support for other default predicates
 
@@ -72,11 +72,11 @@ public class DiscoveryClientRouteLocator implements RouteLocator {
 					String replacement = "/${remaining}";
 					filter.addArg(REGEXP_KEY, regex);
 					filter.addArg(REPLACEMENT_KEY, replacement);
-					route.getFilters().add(filter);
+					routeDefinition.getFilters().add(filter);
 
 					//TODO: support for default filters
 
-					return route;
+					return routeDefinition;
 				});
 	}
 }

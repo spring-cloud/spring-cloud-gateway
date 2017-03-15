@@ -17,7 +17,7 @@
 
 package org.springframework.cloud.gateway.api;
 
-import org.springframework.cloud.gateway.model.Route;
+import org.springframework.cloud.gateway.model.RouteDefinition;
 import reactor.core.publisher.Flux;
 
 /**
@@ -25,5 +25,5 @@ import reactor.core.publisher.Flux;
  */
 public interface RouteLocator {
 
-	Flux<Route> getRoutes();
+	Flux<RouteDefinition> getRoutes();
 }

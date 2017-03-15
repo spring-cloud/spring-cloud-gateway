@@ -17,7 +17,7 @@
 
 package org.springframework.cloud.gateway.api;
 
-import org.springframework.cloud.gateway.model.Route;
+import org.springframework.cloud.gateway.model.RouteDefinition;
 import reactor.core.publisher.Mono;
 
 /**
@@ -25,7 +25,7 @@ import reactor.core.publisher.Mono;
  */
 public interface RouteWriter {
 
-	Mono<Void> save(Mono<Route> route);
+	Mono<Void> save(Mono<RouteDefinition> route);
 
 	Mono<Void> delete(Mono<String> routeId);
 }
