@@ -22,15 +22,16 @@ import org.springframework.web.server.WebFilter;
 /**
  * @author Spencer Gibb
  */
-public class RemoveResponseHeaderRouteFilter implements RouteFilter {
+public class AddResponseHeaderWebFilterFactory implements WebFilterFactory {
 
 	@Override
 	public WebFilter apply(String... args) {
-		validate(1, args);
+		validate(2, args);
 		final String header = args[0];
+		final String value = args[1];
 
 		return (exchange, chain) -> {
-			exchange.getResponse().getHeaders().remove(header);
+			exchange.getResponse().getHeaders().add(header, value);
 
 			return chain.filter(exchange);
 		};

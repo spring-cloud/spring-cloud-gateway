@@ -23,7 +23,7 @@ import org.springframework.web.server.WebFilter;
 /**
  * @author Spencer Gibb
  */
-public class PrefixPathRouteFilter implements RouteFilter {
+public class PrefixPathWebFilterFactory implements WebFilterFactory {
 
 	@Override
 	@SuppressWarnings("unchecked")

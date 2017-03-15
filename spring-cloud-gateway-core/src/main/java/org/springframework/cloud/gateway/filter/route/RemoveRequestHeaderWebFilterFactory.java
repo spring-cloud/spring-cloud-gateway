@@ -18,22 +18,29 @@
 package org.springframework.cloud.gateway.filter.route;
 
 import org.springframework.web.server.WebFilter;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 
 /**
  * @author Spencer Gibb
  */
-public class AddResponseHeaderRouteFilter implements RouteFilter {
+public class RemoveRequestHeaderWebFilterFactory implements WebFilterFactory {
+
+	private static final String FAKE_HEADER = "_______force_______";
 
 	@Override
 	public WebFilter apply(String... args) {
-		validate(2, args);
+		validate(1, args);
 		final String header = args[0];
-		final String value = args[1];
 
 		return (exchange, chain) -> {
-			exchange.getResponse().getHeaders().add(header, value);
+			ServerHttpRequest request = exchange.getRequest().mutate()
+					.header(FAKE_HEADER, "mutable") //TODO: is there a better way?
+					.build();
 
-			return chain.filter(exchange);
+			request.getHeaders().remove(FAKE_HEADER);
+			request.getHeaders().remove(header);
+
+			return chain.filter(exchange.mutate().request(request).build());
 		};
 	}
 }

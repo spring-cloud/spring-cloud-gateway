@@ -17,23 +17,30 @@
 
 package org.springframework.cloud.gateway.filter.route;
 
-import org.springframework.cloud.gateway.support.NameUtils;
-import org.springframework.util.Assert;
 import org.springframework.web.server.WebFilter;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 
 /**
  * @author Spencer Gibb
  */
-public interface RouteFilter {
+public class RewritePathWebFilterFactory implements WebFilterFactory {
 
-	WebFilter apply(String... args);
+	@Override
+	public WebFilter apply(String... args) {
+		validate(2, args);
+		final String regex = args[0];
+		String replacement = args[1].replace("$\\", "$");
 
-	default String name() {
-		return NameUtils.normalizeFilterName(getClass());
-	}
+		return (exchange, chain) -> {
+			ServerHttpRequest req = exchange.getRequest();
+			String path = req.getURI().getPath();
+			String newPath = path.replaceAll(regex, replacement);
 
-	default void validate(int requiredSize, String... args) {
-		Assert.isTrue(args != null && args.length == requiredSize,
-				"args must have "+ requiredSize +" entry(s)");
+			ServerHttpRequest request = req.mutate()
+					.path(newPath)
+					.build();
+
+			return chain.filter(exchange.mutate().request(request).build());
+		};
 	}
 }

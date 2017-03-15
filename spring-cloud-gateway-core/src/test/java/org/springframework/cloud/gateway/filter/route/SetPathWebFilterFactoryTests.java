@@ -38,7 +38,7 @@ import reactor.core.publisher.Mono;
 /**
  * @author Spencer Gibb
  */
-public class SetPathRouteFilterTests {
+public class SetPathWebFilterFactoryTests {
 
 	@Test
 	public void rewritePathFilterWorks() {
@@ -54,7 +54,7 @@ public class SetPathRouteFilterTests {
 	}
 
 	private void testRewriteFilter(String template, String actualPath, String expectedPath, HashMap<String, String> variables) {
-		WebFilter filter = new SetPathRouteFilter().apply(new String[]{template});
+		WebFilter filter = new SetPathWebFilterFactory().apply(new String[]{template});
 
 		MockServerHttpRequest request = MockServerHttpRequest
 				.get("http://localhost"+ actualPath)

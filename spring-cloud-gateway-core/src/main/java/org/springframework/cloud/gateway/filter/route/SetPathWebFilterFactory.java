@@ -17,28 +17,36 @@
 
 package org.springframework.cloud.gateway.filter.route;
 
-import org.springframework.web.server.WebFilter;
+import java.net.URI;
+import java.util.Map;
+
 import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.web.server.WebFilter;
+import org.springframework.web.util.UriTemplate;
+
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.getAttribute;
+import static org.springframework.web.reactive.function.server.RouterFunctions.URI_TEMPLATE_VARIABLES_ATTRIBUTE;
 
 /**
  * @author Spencer Gibb
  */
-public class RemoveRequestHeaderRouteFilter implements RouteFilter {
-
-	private static final String FAKE_HEADER = "_______force_______";
+public class SetPathWebFilterFactory implements WebFilterFactory {
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public WebFilter apply(String... args) {
 		validate(1, args);
-		final String header = args[0];
+		UriTemplate uriTemplate = new UriTemplate(args[0]);
 
 		return (exchange, chain) -> {
-			ServerHttpRequest request = exchange.getRequest().mutate()
-					.header(FAKE_HEADER, "mutable") //TODO: is there a better way?
-					.build();
+			Map<String, String> variables = getAttribute(exchange, URI_TEMPLATE_VARIABLES_ATTRIBUTE, Map.class);
+			ServerHttpRequest req = exchange.getRequest();
+			URI uri = uriTemplate.expand(variables);
+			String newPath = uri.getPath();
 
-			request.getHeaders().remove(FAKE_HEADER);
-			request.getHeaders().remove(header);
+			ServerHttpRequest request = req.mutate()
+					.path(newPath)
+					.build();
 
 			return chain.filter(exchange.mutate().request(request).build());
 		};

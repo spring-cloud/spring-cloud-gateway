@@ -40,37 +40,25 @@ import reactor.test.StepVerifier;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
-public class HystrixRouteFilterIntegrationTests extends BaseWebClientTests {
+public class RedirectToWebFilterFactoryTests extends BaseWebClientTests {
 
 	@Test
-	public void hystrixFilterWorks() {
+	public void redirectToFilterWorks() {
 		Mono<ClientResponse> result = webClient.get()
-				.uri("/get")
-				.header("Host", "www.hystrixsuccess.org")
+				.uri("/")
+				.header("Host", "www.redirectto.org")
 				.exchange();
 
 		StepVerifier.create(result)
 				.consumeNextWith(
 						response -> {
-							assertStatus(response, HttpStatus.OK);
+							assertStatus(response, HttpStatus.FOUND);
 							HttpHeaders httpHeaders = response.headers().asHttpHeaders();
-							assertThat(httpHeaders.getFirst(ROUTE_ID_HEADER))
-									.isEqualTo("hystrix_success_test");
+							assertThat(httpHeaders.getFirst(HttpHeaders.LOCATION))
+									.isEqualTo("http://example.org");
 						})
 				.expectComplete()
 				.verify(DURATION);
-	}
-
-	@Test
-	public void hystrixFilterTimesout() {
-		Mono<ClientResponse> result = webClient.get()
-				.uri("/delay/3")
-				.header("Host", "www.hystrixfailure.org")
-				.exchange();
-
-		StepVerifier.create(result)
-				.expectError() //TODO: can we get more specific as to the error?
-				.verify();
 	}
 
 	@EnableAutoConfiguration

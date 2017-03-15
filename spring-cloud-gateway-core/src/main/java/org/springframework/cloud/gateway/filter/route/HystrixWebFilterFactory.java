@@ -33,7 +33,7 @@ import rx.Subscription;
 /**
  * @author Spencer Gibb
  */
-public class HystrixRouteFilter implements RouteFilter {
+public class HystrixWebFilterFactory implements WebFilterFactory {
 
 	@Override
 	public WebFilter apply(String... args) {

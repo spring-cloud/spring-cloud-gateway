@@ -17,51 +17,40 @@
 
 package org.springframework.cloud.gateway.filter.route;
 
-import java.util.Map;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.gateway.EnableGateway;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
+import org.springframework.http.HttpHeaders;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.web.reactive.function.client.ClientResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
-import static org.springframework.cloud.gateway.filter.route.RemoveNonProxyHeadersRouteFilter.DEFAULT_HEADERS_TO_REMOVE;
-import static org.springframework.cloud.gateway.test.TestUtils.getMap;
-import static org.springframework.web.reactive.function.BodyExtractors.toMono;
 
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
-//TODO: why does this break other tests if not in a profile?
-@ActiveProfiles("removenonproxyheaders")
 @DirtiesContext
-public class RemoveNonProxyHeadersRouteFilterIntegrationTests extends BaseWebClientTests {
+public class RemoveResponseHeaderWebFilterFactoryTests extends BaseWebClientTests {
 
 	@Test
-	public void removeNonProxyHeadersFilterWorks() {
-		Mono<Map> result = webClient.get()
+	public void removeResponseHeaderFilterWorks() {
+		Mono<ClientResponse> result = webClient.get()
 				.uri("/headers")
-				.header("Host", "www.removerequestheader.org")
-				.header("Proxy-Authorization", "myauth")
-				.exchange()
-				.then(response -> response.body(toMono(Map.class)));
+				.header("Host", "www.removereresponseheader.org")
+				.exchange();
 
 		StepVerifier.create(result)
 				.consumeNextWith(
 						response -> {
-							Map<String, Object> headers = getMap(response, "headers");
-							for (String header : DEFAULT_HEADERS_TO_REMOVE) {
-								assertThat(headers).doesNotContainKey(header);
-							}
+							HttpHeaders httpHeaders = response.headers().asHttpHeaders();
+							assertThat(httpHeaders).doesNotContainKey("X-Request-Foo");
 						})
 				.expectComplete()
 				.verify(DURATION);
@@ -69,7 +58,6 @@ public class RemoveNonProxyHeadersRouteFilterIntegrationTests extends BaseWebCli
 
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
-	@EnableGateway
 	public static class TestConfig { }
 
 }

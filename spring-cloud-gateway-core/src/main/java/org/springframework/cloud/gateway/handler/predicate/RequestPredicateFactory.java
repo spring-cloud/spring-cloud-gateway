@@ -28,6 +28,7 @@ import org.springframework.web.reactive.function.server.RequestPredicate;
 /**
  * @author Spencer Gibb
  */
+@FunctionalInterface
 public interface RequestPredicateFactory {
 
 	RequestPredicate apply(Tuple args);

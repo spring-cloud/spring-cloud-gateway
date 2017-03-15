@@ -32,14 +32,14 @@ import org.springframework.web.reactive.function.client.ClientResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
-import static org.springframework.cloud.gateway.filter.route.SecureHeadersRouteFilter.CONTENT_SECURITY_POLICY_HEADER;
-import static org.springframework.cloud.gateway.filter.route.SecureHeadersRouteFilter.REFERRER_POLICY_HEADER;
-import static org.springframework.cloud.gateway.filter.route.SecureHeadersRouteFilter.STRICT_TRANSPORT_SECURITY_HEADER;
-import static org.springframework.cloud.gateway.filter.route.SecureHeadersRouteFilter.X_CONTENT_TYPE_OPTIONS_HEADER;
-import static org.springframework.cloud.gateway.filter.route.SecureHeadersRouteFilter.X_DOWNLOAD_OPTIONS_HEADER;
-import static org.springframework.cloud.gateway.filter.route.SecureHeadersRouteFilter.X_FRAME_OPTIONS_HEADER;
-import static org.springframework.cloud.gateway.filter.route.SecureHeadersRouteFilter.X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER;
-import static org.springframework.cloud.gateway.filter.route.SecureHeadersRouteFilter.X_XSS_PROTECTION_HEADER;
+import static org.springframework.cloud.gateway.filter.route.SecureHeadersWebFilterFactory.CONTENT_SECURITY_POLICY_HEADER;
+import static org.springframework.cloud.gateway.filter.route.SecureHeadersWebFilterFactory.REFERRER_POLICY_HEADER;
+import static org.springframework.cloud.gateway.filter.route.SecureHeadersWebFilterFactory.STRICT_TRANSPORT_SECURITY_HEADER;
+import static org.springframework.cloud.gateway.filter.route.SecureHeadersWebFilterFactory.X_CONTENT_TYPE_OPTIONS_HEADER;
+import static org.springframework.cloud.gateway.filter.route.SecureHeadersWebFilterFactory.X_DOWNLOAD_OPTIONS_HEADER;
+import static org.springframework.cloud.gateway.filter.route.SecureHeadersWebFilterFactory.X_FRAME_OPTIONS_HEADER;
+import static org.springframework.cloud.gateway.filter.route.SecureHeadersWebFilterFactory.X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER;
+import static org.springframework.cloud.gateway.filter.route.SecureHeadersWebFilterFactory.X_XSS_PROTECTION_HEADER;
 import static org.springframework.cloud.gateway.test.TestUtils.assertStatus;
 
 import reactor.core.publisher.Mono;
@@ -48,7 +48,7 @@ import reactor.test.StepVerifier;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
-public class SecureHeadersRouteFilterIntegrationTests extends BaseWebClientTests {
+public class SecureHeadersWebFilterFactoryTests extends BaseWebClientTests {
 
 	@Test
 	public void secureHeadersFilterWorks() {

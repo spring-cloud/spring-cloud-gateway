@@ -17,10 +17,16 @@
 
 package org.springframework.cloud.gateway.filter.route;
 
-import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
+
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.server.WebFilter;
 
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.parse;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.setResponseStatus;
 
 import reactor.core.publisher.Mono;
@@ -28,31 +34,32 @@ import reactor.core.publisher.Mono;
 /**
  * @author Spencer Gibb
  */
-public class SetStatusRouteFilter implements RouteFilter {
-
+public class RedirectToWebFilterFactory implements WebFilterFactory {
 	@Override
 	public WebFilter apply(String... args) {
-		validate(1, args);
-		final HttpStatus httpStatus = ServerWebExchangeUtils.parse(args[0]);
+		validate(2, args);
+		final String statusString = args[0];
+		final String uri = args[1];
 
-		return (exchange, chain) -> {
+		final HttpStatus httpStatus = parse(statusString);
+		final URL url;
+		try {
+			url = URI.create(uri).toURL();
+		} catch (MalformedURLException e) {
+			throw new IllegalArgumentException("Invalid url " + uri, e);
+		}
 
-			// option 1 (runs in filter order)
-			/*exchange.getResponse().beforeCommit(() -> {
-				exchange.getResponse().setStatusCode(finalStatus);
-				return Mono.empty();
-			});
-			return chain.filter(exchange);*/
-
-			// option 2 (runs in reverse filter order)
-			return chain.filter(exchange).then(() -> {
-				// check not really needed, since it is guarded in setStatusCode, but it's a good example
+		return (exchange, chain) ->
+			chain.filter(exchange).then(() -> {
 				if (!exchange.getResponse().isCommitted()) {
 					setResponseStatus(exchange, httpStatus);
+
+					final ServerHttpResponse response = exchange.getResponse();
+					response.getHeaders().set(HttpHeaders.LOCATION, url.toString());
+					return response.setComplete();
 				}
 				return Mono.empty();
 			});
-		};
 	}
 
 }

@@ -44,7 +44,7 @@ import java.util.List;
  * @author Spencer Gibb
  */
 @ConfigurationProperties("spring.cloud.gateway.filter.removeNonProxyHeaders")
-public class RemoveNonProxyHeadersRouteFilter implements RouteFilter {
+public class RemoveNonProxyHeadersWebFilterFactory implements WebFilterFactory {
 
 	private static final String FAKE_HEADER = "_______force_______";
 	public static final String[] DEFAULT_HEADERS_TO_REMOVE = new String[] {"Connection", "Keep-Alive",

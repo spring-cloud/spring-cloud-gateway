@@ -31,11 +31,11 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.cloud.gateway.filter.route.WebFilterFactory;
 import org.springframework.cloud.gateway.model.FilterDefinition;
 import org.springframework.cloud.gateway.model.Route;
 import org.springframework.cloud.gateway.config.GatewayProperties;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
-import org.springframework.cloud.gateway.filter.route.RouteFilter;
 import org.springframework.cloud.gateway.support.RefreshRoutesEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.Ordered;
@@ -53,7 +53,7 @@ import reactor.core.publisher.Mono;
 
 /**
  * WebHandler that delegates to a chain of {@link GlobalFilter} instances and
- * {@link RouteFilter} instances then to the target {@link WebHandler}.
+ * {@link WebFilterFactory} instances then to the target {@link WebHandler}.
  *
  * @author Rossen Stoyanchev
  * @author Spencer Gibb
@@ -64,21 +64,21 @@ public class FilteringWebHandler extends WebHandlerDecorator {
 
 	private final GatewayProperties gatewayProperties;
 	private final List<GlobalFilter> globalFilters;
-	private final Map<String, RouteFilter> routeFilters = new HashMap<>();
+	private final Map<String, WebFilterFactory> webFilterFactories = new HashMap<>();
 
 	private final ConcurrentMap<String, List<WebFilter>> combinedFiltersForRoute = new ConcurrentHashMap<>();
 
 	public FilteringWebHandler(GatewayProperties gatewayProperties, List<GlobalFilter> globalFilters,
-							   List<RouteFilter> routeFilters) {
-		this(new EmptyWebHandler(), gatewayProperties, globalFilters, routeFilters);
+							   List<WebFilterFactory> webFilterFactories) {
+		this(new EmptyWebHandler(), gatewayProperties, globalFilters, webFilterFactories);
 	}
 
 	public FilteringWebHandler(WebHandler targetHandler, GatewayProperties gatewayProperties, List<GlobalFilter> globalFilters,
-							   List<RouteFilter> routeFilters) {
+							   List<WebFilterFactory> webFilterFactories) {
 		super(targetHandler);
 		this.gatewayProperties = gatewayProperties;
 		this.globalFilters = initList(globalFilters);
-		routeFilters.forEach(routeFilter -> this.routeFilters.put(routeFilter.name(), routeFilter));
+		webFilterFactories.forEach(factory -> this.webFilterFactories.put(factory.name(), factory));
 	}
 
 	private static <T> List<T> initList(List<T> list) {
@@ -101,11 +101,11 @@ public class FilteringWebHandler extends WebHandlerDecorator {
 	@Override
 	public Mono<Void> handle(ServerWebExchange exchange) {
 		Optional<Route> route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
-		List<WebFilter> routeFilters = combineFiltersForRoute(route);
+		List<WebFilter> webFilters = combineFiltersForRoute(route);
 
-		logger.debug("Sorted routeFilters: "+ routeFilters);
+		logger.debug("Sorted webFilterFactories: "+ webFilters);
 
-		return new DefaultWebFilterChain(routeFilters, getDelegate()).filter(exchange);
+		return new DefaultWebFilterChain(webFilters, getDelegate()).filter(exchange);
 	}
 
 	public List<WebFilter> combineFiltersForRoute(Optional<Route> route) {
@@ -149,9 +149,9 @@ public class FilteringWebHandler extends WebHandlerDecorator {
 	private List<WebFilter> loadWebFilters(String id, List<FilterDefinition> filterDefinitions) {
 		List<WebFilter> filters = filterDefinitions.stream()
 				.map(definition -> {
-					RouteFilter filter = this.routeFilters.get(definition.getName());
+					WebFilterFactory filter = this.webFilterFactories.get(definition.getName());
 					if (filter == null) {
-						throw new IllegalArgumentException("Unable to find RouteFilter with name " + definition.getName());
+						throw new IllegalArgumentException("Unable to find WebFilterFactory with name " + definition.getName());
 					}
 					if (logger.isDebugEnabled()) {
 						List<String> args;

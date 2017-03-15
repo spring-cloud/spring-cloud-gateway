@@ -15,25 +15,28 @@
  *
  */
 
+//TODO: move to package factory
 package org.springframework.cloud.gateway.filter.route;
 
+import org.springframework.cloud.gateway.support.NameUtils;
+import org.springframework.util.Assert;
 import org.springframework.web.server.WebFilter;
 
 /**
  * @author Spencer Gibb
  */
-public class SetResponseHeaderRouteFilter implements RouteFilter {
+@FunctionalInterface
+public interface WebFilterFactory {
 
-	@Override
-	public WebFilter apply(String... args) {
-		validate(2, args);
-		final String header = args[0];
-		final String value = args[1];
+	//TODO: move from String... to Tuple
+	WebFilter apply(String... args);
 
-		return (exchange, chain) -> {
-			exchange.getResponse().getHeaders().set(header, value);
+	default String name() {
+		return NameUtils.normalizeFilterName(getClass());
+	}
 
-			return chain.filter(exchange);
-		};
+	default void validate(int requiredSize, String... args) {
+		Assert.isTrue(args != null && args.length == requiredSize,
+				"args must have "+ requiredSize +" entry(s)");
 	}
 }

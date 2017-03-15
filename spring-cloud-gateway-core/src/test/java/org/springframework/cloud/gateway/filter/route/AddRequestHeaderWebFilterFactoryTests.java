@@ -40,14 +40,13 @@ import reactor.test.StepVerifier;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
-public class RemoveRequestHeaderRouteFilterIntegrationTests extends BaseWebClientTests {
+public class AddRequestHeaderWebFilterFactoryTests extends BaseWebClientTests {
 
 	@Test
-	public void removeRequestHeaderFilterWorks() {
+	public void addRequestHeaderFilterWorks() {
 		Mono<Map> result = webClient.get()
 				.uri("/headers")
-				.header("Host", "www.removerequestheader.org")
-				.header("X-Request-Foo", "Bar")
+				.header("Host", "www.addrequestheader.org")
 				.exchange()
 				.then(response -> response.body(toMono(Map.class)));
 
@@ -55,7 +54,7 @@ public class RemoveRequestHeaderRouteFilterIntegrationTests extends BaseWebClien
 				.consumeNextWith(
 						response -> {
 							Map<String, Object> headers = getMap(response, "headers");
-							assertThat(headers).doesNotContainKey("X-Request-Foo");
+							assertThat(headers).containsEntry("X-Request-Foo", "Bar");
 						})
 				.expectComplete()
 				.verify(DURATION);

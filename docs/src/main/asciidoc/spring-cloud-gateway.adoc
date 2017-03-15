@@ -139,7 +139,7 @@ spring:
 
 This route would match if the request path was, for example: `/foo/1` or `/foo/bar`.
 
-This predicate extracts the URI template variables (like `segment` defined in the example above) as a map of names and values and places it in the `ServerWebExchange.getAttributes()` with a key defined in `PathRoutePredicate.URL_PREDICATE_VARS_ATTR`. Those values are then available for use by <<gateway-route-filters,Route Filters>>
+This predicate extracts the URI template variables (like `segment` defined in the example above) as a map of names and values and places it in the `ServerWebExchange.getAttributes()` with a key defined in `PathRoutePredicate.URL_PREDICATE_VARS_ATTR`. Those values are then available for use by <<gateway-route-filters,WebFilter Factorys>>
 
 === Query Request Predicate Factory
 TODO: document Query Request Predicate Factory
@@ -148,51 +148,51 @@ TODO: document Query Request Predicate Factory
 TODO: document RemoteAddr Request Predicate Factory
 
 [[gateway-route-filters]]
-== Route Filters
+== WebFilter Factorys
 
-Route filters allow the modification of the incoming HTTP request or outgoing HTTP response in some manner. Route filters are scoped to a particular route. Spring Cloud Gateway includes many built-in Route Filters.
+Route filters allow the modification of the incoming HTTP request or outgoing HTTP response in some manner. Route filters are scoped to a particular route. Spring Cloud Gateway includes many built-in WebFilter Factories.
 
-=== AddRequestHeader Route Filter
-TODO: document AddRequestHeader Route Filter
+=== AddRequestHeader WebFilter Factory
+TODO: document AddRequestHeader WebFilter Factory
 
-=== AddRequestParameter Route Filter
-TODO: document AddRequestParameter Route Filter
+=== AddRequestParameter WebFilter Factory
+TODO: document AddRequestParameter WebFilter Factory
 
-=== AddResponseHeader Route Filter
-TODO: document AddResponseHeader Route Filter
+=== AddResponseHeader WebFilter Factory
+TODO: document AddResponseHeader WebFilter Factory
 
-=== Hystrix Route Filter
-TODO: document Hystrix Route Filter
+=== Hystrix WebFilter Factory
+TODO: document Hystrix WebFilter Factory
 
-=== PrefixPath Route Filter
-TODO: document PrefixPath Route Filter
+=== PrefixPath WebFilter Factory
+TODO: document PrefixPath WebFilter Factory
 
-=== RedirectTo Route Filter
-TODO: document RedirectTo Route Filter
+=== RedirectTo WebFilter Factory
+TODO: document RedirectTo WebFilter Factory
 
-=== RemoveNonProxyHeaders Route Filter
-TODO: document RemoveNonProxyHeaders Route Filter
+=== RemoveNonProxyHeaders WebFilter Factory
+TODO: document RemoveNonProxyHeaders WebFilter Factory
 
-=== RemoveRequestHeader Route Filter
-TODO: document RemoveRequestHeader Route Filter
+=== RemoveRequestHeader WebFilter Factory
+TODO: document RemoveRequestHeader WebFilter Factory
 
-=== RemoveResponseHeader Route Filter
-TODO: document RemoveResponseHeader Route Filter
+=== RemoveResponseHeader WebFilter Factory
+TODO: document RemoveResponseHeader WebFilter Factory
 
-=== RewritePath Route Filter
-TODO: document RewritePath Route Filter
+=== RewritePath WebFilter Factory
+TODO: document RewritePath WebFilter Factory
 
-=== SecureHeaders Route Filter
-TODO: document SecureHeaders Route Filter
+=== SecureHeaders WebFilter Factory
+TODO: document SecureHeaders WebFilter Factory
 
-=== SetPath Route Filter
-TODO: document SetPath Route Filter
+=== SetPath WebFilter Factory
+TODO: document SetPath WebFilter Factory
 
-=== SetResponseHeader Route Filter
-TODO: document SetResponseHeader Route Filter
+=== SetResponseHeader WebFilter Factory
+TODO: document SetResponseHeader WebFilter Factory
 
-=== SetStatus Route Filter
-TODO: document SetStatus Route Filter
+=== SetStatus WebFilter Factory
+TODO: document SetStatus WebFilter Factory
 
 == Global Filters
 
@@ -214,9 +214,9 @@ TODO: overview of writing custom integrations
 
 TODO: document writing Custom Request Predicate Factorys
 
-=== Writing Custom Route Filters
+=== Writing Custom WebFilter Factorys
 
-TODO: document writing Custom Route Filters
+TODO: document writing Custom WebFilter Factorys
 
 === Writing Custom Global Filters
 

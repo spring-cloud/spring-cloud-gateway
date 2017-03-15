@@ -17,35 +17,21 @@
 
 package org.springframework.cloud.gateway.filter.route;
 
-import java.net.URI;
-import java.util.Map;
-
-import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.server.WebFilter;
-import org.springframework.web.util.UriTemplate;
-
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.getAttribute;
-import static org.springframework.web.reactive.function.server.RouterFunctions.URI_TEMPLATE_VARIABLES_ATTRIBUTE;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 
 /**
  * @author Spencer Gibb
  */
-public class SetPathRouteFilter implements RouteFilter {
+public class AddRequestHeaderWebFilterFactory implements WebFilterFactory {
 
 	@Override
-	@SuppressWarnings("unchecked")
 	public WebFilter apply(String... args) {
-		validate(1, args);
-		UriTemplate uriTemplate = new UriTemplate(args[0]);
+		validate(2, args);
 
 		return (exchange, chain) -> {
-			Map<String, String> variables = getAttribute(exchange, URI_TEMPLATE_VARIABLES_ATTRIBUTE, Map.class);
-			ServerHttpRequest req = exchange.getRequest();
-			URI uri = uriTemplate.expand(variables);
-			String newPath = uri.getPath();
-
-			ServerHttpRequest request = req.mutate()
-					.path(newPath)
+			ServerHttpRequest request = exchange.getRequest().mutate()
+					.header(args[0], args[1])
 					.build();
 
 			return chain.filter(exchange.mutate().request(request).build());

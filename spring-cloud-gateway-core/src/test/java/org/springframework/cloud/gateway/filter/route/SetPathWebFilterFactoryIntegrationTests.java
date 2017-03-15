@@ -38,28 +38,19 @@ import reactor.test.StepVerifier;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
-public class SetStatusRouteFilterIntegrationTests extends BaseWebClientTests {
+public class SetPathWebFilterFactoryIntegrationTests extends BaseWebClientTests {
 
 	@Test
-	public void setStatusIntWorks() {
-		setStatusStringTest("www.setstatusint.org", HttpStatus.UNAUTHORIZED);
-	}
-
-	@Test
-	public void setStatusStringWorks() {
-		setStatusStringTest("www.setstatusstring.org", HttpStatus.BAD_REQUEST);
-	}
-
-	private void setStatusStringTest(String host, HttpStatus status) {
+	public void setPathFilterDefaultValuesWork() {
 		Mono<ClientResponse> result = webClient.get()
-				.uri("/headers")
-				.header("Host", host)
+				.uri("/foo/get")
+				.header("Host", "www.setpath.org")
 				.exchange();
 
 		StepVerifier.create(result)
 				.consumeNextWith(
 						response -> {
-							assertStatus(response, status);
+							assertStatus(response, HttpStatus.OK);
 						})
 				.expectComplete()
 				.verify(DURATION);

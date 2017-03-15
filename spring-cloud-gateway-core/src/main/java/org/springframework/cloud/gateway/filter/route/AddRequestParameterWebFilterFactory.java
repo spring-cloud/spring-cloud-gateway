@@ -31,7 +31,7 @@ import org.springframework.web.server.WebFilter;
 /**
  * @author Spencer Gibb
  */
-public class AddRequestParameterRouteFilter implements RouteFilter {
+public class AddRequestParameterWebFilterFactory implements WebFilterFactory {
 
 	@Override
 	public WebFilter apply(String... args) {

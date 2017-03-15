@@ -18,23 +18,22 @@
 package org.springframework.cloud.gateway.filter.route;
 
 import org.springframework.web.server.WebFilter;
-import org.springframework.http.server.reactive.ServerHttpRequest;
 
 /**
  * @author Spencer Gibb
  */
-public class AddRequestHeaderRouteFilter implements RouteFilter {
+public class SetResponseHeaderWebFilterFactory implements WebFilterFactory {
 
 	@Override
 	public WebFilter apply(String... args) {
 		validate(2, args);
+		final String header = args[0];
+		final String value = args[1];
 
 		return (exchange, chain) -> {
-			ServerHttpRequest request = exchange.getRequest().mutate()
-					.header(args[0], args[1])
-					.build();
+			exchange.getResponse().getHeaders().set(header, value);
 
-			return chain.filter(exchange.mutate().request(request).build());
+			return chain.filter(exchange);
 		};
 	}
 }

@@ -29,7 +29,7 @@ import org.springframework.cloud.gateway.model.Route;
 import org.springframework.cloud.gateway.api.RouteLocator;
 import org.springframework.cloud.gateway.api.RouteWriter;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
-import org.springframework.cloud.gateway.filter.route.RouteFilter;
+import org.springframework.cloud.gateway.filter.route.WebFilterFactory;
 import org.springframework.cloud.gateway.handler.FilteringWebHandler;
 import org.springframework.cloud.gateway.support.NotFoundException;
 import org.springframework.cloud.gateway.support.RefreshRoutesEvent;
@@ -60,18 +60,18 @@ public class GatewayEndpoint implements ApplicationEventPublisherAware {/*extend
 
 	private RouteLocator routeLocator;
 	private List<GlobalFilter> globalFilters;
-	private List<RouteFilter> routeFilters;
+	private List<WebFilterFactory> webFilterFactories;
 	private FilteringWebHandler filteringWebHandler;
 	private RouteWriter routeWriter;
 	private ApplicationEventPublisher publisher;
 
 	public GatewayEndpoint(RouteLocator routeLocator, List<GlobalFilter> globalFilters,
-						   List<RouteFilter> routeFilters, FilteringWebHandler filteringWebHandler,
+						   List<WebFilterFactory> webFilterFactories, FilteringWebHandler filteringWebHandler,
 						   RouteWriter routeWriter) {
 		//super("gateway");
 		this.routeLocator = routeLocator;
 		this.globalFilters = globalFilters;
-		this.routeFilters = routeFilters;
+		this.webFilterFactories = webFilterFactories;
 		this.filteringWebHandler = filteringWebHandler;
 		this.routeWriter = routeWriter;
 	}
@@ -99,7 +99,7 @@ public class GatewayEndpoint implements ApplicationEventPublisherAware {/*extend
 
 	@GetMapping("/routefilters")
 	public Map<String, Object> routefilers() {
-		return getNamesToOrders(this.routeFilters);
+		return getNamesToOrders(this.webFilterFactories);
 	}
 
 	private <T> Map<String, Object> getNamesToOrders(List<T> list) {

@@ -24,7 +24,7 @@ import org.springframework.web.server.WebFilter;
  * https://blog.appcanary.com/2017/http-security-headers.html
  * @author Spencer Gibb
  */
-public class SecureHeadersRouteFilter implements RouteFilter {
+public class SecureHeadersWebFilterFactory implements WebFilterFactory {
 
 	public static final String X_XSS_PROTECTION_HEADER = "X-Xss-Protection";
 	public static final String STRICT_TRANSPORT_SECURITY_HEADER = "Strict-Transport-Security";
@@ -37,7 +37,7 @@ public class SecureHeadersRouteFilter implements RouteFilter {
 
 	private final SecureHeadersProperties properties;
 
-	public SecureHeadersRouteFilter(SecureHeadersProperties properties) {
+	public SecureHeadersWebFilterFactory(SecureHeadersProperties properties) {
 		this.properties = properties;
 	}
 

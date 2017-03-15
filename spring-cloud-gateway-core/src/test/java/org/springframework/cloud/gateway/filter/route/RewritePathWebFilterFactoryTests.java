@@ -34,7 +34,7 @@ import static org.mockito.Mockito.when;
 /**
  * @author Spencer Gibb
  */
-public class RewritePathRouteFilterTests {
+public class RewritePathWebFilterFactoryTests {
 
 	@Test
 	public void rewritePathFilterWorks() {
@@ -47,7 +47,7 @@ public class RewritePathRouteFilterTests {
 	}
 
 	private void testRewriteFilter(String regex, String replacement, String actualPath, String expectedPath) {
-		WebFilter filter = new RewritePathRouteFilter().apply(regex, replacement);
+		WebFilter filter = new RewritePathWebFilterFactory().apply(regex, replacement);
 
 		MockServerHttpRequest request = MockServerHttpRequest
 				.get("http://localhost"+ actualPath)

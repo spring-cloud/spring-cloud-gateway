@@ -22,7 +22,7 @@ import java.util.Collections;
 
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.gateway.api.RouteLocator;
-import org.springframework.cloud.gateway.filter.route.RewritePathRouteFilter;
+import org.springframework.cloud.gateway.filter.route.RewritePathWebFilterFactory;
 import org.springframework.cloud.gateway.handler.predicate.PathRequestPredicateFactory;
 import org.springframework.cloud.gateway.model.FilterDefinition;
 import org.springframework.cloud.gateway.model.PredicateDefinition;
@@ -66,7 +66,7 @@ public class DiscoveryClientRouteLocator implements RouteLocator {
 
 					// add a filter that removes /serviceId by default
 					FilterDefinition filter = new FilterDefinition();
-					filter.setName(normalizeFilterName(RewritePathRouteFilter.class));
+					filter.setName(normalizeFilterName(RewritePathWebFilterFactory.class));
 					String regex = "/" + serviceId + "/(?<remaining>.*)";
 					String replacement = "/${remaining}";
 					filter.setArgs(regex, replacement);
