@@ -22,7 +22,7 @@ import java.util.Collections;
 
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.gateway.api.RouteLocator;
-import org.springframework.cloud.gateway.filter.route.RewritePathWebFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.RewritePathWebFilterFactory;
 import org.springframework.cloud.gateway.handler.predicate.PathRequestPredicateFactory;
 import org.springframework.cloud.gateway.model.FilterDefinition;
 import org.springframework.cloud.gateway.model.PredicateDefinition;

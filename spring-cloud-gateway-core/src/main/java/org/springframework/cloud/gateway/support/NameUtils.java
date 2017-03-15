@@ -17,7 +17,7 @@
 
 package org.springframework.cloud.gateway.support;
 
-import org.springframework.cloud.gateway.filter.route.WebFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.WebFilterFactory;
 import org.springframework.cloud.gateway.handler.predicate.RequestPredicateFactory;
 
 /**

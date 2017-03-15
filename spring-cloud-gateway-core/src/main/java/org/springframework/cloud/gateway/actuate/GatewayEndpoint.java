@@ -29,7 +29,7 @@ import org.springframework.cloud.gateway.model.Route;
 import org.springframework.cloud.gateway.api.RouteLocator;
 import org.springframework.cloud.gateway.api.RouteWriter;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
-import org.springframework.cloud.gateway.filter.route.WebFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.WebFilterFactory;
 import org.springframework.cloud.gateway.handler.FilteringWebHandler;
 import org.springframework.cloud.gateway.support.NotFoundException;
 import org.springframework.cloud.gateway.support.RefreshRoutesEvent;
