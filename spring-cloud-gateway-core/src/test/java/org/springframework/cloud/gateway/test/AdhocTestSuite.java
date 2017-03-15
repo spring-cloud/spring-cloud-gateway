@@ -34,11 +34,12 @@ import org.springframework.cloud.gateway.filter.route.SetPathRouteFilterIntegrat
 import org.springframework.cloud.gateway.filter.route.SetPathRouteFilterTests;
 import org.springframework.cloud.gateway.filter.route.SetResponseRouteFilterIntegrationTests;
 import org.springframework.cloud.gateway.filter.route.SetStatusRouteFilterIntegrationTests;
-import org.springframework.cloud.gateway.handler.predicate.AfterRoutePredicateTests;
-import org.springframework.cloud.gateway.handler.predicate.BeforeRoutePredicateTests;
-import org.springframework.cloud.gateway.handler.predicate.BetweenRoutePredicateTests;
+import org.springframework.cloud.gateway.handler.predicate.AfterRequestPredicateFactoryTests;
+import org.springframework.cloud.gateway.handler.predicate.BeforeRequestPredicateFactoryTests;
+import org.springframework.cloud.gateway.handler.predicate.BetweenRequestPredicateFactoryTests;
 import org.springframework.cloud.gateway.handler.predicate.HostRoutePredicateIntegrationTests;
-import org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateIntegrationTests;
+import org.springframework.cloud.gateway.handler.predicate.MethodRequestPredicateFactoryTests;
+import org.springframework.cloud.gateway.handler.predicate.PathRequestPredicateFactoryTests;
 
 /**
  * @author Spencer Gibb
@@ -62,11 +63,12 @@ import org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateInt
 		SetStatusRouteFilterIntegrationTests.class,
 		RewritePathRouteFilterTests.class,
 		// route predicate tests
-		AfterRoutePredicateTests.class,
-		BeforeRoutePredicateTests.class,
-		BetweenRoutePredicateTests.class,
+		AfterRequestPredicateFactoryTests.class,
+		BeforeRequestPredicateFactoryTests.class,
+		BetweenRequestPredicateFactoryTests.class,
 		HostRoutePredicateIntegrationTests.class,
-		PathRoutePredicateIntegrationTests.class,
+		MethodRequestPredicateFactoryTests.class,
+		PathRequestPredicateFactoryTests.class,
 })
 public class AdhocTestSuite {
 }
