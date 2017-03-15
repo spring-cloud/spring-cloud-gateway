@@ -22,15 +22,24 @@ import org.springframework.tuple.Tuple;
 import org.springframework.web.reactive.function.server.RequestPredicate;
 import org.springframework.web.reactive.function.server.RequestPredicates;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * @author Spencer Gibb
  */
 public class MethodRequestPredicateFactory implements RequestPredicateFactory {
 
+	public static final String METHOD_KEY = "method";
+
+	@Override
+	public List<String> argNames() {
+		return Arrays.asList(METHOD_KEY);
+	}
+
 	@Override
 	public RequestPredicate apply(Tuple args) {
-		validate(1, args);
-		String method = args.getString(0);
+		String method = args.getString(METHOD_KEY);
 		return RequestPredicates.method(HttpMethod.resolve(method));
 	}
 }

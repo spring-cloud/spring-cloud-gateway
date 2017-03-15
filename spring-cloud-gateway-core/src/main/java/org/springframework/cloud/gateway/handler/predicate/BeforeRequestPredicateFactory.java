@@ -18,6 +18,8 @@
 package org.springframework.cloud.gateway.handler.predicate;
 
 import java.time.ZonedDateTime;
+import java.util.Collections;
+import java.util.List;
 
 import org.springframework.tuple.Tuple;
 import org.springframework.web.reactive.function.server.RequestPredicate;
@@ -29,10 +31,16 @@ import static org.springframework.cloud.gateway.handler.predicate.BetweenRequest
  */
 public class BeforeRequestPredicateFactory implements RequestPredicateFactory {
 
+	public static final String DATETIME_KEY = "datetime";
+
+	@Override
+	public List<String> argNames() {
+		return Collections.singletonList(DATETIME_KEY);
+	}
+
 	@Override
 	public RequestPredicate apply(Tuple args) {
-		validate(1, args);
-		final ZonedDateTime dateTime = parseZonedDateTime(args.getString(0));
+		final ZonedDateTime dateTime = parseZonedDateTime(args.getString(DATETIME_KEY));
 
 		return request -> {
 			final ZonedDateTime now = ZonedDateTime.now();

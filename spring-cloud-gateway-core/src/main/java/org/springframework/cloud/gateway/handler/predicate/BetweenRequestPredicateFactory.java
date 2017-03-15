@@ -30,15 +30,16 @@ import org.springframework.web.reactive.function.server.RequestPredicate;
  */
 public class BetweenRequestPredicateFactory implements RequestPredicateFactory {
 
+	public static final String DATETIME1_KEY = "datetime1";
+	public static final String DATETIME2_KEY = "datetime2";
+
 	@Override
 	public RequestPredicate apply(Tuple args) {
-		validate(2, args);
-
 		//TODO: is ZonedDateTime the right thing to use?
-		final ZonedDateTime dateTime1 = parseZonedDateTime(args.getString(0));
-		final ZonedDateTime dateTime2 = parseZonedDateTime(args.getString(1));
-		Assert.isTrue(dateTime1.isBefore(dateTime2), args.getString(0) +
-				" must be before " + args.getString(1));
+		final ZonedDateTime dateTime1 = parseZonedDateTime(args.getString(DATETIME1_KEY));
+		final ZonedDateTime dateTime2 = parseZonedDateTime(args.getString(DATETIME2_KEY));
+		Assert.isTrue(dateTime1.isBefore(dateTime2), args.getString(DATETIME1_KEY) +
+				" must be before " + args.getString(DATETIME2_KEY));
 
 		return request -> {
 			final ZonedDateTime now = ZonedDateTime.now();

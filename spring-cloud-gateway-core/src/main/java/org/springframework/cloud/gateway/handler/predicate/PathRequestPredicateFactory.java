@@ -20,18 +20,37 @@ package org.springframework.cloud.gateway.handler.predicate;
 import org.springframework.tuple.Tuple;
 import org.springframework.web.reactive.function.server.RequestPredicate;
 import org.springframework.web.reactive.function.server.RequestPredicates;
+import org.springframework.web.util.patterns.PathPatternParser;
+
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author Spencer Gibb
  */
 public class PathRequestPredicateFactory implements RequestPredicateFactory {
 
+	public static final String PATTERN_KEY = "pattern";
+
+	private PathPatternParser pathPatternParser;
+
+	public void setPathPatternParser(PathPatternParser pathPatternParser) {
+		this.pathPatternParser = pathPatternParser;
+	}
+
+	@Override
+	public List<String> argNames() {
+		return Collections.singletonList(PATTERN_KEY);
+	}
+
 	@Override
 	public RequestPredicate apply(Tuple args) {
-		validate(1, args);
-		String pattern = args.getString(0);
+		String pattern = args.getString(PATTERN_KEY);
 
-		//TODO: support custom PathPatternParser
+		if (this.pathPatternParser != null) {
+			return RequestPredicates.pathPredicates(this.pathPatternParser).apply(pattern);
+		}
+
 		return RequestPredicates.path(pattern);
 	}
 }

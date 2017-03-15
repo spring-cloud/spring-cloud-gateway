@@ -20,6 +20,7 @@ package org.springframework.cloud.gateway.handler.predicate;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.cloud.gateway.handler.predicate.AfterRequestPredicateFactory.DATETIME_KEY;
 import static org.springframework.cloud.gateway.handler.predicate.BetweenRequestPredicateFactoryTests.getRequest;
 import static org.springframework.cloud.gateway.handler.predicate.BetweenRequestPredicateFactoryTests.minusHours;
 import static org.springframework.cloud.gateway.handler.predicate.BetweenRequestPredicateFactoryTests.minusHoursMillis;
@@ -69,6 +70,6 @@ public class AfterRequestPredicateFactoryTests {
 	}
 
 	private boolean runPredicate(String dateString) {
-		return new AfterRequestPredicateFactory().apply(tuple().of("1", dateString)).test(getRequest());
+		return new AfterRequestPredicateFactory().apply(tuple().of(DATETIME_KEY, dateString)).test(getRequest());
 	}
 }

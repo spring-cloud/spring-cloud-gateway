@@ -17,6 +17,7 @@
 
 package org.springframework.cloud.gateway.handler.predicate;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.http.HttpCookie;
@@ -29,11 +30,18 @@ import org.springframework.web.reactive.function.server.RequestPredicate;
  */
 public class CookieRequestPredicateFactory implements RequestPredicateFactory {
 
+	public static final String NAME_KEY = "name";
+	public static final String REGEXP_KEY = "regexp";
+
+	@Override
+	public List<String> argNames() {
+		return Arrays.asList(NAME_KEY, REGEXP_KEY);
+	}
+
 	@Override
 	public RequestPredicate apply(Tuple args) {
-		validate(2, args);
-		String name = args.getString(0);
-		String regexp = args.getString(1);
+		String name = args.getString(NAME_KEY);
+		String regexp = args.getString(REGEXP_KEY);
 
 		return request -> {
 			//TODO: bad cast?

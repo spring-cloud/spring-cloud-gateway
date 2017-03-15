@@ -22,17 +22,33 @@ import org.springframework.web.reactive.function.server.PublicDefaultServerReque
 import org.springframework.web.reactive.function.server.RequestPredicate;
 import org.springframework.web.reactive.function.server.RequestPredicates;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * @author Spencer Gibb
  */
 public class QueryRequestPredicateFactory implements RequestPredicateFactory {
 
+	public static final String PARAM_KEY = "param";
+	public static final String REGEXP_KEY = "regexp";
+
+	@Override
+	public List<String> argNames() {
+		return Arrays.asList(PARAM_KEY, REGEXP_KEY);
+	}
+
+	@Override
+	public boolean validateArgSize() {
+		return false;
+	}
+
 	@Override
 	public RequestPredicate apply(Tuple args) {
 		validate(1, args);
-		String param = args.getString(0);
+		String param = args.getString(PARAM_KEY);
 
-		if (args.size() < 2) {
+		if (!args.hasFieldName(REGEXP_KEY)) {
 			return req -> {
 				//TODO: ServerRequest support for query params with no value
 				PublicDefaultServerRequest request = (PublicDefaultServerRequest) req;
@@ -40,7 +56,7 @@ public class QueryRequestPredicateFactory implements RequestPredicateFactory {
 			};
 		}
 
-		String regexp = args.getString(1);
+		String regexp = args.getString(REGEXP_KEY);
 
 		return RequestPredicates.queryParam(param, value -> value.matches(regexp));
 	}

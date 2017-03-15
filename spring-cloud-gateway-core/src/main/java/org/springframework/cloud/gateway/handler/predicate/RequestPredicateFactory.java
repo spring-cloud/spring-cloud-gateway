@@ -17,6 +17,9 @@
 
 package org.springframework.cloud.gateway.handler.predicate;
 
+import java.util.Collections;
+import java.util.List;
+
 import org.springframework.tuple.Tuple;
 import org.springframework.util.Assert;
 import org.springframework.web.reactive.function.server.RequestPredicate;
@@ -27,6 +30,18 @@ import org.springframework.web.reactive.function.server.RequestPredicate;
 public interface RequestPredicateFactory {
 
 	RequestPredicate apply(Tuple args);
+
+	/**
+	 * Returns hints about the number of args and the order for shortcut parsing.
+	 * @return
+	 */
+	default List<String> argNames() {
+		return Collections.emptyList();
+	}
+
+	default boolean validateArgSize() {
+		return true;
+	}
 
 	default void validate(int minimumSize, Tuple args) {
 		Assert.isTrue(args != null && args.size() >= minimumSize,

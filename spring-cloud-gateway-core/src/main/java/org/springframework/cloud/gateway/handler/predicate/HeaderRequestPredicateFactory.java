@@ -17,6 +17,7 @@
 
 package org.springframework.cloud.gateway.handler.predicate;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.tuple.Tuple;
@@ -28,11 +29,18 @@ import org.springframework.web.reactive.function.server.RequestPredicates;
  */
 public class HeaderRequestPredicateFactory implements RequestPredicateFactory {
 
+	public static final String HEADER_KEY = "header";
+	public static final String REGEXP_KEY = "regexp";
+
+	@Override
+	public List<String> argNames() {
+		return Arrays.asList(HEADER_KEY, REGEXP_KEY);
+	}
+
 	@Override
 	public RequestPredicate apply(Tuple args) {
-		validate(2, args);
-		String header = args.getString(0);
-		String regexp = args.getString(1);
+		String header = args.getString(HEADER_KEY);
+		String regexp = args.getString(REGEXP_KEY);
 
 		return RequestPredicates.headers(headers -> {
 			List<String> values = headers.asHttpHeaders().get(header);

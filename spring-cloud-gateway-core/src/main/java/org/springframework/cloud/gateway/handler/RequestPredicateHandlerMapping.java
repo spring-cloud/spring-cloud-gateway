@@ -27,6 +27,7 @@ import org.springframework.cloud.gateway.api.RouteLocator;
 import org.springframework.cloud.gateway.handler.predicate.RequestPredicateFactory;
 import org.springframework.cloud.gateway.model.PredicateDefinition;
 import org.springframework.cloud.gateway.model.Route;
+import org.springframework.cloud.gateway.support.NameUtils;
 import org.springframework.tuple.Tuple;
 import org.springframework.tuple.TupleBuilder;
 import org.springframework.web.reactive.function.server.PublicDefaultServerRequest;
@@ -146,7 +147,6 @@ public class RequestPredicateHandlerMapping extends AbstractHandlerMapping {
 		}
 	}
 
-
 	private RequestPredicate combinePredicates(Route route) {
 		List<PredicateDefinition> predicates = route.getPredicates();
 		RequestPredicate predicate = lookup(route, predicates.get(0));
@@ -159,20 +159,42 @@ public class RequestPredicateHandlerMapping extends AbstractHandlerMapping {
 		return predicate;
 	}
 
+	//TODO: decouple from HandlerMapping?
 	private RequestPredicate lookup(Route route, PredicateDefinition predicate) {
 		RequestPredicateFactory found = this.routePredicates.get(predicate.getName());
 		if (found == null) {
 			throw new IllegalArgumentException("Unable to find RequestPredicateFactory with name " + predicate.getName());
 		}
+		Map<String, String> args = predicate.getArgs();
 		if (logger.isDebugEnabled()) {
 			logger.debug("Route " + route.getId() + " applying "
-					+ predicate.getArgs() + " to " + predicate.getName());
+					+ args + " to " + predicate.getName());
 		}
 
 		TupleBuilder builder = TupleBuilder.tuple();
 
-		for (Map.Entry<String, String> entry : predicate.getArgs().entrySet()) {
-			builder.put(entry.getKey(), entry.getValue());
+		List<String> argNames = found.argNames();
+		if (!argNames.isEmpty()) {
+			// ensure size is the same for key replacement later
+			if (found.validateArgSize() && args.size() != argNames.size()) {
+				throw new IllegalArgumentException("Wrong number of arguments. Expected " + argNames
+						+ " " + argNames + ". Found "+ args.size() +" " + args +"'");
+			}
+		}
+
+		int entryIdx = 0;
+		for (Map.Entry<String, String> entry : args.entrySet()) {
+			String key = entry.getKey();
+
+			// RequestPredicateFactory has name hints and this has a fake key name
+			// replace with the matching key hint
+			if (key.startsWith(NameUtils.GENERATED_NAME_PREFIX) && !argNames.isEmpty()
+					&& entryIdx < args.size()) {
+				key = argNames.get(entryIdx);
+			}
+
+			builder.put(key, entry.getValue());
+			entryIdx++;
 		}
 
 		Tuple tuple = builder.build();

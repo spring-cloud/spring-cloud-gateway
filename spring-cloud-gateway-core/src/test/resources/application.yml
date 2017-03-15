@@ -180,7 +180,7 @@ spring:
         predicates:
         - name: Path
           args:
-            path: /**
+            pattern: /**
 
 #myservice:
 #  ribbon:

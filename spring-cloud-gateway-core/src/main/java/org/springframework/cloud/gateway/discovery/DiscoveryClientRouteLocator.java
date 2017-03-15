@@ -28,6 +28,7 @@ import org.springframework.cloud.gateway.model.FilterDefinition;
 import org.springframework.cloud.gateway.model.PredicateDefinition;
 import org.springframework.cloud.gateway.model.Route;
 
+import static org.springframework.cloud.gateway.handler.predicate.PathRequestPredicateFactory.PATTERN_KEY;
 import static org.springframework.cloud.gateway.support.NameUtils.normalizeFilterName;
 import static org.springframework.cloud.gateway.support.NameUtils.normalizePredicateName;
 
@@ -58,7 +59,7 @@ public class DiscoveryClientRouteLocator implements RouteLocator {
 					// add a predicate that matches the url at /serviceId/**
 					PredicateDefinition predicate = new PredicateDefinition();
 					predicate.setName(normalizePredicateName(PathRequestPredicateFactory.class));
-					predicate.setArgs(Collections.singletonMap("path", "/" + serviceId + "/**"));
+					predicate.setArgs(Collections.singletonMap(PATTERN_KEY, "/" + serviceId + "/**"));
 					route.getPredicates().add(predicate);
 
 					//TODO: support for other default predicates
