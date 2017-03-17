@@ -28,19 +28,13 @@ import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.cloud.gateway.EnableGateway;
-import org.springframework.cloud.gateway.api.RouteDefinitionLocator;
-import org.springframework.cloud.gateway.config.PropertiesRouteDefinitionLocator;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.model.Route;
-import org.springframework.cloud.gateway.model.RouteDefinition;
-import org.springframework.cloud.gateway.support.CompositeRouteDefinitionLocator;
-import org.springframework.cloud.gateway.support.InMemoryRouteDefinitionRepository;
-import org.springframework.cloud.netflix.ribbon.RibbonClient;
-import org.springframework.cloud.netflix.ribbon.RibbonClients;
-import org.springframework.cloud.netflix.ribbon.StaticServerList;
+// import org.springframework.cloud.netflix.ribbon.RibbonClient;
+// import org.springframework.cloud.netflix.ribbon.RibbonClients;
+// import org.springframework.cloud.netflix.ribbon.StaticServerList;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -49,14 +43,13 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ServerWebExchange;
 
-import com.netflix.loadbalancer.Server;
-import com.netflix.loadbalancer.ServerList;
+// import com.netflix.loadbalancer.Server;
+// import com.netflix.loadbalancer.ServerList;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_HANDLER_MAPPER_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
 import static org.springframework.cloud.gateway.test.TestUtils.parseMultipart;
 
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
@@ -84,10 +77,10 @@ public class BaseWebClientTests {
 	@RestController
 	@RequestMapping("/httpbin")
 	@Configuration
-	@RibbonClients({
+	/*@RibbonClients({
 		@RibbonClient(name = "testservice", configuration = TestRibbonConfig.class),
 		@RibbonClient(name = "myservice", configuration = TestRibbonConfig.class)
-	})
+	})*/
 	@EnableGateway
 	protected static class DefaultTestConfig {
 
@@ -164,13 +157,6 @@ public class BaseWebClientTests {
 		}
 
 		@Bean
-		@Primary
-		public RouteDefinitionLocator routeDefinitionLocator(InMemoryRouteDefinitionRepository inMemoryRouteDefinitionRepository,
-															 PropertiesRouteDefinitionLocator propertiesRouteDefinitionLocator) {
-			return new CompositeRouteDefinitionLocator(Flux.just(inMemoryRouteDefinitionRepository, propertiesRouteDefinitionLocator));
-		}
-
-		@Bean
 		@Order(500)
 		public GlobalFilter modifyResponseFilter() {
 			return (exchange, chain) -> {
@@ -191,10 +177,10 @@ public class BaseWebClientTests {
 		@LocalServerPort
 		protected int port = 0;
 
-		@Bean
+		/*@Bean
 		public ServerList<Server> ribbonServerList() {
 			return new StaticServerList<>(new Server("localhost", this.port));
-		}
+		}*/
 	}
 
 }

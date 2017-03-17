@@ -15,16 +15,26 @@
  *
  */
 
-package org.springframework.cloud.gateway.api;
+package org.springframework.cloud.gateway.support;
 
+import org.springframework.cloud.gateway.api.RouteLocator;
 import org.springframework.cloud.gateway.model.Route;
+
 import reactor.core.publisher.Flux;
 
 /**
  * @author Spencer Gibb
  */
-//TODO: rename to Routes?
-public interface RouteLocator {
+public class CompositeRouteLocator implements RouteLocator {
 
-	Flux<Route> getRoutes();
+	private final Flux<RouteLocator> delegates;
+
+	public CompositeRouteLocator(Flux<RouteLocator> delegates) {
+		this.delegates = delegates;
+	}
+
+	@Override
+	public Flux<Route> getRoutes() {
+		return this.delegates.flatMap(RouteLocator::getRoutes);
+	}
 }

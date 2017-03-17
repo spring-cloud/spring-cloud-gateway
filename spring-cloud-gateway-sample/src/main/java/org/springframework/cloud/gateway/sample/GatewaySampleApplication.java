@@ -38,19 +38,6 @@ import reactor.core.publisher.Flux;
 @EnableAutoConfiguration
 @EnableGateway
 public class GatewaySampleApplication {
-	@Bean
-	public PropertiesRouteDefinitionLocator propertiesRouteLocator(GatewayProperties properties) {
-		return new PropertiesRouteDefinitionLocator(properties);
-	}
-
-	@Bean
-	@Primary
-	public RouteDefinitionLocator compositeRouteLocator(InMemoryRouteDefinitionRepository inMemoryRouteRepository,
-														PropertiesRouteDefinitionLocator propertiesRouteLocator) {
-		Flux<RouteDefinitionLocator> flux = Flux.just(inMemoryRouteRepository, propertiesRouteLocator);
-		CompositeRouteDefinitionLocator composite = new CompositeRouteDefinitionLocator(flux);
-		return new CachingRouteDefinitionLocator(composite);
-	}
 
 	public static void main(String[] args) {
 		SpringApplication.run(GatewaySampleApplication.class, args);

@@ -37,7 +37,7 @@
 			<artifactId>spring-boot-configuration-processor</artifactId>
 			<optional>true</optional>
 		</dependency>
-		<dependency>
+		<!--<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-ribbon</artifactId>
 			<optional>true</optional>
@@ -46,7 +46,7 @@
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-hystrix</artifactId>
 			<optional>true</optional>
-		</dependency>
+		</dependency>-->
 		<!-- TODO: should be part of spring-cloud-starter-netflix -->
 		<dependency>
 			<groupId>io.reactivex</groupId>
@@ -62,11 +62,11 @@
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-tuple</artifactId>
 		</dependency>
-		<dependency>
+		<!--<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-eureka</artifactId>
 			<scope>test</scope>
-		</dependency>
+		</dependency>-->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>

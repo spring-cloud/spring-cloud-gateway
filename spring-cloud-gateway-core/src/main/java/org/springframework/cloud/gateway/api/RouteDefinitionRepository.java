@@ -17,14 +17,8 @@
 
 package org.springframework.cloud.gateway.api;
 
-import org.springframework.cloud.gateway.model.Route;
-import reactor.core.publisher.Flux;
-
 /**
  * @author Spencer Gibb
  */
-//TODO: rename to Routes?
-public interface RouteLocator {
-
-	Flux<Route> getRoutes();
+public interface RouteDefinitionRepository extends RouteDefinitionLocator, RouteDefinitionWriter {
 }

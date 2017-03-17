@@ -26,9 +26,10 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.web.reactive.HttpHandlerAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
+// import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.cloud.gateway.actuate.GatewayEndpoint;
 import org.springframework.cloud.gateway.api.RouteDefinitionLocator;
+import org.springframework.cloud.gateway.api.RouteDefinitionRepository;
 import org.springframework.cloud.gateway.api.RouteDefinitionWriter;
 import org.springframework.cloud.gateway.api.RouteLocator;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
@@ -67,13 +68,17 @@ import org.springframework.cloud.gateway.handler.predicate.QueryRequestPredicate
 import org.springframework.cloud.gateway.handler.predicate.RemoteAddrRequestPredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.RequestPredicateFactory;
 import org.springframework.cloud.gateway.support.CachingRouteLocator;
+import org.springframework.cloud.gateway.support.CompositeRouteDefinitionLocator;
+import org.springframework.cloud.gateway.support.CompositeRouteLocator;
 import org.springframework.cloud.gateway.support.RouteDefinitionRouteLocator;
 import org.springframework.cloud.gateway.support.InMemoryRouteDefinitionRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.netflix.hystrix.HystrixObservableCommand;
+// import com.netflix.hystrix.HystrixObservableCommand;
 
+import org.springframework.context.annotation.Primary;
+import reactor.core.publisher.Flux;
 import reactor.ipc.netty.http.client.HttpClient;
 import rx.RxReactiveStreams;
 
@@ -110,9 +115,21 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	// @ConditionalOnMissingBean(RouteDefinitionLocator.class)
 	public PropertiesRouteDefinitionLocator propertiesRouteDefinitionLocator(GatewayProperties properties) {
 		return new PropertiesRouteDefinitionLocator(properties);
+	}
+
+	@Bean
+	@ConditionalOnMissingBean(RouteDefinitionRepository.class)
+	public InMemoryRouteDefinitionRepository inMemoryRouteDefinitionRepository() {
+		return new InMemoryRouteDefinitionRepository();
+	}
+
+	@Bean
+	@Primary
+	public RouteDefinitionLocator routeDefinitionLocator(List<RouteDefinitionLocator> routeDefinitionLocators) {
+		//TODO: apply ordering
+		return new CompositeRouteDefinitionLocator(Flux.fromIterable(routeDefinitionLocators));
 	}
 
 	@Bean
@@ -120,8 +137,14 @@ public class GatewayAutoConfiguration {
 												   List<WebFilterFactory> webFilterFactories,
 												   List<RequestPredicateFactory> predicates,
 												   RouteDefinitionLocator routeDefinitionLocator) {
-		return new CachingRouteLocator(new RouteDefinitionRouteLocator(routeDefinitionLocator, predicates, globalFilters, webFilterFactories, properties
-		));
+		return new CachingRouteLocator(new RouteDefinitionRouteLocator(routeDefinitionLocator, predicates, globalFilters, webFilterFactories, properties));
+	}
+
+	@Bean
+	@Primary
+	public RouteLocator routeLocator(List<RouteLocator> routeLocators) {
+		//TODO: apply ordering
+		return new CachingRouteLocator(new CompositeRouteLocator(Flux.fromIterable(routeLocators)));
 	}
 
 	@Bean
@@ -150,7 +173,7 @@ public class GatewayAutoConfiguration {
 
 	// GlobalFilter beans
 
-	@ConditionalOnClass(LoadBalancerClient.class)
+	/*@ConditionalOnClass(LoadBalancerClient.class)
 	@Configuration
 	protected static class LoadBalancerClientConfiguration {
 		@Bean
@@ -158,7 +181,7 @@ public class GatewayAutoConfiguration {
 		public LoadBalancerClientFilter loadBalancerClientFilter(LoadBalancerClient client) {
 			return new LoadBalancerClientFilter(client);
 		}
-	}
+	}*/
 
 	@Bean
 	public RouteToRequestUrlFilter routeToRequestUrlFilter() {
@@ -238,7 +261,7 @@ public class GatewayAutoConfiguration {
 	public AddResponseHeaderWebFilterFactory addResponseHeaderWebFilterFactory() {
 		return new AddResponseHeaderWebFilterFactory();
 	}
-
+/* TODO: add it back when s-c-netflix is up to date
 	@Configuration
 	@ConditionalOnClass({HystrixObservableCommand.class, RxReactiveStreams.class})
 	protected static class HystrixConfiguration {
@@ -246,7 +269,7 @@ public class GatewayAutoConfiguration {
 		public HystrixWebFilterFactory hystrixWebFilterFactory() {
 			return new HystrixWebFilterFactory();
 		}
-	}
+	}*/
 
 	@Bean
 	public PrefixPathWebFilterFactory prefixPathWebFilterFactory() {
@@ -298,11 +321,6 @@ public class GatewayAutoConfiguration {
 		return new SetStatusWebFilterFactory();
 	}
 
-	//TODO: control creation
-	@Bean
-	public InMemoryRouteDefinitionRepository inMemoryRouteDefinitionRepository() {
-		return new InMemoryRouteDefinitionRepository();
-	}
 
 	/*@Bean
 	public RouterFunction<ServerResponse> test() {

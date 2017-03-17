@@ -22,14 +22,14 @@ import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 
-import com.netflix.hystrix.HystrixCommandGroupKey;
-import com.netflix.hystrix.HystrixCommandKey;
-import com.netflix.hystrix.HystrixObservableCommand;
+// import com.netflix.hystrix.HystrixCommandGroupKey;
+// import com.netflix.hystrix.HystrixCommandKey;
+// import com.netflix.hystrix.HystrixObservableCommand;
 
 import reactor.core.publisher.Mono;
-import rx.Observable;
+// import rx.Observable;
 import rx.RxReactiveStreams;
-import rx.Subscription;
+// import rx.Subscription;
 
 import java.util.Arrays;
 import java.util.List;
@@ -37,7 +37,7 @@ import java.util.List;
 /**
  * @author Spencer Gibb
  */
-public class HystrixWebFilterFactory implements WebFilterFactory {
+public class HystrixWebFilterFactory {}/*implements WebFilterFactory {
 
 	@Override
 	public List<String> argNames() {
@@ -80,4 +80,4 @@ public class HystrixWebFilterFactory implements WebFilterFactory {
 			return RxReactiveStreams.toObservable(this.chain.filter(this.exchange));
 		}
 	}
-}
+}*/

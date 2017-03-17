@@ -9,7 +9,7 @@ spring:
       - id: remove_request_header_test
         uri: http://httpbin.org:80
         predicates:
-        - Host=**.removerequestheader.org
+        - Host=**.removenonproxyheaders.org
         - Path=/headers
         filters:
         - RemoveRequestHeader=X-Request-Foo
