@@ -20,9 +20,11 @@ package org.springframework.cloud.gateway.config;
 import java.util.List;
 
 import org.springframework.boot.actuate.endpoint.Endpoint;
+import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.web.reactive.HttpHandlerAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.cloud.gateway.actuate.GatewayEndpoint;
@@ -65,7 +67,7 @@ import org.springframework.cloud.gateway.handler.predicate.QueryRequestPredicate
 import org.springframework.cloud.gateway.handler.predicate.RemoteAddrRequestPredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.RequestPredicateFactory;
 import org.springframework.cloud.gateway.support.CachingRouteLocator;
-import org.springframework.cloud.gateway.support.DefaultRouteLocator;
+import org.springframework.cloud.gateway.support.RouteDefinitionRouteLocator;
 import org.springframework.cloud.gateway.support.InMemoryRouteDefinitionRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -81,6 +83,7 @@ import rx.RxReactiveStreams;
 @Configuration
 @ConditionalOnBean(GatewayConfiguration.Marker.class)
 @EnableConfigurationProperties
+@AutoConfigureBefore(HttpHandlerAutoConfiguration.class)
 public class GatewayAutoConfiguration {
 
 	@Configuration
@@ -113,13 +116,12 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnMissingBean
-	public RouteLocator defaultRouteLocator(GatewayProperties properties, List<GlobalFilter> globalFilters,
+	public RouteLocator routeDefinitionRouteLocator(GatewayProperties properties, List<GlobalFilter> globalFilters,
 												   List<WebFilterFactory> webFilterFactories,
 												   List<RequestPredicateFactory> predicates,
 												   RouteDefinitionLocator routeDefinitionLocator) {
-		return new CachingRouteLocator(new DefaultRouteLocator(properties, routeDefinitionLocator,
-				predicates, globalFilters, webFilterFactories));
+		return new CachingRouteLocator(new RouteDefinitionRouteLocator(routeDefinitionLocator, predicates, globalFilters, webFilterFactories, properties
+		));
 	}
 
 	@Bean
@@ -301,6 +303,14 @@ public class GatewayAutoConfiguration {
 	public InMemoryRouteDefinitionRepository inMemoryRouteDefinitionRepository() {
 		return new InMemoryRouteDefinitionRepository();
 	}
+
+	/*@Bean
+	public RouterFunction<ServerResponse> test() {
+		RouterFunction<ServerResponse> route = RouterFunctions.route(
+				RequestPredicates.path("/testfun"),
+				request -> ServerResponse.ok().body(BodyInserters.fromObject("hello")));
+		return route;
+	}*/
 
 	@Configuration
 	@ConditionalOnClass(Endpoint.class)

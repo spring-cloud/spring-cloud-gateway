@@ -24,7 +24,6 @@ import org.springframework.cloud.gateway.api.RouteLocator;
 import org.springframework.cloud.gateway.config.GatewayProperties;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.factory.WebFilterFactory;
-import org.springframework.cloud.gateway.handler.FilteringWebHandler;
 import org.springframework.cloud.gateway.handler.predicate.RequestPredicateFactory;
 import org.springframework.cloud.gateway.model.FilterDefinition;
 import org.springframework.cloud.gateway.model.PredicateDefinition;
@@ -52,27 +51,28 @@ import java.util.stream.Collectors;
 import static java.util.Collections.emptyList;
 
 /**
+ * {@link RouteLocator} that loads routes from a {@link RouteDefinitionLocator}
  * @author Spencer Gibb
  */
-public class DefaultRouteLocator implements RouteLocator {
+public class RouteDefinitionRouteLocator implements RouteLocator {
 	protected final Log logger = LogFactory.getLog(getClass());
 
-	private final GatewayProperties gatewayProperties;
 	private final RouteDefinitionLocator routeDefinitionLocator;
 	private final Map<String, RequestPredicateFactory> requestPredicates = new LinkedHashMap<>();
 	private final List<GlobalFilter> globalFilters;
 	private final Map<String, WebFilterFactory> webFilterFactories = new HashMap<>();
+	private final GatewayProperties gatewayProperties;
 
-	public DefaultRouteLocator(GatewayProperties gatewayProperties,
-							   RouteDefinitionLocator routeDefinitionLocator,
-							   List<RequestPredicateFactory> requestPredicates,
-							   List<GlobalFilter> globalFilters,
-							   List<WebFilterFactory> webFilterFactories) {
-		this.gatewayProperties = gatewayProperties;
+	public RouteDefinitionRouteLocator(RouteDefinitionLocator routeDefinitionLocator,
+									   List<RequestPredicateFactory> requestPredicates,
+									   List<GlobalFilter> globalFilters,
+									   List<WebFilterFactory> webFilterFactories,
+									   GatewayProperties gatewayProperties) {
 		this.routeDefinitionLocator = routeDefinitionLocator;
-		this.globalFilters = initList(globalFilters);
 		initFactories(requestPredicates);
+		this.globalFilters = initList(globalFilters);
 		webFilterFactories.forEach(factory -> this.webFilterFactories.put(factory.name(), factory));
+		this.gatewayProperties = gatewayProperties;
 	}
 
 	private static <T> List<T> initList(List<T> list) {
