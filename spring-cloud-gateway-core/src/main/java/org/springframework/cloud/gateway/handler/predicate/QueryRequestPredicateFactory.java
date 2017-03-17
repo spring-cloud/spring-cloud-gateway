@@ -17,13 +17,14 @@
 
 package org.springframework.cloud.gateway.handler.predicate;
 
-import org.springframework.cloud.gateway.handler.support.ExchangeServerRequest;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.tuple.Tuple;
 import org.springframework.web.reactive.function.server.RequestPredicate;
 import org.springframework.web.reactive.function.server.RequestPredicates;
-
-import java.util.Arrays;
-import java.util.List;
+import org.springframework.web.server.ServerWebExchange;
 
 /**
  * @author Spencer Gibb
@@ -51,8 +52,8 @@ public class QueryRequestPredicateFactory implements RequestPredicateFactory {
 		if (!args.hasFieldName(REGEXP_KEY)) {
 			return req -> {
 				//TODO: ServerRequest support for query params with no value
-				ExchangeServerRequest request = (ExchangeServerRequest) req;
-				return request.exchange().getRequest().getQueryParams().containsKey(param);
+				Optional<ServerWebExchange> exchange = req.attribute("exchange");
+				return exchange.get().getRequest().getQueryParams().containsKey(param);
 			};
 		}
 

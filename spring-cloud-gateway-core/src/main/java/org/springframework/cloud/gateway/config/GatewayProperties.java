@@ -27,6 +27,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.cloud.gateway.model.FilterDefinition;
 import org.springframework.cloud.gateway.model.RouteDefinition;
 import org.springframework.cloud.gateway.filter.factory.RemoveNonProxyHeadersWebFilterFactory;
+import org.springframework.validation.annotation.Validated;
 
 import static org.springframework.cloud.gateway.support.NameUtils.normalizeFilterName;
 
@@ -34,6 +35,7 @@ import static org.springframework.cloud.gateway.support.NameUtils.normalizeFilte
  * @author Spencer Gibb
  */
 @ConfigurationProperties("spring.cloud.gateway")
+@Validated
 public class GatewayProperties {
 
 	/**

@@ -78,6 +78,7 @@ public class ExchangeServerRequest implements ServerRequest {
 		this.exchange = exchange;
 		this.strategies = strategies;
 		this.headers = new ExchangeServerRequest.DefaultHeaders();
+		this.exchange.getAttributes().put("exchange", this.exchange);
 	}
 
 

@@ -26,8 +26,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.cloud.gateway.support.SubnetUtils;
 import org.springframework.tuple.Tuple;
-import org.springframework.cloud.gateway.handler.support.ExchangeServerRequest;
 import org.springframework.web.reactive.function.server.RequestPredicate;
+import org.springframework.web.server.ServerWebExchange;
 
 /**
  * @author Spencer Gibb
@@ -47,12 +47,12 @@ public class RemoteAddrRequestPredicateFactory implements RequestPredicateFactor
 			}
 		}
 
-		return req -> {
-			ExchangeServerRequest serverRequest = (ExchangeServerRequest) req;
-			Optional<InetSocketAddress> remoteAddress = serverRequest.exchange().getRequest().getRemoteAddress();
+		return request -> {
+			Optional<ServerWebExchange> exchange = request.attribute("exchange");
+			Optional<InetSocketAddress> remoteAddress = exchange.get().getRequest().getRemoteAddress();
 			if (remoteAddress.isPresent()) {
 				String hostAddress = remoteAddress.get().getAddress().getHostAddress();
-				String host = req.uri().getHost();
+				String host = request.uri().getHost();
 
 				if (!hostAddress.equals(host)) {
 					log.warn("Remote addresses didn't match " + hostAddress + " != " + host);

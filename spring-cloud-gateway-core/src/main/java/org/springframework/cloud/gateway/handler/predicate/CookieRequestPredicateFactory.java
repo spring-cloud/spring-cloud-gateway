@@ -19,11 +19,12 @@ package org.springframework.cloud.gateway.handler.predicate;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
-import org.springframework.cloud.gateway.handler.support.ExchangeServerRequest;
 import org.springframework.http.HttpCookie;
 import org.springframework.tuple.Tuple;
 import org.springframework.web.reactive.function.server.RequestPredicate;
+import org.springframework.web.server.ServerWebExchange;
 
 /**
  * @author Spencer Gibb
@@ -44,9 +45,8 @@ public class CookieRequestPredicateFactory implements RequestPredicateFactory {
 		String regexp = args.getString(REGEXP_KEY);
 
 		return request -> {
-			//TODO: bad cast?
-			ExchangeServerRequest req = (ExchangeServerRequest) request;
-			List<HttpCookie> cookies = req.exchange().getRequest().getCookies().get(name);
+			Optional<ServerWebExchange> exchange = request.attribute("exchange");
+			List<HttpCookie> cookies = exchange.get().getRequest().getCookies().get(name);
 			for (HttpCookie cookie : cookies) {
 				if (cookie.getValue().matches(regexp)) {
 					return true;
