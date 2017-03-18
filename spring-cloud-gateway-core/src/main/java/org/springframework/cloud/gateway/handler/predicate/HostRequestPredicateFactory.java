@@ -31,7 +31,6 @@ import org.springframework.web.reactive.function.server.RequestPredicates;
  */
 public class HostRequestPredicateFactory implements RequestPredicateFactory {
 
-	public static final String PATTERN_KEY = "pattern";
 	private PathMatcher pathMatcher = new AntPathMatcher(".");
 
 	public void setPathMatcher(PathMatcher pathMatcher) {

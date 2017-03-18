@@ -30,8 +30,6 @@ import java.util.List;
  */
 public class PathRequestPredicateFactory implements RequestPredicateFactory {
 
-	public static final String PATTERN_KEY = "pattern";
-
 	private PathPatternParser pathPatternParser;
 
 	public void setPathPatternParser(PathPatternParser pathPatternParser) {

@@ -19,7 +19,7 @@ package org.springframework.cloud.gateway.handler.predicate;
 
 import org.springframework.web.reactive.function.server.RequestPredicate;
 
-import static org.springframework.cloud.gateway.handler.predicate.PathRequestPredicateFactory.PATTERN_KEY;
+import static org.springframework.cloud.gateway.handler.predicate.RequestPredicateFactory.PATTERN_KEY;
 import static org.springframework.tuple.TupleBuilder.tuple;
 
 /**
@@ -39,7 +39,9 @@ public class GatewayRequestPredicates {
 
 	//TODO: add support for HeaderRequestPredicateFactory
 
-	//TODO: add support for HostRequestPredicateFactory
+	public static RequestPredicate host(String pattern) {
+		return new HostRequestPredicateFactory().apply(tuple().of(PATTERN_KEY, pattern));
+	}
 
 	//TODO: add support for MethodRequestPredicateFactory
 

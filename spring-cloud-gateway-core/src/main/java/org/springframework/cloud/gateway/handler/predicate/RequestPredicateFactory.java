@@ -27,6 +27,7 @@ import org.springframework.web.reactive.function.server.RequestPredicate;
  */
 @FunctionalInterface
 public interface RequestPredicateFactory extends ArgumentHints {
+	String PATTERN_KEY = "pattern";
 
 	RequestPredicate apply(Tuple args);
 
