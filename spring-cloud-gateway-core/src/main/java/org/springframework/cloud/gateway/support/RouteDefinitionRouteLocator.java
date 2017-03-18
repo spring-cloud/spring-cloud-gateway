@@ -124,7 +124,7 @@ public class RouteDefinitionRouteLocator implements RouteLocator {
 				.build();
 	}
 
-	private Collection<WebFilter> loadFilters(List<GlobalFilter> filters) {
+	public static Collection<WebFilter> loadFilters(List<GlobalFilter> filters) {
 		return filters.stream()
 				.map(filter -> {
 					WebFilterAdapter webFilter = new WebFilterAdapter(filter);
@@ -148,42 +148,7 @@ public class RouteDefinitionRouteLocator implements RouteLocator {
 						logger.debug("RouteDefinition " + id + " applying filter " + args + " to " + definition.getName());
 					}
 
-					//TODO: move Tuple building to common class, see RequestPredicateFactory.lookup
-					TupleBuilder builder = TupleBuilder.tuple();
-
-					List<String> argNames = filter.argNames();
-					if (!argNames.isEmpty()) {
-						// ensure size is the same for key replacement later
-						if (filter.validateArgs() && args.size() != argNames.size()) {
-							throw new IllegalArgumentException("Wrong number of arguments. Expected " + argNames
-									+ " " + argNames + ". Found " + args.size() + " " + args + "'");
-						}
-					}
-
-					int entryIdx = 0;
-					for (Map.Entry<String, String> entry : args.entrySet()) {
-						String key = entry.getKey();
-
-						// RequestPredicateFactory has name hints and this has a fake key name
-						// replace with the matching key hint
-						if (key.startsWith(NameUtils.GENERATED_NAME_PREFIX) && !argNames.isEmpty()
-								&& entryIdx < args.size()) {
-							key = argNames.get(entryIdx);
-						}
-
-						builder.put(key, entry.getValue());
-						entryIdx++;
-					}
-
-					Tuple tuple = builder.build();
-
-					if (filter.validateArgs()) {
-						for (String name : argNames) {
-							if (!tuple.hasFieldName(name)) {
-								throw new IllegalArgumentException("Missing argument '" + name + "'. Given " + tuple);
-							}
-						}
-					}
+					Tuple tuple = getTuple(filter, args);
 
 					return filter.apply(tuple);
 				})
@@ -195,6 +160,45 @@ public class RouteDefinitionRouteLocator implements RouteLocator {
 		}
 
 		return ordered;
+	}
+
+	private Tuple getTuple(ArgumentHints hasArguments, Map<String, String> args) {
+		TupleBuilder builder = TupleBuilder.tuple();
+
+		List<String> argNames = hasArguments.argNames();
+		if (!argNames.isEmpty()) {
+			// ensure size is the same for key replacement later
+			if (hasArguments.validateArgs() && args.size() != argNames.size()) {
+				throw new IllegalArgumentException("Wrong number of arguments. Expected " + argNames
+						+ " " + argNames + ". Found " + args.size() + " " + args + "'");
+			}
+		}
+
+		int entryIdx = 0;
+		for (Map.Entry<String, String> entry : args.entrySet()) {
+			String key = entry.getKey();
+
+			// RequestPredicateFactory has name hints and this has a fake key name
+			// replace with the matching key hint
+			if (key.startsWith(NameUtils.GENERATED_NAME_PREFIX) && !argNames.isEmpty()
+					&& entryIdx < args.size()) {
+				key = argNames.get(entryIdx);
+			}
+
+			builder.put(key, entry.getValue());
+			entryIdx++;
+		}
+
+		Tuple tuple = builder.build();
+
+		if (hasArguments.validateArgs()) {
+			for (String name : argNames) {
+				if (!tuple.hasFieldName(name)) {
+					throw new IllegalArgumentException("Missing argument '" + name + "'. Given " + tuple);
+				}
+			}
+		}
+		return tuple;
 	}
 
 	private List<WebFilter> getFilters(RouteDefinition routeDefinition) {
@@ -238,43 +242,7 @@ public class RouteDefinitionRouteLocator implements RouteLocator {
 					+ args + " to " + predicate.getName());
 		}
 
-		TupleBuilder builder = TupleBuilder.tuple();
-
-		List<String> argNames = found.argNames();
-		if (!argNames.isEmpty()) {
-			if (!argNames.isEmpty()) {
-				// ensure size is the same for key replacement later
-				if (found.validateArgs() && args.size() != argNames.size()) {
-					throw new IllegalArgumentException("Wrong number of arguments. Expected " + argNames
-							+ " " + argNames + ". Found " + args.size() + " " + args + "'");
-				}
-			}
-		}
-
-		int entryIdx = 0;
-		for (Map.Entry<String, String> entry : args.entrySet()) {
-			String key = entry.getKey();
-
-			// RequestPredicateFactory has name hints and this has a fake key name
-			// replace with the matching key hint
-			if (key.startsWith(NameUtils.GENERATED_NAME_PREFIX) && !argNames.isEmpty()
-					&& entryIdx < args.size()) {
-				key = argNames.get(entryIdx);
-			}
-
-			builder.put(key, entry.getValue());
-			entryIdx++;
-		}
-
-		Tuple tuple = builder.build();
-
-		if (found.validateArgs()) {
-			for (String name : argNames) {
-				if (!tuple.hasFieldName(name)) {
-					throw new IllegalArgumentException("Missing argument '" + name + "'. Given " + tuple);
-				}
-			}
-		}
+		Tuple tuple = getTuple(found, args);
 
 		return found.apply(tuple);
 	}
@@ -302,7 +270,7 @@ public class RouteDefinitionRouteLocator implements RouteLocator {
 		}
 	}
 
-	public class OrderedWebFilter implements WebFilter, Ordered {
+	public static class OrderedWebFilter implements WebFilter, Ordered {
 
 		private final WebFilter delegate;
 		private final int order;

@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.model;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -73,6 +74,11 @@ public class Route {
 			return this;
 		}
 
+		public Builder uri(String uri) {
+			this.uri = URI.create(uri);
+			return this;
+		}
+
 		public Builder uri(URI uri) {
 			this.uri = uri;
 			return this;
@@ -90,6 +96,11 @@ public class Route {
 
 		public Builder add(WebFilter webFilter) {
 			this.webFilters.add(webFilter);
+			return this;
+		}
+
+		public Builder addAll(Collection<WebFilter> webFilter) {
+			this.webFilters.addAll(webFilter);
 			return this;
 		}
 

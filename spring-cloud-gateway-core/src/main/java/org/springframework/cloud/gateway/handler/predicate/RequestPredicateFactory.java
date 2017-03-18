@@ -17,19 +17,16 @@
 
 package org.springframework.cloud.gateway.handler.predicate;
 
-import java.util.Collections;
-import java.util.List;
-
+import org.springframework.cloud.gateway.support.ArgumentHints;
 import org.springframework.cloud.gateway.support.NameUtils;
 import org.springframework.tuple.Tuple;
-import org.springframework.util.Assert;
 import org.springframework.web.reactive.function.server.RequestPredicate;
 
 /**
  * @author Spencer Gibb
  */
 @FunctionalInterface
-public interface RequestPredicateFactory {
+public interface RequestPredicateFactory extends ArgumentHints {
 
 	RequestPredicate apply(Tuple args);
 
@@ -37,25 +34,4 @@ public interface RequestPredicateFactory {
 		return NameUtils.normalizePredicateName(getClass());
 	}
 
-	/**
-	 * Returns hints about the number of args and the order for shortcut parsing.
-	 * @return
-	 */
-	default List<String> argNames() {
-		return Collections.emptyList();
-	}
-
-	/**
-	 * Auto validate supplied argument size against {@see #argNames} size and that an arg for each key exists.
-	 * Useful for variable arg predicates.
-	 * @return
-	 */
-	default boolean validateArgs() {
-		return true;
-	}
-
-	default void validate(int minimumSize, Tuple args) {
-		Assert.isTrue(args != null && args.size() >= minimumSize,
-				"args must have at least "+ minimumSize +" entry(s)");
-	}
 }
