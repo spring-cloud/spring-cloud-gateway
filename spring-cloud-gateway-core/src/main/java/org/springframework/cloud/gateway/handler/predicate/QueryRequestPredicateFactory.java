@@ -46,7 +46,7 @@ public class QueryRequestPredicateFactory implements RequestPredicateFactory {
 
 	@Override
 	public RequestPredicate apply(Tuple args) {
-		validate(1, args);
+		validateMin(1, args);
 		String param = args.getString(PARAM_KEY);
 
 		if (!args.hasFieldName(REGEXP_KEY)) {

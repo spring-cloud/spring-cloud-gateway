@@ -28,10 +28,10 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.web.reactive.HttpHandlerAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.gateway.actuate.GatewayEndpoint;
-import org.springframework.cloud.gateway.api.RouteDefinitionLocator;
-import org.springframework.cloud.gateway.api.RouteDefinitionRepository;
-import org.springframework.cloud.gateway.api.RouteDefinitionWriter;
-import org.springframework.cloud.gateway.api.RouteLocator;
+import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
+import org.springframework.cloud.gateway.route.RouteDefinitionRepository;
+import org.springframework.cloud.gateway.route.RouteDefinitionWriter;
+import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.NettyRoutingFilter;
 import org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter;

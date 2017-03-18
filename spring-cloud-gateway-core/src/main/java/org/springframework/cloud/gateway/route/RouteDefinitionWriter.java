@@ -15,16 +15,17 @@
  *
  */
 
-package org.springframework.cloud.gateway.api;
+package org.springframework.cloud.gateway.route;
 
-import org.springframework.cloud.gateway.model.Route;
-import reactor.core.publisher.Flux;
+import org.springframework.cloud.gateway.route.RouteDefinition;
+import reactor.core.publisher.Mono;
 
 /**
  * @author Spencer Gibb
  */
-//TODO: rename to Routes?
-public interface RouteLocator {
+public interface RouteDefinitionWriter {
 
-	Flux<Route> getRoutes();
+	Mono<Void> save(Mono<RouteDefinition> route);
+
+	Mono<Void> delete(Mono<String> routeId);
 }

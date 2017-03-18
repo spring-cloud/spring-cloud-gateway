@@ -24,8 +24,8 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.cloud.gateway.model.FilterDefinition;
-import org.springframework.cloud.gateway.model.RouteDefinition;
+import org.springframework.cloud.gateway.filter.FilterDefinition;
+import org.springframework.cloud.gateway.route.RouteDefinition;
 import org.springframework.cloud.gateway.filter.factory.RemoveNonProxyHeadersWebFilterFactory;
 import org.springframework.validation.annotation.Validated;
 

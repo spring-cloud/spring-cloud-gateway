@@ -49,4 +49,9 @@ public interface ArgumentHints {
 		Assert.isTrue(args != null && args.size() == requiredSize,
 				"args must have "+ requiredSize +" entry(s)");
 	}
+
+	default void validateMin(int minSize, Tuple args) {
+		Assert.isTrue(args != null && args.size() >= minSize,
+				"args must have at least "+ minSize +" entry(s)");
+	}
 }

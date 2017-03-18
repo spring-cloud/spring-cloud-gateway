@@ -15,9 +15,11 @@
  *
  */
 
-package org.springframework.cloud.gateway.model;
+package org.springframework.cloud.gateway.route;
 
 import org.hibernate.validator.constraints.NotEmpty;
+import org.springframework.cloud.gateway.filter.FilterDefinition;
+import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
 
 import javax.validation.Valid;
 import javax.validation.ValidationException;

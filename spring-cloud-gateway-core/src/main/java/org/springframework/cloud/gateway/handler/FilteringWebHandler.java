@@ -22,11 +22,11 @@ import java.util.Optional;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.cloud.gateway.api.RouteLocator;
+import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.config.GatewayProperties;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.factory.WebFilterFactory;
-import org.springframework.cloud.gateway.model.Route;
+import org.springframework.cloud.gateway.route.Route;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;

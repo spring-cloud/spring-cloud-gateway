@@ -29,7 +29,7 @@ import org.junit.Before;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.cloud.gateway.EnableGateway;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
-import org.springframework.cloud.gateway.model.Route;
+import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.netflix.ribbon.RibbonClient;
 import org.springframework.cloud.netflix.ribbon.RibbonClients;
 import org.springframework.cloud.netflix.ribbon.StaticServerList;

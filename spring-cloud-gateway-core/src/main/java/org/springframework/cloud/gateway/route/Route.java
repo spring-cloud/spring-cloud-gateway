@@ -15,7 +15,7 @@
  *
  */
 
-package org.springframework.cloud.gateway.model;
+package org.springframework.cloud.gateway.route;
 
 import java.net.URI;
 import java.util.ArrayList;

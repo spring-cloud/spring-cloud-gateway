@@ -15,10 +15,16 @@
  *
  */
 
-package org.springframework.cloud.gateway.api;
+package org.springframework.cloud.gateway.route;
+
+import org.springframework.cloud.gateway.route.Route;
+import reactor.core.publisher.Flux;
 
 /**
  * @author Spencer Gibb
  */
-public interface RouteDefinitionRepository extends RouteDefinitionLocator, RouteDefinitionWriter {
+//TODO: rename to Routes?
+public interface RouteLocator {
+
+	Flux<Route> getRoutes();
 }

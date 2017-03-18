@@ -24,13 +24,13 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.cloud.gateway.api.RouteDefinitionLocator;
-import org.springframework.cloud.gateway.api.RouteDefinitionWriter;
-import org.springframework.cloud.gateway.api.RouteLocator;
+import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
+import org.springframework.cloud.gateway.route.RouteDefinitionWriter;
+import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.factory.WebFilterFactory;
-import org.springframework.cloud.gateway.model.Route;
-import org.springframework.cloud.gateway.model.RouteDefinition;
+import org.springframework.cloud.gateway.route.Route;
+import org.springframework.cloud.gateway.route.RouteDefinition;
 import org.springframework.cloud.gateway.support.NotFoundException;
 import org.springframework.cloud.gateway.support.RefreshRoutesEvent;
 import org.springframework.context.ApplicationEventPublisher;

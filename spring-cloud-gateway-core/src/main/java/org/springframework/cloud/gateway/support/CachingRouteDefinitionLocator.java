@@ -20,8 +20,8 @@ package org.springframework.cloud.gateway.support;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.springframework.cloud.gateway.api.RouteDefinitionLocator;
-import org.springframework.cloud.gateway.model.RouteDefinition;
+import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
+import org.springframework.cloud.gateway.route.RouteDefinition;
 import org.springframework.context.event.EventListener;
 import reactor.core.publisher.Flux;
 

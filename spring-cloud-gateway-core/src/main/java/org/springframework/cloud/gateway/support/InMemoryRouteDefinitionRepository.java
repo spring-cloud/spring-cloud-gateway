@@ -20,8 +20,8 @@ package org.springframework.cloud.gateway.support;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.springframework.cloud.gateway.api.RouteDefinitionRepository;
-import org.springframework.cloud.gateway.model.RouteDefinition;
+import org.springframework.cloud.gateway.route.RouteDefinitionRepository;
+import org.springframework.cloud.gateway.route.RouteDefinition;
 
 import static java.util.Collections.synchronizedMap;
 

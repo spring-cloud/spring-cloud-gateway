@@ -15,17 +15,10 @@
  *
  */
 
-package org.springframework.cloud.gateway.api;
-
-import org.springframework.cloud.gateway.model.RouteDefinition;
-import reactor.core.publisher.Mono;
+package org.springframework.cloud.gateway.route;
 
 /**
  * @author Spencer Gibb
  */
-public interface RouteDefinitionWriter {
-
-	Mono<Void> save(Mono<RouteDefinition> route);
-
-	Mono<Void> delete(Mono<String> routeId);
+public interface RouteDefinitionRepository extends RouteDefinitionLocator, RouteDefinitionWriter {
 }

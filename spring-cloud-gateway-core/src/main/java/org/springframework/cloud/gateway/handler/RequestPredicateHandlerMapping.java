@@ -19,9 +19,9 @@ package org.springframework.cloud.gateway.handler;
 
 import java.util.function.Function;
 
-import org.springframework.cloud.gateway.api.RouteLocator;
+import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.handler.support.ExchangeServerRequest;
-import org.springframework.cloud.gateway.model.Route;
+import org.springframework.cloud.gateway.route.Route;
 import org.springframework.web.reactive.handler.AbstractHandlerMapping;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebHandler;
