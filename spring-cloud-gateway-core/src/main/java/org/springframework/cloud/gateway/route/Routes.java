@@ -41,8 +41,8 @@ public class Routes {
 
 		private List<Route> routes = new ArrayList<>();
 
-		public RouteBuilder route(String id) {
-			return new RouteBuilder(this).id(id);
+		public RouteSpec route(String id) {
+			return new RouteSpec(this).id(id);
 		}
 
 		private void add(Route route) {
@@ -55,41 +55,41 @@ public class Routes {
 
 	}
 
-	public static class RouteBuilder {
+	public static class RouteSpec {
 		private final Route.Builder builder = Route.builder();
 		private final LocatorBuilder locatorBuilder;
 
-		private RouteBuilder(LocatorBuilder locatorBuilder) {
+		private RouteSpec(LocatorBuilder locatorBuilder) {
 			this.locatorBuilder = locatorBuilder;
 		}
 
-		public RouteBuilder id(String id) {
+		public RouteSpec id(String id) {
 			this.builder.id(id);
 			return this;
 		}
 
-		public PredicateBuilder uri(String uri) {
+		public PredicateSpec uri(String uri) {
 			this.builder.uri(uri);
 			return predicateBuilder();
 		}
 
-		public PredicateBuilder uri(URI uri) {
+		public PredicateSpec uri(URI uri) {
 			this.builder.uri(uri);
 			return predicateBuilder();
 		}
 
-		private PredicateBuilder predicateBuilder() {
-			return new PredicateBuilder(this.builder, this.locatorBuilder);
+		private PredicateSpec predicateBuilder() {
+			return new PredicateSpec(this.builder, this.locatorBuilder);
 		}
 
 	}
 
-	public static class PredicateBuilder {
+	public static class PredicateSpec {
 
 		private final Route.Builder routeBuilder;
 		private LocatorBuilder locatorBuilder;
 
-		private PredicateBuilder(Route.Builder routeBuilder, LocatorBuilder locatorBuilder) {
+		private PredicateSpec(Route.Builder routeBuilder, LocatorBuilder locatorBuilder) {
 			this.routeBuilder = routeBuilder;
 			this.locatorBuilder = locatorBuilder;
 		}
@@ -99,42 +99,42 @@ public class Routes {
 			RequestPredicate requestPredicate = GatewayRequestPredicates.host(pattern);
 		}*/
 
-		public WebFilterBuilder predicate(RequestPredicate predicate) {
+		public WebFilterSpec predicate(RequestPredicate predicate) {
 			this.routeBuilder.requestPredicate(predicate);
 			return webFilterBuilder();
 		}
 
-		private WebFilterBuilder webFilterBuilder() {
-			return new WebFilterBuilder(this.routeBuilder, this.locatorBuilder);
+		private WebFilterSpec webFilterBuilder() {
+			return new WebFilterSpec(this.routeBuilder, this.locatorBuilder);
 		}
 
 	}
 
-	public static class WebFilterBuilder {
+	public static class WebFilterSpec {
 		private Route.Builder builder;
 		private LocatorBuilder locatorBuilder;
 
-		public WebFilterBuilder(Route.Builder routeBuilder, LocatorBuilder locatorBuilder) {
+		public WebFilterSpec(Route.Builder routeBuilder, LocatorBuilder locatorBuilder) {
 			this.builder = routeBuilder;
 			this.locatorBuilder = locatorBuilder;
 		}
 
-		public WebFilterBuilder webFilters(List<WebFilter> webFilters) {
+		public WebFilterSpec webFilters(List<WebFilter> webFilters) {
 			this.builder.webFilters(webFilters);
 			return this;
 		}
 
-		public WebFilterBuilder add(WebFilter webFilter) {
+		public WebFilterSpec add(WebFilter webFilter) {
 			this.builder.add(webFilter);
 			return this;
 		}
 
-		public WebFilterBuilder addAll(Collection<WebFilter> webFilters) {
+		public WebFilterSpec addAll(Collection<WebFilter> webFilters) {
 			this.builder.addAll(webFilters);
 			return this;
 		}
 
-		public WebFilterBuilder addResponseHeader(String headerName, String headerValue) {
+		public WebFilterSpec addResponseHeader(String headerName, String headerValue) {
 			return add(WebFilterFactories.addResponseHeader(headerName, headerValue));
 		}
 
