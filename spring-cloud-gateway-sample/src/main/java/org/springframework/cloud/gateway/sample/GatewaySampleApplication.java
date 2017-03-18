@@ -21,14 +21,13 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.cloud.gateway.EnableGateway;
-import org.springframework.cloud.gateway.filter.factory.AddResponseHeaderWebFilterFactory;
-import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.route.RouteLocator;
+import org.springframework.cloud.gateway.route.Routes;
 import org.springframework.context.annotation.Bean;
-import org.springframework.tuple.TupleBuilder;
-import org.springframework.web.reactive.function.server.RequestPredicates;
 
-import reactor.core.publisher.Flux;
+import static org.springframework.cloud.gateway.filter.factory.WebFilterFactories.addResponseHeader;
+import static org.springframework.cloud.gateway.handler.predicate.GatewayRequestPredicates.path;
+// import static org.springframework.web.reactive.function.server.RequestPredicates.path;
 
 /**
  * @author Spencer Gibb
@@ -40,16 +39,18 @@ public class GatewaySampleApplication {
 
 	@Bean
 	public RouteLocator customRouteLocator() {
-		return () -> {
-			Route route = Route.builder()
-					.id("test")
+		return Routes.locator()
+				.route("test")
 					.uri("http://httpbin.org:80")
-					.requestPredicate(RequestPredicates.path("/image/png"))
-					.add(new AddResponseHeaderWebFilterFactory()
-							.apply(TupleBuilder.tuple().of("name", "X-TestHeader", "value", "foobar")))
-					.build();
-			return Flux.just(route);
-		};
+					.predicate(path("/image/png"))
+					.add(addResponseHeader("X-TestHeader", "foobar"))
+					.and()
+				.route("test2")
+					.uri("http://httpbin.org:80")
+					.predicate(path("/image/webp"))
+					.add(addResponseHeader("X-AnotherHeader", "baz"))
+					.and()
+				.build();
 	}
 
 	public static void main(String[] args) {

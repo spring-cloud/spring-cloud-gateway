@@ -50,7 +50,6 @@ public class GatewaySampleApplicationTests {
 
 	@Before
 	public void setup() {
-		//TODO: how to set new ReactorClientHttpConnector()
 		baseUri = "http://localhost:" + port;
 		this.webClient = WebClient.create(baseUri);
 	}

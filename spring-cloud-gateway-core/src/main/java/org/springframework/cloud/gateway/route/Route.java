@@ -99,8 +99,8 @@ public class Route {
 			return this;
 		}
 
-		public Builder addAll(Collection<WebFilter> webFilter) {
-			this.webFilters.addAll(webFilter);
+		public Builder addAll(Collection<WebFilter> webFilters) {
+			this.webFilters.addAll(webFilters);
 			return this;
 		}
 
