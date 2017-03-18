@@ -19,7 +19,7 @@ package org.springframework.cloud.gateway.discovery;
 
 import java.net.URI;
 
-// import org.springframework.cloud.client.discovery.DiscoveryClient;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.gateway.api.RouteDefinitionLocator;
 import org.springframework.cloud.gateway.filter.factory.RewritePathWebFilterFactory;
 import org.springframework.cloud.gateway.handler.predicate.PathRequestPredicateFactory;
@@ -39,7 +39,7 @@ import reactor.core.publisher.Flux;
  * TODO: developer configuration, in zuul, this was opt out, should be opt in
  * @author Spencer Gibb
  */
-public class DiscoveryClientRouteDefinitionLocator {}/*implements RouteDefinitionLocator {
+public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLocator {
 
 	private final DiscoveryClient discoveryClient;
 	private final String routeIdPrefix;
@@ -57,50 +57,10 @@ public class DiscoveryClientRouteDefinitionLocator {}/*implements RouteDefinitio
 					routeDefinition.setId(this.routeIdPrefix + serviceId);
 					routeDefinition.setUri(URI.create("lb://" + serviceId));
 
-					// add a predicate that matches the url at /serviceId*//**
- PredicateDefinition predicate = new PredicateDefinition();
- predicate.setName(normalizePredicateName(PathRequestPredicateFactory.class));
- predicate.addArg(PATTERN_KEY, "/" + serviceId + "*//**");
- routeDefinition.getPredicates().add(predicate);
-
- //TODO: support for other default predicates
-
- // add a filter that removes /serviceId by default
- FilterDefinition filter = new FilterDefinition();
- filter.setName(normalizeFilterName(RewritePathWebFilterFactory.class));
- String regex = "/" + serviceId + "/(?<remaining>.*)";
- String replacement = "/${remaining}";
- filter.addArg(REGEXP_KEY, regex);
- filter.addArg(REPLACEMENT_KEY, replacement);
- routeDefinition.getFilters().add(filter);
-
- //TODO: support for default filters
-
- return routeDefinition;
- });
- }
- }*/ /*implements RouteDefinitionLocator {
-
-	private final DiscoveryClient discoveryClient;
-	private final String routeIdPrefix;
-
-	public DiscoveryClientRouteDefinitionLocator(DiscoveryClient discoveryClient) {
-		this.discoveryClient = discoveryClient;
-		this.routeIdPrefix = this.discoveryClient.getClass().getSimpleName() + "_";
-	}
-
-	@Override
-	public Flux<RouteDefinition> getRouteDefinitions() {
-		return Flux.fromIterable(discoveryClient.getServices())
-				.map(serviceId -> {
-					RouteDefinition routeDefinition = new RouteDefinition();
-					routeDefinition.setId(this.routeIdPrefix + serviceId);
-					routeDefinition.setUri(URI.create("lb://" + serviceId));
-
-					// add a predicate that matches the url at /serviceId*//**
+					// add a predicate that matches the url at /serviceId*
 					PredicateDefinition predicate = new PredicateDefinition();
 					predicate.setName(normalizePredicateName(PathRequestPredicateFactory.class));
-					predicate.addArg(PATTERN_KEY, "/" + serviceId + "*//**");
+					predicate.addArg(PATTERN_KEY, "/" + serviceId + "*");
 					routeDefinition.getPredicates().add(predicate);
 
 					//TODO: support for other default predicates
@@ -119,4 +79,4 @@ public class DiscoveryClientRouteDefinitionLocator {}/*implements RouteDefinitio
 					return routeDefinition;
 				});
 	}
-}*/
+}

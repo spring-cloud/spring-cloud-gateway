@@ -44,7 +44,7 @@ public class HystrixWebFilterFactoryTests extends BaseWebClientTests {
 
 	@Test
 	public void hystrixFilterWorks() {
-		/*Mono<ClientResponse> result = webClient.get()
+		Mono<ClientResponse> result = webClient.get()
 				.uri("/get")
 				.header("Host", "www.hystrixsuccess.org")
 				.exchange();
@@ -58,19 +58,19 @@ public class HystrixWebFilterFactoryTests extends BaseWebClientTests {
 									.isEqualTo("hystrix_success_test");
 						})
 				.expectComplete()
-				.verify(DURATION);*/
+				.verify(DURATION);
 	}
 
 	@Test
 	public void hystrixFilterTimesout() {
-		/*Mono<ClientResponse> result = webClient.get()
+		Mono<ClientResponse> result = webClient.get()
 				.uri("/delay/3")
 				.header("Host", "www.hystrixfailure.org")
 				.exchange();
 
 		StepVerifier.create(result)
 				.expectError() //TODO: can we get more specific as to the error?
-				.verify();*/
+				.verify();
 	}
 
 	@EnableAutoConfiguration

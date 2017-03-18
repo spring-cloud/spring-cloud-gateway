@@ -20,20 +20,19 @@ package org.springframework.cloud.gateway.config;
 import java.util.List;
 
 import org.springframework.boot.actuate.endpoint.Endpoint;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.web.reactive.HttpHandlerAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-// import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.cloud.gateway.actuate.GatewayEndpoint;
 import org.springframework.cloud.gateway.api.RouteDefinitionLocator;
 import org.springframework.cloud.gateway.api.RouteDefinitionRepository;
 import org.springframework.cloud.gateway.api.RouteDefinitionWriter;
 import org.springframework.cloud.gateway.api.RouteLocator;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
-import org.springframework.cloud.gateway.filter.LoadBalancerClientFilter;
 import org.springframework.cloud.gateway.filter.NettyRoutingFilter;
 import org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter;
 import org.springframework.cloud.gateway.filter.WriteResponseFilter;
@@ -47,12 +46,12 @@ import org.springframework.cloud.gateway.filter.factory.RemoveNonProxyHeadersWeb
 import org.springframework.cloud.gateway.filter.factory.RemoveRequestHeaderWebFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RemoveResponseHeaderWebFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RewritePathWebFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.SecureHeadersWebFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.SetResponseHeaderWebFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.WebFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SecureHeadersProperties;
+import org.springframework.cloud.gateway.filter.factory.SecureHeadersWebFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SetPathWebFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.SetResponseHeaderWebFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SetStatusWebFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.WebFilterFactory;
 import org.springframework.cloud.gateway.handler.FilteringWebHandler;
 import org.springframework.cloud.gateway.handler.NettyRoutingWebHandler;
 import org.springframework.cloud.gateway.handler.RequestPredicateHandlerMapping;
@@ -70,14 +69,14 @@ import org.springframework.cloud.gateway.handler.predicate.RequestPredicateFacto
 import org.springframework.cloud.gateway.support.CachingRouteLocator;
 import org.springframework.cloud.gateway.support.CompositeRouteDefinitionLocator;
 import org.springframework.cloud.gateway.support.CompositeRouteLocator;
-import org.springframework.cloud.gateway.support.RouteDefinitionRouteLocator;
 import org.springframework.cloud.gateway.support.InMemoryRouteDefinitionRepository;
+import org.springframework.cloud.gateway.support.RouteDefinitionRouteLocator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-// import com.netflix.hystrix.HystrixObservableCommand;
-
 import org.springframework.context.annotation.Primary;
+
+import com.netflix.hystrix.HystrixObservableCommand;
+
 import reactor.core.publisher.Flux;
 import reactor.ipc.netty.http.client.HttpClient;
 import rx.RxReactiveStreams;
@@ -89,6 +88,7 @@ import rx.RxReactiveStreams;
 @ConditionalOnBean(GatewayConfiguration.Marker.class)
 @EnableConfigurationProperties
 @AutoConfigureBefore(HttpHandlerAutoConfiguration.class)
+@AutoConfigureAfter(GatewayLoadBalancerClientAutoConfiguration.class)
 public class GatewayAutoConfiguration {
 
 	@Configuration
@@ -173,16 +173,6 @@ public class GatewayAutoConfiguration {
 
 	// GlobalFilter beans
 
-	/*@ConditionalOnClass(LoadBalancerClient.class)
-	@Configuration
-	protected static class LoadBalancerClientConfiguration {
-		@Bean
-		@ConditionalOnBean(LoadBalancerClient.class)
-		public LoadBalancerClientFilter loadBalancerClientFilter(LoadBalancerClient client) {
-			return new LoadBalancerClientFilter(client);
-		}
-	}*/
-
 	@Bean
 	public RouteToRequestUrlFilter routeToRequestUrlFilter() {
 		return new RouteToRequestUrlFilter();
@@ -261,7 +251,7 @@ public class GatewayAutoConfiguration {
 	public AddResponseHeaderWebFilterFactory addResponseHeaderWebFilterFactory() {
 		return new AddResponseHeaderWebFilterFactory();
 	}
-/* TODO: add it back when s-c-netflix is up to date
+
 	@Configuration
 	@ConditionalOnClass({HystrixObservableCommand.class, RxReactiveStreams.class})
 	protected static class HystrixConfiguration {
@@ -269,7 +259,7 @@ public class GatewayAutoConfiguration {
 		public HystrixWebFilterFactory hystrixWebFilterFactory() {
 			return new HystrixWebFilterFactory();
 		}
-	}*/
+	}
 
 	@Bean
 	public PrefixPathWebFilterFactory prefixPathWebFilterFactory() {

@@ -21,7 +21,6 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -126,7 +125,6 @@ public class GatewayIntegrationTests extends BaseWebClientTests {
 	}
 
 	@Test
-	@Ignore
 	public void loadBalancerFilterWorks() {
 		Mono<ClientResponse> result = webClient.get()
 				.uri("/get")
@@ -146,7 +144,6 @@ public class GatewayIntegrationTests extends BaseWebClientTests {
 	}
 
 	@Test
-	@Ignore
 	public void postWorks() {
 		Mono<Map> result = webClient.post()
 				.uri("/post")

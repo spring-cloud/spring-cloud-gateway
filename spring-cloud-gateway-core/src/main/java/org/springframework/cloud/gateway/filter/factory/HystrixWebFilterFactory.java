@@ -22,14 +22,14 @@ import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 
-// import com.netflix.hystrix.HystrixCommandGroupKey;
-// import com.netflix.hystrix.HystrixCommandKey;
-// import com.netflix.hystrix.HystrixObservableCommand;
+import com.netflix.hystrix.HystrixCommandGroupKey;
+import com.netflix.hystrix.HystrixCommandKey;
+import com.netflix.hystrix.HystrixObservableCommand;
 
 import reactor.core.publisher.Mono;
-// import rx.Observable;
+import rx.Observable;
 import rx.RxReactiveStreams;
-// import rx.Subscription;
+import rx.Subscription;
 
 import java.util.Arrays;
 import java.util.List;
@@ -37,7 +37,7 @@ import java.util.List;
 /**
  * @author Spencer Gibb
  */
-public class HystrixWebFilterFactory {}/*implements WebFilterFactory {
+public class HystrixWebFilterFactory implements WebFilterFactory {
 
 	@Override
 	public List<String> argNames() {
@@ -46,6 +46,7 @@ public class HystrixWebFilterFactory {}/*implements WebFilterFactory {
 
 	@Override
 	public WebFilter apply(Tuple args) {
+		//TODO: if no name is supplied, generate one from command id (useful for default filter)
 		final String commandName = args.getString(NAME_KEY);
 		final HystrixCommandGroupKey groupKey = HystrixCommandGroupKey.Factory.asKey(getClass().getSimpleName());
 		final HystrixCommandKey commandKey = HystrixCommandKey.Factory.asKey(commandName);
@@ -80,4 +81,4 @@ public class HystrixWebFilterFactory {}/*implements WebFilterFactory {
 			return RxReactiveStreams.toObservable(this.chain.filter(this.exchange));
 		}
 	}
-}*/
+}

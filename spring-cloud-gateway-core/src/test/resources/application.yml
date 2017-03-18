@@ -1,15 +1,15 @@
 test:
   hostport: httpbin.org:80
 #  hostport: localhost:5000
-  uri: http://${test.hostport}
-#  uri: lb://testservice
+#  uri: http://${test.hostport}
+  uri: lb://testservice
 
 spring:
   cloud:
     gateway:
       default-filters:
       - AddResponseHeader=X-Response-Default-Foo, Default-Bar
-#      - PrefixPath=/httpbin
+      - PrefixPath=/httpbin
 
       # TODO: breakup configuration for individual tests (though some are reused)
       routes:
@@ -59,20 +59,20 @@ spring:
         - AddResponseHeader=X-Request-Foo, Bar
 
       # =====================================
-#      - id: hystrix_failure_test
-#        uri: ${test.uri}
-#        predicates:
-#        - Host=**.hystrixfailure.org
-#        filters:
-#        - Hystrix=failcmd
+      - id: hystrix_failure_test
+        uri: ${test.uri}
+        predicates:
+        - Host=**.hystrixfailure.org
+        filters:
+        - Hystrix=failcmd
 
       # =====================================
-#      - id: hystrix_success_test
-#        uri: ${test.uri}
-#        predicates:
-#        - Host=**.hystrixsuccess.org
-#        filters:
-#        - Hystrix=successcmd
+      - id: hystrix_success_test
+        uri: ${test.uri}
+        predicates:
+        - Host=**.hystrixsuccess.org
+        filters:
+        - Hystrix=successcmd
 
       # =====================================
       - id: load_balancer_client_test

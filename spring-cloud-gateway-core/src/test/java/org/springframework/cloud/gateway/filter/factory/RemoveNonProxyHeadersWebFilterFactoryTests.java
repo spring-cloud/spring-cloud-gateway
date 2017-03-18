@@ -24,7 +24,6 @@ import org.junit.runner.RunWith;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.gateway.EnableGateway;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
@@ -60,7 +59,7 @@ public class RemoveNonProxyHeadersWebFilterFactoryTests extends BaseWebClientTes
 				.consumeNextWith(
 						response -> {
 							Map<String, Object> headers = getMap(response, "headers");
-							// for (String header : DEFAULT_HEADERS_TO_REMOVE) {
+							//FIXME for (String header : DEFAULT_HEADERS_TO_REMOVE) {
 								assertThat(headers).doesNotContainKey("Proxy-Authorization");
 							// }
 						})

@@ -17,6 +17,7 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
+import java.time.Duration;
 import java.util.Map;
 
 import org.junit.Test;
@@ -57,7 +58,7 @@ public class AddRequestHeaderWebFilterFactoryTests extends BaseWebClientTests {
 							assertThat(headers).containsEntry("X-Request-Foo", "Bar");
 						})
 				.expectComplete()
-				.verify(DURATION);
+				.verify(Duration.ofMinutes(10));
 	}
 
 	@EnableAutoConfiguration
