@@ -15,26 +15,23 @@
  *
  */
 
-package org.springframework.cloud.gateway.support;
-
-import org.springframework.cloud.gateway.route.RouteLocator;
-import org.springframework.cloud.gateway.route.Route;
+package org.springframework.cloud.gateway.route;
 
 import reactor.core.publisher.Flux;
 
 /**
  * @author Spencer Gibb
  */
-public class CompositeRouteLocator implements RouteLocator {
+public class CompositeRouteDefinitionLocator implements RouteDefinitionLocator {
 
-	private final Flux<RouteLocator> delegates;
+	private final Flux<RouteDefinitionLocator> delegates;
 
-	public CompositeRouteLocator(Flux<RouteLocator> delegates) {
+	public CompositeRouteDefinitionLocator(Flux<RouteDefinitionLocator> delegates) {
 		this.delegates = delegates;
 	}
 
 	@Override
-	public Flux<Route> getRoutes() {
-		return this.delegates.flatMap(RouteLocator::getRoutes);
+	public Flux<RouteDefinition> getRouteDefinitions() {
+		return this.delegates.flatMap(RouteDefinitionLocator::getRouteDefinitions);
 	}
 }

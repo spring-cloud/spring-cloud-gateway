@@ -66,11 +66,11 @@ import org.springframework.cloud.gateway.handler.predicate.PathRequestPredicateF
 import org.springframework.cloud.gateway.handler.predicate.QueryRequestPredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.RemoteAddrRequestPredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.RequestPredicateFactory;
-import org.springframework.cloud.gateway.support.CachingRouteLocator;
-import org.springframework.cloud.gateway.support.CompositeRouteDefinitionLocator;
-import org.springframework.cloud.gateway.support.CompositeRouteLocator;
-import org.springframework.cloud.gateway.support.InMemoryRouteDefinitionRepository;
-import org.springframework.cloud.gateway.support.RouteDefinitionRouteLocator;
+import org.springframework.cloud.gateway.route.CachingRouteLocator;
+import org.springframework.cloud.gateway.route.CompositeRouteDefinitionLocator;
+import org.springframework.cloud.gateway.route.CompositeRouteLocator;
+import org.springframework.cloud.gateway.route.InMemoryRouteDefinitionRepository;
+import org.springframework.cloud.gateway.route.RouteDefinitionRouteLocator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;

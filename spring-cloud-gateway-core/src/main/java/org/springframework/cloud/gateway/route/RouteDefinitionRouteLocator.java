@@ -15,7 +15,7 @@
  *
  */
 
-package org.springframework.cloud.gateway.support;
+package org.springframework.cloud.gateway.route;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -36,6 +36,8 @@ import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.route.RouteDefinition;
 import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
 import org.springframework.cloud.gateway.route.RouteLocator;
+import org.springframework.cloud.gateway.support.ArgumentHints;
+import org.springframework.cloud.gateway.support.NameUtils;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.tuple.Tuple;
 import org.springframework.tuple.TupleBuilder;

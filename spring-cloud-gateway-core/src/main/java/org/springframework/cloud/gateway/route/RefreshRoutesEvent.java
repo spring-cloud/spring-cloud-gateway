@@ -15,7 +15,7 @@
  *
  */
 
-package org.springframework.cloud.gateway.support;
+package org.springframework.cloud.gateway.route;
 
 import org.springframework.context.ApplicationEvent;
 

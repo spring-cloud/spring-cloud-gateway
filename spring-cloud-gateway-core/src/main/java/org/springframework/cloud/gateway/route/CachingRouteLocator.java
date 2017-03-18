@@ -15,31 +15,30 @@
  *
  */
 
-package org.springframework.cloud.gateway.support;
+package org.springframework.cloud.gateway.route;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
-import org.springframework.cloud.gateway.route.RouteDefinition;
 import org.springframework.context.event.EventListener;
+
 import reactor.core.publisher.Flux;
 
 /**
  * @author Spencer Gibb
  */
-public class CachingRouteDefinitionLocator implements RouteDefinitionLocator {
+public class CachingRouteLocator implements RouteLocator {
 
-	private final RouteDefinitionLocator delegate;
-	private final AtomicReference<List<RouteDefinition>> cachedRoutes = new AtomicReference<>();
+	private final RouteLocator delegate;
+	private final AtomicReference<List<Route>> cachedRoutes = new AtomicReference<>();
 
-	public CachingRouteDefinitionLocator(RouteDefinitionLocator delegate) {
+	public CachingRouteLocator(RouteLocator delegate) {
 		this.delegate = delegate;
 		this.cachedRoutes.compareAndSet(null, collectRoutes());
 	}
 
 	@Override
-	public Flux<RouteDefinition> getRouteDefinitions() {
+	public Flux<Route> getRoutes() {
 		return Flux.fromIterable(this.cachedRoutes.get());
 	}
 
@@ -47,13 +46,13 @@ public class CachingRouteDefinitionLocator implements RouteDefinitionLocator {
 	 * Sets the new routes
 	 * @return old routes
 	 */
-	public Flux<RouteDefinition> refresh() {
+	public Flux<Route> refresh() {
 		return Flux.fromIterable(this.cachedRoutes.getAndUpdate(
-				routes -> CachingRouteDefinitionLocator.this.collectRoutes()));
+				routes -> CachingRouteLocator.this.collectRoutes()));
 	}
 
-	private List<RouteDefinition> collectRoutes() {
-		return this.delegate.getRouteDefinitions().collectList().block();
+	private List<Route> collectRoutes() {
+		return this.delegate.getRoutes().collectList().block();
 	}
 
 	@EventListener(RefreshRoutesEvent.class)
