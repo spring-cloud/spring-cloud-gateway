@@ -17,7 +17,6 @@
 
 package org.springframework.cloud.gateway.route;
 
-import org.springframework.cloud.gateway.route.Route;
 import reactor.core.publisher.Flux;
 
 /**

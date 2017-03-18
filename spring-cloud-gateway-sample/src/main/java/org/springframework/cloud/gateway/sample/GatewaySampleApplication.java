@@ -17,21 +17,16 @@
 
 package org.springframework.cloud.gateway.sample;
 
-import java.util.List;
-
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.cloud.gateway.EnableGateway;
-import org.springframework.cloud.gateway.route.RouteLocator;
-import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.factory.AddResponseHeaderWebFilterFactory;
 import org.springframework.cloud.gateway.route.Route;
+import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.tuple.TupleBuilder;
 import org.springframework.web.reactive.function.server.RequestPredicates;
-
-import static org.springframework.cloud.gateway.support.RouteDefinitionRouteLocator.loadFilters;
 
 import reactor.core.publisher.Flux;
 
@@ -44,13 +39,12 @@ import reactor.core.publisher.Flux;
 public class GatewaySampleApplication {
 
 	@Bean
-	public RouteLocator customRouteLocator(List<GlobalFilter> globalFilters) {
+	public RouteLocator customRouteLocator() {
 		return () -> {
 			Route route = Route.builder()
 					.id("test")
 					.uri("http://httpbin.org:80")
 					.requestPredicate(RequestPredicates.path("/image/png"))
-					.addAll(loadFilters(globalFilters))
 					.add(new AddResponseHeaderWebFilterFactory()
 							.apply(TupleBuilder.tuple().of("name", "X-TestHeader", "value", "foobar")))
 					.build();

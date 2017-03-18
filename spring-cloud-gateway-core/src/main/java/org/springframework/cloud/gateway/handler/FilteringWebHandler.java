@@ -17,16 +17,21 @@
 
 package org.springframework.cloud.gateway.handler;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.cloud.gateway.filter.OrderedWebFilter;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.config.GatewayProperties;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.factory.WebFilterFactory;
 import org.springframework.cloud.gateway.route.Route;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
@@ -48,18 +53,27 @@ import reactor.core.publisher.Mono;
 public class FilteringWebHandler extends WebHandlerDecorator {
 	protected final Log logger = LogFactory.getLog(getClass());
 
-	private final GatewayProperties gatewayProperties;
-	private final RouteLocator routeLocator;
+	private final List<WebFilter> globalFilters;
 
-	public FilteringWebHandler(GatewayProperties gatewayProperties, RouteLocator routeLocator) {
-		this(new EmptyWebHandler(), gatewayProperties, routeLocator);
+	public FilteringWebHandler(List<GlobalFilter> globalFilters) {
+		this(new EmptyWebHandler(), globalFilters);
 	}
 
-	public FilteringWebHandler(WebHandler targetHandler, GatewayProperties gatewayProperties,
-							   RouteLocator routeLocator) {
+	public FilteringWebHandler(WebHandler targetHandler, List<GlobalFilter> globalFilters) {
 		super(targetHandler);
-		this.gatewayProperties = gatewayProperties;
-		this.routeLocator = routeLocator;
+		this.globalFilters = loadFilters(globalFilters);
+	}
+
+	private static List<WebFilter> loadFilters(List<GlobalFilter> filters) {
+		return filters.stream()
+				.map(filter -> {
+					WebFilterAdapter webFilter = new WebFilterAdapter(filter);
+					if (filter instanceof Ordered) {
+						int order = ((Ordered) filter).getOrder();
+						return new OrderedWebFilter(webFilter, order);
+					}
+					return webFilter;
+				}).collect(Collectors.toList());
 	}
 
     /* TODO: relocate @EventListener(RefreshRoutesEvent.class)
@@ -72,9 +86,14 @@ public class FilteringWebHandler extends WebHandlerDecorator {
 		Optional<Route> route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
 		List<WebFilter> webFilters = route.get().getWebFilters();
 
-		logger.debug("Sorted webFilterFactories: "+ webFilters);
+		List<WebFilter> combined = new ArrayList<>(this.globalFilters);
+		combined.addAll(webFilters);
+		//TODO: needed or cached?
+		AnnotationAwareOrderComparator.sort(combined);
 
-		return new DefaultWebFilterChain(webFilters, getDelegate()).filter(exchange);
+		logger.debug("Sorted webFilterFactories: "+ combined);
+
+		return new DefaultWebFilterChain(combined, getDelegate()).filter(exchange);
 	}
 
 	private static class DefaultWebFilterChain implements WebFilterChain {
@@ -99,6 +118,29 @@ public class FilteringWebHandler extends WebHandlerDecorator {
 			}
 		}
 	}
+
+	private static class WebFilterAdapter implements WebFilter {
+
+		private final GlobalFilter delegate;
+
+		public WebFilterAdapter(GlobalFilter delegate) {
+			this.delegate = delegate;
+		}
+
+		@Override
+		public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
+			return this.delegate.filter(exchange, chain);
+		}
+
+		@Override
+		public String toString() {
+			final StringBuilder sb = new StringBuilder("WebFilterAdapter{");
+			sb.append("delegate=").append(delegate);
+			sb.append('}');
+			return sb.toString();
+		}
+	}
+
 
 	private static class EmptyWebHandler implements WebHandler {
 		@Override

@@ -133,11 +133,11 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	public RouteLocator routeDefinitionRouteLocator(GatewayProperties properties, List<GlobalFilter> globalFilters,
+	public RouteLocator routeDefinitionRouteLocator(GatewayProperties properties,
 												   List<WebFilterFactory> webFilterFactories,
 												   List<RequestPredicateFactory> predicates,
 												   RouteDefinitionLocator routeDefinitionLocator) {
-		return new CachingRouteLocator(new RouteDefinitionRouteLocator(routeDefinitionLocator, predicates, globalFilters, webFilterFactories, properties));
+		return new CachingRouteLocator(new RouteDefinitionRouteLocator(routeDefinitionLocator, predicates, webFilterFactories, properties));
 	}
 
 	@Bean
@@ -148,9 +148,8 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	public FilteringWebHandler filteringWebHandler(GatewayProperties properties,
-												   RouteLocator routeLocator) {
-		return new FilteringWebHandler(properties, routeLocator);
+	public FilteringWebHandler filteringWebHandler(List<GlobalFilter> globalFilters) {
+		return new FilteringWebHandler(globalFilters);
 	}
 
 	@Bean

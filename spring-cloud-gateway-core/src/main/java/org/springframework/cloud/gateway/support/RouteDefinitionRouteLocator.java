@@ -17,38 +17,32 @@
 
 package org.springframework.cloud.gateway.support;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
-import org.springframework.cloud.gateway.route.RouteLocator;
-import org.springframework.cloud.gateway.config.GatewayProperties;
-import org.springframework.cloud.gateway.filter.GlobalFilter;
-import org.springframework.cloud.gateway.filter.factory.WebFilterFactory;
-import org.springframework.cloud.gateway.handler.predicate.RequestPredicateFactory;
-import org.springframework.cloud.gateway.filter.FilterDefinition;
-import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
-import org.springframework.cloud.gateway.route.Route;
-import org.springframework.cloud.gateway.route.RouteDefinition;
-import org.springframework.core.Ordered;
-import org.springframework.core.annotation.AnnotationAwareOrderComparator;
-import org.springframework.tuple.Tuple;
-import org.springframework.tuple.TupleBuilder;
-import org.springframework.web.reactive.function.server.RequestPredicate;
-import org.springframework.web.server.ServerWebExchange;
-import org.springframework.web.server.WebFilter;
-import org.springframework.web.server.WebFilterChain;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static java.util.Collections.emptyList;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.cloud.gateway.config.GatewayProperties;
+import org.springframework.cloud.gateway.filter.FilterDefinition;
+import org.springframework.cloud.gateway.filter.OrderedWebFilter;
+import org.springframework.cloud.gateway.filter.factory.WebFilterFactory;
+import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
+import org.springframework.cloud.gateway.handler.predicate.RequestPredicateFactory;
+import org.springframework.cloud.gateway.route.Route;
+import org.springframework.cloud.gateway.route.RouteDefinition;
+import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
+import org.springframework.cloud.gateway.route.RouteLocator;
+import org.springframework.core.annotation.AnnotationAwareOrderComparator;
+import org.springframework.tuple.Tuple;
+import org.springframework.tuple.TupleBuilder;
+import org.springframework.web.reactive.function.server.RequestPredicate;
+import org.springframework.web.server.WebFilter;
+
+import reactor.core.publisher.Flux;
 
 /**
  * {@link RouteLocator} that loads routes from a {@link RouteDefinitionLocator}
@@ -59,24 +53,17 @@ public class RouteDefinitionRouteLocator implements RouteLocator {
 
 	private final RouteDefinitionLocator routeDefinitionLocator;
 	private final Map<String, RequestPredicateFactory> requestPredicates = new LinkedHashMap<>();
-	private final List<GlobalFilter> globalFilters;
 	private final Map<String, WebFilterFactory> webFilterFactories = new HashMap<>();
 	private final GatewayProperties gatewayProperties;
 
 	public RouteDefinitionRouteLocator(RouteDefinitionLocator routeDefinitionLocator,
 									   List<RequestPredicateFactory> requestPredicates,
-									   List<GlobalFilter> globalFilters,
 									   List<WebFilterFactory> webFilterFactories,
 									   GatewayProperties gatewayProperties) {
 		this.routeDefinitionLocator = routeDefinitionLocator;
 		initFactories(requestPredicates);
-		this.globalFilters = initList(globalFilters);
 		webFilterFactories.forEach(factory -> this.webFilterFactories.put(factory.name(), factory));
 		this.gatewayProperties = gatewayProperties;
-	}
-
-	private static <T> List<T> initList(List<T> list) {
-		return (list != null ? list : emptyList());
 	}
 
 	private void initFactories(List<RequestPredicateFactory> requestPredicates) {
@@ -124,17 +111,7 @@ public class RouteDefinitionRouteLocator implements RouteLocator {
 				.build();
 	}
 
-	public static Collection<WebFilter> loadFilters(List<GlobalFilter> filters) {
-		return filters.stream()
-				.map(filter -> {
-					WebFilterAdapter webFilter = new WebFilterAdapter(filter);
-					if (filter instanceof Ordered) {
-						int order = ((Ordered) filter).getOrder();
-						return new OrderedWebFilter(webFilter, order);
-					}
-					return webFilter;
-				}).collect(Collectors.toList());
-	}
+
 
 	private List<WebFilter> loadWebFilters(String id, List<FilterDefinition> filterDefinitions) {
 		List<WebFilter> filters = filterDefinitions.stream()
@@ -202,21 +179,20 @@ public class RouteDefinitionRouteLocator implements RouteLocator {
 	}
 
 	private List<WebFilter> getFilters(RouteDefinition routeDefinition) {
-		//TODO: probably a java 8 stream way of doing this
-		List<WebFilter> combined = new ArrayList<>(loadFilters(this.globalFilters));
+		List<WebFilter> filters = new ArrayList<>();
 
 		//TODO: support option to apply defaults after route specific filters?
 		if (!this.gatewayProperties.getDefaultFilters().isEmpty()) {
-			combined.addAll(loadWebFilters("defaultFilters",
+			filters.addAll(loadWebFilters("defaultFilters",
 					this.gatewayProperties.getDefaultFilters()));
 		}
 
 		if (!routeDefinition.getFilters().isEmpty()) {
-			combined.addAll(loadWebFilters(routeDefinition.getId(), routeDefinition.getFilters()));
+			filters.addAll(loadWebFilters(routeDefinition.getId(), routeDefinition.getFilters()));
 		}
 
-		AnnotationAwareOrderComparator.sort(combined);
-		return combined;
+		AnnotationAwareOrderComparator.sort(filters);
+		return filters;
 	}
 
 	private RequestPredicate combinePredicates(RouteDefinition routeDefinition) {
@@ -247,56 +223,4 @@ public class RouteDefinitionRouteLocator implements RouteLocator {
 		return found.apply(tuple);
 	}
 
-
-	private static class WebFilterAdapter implements WebFilter {
-
-		private final GlobalFilter delegate;
-
-		public WebFilterAdapter(GlobalFilter delegate) {
-			this.delegate = delegate;
-		}
-
-		@Override
-		public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
-			return this.delegate.filter(exchange, chain);
-		}
-
-		@Override
-		public String toString() {
-			final StringBuilder sb = new StringBuilder("WebFilterAdapter{");
-			sb.append("delegate=").append(delegate);
-			sb.append('}');
-			return sb.toString();
-		}
-	}
-
-	public static class OrderedWebFilter implements WebFilter, Ordered {
-
-		private final WebFilter delegate;
-		private final int order;
-
-		public OrderedWebFilter(WebFilter delegate, int order) {
-			this.delegate = delegate;
-			this.order = order;
-		}
-
-		@Override
-		public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
-			return this.delegate.filter(exchange, chain);
-		}
-
-		@Override
-		public int getOrder() {
-			return this.order;
-		}
-
-		@Override
-		public String toString() {
-			final StringBuilder sb = new StringBuilder("OrderedWebFilter{");
-			sb.append("delegate=").append(delegate);
-			sb.append(", order=").append(order);
-			sb.append('}');
-			return sb.toString();
-		}
-	}
 }
