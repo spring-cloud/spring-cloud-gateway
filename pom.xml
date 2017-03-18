@@ -116,7 +116,7 @@
 				<artifactId>spring-cloud-starter-hystrix</artifactId>
 				<version>${spring-cloud-netflix.version}</version>
 			</dependency>
-			<!-- TODO: should be part of spring-cloud-starter-netflix -->
+			<!-- TODO: should be part of spring-cloud-starter-netflix? -->
 			<dependency>
 				<groupId>io.reactivex</groupId>
 				<artifactId>rxjava-reactive-streams</artifactId>
