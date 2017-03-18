@@ -26,6 +26,7 @@ import org.springframework.cloud.gateway.route.Routes;
 import org.springframework.context.annotation.Bean;
 
 import static org.springframework.cloud.gateway.filter.factory.WebFilterFactories.addResponseHeader;
+import static org.springframework.cloud.gateway.handler.predicate.GatewayRequestPredicates.host;
 import static org.springframework.cloud.gateway.handler.predicate.GatewayRequestPredicates.path;
 // import static org.springframework.web.reactive.function.server.RequestPredicates.path;
 
@@ -42,8 +43,8 @@ public class GatewaySampleApplication {
 		return Routes.locator()
 				.route("test")
 					.uri("http://httpbin.org:80")
-					.predicate(path("/image/png"))
-					.add(addResponseHeader("X-TestHeader", "foobar"))
+					.predicate(host("**.abc.org").and(path("/image/png")))
+					.addResponseHeader("X-TestHeader", "foobar")
 					.and()
 				.route("test2")
 					.uri("http://httpbin.org:80")

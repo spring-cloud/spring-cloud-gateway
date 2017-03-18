@@ -17,14 +17,16 @@
 
 package org.springframework.cloud.gateway.route;
 
-import org.springframework.web.reactive.function.server.RequestPredicate;
-import org.springframework.web.server.WebFilter;
-import reactor.core.publisher.Flux;
-
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
+import org.springframework.cloud.gateway.filter.factory.WebFilterFactories;
+import org.springframework.web.reactive.function.server.RequestPredicate;
+import org.springframework.web.server.WebFilter;
+
+import reactor.core.publisher.Flux;
 
 /**
  * @author Spencer Gibb
@@ -66,35 +68,74 @@ public class Routes {
 			return this;
 		}
 
-		public RouteBuilder uri(String uri) {
+		public PredicateBuilder uri(String uri) {
 			this.builder.uri(uri);
-			return this;
+			return predicateBuilder();
 		}
 
-		public RouteBuilder uri(URI uri) {
+		public PredicateBuilder uri(URI uri) {
 			this.builder.uri(uri);
-			return this;
+			return predicateBuilder();
 		}
 
-		public RouteBuilder predicate(RequestPredicate predicate) {
-			this.builder.requestPredicate(predicate);
-			return this;
+		private PredicateBuilder predicateBuilder() {
+			return new PredicateBuilder(this.builder, this.locatorBuilder);
 		}
 
-		//TODO: maybe add WebFilterBuilder so no need to import WebFilterFactories?
-		public RouteBuilder webFilters(List<WebFilter> webFilters) {
+	}
+
+	public static class PredicateBuilder {
+
+		private final Route.Builder routeBuilder;
+		private LocatorBuilder locatorBuilder;
+
+		private PredicateBuilder(Route.Builder routeBuilder, LocatorBuilder locatorBuilder) {
+			this.routeBuilder = routeBuilder;
+			this.locatorBuilder = locatorBuilder;
+		}
+
+		/* TODO: has and, or & negate of RequestPredicate with terminal filters()?
+		public RequestPredicateBuilder host(String pattern) {
+			RequestPredicate requestPredicate = GatewayRequestPredicates.host(pattern);
+		}*/
+
+		public WebFilterBuilder predicate(RequestPredicate predicate) {
+			this.routeBuilder.requestPredicate(predicate);
+			return webFilterBuilder();
+		}
+
+		private WebFilterBuilder webFilterBuilder() {
+			return new WebFilterBuilder(this.routeBuilder, this.locatorBuilder);
+		}
+
+	}
+
+	public static class WebFilterBuilder {
+		private Route.Builder builder;
+		private LocatorBuilder locatorBuilder;
+
+		public WebFilterBuilder(Route.Builder routeBuilder, LocatorBuilder locatorBuilder) {
+			this.builder = routeBuilder;
+			this.locatorBuilder = locatorBuilder;
+		}
+
+		public WebFilterBuilder webFilters(List<WebFilter> webFilters) {
 			this.builder.webFilters(webFilters);
 			return this;
 		}
 
-		public RouteBuilder add(WebFilter webFilter) {
+		public WebFilterBuilder add(WebFilter webFilter) {
 			this.builder.add(webFilter);
 			return this;
 		}
 
-		public RouteBuilder addAll(Collection<WebFilter> webFilters) {
+		public WebFilterBuilder addAll(Collection<WebFilter> webFilters) {
 			this.builder.addAll(webFilters);
 			return this;
+		}
+
+		public WebFilterBuilder addResponseHeader(String headerName, String headerValue) {
+			return add(WebFilterFactories.addResponseHeader(headerName, headerValue));
 		}
 
 		public LocatorBuilder and() {
