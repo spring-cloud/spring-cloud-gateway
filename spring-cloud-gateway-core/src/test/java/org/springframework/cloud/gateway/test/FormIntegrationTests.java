@@ -94,7 +94,8 @@ public class FormIntegrationTests extends BaseWebClientTests {
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 		Map<String, Object> files = getMap(response.getBody(), "files");
 		assertThat(files).containsKey("file");
-		assertThat((String)files.get("file")).startsWith("data:application/octet-stream;base64,");
+		String file = (String) files.get("file");
+		assertThat(file).startsWith("data:").contains(";base64,");
 	}
 
 	@EnableAutoConfiguration

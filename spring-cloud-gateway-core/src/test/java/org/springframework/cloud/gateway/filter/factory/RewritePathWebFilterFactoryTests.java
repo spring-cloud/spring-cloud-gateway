@@ -21,11 +21,10 @@ import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
-import org.springframework.mock.http.server.reactive.MockServerHttpResponse;
+import org.springframework.mock.http.server.reactive.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
-import org.springframework.web.server.adapter.DefaultServerWebExchange;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -57,7 +56,7 @@ public class RewritePathWebFilterFactoryTests {
 				.get("http://localhost"+ actualPath)
 				.build();
 
-		DefaultServerWebExchange exchange = new DefaultServerWebExchange(request, new MockServerHttpResponse());
+		ServerWebExchange exchange = new MockServerWebExchange(request);
 
 		WebFilterChain filterChain = mock(WebFilterChain.class);
 

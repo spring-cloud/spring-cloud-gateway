@@ -21,11 +21,10 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
 import org.junit.Test;
-import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
-import org.springframework.mock.http.server.reactive.MockServerHttpResponse;
 import org.springframework.cloud.gateway.handler.support.ExchangeServerRequest;
+import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
+import org.springframework.mock.http.server.reactive.MockServerWebExchange;
 import org.springframework.web.reactive.function.server.ServerRequest;
-import org.springframework.web.server.adapter.DefaultServerWebExchange;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.gateway.handler.predicate.BetweenRequestPredicateFactory.DATETIME1_KEY;
@@ -121,7 +120,7 @@ public class BetweenRequestPredicateFactoryTests {
 	}
 
 	static ServerRequest getRequest() {
-		final MockServerHttpRequest request = MockServerHttpRequest.get("http://example.com").build();
-		return new ExchangeServerRequest(new DefaultServerWebExchange(request, new MockServerHttpResponse()));
+		MockServerHttpRequest request = MockServerHttpRequest.get("http://example.com").build();
+		return new ExchangeServerRequest(new MockServerWebExchange(request));
 	}
 }
