@@ -21,9 +21,10 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Predicate;
 
 import org.springframework.cloud.gateway.filter.factory.WebFilterFactories;
-import org.springframework.web.reactive.function.server.RequestPredicate;
+import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 
 import reactor.core.publisher.Flux;
@@ -94,13 +95,16 @@ public class Routes {
 			this.locatorBuilder = locatorBuilder;
 		}
 
-		/* TODO: has and, or & negate of RequestPredicate with terminal filters()?
-		public RequestPredicateBuilder host(String pattern) {
-			RequestPredicate requestPredicate = GatewayRequestPredicates.host(pattern);
+		/* TODO: has and, or & negate of Predicate with terminal andFilters()?
+		public RoutePredicateBuilder predicate() {
+		}
+		// this goes in new class
+		public RoutePredicateBuilder host(String pattern) {
+			Predicate<ServerWebExchange> predicate = RoutePredicates.host(pattern);
 		}*/
 
-		public WebFilterSpec predicate(RequestPredicate predicate) {
-			this.routeBuilder.requestPredicate(predicate);
+		public WebFilterSpec predicate(Predicate<ServerWebExchange> predicate) {
+			this.routeBuilder.predicate(predicate);
 			return webFilterBuilder();
 		}
 
@@ -138,6 +142,7 @@ public class Routes {
 			return add(WebFilterFactories.addResponseHeader(headerName, headerValue));
 		}
 
+		// TODO: build()?
 		public LocatorBuilder and() {
 			Route route = this.builder.build();
 			this.locatorBuilder.add(route);

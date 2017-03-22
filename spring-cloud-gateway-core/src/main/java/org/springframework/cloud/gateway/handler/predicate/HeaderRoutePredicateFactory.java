@@ -17,38 +17,39 @@
 
 package org.springframework.cloud.gateway.handler.predicate;
 
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
+import java.util.function.Predicate;
 
 import org.springframework.tuple.Tuple;
-import org.springframework.util.AntPathMatcher;
-import org.springframework.util.PathMatcher;
-import org.springframework.web.reactive.function.server.RequestPredicate;
-import org.springframework.web.reactive.function.server.RequestPredicates;
+import org.springframework.web.server.ServerWebExchange;
 
 /**
  * @author Spencer Gibb
  */
-public class HostRequestPredicateFactory implements RequestPredicateFactory {
+public class HeaderRoutePredicateFactory implements RoutePredicateFactory {
 
-	private PathMatcher pathMatcher = new AntPathMatcher(".");
-
-	public void setPathMatcher(PathMatcher pathMatcher) {
-		this.pathMatcher = pathMatcher;
-	}
+	public static final String HEADER_KEY = "header";
+	public static final String REGEXP_KEY = "regexp";
 
 	@Override
 	public List<String> argNames() {
-		return Collections.singletonList(PATTERN_KEY);
+		return Arrays.asList(HEADER_KEY, REGEXP_KEY);
 	}
 
 	@Override
-	public RequestPredicate apply(Tuple args) {
-		String pattern = args.getString(PATTERN_KEY);
+	public Predicate<ServerWebExchange> apply(Tuple args) {
+		String header = args.getString(HEADER_KEY);
+		String regexp = args.getString(REGEXP_KEY);
 
-		return RequestPredicates.headers(headers -> {
-			String host = headers.asHttpHeaders().getFirst("Host");
-			return this.pathMatcher.match(pattern, host);
-		});
+		return exchange -> {
+			List<String> values = exchange.getRequest().getHeaders().get(header);
+			for (String value : values) {
+				if (value.matches(regexp)) {
+					return true;
+				}
+			}
+			return false;
+		};
 	}
 }

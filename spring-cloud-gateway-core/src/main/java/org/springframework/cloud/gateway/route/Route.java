@@ -23,9 +23,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Predicate;
 
 import org.springframework.util.Assert;
-import org.springframework.web.reactive.function.server.RequestPredicate;
+import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 
 /**
@@ -37,7 +38,7 @@ public class Route {
 
 	private final URI uri;
 
-	private final RequestPredicate requestPredicate;
+	private final Predicate<ServerWebExchange> predicate;
 
 	private final List<WebFilter> webFilters;
 
@@ -51,10 +52,10 @@ public class Route {
 				.uri(routeDefinition.getUri());
 	}
 
-	public Route(String id, URI uri, RequestPredicate requestPredicate, List<WebFilter> webFilters) {
+	public Route(String id, URI uri, Predicate<ServerWebExchange> predicate, List<WebFilter> webFilters) {
 		this.id = id;
 		this.uri = uri;
-		this.requestPredicate = requestPredicate;
+		this.predicate = predicate;
 		this.webFilters = webFilters;
 	}
 
@@ -63,7 +64,7 @@ public class Route {
 
 		private URI uri;
 
-		private RequestPredicate requestPredicate;
+		private Predicate<ServerWebExchange> predicate;
 
 		private List<WebFilter> webFilters = new ArrayList<>();
 
@@ -84,8 +85,8 @@ public class Route {
 			return this;
 		}
 
-		public Builder requestPredicate(RequestPredicate requestPredicate) {
-			this.requestPredicate = requestPredicate;
+		public Builder predicate(Predicate<ServerWebExchange> predicate) {
+			this.predicate = predicate;
 			return this;
 		}
 
@@ -107,9 +108,9 @@ public class Route {
 		public Route build() {
 			Assert.notNull(this.id, "id can not be null");
 			Assert.notNull(this.uri, "uri can not be null");
-			//TODO: Assert.notNull(this.requestPredicate, "requestPredicates can not be null");
+			//TODO: Assert.notNull(this.predicate, "predicate can not be null");
 
-			return new Route(this.id, this.uri, this.requestPredicate, this.webFilters);
+			return new Route(this.id, this.uri, this.predicate, this.webFilters);
 		}
 	}
 
@@ -121,8 +122,8 @@ public class Route {
 		return this.uri;
 	}
 
-	public RequestPredicate getRequestPredicate() {
-		return this.requestPredicate;
+	public Predicate<ServerWebExchange> getPredicate() {
+		return this.predicate;
 	}
 
 	public List<WebFilter> getWebFilters() {
@@ -136,13 +137,13 @@ public class Route {
 		Route route = (Route) o;
 		return Objects.equals(id, route.id) &&
 				Objects.equals(uri, route.uri) &&
-				Objects.equals(requestPredicate, route.requestPredicate) &&
+				Objects.equals(predicate, route.predicate) &&
 				Objects.equals(webFilters, route.webFilters);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(id, uri, requestPredicate, webFilters);
+		return Objects.hash(id, uri, predicate, webFilters);
 	}
 
 	@Override
@@ -150,7 +151,7 @@ public class Route {
 		final StringBuffer sb = new StringBuffer("Route{");
 		sb.append("id='").append(id).append('\'');
 		sb.append(", uri=").append(uri);
-		sb.append(", requestPredicates=").append(requestPredicate);
+		sb.append(", predicate=").append(predicate);
 		sb.append(", webFilters=").append(webFilters);
 		sb.append('}');
 		return sb.toString();

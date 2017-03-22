@@ -17,34 +17,40 @@
 
 package org.springframework.cloud.gateway.handler.predicate;
 
-import java.time.ZonedDateTime;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
+import java.util.function.Predicate;
 
+import org.springframework.http.HttpCookie;
 import org.springframework.tuple.Tuple;
-import org.springframework.web.reactive.function.server.RequestPredicate;
-
-import static org.springframework.cloud.gateway.handler.predicate.BetweenRequestPredicateFactory.parseZonedDateTime;
+import org.springframework.web.server.ServerWebExchange;
 
 /**
  * @author Spencer Gibb
  */
-public class AfterRequestPredicateFactory implements RequestPredicateFactory {
+public class CookieRoutePredicateFactory implements RoutePredicateFactory {
 
-	public static final String DATETIME_KEY = "datetime";
+	public static final String NAME_KEY = "name";
+	public static final String REGEXP_KEY = "regexp";
 
 	@Override
 	public List<String> argNames() {
-		return Collections.singletonList(DATETIME_KEY);
+		return Arrays.asList(NAME_KEY, REGEXP_KEY);
 	}
 
 	@Override
-	public RequestPredicate apply(Tuple args) {
-		final ZonedDateTime dateTime = parseZonedDateTime(args.getString(DATETIME_KEY));
+	public Predicate<ServerWebExchange> apply(Tuple args) {
+		String name = args.getString(NAME_KEY);
+		String regexp = args.getString(REGEXP_KEY);
 
-		return request -> {
-			final ZonedDateTime now = ZonedDateTime.now();
-			return now.isAfter(dateTime);
+		return exchange -> {
+			List<HttpCookie> cookies = exchange.getRequest().getCookies().get(name);
+			for (HttpCookie cookie : cookies) {
+				if (cookie.getValue().matches(regexp)) {
+					return true;
+				}
+			}
+			return false;
 		};
 	}
 }

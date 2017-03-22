@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
@@ -31,17 +32,13 @@ import org.springframework.cloud.gateway.filter.FilterDefinition;
 import org.springframework.cloud.gateway.filter.OrderedWebFilter;
 import org.springframework.cloud.gateway.filter.factory.WebFilterFactory;
 import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
-import org.springframework.cloud.gateway.handler.predicate.RequestPredicateFactory;
-import org.springframework.cloud.gateway.route.Route;
-import org.springframework.cloud.gateway.route.RouteDefinition;
-import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
-import org.springframework.cloud.gateway.route.RouteLocator;
+import org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory;
 import org.springframework.cloud.gateway.support.ArgumentHints;
 import org.springframework.cloud.gateway.support.NameUtils;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.tuple.Tuple;
 import org.springframework.tuple.TupleBuilder;
-import org.springframework.web.reactive.function.server.RequestPredicate;
+import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 
 import reactor.core.publisher.Flux;
@@ -54,31 +51,31 @@ public class RouteDefinitionRouteLocator implements RouteLocator {
 	protected final Log logger = LogFactory.getLog(getClass());
 
 	private final RouteDefinitionLocator routeDefinitionLocator;
-	private final Map<String, RequestPredicateFactory> requestPredicates = new LinkedHashMap<>();
+	private final Map<String, RoutePredicateFactory> predicates = new LinkedHashMap<>();
 	private final Map<String, WebFilterFactory> webFilterFactories = new HashMap<>();
 	private final GatewayProperties gatewayProperties;
 
 	public RouteDefinitionRouteLocator(RouteDefinitionLocator routeDefinitionLocator,
-									   List<RequestPredicateFactory> requestPredicates,
+									   List<RoutePredicateFactory> predicates,
 									   List<WebFilterFactory> webFilterFactories,
 									   GatewayProperties gatewayProperties) {
 		this.routeDefinitionLocator = routeDefinitionLocator;
-		initFactories(requestPredicates);
+		initFactories(predicates);
 		webFilterFactories.forEach(factory -> this.webFilterFactories.put(factory.name(), factory));
 		this.gatewayProperties = gatewayProperties;
 	}
 
-	private void initFactories(List<RequestPredicateFactory> requestPredicates) {
-		requestPredicates.forEach(factory -> {
+	private void initFactories(List<RoutePredicateFactory> predicates) {
+		predicates.forEach(factory -> {
 			String key = factory.name();
-			if (this.requestPredicates.containsKey(key)) {
-				this.logger.warn("A RequestPredicateFactory named "+ key
-						+ " already exists, class: " + this.requestPredicates.get(key)
+			if (this.predicates.containsKey(key)) {
+				this.logger.warn("A RoutePredicateFactory named "+ key
+						+ " already exists, class: " + this.predicates.get(key)
 						+ ". It will be overwritten.");
 			}
-			this.requestPredicates.put(key, factory);
+			this.predicates.put(key, factory);
 			if (logger.isInfoEnabled()) {
-				logger.info("Loaded RequestPredicateFactory [" + key + "]");
+				logger.info("Loaded RoutePredicateFactory [" + key + "]");
 			}
 		});
 	}
@@ -102,18 +99,15 @@ public class RouteDefinitionRouteLocator implements RouteLocator {
 			}*/
 	}
 
-
 	private Route convertToRoute(RouteDefinition routeDefinition) {
-		RequestPredicate requestPredicate = combinePredicates(routeDefinition);
+		Predicate<ServerWebExchange> predicate = combinePredicates(routeDefinition);
 		List<WebFilter> webFilters = getFilters(routeDefinition);
 
 		return Route.builder(routeDefinition)
-				.requestPredicate(requestPredicate)
+				.predicate(predicate)
 				.webFilters(webFilters)
 				.build();
 	}
-
-
 
 	private List<WebFilter> loadWebFilters(String id, List<FilterDefinition> filterDefinitions) {
 		List<WebFilter> filters = filterDefinitions.stream()
@@ -157,7 +151,7 @@ public class RouteDefinitionRouteLocator implements RouteLocator {
 		for (Map.Entry<String, String> entry : args.entrySet()) {
 			String key = entry.getKey();
 
-			// RequestPredicateFactory has name hints and this has a fake key name
+			// RoutePredicateFactory has name hints and this has a fake key name
 			// replace with the matching key hint
 			if (key.startsWith(NameUtils.GENERATED_NAME_PREFIX) && !argNames.isEmpty()
 					&& entryIdx < args.size()) {
@@ -197,22 +191,22 @@ public class RouteDefinitionRouteLocator implements RouteLocator {
 		return filters;
 	}
 
-	private RequestPredicate combinePredicates(RouteDefinition routeDefinition) {
+	private Predicate<ServerWebExchange> combinePredicates(RouteDefinition routeDefinition) {
 		List<PredicateDefinition> predicates = routeDefinition.getPredicates();
-		RequestPredicate predicate = lookup(routeDefinition, predicates.get(0));
+		Predicate<ServerWebExchange> predicate = lookup(routeDefinition, predicates.get(0));
 
 		for (PredicateDefinition andPredicate : predicates.subList(1, predicates.size())) {
-			RequestPredicate found = lookup(routeDefinition, andPredicate);
+			Predicate<ServerWebExchange> found = lookup(routeDefinition, andPredicate);
 			predicate = predicate.and(found);
 		}
 
 		return predicate;
 	}
 
-	private RequestPredicate lookup(RouteDefinition routeDefinition, PredicateDefinition predicate) {
-		RequestPredicateFactory found = this.requestPredicates.get(predicate.getName());
+	private Predicate<ServerWebExchange> lookup(RouteDefinition routeDefinition, PredicateDefinition predicate) {
+		RoutePredicateFactory found = this.predicates.get(predicate.getName());
 		if (found == null) {
-			throw new IllegalArgumentException("Unable to find RequestPredicateFactory with name " + predicate.getName());
+			throw new IllegalArgumentException("Unable to find RoutePredicateFactory with name " + predicate.getName());
 		}
 		Map<String, String> args = predicate.getArgs();
 		if (logger.isDebugEnabled()) {

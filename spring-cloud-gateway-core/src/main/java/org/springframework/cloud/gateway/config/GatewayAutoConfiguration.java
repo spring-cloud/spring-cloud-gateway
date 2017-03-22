@@ -28,6 +28,12 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.web.reactive.HttpHandlerAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.gateway.actuate.GatewayEndpoint;
+import org.springframework.cloud.gateway.handler.predicate.BetweenRoutePredicateFactory;
+import org.springframework.cloud.gateway.handler.predicate.HostRoutePredicateFactory;
+import org.springframework.cloud.gateway.handler.predicate.MethodRoutePredicateFactory;
+import org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFactory;
+import org.springframework.cloud.gateway.handler.predicate.RemoteAddrRoutePredicateFactory;
+import org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory;
 import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
 import org.springframework.cloud.gateway.route.RouteDefinitionRepository;
 import org.springframework.cloud.gateway.route.RouteDefinitionWriter;
@@ -54,18 +60,12 @@ import org.springframework.cloud.gateway.filter.factory.SetStatusWebFilterFactor
 import org.springframework.cloud.gateway.filter.factory.WebFilterFactory;
 import org.springframework.cloud.gateway.handler.FilteringWebHandler;
 import org.springframework.cloud.gateway.handler.NettyRoutingWebHandler;
-import org.springframework.cloud.gateway.handler.RequestPredicateHandlerMapping;
-import org.springframework.cloud.gateway.handler.predicate.AfterRequestPredicateFactory;
-import org.springframework.cloud.gateway.handler.predicate.BeforeRequestPredicateFactory;
-import org.springframework.cloud.gateway.handler.predicate.BetweenRequestPredicateFactory;
-import org.springframework.cloud.gateway.handler.predicate.CookieRequestPredicateFactory;
-import org.springframework.cloud.gateway.handler.predicate.HeaderRequestPredicateFactory;
-import org.springframework.cloud.gateway.handler.predicate.HostRequestPredicateFactory;
-import org.springframework.cloud.gateway.handler.predicate.MethodRequestPredicateFactory;
-import org.springframework.cloud.gateway.handler.predicate.PathRequestPredicateFactory;
-import org.springframework.cloud.gateway.handler.predicate.QueryRequestPredicateFactory;
-import org.springframework.cloud.gateway.handler.predicate.RemoteAddrRequestPredicateFactory;
-import org.springframework.cloud.gateway.handler.predicate.RequestPredicateFactory;
+import org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping;
+import org.springframework.cloud.gateway.handler.predicate.AfterRoutePredicateFactory;
+import org.springframework.cloud.gateway.handler.predicate.BeforeRoutePredicateFactory;
+import org.springframework.cloud.gateway.handler.predicate.CookieRoutePredicateFactory;
+import org.springframework.cloud.gateway.handler.predicate.HeaderRoutePredicateFactory;
+import org.springframework.cloud.gateway.handler.predicate.QueryRoutePredicateFactory;
 import org.springframework.cloud.gateway.route.CachingRouteLocator;
 import org.springframework.cloud.gateway.route.CompositeRouteDefinitionLocator;
 import org.springframework.cloud.gateway.route.CompositeRouteLocator;
@@ -135,7 +135,7 @@ public class GatewayAutoConfiguration {
 	@Bean
 	public RouteLocator routeDefinitionRouteLocator(GatewayProperties properties,
 												   List<WebFilterFactory> webFilterFactories,
-												   List<RequestPredicateFactory> predicates,
+												   List<RoutePredicateFactory> predicates,
 												   RouteDefinitionLocator routeDefinitionLocator) {
 		return new CachingRouteLocator(new RouteDefinitionRouteLocator(routeDefinitionLocator, predicates, webFilterFactories, properties));
 	}
@@ -153,9 +153,9 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	public RequestPredicateHandlerMapping requestPredicateHandlerMapping(FilteringWebHandler webHandler,
+	public RoutePredicateHandlerMapping routePredicateHandlerMapping(FilteringWebHandler webHandler,
 																	   RouteLocator routeLocator) {
-		return new RequestPredicateHandlerMapping(webHandler, routeLocator);
+		return new RoutePredicateHandlerMapping(webHandler, routeLocator);
 	}
 
 	// ConfigurationProperty beans
@@ -185,53 +185,53 @@ public class GatewayAutoConfiguration {
 	// Request Predicate beans
 
 	@Bean
-	public AfterRequestPredicateFactory afterRequestPredicateFactory() {
-		return new AfterRequestPredicateFactory();
+	public AfterRoutePredicateFactory afterRoutePredicateFactory() {
+		return new AfterRoutePredicateFactory();
 	}
 
 	@Bean
-	public BeforeRequestPredicateFactory beforeRequestPredicateFactory() {
-		return new BeforeRequestPredicateFactory();
+	public BeforeRoutePredicateFactory beforeRoutePredicateFactory() {
+		return new BeforeRoutePredicateFactory();
 	}
 
 	@Bean
-	public BetweenRequestPredicateFactory betweenRequestPredicateFactory() {
-		return new BetweenRequestPredicateFactory();
+	public BetweenRoutePredicateFactory betweenRoutePredicateFactory() {
+		return new BetweenRoutePredicateFactory();
 	}
 
 	@Bean
-	public CookieRequestPredicateFactory cookieRequestPredicateFactory() {
-		return new CookieRequestPredicateFactory();
+	public CookieRoutePredicateFactory cookieRoutePredicateFactory() {
+		return new CookieRoutePredicateFactory();
 	}
 
 	@Bean
-	public HeaderRequestPredicateFactory headerRequestPredicateFactory() {
-		return new HeaderRequestPredicateFactory();
+	public HeaderRoutePredicateFactory headerRoutePredicateFactory() {
+		return new HeaderRoutePredicateFactory();
 	}
 
 	@Bean
-	public HostRequestPredicateFactory hostRequestPredicateFactory() {
-		return new HostRequestPredicateFactory();
+	public HostRoutePredicateFactory hostRoutePredicateFactory() {
+		return new HostRoutePredicateFactory();
 	}
 
 	@Bean
-	public MethodRequestPredicateFactory methodRequestPredicateFactory() {
-		return new MethodRequestPredicateFactory();
+	public MethodRoutePredicateFactory methodRoutePredicateFactory() {
+		return new MethodRoutePredicateFactory();
 	}
 
 	@Bean
-	public PathRequestPredicateFactory pathRequestPredicateFactory() {
-		return new PathRequestPredicateFactory();
+	public PathRoutePredicateFactory pathRoutePredicateFactory() {
+		return new PathRoutePredicateFactory();
 	}
 
 	@Bean
-	public QueryRequestPredicateFactory queryRequestPredicateFactory() {
-		return new QueryRequestPredicateFactory();
+	public QueryRoutePredicateFactory queryRoutePredicateFactory() {
+		return new QueryRoutePredicateFactory();
 	}
 
 	@Bean
-	public RemoteAddrRequestPredicateFactory remoteAddrRequestPredicateFactory() {
-		return new RemoteAddrRequestPredicateFactory();
+	public RemoteAddrRoutePredicateFactory remoteAddrRoutePredicateFactory() {
+		return new RemoteAddrRoutePredicateFactory();
 	}
 
 	// Filter Factory beans

@@ -24,7 +24,6 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.http.server.reactive.MockServerWebExchange;
-import org.springframework.web.reactive.function.server.RouterFunctions;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
@@ -32,6 +31,7 @@ import org.springframework.web.server.WebFilterChain;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.cloud.gateway.filter.factory.SetPathWebFilterFactory.TEMPLATE_KEY;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.URI_TEMPLATE_VARIABLES_ATTRIBUTE;
 import static org.springframework.tuple.TupleBuilder.tuple;
 
 import reactor.core.publisher.Mono;
@@ -62,7 +62,7 @@ public class SetPathWebFilterFactoryTests {
 				.build();
 
 		ServerWebExchange exchange = new MockServerWebExchange(request);
-		exchange.getAttributes().put(RouterFunctions.URI_TEMPLATE_VARIABLES_ATTRIBUTE, variables);
+		exchange.getAttributes().put(URI_TEMPLATE_VARIABLES_ATTRIBUTE, variables);
 
 		WebFilterChain filterChain = mock(WebFilterChain.class);
 

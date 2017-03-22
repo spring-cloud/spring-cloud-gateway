@@ -21,20 +21,19 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
 import org.junit.Test;
-import org.springframework.cloud.gateway.handler.support.ExchangeServerRequest;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.http.server.reactive.MockServerWebExchange;
-import org.springframework.web.reactive.function.server.ServerRequest;
+import org.springframework.web.server.ServerWebExchange;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.cloud.gateway.handler.predicate.BetweenRequestPredicateFactory.DATETIME1_KEY;
-import static org.springframework.cloud.gateway.handler.predicate.BetweenRequestPredicateFactory.DATETIME2_KEY;
+import static org.springframework.cloud.gateway.handler.predicate.BetweenRoutePredicateFactory.DATETIME1_KEY;
+import static org.springframework.cloud.gateway.handler.predicate.BetweenRoutePredicateFactory.DATETIME2_KEY;
 import static org.springframework.tuple.TupleBuilder.tuple;
 
 /**
  * @author Spencer Gibb
  */
-public class BetweenRequestPredicateFactoryTests {
+public class BetweenRoutePredicateFactoryTests {
 
 	@Test
 	public void beforeStringWorks() {
@@ -97,8 +96,8 @@ public class BetweenRequestPredicateFactoryTests {
 	}
 
 	boolean runPredicate(String dateString1, String dateString2) {
-		return new BetweenRequestPredicateFactory().apply(tuple()
-				.of(DATETIME1_KEY, dateString1, DATETIME2_KEY, dateString2)).test(getRequest());
+		return new BetweenRoutePredicateFactory().apply(tuple()
+				.of(DATETIME1_KEY, dateString1, DATETIME2_KEY, dateString2)).test(getExchange());
 	}
 
 	static String minusHoursMillis(int hours) {
@@ -119,8 +118,8 @@ public class BetweenRequestPredicateFactoryTests {
 		return ZonedDateTime.now().plusHours(hours).format(DateTimeFormatter.ISO_ZONED_DATE_TIME);
 	}
 
-	static ServerRequest getRequest() {
+	static ServerWebExchange getExchange() {
 		MockServerHttpRequest request = MockServerHttpRequest.get("http://example.com").build();
-		return new ExchangeServerRequest(new MockServerWebExchange(request));
+		return new MockServerWebExchange(request);
 	}
 }

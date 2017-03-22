@@ -26,7 +26,11 @@ import org.springframework.web.server.ServerWebExchange;
  * @author Spencer Gibb
  */
 public class ServerWebExchangeUtils {
+
 	private static final Log logger = LogFactory.getLog(ServerWebExchangeUtils.class);
+
+	public static final String URI_TEMPLATE_VARIABLES_ATTRIBUTE =
+			ServerWebExchangeUtils.class.getName() + ".uriTemplateVariables";
 
 	public static final String CLIENT_RESPONSE_ATTR = "webHandlerClientResponse";
 	public static final String GATEWAY_ROUTE_ATTR = "gatewayRoute";

@@ -22,14 +22,14 @@ import java.net.URI;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
 import org.springframework.cloud.gateway.filter.factory.RewritePathWebFilterFactory;
-import org.springframework.cloud.gateway.handler.predicate.PathRequestPredicateFactory;
+import org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFactory;
 import org.springframework.cloud.gateway.filter.FilterDefinition;
 import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
 import org.springframework.cloud.gateway.route.RouteDefinition;
 
 import static org.springframework.cloud.gateway.filter.factory.RewritePathWebFilterFactory.REGEXP_KEY;
 import static org.springframework.cloud.gateway.filter.factory.RewritePathWebFilterFactory.REPLACEMENT_KEY;
-import static org.springframework.cloud.gateway.handler.predicate.PathRequestPredicateFactory.PATTERN_KEY;
+import static org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFactory.PATTERN_KEY;
 import static org.springframework.cloud.gateway.support.NameUtils.normalizeFilterName;
 import static org.springframework.cloud.gateway.support.NameUtils.normalizePredicateName;
 
@@ -59,7 +59,7 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 
 					// add a predicate that matches the url at /serviceId*
 					PredicateDefinition predicate = new PredicateDefinition();
-					predicate.setName(normalizePredicateName(PathRequestPredicateFactory.class));
+					predicate.setName(normalizePredicateName(PathRoutePredicateFactory.class));
 					predicate.addArg(PATTERN_KEY, "/" + serviceId + "*");
 					routeDefinition.getPredicates().add(predicate);
 

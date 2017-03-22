@@ -15,26 +15,23 @@
  *
  */
 
-package org.springframework.cloud.gateway.support;
+package org.springframework.cloud.gateway.handler.support;
 
-import org.springframework.cloud.gateway.filter.factory.WebFilterFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory;
 
 /**
  * @author Spencer Gibb
  */
-public class NameUtils {
-	public static final String GENERATED_NAME_PREFIX = "_genkey_";
+public class RoutePredicateFactoryUtils {
+	private static final Log logger = LogFactory.getLog(RoutePredicateFactory.class);
 
-	public static String generateName(int i) {
-		return GENERATED_NAME_PREFIX + i;
-	}
-
-	public static String normalizePredicateName(Class<? extends RoutePredicateFactory> clazz) {
-		return clazz.getSimpleName().replace(RoutePredicateFactory.class.getSimpleName(), "");
-	}
-
-	public static String normalizeFilterName(Class<? extends WebFilterFactory> clazz) {
-		return clazz.getSimpleName().replace(WebFilterFactory.class.getSimpleName(), "");
+	public static void traceMatch(String prefix, Object desired, Object actual, boolean match) {
+		if (logger.isTraceEnabled()) {
+			String message = String.format("%s \"%s\" %s against value \"%s\"",
+					prefix, desired, match ? "matches" : "does not match", actual);
+			logger.trace(message);
+		}
 	}
 }

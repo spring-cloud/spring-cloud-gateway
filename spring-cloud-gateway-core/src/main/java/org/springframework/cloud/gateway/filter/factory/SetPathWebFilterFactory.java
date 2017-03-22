@@ -27,8 +27,8 @@ import org.springframework.tuple.Tuple;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.util.UriTemplate;
 
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.URI_TEMPLATE_VARIABLES_ATTRIBUTE;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.getAttribute;
-import static org.springframework.web.reactive.function.server.RouterFunctions.URI_TEMPLATE_VARIABLES_ATTRIBUTE;
 
 /**
  * @author Spencer Gibb

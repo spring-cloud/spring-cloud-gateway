@@ -20,28 +20,29 @@ package org.springframework.cloud.gateway.handler.predicate;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.util.function.Predicate;
 
 import org.springframework.tuple.Tuple;
 import org.springframework.util.Assert;
-import org.springframework.web.reactive.function.server.RequestPredicate;
+import org.springframework.web.server.ServerWebExchange;
 
 /**
  * @author Spencer Gibb
  */
-public class BetweenRequestPredicateFactory implements RequestPredicateFactory {
+public class BetweenRoutePredicateFactory implements RoutePredicateFactory {
 
 	public static final String DATETIME1_KEY = "datetime1";
 	public static final String DATETIME2_KEY = "datetime2";
 
 	@Override
-	public RequestPredicate apply(Tuple args) {
+	public Predicate<ServerWebExchange> apply(Tuple args) {
 		//TODO: is ZonedDateTime the right thing to use?
 		final ZonedDateTime dateTime1 = parseZonedDateTime(args.getString(DATETIME1_KEY));
 		final ZonedDateTime dateTime2 = parseZonedDateTime(args.getString(DATETIME2_KEY));
 		Assert.isTrue(dateTime1.isBefore(dateTime2), args.getString(DATETIME1_KEY) +
 				" must be before " + args.getString(DATETIME2_KEY));
 
-		return request -> {
+		return exchange -> {
 			final ZonedDateTime now = ZonedDateTime.now();
 			return now.isAfter(dateTime1) && now.isBefore(dateTime2);
 		};

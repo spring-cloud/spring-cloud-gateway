@@ -19,17 +19,15 @@ package org.springframework.cloud.gateway.handler.predicate;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
+import java.util.function.Predicate;
 
 import org.springframework.tuple.Tuple;
-import org.springframework.web.reactive.function.server.RequestPredicate;
-import org.springframework.web.reactive.function.server.RequestPredicates;
 import org.springframework.web.server.ServerWebExchange;
 
 /**
  * @author Spencer Gibb
  */
-public class QueryRequestPredicateFactory implements RequestPredicateFactory {
+public class QueryRoutePredicateFactory implements RoutePredicateFactory {
 
 	public static final String PARAM_KEY = "param";
 	public static final String REGEXP_KEY = "regexp";
@@ -45,20 +43,25 @@ public class QueryRequestPredicateFactory implements RequestPredicateFactory {
 	}
 
 	@Override
-	public RequestPredicate apply(Tuple args) {
+	public Predicate<ServerWebExchange> apply(Tuple args) {
 		validateMin(1, args);
 		String param = args.getString(PARAM_KEY);
 
-		if (!args.hasFieldName(REGEXP_KEY)) {
-			return req -> {
-				//TODO: ServerRequest support for query params with no value
-				Optional<ServerWebExchange> exchange = req.attribute("exchange");
-				return exchange.get().getRequest().getQueryParams().containsKey(param);
-			};
-		}
+		return exchange -> {
+			if (!args.hasFieldName(REGEXP_KEY)) {
+				// check existence of header
+				return exchange.getRequest().getQueryParams().containsKey(param);
+			}
 
-		String regexp = args.getString(REGEXP_KEY);
+			String regexp = args.getString(REGEXP_KEY);
 
-		return RequestPredicates.queryParam(param, value -> value.matches(regexp));
+			List<String> values = exchange.getRequest().getQueryParams().get(param);
+			for (String value : values) {
+				if (value.matches(regexp)) {
+					return true;
+				}
+			}
+			return false;
+		};
 	}
 }

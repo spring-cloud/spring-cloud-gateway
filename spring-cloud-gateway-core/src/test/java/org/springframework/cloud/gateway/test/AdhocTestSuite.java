@@ -34,12 +34,12 @@ import org.springframework.cloud.gateway.filter.factory.SetPathWebFilterFactoryI
 import org.springframework.cloud.gateway.filter.factory.SetPathWebFilterFactoryTests;
 import org.springframework.cloud.gateway.filter.factory.SetResponseWebFilterFactoryTests;
 import org.springframework.cloud.gateway.filter.factory.SetStatusWebFilterFactoryTests;
-import org.springframework.cloud.gateway.handler.predicate.AfterRequestPredicateFactoryTests;
-import org.springframework.cloud.gateway.handler.predicate.BeforeRequestPredicateFactoryTests;
-import org.springframework.cloud.gateway.handler.predicate.BetweenRequestPredicateFactoryTests;
-import org.springframework.cloud.gateway.handler.predicate.HostRequestPredicateFactoryTests;
-import org.springframework.cloud.gateway.handler.predicate.MethodRequestPredicateFactoryTests;
-import org.springframework.cloud.gateway.handler.predicate.PathRequestPredicateFactoryTests;
+import org.springframework.cloud.gateway.handler.predicate.AfterRoutePredicateFactoryTests;
+import org.springframework.cloud.gateway.handler.predicate.BeforeRoutePredicateFactoryTests;
+import org.springframework.cloud.gateway.handler.predicate.BetweenRoutePredicateFactoryTests;
+import org.springframework.cloud.gateway.handler.predicate.HostRoutePredicateFactoryTests;
+import org.springframework.cloud.gateway.handler.predicate.MethodRoutePredicateFactoryTests;
+import org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFactoryTests;
 
 /**
  * @author Spencer Gibb
@@ -62,13 +62,13 @@ import org.springframework.cloud.gateway.handler.predicate.PathRequestPredicateF
 		SetResponseWebFilterFactoryTests.class,
 		SetStatusWebFilterFactoryTests.class,
 		RewritePathWebFilterFactoryTests.class,
-		// RequestPredicateFactory tests
-		AfterRequestPredicateFactoryTests.class,
-		BeforeRequestPredicateFactoryTests.class,
-		BetweenRequestPredicateFactoryTests.class,
-		HostRequestPredicateFactoryTests.class,
-		MethodRequestPredicateFactoryTests.class,
-		PathRequestPredicateFactoryTests.class,
+		// RoutePredicateFactory tests
+		AfterRoutePredicateFactoryTests.class,
+		BeforeRoutePredicateFactoryTests.class,
+		BetweenRoutePredicateFactoryTests.class,
+		HostRoutePredicateFactoryTests.class,
+		MethodRoutePredicateFactoryTests.class,
+		PathRoutePredicateFactoryTests.class,
 })
 public class AdhocTestSuite {
 }

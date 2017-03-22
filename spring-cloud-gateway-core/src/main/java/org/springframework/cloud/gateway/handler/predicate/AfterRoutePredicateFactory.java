@@ -17,29 +17,35 @@
 
 package org.springframework.cloud.gateway.handler.predicate;
 
-import org.springframework.http.HttpMethod;
-import org.springframework.tuple.Tuple;
-import org.springframework.web.reactive.function.server.RequestPredicate;
-import org.springframework.web.reactive.function.server.RequestPredicates;
-
-import java.util.Arrays;
+import java.time.ZonedDateTime;
+import java.util.Collections;
 import java.util.List;
+import java.util.function.Predicate;
+
+import org.springframework.tuple.Tuple;
+import org.springframework.web.server.ServerWebExchange;
+
+import static org.springframework.cloud.gateway.handler.predicate.BetweenRoutePredicateFactory.parseZonedDateTime;
 
 /**
  * @author Spencer Gibb
  */
-public class MethodRequestPredicateFactory implements RequestPredicateFactory {
+public class AfterRoutePredicateFactory implements RoutePredicateFactory {
 
-	public static final String METHOD_KEY = "method";
+	public static final String DATETIME_KEY = "datetime";
 
 	@Override
 	public List<String> argNames() {
-		return Arrays.asList(METHOD_KEY);
+		return Collections.singletonList(DATETIME_KEY);
 	}
 
 	@Override
-	public RequestPredicate apply(Tuple args) {
-		String method = args.getString(METHOD_KEY);
-		return RequestPredicates.method(HttpMethod.resolve(method));
+	public Predicate<ServerWebExchange> apply(Tuple args) {
+		final ZonedDateTime dateTime = parseZonedDateTime(args.getString(DATETIME_KEY));
+
+		return exchange -> {
+			final ZonedDateTime now = ZonedDateTime.now();
+			return now.isAfter(dateTime);
+		};
 	}
 }

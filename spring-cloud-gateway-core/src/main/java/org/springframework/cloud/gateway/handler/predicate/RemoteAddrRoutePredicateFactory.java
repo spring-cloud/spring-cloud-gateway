@@ -21,23 +21,23 @@ import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.cloud.gateway.support.SubnetUtils;
 import org.springframework.tuple.Tuple;
-import org.springframework.web.reactive.function.server.RequestPredicate;
 import org.springframework.web.server.ServerWebExchange;
 
 /**
  * @author Spencer Gibb
  */
-public class RemoteAddrRequestPredicateFactory implements RequestPredicateFactory {
+public class RemoteAddrRoutePredicateFactory implements RoutePredicateFactory {
 
-	private static final Log log = LogFactory.getLog(RemoteAddrRequestPredicateFactory.class);
+	private static final Log log = LogFactory.getLog(RemoteAddrRoutePredicateFactory.class);
 
 	@Override
-	public RequestPredicate apply(Tuple args) {
+	public Predicate<ServerWebExchange> apply(Tuple args) {
 		validate(1, args);
 
 		List<SubnetUtils> sources = new ArrayList<>();
@@ -47,12 +47,11 @@ public class RemoteAddrRequestPredicateFactory implements RequestPredicateFactor
 			}
 		}
 
-		return request -> {
-			Optional<ServerWebExchange> exchange = request.attribute("exchange");
-			Optional<InetSocketAddress> remoteAddress = exchange.get().getRequest().getRemoteAddress();
+		return exchange -> {
+			Optional<InetSocketAddress> remoteAddress = exchange.getRequest().getRemoteAddress();
 			if (remoteAddress.isPresent()) {
 				String hostAddress = remoteAddress.get().getAddress().getHostAddress();
-				String host = request.uri().getHost();
+				String host = exchange.getRequest().getURI().getHost();
 
 				if (!hostAddress.equals(host)) {
 					log.warn("Remote addresses didn't match " + hostAddress + " != " + host);

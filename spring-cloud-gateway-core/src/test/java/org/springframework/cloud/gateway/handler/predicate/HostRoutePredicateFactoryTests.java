@@ -22,7 +22,7 @@ import org.junit.runner.RunWith;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.gateway.handler.RequestPredicateHandlerMapping;
+import org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
@@ -41,12 +41,13 @@ import reactor.test.StepVerifier;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
-public class PathRequestPredicateFactoryTests extends BaseWebClientTests {
+public class HostRoutePredicateFactoryTests extends BaseWebClientTests {
 
 	@Test
-	public void pathRouteWorks() {
+	public void hostRouteWorks() {
 		Mono<ClientResponse> result = webClient.get()
 				.uri("/get")
+				.header("Host", "www.example.org")
 				.exchange();
 
 		StepVerifier.create(result)
@@ -55,9 +56,9 @@ public class PathRequestPredicateFactoryTests extends BaseWebClientTests {
 							assertStatus(response, HttpStatus.OK);
 							HttpHeaders httpHeaders = response.headers().asHttpHeaders();
 							assertThat(httpHeaders.getFirst(HANDLER_MAPPER_HEADER))
-									.isEqualTo(RequestPredicateHandlerMapping.class.getSimpleName());
+									.isEqualTo(RoutePredicateHandlerMapping.class.getSimpleName());
 							assertThat(httpHeaders.getFirst(ROUTE_ID_HEADER))
-									.isEqualTo("default_path_to_httpbin");
+									.isEqualTo("host_example_to_httpbin");
 						})
 				.expectComplete()
 				.verify(DURATION);

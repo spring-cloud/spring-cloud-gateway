@@ -17,39 +17,36 @@
 
 package org.springframework.cloud.gateway.handler.predicate;
 
-import java.util.Arrays;
+import java.time.ZonedDateTime;
+import java.util.Collections;
 import java.util.List;
+import java.util.function.Predicate;
 
 import org.springframework.tuple.Tuple;
-import org.springframework.web.reactive.function.server.RequestPredicate;
-import org.springframework.web.reactive.function.server.RequestPredicates;
+import org.springframework.web.server.ServerWebExchange;
+
+import static org.springframework.cloud.gateway.handler.predicate.BetweenRoutePredicateFactory.parseZonedDateTime;
 
 /**
  * @author Spencer Gibb
  */
-public class HeaderRequestPredicateFactory implements RequestPredicateFactory {
+public class BeforeRoutePredicateFactory implements RoutePredicateFactory {
 
-	public static final String HEADER_KEY = "header";
-	public static final String REGEXP_KEY = "regexp";
+	public static final String DATETIME_KEY = "datetime";
 
 	@Override
 	public List<String> argNames() {
-		return Arrays.asList(HEADER_KEY, REGEXP_KEY);
+		return Collections.singletonList(DATETIME_KEY);
 	}
 
 	@Override
-	public RequestPredicate apply(Tuple args) {
-		String header = args.getString(HEADER_KEY);
-		String regexp = args.getString(REGEXP_KEY);
+	public Predicate<ServerWebExchange> apply(Tuple args) {
+		final ZonedDateTime dateTime = parseZonedDateTime(args.getString(DATETIME_KEY));
 
-		return RequestPredicates.headers(headers -> {
-			List<String> values = headers.asHttpHeaders().get(header);
-			for (String value : values) {
-				if (value.matches(regexp)) {
-					return true;
-				}
-			}
-			return false;
-		});
+		return exchange -> {
+			final ZonedDateTime now = ZonedDateTime.now();
+			return now.isBefore(dateTime);
+		};
 	}
+
 }

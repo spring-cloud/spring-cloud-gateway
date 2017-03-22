@@ -20,35 +20,35 @@ package org.springframework.cloud.gateway.handler.predicate;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.cloud.gateway.handler.predicate.BeforeRequestPredicateFactory.DATETIME_KEY;
-import static org.springframework.cloud.gateway.handler.predicate.BetweenRequestPredicateFactoryTests.getRequest;
-import static org.springframework.cloud.gateway.handler.predicate.BetweenRequestPredicateFactoryTests.minusHours;
-import static org.springframework.cloud.gateway.handler.predicate.BetweenRequestPredicateFactoryTests.minusHoursMillis;
-import static org.springframework.cloud.gateway.handler.predicate.BetweenRequestPredicateFactoryTests.plusHours;
-import static org.springframework.cloud.gateway.handler.predicate.BetweenRequestPredicateFactoryTests.plusHoursMillis;
+import static org.springframework.cloud.gateway.handler.predicate.AfterRoutePredicateFactory.DATETIME_KEY;
+import static org.springframework.cloud.gateway.handler.predicate.BetweenRoutePredicateFactoryTests.getExchange;
+import static org.springframework.cloud.gateway.handler.predicate.BetweenRoutePredicateFactoryTests.minusHours;
+import static org.springframework.cloud.gateway.handler.predicate.BetweenRoutePredicateFactoryTests.minusHoursMillis;
+import static org.springframework.cloud.gateway.handler.predicate.BetweenRoutePredicateFactoryTests.plusHours;
+import static org.springframework.cloud.gateway.handler.predicate.BetweenRoutePredicateFactoryTests.plusHoursMillis;
 import static org.springframework.tuple.TupleBuilder.tuple;
 
 /**
  * @author Spencer Gibb
  */
-public class BeforeRequestPredicateFactoryTests {
+public class AfterRoutePredicateFactoryTests {
 
 	@Test
 	public void beforeStringWorks() {
 		String dateString = minusHours(1);
 
-		boolean result = runPredicate(dateString);
+		final boolean result = runPredicate(dateString);
 
-		assertThat(result).isFalse();
+		assertThat(result).isTrue();
 	}
 
 	@Test
 	public void afterStringWorks() {
 		String dateString = plusHours(1);
 
-		boolean result = runPredicate(dateString);
+		final boolean result = runPredicate(dateString);
 
-		assertThat(result).isTrue();
+		assertThat(result).isFalse();
 	}
 
 	@Test
@@ -57,7 +57,7 @@ public class BeforeRequestPredicateFactoryTests {
 
 		final boolean result = runPredicate(dateString);
 
-		assertThat(result).isFalse();
+		assertThat(result).isTrue();
 	}
 
 	@Test
@@ -66,10 +66,10 @@ public class BeforeRequestPredicateFactoryTests {
 
 		final boolean result = runPredicate(dateString);
 
-		assertThat(result).isTrue();
+		assertThat(result).isFalse();
 	}
 
 	private boolean runPredicate(String dateString) {
-		return new BeforeRequestPredicateFactory().apply(tuple().of(DATETIME_KEY, dateString)).test(getRequest());
+		return new AfterRoutePredicateFactory().apply(tuple().of(DATETIME_KEY, dateString)).test(getExchange());
 	}
 }

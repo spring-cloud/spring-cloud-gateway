@@ -20,7 +20,6 @@ package org.springframework.cloud.gateway.handler;
 import java.util.function.Function;
 
 import org.springframework.cloud.gateway.route.RouteLocator;
-import org.springframework.cloud.gateway.handler.support.ExchangeServerRequest;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.web.reactive.handler.AbstractHandlerMapping;
 import org.springframework.web.server.ServerWebExchange;
@@ -34,12 +33,12 @@ import reactor.core.publisher.Mono;
 /**
  * @author Spencer Gibb
  */
-public class RequestPredicateHandlerMapping extends AbstractHandlerMapping {
+public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 
 	private final WebHandler webHandler;
 	private final RouteLocator routeLocator;
 
-	public RequestPredicateHandlerMapping(WebHandler webHandler, RouteLocator routeLocator) {
+	public RoutePredicateHandlerMapping(WebHandler webHandler, RouteLocator routeLocator) {
 		this.webHandler = webHandler;
 		this.routeLocator = routeLocator;
 
@@ -80,7 +79,7 @@ public class RequestPredicateHandlerMapping extends AbstractHandlerMapping {
 
 	protected Mono<Route> lookupRoute(ServerWebExchange exchange) {
 		return this.routeLocator.getRoutes()
-				.filter(route -> route.getRequestPredicate().test(new ExchangeServerRequest(exchange)))
+				.filter(route -> route.getPredicate().test(exchange))
 				.next()
 				//TODO: error handling
 				.map(route -> {

@@ -26,9 +26,8 @@ import org.springframework.cloud.gateway.route.Routes;
 import org.springframework.context.annotation.Bean;
 
 import static org.springframework.cloud.gateway.filter.factory.WebFilterFactories.addResponseHeader;
-import static org.springframework.cloud.gateway.handler.predicate.GatewayRequestPredicates.host;
-import static org.springframework.cloud.gateway.handler.predicate.GatewayRequestPredicates.path;
-// import static org.springframework.web.reactive.function.server.RequestPredicates.path;
+import static org.springframework.cloud.gateway.handler.predicate.RoutePredicates.host;
+import static org.springframework.cloud.gateway.handler.predicate.RoutePredicates.path;
 
 /**
  * @author Spencer Gibb

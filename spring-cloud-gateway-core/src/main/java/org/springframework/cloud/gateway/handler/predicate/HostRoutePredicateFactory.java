@@ -17,23 +17,24 @@
 
 package org.springframework.cloud.gateway.handler.predicate;
 
-import org.springframework.tuple.Tuple;
-import org.springframework.web.reactive.function.server.RequestPredicate;
-import org.springframework.web.reactive.function.server.RequestPredicates;
-import org.springframework.web.util.patterns.PathPatternParser;
-
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Predicate;
+
+import org.springframework.tuple.Tuple;
+import org.springframework.util.AntPathMatcher;
+import org.springframework.util.PathMatcher;
+import org.springframework.web.server.ServerWebExchange;
 
 /**
  * @author Spencer Gibb
  */
-public class PathRequestPredicateFactory implements RequestPredicateFactory {
+public class HostRoutePredicateFactory implements RoutePredicateFactory {
 
-	private PathPatternParser pathPatternParser;
+	private PathMatcher pathMatcher = new AntPathMatcher(".");
 
-	public void setPathPatternParser(PathPatternParser pathPatternParser) {
-		this.pathPatternParser = pathPatternParser;
+	public void setPathMatcher(PathMatcher pathMatcher) {
+		this.pathMatcher = pathMatcher;
 	}
 
 	@Override
@@ -42,13 +43,12 @@ public class PathRequestPredicateFactory implements RequestPredicateFactory {
 	}
 
 	@Override
-	public RequestPredicate apply(Tuple args) {
+	public Predicate<ServerWebExchange> apply(Tuple args) {
 		String pattern = args.getString(PATTERN_KEY);
 
-		if (this.pathPatternParser != null) {
-			return RequestPredicates.pathPredicates(this.pathPatternParser).apply(pattern);
-		}
-
-		return RequestPredicates.path(pattern);
+		return exchange -> {
+			String host = exchange.getRequest().getHeaders().getFirst("Host");
+			return this.pathMatcher.match(pattern, host);
+		};
 	}
 }

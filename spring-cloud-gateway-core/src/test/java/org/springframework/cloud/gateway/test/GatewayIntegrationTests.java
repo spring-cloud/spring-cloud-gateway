@@ -29,7 +29,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.config.GatewayProperties;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
-import org.springframework.cloud.gateway.handler.RequestPredicateHandlerMapping;
+import org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.annotation.Order;
@@ -93,7 +93,7 @@ public class GatewayIntegrationTests extends BaseWebClientTests {
 							assertStatus(response, HttpStatus.OK);
 							HttpHeaders httpHeaders = response.headers().asHttpHeaders();
 							assertThat(httpHeaders.getFirst(HANDLER_MAPPER_HEADER))
-									.isEqualTo(RequestPredicateHandlerMapping.class.getSimpleName());
+									.isEqualTo(RoutePredicateHandlerMapping.class.getSimpleName());
 							assertThat(httpHeaders.getFirst(ROUTE_ID_HEADER))
 									.isEqualTo("host_foo_path_headers_to_httpbin");
 							assertThat(httpHeaders.getFirst("X-Response-Foo"))
