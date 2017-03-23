@@ -28,6 +28,7 @@ import org.springframework.context.annotation.Bean;
 import static org.springframework.cloud.gateway.filter.factory.WebFilterFactories.addResponseHeader;
 import static org.springframework.cloud.gateway.handler.predicate.RoutePredicates.host;
 import static org.springframework.cloud.gateway.handler.predicate.RoutePredicates.path;
+import static org.springframework.tuple.TupleBuilder.tuple;
 
 /**
  * @author Spencer Gibb
@@ -38,7 +39,7 @@ import static org.springframework.cloud.gateway.handler.predicate.RoutePredicate
 public class GatewaySampleApplication {
 
 	@Bean
-	public RouteLocator customRouteLocator() {
+	public RouteLocator customRouteLocator(ThrottleWebFilterFactory throttle) {
 		return Routes.locator()
 				.route("test")
 					.uri("http://httpbin.org:80")
@@ -50,7 +51,21 @@ public class GatewaySampleApplication {
 					.predicate(path("/image/webp"))
 					.add(addResponseHeader("X-AnotherHeader", "baz"))
 					.and()
+				.route("test3")
+					.order(-1)
+					.uri("http://httpbin.org:80")
+					.predicate(host("**.throttle.org").and(path("/get")))
+					.add(throttle.apply(tuple().of("capacity", 1,
+							"refillTokens", 1,
+							"refillPeriod", 10,
+							"refillUnit", "SECONDS")))
+					.and()
 				.build();
+	}
+
+	@Bean
+	public ThrottleWebFilterFactory throttleWebFilterFactory() {
+		return new ThrottleWebFilterFactory();
 	}
 
 	public static void main(String[] args) {
