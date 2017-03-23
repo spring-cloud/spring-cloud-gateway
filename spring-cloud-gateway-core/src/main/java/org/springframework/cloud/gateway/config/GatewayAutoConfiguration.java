@@ -28,16 +28,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.web.reactive.HttpHandlerAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.gateway.actuate.GatewayEndpoint;
-import org.springframework.cloud.gateway.handler.predicate.BetweenRoutePredicateFactory;
-import org.springframework.cloud.gateway.handler.predicate.HostRoutePredicateFactory;
-import org.springframework.cloud.gateway.handler.predicate.MethodRoutePredicateFactory;
-import org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFactory;
-import org.springframework.cloud.gateway.handler.predicate.RemoteAddrRoutePredicateFactory;
-import org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory;
-import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
-import org.springframework.cloud.gateway.route.RouteDefinitionRepository;
-import org.springframework.cloud.gateway.route.RouteDefinitionWriter;
-import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.NettyRoutingFilter;
 import org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter;
@@ -63,14 +53,24 @@ import org.springframework.cloud.gateway.handler.NettyRoutingWebHandler;
 import org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping;
 import org.springframework.cloud.gateway.handler.predicate.AfterRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.BeforeRoutePredicateFactory;
+import org.springframework.cloud.gateway.handler.predicate.BetweenRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.CookieRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.HeaderRoutePredicateFactory;
+import org.springframework.cloud.gateway.handler.predicate.HostRoutePredicateFactory;
+import org.springframework.cloud.gateway.handler.predicate.MethodRoutePredicateFactory;
+import org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.QueryRoutePredicateFactory;
+import org.springframework.cloud.gateway.handler.predicate.RemoteAddrRoutePredicateFactory;
+import org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory;
 import org.springframework.cloud.gateway.route.CachingRouteLocator;
 import org.springframework.cloud.gateway.route.CompositeRouteDefinitionLocator;
 import org.springframework.cloud.gateway.route.CompositeRouteLocator;
 import org.springframework.cloud.gateway.route.InMemoryRouteDefinitionRepository;
+import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
+import org.springframework.cloud.gateway.route.RouteDefinitionRepository;
 import org.springframework.cloud.gateway.route.RouteDefinitionRouteLocator;
+import org.springframework.cloud.gateway.route.RouteDefinitionWriter;
+import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -128,7 +128,6 @@ public class GatewayAutoConfiguration {
 	@Bean
 	@Primary
 	public RouteDefinitionLocator routeDefinitionLocator(List<RouteDefinitionLocator> routeDefinitionLocators) {
-		//TODO: apply ordering
 		return new CompositeRouteDefinitionLocator(Flux.fromIterable(routeDefinitionLocators));
 	}
 
@@ -137,13 +136,12 @@ public class GatewayAutoConfiguration {
 												   List<WebFilterFactory> webFilterFactories,
 												   List<RoutePredicateFactory> predicates,
 												   RouteDefinitionLocator routeDefinitionLocator) {
-		return new CachingRouteLocator(new RouteDefinitionRouteLocator(routeDefinitionLocator, predicates, webFilterFactories, properties));
+		return new RouteDefinitionRouteLocator(routeDefinitionLocator, predicates, webFilterFactories, properties);
 	}
 
 	@Bean
 	@Primary
 	public RouteLocator routeLocator(List<RouteLocator> routeLocators) {
-		//TODO: apply ordering
 		return new CachingRouteLocator(new CompositeRouteLocator(Flux.fromIterable(routeLocators)));
 	}
 
