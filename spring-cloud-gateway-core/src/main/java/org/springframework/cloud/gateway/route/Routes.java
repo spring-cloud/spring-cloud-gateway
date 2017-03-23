@@ -69,6 +69,11 @@ public class Routes {
 			return this;
 		}
 
+		public RouteSpec order(int order) {
+			this.builder.order(order);
+			return this;
+		}
+
 		public PredicateSpec uri(String uri) {
 			this.builder.uri(uri);
 			return predicateBuilder();
