@@ -178,6 +178,7 @@ spring:
       # =====================================
       - id: default_path_to_httpbin
         uri: ${test.uri}
+        order: 10000
         predicates:
         - name: Path
           args:

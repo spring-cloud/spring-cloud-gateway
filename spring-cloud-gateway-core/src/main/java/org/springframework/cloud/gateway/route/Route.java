@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
 
+import org.springframework.core.Ordered;
 import org.springframework.util.Assert;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
@@ -32,11 +33,13 @@ import org.springframework.web.server.WebFilter;
 /**
  * @author Spencer Gibb
  */
-public class Route {
+public class Route implements Ordered {
 
 	private final String id;
 
 	private final URI uri;
+
+	private final int order;
 
 	private final Predicate<ServerWebExchange> predicate;
 
@@ -49,12 +52,14 @@ public class Route {
 	public static Builder builder(RouteDefinition routeDefinition) {
 		return new Builder()
 				.id(routeDefinition.getId())
-				.uri(routeDefinition.getUri());
+				.uri(routeDefinition.getUri())
+				.order(routeDefinition.getOrder());
 	}
 
-	public Route(String id, URI uri, Predicate<ServerWebExchange> predicate, List<WebFilter> webFilters) {
+	public Route(String id, URI uri, int order, Predicate<ServerWebExchange> predicate, List<WebFilter> webFilters) {
 		this.id = id;
 		this.uri = uri;
+		this.order = order;
 		this.predicate = predicate;
 		this.webFilters = webFilters;
 	}
@@ -63,6 +68,8 @@ public class Route {
 		private String id;
 
 		private URI uri;
+
+		private int order = 0;
 
 		private Predicate<ServerWebExchange> predicate;
 
@@ -77,6 +84,11 @@ public class Route {
 
 		public Builder uri(String uri) {
 			this.uri = URI.create(uri);
+			return this;
+		}
+
+		public Builder order(int order) {
+			this.order = order;
 			return this;
 		}
 
@@ -110,7 +122,7 @@ public class Route {
 			Assert.notNull(this.uri, "uri can not be null");
 			//TODO: Assert.notNull(this.predicate, "predicate can not be null");
 
-			return new Route(this.id, this.uri, this.predicate, this.webFilters);
+			return new Route(this.id, this.uri, this.order, this.predicate, this.webFilters);
 		}
 	}
 
@@ -120,6 +132,10 @@ public class Route {
 
 	public URI getUri() {
 		return this.uri;
+	}
+
+	public int getOrder() {
+		return order;
 	}
 
 	public Predicate<ServerWebExchange> getPredicate() {
@@ -137,6 +153,7 @@ public class Route {
 		Route route = (Route) o;
 		return Objects.equals(id, route.id) &&
 				Objects.equals(uri, route.uri) &&
+				Objects.equals(order, route.order) &&
 				Objects.equals(predicate, route.predicate) &&
 				Objects.equals(webFilters, route.webFilters);
 	}
@@ -151,6 +168,7 @@ public class Route {
 		final StringBuffer sb = new StringBuffer("Route{");
 		sb.append("id='").append(id).append('\'');
 		sb.append(", uri=").append(uri);
+		sb.append(", order=").append(order);
 		sb.append(", predicate=").append(predicate);
 		sb.append(", webFilters=").append(webFilters);
 		sb.append('}');

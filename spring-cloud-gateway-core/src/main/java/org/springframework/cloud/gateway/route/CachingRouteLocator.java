@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.springframework.context.event.EventListener;
+import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 
 import reactor.core.publisher.Flux;
 
@@ -52,7 +53,9 @@ public class CachingRouteLocator implements RouteLocator {
 	}
 
 	private List<Route> collectRoutes() {
-		return this.delegate.getRoutes().collectList().block();
+		List<Route> routes = this.delegate.getRoutes().collectList().block();
+		AnnotationAwareOrderComparator.sort(routes);
+		return routes;
 	}
 
 	@EventListener(RefreshRoutesEvent.class)

@@ -49,6 +49,8 @@ public class RouteDefinition {
 	@NotNull
 	private URI uri;
 
+	private int order = 0;
+
 	public RouteDefinition() {}
 
 	public RouteDefinition(String text) {
@@ -101,6 +103,14 @@ public class RouteDefinition {
 		this.uri = uri;
 	}
 
+	public int getOrder() {
+		return order;
+	}
+
+	public void setOrder(int order) {
+		this.order = order;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
@@ -108,6 +118,7 @@ public class RouteDefinition {
 		RouteDefinition routeDefinition = (RouteDefinition) o;
 		return Objects.equals(id, routeDefinition.id) &&
 				Objects.equals(predicates, routeDefinition.predicates) &&
+				Objects.equals(order, routeDefinition.order) &&
 				Objects.equals(uri, routeDefinition.uri);
 	}
 
@@ -123,6 +134,7 @@ public class RouteDefinition {
 				", predicates=" + predicates +
 				", filters=" + filters +
 				", uri=" + uri +
+				", order=" + order +
 				'}';
 	}
 }
