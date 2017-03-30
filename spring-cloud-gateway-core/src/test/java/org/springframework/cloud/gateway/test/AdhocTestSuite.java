@@ -17,10 +17,13 @@
 
 package org.springframework.cloud.gateway.test;
 
-import org.junit.Ignore;
+import org.junit.ClassRule;
+import org.junit.rules.TestRule;
+import org.junit.runner.Description;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
+import org.junit.runners.model.Statement;
 import org.springframework.cloud.gateway.filter.factory.AddRequestHeaderWebFilterFactoryTests;
 import org.springframework.cloud.gateway.filter.factory.AddRequestParameterWebFilterFactoryTests;
 import org.springframework.cloud.gateway.filter.factory.HystrixWebFilterFactoryTests;
@@ -41,10 +44,14 @@ import org.springframework.cloud.gateway.handler.predicate.HostRoutePredicateFac
 import org.springframework.cloud.gateway.handler.predicate.MethodRoutePredicateFactoryTests;
 import org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFactoryTests;
 
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assume.assumeThat;
+
 /**
+ * To run this suite in an IDE, set env var GATEWAY_ADHOC_ENABLED=true in test runner.
  * @author Spencer Gibb
  */
-@Ignore
 @RunWith(Suite.class)
 @SuiteClasses({GatewayIntegrationTests.class,
 		FormIntegrationTests.class,
@@ -72,4 +79,19 @@ import org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFac
 		PathRoutePredicateFactoryTests.class,
 })
 public class AdhocTestSuite {
+
+	@ClassRule
+	public static AdhocEnabled adhocEnabled = new AdhocEnabled();
+
+	static class AdhocEnabled implements TestRule {
+
+		@Override
+		public Statement apply(Statement base, Description description) {
+			assumeThat("Adhoc Tests ignored",
+					System.getenv("GATEWAY_ADHOC_ENABLED"),
+					is(equalTo("true")));
+
+			return base;
+		}
+	}
 }
