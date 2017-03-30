@@ -48,6 +48,7 @@ public class ThrottleWebFilterFactory implements WebFilterFactory {
 				.build();
 
 		return (exchange, chain) -> {
+			//TODO: get a token bucket for a key
 			log.debug("TokenBucket capacity: " + tokenBucket.getCapacity());
 			boolean consumed = tokenBucket.tryConsume();
 			if (consumed) {
