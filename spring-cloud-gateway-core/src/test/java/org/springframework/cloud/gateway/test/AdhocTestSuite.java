@@ -48,6 +48,7 @@ import org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFac
 @RunWith(Suite.class)
 @SuiteClasses({GatewayIntegrationTests.class,
 		FormIntegrationTests.class,
+		PostTests.class,
 		// route filter tests
 		AddRequestHeaderWebFilterFactoryTests.class,
 		AddRequestParameterWebFilterFactoryTests.class,
