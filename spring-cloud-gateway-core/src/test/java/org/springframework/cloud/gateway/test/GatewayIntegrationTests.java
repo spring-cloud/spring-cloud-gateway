@@ -61,9 +61,10 @@ public class GatewayIntegrationTests extends BaseWebClientTests {
 
 	@Test
 	public void complexContentTypeWorks() {
-		Mono<Map> result = webClient.get()
+		Mono<Map> result = webClient.post()
 				.uri("/headers")
 				.contentType(MediaType.APPLICATION_JSON_UTF8)
+				.body("testdata")
 				.header("Host", "www.complexcontenttype.org")
 				.exchange()
 				.then(response -> response.body(toMono(Map.class)));
@@ -139,20 +140,6 @@ public class GatewayIntegrationTests extends BaseWebClientTests {
 							assertThat(httpHeaders.getFirst(ROUTE_ID_HEADER))
 									.isEqualTo("load_balancer_client_test");
 						})
-				.expectComplete()
-				.verify(DURATION);
-	}
-
-	@Test
-	public void postWorks() {
-		Mono<Map> result = webClient.post()
-				.uri("/post")
-				.header("Host", "www.example.org")
-				.exchange(Mono.just("testdata"), String.class)
-				.then(response -> response.body(toMono(Map.class)));
-
-		StepVerifier.create(result)
-				.consumeNextWith(map -> assertThat(map).containsEntry("data", "testdata"))
 				.expectComplete()
 				.verify(DURATION);
 	}

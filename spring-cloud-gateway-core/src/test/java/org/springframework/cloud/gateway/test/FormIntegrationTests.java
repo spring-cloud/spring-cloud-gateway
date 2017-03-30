@@ -64,7 +64,8 @@ public class FormIntegrationTests extends BaseWebClientTests {
 		Mono<Map> result = webClient.post()
 				.uri("/post")
 				.contentType(contentType)
-				.exchange(BodyInserters.fromFormData(formData))
+				.body(BodyInserters.fromFormData(formData))
+				.exchange()
 				.then(response -> response.body(toMono(Map.class)));
 
 		StepVerifier.create(result)
