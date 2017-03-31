@@ -41,11 +41,11 @@ import reactor.ipc.netty.http.client.HttpClient;
 /**
  * @author Spencer Gibb
  */
-public class NettyRoutingWebHandler implements WebHandler {
+public class NettyProxyWebHandler implements WebHandler {
 
 	private final HttpClient httpClient;
 
-	public NettyRoutingWebHandler(HttpClient httpClient) {
+	public NettyProxyWebHandler(HttpClient httpClient) {
 		this.httpClient = httpClient;
 	}
 

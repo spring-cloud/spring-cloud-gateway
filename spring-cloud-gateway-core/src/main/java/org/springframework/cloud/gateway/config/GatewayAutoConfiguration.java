@@ -49,7 +49,7 @@ import org.springframework.cloud.gateway.filter.factory.SetResponseHeaderWebFilt
 import org.springframework.cloud.gateway.filter.factory.SetStatusWebFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.WebFilterFactory;
 import org.springframework.cloud.gateway.handler.FilteringWebHandler;
-import org.springframework.cloud.gateway.handler.NettyRoutingWebHandler;
+import org.springframework.cloud.gateway.handler.NettyProxyWebHandler;
 import org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping;
 import org.springframework.cloud.gateway.handler.predicate.AfterRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.BeforeRoutePredicateFactory;
@@ -104,8 +104,8 @@ public class GatewayAutoConfiguration {
 		}
 
 		@Bean
-		public NettyRoutingWebHandler nettyRoutingWebHandler(HttpClient httpClient) {
-			return new NettyRoutingWebHandler(httpClient);
+		public NettyProxyWebHandler proxyWebHandler(HttpClient httpClient) {
+			return new NettyProxyWebHandler(httpClient);
 		}
 
 		@Bean
