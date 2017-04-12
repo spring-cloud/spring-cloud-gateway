@@ -49,7 +49,7 @@ public class PostTests extends BaseWebClientTests {
 				.header("Host", "www.example.org")
 				.body("testdata")
 				.exchange()
-				.then(response -> response.body(toMono(Map.class)));
+				.flatMap(response -> response.body(toMono(Map.class)));
 
 		StepVerifier.create(result)
 				.consumeNextWith(map -> assertThat(map).containsEntry("data", "testdata"))

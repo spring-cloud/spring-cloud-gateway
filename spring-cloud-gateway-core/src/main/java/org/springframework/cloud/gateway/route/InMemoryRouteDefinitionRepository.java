@@ -36,7 +36,7 @@ public class InMemoryRouteDefinitionRepository implements RouteDefinitionReposit
 
 	@Override
 	public Mono<Void> save(Mono<RouteDefinition> route) {
-		return route.then( r -> {
+		return route.flatMap( r -> {
 			routes.put(r.getId(), r);
 			return Mono.empty();
 		});
@@ -44,7 +44,7 @@ public class InMemoryRouteDefinitionRepository implements RouteDefinitionReposit
 
 	@Override
 	public Mono<Void> delete(Mono<String> routeId) {
-		return routeId.then(id -> {
+		return routeId.flatMap(id -> {
 			if (routes.containsKey(id)) {
 				routes.remove(id);
 				return Mono.empty();

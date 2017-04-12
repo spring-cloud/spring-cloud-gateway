@@ -60,7 +60,7 @@ public class HystrixWebFilterFactory implements WebFilterFactory {
 
 			return Mono.create(s -> {
 				Subscription sub = command.toObservable().subscribe(s::success, s::error, s::success);
-				s.setCancellation(sub::unsubscribe);
+				s.onCancel(sub::unsubscribe);
 			});
 		};
 	}

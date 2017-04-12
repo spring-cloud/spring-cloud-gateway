@@ -146,7 +146,7 @@ public class BaseWebClientTests {
 			HashMap<String, Object> form = new HashMap<>();
 			ret.put("form", form);
 
-			return exchange.getFormData().then(map -> {
+			return exchange.getFormData().flatMap(map -> {
 				for (Map.Entry<String, List<String>> entry: map.entrySet()) {
 					for (String value : entry.getValue()) {
 						form.put(entry.getKey(), value);

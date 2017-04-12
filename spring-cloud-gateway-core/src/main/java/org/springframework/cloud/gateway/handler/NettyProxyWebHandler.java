@@ -67,7 +67,7 @@ public class NettyProxyWebHandler implements WebHandler {
 						.send(request.getBody()
 								.map(DataBuffer::asByteBuffer)
 								.map(Unpooled::wrappedBuffer)))
-				.then(res -> {
+				.flatMap(res -> {
 					// Defer committing the response until all route filters have run
 					// Put client response as ServerWebExchange attribute and write response later WriteResponseFilter
 					exchange.getAttributes().put(CLIENT_RESPONSE_ATTR, res);

@@ -49,7 +49,7 @@ public class AddRequestHeaderWebFilterFactoryTests extends BaseWebClientTests {
 				.uri("/headers")
 				.header("Host", "www.addrequestheader.org")
 				.exchange()
-				.then(response -> response.body(toMono(Map.class)));
+				.flatMap(response -> response.body(toMono(Map.class)));
 
 		StepVerifier.create(result)
 				.consumeNextWith(

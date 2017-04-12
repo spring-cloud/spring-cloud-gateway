@@ -67,7 +67,7 @@ public class GatewayIntegrationTests extends BaseWebClientTests {
 				.body("testdata")
 				.header("Host", "www.complexcontenttype.org")
 				.exchange()
-				.then(response -> response.body(toMono(Map.class)));
+				.flatMap(response -> response.body(toMono(Map.class)));
 
 		StepVerifier.create(result)
 				.consumeNextWith(

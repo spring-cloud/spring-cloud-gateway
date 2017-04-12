@@ -51,7 +51,7 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 
 		return lookupRoute(exchange)
 				.log("TRACE")
-				.then((Function<Route, Mono<?>>) r -> {
+				.flatMap((Function<Route, Mono<?>>) r -> {
 					if (logger.isDebugEnabled()) {
 						logger.debug("Mapping [" + getExchangeDesc(exchange) + "] to " + r);
 					}

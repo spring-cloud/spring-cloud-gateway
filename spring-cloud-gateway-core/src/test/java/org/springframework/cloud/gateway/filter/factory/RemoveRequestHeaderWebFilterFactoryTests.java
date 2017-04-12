@@ -49,7 +49,7 @@ public class RemoveRequestHeaderWebFilterFactoryTests extends BaseWebClientTests
 				.header("Host", "www.removerequestheader.org")
 				.header("X-Request-Foo", "Bar")
 				.exchange()
-				.then(response -> response.body(toMono(Map.class)));
+				.flatMap(response -> response.body(toMono(Map.class)));
 
 		StepVerifier.create(result)
 				.consumeNextWith(

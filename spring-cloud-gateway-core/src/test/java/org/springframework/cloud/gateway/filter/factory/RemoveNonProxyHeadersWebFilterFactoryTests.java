@@ -53,7 +53,7 @@ public class RemoveNonProxyHeadersWebFilterFactoryTests extends BaseWebClientTes
 				.header("Host", "www.removenonproxyheaders.org")
 				.header("Proxy-Authorization", "myauth")
 				.exchange()
-				.then(response -> response.body(toMono(Map.class)));
+				.flatMap(response -> response.body(toMono(Map.class)));
 
 		StepVerifier.create(result)
 				.consumeNextWith(

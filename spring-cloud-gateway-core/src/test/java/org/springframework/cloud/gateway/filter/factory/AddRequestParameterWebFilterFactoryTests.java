@@ -57,7 +57,7 @@ public class AddRequestParameterWebFilterFactoryTests extends BaseWebClientTests
 				.uri("/get" + query)
 				.header("Host", "www.addrequestparameter.org")
 				.exchange()
-				.then(response -> response.body(toMono(Map.class)));
+				.flatMap(response -> response.body(toMono(Map.class)));
 
 		StepVerifier.create(result)
 				.consumeNextWith(

@@ -80,7 +80,7 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 
 			if (MediaType.APPLICATION_FORM_URLENCODED.includes(request.getHeaders().getContentType())) {
 				return exchange.getFormData()
-						.then(map -> proxyRequest.sendForm(form -> {
+						.flatMap(map -> proxyRequest.sendForm(form -> {
 							for (Map.Entry<String, List<String>> entry: map.entrySet()) {
 								for (String value : entry.getValue()) {
 									form.attr(entry.getKey(), value);
@@ -94,7 +94,7 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 					.send(request.getBody()
 							.map(DataBuffer::asByteBuffer)
 							.map(Unpooled::wrappedBuffer));
-		}).then(res -> {
+		}).flatMap(res -> {
 			ServerHttpResponse response = exchange.getResponse();
 			// put headers and status so filters can modify the response
 			HttpHeaders headers = new HttpHeaders();
