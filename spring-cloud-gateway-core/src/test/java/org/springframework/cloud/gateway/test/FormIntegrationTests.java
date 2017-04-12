@@ -20,7 +20,6 @@ package org.springframework.cloud.gateway.test;
 import java.nio.charset.Charset;
 import java.util.Map;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.SpringBootConfiguration;
@@ -56,7 +55,6 @@ import reactor.test.StepVerifier;
 public class FormIntegrationTests extends BaseWebClientTests {
 
 	@Test
-	@Ignore("FIXME: Only one connection receive subscriber allowed.")
 	public void formUrlencodedWorks() {
 		LinkedMultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
 		formData.add("foo", "bar");

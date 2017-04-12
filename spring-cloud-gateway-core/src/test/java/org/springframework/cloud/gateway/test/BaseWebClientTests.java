@@ -36,6 +36,7 @@ import org.springframework.cloud.netflix.ribbon.StaticServerList;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -136,6 +137,11 @@ public class BaseWebClientTests {
 
 			ret.put("files", files);
 			return Mono.just(ret);
+		}
+
+		@RequestMapping(path = "/post", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+		public Mono<Map<String, Object>> postUrlEncoded(ServerWebExchange exchange) throws IOException {
+			return post(exchange, null);
 		}
 
 		@RequestMapping("/post")
