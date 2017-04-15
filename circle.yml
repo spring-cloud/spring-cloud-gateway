@@ -3,6 +3,8 @@ general:
     ignore:
       - gh-pages # list of branches to ignore
 machine:
+  services:
+    - redis
   java:
     version: oraclejdk8
   environment:
