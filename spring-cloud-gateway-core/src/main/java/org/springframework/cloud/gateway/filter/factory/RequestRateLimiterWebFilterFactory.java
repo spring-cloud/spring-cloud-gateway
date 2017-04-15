@@ -59,6 +59,8 @@ public class RequestRateLimiterWebFilterFactory implements WebFilterFactory {
 			//TODO: get user from request, maybe a KeyResolutionStrategy.resolve(exchange). Lookup strategy bean via arg
 			boolean allowed = isAllowed(replenishRate, capacity, "me");
 
+			//TODO: set some headers for rate, tokens left
+
 			if (allowed) {
 				return chain.filter(exchange);
 			}
