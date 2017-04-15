@@ -55,7 +55,9 @@ public class RequestRateLimiterWebFilterFactory implements WebFilterFactory {
 		int capacity = 5 * replenishRate;
 
 		return (exchange, chain) -> {
-			boolean allowed = isAllowed(replenishRate, capacity, "me"); //TODO: get user from request
+			// exchange.getPrincipal().flatMap(principal -> {})
+			//TODO: get user from request, maybe a KeyResolutionStrategy.resolve(exchange). Lookup strategy bean via arg
+			boolean allowed = isAllowed(replenishRate, capacity, "me");
 
 			if (allowed) {
 				return chain.filter(exchange);
@@ -65,6 +67,8 @@ public class RequestRateLimiterWebFilterFactory implements WebFilterFactory {
 		};
 	}
 
+	//TODO: move to interface
+	//TODO: use tuple args except for id
 	/* for testing */ boolean isAllowed(int replenishRate, int capacity, String id) {
 		boolean allowed = false;
 
