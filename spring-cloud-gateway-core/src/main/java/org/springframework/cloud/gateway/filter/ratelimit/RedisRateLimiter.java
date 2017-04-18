@@ -35,7 +35,7 @@ public class RedisRateLimiter implements RateLimiter {
 	 * @return
 	 */
 	@Override
-	//TODO: signature? params (tuple?). Return type, tokens left?
+	//TODO: signature? params (tuple?).
 	public Response isAllowed(String id, int replenishRate, int burstCapacity) {
 
 		try {
@@ -46,7 +46,7 @@ public class RedisRateLimiter implements RateLimiter {
 			List<String> keys = Arrays.asList(prefix + ".tokens", prefix + ".timestamp");
 
 			// The arguments to the LUA script. time() returns unixtime in seconds.
-			String[] args = new String[]{ replenishRate+"", burstCapacity +"", Instant.now().getEpochSecond()+"", "1"};
+			Object[] args = new String[]{ replenishRate+"", burstCapacity +"", Instant.now().getEpochSecond()+"", "1"};
 			// allowed, tokens_left = redis.eval(SCRIPT, keys, args)
 			List results = this.redisTemplate.execute(this.script, keys, args);
 
