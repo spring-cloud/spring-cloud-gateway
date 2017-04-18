@@ -30,13 +30,13 @@ public class RedisRateLimiter implements RateLimiter {
 	 * This uses a basic token bucket algorithm and relies on the fact that Redis scripts execute atomically.
 	 * No other operations can run between fetching the count and writing the new count.
 	 * @param replenishRate
-	 * @param capacity
+	 * @param burstCapacity
 	 * @param id
 	 * @return
 	 */
 	@Override
 	//TODO: signature? params (tuple?). Return type, tokens left?
-	public Response isAllowed(String id, int replenishRate, int capacity) {
+	public Response isAllowed(String id, int replenishRate, int burstCapacity) {
 
 		try {
 			// Make a unique key per user.
@@ -46,7 +46,7 @@ public class RedisRateLimiter implements RateLimiter {
 			List<String> keys = Arrays.asList(prefix + ".tokens", prefix + ".timestamp");
 
 			// The arguments to the LUA script. time() returns unixtime in seconds.
-			String[] args = new String[]{ replenishRate+"", capacity+"", Instant.now().getEpochSecond()+"", "1"};
+			String[] args = new String[]{ replenishRate+"", burstCapacity +"", Instant.now().getEpochSecond()+"", "1"};
 			// allowed, tokens_left = redis.eval(SCRIPT, keys, args)
 			List results = this.redisTemplate.execute(this.script, keys, args);
 

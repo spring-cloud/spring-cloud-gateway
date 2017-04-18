@@ -4,7 +4,7 @@ package org.springframework.cloud.gateway.filter.ratelimit;
  * @author Spencer Gibb
  */
 public interface RateLimiter {
-	Response isAllowed(String id, int replenishRate, int capacity);
+	Response isAllowed(String id, int replenishRate, int burstCapacity);
 
 	class Response {
 		private final boolean allowed;
