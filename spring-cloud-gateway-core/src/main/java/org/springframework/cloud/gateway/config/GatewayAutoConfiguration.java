@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.config;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.actuate.endpoint.Endpoint;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
@@ -41,6 +42,7 @@ import org.springframework.cloud.gateway.filter.factory.RedirectToWebFilterFacto
 import org.springframework.cloud.gateway.filter.factory.RemoveNonProxyHeadersWebFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RemoveRequestHeaderWebFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RemoveResponseHeaderWebFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.RequestRateLimiterWebFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RewritePathWebFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SecureHeadersProperties;
 import org.springframework.cloud.gateway.filter.factory.SecureHeadersWebFilterFactory;
@@ -48,6 +50,8 @@ import org.springframework.cloud.gateway.filter.factory.SetPathWebFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SetResponseHeaderWebFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SetStatusWebFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.WebFilterFactory;
+import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter;
+import org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiter;
 import org.springframework.cloud.gateway.handler.FilteringWebHandler;
 import org.springframework.cloud.gateway.handler.NettyProxyWebHandler;
 import org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping;
@@ -77,6 +81,12 @@ import org.springframework.context.annotation.Primary;
 
 import com.netflix.hystrix.HystrixObservableCommand;
 
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
+import org.springframework.data.redis.core.script.RedisScript;
+import org.springframework.scripting.support.ResourceScriptSource;
 import reactor.core.publisher.Flux;
 import reactor.ipc.netty.http.client.HttpClient;
 import rx.RxReactiveStreams;
@@ -180,7 +190,7 @@ public class GatewayAutoConfiguration {
 		return new WriteResponseFilter();
 	}
 
-	// Request Predicate beans
+	// Predicate Factory beans
 
 	@Bean
 	public AfterRoutePredicateFactory afterRoutePredicateFactory() {
@@ -232,7 +242,7 @@ public class GatewayAutoConfiguration {
 		return new RemoteAddrRoutePredicateFactory();
 	}
 
-	// Filter Factory beans
+	// WebFilter Factory beans
 
 	@Bean
 	public AddRequestHeaderWebFilterFactory addRequestHeaderWebFilterFactory() {
@@ -284,6 +294,12 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
+	@ConditionalOnBean(RateLimiter.class)
+	public RequestRateLimiterWebFilterFactory requestRateLimiterWebFilterFactory(RateLimiter rateLimiter) {
+		return new RequestRateLimiterWebFilterFactory(rateLimiter);
+	}
+
+	@Bean
 	public RewritePathWebFilterFactory rewritePathWebFilterFactory() {
 		return new RewritePathWebFilterFactory();
 	}
@@ -308,6 +324,23 @@ public class GatewayAutoConfiguration {
 		return new SetStatusWebFilterFactory();
 	}
 
+
+	@ConditionalOnClass(RedisTemplate.class)
+	protected static class GatewayRedisConfiguration {
+		@Bean
+		public RedisScript<List> redistRequestRateLimiterScript() {
+			DefaultRedisScript<List> redisScript = new DefaultRedisScript<>();
+			redisScript.setScriptSource(new ResourceScriptSource(new ClassPathResource("META-INF/scripts/request_rate_limiter.lua")));
+			redisScript.setResultType(List.class);
+			return redisScript;
+		}
+
+		@Bean
+		public RedisRateLimiter redisRateLimiter(StringRedisTemplate redisTemplate,
+												 @Qualifier("redistRequestRateLimiterScript") RedisScript<List> redisScript) {
+			return new RedisRateLimiter(redisTemplate, redisScript);
+		}
+	}
 
 	/*@Bean
 	public RouterFunction<ServerResponse> test() {

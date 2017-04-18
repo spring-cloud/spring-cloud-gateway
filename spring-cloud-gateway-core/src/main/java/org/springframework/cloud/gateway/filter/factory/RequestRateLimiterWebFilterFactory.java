@@ -17,32 +17,22 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
-import java.time.Instant;
-import java.util.Arrays;
-import java.util.List;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.core.script.RedisScript;
+import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter;
+import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.tuple.Tuple;
 import org.springframework.web.server.WebFilter;
 
 /**
- * Sample User Request Rate Throttle filter.
+ * User Request Rate Limiter filter.
  * See https://stripe.com/blog/rate-limiters and
- * https://gist.github.com/ptarjan/e38f45f2dfe601419ca3af937fff574d#file-1-check_request_rate_limiter-rb-L11-L34
  */
 public class RequestRateLimiterWebFilterFactory implements WebFilterFactory {
-	private Log log = LogFactory.getLog(getClass());
 
-	private final StringRedisTemplate redisTemplate;
-	private final RedisScript<List> script;
+	private final RateLimiter rateLimiter;
 
-	public RequestRateLimiterWebFilterFactory(StringRedisTemplate redisTemplate, RedisScript<List> script) {
-		this.redisTemplate = redisTemplate;
-		this.script = script;
+	public RequestRateLimiterWebFilterFactory(RateLimiter rateLimiter) {
+		this.rateLimiter = rateLimiter;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -57,11 +47,11 @@ public class RequestRateLimiterWebFilterFactory implements WebFilterFactory {
 		return (exchange, chain) -> {
 			// exchange.getPrincipal().flatMap(principal -> {})
 			//TODO: get user from request, maybe a KeyResolutionStrategy.resolve(exchange). Lookup strategy bean via arg
-			boolean allowed = isAllowed(replenishRate, capacity, "me");
+			Response response = rateLimiter.isAllowed("me", replenishRate, capacity);
 
 			//TODO: set some headers for rate, tokens left
 
-			if (allowed) {
+			if (response.isAllowed()) {
 				return chain.filter(exchange);
 			}
 			exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
@@ -69,33 +59,4 @@ public class RequestRateLimiterWebFilterFactory implements WebFilterFactory {
 		};
 	}
 
-	//TODO: move to interface
-	//TODO: use tuple args except for id
-	/* for testing */ boolean isAllowed(int replenishRate, int capacity, String id) {
-		boolean allowed = false;
-
-		try {
-			// # Make a unique key per user.
-			String prefix = "request_rate_limiter." + id;
-
-			// # You need two Redis keys for Token Bucket.
-			List<String> keys = Arrays.asList(prefix + ".tokens", prefix + ".timestamp");
-
-			// The arguments to the LUA script. time() returns unixtime in seconds.
-			String[] args = new String[]{ replenishRate+"", capacity+"", Instant.now().getEpochSecond()+"", "1"};
-			// allowed, tokens_left = redis.eval(SCRIPT, keys, args)
-			List results = this.redisTemplate.execute(this.script, keys, args);
-
-			allowed = new Long(1L).equals(results.get(0));
-			Long tokensLeft = (Long) results.get(1);
-
-			if (log.isDebugEnabled()) {
-				log.debug("isAllowed("+id+")=" + allowed + ", tokensLeft: "+tokensLeft);
-			}
-
-		} catch (Exception e) {
-			log.error("Error determining if user allowed from redis", e);
-		}
-		return allowed;
-	}
 }

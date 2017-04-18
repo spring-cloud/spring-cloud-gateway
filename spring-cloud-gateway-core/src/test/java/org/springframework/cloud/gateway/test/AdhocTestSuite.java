@@ -37,6 +37,7 @@ import org.springframework.cloud.gateway.filter.factory.SetPathWebFilterFactoryI
 import org.springframework.cloud.gateway.filter.factory.SetPathWebFilterFactoryTests;
 import org.springframework.cloud.gateway.filter.factory.SetResponseWebFilterFactoryTests;
 import org.springframework.cloud.gateway.filter.factory.SetStatusWebFilterFactoryTests;
+import org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiterTests;
 import org.springframework.cloud.gateway.handler.predicate.AfterRoutePredicateFactoryTests;
 import org.springframework.cloud.gateway.handler.predicate.BeforeRoutePredicateFactoryTests;
 import org.springframework.cloud.gateway.handler.predicate.BetweenRoutePredicateFactoryTests;
@@ -56,6 +57,7 @@ import static org.junit.Assume.assumeThat;
 @SuiteClasses({GatewayIntegrationTests.class,
 		FormIntegrationTests.class,
 		PostTests.class,
+		RedisRateLimiterTests.class,
 		// route filter tests
 		AddRequestHeaderWebFilterFactoryTests.class,
 		AddRequestParameterWebFilterFactoryTests.class,
