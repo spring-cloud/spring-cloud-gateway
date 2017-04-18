@@ -2,15 +2,34 @@ package org.springframework.cloud.gateway.filter.factory;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
+import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter;
+import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter.Response;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpStatus;
+import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
+import org.springframework.mock.http.server.reactive.MockServerWebExchange;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.tuple.Tuple;
+import org.springframework.web.server.WebFilterChain;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
+import static org.springframework.cloud.gateway.filter.factory.RequestRateLimiterWebFilterFactory.BURST_CAPACITY_KEY;
+import static org.springframework.cloud.gateway.filter.factory.RequestRateLimiterWebFilterFactory.KEY_RESOLVER_NAME_KEY;
+import static org.springframework.cloud.gateway.filter.factory.RequestRateLimiterWebFilterFactory.REPLENISH_RATE_KEY;
+import static org.springframework.tuple.TupleBuilder.tuple;
+
+import reactor.core.publisher.Mono;
 
 /**
  * see https://gist.github.com/ptarjan/e38f45f2dfe601419ca3af937fff574d#file-1-check_request_rate_limiter-rb-L36-L62
@@ -21,57 +40,61 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @DirtiesContext
 public class RequestRateLimiterWebFilterFactoryTests extends BaseWebClientTests {
 
-	/*@Autowired
-	private StringRedisTemplate redisTemplate;
-
 	@Autowired
-	private RedisScript<List> script;*/
+	private RequestRateLimiterWebFilterFactory filterFactory;
+
+	@MockBean
+	private RateLimiter rateLimiter;
+
+	@MockBean
+	private WebFilterChain filterChain;
 
 	@Test
-	public void requestRateLimiterWebFilterFactoryWorks() throws Exception {
-		/*String id = UUID.randomUUID().toString();
+	public void allowedWorks() throws Exception {
+		assertFilterFactory("resolver1", "allowedkey", true, HttpStatus.OK);
+	}
 
-		RequestRateLimiterWebFilterFactory filterFactory = new RequestRateLimiterWebFilterFactory(this.redisTemplate, this.script);
+	@Test
+	public void notAllowedWorks() throws Exception {
+		assertFilterFactory("resolver2", "notallowedkey", false, HttpStatus.TOO_MANY_REQUESTS);
+	}
 
+	private void assertFilterFactory(String keyResolverName, String key, boolean allowed, HttpStatus expectedStatus) {
 		int replenishRate = 10;
-		int capacity = 2 * replenishRate;
+		int burstCapacity = 2 * replenishRate;
+		Tuple args = tuple().of(REPLENISH_RATE_KEY, replenishRate,
+				BURST_CAPACITY_KEY, burstCapacity,
+				KEY_RESOLVER_NAME_KEY, keyResolverName);
 
-		// Bursts work
-		for (int i = 0; i < capacity; i++) {
-			boolean allowed = filterFactory.isAllowed(replenishRate, capacity, id);
-			assertThat(allowed).isTrue();
-		}
-		
-		boolean allowed = filterFactory.isAllowed(replenishRate, capacity, id);
-		assertThat(allowed).isFalse();
+		when(rateLimiter.isAllowed(key, replenishRate, burstCapacity))
+				.thenReturn(new Response(allowed, 1));
 
-		Thread.sleep(1000);
 
-        // # After the burst is done, check the steady state
-		for (int i = 0; i < replenishRate; i++) {
-			allowed = filterFactory.isAllowed(replenishRate, capacity, id);
-			assertThat(allowed).isTrue();
-		}
+		MockServerHttpRequest request = MockServerHttpRequest.get("/").build();
+		MockServerWebExchange exchange = new MockServerWebExchange(request);
+		exchange.getResponse().setStatusCode(HttpStatus.OK);
 
-		allowed = filterFactory.isAllowed(replenishRate, capacity, id);
-		assertThat(allowed).isFalse();*/
+		when(this.filterChain.filter(exchange)).thenReturn(Mono.empty());
+
+		Mono<Void> response = filterFactory.apply(args).filter(exchange, this.filterChain);
+		response.subscribe(aVoid -> {
+			assertThat(exchange.getResponse().getStatusCode()).isEqualTo(expectedStatus);
+		});
+
 	}
 
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	@Import(BaseWebClientTests.DefaultTestConfig.class)
 	public static class TestConfig {
-		/*@Bean
-		public RedisScript<List> requestRateLimiterScript() {
-			DefaultRedisScript<List> redisScript = new DefaultRedisScript<>();
-			redisScript.setScriptSource(new ResourceScriptSource(new ClassPathResource("META-INF/scripts/request_rate_limiter.lua")));
-			redisScript.setResultType(List.class);
-			return redisScript;
+		@Bean
+		KeyResolver resolver1() {
+			return exchange -> Mono.just("allowedkey");
 		}
 
 		@Bean
-		public RequestRateLimiterWebFilterFactory requestRateLimiterWebFilterFactory(StringRedisTemplate redisTemplate) {
-			return new RequestRateLimiterWebFilterFactory(redisTemplate, requestRateLimiterScript());
-		}*/
+		KeyResolver resolver2() {
+			return exchange -> Mono.just("notallowedkey");
+		}
 	}
 }

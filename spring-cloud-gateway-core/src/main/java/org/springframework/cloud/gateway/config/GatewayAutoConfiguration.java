@@ -50,6 +50,7 @@ import org.springframework.cloud.gateway.filter.factory.SetPathWebFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SetResponseHeaderWebFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SetStatusWebFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.WebFilterFactory;
+import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
 import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter;
 import org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiter;
 import org.springframework.cloud.gateway.handler.FilteringWebHandler;
@@ -294,7 +295,7 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnBean(RateLimiter.class)
+	@ConditionalOnBean({RateLimiter.class, KeyResolver.class})
 	public RequestRateLimiterWebFilterFactory requestRateLimiterWebFilterFactory(RateLimiter rateLimiter) {
 		return new RequestRateLimiterWebFilterFactory(rateLimiter);
 	}
