@@ -61,7 +61,7 @@ public class RedirectToWebFilterFactory implements WebFilterFactory {
 		}
 
 		return (exchange, chain) ->
-			chain.filter(exchange).then(() -> {
+			chain.filter(exchange).then(Mono.defer(() -> {
 				if (!exchange.getResponse().isCommitted()) {
 					setResponseStatus(exchange, httpStatus);
 
@@ -70,7 +70,7 @@ public class RedirectToWebFilterFactory implements WebFilterFactory {
 					return response.setComplete();
 				}
 				return Mono.empty();
-			});
+			}));
 	}
 
 }

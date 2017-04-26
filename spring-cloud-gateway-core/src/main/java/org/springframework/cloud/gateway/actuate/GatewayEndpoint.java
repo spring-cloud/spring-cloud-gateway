@@ -128,21 +128,22 @@ public class GatewayEndpoint implements ApplicationEventPublisherAware {/*extend
 http POST :8080/admin/gateway/routes/apiaddreqhead uri=http://httpbin.org:80 predicates:='["Host=**.apiaddrequestheader.org", "Path=/headers"]' filters:='["AddRequestHeader=X-Request-ApiFoo, ApiBar"]'
 */
 	@PostMapping("/routes/{id}")
+	@SuppressWarnings("unchecked")
 	public Mono<ResponseEntity<Void>> save(@PathVariable String id, @RequestBody Mono<RouteDefinition> route) {
 		return this.routeDefinitionWriter.save(route.map(r ->  {
 			r.setId(id);
 			log.debug("Saving route: " + route);
 			return r;
-		})).then(() ->
+		})).then(Mono.defer(() ->
 			Mono.just(ResponseEntity.created(URI.create("/routes/"+id)).build())
-		);
+		));
 	}
 
 	@DeleteMapping("/routes/{id}")
 	public Mono<ResponseEntity<Object>> delete(@PathVariable String id) {
 		return this.routeDefinitionWriter.delete(Mono.just(id))
-				.then(() -> Mono.just(ResponseEntity.ok().build()))
-				.otherwise(t -> t instanceof NotFoundException, t -> Mono.just(ResponseEntity.notFound().build()));
+				.then(Mono.defer(() -> Mono.just(ResponseEntity.ok().build())))
+				.onErrorResume(t -> t instanceof NotFoundException, t -> Mono.just(ResponseEntity.notFound().build()));
 	}
 
 	@GetMapping("/routes/{id}")
@@ -151,7 +152,7 @@ http POST :8080/admin/gateway/routes/apiaddreqhead uri=http://httpbin.org:80 pre
 				.filter(route -> route.getId().equals(id))
 				.singleOrEmpty()
 				.map(route -> ResponseEntity.ok(route))
-				.otherwiseIfEmpty(Mono.just(ResponseEntity.notFound().build()));
+				.switchIfEmpty(Mono.just(ResponseEntity.notFound().build()));
 	}
 
 	@GetMapping("/routes/{id}/combinedfilters")

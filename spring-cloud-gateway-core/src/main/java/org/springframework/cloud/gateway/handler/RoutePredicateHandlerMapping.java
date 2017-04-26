@@ -58,12 +58,12 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 
 					exchange.getAttributes().put(GATEWAY_ROUTE_ATTR, r);
 					return Mono.just(webHandler);
-				}).otherwiseIfEmpty(Mono.empty().then(() -> {
+				}).switchIfEmpty(Mono.empty().then(Mono.defer(() -> {
 					if (logger.isTraceEnabled()) {
 						logger.trace("No RouteDefinition found for [" + getExchangeDesc(exchange) + "]");
 					}
 					return Mono.empty();
-				}));
+				})));
 	}
 
 	//TODO: get desc from factory?

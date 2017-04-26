@@ -51,7 +51,7 @@ public class WriteResponseFilter implements GlobalFilter, Ordered {
 	public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
 		// NOTICE: nothing in "pre" filter stage as CLIENT_RESPONSE_ATTR is not added
 		// until the WebHandler is run
-		return chain.filter(exchange).then(() -> {
+		return chain.filter(exchange).then(Mono.defer(() -> {
 			HttpClientResponse clientResponse = getAttribute(exchange, CLIENT_RESPONSE_ATTR, HttpClientResponse.class);
 			if (clientResponse == null) {
 				return Mono.empty();
@@ -67,7 +67,7 @@ public class WriteResponseFilter implements GlobalFilter, Ordered {
 					.map(factory::wrap);
 
 			return response.writeWith(body);
-		});
+		}));
 	}
 
 }

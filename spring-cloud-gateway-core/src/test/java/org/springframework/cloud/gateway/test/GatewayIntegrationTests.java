@@ -64,7 +64,7 @@ public class GatewayIntegrationTests extends BaseWebClientTests {
 		Mono<Map> result = webClient.post()
 				.uri("/headers")
 				.contentType(MediaType.APPLICATION_JSON_UTF8)
-				.body("testdata")
+				.syncBody("testdata")
 				.header("Host", "www.complexcontenttype.org")
 				.exchange()
 				.flatMap(response -> response.body(toMono(Map.class)));

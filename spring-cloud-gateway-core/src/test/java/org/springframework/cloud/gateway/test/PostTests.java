@@ -47,7 +47,7 @@ public class PostTests extends BaseWebClientTests {
 		Mono<Map> result = webClient.post()
 				.uri("/post")
 				.header("Host", "www.example.org")
-				.body("testdata")
+				.syncBody("testdata")
 				.exchange()
 				.flatMap(response -> response.body(toMono(Map.class)));
 
