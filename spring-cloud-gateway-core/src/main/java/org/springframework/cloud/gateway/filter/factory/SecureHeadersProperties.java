@@ -22,7 +22,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 /**
  * @author Spencer Gibb
  */
-@ConfigurationProperties("spring.cloud.gateway.filter.secureHeaders")
+@ConfigurationProperties("spring.cloud.gateway.filter.secure-headers")
 public class SecureHeadersProperties {
 	public static final String X_XSS_PROTECTION_HEADER_DEFAULT = "1; mode=block";
 	public static final String STRICT_TRANSPORT_SECURITY_HEADER_DEFAULT = "max-age=631138519"; //; includeSubDomains preload")
