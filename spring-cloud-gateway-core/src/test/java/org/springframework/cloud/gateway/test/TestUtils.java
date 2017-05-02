@@ -17,28 +17,10 @@
 
 package org.springframework.cloud.gateway.test;
 
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.util.Base64Utils;
-import org.springframework.util.ReflectionUtils;
-import org.springframework.util.StreamUtils;
-import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.reactive.function.client.ClientResponse;
-import org.springframework.web.server.ServerWebExchange;
-import org.synchronoss.cloud.nio.multipart.AbstractNioMultipartListener;
-import org.synchronoss.cloud.nio.multipart.Multipart;
-import org.synchronoss.cloud.nio.multipart.MultipartContext;
-import org.synchronoss.cloud.nio.multipart.NioMultipartParser;
-import org.synchronoss.cloud.nio.stream.storage.StreamStorage;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.web.reactive.function.client.ClientResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -57,34 +39,4 @@ public class TestUtils {
 		assertThat(statusCode).isEqualTo(status);
 	}
 
-	public static HashMap<String, Object> parseMultipart(ServerWebExchange exchange, @RequestBody(required = false) String body) {
-		HashMap<String, Object> files = new HashMap<>();
-
-		ServerHttpRequest request = exchange.getRequest();
-		HttpHeaders headers = request.getHeaders();
-		MediaType contentType = headers.getContentType();
-		String charSet = (contentType.getCharset() == null) ? null : contentType.getCharset().toString();
-		MultipartContext context = new MultipartContext(contentType.toString(),
-				(int)headers.getContentLength(), charSet);
-		AbstractNioMultipartListener listener = new AbstractNioMultipartListener() {
-			@Override
-			public void onPartFinished(StreamStorage streamStorage, Map<String, List<String>> headersFromPart) {
-				String contentDisposition = headersFromPart.get("content-disposition").get(0);
-				String[] tokens = StringUtils.tokenizeToStringArray(contentDisposition, ";");
-				String[] nameTokens = StringUtils.tokenizeToStringArray(tokens[1], "=");
-				String name = StringUtils.deleteAny(nameTokens[1], "\"");
-				String contentType = headersFromPart.get("content-type").get(0);
-				ByteArrayInputStream in = (ByteArrayInputStream) streamStorage.getInputStream();
-				try {
-					String data = Base64Utils.encodeToString(StreamUtils.copyToByteArray(in));
-					files.put(name, "data:"+contentType+";base64,"+data);
-				} catch (IOException e) {
-					ReflectionUtils.rethrowRuntimeException(e);
-				}
-			}
-		};
-		NioMultipartParser parser = Multipart.multipart(context).forNIO(listener);
-		parser.write(body.getBytes(), 0, body.getBytes().length);
-		return files;
-	}
 }

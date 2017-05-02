@@ -90,7 +90,19 @@
 		<dependency>
 			<groupId>org.synchronoss.cloud</groupId>
 			<artifactId>nio-multipart-parser</artifactId>
-			<version>1.0.1</version>
+			<version>1.0.2</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>javax.mail</groupId>
+			<artifactId>javax.mail-api</artifactId>
+			<version>1.6.0-rc1</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.sun.mail</groupId>
+			<artifactId>javax.mail</artifactId>
+			<version>1.6.0-rc1</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

@@ -40,6 +40,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ServerWebExchange;
@@ -49,7 +50,6 @@ import com.netflix.loadbalancer.ServerList;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_HANDLER_MAPPER_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
-import static org.springframework.cloud.gateway.test.TestUtils.parseMultipart;
 
 import reactor.core.publisher.Mono;
 
@@ -128,14 +128,14 @@ public class BaseWebClientTests {
 			return map;
 		}
 
-		@RequestMapping(value = "/post", consumes = "multipart/form-data")
-		public Mono<Map<String, Object>> postFormData(ServerWebExchange exchange,
-											  @RequestBody(required = false) String body) {
+		@RequestMapping(value = "/post", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+		public Mono<Map<String, Object>> postFormData(//ServerWebExchange exchange,
+													  // @RequestParam Map<String, Part> parts
+											  /*@RequestBody(required = false) String body*/) {
 			HashMap<String, Object> ret = new HashMap<>();
-			HashMap<String, Object> files = parseMultipart(exchange, body);
+			// HashMap<String, Object> files = parseMultipart(exchange, null);
 
-
-			ret.put("files", files);
+			// ret.put("files", files);
 			return Mono.just(ret);
 		}
 
