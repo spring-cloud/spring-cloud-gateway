@@ -17,10 +17,11 @@
 
 package org.springframework.cloud.gateway.handler.predicate;
 
-import java.util.function.Predicate;
-
 import org.springframework.web.server.ServerWebExchange;
 
+import java.util.function.Predicate;
+
+import static org.springframework.cloud.gateway.handler.predicate.MethodRoutePredicateFactory.METHOD_KEY;
 import static org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory.PATTERN_KEY;
 import static org.springframework.tuple.TupleBuilder.tuple;
 
@@ -45,7 +46,9 @@ public class RoutePredicates {
 		return new HostRoutePredicateFactory().apply(tuple().of(PATTERN_KEY, pattern));
 	}
 
-	//TODO: add support for MethodRoutePredicateFactory
+	public static Predicate<ServerWebExchange> method(String method) {
+		return new MethodRoutePredicateFactory().apply(tuple().of(METHOD_KEY, method));
+	}
 
 	public static Predicate<ServerWebExchange> path(String pattern) {
 		return new PathRoutePredicateFactory().apply(tuple().of(PATTERN_KEY, pattern));
