@@ -48,9 +48,9 @@ public class RemoteAddrRoutePredicateFactory implements RoutePredicateFactory {
 		}
 
 		return exchange -> {
-			Optional<InetSocketAddress> remoteAddress = exchange.getRequest().getRemoteAddress();
-			if (remoteAddress.isPresent()) {
-				String hostAddress = remoteAddress.get().getAddress().getHostAddress();
+			InetSocketAddress remoteAddress = exchange.getRequest().getRemoteAddress();
+			if (remoteAddress != null) {
+				String hostAddress = remoteAddress.getAddress().getHostAddress();
 				String host = exchange.getRequest().getURI().getHost();
 
 				if (!hostAddress.equals(host)) {

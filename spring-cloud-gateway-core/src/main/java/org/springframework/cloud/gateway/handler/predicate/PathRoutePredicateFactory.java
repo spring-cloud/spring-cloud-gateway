@@ -24,8 +24,8 @@ import java.util.function.Predicate;
 
 import org.springframework.tuple.Tuple;
 import org.springframework.web.server.ServerWebExchange;
-import org.springframework.web.util.patterns.PathPattern;
-import org.springframework.web.util.patterns.PathPatternParser;
+import org.springframework.web.util.pattern.PathPattern;
+import org.springframework.web.util.pattern.PathPatternParser;
 
 import static org.springframework.cloud.gateway.handler.support.RoutePredicateFactoryUtils.traceMatch;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.URI_TEMPLATE_VARIABLES_ATTRIBUTE;
