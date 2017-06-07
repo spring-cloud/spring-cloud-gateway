@@ -37,6 +37,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.codec.multipart.Part;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -130,7 +132,7 @@ public class BaseWebClientTests {
 
 		@RequestMapping(value = "/post", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 		public Mono<Map<String, Object>> postFormData(//ServerWebExchange exchange,
-													  // @RequestParam Map<String, Part> parts
+													  @RequestParam Map<String, Part> parts
 											  /*@RequestBody(required = false) String body*/) {
 			HashMap<String, Object> ret = new HashMap<>();
 			// HashMap<String, Object> files = parseMultipart(exchange, null);
@@ -160,6 +162,11 @@ public class BaseWebClientTests {
 				}
 				return Mono.just(ret);
 			});
+		}
+
+		@RequestMapping("/status/{status}")
+		public ResponseEntity<String> status(@PathVariable int status) {
+			return ResponseEntity.status(status).body("Failed with "+status);
 		}
 
 		@Bean

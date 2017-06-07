@@ -76,6 +76,7 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 
 		return this.httpClient.request(method, url, req -> {
 			final HttpClientRequest proxyRequest = req.options(NettyPipeline.SendOptions::flushOnEach)
+					.failOnClientError(false)
 					.headers(httpHeaders);
 
 			if (MediaType.APPLICATION_FORM_URLENCODED.includes(request.getHeaders().getContentType())) {
