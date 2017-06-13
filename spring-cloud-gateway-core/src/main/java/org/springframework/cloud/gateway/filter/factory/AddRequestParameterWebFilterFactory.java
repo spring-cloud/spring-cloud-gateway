@@ -24,6 +24,7 @@ import java.util.List;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.server.reactive.RequestPath;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
 import org.springframework.tuple.Tuple;
@@ -149,8 +150,8 @@ public class AddRequestParameterWebFilterFactory implements WebFilterFactory {
 			}
 
 			@Override
-			public String getContextPath() {
-				return super.getContextPath();
+			public RequestPath getPath() {
+				return super.getPath();
 			}
 
 			@Override
