@@ -24,12 +24,14 @@ import java.util.Objects;
 import javax.validation.constraints.NotNull;
 
 import org.springframework.cloud.gateway.support.NameUtils;
+import org.springframework.validation.annotation.Validated;
 
 import static org.springframework.util.StringUtils.tokenizeToStringArray;
 
 /**
  * @author Spencer Gibb
  */
+@Validated
 public class FilterDefinition {
 	@NotNull
 	private String name;

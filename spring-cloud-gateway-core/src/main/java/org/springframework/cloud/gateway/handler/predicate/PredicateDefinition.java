@@ -25,12 +25,14 @@ import javax.validation.ValidationException;
 import javax.validation.constraints.NotNull;
 
 import org.springframework.cloud.gateway.support.NameUtils;
+import org.springframework.validation.annotation.Validated;
 
 import static org.springframework.util.StringUtils.tokenizeToStringArray;
 
 /**
  * @author Spencer Gibb
  */
+@Validated
 public class PredicateDefinition {
 	@NotNull
 	private String name;

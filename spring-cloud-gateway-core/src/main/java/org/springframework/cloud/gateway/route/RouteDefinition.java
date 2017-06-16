@@ -20,6 +20,7 @@ package org.springframework.cloud.gateway.route;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.springframework.cloud.gateway.filter.FilterDefinition;
 import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
+import org.springframework.validation.annotation.Validated;
 
 import javax.validation.Valid;
 import javax.validation.ValidationException;
@@ -35,6 +36,7 @@ import static org.springframework.util.StringUtils.tokenizeToStringArray;
 /**
  * @author Spencer Gibb
  */
+@Validated
 public class RouteDefinition {
 	@NotEmpty
 	private String id = UUID.randomUUID().toString();
