@@ -1,0 +1,15 @@
+test:
+  hostport: httpbin.org:80
+  uri: lb://testservice
+
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: add_request_parameter_test
+        uri: ${test.uri}
+        predicates:
+        - Host=**.addrequestparameter.org
+        - Path=/get
+        filters:
+        - AddRequestParameter=foo, bar
