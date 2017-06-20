@@ -1,0 +1,16 @@
+spring:
+  cloud:
+    gateway:
+      default-filters:
+      - AddResponseHeader=X-Response-Default-Foo, Default-Bar
+      - PrefixPath=/httpbin
+
+      # TODO: breakup configuration for individual tests (though some are reused)
+      routes:
+      # =====================================
+      - id: redirect_to_test
+        uri: ${test.uri}
+        predicates:
+        - Host=**.redirectto.org
+        filters:
+        - RedirectTo=302, http://example.org

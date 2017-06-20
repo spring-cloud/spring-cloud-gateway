@@ -1,0 +1,11 @@
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: set_path_test
+        uri: ${test.uri}
+        predicates:
+        - Host=**.setpath.org
+        - Path=/foo/{segment}
+        filters:
+        - SetPath=/{segment}

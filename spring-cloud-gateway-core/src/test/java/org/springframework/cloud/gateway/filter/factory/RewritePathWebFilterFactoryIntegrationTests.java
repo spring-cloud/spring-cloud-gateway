@@ -26,6 +26,7 @@ import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.reactive.function.client.ClientResponse;
 
@@ -35,9 +36,15 @@ import static org.springframework.cloud.gateway.test.TestUtils.assertStatus;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+/**
+ * @author Spencer Gibb
+ * @author Biju Kunjummen
+ */
+
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
+@ActiveProfiles("rewrite-path-filter")
 public class RewritePathWebFilterFactoryIntegrationTests extends BaseWebClientTests {
 
 	@Test

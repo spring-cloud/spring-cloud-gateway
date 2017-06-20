@@ -25,6 +25,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.reactive.function.client.ClientResponse;
 
@@ -34,9 +35,15 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+/**
+ * @author Spencer Gibb
+ * @author Biju Kunjummen
+ */
+
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
+@ActiveProfiles("remove-response-header")
 public class RemoveResponseHeaderWebFilterFactoryTests extends BaseWebClientTests {
 
 	@Test

@@ -41,7 +41,6 @@ import reactor.test.StepVerifier;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
-//TODO: why does this break other tests if not in a profile?
 @ActiveProfiles("removenonproxyheaders")
 @DirtiesContext
 public class RemoveNonProxyHeadersWebFilterFactoryTests extends BaseWebClientTests {

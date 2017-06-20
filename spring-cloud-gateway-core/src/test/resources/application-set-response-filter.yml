@@ -1,0 +1,13 @@
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: set_response_header_test
+        uri: ${test.uri}
+        predicates:
+        - Host=**.setreresponseheader.org
+        - Path=/headers
+        filters:
+        - AddResponseHeader=X-Request-Foo, Bar1
+        - AddResponseHeader=X-Request-Foo, Bar2
+        - SetResponseHeader=X-Request-Foo, Bar
