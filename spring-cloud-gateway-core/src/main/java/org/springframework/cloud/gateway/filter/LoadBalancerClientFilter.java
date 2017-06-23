@@ -18,6 +18,7 @@
 package org.springframework.cloud.gateway.filter;
 
 import java.net.URI;
+import java.util.Optional;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -30,7 +31,6 @@ import org.springframework.web.server.WebFilterChain;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.getAttribute;
 
 import reactor.core.publisher.Mono;
 
@@ -55,19 +55,19 @@ public class LoadBalancerClientFilter implements GlobalFilter, Ordered {
 
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
-		URI url = getAttribute(exchange, GATEWAY_REQUEST_URL_ATTR, URI.class);
-		if (url == null || !url.getScheme().equals("lb")) {
+		Optional<URI> url = exchange.getAttribute(GATEWAY_REQUEST_URL_ATTR);
+		if (!url.isPresent() || !url.get().getScheme().equals("lb")) {
 			return chain.filter(exchange);
 		}
-		log.trace("LoadBalancerClientFilter url before: " + url);
+		log.trace("LoadBalancerClientFilter url before: " + url.get());
 
-		final ServiceInstance instance = loadBalancer.choose(url.getHost());
+		final ServiceInstance instance = loadBalancer.choose(url.get().getHost());
 
 		if (instance == null) {
 			throw new NotFoundException("");
 		}
 
-		URI requestUrl = UriComponentsBuilder.fromUri(url)
+		URI requestUrl = UriComponentsBuilder.fromUri(url.get())
 				.scheme(instance.isSecure()? "https" : "http") //TODO: support websockets
 				.host(instance.getHost())
 				.port(instance.getPort())

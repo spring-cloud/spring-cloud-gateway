@@ -90,6 +90,7 @@ import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.scripting.support.ResourceScriptSource;
 import reactor.core.publisher.Flux;
 import reactor.ipc.netty.http.client.HttpClient;
+import reactor.ipc.netty.resources.PoolResources;
 import rx.RxReactiveStreams;
 
 /**
@@ -109,8 +110,8 @@ public class GatewayAutoConfiguration {
 		@ConditionalOnMissingBean
 		public HttpClient httpClient() {
 			return HttpClient.create(opts -> {
-				//opts.poolResources(PoolResources.elastic("proxy"));
-				//opts.disablePool(); //TODO: why do I need this again?
+				opts.poolResources(PoolResources.elastic("proxy"));
+				// opts.disablePool(); //TODO: why do I need this again?
 			});
 		}
 

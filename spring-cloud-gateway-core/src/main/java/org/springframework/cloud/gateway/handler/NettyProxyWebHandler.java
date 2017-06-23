@@ -63,11 +63,11 @@ public class NettyProxyWebHandler implements WebHandler {
 		return this.httpClient.request(method, url, req ->
 				req.options(NettyPipeline.SendOptions::flushOnEach)
 						.headers(httpHeaders)
-						.sendHeaders()
+						.sendHeaders() // I shouldn't have to do this
 						.send(request.getBody()
 								.map(DataBuffer::asByteBuffer)
 								.map(Unpooled::wrappedBuffer)))
-				.flatMap(res -> {
+				.doOnNext(res -> {
 					// Defer committing the response until all route filters have run
 					// Put client response as ServerWebExchange attribute and write response later WriteResponseFilter
 					exchange.getAttributes().put(CLIENT_RESPONSE_ATTR, res);
@@ -79,8 +79,6 @@ public class NettyProxyWebHandler implements WebHandler {
 
 					response.getHeaders().putAll(headers);
 					response.setStatusCode(HttpStatus.valueOf(res.status().code()));
-
-					return Mono.empty();
-				});
+				}).then();
 	}
 }

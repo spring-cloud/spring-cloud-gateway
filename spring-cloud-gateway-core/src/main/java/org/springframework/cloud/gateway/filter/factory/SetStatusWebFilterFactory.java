@@ -56,12 +56,12 @@ public class SetStatusWebFilterFactory implements WebFilterFactory {
 			return chain.filter(exchange);*/
 
 			// option 2 (runs in reverse filter order)
-			return chain.filter(exchange).then(Mono.defer(() -> {
-				// check not really needed, since it is guarded in setStatusCode, but it's a good example
+			return chain.filter(exchange).then(Mono.fromRunnable(() -> {
+				// check not really needed, since it is guarded in setStatusCode,
+				// but it's a good example
 				if (!exchange.getResponse().isCommitted()) {
 					setResponseStatus(exchange, httpStatus);
 				}
-				return Mono.empty();
 			}));
 		};
 	}

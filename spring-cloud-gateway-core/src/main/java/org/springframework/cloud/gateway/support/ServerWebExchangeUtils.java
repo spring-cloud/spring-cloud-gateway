@@ -37,17 +37,6 @@ public class ServerWebExchangeUtils {
 	public static final String GATEWAY_REQUEST_URL_ATTR = "gatewayRequestUrl";
 	public static final String GATEWAY_HANDLER_MAPPER_ATTR = "gatewayHandlerMapper";
 
-	public static <T> T getAttribute(ServerWebExchange exchange, String attributeName, Class<T> type) {
-		if (exchange.getAttributes().containsKey(attributeName)) {
-			Object attr = exchange.getAttributes().get(attributeName);
-			if (type.isAssignableFrom(attr.getClass())) {
-				return type.cast(attr);
-			}
-			throw new ClassCastException(attributeName + " is not of type " + type);
-		}
-		return null;
-	}
-
 	public static boolean setResponseStatus(ServerWebExchange exchange, HttpStatus httpStatus) {
 		boolean response = exchange.getResponse().setStatusCode(httpStatus);
 		if (!response && logger.isWarnEnabled()) {

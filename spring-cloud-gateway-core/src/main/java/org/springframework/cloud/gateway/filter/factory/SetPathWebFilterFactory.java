@@ -19,8 +19,10 @@ package org.springframework.cloud.gateway.filter.factory;
 
 import java.net.URI;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.tuple.Tuple;
@@ -28,7 +30,6 @@ import org.springframework.web.server.WebFilter;
 import org.springframework.web.util.UriTemplate;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.URI_TEMPLATE_VARIABLES_ATTRIBUTE;
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.getAttribute;
 
 /**
  * @author Spencer Gibb
@@ -49,9 +50,9 @@ public class SetPathWebFilterFactory implements WebFilterFactory {
 		UriTemplate uriTemplate = new UriTemplate(template);
 
 		return (exchange, chain) -> {
-			Map<String, String> variables = getAttribute(exchange, URI_TEMPLATE_VARIABLES_ATTRIBUTE, Map.class);
+			Optional<Map<String, String>> variables = exchange.getAttribute(URI_TEMPLATE_VARIABLES_ATTRIBUTE);
 			ServerHttpRequest req = exchange.getRequest();
-			URI uri = uriTemplate.expand(variables);
+			URI uri = uriTemplate.expand(variables.orElseGet(Collections::emptyMap));
 			String newPath = uri.getPath();
 
 			ServerHttpRequest request = req.mutate()

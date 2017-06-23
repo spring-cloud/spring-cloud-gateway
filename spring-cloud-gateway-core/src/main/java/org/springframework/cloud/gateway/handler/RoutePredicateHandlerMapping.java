@@ -50,7 +50,7 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 		exchange.getAttributes().put(GATEWAY_HANDLER_MAPPER_ATTR, getClass().getSimpleName());
 
 		return lookupRoute(exchange)
-				.log("TRACE")
+				.log() //name this
 				.flatMap((Function<Route, Mono<?>>) r -> {
 					if (logger.isDebugEnabled()) {
 						logger.debug("Mapping [" + getExchangeDesc(exchange) + "] to " + r);
@@ -80,6 +80,9 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 	protected Mono<Route> lookupRoute(ServerWebExchange exchange) {
 		return this.routeLocator.getRoutes()
 				.filter(route -> route.getPredicate().test(exchange))
+				// .defaultIfEmpty() put a static Route not found
+				// or .switchIfEmpty()
+				// .switchIfEmpty(Mono.<Route>empty().log("noroute"))
 				.next()
 				//TODO: error handling
 				.map(route -> {

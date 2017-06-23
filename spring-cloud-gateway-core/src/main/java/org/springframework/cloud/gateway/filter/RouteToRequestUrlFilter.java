@@ -18,6 +18,7 @@
 package org.springframework.cloud.gateway.filter;
 
 import java.net.URI;
+import java.util.Optional;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -29,7 +30,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.getAttribute;
 
 import reactor.core.publisher.Mono;
 
@@ -48,13 +48,13 @@ public class RouteToRequestUrlFilter implements GlobalFilter, Ordered {
 
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
-		Route route = getAttribute(exchange, GATEWAY_ROUTE_ATTR, Route.class);
-		if (route == null) {
+		Optional<Route> route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
+		if (!route.isPresent()) {
 			return chain.filter(exchange);
 		}
 		log.info("RouteToRequestUrlFilter start");
 		URI requestUrl = UriComponentsBuilder.fromHttpRequest(exchange.getRequest())
-				.uri(route.getUri())
+				.uri(route.get().getUri())
 				.build(true)
 				.toUri();
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, requestUrl);
