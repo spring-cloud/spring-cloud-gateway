@@ -29,13 +29,16 @@ public class ServerWebExchangeUtils {
 
 	private static final Log logger = LogFactory.getLog(ServerWebExchangeUtils.class);
 
-	public static final String URI_TEMPLATE_VARIABLES_ATTRIBUTE =
-			ServerWebExchangeUtils.class.getName() + ".uriTemplateVariables";
+	public static final String URI_TEMPLATE_VARIABLES_ATTRIBUTE = qualify("uriTemplateVariables");
 
-	public static final String CLIENT_RESPONSE_ATTR = "webHandlerClientResponse";
-	public static final String GATEWAY_ROUTE_ATTR = "gatewayRoute";
-	public static final String GATEWAY_REQUEST_URL_ATTR = "gatewayRequestUrl";
-	public static final String GATEWAY_HANDLER_MAPPER_ATTR = "gatewayHandlerMapper";
+	public static final String CLIENT_RESPONSE_ATTR = qualify("webHandlerClientResponse");
+	public static final String GATEWAY_ROUTE_ATTR = qualify("gatewayRoute");
+	public static final String GATEWAY_REQUEST_URL_ATTR = qualify("gatewayRequestUrl");
+	public static final String GATEWAY_HANDLER_MAPPER_ATTR = qualify("gatewayHandlerMapper");
+
+	private static String qualify(String attr) {
+		return ServerWebExchangeUtils.class.getName() + "." + attr;
+	}
 
 	public static boolean setResponseStatus(ServerWebExchange exchange, HttpStatus httpStatus) {
 		boolean response = exchange.getResponse().setStatusCode(httpStatus);
