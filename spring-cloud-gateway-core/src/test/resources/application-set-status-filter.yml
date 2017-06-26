@@ -1,0 +1,22 @@
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: set_status_int_test
+        uri: ${test.uri}
+        predicates:
+        - Host=**.setstatusint.org
+        - Path=/headers
+        filters:
+        - name: SetStatus
+          args:
+            status: 401
+
+      # =====================================
+      - id: set_status_string_test
+        uri: ${test.uri}
+        predicates:
+        - Host=**.setstatusstring.org
+        - Path=/headers
+        filters:
+        - SetStatus=BAD_REQUEST

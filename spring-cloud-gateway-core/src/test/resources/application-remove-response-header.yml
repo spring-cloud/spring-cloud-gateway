@@ -1,0 +1,12 @@
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: remove_response_header_test
+        uri: ${test.uri}
+        predicates:
+        - Host=**.removereresponseheader.org
+        - Path=/headers
+        filters:
+        - AddResponseHeader=X-Request-Foo, Bar
+        - RemoveResponseHeader=X-Request-Foo

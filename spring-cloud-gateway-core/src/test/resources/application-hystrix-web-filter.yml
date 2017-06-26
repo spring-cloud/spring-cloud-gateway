@@ -1,0 +1,18 @@
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: hystrix_failure_test
+        uri: ${test.uri}
+        predicates:
+        - Host=**.hystrixfailure.org
+        filters:
+        - Hystrix=failcmd
+
+      # =====================================
+      - id: hystrix_success_test
+        uri: ${test.uri}
+        predicates:
+        - Host=**.hystrixsuccess.org
+        filters:
+        - Hystrix=successcmd

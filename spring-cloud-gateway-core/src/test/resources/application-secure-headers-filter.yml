@@ -2,9 +2,10 @@ spring:
   cloud:
     gateway:
       routes:
-      - id: add_request_header_test
+      - id: secure_headers_test
         uri: ${test.uri}
         predicates:
+        - Host=**.secureheaders.org
         - Path=/headers
         filters:
-        - AddRequestHeader=X-Request-Foo, Bar
+        - SecureHeaders
