@@ -17,19 +17,20 @@
 
 package org.springframework.cloud.gateway.sample;
 
-import java.net.URI;
-
-import org.junit.Ignore;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.RequestEntity;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.web.reactive.function.client.ClientResponse;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
+
+import java.time.Duration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -38,28 +39,34 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
  * @author Spencer Gibb
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = RANDOM_PORT)
+@SpringBootTest(classes = GatewaySampleApplication.class, webEnvironment = RANDOM_PORT)
 public class GatewaySampleApplicationTests {
 
 	@LocalServerPort
 	protected int port = 0;
 
-	@Autowired
-	protected TestRestTemplate rest;
+	protected WebClient webClient;
+	protected String baseUri;
 
-	@Test
-	@Ignore
-	public void passthru() {
-		assertThat(rest.getForEntity("/test2", byte[].class).getStatusCode())
-				.isEqualTo(HttpStatus.OK);
+	@Before
+	public void setup() {
+		baseUri = "http://localhost:" + port;
+		this.webClient = WebClient.create(baseUri);
 	}
 
 	@Test
-	@Ignore
-	public void header() throws Exception {
-		assertThat(rest
-				.exchange(RequestEntity.get(new URI("/test"))
-						.header("x-host", "png.abc.org").build(), byte[].class)
-				.getStatusCode()).isEqualTo(HttpStatus.OK);
+	public void contextLoads() {
+		Mono<ClientResponse> result = webClient.get()
+				.uri("/get")
+				.exchange();
+
+		StepVerifier.create(result)
+				.consumeNextWith(
+						response -> {
+							assertThat(response.statusCode()).isEqualTo(HttpStatus.OK);
+							HttpHeaders httpHeaders = response.headers().asHttpHeaders();
+						})
+				.expectComplete()
+				.verify(Duration.ofSeconds(5));
 	}
 }
