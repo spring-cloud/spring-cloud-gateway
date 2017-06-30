@@ -17,55 +17,44 @@
 
 package org.springframework.cloud.gateway.sample;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.SpringBootConfiguration;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.cloud.gateway.EnableGateway;
-import org.springframework.cloud.gateway.route.RouteLocator;
-import org.springframework.cloud.gateway.route.Routes;
-import org.springframework.context.annotation.Bean;
+import java.net.URI;
+import java.util.function.Function;
 
-import static org.springframework.cloud.gateway.filter.factory.WebFilterFactories.addResponseHeader;
-import static org.springframework.cloud.gateway.handler.predicate.RoutePredicates.host;
-import static org.springframework.cloud.gateway.handler.predicate.RoutePredicates.path;
-import static org.springframework.tuple.TupleBuilder.tuple;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.gateway.mvc.ProxyExchange;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * @author Spencer Gibb
+ * @author Dave Syer
  */
-@SpringBootConfiguration
-@EnableAutoConfiguration
-@EnableGateway
+@RestController
+@SpringBootApplication
 public class GatewaySampleApplication {
 
-	@Bean
-	public RouteLocator customRouteLocator(ThrottleWebFilterFactory throttle) {
-		return Routes.locator()
-				.route("test")
-					.uri("http://httpbin.org:80")
-					.predicate(host("**.abc.org").and(path("/image/png")))
-					.addResponseHeader("X-TestHeader", "foobar")
-					.and()
-				.route("test2")
-					.uri("http://httpbin.org:80")
-					.predicate(path("/image/webp"))
-					.add(addResponseHeader("X-AnotherHeader", "baz"))
-					.and()
-				.route("test3")
-					.order(-1)
-					.uri("http://httpbin.org:80")
-					.predicate(host("**.throttle.org").and(path("/get")))
-					.add(throttle.apply(tuple().of("capacity", 1,
-							"refillTokens", 1,
-							"refillPeriod", 10,
-							"refillUnit", "SECONDS")))
-					.and()
-				.build();
+	@Value("${remote.home}")
+	private URI home;
+
+	@GetMapping(path="/test", headers="x-host=png.abc.org")
+	public ResponseEntity<Object> proxy(ProxyExchange<Object> proxy) throws Exception {
+		return proxy.uri(home.toString() + "/image/png")
+				.get(header("X-TestHeader", "foobar"));
 	}
 
-	@Bean
-	public ThrottleWebFilterFactory throttleWebFilterFactory() {
-		return new ThrottleWebFilterFactory();
+	@GetMapping("/test2")
+	public ResponseEntity<Object> proxyFoos(ProxyExchange<Object> proxy) throws Exception {
+		return proxy.uri(home.toString() + "/image/webp").get(header("X-AnotherHeader", "baz"));
+	}
+
+	private Function<ResponseEntity<Object>, ResponseEntity<Object>> header(String key,
+			String value) {
+		return response -> ResponseEntity.status(response.getStatusCode())
+				.headers(response.getHeaders()).header(key, value)
+				.body(response.getBody());
 	}
 
 	public static void main(String[] args) {

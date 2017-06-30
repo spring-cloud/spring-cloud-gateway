@@ -5,7 +5,6 @@
 
 	<groupId>org.springframework.cloud.gateway</groupId>
 	<artifactId>spring-cloud-gateway-sample</artifactId>
-	<version>1.0.0.BUILD-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<name>Spring Cloud Gateway Sample</name>
@@ -17,9 +16,6 @@
 		<version>1.0.0.BUILD-SNAPSHOT</version>
 		<relativePath>..</relativePath> <!-- lookup parent from repository -->
 	</parent>
-
-    <properties>
-    </properties>
 
 	<dependencies>
 		<dependency>
@@ -33,6 +29,11 @@
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-gateway</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.isomorphism</groupId>
+			<artifactId>token-bucket</artifactId>
+			<version>1.7</version>
 		</dependency>
 		<dependency>
 			<groupId>org.isomorphism</groupId>
