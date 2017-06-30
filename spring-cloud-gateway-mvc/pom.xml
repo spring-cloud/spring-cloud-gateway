@@ -7,6 +7,7 @@
     <packaging>jar</packaging>
     <name>spring-cloud-gateway-mvc</name>
     <description>Spring Cloud Gateway MVC</description>
+	<version>2.0.0.BUILD-SNAPSHOT</version>
 
     <parent>
         <groupId>org.springframework.cloud</groupId>
