@@ -5,21 +5,12 @@ image::https://codecov.io/gh/spring-cloud-incubator/spring-cloud-gateway/branch/
 image::https://api.codacy.com/project/badge/Grade/a6885a06921e4f72a0df0b7aabd6d118["Codacy code quality", link="https://www.codacy.com/app/spring-cloud-incubator/spring-cloud-gateway?utm_source=github.com&utm_medium=referral&utm_content=spring-cloud-incubator/spring-cloud-gateway&utm_campaign=Badge_Grade"]
 
 
-This project provides an API Gateway built on top of the Spring Ecosystem, including: Spring 5, Spring Boot 2 and Project Reactor. Spring Cloud Gateway aims to provide a simple, yet effective way to route to APIs and provide cross cutting concerns to them such as: security, monitoring/metrics, and resiliency.
+This project provides a library for building an API Gateway on top of the Spring MVC. Spring Cloud Gateway aims to provide a simple, yet effective way to route to APIs and provide cross cutting concerns to them such as: security, monitoring/metrics, and resiliency.
 
 
 == Features
 
-* Java 8
-* Spring Framework 5
-* Spring Boot 2
-* Dynamic routing
-* Route matching built into Spring Handler Mapping
-* Route matching on HTTP Request (Path, Method, Header, Host, etc...)
-* Filters scoped to Matching Route
-* Filters can modify downstream HTTP Request and HTTP Response (Add/Remove Headers, Add/Remove Parameters, Rewrite Path, Set Path, Hystrix, etc...)
-* API or configuration driven
-* Supports Spring Cloud `DiscoveryClient` for configuring Routes
+* Spring Boot 1.5
 
 == Building
 
