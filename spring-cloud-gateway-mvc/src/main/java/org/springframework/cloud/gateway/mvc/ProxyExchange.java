@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.function.gateway;
+package org.springframework.cloud.gateway.mvc;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

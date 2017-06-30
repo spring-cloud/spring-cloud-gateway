@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.function.web.gateway;
+package org.springframework.cloud.gateway.mvc;
 
 import java.net.URI;
 import java.util.Arrays;
@@ -34,10 +34,10 @@ import org.springframework.boot.context.embedded.LocalServerPort;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.cloud.function.gateway.ProxyExchange;
-import org.springframework.cloud.function.web.gateway.ProductionConfigurationTests.TestApplication;
-import org.springframework.cloud.function.web.gateway.ProductionConfigurationTests.TestApplication.Bar;
-import org.springframework.cloud.function.web.gateway.ProductionConfigurationTests.TestApplication.Foo;
+import org.springframework.cloud.gateway.mvc.ProxyExchange;
+import org.springframework.cloud.gateway.mvc.ProductionConfigurationTests.TestApplication;
+import org.springframework.cloud.gateway.mvc.ProductionConfigurationTests.TestApplication.Bar;
+import org.springframework.cloud.gateway.mvc.ProductionConfigurationTests.TestApplication.Foo;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;

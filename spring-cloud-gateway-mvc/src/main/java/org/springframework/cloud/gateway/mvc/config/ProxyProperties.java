@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.function.gateway.config;
+package org.springframework.cloud.gateway.mvc.config;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.cloud.function.gateway.ProxyExchange;
+import org.springframework.cloud.gateway.mvc.ProxyExchange;
 import org.springframework.http.HttpHeaders;
 
 /**

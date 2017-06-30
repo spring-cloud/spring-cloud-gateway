@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.function.gateway.config;
+package org.springframework.cloud.gateway.mvc.config;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Set;
 
-import org.springframework.cloud.function.gateway.ProxyExchange;
+import org.springframework.cloud.gateway.mvc.ProxyExchange;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.support.WebDataBinderFactory;
