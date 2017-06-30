@@ -14,7 +14,44 @@ include::intro.adoc[]
 [[gateway-starter]]
 == How to Include Spring Cloud Gateway
 
-To include Spring Cloud Gateway in your project use the starter with group `org.springframework.cloud`
-and artifact id `spring-cloud-gateway-mvc`. See the http://projects.spring.io/spring-cloud/[Spring Cloud Project page]
-for details on setting up your build system with the current Spring Cloud Release Train.
+To include Spring Cloud Gateway in your project add a dependency with group `org.springframework.cloud` and artifact id `spring-cloud-gateway-mvc`. See the http://projects.spring.io/spring-cloud/[Spring Cloud Project page] for details on setting up your build system with the current Spring Cloud Release Train.
 
+== Building a Gateway Using Spring MVC
+
+Spring Cloud Gateway provides a utility object called `ProxyExchange` which you can use inside a regular Spring MVC handler as a method parameter. It supports basic downstream HTTP exchanges via methods that mirror the HTTP verbs, or forwarding to a local handler via the `forward()` method.
+
+Example (proxying a request to "/test" downstream to a remote server):
+
+```java
+@RestController
+@SpringBootApplication
+public class GatewaySampleApplication {
+
+	@Value("${remote.home}")
+	private URI home;
+
+	@GetMapping("/test")
+	public ResponseEntity<?> proxy(ProxyExchange<Object> proxy) throws Exception {
+		return proxy.uri(home.toString() + "/image/png").get();
+	}
+
+}
+```
+
+There are convenience methods on the `ProxyExchange` to enable the handler method to discover and enhance the URI path of the incoming request. For example you might want to extract the trailing elements of a path to pass them downstream:
+
+```java
+@GetMapping("/proxy/path/**")
+public ResponseEntity<?> proxyPath(ProxyExchange<?> proxy) throws Exception {
+  String path = proxy.path("/proxy/path/");
+  return proxy.uri(home.toString() + "/foos/" + path).get();
+}
+```
+
+All the features of Spring MVC are available to Gateway handler methods. So you can inject request headers and query parameters, for instance, and you can constrain the incoming requests with declarations in the mapping annotation. See the documentation for `@RequestMapping` in Spring MVC for more details of those features.
+
+Headers can be added to the downstream response using the `header()` methods on `ProxyExchange`.
+
+You can also manipulate response headers (and anything else you like in the response) by adding a mapper to the `get()` etc. method. The mapper is a `Function` that takes the incoming `ResponseEntity` and converts it to an outgoing one.
+
+First class support is provided for "sensitive" headers ("cookie" and "authorization" by default) which are not passed downstream, and for "proxy" headers (`x-forwarded-*`).

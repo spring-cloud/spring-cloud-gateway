@@ -11,6 +11,26 @@ This project provides a library for building an API Gateway on top of the Spring
 == Features
 
 * Spring Boot 1.5
+* Spring MVC `@RestController` method injection of a `ProxyExchange`
+* Build up complex routing and request enhancement using the standard Spring Web toolkit
+
+Example (proxying a request to "/test" downstream to a remote server):
+
+```java
+@RestController
+@SpringBootApplication
+public class GatewaySampleApplication {
+
+	@Value("${remote.home}")
+	private URI home;
+
+	@GetMapping("/test")
+	public ResponseEntity<?> proxy(ProxyExchange<Object> proxy) throws Exception {
+		return proxy.uri(home.toString() + "/image/png").get();
+	}
+
+}
+```
 
 == Building
 
