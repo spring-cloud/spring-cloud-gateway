@@ -1,4 +1,0 @@
-# Auto Configure
-org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-org.springframework.cloud.gateway.config.GatewayAutoConfiguration,\
-org.springframework.cloud.gateway.config.GatewayLoadBalancerClientAutoConfiguration
