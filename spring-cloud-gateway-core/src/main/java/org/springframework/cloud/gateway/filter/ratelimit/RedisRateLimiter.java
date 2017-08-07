@@ -36,6 +36,7 @@ public class RedisRateLimiter implements RateLimiter {
 	 */
 	@Override
 	//TODO: signature? params (tuple?).
+	//TODO: change to Mono<?>
 	public Response isAllowed(String id, int replenishRate, int burstCapacity) {
 
 		try {
