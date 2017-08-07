@@ -91,11 +91,11 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 						.then(chain.filter(exchange));
 			}
 
-			return proxyRequest.sendHeaders()
+			return proxyRequest.sendHeaders() //I shouldn't need this
 					.send(request.getBody()
 							.map(DataBuffer::asByteBuffer)
 							.map(Unpooled::wrappedBuffer));
-		}).flatMap(res -> {
+		}).doOnNext(res -> {
 			ServerHttpResponse response = exchange.getResponse();
 			// put headers and status so filters can modify the response
 			HttpHeaders headers = new HttpHeaders();
@@ -107,7 +107,6 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 			// Defer committing the response until all route filters have run
 			// Put client response as ServerWebExchange attribute and write response later WriteResponseFilter
 			exchange.getAttributes().put(CLIENT_RESPONSE_ATTR, res);
-			return Mono.empty();
 		}).then(chain.filter(exchange));
 	}
 }
