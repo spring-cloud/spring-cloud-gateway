@@ -54,7 +54,6 @@ import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
 import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter;
 import org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiter;
 import org.springframework.cloud.gateway.handler.FilteringWebHandler;
-import org.springframework.cloud.gateway.handler.NettyProxyWebHandler;
 import org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping;
 import org.springframework.cloud.gateway.handler.predicate.AfterRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.BeforeRoutePredicateFactory;
@@ -79,15 +78,15 @@ import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-
-import com.netflix.hystrix.HystrixObservableCommand;
-
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.scripting.support.ResourceScriptSource;
+
+import com.netflix.hystrix.HystrixObservableCommand;
+
 import reactor.core.publisher.Flux;
 import reactor.ipc.netty.http.client.HttpClient;
 import reactor.ipc.netty.resources.PoolResources;
@@ -113,11 +112,6 @@ public class GatewayAutoConfiguration {
 				opts.poolResources(PoolResources.elastic("proxy"));
 				// opts.disablePool(); //TODO: why do I need this again?
 			});
-		}
-
-		@Bean
-		public NettyProxyWebHandler proxyWebHandler(HttpClient httpClient) {
-			return new NettyProxyWebHandler(httpClient);
 		}
 
 		@Bean
