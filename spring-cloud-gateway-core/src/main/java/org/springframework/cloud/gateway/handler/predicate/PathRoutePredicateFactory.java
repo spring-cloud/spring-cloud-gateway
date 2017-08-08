@@ -19,16 +19,18 @@ package org.springframework.cloud.gateway.handler.predicate;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Predicate;
 
+import org.springframework.http.server.reactive.PathContainer;
 import org.springframework.tuple.Tuple;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.pattern.PathPattern;
+import org.springframework.web.util.pattern.PathPattern.PathMatchResult;
 import org.springframework.web.util.pattern.PathPatternParser;
 
 import static org.springframework.cloud.gateway.handler.support.RoutePredicateFactoryUtils.traceMatch;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.URI_TEMPLATE_VARIABLES_ATTRIBUTE;
+import static org.springframework.http.server.reactive.PathContainer.parsePath;
 
 /**
  * @author Spencer Gibb
@@ -55,11 +57,12 @@ public class PathRoutePredicateFactory implements RoutePredicateFactory {
 		}
 
 		return exchange -> {
-			String path = exchange.getRequest().getURI().getPath();
+			PathContainer path = parsePath(exchange.getRequest().getURI().getPath());
+
 			boolean match = pattern.matches(path);
 			traceMatch("Pattern", pattern.getPatternString(), path, match);
 			if (match) {
-				Map<String, String> uriTemplateVariables = pattern.matchAndExtract(path);
+				PathMatchResult uriTemplateVariables = pattern.matchAndExtract(path);
 				exchange.getAttributes().put(URI_TEMPLATE_VARIABLES_ATTRIBUTE, uriTemplateVariables);
 				return true;
 			}

@@ -53,9 +53,9 @@ public class WriteResponseFilter implements GlobalFilter, Ordered {
 		// NOTICE: nothing in "pre" filter stage as CLIENT_RESPONSE_ATTR is not added
 		// until the WebHandler is run
 		return chain.filter(exchange).then(Mono.defer(() -> {
-			Optional<HttpClientResponse> clientResponse = exchange.getAttribute(CLIENT_RESPONSE_ATTR);
+			HttpClientResponse clientResponse = exchange.getAttribute(CLIENT_RESPONSE_ATTR);
 			// HttpClientResponse clientResponse = getAttribute(exchange, CLIENT_RESPONSE_ATTR, HttpClientResponse.class);
-			if (!clientResponse.isPresent()) {
+			if (clientResponse == null) {
 				return Mono.empty();
 			}
 			log.trace("WriteResponseFilter start");
@@ -64,7 +64,7 @@ public class WriteResponseFilter implements GlobalFilter, Ordered {
 			NettyDataBufferFactory factory = (NettyDataBufferFactory) response.bufferFactory();
 			//TODO: what if it's not netty
 
-			final Flux<NettyDataBuffer> body = clientResponse.get().receive()
+			final Flux<NettyDataBuffer> body = clientResponse.receive()
 					.retain() //TODO: needed?
 					.map(factory::wrap);
 

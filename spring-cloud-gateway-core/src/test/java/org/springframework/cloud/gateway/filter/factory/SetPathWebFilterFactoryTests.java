@@ -17,16 +17,21 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
+import java.lang.reflect.Constructor;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Map;
 
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.http.server.reactive.MockServerWebExchange;
+import org.springframework.util.ReflectionUtils;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
+import org.springframework.web.util.pattern.PathPattern;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -62,7 +67,15 @@ public class SetPathWebFilterFactoryTests {
 				.build();
 
 		ServerWebExchange exchange = new MockServerWebExchange(request);
-		exchange.getAttributes().put(URI_TEMPLATE_VARIABLES_ATTRIBUTE, variables);
+
+		try {
+			Constructor<PathPattern.PathMatchResult> constructor = ReflectionUtils.accessibleConstructor(PathPattern.PathMatchResult.class, Map.class, Map.class);
+			constructor.setAccessible(true);
+			PathPattern.PathMatchResult pathMatchResult = constructor.newInstance(variables, Collections.emptyMap());
+			exchange.getAttributes().put(URI_TEMPLATE_VARIABLES_ATTRIBUTE, pathMatchResult);
+		} catch (Exception e) {
+			ReflectionUtils.rethrowRuntimeException(e);
+		}
 
 		WebFilterChain filterChain = mock(WebFilterChain.class);
 

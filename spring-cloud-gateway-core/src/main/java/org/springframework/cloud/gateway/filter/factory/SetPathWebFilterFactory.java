@@ -22,12 +22,12 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.tuple.Tuple;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.util.UriTemplate;
+import org.springframework.web.util.pattern.PathPattern.PathMatchResult;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.URI_TEMPLATE_VARIABLES_ATTRIBUTE;
 
@@ -37,6 +37,7 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.U
 public class SetPathWebFilterFactory implements WebFilterFactory {
 
 	public static final String TEMPLATE_KEY = "template";
+
 
 	@Override
 	public List<String> argNames() {
@@ -50,9 +51,17 @@ public class SetPathWebFilterFactory implements WebFilterFactory {
 		UriTemplate uriTemplate = new UriTemplate(template);
 
 		return (exchange, chain) -> {
-			Optional<Map<String, String>> variables = exchange.getAttribute(URI_TEMPLATE_VARIABLES_ATTRIBUTE);
+			PathMatchResult variables = exchange.getAttribute(URI_TEMPLATE_VARIABLES_ATTRIBUTE);
 			ServerHttpRequest req = exchange.getRequest();
-			URI uri = uriTemplate.expand(variables.orElseGet(Collections::emptyMap));
+			Map<String, String> uriVariables;
+
+			if (variables != null) {
+				uriVariables = variables.getUriVariables();
+			} else {
+				uriVariables = Collections.emptyMap();
+			}
+
+			URI uri = uriTemplate.expand(uriVariables);
 			String newPath = uri.getPath();
 
 			ServerHttpRequest request = req.mutate()

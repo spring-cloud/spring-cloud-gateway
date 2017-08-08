@@ -81,8 +81,8 @@ public class FilteringWebHandler extends WebHandlerDecorator {
 
 	@Override
 	public Mono<Void> handle(ServerWebExchange exchange) {
-		Optional<Route> route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
-		List<WebFilter> webFilters = route.get().getWebFilters();
+		Route route = exchange.getRequiredAttribute(GATEWAY_ROUTE_ATTR);
+		List<WebFilter> webFilters = route.getWebFilters();
 
 		List<WebFilter> combined = new ArrayList<>(this.globalFilters);
 		combined.addAll(webFilters);

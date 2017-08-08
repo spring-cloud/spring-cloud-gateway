@@ -20,7 +20,6 @@ package org.springframework.cloud.gateway.filter;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import org.springframework.core.Ordered;
 import org.springframework.core.io.buffer.DataBuffer;
@@ -61,18 +60,33 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
-		Optional<URI> requestUrl = exchange.getAttribute(GATEWAY_REQUEST_URL_ATTR);
-		if (!requestUrl.isPresent()) {
-			return Mono.error(new IllegalStateException("No URI found in attribute: " + GATEWAY_REQUEST_URL_ATTR));
-		}
+		URI requestUrl = exchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
 
 		ServerHttpRequest request = exchange.getRequest();
 
 		final HttpMethod method = HttpMethod.valueOf(request.getMethod().toString());
-		final String url = requestUrl.get().toString();
+		final String url = requestUrl.toString();
 
 		final DefaultHttpHeaders httpHeaders = new DefaultHttpHeaders();
 		request.getHeaders().forEach(httpHeaders::set);
+
+		if ("WebSocket".equalsIgnoreCase(request.getHeaders().getUpgrade())) {
+			return this.httpClient.ws(url)
+			// .flatMap(res -> {
+			.doOnNext(res -> {
+				ServerHttpResponse response = exchange.getResponse();
+				// put headers and status so filters can modify the response
+				HttpHeaders headers = new HttpHeaders();
+				res.responseHeaders().forEach(entry -> headers.add(entry.getKey(), entry.getValue()));
+
+				response.getHeaders().putAll(headers);
+				response.setStatusCode(HttpStatus.valueOf(res.status().code()));
+
+				// Defer committing the response until all route filters have run
+				// Put client response as ServerWebExchange attribute and write response later WriteResponseFilter
+				exchange.getAttributes().put(CLIENT_RESPONSE_ATTR, res);
+			}).then(chain.filter(exchange));
+		}
 
 		return this.httpClient.request(method, url, req -> {
 			final HttpClientRequest proxyRequest = req.options(NettyPipeline.SendOptions::flushOnEach)
@@ -89,6 +103,8 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 							}
 						}).then())
 						.then(chain.filter(exchange));
+			} else if ("WebSocket".equalsIgnoreCase(request.getHeaders().getUpgrade())) {
+				return proxyRequest.sendWebsocket();
 			}
 
 			return proxyRequest.sendHeaders() //I shouldn't need this

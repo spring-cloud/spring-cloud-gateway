@@ -174,9 +174,9 @@ public class BaseWebClientTests {
 		public GlobalFilter modifyResponseFilter() {
 			return (exchange, chain) -> {
 				log.info("modifyResponseFilter start");
-				String value = (String) exchange.getAttribute(GATEWAY_HANDLER_MAPPER_ATTR).orElse("N/A");
+				String value = exchange.getAttributeOrDefault(GATEWAY_HANDLER_MAPPER_ATTR, "N/A");
 				exchange.getResponse().getHeaders().add(HANDLER_MAPPER_HEADER, value);
-				Route route = (Route) exchange.getAttribute(GATEWAY_ROUTE_ATTR).orElse(null);
+				Route route = exchange.getAttributeOrDefault(GATEWAY_ROUTE_ATTR,null);
 				if (route != null) {
 					exchange.getResponse().getHeaders().add(ROUTE_ID_HEADER, route.getId());
 				}
