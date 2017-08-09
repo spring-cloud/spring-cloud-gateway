@@ -19,7 +19,6 @@ package org.springframework.cloud.gateway.config;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.actuate.endpoint.Endpoint;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
@@ -78,18 +77,12 @@ import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.core.script.DefaultRedisScript;
-import org.springframework.data.redis.core.script.RedisScript;
-import org.springframework.scripting.support.ResourceScriptSource;
+import org.springframework.data.redis.core.ReactiveRedisTemplate;
 
 import com.netflix.hystrix.HystrixObservableCommand;
 
 import reactor.core.publisher.Flux;
 import reactor.ipc.netty.http.client.HttpClient;
-import reactor.ipc.netty.resources.PoolResources;
 import rx.RxReactiveStreams;
 
 /**
@@ -109,8 +102,8 @@ public class GatewayAutoConfiguration {
 		@ConditionalOnMissingBean
 		public HttpClient httpClient() {
 			return HttpClient.create(opts -> {
-				opts.poolResources(PoolResources.elastic("proxy"));
-				// opts.disablePool(); //TODO: why do I need this again?
+				// opts.poolResources(PoolResources.elastic("proxy"));
+				opts.disablePool(); //TODO: why do I need this again?
 			});
 		}
 
@@ -321,20 +314,11 @@ public class GatewayAutoConfiguration {
 	}
 
 
-	@ConditionalOnClass(RedisTemplate.class)
+	@ConditionalOnClass(ReactiveRedisTemplate.class)
 	protected static class GatewayRedisConfiguration {
 		@Bean
-		public RedisScript<List> redistRequestRateLimiterScript() {
-			DefaultRedisScript<List> redisScript = new DefaultRedisScript<>();
-			redisScript.setScriptSource(new ResourceScriptSource(new ClassPathResource("META-INF/scripts/request_rate_limiter.lua")));
-			redisScript.setResultType(List.class);
-			return redisScript;
-		}
-
-		@Bean
-		public RedisRateLimiter redisRateLimiter(StringRedisTemplate redisTemplate,
-												 @Qualifier("redistRequestRateLimiterScript") RedisScript<List> redisScript) {
-			return new RedisRateLimiter(redisTemplate, redisScript);
+		public RedisRateLimiter redisRateLimiter(ReactiveRedisTemplate<Object, Object> redisTemplate) {
+			return new RedisRateLimiter(redisTemplate);
 		}
 	}
 

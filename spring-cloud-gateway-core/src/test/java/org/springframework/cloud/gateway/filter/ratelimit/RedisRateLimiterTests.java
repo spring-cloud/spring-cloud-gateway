@@ -33,7 +33,7 @@ public class RedisRateLimiterTests extends BaseWebClientTests {
 	public void requestRateLimiterWebFilterFactoryWorks() throws Exception {
 		String id = UUID.randomUUID().toString();
 
-		int replenishRate = 10;
+		int replenishRate = 1;//10;
 		int burstCapacity = 2 * replenishRate;
 
 		// Bursts work
