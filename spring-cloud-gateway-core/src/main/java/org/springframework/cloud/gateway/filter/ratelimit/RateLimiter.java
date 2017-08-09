@@ -1,10 +1,12 @@
 package org.springframework.cloud.gateway.filter.ratelimit;
 
+import reactor.core.publisher.Mono;
+
 /**
  * @author Spencer Gibb
  */
 public interface RateLimiter {
-	Response isAllowed(String id, long replenishRate, long burstCapacity);
+	Mono<Response> isAllowed(String id, long replenishRate, long burstCapacity);
 
 	class Response {
 		private final boolean allowed;

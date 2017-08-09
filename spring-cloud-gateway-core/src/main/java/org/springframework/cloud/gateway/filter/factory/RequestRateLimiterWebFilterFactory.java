@@ -17,24 +17,23 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.springframework.beans.BeansException;
 import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
 import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter;
-import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter.Response;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.http.HttpStatus;
 import org.springframework.tuple.Tuple;
 import org.springframework.web.server.WebFilter;
 
-import java.util.Arrays;
-import java.util.List;
-
 /**
- * User Request Rate Limiter filter.
- * See https://stripe.com/blog/rate-limiters and
+ * User Request Rate Limiter filter. See https://stripe.com/blog/rate-limiters and
  */
-public class RequestRateLimiterWebFilterFactory implements WebFilterFactory, ApplicationContextAware {
+public class RequestRateLimiterWebFilterFactory
+		implements WebFilterFactory, ApplicationContextAware {
 
 	public static final String REPLENISH_RATE_KEY = "replenishRate";
 	public static final String BURST_CAPACITY_KEY = "burstCapacity";
@@ -52,10 +51,10 @@ public class RequestRateLimiterWebFilterFactory implements WebFilterFactory, App
 		this.context = context;
 	}
 
-
 	@Override
 	public List<String> argNames() {
-		return Arrays.asList(REPLENISH_RATE_KEY, BURST_CAPACITY_KEY, KEY_RESOLVER_NAME_KEY);
+		return Arrays.asList(REPLENISH_RATE_KEY, BURST_CAPACITY_KEY,
+				KEY_RESOLVER_NAME_KEY);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -70,18 +69,16 @@ public class RequestRateLimiterWebFilterFactory implements WebFilterFactory, App
 		String beanName = args.getString(KEY_RESOLVER_NAME_KEY);
 		KeyResolver keyResolver = this.context.getBean(beanName, KeyResolver.class);
 
-		return (exchange, chain) ->
-			keyResolver.resolve(exchange).flatMap(key -> {
-				Response response = rateLimiter.isAllowed(key, replenishRate, capacity);
-
-				//TODO: set some headers for rate, tokens left
-
-				if (response.isAllowed()) {
-					return chain.filter(exchange);
-				}
-				exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
-				return exchange.getResponse().setComplete();
-			});
+		return (exchange, chain) -> keyResolver.resolve(exchange)
+				.flatMap(key -> rateLimiter.isAllowed(key, replenishRate, capacity)
+						.flatMap(response -> {
+							if (response.isAllowed()) {
+								return chain.filter(exchange);
+							}
+							exchange.getResponse()
+									.setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
+							return exchange.getResponse().setComplete();
+						}));
 	}
 
 }

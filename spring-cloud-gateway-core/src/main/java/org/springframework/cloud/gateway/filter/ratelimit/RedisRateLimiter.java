@@ -5,7 +5,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -41,8 +40,7 @@ public class RedisRateLimiter implements RateLimiter {
 	 */
 	@Override
 	// TODO: signature? params (tuple?).
-	// TODO: change to Mono<?>
-	public Response isAllowed(String id, long replenishRate, long burstCapacity) {
+	public Mono<Response> isAllowed(String id, long replenishRate, long burstCapacity) {
 
 		try {
 			// Make a unique key per user.
@@ -110,7 +108,7 @@ public class RedisRateLimiter implements RateLimiter {
 				}
 
 				return response;
-			}).block();
+			});
 
 		}
 		catch (Exception e) {
@@ -121,6 +119,6 @@ public class RedisRateLimiter implements RateLimiter {
 			 */
 			log.error("Error determining if user allowed from redis", e);
 		}
-		return new Response(true, -1);
+		return Mono.just(new Response(true, -1));
 	}
 }
