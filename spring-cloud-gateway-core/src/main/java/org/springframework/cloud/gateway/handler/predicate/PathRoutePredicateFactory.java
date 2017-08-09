@@ -30,7 +30,7 @@ import org.springframework.web.util.pattern.PathPatternParser;
 
 import static org.springframework.cloud.gateway.handler.support.RoutePredicateFactoryUtils.traceMatch;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.URI_TEMPLATE_VARIABLES_ATTRIBUTE;
-import static org.springframework.http.server.reactive.PathContainer.parsePath;
+import static org.springframework.http.server.reactive.PathContainer.parseUrlPath;
 
 /**
  * @author Spencer Gibb
@@ -57,7 +57,7 @@ public class PathRoutePredicateFactory implements RoutePredicateFactory {
 		}
 
 		return exchange -> {
-			PathContainer path = parsePath(exchange.getRequest().getURI().getPath());
+			PathContainer path = parseUrlPath(exchange.getRequest().getURI().getPath());
 
 			boolean match = pattern.matches(path);
 			traceMatch("Pattern", pattern.getPatternString(), path, match);

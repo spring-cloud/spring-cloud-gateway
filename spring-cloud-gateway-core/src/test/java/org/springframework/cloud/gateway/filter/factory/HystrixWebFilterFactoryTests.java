@@ -69,8 +69,10 @@ public class HystrixWebFilterFactoryTests extends BaseWebClientTests {
 				.exchange();
 
 		StepVerifier.create(result)
-				.expectError() //TODO: can we get more specific as to the error?
-				.verify();
+				.consumeNextWith(
+						response -> assertStatus(response, HttpStatus.INTERNAL_SERVER_ERROR))
+				.expectComplete()
+				.verify(DURATION);
 	}
 
 	@EnableAutoConfiguration
