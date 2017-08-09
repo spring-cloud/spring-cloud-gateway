@@ -31,16 +31,17 @@ public class RedisRateLimiter implements RateLimiter {
 	}
 
 	/**
-	 * This uses a basic token bucket algorithm and relies on the fact that Redis scripts execute atomically.
-	 * No other operations can run between fetching the count and writing the new count.
+	 * This uses a basic token bucket algorithm and relies on the fact that Redis scripts
+	 * execute atomically. No other operations can run between fetching the count and
+	 * writing the new count.
 	 * @param replenishRate
 	 * @param burstCapacity
 	 * @param id
 	 * @return
 	 */
 	@Override
-	//TODO: signature? params (tuple?).
-	//TODO: change to Mono<?>
+	// TODO: signature? params (tuple?).
+	// TODO: change to Mono<?>
 	public Response isAllowed(String id, long replenishRate, long burstCapacity) {
 
 		try {
@@ -55,23 +56,20 @@ public class RedisRateLimiter implements RateLimiter {
 			long now = Instant.now().getEpochSecond();
 			int requested = 1;
 
-			double fillTime = (double)burstCapacity / (double)replenishRate;
-			int ttl = (int)Math.floor(fillTime * 2);
+			double fillTime = (double) burstCapacity / (double) replenishRate;
+			int ttl = (int) Math.floor(fillTime * 2);
 
-			Mono<Boolean> booleanMono = this.redisTemplate.hasKey(key);
-			Boolean hasKey = booleanMono.block();
-
-			Mono<List<Object>> valuesMono;
-			if (hasKey) {
-				valuesMono = this.redisTemplate.opsForHash().multiGet(key, Arrays.asList("tokens", "timestamp"));
-			} else {
-				valuesMono = Mono.just(new ArrayList<>());
-			}
-			Mono<Response> responseMono = valuesMono.map(objects -> {
+			return this.redisTemplate.hasKey(key).flatMap(keyExists -> {
+				if (keyExists) {
+					return this.redisTemplate.opsForHash().multiGet(key,
+							Arrays.asList("tokens", "timestamp"));
+				}
+				return Mono.just(new ArrayList<>());
+			}).map(objects -> {
 				Long lastTokens = null;
 
 				if (objects.size() >= 1) {
-					lastTokens= (Long) objects.get(0);
+					lastTokens = (Long) objects.get(0);
 				}
 				if (lastTokens == null) {
 					lastTokens = burstCapacity;
@@ -86,7 +84,8 @@ public class RedisRateLimiter implements RateLimiter {
 				}
 
 				long delta = Math.max(0, (now - lastRefreshed));
-				long filledTokens = Math.min(burstCapacity, lastTokens + (delta * replenishRate));
+				long filledTokens = Math.min(burstCapacity,
+						lastTokens + (delta * replenishRate));
 				boolean allowed = filledTokens >= requested;
 				long newTokens = filledTokens;
 				if (allowed) {
@@ -96,8 +95,10 @@ public class RedisRateLimiter implements RateLimiter {
 				HashMap<Object, Object> updated = new HashMap<>();
 				updated.put("tokens", newTokens);
 				updated.put("timestamp", now);
-				Mono<Boolean> putAllMono = this.redisTemplate.opsForHash().putAll(key, updated);
-				Mono<Boolean> expireMono = this.redisTemplate.expire(key, Duration.ofSeconds(ttl));
+				Mono<Boolean> putAllMono = this.redisTemplate.opsForHash().putAll(key,
+						updated);
+				Mono<Boolean> expireMono = this.redisTemplate.expire(key,
+						Duration.ofSeconds(ttl));
 
 				Flux<Tuple2<Boolean, Boolean>> zip = Flux.zip(putAllMono, expireMono);
 				Tuple2<Boolean, Boolean> objects1 = zip.blockLast();
@@ -109,14 +110,15 @@ public class RedisRateLimiter implements RateLimiter {
 				}
 
 				return response;
-			});
+			}).block();
 
-			return responseMono.block();
-
-		} catch (Exception e) {
-			/* We don't want a hard dependency on Redis to allow traffic.
-			Make sure to set an alert so you know if this is happening too much.
-			Stripe's observed failure rate is 0.01%. */
+		}
+		catch (Exception e) {
+			/*
+			 * We don't want a hard dependency on Redis to allow traffic. Make sure to set
+			 * an alert so you know if this is happening too much. Stripe's observed
+			 * failure rate is 0.01%.
+			 */
 			log.error("Error determining if user allowed from redis", e);
 		}
 		return new Response(true, -1);
