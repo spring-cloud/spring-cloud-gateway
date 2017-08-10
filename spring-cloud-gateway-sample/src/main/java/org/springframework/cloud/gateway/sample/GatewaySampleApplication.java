@@ -24,6 +24,11 @@ import org.springframework.cloud.gateway.EnableGateway;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.Routes;
 import org.springframework.context.annotation.Bean;
+import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.reactive.function.server.RequestPredicates;
+import org.springframework.web.reactive.function.server.RouterFunction;
+import org.springframework.web.reactive.function.server.RouterFunctions;
+import org.springframework.web.reactive.function.server.ServerResponse;
 
 import static org.springframework.cloud.gateway.filter.factory.WebFilterFactories.addResponseHeader;
 import static org.springframework.cloud.gateway.handler.predicate.RoutePredicates.host;
@@ -66,6 +71,14 @@ public class GatewaySampleApplication {
 	@Bean
 	public ThrottleWebFilterFactory throttleWebFilterFactory() {
 		return new ThrottleWebFilterFactory();
+	}
+
+	@Bean
+	public RouterFunction<ServerResponse> testFunRouterFunction() {
+		RouterFunction<ServerResponse> route = RouterFunctions.route(
+				RequestPredicates.path("/testfun"),
+				request -> ServerResponse.ok().body(BodyInserters.fromObject("hello")));
+		return route;
 	}
 
 	public static void main(String[] args) {
