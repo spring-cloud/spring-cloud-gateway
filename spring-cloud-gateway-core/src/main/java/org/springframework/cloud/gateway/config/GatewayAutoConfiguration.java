@@ -18,6 +18,7 @@
 package org.springframework.cloud.gateway.config;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.actuate.endpoint.Endpoint;
@@ -32,6 +33,7 @@ import org.springframework.cloud.gateway.actuate.GatewayEndpoint;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.NettyRoutingFilter;
 import org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter;
+import org.springframework.cloud.gateway.filter.WebsocketRoutingFilter;
 import org.springframework.cloud.gateway.filter.WriteResponseFilter;
 import org.springframework.cloud.gateway.filter.factory.AddRequestHeaderWebFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.AddRequestParameterWebFilterFactory;
@@ -87,8 +89,13 @@ import org.springframework.scripting.support.ResourceScriptSource;
 
 import com.netflix.hystrix.HystrixObservableCommand;
 
+import org.springframework.web.reactive.socket.client.ReactorNettyWebSocketClient;
+import org.springframework.web.reactive.socket.client.WebSocketClient;
+import org.springframework.web.reactive.socket.server.WebSocketService;
+import org.springframework.web.reactive.socket.server.support.HandshakeWebSocketService;
 import reactor.core.publisher.Flux;
 import reactor.ipc.netty.http.client.HttpClient;
+import reactor.ipc.netty.http.client.HttpClientOptions;
 import reactor.ipc.netty.resources.PoolResources;
 import rx.RxReactiveStreams;
 
@@ -107,16 +114,26 @@ public class GatewayAutoConfiguration {
 	protected static class NettyConfiguration {
 		@Bean
 		@ConditionalOnMissingBean
-		public HttpClient httpClient() {
-			return HttpClient.create(opts -> {
+		public HttpClient httpClient(@Qualifier("nettyClientOptions") Consumer<? super HttpClientOptions.Builder> options) {
+			return HttpClient.create();
+		}
+
+		@Bean
+		public Consumer<? super HttpClientOptions.Builder> nettyClientOptions() {
+			return opts -> {
 				opts.poolResources(PoolResources.elastic("proxy"));
 				// opts.disablePool(); //TODO: why do I need this again?
-			});
+			};
 		}
 
 		@Bean
 		public NettyRoutingFilter routingFilter(HttpClient httpClient) {
 			return new NettyRoutingFilter(httpClient);
+		}
+
+		@Bean
+		public ReactorNettyWebSocketClient reactorNettyWebSocketClient(@Qualifier("nettyClientOptions") Consumer<? super HttpClientOptions.Builder> options) {
+			return new ReactorNettyWebSocketClient(options);
 		}
 	}
 
@@ -179,6 +196,16 @@ public class GatewayAutoConfiguration {
 	@Bean
 	public RouteToRequestUrlFilter routeToRequestUrlFilter() {
 		return new RouteToRequestUrlFilter();
+	}
+
+	@Bean
+	public WebSocketService webSocketService() {
+		return new HandshakeWebSocketService();
+	}
+
+	@Bean
+	public WebsocketRoutingFilter websocketRoutingFilter(WebSocketClient webSocketClient, WebSocketService webSocketService) {
+		return new WebsocketRoutingFilter(webSocketClient, webSocketService);
 	}
 
 	@Bean

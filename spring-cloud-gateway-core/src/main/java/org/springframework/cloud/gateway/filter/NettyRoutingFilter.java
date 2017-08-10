@@ -47,6 +47,8 @@ import reactor.ipc.netty.http.client.HttpClientRequest;
  */
 public class NettyRoutingFilter implements GlobalFilter, Ordered {
 
+	//TODO: investigate using WebClient
+	//The WebSocketRoutingFilter worked out so well without a hard dependency on netty
 	private final HttpClient httpClient;
 
 	public NettyRoutingFilter(HttpClient httpClient) {
@@ -62,6 +64,11 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 	public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
 		URI requestUrl = exchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
 
+		String scheme = requestUrl.getScheme();
+		if (!scheme.equals("http") && !scheme.equals("https)")) {
+			return chain.filter(exchange);
+		}
+
 		ServerHttpRequest request = exchange.getRequest();
 
 		final HttpMethod method = HttpMethod.valueOf(request.getMethod().toString());
@@ -69,24 +76,6 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 
 		final DefaultHttpHeaders httpHeaders = new DefaultHttpHeaders();
 		request.getHeaders().forEach(httpHeaders::set);
-
-		if ("WebSocket".equalsIgnoreCase(request.getHeaders().getUpgrade())) {
-			return this.httpClient.ws(url)
-			// .flatMap(res -> {
-			.doOnNext(res -> {
-				ServerHttpResponse response = exchange.getResponse();
-				// put headers and status so filters can modify the response
-				HttpHeaders headers = new HttpHeaders();
-				res.responseHeaders().forEach(entry -> headers.add(entry.getKey(), entry.getValue()));
-
-				response.getHeaders().putAll(headers);
-				response.setStatusCode(HttpStatus.valueOf(res.status().code()));
-
-				// Defer committing the response until all route filters have run
-				// Put client response as ServerWebExchange attribute and write response later WriteResponseFilter
-				exchange.getAttributes().put(CLIENT_RESPONSE_ATTR, res);
-			}).then(chain.filter(exchange));
-		}
 
 		return this.httpClient.request(method, url, req -> {
 			final HttpClientRequest proxyRequest = req.options(NettyPipeline.SendOptions::flushOnEach)
@@ -103,8 +92,6 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 							}
 						}).then())
 						.then(chain.filter(exchange));
-			} else if ("WebSocket".equalsIgnoreCase(request.getHeaders().getUpgrade())) {
-				return proxyRequest.sendWebsocket();
 			}
 
 			return proxyRequest.sendHeaders() //I shouldn't need this
