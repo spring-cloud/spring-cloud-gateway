@@ -108,7 +108,7 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 			response.setStatusCode(HttpStatus.valueOf(res.status().code()));
 
 			// Defer committing the response until all route filters have run
-			// Put client response as ServerWebExchange attribute and write response later WriteResponseFilter
+			// Put client response as ServerWebExchange attribute and write response later NettyWriteResponseFilter
 			exchange.getAttributes().put(CLIENT_RESPONSE_ATTR, res);
 		}).then(chain.filter(exchange));
 	}

@@ -32,9 +32,11 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.cloud.gateway.actuate.GatewayEndpoint;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.NettyRoutingFilter;
+import org.springframework.cloud.gateway.filter.NettyWriteResponseFilter;
 import org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter;
+import org.springframework.cloud.gateway.filter.WebClientHttpRoutingFilter;
+import org.springframework.cloud.gateway.filter.WebClientWriteResponseFilter;
 import org.springframework.cloud.gateway.filter.WebsocketRoutingFilter;
-import org.springframework.cloud.gateway.filter.WriteResponseFilter;
 import org.springframework.cloud.gateway.filter.factory.AddRequestHeaderWebFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.AddRequestParameterWebFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.AddResponseHeaderWebFilterFactory;
@@ -89,6 +91,7 @@ import org.springframework.scripting.support.ResourceScriptSource;
 
 import com.netflix.hystrix.HystrixObservableCommand;
 
+import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.socket.client.ReactorNettyWebSocketClient;
 import org.springframework.web.reactive.socket.client.WebSocketClient;
 import org.springframework.web.reactive.socket.server.WebSocketService;
@@ -129,6 +132,11 @@ public class GatewayAutoConfiguration {
 		@Bean
 		public NettyRoutingFilter routingFilter(HttpClient httpClient) {
 			return new NettyRoutingFilter(httpClient);
+		}
+
+		@Bean
+		public NettyWriteResponseFilter nettyWriteResponseFilter() {
+			return new NettyWriteResponseFilter();
 		}
 
 		@Bean
@@ -208,10 +216,17 @@ public class GatewayAutoConfiguration {
 		return new WebsocketRoutingFilter(webSocketClient, webSocketService);
 	}
 
-	@Bean
-	public WriteResponseFilter writeResponseFilter() {
-		return new WriteResponseFilter();
+	/*@Bean
+	//TODO: default over netty? configurable
+	public WebClientHttpRoutingFilter webClientHttpRoutingFilter() {
+		//TODO: WebClient bean
+		return new WebClientHttpRoutingFilter(WebClient.builder().build());
 	}
+
+	@Bean
+	public WebClientWriteResponseFilter webClientWriteResponseFilter() {
+		return new WebClientWriteResponseFilter();
+	}*/
 
 	// Predicate Factory beans
 
@@ -365,13 +380,6 @@ public class GatewayAutoConfiguration {
 		}
 	}
 
-	/*@Bean
-	public RouterFunction<ServerResponse> test() {
-		RouterFunction<ServerResponse> route = RouterFunctions.route(
-				RequestPredicates.path("/testfun"),
-				request -> ServerResponse.ok().body(BodyInserters.fromObject("hello")));
-		return route;
-	}*/
 
 	@Configuration
 	@ConditionalOnClass(Endpoint.class)

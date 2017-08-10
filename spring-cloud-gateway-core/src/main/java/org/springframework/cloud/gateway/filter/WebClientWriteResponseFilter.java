@@ -17,29 +17,25 @@
 
 package org.springframework.cloud.gateway.filter;
 
-import java.util.Optional;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.core.Ordered;
-import org.springframework.core.io.buffer.NettyDataBuffer;
-import org.springframework.core.io.buffer.NettyDataBufferFactory;
 import org.springframework.http.server.reactive.ServerHttpResponse;
+import org.springframework.web.reactive.function.BodyExtractors;
+import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilterChain;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.CLIENT_RESPONSE_ATTR;
 
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.ipc.netty.http.client.HttpClientResponse;
 
 /**
  * @author Spencer Gibb
  */
-public class WriteResponseFilter implements GlobalFilter, Ordered {
+public class WebClientWriteResponseFilter implements GlobalFilter, Ordered {
 
-	private static final Log log = LogFactory.getLog(WriteResponseFilter.class);
+	private static final Log log = LogFactory.getLog(WebClientWriteResponseFilter.class);
 
 	public static final int WRITE_RESPONSE_FILTER_ORDER = -1;
 
@@ -53,22 +49,14 @@ public class WriteResponseFilter implements GlobalFilter, Ordered {
 		// NOTICE: nothing in "pre" filter stage as CLIENT_RESPONSE_ATTR is not added
 		// until the WebHandler is run
 		return chain.filter(exchange).then(Mono.defer(() -> {
-			HttpClientResponse clientResponse = exchange.getAttribute(CLIENT_RESPONSE_ATTR);
-			// HttpClientResponse clientResponse = getAttribute(exchange, CLIENT_RESPONSE_ATTR, HttpClientResponse.class);
+			ClientResponse clientResponse = exchange.getAttribute(CLIENT_RESPONSE_ATTR);
 			if (clientResponse == null) {
 				return Mono.empty();
 			}
-			log.trace("WriteResponseFilter start");
+			log.trace("WebClientWriteResponseFilter start");
 			ServerHttpResponse response = exchange.getResponse();
 
-			NettyDataBufferFactory factory = (NettyDataBufferFactory) response.bufferFactory();
-			//TODO: what if it's not netty
-
-			final Flux<NettyDataBuffer> body = clientResponse.receive()
-					.retain() //TODO: needed?
-					.map(factory::wrap);
-
-			return response.writeWith(body);
+			return response.writeWith(clientResponse.body(BodyExtractors.toDataBuffers())).log("webClient response");
 		}));
 	}
 
