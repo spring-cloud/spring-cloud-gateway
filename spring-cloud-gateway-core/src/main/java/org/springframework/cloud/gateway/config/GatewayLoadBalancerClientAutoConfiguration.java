@@ -31,7 +31,6 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 @ConditionalOnClass({LoadBalancerClient.class, RibbonAutoConfiguration.class})
-@ConditionalOnBean(GatewayConfiguration.Marker.class)
 @AutoConfigureAfter(RibbonAutoConfiguration.class)
 public class GatewayLoadBalancerClientAutoConfiguration {
 

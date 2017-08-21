@@ -27,7 +27,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
 import org.springframework.boot.web.server.LocalServerPort;
-import org.springframework.cloud.gateway.EnableGateway;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.netflix.ribbon.RibbonClient;
@@ -84,7 +83,6 @@ public class BaseWebClientTests {
 		@RibbonClient(name = "testservice", configuration = TestRibbonConfig.class),
 		@RibbonClient(name = "myservice", configuration = TestRibbonConfig.class)
 	})
-	@EnableGateway
 	protected static class DefaultTestConfig {
 
 		private static final Log log = LogFactory.getLog(DefaultTestConfig.class);

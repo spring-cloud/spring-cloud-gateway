@@ -20,7 +20,6 @@ package org.springframework.cloud.gateway.sample;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.cloud.gateway.EnableGateway;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.Routes;
 import org.springframework.context.annotation.Bean;
@@ -40,7 +39,6 @@ import static org.springframework.tuple.TupleBuilder.tuple;
  */
 @SpringBootConfiguration
 @EnableAutoConfiguration
-@EnableGateway
 public class GatewaySampleApplication {
 
 	@Bean

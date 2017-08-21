@@ -23,20 +23,18 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.springframework.cloud.gateway.config.GatewayConfiguration;
-import org.springframework.context.annotation.Import;
-
 /**
  * Annotation to activate Spring Cloud Gateway configuration {@link org.springframework.cloud.gateway.config.GatewayAutoConfiguration}
  *
+ * @deprecated taken care of by auto-configuration now. To be removed in future milestone.
  * @author Spencer Gibb
  *
  */
 
+@Deprecated
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@Import(GatewayConfiguration.class)
 public @interface EnableGateway {
 
 }

@@ -34,8 +34,6 @@ import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.NettyRoutingFilter;
 import org.springframework.cloud.gateway.filter.NettyWriteResponseFilter;
 import org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter;
-import org.springframework.cloud.gateway.filter.WebClientHttpRoutingFilter;
-import org.springframework.cloud.gateway.filter.WebClientWriteResponseFilter;
 import org.springframework.cloud.gateway.filter.WebsocketRoutingFilter;
 import org.springframework.cloud.gateway.filter.factory.AddRequestHeaderWebFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.AddRequestParameterWebFilterFactory;
@@ -88,14 +86,13 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.scripting.support.ResourceScriptSource;
-
-import com.netflix.hystrix.HystrixObservableCommand;
-
-import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.socket.client.ReactorNettyWebSocketClient;
 import org.springframework.web.reactive.socket.client.WebSocketClient;
 import org.springframework.web.reactive.socket.server.WebSocketService;
 import org.springframework.web.reactive.socket.server.support.HandshakeWebSocketService;
+
+import com.netflix.hystrix.HystrixObservableCommand;
+
 import reactor.core.publisher.Flux;
 import reactor.ipc.netty.http.client.HttpClient;
 import reactor.ipc.netty.http.client.HttpClientOptions;
@@ -106,7 +103,6 @@ import rx.RxReactiveStreams;
  * @author Spencer Gibb
  */
 @Configuration
-@ConditionalOnBean(GatewayConfiguration.Marker.class)
 @EnableConfigurationProperties
 @AutoConfigureBefore(HttpHandlerAutoConfiguration.class)
 @AutoConfigureAfter(GatewayLoadBalancerClientAutoConfiguration.class)
