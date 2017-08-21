@@ -49,6 +49,7 @@ public class SecureHeadersWebFilterFactory implements WebFilterFactory {
 		return (exchange, chain) -> {
 			HttpHeaders headers = exchange.getResponse().getHeaders();
 
+			//TODO: allow header to be disabled
 			headers.add(X_XSS_PROTECTION_HEADER, properties.getXssProtectionHeader());
 			headers.add(STRICT_TRANSPORT_SECURITY_HEADER, properties.getStrictTransportSecurity());
 			headers.add(X_FRAME_OPTIONS_HEADER, properties.getFrameOptions());
