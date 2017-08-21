@@ -35,13 +35,61 @@ TODO: give an overview of how the gateway works with maybe a ascii diagram
 Spring Cloud Gateway matches routes as part of the Spring WebFlux `HandlerMapping` infrastructure. Spring Cloud Gateway includes many built-in Route Predicate Factorys. All of these predicates match on different attributes of the HTTP request. Multiple Route Predicate Factorys can be combined and are combined via logical `and`.
 
 === After Route Predicate Factory
-TODO: document After Route Predicate Factory
+The After Route Predicate Factory takes one parameter, a datetime. This predicate matches requests that happen after the current datetime.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      # =====================================
+      - id: after_route
+        uri: http://example.org
+        predicates:
+        - After=2017-01-20T17:42:47.789-07:00[America/Denver]
+----
+
+This route matches any request after Jan 20, 2017 17:42 Mountain Time (Denver).
 
 === Before Route Predicate Factory
-TODO: document Before Route Predicate Factory
+The Before Route Predicate Factory takes one parameter, a datetime. This predicate matches requests that happen before the current datetime.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      # =====================================
+      - id: before_route
+        uri: http://example.org
+        predicates:
+        - Before=2017-01-20T17:42:47.789-07:00[America/Denver]
+----
+
+This route matches any request before Jan 20, 2017 17:42 Mountain Time (Denver).
 
 === Between Route Predicate Factory
-TODO: document Between Route Predicate Factory
+The Between Route Predicate Factory takes two parameters, datetime1 and datetime2. This predicate matches requests that happen after datetime1 and before datetime2. The datetime2 parameter must be after datetime1.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      # =====================================
+      - id: between_route
+        uri: http://example.org
+        predicates:
+        - Betweeen=2017-01-20T17:42:47.789-07:00[America/Denver], 2017-01-21T17:42:47.789-07:00[America/Denver]
+----
+
+This route matches any request after Jan 20, 2017 17:42 Mountain Time (Denver) and before Jan 21, 2017 17:42 Mountain Time (Denver). This could be useful for maintenance windows.
 
 === Cookie Route Predicate Factory
 The Cookie Route Predicate Factory takes two parameters, the cookie name and a regular expression. This predicate matches cookies that have the given name and the value matches the regular expression.
@@ -142,10 +190,59 @@ This route would match if the request path was, for example: `/foo/1` or `/foo/b
 This predicate extracts the URI template variables (like `segment` defined in the example above) as a map of names and values and places it in the `ServerWebExchange.getAttributes()` with a key defined in `PathRoutePredicate.URL_PREDICATE_VARS_ATTR`. Those values are then available for use by <<gateway-route-filters,WebFilter Factorys>>
 
 === Query Route Predicate Factory
-TODO: document Query Route Predicate Factory
+The Query Route Predicate Factory takes two parameters: a required `param` and an optional `regexp`.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      # =====================================
+      - id: query_route
+        uri: http://example.org
+        predicates:
+        - Query=baz
+----
+
+This route would match if the request contained a `baz` query parameter.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      # =====================================
+      - id: query_route
+        uri: http://example.org
+        predicates:
+        - Query=foo, ba.
+----
+
+This route would match if the request contained a `foo` query parameter whose value matched the `ba.` regexp, so `bar` and `baz` would match.
+
 
 === RemoteAddr Route Predicate Factory
-TODO: document RemoteAddr Route Predicate Factory
+The RemoteAddr Route Predicate Factory takes a list (min size 1) of CIDR-notation strings, e.g. `192.168.0.1/16` (where `192.168.0.1` is an IP address and `16` is a subnet mask.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      # =====================================
+      - id: remoteaddr_route
+        uri: http://example.org
+        predicates:
+        - RemoteAddr=192.168.1.1/24
+----
+
+This route would match if the remote address of the request was, for example, `192.168.1.10`.
 
 [[gateway-route-filters]]
 == WebFilter Factorys
@@ -153,46 +250,264 @@ TODO: document RemoteAddr Route Predicate Factory
 Route filters allow the modification of the incoming HTTP request or outgoing HTTP response in some manner. Route filters are scoped to a particular route. Spring Cloud Gateway includes many built-in WebFilter Factories.
 
 === AddRequestHeader WebFilter Factory
-TODO: document AddRequestHeader WebFilter Factory
+The AddRequestHeader WebFilter Factory takes a name and value parameter.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      # =====================================
+      - id: add_request_header_route
+        uri: http://example.org
+        filters:
+        - AddRequestHeader=X-Request-Foo, Bar
+----
+
+This will add `X-Request-Foo:Bar` header to the downstream request's headers for all matching requests.
 
 === AddRequestParameter WebFilter Factory
-TODO: document AddRequestParameter WebFilter Factory
+The AddRequestParameter WebFilter Factory takes a name and value parameter.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      # =====================================
+      - id: add_request_parameter_route
+        uri: http://example.org
+        filters:
+        - AddRequestParameter=foo, bar
+----
+
+This will add `foo=bar` to the downstream request's query string for all matching requests.
 
 === AddResponseHeader WebFilter Factory
-TODO: document AddResponseHeader WebFilter Factory
+The AddResponseHeader WebFilter Factory takes a name and value parameter.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      # =====================================
+      - id: add_request_header_route
+        uri: http://example.org
+        filters:
+        - AddResponseHeader=X-Response-Foo, Bar
+----
+
+This will add `X-Response-Foo:Bar` header to the downstream response's headers for all matching requests.
 
 === Hystrix WebFilter Factory
 TODO: document Hystrix WebFilter Factory
 
 === PrefixPath WebFilter Factory
-TODO: document PrefixPath WebFilter Factory
+The PrefixPath WebFilter Factory takes a single `prefix` parameter.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      # =====================================
+      - id: prefixpath_route
+        uri: http://example.org
+        filters:
+        - PrefixPath=/mypath
+----
+
+This will prefix `/mypath` to the path of all matching requests. So a request to `/hello`, would be sent to `/mypath/hello`.
 
 === RedirectTo WebFilter Factory
-TODO: document RedirectTo WebFilter Factory
+The RedirectTo WebFilter Factory takes a `status` and a `url` parameter. The status should be a 300 series redirect http code, such as 301. The url should be a valid url. This will be the value of the `Location` header.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      # =====================================
+      - id: prefixpath_route
+        uri: http://example.org
+        filters:
+        - RedirectTo=302, http://acme.org
+----
+
+This will send a status 302 with a `Location:http://acme.org` header to perform a redirect.
 
 === RemoveNonProxyHeaders WebFilter Factory
-TODO: document RemoveNonProxyHeaders WebFilter Factory
+The RemoveNonProxyHeaders WebFilter Factory removes headers from forwarded requests. The default list of headers that is removed comes from the https://tools.ietf.org/html/draft-ietf-httpbis-p1-messaging-14#section-7.1.3[IETF].
+
+.The default removed headers are:
+ *  Connection
+ *  Keep-Alive
+ *  Proxy-Authenticate
+ *  Proxy-Authorization
+ *  TE
+ *  Trailer
+ *  Transfer-Encoding
+ *  Upgrade
+
+To change this, set the `spring.cloud.gateway.filter.remove-non-proxy-headers.headers` property to the list of header names to remove.
 
 === RemoveRequestHeader WebFilter Factory
-TODO: document RemoveRequestHeader WebFilter Factory
+The RemoveRequestHeader WebFilter Factory takes a `name` parameter. It is the name of the header to be removed.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      # =====================================
+      - id: removerequestheader_route
+        uri: http://example.org
+        filters:
+        - RemoveRequestHeader=X-Request-Foo
+----
+
+This will remove the `X-Request-Foo` header before it is sent downstream.
 
 === RemoveResponseHeader WebFilter Factory
-TODO: document RemoveResponseHeader WebFilter Factory
+The RemoveResponseHeader WebFilter Factory takes a `name` parameter. It is the name of the header to be removed.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      # =====================================
+      - id: removeresponseheader_route
+        uri: http://example.org
+        filters:
+        - RemoveResponseHeader=X-Response-Foo
+----
+
+This will remove the `X-Response-Foo` header from the response before it is returned to the gateway client.
 
 === RewritePath WebFilter Factory
-TODO: document RewritePath WebFilter Factory
+The RewritePath WebFilter Factory takes a path `regexp` parameter and a `replacement` parameter. This uses Java regular expressions for a flexible way to rewrite the request path.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      # =====================================
+      - id: rewritepath_route
+        uri: http://example.org
+        - Path=/foo/**
+        filters:
+        - RewritePath=/foo/(?<segment>.*), /$\{segment}
+----
+
+For a request path of `/foo/bar`, this will set the path to `/bar` before making the downstream request. Notice the `$\` which is replaced with `$` because of the YAML spec.
 
 === SecureHeaders WebFilter Factory
-TODO: document SecureHeaders WebFilter Factory
+The SecureHeaders WebFilter Factory adds a number of headers to the response at the reccomendation from https://blog.appcanary.com/2017/http-security-headers.html[this blog post].
+
+.The following headers are added (allong with default values):
+ * `X-Xss-Protection:1; mode=block`
+ * `Strict-Transport-Security:max-age=631138519`
+ * `X-Frame-Options:DENY`
+ * `X-Content-Type-Options:nosniff`
+ * `Referrer-Policy:no-referrer`
+ * `Content-Security-Policy:default-src 'self' https:; font-src 'self' https: data:; img-src 'self' https: data:; object-src 'none'; script-src https:; style-src 'self' https: 'unsafe-inline'`
+ * `X-Download-Options:noopen`
+ * `X-Permitted-Cross-Domain-Policies:none`
+
+To change the default values set the appropriate property in the `spring.cloud.gateway.filter.secure-headers` namespace:
+
+.Property to change:
+ * `xss-protection-header`
+ * `strict-transport-security`
+ * `frame-options`
+ * `content-type-options`
+ * `referrer-policy`
+ * `content-security-policy`
+ * `download-options`
+ * `permitted-cross-domain-policies`
+
 
 === SetPath WebFilter Factory
-TODO: document SetPath WebFilter Factory
+The SetPath WebFilter Factory takes a path `template` parameter. It offers a simple way to manipulate the request path by allowing templated segments of the path. This uses the uri templates from Spring Framework. Multiple matching segments are allowed.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      # =====================================
+      - id: setpath_route
+        uri: http://example.org
+        predicates:
+        - Path=/foo/{segment}
+        filters:
+        - SetPath=/{segment}
+----
+
+For a request path of `/foo/bar`, this will set the path to `/bar` before making the downstream request.
 
 === SetResponseHeader WebFilter Factory
-TODO: document SetResponseHeader WebFilter Factory
+The SetResponseHeader WebFilter Factory takes `name` and `value` parameters.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      # =====================================
+      - id: setresponseheader_route
+        uri: http://example.org
+        filters:
+        - SetResponseHeader=X-Response-Foo, Bar
+----
+
+This WebFilter replaces all headers with the given name, rather than adding. So if the downstream server responded with a `X-Response-Foo:1234`, this would be replaced with `X-Response-Foo:Bar`, which is what the gateway client would receive.
 
 === SetStatus WebFilter Factory
-TODO: document SetStatus WebFilter Factory
+The SetStatus WebFilter Factory takes a single `status` parameter. It must be a valid Spring `HttpStatus`. It may be the integer value `404` or the string representation of the enumeration `NOT_FOUND`.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      # =====================================
+      - id: setstatusstring_route
+        uri: http://example.org
+        filters:
+        - SetStatus=BAD_REQUEST
+      - id: setstatusint_route
+        uri: http://example.org
+        filters:
+        - SetStatus=401
+----
+
+In either case, the HTTP status of the response will be set to 401.
 
 == Global Filters
 
