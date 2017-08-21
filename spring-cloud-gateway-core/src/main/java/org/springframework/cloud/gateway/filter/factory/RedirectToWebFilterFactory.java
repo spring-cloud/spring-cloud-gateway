@@ -27,6 +27,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.tuple.Tuple;
+import org.springframework.util.Assert;
 import org.springframework.web.server.WebFilter;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.parse;
@@ -53,6 +54,7 @@ public class RedirectToWebFilterFactory implements WebFilterFactory {
 		String urlString = args.getString(URL_KEY);
 
 		final HttpStatus httpStatus = parse(statusString);
+		Assert.isTrue(httpStatus.is3xxRedirection(), "status must be a 3xx code, but was " + statusString);
 		final URL url;
 		try {
 			url = URI.create(urlString).toURL();
