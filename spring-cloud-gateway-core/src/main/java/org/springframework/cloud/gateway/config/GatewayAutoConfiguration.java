@@ -362,7 +362,7 @@ public class GatewayAutoConfiguration {
 	@ConditionalOnClass(RedisTemplate.class)
 	protected static class GatewayRedisConfiguration {
 		@Bean
-		public RedisScript<List> redistRequestRateLimiterScript() {
+		public RedisScript<List> redisRequestRateLimiterScript() {
 			DefaultRedisScript<List> redisScript = new DefaultRedisScript<>();
 			redisScript.setScriptSource(new ResourceScriptSource(new ClassPathResource("META-INF/scripts/request_rate_limiter.lua")));
 			redisScript.setResultType(List.class);
@@ -371,7 +371,7 @@ public class GatewayAutoConfiguration {
 
 		@Bean
 		public RedisRateLimiter redisRateLimiter(StringRedisTemplate redisTemplate,
-												 @Qualifier("redistRequestRateLimiterScript") RedisScript<List> redisScript) {
+												 @Qualifier("redisRequestRateLimiterScript") RedisScript<List> redisScript) {
 			return new RedisRateLimiter(redisTemplate, redisScript);
 		}
 	}
