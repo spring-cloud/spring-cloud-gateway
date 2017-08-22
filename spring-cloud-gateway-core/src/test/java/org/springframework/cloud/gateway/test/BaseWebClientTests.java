@@ -22,7 +22,6 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -38,6 +37,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.http.codec.multipart.Part;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -54,8 +54,6 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.G
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
 
 import reactor.core.publisher.Mono;
-import reactor.ipc.netty.http.client.HttpClientOptions;
-import reactor.ipc.netty.resources.PoolResources;
 
 /**
  * @author Spencer Gibb
@@ -76,7 +74,9 @@ public class BaseWebClientTests {
 	public void setup() {
 		//TODO: how to set new ReactorClientHttpConnector()
 		baseUri = "http://localhost:" + port;
-		this.webClient = WebClient.create(baseUri);
+		this.webClient = WebClient.builder()
+				.clientConnector(new ReactorClientHttpConnector(opts -> opts.disablePool()))
+				.baseUrl(baseUri).build();
 	}
 
 	@RestController
@@ -168,14 +168,6 @@ public class BaseWebClientTests {
 		@RequestMapping("/status/{status}")
 		public ResponseEntity<String> status(@PathVariable int status) {
 			return ResponseEntity.status(status).body("Failed with "+status);
-		}
-
-		@Bean
-		public Consumer<? super HttpClientOptions.Builder> nettyClientOptions() {
-			return opts -> {
-				opts.poolResources(PoolResources.elastic("proxy"));
-				opts.disablePool();
-			};
 		}
 
 		@Bean
