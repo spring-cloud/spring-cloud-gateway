@@ -515,7 +515,41 @@ TODO: document Global Filters
 
 == Configuration
 
-TODO: document configuration via Spring Boot external properties
+Configuration for Spring Cloud Gateway is driven by a collection of `RouteDefinitionLocator`s.
+
+.RouteDefinitionLocator.java
+[source,java]
+----
+public interface RouteDefinitionLocator {
+	Flux<RouteDefinition> getRouteDefinitions();
+}
+----
+
+By default, a `PropertiesRouteDefinitionLocator` loads properties using Spring Boot's `@ConfigurationProperties` mechanism.
+
+The configuration examples above all use a shortcut notation that uses positional arguments rather than named ones. The two examples below are equivalent:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      # =====================================
+      - id: setstatus_route
+        uri: http://example.org
+        filters:
+        - name: SetStatus
+          args:
+            status: 401
+      - id: setstatusshortcut_route
+        uri: http://example.org
+        filters:
+        - SetStatus=401
+----
+
+For some usages of the gateway, properties will be adequate, but some production use cases will benefit from loading configuration from an external source, such as a database. Future milestone versions will have `RouteDefinitionLocator` implementations based off of Spring Data Repositories such as: Redis, MongoDB and Cassandra.
 
 == Actuator API
 
