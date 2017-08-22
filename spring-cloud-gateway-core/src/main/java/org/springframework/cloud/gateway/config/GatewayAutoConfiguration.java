@@ -114,7 +114,7 @@ public class GatewayAutoConfiguration {
 		@Bean
 		@ConditionalOnMissingBean
 		public HttpClient httpClient(@Qualifier("nettyClientOptions") Consumer<? super HttpClientOptions.Builder> options) {
-			return HttpClient.create();
+			return HttpClient.create(options);
 		}
 
 		@Bean
