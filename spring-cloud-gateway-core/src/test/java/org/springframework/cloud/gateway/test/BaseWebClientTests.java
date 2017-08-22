@@ -22,6 +22,7 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -53,6 +54,8 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.G
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
 
 import reactor.core.publisher.Mono;
+import reactor.ipc.netty.http.client.HttpClientOptions;
+import reactor.ipc.netty.resources.PoolResources;
 
 /**
  * @author Spencer Gibb
@@ -165,6 +168,14 @@ public class BaseWebClientTests {
 		@RequestMapping("/status/{status}")
 		public ResponseEntity<String> status(@PathVariable int status) {
 			return ResponseEntity.status(status).body("Failed with "+status);
+		}
+
+		@Bean
+		public Consumer<? super HttpClientOptions.Builder> nettyClientOptions() {
+			return opts -> {
+				opts.poolResources(PoolResources.elastic("proxy"));
+				opts.disablePool();
+			};
 		}
 
 		@Bean
