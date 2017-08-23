@@ -16,7 +16,7 @@ gems:
 ### The following properties will change on a project-by-project basis
 
 # Context path in the remote website (usually /<project>), will be prepended to absolute URLs for static resources
-baseurl: /gh-pages
+baseurl: /spring-cloud-gateway
 
 # Name of the project for display in places like page titles
 name: Spring Cloud Gateway
