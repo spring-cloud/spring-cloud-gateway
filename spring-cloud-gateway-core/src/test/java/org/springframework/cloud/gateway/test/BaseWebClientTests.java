@@ -37,7 +37,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.http.codec.multipart.Part;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -74,9 +73,7 @@ public class BaseWebClientTests {
 	public void setup() {
 		//TODO: how to set new ReactorClientHttpConnector()
 		baseUri = "http://localhost:" + port;
-		this.webClient = WebClient.builder()
-				.clientConnector(new ReactorClientHttpConnector(opts -> opts.disablePool()))
-				.baseUrl(baseUri).build();
+		this.webClient = WebClient.create(baseUri);
 	}
 
 	@RestController
