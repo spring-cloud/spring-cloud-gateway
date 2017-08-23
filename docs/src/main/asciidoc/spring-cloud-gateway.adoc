@@ -1,5 +1,5 @@
 :github-tag: master
-:github-repo: spring-cloud-incubator/spring-cloud-gateway
+:github-repo: spring-cloud/spring-cloud-gateway
 :github-raw: https://raw.githubusercontent.com/{github-repo}/{github-tag}
 :github-code: https://github.com/{github-repo}/tree/{github-tag}
 :all: {asterisk}{asterisk}
