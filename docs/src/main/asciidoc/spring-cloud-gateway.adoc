@@ -18,11 +18,13 @@ To include Spring Cloud Gateway in your project use the starter with group `org.
 and artifact id `spring-cloud-starter-gateway`. See the http://projects.spring.io/spring-cloud/[Spring Cloud Project page]
 for details on setting up your build system with the current Spring Cloud Release Train.
 
-Include the `@EnableGateway` annotation on any `@Configuration` class to enable Spring Cloud Gateway.
+If you include the starter, but, for some reason, you do not want the gateway to be enabled, set `spring.cloud.gateway.enabled=false`.
 
 == Glossary
 
-TODO: document the meaning of terms to follow, like Route, Predicate and Filter
+* Route: Route the basic building block of the gateway. It is defined by an ID, a destination URI, a collection of predicates and a collection of filters. A route is matched if aggregate predicate is true.
+* Predicate: This is a http://docs.oracle.com/javase/8/docs/api/java/util/function/Predicate.html[Java 8 Function Predicate]. The input type is a http://docs.spring.io/spring/docs/5.0.x/javadoc-api/org/springframework/web/server/ServerWebExchange.html[Spring Framework `ServerWebExchange`]. This allows developers to match on anything from the HTTP request, such as headers or parameters.
+* Filter: These are instances http://docs.spring.io/spring/docs/5.0.x/javadoc-api/org/springframework/web/server/WebFilter.html[Spring Framework `WebFilter`] constructed in with a specific factory. Here, requests and responses can be modified before or after sending the downstream request.
 
 [[gateway-how-it-works]]
 == How It Works
@@ -307,7 +309,23 @@ spring:
 This will add `X-Response-Foo:Bar` header to the downstream response's headers for all matching requests.
 
 === Hystrix WebFilter Factory
-TODO: document Hystrix WebFilter Factory
+The Hystrix WebFilter Factory takes a single `name` parameters, which is the name of the `HystrixCommand`. (More options might be added in future releases).
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      # =====================================
+      - id: hytstrix_route
+        uri: http://example.org
+        filters:
+        - Hystrix=myCommandName
+----
+
+This wraps the remaining filters in a `HystrixCommand` with command name `myCommandName`.
 
 === PrefixPath WebFilter Factory
 The PrefixPath WebFilter Factory takes a single `prefix` parameter.
@@ -327,6 +345,54 @@ spring:
 ----
 
 This will prefix `/mypath` to the path of all matching requests. So a request to `/hello`, would be sent to `/mypath/hello`.
+
+=== RequestRateLimiter WebFilter Factory
+
+The RequestRateLimiter WebFilter Factory takes three parameters: `replenishRate`, `burstCapacity` & `keyResolverName`.
+
+`replenishRate` is how many requests per second do you want a user to be allowed to do.
+
+`burstCapacity` TODO: document burst capacity
+
+`keyResolverName` is the name of a bean that implements the `KeyResolver` interface.
+
+.KeyResolver.java
+[source,java]
+----
+public interface KeyResolver {
+	Mono<String> resolve(ServerWebExchange exchange);
+}
+----
+
+The `KeyResolver` interface allows pluggable strategies to derive the key for limiting requests. In future milestones, there will be some `KeyResolver` implementations.
+
+The redis implementation is based off of work done at https://stripe.com/blog/rate-limiters[Stripe]. It requires the use of the `spring-boot-starter-data-redis-reactive` Spring Boot starter.
+
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      # =====================================
+      - id: requestratelimiter_route
+        uri: http://example.org
+        filters:
+        - RequestRateLimiter=10, 20, userKeyResolver
+----
+
+.Config.java
+[source,java]
+----
+@Bean
+KeyResolver userKeyResolver() {
+    return exchange -> Mono.just(exchange.getRequest().getQueryParams().getFirst("user"));
+}
+----
+
+This defines a request rate limit of 10 per user. The `KeyResolver` is a simple one that gets the `user` request parameter (note: this is not recommended for production).
 
 === RedirectTo WebFilter Factory
 The RedirectTo WebFilter Factory takes a `status` and a `url` parameter. The status should be a 300 series redirect http code, such as 301. The url should be a valid url. This will be the value of the `Location` header.
@@ -511,7 +577,27 @@ In either case, the HTTP status of the response will be set to 401.
 
 == Global Filters
 
-TODO: document Global Filters
+The `GlobalFilter` interface has the same signature as `WebFilter`. These are special filters that are conditionally applied to all routes. (This interface and usage are subject to change in future milestones).
+
+=== LoadBalancerClient Filter
+
+The `LoadBalancerClientFilter` looks for a URI in the exchange attribute `ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR`. If the url has a `lb` scheme (ie `lb://myservice`), it will use the Spring Cloud `LoadBalancerClient` to resolve the name (`myservice` in the previous example) to an actual host and port and replace the URI in the same attribute. The unmodified original url is placed in the `ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR` attribute.
+
+=== Netty Routing Filter
+
+The Netty Routing Filter runs if the url located in the `ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR` exchange attribute has a `http` or `https` scheme. It uses the Netty `HttpClient` to make the downstream proxy request. The response is put in the `ServerWebExchangeUtils.CLIENT_RESPONSE_ATTR` exchange attribute for use in a later filter. (There is an experimental `WebClientHttpRoutingFilter` that performs the same function, but does not require netty)
+
+=== Netty Write Response Filter
+
+The `NettyWriteResponseFilter` runs if there is a Netty `HttpClientResponse` in the `ServerWebExchangeUtils.CLIENT_RESPONSE_ATTR` exchange attribute. It is run after all other filters have completed and writes the proxy response back to the gateway client response. (There is an experimental `WebClientWriteResponseFilter` that performs the same function, but does not require netty)
+
+=== RouteToRequestUrl Filter
+
+The `RouteToRequestUrlFilter` runs if there is a `Route` object in the `ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR` exchange attribute. It creates a new URI, based off of the request URI, but updated with the URI attribute of the `Route` object. The new URI is placed in the ``ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR` exchange attribute`.
+
+=== Websocket Routing Filter
+
+The Websocket Routing Filter runs if the url located in the `ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR` exchange attribute has a `ws` or `wss` scheme. It uses the Spring Web Socket infrastructure to forward the Websocket request downstream.
 
 == Configuration
 
@@ -550,6 +636,32 @@ spring:
 ----
 
 For some usages of the gateway, properties will be adequate, but some production use cases will benefit from loading configuration from an external source, such as a database. Future milestone versions will have `RouteDefinitionLocator` implementations based off of Spring Data Repositories such as: Redis, MongoDB and Cassandra.
+
+=== Fluent Java Routes API
+To allow for simple configuration in Java, there is a fluent API defined in the `Routes` class.
+
+.Config.java
+[source,java]
+----
+// static imports from WebFilterFactories and RoutePredicates
+@Bean
+public RouteLocator customRouteLocator(ThrottleWebFilterFactory throttle) {
+    return Routes.locator()
+            .route("test")
+                .uri("http://httpbin.org:80")
+                .predicate(host("**.abc.org").and(path("/image/png")))
+                .addResponseHeader("X-TestHeader", "foobar")
+                .and()
+            .route("test2")
+                .uri("http://httpbin.org:80")
+                .predicate(path("/image/webp"))
+                .add(addResponseHeader("X-AnotherHeader", "baz"))
+                .and()
+            .build();
+}
+----
+
+This style also allows for more custom predicate assertions. The predicates defined by `RouteDefinitionLocator` beans are combined using logical `and`. By using the fluent Java API, you can use the `and()`, `or()` and `negate()` operators on the `Predicate` class.
 
 == Actuator API
 
