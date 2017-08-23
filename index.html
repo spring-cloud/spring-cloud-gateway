@@ -1,0 +1,98 @@
+---
+# The name of your project
+title: Spring Cloud Gateway
+
+badges:
+
+  # Customize your project's badges. Delete any entries that do not apply.
+  custom:
+    - name: Source (GitHub)
+      url:  https://github.com/spring-cloud/spring-cloud-gateway
+      icon: github
+
+    - name: StackOverflow
+      url:  http://stackoverflow.com/questions/tagged/spring-cloud
+      icon: stackoverflow
+
+---
+<!DOCTYPE HTML>
+<html lang="en-US">
+
+<!-- Specify the parent of this project (or delete if none) to influence the rendering of the breadcrumb -->
+{% capture parent_link %}
+[Spring Cloud]({{ site.projects_site_url }}/spring-cloud)
+{% endcapture %}
+
+
+{% capture billboard_description %}
+
+This project provides a library for building an API Gateway on top of Spring MVC. Spring Cloud Gateway aims to provide a simple, yet effective way to route to APIs and provide cross cutting concerns to them such as: security, monitoring/metrics, and resiliency.)..
+
+{% endcapture %}
+
+{% capture main_content %}
+
+## Features
+
+Spring Cloud Gateway features:
+
+* Built on Spring Framework 5, Project Reactor and Spring Boot 2.0
+* Able to match routes on any request attribute.
+* Predicates and filters are specific to routes.
+* Hystrix Circuit Breaker integration.
+* Spring Cloud DiscoveryClient integration
+* Easy to write Predicates and Filters
+* Request Rate Limiting
+* Path Rewriting
+
+<span id="quick-start"></span>
+
+## Quick Start
+
+<script type="text/javascript">{% include custom.js %}</script>
+{% include download_widget.md %}
+
+
+```java
+@Configuration
+@SpringBootApplication
+public class Application {
+
+  @Bean
+  public RouteLocator customRouteLocator(ThrottleWebFilterFactory throttle) {
+    return Routes.locator()
+      .route("test")
+          .uri("http://httpbin.org:80")
+          .predicate(host("**.abc.org").and(path("/image/png")))
+          .addResponseHeader("X-TestHeader", "foobar")
+          .and()
+      .route("test2")
+          .uri("http://httpbin.org:80")
+          .predicate(path("/image/webp"))
+          .add(addResponseHeader("X-AnotherHeader", "baz"))
+          .and()
+      .build();
+  }
+
+  public static void main(String[] args) {
+    SpringApplication.run(Application.class, args);
+  }
+
+}
+```
+
+To run your own gateway use the `spring-cloud-starter-gateway` dependency.
+
+{% endcapture %}
+
+{% capture related_resources %}
+
+### Sample Projects
+
+* [Sample Gateway](https://github.com/spring-cloud/spring-cloud-gateway/tree/2.0.x/spring-cloud-gateway-sample)
+
+{% endcapture %}
+
+
+{% include project_page.html %}
+</html>
