@@ -1,4 +1,4 @@
-:github-tag: master
+:github-tag: 2.0.x
 :github-repo: spring-cloud/spring-cloud-gateway
 :github-raw: https://raw.githubusercontent.com/{github-repo}/{github-tag}
 :github-code: https://github.com/{github-repo}/tree/{github-tag}
