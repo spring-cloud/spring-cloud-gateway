@@ -34,6 +34,7 @@ public class ServerWebExchangeUtils {
 	public static final String CLIENT_RESPONSE_ATTR = qualify("webHandlerClientResponse");
 	public static final String GATEWAY_ROUTE_ATTR = qualify("gatewayRoute");
 	public static final String GATEWAY_REQUEST_URL_ATTR = qualify("gatewayRequestUrl");
+	public static final String GATEWAY_ORIGINAL_REQUEST_URL_ATTR = qualify("gatewayOribinalRequestUrl");
 	public static final String GATEWAY_HANDLER_MAPPER_ATTR = qualify("gatewayHandlerMapper");
 
 	private static String qualify(String attr) {
