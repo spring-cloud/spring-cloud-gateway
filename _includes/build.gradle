@@ -1,0 +1,17 @@
+buildscript {
+    dependencies {
+        classpath "io.spring.gradle:dependency-management-plugin:1.0.3.RELEASE"
+    }
+}
+
+apply plugin: "io.spring.dependency-management"
+
+dependencyManagement {
+     imports {
+          mavenBom '{@= groupId @}:spring-cloud-gateway:{@= version @}'
+     }
+}
+dependencies {
+    compile '{@= groupId @}:spring-cloud-starter-gateway'
+}
+
