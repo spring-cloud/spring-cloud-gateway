@@ -1,0 +1,14 @@
+test:
+  hostport: httpbin.org:80
+  uri: lb://testservice
+
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: add_request_header_test
+        uri: ${test.uri}
+        predicates:
+        - Path=/headers
+        filters:
+        - AddRequestHeader=X-Request-Foo, Bar

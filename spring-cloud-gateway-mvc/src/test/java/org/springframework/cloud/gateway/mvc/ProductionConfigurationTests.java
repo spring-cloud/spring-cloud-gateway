@@ -30,11 +30,10 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.context.embedded.LocalServerPort;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.cloud.gateway.mvc.ProxyExchange;
+import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.cloud.gateway.mvc.ProductionConfigurationTests.TestApplication;
 import org.springframework.cloud.gateway.mvc.ProductionConfigurationTests.TestApplication.Bar;
 import org.springframework.cloud.gateway.mvc.ProductionConfigurationTests.TestApplication.Foo;

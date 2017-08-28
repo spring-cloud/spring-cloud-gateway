@@ -66,7 +66,7 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.support.ModelAndViewContainer;
 import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.mvc.method.annotation.RequestResponseBodyMethodProcessor;
-import org.springframework.web.util.AbstractUriTemplateHandler;
+import org.springframework.web.util.DefaultUriBuilderFactory;
 
 /**
  * A <code>@RequestMapping</code> argument type that can proxy the request to a backend.
@@ -395,13 +395,13 @@ public class ProxyExchange<T> {
 		if (host == null) {
 			return;
 		}
-		host = host + ","  + uri.getHost();
+		host = host + "," + uri.getHost();
 		headers.set("x-forwarded-host", host);
 		String proto = headers.getFirst("x-forwarded-proto");
 		if (proto == null) {
 			return;
 		}
-		proto = proto + ","  + uri.getScheme();
+		proto = proto + "," + uri.getScheme();
 		headers.set("x-forwarded-proto", proto);
 	}
 
@@ -409,7 +409,8 @@ public class ProxyExchange<T> {
 		String forwarded = headers.getFirst("forwarded");
 		if (forwarded != null) {
 			forwarded = forwarded + ",";
-		} else {
+		}
+		else {
 			forwarded = "";
 		}
 		forwarded = forwarded + forwarded(uri);
@@ -464,7 +465,7 @@ public class ProxyExchange<T> {
 		rest.setMessageConverters(input.getMessageConverters());
 		rest.setErrorHandler(input.getErrorHandler());
 		rest.setDefaultUriVariables(
-				((AbstractUriTemplateHandler) input.getUriTemplateHandler())
+				((DefaultUriBuilderFactory) input.getUriTemplateHandler())
 						.getDefaultUriVariables());
 		rest.setRequestFactory(input.getRequestFactory());
 		rest.setInterceptors(input.getInterceptors());
