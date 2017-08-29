@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<project name="maven-antrun-" default="main"  >
-<target name="main">
-  <zip destfile="/opt/jenkins/data/workspace/spring-cloud-gateway-master-ci/docs/target/spring-cloud-gateway-docs-1.0.0.BUILD-SNAPSHOT.zip">
-    <fileset excludes="*.sh" dir="/opt/jenkins/data/workspace/spring-cloud-gateway-master-ci/docs/target/generated-docs"/>
-  </zip>
-</target>
-</project>

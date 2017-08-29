@@ -1,4 +1,0 @@
-/opt/jenkins/data/workspace/spring-cloud-gateway-master-ci/spring-cloud-gateway-mvc/src/main/java/org/springframework/cloud/gateway/mvc/config/ProxyExchangeArgumentResolver.java
-/opt/jenkins/data/workspace/spring-cloud-gateway-master-ci/spring-cloud-gateway-mvc/src/main/java/org/springframework/cloud/gateway/mvc/config/ProxyResponseAutoConfiguration.java
-/opt/jenkins/data/workspace/spring-cloud-gateway-master-ci/spring-cloud-gateway-mvc/src/main/java/org/springframework/cloud/gateway/mvc/config/ProxyProperties.java
-/opt/jenkins/data/workspace/spring-cloud-gateway-master-ci/spring-cloud-gateway-mvc/src/main/java/org/springframework/cloud/gateway/mvc/ProxyExchange.java

@@ -1,5 +1,0 @@
-management:
-  security:
-    enabled: false
-remote:
-  home: http://httpbin.org
