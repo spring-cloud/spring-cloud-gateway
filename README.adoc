@@ -5,32 +5,21 @@ image::https://codecov.io/gh/spring-cloud-incubator/spring-cloud-gateway/branch/
 image::https://api.codacy.com/project/badge/Grade/a6885a06921e4f72a0df0b7aabd6d118["Codacy code quality", link="https://www.codacy.com/app/spring-cloud-incubator/spring-cloud-gateway?utm_source=github.com&utm_medium=referral&utm_content=spring-cloud-incubator/spring-cloud-gateway&utm_campaign=Badge_Grade"]
 
 
-This project provides a library for building an API Gateway on top of the Spring MVC. Spring Cloud Gateway aims to provide a simple, yet effective way to route to APIs and provide cross cutting concerns to them such as: security, monitoring/metrics, and resiliency.
+This project provides a library for building an API Gateway on top of Spring MVC. Spring Cloud Gateway aims to provide a simple, yet effective way to route to APIs and provide cross cutting concerns to them such as: security, monitoring/metrics, and resiliency.
 
 
 == Features
 
-* Spring Boot 1.5
-* Spring MVC `@RestController` method injection of a `ProxyExchange`
-* Build up complex routing and request enhancement using the standard Spring Web toolkit
-
-Example (proxying a request to "/test" downstream to a remote server):
-
-```java
-@RestController
-@SpringBootApplication
-public class GatewaySampleApplication {
-
-	@Value("${remote.home}")
-	private URI home;
-
-	@GetMapping("/test")
-	public ResponseEntity<?> proxy(ProxyExchange<Object> proxy) throws Exception {
-		return proxy.uri(home.toString() + "/image/png").get();
-	}
-
-}
-```
+* Java 8
+* Spring Framework 5
+* Spring Boot 2
+* Dynamic routing
+* Route matching built into Spring Handler Mapping
+* Route matching on HTTP Request (Path, Method, Header, Host, etc...)
+* Filters scoped to Matching Route
+* Filters can modify downstream HTTP Request and HTTP Response (Add/Remove Headers, Add/Remove Parameters, Rewrite Path, Set Path, Hystrix, etc...)
+* API or configuration driven
+* Supports Spring Cloud `DiscoveryClient` for configuring Routes
 
 == Building
 
