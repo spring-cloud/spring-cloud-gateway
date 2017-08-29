@@ -21,31 +21,6 @@ This project provides an API Gateway built on top of the Spring Ecosystem, inclu
 * API or configuration driven
 * Supports Spring Cloud `DiscoveryClient` for configuring Routes
 
-== Spring Cloud Gateway MVC
-
-Features:
-
-* Spring MVC `@RestController` method injection of a `ProxyExchange`
-* Build up complex routing and request enhancement using the standard Spring Web toolkit
-
-Example (proxying a request to "/test" downstream to a remote server):
-
-```java
-@RestController
-@SpringBootApplication
-public class GatewaySampleApplication {
-
-	@Value("${remote.home}")
-	private URI home;
-
-	@GetMapping("/test")
-	public ResponseEntity<?> proxy(ProxyExchange<Object> proxy) throws Exception {
-		return proxy.uri(home.toString() + "/image/png").get();
-	}
-
-}
-```
-
 == Building
 
 :jdkversion: 1.8
