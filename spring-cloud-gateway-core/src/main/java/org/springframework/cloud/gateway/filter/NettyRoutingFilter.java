@@ -65,7 +65,7 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 		URI requestUrl = exchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
 
 		String scheme = requestUrl.getScheme();
-		if (!scheme.equals("http") && !scheme.equals("https)")) {
+		if (!scheme.equals("http") && !scheme.equals("https")) {
 			return chain.filter(exchange);
 		}
 
