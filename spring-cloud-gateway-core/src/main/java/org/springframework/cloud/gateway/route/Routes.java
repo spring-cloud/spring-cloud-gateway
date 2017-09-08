@@ -60,7 +60,7 @@ public class Routes {
 		private final Route.Builder builder = Route.builder();
 		private final LocatorBuilder locatorBuilder;
 
-		RouteSpec(LocatorBuilder locatorBuilder) {
+		private RouteSpec(LocatorBuilder locatorBuilder) {
 			this.locatorBuilder = locatorBuilder;
 		}
 
@@ -84,7 +84,7 @@ public class Routes {
 			return predicateBuilder();
 		}
 
-		PredicateSpec predicateBuilder() {
+		private PredicateSpec predicateBuilder() {
 			return new PredicateSpec(this.builder, this.locatorBuilder);
 		}
 
@@ -95,7 +95,7 @@ public class Routes {
 		private final Route.Builder routeBuilder;
 		private LocatorBuilder locatorBuilder;
 
-		PredicateSpec(Route.Builder routeBuilder, LocatorBuilder locatorBuilder) {
+		private PredicateSpec(Route.Builder routeBuilder, LocatorBuilder locatorBuilder) {
 			this.routeBuilder = routeBuilder;
 			this.locatorBuilder = locatorBuilder;
 		}

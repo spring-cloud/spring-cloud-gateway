@@ -10,8 +10,7 @@ import reactor.test.StepVerifier
 import java.net.URI
 
 class GatewayDslTests {
-
-
+    
     @Test
     fun testSampleRouteDsl() {
         val routeLocator = gateway {
@@ -25,19 +24,31 @@ class GatewayDslTests {
             route {
                 id("test2")
                 uri("http://httpbin.org:80")
-                predicate(path("/image/webp"))
+                predicate(path("/image/webp") or path("/image/anotherone"))
                 add(addResponseHeader("X-AnotherHeader", "baz"))
                 add(addResponseHeader("X-AnotherHeader-2", "baz-2"))
             }
         }
 
-        val sampleExchange: ServerWebExchange = MockServerHttpRequest.get("/image/webp").header("Host", "test.abc.org").toExchange()
-        val matchingRoute = routeLocator.routes.filter({ r -> r.predicate.test(sampleExchange) }).next()
-
         StepVerifier
-                .create(matchingRoute)
-                .expectNextMatches({ r -> 
-                    r.id == "test2" && r.webFilters.size == 2 && r.uri == URI.create("http://httpbin.org:80")})
+                .create(routeLocator.routes)
+                .expectNextMatches({ r ->
+                    r.id == "test" && r.webFilters.size == 1 && r.uri == URI.create("http://httpbin.org:80")
+                })
+                .expectNextMatches({ r ->
+                    r.id == "test2" && r.webFilters.size == 2 && r.uri == URI.create("http://httpbin.org:80")
+                })
+                .expectComplete()
+                .verify()
+
+        val sampleExchange: ServerWebExchange = MockServerHttpRequest.get("/image/webp").header("Host", "test.abc.org").toExchange()
+
+        val filteredRoutes = routeLocator.routes.filter({ r -> r.predicate.test(sampleExchange) })
+
+        StepVerifier.create(filteredRoutes)
+                .expectNextMatches({ r ->
+                    r.id == "test2" && r.webFilters.size == 2 && r.uri == URI.create("http://httpbin.org:80")
+                })
                 .expectComplete()
                 .verify()
     }
