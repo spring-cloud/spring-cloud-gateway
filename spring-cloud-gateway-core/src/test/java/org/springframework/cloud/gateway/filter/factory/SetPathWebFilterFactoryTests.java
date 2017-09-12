@@ -39,6 +39,7 @@ import static org.springframework.cloud.gateway.filter.factory.SetPathWebFilterF
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.URI_TEMPLATE_VARIABLES_ATTRIBUTE;
 import static org.springframework.tuple.TupleBuilder.tuple;
 
+import org.springframework.web.util.pattern.PathPattern.PathMatchInfo;
 import reactor.core.publisher.Mono;
 
 /**
@@ -69,10 +70,10 @@ public class SetPathWebFilterFactoryTests {
 		ServerWebExchange exchange = new MockServerWebExchange(request);
 
 		try {
-			Constructor<PathPattern.PathMatchResult> constructor = ReflectionUtils.accessibleConstructor(PathPattern.PathMatchResult.class, Map.class, Map.class);
+			Constructor<PathMatchInfo> constructor = ReflectionUtils.accessibleConstructor(PathMatchInfo.class, Map.class, Map.class);
 			constructor.setAccessible(true);
-			PathPattern.PathMatchResult pathMatchResult = constructor.newInstance(variables, Collections.emptyMap());
-			exchange.getAttributes().put(URI_TEMPLATE_VARIABLES_ATTRIBUTE, pathMatchResult);
+			PathMatchInfo pathMatchInfo = constructor.newInstance(variables, Collections.emptyMap());
+			exchange.getAttributes().put(URI_TEMPLATE_VARIABLES_ATTRIBUTE, pathMatchInfo);
 		} catch (Exception e) {
 			ReflectionUtils.rethrowRuntimeException(e);
 		}

@@ -27,7 +27,7 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.tuple.Tuple;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.util.UriTemplate;
-import org.springframework.web.util.pattern.PathPattern.PathMatchResult;
+import org.springframework.web.util.pattern.PathPattern.PathMatchInfo;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.URI_TEMPLATE_VARIABLES_ATTRIBUTE;
 
@@ -51,7 +51,7 @@ public class SetPathWebFilterFactory implements WebFilterFactory {
 		UriTemplate uriTemplate = new UriTemplate(template);
 
 		return (exchange, chain) -> {
-			PathMatchResult variables = exchange.getAttribute(URI_TEMPLATE_VARIABLES_ATTRIBUTE);
+			PathMatchInfo variables = exchange.getAttribute(URI_TEMPLATE_VARIABLES_ATTRIBUTE);
 			ServerHttpRequest req = exchange.getRequest();
 			Map<String, String> uriVariables;
 

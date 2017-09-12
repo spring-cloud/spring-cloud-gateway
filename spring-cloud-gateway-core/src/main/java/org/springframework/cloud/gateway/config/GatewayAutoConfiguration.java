@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.actuate.endpoint.Endpoint;
+import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -380,7 +380,7 @@ public class GatewayAutoConfiguration {
 
 
 	@Configuration
-	@ConditionalOnClass(Endpoint.class)
+	@ConditionalOnClass(Health.class)
 	protected static class GatewayActuatorConfiguration {
 
 		@Bean
