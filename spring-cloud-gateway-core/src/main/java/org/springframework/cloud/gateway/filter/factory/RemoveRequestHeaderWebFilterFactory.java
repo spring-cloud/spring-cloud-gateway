@@ -29,8 +29,6 @@ import java.util.List;
  */
 public class RemoveRequestHeaderWebFilterFactory implements WebFilterFactory {
 
-	private static final String FAKE_HEADER = "_______force_______";
-
 	@Override
 	public List<String> argNames() {
 		return Arrays.asList(NAME_KEY);
@@ -42,11 +40,8 @@ public class RemoveRequestHeaderWebFilterFactory implements WebFilterFactory {
 
 		return (exchange, chain) -> {
 			ServerHttpRequest request = exchange.getRequest().mutate()
-					.header(FAKE_HEADER, "mutable") //TODO: is there a better way?
+					.headers(httpHeaders -> httpHeaders.remove(header))
 					.build();
-
-			request.getHeaders().remove(FAKE_HEADER);
-			request.getHeaders().remove(header);
 
 			return chain.filter(exchange.mutate().request(request).build());
 		};

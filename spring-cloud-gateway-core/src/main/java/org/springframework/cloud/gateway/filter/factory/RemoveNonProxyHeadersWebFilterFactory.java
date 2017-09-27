@@ -47,7 +47,6 @@ import java.util.List;
 @ConfigurationProperties("spring.cloud.gateway.filter.remove-non-proxy-headers")
 public class RemoveNonProxyHeadersWebFilterFactory implements WebFilterFactory {
 
-	private static final String FAKE_HEADER = "_______force_______";
 	public static final String[] DEFAULT_HEADERS_TO_REMOVE = new String[] {"Connection", "Keep-Alive",
 			"Proxy-Authenticate", "Proxy-Authorization", "TE", "Trailer", "Transfer-Encoding", "Upgrade"};
 
@@ -67,14 +66,12 @@ public class RemoveNonProxyHeadersWebFilterFactory implements WebFilterFactory {
 
 		return (exchange, chain) -> {
 			ServerHttpRequest request = exchange.getRequest().mutate()
-					.header(FAKE_HEADER, "mutable") //TODO: is there a better way?
+					.headers(httpHeaders -> {
+						for (String header : this.headers) {
+							httpHeaders.remove(header);
+						}
+					})
 					.build();
-
-			request.getHeaders().remove(FAKE_HEADER);
-
-			for (String header : this.headers) {
-				request.getHeaders().remove(header);
-			}
 
 			return chain.filter(exchange.mutate().request(request).build());
 		};
