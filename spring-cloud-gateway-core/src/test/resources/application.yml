@@ -189,7 +189,7 @@ spring:
 #    NIWSServerListClassName: com.netflix.loadbalancer.ConfigurationBasedServerList
 #    listOfServers: ${test.hostport}
 
-#hystrix.command.failcmd.execution.isolation.thread.timeoutInMilliseconds: 1000
+hystrix.command.successcmd.execution.isolation.thread.timeoutInMilliseconds: 5000
 
 logging:
   level:
