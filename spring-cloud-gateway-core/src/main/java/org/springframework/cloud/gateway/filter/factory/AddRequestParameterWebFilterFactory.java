@@ -22,13 +22,8 @@ import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.List;
 
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.server.RequestPath;
 import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
 import org.springframework.tuple.Tuple;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.WebFilter;
 
@@ -65,100 +60,16 @@ public class AddRequestParameterWebFilterFactory implements WebFilterFactory {
 			query.append('=');
 			query.append(value);
 
-			ServerHttpRequest request = new QueryParamServerHttpRequestBuilder(exchange.getRequest())
-					.query(query.toString())
-					.build();
+			try {
+				URI newUri = new URI(uri.getScheme(), uri.getUserInfo(), uri.getHost(), uri.getPort(),
+						uri.getPath(), query.toString(), uri.getFragment());
 
-			return chain.filter(exchange.mutate().request(request).build());
+				ServerHttpRequest request = exchange.getRequest().mutate().uri(newUri).build();
+
+				return chain.filter(exchange.mutate().request(request).build());
+			} catch (URISyntaxException ex) {
+				throw new IllegalStateException("Invalid URI query: \"" + query.toString() + "\"");
+			}
 		};
-	}
-
-	class QueryParamServerHttpRequestBuilder implements ServerHttpRequest.Builder {
-
-		private final ServerHttpRequest delegate;
-		private String query;
-
-		public QueryParamServerHttpRequestBuilder(ServerHttpRequest delegate) {
-			Assert.notNull(delegate, "ServerHttpRequest delegate is required");
-			this.delegate = delegate;
-		}
-
-
-		@Override
-		public ServerHttpRequest.Builder method(HttpMethod httpMethod) {
-			throw new UnsupportedOperationException();
-		}
-
-		@Override
-		public ServerHttpRequest.Builder path(String path) {
-			throw new UnsupportedOperationException();
-		}
-
-		public ServerHttpRequest.Builder query(String query) {
-			this.query = query;
-			return this;
-		}
-
-		@Override
-		public ServerHttpRequest.Builder contextPath(String contextPath) {
-			throw new UnsupportedOperationException();
-		}
-
-		@Override
-		public ServerHttpRequest.Builder header(String key, String value) {
-			throw new UnsupportedOperationException();
-		}
-
-		@Override
-		public ServerHttpRequest build() {
-			URI uri = null;
-			if (this.query != null) {
-				uri = this.delegate.getURI();
-				try {
-					uri = new URI(uri.getScheme(), uri.getUserInfo(), uri.getHost(), uri.getPort(),
-							uri.getPath(), this.query, uri.getFragment());
-				} catch (URISyntaxException ex) {
-					throw new IllegalStateException("Invalid URI query: \"" + this.query + "\"");
-				}
-			}
-			return new MutativeDecorator(this.delegate, uri);
-		}
-
-
-		/**
-		 * An immutable wrapper of a request returning property overrides -- given
-		 * to the constructor -- or original values otherwise.
-		 */
-		private class MutativeDecorator extends ServerHttpRequestDecorator {
-
-			private final URI uri;
-
-			public MutativeDecorator(ServerHttpRequest delegate, URI uri) {
-				super(delegate);
-
-				this.uri = uri;
-			}
-
-			@Override
-			public HttpMethod getMethod() {
-				return super.getMethod();
-			}
-
-			@Override
-			public URI getURI() {
-				return (this.uri != null ? this.uri : super.getURI());
-			}
-
-			@Override
-			public RequestPath getPath() {
-				return super.getPath();
-			}
-
-			@Override
-			public HttpHeaders getHeaders() {
-				return super.getHeaders();
-			}
-		}
-
 	}
 }
