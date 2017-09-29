@@ -41,7 +41,8 @@ class GatewayDslTests {
                 .expectComplete()
                 .verify()
 
-        val sampleExchange: ServerWebExchange = MockServerHttpRequest.get("/image/webp").header("Host", "test.abc.org").toExchange()
+        val sampleExchange: ServerWebExchange = MockServerHttpRequest.get("/image/webp")
+                .header("Host", "test.abc.org").toExchange()
 
         val filteredRoutes = routeLocator.routes.filter({ r -> r.predicate.test(sampleExchange) })
 
