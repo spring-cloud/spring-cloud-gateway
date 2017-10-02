@@ -18,11 +18,12 @@
 package org.springframework.cloud.gateway.filter.factory;
 
 import java.lang.reflect.Constructor;
+import java.net.URI;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 
-import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
@@ -31,15 +32,16 @@ import org.springframework.util.ReflectionUtils;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
-import org.springframework.web.util.pattern.PathPattern;
+import org.springframework.web.util.pattern.PathPattern.PathMatchInfo;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.cloud.gateway.filter.factory.SetPathWebFilterFactory.TEMPLATE_KEY;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.URI_TEMPLATE_VARIABLES_ATTRIBUTE;
 import static org.springframework.tuple.TupleBuilder.tuple;
 
-import org.springframework.web.util.pattern.PathPattern.PathMatchInfo;
 import reactor.core.publisher.Mono;
 
 /**
@@ -48,7 +50,7 @@ import reactor.core.publisher.Mono;
 public class SetPathWebFilterFactoryTests {
 
 	@Test
-	public void rewritePathFilterWorks() {
+	public void setPathFilterWorks() {
 		HashMap<String, String> variables = new HashMap<>();
 		testRewriteFilter("/baz/bar", "/foo/bar", "/baz/bar", variables);
 	}
@@ -87,6 +89,8 @@ public class SetPathWebFilterFactoryTests {
 
 		ServerWebExchange webExchange = captor.getValue();
 
-		Assertions.assertThat(webExchange.getRequest().getURI().getPath()).isEqualTo(expectedPath);
+		assertThat(webExchange.getRequest().getURI()).hasPath(expectedPath);
+		LinkedHashSet<URI> uris = webExchange.getRequiredAttribute(GATEWAY_ORIGINAL_REQUEST_URL_ATTR);
+		assertThat(uris).contains(request.getURI());
 	}
 }

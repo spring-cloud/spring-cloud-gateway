@@ -17,7 +17,9 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
-import org.assertj.core.api.Assertions;
+import java.net.URI;
+import java.util.LinkedHashSet;
+
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
@@ -26,10 +28,13 @@ import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.cloud.gateway.filter.factory.RewritePathWebFilterFactory.REGEXP_KEY;
 import static org.springframework.cloud.gateway.filter.factory.RewritePathWebFilterFactory.REPLACEMENT_KEY;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
 import static org.springframework.tuple.TupleBuilder.tuple;
 
 import reactor.core.publisher.Mono;
@@ -67,6 +72,11 @@ public class RewritePathWebFilterFactoryTests {
 
 		ServerWebExchange webExchange = captor.getValue();
 
-		Assertions.assertThat(webExchange.getRequest().getURI().getPath()).isEqualTo(expectedPath);
+		assertThat(webExchange.getRequest().getURI()).hasPath(expectedPath);
+
+		URI requestUrl = webExchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
+		assertThat(requestUrl).hasScheme("http").hasHost("localhost").hasNoPort().hasPath(expectedPath);
+		LinkedHashSet<URI> uris = webExchange.getRequiredAttribute(GATEWAY_ORIGINAL_REQUEST_URL_ATTR);
+		assertThat(uris).contains(request.getURI());
 	}
 }

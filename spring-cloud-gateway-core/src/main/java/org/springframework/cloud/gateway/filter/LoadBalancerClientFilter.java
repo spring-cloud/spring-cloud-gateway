@@ -29,8 +29,8 @@ import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilterChain;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.addOriginalRequestUrl;
 
 import reactor.core.publisher.Mono;
 
@@ -60,7 +60,7 @@ public class LoadBalancerClientFilter implements GlobalFilter, Ordered {
 			return chain.filter(exchange);
 		}
 		//preserve the original url
-		exchange.getAttributes().put(GATEWAY_ORIGINAL_REQUEST_URL_ATTR, url);
+		addOriginalRequestUrl(exchange, url);
 
 		log.trace("LoadBalancerClientFilter url before: " + url);
 

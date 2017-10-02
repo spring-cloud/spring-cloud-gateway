@@ -17,12 +17,15 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
-import org.springframework.tuple.Tuple;
-import org.springframework.web.server.WebFilter;
-import org.springframework.http.server.reactive.ServerHttpRequest;
-
 import java.util.Arrays;
 import java.util.List;
+
+import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.tuple.Tuple;
+import org.springframework.web.server.WebFilter;
+
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.addOriginalRequestUrl;
 
 /**
  * @author Spencer Gibb
@@ -44,12 +47,15 @@ public class RewritePathWebFilterFactory implements WebFilterFactory {
 
 		return (exchange, chain) -> {
 			ServerHttpRequest req = exchange.getRequest();
+			addOriginalRequestUrl(exchange, req.getURI());
 			String path = req.getURI().getPath();
 			String newPath = path.replaceAll(regex, replacement);
 
 			ServerHttpRequest request = req.mutate()
 					.path(newPath)
 					.build();
+
+			exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, request.getURI());
 
 			return chain.filter(exchange.mutate().request(request).build());
 		};

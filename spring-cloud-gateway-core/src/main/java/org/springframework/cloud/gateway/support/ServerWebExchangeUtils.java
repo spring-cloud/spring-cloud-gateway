@@ -17,6 +17,9 @@
 
 package org.springframework.cloud.gateway.support;
 
+import java.net.URI;
+import java.util.LinkedHashSet;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.http.HttpStatus;
@@ -60,5 +63,11 @@ public class ServerWebExchangeUtils {
 			httpStatus = HttpStatus.valueOf(statusString.toUpperCase());
 		}
 		return httpStatus;
+	}
+
+	public static void addOriginalRequestUrl(ServerWebExchange exchange, URI url) {
+		exchange.getAttributes().computeIfAbsent(GATEWAY_ORIGINAL_REQUEST_URL_ATTR, s -> new LinkedHashSet<>());
+		LinkedHashSet<URI> uris = exchange.getRequiredAttribute(GATEWAY_ORIGINAL_REQUEST_URL_ATTR);
+		uris.add(url);
 	}
 }

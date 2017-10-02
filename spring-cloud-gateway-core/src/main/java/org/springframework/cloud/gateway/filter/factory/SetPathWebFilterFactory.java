@@ -30,6 +30,7 @@ import org.springframework.web.util.UriTemplate;
 import org.springframework.web.util.pattern.PathPattern.PathMatchInfo;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.URI_TEMPLATE_VARIABLES_ATTRIBUTE;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.addOriginalRequestUrl;
 
 /**
  * @author Spencer Gibb
@@ -53,6 +54,7 @@ public class SetPathWebFilterFactory implements WebFilterFactory {
 		return (exchange, chain) -> {
 			PathMatchInfo variables = exchange.getAttribute(URI_TEMPLATE_VARIABLES_ATTRIBUTE);
 			ServerHttpRequest req = exchange.getRequest();
+			addOriginalRequestUrl(exchange, req.getURI());
 			Map<String, String> uriVariables;
 
 			if (variables != null) {
