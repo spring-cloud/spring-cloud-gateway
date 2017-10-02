@@ -197,6 +197,7 @@ logging:
     org.springframework.http.server.reactive: DEBUG
     org.springframework.web.reactive: DEBUG
     reactor.ipc.netty: DEBUG
+    redisratelimiter: DEBUG
 
 management:
   context-path: /admin
@@ -204,3 +205,4 @@ eureka:
   client:
     enabled: false
 #  port: 8081
+

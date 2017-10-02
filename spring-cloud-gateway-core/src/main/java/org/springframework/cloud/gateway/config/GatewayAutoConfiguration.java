@@ -55,7 +55,6 @@ import org.springframework.cloud.gateway.filter.factory.SetStatusWebFilterFactor
 import org.springframework.cloud.gateway.filter.factory.WebFilterFactory;
 import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
 import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter;
-import org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiter;
 import org.springframework.cloud.gateway.handler.FilteringWebHandler;
 import org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping;
 import org.springframework.cloud.gateway.handler.predicate.AfterRoutePredicateFactory;
@@ -81,12 +80,6 @@ import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.core.script.DefaultRedisScript;
-import org.springframework.data.redis.core.script.RedisScript;
-import org.springframework.scripting.support.ResourceScriptSource;
 import org.springframework.web.reactive.socket.client.ReactorNettyWebSocketClient;
 import org.springframework.web.reactive.socket.client.WebSocketClient;
 import org.springframework.web.reactive.socket.server.WebSocketService;
@@ -358,24 +351,6 @@ public class GatewayAutoConfiguration {
 	@Bean
 	public SetStatusWebFilterFactory setStatusWebFilterFactory() {
 		return new SetStatusWebFilterFactory();
-	}
-
-
-	@ConditionalOnClass(RedisTemplate.class)
-	protected static class GatewayRedisConfiguration {
-		@Bean
-		public RedisScript<List> redisRequestRateLimiterScript() {
-			DefaultRedisScript<List> redisScript = new DefaultRedisScript<>();
-			redisScript.setScriptSource(new ResourceScriptSource(new ClassPathResource("META-INF/scripts/request_rate_limiter.lua")));
-			redisScript.setResultType(List.class);
-			return redisScript;
-		}
-
-		@Bean
-		public RedisRateLimiter redisRateLimiter(StringRedisTemplate redisTemplate,
-												 @Qualifier("redisRequestRateLimiterScript") RedisScript<List> redisScript) {
-			return new RedisRateLimiter(redisTemplate, redisScript);
-		}
 	}
 
 

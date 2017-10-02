@@ -24,11 +24,13 @@ local delta = math.max(0, now-last_refreshed)
 local filled_tokens = math.min(capacity, last_tokens+(delta*rate))
 local allowed = filled_tokens >= requested
 local new_tokens = filled_tokens
+local allowed_num = 0
 if allowed then
   new_tokens = filled_tokens - requested
+  allowed_num = 1
 end
 
 redis.call("setex", tokens_key, ttl, new_tokens)
 redis.call("setex", timestamp_key, ttl, now)
 
-return { allowed, new_tokens }
+return { allowed_num, new_tokens }
