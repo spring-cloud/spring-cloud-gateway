@@ -67,7 +67,7 @@ public class RequestRateLimiterWebFilterFactoryTests extends BaseWebClientTests 
 				KEY_RESOLVER_NAME_KEY, keyResolverName);
 
 		when(rateLimiter.isAllowed(key, replenishRate, burstCapacity))
-				.thenReturn(new Response(allowed, 1));
+				.thenReturn(Mono.just(new Response(allowed, 1)));
 
 
 		MockServerHttpRequest request = MockServerHttpRequest.get("/").build();

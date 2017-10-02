@@ -72,7 +72,7 @@ public class RequestRateLimiterWebFilterFactory implements WebFilterFactory, App
 
 		return (exchange, chain) ->
 			keyResolver.resolve(exchange).flatMap(key -> {
-				Response response = rateLimiter.isAllowed(key, replenishRate, capacity);
+				Response response = rateLimiter.isAllowed(key, replenishRate, capacity).block(); //FIXME: block()
 
 				//TODO: set some headers for rate, tokens left
 

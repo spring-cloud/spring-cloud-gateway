@@ -200,4 +200,8 @@ logging:
 
 management:
   context-path: /admin
+eureka:
+  client:
+    enabled: false
 #  port: 8081
+

@@ -1,13 +1,15 @@
 package org.springframework.cloud.gateway.filter.ratelimit;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.core.script.RedisScript;
-
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.data.redis.core.ReactiveRedisTemplate;
+import org.springframework.data.redis.core.script.RedisScript;
+
+import reactor.core.publisher.Mono;
 
 /**
  * See https://stripe.com/blog/rate-limiters and
@@ -18,10 +20,10 @@ import java.util.List;
 public class RedisRateLimiter implements RateLimiter {
 	private Log log = LogFactory.getLog(getClass());
 
-	private final StringRedisTemplate redisTemplate;
+	private final ReactiveRedisTemplate<String, String> redisTemplate;
 	private final RedisScript<List> script;
 
-	public RedisRateLimiter(StringRedisTemplate redisTemplate, RedisScript<List> script) {
+	public RedisRateLimiter(ReactiveRedisTemplate<String, String> redisTemplate, RedisScript<List> script) {
 		this.redisTemplate = redisTemplate;
 		this.script = script;
 	}
@@ -36,8 +38,7 @@ public class RedisRateLimiter implements RateLimiter {
 	 */
 	@Override
 	//TODO: signature? params (tuple?).
-	//TODO: change to Mono<?>
-	public Response isAllowed(String id, int replenishRate, int burstCapacity) {
+	public Mono<Response> isAllowed(String id, int replenishRate, int burstCapacity) {
 
 		try {
 			// Make a unique key per user.
@@ -47,26 +48,27 @@ public class RedisRateLimiter implements RateLimiter {
 			List<String> keys = Arrays.asList(prefix + ".tokens", prefix + ".timestamp");
 
 			// The arguments to the LUA script. time() returns unixtime in seconds.
-			Object[] args = new String[]{ replenishRate+"", burstCapacity +"", Instant.now().getEpochSecond()+"", "1"};
+			List<String> args = Arrays.asList(replenishRate+"", burstCapacity +"",
+					Instant.now().getEpochSecond()+"", "1");
 			// allowed, tokens_left = redis.eval(SCRIPT, keys, args)
-			List results = this.redisTemplate.execute(this.script, keys, args);
+			return this.redisTemplate.execute(this.script, keys, args)
+					.map(results -> {
+						boolean allowed = new Long(1L).equals(results.get(0));
+						Long tokensLeft = (Long) results.get(1);
 
-			boolean allowed = new Long(1L).equals(results.get(0));
-			Long tokensLeft = (Long) results.get(1);
+						Response response = new Response(allowed, tokensLeft);
 
-			Response response = new Response(allowed, tokensLeft);
-
-			if (log.isDebugEnabled()) {
-				log.debug("response: "+response);
-			}
-			return response;
-
+						if (log.isDebugEnabled()) {
+							log.debug("response: "+response);
+						}
+						return response;
+					}).next();
 		} catch (Exception e) {
 			/* We don't want a hard dependency on Redis to allow traffic.
 			Make sure to set an alert so you know if this is happening too much.
 			Stripe's observed failure rate is 0.01%. */
 			log.error("Error determining if user allowed from redis", e);
 		}
-		return new Response(true, -1);
+		return Mono.just(new Response(true, -1));
 	}
 }
