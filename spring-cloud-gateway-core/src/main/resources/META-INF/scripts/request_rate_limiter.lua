@@ -31,4 +31,9 @@ end
 redis.call("setex", tokens_key, ttl, new_tokens)
 redis.call("setex", timestamp_key, ttl, now)
 
-return { allowed, new_tokens }
+--FIXME: return { allowed, new_tokens }
+local allowed_num = 0
+if allowed then
+  allowed_num = 1
+end
+return allowed_num .. " " .. new_tokens

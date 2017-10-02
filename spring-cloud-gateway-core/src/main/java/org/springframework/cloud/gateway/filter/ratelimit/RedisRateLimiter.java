@@ -9,6 +9,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
 
+import org.springframework.util.StringUtils;
 import reactor.core.publisher.Mono;
 
 /**
@@ -21,9 +22,9 @@ public class RedisRateLimiter implements RateLimiter {
 	private Log log = LogFactory.getLog(getClass());
 
 	private final ReactiveRedisTemplate<String, String> redisTemplate;
-	private final RedisScript<List> script;
+	private final RedisScript<String> script;
 
-	public RedisRateLimiter(ReactiveRedisTemplate<String, String> redisTemplate, RedisScript<List> script) {
+	public RedisRateLimiter(ReactiveRedisTemplate<String, String> redisTemplate, RedisScript<String> script) {
 		this.redisTemplate = redisTemplate;
 		this.script = script;
 	}
@@ -52,9 +53,11 @@ public class RedisRateLimiter implements RateLimiter {
 					Instant.now().getEpochSecond()+"", "1");
 			// allowed, tokens_left = redis.eval(SCRIPT, keys, args)
 			return this.redisTemplate.execute(this.script, keys, args)
-					.map(results -> {
-						boolean allowed = new Long(1L).equals(results.get(0));
-						Long tokensLeft = (Long) results.get(1);
+					// .map(results -> {
+					.map(string -> {
+						String[] results = StringUtils.tokenizeToStringArray(string, " ", true, true);
+						boolean allowed = "1".equals(results[0]);
+						Long tokensLeft = new Long(results[1]);
 
 						Response response = new Response(allowed, tokensLeft);
 

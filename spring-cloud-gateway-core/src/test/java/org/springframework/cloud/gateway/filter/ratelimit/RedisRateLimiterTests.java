@@ -37,17 +37,15 @@ public class RedisRateLimiterTests extends BaseWebClientTests {
 		int replenishRate = 10;
 		int burstCapacity = 2 * replenishRate;
 
-		Response response = rateLimiter.isAllowed(id, replenishRate, burstCapacity).block();
-		System.out.println(response);
 		// Bursts work
-		/*for (int i = 0; i < burstCapacity; i++) {
-			Response response = rateLimiter.isAllowed(id, replenishRate, burstCapacity);
+		for (int i = 0; i < burstCapacity; i++) {
+			Response response = rateLimiter.isAllowed(id, replenishRate, burstCapacity).block();
 			assertThat(response.isAllowed()).as("Burst # %s is allowed", i).isTrue();
 		}
 
-		Response response = rateLimiter.isAllowed(id, replenishRate, burstCapacity);
+		Response response = rateLimiter.isAllowed(id, replenishRate, burstCapacity).block();
 		if (response.isAllowed()) { //TODO: sometimes there is an off by one error
-			response = rateLimiter.isAllowed(id, replenishRate, burstCapacity);
+			response = rateLimiter.isAllowed(id, replenishRate, burstCapacity).block();
 		}
 		assertThat(response.isAllowed()).as("Burst # %s is not allowed", burstCapacity).isFalse();
 
@@ -55,12 +53,12 @@ public class RedisRateLimiterTests extends BaseWebClientTests {
 
         // # After the burst is done, check the steady state
 		for (int i = 0; i < replenishRate; i++) {
-			response = rateLimiter.isAllowed(id, replenishRate, burstCapacity);
+			response = rateLimiter.isAllowed(id, replenishRate, burstCapacity).block();
 			assertThat(response.isAllowed()).as("steady state # %s is allowed", i).isTrue();
 		}
 
-		response = rateLimiter.isAllowed(id, replenishRate, burstCapacity);
-		assertThat(response.isAllowed()).as("steady state # %s is allowed", replenishRate).isFalse();*/
+		response = rateLimiter.isAllowed(id, replenishRate, burstCapacity).block();
+		assertThat(response.isAllowed()).as("steady state # %s is allowed", replenishRate).isFalse();
 	}
 
 	@EnableAutoConfiguration

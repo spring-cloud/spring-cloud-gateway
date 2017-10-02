@@ -28,10 +28,10 @@ import org.springframework.scripting.support.ResourceScriptSource;
 @ConditionalOnClass(RedisTemplate.class)
 class GatewayRedisAutoConfiguration {
 	@Bean
-	public RedisScript<List> redisRequestRateLimiterScript() {
-		DefaultRedisScript<List> redisScript = new DefaultRedisScript<>();
+	public RedisScript<String> redisRequestRateLimiterScript() {
+		DefaultRedisScript<String> redisScript = new DefaultRedisScript<>();
 		redisScript.setScriptSource(new ResourceScriptSource(new ClassPathResource("META-INF/scripts/request_rate_limiter.lua")));
-		redisScript.setResultType(List.class);
+		redisScript.setResultType(String.class);
 		return redisScript;
 	}
 
@@ -53,7 +53,7 @@ class GatewayRedisAutoConfiguration {
 
 	@Bean
 	public RedisRateLimiter redisRateLimiter(ReactiveRedisTemplate<String, String> redisTemplate,
-											 @Qualifier("redisRequestRateLimiterScript") RedisScript<List> redisScript) {
+											 @Qualifier("redisRequestRateLimiterScript") RedisScript<String> redisScript) {
 		return new RedisRateLimiter(redisTemplate, redisScript);
 	}
 }
