@@ -184,10 +184,10 @@ spring:
           args:
             pattern: /**
 
-#myservice:
-#  ribbon:
-#    NIWSServerListClassName: com.netflix.loadbalancer.ConfigurationBasedServerList
-#    listOfServers: ${test.hostport}
+testservice:
+  ribbon:
+    NIWSServerListClassName: com.netflix.loadbalancer.ConfigurationBasedServerList
+    listOfServers: ${test.hostport}
 
 hystrix.command.successcmd.execution.isolation.thread.timeoutInMilliseconds: 5000
 
@@ -200,4 +200,7 @@ logging:
 
 management:
   context-path: /admin
+eureka:
+  client:
+    enabled: false
 #  port: 8081

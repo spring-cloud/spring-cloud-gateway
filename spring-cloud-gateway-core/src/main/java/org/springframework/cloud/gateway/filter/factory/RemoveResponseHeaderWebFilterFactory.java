@@ -17,11 +17,13 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.springframework.tuple.Tuple;
 import org.springframework.web.server.WebFilter;
 
-import java.util.Arrays;
-import java.util.List;
+import reactor.core.publisher.Mono;
 
 /**
  * @author Spencer Gibb
@@ -37,10 +39,9 @@ public class RemoveResponseHeaderWebFilterFactory implements WebFilterFactory {
 	public WebFilter apply(Tuple args) {
 		final String header = args.getString(NAME_KEY);
 
-		return (exchange, chain) -> {
+		return (exchange, chain) -> chain.filter(exchange).then(Mono.defer(() -> {
 			exchange.getResponse().getHeaders().remove(header);
-
-			return chain.filter(exchange);
-		};
+			return Mono.empty();
+		}));
 	}
 }
