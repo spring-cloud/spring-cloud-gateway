@@ -37,15 +37,25 @@ public class BetweenRoutePredicateFactory implements RoutePredicateFactory {
 	@Override
 	public Predicate<ServerWebExchange> apply(Tuple args) {
 		//TODO: is ZonedDateTime the right thing to use?
-		final ZonedDateTime dateTime1 = parseZonedDateTime(args.getString(DATETIME1_KEY));
-		final ZonedDateTime dateTime2 = parseZonedDateTime(args.getString(DATETIME2_KEY));
-		Assert.isTrue(dateTime1.isBefore(dateTime2), args.getString(DATETIME1_KEY) +
-				" must be before " + args.getString(DATETIME2_KEY));
+		final ZonedDateTime dateTime1 = getZonedDateTime(args.getValue(DATETIME1_KEY));
+		final ZonedDateTime dateTime2 = getZonedDateTime(args.getValue(DATETIME2_KEY));
+		Assert.isTrue(dateTime1.isBefore(dateTime2), args.getValue(DATETIME1_KEY) +
+				" must be before " + args.getValue(DATETIME2_KEY));
 
 		return exchange -> {
 			final ZonedDateTime now = ZonedDateTime.now();
 			return now.isAfter(dateTime1) && now.isBefore(dateTime2);
 		};
+	}
+
+	public static ZonedDateTime getZonedDateTime(Object value) {
+		ZonedDateTime dateTime;
+		if (value instanceof ZonedDateTime) {
+			dateTime = ZonedDateTime.class.cast(value);
+		} else {
+			dateTime = parseZonedDateTime(value.toString());
+		}
+		return dateTime;
 	}
 
 	public static ZonedDateTime parseZonedDateTime(String dateString) {

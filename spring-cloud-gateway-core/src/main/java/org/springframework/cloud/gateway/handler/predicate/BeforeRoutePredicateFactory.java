@@ -41,7 +41,8 @@ public class BeforeRoutePredicateFactory implements RoutePredicateFactory {
 
 	@Override
 	public Predicate<ServerWebExchange> apply(Tuple args) {
-		final ZonedDateTime dateTime = parseZonedDateTime(args.getString(DATETIME_KEY));
+		Object value = args.getValue(DATETIME_KEY);
+		final ZonedDateTime dateTime = BetweenRoutePredicateFactory.getZonedDateTime(value);
 
 		return exchange -> {
 			final ZonedDateTime now = ZonedDateTime.now();

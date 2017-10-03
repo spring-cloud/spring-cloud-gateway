@@ -19,6 +19,8 @@ package org.springframework.cloud.gateway.handler.predicate;
 
 import org.junit.Test;
 
+import java.time.ZonedDateTime;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.gateway.handler.predicate.BeforeRoutePredicateFactory.DATETIME_KEY;
 import static org.springframework.cloud.gateway.handler.predicate.BetweenRoutePredicateFactoryTests.getExchange;
@@ -67,6 +69,12 @@ public class BeforeRoutePredicateFactoryTests {
 		final boolean result = runPredicate(dateString);
 
 		assertThat(result).isTrue();
+	}
+
+	@Test
+	public void testPredicates() {
+		boolean result = RoutePredicates.before(ZonedDateTime.now().minusHours(2)).test(getExchange());
+		assertThat(result).isFalse();
 	}
 
 	private boolean runPredicate(String dateString) {

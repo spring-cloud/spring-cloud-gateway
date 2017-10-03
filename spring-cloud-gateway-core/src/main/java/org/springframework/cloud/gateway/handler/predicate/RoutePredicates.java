@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.handler.predicate;
 
 import org.springframework.web.server.ServerWebExchange;
 
+import java.time.ZonedDateTime;
 import java.util.function.Predicate;
 
 import static org.springframework.cloud.gateway.handler.predicate.MethodRoutePredicateFactory.METHOD_KEY;
@@ -30,11 +31,18 @@ import static org.springframework.tuple.TupleBuilder.tuple;
  */
 public class RoutePredicates {
 
-	//TODO: add support for AfterRoutePredicateFactory
+	public static Predicate<ServerWebExchange> after(ZonedDateTime datetime) {
+		return new AfterRoutePredicateFactory().apply(tuple().of(AfterRoutePredicateFactory.DATETIME_KEY, datetime));
+	}
 
-	//TODO: add support for BeforeRoutePredicateFactory
+	public static Predicate<ServerWebExchange> before(ZonedDateTime datetime) {
+		return new BeforeRoutePredicateFactory().apply(tuple().of(BeforeRoutePredicateFactory.DATETIME_KEY, datetime));
+	}
 
-	//TODO: add support for BetweenRoutePredicateFactory
+	public static Predicate<ServerWebExchange> between(ZonedDateTime datetime1, ZonedDateTime datetime2) {
+		return new BetweenRoutePredicateFactory().apply(tuple()
+				.of(BetweenRoutePredicateFactory.DATETIME1_KEY, datetime1, BetweenRoutePredicateFactory.DATETIME2_KEY, datetime2));
+	}
 
 	//TODO: add support for CookieRoutePredicateFactory
 

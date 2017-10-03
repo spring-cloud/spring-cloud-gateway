@@ -25,8 +25,6 @@ import java.util.function.Predicate;
 import org.springframework.tuple.Tuple;
 import org.springframework.web.server.ServerWebExchange;
 
-import static org.springframework.cloud.gateway.handler.predicate.BetweenRoutePredicateFactory.parseZonedDateTime;
-
 /**
  * @author Spencer Gibb
  */
@@ -41,11 +39,13 @@ public class AfterRoutePredicateFactory implements RoutePredicateFactory {
 
 	@Override
 	public Predicate<ServerWebExchange> apply(Tuple args) {
-		final ZonedDateTime dateTime = parseZonedDateTime(args.getString(DATETIME_KEY));
+		Object value = args.getValue(DATETIME_KEY);
+		final ZonedDateTime dateTime = BetweenRoutePredicateFactory.getZonedDateTime(value);
 
 		return exchange -> {
 			final ZonedDateTime now = ZonedDateTime.now();
 			return now.isAfter(dateTime);
 		};
 	}
+
 }

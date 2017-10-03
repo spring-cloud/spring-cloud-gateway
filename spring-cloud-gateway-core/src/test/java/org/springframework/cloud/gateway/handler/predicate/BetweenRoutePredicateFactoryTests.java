@@ -95,6 +95,14 @@ public class BetweenRoutePredicateFactoryTests {
 		assertThat(result).as("Now is not after %s", dateString1).isFalse();
 	}
 
+	@Test
+	public void testPredicates() {
+		boolean result = RoutePredicates
+				.between(ZonedDateTime.now().minusHours(2), ZonedDateTime.now().plusHours(1))
+				.test(getExchange());
+		assertThat(result).isTrue();
+	}
+
 	boolean runPredicate(String dateString1, String dateString2) {
 		return new BetweenRoutePredicateFactory().apply(tuple()
 				.of(DATETIME1_KEY, dateString1, DATETIME2_KEY, dateString2)).test(getExchange());
