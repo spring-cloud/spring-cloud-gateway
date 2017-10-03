@@ -45,6 +45,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.HttpHandler;
+import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.DispatcherHandler;
 import org.springframework.web.reactive.HandlerMapping;
 import org.springframework.web.reactive.handler.SimpleUrlHandlerMapping;
@@ -260,6 +261,9 @@ public class WebSocketIntegrationTests {
 		@Override
 		public Mono<Void> handle(WebSocketSession session) {
 			String protocol = session.getHandshakeInfo().getSubProtocol();
+			if (!StringUtils.hasText(protocol)) {
+				return Mono.error(new IllegalStateException("Missing protocol"));
+			}
 			WebSocketMessage message = session.textMessage(protocol);
 			return doSend(session, Mono.just(message));
 		}
@@ -270,6 +274,9 @@ public class WebSocketIntegrationTests {
 		@Override
 		public Mono<Void> handle(WebSocketSession session) {
 			HttpHeaders headers = session.getHandshakeInfo().getHeaders();
+			if (!headers.containsKey("my-header")) {
+				return Mono.error(new IllegalStateException("Missing my-header"));
+			}
 			String payload = "my-header:" + headers.getFirst("my-header");
 			WebSocketMessage message = session.textMessage(payload);
 			return doSend(session, Mono.just(message));
