@@ -60,4 +60,7 @@ public class RoutePredicates {
 
 	//TODO: add support for RemoteAddrRoutePredicateFactory
 
+	public static Predicate<ServerWebExchange> alwaysTrue() {
+		return exchange -> true;
+	}
 }

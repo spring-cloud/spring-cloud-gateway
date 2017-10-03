@@ -32,10 +32,17 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.reactivestreams.Publisher;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.cloud.gateway.route.RouteLocator;
+import org.springframework.cloud.gateway.route.Routes;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.Lifecycle;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.HttpHandler;
 import org.springframework.web.reactive.DispatcherHandler;
@@ -45,11 +52,6 @@ import org.springframework.web.reactive.socket.HandshakeInfo;
 import org.springframework.web.reactive.socket.WebSocketHandler;
 import org.springframework.web.reactive.socket.WebSocketMessage;
 import org.springframework.web.reactive.socket.WebSocketSession;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assume.assumeFalse;
-
 import org.springframework.web.reactive.socket.client.ReactorNettyWebSocketClient;
 import org.springframework.web.reactive.socket.client.WebSocketClient;
 import org.springframework.web.reactive.socket.server.RequestUpgradeStrategy;
@@ -58,6 +60,11 @@ import org.springframework.web.reactive.socket.server.support.HandshakeWebSocket
 import org.springframework.web.reactive.socket.server.support.WebSocketHandlerAdapter;
 import org.springframework.web.reactive.socket.server.upgrade.ReactorNettyRequestUpgradeStrategy;
 import org.springframework.web.server.adapter.WebHttpHandlerBuilder;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.springframework.cloud.gateway.handler.predicate.RoutePredicates.alwaysTrue;
+
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.MonoProcessor;
@@ -77,7 +84,9 @@ public class WebSocketIntegrationTests {
 
 	private HttpServer server;
 
-	protected int port;
+	protected int serverPort;
+	private ConfigurableApplicationContext gatewayContext;
+	private int gatewayPort;
 
 	@Before
 	public void setup() throws Exception {
@@ -89,13 +98,20 @@ public class WebSocketIntegrationTests {
 		this.server.start();
 
 		// Set dynamically chosen port
-		this.port = this.server.getPort();
+		this.serverPort = this.server.getPort();
 
 		if (this.client instanceof Lifecycle) {
 			((Lifecycle) this.client).start();
 		}
-	}
 
+		this.gatewayContext = new SpringApplicationBuilder(GatewayConfig.class)
+				.properties("ws.server.port:"+this.serverPort, "server.port=0", "spring.jmx.enabled=false")
+				.run();
+
+		GatewayConfig config = this.gatewayContext.getBean(GatewayConfig.class);
+		ConfigurableEnvironment env = this.gatewayContext.getBean(ConfigurableEnvironment.class);
+		this.gatewayPort = new Integer(env.getProperty("local.server.port"));
+	}
 
 	@After
 	public void stop() throws Exception {
@@ -103,19 +119,21 @@ public class WebSocketIntegrationTests {
 			((Lifecycle) this.client).stop();
 		}
 		this.server.stop();
+		if (this.gatewayContext != null) {
+			this.gatewayContext.stop();
+		}
 	}
-
 
 	private HttpHandler createHttpHandler() {
 		AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
 		context.register(WebSocketTestConfig.class);
-		context.register(WebConfig.class);
 		context.refresh();
 		return WebHttpHandlerBuilder.applicationContext(context).build();
 	}
 
 	protected URI getUrl(String path) throws URISyntaxException {
-		return new URI("ws://localhost:" + this.port + path);
+		// return new URI("ws://localhost:" + this.serverPort + path);
+		return new URI("ws://localhost:" + this.gatewayPort + path);
 	}
 
 	@Configuration
@@ -138,6 +156,18 @@ public class WebSocketIntegrationTests {
 
 		protected RequestUpgradeStrategy getUpgradeStrategy() {
 			return new ReactorNettyRequestUpgradeStrategy();
+		}
+
+		@Bean
+		public HandlerMapping handlerMapping() {
+			Map<String, WebSocketHandler> map = new HashMap<>();
+			map.put("/echo", new EchoWebSocketHandler());
+			map.put("/sub-protocol", new SubProtocolWebSocketHandler());
+			map.put("/custom-header", new CustomHeaderHandler());
+
+			SimpleUrlHandlerMapping mapping = new SimpleUrlHandlerMapping();
+			mapping.setUrlMap(map);
+			return mapping;
 		}
 	}
 
@@ -211,25 +241,6 @@ public class WebSocketIntegrationTests {
 		assertEquals("my-header:my-value", output.block(Duration.ofMillis(5000)));
 	}
 
-
-	@Configuration
-	static class WebConfig {
-
-		@Bean
-		public HandlerMapping handlerMapping() {
-			Map<String, WebSocketHandler> map = new HashMap<>();
-			map.put("/echo", new EchoWebSocketHandler());
-			map.put("/sub-protocol", new SubProtocolWebSocketHandler());
-			map.put("/custom-header", new CustomHeaderHandler());
-
-			SimpleUrlHandlerMapping mapping = new SimpleUrlHandlerMapping();
-			mapping.setUrlMap(map);
-			return mapping;
-		}
-
-	}
-
-
 	private static class EchoWebSocketHandler implements WebSocketHandler {
 
 		@Override
@@ -238,7 +249,6 @@ public class WebSocketIntegrationTests {
 			return session.send(session.receive().doOnNext(WebSocketMessage::retain));
 		}
 	}
-
 
 	private static class SubProtocolWebSocketHandler implements WebSocketHandler {
 
@@ -255,7 +265,6 @@ public class WebSocketIntegrationTests {
 		}
 	}
 
-
 	private static class CustomHeaderHandler implements WebSocketHandler {
 
 		@Override
@@ -267,12 +276,29 @@ public class WebSocketIntegrationTests {
 		}
 	}
 
-
 	// TODO: workaround for suspected RxNetty WebSocket client issue
 	// https://github.com/ReactiveX/RxNetty/issues/560
 
 	private static Mono<Void> doSend(WebSocketSession session, Publisher<WebSocketMessage> output) {
 		return session.send(Mono.delay(Duration.ofMillis(100)).thenMany(output));
+	}
+
+	@Configuration
+	@EnableAutoConfiguration
+	protected static class GatewayConfig {
+
+		@Value("${ws.server.port}")
+		private int wsPort;
+
+		@Bean
+		public RouteLocator wsRouteLocator() {
+			return Routes.locator()
+					.route("testws")
+						.uri("ws://localhost:"+this.wsPort)
+						.predicate(alwaysTrue())
+						.and()
+					.build();
+		}
 	}
 
 }
