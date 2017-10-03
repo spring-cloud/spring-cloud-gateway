@@ -87,6 +87,7 @@
 			<artifactId>assertj-core</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<!-- TODO: remove unused deps -->
 		<!--<dependency>
 			<groupId>org.synchronoss.cloud</groupId>
 			<artifactId>nio-multipart-parser</artifactId>
