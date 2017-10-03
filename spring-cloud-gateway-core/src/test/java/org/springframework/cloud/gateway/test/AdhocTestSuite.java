@@ -44,6 +44,7 @@ import org.springframework.cloud.gateway.handler.predicate.BetweenRoutePredicate
 import org.springframework.cloud.gateway.handler.predicate.HostRoutePredicateFactoryTests;
 import org.springframework.cloud.gateway.handler.predicate.MethodRoutePredicateFactoryTests;
 import org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFactoryTests;
+import org.springframework.cloud.gateway.test.websocket.WebSocketIntegrationTests;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
@@ -58,6 +59,7 @@ import static org.junit.Assume.assumeThat;
 		FormIntegrationTests.class,
 		PostTests.class,
 		RedisRateLimiterTests.class,
+		WebSocketIntegrationTests.class,
 		// route filter tests
 		AddRequestHeaderWebFilterFactoryTests.class,
 		AddRequestParameterWebFilterFactoryTests.class,

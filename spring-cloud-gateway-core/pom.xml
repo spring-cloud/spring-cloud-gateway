@@ -87,7 +87,7 @@
 			<artifactId>assertj-core</artifactId>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
+		<!--<dependency>
 			<groupId>org.synchronoss.cloud</groupId>
 			<artifactId>nio-multipart-parser</artifactId>
 			<version>1.0.2</version>
@@ -104,7 +104,7 @@
 			<artifactId>javax.mail</artifactId>
 			<version>1.6.0-rc1</version>
 			<scope>test</scope>
-		</dependency>
+		</dependency>-->
 	</dependencies>
 	<profiles>
 		<profile>
