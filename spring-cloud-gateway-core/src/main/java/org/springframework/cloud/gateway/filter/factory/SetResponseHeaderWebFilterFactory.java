@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.filter.factory;
 
 import org.springframework.tuple.Tuple;
 import org.springframework.web.server.WebFilter;
+import reactor.core.publisher.Mono;
 
 import java.util.Arrays;
 import java.util.List;
@@ -38,10 +39,8 @@ public class SetResponseHeaderWebFilterFactory implements WebFilterFactory {
 		final String header = args.getString(NAME_KEY);
 		final String value = args.getString(VALUE_KEY);
 
-		return (exchange, chain) -> {
+		return (exchange, chain) -> chain.filter(exchange).then(Mono.fromRunnable(() -> {
 			exchange.getResponse().getHeaders().set(header, value);
-
-			return chain.filter(exchange);
-		};
+		}));
 	}
 }
