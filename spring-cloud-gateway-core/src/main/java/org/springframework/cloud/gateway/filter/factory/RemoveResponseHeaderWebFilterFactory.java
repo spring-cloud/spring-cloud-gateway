@@ -39,9 +39,8 @@ public class RemoveResponseHeaderWebFilterFactory implements WebFilterFactory {
 	public WebFilter apply(Tuple args) {
 		final String header = args.getString(NAME_KEY);
 
-		return (exchange, chain) -> chain.filter(exchange).then(Mono.defer(() -> {
+		return (exchange, chain) -> chain.filter(exchange).doFinally(v -> {
 			exchange.getResponse().getHeaders().remove(header);
-			return Mono.empty();
-		}));
+		});
 	}
 }
