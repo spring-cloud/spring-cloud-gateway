@@ -20,6 +20,13 @@ package org.springframework.cloud.gateway.filter.factory;
 import org.springframework.tuple.Tuple;
 import org.springframework.web.server.WebFilter;
 
+import java.net.URI;
+import java.util.Arrays;
+
+import static org.springframework.cloud.gateway.filter.factory.RedirectToWebFilterFactory.STATUS_KEY;
+import static org.springframework.cloud.gateway.filter.factory.RedirectToWebFilterFactory.URL_KEY;
+import static org.springframework.cloud.gateway.filter.factory.RewritePathWebFilterFactory.REGEXP_KEY;
+import static org.springframework.cloud.gateway.filter.factory.RewritePathWebFilterFactory.REPLACEMENT_KEY;
 import static org.springframework.cloud.gateway.filter.factory.WebFilterFactory.NAME_KEY;
 import static org.springframework.cloud.gateway.filter.factory.WebFilterFactory.VALUE_KEY;
 import static org.springframework.tuple.TupleBuilder.tuple;
@@ -28,36 +35,92 @@ import static org.springframework.tuple.TupleBuilder.tuple;
  * @author Spencer Gibb
  */
 public class WebFilterFactories {
-	//TODO: add support for AddRequestHeaderWebFilterFactory
 
-	//TODO: add support for AddRequestParameterWebFilterFactory
+	public static final Tuple EMPTY_TUPLE = tuple().build();
+
+	public static WebFilter addRequestHeader(String headerName, String headerValue) {
+		Tuple args = tuple().of(NAME_KEY, headerName, VALUE_KEY, headerValue);
+		return new AddRequestHeaderWebFilterFactory().apply(args);
+	}
+
+	public static WebFilter addRequestParameter(String param, String value) {
+		Tuple args = tuple().of(NAME_KEY, param, VALUE_KEY, value);
+		return new AddRequestParameterWebFilterFactory().apply(args);
+	}
 
 	public static WebFilter addResponseHeader(String headerName, String headerValue) {
 		Tuple args = tuple().of(NAME_KEY, headerName, VALUE_KEY, headerValue);
 		return new AddResponseHeaderWebFilterFactory().apply(args);
 	}
 
-	//TODO: add support for HystrixWebFilterFactory
+	public static WebFilter hystrix(String commandName) {
+		Tuple args = tuple().of(NAME_KEY, commandName);
+		return new HystrixWebFilterFactory().apply(args);
+	}
 
-	//TODO: add support for PrefixPathWebFilterFactory
+	public static WebFilter prefixPath(String prefix) {
+		Tuple args = tuple().of(PrefixPathWebFilterFactory.PREFIX_KEY, prefix);
+		return new PrefixPathWebFilterFactory().apply(args);
+	}
 
-	//TODO: add support for RedirectToWebFilterFactory
+	public static WebFilter redirect(int status, URI url) {
+		return redirect(String.valueOf(status), url.toString());
+	}
 
-	//TODO: add support for RemoveNonProxyHeadersWebFilterFactory
+	public static WebFilter redirect(int status, String url) {
+		return redirect(String.valueOf(status), url);
+	}
 
-	//TODO: add support for RemoveRequestHeaderWebFilterFactory
+	public static WebFilter redirect(String status, URI url) {
+		return redirect(status, url.toString());
+	}
 
-	//TODO: add support for RemoveResponseHeaderWebFilterFactory
+	public static WebFilter redirect(String status, String url) {
+		Tuple args = tuple().of(STATUS_KEY, status, URL_KEY, url);
+		return new RedirectToWebFilterFactory().apply(args);
+	}
 
-	//TODO: add support for RewritePathWebFilterFactory
+	public static WebFilter removeNonProxyHeaders(String... headersToRemove) {
+		RemoveNonProxyHeadersWebFilterFactory filterFactory = new RemoveNonProxyHeadersWebFilterFactory();
+		filterFactory.setHeaders(Arrays.asList(headersToRemove));
+		return filterFactory.apply(EMPTY_TUPLE);
+	}
 
-	//TODO: add support for SecureHeadersProperties
+	public static WebFilter removeRequestHeader(String headerName) {
+		Tuple args = tuple().of(NAME_KEY, headerName);
+		return new RemoveRequestHeaderWebFilterFactory().apply(args);
+	}
 
-	//TODO: add support for SecureHeadersWebFilterFactory
+	public static WebFilter removeResponseHeader(String headerName) {
+		Tuple args = tuple().of(NAME_KEY, headerName);
+		return new RemoveResponseHeaderWebFilterFactory().apply(args);
+	}
 
-	//TODO: add support for SetPathWebFilterFactory
+	public static WebFilter rewritePath(String regex, String replacement) {
+		Tuple args = tuple().of(REGEXP_KEY, regex, REPLACEMENT_KEY, replacement);
+		return new RewritePathWebFilterFactory().apply(args);
+	}
 
-	//TODO: add support for SetResponseHeaderWebFilterFactory
+	public static WebFilter secureHeaders(SecureHeadersProperties properties) {
+		return new SecureHeadersWebFilterFactory(properties).apply(EMPTY_TUPLE);
+	}
 
-	//TODO: add support for SetStatusWebFilterFactory
+	public static WebFilter setPath(String template) {
+		Tuple args = tuple().of(SetPathWebFilterFactory.TEMPLATE_KEY, template);
+		return new SetPathWebFilterFactory().apply(args);
+	}
+
+	public static WebFilter setResponseHeader(String headerName, String headerValue) {
+		Tuple args = tuple().of(NAME_KEY, headerName, VALUE_KEY, headerValue);
+		return new SetResponseHeaderWebFilterFactory().apply(args);
+	}
+
+	public static WebFilter setStatus(int status) {
+		return setStatus(String.valueOf(status));
+	}
+
+	public static WebFilter setStatus(String status) {
+		Tuple args = tuple().of(SetStatusWebFilterFactory.STATUS_KEY, status);
+		return new SetStatusWebFilterFactory().apply(args);
+	}
 }
