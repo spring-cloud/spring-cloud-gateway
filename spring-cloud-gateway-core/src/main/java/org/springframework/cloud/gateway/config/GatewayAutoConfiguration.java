@@ -54,6 +54,7 @@ import org.springframework.cloud.gateway.filter.factory.SetResponseHeaderWebFilt
 import org.springframework.cloud.gateway.filter.factory.SetStatusWebFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.WebFilterFactory;
 import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
+import org.springframework.cloud.gateway.filter.ratelimit.PrincipalNameKeyResolver;
 import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter;
 import org.springframework.cloud.gateway.handler.FilteringWebHandler;
 import org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping;
@@ -320,6 +321,12 @@ public class GatewayAutoConfiguration {
 	@Bean
 	public RemoveResponseHeaderWebFilterFactory removeResponseHeaderWebFilterFactory() {
 		return new RemoveResponseHeaderWebFilterFactory();
+	}
+
+	@Bean(name = PrincipalNameKeyResolver.BEAN_NAME)
+	@ConditionalOnBean(RateLimiter.class)
+	public PrincipalNameKeyResolver principalNameKeyResolver() {
+		return new PrincipalNameKeyResolver();
 	}
 
 	@Bean

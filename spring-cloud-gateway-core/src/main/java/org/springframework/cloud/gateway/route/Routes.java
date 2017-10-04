@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Predicate;
 
+import org.springframework.cloud.gateway.filter.OrderedWebFilter;
 import org.springframework.cloud.gateway.filter.factory.WebFilterFactories;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
@@ -129,12 +130,20 @@ public class Routes {
 		}
 
 		public WebFilterSpec webFilters(List<WebFilter> webFilters) {
-			this.builder.webFilters(webFilters);
+			this.addAll(webFilters);
 			return this;
 		}
 
 		public WebFilterSpec add(WebFilter webFilter) {
-			this.builder.add(webFilter);
+			return this.filter(webFilter);
+		}
+
+		public WebFilterSpec filter(WebFilter webFilter) {
+			return this.filter(webFilter, 0);
+		}
+
+		public WebFilterSpec filter(WebFilter webFilter, int order) {
+			this.builder.add(new OrderedWebFilter(webFilter, order));
 			return this;
 		}
 

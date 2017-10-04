@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.filter.factory;
 
 import org.springframework.beans.BeansException;
 import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
+import org.springframework.cloud.gateway.filter.ratelimit.PrincipalNameKeyResolver;
 import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter;
 import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter.Response;
 import org.springframework.context.ApplicationContext;
@@ -67,21 +68,25 @@ public class RequestRateLimiterWebFilterFactory implements WebFilterFactory, App
 		// How much bursting do you want to allow?
 		int capacity = args.getInt(BURST_CAPACITY_KEY);
 
-		String beanName = args.getString(KEY_RESOLVER_NAME_KEY);
+		String beanName;
+		if (args.hasFieldName(KEY_RESOLVER_NAME_KEY)) {
+			beanName = args.getString(KEY_RESOLVER_NAME_KEY);
+		} else {
+			beanName = PrincipalNameKeyResolver.BEAN_NAME;
+		}
 		KeyResolver keyResolver = this.context.getBean(beanName, KeyResolver.class);
 
 		return (exchange, chain) ->
-			keyResolver.resolve(exchange).flatMap(key -> {
-				Response response = rateLimiter.isAllowed(key, replenishRate, capacity).block(); //FIXME: block()
+			keyResolver.resolve(exchange).flatMap(key ->
+				rateLimiter.isAllowed(key, replenishRate, capacity).flatMap(response -> {
+					//TODO: set some headers for rate, tokens left
 
-				//TODO: set some headers for rate, tokens left
-
-				if (response.isAllowed()) {
-					return chain.filter(exchange);
-				}
-				exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
-				return exchange.getResponse().setComplete();
-			});
+					if (response.isAllowed()) {
+						return chain.filter(exchange);
+					}
+					exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
+					return exchange.getResponse().setComplete();
+				}));
 	}
 
 }
