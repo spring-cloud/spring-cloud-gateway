@@ -40,8 +40,22 @@ public class ServerWebExchangeUtils {
 	public static final String GATEWAY_ORIGINAL_REQUEST_URL_ATTR = qualify("gatewayOribinalRequestUrl");
 	public static final String GATEWAY_HANDLER_MAPPER_ATTR = qualify("gatewayHandlerMapper");
 
+	/**
+	 * Used when a routing filter has been successfully call. Allows users to write custom
+	 * routing filters that disable built in routing filters.
+	 */
+	public static final String GATEWAY_ALREADY_ROUTED_ATTR = qualify("gatewayAlreadyRouted");
+
 	private static String qualify(String attr) {
 		return ServerWebExchangeUtils.class.getName() + "." + attr;
+	}
+
+	public static void setAlreadyRouted(ServerWebExchange exchange) {
+		exchange.getAttributes().put(GATEWAY_ALREADY_ROUTED_ATTR, true);
+	}
+
+	public static boolean isAlreadyRouted(ServerWebExchange exchange) {
+		return exchange.getAttributeOrDefault(GATEWAY_ALREADY_ROUTED_ATTR, false);
 	}
 
 	public static boolean setResponseStatus(ServerWebExchange exchange, HttpStatus httpStatus) {

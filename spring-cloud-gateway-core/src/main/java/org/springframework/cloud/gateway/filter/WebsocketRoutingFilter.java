@@ -17,6 +17,8 @@ import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilterChain;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.isAlreadyRouted;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.setAlreadyRouted;
 
 import reactor.core.publisher.Mono;
 
@@ -49,10 +51,10 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 		URI requestUrl = exchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
 
 		String scheme = requestUrl.getScheme();
-		if (!scheme.equals("ws") && !scheme.equals("wss")) {
+		if (isAlreadyRouted(exchange) || (!scheme.equals("ws") && !scheme.equals("wss"))) {
 			return chain.filter(exchange);
 		}
-
+		setAlreadyRouted(exchange);
 
 		return this.webSocketService.handleRequest(exchange,
 				new ProxyWebSocketHandler(requestUrl, this.webSocketClient, exchange.getRequest().getHeaders()));
@@ -84,6 +86,7 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 
 		@Override
 		public Mono<Void> handle(WebSocketSession session) {
+			// pass headers along so custom headers can be sent through
 			return client.execute(url, this.headers, new WebSocketHandler() {
 				@Override
 				public Mono<Void> handle(WebSocketSession proxySession) {
@@ -97,6 +100,10 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 					return Mono.when(proxySessionSend, serverSessionSend).then();
 				}
 
+				/**
+				 * Copy subProtocols so they are available downstream.
+				 * @return
+				 */
 				@Override
 				public List<String> getSubProtocols() {
 					return ProxyWebSocketHandler.this.subProtocols;

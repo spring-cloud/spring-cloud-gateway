@@ -33,6 +33,8 @@ import org.springframework.web.server.WebFilterChain;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.CLIENT_RESPONSE_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.isAlreadyRouted;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.setAlreadyRouted;
 
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
@@ -47,8 +49,6 @@ import reactor.ipc.netty.http.client.HttpClientRequest;
  */
 public class NettyRoutingFilter implements GlobalFilter, Ordered {
 
-	//TODO: investigate using WebClient
-	//The WebSocketRoutingFilter worked out so well without a hard dependency on netty
 	private final HttpClient httpClient;
 
 	public NettyRoutingFilter(HttpClient httpClient) {
@@ -65,9 +65,10 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 		URI requestUrl = exchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
 
 		String scheme = requestUrl.getScheme();
-		if (!scheme.equals("http") && !scheme.equals("https")) {
+		if (isAlreadyRouted(exchange) || (!scheme.equals("http") && !scheme.equals("https"))) {
 			return chain.filter(exchange);
 		}
+		setAlreadyRouted(exchange);
 
 		ServerHttpRequest request = exchange.getRequest();
 

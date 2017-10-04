@@ -33,6 +33,8 @@ import org.springframework.web.server.WebFilterChain;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.CLIENT_RESPONSE_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.isAlreadyRouted;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.setAlreadyRouted;
 
 import reactor.core.publisher.Mono;
 
@@ -57,9 +59,10 @@ public class WebClientHttpRoutingFilter implements GlobalFilter, Ordered {
 		URI requestUrl = exchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
 
 		String scheme = requestUrl.getScheme();
-		if (!scheme.equals("http") && !scheme.equals("https")) {
+		if (isAlreadyRouted(exchange) || (!scheme.equals("http") && !scheme.equals("https"))) {
 			return chain.filter(exchange);
 		}
+		setAlreadyRouted(exchange);
 
 		ServerHttpRequest request = exchange.getRequest();
 
