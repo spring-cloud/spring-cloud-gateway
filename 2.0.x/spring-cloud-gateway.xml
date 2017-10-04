@@ -4,7 +4,7 @@
 <book xmlns="http://docbook.org/ns/docbook" xmlns:xl="http://www.w3.org/1999/xlink" version="5.0" xml:lang="en">
 <info>
 <title>Spring Cloud Gateway</title>
-<date>2017-10-03</date>
+<date>2017-10-04</date>
 </info>
 <preface>
 <title></title>
@@ -46,7 +46,7 @@ for details on setting up your build system with the current Spring Cloud Releas
 </chapter>
 <chapter xml:id="gateway-request-predicates-factories">
 <title>Route Predicate Factories</title>
-<simpara>Spring Cloud Gateway matches routes as part of the Spring WebFlux <literal>HandlerMapping</literal> infrastructure. Spring Cloud Gateway includes many built-in Route Predicate Factorys. All of these predicates match on different attributes of the HTTP request. Multiple Route Predicate Factorys can be combined and are combined via logical <literal>and</literal>.</simpara>
+<simpara>Spring Cloud Gateway matches routes as part of the Spring WebFlux <literal>HandlerMapping</literal> infrastructure. Spring Cloud Gateway includes many built-in Route Predicate Factories. All of these predicates match on different attributes of the HTTP request. Multiple Route Predicate Factories can be combined and are combined via logical <literal>and</literal>.</simpara>
 <section xml:id="_after_route_predicate_factory">
 <title>After Route Predicate Factory</title>
 <simpara>The After Route Predicate Factory takes one parameter, a datetime. This predicate matches requests that happen after the current datetime.</simpara>
@@ -198,7 +198,7 @@ for details on setting up your build system with the current Spring Cloud Releas
 </para>
 </formalpara>
 <simpara>This route would match if the request path was, for example: <literal>/foo/1</literal> or <literal>/foo/bar</literal>.</simpara>
-<simpara>This predicate extracts the URI template variables (like <literal>segment</literal> defined in the example above) as a map of names and values and places it in the <literal>ServerWebExchange.getAttributes()</literal> with a key defined in <literal>PathRoutePredicate.URL_PREDICATE_VARS_ATTR</literal>. Those values are then available for use by <link linkend="gateway-route-filters">WebFilter Factorys</link></simpara>
+<simpara>This predicate extracts the URI template variables (like <literal>segment</literal> defined in the example above) as a map of names and values and places it in the <literal>ServerWebExchange.getAttributes()</literal> with a key defined in <literal>PathRoutePredicate.URL_PREDICATE_VARS_ATTR</literal>. Those values are then available for use by <link linkend="gateway-route-filters">WebFilter Factories</link></simpara>
 </section>
 <section xml:id="_query_route_predicate_factory">
 <title>Query Route Predicate Factory</title>
@@ -255,7 +255,7 @@ for details on setting up your build system with the current Spring Cloud Releas
 </section>
 </chapter>
 <chapter xml:id="gateway-route-filters">
-<title>WebFilter Factorys</title>
+<title>WebFilter Factories</title>
 <simpara>Route filters allow the modification of the incoming HTTP request or outgoing HTTP response in some manner. Route filters are scoped to a particular route. Spring Cloud Gateway includes many built-in WebFilter Factories.</simpara>
 <section xml:id="_addrequestheader_webfilter_factory">
 <title>AddRequestHeader WebFilter Factory</title>
@@ -717,13 +717,13 @@ public RouteLocator customRouteLocator(ThrottleWebFilterFactory throttle) {
 <chapter xml:id="_developer_guide">
 <title>Developer Guide</title>
 <simpara>TODO: overview of writing custom integrations</simpara>
-<section xml:id="_writing_custom_route_predicate_factorys">
-<title>Writing Custom Route Predicate Factorys</title>
-<simpara>TODO: document writing Custom Route Predicate Factorys</simpara>
+<section xml:id="_writing_custom_route_predicate_factories">
+<title>Writing Custom Route Predicate Factories</title>
+<simpara>TODO: document writing Custom Route Predicate Factories</simpara>
 </section>
-<section xml:id="_writing_custom_webfilter_factorys">
-<title>Writing Custom WebFilter Factorys</title>
-<simpara>TODO: document writing Custom WebFilter Factorys</simpara>
+<section xml:id="_writing_custom_webfilter_factories">
+<title>Writing Custom WebFilter Factories</title>
+<simpara>TODO: document writing Custom WebFilter Factories</simpara>
 </section>
 <section xml:id="_writing_custom_global_filters">
 <title>Writing Custom Global Filters</title>
