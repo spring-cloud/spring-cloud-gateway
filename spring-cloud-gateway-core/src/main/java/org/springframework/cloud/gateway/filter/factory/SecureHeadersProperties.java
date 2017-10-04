@@ -24,7 +24,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  */
 @ConfigurationProperties("spring.cloud.gateway.filter.secure-headers")
 public class SecureHeadersProperties {
-	public static final String X_XSS_PROTECTION_HEADER_DEFAULT = "1; mode=block";
+	public static final String X_XSS_PROTECTION_HEADER_DEFAULT = "1 ; mode=block";
 	public static final String STRICT_TRANSPORT_SECURITY_HEADER_DEFAULT = "max-age=631138519"; //; includeSubDomains preload")
 	public static final String X_FRAME_OPTIONS_HEADER_DEFAULT = "DENY"; //SAMEORIGIN = ALLOW-FROM
 	public static final String X_CONTENT_TYPE_OPTIONS_HEADER_DEFAULT = "nosniff";

@@ -37,11 +37,13 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.Routes;
+import org.springframework.cloud.gateway.test.PermitAllSecurityConfiguration;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.Lifecycle;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.HttpHandler;
@@ -292,6 +294,7 @@ public class WebSocketIntegrationTests {
 
 	@Configuration
 	@EnableAutoConfiguration
+	@Import(PermitAllSecurityConfiguration.class)
 	protected static class GatewayConfig {
 
 		@Value("${ws.server.port}")

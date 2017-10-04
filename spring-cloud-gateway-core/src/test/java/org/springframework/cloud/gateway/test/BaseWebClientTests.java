@@ -34,12 +34,11 @@ import org.springframework.cloud.netflix.ribbon.RibbonClients;
 import org.springframework.cloud.netflix.ribbon.StaticServerList;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.multipart.Part;
-import org.springframework.security.config.web.server.HttpSecurity;
-import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -85,6 +84,7 @@ public class BaseWebClientTests {
 		@RibbonClient(name = "testservice", configuration = TestRibbonConfig.class),
 		@RibbonClient(name = "myservice", configuration = TestRibbonConfig.class)
 	})
+	@Import(PermitAllSecurityConfiguration.class)
 	protected static class DefaultTestConfig {
 
 		private static final Log log = LogFactory.getLog(DefaultTestConfig.class);
@@ -182,16 +182,6 @@ public class BaseWebClientTests {
 				}
 				return chain.filter(exchange);
 			};
-		}
-
-
-		@Bean
-		SecurityWebFilterChain springWebFilterChain(HttpSecurity http) throws Exception {
-			return http.authorizeExchange()
-					//.pathMatchers("/admin/**").hasRole("ADMIN")
-					.anyExchange().permitAll()
-					.and()
-					.build();
 		}
 	}
 

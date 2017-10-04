@@ -138,6 +138,7 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
+	@ConditionalOnMissingBean
 	public PropertiesRouteDefinitionLocator propertiesRouteDefinitionLocator(GatewayProperties properties) {
 		return new PropertiesRouteDefinitionLocator(properties);
 	}
