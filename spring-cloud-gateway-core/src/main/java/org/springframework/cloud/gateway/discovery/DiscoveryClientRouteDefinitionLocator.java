@@ -60,7 +60,7 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 					// add a predicate that matches the url at /serviceId*
 					PredicateDefinition predicate = new PredicateDefinition();
 					predicate.setName(normalizePredicateName(PathRoutePredicateFactory.class));
-					predicate.addArg(PATTERN_KEY, "/" + serviceId + "*");
+					predicate.addArg(PATTERN_KEY, "/" + serviceId + "/*");
 					routeDefinition.getPredicates().add(predicate);
 
 					//TODO: support for other default predicates
