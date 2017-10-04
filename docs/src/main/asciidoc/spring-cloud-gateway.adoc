@@ -37,7 +37,7 @@ Clients make requests to Spring Cloud Gateway. If the Gateway Handler Mapping de
 [[gateway-request-predicates-factories]]
 == Route Predicate Factories
 
-Spring Cloud Gateway matches routes as part of the Spring WebFlux `HandlerMapping` infrastructure. Spring Cloud Gateway includes many built-in Route Predicate Factorys. All of these predicates match on different attributes of the HTTP request. Multiple Route Predicate Factorys can be combined and are combined via logical `and`.
+Spring Cloud Gateway matches routes as part of the Spring WebFlux `HandlerMapping` infrastructure. Spring Cloud Gateway includes many built-in Route Predicate Factories. All of these predicates match on different attributes of the HTTP request. Multiple Route Predicate Factories can be combined and are combined via logical `and`.
 
 === After Route Predicate Factory
 The After Route Predicate Factory takes one parameter, a datetime. This predicate matches requests that happen after the current datetime.
@@ -192,7 +192,7 @@ spring:
 
 This route would match if the request path was, for example: `/foo/1` or `/foo/bar`.
 
-This predicate extracts the URI template variables (like `segment` defined in the example above) as a map of names and values and places it in the `ServerWebExchange.getAttributes()` with a key defined in `PathRoutePredicate.URL_PREDICATE_VARS_ATTR`. Those values are then available for use by <<gateway-route-filters,WebFilter Factorys>>
+This predicate extracts the URI template variables (like `segment` defined in the example above) as a map of names and values and places it in the `ServerWebExchange.getAttributes()` with a key defined in `PathRoutePredicate.URL_PREDICATE_VARS_ATTR`. Those values are then available for use by <<gateway-route-filters,WebFilter Factories>>
 
 === Query Route Predicate Factory
 The Query Route Predicate Factory takes two parameters: a required `param` and an optional `regexp`.
@@ -250,7 +250,7 @@ spring:
 This route would match if the remote address of the request was, for example, `192.168.1.10`.
 
 [[gateway-route-filters]]
-== WebFilter Factorys
+== WebFilter Factories
 
 Route filters allow the modification of the incoming HTTP request or outgoing HTTP response in some manner. Route filters are scoped to a particular route. Spring Cloud Gateway includes many built-in WebFilter Factories.
 
@@ -674,13 +674,13 @@ TODO: document the `/gateway` actuator endpoint
 
 TODO: overview of writing custom integrations
 
-=== Writing Custom Route Predicate Factorys
+=== Writing Custom Route Predicate Factories
 
-TODO: document writing Custom Route Predicate Factorys
+TODO: document writing Custom Route Predicate Factories
 
-=== Writing Custom WebFilter Factorys
+=== Writing Custom WebFilter Factories
 
-TODO: document writing Custom WebFilter Factorys
+TODO: document writing Custom WebFilter Factories
 
 === Writing Custom Global Filters
 
