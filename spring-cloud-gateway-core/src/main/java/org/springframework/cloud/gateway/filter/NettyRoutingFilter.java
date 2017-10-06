@@ -57,7 +57,7 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 
 	@Override
 	public int getOrder() {
-		return 2000000;
+		return Ordered.LOWEST_PRECEDENCE;
 	}
 
 	@Override
