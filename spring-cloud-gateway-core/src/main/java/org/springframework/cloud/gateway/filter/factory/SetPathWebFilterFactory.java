@@ -29,6 +29,7 @@ import org.springframework.web.server.WebFilter;
 import org.springframework.web.util.UriTemplate;
 import org.springframework.web.util.pattern.PathPattern.PathMatchInfo;
 
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.URI_TEMPLATE_VARIABLES_ATTRIBUTE;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.addOriginalRequestUrl;
 
@@ -65,6 +66,8 @@ public class SetPathWebFilterFactory implements WebFilterFactory {
 
 			URI uri = uriTemplate.expand(uriVariables);
 			String newPath = uri.getPath();
+
+			exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, uri);
 
 			ServerHttpRequest request = req.mutate()
 					.path(newPath)

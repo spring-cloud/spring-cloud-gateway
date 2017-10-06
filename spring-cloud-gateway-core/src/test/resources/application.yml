@@ -59,6 +59,12 @@ spring:
         - AddResponseHeader=X-Request-Foo, Bar
 
       # =====================================
+      - id: forward_test
+        uri: forward:///localcontroller
+        predicates:
+        - Host=**.forward.org
+
+      # =====================================
       - id: hystrix_failure_test
         uri: ${test.uri}
         predicates:
