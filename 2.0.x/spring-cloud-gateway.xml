@@ -628,9 +628,17 @@ KeyResolver userKeyResolver() {
 <chapter xml:id="_global_filters">
 <title>Global Filters</title>
 <simpara>The <literal>GlobalFilter</literal> interface has the same signature as <literal>WebFilter</literal>. These are special filters that are conditionally applied to all routes. (This interface and usage are subject to change in future milestones).</simpara>
+<section xml:id="_combined_global_filter_and_webfilter_ordering">
+<title>Combined Global Filter and WebFilter Ordering</title>
+<simpara>TODO: document ordering</simpara>
+</section>
+<section xml:id="_forward_routing_filter">
+<title>Forward Routing Filter</title>
+<simpara>The <literal>ForwardRoutingFilter</literal> looks for a URI in the exchange attribute <literal>ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR</literal>. If the url has a <literal>forward</literal> scheme (ie <literal>forward:///localendpoint</literal>), it will use the Spring <literal>DispatcherHandler</literal> to handler the request. The unmodified original url is appended to the list in the <literal>ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR</literal> attribute.</simpara>
+</section>
 <section xml:id="_loadbalancerclient_filter">
 <title>LoadBalancerClient Filter</title>
-<simpara>The <literal>LoadBalancerClientFilter</literal> looks for a URI in the exchange attribute <literal>ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR</literal>. If the url has a <literal>lb</literal> scheme (ie <literal>lb://myservice</literal>), it will use the Spring Cloud <literal>LoadBalancerClient</literal> to resolve the name (<literal>myservice</literal> in the previous example) to an actual host and port and replace the URI in the same attribute. The unmodified original url is placed in the <literal>ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR</literal> attribute.</simpara>
+<simpara>The <literal>LoadBalancerClientFilter</literal> looks for a URI in the exchange attribute <literal>ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR</literal>. If the url has a <literal>lb</literal> scheme (ie <literal>lb://myservice</literal>), it will use the Spring Cloud <literal>LoadBalancerClient</literal> to resolve the name (<literal>myservice</literal> in the previous example) to an actual host and port and replace the URI in the same attribute. The unmodified original url is appended to the list in the <literal>ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR</literal> attribute.</simpara>
 </section>
 <section xml:id="_netty_routing_filter">
 <title>Netty Routing Filter</title>
