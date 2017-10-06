@@ -53,7 +53,6 @@ public class RequestRateLimiterWebFilterFactory implements WebFilterFactory, App
 		this.context = context;
 	}
 
-
 	@Override
 	public List<String> argNames() {
 		return Arrays.asList(REPLENISH_RATE_KEY, BURST_CAPACITY_KEY, KEY_RESOLVER_NAME_KEY);
@@ -66,7 +65,12 @@ public class RequestRateLimiterWebFilterFactory implements WebFilterFactory, App
 		int replenishRate = args.getInt(REPLENISH_RATE_KEY);
 
 		// How much bursting do you want to allow?
-		int capacity = args.getInt(BURST_CAPACITY_KEY);
+		int burstCapacity;
+		if (args.hasFieldName(BURST_CAPACITY_KEY)) {
+			burstCapacity = args.getInt(BURST_CAPACITY_KEY);
+		} else {
+			burstCapacity = 0;
+		}
 
 		String beanName;
 		if (args.hasFieldName(KEY_RESOLVER_NAME_KEY)) {
@@ -78,7 +82,8 @@ public class RequestRateLimiterWebFilterFactory implements WebFilterFactory, App
 
 		return (exchange, chain) ->
 			keyResolver.resolve(exchange).flatMap(key ->
-				rateLimiter.isAllowed(key, replenishRate, capacity).flatMap(response -> {
+					//TODO: if key is empty?
+				rateLimiter.isAllowed(key, replenishRate, burstCapacity).flatMap(response -> {
 					//TODO: set some headers for rate, tokens left
 
 					if (response.isAllowed()) {
