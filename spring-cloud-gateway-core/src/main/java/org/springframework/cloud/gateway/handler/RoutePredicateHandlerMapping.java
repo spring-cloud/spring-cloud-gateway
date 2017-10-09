@@ -19,11 +19,10 @@ package org.springframework.cloud.gateway.handler;
 
 import java.util.function.Function;
 
-import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.Route;
+import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.web.reactive.handler.AbstractHandlerMapping;
 import org.springframework.web.server.ServerWebExchange;
-import org.springframework.web.server.WebHandler;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_HANDLER_MAPPER_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
@@ -35,10 +34,10 @@ import reactor.core.publisher.Mono;
  */
 public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 
-	private final WebHandler webHandler;
+	private final FilteringWebHandler webHandler;
 	private final RouteLocator routeLocator;
 
-	public RoutePredicateHandlerMapping(WebHandler webHandler, RouteLocator routeLocator) {
+	public RoutePredicateHandlerMapping(FilteringWebHandler webHandler, RouteLocator routeLocator) {
 		this.webHandler = webHandler;
 		this.routeLocator = routeLocator;
 
@@ -58,11 +57,10 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 
 					exchange.getAttributes().put(GATEWAY_ROUTE_ATTR, r);
 					return Mono.just(webHandler);
-				}).switchIfEmpty(Mono.empty().then(Mono.defer(() -> {
+				}).switchIfEmpty(Mono.empty().then(Mono.fromRunnable(() -> {
 					if (logger.isTraceEnabled()) {
 						logger.trace("No RouteDefinition found for [" + getExchangeDesc(exchange) + "]");
 					}
-					return Mono.empty();
 				})));
 	}
 
