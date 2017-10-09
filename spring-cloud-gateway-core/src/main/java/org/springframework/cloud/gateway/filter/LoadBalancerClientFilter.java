@@ -67,9 +67,11 @@ public class LoadBalancerClientFilter implements GlobalFilter, Ordered {
 		final ServiceInstance instance = loadBalancer.choose(url.getHost());
 
 		if (instance == null) {
-			throw new NotFoundException("");
+			throw new NotFoundException("Unable to find instance for " + url.getHost());
 		}
 
+		/*URI uri = exchange.getRequest().getURI();
+		URI requestUrl = loadBalancer.reconstructURI(instance, uri);*/
 		URI requestUrl = UriComponentsBuilder.fromUri(url)
 				.scheme(instance.isSecure()? "https" : "http") //TODO: support websockets
 				.host(instance.getHost())

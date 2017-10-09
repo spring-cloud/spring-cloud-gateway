@@ -45,7 +45,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.cloud.gateway.test.TestUtils.assertStatus;
 import static org.springframework.cloud.gateway.test.TestUtils.getMap;
-import static org.springframework.web.reactive.function.BodyExtractors.toMono;
 
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -61,22 +60,18 @@ public class GatewayIntegrationTests extends BaseWebClientTests {
 
 	@Test
 	public void complexContentTypeWorks() {
-		Mono<Map> result = webClient.post()
+		testClient.post()
 				.uri("/headers")
 				.contentType(MediaType.APPLICATION_JSON_UTF8)
 				.syncBody("testdata")
 				.header("Host", "www.complexcontenttype.org")
 				.exchange()
-				.flatMap(response -> response.body(toMono(Map.class)));
-
-		StepVerifier.create(result)
-				.consumeNextWith(
-						response -> {
-							Map<String, Object> headers = getMap(response, "headers");
-							assertThat(headers).containsEntry(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_UTF8_VALUE);
-						})
-				.expectComplete()
-				.verify(DURATION);
+				.expectStatus().isOk()
+				.expectBody(Map.class)
+				.consumeWith(result -> {
+					Map<String, Object> headers = getMap(result.getResponseBody(), "headers");
+					assertThat(headers).containsEntry(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_UTF8_VALUE);
+				});
 	}
 
 	@Test

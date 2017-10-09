@@ -39,6 +39,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.multipart.Part;
+import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -67,6 +68,7 @@ public class BaseWebClientTests {
 	@LocalServerPort
 	protected int port = 0;
 
+	protected WebTestClient testClient;
 	protected WebClient webClient;
 	protected String baseUri;
 
@@ -75,6 +77,7 @@ public class BaseWebClientTests {
 		//TODO: how to set new ReactorClientHttpConnector()
 		baseUri = "http://localhost:" + port;
 		this.webClient = WebClient.create(baseUri);
+		this.testClient = WebTestClient.bindToServer().baseUrl(baseUri).build();
 	}
 
 	@RestController
