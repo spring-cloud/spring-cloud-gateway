@@ -17,6 +17,11 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.function.Function;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.tuple.Tuple;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
@@ -25,14 +30,15 @@ import org.springframework.web.server.WebFilterChain;
 import com.netflix.hystrix.HystrixCommandGroupKey;
 import com.netflix.hystrix.HystrixCommandKey;
 import com.netflix.hystrix.HystrixObservableCommand;
+import com.netflix.hystrix.exception.HystrixRuntimeException;
+
+import static com.netflix.hystrix.exception.HystrixRuntimeException.FailureType.TIMEOUT;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.setResponseStatus;
 
 import reactor.core.publisher.Mono;
 import rx.Observable;
 import rx.RxReactiveStreams;
 import rx.Subscription;
-
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * @author Spencer Gibb
@@ -61,7 +67,16 @@ public class HystrixWebFilterFactory implements WebFilterFactory {
 			return Mono.create(s -> {
 				Subscription sub = command.toObservable().subscribe(s::success, s::error, s::success);
 				s.onCancel(sub::unsubscribe);
-			});
+			}).onErrorResume((Function<Throwable, Mono<Void>>) throwable -> {
+				if (throwable instanceof HystrixRuntimeException) {
+					HystrixRuntimeException e = (HystrixRuntimeException) throwable;
+					if (e.getFailureType() == TIMEOUT) { //TODO: optionally set status
+						setResponseStatus(exchange, HttpStatus.GATEWAY_TIMEOUT);
+						return exchange.getResponse().setComplete();
+					}
+				}
+				return Mono.empty();
+			}).then();
 		};
 	}
 

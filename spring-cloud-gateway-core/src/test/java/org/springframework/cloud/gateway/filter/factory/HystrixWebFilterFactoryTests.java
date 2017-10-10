@@ -70,7 +70,7 @@ public class HystrixWebFilterFactoryTests extends BaseWebClientTests {
 
 		StepVerifier.create(result)
 				.consumeNextWith(
-						response -> assertStatus(response, HttpStatus.INTERNAL_SERVER_ERROR))
+						response -> assertStatus(response, HttpStatus.GATEWAY_TIMEOUT))
 				.expectComplete()
 				.verify(DURATION);
 	}
