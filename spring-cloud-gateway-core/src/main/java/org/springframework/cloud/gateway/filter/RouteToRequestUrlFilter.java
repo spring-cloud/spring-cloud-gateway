@@ -51,7 +51,7 @@ public class RouteToRequestUrlFilter implements GlobalFilter, Ordered {
 		if (route == null) {
 			return chain.filter(exchange);
 		}
-		log.info("RouteToRequestUrlFilter start");
+		log.trace("RouteToRequestUrlFilter start");
 		URI requestUrl = UriComponentsBuilder.fromHttpRequest(exchange.getRequest())
 				.uri(route.getUri())
 				.build(true)

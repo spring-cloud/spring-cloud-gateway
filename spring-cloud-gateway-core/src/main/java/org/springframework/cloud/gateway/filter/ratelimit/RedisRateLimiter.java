@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -57,7 +58,7 @@ public class RedisRateLimiter implements RateLimiter {
 					Instant.now().getEpochSecond() + "", "1");
 			// allowed, tokens_left = redis.eval(SCRIPT, keys, args)
 			Flux<Long> flux = this.redisTemplate.execute(this.script, keys, args)
-					.log("redisratelimiter");
+					.log("redisratelimiter", Level.FINER);
 			return flux.onErrorResume(throwable -> Flux.just(1L, -1L))
 					.reduce(new ArrayList<Long>(), (longs, l) -> {
 						longs.add(l);
