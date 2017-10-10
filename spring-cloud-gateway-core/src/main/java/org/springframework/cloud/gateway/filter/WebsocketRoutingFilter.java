@@ -70,7 +70,15 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 		public ProxyWebSocketHandler(URI url, WebSocketClient client, HttpHeaders headers) {
 			this.client = client;
 			this.url = url;
-			this.headers = headers;
+			this.headers = new HttpHeaders();//headers;
+			//TODO: better strategy to filter these headers?
+			headers.entrySet().forEach(header -> {
+				if (!header.getKey().toLowerCase().startsWith("sec-websocket")
+						&& !header.getKey().equalsIgnoreCase("upgrade")
+						&& !header.getKey().equalsIgnoreCase("connection")) {
+					this.headers.addAll(header.getKey(), header.getValue());
+				}
+			});
 			List<String> protocols = headers.get(SEC_WEBSOCKET_PROTOCOL);
 			if (protocols != null) {
 				this.subProtocols = protocols;
