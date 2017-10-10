@@ -20,12 +20,12 @@ package org.springframework.cloud.gateway.discovery;
 import java.net.URI;
 
 import org.springframework.cloud.client.discovery.DiscoveryClient;
-import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
+import org.springframework.cloud.gateway.filter.FilterDefinition;
 import org.springframework.cloud.gateway.filter.factory.RewritePathWebFilterFactory;
 import org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFactory;
-import org.springframework.cloud.gateway.filter.FilterDefinition;
 import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
 import org.springframework.cloud.gateway.route.RouteDefinition;
+import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
 
 import static org.springframework.cloud.gateway.filter.factory.RewritePathWebFilterFactory.REGEXP_KEY;
 import static org.springframework.cloud.gateway.filter.factory.RewritePathWebFilterFactory.REPLACEMENT_KEY;
@@ -37,6 +37,7 @@ import reactor.core.publisher.Flux;
 
 /**
  * TODO: developer configuration, in zuul, this was opt out, should be opt in
+ * TODO: change to RouteLocator? use java dsl
  * @author Spencer Gibb
  */
 public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLocator {
@@ -57,11 +58,17 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 					routeDefinition.setId(this.routeIdPrefix + serviceId);
 					routeDefinition.setUri(URI.create("lb://" + serviceId));
 
-					// add a predicate that matches the url at /serviceId*
-					PredicateDefinition predicate = new PredicateDefinition();
-					predicate.setName(normalizePredicateName(PathRoutePredicateFactory.class));
-					predicate.addArg(PATTERN_KEY, "/" + serviceId + "*");
-					routeDefinition.getPredicates().add(predicate);
+					// add a predicate that matches the url at /serviceId
+					/*PredicateDefinition barePredicate = new PredicateDefinition();
+					barePredicate.setName(normalizePredicateName(PathRoutePredicateFactory.class));
+					barePredicate.addArg(PATTERN_KEY, "/" + serviceId);
+					routeDefinition.getPredicates().add(barePredicate);*/
+
+					// add a predicate that matches the url at /serviceId/**
+					PredicateDefinition subPredicate = new PredicateDefinition();
+					subPredicate.setName(normalizePredicateName(PathRoutePredicateFactory.class));
+					subPredicate.addArg(PATTERN_KEY, "/" + serviceId + "/**");
+					routeDefinition.getPredicates().add(subPredicate);
 
 					//TODO: support for other default predicates
 
