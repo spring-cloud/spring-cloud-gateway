@@ -24,15 +24,15 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.cloud.gateway.filter.GlobalFilter;
+import org.springframework.cloud.gateway.filter.factory.WebFilterFactory;
+import org.springframework.cloud.gateway.route.RefreshRoutesEvent;
+import org.springframework.cloud.gateway.route.Route;
+import org.springframework.cloud.gateway.route.RouteDefinition;
 import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
 import org.springframework.cloud.gateway.route.RouteDefinitionWriter;
 import org.springframework.cloud.gateway.route.RouteLocator;
-import org.springframework.cloud.gateway.filter.GlobalFilter;
-import org.springframework.cloud.gateway.filter.factory.WebFilterFactory;
-import org.springframework.cloud.gateway.route.Route;
-import org.springframework.cloud.gateway.route.RouteDefinition;
 import org.springframework.cloud.gateway.support.NotFoundException;
-import org.springframework.cloud.gateway.route.RefreshRoutesEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.core.Ordered;
@@ -45,6 +45,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
@@ -88,34 +89,40 @@ public class GatewayWebfluxEndpoint implements ApplicationEventPublisherAware {
 	}
 
 	@GetMapping("/globalfilters")
-	public Map<String, Object> globalfilters() {
+	public Mono<HashMap<String, Object>> globalfilters() {
 		return getNamesToOrders(this.globalFilters);
 	}
 
 	@GetMapping("/routefilters")
-	public Map<String, Object> routefilers() {
+	public Mono<HashMap<String, Object>> routefilers() {
 		return getNamesToOrders(this.webFilterFactories);
 	}
 
-	private <T> Map<String, Object> getNamesToOrders(List<T> list) {
-		HashMap<String, Object> filters = new HashMap<>();
+	private <T> Mono<HashMap<String, Object>> getNamesToOrders(List<T> list) {
+		return Flux.fromIterable(list).reduce(new HashMap<>(), this::putItem);
+	}
 
-		for (Object o : list) {
-			Integer order = null;
-			if (o instanceof Ordered) {
-				order = ((Ordered)o).getOrder();
-			}
-			//filters.put(o.getClass().getName(), order);
-			filters.put(o.toString(), order);
+	private HashMap<String, Object> putItem(HashMap<String, Object> map, Object o) {
+		Integer order = null;
+		if (o instanceof Ordered) {
+			order = ((Ordered)o).getOrder();
 		}
-
-		return filters;
+		//filters.put(o.getClass().getName(), order);
+		map.put(o.toString(), order);
+		return map;
 	}
 
 	// TODO: Add support for RouteLocator
 	@GetMapping("/routes")
-	public Mono<List<RouteDefinition>> routes() {
-		return this.routeDefinitionLocator.getRouteDefinitions().collectList();
+	public Mono<Map<String, List>> routes() {
+		Mono<List<RouteDefinition>> routeDefs = this.routeDefinitionLocator.getRouteDefinitions().collectList();
+		Mono<List<Route>> routes = this.routeLocator.getRoutes().collectList();
+		return Mono.zip(routeDefs, routes).map(tuple -> {
+			Map<String, List> allRoutes = new HashMap<>();
+			allRoutes.put("routeDefinitions", tuple.getT1());
+			allRoutes.put("routes", tuple.getT2());
+			return allRoutes;
+		});
 	}
 
 /*
@@ -142,6 +149,7 @@ http POST :8080/admin/gateway/routes/apiaddreqhead uri=http://httpbin.org:80 pre
 
 	@GetMapping("/routes/{id}")
 	public Mono<ResponseEntity<RouteDefinition>> route(@PathVariable String id) {
+		//TODO: missing RouteLocator
 		return this.routeDefinitionLocator.getRouteDefinitions()
 				.filter(route -> route.getId().equals(id))
 				.singleOrEmpty()
@@ -150,8 +158,10 @@ http POST :8080/admin/gateway/routes/apiaddreqhead uri=http://httpbin.org:80 pre
 	}
 
 	@GetMapping("/routes/{id}/combinedfilters")
-	public Map<String, Object> combinedfilters(@PathVariable String id) {
-		List<Route> routes = this.routeLocator.getRoutes().collectList().block();
-		return getNamesToOrders(routes);
+	public Mono<HashMap<String, Object>> combinedfilters(@PathVariable String id) {
+		//TODO: missing global filters
+		return this.routeLocator.getRoutes()
+				.filter(route -> route.getId().equals(id))
+				.reduce(new HashMap<>(), this::putItem);
 	}
 }
