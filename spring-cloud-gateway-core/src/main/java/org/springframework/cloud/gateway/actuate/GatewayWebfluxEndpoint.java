@@ -50,13 +50,11 @@ import reactor.core.publisher.Mono;
 /**
  * @author Spencer Gibb
  */
-//TODO: move to new Spring Boot 2.0 actuator when ready
-//@ConfigurationProperties(prefix = "endpoints.gateway")
 @RestController
-@RequestMapping("/admin/gateway")
-public class GatewayEndpoint implements ApplicationEventPublisherAware {/*extends AbstractEndpoint<Map<String, Object>> {*/
+@RequestMapping("${management.context-path:/application}/gateway")
+public class GatewayWebfluxEndpoint implements ApplicationEventPublisherAware {
 
-	private static final Log log = LogFactory.getLog(GatewayEndpoint.class);
+	private static final Log log = LogFactory.getLog(GatewayWebfluxEndpoint.class);
 
 	private RouteDefinitionLocator routeDefinitionLocator;
 	private List<GlobalFilter> globalFilters;
@@ -65,10 +63,9 @@ public class GatewayEndpoint implements ApplicationEventPublisherAware {/*extend
 	private RouteLocator routeLocator;
 	private ApplicationEventPublisher publisher;
 
-	public GatewayEndpoint(RouteDefinitionLocator routeDefinitionLocator, List<GlobalFilter> globalFilters,
-						   List<WebFilterFactory> webFilterFactories, RouteDefinitionWriter routeDefinitionWriter,
-						   RouteLocator routeLocator) {
-		//super("gateway");
+	public GatewayWebfluxEndpoint(RouteDefinitionLocator routeDefinitionLocator, List<GlobalFilter> globalFilters,
+								  List<WebFilterFactory> webFilterFactories, RouteDefinitionWriter routeDefinitionWriter,
+								  RouteLocator routeLocator) {
 		this.routeDefinitionLocator = routeDefinitionLocator;
 		this.globalFilters = globalFilters;
 		this.webFilterFactories = webFilterFactories;
@@ -80,10 +77,6 @@ public class GatewayEndpoint implements ApplicationEventPublisherAware {/*extend
 	public void setApplicationEventPublisher(ApplicationEventPublisher publisher) {
 		this.publisher = publisher;
 	}
-
-	/*@Override
-	public Map<String, Object> invoke() {
-	}*/
 
 	// TODO: Add uncommited or new but not active routes endpoint
 
@@ -119,6 +112,7 @@ public class GatewayEndpoint implements ApplicationEventPublisherAware {/*extend
 		return filters;
 	}
 
+	// TODO: Add support for RouteLocator
 	@GetMapping("/routes")
 	public Mono<List<RouteDefinition>> routes() {
 		return this.routeDefinitionLocator.getRouteDefinitions().collectList();
