@@ -304,9 +304,8 @@ public class WebSocketIntegrationTests {
 		public RouteLocator wsRouteLocator() {
 			return Routes.locator()
 					.route("testws")
-						.uri("ws://localhost:"+this.wsPort)
 						.predicate(alwaysTrue())
-						.and()
+						.uri("ws://localhost:"+this.wsPort)
 					.build();
 		}
 	}

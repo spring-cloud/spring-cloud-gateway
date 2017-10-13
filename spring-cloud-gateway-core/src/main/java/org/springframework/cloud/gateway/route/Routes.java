@@ -43,12 +43,24 @@ public class Routes {
 
 		private List<Route> routes = new ArrayList<>();
 
-		public RouteSpec route(String id) {
+		public PredicateSpec route(String id) {
 			return new RouteSpec(this).id(id);
 		}
 
 		private void add(Route route) {
 			this.routes.add(route);
+		}
+
+		LocatorBuilder uri(Route.Builder builder, String uri) {
+			Route route = builder.uri(uri).build();
+			routes.add(route);
+			return this;
+		}
+
+		LocatorBuilder uri(Route.Builder builder, URI uri) {
+			Route route = builder.uri(uri).build();
+			routes.add(route);
+			return this;
 		}
 
 		public RouteLocator build() {
@@ -65,23 +77,8 @@ public class Routes {
 			this.locatorBuilder = locatorBuilder;
 		}
 
-		public RouteSpec id(String id) {
+		public PredicateSpec id(String id) {
 			this.builder.id(id);
-			return this;
-		}
-
-		public RouteSpec order(int order) {
-			this.builder.order(order);
-			return this;
-		}
-
-		public PredicateSpec uri(String uri) {
-			this.builder.uri(uri);
-			return predicateBuilder();
-		}
-
-		public PredicateSpec uri(URI uri) {
-			this.builder.uri(uri);
 			return predicateBuilder();
 		}
 
@@ -93,11 +90,11 @@ public class Routes {
 
 	public static class PredicateSpec {
 
-		private final Route.Builder routeBuilder;
+		private final Route.Builder builder;
 		private LocatorBuilder locatorBuilder;
 
-		private PredicateSpec(Route.Builder routeBuilder, LocatorBuilder locatorBuilder) {
-			this.routeBuilder = routeBuilder;
+		private PredicateSpec(Route.Builder builder, LocatorBuilder locatorBuilder) {
+			this.builder = builder;
 			this.locatorBuilder = locatorBuilder;
 		}
 
@@ -109,15 +106,27 @@ public class Routes {
 			Predicate<ServerWebExchange> predicate = RoutePredicates.host(pattern);
 		}*/
 
+		public PredicateSpec order(int order) {
+			this.builder.order(order);
+			return this;
+		}
+
 		public GatewayFilterSpec predicate(Predicate<ServerWebExchange> predicate) {
-			this.routeBuilder.predicate(predicate);
+			this.builder.predicate(predicate);
 			return gatewayFilterBuilder();
 		}
 
 		private GatewayFilterSpec gatewayFilterBuilder() {
-			return new GatewayFilterSpec(this.routeBuilder, this.locatorBuilder);
+			return new GatewayFilterSpec(this.builder, this.locatorBuilder);
 		}
 
+		public LocatorBuilder uri(String uri) {
+			return this.locatorBuilder.uri(this.builder, uri);
+		}
+
+		public LocatorBuilder uri(URI uri) {
+			return this.locatorBuilder.uri(this.builder, uri);
+		}
 	}
 
 	public static class GatewayFilterSpec {
@@ -156,11 +165,12 @@ public class Routes {
 			return add(GatewayFilters.addResponseHeader(headerName, headerValue));
 		}
 
-		// TODO: build()?
-		public LocatorBuilder and() {
-			Route route = this.builder.build();
-			this.locatorBuilder.add(route);
-			return this.locatorBuilder;
+		public LocatorBuilder uri(String uri) {
+			return this.locatorBuilder.uri(this.builder, uri);
+		}
+
+		public LocatorBuilder uri(URI uri) {
+			return this.locatorBuilder.uri(this.builder, uri);
 		}
 	}
 

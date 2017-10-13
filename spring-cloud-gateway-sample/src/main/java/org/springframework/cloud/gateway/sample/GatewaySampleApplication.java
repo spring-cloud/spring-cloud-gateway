@@ -45,24 +45,21 @@ public class GatewaySampleApplication {
 	public RouteLocator customRouteLocator(ThrottleGatewayFilterFactory throttle) {
 		return Routes.locator()
 				.route("test")
-					.uri("http://httpbin.org:80")
 					.predicate(host("**.abc.org").and(path("/image/png")))
 					.addResponseHeader("X-TestHeader", "foobar")
-					.and()
-				.route("test2")
 					.uri("http://httpbin.org:80")
+				.route("test2")
 					.predicate(path("/image/webp"))
 					.add(addResponseHeader("X-AnotherHeader", "baz"))
-					.and()
+					.uri("http://httpbin.org:80")
 				.route("test3")
 					.order(-1)
-					.uri("http://httpbin.org:80")
 					.predicate(host("**.throttle.org").and(path("/get")))
 					.add(throttle.apply(tuple().of("capacity", 1,
 							"refillTokens", 1,
 							"refillPeriod", 10,
 							"refillUnit", "SECONDS")))
-					.and()
+					.uri("http://httpbin.org:80")
 				.build();
 	}
 

@@ -99,11 +99,10 @@ public class PrincipalNameKeyResolverIntegrationTests {
 		public RouteLocator customRouteLocator(RequestRateLimiterGatewayFilterFactory rateLimiterFactory) {
 			return Routes.locator()
 					.route("protected-throttled")
-					.uri("http://localhost:"+port)
 					.predicate(path("/myapi/**"))
 					.filter(rateLimiterFactory.apply(tuple().of(REPLENISH_RATE_KEY, 1, BURST_CAPACITY_KEY, 1)))
 					.filter(prefixPath("/downstream"))
-					.and()
+					.uri("http://localhost:"+port)
 					.build();
 		}
 
