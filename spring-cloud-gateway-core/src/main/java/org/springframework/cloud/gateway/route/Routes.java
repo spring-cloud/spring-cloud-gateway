@@ -23,10 +23,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Predicate;
 
-import org.springframework.cloud.gateway.filter.OrderedWebFilter;
-import org.springframework.cloud.gateway.filter.factory.WebFilterFactories;
+import org.springframework.cloud.gateway.filter.OrderedGatewayFilter;
+import org.springframework.cloud.gateway.filter.factory.GatewayFilters;
 import org.springframework.web.server.ServerWebExchange;
-import org.springframework.web.server.WebFilter;
+import org.springframework.cloud.gateway.filter.GatewayFilter;
 
 import reactor.core.publisher.Flux;
 
@@ -109,51 +109,51 @@ public class Routes {
 			Predicate<ServerWebExchange> predicate = RoutePredicates.host(pattern);
 		}*/
 
-		public WebFilterSpec predicate(Predicate<ServerWebExchange> predicate) {
+		public GatewayFilterSpec predicate(Predicate<ServerWebExchange> predicate) {
 			this.routeBuilder.predicate(predicate);
-			return webFilterBuilder();
+			return gatewayFilterBuilder();
 		}
 
-		private WebFilterSpec webFilterBuilder() {
-			return new WebFilterSpec(this.routeBuilder, this.locatorBuilder);
+		private GatewayFilterSpec gatewayFilterBuilder() {
+			return new GatewayFilterSpec(this.routeBuilder, this.locatorBuilder);
 		}
 
 	}
 
-	public static class WebFilterSpec {
+	public static class GatewayFilterSpec {
 		private Route.Builder builder;
 		private LocatorBuilder locatorBuilder;
 
-		public WebFilterSpec(Route.Builder routeBuilder, LocatorBuilder locatorBuilder) {
+		public GatewayFilterSpec(Route.Builder routeBuilder, LocatorBuilder locatorBuilder) {
 			this.builder = routeBuilder;
 			this.locatorBuilder = locatorBuilder;
 		}
 
-		public WebFilterSpec webFilters(List<WebFilter> webFilters) {
-			this.addAll(webFilters);
+		public GatewayFilterSpec gatewayFilters(List<GatewayFilter> gatewayFilters) {
+			this.addAll(gatewayFilters);
 			return this;
 		}
 
-		public WebFilterSpec add(WebFilter webFilter) {
-			return this.filter(webFilter);
+		public GatewayFilterSpec add(GatewayFilter gatewayFilter) {
+			return this.filter(gatewayFilter);
 		}
 
-		public WebFilterSpec filter(WebFilter webFilter) {
-			return this.filter(webFilter, 0);
+		public GatewayFilterSpec filter(GatewayFilter gatewayFilter) {
+			return this.filter(gatewayFilter, 0);
 		}
 
-		public WebFilterSpec filter(WebFilter webFilter, int order) {
-			this.builder.add(new OrderedWebFilter(webFilter, order));
+		public GatewayFilterSpec filter(GatewayFilter gatewayFilter, int order) {
+			this.builder.add(new OrderedGatewayFilter(gatewayFilter, order));
 			return this;
 		}
 
-		public WebFilterSpec addAll(Collection<WebFilter> webFilters) {
-			this.builder.addAll(webFilters);
+		public GatewayFilterSpec addAll(Collection<GatewayFilter> gatewayFilters) {
+			this.builder.addAll(gatewayFilters);
 			return this;
 		}
 
-		public WebFilterSpec addResponseHeader(String headerName, String headerValue) {
-			return add(WebFilterFactories.addResponseHeader(headerName, headerValue));
+		public GatewayFilterSpec addResponseHeader(String headerName, String headerValue) {
+			return add(GatewayFilters.addResponseHeader(headerName, headerValue));
 		}
 
 		// TODO: build()?

@@ -1,5 +1,7 @@
+package org.springframework.cloud.gateway.filter;
+
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,25 +14,23 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
-package org.springframework.cloud.gateway.filter;
-
 import org.springframework.web.server.ServerWebExchange;
-import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 
 import reactor.core.publisher.Mono;
 
 /**
  * Contract for interception-style, chained processing of Web requests that may
  * be used to implement cross-cutting, application-agnostic requirements such
- * as security, timeouts, and others.
+ * as security, timeouts, and others. Specific to a Gateway
+ *
+ * Copied from WebFilter
  *
  * @author Rossen Stoyanchev
  * @since 5.0
  */
-public interface GlobalFilter {
+public interface GatewayFilter {
 
 	/**
 	 * Process the Web request and (optionally) delegate to the next
@@ -42,3 +42,4 @@ public interface GlobalFilter {
 	Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain);
 
 }
+

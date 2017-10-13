@@ -26,7 +26,7 @@ import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.cloud.gateway.support.NotFoundException;
 import org.springframework.core.Ordered;
 import org.springframework.web.server.ServerWebExchange;
-import org.springframework.web.server.WebFilterChain;
+import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
@@ -54,7 +54,7 @@ public class LoadBalancerClientFilter implements GlobalFilter, Ordered {
 	}
 
 	@Override
-	public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
+	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 		URI url = exchange.getAttribute(GATEWAY_REQUEST_URL_ATTR);
 		if (url == null || !url.getScheme().equals("lb")) {
 			return chain.filter(exchange);

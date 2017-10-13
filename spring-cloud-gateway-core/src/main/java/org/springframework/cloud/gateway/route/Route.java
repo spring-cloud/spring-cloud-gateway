@@ -28,7 +28,7 @@ import java.util.function.Predicate;
 import org.springframework.core.Ordered;
 import org.springframework.util.Assert;
 import org.springframework.web.server.ServerWebExchange;
-import org.springframework.web.server.WebFilter;
+import org.springframework.cloud.gateway.filter.GatewayFilter;
 
 /**
  * @author Spencer Gibb
@@ -43,7 +43,7 @@ public class Route implements Ordered {
 
 	private final Predicate<ServerWebExchange> predicate;
 
-	private final List<WebFilter> webFilters;
+	private final List<GatewayFilter> gatewayFilters;
 
 	public static Builder builder() {
 		return new Builder();
@@ -56,12 +56,12 @@ public class Route implements Ordered {
 				.order(routeDefinition.getOrder());
 	}
 
-	public Route(String id, URI uri, int order, Predicate<ServerWebExchange> predicate, List<WebFilter> webFilters) {
+	public Route(String id, URI uri, int order, Predicate<ServerWebExchange> predicate, List<GatewayFilter> gatewayFilters) {
 		this.id = id;
 		this.uri = uri;
 		this.order = order;
 		this.predicate = predicate;
-		this.webFilters = webFilters;
+		this.gatewayFilters = gatewayFilters;
 	}
 
 	public static class Builder {
@@ -73,7 +73,7 @@ public class Route implements Ordered {
 
 		private Predicate<ServerWebExchange> predicate;
 
-		private List<WebFilter> webFilters = new ArrayList<>();
+		private List<GatewayFilter> gatewayFilters = new ArrayList<>();
 
 		private Builder() {}
 
@@ -102,18 +102,18 @@ public class Route implements Ordered {
 			return this;
 		}
 
-		public Builder webFilters(List<WebFilter> webFilters) {
-			this.webFilters = webFilters;
+		public Builder gatewayFilters(List<GatewayFilter> gatewayFilters) {
+			this.gatewayFilters = gatewayFilters;
 			return this;
 		}
 
-		public Builder add(WebFilter webFilter) {
-			this.webFilters.add(webFilter);
+		public Builder add(GatewayFilter webFilter) {
+			this.gatewayFilters.add(webFilter);
 			return this;
 		}
 
-		public Builder addAll(Collection<WebFilter> webFilters) {
-			this.webFilters.addAll(webFilters);
+		public Builder addAll(Collection<GatewayFilter> gatewayFilters) {
+			this.gatewayFilters.addAll(gatewayFilters);
 			return this;
 		}
 
@@ -122,7 +122,7 @@ public class Route implements Ordered {
 			Assert.notNull(this.uri, "uri can not be null");
 			//TODO: Assert.notNull(this.predicate, "predicate can not be null");
 
-			return new Route(this.id, this.uri, this.order, this.predicate, this.webFilters);
+			return new Route(this.id, this.uri, this.order, this.predicate, this.gatewayFilters);
 		}
 	}
 
@@ -142,8 +142,8 @@ public class Route implements Ordered {
 		return this.predicate;
 	}
 
-	public List<WebFilter> getWebFilters() {
-		return Collections.unmodifiableList(this.webFilters);
+	public List<GatewayFilter> getFilters() {
+		return Collections.unmodifiableList(this.gatewayFilters);
 	}
 
 	@Override
@@ -155,12 +155,12 @@ public class Route implements Ordered {
 				Objects.equals(uri, route.uri) &&
 				Objects.equals(order, route.order) &&
 				Objects.equals(predicate, route.predicate) &&
-				Objects.equals(webFilters, route.webFilters);
+				Objects.equals(gatewayFilters, route.gatewayFilters);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(id, uri, predicate, webFilters);
+		return Objects.hash(id, uri, predicate, gatewayFilters);
 	}
 
 	@Override
@@ -170,7 +170,7 @@ public class Route implements Ordered {
 		sb.append(", uri=").append(uri);
 		sb.append(", order=").append(order);
 		sb.append(", predicate=").append(predicate);
-		sb.append(", webFilters=").append(webFilters);
+		sb.append(", gatewayFilters=").append(gatewayFilters);
 		sb.append('}');
 		return sb.toString();
 	}

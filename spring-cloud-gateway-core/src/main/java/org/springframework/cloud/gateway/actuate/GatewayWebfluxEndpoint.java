@@ -25,7 +25,7 @@ import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
-import org.springframework.cloud.gateway.filter.factory.WebFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
 import org.springframework.cloud.gateway.route.RefreshRoutesEvent;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.route.RouteDefinition;
@@ -59,17 +59,17 @@ public class GatewayWebfluxEndpoint implements ApplicationEventPublisherAware {
 
 	private RouteDefinitionLocator routeDefinitionLocator;
 	private List<GlobalFilter> globalFilters;
-	private List<WebFilterFactory> webFilterFactories;
+	private List<GatewayFilterFactory> GatewayFilters;
 	private RouteDefinitionWriter routeDefinitionWriter;
 	private RouteLocator routeLocator;
 	private ApplicationEventPublisher publisher;
 
 	public GatewayWebfluxEndpoint(RouteDefinitionLocator routeDefinitionLocator, List<GlobalFilter> globalFilters,
-								  List<WebFilterFactory> webFilterFactories, RouteDefinitionWriter routeDefinitionWriter,
+								  List<GatewayFilterFactory> GatewayFilters, RouteDefinitionWriter routeDefinitionWriter,
 								  RouteLocator routeLocator) {
 		this.routeDefinitionLocator = routeDefinitionLocator;
 		this.globalFilters = globalFilters;
-		this.webFilterFactories = webFilterFactories;
+		this.GatewayFilters = GatewayFilters;
 		this.routeDefinitionWriter = routeDefinitionWriter;
 		this.routeLocator = routeLocator;
 	}
@@ -95,7 +95,7 @@ public class GatewayWebfluxEndpoint implements ApplicationEventPublisherAware {
 
 	@GetMapping("/routefilters")
 	public Mono<HashMap<String, Object>> routefilers() {
-		return getNamesToOrders(this.webFilterFactories);
+		return getNamesToOrders(this.GatewayFilters);
 	}
 
 	private <T> Mono<HashMap<String, Object>> getNamesToOrders(List<T> list) {

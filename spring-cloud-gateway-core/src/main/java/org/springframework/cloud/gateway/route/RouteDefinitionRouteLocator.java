@@ -29,8 +29,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.cloud.gateway.config.GatewayProperties;
 import org.springframework.cloud.gateway.filter.FilterDefinition;
-import org.springframework.cloud.gateway.filter.OrderedWebFilter;
-import org.springframework.cloud.gateway.filter.factory.WebFilterFactory;
+import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.OrderedGatewayFilter;
+import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
 import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
 import org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory;
 import org.springframework.cloud.gateway.support.ArgumentHints;
@@ -39,7 +40,6 @@ import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.tuple.Tuple;
 import org.springframework.tuple.TupleBuilder;
 import org.springframework.web.server.ServerWebExchange;
-import org.springframework.web.server.WebFilter;
 
 import reactor.core.publisher.Flux;
 
@@ -52,16 +52,16 @@ public class RouteDefinitionRouteLocator implements RouteLocator {
 
 	private final RouteDefinitionLocator routeDefinitionLocator;
 	private final Map<String, RoutePredicateFactory> predicates = new LinkedHashMap<>();
-	private final Map<String, WebFilterFactory> webFilterFactories = new HashMap<>();
+	private final Map<String, GatewayFilterFactory> gatewayFilterFactories = new HashMap<>();
 	private final GatewayProperties gatewayProperties;
 
 	public RouteDefinitionRouteLocator(RouteDefinitionLocator routeDefinitionLocator,
 									   List<RoutePredicateFactory> predicates,
-									   List<WebFilterFactory> webFilterFactories,
+									   List<GatewayFilterFactory> gatewayFilterFactories,
 									   GatewayProperties gatewayProperties) {
 		this.routeDefinitionLocator = routeDefinitionLocator;
 		initFactories(predicates);
-		webFilterFactories.forEach(factory -> this.webFilterFactories.put(factory.name(), factory));
+		gatewayFilterFactories.forEach(factory -> this.gatewayFilterFactories.put(factory.name(), factory));
 		this.gatewayProperties = gatewayProperties;
 	}
 
@@ -101,20 +101,20 @@ public class RouteDefinitionRouteLocator implements RouteLocator {
 
 	private Route convertToRoute(RouteDefinition routeDefinition) {
 		Predicate<ServerWebExchange> predicate = combinePredicates(routeDefinition);
-		List<WebFilter> webFilters = getFilters(routeDefinition);
+		List<GatewayFilter> gatewayFilters = getFilters(routeDefinition);
 
 		return Route.builder(routeDefinition)
 				.predicate(predicate)
-				.webFilters(webFilters)
+				.gatewayFilters(gatewayFilters)
 				.build();
 	}
 
-	private List<WebFilter> loadWebFilters(String id, List<FilterDefinition> filterDefinitions) {
-		List<WebFilter> filters = filterDefinitions.stream()
+	private List<GatewayFilter> loadGatewayFilters(String id, List<FilterDefinition> filterDefinitions) {
+		List<GatewayFilter> filters = filterDefinitions.stream()
 				.map(definition -> {
-					WebFilterFactory filter = this.webFilterFactories.get(definition.getName());
+					GatewayFilterFactory filter = this.gatewayFilterFactories.get(definition.getName());
 					if (filter == null) {
-						throw new IllegalArgumentException("Unable to find WebFilterFactory with name " + definition.getName());
+						throw new IllegalArgumentException("Unable to find GatewayFilterFactory with name " + definition.getName());
 					}
 					Map<String, String> args = definition.getArgs();
 					if (logger.isDebugEnabled()) {
@@ -127,9 +127,9 @@ public class RouteDefinitionRouteLocator implements RouteLocator {
 				})
 				.collect(Collectors.toList());
 
-		ArrayList<WebFilter> ordered = new ArrayList<>(filters.size());
+		ArrayList<GatewayFilter> ordered = new ArrayList<>(filters.size());
 		for (int i = 0; i < filters.size(); i++) {
-			ordered.add(new OrderedWebFilter(filters.get(i), i+1));
+			ordered.add(new OrderedGatewayFilter(filters.get(i), i+1));
 		}
 
 		return ordered;
@@ -174,17 +174,17 @@ public class RouteDefinitionRouteLocator implements RouteLocator {
 		return tuple;
 	}
 
-	private List<WebFilter> getFilters(RouteDefinition routeDefinition) {
-		List<WebFilter> filters = new ArrayList<>();
+	private List<GatewayFilter> getFilters(RouteDefinition routeDefinition) {
+		List<GatewayFilter> filters = new ArrayList<>();
 
 		//TODO: support option to apply defaults after route specific filters?
 		if (!this.gatewayProperties.getDefaultFilters().isEmpty()) {
-			filters.addAll(loadWebFilters("defaultFilters",
+			filters.addAll(loadGatewayFilters("defaultFilters",
 					this.gatewayProperties.getDefaultFilters()));
 		}
 
 		if (!routeDefinition.getFilters().isEmpty()) {
-			filters.addAll(loadWebFilters(routeDefinition.getId(), routeDefinition.getFilters()));
+			filters.addAll(loadGatewayFilters(routeDefinition.getId(), routeDefinition.getFilters()));
 		}
 
 		AnnotationAwareOrderComparator.sort(filters);

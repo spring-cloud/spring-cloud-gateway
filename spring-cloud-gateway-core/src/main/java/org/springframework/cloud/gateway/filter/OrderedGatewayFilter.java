@@ -17,28 +17,40 @@
 
 package org.springframework.cloud.gateway.filter;
 
+import org.springframework.core.Ordered;
 import org.springframework.web.server.ServerWebExchange;
-import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 
 import reactor.core.publisher.Mono;
 
 /**
- * Contract for interception-style, chained processing of Web requests that may
- * be used to implement cross-cutting, application-agnostic requirements such
- * as security, timeouts, and others.
- *
- * @author Rossen Stoyanchev
- * @since 5.0
+ * @author Spencer Gibb
  */
-public interface GlobalFilter {
+public class OrderedGatewayFilter implements GatewayFilter, Ordered {
 
-	/**
-	 * Process the Web request and (optionally) delegate to the next
-	 * {@code WebFilter} through the given {@link GatewayFilterChain}.
-	 * @param exchange the current server exchange
-	 * @param chain provides a way to delegate to the next filter
-	 * @return {@code Mono<Void>} to indicate when request processing is complete
-	 */
-	Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain);
+	private final GatewayFilter delegate;
+	private final int order;
 
+	public OrderedGatewayFilter(GatewayFilter delegate, int order) {
+		this.delegate = delegate;
+		this.order = order;
+	}
+
+	@Override
+	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+		return this.delegate.filter(exchange, chain);
+	}
+
+	@Override
+	public int getOrder() {
+		return this.order;
+	}
+
+	@Override
+	public String toString() {
+		final StringBuilder sb = new StringBuilder("OrderedGatewayFilter{");
+		sb.append("delegate=").append(delegate);
+		sb.append(", order=").append(order);
+		sb.append('}');
+		return sb.toString();
+	}
 }

@@ -21,14 +21,14 @@ import java.net.URI;
 
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.gateway.filter.FilterDefinition;
-import org.springframework.cloud.gateway.filter.factory.RewritePathWebFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactory;
 import org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
 import org.springframework.cloud.gateway.route.RouteDefinition;
 import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
 
-import static org.springframework.cloud.gateway.filter.factory.RewritePathWebFilterFactory.REGEXP_KEY;
-import static org.springframework.cloud.gateway.filter.factory.RewritePathWebFilterFactory.REPLACEMENT_KEY;
+import static org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactory.REGEXP_KEY;
+import static org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactory.REPLACEMENT_KEY;
 import static org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFactory.PATTERN_KEY;
 import static org.springframework.cloud.gateway.support.NameUtils.normalizeFilterName;
 import static org.springframework.cloud.gateway.support.NameUtils.normalizePredicateName;
@@ -74,7 +74,7 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 
 					// add a filter that removes /serviceId by default
 					FilterDefinition filter = new FilterDefinition();
-					filter.setName(normalizeFilterName(RewritePathWebFilterFactory.class));
+					filter.setName(normalizeFilterName(RewritePathGatewayFilterFactory.class));
 					String regex = "/" + serviceId + "/(?<remaining>.*)";
 					String replacement = "/${remaining}";
 					filter.addArg(REGEXP_KEY, regex);

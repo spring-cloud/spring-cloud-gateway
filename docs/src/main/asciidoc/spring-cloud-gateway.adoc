@@ -25,7 +25,7 @@ If you include the starter, but, for some reason, you do not want the gateway to
 
 * *Route*: Route the basic building block of the gateway. It is defined by an ID, a destination URI, a collection of predicates and a collection of filters. A route is matched if aggregate predicate is true.
 * *Predicate*: This is a http://docs.oracle.com/javase/8/docs/api/java/util/function/Predicate.html[Java 8 Function Predicate]. The input type is a http://docs.spring.io/spring/docs/5.0.x/javadoc-api/org/springframework/web/server/ServerWebExchange.html[Spring Framework `ServerWebExchange`]. This allows developers to match on anything from the HTTP request, such as headers or parameters.
-* *Filter*: These are instances http://docs.spring.io/spring/docs/5.0.x/javadoc-api/org/springframework/web/server/WebFilter.html[Spring Framework `WebFilter`] constructed in with a specific factory. Here, requests and responses can be modified before or after sending the downstream request.
+* *Filter*: These are instances http://docs.spring.io/spring/docs/5.0.x/javadoc-api/org/springframework/web/server/GatewayFilter.html[Spring Framework `GatewayFilter`] constructed in with a specific factory. Here, requests and responses can be modified before or after sending the downstream request.
 
 [[gateway-how-it-works]]
 == How It Works
@@ -192,7 +192,7 @@ spring:
 
 This route would match if the request path was, for example: `/foo/1` or `/foo/bar`.
 
-This predicate extracts the URI template variables (like `segment` defined in the example above) as a map of names and values and places it in the `ServerWebExchange.getAttributes()` with a key defined in `PathRoutePredicate.URL_PREDICATE_VARS_ATTR`. Those values are then available for use by <<gateway-route-filters,WebFilter Factories>>
+This predicate extracts the URI template variables (like `segment` defined in the example above) as a map of names and values and places it in the `ServerWebExchange.getAttributes()` with a key defined in `PathRoutePredicate.URL_PREDICATE_VARS_ATTR`. Those values are then available for use by <<gateway-route-filters,GatewayFilter Factories>>
 
 === Query Route Predicate Factory
 The Query Route Predicate Factory takes two parameters: a required `param` and an optional `regexp`.
@@ -250,12 +250,12 @@ spring:
 This route would match if the remote address of the request was, for example, `192.168.1.10`.
 
 [[gateway-route-filters]]
-== WebFilter Factories
+== GatewayFilter Factories
 
-Route filters allow the modification of the incoming HTTP request or outgoing HTTP response in some manner. Route filters are scoped to a particular route. Spring Cloud Gateway includes many built-in WebFilter Factories.
+Route filters allow the modification of the incoming HTTP request or outgoing HTTP response in some manner. Route filters are scoped to a particular route. Spring Cloud Gateway includes many built-in GatewayFilter Factories.
 
-=== AddRequestHeader WebFilter Factory
-The AddRequestHeader WebFilter Factory takes a name and value parameter.
+=== AddRequestHeader GatewayFilter Factory
+The AddRequestHeader GatewayFilter Factory takes a name and value parameter.
 
 .application.yml
 [source,yaml]
@@ -273,8 +273,8 @@ spring:
 
 This will add `X-Request-Foo:Bar` header to the downstream request's headers for all matching requests.
 
-=== AddRequestParameter WebFilter Factory
-The AddRequestParameter WebFilter Factory takes a name and value parameter.
+=== AddRequestParameter GatewayFilter Factory
+The AddRequestParameter GatewayFilter Factory takes a name and value parameter.
 
 .application.yml
 [source,yaml]
@@ -292,8 +292,8 @@ spring:
 
 This will add `foo=bar` to the downstream request's query string for all matching requests.
 
-=== AddResponseHeader WebFilter Factory
-The AddResponseHeader WebFilter Factory takes a name and value parameter.
+=== AddResponseHeader GatewayFilter Factory
+The AddResponseHeader GatewayFilter Factory takes a name and value parameter.
 
 .application.yml
 [source,yaml]
@@ -311,8 +311,8 @@ spring:
 
 This will add `X-Response-Foo:Bar` header to the downstream response's headers for all matching requests.
 
-=== Hystrix WebFilter Factory
-The Hystrix WebFilter Factory takes a single `name` parameters, which is the name of the `HystrixCommand`. (More options might be added in future releases).
+=== Hystrix GatewayFilter Factory
+The Hystrix GatewayFilter Factory takes a single `name` parameters, which is the name of the `HystrixCommand`. (More options might be added in future releases).
 
 .application.yml
 [source,yaml]
@@ -330,8 +330,8 @@ spring:
 
 This wraps the remaining filters in a `HystrixCommand` with command name `myCommandName`.
 
-=== PrefixPath WebFilter Factory
-The PrefixPath WebFilter Factory takes a single `prefix` parameter.
+=== PrefixPath GatewayFilter Factory
+The PrefixPath GatewayFilter Factory takes a single `prefix` parameter.
 
 .application.yml
 [source,yaml]
@@ -349,9 +349,9 @@ spring:
 
 This will prefix `/mypath` to the path of all matching requests. So a request to `/hello`, would be sent to `/mypath/hello`.
 
-=== RequestRateLimiter WebFilter Factory
+=== RequestRateLimiter GatewayFilter Factory
 
-The RequestRateLimiter WebFilter Factory takes three parameters: `replenishRate`, `burstCapacity` & `keyResolverName`.
+The RequestRateLimiter GatewayFilter Factory takes three parameters: `replenishRate`, `burstCapacity` & `keyResolverName`.
 
 `replenishRate` is how many requests per second do you want a user to be allowed to do.
 
@@ -397,8 +397,8 @@ KeyResolver userKeyResolver() {
 
 This defines a request rate limit of 10 per user. The `KeyResolver` is a simple one that gets the `user` request parameter (note: this is not recommended for production).
 
-=== RedirectTo WebFilter Factory
-The RedirectTo WebFilter Factory takes a `status` and a `url` parameter. The status should be a 300 series redirect http code, such as 301. The url should be a valid url. This will be the value of the `Location` header.
+=== RedirectTo GatewayFilter Factory
+The RedirectTo GatewayFilter Factory takes a `status` and a `url` parameter. The status should be a 300 series redirect http code, such as 301. The url should be a valid url. This will be the value of the `Location` header.
 
 .application.yml
 [source,yaml]
@@ -416,8 +416,8 @@ spring:
 
 This will send a status 302 with a `Location:http://acme.org` header to perform a redirect.
 
-=== RemoveNonProxyHeaders WebFilter Factory
-The RemoveNonProxyHeaders WebFilter Factory removes headers from forwarded requests. The default list of headers that is removed comes from the https://tools.ietf.org/html/draft-ietf-httpbis-p1-messaging-14#section-7.1.3[IETF].
+=== RemoveNonProxyHeaders GatewayFilter Factory
+The RemoveNonProxyHeaders GatewayFilter Factory removes headers from forwarded requests. The default list of headers that is removed comes from the https://tools.ietf.org/html/draft-ietf-httpbis-p1-messaging-14#section-7.1.3[IETF].
 
 .The default removed headers are:
  *  Connection
@@ -431,8 +431,8 @@ The RemoveNonProxyHeaders WebFilter Factory removes headers from forwarded reque
 
 To change this, set the `spring.cloud.gateway.filter.remove-non-proxy-headers.headers` property to the list of header names to remove.
 
-=== RemoveRequestHeader WebFilter Factory
-The RemoveRequestHeader WebFilter Factory takes a `name` parameter. It is the name of the header to be removed.
+=== RemoveRequestHeader GatewayFilter Factory
+The RemoveRequestHeader GatewayFilter Factory takes a `name` parameter. It is the name of the header to be removed.
 
 .application.yml
 [source,yaml]
@@ -450,8 +450,8 @@ spring:
 
 This will remove the `X-Request-Foo` header before it is sent downstream.
 
-=== RemoveResponseHeader WebFilter Factory
-The RemoveResponseHeader WebFilter Factory takes a `name` parameter. It is the name of the header to be removed.
+=== RemoveResponseHeader GatewayFilter Factory
+The RemoveResponseHeader GatewayFilter Factory takes a `name` parameter. It is the name of the header to be removed.
 
 .application.yml
 [source,yaml]
@@ -469,8 +469,8 @@ spring:
 
 This will remove the `X-Response-Foo` header from the response before it is returned to the gateway client.
 
-=== RewritePath WebFilter Factory
-The RewritePath WebFilter Factory takes a path `regexp` parameter and a `replacement` parameter. This uses Java regular expressions for a flexible way to rewrite the request path.
+=== RewritePath GatewayFilter Factory
+The RewritePath GatewayFilter Factory takes a path `regexp` parameter and a `replacement` parameter. This uses Java regular expressions for a flexible way to rewrite the request path.
 
 .application.yml
 [source,yaml]
@@ -489,8 +489,8 @@ spring:
 
 For a request path of `/foo/bar`, this will set the path to `/bar` before making the downstream request. Notice the `$\` which is replaced with `$` because of the YAML spec.
 
-=== SecureHeaders WebFilter Factory
-The SecureHeaders WebFilter Factory adds a number of headers to the response at the reccomendation from https://blog.appcanary.com/2017/http-security-headers.html[this blog post].
+=== SecureHeaders GatewayFilter Factory
+The SecureHeaders GatewayFilter Factory adds a number of headers to the response at the reccomendation from https://blog.appcanary.com/2017/http-security-headers.html[this blog post].
 
 .The following headers are added (allong with default values):
  * `X-Xss-Protection:1; mode=block`
@@ -515,8 +515,8 @@ To change the default values set the appropriate property in the `spring.cloud.g
  * `permitted-cross-domain-policies`
 
 
-=== SetPath WebFilter Factory
-The SetPath WebFilter Factory takes a path `template` parameter. It offers a simple way to manipulate the request path by allowing templated segments of the path. This uses the uri templates from Spring Framework. Multiple matching segments are allowed.
+=== SetPath GatewayFilter Factory
+The SetPath GatewayFilter Factory takes a path `template` parameter. It offers a simple way to manipulate the request path by allowing templated segments of the path. This uses the uri templates from Spring Framework. Multiple matching segments are allowed.
 
 .application.yml
 [source,yaml]
@@ -536,8 +536,8 @@ spring:
 
 For a request path of `/foo/bar`, this will set the path to `/bar` before making the downstream request.
 
-=== SetResponseHeader WebFilter Factory
-The SetResponseHeader WebFilter Factory takes `name` and `value` parameters.
+=== SetResponseHeader GatewayFilter Factory
+The SetResponseHeader GatewayFilter Factory takes `name` and `value` parameters.
 
 .application.yml
 [source,yaml]
@@ -553,10 +553,10 @@ spring:
         - SetResponseHeader=X-Response-Foo, Bar
 ----
 
-This WebFilter replaces all headers with the given name, rather than adding. So if the downstream server responded with a `X-Response-Foo:1234`, this would be replaced with `X-Response-Foo:Bar`, which is what the gateway client would receive.
+This GatewayFilter replaces all headers with the given name, rather than adding. So if the downstream server responded with a `X-Response-Foo:1234`, this would be replaced with `X-Response-Foo:Bar`, which is what the gateway client would receive.
 
-=== SetStatus WebFilter Factory
-The SetStatus WebFilter Factory takes a single `status` parameter. It must be a valid Spring `HttpStatus`. It may be the integer value `404` or the string representation of the enumeration `NOT_FOUND`.
+=== SetStatus GatewayFilter Factory
+The SetStatus GatewayFilter Factory takes a single `status` parameter. It must be a valid Spring `HttpStatus`. It may be the integer value `404` or the string representation of the enumeration `NOT_FOUND`.
 
 .application.yml
 [source,yaml]
@@ -580,9 +580,9 @@ In either case, the HTTP status of the response will be set to 401.
 
 == Global Filters
 
-The `GlobalFilter` interface has the same signature as `WebFilter`. These are special filters that are conditionally applied to all routes. (This interface and usage are subject to change in future milestones).
+The `GlobalFilter` interface has the same signature as `GatewayFilter`. These are special filters that are conditionally applied to all routes. (This interface and usage are subject to change in future milestones).
 
-=== Combined Global Filter and WebFilter Ordering
+=== Combined Global Filter and GatewayFilter Ordering
 
 TODO: document ordering
 
@@ -654,9 +654,9 @@ To allow for simple configuration in Java, there is a fluent API defined in the 
 .Config.java
 [source,java]
 ----
-// static imports from WebFilterFactories and RoutePredicates
+// static imports from GatewayFilters and RoutePredicates
 @Bean
-public RouteLocator customRouteLocator(ThrottleWebFilterFactory throttle) {
+public RouteLocator customRouteLocator(ThrottleGatewayFilterFactory throttle) {
     return Routes.locator()
             .route("test")
                 .uri("http://httpbin.org:80")
@@ -686,9 +686,9 @@ TODO: overview of writing custom integrations
 
 TODO: document writing Custom Route Predicate Factories
 
-=== Writing Custom WebFilter Factories
+=== Writing Custom GatewayFilter Factories
 
-TODO: document writing Custom WebFilter Factories
+TODO: document writing Custom GatewayFilter Factories
 
 === Writing Custom Global Filters
 

@@ -29,7 +29,7 @@ import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.RouterFunctions;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
-import static org.springframework.cloud.gateway.filter.factory.WebFilterFactories.addResponseHeader;
+import static org.springframework.cloud.gateway.filter.factory.GatewayFilters.addResponseHeader;
 import static org.springframework.cloud.gateway.handler.predicate.RoutePredicates.host;
 import static org.springframework.cloud.gateway.handler.predicate.RoutePredicates.path;
 import static org.springframework.tuple.TupleBuilder.tuple;
@@ -42,7 +42,7 @@ import static org.springframework.tuple.TupleBuilder.tuple;
 public class GatewaySampleApplication {
 
 	@Bean
-	public RouteLocator customRouteLocator(ThrottleWebFilterFactory throttle) {
+	public RouteLocator customRouteLocator(ThrottleGatewayFilterFactory throttle) {
 		return Routes.locator()
 				.route("test")
 					.uri("http://httpbin.org:80")
@@ -67,8 +67,8 @@ public class GatewaySampleApplication {
 	}
 
 	@Bean
-	public ThrottleWebFilterFactory throttleWebFilterFactory() {
-		return new ThrottleWebFilterFactory();
+	public ThrottleGatewayFilterFactory throttleWebFilterFactory() {
+		return new ThrottleGatewayFilterFactory();
 	}
 
 	@Bean

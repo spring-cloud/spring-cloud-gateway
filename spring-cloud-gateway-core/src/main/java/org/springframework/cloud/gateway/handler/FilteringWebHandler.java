@@ -19,22 +19,20 @@ package org.springframework.cloud.gateway.handler;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
-import org.springframework.cloud.gateway.filter.OrderedWebFilter;
-import org.springframework.cloud.gateway.filter.factory.WebFilterFactory;
+import org.springframework.cloud.gateway.filter.OrderedGatewayFilter;
+import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.web.server.ServerWebExchange;
-import org.springframework.web.server.WebFilter;
-import org.springframework.web.server.WebFilterChain;
+import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.web.server.WebHandler;
-import org.springframework.web.server.handler.WebHandlerDecorator;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
 
@@ -42,35 +40,30 @@ import reactor.core.publisher.Mono;
 
 /**
  * WebHandler that delegates to a chain of {@link GlobalFilter} instances and
- * {@link WebFilterFactory} instances then to the target {@link WebHandler}.
+ * {@link GatewayFilterFactory} instances then to the target {@link WebHandler}.
  *
  * @author Rossen Stoyanchev
  * @author Spencer Gibb
  * @since 0.1
  */
-public class FilteringWebHandler extends WebHandlerDecorator {
-	protected final Log logger = LogFactory.getLog(getClass());
+public class FilteringWebHandler implements WebHandler {
+	protected static final Log logger = LogFactory.getLog(FilteringWebHandler.class);
 
-	private final List<WebFilter> globalFilters;
+	private final List<GatewayFilter> globalFilters;
 
 	public FilteringWebHandler(List<GlobalFilter> globalFilters) {
-		this(new EmptyWebHandler(), globalFilters);
-	}
-
-	public FilteringWebHandler(WebHandler targetHandler, List<GlobalFilter> globalFilters) {
-		super(targetHandler);
 		this.globalFilters = loadFilters(globalFilters);
 	}
 
-	private static List<WebFilter> loadFilters(List<GlobalFilter> filters) {
+	private static List<GatewayFilter> loadFilters(List<GlobalFilter> filters) {
 		return filters.stream()
 				.map(filter -> {
-					WebFilterAdapter webFilter = new WebFilterAdapter(filter);
+					GatewayFilterAdapter gatewayFilter = new GatewayFilterAdapter(filter);
 					if (filter instanceof Ordered) {
 						int order = ((Ordered) filter).getOrder();
-						return new OrderedWebFilter(webFilter, order);
+						return new OrderedGatewayFilter(gatewayFilter, order);
 					}
-					return webFilter;
+					return gatewayFilter;
 				}).collect(Collectors.toList());
 	}
 
@@ -82,68 +75,58 @@ public class FilteringWebHandler extends WebHandlerDecorator {
 	@Override
 	public Mono<Void> handle(ServerWebExchange exchange) {
 		Route route = exchange.getRequiredAttribute(GATEWAY_ROUTE_ATTR);
-		List<WebFilter> webFilters = route.getWebFilters();
+		List<GatewayFilter> gatewayFilters = route.getFilters();
 
-		List<WebFilter> combined = new ArrayList<>(this.globalFilters);
-		combined.addAll(webFilters);
+		List<GatewayFilter> combined = new ArrayList<>(this.globalFilters);
+		combined.addAll(gatewayFilters);
 		//TODO: needed or cached?
 		AnnotationAwareOrderComparator.sort(combined);
 
-		logger.debug("Sorted webFilterFactories: "+ combined);
+		logger.debug("Sorted gatewayFilterFactories: "+ combined);
 
-		return new DefaultWebFilterChain(combined, getDelegate()).filter(exchange);
+		return new DefaultGatewayFilterChain(combined).filter(exchange);
 	}
 
-	private static class DefaultWebFilterChain implements WebFilterChain {
+	private static class DefaultGatewayFilterChain implements GatewayFilterChain {
 
 		private int index;
-		private final List<WebFilter> filters;
-		private final WebHandler delegate;
+		private final List<GatewayFilter> filters;
 
-		public DefaultWebFilterChain(List<WebFilter> filters, WebHandler delegate) {
+		public DefaultGatewayFilterChain(List<GatewayFilter> filters) {
 			this.filters = filters;
-			this.delegate = delegate;
 		}
 
 		@Override
 		public Mono<Void> filter(ServerWebExchange exchange) {
 			if (this.index < filters.size()) {
-				WebFilter filter = filters.get(this.index++);
+				GatewayFilter filter = filters.get(this.index++);
 				return filter.filter(exchange, this);
 			}
 			else {
-				return this.delegate.handle(exchange);
+				return Mono.empty(); // complete
 			}
 		}
 	}
 
-	private static class WebFilterAdapter implements WebFilter {
+	private static class GatewayFilterAdapter implements GatewayFilter {
 
 		private final GlobalFilter delegate;
 
-		public WebFilterAdapter(GlobalFilter delegate) {
+		public GatewayFilterAdapter(GlobalFilter delegate) {
 			this.delegate = delegate;
 		}
 
 		@Override
-		public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
+		public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 			return this.delegate.filter(exchange, chain);
 		}
 
 		@Override
 		public String toString() {
-			final StringBuilder sb = new StringBuilder("WebFilterAdapter{");
+			final StringBuilder sb = new StringBuilder("GatewayFilterAdapter{");
 			sb.append("delegate=").append(delegate);
 			sb.append('}');
 			return sb.toString();
-		}
-	}
-
-
-	private static class EmptyWebHandler implements WebHandler {
-		@Override
-		public Mono<Void> handle(ServerWebExchange exchange) {
-			return Mono.empty();
 		}
 	}
 

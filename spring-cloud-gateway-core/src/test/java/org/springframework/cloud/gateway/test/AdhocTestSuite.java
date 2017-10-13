@@ -24,19 +24,19 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 import org.junit.runners.model.Statement;
-import org.springframework.cloud.gateway.filter.factory.AddRequestHeaderWebFilterFactoryTests;
-import org.springframework.cloud.gateway.filter.factory.AddRequestParameterWebFilterFactoryTests;
-import org.springframework.cloud.gateway.filter.factory.HystrixWebFilterFactoryTests;
-import org.springframework.cloud.gateway.filter.factory.RedirectToWebFilterFactoryTests;
-import org.springframework.cloud.gateway.filter.factory.RemoveNonProxyHeadersWebFilterFactoryTests;
-import org.springframework.cloud.gateway.filter.factory.RemoveRequestHeaderWebFilterFactoryTests;
-import org.springframework.cloud.gateway.filter.factory.RewritePathWebFilterFactoryIntegrationTests;
-import org.springframework.cloud.gateway.filter.factory.RewritePathWebFilterFactoryTests;
-import org.springframework.cloud.gateway.filter.factory.SecureHeadersWebFilterFactoryTests;
-import org.springframework.cloud.gateway.filter.factory.SetPathWebFilterFactoryIntegrationTests;
-import org.springframework.cloud.gateway.filter.factory.SetPathWebFilterFactoryTests;
-import org.springframework.cloud.gateway.filter.factory.SetResponseWebFilterFactoryTests;
-import org.springframework.cloud.gateway.filter.factory.SetStatusWebFilterFactoryTests;
+import org.springframework.cloud.gateway.filter.factory.AddRequestHeaderGatewayFilterFactoryTests;
+import org.springframework.cloud.gateway.filter.factory.AddRequestParameterGatewayFilterFactoryTests;
+import org.springframework.cloud.gateway.filter.factory.HystrixGatewayFilterFactoryTests;
+import org.springframework.cloud.gateway.filter.factory.RedirectToGatewayFilterFactoryTests;
+import org.springframework.cloud.gateway.filter.factory.RemoveNonProxyHeadersGatewayFilterFactoryTests;
+import org.springframework.cloud.gateway.filter.factory.RemoveRequestHeaderGatewayFilterFactoryTests;
+import org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactoryTests;
+import org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactoryIntegrationTests;
+import org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactoryTests;
+import org.springframework.cloud.gateway.filter.factory.SetPathGatewayFilterFactoryIntegrationTests;
+import org.springframework.cloud.gateway.filter.factory.SetPathGatewayFilterFactoryTests;
+import org.springframework.cloud.gateway.filter.factory.SetResponseGatewayFilterFactoryTests;
+import org.springframework.cloud.gateway.filter.factory.SetStatusGatewayFilterFactoryTests;
 import org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiterTests;
 import org.springframework.cloud.gateway.handler.predicate.AfterRoutePredicateFactoryTests;
 import org.springframework.cloud.gateway.handler.predicate.BeforeRoutePredicateFactoryTests;
@@ -61,19 +61,19 @@ import static org.junit.Assume.assumeThat;
 		RedisRateLimiterTests.class,
 		WebSocketIntegrationTests.class,
 		// route filter tests
-		AddRequestHeaderWebFilterFactoryTests.class,
-		AddRequestParameterWebFilterFactoryTests.class,
-		HystrixWebFilterFactoryTests.class,
-		RedirectToWebFilterFactoryTests.class,
-		RemoveNonProxyHeadersWebFilterFactoryTests.class,
-		RemoveRequestHeaderWebFilterFactoryTests.class,
-		RewritePathWebFilterFactoryIntegrationTests.class,
-		SecureHeadersWebFilterFactoryTests.class,
-		SetPathWebFilterFactoryIntegrationTests.class,
-		SetPathWebFilterFactoryTests.class,
-		SetResponseWebFilterFactoryTests.class,
-		SetStatusWebFilterFactoryTests.class,
-		RewritePathWebFilterFactoryTests.class,
+		AddRequestHeaderGatewayFilterFactoryTests.class,
+		AddRequestParameterGatewayFilterFactoryTests.class,
+		HystrixGatewayFilterFactoryTests.class,
+		RedirectToGatewayFilterFactoryTests.class,
+		RemoveNonProxyHeadersGatewayFilterFactoryTests.class,
+		RemoveRequestHeaderGatewayFilterFactoryTests.class,
+		RewritePathGatewayFilterFactoryIntegrationTests.class,
+		SecureHeadersGatewayFilterFactoryTests.class,
+		SetPathGatewayFilterFactoryIntegrationTests.class,
+		SetPathGatewayFilterFactoryTests.class,
+		SetResponseGatewayFilterFactoryTests.class,
+		SetStatusGatewayFilterFactoryTests.class,
+		RewritePathGatewayFilterFactoryTests.class,
 		// RoutePredicateFactory tests
 		AfterRoutePredicateFactoryTests.class,
 		BeforeRoutePredicateFactoryTests.class,

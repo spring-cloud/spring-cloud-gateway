@@ -38,23 +38,23 @@ import org.springframework.cloud.gateway.filter.NettyRoutingFilter;
 import org.springframework.cloud.gateway.filter.NettyWriteResponseFilter;
 import org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter;
 import org.springframework.cloud.gateway.filter.WebsocketRoutingFilter;
-import org.springframework.cloud.gateway.filter.factory.AddRequestHeaderWebFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.AddRequestParameterWebFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.AddResponseHeaderWebFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.HystrixWebFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.PrefixPathWebFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.RedirectToWebFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.RemoveNonProxyHeadersWebFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.RemoveRequestHeaderWebFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.RemoveResponseHeaderWebFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.RequestRateLimiterWebFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.RewritePathWebFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.AddRequestHeaderGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.AddRequestParameterGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.AddResponseHeaderGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.HystrixGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.PrefixPathGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.RedirectToGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.RemoveNonProxyHeadersGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.RemoveRequestHeaderGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.RemoveResponseHeaderGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.RequestRateLimiterGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SecureHeadersProperties;
-import org.springframework.cloud.gateway.filter.factory.SecureHeadersWebFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.SetPathWebFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.SetResponseHeaderWebFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.SetStatusWebFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.WebFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.SetPathGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.SetResponseHeaderGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.SetStatusGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
 import org.springframework.cloud.gateway.filter.ratelimit.PrincipalNameKeyResolver;
 import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter;
@@ -160,10 +160,10 @@ public class GatewayAutoConfiguration {
 
 	@Bean
 	public RouteLocator routeDefinitionRouteLocator(GatewayProperties properties,
-												   List<WebFilterFactory> webFilterFactories,
+												   List<GatewayFilterFactory> GatewayFilters,
 												   List<RoutePredicateFactory> predicates,
 												   RouteDefinitionLocator routeDefinitionLocator) {
-		return new RouteDefinitionRouteLocator(routeDefinitionLocator, predicates, webFilterFactories, properties);
+		return new RouteDefinitionRouteLocator(routeDefinitionLocator, predicates, GatewayFilters, properties);
 	}
 
 	@Bean
@@ -282,55 +282,55 @@ public class GatewayAutoConfiguration {
 		return new RemoteAddrRoutePredicateFactory();
 	}
 
-	// WebFilter Factory beans
+	// GatewayFilter Factory beans
 
 	@Bean
-	public AddRequestHeaderWebFilterFactory addRequestHeaderWebFilterFactory() {
-		return new AddRequestHeaderWebFilterFactory();
+	public AddRequestHeaderGatewayFilterFactory addRequestHeaderGatewayFilterFactory() {
+		return new AddRequestHeaderGatewayFilterFactory();
 	}
 
 	@Bean
-	public AddRequestParameterWebFilterFactory addRequestParameterWebFilterFactory() {
-		return new AddRequestParameterWebFilterFactory();
+	public AddRequestParameterGatewayFilterFactory addRequestParameterGatewayFilterFactory() {
+		return new AddRequestParameterGatewayFilterFactory();
 	}
 
 	@Bean
-	public AddResponseHeaderWebFilterFactory addResponseHeaderWebFilterFactory() {
-		return new AddResponseHeaderWebFilterFactory();
+	public AddResponseHeaderGatewayFilterFactory addResponseHeaderGatewayFilterFactory() {
+		return new AddResponseHeaderGatewayFilterFactory();
 	}
 
 	@Configuration
 	@ConditionalOnClass({HystrixObservableCommand.class, RxReactiveStreams.class})
 	protected static class HystrixConfiguration {
 		@Bean
-		public HystrixWebFilterFactory hystrixWebFilterFactory() {
-			return new HystrixWebFilterFactory();
+		public HystrixGatewayFilterFactory hystrixGatewayFilterFactory() {
+			return new HystrixGatewayFilterFactory();
 		}
 	}
 
 	@Bean
-	public PrefixPathWebFilterFactory prefixPathWebFilterFactory() {
-		return new PrefixPathWebFilterFactory();
+	public PrefixPathGatewayFilterFactory prefixPathGatewayFilterFactory() {
+		return new PrefixPathGatewayFilterFactory();
 	}
 
 	@Bean
-	public RedirectToWebFilterFactory redirectToWebFilterFactory() {
-		return new RedirectToWebFilterFactory();
+	public RedirectToGatewayFilterFactory redirectToGatewayFilterFactory() {
+		return new RedirectToGatewayFilterFactory();
 	}
 
 	@Bean
-	public RemoveNonProxyHeadersWebFilterFactory removeNonProxyHeadersWebFilterFactory() {
-		return new RemoveNonProxyHeadersWebFilterFactory();
+	public RemoveNonProxyHeadersGatewayFilterFactory removeNonProxyHeadersGatewayFilterFactory() {
+		return new RemoveNonProxyHeadersGatewayFilterFactory();
 	}
 
 	@Bean
-	public RemoveRequestHeaderWebFilterFactory removeRequestHeaderWebFilterFactory() {
-		return new RemoveRequestHeaderWebFilterFactory();
+	public RemoveRequestHeaderGatewayFilterFactory removeRequestHeaderGatewayFilterFactory() {
+		return new RemoveRequestHeaderGatewayFilterFactory();
 	}
 
 	@Bean
-	public RemoveResponseHeaderWebFilterFactory removeResponseHeaderWebFilterFactory() {
-		return new RemoveResponseHeaderWebFilterFactory();
+	public RemoveResponseHeaderGatewayFilterFactory removeResponseHeaderGatewayFilterFactory() {
+		return new RemoveResponseHeaderGatewayFilterFactory();
 	}
 
 	@Bean(name = PrincipalNameKeyResolver.BEAN_NAME)
@@ -341,33 +341,33 @@ public class GatewayAutoConfiguration {
 
 	@Bean
 	@ConditionalOnBean({RateLimiter.class, KeyResolver.class})
-	public RequestRateLimiterWebFilterFactory requestRateLimiterWebFilterFactory(RateLimiter rateLimiter) {
-		return new RequestRateLimiterWebFilterFactory(rateLimiter);
+	public RequestRateLimiterGatewayFilterFactory requestRateLimiterGatewayFilterFactory(RateLimiter rateLimiter) {
+		return new RequestRateLimiterGatewayFilterFactory(rateLimiter);
 	}
 
 	@Bean
-	public RewritePathWebFilterFactory rewritePathWebFilterFactory() {
-		return new RewritePathWebFilterFactory();
+	public RewritePathGatewayFilterFactory rewritePathGatewayFilterFactory() {
+		return new RewritePathGatewayFilterFactory();
 	}
 
 	@Bean
-	public SetPathWebFilterFactory setPathWebFilterFactory() {
-		return new SetPathWebFilterFactory();
+	public SetPathGatewayFilterFactory setPathGatewayFilterFactory() {
+		return new SetPathGatewayFilterFactory();
 	}
 
 	@Bean
-	public SecureHeadersWebFilterFactory secureHeadersWebFilterFactory(SecureHeadersProperties properties) {
-		return new SecureHeadersWebFilterFactory(properties);
+	public SecureHeadersGatewayFilterFactory secureHeadersGatewayFilterFactory(SecureHeadersProperties properties) {
+		return new SecureHeadersGatewayFilterFactory(properties);
 	}
 
 	@Bean
-	public SetResponseHeaderWebFilterFactory setResponseHeaderWebFilterFactory() {
-		return new SetResponseHeaderWebFilterFactory();
+	public SetResponseHeaderGatewayFilterFactory setResponseHeaderGatewayFilterFactory() {
+		return new SetResponseHeaderGatewayFilterFactory();
 	}
 
 	@Bean
-	public SetStatusWebFilterFactory setStatusWebFilterFactory() {
-		return new SetStatusWebFilterFactory();
+	public SetStatusGatewayFilterFactory setStatusGatewayFilterFactory() {
+		return new SetStatusGatewayFilterFactory();
 	}
 
 
@@ -378,9 +378,9 @@ public class GatewayAutoConfiguration {
 
 		@Bean
 		public GatewayWebfluxEndpoint gatewayWebfluxEndpoint(RouteDefinitionLocator routeDefinitionLocator, List<GlobalFilter> globalFilters,
-													  List<WebFilterFactory> webFilterFactories, RouteDefinitionWriter routeDefinitionWriter,
-													  RouteLocator routeLocator) {
-			return new GatewayWebfluxEndpoint(routeDefinitionLocator, globalFilters, webFilterFactories, routeDefinitionWriter, routeLocator);
+															 List<GatewayFilterFactory> GatewayFilters, RouteDefinitionWriter routeDefinitionWriter,
+															 RouteLocator routeLocator) {
+			return new GatewayWebfluxEndpoint(routeDefinitionLocator, globalFilters, GatewayFilters, routeDefinitionWriter, routeLocator);
 		}
 	}
 
