@@ -21,9 +21,9 @@
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        filters</span>:
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        - SetStatus</span>=<span class="hl-number">401</span></pre><p>
 </p><p>For some usages of the gateway, properties will be adequate, but some production use cases will benefit from loading configuration from an external source, such as a database. Future milestone versions will have <code class="literal">RouteDefinitionLocator</code> implementations based off of Spring Data Repositories such as: Redis, MongoDB and Cassandra.</p><div class="section"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="_fluent_java_routes_api" href="#_fluent_java_routes_api"></a>7.1&nbsp;Fluent Java Routes API</h2></div></div></div><p>To allow for simple configuration in Java, there is a fluent API defined in the <code class="literal">Routes</code> class.</p><p><b>Config.java.&nbsp;</b>
-</p><pre class="programlisting"><span xmlns:d="http://docbook.org/ns/docbook" class="hl-comment">// static imports from WebFilterFactories and RoutePredicates</span>
+</p><pre class="programlisting"><span xmlns:d="http://docbook.org/ns/docbook" class="hl-comment">// static imports from GatewayFilters and RoutePredicates</span>
 <em><span class="hl-annotation" style="color: gray">@Bean</span></em>
-<span xmlns:d="http://docbook.org/ns/docbook" class="hl-keyword">public</span> RouteLocator customRouteLocator(ThrottleWebFilterFactory throttle) {
+<span xmlns:d="http://docbook.org/ns/docbook" class="hl-keyword">public</span> RouteLocator customRouteLocator(ThrottleGatewayFilterFactory throttle) {
     <span xmlns:d="http://docbook.org/ns/docbook" class="hl-keyword">return</span> Routes.locator()
             .route(<span xmlns:d="http://docbook.org/ns/docbook" class="hl-string">"test"</span>)
                 .uri(<span xmlns:d="http://docbook.org/ns/docbook" class="hl-string">"http://httpbin.org:80"</span>)

@@ -4,7 +4,7 @@
 <book xmlns="http://docbook.org/ns/docbook" xmlns:xl="http://www.w3.org/1999/xlink" version="5.0" xml:lang="en">
 <info>
 <title>Spring Cloud Gateway</title>
-<date>2017-10-12</date>
+<date>2017-10-16</date>
 </info>
 <preface>
 <title></title>
@@ -28,7 +28,7 @@ for details on setting up your build system with the current Spring Cloud Releas
 <simpara><emphasis role="strong">Predicate</emphasis>: This is a <link xl:href="http://docs.oracle.com/javase/8/docs/api/java/util/function/Predicate.html">Java 8 Function Predicate</link>. The input type is a <link xl:href="http://docs.spring.io/spring/docs/5.0.x/javadoc-api/org/springframework/web/server/ServerWebExchange.html">Spring Framework <literal>ServerWebExchange</literal></link>. This allows developers to match on anything from the HTTP request, such as headers or parameters.</simpara>
 </listitem>
 <listitem>
-<simpara><emphasis role="strong">Filter</emphasis>: These are instances <link xl:href="http://docs.spring.io/spring/docs/5.0.x/javadoc-api/org/springframework/web/server/WebFilter.html">Spring Framework <literal>WebFilter</literal></link> constructed in with a specific factory. Here, requests and responses can be modified before or after sending the downstream request.</simpara>
+<simpara><emphasis role="strong">Filter</emphasis>: These are instances <link xl:href="http://docs.spring.io/spring/docs/5.0.x/javadoc-api/org/springframework/web/server/GatewayFilter.html">Spring Framework <literal>GatewayFilter</literal></link> constructed in with a specific factory. Here, requests and responses can be modified before or after sending the downstream request.</simpara>
 </listitem>
 </itemizedlist>
 </chapter>
@@ -198,7 +198,7 @@ for details on setting up your build system with the current Spring Cloud Releas
 </para>
 </formalpara>
 <simpara>This route would match if the request path was, for example: <literal>/foo/1</literal> or <literal>/foo/bar</literal>.</simpara>
-<simpara>This predicate extracts the URI template variables (like <literal>segment</literal> defined in the example above) as a map of names and values and places it in the <literal>ServerWebExchange.getAttributes()</literal> with a key defined in <literal>PathRoutePredicate.URL_PREDICATE_VARS_ATTR</literal>. Those values are then available for use by <link linkend="gateway-route-filters">WebFilter Factories</link></simpara>
+<simpara>This predicate extracts the URI template variables (like <literal>segment</literal> defined in the example above) as a map of names and values and places it in the <literal>ServerWebExchange.getAttributes()</literal> with a key defined in <literal>PathRoutePredicate.URL_PREDICATE_VARS_ATTR</literal>. Those values are then available for use by <link linkend="gateway-route-filters">GatewayFilter Factories</link></simpara>
 </section>
 <section xml:id="_query_route_predicate_factory">
 <title>Query Route Predicate Factory</title>
@@ -255,11 +255,11 @@ for details on setting up your build system with the current Spring Cloud Releas
 </section>
 </chapter>
 <chapter xml:id="gateway-route-filters">
-<title>WebFilter Factories</title>
-<simpara>Route filters allow the modification of the incoming HTTP request or outgoing HTTP response in some manner. Route filters are scoped to a particular route. Spring Cloud Gateway includes many built-in WebFilter Factories.</simpara>
-<section xml:id="_addrequestheader_webfilter_factory">
-<title>AddRequestHeader WebFilter Factory</title>
-<simpara>The AddRequestHeader WebFilter Factory takes a name and value parameter.</simpara>
+<title>GatewayFilter Factories</title>
+<simpara>Route filters allow the modification of the incoming HTTP request or outgoing HTTP response in some manner. Route filters are scoped to a particular route. Spring Cloud Gateway includes many built-in GatewayFilter Factories.</simpara>
+<section xml:id="_addrequestheader_gatewayfilter_factory">
+<title>AddRequestHeader GatewayFilter Factory</title>
+<simpara>The AddRequestHeader GatewayFilter Factory takes a name and value parameter.</simpara>
 <formalpara>
 <title>application.yml</title>
 <para>
@@ -276,9 +276,9 @@ for details on setting up your build system with the current Spring Cloud Releas
 </formalpara>
 <simpara>This will add <literal>X-Request-Foo:Bar</literal> header to the downstream request&#8217;s headers for all matching requests.</simpara>
 </section>
-<section xml:id="_addrequestparameter_webfilter_factory">
-<title>AddRequestParameter WebFilter Factory</title>
-<simpara>The AddRequestParameter WebFilter Factory takes a name and value parameter.</simpara>
+<section xml:id="_addrequestparameter_gatewayfilter_factory">
+<title>AddRequestParameter GatewayFilter Factory</title>
+<simpara>The AddRequestParameter GatewayFilter Factory takes a name and value parameter.</simpara>
 <formalpara>
 <title>application.yml</title>
 <para>
@@ -295,9 +295,9 @@ for details on setting up your build system with the current Spring Cloud Releas
 </formalpara>
 <simpara>This will add <literal>foo=bar</literal> to the downstream request&#8217;s query string for all matching requests.</simpara>
 </section>
-<section xml:id="_addresponseheader_webfilter_factory">
-<title>AddResponseHeader WebFilter Factory</title>
-<simpara>The AddResponseHeader WebFilter Factory takes a name and value parameter.</simpara>
+<section xml:id="_addresponseheader_gatewayfilter_factory">
+<title>AddResponseHeader GatewayFilter Factory</title>
+<simpara>The AddResponseHeader GatewayFilter Factory takes a name and value parameter.</simpara>
 <formalpara>
 <title>application.yml</title>
 <para>
@@ -314,9 +314,9 @@ for details on setting up your build system with the current Spring Cloud Releas
 </formalpara>
 <simpara>This will add <literal>X-Response-Foo:Bar</literal> header to the downstream response&#8217;s headers for all matching requests.</simpara>
 </section>
-<section xml:id="_hystrix_webfilter_factory">
-<title>Hystrix WebFilter Factory</title>
-<simpara>The Hystrix WebFilter Factory takes a single <literal>name</literal> parameters, which is the name of the <literal>HystrixCommand</literal>. (More options might be added in future releases).</simpara>
+<section xml:id="_hystrix_gatewayfilter_factory">
+<title>Hystrix GatewayFilter Factory</title>
+<simpara>The Hystrix GatewayFilter Factory takes a single <literal>name</literal> parameters, which is the name of the <literal>HystrixCommand</literal>. (More options might be added in future releases).</simpara>
 <formalpara>
 <title>application.yml</title>
 <para>
@@ -333,9 +333,9 @@ for details on setting up your build system with the current Spring Cloud Releas
 </formalpara>
 <simpara>This wraps the remaining filters in a <literal>HystrixCommand</literal> with command name <literal>myCommandName</literal>.</simpara>
 </section>
-<section xml:id="_prefixpath_webfilter_factory">
-<title>PrefixPath WebFilter Factory</title>
-<simpara>The PrefixPath WebFilter Factory takes a single <literal>prefix</literal> parameter.</simpara>
+<section xml:id="_prefixpath_gatewayfilter_factory">
+<title>PrefixPath GatewayFilter Factory</title>
+<simpara>The PrefixPath GatewayFilter Factory takes a single <literal>prefix</literal> parameter.</simpara>
 <formalpara>
 <title>application.yml</title>
 <para>
@@ -352,9 +352,9 @@ for details on setting up your build system with the current Spring Cloud Releas
 </formalpara>
 <simpara>This will prefix <literal>/mypath</literal> to the path of all matching requests. So a request to <literal>/hello</literal>, would be sent to <literal>/mypath/hello</literal>.</simpara>
 </section>
-<section xml:id="_requestratelimiter_webfilter_factory">
-<title>RequestRateLimiter WebFilter Factory</title>
-<simpara>The RequestRateLimiter WebFilter Factory takes three parameters: <literal>replenishRate</literal>, <literal>burstCapacity</literal> &amp; <literal>keyResolverName</literal>.</simpara>
+<section xml:id="_requestratelimiter_gatewayfilter_factory">
+<title>RequestRateLimiter GatewayFilter Factory</title>
+<simpara>The RequestRateLimiter GatewayFilter Factory takes three parameters: <literal>replenishRate</literal>, <literal>burstCapacity</literal> &amp; <literal>keyResolverName</literal>.</simpara>
 <simpara><literal>replenishRate</literal> is how many requests per second do you want a user to be allowed to do.</simpara>
 <simpara><literal>burstCapacity</literal> TODO: document burst capacity</simpara>
 <simpara><literal>keyResolverName</literal> is the name of a bean that implements the <literal>KeyResolver</literal> interface.</simpara>
@@ -393,9 +393,9 @@ KeyResolver userKeyResolver() {
 </formalpara>
 <simpara>This defines a request rate limit of 10 per user. The <literal>KeyResolver</literal> is a simple one that gets the <literal>user</literal> request parameter (note: this is not recommended for production).</simpara>
 </section>
-<section xml:id="_redirectto_webfilter_factory">
-<title>RedirectTo WebFilter Factory</title>
-<simpara>The RedirectTo WebFilter Factory takes a <literal>status</literal> and a <literal>url</literal> parameter. The status should be a 300 series redirect http code, such as 301. The url should be a valid url. This will be the value of the <literal>Location</literal> header.</simpara>
+<section xml:id="_redirectto_gatewayfilter_factory">
+<title>RedirectTo GatewayFilter Factory</title>
+<simpara>The RedirectTo GatewayFilter Factory takes a <literal>status</literal> and a <literal>url</literal> parameter. The status should be a 300 series redirect http code, such as 301. The url should be a valid url. This will be the value of the <literal>Location</literal> header.</simpara>
 <formalpara>
 <title>application.yml</title>
 <para>
@@ -412,9 +412,9 @@ KeyResolver userKeyResolver() {
 </formalpara>
 <simpara>This will send a status 302 with a <literal>Location:http://acme.org</literal> header to perform a redirect.</simpara>
 </section>
-<section xml:id="_removenonproxyheaders_webfilter_factory">
-<title>RemoveNonProxyHeaders WebFilter Factory</title>
-<simpara>The RemoveNonProxyHeaders WebFilter Factory removes headers from forwarded requests. The default list of headers that is removed comes from the <link xl:href="https://tools.ietf.org/html/draft-ietf-httpbis-p1-messaging-14#section-7.1.3">IETF</link>.</simpara>
+<section xml:id="_removenonproxyheaders_gatewayfilter_factory">
+<title>RemoveNonProxyHeaders GatewayFilter Factory</title>
+<simpara>The RemoveNonProxyHeaders GatewayFilter Factory removes headers from forwarded requests. The default list of headers that is removed comes from the <link xl:href="https://tools.ietf.org/html/draft-ietf-httpbis-p1-messaging-14#section-7.1.3">IETF</link>.</simpara>
 <itemizedlist>
 <title>The default removed headers are:</title>
 <listitem>
@@ -444,9 +444,9 @@ KeyResolver userKeyResolver() {
 </itemizedlist>
 <simpara>To change this, set the <literal>spring.cloud.gateway.filter.remove-non-proxy-headers.headers</literal> property to the list of header names to remove.</simpara>
 </section>
-<section xml:id="_removerequestheader_webfilter_factory">
-<title>RemoveRequestHeader WebFilter Factory</title>
-<simpara>The RemoveRequestHeader WebFilter Factory takes a <literal>name</literal> parameter. It is the name of the header to be removed.</simpara>
+<section xml:id="_removerequestheader_gatewayfilter_factory">
+<title>RemoveRequestHeader GatewayFilter Factory</title>
+<simpara>The RemoveRequestHeader GatewayFilter Factory takes a <literal>name</literal> parameter. It is the name of the header to be removed.</simpara>
 <formalpara>
 <title>application.yml</title>
 <para>
@@ -463,9 +463,9 @@ KeyResolver userKeyResolver() {
 </formalpara>
 <simpara>This will remove the <literal>X-Request-Foo</literal> header before it is sent downstream.</simpara>
 </section>
-<section xml:id="_removeresponseheader_webfilter_factory">
-<title>RemoveResponseHeader WebFilter Factory</title>
-<simpara>The RemoveResponseHeader WebFilter Factory takes a <literal>name</literal> parameter. It is the name of the header to be removed.</simpara>
+<section xml:id="_removeresponseheader_gatewayfilter_factory">
+<title>RemoveResponseHeader GatewayFilter Factory</title>
+<simpara>The RemoveResponseHeader GatewayFilter Factory takes a <literal>name</literal> parameter. It is the name of the header to be removed.</simpara>
 <formalpara>
 <title>application.yml</title>
 <para>
@@ -482,9 +482,9 @@ KeyResolver userKeyResolver() {
 </formalpara>
 <simpara>This will remove the <literal>X-Response-Foo</literal> header from the response before it is returned to the gateway client.</simpara>
 </section>
-<section xml:id="_rewritepath_webfilter_factory">
-<title>RewritePath WebFilter Factory</title>
-<simpara>The RewritePath WebFilter Factory takes a path <literal>regexp</literal> parameter and a <literal>replacement</literal> parameter. This uses Java regular expressions for a flexible way to rewrite the request path.</simpara>
+<section xml:id="_rewritepath_gatewayfilter_factory">
+<title>RewritePath GatewayFilter Factory</title>
+<simpara>The RewritePath GatewayFilter Factory takes a path <literal>regexp</literal> parameter and a <literal>replacement</literal> parameter. This uses Java regular expressions for a flexible way to rewrite the request path.</simpara>
 <formalpara>
 <title>application.yml</title>
 <para>
@@ -502,9 +502,9 @@ KeyResolver userKeyResolver() {
 </formalpara>
 <simpara>For a request path of <literal>/foo/bar</literal>, this will set the path to <literal>/bar</literal> before making the downstream request. Notice the <literal>$\</literal> which is replaced with <literal>$</literal> because of the YAML spec.</simpara>
 </section>
-<section xml:id="_secureheaders_webfilter_factory">
-<title>SecureHeaders WebFilter Factory</title>
-<simpara>The SecureHeaders WebFilter Factory adds a number of headers to the response at the reccomendation from <link xl:href="https://blog.appcanary.com/2017/http-security-headers.html">this blog post</link>.</simpara>
+<section xml:id="_secureheaders_gatewayfilter_factory">
+<title>SecureHeaders GatewayFilter Factory</title>
+<simpara>The SecureHeaders GatewayFilter Factory adds a number of headers to the response at the reccomendation from <link xl:href="https://blog.appcanary.com/2017/http-security-headers.html">this blog post</link>.</simpara>
 <itemizedlist>
 <title>The following headers are added (allong with default values):</title>
 <listitem>
@@ -561,9 +561,9 @@ KeyResolver userKeyResolver() {
 </listitem>
 </itemizedlist>
 </section>
-<section xml:id="_setpath_webfilter_factory">
-<title>SetPath WebFilter Factory</title>
-<simpara>The SetPath WebFilter Factory takes a path <literal>template</literal> parameter. It offers a simple way to manipulate the request path by allowing templated segments of the path. This uses the uri templates from Spring Framework. Multiple matching segments are allowed.</simpara>
+<section xml:id="_setpath_gatewayfilter_factory">
+<title>SetPath GatewayFilter Factory</title>
+<simpara>The SetPath GatewayFilter Factory takes a path <literal>template</literal> parameter. It offers a simple way to manipulate the request path by allowing templated segments of the path. This uses the uri templates from Spring Framework. Multiple matching segments are allowed.</simpara>
 <formalpara>
 <title>application.yml</title>
 <para>
@@ -582,9 +582,9 @@ KeyResolver userKeyResolver() {
 </formalpara>
 <simpara>For a request path of <literal>/foo/bar</literal>, this will set the path to <literal>/bar</literal> before making the downstream request.</simpara>
 </section>
-<section xml:id="_setresponseheader_webfilter_factory">
-<title>SetResponseHeader WebFilter Factory</title>
-<simpara>The SetResponseHeader WebFilter Factory takes <literal>name</literal> and <literal>value</literal> parameters.</simpara>
+<section xml:id="_setresponseheader_gatewayfilter_factory">
+<title>SetResponseHeader GatewayFilter Factory</title>
+<simpara>The SetResponseHeader GatewayFilter Factory takes <literal>name</literal> and <literal>value</literal> parameters.</simpara>
 <formalpara>
 <title>application.yml</title>
 <para>
@@ -599,11 +599,11 @@ KeyResolver userKeyResolver() {
         - SetResponseHeader=X-Response-Foo, Bar</programlisting>
 </para>
 </formalpara>
-<simpara>This WebFilter replaces all headers with the given name, rather than adding. So if the downstream server responded with a <literal>X-Response-Foo:1234</literal>, this would be replaced with <literal>X-Response-Foo:Bar</literal>, which is what the gateway client would receive.</simpara>
+<simpara>This GatewayFilter replaces all headers with the given name, rather than adding. So if the downstream server responded with a <literal>X-Response-Foo:1234</literal>, this would be replaced with <literal>X-Response-Foo:Bar</literal>, which is what the gateway client would receive.</simpara>
 </section>
-<section xml:id="_setstatus_webfilter_factory">
-<title>SetStatus WebFilter Factory</title>
-<simpara>The SetStatus WebFilter Factory takes a single <literal>status</literal> parameter. It must be a valid Spring <literal>HttpStatus</literal>. It may be the integer value <literal>404</literal> or the string representation of the enumeration <literal>NOT_FOUND</literal>.</simpara>
+<section xml:id="_setstatus_gatewayfilter_factory">
+<title>SetStatus GatewayFilter Factory</title>
+<simpara>The SetStatus GatewayFilter Factory takes a single <literal>status</literal> parameter. It must be a valid Spring <literal>HttpStatus</literal>. It may be the integer value <literal>404</literal> or the string representation of the enumeration <literal>NOT_FOUND</literal>.</simpara>
 <formalpara>
 <title>application.yml</title>
 <para>
@@ -627,9 +627,9 @@ KeyResolver userKeyResolver() {
 </chapter>
 <chapter xml:id="_global_filters">
 <title>Global Filters</title>
-<simpara>The <literal>GlobalFilter</literal> interface has the same signature as <literal>WebFilter</literal>. These are special filters that are conditionally applied to all routes. (This interface and usage are subject to change in future milestones).</simpara>
-<section xml:id="_combined_global_filter_and_webfilter_ordering">
-<title>Combined Global Filter and WebFilter Ordering</title>
+<simpara>The <literal>GlobalFilter</literal> interface has the same signature as <literal>GatewayFilter</literal>. These are special filters that are conditionally applied to all routes. (This interface and usage are subject to change in future milestones).</simpara>
+<section xml:id="_combined_global_filter_and_gatewayfilter_ordering">
+<title>Combined Global Filter and GatewayFilter Ordering</title>
 <simpara>TODO: document ordering</simpara>
 </section>
 <section xml:id="_forward_routing_filter">
@@ -697,9 +697,9 @@ KeyResolver userKeyResolver() {
 <formalpara>
 <title>Config.java</title>
 <para>
-<programlisting language="java" linenumbering="unnumbered">// static imports from WebFilterFactories and RoutePredicates
+<programlisting language="java" linenumbering="unnumbered">// static imports from GatewayFilters and RoutePredicates
 @Bean
-public RouteLocator customRouteLocator(ThrottleWebFilterFactory throttle) {
+public RouteLocator customRouteLocator(ThrottleGatewayFilterFactory throttle) {
     return Routes.locator()
             .route("test")
                 .uri("http://httpbin.org:80")
@@ -729,9 +729,9 @@ public RouteLocator customRouteLocator(ThrottleWebFilterFactory throttle) {
 <title>Writing Custom Route Predicate Factories</title>
 <simpara>TODO: document writing Custom Route Predicate Factories</simpara>
 </section>
-<section xml:id="_writing_custom_webfilter_factories">
-<title>Writing Custom WebFilter Factories</title>
-<simpara>TODO: document writing Custom WebFilter Factories</simpara>
+<section xml:id="_writing_custom_gatewayfilter_factories">
+<title>Writing Custom GatewayFilter Factories</title>
+<simpara>TODO: document writing Custom GatewayFilter Factories</simpara>
 </section>
 <section xml:id="_writing_custom_global_filters">
 <title>Writing Custom Global Filters</title>
