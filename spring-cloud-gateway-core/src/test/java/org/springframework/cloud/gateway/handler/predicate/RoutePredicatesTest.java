@@ -20,7 +20,7 @@ package org.springframework.cloud.gateway.handler.predicate;
 import org.junit.Test;
 import org.springframework.http.HttpMethod;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
-import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.mock.http.server.reactive.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -59,17 +59,17 @@ public class RoutePredicatesTest {
 	private ServerWebExchange mockHostExchange(String host) {
 		MockServerHttpRequest mockRequest = MockServerHttpRequest.get("/")
 				.header("Host", host).build();
-		return MockServerWebExchange.from(mockRequest);
+		return new MockServerWebExchange(mockRequest);
 	}
 
 	private ServerWebExchange mockPathExchange(String path) {
 		MockServerHttpRequest mockRequest = MockServerHttpRequest.get(path).build();
-		return MockServerWebExchange.from(mockRequest);
+		return new MockServerWebExchange(mockRequest);
 	}
 
 	private ServerWebExchange mockMethodExchange(String method) {
 		MockServerHttpRequest mockRequest = MockServerHttpRequest
 				.method(HttpMethod.resolve(method), "/").build();
-		return MockServerWebExchange.from(mockRequest);
+		return new MockServerWebExchange(mockRequest);
 	}
 }

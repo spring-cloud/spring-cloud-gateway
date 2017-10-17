@@ -15,7 +15,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
-import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.mock.http.server.reactive.MockServerWebExchange;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.tuple.Tuple;
@@ -71,7 +71,7 @@ public class RequestRateLimiterGatewayFilterFactoryTests extends BaseWebClientTe
 
 
 		MockServerHttpRequest request = MockServerHttpRequest.get("/").build();
-		MockServerWebExchange exchange = MockServerWebExchange.from(request);
+		MockServerWebExchange exchange = new MockServerWebExchange(request);
 		exchange.getResponse().setStatusCode(HttpStatus.OK);
 
 		when(this.filterChain.filter(exchange)).thenReturn(Mono.empty());

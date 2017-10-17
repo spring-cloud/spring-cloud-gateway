@@ -22,7 +22,7 @@ import java.time.format.DateTimeFormatter;
 
 import org.junit.Test;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
-import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.mock.http.server.reactive.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -128,6 +128,6 @@ public class BetweenRoutePredicateFactoryTests {
 
 	static ServerWebExchange getExchange() {
 		MockServerHttpRequest request = MockServerHttpRequest.get("http://example.com").build();
-		return MockServerWebExchange.from(request);
+		return new MockServerWebExchange(request);
 	}
 }

@@ -5,7 +5,7 @@ import org.springframework.cloud.gateway.filter.factory.GatewayFilters.addRespon
 import org.springframework.cloud.gateway.handler.predicate.RoutePredicates.host
 import org.springframework.cloud.gateway.handler.predicate.RoutePredicates.path
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest
-import org.springframework.mock.web.server.MockServerWebExchange
+import org.springframework.mock.http.server.reactive.MockServerWebExchange
 import org.springframework.web.server.ServerWebExchange
 import reactor.test.StepVerifier
 import java.net.URI
@@ -42,7 +42,7 @@ class GatewayDslTests {
                 .expectComplete()
                 .verify()
 
-        val sampleExchange: ServerWebExchange = MockServerWebExchange.from(MockServerHttpRequest.get("/image/webp")
+        val sampleExchange: ServerWebExchange = MockServerWebExchange(MockServerHttpRequest.get("/image/webp")
                 .header("Host", "test.abc.org").build())
 
         val filteredRoutes = routeLocator.routes.filter({ r -> r.predicate.test(sampleExchange) })
