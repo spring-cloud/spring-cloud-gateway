@@ -357,7 +357,7 @@ for details on setting up your build system with the current Spring Cloud Releas
 <simpara>The RequestRateLimiter GatewayFilter Factory takes three parameters: <literal>replenishRate</literal>, <literal>burstCapacity</literal> &amp; <literal>keyResolverName</literal>.</simpara>
 <simpara><literal>replenishRate</literal> is how many requests per second do you want a user to be allowed to do.</simpara>
 <simpara><literal>burstCapacity</literal> TODO: document burst capacity</simpara>
-<simpara><literal>keyResolverName</literal> is the name of a bean that implements the <literal>KeyResolver</literal> interface.</simpara>
+<simpara><literal>keyResolver</literal> is a bean that implements the <literal>KeyResolver</literal> interface. In configuration, reference the bean by name using SpEL. <literal>#{@myKeyResolver}</literal> is a SpEL expression referencing a bean with the name <literal>myKeyResolver</literal>.</simpara>
 <formalpara>
 <title>KeyResolver.java</title>
 <para>
@@ -379,7 +379,7 @@ for details on setting up your build system with the current Spring Cloud Releas
       - id: requestratelimiter_route
         uri: http://example.org
         filters:
-        - RequestRateLimiter=10, 20, userKeyResolver</programlisting>
+        - RequestRateLimiter=10, 20, #{@userKeyResolver}</programlisting>
 </para>
 </formalpara>
 <formalpara>
