@@ -357,7 +357,7 @@ The RequestRateLimiter GatewayFilter Factory takes three parameters: `replenishR
 
 `burstCapacity` TODO: document burst capacity
 
-`keyResolverName` is the name of a bean that implements the `KeyResolver` interface.
+`keyResolver` is a bean that implements the `KeyResolver` interface. In configuration, reference the bean by name using SpEL. `#{@myKeyResolver}` is a SpEL expression referencing a bean with the name `myKeyResolver`.
 
 .KeyResolver.java
 [source,java]
@@ -383,7 +383,7 @@ spring:
       - id: requestratelimiter_route
         uri: http://example.org
         filters:
-        - RequestRateLimiter=10, 20, userKeyResolver
+        - RequestRateLimiter=10, 20, #{@userKeyResolver}
 ----
 
 .Config.java
