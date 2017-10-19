@@ -17,44 +17,55 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
-import org.springframework.beans.BeansException;
-import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
-import org.springframework.cloud.gateway.filter.ratelimit.PrincipalNameKeyResolver;
-import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
-import org.springframework.http.HttpStatus;
-import org.springframework.tuple.Tuple;
-import org.springframework.cloud.gateway.filter.GatewayFilter;
-
 import java.util.Arrays;
 import java.util.List;
+
+import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
+import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter;
+import org.springframework.http.HttpStatus;
+import org.springframework.tuple.Tuple;
 
 /**
  * User Request Rate Limiter filter.
  * See https://stripe.com/blog/rate-limiters and
  */
-public class RequestRateLimiterGatewayFilterFactory implements GatewayFilterFactory, ApplicationContextAware {
+public class RequestRateLimiterGatewayFilterFactory implements GatewayFilterFactory {
 
 	public static final String REPLENISH_RATE_KEY = "replenishRate";
 	public static final String BURST_CAPACITY_KEY = "burstCapacity";
-	public static final String KEY_RESOLVER_NAME_KEY = "keyResolverName";
+	public static final String KEY_RESOLVER_KEY = "keyResolver";
 
 	private final RateLimiter rateLimiter;
-	private ApplicationContext context;
+	private final KeyResolver defaultKeyResolver;
 
-	public RequestRateLimiterGatewayFilterFactory(RateLimiter rateLimiter) {
+	public RequestRateLimiterGatewayFilterFactory(RateLimiter rateLimiter, KeyResolver defaultKeyResolver) {
 		this.rateLimiter = rateLimiter;
-	}
-
-	@Override
-	public void setApplicationContext(ApplicationContext context) throws BeansException {
-		this.context = context;
+		this.defaultKeyResolver = defaultKeyResolver;
 	}
 
 	@Override
 	public List<String> argNames() {
-		return Arrays.asList(REPLENISH_RATE_KEY, BURST_CAPACITY_KEY, KEY_RESOLVER_NAME_KEY);
+		return Arrays.asList(REPLENISH_RATE_KEY, BURST_CAPACITY_KEY, KEY_RESOLVER_KEY);
+	}
+
+	public GatewayFilter apply(int replenishRate, int burstCapacity) {
+		return apply(replenishRate, burstCapacity, this.defaultKeyResolver);
+	}
+
+	public GatewayFilter apply(int replenishRate, int burstCapacity, KeyResolver keyResolver) {
+		return (exchange, chain) ->
+				keyResolver.resolve(exchange).flatMap(key ->
+						//TODO: if key is empty?
+						rateLimiter.isAllowed(key, replenishRate, burstCapacity).flatMap(response -> {
+							//TODO: set some headers for rate, tokens left
+
+							if (response.isAllowed()) {
+								return chain.filter(exchange);
+							}
+							exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
+							return exchange.getResponse().setComplete();
+						}));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -71,26 +82,14 @@ public class RequestRateLimiterGatewayFilterFactory implements GatewayFilterFact
 			burstCapacity = 0;
 		}
 
-		String beanName;
-		if (args.hasFieldName(KEY_RESOLVER_NAME_KEY)) {
-			beanName = args.getString(KEY_RESOLVER_NAME_KEY);
+		KeyResolver keyResolver;
+		if (args.hasFieldName(KEY_RESOLVER_KEY)) {
+			keyResolver = args.getValue(KEY_RESOLVER_KEY, KeyResolver.class);
 		} else {
-			beanName = PrincipalNameKeyResolver.BEAN_NAME;
+			keyResolver = defaultKeyResolver;
 		}
-		KeyResolver keyResolver = this.context.getBean(beanName, KeyResolver.class);
 
-		return (exchange, chain) ->
-			keyResolver.resolve(exchange).flatMap(key ->
-					//TODO: if key is empty?
-				rateLimiter.isAllowed(key, replenishRate, burstCapacity).flatMap(response -> {
-					//TODO: set some headers for rate, tokens left
-
-					if (response.isAllowed()) {
-						return chain.filter(exchange);
-					}
-					exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
-					return exchange.getResponse().setComplete();
-				}));
+		return apply(replenishRate, burstCapacity, keyResolver);
 	}
 
 }

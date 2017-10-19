@@ -3,10 +3,12 @@ package org.springframework.cloud.gateway.filter.factory;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
 import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter;
 import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter.Response;
@@ -18,16 +20,10 @@ import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.http.server.reactive.MockServerWebExchange;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.tuple.Tuple;
-import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
-import static org.springframework.cloud.gateway.filter.factory.RequestRateLimiterGatewayFilterFactory.BURST_CAPACITY_KEY;
-import static org.springframework.cloud.gateway.filter.factory.RequestRateLimiterGatewayFilterFactory.KEY_RESOLVER_NAME_KEY;
-import static org.springframework.cloud.gateway.filter.factory.RequestRateLimiterGatewayFilterFactory.REPLENISH_RATE_KEY;
-import static org.springframework.tuple.TupleBuilder.tuple;
 
 import reactor.core.publisher.Mono;
 
@@ -49,22 +45,27 @@ public class RequestRateLimiterGatewayFilterFactoryTests extends BaseWebClientTe
 	@MockBean
 	private GatewayFilterChain filterChain;
 
+	@Autowired
+	@Qualifier("resolver1")
+	KeyResolver resolver1;
+
+	@Autowired
+	@Qualifier("resolver2")
+	KeyResolver resolver2;
+
 	@Test
 	public void allowedWorks() throws Exception {
-		assertFilterFactory("resolver1", "allowedkey", true, HttpStatus.OK);
+		assertFilterFactory(resolver1, "allowedkey", true, HttpStatus.OK);
 	}
 
 	@Test
 	public void notAllowedWorks() throws Exception {
-		assertFilterFactory("resolver2", "notallowedkey", false, HttpStatus.TOO_MANY_REQUESTS);
+		assertFilterFactory(resolver2, "notallowedkey", false, HttpStatus.TOO_MANY_REQUESTS);
 	}
 
-	private void assertFilterFactory(String keyResolverName, String key, boolean allowed, HttpStatus expectedStatus) {
+	private void assertFilterFactory(KeyResolver keyResolver, String key, boolean allowed, HttpStatus expectedStatus) {
 		int replenishRate = 10;
 		int burstCapacity = 2 * replenishRate;
-		Tuple args = tuple().of(REPLENISH_RATE_KEY, replenishRate,
-				BURST_CAPACITY_KEY, burstCapacity,
-				KEY_RESOLVER_NAME_KEY, keyResolverName);
 
 		when(rateLimiter.isAllowed(key, replenishRate, burstCapacity))
 				.thenReturn(Mono.just(new Response(allowed, 1)));
@@ -76,7 +77,7 @@ public class RequestRateLimiterGatewayFilterFactoryTests extends BaseWebClientTe
 
 		when(this.filterChain.filter(exchange)).thenReturn(Mono.empty());
 
-		Mono<Void> response = filterFactory.apply(args).filter(exchange, this.filterChain);
+		Mono<Void> response = filterFactory.apply(replenishRate, burstCapacity, keyResolver).filter(exchange, this.filterChain);
 		response.subscribe(aVoid -> {
 			assertThat(exchange.getResponse().getStatusCode()).isEqualTo(expectedStatus);
 		});

@@ -27,6 +27,9 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.cloud.gateway.config.GatewayProperties;
 import org.springframework.cloud.gateway.filter.FilterDefinition;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
@@ -36,7 +39,12 @@ import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
 import org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory;
 import org.springframework.cloud.gateway.support.ArgumentHints;
 import org.springframework.cloud.gateway.support.NameUtils;
+import org.springframework.context.expression.BeanFactoryResolver;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
+import org.springframework.expression.Expression;
+import org.springframework.expression.common.TemplateParserContext;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.tuple.Tuple;
 import org.springframework.tuple.TupleBuilder;
 import org.springframework.web.server.ServerWebExchange;
@@ -47,13 +55,15 @@ import reactor.core.publisher.Flux;
  * {@link RouteLocator} that loads routes from a {@link RouteDefinitionLocator}
  * @author Spencer Gibb
  */
-public class RouteDefinitionRouteLocator implements RouteLocator {
+public class RouteDefinitionRouteLocator implements RouteLocator, BeanFactoryAware {
 	protected final Log logger = LogFactory.getLog(getClass());
 
 	private final RouteDefinitionLocator routeDefinitionLocator;
 	private final Map<String, RoutePredicateFactory> predicates = new LinkedHashMap<>();
 	private final Map<String, GatewayFilterFactory> gatewayFilterFactories = new HashMap<>();
 	private final GatewayProperties gatewayProperties;
+	private final SpelExpressionParser parser = new SpelExpressionParser();
+	private BeanFactory beanFactory;
 
 	public RouteDefinitionRouteLocator(RouteDefinitionLocator routeDefinitionLocator,
 									   List<RoutePredicateFactory> predicates,
@@ -63,6 +73,11 @@ public class RouteDefinitionRouteLocator implements RouteLocator {
 		initFactories(predicates);
 		gatewayFilterFactories.forEach(factory -> this.gatewayFilterFactories.put(factory.name(), factory));
 		this.gatewayProperties = gatewayProperties;
+	}
+
+	@Override
+	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+		this.beanFactory = beanFactory;
 	}
 
 	private void initFactories(List<RoutePredicateFactory> predicates) {
@@ -121,7 +136,7 @@ public class RouteDefinitionRouteLocator implements RouteLocator {
 						logger.debug("RouteDefinition " + id + " applying filter " + args + " to " + definition.getName());
 					}
 
-					Tuple tuple = getTuple(filter, args);
+					Tuple tuple = getTuple(filter, args, this.parser, this.beanFactory);
 
 					return filter.apply(tuple);
 				})
@@ -135,7 +150,8 @@ public class RouteDefinitionRouteLocator implements RouteLocator {
 		return ordered;
 	}
 
-	private Tuple getTuple(ArgumentHints hasArguments, Map<String, String> args) {
+	//TODO: make argument resolving a strategy
+	/* for testing */ static Tuple getTuple(ArgumentHints hasArguments, Map<String, String> args, SpelExpressionParser parser, BeanFactory beanFactory) {
 		TupleBuilder builder = TupleBuilder.tuple();
 
 		List<String> argNames = hasArguments.argNames();
@@ -158,7 +174,22 @@ public class RouteDefinitionRouteLocator implements RouteLocator {
 				key = argNames.get(entryIdx);
 			}
 
-			builder.put(key, entry.getValue());
+			Object value;
+			String rawValue = entry.getValue();
+			if (rawValue != null) {
+				rawValue = rawValue.trim();
+			}
+			if (rawValue != null && rawValue.startsWith("#{") && entry.getValue().endsWith("}")) {
+				// assume it's spel
+				StandardEvaluationContext context = new StandardEvaluationContext();
+				context.setBeanResolver(new BeanFactoryResolver(beanFactory));
+				Expression expression = parser.parseExpression(entry.getValue(), new TemplateParserContext());
+				value = expression.getValue(context);
+			} else {
+				value = entry.getValue();
+			}
+
+			builder.put(key, value);
 			entryIdx++;
 		}
 
@@ -214,7 +245,7 @@ public class RouteDefinitionRouteLocator implements RouteLocator {
 					+ args + " to " + predicate.getName());
 		}
 
-		Tuple tuple = getTuple(found, args);
+		Tuple tuple = getTuple(found, args, this.parser, this.beanFactory);
 
 		return found.apply(tuple);
 	}

@@ -13,7 +13,6 @@ import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
-import reactor.core.publisher.Mono;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -31,7 +30,7 @@ public class RedisRateLimiterTests extends BaseWebClientTests {
 	private RedisRateLimiter rateLimiter;
 
 	@Test
-	public void requestRateLimiterWebFilterFactoryWorks() throws Exception {
+	public void redisRateLimiterWorks() throws Exception {
 		String id = UUID.randomUUID().toString();
 
 		int replenishRate = 10;
