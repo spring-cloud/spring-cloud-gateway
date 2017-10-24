@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.test;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,12 +39,13 @@ import org.springframework.context.annotation.Import;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.http.codec.multipart.Part;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ServerWebExchange;
@@ -54,6 +56,7 @@ import com.netflix.loadbalancer.ServerList;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_HANDLER_MAPPER_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
 
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
@@ -134,14 +137,17 @@ public class BaseWebClientTests {
 		}
 
 		@RequestMapping(value = "/post", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-		public Mono<Map<String, Object>> postFormData(//ServerWebExchange exchange,
-													  @RequestParam Map<String, Part> parts
-											  /*@RequestBody(required = false) String body*/) {
-			HashMap<String, Object> ret = new HashMap<>();
-			// HashMap<String, Object> files = parseMultipart(exchange, null);
-
-			// ret.put("files", files);
-			return Mono.just(ret);
+		public Mono<Map<String, Object>> postFormData(@RequestBody Mono<MultiValueMap<String, Part>> parts) {
+			// StringDecoder decoder = StringDecoder.allMimeTypes(true);
+			return parts.flux().flatMap(map -> Flux.fromIterable(map.values()))
+					.flatMap(map -> Flux.fromIterable(map))
+					.filter(part -> part instanceof FilePart)
+					.reduce(new HashMap<String, Object>(), (files, part) -> {
+						MediaType contentType = part.headers().getContentType();
+						long contentLength = part.headers().getContentLength();
+						files.put(part.name(), "data:"+contentType+";base64,"+contentLength); //TODO: get part data
+						return files;
+					}).map(files -> Collections.singletonMap("files", files));
 		}
 
 		@RequestMapping(path = "/post", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)

@@ -20,7 +20,6 @@ package org.springframework.cloud.gateway.test;
 import java.nio.charset.Charset;
 import java.util.Map;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.SpringBootConfiguration;
@@ -76,7 +75,6 @@ public class FormIntegrationTests extends BaseWebClientTests {
 	}
 
 	@Test
-	@Ignore //FIXME: java.lang.IllegalStateException: Only one connection receive subscriber allowed.
 	public void multipartFormDataWorks() {
 		ClassPathResource img = new ClassPathResource("1x1.png");
 
@@ -98,8 +96,8 @@ public class FormIntegrationTests extends BaseWebClientTests {
 		StepVerifier.create(result)
 				.consumeNextWith(map -> {
 					Map<String, Object> files = getMap(map, "files");
-					assertThat(files).containsKey("file");
-					String file = (String) files.get("file");
+					assertThat(files).containsKey("imgpart");
+					String file = (String) files.get("imgpart");
 					assertThat(file).startsWith("data:").contains(";base64,");
 				})
 				.expectComplete()
