@@ -78,7 +78,7 @@
 			</dependency>
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-starter-ribbon</artifactId>
+				<artifactId>spring-cloud-starter-netflix-ribbon</artifactId>
 				<version>${spring-cloud-netflix.version}</version>
 				<exclusions>
 					<exclusion>
@@ -93,12 +93,12 @@
 			</dependency>
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-starter-eureka</artifactId>
+				<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
 				<version>${spring-cloud-netflix.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-starter-hystrix</artifactId>
+				<artifactId>spring-cloud-starter-netflix-hystrix</artifactId>
 				<version>${spring-cloud-netflix.version}</version>
 			</dependency>
 			<dependency>
