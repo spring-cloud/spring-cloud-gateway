@@ -22,12 +22,13 @@ import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.scripting.support.ResourceScriptSource;
+import org.springframework.web.reactive.DispatcherHandler;
 
 @Configuration
 @AutoConfigureAfter(RedisReactiveAutoConfiguration.class)
 @AutoConfigureBefore(GatewayAutoConfiguration.class)
 @ConditionalOnBean(ReactiveRedisTemplate.class)
-@ConditionalOnClass(RedisTemplate.class)
+@ConditionalOnClass({RedisTemplate.class, DispatcherHandler.class})
 class GatewayRedisAutoConfiguration {
 
 	@Bean

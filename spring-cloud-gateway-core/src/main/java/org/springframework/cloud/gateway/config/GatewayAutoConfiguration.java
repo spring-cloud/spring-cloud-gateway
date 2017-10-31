@@ -104,7 +104,8 @@ import rx.RxReactiveStreams;
 @ConditionalOnProperty(name = "spring.cloud.gateway.enabled", matchIfMissing = true)
 @EnableConfigurationProperties
 @AutoConfigureBefore(HttpHandlerAutoConfiguration.class)
-@AutoConfigureAfter(GatewayLoadBalancerClientAutoConfiguration.class)
+@AutoConfigureAfter({GatewayLoadBalancerClientAutoConfiguration.class, GatewayClassPathWarningAutoConfiguration.class})
+@ConditionalOnClass(DispatcherHandler.class)
 public class GatewayAutoConfiguration {
 
 	@Configuration
