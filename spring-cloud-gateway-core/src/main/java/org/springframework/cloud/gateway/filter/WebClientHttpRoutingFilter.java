@@ -84,7 +84,7 @@ public class WebClientHttpRoutingFilter implements GlobalFilter, Ordered {
 		}
 
 		return headersSpec.exchange()
-				.log("webClient route")
+				// .log("webClient route")
 				.flatMap(res -> {
 					ServerHttpResponse response = exchange.getResponse();
 					response.getHeaders().putAll(res.headers().asHttpHeaders());

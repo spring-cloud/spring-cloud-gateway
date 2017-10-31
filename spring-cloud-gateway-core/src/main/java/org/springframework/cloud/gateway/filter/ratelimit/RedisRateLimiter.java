@@ -57,8 +57,8 @@ public class RedisRateLimiter implements RateLimiter {
 			List<String> args = Arrays.asList(replenishRate + "", burstCapacity + "",
 					Instant.now().getEpochSecond() + "", "1");
 			// allowed, tokens_left = redis.eval(SCRIPT, keys, args)
-			Flux<List<Long>> flux = this.redisTemplate.execute(this.script, keys, args)
-					.log("redisratelimiter", Level.FINER);
+			Flux<List<Long>> flux = this.redisTemplate.execute(this.script, keys, args);
+					// .log("redisratelimiter", Level.FINER);
 			return flux.onErrorResume(throwable -> Flux.just(Arrays.asList(1L, -1L)))
 					.reduce(new ArrayList<Long>(), (longs, l) -> {
 						longs.addAll(l);

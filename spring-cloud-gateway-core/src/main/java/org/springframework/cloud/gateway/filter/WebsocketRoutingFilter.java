@@ -99,11 +99,11 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 				public Mono<Void> handle(WebSocketSession proxySession) {
 					// Use retain() for Reactor Netty
 					Mono<Void> proxySessionSend = proxySession
-							.send(session.receive().doOnNext(WebSocketMessage::retain))
-							.log("proxySessionSend", Level.FINE);
+							.send(session.receive().doOnNext(WebSocketMessage::retain));
+							// .log("proxySessionSend", Level.FINE);
 					Mono<Void> serverSessionSend = session
-							.send(proxySession.receive().doOnNext(WebSocketMessage::retain))
-							.log("sessionSend", Level.FINE);
+							.send(proxySession.receive().doOnNext(WebSocketMessage::retain));
+							// .log("sessionSend", Level.FINE);
 					return Mono.when(proxySessionSend, serverSessionSend).then();
 				}
 
