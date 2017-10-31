@@ -6,6 +6,7 @@ import reactor.core.publisher.Mono;
  * @author Spencer Gibb
  */
 public interface RateLimiter {
+	//TODO: move ints to tuple
 	Mono<Response> isAllowed(String id, int replenishRate, int burstCapacity);
 
 	class Response {
