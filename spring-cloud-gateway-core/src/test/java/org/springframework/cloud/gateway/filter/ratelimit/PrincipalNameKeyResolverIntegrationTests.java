@@ -33,8 +33,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
 import static org.springframework.cloud.gateway.filter.factory.GatewayFilters.prefixPath;
-import static org.springframework.cloud.gateway.filter.factory.RequestRateLimiterGatewayFilterFactory.BURST_CAPACITY_KEY;
-import static org.springframework.cloud.gateway.filter.factory.RequestRateLimiterGatewayFilterFactory.REPLENISH_RATE_KEY;
+import static org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiter.BURST_CAPACITY_KEY;
+import static org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiter.REPLENISH_RATE_KEY;
 import static org.springframework.cloud.gateway.handler.predicate.RoutePredicates.path;
 import static org.springframework.tuple.TupleBuilder.tuple;
 import static org.springframework.web.reactive.function.client.ExchangeFilterFunctions.basicAuthentication;
@@ -108,7 +108,7 @@ public class PrincipalNameKeyResolverIntegrationTests {
 
 		@Bean
 		RateLimiter rateLimiter() {
-			return (id, replenishRate, burstCapacity) -> Mono.just(new RateLimiter.Response(true, Long.MAX_VALUE));
+			return (id, args) -> Mono.just(new RateLimiter.Response(true, Long.MAX_VALUE));
 		}
 
 		@Bean

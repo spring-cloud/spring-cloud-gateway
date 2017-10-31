@@ -4,13 +4,13 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.logging.Level;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
 
+import org.springframework.tuple.Tuple;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -21,6 +21,9 @@ import reactor.core.publisher.Mono;
  * @author Spencer Gibb
  */
 public class RedisRateLimiter implements RateLimiter {
+	public static final String REPLENISH_RATE_KEY = "replenishRate";
+	public static final String BURST_CAPACITY_KEY = "burstCapacity";
+
 	private Log log = LogFactory.getLog(getClass());
 
 	private final ReactiveRedisTemplate<String, String> redisTemplate;
@@ -36,15 +39,23 @@ public class RedisRateLimiter implements RateLimiter {
 	 * This uses a basic token bucket algorithm and relies on the fact that Redis scripts
 	 * execute atomically. No other operations can run between fetching the count and
 	 * writing the new count.
-	 * @param replenishRate
-	 * @param burstCapacity
 	 * @param id
+	 * @param args
 	 * @return
 	 */
 	@Override
-	// TODO: signature? params (tuple?).
 	@SuppressWarnings("unchecked")
-	public Mono<Response> isAllowed(String id, int replenishRate, int burstCapacity) {
+	public Mono<Response> isAllowed(String id, Tuple args) {
+		// How many requests per second do you want a user to be allowed to do?
+		int replenishRate = args.getInt(REPLENISH_RATE_KEY);
+
+		// How much bursting do you want to allow?
+		int burstCapacity;
+		if (args.hasFieldName(BURST_CAPACITY_KEY)) {
+			burstCapacity = args.getInt(BURST_CAPACITY_KEY);
+		} else {
+			burstCapacity = 0;
+		}
 
 		try {
 			// Make a unique key per user.
@@ -54,10 +65,10 @@ public class RedisRateLimiter implements RateLimiter {
 			List<String> keys = Arrays.asList(prefix + ".tokens", prefix + ".timestamp");
 
 			// The arguments to the LUA script. time() returns unixtime in seconds.
-			List<String> args = Arrays.asList(replenishRate + "", burstCapacity + "",
+			List<String> scriptArgs = Arrays.asList(replenishRate + "", burstCapacity + "",
 					Instant.now().getEpochSecond() + "", "1");
 			// allowed, tokens_left = redis.eval(SCRIPT, keys, args)
-			Flux<List<Long>> flux = this.redisTemplate.execute(this.script, keys, args);
+			Flux<List<Long>> flux = this.redisTemplate.execute(this.script, keys, scriptArgs);
 					// .log("redisratelimiter", Level.FINER);
 			return flux.onErrorResume(throwable -> Flux.just(Arrays.asList(1L, -1L)))
 					.reduce(new ArrayList<Long>(), (longs, l) -> {

@@ -13,9 +13,13 @@ import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.tuple.Tuple;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
+import static org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiter.BURST_CAPACITY_KEY;
+import static org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiter.REPLENISH_RATE_KEY;
+import static org.springframework.tuple.TupleBuilder.tuple;
 
 /**
  * see https://gist.github.com/ptarjan/e38f45f2dfe601419ca3af937fff574d#file-1-check_request_rate_limiter-rb-L36-L62
@@ -36,15 +40,17 @@ public class RedisRateLimiterTests extends BaseWebClientTests {
 		int replenishRate = 10;
 		int burstCapacity = 2 * replenishRate;
 
+		Tuple args = tuple().of(REPLENISH_RATE_KEY, replenishRate, BURST_CAPACITY_KEY, burstCapacity);
+
 		// Bursts work
 		for (int i = 0; i < burstCapacity; i++) {
-			Response response = rateLimiter.isAllowed(id, replenishRate, burstCapacity).block();
+			Response response = rateLimiter.isAllowed(id, args).block();
 			assertThat(response.isAllowed()).as("Burst # %s is allowed", i).isTrue();
 		}
 
-		Response response = rateLimiter.isAllowed(id, replenishRate, burstCapacity).block();
+		Response response = rateLimiter.isAllowed(id, args).block();
 		if (response.isAllowed()) { //TODO: sometimes there is an off by one error
-			response = rateLimiter.isAllowed(id, replenishRate, burstCapacity).block();
+			response = rateLimiter.isAllowed(id, args).block();
 		}
 		assertThat(response.isAllowed()).as("Burst # %s is not allowed", burstCapacity).isFalse();
 
@@ -52,11 +58,11 @@ public class RedisRateLimiterTests extends BaseWebClientTests {
 
         // # After the burst is done, check the steady state
 		for (int i = 0; i < replenishRate; i++) {
-			response = rateLimiter.isAllowed(id, replenishRate, burstCapacity).block();
+			response = rateLimiter.isAllowed(id, args).block();
 			assertThat(response.isAllowed()).as("steady state # %s is allowed", i).isTrue();
 		}
 
-		response = rateLimiter.isAllowed(id, replenishRate, burstCapacity).block();
+		response = rateLimiter.isAllowed(id, args).block();
 		assertThat(response.isAllowed()).as("steady state # %s is allowed", replenishRate).isFalse();
 	}
 

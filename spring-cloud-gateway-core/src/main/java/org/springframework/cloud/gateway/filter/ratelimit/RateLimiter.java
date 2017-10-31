@@ -1,13 +1,14 @@
 package org.springframework.cloud.gateway.filter.ratelimit;
 
+import org.springframework.tuple.Tuple;
 import reactor.core.publisher.Mono;
 
 /**
  * @author Spencer Gibb
  */
 public interface RateLimiter {
-	//TODO: move ints to tuple
-	Mono<Response> isAllowed(String id, int replenishRate, int burstCapacity);
+
+	Mono<Response> isAllowed(String id, Tuple args);
 
 	class Response {
 		private final boolean allowed;

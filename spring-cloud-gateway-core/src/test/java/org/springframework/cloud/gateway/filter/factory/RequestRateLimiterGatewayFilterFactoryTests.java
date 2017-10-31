@@ -20,10 +20,14 @@ import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.tuple.Tuple;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
+import static org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiter.BURST_CAPACITY_KEY;
+import static org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiter.REPLENISH_RATE_KEY;
+import static org.springframework.tuple.TupleBuilder.tuple;
 
 import reactor.core.publisher.Mono;
 
@@ -67,7 +71,8 @@ public class RequestRateLimiterGatewayFilterFactoryTests extends BaseWebClientTe
 		int replenishRate = 10;
 		int burstCapacity = 2 * replenishRate;
 
-		when(rateLimiter.isAllowed(key, replenishRate, burstCapacity))
+		Tuple args = tuple().of(REPLENISH_RATE_KEY, replenishRate, BURST_CAPACITY_KEY, burstCapacity);
+		when(rateLimiter.isAllowed(key, args))
 				.thenReturn(Mono.just(new Response(allowed, 1)));
 
 
@@ -77,10 +82,9 @@ public class RequestRateLimiterGatewayFilterFactoryTests extends BaseWebClientTe
 
 		when(this.filterChain.filter(exchange)).thenReturn(Mono.empty());
 
-		Mono<Void> response = filterFactory.apply(replenishRate, burstCapacity, keyResolver).filter(exchange, this.filterChain);
-		response.subscribe(aVoid -> {
-			assertThat(exchange.getResponse().getStatusCode()).isEqualTo(expectedStatus);
-		});
+		Mono<Void> response = filterFactory.apply(args).filter(exchange, this.filterChain);
+		response.subscribe(aVoid -> assertThat(exchange.getResponse().getStatusCode())
+				.isEqualTo(expectedStatus));
 
 	}
 
