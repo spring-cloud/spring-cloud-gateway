@@ -40,6 +40,7 @@ class GatewayRedisAutoConfiguration {
 	}
 
 	@Bean
+	//TODO: replace with ReactiveStringRedisTemplate in future
 	public ReactiveRedisTemplate<String, String> stringReactiveRedisTemplate(
 			ReactiveRedisConnectionFactory reactiveRedisConnectionFactory,
 			ResourceLoader resourceLoader) {
@@ -57,7 +58,7 @@ class GatewayRedisAutoConfiguration {
 
 	@Bean
 	public RedisRateLimiter redisRateLimiter(ReactiveRedisTemplate<String, String> redisTemplate,
-											 @Qualifier("redisRequestRateLimiterScript") RedisScript<String> redisScript) {
+											 @Qualifier("redisRequestRateLimiterScript") RedisScript<List<Long>> redisScript) {
 		return new RedisRateLimiter(redisTemplate, redisScript);
 	}
 }

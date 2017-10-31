@@ -18,8 +18,8 @@ import org.springframework.cloud.gateway.filter.factory.RequestRateLimiterGatewa
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.Routes;
 import org.springframework.context.annotation.Bean;
-import org.springframework.security.config.web.server.HttpSecurity;
-import org.springframework.security.core.userdetails.MapUserDetailsRepository;
+import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.core.userdetails.MapReactiveUserDetailsService;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.server.SecurityWebFilterChain;
@@ -32,9 +32,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
+import static org.springframework.cloud.gateway.filter.factory.GatewayFilters.prefixPath;
 import static org.springframework.cloud.gateway.filter.factory.RequestRateLimiterGatewayFilterFactory.BURST_CAPACITY_KEY;
 import static org.springframework.cloud.gateway.filter.factory.RequestRateLimiterGatewayFilterFactory.REPLENISH_RATE_KEY;
-import static org.springframework.cloud.gateway.filter.factory.GatewayFilters.prefixPath;
 import static org.springframework.cloud.gateway.handler.predicate.RoutePredicates.path;
 import static org.springframework.tuple.TupleBuilder.tuple;
 import static org.springframework.web.reactive.function.client.ExchangeFilterFunctions.basicAuthentication;
@@ -112,7 +112,7 @@ public class PrincipalNameKeyResolverIntegrationTests {
 		}
 
 		@Bean
-		SecurityWebFilterChain springWebFilterChain(HttpSecurity http) throws Exception {
+		SecurityWebFilterChain springWebFilterChain(ServerHttpSecurity http) throws Exception {
 			return http.httpBasic().and()
 					.authorizeExchange()
 					.pathMatchers("/myapi/**").authenticated()
@@ -122,9 +122,9 @@ public class PrincipalNameKeyResolverIntegrationTests {
 		}
 
 		@Bean
-		public MapUserDetailsRepository userDetailsRepository() {
-			UserDetails user = User.withUsername("user").password("password").roles("USER").build();
-			return new MapUserDetailsRepository(user);
+		public MapReactiveUserDetailsService reactiveUserDetailsService() {
+			UserDetails user = User.withUsername("user").password("{noop}password").roles("USER").build();
+			return new MapReactiveUserDetailsService(user);
 		}
 	}
 }

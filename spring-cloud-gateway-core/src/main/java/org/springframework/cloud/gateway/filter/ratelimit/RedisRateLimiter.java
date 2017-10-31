@@ -24,10 +24,10 @@ public class RedisRateLimiter implements RateLimiter {
 	private Log log = LogFactory.getLog(getClass());
 
 	private final ReactiveRedisTemplate<String, String> redisTemplate;
-	private final RedisScript script;
+	private final RedisScript<List<Long>> script;
 
 	public RedisRateLimiter(ReactiveRedisTemplate<String, String> redisTemplate,
-			RedisScript script) {
+			RedisScript<List<Long>> script) {
 		this.redisTemplate = redisTemplate;
 		this.script = script;
 	}
@@ -57,13 +57,13 @@ public class RedisRateLimiter implements RateLimiter {
 			List<String> args = Arrays.asList(replenishRate + "", burstCapacity + "",
 					Instant.now().getEpochSecond() + "", "1");
 			// allowed, tokens_left = redis.eval(SCRIPT, keys, args)
-			Flux<Long> flux = this.redisTemplate.execute(this.script, keys, args)
+			Flux<List<Long>> flux = this.redisTemplate.execute(this.script, keys, args)
 					.log("redisratelimiter", Level.FINER);
-			return flux.onErrorResume(throwable -> Flux.just(1L, -1L))
+			return flux.onErrorResume(throwable -> Flux.just(Arrays.asList(1L, -1L)))
 					.reduce(new ArrayList<Long>(), (longs, l) -> {
-						longs.add(l);
+						longs.addAll(l);
 						return longs;
-					}).map(results -> {
+					}) .map(results -> {
 						boolean allowed = results.get(0) == 1L;
 						Long tokensLeft = results.get(1);
 

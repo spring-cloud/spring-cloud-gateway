@@ -24,7 +24,7 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
-import org.springframework.mock.http.server.reactive.MockServerWebExchange;
+import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -61,7 +61,7 @@ public class RewritePathGatewayFilterFactoryTests {
 				.get("http://localhost"+ actualPath)
 				.build();
 
-		ServerWebExchange exchange = new MockServerWebExchange(request);
+		ServerWebExchange exchange = MockServerWebExchange.from(request);
 
 		GatewayFilterChain filterChain = mock(GatewayFilterChain.class);
 

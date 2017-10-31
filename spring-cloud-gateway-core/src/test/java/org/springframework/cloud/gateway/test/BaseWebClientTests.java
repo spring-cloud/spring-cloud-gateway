@@ -46,6 +46,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ServerWebExchange;
@@ -100,7 +101,7 @@ public class BaseWebClientTests {
 			return "httpbin compatible home";
 		}
 
-		@RequestMapping("/headers")
+		@RequestMapping(path = "/headers", method = {RequestMethod.GET, RequestMethod.POST}, produces = MediaType.APPLICATION_JSON_VALUE)
 		public Map<String, Object> headers(ServerWebExchange exchange) {
 			HashMap<String, Object> map = new HashMap<>();
 			addHeaders(exchange, map);
@@ -116,14 +117,14 @@ public class BaseWebClientTests {
 			map.put("headers", headers);
 		}
 
-		@RequestMapping("/delay/{sec}")
+		@RequestMapping(path = "/delay/{sec}", produces = MediaType.APPLICATION_JSON_VALUE)
 		public Map<String, Object> get(ServerWebExchange exchange, @PathVariable int sec) throws InterruptedException {
 			int delay = Math.min(sec, 10);
 			Thread.sleep(delay * 1000);
 			return get(exchange);
 		}
 
-		@RequestMapping("/get")
+		@RequestMapping(path = "/get", produces = MediaType.APPLICATION_JSON_VALUE)
 		public Map<String, Object> get(ServerWebExchange exchange) {
 			HashMap<String, Object> map = new HashMap<>();
 			addHeaders(exchange, map);
@@ -136,7 +137,7 @@ public class BaseWebClientTests {
 			return map;
 		}
 
-		@RequestMapping(value = "/post", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+		@RequestMapping(value = "/post", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 		public Mono<Map<String, Object>> postFormData(@RequestBody Mono<MultiValueMap<String, Part>> parts) {
 			// StringDecoder decoder = StringDecoder.allMimeTypes(true);
 			return parts.flux().flatMap(map -> Flux.fromIterable(map.values()))
@@ -150,12 +151,12 @@ public class BaseWebClientTests {
 					}).map(files -> Collections.singletonMap("files", files));
 		}
 
-		@RequestMapping(path = "/post", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+		@RequestMapping(path = "/post", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 		public Mono<Map<String, Object>> postUrlEncoded(ServerWebExchange exchange) throws IOException {
 			return post(exchange, null);
 		}
 
-		@RequestMapping("/post")
+		@RequestMapping(path = "/post", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
 		public Mono<Map<String, Object>> post(ServerWebExchange exchange,
 											  @RequestBody(required = false) String body) throws IOException {
 			HashMap<String, Object> ret = new HashMap<>();

@@ -28,7 +28,7 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
-import org.springframework.mock.http.server.reactive.MockServerWebExchange;
+import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -69,7 +69,7 @@ public class SetPathGatewayFilterFactoryTests {
 				.get("http://localhost"+ actualPath)
 				.build();
 
-		ServerWebExchange exchange = new MockServerWebExchange(request);
+		ServerWebExchange exchange = MockServerWebExchange.from(request);
 
 		try {
 			Constructor<PathMatchInfo> constructor = ReflectionUtils.accessibleConstructor(PathMatchInfo.class, Map.class, Map.class);
