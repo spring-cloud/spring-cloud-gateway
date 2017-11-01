@@ -17,7 +17,6 @@
 
 package org.springframework.cloud.gateway.test;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.SpringApplication;
@@ -31,7 +30,6 @@ import org.springframework.cloud.test.ModifiedClassPathRunner;
 public class WebfluxNotIncludedTests {
 
 	@Test
-	@Ignore // causes java.util.ServiceConfigurationError: org.apache.logging.log4j.spi.Provider: Provider org.apache.logging.slf4j.SLF4JProvider not a subtype
 	public void noWebfluxWorks() {
 		new SpringApplication(Config.class).run();
 	}
