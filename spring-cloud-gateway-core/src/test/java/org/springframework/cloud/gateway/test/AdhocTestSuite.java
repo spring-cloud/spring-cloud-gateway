@@ -30,6 +30,8 @@ import org.springframework.cloud.gateway.filter.factory.HystrixGatewayFilterFact
 import org.springframework.cloud.gateway.filter.factory.RedirectToGatewayFilterFactoryTests;
 import org.springframework.cloud.gateway.filter.factory.RemoveNonProxyHeadersGatewayFilterFactoryTests;
 import org.springframework.cloud.gateway.filter.factory.RemoveRequestHeaderGatewayFilterFactoryTests;
+import org.springframework.cloud.gateway.filter.factory.RemoveResponseHeaderGatewayFilterFactoryTests;
+import org.springframework.cloud.gateway.filter.factory.RequestRateLimiterGatewayFilterFactoryTests;
 import org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactoryTests;
 import org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactoryIntegrationTests;
 import org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactoryTests;
@@ -37,6 +39,7 @@ import org.springframework.cloud.gateway.filter.factory.SetPathGatewayFilterFact
 import org.springframework.cloud.gateway.filter.factory.SetPathGatewayFilterFactoryTests;
 import org.springframework.cloud.gateway.filter.factory.SetResponseGatewayFilterFactoryTests;
 import org.springframework.cloud.gateway.filter.factory.SetStatusGatewayFilterFactoryTests;
+import org.springframework.cloud.gateway.filter.ratelimit.PrincipalNameKeyResolverIntegrationTests;
 import org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiterTests;
 import org.springframework.cloud.gateway.handler.predicate.AfterRoutePredicateFactoryTests;
 import org.springframework.cloud.gateway.handler.predicate.BeforeRoutePredicateFactoryTests;
@@ -44,6 +47,8 @@ import org.springframework.cloud.gateway.handler.predicate.BetweenRoutePredicate
 import org.springframework.cloud.gateway.handler.predicate.HostRoutePredicateFactoryTests;
 import org.springframework.cloud.gateway.handler.predicate.MethodRoutePredicateFactoryTests;
 import org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFactoryTests;
+import org.springframework.cloud.gateway.handler.predicate.RoutePredicatesTest;
+import org.springframework.cloud.gateway.route.RouteDefinitionRouteLocatorTests;
 import org.springframework.cloud.gateway.test.websocket.WebSocketIntegrationTests;
 
 import static org.hamcrest.Matchers.equalTo;
@@ -55,32 +60,42 @@ import static org.junit.Assume.assumeThat;
  * @author Spencer Gibb
  */
 @RunWith(Suite.class)
-@SuiteClasses({GatewayIntegrationTests.class,
+@SuiteClasses({
+		WebfluxNotIncludedTests.class,
+		GatewayIntegrationTests.class,
 		FormIntegrationTests.class,
+		HttpStatusTests.class,
 		PostTests.class,
-		RedisRateLimiterTests.class,
+		ForwardTests.class,
 		WebSocketIntegrationTests.class,
-		// route filter tests
-		AddRequestHeaderGatewayFilterFactoryTests.class,
-		AddRequestParameterGatewayFilterFactoryTests.class,
-		HystrixGatewayFilterFactoryTests.class,
-		RedirectToGatewayFilterFactoryTests.class,
+		// FilterFactory Tests
 		RemoveNonProxyHeadersGatewayFilterFactoryTests.class,
-		RemoveRequestHeaderGatewayFilterFactoryTests.class,
+		RemoveResponseHeaderGatewayFilterFactoryTests.class,
+		HystrixGatewayFilterFactoryTests.class,
 		RewritePathGatewayFilterFactoryIntegrationTests.class,
-		SecureHeadersGatewayFilterFactoryTests.class,
-		SetPathGatewayFilterFactoryIntegrationTests.class,
+		RemoveRequestHeaderGatewayFilterFactoryTests.class,
 		SetPathGatewayFilterFactoryTests.class,
-		SetResponseGatewayFilterFactoryTests.class,
-		SetStatusGatewayFilterFactoryTests.class,
 		RewritePathGatewayFilterFactoryTests.class,
-		// RoutePredicateFactory tests
-		AfterRoutePredicateFactoryTests.class,
-		BeforeRoutePredicateFactoryTests.class,
-		BetweenRoutePredicateFactoryTests.class,
-		HostRoutePredicateFactoryTests.class,
+		SetStatusGatewayFilterFactoryTests.class,
+		RedirectToGatewayFilterFactoryTests.class,
+		AddRequestHeaderGatewayFilterFactoryTests.class,
+		SecureHeadersGatewayFilterFactoryTests.class,
+		RequestRateLimiterGatewayFilterFactoryTests.class,
+		SetPathGatewayFilterFactoryIntegrationTests.class,
+		AddRequestParameterGatewayFilterFactoryTests.class,
+		SetResponseGatewayFilterFactoryTests.class,
+		PrincipalNameKeyResolverIntegrationTests.class,
+		RedisRateLimiterTests.class,
+		RouteDefinitionRouteLocatorTests.class,
+		// PredicateFactory Tests
 		MethodRoutePredicateFactoryTests.class,
+		HostRoutePredicateFactoryTests.class,
+		RoutePredicatesTest.class,
+		AfterRoutePredicateFactoryTests.class,
 		PathRoutePredicateFactoryTests.class,
+		BetweenRoutePredicateFactoryTests.class,
+		BeforeRoutePredicateFactoryTests.class,
+
 })
 public class AdhocTestSuite {
 
