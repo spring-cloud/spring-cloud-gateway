@@ -51,6 +51,7 @@
 		<spring-cloud-commons.version>2.0.0.BUILD-SNAPSHOT</spring-cloud-commons.version>
 		<spring-cloud-netflix.version>2.0.0.BUILD-SNAPSHOT</spring-cloud-netflix.version>
 		<spring-tuple.version>1.0.0.RELEASE</spring-tuple.version>
+		<kotlin.version>1.1.51</kotlin.version>
 	</properties>
 
 	<dependencyManagement>
@@ -136,7 +137,6 @@
 		<module>spring-cloud-gateway-core</module>
 		<module>spring-cloud-starter-gateway</module>
 		<module>spring-cloud-gateway-sample</module>
-		<module>spring-cloud-gateway-kotlin-extensions</module>
 		<module>docs</module>
 	</modules>
 
