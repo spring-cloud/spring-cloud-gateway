@@ -9,8 +9,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
-
 import org.springframework.tuple.Tuple;
+
+import static org.springframework.tuple.TupleBuilder.tuple;
+
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -33,6 +35,10 @@ public class RedisRateLimiter implements RateLimiter {
 			RedisScript<List<Long>> script) {
 		this.redisTemplate = redisTemplate;
 		this.script = script;
+	}
+
+	public static Tuple args(int replenishRate, int burstCapacity) {
+		return tuple().of(REPLENISH_RATE_KEY, replenishRate, BURST_CAPACITY_KEY, burstCapacity);
 	}
 
 	/**

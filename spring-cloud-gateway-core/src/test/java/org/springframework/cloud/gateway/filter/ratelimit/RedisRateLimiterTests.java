@@ -17,9 +17,6 @@ import org.springframework.tuple.Tuple;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
-import static org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiter.BURST_CAPACITY_KEY;
-import static org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiter.REPLENISH_RATE_KEY;
-import static org.springframework.tuple.TupleBuilder.tuple;
 
 /**
  * see https://gist.github.com/ptarjan/e38f45f2dfe601419ca3af937fff574d#file-1-check_request_rate_limiter-rb-L36-L62
@@ -40,7 +37,7 @@ public class RedisRateLimiterTests extends BaseWebClientTests {
 		int replenishRate = 10;
 		int burstCapacity = 2 * replenishRate;
 
-		Tuple args = tuple().of(REPLENISH_RATE_KEY, replenishRate, BURST_CAPACITY_KEY, burstCapacity);
+		Tuple args = RedisRateLimiter.args(replenishRate, burstCapacity);
 
 		// Bursts work
 		for (int i = 0; i < burstCapacity; i++) {

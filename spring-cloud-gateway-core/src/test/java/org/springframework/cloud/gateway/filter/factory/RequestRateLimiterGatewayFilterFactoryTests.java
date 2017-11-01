@@ -68,10 +68,8 @@ public class RequestRateLimiterGatewayFilterFactoryTests extends BaseWebClientTe
 	}
 
 	private void assertFilterFactory(KeyResolver keyResolver, String key, boolean allowed, HttpStatus expectedStatus) {
-		int replenishRate = 10;
-		int burstCapacity = 2 * replenishRate;
 
-		Tuple args = tuple().of(REPLENISH_RATE_KEY, replenishRate, BURST_CAPACITY_KEY, burstCapacity);
+		Tuple args = tuple().build();
 		when(rateLimiter.isAllowed(key, args))
 				.thenReturn(Mono.just(new Response(allowed, 1)));
 
