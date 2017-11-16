@@ -23,6 +23,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.Routes;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.server.RequestPredicates;
 import org.springframework.web.reactive.function.server.RouterFunction;
@@ -39,10 +40,12 @@ import static org.springframework.tuple.TupleBuilder.tuple;
  */
 @SpringBootConfiguration
 @EnableAutoConfiguration
+@Import(AdditionalRoutes.class)
 public class GatewaySampleApplication {
 
 	@Bean
 	public RouteLocator customRouteLocator(ThrottleGatewayFilterFactory throttle) {
+		//@formatter:off
 		return Routes.locator()
 				.route("test")
 					.predicate(host("**.abc.org").and(path("/image/png")))
@@ -61,6 +64,7 @@ public class GatewaySampleApplication {
 							"refillUnit", "SECONDS")))
 					.uri("http://httpbin.org:80")
 				.build();
+		////@formatter:on
 	}
 
 	@Bean
