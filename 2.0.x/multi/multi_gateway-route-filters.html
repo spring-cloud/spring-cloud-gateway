@@ -107,6 +107,7 @@ KeyResolver userKeyResolver() {
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">      # </span>=====================================
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">      - id</span>: rewritepath_route
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        uri</span>: http://example.org
+<span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        predicates</span>:
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        - Path</span>=/foo/**
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        filters</span>:
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        - RewritePath</span>=/foo/(?&lt;segment&gt;.*)<span xmlns:d="http://docbook.org/ns/docbook" class="hl-keyword">,</span> /$\{segment<span xmlns:d="http://docbook.org/ns/docbook" class="hl-keyword">}</span></pre><p>
