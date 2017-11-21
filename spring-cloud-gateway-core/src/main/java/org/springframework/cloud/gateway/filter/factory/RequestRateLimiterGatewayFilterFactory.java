@@ -22,6 +22,7 @@ import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
 import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter;
 import org.springframework.http.HttpStatus;
 import org.springframework.tuple.Tuple;
+import reactor.core.publisher.Mono;
 
 /**
  * User Request Rate Limiter filter. See https://stripe.com/blog/rate-limiters and
@@ -60,7 +61,7 @@ public class RequestRateLimiterGatewayFilterFactory implements GatewayFilterFact
 				return chain.filter(exchange);
 			}
 			exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
-			return exchange.getResponse().setComplete();
+			return Mono.empty();
 		}));
 	}
 
