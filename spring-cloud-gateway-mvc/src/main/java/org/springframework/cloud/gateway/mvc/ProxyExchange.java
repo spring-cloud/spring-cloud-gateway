@@ -66,7 +66,6 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.support.ModelAndViewContainer;
 import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.mvc.method.annotation.RequestResponseBodyMethodProcessor;
-import org.springframework.web.util.DefaultUriBuilderFactory;
 
 /**
  * A <code>@RequestMapping</code> argument type that can proxy the request to a backend.
@@ -464,9 +463,7 @@ public class ProxyExchange<T> {
 		NestedTemplate rest = new NestedTemplate();
 		rest.setMessageConverters(input.getMessageConverters());
 		rest.setErrorHandler(input.getErrorHandler());
-		rest.setDefaultUriVariables(
-				((DefaultUriBuilderFactory) input.getUriTemplateHandler())
-						.getDefaultUriVariables());
+		rest.setUriTemplateHandler(input.getUriTemplateHandler());
 		rest.setRequestFactory(input.getRequestFactory());
 		rest.setInterceptors(input.getInterceptors());
 		return rest;
