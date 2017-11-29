@@ -303,9 +303,8 @@ public class WebSocketIntegrationTests {
 		@Bean
 		public RouteLocator wsRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes()
-					.route("testws")
-						.alwaysTrue()
-						.uri("ws://localhost:"+this.wsPort)
+					.route(r -> r.alwaysTrue()
+						.uri("ws://localhost:"+this.wsPort))
 					.build();
 		}
 	}

@@ -93,11 +93,10 @@ public class PrincipalNameKeyResolverIntegrationTests {
 		@Bean
 		public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes()
-					.route("protected-throttled")
-					.path("/myapi/**")
-					.requestRateLimiter(tuple().build())
-					.prefixPath("/downstream")
-					.uri("http://localhost:"+port)
+					.route(r -> r.path("/myapi/**")
+						.requestRateLimiter(tuple().build())
+						.prefixPath("/downstream")
+						.uri("http://localhost:"+port))
 					.build();
 		}
 

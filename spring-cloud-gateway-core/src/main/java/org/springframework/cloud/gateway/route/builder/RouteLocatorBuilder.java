@@ -19,6 +19,8 @@ package org.springframework.cloud.gateway.route.builder;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
+import java.util.function.Function;
 
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.route.RouteLocator;
@@ -47,8 +49,12 @@ public class RouteLocatorBuilder {
 			this.context = context;
 		}
 
-		public PredicateSpec route(String id) {
-			return new RouteSpec(this).id(id);
+		public Builder route(String id, Function<PredicateSpec, Builder> fn) {
+			return fn.apply(new RouteSpec(this).id(id));
+		}
+
+		public Builder route(Function<PredicateSpec, Builder> fn) {
+			return fn.apply(new RouteSpec(this).randomId());
 		}
 
 		private void add(Route route) {
@@ -57,13 +63,13 @@ public class RouteLocatorBuilder {
 
 		Builder uri(Route.Builder builder, String uri) {
 			Route route = builder.uri(uri).build();
-			routes.add(route);
+			add(route);
 			return this;
 		}
 
 		Builder uri(Route.Builder builder, URI uri) {
 			Route route = builder.uri(uri).build();
-			routes.add(route);
+			add(route);
 			return this;
 		}
 
@@ -88,6 +94,10 @@ public class RouteLocatorBuilder {
 		public PredicateSpec id(String id) {
 			this.routeBuilder.id(id);
 			return predicateBuilder();
+		}
+
+		public PredicateSpec randomId() {
+			return id(UUID.randomUUID().toString());
 		}
 
 		private PredicateSpec predicateBuilder() {
