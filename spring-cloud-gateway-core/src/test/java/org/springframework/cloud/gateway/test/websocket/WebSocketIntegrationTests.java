@@ -36,7 +36,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.cloud.gateway.route.RouteLocator;
-import org.springframework.cloud.gateway.route.Routes;
+import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.PermitAllSecurityConfiguration;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.Lifecycle;
@@ -285,11 +285,11 @@ public class WebSocketIntegrationTests {
 		}
 	}
 
-	// TODO: workaround for suspected RxNetty WebSocket client issue
-	// https://github.com/ReactiveX/RxNetty/issues/560
-
 	private static Mono<Void> doSend(WebSocketSession session, Publisher<WebSocketMessage> output) {
-		return session.send(Mono.delay(Duration.ofMillis(100)).thenMany(output));
+		return session.send(output);
+		// workaround for suspected RxNetty WebSocket client issue
+		// https://github.com/ReactiveX/RxNetty/issues/560
+		// return session.send(Mono.delay(Duration.ofMillis(100)).thenMany(output));
 	}
 
 	@Configuration
@@ -301,10 +301,10 @@ public class WebSocketIntegrationTests {
 		private int wsPort;
 
 		@Bean
-		public RouteLocator wsRouteLocator() {
-			return Routes.locator()
+		public RouteLocator wsRouteLocator(RouteLocatorBuilder builder) {
+			return builder.routes()
 					.route("testws")
-						.predicate(alwaysTrue())
+						.alwaysTrue()
 						.uri("ws://localhost:"+this.wsPort)
 					.build();
 		}

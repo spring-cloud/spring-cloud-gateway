@@ -17,11 +17,13 @@
 
 package org.springframework.cloud.gateway.sample;
 
+import java.util.concurrent.TimeUnit;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.cloud.gateway.route.RouteLocator;
-import org.springframework.cloud.gateway.route.Routes;
+import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.web.reactive.function.BodyInserters;
@@ -30,10 +32,8 @@ import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.RouterFunctions;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
-import static org.springframework.cloud.gateway.filter.factory.GatewayFilters.addResponseHeader;
 import static org.springframework.cloud.gateway.handler.predicate.RoutePredicates.host;
 import static org.springframework.cloud.gateway.handler.predicate.RoutePredicates.path;
-import static org.springframework.tuple.TupleBuilder.tuple;
 
 /**
  * @author Spencer Gibb
@@ -44,24 +44,24 @@ import static org.springframework.tuple.TupleBuilder.tuple;
 public class GatewaySampleApplication {
 
 	@Bean
-	public RouteLocator customRouteLocator(ThrottleGatewayFilterFactory throttle) {
+	public RouteLocator customRouteLocator(RouteLocatorBuilder builder, ThrottleGatewayFilterFactory throttle) {
 		//@formatter:off
-		return Routes.locator()
+		return builder.routes()
 				.route("test")
-					.predicate(host("**.abc.org").and(path("/image/png")))
+					.host("**.abc.org").and().path("/image/png")
 					.addResponseHeader("X-TestHeader", "foobar")
 					.uri("http://httpbin.org:80")
 				.route("test2")
-					.predicate(path("/image/webp"))
-					.add(addResponseHeader("X-AnotherHeader", "baz"))
+					.path("/image/webp")
+					.addResponseHeader("X-AnotherHeader", "baz")
 					.uri("http://httpbin.org:80")
 				.route("test3")
 					.order(-1)
 					.predicate(host("**.throttle.org").and(path("/get")))
-					.add(throttle.apply(tuple().of("capacity", 1,
-							"refillTokens", 1,
-							"refillPeriod", 10,
-							"refillUnit", "SECONDS")))
+					.add(throttle.apply(1,
+							1,
+							10,
+							TimeUnit.SECONDS))
 					.uri("http://httpbin.org:80")
 				.build();
 		////@formatter:on

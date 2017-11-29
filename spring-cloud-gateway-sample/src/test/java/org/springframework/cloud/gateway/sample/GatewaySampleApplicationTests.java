@@ -22,17 +22,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.web.reactive.function.client.ClientResponse;
-import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
+import org.springframework.test.web.reactive.server.WebTestClient;
 
-import java.time.Duration;
-
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 /**
@@ -45,28 +37,31 @@ public class GatewaySampleApplicationTests {
 	@LocalServerPort
 	protected int port = 0;
 
-	protected WebClient webClient;
+	protected WebTestClient webClient;
 	protected String baseUri;
 
 	@Before
 	public void setup() {
 		baseUri = "http://localhost:" + port;
-		this.webClient = WebClient.create(baseUri);
+		this.webClient = WebTestClient.bindToServer().baseUrl(baseUri).build();
 	}
 
 	@Test
 	public void contextLoads() {
-		Mono<ClientResponse> result = webClient.get()
+		webClient.get()
 				.uri("/get")
-				.exchange();
+				.exchange()
+				.expectStatus().isOk();
+	}
 
-		StepVerifier.create(result)
-				.consumeNextWith(
-						response -> {
-							assertThat(response.statusCode()).isEqualTo(HttpStatus.OK);
-							HttpHeaders httpHeaders = response.headers().asHttpHeaders();
-						})
-				.expectComplete()
-				.verify(Duration.ofSeconds(5));
+	@Test
+	public void complexPredicate() {
+		webClient.get()
+				.uri("/image/png")
+				.header("Host", "www.abc.org")
+				.exchange()
+				.expectHeader().valueEquals("X-TestHeader", "foobar")
+				.expectStatus().isOk();
+
 	}
 }

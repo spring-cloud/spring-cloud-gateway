@@ -63,11 +63,14 @@ public class RemoveNonProxyHeadersGatewayFilterFactory implements GatewayFilterF
 	@Override
 	public GatewayFilter apply(Tuple args) {
 		//TODO: support filter args
+		return apply(this.headers);
+	}
 
+	public GatewayFilter apply(List<String> headersToRemove) {
 		return (exchange, chain) -> {
 			ServerHttpRequest request = exchange.getRequest().mutate()
 					.headers(httpHeaders -> {
-						for (String header : this.headers) {
+						for (String header : headersToRemove) {
 							httpHeaders.remove(header);
 						}
 					})

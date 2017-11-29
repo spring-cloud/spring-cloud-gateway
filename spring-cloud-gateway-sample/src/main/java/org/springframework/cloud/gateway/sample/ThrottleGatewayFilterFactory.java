@@ -41,6 +41,10 @@ public class ThrottleGatewayFilterFactory implements GatewayFilterFactory {
 		int refillTokens = args.getInt("refillTokens");
 		int refillPeriod = args.getInt("refillPeriod");
 		TimeUnit refillUnit = TimeUnit.valueOf(args.getString("refillUnit"));
+		return apply(capacity, refillTokens, refillPeriod, refillUnit);
+	}
+
+	public GatewayFilter apply(int capacity, int refillTokens, int refillPeriod, TimeUnit refillUnit) {
 
 		final TokenBucket tokenBucket = TokenBuckets.builder()
 				.withCapacity(capacity)

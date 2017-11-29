@@ -80,6 +80,8 @@ import org.springframework.cloud.gateway.route.RouteDefinitionRepository;
 import org.springframework.cloud.gateway.route.RouteDefinitionRouteLocator;
 import org.springframework.cloud.gateway.route.RouteDefinitionWriter;
 import org.springframework.cloud.gateway.route.RouteLocator;
+import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -139,6 +141,11 @@ public class GatewayAutoConfiguration {
 		public ReactorNettyWebSocketClient reactorNettyWebSocketClient(@Qualifier("nettyClientOptions") Consumer<? super HttpClientOptions.Builder> options) {
 			return new ReactorNettyWebSocketClient(options);
 		}
+	}
+
+	@Bean
+	public RouteLocatorBuilder routeLocatorBuilder(ConfigurableApplicationContext context) {
+		return new RouteLocatorBuilder(context);
 	}
 
 	@Bean
@@ -223,7 +230,7 @@ public class GatewayAutoConfiguration {
 	//TODO: default over netty? configurable
 	public WebClientHttpRoutingFilter webClientHttpRoutingFilter() {
 		//TODO: WebClient bean
-		return new WebClientHttpRoutingFilter(WebClient.builder().build());
+		return new WebClientHttpRoutingFilter(WebClient.routes().build());
 	}
 
 	@Bean

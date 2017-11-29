@@ -14,9 +14,8 @@ import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
-import org.springframework.cloud.gateway.filter.factory.RequestRateLimiterGatewayFilterFactory;
 import org.springframework.cloud.gateway.route.RouteLocator;
-import org.springframework.cloud.gateway.route.Routes;
+import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.core.userdetails.MapReactiveUserDetailsService;
@@ -32,10 +31,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
-import static org.springframework.cloud.gateway.filter.factory.GatewayFilters.prefixPath;
-import static org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiter.BURST_CAPACITY_KEY;
-import static org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiter.REPLENISH_RATE_KEY;
-import static org.springframework.cloud.gateway.handler.predicate.RoutePredicates.path;
 import static org.springframework.tuple.TupleBuilder.tuple;
 import static org.springframework.web.reactive.function.client.ExchangeFilterFunctions.basicAuthentication;
 
@@ -96,12 +91,12 @@ public class PrincipalNameKeyResolverIntegrationTests {
 		}
 
 		@Bean
-		public RouteLocator customRouteLocator(RequestRateLimiterGatewayFilterFactory rateLimiterFactory) {
-			return Routes.locator()
+		public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
+			return builder.routes()
 					.route("protected-throttled")
-					.predicate(path("/myapi/**"))
-					.filter(rateLimiterFactory.apply(tuple().of(REPLENISH_RATE_KEY, 1, BURST_CAPACITY_KEY, 1)))
-					.filter(prefixPath("/downstream"))
+					.path("/myapi/**")
+					.requestRateLimiter(tuple().build())
+					.prefixPath("/downstream")
 					.uri("http://localhost:"+port)
 					.build();
 		}

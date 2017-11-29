@@ -39,6 +39,10 @@ public class RequestRateLimiterGatewayFilterFactory implements GatewayFilterFact
 		this.defaultKeyResolver = defaultKeyResolver;
 	}
 
+	public KeyResolver getDefaultKeyResolver() {
+		return defaultKeyResolver;
+	}
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public GatewayFilter apply(Tuple args) {

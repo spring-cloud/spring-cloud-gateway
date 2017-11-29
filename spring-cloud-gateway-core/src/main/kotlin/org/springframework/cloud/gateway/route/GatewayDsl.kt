@@ -71,6 +71,11 @@ class RouteLocatorDsl {
 	 * A helper to return a composed [Predicate] that tests against this [Predicate] OR the [other] predicate
 	 */
 	infix fun <T> Predicate<T>.or(other: Predicate<T>) = this.or(other)
+
+	/**
+	 * A helper to return a composed [Predicate] that negates this [Predicate]
+	 */
+	fun <T> Predicate<T>.negate() = this.negate()
 }
 
 

@@ -31,8 +31,10 @@ import org.springframework.cloud.gateway.filter.GatewayFilter;
 import reactor.core.publisher.Flux;
 
 /**
+ * @deprecated inject {@link org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder} bean instead
  * @author Spencer Gibb
  */
+@Deprecated
 public class Routes {
 
 	public static LocatorBuilder locator() {

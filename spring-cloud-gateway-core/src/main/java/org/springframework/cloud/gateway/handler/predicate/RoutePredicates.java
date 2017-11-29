@@ -18,25 +18,17 @@
 package org.springframework.cloud.gateway.handler.predicate;
 
 import java.time.ZonedDateTime;
-import java.util.Arrays;
-import java.util.List;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import org.springframework.http.HttpMethod;
 import org.springframework.util.PathMatcher;
 import org.springframework.web.server.ServerWebExchange;
 
-import static org.springframework.cloud.gateway.handler.predicate.BetweenRoutePredicateFactory.DATETIME1_KEY;
-import static org.springframework.cloud.gateway.handler.predicate.BetweenRoutePredicateFactory.DATETIME2_KEY;
-import static org.springframework.cloud.gateway.handler.predicate.MethodRoutePredicateFactory.METHOD_KEY;
-import static org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory.PATTERN_KEY;
-import static org.springframework.tuple.TupleBuilder.tuple;
-
 /**
+ * @deprecated inject {@link org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder} bean instead
  * @author Spencer Gibb
  */
+@Deprecated
 public class RoutePredicates {
 
 	public static Predicate<ServerWebExchange> after(ZonedDateTime datetime) {

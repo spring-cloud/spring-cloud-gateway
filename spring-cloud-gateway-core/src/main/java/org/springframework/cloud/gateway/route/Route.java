@@ -102,6 +102,23 @@ public class Route implements Ordered {
 			return this;
 		}
 
+		public Builder and(Predicate<ServerWebExchange> predicate) {
+			Assert.notNull(this.predicate, "can not call and() on null predicate");
+			this.predicate = this.predicate.and(predicate);
+			return this;
+		}
+
+		public Builder or(Predicate<ServerWebExchange> predicate) {
+			Assert.notNull(this.predicate, "can not call or() on null predicate");
+			this.predicate = this.predicate.or(predicate);
+			return this;
+		}
+
+		public Builder negate() {
+			Assert.notNull(this.predicate, "can not call negate() on null predicate");
+			this.predicate = this.predicate.negate();
+			return this;
+		}
 		public Builder gatewayFilters(List<GatewayFilter> gatewayFilters) {
 			this.gatewayFilters = gatewayFilters;
 			return this;
@@ -120,7 +137,7 @@ public class Route implements Ordered {
 		public Route build() {
 			Assert.notNull(this.id, "id can not be null");
 			Assert.notNull(this.uri, "uri can not be null");
-			//TODO: Assert.notNull(this.predicate, "predicate can not be null");
+			Assert.notNull(this.predicate, "predicate can not be null");
 
 			return new Route(this.id, this.uri, this.order, this.predicate, this.gatewayFilters);
 		}

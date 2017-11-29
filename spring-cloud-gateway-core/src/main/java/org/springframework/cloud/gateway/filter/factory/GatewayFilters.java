@@ -30,8 +30,10 @@ import com.netflix.hystrix.HystrixObservableCommand;
 import static org.springframework.tuple.TupleBuilder.tuple;
 
 /**
+ * @deprecated inject {@link org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder} bean instead
  * @author Spencer Gibb
  */
+@Deprecated
 public class GatewayFilters {
 
 	public static final Tuple EMPTY_TUPLE = tuple().build();
