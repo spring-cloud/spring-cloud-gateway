@@ -41,7 +41,10 @@ public class AfterRoutePredicateFactory implements RoutePredicateFactory {
 	public Predicate<ServerWebExchange> apply(Tuple args) {
 		Object value = args.getValue(DATETIME_KEY);
 		final ZonedDateTime dateTime = BetweenRoutePredicateFactory.getZonedDateTime(value);
+		return apply(dateTime);
+	}
 
+	public Predicate<ServerWebExchange> apply(ZonedDateTime dateTime) {
 		return exchange -> {
 			final ZonedDateTime now = ZonedDateTime.now();
 			return now.isAfter(dateTime);

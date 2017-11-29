@@ -21,15 +21,16 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 
+import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.http.HttpStatus;
 import org.springframework.tuple.Tuple;
 import org.springframework.web.server.ServerWebExchange;
-import org.springframework.cloud.gateway.filter.GatewayFilter;
-import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 
 import com.netflix.hystrix.HystrixCommandGroupKey;
 import com.netflix.hystrix.HystrixCommandKey;
 import com.netflix.hystrix.HystrixObservableCommand;
+import com.netflix.hystrix.HystrixObservableCommand.Setter;
 import com.netflix.hystrix.exception.HystrixRuntimeException;
 
 import static com.netflix.hystrix.exception.HystrixRuntimeException.FailureType.TIMEOUT;
@@ -54,13 +55,19 @@ public class HystrixGatewayFilterFactory implements GatewayFilterFactory {
 	public GatewayFilter apply(Tuple args) {
 		//TODO: if no name is supplied, generate one from command id (useful for default filter)
 		final String commandName = args.getString(NAME_KEY);
+		return apply(commandName);
+	}
+
+	public GatewayFilter apply(String commandName) {
 		final HystrixCommandGroupKey groupKey = HystrixCommandGroupKey.Factory.asKey(getClass().getSimpleName());
 		final HystrixCommandKey commandKey = HystrixCommandKey.Factory.asKey(commandName);
 
-		final HystrixObservableCommand.Setter setter = HystrixObservableCommand.Setter
-				.withGroupKey(groupKey)
+		final Setter setter = Setter.withGroupKey(groupKey)
 				.andCommandKey(commandKey);
+		return apply(setter);
+	}
 
+	public GatewayFilter apply(Setter setter) {
 		return (exchange, chain) -> {
 			RouteHystrixCommand command = new RouteHystrixCommand(setter, exchange, chain);
 

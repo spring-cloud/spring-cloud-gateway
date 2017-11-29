@@ -50,6 +50,10 @@ public class SetPathGatewayFilterFactory implements GatewayFilterFactory {
 	@SuppressWarnings("unchecked")
 	public GatewayFilter apply(Tuple args) {
 		String template = args.getString(TEMPLATE_KEY);
+		return apply(template);
+	}
+
+	public GatewayFilter apply(String template) {
 		UriTemplate uriTemplate = new UriTemplate(template);
 
 		return (exchange, chain) -> {

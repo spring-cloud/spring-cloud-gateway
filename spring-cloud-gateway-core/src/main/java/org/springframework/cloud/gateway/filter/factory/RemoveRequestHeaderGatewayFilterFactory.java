@@ -37,7 +37,10 @@ public class RemoveRequestHeaderGatewayFilterFactory implements GatewayFilterFac
 	@Override
 	public GatewayFilter apply(Tuple args) {
 		final String header = args.getString(NAME_KEY);
+		return apply(header);
+	}
 
+	public GatewayFilter apply(String header) {
 		return (exchange, chain) -> {
 			ServerHttpRequest request = exchange.getRequest().mutate()
 					.headers(httpHeaders -> httpHeaders.remove(header))

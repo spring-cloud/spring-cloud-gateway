@@ -45,7 +45,10 @@ public class HostRoutePredicateFactory implements RoutePredicateFactory {
 	@Override
 	public Predicate<ServerWebExchange> apply(Tuple args) {
 		String pattern = args.getString(PATTERN_KEY);
+		return apply(pattern);
+	}
 
+	public Predicate<ServerWebExchange> apply(String pattern) {
 		return exchange -> {
 			String host = exchange.getRequest().getHeaders().getFirst("Host");
 			return this.pathMatcher.match(pattern, host);

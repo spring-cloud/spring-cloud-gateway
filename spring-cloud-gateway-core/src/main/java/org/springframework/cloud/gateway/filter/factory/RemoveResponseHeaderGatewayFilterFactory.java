@@ -38,7 +38,10 @@ public class RemoveResponseHeaderGatewayFilterFactory implements GatewayFilterFa
 	@Override
 	public GatewayFilter apply(Tuple args) {
 		final String header = args.getString(NAME_KEY);
+		return apply(header);
+	}
 
+	public GatewayFilter apply(String header) {
 		return (exchange, chain) -> chain.filter(exchange).then(Mono.fromRunnable(() -> {
 			exchange.getResponse().getHeaders().remove(header);
 		}));

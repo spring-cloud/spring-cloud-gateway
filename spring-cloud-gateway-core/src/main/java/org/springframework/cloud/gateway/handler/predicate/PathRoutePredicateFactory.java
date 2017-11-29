@@ -51,6 +51,10 @@ public class PathRoutePredicateFactory implements RoutePredicateFactory {
 	@Override
 	public Predicate<ServerWebExchange> apply(Tuple args) {
 		String unparsedPattern = args.getString(PATTERN_KEY);
+		return apply(unparsedPattern);
+	}
+
+	public Predicate<ServerWebExchange> apply(String unparsedPattern) {
 		PathPattern pattern;
 		synchronized (this.pathPatternParser) {
 			pattern = this.pathPatternParser.parse(unparsedPattern);

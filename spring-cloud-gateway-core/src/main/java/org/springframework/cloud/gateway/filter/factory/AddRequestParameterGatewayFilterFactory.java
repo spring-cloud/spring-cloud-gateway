@@ -41,7 +41,10 @@ public class AddRequestParameterGatewayFilterFactory implements GatewayFilterFac
 	public GatewayFilter apply(Tuple args) {
 		String parameter = args.getString(NAME_KEY);
 		String value = args.getString(VALUE_KEY);
+		return apply(parameter, value);
+	}
 
+	public GatewayFilter apply(String parameter, String value) {
 		return (exchange, chain) -> {
 
 			URI uri = exchange.getRequest().getURI();

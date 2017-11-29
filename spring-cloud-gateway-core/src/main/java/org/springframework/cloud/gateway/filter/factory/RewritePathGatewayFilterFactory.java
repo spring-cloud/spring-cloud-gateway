@@ -44,7 +44,10 @@ public class RewritePathGatewayFilterFactory implements GatewayFilterFactory {
 	public GatewayFilter apply(Tuple args) {
 		final String regex = args.getString(REGEXP_KEY);
 		String replacement = args.getString(REPLACEMENT_KEY).replace("$\\", "$");
+		return apply(regex, replacement);
+	}
 
+	public GatewayFilter apply(String regex, String replacement) {
 		return (exchange, chain) -> {
 			ServerHttpRequest req = exchange.getRequest();
 			addOriginalRequestUrl(exchange, req.getURI());

@@ -40,9 +40,18 @@ public class MethodRoutePredicateFactory implements RoutePredicateFactory {
 	@Override
 	public Predicate<ServerWebExchange> apply(Tuple args) {
 		String method = args.getString(METHOD_KEY);
+		return apply(method);
+	}
+
+	public Predicate<ServerWebExchange> apply(String method) {
+		HttpMethod httpMethod = HttpMethod.resolve(method);
+		return apply(httpMethod);
+	}
+
+	public Predicate<ServerWebExchange> apply(HttpMethod httpMethod) {
 		return exchange -> {
 			HttpMethod requestMethod = exchange.getRequest().getMethod();
-			return requestMethod.matches(method);
+			return requestMethod == httpMethod;
 		};
 	}
 }

@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.function.Predicate;
 
 import org.springframework.tuple.Tuple;
+import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
 
 /**
@@ -47,13 +48,23 @@ public class QueryRoutePredicateFactory implements RoutePredicateFactory {
 		validateMin(1, args);
 		String param = args.getString(PARAM_KEY);
 
+		final String regexp;
+		if (args.hasFieldName(REGEXP_KEY)) {
+			regexp = args.getString(REGEXP_KEY);
+		} else {
+			regexp = null;
+		}
+		return apply(param, regexp);
+	}
+
+	public Predicate<ServerWebExchange> apply(String param, String regexp) {
+
 		return exchange -> {
-			if (!args.hasFieldName(REGEXP_KEY)) {
+			if (!StringUtils.hasText(regexp)) {
 				// check existence of header
 				return exchange.getRequest().getQueryParams().containsKey(param);
 			}
 
-			String regexp = args.getString(REGEXP_KEY);
 
 			List<String> values = exchange.getRequest().getQueryParams().get(param);
 			for (String value : values) {

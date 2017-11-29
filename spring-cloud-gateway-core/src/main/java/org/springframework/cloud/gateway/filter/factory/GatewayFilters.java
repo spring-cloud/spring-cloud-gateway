@@ -17,18 +17,16 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
-import org.springframework.tuple.Tuple;
-import org.springframework.cloud.gateway.filter.GatewayFilter;
-
 import java.net.URI;
+import java.net.URL;
 import java.util.Arrays;
 
-import static org.springframework.cloud.gateway.filter.factory.RedirectToGatewayFilterFactory.STATUS_KEY;
-import static org.springframework.cloud.gateway.filter.factory.RedirectToGatewayFilterFactory.URL_KEY;
-import static org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactory.REGEXP_KEY;
-import static org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactory.REPLACEMENT_KEY;
-import static org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory.NAME_KEY;
-import static org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory.VALUE_KEY;
+import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.http.HttpStatus;
+import org.springframework.tuple.Tuple;
+
+import com.netflix.hystrix.HystrixObservableCommand;
+
 import static org.springframework.tuple.TupleBuilder.tuple;
 
 /**
@@ -39,28 +37,27 @@ public class GatewayFilters {
 	public static final Tuple EMPTY_TUPLE = tuple().build();
 
 	public static GatewayFilter addRequestHeader(String headerName, String headerValue) {
-		Tuple args = tuple().of(NAME_KEY, headerName, VALUE_KEY, headerValue);
-		return new AddRequestHeaderGatewayFilterFactory().apply(args);
+		return new AddRequestHeaderGatewayFilterFactory().apply(headerName, headerValue);
 	}
 
 	public static GatewayFilter addRequestParameter(String param, String value) {
-		Tuple args = tuple().of(NAME_KEY, param, VALUE_KEY, value);
-		return new AddRequestParameterGatewayFilterFactory().apply(args);
+		return new AddRequestParameterGatewayFilterFactory().apply(param, value);
 	}
 
 	public static GatewayFilter addResponseHeader(String headerName, String headerValue) {
-		Tuple args = tuple().of(NAME_KEY, headerName, VALUE_KEY, headerValue);
-		return new AddResponseHeaderGatewayFilterFactory().apply(args);
+		return new AddResponseHeaderGatewayFilterFactory().apply(headerName, headerValue);
 	}
 
 	public static GatewayFilter hystrix(String commandName) {
-		Tuple args = tuple().of(NAME_KEY, commandName);
-		return new HystrixGatewayFilterFactory().apply(args);
+		return new HystrixGatewayFilterFactory().apply(commandName);
+	}
+
+	public static GatewayFilter hystrix(HystrixObservableCommand.Setter setter) {
+		return new HystrixGatewayFilterFactory().apply(setter);
 	}
 
 	public static GatewayFilter prefixPath(String prefix) {
-		Tuple args = tuple().of(PrefixPathGatewayFilterFactory.PREFIX_KEY, prefix);
-		return new PrefixPathGatewayFilterFactory().apply(args);
+		return new PrefixPathGatewayFilterFactory().apply(prefix);
 	}
 
 	public static GatewayFilter redirect(int status, URI url) {
@@ -76,8 +73,11 @@ public class GatewayFilters {
 	}
 
 	public static GatewayFilter redirect(String status, String url) {
-		Tuple args = tuple().of(STATUS_KEY, status, URL_KEY, url);
-		return new RedirectToGatewayFilterFactory().apply(args);
+		return new RedirectToGatewayFilterFactory().apply(status, url);
+	}
+
+	public static GatewayFilter redirect(HttpStatus status, URL url) {
+		return new RedirectToGatewayFilterFactory().apply(status, url);
 	}
 
 	public static GatewayFilter removeNonProxyHeaders(String... headersToRemove) {
@@ -87,18 +87,15 @@ public class GatewayFilters {
 	}
 
 	public static GatewayFilter removeRequestHeader(String headerName) {
-		Tuple args = tuple().of(NAME_KEY, headerName);
-		return new RemoveRequestHeaderGatewayFilterFactory().apply(args);
+		return new RemoveRequestHeaderGatewayFilterFactory().apply(headerName);
 	}
 
 	public static GatewayFilter removeResponseHeader(String headerName) {
-		Tuple args = tuple().of(NAME_KEY, headerName);
-		return new RemoveResponseHeaderGatewayFilterFactory().apply(args);
+		return new RemoveResponseHeaderGatewayFilterFactory().apply(headerName);
 	}
 
 	public static GatewayFilter rewritePath(String regex, String replacement) {
-		Tuple args = tuple().of(REGEXP_KEY, regex, REPLACEMENT_KEY, replacement);
-		return new RewritePathGatewayFilterFactory().apply(args);
+		return new RewritePathGatewayFilterFactory().apply(regex, replacement);
 	}
 
 	public static GatewayFilter secureHeaders(SecureHeadersProperties properties) {
@@ -106,13 +103,11 @@ public class GatewayFilters {
 	}
 
 	public static GatewayFilter setPath(String template) {
-		Tuple args = tuple().of(SetPathGatewayFilterFactory.TEMPLATE_KEY, template);
-		return new SetPathGatewayFilterFactory().apply(args);
+		return new SetPathGatewayFilterFactory().apply(template);
 	}
 
 	public static GatewayFilter setResponseHeader(String headerName, String headerValue) {
-		Tuple args = tuple().of(NAME_KEY, headerName, VALUE_KEY, headerValue);
-		return new SetResponseHeaderGatewayFilterFactory().apply(args);
+		return new SetResponseHeaderGatewayFilterFactory().apply(headerName, headerValue);
 	}
 
 	public static GatewayFilter setStatus(int status) {
@@ -120,7 +115,10 @@ public class GatewayFilters {
 	}
 
 	public static GatewayFilter setStatus(String status) {
-		Tuple args = tuple().of(SetStatusGatewayFilterFactory.STATUS_KEY, status);
-		return new SetStatusGatewayFilterFactory().apply(args);
+		return new SetStatusGatewayFilterFactory().apply(status);
+	}
+
+	public static GatewayFilter setStatus(HttpStatus status) {
+		return new SetStatusGatewayFilterFactory().apply(status);
 	}
 }

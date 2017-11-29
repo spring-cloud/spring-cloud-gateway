@@ -38,7 +38,10 @@ public class AddRequestHeaderGatewayFilterFactory implements GatewayFilterFactor
 	public GatewayFilter apply(Tuple args) {
 		String name = args.getString(NAME_KEY);
 		String value = args.getString(VALUE_KEY);
+		return apply(name, value);
+	}
 
+	public GatewayFilter apply(String name, String value) {
 		return (exchange, chain) -> {
 			ServerHttpRequest request = exchange.getRequest().mutate()
 					.header(name, value)

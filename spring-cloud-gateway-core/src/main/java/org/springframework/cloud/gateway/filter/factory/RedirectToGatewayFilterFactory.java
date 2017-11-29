@@ -52,7 +52,10 @@ public class RedirectToGatewayFilterFactory implements GatewayFilterFactory {
 	public GatewayFilter apply(Tuple args) {
 		String statusString = args.getRawString(STATUS_KEY);
 		String urlString = args.getString(URL_KEY);
+		return apply(statusString, urlString);
+	}
 
+	public GatewayFilter apply(String statusString, String urlString) {
 		final HttpStatus httpStatus = parse(statusString);
 		Assert.isTrue(httpStatus.is3xxRedirection(), "status must be a 3xx code, but was " + statusString);
 		final URL url;
@@ -61,6 +64,10 @@ public class RedirectToGatewayFilterFactory implements GatewayFilterFactory {
 		} catch (MalformedURLException e) {
 			throw new IllegalArgumentException("Invalid url " + urlString, e);
 		}
+		return apply(httpStatus, url);
+	}
+
+	public GatewayFilter apply(HttpStatus httpStatus, URL url) {
 
 		return (exchange, chain) ->
 			chain.filter(exchange).then(Mono.defer(() -> {

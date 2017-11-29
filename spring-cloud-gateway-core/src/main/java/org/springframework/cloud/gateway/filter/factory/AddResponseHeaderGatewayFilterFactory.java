@@ -37,7 +37,10 @@ public class AddResponseHeaderGatewayFilterFactory implements GatewayFilterFacto
 	public GatewayFilter apply(Tuple args) {
 		final String header = args.getString(NAME_KEY);
 		final String value = args.getString(VALUE_KEY);
+		return apply(header, value);
+	}
 
+	public GatewayFilter apply(String header, String value) {
 		return (exchange, chain) -> {
 			exchange.getResponse().getHeaders().add(header, value);
 

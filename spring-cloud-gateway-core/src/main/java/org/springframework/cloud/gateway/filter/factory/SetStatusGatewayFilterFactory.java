@@ -44,8 +44,15 @@ public class SetStatusGatewayFilterFactory implements GatewayFilterFactory {
 	@Override
 	public GatewayFilter apply(Tuple args) {
 		String status = args.getRawString(STATUS_KEY);
-		final HttpStatus httpStatus = ServerWebExchangeUtils.parse(status);
+		return apply(status);
+	}
 
+	public GatewayFilter apply(String status) {
+		final HttpStatus httpStatus = ServerWebExchangeUtils.parse(status);
+		return apply(httpStatus);
+	}
+
+	public GatewayFilter apply(HttpStatus httpStatus) {
 		return (exchange, chain) -> {
 
 			// option 1 (runs in filter order)

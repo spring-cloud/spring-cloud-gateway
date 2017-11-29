@@ -26,6 +26,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.cloud.gateway.support.SubnetUtils;
 import org.springframework.tuple.Tuple;
+import org.springframework.util.Assert;
 import org.springframework.web.server.ServerWebExchange;
 
 /**
@@ -45,7 +46,20 @@ public class RemoteAddrRoutePredicateFactory implements RoutePredicateFactory {
 				addSource(sources, (String) arg);
 			}
 		}
+		return apply(sources);
+	}
 
+	public Predicate<ServerWebExchange> apply(String... addrs) {
+		Assert.notEmpty(addrs, "addrs must not be empty");
+
+		List<SubnetUtils> sources = new ArrayList<>();
+		for (String addr : addrs) {
+			addSource(sources, addr);
+		}
+		return apply(sources);
+	}
+
+	public Predicate<ServerWebExchange> apply(List<SubnetUtils> sources) {
 		return exchange -> {
 			InetSocketAddress remoteAddress = exchange.getRequest().getRemoteAddress();
 			if (remoteAddress != null) {

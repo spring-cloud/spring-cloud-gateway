@@ -46,10 +46,13 @@ public class RequestRateLimiterGatewayFilterFactory implements GatewayFilterFact
 		KeyResolver keyResolver;
 		if (args.hasFieldName(KEY_RESOLVER_KEY)) {
 			keyResolver = args.getValue(KEY_RESOLVER_KEY, KeyResolver.class);
-		}
-		else {
+		} else {
 			keyResolver = defaultKeyResolver;
 		}
+		return apply(keyResolver, args);
+	}
+
+	public GatewayFilter apply(KeyResolver keyResolver, Tuple args) {
 
 		return (exchange, chain) -> keyResolver.resolve(exchange).flatMap(key ->
 		// TODO: if key is empty?

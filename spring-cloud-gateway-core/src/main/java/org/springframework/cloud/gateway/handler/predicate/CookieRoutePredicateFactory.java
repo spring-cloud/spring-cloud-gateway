@@ -42,7 +42,10 @@ public class CookieRoutePredicateFactory implements RoutePredicateFactory {
 	public Predicate<ServerWebExchange> apply(Tuple args) {
 		String name = args.getString(NAME_KEY);
 		String regexp = args.getString(REGEXP_KEY);
+		return apply(name, regexp);
+	}
 
+	public Predicate<ServerWebExchange> apply(String name, String regexp) {
 		return exchange -> {
 			List<HttpCookie> cookies = exchange.getRequest().getCookies().get(name);
 			for (HttpCookie cookie : cookies) {

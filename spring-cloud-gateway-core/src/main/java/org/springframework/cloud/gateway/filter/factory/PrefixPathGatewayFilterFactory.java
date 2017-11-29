@@ -44,10 +44,12 @@ public class PrefixPathGatewayFilterFactory implements GatewayFilterFactory {
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
 	public GatewayFilter apply(Tuple args) {
 		final String prefix = args.getString(PREFIX_KEY);
+		return apply(prefix);
+	}
 
+	public GatewayFilter apply(String prefix) {
 		return (exchange, chain) -> {
 			ServerHttpRequest req = exchange.getRequest();
 			addOriginalRequestUrl(exchange, req.getURI());
