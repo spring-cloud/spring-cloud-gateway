@@ -724,6 +724,11 @@ public RouteLocator customRouteLocator(ThrottleGatewayFilterFactory throttle) {
 </formalpara>
 <simpara>This style also allows for more custom predicate assertions. The predicates defined by <literal>RouteDefinitionLocator</literal> beans are combined using logical <literal>and</literal>. By using the fluent Java API, you can use the <literal>and()</literal>, <literal>or()</literal> and <literal>negate()</literal> operators on the <literal>Predicate</literal> class.</simpara>
 </section>
+<section xml:id="_discoveryclient_route_definition_locator">
+<title>DiscoveryClient Route Definition Locator</title>
+<simpara>The Gateway can be configured to create routes based on services registered with a <literal>DiscoveryClient</literal> compatible service registry.</simpara>
+<simpara>To enable this, set <literal>spring.cloud.gateway.discovery.locator.enabled=true</literal> and make sure a <literal>DiscoveryClient</literal> implementation is on the classpath and enabled (such as Netflix Eureka, Consul or Zookeeper).</simpara>
+</section>
 </chapter>
 <chapter xml:id="_actuator_api">
 <title>Actuator API</title>
