@@ -47,22 +47,22 @@ public class GatewaySampleApplication {
 	public RouteLocator customRouteLocator(RouteLocatorBuilder builder, ThrottleGatewayFilterFactory throttle) {
 		//@formatter:off
 		return builder.routes()
-				.route("test")
-					.host("**.abc.org").and().path("/image/png")
-					.addResponseHeader("X-TestHeader", "foobar")
-					.uri("http://httpbin.org:80")
-				.route("test2")
-					.path("/image/webp")
+				.route(r -> r.host("**.abc.org").and().path("/image/png")
+						.addResponseHeader("X-TestHeader", "foobar")
+						.uri("http://httpbin.org:80")
+				)
+				.route(r -> r.path("/image/webp")
 					.addResponseHeader("X-AnotherHeader", "baz")
 					.uri("http://httpbin.org:80")
-				.route("test3")
-					.order(-1)
+				)
+				.route(r -> r.order(-1)
 					.predicate(host("**.throttle.org").and(path("/get")))
 					.add(throttle.apply(1,
 							1,
 							10,
 							TimeUnit.SECONDS))
 					.uri("http://httpbin.org:80")
+				)
 				.build();
 		////@formatter:on
 	}
