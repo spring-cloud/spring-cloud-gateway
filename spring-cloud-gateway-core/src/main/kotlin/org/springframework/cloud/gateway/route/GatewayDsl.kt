@@ -35,13 +35,17 @@ import java.util.function.Predicate
  * ```
  *
  * @author Biju Kunjummen
+ * @deprecated see [org.springframework.cloud.gateway.route.builder.RouteDsl]
  */
+@Deprecated("see RouteDsl")
 fun gateway(routeLocator: RouteLocatorDsl.() -> Unit) = RouteLocatorDsl().apply(routeLocator).build()
 
 
 /**
  * Provider for [RouteLocator] DSL functionality
+ * @deprecated see [org.springframework.cloud.gateway.route.builder.RouteDsl]
  */
+@Deprecated("see RouteDsl")
 class RouteLocatorDsl {
 	private val routes = mutableListOf<Route>()
 

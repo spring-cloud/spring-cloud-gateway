@@ -87,7 +87,7 @@ public class RouteLocatorBuilder {
 		private final Route.Builder routeBuilder = Route.builder();
 		private final Builder builder;
 
-		private RouteSpec(Builder builder) {
+		RouteSpec(Builder builder) {
 			this.builder = builder;
 		}
 

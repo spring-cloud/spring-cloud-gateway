@@ -97,6 +97,10 @@ public class Route implements Ordered {
 			return this;
 		}
 
+		public Predicate<ServerWebExchange> getPredicate() {
+			return this.predicate;
+		}
+
 		public Builder predicate(Predicate<ServerWebExchange> predicate) {
 			this.predicate = predicate;
 			return this;

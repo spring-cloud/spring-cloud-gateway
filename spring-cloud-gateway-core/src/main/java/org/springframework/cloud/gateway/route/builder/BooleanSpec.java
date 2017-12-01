@@ -28,8 +28,12 @@ public class BooleanSpec extends GatewayFilterSpec {
 
 	enum Operator { AND, OR, NEGATE }
 
+	final Predicate<ServerWebExchange> predicate;
+
 	public BooleanSpec(Route.Builder routeBuilder, RouteLocatorBuilder.Builder builder) {
 		super(routeBuilder, builder);
+		// save current predicate useful in kotlin dsl
+		predicate = routeBuilder.getPredicate();
 	}
 
 	public BooleanOpSpec and() {
@@ -66,7 +70,7 @@ public class BooleanSpec extends GatewayFilterSpec {
 				case NEGATE:
 					this.routeBuilder.negate();
 			}
-			return gatewayFilterBuilder();
+			return createBooleanSpec();
 		}
 	}
 }

@@ -46,10 +46,10 @@ public class PredicateSpec extends UriSpec {
 
 	public BooleanSpec predicate(Predicate<ServerWebExchange> predicate) {
 		this.routeBuilder.predicate(predicate);
-		return gatewayFilterBuilder();
+		return createBooleanSpec();
 	}
 
-	protected BooleanSpec gatewayFilterBuilder() {
+	protected BooleanSpec createBooleanSpec() {
 		return new BooleanSpec(this.routeBuilder, this.builder);
 	}
 
