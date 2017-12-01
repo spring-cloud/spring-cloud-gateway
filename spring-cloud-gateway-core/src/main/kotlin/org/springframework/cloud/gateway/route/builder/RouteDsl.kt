@@ -75,6 +75,19 @@ class RouteLocatorDsl(val builder: RouteLocatorBuilder) {
 		return routes.build()
 	}
 
+	/**
+	 * A helper to return a composed [Predicate] that tests against this [Predicate] AND the [other] predicate
+	 */
+	infix fun BooleanSpec.and(other: BooleanSpec) =
+			this.routeBuilder.predicate(this.predicate.and(other.predicate))
+
+	/**
+	 * A helper to return a composed [Predicate] that tests against this [Predicate] OR the [other] predicate
+	 */
+	infix fun BooleanSpec.or(other: BooleanSpec) =
+			this.routeBuilder.predicate(this.predicate.or(other.predicate))
+
+
 }
 
 /**
@@ -84,18 +97,5 @@ fun PredicateSpec.filters(init: GatewayFilterSpec.() -> Unit) {
 	val booleanSpec = createBooleanSpec()
 	booleanSpec.apply(init)
 }
-
-
-/**
- * A helper to return a composed [Predicate] that tests against this [Predicate] AND the [other] predicate
- */
-infix fun BooleanSpec.and(other: BooleanSpec) =
-	this.routeBuilder.predicate(this.predicate.and(other.predicate))
-
-/**
- * A helper to return a composed [Predicate] that tests against this [Predicate] OR the [other] predicate
- */
-infix fun BooleanSpec.or(other: BooleanSpec) =
-	this.routeBuilder.predicate(this.predicate.or(other.predicate))
 
 

@@ -1,10 +1,9 @@
 package org.springframework.cloud.gateway.sample
 
-import org.springframework.cloud.gateway.filter.factory.GatewayFilters.addResponseHeader
-import org.springframework.cloud.gateway.handler.predicate.RoutePredicates.host
-import org.springframework.cloud.gateway.handler.predicate.RoutePredicates.path
 import org.springframework.cloud.gateway.route.RouteLocator
-import org.springframework.cloud.gateway.route.gateway
+import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder
+import org.springframework.cloud.gateway.route.builder.filters
+import org.springframework.cloud.gateway.route.builder.routes
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -12,11 +11,13 @@ import org.springframework.context.annotation.Configuration
 class AdditionalRoutes {
 
 	@Bean
-	fun additionalRouteLocator(): RouteLocator = gateway {
+	fun additionalRouteLocator(builder: RouteLocatorBuilder): RouteLocator = builder.routes {
 		route(id = "test-kotlin") {
+			host("kotlin.abc.org") and path("/image/png")
+			filters {
+				addResponseHeader("X-TestHeader", "foobar")
+			}
 			uri("http://httpbin.org:80")
-			predicate(host("kotlin.abc.org") and path("/image/png"))
-			add(addResponseHeader("X-TestHeader", "foobar"))
 		}
 	}
 
