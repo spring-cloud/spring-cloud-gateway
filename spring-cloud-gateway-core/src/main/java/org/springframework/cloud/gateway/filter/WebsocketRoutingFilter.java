@@ -3,7 +3,6 @@ package org.springframework.cloud.gateway.filter;
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
-import java.util.logging.Level;
 
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
@@ -23,6 +22,7 @@ import reactor.core.publisher.Mono;
 
 /**
  * @author Spencer Gibb
+ * @author Tim Ysewyn
  */
 public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 	public static final String SEC_WEBSOCKET_PROTOCOL = "Sec-WebSocket-Protocol";
@@ -55,6 +55,10 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 		}
 		setAlreadyRouted(exchange);
 
+		return handleWebSocketRequest(exchange, requestUrl);
+	}
+
+	protected Mono<Void> handleWebSocketRequest(ServerWebExchange exchange, URI requestUrl) {
 		return this.webSocketService.handleRequest(exchange,
 				new ProxyWebSocketHandler(requestUrl, this.webSocketClient, exchange.getRequest().getHeaders()));
 	}

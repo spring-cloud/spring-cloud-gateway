@@ -16,24 +16,24 @@
 
 package org.springframework.cloud.gateway.test.websocket;
 
+import com.netflix.loadbalancer.Server;
+import com.netflix.loadbalancer.ServerList;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.PermitAllSecurityConfiguration;
+import org.springframework.cloud.netflix.ribbon.RibbonClient;
+import org.springframework.cloud.netflix.ribbon.RibbonClients;
+import org.springframework.cloud.netflix.ribbon.StaticServerList;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.web.reactive.socket.WebSocketHandler;
 
 /**
- * Original is here {@see https://github.com/spring-projects/spring-framework/blob/master/spring-webflux/src/test/java/org/springframework/web/reactive/socket/WebSocketIntegrationTests.java}
- * Integration tests with server-side {@link WebSocketHandler}s.
- *
- * @author Rossen Stoyanchev
  * @author Tim Ysewyn
  */
-public class WebSocketIntegrationTests extends AbstractWebSocketIntegrationTests {
+public class LoadBalancedWebSocketIntegrationTests extends AbstractWebSocketIntegrationTests {
 
 	@Override
 	protected Class getConfigClass() {
@@ -42,18 +42,29 @@ public class WebSocketIntegrationTests extends AbstractWebSocketIntegrationTests
 
 	@Configuration
 	@EnableAutoConfiguration
+	@RibbonClients({
+			@RibbonClient(name = "myservice", configuration = TestRibbonConfig.class)
+	})
 	@Import(PermitAllSecurityConfiguration.class)
 	protected static class GatewayConfig {
-
-		@Value("${ws.server.port}")
-		private int wsPort;
 
 		@Bean
 		public RouteLocator wsRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes()
 					.route(r -> r.alwaysTrue()
-						.uri("ws://localhost:"+this.wsPort))
+						.uri("ws+lb://myservice"))
 					.build();
+		}
+	}
+
+	protected static class TestRibbonConfig {
+
+		@Value("${ws.server.port}")
+		private int serverPort;
+
+		@Bean
+		public ServerList<Server> ribbonServerList() {
+			return new StaticServerList<>(new Server("localhost", this.serverPort));
 		}
 	}
 
