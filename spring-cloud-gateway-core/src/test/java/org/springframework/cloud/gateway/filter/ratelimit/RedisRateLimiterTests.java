@@ -16,6 +16,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.tuple.Tuple;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assume.assumeThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 /**
@@ -32,6 +35,9 @@ public class RedisRateLimiterTests extends BaseWebClientTests {
 
 	@Test
 	public void redisRateLimiterWorks() throws Exception {
+		assumeThat("Ignore on Circle",
+				System.getenv("CIRCLECI"), is(nullValue()));
+
 		String id = UUID.randomUUID().toString();
 
 		int replenishRate = 10;
