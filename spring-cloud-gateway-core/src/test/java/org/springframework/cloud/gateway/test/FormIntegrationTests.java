@@ -20,7 +20,6 @@ package org.springframework.cloud.gateway.test;
 import java.nio.charset.Charset;
 import java.util.Map;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.SpringBootConfiguration;
@@ -51,29 +50,27 @@ import reactor.test.StepVerifier;
 @SuppressWarnings("unchecked")
 public class FormIntegrationTests extends BaseWebClientTests {
 
+	public static final MediaType CONTENT_TYPE = new MediaType(MediaType.APPLICATION_FORM_URLENCODED, Charset.forName("UTF-8"));
+
 	@Test
-	@Ignore //FIXME: boot 2.0.x compatibility
 	public void formUrlencodedWorks() {
 		LinkedMultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
 		formData.add("foo", "bar");
 		formData.add("baz", "bam");
 
-		MediaType contentType = new MediaType(MediaType.APPLICATION_FORM_URLENCODED, Charset.forName("UTF-8"));
-		Mono<Map> result = webClient.post()
+		testClient.post()
 				.uri("/post")
-				.contentType(contentType)
+				.contentType(CONTENT_TYPE)
 				.body(BodyInserters.fromFormData(formData))
 				.exchange()
-				.flatMap(response -> response.body(toMono(Map.class)));
-
-		StepVerifier.create(result)
-				.consumeNextWith(map -> {
+				.expectStatus().isOk()
+				.expectBody(Map.class)
+				.consumeWith(result -> {
+					Map map = result.getResponseBody();
 					Map<String, Object> form = getMap(map, "form");
 					assertThat(form).containsEntry("foo", "bar");
 					assertThat(form).containsEntry("baz", "bam");
-				})
-				.expectComplete()
-				.verify(DURATION);
+				});
 	}
 
 	@Test

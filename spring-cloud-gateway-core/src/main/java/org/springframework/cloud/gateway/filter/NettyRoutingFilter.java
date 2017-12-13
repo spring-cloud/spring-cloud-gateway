@@ -18,22 +18,16 @@
 package org.springframework.cloud.gateway.filter;
 
 import java.net.URI;
-import java.util.List;
-import java.util.Map;
 
 import org.springframework.core.Ordered;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.server.ServerWebExchange;
 
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.CLIENT_RESPONSE_ATTR;
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.isAlreadyRouted;
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.setAlreadyRouted;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.*;
 
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
@@ -81,18 +75,6 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 			final HttpClientRequest proxyRequest = req.options(NettyPipeline.SendOptions::flushOnEach)
 					.failOnClientError(false)
 					.headers(httpHeaders);
-
-			if (MediaType.APPLICATION_FORM_URLENCODED.includes(request.getHeaders().getContentType())) {
-				return exchange.getFormData()
-						.flatMap(map -> proxyRequest.sendForm(form -> {
-							for (Map.Entry<String, List<String>> entry: map.entrySet()) {
-								for (String value : entry.getValue()) {
-									form.attr(entry.getKey(), value);
-								}
-							}
-						}).then())
-						.then(chain.filter(exchange));
-			}
 
 			return proxyRequest.sendHeaders() //I shouldn't need this
 					.send(request.getBody()
