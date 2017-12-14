@@ -72,10 +72,18 @@ public class LoadBalancedWebsocketRoutingFilter extends WebsocketRoutingFilter {
 			throw new NotFoundException("Unable to find instance for " + uri.getHost());
 		}
 
-		uri = UriComponentsBuilder.fromUri(loadBalancer.reconstructURI(instance, uri))
-								  .scheme(scheme.replace(SCHEME_LB_SUFFIX, "")) // TODO fix this mighty hack
-								  .build(true)
-								  .toUri();
-		return uri;
+		String websocketScheme = scheme.replace(SCHEME_LB_SUFFIX, "");
+
+		// TODO remove after https://github.com/spring-cloud/spring-cloud-netflix/pull/2551 has been released
+		if ("ws".equals(websocketScheme) && instance.isSecure()) {
+			websocketScheme = "wss";
+		}
+
+		URI loadBalancedUri = UriComponentsBuilder.fromUri(uri)
+												  .scheme(websocketScheme)
+												  .build(true)
+												  .toUri();
+
+		return loadBalancer.reconstructURI(instance, loadBalancedUri);
 	}
 }
