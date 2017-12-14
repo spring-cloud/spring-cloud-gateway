@@ -34,7 +34,7 @@ public class ForwardRoutingFilter implements GlobalFilter, Ordered {
 		URI requestUrl = exchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
 
 		String scheme = requestUrl.getScheme();
-		if (isAlreadyRouted(exchange) || !scheme.equals("forward")) {
+		if (isAlreadyRouted(exchange) || !"forward".equals(scheme)) {
 			return chain.filter(exchange);
 		}
 		setAlreadyRouted(exchange);
