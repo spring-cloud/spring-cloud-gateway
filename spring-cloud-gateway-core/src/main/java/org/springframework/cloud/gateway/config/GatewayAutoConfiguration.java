@@ -176,7 +176,7 @@ public class GatewayAutoConfiguration {
 
 	@Bean
 	@Primary
-	public RouteLocator routeLocator(List<RouteLocator> routeLocators) {
+	public RouteLocator cachedCompositeRouteLocator(List<RouteLocator> routeLocators) {
 		return new CachingRouteLocator(new CompositeRouteLocator(Flux.fromIterable(routeLocators)));
 	}
 
