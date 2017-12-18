@@ -352,6 +352,25 @@ for details on setting up your build system with the current Spring Cloud Releas
 </formalpara>
 <simpara>This will prefix <literal>/mypath</literal> to the path of all matching requests. So a request to <literal>/hello</literal>, would be sent to <literal>/mypath/hello</literal>.</simpara>
 </section>
+<section xml:id="_preservehostheader_gatewayfilter_factory">
+<title>PreserveHostHeader GatewayFilter Factory</title>
+<simpara>The PreserveHostHeader GatewayFilter Factory has not parameters. This filter, sets a request attribute that the routing filter will inspect to determine if the original host header should be sent, rather than the host header determined by the http client.</simpara>
+<formalpara>
+<title>application.yml</title>
+<para>
+<programlisting language="yaml" linenumbering="unnumbered">spring:
+  cloud:
+    gateway:
+      routes:
+      # =====================================
+      - id: preserve_host_route
+        uri: http://example.org
+        filters:
+        - PreserveHostHeader</programlisting>
+</para>
+</formalpara>
+<simpara>This will prefix <literal>/mypath</literal> to the path of all matching requests. So a request to <literal>/hello</literal>, would be sent to <literal>/mypath/hello</literal>.</simpara>
+</section>
 <section xml:id="_requestratelimiter_gatewayfilter_factory">
 <title>RequestRateLimiter GatewayFilter Factory</title>
 <simpara>The RequestRateLimiter GatewayFilter Factory takes three parameters: <literal>replenishRate</literal>, <literal>burstCapacity</literal> &amp; <literal>keyResolverName</literal>.</simpara>
