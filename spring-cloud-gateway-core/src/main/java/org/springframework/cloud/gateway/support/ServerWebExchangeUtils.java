@@ -32,6 +32,7 @@ public class ServerWebExchangeUtils {
 
 	private static final Log logger = LogFactory.getLog(ServerWebExchangeUtils.class);
 
+	public static final String PRESERVE_HOST_HEADER_ATTRIBUTE = qualify("preserveHostHeader");
 	public static final String URI_TEMPLATE_VARIABLES_ATTRIBUTE = qualify("uriTemplateVariables");
 
 	public static final String CLIENT_RESPONSE_ATTR = qualify("webHandlerClientResponse");

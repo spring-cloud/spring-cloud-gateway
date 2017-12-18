@@ -65,14 +65,13 @@ public class WebClientHttpRoutingFilter implements GlobalFilter, Ordered {
 
 		ServerHttpRequest request = exchange.getRequest();
 
-		//TODO: support forms
-
 		HttpMethod method = request.getMethod();
 
 		RequestBodySpec bodySpec = this.webClient.method(method)
 				.uri(requestUrl)
 				.headers(httpHeaders -> {
 					httpHeaders.addAll(request.getHeaders());
+					//TODO: can this support preserviceHostHeader?
 					httpHeaders.remove(HttpHeaders.HOST);
 				});
 

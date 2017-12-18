@@ -349,6 +349,25 @@ spring:
 
 This will prefix `/mypath` to the path of all matching requests. So a request to `/hello`, would be sent to `/mypath/hello`.
 
+=== PreserveHostHeader GatewayFilter Factory
+The PreserveHostHeader GatewayFilter Factory has not parameters. This filter, sets a request attribute that the routing filter will inspect to determine if the original host header should be sent, rather than the host header determined by the http client.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      # =====================================
+      - id: preserve_host_route
+        uri: http://example.org
+        filters:
+        - PreserveHostHeader
+----
+
+This will prefix `/mypath` to the path of all matching requests. So a request to `/hello`, would be sent to `/mypath/hello`.
+
 === RequestRateLimiter GatewayFilter Factory
 
 The RequestRateLimiter GatewayFilter Factory takes three parameters: `replenishRate`, `burstCapacity` & `keyResolverName`.

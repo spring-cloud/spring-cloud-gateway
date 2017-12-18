@@ -27,7 +27,11 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.server.ServerWebExchange;
 
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.*;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.CLIENT_RESPONSE_ATTR;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.PRESERVE_HOST_HEADER_ATTRIBUTE;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.isAlreadyRouted;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.setAlreadyRouted;
 
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
@@ -71,10 +75,17 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 		final DefaultHttpHeaders httpHeaders = new DefaultHttpHeaders();
 		request.getHeaders().forEach(httpHeaders::set);
 
+		boolean preserveHost = exchange.getAttributeOrDefault(PRESERVE_HOST_HEADER_ATTRIBUTE, false);
+
 		return this.httpClient.request(method, url, req -> {
 			final HttpClientRequest proxyRequest = req.options(NettyPipeline.SendOptions::flushOnEach)
 					.failOnClientError(false)
 					.headers(httpHeaders);
+
+			if (preserveHost) {
+				String host = request.getHeaders().getFirst(HttpHeaders.HOST);
+				proxyRequest.header(HttpHeaders.HOST, host);
+			}
 
 			return proxyRequest.sendHeaders() //I shouldn't need this
 					.send(request.getBody()

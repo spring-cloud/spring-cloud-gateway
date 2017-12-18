@@ -30,6 +30,7 @@ import org.springframework.cloud.gateway.filter.factory.AddRequestParameterGatew
 import org.springframework.cloud.gateway.filter.factory.AddResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.HystrixGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.PrefixPathGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.PreserveHostHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RedirectToGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RemoveNonProxyHeadersGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RemoveRequestHeaderGatewayFilterFactory;
@@ -104,6 +105,10 @@ public class GatewayFilterSpec extends UriSpec {
 
 	public GatewayFilterSpec prefixPath(String prefix) {
 		return filter(getBean(PrefixPathGatewayFilterFactory.class).apply(prefix));
+	}
+
+	public GatewayFilterSpec preserveHostHeader() {
+		return filter(getBean(PreserveHostHeaderGatewayFilterFactory.class).apply());
 	}
 
 	public GatewayFilterSpec redirect(int status, URI url) {
