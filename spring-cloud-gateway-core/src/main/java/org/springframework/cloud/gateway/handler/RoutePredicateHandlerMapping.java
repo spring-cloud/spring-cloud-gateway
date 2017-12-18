@@ -86,7 +86,7 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 				//TODO: error handling
 				.map(route -> {
 					if (logger.isDebugEnabled()) {
-						logger.debug("RouteDefinition matched: " + route.getId());
+						logger.debug("Route matched: " + route.getId());
 					}
 					validateRoute(route, exchange);
 					return route;
