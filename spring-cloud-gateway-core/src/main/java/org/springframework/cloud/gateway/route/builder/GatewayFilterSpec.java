@@ -38,6 +38,7 @@ import org.springframework.cloud.gateway.filter.factory.RequestRateLimiterGatewa
 import org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SetPathGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.SetRequestHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SetResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SetStatusGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
@@ -162,6 +163,10 @@ public class GatewayFilterSpec extends UriSpec {
 
 	public GatewayFilterSpec setPath(String template) {
 		return filter(getBean(SetPathGatewayFilterFactory.class).apply(template));
+	}
+
+	public GatewayFilterSpec setRequestHeader(String headerName, String headerValue) {
+		return filter(getBean(SetRequestHeaderGatewayFilterFactory.class).apply(headerName, headerValue));
 	}
 
 	public GatewayFilterSpec setResponseHeader(String headerName, String headerValue) {
