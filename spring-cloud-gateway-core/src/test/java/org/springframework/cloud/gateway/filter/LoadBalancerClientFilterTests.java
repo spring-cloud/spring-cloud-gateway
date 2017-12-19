@@ -22,25 +22,25 @@ import java.util.Collections;
 
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-import org.springframework.cloud.gateway.route.Route;
+import org.springframework.cloud.client.DefaultServiceInstance;
+import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.http.HttpMethod;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
 
-import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
 
 /**
  * @author Spencer Gibb
  */
-public class RouteToRequestUrlFilterTests {
+public class LoadBalancerClientFilterTests {
 
 	@Test
 	public void happyPath() {
@@ -48,9 +48,10 @@ public class RouteToRequestUrlFilterTests {
 				.get("http://localhost/get?a=b")
 				.build();
 
-		ServerWebExchange webExchange = testFilter(request, "http://myhost");
+		URI lbUri = URI.create("lb://service1?a=b");
+		ServerWebExchange webExchange = testFilter(request, lbUri);
 		URI uri = webExchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
-		assertThat(uri).hasScheme("http").hasHost("myhost")
+		assertThat(uri).hasScheme("http").hasHost("service1-host1")
 				.hasParameter("a", "b");
 	}
 
@@ -60,27 +61,29 @@ public class RouteToRequestUrlFilterTests {
 				.get("http://localhost/get")
 				.build();
 
-		ServerWebExchange webExchange = testFilter(request, "http://myhost");
+		ServerWebExchange webExchange = testFilter(request, URI.create("lb://service1"));
 		URI uri = webExchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
-		assertThat(uri).hasScheme("http").hasHost("myhost");
+		assertThat(uri).hasScheme("http").hasHost("service1-host1");
 	}
 
 	@Test
 	public void encodedParameters() {
 		URI url = UriComponentsBuilder.fromUriString("http://localhost/get?a=b&c=d[]").buildAndExpand().encode().toUri();
 
-		// prove that it is encoded
-		assertThat(url.getRawQuery()).isEqualTo("a=b&c=d%5B%5D");
-
-		assertThat(url).hasParameter("c", "d[]");
-
 		MockServerHttpRequest request = MockServerHttpRequest
 				.method(HttpMethod.GET, url)
 				.build();
 
-		ServerWebExchange webExchange = testFilter(request, "http://myhost");
+		URI lbUrl = UriComponentsBuilder.fromUriString("lb://service1?a=b&c=d[]").buildAndExpand().encode().toUri();
+
+		// prove that it is encoded
+		assertThat(lbUrl.getRawQuery()).isEqualTo("a=b&c=d%5B%5D");
+
+		assertThat(lbUrl).hasParameter("c", "d[]");
+
+		ServerWebExchange webExchange = testFilter(request, lbUrl);
 		URI uri = webExchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
-		assertThat(uri).hasScheme("http").hasHost("myhost")
+		assertThat(uri).hasScheme("http").hasHost("service1-host1")
 				.hasParameter("a", "b")
 				.hasParameter("c", "d[]");
 
@@ -92,17 +95,19 @@ public class RouteToRequestUrlFilterTests {
 	public void unencodedParameters() {
 		URI url = URI.create("http://localhost/get?a=b&c=d[]");
 
-		// prove that it is unencoded
-		assertThat(url.getRawQuery()).isEqualTo("a=b&c=d[]");
-
 		MockServerHttpRequest request = MockServerHttpRequest
 				.method(HttpMethod.GET, url)
 				.build();
 
-		ServerWebExchange webExchange = testFilter(request, "http://myhost");
+		URI lbUrl = URI.create("lb://service1?a=b&c=d[]");
+
+		// prove that it is unencoded
+		assertThat(lbUrl.getRawQuery()).isEqualTo("a=b&c=d[]");
+
+		ServerWebExchange webExchange = testFilter(request, lbUrl);
 
 		URI uri = webExchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
-		assertThat(uri).hasScheme("http").hasHost("myhost")
+		assertThat(uri).hasScheme("http").hasHost("service1-host1")
 				.hasParameter("a", "b")
 				.hasParameter("c", "d[]");
 
@@ -110,19 +115,21 @@ public class RouteToRequestUrlFilterTests {
 		assertThat(uri.getRawQuery()).isEqualTo("a=b&c=d[]");
 	}
 
-	private ServerWebExchange testFilter(MockServerHttpRequest request, String url) {
-		Route value = new Route("1", URI.create(url), 0,
-				swe -> true, Collections.emptyList());
-
+	private ServerWebExchange testFilter(MockServerHttpRequest request, URI uri) {
 		ServerWebExchange exchange = MockServerWebExchange.from(request);
-		exchange.getAttributes().put(GATEWAY_ROUTE_ATTR, value);
+		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, uri);
 
 		GatewayFilterChain filterChain = mock(GatewayFilterChain.class);
 
 		ArgumentCaptor<ServerWebExchange> captor = ArgumentCaptor.forClass(ServerWebExchange.class);
 		when(filterChain.filter(captor.capture())).thenReturn(Mono.empty());
 
-		RouteToRequestUrlFilter filter = new RouteToRequestUrlFilter();
+		LoadBalancerClient loadBalancerClient = mock(LoadBalancerClient.class);
+		when(loadBalancerClient.choose("service1")).
+				thenReturn(new DefaultServiceInstance("service1", "service1-host1", 8081, 
+						false, Collections.emptyMap()));
+		
+		LoadBalancerClientFilter filter = new LoadBalancerClientFilter(loadBalancerClient);
 		filter.filter(exchange, filterChain);
 
 		return captor.getValue();

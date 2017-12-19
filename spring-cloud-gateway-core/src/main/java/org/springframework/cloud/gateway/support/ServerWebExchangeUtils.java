@@ -67,6 +67,13 @@ public class ServerWebExchangeUtils {
 		return response;
 	}
 
+	public static boolean containsEncodedQuery(URI uri) {
+		if (uri.getRawQuery() == null) {
+			return false;
+		}
+		return uri.getRawQuery().contains("%");
+	}
+
 	public static HttpStatus parse(String statusString) {
 		HttpStatus httpStatus;
 
