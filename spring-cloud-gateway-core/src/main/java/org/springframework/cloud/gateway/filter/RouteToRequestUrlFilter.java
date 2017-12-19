@@ -53,7 +53,7 @@ public class RouteToRequestUrlFilter implements GlobalFilter, Ordered {
 		log.trace("RouteToRequestUrlFilter start");
 		URI requestUrl = UriComponentsBuilder.fromHttpRequest(exchange.getRequest())
 				.uri(route.getUri())
-				.build(true)
+				.build(false)
 				.toUri();
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, requestUrl);
 		return chain.filter(exchange);

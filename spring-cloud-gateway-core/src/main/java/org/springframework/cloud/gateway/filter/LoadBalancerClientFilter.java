@@ -76,7 +76,7 @@ public class LoadBalancerClientFilter implements GlobalFilter, Ordered {
 				.scheme(instance.isSecure()? "https" : "http") //TODO: support websockets
 				.host(instance.getHost())
 				.port(instance.getPort())
-				.build(true)
+				.build(false)
 				.toUri();
 		log.trace("LoadBalancerClientFilter url chosen: " + requestUrl);
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, requestUrl);
