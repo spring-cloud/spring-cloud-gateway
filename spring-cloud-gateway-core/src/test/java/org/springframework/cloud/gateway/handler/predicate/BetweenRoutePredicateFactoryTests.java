@@ -97,8 +97,8 @@ public class BetweenRoutePredicateFactoryTests {
 
 	@Test
 	public void testPredicates() {
-		boolean result = RoutePredicates
-				.between(ZonedDateTime.now().minusHours(2), ZonedDateTime.now().plusHours(1))
+		boolean result = new BetweenRoutePredicateFactory()
+				.apply(ZonedDateTime.now().minusHours(2), ZonedDateTime.now().plusHours(1))
 				.test(getExchange());
 		assertThat(result).isTrue();
 	}

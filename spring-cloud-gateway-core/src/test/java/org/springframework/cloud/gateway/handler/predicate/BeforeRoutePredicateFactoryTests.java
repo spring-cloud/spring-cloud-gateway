@@ -73,7 +73,7 @@ public class BeforeRoutePredicateFactoryTests {
 
 	@Test
 	public void testPredicates() {
-		boolean result = RoutePredicates.before(ZonedDateTime.now().minusHours(2)).test(getExchange());
+		boolean result = new BeforeRoutePredicateFactory().apply(ZonedDateTime.now().minusHours(2)).test(getExchange());
 		assertThat(result).isFalse();
 	}
 

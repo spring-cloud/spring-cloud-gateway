@@ -32,9 +32,6 @@ import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.RouterFunctions;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
-import static org.springframework.cloud.gateway.handler.predicate.RoutePredicates.host;
-import static org.springframework.cloud.gateway.handler.predicate.RoutePredicates.path;
-
 /**
  * @author Spencer Gibb
  */
@@ -56,8 +53,8 @@ public class GatewaySampleApplication {
 					.uri("http://httpbin.org:80")
 				)
 				.route(r -> r.order(-1)
-					.predicate(host("**.throttle.org").and(path("/get")))
-					.add(throttle.apply(1,
+					.host("**.throttle.org").and().path("/get")
+					.filter(throttle.apply(1,
 							1,
 							10,
 							TimeUnit.SECONDS))

@@ -66,7 +66,6 @@ import org.springframework.web.server.adapter.WebHttpHandlerBuilder;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
-import static org.springframework.cloud.gateway.handler.predicate.RoutePredicates.alwaysTrue;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;

@@ -32,8 +32,8 @@ import org.springframework.cloud.gateway.filter.factory.RemoveNonProxyHeadersGat
 import org.springframework.cloud.gateway.filter.factory.RemoveRequestHeaderGatewayFilterFactoryTests;
 import org.springframework.cloud.gateway.filter.factory.RemoveResponseHeaderGatewayFilterFactoryTests;
 import org.springframework.cloud.gateway.filter.factory.RequestRateLimiterGatewayFilterFactoryTests;
-import org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactoryTests;
 import org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactoryIntegrationTests;
+import org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactoryTests;
 import org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactoryTests;
 import org.springframework.cloud.gateway.filter.factory.SetPathGatewayFilterFactoryIntegrationTests;
 import org.springframework.cloud.gateway.filter.factory.SetPathGatewayFilterFactoryTests;
@@ -47,7 +47,6 @@ import org.springframework.cloud.gateway.handler.predicate.BetweenRoutePredicate
 import org.springframework.cloud.gateway.handler.predicate.HostRoutePredicateFactoryTests;
 import org.springframework.cloud.gateway.handler.predicate.MethodRoutePredicateFactoryTests;
 import org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFactoryTests;
-import org.springframework.cloud.gateway.handler.predicate.RoutePredicatesTest;
 import org.springframework.cloud.gateway.route.RouteDefinitionRouteLocatorTests;
 import org.springframework.cloud.gateway.test.websocket.WebSocketIntegrationTests;
 
@@ -90,7 +89,6 @@ import static org.junit.Assume.assumeThat;
 		// PredicateFactory Tests
 		MethodRoutePredicateFactoryTests.class,
 		HostRoutePredicateFactoryTests.class,
-		RoutePredicatesTest.class,
 		AfterRoutePredicateFactoryTests.class,
 		PathRoutePredicateFactoryTests.class,
 		BetweenRoutePredicateFactoryTests.class,
