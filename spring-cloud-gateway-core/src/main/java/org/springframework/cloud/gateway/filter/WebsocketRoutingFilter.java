@@ -1,10 +1,11 @@
 package org.springframework.cloud.gateway.filter;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.logging.Level;
 
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.reactive.socket.WebSocketHandler;
@@ -12,7 +13,6 @@ import org.springframework.web.reactive.socket.WebSocketMessage;
 import org.springframework.web.reactive.socket.WebSocketSession;
 import org.springframework.web.reactive.socket.client.WebSocketClient;
 import org.springframework.web.reactive.socket.server.WebSocketService;
-import org.springframework.web.reactive.socket.server.support.HandshakeWebSocketService;
 import org.springframework.web.server.ServerWebExchange;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
@@ -29,15 +29,14 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 
 	private final WebSocketClient webSocketClient;
 	private final WebSocketService webSocketService;
-
-	public WebsocketRoutingFilter(WebSocketClient webSocketClient) {
-		this(webSocketClient, new HandshakeWebSocketService());
-	}
+	private final ObjectProvider<List<HttpHeadersFilter>> headersFilters;
 
 	public WebsocketRoutingFilter(WebSocketClient webSocketClient,
-			WebSocketService webSocketService) {
+								  WebSocketService webSocketService,
+								  ObjectProvider<List<HttpHeadersFilter>> headersFilters) {
 		this.webSocketClient = webSocketClient;
 		this.webSocketService = webSocketService;
+		this.headersFilters = headersFilters;
 	}
 
 	@Override
@@ -55,8 +54,33 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 		}
 		setAlreadyRouted(exchange);
 
+
+		HttpHeaders headers = exchange.getRequest().getHeaders();
+		HttpHeaders filtered = HttpHeadersFilter.filter(getHeadersFilters(),
+				headers);
+
+		List<String> protocols = headers.get(SEC_WEBSOCKET_PROTOCOL);
+
 		return this.webSocketService.handleRequest(exchange,
-				new ProxyWebSocketHandler(requestUrl, this.webSocketClient, exchange.getRequest().getHeaders()));
+				new ProxyWebSocketHandler(requestUrl, this.webSocketClient,
+						filtered, protocols));
+	}
+
+	private List<HttpHeadersFilter> getHeadersFilters() {
+		List<HttpHeadersFilter> filters = this.headersFilters.getIfAvailable();
+		if (filters == null) {
+			filters = new ArrayList<>();
+		}
+
+		filters.add(original -> {
+			HttpHeaders filtered = new HttpHeaders();
+			original.entrySet().stream()
+					.filter(entry -> !entry.getKey().toLowerCase().startsWith("sec-websocket"))
+					.forEach(header -> filtered.addAll(header.getKey(), header.getValue()));
+			return filtered;
+		});
+
+		return filters;
 	}
 
 	private static class ProxyWebSocketHandler implements WebSocketHandler {
@@ -66,19 +90,10 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 		private final HttpHeaders headers;
 		private final List<String> subProtocols;
 
-		public ProxyWebSocketHandler(URI url, WebSocketClient client, HttpHeaders headers) {
+		public ProxyWebSocketHandler(URI url, WebSocketClient client, HttpHeaders headers, List<String> protocols) {
 			this.client = client;
 			this.url = url;
-			this.headers = new HttpHeaders();//headers;
-			//TODO: better strategy to filter these headers?
-			headers.entrySet().forEach(header -> {
-				if (!header.getKey().toLowerCase().startsWith("sec-websocket")
-						&& !header.getKey().equalsIgnoreCase("upgrade")
-						&& !header.getKey().equalsIgnoreCase("connection")) {
-					this.headers.addAll(header.getKey(), header.getValue());
-				}
-			});
-			List<String> protocols = headers.get(SEC_WEBSOCKET_PROTOCOL);
+			this.headers = headers;
 			if (protocols != null) {
 				this.subProtocols = protocols;
 			} else {

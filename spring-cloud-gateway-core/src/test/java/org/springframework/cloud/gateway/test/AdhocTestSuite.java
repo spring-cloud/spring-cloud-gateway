@@ -24,9 +24,11 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 import org.junit.runners.model.Statement;
+import org.springframework.cloud.gateway.filter.RemoveHopByHopHeadersFilterTests;
 import org.springframework.cloud.gateway.filter.factory.AddRequestHeaderGatewayFilterFactoryTests;
 import org.springframework.cloud.gateway.filter.factory.AddRequestParameterGatewayFilterFactoryTests;
 import org.springframework.cloud.gateway.filter.factory.HystrixGatewayFilterFactoryTests;
+import org.springframework.cloud.gateway.filter.factory.PreserveHostHeaderGatewayFilterFactoryTests;
 import org.springframework.cloud.gateway.filter.factory.RedirectToGatewayFilterFactoryTests;
 import org.springframework.cloud.gateway.filter.factory.RemoveNonProxyHeadersGatewayFilterFactoryTests;
 import org.springframework.cloud.gateway.filter.factory.RemoveRequestHeaderGatewayFilterFactoryTests;
@@ -67,6 +69,7 @@ import static org.junit.Assume.assumeThat;
 		PostTests.class,
 		ForwardTests.class,
 		WebSocketIntegrationTests.class,
+		RemoveHopByHopHeadersFilterTests.class,
 		// FilterFactory Tests
 		RemoveNonProxyHeadersGatewayFilterFactoryTests.class,
 		RemoveResponseHeaderGatewayFilterFactoryTests.class,
@@ -86,6 +89,7 @@ import static org.junit.Assume.assumeThat;
 		PrincipalNameKeyResolverIntegrationTests.class,
 		RedisRateLimiterTests.class,
 		RouteDefinitionRouteLocatorTests.class,
+		PreserveHostHeaderGatewayFilterFactoryTests.class,
 		// PredicateFactory Tests
 		MethodRoutePredicateFactoryTests.class,
 		HostRoutePredicateFactoryTests.class,

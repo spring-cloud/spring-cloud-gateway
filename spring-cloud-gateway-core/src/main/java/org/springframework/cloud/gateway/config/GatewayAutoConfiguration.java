@@ -20,6 +20,7 @@ package org.springframework.cloud.gateway.config;
 import java.util.List;
 import java.util.function.Consumer;
 
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.actuate.autoconfigure.web.ManagementContextConfiguration;
 import org.springframework.boot.actuate.health.Health;
@@ -34,8 +35,10 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.cloud.gateway.actuate.GatewayWebfluxEndpoint;
 import org.springframework.cloud.gateway.filter.ForwardRoutingFilter;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
+import org.springframework.cloud.gateway.filter.HttpHeadersFilter;
 import org.springframework.cloud.gateway.filter.NettyRoutingFilter;
 import org.springframework.cloud.gateway.filter.NettyWriteResponseFilter;
+import org.springframework.cloud.gateway.filter.RemoveHopByHopHeadersFilter;
 import org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter;
 import org.springframework.cloud.gateway.filter.WebsocketRoutingFilter;
 import org.springframework.cloud.gateway.filter.factory.AddRequestHeaderGatewayFilterFactory;
@@ -98,6 +101,7 @@ import com.netflix.hystrix.HystrixObservableCommand;
 import reactor.core.publisher.Flux;
 import reactor.ipc.netty.http.client.HttpClient;
 import reactor.ipc.netty.http.client.HttpClientOptions;
+import reactor.ipc.netty.http.client.HttpClientRequest;
 import reactor.ipc.netty.resources.PoolResources;
 import rx.RxReactiveStreams;
 
@@ -130,8 +134,9 @@ public class GatewayAutoConfiguration {
 		}
 
 		@Bean
-		public NettyRoutingFilter routingFilter(HttpClient httpClient) {
-			return new NettyRoutingFilter(httpClient);
+		public NettyRoutingFilter routingFilter(HttpClient httpClient,
+												ObjectProvider<List<HttpHeadersFilter>> headersFilters) {
+			return new NettyRoutingFilter(httpClient, headersFilters);
 		}
 
 		@Bean
@@ -205,8 +210,15 @@ public class GatewayAutoConfiguration {
 		return new SecureHeadersProperties();
 	}
 
-	// GlobalFilter beans
+	// HttpHeaderFilter beans
 
+	@Bean
+	public RemoveHopByHopHeadersFilter removeHopByHopHeadersFilter() {
+		return new RemoveHopByHopHeadersFilter();
+	}
+
+
+	// GlobalFilter beans
 	@Bean
 	public RouteToRequestUrlFilter routeToRequestUrlFilter() {
 		return new RouteToRequestUrlFilter();
@@ -224,8 +236,10 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	public WebsocketRoutingFilter websocketRoutingFilter(WebSocketClient webSocketClient, WebSocketService webSocketService) {
-		return new WebsocketRoutingFilter(webSocketClient, webSocketService);
+	public WebsocketRoutingFilter websocketRoutingFilter(WebSocketClient webSocketClient,
+														 WebSocketService webSocketService,
+														 ObjectProvider<List<HttpHeadersFilter>> headersFilters) {
+		return new WebsocketRoutingFilter(webSocketClient, webSocketService, headersFilters);
 	}
 
 	/*@Bean

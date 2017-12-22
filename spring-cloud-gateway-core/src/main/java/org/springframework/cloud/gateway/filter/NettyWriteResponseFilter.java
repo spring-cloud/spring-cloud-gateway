@@ -51,7 +51,7 @@ public class NettyWriteResponseFilter implements GlobalFilter, Ordered {
 		// until the WebHandler is run
 		return chain.filter(exchange).then(Mono.defer(() -> {
 			HttpClientResponse clientResponse = exchange.getAttribute(CLIENT_RESPONSE_ATTR);
-			// HttpClientResponse clientResponse = getAttribute(exchange, CLIENT_RESPONSE_ATTR, HttpClientResponse.class);
+
 			if (clientResponse == null) {
 				return Mono.empty();
 			}

@@ -18,7 +18,9 @@
 package org.springframework.cloud.gateway.filter;
 
 import java.net.URI;
+import java.util.List;
 
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.core.Ordered;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
@@ -47,9 +49,12 @@ import reactor.ipc.netty.http.client.HttpClientRequest;
 public class NettyRoutingFilter implements GlobalFilter, Ordered {
 
 	private final HttpClient httpClient;
+	private final ObjectProvider<List<HttpHeadersFilter>> headersFilters;
 
-	public NettyRoutingFilter(HttpClient httpClient) {
+	public NettyRoutingFilter(HttpClient httpClient,
+							  ObjectProvider<List<HttpHeadersFilter>> headersFilters) {
 		this.httpClient = httpClient;
+		this.headersFilters = headersFilters;
 	}
 
 	@Override
@@ -72,15 +77,22 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 		final HttpMethod method = HttpMethod.valueOf(request.getMethod().toString());
 		final String url = requestUrl.toString();
 
+		HttpHeaders filtered = HttpHeadersFilter.filter(this.headersFilters.getIfAvailable(),
+				request.getHeaders());
+
 		final DefaultHttpHeaders httpHeaders = new DefaultHttpHeaders();
-		request.getHeaders().forEach(httpHeaders::set);
+		filtered.forEach(httpHeaders::set);
+
+		String transferEncoding = request.getHeaders().getFirst(HttpHeaders.TRANSFER_ENCODING);
+		boolean chunkedTransfer = "chunked".equalsIgnoreCase(transferEncoding);
 
 		boolean preserveHost = exchange.getAttributeOrDefault(PRESERVE_HOST_HEADER_ATTRIBUTE, false);
 
 		return this.httpClient.request(method, url, req -> {
 			final HttpClientRequest proxyRequest = req.options(NettyPipeline.SendOptions::flushOnEach)
-					.failOnClientError(false)
-					.headers(httpHeaders);
+					.headers(httpHeaders)
+					.chunkedTransfer(chunkedTransfer)
+					.failOnClientError(false);
 
 			if (preserveHost) {
 				String host = request.getHeaders().getFirst(HttpHeaders.HOST);

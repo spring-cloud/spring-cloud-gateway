@@ -47,7 +47,7 @@ import static org.springframework.cloud.gateway.test.TestUtils.getMap;
 public class PreserveHostHeaderGatewayFilterFactoryTests extends BaseWebClientTests {
 
 	@Test
-	public void setRequestHeaderFilterWorks() {
+	public void preserveHostHeaderGatewayFilterFactoryWorks() {
 		testClient.get().uri("/headers")
 				.header("Host", "www.preservehostheader.org")
 				.exchange()
