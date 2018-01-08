@@ -57,7 +57,6 @@ for details on setting up your build system with the current Spring Cloud Releas
   cloud:
     gateway:
       routes:
-      # =====================================
       - id: after_route
         uri: http://example.org
         predicates:
@@ -76,7 +75,6 @@ for details on setting up your build system with the current Spring Cloud Releas
   cloud:
     gateway:
       routes:
-      # =====================================
       - id: before_route
         uri: http://example.org
         predicates:
@@ -95,7 +93,6 @@ for details on setting up your build system with the current Spring Cloud Releas
   cloud:
     gateway:
       routes:
-      # =====================================
       - id: between_route
         uri: http://example.org
         predicates:
@@ -114,7 +111,6 @@ for details on setting up your build system with the current Spring Cloud Releas
   cloud:
     gateway:
       routes:
-      # =====================================
       - id: cookie_route
         uri: http://example.org
         predicates:
@@ -133,7 +129,6 @@ for details on setting up your build system with the current Spring Cloud Releas
   cloud:
     gateway:
       routes:
-      # =====================================
       - id: header_route
         uri: http://example.org
         predicates:
@@ -152,7 +147,6 @@ for details on setting up your build system with the current Spring Cloud Releas
   cloud:
     gateway:
       routes:
-      # =====================================
       - id: host_route
         uri: http://example.org
         predicates:
@@ -171,7 +165,6 @@ for details on setting up your build system with the current Spring Cloud Releas
   cloud:
     gateway:
       routes:
-      # =====================================
       - id: method_route
         uri: http://example.org
         predicates:
@@ -190,7 +183,6 @@ for details on setting up your build system with the current Spring Cloud Releas
   cloud:
     gateway:
       routes:
-      # =====================================
       - id: host_route
         uri: http://example.org
         predicates:
@@ -210,7 +202,6 @@ for details on setting up your build system with the current Spring Cloud Releas
   cloud:
     gateway:
       routes:
-      # =====================================
       - id: query_route
         uri: http://example.org
         predicates:
@@ -225,7 +216,6 @@ for details on setting up your build system with the current Spring Cloud Releas
   cloud:
     gateway:
       routes:
-      # =====================================
       - id: query_route
         uri: http://example.org
         predicates:
@@ -244,7 +234,6 @@ for details on setting up your build system with the current Spring Cloud Releas
   cloud:
     gateway:
       routes:
-      # =====================================
       - id: remoteaddr_route
         uri: http://example.org
         predicates:
@@ -267,7 +256,6 @@ for details on setting up your build system with the current Spring Cloud Releas
   cloud:
     gateway:
       routes:
-      # =====================================
       - id: add_request_header_route
         uri: http://example.org
         filters:
@@ -286,7 +274,6 @@ for details on setting up your build system with the current Spring Cloud Releas
   cloud:
     gateway:
       routes:
-      # =====================================
       - id: add_request_parameter_route
         uri: http://example.org
         filters:
@@ -305,7 +292,6 @@ for details on setting up your build system with the current Spring Cloud Releas
   cloud:
     gateway:
       routes:
-      # =====================================
       - id: add_request_header_route
         uri: http://example.org
         filters:
@@ -324,7 +310,6 @@ for details on setting up your build system with the current Spring Cloud Releas
   cloud:
     gateway:
       routes:
-      # =====================================
       - id: hytstrix_route
         uri: http://example.org
         filters:
@@ -332,6 +317,25 @@ for details on setting up your build system with the current Spring Cloud Releas
 </para>
 </formalpara>
 <simpara>This wraps the remaining filters in a <literal>HystrixCommand</literal> with command name <literal>myCommandName</literal>.</simpara>
+<simpara>The Hystrix filter takes an optional <literal>fallbackUri</literal> parameter. Currently, only <literal>forward:</literal> schemed URIs are supported. If the fallback is called, the request will be forwarded to the controller matched by the URI.</simpara>
+<formalpara>
+<title>application.yml</title>
+<para>
+<programlisting language="yaml" linenumbering="unnumbered">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: hytstrix_route
+        uri: http://example.org
+        filters:
+        - name: Hystrix
+          args:
+            name: fallbackcmd
+            fallbackUri: forward:/fallbackcontroller
+
+This will forward to the `/fallbackcontroller` when the Hystrix fallback is called.</programlisting>
+</para>
+</formalpara>
 </section>
 <section xml:id="_prefixpath_gatewayfilter_factory">
 <title>PrefixPath GatewayFilter Factory</title>
@@ -343,7 +347,6 @@ for details on setting up your build system with the current Spring Cloud Releas
   cloud:
     gateway:
       routes:
-      # =====================================
       - id: prefixpath_route
         uri: http://example.org
         filters:
@@ -362,7 +365,6 @@ for details on setting up your build system with the current Spring Cloud Releas
   cloud:
     gateway:
       routes:
-      # =====================================
       - id: preserve_host_route
         uri: http://example.org
         filters:
@@ -394,7 +396,6 @@ for details on setting up your build system with the current Spring Cloud Releas
   cloud:
     gateway:
       routes:
-      # =====================================
       - id: requestratelimiter_route
         uri: http://example.org
         filters:
@@ -422,7 +423,6 @@ KeyResolver userKeyResolver() {
   cloud:
     gateway:
       routes:
-      # =====================================
       - id: prefixpath_route
         uri: http://example.org
         filters:
@@ -473,7 +473,6 @@ KeyResolver userKeyResolver() {
   cloud:
     gateway:
       routes:
-      # =====================================
       - id: removerequestheader_route
         uri: http://example.org
         filters:
@@ -492,7 +491,6 @@ KeyResolver userKeyResolver() {
   cloud:
     gateway:
       routes:
-      # =====================================
       - id: removeresponseheader_route
         uri: http://example.org
         filters:
@@ -511,7 +509,6 @@ KeyResolver userKeyResolver() {
   cloud:
     gateway:
       routes:
-      # =====================================
       - id: rewritepath_route
         uri: http://example.org
         predicates:
@@ -591,7 +588,6 @@ KeyResolver userKeyResolver() {
   cloud:
     gateway:
       routes:
-      # =====================================
       - id: setpath_route
         uri: http://example.org
         predicates:
@@ -612,7 +608,6 @@ KeyResolver userKeyResolver() {
   cloud:
     gateway:
       routes:
-      # =====================================
       - id: setresponseheader_route
         uri: http://example.org
         filters:
@@ -631,7 +626,6 @@ KeyResolver userKeyResolver() {
   cloud:
     gateway:
       routes:
-      # =====================================
       - id: setstatusstring_route
         uri: http://example.org
         filters:
@@ -697,7 +691,6 @@ KeyResolver userKeyResolver() {
   cloud:
     gateway:
       routes:
-      # =====================================
       - id: setstatus_route
         uri: http://example.org
         filters:
