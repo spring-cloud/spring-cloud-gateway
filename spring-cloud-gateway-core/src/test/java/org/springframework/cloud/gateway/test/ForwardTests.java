@@ -57,9 +57,7 @@ public class ForwardTests {
 
 	@Test
 	public void forwardWorks() {
-		this.client
-				.get()
-				.uri("/localcontroller")
+		this.client.get().uri("/localcontroller")
 				.header(HttpHeaders.HOST, "www.forward.org")
 				.exchange()
 				.expectStatus().isOk()

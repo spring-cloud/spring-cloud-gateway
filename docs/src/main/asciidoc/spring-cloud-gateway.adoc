@@ -49,7 +49,6 @@ spring:
   cloud:
     gateway:
       routes:
-      # =====================================
       - id: after_route
         uri: http://example.org
         predicates:
@@ -68,7 +67,6 @@ spring:
   cloud:
     gateway:
       routes:
-      # =====================================
       - id: before_route
         uri: http://example.org
         predicates:
@@ -87,7 +85,6 @@ spring:
   cloud:
     gateway:
       routes:
-      # =====================================
       - id: between_route
         uri: http://example.org
         predicates:
@@ -106,7 +103,6 @@ spring:
   cloud:
     gateway:
       routes:
-      # =====================================
       - id: cookie_route
         uri: http://example.org
         predicates:
@@ -125,7 +121,6 @@ spring:
   cloud:
     gateway:
       routes:
-      # =====================================
       - id: header_route
         uri: http://example.org
         predicates:
@@ -144,7 +139,6 @@ spring:
   cloud:
     gateway:
       routes:
-      # =====================================
       - id: host_route
         uri: http://example.org
         predicates:
@@ -164,7 +158,6 @@ spring:
   cloud:
     gateway:
       routes:
-      # =====================================
       - id: method_route
         uri: http://example.org
         predicates:
@@ -183,7 +176,6 @@ spring:
   cloud:
     gateway:
       routes:
-      # =====================================
       - id: host_route
         uri: http://example.org
         predicates:
@@ -204,7 +196,6 @@ spring:
   cloud:
     gateway:
       routes:
-      # =====================================
       - id: query_route
         uri: http://example.org
         predicates:
@@ -220,7 +211,6 @@ spring:
   cloud:
     gateway:
       routes:
-      # =====================================
       - id: query_route
         uri: http://example.org
         predicates:
@@ -240,7 +230,6 @@ spring:
   cloud:
     gateway:
       routes:
-      # =====================================
       - id: remoteaddr_route
         uri: http://example.org
         predicates:
@@ -264,7 +253,6 @@ spring:
   cloud:
     gateway:
       routes:
-      # =====================================
       - id: add_request_header_route
         uri: http://example.org
         filters:
@@ -283,7 +271,6 @@ spring:
   cloud:
     gateway:
       routes:
-      # =====================================
       - id: add_request_parameter_route
         uri: http://example.org
         filters:
@@ -302,7 +289,6 @@ spring:
   cloud:
     gateway:
       routes:
-      # =====================================
       - id: add_request_header_route
         uri: http://example.org
         filters:
@@ -321,7 +307,6 @@ spring:
   cloud:
     gateway:
       routes:
-      # =====================================
       - id: hytstrix_route
         uri: http://example.org
         filters:
@@ -329,6 +314,28 @@ spring:
 ----
 
 This wraps the remaining filters in a `HystrixCommand` with command name `myCommandName`.
+
+The Hystrix filter takes an optional `fallbackUri` parameter. Currently, only `forward:` schemed URIs are supported. If the fallback is called, the request will be forwarded to the controller matched by the URI.
+
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: hytstrix_route
+        uri: http://example.org
+        filters:
+        - name: Hystrix
+          args:
+            name: fallbackcmd
+            fallbackUri: forward:/fallbackcontroller
+
+This will forward to the `/fallbackcontroller` when the Hystrix fallback is called.
+----
+
 
 === PrefixPath GatewayFilter Factory
 The PrefixPath GatewayFilter Factory takes a single `prefix` parameter.
@@ -340,7 +347,6 @@ spring:
   cloud:
     gateway:
       routes:
-      # =====================================
       - id: prefixpath_route
         uri: http://example.org
         filters:
@@ -359,7 +365,6 @@ spring:
   cloud:
     gateway:
       routes:
-      # =====================================
       - id: preserve_host_route
         uri: http://example.org
         filters:
@@ -398,7 +403,6 @@ spring:
   cloud:
     gateway:
       routes:
-      # =====================================
       - id: requestratelimiter_route
         uri: http://example.org
         filters:
@@ -426,7 +430,6 @@ spring:
   cloud:
     gateway:
       routes:
-      # =====================================
       - id: prefixpath_route
         uri: http://example.org
         filters:
@@ -460,7 +463,6 @@ spring:
   cloud:
     gateway:
       routes:
-      # =====================================
       - id: removerequestheader_route
         uri: http://example.org
         filters:
@@ -479,7 +481,6 @@ spring:
   cloud:
     gateway:
       routes:
-      # =====================================
       - id: removeresponseheader_route
         uri: http://example.org
         filters:
@@ -498,7 +499,6 @@ spring:
   cloud:
     gateway:
       routes:
-      # =====================================
       - id: rewritepath_route
         uri: http://example.org
         predicates:
@@ -545,7 +545,6 @@ spring:
   cloud:
     gateway:
       routes:
-      # =====================================
       - id: setpath_route
         uri: http://example.org
         predicates:
@@ -566,7 +565,6 @@ spring:
   cloud:
     gateway:
       routes:
-      # =====================================
       - id: setresponseheader_route
         uri: http://example.org
         filters:
@@ -585,7 +583,6 @@ spring:
   cloud:
     gateway:
       routes:
-      # =====================================
       - id: setstatusstring_route
         uri: http://example.org
         filters:
@@ -653,7 +650,6 @@ spring:
   cloud:
     gateway:
       routes:
-      # =====================================
       - id: setstatus_route
         uri: http://example.org
         filters:

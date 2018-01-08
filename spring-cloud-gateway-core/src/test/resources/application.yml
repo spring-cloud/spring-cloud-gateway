@@ -60,7 +60,7 @@ spring:
 
       # =====================================
       - id: forward_test
-        uri: forward:///localcontroller
+        uri: forward:/localcontroller
         predicates:
         - Host=**.forward.org
 
@@ -71,6 +71,17 @@ spring:
         - Host=**.hystrixfailure.org
         filters:
         - Hystrix=failcmd
+
+      # =====================================
+      - id: hystrix_fallback_test
+        uri: ${test.uri}
+        predicates:
+        - Host=**.hystrixfallback.org
+        filters:
+        - name: Hystrix
+          args:
+            name: fallbackcmd
+            fallbackUri: forward:/fallbackcontroller
 
       # =====================================
       - id: hystrix_success_test

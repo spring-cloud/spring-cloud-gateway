@@ -103,6 +103,14 @@ public class GatewayFilterSpec extends UriSpec {
 		return filter(getBean(HystrixGatewayFilterFactory.class).apply(setter));
 	}
 
+	public GatewayFilterSpec hystrix(String commandName, URI fallbackUri) {
+		return filter(getBean(HystrixGatewayFilterFactory.class).apply(commandName, fallbackUri));
+	}
+
+	public GatewayFilterSpec hystrix(HystrixObservableCommand.Setter setter, URI fallbackUri) {
+		return filter(getBean(HystrixGatewayFilterFactory.class).apply(setter, fallbackUri));
+	}
+
 	public GatewayFilterSpec prefixPath(String prefix) {
 		return filter(getBean(PrefixPathGatewayFilterFactory.class).apply(prefix));
 	}

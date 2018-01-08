@@ -327,8 +327,8 @@ public class GatewayAutoConfiguration {
 	@ConditionalOnClass({HystrixObservableCommand.class, RxReactiveStreams.class})
 	protected static class HystrixConfiguration {
 		@Bean
-		public HystrixGatewayFilterFactory hystrixGatewayFilterFactory() {
-			return new HystrixGatewayFilterFactory();
+		public HystrixGatewayFilterFactory hystrixGatewayFilterFactory(DispatcherHandler dispatcherHandler) {
+			return new HystrixGatewayFilterFactory(dispatcherHandler);
 		}
 	}
 
