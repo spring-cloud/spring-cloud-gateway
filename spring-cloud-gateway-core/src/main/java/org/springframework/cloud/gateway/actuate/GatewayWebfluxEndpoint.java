@@ -52,7 +52,7 @@ import reactor.core.publisher.Mono;
  * @author Spencer Gibb
  */
 @RestController
-@RequestMapping("${management.context-path:/application}/gateway")
+@RequestMapping("${management.endpoints.web.base-path:/actuator}/gateway")
 public class GatewayWebfluxEndpoint implements ApplicationEventPublisherAware {
 
 	private static final Log log = LogFactory.getLog(GatewayWebfluxEndpoint.class);
