@@ -25,10 +25,12 @@ import java.util.List;
 import java.util.function.Predicate;
 
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.jetbrains.annotations.NotNull;
+import org.springframework.cloud.gateway.support.ipresolver.DefaultRemoteAddressResolver;
+import org.springframework.cloud.gateway.support.ipresolver.RemoteAddressResolver;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -72,7 +74,7 @@ public class RemoteAddrRoutePredicateFactory extends AbstractRoutePredicateFacto
         List<IpSubnetFilterRule> sources = convert(config.sources);
 
 		return exchange -> {
-			InetSocketAddress remoteAddress = exchange.getRequest().getRemoteAddress();
+			InetSocketAddress remoteAddress = config.remoteAddressResolver.resolve(exchange);
 			if (remoteAddress != null) {
 				String hostAddress = remoteAddress.getAddress().getHostAddress();
 				String host = exchange.getRequest().getURI().getHost();
@@ -109,6 +111,9 @@ public class RemoteAddrRoutePredicateFactory extends AbstractRoutePredicateFacto
 		@NotEmpty
 		private List<String> sources = new ArrayList<>();
 
+		@NotNull
+		private RemoteAddressResolver remoteAddressResolver = new DefaultRemoteAddressResolver();
+
 		public List<String> getSources() {
 			return sources;
 		}
@@ -123,5 +128,10 @@ public class RemoteAddrRoutePredicateFactory extends AbstractRoutePredicateFacto
 			return this;
 		}
 
+
+		public Config setRemoteAddressResolver(RemoteAddressResolver remoteAddressResolver) {
+			this.remoteAddressResolver = remoteAddressResolver;
+			return this;
+		}
 	}
 }
