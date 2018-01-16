@@ -4,6 +4,8 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 
+import com.netflix.loadbalancer.ILoadBalancer;
+import com.netflix.loadbalancer.Server;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -15,6 +17,9 @@ import org.springframework.cloud.client.DefaultServiceInstance;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.cloud.gateway.support.NotFoundException;
+import org.springframework.cloud.netflix.ribbon.RibbonLoadBalancerClient;
+import org.springframework.cloud.netflix.ribbon.RibbonLoadBalancerContext;
+import org.springframework.cloud.netflix.ribbon.SpringClientFactory;
 import org.springframework.http.HttpMethod;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -196,18 +201,20 @@ public class LoadBalancerClientFilterTests {
 		ServerWebExchange exchange = MockServerWebExchange.from(request);
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, uri);
 
-		GatewayFilterChain filterChain = mock(GatewayFilterChain.class);
-
 		ArgumentCaptor<ServerWebExchange> captor = ArgumentCaptor.forClass(ServerWebExchange.class);
-		when(filterChain.filter(captor.capture())).thenReturn(Mono.empty());
+		when(chain.filter(captor.capture())).thenReturn(Mono.empty());
 
-		LoadBalancerClient loadBalancerClient = mock(LoadBalancerClient.class);
-		when(loadBalancerClient.choose("service1")).
-				thenReturn(new DefaultServiceInstance("service1", "service1-host1", 8081,
-						false, Collections.emptyMap()));
+		SpringClientFactory clientFactory = mock(SpringClientFactory.class);
+		ILoadBalancer loadBalancer = mock(ILoadBalancer.class);
 
-		LoadBalancerClientFilter filter = new LoadBalancerClientFilter(loadBalancerClient);
-		filter.filter(exchange, filterChain);
+		when(clientFactory.getLoadBalancerContext("service1")).thenReturn(new RibbonLoadBalancerContext(loadBalancer));
+		when(clientFactory.getLoadBalancer("service1")).thenReturn(loadBalancer);
+		when(loadBalancer.chooseServer(any())).thenReturn(new Server("service1-host1", 8081));
+
+		RibbonLoadBalancerClient client = new RibbonLoadBalancerClient(clientFactory);
+
+		LoadBalancerClientFilter filter = new LoadBalancerClientFilter(client);
+		filter.filter(exchange, chain);
 
 		return captor.getValue();
 	}
