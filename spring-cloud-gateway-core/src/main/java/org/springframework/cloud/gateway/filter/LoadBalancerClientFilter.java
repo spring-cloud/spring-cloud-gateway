@@ -26,16 +26,15 @@ import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.cloud.gateway.support.NotFoundException;
 import org.springframework.core.Ordered;
 import org.springframework.web.server.ServerWebExchange;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.addOriginalRequestUrl;
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.containsEncodedQuery;
 
 import reactor.core.publisher.Mono;
 
 /**
  * @author Spencer Gibb
+ * @author Tim Ysewyn
  */
 public class LoadBalancerClientFilter implements GlobalFilter, Ordered {
 
@@ -70,15 +69,9 @@ public class LoadBalancerClientFilter implements GlobalFilter, Ordered {
 			throw new NotFoundException("Unable to find instance for " + url.getHost());
 		}
 
-		/*URI uri = exchange.getRequest().getURI();
-		URI requestUrl = loadBalancer.reconstructURI(instance, uri);*/
-		boolean encoded = containsEncodedQuery(url);
-		URI requestUrl = UriComponentsBuilder.fromUri(url)
-				.scheme(instance.isSecure()? "https" : "http") //TODO: support websockets
-				.host(instance.getHost())
-				.port(instance.getPort())
-				.build(encoded)
-				.toUri();
+		URI uri = exchange.getRequest().getURI();
+		URI requestUrl = loadBalancer.reconstructURI(instance, uri);
+
 		log.trace("LoadBalancerClientFilter url chosen: " + requestUrl);
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, requestUrl);
 		return chain.filter(exchange);
