@@ -54,6 +54,7 @@ import org.springframework.cloud.gateway.filter.factory.RemoveRequestHeaderGatew
 import org.springframework.cloud.gateway.filter.factory.RemoveResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RequestRateLimiterGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.SaveSessionGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SecureHeadersProperties;
 import org.springframework.cloud.gateway.filter.factory.SetPathGatewayFilterFactory;
@@ -101,7 +102,6 @@ import com.netflix.hystrix.HystrixObservableCommand;
 import reactor.core.publisher.Flux;
 import reactor.ipc.netty.http.client.HttpClient;
 import reactor.ipc.netty.http.client.HttpClientOptions;
-import reactor.ipc.netty.http.client.HttpClientRequest;
 import reactor.ipc.netty.resources.PoolResources;
 import rx.RxReactiveStreams;
 
@@ -404,6 +404,10 @@ public class GatewayAutoConfiguration {
 		return new SetStatusGatewayFilterFactory();
 	}
 
+	@Bean
+	public SaveSessionGatewayFilterFactory saveSessionGatewayFilterFactory() {
+		return new SaveSessionGatewayFilterFactory();
+	}
 
 	@ManagementContextConfiguration
 	@ConditionalOnProperty(value = "management.gateway.enabled", matchIfMissing = true)

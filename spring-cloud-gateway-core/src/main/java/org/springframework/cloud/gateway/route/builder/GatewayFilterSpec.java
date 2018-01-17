@@ -37,6 +37,7 @@ import org.springframework.cloud.gateway.filter.factory.RemoveRequestHeaderGatew
 import org.springframework.cloud.gateway.filter.factory.RemoveResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RequestRateLimiterGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.SaveSessionGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SetPathGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SetRequestHeaderGatewayFilterFactory;
@@ -196,5 +197,9 @@ public class GatewayFilterSpec extends UriSpec {
 
 	public GatewayFilterSpec setStatus(HttpStatus status) {
 		return filter(getBean(SetStatusGatewayFilterFactory.class).apply(status));
+	}
+
+	public GatewayFilterSpec saveSession() {
+		return filter(getBean(SaveSessionGatewayFilterFactory.class).apply(EMPTY_TUPLE));
 	}
 }
