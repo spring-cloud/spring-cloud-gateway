@@ -519,6 +519,27 @@ KeyResolver userKeyResolver() {
 </formalpara>
 <simpara>For a request path of <literal>/foo/bar</literal>, this will set the path to <literal>/bar</literal> before making the downstream request. Notice the <literal>$\</literal> which is replaced with <literal>$</literal> because of the YAML spec.</simpara>
 </section>
+<section xml:id="_savesession_gatewayfilter_factory">
+<title>SaveSession GatewayFilter Factory</title>
+<simpara>The SaveSession GatewayFilter Factory forces a <literal>WebSession::save</literal> operation <emphasis>before</emphasis> forwarding the call downstream. This is of particular use when
+using something like <link xl:href="http://projects.spring.io/spring-session/">Spring Session</link> with a lazy data store and need to ensure the session state has been saved before making the forwarded call.</simpara>
+<formalpara>
+<title>application.yml</title>
+<para>
+<programlisting language="yaml" linenumbering="unnumbered">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: save_session
+        uri: http://example.org
+        predicates:
+        - Path=/foo/**
+        filters:
+        - SaveSession</programlisting>
+</para>
+</formalpara>
+<simpara>If you are integrating <link xl:href="http://projects.spring.io/spring-security/">Spring Security</link> with Spring Session, and want to ensure security details have been forwarded to the remote process, this is critical.</simpara>
+</section>
 <section xml:id="_secureheaders_gatewayfilter_factory">
 <title>SecureHeaders GatewayFilter Factory</title>
 <simpara>The SecureHeaders GatewayFilter Factory adds a number of headers to the response at the reccomendation from <link xl:href="https://blog.appcanary.com/2017/http-security-headers.html">this blog post</link>.</simpara>
