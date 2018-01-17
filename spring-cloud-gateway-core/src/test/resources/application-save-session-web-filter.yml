@@ -1,0 +1,14 @@
+test:
+  hostport: httpbin.org:80
+  uri: lb://testservice
+
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: save_session_test
+        uri: ${test.uri}
+        predicates:
+        - Path=/get
+        filters:
+        - SaveSession
