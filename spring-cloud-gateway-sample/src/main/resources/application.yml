@@ -3,6 +3,7 @@ test:
 #  hostport: localhost:5000
   uri: http://${test.hostport}
 
+
 spring:
   cloud:
     gateway:
@@ -34,6 +35,7 @@ logging:
     org.springframework.web.reactive: DEBUG
     reactor.ipc.netty: DEBUG
 
-#management:
-#  context-path: /admin
-#  port: 8081
+management:
+  endpoints:
+    web:
+      expose: '*'
