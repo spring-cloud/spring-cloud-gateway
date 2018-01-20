@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,9 +47,11 @@ public class HeaderRoutePredicateFactory implements RoutePredicateFactory {
 	public Predicate<ServerWebExchange> apply(String header, String regexp) {
 		return exchange -> {
 			List<String> values = exchange.getRequest().getHeaders().get(header);
-			for (String value : values) {
-				if (value.matches(regexp)) {
-					return true;
+			if (values != null) {
+				for (String value : values) {
+					if (value.matches(regexp)) {
+						return true;
+					}
 				}
 			}
 			return false;
