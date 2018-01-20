@@ -15,7 +15,8 @@
  *
  */
 
-package org.springframework.cloud.gateway.handler.predicate;
+package org.springframework.cloud.gateway.handler.predicate
+		;
 
 import java.util.Arrays;
 import java.util.List;
@@ -47,9 +48,11 @@ public class HeaderRoutePredicateFactory implements RoutePredicateFactory {
 	public Predicate<ServerWebExchange> apply(String header, String regexp) {
 		return exchange -> {
 			List<String> values = exchange.getRequest().getHeaders().get(header);
-			for (String value : values) {
-				if (value.matches(regexp)) {
-					return true;
+			if (values != null) {
+				for (String value : values) {
+					if (value.matches(regexp)) {
+						return true;
+					}
 				}
 			}
 			return false;
