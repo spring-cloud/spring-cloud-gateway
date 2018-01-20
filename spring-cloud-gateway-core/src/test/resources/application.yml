@@ -193,6 +193,11 @@ spring:
         - AddRequestHeader=X-Request-Baz, Bat
 
       # =====================================
+      - id: header_test
+        uri: ${test.uri}
+        predicates:
+        - Header=Foo, .*
+      # =====================================
       - id: default_path_to_httpbin
         uri: ${test.uri}
         order: 10000
