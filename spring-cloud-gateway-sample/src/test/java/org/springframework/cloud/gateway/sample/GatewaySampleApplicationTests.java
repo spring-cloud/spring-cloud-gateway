@@ -20,10 +20,8 @@ package org.springframework.cloud.gateway.sample;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -84,7 +82,6 @@ public class GatewaySampleApplicationTests {
 	}
 
 	@Test
-	@Ignore // waiting on https://github.com/spring-projects/spring-boot/issues/10257
 	public void actuatorManagementPort() {
 		webClient.get()
 				.uri("http://localhost:"+managementPort+"/actuator/gateway/routes")

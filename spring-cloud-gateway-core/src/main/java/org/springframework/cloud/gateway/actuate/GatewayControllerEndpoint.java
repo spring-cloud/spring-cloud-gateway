@@ -24,6 +24,7 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.boot.actuate.endpoint.web.annotation.ControllerEndpoint;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
 import org.springframework.cloud.gateway.route.RefreshRoutesEvent;
@@ -42,7 +43,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import reactor.core.publisher.Flux;
@@ -52,10 +52,10 @@ import reactor.core.publisher.Mono;
  * @author Spencer Gibb
  */
 @RestController
-@RequestMapping("${management.endpoints.web.base-path:/actuator}/gateway")
-public class GatewayWebfluxEndpoint implements ApplicationEventPublisherAware {
+@ControllerEndpoint(id = "gateway")
+public class GatewayControllerEndpoint implements ApplicationEventPublisherAware {
 
-	private static final Log log = LogFactory.getLog(GatewayWebfluxEndpoint.class);
+	private static final Log log = LogFactory.getLog(GatewayControllerEndpoint.class);
 
 	private RouteDefinitionLocator routeDefinitionLocator;
 	private List<GlobalFilter> globalFilters;
@@ -64,9 +64,9 @@ public class GatewayWebfluxEndpoint implements ApplicationEventPublisherAware {
 	private RouteLocator routeLocator;
 	private ApplicationEventPublisher publisher;
 
-	public GatewayWebfluxEndpoint(RouteDefinitionLocator routeDefinitionLocator, List<GlobalFilter> globalFilters,
-								  List<GatewayFilterFactory> GatewayFilters, RouteDefinitionWriter routeDefinitionWriter,
-								  RouteLocator routeLocator) {
+	public GatewayControllerEndpoint(RouteDefinitionLocator routeDefinitionLocator, List<GlobalFilter> globalFilters,
+									 List<GatewayFilterFactory> GatewayFilters, RouteDefinitionWriter routeDefinitionWriter,
+									 RouteLocator routeLocator) {
 		this.routeDefinitionLocator = routeDefinitionLocator;
 		this.globalFilters = globalFilters;
 		this.GatewayFilters = GatewayFilters;
