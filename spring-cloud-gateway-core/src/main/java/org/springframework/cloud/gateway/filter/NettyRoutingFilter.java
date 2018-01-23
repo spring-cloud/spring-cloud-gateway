@@ -23,6 +23,7 @@ import java.util.List;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.core.Ordered;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.NettyDataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -100,9 +101,8 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 			}
 
 			return proxyRequest.sendHeaders() //I shouldn't need this
-					.send(request.getBody()
-							.map(DataBuffer::asByteBuffer)
-							.map(Unpooled::wrappedBuffer));
+					.send(request.getBody().map(dataBuffer ->
+							((NettyDataBuffer)dataBuffer).getNativeBuffer()));
 		}).doOnNext(res -> {
 			ServerHttpResponse response = exchange.getResponse();
 			// put headers and status so filters can modify the response
