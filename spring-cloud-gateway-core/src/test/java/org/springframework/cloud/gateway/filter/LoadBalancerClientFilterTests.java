@@ -28,7 +28,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -36,6 +35,7 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_SCHEME_PREFIX_ATTR;
 
 import reactor.core.publisher.Mono;
 
@@ -109,7 +109,7 @@ public class LoadBalancerClientFilterTests {
 		verify(loadBalancerClient).choose("myservice");
 
 		ArgumentCaptor<URI> urlArgumentCaptor = ArgumentCaptor.forClass(URI.class);
-		verify(loadBalancerClient).reconstructURI(eq(serviceInstance), urlArgumentCaptor.capture());
+		verify(loadBalancerClient).reconstructURI(any(), urlArgumentCaptor.capture());
 
 		URI uri = urlArgumentCaptor.getValue();
 		assertThat(uri).isNotNull();
@@ -197,8 +197,41 @@ public class LoadBalancerClientFilterTests {
 		assertThat(uri.getRawQuery()).isEqualTo("a=b&c=d[]");
 	}
 
+	@Test
+	public void happyPathWithAttributeRatherThanScheme() {
+		MockServerHttpRequest request = MockServerHttpRequest
+				.get("ws://localhost/get?a=b")
+				.build();
+
+		URI lbUri = URI.create("ws://service1?a=b");
+
+		exchange = MockServerWebExchange.from(request);
+		exchange.getAttributes().put(GATEWAY_SCHEME_PREFIX_ATTR, "lb");
+
+		ServerWebExchange webExchange = testFilter(exchange, lbUri);
+		URI uri = webExchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
+		assertThat(uri).hasScheme("ws").hasHost("service1-host1")
+				.hasParameter("a", "b");
+	}
+
+	@Test
+	public void shouldNotFilterWhenGatewaySchemePrefixAttrIsNotLb() {
+		URI uri = UriComponentsBuilder.fromUriString("http://myservice").build().toUri();
+		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, uri);
+		exchange.getAttributes().put(GATEWAY_SCHEME_PREFIX_ATTR, "xx");
+
+		loadBalancerClientFilter.filter(exchange, chain);
+
+		verify(chain).filter(exchange);
+		verifyNoMoreInteractions(chain);
+		verifyZeroInteractions(loadBalancerClient);
+	}
+
 	private ServerWebExchange testFilter(MockServerHttpRequest request, URI uri) {
-		ServerWebExchange exchange = MockServerWebExchange.from(request);
+		return testFilter(MockServerWebExchange.from(request), uri);
+	}
+
+    private ServerWebExchange testFilter(ServerWebExchange exchange, URI uri) {
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, uri);
 
 		ArgumentCaptor<ServerWebExchange> captor = ArgumentCaptor.forClass(ServerWebExchange.class);

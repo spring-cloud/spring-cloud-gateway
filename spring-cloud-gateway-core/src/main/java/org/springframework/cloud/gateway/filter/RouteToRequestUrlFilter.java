@@ -18,6 +18,7 @@
 package org.springframework.cloud.gateway.filter;
 
 import java.net.URI;
+import java.util.regex.Pattern;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -28,6 +29,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_SCHEME_PREFIX_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.containsEncodedQuery;
 
 import reactor.core.publisher.Mono;
@@ -38,7 +40,10 @@ import reactor.core.publisher.Mono;
 public class RouteToRequestUrlFilter implements GlobalFilter, Ordered {
 
 	private static final Log log = LogFactory.getLog(RouteToRequestUrlFilter.class);
+
 	public static final int ROUTE_TO_URL_FILTER_ORDER = 10000;
+	private static final String SCHEME_REGEX = "[a-zA-Z]([a-zA-Z]|\\d|\\+|\\.|-)*:.*";
+	static final Pattern schemePattern = Pattern.compile(SCHEME_REGEX);
 
 	@Override
 	public int getOrder() {
@@ -54,12 +59,25 @@ public class RouteToRequestUrlFilter implements GlobalFilter, Ordered {
 		log.trace("RouteToRequestUrlFilter start");
 		URI uri = exchange.getRequest().getURI();
 		boolean encoded = containsEncodedQuery(uri);
+		URI routeUri = route.getUri();
+
+		if (hasAnotherScheme(routeUri)) {
+			// this is a special url, save scheme to special attribute
+			// replace routeUri with schemeSpecificPart
+			exchange.getAttributes().put(GATEWAY_SCHEME_PREFIX_ATTR, routeUri.getScheme());
+			routeUri = URI.create(routeUri.getSchemeSpecificPart());
+		}
+
 		URI requestUrl = UriComponentsBuilder.fromUri(uri)
-				.uri(route.getUri())
+				.uri(routeUri)
 				.build(encoded)
 				.toUri();
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, requestUrl);
 		return chain.filter(exchange);
 	}
 
+	/* for testing */ static boolean hasAnotherScheme(URI uri) {
+		return schemePattern.matcher(uri.getSchemeSpecificPart()).matches() && uri.getHost() == null
+				&& uri.getRawPath() == null;
+	}
 }

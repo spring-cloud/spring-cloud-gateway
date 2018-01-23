@@ -33,6 +33,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_SCHEME_PREFIX_ATTR;
 
 import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
@@ -52,6 +53,19 @@ public class RouteToRequestUrlFilterTests {
 		URI uri = webExchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
 		assertThat(uri).hasScheme("http").hasHost("myhost")
 				.hasParameter("a", "b");
+	}
+
+	@Test
+	public void happyPathLb() {
+		MockServerHttpRequest request = MockServerHttpRequest
+				.get("http://localhost/getb")
+				.build();
+
+		ServerWebExchange webExchange = testFilter(request, "lb:http://myhost");
+		URI uri = webExchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
+		assertThat(uri).hasScheme("http").hasHost("myhost");
+		String schemePrefix = webExchange.getRequiredAttribute(GATEWAY_SCHEME_PREFIX_ATTR);
+		assertThat(schemePrefix).isEqualTo("lb");
 	}
 
 	@Test
@@ -108,6 +122,31 @@ public class RouteToRequestUrlFilterTests {
 
 		// prove that it is NOT encoded
 		assertThat(uri.getRawQuery()).isEqualTo("a=b&c=d[]");
+	}
+
+	@Test
+	public void matcherWorks() {
+		testMatcher(true,
+				"lb:a123:stuff",
+				"lb:abc:stuff",
+				"lb:a.bc:stuff",
+				"lb:a-bc:stuff",
+				"lb:a+bc:stuff"
+		);
+		testMatcher(false,
+				"lb:a",
+				"lb:a123",
+				"lb:123:stuff",
+				"lb:a//:stuff"
+		);
+	}
+
+	private void testMatcher(boolean shouldMatch, String... uris) {
+		for (String s : uris) {
+			URI uri = URI.create(s);
+			boolean result = RouteToRequestUrlFilter.hasAnotherScheme(uri);
+			assertThat(result).as("%s should match: %s", s, result).isEqualTo(shouldMatch);
+		}
 	}
 
 	private ServerWebExchange testFilter(MockServerHttpRequest request, String url) {

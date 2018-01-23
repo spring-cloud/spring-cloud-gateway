@@ -40,6 +40,7 @@ public class ServerWebExchangeUtils {
 	public static final String GATEWAY_REQUEST_URL_ATTR = qualify("gatewayRequestUrl");
 	public static final String GATEWAY_ORIGINAL_REQUEST_URL_ATTR = qualify("gatewayOriginalRequestUrl");
 	public static final String GATEWAY_HANDLER_MAPPER_ATTR = qualify("gatewayHandlerMapper");
+	public static final String GATEWAY_SCHEME_PREFIX_ATTR = qualify("gatewaySchemePrefix");
 
 	/**
 	 * Used when a routing filter has been successfully call. Allows users to write custom

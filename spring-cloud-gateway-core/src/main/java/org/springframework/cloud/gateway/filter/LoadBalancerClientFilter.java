@@ -18,6 +18,7 @@
 package org.springframework.cloud.gateway.filter;
 
 import java.net.URI;
+import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -28,6 +29,7 @@ import org.springframework.core.Ordered;
 import org.springframework.web.server.ServerWebExchange;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_SCHEME_PREFIX_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.addOriginalRequestUrl;
 
 import reactor.core.publisher.Mono;
@@ -55,7 +57,8 @@ public class LoadBalancerClientFilter implements GlobalFilter, Ordered {
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 		URI url = exchange.getAttribute(GATEWAY_REQUEST_URL_ATTR);
-		if (url == null || !url.getScheme().equals("lb")) {
+		String schemePrefix = exchange.getAttribute(GATEWAY_SCHEME_PREFIX_ATTR);
+		if (url == null || (!"lb".equals(url.getScheme()) && !"lb".equals(schemePrefix))) {
 			return chain.filter(exchange);
 		}
 		//preserve the original url
@@ -70,11 +73,68 @@ public class LoadBalancerClientFilter implements GlobalFilter, Ordered {
 		}
 
 		URI uri = exchange.getRequest().getURI();
-		URI requestUrl = loadBalancer.reconstructURI(instance, uri);
+
+		// if the `lb:<scheme>` mechanism was used, use `<scheme>` as the default,
+		// if the loadbalancer doesn't provide one.
+		String overrideScheme = null;
+		if (schemePrefix != null) {
+			overrideScheme = url.getScheme();
+		}
+
+		URI requestUrl = loadBalancer.reconstructURI(new DelegatingServiceInstance(instance, overrideScheme), uri);
 
 		log.trace("LoadBalancerClientFilter url chosen: " + requestUrl);
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, requestUrl);
 		return chain.filter(exchange);
 	}
 
+	class DelegatingServiceInstance implements ServiceInstance {
+		final ServiceInstance delegate;
+		private String overrideScheme;
+
+		DelegatingServiceInstance(ServiceInstance delegate, String overrideScheme) {
+			this.delegate = delegate;
+			this.overrideScheme = overrideScheme;
+		}
+
+		@Override
+		public String getServiceId() {
+			return delegate.getServiceId();
+		}
+
+		@Override
+		public String getHost() {
+			return delegate.getHost();
+		}
+
+		@Override
+		public int getPort() {
+			return delegate.getPort();
+		}
+
+		@Override
+		public boolean isSecure() {
+			return delegate.isSecure();
+		}
+
+		@Override
+		public URI getUri() {
+			return delegate.getUri();
+		}
+
+		@Override
+		public Map<String, String> getMetadata() {
+			return delegate.getMetadata();
+		}
+
+		@Override
+		public String getScheme() {
+			String scheme = delegate.getScheme();
+			if (scheme != null) {
+				return scheme;
+			}
+			return this.overrideScheme;
+		}
+
+	}
 }

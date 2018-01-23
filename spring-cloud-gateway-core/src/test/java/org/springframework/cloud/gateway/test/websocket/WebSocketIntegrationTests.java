@@ -38,6 +38,8 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.PermitAllSecurityConfiguration;
+import org.springframework.cloud.netflix.ribbon.RibbonClient;
+import org.springframework.cloud.netflix.ribbon.StaticServerList;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.Lifecycle;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -63,6 +65,9 @@ import org.springframework.web.reactive.socket.server.support.HandshakeWebSocket
 import org.springframework.web.reactive.socket.server.support.WebSocketHandlerAdapter;
 import org.springframework.web.reactive.socket.server.upgrade.ReactorNettyRequestUpgradeStrategy;
 import org.springframework.web.server.adapter.WebHttpHandlerBuilder;
+
+import com.netflix.loadbalancer.Server;
+import com.netflix.loadbalancer.ServerList;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
@@ -294,18 +299,28 @@ public class WebSocketIntegrationTests {
 	@Configuration
 	@EnableAutoConfiguration
 	@Import(PermitAllSecurityConfiguration.class)
+	@RibbonClient(name = "wsservice", configuration = LocalRibbonClientConfiguration.class)
 	protected static class GatewayConfig {
-
-		@Value("${ws.server.port}")
-		private int wsPort;
 
 		@Bean
 		public RouteLocator wsRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes()
 					.route(r -> r.alwaysTrue()
-						.uri("ws://localhost:"+this.wsPort))
+						.uri("lb:ws://wsservice"))
 					.build();
 		}
+	}
+
+	public static class LocalRibbonClientConfiguration {
+
+		@Value("${ws.server.port}")
+		private int wsPort;
+
+		@Bean
+		public ServerList<Server> ribbonServerList() {
+			return new StaticServerList<>(new Server("localhost", this.wsPort));
+		}
+
 	}
 
 }
