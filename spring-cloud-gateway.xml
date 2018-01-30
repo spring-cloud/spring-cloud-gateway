@@ -673,7 +673,7 @@ using something like <link xl:href="http://projects.spring.io/spring-session/">S
 </section>
 <section xml:id="_loadbalancerclient_filter">
 <title>LoadBalancerClient Filter</title>
-<simpara>The <literal>LoadBalancerClientFilter</literal> looks for a URI in the exchange attribute <literal>ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR</literal>. If the url has a <literal>lb</literal> scheme (ie <literal>lb://myservice</literal>), it will use the Spring Cloud <literal>LoadBalancerClient</literal> to resolve the name (<literal>myservice</literal> in the previous example) to an actual host and port and replace the URI in the same attribute. The unmodified original url is appended to the list in the <literal>ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR</literal> attribute.</simpara>
+<simpara>The <literal>LoadBalancerClientFilter</literal> looks for a URI in the exchange attribute <literal>ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR</literal>. If the url has a <literal>lb</literal> scheme (ie <literal>lb://myservice</literal>), it will use the Spring Cloud <literal>LoadBalancerClient</literal> to resolve the name (<literal>myservice</literal> in the previous example) to an actual host and port and replace the URI in the same attribute. The unmodified original url is appended to the list in the <literal>ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR</literal> attribute. The filter will also look in the <literal>ServerWebExchangeUtils.GATEWAY_SCHEME_PREFIX_ATTR</literal> attribute to see if it equals <literal>lb</literal> and then the same rules apply.</simpara>
 </section>
 <section xml:id="_netty_routing_filter">
 <title>Netty Routing Filter</title>
@@ -685,11 +685,13 @@ using something like <link xl:href="http://projects.spring.io/spring-session/">S
 </section>
 <section xml:id="_routetorequesturl_filter">
 <title>RouteToRequestUrl Filter</title>
-<simpara>The <literal>RouteToRequestUrlFilter</literal> runs if there is a <literal>Route</literal> object in the <literal>ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR</literal> exchange attribute. It creates a new URI, based off of the request URI, but updated with the URI attribute of the <literal>Route</literal> object. The new URI is placed in the <literal>`ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR</literal> exchange attribute`.</simpara>
+<simpara>The <literal>RouteToRequestUrlFilter</literal> runs if there is a <literal>Route</literal> object in the <literal>ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR</literal> exchange attribute. It creates a new URI, based off of the request URI, but updated with the URI attribute of the <literal>Route</literal> object. The new URI is placed in the <literal>ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR</literal> exchange attribute`.</simpara>
+<simpara>If the URI has a scheme prefix, such as <literal>lb:ws://serviceid</literal>, the <literal>lb</literal> scheme is stripped from the URI and placed in the <literal>ServerWebExchangeUtils.GATEWAY_SCHEME_PREFIX_ATTR</literal> for use later in the filter chain.</simpara>
 </section>
 <section xml:id="_websocket_routing_filter">
 <title>Websocket Routing Filter</title>
 <simpara>The Websocket Routing Filter runs if the url located in the <literal>ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR</literal> exchange attribute has a <literal>ws</literal> or <literal>wss</literal> scheme. It uses the Spring Web Socket infrastructure to forward the Websocket request downstream.</simpara>
+<simpara>Websockets may be load-balanced by prefixing the URI with <literal>lb</literal>, such as <literal>lb:ws://serviceid</literal>.</simpara>
 </section>
 </chapter>
 <chapter xml:id="_configuration">
