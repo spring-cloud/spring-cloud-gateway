@@ -43,9 +43,9 @@ import static org.springframework.cloud.gateway.test.TestUtils.assertStatus;
 public class StripPrefixGatewayFilterFactoryTestIntegrationTests extends BaseWebClientTests {
 
 	@Test
-	public void setPathFilterDefaultValuesWork() {
+	public void stripPrefixFilterDefaultValuesWork() {
 		Mono<ClientResponse> result = webClient.get()
-				.uri("/foo/get")
+				.uri("/foo/bar/get")
 				.header("Host", "www.stripprefix.org")
 				.exchange();
 

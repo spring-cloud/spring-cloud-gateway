@@ -614,6 +614,8 @@ spring:
         - SetStatus=401
 ----
 
+In either case, the HTTP status of the response will be set to 401.
+
 === StripPrefix GatewayFilter Factory
 The StripPrefix GatewayFilter Factory takes no parameters. It removes the first part of the path in the request before sending it downstream.
 

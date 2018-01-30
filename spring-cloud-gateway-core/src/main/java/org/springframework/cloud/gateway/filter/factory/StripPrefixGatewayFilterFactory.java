@@ -17,6 +17,7 @@
 package org.springframework.cloud.gateway.filter.factory;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -32,14 +33,27 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.a
  * @author Ryan Baxter
  */
 public class StripPrefixGatewayFilterFactory implements GatewayFilterFactory {
+
+	public static final String PARTS_KEY = "parts";
+
+	@Override
+	public List<String> argNames() {
+		return Arrays.asList(PARTS_KEY);
+	}
+
 	@Override
 	public GatewayFilter apply(Tuple args) {
+		final int parts = args.getInt(PARTS_KEY);
+		return apply(parts);
+	}
+
+	public GatewayFilter apply(int parts) {
 		return (exchange, chain) ->  {
 			ServerHttpRequest request = exchange.getRequest();
 			addOriginalRequestUrl(exchange, request.getURI());
 			String path = request.getURI().getRawPath();
 			String newPath = "/" + Arrays.stream(StringUtils.tokenizeToStringArray(path, "/"))
-					.skip(1).collect(Collectors.joining("/"));
+					.skip(parts).collect(Collectors.joining("/"));
 			ServerHttpRequest newRequest = request.mutate()
 					.path(newPath)
 					.build();

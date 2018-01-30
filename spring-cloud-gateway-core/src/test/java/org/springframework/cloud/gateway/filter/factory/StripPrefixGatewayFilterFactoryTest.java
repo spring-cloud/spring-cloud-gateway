@@ -43,21 +43,20 @@ public class StripPrefixGatewayFilterFactoryTest {
 
 	@Test
 	public void testStripPrefix() throws Exception {
-		testStripPrefixFilter("/foo/bar", "/bar");
+		testStripPrefixFilter("/foo/bar", "/bar", 1);
+		testStripPrefixFilter("/foo/bar", "/", 2);
+		testStripPrefixFilter("/foo/bar", "/foo/bar", 0);
+		testStripPrefixFilter("", "/", 1);
+		testStripPrefixFilter("/", "/", 1);
+		testStripPrefixFilter("/", "/", 2);
+		testStripPrefixFilter("", "/", 2);
+		testStripPrefixFilter("/this/is/a/long/path/with/a/lot/of/slashes", "/path/with/a/lot/of/slashes", 4);
 	}
 
-	@Test
-	public void testStripPrefixNoPath() throws Exception {
-		testStripPrefixFilter("", "/");
-	}
 
-	@Test
-	public void testStringPrefixWithJustSlash() throws Exception {
-		testStripPrefixFilter("/", "/");
-	}
-
-	private void testStripPrefixFilter(String actualPath, String expectedPath) {
-		GatewayFilter filter = new StripPrefixGatewayFilterFactory().apply(tuple().build());
+	private void testStripPrefixFilter(String actualPath, String expectedPath, int parts) {
+		GatewayFilter filter = new StripPrefixGatewayFilterFactory().apply(
+				tuple().of(StripPrefixGatewayFilterFactory.PARTS_KEY, parts));
 
 		MockServerHttpRequest request = MockServerHttpRequest
 				.get("http://localhost"+ actualPath)

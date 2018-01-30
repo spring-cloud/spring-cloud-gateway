@@ -154,9 +154,9 @@ spring:
         uri: ${test.uri}
         predicates:
         - Host=**.stripprefix.org
-        - Path=/foo/*
+        - Path=/foo/**
         filters:
-        - StripPrefix
+        - StripPrefix=2
 
       # =====================================
       - id: set_response_header_test

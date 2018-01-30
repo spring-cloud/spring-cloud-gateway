@@ -43,6 +43,7 @@ import org.springframework.cloud.gateway.filter.factory.SetPathGatewayFilterFact
 import org.springframework.cloud.gateway.filter.factory.SetRequestHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SetResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SetStatusGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.StripPrefixGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.http.HttpStatus;
@@ -201,5 +202,9 @@ public class GatewayFilterSpec extends UriSpec {
 
 	public GatewayFilterSpec saveSession() {
 		return filter(getBean(SaveSessionGatewayFilterFactory.class).apply(EMPTY_TUPLE));
+	}
+
+	public GatewayFilterSpec stripPrefix(int parts) {
+		return filter(getBean(StripPrefixGatewayFilterFactory.class).apply(parts));
 	}
 }
