@@ -26,6 +26,7 @@ import org.springframework.cloud.gateway.handler.predicate.MethodRoutePredicateF
 import org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.QueryRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.RemoteAddrRoutePredicateFactory;
+import org.springframework.cloud.gateway.handler.predicate.ThrottleRoutePredicateFactory;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.server.ServerWebExchange;
@@ -103,5 +104,9 @@ public class PredicateSpec extends UriSpec {
 
 	public BooleanSpec alwaysTrue() {
 		return predicate(exchange -> true);
+	}
+
+	public BooleanSpec throttle(double rate) {
+		return predicate(getBean(ThrottleRoutePredicateFactory.class).apply(rate));
 	}
 }

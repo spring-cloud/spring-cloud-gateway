@@ -77,6 +77,7 @@ import org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFac
 import org.springframework.cloud.gateway.handler.predicate.QueryRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.RemoteAddrRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory;
+import org.springframework.cloud.gateway.handler.predicate.ThrottleRoutePredicateFactory;
 import org.springframework.cloud.gateway.route.CachingRouteLocator;
 import org.springframework.cloud.gateway.route.CompositeRouteDefinitionLocator;
 import org.springframework.cloud.gateway.route.CompositeRouteLocator;
@@ -305,6 +306,12 @@ public class GatewayAutoConfiguration {
 	public RemoteAddrRoutePredicateFactory remoteAddrRoutePredicateFactory() {
 		return new RemoteAddrRoutePredicateFactory();
 	}
+
+	@Bean
+	public ThrottleRoutePredicateFactory throttleRoutePredicateFactory() {
+		return new ThrottleRoutePredicateFactory();
+	}
+
 
 	// GatewayFilter Factory beans
 

@@ -238,6 +238,29 @@ spring:
 
 This route would match if the remote address of the request was, for example, `192.168.1.10`.
 
+=== Throttle Route Predicate Factory
+The Throttle Route Predicate Factory takes a rate value as parameter. This predicate matches the given rate of requests. When using this predicate you usually define a second route without the throttle predicate that get's the traffic the throttle predicate has blocked. The throttle predicate should be added as as the last predicate of a route.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: throttle_route_v2
+        uri: http://example-v2.org
+        predicates:
+        - Path=/throttle
+        - Throttle=0.01
+      - id: throttle_route_v1
+        uri: http://example-v1.org
+        predicates:
+        - Path=/throttle
+----
+
+One percent of the requests to `/throttle` will be routed to `http://example-v2.org` whereas the rest of the traffic will be routed to `http://example-v1.org`.
+
 [[gateway-route-filters]]
 == GatewayFilter Factories
 

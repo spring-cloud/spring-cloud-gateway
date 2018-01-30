@@ -197,6 +197,22 @@ spring:
         uri: ${test.uri}
         predicates:
         - Header=Foo, .*
+
+      # =====================================
+      - id: throttle_app_version_2_test
+        uri: ${test.uri}
+        predicates:
+        - Host=**.throttletest.org
+        - Throttle=0.5
+        filters:
+        - AddRequestHeader=X-App-Version, 2.0
+      - id: throttle_app_version_1_test
+        uri: ${test.uri}
+        predicates:
+        - Host=**.throttletest.org
+        filters:
+        - AddRequestHeader=X-App-Version, 1.0
+
       # =====================================
       - id: default_path_to_httpbin
         uri: ${test.uri}
