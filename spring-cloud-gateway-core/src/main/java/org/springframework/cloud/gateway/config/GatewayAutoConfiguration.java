@@ -61,6 +61,7 @@ import org.springframework.cloud.gateway.filter.factory.SetPathGatewayFilterFact
 import org.springframework.cloud.gateway.filter.factory.SetRequestHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SetResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SetStatusGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.StripPrefixGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
 import org.springframework.cloud.gateway.filter.ratelimit.PrincipalNameKeyResolver;
 import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter;
@@ -407,6 +408,11 @@ public class GatewayAutoConfiguration {
 	@Bean
 	public SaveSessionGatewayFilterFactory saveSessionGatewayFilterFactory() {
 		return new SaveSessionGatewayFilterFactory();
+	}
+
+	@Bean
+	public StripPrefixGatewayFilterFactory stripPrefixGatewayFilterFactory() {
+		return new StripPrefixGatewayFilterFactory();
 	}
 
 	@Configuration

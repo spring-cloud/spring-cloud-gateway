@@ -614,7 +614,25 @@ spring:
         - SetStatus=401
 ----
 
-In either case, the HTTP status of the response will be set to 401.
+=== StripPrefix GatewayFilter Factory
+The StripPrefix GatewayFilter Factory takes no parameters. It removes the first part of the path in the request before sending it downstream.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: nameRoot
+        uri: http://nameservice
+        predicates:
+        - Path=/name/**
+        filters:
+        - StripPrefix
+----
+
+When a request is made through the gateway to `/name/foo` the request made to `nameservice` will look like `http://nameservice/foo`.
 
 == Global Filters
 
