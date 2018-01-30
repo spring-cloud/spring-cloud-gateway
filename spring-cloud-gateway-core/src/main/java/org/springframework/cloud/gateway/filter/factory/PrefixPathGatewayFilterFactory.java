@@ -55,7 +55,7 @@ public class PrefixPathGatewayFilterFactory implements GatewayFilterFactory {
 			addOriginalRequestUrl(exchange, req.getURI());
 			String newPath = prefix + req.getURI().getPath();
 
-			ServerHttpRequest request = req.mutate()
+			ServerHttpRequest request = mutate(req)
 					.path(newPath)
 					.build();
 

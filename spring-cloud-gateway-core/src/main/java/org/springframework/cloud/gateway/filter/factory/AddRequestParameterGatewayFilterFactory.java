@@ -26,6 +26,7 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.tuple.Tuple;
 import org.springframework.util.StringUtils;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.web.util.UriComponentsBuilder;
 
 /**
  * @author Spencer Gibb
@@ -49,7 +50,7 @@ public class AddRequestParameterGatewayFilterFactory implements GatewayFilterFac
 
 			URI uri = exchange.getRequest().getURI();
 			StringBuilder query = new StringBuilder();
-			String originalQuery = uri.getQuery();
+			String originalQuery = uri.getRawQuery();
 
 			if (StringUtils.hasText(originalQuery)) {
 				query.append(originalQuery);
@@ -64,13 +65,15 @@ public class AddRequestParameterGatewayFilterFactory implements GatewayFilterFac
 			query.append(value);
 
 			try {
-				URI newUri = new URI(uri.getScheme(), uri.getUserInfo(), uri.getHost(), uri.getPort(),
-						uri.getPath(), query.toString(), uri.getFragment());
+				URI newUri = UriComponentsBuilder.fromUri(uri)
+						.replaceQuery(query.toString())
+						.build(true)
+						.toUri();
 
-				ServerHttpRequest request = exchange.getRequest().mutate().uri(newUri).build();
+				ServerHttpRequest request = mutate(exchange.getRequest()).uri(newUri).build();
 
 				return chain.filter(exchange.mutate().request(request).build());
-			} catch (URISyntaxException ex) {
+			} catch (RuntimeException ex) {
 				throw new IllegalStateException("Invalid URI query: \"" + query.toString() + "\"");
 			}
 		};

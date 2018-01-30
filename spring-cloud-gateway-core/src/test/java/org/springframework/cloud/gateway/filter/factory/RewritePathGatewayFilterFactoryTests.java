@@ -23,9 +23,12 @@ import java.util.LinkedHashSet;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.GatewayFilterChain;
+import org.springframework.http.HttpMethod;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -36,7 +39,6 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.G
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
 import static org.springframework.tuple.TupleBuilder.tuple;
 
-import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import reactor.core.publisher.Mono;
 
 /**
@@ -54,11 +56,12 @@ public class RewritePathGatewayFilterFactoryTests {
 		testRewriteFilter("/foo/(?<id>\\d.*)", "/bar/baz/$\\{id}", "/foo/123", "/bar/baz/123");
 	}
 
-	private void testRewriteFilter(String regex, String replacement, String actualPath, String expectedPath) {
+	private ServerWebExchange testRewriteFilter(String regex, String replacement, String actualPath, String expectedPath) {
 		GatewayFilter filter = new RewritePathGatewayFilterFactory().apply(tuple().of(REGEXP_KEY, regex, REPLACEMENT_KEY, replacement));
 
+		URI url = UriComponentsBuilder.fromUriString("http://localhost"+ actualPath).build(true).toUri();
 		MockServerHttpRequest request = MockServerHttpRequest
-				.get("http://localhost"+ actualPath)
+				.method(HttpMethod.GET, url)
 				.build();
 
 		ServerWebExchange exchange = MockServerWebExchange.from(request);
@@ -78,5 +81,17 @@ public class RewritePathGatewayFilterFactoryTests {
 		assertThat(requestUrl).hasScheme("http").hasHost("localhost").hasNoPort().hasPath(expectedPath);
 		LinkedHashSet<URI> uris = webExchange.getRequiredAttribute(GATEWAY_ORIGINAL_REQUEST_URL_ATTR);
 		assertThat(uris).contains(request.getURI());
+
+		return webExchange;
+	}
+
+	@Test
+	public void rewritePathWithEncodedParams() {
+		ServerWebExchange exchange = testRewriteFilter("/foo", "/baz",
+				"/foo/bar?name=%E6%89%8E%E6%A0%B9",
+				"/baz/bar");
+
+		URI uri = exchange.getRequest().getURI();
+		assertThat(uri.getRawQuery()).isEqualTo("name=%E6%89%8E%E6%A0%B9");
 	}
 }

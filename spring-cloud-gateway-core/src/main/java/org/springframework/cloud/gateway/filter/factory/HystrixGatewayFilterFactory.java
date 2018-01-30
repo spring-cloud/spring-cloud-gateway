@@ -148,6 +148,7 @@ public class HystrixGatewayFilterFactory implements GatewayFilterFactory {
 
 			//TODO: copied from RouteToRequestUrlFilter
 			URI uri = exchange.getRequest().getURI();
+			//TODO: assume always?
 			boolean encoded = containsEncodedQuery(uri);
 			URI requestUrl = UriComponentsBuilder.fromUri(uri)
 					.host(null)
@@ -157,7 +158,7 @@ public class HystrixGatewayFilterFactory implements GatewayFilterFactory {
 					.toUri();
 			exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, requestUrl);
 
-			ServerHttpRequest request = this.exchange.getRequest().mutate().uri(requestUrl).build();
+			ServerHttpRequest request = mutate(this.exchange.getRequest()).uri(requestUrl).build();
 			ServerWebExchange mutated = exchange.mutate().request(request).build();
 			return RxReactiveStreams.toObservable(HystrixGatewayFilterFactory.this.dispatcherHandler.handle(mutated));
 		}

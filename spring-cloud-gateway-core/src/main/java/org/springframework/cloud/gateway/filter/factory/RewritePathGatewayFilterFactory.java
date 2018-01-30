@@ -20,9 +20,9 @@ package org.springframework.cloud.gateway.filter.factory;
 import java.util.Arrays;
 import java.util.List;
 
+import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.tuple.Tuple;
-import org.springframework.cloud.gateway.filter.GatewayFilter;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.addOriginalRequestUrl;
@@ -54,7 +54,7 @@ public class RewritePathGatewayFilterFactory implements GatewayFilterFactory {
 			String path = req.getURI().getPath();
 			String newPath = path.replaceAll(regex, replacement);
 
-			ServerHttpRequest request = req.mutate()
+			ServerHttpRequest request = mutate(req)
 					.path(newPath)
 					.build();
 
