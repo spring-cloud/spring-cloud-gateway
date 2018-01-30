@@ -617,7 +617,7 @@ spring:
 In either case, the HTTP status of the response will be set to 401.
 
 === StripPrefix GatewayFilter Factory
-The StripPrefix GatewayFilter Factory takes no parameters. It removes the first part of the path in the request before sending it downstream.
+The StripPrefix GatewayFilter Factory takes one paramter, `parts`.  The `parts` parameter indicated the number of parts in the path to strip from the request before sending it downstream.
 
 .application.yml
 [source,yaml]
@@ -631,10 +631,10 @@ spring:
         predicates:
         - Path=/name/**
         filters:
-        - StripPrefix
+        - StripPrefix=2
 ----
 
-When a request is made through the gateway to `/name/foo` the request made to `nameservice` will look like `http://nameservice/foo`.
+When a request is made through the gateway to `/name/bar/foo` the request made to `nameservice` will look like `http://nameservice/foo`.
 
 == Global Filters
 
