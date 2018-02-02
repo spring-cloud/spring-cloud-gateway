@@ -11,8 +11,7 @@ spring:
         uri: ${test.uri}
         predicates:
         - Path=/ok/httpbin/
-        - RemoteAddr=2001:db8:abcd:0012::0/64,::1/32
-        - RemoteAddr=127.0.0.1
+        - RemoteAddr=2001:db8:abcd:0012::0/64,::1/32,127.0.0.1
         filters:
         - SetPath=/httpbin/
         - SetStatus=200
