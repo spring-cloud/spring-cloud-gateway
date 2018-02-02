@@ -71,9 +71,9 @@ public class PreserveHostHeaderGatewayFilterFactoryTests extends BaseWebClientTe
 			return builder.routes().route("test_preserve_host_header",
                 r -> r.order(-1)
 					.host("**.preservehostheader.org")
-					.prefixPath("/httpbin")
-					.preserveHostHeader()
-					.setRequestHeader("Host", "myhost.net")
+					.filters(f -> f.prefixPath("/httpbin")
+							.preserveHostHeader()
+							.setRequestHeader("Host", "myhost.net"))
 					.uri(uri))
 					.build();
 		}

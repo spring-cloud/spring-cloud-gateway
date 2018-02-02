@@ -72,9 +72,9 @@ public class SetRequestHeaderGatewayFilterFactoryTests extends BaseWebClientTest
 			return builder.routes().route("test_set_request_header",
                 r -> r.order(-1)
 					.host("**.setrequestheader.org")
-					.prefixPath("/httpbin")
-					.addRequestHeader("X-Req-Foo", "First")
-					.setRequestHeader("X-Req-Foo", "Second")
+					.filters(f -> f.prefixPath("/httpbin")
+							.addRequestHeader("X-Req-Foo", "First")
+							.setRequestHeader("X-Req-Foo", "Second"))
 					.uri(uri))
 					.build();
 		}

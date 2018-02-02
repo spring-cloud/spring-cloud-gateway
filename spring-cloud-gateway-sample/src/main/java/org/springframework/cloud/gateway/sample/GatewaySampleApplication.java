@@ -45,19 +45,21 @@ public class GatewaySampleApplication {
 		//@formatter:off
 		return builder.routes()
 				.route(r -> r.host("**.abc.org").and().path("/image/png")
-						.addResponseHeader("X-TestHeader", "foobar")
-						.uri("http://httpbin.org:80")
+					.filters(f ->
+							f.addResponseHeader("X-TestHeader", "foobar"))
+					.uri("http://httpbin.org:80")
 				)
 				.route(r -> r.path("/image/webp")
-					.addResponseHeader("X-AnotherHeader", "baz")
+					.filters(f ->
+							f.addResponseHeader("X-AnotherHeader", "baz"))
 					.uri("http://httpbin.org:80")
 				)
 				.route(r -> r.order(-1)
 					.host("**.throttle.org").and().path("/get")
-					.filter(throttle.apply(1,
+					.filters(f -> f.filter(throttle.apply(1,
 							1,
 							10,
-							TimeUnit.SECONDS))
+							TimeUnit.SECONDS)))
 					.uri("http://httpbin.org:80")
 				)
 				.build();
