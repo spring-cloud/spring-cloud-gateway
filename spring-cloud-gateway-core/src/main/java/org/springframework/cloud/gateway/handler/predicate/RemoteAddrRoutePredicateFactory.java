@@ -17,14 +17,17 @@
 
 package org.springframework.cloud.gateway.handler.predicate;
 
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.cloud.gateway.support.SubnetUtils;
+import org.springframework.cloud.gateway.support.CIDRUtils;
 import org.springframework.tuple.Tuple;
 import org.springframework.util.Assert;
 import org.springframework.web.server.ServerWebExchange;
@@ -38,9 +41,9 @@ public class RemoteAddrRoutePredicateFactory implements RoutePredicateFactory {
 
 	@Override
 	public Predicate<ServerWebExchange> apply(Tuple args) {
-		validate(1, args);
+		validateMin(1, args);
 
-		List<SubnetUtils> sources = new ArrayList<>();
+		List<CIDRUtils> sources = new ArrayList<>();
 		if (args != null) {
 			for (Object arg : args.getValues()) {
 				addSource(sources, (String) arg);
@@ -52,14 +55,14 @@ public class RemoteAddrRoutePredicateFactory implements RoutePredicateFactory {
 	public Predicate<ServerWebExchange> apply(String... addrs) {
 		Assert.notEmpty(addrs, "addrs must not be empty");
 
-		List<SubnetUtils> sources = new ArrayList<>();
+		List<CIDRUtils> sources = new ArrayList<>();
 		for (String addr : addrs) {
 			addSource(sources, addr);
 		}
 		return apply(sources);
 	}
 
-	public Predicate<ServerWebExchange> apply(List<SubnetUtils> sources) {
+	public Predicate<ServerWebExchange> apply(List<CIDRUtils> sources) {
 		return exchange -> {
 			InetSocketAddress remoteAddress = exchange.getRequest().getRemoteAddress();
 			if (remoteAddress != null) {
@@ -70,29 +73,42 @@ public class RemoteAddrRoutePredicateFactory implements RoutePredicateFactory {
 					log.warn("Remote addresses didn't match " + hostAddress + " != " + host);
 				}
 
-				for (SubnetUtils source : sources) {
-					if (source.getInfo().isInRange(hostAddress)) {
-						return true;
+				Optional<InetAddress> inetAddress = getInetAddress(hostAddress);
+				if(inetAddress.isPresent()) {
+					for (CIDRUtils source : sources) {
+						if (source.isInRange(inetAddress.get())) {
+							return true;
+						}
 					}
 				}
+
 			}
 
 			return false;
 		};
 	}
 
-	private void addSource(List<SubnetUtils> sources, String source) {
-		boolean inclusiveHostCount = false;
+	private void addSource(List<CIDRUtils> sources, String source) {
 		if (!source.contains("/")) { // no netmask, add default
 			source = source + "/32";
 		}
-		if (source.endsWith("/32")) {
-			//http://stackoverflow.com/questions/2942299/converting-cidr-address-to-subnet-mask-and-network-address#answer-6858429
-			inclusiveHostCount = true;
+
+		try {
+			sources.add(new CIDRUtils(source));
+		} catch (UnknownHostException e) {
+			log.warn(String.format("Remote address %s is an unknown host", source));
 		}
-		//TODO: howto support ipv6 as well?
-		SubnetUtils subnetUtils = new SubnetUtils(source);
-		subnetUtils.setInclusiveHostCount(inclusiveHostCount);
-		sources.add(subnetUtils);
 	}
+
+	private Optional<InetAddress> getInetAddress(String hostAddress) {
+		try {
+			InetAddress address = InetAddress.getByName(hostAddress);
+			return Optional.of(address);
+		} catch (UnknownHostException e) {
+			log.error(String.format("Host address %s is an unknown host", hostAddress), e);
+		}
+
+		return Optional.empty();
+	}
+
 }

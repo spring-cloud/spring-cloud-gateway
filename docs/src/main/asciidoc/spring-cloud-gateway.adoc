@@ -221,7 +221,7 @@ This route would match if the request contained a `foo` query parameter whose va
 
 
 === RemoteAddr Route Predicate Factory
-The RemoteAddr Route Predicate Factory takes a list (min size 1) of CIDR-notation strings, e.g. `192.168.0.1/16` (where `192.168.0.1` is an IP address and `16` is a subnet mask.
+The RemoteAddr Route Predicate Factory takes a list (min size 1) of CIDR-notation (IPv4 or IPv6) strings, e.g. `192.168.0.1/16` (where `192.168.0.1` is an IP address and `16` is a subnet mask.
 
 .application.yml
 [source,yaml]
