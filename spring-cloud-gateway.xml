@@ -226,7 +226,7 @@ for details on setting up your build system with the current Spring Cloud Releas
 </section>
 <section xml:id="_remoteaddr_route_predicate_factory">
 <title>RemoteAddr Route Predicate Factory</title>
-<simpara>The RemoteAddr Route Predicate Factory takes a list (min size 1) of CIDR-notation strings, e.g. <literal>192.168.0.1/16</literal> (where <literal>192.168.0.1</literal> is an IP address and <literal>16</literal> is a subnet mask.</simpara>
+<simpara>The RemoteAddr Route Predicate Factory takes a list (min size 1) of CIDR-notation (IPv4 or IPv6) strings, e.g. <literal>192.168.0.1/16</literal> (where <literal>192.168.0.1</literal> is an IP address and <literal>16</literal> is a subnet mask.</simpara>
 <formalpara>
 <title>application.yml</title>
 <para>
