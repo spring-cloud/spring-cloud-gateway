@@ -1,0 +1,27 @@
+test:
+  uri: lb://myservice
+
+spring:
+  cloud:
+    gateway:
+      default-filters:
+      routes:
+      # =====================================
+      - id: remote_address_ipv6_test
+        uri: ${test.uri}
+        predicates:
+        - Path=/ok/httpbin/
+        - RemoteAddr=2001:db8:abcd:0012::0/64,::1/32,127.0.0.1
+        filters:
+        - SetPath=/httpbin/
+        - SetStatus=200
+
+      # =====================================
+      - id: remote_address_ipv6_test_other_ip
+        uri: ${test.uri}
+        predicates:
+        - Path=/nok/httpbin/
+        - RemoteAddr=2001:db8:abcd:0012::0/64
+        filters:
+        - SetPath=/httpbin/
+        - SetStatus=200

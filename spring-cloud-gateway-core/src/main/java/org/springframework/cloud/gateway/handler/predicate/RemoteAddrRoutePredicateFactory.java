@@ -24,10 +24,12 @@ import java.util.function.Predicate;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.cloud.gateway.support.SubnetUtils;
 import org.springframework.tuple.Tuple;
 import org.springframework.util.Assert;
 import org.springframework.web.server.ServerWebExchange;
+
+import io.netty.handler.ipfilter.IpFilterRuleType;
+import io.netty.handler.ipfilter.IpSubnetFilterRule;
 
 /**
  * @author Spencer Gibb
@@ -38,9 +40,9 @@ public class RemoteAddrRoutePredicateFactory implements RoutePredicateFactory {
 
 	@Override
 	public Predicate<ServerWebExchange> apply(Tuple args) {
-		validate(1, args);
+		validateMin(1, args);
 
-		List<SubnetUtils> sources = new ArrayList<>();
+		List<IpSubnetFilterRule> sources = new ArrayList<>();
 		if (args != null) {
 			for (Object arg : args.getValues()) {
 				addSource(sources, (String) arg);
@@ -52,14 +54,14 @@ public class RemoteAddrRoutePredicateFactory implements RoutePredicateFactory {
 	public Predicate<ServerWebExchange> apply(String... addrs) {
 		Assert.notEmpty(addrs, "addrs must not be empty");
 
-		List<SubnetUtils> sources = new ArrayList<>();
+		List<IpSubnetFilterRule> sources = new ArrayList<>();
 		for (String addr : addrs) {
 			addSource(sources, addr);
 		}
 		return apply(sources);
 	}
 
-	public Predicate<ServerWebExchange> apply(List<SubnetUtils> sources) {
+	public Predicate<ServerWebExchange> apply(List<IpSubnetFilterRule> sources) {
 		return exchange -> {
 			InetSocketAddress remoteAddress = exchange.getRequest().getRemoteAddress();
 			if (remoteAddress != null) {
@@ -70,8 +72,8 @@ public class RemoteAddrRoutePredicateFactory implements RoutePredicateFactory {
 					log.warn("Remote addresses didn't match " + hostAddress + " != " + host);
 				}
 
-				for (SubnetUtils source : sources) {
-					if (source.getInfo().isInRange(hostAddress)) {
+				for (IpSubnetFilterRule source : sources) {
+					if (source.matches(remoteAddress)) {
 						return true;
 					}
 				}
@@ -81,18 +83,15 @@ public class RemoteAddrRoutePredicateFactory implements RoutePredicateFactory {
 		};
 	}
 
-	private void addSource(List<SubnetUtils> sources, String source) {
-		boolean inclusiveHostCount = false;
+	private void addSource(List<IpSubnetFilterRule> sources, String source) {
 		if (!source.contains("/")) { // no netmask, add default
 			source = source + "/32";
 		}
-		if (source.endsWith("/32")) {
-			//http://stackoverflow.com/questions/2942299/converting-cidr-address-to-subnet-mask-and-network-address#answer-6858429
-			inclusiveHostCount = true;
-		}
-		//TODO: howto support ipv6 as well?
-		SubnetUtils subnetUtils = new SubnetUtils(source);
-		subnetUtils.setInclusiveHostCount(inclusiveHostCount);
-		sources.add(subnetUtils);
+
+		String[] ipAddressCidrPrefix = source.split("/",2);
+		String ipAddress = ipAddressCidrPrefix[0];
+		int cidrPrefix = Integer.parseInt(ipAddressCidrPrefix[1]);
+
+		sources.add(new IpSubnetFilterRule(ipAddress, cidrPrefix, IpFilterRuleType.ACCEPT));
 	}
 }
