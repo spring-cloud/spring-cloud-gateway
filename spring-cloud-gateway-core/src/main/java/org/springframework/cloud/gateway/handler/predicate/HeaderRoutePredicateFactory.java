@@ -44,6 +44,10 @@ public class HeaderRoutePredicateFactory implements RoutePredicateFactory {
 		return apply(header, regexp);
 	}
 
+	public Predicate<ServerWebExchange> apply(String header) {
+		return apply(header, ".*");
+	}
+
 	public Predicate<ServerWebExchange> apply(String header, String regexp) {
 		return exchange -> {
 			List<String> values = exchange.getRequest().getHeaders().get(header);
