@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,27 +16,18 @@
 
 package org.springframework.cloud.gateway.route.builder;
 
-import java.net.URI;
-import java.net.URL;
-import java.util.Collection;
-import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.route.Route;
-import org.springframework.http.HttpStatus;
-import org.springframework.tuple.Tuple;
 import org.springframework.util.Assert;
 import org.springframework.web.server.ServerWebExchange;
-
-import com.netflix.hystrix.HystrixObservableCommand;
 
 import static org.springframework.cloud.gateway.route.builder.BooleanSpec.Operator.AND;
 import static org.springframework.cloud.gateway.route.builder.BooleanSpec.Operator.NEGATE;
 import static org.springframework.cloud.gateway.route.builder.BooleanSpec.Operator.OR;
 
-public class BooleanSpec extends GatewayFilterSpec { //TODO after next release, extend UriSpec
+public class BooleanSpec extends UriSpec {
 
 	enum Operator { AND, OR, NEGATE }
 
@@ -86,206 +77,8 @@ public class BooleanSpec extends GatewayFilterSpec { //TODO after next release, 
 				case NEGATE:
 					this.routeBuilder.negate();
 			}
-			return createBooleanSpec();
+			return new BooleanSpec(this.routeBuilder, this.builder);
 		}
 	}
 
-	//TODO: after next release remove all deprecated methods
-	@Override
-	@Deprecated /** @deprecated use {@link #filters(Function)} */
-	public GatewayFilterSpec gatewayFilters(List<GatewayFilter> gatewayFilters) {
-		return super.gatewayFilters(gatewayFilters);
-	}
-
-	@Override
-	@Deprecated /** @deprecated use {@link #filters(Function)} */
-	public GatewayFilterSpec add(GatewayFilter gatewayFilter) {
-		return super.add(gatewayFilter);
-	}
-
-	@Override
-	@Deprecated /** @deprecated use {@link #filters(Function)} */
-	public GatewayFilterSpec filter(GatewayFilter gatewayFilter) {
-		return super.filter(gatewayFilter);
-	}
-
-	@Override
-	@Deprecated /** @deprecated use {@link #filters(Function)} */
-	public GatewayFilterSpec filter(GatewayFilter gatewayFilter, int order) {
-		return super.filter(gatewayFilter, order);
-	}
-
-	@Override
-	@Deprecated /** @deprecated use {@link #filters(Function)} */
-	public GatewayFilterSpec addAll(Collection<GatewayFilter> gatewayFilters) {
-		return super.addAll(gatewayFilters);
-	}
-
-	@Override
-	@Deprecated /** @deprecated use {@link #filters(Function)} */
-	public GatewayFilterSpec addRequestHeader(String headerName, String headerValue) {
-		return super.addRequestHeader(headerName, headerValue);
-	}
-
-	@Override
-	@Deprecated /** @deprecated use {@link #filters(Function)} */
-	public GatewayFilterSpec addRequestParameter(String param, String value) {
-		return super.addRequestParameter(param, value);
-	}
-
-	@Override
-	@Deprecated /** @deprecated use {@link #filters(Function)} */
-	public GatewayFilterSpec addResponseHeader(String headerName, String headerValue) {
-		return super.addResponseHeader(headerName, headerValue);
-	}
-
-	@Override
-	@Deprecated /** @deprecated use {@link #filters(Function)} */
-	public GatewayFilterSpec hystrix(String commandName) {
-		return super.hystrix(commandName);
-	}
-
-	@Override
-	@Deprecated /** @deprecated use {@link #filters(Function)} */
-	public GatewayFilterSpec hystrix(HystrixObservableCommand.Setter setter) {
-		return super.hystrix(setter);
-	}
-
-	@Override
-	@Deprecated /** @deprecated use {@link #filters(Function)} */
-	public GatewayFilterSpec hystrix(String commandName, URI fallbackUri) {
-		return super.hystrix(commandName, fallbackUri);
-	}
-
-	@Override
-	@Deprecated /** @deprecated use {@link #filters(Function)} */
-	public GatewayFilterSpec hystrix(HystrixObservableCommand.Setter setter, URI fallbackUri) {
-		return super.hystrix(setter, fallbackUri);
-	}
-
-	@Override
-	@Deprecated /** @deprecated use {@link #filters(Function)} */
-	public GatewayFilterSpec prefixPath(String prefix) {
-		return super.prefixPath(prefix);
-	}
-
-	@Override
-	@Deprecated /** @deprecated use {@link #filters(Function)} */
-	public GatewayFilterSpec preserveHostHeader() {
-		return super.preserveHostHeader();
-	}
-
-	@Override
-	@Deprecated /** @deprecated use {@link #filters(Function)} */
-	public GatewayFilterSpec redirect(int status, URI url) {
-		return super.redirect(status, url);
-	}
-
-	@Override
-	@Deprecated /** @deprecated use {@link #filters(Function)} */
-	public GatewayFilterSpec redirect(int status, String url) {
-		return super.redirect(status, url);
-	}
-
-	@Override
-	@Deprecated /** @deprecated use {@link #filters(Function)} */
-	public GatewayFilterSpec redirect(String status, URI url) {
-		return super.redirect(status, url);
-	}
-
-	@Override
-	@Deprecated /** @deprecated use {@link #filters(Function)} */
-	public GatewayFilterSpec redirect(String status, String url) {
-		return super.redirect(status, url);
-	}
-
-	@Override
-	@Deprecated /** @deprecated use {@link #filters(Function)} */
-	public GatewayFilterSpec redirect(HttpStatus status, URL url) {
-		return super.redirect(status, url);
-	}
-
-	@Override
-	@Deprecated /** @deprecated use {@link #filters(Function)} */
-	public GatewayFilterSpec removeNonProxyHeaders() {
-		return super.removeNonProxyHeaders();
-	}
-
-	@Override
-	@Deprecated /** @deprecated use {@link #filters(Function)} */
-	public GatewayFilterSpec removeNonProxyHeaders(String... headersToRemove) {
-		return super.removeNonProxyHeaders(headersToRemove);
-	}
-
-	@Override
-	@Deprecated /** @deprecated use {@link #filters(Function)} */
-	public GatewayFilterSpec removeRequestHeader(String headerName) {
-		return super.removeRequestHeader(headerName);
-	}
-
-	@Override
-	@Deprecated /** @deprecated use {@link #filters(Function)} */
-	public GatewayFilterSpec removeResponseHeader(String headerName) {
-		return super.removeResponseHeader(headerName);
-	}
-
-	@Override
-	@Deprecated /** @deprecated use {@link #filters(Function)} */
-	public GatewayFilterSpec requestRateLimiter(Tuple args) {
-		return super.requestRateLimiter(args);
-	}
-
-	@Override
-	@Deprecated /** @deprecated use {@link #filters(Function)} */
-	public GatewayFilterSpec rewritePath(String regex, String replacement) {
-		return super.rewritePath(regex, replacement);
-	}
-
-	@Override
-	@Deprecated /** @deprecated use {@link #filters(Function)} */
-	public GatewayFilterSpec secureHeaders() {
-		return super.secureHeaders();
-	}
-
-	@Override
-	@Deprecated /** @deprecated use {@link #filters(Function)} */
-	public GatewayFilterSpec setPath(String template) {
-		return super.setPath(template);
-	}
-
-	@Override
-	@Deprecated /** @deprecated use {@link #filters(Function)} */
-	public GatewayFilterSpec setRequestHeader(String headerName, String headerValue) {
-		return super.setRequestHeader(headerName, headerValue);
-	}
-
-	@Override
-	@Deprecated /** @deprecated use {@link #filters(Function)} */
-	public GatewayFilterSpec setResponseHeader(String headerName, String headerValue) {
-		return super.setResponseHeader(headerName, headerValue);
-	}
-
-	@Override
-	@Deprecated /** @deprecated use {@link #filters(Function)} */
-	public GatewayFilterSpec setStatus(int status) {
-		return super.setStatus(status);
-	}
-
-	@Override
-	@Deprecated /** @deprecated use {@link #filters(Function)} */
-	public GatewayFilterSpec setStatus(String status) {
-		return super.setStatus(status);
-	}
-
-	@Override
-	@Deprecated /** @deprecated use {@link #filters(Function)} */
-	public GatewayFilterSpec setStatus(HttpStatus status) {
-		return super.setStatus(status);
-	}
-
-	@Override
-	@Deprecated /** @deprecated use {@link #filters(Function)} */
-	public GatewayFilterSpec saveSession() {
-		return super.saveSession();
-	}
 }

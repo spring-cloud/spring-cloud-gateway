@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,11 +46,11 @@ public class PredicateSpec extends UriSpec {
 
 	public BooleanSpec predicate(Predicate<ServerWebExchange> predicate) {
 		this.routeBuilder.predicate(predicate);
-		return createBooleanSpec();
+		return new BooleanSpec(this.routeBuilder, this.builder);
 	}
 
-	protected BooleanSpec createBooleanSpec() {
-		return new BooleanSpec(this.routeBuilder, this.builder);
+	protected GatewayFilterSpec createGatewayFilterSpec() {
+		return new GatewayFilterSpec(this.routeBuilder, this.builder);
 	}
 
 	public BooleanSpec after(ZonedDateTime datetime) {
@@ -67,6 +67,10 @@ public class PredicateSpec extends UriSpec {
 
 	public BooleanSpec cookie(String name, String regex) {
 		return predicate(getBean(CookieRoutePredicateFactory.class).apply(name, regex));
+	}
+
+	public BooleanSpec header(String header) {
+		return predicate(getBean(HeaderRoutePredicateFactory.class).apply(header));
 	}
 
 	public BooleanSpec header(String header, String regex) {

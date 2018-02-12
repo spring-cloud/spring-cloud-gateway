@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -94,8 +94,8 @@ class RouteLocatorDsl(val builder: RouteLocatorBuilder) {
  * Extension method to add filters {} block to dsl
  */
 fun PredicateSpec.filters(init: GatewayFilterSpec.() -> Unit) {
-	val booleanSpec = createBooleanSpec()
-	booleanSpec.apply(init)
+	val spec = createGatewayFilterSpec()
+	spec.apply(init)
 }
 
 

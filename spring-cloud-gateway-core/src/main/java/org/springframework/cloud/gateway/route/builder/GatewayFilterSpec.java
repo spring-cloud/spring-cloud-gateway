@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,11 +60,15 @@ public class GatewayFilterSpec extends UriSpec {
 		super(routeBuilder, builder);
 	}
 
+	/** @deprecated use {@link #filters(Collection)} */
+	@Deprecated
 	public GatewayFilterSpec gatewayFilters(List<GatewayFilter> gatewayFilters) {
 		this.addAll(gatewayFilters);
 		return this;
 	}
 
+	/** @deprecated use {@link #filter(GatewayFilter)} */
+	@Deprecated
 	public GatewayFilterSpec add(GatewayFilter gatewayFilter) {
 		return this.filter(gatewayFilter);
 	}
@@ -78,11 +82,22 @@ public class GatewayFilterSpec extends UriSpec {
 		return this;
 	}
 
+	/** @deprecated use {@link #filters(Collection)} */
+	@Deprecated
 	public GatewayFilterSpec addAll(Collection<GatewayFilter> gatewayFilters) {
 		this.routeBuilder.addAll(gatewayFilters);
 		return this;
 	}
 
+	public GatewayFilterSpec filters(GatewayFilter... gatewayFilters) {
+		this.routeBuilder.addAll(Arrays.asList(gatewayFilters));
+		return this;
+	}
+
+	public GatewayFilterSpec filters(Collection<GatewayFilter> gatewayFilters) {
+		this.routeBuilder.addAll(gatewayFilters);
+		return this;
+	}
 
 	public GatewayFilterSpec addRequestHeader(String headerName, String headerValue) {
 		return filter(getBean(AddRequestHeaderGatewayFilterFactory.class).apply(headerName, headerValue));
