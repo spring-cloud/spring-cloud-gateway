@@ -35,7 +35,4 @@ logging:
     org.springframework.web.reactive: DEBUG
     reactor.ipc.netty: DEBUG
 
-management:
-  endpoints:
-    web:
-      expose: '*'
+management.endpoints.web.exposure.include: '*'
