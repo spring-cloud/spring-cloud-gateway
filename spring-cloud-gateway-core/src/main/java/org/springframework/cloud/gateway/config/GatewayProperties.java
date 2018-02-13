@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 package org.springframework.cloud.gateway.config;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.validation.Valid;
@@ -27,6 +28,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.cloud.gateway.filter.FilterDefinition;
 import org.springframework.cloud.gateway.filter.factory.RemoveNonProxyHeadersGatewayFilterFactory;
 import org.springframework.cloud.gateway.route.RouteDefinition;
+import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 
 import static org.springframework.cloud.gateway.support.NameUtils.normalizeFilterName;
@@ -50,6 +52,9 @@ public class GatewayProperties {
 	 */
 	private List<FilterDefinition> defaultFilters = loadDefaults();
 
+	private List<MediaType> streamingMediaTypes = Arrays.asList(MediaType.TEXT_EVENT_STREAM,
+			MediaType.APPLICATION_STREAM_JSON);
+
 	private ArrayList<FilterDefinition> loadDefaults() {
 		ArrayList<FilterDefinition> defaults = new ArrayList<>();
 		FilterDefinition definition = new FilterDefinition();
@@ -72,5 +77,22 @@ public class GatewayProperties {
 
 	public void setDefaultFilters(List<FilterDefinition> defaultFilters) {
 		this.defaultFilters = defaultFilters;
+	}
+
+	public List<MediaType> getStreamingMediaTypes() {
+		return streamingMediaTypes;
+	}
+
+	public void setStreamingMediaTypes(List<MediaType> streamingMediaTypes) {
+		this.streamingMediaTypes = streamingMediaTypes;
+	}
+
+	@Override
+	public String toString() {
+		return "GatewayProperties{" +
+				"routes=" + routes +
+				", defaultFilters=" + defaultFilters +
+				", streamingMediaTypes=" + streamingMediaTypes +
+				'}';
 	}
 }
