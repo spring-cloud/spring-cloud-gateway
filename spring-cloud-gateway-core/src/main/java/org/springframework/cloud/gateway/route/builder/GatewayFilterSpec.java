@@ -22,6 +22,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.OrderedGatewayFilter;
@@ -45,6 +47,7 @@ import org.springframework.cloud.gateway.filter.factory.SetResponseHeaderGateway
 import org.springframework.cloud.gateway.filter.factory.SetStatusGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
 import org.springframework.cloud.gateway.route.Route;
+import org.springframework.core.Ordered;
 import org.springframework.http.HttpStatus;
 import org.springframework.tuple.Tuple;
 
@@ -53,6 +56,8 @@ import com.netflix.hystrix.HystrixObservableCommand;
 import static org.springframework.tuple.TupleBuilder.tuple;
 
 public class GatewayFilterSpec extends UriSpec {
+
+	private static final Log log = LogFactory.getLog(GatewayFilterSpec.class);
 
 	static final Tuple EMPTY_TUPLE = tuple().build();
 
@@ -74,10 +79,20 @@ public class GatewayFilterSpec extends UriSpec {
 	}
 
 	public GatewayFilterSpec filter(GatewayFilter gatewayFilter) {
+		if (gatewayFilter instanceof Ordered) {
+			this.routeBuilder.add(gatewayFilter);
+			return this;
+		}
 		return this.filter(gatewayFilter, 0);
 	}
 
 	public GatewayFilterSpec filter(GatewayFilter gatewayFilter, int order) {
+		if (gatewayFilter instanceof Ordered) {
+			this.routeBuilder.add(gatewayFilter);
+			log.warn("GatewayFilter already implements ordered "+gatewayFilter.getClass()
+					+ "ignoring order parameter: "+order);
+			return this;
+		}
 		this.routeBuilder.add(new OrderedGatewayFilter(gatewayFilter, order));
 		return this;
 	}
