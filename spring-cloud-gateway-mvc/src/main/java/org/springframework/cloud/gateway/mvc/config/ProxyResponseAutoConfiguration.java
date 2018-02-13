@@ -36,7 +36,7 @@ import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.HandlerMethodReturnValueHandler;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
  * Autoconfiguration for the {@link ProxyExchange} argument handler in Spring MVC
@@ -48,7 +48,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 @ConditionalOnWebApplication
 @ConditionalOnClass({ HandlerMethodReturnValueHandler.class })
 @EnableConfigurationProperties(ProxyProperties.class)
-public class ProxyResponseAutoConfiguration extends WebMvcConfigurerAdapter {
+public class ProxyResponseAutoConfiguration implements WebMvcConfigurer {
 
 	@Autowired
 	private ApplicationContext context;
