@@ -659,6 +659,26 @@ using something like <link xl:href="http://projects.spring.io/spring-session/">S
 </formalpara>
 <simpara>In either case, the HTTP status of the response will be set to 401.</simpara>
 </section>
+<section xml:id="_stripprefix_gatewayfilter_factory">
+<title>StripPrefix GatewayFilter Factory</title>
+<simpara>The StripPrefix GatewayFilter Factory takes one paramter, <literal>parts</literal>.  The <literal>parts</literal> parameter indicated the number of parts in the path to strip from the request before sending it downstream.</simpara>
+<formalpara>
+<title>application.yml</title>
+<para>
+<programlisting language="yaml" linenumbering="unnumbered">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: nameRoot
+        uri: http://nameservice
+        predicates:
+        - Path=/name/**
+        filters:
+        - StripPrefix=2</programlisting>
+</para>
+</formalpara>
+<simpara>When a request is made through the gateway to <literal>/name/bar/foo</literal> the request made to <literal>nameservice</literal> will look like <literal><link xl:href="http://nameservice/foo">http://nameservice/foo</link></literal>.</simpara>
+</section>
 </chapter>
 <chapter xml:id="_global_filters">
 <title>Global Filters</title>
