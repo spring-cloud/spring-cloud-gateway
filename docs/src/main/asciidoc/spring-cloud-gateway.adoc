@@ -616,6 +616,26 @@ spring:
 
 In either case, the HTTP status of the response will be set to 401.
 
+=== StripPrefix GatewayFilter Factory
+The StripPrefix GatewayFilter Factory takes one paramter, `parts`.  The `parts` parameter indicated the number of parts in the path to strip from the request before sending it downstream.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: nameRoot
+        uri: http://nameservice
+        predicates:
+        - Path=/name/**
+        filters:
+        - StripPrefix=2
+----
+
+When a request is made through the gateway to `/name/bar/foo` the request made to `nameservice` will look like `http://nameservice/foo`.
+
 == Global Filters
 
 The `GlobalFilter` interface has the same signature as `GatewayFilter`. These are special filters that are conditionally applied to all routes. (This interface and usage are subject to change in future milestones).

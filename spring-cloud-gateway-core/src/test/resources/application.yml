@@ -150,6 +150,15 @@ spring:
         - SetPath=/{segment}
 
       # =====================================
+      - id: strip_prefix_test
+        uri: ${test.uri}
+        predicates:
+        - Host=**.stripprefix.org
+        - Path=/foo/**
+        filters:
+        - StripPrefix=2
+
+      # =====================================
       - id: set_response_header_test
         uri: ${test.uri}
         predicates:
