@@ -93,6 +93,7 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 			final HttpClientRequest proxyRequest = req.options(NettyPipeline.SendOptions::flushOnEach)
 					.headers(httpHeaders)
 					.chunkedTransfer(chunkedTransfer)
+					.failOnServerError(false)
 					.failOnClientError(false);
 
 			if (preserveHost) {

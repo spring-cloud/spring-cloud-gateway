@@ -17,8 +17,12 @@
 
 package org.springframework.cloud.gateway.test;
 
+import java.util.Map;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -26,13 +30,11 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.web.reactive.function.client.ClientResponse;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
-import static org.springframework.cloud.gateway.test.TestUtils.assertStatus;
-
-import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -42,22 +44,50 @@ public class HttpStatusTests extends BaseWebClientTests {
 
 	@Test
 	public void notFoundResponseWorks() {
-		Mono<ClientResponse> result = webClient.get()
+		testClient.get()
 				.uri("/status/404")
-				.exchange();
+				.exchange()
+				.expectStatus().isEqualTo(HttpStatus.NOT_FOUND)
+				.expectBody(String.class).isEqualTo("Failed with 404");
+	}
 
-		StepVerifier.create(result)
-				.consumeNextWith(
-						response -> {
-							assertStatus(response, HttpStatus.NOT_FOUND);
-						})
-				.expectComplete()
-				.verify(DURATION);
+	@Test
+	public void serverErrorResponseWorks() {
+		testClient.get()
+				.uri("/status/500")
+				.exchange()
+				.expectStatus().isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR)
+				.expectBody(String.class).isEqualTo("Failed with 500");
+	}
+
+	@Test
+	public void normalErrorPageWorks() {
+		testClient.get()
+				.uri("/exception")
+				.exchange()
+				.expectStatus().isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR)
+				.expectBody(Map.class).consumeWith(result -> {
+					assertThat(result.getResponseBody())
+							.hasSize(5)
+							.containsKeys("timestamp", "path", "status", "error", "message");
+				});
+	}
+
+	public static void main(String[] args) {
+		new SpringApplication(TestConfig.class).run(args);
 	}
 
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
+	@RestController
 	@Import(DefaultTestConfig.class)
-	public static class TestConfig { }
+	public static class TestConfig {
+
+		@RequestMapping("/httpbin/exception")
+		public String exception() {
+			throw new RuntimeException("an error");
+		}
+
+	}
 
 }
