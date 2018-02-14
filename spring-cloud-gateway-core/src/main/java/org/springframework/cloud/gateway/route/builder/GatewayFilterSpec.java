@@ -38,6 +38,7 @@ import org.springframework.cloud.gateway.filter.factory.RemoveNonProxyHeadersGat
 import org.springframework.cloud.gateway.filter.factory.RemoveRequestHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RemoveResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RequestRateLimiterGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.RetryGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SaveSessionGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory;
@@ -200,6 +201,10 @@ public class GatewayFilterSpec extends UriSpec {
 
 	public GatewayFilterSpec rewritePath(String regex, String replacement) {
 		return filter(getBean(RewritePathGatewayFilterFactory.class).apply(regex, replacement));
+	}
+
+	public GatewayFilterSpec retry() {
+		return filter(getBean(RetryGatewayFilterFactory.class).apply(EMPTY_TUPLE));
 	}
 
 	public GatewayFilterSpec secureHeaders() {
