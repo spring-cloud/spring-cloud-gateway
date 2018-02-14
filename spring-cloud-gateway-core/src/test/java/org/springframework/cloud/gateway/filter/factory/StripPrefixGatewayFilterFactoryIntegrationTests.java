@@ -40,7 +40,7 @@ import static org.springframework.cloud.gateway.test.TestUtils.assertStatus;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
-public class StripPrefixGatewayFilterFactoryTestIntegrationTests extends BaseWebClientTests {
+public class StripPrefixGatewayFilterFactoryIntegrationTests extends BaseWebClientTests {
 
 	@Test
 	public void stripPrefixFilterDefaultValuesWork() {

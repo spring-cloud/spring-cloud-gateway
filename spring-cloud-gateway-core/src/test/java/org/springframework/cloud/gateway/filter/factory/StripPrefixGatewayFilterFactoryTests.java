@@ -39,7 +39,7 @@ import static org.springframework.tuple.TupleBuilder.tuple;
 /**
  * @author Ryan Baxter
  */
-public class StripPrefixGatewayFilterFactoryTest {
+public class StripPrefixGatewayFilterFactoryTests {
 
 	@Test
 	public void testStripPrefix() throws Exception {
