@@ -1,47 +1,138 @@
 package org.springframework.cloud.gateway.support.ipresolver;
 
-import org.junit.Test;
-import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
-import org.springframework.mock.web.server.MockServerWebExchange;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.net.InetSocketAddress;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.Test;
+import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
+import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.web.server.ServerWebExchange;
 
 public class XForwardedRemoteAddressResolverTest {
 
+	private final InetSocketAddress remote0000Address = InetSocketAddress
+			.createUnresolved("0.0.0.0", 1234);
 
-	private final InetSocketAddress remote0000Address = InetSocketAddress.createUnresolved("0.0.0.0", 1234);
+	private final XForwardedRemoteAddressResolver trustOne = XForwardedRemoteAddressResolver
+			.maxTrustedIndexXForwardedRemoteAddressResolver(1);
 
-	XForwardedRemoteAddressResolver resolver = new XForwardedRemoteAddressResolver();
+	private final XForwardedRemoteAddressResolver trustAll = XForwardedRemoteAddressResolver
+			.trustAllXForwardedRemoteAddressResolver();
 
 	@Test
-	public void resolvesFirstForwardedAddress() {
-		MockServerHttpRequest request = MockServerHttpRequest.get("someUrl")
-				.remoteAddress(remote0000Address)
-				.header("X-Forwarded-For", "0.0.0.1, 0.0.0.2, 0.0.0.3").build();
-		MockServerWebExchange exchange = MockServerWebExchange.from(request);
-		InetSocketAddress actualIp = resolver.resolve(exchange);
+	public void maxIndexOneReturnsLastForwardedIp() {
+		ServerWebExchange exchange = buildExchange(oneTwoThreeBuilder());
 
-		assertThat(actualIp.getHostName()).isEqualTo("0.0.0.1");
+		InetSocketAddress address = trustOne.resolve(exchange);
+
+		assertThat(address.getHostName()).isEqualTo("0.0.0.3");
 	}
 
 	@Test
-	public void fallsBackToRemoteAddress() {
-		MockServerHttpRequest request = MockServerHttpRequest.get("someUrl")
-				.remoteAddress(remote0000Address).build();
-		MockServerWebExchange exchange = MockServerWebExchange.from(request);
-		InetSocketAddress actualIp = resolver.resolve(exchange);
+	public void maxIndexOneFallsBackToRemoteIp() {
+		ServerWebExchange exchange = buildExchange(remoteAddressOnlyBuilder());
 
-		assertThat(actualIp.getHostName()).isEqualTo("0.0.0.0");
+		InetSocketAddress address = trustOne.resolve(exchange);
+
+		assertThat(address.getHostName()).isEqualTo("0.0.0.0");
 	}
 
 	@Test
-	public void returnsNullIfNoForwardedOrRemoteAddress() {
-		MockServerHttpRequest request = MockServerHttpRequest.get("someUrl").build();
-		MockServerWebExchange exchange = MockServerWebExchange.from(request);
-		InetSocketAddress actualIp = resolver.resolve(exchange);
+	public void maxIndexOneReturnsNullIfNoForwardedOrRemoteIp() {
+		ServerWebExchange exchange = buildExchange(emptyBuilder());
 
-		assertThat(actualIp).isEqualTo(null);
+		InetSocketAddress address = trustOne.resolve(exchange);
+
+		assertThat(address).isEqualTo(null);
+	}
+
+	@Test
+	public void trustOneFallsBackOnEmptyHeader() {
+		ServerWebExchange exchange = buildExchange(
+				remoteAddressOnlyBuilder().header("X-Forwarded-For", ""));
+
+		InetSocketAddress address = trustOne.resolve(exchange);
+
+		assertThat(address.getHostName()).isEqualTo("0.0.0.0");
+
+	}
+
+	@Test
+	public void trustOneFallsBackOnMultipleHeaders() {
+		ServerWebExchange exchange = buildExchange(
+				remoteAddressOnlyBuilder().header("X-Forwarded-For", "0.0.0.1")
+						.header("X-Forwarded-For", "0.0.0.2"));
+
+		InetSocketAddress address = trustOne.resolve(exchange);
+
+		assertThat(address.getHostName()).isEqualTo("0.0.0.0");
+	}
+
+	@Test
+	public void trustAllReturnsFirstForwardedIp() {
+		ServerWebExchange exchange = buildExchange(oneTwoThreeBuilder());
+
+		InetSocketAddress address = trustAll.resolve(exchange);
+
+		assertThat(address.getHostName()).isEqualTo("0.0.0.1");
+	}
+
+	@Test
+	public void trustAllFinalFallsBackToRemoteIp() {
+		ServerWebExchange exchange = buildExchange(remoteAddressOnlyBuilder());
+
+		InetSocketAddress address = trustAll.resolve(exchange);
+
+		assertThat(address.getHostName()).isEqualTo("0.0.0.0");
+	}
+
+	@Test
+	public void trustAllReturnsNullIfNoForwardedOrRemoteIp() {
+		ServerWebExchange exchange = buildExchange(emptyBuilder());
+
+		InetSocketAddress address = trustAll.resolve(exchange);
+
+		assertThat(address).isEqualTo(null);
+	}
+
+	@Test
+	public void trustAllFallsBackOnEmptyHeader() {
+		ServerWebExchange exchange = buildExchange(
+				remoteAddressOnlyBuilder().header("X-Forwarded-For", ""));
+
+		InetSocketAddress address = trustAll.resolve(exchange);
+
+		assertThat(address.getHostName()).isEqualTo("0.0.0.0");
+
+	}
+
+	@Test
+	public void trustAllFallsBackOnMultipleHeaders() {
+		ServerWebExchange exchange = buildExchange(
+				remoteAddressOnlyBuilder().header("X-Forwarded-For", "0.0.0.1")
+						.header("X-Forwarded-For", "0.0.0.2"));
+
+		InetSocketAddress address = trustAll.resolve(exchange);
+
+		assertThat(address.getHostName()).isEqualTo("0.0.0.0");
+	}
+
+	private MockServerHttpRequest.BaseBuilder emptyBuilder() {
+		return MockServerHttpRequest.get("someUrl");
+	}
+
+	private MockServerHttpRequest.BaseBuilder remoteAddressOnlyBuilder() {
+		return MockServerHttpRequest.get("someUrl").remoteAddress(remote0000Address);
+	}
+
+	private MockServerHttpRequest.BaseBuilder oneTwoThreeBuilder() {
+		return MockServerHttpRequest.get("someUrl").remoteAddress(remote0000Address)
+				.header("X-Forwarded-For", "0.0.0.1, 0.0.0.2, 0.0.0.3");
+	}
+
+	private ServerWebExchange buildExchange(
+			MockServerHttpRequest.BaseBuilder requestBuilder) {
+		return MockServerWebExchange.from(requestBuilder.build());
 	}
 }
