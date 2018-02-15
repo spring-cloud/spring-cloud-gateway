@@ -63,7 +63,7 @@ public class GatewaySampleApplication {
 					.uri("http://httpbin.org:80")
 				)
 				.build();
-		////@formatter:on
+		//@formatter:on
 	}
 
 	@Bean
