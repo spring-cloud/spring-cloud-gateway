@@ -22,7 +22,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 
-import reactor.retry.DefaultRepeat;
 import reactor.retry.Repeat;
 import reactor.retry.RepeatContext;
 
