@@ -67,6 +67,12 @@ public class RetryGatewayFilterFactory implements GatewayFilterFactory {
 		retry.validate();
 
 		Predicate<? super RepeatContext<ServerWebExchange>> predicate = context -> {
+			boolean retryableAttempt = context.iteration() < retry.getRetries();
+
+			if (!retryableAttempt) {
+				return false;
+			}
+
 			ServerWebExchange exchange = context.applicationContext();
 			HttpStatus statusCode = exchange.getResponse().getStatusCode();
 			HttpMethod httpMethod = exchange.getRequest().getMethod();
@@ -84,7 +90,7 @@ public class RetryGatewayFilterFactory implements GatewayFilterFactory {
 		};
 
 		//TODO: use Repeat statics once updated with a create() like method
-		Repeat<ServerWebExchange> repeat = DefaultRepeat.create(predicate, retry.getRetries());
+		Repeat<ServerWebExchange> repeat = Repeat.onlyIf(predicate);
 
 		//TODO: support timeout, backoff, jitter, etc... in Builder
 		return apply(repeat);
