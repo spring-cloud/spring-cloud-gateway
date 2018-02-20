@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.route;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -131,19 +132,42 @@ public class Route implements Ordered {
 			this.predicate = this.predicate.negate();
 			return this;
 		}
+
+		/** @deprecated use {@link #replaceFilters(List)} */
+		@Deprecated
 		public Builder gatewayFilters(List<GatewayFilter> gatewayFilters) {
+			return replaceFilters(gatewayFilters);
+		}
+
+		public Builder replaceFilters(List<GatewayFilter> gatewayFilters) {
 			this.gatewayFilters = gatewayFilters;
 			return this;
 		}
 
-		public Builder add(GatewayFilter webFilter) {
-			this.gatewayFilters.add(webFilter);
+		/** @deprecated use {@link #filter(GatewayFilter)} */
+		@Deprecated
+		public Builder add(GatewayFilter gatewayFilter) {
+			return filter(gatewayFilter);
+		}
+
+		public Builder filter(GatewayFilter gatewayFilter) {
+			this.gatewayFilters.add(gatewayFilter);
 			return this;
 		}
 
+		/** @deprecated use {@link #filters(Collection)} */
+		@Deprecated
 		public Builder addAll(Collection<GatewayFilter> gatewayFilters) {
+			return filters(gatewayFilters);
+		}
+
+		public Builder filters(Collection<GatewayFilter> gatewayFilters) {
 			this.gatewayFilters.addAll(gatewayFilters);
 			return this;
+		}
+
+		public Builder filters(GatewayFilter... gatewayFilters) {
+			return filters(Arrays.asList(gatewayFilters));
 		}
 
 		public Route build() {

@@ -85,7 +85,7 @@ public class GatewayFilterSpec extends UriSpec {
 
 	public GatewayFilterSpec filter(GatewayFilter gatewayFilter) {
 		if (gatewayFilter instanceof Ordered) {
-			this.routeBuilder.add(gatewayFilter);
+			this.routeBuilder.filter(gatewayFilter);
 			return this;
 		}
 		return this.filter(gatewayFilter, 0);
@@ -93,12 +93,12 @@ public class GatewayFilterSpec extends UriSpec {
 
 	public GatewayFilterSpec filter(GatewayFilter gatewayFilter, int order) {
 		if (gatewayFilter instanceof Ordered) {
-			this.routeBuilder.add(gatewayFilter);
+			this.routeBuilder.filter(gatewayFilter);
 			log.warn("GatewayFilter already implements ordered "+gatewayFilter.getClass()
 					+ "ignoring order parameter: "+order);
 			return this;
 		}
-		this.routeBuilder.add(new OrderedGatewayFilter(gatewayFilter, order));
+		this.routeBuilder.filter(new OrderedGatewayFilter(gatewayFilter, order));
 		return this;
 	}
 
@@ -110,12 +110,12 @@ public class GatewayFilterSpec extends UriSpec {
 	}
 
 	public GatewayFilterSpec filters(GatewayFilter... gatewayFilters) {
-		this.routeBuilder.addAll(Arrays.asList(gatewayFilters));
+		this.routeBuilder.filters(gatewayFilters);
 		return this;
 	}
 
 	public GatewayFilterSpec filters(Collection<GatewayFilter> gatewayFilters) {
-		this.routeBuilder.addAll(gatewayFilters);
+		this.routeBuilder.filters(gatewayFilters);
 		return this;
 	}
 
