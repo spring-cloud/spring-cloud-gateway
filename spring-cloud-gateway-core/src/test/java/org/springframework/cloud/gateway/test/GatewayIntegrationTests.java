@@ -23,12 +23,17 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.config.GatewayProperties;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
+import org.springframework.cloud.gateway.filter.headers.ForwardedHeadersFilter;
+import org.springframework.cloud.gateway.filter.headers.XForwardedHeadersFilter;
 import org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
@@ -45,9 +50,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.cloud.gateway.test.TestUtils.assertStatus;
 import static org.springframework.cloud.gateway.test.TestUtils.getMap;
-
-import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -71,6 +73,34 @@ public class GatewayIntegrationTests extends BaseWebClientTests {
 				.consumeWith(result -> {
 					Map<String, Object> headers = getMap(result.getResponseBody(), "headers");
 					assertThat(headers).containsEntry(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_UTF8_VALUE);
+				});
+	}
+
+
+	@Test
+	public void forwardedHeadersWork() {
+		testClient.get()
+				.uri("/headers")
+				.exchange()
+				.expectStatus().isOk()
+				.expectBody(Map.class)
+				.consumeWith(result -> {
+					Map<String, Object> headers = getMap(result.getResponseBody(), "headers");
+					assertThat(headers).containsKeys(ForwardedHeadersFilter.FORWARDED_HEADER,
+							XForwardedHeadersFilter.X_FORWARDED_FOR_HEADER,
+							XForwardedHeadersFilter.X_FORWARDED_HOST_HEADER,
+							XForwardedHeadersFilter.X_FORWARDED_PORT_HEADER,
+							XForwardedHeadersFilter.X_FORWARDED_PROTO_HEADER);
+					assertThat(headers.get(ForwardedHeadersFilter.FORWARDED_HEADER))
+							.asString().contains("proto=http")
+							.contains("host=\"localhost:")
+							.contains("for=\"127.0.0.1:");
+					assertThat(headers.get(XForwardedHeadersFilter.X_FORWARDED_HOST_HEADER))
+							.asString().isEqualTo("localhost:"+this.port);
+					assertThat(headers.get(XForwardedHeadersFilter.X_FORWARDED_PORT_HEADER))
+							.asString().isEqualTo(""+this.port);
+					assertThat(headers.get(XForwardedHeadersFilter.X_FORWARDED_PROTO_HEADER))
+							.asString().isEqualTo("http");
 				});
 	}
 

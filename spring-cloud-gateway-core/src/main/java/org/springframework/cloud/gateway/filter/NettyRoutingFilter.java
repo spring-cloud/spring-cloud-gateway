@@ -21,8 +21,8 @@ import java.net.URI;
 import java.util.List;
 
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.cloud.gateway.filter.headers.HttpHeadersFilter;
 import org.springframework.core.Ordered;
-import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.NettyDataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -36,7 +36,6 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.P
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.isAlreadyRouted;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.setAlreadyRouted;
 
-import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import reactor.core.publisher.Mono;
@@ -79,7 +78,7 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 		final String url = requestUrl.toString();
 
 		HttpHeaders filtered = HttpHeadersFilter.filter(this.headersFilters.getIfAvailable(),
-				request.getHeaders());
+				request);
 
 		final DefaultHttpHeaders httpHeaders = new DefaultHttpHeaders();
 		filtered.forEach(httpHeaders::set);

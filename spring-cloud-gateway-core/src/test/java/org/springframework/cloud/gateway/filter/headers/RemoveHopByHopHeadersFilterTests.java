@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  *
  */
 
-package org.springframework.cloud.gateway.filter;
+package org.springframework.cloud.gateway.filter.headers;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -26,7 +26,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.cloud.gateway.filter.RemoveHopByHopHeadersFilter.HEADERS_REMOVED_ON_REQUEST;
+import static org.springframework.cloud.gateway.filter.headers.RemoveHopByHopHeadersFilter.HEADERS_REMOVED_ON_REQUEST;
 
 /**
  * @author Spencer Gibb
@@ -67,7 +67,7 @@ public class RemoveHopByHopHeadersFilterTests {
 
 	private void testFilter(MockServerHttpRequest request, String... additionalHeaders) {
 		RemoveHopByHopHeadersFilter filter = new RemoveHopByHopHeadersFilter();
-		HttpHeaders headers = filter.filter(request.getHeaders());
+		HttpHeaders headers = filter.filter(request);
 
 		Set<String> toRemove = new HashSet<>(HEADERS_REMOVED_ON_REQUEST);
 		toRemove.addAll(Arrays.asList(additionalHeaders));

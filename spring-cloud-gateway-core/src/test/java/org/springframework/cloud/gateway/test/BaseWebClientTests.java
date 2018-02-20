@@ -27,6 +27,9 @@ import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.SpringBootConfiguration;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.route.Route;
@@ -111,6 +114,9 @@ public class BaseWebClientTests {
 		private void addHeaders(ServerWebExchange exchange, HashMap<String, Object> map) {
 			HashMap<String, String> headers = new HashMap<>();
 			exchange.getRequest().getHeaders().forEach((name, values) -> {
+				if (log.isDebugEnabled()) {
+					log.debug("Header, name: "+name+", "+values);
+				}
 				headers.put(name, values.get(0));
 			});
 
@@ -193,6 +199,15 @@ public class BaseWebClientTests {
 				return chain.filter(exchange);
 			};
 		}
+	}
+
+	@EnableAutoConfiguration
+	@SpringBootConfiguration
+	@Import(DefaultTestConfig.class)
+	public static class MainConfig { }
+
+	public static void main(String[] args) {
+		new SpringApplication(MainConfig.class).run(args);
 	}
 
 	protected static class TestRibbonConfig {

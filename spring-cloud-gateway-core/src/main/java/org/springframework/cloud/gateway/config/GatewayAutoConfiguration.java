@@ -35,10 +35,11 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.cloud.gateway.actuate.GatewayControllerEndpoint;
 import org.springframework.cloud.gateway.filter.ForwardRoutingFilter;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
-import org.springframework.cloud.gateway.filter.HttpHeadersFilter;
+import org.springframework.cloud.gateway.filter.headers.ForwardedHeadersFilter;
+import org.springframework.cloud.gateway.filter.headers.HttpHeadersFilter;
 import org.springframework.cloud.gateway.filter.NettyRoutingFilter;
 import org.springframework.cloud.gateway.filter.NettyWriteResponseFilter;
-import org.springframework.cloud.gateway.filter.RemoveHopByHopHeadersFilter;
+import org.springframework.cloud.gateway.filter.headers.RemoveHopByHopHeadersFilter;
 import org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter;
 import org.springframework.cloud.gateway.filter.WebsocketRoutingFilter;
 import org.springframework.cloud.gateway.filter.factory.AddRequestHeaderGatewayFilterFactory;
@@ -62,6 +63,7 @@ import org.springframework.cloud.gateway.filter.factory.SetRequestHeaderGatewayF
 import org.springframework.cloud.gateway.filter.factory.SetResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SetStatusGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.StripPrefixGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.headers.XForwardedHeadersFilter;
 import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
 import org.springframework.cloud.gateway.filter.ratelimit.PrincipalNameKeyResolver;
 import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter;
@@ -214,8 +216,20 @@ public class GatewayAutoConfiguration {
 	// HttpHeaderFilter beans
 
 	@Bean
+	@ConditionalOnProperty(name = "spring.cloud.gateway.forwarded.enabled", matchIfMissing = true)
+	public ForwardedHeadersFilter forwardedHeadersFilter() {
+		return new ForwardedHeadersFilter();
+	}
+
+	@Bean
 	public RemoveHopByHopHeadersFilter removeHopByHopHeadersFilter() {
 		return new RemoveHopByHopHeadersFilter();
+	}
+
+	@Bean
+	@ConditionalOnProperty(name = "spring.cloud.gateway.x-forwarded.enabled", matchIfMissing = true)
+	public XForwardedHeadersFilter xForwardedHeadersFilter() {
+		return new XForwardedHeadersFilter();
 	}
 
 
