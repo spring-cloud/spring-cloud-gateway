@@ -29,6 +29,7 @@ import org.springframework.core.Ordered;
 import org.springframework.util.Assert;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.web.util.UriComponentsBuilder;
 
 /**
  * @author Spencer Gibb
@@ -56,7 +57,7 @@ public class Route implements Ordered {
 				.order(routeDefinition.getOrder());
 	}
 
-	public Route(String id, URI uri, int order, Predicate<ServerWebExchange> predicate, List<GatewayFilter> gatewayFilters) {
+	private Route(String id, URI uri, int order, Predicate<ServerWebExchange> predicate, List<GatewayFilter> gatewayFilters) {
 		this.id = id;
 		this.uri = uri;
 		this.order = order;
@@ -82,18 +83,25 @@ public class Route implements Ordered {
 			return this;
 		}
 
-		public Builder uri(String uri) {
-			this.uri = URI.create(uri);
-			return this;
-		}
-
 		public Builder order(int order) {
 			this.order = order;
 			return this;
 		}
 
+		public Builder uri(String uri) {
+			return uri(URI.create(uri));
+		}
+
 		public Builder uri(URI uri) {
 			this.uri = uri;
+			if (this.uri.getPort() < 0 && this.uri.getScheme().startsWith("http")) {
+				// default known http ports
+				int port = this.uri.getScheme().equals("https") ? 443 : 80;
+				this.uri = UriComponentsBuilder.fromUri(this.uri)
+						.port(port)
+						.build(false)
+						.toUri();
+			}
 			return this;
 		}
 

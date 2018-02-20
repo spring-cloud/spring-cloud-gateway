@@ -150,8 +150,11 @@ public class RouteToRequestUrlFilterTests {
 	}
 
 	private ServerWebExchange testFilter(MockServerHttpRequest request, String url) {
-		Route value = new Route("1", URI.create(url), 0,
-				swe -> true, Collections.emptyList());
+		Route value = Route.builder().id("1")
+				.uri(URI.create(url))
+				.order(0)
+				.predicate(swe -> true)
+				.build();
 
 		ServerWebExchange exchange = MockServerWebExchange.from(request);
 		exchange.getAttributes().put(GATEWAY_ROUTE_ATTR, value);

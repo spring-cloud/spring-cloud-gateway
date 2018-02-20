@@ -92,7 +92,7 @@ class RouteDslTests {
 		StepVerifier.create(routerLocator.routes)
 				.expectNextMatches({ r ->
 					r.id == "test" &&
-							r.uri == URI.create("http://httpbin.org") &&
+							r.uri == URI.create("http://httpbin.org:80") &&
 							r.order == 10 &&
 							r.id == "test" &&
 							r.predicate.test(MockServerWebExchange
