@@ -43,6 +43,9 @@ for details on setting up your build system with the current Spring Cloud Releas
 </mediaobject>
 </informalfigure>
 <simpara>Clients make requests to Spring Cloud Gateway. If the Gateway Handler Mapping determines that a request matches a Route, it is sent to the Gateway Web Handler. This handler runs sends the request through a filter chain that is specific to the request. The reason the filters are divided by the dotted line, is that filters may execute logic before the proxy request is sent or after. All "pre" filter logic is executed, then the proxy request is made. After the proxy request is made, the "post" filter logic is executed.</simpara>
+<note>
+<simpara>URIs defined in routes without a port will get a default port set to 80 and 443 for HTTP and HTTPS URIs respectively.</simpara>
+</note>
 </chapter>
 <chapter xml:id="gateway-request-predicates-factories">
 <title>Route Predicate Factories</title>
