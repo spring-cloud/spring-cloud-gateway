@@ -53,6 +53,7 @@ import org.springframework.cloud.gateway.filter.factory.RemoveNonProxyHeadersGat
 import org.springframework.cloud.gateway.filter.factory.RemoveRequestHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RemoveResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RequestRateLimiterGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.RetryGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SaveSessionGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory;
@@ -378,6 +379,11 @@ public class GatewayAutoConfiguration {
 	@Bean
 	public RewritePathGatewayFilterFactory rewritePathGatewayFilterFactory() {
 		return new RewritePathGatewayFilterFactory();
+	}
+
+	@Bean
+	public RetryGatewayFilterFactory retryGatewayFilterFactory() {
+		return new RetryGatewayFilterFactory();
 	}
 
 	@Bean

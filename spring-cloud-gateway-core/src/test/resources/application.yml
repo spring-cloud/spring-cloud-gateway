@@ -132,6 +132,14 @@ spring:
         - RemoveResponseHeader=X-Request-Foo
 
       # =====================================
+      - id: retry_test
+        uri: ${test.uri}
+        predicates:
+        - Path=/retry
+        filters:
+        - Retry
+
+      # =====================================
       - id: secure_headers_test
         uri: ${test.uri}
         predicates:

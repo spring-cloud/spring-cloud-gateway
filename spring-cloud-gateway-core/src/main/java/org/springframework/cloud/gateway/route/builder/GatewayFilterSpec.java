@@ -22,8 +22,11 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import com.netflix.hystrix.HystrixObservableCommand;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import reactor.retry.Repeat;
+
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.OrderedGatewayFilter;
@@ -38,6 +41,7 @@ import org.springframework.cloud.gateway.filter.factory.RemoveNonProxyHeadersGat
 import org.springframework.cloud.gateway.filter.factory.RemoveRequestHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RemoveResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RequestRateLimiterGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.RetryGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SaveSessionGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory;
@@ -49,10 +53,10 @@ import org.springframework.cloud.gateway.filter.factory.StripPrefixGatewayFilter
 import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.core.Ordered;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.tuple.Tuple;
-
-import com.netflix.hystrix.HystrixObservableCommand;
+import org.springframework.web.server.ServerWebExchange;
 
 import static org.springframework.tuple.TupleBuilder.tuple;
 
@@ -200,6 +204,36 @@ public class GatewayFilterSpec extends UriSpec {
 
 	public GatewayFilterSpec rewritePath(String regex, String replacement) {
 		return filter(getBean(RewritePathGatewayFilterFactory.class).apply(regex, replacement));
+	}
+
+	/**
+	 * 5xx errors and GET are retryable
+	 * @param retries max number of retries
+	 */
+	public GatewayFilterSpec retry(int retries) {
+		return filter(getBean(RetryGatewayFilterFactory.class)
+				.apply(new RetryGatewayFilterFactory.Retry()
+						.retries(retries)));
+	}
+
+	/**
+	 * @param retries max number of retries
+	 * @param httpStatusSeries the http status series that is retryable
+	 * @param httpMethod the http method that is retryable
+	 */
+	public GatewayFilterSpec retry(int retries, HttpStatus.Series httpStatusSeries, HttpMethod httpMethod) {
+		return retry(new RetryGatewayFilterFactory.Retry()
+						.retries(retries)
+						.series(httpStatusSeries)
+						.methods(httpMethod));
+	}
+
+	public GatewayFilterSpec retry(RetryGatewayFilterFactory.Retry retry) {
+		return filter(getBean(RetryGatewayFilterFactory.class).apply(retry));
+	}
+
+	public GatewayFilterSpec retry(Repeat<ServerWebExchange> repeat) {
+		return filter(getBean(RetryGatewayFilterFactory.class).apply(repeat));
 	}
 
 	public GatewayFilterSpec secureHeaders() {
