@@ -20,19 +20,25 @@ package org.springframework.cloud.gateway.test.websocket;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Duration;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.netflix.loadbalancer.Server;
+import com.netflix.loadbalancer.ServerList;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.reactivestreams.Publisher;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.core.publisher.MonoProcessor;
+import reactor.core.publisher.ReplayProcessor;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -69,16 +75,9 @@ import org.springframework.web.reactive.socket.server.support.WebSocketHandlerAd
 import org.springframework.web.reactive.socket.server.upgrade.ReactorNettyRequestUpgradeStrategy;
 import org.springframework.web.server.adapter.WebHttpHandlerBuilder;
 
-import com.netflix.loadbalancer.Server;
-import com.netflix.loadbalancer.ServerList;
-
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import reactor.core.publisher.MonoProcessor;
-import reactor.core.publisher.ReplayProcessor;
+import static org.springframework.cloud.gateway.filter.WebsocketRoutingFilter.SEC_WEBSOCKET_PROTOCOL;
 
 /**
  * Original is here {@see https://github.com/spring-projects/spring-framework/blob/master/spring-webflux/src/test/java/org/springframework/web/reactive/socket/WebSocketIntegrationTests.java}
@@ -207,6 +206,7 @@ public class WebSocketIntegrationTests {
 	@Test
 	public void subProtocol() throws Exception {
 		String protocol = "echo-v1";
+		String protocol2 = "echo-v2";
 		AtomicReference<HandshakeInfo> infoRef = new AtomicReference<>();
 		MonoProcessor<Object> output = MonoProcessor.create();
 
@@ -214,7 +214,7 @@ public class WebSocketIntegrationTests {
 				new WebSocketHandler() {
 					@Override
 					public List<String> getSubProtocols() {
-						return Collections.singletonList(protocol);
+						return Arrays.asList(protocol, protocol2);
 					}
 					@Override
 					public Mono<Void> handle(WebSocketSession session) {
@@ -228,10 +228,17 @@ public class WebSocketIntegrationTests {
 				.block(Duration.ofMillis(5000));
 
 		HandshakeInfo info = infoRef.get();
-		assertThat(info.getHeaders().getFirst("Upgrade"), Matchers.equalToIgnoringCase("websocket"));
-		assertEquals(protocol, info.getHeaders().getFirst("Sec-WebSocket-Protocol"));
-		assertEquals("Wrong protocol accepted", protocol, info.getSubProtocol());
-		assertEquals("Wrong protocol detected on the server side", protocol, output.block(Duration.ofMillis(5000)));
+		assertThat(info.getHeaders().getFirst("Upgrade"))
+				.isEqualToIgnoringCase("websocket");
+
+		assertThat(info.getHeaders().getFirst("Sec-WebSocket-Protocol"))
+				.isEqualTo(protocol);
+		assertThat(info.getSubProtocol())
+				.as("Wrong protocol accepted")
+				.isEqualTo(protocol);
+		assertThat(output.block(Duration.ofSeconds(5)))
+                .as("Wrong protocol detected on the server side")
+				.isEqualTo(protocol);
 	}
 
 	@Test
@@ -263,7 +270,7 @@ public class WebSocketIntegrationTests {
 
 		@Override
 		public List<String> getSubProtocols() {
-			return Collections.singletonList("echo-v1");
+			return Arrays.asList("echo-v1", "echo-v2");
 		}
 
 		@Override
@@ -272,6 +279,8 @@ public class WebSocketIntegrationTests {
 			if (!StringUtils.hasText(protocol)) {
 				return Mono.error(new IllegalStateException("Missing protocol"));
 			}
+			List<String> protocols = session.getHandshakeInfo().getHeaders().get(SEC_WEBSOCKET_PROTOCOL);
+			assertThat(protocols).contains("echo-v1,echo-v2");
 			WebSocketMessage message = session.textMessage(protocol);
 			return doSend(session, Mono.just(message));
 		}

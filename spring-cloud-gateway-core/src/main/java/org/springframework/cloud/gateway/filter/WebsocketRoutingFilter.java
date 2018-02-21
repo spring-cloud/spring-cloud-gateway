@@ -2,8 +2,12 @@ package org.springframework.cloud.gateway.filter;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.core.Ordered;
@@ -18,8 +22,7 @@ import org.springframework.web.server.ServerWebExchange;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.isAlreadyRouted;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.setAlreadyRouted;
-
-import reactor.core.publisher.Mono;
+import static org.springframework.util.StringUtils.commaDelimitedListToStringArray;
 
 /**
  * @author Spencer Gibb
@@ -60,6 +63,12 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 				headers);
 
 		List<String> protocols = headers.get(SEC_WEBSOCKET_PROTOCOL);
+		if (protocols != null) {
+			protocols = headers.get(SEC_WEBSOCKET_PROTOCOL).stream()
+					.flatMap(header -> Arrays.stream(commaDelimitedListToStringArray(header)))
+					.map(String::trim)
+					.collect(Collectors.toList());
+		}
 
 		return this.webSocketService.handleRequest(exchange,
 				new ProxyWebSocketHandler(requestUrl, this.webSocketClient,
