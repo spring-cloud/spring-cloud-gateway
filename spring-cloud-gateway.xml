@@ -37,7 +37,7 @@ for details on setting up your build system with the current Spring Cloud Releas
 <informalfigure>
 <mediaobject>
 <imageobject>
-<imagedata fileref="https://raw.githubusercontent.com/spring-cloud/spring-cloud-gateway/2.0.x/docs/src/main/asciidoc/images/spring_cloud_gateway_diagram.png"/>
+<imagedata fileref="https://raw.githubusercontent.com/spring-cloud/spring-cloud-gateway/master/docs/src/main/asciidoc/images/spring_cloud_gateway_diagram.png"/>
 </imageobject>
 <textobject><phrase>Spring Cloud Gateway Diagram</phrase></textobject>
 </mediaobject>
