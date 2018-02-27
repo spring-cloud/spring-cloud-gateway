@@ -38,23 +38,4 @@ public class PreserveHostHeaderGatewayFilterFactory implements GatewayFilterFact
 			return chain.filter(exchange);
 		};
 	}
-
-	/*public static class RequestMutator implements ProxyRequestMutator<HttpClientRequest> {
-		@Override
-		public void mutate(ServerWebExchange exchange, HttpClientRequest request) {
-			boolean preserveHost = exchange.getAttributeOrDefault(PRESERVE_HOST_HEADER_ATTRIBUTE, false);
-			if (preserveHost) {
-				String host = exchange.getRequest().getHeaders().getFirst(HttpHeaders.HOST);
-				if (StringUtils.isEmpty(host)) {
-					List<String> hosts = exchange.getAttribute(ORIGINAL_HOST_HEADER_ATTRIBUTE);
-					if (!CollectionUtils.isEmpty(hosts)) {
-						host = hosts.get(0);
-					}
-				}
-				if (!StringUtils.isEmpty(host)) {
-					request.header(HttpHeaders.HOST, host);
-				}
-			}
-		}
-	}*/
 }
