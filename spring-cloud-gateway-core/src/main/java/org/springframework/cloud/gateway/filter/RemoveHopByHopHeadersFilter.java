@@ -5,9 +5,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
 
+@ConfigurationProperties("spring.cloud.gateway.filter.remove-hop-by-hop")
 public class RemoveHopByHopHeadersFilter implements HttpHeadersFilter, Ordered {
 
 	public static final Set<String> HEADERS_REMOVED_ON_REQUEST =
@@ -26,9 +28,25 @@ public class RemoveHopByHopHeadersFilter implements HttpHeadersFilter, Ordered {
 					// "content-length",
 					));
 
+	private int order = Ordered.LOWEST_PRECEDENCE;
+
+	private Set<String> headers = HEADERS_REMOVED_ON_REQUEST;
+
+	public Set<String> getHeaders() {
+		return headers;
+	}
+
+	public void setHeaders(Set<String> headers) {
+		this.headers = headers;
+	}
+
 	@Override
 	public int getOrder() {
-		return Ordered.LOWEST_PRECEDENCE;
+		return order;
+	}
+
+	public void setOrder(int order) {
+		this.order = order;
 	}
 
 	@Override
@@ -36,7 +54,7 @@ public class RemoveHopByHopHeadersFilter implements HttpHeadersFilter, Ordered {
 		HttpHeaders filtered = new HttpHeaders();
 		List<String> connection = original.getConnection();
 		Set<String> toFilter = new HashSet<>(connection);
-		toFilter.addAll(HEADERS_REMOVED_ON_REQUEST);
+		toFilter.addAll(this.headers);
 
 		original.entrySet().stream()
 				.filter(entry -> !toFilter.contains(entry.getKey().toLowerCase()))

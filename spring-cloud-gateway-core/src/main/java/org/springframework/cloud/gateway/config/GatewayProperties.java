@@ -26,12 +26,9 @@ import javax.validation.constraints.NotNull;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.cloud.gateway.filter.FilterDefinition;
-import org.springframework.cloud.gateway.filter.factory.RemoveNonProxyHeadersGatewayFilterFactory;
 import org.springframework.cloud.gateway.route.RouteDefinition;
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
-
-import static org.springframework.cloud.gateway.support.NameUtils.normalizeFilterName;
 
 /**
  * @author Spencer Gibb
@@ -50,18 +47,10 @@ public class GatewayProperties {
 	/**
 	 * List of filter definitions that are applied to every route.
 	 */
-	private List<FilterDefinition> defaultFilters = loadDefaults();
+	private List<FilterDefinition> defaultFilters = new ArrayList<>();
 
 	private List<MediaType> streamingMediaTypes = Arrays.asList(MediaType.TEXT_EVENT_STREAM,
 			MediaType.APPLICATION_STREAM_JSON);
-
-	private ArrayList<FilterDefinition> loadDefaults() {
-		ArrayList<FilterDefinition> defaults = new ArrayList<>();
-		FilterDefinition definition = new FilterDefinition();
-		definition.setName(normalizeFilterName(RemoveNonProxyHeadersGatewayFilterFactory.class));
-		defaults.add(definition);
-		return defaults;
-	}
 
 	public List<RouteDefinition> getRoutes() {
 		return routes;

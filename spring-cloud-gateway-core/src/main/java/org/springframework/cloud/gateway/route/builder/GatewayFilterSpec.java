@@ -37,7 +37,6 @@ import org.springframework.cloud.gateway.filter.factory.HystrixGatewayFilterFact
 import org.springframework.cloud.gateway.filter.factory.PrefixPathGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.PreserveHostHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RedirectToGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.RemoveNonProxyHeadersGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RemoveRequestHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RemoveResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RequestRateLimiterGatewayFilterFactory;
@@ -173,14 +172,6 @@ public class GatewayFilterSpec extends UriSpec {
 
 	public GatewayFilterSpec redirect(HttpStatus status, URL url) {
 		return filter(getBean(RedirectToGatewayFilterFactory.class).apply(status, url));
-	}
-
-	public GatewayFilterSpec removeNonProxyHeaders() {
-		return filter(getBean(RemoveNonProxyHeadersGatewayFilterFactory.class).apply(EMPTY_TUPLE));
-	}
-
-	public GatewayFilterSpec removeNonProxyHeaders(String... headersToRemove) {
-		return filter(getBean(RemoveNonProxyHeadersGatewayFilterFactory.class).apply(Arrays.asList(headersToRemove)));
 	}
 
 	public GatewayFilterSpec removeRequestHeader(String headerName) {
