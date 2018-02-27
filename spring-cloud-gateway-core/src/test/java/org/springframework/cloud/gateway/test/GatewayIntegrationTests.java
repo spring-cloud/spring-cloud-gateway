@@ -24,7 +24,6 @@ import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
@@ -39,16 +38,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.server.ServerWebExchange;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
-import static org.springframework.cloud.gateway.test.TestUtils.assertStatus;
 import static org.springframework.cloud.gateway.test.TestUtils.getMap;
 
 @RunWith(SpringRunner.class)
@@ -106,48 +102,31 @@ public class GatewayIntegrationTests extends BaseWebClientTests {
 
 	@Test
 	public void compositeRouteWorks() {
-		Mono<ClientResponse> result = webClient.get()
-				.uri("/headers?foo=bar&baz")
+		testClient.get().uri("/headers?foo=bar&baz")
 				.header("Host", "www.foo.org")
 				.header("X-Request-Id", "123")
 				.cookie("chocolate", "chip")
-				.exchange();
-
-		StepVerifier.create(result)
-				.consumeNextWith(
-						response -> {
-							assertStatus(response, HttpStatus.OK);
-							HttpHeaders httpHeaders = response.headers().asHttpHeaders();
-							assertThat(httpHeaders.getFirst(HANDLER_MAPPER_HEADER))
-									.isEqualTo(RoutePredicateHandlerMapping.class.getSimpleName());
-							assertThat(httpHeaders.getFirst(ROUTE_ID_HEADER))
-									.isEqualTo("host_foo_path_headers_to_httpbin");
-							assertThat(httpHeaders.getFirst("X-Response-Foo"))
-									.isEqualTo("Bar");
-						})
-				.expectComplete()
-				.verify();
+				.exchange()
+				.expectStatus().isOk()
+				.expectHeader().valueEquals(HANDLER_MAPPER_HEADER,
+                        RoutePredicateHandlerMapping.class.getSimpleName())
+				.expectHeader().valueEquals(ROUTE_ID_HEADER, "host_foo_path_headers_to_httpbin")
+				.expectHeader().valueEquals("X-Response-Foo", "Bar");
 	}
 
 	@Test
 	public void defaultFiltersWorks() {
 		assertThat(this.properties.getDefaultFilters()).isNotEmpty();
 
-		Mono<ClientResponse> result = webClient.get()
-				.uri("/headers")
+		testClient.get().uri("/headers")
 				.header("Host", "www.addresponseheader.org")
-				.exchange();
-
-		StepVerifier.create(result)
-				.consumeNextWith(
-						response -> {
-							HttpHeaders httpHeaders = response.headers().asHttpHeaders();
-							assertThat(httpHeaders.getFirst("X-Response-Default-Foo"))
-									.isEqualTo("Default-Bar");
-							assertThat(httpHeaders.get("X-Response-Default-Foo")).hasSize(1);
-						})
-				.expectComplete()
-				.verify(DURATION);
+				.exchange()
+				.expectStatus().isOk()
+				.expectHeader().valueEquals("X-Response-Default-Foo", "Default-Bar")
+				.returnResult(Object.class).consumeWith(result -> {
+                        HttpHeaders httpHeaders = result.getResponseHeaders();
+                        assertThat(httpHeaders.get("X-Response-Default-Foo")).hasSize(1);
+                });
 	}
 
 	@Test
