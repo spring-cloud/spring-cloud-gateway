@@ -49,7 +49,7 @@ public class InMemoryRouteDefinitionRepository implements RouteDefinitionReposit
 				routes.remove(id);
 				return Mono.empty();
 			}
-			return Mono.error(new NotFoundException("RouteDefinition not found: "+routeId));
+			return Mono.defer(() -> Mono.error(new NotFoundException("RouteDefinition not found: "+routeId)));
 		});
 	}
 
