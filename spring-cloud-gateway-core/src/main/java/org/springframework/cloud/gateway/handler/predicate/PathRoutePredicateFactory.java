@@ -21,6 +21,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.http.server.PathContainer;
 import org.springframework.tuple.Tuple;
 import org.springframework.web.server.ServerWebExchange;
@@ -28,7 +31,6 @@ import org.springframework.web.util.pattern.PathPattern;
 import org.springframework.web.util.pattern.PathPattern.PathMatchInfo;
 import org.springframework.web.util.pattern.PathPatternParser;
 
-import static org.springframework.cloud.gateway.handler.support.RoutePredicateFactoryUtils.traceMatch;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.URI_TEMPLATE_VARIABLES_ATTRIBUTE;
 import static org.springframework.http.server.PathContainer.parsePath;
 
@@ -36,6 +38,7 @@ import static org.springframework.http.server.PathContainer.parsePath;
  * @author Spencer Gibb
  */
 public class PathRoutePredicateFactory implements RoutePredicateFactory {
+	private static final Log log = LogFactory.getLog(RoutePredicateFactory.class);
 
 	private PathPatternParser pathPatternParser = new PathPatternParser();
 
@@ -75,4 +78,13 @@ public class PathRoutePredicateFactory implements RoutePredicateFactory {
 			}
 		};
 	}
+
+	private static void traceMatch(String prefix, Object desired, Object actual, boolean match) {
+		if (log.isTraceEnabled()) {
+			String message = String.format("%s \"%s\" %s against value \"%s\"",
+					prefix, desired, match ? "matches" : "does not match", actual);
+			log.trace(message);
+		}
+	}
+
 }
