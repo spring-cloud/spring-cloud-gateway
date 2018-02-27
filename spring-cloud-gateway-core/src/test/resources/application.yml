@@ -98,6 +98,12 @@ spring:
         - Host=**.loadbalancerclient.org
 
       # =====================================
+      - id: load_balancer_client_empty_test
+        uri: lb://serviceshouldnotexistanywhere
+        predicates:
+        - Host=**.loadbalancerclientempty.org
+
+      # =====================================
       - id: method_test
         uri: ${test.uri}
         predicates:

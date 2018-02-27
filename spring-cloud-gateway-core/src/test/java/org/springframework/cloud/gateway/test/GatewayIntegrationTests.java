@@ -152,21 +152,19 @@ public class GatewayIntegrationTests extends BaseWebClientTests {
 
 	@Test
 	public void loadBalancerFilterWorks() {
-		Mono<ClientResponse> result = webClient.get()
-				.uri("/get")
+		testClient.get().uri("/get")
 				.header("Host", "www.loadbalancerclient.org")
-				.exchange();
+				.exchange()
+				.expectStatus().isOk()
+				.expectHeader().valueEquals(ROUTE_ID_HEADER, "load_balancer_client_test");
+	}
 
-		StepVerifier.create(result)
-				.consumeNextWith(
-						response -> {
-							assertStatus(response, HttpStatus.OK);
-							HttpHeaders httpHeaders = response.headers().asHttpHeaders();
-							assertThat(httpHeaders.getFirst(ROUTE_ID_HEADER))
-									.isEqualTo("load_balancer_client_test");
-						})
-				.expectComplete()
-				.verify(DURATION);
+	@Test
+	public void loadBalancerFilterNoClientWorks() {
+		testClient.get().uri("/get")
+				.header("Host", "www.loadbalancerclientempty.org")
+				.exchange()
+				.expectStatus().is5xxServerError();
 	}
 
 	@EnableAutoConfiguration
