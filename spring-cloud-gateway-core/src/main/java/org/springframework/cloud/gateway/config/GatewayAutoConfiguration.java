@@ -111,6 +111,8 @@ import reactor.ipc.netty.options.ClientProxyOptions;
 import reactor.ipc.netty.resources.PoolResources;
 import rx.RxReactiveStreams;
 
+import static org.springframework.cloud.gateway.config.HttpClientProperties.Pool.PoolType.FIXED;
+
 /**
  * @author Spencer Gibb
  */
@@ -134,7 +136,18 @@ public class GatewayAutoConfiguration {
 		@Bean
 		public Consumer<? super HttpClientOptions.Builder> nettyClientOptions(HttpClientProperties properties) {
 			return opts -> {
-				opts.poolResources(PoolResources.elastic("proxy"));
+
+				HttpClientProperties.Pool pool = properties.getPool();
+
+				PoolResources poolResources;
+				if (pool.getType() == FIXED) {
+					poolResources = PoolResources.fixed(pool.getName(),
+							pool.getMaxConnections(), pool.getAcquireTimeout());
+				} else {
+					poolResources = PoolResources.elastic(pool.getName());
+				}
+
+				opts.poolResources(poolResources);
 
 				// configure proxy if proxy host is set.
 				HttpClientProperties.Proxy proxy = properties.getProxy();

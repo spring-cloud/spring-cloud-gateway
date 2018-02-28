@@ -18,6 +18,7 @@
 package org.springframework.cloud.gateway.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import reactor.ipc.netty.resources.PoolResources;
 
 /**
  * Configuration properties for the Netty {@link reactor.ipc.netty.http.client.HttpClient}
@@ -25,8 +26,19 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties("spring.cloud.gateway.httpclient")
 public class HttpClientProperties {
 
+	/** Pool configuration for Netty HttpClient */
+	private Pool pool = new Pool();
+
 	/** Proxy configuration for Netty HttpClient */
 	private Proxy proxy = new Proxy();
+
+	public Pool getPool() {
+		return pool;
+	}
+
+	public void setPool(Pool pool) {
+		this.pool = pool;
+	}
 
 	public Proxy getProxy() {
 		return proxy;
@@ -34,6 +46,65 @@ public class HttpClientProperties {
 
 	public void setProxy(Proxy proxy) {
 		this.proxy = proxy;
+	}
+
+	public static class Pool {
+
+		public enum PoolType { ELASTIC, FIXED }
+
+		/** Type of pool for HttpClient to use, defaults to ELASTIC. */
+		private PoolType type = PoolType.ELASTIC;
+
+		/** The channel pool map name, defaults to proxy. */
+		private String name = "proxy";
+
+		/** Only for type FIXED, the maximum number of connections before starting pending acquisition on existing ones. */
+		private Integer maxConnections = PoolResources.DEFAULT_POOL_MAX_CONNECTION;
+
+		/** Only for type FIXED, the maximum time in millis to wait for aquiring. */
+		private Long acquireTimeout = PoolResources.DEFAULT_POOL_ACQUIRE_TIMEOUT;
+
+		public PoolType getType() {
+			return type;
+		}
+
+		public void setType(PoolType type) {
+			this.type = type;
+		}
+
+		public String getName() {
+			return name;
+		}
+
+		public void setName(String name) {
+			this.name = name;
+		}
+
+		public Integer getMaxConnections() {
+			return maxConnections;
+		}
+
+		public void setMaxConnections(Integer maxConnections) {
+			this.maxConnections = maxConnections;
+		}
+
+		public Long getAcquireTimeout() {
+			return acquireTimeout;
+		}
+
+		public void setAcquireTimeout(Long acquireTimeout) {
+			this.acquireTimeout = acquireTimeout;
+		}
+
+		@Override
+		public String toString() {
+			return "Pool{" +
+					"type=" + type +
+					", name='" + name + '\'' +
+					", maxConnections=" + maxConnections +
+					", acquireTimeout=" + acquireTimeout +
+					'}';
+		}
 	}
 
 	public class Proxy {
@@ -99,5 +170,13 @@ public class HttpClientProperties {
 					", nonProxyHostsPattern='" + nonProxyHostsPattern + '\'' +
 					'}';
 		}
+	}
+
+	@Override
+	public String toString() {
+		return "HttpClientProperties{" +
+				"pool=" + pool +
+				", proxy=" + proxy +
+				'}';
 	}
 }
