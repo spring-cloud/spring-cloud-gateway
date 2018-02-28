@@ -32,6 +32,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.web.reactive.HttpHandlerAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.cloud.gateway.actuate.GatewayControllerEndpoint;
 import org.springframework.cloud.gateway.filter.ForwardRoutingFilter;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
@@ -94,6 +95,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.DispatcherHandler;
 import org.springframework.web.reactive.socket.client.ReactorNettyWebSocketClient;
 import org.springframework.web.reactive.socket.client.WebSocketClient;
@@ -105,6 +107,7 @@ import com.netflix.hystrix.HystrixObservableCommand;
 import reactor.core.publisher.Flux;
 import reactor.ipc.netty.http.client.HttpClient;
 import reactor.ipc.netty.http.client.HttpClientOptions;
+import reactor.ipc.netty.options.ClientProxyOptions;
 import reactor.ipc.netty.resources.PoolResources;
 import rx.RxReactiveStreams;
 
@@ -129,11 +132,42 @@ public class GatewayAutoConfiguration {
 		}
 
 		@Bean
-		public Consumer<? super HttpClientOptions.Builder> nettyClientOptions() {
+		public Consumer<? super HttpClientOptions.Builder> nettyClientOptions(HttpClientProperties properties) {
 			return opts -> {
 				opts.poolResources(PoolResources.elastic("proxy"));
-				// opts.disablePool(); //TODO: why do I need this again?
+
+				// configure proxy if proxy host is set.
+				HttpClientProperties.Proxy proxy = properties.getProxy();
+				if (StringUtils.hasText(proxy.getHost())) {
+					opts.proxy(typeSpec -> {
+						ClientProxyOptions.Builder builder = typeSpec
+								.type(ClientProxyOptions.Proxy.HTTP)
+								.host(proxy.getHost());
+
+						PropertyMapper map = PropertyMapper.get();
+
+						map.from(proxy::getPort)
+								.whenNonNull()
+								.to(builder::port);
+						map.from(proxy::getUsername)
+								.whenHasText()
+								.to(builder::username);
+						map.from(proxy::getPassword)
+								.whenHasText()
+								.to(password -> builder.password(s -> password));
+						map.from(proxy::getNonProxyHostsPattern)
+								.whenHasText()
+								.to(builder::nonProxyHosts);
+
+						return builder;
+					});
+				}
 			};
+		}
+
+		@Bean
+		public HttpClientProperties httpClientProperties() {
+			return new HttpClientProperties();
 		}
 
 		@Bean
