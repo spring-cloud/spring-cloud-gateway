@@ -32,6 +32,9 @@ public class HttpClientProperties {
 	/** Proxy configuration for Netty HttpClient */
 	private Proxy proxy = new Proxy();
 
+	/** SSL configuration for Netty HttpClient */
+	private Ssl ssl = new Ssl();
+
 	public Pool getPool() {
 		return pool;
 	}
@@ -46,6 +49,14 @@ public class HttpClientProperties {
 
 	public void setProxy(Proxy proxy) {
 		this.proxy = proxy;
+	}
+
+	public Ssl getSsl() {
+		return ssl;
+	}
+
+	public void setSsl(Ssl ssl) {
+		this.ssl = ssl;
 	}
 
 	public static class Pool {
@@ -168,6 +179,28 @@ public class HttpClientProperties {
 					", username='" + username + '\'' +
 					", password='" + password + '\'' +
 					", nonProxyHostsPattern='" + nonProxyHostsPattern + '\'' +
+					'}';
+		}
+	}
+
+	public class Ssl {
+		/** Installs the netty InsecureTrustManagerFactory. This is insecure and not suitable for production. */
+		private boolean useInsecureTrustManager = false;
+
+		//TODO: support configuration of other trust manager factories
+
+		public boolean isUseInsecureTrustManager() {
+			return useInsecureTrustManager;
+		}
+
+		public void setUseInsecureTrustManager(boolean useInsecureTrustManager) {
+			this.useInsecureTrustManager = useInsecureTrustManager;
+		}
+
+		@Override
+		public String toString() {
+			return "Ssl{" +
+					"useInsecureTrustManager=" + useInsecureTrustManager +
 					'}';
 		}
 	}

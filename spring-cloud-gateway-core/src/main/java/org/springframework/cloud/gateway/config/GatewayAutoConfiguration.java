@@ -20,6 +20,7 @@ package org.springframework.cloud.gateway.config;
 import java.util.List;
 import java.util.function.Consumer;
 
+import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.actuate.autoconfigure.endpoint.condition.ConditionalOnEnabledEndpoint;
@@ -137,6 +138,16 @@ public class GatewayAutoConfiguration {
 		public Consumer<? super HttpClientOptions.Builder> nettyClientOptions(HttpClientProperties properties) {
 			return opts -> {
 
+				// configure ssl
+				HttpClientProperties.Ssl ssl = properties.getSsl();
+
+				if (ssl.isUseInsecureTrustManager()) {
+					opts.sslSupport(sslContextBuilder -> {
+						sslContextBuilder.trustManager(InsecureTrustManagerFactory.INSTANCE);
+					});
+				}
+
+				// configure pool resources
 				HttpClientProperties.Pool pool = properties.getPool();
 
 				PoolResources poolResources;
