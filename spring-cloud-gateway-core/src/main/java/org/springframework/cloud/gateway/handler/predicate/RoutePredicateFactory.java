@@ -42,8 +42,11 @@ public interface RoutePredicateFactory<C> extends ShortcutConfigurable, Configur
 	default Predicate<ServerWebExchange> apply(Consumer<C> consumer) {
 		C config = newConfig();
 		consumer.accept(config);
+		beforeApply(config);
 		return apply(config);
 	}
+
+	default void beforeApply(C config) {}
 
 	//TODO: remove after apply(Tuple) removed
 	@Override

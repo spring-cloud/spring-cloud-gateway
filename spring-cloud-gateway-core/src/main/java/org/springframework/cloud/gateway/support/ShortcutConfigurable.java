@@ -115,6 +115,10 @@ public interface ShortcutConfigurable {
 		return Collections.emptyList();
 	}
 
+	default String shortcutFieldPrefix() {
+		return "";
+	}
+
 	/**
 	 * Validate supplied argument size against {@see #shortcutFieldOrder} size.
 	 * Useful for variable arg predicates.

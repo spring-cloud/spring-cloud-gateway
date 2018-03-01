@@ -36,6 +36,7 @@ import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.cloud.gateway.actuate.GatewayControllerEndpoint;
 import org.springframework.cloud.gateway.filter.ForwardRoutingFilter;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
+import org.springframework.cloud.gateway.filter.WeightCalculatorWebFilter;
 import org.springframework.cloud.gateway.filter.NettyRoutingFilter;
 import org.springframework.cloud.gateway.filter.NettyWriteResponseFilter;
 import org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter;
@@ -81,6 +82,7 @@ import org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFac
 import org.springframework.cloud.gateway.handler.predicate.QueryRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.RemoteAddrRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory;
+import org.springframework.cloud.gateway.handler.predicate.WeightRoutePredicateFactory;
 import org.springframework.cloud.gateway.route.CachingRouteLocator;
 import org.springframework.cloud.gateway.route.CompositeRouteDefinitionLocator;
 import org.springframework.cloud.gateway.route.CompositeRouteLocator;
@@ -96,8 +98,10 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Primary;
 import org.springframework.util.StringUtils;
+import org.springframework.validation.Validator;
 import org.springframework.web.reactive.DispatcherHandler;
 import org.springframework.web.reactive.socket.client.ReactorNettyWebSocketClient;
 import org.springframework.web.reactive.socket.client.WebSocketClient;
@@ -323,6 +327,11 @@ public class GatewayAutoConfiguration {
 		return new WebsocketRoutingFilter(webSocketClient, webSocketService, headersFilters);
 	}
 
+	@Bean
+	public WeightCalculatorWebFilter weightCalculatorWebFilter(Validator validator) {
+		return new WeightCalculatorWebFilter(validator);
+	}
+
 	/*@Bean
 	//TODO: default over netty? configurable
 	public WebClientHttpRoutingFilter webClientHttpRoutingFilter() {
@@ -385,6 +394,12 @@ public class GatewayAutoConfiguration {
 	@Bean
 	public RemoteAddrRoutePredicateFactory remoteAddrRoutePredicateFactory() {
 		return new RemoteAddrRoutePredicateFactory();
+	}
+
+	@Bean
+	@DependsOn("weightCalculatorWebFilter")
+	public WeightRoutePredicateFactory weightRoutePredicateFactory() {
+		return new WeightRoutePredicateFactory();
 	}
 
 	// GatewayFilter Factory beans
