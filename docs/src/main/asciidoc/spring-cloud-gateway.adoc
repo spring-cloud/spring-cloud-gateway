@@ -334,9 +334,8 @@ spring:
           args:
             name: fallbackcmd
             fallbackUri: forward:/fallbackcontroller
-
-This will forward to the `/fallbackcontroller` when the Hystrix fallback is called.
 ----
+This will forward to the `/fallbackcontroller` when the Hystrix fallback is called.
 
 
 === PrefixPath GatewayFilter Factory
