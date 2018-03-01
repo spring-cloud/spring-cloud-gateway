@@ -11,7 +11,6 @@
 	<description>Spring Cloud Gateway Sample</description>
 
 	<properties>
-		<kotlin.version>1.1.51</kotlin.version>
 	</properties>
 
 	<parent>
@@ -57,26 +56,27 @@
 		<dependency>
 			<groupId>org.jetbrains.kotlin</groupId>
 			<artifactId>kotlin-stdlib</artifactId>
-			<version>${kotlin.version}</version>
 			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.jetbrains.kotlin</groupId>
 			<artifactId>kotlin-reflect</artifactId>
-			<version>${kotlin.version}</version>
 			<optional>true</optional>
 		</dependency>
 	</dependencies>
 	<build>
 		<plugins>
 			<plugin>
-				<artifactId>kotlin-maven-plugin</artifactId>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>			
+			<plugin>
 				<groupId>org.jetbrains.kotlin</groupId>
-				<version>${kotlin.version}</version>
+				<artifactId>kotlin-maven-plugin</artifactId>
 				<configuration>
-					<compilerPlugins>
-						<plugin>spring</plugin>
-					</compilerPlugins>
+					<args>
+						<arg>-Xjsr305=strict</arg>
+					</args>
 					<jvmTarget>1.8</jvmTarget>
 				</configuration>
 				<executions>
@@ -107,13 +107,6 @@
 						</configuration>
 					</execution>
 				</executions>
-				<dependencies>
-					<dependency>
-						<groupId>org.jetbrains.kotlin</groupId>
-						<artifactId>kotlin-maven-allopen</artifactId>
-						<version>${kotlin.version}</version>
-					</dependency>
-				</dependencies>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
