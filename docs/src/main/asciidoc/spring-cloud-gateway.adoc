@@ -719,24 +719,26 @@ To allow for simple configuration in Java, there is a fluent API defined in the 
 ----
 // static imports from GatewayFilters and RoutePredicates
 @Bean
-public RouteLocator customRouteLocator(ThrottleGatewayFilterFactory throttle) {
-    return Routes.locator()
-            .route("test")
-                .predicate(host("**.abc.org").and(path("/image/png")))
-                .addResponseHeader("X-TestHeader", "foobar")
+public RouteLocator customRouteLocator(RouteLocatorBuilder builder, ThrottleGatewayFilterFactory throttle) {
+    return builder.routes()
+            .route(r -> r.host("**.abc.org").and().path("/image/png")
+                .filters(f ->
+                        f.addResponseHeader("X-TestHeader", "foobar"))
                 .uri("http://httpbin.org:80")
-            .route("test2")
-                .predicate(path("/image/webp"))
-                .add(addResponseHeader("X-AnotherHeader", "baz"))
+            )
+            .route(r -> r.path("/image/webp")
+                .filters(f ->
+                        f.addResponseHeader("X-AnotherHeader", "baz"))
                 .uri("http://httpbin.org:80")
-            .route("test3")
-                .order(-1)
-                .predicate(host("**.throttle.org").and(path("/get")))
-                .add(throttle.apply(tuple().of("capacity", 1,
-                     "refillTokens", 1,
-                     "refillPeriod", 10,
-                     "refillUnit", "SECONDS")))
+            )
+            .route(r -> r.order(-1)
+                .host("**.throttle.org").and().path("/get")
+                .filters(f -> f.filter(throttle.apply(1,
+                        1,
+                        10,
+                        TimeUnit.SECONDS)))
                 .uri("http://httpbin.org:80")
+            )
             .build();
 }
 ----
