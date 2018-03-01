@@ -334,11 +334,10 @@ for details on setting up your build system with the current Spring Cloud Releas
         - name: Hystrix
           args:
             name: fallbackcmd
-            fallbackUri: forward:/fallbackcontroller
-
-This will forward to the `/fallbackcontroller` when the Hystrix fallback is called.</programlisting>
+            fallbackUri: forward:/fallbackcontroller</programlisting>
 </para>
 </formalpara>
+<simpara>This will forward to the <literal>/fallbackcontroller</literal> when the Hystrix fallback is called.</simpara>
 </section>
 <section xml:id="_prefixpath_gatewayfilter_factory">
 <title>PrefixPath GatewayFilter Factory</title>

@@ -47,10 +47,8 @@
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        - name</span>: Hystrix
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">          args</span>:
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">            name</span>: fallbackcmd
-<span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">            fallbackUri</span>: forward:/fallbackcontroller
-
-This will forward to the `/fallbackcontroller` when the Hystrix fallback is called.</pre><p>
-</p></div><div class="section"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="_prefixpath_gatewayfilter_factory" href="#_prefixpath_gatewayfilter_factory"></a>5.5&nbsp;PrefixPath GatewayFilter Factory</h2></div></div></div><p>The PrefixPath GatewayFilter Factory takes a single <code class="literal">prefix</code> parameter.</p><p><b>application.yml.&nbsp;</b>
+<span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">            fallbackUri</span>: forward:/fallbackcontroller</pre><p>
+</p><p>This will forward to the <code class="literal">/fallbackcontroller</code> when the Hystrix fallback is called.</p></div><div class="section"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="_prefixpath_gatewayfilter_factory" href="#_prefixpath_gatewayfilter_factory"></a>5.5&nbsp;PrefixPath GatewayFilter Factory</h2></div></div></div><p>The PrefixPath GatewayFilter Factory takes a single <code class="literal">prefix</code> parameter.</p><p><b>application.yml.&nbsp;</b>
 </p><pre class="programlisting"><span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">spring</span>:
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">  cloud</span>:
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">    gateway</span>:
