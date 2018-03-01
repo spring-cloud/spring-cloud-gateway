@@ -758,24 +758,26 @@ using something like <link xl:href="http://projects.spring.io/spring-session/">S
 <para>
 <programlisting language="java" linenumbering="unnumbered">// static imports from GatewayFilters and RoutePredicates
 @Bean
-public RouteLocator customRouteLocator(ThrottleGatewayFilterFactory throttle) {
-    return Routes.locator()
-            .route("test")
-                .predicate(host("**.abc.org").and(path("/image/png")))
-                .addResponseHeader("X-TestHeader", "foobar")
+public RouteLocator customRouteLocator(RouteLocatorBuilder builder, ThrottleGatewayFilterFactory throttle) {
+    return builder.routes()
+            .route(r -&gt; r.host("**.abc.org").and().path("/image/png")
+                .filters(f -&gt;
+                        f.addResponseHeader("X-TestHeader", "foobar"))
                 .uri("http://httpbin.org:80")
-            .route("test2")
-                .predicate(path("/image/webp"))
-                .add(addResponseHeader("X-AnotherHeader", "baz"))
+            )
+            .route(r -&gt; r.path("/image/webp")
+                .filters(f -&gt;
+                        f.addResponseHeader("X-AnotherHeader", "baz"))
                 .uri("http://httpbin.org:80")
-            .route("test3")
-                .order(-1)
-                .predicate(host("**.throttle.org").and(path("/get")))
-                .add(throttle.apply(tuple().of("capacity", 1,
-                     "refillTokens", 1,
-                     "refillPeriod", 10,
-                     "refillUnit", "SECONDS")))
+            )
+            .route(r -&gt; r.order(-1)
+                .host("**.throttle.org").and().path("/get")
+                .filters(f -&gt; f.filter(throttle.apply(1,
+                        1,
+                        10,
+                        TimeUnit.SECONDS)))
                 .uri("http://httpbin.org:80")
+            )
             .build();
 }</programlisting>
 </para>
