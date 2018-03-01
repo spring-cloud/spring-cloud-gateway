@@ -47,8 +47,9 @@ public class BooleanSpec extends UriSpec {
 		return new BooleanOpSpec(routeBuilder, builder, OR);
 	}
 
-	public BooleanOpSpec negate() {
-		return new BooleanOpSpec(routeBuilder, builder, NEGATE);
+	public BooleanSpec negate() {
+		this.routeBuilder.negate();
+		return new BooleanSpec(routeBuilder, builder);
 	}
 
 	public UriSpec filters(Function<GatewayFilterSpec, UriSpec> fn) {

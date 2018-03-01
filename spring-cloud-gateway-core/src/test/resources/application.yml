@@ -223,10 +223,18 @@ spring:
         - AddRequestHeader=X-Request-Baz, Bat
 
       # =====================================
+      - id: weight_passes_test
+        uri: ${test.uri}
+        predicates:
+        - Host=**.weightpasses.org
+        - Weight=group1, 0.0, 1.0
+
+      # =====================================
       - id: header_test
         uri: ${test.uri}
         predicates:
         - Header=Foo, .*
+
       # =====================================
       - id: default_path_to_httpbin
         uri: ${test.uri}
