@@ -40,51 +40,52 @@ import reactor.ipc.netty.http.client.HttpClientRequest;
 import reactor.ipc.netty.resources.PoolResources;
 
 public abstract class HandlerFunctions {
-	private static final List<MediaType> streamingMediaTypes = Arrays.asList(MediaType.TEXT_EVENT_STREAM,
-			MediaType.APPLICATION_STREAM_JSON);
+	private static final List<MediaType> streamingMediaTypes = Arrays
+			.asList(MediaType.TEXT_EVENT_STREAM, MediaType.APPLICATION_STREAM_JSON);
 
 	public static HandlerFunction<ServerResponse> http(String uri) {
 		return http(URI.create(uri));
 	}
 
-    public static HandlerFunction<ServerResponse> http(URI uri) {
-		HttpClient httpClient = HttpClient.create(opts ->
-				opts.poolResources(PoolResources.elastic("proxy")));
+	public static HandlerFunction<ServerResponse> http(URI uri) {
+		HttpClient httpClient = HttpClient
+				.create(opts -> opts.poolResources(PoolResources.elastic("proxy")));
 
 		return request -> {
 			// TODO: filter?
 			boolean encoded = containsEncodedQuery(uri);
 			URI requestUrl = UriComponentsBuilder.fromUri(request.uri()).uri(uri)
-					.build(encoded)
-					.toUri();
+					.build(encoded).toUri();
 
 			final DefaultHttpHeaders httpHeaders = new DefaultHttpHeaders();
 			request.headers().asHttpHeaders().forEach(httpHeaders::set);
 			HttpMethod method = HttpMethod.valueOf(request.methodName());
 
-			return httpClient
-					.request(method, requestUrl.toString(), req -> {
-						HttpClientRequest proxyRequest = req
-								.options(NettyPipeline.SendOptions::flushOnEach)
-								.headers(httpHeaders).failOnServerError(false)
-								.failOnClientError(false);
+			return httpClient.request(method, requestUrl.toString(), req -> {
+				HttpClientRequest proxyRequest = req
+						.options(NettyPipeline.SendOptions::flushOnEach)
+						.headers(httpHeaders).failOnServerError(false)
+						.failOnClientError(false);
 
-						Flux<ByteBuf> body = request
-								.body((inputMessage, context) -> inputMessage.getBody())
-								.map(NettyDataBufferFactory::toByteBuf);
-						return proxyRequest.sendHeaders().send(body);
-					}).flatMap(res -> ServerResponse.status(res.status().code())
-							.headers(responseHeaders -> res.responseHeaders().names().forEach(name ->
-									responseHeaders.addAll(name, res.responseHeaders().getAll(name))))
-							.body((outputMessage, context) -> {
-								NettyDataBufferFactory factory = (NettyDataBufferFactory) outputMessage
-										.bufferFactory();
-								Flux<NettyDataBuffer> body = res.receive().retain() // needed?
-										.map(factory::wrap);
-								String contentType = res.responseHeaders().get(HttpHeaderNames.CONTENT_TYPE);
-								return (isStreamingMediaType(contentType) ?
-										outputMessage.writeAndFlushWith(body.map(Flux::just)) : outputMessage.writeWith(body));
-							}));
+				Flux<ByteBuf> body = request
+						.body((inputMessage, context) -> inputMessage.getBody())
+						.map(NettyDataBufferFactory::toByteBuf);
+				return proxyRequest.sendHeaders().send(body);
+			}).flatMap(res -> ServerResponse.status(res.status().code())
+					.headers(responseHeaders -> res.responseHeaders().names()
+							.forEach(name -> responseHeaders.addAll(name,
+									res.responseHeaders().getAll(name))))
+					.body((outputMessage, context) -> {
+						NettyDataBufferFactory factory = (NettyDataBufferFactory) outputMessage
+								.bufferFactory();
+						Flux<NettyDataBuffer> body = res.receive().retain() // needed?
+								.map(factory::wrap);
+						String contentType = res.responseHeaders()
+								.get(HttpHeaderNames.CONTENT_TYPE);
+						return (isStreamingMediaType(contentType)
+								? outputMessage.writeAndFlushWith(body.map(Flux::just))
+								: outputMessage.writeWith(body));
+					}));
 		};
 	}
 
@@ -93,8 +94,8 @@ public abstract class HandlerFunctions {
 			return false;
 		}
 		MediaType mediaType = MediaType.valueOf(contentType);
-		return (mediaType != null && streamingMediaTypes.stream()
-				.anyMatch(mediaType::isCompatibleWith));
+		return (mediaType != null
+				&& streamingMediaTypes.stream().anyMatch(mediaType::isCompatibleWith));
 	}
 
 	public static boolean containsEncodedQuery(URI uri) {
