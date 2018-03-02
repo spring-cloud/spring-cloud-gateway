@@ -244,8 +244,6 @@ logging:
     reactor.ipc.netty: DEBUG
     redisratelimiter: DEBUG
 
-management:
-  context-path: /admin
 eureka:
   client:
     enabled: false
