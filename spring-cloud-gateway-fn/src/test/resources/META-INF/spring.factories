@@ -1,0 +1,3 @@
+# Gateway Fn Routes
+org.springframework.cloud.gateway.fn.RouterFunctionLocator=\
+org.springframework.cloud.gateway.fn.TestRouterFunctionLocator

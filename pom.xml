@@ -136,6 +136,7 @@
 		<module>spring-cloud-gateway-core</module>
 		<module>spring-cloud-starter-gateway</module>
 		<module>spring-cloud-gateway-sample</module>
+		<module>spring-cloud-gateway-fn</module>
 		<module>docs</module>
 	</modules>
 
