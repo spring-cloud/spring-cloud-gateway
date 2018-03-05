@@ -22,36 +22,41 @@ import java.util.List;
 import java.util.function.Predicate;
 
 import org.springframework.http.HttpMethod;
-import org.springframework.tuple.Tuple;
 import org.springframework.web.server.ServerWebExchange;
 
 /**
  * @author Spencer Gibb
  */
-public class MethodRoutePredicateFactory implements RoutePredicateFactory {
+public class MethodRoutePredicateFactory extends AbstractRoutePredicateFactory<MethodRoutePredicateFactory.Config> {
 
 	public static final String METHOD_KEY = "method";
 
+	public MethodRoutePredicateFactory() {
+		super(Config.class);
+	}
+
 	@Override
-	public List<String> argNames() {
+	public List<String> shortcutFieldOrder() {
 		return Arrays.asList(METHOD_KEY);
 	}
 
 	@Override
-	public Predicate<ServerWebExchange> apply(Tuple args) {
-		String method = args.getString(METHOD_KEY);
-		return apply(method);
-	}
-
-	public Predicate<ServerWebExchange> apply(String method) {
-		HttpMethod httpMethod = HttpMethod.resolve(method);
-		return apply(httpMethod);
-	}
-
-	public Predicate<ServerWebExchange> apply(HttpMethod httpMethod) {
+	public Predicate<ServerWebExchange> apply(Config config) {
 		return exchange -> {
 			HttpMethod requestMethod = exchange.getRequest().getMethod();
-			return requestMethod == httpMethod;
+			return requestMethod == config.getMethod();
 		};
+	}
+
+	public static class Config {
+		private HttpMethod method;
+
+		public HttpMethod getMethod() {
+			return method;
+		}
+
+		public void setMethod(HttpMethod method) {
+			this.method = method;
+		}
 	}
 }

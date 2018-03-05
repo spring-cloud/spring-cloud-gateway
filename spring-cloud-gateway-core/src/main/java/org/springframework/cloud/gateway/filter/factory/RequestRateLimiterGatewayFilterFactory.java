@@ -20,22 +20,24 @@ package org.springframework.cloud.gateway.filter.factory;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
 import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter;
+import org.springframework.cloud.gateway.route.Route;
+import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.http.HttpStatus;
-import org.springframework.tuple.Tuple;
 
 /**
  * User Request Rate Limiter filter. See https://stripe.com/blog/rate-limiters and
  */
-public class RequestRateLimiterGatewayFilterFactory implements GatewayFilterFactory {
+public class RequestRateLimiterGatewayFilterFactory extends AbstractGatewayFilterFactory<RequestRateLimiterGatewayFilterFactory.Config> {
 
 	public static final String KEY_RESOLVER_KEY = "keyResolver";
 
-	private final RateLimiter rateLimiter;
+	private final RateLimiter defaultRateLimiter;
 	private final KeyResolver defaultKeyResolver;
 
-	public RequestRateLimiterGatewayFilterFactory(RateLimiter rateLimiter,
-			KeyResolver defaultKeyResolver) {
-		this.rateLimiter = rateLimiter;
+	public RequestRateLimiterGatewayFilterFactory(RateLimiter defaultRateLimiter,
+												  KeyResolver defaultKeyResolver) {
+		super(Config.class);
+		this.defaultRateLimiter = defaultRateLimiter;
 		this.defaultKeyResolver = defaultKeyResolver;
 	}
 
@@ -43,32 +45,54 @@ public class RequestRateLimiterGatewayFilterFactory implements GatewayFilterFact
 		return defaultKeyResolver;
 	}
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public GatewayFilter apply(Tuple args) {
-
-		KeyResolver keyResolver;
-		if (args.hasFieldName(KEY_RESOLVER_KEY)) {
-			keyResolver = args.getValue(KEY_RESOLVER_KEY, KeyResolver.class);
-		} else {
-			keyResolver = defaultKeyResolver;
-		}
-		return apply(keyResolver, args);
+	public RateLimiter getDefaultRateLimiter() {
+		return defaultRateLimiter;
 	}
 
-	public GatewayFilter apply(KeyResolver keyResolver, Tuple args) {
+	@SuppressWarnings("unchecked")
+	@Override
+	public GatewayFilter apply(Config config) {
+		KeyResolver resolver = (config.keyResolver == null) ? defaultKeyResolver : config.keyResolver;
+		RateLimiter<Object> limiter = (config.rateLimiter == null) ? defaultRateLimiter : config.rateLimiter;
 
-		return (exchange, chain) -> keyResolver.resolve(exchange).flatMap(key ->
-		// TODO: if key is empty?
-		rateLimiter.isAllowed(key, args).flatMap(response -> {
-			// TODO: set some headers for rate, tokens left
+		return (exchange, chain) -> {
+			Route route = exchange.getAttribute(ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR);
 
-			if (response.isAllowed()) {
-				return chain.filter(exchange);
-			}
-			exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
-			return exchange.getResponse().setComplete();
-		}));
+			return resolver.resolve(exchange).flatMap(key ->
+					// TODO: if key is empty?
+					limiter.isAllowed(route.getId(), key).flatMap(response -> {
+						// TODO: set some headers for rate, tokens left
+
+						if (response.isAllowed()) {
+							return chain.filter(exchange);
+						}
+						exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
+						return exchange.getResponse().setComplete();
+					}));
+		};
+	}
+
+	public static class Config {
+		private KeyResolver keyResolver;
+		private RateLimiter rateLimiter;
+
+
+		public KeyResolver getKeyResolver() {
+			return keyResolver;
+		}
+
+		public Config setKeyResolver(KeyResolver keyResolver) {
+			this.keyResolver = keyResolver;
+			return this;
+		}
+		public RateLimiter getRateLimiter() {
+			return rateLimiter;
+		}
+
+		public Config setRateLimiter(RateLimiter rateLimiter) {
+			this.rateLimiter = rateLimiter;
+			return this;
+		}
 	}
 
 }

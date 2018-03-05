@@ -17,33 +17,31 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
-import org.springframework.tuple.Tuple;
-import org.springframework.cloud.gateway.filter.GatewayFilter;
-import org.springframework.http.server.reactive.ServerHttpRequest;
-
 import java.util.Arrays;
 import java.util.List;
+
+import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 
 /**
  * @author Spencer Gibb
  */
-public class RemoveRequestHeaderGatewayFilterFactory implements GatewayFilterFactory {
+public class RemoveRequestHeaderGatewayFilterFactory extends AbstractGatewayFilterFactory<AbstractGatewayFilterFactory.NameConfig> {
+
+	public RemoveRequestHeaderGatewayFilterFactory() {
+		super(NameConfig.class);
+	}
 
 	@Override
-	public List<String> argNames() {
+	public List<String> shortcutFieldOrder() {
 		return Arrays.asList(NAME_KEY);
 	}
 
 	@Override
-	public GatewayFilter apply(Tuple args) {
-		final String header = args.getString(NAME_KEY);
-		return apply(header);
-	}
-
-	public GatewayFilter apply(String header) {
+	public GatewayFilter apply(NameConfig config) {
 		return (exchange, chain) -> {
 			ServerHttpRequest request = exchange.getRequest().mutate()
-					.headers(httpHeaders -> httpHeaders.remove(header))
+					.headers(httpHeaders -> httpHeaders.remove(config.getName()))
 					.build();
 
 			return chain.filter(exchange.mutate().request(request).build());

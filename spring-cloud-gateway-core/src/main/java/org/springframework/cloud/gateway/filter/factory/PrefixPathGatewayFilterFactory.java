@@ -22,9 +22,8 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.tuple.Tuple;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.addOriginalRequestUrl;
@@ -32,28 +31,27 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.a
 /**
  * @author Spencer Gibb
  */
-public class PrefixPathGatewayFilterFactory implements GatewayFilterFactory {
+public class PrefixPathGatewayFilterFactory extends AbstractGatewayFilterFactory<PrefixPathGatewayFilterFactory.Config> {
 
 	private static final Log log = LogFactory.getLog(PrefixPathGatewayFilterFactory.class);
 
 	public static final String PREFIX_KEY = "prefix";
 
+	public PrefixPathGatewayFilterFactory() {
+		super(Config.class);
+	}
+
 	@Override
-	public List<String> argNames() {
+	public List<String> shortcutFieldOrder() {
 		return Arrays.asList(PREFIX_KEY);
 	}
 
 	@Override
-	public GatewayFilter apply(Tuple args) {
-		final String prefix = args.getString(PREFIX_KEY);
-		return apply(prefix);
-	}
-
-	public GatewayFilter apply(String prefix) {
+	public GatewayFilter apply(Config config) {
 		return (exchange, chain) -> {
 			ServerHttpRequest req = exchange.getRequest();
 			addOriginalRequestUrl(exchange, req.getURI());
-			String newPath = prefix + req.getURI().getPath();
+			String newPath = config.prefix + req.getURI().getPath();
 
 			ServerHttpRequest request = req.mutate()
 					.path(newPath)
@@ -62,10 +60,22 @@ public class PrefixPathGatewayFilterFactory implements GatewayFilterFactory {
 			exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, request.getURI());
 
 			if (log.isTraceEnabled()) {
-				log.trace("Prefixed URI with: "+prefix+" -> "+request.getURI());
+				log.trace("Prefixed URI with: "+config.prefix+" -> "+request.getURI());
 			}
 
 			return chain.filter(exchange.mutate().request(request).build());
 		};
+	}
+
+	public static class Config {
+		private String prefix;
+
+		public String getPrefix() {
+			return prefix;
+		}
+
+		public void setPrefix(String prefix) {
+			this.prefix = prefix;
+		}
 	}
 }

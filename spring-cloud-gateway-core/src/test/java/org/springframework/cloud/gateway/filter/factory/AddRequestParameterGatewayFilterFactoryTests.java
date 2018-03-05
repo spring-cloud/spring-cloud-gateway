@@ -24,10 +24,14 @@ import java.util.Map;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.gateway.route.RouteLocator;
+import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
@@ -60,7 +64,16 @@ public class AddRequestParameterGatewayFilterFactoryTests extends BaseWebClientT
 		testRequestParameterFilter("name", "%E6%89%8E%E6%A0%B9");
 	}
 
+	@Test
+	public void addRequestParameterFilterWorksEncodedQueryJavaDsl() {
+		testRequestParameterFilter("www.addreqparamjava.org", "ValueB", "javaname", "%E6%89%8E%E6%A0%B9");
+	}
+
 	private void testRequestParameterFilter(String name, String value) {
+		testRequestParameterFilter("www.addrequestparameter.org", "ValueA", name, value);
+	}
+
+    private void testRequestParameterFilter(String host, String expectedValue, String name, String value) {
 		String query;
 		if (name != null) {
 			query = "?" + name + "=" + value;
@@ -71,12 +84,12 @@ public class AddRequestParameterGatewayFilterFactoryTests extends BaseWebClientT
 		boolean checkForEncodedValue = containsEncodedQuery(uri);
 		testClient.get()
 				.uri(uri)
-				.header("Host", "www.addrequestparameter.org")
+				.header("Host", host)
 				.exchange()
 				.expectBody(Map.class)
 				.consumeWith(response -> {
 					Map<String, Object> args = getMap(response.getResponseBody(), "args");
-                    assertThat(args).containsEntry("foo", "bar");
+                    assertThat(args).containsEntry("example", expectedValue);
                     if (name != null) {
                         if (checkForEncodedValue) {
                             try {
@@ -94,6 +107,19 @@ public class AddRequestParameterGatewayFilterFactoryTests extends BaseWebClientT
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
-	public static class TestConfig { }
+	public static class TestConfig {
+		@Value("${test.uri}")
+		String uri;
+
+		@Bean
+		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
+			return builder.routes()
+					.route("add_request_param_java_test", r ->
+							r.path("/get").and().host("**.addreqparamjava.org")
+									.filters(f -> f.prefixPath("/httpbin").addRequestParameter("example", "ValueB"))
+									.uri(uri))
+					.build();
+		}
+	}
 
 }

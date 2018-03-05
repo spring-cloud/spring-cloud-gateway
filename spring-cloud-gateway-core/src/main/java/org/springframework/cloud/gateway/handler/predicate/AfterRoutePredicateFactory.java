@@ -22,33 +22,45 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 
-import org.springframework.tuple.Tuple;
 import org.springframework.web.server.ServerWebExchange;
+
+import static org.springframework.cloud.gateway.handler.predicate.BetweenRoutePredicateFactory.getZonedDateTime;
 
 /**
  * @author Spencer Gibb
  */
-public class AfterRoutePredicateFactory implements RoutePredicateFactory {
+public class AfterRoutePredicateFactory extends AbstractRoutePredicateFactory<AfterRoutePredicateFactory.Config> {
 
 	public static final String DATETIME_KEY = "datetime";
 
+	public AfterRoutePredicateFactory() {
+		super(Config.class);
+	}
+
 	@Override
-	public List<String> argNames() {
+	public List<String> shortcutFieldOrder() {
 		return Collections.singletonList(DATETIME_KEY);
 	}
 
 	@Override
-	public Predicate<ServerWebExchange> apply(Tuple args) {
-		Object value = args.getValue(DATETIME_KEY);
-		final ZonedDateTime dateTime = BetweenRoutePredicateFactory.getZonedDateTime(value);
-		return apply(dateTime);
-	}
-
-	public Predicate<ServerWebExchange> apply(ZonedDateTime dateTime) {
+	public Predicate<ServerWebExchange> apply(Config config) {
+		ZonedDateTime datetime = getZonedDateTime(config.getDatetime());
 		return exchange -> {
 			final ZonedDateTime now = ZonedDateTime.now();
-			return now.isAfter(dateTime);
+			return now.isAfter(datetime);
 		};
+	}
+
+	public static class Config {
+		private String datetime;
+
+		public String getDatetime() {
+			return datetime;
+		}
+
+		public void setDatetime(String datetime) {
+			this.datetime = datetime;
+		}
 	}
 
 }

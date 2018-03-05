@@ -21,39 +21,66 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 
+import javax.validation.constraints.NotEmpty;
+
 import org.springframework.http.HttpCookie;
-import org.springframework.tuple.Tuple;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.server.ServerWebExchange;
 
 /**
  * @author Spencer Gibb
  */
-public class CookieRoutePredicateFactory implements RoutePredicateFactory {
+public class CookieRoutePredicateFactory extends AbstractRoutePredicateFactory<CookieRoutePredicateFactory.Config> {
 
 	public static final String NAME_KEY = "name";
 	public static final String REGEXP_KEY = "regexp";
 
+	public CookieRoutePredicateFactory() {
+		super(Config.class);
+	}
+
 	@Override
-	public List<String> argNames() {
+	public List<String> shortcutFieldOrder() {
 		return Arrays.asList(NAME_KEY, REGEXP_KEY);
 	}
 
 	@Override
-	public Predicate<ServerWebExchange> apply(Tuple args) {
-		String name = args.getString(NAME_KEY);
-		String regexp = args.getString(REGEXP_KEY);
-		return apply(name, regexp);
-	}
-
-	public Predicate<ServerWebExchange> apply(String name, String regexp) {
+	public Predicate<ServerWebExchange> apply(Config config) {
 		return exchange -> {
-			List<HttpCookie> cookies = exchange.getRequest().getCookies().get(name);
+			List<HttpCookie> cookies = exchange.getRequest().getCookies().get(config.name);
 			for (HttpCookie cookie : cookies) {
-				if (cookie.getValue().matches(regexp)) {
+				if (cookie.getValue().matches(config.regexp)) {
 					return true;
 				}
 			}
 			return false;
 		};
+	}
+
+	@Validated
+	public static class Config {
+
+		@NotEmpty
+		private String name;
+		@NotEmpty
+		private String regexp;
+
+		public String getName() {
+			return name;
+		}
+
+		public Config setName(String name) {
+			this.name = name;
+			return this;
+		}
+
+		public String getRegexp() {
+			return regexp;
+		}
+
+		public Config setRegexp(String regexp) {
+			this.regexp = regexp;
+			return this;
+		}
 	}
 }

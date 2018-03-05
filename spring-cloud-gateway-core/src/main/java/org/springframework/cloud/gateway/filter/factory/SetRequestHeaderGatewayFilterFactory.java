@@ -17,34 +17,19 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
-import java.util.Arrays;
-import java.util.List;
-
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.tuple.Tuple;
 
 /**
  * @author Spencer Gibb
  */
-public class SetRequestHeaderGatewayFilterFactory implements GatewayFilterFactory {
+public class SetRequestHeaderGatewayFilterFactory extends AbstractNameValueGatewayFilterFactory {
 
 	@Override
-	public List<String> argNames() {
-		return Arrays.asList(NAME_KEY, VALUE_KEY);
-	}
-
-	@Override
-	public GatewayFilter apply(Tuple args) {
-		String name = args.getString(NAME_KEY);
-		String value = args.getString(VALUE_KEY);
-		return apply(name, value);
-	}
-
-	public GatewayFilter apply(String name, String value) {
+	public GatewayFilter apply(NameValueConfig config) {
 		return (exchange, chain) -> {
 			ServerHttpRequest request = exchange.getRequest().mutate()
-					.headers(httpHeaders -> httpHeaders.set(name, value))
+					.headers(httpHeaders -> httpHeaders.set(config.name, config.value))
 					.build();
 
 			return chain.filter(exchange.mutate().request(request).build());

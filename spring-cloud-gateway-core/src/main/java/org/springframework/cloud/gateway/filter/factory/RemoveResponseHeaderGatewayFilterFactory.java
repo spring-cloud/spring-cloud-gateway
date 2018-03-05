@@ -20,7 +20,6 @@ package org.springframework.cloud.gateway.filter.factory;
 import java.util.Arrays;
 import java.util.List;
 
-import org.springframework.tuple.Tuple;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 
 import reactor.core.publisher.Mono;
@@ -28,22 +27,21 @@ import reactor.core.publisher.Mono;
 /**
  * @author Spencer Gibb
  */
-public class RemoveResponseHeaderGatewayFilterFactory implements GatewayFilterFactory {
+public class RemoveResponseHeaderGatewayFilterFactory extends AbstractGatewayFilterFactory<AbstractGatewayFilterFactory.NameConfig> {
+
+	public RemoveResponseHeaderGatewayFilterFactory() {
+		super(NameConfig.class);
+	}
 
 	@Override
-	public List<String> argNames() {
+	public List<String> shortcutFieldOrder() {
 		return Arrays.asList(NAME_KEY);
 	}
 
 	@Override
-	public GatewayFilter apply(Tuple args) {
-		final String header = args.getString(NAME_KEY);
-		return apply(header);
-	}
-
-	public GatewayFilter apply(String header) {
+	public GatewayFilter apply(NameConfig config) {
 		return (exchange, chain) -> chain.filter(exchange).then(Mono.fromRunnable(() -> {
-			exchange.getResponse().getHeaders().remove(header);
+			exchange.getResponse().getHeaders().remove(config.getName());
 		}));
 	}
 }

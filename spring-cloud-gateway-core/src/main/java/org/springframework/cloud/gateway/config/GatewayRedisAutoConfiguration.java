@@ -12,7 +12,6 @@ import org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.ResourceLoader;
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -22,6 +21,7 @@ import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.scripting.support.ResourceScriptSource;
+import org.springframework.validation.Validator;
 import org.springframework.web.reactive.DispatcherHandler;
 
 @Configuration
@@ -43,8 +43,7 @@ class GatewayRedisAutoConfiguration {
 	@Bean
 	//TODO: replace with ReactiveStringRedisTemplate in future
 	public ReactiveRedisTemplate<String, String> stringReactiveRedisTemplate(
-			ReactiveRedisConnectionFactory reactiveRedisConnectionFactory,
-			ResourceLoader resourceLoader) {
+			ReactiveRedisConnectionFactory reactiveRedisConnectionFactory) {
 		RedisSerializer<String> serializer = new StringRedisSerializer();
 		RedisSerializationContext<String , String> serializationContext = RedisSerializationContext
 				.<String, String>newSerializationContext()
@@ -59,7 +58,8 @@ class GatewayRedisAutoConfiguration {
 
 	@Bean
 	public RedisRateLimiter redisRateLimiter(ReactiveRedisTemplate<String, String> redisTemplate,
-											 @Qualifier("redisRequestRateLimiterScript") RedisScript<List<Long>> redisScript) {
-		return new RedisRateLimiter(redisTemplate, redisScript);
+											 @Qualifier("redisRequestRateLimiterScript") RedisScript<List<Long>> redisScript,
+											 Validator validator) {
+		return new RedisRateLimiter(redisTemplate, redisScript, validator);
 	}
 }

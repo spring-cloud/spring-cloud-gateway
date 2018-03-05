@@ -22,7 +22,6 @@ import java.util.List;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.tuple.Tuple;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.addOriginalRequestUrl;
@@ -30,29 +29,28 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.a
 /**
  * @author Spencer Gibb
  */
-public class RewritePathGatewayFilterFactory implements GatewayFilterFactory {
+public class RewritePathGatewayFilterFactory extends AbstractGatewayFilterFactory<RewritePathGatewayFilterFactory.Config> {
 
 	public static final String REGEXP_KEY = "regexp";
 	public static final String REPLACEMENT_KEY = "replacement";
 
+	public RewritePathGatewayFilterFactory() {
+		super(Config.class);
+	}
+
 	@Override
-	public List<String> argNames() {
+	public List<String> shortcutFieldOrder() {
 		return Arrays.asList(REGEXP_KEY, REPLACEMENT_KEY);
 	}
 
 	@Override
-	public GatewayFilter apply(Tuple args) {
-		final String regex = args.getString(REGEXP_KEY);
-		String replacement = args.getString(REPLACEMENT_KEY).replace("$\\", "$");
-		return apply(regex, replacement);
-	}
-
-	public GatewayFilter apply(String regex, String replacement) {
+	public GatewayFilter apply(Config config) {
+		String replacement = config.replacement.replace("$\\", "$");
 		return (exchange, chain) -> {
 			ServerHttpRequest req = exchange.getRequest();
 			addOriginalRequestUrl(exchange, req.getURI());
 			String path = req.getURI().getPath();
-			String newPath = path.replaceAll(regex, replacement);
+			String newPath = path.replaceAll(config.regexp, replacement);
 
 			ServerHttpRequest request = req.mutate()
 					.path(newPath)
@@ -62,5 +60,28 @@ public class RewritePathGatewayFilterFactory implements GatewayFilterFactory {
 
 			return chain.filter(exchange.mutate().request(request).build());
 		};
+	}
+
+	public static class Config {
+		private String regexp;
+		private String replacement;
+
+		public String getRegexp() {
+			return regexp;
+		}
+
+		public Config setRegexp(String regexp) {
+			this.regexp = regexp;
+			return this;
+		}
+
+		public String getReplacement() {
+			return replacement;
+		}
+
+		public Config setReplacement(String replacement) {
+			this.replacement = replacement;
+			return this;
+		}
 	}
 }

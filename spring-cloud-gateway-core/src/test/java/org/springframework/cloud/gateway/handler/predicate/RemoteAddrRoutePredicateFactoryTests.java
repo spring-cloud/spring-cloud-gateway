@@ -26,7 +26,7 @@ import reactor.test.StepVerifier;
 public class RemoteAddrRoutePredicateFactoryTests extends BaseWebClientTests {
 
 	@Test
-	public void pathRouteWorks() {
+	public void remoteAddrWorks() {
 		Mono<ClientResponse> result = webClient.get().uri("/ok/httpbin/").exchange();
 
 		StepVerifier.create(result)
@@ -35,7 +35,7 @@ public class RemoteAddrRoutePredicateFactoryTests extends BaseWebClientTests {
 	}
 
 	@Test
-	public void pathRouteDoNotWork() {
+	public void remoteAddrRejects() {
 		Mono<ClientResponse> result = webClient.get().uri("/nok/httpbin/").exchange();
 
 		StepVerifier

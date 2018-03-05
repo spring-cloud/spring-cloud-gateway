@@ -16,7 +16,6 @@
 package org.springframework.cloud.gateway.filter.factory;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
-import org.springframework.tuple.Tuple;
 import org.springframework.web.server.WebSession;
 
 /**
@@ -27,10 +26,10 @@ import org.springframework.web.server.WebSession;
  * 
  * @author Greg Turnquist
  */
-public class SaveSessionGatewayFilterFactory implements GatewayFilterFactory {
+public class SaveSessionGatewayFilterFactory extends AbstractGatewayFilterFactory {
 
 	@Override
-	public GatewayFilter apply(Tuple args) {
+	public GatewayFilter apply(Object config) {
 		return (exchange, chain) -> exchange.getSession()
 			.map(WebSession::save)
 			.then(chain.filter(exchange));

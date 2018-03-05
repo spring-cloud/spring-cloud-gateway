@@ -22,34 +22,57 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.function.Predicate;
 
-import org.springframework.tuple.Tuple;
 import org.springframework.util.Assert;
 import org.springframework.web.server.ServerWebExchange;
 
 /**
  * @author Spencer Gibb
  */
-public class BetweenRoutePredicateFactory implements RoutePredicateFactory {
+public class BetweenRoutePredicateFactory extends AbstractRoutePredicateFactory<BetweenRoutePredicateFactory.Config> {
 
 	public static final String DATETIME1_KEY = "datetime1";
 	public static final String DATETIME2_KEY = "datetime2";
 
-	@Override
-	public Predicate<ServerWebExchange> apply(Tuple args) {
-		//TODO: is ZonedDateTime the right thing to use?
-		final ZonedDateTime dateTime1 = getZonedDateTime(args.getValue(DATETIME1_KEY));
-		final ZonedDateTime dateTime2 = getZonedDateTime(args.getValue(DATETIME2_KEY));
-		return apply(dateTime1, dateTime2);
+	public BetweenRoutePredicateFactory() {
+		super(Config.class);
 	}
 
-	public Predicate<ServerWebExchange> apply(ZonedDateTime dateTime1, ZonedDateTime dateTime2) {
-		Assert.isTrue(dateTime1.isBefore(dateTime2), dateTime1 +
-				" must be before " + dateTime2);
+	@Override
+	public Predicate<ServerWebExchange> apply(Config config) {
+		//TODO: figure out boot conversion
+		ZonedDateTime datetime1 = getZonedDateTime(config.datetime1);
+		ZonedDateTime datetime2 = getZonedDateTime(config.datetime2);
+		Assert.isTrue(datetime1.isBefore(datetime2),
+				config.datetime1 +
+				" must be before " + config.datetime2);
 
 		return exchange -> {
 			final ZonedDateTime now = ZonedDateTime.now();
-			return now.isAfter(dateTime1) && now.isBefore(dateTime2);
+			return now.isAfter(datetime1) && now.isBefore(datetime2);
 		};
+	}
+
+	public static class Config {
+		private String datetime1;
+		private String datetime2;
+
+		public String getDatetime1() {
+			return datetime1;
+		}
+
+		public Config setDatetime1(String datetime1) {
+			this.datetime1 = datetime1;
+			return this;
+		}
+
+		public String getDatetime2() {
+			return datetime2;
+		}
+
+		public Config setDatetime2(String datetime2) {
+			this.datetime2 = datetime2;
+			return this;
+		}
 	}
 
 	public static ZonedDateTime getZonedDateTime(Object value) {

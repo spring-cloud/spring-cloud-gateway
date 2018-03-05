@@ -32,10 +32,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.cloud.gateway.test.TestUtils.getMap;
-import static org.springframework.web.reactive.function.BodyExtractors.toMono;
-
-import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -44,21 +40,16 @@ public class RemoveRequestHeaderGatewayFilterFactoryTests extends BaseWebClientT
 
 	@Test
 	public void removeRequestHeaderFilterWorks() {
-		Mono<Map> result = webClient.get()
+		testClient.get()
 				.uri("/headers")
 				.header("Host", "www.removerequestheader.org")
 				.header("X-Request-Foo", "Bar")
 				.exchange()
-				.flatMap(response -> response.body(toMono(Map.class)));
-
-		StepVerifier.create(result)
-				.consumeNextWith(
-						response -> {
-							Map<String, Object> headers = getMap(response, "headers");
-							assertThat(headers).doesNotContainKey("X-Request-Foo");
-						})
-				.expectComplete()
-				.verify(DURATION);
+				.expectStatus().isOk()
+				.expectBody(Map.class).consumeWith(result -> {
+					Map<String, Object> headers = getMap(result.getResponseBody(), "headers");
+					assertThat(headers).doesNotContainKey("X-Request-Foo");
+				});
 	}
 
 	@EnableAutoConfiguration

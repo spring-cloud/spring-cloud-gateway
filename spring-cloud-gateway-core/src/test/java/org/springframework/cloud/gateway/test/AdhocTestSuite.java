@@ -38,7 +38,7 @@ import org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilter
 import org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactoryTests;
 import org.springframework.cloud.gateway.filter.factory.SetPathGatewayFilterFactoryIntegrationTests;
 import org.springframework.cloud.gateway.filter.factory.SetPathGatewayFilterFactoryTests;
-import org.springframework.cloud.gateway.filter.factory.SetResponseGatewayFilterFactoryTests;
+import org.springframework.cloud.gateway.filter.factory.SetResponseHeaderGatewayFilterFactoryTests;
 import org.springframework.cloud.gateway.filter.factory.SetStatusGatewayFilterFactoryTests;
 import org.springframework.cloud.gateway.filter.headers.ForwardedHeadersFilterTests;
 import org.springframework.cloud.gateway.filter.headers.RemoveHopByHopHeadersFilterTests;
@@ -88,7 +88,7 @@ import static org.junit.Assume.assumeThat;
 		RequestRateLimiterGatewayFilterFactoryTests.class,
 		SetPathGatewayFilterFactoryIntegrationTests.class,
 		AddRequestParameterGatewayFilterFactoryTests.class,
-		SetResponseGatewayFilterFactoryTests.class,
+		SetResponseHeaderGatewayFilterFactoryTests.class,
 		PrincipalNameKeyResolverIntegrationTests.class,
 		RedisRateLimiterTests.class,
 		RouteDefinitionRouteLocatorTests.class,

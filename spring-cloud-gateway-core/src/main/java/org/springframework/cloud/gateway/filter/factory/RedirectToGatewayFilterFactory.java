@@ -23,12 +23,11 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
 
+import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpResponse;
-import org.springframework.tuple.Tuple;
 import org.springframework.util.Assert;
-import org.springframework.cloud.gateway.filter.GatewayFilter;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.parse;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.setResponseStatus;
@@ -38,21 +37,23 @@ import reactor.core.publisher.Mono;
 /**
  * @author Spencer Gibb
  */
-public class RedirectToGatewayFilterFactory implements GatewayFilterFactory {
+public class RedirectToGatewayFilterFactory extends AbstractGatewayFilterFactory<RedirectToGatewayFilterFactory.Config> {
 
 	public static final String STATUS_KEY = "status";
 	public static final String URL_KEY = "url";
 
+	public RedirectToGatewayFilterFactory() {
+		super(Config.class);
+	}
+
 	@Override
-	public List<String> argNames() {
+	public List<String> shortcutFieldOrder() {
 		return Arrays.asList(STATUS_KEY, URL_KEY);
 	}
 
 	@Override
-	public GatewayFilter apply(Tuple args) {
-		String statusString = args.getRawString(STATUS_KEY);
-		String urlString = args.getString(URL_KEY);
-		return apply(statusString, urlString);
+	public GatewayFilter apply(Config config) {
+		return apply(config.status, config.url);
 	}
 
 	public GatewayFilter apply(String statusString, String urlString) {
@@ -80,6 +81,27 @@ public class RedirectToGatewayFilterFactory implements GatewayFilterFactory {
 				}
 				return Mono.empty();
 			}));
+	}
+
+	public static class Config {
+		String status;
+		String url;
+
+		public String getStatus() {
+			return status;
+		}
+
+		public void setStatus(String status) {
+			this.status = status;
+		}
+
+		public String getUrl() {
+			return url;
+		}
+
+		public void setUrl(String url) {
+			this.url = url;
+		}
 	}
 
 }

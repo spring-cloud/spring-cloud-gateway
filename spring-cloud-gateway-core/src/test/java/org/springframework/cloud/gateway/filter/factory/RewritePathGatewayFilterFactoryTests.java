@@ -57,7 +57,7 @@ public class RewritePathGatewayFilterFactoryTests {
 	}
 
 	private ServerWebExchange testRewriteFilter(String regex, String replacement, String actualPath, String expectedPath) {
-		GatewayFilter filter = new RewritePathGatewayFilterFactory().apply(tuple().of(REGEXP_KEY, regex, REPLACEMENT_KEY, replacement));
+		GatewayFilter filter = new RewritePathGatewayFilterFactory().apply(c -> c.setRegexp(regex).setReplacement(replacement));
 
 		URI url = UriComponentsBuilder.fromUriString("http://localhost"+ actualPath).build(true).toUri();
 		MockServerHttpRequest request = MockServerHttpRequest

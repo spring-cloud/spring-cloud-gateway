@@ -35,6 +35,10 @@ public class OrderedGatewayFilter implements GatewayFilter, Ordered {
 		this.order = order;
 	}
 
+	public GatewayFilter getDelegate() {
+		return delegate;
+	}
+
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 		return this.delegate.filter(exchange, chain);

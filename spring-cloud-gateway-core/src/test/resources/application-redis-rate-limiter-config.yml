@@ -1,0 +1,20 @@
+test:
+  uri: lb://myservice
+
+spring:
+  cloud:
+    gateway:
+      default-filters:
+      routes:
+      # =====================================
+      - id: redis_rate_limiter_config_test
+        uri: ${test.uri}
+        predicates:
+        - Path=/
+        filters:
+        - name: RequestRateLimiter
+          args:
+           redis-rate-limiter:
+             replenish-rate: 10
+             burst-capacity: 20
+

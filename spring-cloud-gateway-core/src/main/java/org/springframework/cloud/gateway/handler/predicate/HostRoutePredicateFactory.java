@@ -21,37 +21,58 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 
-import org.springframework.tuple.Tuple;
+import org.springframework.core.style.ToStringCreator;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.PathMatcher;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.server.ServerWebExchange;
 
 /**
  * @author Spencer Gibb
  */
-public class HostRoutePredicateFactory implements RoutePredicateFactory {
+public class HostRoutePredicateFactory extends AbstractRoutePredicateFactory<HostRoutePredicateFactory.Config> {
 
 	private PathMatcher pathMatcher = new AntPathMatcher(".");
+
+	public HostRoutePredicateFactory() {
+		super(Config.class);
+	}
 
 	public void setPathMatcher(PathMatcher pathMatcher) {
 		this.pathMatcher = pathMatcher;
 	}
 
 	@Override
-	public List<String> argNames() {
+	public List<String> shortcutFieldOrder() {
 		return Collections.singletonList(PATTERN_KEY);
 	}
 
 	@Override
-	public Predicate<ServerWebExchange> apply(Tuple args) {
-		String pattern = args.getString(PATTERN_KEY);
-		return apply(pattern);
-	}
-
-	public Predicate<ServerWebExchange> apply(String pattern) {
+	public Predicate<ServerWebExchange> apply(Config config) {
 		return exchange -> {
 			String host = exchange.getRequest().getHeaders().getFirst("Host");
-			return this.pathMatcher.match(pattern, host);
+			return this.pathMatcher.match(config.getPattern(), host);
 		};
+	}
+
+	@Validated
+	public static class Config {
+		private String pattern;
+
+		public String getPattern() {
+			return pattern;
+		}
+
+		public Config setPattern(String pattern) {
+			this.pattern = pattern;
+			return this;
+		}
+
+		@Override
+		public String toString() {
+			return new ToStringCreator(this)
+					.append("pattern", pattern)
+					.toString();
+		}
 	}
 }

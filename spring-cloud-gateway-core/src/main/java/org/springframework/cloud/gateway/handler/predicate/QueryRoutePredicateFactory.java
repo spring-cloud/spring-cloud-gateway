@@ -21,58 +21,76 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 
-import org.springframework.tuple.Tuple;
+import javax.validation.constraints.NotEmpty;
+
 import org.springframework.util.StringUtils;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.server.ServerWebExchange;
 
 /**
  * @author Spencer Gibb
  */
-public class QueryRoutePredicateFactory implements RoutePredicateFactory {
+public class QueryRoutePredicateFactory extends AbstractRoutePredicateFactory<QueryRoutePredicateFactory.Config> {
 
 	public static final String PARAM_KEY = "param";
 	public static final String REGEXP_KEY = "regexp";
 
+	public QueryRoutePredicateFactory() {
+		super(Config.class);
+	}
+
 	@Override
-	public List<String> argNames() {
+	public List<String> shortcutFieldOrder() {
 		return Arrays.asList(PARAM_KEY, REGEXP_KEY);
 	}
 
 	@Override
-	public boolean validateArgs() {
+	public boolean validateFieldsExist() {
 		return false;
 	}
 
 	@Override
-	public Predicate<ServerWebExchange> apply(Tuple args) {
-		validateMin(1, args);
-		String param = args.getString(PARAM_KEY);
-
-		final String regexp;
-		if (args.hasFieldName(REGEXP_KEY)) {
-			regexp = args.getString(REGEXP_KEY);
-		} else {
-			regexp = null;
-		}
-		return apply(param, regexp);
-	}
-
-	public Predicate<ServerWebExchange> apply(String param, String regexp) {
-
+	public Predicate<ServerWebExchange> apply(Config config) {
 		return exchange -> {
-			if (!StringUtils.hasText(regexp)) {
+			if (!StringUtils.hasText(config.regexp)) {
 				// check existence of header
-				return exchange.getRequest().getQueryParams().containsKey(param);
+				return exchange.getRequest().getQueryParams().containsKey(config.param);
 			}
 
 
-			List<String> values = exchange.getRequest().getQueryParams().get(param);
+			List<String> values = exchange.getRequest().getQueryParams().get(config.param);
 			for (String value : values) {
-				if (value.matches(regexp)) {
+				if (value.matches(config.regexp)) {
 					return true;
 				}
 			}
 			return false;
 		};
+	}
+
+	@Validated
+	public static class Config {
+		@NotEmpty
+		private String param;
+
+		private String regexp;
+
+		public String getParam() {
+			return param;
+		}
+
+		public Config setParam(String param) {
+			this.param = param;
+			return this;
+		}
+
+		public String getRegexp() {
+			return regexp;
+		}
+
+		public Config setRegexp(String regexp) {
+			this.regexp = regexp;
+			return this;
+		}
 	}
 }

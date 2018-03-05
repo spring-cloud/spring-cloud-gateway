@@ -8,11 +8,15 @@ import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
 import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter;
 import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter.Response;
+import org.springframework.cloud.gateway.route.Route;
+import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
@@ -25,8 +29,6 @@ import org.springframework.tuple.Tuple;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
-import static org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiter.BURST_CAPACITY_KEY;
-import static org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiter.REPLENISH_RATE_KEY;
 import static org.springframework.tuple.TupleBuilder.tuple;
 
 import reactor.core.publisher.Mono;
@@ -41,7 +43,7 @@ import reactor.core.publisher.Mono;
 public class RequestRateLimiterGatewayFilterFactoryTests extends BaseWebClientTests {
 
 	@Autowired
-	private RequestRateLimiterGatewayFilterFactory filterFactory;
+	private ApplicationContext context;
 
 	@MockBean
 	private RateLimiter rateLimiter;
@@ -70,17 +72,22 @@ public class RequestRateLimiterGatewayFilterFactoryTests extends BaseWebClientTe
 	private void assertFilterFactory(KeyResolver keyResolver, String key, boolean allowed, HttpStatus expectedStatus) {
 
 		Tuple args = tuple().build();
-		when(rateLimiter.isAllowed(key, args))
+		when(rateLimiter.isAllowed("myroute", key))
 				.thenReturn(Mono.just(new Response(allowed, 1)));
-
 
 		MockServerHttpRequest request = MockServerHttpRequest.get("/").build();
 		MockServerWebExchange exchange = MockServerWebExchange.from(request);
 		exchange.getResponse().setStatusCode(HttpStatus.OK);
+		exchange.getAttributes().put(ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR,
+				Route.builder().id("myroute").predicate(ex -> true)
+						.uri("http://localhost").build());
 
 		when(this.filterChain.filter(exchange)).thenReturn(Mono.empty());
 
-		Mono<Void> response = filterFactory.apply(args).filter(exchange, this.filterChain);
+		RequestRateLimiterGatewayFilterFactory factory = this.context.getBean(RequestRateLimiterGatewayFilterFactory.class);
+		GatewayFilter filter = factory.apply(config -> config.setKeyResolver(keyResolver));
+
+		Mono<Void> response = filter.filter(exchange, this.filterChain);
 		response.subscribe(aVoid -> assertThat(exchange.getResponse().getStatusCode())
 				.isEqualTo(expectedStatus));
 

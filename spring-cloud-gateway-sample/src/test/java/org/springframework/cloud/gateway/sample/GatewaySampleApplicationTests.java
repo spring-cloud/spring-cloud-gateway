@@ -28,6 +28,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.util.SocketUtils;
 
+import java.time.Duration;
+
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 /**
@@ -59,7 +61,7 @@ public class GatewaySampleApplicationTests {
 	@Before
 	public void setup() {
 		baseUri = "http://localhost:" + port;
-		this.webClient = WebTestClient.bindToServer().baseUrl(baseUri).build();
+		this.webClient = WebTestClient.bindToServer().responseTimeout(Duration.ofSeconds(10)).baseUrl(baseUri).build();
 	}
 
 	@Test

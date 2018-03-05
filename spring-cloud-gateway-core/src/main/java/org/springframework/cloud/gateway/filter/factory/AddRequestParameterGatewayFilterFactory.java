@@ -18,36 +18,20 @@
 package org.springframework.cloud.gateway.filter.factory;
 
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Arrays;
-import java.util.List;
 
-import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.tuple.Tuple;
-import org.springframework.util.StringUtils;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.util.StringUtils;
 import org.springframework.web.util.UriComponentsBuilder;
 
 /**
  * @author Spencer Gibb
  */
-public class AddRequestParameterGatewayFilterFactory implements GatewayFilterFactory {
+public class AddRequestParameterGatewayFilterFactory extends AbstractNameValueGatewayFilterFactory {
 
 	@Override
-	public List<String> argNames() {
-		return Arrays.asList(NAME_KEY, VALUE_KEY);
-	}
-
-	@Override
-	public GatewayFilter apply(Tuple args) {
-		String parameter = args.getString(NAME_KEY);
-		String value = args.getString(VALUE_KEY);
-		return apply(parameter, value);
-	}
-
-	public GatewayFilter apply(String parameter, String value) {
+	public GatewayFilter apply(NameValueConfig config) {
 		return (exchange, chain) -> {
-
 			URI uri = exchange.getRequest().getURI();
 			StringBuilder query = new StringBuilder();
 			String originalQuery = uri.getRawQuery();
@@ -60,9 +44,9 @@ public class AddRequestParameterGatewayFilterFactory implements GatewayFilterFac
 			}
 
 			//TODO urlencode?
-			query.append(parameter);
+			query.append(config.getName());
 			query.append('=');
-			query.append(value);
+			query.append(config.getValue());
 
 			try {
 				URI newUri = UriComponentsBuilder.fromUri(uri)
@@ -78,4 +62,5 @@ public class AddRequestParameterGatewayFilterFactory implements GatewayFilterFac
 			}
 		};
 	}
+
 }

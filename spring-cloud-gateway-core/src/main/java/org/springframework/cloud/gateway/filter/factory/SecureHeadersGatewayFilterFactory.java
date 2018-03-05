@@ -17,15 +17,14 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
-import org.springframework.http.HttpHeaders;
-import org.springframework.tuple.Tuple;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.http.HttpHeaders;
 
 /**
  * https://blog.appcanary.com/2017/http-security-headers.html
  * @author Spencer Gibb
  */
-public class SecureHeadersGatewayFilterFactory implements GatewayFilterFactory {
+public class SecureHeadersGatewayFilterFactory extends AbstractGatewayFilterFactory {
 
 	public static final String X_XSS_PROTECTION_HEADER = "X-Xss-Protection";
 	public static final String STRICT_TRANSPORT_SECURITY_HEADER = "Strict-Transport-Security";
@@ -43,7 +42,7 @@ public class SecureHeadersGatewayFilterFactory implements GatewayFilterFactory {
 	}
 
 	@Override
-	public GatewayFilter apply(Tuple args) {
+	public GatewayFilter apply(Object config) {
 		//TODO: allow args to override properties
 
 		return (exchange, chain) -> {

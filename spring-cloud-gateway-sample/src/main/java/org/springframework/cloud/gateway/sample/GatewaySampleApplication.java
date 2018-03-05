@@ -41,7 +41,7 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 public class GatewaySampleApplication {
 
 	@Bean
-	public RouteLocator customRouteLocator(RouteLocatorBuilder builder, ThrottleGatewayFilterFactory throttle) {
+	public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
 		//@formatter:off
 		return builder.routes()
 				.route(r -> r.host("**.abc.org").and().path("/image/png")
@@ -56,19 +56,15 @@ public class GatewaySampleApplication {
 				)
 				.route(r -> r.order(-1)
 					.host("**.throttle.org").and().path("/get")
-					.filters(f -> f.filter(throttle.apply(1,
-							1,
-							10,
-							TimeUnit.SECONDS)))
+					.filters(f -> f.filter(new ThrottleGatewayFilter()
+									.setCapacity(1)
+									.setRefillTokens(1)
+									.setRefillPeriod(10)
+									.setRefillUnit(TimeUnit.SECONDS)))
 					.uri("http://httpbin.org:80")
 				)
 				.build();
 		//@formatter:on
-	}
-
-	@Bean
-	public ThrottleGatewayFilterFactory throttleWebFilterFactory() {
-		return new ThrottleGatewayFilterFactory();
 	}
 
 	@Bean

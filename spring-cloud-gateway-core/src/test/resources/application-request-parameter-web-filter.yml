@@ -12,4 +12,4 @@ spring:
         - Host=**.addrequestparameter.org
         - Path=/get
         filters:
-        - AddRequestParameter=foo, bar
+        - AddRequestParameter=example, ValueA

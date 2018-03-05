@@ -30,11 +30,11 @@ public class NameUtils {
 		return GENERATED_NAME_PREFIX + i;
 	}
 
-	public static String normalizePredicateName(Class<? extends RoutePredicateFactory> clazz) {
+	public static String normalizeRoutePredicateName(Class<? extends RoutePredicateFactory> clazz) {
 		return clazz.getSimpleName().replace(RoutePredicateFactory.class.getSimpleName(), "");
 	}
 
-	public static String normalizeFilterName(Class<? extends GatewayFilterFactory> clazz) {
+	public static String normalizeFilterFactoryName(Class<? extends GatewayFilterFactory> clazz) {
 		return clazz.getSimpleName().replace(GatewayFilterFactory.class.getSimpleName(), "");
 	}
 }

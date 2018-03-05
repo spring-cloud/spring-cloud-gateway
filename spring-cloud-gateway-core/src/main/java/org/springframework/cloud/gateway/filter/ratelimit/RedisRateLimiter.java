@@ -5,13 +5,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.validation.constraints.Min;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
-import org.springframework.tuple.Tuple;
-
-import static org.springframework.tuple.TupleBuilder.tuple;
+import org.springframework.validation.Validator;
+import org.springframework.validation.annotation.Validated;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -22,9 +23,12 @@ import reactor.core.publisher.Mono;
  *
  * @author Spencer Gibb
  */
-public class RedisRateLimiter implements RateLimiter {
+public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Config> {
+	@Deprecated
 	public static final String REPLENISH_RATE_KEY = "replenishRate";
+	@Deprecated
 	public static final String BURST_CAPACITY_KEY = "burstCapacity";
+	public static final String CONFIGURATION_PROPERTY_NAME = "redis-rate-limiter";
 
 	private Log log = LogFactory.getLog(getClass());
 
@@ -32,36 +36,32 @@ public class RedisRateLimiter implements RateLimiter {
 	private final RedisScript<List<Long>> script;
 
 	public RedisRateLimiter(ReactiveRedisTemplate<String, String> redisTemplate,
-			RedisScript<List<Long>> script) {
+							RedisScript<List<Long>> script, Validator validator) {
+		super(Config.class, CONFIGURATION_PROPERTY_NAME, validator);
 		this.redisTemplate = redisTemplate;
 		this.script = script;
-	}
-
-	public static Tuple args(int replenishRate, int burstCapacity) {
-		return tuple().of(REPLENISH_RATE_KEY, replenishRate, BURST_CAPACITY_KEY, burstCapacity);
 	}
 
 	/**
 	 * This uses a basic token bucket algorithm and relies on the fact that Redis scripts
 	 * execute atomically. No other operations can run between fetching the count and
 	 * writing the new count.
-	 * @param id
-	 * @param args
-	 * @return
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
-	public Mono<Response> isAllowed(String id, Tuple args) {
+	public Mono<Response> isAllowed(String routeId, String id) {
+
+		Config routeConfig = getConfig().get(routeId);
+
+		if (routeConfig == null) {
+			throw new IllegalArgumentException("No Configuration found for route "+ routeId);
+		}
+
 		// How many requests per second do you want a user to be allowed to do?
-		int replenishRate = args.getInt(REPLENISH_RATE_KEY);
+		int replenishRate = routeConfig.getReplenishRate();
 
 		// How much bursting do you want to allow?
-		int burstCapacity;
-		if (args.hasFieldName(BURST_CAPACITY_KEY)) {
-			burstCapacity = args.getInt(BURST_CAPACITY_KEY);
-		} else {
-			burstCapacity = 0;
-		}
+		int burstCapacity = routeConfig.getBurstCapacity();
 
 		try {
 			// Make a unique key per user.
@@ -101,5 +101,40 @@ public class RedisRateLimiter implements RateLimiter {
 			log.error("Error determining if user allowed from redis", e);
 		}
 		return Mono.just(new Response(true, -1));
+	}
+
+	@Validated
+	public static class Config {
+		@Min(1)
+		private int replenishRate;
+
+		@Min(0)
+		private int burstCapacity = 0;
+
+		public int getReplenishRate() {
+			return replenishRate;
+		}
+
+		public Config setReplenishRate(int replenishRate) {
+			this.replenishRate = replenishRate;
+			return this;
+		}
+
+		public int getBurstCapacity() {
+			return burstCapacity;
+		}
+
+		public Config setBurstCapacity(int burstCapacity) {
+			this.burstCapacity = burstCapacity;
+			return this;
+		}
+
+		@Override
+		public String toString() {
+			return "Config{" +
+					"replenishRate=" + replenishRate +
+					", burstCapacity=" + burstCapacity +
+					'}';
+		}
 	}
 }

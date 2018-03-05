@@ -104,10 +104,6 @@ public class BaseWebClientTests {
 	@Import(DefaultTestConfig.class)
 	public static class MainConfig { }
 
-	public static void main(String[] args) {
-		new SpringApplication(MainConfig.class).run(args);
-	}
-
 	protected static class TestRibbonConfig {
 
 		@LocalServerPort

@@ -19,8 +19,10 @@ package org.springframework.cloud.gateway.handler.predicate;
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 
 import org.junit.Test;
+import org.springframework.cloud.gateway.support.ConfigurationUtils;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
@@ -28,7 +30,6 @@ import org.springframework.web.server.ServerWebExchange;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.gateway.handler.predicate.BetweenRoutePredicateFactory.DATETIME1_KEY;
 import static org.springframework.cloud.gateway.handler.predicate.BetweenRoutePredicateFactory.DATETIME2_KEY;
-import static org.springframework.tuple.TupleBuilder.tuple;
 
 /**
  * @author Spencer Gibb
@@ -49,6 +50,8 @@ public class BetweenRoutePredicateFactoryTests {
 	public void betweenStringWorks() {
 		String dateString1 = minusHours(1);
 		String dateString2 = plusHours(1);
+
+		ZonedDateTime parse = ZonedDateTime.parse(dateString1);
 
 		final boolean result = runPredicate(dateString1, dateString2);
 
@@ -98,14 +101,24 @@ public class BetweenRoutePredicateFactoryTests {
 	@Test
 	public void testPredicates() {
 		boolean result = new BetweenRoutePredicateFactory()
-				.apply(ZonedDateTime.now().minusHours(2), ZonedDateTime.now().plusHours(1))
+				.apply(c -> c.setDatetime1(ZonedDateTime.now().minusHours(2).toString())
+						.setDatetime2(ZonedDateTime.now().plusHours(1).toString()))
 				.test(getExchange());
 		assertThat(result).isTrue();
 	}
 
 	boolean runPredicate(String dateString1, String dateString2) {
-		return new BetweenRoutePredicateFactory().apply(tuple()
-				.of(DATETIME1_KEY, dateString1, DATETIME2_KEY, dateString2)).test(getExchange());
+		HashMap<String, Object> map = new HashMap<>();
+		map.put(DATETIME1_KEY, dateString1);
+		map.put(DATETIME2_KEY, dateString2);
+
+		BetweenRoutePredicateFactory factory = new BetweenRoutePredicateFactory();
+
+		BetweenRoutePredicateFactory.Config config = factory.newConfig();
+
+		ConfigurationUtils.bind(config, map, "", "myname", null);
+
+		return factory.apply(config).test(getExchange());
 	}
 
 	static String minusHoursMillis(int hours) {

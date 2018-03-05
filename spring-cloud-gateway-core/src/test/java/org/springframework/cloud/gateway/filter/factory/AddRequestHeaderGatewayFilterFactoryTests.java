@@ -19,10 +19,14 @@ package org.springframework.cloud.gateway.filter.factory;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.gateway.route.RouteLocator;
+import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
@@ -33,7 +37,6 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.cloud.gateway.test.TestUtils.getMap;
-
 
 /**
  * @author Spencer Gibb
@@ -54,13 +57,40 @@ public class AddRequestHeaderGatewayFilterFactoryTests extends BaseWebClientTest
 				.expectBody(Map.class)
 				.consumeWith(result -> {
 					Map<String, Object> headers = getMap(result.getResponseBody(), "headers");
-                    assertThat(headers).containsEntry("X-Request-Foo", "Bar");
+                    assertThat(headers).containsEntry("X-Request-Example", "ValueA");
+				});
+	}
+
+	@Test
+	public void addRequestHeaderFilterWorksJavaDsl() {
+		testClient.get()
+				.uri("/headers")
+				.header("Host", "www.addrequestheaderjava.org")
+				.exchange()
+				.expectBody(Map.class)
+				.consumeWith(result -> {
+					Map<String, Object> headers = getMap(result.getResponseBody(), "headers");
+					assertThat(headers).containsEntry("X-Request-Acme", "ValueB");
 				});
 	}
 
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
-	public static class TestConfig { }
+	public static class TestConfig {
+
+		@Value("${test.uri}")
+		String uri;
+
+		@Bean
+		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
+			return builder.routes()
+					.route("add_request_header_java_test", r ->
+							r.path("/headers").and().host("**.addrequestheaderjava.org")
+									.filters(f -> f.prefixPath("/httpbin").addRequestHeader("X-Request-Acme", "ValueB"))
+									.uri(uri))
+					.build();
+		}
+	}
 
 }

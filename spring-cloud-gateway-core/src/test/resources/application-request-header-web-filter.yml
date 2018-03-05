@@ -11,4 +11,4 @@ spring:
         predicates:
         - Path=/headers
         filters:
-        - AddRequestHeader=X-Request-Foo, Bar
+        - AddRequestHeader=X-Request-Example, ValueA

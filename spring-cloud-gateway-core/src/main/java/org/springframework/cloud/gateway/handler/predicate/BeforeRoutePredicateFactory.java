@@ -22,35 +22,44 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 
-import org.springframework.tuple.Tuple;
 import org.springframework.web.server.ServerWebExchange;
 
-import static org.springframework.cloud.gateway.handler.predicate.BetweenRoutePredicateFactory.parseZonedDateTime;
+import static org.springframework.cloud.gateway.handler.predicate.BetweenRoutePredicateFactory.getZonedDateTime;
 
 /**
  * @author Spencer Gibb
  */
-public class BeforeRoutePredicateFactory implements RoutePredicateFactory {
+public class BeforeRoutePredicateFactory extends AbstractRoutePredicateFactory<BeforeRoutePredicateFactory.Config> {
 
 	public static final String DATETIME_KEY = "datetime";
 
+	public BeforeRoutePredicateFactory() {
+		super(Config.class);
+	}
+
 	@Override
-	public List<String> argNames() {
+	public List<String> shortcutFieldOrder() {
 		return Collections.singletonList(DATETIME_KEY);
 	}
 
 	@Override
-	public Predicate<ServerWebExchange> apply(Tuple args) {
-		Object value = args.getValue(DATETIME_KEY);
-		final ZonedDateTime dateTime = BetweenRoutePredicateFactory.getZonedDateTime(value);
-		return apply(dateTime);
-	}
-
-	public Predicate<ServerWebExchange> apply(ZonedDateTime dateTime) {
+	public Predicate<ServerWebExchange> apply(Config config) {
+		ZonedDateTime datetime = getZonedDateTime(config.getDatetime());
 		return exchange -> {
 			final ZonedDateTime now = ZonedDateTime.now();
-			return now.isBefore(dateTime);
+			return now.isBefore(datetime);
 		};
 	}
 
+	public static class Config {
+		private String datetime;
+
+		public String getDatetime() {
+			return datetime;
+		}
+
+		public void setDatetime(String datetime) {
+			this.datetime = datetime;
+		}
+	}
 }

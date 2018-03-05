@@ -23,9 +23,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.tuple.Tuple;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.util.UriTemplate;
 import org.springframework.web.util.pattern.PathPattern.PathMatchInfo;
 
@@ -36,25 +35,22 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.a
 /**
  * @author Spencer Gibb
  */
-public class SetPathGatewayFilterFactory implements GatewayFilterFactory {
+public class SetPathGatewayFilterFactory extends AbstractGatewayFilterFactory<SetPathGatewayFilterFactory.Config> {
 
 	public static final String TEMPLATE_KEY = "template";
 
+	public SetPathGatewayFilterFactory() {
+		super(Config.class);
+	}
 
 	@Override
-	public List<String> argNames() {
+	public List<String> shortcutFieldOrder() {
 		return Arrays.asList(TEMPLATE_KEY);
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
-	public GatewayFilter apply(Tuple args) {
-		String template = args.getString(TEMPLATE_KEY);
-		return apply(template);
-	}
-
-	public GatewayFilter apply(String template) {
-		UriTemplate uriTemplate = new UriTemplate(template);
+	public GatewayFilter apply(Config config) {
+		UriTemplate uriTemplate = new UriTemplate(config.template);
 
 		return (exchange, chain) -> {
 			PathMatchInfo variables = exchange.getAttribute(URI_TEMPLATE_VARIABLES_ATTRIBUTE);
@@ -79,5 +75,17 @@ public class SetPathGatewayFilterFactory implements GatewayFilterFactory {
 
 			return chain.filter(exchange.mutate().request(request).build());
 		};
+	}
+
+	public static class Config {
+		private String template;
+
+		public String getTemplate() {
+			return template;
+		}
+
+		public void setTemplate(String template) {
+			this.template = template;
+		}
 	}
 }

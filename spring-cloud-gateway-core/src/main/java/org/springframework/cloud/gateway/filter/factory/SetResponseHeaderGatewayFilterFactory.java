@@ -17,33 +17,19 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
-import org.springframework.tuple.Tuple;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
-import reactor.core.publisher.Mono;
 
-import java.util.Arrays;
-import java.util.List;
+import reactor.core.publisher.Mono;
 
 /**
  * @author Spencer Gibb
  */
-public class SetResponseHeaderGatewayFilterFactory implements GatewayFilterFactory {
+public class SetResponseHeaderGatewayFilterFactory extends AbstractNameValueGatewayFilterFactory {
 
 	@Override
-	public List<String> argNames() {
-		return Arrays.asList(NAME_KEY, VALUE_KEY);
-	}
-
-	@Override
-	public GatewayFilter apply(Tuple args) {
-		final String header = args.getString(NAME_KEY);
-		final String value = args.getString(VALUE_KEY);
-		return apply(header, value);
-	}
-
-	public GatewayFilter apply(String header, String value) {
+	public GatewayFilter apply(NameValueConfig config) {
 		return (exchange, chain) -> chain.filter(exchange).then(Mono.fromRunnable(() -> {
-			exchange.getResponse().getHeaders().set(header, value);
+			exchange.getResponse().getHeaders().set(config.name, config.value);
 		}));
 	}
 }

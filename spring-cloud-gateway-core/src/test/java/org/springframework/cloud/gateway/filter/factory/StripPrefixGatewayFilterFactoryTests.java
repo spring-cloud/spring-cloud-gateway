@@ -56,7 +56,7 @@ public class StripPrefixGatewayFilterFactoryTests {
 
 	private void testStripPrefixFilter(String actualPath, String expectedPath, int parts) {
 		GatewayFilter filter = new StripPrefixGatewayFilterFactory().apply(
-				tuple().of(StripPrefixGatewayFilterFactory.PARTS_KEY, parts));
+				c -> c.setParts(parts));
 
 		MockServerHttpRequest request = MockServerHttpRequest
 				.get("http://localhost"+ actualPath)

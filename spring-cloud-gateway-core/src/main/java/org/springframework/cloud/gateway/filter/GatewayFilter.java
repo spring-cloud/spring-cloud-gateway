@@ -16,6 +16,7 @@ package org.springframework.cloud.gateway.filter;
  * limitations under the License.
  */
 
+import org.springframework.cloud.gateway.support.ShortcutConfigurable;
 import org.springframework.web.server.ServerWebExchange;
 
 import reactor.core.publisher.Mono;
@@ -30,7 +31,10 @@ import reactor.core.publisher.Mono;
  * @author Rossen Stoyanchev
  * @since 5.0
  */
-public interface GatewayFilter {
+public interface GatewayFilter extends ShortcutConfigurable {
+
+	String NAME_KEY = "name";
+	String VALUE_KEY = "value";
 
 	/**
 	 * Process the Web request and (optionally) delegate to the next

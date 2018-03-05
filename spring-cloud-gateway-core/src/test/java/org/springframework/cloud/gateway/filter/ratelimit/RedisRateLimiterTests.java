@@ -26,7 +26,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
  * @author Spencer Gibb
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = RANDOM_PORT, properties = "true")
+@SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
 public class RedisRateLimiterTests extends BaseWebClientTests {
 
@@ -43,17 +43,20 @@ public class RedisRateLimiterTests extends BaseWebClientTests {
 		int replenishRate = 10;
 		int burstCapacity = 2 * replenishRate;
 
-		Tuple args = RedisRateLimiter.args(replenishRate, burstCapacity);
+		String routeId = "myroute";
+		rateLimiter.getConfig().put(routeId, new RedisRateLimiter.Config()
+				.setBurstCapacity(burstCapacity)
+				.setReplenishRate(replenishRate));
 
 		// Bursts work
 		for (int i = 0; i < burstCapacity; i++) {
-			Response response = rateLimiter.isAllowed(id, args).block();
+			Response response = rateLimiter.isAllowed(routeId, id).block();
 			assertThat(response.isAllowed()).as("Burst # %s is allowed", i).isTrue();
 		}
 
-		Response response = rateLimiter.isAllowed(id, args).block();
+		Response response = rateLimiter.isAllowed(routeId, id).block();
 		if (response.isAllowed()) { //TODO: sometimes there is an off by one error
-			response = rateLimiter.isAllowed(id, args).block();
+			response = rateLimiter.isAllowed(routeId, id).block();
 		}
 		assertThat(response.isAllowed()).as("Burst # %s is not allowed", burstCapacity).isFalse();
 
@@ -61,11 +64,11 @@ public class RedisRateLimiterTests extends BaseWebClientTests {
 
         // # After the burst is done, check the steady state
 		for (int i = 0; i < replenishRate; i++) {
-			response = rateLimiter.isAllowed(id, args).block();
+			response = rateLimiter.isAllowed(routeId, id).block();
 			assertThat(response.isAllowed()).as("steady state # %s is allowed", i).isTrue();
 		}
 
-		response = rateLimiter.isAllowed(id, args).block();
+		response = rateLimiter.isAllowed(routeId, id).block();
 		assertThat(response.isAllowed()).as("steady state # %s is allowed", replenishRate).isFalse();
 	}
 

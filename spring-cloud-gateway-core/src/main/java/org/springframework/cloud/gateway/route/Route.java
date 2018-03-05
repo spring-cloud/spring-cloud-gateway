@@ -84,6 +84,10 @@ public class Route implements Ordered {
 			return this;
 		}
 
+		public String getId() {
+			return id;
+		}
+
 		public Builder order(int order) {
 			this.order = order;
 			return this;

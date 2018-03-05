@@ -19,14 +19,20 @@ package org.springframework.cloud.gateway.handler.predicate;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 
+import javax.validation.constraints.NotEmpty;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.tuple.Tuple;
-import org.springframework.util.Assert;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.server.ServerWebExchange;
+
+import static org.springframework.cloud.gateway.support.ShortcutConfigurable.ShortcutType.GATHER_LIST;
 
 import io.netty.handler.ipfilter.IpFilterRuleType;
 import io.netty.handler.ipfilter.IpSubnetFilterRule;
@@ -34,34 +40,37 @@ import io.netty.handler.ipfilter.IpSubnetFilterRule;
 /**
  * @author Spencer Gibb
  */
-public class RemoteAddrRoutePredicateFactory implements RoutePredicateFactory {
+public class RemoteAddrRoutePredicateFactory extends AbstractRoutePredicateFactory<RemoteAddrRoutePredicateFactory.Config> {
 
 	private static final Log log = LogFactory.getLog(RemoteAddrRoutePredicateFactory.class);
 
+	public RemoteAddrRoutePredicateFactory() {
+		super(Config.class);
+	}
+
 	@Override
-	public Predicate<ServerWebExchange> apply(Tuple args) {
-		validateMin(1, args);
-
-		List<IpSubnetFilterRule> sources = new ArrayList<>();
-		if (args != null) {
-			for (Object arg : args.getValues()) {
-				addSource(sources, (String) arg);
-			}
-		}
-		return apply(sources);
+	public ShortcutType shortcutType() {
+		return GATHER_LIST;
 	}
 
-	public Predicate<ServerWebExchange> apply(String... addrs) {
-		Assert.notEmpty(addrs, "addrs must not be empty");
-
-		List<IpSubnetFilterRule> sources = new ArrayList<>();
-		for (String addr : addrs) {
-			addSource(sources, addr);
-		}
-		return apply(sources);
+	@Override
+	public List<String> shortcutFieldOrder() {
+		return Collections.singletonList("sources");
 	}
 
-	public Predicate<ServerWebExchange> apply(List<IpSubnetFilterRule> sources) {
+	@NotNull
+	private List<IpSubnetFilterRule> convert(List<String> values) {
+		List<IpSubnetFilterRule> sources = new ArrayList<>();
+        for (String arg : values) {
+            addSource(sources, arg);
+        }
+		return sources;
+	}
+
+	@Override
+	public Predicate<ServerWebExchange> apply(Config config) {
+        List<IpSubnetFilterRule> sources = convert(config.sources);
+
 		return exchange -> {
 			InetSocketAddress remoteAddress = exchange.getRequest().getRemoteAddress();
 			if (remoteAddress != null) {
@@ -93,5 +102,26 @@ public class RemoteAddrRoutePredicateFactory implements RoutePredicateFactory {
 		int cidrPrefix = Integer.parseInt(ipAddressCidrPrefix[1]);
 
 		sources.add(new IpSubnetFilterRule(ipAddress, cidrPrefix, IpFilterRuleType.ACCEPT));
+	}
+
+	@Validated
+	public static class Config {
+		@NotEmpty
+		private List<String> sources = new ArrayList<>();
+
+		public List<String> getSources() {
+			return sources;
+		}
+
+		public Config setSources(List<String> sources) {
+			this.sources = sources;
+			return this;
+		}
+
+		public Config setSources(String... sources) {
+			this.sources = Arrays.asList(sources);
+			return this;
+		}
+
 	}
 }

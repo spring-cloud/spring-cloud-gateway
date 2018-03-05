@@ -29,9 +29,9 @@ import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
 
 import static org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactory.REGEXP_KEY;
 import static org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactory.REPLACEMENT_KEY;
-import static org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFactory.PATTERN_KEY;
-import static org.springframework.cloud.gateway.support.NameUtils.normalizeFilterName;
-import static org.springframework.cloud.gateway.support.NameUtils.normalizePredicateName;
+import static org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory.PATTERN_KEY;
+import static org.springframework.cloud.gateway.support.NameUtils.normalizeFilterFactoryName;
+import static org.springframework.cloud.gateway.support.NameUtils.normalizeRoutePredicateName;
 
 import reactor.core.publisher.Flux;
 
@@ -60,13 +60,13 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 
 					// add a predicate that matches the url at /serviceId
 					/*PredicateDefinition barePredicate = new PredicateDefinition();
-					barePredicate.setName(normalizePredicateName(PathRoutePredicateFactory.class));
+					barePredicate.setName(normalizePredicateName(PathRoutePredicate.class));
 					barePredicate.addArg(PATTERN_KEY, "/" + serviceId);
 					routeDefinition.getPredicates().add(barePredicate);*/
 
 					// add a predicate that matches the url at /serviceId/**
 					PredicateDefinition subPredicate = new PredicateDefinition();
-					subPredicate.setName(normalizePredicateName(PathRoutePredicateFactory.class));
+					subPredicate.setName(normalizeRoutePredicateName(PathRoutePredicateFactory.class));
 					subPredicate.addArg(PATTERN_KEY, "/" + serviceId + "/**");
 					routeDefinition.getPredicates().add(subPredicate);
 
@@ -74,7 +74,7 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 
 					// add a filter that removes /serviceId by default
 					FilterDefinition filter = new FilterDefinition();
-					filter.setName(normalizeFilterName(RewritePathGatewayFilterFactory.class));
+					filter.setName(normalizeFilterFactoryName(RewritePathGatewayFilterFactory.class));
 					String regex = "/" + serviceId + "/(?<remaining>.*)";
 					String replacement = "/${remaining}";
 					filter.addArg(REGEXP_KEY, regex);

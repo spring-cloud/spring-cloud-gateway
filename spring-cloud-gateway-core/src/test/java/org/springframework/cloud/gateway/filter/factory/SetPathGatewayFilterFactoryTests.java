@@ -63,7 +63,7 @@ public class SetPathGatewayFilterFactoryTests {
 	}
 
 	private void testRewriteFilter(String template, String actualPath, String expectedPath, HashMap<String, String> variables) {
-		GatewayFilter filter = new SetPathGatewayFilterFactory().apply(tuple().of(TEMPLATE_KEY, template));
+		GatewayFilter filter = new SetPathGatewayFilterFactory().apply(c -> c.setTemplate(template));
 
 		MockServerHttpRequest request = MockServerHttpRequest
 				.get("http://localhost"+ actualPath)

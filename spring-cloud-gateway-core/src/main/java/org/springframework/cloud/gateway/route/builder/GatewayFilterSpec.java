@@ -18,16 +18,11 @@ package org.springframework.cloud.gateway.route.builder;
 
 import java.net.URI;
 import java.net.URL;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
+import java.util.function.Consumer;
 
-import com.netflix.hystrix.HystrixObservableCommand;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import reactor.retry.Repeat;
-
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.OrderedGatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AddRequestHeaderGatewayFilterFactory;
@@ -49,26 +44,23 @@ import org.springframework.cloud.gateway.filter.factory.SetRequestHeaderGatewayF
 import org.springframework.cloud.gateway.filter.factory.SetResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SetStatusGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.StripPrefixGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
+import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.tuple.Tuple;
 import org.springframework.web.server.ServerWebExchange;
 
-import static org.springframework.tuple.TupleBuilder.tuple;
+import reactor.retry.Repeat;
 
 public class GatewayFilterSpec extends UriSpec {
 
 	private static final Log log = LogFactory.getLog(GatewayFilterSpec.class);
 
-	static final Tuple EMPTY_TUPLE = tuple().build();
-
 	public GatewayFilterSpec(Route.Builder routeBuilder, RouteLocatorBuilder.Builder builder) {
 		super(routeBuilder, builder);
 	}
-
+	
 	public GatewayFilterSpec filter(GatewayFilter gatewayFilter) {
 		if (gatewayFilter instanceof Ordered) {
 			this.routeBuilder.filter(gatewayFilter);
@@ -99,35 +91,28 @@ public class GatewayFilterSpec extends UriSpec {
 	}
 
 	public GatewayFilterSpec addRequestHeader(String headerName, String headerValue) {
-		return filter(getBean(AddRequestHeaderGatewayFilterFactory.class).apply(headerName, headerValue));
+		return filter(getBean(AddRequestHeaderGatewayFilterFactory.class)
+				.apply(c -> c.setName(headerName).setValue(headerValue)));
 	}
 
 	public GatewayFilterSpec addRequestParameter(String param, String value) {
-		return filter(getBean(AddRequestParameterGatewayFilterFactory.class).apply(param, value));
+		return filter(getBean(AddRequestParameterGatewayFilterFactory.class)
+				.apply(c -> c.setName(param).setValue(value)));
 	}
 
 	public GatewayFilterSpec addResponseHeader(String headerName, String headerValue) {
-		return filter(getBean(AddResponseHeaderGatewayFilterFactory.class).apply(headerName, headerValue));
+		return filter(getBean(AddResponseHeaderGatewayFilterFactory.class)
+				.apply(c -> c.setName(headerName).setValue(headerValue)));
 	}
 
-	public GatewayFilterSpec hystrix(String commandName) {
-		return filter(getBean(HystrixGatewayFilterFactory.class).apply(commandName));
-	}
-
-	public GatewayFilterSpec hystrix(HystrixObservableCommand.Setter setter) {
-		return filter(getBean(HystrixGatewayFilterFactory.class).apply(setter));
-	}
-
-	public GatewayFilterSpec hystrix(String commandName, URI fallbackUri) {
-		return filter(getBean(HystrixGatewayFilterFactory.class).apply(commandName, fallbackUri));
-	}
-
-	public GatewayFilterSpec hystrix(HystrixObservableCommand.Setter setter, URI fallbackUri) {
-		return filter(getBean(HystrixGatewayFilterFactory.class).apply(setter, fallbackUri));
+	public GatewayFilterSpec hystrix(Consumer<HystrixGatewayFilterFactory.Config> configConsumer) {
+		return filter(getBean(HystrixGatewayFilterFactory.class)
+				.apply(configConsumer));
 	}
 
 	public GatewayFilterSpec prefixPath(String prefix) {
-		return filter(getBean(PrefixPathGatewayFilterFactory.class).apply(prefix));
+		return filter(getBean(PrefixPathGatewayFilterFactory.class)
+				.apply(c -> c.setPrefix(prefix)));
 	}
 
 	public GatewayFilterSpec preserveHostHeader() {
@@ -155,26 +140,54 @@ public class GatewayFilterSpec extends UriSpec {
 	}
 
 	public GatewayFilterSpec removeRequestHeader(String headerName) {
-		return filter(getBean(RemoveRequestHeaderGatewayFilterFactory.class).apply(headerName));
+		return filter(getBean(RemoveRequestHeaderGatewayFilterFactory.class)
+				.apply(c -> c.setName(headerName)));
 	}
 
 	public GatewayFilterSpec removeResponseHeader(String headerName) {
-		return filter(getBean(RemoveResponseHeaderGatewayFilterFactory.class).apply(headerName));
+		return filter(getBean(RemoveResponseHeaderGatewayFilterFactory.class)
+				.apply(c -> c.setName(headerName)));
 	}
 
-	public GatewayFilterSpec requestRateLimiter(Tuple args) {
-		RequestRateLimiterGatewayFilterFactory factory = getBean(RequestRateLimiterGatewayFilterFactory.class);
-		KeyResolver keyResolver;
-		try {
-			keyResolver = getBean(KeyResolver.class);
-		} catch (NoSuchBeanDefinitionException e) {
-			keyResolver = factory.getDefaultKeyResolver();
+	// public GatewayFilterSpec requestRateLimiter() {
+	// 	return filter(getBean(RequestRateLimiterGatewayFilterFactory.class).apply(config -> {}));
+	// }
+
+    public RequestRateLimiterSpec requestRateLimiter() {
+		return new RequestRateLimiterSpec(getBean(RequestRateLimiterGatewayFilterFactory.class));
+	}
+
+	public class RequestRateLimiterSpec {
+		private final RequestRateLimiterGatewayFilterFactory filter;
+
+		public RequestRateLimiterSpec(RequestRateLimiterGatewayFilterFactory filter) {
+			this.filter = filter;
 		}
-		return filter(factory.apply(keyResolver, args));
+
+		public <C, R extends RateLimiter<C>> RequestRateLimiterSpec rateLimiter(Class<R> rateLimiterType,
+																				Consumer<C> configConsumer) {
+			R rateLimiter = getBean(rateLimiterType);
+			C config = rateLimiter.newConfig();
+			configConsumer.accept(config);
+			rateLimiter.getConfig().put(routeBuilder.getId(), config);
+			return this;
+		}
+
+		public GatewayFilterSpec configure(Consumer<RequestRateLimiterGatewayFilterFactory.Config> configConsumer) {
+			filter(this.filter.apply(configConsumer));
+			return GatewayFilterSpec.this;
+		}
+
+		// useful when nothing to configure
+		public GatewayFilterSpec and() {
+			return configure(config -> {});
+		}
+
 	}
 
 	public GatewayFilterSpec rewritePath(String regex, String replacement) {
-		return filter(getBean(RewritePathGatewayFilterFactory.class).apply(regex, replacement));
+		return filter(getBean(RewritePathGatewayFilterFactory.class)
+				.apply(c -> c.setRegexp(regex).setReplacement(replacement)));
 	}
 
 	/**
@@ -208,38 +221,47 @@ public class GatewayFilterSpec extends UriSpec {
 	}
 
 	public GatewayFilterSpec secureHeaders() {
-		return filter(getBean(SecureHeadersGatewayFilterFactory.class).apply(EMPTY_TUPLE));
+		return filter(getBean(SecureHeadersGatewayFilterFactory.class).apply(c -> {}));
 	}
 
 	public GatewayFilterSpec setPath(String template) {
-		return filter(getBean(SetPathGatewayFilterFactory.class).apply(template));
+		return filter(getBean(SetPathGatewayFilterFactory.class)
+				.apply(c -> c.setTemplate(template)));
 	}
 
 	public GatewayFilterSpec setRequestHeader(String headerName, String headerValue) {
-		return filter(getBean(SetRequestHeaderGatewayFilterFactory.class).apply(headerName, headerValue));
+		return filter(getBean(SetRequestHeaderGatewayFilterFactory.class)
+				.apply(c -> c.setName(headerName).setValue(headerValue)));
 	}
 
 	public GatewayFilterSpec setResponseHeader(String headerName, String headerValue) {
-		return filter(getBean(SetResponseHeaderGatewayFilterFactory.class).apply(headerName, headerValue));
+		return filter(getBean(SetResponseHeaderGatewayFilterFactory.class)
+				.apply(c -> c.setName(headerName).setValue(headerValue)));
 	}
 
 	public GatewayFilterSpec setStatus(int status) {
 		return setStatus(String.valueOf(status));
 	}
 
-	public GatewayFilterSpec setStatus(String status) {
-		return filter(getBean(SetStatusGatewayFilterFactory.class).apply(status));
+	public GatewayFilterSpec setStatus(HttpStatus status) {
+		return setStatus(status.toString());
 	}
 
-	public GatewayFilterSpec setStatus(HttpStatus status) {
-		return filter(getBean(SetStatusGatewayFilterFactory.class).apply(status));
+	public GatewayFilterSpec setStatus(String status) {
+		return filter(getBean(SetStatusGatewayFilterFactory.class)
+				.apply(c -> c.setStatus(status)));
 	}
 
 	public GatewayFilterSpec saveSession() {
-		return filter(getBean(SaveSessionGatewayFilterFactory.class).apply(EMPTY_TUPLE));
+		return filter(getBean(SaveSessionGatewayFilterFactory.class).apply(c -> {}));
 	}
 
 	public GatewayFilterSpec stripPrefix(int parts) {
-		return filter(getBean(StripPrefixGatewayFilterFactory.class).apply(parts));
+		return filter(getBean(StripPrefixGatewayFilterFactory.class)
+				.apply(c -> c.setParts(parts)));
+	}
+
+	private String routeId() {
+		return routeBuilder.getId();
 	}
 }

@@ -21,44 +21,65 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 
-import org.springframework.tuple.Tuple;
+import javax.validation.constraints.NotEmpty;
+
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.server.ServerWebExchange;
 
 /**
  * @author Spencer Gibb
  */
-public class HeaderRoutePredicateFactory implements RoutePredicateFactory {
+public class HeaderRoutePredicateFactory extends AbstractRoutePredicateFactory<HeaderRoutePredicateFactory.Config> {
 
 	public static final String HEADER_KEY = "header";
 	public static final String REGEXP_KEY = "regexp";
 
+	public HeaderRoutePredicateFactory() {
+		super(Config.class);
+	}
+
 	@Override
-	public List<String> argNames() {
+	public List<String> shortcutFieldOrder() {
 		return Arrays.asList(HEADER_KEY, REGEXP_KEY);
 	}
 
 	@Override
-	public Predicate<ServerWebExchange> apply(Tuple args) {
-		String header = args.getString(HEADER_KEY);
-		String regexp = args.getString(REGEXP_KEY);
-		return apply(header, regexp);
-	}
-
-	public Predicate<ServerWebExchange> apply(String header) {
-		return apply(header, ".*");
-	}
-
-	public Predicate<ServerWebExchange> apply(String header, String regexp) {
+	public Predicate<ServerWebExchange> apply(Config config) {
 		return exchange -> {
-			List<String> values = exchange.getRequest().getHeaders().get(header);
+			List<String> values = exchange.getRequest().getHeaders().get(config.header);
 			if (values != null) {
 				for (String value : values) {
-					if (value.matches(regexp)) {
+					if (value.matches(config.regexp)) {
 						return true;
 					}
 				}
 			}
 			return false;
 		};
+	}
+
+	@Validated
+	public static class Config {
+		@NotEmpty
+		private String header;
+		private String regexp;
+
+		public String getHeader() {
+			return header;
+		}
+
+		public Config setHeader(String header) {
+			this.header = header;
+			return this;
+		}
+
+		public String getRegexp() {
+			return regexp;
+		}
+
+		public Config setRegexp(String regexp) {
+			this.regexp = regexp;
+			return this;
+		}
 	}
 }

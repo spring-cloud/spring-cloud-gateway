@@ -118,7 +118,7 @@ public class GatewayControllerEndpoint implements ApplicationEventPublisherAware
 		return Mono.zip(routeDefs, routes).map(tuple -> {
 			Map<String, List> allRoutes = new HashMap<>();
 			allRoutes.put("routeDefinitions", tuple.getT1());
-			allRoutes.put("routes", tuple.getT2());
+			// allRoutes.put("routes", tuple.getT2());
 			return allRoutes;
 		});
 	}

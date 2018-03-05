@@ -17,10 +17,12 @@
 
 package org.springframework.cloud.gateway.handler.predicate;
 
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-import org.springframework.cloud.gateway.support.ArgumentHints;
+import org.springframework.cloud.gateway.support.Configurable;
 import org.springframework.cloud.gateway.support.NameUtils;
+import org.springframework.cloud.gateway.support.ShortcutConfigurable;
 import org.springframework.tuple.Tuple;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -28,13 +30,43 @@ import org.springframework.web.server.ServerWebExchange;
  * @author Spencer Gibb
  */
 @FunctionalInterface
-public interface RoutePredicateFactory extends ArgumentHints {
+public interface RoutePredicateFactory<C> extends ShortcutConfigurable, Configurable<C> {
 	String PATTERN_KEY = "pattern";
 
+	@Deprecated //TODO: remove when apply(Tuple) is removed
+	default boolean isConfigurable() {
+		return false;
+	}
+
+	// useful for javadsl
+	default Predicate<ServerWebExchange> apply(Consumer<C> consumer) {
+		C config = newConfig();
+		consumer.accept(config);
+		return apply(config);
+	}
+
+	//TODO: remove after apply(Tuple) removed
+	@Override
+	default Class<C> getConfigClass() {
+		throw new UnsupportedOperationException("getConfigClass() not implemented");
+	}
+
+	//TODO: remove after apply(Tuple) removed
+	@Override
+	default C newConfig() {
+		throw new UnsupportedOperationException("newConfig() not implemented");
+	}
+
+	//TODO: remove default impl after apply(Tuple) removed
+	default Predicate<ServerWebExchange> apply(C config) {
+		throw new UnsupportedOperationException("apply(C config) not implemented");
+	}
+
+	@Deprecated
 	Predicate<ServerWebExchange> apply(Tuple args);
 
 	default String name() {
-		return NameUtils.normalizePredicateName(getClass());
+		return NameUtils.normalizeRoutePredicateName(getClass());
 	}
 
 }

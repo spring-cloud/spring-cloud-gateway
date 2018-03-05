@@ -28,14 +28,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.web.reactive.function.client.ClientResponse;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
-import static org.springframework.cloud.gateway.test.TestUtils.assertStatus;
-
-import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -44,21 +38,12 @@ public class RedirectToGatewayFilterFactoryTests extends BaseWebClientTests {
 
 	@Test
 	public void redirectToFilterWorks() {
-		Mono<ClientResponse> result = webClient.get()
+		testClient.get()
 				.uri("/")
 				.header("Host", "www.redirectto.org")
-				.exchange();
-
-		StepVerifier.create(result)
-				.consumeNextWith(
-						response -> {
-							assertStatus(response, HttpStatus.FOUND);
-							HttpHeaders httpHeaders = response.headers().asHttpHeaders();
-							assertThat(httpHeaders.getFirst(HttpHeaders.LOCATION))
-									.isEqualTo("http://example.org");
-						})
-				.expectComplete()
-				.verify(DURATION);
+				.exchange()
+				.expectStatus().isEqualTo(HttpStatus.FOUND)
+				.expectHeader().valueEquals(HttpHeaders.LOCATION, "http://example.org");
 	}
 
 	@EnableAutoConfiguration

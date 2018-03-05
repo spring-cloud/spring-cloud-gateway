@@ -229,11 +229,6 @@ spring:
           args:
             pattern: /**
 
-testservice:
-  ribbon:
-    NIWSServerListClassName: com.netflix.loadbalancer.ConfigurationBasedServerList
-    listOfServers: ${test.hostport}
-
 hystrix.command.successcmd.execution.isolation.thread.timeoutInMilliseconds: 5000
 
 logging:

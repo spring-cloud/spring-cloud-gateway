@@ -16,6 +16,9 @@
 
 package org.springframework.cloud.gateway.route.builder;
 
+import java.time.ZonedDateTime;
+import java.util.function.Predicate;
+
 import org.springframework.cloud.gateway.handler.predicate.AfterRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.BeforeRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.BetweenRoutePredicateFactory;
@@ -29,9 +32,6 @@ import org.springframework.cloud.gateway.handler.predicate.RemoteAddrRoutePredic
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.server.ServerWebExchange;
-
-import java.time.ZonedDateTime;
-import java.util.function.Predicate;
 
 public class PredicateSpec extends UriSpec {
 
@@ -54,55 +54,67 @@ public class PredicateSpec extends UriSpec {
 	}
 
 	public BooleanSpec after(ZonedDateTime datetime) {
-		return predicate(getBean(AfterRoutePredicateFactory.class).apply(datetime));
+		return predicate(getBean(AfterRoutePredicateFactory.class)
+				.apply(c-> c.setDatetime(datetime.toString())));
 	}
 
 	public BooleanSpec before(ZonedDateTime datetime) {
-		return predicate(getBean(BeforeRoutePredicateFactory.class).apply(datetime));
+		return predicate(getBean(BeforeRoutePredicateFactory.class).apply(c -> c.setDatetime(datetime.toString())));
 	}
 
 	public BooleanSpec between(ZonedDateTime datetime1, ZonedDateTime datetime2) {
-		return predicate(getBean(BetweenRoutePredicateFactory.class).apply(datetime1, datetime2));
+		return predicate(getBean(BetweenRoutePredicateFactory.class)
+				.apply(c -> c.setDatetime1(datetime1.toString()).setDatetime2(datetime2.toString())));
 	}
 
 	public BooleanSpec cookie(String name, String regex) {
-		return predicate(getBean(CookieRoutePredicateFactory.class).apply(name, regex));
+		return predicate(getBean(CookieRoutePredicateFactory.class)
+				.apply(c -> c.setName(name).setRegexp(regex)));
 	}
 
 	public BooleanSpec header(String header) {
-		return predicate(getBean(HeaderRoutePredicateFactory.class).apply(header));
+		return predicate(getBean(HeaderRoutePredicateFactory.class)
+				.apply(c -> c.setHeader(header))); //TODO: default regexp
 	}
 
 	public BooleanSpec header(String header, String regex) {
-		return predicate(getBean(HeaderRoutePredicateFactory.class).apply(header, regex));
+		return predicate(getBean(HeaderRoutePredicateFactory.class)
+				.apply(c -> c.setHeader(header).setRegexp(regex)));
 	}
 
 	public BooleanSpec host(String pattern) {
-		return predicate(getBean(HostRoutePredicateFactory.class).apply(pattern));
+		return predicate(getBean(HostRoutePredicateFactory.class)
+				.apply(c-> c.setPattern(pattern)));
 	}
 
 	public BooleanSpec method(String method) {
-		return predicate(getBean(MethodRoutePredicateFactory.class).apply(method));
+		return predicate(getBean(MethodRoutePredicateFactory.class)
+				.apply(c -> c.setMethod(HttpMethod.resolve(method))));
 	}
 
 	public BooleanSpec method(HttpMethod method) {
-		return predicate(getBean(MethodRoutePredicateFactory.class).apply(method));
+		return predicate(getBean(MethodRoutePredicateFactory.class)
+				.apply(c -> c.setMethod(method)));
 	}
 
 	public BooleanSpec path(String pattern) {
-		return predicate(getBean(PathRoutePredicateFactory.class).apply(pattern));
+		return predicate(getBean(PathRoutePredicateFactory.class)
+				.apply(c -> c.setPattern(pattern)));
 	}
 
 	public BooleanSpec query(String param, String regex) {
-		return predicate(getBean(QueryRoutePredicateFactory.class).apply(param, regex));
+		return predicate(getBean(QueryRoutePredicateFactory.class)
+				.apply(c -> c.setParam(param).setRegexp(regex)));
 	}
 
 	public BooleanSpec query(String param) {
-		return predicate(getBean(QueryRoutePredicateFactory.class).apply(param, null));
+		return predicate(getBean(QueryRoutePredicateFactory.class)
+				.apply(c -> c.setParam(param)));
 	}
 
 	public BooleanSpec remoteAddr(String... addrs) {
-		return predicate(getBean(RemoteAddrRoutePredicateFactory.class).apply(addrs));
+		return predicate(getBean(RemoteAddrRoutePredicateFactory.class)
+				.apply(c -> c.setSources(addrs)));
 	}
 
 	public BooleanSpec alwaysTrue() {
