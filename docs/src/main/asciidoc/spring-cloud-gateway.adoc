@@ -21,6 +21,8 @@ for details on setting up your build system with the current Spring Cloud Releas
 
 If you include the starter, but, for some reason, you do not want the gateway to be enabled, set `spring.cloud.gateway.enabled=false`.
 
+IMPORTANT: Spring Cloud Gateway requires the Netty runtime provided by Spring Boot and Spring Webflux. It does not work in a traditional Servlet Container or built as a WAR.
+
 == Glossary
 
 * *Route*: Route the basic building block of the gateway. It is defined by an ID, a destination URI, a collection of predicates and a collection of filters. A route is matched if aggregate predicate is true.
