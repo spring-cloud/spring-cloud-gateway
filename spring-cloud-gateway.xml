@@ -17,6 +17,9 @@
 and artifact id <literal>spring-cloud-starter-gateway</literal>. See the <link xl:href="http://projects.spring.io/spring-cloud/">Spring Cloud Project page</link>
 for details on setting up your build system with the current Spring Cloud Release Train.</simpara>
 <simpara>If you include the starter, but, for some reason, you do not want the gateway to be enabled, set <literal>spring.cloud.gateway.enabled=false</literal>.</simpara>
+<important>
+<simpara>Spring Cloud Gateway requires the Netty runtime provided by Spring Boot and Spring Webflux. It does not work in a traditional Servlet Container or built as a WAR.</simpara>
+</important>
 </chapter>
 <chapter xml:id="_glossary">
 <title>Glossary</title>
