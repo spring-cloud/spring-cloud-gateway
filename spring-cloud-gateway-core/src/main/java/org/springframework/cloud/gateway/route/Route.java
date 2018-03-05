@@ -133,32 +133,14 @@ public class Route implements Ordered {
 			return this;
 		}
 
-		/** @deprecated use {@link #replaceFilters(List)} */
-		@Deprecated
-		public Builder gatewayFilters(List<GatewayFilter> gatewayFilters) {
-			return replaceFilters(gatewayFilters);
-		}
-
 		public Builder replaceFilters(List<GatewayFilter> gatewayFilters) {
 			this.gatewayFilters = gatewayFilters;
 			return this;
 		}
 
-		/** @deprecated use {@link #filter(GatewayFilter)} */
-		@Deprecated
-		public Builder add(GatewayFilter gatewayFilter) {
-			return filter(gatewayFilter);
-		}
-
 		public Builder filter(GatewayFilter gatewayFilter) {
 			this.gatewayFilters.add(gatewayFilter);
 			return this;
-		}
-
-		/** @deprecated use {@link #filters(Collection)} */
-		@Deprecated
-		public Builder addAll(Collection<GatewayFilter> gatewayFilters) {
-			return filters(gatewayFilters);
 		}
 
 		public Builder filters(Collection<GatewayFilter> gatewayFilters) {

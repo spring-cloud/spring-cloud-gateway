@@ -69,19 +69,6 @@ public class GatewayFilterSpec extends UriSpec {
 		super(routeBuilder, builder);
 	}
 
-	/** @deprecated use {@link #filters(Collection)} */
-	@Deprecated
-	public GatewayFilterSpec gatewayFilters(List<GatewayFilter> gatewayFilters) {
-		this.addAll(gatewayFilters);
-		return this;
-	}
-
-	/** @deprecated use {@link #filter(GatewayFilter)} */
-	@Deprecated
-	public GatewayFilterSpec add(GatewayFilter gatewayFilter) {
-		return this.filter(gatewayFilter);
-	}
-
 	public GatewayFilterSpec filter(GatewayFilter gatewayFilter) {
 		if (gatewayFilter instanceof Ordered) {
 			this.routeBuilder.filter(gatewayFilter);
@@ -98,13 +85,6 @@ public class GatewayFilterSpec extends UriSpec {
 			return this;
 		}
 		this.routeBuilder.filter(new OrderedGatewayFilter(gatewayFilter, order));
-		return this;
-	}
-
-	/** @deprecated use {@link #filters(Collection)} */
-	@Deprecated
-	public GatewayFilterSpec addAll(Collection<GatewayFilter> gatewayFilters) {
-		this.routeBuilder.addAll(gatewayFilters);
 		return this;
 	}
 

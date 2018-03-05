@@ -120,7 +120,7 @@ public class RouteDefinitionRouteLocator implements RouteLocator, BeanFactoryAwa
 
 		return Route.builder(routeDefinition)
 				.predicate(predicate)
-				.gatewayFilters(gatewayFilters)
+				.replaceFilters(gatewayFilters)
 				.build();
 	}
 
