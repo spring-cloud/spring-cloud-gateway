@@ -27,16 +27,12 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
-import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
 
-import java.time.Duration;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.cloud.gateway.test.TestUtils.getMap;
-import static org.springframework.web.reactive.function.BodyExtractors.toMono;
 
 
 /**
@@ -51,20 +47,15 @@ public class AddRequestHeaderGatewayFilterFactoryTests extends BaseWebClientTest
 
 	@Test
 	public void addRequestHeaderFilterWorks() {
-		Mono<Map> result = webClient.get()
+		testClient.get()
 				.uri("/headers")
 				.header("Host", "www.addrequestheader.org")
 				.exchange()
-				.flatMap(response -> response.body(toMono(Map.class)));
-
-		StepVerifier.create(result)
-				.consumeNextWith(
-						response -> {
-							Map<String, Object> headers = getMap(response, "headers");
-							assertThat(headers).containsEntry("X-Request-Foo", "Bar");
-						})
-				.expectComplete()
-				.verify(Duration.ofMinutes(10));
+				.expectBody(Map.class)
+				.consumeWith(result -> {
+					Map<String, Object> headers = getMap(result.getResponseBody(), "headers");
+                    assertThat(headers).containsEntry("X-Request-Foo", "Bar");
+				});
 	}
 
 	@EnableAutoConfiguration

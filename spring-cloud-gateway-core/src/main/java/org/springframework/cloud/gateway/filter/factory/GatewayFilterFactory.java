@@ -19,7 +19,6 @@ package org.springframework.cloud.gateway.filter.factory;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.support.ArgumentHints;
-import org.springframework.cloud.gateway.support.GatewayServerHttpRequestBuilder;
 import org.springframework.cloud.gateway.support.NameUtils;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.tuple.Tuple;
@@ -39,8 +38,8 @@ public interface GatewayFilterFactory extends ArgumentHints {
 		return NameUtils.normalizeFilterName(getClass());
 	}
 
-
+	@Deprecated
 	default ServerHttpRequest.Builder mutate(ServerHttpRequest request) {
-		return new GatewayServerHttpRequestBuilder(request);
+		return request.mutate();
 	}
 }

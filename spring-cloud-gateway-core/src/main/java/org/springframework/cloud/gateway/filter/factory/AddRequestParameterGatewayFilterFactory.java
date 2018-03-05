@@ -70,7 +70,7 @@ public class AddRequestParameterGatewayFilterFactory implements GatewayFilterFac
 						.build(true)
 						.toUri();
 
-				ServerHttpRequest request = mutate(exchange.getRequest()).uri(newUri).build();
+				ServerHttpRequest request = exchange.getRequest().mutate().uri(newUri).build();
 
 				return chain.filter(exchange.mutate().request(request).build());
 			} catch (RuntimeException ex) {

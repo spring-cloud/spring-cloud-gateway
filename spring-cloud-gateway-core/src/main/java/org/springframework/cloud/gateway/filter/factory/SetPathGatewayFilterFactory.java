@@ -73,7 +73,7 @@ public class SetPathGatewayFilterFactory implements GatewayFilterFactory {
 
 			exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, uri);
 
-			ServerHttpRequest request = mutate(req)
+			ServerHttpRequest request = req.mutate()
 					.path(newPath)
 					.build();
 

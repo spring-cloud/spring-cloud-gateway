@@ -29,6 +29,7 @@ import reactor.core.publisher.Flux;
  * @author Sebastien Deleuze
  * @since 5.0
  */
+@Deprecated
 public class GatewayServerHttpRequestBuilder implements ServerHttpRequest.Builder {
 
 	private boolean encoded;

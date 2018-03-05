@@ -38,10 +38,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.containsEncodedQuery;
 import static org.springframework.cloud.gateway.test.TestUtils.getMap;
-import static org.springframework.web.reactive.function.BodyExtractors.toMono;
-
-import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -73,31 +69,26 @@ public class AddRequestParameterGatewayFilterFactoryTests extends BaseWebClientT
 		}
 		URI uri = UriComponentsBuilder.fromUriString(this.baseUri+"/get" + query).build(true).toUri();
 		boolean checkForEncodedValue = containsEncodedQuery(uri);
-		Mono<Map> result = webClient.get()
+		testClient.get()
 				.uri(uri)
 				.header("Host", "www.addrequestparameter.org")
 				.exchange()
-				.flatMap(response -> response.body(toMono(Map.class)));
-
-		StepVerifier.create(result)
-				.consumeNextWith(
-						response -> {
-							Map<String, Object> args = getMap(response, "args");
-							assertThat(args).containsEntry("foo", "bar");
-							if (name != null) {
-								if (checkForEncodedValue) {
-									try {
-										assertThat(args).containsEntry(name, URLDecoder.decode(value, "UTF-8"));
-									} catch (UnsupportedEncodingException e) {
-										throw new RuntimeException(e);
-									}
-								} else {
-									assertThat(args).containsEntry(name, value);
-								}
-							}
-						})
-				.expectComplete()
-				.verify(DURATION);
+				.expectBody(Map.class)
+				.consumeWith(response -> {
+					Map<String, Object> args = getMap(response.getResponseBody(), "args");
+                    assertThat(args).containsEntry("foo", "bar");
+                    if (name != null) {
+                        if (checkForEncodedValue) {
+                            try {
+                                assertThat(args).containsEntry(name, URLDecoder.decode(value, "UTF-8"));
+                            } catch (UnsupportedEncodingException e) {
+                                throw new RuntimeException(e);
+                            }
+                        } else {
+                            assertThat(args).containsEntry(name, value);
+                        }
+                    }
+                });
 	}
 
 	@EnableAutoConfiguration

@@ -54,7 +54,7 @@ public class RewritePathGatewayFilterFactory implements GatewayFilterFactory {
 			String path = req.getURI().getPath();
 			String newPath = path.replaceAll(regex, replacement);
 
-			ServerHttpRequest request = mutate(req)
+			ServerHttpRequest request = req.mutate()
 					.path(newPath)
 					.build();
 
