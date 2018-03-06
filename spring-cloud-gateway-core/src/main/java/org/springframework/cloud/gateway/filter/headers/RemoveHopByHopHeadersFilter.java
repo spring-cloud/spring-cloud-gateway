@@ -19,13 +19,12 @@ package org.springframework.cloud.gateway.filter.headers;
 
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.web.server.ServerWebExchange;
 
 @ConfigurationProperties("spring.cloud.gateway.filter.remove-hop-by-hop")
 public class RemoveHopByHopHeadersFilter implements HttpHeadersFilter, Ordered {
@@ -68,17 +67,19 @@ public class RemoveHopByHopHeadersFilter implements HttpHeadersFilter, Ordered {
 	}
 
 	@Override
-	public HttpHeaders filter(ServerHttpRequest request) {
-		HttpHeaders original = request.getHeaders();
+	public HttpHeaders filter(HttpHeaders input, ServerWebExchange exchange) {
 		HttpHeaders filtered = new HttpHeaders();
-		List<String> connection = original.getConnection();
-		Set<String> toFilter = new HashSet<>(connection);
-		toFilter.addAll(this.headers);
-
-		original.entrySet().stream()
-				.filter(entry -> !toFilter.contains(entry.getKey().toLowerCase()))
+		
+		input.entrySet().stream()
+				.filter(entry -> !this.headers.contains(entry.getKey().toLowerCase()))
 				.forEach(entry -> filtered.addAll(entry.getKey(), entry.getValue()));
 
 		return filtered;
+	}
+
+	@Override 
+	public boolean supports(Type type) {
+		return type.equals(Type.REQUEST) ||
+				type.equals(Type.RESPONSE);
 	}
 }

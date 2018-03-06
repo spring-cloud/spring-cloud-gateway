@@ -20,6 +20,7 @@ import org.springframework.web.reactive.socket.client.WebSocketClient;
 import org.springframework.web.reactive.socket.server.WebSocketService;
 import org.springframework.web.server.ServerWebExchange;
 
+import static org.springframework.cloud.gateway.filter.headers.HttpHeadersFilter.filterRequest;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.isAlreadyRouted;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.setAlreadyRouted;
@@ -60,8 +61,8 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 
 
 		HttpHeaders headers = exchange.getRequest().getHeaders();
-		HttpHeaders filtered = HttpHeadersFilter.filter(getHeadersFilters(),
-				exchange.getRequest());
+		HttpHeaders filtered = filterRequest(getHeadersFilters(),
+				exchange);
 
 		List<String> protocols = headers.get(SEC_WEBSOCKET_PROTOCOL);
 		if (protocols != null) {
@@ -82,9 +83,9 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 			filters = new ArrayList<>();
 		}
 
-		filters.add(request -> {
+		filters.add((headers, exchange) -> {
 			HttpHeaders filtered = new HttpHeaders();
-			request.getHeaders().entrySet().stream()
+			headers.entrySet().stream()
 					.filter(entry -> !entry.getKey().toLowerCase().startsWith("sec-websocket"))
 					.forEach(header -> filtered.addAll(header.getKey(), header.getValue()));
 			return filtered;

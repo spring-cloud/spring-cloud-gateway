@@ -31,6 +31,7 @@ import org.junit.Test;
 import org.springframework.cloud.gateway.filter.headers.ForwardedHeadersFilter.Forwarded;
 import org.springframework.http.HttpHeaders;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
+import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.util.StringUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -51,7 +52,7 @@ public class ForwardedHeadersFilterTests {
 
 		ForwardedHeadersFilter filter = new ForwardedHeadersFilter();
 
-		HttpHeaders headers = filter.filter(request);
+		HttpHeaders headers = filter.filter(request.getHeaders(), MockServerWebExchange.from(request));
 
 		assertThat(headers.get(FORWARDED_HEADER)).hasSize(1);
 
