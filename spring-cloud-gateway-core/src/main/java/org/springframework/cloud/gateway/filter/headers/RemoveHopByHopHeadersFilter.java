@@ -69,7 +69,10 @@ public class RemoveHopByHopHeadersFilter implements HttpHeadersFilter, Ordered {
 
 	@Override
 	public HttpHeaders filter(ServerHttpRequest request) {
-		HttpHeaders original = request.getHeaders();
+		return filter(request.getHeaders());
+	}
+	
+	public HttpHeaders filter(HttpHeaders original) {
 		HttpHeaders filtered = new HttpHeaders();
 		List<String> connection = original.getConnection();
 		Set<String> toFilter = new HashSet<>(connection);
