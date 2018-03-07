@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ package org.springframework.cloud.gateway.filter;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.cloud.gateway.filter.headers.DownStreamPath;
 import org.springframework.cloud.gateway.filter.headers.HttpHeadersFilter;
 import org.springframework.cloud.gateway.filter.headers.RemoveHopByHopHeadersFilter;
 import org.springframework.core.Ordered;
@@ -45,19 +46,17 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.s
 
 /**
  * @author Spencer Gibb
+ * @author Biju Kunjummen
  */
 public class NettyRoutingFilter implements GlobalFilter, Ordered {
 
 	private final HttpClient httpClient;
 	private final ObjectProvider<List<HttpHeadersFilter>> headersFilters;
-	private final RemoveHopByHopHeadersFilter removeHopByHopHeadersFilter;
 
 	public NettyRoutingFilter(HttpClient httpClient,
-			ObjectProvider<List<HttpHeadersFilter>> headersFilters,
-			RemoveHopByHopHeadersFilter removeHopByHopHeadersFilter) {
+			ObjectProvider<List<HttpHeadersFilter>> headersFilters) {
 		this.httpClient = httpClient;
 		this.headersFilters = headersFilters;
-		this.removeHopByHopHeadersFilter = removeHopByHopHeadersFilter;
 	}
 
 	@Override
@@ -80,8 +79,8 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 		final HttpMethod method = HttpMethod.valueOf(request.getMethod().toString());
 		final String url = requestUrl.toString();
 
-		HttpHeaders filtered = HttpHeadersFilter.filter(this.headersFilters.getIfAvailable(),
-				request);
+		HttpHeaders filtered = HttpHeadersFilter.filter(this.headersFilters.getIfAvailable(), request.getHeaders(),
+				exchange);
 
 		final DefaultHttpHeaders httpHeaders = new DefaultHttpHeaders();
 		filtered.forEach(httpHeaders::set);
@@ -113,7 +112,9 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 			
 			res.responseHeaders().forEach(entry -> headers.add(entry.getKey(), entry.getValue()));
 
-			HttpHeaders filteredResponseHeaders = this.removeHopByHopHeadersFilter.filter(headers);
+			HttpHeaders filteredResponseHeaders = HttpHeadersFilter.filter(
+					this.headersFilters.getIfAvailable(), headers, null, DownStreamPath.RESPONSE);
+			
 			response.getHeaders().putAll(filteredResponseHeaders);
 			response.setStatusCode(HttpStatus.valueOf(res.status().code()));
 

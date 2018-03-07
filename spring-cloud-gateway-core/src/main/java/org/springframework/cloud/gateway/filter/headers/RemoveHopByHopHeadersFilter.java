@@ -25,7 +25,7 @@ import java.util.Set;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.web.server.ServerWebExchange;
 
 @ConfigurationProperties("spring.cloud.gateway.filter.remove-hop-by-hop")
 public class RemoveHopByHopHeadersFilter implements HttpHeadersFilter, Ordered {
@@ -68,20 +68,22 @@ public class RemoveHopByHopHeadersFilter implements HttpHeadersFilter, Ordered {
 	}
 
 	@Override
-	public HttpHeaders filter(ServerHttpRequest request) {
-		return filter(request.getHeaders());
-	}
-	
-	public HttpHeaders filter(HttpHeaders original) {
+	public HttpHeaders filter(HttpHeaders input, ServerWebExchange exchange) {
 		HttpHeaders filtered = new HttpHeaders();
-		List<String> connection = original.getConnection();
+		List<String> connection = input.getConnection();
 		Set<String> toFilter = new HashSet<>(connection);
 		toFilter.addAll(this.headers);
 
-		original.entrySet().stream()
+		input.entrySet().stream()
 				.filter(entry -> !toFilter.contains(entry.getKey().toLowerCase()))
 				.forEach(entry -> filtered.addAll(entry.getKey(), entry.getValue()));
 
 		return filtered;
+	}
+
+	@Override 
+	public boolean supports(DownStreamPath downStreamPath) {
+		return downStreamPath.equals(DownStreamPath.REQUEST) || 
+				downStreamPath.equals(DownStreamPath.RESPONSE);
 	}
 }
