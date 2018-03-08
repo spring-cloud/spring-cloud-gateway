@@ -53,7 +53,7 @@ public class WeightRoutePredicateFactory implements RoutePredicateFactory, Appli
 	}
 
 	@Override
-	public List<String> argNames() {
+	public List<String> shortcutFieldOrder() {
 		return Arrays.asList(GROUP_KEY, LOWER_BOUND_KEY, UPPER_BOUND_KEY);
 	}
 
