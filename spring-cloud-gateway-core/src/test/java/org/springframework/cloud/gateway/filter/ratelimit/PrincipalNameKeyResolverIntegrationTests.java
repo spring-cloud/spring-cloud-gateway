@@ -34,6 +34,7 @@ import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.core.userdetails.MapReactiveUserDetailsService;
 import org.springframework.security.core.userdetails.User;
@@ -48,7 +49,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
-import static org.springframework.tuple.TupleBuilder.tuple;
 import static org.springframework.web.reactive.function.client.ExchangeFilterFunctions.basicAuthentication;
 
 import reactor.core.publisher.Mono;
@@ -62,7 +62,6 @@ public class PrincipalNameKeyResolverIntegrationTests {
 
 	protected WebTestClient client;
 	protected String baseUri;
-
 
 	@BeforeClass
 	public static void beforeClass() {
@@ -111,21 +110,20 @@ public class PrincipalNameKeyResolverIntegrationTests {
 		public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes()
 					.route(r -> r.path("/myapi/**")
-							.filters(f -> f.requestRateLimiter()
-									.rateLimiter(MyRateLimiter.class, rl -> {})
-									.and()
+							.filters(f -> f.requestRateLimiter(c -> myRateLimiter())
 									.prefixPath("/downstream"))
 							.uri("http://localhost:"+port))
 					.build();
 		}
 
 		@Bean
-		MyRateLimiter rateLimiter() {
+		@Primary
+		MyRateLimiter myRateLimiter() {
 			return new MyRateLimiter();
 		}
 
 		@Bean
-		SecurityWebFilterChain springWebFilterChain(ServerHttpSecurity http) throws Exception {
+		SecurityWebFilterChain springWebFilterChain(ServerHttpSecurity http) {
 			return http.httpBasic().and()
 					.authorizeExchange()
 					.pathMatchers("/myapi/**").authenticated()

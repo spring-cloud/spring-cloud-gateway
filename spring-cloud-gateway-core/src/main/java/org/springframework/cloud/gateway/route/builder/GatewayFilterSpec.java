@@ -149,9 +149,9 @@ public class GatewayFilterSpec extends UriSpec {
 				.apply(c -> c.setName(headerName)));
 	}
 
-	// public GatewayFilterSpec requestRateLimiter() {
-	// 	return filter(getBean(RequestRateLimiterGatewayFilterFactory.class).apply(config -> {}));
-	// }
+	public GatewayFilterSpec requestRateLimiter(Consumer<RequestRateLimiterGatewayFilterFactory.Config> configConsumer) {
+		return filter(getBean(RequestRateLimiterGatewayFilterFactory.class).apply(configConsumer));
+	}
 
     public RequestRateLimiterSpec requestRateLimiter() {
 		return new RequestRateLimiterSpec(getBean(RequestRateLimiterGatewayFilterFactory.class));
