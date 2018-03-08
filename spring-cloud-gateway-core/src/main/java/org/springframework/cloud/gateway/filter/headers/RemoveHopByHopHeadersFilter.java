@@ -70,12 +70,9 @@ public class RemoveHopByHopHeadersFilter implements HttpHeadersFilter, Ordered {
 	@Override
 	public HttpHeaders filter(HttpHeaders input, ServerWebExchange exchange) {
 		HttpHeaders filtered = new HttpHeaders();
-		List<String> connection = input.getConnection();
-		Set<String> toFilter = new HashSet<>(connection);
-		toFilter.addAll(this.headers);
-
+		
 		input.entrySet().stream()
-				.filter(entry -> !toFilter.contains(entry.getKey().toLowerCase()))
+				.filter(entry -> !this.headers.contains(entry.getKey().toLowerCase()))
 				.forEach(entry -> filtered.addAll(entry.getKey(), entry.getValue()));
 
 		return filtered;
