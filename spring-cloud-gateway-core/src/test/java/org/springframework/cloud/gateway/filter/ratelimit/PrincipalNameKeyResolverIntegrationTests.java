@@ -110,7 +110,7 @@ public class PrincipalNameKeyResolverIntegrationTests {
 		public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes()
 					.route(r -> r.path("/myapi/**")
-							.filters(f -> f.requestRateLimiter(c -> myRateLimiter())
+							.filters(f -> f.requestRateLimiter(c -> c.setRateLimiter(myRateLimiter()))
 									.prefixPath("/downstream"))
 							.uri("http://localhost:"+port))
 					.build();
