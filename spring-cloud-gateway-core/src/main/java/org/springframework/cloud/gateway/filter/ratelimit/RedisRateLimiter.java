@@ -4,11 +4,15 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.validation.constraints.Min;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.validation.Validator;
@@ -23,23 +27,51 @@ import reactor.core.publisher.Mono;
  *
  * @author Spencer Gibb
  */
-public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Config> {
+public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Config> implements ApplicationContextAware {
 	@Deprecated
 	public static final String REPLENISH_RATE_KEY = "replenishRate";
 	@Deprecated
 	public static final String BURST_CAPACITY_KEY = "burstCapacity";
+
 	public static final String CONFIGURATION_PROPERTY_NAME = "redis-rate-limiter";
+	public static final String REDIS_SCRIPT_NAME = "redisRequestRateLimiterScript";
 
 	private Log log = LogFactory.getLog(getClass());
 
-	private final ReactiveRedisTemplate<String, String> redisTemplate;
-	private final RedisScript<List<Long>> script;
+	private ReactiveRedisTemplate<String, String> redisTemplate;
+	private RedisScript<List<Long>> script;
+	private AtomicBoolean initialized = new AtomicBoolean(false);
+	private Config defaultConfig;
 
 	public RedisRateLimiter(ReactiveRedisTemplate<String, String> redisTemplate,
 							RedisScript<List<Long>> script, Validator validator) {
 		super(Config.class, CONFIGURATION_PROPERTY_NAME, validator);
 		this.redisTemplate = redisTemplate;
 		this.script = script;
+		initialized.compareAndSet(false, true);
+	}
+
+	public RedisRateLimiter(int defaultReplenishRate, int defaultBurstCapacity) {
+		super(Config.class, CONFIGURATION_PROPERTY_NAME, null);
+		this.defaultConfig = new Config()
+				.setReplenishRate(defaultReplenishRate)
+				.setBurstCapacity(defaultBurstCapacity);
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public void setApplicationContext(ApplicationContext context) throws BeansException {
+		if (initialized.compareAndSet(false, true)) {
+			this.redisTemplate = context.getBean("stringReactiveRedisTemplate", ReactiveRedisTemplate.class);
+			this.script = context.getBean(REDIS_SCRIPT_NAME, RedisScript.class);
+			if (context.getBeanNamesForType(Validator.class).length > 0) {
+				this.setValidator(context.getBean(Validator.class));
+			}
+		}
+	}
+
+	/* for testing */ Config getDefaultConfig() {
+		return defaultConfig;
 	}
 
 	/**
@@ -50,11 +82,17 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 	@Override
 	@SuppressWarnings("unchecked")
 	public Mono<Response> isAllowed(String routeId, String id) {
+		if (!this.initialized.get()) {
+			throw new IllegalStateException("RedisRateLimiter is not initialized");
+		}
 
 		Config routeConfig = getConfig().get(routeId);
 
 		if (routeConfig == null) {
-			throw new IllegalArgumentException("No Configuration found for route "+ routeId);
+			if (defaultConfig == null) {
+				throw new IllegalArgumentException("No Configuration found for route " + routeId);
+			}
+			routeConfig = defaultConfig;
 		}
 
 		// How many requests per second do you want a user to be allowed to do?

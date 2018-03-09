@@ -68,6 +68,7 @@ public interface GatewayFilterFactory<C> extends ShortcutConfigurable, Configura
 	GatewayFilter apply(Tuple args);
 
 	default String name() {
+		//TODO: deal with proxys
 		return NameUtils.normalizeFilterFactoryName(getClass());
 	}
 

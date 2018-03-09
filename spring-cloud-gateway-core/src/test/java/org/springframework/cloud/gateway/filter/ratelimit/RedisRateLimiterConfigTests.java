@@ -17,13 +17,13 @@
 
 package org.springframework.cloud.gateway.filter.ratelimit;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiter.Config;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
@@ -31,11 +31,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.web.server.ServerWebExchange;
 
 import static org.assertj.core.api.Assertions.assertThat;
-
-import reactor.core.publisher.Mono;
 
 /**
  * @author Spencer Gibb
@@ -52,20 +49,40 @@ public class RedisRateLimiterConfigTests {
 	@Autowired
 	private RouteLocator routeLocator;
 
+	@Before
+	public void init() {
+		System.out.println();
+	}
+
 	@Test
 	public void redisRateConfiguredFromEnvironment() {
-		assertFilter("redis_rate_limiter_config_test", 10, 20, PrincipalNameKeyResolver.class);
+		assertFilter("redis_rate_limiter_config_test", 10, 20,
+				false);
 	}
 
 	@Test
 	public void redisRateConfiguredFromJavaAPI() {
-		assertFilter("custom_redis_rate_limiter", 20, 40, MyKeyResolver.class);
+		assertFilter("custom_redis_rate_limiter", 20, 40,
+				false);
 	}
 
-	private void assertFilter(String key, int replenishRate, int burstCapacity, Class<? extends KeyResolver> keyResolverClass) {
-		assertThat(rateLimiter.getConfig()).containsKey(key);
+	@Test
+	public void redisRateConfiguredFromJavaAPIDirectBean() {
+		assertFilter("alt_custom_redis_rate_limiter", 30, 60,
+				true);
+	}
 
-		Config config = rateLimiter.getConfig().get(key);
+	private void assertFilter(String key, int replenishRate, int burstCapacity,
+							  boolean useDefaultConfig) {
+		RedisRateLimiter.Config config;
+
+		if (useDefaultConfig) {
+			config = rateLimiter.getDefaultConfig();
+		} else {
+			assertThat(rateLimiter.getConfig()).containsKey(key);
+			config = rateLimiter.getConfig().get(key);
+		}
+		assertThat(config).isNotNull();
 		assertThat(config.getReplenishRate()).isEqualTo(replenishRate);
 		assertThat(config.getBurstCapacity()).isEqualTo(burstCapacity);
 
@@ -87,15 +104,16 @@ public class RedisRateLimiterConfigTests {
 											rl -> rl.setBurstCapacity(40).setReplenishRate(20))
 									.and())
 							.uri("http://localhost"))
+					.route("alt_custom_redis_rate_limiter", r -> r.path("/custom")
+							.filters(f -> f.requestRateLimiter(c -> c.setRateLimiter(myRateLimiter())))
+							.uri("http://localhost"))
 					.build();
 
 		}
-	}
 
-	private static class MyKeyResolver implements KeyResolver {
-		@Override
-		public Mono<String> resolve(ServerWebExchange exchange) {
-			return null;
+		@Bean
+		public RedisRateLimiter myRateLimiter() {
+			return new RedisRateLimiter(30, 60);
 		}
 	}
 }

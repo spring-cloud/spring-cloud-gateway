@@ -28,7 +28,7 @@ import org.springframework.validation.Validator;
 
 public abstract class AbstractRateLimiter<C> extends AbstractStatefulConfigurable<C> implements RateLimiter<C>, ApplicationListener<FilterArgsEvent> {
 	private String configurationPropertyName;
-	private final Validator validator;
+	private Validator validator;
 
 	protected AbstractRateLimiter(Class<C> configClass, String configurationPropertyName, Validator validator) {
 		super(configClass);
@@ -42,6 +42,10 @@ public abstract class AbstractRateLimiter<C> extends AbstractStatefulConfigurabl
 
 	protected Validator getValidator() {
 		return validator;
+	}
+
+	public void setValidator(Validator validator) {
+		this.validator = validator;
 	}
 
 	@Override
