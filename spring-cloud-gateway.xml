@@ -754,7 +754,7 @@ using something like <link xl:href="http://projects.spring.io/spring-session/">S
 <simpara>For some usages of the gateway, properties will be adequate, but some production use cases will benefit from loading configuration from an external source, such as a database. Future milestone versions will have <literal>RouteDefinitionLocator</literal> implementations based off of Spring Data Repositories such as: Redis, MongoDB and Cassandra.</simpara>
 <section xml:id="_fluent_java_routes_api">
 <title>Fluent Java Routes API</title>
-<simpara>To allow for simple configuration in Java, there is a fluent API defined in the <literal>Routes</literal> class.</simpara>
+<simpara>To allow for simple configuration in Java, there is a fluent API defined in the <literal>RouteLocatorBuilder</literal> bean.</simpara>
 <formalpara>
 <title>GatewaySampleApplication.java</title>
 <para>
