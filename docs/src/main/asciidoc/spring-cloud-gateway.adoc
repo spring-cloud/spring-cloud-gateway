@@ -713,7 +713,7 @@ spring:
 For some usages of the gateway, properties will be adequate, but some production use cases will benefit from loading configuration from an external source, such as a database. Future milestone versions will have `RouteDefinitionLocator` implementations based off of Spring Data Repositories such as: Redis, MongoDB and Cassandra.
 
 === Fluent Java Routes API
-To allow for simple configuration in Java, there is a fluent API defined in the `Routes` class.
+To allow for simple configuration in Java, there is a fluent API defined in the `RouteLocatorBuilder` bean.
 
 .GatewaySampleApplication.java
 [source,java]
