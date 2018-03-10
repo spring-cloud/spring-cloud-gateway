@@ -26,7 +26,8 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.cloud.gateway.event.PredicateArgsEvent;
-import org.springframework.cloud.gateway.filter.WeightCalculatorWebFilter.WeightConfig;
+import org.springframework.cloud.gateway.filter.WeightCalculatorWebFilter.GroupWeightConfig;
+import org.springframework.cloud.gateway.filter.WeightCalculatorWebFilter.Weight;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.WebFilterChain;
@@ -34,8 +35,6 @@ import org.springframework.web.server.WebFilterChain;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
@@ -66,12 +65,12 @@ public class WeightCalculatorWebFilterTests {
 										 int weight, List<Double> normalized, Double... middleRanges) {
 		String routeId = route(item);
 
-		filter.addWeightConfig(group, routeId, weight);
+		filter.addWeightConfig(new Weight(group, routeId, weight));
 
-		Map<String, WeightConfig> groupWeights = filter.getGroupWeights();
+		Map<String, GroupWeightConfig> groupWeights = filter.getGroupWeights();
 		assertThat(groupWeights).containsKey(group);
 
-		WeightConfig config = groupWeights.get(group);
+		GroupWeightConfig config = groupWeights.get(group);
 		assertThat(config.group).isEqualTo(group);
 		assertThat(config.weights).hasSize(item)
 				.containsEntry(routeId, weight);
@@ -104,9 +103,9 @@ public class WeightCalculatorWebFilterTests {
 	@Test
 	public void testChooseRouteWithRandom() {
 		WeightCalculatorWebFilter filter = new WeightCalculatorWebFilter();
-		filter.addWeightConfig("groupa", "route1", 1);
-		filter.addWeightConfig("groupa", "route2", 3);
-		filter.addWeightConfig("groupa", "route3", 6);
+		filter.addWeightConfig(new Weight("groupa", "route1", 1));
+		filter.addWeightConfig(new Weight("groupa", "route2", 3));
+		filter.addWeightConfig(new Weight("groupa", "route3", 6));
 
 		Random random = mock(Random.class);
 
@@ -136,7 +135,7 @@ public class WeightCalculatorWebFilterTests {
 	@Test
 	public void receivesPredicateArgsEvent() {
 		WeightCalculatorWebFilter filter = mock(WeightCalculatorWebFilter.class);
-		doNothing().when(filter).addWeightConfig(anyString(), anyString(), anyInt());
+		doNothing().when(filter).addWeightConfig(any(Weight.class));
 		doCallRealMethod().when(filter).onApplicationEvent(any(PredicateArgsEvent.class));
 
 		HashMap<String, Object> args = new HashMap<>();
@@ -145,14 +144,12 @@ public class WeightCalculatorWebFilterTests {
 		PredicateArgsEvent event = new PredicateArgsEvent(this, "routeA", args);
 		filter.onApplicationEvent(event);
 
-		ArgumentCaptor<String> groupCaptor = ArgumentCaptor.forClass(String.class);
-		ArgumentCaptor<String> routeIdCaptor = ArgumentCaptor.forClass(String.class);
-		ArgumentCaptor<Integer> weightCaptor = ArgumentCaptor.forClass(Integer.class);
-		verify(filter).addWeightConfig(groupCaptor.capture(), routeIdCaptor.capture(),
-				weightCaptor.capture());
+		ArgumentCaptor<Weight> configCaptor = ArgumentCaptor.forClass(Weight.class);
+		verify(filter).addWeightConfig(configCaptor.capture());
 
-		assertThat(groupCaptor.getValue()).isEqualTo("group1");
-		assertThat(routeIdCaptor.getValue()).isEqualTo("routeA");
-		assertThat(weightCaptor.getValue()).isEqualTo(1);
+		Weight weight = configCaptor.getValue();
+		assertThat(weight.getGroup()).isEqualTo("group1");
+		assertThat(weight.getRouteId()).isEqualTo("routeA");
+		assertThat(weight.getValue()).isEqualTo(1);
 	}
 }

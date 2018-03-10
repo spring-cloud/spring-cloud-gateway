@@ -101,6 +101,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Primary;
 import org.springframework.util.StringUtils;
+import org.springframework.validation.Validator;
 import org.springframework.web.reactive.DispatcherHandler;
 import org.springframework.web.reactive.socket.client.ReactorNettyWebSocketClient;
 import org.springframework.web.reactive.socket.client.WebSocketClient;
@@ -327,8 +328,8 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	public WeightCalculatorWebFilter weightCalculatorWebFilter() {
-		return new WeightCalculatorWebFilter();
+	public WeightCalculatorWebFilter weightCalculatorWebFilter(Validator validator) {
+		return new WeightCalculatorWebFilter(validator);
 	}
 
 	/*@Bean
