@@ -29,9 +29,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.cloud.gateway.event.PredicateArgsEvent;
+import org.springframework.cloud.gateway.event.WeightDefinedEvent;
 import org.springframework.cloud.gateway.support.ConfigurationUtils;
 import org.springframework.cloud.gateway.support.WeightConfig;
-import org.springframework.context.ApplicationListener;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.event.SmartApplicationListener;
 import org.springframework.core.Ordered;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.validation.Validator;
@@ -46,7 +48,7 @@ import reactor.core.publisher.Mono;
 /**
  * @author Spencer Gibb
  */
-public class WeightCalculatorWebFilter implements WebFilter, Ordered, ApplicationListener<PredicateArgsEvent> {
+public class WeightCalculatorWebFilter implements WebFilter, Ordered, SmartApplicationListener {
 
 	private static final Log log = LogFactory.getLog(WeightCalculatorWebFilter.class);
 
@@ -80,7 +82,27 @@ public class WeightCalculatorWebFilter implements WebFilter, Ordered, Applicatio
 	}
 
 	@Override
-	public void onApplicationEvent(PredicateArgsEvent event) {
+	public boolean supportsEventType(Class<? extends ApplicationEvent> eventType) {
+		return PredicateArgsEvent.class.isAssignableFrom(eventType) || // config file
+				WeightDefinedEvent.class.isAssignableFrom(eventType);  // java dsl
+	}
+
+	@Override
+	public boolean supportsSourceType(Class<?> sourceType) {
+		return true;
+	}
+
+	@Override
+	public void onApplicationEvent(ApplicationEvent event) {
+		if (event instanceof PredicateArgsEvent) {
+			handle((PredicateArgsEvent) event);
+		} else if (event instanceof WeightDefinedEvent) {
+			addWeightConfig(((WeightDefinedEvent)event).getWeightConfig());
+		}
+
+	}
+
+	public void handle(PredicateArgsEvent event) {
 		Map<String, Object> args = event.getArgs();
 
 		if (args.isEmpty() || !hasRelevantKey(args)) {

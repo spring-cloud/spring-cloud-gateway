@@ -136,13 +136,13 @@ public class WeightCalculatorWebFilterTests {
 	public void receivesPredicateArgsEvent() {
 		WeightCalculatorWebFilter filter = mock(WeightCalculatorWebFilter.class);
 		doNothing().when(filter).addWeightConfig(any(WeightConfig.class));
-		doCallRealMethod().when(filter).onApplicationEvent(any(PredicateArgsEvent.class));
+		doCallRealMethod().when(filter).handle(any(PredicateArgsEvent.class));
 
 		HashMap<String, Object> args = new HashMap<>();
 		args.put("weight.group", "group1");
 		args.put("weight.weight", "1");
 		PredicateArgsEvent event = new PredicateArgsEvent(this, "routeA", args);
-		filter.onApplicationEvent(event);
+		filter.handle(event);
 
 		ArgumentCaptor<WeightConfig> configCaptor = ArgumentCaptor.forClass(WeightConfig.class);
 		verify(filter).addWeightConfig(configCaptor.capture());

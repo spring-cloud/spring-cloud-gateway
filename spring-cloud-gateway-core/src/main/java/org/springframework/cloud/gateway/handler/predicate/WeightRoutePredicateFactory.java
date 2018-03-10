@@ -19,14 +19,13 @@ package org.springframework.cloud.gateway.handler.predicate;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.cloud.gateway.event.PredicateArgsEvent;
+import org.springframework.cloud.gateway.event.WeightDefinedEvent;
 import org.springframework.cloud.gateway.support.WeightConfig;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
@@ -70,12 +69,7 @@ public class WeightRoutePredicateFactory extends AbstractRoutePredicateFactory<W
 	@Override
 	public void beforeApply(WeightConfig config) {
 		if (publisher != null) {
-			// this is from the dsl and event needs to be sent for weight filter
-			HashMap<String, Object> args = new HashMap<>();
-			args.put(GROUP_KEY, config.getGroup());
-			args.put(WEIGHT_KEY, config.getWeight());
-			PredicateArgsEvent event = new PredicateArgsEvent(this, config.getRouteId(), args);
-			publisher.publishEvent(event);
+			publisher.publishEvent(new WeightDefinedEvent(this, config));
 		}
 	}
 
