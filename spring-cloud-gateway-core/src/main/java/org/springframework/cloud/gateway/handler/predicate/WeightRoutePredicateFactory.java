@@ -25,7 +25,6 @@ import java.util.function.Predicate;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.cloud.gateway.event.WeightDefinedEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.tuple.Tuple;
@@ -76,7 +75,7 @@ public class WeightRoutePredicateFactory implements RoutePredicateFactory, Appli
 		Assert.isTrue(lowerBound <= upperBound, LOWER_BOUND_KEY + " must be less than " + UPPER_BOUND_KEY);
 
 		if (this.publisher != null) {
-			this.publisher.publishEvent(new WeightDefinedEvent(this, group));
+			// this.publisher.publishEvent(new WeightDefinedEvent(this, group));
 		}
 
 		return exchange -> {
