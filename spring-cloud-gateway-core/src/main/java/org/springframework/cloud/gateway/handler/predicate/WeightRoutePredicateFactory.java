@@ -19,32 +19,38 @@ package org.springframework.cloud.gateway.handler.predicate;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.cloud.gateway.event.PredicateArgsEvent;
+import org.springframework.cloud.gateway.support.WeightConfig;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
-import org.springframework.tuple.Tuple;
-import org.springframework.util.Assert;
 import org.springframework.web.server.ServerWebExchange;
 
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_PREDICATE_ROUTE_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.WEIGHT_ATTR;
 
 /**
  * @author Spencer Gibb
  */
-public class WeightRoutePredicateFactory implements RoutePredicateFactory, ApplicationEventPublisherAware {
+//TODO: make this a generic Choose out of group predicate?
+public class WeightRoutePredicateFactory extends AbstractRoutePredicateFactory<WeightConfig> implements ApplicationEventPublisherAware {
 
 	private static final Log log = LogFactory.getLog(WeightRoutePredicateFactory.class);
 
-	public static final String GROUP_KEY = "group";
-	public static final String LOWER_BOUND_KEY = "lower";
-	public static final String UPPER_BOUND_KEY = "upper";
+	public static final String GROUP_KEY = "weight.group";
+	public static final String WEIGHT_KEY = "weight.weight";
 
 	private ApplicationEventPublisher publisher;
+
+	public WeightRoutePredicateFactory() {
+		super(WeightConfig.class);
+	}
 
 	@Override
 	public void setApplicationEventPublisher(ApplicationEventPublisher publisher) {
@@ -53,43 +59,45 @@ public class WeightRoutePredicateFactory implements RoutePredicateFactory, Appli
 
 	@Override
 	public List<String> shortcutFieldOrder() {
-		return Arrays.asList(GROUP_KEY, LOWER_BOUND_KEY, UPPER_BOUND_KEY);
+		return Arrays.asList(GROUP_KEY, WEIGHT_KEY);
 	}
 
 	@Override
-	public Predicate<ServerWebExchange> apply(Tuple args) {
-		String group = args.getString(GROUP_KEY);
-		double lowerBound = args.getDouble(LOWER_BOUND_KEY);
-		double upperBound = 1.0;
-		if (args.hasFieldName(UPPER_BOUND_KEY)) {
-			upperBound = args.getDouble(UPPER_BOUND_KEY);
-		}
-
-		return apply(group, lowerBound, upperBound);
+	public String shortcutFieldPrefix() {
+		return WeightConfig.CONFIG_PREFIX;
 	}
 
-	public Predicate<ServerWebExchange> apply(String group, double lowerBound, double upperBound) {
-		Assert.hasLength(group, GROUP_KEY + " must not be null or empty");
-		Assert.isTrue(lowerBound >= 0, LOWER_BOUND_KEY + " must be greater than or equal to zero");
-		Assert.isTrue(upperBound <= 1.0, UPPER_BOUND_KEY + " must be less than or equal to one");
-		Assert.isTrue(lowerBound <= upperBound, LOWER_BOUND_KEY + " must be less than " + UPPER_BOUND_KEY);
-
-		if (this.publisher != null) {
-			// this.publisher.publishEvent(new WeightDefinedEvent(this, group));
+	@Override
+	public void beforeApply(WeightConfig config) {
+		if (publisher != null) {
+			// this is from the dsl and event needs to be sent for weight filter
+			HashMap<String, Object> args = new HashMap<>();
+			args.put(GROUP_KEY, config.getGroup());
+			args.put(WEIGHT_KEY, config.getWeight());
+			PredicateArgsEvent event = new PredicateArgsEvent(this, config.getRouteId(), args);
+			publisher.publishEvent(event);
 		}
+	}
 
+	@Override
+	public Predicate<ServerWebExchange> apply(WeightConfig config) {
 		return exchange -> {
-			Map<String, Double> weights = exchange.getAttributeOrDefault(WEIGHT_ATTR,
+			Map<String, String> weights = exchange.getAttributeOrDefault(WEIGHT_ATTR,
 					Collections.emptyMap());
 
-			String key = group.toLowerCase();
-			if (weights.containsKey(key)) {
+			String routeId = exchange.getAttribute(GATEWAY_PREDICATE_ROUTE_ATTR);
 
+			// all calculations and comparison against random num happened in
+			// WeightCalculatorWebFilter
+			String group = config.getGroup();
+			if (weights.containsKey(group)) {
+
+				String chosenRoute = weights.get(group);
 				if (log.isTraceEnabled()) {
-					log.trace("in weight: "+ lowerBound + " : " + weights.get(key) + " : " + upperBound);
+					log.trace("in group weight: "+ group + ", current route: " + routeId +", chosen route: " + chosenRoute);
 				}
 
-				return lowerBound <= weights.get(key) && weights.get(key) < upperBound;
+				return routeId.equals(chosenRoute);
 			}
 
 			return false;

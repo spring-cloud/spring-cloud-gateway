@@ -30,11 +30,11 @@ import org.apache.commons.logging.LogFactory;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.cloud.gateway.event.PredicateArgsEvent;
 import org.springframework.cloud.gateway.support.ConfigurationUtils;
+import org.springframework.cloud.gateway.support.WeightConfig;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.Ordered;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.validation.Validator;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
@@ -42,9 +42,6 @@ import org.springframework.web.server.WebFilterChain;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.WEIGHT_ATTR;
 
 import reactor.core.publisher.Mono;
-
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotEmpty;
 
 /**
  * @author Spencer Gibb
@@ -54,7 +51,6 @@ public class WeightCalculatorWebFilter implements WebFilter, Ordered, Applicatio
 	private static final Log log = LogFactory.getLog(WeightCalculatorWebFilter.class);
 
 	public static final int WEIGHT_CALC_FILTER_ORDER = 10001;
-	public static final String CONFIG_PREFIX = "weight";
 
 	private final Validator validator;
 	private Random random = new Random();
@@ -91,28 +87,28 @@ public class WeightCalculatorWebFilter implements WebFilter, Ordered, Applicatio
 			return;
 		}
 
-		Weight config = new Weight(event.getRouteId());
+		WeightConfig config = new WeightConfig(event.getRouteId());
 
 		ConfigurationUtils.bind(config, args,
-				CONFIG_PREFIX, CONFIG_PREFIX, validator);
+				WeightConfig.CONFIG_PREFIX, WeightConfig.CONFIG_PREFIX, validator);
 
 		addWeightConfig(config);
 	}
 
 	private boolean hasRelevantKey(Map<String, Object> args) {
 		return args.keySet().stream()
-				.anyMatch(key -> key.startsWith(CONFIG_PREFIX + "."));
+				.anyMatch(key -> key.startsWith(WeightConfig.CONFIG_PREFIX + "."));
 	}
 
-	/* for testing */ void addWeightConfig(Weight weight) {
-		String group = weight.getGroup();
+	/* for testing */ void addWeightConfig(WeightConfig weightConfig) {
+		String group = weightConfig.getGroup();
 		GroupWeightConfig c = groupWeights.get(group);
 		if (c == null) {
 			c = new GroupWeightConfig(group);
 			groupWeights.put(group, c);
 		}
 		GroupWeightConfig config = c;
-		config.weights.put(weight.getRouteId(), weight.getValue());
+		config.weights.put(weightConfig.getRouteId(), weightConfig.getWeight());
 
 		//recalculate
 
@@ -120,8 +116,8 @@ public class WeightCalculatorWebFilter implements WebFilter, Ordered, Applicatio
 		int weightsSum = config.weights.values().stream().mapToInt(Integer::intValue).sum();
 
 		final AtomicInteger index = new AtomicInteger(0);
-		config.weights.forEach((routeId, w) -> {
-			Double nomalizedWeight = w / (double) weightsSum;
+		config.weights.forEach((routeId, weight) -> {
+			Double nomalizedWeight = weight / (double) weightsSum;
 			config.normalizedWeights.put(routeId, nomalizedWeight);
 
 			// recalculate rangeIndexes
@@ -140,6 +136,10 @@ public class WeightCalculatorWebFilter implements WebFilter, Ordered, Applicatio
 			Double range = previousRange + currentWeight;
 			config.ranges.add(range);
 		}
+
+		if (log.isTraceEnabled()) {
+			log.trace("Recalculated group weight config "+ config);
+		}
 	}
 
 	/* for testing */ Map<String, GroupWeightConfig> getGroupWeights() {
@@ -154,6 +154,11 @@ public class WeightCalculatorWebFilter implements WebFilter, Ordered, Applicatio
 			double r = this.random.nextDouble();
 
 			List<Double> ranges = config.ranges;
+
+			if (log.isTraceEnabled()) {
+				log.trace("Weight for group: "+group +", ranges: "+ranges +", r: "+r);
+			}
+
 			for (int i = 0; i < ranges.size() - 1; i++) {
 				if (r >= ranges.get(i) && r < ranges.get(i+1)) {
 					String routeId = config.rangeIndexes.get(i);
@@ -162,6 +167,10 @@ public class WeightCalculatorWebFilter implements WebFilter, Ordered, Applicatio
 				}
 			}
 		});
+
+		if (log.isTraceEnabled()) {
+			log.trace("Weights attr: "+weights);
+		}
 
 		return chain.filter(exchange);
 	}
@@ -175,59 +184,6 @@ public class WeightCalculatorWebFilter implements WebFilter, Ordered, Applicatio
 			exchange.getAttributes().put(WEIGHT_ATTR, weights);
 		}
 		return weights;
-	}
-
-	@Validated
-	/* for testing */ static class Weight {
-		@NotEmpty
-		private String routeId;
-		@NotEmpty
-		private String group;
-		@Min(0)
-		private int value;
-
-		private Weight() { }
-
-		public Weight(String group, String routeId, int value) {
-			this.routeId = routeId;
-			this.group = group;
-			this.value = value;
-		}
-
-		public Weight(String routeId) {
-			this.routeId = routeId;
-		}
-
-		public String getRouteId() {
-			return routeId;
-		}
-
-		public String getGroup() {
-			return group;
-		}
-
-		public Weight setGroup(String group) {
-			this.group = group;
-			return this;
-		}
-
-		public int getValue() {
-			return value;
-		}
-
-		public Weight setValue(int value) {
-			this.value = value;
-			return this;
-		}
-
-		@Override
-		public String toString() {
-			return new ToStringCreator(this)
-					.append("group", group)
-					.append("routeId", routeId)
-					.append("value", value)
-					.toString();
-		}
 	}
 
 	/* for testing */ static class GroupWeightConfig {
@@ -248,9 +204,9 @@ public class WeightCalculatorWebFilter implements WebFilter, Ordered, Applicatio
 		public String toString() {
 			return new ToStringCreator(this)
 					.append("group", group)
-					.append("rangeIndexes", rangeIndexes)
 					.append("weights", weights)
 					.append("normalizedWeights", normalizedWeights)
+					.append("rangeIndexes", rangeIndexes)
 					.toString();
 		}
 	}

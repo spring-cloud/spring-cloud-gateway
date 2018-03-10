@@ -118,8 +118,11 @@ public class PredicateSpec extends UriSpec {
 				.apply(c -> c.setSources(addrs)));
 	}
 
-	public BooleanSpec weight(String group, double lowerBound, double upperBound) {
-		return predicate(getBean(WeightRoutePredicateFactory.class).apply(group, lowerBound, upperBound));
+	public BooleanSpec weight(String group, int weight) {
+		return predicate(getBean(WeightRoutePredicateFactory.class)
+				.apply(c -> c.setGroup(group)
+						.setRouteId(routeBuilder.getId())
+						.setWeight(weight)));
 	}
 
 	public BooleanSpec alwaysTrue() {

@@ -17,12 +17,16 @@
 
 package org.springframework.cloud.gateway.handler.predicate;
 
+import java.util.Random;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.gateway.filter.WeightCalculatorWebFilter;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
@@ -32,6 +36,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @RunWith(SpringRunner.class)
@@ -39,22 +45,29 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @DirtiesContext
 public class WeightRoutePredicateFactoryIntegrationTests extends BaseWebClientTests {
 
-	@Test
-	public void weightPredicatePasses() {
-		testClient.get().uri("/get")
-				.header(HttpHeaders.HOST, "www.weightpasses.org")
-				.exchange()
-				.expectStatus().isOk()
-				.expectHeader().valueEquals(ROUTE_ID_HEADER, "weight_passes_test");
-	}
+	@Autowired
+	private WeightCalculatorWebFilter filter;
 
 	@Test
-	public void weightPredicateFails() {
+	public void highWeight() {
+		filter.setRandom(getRandom(0.9));
+
 		testClient.get().uri("/get")
-				.header(HttpHeaders.HOST, "www.weightfails.org")
+				.header(HttpHeaders.HOST, "www.weighthigh.org")
 				.exchange()
 				.expectStatus().isOk()
-				.expectHeader().valueEquals(ROUTE_ID_HEADER, "default_path_to_httpbin");
+				.expectHeader().valueEquals(ROUTE_ID_HEADER, "weight_high_test");
+	}
+
+    @Test
+    public void lowWeight() {
+		filter.setRandom(getRandom(0.1));
+
+		testClient.get().uri("/get")
+				.header(HttpHeaders.HOST, "www.weightlow.org")
+				.exchange()
+				.expectStatus().isOk()
+				.expectHeader().valueEquals(ROUTE_ID_HEADER, "weight_low_test");
 	}
 
 	@EnableAutoConfiguration
@@ -65,16 +78,30 @@ public class WeightRoutePredicateFactoryIntegrationTests extends BaseWebClientTe
 		@Value("${test.uri}")
 		private String uri;
 
+		public TestConfig(WeightCalculatorWebFilter filter) {
+			Random random = getRandom(0.4);
+
+			filter.setRandom(random);
+		}
+
 		@Bean
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes()
-					.route("weight_fails_route", r ->
-                            r.weight("group2", 0.0, 1.0).negate()
-							.and().host("**.weightfails.org")
+					.route("weight_low_test", r ->
+                            r.weight("group1", 2)
+							.and().host("**.weightlow.org")
+							.filters(f -> f.prefixPath("/httpbin"))
 							.uri(this.uri))
 					.build();
 		}
 
+	}
+
+	private static Random getRandom(double value) {
+		Random random = mock(Random.class);
+		when(random.nextDouble())
+                .thenReturn(value);
+		return random;
 	}
 
 }
