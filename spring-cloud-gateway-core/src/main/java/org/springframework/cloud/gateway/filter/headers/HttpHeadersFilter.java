@@ -27,17 +27,17 @@ public interface HttpHeadersFilter {
 
 	HttpHeaders filter(ServerHttpRequest request);
 
-	static HttpHeaders filter(List<HttpHeadersFilter> filters, ServerHttpRequest request) {
-		HttpHeaders response = request.getHeaders();
+	static HttpHeaders filter(final List<HttpHeadersFilter> filters, final ServerHttpRequest request) {
+		ServerHttpRequest clonedReq = request.mutate().build();
 		if (filters != null) {
 			for (HttpHeadersFilter filter: filters) {
-				HttpHeaders filtered = filter.filter(request);
-				request = request.mutate().headers(httpHeaders -> {
+				HttpHeaders filtered = filter.filter(clonedReq);
+				clonedReq = clonedReq.mutate().headers(httpHeaders -> {
+					httpHeaders.clear();
 					httpHeaders.putAll(filtered);
 				}).build();
-				response = filtered;
 			}
 		}
-		return response;
+		return clonedReq.getHeaders();
 	}
 }
