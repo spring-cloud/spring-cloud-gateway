@@ -42,8 +42,8 @@ public class WeightRoutePredicateFactory extends AbstractRoutePredicateFactory<W
 
 	private static final Log log = LogFactory.getLog(WeightRoutePredicateFactory.class);
 
-	public static final String GROUP_KEY = "weight.group";
-	public static final String WEIGHT_KEY = "weight.weight";
+	public static final String GROUP_KEY = WeightConfig.CONFIG_PREFIX + ".group";
+	public static final String WEIGHT_KEY = WeightConfig.CONFIG_PREFIX + ".weight";
 
 	private ApplicationEventPublisher publisher;
 
@@ -63,7 +63,7 @@ public class WeightRoutePredicateFactory extends AbstractRoutePredicateFactory<W
 
 	@Override
 	public String shortcutFieldPrefix() {
-		return WeightConfig.CONFIG_PREFIX;
+			return WeightConfig.CONFIG_PREFIX;
 	}
 
 	@Override
