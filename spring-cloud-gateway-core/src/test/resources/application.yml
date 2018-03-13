@@ -111,6 +111,13 @@ spring:
         - Host=**.method.org
 
       # =====================================
+      - id: not_between_test
+        uri: ${test.uri}
+        predicates:
+        - Host=**.notbetween.org
+        - Between=1000-03-13T10:39:37.518-04:00[America/New_York],1002-03-13T10:39:37.518-04:00[America/New_York]
+
+      # =====================================
       - id: redirect_to_test
         uri: ${test.uri}
         predicates:
