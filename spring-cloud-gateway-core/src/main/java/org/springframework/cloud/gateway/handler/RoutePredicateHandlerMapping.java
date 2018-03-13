@@ -18,10 +18,10 @@
 package org.springframework.cloud.gateway.handler;
 
 import java.util.function.Function;
-import java.util.logging.Level;
 
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.route.RouteLocator;
+import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.reactive.handler.AbstractHandlerMapping;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -63,6 +63,15 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 						logger.trace("No RouteDefinition found for [" + getExchangeDesc(exchange) + "]");
 					}
 				})));
+	}
+
+	@Override
+	protected CorsConfiguration getCorsConfiguration(Object handler, ServerWebExchange exchange) {
+		//TODO: support cors configuration via global properties and
+		// properties on a route see gh-229
+		// see RequestMappingHandlerMapping.initCorsConfiguration()
+		// also see https://github.com/spring-projects/spring-framework/blob/master/spring-web/src/test/java/org/springframework/web/cors/reactive/CorsWebFilterTests.java
+		return super.getCorsConfiguration(handler, exchange);
 	}
 
 	//TODO: get desc from factory?
