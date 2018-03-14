@@ -308,7 +308,7 @@ for details on setting up your build system with the current Spring Cloud Releas
 </section>
 <section xml:id="_hystrix_gatewayfilter_factory">
 <title>Hystrix GatewayFilter Factory</title>
-<simpara>The Hystrix GatewayFilter Factory takes a single <literal>name</literal> parameters, which is the name of the <literal>HystrixCommand</literal>. (More options might be added in future releases).</simpara>
+<simpara>The Hystrix GatewayFilter Factory requires a single <literal>name</literal> parameter, which is the name of the <literal>HystrixCommand</literal>.</simpara>
 <formalpara>
 <title>application.yml</title>
 <para>
@@ -316,14 +316,14 @@ for details on setting up your build system with the current Spring Cloud Releas
   cloud:
     gateway:
       routes:
-      - id: hytstrix_route
+      - id: hystrix_route
         uri: http://example.org
         filters:
         - Hystrix=myCommandName</programlisting>
 </para>
 </formalpara>
 <simpara>This wraps the remaining filters in a <literal>HystrixCommand</literal> with command name <literal>myCommandName</literal>.</simpara>
-<simpara>The Hystrix filter takes an optional <literal>fallbackUri</literal> parameter. Currently, only <literal>forward:</literal> schemed URIs are supported. If the fallback is called, the request will be forwarded to the controller matched by the URI.</simpara>
+<simpara>The Hystrix filter can also accept an optional <literal>fallbackUri</literal> parameter. Currently, only <literal>forward:</literal> schemed URIs are supported. If the fallback is called, the request will be forwarded to the controller matched by the URI.</simpara>
 <formalpara>
 <title>application.yml</title>
 <para>
@@ -331,16 +331,19 @@ for details on setting up your build system with the current Spring Cloud Releas
   cloud:
     gateway:
       routes:
-      - id: hytstrix_route
-        uri: http://example.org
+      - id: hystrix_route
+        uri: lb://backing-service:8088
+        predicates:
+        - Path=/consumingserviceendpoint
         filters:
         - name: Hystrix
           args:
             name: fallbackcmd
-            fallbackUri: forward:/fallbackcontroller</programlisting>
+            fallbackUri: forward:/incaseoffailureusethis
+        - RewritePath=/consumingserviceendpoint, /backingserviceendpoint</programlisting>
 </para>
 </formalpara>
-<simpara>This will forward to the <literal>/fallbackcontroller</literal> when the Hystrix fallback is called.</simpara>
+<simpara>This will forward to the <literal>/incaseoffailureusethis</literal> URI when the Hystrix fallback is called. Note that this example also demonstrates (optional) Spring Cloud Netflix Ribbon load-balancing via the <literal>lb</literal> prefix on the destination URI.</simpara>
 </section>
 <section xml:id="_prefixpath_gatewayfilter_factory">
 <title>PrefixPath GatewayFilter Factory</title>

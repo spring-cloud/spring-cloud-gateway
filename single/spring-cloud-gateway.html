@@ -128,28 +128,31 @@ for details on setting up your build system with the current Spring Cloud Releas
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        uri</span>: http://example.org
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        filters</span>:
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        - AddResponseHeader</span>=X-Response-Foo<span xmlns:d="http://docbook.org/ns/docbook" class="hl-keyword">,</span> Bar</pre><p>
-</p><p>This will add <code class="literal">X-Response-Foo:Bar</code> header to the downstream response&#8217;s headers for all matching requests.</p></div><div class="section"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="_hystrix_gatewayfilter_factory" href="#_hystrix_gatewayfilter_factory"></a>5.4&nbsp;Hystrix GatewayFilter Factory</h2></div></div></div><p>The Hystrix GatewayFilter Factory takes a single <code class="literal">name</code> parameters, which is the name of the <code class="literal">HystrixCommand</code>. (More options might be added in future releases).</p><p><b>application.yml.&nbsp;</b>
+</p><p>This will add <code class="literal">X-Response-Foo:Bar</code> header to the downstream response&#8217;s headers for all matching requests.</p></div><div class="section"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="_hystrix_gatewayfilter_factory" href="#_hystrix_gatewayfilter_factory"></a>5.4&nbsp;Hystrix GatewayFilter Factory</h2></div></div></div><p>The Hystrix GatewayFilter Factory requires a single <code class="literal">name</code> parameter, which is the name of the <code class="literal">HystrixCommand</code>.</p><p><b>application.yml.&nbsp;</b>
 </p><pre class="programlisting"><span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">spring</span>:
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">  cloud</span>:
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">    gateway</span>:
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">      routes</span>:
-<span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">      - id</span>: hytstrix_route
+<span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">      - id</span>: hystrix_route
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        uri</span>: http://example.org
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        filters</span>:
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        - Hystrix</span>=myCommandName</pre><p>
-</p><p>This wraps the remaining filters in a <code class="literal">HystrixCommand</code> with command name <code class="literal">myCommandName</code>.</p><p>The Hystrix filter takes an optional <code class="literal">fallbackUri</code> parameter. Currently, only <code class="literal">forward:</code> schemed URIs are supported. If the fallback is called, the request will be forwarded to the controller matched by the URI.</p><p><b>application.yml.&nbsp;</b>
+</p><p>This wraps the remaining filters in a <code class="literal">HystrixCommand</code> with command name <code class="literal">myCommandName</code>.</p><p>The Hystrix filter can also accept an optional <code class="literal">fallbackUri</code> parameter. Currently, only <code class="literal">forward:</code> schemed URIs are supported. If the fallback is called, the request will be forwarded to the controller matched by the URI.</p><p><b>application.yml.&nbsp;</b>
 </p><pre class="programlisting"><span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">spring</span>:
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">  cloud</span>:
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">    gateway</span>:
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">      routes</span>:
-<span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">      - id</span>: hytstrix_route
-<span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        uri</span>: http://example.org
+<span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">      - id</span>: hystrix_route
+<span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        uri</span>: lb://backing-service:<span class="hl-number">8088</span>
+<span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        predicates</span>:
+<span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        - Path</span>=/consumingserviceendpoint
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        filters</span>:
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        - name</span>: Hystrix
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">          args</span>:
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">            name</span>: fallbackcmd
-<span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">            fallbackUri</span>: forward:/fallbackcontroller</pre><p>
-</p><p>This will forward to the <code class="literal">/fallbackcontroller</code> when the Hystrix fallback is called.</p></div><div class="section"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="_prefixpath_gatewayfilter_factory" href="#_prefixpath_gatewayfilter_factory"></a>5.5&nbsp;PrefixPath GatewayFilter Factory</h2></div></div></div><p>The PrefixPath GatewayFilter Factory takes a single <code class="literal">prefix</code> parameter.</p><p><b>application.yml.&nbsp;</b>
+<span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">            fallbackUri</span>: forward:/incaseoffailureusethis
+<span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        - RewritePath</span>=/consumingserviceendpoint<span xmlns:d="http://docbook.org/ns/docbook" class="hl-keyword">,</span> /backingserviceendpoint</pre><p>
+</p><p>This will forward to the <code class="literal">/incaseoffailureusethis</code> URI when the Hystrix fallback is called. Note that this example also demonstrates (optional) Spring Cloud Netflix Ribbon load-balancing via the <code class="literal">lb</code> prefix on the destination URI.</p></div><div class="section"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="_prefixpath_gatewayfilter_factory" href="#_prefixpath_gatewayfilter_factory"></a>5.5&nbsp;PrefixPath GatewayFilter Factory</h2></div></div></div><p>The PrefixPath GatewayFilter Factory takes a single <code class="literal">prefix</code> parameter.</p><p><b>application.yml.&nbsp;</b>
 </p><pre class="programlisting"><span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">spring</span>:
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">  cloud</span>:
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">    gateway</span>:
