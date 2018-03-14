@@ -302,7 +302,7 @@ spring:
 This will add `X-Response-Foo:Bar` header to the downstream response's headers for all matching requests.
 
 === Hystrix GatewayFilter Factory
-The Hystrix GatewayFilter Factory takes a single `name` parameters, which is the name of the `HystrixCommand`. (More options might be added in future releases).
+The Hystrix GatewayFilter Factory requires a single `name` parameter, which is the name of the `HystrixCommand`.
 
 .application.yml
 [source,yaml]
@@ -311,7 +311,7 @@ spring:
   cloud:
     gateway:
       routes:
-      - id: hytstrix_route
+      - id: hystrix_route
         uri: http://example.org
         filters:
         - Hystrix=myCommandName
@@ -319,7 +319,7 @@ spring:
 
 This wraps the remaining filters in a `HystrixCommand` with command name `myCommandName`.
 
-The Hystrix filter takes an optional `fallbackUri` parameter. Currently, only `forward:` schemed URIs are supported. If the fallback is called, the request will be forwarded to the controller matched by the URI.
+The Hystrix filter can also accept an optional `fallbackUri` parameter. Currently, only `forward:` schemed URIs are supported. If the fallback is called, the request will be forwarded to the controller matched by the URI.
 
 
 .application.yml
@@ -329,15 +329,18 @@ spring:
   cloud:
     gateway:
       routes:
-      - id: hytstrix_route
-        uri: http://example.org
+      - id: hystrix_route
+        uri: lb://backing-service:8088
+        predicates:
+        - Path=/consumingserviceendpoint
         filters:
         - name: Hystrix
           args:
             name: fallbackcmd
-            fallbackUri: forward:/fallbackcontroller
+            fallbackUri: forward:/incaseoffailureusethis
+        - RewritePath=/consumingserviceendpoint, /backingserviceendpoint
 ----
-This will forward to the `/fallbackcontroller` when the Hystrix fallback is called.
+This will forward to the `/incaseoffailureusethis` URI when the Hystrix fallback is called. Note that this example also demonstrates (optional) Spring Cloud Netflix Ribbon load-balancing via the `lb` prefix on the destination URI.
 
 
 === PrefixPath GatewayFilter Factory
