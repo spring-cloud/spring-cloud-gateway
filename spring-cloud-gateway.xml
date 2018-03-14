@@ -102,7 +102,7 @@ for details on setting up your build system with the current Spring Cloud Releas
       - id: between_route
         uri: http://example.org
         predicates:
-        - Betweeen=2017-01-20T17:42:47.789-07:00[America/Denver], 2017-01-21T17:42:47.789-07:00[America/Denver]</programlisting>
+        - Between=2017-01-20T17:42:47.789-07:00[America/Denver], 2017-01-21T17:42:47.789-07:00[America/Denver]</programlisting>
 </para>
 </formalpara>
 <simpara>This route matches any request after Jan 20, 2017 17:42 Mountain Time (Denver) and before Jan 21, 2017 17:42 Mountain Time (Denver). This could be useful for maintenance windows.</simpara>
