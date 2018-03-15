@@ -48,6 +48,9 @@ public class CookieRoutePredicateFactory extends AbstractRoutePredicateFactory<C
 	public Predicate<ServerWebExchange> apply(Config config) {
 		return exchange -> {
 			List<HttpCookie> cookies = exchange.getRequest().getCookies().get(config.name);
+			if (cookies == null) {
+				return false;
+			}
 			for (HttpCookie cookie : cookies) {
 				if (cookie.getValue().matches(config.regexp)) {
 					return true;
