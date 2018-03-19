@@ -14,7 +14,7 @@ import org.springframework.web.server.ServerWebExchange;
 
 /**
  * Parses the client address from the X-Forwarded-For header. If header is not present,
- * falls back to {@link DefaultRemoteAddressResolver} and
+ * falls back to {@link RemoteAddressResolver} and
  * {@link ServerHttpRequest#getRemoteAddress()}. Use the static constructor methods which
  * meets your security requirements.
  *
@@ -28,7 +28,7 @@ public class XForwardedRemoteAddressResolver implements RemoteAddressResolver {
 	public static final String X_FORWARDED_FOR = "X-Forwarded-For";
 	private static final Logger log = LoggerFactory
 			.getLogger(XForwardedRemoteAddressResolver.class);
-	private final DefaultRemoteAddressResolver defaultRemoteIpResolver = new DefaultRemoteAddressResolver();
+	private final RemoteAddressResolver defaultRemoteIpResolver = new RemoteAddressResolver() {};
 
 	private final int maxTrustedIndex;
 

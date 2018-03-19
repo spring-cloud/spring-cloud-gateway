@@ -9,5 +9,7 @@ import org.springframework.web.server.ServerWebExchange;
  */
 public interface RemoteAddressResolver {
 
-	InetSocketAddress resolve(ServerWebExchange exchange);
+	default InetSocketAddress resolve(ServerWebExchange exchange) {
+		return exchange.getRequest().getRemoteAddress();
+	}
 }
