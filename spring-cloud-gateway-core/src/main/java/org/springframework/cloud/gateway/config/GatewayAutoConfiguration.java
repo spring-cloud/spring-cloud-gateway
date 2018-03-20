@@ -90,7 +90,9 @@ import org.springframework.cloud.gateway.route.RouteDefinitionRepository;
 import org.springframework.cloud.gateway.route.RouteDefinitionRouteLocator;
 import org.springframework.cloud.gateway.route.RouteDefinitionWriter;
 import org.springframework.cloud.gateway.route.RouteLocator;
+import org.springframework.cloud.gateway.route.RouteRefreshListener;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -244,8 +246,14 @@ public class GatewayAutoConfiguration {
 
 	@Bean
 	@Primary
+	//TODO: property to disable composite?
 	public RouteLocator cachedCompositeRouteLocator(List<RouteLocator> routeLocators) {
 		return new CachingRouteLocator(new CompositeRouteLocator(Flux.fromIterable(routeLocators)));
+	}
+
+	@Bean
+	public RouteRefreshListener routeRefreshListener(ApplicationEventPublisher publisher) {
+		return new RouteRefreshListener(publisher);
 	}
 
 	@Bean

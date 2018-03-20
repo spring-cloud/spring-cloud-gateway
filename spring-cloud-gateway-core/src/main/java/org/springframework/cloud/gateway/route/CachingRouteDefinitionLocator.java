@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,10 @@ package org.springframework.cloud.gateway.route;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.springframework.context.event.EventListener;
 import reactor.core.publisher.Flux;
+
+import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
+import org.springframework.context.event.EventListener;
 
 /**
  * @author Spencer Gibb

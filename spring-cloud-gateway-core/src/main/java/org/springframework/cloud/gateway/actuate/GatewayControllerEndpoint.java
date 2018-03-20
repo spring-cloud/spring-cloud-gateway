@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.boot.actuate.endpoint.web.annotation.RestControllerEndpoint;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
-import org.springframework.cloud.gateway.route.RefreshRoutesEvent;
+import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.route.RouteDefinition;
 import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
@@ -79,7 +79,6 @@ public class GatewayControllerEndpoint implements ApplicationEventPublisherAware
 
 	// TODO: Add uncommited or new but not active routes endpoint
 
-	//TODO: this should really be a listener that responds to a RefreshEvent
 	@PostMapping("/refresh")
 	public Mono<Void> refresh() {
 	    this.publisher.publishEvent(new RefreshRoutesEvent(this));
