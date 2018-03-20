@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.ObjectProvider;
@@ -60,8 +61,8 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 
 
 		HttpHeaders headers = exchange.getRequest().getHeaders();
-		HttpHeaders filtered = HttpHeadersFilter.filter(getHeadersFilters(),
-				exchange.getRequest());
+		HttpHeaders filtered = HttpHeadersFilter.filter(getHeadersFilters(), headers,
+				exchange);
 
 		List<String> protocols = headers.get(SEC_WEBSOCKET_PROTOCOL);
 		if (protocols != null) {
@@ -82,9 +83,9 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 			filters = new ArrayList<>();
 		}
 
-		filters.add(request -> {
+		filters.add((headers, exchange) -> {
 			HttpHeaders filtered = new HttpHeaders();
-			request.getHeaders().entrySet().stream()
+			headers.entrySet().stream()
 					.filter(entry -> !entry.getKey().toLowerCase().startsWith("sec-websocket"))
 					.forEach(header -> filtered.addAll(header.getKey(), header.getValue()));
 			return filtered;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2017-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,26 +18,43 @@
 package org.springframework.cloud.gateway.filter.headers;
 
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Flux;
 
 import java.util.List;
 
-@FunctionalInterface
 public interface HttpHeadersFilter {
 
-	HttpHeaders filter(ServerHttpRequest request);
+	/**
+	 * Filters a set of Http Headers
+	 * 
+	 * @param input Http Headers
+	 * @param exchange
+	 * @return filtered Http Headers
+	 */
+	HttpHeaders filter(HttpHeaders input, ServerWebExchange exchange);
 
-	static HttpHeaders filter(final List<HttpHeadersFilter> filters, final ServerHttpRequest request) {
-		ServerHttpRequest clonedReq = request.mutate().build();
+	static HttpHeaders filter(List<HttpHeadersFilter> filters, HttpHeaders input,
+			ServerWebExchange exchange) {
+		return filter(filters, input, exchange, DownStreamPath.REQUEST);
+	}
+
+	
+	static HttpHeaders filter(List<HttpHeadersFilter> filters,
+			HttpHeaders input, ServerWebExchange exchange, DownStreamPath downStreamPath) {
+		HttpHeaders response = input;
 		if (filters != null) {
-			for (HttpHeadersFilter filter: filters) {
-				HttpHeaders filtered = filter.filter(clonedReq);
-				clonedReq = clonedReq.mutate().headers(httpHeaders -> {
-					httpHeaders.clear();
-					httpHeaders.putAll(filtered);
-				}).build();
-			}
+			return Flux.fromIterable(filters)
+					.filter(httpFilter -> httpFilter.supports(downStreamPath))
+					.reduce(input, (headers, filter) -> filter.filter(headers, exchange)).block();
+
 		}
-		return clonedReq.getHeaders();
+		return response;
+	}
+
+	default boolean supports(DownStreamPath downStreamPath) {
+		if (downStreamPath.equals(DownStreamPath.REQUEST)) return true;
+		
+		return false;
 	}
 }
