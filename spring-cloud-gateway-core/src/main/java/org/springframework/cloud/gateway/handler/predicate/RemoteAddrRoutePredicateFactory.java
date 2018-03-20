@@ -29,7 +29,6 @@ import javax.validation.constraints.NotNull;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.cloud.gateway.support.ipresolver.DefaultRemoteAddressResolver;
 import org.springframework.cloud.gateway.support.ipresolver.RemoteAddressResolver;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.server.ServerWebExchange;
@@ -112,7 +111,7 @@ public class RemoteAddrRoutePredicateFactory extends AbstractRoutePredicateFacto
 		private List<String> sources = new ArrayList<>();
 
 		@NotNull
-		private RemoteAddressResolver remoteAddressResolver = new DefaultRemoteAddressResolver();
+		private RemoteAddressResolver remoteAddressResolver = new RemoteAddressResolver(){};
 
 		public List<String> getSources() {
 			return sources;
