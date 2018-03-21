@@ -17,8 +17,8 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -26,43 +26,20 @@ import reactor.retry.Repeat;
 import reactor.retry.RepeatContext;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
-import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatus.Series;
-import org.springframework.tuple.Tuple;
 import org.springframework.util.Assert;
 import org.springframework.web.server.ServerWebExchange;
 
-public class RetryGatewayFilterFactory implements GatewayFilterFactory {
-	@Override
-	public GatewayFilter apply(Tuple args) {
-		Retry retry = new Retry();
+public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<RetryGatewayFilterFactory.Retry> {
 
-		if (args.hasFieldName("retries")) {
-			retry.retries(args.getInt("retries"));
-		}
-
-		// TODO: list of statusSeries
-		if (args.hasFieldName("statusSeries")) {
-			int statusSeries = args.getInt("statusSeries");
-			retry.series(Series.valueOf(statusSeries));
-		}
-
-		// TODO: list of status
-		if (args.hasFieldName("status")) {
-			retry.statuses(ServerWebExchangeUtils.parse(args.getRawString("status")));
-		}
-
-		// TODO: list of methods
-		if (args.hasFieldName("method")) {
-			retry.methods(HttpMethod.resolve(args.getString("method").toUpperCase()));
-		}
-
-		return apply(retry);
+	public RetryGatewayFilterFactory() {
+		super(Retry.class);
 	}
 
-    public GatewayFilter apply(Retry retry) {
+	@Override
+	public GatewayFilter apply(Retry retry) {
 		retry.validate();
 
 		Predicate<? super RepeatContext<ServerWebExchange>> predicate = context -> {
@@ -93,37 +70,43 @@ public class RetryGatewayFilterFactory implements GatewayFilterFactory {
                 repeat.withApplicationContext(exchange)).next();
 	}
 
+	private static <T> List<T> toList(T item) {
+		ArrayList<T> list = new ArrayList<>();
+		list.add(item);
+		return list;
+	}
+
 	public static class Retry {
 		private int retries = 3;
 		
-		private List<Series> series = Collections.singletonList(Series.SERVER_ERROR);
+		private List<Series> series = toList(Series.SERVER_ERROR);
 		
-		private List<HttpStatus> statuses = Collections.emptyList();
+		private List<HttpStatus> statuses = new ArrayList<>();
 		
-		private List<HttpMethod> methods = Collections.singletonList(HttpMethod.GET);
+		private List<HttpMethod> methods = toList(HttpMethod.GET);
 		
-		public Retry retries(int retries) {
+		public Retry setRetries(int retries) {
 			this.retries = retries;
 			return this;
 		}
 		
-		public Retry series(Series... series) {
+		public Retry setSeries(Series... series) {
 			this.series = Arrays.asList(series);
 			return this;
 		}
 		
-		public Retry statuses(HttpStatus... statuses) {
+		public Retry setStatuses(HttpStatus... statuses) {
 			this.statuses = Arrays.asList(statuses);
 			return this;
 		}
 		
-		public Retry methods(HttpMethod... methods) {
+		public Retry setMethods(HttpMethod... methods) {
 			this.methods = Arrays.asList(methods);
 			return this;
 		}
 
 		public Retry allMethods() {
-			return methods(HttpMethod.values());
+			return setMethods(HttpMethod.values());
 		}
 
 		public void validate() {

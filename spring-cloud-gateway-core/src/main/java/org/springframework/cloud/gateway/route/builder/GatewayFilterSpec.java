@@ -196,24 +196,11 @@ public class GatewayFilterSpec extends UriSpec {
 	 */
 	public GatewayFilterSpec retry(int retries) {
 		return filter(getBean(RetryGatewayFilterFactory.class)
-				.apply(new RetryGatewayFilterFactory.Retry()
-						.retries(retries)));
+				.apply(retry -> retry.setRetries(retries)));
 	}
 
-	/**
-	 * @param retries max number of retries
-	 * @param httpStatusSeries the http status series that is retryable
-	 * @param httpMethod the http method that is retryable
-	 */
-	public GatewayFilterSpec retry(int retries, HttpStatus.Series httpStatusSeries, HttpMethod httpMethod) {
-		return retry(new RetryGatewayFilterFactory.Retry()
-						.retries(retries)
-						.series(httpStatusSeries)
-						.methods(httpMethod));
-	}
-
-	public GatewayFilterSpec retry(RetryGatewayFilterFactory.Retry retry) {
-		return filter(getBean(RetryGatewayFilterFactory.class).apply(retry));
+	public GatewayFilterSpec retry(Consumer<RetryGatewayFilterFactory.Retry> retryConsumer) {
+		return filter(getBean(RetryGatewayFilterFactory.class).apply(retryConsumer));
 	}
 
 	public GatewayFilterSpec retry(Repeat<ServerWebExchange> repeat) {
