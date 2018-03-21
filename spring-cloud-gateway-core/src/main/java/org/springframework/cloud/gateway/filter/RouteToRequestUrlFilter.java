@@ -30,7 +30,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_SCHEME_PREFIX_ATTR;
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.containsEncodedQuery;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.containsEncodedParts;
 
 import reactor.core.publisher.Mono;
 
@@ -58,7 +58,7 @@ public class RouteToRequestUrlFilter implements GlobalFilter, Ordered {
 		}
 		log.trace("RouteToRequestUrlFilter start");
 		URI uri = exchange.getRequest().getURI();
-		boolean encoded = containsEncodedQuery(uri);
+		boolean encoded = containsEncodedParts(uri);
 		URI routeUri = route.getUri();
 
 		if (hasAnotherScheme(routeUri)) {

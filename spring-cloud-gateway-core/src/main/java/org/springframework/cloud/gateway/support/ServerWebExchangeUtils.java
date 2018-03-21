@@ -68,11 +68,10 @@ public class ServerWebExchangeUtils {
 		return response;
 	}
 
-	public static boolean containsEncodedQuery(URI uri) {
-		if (uri.getRawQuery() == null) {
-			return false;
-		}
-		return uri.getRawQuery().contains("%");
+	public static boolean containsEncodedParts(URI uri) {
+		boolean encoded = (uri.getRawQuery() != null && uri.getRawQuery().contains("%"))
+				|| (uri.getPath() != null && uri.getRawPath().contains("%"));
+		return encoded;
 	}
 
 	public static HttpStatus parse(String statusString) {

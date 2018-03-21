@@ -103,6 +103,28 @@ public class RouteToRequestUrlFilterTests {
 	}
 
 	@Test
+	public void encodedUrl() {
+		URI url = UriComponentsBuilder.fromUriString("http://localhost/abc def/get").buildAndExpand().encode().toUri();
+
+		// prove that it is encoded
+		assertThat(url.getRawPath()).isEqualTo("/abc%20def/get");
+
+		assertThat(url).hasPath("/abc def/get");
+
+		MockServerHttpRequest request = MockServerHttpRequest
+				.method(HttpMethod.GET, url)
+				.build();
+
+		ServerWebExchange webExchange = testFilter(request, "http://myhost");
+		URI uri = webExchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
+		assertThat(uri).hasScheme("http").hasHost("myhost")
+				.hasPath("/abc def/get");
+
+		// prove that it is not double encoded
+		assertThat(uri.getRawPath()).isEqualTo("/abc%20def/get");
+	}
+
+	@Test
 	public void unencodedParameters() {
 		URI url = URI.create("http://localhost/get?a=b&c=d[]");
 

@@ -38,7 +38,7 @@ import com.netflix.hystrix.exception.HystrixRuntimeException;
 
 import static com.netflix.hystrix.exception.HystrixRuntimeException.FailureType.TIMEOUT;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.containsEncodedQuery;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.containsEncodedParts;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.setResponseStatus;
 
 import reactor.core.publisher.Mono;
@@ -123,7 +123,7 @@ public class HystrixGatewayFilterFactory extends AbstractGatewayFilterFactory<Hy
 			//TODO: copied from RouteToRequestUrlFilter
 			URI uri = exchange.getRequest().getURI();
 			//TODO: assume always?
-			boolean encoded = containsEncodedQuery(uri);
+			boolean encoded = containsEncodedParts(uri);
 			URI requestUrl = UriComponentsBuilder.fromUri(uri)
 					.host(null)
 					.port(null)
