@@ -24,6 +24,7 @@ import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.util.StringUtils;
+import org.springframework.web.server.ServerWebExchange;
 
 @ConfigurationProperties("spring.cloud.gateway.x-forwarded")
 public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
@@ -163,8 +164,9 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 	}
 
 	@Override
-	public HttpHeaders filter(ServerHttpRequest request) {
-		HttpHeaders original = request.getHeaders();
+	public HttpHeaders filter(HttpHeaders input, ServerWebExchange exchange) {
+		ServerHttpRequest request = exchange.getRequest();
+		HttpHeaders original = input;
 		HttpHeaders updated = new HttpHeaders();
 
 		original.entrySet().stream()
