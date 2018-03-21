@@ -13,7 +13,7 @@ machine:
 dependencies:
   pre:
 #    - sudo apt-get update; sudo apt-get install python-httpbin
-    - pip install httpbin
+#    - pip install httpbin
   override:
     - ./mvnw -s .settings.xml -U --fail-never dependency:go-offline || true
 test:
