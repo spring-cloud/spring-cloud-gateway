@@ -225,7 +225,7 @@ This route would match if the request contained a `foo` query parameter whose va
 
 
 === RemoteAddr Route Predicate Factory
-The RemoteAddr Route Predicate Factory takes a list (min size 1) of CIDR-notation (IPv4 or IPv6) strings, e.g. `192.168.0.1/16` (where `192.168.0.1` is an IP address and `16` is a subnet mask.
+The RemoteAddr Route Predicate Factory takes a list (min size 1) of CIDR-notation (IPv4 or IPv6) strings, e.g. `192.168.0.1/16` (where `192.168.0.1` is an IP address and `16` is a subnet mask).
 
 .application.yml
 [source,yaml]
@@ -276,6 +276,31 @@ The `maxTrustedIndex` values below will yield the following remote addresses.
 |[4, `Integer.MAX_VALUE`]    | 0.0.0.1
 |===
 [[gateway-route-filters]]
+
+Using Java config:
+
+GatewayConfig.java
+[source,java]
+----
+@Bean
+Predicate<ServerWebExchange> internalOnlyPredicate(RemoteAddrRoutePredicateFactory factory) {
+    RemoteAddrRoutePredicateFactory.Config config = factory.newConfig();
+    XForwardedRemoteAddressResolver remoteAddressResolver = XForwardedRemoteAddressResolver
+            .maxTrustedIndexXForwardedRemoteAddressResolver(1);
+
+    config.setRemoteAddressResolver(remoteAddressResolver);
+    config.setSources("10.10.1.1", "10.10.1.1/24");
+
+    return factory.apply(config);
+}
+
+...
+
+.route(r -> r.predicate(internalOnlyPredicate)
+    .uri("http://httpbin.org:80")
+)
+----
+
 == GatewayFilter Factories
 
 Route filters allow the modification of the incoming HTTP request or outgoing HTTP response in some manner. Route filters are scoped to a particular route. Spring Cloud Gateway includes many built-in GatewayFilter Factories.
