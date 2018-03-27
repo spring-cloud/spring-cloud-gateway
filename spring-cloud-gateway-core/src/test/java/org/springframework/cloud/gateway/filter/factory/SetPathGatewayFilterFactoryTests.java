@@ -62,6 +62,13 @@ public class SetPathGatewayFilterFactoryTests {
 		testRewriteFilter("/bar/baz/{id}", "/foo/123", "/bar/baz/123", variables);
 	}
 
+	@Test
+	public void setPathFilterWithEncodedCharactersWorks() {
+		HashMap<String, String> variables = new HashMap<>();
+		variables.put("id", "12 3");
+		testRewriteFilter("/bar/baz/{id}", "/foo/12 3", "/bar/baz/12 3", variables);
+	}
+
 	private void testRewriteFilter(String template, String actualPath, String expectedPath, HashMap<String, String> variables) {
 		GatewayFilter filter = new SetPathGatewayFilterFactory().apply(c -> c.setTemplate(template));
 

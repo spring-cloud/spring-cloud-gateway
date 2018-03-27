@@ -65,7 +65,7 @@ public class SetPathGatewayFilterFactory extends AbstractGatewayFilterFactory<Se
 			}
 
 			URI uri = uriTemplate.expand(uriVariables);
-			String newPath = uri.getPath();
+			String newPath = uri.getRawPath();
 
 			exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, uri);
 
