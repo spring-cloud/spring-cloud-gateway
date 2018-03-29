@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +15,20 @@
  *
  */
 
-package org.springframework.cloud.gateway.route;
+package org.springframework.cloud.gateway.event;
 
+import org.springframework.cloud.gateway.support.WeightConfig;
 import org.springframework.context.ApplicationEvent;
 
-/**
- * @author Spencer Gibb
- */
-public class RefreshRoutesEvent extends ApplicationEvent {
+public class WeightDefinedEvent extends ApplicationEvent {
+	private final WeightConfig weightConfig;
 
-    /**
-     * Create a new ApplicationEvent.
-     *
-     * @param source the object on which the event initially occurred (never {@code null})
-     */
-    public RefreshRoutesEvent(Object source) {
-        super(source);
-    }
+	public WeightDefinedEvent(Object source, WeightConfig weightConfig) {
+		super(source);
+		this.weightConfig = weightConfig;
+	}
+
+	public WeightConfig getWeightConfig() {
+		return weightConfig;
+	}
 }

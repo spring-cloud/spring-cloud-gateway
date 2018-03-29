@@ -21,43 +21,40 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Test;
+
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
+import org.springframework.mock.web.server.MockServerWebExchange;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Spencer Gibb
+ * @author Biju Kunjummen
  */
 public class HttpHeadersFilterTests {
 
 	@Test
 	public void httpHeadersFilterTests() {
 		MockServerHttpRequest request = MockServerHttpRequest
-				.get("http://localhost:8080/get")
-				.header("X-A", "aValue")
-				.header("X-B", "bValue")
-				.header("X-C", "cValue")
-				.build();
+				.get("http://localhost:8080/get").header("X-A", "aValue")
+				.header("X-B", "bValue").header("X-C", "cValue").build();
 
 		List<HttpHeadersFilter> filters = Arrays.asList(
-				r -> HttpHeadersFilterTests.this.filter(r, "X-A"),
-                r -> HttpHeadersFilterTests.this.filter(r, "X-B")
-		);
+				(h, e) -> HttpHeadersFilterTests.this.filter(h, "X-A"),
+				(h, e) -> HttpHeadersFilterTests.this.filter(h, "X-B"));
 
-		HttpHeaders headers = HttpHeadersFilter.filter(filters, request);
+		HttpHeaders headers = HttpHeadersFilter.filterRequest(filters,
+				MockServerWebExchange.from(request));
 
 		assertThat(headers).containsOnlyKeys("X-C");
 	}
 
-	private HttpHeaders filter(ServerHttpRequest request, String keyToFilter) {
-		HttpHeaders original = request.getHeaders();
+	private HttpHeaders filter(HttpHeaders input, String keyToFilter) {
 		HttpHeaders filtered = new HttpHeaders();
 
-		original.entrySet().stream()
-                .filter(entry -> !entry.getKey().equals(keyToFilter))
-                .forEach(entry -> filtered.addAll(entry.getKey(), entry.getValue()));
+		input.entrySet().stream().filter(entry -> !entry.getKey().equals(keyToFilter))
+				.forEach(entry -> filtered.addAll(entry.getKey(), entry.getValue()));
 
 		return filtered;
 	}

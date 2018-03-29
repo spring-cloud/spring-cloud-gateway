@@ -157,7 +157,7 @@ public class RouteDefinitionRouteLocator implements RouteLocator, BeanFactoryAwa
                         Object configuration = factory.newConfig();
 
                         ConfigurationUtils.bind(configuration, properties,
-                                "", definition.getName(), validator);
+                                factory.shortcutFieldPrefix(), definition.getName(), validator);
 
 						GatewayFilter gatewayFilter = factory.apply(configuration);
                         if (this.publisher != null) {
@@ -262,7 +262,7 @@ public class RouteDefinitionRouteLocator implements RouteLocator, BeanFactoryAwa
 			Map<String, Object> properties = factory.shortcutType().normalize(args, factory, this.parser, this.beanFactory);
 			Object config = factory.newConfig();
 			ConfigurationUtils.bind(config, properties,
-					"", predicate.getName(), validator);
+					factory.shortcutFieldPrefix(), predicate.getName(), validator);
 			if (this.publisher != null) {
 				this.publisher.publishEvent(new PredicateArgsEvent(this, route.getId(), properties));
 			}

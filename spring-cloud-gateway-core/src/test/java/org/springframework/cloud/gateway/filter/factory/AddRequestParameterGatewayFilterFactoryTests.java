@@ -40,7 +40,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.containsEncodedQuery;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.containsEncodedParts;
 import static org.springframework.cloud.gateway.test.TestUtils.getMap;
 
 @RunWith(SpringRunner.class)
@@ -81,7 +81,7 @@ public class AddRequestParameterGatewayFilterFactoryTests extends BaseWebClientT
 			query = "";
 		}
 		URI uri = UriComponentsBuilder.fromUriString(this.baseUri+"/get" + query).build(true).toUri();
-		boolean checkForEncodedValue = containsEncodedQuery(uri);
+		boolean checkForEncodedValue = containsEncodedParts(uri);
 		testClient.get()
 				.uri(uri)
 				.header("Host", host)

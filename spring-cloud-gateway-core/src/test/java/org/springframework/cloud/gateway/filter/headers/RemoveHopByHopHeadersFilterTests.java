@@ -24,6 +24,7 @@ import java.util.Set;
 import org.junit.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
+import org.springframework.mock.web.server.MockServerWebExchange;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.gateway.filter.headers.RemoveHopByHopHeadersFilter.HEADERS_REMOVED_ON_REQUEST;
@@ -37,10 +38,10 @@ public class RemoveHopByHopHeadersFilterTests {
 	public void happyPath() {
 		MockServerHttpRequest.BaseBuilder<?> builder = MockServerHttpRequest
 				.get("http://localhost/get");
-
+		
 		HEADERS_REMOVED_ON_REQUEST.forEach(header -> builder.header(header, header+"1"));
 
-		testFilter(builder.build());
+		testFilter(MockServerWebExchange.from(builder));
 	}
 
 	@Test
@@ -50,7 +51,7 @@ public class RemoveHopByHopHeadersFilterTests {
 
 		HEADERS_REMOVED_ON_REQUEST.forEach(header -> builder.header(header.toLowerCase(), header+"1"));
 
-		testFilter(builder.build());
+		testFilter(MockServerWebExchange.from(builder));
 	}
 
 	@Test
@@ -62,12 +63,12 @@ public class RemoveHopByHopHeadersFilterTests {
 		builder.header(HttpHeaders.UPGRADE, "WebSocket");
 		builder.header("Keep-Alive", "timeout:5");
 
-		testFilter(builder.build(), "upgrade", "keep-alive");
+		testFilter(MockServerWebExchange.from(builder), "upgrade", "keep-alive");
 	}
 
-	private void testFilter(MockServerHttpRequest request, String... additionalHeaders) {
+	private void testFilter(MockServerWebExchange exchange, String... additionalHeaders) {
 		RemoveHopByHopHeadersFilter filter = new RemoveHopByHopHeadersFilter();
-		HttpHeaders headers = filter.filter(request);
+		HttpHeaders headers = filter.filter(exchange.getRequest().getHeaders(), exchange);
 
 		Set<String> toRemove = new HashSet<>(HEADERS_REMOVED_ON_REQUEST);
 		toRemove.addAll(Arrays.asList(additionalHeaders));

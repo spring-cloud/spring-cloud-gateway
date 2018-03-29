@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,21 @@
  *
  */
 
-package org.springframework.cloud.gateway.route;
+package org.springframework.cloud.gateway.event;
 
-import reactor.core.publisher.Mono;
+import org.springframework.context.ApplicationEvent;
 
 /**
  * @author Spencer Gibb
  */
-public interface RouteDefinitionWriter {
+public class RefreshRoutesEvent extends ApplicationEvent {
 
-	Mono<Void> save(Mono<RouteDefinition> route);
-
-	Mono<Void> delete(Mono<String> routeId);
+    /**
+     * Create a new ApplicationEvent.
+     *
+     * @param source the object on which the event initially occurred (never {@code null})
+     */
+    public RefreshRoutesEvent(Object source) {
+        super(source);
+    }
 }

@@ -33,6 +33,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedCaseInsensitiveMap;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.web.server.ServerWebExchange;
 
 public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 
@@ -44,8 +45,9 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 	}
 
 	@Override
-	public HttpHeaders filter(ServerHttpRequest request) {
-		HttpHeaders original = request.getHeaders();
+	public HttpHeaders filter(HttpHeaders input, ServerWebExchange exchange) {
+		ServerHttpRequest request = exchange.getRequest();
+		HttpHeaders original = input;
 		HttpHeaders updated = new HttpHeaders();
 
 		// copy all headers except Forwarded

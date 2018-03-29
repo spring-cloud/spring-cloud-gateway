@@ -41,6 +41,8 @@ public class ServerWebExchangeUtils {
 	public static final String GATEWAY_ORIGINAL_REQUEST_URL_ATTR = qualify("gatewayOriginalRequestUrl");
 	public static final String GATEWAY_HANDLER_MAPPER_ATTR = qualify("gatewayHandlerMapper");
 	public static final String GATEWAY_SCHEME_PREFIX_ATTR = qualify("gatewaySchemePrefix");
+	public static final String GATEWAY_PREDICATE_ROUTE_ATTR = qualify("gatewayPredicateRouteAttr");
+	public static final String WEIGHT_ATTR = qualify("routeWeight");
 
 	/**
 	 * Used when a routing filter has been successfully call. Allows users to write custom
@@ -68,11 +70,10 @@ public class ServerWebExchangeUtils {
 		return response;
 	}
 
-	public static boolean containsEncodedQuery(URI uri) {
-		if (uri.getRawQuery() == null) {
-			return false;
-		}
-		return uri.getRawQuery().contains("%");
+	public static boolean containsEncodedParts(URI uri) {
+		boolean encoded = (uri.getRawQuery() != null && uri.getRawQuery().contains("%"))
+				|| (uri.getPath() != null && uri.getRawPath().contains("%"));
+		return encoded;
 	}
 
 	public static HttpStatus parse(String statusString) {

@@ -24,6 +24,7 @@ import org.junit.Test;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
+import org.springframework.mock.web.server.MockServerWebExchange;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.gateway.filter.headers.XForwardedHeadersFilter.X_FORWARDED_FOR_HEADER;
@@ -46,7 +47,7 @@ public class XForwardedHeadersFilterTests {
 
 		XForwardedHeadersFilter filter = new XForwardedHeadersFilter();
 
-		HttpHeaders headers = filter.filter(request);
+		HttpHeaders headers = filter.filter(request.getHeaders(), MockServerWebExchange.from(request));
 
 		assertThat(headers).containsKeys(X_FORWARDED_FOR_HEADER, X_FORWARDED_HOST_HEADER,
 				X_FORWARDED_PORT_HEADER, X_FORWARDED_PROTO_HEADER);
@@ -67,7 +68,7 @@ public class XForwardedHeadersFilterTests {
 
 		XForwardedHeadersFilter filter = new XForwardedHeadersFilter();
 
-		HttpHeaders headers = filter.filter(request);
+		HttpHeaders headers = filter.filter(request.getHeaders(), MockServerWebExchange.from(request));
 
 		assertThat(headers).containsKeys(X_FORWARDED_FOR_HEADER, X_FORWARDED_HOST_HEADER,
 				X_FORWARDED_PORT_HEADER, X_FORWARDED_PROTO_HEADER);
@@ -91,7 +92,7 @@ public class XForwardedHeadersFilterTests {
 
 		XForwardedHeadersFilter filter = new XForwardedHeadersFilter();
 
-		HttpHeaders headers = filter.filter(request);
+		HttpHeaders headers = filter.filter(request.getHeaders(), MockServerWebExchange.from(request));
 
 		assertThat(headers).containsKeys(X_FORWARDED_FOR_HEADER, X_FORWARDED_HOST_HEADER,
 				X_FORWARDED_PORT_HEADER, X_FORWARDED_PROTO_HEADER);
@@ -119,7 +120,7 @@ public class XForwardedHeadersFilterTests {
 		filter.setPortAppend(false);
 		filter.setProtoAppend(false);
 
-		HttpHeaders headers = filter.filter(request);
+		HttpHeaders headers = filter.filter(request.getHeaders(), MockServerWebExchange.from(request));
 
 		assertThat(headers).containsKeys(X_FORWARDED_FOR_HEADER, X_FORWARDED_HOST_HEADER,
 				X_FORWARDED_PORT_HEADER, X_FORWARDED_PROTO_HEADER);
@@ -143,7 +144,7 @@ public class XForwardedHeadersFilterTests {
 		filter.setPortEnabled(false);
 		filter.setProtoEnabled(false);
 
-		HttpHeaders headers = filter.filter(request);
+		HttpHeaders headers = filter.filter(request.getHeaders(), MockServerWebExchange.from(request));
 
 		assertThat(headers).isEmpty();
 	}
