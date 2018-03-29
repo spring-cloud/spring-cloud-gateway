@@ -18,6 +18,7 @@
 package org.springframework.cloud.gateway.handler.predicate;
 
 import java.util.function.Predicate;
+import java.util.Arrays;
 
 import org.junit.Test;
 import org.springframework.cloud.gateway.handler.predicate.AnyPathRoutePredicateFactory.Config;
@@ -27,7 +28,6 @@ import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import org.assertj.core.util.Arrays;
 
 public class AnyPathRoutePredicateFactoryTests extends BaseWebClientTests {
 
