@@ -70,7 +70,7 @@ public class AnyPathRoutePredicateFactory extends AbstractRoutePredicateFactory<
 	public Predicate<ServerWebExchange> apply(Config config) {
 		final List<PathPattern> pathPatterns;
 		synchronized (this.pathPatternParser) {
-			pathPatterns = config.patterns.stream().map(this.pathPatternParser::parse).collect(Collectors.toList());
+			pathPatterns = config.getPatterns().stream().map(this.pathPatternParser::parse).collect(Collectors.toList());
 		}
 		return exchange -> {
 			PathContainer path = parsePath(exchange.getRequest().getURI().getPath());

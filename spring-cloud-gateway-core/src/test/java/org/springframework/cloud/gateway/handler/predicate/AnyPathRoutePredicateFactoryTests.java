@@ -27,6 +27,7 @@ import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import org.assertj.core.util.Arrays;
 
 public class AnyPathRoutePredicateFactoryTests extends BaseWebClientTests {
 
@@ -49,7 +50,7 @@ public class AnyPathRoutePredicateFactoryTests extends BaseWebClientTests {
 		MockServerWebExchange exchange = MockServerWebExchange.from(request);
 
 		Predicate<ServerWebExchange> predicate = new AnyPathRoutePredicateFactory()
-				.apply(new Config().setPatterns("/path", "/path/extra/**"));
+				.apply(new Config().setPatterns(Arrays.asList("/path", "/path/extra/**")));
 
 		assertThat(predicate.test(exchange)).isTrue();
 	}
