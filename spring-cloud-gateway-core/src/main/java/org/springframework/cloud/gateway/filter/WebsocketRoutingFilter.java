@@ -7,6 +7,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.ObjectProvider;
@@ -19,6 +21,7 @@ import org.springframework.web.reactive.socket.WebSocketSession;
 import org.springframework.web.reactive.socket.client.WebSocketClient;
 import org.springframework.web.reactive.socket.server.WebSocketService;
 import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import static org.springframework.cloud.gateway.filter.headers.HttpHeadersFilter.filterRequest;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
@@ -30,6 +33,7 @@ import static org.springframework.util.StringUtils.commaDelimitedListToStringArr
  * @author Spencer Gibb
  */
 public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
+	private static final Log log = LogFactory.getLog(WebsocketRoutingFilter.class);
 	public static final String SEC_WEBSOCKET_PROTOCOL = "Sec-WebSocket-Protocol";
 
 	private final WebSocketClient webSocketClient;
@@ -46,14 +50,17 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 
 	@Override
 	public int getOrder() {
-		return Ordered.LOWEST_PRECEDENCE;
+		// Before NettyRoutingFilter since this routes certain http requests
+		return Ordered.LOWEST_PRECEDENCE - 1;
 	}
 
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-		URI requestUrl = exchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
+		changeSchemeIfIsWebSocketUpgrade(exchange);
 
+		URI requestUrl = exchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
 		String scheme = requestUrl.getScheme();
+
 		if (isAlreadyRouted(exchange) || (!"ws".equals(scheme) && !"wss".equals(scheme))) {
 			return chain.filter(exchange);
 		}
@@ -94,6 +101,24 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 		return filters;
 	}
 
+	private void changeSchemeIfIsWebSocketUpgrade(ServerWebExchange exchange) {
+		// Check the Upgrade
+		URI requestUrl = exchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
+		String scheme = requestUrl.getScheme();
+		String upgrade = exchange.getRequest().getHeaders().getUpgrade();
+		// change the scheme if the socket client send a "http" or "https"
+		if ("WebSocket".equalsIgnoreCase(upgrade) && ("http".equals(scheme) || "https".equals(scheme))) {
+			String wsScheme = convertHttpToWs(scheme);
+			URI wsRequestUrl = UriComponentsBuilder.fromUri(requestUrl).scheme(wsScheme).build().toUri();
+			exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, wsRequestUrl);
+			log.trace("changeSchemeTo:[" + wsRequestUrl+"]");
+		}
+	}
+
+	private String convertHttpToWs(String scheme) {
+		return "http".equals(scheme) ? "ws" : "https".equals(scheme) ? "wws" : scheme;
+	}
+
 	private static class ProxyWebSocketHandler implements WebSocketHandler {
 
 		private final WebSocketClient client;
@@ -126,10 +151,10 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 					// Use retain() for Reactor Netty
 					Mono<Void> proxySessionSend = proxySession
 							.send(session.receive().doOnNext(WebSocketMessage::retain));
-							// .log("proxySessionSend", Level.FINE);
+                            // .log("proxySessionSend", Level.FINE);
 					Mono<Void> serverSessionSend = session
 							.send(proxySession.receive().doOnNext(WebSocketMessage::retain));
-							// .log("sessionSend", Level.FINE);
+                            // .log("sessionSend", Level.FINE);
 					return Mono.when(proxySessionSend, serverSessionSend);
 				}
 
