@@ -7,6 +7,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.ObjectProvider;
@@ -31,6 +33,7 @@ import static org.springframework.util.StringUtils.commaDelimitedListToStringArr
  * @author Spencer Gibb
  */
 public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
+	private static final Log log = LogFactory.getLog(WebsocketRoutingFilter.class);
 	public static final String SEC_WEBSOCKET_PROTOCOL = "Sec-WebSocket-Protocol";
 
 	private final WebSocketClient webSocketClient;
@@ -108,6 +111,7 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 			String wsScheme = convertHttpToWs(scheme);
 			URI wsRequestUrl = UriComponentsBuilder.fromUri(requestUrl).scheme(wsScheme).build().toUri();
 			exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, wsRequestUrl);
+			log.trace("changeSchemeTo:[" + wsRequestUrl+"]");
 		}
 	}
 

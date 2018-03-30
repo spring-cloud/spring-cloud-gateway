@@ -141,7 +141,8 @@ public class WebSocketIntegrationTests {
 
 	protected URI getUrl(String path) throws URISyntaxException {
 		// return new URI("ws://localhost:" + this.serverPort + path);
-		return new URI("ws://localhost:" + this.gatewayPort + path);
+		// return new URI("ws://localhost:" + this.gatewayPort + path);
+		return new URI("http://localhost:" + this.gatewayPort + path);
 	}
 
 	@Configuration
@@ -315,9 +316,13 @@ public class WebSocketIntegrationTests {
 
 		@Bean
 		public RouteLocator wsRouteLocator(RouteLocatorBuilder builder) {
-			return builder.routes()
+			/*return builder.routes()
 					.route(r -> r.alwaysTrue()
 						.uri("lb:ws://wsservice"))
+					.build();*/
+			return builder.routes()
+					.route(r -> r.alwaysTrue()
+							.uri("lb://wsservice"))
 					.build();
 		}
 	}
