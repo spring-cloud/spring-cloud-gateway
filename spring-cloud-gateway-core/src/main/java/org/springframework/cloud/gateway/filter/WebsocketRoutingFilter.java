@@ -19,6 +19,7 @@ import org.springframework.web.reactive.socket.WebSocketSession;
 import org.springframework.web.reactive.socket.client.WebSocketClient;
 import org.springframework.web.reactive.socket.server.WebSocketService;
 import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import static org.springframework.cloud.gateway.filter.headers.HttpHeadersFilter.filterRequest;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
@@ -46,14 +47,17 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 
 	@Override
 	public int getOrder() {
-		return Ordered.LOWEST_PRECEDENCE;
+		// Set First GlobalFilter
+		return Ordered.LOWEST_PRECEDENCE - 1;
 	}
 
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-		URI requestUrl = exchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
+		changeSchemeIfIsWebSocketUpgrade(exchange);
 
+		URI requestUrl = exchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
 		String scheme = requestUrl.getScheme();
+
 		if (isAlreadyRouted(exchange) || (!"ws".equals(scheme) && !"wss".equals(scheme))) {
 			return chain.filter(exchange);
 		}
@@ -94,6 +98,23 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 		return filters;
 	}
 
+	private void changeSchemeIfIsWebSocketUpgrade(ServerWebExchange exchange) {
+		// Check the Upgradle
+		URI requestUrl = exchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
+		String scheme = requestUrl.getScheme();
+		String upgrade = exchange.getRequest().getHeaders().getUpgrade();
+		// change the scheme if the socket client send a "http" or "https"
+		if ("WebSocket".equalsIgnoreCase(upgrade) && ("http".equals(scheme) && !"https".equals(scheme))) {
+			String wsScheme = convertHttpToWs(scheme);
+			URI wsRequestUrl = UriComponentsBuilder.fromUri(requestUrl).scheme(wsScheme).build().toUri();
+			exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, wsRequestUrl);
+		}
+	}
+
+	private String convertHttpToWs(String scheme) {
+		return "http".equals(scheme) ? "ws" : "https".equals(scheme) ? "wws" : scheme;
+	}
+
 	private static class ProxyWebSocketHandler implements WebSocketHandler {
 
 		private final WebSocketClient client;
@@ -126,10 +147,10 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 					// Use retain() for Reactor Netty
 					Mono<Void> proxySessionSend = proxySession
 							.send(session.receive().doOnNext(WebSocketMessage::retain));
-							// .log("proxySessionSend", Level.FINE);
+					// .log("proxySessionSend", Level.FINE);
 					Mono<Void> serverSessionSend = session
 							.send(proxySession.receive().doOnNext(WebSocketMessage::retain));
-							// .log("sessionSend", Level.FINE);
+					// .log("sessionSend", Level.FINE);
 					return Mono.when(proxySessionSend, serverSessionSend);
 				}
 
