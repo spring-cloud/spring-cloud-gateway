@@ -107,7 +107,7 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 		String scheme = requestUrl.getScheme();
 		String upgrade = exchange.getRequest().getHeaders().getUpgrade();
 		// change the scheme if the socket client send a "http" or "https"
-		if ("WebSocket".equalsIgnoreCase(upgrade) && ("http".equals(scheme) && !"https".equals(scheme))) {
+		if ("WebSocket".equalsIgnoreCase(upgrade) && ("http".equals(scheme) || "https".equals(scheme))) {
 			String wsScheme = convertHttpToWs(scheme);
 			URI wsRequestUrl = UriComponentsBuilder.fromUri(requestUrl).scheme(wsScheme).build().toUri();
 			exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, wsRequestUrl);
