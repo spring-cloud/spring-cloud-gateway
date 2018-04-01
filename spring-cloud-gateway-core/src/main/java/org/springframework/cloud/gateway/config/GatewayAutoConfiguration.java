@@ -72,6 +72,7 @@ import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter;
 import org.springframework.cloud.gateway.handler.FilteringWebHandler;
 import org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping;
 import org.springframework.cloud.gateway.handler.predicate.AfterRoutePredicateFactory;
+import org.springframework.cloud.gateway.handler.predicate.AnyPathRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.BeforeRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.BetweenRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.CookieRoutePredicateFactory;
@@ -384,6 +385,11 @@ public class GatewayAutoConfiguration {
 	@Bean
 	public PathRoutePredicateFactory pathRoutePredicateFactory() {
 		return new PathRoutePredicateFactory();
+	}
+
+	@Bean
+	public AnyPathRoutePredicateFactory anyPathRoutePredicateFactory() {
+		return new AnyPathRoutePredicateFactory();
 	}
 
 	@Bean
