@@ -79,7 +79,7 @@ public class RemoteAddrRoutePredicateFactory extends AbstractRoutePredicateFacto
 				String host = exchange.getRequest().getURI().getHost();
 
 				if (!hostAddress.equals(host)) {
-					log.warn("Remote addresses didn't match " + hostAddress + " != " + host);
+					log.debug("Remote addresses didn't match " + hostAddress + " != " + host);
 				}
 
 				for (IpSubnetFilterRule source : sources) {
