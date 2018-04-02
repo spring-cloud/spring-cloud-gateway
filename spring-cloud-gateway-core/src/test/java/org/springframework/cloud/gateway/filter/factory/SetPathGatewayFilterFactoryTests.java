@@ -37,10 +37,8 @@ import org.springframework.web.util.pattern.PathPattern.PathMatchInfo;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.springframework.cloud.gateway.filter.factory.SetPathGatewayFilterFactory.TEMPLATE_KEY;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.URI_TEMPLATE_VARIABLES_ATTRIBUTE;
-import static org.springframework.tuple.TupleBuilder.tuple;
 
 import reactor.core.publisher.Mono;
 
@@ -52,21 +50,29 @@ public class SetPathGatewayFilterFactoryTests {
 	@Test
 	public void setPathFilterWorks() {
 		HashMap<String, String> variables = new HashMap<>();
-		testRewriteFilter("/baz/bar", "/foo/bar", "/baz/bar", variables);
+		testFilter("/baz/bar","/baz/bar", variables);
 	}
 
 	@Test
 	public void setPathFilterWithTemplateVarsWorks() {
 		HashMap<String, String> variables = new HashMap<>();
 		variables.put("id", "123");
-		testRewriteFilter("/bar/baz/{id}", "/foo/123", "/bar/baz/123", variables);
+		testFilter("/bar/baz/{id}","/bar/baz/123", variables);
 	}
 
-	private void testRewriteFilter(String template, String actualPath, String expectedPath, HashMap<String, String> variables) {
+	@Test
+	public void setPathFilterWithTemplatePrefixVarsWorks() {
+		HashMap<String, String> variables = new HashMap<>();
+		variables.put("org", "123");
+		variables.put("scope", "abc");
+		testFilter("/{org}/{scope}/function","/123/abc/function", variables);
+	}
+
+	private void testFilter(String template, String expectedPath, HashMap<String, String> variables) {
 		GatewayFilter filter = new SetPathGatewayFilterFactory().apply(c -> c.setTemplate(template));
 
 		MockServerHttpRequest request = MockServerHttpRequest
-				.get("http://localhost"+ actualPath)
+				.get("http://localhost")
 				.build();
 
 		ServerWebExchange exchange = MockServerWebExchange.from(request);
