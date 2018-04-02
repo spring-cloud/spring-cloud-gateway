@@ -110,6 +110,7 @@ import org.springframework.web.reactive.socket.server.support.HandshakeWebSocket
 
 import com.netflix.hystrix.HystrixObservableCommand;
 
+import static org.springframework.cloud.gateway.config.HttpClientProperties.Pool.PoolType.DISABLED;
 import static org.springframework.cloud.gateway.config.HttpClientProperties.Pool.PoolType.FIXED;
 
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
@@ -156,15 +157,17 @@ public class GatewayAutoConfiguration {
 				// configure pool resources
 				HttpClientProperties.Pool pool = properties.getPool();
 
-				PoolResources poolResources;
-				if (pool.getType() == FIXED) {
-					poolResources = PoolResources.fixed(pool.getName(),
+				if (pool.getType() == DISABLED) {
+					opts.disablePool();
+				} else if (pool.getType() == FIXED) {
+					PoolResources poolResources = PoolResources.fixed(pool.getName(),
 							pool.getMaxConnections(), pool.getAcquireTimeout());
+					opts.poolResources(poolResources);
 				} else {
-					poolResources = PoolResources.elastic(pool.getName());
+					PoolResources poolResources = PoolResources.elastic(pool.getName());
+					opts.poolResources(poolResources);
 				}
 
-				opts.poolResources(poolResources);
 
 				// configure proxy if proxy host is set.
 				HttpClientProperties.Proxy proxy = properties.getProxy();

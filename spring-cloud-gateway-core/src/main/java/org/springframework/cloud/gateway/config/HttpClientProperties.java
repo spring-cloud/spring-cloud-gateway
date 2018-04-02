@@ -61,7 +61,7 @@ public class HttpClientProperties {
 
 	public static class Pool {
 
-		public enum PoolType { ELASTIC, FIXED }
+		public enum PoolType { ELASTIC, FIXED, DISABLED }
 
 		/** Type of pool for HttpClient to use, defaults to ELASTIC. */
 		private PoolType type = PoolType.ELASTIC;
