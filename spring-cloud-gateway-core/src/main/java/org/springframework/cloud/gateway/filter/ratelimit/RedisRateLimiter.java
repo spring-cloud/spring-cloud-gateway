@@ -10,6 +10,9 @@ import javax.validation.constraints.Min;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -17,9 +20,6 @@ import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.validation.Validator;
 import org.springframework.validation.annotation.Validated;
-
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 /**
  * See https://stripe.com/blog/rate-limiters and
@@ -102,11 +102,8 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 		int burstCapacity = routeConfig.getBurstCapacity();
 
 		try {
-			// Make a unique key per user.
-			String prefix = "request_rate_limiter." + id;
+			List<String> keys = getKeys(id);
 
-			// You need two Redis keys for Token Bucket.
-			List<String> keys = Arrays.asList(prefix + ".tokens", prefix + ".timestamp");
 
 			// The arguments to the LUA script. time() returns unixtime in seconds.
 			List<String> scriptArgs = Arrays.asList(replenishRate + "", burstCapacity + "",
@@ -139,6 +136,19 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 			log.error("Error determining if user allowed from redis", e);
 		}
 		return Mono.just(new Response(true, -1));
+	}
+
+	static List<String> getKeys(String id) {
+		// use `{}` around keys to use Redis Key hash tags
+		// this allows for using redis cluster
+
+		// Make a unique key per user.
+		String prefix = "request_rate_limiter.{" + id;
+
+		// You need two Redis keys for Token Bucket.
+		String tokenKey = prefix + "}.tokens";
+		String timestampKey = prefix + "}.timestamp";
+		return Arrays.asList(tokenKey, timestampKey);
 	}
 
 	@Validated

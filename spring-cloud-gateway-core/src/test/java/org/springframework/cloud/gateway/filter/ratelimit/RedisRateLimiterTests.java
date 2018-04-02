@@ -71,6 +71,12 @@ public class RedisRateLimiterTests extends BaseWebClientTests {
 		response = rateLimiter.isAllowed(routeId, id).block();
 		assertThat(response.isAllowed()).as("steady state # %s is allowed", replenishRate).isFalse();
 	}
+	
+	@Test
+	public void keysUseRedisKeyHashTags() {
+		assertThat(RedisRateLimiter.getKeys("1"))
+				.containsExactly("request_rate_limiter.{1}.tokens", "request_rate_limiter.{1}.timestamp");
+	}
 
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
