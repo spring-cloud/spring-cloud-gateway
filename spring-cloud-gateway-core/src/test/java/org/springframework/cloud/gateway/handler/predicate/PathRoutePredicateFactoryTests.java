@@ -25,6 +25,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpHeaders;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -37,6 +38,17 @@ public class PathRoutePredicateFactoryTests extends BaseWebClientTests {
 
 	@Test
 	public void pathRouteWorks() {
+		testClient.get().uri("/abc/123/function")
+				.header(HttpHeaders.HOST, "www.path.org")
+				.exchange()
+				.expectStatus().isOk()
+				.expectHeader().valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName())
+				.expectHeader().valueEquals("transfer-encoding", "chunked")
+				.expectHeader().valueEquals(ROUTE_ID_HEADER, "path_test");
+	}
+
+	@Test
+	public void defaultPathRouteWorks() {
 		testClient.get().uri("/get")
 				.exchange()
 				.expectStatus().isOk()

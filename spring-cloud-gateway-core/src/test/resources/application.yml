@@ -118,6 +118,15 @@ spring:
         - Between=1000-03-13T10:39:37.518-04:00[America/New_York],1002-03-13T10:39:37.518-04:00[America/New_York]
 
       # =====================================
+      - id: path_test
+        uri: ${test.uri}
+        predicates:
+        - Path=/{org}/{scope}/function
+        - Host=**.path.org
+        filters:
+        - SetPath=/anything/{org}{scope}
+
+      # =====================================
       - id: redirect_to_test
         uri: ${test.uri}
         predicates:

@@ -62,6 +62,11 @@ public class HttpBinCompatibleController {
 		return get(exchange).delayElement(Duration.ofSeconds(delay));
 	}
 
+	@RequestMapping(path = "/anything/{anything}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public Mono<Map<String, Object>> anything(ServerWebExchange exchange, @PathVariable String anything) {
+		return get(exchange);
+	}
+
 	@RequestMapping(path = "/get", produces = MediaType.APPLICATION_JSON_VALUE)
 	public Mono<Map<String, Object>> get(ServerWebExchange exchange) {
 		return getHeaders(exchange).map(map -> {
