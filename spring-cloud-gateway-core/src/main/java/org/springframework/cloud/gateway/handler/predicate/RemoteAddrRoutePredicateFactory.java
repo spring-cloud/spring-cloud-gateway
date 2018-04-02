@@ -78,7 +78,7 @@ public class RemoteAddrRoutePredicateFactory extends AbstractRoutePredicateFacto
 				String hostAddress = remoteAddress.getAddress().getHostAddress();
 				String host = exchange.getRequest().getURI().getHost();
 
-				if (!hostAddress.equals(host)) {
+				if (log.isDebugEnabled() && !hostAddress.equals(host)) {
 					log.debug("Remote addresses didn't match " + hostAddress + " != " + host);
 				}
 
