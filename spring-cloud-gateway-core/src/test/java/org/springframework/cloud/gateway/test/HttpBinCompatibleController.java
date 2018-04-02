@@ -63,7 +63,7 @@ public class HttpBinCompatibleController {
 	}
 
 	@RequestMapping(path = "/anything/{anything}", produces = MediaType.APPLICATION_JSON_VALUE)
-	public Mono<Map<String, Object>> anything(ServerWebExchange exchange, @PathVariable String anything) {
+	public Mono<Map<String, Object>> anything(ServerWebExchange exchange, @PathVariable(required = false) String anything) {
 		return get(exchange);
 	}
 
