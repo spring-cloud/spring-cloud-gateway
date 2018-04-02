@@ -50,6 +50,8 @@ public class ServerWebExchangeUtils {
 	 */
 	public static final String GATEWAY_ALREADY_ROUTED_ATTR = qualify("gatewayAlreadyRouted");
 
+	public static final String GATEWAY_ALREADY_PREFIXED_ATTR = qualify("gatewayAlreadyPrefixed");
+
 	private static String qualify(String attr) {
 		return ServerWebExchangeUtils.class.getName() + "." + attr;
 	}

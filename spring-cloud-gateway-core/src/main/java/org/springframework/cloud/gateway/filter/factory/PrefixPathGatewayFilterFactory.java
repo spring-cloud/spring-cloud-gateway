@@ -25,6 +25,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ALREADY_PREFIXED_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.addOriginalRequestUrl;
 
@@ -49,6 +50,13 @@ public class PrefixPathGatewayFilterFactory extends AbstractGatewayFilterFactory
 	@Override
 	public GatewayFilter apply(Config config) {
 		return (exchange, chain) -> {
+
+			boolean alreadyPrefixed = exchange.getAttributeOrDefault(GATEWAY_ALREADY_PREFIXED_ATTR, false);
+			if (alreadyPrefixed) {
+				return chain.filter(exchange);
+			}
+			exchange.getAttributes().put(GATEWAY_ALREADY_PREFIXED_ATTR, true);
+
 			ServerHttpRequest req = exchange.getRequest();
 			addOriginalRequestUrl(exchange, req.getURI());
 			String newPath = config.prefix + req.getURI().getPath();
