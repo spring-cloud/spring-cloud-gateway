@@ -345,7 +345,7 @@ public class WebSocketIntegrationTests {
 
 		@Bean
 		public RouteLocator wsRouteLocator(RouteLocatorBuilder builder) {
-			return builder.routes().route(r->r.path("/echoForHtttp").uri("lb://wsservice"))
+			return builder.routes().route(r->r.path("/echoForHttp").uri("lb://wsservice"))
 					.route(r -> r.alwaysTrue()
 						.uri("lb:ws://wsservice"))
 					.build();
