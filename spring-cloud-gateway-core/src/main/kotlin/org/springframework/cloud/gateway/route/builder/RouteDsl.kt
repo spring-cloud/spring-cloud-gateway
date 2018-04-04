@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.gateway.route.builder
 
+import org.springframework.cloud.gateway.route.Route
 import org.springframework.cloud.gateway.route.RouteLocator
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder.RouteSpec
 import java.util.function.Predicate
@@ -65,10 +66,14 @@ class RouteLocatorDsl(val builder: RouteLocatorBuilder) {
 			RouteSpec(routes).id(id)
 		}
 		predicateSpec.order(order)
-		predicateSpec.apply(init)
 		if (uri != null) {
 			predicateSpec.uri(uri)
 		}
+		
+		predicateSpec.apply(init)
+		
+		val route: Route.Builder = predicateSpec.routeBuilder
+		routes.add(route)
 	}
 
 	fun build(): RouteLocator {

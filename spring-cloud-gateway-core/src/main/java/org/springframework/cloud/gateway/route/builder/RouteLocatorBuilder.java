@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.gateway.route.builder;
 
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -42,43 +41,35 @@ public class RouteLocatorBuilder {
 
 	public static class Builder {
 
-		private List<Route> routes = new ArrayList<>();
+		private List<Route.Builder> routes = new ArrayList<>();
 		private ConfigurableApplicationContext context;
 
 		public Builder(ConfigurableApplicationContext context) {
 			this.context = context;
 		}
 
-		public Builder route(String id, Function<PredicateSpec, Builder> fn) {
-			return fn.apply(new RouteSpec(this).id(id));
-		}
-
-		public Builder route(Function<PredicateSpec, Builder> fn) {
-			return fn.apply(new RouteSpec(this).randomId());
-		}
-
-		private void add(Route route) {
-			this.routes.add(route);
-		}
-
-		Builder uri(Route.Builder builder, String uri) {
-			Route route = builder.uri(uri).build();
-			add(route);
+		public Builder route(String id, Function<PredicateSpec, Route.Builder> fn) {
+			Route.Builder routeBuilder = fn.apply(new RouteSpec(this).id(id));
+			add(routeBuilder);
 			return this;
 		}
 
-		Builder uri(Route.Builder builder, URI uri) {
-			Route route = builder.uri(uri).build();
-			add(route);
+		public Builder route(Function<PredicateSpec, Route.Builder> fn) {
+			Route.Builder routeBuilder = fn.apply(new RouteSpec(this).randomId());
+			add(routeBuilder);
 			return this;
 		}
-
+		
 		public RouteLocator build() {
-			return () -> Flux.fromIterable(this.routes);
+			return () -> Flux.fromIterable(this.routes).map(routeBuilder -> routeBuilder.build());
 		}
 
 		ConfigurableApplicationContext getContext() {
 			return context;
+		}
+
+		void add(Route.Builder route) {
+			routes.add(route);
 		}
 	}
 
