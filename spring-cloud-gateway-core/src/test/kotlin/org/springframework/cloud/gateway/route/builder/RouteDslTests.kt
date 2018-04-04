@@ -84,17 +84,28 @@ class RouteDslTests {
 	@Test
 	fun dslWithFunctionParameters() {
 		val routerLocator = builder.routes {
-			route(id = "test", order = 10, uri = "http://httpbin.org") {
+			route(id = "test1", order = 10, uri = "http://httpbin.org") {
 				host("**.abc.org")
+			}
+			route(id = "test2", order = 10, uri = "http://someurl") {
+				host("**.abc.org")
+				uri("http://override-url")
 			}
 		}
 
 		StepVerifier.create(routerLocator.routes)
 				.expectNextMatches({ r ->
-					r.id == "test" &&
+					r.id == "test1" &&
 							r.uri == URI.create("http://httpbin.org:80") &&
 							r.order == 10 &&
-							r.id == "test" &&
+							r.predicate.test(MockServerWebExchange
+									.from(MockServerHttpRequest
+											.get("/someuri").header("Host", "test.abc.org")))
+				})
+				.expectNextMatches({ r ->
+					r.id == "test2" &&
+							r.uri == URI.create("http://override-url:80") &&
+							r.order == 10 &&
 							r.predicate.test(MockServerWebExchange
 									.from(MockServerHttpRequest
 											.get("/someuri").header("Host", "test.abc.org")))
