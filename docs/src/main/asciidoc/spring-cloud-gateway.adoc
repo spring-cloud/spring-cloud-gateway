@@ -282,22 +282,17 @@ Using Java config:
 GatewayConfig.java
 [source,java]
 ----
-@Bean
-Predicate<ServerWebExchange> internalOnlyPredicate(RemoteAddrRoutePredicateFactory factory) {
-    RemoteAddrRoutePredicateFactory.Config config = factory.newConfig();
-    XForwardedRemoteAddressResolver remoteAddressResolver = XForwardedRemoteAddressResolver
-            .maxTrustedIndexXForwardedRemoteAddressResolver(1);
-
-    config.setRemoteAddressResolver(remoteAddressResolver);
-    config.setSources("10.10.1.1", "10.10.1.1/24");
-
-    return factory.apply(config);
-}
+RemoteAddressResolver resolver = XForwardedRemoteAddressResolver
+    .maxTrustedIndexXForwardedRemoteAddressResolver(1);
 
 ...
 
-.route(r -> r.predicate(internalOnlyPredicate)
-    .uri("http://httpbin.org:80")
+.route("direct-route",
+    r -> r.remoteAddr("10.1.1.1", "10.10.1.1/24")
+        .uri("https://downstream1")
+.route("proxied-route",
+    r -> r.remoteAddr(resolver,  "10.10.1.1", "10.10.1.1/24")
+        .uri("https://downstream2")
 )
 ----
 
