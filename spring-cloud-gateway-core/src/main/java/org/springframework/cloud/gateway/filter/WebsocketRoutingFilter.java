@@ -111,7 +111,9 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 			String wsScheme = convertHttpToWs(scheme);
 			URI wsRequestUrl = UriComponentsBuilder.fromUri(requestUrl).scheme(wsScheme).build().toUri();
 			exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, wsRequestUrl);
-			log.trace("changeSchemeTo:[" + wsRequestUrl+"]");
+			if (log.isTraceEnabled()) {
+				log.trace("changeSchemeTo:[" + wsRequestUrl + "]");
+			}
 		}
 	}
 
