@@ -141,7 +141,11 @@ public class WebSocketIntegrationTests {
 
 	protected URI getUrl(String path) throws URISyntaxException {
 		// return new URI("ws://localhost:" + this.serverPort + path);
-		return new URI("ws://localhost:" + this.gatewayPort + path);
+		 return new URI("ws://localhost:" + this.gatewayPort + path);
+	}
+
+	protected URI getHttpUrl(String path) throws URISyntaxException {
+		return new URI("http://localhost:" + this.gatewayPort + path);
 	}
 
 	@Configuration
@@ -170,6 +174,7 @@ public class WebSocketIntegrationTests {
 		public HandlerMapping handlerMapping() {
 			Map<String, WebSocketHandler> map = new HashMap<>();
 			map.put("/echo", new EchoWebSocketHandler());
+			map.put("/echoForHttp", new EchoWebSocketHandler());
 			map.put("/sub-protocol", new SubProtocolWebSocketHandler());
 			map.put("/custom-header", new CustomHeaderHandler());
 
@@ -202,6 +207,31 @@ public class WebSocketIntegrationTests {
 		assertEquals(input.collectList().block(Duration.ofMillis(5000)),
 				output.collectList().block(Duration.ofMillis(5000)));
 	}
+
+	@Test
+	public void echoForHttp() throws Exception {
+		int count = 100;
+		Flux<String> input = Flux.range(1, count).map(index -> "msg-" + index);
+		ReplayProcessor<Object> output = ReplayProcessor.create(count);
+
+		client.execute(getHttpUrl("/echoForHttp"),
+				session -> {
+					logger.debug("Starting to send messages");
+					return session
+							.send(input.doOnNext(s -> logger.debug("outbound " + s)).map(session::textMessage))
+							.thenMany(session.receive().take(count).map(WebSocketMessage::getPayloadAsText))
+							.subscribeWith(output)
+							.doOnNext(s -> logger.debug("inbound " + s))
+							.then()
+							.doOnSuccessOrError((aVoid, ex) ->
+									logger.debug("Done with " + (ex != null ? ex.getMessage() : "success")));
+				})
+				.block(Duration.ofMillis(5000));
+
+		assertEquals(input.collectList().block(Duration.ofMillis(5000)),
+				output.collectList().block(Duration.ofMillis(5000)));
+	}
+
 
 	@Test
 	public void subProtocol() throws Exception {
@@ -316,8 +346,10 @@ public class WebSocketIntegrationTests {
 		@Bean
 		public RouteLocator wsRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes()
+					.route(r->r.path("/echoForHttp")
+							.uri("lb://wsservice"))
 					.route(r -> r.alwaysTrue()
-						.uri("lb:ws://wsservice"))
+							.uri("lb:ws://wsservice"))
 					.build();
 		}
 	}
