@@ -254,9 +254,9 @@ This may not match the actual client IP address if Spring Cloud Gateway sits beh
 <simpara>You can customize the way that the remote address is resolved by setting a custom <literal>RemoteAddressResolver</literal>.
 Spring Cloud Gateway comes with one non-default remote address resolver which is based off of the <link xl:href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-For">X-Forwarded-For header</link>, <literal>XForwardedRemoteAddressResolver</literal>.</simpara>
 <simpara><literal>XForwardedRemoteAddressResolver</literal> has two static constructor methods which take different approaches to security:</simpara>
-<simpara><literal>XForwardedRemoteAddressResolver::trustAllXForwardedRemoteAddressResolver</literal> returns a <literal>RemoteAddressResolver</literal> which always takes the first IP address found in the <literal>X-Forwarded-For</literal> header.
+<simpara><literal>XForwardedRemoteAddressResolver::trustAll</literal> returns a <literal>RemoteAddressResolver</literal> which always takes the first IP address found in the <literal>X-Forwarded-For</literal> header.
 This approach is vulnerable to spoofing, as a malicious client could set an initial value for the <literal>X-Forwarded-For</literal> which would be accepted by the resolver.</simpara>
-<simpara><literal>XForwardedRemoteAddressResolver::maxTrustedIndexXForwardedRemoteAddressResolver</literal> takes an index which correlates to the number of trusted infrastructure running in front of Spring Cloud Gateway.
+<simpara><literal>XForwardedRemoteAddressResolver::maxTrustedIndexX</literal> takes an index which correlates to the number of trusted infrastructure running in front of Spring Cloud Gateway.
 If Spring Cloud Gateway is, for example only accessible via HAProxy, then a value of 1 should be used.
 If two hops of trusted infrastructure are required before Spring Cloud Gateway is accessible, then a value of 2 should be used.</simpara>
 <simpara>Given the following header value:</simpara>
@@ -299,7 +299,7 @@ If two hops of trusted infrastructure are required before Spring Cloud Gateway i
 <simpara xml:id="gateway-route-filters">Using Java config:</simpara>
 <simpara>GatewayConfig.java</simpara>
 <programlisting language="java" linenumbering="unnumbered">RemoteAddressResolver resolver = XForwardedRemoteAddressResolver
-    .maxTrustedIndexXForwardedRemoteAddressResolver(1);
+    .maxTrustedIndex(1);
 
 ...
 
