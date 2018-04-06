@@ -39,13 +39,13 @@ public class XForwardedRemoteAddressResolver implements RemoteAddressResolver {
 	/**
 	 * @return a {@link XForwardedRemoteAddressResolver} which always extracts the first
 	 * IP address found in the X-Forwarded-For header (when present). Equivalent to
-	 * calling {@link #maxTrustedIndexXForwardedRemoteAddressResolver(int)} with a
+	 * calling {@link #maxTrustedIndex(int)} with a
 	 * {@link #maxTrustedIndex} of {@link Integer#MAX_VALUE}. This configuration is
 	 * vulnerable to spoofing via manually setting the X-Forwarded-For header. If the
 	 * resulting IP address is used for security purposes, use
-	 * {@link #maxTrustedIndexXForwardedRemoteAddressResolver(int)} instead.
+	 * {@link #maxTrustedIndex(int)} instead.
 	 */
-	public static XForwardedRemoteAddressResolver trustAllXForwardedRemoteAddressResolver() {
+	public static XForwardedRemoteAddressResolver trustAll() {
 		return new XForwardedRemoteAddressResolver(Integer.MAX_VALUE);
 	}
 
@@ -74,7 +74,7 @@ public class XForwardedRemoteAddressResolver implements RemoteAddressResolver {
 	 * @param maxTrustedIndex correlates to the number of trusted proxies expected in
 	 * front of Spring Cloud Gateway (index starts at 1).
 	 */
-	public static XForwardedRemoteAddressResolver maxTrustedIndexXForwardedRemoteAddressResolver(
+	public static XForwardedRemoteAddressResolver maxTrustedIndex(
 			int maxTrustedIndex) {
 		Assert.isTrue(maxTrustedIndex > 0, "An index greater than 0 is required");
 		return new XForwardedRemoteAddressResolver(maxTrustedIndex);

@@ -251,10 +251,10 @@ Spring Cloud Gateway comes with one non-default remote address resolver which is
 
 `XForwardedRemoteAddressResolver` has two static constructor methods which take different approaches to security:
 
-`XForwardedRemoteAddressResolver::trustAllXForwardedRemoteAddressResolver` returns a `RemoteAddressResolver` which always takes the first IP address found in the `X-Forwarded-For` header.
+`XForwardedRemoteAddressResolver::trustAll` returns a `RemoteAddressResolver` which always takes the first IP address found in the `X-Forwarded-For` header.
 This approach is vulnerable to spoofing, as a malicious client could set an initial value for the `X-Forwarded-For` which would be accepted by the resolver.
 
-`XForwardedRemoteAddressResolver::maxTrustedIndexXForwardedRemoteAddressResolver` takes an index which correlates to the number of trusted infrastructure running in front of Spring Cloud Gateway.
+`XForwardedRemoteAddressResolver::maxTrustedIndexX` takes an index which correlates to the number of trusted infrastructure running in front of Spring Cloud Gateway.
 If Spring Cloud Gateway is, for example only accessible via HAProxy, then a value of 1 should be used.
 If two hops of trusted infrastructure are required before Spring Cloud Gateway is accessible, then a value of 2 should be used.
 
@@ -283,7 +283,7 @@ GatewayConfig.java
 [source,java]
 ----
 RemoteAddressResolver resolver = XForwardedRemoteAddressResolver
-    .maxTrustedIndexXForwardedRemoteAddressResolver(1);
+    .maxTrustedIndex(1);
 
 ...
 
