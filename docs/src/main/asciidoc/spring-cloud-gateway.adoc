@@ -225,7 +225,7 @@ This route would match if the request contained a `foo` query parameter whose va
 
 
 === RemoteAddr Route Predicate Factory
-The RemoteAddr Route Predicate Factory takes a list (min size 1) of CIDR-notation (IPv4 or IPv6) strings, e.g. `192.168.0.1/16` (where `192.168.0.1` is an IP address and `16` is a subnet mask.
+The RemoteAddr Route Predicate Factory takes a list (min size 1) of CIDR-notation (IPv4 or IPv6) strings, e.g. `192.168.0.1/16` (where `192.168.0.1` is an IP address and `16` is a subnet mask).
 
 .application.yml
 [source,yaml]
@@ -242,7 +242,60 @@ spring:
 
 This route would match if the remote address of the request was, for example, `192.168.1.10`.
 
+==== Modifying the way remote addresses are resolved
+By default the RemoteAddr Route Predicate Factory uses the remote address from the incoming request.
+This may not match the actual client IP address if Spring Cloud Gateway sits behind a proxy layer.
+
+You can customize the way that the remote address is resolved by setting a custom `RemoteAddressResolver`.
+Spring Cloud Gateway comes with one non-default remote address resolver which is based off of the https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-For[X-Forwarded-For header], `XForwardedRemoteAddressResolver`.
+
+`XForwardedRemoteAddressResolver` has two static constructor methods which take different approaches to security:
+
+`XForwardedRemoteAddressResolver::trustAllXForwardedRemoteAddressResolver` returns a `RemoteAddressResolver` which always takes the first IP address found in the `X-Forwarded-For` header.
+This approach is vulnerable to spoofing, as a malicious client could set an initial value for the `X-Forwarded-For` which would be accepted by the resolver.
+
+`XForwardedRemoteAddressResolver::maxTrustedIndexXForwardedRemoteAddressResolver` takes an index which correlates to the number of trusted infrastructure running in front of Spring Cloud Gateway.
+If Spring Cloud Gateway is, for example only accessible via HAProxy, then a value of 1 should be used.
+If two hops of trusted infrastructure are required before Spring Cloud Gateway is accessible, then a value of 2 should be used.
+
+Given the following header value:
+
+[source]
+X-Forwarded-For: 0.0.0.1, 0.0.0.2, 0.0.0.3
+
+
+The `maxTrustedIndex` values below will yield the following remote addresses.
+
+[options="header"]
+|===
+|`maxTrustedIndex`           | result
+|[`Integer.MIN_VALUE`,0]     | (invalid, `IllegalArgumentException` during initialization)
+|1                           | 0.0.0.3
+|2                           | 0.0.0.2
+|3                           | 0.0.0.1
+|[4, `Integer.MAX_VALUE`]    | 0.0.0.1
+|===
 [[gateway-route-filters]]
+
+Using Java config:
+
+GatewayConfig.java
+[source,java]
+----
+RemoteAddressResolver resolver = XForwardedRemoteAddressResolver
+    .maxTrustedIndexXForwardedRemoteAddressResolver(1);
+
+...
+
+.route("direct-route",
+    r -> r.remoteAddr("10.1.1.1", "10.10.1.1/24")
+        .uri("https://downstream1")
+.route("proxied-route",
+    r -> r.remoteAddr(resolver,  "10.10.1.1", "10.10.1.1/24")
+        .uri("https://downstream2")
+)
+----
+
 == GatewayFilter Factories
 
 Route filters allow the modification of the incoming HTTP request or outgoing HTTP response in some manner. Route filters are scoped to a particular route. Spring Cloud Gateway includes many built-in GatewayFilter Factories.

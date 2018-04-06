@@ -31,6 +31,7 @@ import org.springframework.cloud.gateway.handler.predicate.QueryRoutePredicateFa
 import org.springframework.cloud.gateway.handler.predicate.RemoteAddrRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.WeightRoutePredicateFactory;
 import org.springframework.cloud.gateway.route.Route;
+import org.springframework.cloud.gateway.support.ipresolver.RemoteAddressResolver;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -114,8 +115,16 @@ public class PredicateSpec extends UriSpec {
 	}
 
 	public BooleanSpec remoteAddr(String... addrs) {
-		return predicate(getBean(RemoteAddrRoutePredicateFactory.class)
-				.apply(c -> c.setSources(addrs)));
+		return remoteAddr(null, addrs);
+	}
+
+	public BooleanSpec remoteAddr(RemoteAddressResolver resolver, String... addrs) {
+		return predicate(getBean(RemoteAddrRoutePredicateFactory.class).apply(c -> {
+			c.setSources(addrs);
+			if (resolver != null) {
+				c.setRemoteAddressResolver(resolver);
+			}
+		}));
 	}
 
 	public BooleanSpec weight(String group, int weight) {
