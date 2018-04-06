@@ -232,7 +232,7 @@ for details on setting up your build system with the current Spring Cloud Releas
 </section>
 <section xml:id="_remoteaddr_route_predicate_factory">
 <title>RemoteAddr Route Predicate Factory</title>
-<simpara>The RemoteAddr Route Predicate Factory takes a list (min size 1) of CIDR-notation (IPv4 or IPv6) strings, e.g. <literal>192.168.0.1/16</literal> (where <literal>192.168.0.1</literal> is an IP address and <literal>16</literal> is a subnet mask.</simpara>
+<simpara>The RemoteAddr Route Predicate Factory takes a list (min size 1) of CIDR-notation (IPv4 or IPv6) strings, e.g. <literal>192.168.0.1/16</literal> (where <literal>192.168.0.1</literal> is an IP address and <literal>16</literal> is a subnet mask).</simpara>
 <formalpara>
 <title>application.yml</title>
 <para>
@@ -247,9 +247,73 @@ for details on setting up your build system with the current Spring Cloud Releas
 </para>
 </formalpara>
 <simpara>This route would match if the remote address of the request was, for example, <literal>192.168.1.10</literal>.</simpara>
+<section xml:id="_modifying_the_way_remote_addresses_are_resolved">
+<title>Modifying the way remote addresses are resolved</title>
+<simpara>By default the RemoteAddr Route Predicate Factory uses the remote address from the incoming request.
+This may not match the actual client IP address if Spring Cloud Gateway sits behind a proxy layer.</simpara>
+<simpara>You can customize the way that the remote address is resolved by setting a custom <literal>RemoteAddressResolver</literal>.
+Spring Cloud Gateway comes with one non-default remote address resolver which is based off of the <link xl:href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-For">X-Forwarded-For header</link>, <literal>XForwardedRemoteAddressResolver</literal>.</simpara>
+<simpara><literal>XForwardedRemoteAddressResolver</literal> has two static constructor methods which take different approaches to security:</simpara>
+<simpara><literal>XForwardedRemoteAddressResolver::trustAllXForwardedRemoteAddressResolver</literal> returns a <literal>RemoteAddressResolver</literal> which always takes the first IP address found in the <literal>X-Forwarded-For</literal> header.
+This approach is vulnerable to spoofing, as a malicious client could set an initial value for the <literal>X-Forwarded-For</literal> which would be accepted by the resolver.</simpara>
+<simpara><literal>XForwardedRemoteAddressResolver::maxTrustedIndexXForwardedRemoteAddressResolver</literal> takes an index which correlates to the number of trusted infrastructure running in front of Spring Cloud Gateway.
+If Spring Cloud Gateway is, for example only accessible via HAProxy, then a value of 1 should be used.
+If two hops of trusted infrastructure are required before Spring Cloud Gateway is accessible, then a value of 2 should be used.</simpara>
+<simpara>Given the following header value:</simpara>
+<screen>X-Forwarded-For: 0.0.0.1, 0.0.0.2, 0.0.0.3</screen>
+<simpara>The <literal>maxTrustedIndex</literal> values below will yield the following remote addresses.</simpara>
+<informaltable frame="all" rowsep="1" colsep="1">
+<tgroup cols="2">
+<colspec colname="col_1" colwidth="50*"/>
+<colspec colname="col_2" colwidth="50*"/>
+<thead>
+<row>
+<entry align="left" valign="top"><literal>maxTrustedIndex</literal></entry>
+<entry align="left" valign="top">result</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry align="left" valign="top"><simpara>[<literal>Integer.MIN_VALUE</literal>,0]</simpara></entry>
+<entry align="left" valign="top"><simpara>(invalid, <literal>IllegalArgumentException</literal> during initialization)</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara>1</simpara></entry>
+<entry align="left" valign="top"><simpara>0.0.0.3</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara>2</simpara></entry>
+<entry align="left" valign="top"><simpara>0.0.0.2</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara>3</simpara></entry>
+<entry align="left" valign="top"><simpara>0.0.0.1</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara>[4, <literal>Integer.MAX_VALUE</literal>]</simpara></entry>
+<entry align="left" valign="top"><simpara>0.0.0.1</simpara></entry>
+</row>
+</tbody>
+</tgroup>
+</informaltable>
+<simpara xml:id="gateway-route-filters">Using Java config:</simpara>
+<simpara>GatewayConfig.java</simpara>
+<programlisting language="java" linenumbering="unnumbered">RemoteAddressResolver resolver = XForwardedRemoteAddressResolver
+    .maxTrustedIndexXForwardedRemoteAddressResolver(1);
+
+...
+
+.route("direct-route",
+    r -&gt; r.remoteAddr("10.1.1.1", "10.10.1.1/24")
+        .uri("https://downstream1")
+.route("proxied-route",
+    r -&gt; r.remoteAddr(resolver,  "10.10.1.1", "10.10.1.1/24")
+        .uri("https://downstream2")
+)</programlisting>
+</section>
 </section>
 </chapter>
-<chapter xml:id="gateway-route-filters">
+<chapter xml:id="_gatewayfilter_factories">
 <title>GatewayFilter Factories</title>
 <simpara>Route filters allow the modification of the incoming HTTP request or outgoing HTTP response in some manner. Route filters are scoped to a particular route. Spring Cloud Gateway includes many built-in GatewayFilter Factories.</simpara>
 <section xml:id="_addrequestheader_gatewayfilter_factory">
