@@ -41,18 +41,12 @@ import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
 import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
 import org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory;
 import org.springframework.cloud.gateway.support.ConfigurationUtils;
-import org.springframework.cloud.gateway.support.ShortcutConfigurable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.tuple.Tuple;
-import org.springframework.tuple.TupleBuilder;
 import org.springframework.validation.Validator;
 import org.springframework.web.server.ServerWebExchange;
-
-import static org.springframework.cloud.gateway.support.ShortcutConfigurable.getValue;
-import static org.springframework.cloud.gateway.support.ShortcutConfigurable.normalizeKey;
 
 import reactor.core.publisher.Flux;
 
@@ -151,23 +145,18 @@ public class RouteDefinitionRouteLocator implements RouteLocator, BeanFactoryAwa
 						logger.debug("RouteDefinition " + id + " applying filter " + args + " to " + definition.getName());
 					}
 
-                    if (factory.isConfigurable()) {
-                        Map<String, Object> properties = factory.shortcutType().normalize(args, factory, this.parser, this.beanFactory);
+                    Map<String, Object> properties = factory.shortcutType().normalize(args, factory, this.parser, this.beanFactory);
 
-                        Object configuration = factory.newConfig();
+                    Object configuration = factory.newConfig();
 
-                        ConfigurationUtils.bind(configuration, properties,
-                                factory.shortcutFieldPrefix(), definition.getName(), validator);
+                    ConfigurationUtils.bind(configuration, properties,
+                            factory.shortcutFieldPrefix(), definition.getName(), validator);
 
-						GatewayFilter gatewayFilter = factory.apply(configuration);
-                        if (this.publisher != null) {
-                            this.publisher.publishEvent(new FilterArgsEvent(this, id, properties));
-                        }
-						return gatewayFilter;
-                    } else {
-                        Tuple tuple = getTuple(factory, args, this.parser, this.beanFactory);
-                        return factory.apply(tuple);
+                    GatewayFilter gatewayFilter = factory.apply(configuration);
+                    if (this.publisher != null) {
+                        this.publisher.publishEvent(new FilterArgsEvent(this, id, properties));
                     }
+                    return gatewayFilter;
 				})
 				.collect(Collectors.toList());
 
@@ -177,41 +166,6 @@ public class RouteDefinitionRouteLocator implements RouteLocator, BeanFactoryAwa
 		}
 
 		return ordered;
-	}
-
-	@SuppressWarnings("Duplicates")
-	@Deprecated //TODO: remove after Tuple is removed
-	/* for testing */ static Tuple getTuple(ShortcutConfigurable shortcutConf, Map<String, String> args, SpelExpressionParser parser, BeanFactory beanFactory) {
-		TupleBuilder builder = TupleBuilder.tuple();
-
-		List<String> argNames = shortcutConf.shortcutFieldOrder();
-		if (!argNames.isEmpty()) {
-			// ensure size is the same for key replacement later
-			if (shortcutConf.validateFieldsExist() && args.size() != argNames.size()) {
-				throw new IllegalArgumentException("Wrong number of arguments. Expected " + argNames
-						+ " " + argNames + ". Found " + args.size() + " " + args + "'");
-			}
-		}
-
-		int entryIdx = 0;
-		for (Map.Entry<String, String> entry : args.entrySet()) {
-			String key = normalizeKey(entry.getKey(), entryIdx, shortcutConf, args);
-			Object value = getValue(parser, beanFactory, entry.getValue());
-
-			builder.put(key, value);
-			entryIdx++;
-		}
-
-		Tuple tuple = builder.build();
-
-		if (shortcutConf.validateFieldsExist()) {
-			for (String name : argNames) {
-				if (!tuple.hasFieldName(name)) {
-					throw new IllegalArgumentException("Missing argument '" + name + "'. Given " + tuple);
-				}
-			}
-		}
-		return tuple;
 	}
 
 	private List<GatewayFilter> getFilters(RouteDefinition routeDefinition) {
@@ -255,18 +209,13 @@ public class RouteDefinitionRouteLocator implements RouteLocator, BeanFactoryAwa
 					+ args + " to " + predicate.getName());
 		}
 
-		if (!factory.isConfigurable()) {
-			Tuple tuple = getTuple(factory, args, this.parser, this.beanFactory);
-			return factory.apply(tuple);
-		} else {
-			Map<String, Object> properties = factory.shortcutType().normalize(args, factory, this.parser, this.beanFactory);
-			Object config = factory.newConfig();
-			ConfigurationUtils.bind(config, properties,
-					factory.shortcutFieldPrefix(), predicate.getName(), validator);
-			if (this.publisher != null) {
-				this.publisher.publishEvent(new PredicateArgsEvent(this, route.getId(), properties));
-			}
-			return factory.apply(config);
-		}
+        Map<String, Object> properties = factory.shortcutType().normalize(args, factory, this.parser, this.beanFactory);
+        Object config = factory.newConfig();
+        ConfigurationUtils.bind(config, properties,
+                factory.shortcutFieldPrefix(), predicate.getName(), validator);
+        if (this.publisher != null) {
+            this.publisher.publishEvent(new PredicateArgsEvent(this, route.getId(), properties));
+        }
+        return factory.apply(config);
 	}
 }

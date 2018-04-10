@@ -17,14 +17,13 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
+import java.util.function.Consumer;
+
 import org.springframework.cloud.gateway.filter.GatewayFilter;
-import org.springframework.cloud.gateway.support.ShortcutConfigurable;
 import org.springframework.cloud.gateway.support.Configurable;
 import org.springframework.cloud.gateway.support.NameUtils;
+import org.springframework.cloud.gateway.support.ShortcutConfigurable;
 import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.tuple.Tuple;
-
-import java.util.function.Consumer;
 
 /**
  * @author Spencer Gibb
@@ -35,11 +34,6 @@ public interface GatewayFilterFactory<C> extends ShortcutConfigurable, Configura
 	String NAME_KEY = "name";
 	String VALUE_KEY = "value";
 
-	@Deprecated //TODO: remove when apply(Tuple) is removed
-	default boolean isConfigurable() {
-		return false;
-	}
-
 	// useful for javadsl
 	default GatewayFilter apply(Consumer<C> consumer) {
 		C config = newConfig();
@@ -47,25 +41,16 @@ public interface GatewayFilterFactory<C> extends ShortcutConfigurable, Configura
 		return apply(config);
 	}
 
-	//TODO: remove after apply(Tuple) removed
-	@Override
 	default Class<C> getConfigClass() {
 		throw new UnsupportedOperationException("getConfigClass() not implemented");
 	}
 
-	//TODO: remove after apply(Tuple) removed
 	@Override
 	default C newConfig() {
 		throw new UnsupportedOperationException("newConfig() not implemented");
 	}
 
-	//TODO: remove default impl after apply(Tuple) removed
-	default GatewayFilter apply(C config) {
-		throw new UnsupportedOperationException("apply(C config) not implemented");
-	}
-
-	@Deprecated
-	GatewayFilter apply(Tuple args);
+	GatewayFilter apply(C config);
 
 	default String name() {
 		//TODO: deal with proxys
