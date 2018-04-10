@@ -17,6 +17,9 @@
 
 package org.springframework.cloud.gateway.actuate;
 
+import java.util.List;
+import java.util.Map;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -30,6 +33,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @RunWith(SpringRunner.class)
@@ -48,6 +52,19 @@ public class GatewayControllerEndpointTests {
 				.uri("http://localhost:"+port+"/actuator/gateway/refresh")
 				.exchange()
 				.expectStatus().isOk();
+	}
+
+	@Test
+	public void testRoutes() {
+		testClient.get()
+				.uri("http://localhost:"+port+"/actuator/gateway/routes")
+				.exchange()
+				.expectStatus().isOk()
+				.expectBodyList(Map.class)
+				.consumeWith(result -> {
+					List<Map> responseBody = result.getResponseBody();
+					assertThat(responseBody).isNotEmpty();
+				});
 	}
 
 	@SpringBootConfiguration
