@@ -330,6 +330,7 @@ public class GatewaySampleApplication {
 							writer.get().write(publisher, elementType, mediaType, fakeResponse, null);
 							exchange.getAttributes().put("cachedRequestBody", fakeResponse.getBody());
 						}
+						//TODO: make generic
 						return peek.trim().equalsIgnoreCase("hello");
 					});
 

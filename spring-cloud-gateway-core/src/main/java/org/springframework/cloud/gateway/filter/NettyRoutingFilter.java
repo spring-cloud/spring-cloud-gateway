@@ -106,6 +106,7 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 				proxyRequest.header(HttpHeaders.HOST, host);
 			}
 
+			//TODO: move this to a global filter with high precedence
 			ServerHttpRequest toSend;
 			Flux<DataBuffer> body = exchange.getAttributeOrDefault("cachedRequestBody", null);
 			if (body != null) {
