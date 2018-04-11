@@ -54,6 +54,12 @@ public class SetPathGatewayFilterFactoryTests {
 	}
 
 	@Test
+	public void setEncodedPathFilterWorks() {
+		HashMap<String, String> variables = new HashMap<>();
+		testFilter("/baz/foo%20bar","/baz/foo%20bar", variables);
+	}
+
+	@Test
 	public void setPathFilterWithTemplateVarsWorks() {
 		HashMap<String, String> variables = new HashMap<>();
 		variables.put("id", "123");
