@@ -22,6 +22,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
 import org.reactivestreams.Publisher;
+import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyResponseBodyGatewayFilterFactory;
 import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +30,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.cloud.gateway.filter.factory.rewrite.HttpMessageWriterResponse;
-import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyRequestBodyPredicateFactory;
+import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyRequestBodyGatewayFilterFactory;
 import org.springframework.cloud.gateway.handler.predicate.AbstractRoutePredicateFactory;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
@@ -78,7 +79,7 @@ public class GatewaySampleApplication {
 				)
 				.route("rewrite_request_obj", r -> r.host("*.rewriterequestobj.org")
 					.filters(f -> f.addRequestHeader("X-TestHeader", "rewrite_request")
-							.filter(modifyRequestBodyPredicateFactory().apply(c ->
+							.filter(modifyRequestBodyGatewayFilterFactory().apply(c ->
 									c.setRewriteFunction(String.class, Hello.class,
 									(exchange, s) -> {
                                         return new Hello(s.toUpperCase());
@@ -87,7 +88,7 @@ public class GatewaySampleApplication {
 				)
                 .route("rewrite_request_upper", r -> r.host("*.rewriterequestupper.org")
 					.filters(f -> f.addRequestHeader("X-TestHeader", "rewrite_request_upper")
-							.filter(modifyRequestBodyPredicateFactory().apply(c ->
+							.filter(modifyRequestBodyGatewayFilterFactory().apply(c ->
 									c.setRewriteFunction(String.class, String.class,
 									(exchange, s) -> {
                                         return s.toUpperCase();
@@ -96,8 +97,12 @@ public class GatewaySampleApplication {
 				)
 				.route("rewrite_response", r -> r.host("*.rewriteresponse.org")
 					.filters(f -> f.addRequestHeader("X-TestHeader", "rewrite_response")
-							/*TODO: .filter()*/)
-						.uri(uri)
+							.filter(modifyResponseBodyGatewayFilterFactory().apply(c ->
+									c.setRewriteFunction(String.class, String.class,
+									(exchange, s) -> {
+                                        return s.toUpperCase();
+                                    })))
+					).uri(uri)
 				)
 				.route(r -> r.path("/image/webp")
 					.filters(f ->
@@ -131,8 +136,13 @@ public class GatewaySampleApplication {
 	}
 
 	@Bean
-	public ModifyRequestBodyPredicateFactory modifyRequestBodyPredicateFactory() {
-		return new ModifyRequestBodyPredicateFactory();
+	public ModifyRequestBodyGatewayFilterFactory modifyRequestBodyGatewayFilterFactory() {
+		return new ModifyRequestBodyGatewayFilterFactory();
+	}
+
+	@Bean
+	public ModifyResponseBodyGatewayFilterFactory modifyResponseBodyGatewayFilterFactory() {
+		return new ModifyResponseBodyGatewayFilterFactory();
 	}
 
 	static class Hello {
