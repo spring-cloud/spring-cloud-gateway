@@ -17,45 +17,39 @@
 
 package org.springframework.cloud.gateway.sample;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiFunction;
-import java.util.function.Function;
 import java.util.function.Predicate;
 
 import org.reactivestreams.Publisher;
-import org.springframework.cloud.gateway.filter.GatewayFilter;
-import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
-import org.springframework.http.server.reactive.ServerHttpResponse;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.core.publisher.MonoProcessor;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.cloud.gateway.filter.factory.rewrite.FakeResponse;
+import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyRequestBodyPredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.AbstractRoutePredicateFactory;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.ResolvableType;
-import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.HttpMessageReader;
 import org.springframework.http.codec.HttpMessageWriter;
 import org.springframework.http.codec.ServerCodecConfigurer;
-import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.server.RequestPredicates;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.RouterFunctions;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import org.springframework.web.server.ServerWebExchange;
+
+import static org.springframework.cloud.gateway.filter.factory.rewrite.RewriteUtils.getHttpMessageReader;
+import static org.springframework.cloud.gateway.filter.factory.rewrite.RewriteUtils.getHttpMessageWriter;
+import static org.springframework.cloud.gateway.filter.factory.rewrite.RewriteUtils.process;
 
 /**
  * @author Spencer Gibb
@@ -141,142 +135,6 @@ public class GatewaySampleApplication {
 		return new ModifyRequestBodyPredicateFactory();
 	}
 
-	static class ModifyRequestBodyPredicateFactory extends AbstractGatewayFilterFactory<ModifyRequestBodyPredicateFactory.Config> {
-
-		@Autowired
-		ServerCodecConfigurer serverCodecConfigurer;
-
-		public ModifyRequestBodyPredicateFactory() {
-			super(Config.class);
-		}
-
-		@Override
-		@SuppressWarnings("unchecked")
-		public GatewayFilter apply(Config config) {
-			return (exchange, chain) -> {
-				Class inClass = config.getInClass();
-
-				MediaType mediaType = exchange.getRequest().getHeaders().getContentType();
-				List<HttpMessageReader<?>> readers = serverCodecConfigurer.getReaders();
-				ResolvableType inElementType = ResolvableType.forClass(inClass);
-				Optional<HttpMessageReader<?>> reader = readers.stream()
-						.filter(r -> r.canRead(inElementType, mediaType))
-						.findFirst();
-
-				if (reader.isPresent()) {
-					Mono<Object> readMono = reader.get()
-							.readMono(inElementType, exchange.getRequest(), null)
-							.cast(Object.class);
-
-					return process(readMono, peek -> {
-						ResolvableType outElementType = ResolvableType.forClass(config.getOutClass());
-						Optional<HttpMessageWriter<?>> writer = serverCodecConfigurer.getWriters()
-								.stream()
-								.filter(w -> w.canWrite(outElementType, mediaType))
-								.findFirst();
-
-						if (writer.isPresent()) {
-							Object data = config.rewriteFunction.apply(exchange, peek);
-
-							Publisher publisher = Mono.just(data);
-							FakeResponse fakeResponse = new FakeResponse(exchange.getResponse());
-							writer.get().write(publisher, inElementType, mediaType, fakeResponse, null);
-                            ServerHttpRequestDecorator decorator = new ServerHttpRequestDecorator(exchange.getRequest()) {
-								@Override
-								public HttpHeaders getHeaders() {
-									HttpHeaders httpHeaders = new HttpHeaders();
-									httpHeaders.putAll(super.getHeaders());
-									//TODO: this causes a 'HTTP/1.1 411 Length Required' on httpbin.org
-									httpHeaders.set(HttpHeaders.TRANSFER_ENCODING, "chunked");
-									if (fakeResponse.getHeaders().getContentType() != null) {
-										httpHeaders.setContentType(fakeResponse.getHeaders().getContentType());
-									}
-									return httpHeaders;
-								}
-
-								@Override
-								public Flux<DataBuffer> getBody() {
-									return (Flux<DataBuffer>) fakeResponse.getBody();
-								}
-							};
-                            return chain.filter(exchange.mutate().request(decorator).build());
-						}
-						return chain.filter(exchange);
-					});
-
-				}
-				return chain.filter(exchange);
-			};
-		}
-
-		public static class Config {
-			private Class inClass;
-			private Class outClass;
-
-			private RewriteFunction rewriteFunction;
-
-			public Class getInClass() {
-				return inClass;
-			}
-
-			public Config setInClass(Class inClass) {
-				this.inClass = inClass;
-				return this;
-			}
-
-			public Class getOutClass() {
-				return outClass;
-			}
-
-			public Config setOutClass(Class outClass) {
-				this.outClass = outClass;
-				return this;
-			}
-
-			public RewriteFunction getRewriteFunction() {
-				return rewriteFunction;
-			}
-
-			public <T, R> Config setRewriteFunction(Class<T> inClass, Class<R> outClass, RewriteFunction<T, R> rewriteFunction) {
-				setInClass(inClass);
-				setRewriteFunction(rewriteFunction);
-				return this;
-			}
-
-			public Config setRewriteFunction(RewriteFunction rewriteFunction) {
-				this.rewriteFunction = rewriteFunction;
-				return this;
-			}
-		}
-	}
-
-	static class FakeResponse extends ServerHttpResponseDecorator  {
-
-		private Publisher<? extends DataBuffer> body;
-
-		public FakeResponse(ServerHttpResponse delegate) {
-			super(delegate);
-		}
-
-		@Override
-		public Mono<Void> writeWith(Publisher<? extends DataBuffer> body) {
-			this.body = body;
-			return Mono.empty();
-		}
-
-		@Override
-		public Mono<Void> writeAndFlushWith(Publisher<? extends Publisher<? extends DataBuffer>> body) {
-			throw new UnsupportedOperationException("writeAndFlushWith");
-		}
-
-		public Publisher<? extends DataBuffer> getBody() {
-			return body;
-		}
-	}
-
-	interface RewriteFunction<T, R> extends BiFunction<ServerWebExchange, T, R> {
-	}
-
 	static class Hello {
 		String message;
 
@@ -298,7 +156,7 @@ public class GatewaySampleApplication {
 	static class ReadBodyPredicateFactory extends AbstractRoutePredicateFactory {
 
 		@Autowired
-		ServerCodecConfigurer serverCodecConfigurer;
+		ServerCodecConfigurer codecConfigurer;
 
 		public ReadBodyPredicateFactory() {
 			super(Object.class);
@@ -309,20 +167,14 @@ public class GatewaySampleApplication {
 		public Predicate<ServerWebExchange> apply(Object config) {
 			return exchange -> {
 				MediaType mediaType = exchange.getRequest().getHeaders().getContentType();
-				List<HttpMessageReader<?>> readers = serverCodecConfigurer.getReaders();
 				ResolvableType elementType = ResolvableType.forClass(String.class);
-				Optional<HttpMessageReader<?>> reader = readers.stream()
-						.filter(r -> r.canRead(elementType, mediaType))
-						.findFirst();
+				Optional<HttpMessageReader<?>> reader = getHttpMessageReader(codecConfigurer, elementType, mediaType);
 				boolean answer = false;
                 if (reader.isPresent()) {
 					Mono<String> readMono = reader.get().readMono(elementType, exchange.getRequest(), null)
 							.cast(String.class);
 					answer = process(readMono, peek -> {
-						Optional<HttpMessageWriter<?>> writer = serverCodecConfigurer.getWriters()
-								.stream()
-								.filter(w -> w.canWrite(elementType, mediaType))
-								.findFirst();
+						Optional<HttpMessageWriter<?>> writer = getHttpMessageWriter(codecConfigurer, elementType, mediaType);
 
 						if (writer.isPresent()) {
 							Publisher publisher = Mono.just(peek);
@@ -337,25 +189,6 @@ public class GatewaySampleApplication {
 				}
 				return answer;
 			};
-		}
-	}
-
-	public static <T, R> R process(Mono<T> mono, Function<T, R> consumer) {
-		MonoProcessor<T> processor = MonoProcessor.create();
-		mono.subscribeWith(processor);
-		if (processor.isTerminated()) {
-			Throwable error = processor.getError();
-			if (error != null) {
-				throw (RuntimeException) error;
-			}
-			T peek = processor.peek();
-
-			return consumer.apply(peek);
-		}
-		else {
-			// Should never happen...
-			throw new IllegalStateException(
-					"SyncInvocableHandlerMethod should have completed synchronously.");
 		}
 	}
 
