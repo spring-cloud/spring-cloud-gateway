@@ -20,6 +20,7 @@ package org.springframework.cloud.gateway.sample;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -67,32 +68,47 @@ public class GatewaySampleApplication {
 	@Bean
 	public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
 		//@formatter:off
+		// String uri = "http://httpbin.org:80";
+		String uri = "http://localhost:9080";
 		return builder.routes()
 				.route(r -> r.host("**.abc.org").and().path("/image/png")
 					.filters(f ->
 							f.addResponseHeader("X-TestHeader", "foobar"))
-					.uri("http://httpbin.org:80")
+					.uri(uri)
 				)
 				.route("read_body_pred", r -> r.host("*.readbody.org")
 						.and().predicate(readBodyPredicateFactory().apply(o -> {}))
 					.filters(f ->
-							f.addRequestHeader("X-TestHeader", "read_body_pred"))
-						.uri("http://httpbin.org:80")
+							f.addRequestHeader("X-TestHeader", "read_body_pred")
+					).uri(uri)
 				)
-				.route("rewrite_request", r -> r.host("*.rewriterequest.org")
+				.route("rewrite_request_obj", r -> r.host("*.rewriterequestobj.org")
 					.filters(f -> f.addRequestHeader("X-TestHeader", "rewrite_request")
-							.filter(modifyRequestBodyPredicateFactory().apply(o -> {})))
-						.uri("http://httpbin.org:80")
+							.filter(modifyRequestBodyPredicateFactory().apply(c ->
+									c.setRewriteFunction(String.class, Hello.class,
+									(exchange, s) -> {
+                                        return new Hello(s.toUpperCase());
+                                    })))
+					).uri(uri)
+				)
+                .route("rewrite_request_upper", r -> r.host("*.rewriterequestupper.org")
+					.filters(f -> f.addRequestHeader("X-TestHeader", "rewrite_request_upper")
+							.filter(modifyRequestBodyPredicateFactory().apply(c ->
+									c.setRewriteFunction(String.class, String.class,
+									(exchange, s) -> {
+                                        return s.toUpperCase();
+                                    })))
+					).uri(uri)
 				)
 				.route("rewrite_response", r -> r.host("*.rewriteresponse.org")
 					.filters(f -> f.addRequestHeader("X-TestHeader", "rewrite_response")
 							/*TODO: .filter()*/)
-						.uri("http://httpbin.org:80")
+						.uri(uri)
 				)
 				.route(r -> r.path("/image/webp")
 					.filters(f ->
 							f.addResponseHeader("X-AnotherHeader", "baz"))
-					.uri("http://httpbin.org:80")
+					.uri(uri)
 				)
 				.route(r -> r.order(-1)
 					.host("**.throttle.org").and().path("/get")
@@ -101,7 +117,7 @@ public class GatewaySampleApplication {
 									.setRefillTokens(1)
 									.setRefillPeriod(10)
 									.setRefillUnit(TimeUnit.SECONDS)))
-					.uri("http://httpbin.org:80")
+					.uri(uri)
 				)
 				.build();
 		//@formatter:on
@@ -125,47 +141,56 @@ public class GatewaySampleApplication {
 		return new ModifyRequestBodyPredicateFactory();
 	}
 
-	static class ModifyRequestBodyPredicateFactory extends AbstractGatewayFilterFactory {
+	static class ModifyRequestBodyPredicateFactory extends AbstractGatewayFilterFactory<ModifyRequestBodyPredicateFactory.Config> {
 
 		@Autowired
 		ServerCodecConfigurer serverCodecConfigurer;
 
+		public ModifyRequestBodyPredicateFactory() {
+			super(Config.class);
+		}
+
 		@Override
-		public GatewayFilter apply(Object config) {
+		@SuppressWarnings("unchecked")
+		public GatewayFilter apply(Config config) {
 			return (exchange, chain) -> {
+				Class inClass = config.getInClass();
+
 				MediaType mediaType = exchange.getRequest().getHeaders().getContentType();
 				List<HttpMessageReader<?>> readers = serverCodecConfigurer.getReaders();
-				ResolvableType inElementType = ResolvableType.forClass(String.class);
+				ResolvableType inElementType = ResolvableType.forClass(inClass);
 				Optional<HttpMessageReader<?>> reader = readers.stream()
 						.filter(r -> r.canRead(inElementType, mediaType))
 						.findFirst();
 
 				if (reader.isPresent()) {
-					Mono<String> readMono = reader.get().readMono(inElementType, exchange.getRequest(), null)
-							.cast(String.class);
+					Mono<Object> readMono = reader.get()
+							.readMono(inElementType, exchange.getRequest(), null)
+							.cast(Object.class);
+
 					return process(readMono, peek -> {
-						// ResolvableType outElementType = ResolvableType.forClass(Hello.class);
-						ResolvableType outElementType = ResolvableType.forClass(String.class);
+						ResolvableType outElementType = ResolvableType.forClass(config.getOutClass());
 						Optional<HttpMessageWriter<?>> writer = serverCodecConfigurer.getWriters()
 								.stream()
 								.filter(w -> w.canWrite(outElementType, mediaType))
 								.findFirst();
 
 						if (writer.isPresent()) {
-							Object data = peek.toUpperCase();
-							// Object data = new Hello(peek.toUpperCase());
-							// TODO: deal with changes in content-length and media type
+							Object data = config.rewriteFunction.apply(exchange, peek);
 
 							Publisher publisher = Mono.just(data);
 							FakeResponse fakeResponse = new FakeResponse(exchange.getResponse());
 							writer.get().write(publisher, inElementType, mediaType, fakeResponse, null);
-							// exchange.getAttributes().put("cachedRequestBody", fakeResponse.getBody());
                             ServerHttpRequestDecorator decorator = new ServerHttpRequestDecorator(exchange.getRequest()) {
 								@Override
 								public HttpHeaders getHeaders() {
 									HttpHeaders httpHeaders = new HttpHeaders();
 									httpHeaders.putAll(super.getHeaders());
-									// httpHeaders.set(HttpHeaders.TRANSFER_ENCODING, "chunked");
+									//TODO: this causes a 'HTTP/1.1 411 Length Required' on httpbin.org
+									httpHeaders.set(HttpHeaders.TRANSFER_ENCODING, "chunked");
+									if (fakeResponse.getHeaders().getContentType() != null) {
+										httpHeaders.setContentType(fakeResponse.getHeaders().getContentType());
+									}
 									return httpHeaders;
 								}
 
@@ -182,6 +207,46 @@ public class GatewaySampleApplication {
 				}
 				return chain.filter(exchange);
 			};
+		}
+
+		public static class Config {
+			private Class inClass;
+			private Class outClass;
+
+			private RewriteFunction rewriteFunction;
+
+			public Class getInClass() {
+				return inClass;
+			}
+
+			public Config setInClass(Class inClass) {
+				this.inClass = inClass;
+				return this;
+			}
+
+			public Class getOutClass() {
+				return outClass;
+			}
+
+			public Config setOutClass(Class outClass) {
+				this.outClass = outClass;
+				return this;
+			}
+
+			public RewriteFunction getRewriteFunction() {
+				return rewriteFunction;
+			}
+
+			public <T, R> Config setRewriteFunction(Class<T> inClass, Class<R> outClass, RewriteFunction<T, R> rewriteFunction) {
+				setInClass(inClass);
+				setRewriteFunction(rewriteFunction);
+				return this;
+			}
+
+			public Config setRewriteFunction(RewriteFunction rewriteFunction) {
+				this.rewriteFunction = rewriteFunction;
+				return this;
+			}
 		}
 	}
 
@@ -207,7 +272,10 @@ public class GatewaySampleApplication {
 		public Publisher<? extends DataBuffer> getBody() {
 			return body;
 		}
-	};
+	}
+
+	interface RewriteFunction<T, R> extends BiFunction<ServerWebExchange, T, R> {
+	}
 
 	static class Hello {
 		String message;
