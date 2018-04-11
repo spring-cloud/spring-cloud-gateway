@@ -59,7 +59,7 @@ public class PrefixPathGatewayFilterFactory extends AbstractGatewayFilterFactory
 
 			ServerHttpRequest req = exchange.getRequest();
 			addOriginalRequestUrl(exchange, req.getURI());
-			String newPath = config.prefix + req.getURI().getPath();
+			String newPath = config.prefix + req.getURI().getRawPath();
 
 			ServerHttpRequest request = req.mutate()
 					.path(newPath)
