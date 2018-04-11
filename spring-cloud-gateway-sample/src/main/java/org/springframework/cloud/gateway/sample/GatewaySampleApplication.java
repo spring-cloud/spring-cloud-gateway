@@ -17,6 +17,7 @@
 
 package org.springframework.cloud.gateway.sample;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
@@ -95,12 +96,22 @@ public class GatewaySampleApplication {
                                     })))
 					).uri(uri)
 				)
-				.route("rewrite_response", r -> r.host("*.rewriteresponse.org")
-					.filters(f -> f.addRequestHeader("X-TestHeader", "rewrite_response")
+				.route("rewrite_response_upper", r -> r.host("*.rewriteresponseupper.org")
+					.filters(f -> f.addRequestHeader("X-TestHeader", "rewrite_response_upper")
 							.filter(modifyResponseBodyGatewayFilterFactory().apply(c ->
 									c.setRewriteFunction(String.class, String.class,
 									(exchange, s) -> {
                                         return s.toUpperCase();
+                                    })))
+					).uri(uri)
+				)
+                .route("rewrite_response_obj", r -> r.host("*.rewriteresponseobj.org")
+					.filters(f -> f.addRequestHeader("X-TestHeader", "rewrite_response_obj")
+							.filter(modifyResponseBodyGatewayFilterFactory().apply(c ->
+									c.setRewriteFunction(Map.class, String.class,
+									(exchange, map) -> {
+										Object data = map.get("data");
+                                        return data.toString();
                                     })))
 					).uri(uri)
 				)
