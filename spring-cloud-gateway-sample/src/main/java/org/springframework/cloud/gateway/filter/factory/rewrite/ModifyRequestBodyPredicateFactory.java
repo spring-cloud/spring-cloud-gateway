@@ -71,8 +71,7 @@ public class ModifyRequestBodyPredicateFactory
 						Object data = config.rewriteFunction.apply(exchange, peek);
 
 						Publisher publisher = Mono.just(data);
-						FakeResponse fakeResponse = new FakeResponse(
-								exchange.getResponse());
+						HttpMessageWriterResponse fakeResponse = new HttpMessageWriterResponse(exchange.getResponse().bufferFactory());
 						writer.get().write(publisher, inElementType, mediaType,
 								fakeResponse, null);
 						ServerHttpRequestDecorator decorator = new ServerHttpRequestDecorator(

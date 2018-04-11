@@ -28,7 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.cloud.gateway.filter.factory.rewrite.FakeResponse;
+import org.springframework.cloud.gateway.filter.factory.rewrite.HttpMessageWriterResponse;
 import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyRequestBodyPredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.AbstractRoutePredicateFactory;
 import org.springframework.cloud.gateway.route.RouteLocator;
@@ -178,7 +178,7 @@ public class GatewaySampleApplication {
 
 						if (writer.isPresent()) {
 							Publisher publisher = Mono.just(peek);
-							FakeResponse fakeResponse = new FakeResponse(exchange.getResponse());
+							HttpMessageWriterResponse fakeResponse = new HttpMessageWriterResponse(exchange.getResponse().bufferFactory());
 							writer.get().write(publisher, elementType, mediaType, fakeResponse, null);
 							exchange.getAttributes().put("cachedRequestBody", fakeResponse.getBody());
 						}
