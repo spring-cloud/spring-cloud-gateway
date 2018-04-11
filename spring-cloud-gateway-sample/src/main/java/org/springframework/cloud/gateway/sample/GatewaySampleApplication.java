@@ -23,15 +23,16 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
 import org.reactivestreams.Publisher;
-import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyResponseBodyGatewayFilterFactory;
 import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.cloud.gateway.filter.factory.rewrite.HttpMessageWriterResponse;
 import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyRequestBodyGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyResponseBodyGatewayFilterFactory;
 import org.springframework.cloud.gateway.handler.predicate.AbstractRoutePredicateFactory;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
@@ -61,11 +62,14 @@ import static org.springframework.cloud.gateway.filter.factory.rewrite.RewriteUt
 @Import(AdditionalRoutes.class)
 public class GatewaySampleApplication {
 
+	@Value("${route.uri:http://httpbin.org:80}")
+	String uri;
+
 	@Bean
 	public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
 		//@formatter:off
 		// String uri = "http://httpbin.org:80";
-		String uri = "http://localhost:9080";
+		// String uri = "http://localhost:9080";
 		return builder.routes()
 				.route(r -> r.host("**.abc.org").and().path("/image/png")
 					.filters(f ->
