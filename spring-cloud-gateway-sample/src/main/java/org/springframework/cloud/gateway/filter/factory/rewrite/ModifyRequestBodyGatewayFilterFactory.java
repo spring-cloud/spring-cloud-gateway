@@ -37,13 +37,13 @@ import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
 
 import static org.springframework.cloud.gateway.filter.factory.rewrite.RewriteUtils.process;
 
-public class ModifyRequestBodyPredicateFactory
-		extends AbstractGatewayFilterFactory<ModifyRequestBodyPredicateFactory.Config> {
+public class ModifyRequestBodyGatewayFilterFactory
+		extends AbstractGatewayFilterFactory<ModifyRequestBodyGatewayFilterFactory.Config> {
 
 	@Autowired
 	private ServerCodecConfigurer codecConfigurer;
 
-	public ModifyRequestBodyPredicateFactory() {
+	public ModifyRequestBodyGatewayFilterFactory() {
 		super(Config.class);
 	}
 
@@ -70,7 +70,9 @@ public class ModifyRequestBodyPredicateFactory
 					if (writer.isPresent()) {
 						Object data = config.rewriteFunction.apply(exchange, peek);
 
+						//TODO: deal with multivalue? ie Flux
 						Publisher publisher = Mono.just(data);
+
 						HttpMessageWriterResponse fakeResponse = new HttpMessageWriterResponse(exchange.getResponse().bufferFactory());
 						writer.get().write(publisher, inElementType, mediaType,
 								fakeResponse, null);
