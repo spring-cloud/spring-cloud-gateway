@@ -24,6 +24,12 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 import org.reactivestreams.Publisher;
+import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
+import org.springframework.http.server.reactive.ServerHttpResponse;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.MonoProcessor;
 
@@ -59,7 +65,7 @@ import org.springframework.web.server.ServerWebExchange;
 public class GatewaySampleApplication {
 
 	@Bean
-	public RouteLocator customRouteLocator(RouteLocatorBuilder builder, ReadBodyPredicateFactory readBodyPredicateFactory) {
+	public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
 		//@formatter:off
 		return builder.routes()
 				.route(r -> r.host("**.abc.org").and().path("/image/png")
@@ -67,14 +73,15 @@ public class GatewaySampleApplication {
 							f.addResponseHeader("X-TestHeader", "foobar"))
 					.uri("http://httpbin.org:80")
 				)
-				.route("read_body_pred", r -> r.host("*.readbody.org").and().predicate(readBodyPredicateFactory.apply(o -> {}))
+				.route("read_body_pred", r -> r.host("*.readbody.org")
+						.and().predicate(readBodyPredicateFactory().apply(o -> {}))
 					.filters(f ->
 							f.addRequestHeader("X-TestHeader", "read_body_pred"))
 						.uri("http://httpbin.org:80")
 				)
 				.route("rewrite_request", r -> r.host("*.rewriterequest.org")
 					.filters(f -> f.addRequestHeader("X-TestHeader", "rewrite_request")
-							/*TODO: .filter()*/)
+							.filter(modifyRequestBodyPredicateFactory().apply(o -> {})))
 						.uri("http://httpbin.org:80")
 				)
 				.route("rewrite_response", r -> r.host("*.rewriteresponse.org")
@@ -113,6 +120,113 @@ public class GatewaySampleApplication {
 		return new ReadBodyPredicateFactory();
 	}
 
+	@Bean
+	public ModifyRequestBodyPredicateFactory modifyRequestBodyPredicateFactory() {
+		return new ModifyRequestBodyPredicateFactory();
+	}
+
+	static class ModifyRequestBodyPredicateFactory extends AbstractGatewayFilterFactory {
+
+		@Autowired
+		ServerCodecConfigurer serverCodecConfigurer;
+
+		@Override
+		public GatewayFilter apply(Object config) {
+			return (exchange, chain) -> {
+				MediaType mediaType = exchange.getRequest().getHeaders().getContentType();
+				List<HttpMessageReader<?>> readers = serverCodecConfigurer.getReaders();
+				ResolvableType inElementType = ResolvableType.forClass(String.class);
+				Optional<HttpMessageReader<?>> reader = readers.stream()
+						.filter(r -> r.canRead(inElementType, mediaType))
+						.findFirst();
+
+				if (reader.isPresent()) {
+					Mono<String> readMono = reader.get().readMono(inElementType, exchange.getRequest(), null)
+							.cast(String.class);
+					return process(readMono, peek -> {
+						// ResolvableType outElementType = ResolvableType.forClass(Hello.class);
+						ResolvableType outElementType = ResolvableType.forClass(String.class);
+						Optional<HttpMessageWriter<?>> writer = serverCodecConfigurer.getWriters()
+								.stream()
+								.filter(w -> w.canWrite(outElementType, mediaType))
+								.findFirst();
+
+						if (writer.isPresent()) {
+							Object data = peek.toUpperCase();
+							// Object data = new Hello(peek.toUpperCase());
+							// TODO: deal with changes in content-length and media type
+
+							Publisher publisher = Mono.just(data);
+							FakeResponse fakeResponse = new FakeResponse(exchange.getResponse());
+							writer.get().write(publisher, inElementType, mediaType, fakeResponse, null);
+							// exchange.getAttributes().put("cachedRequestBody", fakeResponse.getBody());
+                            ServerHttpRequestDecorator decorator = new ServerHttpRequestDecorator(exchange.getRequest()) {
+								@Override
+								public HttpHeaders getHeaders() {
+									HttpHeaders httpHeaders = new HttpHeaders();
+									httpHeaders.putAll(super.getHeaders());
+									// httpHeaders.set(HttpHeaders.TRANSFER_ENCODING, "chunked");
+									return httpHeaders;
+								}
+
+								@Override
+								public Flux<DataBuffer> getBody() {
+									return (Flux<DataBuffer>) fakeResponse.getBody();
+								}
+							};
+                            return chain.filter(exchange.mutate().request(decorator).build());
+						}
+						return chain.filter(exchange);
+					});
+
+				}
+				return chain.filter(exchange);
+			};
+		}
+	}
+
+	static class FakeResponse extends ServerHttpResponseDecorator  {
+
+		private Publisher<? extends DataBuffer> body;
+
+		public FakeResponse(ServerHttpResponse delegate) {
+			super(delegate);
+		}
+
+		@Override
+		public Mono<Void> writeWith(Publisher<? extends DataBuffer> body) {
+			this.body = body;
+			return Mono.empty();
+		}
+
+		@Override
+		public Mono<Void> writeAndFlushWith(Publisher<? extends Publisher<? extends DataBuffer>> body) {
+			throw new UnsupportedOperationException("writeAndFlushWith");
+		}
+
+		public Publisher<? extends DataBuffer> getBody() {
+			return body;
+		}
+	};
+
+	static class Hello {
+		String message;
+
+		public Hello() { }
+
+		public Hello(String message) {
+			this.message = message;
+		}
+
+		public String getMessage() {
+			return message;
+		}
+
+		public void setMessage(String message) {
+			this.message = message;
+		}
+	}
+
 	static class ReadBodyPredicateFactory extends AbstractRoutePredicateFactory {
 
 		@Autowired
@@ -144,19 +258,9 @@ public class GatewaySampleApplication {
 
 						if (writer.isPresent()) {
 							Publisher publisher = Mono.just(peek);
-							ServerHttpResponseDecorator responseDecorator = new ServerHttpResponseDecorator(exchange.getResponse()) {
-								@Override
-								public Mono<Void> writeWith(Publisher<? extends DataBuffer> body) {
-									exchange.getAttributes().put("cachedRequestBody", body);
-									return Mono.empty();
-								}
-
-								@Override
-								public Mono<Void> writeAndFlushWith(Publisher<? extends Publisher<? extends DataBuffer>> body) {
-									throw new UnsupportedOperationException("writeAndFlushWith");
-								}
-							};
-							writer.get().write(publisher, elementType, mediaType, responseDecorator, null);
+							FakeResponse fakeResponse = new FakeResponse(exchange.getResponse());
+							writer.get().write(publisher, elementType, mediaType, fakeResponse, null);
+							exchange.getAttributes().put("cachedRequestBody", fakeResponse.getBody());
 						}
 						return peek.trim().equalsIgnoreCase("hello");
 					});
