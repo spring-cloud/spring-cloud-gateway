@@ -18,41 +18,26 @@
 package org.springframework.cloud.gateway.sample;
 
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Predicate;
 
-import org.reactivestreams.Publisher;
-import reactor.core.publisher.Mono;
+import org.springframework.cloud.gateway.filter.AdaptCachedBodyGlobalFilter;
+import org.springframework.cloud.gateway.handler.predicate.ReadBodyPredicateFactory;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.cloud.gateway.filter.factory.rewrite.HttpMessageWriterResponse;
 import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyRequestBodyGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyResponseBodyGatewayFilterFactory;
-import org.springframework.cloud.gateway.handler.predicate.AbstractRoutePredicateFactory;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
-import org.springframework.core.ResolvableType;
-import org.springframework.http.MediaType;
-import org.springframework.http.codec.HttpMessageReader;
-import org.springframework.http.codec.HttpMessageWriter;
-import org.springframework.http.codec.ServerCodecConfigurer;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.server.RequestPredicates;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.RouterFunctions;
 import org.springframework.web.reactive.function.server.ServerResponse;
-import org.springframework.web.server.ServerWebExchange;
-
-import static org.springframework.cloud.gateway.filter.factory.rewrite.RewriteUtils.getHttpMessageReader;
-import static org.springframework.cloud.gateway.filter.factory.rewrite.RewriteUtils.getHttpMessageWriter;
-import static org.springframework.cloud.gateway.filter.factory.rewrite.RewriteUtils.process;
 
 /**
  * @author Spencer Gibb
@@ -77,7 +62,9 @@ public class GatewaySampleApplication {
 					.uri(uri)
 				)
 				.route("read_body_pred", r -> r.host("*.readbody.org")
-						.and().predicate(readBodyPredicateFactory().apply(o -> {}))
+						.and().predicate(readBodyPredicateFactory().apply(c ->
+								c.setPredicate(String.class,
+										s -> s.trim().equalsIgnoreCase("hello"))))
 					.filters(f ->
 							f.addRequestHeader("X-TestHeader", "read_body_pred")
 					).uri(uri)
@@ -146,6 +133,11 @@ public class GatewaySampleApplication {
 	}
 
 	@Bean
+	public AdaptCachedBodyGlobalFilter adaptCachedBodyGlobalFilter() {
+		return new AdaptCachedBodyGlobalFilter();
+	}
+
+	@Bean
 	public ReadBodyPredicateFactory readBodyPredicateFactory() {
 		return new ReadBodyPredicateFactory();
 	}
@@ -175,45 +167,6 @@ public class GatewaySampleApplication {
 
 		public void setMessage(String message) {
 			this.message = message;
-		}
-	}
-
-	static class ReadBodyPredicateFactory extends AbstractRoutePredicateFactory {
-
-		@Autowired
-		ServerCodecConfigurer codecConfigurer;
-
-		public ReadBodyPredicateFactory() {
-			super(Object.class);
-		}
-
-		@Override
-		@SuppressWarnings("unchecked")
-		public Predicate<ServerWebExchange> apply(Object config) {
-			return exchange -> {
-				MediaType mediaType = exchange.getRequest().getHeaders().getContentType();
-				ResolvableType elementType = ResolvableType.forClass(String.class);
-				Optional<HttpMessageReader<?>> reader = getHttpMessageReader(codecConfigurer, elementType, mediaType);
-				boolean answer = false;
-                if (reader.isPresent()) {
-					Mono<String> readMono = reader.get().readMono(elementType, exchange.getRequest(), null)
-							.cast(String.class);
-					answer = process(readMono, peek -> {
-						Optional<HttpMessageWriter<?>> writer = getHttpMessageWriter(codecConfigurer, elementType, mediaType);
-
-						if (writer.isPresent()) {
-							Publisher publisher = Mono.just(peek);
-							HttpMessageWriterResponse fakeResponse = new HttpMessageWriterResponse(exchange.getResponse().bufferFactory());
-							writer.get().write(publisher, elementType, mediaType, fakeResponse, null);
-							exchange.getAttributes().put("cachedRequestBody", fakeResponse.getBody());
-						}
-						//TODO: make generic
-						return peek.trim().equalsIgnoreCase("hello");
-					});
-
-				}
-				return answer;
-			};
 		}
 	}
 

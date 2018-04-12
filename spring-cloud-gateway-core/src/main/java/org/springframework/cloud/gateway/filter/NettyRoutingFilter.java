@@ -22,7 +22,6 @@ import java.util.List;
 
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.ipc.netty.NettyPipeline;
 import reactor.ipc.netty.http.client.HttpClient;
@@ -32,12 +31,10 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cloud.gateway.filter.headers.HttpHeadersFilter;
 import org.springframework.cloud.gateway.filter.headers.HttpHeadersFilter.Type;
 import org.springframework.core.Ordered;
-import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.NettyDataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -106,22 +103,8 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 				proxyRequest.header(HttpHeaders.HOST, host);
 			}
 
-			//TODO: move this to a global filter with high precedence
-			ServerHttpRequest toSend;
-			Flux<DataBuffer> body = exchange.getAttributeOrDefault("cachedRequestBody", null);
-			if (body != null) {
-				toSend = new ServerHttpRequestDecorator(request) {
-					@Override
-					public Flux<DataBuffer> getBody() {
-						return body;
-					}
-				};
-			} else {
-				toSend = request;
-			}
-
 			return proxyRequest.sendHeaders() //I shouldn't need this
-					.send(toSend.getBody().map(dataBuffer ->
+					.send(request.getBody().map(dataBuffer ->
 							((NettyDataBuffer)dataBuffer).getNativeBuffer()));
 		}).doOnNext(res -> {
 			ServerHttpResponse response = exchange.getResponse();
