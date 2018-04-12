@@ -23,7 +23,6 @@ import java.util.function.Predicate;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Mono;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.factory.rewrite.HttpMessageWriterResponse;
 import org.springframework.core.ResolvableType;
 import org.springframework.http.MediaType;
@@ -39,12 +38,12 @@ import static org.springframework.cloud.gateway.filter.factory.rewrite.RewriteUt
 
 public class ReadBodyPredicateFactory extends AbstractRoutePredicateFactory<ReadBodyPredicateFactory.Config> {
 
-    @Autowired
-	ServerCodecConfigurer codecConfigurer;
+	private final ServerCodecConfigurer codecConfigurer;
 
-    public ReadBodyPredicateFactory() {
+    public ReadBodyPredicateFactory(ServerCodecConfigurer codecConfigurer) {
         super(Config.class);
-    }
+		this.codecConfigurer = codecConfigurer;
+	}
 
     @Override
     @SuppressWarnings("unchecked")

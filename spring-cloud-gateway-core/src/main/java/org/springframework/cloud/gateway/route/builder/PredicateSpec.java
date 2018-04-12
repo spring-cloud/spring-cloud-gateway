@@ -28,6 +28,7 @@ import org.springframework.cloud.gateway.handler.predicate.HostRoutePredicateFac
 import org.springframework.cloud.gateway.handler.predicate.MethodRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.QueryRoutePredicateFactory;
+import org.springframework.cloud.gateway.handler.predicate.ReadBodyPredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.RemoteAddrRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.WeightRoutePredicateFactory;
 import org.springframework.cloud.gateway.route.Route;
@@ -102,6 +103,11 @@ public class PredicateSpec extends UriSpec {
 	public BooleanSpec path(String pattern) {
 		return predicate(getBean(PathRoutePredicateFactory.class)
 				.apply(c -> c.setPattern(pattern)));
+	}
+
+	public <T> BooleanSpec readBody(Class<T> inClass, Predicate<T> predicate) {
+		return predicate(getBean(ReadBodyPredicateFactory.class)
+				.apply(c -> c.setPredicate(inClass, predicate)));
 	}
 
 	public BooleanSpec query(String param, String regex) {

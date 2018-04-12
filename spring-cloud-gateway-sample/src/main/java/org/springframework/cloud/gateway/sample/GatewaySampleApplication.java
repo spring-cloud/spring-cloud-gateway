@@ -20,15 +20,10 @@ package org.springframework.cloud.gateway.sample;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import org.springframework.cloud.gateway.filter.AdaptCachedBodyGlobalFilter;
-import org.springframework.cloud.gateway.handler.predicate.ReadBodyPredicateFactory;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyRequestBodyGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyResponseBodyGatewayFilterFactory;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
@@ -62,48 +57,43 @@ public class GatewaySampleApplication {
 					.uri(uri)
 				)
 				.route("read_body_pred", r -> r.host("*.readbody.org")
-						.and().predicate(readBodyPredicateFactory().apply(c ->
-								c.setPredicate(String.class,
-										s -> s.trim().equalsIgnoreCase("hello"))))
+						.and().readBody(String.class,
+										s -> s.trim().equalsIgnoreCase("hello"))
 					.filters(f ->
 							f.addRequestHeader("X-TestHeader", "read_body_pred")
 					).uri(uri)
 				)
 				.route("rewrite_request_obj", r -> r.host("*.rewriterequestobj.org")
 					.filters(f -> f.addRequestHeader("X-TestHeader", "rewrite_request")
-							.filter(modifyRequestBodyGatewayFilterFactory().apply(c ->
-									c.setRewriteFunction(String.class, Hello.class,
+							.modifyRequestBody(String.class, Hello.class,
 									(exchange, s) -> {
                                         return new Hello(s.toUpperCase());
-                                    })))
+                                    })
 					).uri(uri)
 				)
                 .route("rewrite_request_upper", r -> r.host("*.rewriterequestupper.org")
 					.filters(f -> f.addRequestHeader("X-TestHeader", "rewrite_request_upper")
-							.filter(modifyRequestBodyGatewayFilterFactory().apply(c ->
-									c.setRewriteFunction(String.class, String.class,
+							.modifyRequestBody(String.class, String.class,
 									(exchange, s) -> {
                                         return s.toUpperCase();
-                                    })))
+                                    })
 					).uri(uri)
 				)
 				.route("rewrite_response_upper", r -> r.host("*.rewriteresponseupper.org")
 					.filters(f -> f.addRequestHeader("X-TestHeader", "rewrite_response_upper")
-							.filter(modifyResponseBodyGatewayFilterFactory().apply(c ->
-									c.setRewriteFunction(String.class, String.class,
+							.modifyResponseBody(String.class, String.class,
 									(exchange, s) -> {
                                         return s.toUpperCase();
-                                    })))
+                                    })
 					).uri(uri)
 				)
                 .route("rewrite_response_obj", r -> r.host("*.rewriteresponseobj.org")
 					.filters(f -> f.addRequestHeader("X-TestHeader", "rewrite_response_obj")
-							.filter(modifyResponseBodyGatewayFilterFactory().apply(c ->
-									c.setRewriteFunction(Map.class, String.class,
+							.modifyResponseBody(Map.class, String.class,
 									(exchange, map) -> {
 										Object data = map.get("data");
                                         return data.toString();
-                                    })))
+                                    })
 					).uri(uri)
 				)
 				.route(r -> r.path("/image/webp")
@@ -130,26 +120,6 @@ public class GatewaySampleApplication {
 				RequestPredicates.path("/testfun"),
 				request -> ServerResponse.ok().body(BodyInserters.fromObject("hello")));
 		return route;
-	}
-
-	@Bean
-	public AdaptCachedBodyGlobalFilter adaptCachedBodyGlobalFilter() {
-		return new AdaptCachedBodyGlobalFilter();
-	}
-
-	@Bean
-	public ReadBodyPredicateFactory readBodyPredicateFactory() {
-		return new ReadBodyPredicateFactory();
-	}
-
-	@Bean
-	public ModifyRequestBodyGatewayFilterFactory modifyRequestBodyGatewayFilterFactory() {
-		return new ModifyRequestBodyGatewayFilterFactory();
-	}
-
-	@Bean
-	public ModifyResponseBodyGatewayFilterFactory modifyResponseBodyGatewayFilterFactory() {
-		return new ModifyResponseBodyGatewayFilterFactory();
 	}
 
 	static class Hello {

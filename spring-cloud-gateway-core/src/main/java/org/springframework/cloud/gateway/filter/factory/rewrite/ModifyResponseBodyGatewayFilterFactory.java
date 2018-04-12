@@ -20,25 +20,24 @@ package org.springframework.cloud.gateway.filter.factory.rewrite;
 import java.util.Optional;
 
 import org.reactivestreams.Publisher;
-import org.springframework.cloud.gateway.filter.GatewayFilterChain;
-import org.springframework.cloud.gateway.filter.NettyWriteResponseFilter;
-import org.springframework.core.Ordered;
-import org.springframework.http.ReactiveHttpInputMessage;
-import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
-import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.GatewayFilterChain;
+import org.springframework.cloud.gateway.filter.NettyWriteResponseFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
+import org.springframework.core.Ordered;
 import org.springframework.core.ResolvableType;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.ReactiveHttpInputMessage;
 import org.springframework.http.codec.HttpMessageReader;
 import org.springframework.http.codec.HttpMessageWriter;
 import org.springframework.http.codec.ServerCodecConfigurer;
+import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
+import org.springframework.web.server.ServerWebExchange;
 
 import static org.springframework.cloud.gateway.filter.factory.rewrite.RewriteUtils.getHttpMessageReader;
 import static org.springframework.cloud.gateway.filter.factory.rewrite.RewriteUtils.getHttpMessageWriter;
@@ -46,11 +45,11 @@ import static org.springframework.cloud.gateway.filter.factory.rewrite.RewriteUt
 public class ModifyResponseBodyGatewayFilterFactory
 		extends AbstractGatewayFilterFactory<ModifyResponseBodyGatewayFilterFactory.Config> {
 
-	@Autowired
-	private ServerCodecConfigurer codecConfigurer;
+	private final ServerCodecConfigurer codecConfigurer;
 
-	public ModifyResponseBodyGatewayFilterFactory() {
+	public ModifyResponseBodyGatewayFilterFactory(ServerCodecConfigurer codecConfigurer) {
 		super(Config.class);
+		this.codecConfigurer = codecConfigurer;
 	}
 
 	@Override

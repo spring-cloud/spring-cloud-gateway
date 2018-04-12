@@ -23,7 +23,6 @@ import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.core.ResolvableType;
@@ -40,11 +39,11 @@ import static org.springframework.cloud.gateway.filter.factory.rewrite.RewriteUt
 public class ModifyRequestBodyGatewayFilterFactory
 		extends AbstractGatewayFilterFactory<ModifyRequestBodyGatewayFilterFactory.Config> {
 
-	@Autowired
-	private ServerCodecConfigurer codecConfigurer;
+	private final ServerCodecConfigurer codecConfigurer;
 
-	public ModifyRequestBodyGatewayFilterFactory() {
+	public ModifyRequestBodyGatewayFilterFactory(ServerCodecConfigurer codecConfigurer) {
 		super(Config.class);
+		this.codecConfigurer = codecConfigurer;
 	}
 
 	@Override
