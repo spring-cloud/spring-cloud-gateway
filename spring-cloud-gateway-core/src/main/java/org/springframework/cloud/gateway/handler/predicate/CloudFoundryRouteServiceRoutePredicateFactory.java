@@ -9,7 +9,7 @@ import org.springframework.web.server.ServerWebExchange;
  * @see <a href="https://docs.cloudfoundry.org/services/route-services.html">Cloud Foundry Route Service documentation</a>.
  * @author Andrew Fitzgerald
  */
-public class CloudFoundryRouteServicePredicateFactory extends
+public class CloudFoundryRouteServiceRoutePredicateFactory extends
 		AbstractRoutePredicateFactory<Object> {
 
 	public static final String X_CF_FORWARDED_URL = "X-CF-Forwarded-Url";
@@ -17,7 +17,7 @@ public class CloudFoundryRouteServicePredicateFactory extends
 	public static final String X_CF_PROXY_METADATA = "X-CF-Proxy-Metadata";
 	private final HeaderRoutePredicateFactory factory = new HeaderRoutePredicateFactory();
 
-	public CloudFoundryRouteServicePredicateFactory() {
+	public CloudFoundryRouteServiceRoutePredicateFactory() {
 		super(Object.class);
 	}
 
