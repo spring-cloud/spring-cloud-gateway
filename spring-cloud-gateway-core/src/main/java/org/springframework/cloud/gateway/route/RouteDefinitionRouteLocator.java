@@ -43,6 +43,7 @@ import org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory
 import org.springframework.cloud.gateway.support.ConfigurationUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
+import org.springframework.core.Ordered;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.validation.Validator;
@@ -162,7 +163,13 @@ public class RouteDefinitionRouteLocator implements RouteLocator, BeanFactoryAwa
 
 		ArrayList<GatewayFilter> ordered = new ArrayList<>(filters.size());
 		for (int i = 0; i < filters.size(); i++) {
-			ordered.add(new OrderedGatewayFilter(filters.get(i), i+1));
+			GatewayFilter gatewayFilter = filters.get(i);
+			if (gatewayFilter instanceof Ordered) {
+				ordered.add(gatewayFilter);
+			}
+			else {
+				ordered.add(new OrderedGatewayFilter(gatewayFilter, i + 1));
+			}
 		}
 
 		return ordered;
