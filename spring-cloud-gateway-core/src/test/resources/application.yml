@@ -245,6 +245,15 @@ spring:
         - Header=Foo, .*
 
       # =====================================
+      - id: change_uri_test
+        uri: ${test.uri}
+        predicates:
+        - Host=**.changeuri.org
+        - Header=X-CF-Forwarded-Url
+        filters:
+        - RequestHeaderToRequestUri=X-CF-Forwarded-Url
+
+      # =====================================
       - id: default_path_to_httpbin
         uri: ${test.uri}
         order: 10000
