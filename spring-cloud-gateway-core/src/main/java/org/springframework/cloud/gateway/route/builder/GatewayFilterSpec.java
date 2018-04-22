@@ -23,6 +23,7 @@ import java.util.function.Consumer;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.OrderedGatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AddRequestHeaderGatewayFilterFactory;
@@ -47,7 +48,6 @@ import org.springframework.cloud.gateway.filter.factory.StripPrefixGatewayFilter
 import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.core.Ordered;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -106,8 +106,14 @@ public class GatewayFilterSpec extends UriSpec {
 	}
 
 	public GatewayFilterSpec hystrix(Consumer<HystrixGatewayFilterFactory.Config> configConsumer) {
-		return filter(getBean(HystrixGatewayFilterFactory.class)
-				.apply(configConsumer));
+		HystrixGatewayFilterFactory factory;
+		try {
+			factory = getBean(HystrixGatewayFilterFactory.class);
+		}
+		catch (NoSuchBeanDefinitionException e) {
+			throw new NoSuchBeanDefinitionException(HystrixGatewayFilterFactory.class, "This is probably because Hystrix is missing from the classpath, which can be resolved by adding dependency on 'org.springframework.cloud:spring-cloud-starter-netflix-hystrix'");
+		}
+		return filter(factory.apply(configConsumer));
 	}
 
 	public GatewayFilterSpec prefixPath(String prefix) {
