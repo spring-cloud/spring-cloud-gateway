@@ -17,8 +17,10 @@
 
 package org.springframework.cloud.gateway.sample;
 
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -40,19 +42,64 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 @Import(AdditionalRoutes.class)
 public class GatewaySampleApplication {
 
+	@Value("${route.uri:http://httpbin.org:80}")
+	String uri;
+
 	@Bean
 	public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
 		//@formatter:off
+		// String uri = "http://httpbin.org:80";
+		// String uri = "http://localhost:9080";
 		return builder.routes()
 				.route(r -> r.host("**.abc.org").and().path("/image/png")
 					.filters(f ->
 							f.addResponseHeader("X-TestHeader", "foobar"))
-					.uri("http://httpbin.org:80")
+					.uri(uri)
+				)
+				.route("read_body_pred", r -> r.host("*.readbody.org")
+						.and().readBody(String.class,
+										s -> s.trim().equalsIgnoreCase("hello"))
+					.filters(f ->
+							f.addRequestHeader("X-TestHeader", "read_body_pred")
+					).uri(uri)
+				)
+				.route("rewrite_request_obj", r -> r.host("*.rewriterequestobj.org")
+					.filters(f -> f.addRequestHeader("X-TestHeader", "rewrite_request")
+							.modifyRequestBody(String.class, Hello.class,
+									(exchange, s) -> {
+                                        return new Hello(s.toUpperCase());
+                                    })
+					).uri(uri)
+				)
+                .route("rewrite_request_upper", r -> r.host("*.rewriterequestupper.org")
+					.filters(f -> f.addRequestHeader("X-TestHeader", "rewrite_request_upper")
+							.modifyRequestBody(String.class, String.class,
+									(exchange, s) -> {
+                                        return s.toUpperCase();
+                                    })
+					).uri(uri)
+				)
+				.route("rewrite_response_upper", r -> r.host("*.rewriteresponseupper.org")
+					.filters(f -> f.addRequestHeader("X-TestHeader", "rewrite_response_upper")
+							.modifyResponseBody(String.class, String.class,
+									(exchange, s) -> {
+                                        return s.toUpperCase();
+                                    })
+					).uri(uri)
+				)
+                .route("rewrite_response_obj", r -> r.host("*.rewriteresponseobj.org")
+					.filters(f -> f.addRequestHeader("X-TestHeader", "rewrite_response_obj")
+							.modifyResponseBody(Map.class, String.class,
+									(exchange, map) -> {
+										Object data = map.get("data");
+                                        return data.toString();
+                                    })
+					).uri(uri)
 				)
 				.route(r -> r.path("/image/webp")
 					.filters(f ->
 							f.addResponseHeader("X-AnotherHeader", "baz"))
-					.uri("http://httpbin.org:80")
+					.uri(uri)
 				)
 				.route(r -> r.order(-1)
 					.host("**.throttle.org").and().path("/get")
@@ -61,7 +108,7 @@ public class GatewaySampleApplication {
 									.setRefillTokens(1)
 									.setRefillPeriod(10)
 									.setRefillUnit(TimeUnit.SECONDS)))
-					.uri("http://httpbin.org:80")
+					.uri(uri)
 				)
 				.build();
 		//@formatter:on
@@ -73,6 +120,24 @@ public class GatewaySampleApplication {
 				RequestPredicates.path("/testfun"),
 				request -> ServerResponse.ok().body(BodyInserters.fromObject("hello")));
 		return route;
+	}
+
+	static class Hello {
+		String message;
+
+		public Hello() { }
+
+		public Hello(String message) {
+			this.message = message;
+		}
+
+		public String getMessage() {
+			return message;
+		}
+
+		public void setMessage(String message) {
+			this.message = message;
+		}
 	}
 
 	public static void main(String[] args) {
