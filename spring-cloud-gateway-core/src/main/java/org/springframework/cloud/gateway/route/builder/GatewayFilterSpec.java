@@ -120,7 +120,7 @@ public class GatewayFilterSpec extends UriSpec {
 		catch (NoSuchBeanDefinitionException e) {
 			throw new NoSuchBeanDefinitionException(HystrixGatewayFilterFactory.class, "This is probably because Hystrix is missing from the classpath, which can be resolved by adding dependency on 'org.springframework.cloud:spring-cloud-starter-netflix-hystrix'");
 		}
-		return filter(factory.apply(configConsumer));
+		return filter(factory.apply(this.routeBuilder.getId(), configConsumer));
 	}
 
 	public <T, R> GatewayFilterSpec modifyRequestBody(Class<T> inClass, Class<R> outClass, RewriteFunction<T, R> rewriteFunction) {
