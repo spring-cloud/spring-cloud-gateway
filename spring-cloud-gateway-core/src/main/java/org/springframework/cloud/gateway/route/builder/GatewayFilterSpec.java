@@ -19,13 +19,16 @@ package org.springframework.cloud.gateway.route.builder;
 import java.net.URI;
 import java.net.URL;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.OrderedGatewayFilter;
+import org.springframework.cloud.gateway.filter.factory.AbstractChangeRequestUriGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.AddRequestHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.AddRequestParameterGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.AddResponseHeaderGatewayFilterFactory;
@@ -35,6 +38,7 @@ import org.springframework.cloud.gateway.filter.factory.PreserveHostHeaderGatewa
 import org.springframework.cloud.gateway.filter.factory.RedirectToGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RemoveRequestHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RemoveResponseHeaderGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.RequestHeaderToRequestUriGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RequestRateLimiterGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RetryGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactory;
@@ -265,6 +269,24 @@ public class GatewayFilterSpec extends UriSpec {
 	public GatewayFilterSpec stripPrefix(int parts) {
 		return filter(getBean(StripPrefixGatewayFilterFactory.class)
 				.apply(c -> c.setParts(parts)));
+	}
+
+	public GatewayFilterSpec requestHeaderToRequestUri(String headerName) {
+		return filter(getBean(RequestHeaderToRequestUriGatewayFilterFactory.class)
+				.apply(c -> c.setName(headerName)));
+	}
+
+	public GatewayFilterSpec changeRequestUri(
+			Function<ServerWebExchange, Optional<URI>> determineRequestUri) {
+		return filter(
+				new AbstractChangeRequestUriGatewayFilterFactory<Object>(Object.class) {
+					@Override
+					protected Optional<URI> determineRequestUri(
+							ServerWebExchange exchange, Object config) {
+						return determineRequestUri.apply(exchange);
+					}
+				}.apply(c -> {
+				}));
 	}
 
 	private String routeId() {
