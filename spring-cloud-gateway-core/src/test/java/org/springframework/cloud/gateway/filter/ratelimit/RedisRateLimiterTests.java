@@ -13,7 +13,6 @@ import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.tuple.Tuple;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -70,6 +69,12 @@ public class RedisRateLimiterTests extends BaseWebClientTests {
 
 		response = rateLimiter.isAllowed(routeId, id).block();
 		assertThat(response.isAllowed()).as("steady state # %s is allowed", replenishRate).isFalse();
+	}
+	
+	@Test
+	public void keysUseRedisKeyHashTags() {
+		assertThat(RedisRateLimiter.getKeys("1"))
+				.containsExactly("request_rate_limiter.{1}.tokens", "request_rate_limiter.{1}.timestamp");
 	}
 
 	@EnableAutoConfiguration

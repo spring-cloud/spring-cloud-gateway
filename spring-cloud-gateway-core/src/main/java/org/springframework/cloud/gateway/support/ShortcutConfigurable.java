@@ -119,14 +119,4 @@ public interface ShortcutConfigurable {
 		return "";
 	}
 
-	/**
-	 * Validate supplied argument size against {@see #shortcutFieldOrder} size.
-	 * Useful for variable arg predicates.
-	 * @return
-	 */
-	@Deprecated
-	default boolean validateFieldsExist() {
-		return true;
-	}
-
 }

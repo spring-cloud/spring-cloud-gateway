@@ -50,6 +50,8 @@ public class ServerWebExchangeUtils {
 	 */
 	public static final String GATEWAY_ALREADY_ROUTED_ATTR = qualify("gatewayAlreadyRouted");
 
+	public static final String GATEWAY_ALREADY_PREFIXED_ATTR = qualify("gatewayAlreadyPrefixed");
+
 	private static String qualify(String attr) {
 		return ServerWebExchangeUtils.class.getName() + "." + attr;
 	}
@@ -81,7 +83,7 @@ public class ServerWebExchangeUtils {
 
 		try {
 			int status = Integer.parseInt(statusString);
-			httpStatus = HttpStatus.valueOf(status);
+			httpStatus = HttpStatus.resolve(status);
 		} catch (NumberFormatException e) {
 			// try the enum string
 			httpStatus = HttpStatus.valueOf(statusString.toUpperCase());

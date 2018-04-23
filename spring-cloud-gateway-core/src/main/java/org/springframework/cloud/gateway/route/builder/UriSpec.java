@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,12 +29,12 @@ public class UriSpec {
 		this.builder = builder;
 	}
 
-	public RouteLocatorBuilder.Builder uri(String uri) {
-		return this.builder.uri(this.routeBuilder, uri);
+	public Route.Builder uri(String uri) {
+		return this.routeBuilder.uri(uri);
 	}
 
-	public RouteLocatorBuilder.Builder uri(URI uri) {
-		return this.builder.uri(this.routeBuilder, uri);
+	public Route.Builder uri(URI uri) {
+		return this.routeBuilder.uri(uri);
 	}
 
 

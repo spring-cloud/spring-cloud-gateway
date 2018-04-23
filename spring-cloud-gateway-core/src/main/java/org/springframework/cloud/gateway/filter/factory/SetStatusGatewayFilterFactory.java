@@ -20,13 +20,14 @@ package org.springframework.cloud.gateway.filter.factory;
 import java.util.Arrays;
 import java.util.List;
 
+import reactor.core.publisher.Mono;
+
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.server.reactive.AbstractServerHttpResponse;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.setResponseStatus;
-
-import reactor.core.publisher.Mono;
 
 /**
  * @author Spencer Gibb
@@ -47,6 +48,12 @@ public class SetStatusGatewayFilterFactory extends AbstractGatewayFilterFactory<
 	@Override
 	public GatewayFilter apply(Config config) {
 		final HttpStatus status = ServerWebExchangeUtils.parse(config.status);
+		final Integer intStatus;
+		if (status == null) {
+			intStatus = Integer.parseInt(config.status);
+		} else {
+			intStatus = null;
+		}
 		return (exchange, chain) -> {
 
 			// option 1 (runs in filter order)
@@ -61,7 +68,11 @@ public class SetStatusGatewayFilterFactory extends AbstractGatewayFilterFactory<
 				// check not really needed, since it is guarded in setStatusCode,
 				// but it's a good example
 				if (!exchange.getResponse().isCommitted()) {
-					setResponseStatus(exchange, status);
+					if (status != null) { // standard status
+						setResponseStatus(exchange, status);
+					} else if (intStatus != null && exchange.getResponse() instanceof AbstractServerHttpResponse) { //non-standard
+						((AbstractServerHttpResponse)exchange.getResponse()).setStatusCodeValue(intStatus);
+					}
 				}
 			}));
 		};

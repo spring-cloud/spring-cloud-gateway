@@ -15,10 +15,10 @@ public class XForwardedRemoteAddressResolverTest {
 			.createUnresolved("0.0.0.0", 1234);
 
 	private final XForwardedRemoteAddressResolver trustOne = XForwardedRemoteAddressResolver
-			.maxTrustedIndexXForwardedRemoteAddressResolver(1);
+			.maxTrustedIndex(1);
 
 	private final XForwardedRemoteAddressResolver trustAll = XForwardedRemoteAddressResolver
-			.trustAllXForwardedRemoteAddressResolver();
+			.trustAll();
 
 	@Test
 	public void maxIndexOneReturnsLastForwardedIp() {

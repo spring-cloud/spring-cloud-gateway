@@ -51,7 +51,7 @@ public class RedisRateLimiterConfigTests {
 
 	@Before
 	public void init() {
-		System.out.println();
+		routeLocator.getRoutes().collectList().block(); // prime routes since getRoutes() no longer blocks
 	}
 
 	@Test

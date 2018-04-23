@@ -26,6 +26,7 @@ import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.util.Assert;
 import org.springframework.web.reactive.DispatcherHandler;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -69,6 +70,7 @@ public class HystrixGatewayFilterFactory extends AbstractGatewayFilterFactory<Hy
 	public GatewayFilter apply(Config config) {
 		//TODO: if no name is supplied, generate one from command id (useful for default filter)
 		if (config.setter == null) {
+			Assert.notNull(config.name, "A name must be supplied for the Hystrix Command Key");
 			HystrixCommandGroupKey groupKey = HystrixCommandGroupKey.Factory.asKey(getClass().getSimpleName());
 			HystrixCommandKey commandKey = HystrixCommandKey.Factory.asKey(config.name);
 

@@ -15,31 +15,11 @@
  *
  */
 
-package org.springframework.cloud.gateway.filter.factory;
+package org.springframework.cloud.gateway.filter.factory.rewrite;
 
-import org.springframework.cloud.gateway.support.AbstractConfigurable;
+import org.springframework.web.server.ServerWebExchange;
 
-public abstract class AbstractGatewayFilterFactory<C>
-		extends AbstractConfigurable<C> implements GatewayFilterFactory<C> {
+import java.util.function.BiFunction;
 
-	@SuppressWarnings("unchecked")
-	public AbstractGatewayFilterFactory() {
-		super((Class<C>) Object.class);
-	}
-
-	public AbstractGatewayFilterFactory(Class<C> configClass) {
-		super(configClass);
-	}
-
-	public static class NameConfig {
-		private String name;
-
-		public String getName() {
-			return name;
-		}
-
-		public void setName(String name) {
-			this.name = name;
-		}
-	}
+public interface RewriteFunction<T, R> extends BiFunction<ServerWebExchange, T, R> {
 }
