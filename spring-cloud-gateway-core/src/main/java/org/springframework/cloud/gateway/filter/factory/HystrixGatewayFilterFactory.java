@@ -105,7 +105,7 @@ public class HystrixGatewayFilterFactory extends AbstractGatewayFilterFactory<Hy
 						return exchange.getResponse().setComplete();
 					}
 				}
-				return Mono.empty();
+				return Mono.error(throwable);
 			}).then();
 		};
 	}

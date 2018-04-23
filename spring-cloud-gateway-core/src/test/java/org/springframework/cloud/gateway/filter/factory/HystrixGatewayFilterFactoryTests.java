@@ -20,15 +20,21 @@ package org.springframework.cloud.gateway.filter.factory;
 import java.util.Collections;
 import java.util.Map;
 
+import com.netflix.loadbalancer.Server;
+import com.netflix.loadbalancer.ServerList;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
+import org.springframework.cloud.netflix.ribbon.RibbonClient;
+import org.springframework.cloud.netflix.ribbon.StaticServerList;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
@@ -89,10 +95,19 @@ public class HystrixGatewayFilterFactoryTests extends BaseWebClientTests {
 				.expectBody().json("{\"from\":\"fallbackcontroller2\"}");
 	}
 
+	@Test
+	public void hystrixFilterConnectFailure() {
+		testClient.get().uri("/delay/3")
+				.header("Host", "www.hystrixconnectfail.org")
+				.exchange()
+				.expectStatus().is5xxServerError();
+	}
+
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
 	@RestController
+	@RibbonClient(name = "badservice", configuration = TestBadRibbonConfig.class)
 	public static class TestConfig {
 
 		@Value("${test.uri}")
@@ -115,8 +130,23 @@ public class HystrixGatewayFilterFactoryTests extends BaseWebClientTests {
 							.filters(f -> f.prefixPath("/httpbin")
 									.hystrix(config -> config.setFallbackUri("forward:/fallbackcontroller2")))
 							.uri(uri))
+					.route("hystrix_connection_failure", r -> r.host("**.hystrixconnectfail.org")
+							.filters(f -> f.prefixPath("/httpbin")
+									.hystrix(config -> {}))
+							.uri("lb:badservice"))
 					.build();
 		}
 	}
 
+
+	protected static class TestBadRibbonConfig {
+
+		@LocalServerPort
+		protected int port = 0;
+
+		@Bean
+		public ServerList<Server> ribbonServerList() {
+			return new StaticServerList<>(new Server("https", "localhost", this.port));
+		}
+	}
 }
