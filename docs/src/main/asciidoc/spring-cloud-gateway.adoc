@@ -374,6 +374,7 @@ This wraps the remaining filters in a `HystrixCommand` with command name `myComm
 
 The Hystrix filter can also accept an optional `fallbackUri` parameter. Currently, only `forward:` schemed URIs are supported. If the fallback is called, the request will be forwarded to the controller matched by the URI.
 
+It can also accept an optional `timeoutInMilliseconds` parameter.
 
 .application.yml
 [source,yaml]
@@ -391,9 +392,10 @@ spring:
           args:
             name: fallbackcmd
             fallbackUri: forward:/incaseoffailureusethis
+            timeoutInMilliseconds: 10000
         - RewritePath=/consumingserviceendpoint, /backingserviceendpoint
 ----
-This will forward to the `/incaseoffailureusethis` URI when the Hystrix fallback is called. Note that this example also demonstrates (optional) Spring Cloud Netflix Ribbon load-balancing via the `lb` prefix on the destination URI.
+This will forward to the `/incaseoffailureusethis` URI when the Hystrix fallback is called. Note that this example sets a timeout of 10 seconds, and also demonstrates (optional) Spring Cloud Netflix Ribbon load-balancing via the `lb` prefix on the destination URI.
 
 
 === PrefixPath GatewayFilter Factory
