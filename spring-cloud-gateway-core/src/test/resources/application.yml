@@ -89,7 +89,10 @@ spring:
         predicates:
         - Host=**.hystrixsuccess.org
         filters:
-        - Hystrix=successcmd
+        - name: Hystrix
+          args:
+            name: successcmd
+            timeoutInMilliseconds: 5000
 
       # =====================================
       - id: load_balancer_client_test
@@ -261,8 +264,6 @@ spring:
         - name: Path
           args:
             pattern: /**
-
-hystrix.command.successcmd.execution.isolation.thread.timeoutInMilliseconds: 5000
 
 logging:
   level:

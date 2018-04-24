@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import com.netflix.hystrix.HystrixCommandProperties;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.http.HttpStatus;
@@ -91,6 +92,11 @@ public class HystrixGatewayFilterFactory extends AbstractGatewayFilterFactory<Hy
 					.andCommandKey(commandKey);
 		}
 
+		if (config.timeoutInMilliseconds != null){
+			config.setter.andCommandPropertiesDefaults(HystrixCommandProperties.Setter()
+					.withExecutionTimeoutInMilliseconds(config.timeoutInMilliseconds));
+		}
+
 		return (exchange, chain) -> {
 			RouteHystrixCommand command = new RouteHystrixCommand(config.setter, config.fallbackUri, exchange, chain);
 
@@ -157,6 +163,7 @@ public class HystrixGatewayFilterFactory extends AbstractGatewayFilterFactory<Hy
 		private String name;
 		private Setter setter;
 		private URI fallbackUri;
+		private Integer timeoutInMilliseconds;
 
 		public String getName() {
 			return name;
@@ -183,6 +190,16 @@ public class HystrixGatewayFilterFactory extends AbstractGatewayFilterFactory<Hy
 				throw new IllegalArgumentException("Hystrix Filter currently only supports 'forward' URIs, found " + fallbackUri);
 			}
 			this.fallbackUri = fallbackUri;
+		}
+
+		public Integer getTimeoutInMilliseconds() {
+			return timeoutInMilliseconds;
+		}
+
+		public Config setTimeoutInMilliseconds(int timeoutInMilliseconds) {
+			Assert.isTrue(timeoutInMilliseconds > 0, "Timeout must be positive");
+			this.timeoutInMilliseconds = timeoutInMilliseconds;
+			return this;
 		}
 
 		public Config setSetter(Setter setter) {
