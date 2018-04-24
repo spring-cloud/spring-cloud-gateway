@@ -20,11 +20,25 @@ import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.gateway.config.GatewayAutoConfiguration;
+import org.springframework.cloud.gateway.filter.FilterDefinition;
+import org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactory;
+import org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFactory;
+import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.DispatcherHandler;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactory.REGEXP_KEY;
+import static org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactory.REPLACEMENT_KEY;
+import static org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory.PATTERN_KEY;
+import static org.springframework.cloud.gateway.support.NameUtils.normalizeFilterFactoryName;
+import static org.springframework.cloud.gateway.support.NameUtils.normalizeRoutePredicateName;
 
 /**
  * @author Spencer Gibb
@@ -33,13 +47,50 @@ import org.springframework.web.reactive.DispatcherHandler;
 @ConditionalOnProperty(name = "spring.cloud.gateway.enabled", matchIfMissing = true)
 @AutoConfigureBefore(GatewayAutoConfiguration.class)
 @ConditionalOnClass({DispatcherHandler.class, DiscoveryClient.class})
+@EnableConfigurationProperties
 public class GatewayDiscoveryClientAutoConfiguration {
 
 	@Bean
 	@ConditionalOnBean(DiscoveryClient.class)
 	@ConditionalOnProperty(name = "spring.cloud.gateway.discovery.locator.enabled")
-	public DiscoveryClientRouteDefinitionLocator discoveryClientRouteDefinitionLocator(DiscoveryClient discoveryClient) {
-		return new DiscoveryClientRouteDefinitionLocator(discoveryClient);
+	public DiscoveryClientRouteDefinitionLocator discoveryClientRouteDefinitionLocator(
+			DiscoveryClient discoveryClient, DiscoveryLocatorProperties properties) {
+		return new DiscoveryClientRouteDefinitionLocator(discoveryClient, properties);
+	}
+
+	@Bean
+	public DiscoveryLocatorProperties discoveryLocatorProperties() {
+		DiscoveryLocatorProperties properties = new DiscoveryLocatorProperties();
+		properties.setPredicates(initPredicates());
+		properties.setFilters(initFilters());
+		return properties;
+	}
+
+	public static List<PredicateDefinition> initPredicates() {
+		ArrayList<PredicateDefinition> definitions = new ArrayList<>();
+		// TODO: add a predicate that matches the url at /serviceId?
+
+		// add a predicate that matches the url at /serviceId/**
+		PredicateDefinition predicate = new PredicateDefinition();
+		predicate.setName(normalizeRoutePredicateName(PathRoutePredicateFactory.class));
+		predicate.addArg(PATTERN_KEY, "'/'+serviceId+'/**'");
+		definitions.add(predicate);
+		return definitions;
+	}
+
+	public static List<FilterDefinition> initFilters() {
+		ArrayList<FilterDefinition> definitions = new ArrayList<>();
+
+		// add a filter that removes /serviceId by default
+		FilterDefinition filter = new FilterDefinition();
+		filter.setName(normalizeFilterFactoryName(RewritePathGatewayFilterFactory.class));
+		String regex = "'/' + serviceId + '/(?<remaining>.*)'";
+		String replacement = "'/${remaining}'";
+		filter.addArg(REGEXP_KEY, regex);
+		filter.addArg(REPLACEMENT_KEY, replacement);
+		definitions.add(filter);
+
+		return definitions;
 	}
 
 }

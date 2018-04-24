@@ -18,22 +18,20 @@
 package org.springframework.cloud.gateway.discovery;
 
 import java.net.URI;
+import java.util.Map;
 
+import reactor.core.publisher.Flux;
+
+import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.gateway.filter.FilterDefinition;
-import org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactory;
-import org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
 import org.springframework.cloud.gateway.route.RouteDefinition;
 import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
-
-import static org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactory.REGEXP_KEY;
-import static org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactory.REPLACEMENT_KEY;
-import static org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory.PATTERN_KEY;
-import static org.springframework.cloud.gateway.support.NameUtils.normalizeFilterFactoryName;
-import static org.springframework.cloud.gateway.support.NameUtils.normalizeRoutePredicateName;
-
-import reactor.core.publisher.Flux;
+import org.springframework.expression.Expression;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.SimpleEvaluationContext;
+import org.springframework.util.StringUtils;
 
 /**
  * TODO: developer configuration, in zuul, this was opt out, should be opt in
@@ -43,47 +41,72 @@ import reactor.core.publisher.Flux;
 public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLocator {
 
 	private final DiscoveryClient discoveryClient;
+	private final DiscoveryLocatorProperties properties;
 	private final String routeIdPrefix;
 
-	public DiscoveryClientRouteDefinitionLocator(DiscoveryClient discoveryClient) {
+	public DiscoveryClientRouteDefinitionLocator(DiscoveryClient discoveryClient, DiscoveryLocatorProperties properties) {
 		this.discoveryClient = discoveryClient;
-		this.routeIdPrefix = this.discoveryClient.getClass().getSimpleName() + "_";
+		this.properties = properties;
+		if (StringUtils.hasText(properties.getRouteIdPrefix())) {
+			this.routeIdPrefix = properties.getRouteIdPrefix();
+		} else {
+			this.routeIdPrefix = this.discoveryClient.getClass().getSimpleName() + "_";
+		}
 	}
 
 	@Override
 	public Flux<RouteDefinition> getRouteDefinitions() {
+		SimpleEvaluationContext evalCtxt = SimpleEvaluationContext.forReadOnlyDataBinding().build();
+
+		SpelExpressionParser parser = new SpelExpressionParser();
+		Expression includeExpr = parser.parseExpression(properties.getIncludeExpression());
+		Expression urlExpr = parser.parseExpression(properties.getUrlExpression());
+
 		return Flux.fromIterable(discoveryClient.getServices())
-				.map(serviceId -> {
-					RouteDefinition routeDefinition = new RouteDefinition();
-					routeDefinition.setId(this.routeIdPrefix + serviceId);
-					routeDefinition.setUri(URI.create("lb://" + serviceId));
+				.map(discoveryClient::getInstances)
+				.filter(instances -> !instances.isEmpty())
+				.map(instances -> instances.get(0))
+				.filter(instance -> {
+					Boolean include = includeExpr.getValue(evalCtxt, instance, Boolean.class);
+					if (include == null) {
+						return false;
+					}
+					return include;
+				})
+				.map(instance -> {
+					String serviceId = instance.getServiceId();
 
-					// add a predicate that matches the url at /serviceId
-					/*PredicateDefinition barePredicate = new PredicateDefinition();
-					barePredicate.setName(normalizePredicateName(PathRoutePredicate.class));
-					barePredicate.addArg(PATTERN_KEY, "/" + serviceId);
-					routeDefinition.getPredicates().add(barePredicate);*/
+                    RouteDefinition routeDefinition = new RouteDefinition();
+                    routeDefinition.setId(this.routeIdPrefix + serviceId);
+					String uri = urlExpr.getValue(evalCtxt, instance, String.class);
+					routeDefinition.setUri(URI.create(uri));
 
-					// add a predicate that matches the url at /serviceId/**
-					PredicateDefinition subPredicate = new PredicateDefinition();
-					subPredicate.setName(normalizeRoutePredicateName(PathRoutePredicateFactory.class));
-					subPredicate.addArg(PATTERN_KEY, "/" + serviceId + "/**");
-					routeDefinition.getPredicates().add(subPredicate);
+					for (PredicateDefinition original : this.properties.getPredicates()) {
+						PredicateDefinition predicate = new PredicateDefinition();
+						predicate.setName(original.getName());
+						for (Map.Entry<String, String> entry : original.getArgs().entrySet()) {
+							String value = getValueFromExpr(evalCtxt, parser, instance, entry);
+							predicate.addArg(entry.getKey(), value);
+						}
+						routeDefinition.getPredicates().add(predicate);
+					}
 
-					//TODO: support for other default predicates
+                    for (FilterDefinition original : this.properties.getFilters()) {
+                    	FilterDefinition filter = new FilterDefinition();
+                    	filter.setName(original.getName());
+						for (Map.Entry<String, String> entry : original.getArgs().entrySet()) {
+							String value = getValueFromExpr(evalCtxt, parser, instance, entry);
+							filter.addArg(entry.getKey(), value);
+						}
+						routeDefinition.getFilters().add(filter);
+					}
 
-					// add a filter that removes /serviceId by default
-					FilterDefinition filter = new FilterDefinition();
-					filter.setName(normalizeFilterFactoryName(RewritePathGatewayFilterFactory.class));
-					String regex = "/" + serviceId + "/(?<remaining>.*)";
-					String replacement = "/${remaining}";
-					filter.addArg(REGEXP_KEY, regex);
-					filter.addArg(REPLACEMENT_KEY, replacement);
-					routeDefinition.getFilters().add(filter);
-
-					//TODO: support for default filters
-
-					return routeDefinition;
+                    return routeDefinition;
 				});
+	}
+
+	String getValueFromExpr(SimpleEvaluationContext evalCtxt, SpelExpressionParser parser, ServiceInstance instance, Map.Entry<String, String> entry) {
+		Expression valueExpr = parser.parseExpression(entry.getValue());
+		return valueExpr.getValue(evalCtxt, instance, String.class);
 	}
 }
