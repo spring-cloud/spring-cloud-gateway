@@ -258,7 +258,6 @@ spring:
         uri: ${test.uri}
         predicates:
         - CloudFoundryRouteService=
-        - Header=X-CF-Forwarded-Url
         filters:
         - RequestHeaderToRequestUri=X-CF-Forwarded-Url
 
