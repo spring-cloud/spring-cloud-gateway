@@ -22,6 +22,7 @@ import java.util.function.Predicate;
 import org.springframework.cloud.gateway.handler.predicate.AfterRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.BeforeRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.BetweenRoutePredicateFactory;
+import org.springframework.cloud.gateway.handler.predicate.CloudFoundryRouteServiceRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.CookieRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.HeaderRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.HostRoutePredicateFactory;
@@ -138,6 +139,12 @@ public class PredicateSpec extends UriSpec {
 				.apply(c -> c.setGroup(group)
 						.setRouteId(routeBuilder.getId())
 						.setWeight(weight)));
+	}
+
+	public BooleanSpec cloudFoundryRouteService() {
+		return predicate(
+				getBean(CloudFoundryRouteServiceRoutePredicateFactory.class).apply(c -> {
+				}));
 	}
 
 	public BooleanSpec alwaysTrue() {
