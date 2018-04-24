@@ -58,7 +58,7 @@ public class CachingRouteLocator implements RouteLocator {
 	}
 
 	@EventListener(RefreshRoutesEvent.class)
-		/* for testing */ void handleRefresh() {
+	/* for testing */ void handleRefresh() {
 		refresh();
 	}
 }
