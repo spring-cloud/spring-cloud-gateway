@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.route.builder;
 import java.net.URI;
 import java.net.URL;
 import java.util.Collection;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -123,14 +124,14 @@ public class GatewayFilterSpec extends UriSpec {
 		return filter(factory.apply(this.routeBuilder.getId(), configConsumer));
 	}
 
-	public <T, R> GatewayFilterSpec modifyRequestBody(Class<T> inClass, Class<R> outClass, RewriteFunction<T, R> rewriteFunction) {
+	public <T, R> GatewayFilterSpec modifyRequestBody(Class<T> inClass, Class<R> outClass, RewriteFunction<T, R> rewriteFunction, Map<String, Object> inHints, Map<String, Object> outHints) {
 		return filter(getBean(ModifyRequestBodyGatewayFilterFactory.class)
-				.apply(c -> c.setRewriteFunction(inClass, outClass, rewriteFunction)));
+				.apply(c -> c.setRewriteFunction(inClass, outClass, rewriteFunction, inHints, outHints)));
 	}
 
-	public <T, R> GatewayFilterSpec modifyResponseBody(Class<T> inClass, Class<R> outClass, RewriteFunction<T, R> rewriteFunction) {
+	public <T, R> GatewayFilterSpec modifyResponseBody(Class<T> inClass, Class<R> outClass, RewriteFunction<T, R> rewriteFunction, Map<String, Object> inHints, Map<String, Object> outHints) {
 		return filter(getBean(ModifyResponseBodyGatewayFilterFactory.class)
-				.apply(c -> c.setRewriteFunction(inClass, outClass, rewriteFunction)));
+				.apply(c -> c.setRewriteFunction(inClass, outClass, rewriteFunction, inHints, outHints)));
 	}
 
 	public GatewayFilterSpec prefixPath(String prefix) {

@@ -156,10 +156,12 @@ public class ModifyRequestBodyGatewayFilterFactory
 		}
 
 		public <T, R> Config setRewriteFunction(Class<T> inClass, Class<R> outClass,
-				RewriteFunction<T, R> rewriteFunction) {
+				RewriteFunction<T, R> rewriteFunction, Map<String, Object> inHints, Map<String, Object> outHints) {
 			setInClass(inClass);
 			setOutClass(outClass);
 			setRewriteFunction(rewriteFunction);
+			setInHints(inHints);
+			setOutHints(outHints);
 			return this;
 		}
 
