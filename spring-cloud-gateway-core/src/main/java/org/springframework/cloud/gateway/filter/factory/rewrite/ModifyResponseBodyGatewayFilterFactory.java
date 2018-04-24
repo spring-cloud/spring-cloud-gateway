@@ -17,6 +17,7 @@
 
 package org.springframework.cloud.gateway.filter.factory.rewrite;
 
+import java.util.Map;
 import java.util.Optional;
 
 import org.reactivestreams.Publisher;
@@ -53,7 +54,6 @@ public class ModifyResponseBodyGatewayFilterFactory
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
 	public GatewayFilter apply(Config config) {
 		return new ModifyResponseGatewayFilter(config);
 	}
@@ -66,6 +66,7 @@ public class ModifyResponseBodyGatewayFilterFactory
 		}
 
 		@Override
+		@SuppressWarnings("unchecked")
 		public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 			ServerHttpResponseDecorator responseDecorator = new ServerHttpResponseDecorator(exchange.getResponse()) {
 				@Override
@@ -81,13 +82,14 @@ public class ModifyResponseBodyGatewayFilterFactory
 
 						ResponseAdapter responseAdapter = new ResponseAdapter(body, getDelegate().getHeaders());
 
-						Flux<?> modified = reader.get().read(inElementType, responseAdapter, null)
+						Flux<?> modified = reader.get().read(inElementType, responseAdapter, config.getInHints())
 								.cast(inElementType.resolve())
 								.flatMap(originalBody -> Flux.just(config.rewriteFunction.apply(exchange, originalBody)))
 								.cast(outElementType.resolve());
 
 						return getDelegate().writeWith(
-								writer.get().write((Publisher)modified, outElementType, null, getDelegate(), null)
+								writer.get().write((Publisher)modified, outElementType, null, getDelegate(),
+										config.getOutHints())
 						);
 
 					}
@@ -141,6 +143,8 @@ public class ModifyResponseBodyGatewayFilterFactory
 	public static class Config {
 		private Class inClass;
 		private Class outClass;
+		private Map<String, Object> inHints;
+		private Map<String, Object> outHints;
 
 		private RewriteFunction rewriteFunction;
 
@@ -159,6 +163,24 @@ public class ModifyResponseBodyGatewayFilterFactory
 
 		public Config setOutClass(Class outClass) {
 			this.outClass = outClass;
+			return this;
+		}
+
+		public Map<String, Object> getInHints() {
+			return inHints;
+		}
+
+		public Config setInHints(Map<String, Object> inHints) {
+			this.inHints = inHints;
+			return this;
+		}
+
+		public Map<String, Object> getOutHints() {
+			return outHints;
+		}
+
+		public Config setOutHints(Map<String, Object> outHints) {
+			this.outHints = outHints;
 			return this;
 		}
 

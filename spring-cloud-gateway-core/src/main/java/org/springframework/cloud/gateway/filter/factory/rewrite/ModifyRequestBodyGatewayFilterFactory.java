@@ -17,6 +17,7 @@
 
 package org.springframework.cloud.gateway.filter.factory.rewrite;
 
+import java.util.Map;
 import java.util.Optional;
 
 import org.reactivestreams.Publisher;
@@ -58,7 +59,7 @@ public class ModifyRequestBodyGatewayFilterFactory
 
 			if (reader.isPresent()) {
 				Mono<Object> readMono = reader.get()
-						.readMono(inElementType, exchange.getRequest(), null)
+						.readMono(inElementType, exchange.getRequest(), config.getInHints())
 						.cast(Object.class);
 
 				return process(readMono, peek -> {
@@ -74,7 +75,7 @@ public class ModifyRequestBodyGatewayFilterFactory
 
 						HttpMessageWriterResponse fakeResponse = new HttpMessageWriterResponse(exchange.getResponse().bufferFactory());
 						writer.get().write(publisher, inElementType, mediaType,
-								fakeResponse, null);
+								fakeResponse, config.getOutHints());
 						ServerHttpRequestDecorator decorator = new ServerHttpRequestDecorator(
 								exchange.getRequest()) {
 							@Override
@@ -109,6 +110,8 @@ public class ModifyRequestBodyGatewayFilterFactory
 	public static class Config {
 		private Class inClass;
 		private Class outClass;
+		private Map<String, Object> inHints;
+		private Map<String, Object> outHints;
 
 		private RewriteFunction rewriteFunction;
 
@@ -127,6 +130,24 @@ public class ModifyRequestBodyGatewayFilterFactory
 
 		public Config setOutClass(Class outClass) {
 			this.outClass = outClass;
+			return this;
+		}
+
+		public Map<String, Object> getInHints() {
+			return inHints;
+		}
+
+		public Config setInHints(Map<String, Object> inHints) {
+			this.inHints = inHints;
+			return this;
+		}
+
+		public Map<String, Object> getOutHints() {
+			return outHints;
+		}
+
+		public Config setOutHints(Map<String, Object> outHints) {
+			this.outHints = outHints;
 			return this;
 		}
 

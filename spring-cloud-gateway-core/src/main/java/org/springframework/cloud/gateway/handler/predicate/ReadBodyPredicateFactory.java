@@ -17,6 +17,7 @@
 
 package org.springframework.cloud.gateway.handler.predicate;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
 
@@ -53,9 +54,9 @@ public class ReadBodyPredicateFactory extends AbstractRoutePredicateFactory<Read
             ResolvableType elementType = ResolvableType.forClass(config.getInClass());
             Optional<HttpMessageReader<?>> reader = getHttpMessageReader(codecConfigurer, elementType, mediaType);
             boolean answer = false;
-if (reader.isPresent()) {
+            if (reader.isPresent()) {
                 Mono<Object> readMono = reader.get()
-                        .readMono(elementType, exchange.getRequest(), null)
+                        .readMono(elementType, exchange.getRequest(), config.getHints())
                         .cast(Object.class);
                 answer = process(readMono, peek -> {
                     Optional<HttpMessageWriter<?>> writer = getHttpMessageWriter(codecConfigurer, elementType, mediaType);
@@ -63,7 +64,7 @@ if (reader.isPresent()) {
                     if (writer.isPresent()) {
                         Publisher publisher = Mono.just(peek);
                         HttpMessageWriterResponse fakeResponse = new HttpMessageWriterResponse(exchange.getResponse().bufferFactory());
-                        writer.get().write(publisher, elementType, mediaType, fakeResponse, null);
+                        writer.get().write(publisher, elementType, mediaType, fakeResponse, config.getHints());
                         exchange.getAttributes().put(CACHED_REQUEST_BODY_KEY, fakeResponse.getBody());
                     }
                     return config.getPredicate().test(peek);
@@ -77,6 +78,7 @@ if (reader.isPresent()) {
     public static class Config {
         private Class inClass;
         private Predicate predicate;
+        private Map<String, Object> hints;
 
         public Class getInClass() {
             return inClass;
@@ -101,5 +103,14 @@ if (reader.isPresent()) {
             this.predicate = predicate;
             return this;
         }
-    }
+
+		public Map<String, Object> getHints() {
+			return hints;
+		}
+
+		public Config setHints(Map<String, Object> hints) {
+			this.hints = hints;
+			return this;
+		}
+	}
 }
