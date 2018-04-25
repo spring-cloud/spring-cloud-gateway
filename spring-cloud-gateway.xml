@@ -4,7 +4,7 @@
 <book xmlns="http://docbook.org/ns/docbook" xmlns:xl="http://www.w3.org/1999/xlink" version="5.0" xml:lang="en">
 <info>
 <title>Spring Cloud Gateway</title>
-<date>2018-04-24</date>
+<date>2018-04-25</date>
 </info>
 <preface>
 <title></title>
@@ -761,7 +761,7 @@ using something like <link xl:href="http://projects.spring.io/spring-session/">S
 </section>
 <section xml:id="_forward_routing_filter">
 <title>Forward Routing Filter</title>
-<simpara>The <literal>ForwardRoutingFilter</literal> looks for a URI in the exchange attribute <literal>ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR</literal>. If the url has a <literal>forward</literal> scheme (ie <literal>forward:///localendpoint</literal>), it will use the Spring <literal>DispatcherHandler</literal> to handler the request. The unmodified original url is appended to the list in the <literal>ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR</literal> attribute.</simpara>
+<simpara>The <literal>ForwardRoutingFilter</literal> looks for a URI in the exchange attribute <literal>ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR</literal>. If the url has a <literal>forward</literal> scheme (ie <literal>forward:///localendpoint</literal>), it will use the Spring <literal>DispatcherHandler</literal> to handler the request.  The path part of the request URL will be overridden with the path in the forward URL. The unmodified original url is appended to the list in the <literal>ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR</literal> attribute.</simpara>
 </section>
 <section xml:id="_loadbalancerclient_filter">
 <title>LoadBalancerClient Filter</title>
