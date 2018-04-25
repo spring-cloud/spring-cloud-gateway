@@ -59,6 +59,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 
 import reactor.retry.Repeat;
+import reactor.retry.Retry;
 
 public class GatewayFilterSpec extends UriSpec {
 
@@ -219,17 +220,23 @@ public class GatewayFilterSpec extends UriSpec {
 	 */
 	public GatewayFilterSpec retry(int retries) {
 		return filter(getBean(RetryGatewayFilterFactory.class)
-				.apply(retry -> retry.setRetries(retries)));
+				.apply(retryConfig -> retryConfig.setRetries(retries)));
 	}
 
-	public GatewayFilterSpec retry(Consumer<RetryGatewayFilterFactory.Retry> retryConsumer) {
+	public GatewayFilterSpec retry(Consumer<RetryGatewayFilterFactory.RetryConfig> retryConsumer) {
 		return filter(getBean(RetryGatewayFilterFactory.class).apply(retryConsumer));
 	}
 
+	public GatewayFilterSpec retry(Repeat<ServerWebExchange> repeat, Retry<ServerWebExchange> retry) {
+		return filter(getBean(RetryGatewayFilterFactory.class).apply(repeat, retry));
+	}
+
+	@Deprecated
 	public GatewayFilterSpec retry(Repeat<ServerWebExchange> repeat) {
 		return filter(getBean(RetryGatewayFilterFactory.class).apply(repeat));
 	}
 
+	@SuppressWarnings("unchecked")
 	public GatewayFilterSpec secureHeaders() {
 		return filter(getBean(SecureHeadersGatewayFilterFactory.class).apply(c -> {}));
 	}
@@ -262,6 +269,7 @@ public class GatewayFilterSpec extends UriSpec {
 				.apply(c -> c.setStatus(status)));
 	}
 
+	@SuppressWarnings("unchecked")
 	public GatewayFilterSpec saveSession() {
 		return filter(getBean(SaveSessionGatewayFilterFactory.class).apply(c -> {}));
 	}
