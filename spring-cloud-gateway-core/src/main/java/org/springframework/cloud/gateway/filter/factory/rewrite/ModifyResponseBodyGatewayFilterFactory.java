@@ -17,6 +17,7 @@
 
 package org.springframework.cloud.gateway.filter.factory.rewrite;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 
@@ -188,6 +189,11 @@ public class ModifyResponseBodyGatewayFilterFactory
 			return rewriteFunction;
 		}
 
+		public <T, R> Config setRewriteFunction(Class<T> inClass, Class<R> outClass,
+				RewriteFunction<T, R> rewriteFunction) {
+			return setRewriteFunction(inClass, outClass, rewriteFunction, Collections.emptyMap(), Collections.emptyMap());
+		}
+		
 		public <T, R> Config setRewriteFunction(Class<T> inClass, Class<R> outClass,
 				RewriteFunction<T, R> rewriteFunction, Map<String, Object> inHints, Map<String, Object> outHints) {
 			setInClass(inClass);
