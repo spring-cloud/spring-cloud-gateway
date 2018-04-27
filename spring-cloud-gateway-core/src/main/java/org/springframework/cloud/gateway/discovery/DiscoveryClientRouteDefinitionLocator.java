@@ -56,7 +56,10 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 
 	@Override
 	public Flux<RouteDefinition> getRouteDefinitions() {
-		SimpleEvaluationContext evalCtxt = SimpleEvaluationContext.forReadOnlyDataBinding().build();
+		SimpleEvaluationContext evalCtxt = SimpleEvaluationContext
+				.forReadOnlyDataBinding()
+				.withInstanceMethods()
+				.build();
 
 		SpelExpressionParser parser = new SpelExpressionParser();
 		Expression includeExpr = parser.parseExpression(properties.getIncludeExpression());

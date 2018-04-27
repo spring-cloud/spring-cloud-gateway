@@ -48,7 +48,13 @@ import static org.springframework.cloud.gateway.handler.predicate.RoutePredicate
 @SpringBootTest(classes = DiscoveryClientRouteDefinitionLocatorTests.Config.class,
         properties = {"spring.cloud.gateway.discovery.locator.enabled=true",
 				"spring.cloud.gateway.discovery.locator.route-id-prefix=testedge_",
-				"spring.cloud.gateway.discovery.locator.include-expression=metadata['edge'] == 'true'"})
+				"spring.cloud.gateway.discovery.locator.include-expression=metadata['edge'] == 'true'",
+				"spring.cloud.gateway.discovery.locator.predicates[0].name=Path",
+				"spring.cloud.gateway.discovery.locator.predicates[0].args[pattern]='/'+serviceId.toLowerCase()+'/**'",
+				"spring.cloud.gateway.discovery.locator.filters[0].name=RewritePath",
+				"spring.cloud.gateway.discovery.locator.filters[0].args[regexp]='/' + serviceId.toLowerCase() + '/(?<remaining>.*)'",
+				"spring.cloud.gateway.discovery.locator.filters[0].args[replacement]='/$\\\\{remaining}'",
+		})
 public class DiscoveryClientRouteDefinitionLocatorTests {
 
     @Autowired(required = false)
@@ -64,9 +70,9 @@ public class DiscoveryClientRouteDefinitionLocatorTests {
 		assertThat(definitions).hasSize(1);
 
 		RouteDefinition definition = definitions.get(0);
-		assertThat(definition.getId()).isEqualTo("testedge_service1");
+		assertThat(definition.getId()).isEqualTo("testedge_SERVICE1");
 		assertThat(definition.getUri()).hasScheme("lb")
-				.hasHost("service1");
+				.hasHost("SERVICE1");
 
 		assertThat(definition.getPredicates()).hasSize(1);
 		PredicateDefinition predicate = definition.getPredicates().get(0);
@@ -78,7 +84,7 @@ public class DiscoveryClientRouteDefinitionLocatorTests {
 		assertThat(filter.getName()).isEqualTo("RewritePath");
 		assertThat(filter.getArgs()).hasSize(2)
 				.containsEntry(REGEXP_KEY, "/service1/(?<remaining>.*)")
-				.containsEntry(REPLACEMENT_KEY, "/${remaining}");
+				.containsEntry(REPLACEMENT_KEY, "/$\\{remaining}");
 	}
 
 	@SpringBootConfiguration
@@ -88,9 +94,9 @@ public class DiscoveryClientRouteDefinitionLocatorTests {
 		@Bean
 		DiscoveryClient discoveryClient() {
 			DiscoveryClient discoveryClient = mock(DiscoveryClient.class);
-			when(discoveryClient.getServices()).thenReturn(Arrays.asList("service1", "service2"));
-			whenInstance(discoveryClient, "service1", Collections.singletonMap("edge", "true"));
-			whenInstance(discoveryClient, "service2", Collections.emptyMap());
+			when(discoveryClient.getServices()).thenReturn(Arrays.asList("SERVICE1", "Service2"));
+			whenInstance(discoveryClient, "SERVICE1", Collections.singletonMap("edge", "true"));
+			whenInstance(discoveryClient, "Service2", Collections.emptyMap());
 			return discoveryClient;
 		}
 
