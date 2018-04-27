@@ -49,11 +49,12 @@ import static org.springframework.cloud.gateway.handler.predicate.RoutePredicate
         properties = {"spring.cloud.gateway.discovery.locator.enabled=true",
 				"spring.cloud.gateway.discovery.locator.route-id-prefix=testedge_",
 				"spring.cloud.gateway.discovery.locator.include-expression=metadata['edge'] == 'true'",
-				"spring.cloud.gateway.discovery.locator.predicates[0].name=Path",
+				"spring.cloud.gateway.discovery.locator.lower-case-service-id=true",
+				/*"spring.cloud.gateway.discovery.locator.predicates[0].name=Path",
 				"spring.cloud.gateway.discovery.locator.predicates[0].args[pattern]='/'+serviceId.toLowerCase()+'/**'",
 				"spring.cloud.gateway.discovery.locator.filters[0].name=RewritePath",
 				"spring.cloud.gateway.discovery.locator.filters[0].args[regexp]='/' + serviceId.toLowerCase() + '/(?<remaining>.*)'",
-				"spring.cloud.gateway.discovery.locator.filters[0].args[replacement]='/$\\\\{remaining}'",
+				"spring.cloud.gateway.discovery.locator.filters[0].args[replacement]='/$\\\\{remaining}'",*/
 		})
 public class DiscoveryClientRouteDefinitionLocatorTests {
 
@@ -84,7 +85,7 @@ public class DiscoveryClientRouteDefinitionLocatorTests {
 		assertThat(filter.getName()).isEqualTo("RewritePath");
 		assertThat(filter.getArgs()).hasSize(2)
 				.containsEntry(REGEXP_KEY, "/service1/(?<remaining>.*)")
-				.containsEntry(REPLACEMENT_KEY, "/$\\{remaining}");
+				.containsEntry(REPLACEMENT_KEY, "/${remaining}");
 	}
 
 	@SpringBootConfiguration

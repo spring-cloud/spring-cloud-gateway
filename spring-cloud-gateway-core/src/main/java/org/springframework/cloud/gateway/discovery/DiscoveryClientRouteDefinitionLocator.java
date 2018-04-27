@@ -28,6 +28,7 @@ import org.springframework.cloud.gateway.filter.FilterDefinition;
 import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
 import org.springframework.cloud.gateway.route.RouteDefinition;
 import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
+import org.springframework.core.style.ToStringCreator;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.SimpleEvaluationContext;
@@ -84,11 +85,13 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 					String uri = urlExpr.getValue(evalCtxt, instance, String.class);
 					routeDefinition.setUri(URI.create(uri));
 
+					final ServiceInstance instanceForEval = new DelegatingServiceInstance(instance, properties);
+
 					for (PredicateDefinition original : this.properties.getPredicates()) {
 						PredicateDefinition predicate = new PredicateDefinition();
 						predicate.setName(original.getName());
 						for (Map.Entry<String, String> entry : original.getArgs().entrySet()) {
-							String value = getValueFromExpr(evalCtxt, parser, instance, entry);
+							String value = getValueFromExpr(evalCtxt, parser, instanceForEval, entry);
 							predicate.addArg(entry.getKey(), value);
 						}
 						routeDefinition.getPredicates().add(predicate);
@@ -98,7 +101,7 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
                     	FilterDefinition filter = new FilterDefinition();
                     	filter.setName(original.getName());
 						for (Map.Entry<String, String> entry : original.getArgs().entrySet()) {
-							String value = getValueFromExpr(evalCtxt, parser, instance, entry);
+							String value = getValueFromExpr(evalCtxt, parser, instanceForEval, entry);
 							filter.addArg(entry.getKey(), value);
 						}
 						routeDefinition.getFilters().add(filter);
@@ -111,5 +114,62 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 	String getValueFromExpr(SimpleEvaluationContext evalCtxt, SpelExpressionParser parser, ServiceInstance instance, Map.Entry<String, String> entry) {
 		Expression valueExpr = parser.parseExpression(entry.getValue());
 		return valueExpr.getValue(evalCtxt, instance, String.class);
+	}
+
+	private static class DelegatingServiceInstance implements ServiceInstance {
+
+		final ServiceInstance delegate;
+		private final DiscoveryLocatorProperties properties;
+
+		private DelegatingServiceInstance(ServiceInstance delegate, DiscoveryLocatorProperties properties) {
+			this.delegate = delegate;
+			this.properties = properties;
+		}
+
+		@Override
+		public String getServiceId() {
+			if (properties.isLowerCaseServiceId()) {
+				return delegate.getServiceId().toLowerCase();
+			}
+			return delegate.getServiceId();
+		}
+
+		@Override
+		public String getHost() {
+			return delegate.getHost();
+		}
+
+		@Override
+		public int getPort() {
+			return delegate.getPort();
+		}
+
+		@Override
+		public boolean isSecure() {
+			return delegate.isSecure();
+		}
+
+		@Override
+		public URI getUri() {
+			return delegate.getUri();
+		}
+
+		@Override
+		public Map<String, String> getMetadata() {
+			return delegate.getMetadata();
+		}
+
+		@Override
+		public String getScheme() {
+			return delegate.getScheme();
+		}
+
+		@Override
+		public String toString() {
+			return new ToStringCreator(this)
+					.append("delegate", delegate)
+					.append("properties", properties)
+					.toString();
+		}
 	}
 }
