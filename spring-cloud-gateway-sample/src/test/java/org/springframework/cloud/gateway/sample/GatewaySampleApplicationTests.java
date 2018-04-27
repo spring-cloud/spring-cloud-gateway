@@ -17,18 +17,29 @@
 
 package org.springframework.cloud.gateway.sample;
 
+import java.time.Duration;
+
+import com.netflix.loadbalancer.Server;
+import com.netflix.loadbalancer.ServerList;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.cloud.gateway.test.HttpBinCompatibleController;
+import org.springframework.cloud.netflix.ribbon.RibbonClient;
+import org.springframework.cloud.netflix.ribbon.StaticServerList;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.util.SocketUtils;
-
-import java.time.Duration;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -36,7 +47,8 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
  * @author Spencer Gibb
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = GatewaySampleApplication.class, webEnvironment = RANDOM_PORT)
+@SpringBootTest(classes = { GatewaySampleApplicationTests.TestConfig.class},
+		webEnvironment = RANDOM_PORT)
 public class GatewaySampleApplicationTests {
 
 	@LocalServerPort
@@ -50,6 +62,7 @@ public class GatewaySampleApplicationTests {
 	@BeforeClass
 	public static void beforeClass() {
 		managementPort = SocketUtils.findAvailableTcpPort();
+
 		System.setProperty("management.server.port", String.valueOf(managementPort));
 	}
 
@@ -75,7 +88,7 @@ public class GatewaySampleApplicationTests {
 	@Test
 	public void complexPredicate() {
 		webClient.get()
-				.uri("/image/png")
+				.uri("/anything/png")
 				.header("Host", "www.abc.org")
 				.exchange()
 				.expectHeader().valueEquals("X-TestHeader", "foobar")
@@ -90,4 +103,28 @@ public class GatewaySampleApplicationTests {
 				.exchange()
 				.expectStatus().isOk();
 	}
+
+	@Configuration
+	@EnableAutoConfiguration
+	@RibbonClient(name = "httpbin", configuration = RibbonConfig.class)
+	@Import(GatewaySampleApplication.class)
+	protected static class TestConfig {
+		@Bean
+		public HttpBinCompatibleController httpBinCompatibleController() {
+			return new HttpBinCompatibleController();
+		}
+
+	}
+
+	protected static class RibbonConfig {
+		@LocalServerPort
+		int port;
+
+		@Bean
+		@Primary
+		public ServerList<Server> ribbonServerList() {
+			return new StaticServerList<>(new Server("localhost", port));
+		}
+	}
+
 }
