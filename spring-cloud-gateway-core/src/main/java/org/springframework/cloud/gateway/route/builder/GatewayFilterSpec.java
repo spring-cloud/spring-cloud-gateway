@@ -127,11 +127,13 @@ public class GatewayFilterSpec extends UriSpec {
 
 	
 	
+	@SuppressWarnings("unchecked")
 	public <T, R> GatewayFilterSpec modifyRequestBody(Class<T> inClass, Class<R> outClass, RewriteFunction<T, R> rewriteFunction) {
 		return filter(getBean(ModifyRequestBodyGatewayFilterFactory.class)
-				.apply(c -> c.setRewriteFunction(inClass, outClass, rewriteFunction)));
+				.apply(c -> ((ModifyRequestBodyGatewayFilterFactory.Config<T, R>) c).setRewriteFunction(inClass, outClass, rewriteFunction)));
 	}
 	
+	@SuppressWarnings("unchecked")
 	public <T, R> GatewayFilterSpec modifyRequestBody(Consumer<ModifyRequestBodyGatewayFilterFactory.Config> configConsumer) {
 		return filter(getBean(ModifyRequestBodyGatewayFilterFactory.class)
 				.apply(configConsumer));

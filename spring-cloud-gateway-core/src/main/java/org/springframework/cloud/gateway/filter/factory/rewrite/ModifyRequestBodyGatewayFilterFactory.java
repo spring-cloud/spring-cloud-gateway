@@ -27,6 +27,8 @@ import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyResponseBodyGatewayFilterFactory.Config;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.ResolvableType;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
@@ -38,7 +40,7 @@ import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
 
 import static org.springframework.cloud.gateway.filter.factory.rewrite.RewriteUtils.process;
 
-public class ModifyRequestBodyGatewayFilterFactory
+public class ModifyRequestBodyGatewayFilterFactory<T, R>
 		extends AbstractGatewayFilterFactory<ModifyRequestBodyGatewayFilterFactory.Config> {
 
 	private final ServerCodecConfigurer codecConfigurer;
@@ -52,10 +54,8 @@ public class ModifyRequestBodyGatewayFilterFactory
 	@SuppressWarnings("unchecked")
 	public GatewayFilter apply(Config config) {
 		return (exchange, chain) -> {
-			Class inClass = config.getInClass();
-
 			MediaType mediaType = config.getOutMediaType() == null ? exchange.getRequest().getHeaders().getContentType() : config.getOutMediaType();
-			ResolvableType inElementType = ResolvableType.forClass(inClass);
+			ResolvableType inElementType = config.getInClass();
 			Optional<HttpMessageReader<?>> reader = RewriteUtils.getHttpMessageReader(codecConfigurer, inElementType, mediaType);
 
 			if (reader.isPresent()) {
@@ -64,8 +64,7 @@ public class ModifyRequestBodyGatewayFilterFactory
 						.cast(Object.class);
 
 				return process(readMono, peek -> {
-					ResolvableType outElementType = ResolvableType
-							.forClass(config.getOutClass());
+					ResolvableType outElementType = config.getOutClass();
 					Optional<HttpMessageWriter<?>> writer = RewriteUtils.getHttpMessageWriter(codecConfigurer, outElementType, mediaType);
 
 					if (writer.isPresent()) {
@@ -86,8 +85,7 @@ public class ModifyRequestBodyGatewayFilterFactory
 								// httpbin.org
 								httpHeaders.set(HttpHeaders.TRANSFER_ENCODING, "chunked");
 								if (fakeResponse.getHeaders().getContentType() != null) {
-									httpHeaders.setContentType(
-											fakeResponse.getHeaders().getContentType());
+									httpHeaders.setContentType(fakeResponse.getHeaders().getContentType());
 								}
 								return httpHeaders;
 							}
@@ -107,30 +105,53 @@ public class ModifyRequestBodyGatewayFilterFactory
 		};
 	}
 
-	public static class Config {
-		private Class inClass;
-		private Class outClass;
+	public static class Config<T, R> {
+		
+		private ResolvableType elementTypeIn;
+		private ResolvableType elementTypeOut;
+		
 		private Map<String, Object> inHints;
 		private Map<String, Object> outHints;
+		
 		private MediaType outMediaType;
 
 		private RewriteFunction rewriteFunction;
 
-		public Class getInClass() {
-			return inClass;
+		public ResolvableType getInClass() {
+			return elementTypeIn;
 		}
 
-		public Config setInClass(Class inClass) {
-			this.inClass = inClass;
+		public Config<T, R> setInClass(Class<?> inClass) {
+			this.elementTypeIn = ResolvableType.forClass(inClass);
+			return this;
+		}
+		
+		public Config<T, R> setInClass(ResolvableType elementTypeIn) {
+			this.elementTypeIn = elementTypeIn;
+			return this;
+		}
+		
+		public Config<T, R> setInClass(ParameterizedTypeReference<?> inTypeRef) {
+			this.elementTypeIn = ResolvableType.forType(inTypeRef.getType());
 			return this;
 		}
 
-		public Class getOutClass() {
-			return outClass;
+		public ResolvableType getOutClass() {
+			return elementTypeOut;
 		}
 
-		public Config setOutClass(Class outClass) {
-			this.outClass = outClass;
+		public Config<T, R> setOutClass(Class<?> outClass) {
+			this.elementTypeOut = ResolvableType.forClass(outClass);
+			return this;
+		}
+		
+		public Config<T, R> setOutClass(ResolvableType elementTypeOut) {
+			this.elementTypeOut = elementTypeOut;
+			return this;
+		}
+		
+		public Config<T, R> setOutClass(ParameterizedTypeReference<?> outTypeRef) {
+			this.elementTypeOut = ResolvableType.forType(outTypeRef.getType());
 			return this;
 		}
 
