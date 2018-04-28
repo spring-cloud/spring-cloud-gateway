@@ -51,6 +51,7 @@ import org.springframework.cloud.gateway.filter.factory.SetResponseHeaderGateway
 import org.springframework.cloud.gateway.filter.factory.SetStatusGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.StripPrefixGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyRequestBodyGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyRequestBodyGatewayFilterFactory.Config;
 import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyResponseBodyGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.rewrite.RewriteFunction;
 import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter;
@@ -130,11 +131,6 @@ public class GatewayFilterSpec extends UriSpec {
 		return filter(getBean(ModifyRequestBodyGatewayFilterFactory.class)
 				.apply(c -> c.setRewriteFunction(inClass, outClass, rewriteFunction)));
 	}
-
-	public <T, R> GatewayFilterSpec modifyRequestBody(Class<T> inClass, Class<R> outClass, RewriteFunction<T, R> rewriteFunction, Map<String, Object> inHints, Map<String, Object> outHints) {
-		return filter(getBean(ModifyRequestBodyGatewayFilterFactory.class)
-				.apply(c -> c.setRewriteFunction(inClass, outClass, rewriteFunction, inHints, outHints)));
-	}
 	
 	public <T, R> GatewayFilterSpec modifyRequestBody(Consumer<ModifyRequestBodyGatewayFilterFactory.Config> configConsumer) {
 		return filter(getBean(ModifyRequestBodyGatewayFilterFactory.class)
@@ -143,17 +139,14 @@ public class GatewayFilterSpec extends UriSpec {
 	
 	
 
+	@SuppressWarnings("unchecked")
 	public <T, R> GatewayFilterSpec modifyResponseBody(Class<T> inClass, Class<R> outClass, RewriteFunction<T, R> rewriteFunction) {
 		return filter(getBean(ModifyResponseBodyGatewayFilterFactory.class)
-				.apply(c -> c.setRewriteFunction(inClass, outClass, rewriteFunction)));
+				.apply(c -> ((ModifyResponseBodyGatewayFilterFactory.Config<T, R>) c).setRewriteFunction(inClass, outClass, rewriteFunction)));
 	}
 	
-	public <T, R> GatewayFilterSpec modifyResponseBody(Class<T> inClass, Class<R> outClass, RewriteFunction<T, R> rewriteFunction, Map<String, Object> inHints, Map<String, Object> outHints) {
-		return filter(getBean(ModifyResponseBodyGatewayFilterFactory.class)
-				.apply(c -> c.setRewriteFunction(inClass, outClass, rewriteFunction, inHints, outHints)));
-	}
-	
-	public <T, R> GatewayFilterSpec modifyResponseBody(Consumer<ModifyResponseBodyGatewayFilterFactory.Config> configConsumer) {
+	@SuppressWarnings("unchecked")
+	public <T, R> GatewayFilterSpec modifyResponseBody(Consumer<ModifyResponseBodyGatewayFilterFactory.Config<T, R>> configConsumer) {
 		return filter(getBean(ModifyResponseBodyGatewayFilterFactory.class)
 				.apply(configConsumer));
 	}

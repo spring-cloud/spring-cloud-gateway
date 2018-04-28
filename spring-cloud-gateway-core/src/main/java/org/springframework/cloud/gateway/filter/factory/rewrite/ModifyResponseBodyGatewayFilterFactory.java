@@ -17,19 +17,20 @@
 
 package org.springframework.cloud.gateway.filter.factory.rewrite;
 
+import static org.springframework.cloud.gateway.filter.factory.rewrite.RewriteUtils.getHttpMessageReader;
+import static org.springframework.cloud.gateway.filter.factory.rewrite.RewriteUtils.getHttpMessageWriter;
+
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 
 import org.reactivestreams.Publisher;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.NettyWriteResponseFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.core.Ordered;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.ResolvableType;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
@@ -41,10 +42,18 @@ import org.springframework.http.codec.ServerCodecConfigurer;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.web.server.ServerWebExchange;
 
-import static org.springframework.cloud.gateway.filter.factory.rewrite.RewriteUtils.getHttpMessageReader;
-import static org.springframework.cloud.gateway.filter.factory.rewrite.RewriteUtils.getHttpMessageWriter;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
-public class ModifyResponseBodyGatewayFilterFactory
+/**
+ * Filter that do modification on response body.
+ * 
+ * @author Spencer Gibb
+ * @author Anton Brok-Volchansky
+ *
+ */
+@SuppressWarnings("rawtypes")
+public class ModifyResponseBodyGatewayFilterFactory<T,R>
 		extends AbstractGatewayFilterFactory<ModifyResponseBodyGatewayFilterFactory.Config> {
 
 	private final ServerCodecConfigurer codecConfigurer;
@@ -54,42 +63,69 @@ public class ModifyResponseBodyGatewayFilterFactory
 		this.codecConfigurer = codecConfigurer;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public GatewayFilter apply(Config config) {
 		return new ModifyResponseGatewayFilter(config);
 	}
 
 	public class ModifyResponseGatewayFilter implements GatewayFilter, Ordered {
-		private final Config config;
+		private final Config<T, R> config;
 
-		public ModifyResponseGatewayFilter(Config config) {
+		public ModifyResponseGatewayFilter(Config<T, R> config) {
 			this.config = config;
 		}
 
 		@Override
 		@SuppressWarnings("unchecked")
 		public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+			
 			ServerHttpResponseDecorator responseDecorator = new ServerHttpResponseDecorator(exchange.getResponse()) {
+				
+				@Override
+				public HttpHeaders getHeaders() {
+					
+					if(config.getOutClass().isAssignableFrom(config.getInClass())) {
+						 return getDelegate().getHeaders();
+					}
+
+					HttpHeaders headers = new HttpHeaders();
+					headers.putAll(getDelegate().getHeaders());
+					
+					headers.setContentType(config.getOutMediaType());
+					headers.setAccept(Collections.singletonList(config.getOutMediaType()));
+					
+					return headers;
+				}
+
+				
 				@Override
 				public Mono<Void> writeWith(Publisher<? extends DataBuffer> body) {
 
-					ResolvableType inElementType = ResolvableType.forClass(config.getInClass());
-					ResolvableType outElementType = ResolvableType.forClass(config.getOutClass());
-					MediaType contentType = exchange.getResponse().getHeaders().getContentType();
+					ResolvableType inElementType = config.getInClass();
+					ResolvableType outElementType = config.getOutClass();
+					
+					MediaType contentType = getDelegate().getHeaders().getContentType();
+					MediaType outMediaType = config.getOutMediaType() == null ? contentType : config.getOutMediaType();
+					
 					Optional<HttpMessageReader<?>> reader = getHttpMessageReader(codecConfigurer, inElementType, contentType);
-					Optional<HttpMessageWriter<?>> writer = getHttpMessageWriter(codecConfigurer, outElementType, null);
+					Optional<HttpMessageWriter<?>> writer = getHttpMessageWriter(codecConfigurer, outElementType, outMediaType);
 
 					if (reader.isPresent() && writer.isPresent()) {
 
 						ResponseAdapter responseAdapter = new ResponseAdapter(body, getDelegate().getHeaders());
-
+						
+						RewriteFunction<T, R> rewriteFunction = config.rewriteFunction;
+						
 						Flux<?> modified = reader.get().read(inElementType, responseAdapter, config.getInHints())
 								.cast(inElementType.resolve())
-								.flatMap(originalBody -> Flux.just(config.rewriteFunction.apply(exchange, originalBody)))
+								.flatMap(originalBody -> {
+									return Flux.just(rewriteFunction.apply(exchange, (T) originalBody));
+								})
 								.cast(outElementType.resolve());
 
 						return getDelegate().writeWith(
-								writer.get().write((Publisher)modified, outElementType, null, getDelegate(),
+								writer.get().write((Publisher) modified, outElementType, outMediaType, getDelegate(),
 										config.getOutHints())
 						);
 
@@ -121,6 +157,7 @@ public class ModifyResponseBodyGatewayFilterFactory
 		private final Flux<DataBuffer> flux;
 		private final HttpHeaders headers;
 
+		@SuppressWarnings("unchecked")
 		public ResponseAdapter(Publisher<? extends DataBuffer> body, HttpHeaders headers) {
 			this.headers = headers;
 			if (body instanceof Flux) {
@@ -141,29 +178,53 @@ public class ModifyResponseBodyGatewayFilterFactory
 		}
 	}
 
-	public static class Config {
-		private Class inClass;
-		private Class outClass;
+	public static class Config<T, R> {
+
+		private ResolvableType elementTypeIn;
+		private ResolvableType elementTypeOut;
+
 		private Map<String, Object> inHints;
 		private Map<String, Object> outHints;
+		
+		private MediaType outMediaType;
 
-		private RewriteFunction rewriteFunction;
+		private RewriteFunction<T, R> rewriteFunction;
 
-		public Class getInClass() {
-			return inClass;
+		public ResolvableType getInClass() {
+			return elementTypeIn;
 		}
 
-		public Config setInClass(Class inClass) {
-			this.inClass = inClass;
+		public Config<T, R> setInClass(Class<?> inClass) {
+			this.elementTypeIn = ResolvableType.forClass(inClass);
+			return this;
+		}
+		
+		public Config<T, R> setInClass(ResolvableType elementTypeIn) {
+			this.elementTypeIn = elementTypeIn;
+			return this;
+		}
+		
+		public Config<T, R> setInClass(ParameterizedTypeReference<?> inTypeRef) {
+			this.elementTypeIn = ResolvableType.forType(inTypeRef.getType());
 			return this;
 		}
 
-		public Class getOutClass() {
-			return outClass;
+		public ResolvableType getOutClass() {
+			return elementTypeOut;
 		}
 
-		public Config setOutClass(Class outClass) {
-			this.outClass = outClass;
+		public Config<T, R> setOutClass(Class<?> outClass) {
+			this.elementTypeOut = ResolvableType.forClass(outClass);
+			return this;
+		}
+		
+		public Config<T, R> setOutClass(ResolvableType elementTypeOut) {
+			this.elementTypeOut = elementTypeOut;
+			return this;
+		}
+		
+		public Config<T, R> setOutClass(ParameterizedTypeReference<?> outTypeRef) {
+			this.elementTypeOut = ResolvableType.forType(outTypeRef.getType());
 			return this;
 		}
 
@@ -171,7 +232,7 @@ public class ModifyResponseBodyGatewayFilterFactory
 			return inHints;
 		}
 
-		public Config setInHints(Map<String, Object> inHints) {
+		public Config<T, R> setInHints(Map<String, Object> inHints) {
 			this.inHints = inHints;
 			return this;
 		}
@@ -180,33 +241,45 @@ public class ModifyResponseBodyGatewayFilterFactory
 			return outHints;
 		}
 
-		public Config setOutHints(Map<String, Object> outHints) {
+		public Config<T, R> setOutHints(Map<String, Object> outHints) {
 			this.outHints = outHints;
 			return this;
 		}
+		
+		public MediaType getOutMediaType() {
+			return outMediaType;
+		}
+		
+		public Config<T, R> setOutMediaType(MediaType outMediaType) {
+			this.outMediaType = outMediaType;
+			return this;
+		}
 
-		public RewriteFunction getRewriteFunction() {
+		public RewriteFunction<T, R> getRewriteFunction() {
 			return rewriteFunction;
 		}
 
-		public <T, R> Config setRewriteFunction(Class<T> inClass, Class<R> outClass,
+		public Config<T, R> setRewriteFunction(Class<T> inClass, Class<R> outClass,
 				RewriteFunction<T, R> rewriteFunction) {
-			return setRewriteFunction(inClass, outClass, rewriteFunction, Collections.emptyMap(), Collections.emptyMap());
+			return setRewriteFunction(inClass, outClass, rewriteFunction, Collections.emptyMap(), Collections.emptyMap(), null);
 		}
 		
-		public <T, R> Config setRewriteFunction(Class<T> inClass, Class<R> outClass,
-				RewriteFunction<T, R> rewriteFunction, Map<String, Object> inHints, Map<String, Object> outHints) {
+		public  Config<T, R> setRewriteFunction(Class<T> inClass, Class<R> outClass,
+				RewriteFunction<T, R> rewriteFunction, Map<String, Object> inHints, Map<String, Object> outHints, MediaType outMediaType) {
 			setInClass(inClass);
 			setOutClass(outClass);
 			setRewriteFunction(rewriteFunction);
 			setInHints(inHints);
 			setOutHints(outHints);
+			setOutMediaType(outMediaType);
 			return this;
 		}
 
-		public Config setRewriteFunction(RewriteFunction rewriteFunction) {
-			this.rewriteFunction = rewriteFunction;
+		public Config<T, R> setRewriteFunction(RewriteFunction<T, R> rewriteFunction) {
+			this.rewriteFunction = (RewriteFunction<T, R>) rewriteFunction;
 			return this;
 		}
+		
+		
 	}
 }

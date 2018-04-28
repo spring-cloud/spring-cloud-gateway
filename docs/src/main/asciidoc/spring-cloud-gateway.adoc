@@ -731,6 +731,8 @@ The Websocket Routing Filter runs if the url located in the `ServerWebExchangeUt
 
 Websockets may be load-balanced by prefixing the URI with `lb`, such as `lb:ws://serviceid`.
 
+include::body-modification.adoc[]
+
 == Configuration
 
 Configuration for Spring Cloud Gateway is driven by a collection of `RouteDefinitionLocator`s.

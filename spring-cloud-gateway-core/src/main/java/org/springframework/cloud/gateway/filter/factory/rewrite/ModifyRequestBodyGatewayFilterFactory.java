@@ -54,7 +54,7 @@ public class ModifyRequestBodyGatewayFilterFactory
 		return (exchange, chain) -> {
 			Class inClass = config.getInClass();
 
-			MediaType mediaType = exchange.getRequest().getHeaders().getContentType();
+			MediaType mediaType = config.getOutMediaType() == null ? exchange.getRequest().getHeaders().getContentType() : config.getOutMediaType();
 			ResolvableType inElementType = ResolvableType.forClass(inClass);
 			Optional<HttpMessageReader<?>> reader = RewriteUtils.getHttpMessageReader(codecConfigurer, inElementType, mediaType);
 
@@ -75,10 +75,9 @@ public class ModifyRequestBodyGatewayFilterFactory
 						Publisher publisher = Mono.just(data);
 
 						HttpMessageWriterResponse fakeResponse = new HttpMessageWriterResponse(exchange.getResponse().bufferFactory());
-						writer.get().write(publisher, inElementType, mediaType,
-								fakeResponse, config.getOutHints());
-						ServerHttpRequestDecorator decorator = new ServerHttpRequestDecorator(
-								exchange.getRequest()) {
+						writer.get().write(publisher, inElementType, mediaType, fakeResponse, config.getOutHints());
+						
+						ServerHttpRequestDecorator decorator = new ServerHttpRequestDecorator(exchange.getRequest()) {
 							@Override
 							public HttpHeaders getHeaders() {
 								HttpHeaders httpHeaders = new HttpHeaders();
@@ -113,6 +112,7 @@ public class ModifyRequestBodyGatewayFilterFactory
 		private Class outClass;
 		private Map<String, Object> inHints;
 		private Map<String, Object> outHints;
+		private MediaType outMediaType;
 
 		private RewriteFunction rewriteFunction;
 
@@ -151,23 +151,33 @@ public class ModifyRequestBodyGatewayFilterFactory
 			this.outHints = outHints;
 			return this;
 		}
+		
+		public MediaType getOutMediaType() {
+			return outMediaType;
+		}
+		
+		public Config setOutMediaType(MediaType outMediaType) {
+			this.outMediaType = outMediaType;
+			return this;
+		}
 
 		public RewriteFunction getRewriteFunction() {
 			return rewriteFunction;
 		}
 		
-		public <T, R> Config setRewriteFunction(Class<T> inClass, Class<R> outClass,
-				RewriteFunction<T, R> rewriteFunction) {
-			return setRewriteFunction(inClass, outClass, rewriteFunction, Collections.emptyMap(), Collections.emptyMap());
+		public Config setRewriteFunction(Class inClass, Class outClass,
+				RewriteFunction rewriteFunction) {
+			return setRewriteFunction(inClass, outClass, rewriteFunction, Collections.emptyMap(), Collections.emptyMap(), null);
 		}
 
 		public <T, R> Config setRewriteFunction(Class<T> inClass, Class<R> outClass,
-				RewriteFunction<T, R> rewriteFunction, Map<String, Object> inHints, Map<String, Object> outHints) {
+				RewriteFunction<T, R> rewriteFunction, Map<String, Object> inHints, Map<String, Object> outHints, MediaType outMediaType) {
 			setInClass(inClass);
 			setOutClass(outClass);
 			setRewriteFunction(rewriteFunction);
 			setInHints(inHints);
 			setOutHints(outHints);
+			setOutMediaType(outMediaType);
 			return this;
 		}
 
