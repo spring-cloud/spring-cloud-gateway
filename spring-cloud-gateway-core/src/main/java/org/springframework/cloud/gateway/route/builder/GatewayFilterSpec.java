@@ -113,6 +113,9 @@ public class GatewayFilterSpec extends UriSpec {
 				.apply(c -> c.setName(headerName).setValue(headerValue)));
 	}
 
+	/**
+	 * Depends on `spring-cloud-starter-netflix-hystrix`, {@see http://cloud.spring.io/spring-cloud-netflix/}
+	 */
 	public GatewayFilterSpec hystrix(Consumer<HystrixGatewayFilterFactory.Config> configConsumer) {
 		HystrixGatewayFilterFactory factory;
 		try {

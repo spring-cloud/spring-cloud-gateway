@@ -355,6 +355,11 @@ spring:
 This will add `X-Response-Foo:Bar` header to the downstream response's headers for all matching requests.
 
 === Hystrix GatewayFilter Factory
+https://github.com/Netflix/Hystrix[Hystrix] is a library from Netflix that implements the https://martinfowler.com/bliki/CircuitBreaker.html[circuit breaker pattern].
+The Hystrix GatewayFilter allows you to introduce circuit breakers to your gateway routes, protecting your services from cascading failures and allowing you to provide fallback responses in the event of downstream failures.
+
+To enable Hystrix GatewayFilters in your project, add a dependency on `spring-cloud-starter-netflix-hystrix` from http://cloud.spring.io/spring-cloud-netflix/[Spring Cloud Netflix].
+
 The Hystrix GatewayFilter Factory requires a single `name` parameter, which is the name of the `HystrixCommand`.
 
 .application.yml
@@ -395,6 +400,13 @@ spring:
 ----
 This will forward to the `/incaseoffailureusethis` URI when the Hystrix fallback is called. Note that this example also demonstrates (optional) Spring Cloud Netflix Ribbon load-balancing via the `lb` prefix on the destination URI.
 
+Hystrix settings (such as timeouts) can be configured with global defaults or on a route by route basis using application properties as explained on the https://github.com/Netflix/Hystrix/wiki/Configuration[Hystrix wiki].
+
+To set a 5 second timeout for the example route above, the following configuration would be used:
+
+.application.yml
+[source,yaml]
+hystrix.command.fallbackcmd.execution.isolation.thread.timeoutInMilliseconds: 5000
 
 === PrefixPath GatewayFilter Factory
 The PrefixPath GatewayFilter Factory takes a single `prefix` parameter.
