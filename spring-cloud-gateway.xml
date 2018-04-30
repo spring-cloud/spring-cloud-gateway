@@ -372,6 +372,9 @@ If two hops of trusted infrastructure are required before Spring Cloud Gateway i
 </section>
 <section xml:id="_hystrix_gatewayfilter_factory">
 <title>Hystrix GatewayFilter Factory</title>
+<simpara><link xl:href="https://github.com/Netflix/Hystrix">Hystrix</link> is a library from Netflix that implements the <link xl:href="https://martinfowler.com/bliki/CircuitBreaker.html">circuit breaker pattern</link>.
+The Hystrix GatewayFilter allows you to introduce circuit breakers to your gateway routes, protecting your services from cascading failures and allowing you to provide fallback responses in the event of downstream failures.</simpara>
+<simpara>To enable Hystrix GatewayFilters in your project, add a dependency on <literal>spring-cloud-starter-netflix-hystrix</literal> from <link xl:href="http://cloud.spring.io/spring-cloud-netflix/">Spring Cloud Netflix</link>.</simpara>
 <simpara>The Hystrix GatewayFilter Factory requires a single <literal>name</literal> parameter, which is the name of the <literal>HystrixCommand</literal>.</simpara>
 <formalpara>
 <title>application.yml</title>
@@ -408,6 +411,14 @@ If two hops of trusted infrastructure are required before Spring Cloud Gateway i
 </para>
 </formalpara>
 <simpara>This will forward to the <literal>/incaseoffailureusethis</literal> URI when the Hystrix fallback is called. Note that this example also demonstrates (optional) Spring Cloud Netflix Ribbon load-balancing via the <literal>lb</literal> prefix on the destination URI.</simpara>
+<simpara>Hystrix settings (such as timeouts) can be configured with global defaults or on a route by route basis using application properties as explained on the <link xl:href="https://github.com/Netflix/Hystrix/wiki/Configuration">Hystrix wiki</link>.</simpara>
+<simpara>To set a 5 second timeout for the example route above, the following configuration would be used:</simpara>
+<formalpara>
+<title>application.yml</title>
+<para>
+<programlisting language="yaml" linenumbering="unnumbered">hystrix.command.fallbackcmd.execution.isolation.thread.timeoutInMilliseconds: 5000</programlisting>
+</para>
+</formalpara>
 </section>
 <section xml:id="_prefixpath_gatewayfilter_factory">
 <title>PrefixPath GatewayFilter Factory</title>
