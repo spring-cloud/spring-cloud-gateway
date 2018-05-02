@@ -263,7 +263,7 @@ public class ProductionConfigurationTests {
             }
 
             @GetMapping("/proxy/typeless/**")
-            public ResponseEntity<?> proxyTypeless(ProxyExchange<?> proxy,
+            public ResponseEntity<?> proxyTypeless(ProxyExchange<byte[]> proxy,
                     UriComponentsBuilder uri) throws Exception {
                 String path = proxy.path("/proxy/typeless");
                 return proxy.uri(home.toString() + path).get();
