@@ -64,6 +64,15 @@ public class ForwardTests {
 				.expectBody().json("{\"from\":\"localcontroller\"}");
 	}
 
+	@Test
+	public void forwardWithCorrectPath() {
+		this.client.get().uri("/foo")
+				.header(HttpHeaders.HOST, "www.forward.org")
+				.exchange()
+				.expectStatus().isOk()
+				.expectBody().json("{\"from\":\"localcontroller\"}");
+	}
+
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	@RestController

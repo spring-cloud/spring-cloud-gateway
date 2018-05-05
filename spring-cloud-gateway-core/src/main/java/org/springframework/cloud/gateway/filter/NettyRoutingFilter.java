@@ -22,7 +22,6 @@ import java.util.List;
 
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
-import org.springframework.cloud.gateway.filter.headers.HttpHeadersFilter.Type;
 import reactor.core.publisher.Mono;
 import reactor.ipc.netty.NettyPipeline;
 import reactor.ipc.netty.http.client.HttpClient;
@@ -30,10 +29,12 @@ import reactor.ipc.netty.http.client.HttpClientRequest;
 
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cloud.gateway.filter.headers.HttpHeadersFilter;
+import org.springframework.cloud.gateway.filter.headers.HttpHeadersFilter.Type;
 import org.springframework.core.Ordered;
 import org.springframework.core.io.buffer.NettyDataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.server.reactive.AbstractServerHttpResponse;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.server.ServerWebExchange;
@@ -117,7 +118,15 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 					this.headersFilters.getIfAvailable(), headers, exchange, Type.RESPONSE);
 			
 			response.getHeaders().putAll(filteredResponseHeaders);
-			response.setStatusCode(HttpStatus.valueOf(res.status().code()));
+			HttpStatus status = HttpStatus.resolve(res.status().code());
+			if (status != null) {
+				response.setStatusCode(status);
+			} else if (response instanceof AbstractServerHttpResponse) {
+				// https://jira.spring.io/browse/SPR-16748
+				((AbstractServerHttpResponse) response).setStatusCodeValue(res.status().code());
+			} else {
+				throw new IllegalStateException("Unable to set status code on response: " +res.status().code()+", "+response.getClass());
+			}
 
 			// Defer committing the response until all route filters have run
 			// Put client response as ServerWebExchange attribute and write response later NettyWriteResponseFilter

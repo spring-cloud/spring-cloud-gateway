@@ -24,12 +24,10 @@ import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.tuple.Tuple;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
-import static org.springframework.tuple.TupleBuilder.tuple;
 
 import reactor.core.publisher.Mono;
 
@@ -71,7 +69,6 @@ public class RequestRateLimiterGatewayFilterFactoryTests extends BaseWebClientTe
 
 	private void assertFilterFactory(KeyResolver keyResolver, String key, boolean allowed, HttpStatus expectedStatus) {
 
-		Tuple args = tuple().build();
 		when(rateLimiter.isAllowed("myroute", key))
 				.thenReturn(Mono.just(new Response(allowed, 1)));
 

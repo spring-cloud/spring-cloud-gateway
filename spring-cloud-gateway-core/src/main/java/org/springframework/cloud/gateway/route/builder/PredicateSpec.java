@@ -28,9 +28,11 @@ import org.springframework.cloud.gateway.handler.predicate.HostRoutePredicateFac
 import org.springframework.cloud.gateway.handler.predicate.MethodRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.QueryRoutePredicateFactory;
+import org.springframework.cloud.gateway.handler.predicate.ReadBodyPredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.RemoteAddrRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.WeightRoutePredicateFactory;
 import org.springframework.cloud.gateway.route.Route;
+import org.springframework.cloud.gateway.support.ipresolver.RemoteAddressResolver;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -103,6 +105,11 @@ public class PredicateSpec extends UriSpec {
 				.apply(c -> c.setPattern(pattern)));
 	}
 
+	public <T> BooleanSpec readBody(Class<T> inClass, Predicate<T> predicate) {
+		return predicate(getBean(ReadBodyPredicateFactory.class)
+				.apply(c -> c.setPredicate(inClass, predicate)));
+	}
+
 	public BooleanSpec query(String param, String regex) {
 		return predicate(getBean(QueryRoutePredicateFactory.class)
 				.apply(c -> c.setParam(param).setRegexp(regex)));
@@ -114,8 +121,16 @@ public class PredicateSpec extends UriSpec {
 	}
 
 	public BooleanSpec remoteAddr(String... addrs) {
-		return predicate(getBean(RemoteAddrRoutePredicateFactory.class)
-				.apply(c -> c.setSources(addrs)));
+		return remoteAddr(null, addrs);
+	}
+
+	public BooleanSpec remoteAddr(RemoteAddressResolver resolver, String... addrs) {
+		return predicate(getBean(RemoteAddrRoutePredicateFactory.class).apply(c -> {
+			c.setSources(addrs);
+			if (resolver != null) {
+				c.setRemoteAddressResolver(resolver);
+			}
+		}));
 	}
 
 	public BooleanSpec weight(String group, int weight) {

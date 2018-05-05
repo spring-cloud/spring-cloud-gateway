@@ -18,21 +18,19 @@
 package org.springframework.cloud.gateway.filter.factory;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
-import org.springframework.tuple.Tuple;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.PRESERVE_HOST_HEADER_ATTRIBUTE;
 
 /**
  * @author Spencer Gibb
  */
-public class PreserveHostHeaderGatewayFilterFactory implements GatewayFilterFactory {
-
-	@Override
-	public GatewayFilter apply(Tuple args) {
-		return apply();
-	}
+public class PreserveHostHeaderGatewayFilterFactory extends AbstractGatewayFilterFactory {
 
 	public GatewayFilter apply() {
+		return apply(o -> {});
+	}
+
+    public GatewayFilter apply(Object config) {
 		return (exchange, chain) -> {
 			exchange.getAttributes().put(PRESERVE_HOST_HEADER_ATTRIBUTE, true);
 			return chain.filter(exchange);

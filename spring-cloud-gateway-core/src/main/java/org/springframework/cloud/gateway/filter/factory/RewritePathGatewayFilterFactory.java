@@ -49,7 +49,7 @@ public class RewritePathGatewayFilterFactory extends AbstractGatewayFilterFactor
 		return (exchange, chain) -> {
 			ServerHttpRequest req = exchange.getRequest();
 			addOriginalRequestUrl(exchange, req.getURI());
-			String path = req.getURI().getPath();
+			String path = req.getURI().getRawPath();
 			String newPath = path.replaceAll(config.regexp, replacement);
 
 			ServerHttpRequest request = req.mutate()

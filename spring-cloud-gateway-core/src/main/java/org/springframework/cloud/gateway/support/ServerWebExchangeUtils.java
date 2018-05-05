@@ -83,7 +83,7 @@ public class ServerWebExchangeUtils {
 
 		try {
 			int status = Integer.parseInt(statusString);
-			httpStatus = HttpStatus.valueOf(status);
+			httpStatus = HttpStatus.resolve(status);
 		} catch (NumberFormatException e) {
 			// try the enum string
 			httpStatus = HttpStatus.valueOf(statusString.toUpperCase());

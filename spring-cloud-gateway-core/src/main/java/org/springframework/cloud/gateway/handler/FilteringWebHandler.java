@@ -89,22 +89,34 @@ public class FilteringWebHandler implements WebHandler {
 
 	private static class DefaultGatewayFilterChain implements GatewayFilterChain {
 
-		private int index;
+		private final int index;
 		private final List<GatewayFilter> filters;
 
 		public DefaultGatewayFilterChain(List<GatewayFilter> filters) {
 			this.filters = filters;
+			this.index = 0;
+		}
+
+		private DefaultGatewayFilterChain(DefaultGatewayFilterChain parent, int index) {
+			this.filters = parent.getFilters();
+			this.index = index;
+		}
+
+		public List<GatewayFilter> getFilters() {
+			return filters;
 		}
 
 		@Override
 		public Mono<Void> filter(ServerWebExchange exchange) {
-			if (this.index < filters.size()) {
-				GatewayFilter filter = filters.get(this.index++);
-				return filter.filter(exchange, this);
-			}
-			else {
-				return Mono.empty(); // complete
-			}
+			return Mono.defer(() -> {
+				if (this.index < filters.size()) {
+					GatewayFilter filter = filters.get(this.index);
+					DefaultGatewayFilterChain chain = new DefaultGatewayFilterChain(this, this.index + 1);
+					return filter.filter(exchange, chain);
+				} else {
+					return Mono.empty(); // complete
+				}
+			});
 		}
 	}
 

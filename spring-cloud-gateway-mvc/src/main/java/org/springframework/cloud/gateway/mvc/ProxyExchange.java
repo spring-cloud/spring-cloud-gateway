@@ -57,8 +57,6 @@ import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.support.WebDataBinderFactory;
-import org.springframework.web.client.RequestCallback;
-import org.springframework.web.client.ResponseExtractor;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.context.request.ServletWebRequest;
@@ -110,7 +108,7 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestResponseBody
  * 					.headers(response.getHeaders()) //
  * 					.header("X-Custom", "MyCustomHeader") //
  * 					.body(response.getBody()) //
- * 	);
+ * 			);
  * }
  * 
  * </pre>
@@ -139,7 +137,7 @@ public class ProxyExchange<T> {
 
 	private URI uri;
 
-	private NestedTemplate rest;
+	private RestTemplate rest;
 
 	private Object body;
 
@@ -161,7 +159,7 @@ public class ProxyExchange<T> {
 			ModelAndViewContainer mavContainer, WebDataBinderFactory binderFactory,
 			Type type) {
 		this.responseType = type;
-		this.rest = createTemplate(rest);
+		this.rest = rest;
 		this.webRequest = webRequest;
 		this.mavContainer = mavContainer;
 		this.binderFactory = binderFactory;
@@ -352,12 +350,8 @@ public class ProxyExchange<T> {
 		if (type instanceof TypeVariable || type instanceof WildcardType) {
 			type = Object.class;
 		}
-		RequestCallback requestCallback = rest.httpEntityCallback((Object) requestEntity,
-				type);
-		ResponseExtractor<ResponseEntity<T>> responseExtractor = rest
-				.responseEntityExtractor(type);
-		return rest.execute(requestEntity.getUrl(), requestEntity.getMethod(),
-				requestCallback, responseExtractor);
+		return rest.exchange(requestEntity,
+				ParameterizedTypeReference.forType(responseType));
 	}
 
 	private BodyBuilder headers(BodyBuilder builder) {
@@ -457,36 +451,6 @@ public class ProxyExchange<T> {
 		BindingResult result = (BindingResult) mavContainer.getModel()
 				.get(BindingResult.MODEL_KEY_PREFIX + name);
 		return result.getTarget();
-	}
-
-	private NestedTemplate createTemplate(RestTemplate input) {
-		NestedTemplate rest = new NestedTemplate();
-		rest.setMessageConverters(input.getMessageConverters());
-		rest.setErrorHandler(input.getErrorHandler());
-		rest.setUriTemplateHandler(input.getUriTemplateHandler());
-		rest.setRequestFactory(input.getRequestFactory());
-		rest.setInterceptors(input.getInterceptors());
-		return rest;
-	}
-
-	/**
-	 * A special {@link RestTemplate} that knows about the {@link Type} of its response
-	 * body explicitly (rather than through a {@link ParameterizedTypeReference}, which is
-	 * the only way to access this feature in a regular template).
-	 *
-	 */
-	class NestedTemplate extends RestTemplate {
-		@Override
-		protected <S> RequestCallback httpEntityCallback(Object requestBody,
-				Type responseType) {
-			return super.httpEntityCallback(requestBody, responseType);
-		}
-
-		@Override
-		protected <S> ResponseExtractor<ResponseEntity<S>> responseEntityExtractor(
-				Type responseType) {
-			return super.responseEntityExtractor(responseType);
-		}
 	}
 
 	/**

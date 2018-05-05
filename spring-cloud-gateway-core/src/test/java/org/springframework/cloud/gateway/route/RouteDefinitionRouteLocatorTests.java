@@ -1,57 +1,80 @@
 package org.springframework.cloud.gateway.route;
 
+import java.net.URI;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.SpringBootConfiguration;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.gateway.support.ShortcutConfigurable;
-import org.springframework.context.annotation.Bean;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.tuple.Tuple;
+import org.springframework.cloud.gateway.config.GatewayProperties;
+import org.springframework.cloud.gateway.config.PropertiesRouteDefinitionLocator;
+import org.springframework.cloud.gateway.filter.FilterDefinition;
+import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.OrderedGatewayFilter;
+import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.AddResponseHeaderGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.RemoveResponseHeaderGatewayFilterFactory;
+import org.springframework.cloud.gateway.handler.predicate.HostRoutePredicateFactory;
+import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
+import org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest
+/**
+ * @author Toshiaki Maki
+ */
 public class RouteDefinitionRouteLocatorTests {
 
-	private SpelExpressionParser parser;
-
-	@Autowired
-	BeanFactory beanFactory;
-
 	@Test
-	public void testGetTupleWithSpel() {
-		parser = new SpelExpressionParser();
-		ShortcutConfigurable shortcutConfigurable = new ShortcutConfigurable() {
-			@Override
-			public List<String> shortcutFieldOrder() {
-				return Arrays.asList("bean", "arg1");
+	public void contextLoads() {
+		List<RoutePredicateFactory> predicates = Arrays
+				.asList(new HostRoutePredicateFactory());
+		List<GatewayFilterFactory> gatewayFilterFactories = Arrays.asList(
+				new RemoveResponseHeaderGatewayFilterFactory(),
+				new AddResponseHeaderGatewayFilterFactory(),
+				new TestOrderedGatewayFilterFactory());
+		GatewayProperties gatewayProperties = new GatewayProperties();
+		gatewayProperties.setRoutes(Arrays.asList(new RouteDefinition() {
+			{
+				setId("foo");
+				setUri(URI.create("http://foo.example.com"));
+				setPredicates(
+						Arrays.asList(new PredicateDefinition("Host=*.example.com")));
+				setFilters(Arrays.asList(
+						new FilterDefinition("RemoveResponseHeader=Server"),
+						new FilterDefinition("TestOrdered="),
+						new FilterDefinition("AddResponseHeader=X-Response-Foo, Bar")));
 			}
-		};
-		Map<String, String> args = new HashMap<>();
-		args.put("bean", "#{@foo}");
-		args.put("arg1", "val1");
+		}));
 
-		Tuple tuple = RouteDefinitionRouteLocator.getTuple(shortcutConfigurable, args, parser, this.beanFactory);
-		assertThat(tuple).isNotNull();
-		assertThat(tuple.getValue("bean", Integer.class)).isEqualTo(42);
-		assertThat(tuple.getString("arg1")).isEqualTo("val1");
+		RouteDefinitionRouteLocator routeDefinitionRouteLocator = new RouteDefinitionRouteLocator(
+				new PropertiesRouteDefinitionLocator(gatewayProperties), predicates,
+				gatewayFilterFactories, gatewayProperties);
+
+		List<Route> routes = routeDefinitionRouteLocator.getRoutes().collectList()
+				.block();
+		List<GatewayFilter> filters = routes.get(0).getFilters();
+		assertThat(filters).hasSize(3);
+		assertThat(getFilterClassName(filters.get(0))).startsWith("RemoveResponseHeader");
+		assertThat(getFilterClassName(filters.get(1))).startsWith("AddResponseHeader");
+		assertThat(getFilterClassName(filters.get(2)))
+				.startsWith("RouteDefinitionRouteLocatorTests$TestOrderedGateway");
 	}
 
-	@SpringBootConfiguration
-	protected static class TestConfig {
-		@Bean
-		public Integer foo() {
-			return 42;
+	private String getFilterClassName(GatewayFilter target) {
+		if (target instanceof OrderedGatewayFilter) {
+			return getFilterClassName(((OrderedGatewayFilter) target).getDelegate());
+		}
+		else {
+			return target.getClass().getSimpleName();
+		}
+	}
+
+	static class TestOrderedGatewayFilterFactory extends AbstractGatewayFilterFactory {
+		@Override
+		public GatewayFilter apply(Object config) {
+			return new OrderedGatewayFilter((exchange, chain) -> chain.filter(exchange),
+					9999);
 		}
 	}
 }

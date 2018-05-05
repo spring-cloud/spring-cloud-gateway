@@ -21,10 +21,12 @@ import org.springframework.cloud.client.discovery.event.HeartbeatEvent;
 import org.springframework.cloud.client.discovery.event.HeartbeatMonitor;
 import org.springframework.cloud.client.discovery.event.InstanceRegisteredEvent;
 import org.springframework.cloud.client.discovery.event.ParentHeartbeatEvent;
+import org.springframework.cloud.context.scope.refresh.RefreshScopeRefreshedEvent;
 import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.util.Assert;
 
 // see ZuulDiscoveryRefreshListener
@@ -42,7 +44,9 @@ public class RouteRefreshListener
 
 	@Override
 	public void onApplicationEvent(ApplicationEvent event) {
-		if (event instanceof InstanceRegisteredEvent) {
+		if (event instanceof ContextRefreshedEvent
+				|| event instanceof RefreshScopeRefreshedEvent
+				|| event instanceof InstanceRegisteredEvent) {
 			reset();
 		}
 		else if (event instanceof ParentHeartbeatEvent) {

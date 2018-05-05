@@ -33,11 +33,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactory.REGEXP_KEY;
-import static org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactory.REPLACEMENT_KEY;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
-import static org.springframework.tuple.TupleBuilder.tuple;
 
 import reactor.core.publisher.Mono;
 
@@ -49,6 +46,11 @@ public class RewritePathGatewayFilterFactoryTests {
 	@Test
 	public void rewritePathFilterWorks() {
 		testRewriteFilter("/foo", "/baz", "/foo/bar", "/baz/bar");
+	}
+
+	@Test
+	public void rewriteEncodedPathFilterWorks() {
+		testRewriteFilter("/foo", "/baz", "/foo/bar%20foobar", "/baz/bar foobar");
 	}
 
 	@Test

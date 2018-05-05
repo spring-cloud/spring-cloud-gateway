@@ -54,6 +54,12 @@ public class SetPathGatewayFilterFactoryTests {
 	}
 
 	@Test
+	public void setEncodedPathFilterWorks() {
+		HashMap<String, String> variables = new HashMap<>();
+		testFilter("/baz/foo%20bar","/baz/foo%20bar", variables);
+	}
+
+	@Test
 	public void setPathFilterWithTemplateVarsWorks() {
 		HashMap<String, String> variables = new HashMap<>();
 		variables.put("id", "123");
@@ -66,6 +72,13 @@ public class SetPathGatewayFilterFactoryTests {
 		variables.put("org", "123");
 		variables.put("scope", "abc");
 		testFilter("/{org}/{scope}/function","/123/abc/function", variables);
+	}
+
+	@Test
+	public void setPathFilterWithEncodedCharactersWorks() {
+		HashMap<String, String> variables = new HashMap<>();
+		variables.put("id", "12 3");
+		testFilter("/bar/baz/{id}", "/bar/baz/12 3", variables);
 	}
 
 	private void testFilter(String template, String expectedPath, HashMap<String, String> variables) {

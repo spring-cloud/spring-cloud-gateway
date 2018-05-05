@@ -225,7 +225,7 @@ This route would match if the request contained a `foo` query parameter whose va
 
 
 === RemoteAddr Route Predicate Factory
-The RemoteAddr Route Predicate Factory takes a list (min size 1) of CIDR-notation (IPv4 or IPv6) strings, e.g. `192.168.0.1/16` (where `192.168.0.1` is an IP address and `16` is a subnet mask.
+The RemoteAddr Route Predicate Factory takes a list (min size 1) of CIDR-notation (IPv4 or IPv6) strings, e.g. `192.168.0.1/16` (where `192.168.0.1` is an IP address and `16` is a subnet mask).
 
 .application.yml
 [source,yaml]
@@ -242,7 +242,60 @@ spring:
 
 This route would match if the remote address of the request was, for example, `192.168.1.10`.
 
+==== Modifying the way remote addresses are resolved
+By default the RemoteAddr Route Predicate Factory uses the remote address from the incoming request.
+This may not match the actual client IP address if Spring Cloud Gateway sits behind a proxy layer.
+
+You can customize the way that the remote address is resolved by setting a custom `RemoteAddressResolver`.
+Spring Cloud Gateway comes with one non-default remote address resolver which is based off of the https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-For[X-Forwarded-For header], `XForwardedRemoteAddressResolver`.
+
+`XForwardedRemoteAddressResolver` has two static constructor methods which take different approaches to security:
+
+`XForwardedRemoteAddressResolver::trustAll` returns a `RemoteAddressResolver` which always takes the first IP address found in the `X-Forwarded-For` header.
+This approach is vulnerable to spoofing, as a malicious client could set an initial value for the `X-Forwarded-For` which would be accepted by the resolver.
+
+`XForwardedRemoteAddressResolver::maxTrustedIndex` takes an index which correlates to the number of trusted infrastructure running in front of Spring Cloud Gateway.
+If Spring Cloud Gateway is, for example only accessible via HAProxy, then a value of 1 should be used.
+If two hops of trusted infrastructure are required before Spring Cloud Gateway is accessible, then a value of 2 should be used.
+
+Given the following header value:
+
+[source]
+X-Forwarded-For: 0.0.0.1, 0.0.0.2, 0.0.0.3
+
+
+The `maxTrustedIndex` values below will yield the following remote addresses.
+
+[options="header"]
+|===
+|`maxTrustedIndex`           | result
+|[`Integer.MIN_VALUE`,0]     | (invalid, `IllegalArgumentException` during initialization)
+|1                           | 0.0.0.3
+|2                           | 0.0.0.2
+|3                           | 0.0.0.1
+|[4, `Integer.MAX_VALUE`]    | 0.0.0.1
+|===
 [[gateway-route-filters]]
+
+Using Java config:
+
+GatewayConfig.java
+[source,java]
+----
+RemoteAddressResolver resolver = XForwardedRemoteAddressResolver
+    .maxTrustedIndex(1);
+
+...
+
+.route("direct-route",
+    r -> r.remoteAddr("10.1.1.1", "10.10.1.1/24")
+        .uri("https://downstream1")
+.route("proxied-route",
+    r -> r.remoteAddr(resolver,  "10.10.1.1", "10.10.1.1/24")
+        .uri("https://downstream2")
+)
+----
+
 == GatewayFilter Factories
 
 Route filters allow the modification of the incoming HTTP request or outgoing HTTP response in some manner. Route filters are scoped to a particular route. Spring Cloud Gateway includes many built-in GatewayFilter Factories.
@@ -302,6 +355,11 @@ spring:
 This will add `X-Response-Foo:Bar` header to the downstream response's headers for all matching requests.
 
 === Hystrix GatewayFilter Factory
+https://github.com/Netflix/Hystrix[Hystrix] is a library from Netflix that implements the https://martinfowler.com/bliki/CircuitBreaker.html[circuit breaker pattern].
+The Hystrix GatewayFilter allows you to introduce circuit breakers to your gateway routes, protecting your services from cascading failures and allowing you to provide fallback responses in the event of downstream failures.
+
+To enable Hystrix GatewayFilters in your project, add a dependency on `spring-cloud-starter-netflix-hystrix` from http://cloud.spring.io/spring-cloud-netflix/[Spring Cloud Netflix].
+
 The Hystrix GatewayFilter Factory requires a single `name` parameter, which is the name of the `HystrixCommand`.
 
 .application.yml
@@ -342,6 +400,13 @@ spring:
 ----
 This will forward to the `/incaseoffailureusethis` URI when the Hystrix fallback is called. Note that this example also demonstrates (optional) Spring Cloud Netflix Ribbon load-balancing via the `lb` prefix on the destination URI.
 
+Hystrix settings (such as timeouts) can be configured with global defaults or on a route by route basis using application properties as explained on the https://github.com/Netflix/Hystrix/wiki/Configuration[Hystrix wiki].
+
+To set a 5 second timeout for the example route above, the following configuration would be used:
+
+.application.yml
+[source,yaml]
+hystrix.command.fallbackcmd.execution.isolation.thread.timeoutInMilliseconds: 5000
 
 === PrefixPath GatewayFilter Factory
 The PrefixPath GatewayFilter Factory takes a single `prefix` parameter.
@@ -652,7 +717,7 @@ TODO: document ordering
 
 === Forward Routing Filter
 
-The `ForwardRoutingFilter` looks for a URI in the exchange attribute `ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR`. If the url has a `forward` scheme (ie `forward:///localendpoint`), it will use the Spring `DispatcherHandler` to handler the request. The unmodified original url is appended to the list in the `ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR` attribute.
+The `ForwardRoutingFilter` looks for a URI in the exchange attribute `ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR`. If the url has a `forward` scheme (ie `forward:///localendpoint`), it will use the Spring `DispatcherHandler` to handler the request.  The path part of the request URL will be overridden with the path in the forward URL. The unmodified original url is appended to the list in the `ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR` attribute.
 
 === LoadBalancerClient Filter
 
@@ -779,11 +844,11 @@ TODO: document writing Custom Global Filters
 
 TODO: document writing Custom Route Locators and Writers
 
-== Building a Simple Gateway Using Spring MVC
+== Building a Simple Gateway Using Spring MVC or Webflux
 
-Spring Cloud Gateway provides a utility object called `ProxyExchange` which you can use inside a regular Spring MVC handler as a method parameter. It supports basic downstream HTTP exchanges via methods that mirror the HTTP verbs, or forwarding to a local handler via the `forward()` method.
+Spring Cloud Gateway provides a utility object called `ProxyExchange` which you can use inside a regular Spring web handler as a method parameter. It supports basic downstream HTTP exchanges via methods that mirror the HTTP verbs. With MVC it also supports forwarding to a local handler via the `forward()` method. To use the `ProxyExchange` just include the right module in your classpath (either `spring-cloud-gateway-mvc` or `spring-cloud-gateway-webflux`).
 
-Example (proxying a request to "/test" downstream to a remote server):
+MVC example (proxying a request to "/test" downstream to a remote server):
 
 ```java
 @RestController
@@ -794,7 +859,25 @@ public class GatewaySampleApplication {
 	private URI home;
 
 	@GetMapping("/test")
-	public ResponseEntity<?> proxy(ProxyExchange<Object> proxy) throws Exception {
+	public ResponseEntity<?> proxy(ProxyExchange<byte[]> proxy) throws Exception {
+		return proxy.uri(home.toString() + "/image/png").get();
+	}
+
+}
+```
+
+The same thing with Webflux:
+
+```java
+@RestController
+@SpringBootApplication
+public class GatewaySampleApplication {
+
+	@Value("${remote.home}")
+	private URI home;
+
+	@GetMapping("/test")
+	public Mono<ResponseEntity<?>> proxy(ProxyExchange<byte[]> proxy) throws Exception {
 		return proxy.uri(home.toString() + "/image/png").get();
 	}
 
@@ -805,13 +888,13 @@ There are convenience methods on the `ProxyExchange` to enable the handler metho
 
 ```java
 @GetMapping("/proxy/path/**")
-public ResponseEntity<?> proxyPath(ProxyExchange<?> proxy) throws Exception {
+public ResponseEntity<?> proxyPath(ProxyExchange<byte[]> proxy) throws Exception {
   String path = proxy.path("/proxy/path/");
   return proxy.uri(home.toString() + "/foos/" + path).get();
 }
 ```
 
-All the features of Spring MVC are available to Gateway handler methods. So you can inject request headers and query parameters, for instance, and you can constrain the incoming requests with declarations in the mapping annotation. See the documentation for `@RequestMapping` in Spring MVC for more details of those features.
+All the features of Spring MVC or Webflux are available to Gateway handler methods. So you can inject request headers and query parameters, for instance, and you can constrain the incoming requests with declarations in the mapping annotation. See the documentation for `@RequestMapping` in Spring MVC for more details of those features.
 
 Headers can be added to the downstream response using the `header()` methods on `ProxyExchange`.
 

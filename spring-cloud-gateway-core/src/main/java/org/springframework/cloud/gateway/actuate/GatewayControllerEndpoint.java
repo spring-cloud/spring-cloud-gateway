@@ -18,6 +18,7 @@
 package org.springframework.cloud.gateway.actuate;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +26,7 @@ import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.boot.actuate.endpoint.web.annotation.RestControllerEndpoint;
+import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
 import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
@@ -109,15 +111,45 @@ public class GatewayControllerEndpoint implements ApplicationEventPublisherAware
 		return map;
 	}
 
-	// TODO: Add support for RouteLocator
+	// TODO: Flush out routes without a definition
 	@GetMapping("/routes")
-	public Mono<Map<String, List>> routes() {
-		Mono<List<RouteDefinition>> routeDefs = this.routeDefinitionLocator.getRouteDefinitions().collectList();
+	public Mono<List<Map<String, Object>>> routes() {
+		Mono<Map<String, RouteDefinition>> routeDefs = this.routeDefinitionLocator.getRouteDefinitions()
+				.collectMap(RouteDefinition::getId);
 		Mono<List<Route>> routes = this.routeLocator.getRoutes().collectList();
 		return Mono.zip(routeDefs, routes).map(tuple -> {
-			Map<String, List> allRoutes = new HashMap<>();
-			allRoutes.put("routeDefinitions", tuple.getT1());
-			// allRoutes.put("routes", tuple.getT2());
+			Map<String, RouteDefinition> defs = tuple.getT1();
+			List<Route> routeList = tuple.getT2();
+			List<Map<String, Object>> allRoutes = new ArrayList<>();
+
+			routeList.forEach(route -> {
+				HashMap<String, Object> r = new HashMap<>();
+				r.put("route_id", route.getId());
+				r.put("order", route.getOrder());
+
+				if (defs.containsKey(route.getId())) {
+					r.put("route_definition", defs.get(route.getId()));
+				} else {
+					HashMap<String, Object> obj = new HashMap<>();
+
+					obj.put("predicate", route.getPredicate().toString());
+
+					if (!route.getFilters().isEmpty()) {
+						ArrayList<String> filters = new ArrayList<>();
+						for (GatewayFilter filter : route.getFilters()) {
+							filters.add(filter.toString());
+						}
+
+						obj.put("filters", filters);
+					}
+
+					if (!obj.isEmpty()) {
+						r.put("route_object", obj);
+					}
+				}
+				allRoutes.add(r);
+			});
+
 			return allRoutes;
 		});
 	}

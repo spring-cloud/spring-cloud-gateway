@@ -20,12 +20,15 @@ package org.springframework.cloud.gateway.filter.factory;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.DispatcherHandler;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -47,6 +50,7 @@ import rx.RxReactiveStreams;
 import rx.Subscription;
 
 /**
+ * Depends on `spring-cloud-starter-netflix-hystrix`, {@see http://cloud.spring.io/spring-cloud-netflix/}
  * @author Spencer Gibb
  */
 public class HystrixGatewayFilterFactory extends AbstractGatewayFilterFactory<HystrixGatewayFilterFactory.Config> {
@@ -65,10 +69,22 @@ public class HystrixGatewayFilterFactory extends AbstractGatewayFilterFactory<Hy
 		return Arrays.asList(NAME_KEY);
 	}
 
+	public GatewayFilter apply(String routeId, Consumer<Config> consumer) {
+		Config config = newConfig();
+		consumer.accept(config);
+
+		if (StringUtils.isEmpty(config.getName()) && !StringUtils.isEmpty(routeId)) {
+			config.setName(routeId);
+		}
+
+		return apply(config);
+	}
+
 	@Override
 	public GatewayFilter apply(Config config) {
 		//TODO: if no name is supplied, generate one from command id (useful for default filter)
 		if (config.setter == null) {
+			Assert.notNull(config.name, "A name must be supplied for the Hystrix Command Key");
 			HystrixCommandGroupKey groupKey = HystrixCommandGroupKey.Factory.asKey(getClass().getSimpleName());
 			HystrixCommandKey commandKey = HystrixCommandKey.Factory.asKey(config.name);
 
@@ -90,7 +106,7 @@ public class HystrixGatewayFilterFactory extends AbstractGatewayFilterFactory<Hy
 						return exchange.getResponse().setComplete();
 					}
 				}
-				return Mono.empty();
+				return Mono.error(throwable);
 			}).then();
 		};
 	}
