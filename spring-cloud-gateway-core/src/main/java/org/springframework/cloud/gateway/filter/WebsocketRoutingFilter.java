@@ -157,7 +157,7 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 					Mono<Void> serverSessionSend = session
 							.send(proxySession.receive().doOnNext(WebSocketMessage::retain));
                             // .log("sessionSend", Level.FINE);
-					return Mono.when(proxySessionSend, serverSessionSend);
+					return Mono.zip(proxySessionSend, serverSessionSend).then();
 				}
 
 				/**
