@@ -62,7 +62,7 @@ import reactor.test.StepVerifier;
  * @author Anton Brok-Volchansky
  *
  */
-public class RewriteRequestBodyFilterTest {
+public class ModifyRequestBodyTest {
 	
 	protected Log logger = LogFactory.getLog(getClass());
 

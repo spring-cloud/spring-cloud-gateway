@@ -70,7 +70,7 @@ import reactor.test.StepVerifier;
  * @author Anton Brok-Volchansky
  *
  */
-public class ModifyResponseBodyGatewayFilterFactoryTest {
+public class ModifyResponseBodyTest {
 
 	protected Log logger = LogFactory.getLog(getClass());
 
