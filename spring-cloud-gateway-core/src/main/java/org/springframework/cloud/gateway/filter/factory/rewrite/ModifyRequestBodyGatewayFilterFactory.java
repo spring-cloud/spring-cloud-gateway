@@ -61,7 +61,7 @@ public class ModifyRequestBodyGatewayFilterFactory<T, R>
 			if (reader.isPresent()) {
 				Mono<Object> readMono = reader.get()
 						.readMono(inElementType, exchange.getRequest(), config.getInHints())
-						.cast(Object.class);
+						.cast(Object.class).cache();
 
 				return process(readMono, peek -> {
 					ResolvableType outElementType = config.getOutClass();

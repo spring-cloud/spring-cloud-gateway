@@ -308,8 +308,6 @@ public class ModifyResponseBodyTest {
 				.verify(Duration.ofSeconds(555L));
 	}
 
-	//	TODO: After Spring 5.0.6 or later release will be included to Spring Boot (see SPR-16744),
-	// remove spring 5.0.6 BUILD-SNAPSHORT from dependencies. Otherwise this test will produce an exception.
 	@Test
 	public void sseAsEventOfJson() {
 		Flux<ServerSentEvent<Person>> result = this.getWebClient().get()
