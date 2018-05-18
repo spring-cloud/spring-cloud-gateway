@@ -47,6 +47,13 @@ public class DiscoveryLocatorProperties {
 	/** SpEL expression that create the uri for each route, defaults to: 'lb://'+serviceId */
 	private String urlExpression = "'lb://'+serviceId";
 
+	/**
+	 * Option to lower case serviceId in predicates and filters, defaults to false.
+	 * Useful with eureka when it automatically uppercases serviceId.
+	 * so MYSERIVCE, would match /myservice/**
+	 */
+	private boolean lowerCaseServiceId = false;
+
 	private List<PredicateDefinition> predicates = new ArrayList<>();
 
 	private List<FilterDefinition> filters = new ArrayList<>();
@@ -83,6 +90,14 @@ public class DiscoveryLocatorProperties {
 		this.urlExpression = urlExpression;
 	}
 
+	public boolean isLowerCaseServiceId() {
+		return lowerCaseServiceId;
+	}
+
+	public void setLowerCaseServiceId(boolean lowerCaseServiceId) {
+		this.lowerCaseServiceId = lowerCaseServiceId;
+	}
+
 	public List<PredicateDefinition> getPredicates() {
 		return predicates;
 	}
@@ -106,6 +121,7 @@ public class DiscoveryLocatorProperties {
 				.append("routeIdPrefix", routeIdPrefix)
 				.append("includeExpression", includeExpression)
 				.append("urlExpression", urlExpression)
+				.append("lowerCaseServiceId", lowerCaseServiceId)
 				.append("predicates", predicates)
 				.append("filters", filters)
 				.toString();

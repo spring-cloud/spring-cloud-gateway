@@ -14,56 +14,36 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.gateway.mvc;
+package org.springframework.cloud.gateway.webflux;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.lang.reflect.Type;
-import java.lang.reflect.TypeVariable;
-import java.lang.reflect.WildcardType;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Enumeration;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
-import java.util.Vector;
 import java.util.function.Function;
 
-import javax.servlet.ReadListener;
-import javax.servlet.ServletInputStream;
-import javax.servlet.ServletOutputStream;
-import javax.servlet.WriteListener;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletRequestWrapper;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpServletResponseWrapper;
+import org.reactivestreams.Publisher;
 
-import org.springframework.core.Conventions;
-import org.springframework.core.MethodParameter;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.RequestEntity.BodyBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.http.converter.HttpMessageNotWritableException;
-import org.springframework.util.ClassUtils;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.support.WebDataBinderFactory;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.context.request.NativeWebRequest;
-import org.springframework.web.context.request.ServletWebRequest;
-import org.springframework.web.context.request.WebRequest;
-import org.springframework.web.method.support.ModelAndViewContainer;
-import org.springframework.web.servlet.HandlerMapping;
-import org.springframework.web.servlet.mvc.method.annotation.RequestResponseBodyMethodProcessor;
+import org.springframework.web.reactive.BindingContext;
+import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.reactive.function.client.ClientResponse;
+import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClient.RequestBodySpec;
+import org.springframework.web.server.ServerWebExchange;
+
+import reactor.core.publisher.Mono;
 
 /**
  * A <code>@RequestMapping</code> argument type that can proxy the request to a backend.
@@ -73,7 +53,7 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestResponseBody
  * 
  * <pre>
  * &#64;GetMapping("/proxy/{id}")
- * public ResponseEntity&lt;?&gt; proxy(@PathVariable Integer id, ProxyExchange&lt;?&gt; proxy)
+ * public Mono&lt;ResponseEntity&lt;?&gt;&gt; proxy(@PathVariable Integer id, ProxyExchange&lt;?&gt; proxy)
  * 		throws Exception {
  * 	return proxy.uri("http://localhost:9000/foos/" + id).get();
  * }
@@ -92,7 +72,8 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestResponseBody
  * the response body, so it comes out in the {@link ResponseEntity} that you return from
  * your <code>@RequestMapping</code>. If you don't care about the type of the request and
  * response body (e.g. if it's just a passthru) then use a wildcard, or
- * <code>byte[]</code> or <code>Object</code>. Use a concrete type if you want to
+ * <code>byte[]</code> (<code>Object</code> probably won't work unless you provide a converter). 
+ * Use a concrete type if you want to
  * transform or manipulate the response, or if you want to assert that it is convertible
  * to the type you declare.
  * </p>
@@ -102,7 +83,7 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestResponseBody
  * 
  * <pre>
  * &#64;PostMapping("/proxy")
- * public ResponseEntity&lt;Foo&gt; proxy(ProxyExchange&lt;Foo&gt; proxy) throws Exception {
+ * public Mono&lt;ResponseEntity&lt;Foo&gt;&gt; proxy(ProxyExchange&lt;Foo&gt; proxy) throws Exception {
  * 	return proxy.uri("http://localhost:9000/foos/") //
  * 			.post(response -> ResponseEntity.status(response.getStatusCode()) //
  * 					.headers(response.getHeaders()) //
@@ -118,13 +99,9 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestResponseBody
  * The full machinery of Spring {@link HttpMessageConverter message converters} is applied
  * to the incoming request and response and also to the backend request. If you need
  * additional converters then they need to be added upstream in the MVC configuration and
- * also to the {@link RestTemplate} that is used in the backend calls (see the
- * {@link ProxyExchange#ProxyExchange(RestTemplate, NativeWebRequest, ModelAndViewContainer, WebDataBinderFactory, Type)
+ * also to the {@link WebClient} that is used in the backend calls (see the
+ * {@link ProxyExchange#ProxyExchange(WebClient, ServerWebExchange, BindingContext, Type)
  * constructor} for details).
- * </p>
- * <p>
- * As well as the HTTP methods for a backend call you can also use
- * {@link #forward(String)} for a local in-container dispatch.
  * </p>
  * 
  * @author Dave Syer
@@ -137,17 +114,14 @@ public class ProxyExchange<T> {
 
 	private URI uri;
 
-	private RestTemplate rest;
+	private WebClient rest;
 
-	private Object body;
+	private Publisher<Object> body;
 
-	private RequestResponseBodyMethodProcessor delegate;
-
-	private NativeWebRequest webRequest;
-
-	private ModelAndViewContainer mavContainer;
-
-	private WebDataBinderFactory binderFactory;
+	private boolean hasBody = false;
+	
+	private ServerWebExchange exchange;
+	private BindingContext bindingContext;
 
 	private Set<String> sensitive;
 
@@ -155,16 +129,12 @@ public class ProxyExchange<T> {
 
 	private Type responseType;
 
-	public ProxyExchange(RestTemplate rest, NativeWebRequest webRequest,
-			ModelAndViewContainer mavContainer, WebDataBinderFactory binderFactory,
-			Type type) {
+	public ProxyExchange(WebClient rest, ServerWebExchange exchange,
+			BindingContext bindingContext, Type type) {
+		this.exchange = exchange;
+		this.bindingContext = bindingContext;
 		this.responseType = type;
 		this.rest = rest;
-		this.webRequest = webRequest;
-		this.mavContainer = mavContainer;
-		this.binderFactory = binderFactory;
-		this.delegate = new RequestResponseBodyMethodProcessor(
-				rest.getMessageConverters());
 	}
 
 	/**
@@ -178,7 +148,23 @@ public class ProxyExchange<T> {
 	 * @return this for convenience
 	 */
 	public ProxyExchange<T> body(Object body) {
-		this.body = body;
+		this.body = Mono.just(body);
+		return this;
+	}
+
+	/**
+	 * Sets the body for the downstream request (if using {@link #post()}, {@link #put()}
+	 * or {@link #patch()}). The body can be omitted if you just want to pass the incoming
+	 * request downstream without changing it. If you want to transform the incoming
+	 * request you can declare it as a <code>@RequestBody</code> in your
+	 * <code>@RequestMapping</code> in the usual Spring MVC way.
+	 * 
+	 * @param body the request body to send downstream
+	 * @return this for convenience
+	 */
+	@SuppressWarnings("unchecked")
+	public ProxyExchange<T> body(Publisher<?> body) {
+		this.body = (Publisher<Object>) body;
 		return this;
 	}
 
@@ -240,9 +226,7 @@ public class ProxyExchange<T> {
 	}
 
 	public String path() {
-		return (String) this.webRequest.getAttribute(
-				HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE,
-				WebRequest.SCOPE_REQUEST);
+		return exchange.getRequest().getPath().pathWithinApplication().value();
 	}
 
 	public String path(String prefix) {
@@ -254,104 +238,112 @@ public class ProxyExchange<T> {
 		return path.substring(prefix.length());
 	}
 
-	public void forward(String path) {
-		HttpServletRequest request = this.webRequest
-				.getNativeRequest(HttpServletRequest.class);
-		HttpServletResponse response = this.webRequest
-				.getNativeResponse(HttpServletResponse.class);
-		try {
-			request.getRequestDispatcher(path).forward(
-					new BodyForwardingHttpServletRequest(request, response), response);
-		}
-		catch (Exception e) {
-			throw new IllegalStateException("Cannot forward request", e);
-		}
-	}
-
-	public ResponseEntity<T> get() {
+	public Mono<ResponseEntity<T>> get() {
 		RequestEntity<?> requestEntity = headers((BodyBuilder) RequestEntity.get(uri))
 				.build();
 		return exchange(requestEntity);
 	}
 
-	public <S> ResponseEntity<S> get(
+	public <S> Mono<ResponseEntity<S>> get(
 			Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
-		return converter.apply(get());
+		return get().map(converter::apply);
 	}
 
-	public ResponseEntity<T> head() {
+	public Mono<ResponseEntity<T>> head() {
 		RequestEntity<?> requestEntity = headers((BodyBuilder) RequestEntity.head(uri))
 				.build();
 		return exchange(requestEntity);
 	}
 
-	public <S> ResponseEntity<S> head(
+	public <S> Mono<ResponseEntity<S>> head(
 			Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
-		return converter.apply(head());
+		return head().map(converter::apply);
 	}
 
-	public ResponseEntity<T> options() {
+	public Mono<ResponseEntity<T>> options() {
 		RequestEntity<?> requestEntity = headers((BodyBuilder) RequestEntity.options(uri))
 				.build();
 		return exchange(requestEntity);
 	}
 
-	public <S> ResponseEntity<S> options(
+	public <S> Mono<ResponseEntity<S>> options(
 			Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
-		return converter.apply(options());
+		return options().map(converter::apply);
 	}
 
-	public ResponseEntity<T> post() {
+	public Mono<ResponseEntity<T>> post() {
 		RequestEntity<Object> requestEntity = headers(RequestEntity.post(uri))
 				.body(body());
 		return exchange(requestEntity);
 	}
 
-	public <S> ResponseEntity<S> post(
+	public <S> Mono<ResponseEntity<S>> post(
 			Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
-		return converter.apply(post());
+		return post().map(converter::apply);
 	}
 
-	public ResponseEntity<T> delete() {
+	public Mono<ResponseEntity<T>> delete() {
 		RequestEntity<Void> requestEntity = headers(
 				(BodyBuilder) RequestEntity.delete(uri)).build();
 		return exchange(requestEntity);
 	}
 
-	public <S> ResponseEntity<S> delete(
+	public <S> Mono<ResponseEntity<S>> delete(
 			Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
-		return converter.apply(delete());
+		return delete().map(converter::apply);
 	}
 
-	public ResponseEntity<T> put() {
+	public Mono<ResponseEntity<T>> put() {
 		RequestEntity<Object> requestEntity = headers(RequestEntity.put(uri))
 				.body(body());
 		return exchange(requestEntity);
 	}
 
-	public <S> ResponseEntity<S> put(
+	public <S> Mono<ResponseEntity<S>> put(
 			Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
-		return converter.apply(put());
+		return put().map(converter::apply);
 	}
 
-	public ResponseEntity<T> patch() {
+	public Mono<ResponseEntity<T>> patch() {
 		RequestEntity<Object> requestEntity = headers(RequestEntity.patch(uri))
 				.body(body());
 		return exchange(requestEntity);
 	}
 
-	public <S> ResponseEntity<S> patch(
+	public <S> Mono<ResponseEntity<S>> patch(
 			Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
-		return converter.apply(patch());
+		return patch().map(converter::apply);
 	}
 
-	private ResponseEntity<T> exchange(RequestEntity<?> requestEntity) {
+	private Mono<ResponseEntity<T>> exchange(RequestEntity<?> requestEntity) {
 		Type type = this.responseType;
-		if (type instanceof TypeVariable || type instanceof WildcardType) {
-			type = Object.class;
+		RequestBodySpec builder = rest.method(requestEntity.getMethod())
+				.uri(requestEntity.getUrl())
+				.headers(headers -> headers.addAll(requestEntity.getHeaders()));
+		Mono<ClientResponse> result;
+		if (requestEntity.getBody() instanceof Publisher) {
+			@SuppressWarnings("unchecked")
+			Publisher<Object> publisher = (Publisher<Object>) requestEntity.getBody();
+			result = builder.body(publisher, Object.class).exchange();
 		}
-		return rest.exchange(requestEntity,
-				ParameterizedTypeReference.forType(responseType));
+		else if (requestEntity.getBody() != null) {
+			result = builder.body(BodyInserters.fromObject(requestEntity.getBody()))
+					.exchange();
+		}
+		else {
+			if (hasBody) {
+				result = builder.headers(
+						headers -> headers.addAll(exchange.getRequest().getHeaders()))
+						.body(exchange.getRequest().getBody(), DataBuffer.class)
+						.exchange();
+			}
+			else {
+				result = builder.headers(
+						headers -> headers.addAll(exchange.getRequest().getHeaders()))
+						.exchange();
+			}
+		}
+		return result.flatMap(response -> response.toEntity(ParameterizedTypeReference.forType(type)));
 	}
 
 	private BodyBuilder headers(BodyBuilder builder) {
@@ -370,16 +362,9 @@ public class ProxyExchange<T> {
 	}
 
 	private void proxy() {
-		try {
-			URI uri = new URI(webRequest.getNativeRequest(HttpServletRequest.class)
-					.getRequestURL().toString());
-			appendForwarded(uri);
-			appendXForwarded(uri);
-		}
-		catch (URISyntaxException e) {
-			throw new IllegalStateException("Cannot create URI for request: " + webRequest
-					.getNativeRequest(HttpServletRequest.class).getRequestURL());
-		}
+		URI uri = exchange.getRequest().getURI();
+		appendForwarded(uri);
+		appendXForwarded(uri);
 	}
 
 	private void appendXForwarded(URI uri) {
@@ -417,11 +402,13 @@ public class ProxyExchange<T> {
 		return String.format("host=%s;proto=%s", uri.getHost(), uri.getScheme());
 	}
 
-	private Object body() {
+	private Publisher<?> body() {
+		Publisher<?> body = this.body;
 		if (body != null) {
 			return body;
 		}
 		body = getRequestBody();
+		hasBody = true; // even if it's null
 		return body;
 	}
 
@@ -432,175 +419,28 @@ public class ProxyExchange<T> {
 	 * 
 	 * @return the request body
 	 */
-	private Object getRequestBody() {
-		for (String key : mavContainer.getModel().keySet()) {
+	private Mono<Object> getRequestBody() {
+		for (String key : bindingContext.getModel().asMap().keySet()) {
 			if (key.startsWith(BindingResult.MODEL_KEY_PREFIX)) {
-				BindingResult result = (BindingResult) mavContainer.getModel().get(key);
-				return result.getTarget();
+				BindingResult result = (BindingResult) bindingContext.getModel().asMap()
+						.get(key);
+				return Mono.just(result.getTarget());
 			}
 		}
-		MethodParameter input = new MethodParameter(
-				ClassUtils.getMethod(BodyGrabber.class, "body", Object.class), 0);
-		try {
-			delegate.resolveArgument(input, mavContainer, webRequest, binderFactory);
-		}
-		catch (Exception e) {
-			throw new IllegalStateException("Cannot resolve body", e);
-		}
-		String name = Conventions.getVariableNameForParameter(input);
-		BindingResult result = (BindingResult) mavContainer.getModel()
-				.get(BindingResult.MODEL_KEY_PREFIX + name);
-		return result.getTarget();
-	}
-
-	/**
-	 * A servlet request wrapper that can be safely passed downstream to an internal
-	 * forward dispatch, caching its body, and making it available in converted form using
-	 * Spring message converters.
-	 *
-	 */
-	class BodyForwardingHttpServletRequest extends HttpServletRequestWrapper {
-		private HttpServletRequest request;
-		private HttpServletResponse response;
-
-		BodyForwardingHttpServletRequest(HttpServletRequest request,
-				HttpServletResponse response) {
-			super(request);
-			this.request = request;
-			this.response = response;
-		}
-
-		private List<String> header(String name) {
-			List<String> list = headers.get(name);
-			return list;
-		}
-
-		@Override
-		public ServletInputStream getInputStream() throws IOException {
-			Object body = body();
-			MethodParameter output = new MethodParameter(
-					ClassUtils.getMethod(BodySender.class, "body"), -1);
-			ServletOutputToInputConverter response = new ServletOutputToInputConverter(
-					this.response);
-			ServletWebRequest webRequest = new ServletWebRequest(this.request, response);
-			try {
-				delegate.handleReturnValue(body, output, mavContainer, webRequest);
-			}
-			catch (HttpMessageNotWritableException
-					| HttpMediaTypeNotAcceptableException e) {
-				throw new IllegalStateException("Cannot convert body", e);
-			}
-			return response.getInputStream();
-		}
-
-		@Override
-		public Enumeration<String> getHeaderNames() {
-			Set<String> names = headers.keySet();
-			if (names.isEmpty()) {
-				return super.getHeaderNames();
-			}
-			Set<String> result = new LinkedHashSet<>(names);
-			result.addAll(Collections.list(super.getHeaderNames()));
-			return new Vector<String>(result).elements();
-		}
-
-		@Override
-		public Enumeration<String> getHeaders(String name) {
-			List<String> list = header(name);
-			if (list != null) {
-				return new Vector<String>(list).elements();
-			}
-			return super.getHeaders(name);
-		}
-
-		@Override
-		public String getHeader(String name) {
-			List<String> list = header(name);
-			if (list != null && !list.isEmpty()) {
-				return list.iterator().next();
-			}
-			return super.getHeader(name);
-		}
+		return null;
 	}
 
 	protected static class BodyGrabber {
-		public Object body(@RequestBody Object body) {
+		public Publisher<Object> body(@RequestBody Publisher<Object> body) {
 			return body;
 		}
 	}
 
 	protected static class BodySender {
 		@ResponseBody
-		public Object body() {
+		public Publisher<Object> body() {
 			return null;
 		}
-	}
-
-}
-
-/**
- * Convenience class that converts an incoming request input stream into a form that can
- * be easily deserialized to a Java object using Spring message converters. It is only
- * used in a local forward dispatch, in which case there is a danger that the request body
- * will need to be read and analysed more than once. Apart from using the message
- * converters the other main feature of this class is that the request body is cached and
- * can be read repeatedly as necessary.
- * 
- * @author Dave Syer
- *
- */
-class ServletOutputToInputConverter extends HttpServletResponseWrapper {
-
-	private StringBuilder builder = new StringBuilder();
-
-	public ServletOutputToInputConverter(HttpServletResponse response) {
-		super(response);
-	}
-
-	@Override
-	public ServletOutputStream getOutputStream() throws IOException {
-		return new ServletOutputStream() {
-
-			@Override
-			public void write(int b) throws IOException {
-				builder.append(new Character((char) b));
-			}
-
-			@Override
-			public void setWriteListener(WriteListener listener) {
-			}
-
-			@Override
-			public boolean isReady() {
-				return true;
-			}
-		};
-	}
-
-	public ServletInputStream getInputStream() {
-		ByteArrayInputStream body = new ByteArrayInputStream(
-				builder.toString().getBytes());
-		return new ServletInputStream() {
-
-			@Override
-			public int read() throws IOException {
-				return body.read();
-			}
-
-			@Override
-			public void setReadListener(ReadListener listener) {
-			}
-
-			@Override
-			public boolean isReady() {
-				return true;
-			}
-
-			@Override
-			public boolean isFinished() {
-				return body.available() <= 0;
-			}
-		};
 	}
 
 }
