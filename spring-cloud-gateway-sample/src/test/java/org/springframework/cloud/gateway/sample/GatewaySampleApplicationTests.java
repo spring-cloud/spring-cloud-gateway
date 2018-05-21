@@ -18,6 +18,7 @@
 package org.springframework.cloud.gateway.sample;
 
 import java.time.Duration;
+import java.util.Map;
 
 import com.netflix.loadbalancer.Server;
 import com.netflix.loadbalancer.ServerList;
@@ -41,6 +42,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.util.SocketUtils;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 /**
@@ -83,6 +85,36 @@ public class GatewaySampleApplicationTests {
 				.uri("/get")
 				.exchange()
 				.expectStatus().isOk();
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void rewriteRequestBodyStringWorks() {
+		webClient.post()
+				.uri("/post")
+				.header("Host", "www.rewriterequestupper.org")
+				.syncBody("hello")
+				.exchange()
+				.expectStatus().isOk()
+				.expectBody(Map.class)
+				.consumeWith(result -> {
+					assertThat(result.getResponseBody()).containsEntry("data", "HELLO");
+				});
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void rewriteRequestBodyObjectWorks() {
+		webClient.post()
+				.uri("/post")
+				.header("Host", "www.rewriterequestobj.org")
+				.syncBody("hello")
+				.exchange()
+				.expectStatus().isOk()
+				.expectBody(Map.class)
+				.consumeWith(result -> {
+					assertThat(result.getResponseBody()).containsEntry("data", "{\"message\":\"HELLO\"}");
+				});
 	}
 
 	@Test

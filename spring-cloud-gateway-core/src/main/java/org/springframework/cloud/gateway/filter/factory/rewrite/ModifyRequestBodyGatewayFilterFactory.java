@@ -18,24 +18,21 @@
 package org.springframework.cloud.gateway.filter.factory.rewrite;
 
 import java.util.Map;
-import java.util.Optional;
+import java.util.logging.Level;
 
-import org.reactivestreams.Publisher;
+import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.reactive.function.client.ClientRequest;
+import org.springframework.web.reactive.function.client.ExchangeStrategies;
+import org.springframework.web.reactive.function.server.ServerRequest;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
-import org.springframework.core.ResolvableType;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.codec.HttpMessageReader;
-import org.springframework.http.codec.HttpMessageWriter;
 import org.springframework.http.codec.ServerCodecConfigurer;
 import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
-
-import static org.springframework.cloud.gateway.filter.factory.rewrite.RewriteUtils.process;
 
 /**
  * This filter is BETA and may be subject to change in a future release.
@@ -56,57 +53,40 @@ public class ModifyRequestBodyGatewayFilterFactory
 		return (exchange, chain) -> {
 			Class inClass = config.getInClass();
 
-			MediaType mediaType = exchange.getRequest().getHeaders().getContentType();
-			ResolvableType inElementType = ResolvableType.forClass(inClass);
-			Optional<HttpMessageReader<?>> reader = RewriteUtils.getHttpMessageReader(codecConfigurer, inElementType, mediaType);
+			ServerRequest serverRequest = new DefaultServerRequest(exchange);
+			Mono<?> mono = serverRequest.bodyToMono(inClass)
+					// .cast(Object.class)
+					.map(o -> config.rewriteFunction.apply(exchange, o));
 
-			if (reader.isPresent()) {
-				Mono<Object> readMono = reader.get()
-						.readMono(inElementType, exchange.getRequest(), config.getInHints())
-						.cast(Object.class);
-
-				return process(readMono, peek -> {
-					ResolvableType outElementType = ResolvableType
-							.forClass(config.getOutClass());
-					Optional<HttpMessageWriter<?>> writer = RewriteUtils.getHttpMessageWriter(codecConfigurer, outElementType, mediaType);
-
-					if (writer.isPresent()) {
-						Object data = config.rewriteFunction.apply(exchange, peek);
-
-						//TODO: deal with multivalue? ie Flux
-						Publisher publisher = Mono.just(data);
-
-						HttpMessageWriterResponse fakeResponse = new HttpMessageWriterResponse(exchange.getResponse().bufferFactory());
-						writer.get().write(publisher, inElementType, mediaType,
-								fakeResponse, config.getOutHints());
-						ServerHttpRequestDecorator decorator = new ServerHttpRequestDecorator(
-								exchange.getRequest()) {
-							@Override
-							public HttpHeaders getHeaders() {
-								HttpHeaders httpHeaders = new HttpHeaders();
-								httpHeaders.putAll(super.getHeaders());
-								// TODO: this causes a 'HTTP/1.1 411 Length Required' on
-								// httpbin.org
-								httpHeaders.set(HttpHeaders.TRANSFER_ENCODING, "chunked");
-								if (fakeResponse.getHeaders().getContentType() != null) {
-									httpHeaders.setContentType(
-											fakeResponse.getHeaders().getContentType());
-								}
-								return httpHeaders;
-							}
-
-							@Override
-							public Flux<DataBuffer> getBody() {
-								return (Flux<DataBuffer>) fakeResponse.getBody();
-							}
-						};
-						return chain.filter(exchange.mutate().request(decorator).build());
+			ClientRequest clientRequest = new DefaultClientRequest(exchange, BodyInserters.fromPublisher(mono, config.getOutClass()));
+			CachedBodyClientHttpRequest clientHttpRequest = new CachedBodyClientHttpRequest(exchange);
+			return clientRequest.writeTo(clientHttpRequest, ExchangeStrategies.withDefaults())
+					.log("modify_request", Level.INFO)
+					.then(Mono.defer(() -> {
+				ServerHttpRequestDecorator decorator = new ServerHttpRequestDecorator(
+						exchange.getRequest()) {
+					@Override
+					public HttpHeaders getHeaders() {
+						HttpHeaders httpHeaders = new HttpHeaders();
+						httpHeaders.putAll(super.getHeaders());
+						// TODO: this causes a 'HTTP/1.1 411 Length Required' on
+						// httpbin.org
+						httpHeaders.set(HttpHeaders.TRANSFER_ENCODING, "chunked");
+						/*if (fakeResponse.getHeaders().getContentType() != null) {
+							httpHeaders.setContentType(
+									fakeResponse.getHeaders().getContentType());
+						}*/
+						return httpHeaders;
 					}
-					return chain.filter(exchange);
-				});
 
-			}
-			return chain.filter(exchange);
+					@Override
+					public Flux<DataBuffer> getBody() {
+						return clientHttpRequest.getBody();
+					}
+				};
+				return chain.filter(exchange.mutate().request(decorator).build());
+			}));
+
 		};
 	}
 

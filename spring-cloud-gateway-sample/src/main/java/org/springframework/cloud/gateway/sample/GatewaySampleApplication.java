@@ -28,6 +28,7 @@ import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.server.RequestPredicates;
 import org.springframework.web.reactive.function.server.RouterFunction;
@@ -67,7 +68,8 @@ public class GatewaySampleApplication {
 				)
 				.route("rewrite_request_obj", r -> r.host("*.rewriterequestobj.org")
 					.filters(f -> f.prefixPath("/httpbin")
-									.addRequestHeader("X-TestHeader", "rewrite_request")
+							.setRequestHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                            .addRequestHeader("X-TestHeader", "rewrite_request")
 							.modifyRequestBody(String.class, Hello.class,
 									(exchange, s) -> {
                                         return new Hello(s.toUpperCase());
