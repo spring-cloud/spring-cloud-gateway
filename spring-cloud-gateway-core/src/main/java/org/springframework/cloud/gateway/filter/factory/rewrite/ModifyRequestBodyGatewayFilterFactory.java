@@ -61,31 +61,31 @@ public class ModifyRequestBodyGatewayFilterFactory
 			ClientRequest clientRequest = new DefaultClientRequest(exchange, BodyInserters.fromPublisher(mono, config.getOutClass()));
 			CachedBodyClientHttpRequest clientHttpRequest = new CachedBodyClientHttpRequest(exchange);
 			return clientRequest.writeTo(clientHttpRequest, ExchangeStrategies.withDefaults())
-					.log("modify_request", Level.INFO)
+					// .log("modify_request", Level.INFO)
 					.then(Mono.defer(() -> {
-				ServerHttpRequestDecorator decorator = new ServerHttpRequestDecorator(
-						exchange.getRequest()) {
-					@Override
-					public HttpHeaders getHeaders() {
-						HttpHeaders httpHeaders = new HttpHeaders();
-						httpHeaders.putAll(super.getHeaders());
-						// TODO: this causes a 'HTTP/1.1 411 Length Required' on
-						// httpbin.org
-						httpHeaders.set(HttpHeaders.TRANSFER_ENCODING, "chunked");
-						/*if (fakeResponse.getHeaders().getContentType() != null) {
-							httpHeaders.setContentType(
-									fakeResponse.getHeaders().getContentType());
-						}*/
-						return httpHeaders;
-					}
+						ServerHttpRequestDecorator decorator = new ServerHttpRequestDecorator(
+								exchange.getRequest()) {
+							@Override
+							public HttpHeaders getHeaders() {
+								HttpHeaders httpHeaders = new HttpHeaders();
+								httpHeaders.putAll(super.getHeaders());
+								// TODO: this causes a 'HTTP/1.1 411 Length Required' on
+								// httpbin.org
+								httpHeaders.set(HttpHeaders.TRANSFER_ENCODING, "chunked");
+                                /*if (fakeResponse.getHeaders().getContentType() != null) {
+                                    httpHeaders.setContentType(
+                                            fakeResponse.getHeaders().getContentType());
+                                }*/
+								return httpHeaders;
+							}
 
-					@Override
-					public Flux<DataBuffer> getBody() {
-						return clientHttpRequest.getBody();
-					}
-				};
-				return chain.filter(exchange.mutate().request(decorator).build());
-			}));
+							@Override
+							public Flux<DataBuffer> getBody() {
+								return clientHttpRequest.getBody();
+							}
+						};
+						return chain.filter(exchange.mutate().request(decorator).build());
+					}));
 
 		};
 	}
@@ -139,7 +139,7 @@ public class ModifyRequestBodyGatewayFilterFactory
 		}
 
 		public <T, R> Config setRewriteFunction(Class<T> inClass, Class<R> outClass,
-				RewriteFunction<T, R> rewriteFunction) {
+												RewriteFunction<T, R> rewriteFunction) {
 			setInClass(inClass);
 			setOutClass(outClass);
 			setRewriteFunction(rewriteFunction);
