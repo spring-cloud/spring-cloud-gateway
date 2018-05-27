@@ -18,12 +18,7 @@
 package org.springframework.cloud.gateway.filter.factory.rewrite;
 
 import java.util.Map;
-import java.util.logging.Level;
 
-import org.springframework.web.reactive.function.BodyInserters;
-import org.springframework.web.reactive.function.client.ClientRequest;
-import org.springframework.web.reactive.function.client.ExchangeStrategies;
-import org.springframework.web.reactive.function.server.ServerRequest;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -33,6 +28,10 @@ import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.codec.ServerCodecConfigurer;
 import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
+import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.reactive.function.client.ClientRequest;
+import org.springframework.web.reactive.function.client.ExchangeStrategies;
+import org.springframework.web.reactive.function.server.ServerRequest;
 
 /**
  * This filter is BETA and may be subject to change in a future release.
@@ -40,11 +39,13 @@ import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
 public class ModifyRequestBodyGatewayFilterFactory
 		extends AbstractGatewayFilterFactory<ModifyRequestBodyGatewayFilterFactory.Config> {
 
-	private final ServerCodecConfigurer codecConfigurer;
-
-	public ModifyRequestBodyGatewayFilterFactory(ServerCodecConfigurer codecConfigurer) {
+	public ModifyRequestBodyGatewayFilterFactory() {
 		super(Config.class);
-		this.codecConfigurer = codecConfigurer;
+	}
+
+	@Deprecated
+	public ModifyRequestBodyGatewayFilterFactory(ServerCodecConfigurer codecConfigurer) {
+		this();
 	}
 
 	@Override
@@ -55,8 +56,7 @@ public class ModifyRequestBodyGatewayFilterFactory
 
 			ServerRequest serverRequest = new DefaultServerRequest(exchange);
 			Mono<?> mono = serverRequest.bodyToMono(inClass)
-					// .cast(Object.class)
-					.map(o -> config.rewriteFunction.apply(exchange, o));
+					.flatMap(o -> config.rewriteFunction.apply(exchange, o));
 
 			ClientRequest clientRequest = new DefaultClientRequest(exchange, BodyInserters.fromPublisher(mono, config.getOutClass()));
 			CachedBodyClientHttpRequest clientHttpRequest = new CachedBodyClientHttpRequest(exchange);
@@ -69,13 +69,8 @@ public class ModifyRequestBodyGatewayFilterFactory
 							public HttpHeaders getHeaders() {
 								HttpHeaders httpHeaders = new HttpHeaders();
 								httpHeaders.putAll(super.getHeaders());
-								// TODO: this causes a 'HTTP/1.1 411 Length Required' on
-								// httpbin.org
+								// TODO: this causes a 'HTTP/1.1 411 Length Required' on httpbin.org
 								httpHeaders.set(HttpHeaders.TRANSFER_ENCODING, "chunked");
-                                /*if (fakeResponse.getHeaders().getContentType() != null) {
-                                    httpHeaders.setContentType(
-                                            fakeResponse.getHeaders().getContentType());
-                                }*/
 								return httpHeaders;
 							}
 

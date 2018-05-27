@@ -89,6 +89,21 @@ public class GatewaySampleApplicationTests {
 
 	@Test
 	@SuppressWarnings("unchecked")
+	public void readBodyPredicateStringWorks() {
+		webClient.post()
+				.uri("/post")
+				.header("Host", "www.readbody.org")
+				.syncBody("hello")
+				.exchange()
+				.expectStatus().isOk()
+				.expectHeader().valueEquals("X-TestHeader", "read_body_pred")
+				.expectBody(Map.class)
+				.consumeWith(result ->
+						assertThat(result.getResponseBody()).containsEntry("data", "hello"));
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
 	public void rewriteRequestBodyStringWorks() {
 		webClient.post()
 				.uri("/post")
@@ -96,10 +111,10 @@ public class GatewaySampleApplicationTests {
 				.syncBody("hello")
 				.exchange()
 				.expectStatus().isOk()
+				.expectHeader().valueEquals("X-TestHeader", "rewrite_request_upper")
 				.expectBody(Map.class)
-				.consumeWith(result -> {
-					assertThat(result.getResponseBody()).containsEntry("data", "HELLO");
-				});
+				.consumeWith(result ->
+						assertThat(result.getResponseBody()).containsEntry("data", "HELLO"));
 	}
 
 	@Test
@@ -111,10 +126,10 @@ public class GatewaySampleApplicationTests {
 				.syncBody("hello")
 				.exchange()
 				.expectStatus().isOk()
+				.expectHeader().valueEquals("X-TestHeader", "rewrite_request")
 				.expectBody(Map.class)
-				.consumeWith(result -> {
-					assertThat(result.getResponseBody()).containsEntry("data", "{\"message\":\"HELLO\"}");
-				});
+				.consumeWith(result ->
+						assertThat(result.getResponseBody()).containsEntry("data", "{\"message\":\"HELLO\"}"));
 	}
 
 	@Test
