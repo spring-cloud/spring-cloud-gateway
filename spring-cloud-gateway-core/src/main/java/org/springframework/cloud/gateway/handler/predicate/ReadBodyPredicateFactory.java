@@ -22,6 +22,8 @@ import java.util.Optional;
 import java.util.function.Predicate;
 
 import org.reactivestreams.Publisher;
+import org.springframework.cloud.gateway.support.DefaultServerRequest;
+import org.springframework.web.reactive.function.server.ServerRequest;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.filter.factory.rewrite.HttpMessageWriterResponse;
@@ -53,8 +55,13 @@ public class ReadBodyPredicateFactory extends AbstractRoutePredicateFactory<Read
     @SuppressWarnings("unchecked")
     public Predicate<ServerWebExchange> apply(Config config) {
         return exchange -> {
+			/*Class inClass = config.getInClass();
+
+            ServerRequest serverRequest = new DefaultServerRequest(exchange);
+			Mono<?> mono = serverRequest.bodyToMono(inClass);*/
+
             MediaType mediaType = exchange.getRequest().getHeaders().getContentType();
-            ResolvableType elementType = ResolvableType.forClass(config.getInClass());
+			ResolvableType elementType = ResolvableType.forClass(config.getInClass());
             Optional<HttpMessageReader<?>> reader = getHttpMessageReader(codecConfigurer, elementType, mediaType);
             boolean answer = false;
             if (reader.isPresent()) {

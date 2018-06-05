@@ -21,6 +21,10 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.reactivestreams.Publisher;
+import org.springframework.cloud.gateway.support.DefaultServerResponse;
+import org.springframework.cloud.gateway.support.DefaultServerResponse.HandlerStrategiesResponseContext;
+import org.springframework.web.reactive.function.BodyInserter;
+import org.springframework.web.reactive.function.BodyInserters;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -75,8 +79,16 @@ public class ModifyResponseBodyGatewayFilterFactory
 				@Override
 				public Mono<Void> writeWith(Publisher<? extends DataBuffer> body) {
 
-					ResolvableType inElementType = ResolvableType.forClass(config.getInClass());
-					ResolvableType outElementType = ResolvableType.forClass(config.getOutClass());
+					Class inClass = config.getInClass();
+					Class outClass = config.getOutClass();
+
+					// BodyInserter bodyInserter = BodyInserters.fromPublisher(body, inClass);
+
+					DefaultServerResponse serverResponse = new DefaultServerResponse(exchange, BodyInserters.fromDataBuffers((Publisher<DataBuffer>) body), config.getInHints());
+					serverResponse.writeTo(exchange, new HandlerStrategiesResponseContext());
+
+					ResolvableType inElementType = ResolvableType.forClass(inClass);
+					ResolvableType outElementType = ResolvableType.forClass(outClass);
 					MediaType contentType = exchange.getResponse().getHeaders().getContentType();
 					Optional<HttpMessageReader<?>> reader = getHttpMessageReader(codecConfigurer, inElementType, contentType);
 					Optional<HttpMessageWriter<?>> writer = getHttpMessageWriter(codecConfigurer, outElementType, null);

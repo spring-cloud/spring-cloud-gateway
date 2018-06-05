@@ -15,7 +15,7 @@
  *
  */
 
-package org.springframework.cloud.gateway.filter.factory.rewrite;
+package org.springframework.cloud.gateway.support;
 
 import java.net.InetSocketAddress;
 import java.net.URI;
@@ -63,7 +63,7 @@ import org.springframework.web.util.UriComponentsBuilder;
  * @author Arjen Poutsma
  * @since 5.0
  */
-class DefaultServerRequest implements ServerRequest {
+public class DefaultServerRequest implements ServerRequest {
 
 	private static final Function<UnsupportedMediaTypeException, UnsupportedMediaTypeStatusException> ERROR_MAPPER =
 			ex -> (ex.getContentType() != null ?
@@ -77,11 +77,11 @@ class DefaultServerRequest implements ServerRequest {
 
 	private final List<HttpMessageReader<?>> messageReaders;
 
-	DefaultServerRequest(ServerWebExchange exchange) {
+	public DefaultServerRequest(ServerWebExchange exchange) {
 		this(exchange, HandlerStrategies.withDefaults().messageReaders());
 	}
 
-	DefaultServerRequest(ServerWebExchange exchange, List<HttpMessageReader<?>> messageReaders) {
+	public DefaultServerRequest(ServerWebExchange exchange, List<HttpMessageReader<?>> messageReaders) {
 		this.exchange = exchange;
 		this.messageReaders = Collections.unmodifiableList(new ArrayList<>(messageReaders));
 		this.headers = new DefaultHeaders();

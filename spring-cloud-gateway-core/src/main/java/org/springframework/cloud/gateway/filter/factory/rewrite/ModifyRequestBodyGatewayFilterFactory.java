@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.filter.factory.rewrite;
 
 import java.util.Map;
 
+import org.springframework.cloud.gateway.support.DefaultServerRequest;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
