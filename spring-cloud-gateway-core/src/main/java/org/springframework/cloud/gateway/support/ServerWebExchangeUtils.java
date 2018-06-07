@@ -19,9 +19,14 @@ package org.springframework.cloud.gateway.support;
 
 import java.net.URI;
 import java.util.LinkedHashSet;
+import java.util.Objects;
+import java.util.function.Predicate;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import reactor.core.publisher.Mono;
+
+import org.springframework.cloud.gateway.handler.AsyncPredicate;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -95,5 +100,10 @@ public class ServerWebExchangeUtils {
 		exchange.getAttributes().computeIfAbsent(GATEWAY_ORIGINAL_REQUEST_URL_ATTR, s -> new LinkedHashSet<>());
 		LinkedHashSet<URI> uris = exchange.getRequiredAttribute(GATEWAY_ORIGINAL_REQUEST_URL_ATTR);
 		uris.add(url);
+	}
+
+	public static AsyncPredicate<ServerWebExchange> toAsyncPredicate(Predicate<? super ServerWebExchange> predicate) {
+		Objects.requireNonNull(predicate, "predicate must not be null");
+		return t -> Mono.just(predicate.test(t));
 	}
 }

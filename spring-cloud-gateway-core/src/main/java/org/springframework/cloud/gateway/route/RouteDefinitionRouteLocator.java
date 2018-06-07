@@ -22,7 +22,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
@@ -38,6 +37,7 @@ import org.springframework.cloud.gateway.filter.FilterDefinition;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.OrderedGatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
+import org.springframework.cloud.gateway.handler.AsyncPredicate;
 import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
 import org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory;
 import org.springframework.cloud.gateway.support.ConfigurationUtils;
@@ -124,11 +124,11 @@ public class RouteDefinitionRouteLocator implements RouteLocator, BeanFactoryAwa
 	}
 
 	private Route convertToRoute(RouteDefinition routeDefinition) {
-		Predicate<ServerWebExchange> predicate = combinePredicates(routeDefinition);
+		AsyncPredicate<ServerWebExchange> predicate = combinePredicates(routeDefinition);
 		List<GatewayFilter> gatewayFilters = getFilters(routeDefinition);
 
-		return Route.builder(routeDefinition)
-				.predicate(predicate)
+		return Route.async(routeDefinition)
+				.asyncPredicate(predicate)
 				.replaceFilters(gatewayFilters)
 				.build();
 	}
@@ -192,12 +192,12 @@ public class RouteDefinitionRouteLocator implements RouteLocator, BeanFactoryAwa
 		return filters;
 	}
 
-	private Predicate<ServerWebExchange> combinePredicates(RouteDefinition routeDefinition) {
+	private AsyncPredicate<ServerWebExchange> combinePredicates(RouteDefinition routeDefinition) {
 		List<PredicateDefinition> predicates = routeDefinition.getPredicates();
-		Predicate<ServerWebExchange> predicate = lookup(routeDefinition, predicates.get(0));
+		AsyncPredicate<ServerWebExchange> predicate = lookup(routeDefinition, predicates.get(0));
 
 		for (PredicateDefinition andPredicate : predicates.subList(1, predicates.size())) {
-			Predicate<ServerWebExchange> found = lookup(routeDefinition, andPredicate);
+			AsyncPredicate<ServerWebExchange> found = lookup(routeDefinition, andPredicate);
 			predicate = predicate.and(found);
 		}
 
@@ -205,7 +205,7 @@ public class RouteDefinitionRouteLocator implements RouteLocator, BeanFactoryAwa
 	}
 
 	@SuppressWarnings("unchecked")
-	private Predicate<ServerWebExchange> lookup(RouteDefinition route, PredicateDefinition predicate) {
+	private AsyncPredicate<ServerWebExchange> lookup(RouteDefinition route, PredicateDefinition predicate) {
 		RoutePredicateFactory<Object> factory = this.predicates.get(predicate.getName());
 		if (factory == null) {
             throw new IllegalArgumentException("Unable to find RoutePredicateFactory with name " + predicate.getName());
@@ -223,6 +223,6 @@ public class RouteDefinitionRouteLocator implements RouteLocator, BeanFactoryAwa
         if (this.publisher != null) {
             this.publisher.publishEvent(new PredicateArgsEvent(this, route.getId(), properties));
         }
-        return factory.apply(config);
+        return factory.applyAsync(config);
 	}
 }
