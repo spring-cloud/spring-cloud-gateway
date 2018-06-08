@@ -33,7 +33,7 @@ public interface AsyncPredicate<T> extends Function<T, Publisher<Boolean>> {
 		Objects.requireNonNull(other, "other must not be null");
 
 		return t -> Flux.zip(apply(t), other.apply(t))
-				.flatMap(tuple -> Mono.just(tuple.getT1() && tuple.getT2()));
+				.map(tuple -> tuple.getT1() && tuple.getT2());
 	}
 
 	default AsyncPredicate<T> negate() {
@@ -44,7 +44,7 @@ public interface AsyncPredicate<T> extends Function<T, Publisher<Boolean>> {
 		Objects.requireNonNull(other, "other must not be null");
 
 		return t -> Flux.zip(apply(t), other.apply(t))
-				.flatMap(tuple -> Mono.just(tuple.getT1() || tuple.getT2()));
+				.map(tuple -> tuple.getT1() || tuple.getT2());
 	}
 
 }
