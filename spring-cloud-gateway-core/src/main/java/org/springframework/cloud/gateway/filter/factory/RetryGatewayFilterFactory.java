@@ -41,6 +41,8 @@ import org.springframework.util.Assert;
 import org.springframework.web.server.ServerWebExchange;
 
 public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<RetryGatewayFilterFactory.RetryConfig> {
+
+	public static final String RETRY_ITERATION_KEY = "retry_iteration";
 	private static final Log log = LogFactory.getLog(RetryGatewayFilterFactory.class);
 
 	public RetryGatewayFilterFactory() {
@@ -51,7 +53,7 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 	public GatewayFilter apply(RetryConfig retryConfig) {
 		retryConfig.validate();
 
-		Predicate<? super RepeatContext<ServerWebExchange>> predicate = context -> {
+		Predicate<RepeatContext<ServerWebExchange>> repeatPredicate = context -> {
 			ServerWebExchange exchange = context.applicationContext();
 			if (exceedsMaxIterations(exchange, retryConfig)) {
 				return false;
@@ -72,7 +74,7 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 			return retryableMethod && retryableStatusCode;
 		};
 
-		Repeat<ServerWebExchange> repeat = Repeat.onlyIf(predicate)
+		Repeat<ServerWebExchange> repeat = Repeat.onlyIf(repeatPredicate)
 				.doOnRepeat(context -> reset(context.applicationContext()));
 
 		//TODO: support timeout, backoff, jitter, etc... in Builder
@@ -97,7 +99,7 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 	}
 
 	public boolean exceedsMaxIterations(ServerWebExchange exchange, RetryConfig retryConfig) {
-		Integer iteration = exchange.getAttribute("retry_iteration");
+		Integer iteration = exchange.getAttribute(RETRY_ITERATION_KEY);
 
 		//TODO: deal with null iteration
 		return iteration != null && iteration >= retryConfig.getRetries();
@@ -117,10 +119,11 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 		return (exchange, chain) -> {
 			log.trace("Entering retry-filter");
 
-			int iteration = exchange.getAttributeOrDefault("retry_iteration", -1);
-			exchange.getAttributes().put("retry_iteration", iteration + 1);
-
 			return Mono.fromDirect(chain.filter(exchange)
+					.doOnSuccessOrError((aVoid, throwable) -> {
+						int iteration = exchange.getAttributeOrDefault(RETRY_ITERATION_KEY, -1);
+						exchange.getAttributes().put(RETRY_ITERATION_KEY, iteration + 1);
+					})
 					.log("retry-filter", Level.INFO)
 					.retryWhen(retry.withApplicationContext(exchange))
 					.repeatWhen(repeat.withApplicationContext(exchange)));
