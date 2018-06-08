@@ -124,7 +124,7 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 						int iteration = exchange.getAttributeOrDefault(RETRY_ITERATION_KEY, -1);
 						exchange.getAttributes().put(RETRY_ITERATION_KEY, iteration + 1);
 					})
-					.log("retry-filter", Level.INFO)
+					// .log("retry-filter", Level.INFO)
 					.retryWhen(retry.withApplicationContext(exchange))
 					.repeatWhen(repeat.withApplicationContext(exchange)));
 		};
