@@ -22,10 +22,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
-import java.util.logging.Level;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.reactivestreams.Publisher;
 import reactor.core.publisher.Mono;
 import reactor.retry.Repeat;
 import reactor.retry.RepeatContext;
@@ -53,49 +53,56 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 	public GatewayFilter apply(RetryConfig retryConfig) {
 		retryConfig.validate();
 
-		Predicate<RepeatContext<ServerWebExchange>> repeatPredicate = context -> {
-			ServerWebExchange exchange = context.applicationContext();
-			if (exceedsMaxIterations(exchange, retryConfig)) {
-				return false;
-			}
+		Repeat<ServerWebExchange> statusCodeRepeat = null;
+		if (!retryConfig.getStatuses().isEmpty() || !retryConfig.getSeries().isEmpty()) {
+			Predicate<RepeatContext<ServerWebExchange>> repeatPredicate = context -> {
+				ServerWebExchange exchange = context.applicationContext();
+				if (exceedsMaxIterations(exchange, retryConfig)) {
+					return false;
+				}
 
-			HttpStatus statusCode = exchange.getResponse().getStatusCode();
-			HttpMethod httpMethod = exchange.getRequest().getMethod();
+				HttpStatus statusCode = exchange.getResponse().getStatusCode();
+				HttpMethod httpMethod = exchange.getRequest().getMethod();
 
-			boolean retryableStatusCode = retryConfig.getStatuses().contains(statusCode);
+				boolean retryableStatusCode = retryConfig.getStatuses().contains(statusCode);
 
-			if (!retryableStatusCode && statusCode != null) { // null status code might mean a network exception?
-				// try the series
-				retryableStatusCode = retryConfig.getSeries().stream()
-						.anyMatch(series -> statusCode.series().equals(series));
-			}
+				if (!retryableStatusCode && statusCode != null) { // null status code might mean a network exception?
+					// try the series
+					retryableStatusCode = retryConfig.getSeries().stream()
+							.anyMatch(series -> statusCode.series().equals(series));
+				}
 
-			boolean retryableMethod = retryConfig.getMethods().contains(httpMethod);
-			return retryableMethod && retryableStatusCode;
-		};
+				boolean retryableMethod = retryConfig.getMethods().contains(httpMethod);
+				return retryableMethod && retryableStatusCode;
+			};
 
-		Repeat<ServerWebExchange> repeat = Repeat.onlyIf(repeatPredicate)
-				.doOnRepeat(context -> reset(context.applicationContext()));
+			statusCodeRepeat = Repeat.onlyIf(repeatPredicate)
+					.doOnRepeat(context -> reset(context.applicationContext()));
+		}
 
 		//TODO: support timeout, backoff, jitter, etc... in Builder
 
-		Predicate<RetryContext<ServerWebExchange>> retryContextPredicate = context -> {
-			if (exceedsMaxIterations(context.applicationContext(), retryConfig)) {
-				return false;
-			}
-
-			for (Class<? extends Throwable> clazz : retryConfig.getExceptions()) {
-				if (clazz.isInstance(context.exception())) {
-					return true;
+		Retry<ServerWebExchange> exceptionRetry = null;
+		if (!retryConfig.getExceptions().isEmpty()) {
+			Predicate<RetryContext<ServerWebExchange>> retryContextPredicate = context -> {
+				if (exceedsMaxIterations(context.applicationContext(), retryConfig)) {
+					return false;
 				}
-			}
-            return false;
-		};
 
-		Retry<ServerWebExchange> reactorRetry = Retry.onlyIf(retryContextPredicate)
-				.doOnRetry(context -> reset(context.applicationContext()))
-				.retryMax(retryConfig.getRetries());
-		return apply(repeat, reactorRetry);
+				for (Class<? extends Throwable> clazz : retryConfig.getExceptions()) {
+					if (clazz.isInstance(context.exception())) {
+						return true;
+					}
+				}
+				return false;
+			};
+			exceptionRetry = Retry.onlyIf(retryContextPredicate)
+					.doOnRetry(context -> reset(context.applicationContext()))
+					.retryMax(retryConfig.getRetries());
+		}
+
+
+		return apply(statusCodeRepeat, exceptionRetry);
 	}
 
 	public boolean exceedsMaxIterations(ServerWebExchange exchange, RetryConfig retryConfig) {
@@ -110,23 +117,32 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 		exchange.getAttributes().remove(ServerWebExchangeUtils.GATEWAY_ALREADY_ROUTED_ATTR);
 	}
 
-	@Deprecated
-	public GatewayFilter apply(Repeat<ServerWebExchange> repeat) {
-		return apply(repeat, Retry.onlyIf(ctxt -> false));
-	}
-
 	public GatewayFilter apply(Repeat<ServerWebExchange> repeat, Retry<ServerWebExchange> retry) {
 		return (exchange, chain) -> {
-			log.trace("Entering retry-filter");
+			if (log.isTraceEnabled()) {
+				log.trace("Entering retry-filter");
+			}
 
-			return Mono.fromDirect(chain.filter(exchange)
-					.doOnSuccessOrError((aVoid, throwable) -> {
-						int iteration = exchange.getAttributeOrDefault(RETRY_ITERATION_KEY, -1);
-						exchange.getAttributes().put(RETRY_ITERATION_KEY, iteration + 1);
-					})
-					// .log("retry-filter", Level.INFO)
-					.retryWhen(retry.withApplicationContext(exchange))
-					.repeatWhen(repeat.withApplicationContext(exchange)));
+			// chain.filter returns a Mono<Void>
+            Publisher<Void> publisher = chain.filter(exchange)
+                    //.log("retry-filter", Level.INFO)
+                    .doOnSuccessOrError((aVoid, throwable) -> {
+                        int iteration = exchange.getAttributeOrDefault(RETRY_ITERATION_KEY, -1);
+                        exchange.getAttributes().put(RETRY_ITERATION_KEY, iteration + 1);
+                    });
+
+            if (retry != null) {
+				// retryWhen returns a Mono<Void>
+				// retry needs to go before repeat
+				publisher = ((Mono<Void>)publisher).retryWhen(retry.withApplicationContext(exchange));
+			}
+			if (repeat != null) {
+            	// repeatWhen returns a Flux<Void>
+				// so this needs to be last and the variable a Publisher<Void>
+				publisher = ((Mono<Void>)publisher).repeatWhen(repeat.withApplicationContext(exchange));
+			}
+
+            return Mono.fromDirect(publisher);
 		};
 	}
 
@@ -178,8 +194,8 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 
 		public void validate() {
 			Assert.isTrue(this.retries > 0, "retries must be greater than 0");
-			Assert.isTrue(!this.series.isEmpty() || !this.statuses.isEmpty(),
-					"series and status may not both be empty");
+			Assert.isTrue(!this.series.isEmpty() || !this.statuses.isEmpty() || !this.exceptions.isEmpty(),
+					"series, status and exceptions may not all be empty");
 			Assert.notEmpty(this.methods, "methods may not be empty");
 		}
 
