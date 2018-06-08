@@ -234,11 +234,6 @@ public class GatewayFilterSpec extends UriSpec {
 		return filter(getBean(RetryGatewayFilterFactory.class).apply(repeat, retry));
 	}
 
-	@Deprecated
-	public GatewayFilterSpec retry(Repeat<ServerWebExchange> repeat) {
-		return filter(getBean(RetryGatewayFilterFactory.class).apply(repeat));
-	}
-
 	@SuppressWarnings("unchecked")
 	public GatewayFilterSpec secureHeaders() {
 		return filter(getBean(SecureHeadersGatewayFilterFactory.class).apply(c -> {}));
