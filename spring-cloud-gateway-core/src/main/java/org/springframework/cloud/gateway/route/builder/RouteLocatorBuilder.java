@@ -41,21 +41,21 @@ public class RouteLocatorBuilder {
 
 	public static class Builder {
 
-		private List<Route.Builder> routes = new ArrayList<>();
+		private List<Route.AsyncBuilder> routes = new ArrayList<>();
 		private ConfigurableApplicationContext context;
 
 		public Builder(ConfigurableApplicationContext context) {
 			this.context = context;
 		}
 
-		public Builder route(String id, Function<PredicateSpec, Route.Builder> fn) {
-			Route.Builder routeBuilder = fn.apply(new RouteSpec(this).id(id));
+		public Builder route(String id, Function<PredicateSpec, Route.AsyncBuilder> fn) {
+			Route.AsyncBuilder routeBuilder = fn.apply(new RouteSpec(this).id(id));
 			add(routeBuilder);
 			return this;
 		}
 
-		public Builder route(Function<PredicateSpec, Route.Builder> fn) {
-			Route.Builder routeBuilder = fn.apply(new RouteSpec(this).randomId());
+		public Builder route(Function<PredicateSpec, Route.AsyncBuilder> fn) {
+			Route.AsyncBuilder routeBuilder = fn.apply(new RouteSpec(this).randomId());
 			add(routeBuilder);
 			return this;
 		}
@@ -68,14 +68,14 @@ public class RouteLocatorBuilder {
 			return context;
 		}
 
-		void add(Route.Builder route) {
+		void add(Route.AsyncBuilder route) {
 			routes.add(route);
 		}
 	}
 
 
 	public static class RouteSpec {
-		private final Route.Builder routeBuilder = Route.builder();
+		private final Route.AsyncBuilder routeBuilder = Route.async();
 		private final Builder builder;
 
 		RouteSpec(Builder builder) {

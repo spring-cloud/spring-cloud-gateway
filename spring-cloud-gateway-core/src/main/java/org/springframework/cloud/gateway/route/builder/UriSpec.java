@@ -21,19 +21,19 @@ import org.springframework.cloud.gateway.route.Route;
 import java.net.URI;
 
 public class UriSpec {
-	final Route.Builder routeBuilder;
+	final Route.AsyncBuilder routeBuilder;
 	final RouteLocatorBuilder.Builder builder;
 
-	UriSpec(Route.Builder routeBuilder, RouteLocatorBuilder.Builder builder) {
+	UriSpec(Route.AsyncBuilder routeBuilder, RouteLocatorBuilder.Builder builder) {
 		this.routeBuilder = routeBuilder;
 		this.builder = builder;
 	}
 
-	public Route.Builder uri(String uri) {
+	public Route.AsyncBuilder uri(String uri) {
 		return this.routeBuilder.uri(uri);
 	}
 
-	public Route.Builder uri(URI uri) {
+	public Route.AsyncBuilder uri(URI uri) {
 		return this.routeBuilder.uri(uri);
 	}
 

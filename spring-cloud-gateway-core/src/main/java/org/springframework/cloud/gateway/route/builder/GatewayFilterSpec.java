@@ -65,7 +65,7 @@ public class GatewayFilterSpec extends UriSpec {
 
 	private static final Log log = LogFactory.getLog(GatewayFilterSpec.class);
 
-	public GatewayFilterSpec(Route.Builder routeBuilder, RouteLocatorBuilder.Builder builder) {
+	public GatewayFilterSpec(Route.AsyncBuilder routeBuilder, RouteLocatorBuilder.Builder builder) {
 		super(routeBuilder, builder);
 	}
 	

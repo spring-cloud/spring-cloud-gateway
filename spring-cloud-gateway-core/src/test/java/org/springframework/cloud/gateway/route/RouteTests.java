@@ -25,7 +25,7 @@ public class RouteTests {
 
 	@Test
 	public void defeaultHttpPort() {
-		Route route = Route.builder().id("1")
+		Route route = Route.async().id("1")
 				.predicate(exchange -> true)
 				.uri("http://acme.com")
 				.build();
@@ -37,7 +37,7 @@ public class RouteTests {
 
 	@Test
 	public void defeaultHttpsPort() {
-		Route route = Route.builder().id("1")
+		Route route = Route.async().id("1")
 				.predicate(exchange -> true)
 				.uri("https://acme.com")
 				.build();
@@ -50,7 +50,7 @@ public class RouteTests {
 
 	@Test
 	public void fullUri() {
-		Route route = Route.builder().id("1")
+		Route route = Route.async().id("1")
 				.predicate(exchange -> true)
 				.uri("http://acme.com:8080")
 				.build();

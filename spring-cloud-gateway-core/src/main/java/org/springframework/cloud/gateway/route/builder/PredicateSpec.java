@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.route.builder;
 import java.time.ZonedDateTime;
 import java.util.function.Predicate;
 
+import org.springframework.cloud.gateway.handler.AsyncPredicate;
 import org.springframework.cloud.gateway.handler.predicate.AfterRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.BeforeRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.BetweenRoutePredicateFactory;
@@ -36,9 +37,11 @@ import org.springframework.cloud.gateway.support.ipresolver.RemoteAddressResolve
 import org.springframework.http.HttpMethod;
 import org.springframework.web.server.ServerWebExchange;
 
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.toAsyncPredicate;
+
 public class PredicateSpec extends UriSpec {
 
-	PredicateSpec(Route.Builder routeBuilder, RouteLocatorBuilder.Builder builder) {
+	PredicateSpec(Route.AsyncBuilder routeBuilder, RouteLocatorBuilder.Builder builder) {
 		super(routeBuilder, builder);
 	}
 
@@ -48,7 +51,11 @@ public class PredicateSpec extends UriSpec {
 	}
 
 	public BooleanSpec predicate(Predicate<ServerWebExchange> predicate) {
-		this.routeBuilder.predicate(predicate);
+		return asyncPredicate(toAsyncPredicate(predicate));
+	}
+
+	public BooleanSpec asyncPredicate(AsyncPredicate<ServerWebExchange> predicate) {
+		this.routeBuilder.asyncPredicate(predicate);
 		return new BooleanSpec(this.routeBuilder, this.builder);
 	}
 
@@ -57,67 +64,67 @@ public class PredicateSpec extends UriSpec {
 	}
 
 	public BooleanSpec after(ZonedDateTime datetime) {
-		return predicate(getBean(AfterRoutePredicateFactory.class)
-				.apply(c-> c.setDatetime(datetime.toString())));
+		return asyncPredicate(getBean(AfterRoutePredicateFactory.class)
+				.applyAsync(c-> c.setDatetime(datetime.toString())));
 	}
 
 	public BooleanSpec before(ZonedDateTime datetime) {
-		return predicate(getBean(BeforeRoutePredicateFactory.class).apply(c -> c.setDatetime(datetime.toString())));
+		return asyncPredicate(getBean(BeforeRoutePredicateFactory.class).applyAsync(c -> c.setDatetime(datetime.toString())));
 	}
 
 	public BooleanSpec between(ZonedDateTime datetime1, ZonedDateTime datetime2) {
-		return predicate(getBean(BetweenRoutePredicateFactory.class)
-				.apply(c -> c.setDatetime1(datetime1.toString()).setDatetime2(datetime2.toString())));
+		return asyncPredicate(getBean(BetweenRoutePredicateFactory.class)
+				.applyAsync(c -> c.setDatetime1(datetime1.toString()).setDatetime2(datetime2.toString())));
 	}
 
 	public BooleanSpec cookie(String name, String regex) {
-		return predicate(getBean(CookieRoutePredicateFactory.class)
-				.apply(c -> c.setName(name).setRegexp(regex)));
+		return asyncPredicate(getBean(CookieRoutePredicateFactory.class)
+				.applyAsync(c -> c.setName(name).setRegexp(regex)));
 	}
 
 	public BooleanSpec header(String header) {
-		return predicate(getBean(HeaderRoutePredicateFactory.class)
-				.apply(c -> c.setHeader(header))); //TODO: default regexp
+		return asyncPredicate(getBean(HeaderRoutePredicateFactory.class)
+				.applyAsync(c -> c.setHeader(header))); //TODO: default regexp
 	}
 
 	public BooleanSpec header(String header, String regex) {
-		return predicate(getBean(HeaderRoutePredicateFactory.class)
-				.apply(c -> c.setHeader(header).setRegexp(regex)));
+		return asyncPredicate(getBean(HeaderRoutePredicateFactory.class)
+				.applyAsync(c -> c.setHeader(header).setRegexp(regex)));
 	}
 
 	public BooleanSpec host(String pattern) {
-		return predicate(getBean(HostRoutePredicateFactory.class)
-				.apply(c-> c.setPattern(pattern)));
+		return asyncPredicate(getBean(HostRoutePredicateFactory.class)
+				.applyAsync(c-> c.setPattern(pattern)));
 	}
 
 	public BooleanSpec method(String method) {
-		return predicate(getBean(MethodRoutePredicateFactory.class)
-				.apply(c -> c.setMethod(HttpMethod.resolve(method))));
+		return asyncPredicate(getBean(MethodRoutePredicateFactory.class)
+				.applyAsync(c -> c.setMethod(HttpMethod.resolve(method))));
 	}
 
 	public BooleanSpec method(HttpMethod method) {
-		return predicate(getBean(MethodRoutePredicateFactory.class)
-				.apply(c -> c.setMethod(method)));
+		return asyncPredicate(getBean(MethodRoutePredicateFactory.class)
+				.applyAsync(c -> c.setMethod(method)));
 	}
 
 	public BooleanSpec path(String pattern) {
-		return predicate(getBean(PathRoutePredicateFactory.class)
-				.apply(c -> c.setPattern(pattern)));
+		return asyncPredicate(getBean(PathRoutePredicateFactory.class)
+				.applyAsync(c -> c.setPattern(pattern)));
 	}
 
 	public <T> BooleanSpec readBody(Class<T> inClass, Predicate<T> predicate) {
-		return predicate(getBean(ReadBodyPredicateFactory.class)
-				.apply(c -> c.setPredicate(inClass, predicate)));
+		return asyncPredicate(getBean(ReadBodyPredicateFactory.class)
+				.applyAsync(c -> c.setPredicate(inClass, predicate)));
 	}
 
 	public BooleanSpec query(String param, String regex) {
-		return predicate(getBean(QueryRoutePredicateFactory.class)
-				.apply(c -> c.setParam(param).setRegexp(regex)));
+		return asyncPredicate(getBean(QueryRoutePredicateFactory.class)
+				.applyAsync(c -> c.setParam(param).setRegexp(regex)));
 	}
 
 	public BooleanSpec query(String param) {
-		return predicate(getBean(QueryRoutePredicateFactory.class)
-				.apply(c -> c.setParam(param)));
+		return asyncPredicate(getBean(QueryRoutePredicateFactory.class)
+				.applyAsync(c -> c.setParam(param)));
 	}
 
 	public BooleanSpec remoteAddr(String... addrs) {
@@ -125,7 +132,7 @@ public class PredicateSpec extends UriSpec {
 	}
 
 	public BooleanSpec remoteAddr(RemoteAddressResolver resolver, String... addrs) {
-		return predicate(getBean(RemoteAddrRoutePredicateFactory.class).apply(c -> {
+		return asyncPredicate(getBean(RemoteAddrRoutePredicateFactory.class).applyAsync(c -> {
 			c.setSources(addrs);
 			if (resolver != null) {
 				c.setRemoteAddressResolver(resolver);
@@ -134,8 +141,8 @@ public class PredicateSpec extends UriSpec {
 	}
 
 	public BooleanSpec weight(String group, int weight) {
-		return predicate(getBean(WeightRoutePredicateFactory.class)
-				.apply(c -> c.setGroup(group)
+		return asyncPredicate(getBean(WeightRoutePredicateFactory.class)
+				.applyAsync(c -> c.setGroup(group)
 						.setRouteId(routeBuilder.getId())
 						.setWeight(weight)));
 	}
