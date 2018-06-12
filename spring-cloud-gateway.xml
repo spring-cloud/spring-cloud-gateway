@@ -816,6 +816,19 @@ using something like <link xl:href="http://projects.spring.io/spring-session/">S
 <section xml:id="_loadbalancerclient_filter">
 <title>LoadBalancerClient Filter</title>
 <simpara>The <literal>LoadBalancerClientFilter</literal> looks for a URI in the exchange attribute <literal>ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR</literal>. If the url has a <literal>lb</literal> scheme (ie <literal>lb://myservice</literal>), it will use the Spring Cloud <literal>LoadBalancerClient</literal> to resolve the name (<literal>myservice</literal> in the previous example) to an actual host and port and replace the URI in the same attribute. The unmodified original url is appended to the list in the <literal>ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR</literal> attribute. The filter will also look in the <literal>ServerWebExchangeUtils.GATEWAY_SCHEME_PREFIX_ATTR</literal> attribute to see if it equals <literal>lb</literal> and then the same rules apply.</simpara>
+<formalpara>
+<title>application.yml</title>
+<para>
+<programlisting language="yaml" linenumbering="unnumbered">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: myRoute
+        uri: lb://service
+        predicates:
+        - Path=/service/**</programlisting>
+</para>
+</formalpara>
 </section>
 <section xml:id="_netty_routing_filter">
 <title>Netty Routing Filter</title>
