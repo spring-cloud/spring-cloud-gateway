@@ -875,7 +875,64 @@ TODO: document writing Custom Route Predicate Factories
 
 === Writing Custom GatewayFilter Factories
 
-TODO: document writing Custom GatewayFilter Factories
+In order to write a GatewayFilter you will need to implement `GatewayFilterFactory`.  There is an abstract class called `AbstractGatewayFilterFactory` which you can extend.
+
+.PreGatewayFilterFactory.java
+[source,java]
+---
+public class PreGatewayFilterFactory extends AbstractGatewayFilterFactory<PreGatewayFilterFactory.Config> {
+
+	public PreGatewayFilterFactory() {
+		super(Config.class);
+	}
+
+	@Override
+	public GatewayFilter apply(Config config) {
+		// grab configuration from Config object
+		return (exchange, chain) -> {
+            //If you want to build a "pre" filter you need to manipulate the
+            //request before calling change.filter
+            ServerHttpRequest.Builder builder = exchange.getRequest().mutate();
+            //use builder to manipulate the request
+            return chain.filter(exchange.mutate().request(request).build());
+		};
+	}
+
+	public static class Config {
+        //Put the configuration properties for your filter here
+	}
+
+}
+
+---
+
+.PostGatewayFilterFactory.java
+[source,java]
+---
+public class PostGatewayFilterFactory extends AbstractGatewayFilterFactory<PostGatewayFilterFactory.Config> {
+
+	public PostGatewayFilterFactory() {
+		super(Config.class);
+	}
+
+	@Override
+	public GatewayFilter apply(Config config) {
+		// grab configuration from Config object
+		return (exchange, chain) -> {
+			return chain.filter(exchange).then(Mono.fromRunnable(() -> {
+				ServerHttpReponse response = exchange.getResponse();
+				//Manipulate the response in some way
+			}));
+		};
+	}
+
+	public static class Config {
+        //Put the configuration properties for your filter here
+	}
+
+}
+
+---
 
 === Writing Custom Global Filters
 
