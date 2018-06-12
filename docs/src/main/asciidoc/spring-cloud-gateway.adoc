@@ -707,6 +707,34 @@ spring:
 
 When a request is made through the gateway to `/name/bar/foo` the request made to `nameservice` will look like `http://nameservice/foo`.
 
+=== Retry GatewayFilter Factory
+The Retry GatewayFilter Factory takes `retries`, `statuses`, `methods`, and `series` as parameters.
+
+* `retries`: the number of retries that should be attempted
+* `statuses`: the HTTP status codes that should be retried, represented using `org.springframework.http.HttpStatus`
+* `methods`: the HTTP methods that should be retried, represented using `org.springframework.http.HttpMethod`
+* `series`: the series of status codes to be retried, represented using `org.springframework.http.HttpStatus.Series`
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: retry_test
+        uri: http://localhost:8080/flakey
+        predicates:
+        - Host=*.retry.com
+        filters:
+        - name: Retry
+          args:
+            retries: 3
+            statuses: BAD_GATEWAY
+----
+
+NOTE: At this time a URI using the `forward` protocol does not support using the retry filter.
+
 == Global Filters
 
 The `GlobalFilter` interface has the same signature as `GatewayFilter`. These are special filters that are conditionally applied to all routes. (This interface and usage are subject to change in future milestones).
