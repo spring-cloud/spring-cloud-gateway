@@ -762,6 +762,45 @@ using something like <link xl:href="http://projects.spring.io/spring-session/">S
 </formalpara>
 <simpara>When a request is made through the gateway to <literal>/name/bar/foo</literal> the request made to <literal>nameservice</literal> will look like <literal><link xl:href="http://nameservice/foo">http://nameservice/foo</link></literal>.</simpara>
 </section>
+<section xml:id="_retry_gatewayfilter_factory">
+<title>Retry GatewayFilter Factory</title>
+<simpara>The Retry GatewayFilter Factory takes <literal>retries</literal>, <literal>statuses</literal>, <literal>methods</literal>, and <literal>series</literal> as parameters.</simpara>
+<itemizedlist>
+<listitem>
+<simpara><literal>retries</literal>: the number of retries that should be attempted</simpara>
+</listitem>
+<listitem>
+<simpara><literal>statuses</literal>: the HTTP status codes that should be retried, represented using <literal>org.springframework.http.HttpStatus</literal></simpara>
+</listitem>
+<listitem>
+<simpara><literal>methods</literal>: the HTTP methods that should be retried, represented using <literal>org.springframework.http.HttpMethod</literal></simpara>
+</listitem>
+<listitem>
+<simpara><literal>series</literal>: the series of status codes to be retried, represented using <literal>org.springframework.http.HttpStatus.Series</literal></simpara>
+</listitem>
+</itemizedlist>
+<formalpara>
+<title>application.yml</title>
+<para>
+<programlisting language="yaml" linenumbering="unnumbered">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: retry_test
+        uri: http://localhost:8080/flakey
+        predicates:
+        - Host=*.retry.com
+        filters:
+        - name: Retry
+          args:
+            retries: 3
+            statuses: BAD_GATEWAY</programlisting>
+</para>
+</formalpara>
+<note>
+<simpara>At this time a URI using the <literal>forward</literal> protocol does not support using the retry filter.</simpara>
+</note>
+</section>
 </chapter>
 <chapter xml:id="_global_filters">
 <title>Global Filters</title>
