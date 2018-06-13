@@ -65,7 +65,7 @@ public class GatewayFilterSpec extends UriSpec {
 
 	private static final Log log = LogFactory.getLog(GatewayFilterSpec.class);
 
-	public GatewayFilterSpec(Route.Builder routeBuilder, RouteLocatorBuilder.Builder builder) {
+	public GatewayFilterSpec(Route.AsyncBuilder routeBuilder, RouteLocatorBuilder.Builder builder) {
 		super(routeBuilder, builder);
 	}
 	
@@ -232,11 +232,6 @@ public class GatewayFilterSpec extends UriSpec {
 
 	public GatewayFilterSpec retry(Repeat<ServerWebExchange> repeat, Retry<ServerWebExchange> retry) {
 		return filter(getBean(RetryGatewayFilterFactory.class).apply(repeat, retry));
-	}
-
-	@Deprecated
-	public GatewayFilterSpec retry(Repeat<ServerWebExchange> repeat) {
-		return filter(getBean(RetryGatewayFilterFactory.class).apply(repeat));
 	}
 
 	@SuppressWarnings("unchecked")

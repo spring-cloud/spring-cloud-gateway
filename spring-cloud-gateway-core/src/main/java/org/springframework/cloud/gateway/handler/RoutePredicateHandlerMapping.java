@@ -89,10 +89,10 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 
 	protected Mono<Route> lookupRoute(ServerWebExchange exchange) {
 		return this.routeLocator.getRoutes()
-				.filter(route -> {
+				.filterWhen(route ->  {
 					// add the current route we are testing
 					exchange.getAttributes().put(GATEWAY_PREDICATE_ROUTE_ATTR, route.getId());
-					return route.getPredicate().test(exchange);
+					return route.getPredicate().apply(exchange);
 				})
 				// .defaultIfEmpty() put a static Route not found
 				// or .switchIfEmpty()

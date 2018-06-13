@@ -76,7 +76,7 @@ public class RequestRateLimiterGatewayFilterFactoryTests extends BaseWebClientTe
 		MockServerWebExchange exchange = MockServerWebExchange.from(request);
 		exchange.getResponse().setStatusCode(HttpStatus.OK);
 		exchange.getAttributes().put(ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR,
-				Route.builder().id("myroute").predicate(ex -> true)
+				Route.async().id("myroute").predicate(ex -> true)
 						.uri("http://localhost").build());
 
 		when(this.filterChain.filter(exchange)).thenReturn(Mono.empty());

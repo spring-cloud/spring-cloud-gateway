@@ -300,6 +300,8 @@ RemoteAddressResolver resolver = XForwardedRemoteAddressResolver
 
 Route filters allow the modification of the incoming HTTP request or outgoing HTTP response in some manner. Route filters are scoped to a particular route. Spring Cloud Gateway includes many built-in GatewayFilter Factories.
 
+NOTE For more detailed examples on how to use any of the following filters, take a look at the https://github.com/spring-cloud/spring-cloud-gateway/tree/master/spring-cloud-gateway-core/src/test/java/org/springframework/cloud/gateway/filter/factory[unit tests].
+
 === AddRequestHeader GatewayFilter Factory
 The AddRequestHeader GatewayFilter Factory takes a name and value parameter.
 
@@ -733,6 +735,34 @@ spring:
 
 When a request is made through the gateway to `/name/bar/foo` the request made to `nameservice` will look like `http://nameservice/foo`.
 
+=== Retry GatewayFilter Factory
+The Retry GatewayFilter Factory takes `retries`, `statuses`, `methods`, and `series` as parameters.
+
+* `retries`: the number of retries that should be attempted
+* `statuses`: the HTTP status codes that should be retried, represented using `org.springframework.http.HttpStatus`
+* `methods`: the HTTP methods that should be retried, represented using `org.springframework.http.HttpMethod`
+* `series`: the series of status codes to be retried, represented using `org.springframework.http.HttpStatus.Series`
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: retry_test
+        uri: http://localhost:8080/flakey
+        predicates:
+        - Host=*.retry.com
+        filters:
+        - name: Retry
+          args:
+            retries: 3
+            statuses: BAD_GATEWAY
+----
+
+NOTE: At this time a URI using the `forward` protocol does not support using the retry filter.
+
 == Global Filters
 
 The `GlobalFilter` interface has the same signature as `GatewayFilter`. These are special filters that are conditionally applied to all routes. (This interface and usage are subject to change in future milestones).
@@ -748,6 +778,19 @@ The `ForwardRoutingFilter` looks for a URI in the exchange attribute `ServerWebE
 === LoadBalancerClient Filter
 
 The `LoadBalancerClientFilter` looks for a URI in the exchange attribute `ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR`. If the url has a `lb` scheme (ie `lb://myservice`), it will use the Spring Cloud `LoadBalancerClient` to resolve the name (`myservice` in the previous example) to an actual host and port and replace the URI in the same attribute. The unmodified original url is appended to the list in the `ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR` attribute. The filter will also look in the `ServerWebExchangeUtils.GATEWAY_SCHEME_PREFIX_ATTR` attribute to see if it equals `lb` and then the same rules apply.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: myRoute
+        uri: lb://service
+        predicates:
+        - Path=/service/**
+----
 
 === Netty Routing Filter
 
@@ -768,6 +811,16 @@ If the URI has a scheme prefix, such as `lb:ws://serviceid`, the `lb` scheme is 
 The Websocket Routing Filter runs if the url located in the `ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR` exchange attribute has a `ws` or `wss` scheme. It uses the Spring Web Socket infrastructure to forward the Websocket request downstream.
 
 Websockets may be load-balanced by prefixing the URI with `lb`, such as `lb:ws://serviceid`.
+
+=== Making An Exchange As Routed
+
+After the Gateway has routed a `ServerWebExchange` it will mark that exchange as "routed" by adding `gatewayAlreadyRouted`
+to the exchange attributes.  Once a request has been marked as routed, other routing filters will not route the request again,
+essentially skipping the filter.  There are convenience methods that you can use to mark an exchange as routed
+or check if an exchange has already been routed.
+
+* `ServerWebExchangeUtils.isAlreadyRouted` takes a `ServerWebExchange` object and checks if it has been "routed"
+* `ServerWebExchangeUtils.setAlreadyRouted` takes a `ServerWebExchange` object and marks it as "routed"
 
 == Configuration
 
@@ -860,7 +913,64 @@ TODO: document writing Custom Route Predicate Factories
 
 === Writing Custom GatewayFilter Factories
 
-TODO: document writing Custom GatewayFilter Factories
+In order to write a GatewayFilter you will need to implement `GatewayFilterFactory`.  There is an abstract class called `AbstractGatewayFilterFactory` which you can extend.
+
+.PreGatewayFilterFactory.java
+[source,java]
+---
+public class PreGatewayFilterFactory extends AbstractGatewayFilterFactory<PreGatewayFilterFactory.Config> {
+
+	public PreGatewayFilterFactory() {
+		super(Config.class);
+	}
+
+	@Override
+	public GatewayFilter apply(Config config) {
+		// grab configuration from Config object
+		return (exchange, chain) -> {
+            //If you want to build a "pre" filter you need to manipulate the
+            //request before calling change.filter
+            ServerHttpRequest.Builder builder = exchange.getRequest().mutate();
+            //use builder to manipulate the request
+            return chain.filter(exchange.mutate().request(request).build());
+		};
+	}
+
+	public static class Config {
+        //Put the configuration properties for your filter here
+	}
+
+}
+
+---
+
+.PostGatewayFilterFactory.java
+[source,java]
+---
+public class PostGatewayFilterFactory extends AbstractGatewayFilterFactory<PostGatewayFilterFactory.Config> {
+
+	public PostGatewayFilterFactory() {
+		super(Config.class);
+	}
+
+	@Override
+	public GatewayFilter apply(Config config) {
+		// grab configuration from Config object
+		return (exchange, chain) -> {
+			return chain.filter(exchange).then(Mono.fromRunnable(() -> {
+				ServerHttpReponse response = exchange.getResponse();
+				//Manipulate the response in some way
+			}));
+		};
+	}
+
+	public static class Config {
+        //Put the configuration properties for your filter here
+	}
+
+}
+
+---
 
 === Writing Custom Global Filters
 

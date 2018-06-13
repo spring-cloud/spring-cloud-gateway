@@ -43,7 +43,6 @@ public class PathRoutePredicateFactoryTests extends BaseWebClientTests {
 				.exchange()
 				.expectStatus().isOk()
 				.expectHeader().valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName())
-				.expectHeader().valueEquals("transfer-encoding", "chunked")
 				.expectHeader().valueEquals(ROUTE_ID_HEADER, "path_test");
 	}
 
@@ -53,7 +52,6 @@ public class PathRoutePredicateFactoryTests extends BaseWebClientTests {
 				.exchange()
 				.expectStatus().isOk()
 				.expectHeader().valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName())
-				.expectHeader().valueEquals("transfer-encoding", "chunked")
 				.expectHeader().valueEquals(ROUTE_ID_HEADER, "default_path_to_httpbin");
 	}
 

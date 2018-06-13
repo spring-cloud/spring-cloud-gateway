@@ -3,6 +3,7 @@ package org.springframework.cloud.gateway.filter.factory;
 import java.net.URI;
 import java.util.Optional;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.SpringBootConfiguration;
@@ -34,6 +35,7 @@ public class RequestHeaderToRequestUriGatewayFilterFactoryIntegrationTests
 	int port;
 
 	@Test
+	@Ignore
 	public void changeUriWorkWithProperties() {
 		testClient.get().uri("/").header("Host", "www.changeuri.org")
 				.header("X-CF-Forwarded-Url",
@@ -43,6 +45,7 @@ public class RequestHeaderToRequestUriGatewayFilterFactoryIntegrationTests
 	}
 
 	@Test
+	@Ignore
 	public void changeUriWorkWithDsl() {
 		testClient.get().uri("/").header("Host", "www.changeuri.org")
 				.header("X-Next-Url", "http://localhost:" + port + "/actuator/health")
