@@ -848,6 +848,21 @@ using something like <link xl:href="http://projects.spring.io/spring-session/">S
 <simpara>The Websocket Routing Filter runs if the url located in the <literal>ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR</literal> exchange attribute has a <literal>ws</literal> or <literal>wss</literal> scheme. It uses the Spring Web Socket infrastructure to forward the Websocket request downstream.</simpara>
 <simpara>Websockets may be load-balanced by prefixing the URI with <literal>lb</literal>, such as <literal>lb:ws://serviceid</literal>.</simpara>
 </section>
+<section xml:id="_making_an_exchange_as_routed">
+<title>Making An Exchange As Routed</title>
+<simpara>After the Gateway has routed a <literal>ServerWebExchange</literal> it will mark that exchange as "routed" by adding <literal>gatewayAlreadyRouted</literal>
+to the exchange attributes.  Once a request has been marked as routed, other routing filters will not route the request again,
+essentially skipping the filter.  There are convenience methods that you can use to mark an exchange as routed
+or check if an exchange has already been routed.</simpara>
+<itemizedlist>
+<listitem>
+<simpara><literal>ServerWebExchangeUtils.isAlreadyRouted</literal> takes a <literal>ServerWebExchange</literal> object and checks if it has been "routed"</simpara>
+</listitem>
+<listitem>
+<simpara><literal>ServerWebExchangeUtils.setAlreadyRouted</literal> takes a <literal>ServerWebExchange</literal> object and marks it as "routed"</simpara>
+</listitem>
+</itemizedlist>
+</section>
 </chapter>
 <chapter xml:id="_configuration">
 <title>Configuration</title>
