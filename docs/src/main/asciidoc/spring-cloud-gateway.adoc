@@ -498,7 +498,7 @@ KeyResolver userKeyResolver() {
 
 This defines a request rate limit of 10 per user. A burst of 20 is allowed, but the next second only 10 requests will be available. The `KeyResolver` is a simple one that gets the `user` request parameter (note: this is not recommended for production).
 
-A rate limiter can also be defined as a bean implementing the 'RateLimiter' interface. In configuration, reference the bean by name using SpEL. `#{@myRateLimiter}` is a SpEL expression referencing a bean with the name `myRateLimiter`.
+A rate limiter can also be defined as a bean implementing the `RateLimiter` interface. In configuration, reference the bean by name using SpEL. `#{@myRateLimiter}` is a SpEL expression referencing a bean with the name `myRateLimiter`.
 
 .application.yml
 [source,yaml]
@@ -512,7 +512,7 @@ spring:
         filters:
         - name: RequestRateLimiter
           args:
-            rate-limiter "#{@myRateLimiter}"
+            rate-limiter: "#{@myRateLimiter}"
             key-resolver: "#{@userKeyResolver}"
 
 ----
