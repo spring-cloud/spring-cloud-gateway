@@ -459,10 +459,8 @@ The Hystrix GatewayFilter allows you to introduce circuit breakers to your gatew
 </section>
 <section xml:id="_requestratelimiter_gatewayfilter_factory">
 <title>RequestRateLimiter GatewayFilter Factory</title>
-<simpara>The RequestRateLimiter GatewayFilter Factory takes three parameters: <literal>replenishRate</literal>, <literal>burstCapacity</literal> &amp; <literal>keyResolverName</literal>.</simpara>
-<simpara><literal>replenishRate</literal> is how many requests per second do you want a user to be allowed to do, without any dropped requests.</simpara>
-<simpara><literal>burstCapacity</literal> is the maximum number of requests a user is allowed to do in a single second.</simpara>
-<simpara>A steady rate is accomplished by setting the same value in <literal>replenishRate</literal> and <literal>burstCapacity</literal>. Temporary bursts can be allowed by setting <literal>burstCapacity</literal> higher than <literal>replenishRate</literal>. In this case, the rate limiter needs to be allowed some time between bursts (according to <literal>replenishRate</literal>), as 2 consecutive bursts will result in dropped requests (<literal>HTTP 429 - Too Many Requests</literal>).</simpara>
+<simpara>The RequestRateLimiter GatewayFilter Factory is uses a <literal>RateLimiter</literal> implementation to determine if the current request is allowed to proceed. If it is not, a status of <literal>HTTP 429 - Too Many Requests</literal> (by default) is returned.</simpara>
+<simpara>This filter takes an optional <literal>keyResolver</literal> parameter and parameters specific to the rate limiter (see below).</simpara>
 <simpara><literal>keyResolver</literal> is a bean that implements the <literal>KeyResolver</literal> interface. In configuration, reference the bean by name using SpEL. <literal>#{@myKeyResolver}</literal> is a SpEL expression referencing a bean with the name <literal>myKeyResolver</literal>.</simpara>
 <formalpara>
 <title>KeyResolver.java</title>
@@ -473,7 +471,24 @@ The Hystrix GatewayFilter allows you to introduce circuit breakers to your gatew
 </para>
 </formalpara>
 <simpara>The <literal>KeyResolver</literal> interface allows pluggable strategies to derive the key for limiting requests. In future milestones, there will be some <literal>KeyResolver</literal> implementations.</simpara>
+<simpara>The default implementation of <literal>KeyResolver</literal> is the <literal>PrincipalNameKeyResolver</literal> which retrieves the <literal>Principal</literal> from the <literal>ServerWebExchange</literal> and calls <literal>Principal.getName()</literal>.</simpara>
+<note>
+<simpara>The RequestRateLimiter is not configurable via the "shortcut" notation. The example below is <emphasis>invalid</emphasis></simpara>
+</note>
+<formalpara>
+<title>application.properties</title>
+<para>
+<screen># INVALID SHORTCUT CONFIGURATION
+spring.cloud.gateway.routes[0].filters[0]=RequestRateLimiter=2, 2, #{@userkeyresolver}</screen>
+</para>
+</formalpara>
+<section xml:id="_redis_ratelimiter">
+<title>Redis RateLimiter</title>
 <simpara>The redis implementation is based off of work done at <link xl:href="https://stripe.com/blog/rate-limiters">Stripe</link>. It requires the use of the <literal>spring-boot-starter-data-redis-reactive</literal> Spring Boot starter.</simpara>
+<simpara>The algorithm used is the <link xl:href="https://en.wikipedia.org/wiki/Token_bucket">Token Bucket Algorithm</link>.</simpara>
+<simpara>The <literal>redis-rate-limiter.replenishRate</literal> is how many requests per second do you want a user to be allowed to do, without any dropped requests. This is the rate that the token bucket is filled.</simpara>
+<simpara>The <literal>redis-rate-limiter.burstCapacity</literal> is the maximum number of requests a user is allowed to do in a single second. This is the number of tokens the token bucket can hold. Setting this value to zero will block all requests.</simpara>
+<simpara>A steady rate is accomplished by setting the same value in <literal>replenishRate</literal> and <literal>burstCapacity</literal>. Temporary bursts can be allowed by setting <literal>burstCapacity</literal> higher than <literal>replenishRate</literal>. In this case, the rate limiter needs to be allowed some time between bursts (according to <literal>replenishRate</literal>), as 2 consecutive bursts will result in dropped requests (<literal>HTTP 429 - Too Many Requests</literal>).</simpara>
 <formalpara>
 <title>application.yml</title>
 <para>
@@ -487,8 +502,7 @@ The Hystrix GatewayFilter allows you to introduce circuit breakers to your gatew
         - name: RequestRateLimiter
           args:
             redis-rate-limiter.replenishRate: 10
-            redis-rate-limiter.burstCapacity: 20
-            key-resolver: "#{@userKeyResolver}"</programlisting>
+            redis-rate-limiter.burstCapacity: 20</programlisting>
 </para>
 </formalpara>
 <formalpara>
@@ -518,6 +532,7 @@ KeyResolver userKeyResolver() {
             key-resolver: "#{@userKeyResolver}"</programlisting>
 </para>
 </formalpara>
+</section>
 </section>
 <section xml:id="_redirectto_gatewayfilter_factory">
 <title>RedirectTo GatewayFilter Factory</title>
