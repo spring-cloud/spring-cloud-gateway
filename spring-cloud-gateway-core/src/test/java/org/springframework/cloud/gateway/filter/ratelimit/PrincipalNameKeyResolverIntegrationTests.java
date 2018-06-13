@@ -144,7 +144,8 @@ public class PrincipalNameKeyResolverIntegrationTests {
 
 			@Override
 			public Mono<Response> isAllowed(String routeId, String id) {
-				return Mono.just(new RateLimiter.Response(true, Long.MAX_VALUE));
+				return Mono.just(new RateLimiter.Response(true,
+						Collections.singletonMap("X-Value", "5000000")));
 			}
 
 			@Override
