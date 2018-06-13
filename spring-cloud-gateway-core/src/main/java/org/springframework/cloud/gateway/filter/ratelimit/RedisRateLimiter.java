@@ -61,7 +61,7 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 	private String replenishRateHeader = REPLENISH_RATE_HEADER;
 
 	/** The name of the header that returns the burst capacity configuration. */
-	private String burstCapacityHeader = REMAINING_HEADER;
+	private String burstCapacityHeader = BURST_CAPACITY_HEADER;
 
 	public RedisRateLimiter(ReactiveRedisTemplate<String, String> redisTemplate,
 							RedisScript<List<Long>> script, Validator validator) {
