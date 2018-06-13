@@ -826,6 +826,27 @@ The Websocket Routing Filter runs if the url located in the `ServerWebExchangeUt
 
 Websockets may be load-balanced by prefixing the URI with `lb`, such as `lb:ws://serviceid`.
 
+NOTE: If you are using https://github.com/sockjs[SockJS] as a fallback over normal http, you should configure a normal HTTP route as well as the Websocket Route.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      # SockJS route
+      - id: websocket_sockjs_route
+        uri: http://localhost:3001
+        predicates:
+        - Path=/websocket/info/**
+      # Normwal Websocket route
+      - id: websocket_route
+        uri: ws://localhost:3001
+        predicates:
+        - Path=/websocket/**
+----
+
 === Making An Exchange As Routed
 
 After the Gateway has routed a `ServerWebExchange` it will mark that exchange as "routed" by adding `gatewayAlreadyRouted`
