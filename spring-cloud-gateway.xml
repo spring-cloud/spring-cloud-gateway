@@ -885,6 +885,28 @@ using something like <link xl:href="http://projects.spring.io/spring-session/">S
 <title>Websocket Routing Filter</title>
 <simpara>The Websocket Routing Filter runs if the url located in the <literal>ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR</literal> exchange attribute has a <literal>ws</literal> or <literal>wss</literal> scheme. It uses the Spring Web Socket infrastructure to forward the Websocket request downstream.</simpara>
 <simpara>Websockets may be load-balanced by prefixing the URI with <literal>lb</literal>, such as <literal>lb:ws://serviceid</literal>.</simpara>
+<note>
+<simpara>If you are using <link xl:href="https://github.com/sockjs">SockJS</link> as a fallback over normal http, you should configure a normal HTTP route as well as the Websocket Route.</simpara>
+</note>
+<formalpara>
+<title>application.yml</title>
+<para>
+<programlisting language="yaml" linenumbering="unnumbered">spring:
+  cloud:
+    gateway:
+      routes:
+      # SockJS route
+      - id: websocket_sockjs_route
+        uri: http://localhost:3001
+        predicates:
+        - Path=/websocket/info/**
+      # Normwal Websocket route
+      - id: websocket_route
+        uri: ws://localhost:3001
+        predicates:
+        - Path=/websocket/**</programlisting>
+</para>
+</formalpara>
 </section>
 <section xml:id="_making_an_exchange_as_routed">
 <title>Making An Exchange As Routed</title>
