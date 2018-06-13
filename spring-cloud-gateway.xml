@@ -316,6 +316,7 @@ If two hops of trusted infrastructure are required before Spring Cloud Gateway i
 <chapter xml:id="_gatewayfilter_factories">
 <title>GatewayFilter Factories</title>
 <simpara>Route filters allow the modification of the incoming HTTP request or outgoing HTTP response in some manner. Route filters are scoped to a particular route. Spring Cloud Gateway includes many built-in GatewayFilter Factories.</simpara>
+<simpara>NOTE For more detailed examples on how to use any of the following filters, take a look at the <link xl:href="https://github.com/spring-cloud/spring-cloud-gateway/tree/master/spring-cloud-gateway-core/src/test/java/org/springframework/cloud/gateway/filter/factory">unit tests</link>.</simpara>
 <section xml:id="_addrequestheader_gatewayfilter_factory">
 <title>AddRequestHeader GatewayFilter Factory</title>
 <simpara>The AddRequestHeader GatewayFilter Factory takes a name and value parameter.</simpara>
