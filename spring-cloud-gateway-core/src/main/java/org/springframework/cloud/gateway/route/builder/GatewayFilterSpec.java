@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.route.builder;
 import java.net.URI;
 import java.net.URL;
 import java.util.Collection;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -50,6 +51,7 @@ import org.springframework.cloud.gateway.filter.factory.SetResponseHeaderGateway
 import org.springframework.cloud.gateway.filter.factory.SetStatusGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.StripPrefixGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyRequestBodyGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyRequestBodyGatewayFilterFactory.Config;
 import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyResponseBodyGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.rewrite.RewriteFunction;
 import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter;
@@ -127,15 +129,35 @@ public class GatewayFilterSpec extends UriSpec {
 		return filter(factory.apply(this.routeBuilder.getId(), configConsumer));
 	}
 
+	
+	
+	@SuppressWarnings("unchecked")
 	public <T, R> GatewayFilterSpec modifyRequestBody(Class<T> inClass, Class<R> outClass, RewriteFunction<T, R> rewriteFunction) {
 		return filter(getBean(ModifyRequestBodyGatewayFilterFactory.class)
-				.apply(c -> c.setRewriteFunction(inClass, outClass, rewriteFunction)));
+				.apply(c -> ((ModifyRequestBodyGatewayFilterFactory.Config<T, R>) c).setRewriteFunction(inClass, outClass, rewriteFunction)));
 	}
+	
+	@SuppressWarnings("unchecked")
+	public <T, R> GatewayFilterSpec modifyRequestBody(Consumer<ModifyRequestBodyGatewayFilterFactory.Config> configConsumer) {
+		return filter(getBean(ModifyRequestBodyGatewayFilterFactory.class)
+				.apply(configConsumer));
+	}
+	
+	
 
+	@SuppressWarnings("unchecked")
 	public <T, R> GatewayFilterSpec modifyResponseBody(Class<T> inClass, Class<R> outClass, RewriteFunction<T, R> rewriteFunction) {
 		return filter(getBean(ModifyResponseBodyGatewayFilterFactory.class)
-				.apply(c -> c.setRewriteFunction(inClass, outClass, rewriteFunction)));
+				.apply(c -> ((ModifyResponseBodyGatewayFilterFactory.Config<T, R>) c).setRewriteFunction(inClass, outClass, rewriteFunction)));
 	}
+	
+	@SuppressWarnings("unchecked")
+	public <T, R> GatewayFilterSpec modifyResponseBody(Consumer<ModifyResponseBodyGatewayFilterFactory.Config<T, R>> configConsumer) {
+		return filter(getBean(ModifyResponseBodyGatewayFilterFactory.class)
+				.apply(configConsumer));
+	}
+	
+	
 
 	public GatewayFilterSpec prefixPath(String prefix) {
 		return filter(getBean(PrefixPathGatewayFilterFactory.class)
