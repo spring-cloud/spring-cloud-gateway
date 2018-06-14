@@ -37,6 +37,9 @@ import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
 
 import static org.springframework.cloud.gateway.filter.factory.rewrite.RewriteUtils.process;
 
+/**
+ * This filter is BETA and may be subject to change in a future release.
+ */
 public class ModifyRequestBodyGatewayFilterFactory
 		extends AbstractGatewayFilterFactory<ModifyRequestBodyGatewayFilterFactory.Config> {
 

@@ -30,6 +30,9 @@ import org.springframework.http.codec.CodecConfigurer;
 import org.springframework.http.codec.HttpMessageReader;
 import org.springframework.http.codec.HttpMessageWriter;
 
+/**
+ * This class is BETA and may be subject to change in a future release.
+ */
 public abstract class RewriteUtils {
 
 	public static <T, R> R process(Mono<T> mono, Function<T, R> consumer) {

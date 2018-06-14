@@ -37,6 +37,9 @@ import static org.springframework.cloud.gateway.filter.factory.rewrite.RewriteUt
 import static org.springframework.cloud.gateway.filter.factory.rewrite.RewriteUtils.getHttpMessageWriter;
 import static org.springframework.cloud.gateway.filter.factory.rewrite.RewriteUtils.process;
 
+/**
+ * This predicate is BETA and may be subject to change in a future release.
+ */
 public class ReadBodyPredicateFactory extends AbstractRoutePredicateFactory<ReadBodyPredicateFactory.Config> {
 
 	private final ServerCodecConfigurer codecConfigurer;

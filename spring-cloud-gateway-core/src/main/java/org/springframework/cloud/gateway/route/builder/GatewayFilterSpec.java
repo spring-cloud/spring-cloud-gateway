@@ -127,11 +127,29 @@ public class GatewayFilterSpec extends UriSpec {
 		return filter(factory.apply(this.routeBuilder.getId(), configConsumer));
 	}
 
+	/**
+	 * This filter is BETA and may be subject to change in a future release.
+	 * @param inClass
+	 * @param outClass
+	 * @param rewriteFunction
+	 * @param <T>
+	 * @param <R>
+	 * @return
+	 */
 	public <T, R> GatewayFilterSpec modifyRequestBody(Class<T> inClass, Class<R> outClass, RewriteFunction<T, R> rewriteFunction) {
 		return filter(getBean(ModifyRequestBodyGatewayFilterFactory.class)
 				.apply(c -> c.setRewriteFunction(inClass, outClass, rewriteFunction)));
 	}
 
+	/**
+	 * This filter is BETA and may be subject to change in a future release.
+	 * @param inClass
+	 * @param outClass
+	 * @param rewriteFunction
+	 * @param <T>
+	 * @param <R>
+	 * @return
+	 */
 	public <T, R> GatewayFilterSpec modifyResponseBody(Class<T> inClass, Class<R> outClass, RewriteFunction<T, R> rewriteFunction) {
 		return filter(getBean(ModifyResponseBodyGatewayFilterFactory.class)
 				.apply(c -> c.setRewriteFunction(inClass, outClass, rewriteFunction)));
