@@ -3,6 +3,7 @@ package org.springframework.cloud.gateway.filter.ratelimit;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -10,10 +11,12 @@ import javax.validation.constraints.Min;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jetbrains.annotations.NotNull;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import org.springframework.beans.BeansException;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
@@ -27,6 +30,7 @@ import org.springframework.validation.annotation.Validated;
  *
  * @author Spencer Gibb
  */
+@ConfigurationProperties("spring.cloud.gateway.redis-rate-limiter")
 public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Config> implements ApplicationContextAware {
 	@Deprecated
 	public static final String REPLENISH_RATE_KEY = "replenishRate";
@@ -35,6 +39,9 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 
 	public static final String CONFIGURATION_PROPERTY_NAME = "redis-rate-limiter";
 	public static final String REDIS_SCRIPT_NAME = "redisRequestRateLimiterScript";
+	public static final String REMAINING_HEADER = "X-RateLimit-Remaining";
+	public static final String REPLENISH_RATE_HEADER = "X-RateLimit-Replenish-Rate";
+	public static final String BURST_CAPACITY_HEADER = "X-RateLimit-Burst-Capacity";
 
 	private Log log = LogFactory.getLog(getClass());
 
@@ -42,6 +49,19 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 	private RedisScript<List<Long>> script;
 	private AtomicBoolean initialized = new AtomicBoolean(false);
 	private Config defaultConfig;
+
+	// configuration properties
+	/** Whether or not to include headers containing rate limiter information, defaults to true. */
+	private boolean includeHeaders = true;
+
+	/** The name of the header that returns number of remaining requests during the current second. */
+	private String remainingHeader = REMAINING_HEADER;
+
+	/** The name of the header that returns the replenish rate configuration. */
+	private String replenishRateHeader = REPLENISH_RATE_HEADER;
+
+	/** The name of the header that returns the burst capacity configuration. */
+	private String burstCapacityHeader = BURST_CAPACITY_HEADER;
 
 	public RedisRateLimiter(ReactiveRedisTemplate<String, String> redisTemplate,
 							RedisScript<List<Long>> script, Validator validator) {
@@ -56,6 +76,38 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 		this.defaultConfig = new Config()
 				.setReplenishRate(defaultReplenishRate)
 				.setBurstCapacity(defaultBurstCapacity);
+	}
+
+	public boolean isIncludeHeaders() {
+		return includeHeaders;
+	}
+
+	public void setIncludeHeaders(boolean includeHeaders) {
+		this.includeHeaders = includeHeaders;
+	}
+
+	public String getRemainingHeader() {
+		return remainingHeader;
+	}
+
+	public void setRemainingHeader(String remainingHeader) {
+		this.remainingHeader = remainingHeader;
+	}
+
+	public String getReplenishRateHeader() {
+		return replenishRateHeader;
+	}
+
+	public void setReplenishRateHeader(String replenishRateHeader) {
+		this.replenishRateHeader = replenishRateHeader;
+	}
+
+	public String getBurstCapacityHeader() {
+		return burstCapacityHeader;
+	}
+
+	public void setBurstCapacityHeader(String burstCapacityHeader) {
+		this.burstCapacityHeader = burstCapacityHeader;
 	}
 
 	@Override
@@ -86,13 +138,10 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 			throw new IllegalStateException("RedisRateLimiter is not initialized");
 		}
 
-		Config routeConfig = getConfig().get(routeId);
+		Config routeConfig = getConfig().getOrDefault(routeId, defaultConfig);
 
 		if (routeConfig == null) {
-			if (defaultConfig == null) {
-				throw new IllegalArgumentException("No Configuration found for route " + routeId);
-			}
-			routeConfig = defaultConfig;
+			throw new IllegalArgumentException("No Configuration found for route " + routeId);
 		}
 
 		// How many requests per second do you want a user to be allowed to do?
@@ -119,7 +168,7 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 						boolean allowed = results.get(0) == 1L;
 						Long tokensLeft = results.get(1);
 
-						Response response = new Response(allowed, tokensLeft);
+						Response response = new Response(allowed, getHeaders(routeConfig, tokensLeft));
 
 						if (log.isDebugEnabled()) {
 							log.debug("response: " + response);
@@ -135,7 +184,16 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 			 */
 			log.error("Error determining if user allowed from redis", e);
 		}
-		return Mono.just(new Response(true, -1));
+		return Mono.just(new Response(true, getHeaders(routeConfig, -1L)));
+	}
+
+	@NotNull
+	public HashMap<String, String> getHeaders(Config config, Long tokensLeft) {
+		HashMap<String, String> headers = new HashMap<>();
+		headers.put(this.remainingHeader, tokensLeft.toString());
+		headers.put(this.replenishRateHeader, String.valueOf(config.getReplenishRate()));
+		headers.put(this.burstCapacityHeader, String.valueOf(config.getBurstCapacity()));
+		return headers;
 	}
 
 	static List<String> getKeys(String id) {
@@ -156,8 +214,8 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 		@Min(1)
 		private int replenishRate;
 
-		@Min(0)
-		private int burstCapacity = 0;
+		@Min(1)
+		private int burstCapacity = 1;
 
 		public int getReplenishRate() {
 			return replenishRate;

@@ -51,6 +51,11 @@ public class RedisRateLimiterTests extends BaseWebClientTests {
 		for (int i = 0; i < burstCapacity; i++) {
 			Response response = rateLimiter.isAllowed(routeId, id).block();
 			assertThat(response.isAllowed()).as("Burst # %s is allowed", i).isTrue();
+			assertThat(response.getHeaders()).containsKey(RedisRateLimiter.REMAINING_HEADER);
+			assertThat(response.getHeaders()).
+					containsEntry(RedisRateLimiter.REPLENISH_RATE_HEADER, String.valueOf(replenishRate));
+			assertThat(response.getHeaders()).
+					containsEntry(RedisRateLimiter.BURST_CAPACITY_HEADER, String.valueOf(burstCapacity));
 		}
 
 		Response response = rateLimiter.isAllowed(routeId, id).block();

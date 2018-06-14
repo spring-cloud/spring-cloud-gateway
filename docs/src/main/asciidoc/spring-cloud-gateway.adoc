@@ -448,11 +448,9 @@ This will prefix `/mypath` to the path of all matching requests. So a request to
 
 === RequestRateLimiter GatewayFilter Factory
 
-The RequestRateLimiter GatewayFilter Factory takes three parameters: `replenishRate`, `burstCapacity` & `keyResolverName`.
+The RequestRateLimiter GatewayFilter Factory is uses a `RateLimiter` implementation to determine if the current request is allowed to proceed. If it is not, a status of `HTTP 429 - Too Many Requests` (by default) is returned.
 
-`replenishRate` is how many requests per second do you want a user to be allowed to do.
-
-`burstCapacity` TODO: document burst capacity
+This filter takes an optional `keyResolver` parameter and parameters specific to the rate limiter (see below).
 
 `keyResolver` is a bean that implements the `KeyResolver` interface. In configuration, reference the bean by name using SpEL. `#{@myKeyResolver}` is a SpEL expression referencing a bean with the name `myKeyResolver`.
 
@@ -466,8 +464,27 @@ public interface KeyResolver {
 
 The `KeyResolver` interface allows pluggable strategies to derive the key for limiting requests. In future milestones, there will be some `KeyResolver` implementations.
 
+The default implementation of `KeyResolver` is the `PrincipalNameKeyResolver` which retrieves the `Principal` from the `ServerWebExchange` and calls `Principal.getName()`.
+
+NOTE: The RequestRateLimiter is not configurable via the "shortcut" notation. The example below is __invalid__
+
+.application.properties
+----
+# INVALID SHORTCUT CONFIGURATION
+spring.cloud.gateway.routes[0].filters[0]=RequestRateLimiter=2, 2, #{@userkeyresolver}
+----
+
+==== Redis RateLimiter
+
 The redis implementation is based off of work done at https://stripe.com/blog/rate-limiters[Stripe]. It requires the use of the `spring-boot-starter-data-redis-reactive` Spring Boot starter.
 
+The algorithm used is the https://en.wikipedia.org/wiki/Token_bucket[Token Bucket Algorithm].
+
+The `redis-rate-limiter.replenishRate` is how many requests per second do you want a user to be allowed to do, without any dropped requests. This is the rate that the token bucket is filled.
+
+The `redis-rate-limiter.burstCapacity` is the maximum number of requests a user is allowed to do in a single second. This is the number of tokens the token bucket can hold. Setting this value to zero will block all requests.
+
+A steady rate is accomplished by setting the same value in `replenishRate` and `burstCapacity`. Temporary bursts can be allowed by setting `burstCapacity` higher than `replenishRate`. In this case, the rate limiter needs to be allowed some time between bursts (according to `replenishRate`), as 2 consecutive bursts will result in dropped requests (`HTTP 429 - Too Many Requests`).
 
 .application.yml
 [source,yaml]
@@ -479,7 +496,11 @@ spring:
       - id: requestratelimiter_route
         uri: http://example.org
         filters:
-        - RequestRateLimiter=10, 20, #{@userKeyResolver}
+        - name: RequestRateLimiter
+          args:
+            redis-rate-limiter.replenishRate: 10
+            redis-rate-limiter.burstCapacity: 20
+
 ----
 
 .Config.java
@@ -491,7 +512,26 @@ KeyResolver userKeyResolver() {
 }
 ----
 
-This defines a request rate limit of 10 per user. The `KeyResolver` is a simple one that gets the `user` request parameter (note: this is not recommended for production).
+This defines a request rate limit of 10 per user. A burst of 20 is allowed, but the next second only 10 requests will be available. The `KeyResolver` is a simple one that gets the `user` request parameter (note: this is not recommended for production).
+
+A rate limiter can also be defined as a bean implementing the `RateLimiter` interface. In configuration, reference the bean by name using SpEL. `#{@myRateLimiter}` is a SpEL expression referencing a bean with the name `myRateLimiter`.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: requestratelimiter_route
+        uri: http://example.org
+        filters:
+        - name: RequestRateLimiter
+          args:
+            rate-limiter: "#{@myRateLimiter}"
+            key-resolver: "#{@userKeyResolver}"
+
+----
 
 === RedirectTo GatewayFilter Factory
 The RedirectTo GatewayFilter Factory takes a `status` and a `url` parameter. The status should be a 300 series redirect http code, such as 301. The url should be a valid url. This will be the value of the `Location` header.
@@ -785,6 +825,27 @@ If the URI has a scheme prefix, such as `lb:ws://serviceid`, the `lb` scheme is 
 The Websocket Routing Filter runs if the url located in the `ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR` exchange attribute has a `ws` or `wss` scheme. It uses the Spring Web Socket infrastructure to forward the Websocket request downstream.
 
 Websockets may be load-balanced by prefixing the URI with `lb`, such as `lb:ws://serviceid`.
+
+NOTE: If you are using https://github.com/sockjs[SockJS] as a fallback over normal http, you should configure a normal HTTP route as well as the Websocket Route.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      # SockJS route
+      - id: websocket_sockjs_route
+        uri: http://localhost:3001
+        predicates:
+        - Path=/websocket/info/**
+      # Normwal Websocket route
+      - id: websocket_route
+        uri: ws://localhost:3001
+        predicates:
+        - Path=/websocket/**
+----
 
 === Making An Exchange As Routed
 

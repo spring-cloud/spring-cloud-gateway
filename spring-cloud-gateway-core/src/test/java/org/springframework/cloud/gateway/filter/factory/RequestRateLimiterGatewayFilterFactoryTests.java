@@ -31,6 +31,9 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 
 import reactor.core.publisher.Mono;
 
+import java.util.Collections;
+import java.util.Map;
+
 /**
  * see https://gist.github.com/ptarjan/e38f45f2dfe601419ca3af937fff574d#file-1-check_request_rate_limiter-rb-L36-L62
  * @author Spencer Gibb
@@ -69,8 +72,12 @@ public class RequestRateLimiterGatewayFilterFactoryTests extends BaseWebClientTe
 
 	private void assertFilterFactory(KeyResolver keyResolver, String key, boolean allowed, HttpStatus expectedStatus) {
 
+		String tokensRemaining = allowed ? "1" : "0";
+
+		Map<String, String> headers = Collections.singletonMap("X-Tokens-Remaining", tokensRemaining);
+
 		when(rateLimiter.isAllowed("myroute", key))
-				.thenReturn(Mono.just(new Response(allowed, 1)));
+				.thenReturn(Mono.just(new Response(allowed, headers)));
 
 		MockServerHttpRequest request = MockServerHttpRequest.get("/").build();
 		MockServerWebExchange exchange = MockServerWebExchange.from(request);
@@ -85,8 +92,11 @@ public class RequestRateLimiterGatewayFilterFactoryTests extends BaseWebClientTe
 		GatewayFilter filter = factory.apply(config -> config.setKeyResolver(keyResolver));
 
 		Mono<Void> response = filter.filter(exchange, this.filterChain);
-		response.subscribe(aVoid -> assertThat(exchange.getResponse().getStatusCode())
-				.isEqualTo(expectedStatus));
+		response.subscribe(aVoid -> {
+			assertThat(exchange.getResponse().getStatusCode()).isEqualTo(expectedStatus);
+			assertThat(exchange.getResponse().getHeaders()).
+					containsEntry("X-Tokens-Remaining", Collections.singletonList(tokensRemaining));
+		});
 
 	}
 
