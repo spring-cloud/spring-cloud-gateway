@@ -20,6 +20,9 @@ import org.springframework.cloud.gateway.route.Route;
 
 import java.net.URI;
 
+/**
+ * A specification to add a URI to a route.
+ */
 public class UriSpec {
 	final Route.AsyncBuilder routeBuilder;
 	final RouteLocatorBuilder.Builder builder;
@@ -29,10 +32,20 @@ public class UriSpec {
 		this.builder = builder;
 	}
 
+	/**
+	 * Set the URI for the route.
+	 * @param uri the URI for the route
+	 * @return a {@link Route.AsyncBuilder}
+	 */
 	public Route.AsyncBuilder uri(String uri) {
 		return this.routeBuilder.uri(uri);
 	}
 
+	/**
+	 * Set the URI for the route.
+	 * @param uri the URI for the route.
+	 * @return a {@link Route.AsyncBuilder}
+	 */
 	public Route.AsyncBuilder uri(URI uri) {
 		return this.routeBuilder.uri(uri);
 	}

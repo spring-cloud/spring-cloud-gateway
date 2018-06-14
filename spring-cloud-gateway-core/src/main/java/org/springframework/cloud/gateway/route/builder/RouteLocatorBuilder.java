@@ -27,6 +27,9 @@ import org.springframework.context.ConfigurableApplicationContext;
 
 import reactor.core.publisher.Flux;
 
+/**
+ * Used to build a {@link RouteLocator}
+ */
 public class RouteLocatorBuilder {
 
 	private ConfigurableApplicationContext context;
@@ -35,10 +38,17 @@ public class RouteLocatorBuilder {
 		this.context = context;
 	}
 
+	/**
+	 * Creates a new {@link Builder}
+	 * @return a new {@link Builder}
+	 */
 	public Builder routes() {
 		return new Builder(context);
 	}
 
+	/**
+	 * A class that can be used to construct routes and return a {@link RouteLocator}
+	 */
 	public static class Builder {
 
 		private List<Route.AsyncBuilder> routes = new ArrayList<>();
@@ -48,18 +58,33 @@ public class RouteLocatorBuilder {
 			this.context = context;
 		}
 
+		/**
+		 * Creates a new {@link Route}
+		 * @param id the unique id for the route
+		 * @param fn a function which takes in a {@link PredicateSpec} and returns a {@link Route.AsyncBuilder}
+		 * @return a {@link Builder}
+		 */
 		public Builder route(String id, Function<PredicateSpec, Route.AsyncBuilder> fn) {
 			Route.AsyncBuilder routeBuilder = fn.apply(new RouteSpec(this).id(id));
 			add(routeBuilder);
 			return this;
 		}
 
+		/**
+		 * Creates a new {@link Route}
+		 * @param fn a function which takes in a {@link PredicateSpec} and returns a {@link Route.AsyncBuilder}
+		 * @return a {@link Builder}
+		 */
 		public Builder route(Function<PredicateSpec, Route.AsyncBuilder> fn) {
 			Route.AsyncBuilder routeBuilder = fn.apply(new RouteSpec(this).randomId());
 			add(routeBuilder);
 			return this;
 		}
-		
+
+		/**
+		 * Builds and returns a {@link RouteLocator}
+		 * @return a {@link RouteLocator}
+		 */
 		public RouteLocator build() {
 			return () -> Flux.fromIterable(this.routes).map(routeBuilder -> routeBuilder.build());
 		}

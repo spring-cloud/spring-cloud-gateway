@@ -28,6 +28,9 @@ import static org.springframework.cloud.gateway.route.builder.BooleanSpec.Operat
 import static org.springframework.cloud.gateway.route.builder.BooleanSpec.Operator.OR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.toAsyncPredicate;
 
+/**
+ * A spec used to apply logical operators.
+ */
 public class BooleanSpec extends UriSpec {
 
 	enum Operator { AND, OR, NEGATE }
@@ -40,19 +43,36 @@ public class BooleanSpec extends UriSpec {
 		predicate = routeBuilder.getPredicate();
 	}
 
+	/**
+	 * Apply logical {@code and} operator.
+	 * @return a {@link BooleanSpec} to be used to add logical operators
+	 */
 	public BooleanOpSpec and() {
 		return new BooleanOpSpec(routeBuilder, builder, AND);
 	}
 
+	/**
+	 * Apply logical {@code or} operator.
+	 * @return a {@link BooleanSpec} to be used to add logical operators
+	 */
 	public BooleanOpSpec or() {
 		return new BooleanOpSpec(routeBuilder, builder, OR);
 	}
 
+	/**
+	 * Negate the logical operator.
+	 * @return a {@link BooleanSpec} to be used to add logical operators
+	 */
 	public BooleanSpec negate() {
 		this.routeBuilder.negate();
 		return new BooleanSpec(routeBuilder, builder);
 	}
 
+	/**
+	 * Add filters to the route definition.
+	 * @param fn A {@link Function} that takes in a {@link GatewayFilterSpec} and returns a {@link UriSpec}
+	 * @return a {@link UriSpec}
+	 */
 	public UriSpec filters(Function<GatewayFilterSpec, UriSpec> fn) {
 		return fn.apply(new GatewayFilterSpec(routeBuilder, builder));
 	}
