@@ -17,21 +17,25 @@
 
 package org.springframework.cloud.gateway.filter.factory.rewrite;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
+import java.util.Optional;
 
-import org.springframework.cloud.gateway.support.DefaultServerRequest;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
+import org.springframework.cloud.gateway.support.DefaultServerRequest;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.codec.HttpMessageWriter;
 import org.springframework.http.codec.ServerCodecConfigurer;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
+import org.springframework.web.reactive.function.BodyInserter;
 import org.springframework.web.reactive.function.BodyInserters;
-import org.springframework.web.reactive.function.client.ClientRequest;
 import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.server.ServerRequest;
 
@@ -58,13 +62,13 @@ public class ModifyRequestBodyGatewayFilterFactory
 
 			ServerRequest serverRequest = new DefaultServerRequest(exchange);
 			Mono<?> mono = serverRequest.bodyToMono(inClass)
-					.log("modify_request_mono", Level.INFO)
+					// .log("modify_request_mono", Level.INFO)
 					.flatMap(o -> config.rewriteFunction.apply(exchange, o));
 
-			ClientRequest clientRequest = new DefaultClientRequest(exchange, BodyInserters.fromPublisher(mono, config.getOutClass()));
+			BodyInserter bodyInserter = BodyInserters.fromPublisher(mono, config.getOutClass());
 			CachedBodyClientHttpRequest clientHttpRequest = new CachedBodyClientHttpRequest(exchange);
-			return clientRequest.writeTo(clientHttpRequest, ExchangeStrategies.withDefaults())
-					.log("modify_request", Level.INFO)
+			return bodyInserter.insert(clientHttpRequest,  new BodyInserterContext())
+					// .log("modify_request", Level.INFO)
 					.then(Mono.defer(() -> {
 						ServerHttpRequestDecorator decorator = new ServerHttpRequestDecorator(
 								exchange.getRequest()) {
@@ -86,6 +90,31 @@ public class ModifyRequestBodyGatewayFilterFactory
 					}));
 
 		};
+	}
+
+	public static class BodyInserterContext implements BodyInserter.Context {
+		private final ExchangeStrategies exchangeStrategies;
+
+		public BodyInserterContext() {
+			this.exchangeStrategies = ExchangeStrategies.withDefaults();
+		}
+
+		public BodyInserterContext(ExchangeStrategies exchangeStrategies) {
+			this.exchangeStrategies = exchangeStrategies; //TODO: support custom strategies
+		}
+
+		@Override
+		public List<HttpMessageWriter<?>> messageWriters() {
+			return exchangeStrategies.messageWriters();
+		}
+		@Override
+		public Optional<ServerHttpRequest> serverRequest() {
+			return Optional.empty();
+		}
+		@Override
+		public Map<String, Object> hints() {
+			return Collections.emptyMap(); //TODO: support hints
+		}
 	}
 
 	public static class Config {
