@@ -18,6 +18,7 @@
 package org.springframework.cloud.gateway.filter.factory.rewrite;
 
 import java.util.Map;
+import java.util.logging.Level;
 
 import org.springframework.cloud.gateway.support.DefaultServerRequest;
 import reactor.core.publisher.Flux;
@@ -57,12 +58,13 @@ public class ModifyRequestBodyGatewayFilterFactory
 
 			ServerRequest serverRequest = new DefaultServerRequest(exchange);
 			Mono<?> mono = serverRequest.bodyToMono(inClass)
+					.log("modify_request_mono", Level.INFO)
 					.flatMap(o -> config.rewriteFunction.apply(exchange, o));
 
 			ClientRequest clientRequest = new DefaultClientRequest(exchange, BodyInserters.fromPublisher(mono, config.getOutClass()));
 			CachedBodyClientHttpRequest clientHttpRequest = new CachedBodyClientHttpRequest(exchange);
 			return clientRequest.writeTo(clientHttpRequest, ExchangeStrategies.withDefaults())
-					// .log("modify_request", Level.INFO)
+					.log("modify_request", Level.INFO)
 					.then(Mono.defer(() -> {
 						ServerHttpRequestDecorator decorator = new ServerHttpRequestDecorator(
 								exchange.getRequest()) {
