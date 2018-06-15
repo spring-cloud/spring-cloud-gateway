@@ -175,6 +175,7 @@ public class GatewayFilterSpec extends UriSpec {
 
 	/**
 	 * A filter that can be used to modify the request body.
+	 * This filter is BETA and may be subject to change in a future release.
 	 * @param inClass the class to convert the incoming request body to
 	 * @param outClass the class the Gateway will add to the request before it is routed
 	 * @param rewriteFunction the {@link RewriteFunction} that transforms the request body
@@ -189,6 +190,7 @@ public class GatewayFilterSpec extends UriSpec {
 
 	/**
 	 * A filter that can be used to modify the response body
+	 * This filter is BETA and may be subject to change in a future release.
 	 * @param inClass the class to conver the response body to
 	 * @param outClass the class the Gateway will add to the response before it is returned to the client
 	 * @param rewriteFunction the {@link RewriteFunction} that transforms the response body

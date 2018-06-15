@@ -21,5 +21,10 @@ import org.springframework.web.server.ServerWebExchange;
 
 import java.util.function.BiFunction;
 
+/**
+ * This interface is BETA and may be subject to change in a future release.
+ * @param <T>
+ * @param <R>
+ */
 public interface RewriteFunction<T, R> extends BiFunction<ServerWebExchange, T, R> {
 }

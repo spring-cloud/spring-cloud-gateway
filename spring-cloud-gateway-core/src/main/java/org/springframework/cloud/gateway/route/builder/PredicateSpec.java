@@ -170,6 +170,7 @@ public class PredicateSpec extends UriSpec {
 	}
 
 	/**
+	 * This predicate is BETA and may be subject to change in a future release.
 	 * A predicate that checks the contents of the request body
 	 * @param inClass the class to parse the body to
 	 * @param predicate a predicate to check the contents of the body

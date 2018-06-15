@@ -43,6 +43,9 @@ import org.springframework.web.server.ServerWebExchange;
 import static org.springframework.cloud.gateway.filter.factory.rewrite.RewriteUtils.getHttpMessageReader;
 import static org.springframework.cloud.gateway.filter.factory.rewrite.RewriteUtils.getHttpMessageWriter;
 
+/**
+ * This filter is BETA and may be subject to change in a future release.
+ */
 public class ModifyResponseBodyGatewayFilterFactory
 		extends AbstractGatewayFilterFactory<ModifyResponseBodyGatewayFilterFactory.Config> {
 
