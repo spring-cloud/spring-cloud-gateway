@@ -61,13 +61,14 @@ public class ModifyRequestBodyGatewayFilterFactory
 			Class inClass = config.getInClass();
 
 			ServerRequest serverRequest = new DefaultServerRequest(exchange);
-			Mono<?> mono = serverRequest.bodyToMono(inClass)
+			//TODO: flux or mono
+			Mono<?> modifiedBody = serverRequest.bodyToMono(inClass)
 					// .log("modify_request_mono", Level.INFO)
 					.flatMap(o -> config.rewriteFunction.apply(exchange, o));
 
-			BodyInserter bodyInserter = BodyInserters.fromPublisher(mono, config.getOutClass());
-			CachedBodyClientHttpRequest clientHttpRequest = new CachedBodyClientHttpRequest(exchange);
-			return bodyInserter.insert(clientHttpRequest,  new BodyInserterContext())
+			BodyInserter bodyInserter = BodyInserters.fromPublisher(modifiedBody, config.getOutClass());
+			CachedBodyOutputMessage outputMessage = new CachedBodyOutputMessage(exchange, exchange.getRequest().getHeaders());
+			return bodyInserter.insert(outputMessage,  new BodyInserterContext())
 					// .log("modify_request", Level.INFO)
 					.then(Mono.defer(() -> {
 						ServerHttpRequestDecorator decorator = new ServerHttpRequestDecorator(
@@ -83,7 +84,7 @@ public class ModifyRequestBodyGatewayFilterFactory
 
 							@Override
 							public Flux<DataBuffer> getBody() {
-								return clientHttpRequest.getBody();
+								return outputMessage.getBody();
 							}
 						};
 						return chain.filter(exchange.mutate().request(decorator).build());

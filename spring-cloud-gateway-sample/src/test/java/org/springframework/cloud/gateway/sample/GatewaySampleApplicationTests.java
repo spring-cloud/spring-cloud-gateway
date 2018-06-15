@@ -146,7 +146,7 @@ public class GatewaySampleApplicationTests {
 				.expectHeader().valueEquals("X-TestHeader", "rewrite_response_upper")
 				.expectBody(Map.class)
 				.consumeWith(result ->
-						assertThat(result.getResponseBody()).containsEntry("data", "HELLO"));
+						assertThat(result.getResponseBody()).containsEntry("DATA", "HELLO"));
 	}
 
 	@Test
@@ -154,14 +154,14 @@ public class GatewaySampleApplicationTests {
 	public void rewriteResponeBodyObjectWorks() {
 		webClient.post()
 				.uri("/post")
-				.header("Host", "www.rewriterequestobj.org")
+				.header("Host", "www.rewriteresponseobj.org")
 				.syncBody("hello")
 				.exchange()
 				.expectStatus().isOk()
 				.expectHeader().valueEquals("X-TestHeader", "rewrite_response_obj")
-				.expectBody(Map.class)
+				.expectBody(String.class)
 				.consumeWith(result ->
-						assertThat(result.getResponseBody()).containsEntry("data", "{\"message\":\"HELLO\"}"));
+						assertThat(result.getResponseBody()).isEqualTo("hello"));
 	}
 
 	@Test

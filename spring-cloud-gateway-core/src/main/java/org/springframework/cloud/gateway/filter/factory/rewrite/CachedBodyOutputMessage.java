@@ -17,9 +17,8 @@
 
 package org.springframework.cloud.gateway.filter.factory.rewrite;
 
-import java.net.URI;
-import java.util.Collection;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
@@ -28,8 +27,7 @@ import reactor.core.publisher.Mono;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.client.reactive.AbstractClientHttpRequest;
+import org.springframework.http.ReactiveHttpOutputMessage;
 import org.springframework.http.client.reactive.ClientHttpRequest;
 import org.springframework.util.Assert;
 import org.springframework.web.server.ServerWebExchange;
@@ -40,13 +38,10 @@ import org.springframework.web.server.ServerWebExchange;
  * @author Rossen Stoyanchev
  * @since 5.0
  */
-public class CachedBodyClientHttpRequest extends AbstractClientHttpRequest {
+public class CachedBodyOutputMessage implements ReactiveHttpOutputMessage {
 
-	private HttpMethod httpMethod;
-
-	private URI url;
-
-	private DataBufferFactory bufferFactory;
+	private final DataBufferFactory bufferFactory;
+	private final HttpHeaders httpHeaders;
 
 	private Flux<DataBuffer> body = Flux.error(
 			new IllegalStateException("The body is not set. " +
@@ -54,10 +49,24 @@ public class CachedBodyClientHttpRequest extends AbstractClientHttpRequest {
 
 	private Function<Flux<DataBuffer>, Mono<Void>> writeHandler = initDefaultWriteHandler();
 
-	public CachedBodyClientHttpRequest(ServerWebExchange exchange) {
-		this.httpMethod = exchange.getRequest().getMethod();
-		this.url = exchange.getRequest().getURI();
+	public CachedBodyOutputMessage(ServerWebExchange exchange, HttpHeaders httpHeaders) {
 		this.bufferFactory = exchange.getResponse().bufferFactory();
+		this.httpHeaders = httpHeaders;
+	}
+
+	@Override
+	public void beforeCommit(Supplier<? extends Mono<Void>> action) {
+
+	}
+
+	@Override
+	public boolean isCommitted() {
+		return false;
+	}
+
+	@Override
+	public HttpHeaders getHeaders() {
+		return this.httpHeaders;
 	}
 
 	private Function<Flux<DataBuffer>, Mono<Void>> initDefaultWriteHandler() {
@@ -65,16 +74,6 @@ public class CachedBodyClientHttpRequest extends AbstractClientHttpRequest {
 			this.body = body.cache();
 			return this.body.then();
 		};
-	}
-
-	@Override
-	public HttpMethod getMethod() {
-		return this.httpMethod;
-	}
-
-	@Override
-	public URI getURI() {
-		return this.url;
 	}
 
 	@Override
@@ -106,18 +105,8 @@ public class CachedBodyClientHttpRequest extends AbstractClientHttpRequest {
 	}
 
 	@Override
-	protected void applyHeaders() {
-	}
-
-	@Override
-	protected void applyCookies() {
-		getCookies().values().stream().flatMap(Collection::stream)
-				.forEach(cookie -> getHeaders().add(HttpHeaders.COOKIE, cookie.toString()));
-	}
-
-	@Override
 	public Mono<Void> writeWith(Publisher<? extends DataBuffer> body) {
-		return doCommit(() -> Mono.defer(() -> this.writeHandler.apply(Flux.from(body))));
+		return Mono.defer(() -> this.writeHandler.apply(Flux.from(body)));
 	}
 
 	@Override

@@ -183,6 +183,7 @@ public class GatewayFilterSpec extends UriSpec {
 	 * @param <R> the new request body class
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
+	//TODO: setup custom spec
 	public <T, R> GatewayFilterSpec modifyRequestBody(Class<T> inClass, Class<R> outClass, RewriteFunction<T, R> rewriteFunction) {
 		return filter(getBean(ModifyRequestBodyGatewayFilterFactory.class)
 				.apply(c -> c.setRewriteFunction(inClass, outClass, rewriteFunction)));
@@ -201,6 +202,23 @@ public class GatewayFilterSpec extends UriSpec {
 	public <T, R> GatewayFilterSpec modifyResponseBody(Class<T> inClass, Class<R> outClass, RewriteFunction<T, R> rewriteFunction) {
 		return filter(getBean(ModifyResponseBodyGatewayFilterFactory.class)
 				.apply(c -> c.setRewriteFunction(inClass, outClass, rewriteFunction)));
+	}
+
+	/**
+	 * A filter that can be used to modify the response body
+	 * This filter is BETA and may be subject to change in a future release.
+	 * @param inClass the class to conver the response body to
+	 * @param outClass the class the Gateway will add to the response before it is returned to the client
+	 * @param newContentType the new Content-Type header to be returned
+	 * @param rewriteFunction the {@link RewriteFunction} that transforms the response body
+	 * @param <T> the original response body class
+	 * @param <R> the new response body class
+	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
+	 */
+	//TODO: setup custom spec
+	public <T, R> GatewayFilterSpec modifyResponseBody(Class<T> inClass, Class<R> outClass, String newContentType, RewriteFunction<T, R> rewriteFunction) {
+		return filter(getBean(ModifyResponseBodyGatewayFilterFactory.class)
+				.apply(c -> c.setRewriteFunction(inClass, outClass, rewriteFunction).setNewContentType(newContentType)));
 	}
 
 	/**

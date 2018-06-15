@@ -18,13 +18,8 @@
 package org.springframework.cloud.gateway.filter.factory.rewrite;
 
 import java.util.Map;
-import java.util.Optional;
 
 import org.reactivestreams.Publisher;
-import org.springframework.cloud.gateway.support.DefaultServerResponse;
-import org.springframework.cloud.gateway.support.DefaultServerResponse.HandlerStrategiesResponseContext;
-import org.springframework.web.reactive.function.BodyInserter;
-import org.springframework.web.reactive.function.BodyInserters;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -32,20 +27,22 @@ import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.NettyWriteResponseFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyRequestBodyGatewayFilterFactory.BodyInserterContext;
+import org.springframework.cloud.gateway.support.DefaultClientResponse;
 import org.springframework.core.Ordered;
-import org.springframework.core.ResolvableType;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ReactiveHttpInputMessage;
-import org.springframework.http.codec.HttpMessageReader;
-import org.springframework.http.codec.HttpMessageWriter;
+import org.springframework.http.ResponseCookie;
+import org.springframework.http.client.reactive.ClientHttpResponse;
 import org.springframework.http.codec.ServerCodecConfigurer;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.reactive.function.BodyInserter;
+import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.server.ServerWebExchange;
-
-import static org.springframework.cloud.gateway.filter.factory.rewrite.RewriteUtils.getHttpMessageReader;
-import static org.springframework.cloud.gateway.filter.factory.rewrite.RewriteUtils.getHttpMessageWriter;
 
 /**
  * This filter is BETA and may be subject to change in a future release.
@@ -75,42 +72,40 @@ public class ModifyResponseBodyGatewayFilterFactory
 		@Override
 		@SuppressWarnings("unchecked")
 		public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+
 			ServerHttpResponseDecorator responseDecorator = new ServerHttpResponseDecorator(exchange.getResponse()) {
+
 				@Override
 				public Mono<Void> writeWith(Publisher<? extends DataBuffer> body) {
 
 					Class inClass = config.getInClass();
 					Class outClass = config.getOutClass();
 
-					// BodyInserter bodyInserter = BodyInserters.fromPublisher(body, inClass);
+					MediaType originalResponseContentType = exchange.getAttribute("original_response_content_type");
+					HttpHeaders httpHeaders = new HttpHeaders();
+					httpHeaders.setContentType(originalResponseContentType);
+					ResponseAdapter responseAdapter = new ResponseAdapter(body, httpHeaders);
+					DefaultClientResponse clientResponse = new DefaultClientResponse(responseAdapter, ExchangeStrategies.withDefaults());
 
-					DefaultServerResponse serverResponse = new DefaultServerResponse(exchange, BodyInserters.fromDataBuffers((Publisher<DataBuffer>) body), config.getInHints());
-					serverResponse.writeTo(exchange, new HandlerStrategiesResponseContext());
+					//TODO: flux or mono
+					Mono modifiedBody = clientResponse.bodyToMono(inClass)
+							.flatMap(originalBody -> config.rewriteFunction.apply(exchange, originalBody));
 
-					ResolvableType inElementType = ResolvableType.forClass(inClass);
-					ResolvableType outElementType = ResolvableType.forClass(outClass);
-					MediaType contentType = exchange.getResponse().getHeaders().getContentType();
-					Optional<HttpMessageReader<?>> reader = getHttpMessageReader(codecConfigurer, inElementType, contentType);
-					Optional<HttpMessageWriter<?>> writer = getHttpMessageWriter(codecConfigurer, outElementType, null);
-
-					if (reader.isPresent() && writer.isPresent()) {
-
-						ResponseAdapter responseAdapter = new ResponseAdapter(body, getDelegate().getHeaders());
-
-						Flux<?> modified = reader.get().read(inElementType, responseAdapter, config.getInHints())
-								.cast(inElementType.resolve())
-								.flatMap(originalBody -> Flux.just(config.rewriteFunction.apply(exchange, originalBody)))
-								.cast(outElementType.resolve());
-
-						return getDelegate().writeWith(
-								writer.get().write((Publisher)modified, outElementType, null, getDelegate(),
-										config.getOutHints())
-						);
-
-					}
-					// TODO: error? log?
-
-					return getDelegate().writeWith(body);
+					BodyInserter bodyInserter = BodyInserters.fromPublisher(modifiedBody, outClass);
+					CachedBodyOutputMessage outputMessage = new CachedBodyOutputMessage(exchange, exchange.getResponse().getHeaders());
+					return bodyInserter.insert(outputMessage, new BodyInserterContext())
+							.then(Mono.defer(() -> {
+								long contentLength1 = getDelegate().getHeaders().getContentLength();
+								Flux<DataBuffer> messageBody = outputMessage.getBody();
+								//TODO: if (inputStream instanceof Mono) {
+									HttpHeaders headers = getDelegate().getHeaders();
+									if (/*headers.getContentLength() < 0 &&*/ !headers.containsKey(HttpHeaders.TRANSFER_ENCODING)) {
+										messageBody = messageBody.doOnNext(data -> headers.setContentLength(data.readableByteCount()));
+									}
+								// }
+								//TODO: use isStreamingMediaType?
+								return getDelegate().writeWith(messageBody);
+							}));
 				}
 
 				@Override
@@ -130,7 +125,7 @@ public class ModifyResponseBodyGatewayFilterFactory
 
 	}
 
-	public class ResponseAdapter implements ReactiveHttpInputMessage {
+	public class ResponseAdapter implements ClientHttpResponse {
 
 		private final Flux<DataBuffer> flux;
 		private final HttpHeaders headers;
@@ -153,6 +148,21 @@ public class ModifyResponseBodyGatewayFilterFactory
 		public HttpHeaders getHeaders() {
 			return headers;
 		}
+
+		@Override
+		public HttpStatus getStatusCode() {
+			return null;
+		}
+
+		@Override
+		public int getRawStatusCode() {
+			return 0;
+		}
+
+		@Override
+		public MultiValueMap<String, ResponseCookie> getCookies() {
+			return null;
+		}
 	}
 
 	public static class Config {
@@ -160,6 +170,7 @@ public class ModifyResponseBodyGatewayFilterFactory
 		private Class outClass;
 		private Map<String, Object> inHints;
 		private Map<String, Object> outHints;
+		private String newContentType;
 
 		private RewriteFunction rewriteFunction;
 
@@ -196,6 +207,15 @@ public class ModifyResponseBodyGatewayFilterFactory
 
 		public Config setOutHints(Map<String, Object> outHints) {
 			this.outHints = outHints;
+			return this;
+		}
+
+		public String getNewContentType() {
+			return newContentType;
+		}
+
+		public Config setNewContentType(String newContentType) {
+			this.newContentType = newContentType;
 			return this;
 		}
 
