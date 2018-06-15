@@ -20,11 +20,13 @@ package org.springframework.cloud.gateway.handler.predicate;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
+import org.springframework.cloud.gateway.handler.AsyncPredicate;
 import org.springframework.cloud.gateway.support.Configurable;
 import org.springframework.cloud.gateway.support.NameUtils;
 import org.springframework.cloud.gateway.support.ShortcutConfigurable;
-import org.springframework.tuple.Tuple;
 import org.springframework.web.server.ServerWebExchange;
+
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.toAsyncPredicate;
 
 /**
  * @author Spencer Gibb
@@ -33,37 +35,37 @@ import org.springframework.web.server.ServerWebExchange;
 public interface RoutePredicateFactory<C> extends ShortcutConfigurable, Configurable<C> {
 	String PATTERN_KEY = "pattern";
 
-	@Deprecated //TODO: remove when apply(Tuple) is removed
-	default boolean isConfigurable() {
-		return false;
-	}
-
 	// useful for javadsl
 	default Predicate<ServerWebExchange> apply(Consumer<C> consumer) {
 		C config = newConfig();
 		consumer.accept(config);
+		beforeApply(config);
 		return apply(config);
 	}
 
-	//TODO: remove after apply(Tuple) removed
-	@Override
+	default AsyncPredicate<ServerWebExchange> applyAsync(Consumer<C> consumer) {
+		C config = newConfig();
+		consumer.accept(config);
+		beforeApply(config);
+		return applyAsync(config);
+	}
+
 	default Class<C> getConfigClass() {
 		throw new UnsupportedOperationException("getConfigClass() not implemented");
 	}
 
-	//TODO: remove after apply(Tuple) removed
 	@Override
 	default C newConfig() {
 		throw new UnsupportedOperationException("newConfig() not implemented");
 	}
 
-	//TODO: remove default impl after apply(Tuple) removed
-	default Predicate<ServerWebExchange> apply(C config) {
-		throw new UnsupportedOperationException("apply(C config) not implemented");
-	}
+	default void beforeApply(C config) {}
 
-	@Deprecated
-	Predicate<ServerWebExchange> apply(Tuple args);
+	Predicate<ServerWebExchange> apply(C config);
+
+	default AsyncPredicate<ServerWebExchange> applyAsync(C config) {
+		return toAsyncPredicate(apply(config));
+	}
 
 	default String name() {
 		return NameUtils.normalizeRoutePredicateName(getClass());

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,21 +20,34 @@ import org.springframework.cloud.gateway.route.Route;
 
 import java.net.URI;
 
+/**
+ * A specification to add a URI to a route.
+ */
 public class UriSpec {
-	final Route.Builder routeBuilder;
+	final Route.AsyncBuilder routeBuilder;
 	final RouteLocatorBuilder.Builder builder;
 
-	UriSpec(Route.Builder routeBuilder, RouteLocatorBuilder.Builder builder) {
+	UriSpec(Route.AsyncBuilder routeBuilder, RouteLocatorBuilder.Builder builder) {
 		this.routeBuilder = routeBuilder;
 		this.builder = builder;
 	}
 
-	public RouteLocatorBuilder.Builder uri(String uri) {
-		return this.builder.uri(this.routeBuilder, uri);
+	/**
+	 * Set the URI for the route.
+	 * @param uri the URI for the route
+	 * @return a {@link Route.AsyncBuilder}
+	 */
+	public Route.AsyncBuilder uri(String uri) {
+		return this.routeBuilder.uri(uri);
 	}
 
-	public RouteLocatorBuilder.Builder uri(URI uri) {
-		return this.builder.uri(this.routeBuilder, uri);
+	/**
+	 * Set the URI for the route.
+	 * @param uri the URI for the route.
+	 * @return a {@link Route.AsyncBuilder}
+	 */
+	public Route.AsyncBuilder uri(URI uri) {
+		return this.routeBuilder.uri(uri);
 	}
 
 

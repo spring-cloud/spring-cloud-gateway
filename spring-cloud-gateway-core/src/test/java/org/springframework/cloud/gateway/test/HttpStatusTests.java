@@ -26,8 +26,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -49,6 +51,20 @@ public class HttpStatusTests extends BaseWebClientTests {
 				.exchange()
 				.expectStatus().isEqualTo(HttpStatus.NOT_FOUND)
 				.expectBody(String.class).isEqualTo("Failed with 404");
+	}
+
+	@Test
+	public void nonStandardCodeWorks() {
+		ResponseEntity<String> response = new TestRestTemplate().getForEntity(baseUri + "/status/432", String.class);
+		assertThat(response.getStatusCodeValue()).isEqualTo(432);
+		assertThat(response.getBody()).isEqualTo("Failed with 432");
+
+
+		/*testClient.get()
+				.uri("/status/432")
+				.exchange()
+				.expectStatus().isEqualTo(432)
+				.expectBody(String.class).isEqualTo("Failed with 432");*/
 	}
 
 	@Test

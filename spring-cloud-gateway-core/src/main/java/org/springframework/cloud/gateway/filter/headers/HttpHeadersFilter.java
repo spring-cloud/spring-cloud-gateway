@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2017-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,27 +17,55 @@
 
 package org.springframework.cloud.gateway.filter.headers;
 
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.server.reactive.ServerHttpRequest;
-
 import java.util.List;
 
-@FunctionalInterface
+import org.springframework.http.HttpHeaders;
+import org.springframework.web.server.ServerWebExchange;
+
 public interface HttpHeadersFilter {
 
-	HttpHeaders filter(ServerHttpRequest request);
+	enum Type {
+		REQUEST, RESPONSE
+	}
 
-	static HttpHeaders filter(List<HttpHeadersFilter> filters, ServerHttpRequest request) {
-		HttpHeaders response = request.getHeaders();
+	/**
+	 * Filters a set of Http Headers
+	 * 
+	 * @param input Http Headers
+	 * @param exchange
+	 * @return filtered Http Headers
+	 */
+	HttpHeaders filter(HttpHeaders input, ServerWebExchange exchange);
+
+	static HttpHeaders filterRequest(List<HttpHeadersFilter> filters,
+							  ServerWebExchange exchange) {
+		HttpHeaders headers = exchange.getRequest().getHeaders();
+		return filter(filters, headers, exchange, Type.REQUEST);
+	}
+
+	static HttpHeaders filter(List<HttpHeadersFilter> filters, HttpHeaders input,
+			ServerWebExchange exchange, Type type) {
+		HttpHeaders response = input;
 		if (filters != null) {
-			for (HttpHeadersFilter filter: filters) {
-				HttpHeaders filtered = filter.filter(request);
-				request = request.mutate().headers(httpHeaders -> {
-					httpHeaders.putAll(filtered);
-				}).build();
-				response = filtered;
-			}
+			HttpHeaders reduce = filters.stream()
+					.filter(headersFilter -> headersFilter.supports(type))
+					.reduce(input,
+							(headers, filter) -> filter.filter(headers, exchange),
+							(httpHeaders, httpHeaders2) -> {
+								httpHeaders.addAll(httpHeaders2);
+								return httpHeaders;
+							});
+			return reduce;
 		}
+
 		return response;
+	}
+
+	default boolean supports(Type type) {
+		if (type.equals(Type.REQUEST)) {
+			return true;
+		}
+		
+		return false;
 	}
 }

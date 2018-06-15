@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.gateway.route.builder;
 
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -28,6 +27,9 @@ import org.springframework.context.ConfigurableApplicationContext;
 
 import reactor.core.publisher.Flux;
 
+/**
+ * Used to build a {@link RouteLocator}
+ */
 public class RouteLocatorBuilder {
 
 	private ConfigurableApplicationContext context;
@@ -36,55 +38,69 @@ public class RouteLocatorBuilder {
 		this.context = context;
 	}
 
+	/**
+	 * Creates a new {@link Builder}
+	 * @return a new {@link Builder}
+	 */
 	public Builder routes() {
 		return new Builder(context);
 	}
 
+	/**
+	 * A class that can be used to construct routes and return a {@link RouteLocator}
+	 */
 	public static class Builder {
 
-		private List<Route> routes = new ArrayList<>();
+		private List<Route.AsyncBuilder> routes = new ArrayList<>();
 		private ConfigurableApplicationContext context;
 
 		public Builder(ConfigurableApplicationContext context) {
 			this.context = context;
 		}
 
-		public Builder route(String id, Function<PredicateSpec, Builder> fn) {
-			return fn.apply(new RouteSpec(this).id(id));
-		}
-
-		public Builder route(Function<PredicateSpec, Builder> fn) {
-			return fn.apply(new RouteSpec(this).randomId());
-		}
-
-		private void add(Route route) {
-			this.routes.add(route);
-		}
-
-		Builder uri(Route.Builder builder, String uri) {
-			Route route = builder.uri(uri).build();
-			add(route);
+		/**
+		 * Creates a new {@link Route}
+		 * @param id the unique id for the route
+		 * @param fn a function which takes in a {@link PredicateSpec} and returns a {@link Route.AsyncBuilder}
+		 * @return a {@link Builder}
+		 */
+		public Builder route(String id, Function<PredicateSpec, Route.AsyncBuilder> fn) {
+			Route.AsyncBuilder routeBuilder = fn.apply(new RouteSpec(this).id(id));
+			add(routeBuilder);
 			return this;
 		}
 
-		Builder uri(Route.Builder builder, URI uri) {
-			Route route = builder.uri(uri).build();
-			add(route);
+		/**
+		 * Creates a new {@link Route}
+		 * @param fn a function which takes in a {@link PredicateSpec} and returns a {@link Route.AsyncBuilder}
+		 * @return a {@link Builder}
+		 */
+		public Builder route(Function<PredicateSpec, Route.AsyncBuilder> fn) {
+			Route.AsyncBuilder routeBuilder = fn.apply(new RouteSpec(this).randomId());
+			add(routeBuilder);
 			return this;
 		}
 
+		/**
+		 * Builds and returns a {@link RouteLocator}
+		 * @return a {@link RouteLocator}
+		 */
 		public RouteLocator build() {
-			return () -> Flux.fromIterable(this.routes);
+			return () -> Flux.fromIterable(this.routes).map(routeBuilder -> routeBuilder.build());
 		}
 
 		ConfigurableApplicationContext getContext() {
 			return context;
 		}
+
+		void add(Route.AsyncBuilder route) {
+			routes.add(route);
+		}
 	}
 
 
 	public static class RouteSpec {
-		private final Route.Builder routeBuilder = Route.builder();
+		private final Route.AsyncBuilder routeBuilder = Route.async();
 		private final Builder builder;
 
 		RouteSpec(Builder builder) {

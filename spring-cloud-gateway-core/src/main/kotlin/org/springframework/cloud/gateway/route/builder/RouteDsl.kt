@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.gateway.route.builder
 
+import org.springframework.cloud.gateway.route.Route
 import org.springframework.cloud.gateway.route.RouteLocator
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder.RouteSpec
 import java.util.function.Predicate
@@ -65,10 +66,14 @@ class RouteLocatorDsl(val builder: RouteLocatorBuilder) {
 			RouteSpec(routes).id(id)
 		}
 		predicateSpec.order(order)
-		predicateSpec.apply(init)
 		if (uri != null) {
 			predicateSpec.uri(uri)
 		}
+		
+		predicateSpec.apply(init)
+		
+		val route: Route.AsyncBuilder = predicateSpec.routeBuilder
+		routes.add(route)
 	}
 
 	fun build(): RouteLocator {
@@ -79,13 +84,13 @@ class RouteLocatorDsl(val builder: RouteLocatorBuilder) {
 	 * A helper to return a composed [Predicate] that tests against this [Predicate] AND the [other] predicate
 	 */
 	infix fun BooleanSpec.and(other: BooleanSpec) =
-			this.routeBuilder.predicate(this.predicate.and(other.predicate))
+			this.routeBuilder.asyncPredicate(this.predicate.and(other.predicate))
 
 	/**
 	 * A helper to return a composed [Predicate] that tests against this [Predicate] OR the [other] predicate
 	 */
 	infix fun BooleanSpec.or(other: BooleanSpec) =
-			this.routeBuilder.predicate(this.predicate.or(other.predicate))
+			this.routeBuilder.asyncPredicate(this.predicate.or(other.predicate))
 
 
 }

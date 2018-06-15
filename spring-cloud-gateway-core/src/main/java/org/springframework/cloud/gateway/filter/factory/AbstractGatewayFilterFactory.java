@@ -17,10 +17,12 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
-import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.support.AbstractConfigurable;
-import org.springframework.tuple.Tuple;
 
+/**
+ * This class is BETA and may be subject to change in a future release.
+ * @param <C>
+ */
 public abstract class AbstractGatewayFilterFactory<C>
 		extends AbstractConfigurable<C> implements GatewayFilterFactory<C> {
 
@@ -31,16 +33,6 @@ public abstract class AbstractGatewayFilterFactory<C>
 
 	public AbstractGatewayFilterFactory(Class<C> configClass) {
 		super(configClass);
-	}
-
-	@Override
-	public boolean isConfigurable() {
-		return true;
-	}
-
-	@Override
-	public GatewayFilter apply(Tuple args) {
-		throw new UnsupportedOperationException("apply(Tuple) not supported");
 	}
 
 	public static class NameConfig {

@@ -31,10 +31,19 @@ public class NameUtils {
 	}
 
 	public static String normalizeRoutePredicateName(Class<? extends RoutePredicateFactory> clazz) {
-		return clazz.getSimpleName().replace(RoutePredicateFactory.class.getSimpleName(), "");
+		return removeGarbage(clazz.getSimpleName().replace(RoutePredicateFactory.class.getSimpleName(), ""));
 	}
 
 	public static String normalizeFilterFactoryName(Class<? extends GatewayFilterFactory> clazz) {
-		return clazz.getSimpleName().replace(GatewayFilterFactory.class.getSimpleName(), "");
+		return removeGarbage(clazz.getSimpleName().replace(GatewayFilterFactory.class.getSimpleName(), ""));
+	}
+
+	private static String removeGarbage(String s) {
+		int garbageIdx = s.indexOf("$Mockito");
+		if (garbageIdx > 0) {
+			return s.substring(0, garbageIdx);
+		}
+
+		return s;
 	}
 }

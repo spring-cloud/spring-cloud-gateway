@@ -26,6 +26,7 @@ import org.springframework.mock.http.server.reactive.MockServerHttpRequest
 import org.springframework.mock.web.server.MockServerWebExchange
 import org.springframework.test.context.junit4.SpringRunner
 import org.springframework.web.server.ServerWebExchange
+import reactor.core.publisher.toMono
 import reactor.test.StepVerifier
 import java.net.URI
 
@@ -59,11 +60,11 @@ class RouteDslTests {
 
 		StepVerifier
 				.create(routeLocator.routes)
-				.expectNextMatches({ r ->
-					r.id == "test" && r.filters.size == 1 && r.uri == URI.create("http://httpbin.org:80")
+				.expectNextMatches({
+					it.id == "test" && it.filters.size == 1 && it.uri == URI.create("http://httpbin.org:80")
 				})
-				.expectNextMatches({ r ->
-					r.id == "test2" && r.filters.size == 2 && r.uri == URI.create("https://httpbin.org:443")
+				.expectNextMatches({
+					it.id == "test2" && it.filters.size == 2 && it.uri == URI.create("https://httpbin.org:443")
 				})
 				.expectComplete()
 				.verify()
@@ -71,11 +72,11 @@ class RouteDslTests {
 		val sampleExchange: ServerWebExchange = MockServerWebExchange.from(MockServerHttpRequest.get("/image/webp")
 				.header("Host", "test.abc.org").build())
 
-		val filteredRoutes = routeLocator.routes.filter({ r -> r.predicate.test(sampleExchange) })
+		val filteredRoutes = routeLocator.routes.filter({ it.predicate.apply(sampleExchange).toMono().block() })
 
 		StepVerifier.create(filteredRoutes)
-				.expectNextMatches({ r ->
-					r.id == "test2" && r.filters.size == 2 && r.uri == URI.create("https://httpbin.org:443")
+				.expectNextMatches({
+					it.id == "test2" && it.filters.size == 2 && it.uri == URI.create("https://httpbin.org:443")
 				})
 				.expectComplete()
 				.verify()
@@ -84,20 +85,33 @@ class RouteDslTests {
 	@Test
 	fun dslWithFunctionParameters() {
 		val routerLocator = builder.routes {
-			route(id = "test", order = 10, uri = "http://httpbin.org") {
+			route(id = "test1", order = 10, uri = "http://httpbin.org") {
 				host("**.abc.org")
+			}
+			route(id = "test2", order = 10, uri = "http://someurl") {
+				host("**.abc.org")
+				uri("http://override-url")
 			}
 		}
 
 		StepVerifier.create(routerLocator.routes)
-				.expectNextMatches({ r ->
-					r.id == "test" &&
-							r.uri == URI.create("http://httpbin.org:80") &&
-							r.order == 10 &&
-							r.id == "test" &&
-							r.predicate.test(MockServerWebExchange
+				.expectNextMatches({
+					it.id == "test1" &&
+							it.uri == URI.create("http://httpbin.org:80") &&
+							it.order == 10 &&
+							it.predicate.apply(MockServerWebExchange
 									.from(MockServerHttpRequest
 											.get("/someuri").header("Host", "test.abc.org")))
+									.toMono().block()
+				})
+				.expectNextMatches({
+					it.id == "test2" &&
+							it.uri == URI.create("http://override-url:80") &&
+							it.order == 10 &&
+							it.predicate.apply(MockServerWebExchange
+									.from(MockServerHttpRequest
+											.get("/someuri").header("Host", "test.abc.org")))
+									.toMono().block()
 				})
 				.expectComplete()
 				.verify()

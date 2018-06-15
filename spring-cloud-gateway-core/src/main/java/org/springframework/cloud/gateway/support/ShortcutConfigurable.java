@@ -115,14 +115,8 @@ public interface ShortcutConfigurable {
 		return Collections.emptyList();
 	}
 
-	/**
-	 * Validate supplied argument size against {@see #shortcutFieldOrder} size.
-	 * Useful for variable arg predicates.
-	 * @return
-	 */
-	@Deprecated
-	default boolean validateFieldsExist() {
-		return true;
+	default String shortcutFieldPrefix() {
+		return "";
 	}
 
 }

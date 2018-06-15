@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,22 +20,6 @@ package org.springframework.cloud.gateway.filter;
 import java.net.URI;
 import java.util.List;
 
-import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.cloud.gateway.filter.headers.HttpHeadersFilter;
-import org.springframework.core.Ordered;
-import org.springframework.core.io.buffer.NettyDataBuffer;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.http.server.reactive.ServerHttpResponse;
-import org.springframework.web.server.ServerWebExchange;
-
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.CLIENT_RESPONSE_ATTR;
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.PRESERVE_HOST_HEADER_ATTRIBUTE;
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.isAlreadyRouted;
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.setAlreadyRouted;
-
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import reactor.core.publisher.Mono;
@@ -43,8 +27,28 @@ import reactor.ipc.netty.NettyPipeline;
 import reactor.ipc.netty.http.client.HttpClient;
 import reactor.ipc.netty.http.client.HttpClientRequest;
 
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.cloud.gateway.filter.headers.HttpHeadersFilter;
+import org.springframework.cloud.gateway.filter.headers.HttpHeadersFilter.Type;
+import org.springframework.core.Ordered;
+import org.springframework.core.io.buffer.NettyDataBuffer;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.server.reactive.AbstractServerHttpResponse;
+import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.http.server.reactive.ServerHttpResponse;
+import org.springframework.web.server.ServerWebExchange;
+
+import static org.springframework.cloud.gateway.filter.headers.HttpHeadersFilter.filterRequest;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.CLIENT_RESPONSE_ATTR;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.PRESERVE_HOST_HEADER_ATTRIBUTE;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.isAlreadyRouted;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.setAlreadyRouted;
+
 /**
  * @author Spencer Gibb
+ * @author Biju Kunjummen
  */
 public class NettyRoutingFilter implements GlobalFilter, Ordered {
 
@@ -52,7 +56,7 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 	private final ObjectProvider<List<HttpHeadersFilter>> headersFilters;
 
 	public NettyRoutingFilter(HttpClient httpClient,
-							  ObjectProvider<List<HttpHeadersFilter>> headersFilters) {
+			ObjectProvider<List<HttpHeadersFilter>> headersFilters) {
 		this.httpClient = httpClient;
 		this.headersFilters = headersFilters;
 	}
@@ -77,8 +81,8 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 		final HttpMethod method = HttpMethod.valueOf(request.getMethod().toString());
 		final String url = requestUrl.toString();
 
-		HttpHeaders filtered = HttpHeadersFilter.filter(this.headersFilters.getIfAvailable(),
-				request);
+		HttpHeaders filtered = filterRequest(this.headersFilters.getIfAvailable(),
+				exchange);
 
 		final DefaultHttpHeaders httpHeaders = new DefaultHttpHeaders();
 		filtered.forEach(httpHeaders::set);
@@ -107,10 +111,22 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 			ServerHttpResponse response = exchange.getResponse();
 			// put headers and status so filters can modify the response
 			HttpHeaders headers = new HttpHeaders();
+			
 			res.responseHeaders().forEach(entry -> headers.add(entry.getKey(), entry.getValue()));
 
-			response.getHeaders().putAll(headers);
-			response.setStatusCode(HttpStatus.valueOf(res.status().code()));
+			HttpHeaders filteredResponseHeaders = HttpHeadersFilter.filter(
+					this.headersFilters.getIfAvailable(), headers, exchange, Type.RESPONSE);
+			
+			response.getHeaders().putAll(filteredResponseHeaders);
+			HttpStatus status = HttpStatus.resolve(res.status().code());
+			if (status != null) {
+				response.setStatusCode(status);
+			} else if (response instanceof AbstractServerHttpResponse) {
+				// https://jira.spring.io/browse/SPR-16748
+				((AbstractServerHttpResponse) response).setStatusCodeValue(res.status().code());
+			} else {
+				throw new IllegalStateException("Unable to set status code on response: " +res.status().code()+", "+response.getClass());
+			}
 
 			// Defer committing the response until all route filters have run
 			// Put client response as ServerWebExchange attribute and write response later NettyWriteResponseFilter

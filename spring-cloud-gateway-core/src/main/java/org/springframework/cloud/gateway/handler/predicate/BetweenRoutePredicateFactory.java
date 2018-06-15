@@ -20,10 +20,15 @@ package org.springframework.cloud.gateway.handler.predicate;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.util.Arrays;
+import java.util.List;
 import java.util.function.Predicate;
 
 import org.springframework.util.Assert;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.server.ServerWebExchange;
+
+import javax.validation.constraints.NotEmpty;
 
 /**
  * @author Spencer Gibb
@@ -35,6 +40,11 @@ public class BetweenRoutePredicateFactory extends AbstractRoutePredicateFactory<
 
 	public BetweenRoutePredicateFactory() {
 		super(Config.class);
+	}
+
+	@Override
+	public List<String> shortcutFieldOrder() {
+		return Arrays.asList(DATETIME1_KEY, DATETIME2_KEY);
 	}
 
 	@Override
@@ -52,8 +62,11 @@ public class BetweenRoutePredicateFactory extends AbstractRoutePredicateFactory<
 		};
 	}
 
+	@Validated
 	public static class Config {
+		@NotEmpty
 		private String datetime1;
+		@NotEmpty
 		private String datetime2;
 
 		public String getDatetime1() {

@@ -14,7 +14,7 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-build</artifactId>
-		<version>2.0.0.BUILD-SNAPSHOT</version>
+		<version>2.0.2.BUILD-SNAPSHOT</version>
 		<relativePath/>
 	</parent>
 	<scm>
@@ -50,7 +50,6 @@
 		<java.version>1.8</java.version>
 		<spring-cloud-commons.version>2.0.0.BUILD-SNAPSHOT</spring-cloud-commons.version>
 		<spring-cloud-netflix.version>2.0.0.BUILD-SNAPSHOT</spring-cloud-netflix.version>
-		<spring-tuple.version>1.0.0.RELEASE</spring-tuple.version>
 	</properties>
 
 	<dependencyManagement>
@@ -112,27 +111,13 @@
 				<artifactId>spring-boot-devtools</artifactId>
 				<version>${spring-boot.version}</version>
 			</dependency>
-			<dependency>
-				<groupId>org.springframework</groupId>
-				<artifactId>spring-tuple</artifactId>
-				<version>${spring-tuple.version}</version>
-				<exclusions>
-					<exclusion>
-						<groupId>org.springframework</groupId>
-						<artifactId>spring-core</artifactId>
-					</exclusion>
-					<exclusion>
-						<groupId>org.springframework</groupId>
-						<artifactId>spring-context</artifactId>
-					</exclusion>
-				</exclusions>
-			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
 	<modules>
 		<module>spring-cloud-gateway-dependencies</module>
 		<module>spring-cloud-gateway-mvc</module>
+		<module>spring-cloud-gateway-webflux</module>
 		<module>spring-cloud-gateway-core</module>
 		<module>spring-cloud-starter-gateway</module>
 		<module>spring-cloud-gateway-sample</module>

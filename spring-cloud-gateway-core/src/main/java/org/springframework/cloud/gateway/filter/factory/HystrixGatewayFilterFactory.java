@@ -20,12 +20,15 @@ package org.springframework.cloud.gateway.filter.factory;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.DispatcherHandler;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -38,7 +41,7 @@ import com.netflix.hystrix.exception.HystrixRuntimeException;
 
 import static com.netflix.hystrix.exception.HystrixRuntimeException.FailureType.TIMEOUT;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.containsEncodedQuery;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.containsEncodedParts;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.setResponseStatus;
 
 import reactor.core.publisher.Mono;
@@ -47,6 +50,7 @@ import rx.RxReactiveStreams;
 import rx.Subscription;
 
 /**
+ * Depends on `spring-cloud-starter-netflix-hystrix`, {@see http://cloud.spring.io/spring-cloud-netflix/}
  * @author Spencer Gibb
  */
 public class HystrixGatewayFilterFactory extends AbstractGatewayFilterFactory<HystrixGatewayFilterFactory.Config> {
@@ -65,10 +69,22 @@ public class HystrixGatewayFilterFactory extends AbstractGatewayFilterFactory<Hy
 		return Arrays.asList(NAME_KEY);
 	}
 
+	public GatewayFilter apply(String routeId, Consumer<Config> consumer) {
+		Config config = newConfig();
+		consumer.accept(config);
+
+		if (StringUtils.isEmpty(config.getName()) && !StringUtils.isEmpty(routeId)) {
+			config.setName(routeId);
+		}
+
+		return apply(config);
+	}
+
 	@Override
 	public GatewayFilter apply(Config config) {
 		//TODO: if no name is supplied, generate one from command id (useful for default filter)
 		if (config.setter == null) {
+			Assert.notNull(config.name, "A name must be supplied for the Hystrix Command Key");
 			HystrixCommandGroupKey groupKey = HystrixCommandGroupKey.Factory.asKey(getClass().getSimpleName());
 			HystrixCommandKey commandKey = HystrixCommandKey.Factory.asKey(config.name);
 
@@ -77,7 +93,7 @@ public class HystrixGatewayFilterFactory extends AbstractGatewayFilterFactory<Hy
 		}
 
 		return (exchange, chain) -> {
-			RouteHystrixCommand command = new RouteHystrixCommand(config.setter, config.fallback, exchange, chain);
+			RouteHystrixCommand command = new RouteHystrixCommand(config.setter, config.fallbackUri, exchange, chain);
 
 			return Mono.create(s -> {
 				Subscription sub = command.toObservable().subscribe(s::success, s::error, s::success);
@@ -90,7 +106,7 @@ public class HystrixGatewayFilterFactory extends AbstractGatewayFilterFactory<Hy
 						return exchange.getResponse().setComplete();
 					}
 				}
-				return Mono.empty();
+				return Mono.error(throwable);
 			}).then();
 		};
 	}
@@ -123,7 +139,7 @@ public class HystrixGatewayFilterFactory extends AbstractGatewayFilterFactory<Hy
 			//TODO: copied from RouteToRequestUrlFilter
 			URI uri = exchange.getRequest().getURI();
 			//TODO: assume always?
-			boolean encoded = containsEncodedQuery(uri);
+			boolean encoded = containsEncodedParts(uri);
 			URI requestUrl = UriComponentsBuilder.fromUri(uri)
 					.host(null)
 					.port(null)
@@ -140,9 +156,8 @@ public class HystrixGatewayFilterFactory extends AbstractGatewayFilterFactory<Hy
 
 	public static class Config {
 		private String name;
-		private String fallbackUri;
 		private Setter setter;
-		private URI fallback;
+		private URI fallbackUri;
 
 		public String getName() {
 			return name;
@@ -153,19 +168,22 @@ public class HystrixGatewayFilterFactory extends AbstractGatewayFilterFactory<Hy
 			return this;
 		}
 
-		public String getFallbackUri() {
+		public Config setFallbackUri(String fallbackUri) {
+			if (fallbackUri != null) {
+				setFallbackUri(URI.create(fallbackUri));
+			}
+			return this;
+		}
+
+		public URI getFallbackUri() {
 			return fallbackUri;
 		}
 
-		public Config setFallbackUri(String fallbackUri) {
-			this.fallbackUri = fallbackUri;
-			if (this.fallbackUri != null) {
-				fallback = URI.create(fallbackUri);
-				if (!"forward".equals(fallback.getScheme())) {
-					throw new IllegalArgumentException("Hystrix Filter currently only supports 'forward' URIs, found " + fallbackUri);
-				}
+		public void setFallbackUri(URI fallbackUri) {
+			if (fallbackUri != null && !"forward".equals(fallbackUri.getScheme())) {
+				throw new IllegalArgumentException("Hystrix Filter currently only supports 'forward' URIs, found " + fallbackUri);
 			}
-			return this;
+			this.fallbackUri = fallbackUri;
 		}
 
 		public Config setSetter(Setter setter) {

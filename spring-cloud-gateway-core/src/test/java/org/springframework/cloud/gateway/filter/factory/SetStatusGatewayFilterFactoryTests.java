@@ -19,21 +19,27 @@ package org.springframework.cloud.gateway.filter.factory;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.cloud.gateway.route.RouteLocator;
+import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.web.reactive.function.client.ClientResponse;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
-import static org.springframework.cloud.gateway.test.TestUtils.assertStatus;
-
-import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -51,23 +57,45 @@ public class SetStatusGatewayFilterFactoryTests extends BaseWebClientTests {
 	}
 
 	private void setStatusStringTest(String host, HttpStatus status) {
-		Mono<ClientResponse> result = webClient.get()
+		testClient.get()
 				.uri("/headers")
 				.header("Host", host)
-				.exchange();
+				.exchange()
+				.expectStatus().isEqualTo(status);
+	}
 
-		StepVerifier.create(result)
-				.consumeNextWith(
-						response -> {
-							assertStatus(response, status);
-						})
-				.expectComplete()
-				.verify(DURATION);
+	@Test
+	public void nonStandardCodeWorks() {
+		HttpHeaders headers = new HttpHeaders();
+		headers.set(HttpHeaders.HOST, "www.setcustomstatus.org");
+		ResponseEntity<String> response = new TestRestTemplate().exchange(baseUri + "/headers",
+				HttpMethod.GET, new HttpEntity<>(headers), String.class);
+		assertThat(response.getStatusCodeValue()).isEqualTo(432);
+
+		// https://jira.spring.io/browse/SPR-16748
+		/*testClient.get()
+				.uri("/status/432")
+				.exchange()
+				.expectStatus().isEqualTo(432)
+				.expectBody(String.class).isEqualTo("Failed with 432");*/
 	}
 
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
-	public static class TestConfig { }
+	public static class TestConfig {
+
+		@Value("${test.uri}")
+		String uri;
+
+		@Bean
+		public RouteLocator myRouteLocator(RouteLocatorBuilder builder) {
+			return builder.routes()
+					.route("test_custom_http_status", r -> r.host("*.setcustomstatus.org")
+							.filters(f -> f.setStatus(432))
+							.uri(uri))
+					.build();
+		}
+	}
 
 }

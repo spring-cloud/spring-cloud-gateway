@@ -19,9 +19,14 @@ package org.springframework.cloud.gateway.support;
 
 import java.net.URI;
 import java.util.LinkedHashSet;
+import java.util.Objects;
+import java.util.function.Predicate;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import reactor.core.publisher.Mono;
+
+import org.springframework.cloud.gateway.handler.AsyncPredicate;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -41,12 +46,16 @@ public class ServerWebExchangeUtils {
 	public static final String GATEWAY_ORIGINAL_REQUEST_URL_ATTR = qualify("gatewayOriginalRequestUrl");
 	public static final String GATEWAY_HANDLER_MAPPER_ATTR = qualify("gatewayHandlerMapper");
 	public static final String GATEWAY_SCHEME_PREFIX_ATTR = qualify("gatewaySchemePrefix");
+	public static final String GATEWAY_PREDICATE_ROUTE_ATTR = qualify("gatewayPredicateRouteAttr");
+	public static final String WEIGHT_ATTR = qualify("routeWeight");
 
 	/**
 	 * Used when a routing filter has been successfully call. Allows users to write custom
 	 * routing filters that disable built in routing filters.
 	 */
 	public static final String GATEWAY_ALREADY_ROUTED_ATTR = qualify("gatewayAlreadyRouted");
+
+	public static final String GATEWAY_ALREADY_PREFIXED_ATTR = qualify("gatewayAlreadyPrefixed");
 
 	private static String qualify(String attr) {
 		return ServerWebExchangeUtils.class.getName() + "." + attr;
@@ -68,11 +77,10 @@ public class ServerWebExchangeUtils {
 		return response;
 	}
 
-	public static boolean containsEncodedQuery(URI uri) {
-		if (uri.getRawQuery() == null) {
-			return false;
-		}
-		return uri.getRawQuery().contains("%");
+	public static boolean containsEncodedParts(URI uri) {
+		boolean encoded = (uri.getRawQuery() != null && uri.getRawQuery().contains("%"))
+				|| (uri.getPath() != null && uri.getRawPath().contains("%"));
+		return encoded;
 	}
 
 	public static HttpStatus parse(String statusString) {
@@ -80,7 +88,7 @@ public class ServerWebExchangeUtils {
 
 		try {
 			int status = Integer.parseInt(statusString);
-			httpStatus = HttpStatus.valueOf(status);
+			httpStatus = HttpStatus.resolve(status);
 		} catch (NumberFormatException e) {
 			// try the enum string
 			httpStatus = HttpStatus.valueOf(statusString.toUpperCase());
@@ -92,5 +100,10 @@ public class ServerWebExchangeUtils {
 		exchange.getAttributes().computeIfAbsent(GATEWAY_ORIGINAL_REQUEST_URL_ATTR, s -> new LinkedHashSet<>());
 		LinkedHashSet<URI> uris = exchange.getRequiredAttribute(GATEWAY_ORIGINAL_REQUEST_URL_ATTR);
 		uris.add(url);
+	}
+
+	public static AsyncPredicate<ServerWebExchange> toAsyncPredicate(Predicate<? super ServerWebExchange> predicate) {
+		Objects.requireNonNull(predicate, "predicate must not be null");
+		return t -> Mono.just(predicate.test(t));
 	}
 }

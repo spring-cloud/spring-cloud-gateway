@@ -46,6 +46,7 @@ public abstract class ConfigurationUtils {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	public static <T> T getTargetObject(Object candidate) {
 		try {
 			if (AopUtils.isAopProxy(candidate) && (candidate instanceof Advised)) {

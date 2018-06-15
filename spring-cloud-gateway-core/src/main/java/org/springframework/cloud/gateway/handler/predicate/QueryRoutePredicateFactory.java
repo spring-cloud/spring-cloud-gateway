@@ -45,11 +45,6 @@ public class QueryRoutePredicateFactory extends AbstractRoutePredicateFactory<Qu
 	}
 
 	@Override
-	public boolean validateFieldsExist() {
-		return false;
-	}
-
-	@Override
 	public Predicate<ServerWebExchange> apply(Config config) {
 		return exchange -> {
 			if (!StringUtils.hasText(config.regexp)) {

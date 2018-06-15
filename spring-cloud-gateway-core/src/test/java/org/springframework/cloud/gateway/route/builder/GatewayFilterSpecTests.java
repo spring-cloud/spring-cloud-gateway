@@ -29,7 +29,7 @@ public class GatewayFilterSpecTests {
 	private void testFilter(Class<? extends GatewayFilter> type,
 							GatewayFilter gatewayFilter, int order) {
 		ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
-		Route.Builder routeBuilder = Route.builder()
+		Route.AsyncBuilder routeBuilder = Route.async()
 				.id("123")
 				.uri("abc:123")
 				.predicate(exchange -> true);

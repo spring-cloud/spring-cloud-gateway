@@ -26,11 +26,15 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
 
+import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.handler.AsyncPredicate;
+import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.core.Ordered;
 import org.springframework.util.Assert;
 import org.springframework.web.server.ServerWebExchange;
-import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.web.util.UriComponentsBuilder;
+
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.toAsyncPredicate;
 
 /**
  * @author Spencer Gibb
@@ -43,7 +47,7 @@ public class Route implements Ordered {
 
 	private final int order;
 
-	private final Predicate<ServerWebExchange> predicate;
+	private final AsyncPredicate<ServerWebExchange> predicate;
 
 	private final List<GatewayFilter> gatewayFilters;
 
@@ -58,7 +62,18 @@ public class Route implements Ordered {
 				.order(routeDefinition.getOrder());
 	}
 
-	private Route(String id, URI uri, int order, Predicate<ServerWebExchange> predicate, List<GatewayFilter> gatewayFilters) {
+	public static AsyncBuilder async() {
+		return new AsyncBuilder();
+	}
+
+	public static AsyncBuilder async(RouteDefinition routeDefinition) {
+		return new AsyncBuilder()
+				.id(routeDefinition.getId())
+				.uri(routeDefinition.getUri())
+				.order(routeDefinition.getOrder());
+	}
+
+	private Route(String id, URI uri, int order, AsyncPredicate<ServerWebExchange> predicate, List<GatewayFilter> gatewayFilters) {
 		this.id = id;
 		this.uri = uri;
 		this.order = order;
@@ -66,38 +81,38 @@ public class Route implements Ordered {
 		this.gatewayFilters = gatewayFilters;
 	}
 
-	public static class Builder {
-		private String id;
+	public abstract static class AbstractBuilder<B extends AbstractBuilder<B>> {
+		protected String id;
 
-		private URI uri;
+		protected URI uri;
 
-		private int order = 0;
+		protected int order = 0;
 
-		private Predicate<ServerWebExchange> predicate;
+		protected List<GatewayFilter> gatewayFilters = new ArrayList<>();
 
-		private List<GatewayFilter> gatewayFilters = new ArrayList<>();
+		protected AbstractBuilder() {}
 
-		private Builder() {}
+		protected abstract B getThis();
 
-		public Builder id(String id) {
+		public B id(String id) {
 			this.id = id;
-			return this;
+			return getThis();
 		}
 
 		public String getId() {
 			return id;
 		}
 
-		public Builder order(int order) {
+		public B order(int order) {
 			this.order = order;
-			return this;
+			return getThis();
 		}
 
-		public Builder uri(String uri) {
+		public B uri(String uri) {
 			return uri(URI.create(uri));
 		}
 
-		public Builder uri(URI uri) {
+		public B uri(URI uri) {
 			this.uri = uri;
 			if (this.uri.getPort() < 0 && this.uri.getScheme().startsWith("http")) {
 				// default known http ports
@@ -107,16 +122,95 @@ public class Route implements Ordered {
 						.build(false)
 						.toUri();
 			}
+			return getThis();
+		}
+
+		public abstract AsyncPredicate<ServerWebExchange> getPredicate();
+
+
+
+		public B replaceFilters(List<GatewayFilter> gatewayFilters) {
+			this.gatewayFilters = gatewayFilters;
+			return getThis();
+		}
+
+		public B filter(GatewayFilter gatewayFilter) {
+			this.gatewayFilters.add(gatewayFilter);
+			return getThis();
+		}
+
+		public B filters(Collection<GatewayFilter> gatewayFilters) {
+			this.gatewayFilters.addAll(gatewayFilters);
+			return getThis();
+		}
+
+		public B filters(GatewayFilter... gatewayFilters) {
+			return filters(Arrays.asList(gatewayFilters));
+		}
+
+		public Route build() {
+			Assert.notNull(this.id, "id can not be null");
+			Assert.notNull(this.uri, "uri can not be null");
+			AsyncPredicate<ServerWebExchange> predicate = getPredicate();
+			Assert.notNull(predicate, "predicate can not be null");
+
+			return new Route(this.id, this.uri, this.order, predicate, this.gatewayFilters);
+		}
+	}
+
+	public static class AsyncBuilder extends AbstractBuilder<AsyncBuilder> {
+
+		protected AsyncPredicate<ServerWebExchange> predicate;
+
+		@Override
+		protected AsyncBuilder getThis() {
 			return this;
 		}
 
-		public Predicate<ServerWebExchange> getPredicate() {
+		@Override
+		public AsyncPredicate<ServerWebExchange> getPredicate() {
 			return this.predicate;
 		}
 
-		public Builder predicate(Predicate<ServerWebExchange> predicate) {
+		public AsyncBuilder predicate(Predicate<ServerWebExchange> predicate) {
+			return asyncPredicate(toAsyncPredicate(predicate));
+		}
+
+		public AsyncBuilder asyncPredicate(AsyncPredicate<ServerWebExchange> predicate) {
 			this.predicate = predicate;
 			return this;
+		}
+
+		public AsyncBuilder and(AsyncPredicate<ServerWebExchange> predicate) {
+			Assert.notNull(this.predicate, "can not call and() on null predicate");
+			this.predicate = this.predicate.and(predicate);
+			return this;
+		}
+
+		public AsyncBuilder or(AsyncPredicate<ServerWebExchange> predicate) {
+			Assert.notNull(this.predicate, "can not call or() on null predicate");
+			this.predicate = this.predicate.or(predicate);
+			return this;
+		}
+
+		public AsyncBuilder negate() {
+			Assert.notNull(this.predicate, "can not call negate() on null predicate");
+			this.predicate = this.predicate.negate();
+			return this;
+		}
+	}
+
+	public static class Builder extends AbstractBuilder<Builder> {
+		protected Predicate<ServerWebExchange> predicate;
+
+		@Override
+		protected Builder getThis() {
+			return this;
+		}
+
+		@Override
+		public AsyncPredicate<ServerWebExchange> getPredicate() {
+			return ServerWebExchangeUtils.toAsyncPredicate(this.predicate);
 		}
 
 		public Builder and(Predicate<ServerWebExchange> predicate) {
@@ -137,32 +231,6 @@ public class Route implements Ordered {
 			return this;
 		}
 
-		public Builder replaceFilters(List<GatewayFilter> gatewayFilters) {
-			this.gatewayFilters = gatewayFilters;
-			return this;
-		}
-
-		public Builder filter(GatewayFilter gatewayFilter) {
-			this.gatewayFilters.add(gatewayFilter);
-			return this;
-		}
-
-		public Builder filters(Collection<GatewayFilter> gatewayFilters) {
-			this.gatewayFilters.addAll(gatewayFilters);
-			return this;
-		}
-
-		public Builder filters(GatewayFilter... gatewayFilters) {
-			return filters(Arrays.asList(gatewayFilters));
-		}
-
-		public Route build() {
-			Assert.notNull(this.id, "id can not be null");
-			Assert.notNull(this.uri, "uri can not be null");
-			Assert.notNull(this.predicate, "predicate can not be null");
-
-			return new Route(this.id, this.uri, this.order, this.predicate, this.gatewayFilters);
-		}
 	}
 
 	public String getId() {
@@ -177,7 +245,7 @@ public class Route implements Ordered {
 		return order;
 	}
 
-	public Predicate<ServerWebExchange> getPredicate() {
+	public AsyncPredicate<ServerWebExchange> getPredicate() {
 		return this.predicate;
 	}
 

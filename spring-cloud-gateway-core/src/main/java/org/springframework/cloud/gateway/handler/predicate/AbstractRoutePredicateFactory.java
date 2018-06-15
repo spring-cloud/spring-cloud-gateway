@@ -18,10 +18,6 @@
 package org.springframework.cloud.gateway.handler.predicate;
 
 import org.springframework.cloud.gateway.support.AbstractConfigurable;
-import org.springframework.tuple.Tuple;
-import org.springframework.web.server.ServerWebExchange;
-
-import java.util.function.Predicate;
 
 public abstract class AbstractRoutePredicateFactory<C> extends AbstractConfigurable<C>
 		implements RoutePredicateFactory<C> {
@@ -30,13 +26,4 @@ public abstract class AbstractRoutePredicateFactory<C> extends AbstractConfigura
 		super(configClass);
 	}
 
-	@Override
-	public boolean isConfigurable() {
-		return true;
-	}
-
-	@Override
-	public Predicate<ServerWebExchange> apply(Tuple args) {
-		throw new UnsupportedOperationException("apply(Tuple) not supported");
-	}
 }

@@ -18,14 +18,15 @@
 package org.springframework.cloud.gateway.handler;
 
 import java.util.function.Function;
-import java.util.logging.Level;
 
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.route.RouteLocator;
+import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.reactive.handler.AbstractHandlerMapping;
 import org.springframework.web.server.ServerWebExchange;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_HANDLER_MAPPER_ATTR;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_PREDICATE_ROUTE_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
 
 import reactor.core.publisher.Mono;
@@ -52,6 +53,7 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 		return lookupRoute(exchange)
 				// .log("route-predicate-handler-mapping", Level.FINER) //name this
 				.flatMap((Function<Route, Mono<?>>) r -> {
+					exchange.getAttributes().remove(GATEWAY_PREDICATE_ROUTE_ATTR);
 					if (logger.isDebugEnabled()) {
 						logger.debug("Mapping [" + getExchangeDesc(exchange) + "] to " + r);
 					}
@@ -59,10 +61,20 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 					exchange.getAttributes().put(GATEWAY_ROUTE_ATTR, r);
 					return Mono.just(webHandler);
 				}).switchIfEmpty(Mono.empty().then(Mono.fromRunnable(() -> {
+					exchange.getAttributes().remove(GATEWAY_PREDICATE_ROUTE_ATTR);
 					if (logger.isTraceEnabled()) {
 						logger.trace("No RouteDefinition found for [" + getExchangeDesc(exchange) + "]");
 					}
 				})));
+	}
+
+	@Override
+	protected CorsConfiguration getCorsConfiguration(Object handler, ServerWebExchange exchange) {
+		//TODO: support cors configuration via global properties and
+		// properties on a route see gh-229
+		// see RequestMappingHandlerMapping.initCorsConfiguration()
+		// also see https://github.com/spring-projects/spring-framework/blob/master/spring-web/src/test/java/org/springframework/web/cors/reactive/CorsWebFilterTests.java
+		return super.getCorsConfiguration(handler, exchange);
 	}
 
 	//TODO: get desc from factory?
@@ -75,10 +87,13 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 		return out.toString();
 	}
 
-
 	protected Mono<Route> lookupRoute(ServerWebExchange exchange) {
 		return this.routeLocator.getRoutes()
-				.filter(route -> route.getPredicate().test(exchange))
+				.filterWhen(route ->  {
+					// add the current route we are testing
+					exchange.getAttributes().put(GATEWAY_PREDICATE_ROUTE_ATTR, route.getId());
+					return route.getPredicate().apply(exchange);
+				})
 				// .defaultIfEmpty() put a static Route not found
 				// or .switchIfEmpty()
 				// .switchIfEmpty(Mono.<Route>empty().log("noroute"))

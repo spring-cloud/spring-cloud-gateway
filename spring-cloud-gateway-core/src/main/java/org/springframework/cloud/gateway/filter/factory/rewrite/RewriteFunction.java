@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +15,16 @@
  *
  */
 
-package org.springframework.cloud.gateway.route;
+package org.springframework.cloud.gateway.filter.factory.rewrite;
 
-import org.springframework.context.ApplicationEvent;
+import org.springframework.web.server.ServerWebExchange;
+
+import java.util.function.BiFunction;
 
 /**
- * @author Spencer Gibb
+ * This interface is BETA and may be subject to change in a future release.
+ * @param <T>
+ * @param <R>
  */
-public class RefreshRoutesEvent extends ApplicationEvent {
-
-    /**
-     * Create a new ApplicationEvent.
-     *
-     * @param source the object on which the event initially occurred (never {@code null})
-     */
-    public RefreshRoutesEvent(Object source) {
-        super(source);
-    }
+public interface RewriteFunction<T, R> extends BiFunction<ServerWebExchange, T, R> {
 }

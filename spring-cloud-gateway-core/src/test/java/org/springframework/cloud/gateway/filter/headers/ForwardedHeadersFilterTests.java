@@ -31,6 +31,7 @@ import org.junit.Test;
 import org.springframework.cloud.gateway.filter.headers.ForwardedHeadersFilter.Forwarded;
 import org.springframework.http.HttpHeaders;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
+import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.util.StringUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -51,7 +52,7 @@ public class ForwardedHeadersFilterTests {
 
 		ForwardedHeadersFilter filter = new ForwardedHeadersFilter();
 
-		HttpHeaders headers = filter.filter(request);
+		HttpHeaders headers = filter.filter(request.getHeaders(), MockServerWebExchange.from(request));
 
 		assertThat(headers.get(FORWARDED_HEADER)).hasSize(1);
 
@@ -62,6 +63,29 @@ public class ForwardedHeadersFilterTests {
 
 		assertThat(forwarded.getValues())
 				.containsEntry("host", "myhost")
+				.containsEntry("proto", "http")
+				.containsEntry("for", "\"10.0.0.1:80\"");
+	}
+
+	@Test
+	public void noHostHeader() throws UnknownHostException {
+		MockServerHttpRequest request = MockServerHttpRequest
+				.get("http://localhost/get")
+				.remoteAddress(new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80))
+				.build();
+
+		ForwardedHeadersFilter filter = new ForwardedHeadersFilter();
+
+		HttpHeaders headers = filter.filter(request.getHeaders(), MockServerWebExchange.from(request));
+
+		assertThat(headers.get(FORWARDED_HEADER)).hasSize(1);
+
+		List<Forwarded> forwardeds = ForwardedHeadersFilter.parse(headers.get(FORWARDED_HEADER));
+
+		assertThat(forwardeds).hasSize(1);
+		Forwarded forwarded = forwardeds.get(0);
+
+		assertThat(forwarded.getValues())
 				.containsEntry("proto", "http")
 				.containsEntry("for", "\"10.0.0.1:80\"");
 	}
