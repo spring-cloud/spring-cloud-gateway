@@ -60,14 +60,13 @@ public class GatewaySampleApplication {
 									.addResponseHeader("X-TestHeader", "foobar"))
 					.uri(uri)
 				)
-				/*.route("read_body_pred", r -> r.host("*.readbody.org")
+				.route("read_body_pred", r -> r.host("*.readbody.org")
 						.and().readBody(String.class,
-										s -> s.trim().equalsIgnoreCase("hello"))
-					.filters(f ->
-							f.prefixPath("/httpbin")
-									.addRequestHeader("X-TestHeader", "read_body_pred")
+										s -> s.trim().equalsIgnoreCase("hi"))
+					.filters(f -> f.prefixPath("/httpbin")
+							.addResponseHeader("X-TestHeader", "read_body_pred")
 					).uri(uri)
-				)*/
+				)
 				.route("rewrite_request_obj", r -> r.host("*.rewriterequestobj.org")
 					.filters(f -> f.prefixPath("/httpbin")
 							//TODO: add as configuration to modifyRequestBody

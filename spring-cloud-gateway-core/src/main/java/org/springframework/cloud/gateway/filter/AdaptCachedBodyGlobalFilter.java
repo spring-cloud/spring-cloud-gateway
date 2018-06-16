@@ -47,6 +47,6 @@ public class AdaptCachedBodyGlobalFilter implements GlobalFilter, Ordered {
 
     @Override
     public int getOrder() {
-        return Ordered.LOWEST_PRECEDENCE - 10; //probably needs to change if combined with other filters that modify request body
+        return Ordered.HIGHEST_PRECEDENCE + 1000;
     }
 }

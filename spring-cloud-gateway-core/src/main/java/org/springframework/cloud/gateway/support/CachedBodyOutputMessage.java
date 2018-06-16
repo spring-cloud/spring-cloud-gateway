@@ -15,7 +15,7 @@
  *
  */
 
-package org.springframework.cloud.gateway.filter.factory.rewrite;
+package org.springframework.cloud.gateway.support;
 
 import java.util.function.Function;
 import java.util.function.Supplier;

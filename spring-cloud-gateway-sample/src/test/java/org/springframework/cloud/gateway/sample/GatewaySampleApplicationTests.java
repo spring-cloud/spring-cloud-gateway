@@ -25,7 +25,6 @@ import com.netflix.loadbalancer.ServerList;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -90,18 +89,17 @@ public class GatewaySampleApplicationTests {
 
 	@Test
 	@SuppressWarnings("unchecked")
-	@Ignore //TODO: fix readBody predicate
 	public void readBodyPredicateStringWorks() {
 		webClient.post()
 				.uri("/post")
 				.header("Host", "www.readbody.org")
-				.syncBody("hello")
+				.syncBody("hi")
 				.exchange()
 				.expectStatus().isOk()
 				.expectHeader().valueEquals("X-TestHeader", "read_body_pred")
 				.expectBody(Map.class)
 				.consumeWith(result ->
-						assertThat(result.getResponseBody()).containsEntry("data", "hello"));
+						assertThat(result.getResponseBody()).containsEntry("data", "hi"));
 	}
 
 	@Test
