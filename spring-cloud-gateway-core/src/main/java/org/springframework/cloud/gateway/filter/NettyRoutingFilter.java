@@ -111,8 +111,10 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 			ServerHttpResponse response = exchange.getResponse();
 			// put headers and status so filters can modify the response
 			HttpHeaders headers = new HttpHeaders();
-			
+
 			res.responseHeaders().forEach(entry -> headers.add(entry.getKey(), entry.getValue()));
+
+			exchange.getAttributes().put("original_response_content_type", headers.getContentType());
 
 			HttpHeaders filteredResponseHeaders = HttpHeadersFilter.filter(
 					this.headersFilters.getIfAvailable(), headers, exchange, Type.RESPONSE);

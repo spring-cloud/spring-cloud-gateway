@@ -18,24 +18,22 @@
 package org.springframework.cloud.gateway.filter.factory.rewrite;
 
 import java.util.Map;
-import java.util.Optional;
 
-import org.reactivestreams.Publisher;
+import org.springframework.cloud.gateway.support.BodyInserterContext;
+import org.springframework.cloud.gateway.support.CachedBodyOutputMessage;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
-import org.springframework.core.ResolvableType;
+import org.springframework.cloud.gateway.support.DefaultServerRequest;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.codec.HttpMessageReader;
-import org.springframework.http.codec.HttpMessageWriter;
 import org.springframework.http.codec.ServerCodecConfigurer;
 import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
-
-import static org.springframework.cloud.gateway.filter.factory.rewrite.RewriteUtils.process;
+import org.springframework.web.reactive.function.BodyInserter;
+import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.reactive.function.server.ServerRequest;
 
 /**
  * This filter is BETA and may be subject to change in a future release.
@@ -43,11 +41,13 @@ import static org.springframework.cloud.gateway.filter.factory.rewrite.RewriteUt
 public class ModifyRequestBodyGatewayFilterFactory
 		extends AbstractGatewayFilterFactory<ModifyRequestBodyGatewayFilterFactory.Config> {
 
-	private final ServerCodecConfigurer codecConfigurer;
-
-	public ModifyRequestBodyGatewayFilterFactory(ServerCodecConfigurer codecConfigurer) {
+	public ModifyRequestBodyGatewayFilterFactory() {
 		super(Config.class);
-		this.codecConfigurer = codecConfigurer;
+	}
+
+	@Deprecated
+	public ModifyRequestBodyGatewayFilterFactory(ServerCodecConfigurer codecConfigurer) {
+		this();
 	}
 
 	@Override
@@ -56,57 +56,36 @@ public class ModifyRequestBodyGatewayFilterFactory
 		return (exchange, chain) -> {
 			Class inClass = config.getInClass();
 
-			MediaType mediaType = exchange.getRequest().getHeaders().getContentType();
-			ResolvableType inElementType = ResolvableType.forClass(inClass);
-			Optional<HttpMessageReader<?>> reader = RewriteUtils.getHttpMessageReader(codecConfigurer, inElementType, mediaType);
+			ServerRequest serverRequest = new DefaultServerRequest(exchange);
+			//TODO: flux or mono
+			Mono<?> modifiedBody = serverRequest.bodyToMono(inClass)
+					// .log("modify_request_mono", Level.INFO)
+					.flatMap(o -> config.rewriteFunction.apply(exchange, o));
 
-			if (reader.isPresent()) {
-				Mono<Object> readMono = reader.get()
-						.readMono(inElementType, exchange.getRequest(), config.getInHints())
-						.cast(Object.class);
-
-				return process(readMono, peek -> {
-					ResolvableType outElementType = ResolvableType
-							.forClass(config.getOutClass());
-					Optional<HttpMessageWriter<?>> writer = RewriteUtils.getHttpMessageWriter(codecConfigurer, outElementType, mediaType);
-
-					if (writer.isPresent()) {
-						Object data = config.rewriteFunction.apply(exchange, peek);
-
-						//TODO: deal with multivalue? ie Flux
-						Publisher publisher = Mono.just(data);
-
-						HttpMessageWriterResponse fakeResponse = new HttpMessageWriterResponse(exchange.getResponse().bufferFactory());
-						writer.get().write(publisher, inElementType, mediaType,
-								fakeResponse, config.getOutHints());
+			BodyInserter bodyInserter = BodyInserters.fromPublisher(modifiedBody, config.getOutClass());
+			CachedBodyOutputMessage outputMessage = new CachedBodyOutputMessage(exchange, exchange.getRequest().getHeaders());
+			return bodyInserter.insert(outputMessage,  new BodyInserterContext())
+					// .log("modify_request", Level.INFO)
+					.then(Mono.defer(() -> {
 						ServerHttpRequestDecorator decorator = new ServerHttpRequestDecorator(
 								exchange.getRequest()) {
 							@Override
 							public HttpHeaders getHeaders() {
 								HttpHeaders httpHeaders = new HttpHeaders();
 								httpHeaders.putAll(super.getHeaders());
-								// TODO: this causes a 'HTTP/1.1 411 Length Required' on
-								// httpbin.org
+								// TODO: this causes a 'HTTP/1.1 411 Length Required' on httpbin.org
 								httpHeaders.set(HttpHeaders.TRANSFER_ENCODING, "chunked");
-								if (fakeResponse.getHeaders().getContentType() != null) {
-									httpHeaders.setContentType(
-											fakeResponse.getHeaders().getContentType());
-								}
 								return httpHeaders;
 							}
 
 							@Override
 							public Flux<DataBuffer> getBody() {
-								return (Flux<DataBuffer>) fakeResponse.getBody();
+								return outputMessage.getBody();
 							}
 						};
 						return chain.filter(exchange.mutate().request(decorator).build());
-					}
-					return chain.filter(exchange);
-				});
+					}));
 
-			}
-			return chain.filter(exchange);
 		};
 	}
 
@@ -159,7 +138,7 @@ public class ModifyRequestBodyGatewayFilterFactory
 		}
 
 		public <T, R> Config setRewriteFunction(Class<T> inClass, Class<R> outClass,
-				RewriteFunction<T, R> rewriteFunction) {
+												RewriteFunction<T, R> rewriteFunction) {
 			setInClass(inClass);
 			setOutClass(outClass);
 			setRewriteFunction(rewriteFunction);
