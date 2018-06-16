@@ -71,40 +71,40 @@ public class GatewaySampleApplication {
 					.filters(f -> f.prefixPath("/httpbin")
 							//TODO: add as configuration to modifyRequestBody
 							.setRequestHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
-                            .addResponseHeader("X-TestHeader", "rewrite_request")
+							.addResponseHeader("X-TestHeader", "rewrite_request")
 							.modifyRequestBody(String.class, Hello.class,
 									(exchange, s) -> {
-                                        return Mono.just(new Hello(s.toUpperCase()));
-                                    })
+										return Mono.just(new Hello(s.toUpperCase()));
+									})
 					).uri(uri)
 				)
-                .route("rewrite_request_upper", r -> r.host("*.rewriterequestupper.org")
+				.route("rewrite_request_upper", r -> r.host("*.rewriterequestupper.org")
 					.filters(f -> f.prefixPath("/httpbin")
-                            .addResponseHeader("X-TestHeader", "rewrite_request_upper")
+							.addResponseHeader("X-TestHeader", "rewrite_request_upper")
 							.modifyRequestBody(String.class, String.class,
 									(exchange, s) -> {
-                                        return Mono.just(s.toUpperCase());
-                                    })
+										return Mono.just(s.toUpperCase());
+									})
 					).uri(uri)
 				)
 				.route("rewrite_response_upper", r -> r.host("*.rewriteresponseupper.org")
 					.filters(f -> f.prefixPath("/httpbin")
-                            .addResponseHeader("X-TestHeader", "rewrite_response_upper")
+							.addResponseHeader("X-TestHeader", "rewrite_response_upper")
 							.modifyResponseBody(String.class, String.class,
 									(exchange, s) -> {
-                                        return Mono.just(s.toUpperCase());
-                                    })
+										return Mono.just(s.toUpperCase());
+									})
 					).uri(uri)
 				)
-                .route("rewrite_response_obj", r -> r.host("*.rewriteresponseobj.org")
+				.route("rewrite_response_obj", r -> r.host("*.rewriteresponseobj.org")
 					.filters(f -> f.prefixPath("/httpbin")
-                            .addResponseHeader("X-TestHeader", "rewrite_response_obj")
+							.addResponseHeader("X-TestHeader", "rewrite_response_obj")
 							.modifyResponseBody(Map.class, String.class, MediaType.TEXT_PLAIN_VALUE,
 									(exchange, map) -> {
 										Object data = map.get("data");
-                                        return Mono.just(data.toString());
-                                    })
-                            .setResponseHeader("Content-Type", MediaType.TEXT_PLAIN_VALUE)
+										return Mono.just(data.toString());
+									})
+							.setResponseHeader("Content-Type", MediaType.TEXT_PLAIN_VALUE)
 					).uri(uri)
 				)
 				.route(r -> r.path("/image/webp")

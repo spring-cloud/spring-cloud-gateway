@@ -37,13 +37,14 @@ import static org.springframework.cloud.gateway.filter.AdaptCachedBodyGlobalFilt
 /**
  * This predicate is BETA and may be subject to change in a future release.
  */
-public class ReadBodyPredicateFactory extends AbstractRoutePredicateFactory<ReadBodyPredicateFactory.Config> {
+public class ReadBodyPredicateFactory
+		extends AbstractRoutePredicateFactory<ReadBodyPredicateFactory.Config> {
 
 	private static final String TEST_ATTRIBUTE = "read_body_predicate_test_attribute";
 	private final ServerCodecConfigurer codecConfigurer;
 
-    public ReadBodyPredicateFactory(ServerCodecConfigurer codecConfigurer) {
-        super(Config.class);
+	public ReadBodyPredicateFactory(ServerCodecConfigurer codecConfigurer) {
+		super(Config.class);
 		this.codecConfigurer = codecConfigurer;
 	}
 
@@ -54,63 +55,67 @@ public class ReadBodyPredicateFactory extends AbstractRoutePredicateFactory<Read
 			Class inClass = config.getInClass();
 
 			ServerRequest serverRequest = new DefaultServerRequest(exchange);
-			//TODO: flux or mono
+			// TODO: flux or mono
 			Mono<?> modifiedBody = serverRequest.bodyToMono(inClass)
 					// .log("modify_request_mono", Level.INFO)
 					.flatMap(body -> {
-						//TODO: migrate to async
+						// TODO: migrate to async
 						boolean test = config.predicate.test(body);
 						exchange.getAttributes().put(TEST_ATTRIBUTE, test);
 						return Mono.just(body);
 					});
 
 			BodyInserter bodyInserter = BodyInserters.fromPublisher(modifiedBody, inClass);
-			CachedBodyOutputMessage outputMessage = new CachedBodyOutputMessage(exchange, exchange.getRequest().getHeaders());
+			CachedBodyOutputMessage outputMessage = new CachedBodyOutputMessage(exchange,
+					exchange.getRequest().getHeaders());
 			return bodyInserter.insert(outputMessage, new BodyInserterContext())
 					// .log("modify_request", Level.INFO)
 					.then(Mono.defer(() -> {
-						boolean test = (Boolean) exchange.getAttributes().getOrDefault(TEST_ATTRIBUTE, Boolean.FALSE);
+						boolean test = (Boolean) exchange.getAttributes()
+								.getOrDefault(TEST_ATTRIBUTE, Boolean.FALSE);
 						exchange.getAttributes().remove(TEST_ATTRIBUTE);
-						exchange.getAttributes().put(CACHED_REQUEST_BODY_KEY, outputMessage.getBody());
+						exchange.getAttributes().put(CACHED_REQUEST_BODY_KEY,
+								outputMessage.getBody());
 						return Mono.just(test);
 					}));
 		};
 	}
 
 	@Override
-    @SuppressWarnings("unchecked")
-    public Predicate<ServerWebExchange> apply(Config config) {
-    	throw new UnsupportedOperationException("ReadBodyPredicateFactory is only async.");
-    }
+	@SuppressWarnings("unchecked")
+	public Predicate<ServerWebExchange> apply(Config config) {
+		throw new UnsupportedOperationException(
+				"ReadBodyPredicateFactory is only async.");
+	}
 
-    public static class Config {
-        private Class inClass;
-        private Predicate predicate;
-        private Map<String, Object> hints;
+	public static class Config {
+		private Class inClass;
+		private Predicate predicate;
+		private Map<String, Object> hints;
 
-        public Class getInClass() {
-            return inClass;
-        }
+		public Class getInClass() {
+			return inClass;
+		}
 
-        public Config setInClass(Class inClass) {
-            this.inClass = inClass;
-            return this;
-        }
+		public Config setInClass(Class inClass) {
+			this.inClass = inClass;
+			return this;
+		}
 
-        public Predicate getPredicate() {
-            return predicate;
-        }
+		public Predicate getPredicate() {
+			return predicate;
+		}
 
-        public <T> Config setPredicate(Class<T> inClass, Predicate<T> predicate) {
-            setInClass(inClass);
-            this.predicate = predicate;
-            return this;
-        }
+		public <T> Config setPredicate(Class<T> inClass, Predicate<T> predicate) {
+			setInClass(inClass);
+			this.predicate = predicate;
+			return this;
+		}
 
-        public Config setPredicate(Predicate predicate) {
-            this.predicate = predicate;
-            return this;
-        }
+		public Config setPredicate(Predicate predicate) {
+			this.predicate = predicate;
+			return this;
+		}
 
 		public Map<String, Object> getHints() {
 			return hints;
