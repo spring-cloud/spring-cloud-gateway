@@ -20,13 +20,13 @@ package org.springframework.cloud.gateway.config;
 import io.netty.handler.ssl.SslContext;
 import org.junit.Test;
 import reactor.ipc.netty.http.client.HttpClient;
+import reactor.ipc.netty.http.client.HttpClientOptions;
+import reactor.ipc.netty.options.ClientProxyOptions;
+import reactor.ipc.netty.resources.PoolResources;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.autoconfigure.web.reactive.WebFluxAutoConfiguration;
 import org.springframework.boot.test.context.runner.ReactiveWebApplicationContextRunner;
-import reactor.ipc.netty.http.client.HttpClientOptions;
-import reactor.ipc.netty.options.ClientProxyOptions;
-import reactor.ipc.netty.resources.PoolResources;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -61,6 +61,7 @@ public class GatewayAutoConfigurationTests {
 				.withConfiguration(AutoConfigurations.of(WebFluxAutoConfiguration.class,
 						GatewayAutoConfiguration.class))
 				.withPropertyValues("spring.cloud.gateway.httpclient.ssl.use-insecure-trust-manager=true",
+						"spring.cloud.gateway.httpclient.connect-timeout=10",
 						"spring.cloud.gateway.httpclient.pool.type=fixed",
 						"spring.cloud.gateway.httpclient.proxy.host=myhost")
 				.run(context -> {
