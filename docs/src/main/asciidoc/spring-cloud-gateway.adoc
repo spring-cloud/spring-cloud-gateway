@@ -444,8 +444,6 @@ spring:
         - PreserveHostHeader
 ----
 
-This will prefix `/mypath` to the path of all matching requests. So a request to `/hello`, would be sent to `/mypath/hello`.
-
 === RequestRateLimiter GatewayFilter Factory
 
 The RequestRateLimiter GatewayFilter Factory is uses a `RateLimiter` implementation to determine if the current request is allowed to proceed. If it is not, a status of `HTTP 429 - Too Many Requests` (by default) is returned.
