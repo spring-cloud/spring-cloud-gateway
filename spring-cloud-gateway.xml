@@ -455,7 +455,6 @@ The Hystrix GatewayFilter allows you to introduce circuit breakers to your gatew
         - PreserveHostHeader</programlisting>
 </para>
 </formalpara>
-<simpara>This will prefix <literal>/mypath</literal> to the path of all matching requests. So a request to <literal>/hello</literal>, would be sent to <literal>/mypath/hello</literal>.</simpara>
 </section>
 <section xml:id="_requestratelimiter_gatewayfilter_factory">
 <title>RequestRateLimiter GatewayFilter Factory</title>
