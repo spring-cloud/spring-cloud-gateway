@@ -1014,54 +1014,58 @@ public RouteLocator customRouteLocator(RouteLocatorBuilder builder, ThrottleGate
 <formalpara>
 <title>PreGatewayFilterFactory.java</title>
 <para>
-<programlisting language="java" linenumbering="unnumbered">---
-public class PreGatewayFilterFactory extends AbstractGatewayFilterFactory&lt;PreGatewayFilterFactory.Config&gt; {</programlisting>
+<programlisting language="java" linenumbering="unnumbered">public class PreGatewayFilterFactory extends AbstractGatewayFilterFactory&lt;PreGatewayFilterFactory.Config&gt; {
+
+	public PreGatewayFilterFactory() {
+		super(Config.class);
+	}
+
+	@Override
+	public GatewayFilter apply(Config config) {
+		// grab configuration from Config object
+		return (exchange, chain) -&gt; {
+            //If you want to build a "pre" filter you need to manipulate the
+            //request before calling change.filter
+            ServerHttpRequest.Builder builder = exchange.getRequest().mutate();
+            //use builder to manipulate the request
+            return chain.filter(exchange.mutate().request(request).build());
+		};
+	}
+
+	public static class Config {
+        //Put the configuration properties for your filter here
+	}
+
+}</programlisting>
 </para>
 </formalpara>
-<literallayout class="monospaced">public PreGatewayFilterFactory() {
-	super(Config.class);
-}</literallayout>
-<literallayout class="monospaced">@Override
-public GatewayFilter apply(Config config) {
-	// grab configuration from Config object
-	return (exchange, chain) -&gt; {
-           //If you want to build a "pre" filter you need to manipulate the
-           //request before calling change.filter
-           ServerHttpRequest.Builder builder = exchange.getRequest().mutate();
-           //use builder to manipulate the request
-           return chain.filter(exchange.mutate().request(request).build());
-	};
-}</literallayout>
-<literallayout class="monospaced">public static class Config {
-       //Put the configuration properties for your filter here
-}</literallayout>
-<simpara>}</simpara>
-<simpara><?asciidoc-hr?></simpara>
 <formalpara>
 <title>PostGatewayFilterFactory.java</title>
 <para>
-<programlisting language="java" linenumbering="unnumbered">---
-public class PostGatewayFilterFactory extends AbstractGatewayFilterFactory&lt;PostGatewayFilterFactory.Config&gt; {</programlisting>
+<programlisting language="java" linenumbering="unnumbered">public class PostGatewayFilterFactory extends AbstractGatewayFilterFactory&lt;PostGatewayFilterFactory.Config&gt; {
+
+	public PostGatewayFilterFactory() {
+		super(Config.class);
+	}
+
+	@Override
+	public GatewayFilter apply(Config config) {
+		// grab configuration from Config object
+		return (exchange, chain) -&gt; {
+			return chain.filter(exchange).then(Mono.fromRunnable(() -&gt; {
+				ServerHttpReponse response = exchange.getResponse();
+				//Manipulate the response in some way
+			}));
+		};
+	}
+
+	public static class Config {
+        //Put the configuration properties for your filter here
+	}
+
+}</programlisting>
 </para>
 </formalpara>
-<literallayout class="monospaced">public PostGatewayFilterFactory() {
-	super(Config.class);
-}</literallayout>
-<literallayout class="monospaced">@Override
-public GatewayFilter apply(Config config) {
-	// grab configuration from Config object
-	return (exchange, chain) -&gt; {
-		return chain.filter(exchange).then(Mono.fromRunnable(() -&gt; {
-			ServerHttpReponse response = exchange.getResponse();
-			//Manipulate the response in some way
-		}));
-	};
-}</literallayout>
-<literallayout class="monospaced">public static class Config {
-       //Put the configuration properties for your filter here
-}</literallayout>
-<simpara>}</simpara>
-<simpara><?asciidoc-hr?></simpara>
 </section>
 <section xml:id="_writing_custom_global_filters">
 <title>Writing Custom Global Filters</title>
