@@ -952,7 +952,7 @@ In order to write a GatewayFilter you will need to implement `GatewayFilterFacto
 
 .PreGatewayFilterFactory.java
 [source,java]
----
+----
 public class PreGatewayFilterFactory extends AbstractGatewayFilterFactory<PreGatewayFilterFactory.Config> {
 
 	public PreGatewayFilterFactory() {
@@ -976,12 +976,11 @@ public class PreGatewayFilterFactory extends AbstractGatewayFilterFactory<PreGat
 	}
 
 }
-
----
+----
 
 .PostGatewayFilterFactory.java
 [source,java]
----
+----
 public class PostGatewayFilterFactory extends AbstractGatewayFilterFactory<PostGatewayFilterFactory.Config> {
 
 	public PostGatewayFilterFactory() {
@@ -1004,8 +1003,7 @@ public class PostGatewayFilterFactory extends AbstractGatewayFilterFactory<PostG
 	}
 
 }
-
----
+----
 
 === Writing Custom Global Filters
 
