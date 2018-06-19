@@ -26,6 +26,7 @@ import java.util.function.Predicate;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.reactivestreams.Publisher;
+import org.springframework.cloud.gateway.support.TimeoutException;
 import reactor.core.publisher.Mono;
 import reactor.retry.Repeat;
 import reactor.retry.RepeatContext;
@@ -152,6 +153,11 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 		return list;
 	}
 
+	private static <T> List<T> toList(T... items) {
+		return new ArrayList<>(Arrays.asList(items));
+	}
+
+	@SuppressWarnings("unchecked")
 	public static class RetryConfig {
 		private int retries = 3;
 		
@@ -161,7 +167,7 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 		
 		private List<HttpMethod> methods = toList(HttpMethod.GET);
 
-		private List<Class<? extends Throwable>> exceptions = toList(IOException.class);
+		private List<Class<? extends Throwable>> exceptions = toList(IOException.class, TimeoutException.class);
 
 		public RetryConfig setRetries(int retries) {
 			this.retries = retries;

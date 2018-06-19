@@ -216,8 +216,9 @@ public class GatewayAutoConfiguration {
 
 		@Bean
 		public NettyRoutingFilter routingFilter(HttpClient httpClient,
-												ObjectProvider<List<HttpHeadersFilter>> headersFilters) {
-			return new NettyRoutingFilter(httpClient, headersFilters);
+												ObjectProvider<List<HttpHeadersFilter>> headersFilters,
+												HttpClientProperties properties) {
+			return new NettyRoutingFilter(httpClient, headersFilters, properties);
 		}
 
 		@Bean
