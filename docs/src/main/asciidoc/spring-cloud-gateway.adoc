@@ -814,6 +814,10 @@ The Netty Routing Filter runs if the url located in the `ServerWebExchangeUtils.
 
 The `NettyWriteResponseFilter` runs if there is a Netty `HttpClientResponse` in the `ServerWebExchangeUtils.CLIENT_RESPONSE_ATTR` exchange attribute. It is run after all other filters have completed and writes the proxy response back to the gateway client response. (There is an experimental `WebClientWriteResponseFilter` that performs the same function, but does not require netty)
 
+=== Null Route Filter
+
+The `NullRouteFilter` looks for a URI in the exchange attribute `ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR`. If the url has a `nullroute` scheme (ie `nullroute://200`), it will return a response with the status code specified without calling any backend. The host part of the uri is used as the http status the filter will put in the response. It makes possible to use predicates and filters on a route without any backend to do simple operations.
+
 === RouteToRequestUrl Filter
 
 The `RouteToRequestUrlFilter` runs if there is a `Route` object in the `ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR` exchange attribute. It creates a new URI, based off of the request URI, but updated with the URI attribute of the `Route` object. The new URI is placed in the `ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR` exchange attribute`.

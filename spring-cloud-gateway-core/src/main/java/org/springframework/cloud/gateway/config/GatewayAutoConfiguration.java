@@ -50,6 +50,7 @@ import org.springframework.cloud.gateway.filter.ForwardRoutingFilter;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.NettyRoutingFilter;
 import org.springframework.cloud.gateway.filter.NettyWriteResponseFilter;
+import org.springframework.cloud.gateway.filter.NullRouteFilter;
 import org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter;
 import org.springframework.cloud.gateway.filter.WebsocketRoutingFilter;
 import org.springframework.cloud.gateway.filter.WeightCalculatorWebFilter;
@@ -322,6 +323,11 @@ public class GatewayAutoConfiguration {
 	@Bean
 	public AdaptCachedBodyGlobalFilter adaptCachedBodyGlobalFilter() {
 		return new AdaptCachedBodyGlobalFilter();
+	}
+
+	@Bean
+	public NullRouteFilter nullRouteFilter() {
+		return new NullRouteFilter();
 	}
 
 	@Bean
