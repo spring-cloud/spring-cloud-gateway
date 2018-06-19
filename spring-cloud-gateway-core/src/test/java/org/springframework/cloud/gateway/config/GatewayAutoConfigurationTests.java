@@ -62,6 +62,7 @@ public class GatewayAutoConfigurationTests {
 						GatewayAutoConfiguration.class))
 				.withPropertyValues("spring.cloud.gateway.httpclient.ssl.use-insecure-trust-manager=true",
 						"spring.cloud.gateway.httpclient.connect-timeout=10",
+						"spring.cloud.gateway.httpclient.response-timeout=10s",
 						"spring.cloud.gateway.httpclient.pool.type=fixed",
 						"spring.cloud.gateway.httpclient.proxy.host=myhost")
 				.run(context -> {

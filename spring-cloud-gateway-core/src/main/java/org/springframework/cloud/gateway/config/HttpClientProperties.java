@@ -20,6 +20,8 @@ package org.springframework.cloud.gateway.config;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import reactor.ipc.netty.resources.PoolResources;
 
+import java.time.Duration;
+
 /**
  * Configuration properties for the Netty {@link reactor.ipc.netty.http.client.HttpClient}
  */
@@ -28,6 +30,9 @@ public class HttpClientProperties {
 
 	/** The connect timeout in millis, the default is 45s. */
 	private Integer connectTimeout;
+
+	/** The response timeout. */
+	private Duration responseTimeout;
 
 	/** Pool configuration for Netty HttpClient */
 	private Pool pool = new Pool();
@@ -40,6 +45,14 @@ public class HttpClientProperties {
 
 	public Integer getConnectTimeout() {
 		return connectTimeout;
+	}
+
+	public Duration getResponseTimeout() {
+		return responseTimeout;
+	}
+
+	public void setResponseTimeout(Duration responseTimeout) {
+		this.responseTimeout = responseTimeout;
 	}
 
 	public void setConnectTimeout(Integer connectTimeout) {
@@ -220,6 +233,7 @@ public class HttpClientProperties {
 	public String toString() {
 		return "HttpClientProperties{" +
 				"connectTimeout=" + connectTimeout +
+				", responseTimeout=" + responseTimeout +
 				", pool=" + pool +
 				", proxy=" + proxy +
 				", ssl=" + ssl +
