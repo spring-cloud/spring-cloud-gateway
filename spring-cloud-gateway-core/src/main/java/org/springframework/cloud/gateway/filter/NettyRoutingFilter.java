@@ -24,6 +24,8 @@ import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import org.springframework.http.InvalidMediaTypeException;
 import org.springframework.util.StringUtils;
+import org.springframework.http.InvalidMediaTypeException;
+import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.netty.NettyPipeline;
@@ -126,12 +128,13 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 
 					res.responseHeaders().forEach(entry -> headers.add(entry.getKey(), entry.getValue()));
 
-			String contentTypeValue = headers.getFirst(HttpHeaders.CONTENT_TYPE);if (StringUtils.hasLength(contentTypeValue)) {
+			String contentTypeValue = headers.getFirst(HttpHeaders.CONTENT_TYPE);
+			if (StringUtils.hasLength(contentTypeValue)) {
 				try {
-					exchange.getAttributes().put(ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR,headers.getContentType() );
+					exchange.getAttributes().put(ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR, headers.getContentType());
 				} catch (InvalidMediaTypeException e) {
 					//store non standard media types like "Content-Type: image"
-				exchange.getAttributes().put(ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR, contentTypeValue);
+					exchange.getAttributes().put(ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR, contentTypeValue);
 				}
 			}
 
