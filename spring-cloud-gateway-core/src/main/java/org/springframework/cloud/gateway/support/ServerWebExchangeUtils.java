@@ -48,6 +48,7 @@ public class ServerWebExchangeUtils {
 	public static final String GATEWAY_SCHEME_PREFIX_ATTR = qualify("gatewaySchemePrefix");
 	public static final String GATEWAY_PREDICATE_ROUTE_ATTR = qualify("gatewayPredicateRouteAttr");
 	public static final String WEIGHT_ATTR = qualify("routeWeight");
+	public static final String ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR = "original_response_content_type";
 
 	/**
 	 * Used when a routing filter has been successfully call. Allows users to write custom
