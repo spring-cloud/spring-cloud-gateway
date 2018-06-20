@@ -52,6 +52,12 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 	/** X-Forwarded-Proto Header */
 	public static final String X_FORWARDED_PROTO_HEADER = "X-Forwarded-Proto";
 
+	/** X-Forwarded-Prefix Header */
+	public static final String X_FORWARDED_PREFIX_HEADER = "X-Forwarded-Prefix";
+
+	/** X-Original-URI Header */
+	public static final String X_ORIGINAL_URI = "X-Original-URI";
+
 	/** The order of the XForwardedHeadersFilter. */
 	private int order = 0;
 
@@ -70,6 +76,9 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 	/** If X-Forwarded-Proto is enabled. */
 	private boolean protoEnabled = true;
 
+	/** If X-Forwarded-Prefix is enabled. */
+	private boolean prefixEnabled = true;
+
 	/** If appending X-Forwarded-For as a list is enabled. */
 	private boolean forAppend = true;
 
@@ -81,6 +90,9 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 
 	/** If appending X-Forwarded-Proto as a list is enabled. */
 	private boolean protoAppend = true;
+
+	/** If appending X-Forwarded-Prefix as a list is enabled. */
+	private boolean prefixAppend = true;
 
 	@Override
 	public int getOrder() {
@@ -131,6 +143,14 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 		this.protoEnabled = protoEnabled;
 	}
 
+	public boolean isPrefixEnabled() {
+		return prefixEnabled;
+	}
+
+	public void setPrefixEnabled(boolean prefixEnabled) {
+		this.prefixEnabled = prefixEnabled;
+	}
+
 	public boolean isForAppend() {
 		return forAppend;
 	}
@@ -163,6 +183,14 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 		this.protoAppend = protoAppend;
 	}
 
+	public void setPrefixAppend(boolean prefixAppend) {
+		this.prefixAppend = prefixAppend;
+	}
+
+	public boolean isPrefixAppend() {
+		return prefixAppend;
+	}
+
 	@Override
 	public HttpHeaders filter(HttpHeaders input, ServerWebExchange exchange) {
 		ServerHttpRequest request = exchange.getRequest();
@@ -185,6 +213,19 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 		String proto = request.getURI().getScheme();
 		if (isProtoEnabled()) {
 			write(updated, X_FORWARDED_PROTO_HEADER, proto, isProtoAppend());
+		}
+
+		if(isPrefixEnabled()){
+			String prefix = null;
+
+			if (request.getHeaders().containsKey(X_FORWARDED_PREFIX_HEADER)){
+				prefix = request.getHeaders().get(X_FORWARDED_PREFIX_HEADER).get(0);
+			}
+			else if(request.getHeaders().containsKey(X_ORIGINAL_URI)){
+				String originalUri = request.getHeaders().get(X_ORIGINAL_URI).get(0);
+				prefix = originalUri.replace(request.getURI().getPath(),"");
+			}
+			write(updated,X_FORWARDED_PREFIX_HEADER, prefix, isPrefixAppend());
 		}
 
 		if (isPortEnabled()) {
