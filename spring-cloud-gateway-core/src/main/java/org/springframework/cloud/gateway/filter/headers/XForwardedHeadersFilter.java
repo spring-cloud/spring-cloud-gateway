@@ -92,7 +92,7 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 	private boolean protoAppend = true;
 
 	/** If appending X-Forwarded-Prefix as a list is enabled. */
-	private boolean prefixAppend = true;
+	private boolean prefixAppend = false;
 
 	@Override
 	public int getOrder() {
@@ -219,10 +219,10 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 			String prefix = null;
 
 			if (request.getHeaders().containsKey(X_FORWARDED_PREFIX_HEADER)){
-				prefix = request.getHeaders().get(X_FORWARDED_PREFIX_HEADER).get(0);
+				prefix = request.getHeaders().getFirst(X_FORWARDED_PREFIX_HEADER);
 			}
 			else if(request.getHeaders().containsKey(X_ORIGINAL_URI)){
-				String originalUri = request.getHeaders().get(X_ORIGINAL_URI).get(0);
+				String originalUri = request.getHeaders().getFirst(X_ORIGINAL_URI);
 				prefix = originalUri.replace(request.getURI().getPath(),"");
 			}
 			write(updated,X_FORWARDED_PREFIX_HEADER, prefix, isPrefixAppend());
