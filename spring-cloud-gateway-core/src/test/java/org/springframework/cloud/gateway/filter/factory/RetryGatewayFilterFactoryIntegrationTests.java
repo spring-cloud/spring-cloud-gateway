@@ -53,7 +53,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
-public class RetryConfigGatewayFilterFactoryIntegrationTests extends BaseWebClientTests {
+public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTests {
 
 	@Test
 	public void retryFilterGet() {
@@ -62,6 +62,18 @@ public class RetryConfigGatewayFilterFactoryIntegrationTests extends BaseWebClie
 				.exchange()
 				.expectStatus().isOk()
 				.expectBody(String.class).isEqualTo("3");
+	}
+
+	@Test
+	public void retryFilterFailure() {
+		testClient.get()
+				.uri("/retryalwaysfail?key=getjavafailure&count=4")
+				.header(HttpHeaders.HOST, "www.retryjava.org")
+				.exchange()
+				.expectStatus().is5xxServerError()
+				.expectBody(String.class).consumeWith(result -> {
+					assertThat(result.getResponseBody()).contains("permanently broken");
+                });
 	}
 
 	@Test
@@ -114,6 +126,14 @@ public class RetryConfigGatewayFilterFactoryIntegrationTests extends BaseWebClie
 		private String uri;
 
 		ConcurrentHashMap<String, AtomicInteger> map = new ConcurrentHashMap<>();
+
+		@RequestMapping("/httpbin/retryalwaysfail")
+		public String retryalwaysfail(@RequestParam("key") String key, @RequestParam(name = "count", defaultValue = "3") int count) {
+			AtomicInteger num = map.computeIfAbsent(key, s -> new AtomicInteger());
+			int i = num.incrementAndGet();
+			log.warn("Retry count: "+i);
+            throw new RuntimeException("permanently broken");
+		}
 
 		@RequestMapping("/httpbin/retry")
 		public String retry(@RequestParam("key") String key, @RequestParam(name = "count", defaultValue = "3") int count) {

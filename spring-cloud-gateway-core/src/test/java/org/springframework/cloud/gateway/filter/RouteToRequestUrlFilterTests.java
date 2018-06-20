@@ -18,7 +18,6 @@
 package org.springframework.cloud.gateway.filter;
 
 import java.net.URI;
-import java.util.Collections;
 
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -172,7 +171,7 @@ public class RouteToRequestUrlFilterTests {
 	}
 
 	private ServerWebExchange testFilter(MockServerHttpRequest request, String url) {
-		Route value = Route.builder().id("1")
+		Route value = Route.async().id("1")
 				.uri(URI.create(url))
 				.order(0)
 				.predicate(swe -> true)
