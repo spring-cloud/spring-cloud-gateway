@@ -209,8 +209,15 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 
 			if(originalUris != null && requestUri != null) {
 				originalUris.stream().forEach(originalUri -> {
-					String prefix = originalUri.getPath().replace(requestUri.getPath(), "");
-					write(updated, X_FORWARDED_PREFIX_HEADER, prefix, isPrefixAppend());
+					if(originalUri!=null && originalUri.getPath()!=null) {
+						String prefix = originalUri.getPath();
+						if(requestUri.getPath()!=null){
+							prefix = originalUri.getPath().replace(requestUri.getPath(), "");
+						}
+						if (prefix != null && prefix.length() > 0 && prefix.length() < originalUri.getPath().length()) {
+							write(updated, X_FORWARDED_PREFIX_HEADER, prefix, isPrefixAppend());
+						}
+					}
 				});
 			}
 		}
