@@ -1,30 +1,17 @@
-/*
- * Copyright 2013-2018 the original author or authors.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
-
 package org.springframework.cloud.gateway.filter.headers;
 
+import java.net.URI;
+import java.util.LinkedHashSet;
 import java.util.List;
-
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
+
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
 
 @ConfigurationProperties("spring.cloud.gateway.x-forwarded")
 public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
@@ -55,8 +42,6 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 	/** X-Forwarded-Prefix Header */
 	public static final String X_FORWARDED_PREFIX_HEADER = "X-Forwarded-Prefix";
 
-	/** X-Original-URI Header */
-	public static final String X_ORIGINAL_URI = "X-Original-URI";
 
 	/** The order of the XForwardedHeadersFilter. */
 	private int order = 0;
@@ -77,7 +62,7 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 	private boolean protoEnabled = true;
 
 	/** If X-Forwarded-Prefix is enabled. */
-	private boolean prefixEnabled = true;
+	private boolean prefixEnabled = false;
 
 	/** If appending X-Forwarded-For as a list is enabled. */
 	private boolean forAppend = true;
@@ -92,7 +77,7 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 	private boolean protoAppend = true;
 
 	/** If appending X-Forwarded-Prefix as a list is enabled. */
-	private boolean prefixAppend = false;
+	private boolean prefixAppend = true;
 
 	@Override
 	public int getOrder() {
@@ -193,6 +178,8 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 
 	@Override
 	public HttpHeaders filter(HttpHeaders input, ServerWebExchange exchange) {
+
+
 		ServerHttpRequest request = exchange.getRequest();
 		HttpHeaders original = input;
 		HttpHeaders updated = new HttpHeaders();
@@ -216,16 +203,16 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 		}
 
 		if(isPrefixEnabled()){
-			String prefix = null;
 
-			if (request.getHeaders().containsKey(X_FORWARDED_PREFIX_HEADER)){
-				prefix = request.getHeaders().getFirst(X_FORWARDED_PREFIX_HEADER);
+			LinkedHashSet<URI> originalUris = exchange.getAttribute(GATEWAY_ORIGINAL_REQUEST_URL_ATTR);
+			URI requestUri = exchange.getAttribute(GATEWAY_REQUEST_URL_ATTR);
+
+			if(originalUris != null && requestUri != null) {
+				originalUris.stream().forEach(originalUri -> {
+					String prefix = originalUri.getPath().replace(requestUri.getPath(), "");
+					write(updated, X_FORWARDED_PREFIX_HEADER, prefix, isPrefixAppend());
+				});
 			}
-			else if(request.getHeaders().containsKey(X_ORIGINAL_URI)){
-				String originalUri = request.getHeaders().getFirst(X_ORIGINAL_URI);
-				prefix = originalUri.replace(request.getURI().getPath(),"");
-			}
-			write(updated,X_FORWARDED_PREFIX_HEADER, prefix, isPrefixAppend());
 		}
 
 		if (isPortEnabled()) {
