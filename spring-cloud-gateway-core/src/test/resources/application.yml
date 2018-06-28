@@ -7,6 +7,11 @@ test:
 spring:
   cloud:
     gateway:
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            maxAge: 10
+            allowedOrigins: "*"
       default-filters:
       - AddResponseHeader=X-Response-Default-Foo, Default-Bar
       - PrefixPath=/httpbin

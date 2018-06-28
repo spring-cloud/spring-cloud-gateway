@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.handler;
 
 import java.util.function.Function;
 
+import org.springframework.cloud.gateway.config.GlobalCorsProperties;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.web.cors.CorsConfiguration;
@@ -39,11 +40,12 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 	private final FilteringWebHandler webHandler;
 	private final RouteLocator routeLocator;
 
-	public RoutePredicateHandlerMapping(FilteringWebHandler webHandler, RouteLocator routeLocator) {
+	public RoutePredicateHandlerMapping(FilteringWebHandler webHandler, RouteLocator routeLocator, GlobalCorsProperties globalCorsProperties) {
 		this.webHandler = webHandler;
 		this.routeLocator = routeLocator;
 
-		setOrder(1);
+		setOrder(1);		
+		setCorsConfigurations(globalCorsProperties.getCorsConfigurations());
 	}
 
 	@Override
@@ -70,10 +72,10 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 
 	@Override
 	protected CorsConfiguration getCorsConfiguration(Object handler, ServerWebExchange exchange) {
-		//TODO: support cors configuration via global properties and
-		// properties on a route see gh-229
+		// TODO: support cors configuration via properties on a route see gh-229
 		// see RequestMappingHandlerMapping.initCorsConfiguration()
-		// also see https://github.com/spring-projects/spring-framework/blob/master/spring-web/src/test/java/org/springframework/web/cors/reactive/CorsWebFilterTests.java
+		// also see https://github.com/spring-projects/spring-framework/blob/master/spring-web/src/test/java/org/springframework/web/cors/reactive/CorsWebFilterTests.java	        
+	    
 		return super.getCorsConfiguration(handler, exchange);
 	}
 
