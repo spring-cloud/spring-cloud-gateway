@@ -22,6 +22,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
+import java.util.Arrays;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.SpringBootConfiguration;
@@ -30,6 +32,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -55,6 +58,11 @@ public class CorsTests extends BaseWebClientTests {
 				"Missing header value in response: "
 						+ HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN,
 				"*", asHttpHeaders.getAccessControlAllowOrigin());
+		assertEquals(
+				"Missing header value in response: "
+						+ HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS,
+				Arrays.asList(new HttpMethod[] { HttpMethod.GET, HttpMethod.HEAD }),
+				asHttpHeaders.getAccessControlAllowMethods());
 		assertEquals("Pre Flight call failed.", HttpStatus.OK,
 				clientResponse.statusCode());
 	}
