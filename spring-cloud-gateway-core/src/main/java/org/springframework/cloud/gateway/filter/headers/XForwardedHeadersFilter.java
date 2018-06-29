@@ -79,7 +79,7 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 	private boolean protoEnabled = true;
 
 	/** If X-Forwarded-Prefix is enabled. */
-	private boolean prefixEnabled = false;
+	private boolean prefixEnabled = true;
 
 	/** If appending X-Forwarded-For as a list is enabled. */
 	private boolean forAppend = true;
@@ -228,10 +228,16 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 				originalUris.stream().forEach(originalUri -> {
 					if(originalUri!=null && originalUri.getPath()!=null) {
 						String prefix = originalUri.getPath();
-						if(requestUri.getPath()!=null){
-							prefix = originalUri.getPath().replace(requestUri.getPath(), "");
+
+						//strip trailing slashes before checking if request path is end of original path
+						String originalUriPath = originalUri.getPath().substring(0, originalUri.getPath().length() - (originalUri.getPath().endsWith("/") ? 1 : 0));
+						String requestUriPath = requestUri.getPath().substring(0, requestUri.getPath().length() - (requestUri.getPath().endsWith("/") ? 1 : 0));
+
+						if(requestUriPath!=null && (originalUriPath.endsWith(requestUriPath)) ){
+							prefix = originalUriPath.replace(requestUriPath, "");
 						}
-						if (prefix != null && prefix.length() > 0 && prefix.length() < originalUri.getPath().length()) {
+						if (prefix != null && prefix.length() > 0 &&
+								prefix.length() < originalUri.getPath().length()) {
 							write(updated, X_FORWARDED_PREFIX_HEADER, prefix, isPrefixAppend());
 						}
 					}
