@@ -19,12 +19,16 @@ package org.springframework.cloud.gateway.filter.headers;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.URI;
+import java.util.LinkedHashSet;
 
 import org.junit.Test;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.gateway.filter.headers.XForwardedHeadersFilter.X_FORWARDED_FOR_HEADER;
@@ -32,6 +36,8 @@ import static org.springframework.cloud.gateway.filter.headers.XForwardedHeaders
 import static org.springframework.cloud.gateway.filter.headers.XForwardedHeadersFilter.X_FORWARDED_PORT_HEADER;
 import static org.springframework.cloud.gateway.filter.headers.XForwardedHeadersFilter.X_FORWARDED_PREFIX_HEADER;
 import static org.springframework.cloud.gateway.filter.headers.XForwardedHeadersFilter.X_FORWARDED_PROTO_HEADER;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
 
 /**
  * @author Spencer Gibb
@@ -133,6 +139,59 @@ public class XForwardedHeadersFilterTests {
 		assertThat(headers.getFirst(X_FORWARDED_PORT_HEADER)).isEqualTo("8080");
 		assertThat(headers.getFirst(X_FORWARDED_PROTO_HEADER)).isEqualTo("http");
 		assertThat(headers.getFirst(X_FORWARDED_PREFIX_HEADER)).isEqualTo("/prefix");
+	}
+
+
+	@Test
+	public void prefixToInfer() throws Exception {
+		MockServerHttpRequest request = MockServerHttpRequest
+				.get("http://originalhost:8080/prefix/get")
+				.remoteAddress(new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80))
+				.build();
+
+		XForwardedHeadersFilter filter = new XForwardedHeadersFilter();
+		filter.setPrefixAppend(true);
+		filter.setPrefixEnabled(true);
+
+		ServerWebExchange exchange = MockServerWebExchange.from(request);
+		LinkedHashSet<URI> originalUris = new LinkedHashSet<>();
+		originalUris.add(UriComponentsBuilder.fromUriString("http://originalhost:8080/prefix/get").build().toUri());
+		exchange.getAttributes().put(GATEWAY_ORIGINAL_REQUEST_URL_ATTR, originalUris);
+		URI requestUri = UriComponentsBuilder.fromUriString("http://routedservice:8090/get").build().toUri();
+		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, requestUri);
+
+		HttpHeaders headers = filter.filter(request.getHeaders(), exchange);
+
+		assertThat(headers).containsKeys(X_FORWARDED_PREFIX_HEADER);
+
+		assertThat(headers.getFirst(X_FORWARDED_PREFIX_HEADER)).isEqualTo("/prefix");
+	}
+
+	@Test
+	public void noPrefixToInfer() throws Exception {
+		MockServerHttpRequest request = MockServerHttpRequest
+				.get("http://originalhost:8080/get")
+				.remoteAddress(new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80))
+				.build();
+
+		XForwardedHeadersFilter filter = new XForwardedHeadersFilter();
+		filter.setPrefixAppend(true);
+		filter.setPrefixEnabled(true);
+		filter.setForEnabled(false);
+		filter.setHostEnabled(false);
+		filter.setPortEnabled(false);
+		filter.setProtoEnabled(false);
+
+		ServerWebExchange exchange = MockServerWebExchange.from(request);
+		LinkedHashSet<URI> originalUris = new LinkedHashSet<>();
+		originalUris.add(UriComponentsBuilder.fromUriString("http://originalhost:8080/get").build().toUri());
+		exchange.getAttributes().put(GATEWAY_ORIGINAL_REQUEST_URL_ATTR, originalUris);
+		URI requestUri = UriComponentsBuilder.fromUriString("http://routedservice:8090/get").build().toUri();
+		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, requestUri);
+
+		HttpHeaders headers = filter.filter(request.getHeaders(), exchange);
+
+		assertThat(headers).isEmpty();
 	}
 
 	@Test
