@@ -31,7 +31,6 @@ import org.springframework.cloud.gateway.handler.AsyncPredicate;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.core.Ordered;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -116,9 +115,7 @@ public class Route implements Ordered {
 		public B uri(URI uri) {
 			this.uri = uri;
 			String scheme = this.uri.getScheme();
-			if (StringUtils.isEmpty(scheme)) {
-				throw new IllegalArgumentException("The parameter [" + this.uri + "] format is incorrect, scheme cannot be empty");
-			}
+			Assert.hasText(scheme, "The parameter [" + this.uri + "] format is incorrect, scheme can not be empty");
 			if (this.uri.getPort() < 0 && scheme.startsWith("http")) {
 				// default known http ports
 				int port = this.uri.getScheme().equals("https") ? 443 : 80;
