@@ -117,7 +117,7 @@ public class Route implements Ordered {
 			this.uri = uri;
 			String scheme = this.uri.getScheme();
 			if (StringUtils.isEmpty(scheme)) {
-				throw new IllegalArgumentException("The parameter [" + this.uri + "] format is incorrect ");
+				throw new IllegalArgumentException("The parameter [" + this.uri + "] format is incorrect, scheme cannot be empty");
 			}
 			if (this.uri.getPort() < 0 && scheme.startsWith("http")) {
 				// default known http ports
