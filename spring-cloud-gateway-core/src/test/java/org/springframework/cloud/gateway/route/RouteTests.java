@@ -17,11 +17,16 @@
 
 package org.springframework.cloud.gateway.route;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class RouteTests {
+
+	@Rule
+	public ExpectedException exception = ExpectedException.none();
 
 	@Test
 	public void defeaultHttpPort() {
@@ -47,7 +52,6 @@ public class RouteTests {
 				.hasPort(443);
 	}
 
-
 	@Test
 	public void fullUri() {
 		Route route = Route.async().id("1")
@@ -58,5 +62,13 @@ public class RouteTests {
 		assertThat(route.getUri()).hasHost("acme.com")
 				.hasScheme("http")
 				.hasPort(8080);
+	}
+
+	@Test
+	public void nullScheme() {
+		exception.expect(IllegalArgumentException.class);
+		Route.async().id("1")
+				.predicate(exchange -> true)
+				.uri("/pathonly");
 	}
 }

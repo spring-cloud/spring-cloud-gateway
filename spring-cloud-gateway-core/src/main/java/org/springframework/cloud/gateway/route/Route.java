@@ -114,7 +114,9 @@ public class Route implements Ordered {
 
 		public B uri(URI uri) {
 			this.uri = uri;
-			if (this.uri.getPort() < 0 && this.uri.getScheme().startsWith("http")) {
+			String scheme = this.uri.getScheme();
+			Assert.hasText(scheme, "The parameter [" + this.uri + "] format is incorrect, scheme can not be empty");
+			if (this.uri.getPort() < 0 && scheme.startsWith("http")) {
 				// default known http ports
 				int port = this.uri.getScheme().equals("https") ? 443 : 80;
 				this.uri = UriComponentsBuilder.fromUri(this.uri)
