@@ -62,7 +62,7 @@ public class CachingRouteLocatorTests {
 	}
 
 	Route route(int id) {
-		return Route.builder().id(String.valueOf(id))
+		return Route.async().id(String.valueOf(id))
 				.uri("http://localhost/"+id)
 				.order(id)
 				.predicate(exchange -> true).build();

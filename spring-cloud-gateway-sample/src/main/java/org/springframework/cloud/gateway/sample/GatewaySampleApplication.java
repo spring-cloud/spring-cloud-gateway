@@ -20,6 +20,8 @@ package org.springframework.cloud.gateway.sample;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import reactor.core.publisher.Mono;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
@@ -28,6 +30,7 @@ import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.server.RequestPredicates;
 import org.springframework.web.reactive.function.server.RouterFunction;
@@ -42,7 +45,7 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 @Import(AdditionalRoutes.class)
 public class GatewaySampleApplication {
 
-	@Value("${route.uri:http://httpbin.org:80}")
+	@Value("${test.uri:http://httpbin.org:80}")
 	String uri;
 
 	@Bean
@@ -51,59 +54,69 @@ public class GatewaySampleApplication {
 		// String uri = "http://httpbin.org:80";
 		// String uri = "http://localhost:9080";
 		return builder.routes()
-				.route(r -> r.host("**.abc.org").and().path("/image/png")
+				.route(r -> r.host("**.abc.org").and().path("/anything/png")
 					.filters(f ->
-							f.addResponseHeader("X-TestHeader", "foobar"))
+							f.prefixPath("/httpbin")
+									.addResponseHeader("X-TestHeader", "foobar"))
 					.uri(uri)
 				)
 				.route("read_body_pred", r -> r.host("*.readbody.org")
 						.and().readBody(String.class,
-										s -> s.trim().equalsIgnoreCase("hello"))
-					.filters(f ->
-							f.addRequestHeader("X-TestHeader", "read_body_pred")
+										s -> s.trim().equalsIgnoreCase("hi"))
+					.filters(f -> f.prefixPath("/httpbin")
+							.addResponseHeader("X-TestHeader", "read_body_pred")
 					).uri(uri)
 				)
 				.route("rewrite_request_obj", r -> r.host("*.rewriterequestobj.org")
-					.filters(f -> f.addRequestHeader("X-TestHeader", "rewrite_request")
+					.filters(f -> f.prefixPath("/httpbin")
+							//TODO: add as configuration to modifyRequestBody
+							.setRequestHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+							.addResponseHeader("X-TestHeader", "rewrite_request")
 							.modifyRequestBody(String.class, Hello.class,
 									(exchange, s) -> {
-                                        return new Hello(s.toUpperCase());
-                                    })
+										return Mono.just(new Hello(s.toUpperCase()));
+									})
 					).uri(uri)
 				)
-                .route("rewrite_request_upper", r -> r.host("*.rewriterequestupper.org")
-					.filters(f -> f.addRequestHeader("X-TestHeader", "rewrite_request_upper")
+				.route("rewrite_request_upper", r -> r.host("*.rewriterequestupper.org")
+					.filters(f -> f.prefixPath("/httpbin")
+							.addResponseHeader("X-TestHeader", "rewrite_request_upper")
 							.modifyRequestBody(String.class, String.class,
 									(exchange, s) -> {
-                                        return s.toUpperCase();
-                                    })
+										return Mono.just(s.toUpperCase());
+									})
 					).uri(uri)
 				)
 				.route("rewrite_response_upper", r -> r.host("*.rewriteresponseupper.org")
-					.filters(f -> f.addRequestHeader("X-TestHeader", "rewrite_response_upper")
+					.filters(f -> f.prefixPath("/httpbin")
+							.addResponseHeader("X-TestHeader", "rewrite_response_upper")
 							.modifyResponseBody(String.class, String.class,
 									(exchange, s) -> {
-                                        return s.toUpperCase();
-                                    })
+										return Mono.just(s.toUpperCase());
+									})
 					).uri(uri)
 				)
-                .route("rewrite_response_obj", r -> r.host("*.rewriteresponseobj.org")
-					.filters(f -> f.addRequestHeader("X-TestHeader", "rewrite_response_obj")
-							.modifyResponseBody(Map.class, String.class,
+				.route("rewrite_response_obj", r -> r.host("*.rewriteresponseobj.org")
+					.filters(f -> f.prefixPath("/httpbin")
+							.addResponseHeader("X-TestHeader", "rewrite_response_obj")
+							.modifyResponseBody(Map.class, String.class, MediaType.TEXT_PLAIN_VALUE,
 									(exchange, map) -> {
 										Object data = map.get("data");
-                                        return data.toString();
-                                    })
+										return Mono.just(data.toString());
+									})
+							.setResponseHeader("Content-Type", MediaType.TEXT_PLAIN_VALUE)
 					).uri(uri)
 				)
 				.route(r -> r.path("/image/webp")
 					.filters(f ->
-							f.addResponseHeader("X-AnotherHeader", "baz"))
+							f.prefixPath("/httpbin")
+									.addResponseHeader("X-AnotherHeader", "baz"))
 					.uri(uri)
 				)
 				.route(r -> r.order(-1)
 					.host("**.throttle.org").and().path("/get")
-					.filters(f -> f.filter(new ThrottleGatewayFilter()
+					.filters(f -> f.prefixPath("/httpbin")
+									.filter(new ThrottleGatewayFilter()
 									.setCapacity(1)
 									.setRefillTokens(1)
 									.setRefillPeriod(10)

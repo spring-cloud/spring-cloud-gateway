@@ -26,6 +26,7 @@ import org.springframework.mock.http.server.reactive.MockServerHttpRequest
 import org.springframework.mock.web.server.MockServerWebExchange
 import org.springframework.test.context.junit4.SpringRunner
 import org.springframework.web.server.ServerWebExchange
+import reactor.core.publisher.toMono
 import reactor.test.StepVerifier
 import java.net.URI
 
@@ -71,7 +72,7 @@ class RouteDslTests {
 		val sampleExchange: ServerWebExchange = MockServerWebExchange.from(MockServerHttpRequest.get("/image/webp")
 				.header("Host", "test.abc.org").build())
 
-		val filteredRoutes = routeLocator.routes.filter({ it.predicate.test(sampleExchange) })
+		val filteredRoutes = routeLocator.routes.filter({ it.predicate.apply(sampleExchange).toMono().block() })
 
 		StepVerifier.create(filteredRoutes)
 				.expectNextMatches({
@@ -98,17 +99,19 @@ class RouteDslTests {
 					it.id == "test1" &&
 							it.uri == URI.create("http://httpbin.org:80") &&
 							it.order == 10 &&
-							it.predicate.test(MockServerWebExchange
+							it.predicate.apply(MockServerWebExchange
 									.from(MockServerHttpRequest
 											.get("/someuri").header("Host", "test.abc.org")))
+									.toMono().block()
 				})
 				.expectNextMatches({
 					it.id == "test2" &&
 							it.uri == URI.create("http://override-url:80") &&
 							it.order == 10 &&
-							it.predicate.test(MockServerWebExchange
+							it.predicate.apply(MockServerWebExchange
 									.from(MockServerHttpRequest
 											.get("/someuri").header("Host", "test.abc.org")))
+									.toMono().block()
 				})
 				.expectComplete()
 				.verify()

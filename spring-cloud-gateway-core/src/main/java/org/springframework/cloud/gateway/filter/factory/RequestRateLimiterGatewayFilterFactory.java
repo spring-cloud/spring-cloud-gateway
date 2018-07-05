@@ -24,6 +24,8 @@ import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.http.HttpStatus;
 
+import java.util.Map;
+
 /**
  * User Request Rate Limiter filter. See https://stripe.com/blog/rate-limiters and
  */
@@ -61,12 +63,16 @@ public class RequestRateLimiterGatewayFilterFactory extends AbstractGatewayFilte
 			return resolver.resolve(exchange).flatMap(key ->
 					// TODO: if key is empty?
 					limiter.isAllowed(route.getId(), key).flatMap(response -> {
-						// TODO: set some headers for rate, tokens left
+
+						for (Map.Entry<String, String> header : response.getHeaders().entrySet()) {
+							exchange.getResponse().getHeaders().add(header.getKey(), header.getValue());
+						}
 
 						if (response.isAllowed()) {
 							return chain.filter(exchange);
 						}
-						exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
+
+						exchange.getResponse().setStatusCode(config.getStatusCode());
 						return exchange.getResponse().setComplete();
 					}));
 		};
@@ -75,7 +81,7 @@ public class RequestRateLimiterGatewayFilterFactory extends AbstractGatewayFilte
 	public static class Config {
 		private KeyResolver keyResolver;
 		private RateLimiter rateLimiter;
-
+		private HttpStatus statusCode = HttpStatus.TOO_MANY_REQUESTS;
 
 		public KeyResolver getKeyResolver() {
 			return keyResolver;
@@ -91,6 +97,15 @@ public class RequestRateLimiterGatewayFilterFactory extends AbstractGatewayFilte
 
 		public Config setRateLimiter(RateLimiter rateLimiter) {
 			this.rateLimiter = rateLimiter;
+			return this;
+		}
+
+		public HttpStatus getStatusCode() {
+			return statusCode;
+		}
+
+		public Config setStatusCode(HttpStatus statusCode) {
+			this.statusCode = statusCode;
 			return this;
 		}
 	}

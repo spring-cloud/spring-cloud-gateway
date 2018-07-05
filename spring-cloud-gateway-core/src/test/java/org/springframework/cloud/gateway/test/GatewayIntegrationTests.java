@@ -39,8 +39,11 @@ import org.springframework.context.annotation.Import;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ServerWebExchange;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -146,12 +149,26 @@ public class GatewayIntegrationTests extends BaseWebClientTests {
 				.expectStatus().is5xxServerError();
 	}
 
+	@Test
+	// gh-374 no content type/empty body causes NPR in NettyRoutingFilter
+	public void noContentType() {
+		testClient.get().uri("/nocontenttype")
+				.exchange()
+				.expectStatus().is2xxSuccessful();
+	}
+
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
+	@RestController
 	public static class TestConfig {
 
 		private static final Log log = LogFactory.getLog(TestConfig.class);
+
+		@RequestMapping("/httpbin/nocontenttype")
+		public ResponseEntity<Void> nocontenttype() {
+			return ResponseEntity.status(204).build();
+		}
 
 		@Bean
 		@Order(-1)

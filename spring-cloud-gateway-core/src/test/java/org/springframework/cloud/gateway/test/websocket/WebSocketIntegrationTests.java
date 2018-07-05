@@ -34,6 +34,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.reactivestreams.Publisher;
+import org.springframework.web.reactive.socket.CloseStatus;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.MonoProcessor;
@@ -177,6 +178,7 @@ public class WebSocketIntegrationTests {
 			map.put("/echoForHttp", new EchoWebSocketHandler());
 			map.put("/sub-protocol", new SubProtocolWebSocketHandler());
 			map.put("/custom-header", new CustomHeaderHandler());
+			map.put("/close", new SessionClosingHandler());
 
 			SimpleUrlHandlerMapping mapping = new SimpleUrlHandlerMapping();
 			mapping.setUrlMap(map);
@@ -287,6 +289,21 @@ public class WebSocketIntegrationTests {
 		assertEquals("my-header:my-value", output.block(Duration.ofMillis(5000)));
 	}
 
+	@Test
+	public void sessionClosing() throws Exception {
+		this.client.execute(getUrl("/close"),
+				session -> {
+					logger.debug("Starting..");
+					return session.receive()
+							.doOnNext(s -> logger.debug("inbound " + s))
+							.then()
+							.doFinally(signalType -> {
+								logger.debug("Completed with: " + signalType);
+							});
+				})
+				.block(Duration.ofMillis(5000));
+	}
+
 	private static class EchoWebSocketHandler implements WebSocketHandler {
 
 		@Override
@@ -327,6 +344,14 @@ public class WebSocketIntegrationTests {
 			String payload = "my-header:" + headers.getFirst("my-header");
 			WebSocketMessage message = session.textMessage(payload);
 			return doSend(session, Mono.just(message));
+		}
+	}
+
+	private static class SessionClosingHandler implements WebSocketHandler {
+
+		@Override
+		public Mono<Void> handle(WebSocketSession session) {
+			return Flux.never().mergeWith(session.close(CloseStatus.GOING_AWAY)).then();
 		}
 	}
 

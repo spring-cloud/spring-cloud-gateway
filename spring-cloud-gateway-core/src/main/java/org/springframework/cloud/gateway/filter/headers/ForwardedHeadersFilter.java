@@ -147,7 +147,7 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 
 
 		private String quoteIfNeeded(String s) {
-			if (s.contains(":")) { //TODO: broaded quote
+			if (s != null && s.contains(":")) { //TODO: broaded quote
 				return "\""+s+"\"";
 			}
 			return s;

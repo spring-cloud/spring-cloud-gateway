@@ -50,6 +50,7 @@ import rx.RxReactiveStreams;
 import rx.Subscription;
 
 /**
+ * Depends on `spring-cloud-starter-netflix-hystrix`, {@see http://cloud.spring.io/spring-cloud-netflix/}
  * @author Spencer Gibb
  */
 public class HystrixGatewayFilterFactory extends AbstractGatewayFilterFactory<HystrixGatewayFilterFactory.Config> {

@@ -29,24 +29,24 @@ public class AdaptCachedBodyGlobalFilter implements GlobalFilter, Ordered {
 	public static final String CACHED_REQUEST_BODY_KEY = "cachedRequestBody";
 
 	@Override
-    public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 
-        Flux<DataBuffer> body = exchange.getAttributeOrDefault(CACHED_REQUEST_BODY_KEY, null);
-        if (body != null) {
-            ServerHttpRequestDecorator decorator = new ServerHttpRequestDecorator(exchange.getRequest()) {
-                @Override
-                public Flux<DataBuffer> getBody() {
-                    return body;
-                }
-            };
-            return chain.filter(exchange.mutate().request(decorator).build());
-        }
+		Flux<DataBuffer> body = exchange.getAttributeOrDefault(CACHED_REQUEST_BODY_KEY, null);
+		if (body != null) {
+			ServerHttpRequestDecorator decorator = new ServerHttpRequestDecorator(exchange.getRequest()) {
+				@Override
+				public Flux<DataBuffer> getBody() {
+					return body;
+				}
+			};
+			return chain.filter(exchange.mutate().request(decorator).build());
+		}
 
-        return chain.filter(exchange);
-    }
+		return chain.filter(exchange);
+	}
 
-    @Override
-    public int getOrder() {
-        return Ordered.LOWEST_PRECEDENCE - 10; //probably needs to change if combined with other filters that modify request body
-    }
+	@Override
+	public int getOrder() {
+		return Ordered.HIGHEST_PRECEDENCE + 1000;
+	}
 }
