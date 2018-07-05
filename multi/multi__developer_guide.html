@@ -36,7 +36,7 @@
 		<span xmlns:d="http://docbook.org/ns/docbook" class="hl-comment">// grab configuration from Config object</span>
 		<span xmlns:d="http://docbook.org/ns/docbook" class="hl-keyword">return</span> (exchange, chain) -&gt; {
 			<span xmlns:d="http://docbook.org/ns/docbook" class="hl-keyword">return</span> chain.filter(exchange).then(Mono.fromRunnable(() -&gt; {
-				ServerHttpReponse response = exchange.getResponse();
+				ServerHttpResponse response = exchange.getResponse();
 				<span xmlns:d="http://docbook.org/ns/docbook" class="hl-comment">//Manipulate the response in some way</span>
 			}));
 		};
