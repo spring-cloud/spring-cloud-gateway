@@ -118,7 +118,7 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 	}
 
 	private String convertHttpToWs(String scheme) {
-		return "http".equals(scheme) ? "ws" : "https".equals(scheme) ? "wws" : scheme;
+		return "http".equals(scheme) ? "ws" : "https".equals(scheme) ? "wss" : scheme;
 	}
 
 	private static class ProxyWebSocketHandler implements WebSocketHandler {
