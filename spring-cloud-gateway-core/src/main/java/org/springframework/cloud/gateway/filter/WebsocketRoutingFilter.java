@@ -104,7 +104,7 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 	private void changeSchemeIfIsWebSocketUpgrade(ServerWebExchange exchange) {
 		// Check the Upgrade
 		URI requestUrl = exchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
-		String scheme = requestUrl.getScheme();
+		String scheme = requestUrl.getScheme().toLowerCase();
 		String upgrade = exchange.getRequest().getHeaders().getUpgrade();
 		// change the scheme if the socket client send a "http" or "https"
 		if ("WebSocket".equalsIgnoreCase(upgrade) && ("http".equals(scheme) || "https".equals(scheme))) {
@@ -117,8 +117,9 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 		}
 	}
 
-	private String convertHttpToWs(String scheme) {
-		return "http".equals(scheme) ? "ws" : "https".equals(scheme) ? "wws" : scheme;
+	/* for testing */ static String convertHttpToWs(String scheme) {
+		scheme = scheme.toLowerCase();
+		return "http".equals(scheme) ? "ws" : "https".equals(scheme) ? "wss" : scheme;
 	}
 
 	private static class ProxyWebSocketHandler implements WebSocketHandler {
