@@ -18,4 +18,11 @@
 package org.springframework.cloud.gateway.support;
 
 public class TimeoutException extends Exception {
+
+	public TimeoutException() {
+	}
+
+	public TimeoutException(String message) {
+		super(message);
+	}
 }
