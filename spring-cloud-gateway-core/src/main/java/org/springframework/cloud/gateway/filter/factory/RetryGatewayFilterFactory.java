@@ -147,12 +147,6 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 		};
 	}
 
-	private static <T> List<T> toList(T item) {
-		ArrayList<T> list = new ArrayList<>();
-		list.add(item);
-		return list;
-	}
-
 	private static <T> List<T> toList(T... items) {
 		return new ArrayList<>(Arrays.asList(items));
 	}
