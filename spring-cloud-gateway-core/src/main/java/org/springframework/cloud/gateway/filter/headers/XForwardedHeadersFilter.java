@@ -219,13 +219,18 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 			write(updated, X_FORWARDED_PROTO_HEADER, proto, isProtoAppend());
 		}
 
-		if(isPrefixEnabled()){
+		if(isPrefixEnabled()) {
+			//if the path of the url that the gw is routing to is a subset (and ending part) of the url that it is routing from then the difference is the prefix
+			//e.g. if request original.com/prefix/get/ is routed to routedservice:8090/get then /prefix is the prefix - see XForwardedHeadersFilterTests
+			//so first get uris, then extract paths and remove one from another if it's the ending part
 
 			LinkedHashSet<URI> originalUris = exchange.getAttribute(GATEWAY_ORIGINAL_REQUEST_URL_ATTR);
 			URI requestUri = exchange.getAttribute(GATEWAY_REQUEST_URL_ATTR);
 
 			if(originalUris != null && requestUri != null) {
+
 				originalUris.stream().forEach(originalUri -> {
+
 					if(originalUri!=null && originalUri.getPath()!=null) {
 						String prefix = originalUri.getPath();
 
@@ -233,7 +238,7 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 						String originalUriPath = originalUri.getPath().substring(0, originalUri.getPath().length() - (originalUri.getPath().endsWith("/") ? 1 : 0));
 						String requestUriPath = requestUri.getPath().substring(0, requestUri.getPath().length() - (requestUri.getPath().endsWith("/") ? 1 : 0));
 
-						if(requestUriPath!=null && (originalUriPath.endsWith(requestUriPath)) ){
+						if(requestUriPath!=null && (originalUriPath.endsWith(requestUriPath))) {
 							prefix = originalUriPath.replace(requestUriPath, "");
 						}
 						if (prefix != null && prefix.length() > 0 &&
