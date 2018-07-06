@@ -92,7 +92,12 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 				.filterWhen(route ->  {
 					// add the current route we are testing
 					exchange.getAttributes().put(GATEWAY_PREDICATE_ROUTE_ATTR, route.getId());
-					return route.getPredicate().apply(exchange);
+					try {
+						return route.getPredicate().apply(exchange);
+					} catch (Exception e) {
+						logger.error("Error applying predicate for route: "+route.getId(), e);
+					}
+					return Mono.just(false);
 				})
 				// .defaultIfEmpty() put a static Route not found
 				// or .switchIfEmpty()
