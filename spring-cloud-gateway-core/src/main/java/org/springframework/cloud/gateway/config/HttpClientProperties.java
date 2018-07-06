@@ -31,7 +31,7 @@ public class HttpClientProperties {
 	/** The connect timeout in millis, the default is 45s. */
 	private Integer connectTimeout;
 
-	/** The response timout. */
+	/** The response timeout. */
 	private Duration responseTimeout;
 
 	/** Pool configuration for Netty HttpClient */
