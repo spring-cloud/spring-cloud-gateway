@@ -58,7 +58,7 @@ public class QueryRoutePredicateFactory extends AbstractRoutePredicateFactory<Qu
 				return false;
 			}
 			for (String value : values) {
-				if (value.matches(config.regexp)) {
+				if (value != null && value.matches(config.regexp)) {
 					return true;
 				}
 			}
