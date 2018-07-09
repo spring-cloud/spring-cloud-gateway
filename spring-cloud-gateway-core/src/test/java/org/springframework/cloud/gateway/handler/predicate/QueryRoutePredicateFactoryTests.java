@@ -64,6 +64,16 @@ public class QueryRoutePredicateFactoryTests extends BaseWebClientTests {
 				.expectHeader().valueEquals(ROUTE_ID_HEADER, "foo_query_param");;
 	}
 
+	@Test
+	public void emptyQueryParamWorks() {
+		testClient.get().uri("/get?foo")
+				.exchange()
+				.expectStatus().isOk()
+				.expectHeader().valueEquals(ROUTE_ID_HEADER, "default_path_to_httpbin");;
+
+		output.expect(not(containsString("Error applying predicate for route: foo_query_param")));
+	}
+
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
