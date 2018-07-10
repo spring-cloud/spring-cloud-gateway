@@ -25,17 +25,16 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
 public class RequestSizeGatewayFilterFactoryTest extends BaseWebClientTests {
+	
+	private static final String responseMesssage = "Request size is larger than permissible limit.Request size is 6.0 MB where permissible limit is 5.0 MB";
 
 	@Test
-	public void setRequestSizeFilterBlockRequest() {
-		testClient.get().uri("/headers").header("Host", "www.setrequestsize.org").header("content-length", "6000000")
-				.exchange().expectStatus().isEqualTo(HttpStatus.PAYLOAD_TOO_LARGE);
-	}
-
-	@Test
-	public void setRequestSizeFilterAllowRequest() {
-		testClient.get().uri("/headers").header("Host", "www.setrequestsize.org").header("content-length", "4000000")
-				.exchange().expectStatus().isOk();
+	public void setRequestSizeFilterWorks() {
+		testClient.get().uri("/headers")
+				.header("Host", "www.setrequestsize.org")
+				.header("content-length", "6000000")
+				.exchange().expectStatus().isEqualTo(HttpStatus.PAYLOAD_TOO_LARGE)
+				.expectHeader().valueMatches("errorMessage", responseMesssage);
 	}
 
 	@EnableAutoConfiguration
