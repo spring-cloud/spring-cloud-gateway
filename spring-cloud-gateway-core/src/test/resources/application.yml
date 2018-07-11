@@ -259,6 +259,14 @@ spring:
         - RequestHeaderToRequestUri=X-CF-Forwarded-Url
 
       # =====================================
+      - id: cloudfoundry_routeservice_test
+        uri: ${test.uri}
+        predicates:
+        - CloudFoundryRouteService=
+        filters:
+        - RequestHeaderToRequestUri=X-CF-Forwarded-Url
+
+      # =====================================
       - id: default_path_to_httpbin
         uri: ${test.uri}
         order: 10000

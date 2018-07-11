@@ -781,7 +781,46 @@ The `GlobalFilter` interface has the same signature as `GatewayFilter`. These ar
 
 === Combined Global Filter and GatewayFilter Ordering
 
-TODO: document ordering
+When a request comes in (and matches a Route) the Filtering Web Handler will add all instances of `GlobalFilter` and all route specific instances of `GatewayFilter` to a filter chain. This combined filter chain is sorted by the `org.springframework.core.Ordered` interface, which can be set by implementing the `getOrder()` method or by using the `@Order` annotation.
+
+As Spring Cloud Gateway distinguishes between "pre" and "post" phases for filter logic execution (see: How It Works), the filter with the highest precedence will be the first in the "pre"-phase and the last in the "post"-phase.
+
+.ExampleConfiguration.java
+[source,java]
+----
+@Bean
+@Order(-1)
+public GlobalFilter a() {
+    return (exchange, chain) -> {
+        log.info("first pre filter");
+        return chain.filter(exchange).then(Mono.fromRunnable(() -> {
+            log.info("third post filter");
+        }));
+    };
+}
+
+@Bean
+@Order(0)
+public GlobalFilter b() {
+    return (exchange, chain) -> {
+        log.info("second pre filter");
+        return chain.filter(exchange).then(Mono.fromRunnable(() -> {
+            log.info("second post filter");
+        }));
+    };
+}
+
+@Bean
+@Order(1)
+public GlobalFilter c() {
+    return (exchange, chain) -> {
+        log.info("third pre filter");
+        return chain.filter(exchange).then(Mono.fromRunnable(() -> {
+            log.info("first post filter");
+        }));
+    };
+}
+----
 
 === Forward Routing Filter
 
@@ -990,7 +1029,7 @@ public class PostGatewayFilterFactory extends AbstractGatewayFilterFactory<PostG
 		// grab configuration from Config object
 		return (exchange, chain) -> {
 			return chain.filter(exchange).then(Mono.fromRunnable(() -> {
-				ServerHttpReponse response = exchange.getResponse();
+				ServerHttpResponse response = exchange.getResponse();
 				//Manipulate the response in some way
 			}));
 		};

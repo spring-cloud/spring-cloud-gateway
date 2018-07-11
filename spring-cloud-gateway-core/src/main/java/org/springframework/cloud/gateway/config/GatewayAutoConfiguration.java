@@ -89,6 +89,7 @@ import org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping;
 import org.springframework.cloud.gateway.handler.predicate.AfterRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.BeforeRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.BetweenRoutePredicateFactory;
+import org.springframework.cloud.gateway.handler.predicate.CloudFoundryRouteServiceRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.CookieRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.HeaderRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.HostRoutePredicateFactory;
@@ -216,8 +217,9 @@ public class GatewayAutoConfiguration {
 
 		@Bean
 		public NettyRoutingFilter routingFilter(HttpClient httpClient,
-												ObjectProvider<List<HttpHeadersFilter>> headersFilters) {
-			return new NettyRoutingFilter(httpClient, headersFilters);
+												ObjectProvider<List<HttpHeadersFilter>> headersFilters,
+												HttpClientProperties properties) {
+			return new NettyRoutingFilter(httpClient, headersFilters, properties);
 		}
 
 		@Bean
@@ -435,6 +437,11 @@ public class GatewayAutoConfiguration {
 	@DependsOn("weightCalculatorWebFilter")
 	public WeightRoutePredicateFactory weightRoutePredicateFactory() {
 		return new WeightRoutePredicateFactory();
+	}
+
+	@Bean
+	public CloudFoundryRouteServiceRoutePredicateFactory cloudFoundryRouteServiceRoutePredicateFactory() {
+		return new CloudFoundryRouteServiceRoutePredicateFactory();
 	}
 
 	// GatewayFilter Factory beans

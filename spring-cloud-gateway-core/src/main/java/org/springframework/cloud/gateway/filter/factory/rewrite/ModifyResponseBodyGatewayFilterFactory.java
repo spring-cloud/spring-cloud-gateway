@@ -45,6 +45,8 @@ import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.server.ServerWebExchange;
 
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR;
+
 /**
  * This filter is BETA and may be subject to change in a future release.
  */
@@ -82,7 +84,7 @@ public class ModifyResponseBodyGatewayFilterFactory
 					Class inClass = config.getInClass();
 					Class outClass = config.getOutClass();
 
-					MediaType originalResponseContentType = exchange.getAttribute("original_response_content_type");
+					MediaType originalResponseContentType = exchange.getAttribute(ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR);
 					HttpHeaders httpHeaders = new HttpHeaders();
 					httpHeaders.setContentType(originalResponseContentType);
 					ResponseAdapter responseAdapter = new ResponseAdapter(body, httpHeaders);

@@ -26,10 +26,13 @@ import reactor.core.publisher.Mono;
 import reactor.ipc.netty.NettyPipeline;
 import reactor.ipc.netty.http.client.HttpClient;
 import reactor.ipc.netty.http.client.HttpClientRequest;
+import reactor.ipc.netty.http.client.HttpClientResponse;
 
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.cloud.gateway.config.HttpClientProperties;
 import org.springframework.cloud.gateway.filter.headers.HttpHeadersFilter;
 import org.springframework.cloud.gateway.filter.headers.HttpHeadersFilter.Type;
+import org.springframework.cloud.gateway.support.TimeoutException;
 import org.springframework.core.Ordered;
 import org.springframework.core.io.buffer.NettyDataBuffer;
 import org.springframework.http.HttpHeaders;
@@ -55,11 +58,14 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 
 	private final HttpClient httpClient;
 	private final ObjectProvider<List<HttpHeadersFilter>> headersFilters;
+	private final HttpClientProperties properties;
 
 	public NettyRoutingFilter(HttpClient httpClient,
-			ObjectProvider<List<HttpHeadersFilter>> headersFilters) {
+							  ObjectProvider<List<HttpHeadersFilter>> headersFilters,
+							  HttpClientProperties properties) {
 		this.httpClient = httpClient;
 		this.headersFilters = headersFilters;
+		this.properties = properties;
 	}
 
 	@Override
@@ -93,7 +99,7 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 
 		boolean preserveHost = exchange.getAttributeOrDefault(PRESERVE_HOST_HEADER_ATTRIBUTE, false);
 
-		return this.httpClient.request(method, url, req -> {
+		Mono<HttpClientResponse> responseMono = this.httpClient.request(method, url, req -> {
 			final HttpClientRequest proxyRequest = req.options(NettyPipeline.SendOptions::flushOnEach)
 					.headers(httpHeaders)
 					.chunkedTransfer(chunkedTransfer)
@@ -107,8 +113,16 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 
 			return proxyRequest.sendHeaders() //I shouldn't need this
 					.send(request.getBody().map(dataBuffer ->
-							((NettyDataBuffer)dataBuffer).getNativeBuffer()));
-		}).doOnNext(res -> {
+							((NettyDataBuffer) dataBuffer).getNativeBuffer()));
+		});
+
+		if (properties.getResponseTimeout() != null) {
+			responseMono.timeout(properties.getResponseTimeout(),
+					Mono.error(new TimeoutException("Response took longer than timeout: " +
+							properties.getResponseTimeout())));
+		}
+
+		return responseMono.doOnNext(res -> {
 			ServerHttpResponse response = exchange.getResponse();
 			// put headers and status so filters can modify the response
 			HttpHeaders headers = new HttpHeaders();
