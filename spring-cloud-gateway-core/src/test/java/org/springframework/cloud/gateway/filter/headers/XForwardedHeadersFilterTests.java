@@ -38,6 +38,25 @@ import static org.springframework.cloud.gateway.filter.headers.XForwardedHeaders
 public class XForwardedHeadersFilterTests {
 
 	@Test
+	public void remoteAddressIsNull() throws Exception {
+		MockServerHttpRequest request = MockServerHttpRequest
+				.get("http://localhost:8080/get")
+				.header(HttpHeaders.HOST, "myhost")
+				.build();
+
+		XForwardedHeadersFilter filter = new XForwardedHeadersFilter();
+
+		HttpHeaders headers = filter.filter(request.getHeaders(), MockServerWebExchange.from(request));
+
+		assertThat(headers).containsKeys(X_FORWARDED_HOST_HEADER,
+				X_FORWARDED_PORT_HEADER, X_FORWARDED_PROTO_HEADER);
+
+		assertThat(headers.getFirst(X_FORWARDED_HOST_HEADER)).isEqualTo("localhost:8080");
+		assertThat(headers.getFirst(X_FORWARDED_PORT_HEADER)).isEqualTo("8080");
+		assertThat(headers.getFirst(X_FORWARDED_PROTO_HEADER)).isEqualTo("http");
+	}
+
+	@Test
 	public void xForwardedHeadersDoNotExist() throws Exception {
 		MockServerHttpRequest request = MockServerHttpRequest
 				.get("http://localhost:8080/get")
