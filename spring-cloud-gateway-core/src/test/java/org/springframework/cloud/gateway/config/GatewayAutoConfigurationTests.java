@@ -24,6 +24,8 @@ import reactor.ipc.netty.http.client.HttpClientOptions;
 import reactor.ipc.netty.options.ClientProxyOptions;
 import reactor.ipc.netty.resources.PoolResources;
 
+import org.springframework.boot.actuate.autoconfigure.metrics.MetricsAutoConfiguration;
+import org.springframework.boot.actuate.autoconfigure.metrics.export.simple.SimpleMetricsExportAutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.autoconfigure.web.reactive.WebFluxAutoConfiguration;
 import org.springframework.boot.test.context.runner.ReactiveWebApplicationContextRunner;
@@ -36,6 +38,8 @@ public class GatewayAutoConfigurationTests {
 	public void nettyHttpClientDefaults() {
 		new ReactiveWebApplicationContextRunner()
 				.withConfiguration(AutoConfigurations.of(WebFluxAutoConfiguration.class,
+						MetricsAutoConfiguration.class,
+						SimpleMetricsExportAutoConfiguration.class,
 						GatewayAutoConfiguration.class))
 				.withPropertyValues("debug=true")
 				.run(context -> {
@@ -59,6 +63,8 @@ public class GatewayAutoConfigurationTests {
 	public void nettyHttpClientConfigured() {
 		new ReactiveWebApplicationContextRunner()
 				.withConfiguration(AutoConfigurations.of(WebFluxAutoConfiguration.class,
+						MetricsAutoConfiguration.class,
+						SimpleMetricsExportAutoConfiguration.class,
 						GatewayAutoConfiguration.class))
 				.withPropertyValues("spring.cloud.gateway.httpclient.ssl.use-insecure-trust-manager=true",
 						"spring.cloud.gateway.httpclient.connect-timeout=10",
