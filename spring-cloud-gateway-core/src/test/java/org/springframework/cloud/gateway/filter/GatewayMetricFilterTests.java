@@ -18,6 +18,7 @@
 package org.springframework.cloud.gateway.filter;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 import org.junit.Test;
@@ -32,6 +33,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.web.reactive.function.client.ClientResponse;
 
 import io.micrometer.core.instrument.MeterRegistry;
 
@@ -49,10 +51,12 @@ public class GatewayMetricFilterTests extends BaseWebClientTests {
 	private MeterRegistry meterRegistry;
 
 	@Test
-	public void gatewayRequestsMeterFilterHasTags() {
+	public void gatewayRequestsMeterFilterHasTags() throws InterruptedException {
 		assertThat(this.properties.getDefaultFilters()).isNotEmpty();
 
-		testClient.get().uri("/headers").exchange().expectStatus().isOk();
+		ClientResponse clientResponse = webClient.get().uri("/headers").exchange().block();
+		assertEquals(clientResponse.statusCode(), HttpStatus.OK);
+		Thread.sleep(2000); // simulate scrape interval
 		assertMetricsContainsTag("success", Boolean.TRUE.toString());
 		assertMetricsContainsTag("httpStatus", HttpStatus.OK.name());
 		assertMetricsContainsTag("routeId", "default_path_to_httpbin");
