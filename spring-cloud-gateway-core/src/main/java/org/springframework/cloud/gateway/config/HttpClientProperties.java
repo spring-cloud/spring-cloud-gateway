@@ -18,9 +18,19 @@
 package org.springframework.cloud.gateway.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.web.server.WebServerException;
+import org.springframework.util.ResourceUtils;
+
 import reactor.ipc.netty.resources.PoolResources;
 
+import java.io.IOException;
+import java.net.URL;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Configuration properties for the Netty {@link reactor.ipc.netty.http.client.HttpClient}
@@ -210,6 +220,41 @@ public class HttpClientProperties {
 	public class Ssl {
 		/** Installs the netty InsecureTrustManagerFactory. This is insecure and not suitable for production. */
 		private boolean useInsecureTrustManager = false;
+		
+		private List<String> trustedX509Certificates = new ArrayList<>();
+
+		public List<String> getTrustedX509Certificates() {
+			return trustedX509Certificates;
+		}
+		
+		public X509Certificate[] getTrustedX509CertificatesForTrustManager() {
+			try {
+				CertificateFactory certificateFactory = CertificateFactory
+						.getInstance("X.509");
+				ArrayList<X509Certificate> certs = new ArrayList<>();
+				for (String trustedCert : ssl.getTrustedX509Certificates()) {
+					try {
+						URL url = ResourceUtils.getURL(trustedCert);
+						X509Certificate cert = (X509Certificate) certificateFactory
+								.generateCertificate(url.openStream());
+						certs.add(cert);
+					}
+					catch (IOException e) {
+						throw new WebServerException(
+								"Could not load certificate '" + trustedCert + "'", e);
+					}
+				}
+				return certs.toArray(new X509Certificate[certs.size()]);
+			}
+			catch (CertificateException e1) {
+				throw new WebServerException("Could not load CertificateFactory X.509",
+						e1);
+			}
+		}
+
+		public void setTrustedX509Certificates(List<String> trustedX509) {
+			this.trustedX509Certificates = trustedX509;
+		}
 
 		//TODO: support configuration of other trust manager factories
 
@@ -223,9 +268,8 @@ public class HttpClientProperties {
 
 		@Override
 		public String toString() {
-			return "Ssl{" +
-					"useInsecureTrustManager=" + useInsecureTrustManager +
-					'}';
+			return "Ssl {useInsecureTrustManager=" + useInsecureTrustManager
+					+ ", trustedX509Certificates=" + trustedX509Certificates + "}";
 		}
 	}
 
