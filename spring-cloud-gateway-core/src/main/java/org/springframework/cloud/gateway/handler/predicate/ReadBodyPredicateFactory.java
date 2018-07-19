@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.function.Predicate;
 
 import org.springframework.cloud.gateway.support.BodyInserterContext;
+
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.support.CachedBodyOutputMessage;
@@ -29,6 +30,7 @@ import org.springframework.cloud.gateway.support.DefaultServerRequest;
 import org.springframework.http.codec.ServerCodecConfigurer;
 import org.springframework.web.reactive.function.BodyInserter;
 import org.springframework.web.reactive.function.BodyInserters;
+
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -41,6 +43,7 @@ public class ReadBodyPredicateFactory
 		extends AbstractRoutePredicateFactory<ReadBodyPredicateFactory.Config> {
 
 	private static final String TEST_ATTRIBUTE = "read_body_predicate_test_attribute";
+	private static final String CACHE_REQUEST_BODY_OBJECT_KEY = "cachedRequestBodyObject";
 	private final ServerCodecConfigurer codecConfigurer;
 
 	public ReadBodyPredicateFactory(ServerCodecConfigurer codecConfigurer) {
@@ -54,17 +57,25 @@ public class ReadBodyPredicateFactory
 		return exchange -> {
 			Class inClass = config.getInClass();
 
-			ServerRequest serverRequest = new DefaultServerRequest(exchange);
-			// TODO: flux or mono
-			Mono<?> modifiedBody = serverRequest.bodyToMono(inClass)
-					// .log("modify_request_mono", Level.INFO)
-					.flatMap(body -> {
-						// TODO: migrate to async
-						boolean test = config.predicate.test(body);
-						exchange.getAttributes().put(TEST_ATTRIBUTE, test);
-						return Mono.just(body);
-					});
-
+			Object cachedBody = exchange.getAttribute(CACHE_REQUEST_BODY_OBJECT_KEY);
+			Mono<?> modifiedBody;
+			if(cachedBody != null) {
+				boolean test = config.predicate.test(cachedBody);
+				exchange.getAttributes().put(TEST_ATTRIBUTE, test);
+				modifiedBody = Mono.just(cachedBody);
+			} else {
+				ServerRequest serverRequest = new DefaultServerRequest(exchange);
+				// TODO: flux or mono
+				modifiedBody = serverRequest.bodyToMono(inClass)
+						// .log("modify_request_mono", Level.INFO)
+						.flatMap(body -> {
+							// TODO: migrate to async
+							exchange.getAttributes().put(CACHE_REQUEST_BODY_OBJECT_KEY, body);
+							boolean test = config.predicate.test(body);
+							exchange.getAttributes().put(TEST_ATTRIBUTE, test);
+							return Mono.just(body);
+						});
+			}
 			BodyInserter bodyInserter = BodyInserters.fromPublisher(modifiedBody, inClass);
 			CachedBodyOutputMessage outputMessage = new CachedBodyOutputMessage(exchange,
 					exchange.getRequest().getHeaders());
