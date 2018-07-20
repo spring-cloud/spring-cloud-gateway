@@ -4,6 +4,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.boot.test.rule.OutputCapture;
+import org.springframework.cloud.gateway.config.GlobalCorsProperties;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.web.server.ServerWebExchange;
@@ -41,7 +42,7 @@ public class RoutePredicateHandlerMappingTest {
 		RouteLocator routeLocator =
 				() -> Flux.just(routeFalse, routeFail, routeTrue).hide();
 		RoutePredicateHandlerMapping mapping =
-				new RoutePredicateHandlerMapping(null, routeLocator);
+				new RoutePredicateHandlerMapping(null, routeLocator, new GlobalCorsProperties());
 
 		final Mono<Route> routeMono =
 				mapping.lookupRoute(Mockito.mock(ServerWebExchange.class));
@@ -79,7 +80,7 @@ public class RoutePredicateHandlerMappingTest {
 		RouteLocator routeLocator =
 				() -> Flux.just(routeFalse, routeError, routeFail, routeTrue).hide();
 		RoutePredicateHandlerMapping mapping =
-				new RoutePredicateHandlerMapping(null, routeLocator);
+				new RoutePredicateHandlerMapping(null, routeLocator, new GlobalCorsProperties());
 
 		final Mono<Route> routeMono =
 				mapping.lookupRoute(Mockito.mock(ServerWebExchange.class));

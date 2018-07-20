@@ -285,9 +285,14 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	public RoutePredicateHandlerMapping routePredicateHandlerMapping(FilteringWebHandler webHandler,
-																	   RouteLocator routeLocator) {
-		return new RoutePredicateHandlerMapping(webHandler, routeLocator);
+        public GlobalCorsProperties globalCorsProperties() {
+                return new GlobalCorsProperties();
+        }
+	
+	@Bean
+	public RoutePredicateHandlerMapping routePredicateHandlerMapping(FilteringWebHandler webHandler, RouteLocator routeLocator, 
+	        GlobalCorsProperties globalCorsProperties) {
+		return new RoutePredicateHandlerMapping(webHandler, routeLocator, globalCorsProperties);
 	}
 
 	// ConfigurationProperty beans
