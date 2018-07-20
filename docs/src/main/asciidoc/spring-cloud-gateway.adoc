@@ -971,6 +971,26 @@ The Gateway can be configured to create routes based on services registered with
 
 To enable this, set `spring.cloud.gateway.discovery.locator.enabled=true` and make sure a `DiscoveryClient` implementation is on the classpath and enabled (such as Netflix Eureka, Consul or Zookeeper).
 
+== CORS Configuration
+
+The gateway can be configured to control CORS behavior. The "global" CORS configuration is a map of URL patterns to https://docs.spring.io/spring/docs/5.0.x/javadoc-api/org/springframework/web/cors/CorsConfiguration.html[Spring Framework `CorsConfiguration`]. 
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins: "docs.spring.io"
+            allowedMethods:
+            - GET
+----
+
+In the example above, CORS requests will be allowed from requests that originate from docs.spring.io for all GET requested paths.
+
 == Actuator API
 
 TODO: document the `/gateway` actuator endpoint
