@@ -984,10 +984,12 @@ spring:
       globalcors:
         corsConfigurations:
           '[/**]':
-            allowedOrigins: "*"
+            allowedOrigins: "docs.spring.io"
+            allowedMethods:
+            - GET
 ----
 
-In the example above, CORS requests will be allowed from all origins for all requested paths.
+In the example above, CORS requests will be allowed from requests that originate from docs.spring.io for all GET requested paths.
 
 == Actuator API
 

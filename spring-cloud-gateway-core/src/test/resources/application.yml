@@ -12,6 +12,8 @@ spring:
           '[/**]':
             maxAge: 10
             allowedOrigins: "*"
+            allowedMethods:
+            - GET
       default-filters:
       - AddResponseHeader=X-Response-Default-Foo, Default-Bar
       - PrefixPath=/httpbin

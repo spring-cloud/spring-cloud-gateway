@@ -79,7 +79,7 @@ public class CorsTests extends BaseWebClientTests {
 				"Missing header value in response: "
 						+ HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN,
 				"*", asHttpHeaders.getAccessControlAllowOrigin());
-		assertEquals("Pre Flight call failed.", HttpStatus.OK,
+		assertEquals("CORS request failed.", HttpStatus.OK,
 				clientResponse.statusCode());
 	}
 
