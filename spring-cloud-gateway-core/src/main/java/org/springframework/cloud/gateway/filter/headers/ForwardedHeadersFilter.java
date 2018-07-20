@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.jetbrains.annotations.Nullable;
-
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -58,7 +57,7 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 		List<Forwarded> forwardeds = parse(original.get(FORWARDED_HEADER));
 
 		for (Forwarded f : forwardeds) {
-			updated.add(FORWARDED_HEADER, f.toString());
+			updated.add(FORWARDED_HEADER, f.toHeaderValue());
 		}
 
 		//TODO: add new forwarded
