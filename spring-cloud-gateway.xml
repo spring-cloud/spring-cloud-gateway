@@ -1034,6 +1034,25 @@ public RouteLocator customRouteLocator(RouteLocatorBuilder builder, ThrottleGate
 <simpara>To enable this, set <literal>spring.cloud.gateway.discovery.locator.enabled=true</literal> and make sure a <literal>DiscoveryClient</literal> implementation is on the classpath and enabled (such as Netflix Eureka, Consul or Zookeeper).</simpara>
 </section>
 </chapter>
+<chapter xml:id="_cors_configuration">
+<title>CORS Configuration</title>
+<simpara>The gateway can be configured to control CORS behavior. The "global" CORS configuration is a map of URL patterns to <link xl:href="https://docs.spring.io/spring/docs/5.0.x/javadoc-api/org/springframework/web/cors/CorsConfiguration.html">Spring Framework <literal>CorsConfiguration</literal></link>.</simpara>
+<formalpara>
+<title>application.yml</title>
+<para>
+<programlisting language="yaml" linenumbering="unnumbered">spring:
+  cloud:
+    gateway:
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins: "docs.spring.io"
+            allowedMethods:
+            - GET</programlisting>
+</para>
+</formalpara>
+<simpara>In the example above, CORS requests will be allowed from requests that originate from docs.spring.io for all GET requested paths.</simpara>
+</chapter>
 <chapter xml:id="_actuator_api">
 <title>Actuator API</title>
 <simpara>TODO: document the <literal>/gateway</literal> actuator endpoint</simpara>
