@@ -17,7 +17,7 @@ public class RequestSizeGatewayFilterFactory
 
 	private static String PREFIX = "kMGTPE";
 	private static String ERROR = "Request size is larger than permissible limit."
-			+ "Request size is %s where permissible limit is %s";
+			+ " Request size is %s where permissible limit is %s";
 
 	public RequestSizeGatewayFilterFactory() {
 		super(RequestSizeGatewayFilterFactory.RequestSizeConfig.class);

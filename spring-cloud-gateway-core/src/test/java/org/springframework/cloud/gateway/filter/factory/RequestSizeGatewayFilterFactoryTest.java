@@ -26,7 +26,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @DirtiesContext
 public class RequestSizeGatewayFilterFactoryTest extends BaseWebClientTests {
 	
-	private static final String responseMesssage = "Request size is larger than permissible limit.Request size is 6.0 MB where permissible limit is 5.0 MB";
+	private static final String responseMesssage = "Request size is larger than permissible limit. Request size is 6.0 MB where permissible limit is 5.0 MB";
 
 	@Test
 	public void setRequestSizeFilterWorks() {
