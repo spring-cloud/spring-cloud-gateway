@@ -22,7 +22,6 @@ import java.time.Duration;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
-import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.web.server.LocalServerPort;
@@ -35,6 +34,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.client.reactive.ClientHttpConnector;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -63,9 +64,11 @@ public class BaseWebClientTests {
 
 	@Before
 	public void setup() {
-		//TODO: how to set new ReactorClientHttpConnector()
+		ClientHttpConnector httpConnector = new ReactorClientHttpConnector();
+
 		baseUri = "http://localhost:" + port;
-		this.webClient = WebClient.create(baseUri);
+		this.webClient = WebClient.builder().clientConnector(httpConnector)
+				.baseUrl(baseUri).build();
 		this.testClient = WebTestClient.bindToServer().baseUrl(baseUri).build();
 	}
 

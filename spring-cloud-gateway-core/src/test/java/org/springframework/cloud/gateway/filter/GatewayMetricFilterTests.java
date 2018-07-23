@@ -24,15 +24,26 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.cloud.gateway.config.GatewayProperties;
+import org.springframework.cloud.gateway.route.RouteLocator;
+import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.reactive.function.client.ClientResponse;
 
 import io.micrometer.core.instrument.MeterRegistry;
@@ -43,36 +54,89 @@ import io.micrometer.core.instrument.MeterRegistry;
 public class GatewayMetricFilterTests extends BaseWebClientTests {
 
 	private static final String REQUEST_METRICS_NAME = "gateway.requests";
-	
+
 	@Autowired
 	private GatewayProperties properties;
 
 	@Autowired
 	private MeterRegistry meterRegistry;
 
+	@Value("${test.uri}")
+	private String testUri;
+
 	@Test
 	public void gatewayRequestsMeterFilterHasTags() throws InterruptedException {
 		assertThat(this.properties.getDefaultFilters()).isNotEmpty();
-
-		ClientResponse clientResponse = webClient.get().uri("/headers").exchange().block();
-		assertEquals(clientResponse.statusCode(), HttpStatus.OK);
-		Thread.sleep(2000); // simulate scrape interval
-		assertMetricsContainsTag("success", Boolean.TRUE.toString());
-		assertMetricsContainsTag("httpStatus", HttpStatus.OK.name());
+		ClientResponse clientResponse = webClient.get().uri("/headers").exchange()
+				.block();
+		assertEquals(HttpStatus.OK, clientResponse.statusCode());
+		Thread.sleep(1000); // allow metrics to complete in the mono following the then
+		assertMetricsContainsTag("outcome", HttpStatus.Series.SUCCESSFUL.name());
+		assertMetricsContainsTag("status", HttpStatus.OK.name());
 		assertMetricsContainsTag("routeId", "default_path_to_httpbin");
 		assertMetricsContainsTag("routeUri", "lb://testservice");
 	}
 
+	@Test
+	public void gatewayRequestsMeterFilterHasTagsForBadTargetUri()
+			throws InterruptedException {
+		assertThat(this.properties.getDefaultFilters()).isNotEmpty();
+		ClientResponse clientResponse = webClient.get().uri("/badtargeturi").exchange()
+				.block();
+		assertEquals("Expecting request to fail with http status internal server error",
+				HttpStatus.INTERNAL_SERVER_ERROR, clientResponse.statusCode());
+		Thread.sleep(1000); // allow metrics to complete in the mono following the then
+		assertMetricsContainsTag("outcome", HttpStatus.Series.SERVER_ERROR.name());
+		assertMetricsContainsTag("status", HttpStatus.INTERNAL_SERVER_ERROR.name());
+		assertMetricsContainsTag("routeId", "default_path_to_httpbin");
+		assertMetricsContainsTag("routeUri", testUri);
+	}
+
+	@Test
+	public void hasMetricsForSetStatusFilter() throws InterruptedException {
+		HttpHeaders headers = new HttpHeaders();
+		headers.set(HttpHeaders.HOST, "www.setcustomstatus.org");
+		ResponseEntity<String> response = new TestRestTemplate().exchange(
+				baseUri + "/headers", HttpMethod.GET, new HttpEntity<>(headers),
+				String.class);
+		assertThat(response.getStatusCodeValue()).isEqualTo(432);
+		Thread.sleep(1000); // allow metrics to complete in the mono following the then
+		assertMetricsContainsTag("outcome", "CUSTOM");
+		assertMetricsContainsTag("status", "432");
+		assertMetricsContainsTag("routeId", "test_custom_http_status");
+		assertMetricsContainsTag("routeUri", testUri);
+	}
+
 	private void assertMetricsContainsTag(String tagKey, String tagValue) {
-		assertThat(this.meterRegistry.get(REQUEST_METRICS_NAME).tag(tagKey, tagValue).timer()
-				.count()).isEqualTo(1);
+		assertThat(this.meterRegistry.get(REQUEST_METRICS_NAME).tag(tagKey, tagValue)
+				.timer().count()).isEqualTo(1);
 	}
 
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
+	@RestController
 	@Import(DefaultTestConfig.class)
-	public static class TestConfig {
+	public static class CustomConfig {
+		@Value("${test.uri}")
+		protected String testUri;
 
+		@Bean
+		public RouteLocator myRouteLocator(RouteLocatorBuilder builder) {
+			// return builder.routes().route("test_bad_target_uri", r ->
+			// r.host("*.badtarget.org").uri(testUri))
+			// .route("test_custom_http_status",
+			// r -> r.host("*.setcustomstatus.org").filters(f ->
+			// f.setStatus(432)).uri(testUri))
+			// .build();
+			return builder.routes()
+					.route("test_custom_http_status", r -> r.host("*.setcustomstatus.org")
+							.filters(f -> f.setStatus(432)).uri(testUri))
+					.build();
+		}
+
+		@RequestMapping("/httpbin/badtargeturi")
+		public String exception() {
+			throw new RuntimeException("an error");
+		}
 	}
-
 }

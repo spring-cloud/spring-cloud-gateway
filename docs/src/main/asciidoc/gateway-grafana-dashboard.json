@@ -191,7 +191,7 @@
           "tableColumn": "Value",
           "targets": [
             {
-              "expr": "sum(gateway_requests_seconds_count{success=\"true\", job=~\"$gatewayService\"})",
+              "expr": "sum(gateway_requests_seconds_count{outcome=\"SUCCESSFUL\", job=~\"$gatewayService\"})",
               "format": "time_series",
               "interval": "",
               "intervalFactor": 2,
@@ -274,7 +274,7 @@
           "tableColumn": "Value",
           "targets": [
             {
-              "expr": "sum(gateway_requests_seconds_count{success=\"false\", job=~\"$gatewayService\"})",
+              "expr": "sum(gateway_requests_seconds_count{outcome!=\"SUCCESSFUL\", job=~\"$gatewayService\"})",
               "format": "time_series",
               "interval": "",
               "intervalFactor": 2,
@@ -348,7 +348,7 @@
               "format": "time_series",
               "interval": "",
               "intervalFactor": 2,
-              "legendFormat": "{{ httpStatus }}",
+              "legendFormat": "{{ status }}",
               "metric": "gateway_api_time_seconds_sum",
               "refId": "A",
               "step": 240
@@ -437,7 +437,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "gateway_requests_seconds_count{success=\"true\", routeId=~\"$routeId\", job=~\"$gatewayService\"}",
+              "expr": "gateway_requests_seconds_count{outcome=\"SUCCESSFUL\", routeId=~\"$routeId\", job=~\"$gatewayService\"}",
               "format": "time_series",
               "hide": false,
               "interval": "",
@@ -531,7 +531,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "gateway_requests_seconds_count{success=\"false\", routeId=~\"$routeId\", job=~\"$gatewayService\"}",
+              "expr": "gateway_requests_seconds_count{outcome!=\"SUCCESSFUL\", routeId=~\"$routeId\", job=~\"$gatewayService\"}",
               "format": "time_series",
               "interval": "",
               "intervalFactor": 2,
@@ -623,11 +623,11 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(gateway_requests_seconds_count{routeId=~\"$routeId\", job=~\"$gatewayService\"}) by (job, httpStatus)",
+              "expr": "sum(gateway_requests_seconds_count{routeId=~\"$routeId\", job=~\"$gatewayService\"}) by (job, status)",
               "format": "time_series",
               "interval": "",
               "intervalFactor": 2,
-              "legendFormat": "{{ job }} / {{ httpStatus }}",
+              "legendFormat": "{{ job }} / {{ status }}",
               "metric": "gateway_requests_seconds_count",
               "refId": "A",
               "step": 240
@@ -755,6 +755,6 @@
     ]
   },
   "timezone": "",
-  "title": "APIGW",
-  "version": 29
+  "title": "Spring Cloud Gateway",
+  "version": 1
 }
