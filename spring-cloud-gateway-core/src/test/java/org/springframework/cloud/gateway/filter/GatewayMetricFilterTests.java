@@ -122,12 +122,6 @@ public class GatewayMetricFilterTests extends BaseWebClientTests {
 
 		@Bean
 		public RouteLocator myRouteLocator(RouteLocatorBuilder builder) {
-			// return builder.routes().route("test_bad_target_uri", r ->
-			// r.host("*.badtarget.org").uri(testUri))
-			// .route("test_custom_http_status",
-			// r -> r.host("*.setcustomstatus.org").filters(f ->
-			// f.setStatus(432)).uri(testUri))
-			// .build();
 			return builder.routes()
 					.route("test_custom_http_status", r -> r.host("*.setcustomstatus.org")
 							.filters(f -> f.setStatus(432)).uri(testUri))
