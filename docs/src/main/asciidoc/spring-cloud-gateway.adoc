@@ -884,6 +884,17 @@ spring:
         - Path=/websocket/**
 ----
 
+=== Gateway Metrics Filter
+
+The Gateway Metrics Filter runs as long as the property `spring.cloud.gateway.metrics.enabled` is not set to `false`. This filter adds a timer metric named "gateway.requests" with the following tags:
+
+* `routeId`: The route id 
+* `routeUri`: The URI that the API will be routed to
+* `outcome` |Outcome as classified by link:https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/http/HttpStatus.Series.html[HttpStatus.Series]
+* `status`: Http Status of the request returned to the client
+
+These metrics are then available to be scraped from ``/actuator/metrics/gateway.requests`` and can be easily integated with Prometheus to create a link:images/gateway-grafana-dashboard.jpeg[Grafana] link:gateway-grafana-dashboard.json[dashboard].
+
 === Making An Exchange As Routed
 
 After the Gateway has routed a `ServerWebExchange` it will mark that exchange as "routed" by adding `gatewayAlreadyRouted`

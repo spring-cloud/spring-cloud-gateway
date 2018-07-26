@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import com.netflix.hystrix.HystrixObservableCommand;
+
+import io.micrometer.core.instrument.MeterRegistry;
 import io.netty.channel.ChannelOption;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import reactor.core.publisher.Flux;
@@ -48,6 +50,7 @@ import org.springframework.cloud.gateway.filter.AdaptCachedBodyGlobalFilter;
 import org.springframework.cloud.gateway.filter.ForwardPathFilter;
 import org.springframework.cloud.gateway.filter.ForwardRoutingFilter;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
+import org.springframework.cloud.gateway.filter.GatewayMetricsFilter;
 import org.springframework.cloud.gateway.filter.NettyRoutingFilter;
 import org.springframework.cloud.gateway.filter.NettyWriteResponseFilter;
 import org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter;
@@ -325,6 +328,12 @@ public class GatewayAutoConfiguration {
 
 
 	// GlobalFilter beans
+	
+	@Bean
+	@ConditionalOnProperty(name = "spring.cloud.gateway.metrics.enabled", matchIfMissing = true)	
+	public GatewayMetricsFilter gatewayMetricFilter(MeterRegistry meterRegistry) {
+		return new GatewayMetricsFilter(meterRegistry);
+	}
 
 	@Bean
 	public AdaptCachedBodyGlobalFilter adaptCachedBodyGlobalFilter() {
