@@ -980,6 +980,48 @@ or check if an exchange has already been routed.</simpara>
 </itemizedlist>
 </section>
 </chapter>
+<chapter xml:id="_tls_ssl">
+<title>TLS / SSL</title>
+<simpara>The Gateway can listen for requests on https by following the usual Spring server configuration. Example:</simpara>
+<formalpara>
+<title>application.yml</title>
+<para>
+<programlisting language="yaml" linenumbering="unnumbered">server:
+  ssl:
+    enabled: true
+    key-alias: scg
+    key-store-password: scg1234
+    key-store: classpath:scg-keystore.p12
+    key-store-type: PKCS12</programlisting>
+</para>
+</formalpara>
+<simpara>Gateway routes can be routed to both http and https backends. If routing to a https backend then the Gateway can be configured to trust all downstream certificates with the following configuration:</simpara>
+<formalpara>
+<title>application.yml</title>
+<para>
+<programlisting language="yaml" linenumbering="unnumbered">spring:
+  cloud:
+    gateway:
+      httpclient:
+        ssl:
+          useInsecureTrustManager: true</programlisting>
+</para>
+</formalpara>
+<simpara>Using an insecure trust manager is not suitable for production. For a production deployment the Gateway can be configured with a set of known certificates that it can trust with the follwing configuration:</simpara>
+<formalpara>
+<title>application.yml</title>
+<para>
+<programlisting language="yaml" linenumbering="unnumbered">spring:
+  cloud:
+    gateway:
+      httpclient:
+        ssl:
+          trustedX509Certificates:
+          - cert1.pem
+          - cert2.pem</programlisting>
+</para>
+</formalpara>
+</chapter>
 <chapter xml:id="_configuration">
 <title>Configuration</title>
 <simpara>Configuration for Spring Cloud Gateway is driven by a collection of `RouteDefinitionLocator`s.</simpara>
