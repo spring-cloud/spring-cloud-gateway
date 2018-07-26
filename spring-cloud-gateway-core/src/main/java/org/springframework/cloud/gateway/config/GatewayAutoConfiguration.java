@@ -17,6 +17,12 @@
 
 package org.springframework.cloud.gateway.config;
 
+import java.io.IOException;
+import java.net.URL;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -45,6 +51,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.web.reactive.HttpHandlerAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.context.properties.PropertyMapper;
+import org.springframework.boot.web.server.WebServerException;
 import org.springframework.cloud.gateway.actuate.GatewayControllerEndpoint;
 import org.springframework.cloud.gateway.filter.AdaptCachedBodyGlobalFilter;
 import org.springframework.cloud.gateway.filter.ForwardPathFilter;
@@ -121,6 +128,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.codec.ServerCodecConfigurer;
+import org.springframework.util.ResourceUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.Validator;
 import org.springframework.web.reactive.DispatcherHandler;
@@ -162,10 +170,17 @@ public class GatewayAutoConfiguration {
 
 				// configure ssl
 				HttpClientProperties.Ssl ssl = properties.getSsl();
-
-				if (ssl.isUseInsecureTrustManager()) {
+				X509Certificate[] trustedX509Certificates = ssl
+						.getTrustedX509CertificatesForTrustManager();
+				if (trustedX509Certificates.length > 0) {
 					opts.sslSupport(sslContextBuilder -> {
-						sslContextBuilder.trustManager(InsecureTrustManagerFactory.INSTANCE);
+						sslContextBuilder.trustManager(trustedX509Certificates);
+					});
+				}
+				else if (ssl.isUseInsecureTrustManager()) {
+					opts.sslSupport(sslContextBuilder -> {
+						sslContextBuilder
+								.trustManager(InsecureTrustManagerFactory.INSTANCE);
 					});
 				}
 

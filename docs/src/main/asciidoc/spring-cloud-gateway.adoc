@@ -905,6 +905,50 @@ or check if an exchange has already been routed.
 * `ServerWebExchangeUtils.isAlreadyRouted` takes a `ServerWebExchange` object and checks if it has been "routed"
 * `ServerWebExchangeUtils.setAlreadyRouted` takes a `ServerWebExchange` object and marks it as "routed"
 
+== TLS / SSL
+The Gateway can listen for requests on https by following the usual Spring server configuration. Example:
+
+.application.yml
+[source,yaml]
+----
+server:
+  ssl:
+    enabled: true
+    key-alias: scg
+    key-store-password: scg1234
+    key-store: classpath:scg-keystore.p12
+    key-store-type: PKCS12
+----
+
+Gateway routes can be routed to both http and https backends. If routing to a https backend then the Gateway can be configured to trust all downstream certificates with the following configuration:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      httpclient:
+        ssl:
+          useInsecureTrustManager: true
+----
+
+Using an insecure trust manager is not suitable for production. For a production deployment the Gateway can be configured with a set of known certificates that it can trust with the follwing configuration:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      httpclient:
+        ssl:
+          trustedX509Certificates:
+          - cert1.pem
+          - cert2.pem
+----
+
+
 == Configuration
 
 Configuration for Spring Cloud Gateway is driven by a collection of `RouteDefinitionLocator`s.
