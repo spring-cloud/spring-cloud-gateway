@@ -60,8 +60,12 @@ public class ReadBodyPredicateFactory
 			Object cachedBody = exchange.getAttribute(CACHE_REQUEST_BODY_OBJECT_KEY);
 			Mono<?> modifiedBody;
 			if(cachedBody != null) {
-				boolean test = config.predicate.test(cachedBody);
-				exchange.getAttributes().put(TEST_ATTRIBUTE, test);
+				try {
+					boolean test = config.predicate.test(cachedBody);
+					exchange.getAttributes().put(TEST_ATTRIBUTE, test);
+				} catch(ClassCastException e) {
+					//predicate test failed because class in predicate does not match the cached body object
+				}
 				modifiedBody = Mono.just(cachedBody);
 			} else {
 				ServerRequest serverRequest = new DefaultServerRequest(exchange);
