@@ -20,6 +20,8 @@ package org.springframework.cloud.gateway.handler.predicate;
 import java.util.Map;
 import java.util.function.Predicate;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.cloud.gateway.support.BodyInserterContext;
 
 import reactor.core.publisher.Mono;
@@ -41,6 +43,7 @@ import static org.springframework.cloud.gateway.filter.AdaptCachedBodyGlobalFilt
  */
 public class ReadBodyPredicateFactory
 		extends AbstractRoutePredicateFactory<ReadBodyPredicateFactory.Config> {
+	protected static final Log LOGGER = LogFactory.getLog(ReadBodyPredicateFactory.class);
 
 	private static final String TEST_ATTRIBUTE = "read_body_predicate_test_attribute";
 	private static final String CACHE_REQUEST_BODY_OBJECT_KEY = "cachedRequestBodyObject";
@@ -64,7 +67,10 @@ public class ReadBodyPredicateFactory
 					boolean test = config.predicate.test(cachedBody);
 					exchange.getAttributes().put(TEST_ATTRIBUTE, test);
 				} catch(ClassCastException e) {
-					//predicate test failed because class in predicate does not match the cached body object
+					if(LOGGER.isDebugEnabled()) {
+						LOGGER.debug("Predicate test failed because class in predicate does not match the cached body object",
+								e);
+					}
 				}
 				modifiedBody = Mono.just(cachedBody);
 			} else {
