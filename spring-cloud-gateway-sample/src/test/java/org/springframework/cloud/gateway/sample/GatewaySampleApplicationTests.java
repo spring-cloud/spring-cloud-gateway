@@ -17,9 +17,12 @@
 
 package org.springframework.cloud.gateway.sample;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.loadbalancer.Server;
 import com.netflix.loadbalancer.ServerList;
 import org.junit.AfterClass;
@@ -43,6 +46,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.util.SocketUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 /**
@@ -179,6 +183,27 @@ public class GatewaySampleApplicationTests {
 				.uri("http://localhost:"+managementPort+"/actuator/gateway/routes")
 				.exchange()
 				.expectStatus().isOk();
+	}
+
+	@Test
+	public void actuatorMetrics() {
+		contextLoads();
+		webClient.get()
+				.uri("http://localhost:" + managementPort
+						+ "/actuator/metrics/gateway.requests")
+				.exchange().expectStatus().isOk().expectBody().consumeWith(i -> {
+					String body = new String(i.getResponseBodyContent());
+					ObjectMapper mapper = new ObjectMapper();
+					try {
+						JsonNode actualObj = mapper.readTree(body);
+						JsonNode findValue = actualObj.findValue("name");
+						assertEquals("Expected to find metric with name gateway.requests",
+								"gateway.requests", findValue.asText());
+					}
+					catch (IOException e) {
+						throw new IllegalStateException(e);
+					}
+				});
 	}
 
 	@Configuration
