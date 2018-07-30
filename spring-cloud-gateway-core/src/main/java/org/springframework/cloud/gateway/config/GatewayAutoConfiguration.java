@@ -143,8 +143,7 @@ import static org.springframework.cloud.gateway.config.HttpClientProperties.Pool
 @EnableConfigurationProperties
 @AutoConfigureBefore(HttpHandlerAutoConfiguration.class)
 @AutoConfigureAfter({ GatewayLoadBalancerClientAutoConfiguration.class,
-		GatewayClassPathWarningAutoConfiguration.class, MetricsAutoConfiguration.class,
-		CompositeMeterRegistryAutoConfiguration.class })
+		GatewayClassPathWarningAutoConfiguration.class })
 @ConditionalOnClass(DispatcherHandler.class)
 public class GatewayAutoConfiguration {
 
@@ -341,16 +340,6 @@ public class GatewayAutoConfiguration {
 	}
 
 	// GlobalFilter beans
-	
-	@Configuration
-	@ConditionalOnBean(MeterRegistry.class)
-	protected static class MetricsConfig {
-		@Bean
-		@ConditionalOnProperty(name = "spring.cloud.gateway.metrics.enabled", matchIfMissing = true)
-		public GatewayMetricsFilter gatewayMetricFilter(MeterRegistry meterRegistry) {
-			return new GatewayMetricsFilter(meterRegistry);
-		}
-	}
 	
 	@Bean
 	public AdaptCachedBodyGlobalFilter adaptCachedBodyGlobalFilter() {
