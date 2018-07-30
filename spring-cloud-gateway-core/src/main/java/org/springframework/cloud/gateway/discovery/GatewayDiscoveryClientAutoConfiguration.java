@@ -16,12 +16,14 @@
 
 package org.springframework.cloud.gateway.discovery;
 
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
+import org.springframework.cloud.client.discovery.composite.CompositeDiscoveryClientAutoConfiguration;
 import org.springframework.cloud.gateway.config.GatewayAutoConfiguration;
 import org.springframework.cloud.gateway.filter.FilterDefinition;
 import org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactory;
@@ -46,6 +48,7 @@ import static org.springframework.cloud.gateway.support.NameUtils.normalizeRoute
 @Configuration
 @ConditionalOnProperty(name = "spring.cloud.gateway.enabled", matchIfMissing = true)
 @AutoConfigureBefore(GatewayAutoConfiguration.class)
+@AutoConfigureAfter(CompositeDiscoveryClientAutoConfiguration.class)
 @ConditionalOnClass({DispatcherHandler.class, DiscoveryClient.class})
 @EnableConfigurationProperties
 public class GatewayDiscoveryClientAutoConfiguration {
