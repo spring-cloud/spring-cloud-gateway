@@ -62,6 +62,10 @@ public class ReadBodyPredicateFactory
 
 			Object cachedBody = exchange.getAttribute(CACHE_REQUEST_BODY_OBJECT_KEY);
 			Mono<?> modifiedBody;
+			// We can only read the body from the request once, once that happens if we try to read the body again an
+			// exception will be thrown.  The below if/else caches the body object as a request attribute in the ServerWebExchange
+			// so if this filter is run more than once (due to more than one route using it) we do not try to read the
+			// request body multiple times
 			if(cachedBody != null) {
 				try {
 					boolean test = config.predicate.test(cachedBody);
