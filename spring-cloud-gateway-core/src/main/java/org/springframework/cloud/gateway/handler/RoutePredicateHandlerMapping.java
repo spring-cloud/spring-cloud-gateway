@@ -19,8 +19,9 @@ package org.springframework.cloud.gateway.handler;
 
 import java.util.function.Function;
 
-import org.springframework.cloud.gateway.config.GlobalCorsProperties;
 import reactor.core.publisher.Mono;
+
+import org.springframework.cloud.gateway.config.GlobalCorsProperties;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.web.cors.CorsConfiguration;
