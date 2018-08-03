@@ -22,7 +22,10 @@ import org.junit.runner.RunWith;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.gateway.route.RouteLocator;
+import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -46,9 +49,29 @@ public class RedirectToGatewayFilterFactoryTests extends BaseWebClientTests {
 				.expectHeader().valueEquals(HttpHeaders.LOCATION, "http://example.org");
 	}
 
+	@Test
+	public void redirectToRelativeUrlFilterWorks() {
+		testClient.get()
+				.uri("/")
+				.header("Host", "www.relativeredirect.org")
+				.exchange()
+				.expectStatus().isEqualTo(HttpStatus.FOUND)
+				.expectHeader().valueEquals(HttpHeaders.LOCATION, "/index.html#/customers");
+	}
+
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
-	public static class TestConfig { }
+	public static class TestConfig {
+
+		@Bean
+		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
+			return builder.routes()
+					.route("relative_redirect", r -> r.host("**.relativeredirect.org")
+							.filters(f -> f.redirect(302, "/index.html#/customers"))
+							.uri("no://op"))
+					.build();
+		}
+	}
 
 }

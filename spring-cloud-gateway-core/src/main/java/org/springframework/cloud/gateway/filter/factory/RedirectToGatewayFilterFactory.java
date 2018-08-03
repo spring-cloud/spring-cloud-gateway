@@ -59,16 +59,11 @@ public class RedirectToGatewayFilterFactory extends AbstractGatewayFilterFactory
 	public GatewayFilter apply(String statusString, String urlString) {
 		final HttpStatus httpStatus = parse(statusString);
 		Assert.isTrue(httpStatus.is3xxRedirection(), "status must be a 3xx code, but was " + statusString);
-		final URL url;
-		try {
-			url = URI.create(urlString).toURL();
-		} catch (MalformedURLException e) {
-			throw new IllegalArgumentException("Invalid url " + urlString, e);
-		}
+		final URI url = URI.create(urlString);
 		return apply(httpStatus, url);
 	}
 
-	public GatewayFilter apply(HttpStatus httpStatus, URL url) {
+	public GatewayFilter apply(HttpStatus httpStatus, URI uri) {
 
 		return (exchange, chain) ->
 			chain.filter(exchange).then(Mono.defer(() -> {
@@ -76,7 +71,7 @@ public class RedirectToGatewayFilterFactory extends AbstractGatewayFilterFactory
 					setResponseStatus(exchange, httpStatus);
 
 					final ServerHttpResponse response = exchange.getResponse();
-					response.getHeaders().set(HttpHeaders.LOCATION, url.toString());
+					response.getHeaders().set(HttpHeaders.LOCATION, uri.toString());
 					return response.setComplete();
 				}
 				return Mono.empty();

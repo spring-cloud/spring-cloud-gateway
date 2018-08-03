@@ -17,6 +17,7 @@
 package org.springframework.cloud.gateway.route.builder;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Collection;
 import java.util.Optional;
@@ -266,7 +267,7 @@ public class GatewayFilterSpec extends UriSpec {
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
 	public GatewayFilterSpec redirect(String status, URI url) {
-		return redirect(status, url.toString());
+		return redirect(status, url);
 	}
 
 	/**
@@ -286,7 +287,11 @@ public class GatewayFilterSpec extends UriSpec {
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
 	public GatewayFilterSpec redirect(HttpStatus status, URL url) {
-		return filter(getBean(RedirectToGatewayFilterFactory.class).apply(status, url));
+		try {
+			return filter(getBean(RedirectToGatewayFilterFactory.class).apply(status, url.toURI()));
+		} catch (URISyntaxException e) {
+			throw new IllegalArgumentException("Invalid URL", e);
+		}
 	}
 
 	/**
