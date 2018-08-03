@@ -24,6 +24,7 @@ import java.util.function.Predicate;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.handler.AsyncPredicate;
@@ -80,7 +81,19 @@ public class ServerWebExchangeUtils {
 
 	public static boolean containsEncodedParts(URI uri) {
 		boolean encoded = (uri.getRawQuery() != null && uri.getRawQuery().contains("%"))
-				|| (uri.getPath() != null && uri.getRawPath().contains("%"));
+				|| (uri.getRawPath() != null && uri.getRawPath().contains("%"));
+
+		// Verify if it is really fully encoded. Treat partial encoded as uncoded.
+		if (encoded) {
+			try {
+				UriComponentsBuilder.fromUri(uri).build(true);
+				return true;
+			} catch (IllegalArgumentException ignore) {
+			}
+
+			return false;
+		}
+
 		return encoded;
 	}
 

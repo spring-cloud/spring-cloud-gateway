@@ -102,6 +102,32 @@ public class RouteToRequestUrlFilterTests {
 	}
 
 	@Test
+	public void partialEncodedParameters() {
+		URI url = UriComponentsBuilder.fromUriString(
+				"http://localhost/get?key[]=test= key&start=1533108081")
+				.build().toUri();
+
+		// prove that it is partial encoded
+		assertThat(url.getRawQuery()).isEqualTo("key[]=test=%20key&start=1533108081");
+
+		assertThat(url).hasParameter("key[]", "test= key");
+		assertThat(url).hasParameter("start", "1533108081");
+
+		MockServerHttpRequest request = MockServerHttpRequest
+				.method(HttpMethod.GET, url)
+				.build();
+
+		ServerWebExchange webExchange = testFilter(request, "http://myhost");
+		URI uri = webExchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
+		assertThat(uri).hasScheme("http").hasHost("myhost")
+				.hasParameter("key[]", "test= key")
+				.hasParameter("start", "1533108081");
+
+		// prove that it is double encoded since partial encoded uri is treated as uncoded.
+		assertThat(uri.getRawQuery()).isEqualTo("key[]=test=%2520key&start=1533108081");
+	}
+
+	@Test
 	public void encodedUrl() {
 		URI url = UriComponentsBuilder.fromUriString("http://localhost/abc def/get").buildAndExpand().encode().toUri();
 
