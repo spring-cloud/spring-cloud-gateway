@@ -22,8 +22,6 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import com.netflix.hystrix.HystrixObservableCommand;
-
-import io.micrometer.core.instrument.MeterRegistry;
 import io.netty.channel.ChannelOption;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import reactor.core.publisher.Flux;
@@ -36,8 +34,6 @@ import rx.RxReactiveStreams;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.actuate.autoconfigure.endpoint.condition.ConditionalOnEnabledEndpoint;
-import org.springframework.boot.actuate.autoconfigure.metrics.CompositeMeterRegistryAutoConfiguration;
-import org.springframework.boot.actuate.autoconfigure.metrics.MetricsAutoConfiguration;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
@@ -53,7 +49,6 @@ import org.springframework.cloud.gateway.filter.AdaptCachedBodyGlobalFilter;
 import org.springframework.cloud.gateway.filter.ForwardPathFilter;
 import org.springframework.cloud.gateway.filter.ForwardRoutingFilter;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
-import org.springframework.cloud.gateway.filter.GatewayMetricsFilter;
 import org.springframework.cloud.gateway.filter.NettyRoutingFilter;
 import org.springframework.cloud.gateway.filter.NettyWriteResponseFilter;
 import org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter;
@@ -123,6 +118,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Primary;
+import org.springframework.core.env.Environment;
 import org.springframework.http.codec.ServerCodecConfigurer;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.Validator;
@@ -303,9 +299,9 @@ public class GatewayAutoConfiguration {
 	@Bean
 	public RoutePredicateHandlerMapping routePredicateHandlerMapping(
 			FilteringWebHandler webHandler, RouteLocator routeLocator,
-			GlobalCorsProperties globalCorsProperties) {
+			GlobalCorsProperties globalCorsProperties, Environment environment) {
 		return new RoutePredicateHandlerMapping(webHandler, routeLocator,
-				globalCorsProperties);
+				globalCorsProperties, environment);
 	}
 
 	// ConfigurationProperty beans

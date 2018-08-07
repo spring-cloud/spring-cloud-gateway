@@ -24,6 +24,7 @@ import reactor.core.publisher.Mono;
 import org.springframework.cloud.gateway.config.GlobalCorsProperties;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.route.RouteLocator;
+import org.springframework.core.env.Environment;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.reactive.handler.AbstractHandlerMapping;
 import org.springframework.web.server.ServerWebExchange;
@@ -39,17 +40,27 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 
 	private final FilteringWebHandler webHandler;
 	private final RouteLocator routeLocator;
+	private final Integer managmentPort;
 
-	public RoutePredicateHandlerMapping(FilteringWebHandler webHandler, RouteLocator routeLocator, GlobalCorsProperties globalCorsProperties) {
+	public RoutePredicateHandlerMapping(FilteringWebHandler webHandler, RouteLocator routeLocator, GlobalCorsProperties globalCorsProperties, Environment environment) {
 		this.webHandler = webHandler;
 		this.routeLocator = routeLocator;
 
+		if (environment.containsProperty("management.server.port")) {
+			managmentPort = new Integer(environment.getProperty("management.server.port"));
+		} else {
+			managmentPort = null;
+		}
 		setOrder(1);		
 		setCorsConfigurations(globalCorsProperties.getCorsConfigurations());
 	}
 
 	@Override
 	protected Mono<?> getHandlerInternal(ServerWebExchange exchange) {
+		// don't handle requests on the management port if set
+		if (managmentPort != null && exchange.getRequest().getURI().getPort() == managmentPort.intValue()) {
+			return Mono.empty();
+		}
 		exchange.getAttributes().put(GATEWAY_HANDLER_MAPPER_ATTR, getClass().getSimpleName());
 
 		return lookupRoute(exchange)
