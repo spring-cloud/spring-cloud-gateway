@@ -39,10 +39,31 @@ public class GatewayFilterSpecTests {
 
 		Route route = routeBuilder.build();
 		assertThat(route.getFilters()).hasSize(1);
-		GatewayFilter filter = route.getFilters().get(0);
+		assertFilter(route.getFilters().get(0), type, order);
+	}
+
+	private void assertFilter(GatewayFilter filter, Class<? extends GatewayFilter> type, int order) {
 		assertThat(filter).isInstanceOf(type);
 		Ordered ordered = (Ordered) filter;
 		assertThat(ordered.getOrder()).isEqualTo(order);
+	}
+
+	@Test
+	public void testFilters() {
+		ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
+		Route.AsyncBuilder routeBuilder = Route.async()
+				.id("123")
+				.uri("abc:123")
+				.predicate(exchange -> true);
+		RouteLocatorBuilder.Builder routes = new RouteLocatorBuilder(context).routes();
+		GatewayFilterSpec spec = new GatewayFilterSpec(routeBuilder, routes);
+		spec.filters(new MyUnorderedFilter(), new MyOrderedFilter());
+
+		Route route = routeBuilder.build();
+		assertThat(route.getFilters()).hasSize(2);
+
+		assertFilter(route.getFilters().get(0), OrderedGatewayFilter.class, 0);
+		assertFilter(route.getFilters().get(1), MyOrderedFilter.class, 1000);
 	}
 
 	protected static class MyOrderedFilter implements GatewayFilter, Ordered {

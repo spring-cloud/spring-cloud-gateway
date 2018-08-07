@@ -20,12 +20,18 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import reactor.retry.Repeat;
+import reactor.retry.Retry;
+
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.OrderedGatewayFilter;
@@ -58,9 +64,6 @@ import org.springframework.cloud.gateway.route.Route;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
-
-import reactor.retry.Repeat;
-import reactor.retry.Retry;
 
 /**
  * Applies specific filters to routes.
@@ -109,8 +112,20 @@ public class GatewayFilterSpec extends UriSpec {
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
 	public GatewayFilterSpec filters(GatewayFilter... gatewayFilters) {
-		this.routeBuilder.filters(gatewayFilters);
+		List<GatewayFilter> filters = transformToOrderedFilters(Stream.of(gatewayFilters));
+		this.routeBuilder.filters(filters);
 		return this;
+	}
+
+	public List<GatewayFilter> transformToOrderedFilters(Stream<GatewayFilter> stream) {
+		return stream
+				.map(filter -> {
+					if (filter instanceof Ordered) {
+						return filter;
+					} else {
+						return new OrderedGatewayFilter(filter, 0);
+					}
+				}).collect(Collectors.toList());
 	}
 
 	/**
@@ -119,7 +134,8 @@ public class GatewayFilterSpec extends UriSpec {
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
 	public GatewayFilterSpec filters(Collection<GatewayFilter> gatewayFilters) {
-		this.routeBuilder.filters(gatewayFilters);
+		List<GatewayFilter> filters = transformToOrderedFilters(gatewayFilters.stream());
+		this.routeBuilder.filters(filters);
 		return this;
 	}
 
