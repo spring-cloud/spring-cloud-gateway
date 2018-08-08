@@ -16,7 +16,7 @@ jobs:
       - restore_cache:
           key: sc-gateway-{{ .Branch }}
       - run:
-          command: sudo apt-get -y install redis-server
+          command: apt-get -y install redis-server
       - run:
           name: "Download dependencies"
           command: |
