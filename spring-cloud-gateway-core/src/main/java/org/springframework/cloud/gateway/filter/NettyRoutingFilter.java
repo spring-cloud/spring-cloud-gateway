@@ -22,11 +22,11 @@ import java.util.List;
 
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.ipc.netty.NettyPipeline;
-import reactor.ipc.netty.http.client.HttpClient;
-import reactor.ipc.netty.http.client.HttpClientRequest;
-import reactor.ipc.netty.http.client.HttpClientResponse;
+import reactor.netty.NettyPipeline;
+import reactor.netty.http.client.HttpClient;
+import reactor.netty.http.client.HttpClientResponse;
 
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cloud.gateway.config.HttpClientProperties;
@@ -44,6 +44,7 @@ import org.springframework.web.server.ServerWebExchange;
 
 import static org.springframework.cloud.gateway.filter.headers.HttpHeadersFilter.filterRequest;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.CLIENT_RESPONSE_ATTR;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.CLIENT_RESPONSE_CONN_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.PRESERVE_HOST_HEADER_ATTRIBUTE;
@@ -99,57 +100,62 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 
 		boolean preserveHost = exchange.getAttributeOrDefault(PRESERVE_HOST_HEADER_ATTRIBUTE, false);
 
-		Mono<HttpClientResponse> responseMono = this.httpClient.request(method, url, req -> {
-			final HttpClientRequest proxyRequest = req.options(NettyPipeline.SendOptions::flushOnEach)
-					.headers(httpHeaders)
-					.chunkedTransfer(chunkedTransfer)
-					.failOnServerError(false)
-					.failOnClientError(false);
+		HttpClient client = chunkedTransfer? this.httpClient.chunkedTransfer() :
+			this.httpClient.noChunkedTransfer();
 
-			if (preserveHost) {
-				String host = request.getHeaders().getFirst(HttpHeaders.HOST);
-				proxyRequest.header(HttpHeaders.HOST, host);
-			}
+		Flux<HttpClientResponse> responseFlux = client
+				.request(method)
+				.uri(url)
+				.send((req, nettyOutbound) -> {
+					req.headers(httpHeaders);
 
-			return proxyRequest.sendHeaders() //I shouldn't need this
-					.send(request.getBody().map(dataBuffer ->
-							((NettyDataBuffer) dataBuffer).getNativeBuffer()));
-		});
+					if (preserveHost) {
+						String host = request.getHeaders().getFirst(HttpHeaders.HOST);
+						req.header(HttpHeaders.HOST, host);
+					}
+					return nettyOutbound
+							.options(NettyPipeline.SendOptions::flushOnEach)
+							.send(request.getBody().map(dataBuffer ->
+									((NettyDataBuffer) dataBuffer).getNativeBuffer()));
+				}).responseConnection((res, connection) -> {
+					ServerHttpResponse response = exchange.getResponse();
+					// put headers and status so filters can modify the response
+					HttpHeaders headers = new HttpHeaders();
+
+					res.responseHeaders().forEach(entry -> headers.add(entry.getKey(), entry.getValue()));
+
+					if (headers.getContentType() != null) {
+						exchange.getAttributes().put(ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR, headers.getContentType());
+					}
+
+					HttpHeaders filteredResponseHeaders = HttpHeadersFilter.filter(
+							this.headersFilters.getIfAvailable(), headers, exchange, Type.RESPONSE);
+
+					response.getHeaders().putAll(filteredResponseHeaders);
+					HttpStatus status = HttpStatus.resolve(res.status().code());
+					if (status != null) {
+						response.setStatusCode(status);
+					} else if (response instanceof AbstractServerHttpResponse) {
+						// https://jira.spring.io/browse/SPR-16748
+						((AbstractServerHttpResponse) response).setStatusCodeValue(res.status().code());
+					} else {
+						throw new IllegalStateException("Unable to set status code on response: " + res.status().code() + ", " + response.getClass());
+					}
+
+					// Defer committing the response until all route filters have run
+					// Put client response as ServerWebExchange attribute and write response later NettyWriteResponseFilter
+					exchange.getAttributes().put(CLIENT_RESPONSE_ATTR, res);
+					exchange.getAttributes().put(CLIENT_RESPONSE_CONN_ATTR, connection);
+
+					return Mono.just(res);
+				});
 
 		if (properties.getResponseTimeout() != null) {
-			responseMono.timeout(properties.getResponseTimeout(),
+			responseFlux.timeout(properties.getResponseTimeout(),
 					Mono.error(new TimeoutException("Response took longer than timeout: " +
 							properties.getResponseTimeout())));
 		}
 
-		return responseMono.doOnNext(res -> {
-			ServerHttpResponse response = exchange.getResponse();
-			// put headers and status so filters can modify the response
-			HttpHeaders headers = new HttpHeaders();
-
-			res.responseHeaders().forEach(entry -> headers.add(entry.getKey(), entry.getValue()));
-
-			if (headers.getContentType() != null) {
-				exchange.getAttributes().put(ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR, headers.getContentType());
-			}
-
-			HttpHeaders filteredResponseHeaders = HttpHeadersFilter.filter(
-					this.headersFilters.getIfAvailable(), headers, exchange, Type.RESPONSE);
-			
-			response.getHeaders().putAll(filteredResponseHeaders);
-			HttpStatus status = HttpStatus.resolve(res.status().code());
-			if (status != null) {
-				response.setStatusCode(status);
-			} else if (response instanceof AbstractServerHttpResponse) {
-				// https://jira.spring.io/browse/SPR-16748
-				((AbstractServerHttpResponse) response).setStatusCodeValue(res.status().code());
-			} else {
-				throw new IllegalStateException("Unable to set status code on response: " +res.status().code()+", "+response.getClass());
-			}
-
-			// Defer committing the response until all route filters have run
-			// Put client response as ServerWebExchange attribute and write response later NettyWriteResponseFilter
-			exchange.getAttributes().put(CLIENT_RESPONSE_ATTR, res);
-		}).then(chain.filter(exchange));
+		return responseFlux.then(chain.filter(exchange));
 	}
 }

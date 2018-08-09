@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,14 +17,16 @@
 
 package org.springframework.cloud.gateway.test.ssl;
 
-import static org.junit.Assert.assertTrue;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
-
 import javax.net.ssl.SSLException;
 
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import reactor.netty.http.client.HttpClient;
+
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -42,9 +44,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import io.netty.handler.ssl.SslContext;
-import io.netty.handler.ssl.SslContextBuilder;
-import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
+import static org.junit.Assert.assertTrue;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -57,8 +58,11 @@ public class SSLTests extends BaseWebClientTests {
 		try {
 			SslContext sslContext = SslContextBuilder.forClient()
 					.trustManager(InsecureTrustManagerFactory.INSTANCE).build();
+			HttpClient httpClient = HttpClient.create().secure(ssl -> {
+				ssl.sslContext(sslContext);
+			});
 			ClientHttpConnector httpConnector = new ReactorClientHttpConnector(
-					opt -> opt.sslContext(sslContext));
+					httpClient);
 			baseUri = "https://localhost:" + port;
 			this.webClient = WebClient.builder().clientConnector(httpConnector)
 					.baseUrl(baseUri).build();

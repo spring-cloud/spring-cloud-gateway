@@ -20,8 +20,8 @@ package org.springframework.cloud.gateway.config;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.web.server.WebServerException;
 import org.springframework.util.ResourceUtils;
+import reactor.netty.resources.ConnectionProvider;
 
-import reactor.ipc.netty.resources.PoolResources;
 
 import java.io.IOException;
 import java.net.URL;
@@ -33,7 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Configuration properties for the Netty {@link reactor.ipc.netty.http.client.HttpClient}
+ * Configuration properties for the Netty {@link reactor.netty.http.client.HttpClient}
  */
 @ConfigurationProperties("spring.cloud.gateway.httpclient")
 public class HttpClientProperties {
@@ -104,10 +104,10 @@ public class HttpClientProperties {
 		private String name = "proxy";
 
 		/** Only for type FIXED, the maximum number of connections before starting pending acquisition on existing ones. */
-		private Integer maxConnections = PoolResources.DEFAULT_POOL_MAX_CONNECTION;
+		private Integer maxConnections = ConnectionProvider.DEFAULT_POOL_MAX_CONNECTIONS;
 
 		/** Only for type FIXED, the maximum time in millis to wait for aquiring. */
-		private Long acquireTimeout = PoolResources.DEFAULT_POOL_ACQUIRE_TIMEOUT;
+		private Long acquireTimeout = ConnectionProvider.DEFAULT_POOL_ACQUIRE_TIMEOUT;
 
 		public PoolType getType() {
 			return type;
