@@ -94,7 +94,6 @@ public class GatewaySampleApplicationTests {
 
 	@Test
 	@SuppressWarnings("unchecked")
-	@Ignore //FIXME 2.1.0
 	public void readBodyPredicateStringWorks() {
 		webClient.post()
 				.uri("/post")
