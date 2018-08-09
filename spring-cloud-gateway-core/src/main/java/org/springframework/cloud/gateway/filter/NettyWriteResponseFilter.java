@@ -23,7 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.ipc.netty.http.client.HttpClientResponse;
+import reactor.netty.Connection;
 
 import org.springframework.core.Ordered;
 import org.springframework.core.io.buffer.NettyDataBuffer;
@@ -33,7 +33,7 @@ import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.lang.Nullable;
 import org.springframework.web.server.ServerWebExchange;
 
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.CLIENT_RESPONSE_ATTR;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.CLIENT_RESPONSE_CONN_ATTR;
 
 /**
  * @author Spencer Gibb
@@ -57,12 +57,12 @@ public class NettyWriteResponseFilter implements GlobalFilter, Ordered {
 
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-		// NOTICE: nothing in "pre" filter stage as CLIENT_RESPONSE_ATTR is not added
-		// until the WebHandler is run
+		// NOTICE: nothing in "pre" filter stage as CLIENT_RESPONSE_CONN_ATTR is not added
+		// until the NettyRoutingFilter is run
 		return chain.filter(exchange).then(Mono.defer(() -> {
-			HttpClientResponse clientResponse = exchange.getAttribute(CLIENT_RESPONSE_ATTR);
+			Connection connection = exchange.getAttribute(CLIENT_RESPONSE_CONN_ATTR);
 
-			if (clientResponse == null) {
+			if (connection == null) {
 				return Mono.empty();
 			}
 			log.trace("NettyWriteResponseFilter start");
@@ -71,7 +71,7 @@ public class NettyWriteResponseFilter implements GlobalFilter, Ordered {
 			NettyDataBufferFactory factory = (NettyDataBufferFactory) response.bufferFactory();
 			//TODO: what if it's not netty
 
-			final Flux<NettyDataBuffer> body = clientResponse.receive()
+			final Flux<NettyDataBuffer> body = connection.inbound().receive()
 					.retain() //TODO: needed?
 					.map(factory::wrap);
 

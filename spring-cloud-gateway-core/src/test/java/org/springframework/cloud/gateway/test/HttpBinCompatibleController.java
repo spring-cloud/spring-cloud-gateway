@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,6 +72,9 @@ public class HttpBinCompatibleController {
 
 	@RequestMapping(path = "/get", produces = MediaType.APPLICATION_JSON_VALUE)
 	public Map<String, Object> get(ServerWebExchange exchange) {
+		if (log.isDebugEnabled()) {
+			log.debug("httpbin /get");
+		}
         HashMap<String, Object> result = new HashMap<>();
         HashMap<String, String> params = new HashMap<>();
         exchange.getRequest().getQueryParams().forEach((name, values) -> {

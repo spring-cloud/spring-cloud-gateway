@@ -19,20 +19,18 @@ package org.springframework.cloud.gateway.config;
 
 import java.security.cert.X509Certificate;
 import java.util.List;
-import java.util.function.Consumer;
 
 import com.netflix.hystrix.HystrixObservableCommand;
 import io.netty.channel.ChannelOption;
+import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import reactor.core.publisher.Flux;
-import reactor.ipc.netty.http.client.HttpClient;
-import reactor.ipc.netty.http.client.HttpClientOptions;
-import reactor.ipc.netty.options.ClientProxyOptions;
-import reactor.ipc.netty.resources.PoolResources;
+import reactor.netty.http.client.HttpClient;
+import reactor.netty.resources.ConnectionProvider;
+import reactor.netty.tcp.ProxyProvider;
 import rx.RxReactiveStreams;
 
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.actuate.autoconfigure.endpoint.condition.ConditionalOnEnabledEndpoint;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -148,76 +146,75 @@ public class GatewayAutoConfiguration {
 	protected static class NettyConfiguration {
 		@Bean
 		@ConditionalOnMissingBean
-		public HttpClient httpClient(@Qualifier("nettyClientOptions") Consumer<? super HttpClientOptions.Builder> options) {
-			return HttpClient.create(options);
-		}
+		public HttpClient httpClient(HttpClientProperties properties) {
 
-		@Bean
-		public Consumer<? super HttpClientOptions.Builder> nettyClientOptions(HttpClientProperties properties) {
-			return opts -> {
+			// configure pool resources
+			HttpClientProperties.Pool pool = properties.getPool();
 
-				if (properties.getConnectTimeout() != null) {
-					opts.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, properties.getConnectTimeout());
-				}
+			ConnectionProvider connectionProvider;
+			if (pool.getType() == DISABLED) {
+				connectionProvider = ConnectionProvider.newConnection();
+			} else if (pool.getType() == FIXED) {
+				connectionProvider = ConnectionProvider.fixed(pool.getName(),
+						pool.getMaxConnections(), pool.getAcquireTimeout());
+			} else {
+				connectionProvider = ConnectionProvider.elastic(pool.getName());
+			}
 
-				// configure ssl
-				HttpClientProperties.Ssl ssl = properties.getSsl();
-				X509Certificate[] trustedX509Certificates = ssl
-						.getTrustedX509CertificatesForTrustManager();
-				if (trustedX509Certificates.length > 0) {
-					opts.sslSupport(sslContextBuilder -> {
-						sslContextBuilder.trustManager(trustedX509Certificates);
-					});
-				}
-				else if (ssl.isUseInsecureTrustManager()) {
-					opts.sslSupport(sslContextBuilder -> {
-						sslContextBuilder
-								.trustManager(InsecureTrustManagerFactory.INSTANCE);
-					});
-				}
+			HttpClient httpClient = HttpClient.create(connectionProvider)
+				.tcpConfiguration(tcpClient -> {
 
-				// configure pool resources
-				HttpClientProperties.Pool pool = properties.getPool();
+					if (properties.getConnectTimeout() != null) {
+						tcpClient = tcpClient.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, properties.getConnectTimeout());
+					}
 
-				if (pool.getType() == DISABLED) {
-					opts.disablePool();
-				} else if (pool.getType() == FIXED) {
-					PoolResources poolResources = PoolResources.fixed(pool.getName(),
-							pool.getMaxConnections(), pool.getAcquireTimeout());
-					opts.poolResources(poolResources);
-				} else {
-					PoolResources poolResources = PoolResources.elastic(pool.getName());
-					opts.poolResources(poolResources);
-				}
+					// configure proxy if proxy host is set.
+					HttpClientProperties.Proxy proxy = properties.getProxy();
 
+					if (StringUtils.hasText(proxy.getHost())) {
 
-				// configure proxy if proxy host is set.
-				HttpClientProperties.Proxy proxy = properties.getProxy();
-				if (StringUtils.hasText(proxy.getHost())) {
-					opts.proxy(typeSpec -> {
-						ClientProxyOptions.Builder builder = typeSpec
-								.type(ClientProxyOptions.Proxy.HTTP)
-								.host(proxy.getHost());
+						tcpClient = tcpClient.proxy(proxySpec -> {
+							ProxyProvider.Builder builder = proxySpec
+									.type(ProxyProvider.Proxy.HTTP)
+									.host(proxy.getHost());
 
-						PropertyMapper map = PropertyMapper.get();
+							PropertyMapper map = PropertyMapper.get();
 
-						map.from(proxy::getPort)
-								.whenNonNull()
-								.to(builder::port);
-						map.from(proxy::getUsername)
-								.whenHasText()
-								.to(builder::username);
-						map.from(proxy::getPassword)
-								.whenHasText()
-								.to(password -> builder.password(s -> password));
-						map.from(proxy::getNonProxyHostsPattern)
-								.whenHasText()
-								.to(builder::nonProxyHosts);
+							map.from(proxy::getPort)
+									.whenNonNull()
+									.to(builder::port);
+							map.from(proxy::getUsername)
+									.whenHasText()
+									.to(builder::username);
+							map.from(proxy::getPassword)
+									.whenHasText()
+									.to(password -> builder.password(s -> password));
+							map.from(proxy::getNonProxyHostsPattern)
+									.whenHasText()
+									.to(builder::nonProxyHosts);
+						});
+					}
+					return tcpClient;
+				});
 
-						return builder;
-					});
-				}
-			};
+			HttpClientProperties.Ssl ssl = properties.getSsl();
+			if (ssl.getTrustedX509CertificatesForTrustManager().length > 0
+					|| ssl.isUseInsecureTrustManager()) {
+				httpClient = httpClient.secure(sslContextSpec -> {
+					// configure ssl
+					X509Certificate[] trustedX509Certificates = ssl
+							.getTrustedX509CertificatesForTrustManager();
+					if (trustedX509Certificates.length > 0) {
+						sslContextSpec.sslContext(SslContextBuilder.forClient()
+								.trustManager(trustedX509Certificates));
+					} else if (ssl.isUseInsecureTrustManager()) {
+						sslContextSpec.sslContext(SslContextBuilder.forClient()
+								.trustManager(InsecureTrustManagerFactory.INSTANCE));
+					}
+				});
+			}
+
+			return httpClient;
 		}
 
 		@Bean
@@ -238,8 +235,8 @@ public class GatewayAutoConfiguration {
 		}
 
 		@Bean
-		public ReactorNettyWebSocketClient reactorNettyWebSocketClient(@Qualifier("nettyClientOptions") Consumer<? super HttpClientOptions.Builder> options) {
-			return new ReactorNettyWebSocketClient(options);
+		public ReactorNettyWebSocketClient reactorNettyWebSocketClient(/*@Qualifier("nettyClientOptions") Consumer<? super HttpClientOptions.Builder> options*/) {
+			return new ReactorNettyWebSocketClient(/*options*/); //FIXME 2.1.0
 		}
 	}
 
