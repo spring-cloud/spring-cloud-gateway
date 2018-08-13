@@ -235,8 +235,8 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 						String prefix = originalUri.getPath();
 
 						//strip trailing slashes before checking if request path is end of original path
-						String originalUriPath = originalUri.getPath().substring(0, originalUri.getPath().length() - (originalUri.getPath().endsWith("/") ? 1 : 0));
-						String requestUriPath = requestUri.getPath().substring(0, requestUri.getPath().length() - (requestUri.getPath().endsWith("/") ? 1 : 0));
+						String originalUriPath = stripTrailingSlash(originalUri);
+						String requestUriPath = stripTrailingSlash(requestUri);
 
 						if(requestUriPath!=null && (originalUriPath.endsWith(requestUriPath))) {
 							prefix = originalUriPath.replace(requestUriPath, "");
@@ -299,6 +299,14 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 		}
 		else {
 			return host + ":" + port;
+		}
+	}
+
+	private String stripTrailingSlash(URI uri) {
+		if (uri.getPath().endsWith("/")) {
+			return uri.getPath().substring(0, uri.getPath().length() - 1);
+		} else {
+			return uri.getPath();
 		}
 	}
 }
