@@ -207,6 +207,21 @@ public class GatewayFilterSpec extends UriSpec {
 	}
 
 	/**
+	 * A filter that can be used to modify the request body.
+	 * This filter is BETA and may be subject to change in a future release.
+	 * @param inClass the class to convert the incoming request body to
+	 * @param outClass the class the Gateway will add to the request before it is routed
+	 * @param newContentType the new Content-Type header to be sent
+	 * @param rewriteFunction the {@link RewriteFunction} that transforms the request body
+	 * @param <T> the original request body class
+	 * @param <R> the new request body class
+	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
+	 */
+	public <T, R> GatewayFilterSpec modifyRequestBody(Class<T> inClass, Class<R> outClass, String newContentType, RewriteFunction<T, R> rewriteFunction) {
+		return filter(getBean(ModifyRequestBodyGatewayFilterFactory.class)
+				.apply(c -> c.setRewriteFunction(inClass, outClass, rewriteFunction).setContentType(newContentType)));
+	}
+	/**
 	 * A filter that can be used to modify the response body
 	 * This filter is BETA and may be subject to change in a future release.
 	 * @param inClass the class to conver the response body to
