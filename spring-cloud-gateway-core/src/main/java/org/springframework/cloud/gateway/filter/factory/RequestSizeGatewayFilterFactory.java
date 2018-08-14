@@ -24,9 +24,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
- * This filter blocks the request, if the request size is more than the
- * permissible size.The default request size is 5 MB
- *
+ * This filter blocks the request, if the request size is more than the permissible size.The default request size is 5 MB.
  * @author Arpan
  */
 public class RequestSizeGatewayFilterFactory
