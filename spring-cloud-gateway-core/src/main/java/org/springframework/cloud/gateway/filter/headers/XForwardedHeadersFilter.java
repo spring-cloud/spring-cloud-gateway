@@ -17,14 +17,18 @@
 
 package org.springframework.cloud.gateway.filter.headers;
 
+import java.net.URI;
+import java.util.LinkedHashSet;
 import java.util.List;
-
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
+
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
 
 @ConfigurationProperties("spring.cloud.gateway.x-forwarded")
 public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
@@ -52,6 +56,10 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 	/** X-Forwarded-Proto Header */
 	public static final String X_FORWARDED_PROTO_HEADER = "X-Forwarded-Proto";
 
+	/** X-Forwarded-Prefix Header */
+	public static final String X_FORWARDED_PREFIX_HEADER = "X-Forwarded-Prefix";
+
+
 	/** The order of the XForwardedHeadersFilter. */
 	private int order = 0;
 
@@ -70,6 +78,9 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 	/** If X-Forwarded-Proto is enabled. */
 	private boolean protoEnabled = true;
 
+	/** If X-Forwarded-Prefix is enabled. */
+	private boolean prefixEnabled = true;
+
 	/** If appending X-Forwarded-For as a list is enabled. */
 	private boolean forAppend = true;
 
@@ -81,6 +92,9 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 
 	/** If appending X-Forwarded-Proto as a list is enabled. */
 	private boolean protoAppend = true;
+
+	/** If appending X-Forwarded-Prefix as a list is enabled. */
+	private boolean prefixAppend = true;
 
 	@Override
 	public int getOrder() {
@@ -131,6 +145,14 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 		this.protoEnabled = protoEnabled;
 	}
 
+	public boolean isPrefixEnabled() {
+		return prefixEnabled;
+	}
+
+	public void setPrefixEnabled(boolean prefixEnabled) {
+		this.prefixEnabled = prefixEnabled;
+	}
+
 	public boolean isForAppend() {
 		return forAppend;
 	}
@@ -163,8 +185,18 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 		this.protoAppend = protoAppend;
 	}
 
+	public void setPrefixAppend(boolean prefixAppend) {
+		this.prefixAppend = prefixAppend;
+	}
+
+	public boolean isPrefixAppend() {
+		return prefixAppend;
+	}
+
 	@Override
 	public HttpHeaders filter(HttpHeaders input, ServerWebExchange exchange) {
+
+
 		ServerHttpRequest request = exchange.getRequest();
 		HttpHeaders original = input;
 		HttpHeaders updated = new HttpHeaders();
@@ -187,6 +219,37 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 		String proto = request.getURI().getScheme();
 		if (isProtoEnabled()) {
 			write(updated, X_FORWARDED_PROTO_HEADER, proto, isProtoAppend());
+		}
+
+		if(isPrefixEnabled()) {
+			//if the path of the url that the gw is routing to is a subset (and ending part) of the url that it is routing from then the difference is the prefix
+			//e.g. if request original.com/prefix/get/ is routed to routedservice:8090/get then /prefix is the prefix - see XForwardedHeadersFilterTests
+			//so first get uris, then extract paths and remove one from another if it's the ending part
+
+			LinkedHashSet<URI> originalUris = exchange.getAttribute(GATEWAY_ORIGINAL_REQUEST_URL_ATTR);
+			URI requestUri = exchange.getAttribute(GATEWAY_REQUEST_URL_ATTR);
+
+			if(originalUris != null && requestUri != null) {
+
+				originalUris.stream().forEach(originalUri -> {
+
+					if(originalUri!=null && originalUri.getPath()!=null) {
+						String prefix = originalUri.getPath();
+
+						//strip trailing slashes before checking if request path is end of original path
+						String originalUriPath = stripTrailingSlash(originalUri);
+						String requestUriPath = stripTrailingSlash(requestUri);
+
+						if(requestUriPath!=null && (originalUriPath.endsWith(requestUriPath))) {
+							prefix = originalUriPath.replace(requestUriPath, "");
+						}
+						if (prefix != null && prefix.length() > 0 &&
+								prefix.length() < originalUri.getPath().length()) {
+							write(updated, X_FORWARDED_PREFIX_HEADER, prefix, isPrefixAppend());
+						}
+					}
+				});
+			}
 		}
 
 		if (isPortEnabled()) {
@@ -238,6 +301,14 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 		}
 		else {
 			return host + ":" + port;
+		}
+	}
+
+	private String stripTrailingSlash(URI uri) {
+		if (uri.getPath().endsWith("/")) {
+			return uri.getPath().substring(0, uri.getPath().length() - 1);
+		} else {
+			return uri.getPath();
 		}
 	}
 }
