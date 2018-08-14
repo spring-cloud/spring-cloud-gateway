@@ -63,7 +63,9 @@ public class ModifyRequestBodyGatewayFilterFactory
 					.flatMap(o -> config.rewriteFunction.apply(exchange, o));
 
 			BodyInserter bodyInserter = BodyInserters.fromPublisher(modifiedBody, config.getOutClass());
-			CachedBodyOutputMessage outputMessage = new CachedBodyOutputMessage(exchange, exchange.getRequest().getHeaders());
+			HttpHeaders headers = new HttpHeaders();
+			headers.putAll(exchange.getRequest().getHeaders());
+			CachedBodyOutputMessage outputMessage = new CachedBodyOutputMessage(exchange, headers);
 			return bodyInserter.insert(outputMessage,  new BodyInserterContext())
 					// .log("modify_request", Level.INFO)
 					.then(Mono.defer(() -> {
@@ -71,10 +73,15 @@ public class ModifyRequestBodyGatewayFilterFactory
 								exchange.getRequest()) {
 							@Override
 							public HttpHeaders getHeaders() {
+								long contentLength = headers.getContentLength();
 								HttpHeaders httpHeaders = new HttpHeaders();
 								httpHeaders.putAll(super.getHeaders());
-								// TODO: this causes a 'HTTP/1.1 411 Length Required' on httpbin.org
-								httpHeaders.set(HttpHeaders.TRANSFER_ENCODING, "chunked");
+								if (contentLength >= 0) {
+									httpHeaders.setContentLength(contentLength);
+								} else {
+									// TODO: this causes a 'HTTP/1.1 411 Length Required' on httpbin.org
+									httpHeaders.set(HttpHeaders.TRANSFER_ENCODING, "chunked");
+								}
 								return httpHeaders;
 							}
 

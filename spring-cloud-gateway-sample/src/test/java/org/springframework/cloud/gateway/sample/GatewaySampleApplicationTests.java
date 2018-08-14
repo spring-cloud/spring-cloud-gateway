@@ -28,7 +28,6 @@ import com.netflix.loadbalancer.ServerList;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -119,12 +118,11 @@ public class GatewaySampleApplicationTests {
 				.expectHeader().valueEquals("X-TestHeader", "rewrite_request_upper")
 				.expectBody(Map.class)
 				.consumeWith(result ->
-						assertThat(result.getResponseBody()).containsEntry("data", "HELLO"));
+						assertThat(result.getResponseBody()).containsEntry("data", "HELLOHELLO"));
 	}
 
 	@Test
 	@SuppressWarnings("unchecked")
-	@Ignore //FIXME 2.1.0
 	public void rewriteRequestBodyObjectWorks() {
 		webClient.post()
 				.uri("/post")

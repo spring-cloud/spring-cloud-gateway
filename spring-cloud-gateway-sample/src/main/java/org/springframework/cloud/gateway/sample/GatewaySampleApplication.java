@@ -72,6 +72,7 @@ public class GatewaySampleApplication {
 					.filters(f -> f.prefixPath("/httpbin")
 							//TODO: add as configuration to modifyRequestBody
 							.setRequestHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+							.removeRequestHeader("Content-Length")
 							.addResponseHeader("X-TestHeader", "rewrite_request")
 							.modifyRequestBody(String.class, Hello.class,
 									(exchange, s) -> {
@@ -82,9 +83,10 @@ public class GatewaySampleApplication {
 				.route("rewrite_request_upper", r -> r.host("*.rewriterequestupper.org")
 					.filters(f -> f.prefixPath("/httpbin")
 							.addResponseHeader("X-TestHeader", "rewrite_request_upper")
+							.removeRequestHeader("Content-Length")
 							.modifyRequestBody(String.class, String.class,
 									(exchange, s) -> {
-										return Mono.just(s.toUpperCase());
+										return Mono.just(s.toUpperCase()+s.toUpperCase());
 									})
 					).uri(uri)
 				)
