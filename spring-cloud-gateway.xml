@@ -838,6 +838,32 @@ using something like <link xl:href="http://projects.spring.io/spring-session/">S
 <simpara>At this time a URI using the <literal>forward</literal> protocol does not support using the retry filter.</simpara>
 </note>
 </section>
+<section xml:id="_requestsize_gatewayfilter_factory">
+<title>RequestSize GatewayFilter Factory</title>
+<simpara>The RequestSize GatewayFilter Factory can restrict a request from reaching the downstream service , when the request size is greater than the permissible limit. The filter takes <literal>RequestSize</literal> as parameter which is the permissible size limit of the request defined in bytes.</simpara>
+<formalpara>
+<title>application.yml</title>
+<para>
+<programlisting language="yaml" linenumbering="unnumbered">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: request_size_route
+      uri: http://localhost:8080/upload
+      predicates:
+      - Path=/upload
+      filters:
+      - name: RequestSize
+        args:
+          maxSize: 5000000</programlisting>
+</para>
+</formalpara>
+<simpara>The RequestSize GatewayFilter Factory set the response status as <literal>413 Payload Too Large</literal> with a additional header <literal>errorMessage</literal> when the Request is rejected due to size. Following is an example of such an <literal>errorMessage</literal> .</simpara>
+<simpara><literal>errorMessage</literal> : <literal>Request size is larger than permissible limit. Request size is 6.0 MB where permissible limit is 5.0 MB</literal></simpara>
+<note>
+<simpara>The default Request size will be set to 5 MB if not provided as filter argument in route definition.</simpara>
+</note>
+</section>
 </chapter>
 <chapter xml:id="_global_filters">
 <title>Global Filters</title>
