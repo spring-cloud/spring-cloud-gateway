@@ -15,7 +15,6 @@
  *
  */
 
-
 package org.springframework.cloud.gateway.filter.factory;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
@@ -62,7 +61,6 @@ public class RequestSizeGatewayFilterFactory
 
 	public static class RequestSizeConfig {
 
-		// 5 MB is the default request size
 		private Long maxSize = 5000000L;
 
 		public RequestSizeGatewayFilterFactory.RequestSizeConfig setMaxSize(Long maxSize) {
