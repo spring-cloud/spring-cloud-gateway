@@ -65,6 +65,15 @@ public class ModifyRequestBodyGatewayFilterFactory
 			BodyInserter bodyInserter = BodyInserters.fromPublisher(modifiedBody, config.getOutClass());
 			HttpHeaders headers = new HttpHeaders();
 			headers.putAll(exchange.getRequest().getHeaders());
+
+			// the new content type will be computed by bodyInserter
+			// and then set in the request decorator
+			headers.remove(HttpHeaders.CONTENT_LENGTH);
+
+			// if the body is changing content types, set it here, to the bodyInserter will know about it
+			if (config.getContentType() != null) {
+				headers.set(HttpHeaders.CONTENT_TYPE, config.getContentType());
+			}
 			CachedBodyOutputMessage outputMessage = new CachedBodyOutputMessage(exchange, headers);
 			return bodyInserter.insert(outputMessage,  new BodyInserterContext())
 					// .log("modify_request", Level.INFO)
@@ -76,7 +85,7 @@ public class ModifyRequestBodyGatewayFilterFactory
 								long contentLength = headers.getContentLength();
 								HttpHeaders httpHeaders = new HttpHeaders();
 								httpHeaders.putAll(super.getHeaders());
-								if (contentLength >= 0) {
+								if (contentLength > 0) {
 									httpHeaders.setContentLength(contentLength);
 								} else {
 									// TODO: this causes a 'HTTP/1.1 411 Length Required' on httpbin.org
@@ -99,7 +108,12 @@ public class ModifyRequestBodyGatewayFilterFactory
 	public static class Config {
 		private Class inClass;
 		private Class outClass;
+
+		private String contentType;
+
+		@Deprecated
 		private Map<String, Object> inHints;
+		@Deprecated
 		private Map<String, Object> outHints;
 
 		private RewriteFunction rewriteFunction;
@@ -122,19 +136,23 @@ public class ModifyRequestBodyGatewayFilterFactory
 			return this;
 		}
 
+		@Deprecated
 		public Map<String, Object> getInHints() {
 			return inHints;
 		}
 
+		@Deprecated
 		public Config setInHints(Map<String, Object> inHints) {
 			this.inHints = inHints;
 			return this;
 		}
 
+		@Deprecated
 		public Map<String, Object> getOutHints() {
 			return outHints;
 		}
 
+		@Deprecated
 		public Config setOutHints(Map<String, Object> outHints) {
 			this.outHints = outHints;
 			return this;
@@ -154,6 +172,15 @@ public class ModifyRequestBodyGatewayFilterFactory
 
 		public Config setRewriteFunction(RewriteFunction rewriteFunction) {
 			this.rewriteFunction = rewriteFunction;
+			return this;
+		}
+
+		public String getContentType() {
+			return contentType;
+		}
+
+		public Config setContentType(String contentType) {
+			this.contentType = contentType;
 			return this;
 		}
 	}
