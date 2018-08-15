@@ -20,6 +20,7 @@ package org.springframework.cloud.gateway.config;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.cloud.gateway.filter.LoadBalancerClientFilter;
 import org.springframework.cloud.netflix.ribbon.RibbonAutoConfiguration;
@@ -39,6 +40,7 @@ public class GatewayLoadBalancerClientAutoConfiguration {
 
 	@Bean
 	@ConditionalOnBean(LoadBalancerClient.class)
+	@ConditionalOnMissingBean(LoadBalancerClientFilter.class)
 	public LoadBalancerClientFilter loadBalancerClientFilter(LoadBalancerClient client) {
 		return new LoadBalancerClientFilter(client);
 	}
