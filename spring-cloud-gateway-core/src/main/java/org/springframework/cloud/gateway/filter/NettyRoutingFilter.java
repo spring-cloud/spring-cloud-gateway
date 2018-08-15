@@ -102,8 +102,8 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 
 		boolean preserveHost = exchange.getAttributeOrDefault(PRESERVE_HOST_HEADER_ATTRIBUTE, false);
 
-		HttpClient client = chunkedTransfer? this.httpClient.chunkedTransfer() :
-			this.httpClient.noChunkedTransfer();
+		HttpClient client = chunkedTransfer ? this.httpClient.chunkedTransfer() :
+				this.httpClient.noChunkedTransfer();
 
 		Flux<HttpClientResponse> responseFlux = client
 				.request(method)
@@ -126,15 +126,15 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 
 					res.responseHeaders().forEach(entry -> headers.add(entry.getKey(), entry.getValue()));
 
-			String contentTypeValue = headers.getFirst(HttpHeaders.CONTENT_TYPE);
-			if (StringUtils.hasLength(contentTypeValue)) {
-				try {
-					exchange.getAttributes().put(ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR, headers.getContentType());
-				} catch (InvalidMediaTypeException e) {
-					//store non standard media types like "Content-Type: image"
-					exchange.getAttributes().put(ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR, contentTypeValue);
-				}
-			}
+					String contentTypeValue = headers.getFirst(HttpHeaders.CONTENT_TYPE);
+					if (StringUtils.hasLength(contentTypeValue)) {
+						try {
+							exchange.getAttributes().put(ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR, headers.getContentType());
+						} catch (InvalidMediaTypeException e) {
+							//store non standard media types like "Content-Type: image"
+							exchange.getAttributes().put(ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR, contentTypeValue);
+						}
+					}
 
 					HttpHeaders filteredResponseHeaders = HttpHeadersFilter.filter(
 							this.headersFilters.getIfAvailable(), headers, exchange, Type.RESPONSE);
