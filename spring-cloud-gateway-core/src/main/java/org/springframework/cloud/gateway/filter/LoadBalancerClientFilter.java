@@ -43,7 +43,7 @@ public class LoadBalancerClientFilter implements GlobalFilter, Ordered {
 	private static final Log log = LogFactory.getLog(LoadBalancerClientFilter.class);
 	public static final int LOAD_BALANCER_CLIENT_FILTER_ORDER = 10100;
 
-	private final LoadBalancerClient loadBalancer;
+	protected final LoadBalancerClient loadBalancer;
 
 	public LoadBalancerClientFilter(LoadBalancerClient loadBalancer) {
 		this.loadBalancer = loadBalancer;
@@ -66,7 +66,7 @@ public class LoadBalancerClientFilter implements GlobalFilter, Ordered {
 
 		log.trace("LoadBalancerClientFilter url before: " + url);
 
-		final ServiceInstance instance = loadBalancer.choose(url.getHost());
+		final ServiceInstance instance = choose(exchange);
 
 		if (instance == null) {
 			throw new NotFoundException("Unable to find instance for " + url.getHost());
@@ -86,6 +86,10 @@ public class LoadBalancerClientFilter implements GlobalFilter, Ordered {
 		log.trace("LoadBalancerClientFilter url chosen: " + requestUrl);
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, requestUrl);
 		return chain.filter(exchange);
+	}
+
+	protected ServiceInstance choose(ServerWebExchange exchange) {
+		return loadBalancer.choose(((URI) exchange.getAttribute(GATEWAY_REQUEST_URL_ATTR)).getHost());
 	}
 
 	class DelegatingServiceInstance implements ServiceInstance {

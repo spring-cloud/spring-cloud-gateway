@@ -1,7 +1,6 @@
 package org.springframework.cloud.gateway.filter;
 
 import java.net.URI;
-import java.util.Collections;
 import java.util.LinkedHashSet;
 
 import com.netflix.loadbalancer.ILoadBalancer;
@@ -23,6 +22,7 @@ import org.springframework.cloud.netflix.ribbon.SpringClientFactory;
 import org.springframework.http.HttpMethod;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -225,6 +225,52 @@ public class LoadBalancerClientFilterTests {
 		verify(chain).filter(exchange);
 		verifyNoMoreInteractions(chain);
 		verifyZeroInteractions(loadBalancerClient);
+	}
+
+	@Test
+	public void shouldSelectSpecifiedServer() {
+		URI uri1 = UriComponentsBuilder.fromUriString("lb://myservice").port(11111).build().toUri();
+		URI uri2 = UriComponentsBuilder.fromUriString("lb://myservice").port(22222).build().toUri();
+
+		SpringClientFactory clientFactory = mock(SpringClientFactory.class);
+		ILoadBalancer loadBalancer = mock(ILoadBalancer.class);
+		when(clientFactory.getLoadBalancerContext("myservice")).thenReturn(new RibbonLoadBalancerContext(loadBalancer));
+		when(clientFactory.getLoadBalancer("myservice")).thenReturn(loadBalancer);
+
+		when(loadBalancer.chooseServer("11111")).thenReturn(new Server("myservice-host1", 8081));
+		when(loadBalancer.chooseServer("22222")).thenReturn(new Server("myservice-host2", 8081));
+
+		LoadBalancerClient loadBalancerClient = new RibbonLoadBalancerClient(clientFactory) {
+			private String loadBalancerKey;
+			public ServiceInstance choose(String serviceId) {
+				String[] strings = serviceId.split("<<>>");
+				loadBalancerKey = strings[1];
+				return super.choose(strings[0]);
+			}
+			protected Server getServer(ILoadBalancer loadBalancer) {
+				return loadBalancer == null ? null : loadBalancer.chooseServer(StringUtils.isEmpty(loadBalancerKey) ? "default" : loadBalancerKey);
+			}
+		};
+
+		LoadBalancerClientFilter loadBalancerClientFilter = new LoadBalancerClientFilter(loadBalancerClient) {
+			protected ServiceInstance choose(ServerWebExchange exchange) {
+				URI attribute = (URI) exchange.getAttribute(GATEWAY_REQUEST_URL_ATTR);
+				return loadBalancer.choose(attribute.getHost() + "<<>>" + attribute.getPort());
+			}
+		};
+
+		MockServerHttpRequest request = MockServerHttpRequest
+				.get("http://localhost/get")
+				.build();
+		ServerWebExchange exchange = MockServerWebExchange.from(request);
+
+		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, uri1);
+		loadBalancerClientFilter.filter(exchange, chain);
+		assertThat(((URI)exchange.getAttributes().get(GATEWAY_REQUEST_URL_ATTR)).getHost()).isEqualTo("myservice-host1");
+
+		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, uri2);
+		loadBalancerClientFilter.filter(exchange, chain);
+		assertThat(((URI)exchange.getAttributes().get(GATEWAY_REQUEST_URL_ATTR)).getHost()).isEqualTo("myservice-host2");
 	}
 
 	private ServerWebExchange testFilter(MockServerHttpRequest request, URI uri) {
