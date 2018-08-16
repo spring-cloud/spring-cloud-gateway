@@ -17,23 +17,31 @@
 
 package org.springframework.cloud.gateway.handler.predicate;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.cloud.gateway.support.BodyInserterContext;
 
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.support.CachedBodyOutputMessage;
 import org.springframework.cloud.gateway.handler.AsyncPredicate;
-import org.springframework.cloud.gateway.support.DefaultServerRequest;
+import org.springframework.core.ResolvableType;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ReactiveHttpInputMessage;
+import org.springframework.http.codec.HttpMessageReader;
 import org.springframework.http.codec.ServerCodecConfigurer;
 import org.springframework.web.reactive.function.BodyInserter;
 import org.springframework.web.reactive.function.BodyInserters;
 
-import org.springframework.web.reactive.function.server.ServerRequest;
+import org.springframework.web.reactive.function.server.HandlerStrategies;
 import org.springframework.web.server.ServerWebExchange;
 
 import static org.springframework.cloud.gateway.filter.AdaptCachedBodyGlobalFilter.CACHED_REQUEST_BODY_KEY;
@@ -47,11 +55,10 @@ public class ReadBodyPredicateFactory
 
 	private static final String TEST_ATTRIBUTE = "read_body_predicate_test_attribute";
 	private static final String CACHE_REQUEST_BODY_OBJECT_KEY = "cachedRequestBodyObject";
-	private final ServerCodecConfigurer codecConfigurer;
+	private static final List<HttpMessageReader<?>> messageReaders = HandlerStrategies.withDefaults().messageReaders();
 
-	public ReadBodyPredicateFactory(ServerCodecConfigurer codecConfigurer) {
+	public ReadBodyPredicateFactory() {
 		super(Config.class);
-		this.codecConfigurer = codecConfigurer;
 	}
 
 	@Override
@@ -70,39 +77,48 @@ public class ReadBodyPredicateFactory
 				try {
 					boolean test = config.predicate.test(cachedBody);
 					exchange.getAttributes().put(TEST_ATTRIBUTE, test);
+					return Mono.just(test);
 				} catch(ClassCastException e) {
 					if(LOGGER.isDebugEnabled()) {
 						LOGGER.debug("Predicate test failed because class in predicate does not match the cached body object",
 								e);
 					}
 				}
-				modifiedBody = Mono.just(cachedBody);
+				return Mono.just(false);
 			} else {
-				ServerRequest serverRequest = new DefaultServerRequest(exchange);
-				// TODO: flux or mono
-				modifiedBody = serverRequest.bodyToMono(inClass)
-						// .log("modify_request_mono", Level.INFO)
-						.flatMap(body -> {
-							// TODO: migrate to async
-							exchange.getAttributes().put(CACHE_REQUEST_BODY_OBJECT_KEY, body);
-							boolean test = config.predicate.test(body);
-							exchange.getAttributes().put(TEST_ATTRIBUTE, test);
-							return Mono.just(body);
-						});
-			}
-			BodyInserter bodyInserter = BodyInserters.fromPublisher(modifiedBody, inClass);
-			CachedBodyOutputMessage outputMessage = new CachedBodyOutputMessage(exchange,
-					exchange.getRequest().getHeaders());
-			return bodyInserter.insert(outputMessage, new BodyInserterContext())
-					// .log("modify_request", Level.INFO)
-					.then(Mono.defer(() -> {
-						boolean test = (Boolean) exchange.getAttributes()
-								.getOrDefault(TEST_ATTRIBUTE, Boolean.FALSE);
-						exchange.getAttributes().remove(TEST_ATTRIBUTE);
-						exchange.getAttributes().put(CACHED_REQUEST_BODY_KEY,
+				Flux<DataBuffer> origBody = exchange.getRequest().getBody().flatMap(dataBuffer -> {
+					ResolvableType type =ResolvableType.forClass(inClass);
+					for(HttpMessageReader<?> messageReader: messageReaders) {
+						if(messageReader.canRead(type, exchange.getRequest().getHeaders().getContentType())) {
+							ReactiveHttpInputMessage inputMessage = new ReadBodyReactiveHttpInputMessage(
+									Flux.just(dataBuffer.factory().allocateBuffer().write(dataBuffer.asByteBuffer())),
+									exchange.getRequest().getHeaders());
+							Function mapper = (bodyObj) -> {
+								exchange.getAttributes().put(CACHE_REQUEST_BODY_OBJECT_KEY, bodyObj);
+								boolean test = config.predicate.test(bodyObj);
+								exchange.getAttributes().put(TEST_ATTRIBUTE, test);
+								return Flux.just(dataBuffer.factory().allocateBuffer().write(dataBuffer.asByteBuffer()));
+							};
+							return messageReader.read(type, inputMessage, Collections.EMPTY_MAP).flatMap(mapper);
+						}
+					}
+					return Flux.just(dataBuffer.factory().allocateBuffer().write(dataBuffer.asByteBuffer()));
+				});
+				BodyInserter bodyInserter = BodyInserters.fromPublisher(origBody, DataBuffer.class);
+				CachedBodyOutputMessage outputMessage = new CachedBodyOutputMessage(exchange,
+						exchange.getRequest().getHeaders());
+				return bodyInserter.insert(outputMessage, new BodyInserterContext())
+						// .log("modify_request", Level.INFO)
+						.then(Mono.defer(() -> {
+							boolean test = (Boolean) exchange.getAttributes()
+									.getOrDefault(TEST_ATTRIBUTE, Boolean.FALSE);
+							exchange.getAttributes().remove(TEST_ATTRIBUTE);
+							exchange.getAttributes().put(CACHED_REQUEST_BODY_KEY,
 								outputMessage.getBody());
-						return Mono.just(test);
-					}));
+							return Mono.just(test);
+						}));
+
+			}
 		};
 	}
 
@@ -111,6 +127,26 @@ public class ReadBodyPredicateFactory
 	public Predicate<ServerWebExchange> apply(Config config) {
 		throw new UnsupportedOperationException(
 				"ReadBodyPredicateFactory is only async.");
+	}
+
+	 static class ReadBodyReactiveHttpInputMessage implements ReactiveHttpInputMessage {
+		private Flux<DataBuffer> body;
+		private HttpHeaders httpHeaders;
+
+		public ReadBodyReactiveHttpInputMessage(Flux<DataBuffer> body, HttpHeaders headers) {
+			this.body = body;
+			this.httpHeaders = headers;
+		}
+
+		@Override
+		public Flux<DataBuffer> getBody() {
+			return body;
+		}
+
+		@Override
+		public HttpHeaders getHeaders() {
+			return httpHeaders;
+		}
 	}
 
 	public static class Config {
