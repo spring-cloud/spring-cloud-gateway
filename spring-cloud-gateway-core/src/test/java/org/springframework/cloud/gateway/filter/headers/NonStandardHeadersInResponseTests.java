@@ -15,7 +15,7 @@
  *
  */
 
-package org.springframework.cloud.gateway.filter.factory;
+package org.springframework.cloud.gateway.filter.headers;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -24,15 +24,16 @@ import org.junit.runner.RunWith;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.gateway.filter.GlobalFilter;
+import org.springframework.cloud.gateway.route.RouteLocator;
+import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
-import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.util.StringUtils;
+import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
@@ -43,27 +44,25 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
+@ActiveProfiles(profiles = "request-parameter-web-filter")
 public class NonStandardHeadersInResponseTests extends BaseWebClientTests {
 
-	public static final String CONTENT_TYPE_IMAGE = "Content-Type: image";
+	public static final String CONTENT_TYPE_IMAGE = "image";
 
 	@Test
 	public void nonStandardHeadersInResponse() {
-		URI uri = UriComponentsBuilder.fromUriString(this.baseUri+"/get").build(true).toUri();
-		testClient.get()
+		URI uri = UriComponentsBuilder.fromUriString(this.baseUri+"/get-image/public/event-logo/2016/10-25-07-52-sourcedirect-at-ny-now.gif").build(true).toUri();
+
+
+		String contentType = WebClient.builder()
+				.baseUrl(baseUri)
+				.build()
+				.get()
 				.uri(uri)
 				.exchange()
-				.expectBody(String.class)
-				.consumeWith(response -> {
-					String contentType = response.getResponseHeaders()
-							.get(HttpHeaders.CONTENT_TYPE)
-							.stream()
-							.filter(s -> StringUtils.hasLength(s))
-							.filter(s -> s.equals(CONTENT_TYPE_IMAGE))
-							.findFirst()
-							.orElseThrow(() -> new RuntimeException("unable to find header"));
-					assertEquals(CONTENT_TYPE_IMAGE, contentType);
-                });
+				.map(clientResponse -> clientResponse.headers().asHttpHeaders().getFirst(HttpHeaders.CONTENT_TYPE))
+				.block();
+		assertEquals(CONTENT_TYPE_IMAGE, contentType);
 	}
 
 	@EnableAutoConfiguration
@@ -73,14 +72,17 @@ public class NonStandardHeadersInResponseTests extends BaseWebClientTests {
 		private static final Log log = LogFactory.getLog(TestConfig.class);
 
 		@Bean
-		@Order(501)
-		public GlobalFilter nonStandardHeaderInResponseFilter() {
-			return (exchange, chain) -> {
-				log.info("nonStandardHeaderInResponseFilter start");
-				exchange.getResponse().getHeaders().add(HttpHeaders.CONTENT_TYPE, CONTENT_TYPE_IMAGE);
-				return chain.filter(exchange);
-			};
+		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
+			return builder.routes()
+					.route("non_standard_header_test", r ->
+							r.path("/get-image/**")
+									.filters(f -> f
+											.stripPrefix(1)
+									)
+									.uri("https://s3-prod-otaibe12e86cef1cff.s3.eu-central-1.amazonaws.com"))
+					.build();
 		}
+
 	}
 
 }
