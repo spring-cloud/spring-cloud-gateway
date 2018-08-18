@@ -17,6 +17,7 @@
 
 package org.springframework.cloud.gateway.handler.predicate;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -131,6 +132,8 @@ public class ReadBodyPredicateFactory
 	 class DataBufferMapCollector implements Collector<DataBuffer, Map<String, Flux<DataBuffer>>, Map<String, Flux<DataBuffer>>> {
 		public static final String BODY_ONE = "bodyOne";
 		public static final String BODY_TWO = "bodyTwo";
+		private final Set<Characteristics> CHARACTERISTICS = new HashSet<>(Arrays.asList(
+				Characteristics.IDENTITY_FINISH));
 
 		@Override
 		public Supplier<Map<String, Flux<DataBuffer>>> supplier() {
@@ -168,7 +171,7 @@ public class ReadBodyPredicateFactory
 
 		@Override
 		public Set<Characteristics> characteristics() {
-			return new HashSet<Characteristics>();
+			return CHARACTERISTICS;
 		}
 
 		private DataBuffer copy(DataBuffer dataBuffer) {
