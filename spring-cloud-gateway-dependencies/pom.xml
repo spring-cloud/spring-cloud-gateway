@@ -41,6 +41,12 @@
 				<artifactId>spring-cloud-starter-gateway</artifactId>
 				<version>${project.version}</version>
 			</dependency>
+			<!-- TODO: remove after next reactor milestone -->
+			<dependency>
+				<groupId>io.projectreactor.addons</groupId>
+				<artifactId>reactor-extra</artifactId>
+				<version>3.2.0.M2</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
