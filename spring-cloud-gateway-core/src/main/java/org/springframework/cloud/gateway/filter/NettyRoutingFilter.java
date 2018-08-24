@@ -151,6 +151,7 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 				});
 
 		if (properties.getResponseTimeout() != null) {
+			//TODO: figure out how to make this a 504
 			responseFlux = responseFlux.timeout(properties.getResponseTimeout(),
 					Mono.error(new TimeoutException("Response took longer than timeout: " +
 							properties.getResponseTimeout())));
