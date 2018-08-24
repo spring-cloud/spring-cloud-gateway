@@ -98,14 +98,11 @@ public class ModifyResponseBodyGatewayFilterFactory
 					CachedBodyOutputMessage outputMessage = new CachedBodyOutputMessage(exchange, exchange.getResponse().getHeaders());
 					return bodyInserter.insert(outputMessage, new BodyInserterContext())
 							.then(Mono.defer(() -> {
-								long contentLength1 = getDelegate().getHeaders().getContentLength();
 								Flux<DataBuffer> messageBody = outputMessage.getBody();
-								//TODO: if (inputStream instanceof Mono) {
-									HttpHeaders headers = getDelegate().getHeaders();
-									if (/*headers.getContentLength() < 0 &&*/ !headers.containsKey(HttpHeaders.TRANSFER_ENCODING)) {
-										messageBody = messageBody.doOnNext(data -> headers.setContentLength(data.readableByteCount()));
-									}
-								// }
+								HttpHeaders headers = getDelegate().getHeaders();
+								if (!headers.containsKey(HttpHeaders.TRANSFER_ENCODING)) {
+									messageBody = messageBody.doOnNext(data -> headers.setContentLength(data.readableByteCount()));
+								}
 								//TODO: use isStreamingMediaType?
 								return getDelegate().writeWith(messageBody);
 							}));

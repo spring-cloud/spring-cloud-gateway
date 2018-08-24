@@ -775,6 +775,32 @@ spring:
 
 NOTE: At this time a URI using the `forward` protocol does not support using the retry filter.
 
+=== RequestSize GatewayFilter Factory
+The RequestSize GatewayFilter Factory can restrict a request from reaching the downstream service , when the request size is greater than the permissible limit. The filter takes `RequestSize` as parameter which is the permissible size limit of the request defined in bytes.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: request_size_route
+      uri: http://localhost:8080/upload
+      predicates:
+      - Path=/upload
+      filters:
+      - name: RequestSize
+        args:
+          maxSize: 5000000
+----
+
+The RequestSize GatewayFilter Factory set the response status as `413 Payload Too Large` with a additional header `errorMessage` when the Request is rejected due to size. Following is an example of such an `errorMessage` .
+
+`errorMessage` : `Request size is larger than permissible limit. Request size is 6.0 MB where permissible limit is 5.0 MB`
+
+NOTE: The default Request size will be set to 5 MB if not provided as filter argument in route definition.
+
 == Global Filters
 
 The `GlobalFilter` interface has the same signature as `GatewayFilter`. These are special filters that are conditionally applied to all routes. (This interface and usage are subject to change in future milestones).

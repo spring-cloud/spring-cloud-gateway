@@ -82,7 +82,7 @@ public class GatewaySampleApplication {
 							.addResponseHeader("X-TestHeader", "rewrite_request_upper")
 							.modifyRequestBody(String.class, String.class,
 									(exchange, s) -> {
-										return Mono.just(s.toUpperCase());
+										return Mono.just(s.toUpperCase()+s.toUpperCase());
 									})
 					).uri(uri)
 				)

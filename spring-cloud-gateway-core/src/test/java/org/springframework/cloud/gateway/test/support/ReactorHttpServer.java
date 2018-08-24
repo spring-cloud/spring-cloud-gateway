@@ -19,9 +19,9 @@ package org.springframework.cloud.gateway.test.support;
 
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.springframework.http.server.reactive.ReactorHttpHandlerAdapter;
+import reactor.netty.DisposableServer;
 
-import reactor.ipc.netty.NettyContext;
+import org.springframework.http.server.reactive.ReactorHttpHandlerAdapter;
 
 /**
  * @author Stephane Maldini
@@ -30,15 +30,17 @@ public class ReactorHttpServer extends AbstractHttpServer {
 
 	private ReactorHttpHandlerAdapter reactorHandler;
 
-	private reactor.ipc.netty.http.server.HttpServer reactorServer;
+	private reactor.netty.http.server.HttpServer reactorServer;
 
-	private AtomicReference<NettyContext> nettyContext = new AtomicReference<>();
+	private AtomicReference<DisposableServer> serverRef = new AtomicReference<>();
 
 
 	@Override
-	protected void initServer() throws Exception {
+	protected void initServer() {
 		this.reactorHandler = createHttpHandlerAdapter();
-		this.reactorServer = reactor.ipc.netty.http.server.HttpServer.create(getHost(), getPort());
+		this.reactorServer = reactor.netty.http.server.HttpServer.create()
+				.tcpConfiguration(server -> server.host(getHost()))
+				.port(getPort());
 	}
 
 	private ReactorHttpHandlerAdapter createHttpHandlerAdapter() {
@@ -47,21 +49,21 @@ public class ReactorHttpServer extends AbstractHttpServer {
 
 	@Override
 	protected void startInternal() {
-		NettyContext nettyContext = this.reactorServer.newHandler(this.reactorHandler).block();
-		setPort(nettyContext.address().getPort());
-		this.nettyContext.set(nettyContext);
+		DisposableServer server = this.reactorServer.handle(this.reactorHandler).bind().block();
+		setPort(server.address().getPort());
+		this.serverRef.set(server);
 	}
 
 	@Override
 	protected void stopInternal() {
-		this.nettyContext.get().dispose();
+		this.serverRef.get().dispose();
 	}
 
 	@Override
 	protected void resetInternal() {
 		this.reactorServer = null;
 		this.reactorHandler = null;
-		this.nettyContext.set(null);
+		this.serverRef.set(null);
 	}
 
 }

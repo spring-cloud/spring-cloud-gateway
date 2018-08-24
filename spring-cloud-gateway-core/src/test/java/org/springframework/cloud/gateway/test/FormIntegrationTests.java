@@ -50,7 +50,7 @@ import reactor.test.StepVerifier;
 @SuppressWarnings("unchecked")
 public class FormIntegrationTests extends BaseWebClientTests {
 
-	public static final MediaType CONTENT_TYPE = new MediaType(MediaType.APPLICATION_FORM_URLENCODED, Charset.forName("UTF-8"));
+	public static final MediaType FORM_URL_ENCODED_CONTENT_TYPE = new MediaType(MediaType.APPLICATION_FORM_URLENCODED, Charset.forName("UTF-8"));
 
 	@Test
 	public void formUrlencodedWorks() {
@@ -60,7 +60,7 @@ public class FormIntegrationTests extends BaseWebClientTests {
 
 		testClient.post()
 				.uri("/post")
-				.contentType(CONTENT_TYPE)
+				.contentType(FORM_URL_ENCODED_CONTENT_TYPE)
 				.body(BodyInserters.fromFormData(formData))
 				.exchange()
 				.expectStatus().isOk()

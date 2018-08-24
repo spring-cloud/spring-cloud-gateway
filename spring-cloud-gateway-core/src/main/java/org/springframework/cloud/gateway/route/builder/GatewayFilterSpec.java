@@ -47,6 +47,7 @@ import org.springframework.cloud.gateway.filter.factory.RemoveRequestHeaderGatew
 import org.springframework.cloud.gateway.filter.factory.RemoveResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RequestHeaderToRequestUriGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RequestRateLimiterGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.RequestSizeGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RetryGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SaveSessionGatewayFilterFactory;
@@ -554,6 +555,16 @@ public class GatewayFilterSpec extends UriSpec {
 					}
 				}.apply(c -> {
 				}));
+	}
+	
+
+	/**
+	 * A filter that sets the maximum permissible size of a Request.
+	 * @param size the maximum size of a request
+	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
+	 */
+	public GatewayFilterSpec setRequestSize(Long size) {
+		return filter(getBean(RequestSizeGatewayFilterFactory.class).apply(c -> c.setMaxSize(size)));
 	}
 
 	private String routeId() {

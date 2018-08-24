@@ -21,17 +21,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.context.ApplicationListener;
 import reactor.cache.CacheFlux;
 import reactor.core.publisher.Flux;
 
 import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
-import org.springframework.context.event.EventListener;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 
 /**
  * @author Spencer Gibb
  */
-public class CachingRouteLocator implements RouteLocator {
+public class CachingRouteLocator implements RouteLocator, ApplicationListener<RefreshRoutesEvent> {
 
 	private final RouteLocator delegate;
 	private final Flux<Route> routes;
@@ -57,7 +57,12 @@ public class CachingRouteLocator implements RouteLocator {
 		return this.routes;
 	}
 
-	@EventListener(RefreshRoutesEvent.class)
+	@Override
+	public void onApplicationEvent(RefreshRoutesEvent event) {
+		refresh();
+	}
+
+	@Deprecated
 	/* for testing */ void handleRefresh() {
 		refresh();
 	}
