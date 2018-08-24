@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,14 @@
 package org.springframework.cloud.gateway.config;
 
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
-import org.springframework.cloud.gateway.filter.LoadBalancerClientFilter;
-import org.springframework.cloud.netflix.ribbon.RibbonAutoConfiguration;
+import org.springframework.cloud.client.loadbalancer.reactive.ReactiveLoadBalancer;
+import org.springframework.cloud.gateway.filter.ReactiveLoadBalancerClientFilter;
+import org.springframework.cloud.loadbalancer.config.LoadBalancerAutoConfiguration;
+import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.DispatcherHandler;
@@ -32,14 +34,15 @@ import org.springframework.web.reactive.DispatcherHandler;
  * @author Spencer Gibb
  */
 @Configuration
-@ConditionalOnClass({LoadBalancerClient.class, RibbonAutoConfiguration.class, DispatcherHandler.class})
-@AutoConfigureAfter(RibbonAutoConfiguration.class)
-public class GatewayLoadBalancerClientAutoConfiguration {
+@ConditionalOnClass({ReactiveLoadBalancer.class, LoadBalancerAutoConfiguration.class, DispatcherHandler.class})
+@AutoConfigureBefore(GatewayLoadBalancerClientAutoConfiguration.class)
+@AutoConfigureAfter(LoadBalancerAutoConfiguration.class)
+public class GatewayReactiveLoadBalancerClientAutoConfiguration {
 
 	@Bean
-	@ConditionalOnBean(LoadBalancerClient.class)
-	@ConditionalOnMissingBean(LoadBalancerClientFilter.class)
-	public LoadBalancerClientFilter loadBalancerClientFilter(LoadBalancerClient client) {
-		return new LoadBalancerClientFilter(client);
+	@ConditionalOnBean(LoadBalancerClientFactory.class)
+	@ConditionalOnMissingBean(ReactiveLoadBalancerClientFilter.class)
+	public ReactiveLoadBalancerClientFilter loadBalancerClientFilter(LoadBalancerClientFactory clientFactory) {
+		return new ReactiveLoadBalancerClientFilter(clientFactory);
 	}
 }
