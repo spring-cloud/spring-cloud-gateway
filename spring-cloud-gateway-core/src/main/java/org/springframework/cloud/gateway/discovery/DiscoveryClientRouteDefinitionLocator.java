@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.discovery;
 
 import java.net.URI;
 import java.util.Map;
+import java.util.function.Predicate;
 
 import reactor.core.publisher.Flux;
 
@@ -35,7 +36,6 @@ import org.springframework.expression.spel.support.SimpleEvaluationContext;
 import org.springframework.util.StringUtils;
 
 /**
- * TODO: developer configuration, in zuul, this was opt out, should be opt in
  * TODO: change to RouteLocator? use java dsl
  * @author Spencer Gibb
  */
@@ -44,6 +44,7 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 	private final DiscoveryClient discoveryClient;
 	private final DiscoveryLocatorProperties properties;
 	private final String routeIdPrefix;
+	private final SimpleEvaluationContext evalCtxt;
 
 	public DiscoveryClientRouteDefinitionLocator(DiscoveryClient discoveryClient, DiscoveryLocatorProperties properties) {
 		this.discoveryClient = discoveryClient;
@@ -53,30 +54,37 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 		} else {
 			this.routeIdPrefix = this.discoveryClient.getClass().getSimpleName() + "_";
 		}
+		evalCtxt = SimpleEvaluationContext
+				.forReadOnlyDataBinding()
+				.withInstanceMethods()
+				.build();
 	}
 
 	@Override
 	public Flux<RouteDefinition> getRouteDefinitions() {
-		SimpleEvaluationContext evalCtxt = SimpleEvaluationContext
-				.forReadOnlyDataBinding()
-				.withInstanceMethods()
-				.build();
 
 		SpelExpressionParser parser = new SpelExpressionParser();
 		Expression includeExpr = parser.parseExpression(properties.getIncludeExpression());
 		Expression urlExpr = parser.parseExpression(properties.getUrlExpression());
 
+		Predicate<ServiceInstance> includePredicate;
+		if (properties.getIncludeExpression() == null || "true".equalsIgnoreCase(properties.getIncludeExpression())) {
+			includePredicate = instance -> true;
+		} else {
+			includePredicate = instance -> {
+				Boolean include = includeExpr.getValue(evalCtxt, instance, Boolean.class);
+				if (include == null) {
+					return false;
+				}
+				return include;
+			};
+		}
+
 		return Flux.fromIterable(discoveryClient.getServices())
 				.map(discoveryClient::getInstances)
 				.filter(instances -> !instances.isEmpty())
 				.map(instances -> instances.get(0))
-				.filter(instance -> {
-					Boolean include = includeExpr.getValue(evalCtxt, instance, Boolean.class);
-					if (include == null) {
-						return false;
-					}
-					return include;
-				})
+				.filter(includePredicate)
 				.map(instance -> {
 					String serviceId = instance.getServiceId();
 
