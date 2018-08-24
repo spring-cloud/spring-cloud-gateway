@@ -17,7 +17,6 @@
 package org.springframework.cloud.gateway.filter;
 
 import java.net.URI;
-import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -26,6 +25,7 @@ import reactor.core.publisher.Mono;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.cloud.gateway.config.LoadBalancerProperties;
+import org.springframework.cloud.gateway.support.DelegatingServiceInstance;
 import org.springframework.cloud.gateway.support.NotFoundException;
 import org.springframework.core.Ordered;
 import org.springframework.web.server.ServerWebExchange;
@@ -103,58 +103,6 @@ public class LoadBalancerClientFilter implements GlobalFilter, Ordered {
 	protected ServiceInstance choose(ServerWebExchange exchange) {
 		return loadBalancer.choose(
 				((URI) exchange.getAttribute(GATEWAY_REQUEST_URL_ATTR)).getHost());
-	}
-
-	class DelegatingServiceInstance implements ServiceInstance {
-
-		final ServiceInstance delegate;
-
-		private String overrideScheme;
-
-		DelegatingServiceInstance(ServiceInstance delegate, String overrideScheme) {
-			this.delegate = delegate;
-			this.overrideScheme = overrideScheme;
-		}
-
-		@Override
-		public String getServiceId() {
-			return delegate.getServiceId();
-		}
-
-		@Override
-		public String getHost() {
-			return delegate.getHost();
-		}
-
-		@Override
-		public int getPort() {
-			return delegate.getPort();
-		}
-
-		@Override
-		public boolean isSecure() {
-			return delegate.isSecure();
-		}
-
-		@Override
-		public URI getUri() {
-			return delegate.getUri();
-		}
-
-		@Override
-		public Map<String, String> getMetadata() {
-			return delegate.getMetadata();
-		}
-
-		@Override
-		public String getScheme() {
-			String scheme = delegate.getScheme();
-			if (scheme != null) {
-				return scheme;
-			}
-			return this.overrideScheme;
-		}
-
 	}
 
 }

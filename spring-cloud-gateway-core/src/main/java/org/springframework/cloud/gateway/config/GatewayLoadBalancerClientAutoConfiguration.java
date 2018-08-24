@@ -38,8 +38,6 @@ import org.springframework.web.reactive.DispatcherHandler;
 @EnableConfigurationProperties(LoadBalancerProperties.class)
 public class GatewayLoadBalancerClientAutoConfiguration {
 
-	// GlobalFilter beans
-
 	@Bean
 	@ConditionalOnBean(LoadBalancerClient.class)
 	@ConditionalOnMissingBean(LoadBalancerClientFilter.class)
