@@ -3,6 +3,7 @@ package org.springframework.cloud.gateway.config;
 import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.handler.SimpleUrlHandlerMapping;
@@ -14,6 +15,7 @@ import org.springframework.web.reactive.handler.SimpleUrlHandlerMapping;
  */
 
 @Configuration
+@ConditionalOnClass(SimpleUrlHandlerMapping.class)
 @ConditionalOnProperty(name = "spring.cloud.gateway.globalcors.addToSimpleUrlHanderMapping", matchIfMissing = true)
 public class SimpleUrlHandlerMappingGlobalCorsAutoConfiguration {
 
