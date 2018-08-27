@@ -44,7 +44,7 @@ import org.springframework.web.reactive.function.client.ClientResponse;
 import reactor.core.publisher.Mono;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = RANDOM_PORT)
+@SpringBootTest(webEnvironment = RANDOM_PORT, properties="spring.cloud.gateway.globalcors.add-to-simple-url-hander-mapping=true")
 @DirtiesContext
 @ActiveProfiles("request-header-web-filter")
 public class SimpleUrlHandlerCorsTests extends BaseWebClientTests {
