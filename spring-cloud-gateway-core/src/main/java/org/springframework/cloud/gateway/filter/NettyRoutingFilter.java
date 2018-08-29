@@ -22,6 +22,7 @@ import java.util.List;
 
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
+import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.netty.NettyPipeline;
@@ -100,8 +101,8 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 
 		boolean preserveHost = exchange.getAttributeOrDefault(PRESERVE_HOST_HEADER_ATTRIBUTE, false);
 
-		HttpClient client = chunkedTransfer? this.httpClient.chunkedTransfer() :
-			this.httpClient.noChunkedTransfer();
+		HttpClient client = chunkedTransfer ? this.httpClient.chunkedTransfer() :
+				this.httpClient.noChunkedTransfer();
 
 		Flux<HttpClientResponse> responseFlux = client
 				.request(method)
@@ -124,8 +125,9 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 
 					res.responseHeaders().forEach(entry -> headers.add(entry.getKey(), entry.getValue()));
 
-					if (headers.getContentType() != null) {
-						exchange.getAttributes().put(ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR, headers.getContentType());
+					String contentTypeValue = headers.getFirst(HttpHeaders.CONTENT_TYPE);
+					if (StringUtils.hasLength(contentTypeValue)) {
+						exchange.getAttributes().put(ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR, contentTypeValue);
 					}
 
 					HttpHeaders filteredResponseHeaders = HttpHeadersFilter.filter(
