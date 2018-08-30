@@ -17,7 +17,11 @@
 
 package org.springframework.cloud.gateway.filter;
 
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
+
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.core.Ordered;
@@ -91,8 +95,25 @@ public class GatewayMetricsFilter implements GlobalFilter, Ordered {
 			}
 		}
 		Route route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
+
 		Tags tags = Tags.of("outcome", outcome, "status", status, "routeId",
-				route.getId(), "routeUri", route.getUri().toString());
+				route.getId(), "routeUri", getMetricsUriSchemaHost(route.getUri(),
+						exchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR)));
 		sample.stop(meterRegistry.timer("gateway.requests", tags));
+	}
+
+	private String getMetricsUriSchemaHost(URI routeUri, URI requestUri) {
+		String uriSchemaHostPort;
+		try {
+			uriSchemaHostPort = requestUri.toString().startsWith(routeUri.toString())
+					? routeUri.toString()
+					: new URI(requestUri.getScheme(), null, requestUri.getHost(),
+							requestUri.getPort(), null, null, null).toString();
+		}
+		catch (URISyntaxException e) {
+			uriSchemaHostPort = routeUri.toString();
+		}
+
+		return uriSchemaHostPort;
 	}
 }
