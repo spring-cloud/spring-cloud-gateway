@@ -18,7 +18,7 @@
 package org.springframework.cloud.gateway.filter;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,11 +33,7 @@ import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -46,8 +42,8 @@ import org.springframework.web.bind.annotation.RestController;
 import io.micrometer.core.instrument.MeterRegistry;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = RANDOM_PORT)
-@DirtiesContext
+@SpringBootTest(webEnvironment = DEFINED_PORT, properties = "server.port: ${test.fixed-port}")
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class GatewayMetricFilterTests extends BaseWebClientTests {
 
 	private static final String REQUEST_METRICS_NAME = "gateway.requests";
@@ -64,7 +60,7 @@ public class GatewayMetricFilterTests extends BaseWebClientTests {
 		assertMetricsContainsTag("outcome", HttpStatus.Series.SUCCESSFUL.name());
 		assertMetricsContainsTag("status", HttpStatus.OK.name());
 		assertMetricsContainsTag("routeId", "default_path_to_httpbin");
-		assertMetricsContainsTag("routeUri", "lb://testservice");
+		assertMetricsContainsTag("routeUri", "http://localhost:5044");
 	}
 
 	@Test
@@ -75,7 +71,7 @@ public class GatewayMetricFilterTests extends BaseWebClientTests {
 		assertMetricsContainsTag("outcome", HttpStatus.Series.SERVER_ERROR.name());
 		assertMetricsContainsTag("status", HttpStatus.INTERNAL_SERVER_ERROR.name());
 		assertMetricsContainsTag("routeId", "default_path_to_httpbin");
-		assertMetricsContainsTag("routeUri", testUri);
+		assertMetricsContainsTag("routeUri", "http://localhost:5044");
 	}
 
 	@Test
@@ -90,7 +86,18 @@ public class GatewayMetricFilterTests extends BaseWebClientTests {
 		assertMetricsContainsTag("outcome", "CUSTOM");
 		assertMetricsContainsTag("status", "432");
 		assertMetricsContainsTag("routeId", "test_custom_http_status");
-		assertMetricsContainsTag("routeUri", testUri);
+		assertMetricsContainsTag("routeUri", "http://localhost:5044");
+	}
+
+	@Test
+	public void gatewayRequestsMeterFilterUsesStaticRouteURI() {
+		testClient.get().uri("/").header("Host", "test.gateway-metrics.org")
+				.header("X-CF-Forwarded-Url",
+						"http://localhost:\" + port + \"/actuator/health?metrics")
+				.header("X-CF-Proxy-Signature", "foo")
+				.header("X-CF-Proxy-Metadata", "bar").exchange();
+		assertMetricsContainsTag("routeId", "gateway_metrics_route-url_test");
+		assertMetricsContainsTag("routeUri", "http://localhost:" + port + "/actuator");
 	}
 
 	private void assertMetricsContainsTag(String tagKey, String tagValue) {
