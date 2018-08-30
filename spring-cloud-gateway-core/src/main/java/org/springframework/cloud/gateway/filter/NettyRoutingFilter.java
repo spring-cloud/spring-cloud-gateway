@@ -22,6 +22,7 @@ import java.util.List;
 
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
+import org.springframework.util.StringUtils;
 import reactor.core.publisher.Mono;
 import reactor.ipc.netty.NettyPipeline;
 import reactor.ipc.netty.http.client.HttpClient;
@@ -129,8 +130,9 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 
 			res.responseHeaders().forEach(entry -> headers.add(entry.getKey(), entry.getValue()));
 
-			if (headers.getContentType() != null) {
-				exchange.getAttributes().put(ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR, headers.getContentType());
+			String contentTypeValue = headers.getFirst(HttpHeaders.CONTENT_TYPE);
+			if (StringUtils.hasLength(contentTypeValue)) {
+				exchange.getAttributes().put(ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR, contentTypeValue);
 			}
 
 			HttpHeaders filteredResponseHeaders = HttpHeadersFilter.filter(
