@@ -17,10 +17,8 @@
 
 package org.springframework.cloud.gateway.handler;
 
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.*;
 import java.util.function.Function;
-
-import reactor.core.publisher.Mono;
-
 import org.springframework.cloud.gateway.config.GlobalCorsProperties;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.route.RouteLocator;
@@ -28,10 +26,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.reactive.handler.AbstractHandlerMapping;
 import org.springframework.web.server.ServerWebExchange;
-
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_HANDLER_MAPPER_ATTR;
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_PREDICATE_ROUTE_ATTR;
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
+import reactor.core.publisher.Mono;
 
 /**
  * @author Spencer Gibb
@@ -61,7 +56,7 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 		if (managmentPort != null && exchange.getRequest().getURI().getPort() == managmentPort.intValue()) {
 			return Mono.empty();
 		}
-		exchange.getAttributes().put(GATEWAY_HANDLER_MAPPER_ATTR, getClass().getSimpleName());
+		exchange.getAttributes().put(GATEWAY_HANDLER_MAPPER_ATTR, getSimpleName());
 
 		return lookupRoute(exchange)
 				// .log("route-predicate-handler-mapping", Level.FINER) //name this
@@ -146,4 +141,7 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 	protected void validateRoute(Route route, ServerWebExchange exchange) {
 	}
 
+	protected String getSimpleName() {
+		return "RoutePredicateHandlerMapping";
+	}
 }
