@@ -22,6 +22,7 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.G
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Objects;
 
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.core.Ordered;
@@ -37,7 +38,6 @@ import io.micrometer.core.instrument.Timer.Sample;
 import reactor.core.publisher.Mono;
 
 public class GatewayMetricsFilter implements GlobalFilter, Ordered {
-
 	private MeterRegistry meterRegistry;
 
 	public GatewayMetricsFilter(MeterRegistry meterRegistry) {
@@ -95,16 +95,22 @@ public class GatewayMetricsFilter implements GlobalFilter, Ordered {
 			}
 		}
 		Route route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
-
+		String metricsUriString = Objects
+				.nonNull(exchange.getAttribute(GATEWAY_REQUEST_URL_ATTR))
+						? getMetricsUriSchemaHost(route.getUri(),
+								exchange.getAttribute(GATEWAY_REQUEST_URL_ATTR)
+										.toString())
+						: route.getUri().toString();
 		Tags tags = Tags.of("outcome", outcome, "status", status, "routeId",
-				route.getId(), "routeUri", getMetricsUriSchemaHost(route.getUri(),
-						exchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR)));
+				route.getId(), "routeUri", metricsUriString);
 		sample.stop(meterRegistry.timer("gateway.requests", tags));
 	}
 
-	private String getMetricsUriSchemaHost(URI routeUri, URI requestUri) {
+	private String getMetricsUriSchemaHost(URI routeUri, String gatewayRequestUrl) {
 		String uriSchemaHostPort;
+
 		try {
+			URI requestUri = new URI(gatewayRequestUrl);
 			uriSchemaHostPort = requestUri.toString().startsWith(routeUri.toString())
 					? routeUri.toString()
 					: new URI(requestUri.getScheme(), null, requestUri.getHost(),
