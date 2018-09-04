@@ -3,6 +3,7 @@ test:
 #  hostport: localhost:5000
 #  uri: http://${test.hostport}
   uri: lb://testservice
+  fixed-port: 5044
 
 spring:
   cloud:
@@ -257,6 +258,15 @@ spring:
         predicates:
         - Host=**.changeuri.org
         - Header=X-CF-Forwarded-Url
+        filters:
+        - RequestHeaderToRequestUri=X-CF-Forwarded-Url
+
+      # =====================================
+      - id: gateway_metrics_route-url_test
+        uri: http://localhost:${test.fixed-port}/actuator
+        predicates:
+        - Host=**.gateway-metrics.org
+        - CloudFoundryRouteService=
         filters:
         - RequestHeaderToRequestUri=X-CF-Forwarded-Url
 

@@ -60,7 +60,7 @@ public class GatewayMetricFilterTests extends BaseWebClientTests {
 		assertMetricsContainsTag("outcome", HttpStatus.Series.SUCCESSFUL.name());
 		assertMetricsContainsTag("status", HttpStatus.OK.name());
 		assertMetricsContainsTag("routeId", "default_path_to_httpbin");
-		assertMetricsContainsTag("routeUri", "http://localhost:5044");
+		assertMetricsContainsTag("routeUri", "http://localhost:" + port);
 	}
 
 	@Test
@@ -71,7 +71,7 @@ public class GatewayMetricFilterTests extends BaseWebClientTests {
 		assertMetricsContainsTag("outcome", HttpStatus.Series.SERVER_ERROR.name());
 		assertMetricsContainsTag("status", HttpStatus.INTERNAL_SERVER_ERROR.name());
 		assertMetricsContainsTag("routeId", "default_path_to_httpbin");
-		assertMetricsContainsTag("routeUri", "http://localhost:5044");
+		assertMetricsContainsTag("routeUri", "http://localhost:" + port);
 	}
 
 	@Test
@@ -86,14 +86,14 @@ public class GatewayMetricFilterTests extends BaseWebClientTests {
 		assertMetricsContainsTag("outcome", "CUSTOM");
 		assertMetricsContainsTag("status", "432");
 		assertMetricsContainsTag("routeId", "test_custom_http_status");
-		assertMetricsContainsTag("routeUri", "http://localhost:5044");
+		assertMetricsContainsTag("routeUri", "http://localhost:" + port);
 	}
 
 	@Test
 	public void gatewayRequestsMeterFilterUsesStaticRouteURI() {
 		testClient.get().uri("/").header("Host", "test.gateway-metrics.org")
 				.header("X-CF-Forwarded-Url",
-						"http://localhost:\" + port + \"/actuator/health?metrics")
+						"http://localhost:" + port + "/actuator/health?metrics")
 				.header("X-CF-Proxy-Signature", "foo")
 				.header("X-CF-Proxy-Metadata", "bar").exchange();
 		assertMetricsContainsTag("routeId", "gateway_metrics_route-url_test");
