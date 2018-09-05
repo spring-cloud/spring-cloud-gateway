@@ -1124,6 +1124,29 @@ public RouteLocator customRouteLocator(RouteLocatorBuilder builder, ThrottleGate
 <simpara>To enable this, set <literal>spring.cloud.gateway.discovery.locator.enabled=true</literal> and make sure a <literal>DiscoveryClient</literal> implementation is on the classpath and enabled (such as Netflix Eureka, Consul or Zookeeper).</simpara>
 </section>
 </chapter>
+<chapter xml:id="_reactor_netty_access_logs">
+<title>Reactor Netty Access Logs</title>
+<simpara>To enable Reactor Netty access logs, set <literal>-Dreactor.netty.http.server.accessLogEnabled=true</literal>. (It must be a Java System Property, not a Spring Boot property).</simpara>
+<simpara>The logging system can be configured to have a separate access log file. Below is an example logback configuration:</simpara>
+<formalpara>
+<title>logback.xml</title>
+<para>
+<programlisting language="xml" linenumbering="unnumbered">    &lt;appender name="accessLog" class="ch.qos.logback.core.FileAppender"&gt;
+        &lt;file&gt;access_log.log&lt;/file&gt;
+        &lt;encoder&gt;
+            &lt;pattern&gt;%msg%n&lt;/pattern&gt;
+        &lt;/encoder&gt;
+    &lt;/appender&gt;
+    &lt;appender name="async" class="ch.qos.logback.classic.AsyncAppender"&gt;
+        &lt;appender-ref ref="accessLog" /&gt;
+    &lt;/appender&gt;
+
+    &lt;logger name="reactor.netty.http.server.AccessLog" level="INFO" additivity="false"&gt;
+        &lt;appender-ref ref="async"/&gt;
+    &lt;/logger&gt;</programlisting>
+</para>
+</formalpara>
+</chapter>
 <chapter xml:id="_cors_configuration">
 <title>CORS Configuration</title>
 <simpara>The gateway can be configured to control CORS behavior. The "global" CORS configuration is a map of URL patterns to <link xl:href="https://docs.spring.io/spring/docs/5.0.x/javadoc-api/org/springframework/web/cors/CorsConfiguration.html">Spring Framework <literal>CorsConfiguration</literal></link>.</simpara>
