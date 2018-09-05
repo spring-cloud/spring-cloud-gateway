@@ -1054,6 +1054,30 @@ The Gateway can be configured to create routes based on services registered with
 
 To enable this, set `spring.cloud.gateway.discovery.locator.enabled=true` and make sure a `DiscoveryClient` implementation is on the classpath and enabled (such as Netflix Eureka, Consul or Zookeeper).
 
+== Reactor Netty Access Logs
+
+To enable Reactor Netty access logs, set `-Dreactor.netty.http.server.accessLogEnabled=true`. (It must be a Java System Property, not a Spring Boot property).
+
+The logging system can be configured to have a separate access log file. Below is an example logback configuration:
+
+.logback.xml
+[source,xml]
+----
+    <appender name="accessLog" class="ch.qos.logback.core.FileAppender">
+        <file>access_log.log</file>
+        <encoder>
+            <pattern>%msg%n</pattern>
+        </encoder>
+    </appender>
+    <appender name="async" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="accessLog" />
+    </appender>
+
+    <logger name="reactor.netty.http.server.AccessLog" level="INFO" additivity="false">
+        <appender-ref ref="async"/>
+    </logger>
+----
+
 == CORS Configuration
 
 The gateway can be configured to control CORS behavior. The "global" CORS configuration is a map of URL patterns to https://docs.spring.io/spring/docs/5.0.x/javadoc-api/org/springframework/web/cors/CorsConfiguration.html[Spring Framework `CorsConfiguration`]. 
