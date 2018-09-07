@@ -245,7 +245,7 @@ public class LoadBalancerClientFilterTests {
 			public ServiceInstance choose(String serviceId) {
 				String[] strings = serviceId.split("<<>>");
 				loadBalancerKey = strings[1];
-				return super.choose(strings[0]);
+				return super.choose(strings[0], loadBalancerKey);
 			}
 			protected Server getServer(ILoadBalancer loadBalancer) {
 				return loadBalancer == null ? null : loadBalancer.chooseServer(StringUtils.isEmpty(loadBalancerKey) ? "default" : loadBalancerKey);
