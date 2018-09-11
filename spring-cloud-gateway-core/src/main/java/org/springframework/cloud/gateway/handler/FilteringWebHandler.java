@@ -17,13 +17,14 @@
 
 package org.springframework.cloud.gateway.handler;
 
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.OrderedGatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
@@ -31,11 +32,7 @@ import org.springframework.cloud.gateway.route.Route;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.web.server.ServerWebExchange;
-import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.web.server.WebHandler;
-
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
-
 import reactor.core.publisher.Mono;
 
 /**
@@ -82,7 +79,9 @@ public class FilteringWebHandler implements WebHandler {
 		//TODO: needed or cached?
 		AnnotationAwareOrderComparator.sort(combined);
 
-		logger.debug("Sorted gatewayFilterFactories: "+ combined);
+		if (logger.isDebugEnabled()) {
+			logger.debug("Sorted gatewayFilterFactories: "+ combined);
+		}
 
 		return new DefaultGatewayFilterChain(combined).filter(exchange);
 	}
