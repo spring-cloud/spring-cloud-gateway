@@ -3,7 +3,6 @@ test:
 #  hostport: localhost:5000
 #  uri: http://${test.hostport}
   uri: lb://testservice
-  fixed-port: 5044
 
 spring:
   cloud:
@@ -263,7 +262,7 @@ spring:
 
       # =====================================
       - id: gateway_metrics_route-url_test
-        uri: http://localhost:${test.fixed-port}/actuator
+        uri: http://localhost:${server.port}/actuator
         predicates:
         - Host=**.gateway-metrics.org
         - CloudFoundryRouteService=

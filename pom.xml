@@ -223,6 +223,8 @@
 						<configuration>
 							<!-- Sets the VM argument line used when unit tests are run. -->
 							<argLine>${surefireArgLine}</argLine>
+							<reuseForks>false</reuseForks>
+							<forkCount>1</forkCount>
 						</configuration>
 					</plugin>
 				</plugins>
