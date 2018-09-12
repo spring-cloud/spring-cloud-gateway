@@ -20,6 +20,8 @@ package org.springframework.cloud.gateway.filter;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
 
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,16 +35,21 @@ import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.util.SocketUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.micrometer.core.instrument.MeterRegistry;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = DEFINED_PORT, properties = "server.port: ${test.fixed-port}")
+@SpringBootTest(webEnvironment = DEFINED_PORT)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class GatewayMetricFilterTests extends BaseWebClientTests {
 
@@ -53,6 +60,17 @@ public class GatewayMetricFilterTests extends BaseWebClientTests {
 
 	@Value("${test.uri}")
 	private String testUri;
+
+	@BeforeClass
+	public static void setupBeforeClass() {
+		System.setProperty("server.port",
+				String.valueOf(SocketUtils.findAvailableTcpPort()));
+	}
+
+	@AfterClass
+	public static void cleanupAfterClass() {
+		System.clearProperty("server.port");
+	}
 
 	@Test
 	public void gatewayRequestsMeterFilterHasTags() throws InterruptedException {
