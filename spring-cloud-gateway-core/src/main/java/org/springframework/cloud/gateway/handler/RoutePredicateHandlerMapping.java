@@ -61,7 +61,7 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 		if (managmentPort != null && exchange.getRequest().getURI().getPort() == managmentPort.intValue()) {
 			return Mono.empty();
 		}
-		exchange.getAttributes().put(GATEWAY_HANDLER_MAPPER_ATTR, getClass().getSimpleName());
+		exchange.getAttributes().put(GATEWAY_HANDLER_MAPPER_ATTR, getSimpleName());
 
 		return lookupRoute(exchange)
 				// .log("route-predicate-handler-mapping", Level.FINER) //name this
@@ -146,4 +146,7 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 	protected void validateRoute(Route route, ServerWebExchange exchange) {
 	}
 
+	protected String getSimpleName() {
+		return "RoutePredicateHandlerMapping";
+	}
 }
