@@ -95,9 +95,12 @@ public class GatewayMetricsFilter implements GlobalFilter, Ordered {
 			}
 		}
 		Route route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
+
+		// Evaluate the URI for the metrics tag. Static URI from route
+		// definition is used in case the request URI is null.
 		String metricsUriString = Objects
 				.nonNull(exchange.getAttribute(GATEWAY_REQUEST_URL_ATTR))
-						? getMetricsUriSchemaHost(route.getUri(),
+						? evaluateMetricsRequestUri(route.getUri().toString(),
 								exchange.getAttribute(GATEWAY_REQUEST_URL_ATTR)
 										.toString())
 						: route.getUri().toString();
@@ -106,18 +109,30 @@ public class GatewayMetricsFilter implements GlobalFilter, Ordered {
 		sample.stop(meterRegistry.timer("gateway.requests", tags));
 	}
 
-	private String getMetricsUriSchemaHost(URI routeUri, String gatewayRequestUrl) {
+	/**
+	 * Evaluates the URI to be used in the metrics tag. The URI path might contain
+	 * variable segments representing IDs (like /user/1, /user/2 ...) which must not be
+	 * considered for the metrics. So, if the request URI starts with the static URI from
+	 * the route definition we can use this static route URI as its path segments can be
+	 * considered as fixed. But if the request URI differs (e.g. by applying a forward
+	 * filter) then we can only use the scheme, host and port from the request URI to
+	 * avoid variable path segments.
+	 *
+	 * @param routeUri string representation of the route definition URI
+	 * @param gatewayRequestUrl string representation of the request URL
+	 * @return string representation of the URI to be used in the metrics tag
+	 */
+	private String evaluateMetricsRequestUri(String routeUri, String gatewayRequestUrl) {
 		String uriSchemaHostPort;
 
 		try {
 			URI requestUri = new URI(gatewayRequestUrl);
-			uriSchemaHostPort = requestUri.toString().startsWith(routeUri.toString())
-					? routeUri.toString()
+			uriSchemaHostPort = requestUri.toString().startsWith(routeUri) ? routeUri
 					: new URI(requestUri.getScheme(), null, requestUri.getHost(),
 							requestUri.getPort(), null, null, null).toString();
 		}
 		catch (URISyntaxException e) {
-			uriSchemaHostPort = routeUri.toString();
+			uriSchemaHostPort = routeUri;
 		}
 
 		return uriSchemaHostPort;
