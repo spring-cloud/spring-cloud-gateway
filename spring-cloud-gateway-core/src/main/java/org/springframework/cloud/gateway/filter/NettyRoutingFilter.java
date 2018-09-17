@@ -19,12 +19,9 @@ package org.springframework.cloud.gateway.filter;
 
 import java.net.URI;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
-import io.netty.handler.timeout.ReadTimeoutException;
-import io.netty.handler.timeout.ReadTimeoutHandler;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.netty.NettyPipeline;
@@ -106,13 +103,6 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 		HttpClient client = chunkedTransfer? this.httpClient.chunkedTransfer() :
 			this.httpClient.noChunkedTransfer();
 
-		boolean hasResponseTimeout = properties.getResponseTimeout() != null;
-		if (hasResponseTimeout) {
-			client = client.tcpConfiguration(tcpClient ->
-					tcpClient.doOnConnected(c ->
-							c.addHandlerFirst(new ReadTimeoutHandler(properties.getResponseTimeout().toMillis(), TimeUnit.MILLISECONDS))));
-		}
-
 		Flux<HttpClientResponse> responseFlux = client
 				.request(method)
 				.uri(url)
@@ -160,11 +150,13 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 					return Mono.just(res);
 				});
 
-		return responseFlux
-				.onErrorMap(t -> hasResponseTimeout && t instanceof ReadTimeoutException,
-						//TODO: figure out how to make this a 504
-						t -> new TimeoutException("Response took longer than timeout: " +
-								properties.getResponseTimeout()))
-				.then(chain.filter(exchange));
+		if (properties.getResponseTimeout() != null) {
+			//TODO: figure out how to make this a 504
+			responseFlux = responseFlux.timeout(properties.getResponseTimeout(),
+					Mono.error(new TimeoutException("Response took longer than timeout: " +
+							properties.getResponseTimeout())));
+		}
+
+		return responseFlux.then(chain.filter(exchange));
 	}
 }
