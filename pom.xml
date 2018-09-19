@@ -55,13 +55,6 @@
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
-				<groupId>org.springframework</groupId>
-				<artifactId>spring-framework-bom</artifactId>
-				<version>5.0.8.RELEASE</version>
-				<scope>import</scope>
-				<type>pom</type>
-			</dependency>
-			<dependency>
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-gateway-dependencies</artifactId>
 				<version>${project.version}</version>
