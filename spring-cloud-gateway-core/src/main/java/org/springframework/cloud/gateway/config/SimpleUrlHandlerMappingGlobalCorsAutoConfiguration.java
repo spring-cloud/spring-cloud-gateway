@@ -33,7 +33,7 @@ import org.springframework.web.reactive.handler.SimpleUrlHandlerMapping;
 
 @Configuration
 @ConditionalOnClass(SimpleUrlHandlerMapping.class)
-@ConditionalOnProperty(name = "spring.cloud.gateway.globalcors.add-to-simple-url-hander-mapping", matchIfMissing = false)
+@ConditionalOnProperty(name = "spring.cloud.gateway.globalcors.add-to-simple-url-handler-mapping", matchIfMissing = false)
 public class SimpleUrlHandlerMappingGlobalCorsAutoConfiguration {
 
 	@Autowired
