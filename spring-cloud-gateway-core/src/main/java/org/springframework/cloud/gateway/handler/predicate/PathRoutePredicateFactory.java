@@ -17,6 +17,7 @@
 
 package org.springframework.cloud.gateway.handler.predicate;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
@@ -40,6 +41,7 @@ import static org.springframework.http.server.PathContainer.parsePath;
  */
 public class PathRoutePredicateFactory extends AbstractRoutePredicateFactory<PathRoutePredicateFactory.Config> {
 	private static final Log log = LogFactory.getLog(RoutePredicateFactory.class);
+	private static final String MATCH_OPTIONAL_TRAILING_SEPARATOR_KEY = "matchOptionalTrailingSeparator";
 
 	private PathPatternParser pathPatternParser = new PathPatternParser();
 
@@ -53,12 +55,13 @@ public class PathRoutePredicateFactory extends AbstractRoutePredicateFactory<Pat
 
 	@Override
 	public List<String> shortcutFieldOrder() {
-		return Collections.singletonList(PATTERN_KEY);
+		return Arrays.asList(PATTERN_KEY, MATCH_OPTIONAL_TRAILING_SEPARATOR_KEY);
 	}
 
 	@Override
 	public Predicate<ServerWebExchange> apply(Config config) {
 		synchronized (this.pathPatternParser) {
+			pathPatternParser.setMatchOptionalTrailingSeparator(config.isMatchOptionalTrailingSeparator());
 			config.pathPattern = this.pathPatternParser.parse(config.pattern);
 		}
 		return exchange -> {
@@ -88,6 +91,7 @@ public class PathRoutePredicateFactory extends AbstractRoutePredicateFactory<Pat
 	public static class Config {
 		private String pattern;
 		private PathPattern pathPattern;
+		private boolean matchOptionalTrailingSeparator = true;
 
 		public String getPattern() {
 			return pattern;
@@ -98,10 +102,20 @@ public class PathRoutePredicateFactory extends AbstractRoutePredicateFactory<Pat
 			return this;
 		}
 
+		public boolean isMatchOptionalTrailingSeparator() {
+			return matchOptionalTrailingSeparator;
+		}
+
+		public Config setMatchOptionalTrailingSeparator(boolean matchOptionalTrailingSeparator) {
+			this.matchOptionalTrailingSeparator = matchOptionalTrailingSeparator;
+			return this;
+		}
+
 		@Override
 		public String toString() {
 			return new ToStringCreator(this)
 					.append("pattern", pattern)
+					.append("matchOptionalTrailingSeparator", matchOptionalTrailingSeparator)
 					.toString();
 		}
 	}

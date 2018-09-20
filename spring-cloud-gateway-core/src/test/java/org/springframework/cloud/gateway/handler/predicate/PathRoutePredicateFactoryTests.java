@@ -44,6 +44,12 @@ public class PathRoutePredicateFactoryTests extends BaseWebClientTests {
 				.expectStatus().isOk()
 				.expectHeader().valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName())
 				.expectHeader().valueEquals(ROUTE_ID_HEADER, "path_test");
+
+		//since the configuration does not allow the trailing / to match this should fail
+		testClient.get().uri("/abc/123/function/")
+				.header(HttpHeaders.HOST, "www.path.org")
+				.exchange()
+				.expectStatus().is4xxClientError();
 	}
 
 	@Test
