@@ -26,6 +26,7 @@ import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.core.env.Environment;
 import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.reactive.CorsUtils;
 import org.springframework.web.reactive.handler.AbstractHandlerMapping;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -79,6 +80,22 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 						logger.trace("No RouteDefinition found for [" + getExchangeDesc(exchange) + "]");
 					}
 				})));
+	}
+
+	@Override
+	public Mono<Object> getHandler(ServerWebExchange exchange) {
+		return getHandlerInternal(exchange).map(handler -> {
+			if (CorsUtils.isCorsRequest(exchange.getRequest())) {
+				CorsConfiguration corsConfiguration = getCorsConfiguration(handler, exchange);
+				if (corsConfiguration != null) {
+					boolean isValid = getCorsProcessor().process(corsConfiguration, exchange);
+					if (!isValid || CorsUtils.isPreFlightRequest(exchange.getRequest())) {
+						return Mono.empty();
+					}
+				}
+			}
+			return handler;
+		});
 	}
 
 	@Override
