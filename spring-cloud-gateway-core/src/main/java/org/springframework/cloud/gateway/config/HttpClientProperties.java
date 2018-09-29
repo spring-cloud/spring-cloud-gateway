@@ -220,8 +220,13 @@ public class HttpClientProperties {
 	public class Ssl {
 		/** Installs the netty InsecureTrustManagerFactory. This is insecure and not suitable for production. */
 		private boolean useInsecureTrustManager = false;
-		
+				
 		private List<String> trustedX509Certificates = new ArrayList<>();
+		
+		// use netty default SSL timeouts
+		private long handshakeTimeoutMillis = 10000L;
+		private long closeNotifyFlushTimeoutMillis = 3000L;
+		private long closeNotifyReadTimeoutMillis = 0L;
 
 		public List<String> getTrustedX509Certificates() {
 			return trustedX509Certificates;
@@ -266,11 +271,42 @@ public class HttpClientProperties {
 			this.useInsecureTrustManager = useInsecureTrustManager;
 		}
 
+		public long getHandshakeTimeoutMillis() {
+			return handshakeTimeoutMillis;
+		}
+
+		public void setHandshakeTimeoutMillis(long handshakeTimeoutMillis) {
+			this.handshakeTimeoutMillis = handshakeTimeoutMillis;
+		}
+		
+		public long getCloseNotifyFlushTimeoutMillis() {
+			return closeNotifyFlushTimeoutMillis;
+		}
+
+		public void setCloseNotifyFlushTimeoutMillis(long closeNotifyFlushTimeoutMillis) {
+			this.closeNotifyFlushTimeoutMillis = closeNotifyFlushTimeoutMillis;
+		}
+
+		public long getCloseNotifyReadTimeoutMillis() {
+			return closeNotifyReadTimeoutMillis;
+		}
+
+		public void setCloseNotifyReadTimeoutMillis(long closeNotifyReadTimeoutMillis) {
+			this.closeNotifyReadTimeoutMillis = closeNotifyReadTimeoutMillis;
+		}
+		
 		@Override
 		public String toString() {
 			return "Ssl {useInsecureTrustManager=" + useInsecureTrustManager
-					+ ", trustedX509Certificates=" + trustedX509Certificates + "}";
+					+ ", trustedX509Certificates=" + trustedX509Certificates
+					+ ", handshakeTimeoutMillis=" + handshakeTimeoutMillis
+					+ ", closeNotifyFlushTimeoutMillis="
+					+ closeNotifyFlushTimeoutMillis
+					+ ", closeNotifyReadTimeoutMillis="
+					+ closeNotifyReadTimeoutMillis + "}";
 		}
+
+
 	}
 
 	@Override
