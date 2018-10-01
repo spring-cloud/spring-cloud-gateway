@@ -54,7 +54,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = { GatewaySampleApplicationTests.TestConfig.class},
-		webEnvironment = RANDOM_PORT)
+		webEnvironment = RANDOM_PORT, properties = "management.server.port=${test.port}")
 public class GatewaySampleApplicationTests {
 
 	@LocalServerPort
@@ -69,12 +69,12 @@ public class GatewaySampleApplicationTests {
 	public static void beforeClass() {
 		managementPort = SocketUtils.findAvailableTcpPort();
 
-		System.setProperty("management.server.port", String.valueOf(managementPort));
+		System.setProperty("test.port", String.valueOf(managementPort));
 	}
 
 	@AfterClass
 	public static void afterClass() {
-		System.clearProperty("management.server.port");
+		System.clearProperty("test.port");
 	}
 
 	@Before

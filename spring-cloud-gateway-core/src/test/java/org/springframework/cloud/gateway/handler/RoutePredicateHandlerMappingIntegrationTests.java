@@ -34,7 +34,7 @@ import org.springframework.util.SocketUtils;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = RANDOM_PORT)
+@SpringBootTest(webEnvironment = RANDOM_PORT, properties = "management.server.port=${test.port}")
 @DirtiesContext
 public class RoutePredicateHandlerMappingIntegrationTests extends BaseWebClientTests {
 
@@ -43,12 +43,12 @@ public class RoutePredicateHandlerMappingIntegrationTests extends BaseWebClientT
 	@BeforeClass
 	public static void beforeClass() {
 		managementPort = SocketUtils.findAvailableTcpPort();
-		System.setProperty("management.server.port", String.valueOf(managementPort));
+		System.setProperty("test.port", String.valueOf(managementPort));
 	}
 
 	@AfterClass
 	public static void afterClass() {
-		System.clearProperty("management.server.port");
+		System.clearProperty("test.port");
 	}
 
 	@Test
