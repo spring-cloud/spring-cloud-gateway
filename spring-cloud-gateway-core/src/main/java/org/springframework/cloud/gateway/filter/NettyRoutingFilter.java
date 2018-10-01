@@ -100,10 +100,8 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 
 		boolean preserveHost = exchange.getAttributeOrDefault(PRESERVE_HOST_HEADER_ATTRIBUTE, false);
 
-		HttpClient client = chunkedTransfer? this.httpClient.chunkedTransfer() :
-			this.httpClient.noChunkedTransfer();
-
-		Flux<HttpClientResponse> responseFlux = client
+		Flux<HttpClientResponse> responseFlux = this.httpClient
+				.chunkedTransfer(chunkedTransfer)
 				.request(method)
 				.uri(url)
 				.send((req, nettyOutbound) -> {
