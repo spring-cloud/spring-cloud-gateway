@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,55 +15,47 @@
  *
  */
 
-package org.springframework.cloud.gateway.handler.predicate;
+package org.springframework.cloud.gateway.filter;
+
+import java.util.Map;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.HttpHeaders;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = RANDOM_PORT)
+@SpringBootTest(properties = "spring.cloud.gateway.httpclient.response-timeout=3s", webEnvironment = RANDOM_PORT)
 @DirtiesContext
-public class PathRoutePredicateFactoryTests extends BaseWebClientTests {
+@SuppressWarnings("unchecked")
+public class NettyRoutingFilterIntegrationTests extends BaseWebClientTests {
 
 	@Test
-	public void pathRouteWorks() {
-		testClient.get().uri("/abc/123/function")
-				.header(HttpHeaders.HOST, "www.path.org")
+	public void responseTimeoutWorks() {
+		testClient.get()
+				.uri("/delay/5")
 				.exchange()
-				.expectStatus().isOk()
-				.expectHeader().valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName())
-				.expectHeader().valueEquals(ROUTE_ID_HEADER, "path_test");
-
-		//since the configuration does not allow the trailing / to match this should fail
-		testClient.get().uri("/abc/123/function/")
-				.header(HttpHeaders.HOST, "www.path.org")
-				.exchange()
-				.expectStatus().is4xxClientError();
-	}
-
-	@Test
-	public void defaultPathRouteWorks() {
-		testClient.get().uri("/get")
-				.exchange()
-				.expectStatus().isOk()
-				.expectHeader().valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName())
-				.expectHeader().valueEquals(ROUTE_ID_HEADER, "default_path_to_httpbin");
+				.expectStatus().is5xxServerError()
+				.expectBody(Map.class)
+				.consumeWith(result -> {
+					Map body = result.getResponseBody();
+					assertThat(body).containsEntry("message", "Response took longer than timeout: PT3S");
+				});
 	}
 
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
-	public static class TestConfig { }
+	public static class TestConfig {
+	}
 
 }

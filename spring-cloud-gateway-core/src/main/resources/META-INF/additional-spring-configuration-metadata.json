@@ -1,0 +1,22 @@
+{
+  "properties": [
+    {
+      "name": "spring.cloud.gateway.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables gateway functionality.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.forwarded.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the ForwardedHeadersFilter.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.metrics.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the collection of metrics data.",
+      "defaultValue": "false"
+    }
+  ]
+}

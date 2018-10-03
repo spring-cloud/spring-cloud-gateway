@@ -19,9 +19,12 @@ package org.springframework.cloud.gateway.filter;
 
 import java.net.URI;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.timeout.ReadTimeoutException;
+import io.netty.handler.timeout.ReadTimeoutHandler;
 import reactor.core.publisher.Mono;
 import reactor.ipc.netty.NettyPipeline;
 import reactor.ipc.netty.http.client.HttpClient;
@@ -111,16 +114,15 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 				proxyRequest.header(HttpHeaders.HOST, host);
 			}
 
+			if (properties.getResponseTimeout() != null) {
+				proxyRequest.context(ctx -> ctx.addHandlerFirst(
+						new ReadTimeoutHandler(properties.getResponseTimeout().toMillis(), TimeUnit.MILLISECONDS)));
+			}
+
 			return proxyRequest.sendHeaders() //I shouldn't need this
 					.send(request.getBody().map(dataBuffer ->
 							((NettyDataBuffer) dataBuffer).getNativeBuffer()));
 		});
-
-		if (properties.getResponseTimeout() != null) {
-			responseMono.timeout(properties.getResponseTimeout(),
-					Mono.error(new TimeoutException("Response took longer than timeout: " +
-							properties.getResponseTimeout())));
-		}
 
 		return responseMono.doOnNext(res -> {
 			ServerHttpResponse response = exchange.getResponse();
@@ -150,6 +152,10 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 			// Defer committing the response until all route filters have run
 			// Put client response as ServerWebExchange attribute and write response later NettyWriteResponseFilter
 			exchange.getAttributes().put(CLIENT_RESPONSE_ATTR, res);
-		}).then(chain.filter(exchange));
+		})
+				.onErrorMap(t -> properties.getResponseTimeout() != null && t instanceof ReadTimeoutException,
+						t -> new TimeoutException("Response took longer than timeout: " +
+								properties.getResponseTimeout()))
+				.then(chain.filter(exchange));
 	}
 }
