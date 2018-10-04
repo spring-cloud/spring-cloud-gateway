@@ -49,8 +49,8 @@ import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
-@ActiveProfiles("ssl")
-public class SSLTests extends BaseWebClientTests {
+@ActiveProfiles("single-cert-ssl")
+public class SingleCertSSLTests extends BaseWebClientTests {
 
 	@Before
 	public void setup() {
