@@ -22,6 +22,7 @@ import java.util.List;
 
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
+import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.netty.NettyPipeline;
@@ -149,10 +150,9 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 				});
 
 		if (properties.getResponseTimeout() != null) {
-			//TODO: figure out how to make this a 504
 			responseFlux = responseFlux.timeout(properties.getResponseTimeout(),
 					Mono.error(new TimeoutException("Response took longer than timeout: " +
-							properties.getResponseTimeout())));
+							properties.getResponseTimeout()))).onErrorMap(TimeoutException.class, th -> new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT, null, th));
 		}
 
 		return responseFlux.then(chain.filter(exchange));
