@@ -50,7 +50,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 import static org.springframework.http.MediaType.TEXT_HTML;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = RANDOM_PORT)
+@SpringBootTest(webEnvironment = RANDOM_PORT, properties = "debug=true")
 @DirtiesContext
 public class HystrixGatewayFilterFactoryTests extends BaseWebClientTests {
 

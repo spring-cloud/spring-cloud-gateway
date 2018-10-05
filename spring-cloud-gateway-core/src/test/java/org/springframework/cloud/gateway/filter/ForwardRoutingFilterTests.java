@@ -1,5 +1,7 @@
 package org.springframework.cloud.gateway.filter;
 
+import java.net.URI;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -7,6 +9,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.core.Ordered;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -14,10 +18,11 @@ import org.springframework.web.reactive.DispatcherHandler;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.net.URI;
-
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.when;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ALREADY_ROUTED_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
 
@@ -34,6 +39,9 @@ public class ForwardRoutingFilterTests {
 	private GatewayFilterChain chain;
 
 	@Mock
+	private ObjectProvider<DispatcherHandler> objectProvider;
+
+	@Mock
 	private DispatcherHandler dispatcherHandler;
 
 	@InjectMocks
@@ -42,6 +50,7 @@ public class ForwardRoutingFilterTests {
 	@Before
 	public void setup() {
 		exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localendpoint").build());
+		when(objectProvider.getIfAvailable()).thenReturn(this.dispatcherHandler);
 	}
 
 	@Test

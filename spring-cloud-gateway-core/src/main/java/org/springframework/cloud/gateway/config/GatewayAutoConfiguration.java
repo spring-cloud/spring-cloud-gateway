@@ -369,7 +369,7 @@ public class GatewayAutoConfiguration {
 
 	@Bean
 	@ConditionalOnBean(DispatcherHandler.class)
-	public ForwardRoutingFilter forwardRoutingFilter(DispatcherHandler dispatcherHandler) {
+	public ForwardRoutingFilter forwardRoutingFilter(ObjectProvider<DispatcherHandler> dispatcherHandler) {
 		return new ForwardRoutingFilter(dispatcherHandler);
 	}
 
@@ -496,7 +496,7 @@ public class GatewayAutoConfiguration {
 	@ConditionalOnClass({HystrixObservableCommand.class, RxReactiveStreams.class})
 	protected static class HystrixConfiguration {
 		@Bean
-		public HystrixGatewayFilterFactory hystrixGatewayFilterFactory(DispatcherHandler dispatcherHandler) {
+		public HystrixGatewayFilterFactory hystrixGatewayFilterFactory(ObjectProvider<DispatcherHandler> dispatcherHandler) {
 			return new HystrixGatewayFilterFactory(dispatcherHandler);
 		}
 	}

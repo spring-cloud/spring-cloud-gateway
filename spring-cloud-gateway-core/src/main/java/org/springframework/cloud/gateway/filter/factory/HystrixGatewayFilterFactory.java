@@ -23,6 +23,17 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import com.netflix.hystrix.HystrixCommandGroupKey;
+import com.netflix.hystrix.HystrixCommandKey;
+import com.netflix.hystrix.HystrixObservableCommand;
+import com.netflix.hystrix.HystrixObservableCommand.Setter;
+import com.netflix.hystrix.exception.HystrixRuntimeException;
+import reactor.core.publisher.Mono;
+import rx.Observable;
+import rx.RxReactiveStreams;
+import rx.Subscription;
+
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.http.HttpStatus;
@@ -34,20 +45,9 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import com.netflix.hystrix.HystrixCommandGroupKey;
-import com.netflix.hystrix.HystrixCommandKey;
-import com.netflix.hystrix.HystrixObservableCommand;
-import com.netflix.hystrix.HystrixObservableCommand.Setter;
-import com.netflix.hystrix.exception.HystrixRuntimeException;
-
 import static com.netflix.hystrix.exception.HystrixRuntimeException.FailureType.TIMEOUT;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.containsEncodedParts;
-
-import reactor.core.publisher.Mono;
-import rx.Observable;
-import rx.RxReactiveStreams;
-import rx.Subscription;
 
 /**
  * Depends on `spring-cloud-starter-netflix-hystrix`, {@see http://cloud.spring.io/spring-cloud-netflix/}
@@ -57,9 +57,9 @@ public class HystrixGatewayFilterFactory extends AbstractGatewayFilterFactory<Hy
 
 	public static final String FALLBACK_URI = "fallbackUri";
 
-	private final DispatcherHandler dispatcherHandler;
+	private final ObjectProvider<DispatcherHandler> dispatcherHandler;
 
-	public HystrixGatewayFilterFactory(DispatcherHandler dispatcherHandler) {
+	public HystrixGatewayFilterFactory(ObjectProvider<DispatcherHandler> dispatcherHandler) {
 		super(Config.class);
 		this.dispatcherHandler = dispatcherHandler;
 	}
@@ -149,7 +149,8 @@ public class HystrixGatewayFilterFactory extends AbstractGatewayFilterFactory<Hy
 
 			ServerHttpRequest request = this.exchange.getRequest().mutate().uri(requestUrl).build();
 			ServerWebExchange mutated = exchange.mutate().request(request).build();
-			return RxReactiveStreams.toObservable(HystrixGatewayFilterFactory.this.dispatcherHandler.handle(mutated));
+			DispatcherHandler dispatcherHandler = HystrixGatewayFilterFactory.this.dispatcherHandler.getIfAvailable();
+			return RxReactiveStreams.toObservable(dispatcherHandler.handle(mutated));
 		}
 	}
 
