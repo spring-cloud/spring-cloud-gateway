@@ -93,7 +93,7 @@ public class XForwardedRemoteAddressResolver implements RemoteAddressResolver {
 		Collections.reverse(xForwardedValues);
 		if (xForwardedValues.size() != 0) {
 			int index = Math.min(xForwardedValues.size(), maxTrustedIndex) - 1;
-			return InetSocketAddress.createUnresolved(xForwardedValues.get(index), 0);
+			return new InetSocketAddress(xForwardedValues.get(index), 0);
 		}
 		return defaultRemoteIpResolver.resolve(exchange);
 	}

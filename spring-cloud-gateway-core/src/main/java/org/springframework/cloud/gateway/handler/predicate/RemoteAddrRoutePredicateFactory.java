@@ -17,6 +17,16 @@
 
 package org.springframework.cloud.gateway.handler.predicate;
 
+import io.netty.handler.ipfilter.IpFilterRuleType;
+import io.netty.handler.ipfilter.IpSubnetFilterRule;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.cloud.gateway.support.ipresolver.RemoteAddressResolver;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.server.ServerWebExchange;
+
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,19 +34,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.cloud.gateway.support.ipresolver.RemoteAddressResolver;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.server.ServerWebExchange;
-
 import static org.springframework.cloud.gateway.support.ShortcutConfigurable.ShortcutType.GATHER_LIST;
-
-import io.netty.handler.ipfilter.IpFilterRuleType;
-import io.netty.handler.ipfilter.IpSubnetFilterRule;
 
 /**
  * @author Spencer Gibb
@@ -74,7 +72,7 @@ public class RemoteAddrRoutePredicateFactory extends AbstractRoutePredicateFacto
 
 		return exchange -> {
 			InetSocketAddress remoteAddress = config.remoteAddressResolver.resolve(exchange);
-			if (remoteAddress != null) {
+			if (remoteAddress != null && remoteAddress.getAddress() != null) {
 				String hostAddress = remoteAddress.getAddress().getHostAddress();
 				String host = exchange.getRequest().getURI().getHost();
 
