@@ -430,7 +430,7 @@ or check if an exchange has already been routed.</p><div class="itemizedlist"><u
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">          trustedX509Certificates</span>:
           - cert1.pem
           - cert2.pem</pre><p>
-</p></div><div class="chapter"><div class="titlepage"><div><div><h1 class="title"><a name="_configuration" href="#_configuration"></a>8.&nbsp;Configuration</h1></div></div></div><p>Configuration for Spring Cloud Gateway is driven by a collection of `RouteDefinitionLocator`s.</p><p><b>RouteDefinitionLocator.java.&nbsp;</b>
+</p><p>If the Spring Cloud Gateway is not provisioned with trusted certificates the default trust store is used (which can be overriden with system property javax.net.ssl.trustStore.</p></div><div class="chapter"><div class="titlepage"><div><div><h1 class="title"><a name="_configuration" href="#_configuration"></a>8.&nbsp;Configuration</h1></div></div></div><p>Configuration for Spring Cloud Gateway is driven by a collection of `RouteDefinitionLocator`s.</p><p><b>RouteDefinitionLocator.java.&nbsp;</b>
 </p><pre class="programlisting"><span xmlns:d="http://docbook.org/ns/docbook" class="hl-keyword">public</span> <span xmlns:d="http://docbook.org/ns/docbook" class="hl-keyword">interface</span> RouteDefinitionLocator {
 	Flux&lt;RouteDefinition&gt; getRouteDefinitions();
 }</pre><p>
