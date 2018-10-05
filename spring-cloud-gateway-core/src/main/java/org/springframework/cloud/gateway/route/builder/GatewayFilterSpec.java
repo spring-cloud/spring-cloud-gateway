@@ -51,6 +51,7 @@ import org.springframework.cloud.gateway.filter.factory.RequestRateLimiterGatewa
 import org.springframework.cloud.gateway.filter.factory.RequestSizeGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RetryGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.RewriteResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SaveSessionGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SetPathGatewayFilterFactory;
@@ -478,6 +479,18 @@ public class GatewayFilterSpec extends UriSpec {
 	}
 
 	/**
+	 * A filter that rewrites a header value on the response before it is returned to the client by the Gateway.
+	 * @param headerName the header name
+	 * @param regex a Java regular expression to match the path against
+	 * @param replacement the replacement for the path
+	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
+	 */
+	public GatewayFilterSpec rewriteResponseHeader(String headerName, String regex, String replacement) {
+		return filter(getBean(RewriteResponseHeaderGatewayFilterFactory.class)
+				.apply(c -> c.setReplacement(replacement).setRegexp(regex).setName(headerName)));
+	}
+
+	/**
 	 * A filter that sets the status on the response before it is returned to the client by the Gateway.
 	 * @param status the status to set on the response
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
@@ -557,7 +570,7 @@ public class GatewayFilterSpec extends UriSpec {
 				}.apply(c -> {
 				}));
 	}
-	
+
 
 	/**
 	 * A filter that sets the maximum permissible size of a Request.

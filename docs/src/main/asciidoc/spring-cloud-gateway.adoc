@@ -703,6 +703,24 @@ spring:
 
 For a request path of `/foo/bar`, this will set the path to `/bar` before making the downstream request. Notice the `$\` which is replaced with `$` because of the YAML spec.
 
+=== RewriteResponseHeader GatewayFilter Factory
+The RewriteResponseHeader GatewayFilter Factory takes `name`, `regexp`, and `replacement` parameters. It uses Java regular expressions for a flexible way to rewrite the response header value.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: rewriteresponseheader_route
+        uri: http://example.org
+        filters:
+        - RewriteResponseHeader=X-Response-Foo, , password=[^&]+, password=***
+----
+
+For a header value of `/42?user=ford&password=omg!what&flag=true`, it will be set to `/42?user=ford&password=\***&flag=true` before making the downstream request. Please use `$\` to mean `$` because of the YAML spec.
+
 === SaveSession GatewayFilter Factory
 The SaveSession GatewayFilter Factory forces a `WebSession::save` operation _before_ forwarding the call downstream. This is of particular use when
 using something like http://projects.spring.io/spring-session/[Spring Session] with a lazy data store and need to ensure the session state has been saved before making the forwarded call.
