@@ -25,21 +25,7 @@ import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 import org.junit.runners.model.Statement;
 
-import org.springframework.cloud.gateway.filter.factory.AddRequestHeaderGatewayFilterFactoryTests;
-import org.springframework.cloud.gateway.filter.factory.AddRequestParameterGatewayFilterFactoryTests;
-import org.springframework.cloud.gateway.filter.factory.HystrixGatewayFilterFactoryTests;
-import org.springframework.cloud.gateway.filter.factory.PreserveHostHeaderGatewayFilterFactoryTests;
-import org.springframework.cloud.gateway.filter.factory.RedirectToGatewayFilterFactoryTests;
-import org.springframework.cloud.gateway.filter.factory.RemoveRequestHeaderGatewayFilterFactoryTests;
-import org.springframework.cloud.gateway.filter.factory.RemoveResponseHeaderGatewayFilterFactoryTests;
-import org.springframework.cloud.gateway.filter.factory.RequestRateLimiterGatewayFilterFactoryTests;
-import org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactoryIntegrationTests;
-import org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactoryTests;
-import org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactoryTests;
-import org.springframework.cloud.gateway.filter.factory.SetPathGatewayFilterFactoryIntegrationTests;
-import org.springframework.cloud.gateway.filter.factory.SetPathGatewayFilterFactoryTests;
-import org.springframework.cloud.gateway.filter.factory.SetResponseHeaderGatewayFilterFactoryTests;
-import org.springframework.cloud.gateway.filter.factory.SetStatusGatewayFilterFactoryTests;
+import org.springframework.cloud.gateway.filter.factory.*;
 import org.springframework.cloud.gateway.filter.headers.ForwardedHeadersFilterTests;
 import org.springframework.cloud.gateway.filter.headers.RemoveHopByHopHeadersFilterTests;
 import org.springframework.cloud.gateway.filter.headers.XForwardedHeadersFilterTests;
@@ -89,6 +75,7 @@ import static org.junit.Assume.assumeThat;
 		SetPathGatewayFilterFactoryIntegrationTests.class,
 		AddRequestParameterGatewayFilterFactoryTests.class,
 		SetResponseHeaderGatewayFilterFactoryTests.class,
+		RewriteResponseHeaderGatewayFilterFactoryTests.class,
 		PrincipalNameKeyResolverIntegrationTests.class,
 		RedisRateLimiterTests.class,
 		RouteDefinitionRouteLocatorTests.class,
