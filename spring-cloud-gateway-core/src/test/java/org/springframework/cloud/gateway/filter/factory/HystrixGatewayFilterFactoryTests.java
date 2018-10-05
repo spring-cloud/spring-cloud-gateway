@@ -47,7 +47,7 @@ import org.springframework.web.bind.annotation.RestController;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = RANDOM_PORT)
+@SpringBootTest(webEnvironment = RANDOM_PORT, properties = "debug=true")
 @DirtiesContext
 public class HystrixGatewayFilterFactoryTests extends BaseWebClientTests {
 
