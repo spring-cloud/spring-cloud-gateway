@@ -30,6 +30,7 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.DispatcherHandler;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -42,7 +43,6 @@ import com.netflix.hystrix.exception.HystrixRuntimeException;
 import static com.netflix.hystrix.exception.HystrixRuntimeException.FailureType.TIMEOUT;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.containsEncodedParts;
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.setResponseStatus;
 
 import reactor.core.publisher.Mono;
 import rx.Observable;
@@ -101,9 +101,8 @@ public class HystrixGatewayFilterFactory extends AbstractGatewayFilterFactory<Hy
 			}).onErrorResume((Function<Throwable, Mono<Void>>) throwable -> {
 				if (throwable instanceof HystrixRuntimeException) {
 					HystrixRuntimeException e = (HystrixRuntimeException) throwable;
-					if (e.getFailureType() == TIMEOUT) { //TODO: optionally set status
-						setResponseStatus(exchange, HttpStatus.GATEWAY_TIMEOUT);
-						return exchange.getResponse().setComplete();
+					if (e.getFailureType() == TIMEOUT) {
+						return Mono.error(new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT));
 					}
 				}
 				return Mono.error(throwable);
@@ -191,4 +190,5 @@ public class HystrixGatewayFilterFactory extends AbstractGatewayFilterFactory<Hy
 			return this;
 		}
 	}
+
 }
