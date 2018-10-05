@@ -50,8 +50,8 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
-@ActiveProfiles("ssl")
-public class SSLTests extends BaseWebClientTests {
+@ActiveProfiles("single-cert-ssl")
+public class SingleCertSSLTests extends BaseWebClientTests {
 
 	@Before
 	public void setup() {

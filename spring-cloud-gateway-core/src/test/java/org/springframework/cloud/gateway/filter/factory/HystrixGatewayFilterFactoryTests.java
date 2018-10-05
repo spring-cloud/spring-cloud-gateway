@@ -40,11 +40,14 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
+import static org.springframework.http.MediaType.TEXT_HTML;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT, properties = "debug=true")
@@ -65,7 +68,10 @@ public class HystrixGatewayFilterFactoryTests extends BaseWebClientTests {
 		testClient.get().uri("/delay/3")
 				.header("Host", "www.hystrixfailure.org")
 				.exchange()
-				.expectStatus().isEqualTo(HttpStatus.GATEWAY_TIMEOUT);
+				.expectStatus().isEqualTo(HttpStatus.GATEWAY_TIMEOUT)
+				.expectBody()
+				.jsonPath("$.status")
+				.isEqualTo(String.valueOf(HttpStatus.GATEWAY_TIMEOUT.value()));
 	}
 
 	@Test
@@ -101,6 +107,23 @@ public class HystrixGatewayFilterFactoryTests extends BaseWebClientTests {
 				.header("Host", "www.hystrixconnectfail.org")
 				.exchange()
 				.expectStatus().is5xxServerError();
+	}
+
+	@Test
+	public void hystrixFilterErrorPage() {
+		testClient.get().uri("/delay/3")
+				.header("Host", "www.hystrixconnectfail.org")
+				.accept(TEXT_HTML)
+				.exchange()
+				.expectStatus().is5xxServerError()
+				.expectBody().consumeWith(res -> {
+			final String body = new String(res.getResponseBody(), UTF_8);
+
+			Assert.isTrue(body.contains("<h1>Whitelabel Error Page</h1>"),
+					"Cannot find the expected white-label error page title in the response");
+			Assert.isTrue(body.contains("(type=Internal Server Error, status=500)"),
+					"Cannot find the expected error status report in the response");
+		});
 	}
 
 	@EnableAutoConfiguration

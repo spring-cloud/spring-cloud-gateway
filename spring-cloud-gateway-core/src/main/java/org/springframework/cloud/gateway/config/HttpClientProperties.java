@@ -25,11 +25,13 @@ import reactor.netty.resources.ConnectionProvider;
 
 import java.io.IOException;
 import java.net.URL;
+import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -231,20 +233,20 @@ public class HttpClientProperties {
 			try {
 				CertificateFactory certificateFactory = CertificateFactory
 						.getInstance("X.509");
-				ArrayList<X509Certificate> certs = new ArrayList<>();
+				ArrayList<Certificate> allCerts = new ArrayList<>();
 				for (String trustedCert : ssl.getTrustedX509Certificates()) {
 					try {
 						URL url = ResourceUtils.getURL(trustedCert);
-						X509Certificate cert = (X509Certificate) certificateFactory
-								.generateCertificate(url.openStream());
-						certs.add(cert);
+						Collection<? extends Certificate> certs = certificateFactory
+								.generateCertificates(url.openStream());
+						allCerts.addAll(certs);
 					}
 					catch (IOException e) {
 						throw new WebServerException(
 								"Could not load certificate '" + trustedCert + "'", e);
 					}
 				}
-				return certs.toArray(new X509Certificate[certs.size()]);
+				return allCerts.toArray(new X509Certificate[allCerts.size()]);
 			}
 			catch (CertificateException e1) {
 				throw new WebServerException("Could not load CertificateFactory X.509",
