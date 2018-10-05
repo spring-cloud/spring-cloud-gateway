@@ -41,6 +41,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.AbstractServerHttpResponse;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
+import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
 
 import static org.springframework.cloud.gateway.filter.headers.HttpHeadersFilter.filterRequest;
@@ -123,8 +124,9 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 
 					res.responseHeaders().forEach(entry -> headers.add(entry.getKey(), entry.getValue()));
 
-					if (headers.getContentType() != null) {
-						exchange.getAttributes().put(ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR, headers.getContentType());
+					String contentTypeValue = headers.getFirst(HttpHeaders.CONTENT_TYPE);
+					if (StringUtils.hasLength(contentTypeValue)) {
+						exchange.getAttributes().put(ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR, contentTypeValue);
 					}
 
 					HttpHeaders filteredResponseHeaders = HttpHeadersFilter.filter(
