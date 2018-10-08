@@ -37,6 +37,7 @@ local allowed_num = 0
 if allowed then
   new_tokens = filled_tokens - requested
   allowed_num = 1
+  redis.call("setex", timestamp_key, ttl, now)
 end
 
 --redis.log(redis.LOG_WARNING, "delta " .. delta)
@@ -45,6 +46,5 @@ end
 --redis.log(redis.LOG_WARNING, "new_tokens " .. new_tokens)
 
 redis.call("setex", tokens_key, ttl, new_tokens)
-redis.call("setex", timestamp_key, ttl, now)
 
 return { allowed_num, new_tokens }
