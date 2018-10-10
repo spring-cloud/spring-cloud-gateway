@@ -123,7 +123,6 @@ public class LoadBalancerClientFilterTests {
 		verifyNoMoreInteractions(chain);
 	}
 
-
 	@Test
 	public void happyPath() {
 		MockServerHttpRequest request = MockServerHttpRequest

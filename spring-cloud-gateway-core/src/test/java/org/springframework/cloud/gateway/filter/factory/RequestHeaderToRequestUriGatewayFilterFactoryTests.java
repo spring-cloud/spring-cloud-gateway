@@ -23,7 +23,7 @@ import reactor.core.publisher.Mono;
 public class RequestHeaderToRequestUriGatewayFilterFactoryTests {
 
 	@Test
-	public void filterChangeRequestUri() throws Exception {
+	public void filterChangeRequestUri() {
 		RequestHeaderToRequestUriGatewayFilterFactory factory = new RequestHeaderToRequestUriGatewayFilterFactory();
 		GatewayFilter filter = factory.apply(c -> c.setName("X-CF-Forwarded-Url"));
 		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost")
@@ -43,7 +43,7 @@ public class RequestHeaderToRequestUriGatewayFilterFactoryTests {
 	}
 
 	@Test
-	public void filterDoesNotChangeRequestUriIfHeaderIsAbsent() throws Exception {
+	public void filterDoesNotChangeRequestUriIfHeaderIsAbsent() {
 		RequestHeaderToRequestUriGatewayFilterFactory factory = new RequestHeaderToRequestUriGatewayFilterFactory();
 		GatewayFilter filter = factory.apply(c -> c.setName("X-CF-Forwarded-Url"));
 		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost")
