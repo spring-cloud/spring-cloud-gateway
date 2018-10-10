@@ -41,7 +41,7 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.G
 public class StripPrefixGatewayFilterFactoryTests {
 
 	@Test
-	public void testStripPrefix() throws Exception {
+	public void testStripPrefix() {
 		testStripPrefixFilter("/foo/bar", "/bar", 1);
 		testStripPrefixFilter("/foo/bar", "/", 2);
 		testStripPrefixFilter("/foo/bar", "/foo/bar", 0);

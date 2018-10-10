@@ -96,9 +96,7 @@ public class ForwardRoutingFilterTests {
 		URI forwardedUrl = webExchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
 
 		assertThat(forwardedUrl).hasScheme("forward").hasHost("host").hasPath("/outage");
-
 	}
-
 
 	@Test
 	public void shouldNotFilterWhenGatewayRequestUrlSchemeIsForwardButAlreadyRouted() {

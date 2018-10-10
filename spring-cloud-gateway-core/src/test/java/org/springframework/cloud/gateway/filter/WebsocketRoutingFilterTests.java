@@ -22,7 +22,7 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.gateway.filter.WebsocketRoutingFilter.convertHttpToWs;
 
-public class WebscketRoutingFilterTests {
+public class WebsocketRoutingFilterTests {
 
 	@Test
 	public void testConvertHttpToWs() {

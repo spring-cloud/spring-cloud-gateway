@@ -61,12 +61,12 @@ public class RequestRateLimiterGatewayFilterFactoryTests extends BaseWebClientTe
 	KeyResolver resolver2;
 
 	@Test
-	public void allowedWorks() throws Exception {
+	public void allowedWorks() {
 		assertFilterFactory(resolver1, "allowedkey", true, HttpStatus.OK);
 	}
 
 	@Test
-	public void notAllowedWorks() throws Exception {
+	public void notAllowedWorks() {
 		assertFilterFactory(resolver2, "notallowedkey", false, HttpStatus.TOO_MANY_REQUESTS);
 	}
 
