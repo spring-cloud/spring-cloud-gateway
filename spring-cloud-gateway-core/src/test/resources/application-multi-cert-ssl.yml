@@ -16,7 +16,7 @@ spring:
       httpclient:
         ssl:
           trustedX509Certificates:
-          - src/test/resources/scg-cert.pem
+          - src/test/resources/multi-cert.pem
       default-filters:
       - PrefixPath=/httpbin
       routes:

@@ -968,6 +968,7 @@ spring:
           - cert2.pem
 ----
 
+If the Spring Cloud Gateway is not provisioned with trusted certificates the default trust store is used (which can be overriden with system property javax.net.ssl.trustStore.
 
 == Configuration
 
