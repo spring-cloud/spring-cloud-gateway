@@ -49,6 +49,7 @@ import org.springframework.cloud.gateway.filter.factory.RequestHeaderToRequestUr
 import org.springframework.cloud.gateway.filter.factory.RequestRateLimiterGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RetryGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.RewriteResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SaveSessionGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SetPathGatewayFilterFactory;
@@ -473,6 +474,18 @@ public class GatewayFilterSpec extends UriSpec {
 	public GatewayFilterSpec setResponseHeader(String headerName, String headerValue) {
 		return filter(getBean(SetResponseHeaderGatewayFilterFactory.class)
 				.apply(c -> c.setName(headerName).setValue(headerValue)));
+	}
+
+	/**
+	 * A filter that rewrites a header value on the response before it is returned to the client by the Gateway.
+	 * @param headerName the header name
+	 * @param regex a Java regular expression to match the path against
+	 * @param replacement the replacement for the path
+	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
+	 */
+	public GatewayFilterSpec rewriteResponseHeader(String headerName, String regex, String replacement) {
+		return filter(getBean(RewriteResponseHeaderGatewayFilterFactory.class)
+				.apply(c -> c.setReplacement(replacement).setRegexp(regex).setName(headerName)));
 	}
 
 	/**
