@@ -31,34 +31,6 @@ public class RedisRateLimiterTests extends BaseWebClientTests {
 
 	@Autowired
 	private RedisRateLimiter rateLimiter;
-
-	@Test
-	public void redisRateLimiterInSecond() throws Exception {
-		assumeThat("Ignore on Circle",
-				System.getenv("CIRCLECI"), is(nullValue()));
-
-		String id = UUID.randomUUID().toString();
-
-		int replenishRate = 1;
-		int burstCapacity = replenishRate;
-
-		String routeId = "myroute";
-		rateLimiter.getConfig().put(routeId, new RedisRateLimiter.Config()
-				.setBurstCapacity(burstCapacity)
-				.setReplenishRate(replenishRate));
-
-		// Bursts work
-		for (int i = 0; i < 3; i++) {
-			Response response = rateLimiter.isAllowed(routeId, id).block();
-			if ((i & 1) == 0) {
-				// it's been past 1200ms when i == 2 and it should replenish once
-				assertThat(response.isAllowed()).as("Burst # %s is allowed", i).isTrue();
-			} else {
-				assertThat(response.isAllowed()).as("Burst # %s is allowed", i).isFalse();
-			}
-			Thread.sleep(600);
-		}
-	}
 	
 	@Test
 	public void redisRateLimiterWorks() throws Exception {
