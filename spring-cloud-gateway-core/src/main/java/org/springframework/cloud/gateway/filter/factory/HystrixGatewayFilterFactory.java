@@ -54,9 +54,6 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.c
  * @author Spencer Gibb
  */
 public class HystrixGatewayFilterFactory extends AbstractGatewayFilterFactory<HystrixGatewayFilterFactory.Config> {
-
-	public static final String FALLBACK_URI = "fallbackUri";
-
 	private final ObjectProvider<DispatcherHandler> dispatcherHandler;
 
 	public HystrixGatewayFilterFactory(ObjectProvider<DispatcherHandler> dispatcherHandler) {
