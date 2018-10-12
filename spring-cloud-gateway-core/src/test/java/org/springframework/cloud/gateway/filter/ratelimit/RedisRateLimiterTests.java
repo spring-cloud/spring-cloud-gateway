@@ -48,7 +48,7 @@ public class RedisRateLimiterTests extends BaseWebClientTests {
 				.setReplenishRate(replenishRate));
 
 		// Bursts work
-		for (int i = 0; i < 10; i++) {
+		for (int i = 0; i < 3; i++) {
 			Response response = rateLimiter.isAllowed(routeId, id).block();
 			if ((i & 1) == 0) {
 				assertThat(response.isAllowed()).as("Burst # %s is allowed", i).isTrue();
