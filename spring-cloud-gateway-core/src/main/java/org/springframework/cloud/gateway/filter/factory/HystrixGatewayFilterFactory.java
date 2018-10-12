@@ -188,5 +188,4 @@ public class HystrixGatewayFilterFactory extends AbstractGatewayFilterFactory<Hy
 			return this;
 		}
 	}
-
 }
