@@ -33,6 +33,38 @@ public class RedisRateLimiterTests extends BaseWebClientTests {
 	private RedisRateLimiter rateLimiter;
 
 	@Test
+	public void redisRateLimiterInSecond() throws Exception {
+		assumeThat("Ignore on Circle",
+				System.getenv("CIRCLECI"), is(nullValue()));
+
+		String id = UUID.randomUUID().toString();
+
+		int replenishRate = 1;
+		int burstCapacity = replenishRate;
+
+		String routeId = "myroute";
+		rateLimiter.getConfig().put(routeId, new RedisRateLimiter.Config()
+				.setBurstCapacity(burstCapacity)
+				.setReplenishRate(replenishRate));
+
+		// Bursts work
+		for (int i = 0; i < 10; i++) {
+			Response response = rateLimiter.isAllowed(routeId, id).block();
+			if (i & 1 == 0) {
+				assertThat(response.isAllowed()).as("Burst # %s is allowed", i).isTrue();
+			} else {
+				assertThat(response.isAllowed()).as("Burst # %s is allowed", i).isFalse();
+			}
+			assertThat(response.getHeaders()).containsKey(RedisRateLimiter.REMAINING_HEADER);
+			assertThat(response.getHeaders()).
+					containsEntry(RedisRateLimiter.REPLENISH_RATE_HEADER, String.valueOf(replenishRate));
+			assertThat(response.getHeaders()).
+					containsEntry(RedisRateLimiter.BURST_CAPACITY_HEADER, String.valueOf(burstCapacity));
+			Thread.sleep(600);
+		}
+	}
+	
+	@Test
 	public void redisRateLimiterWorks() throws Exception {
 		assumeThat("Ignore on Circle",
 				System.getenv("CIRCLECI"), is(nullValue()));
