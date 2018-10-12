@@ -31,7 +31,7 @@ public class RedisRateLimiterTests extends BaseWebClientTests {
 
 	@Autowired
 	private RedisRateLimiter rateLimiter;
-
+	
 	@Test
 	public void redisRateLimiterWorks() throws Exception {
 		assumeThat("Ignore on Circle",
