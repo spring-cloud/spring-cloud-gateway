@@ -773,7 +773,10 @@ spring:
             statuses: BAD_GATEWAY
 ----
 
-NOTE: At this time a URI using the `forward` protocol does not support using the retry filter.
+NOTE: When using the retry filter with a URI that uses the `forward` protocol, the endpoint you forward to should
+not return a `ResponseEntity` or else the retry filter will not be able to retry the request do to the response
+already being committed in the exchange.  Instead the endpoint should throw an exception and the retry filter
+should be configured to retry on that exception.
 
 == Global Filters
 
