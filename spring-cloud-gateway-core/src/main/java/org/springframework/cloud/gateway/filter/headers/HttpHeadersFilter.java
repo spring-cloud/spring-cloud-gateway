@@ -62,10 +62,6 @@ public interface HttpHeadersFilter {
 	}
 
 	default boolean supports(Type type) {
-		if (type.equals(Type.REQUEST)) {
-			return true;
-		}
-		
-		return false;
+		return type.equals(Type.REQUEST);
 	}
 }
