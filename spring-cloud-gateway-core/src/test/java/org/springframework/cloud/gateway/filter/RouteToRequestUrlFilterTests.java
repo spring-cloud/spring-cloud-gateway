@@ -48,14 +48,26 @@ public class RouteToRequestUrlFilterTests {
 				.get("http://localhost/get?a=b")
 				.build();
 
-		ServerWebExchange webExchange = testFilter(request, "http://myhost");
+		ServerWebExchange webExchange = testFilter(request, "http://myhost/mypath");
 		URI uri = webExchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
 		assertThat(uri).hasScheme("http").hasHost("myhost")
+				.hasPath("/get")
 				.hasParameter("a", "b");
 	}
 
 	@Test
 	public void happyPathLb() {
+		MockServerHttpRequest request = MockServerHttpRequest
+				.get("http://localhost/getb")
+				.build();
+
+		ServerWebExchange webExchange = testFilter(request, "lb://myhost");
+		URI uri = webExchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
+		assertThat(uri).hasScheme("lb").hasHost("myhost");
+	}
+
+	@Test
+	public void happyPathLbPlusScheme() {
 		MockServerHttpRequest request = MockServerHttpRequest
 				.get("http://localhost/getb")
 				.build();
@@ -114,7 +126,7 @@ public class RouteToRequestUrlFilterTests {
 				.method(HttpMethod.GET, url)
 				.build();
 
-		ServerWebExchange webExchange = testFilter(request, "http://myhost");
+		ServerWebExchange webExchange = testFilter(request, "http://myhost/abc%20def/get");
 		URI uri = webExchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
 		assertThat(uri).hasScheme("http").hasHost("myhost")
 				.hasPath("/abc def/get");
@@ -170,9 +182,9 @@ public class RouteToRequestUrlFilterTests {
 		}
 	}
 
-	private ServerWebExchange testFilter(MockServerHttpRequest request, String url) {
+	private ServerWebExchange testFilter(MockServerHttpRequest request, String routeUri) {
 		Route value = Route.async().id("1")
-				.uri(URI.create(url))
+				.uri(URI.create(routeUri))
 				.order(0)
 				.predicate(swe -> true)
 				.build();

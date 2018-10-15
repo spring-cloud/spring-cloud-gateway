@@ -68,11 +68,14 @@ public class RouteToRequestUrlFilter implements GlobalFilter, Ordered {
 			routeUri = URI.create(routeUri.getSchemeSpecificPart());
 		}
 
-		URI requestUrl = UriComponentsBuilder.fromUri(uri)
-				.uri(routeUri)
+		URI mergedUrl = UriComponentsBuilder.fromUri(uri)
+				// .uri(routeUri)
+				.scheme(routeUri.getScheme())
+				.host(routeUri.getHost())
+				.port(routeUri.getPort())
 				.build(encoded)
 				.toUri();
-		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, requestUrl);
+		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, mergedUrl);
 		return chain.filter(exchange);
 	}
 
