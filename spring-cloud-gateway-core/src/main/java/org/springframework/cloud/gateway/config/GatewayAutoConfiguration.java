@@ -166,6 +166,9 @@ public class GatewayAutoConfiguration {
 
 				// configure ssl
 				HttpClientProperties.Ssl ssl = properties.getSsl();
+				opts.sslHandshakeTimeoutMillis(ssl.getHandshakeTimeoutMillis());
+				opts.sslCloseNotifyFlushTimeoutMillis(ssl.getCloseNotifyFlushTimeoutMillis());
+				opts.sslCloseNotifyReadTimeoutMillis(ssl.getCloseNotifyReadTimeoutMillis());
 				X509Certificate[] trustedX509Certificates = ssl
 						.getTrustedX509CertificatesForTrustManager();
 				if (trustedX509Certificates.length > 0) {
