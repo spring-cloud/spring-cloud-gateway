@@ -84,9 +84,11 @@ public class ModifyResponseBodyGatewayFilterFactory
 					Class inClass = config.getInClass();
 					Class outClass = config.getOutClass();
 
-					MediaType originalResponseContentType = exchange.getAttribute(ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR);
+					String originalResponseContentType = exchange.getAttribute(ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR);
 					HttpHeaders httpHeaders = new HttpHeaders();
-					httpHeaders.setContentType(originalResponseContentType);
+					//explicitly add it in this way instead of 'httpHeaders.setContentType(originalResponseContentType)'
+					//this will prevent exception in case of using non-standard media types like "Content-Type: image"
+					httpHeaders.add(HttpHeaders.CONTENT_TYPE, originalResponseContentType);
 					ResponseAdapter responseAdapter = new ResponseAdapter(body, httpHeaders);
 					DefaultClientResponse clientResponse = new DefaultClientResponse(responseAdapter, ExchangeStrategies.withDefaults());
 

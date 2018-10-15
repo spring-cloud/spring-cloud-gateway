@@ -25,11 +25,13 @@ import reactor.ipc.netty.resources.PoolResources;
 
 import java.io.IOException;
 import java.net.URL;
+import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -220,8 +222,13 @@ public class HttpClientProperties {
 	public class Ssl {
 		/** Installs the netty InsecureTrustManagerFactory. This is insecure and not suitable for production. */
 		private boolean useInsecureTrustManager = false;
-		
+				
 		private List<String> trustedX509Certificates = new ArrayList<>();
+		
+		// use netty default SSL timeouts
+		private long handshakeTimeoutMillis = 10000L;
+		private long closeNotifyFlushTimeoutMillis = 3000L;
+		private long closeNotifyReadTimeoutMillis = 0L;
 
 		public List<String> getTrustedX509Certificates() {
 			return trustedX509Certificates;
@@ -231,20 +238,20 @@ public class HttpClientProperties {
 			try {
 				CertificateFactory certificateFactory = CertificateFactory
 						.getInstance("X.509");
-				ArrayList<X509Certificate> certs = new ArrayList<>();
+				ArrayList<Certificate> allCerts = new ArrayList<>();
 				for (String trustedCert : ssl.getTrustedX509Certificates()) {
 					try {
 						URL url = ResourceUtils.getURL(trustedCert);
-						X509Certificate cert = (X509Certificate) certificateFactory
-								.generateCertificate(url.openStream());
-						certs.add(cert);
+						Collection<? extends Certificate> certs = certificateFactory
+								.generateCertificates(url.openStream());
+						allCerts.addAll(certs);
 					}
 					catch (IOException e) {
 						throw new WebServerException(
 								"Could not load certificate '" + trustedCert + "'", e);
 					}
 				}
-				return certs.toArray(new X509Certificate[certs.size()]);
+				return allCerts.toArray(new X509Certificate[allCerts.size()]);
 			}
 			catch (CertificateException e1) {
 				throw new WebServerException("Could not load CertificateFactory X.509",
@@ -266,11 +273,42 @@ public class HttpClientProperties {
 			this.useInsecureTrustManager = useInsecureTrustManager;
 		}
 
+		public long getHandshakeTimeoutMillis() {
+			return handshakeTimeoutMillis;
+		}
+
+		public void setHandshakeTimeoutMillis(long handshakeTimeoutMillis) {
+			this.handshakeTimeoutMillis = handshakeTimeoutMillis;
+		}
+		
+		public long getCloseNotifyFlushTimeoutMillis() {
+			return closeNotifyFlushTimeoutMillis;
+		}
+
+		public void setCloseNotifyFlushTimeoutMillis(long closeNotifyFlushTimeoutMillis) {
+			this.closeNotifyFlushTimeoutMillis = closeNotifyFlushTimeoutMillis;
+		}
+
+		public long getCloseNotifyReadTimeoutMillis() {
+			return closeNotifyReadTimeoutMillis;
+		}
+
+		public void setCloseNotifyReadTimeoutMillis(long closeNotifyReadTimeoutMillis) {
+			this.closeNotifyReadTimeoutMillis = closeNotifyReadTimeoutMillis;
+		}
+		
 		@Override
 		public String toString() {
 			return "Ssl {useInsecureTrustManager=" + useInsecureTrustManager
-					+ ", trustedX509Certificates=" + trustedX509Certificates + "}";
+					+ ", trustedX509Certificates=" + trustedX509Certificates
+					+ ", handshakeTimeoutMillis=" + handshakeTimeoutMillis
+					+ ", closeNotifyFlushTimeoutMillis="
+					+ closeNotifyFlushTimeoutMillis
+					+ ", closeNotifyReadTimeoutMillis="
+					+ closeNotifyReadTimeoutMillis + "}";
 		}
+
+
 	}
 
 	@Override

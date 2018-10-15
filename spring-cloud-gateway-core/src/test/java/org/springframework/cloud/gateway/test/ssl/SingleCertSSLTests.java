@@ -17,7 +17,6 @@
 
 package org.springframework.cloud.gateway.test.ssl;
 
-import static org.junit.Assert.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 import javax.net.ssl.SSLException;
@@ -30,16 +29,15 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.reactive.ClientHttpConnector;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import io.netty.handler.ssl.SslContext;
@@ -49,8 +47,8 @@ import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
-@ActiveProfiles("ssl")
-public class SSLTests extends BaseWebClientTests {
+@ActiveProfiles("single-cert-ssl")
+public class SingleCertSSLTests extends BaseWebClientTests {
 
 	@Before
 	public void setup() {
@@ -61,20 +59,17 @@ public class SSLTests extends BaseWebClientTests {
 					opt -> opt.sslContext(sslContext));
 			baseUri = "https://localhost:" + port;
 			this.webClient = WebClient.builder().clientConnector(httpConnector)
-					.baseUrl(baseUri).build();
+					.baseUrl(baseUri).build();			
+			this.testClient = WebTestClient.bindToServer(httpConnector).baseUrl(baseUri).build();
 		}
 		catch (SSLException e) {
 			throw new RuntimeException(e);
 		}		
 	}
-	
+
 	@Test
 	public void testSslTrust() {
-		ClientResponse clientResponse = webClient.get().uri("/ssltrust")
-				.exchange().block();
-		HttpStatus statusCode = clientResponse.statusCode();
-		assertTrue(statusCode.is2xxSuccessful());
-				
+		testClient.get().uri("/ssltrust").exchange().expectStatus().is2xxSuccessful();
 	}
 
 	@EnableAutoConfiguration
