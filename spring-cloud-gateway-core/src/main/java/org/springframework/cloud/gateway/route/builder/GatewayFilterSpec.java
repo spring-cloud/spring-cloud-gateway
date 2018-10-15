@@ -567,7 +567,4 @@ public class GatewayFilterSpec extends UriSpec {
 		return filter(getBean(RequestSizeGatewayFilterFactory.class).apply(c -> c.setMaxSize(size)));
 	}
 
-	private String routeId() {
-		return routeBuilder.getId();
-	}
 }
