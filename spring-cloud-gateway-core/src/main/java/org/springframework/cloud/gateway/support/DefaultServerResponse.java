@@ -17,18 +17,15 @@
 
 package org.springframework.cloud.gateway.support;
 
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
 import org.springframework.web.reactive.function.server.HandlerStrategies;
 import org.springframework.web.reactive.result.view.ViewResolver;
 import reactor.core.publisher.Mono;
 
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.codec.HttpMessageWriter;
@@ -42,8 +39,6 @@ import org.springframework.web.server.ServerWebExchange;
 
 public class DefaultServerResponse<T> implements ServerResponse {
 
-
-	private static final Set<HttpMethod> SAFE_METHODS = EnumSet.of(HttpMethod.GET, HttpMethod.HEAD);
 
 	private final ServerWebExchange exchange;
 
