@@ -182,7 +182,7 @@ http POST :8080/admin/gateway/routes/apiaddreqhead uri=http://httpbin.org:80 pre
 		return this.routeDefinitionLocator.getRouteDefinitions()
 				.filter(route -> route.getId().equals(id))
 				.singleOrEmpty()
-				.map(route -> ResponseEntity.ok(route))
+				.map(ResponseEntity::ok)
 				.switchIfEmpty(Mono.just(ResponseEntity.notFound().build()));
 	}
 
