@@ -20,9 +20,11 @@ package org.springframework.cloud.gateway.test;
 import java.nio.charset.Charset;
 import java.util.Map;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
+
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -42,9 +44,6 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 import static org.springframework.cloud.gateway.test.TestUtils.getMap;
 import static org.springframework.web.reactive.function.BodyExtractors.toMono;
 
-import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
-
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
@@ -54,7 +53,6 @@ public class FormIntegrationTests extends BaseWebClientTests {
 	public static final MediaType FORM_URL_ENCODED_CONTENT_TYPE = new MediaType(MediaType.APPLICATION_FORM_URLENCODED, Charset.forName("UTF-8"));
 
 	@Test
-	@Ignore //FIXME: 2.1.0
 	public void formUrlencodedWorks() {
 		LinkedMultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
 		formData.add("foo", "bar");
