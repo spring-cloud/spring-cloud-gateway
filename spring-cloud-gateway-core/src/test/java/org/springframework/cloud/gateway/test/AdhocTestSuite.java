@@ -25,35 +25,6 @@ import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 import org.junit.runners.model.Statement;
 
-import org.springframework.cloud.gateway.filter.factory.AddRequestHeaderGatewayFilterFactoryTests;
-import org.springframework.cloud.gateway.filter.factory.AddRequestParameterGatewayFilterFactoryTests;
-import org.springframework.cloud.gateway.filter.factory.HystrixGatewayFilterFactoryTests;
-import org.springframework.cloud.gateway.filter.factory.PreserveHostHeaderGatewayFilterFactoryTests;
-import org.springframework.cloud.gateway.filter.factory.RedirectToGatewayFilterFactoryTests;
-import org.springframework.cloud.gateway.filter.factory.RemoveRequestHeaderGatewayFilterFactoryTests;
-import org.springframework.cloud.gateway.filter.factory.RemoveResponseHeaderGatewayFilterFactoryTests;
-import org.springframework.cloud.gateway.filter.factory.RequestRateLimiterGatewayFilterFactoryTests;
-import org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactoryIntegrationTests;
-import org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactoryTests;
-import org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactoryTests;
-import org.springframework.cloud.gateway.filter.factory.SetPathGatewayFilterFactoryIntegrationTests;
-import org.springframework.cloud.gateway.filter.factory.SetPathGatewayFilterFactoryTests;
-import org.springframework.cloud.gateway.filter.factory.SetResponseHeaderGatewayFilterFactoryTests;
-import org.springframework.cloud.gateway.filter.factory.SetStatusGatewayFilterFactoryTests;
-import org.springframework.cloud.gateway.filter.headers.ForwardedHeadersFilterTests;
-import org.springframework.cloud.gateway.filter.headers.RemoveHopByHopHeadersFilterTests;
-import org.springframework.cloud.gateway.filter.headers.XForwardedHeadersFilterTests;
-import org.springframework.cloud.gateway.filter.ratelimit.PrincipalNameKeyResolverIntegrationTests;
-import org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiterTests;
-import org.springframework.cloud.gateway.handler.predicate.AfterRoutePredicateFactoryTests;
-import org.springframework.cloud.gateway.handler.predicate.BeforeRoutePredicateFactoryTests;
-import org.springframework.cloud.gateway.handler.predicate.BetweenRoutePredicateFactoryTests;
-import org.springframework.cloud.gateway.handler.predicate.HostRoutePredicateFactoryTests;
-import org.springframework.cloud.gateway.handler.predicate.MethodRoutePredicateFactoryTests;
-import org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFactoryTests;
-import org.springframework.cloud.gateway.route.RouteDefinitionRouteLocatorTests;
-import org.springframework.cloud.gateway.test.websocket.WebSocketIntegrationTests;
-
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assume.assumeThat;
@@ -64,43 +35,89 @@ import static org.junit.Assume.assumeThat;
  */
 @RunWith(Suite.class)
 @SuiteClasses({
-		WebfluxNotIncludedTests.class,
-		GatewayIntegrationTests.class,
-		FormIntegrationTests.class,
-		HttpStatusTests.class,
-		PostTests.class,
-		ForwardTests.class,
-		WebSocketIntegrationTests.class,
-		ForwardedHeadersFilterTests.class,
-		RemoveHopByHopHeadersFilterTests.class,
-		XForwardedHeadersFilterTests.class,
-		// FilterFactory Tests
-		RemoveResponseHeaderGatewayFilterFactoryTests.class,
-		HystrixGatewayFilterFactoryTests.class,
-		RewritePathGatewayFilterFactoryIntegrationTests.class,
-		RemoveRequestHeaderGatewayFilterFactoryTests.class,
-		SetPathGatewayFilterFactoryTests.class,
-		RewritePathGatewayFilterFactoryTests.class,
-		SetStatusGatewayFilterFactoryTests.class,
-		RedirectToGatewayFilterFactoryTests.class,
-		AddRequestHeaderGatewayFilterFactoryTests.class,
-		SecureHeadersGatewayFilterFactoryTests.class,
-		RequestRateLimiterGatewayFilterFactoryTests.class,
-		SetPathGatewayFilterFactoryIntegrationTests.class,
-		AddRequestParameterGatewayFilterFactoryTests.class,
-		SetResponseHeaderGatewayFilterFactoryTests.class,
-		PrincipalNameKeyResolverIntegrationTests.class,
-		RedisRateLimiterTests.class,
-		RouteDefinitionRouteLocatorTests.class,
-		PreserveHostHeaderGatewayFilterFactoryTests.class,
-		// PredicateFactory Tests
-		MethodRoutePredicateFactoryTests.class,
-		HostRoutePredicateFactoryTests.class,
-		AfterRoutePredicateFactoryTests.class,
-		PathRoutePredicateFactoryTests.class,
-		BetweenRoutePredicateFactoryTests.class,
-		BeforeRoutePredicateFactoryTests.class,
-
+		org.springframework.cloud.gateway.handler.RoutePredicateHandlerMappingIntegrationTests.class,
+		org.springframework.cloud.gateway.handler.predicate.AfterRoutePredicateFactoryTests.class,
+		org.springframework.cloud.gateway.handler.predicate.CloudFoundryRouteServiceRoutePredicateFactoryIntegrationTests.class,
+		org.springframework.cloud.gateway.handler.predicate.HostRoutePredicateFactoryTests.class,
+		org.springframework.cloud.gateway.handler.predicate.BetweenRoutePredicateFactoryIntegrationTests.class,
+		org.springframework.cloud.gateway.handler.predicate.CookieRoutePredicateFactoryTests.class,
+		org.springframework.cloud.gateway.handler.predicate.MethodRoutePredicateFactoryTests.class,
+		org.springframework.cloud.gateway.handler.predicate.BetweenRoutePredicateFactoryTests.class,
+		org.springframework.cloud.gateway.handler.predicate.QueryRoutePredicateFactoryTests.class,
+		org.springframework.cloud.gateway.handler.predicate.WeightRoutePredicateFactoryIntegrationTests.class,
+		org.springframework.cloud.gateway.handler.predicate.HeaderRoutePredicateFactoryTests.class,
+		org.springframework.cloud.gateway.handler.predicate.BeforeRoutePredicateFactoryTests.class,
+		org.springframework.cloud.gateway.handler.predicate.RemoteAddrRoutePredicateFactoryTests.class,
+		org.springframework.cloud.gateway.handler.predicate.ReadBodyPredicateFactoryTest.class,
+		org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFactoryTests.class,
+		org.springframework.cloud.gateway.handler.predicate.CloudFoundryRouteServiceRoutePredicateFactoryTest.class,
+		org.springframework.cloud.gateway.handler.RoutePredicateHandlerMappingTests.class,
+		org.springframework.cloud.gateway.filter.factory.HystrixGatewayFilterFactoryTests.class,
+		org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactoryTests.class,
+		org.springframework.cloud.gateway.filter.factory.RedirectToGatewayFilterFactoryTests.class,
+		org.springframework.cloud.gateway.filter.factory.AddRequestParameterGatewayFilterFactoryTests.class,
+		org.springframework.cloud.gateway.filter.factory.RemoveRequestHeaderGatewayFilterFactoryTests.class,
+		org.springframework.cloud.gateway.filter.factory.SetPathGatewayFilterFactoryTests.class,
+		org.springframework.cloud.gateway.filter.factory.PrefixPathGatewayFilterFactoryTest.class,
+		org.springframework.cloud.gateway.filter.factory.RequestRateLimiterGatewayFilterFactoryTests.class,
+		org.springframework.cloud.gateway.filter.factory.RequestHeaderToRequestUriGatewayFilterFactoryIntegrationTests.class,
+		org.springframework.cloud.gateway.filter.factory.RemoveResponseHeaderGatewayFilterFactoryTests.class,
+		org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactoryTests.class,
+		org.springframework.cloud.gateway.filter.factory.StripPrefixGatewayFilterFactoryIntegrationTests.class,
+		org.springframework.cloud.gateway.filter.factory.RetryGatewayFilterFactoryIntegrationTests.class,
+		org.springframework.cloud.gateway.filter.factory.SetRequestHeaderGatewayFilterFactoryTests.class,
+		org.springframework.cloud.gateway.filter.factory.StripPrefixGatewayFilterFactoryTests.class,
+		org.springframework.cloud.gateway.filter.factory.RequestHeaderToRequestUriGatewayFilterFactoryTests.class,
+		org.springframework.cloud.gateway.filter.factory.RequestSizeGatewayFilterFactoryTest.class,
+		org.springframework.cloud.gateway.filter.factory.SetStatusGatewayFilterFactoryTests.class,
+		org.springframework.cloud.gateway.filter.factory.SaveSessionGatewayFilterFactoryTests.class,
+		org.springframework.cloud.gateway.filter.factory.SetPathGatewayFilterFactoryIntegrationTests.class,
+		org.springframework.cloud.gateway.filter.factory.PreserveHostHeaderGatewayFilterFactoryTests.class,
+		org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactoryIntegrationTests.class,
+		org.springframework.cloud.gateway.filter.factory.AddRequestHeaderGatewayFilterFactoryTests.class,
+		org.springframework.cloud.gateway.filter.factory.SetResponseHeaderGatewayFilterFactoryTests.class,
+		org.springframework.cloud.gateway.filter.WeightCalculatorWebFilterTests.class,
+		org.springframework.cloud.gateway.filter.RouteToRequestUrlFilterTests.class,
+		org.springframework.cloud.gateway.filter.headers.ForwardedHeadersFilterTests.class,
+		org.springframework.cloud.gateway.filter.headers.XForwardedHeadersFilterTests.class,
+		org.springframework.cloud.gateway.filter.headers.HttpHeadersFilterMixedTypeTests.class,
+		org.springframework.cloud.gateway.filter.headers.HttpHeadersFilterTests.class,
+		org.springframework.cloud.gateway.filter.headers.NonStandardHeadersInResponseTests.class,
+		org.springframework.cloud.gateway.filter.headers.RemoveHopByHopHeadersFilterTests.class,
+		org.springframework.cloud.gateway.filter.WebsocketRoutingFilterTests.class,
+		org.springframework.cloud.gateway.filter.ratelimit.PrincipalNameKeyResolverIntegrationTests.class,
+		org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiterConfigTests.class,
+		org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiterTests.class,
+		org.springframework.cloud.gateway.filter.LoadBalancerClientFilterTests.class,
+		org.springframework.cloud.gateway.filter.NettyRoutingFilterIntegrationTests.class,
+		org.springframework.cloud.gateway.filter.GatewayMetricFilterTests.class,
+		org.springframework.cloud.gateway.filter.ForwardRoutingFilterTests.class,
+		org.springframework.cloud.gateway.route.RouteDefinitionRouteLocatorTests.class,
+		org.springframework.cloud.gateway.route.RouteTests.class,
+		org.springframework.cloud.gateway.route.CachingRouteLocatorTests.class,
+		org.springframework.cloud.gateway.route.RouteRefreshListenerTests.class,
+		org.springframework.cloud.gateway.route.builder.RouteDslTests.class,
+		org.springframework.cloud.gateway.route.builder.RouteBuilderTests.class,
+		org.springframework.cloud.gateway.route.builder.GatewayFilterSpecTests.class,
+		org.springframework.cloud.gateway.route.CachingRouteDefinitionLocatorTests.class,
+		org.springframework.cloud.gateway.actuate.GatewayControllerEndpointTests.class,
+		org.springframework.cloud.gateway.config.GatewayAutoConfigurationTests.class,
+		org.springframework.cloud.gateway.discovery.DiscoveryClientRouteDefinitionLocatorTests.class,
+		org.springframework.cloud.gateway.discovery.GatewayDiscoveryClientAutoConfigurationTests.class,
+		org.springframework.cloud.gateway.discovery.DiscoveryClientRouteDefinitionLocatorIntegrationTests.class,
+		org.springframework.cloud.gateway.support.ShortcutConfigurableTests.class,
+		org.springframework.cloud.gateway.support.ipresolver.XForwardedRemoteAddressResolverTest.class,
+		org.springframework.cloud.gateway.cors.CorsTests.class,
+		org.springframework.cloud.gateway.test.FormIntegrationTests.class,
+		org.springframework.cloud.gateway.test.ForwardTests.class,
+		org.springframework.cloud.gateway.test.PostTests.class,
+		org.springframework.cloud.gateway.test.ssl.SingleCertSSLTests.class,
+		org.springframework.cloud.gateway.test.ssl.MultiCertSSLTests.class,
+		org.springframework.cloud.gateway.test.websocket.WebSocketIntegrationTests.class,
+		org.springframework.cloud.gateway.test.WebfluxNotIncludedTests.class,
+		org.springframework.cloud.gateway.test.HttpStatusTests.class,
+		org.springframework.cloud.gateway.test.GatewayIntegrationTests.class,
+		org.springframework.cloud.gateway.test.sse.SseIntegrationTests.class,
 })
 public class AdhocTestSuite {
 
