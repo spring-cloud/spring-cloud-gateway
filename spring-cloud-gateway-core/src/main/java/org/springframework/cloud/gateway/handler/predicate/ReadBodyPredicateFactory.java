@@ -17,43 +17,28 @@
 
 package org.springframework.cloud.gateway.handler.predicate;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.function.BiConsumer;
-import java.util.function.BinaryOperator;
-import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
-import java.util.stream.Collector;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.cloud.gateway.support.BodyInserterContext;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import org.springframework.cloud.gateway.support.CachedBodyOutputMessage;
 import org.springframework.cloud.gateway.handler.AsyncPredicate;
-import org.springframework.core.ResolvableType;
 import org.springframework.core.io.buffer.DataBuffer;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ReactiveHttpInputMessage;
+import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.codec.HttpMessageReader;
-import org.springframework.web.reactive.function.BodyInserter;
-import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
 
 import org.springframework.web.reactive.function.server.HandlerStrategies;
+import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.server.ServerWebExchange;
 
 import static org.springframework.cloud.gateway.filter.AdaptCachedBodyGlobalFilter.CACHED_REQUEST_BODY_KEY;
-import static org.springframework.cloud.gateway.handler.predicate.ReadBodyPredicateFactory.DataBufferMapCollector.BODY_ONE;
-import static org.springframework.cloud.gateway.handler.predicate.ReadBodyPredicateFactory.DataBufferMapCollector.BODY_TWO;
 
 /**
  * This predicate is BETA and may be subject to change in a future release.
@@ -95,88 +80,35 @@ public class ReadBodyPredicateFactory
 				}
 				return Mono.just(false);
 			} else {
-				return exchange.getRequest().getBody().collect(new DataBufferMapCollector()).flatMap(dataBufferMap -> {
-					BodyInserter bodyInserter = BodyInserters.fromPublisher(dataBufferMap.get(BODY_ONE), DataBuffer.class);
-					CachedBodyOutputMessage outputMessage = new CachedBodyOutputMessage(exchange,
-							exchange.getRequest().getHeaders());
-					return bodyInserter.insert(outputMessage, new BodyInserterContext())
-							// .log("modify_request", Level.INFO)
-							.then(Mono.defer(() -> {
-								ResolvableType type = ResolvableType.forClass(inClass);
-								for (HttpMessageReader<?> messageReader : messageReaders) {
-									if (messageReader.canRead(type, exchange.getRequest().getHeaders().getContentType())) {
-										ReactiveHttpInputMessage inputMessage = new ReadBodyReactiveHttpInputMessage(dataBufferMap.get(BODY_TWO),
-												exchange.getRequest().getHeaders());
-										Function mapper = (bodyObj) -> {
-											exchange.getAttributes().put(CACHE_REQUEST_BODY_OBJECT_KEY, bodyObj);
-											exchange.getAttributes().put(CACHED_REQUEST_BODY_KEY,
-													outputMessage.getBody());
-											boolean test = config.predicate.test(bodyObj);
-											return Mono.just(test);
-										};
-										return messageReader.readMono(type, inputMessage, Collections.EMPTY_MAP).flatMap(mapper);
-									}
-								}
-								return Mono.just(false);
-							}));
+				//Join all the DataBuffers so we have a single DataBuffer for the body
+				return DataBufferUtils.join(exchange.getRequest().getBody())
+						.flatMap(dataBuffer -> {
+							//Update the retain counts so we can read the body twice, once to parse into an object
+							//that we can test the predicate against and a second time when the HTTP client sends
+							//the request downstream
+							//Note: if we end up reading the body twice we will run into a problem, but as of right
+							//now there is no good use case for doing this
+							DataBufferUtils.retain(dataBuffer);
+							//Make a slice for each read so each read has its own read/write indexes
+							Flux<DataBuffer> cachedFlux = Flux.defer(() -> Flux.just(dataBuffer.slice(0, dataBuffer.readableByteCount())));
 
-				});
+							ServerHttpRequest mutatedRequest = new ServerHttpRequestDecorator(exchange.getRequest()) {
+								@Override
+								public Flux<DataBuffer> getBody() {
+									return cachedFlux;
+								}
+							};
+							return ServerRequest.create(exchange.mutate().request(mutatedRequest).build(), messageReaders)
+									.bodyToMono(inClass)
+									.doOnNext(objectValue -> {
+										exchange.getAttributes().put(CACHE_REQUEST_BODY_OBJECT_KEY, objectValue);
+										exchange.getAttributes().put(CACHED_REQUEST_BODY_KEY, cachedFlux);
+									})
+									.map(objectValue -> config.predicate.test(objectValue));
+						});
+
 			}
 		};
-	}
-
-	/**
-	 * This {@link Collector} is meant to collect the {@code Flux<DataBuffer>} from the request body into a {@link Map}
-	 * which contains two copy of the body, one under the key {@code orig} and the other under the {@key copy}.
-	 */
-	 class DataBufferMapCollector implements Collector<DataBuffer, Map<String, Flux<DataBuffer>>, Map<String, Flux<DataBuffer>>> {
-		public static final String BODY_ONE = "bodyOne";
-		public static final String BODY_TWO = "bodyTwo";
-		private final Set<Characteristics> CHARACTERISTICS = new HashSet<>(Arrays.asList(
-				Characteristics.IDENTITY_FINISH));
-
-		@Override
-		public Supplier<Map<String, Flux<DataBuffer>>> supplier() {
-			return () -> new HashMap<String, Flux<DataBuffer>>();
-		}
-
-		@Override
-		public BiConsumer<Map<String, Flux<DataBuffer>>, DataBuffer> accumulator() {
-			return (dataBufferMap, dataBuffer) -> {
-				accumulate(BODY_ONE, dataBufferMap, dataBuffer);
-				accumulate(BODY_TWO, dataBufferMap, dataBuffer);
-			};
-		}
-
-		private void accumulate(String key, Map<String, Flux<DataBuffer>> dataBufferMap, DataBuffer dataBuffer) {
-			if (dataBufferMap.get(key) == null) {
-				dataBufferMap.put(key, Flux.just(copy(dataBuffer)));
-			} else {
-				dataBufferMap.put(key, dataBufferMap.get(key).mergeWith(Flux.just(copy(dataBuffer))));
-			}
-		}
-
-		@Override
-		public BinaryOperator<Map<String, Flux<DataBuffer>>> combiner() {
-			return (map1, map2) -> {
-				map2.forEach((k, v) -> map1.merge(k, v, (v1, v2) -> v1.mergeWith(v2)));
-				return map1;
-			};
-		}
-
-		@Override
-		public Function<Map<String, Flux<DataBuffer>>, Map<String, Flux<DataBuffer>>> finisher() {
-			return Function.identity();
-		}
-
-		@Override
-		public Set<Characteristics> characteristics() {
-			return CHARACTERISTICS;
-		}
-
-		private DataBuffer copy(DataBuffer dataBuffer) {
-			return dataBuffer.factory().allocateBuffer().write(dataBuffer.asByteBuffer());
-		}
 	}
 
 	@Override
@@ -184,26 +116,6 @@ public class ReadBodyPredicateFactory
 	public Predicate<ServerWebExchange> apply(Config config) {
 		throw new UnsupportedOperationException(
 				"ReadBodyPredicateFactory is only async.");
-	}
-
-	 static class ReadBodyReactiveHttpInputMessage implements ReactiveHttpInputMessage {
-		private Flux<DataBuffer> body;
-		private HttpHeaders httpHeaders;
-
-		public ReadBodyReactiveHttpInputMessage(Flux<DataBuffer> body, HttpHeaders headers) {
-			this.body = body;
-			this.httpHeaders = headers;
-		}
-
-		@Override
-		public Flux<DataBuffer> getBody() {
-			return body;
-		}
-
-		@Override
-		public HttpHeaders getHeaders() {
-			return httpHeaders;
-		}
 	}
 
 	public static class Config {
