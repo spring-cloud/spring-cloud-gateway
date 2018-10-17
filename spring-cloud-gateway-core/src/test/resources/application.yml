@@ -134,6 +134,15 @@ spring:
         - SetPath=/anything/{org}{scope}
 
       # =====================================
+      - id: path_test_two
+        uri: ${test.uri}
+        predicates:
+        - Path=/{org}/{scope}/function,true
+        - Host=**.path.org
+        filters:
+        - SetStatus=404
+
+      # =====================================
       - id: redirect_to_test
         uri: ${test.uri}
         predicates:
