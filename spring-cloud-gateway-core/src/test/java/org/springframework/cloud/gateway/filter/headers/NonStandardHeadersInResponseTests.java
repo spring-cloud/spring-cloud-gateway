@@ -91,9 +91,7 @@ public class NonStandardHeadersInResponseTests extends BaseWebClientTests {
 				log.info("addNonStandardHeaderFilter pre phase");
 				return chain.filter(exchange).then(Mono.fromRunnable(() -> {
 					log.info("addNonStandardHeaderFilter post phase");
-					List<String> contentTypes = exchange.getResponse().getHeaders().get(HttpHeaders.CONTENT_TYPE);
-					contentTypes.clear();
-					contentTypes.add(CONTENT_TYPE_IMAGE);
+					exchange.getResponse().getHeaders().set(HttpHeaders.CONTENT_TYPE, CONTENT_TYPE_IMAGE);
 				}));
 			};
 		}
