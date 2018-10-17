@@ -39,6 +39,7 @@ public class AdaptCachedBodyGlobalFilter implements GlobalFilter, Ordered {
 					return body;
 				}
 			};
+			exchange.getAttributes().remove(CACHED_REQUEST_BODY_KEY);
 			return chain.filter(exchange.mutate().request(decorator).build());
 		}
 
