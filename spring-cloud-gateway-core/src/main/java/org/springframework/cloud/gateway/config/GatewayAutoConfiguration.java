@@ -364,7 +364,6 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnBean(DispatcherHandler.class)
 	public ForwardRoutingFilter forwardRoutingFilter(ObjectProvider<DispatcherHandler> dispatcherHandler) {
 		return new ForwardRoutingFilter(dispatcherHandler);
 	}
