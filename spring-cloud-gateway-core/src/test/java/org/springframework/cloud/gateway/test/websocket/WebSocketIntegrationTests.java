@@ -196,7 +196,7 @@ public class WebSocketIntegrationTests {
 				session -> {
 					logger.debug("Starting to send messages");
 					return session
-							.send(input.doOnNext(s -> logger.debug("outbound " + s)).map(session::textMessage))
+							.send(input.doOnNext(s -> logger.debug("outbound " + s)).map(s -> session.textMessage(s)))
 							.thenMany(session.receive().take(count).map(WebSocketMessage::getPayloadAsText))
 							.subscribeWith(output)
 							.doOnNext(s -> logger.debug("inbound " + s))
@@ -220,7 +220,7 @@ public class WebSocketIntegrationTests {
 				session -> {
 					logger.debug("Starting to send messages");
 					return session
-							.send(input.doOnNext(s -> logger.debug("outbound " + s)).map(session::textMessage))
+							.send(input.doOnNext(s -> logger.debug("outbound " + s)).map(s -> session.textMessage(s)))
 							.thenMany(session.receive().take(count).map(WebSocketMessage::getPayloadAsText))
 							.subscribeWith(output)
 							.doOnNext(s -> logger.debug("inbound " + s))
