@@ -104,7 +104,8 @@ public class LoadBalancerClientFilterTests {
 
 		loadBalancerClientFilter.filter(exchange, chain);
 
-		assertThat((LinkedHashSet<URI>)exchange.getAttribute(GATEWAY_ORIGINAL_REQUEST_URL_ATTR)).contains(url);
+		LinkedHashSet<URI> attribute = exchange.getAttribute(GATEWAY_ORIGINAL_REQUEST_URL_ATTR);
+		assertThat(attribute).contains(url);
 
 		verify(loadBalancerClient).choose("myservice");
 

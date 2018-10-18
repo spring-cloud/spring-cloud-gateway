@@ -119,7 +119,7 @@ public class WebSocketIntegrationTests {
 				.run();
 
 		ConfigurableEnvironment env = this.gatewayContext.getBean(ConfigurableEnvironment.class);
-		this.gatewayPort = new Integer(env.getProperty("local.server.port"));
+		this.gatewayPort = Integer.valueOf(env.getProperty("local.server.port"));
 	}
 
 	@After

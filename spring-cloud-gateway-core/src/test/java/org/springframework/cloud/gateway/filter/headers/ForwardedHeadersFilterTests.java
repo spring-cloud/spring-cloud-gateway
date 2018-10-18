@@ -131,18 +131,16 @@ public class ForwardedHeadersFilterTests {
 				"For=\"[2001:db8:cafe::17]:4711\"",
 		};
 
-		@SuppressWarnings("unchecked")
-		List<List<Map<String, String>>> expectedFor = new ArrayList<List<Map<String, String>>>() {{
-			add(list(map("for", "\"_gazonk\"")));
-			add(list(map("for", "192.0.2.60", "proto", "http", "by", "203.0.113.43")));
-			add(list(map("for", "192.0.2.43"), map("for", "198.51.100.17")));
-			add(list(map("for", "12.34.56.78", "host", "example.com", "proto", "https"),
-					map("for", "23.45.67.89")));
-			add(list(map("for", "12.34.56.78"),
-					map("for", "23.45.67.89", "secret", "egah2CGj55fSJFs"),
-					map("for", "10.1.2.3")));
-			add(list(map("for", "\"[2001:db8:cafe::17]:4711\"")));
-		}};
+		List<List<Map<String, String>>> expectedFor = new ArrayList<>();
+		expectedFor.add(Arrays.asList(map("for", "\"_gazonk\"")));
+		expectedFor.add(Arrays.asList(map("for", "192.0.2.60", "proto", "http", "by", "203.0.113.43")));
+		expectedFor.add(Arrays.asList(map("for", "192.0.2.43"), map("for", "198.51.100.17")));
+		expectedFor.add(Arrays.asList(map("for", "12.34.56.78", "host", "example.com", "proto", "https"),
+				map("for", "23.45.67.89")));
+		expectedFor.add(Arrays.asList(map("for", "12.34.56.78"),
+				map("for", "23.45.67.89", "secret", "egah2CGj55fSJFs"),
+				map("for", "10.1.2.3")));
+		expectedFor.add(Arrays.asList(map("for", "\"[2001:db8:cafe::17]:4711\"")));
 
 		for (int i = 0; i < valid.length; i++) {
 			String value = valid[i];
@@ -166,11 +164,7 @@ public class ForwardedHeadersFilterTests {
 		}
 	}
 
-	private List<Map<String, String>> list(Map<String, String>... map) {
-		return new ArrayList<>(Arrays.asList(map));
-	}
-
-	private Map<String, String> map(String... values) {
+	public static Map<String, String> map(String... values) {
 		if (values.length % 2 != 0) {
 			throw new IllegalArgumentException("values must have even number of items: "
 					+ Arrays.asList(values));

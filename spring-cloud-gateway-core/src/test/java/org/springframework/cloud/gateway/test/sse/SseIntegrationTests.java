@@ -94,7 +94,7 @@ public class SseIntegrationTests {
 				.run();
 
 		ConfigurableEnvironment env = this.gatewayContext.getBean(ConfigurableEnvironment.class);
-		this.gatewayPort = new Integer(env.getProperty("local.server.port"));
+		this.gatewayPort = Integer.valueOf(env.getProperty("local.server.port"));
 
 		this.webClient = WebClient.create("http://localhost:" + this.gatewayPort + "/sse");
 
