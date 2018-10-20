@@ -50,6 +50,7 @@
 		<java.version>1.8</java.version>
 		<spring-cloud-commons.version>2.0.1.BUILD-SNAPSHOT</spring-cloud-commons.version>
 		<spring-cloud-netflix.version>2.0.1.BUILD-SNAPSHOT</spring-cloud-netflix.version>
+		<embedded-redis.version>0.6</embedded-redis.version>
 	</properties>
 
 	<dependencyManagement>
@@ -110,6 +111,11 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-devtools</artifactId>
 				<version>${spring-boot.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.github.kstyrc</groupId>
+				<artifactId>embedded-redis</artifactId>
+				<version>${embedded-redis.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
