@@ -74,6 +74,20 @@ public class HystrixGatewayFilterFactoryTests extends BaseWebClientTests {
 				.isEqualTo(String.valueOf(HttpStatus.GATEWAY_TIMEOUT.value()));
 	}
 
+	/*
+	 * Tests that timeouts bubbling from the underpinning WebClient are treated the same as
+	 * Hystrix timeouts in terms of outside response. (Internally, timeouts from the WebClient
+	 * are seen as command failures and trigger the opening of circuit breakers the same way
+	 * timeouts do; it may be confusing in terms of the Hystrix metrics though)
+	 */
+	@Test
+	public void hystrixTimeoutFromWebClient() {
+		testClient.get().uri("/delay/10")
+				.header("Host", "www.hystrixresponsestall.org")
+				.exchange()
+				.expectStatus().isEqualTo(HttpStatus.GATEWAY_TIMEOUT);
+	}
+
 	@Test
 	public void hystrixFilterFallback() {
 		testClient.get().uri("/delay/3?a=b")
@@ -157,10 +171,17 @@ public class HystrixGatewayFilterFactoryTests extends BaseWebClientTests {
 							.filters(f -> f.prefixPath("/httpbin")
 									.hystrix(config -> {}))
 							.uri("lb:badservice"))
+					/*
+					 * This is a route encapsulated in a hystrix command that is ready to wait
+					 * for a response far longer than the underpinning WebClient would.
+					 */
+					.route("hystrix_response_stall", r -> r.host("**.hystrixresponsestall.org")
+							.filters(f -> f.prefixPath("/httpbin")
+									.hystrix(config -> config.setName("stalling-command")))
+							.uri(uri))
 					.build();
 		}
 	}
-
 
 	protected static class TestBadRibbonConfig {
 

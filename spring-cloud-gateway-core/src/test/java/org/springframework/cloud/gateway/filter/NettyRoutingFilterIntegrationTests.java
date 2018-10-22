@@ -27,6 +27,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -44,11 +45,11 @@ public class NettyRoutingFilterIntegrationTests extends BaseWebClientTests {
 		testClient.get()
 				.uri("/delay/5")
 				.exchange()
-				.expectStatus().is5xxServerError()
+				.expectStatus().isEqualTo(HttpStatus.GATEWAY_TIMEOUT)
 				.expectBody(Map.class)
 				.consumeWith(result -> {
 					Map body = result.getResponseBody();
-					assertThat(body).containsEntry("message", "Response took longer than timeout: PT3S");
+					assertThat(body).containsEntry("message", "Response took longer than configured timeout");
 				});
 	}
 
