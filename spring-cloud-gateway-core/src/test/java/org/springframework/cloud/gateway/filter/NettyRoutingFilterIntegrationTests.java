@@ -46,7 +46,8 @@ public class NettyRoutingFilterIntegrationTests extends BaseWebClientTests {
 				.uri("/delay/5")
 				.exchange()
 				.expectStatus().isEqualTo(HttpStatus.GATEWAY_TIMEOUT)
-				.expectBody().jsonPath("$.status").isEqualTo(String.valueOf(HttpStatus.GATEWAY_TIMEOUT.value()));
+				.expectBody()
+					.jsonPath("$.status").isEqualTo(String.valueOf(HttpStatus.GATEWAY_TIMEOUT.value()));
 	}
 
 	@EnableAutoConfiguration

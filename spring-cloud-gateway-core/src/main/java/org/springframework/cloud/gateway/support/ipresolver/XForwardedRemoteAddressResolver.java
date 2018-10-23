@@ -91,7 +91,7 @@ public class XForwardedRemoteAddressResolver implements RemoteAddressResolver {
 	public InetSocketAddress resolve(ServerWebExchange exchange) {
 		List<String> xForwardedValues = extractXForwardedValues(exchange);
 		Collections.reverse(xForwardedValues);
-		if (xForwardedValues.size() != 0) {
+		if (!xForwardedValues.isEmpty()) {
 			int index = Math.min(xForwardedValues.size(), maxTrustedIndex) - 1;
 			return new InetSocketAddress(xForwardedValues.get(index), 0);
 		}
@@ -101,7 +101,7 @@ public class XForwardedRemoteAddressResolver implements RemoteAddressResolver {
 	private List<String> extractXForwardedValues(ServerWebExchange exchange) {
 		List<String> xForwardedValues = exchange.getRequest().getHeaders()
 				.get(X_FORWARDED_FOR);
-		if (xForwardedValues == null || xForwardedValues.size() == 0) {
+		if (xForwardedValues == null || xForwardedValues.isEmpty()) {
 			return Collections.emptyList();
 		}
 		if (xForwardedValues.size() > 1) {

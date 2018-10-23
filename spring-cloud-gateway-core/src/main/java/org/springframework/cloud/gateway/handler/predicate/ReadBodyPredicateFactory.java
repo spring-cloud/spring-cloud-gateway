@@ -17,22 +17,24 @@
 
 package org.springframework.cloud.gateway.handler.predicate;
 
+import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.cloud.gateway.support.BodyInserterContext;
 
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import org.springframework.cloud.gateway.support.CachedBodyOutputMessage;
 import org.springframework.cloud.gateway.handler.AsyncPredicate;
-import org.springframework.cloud.gateway.support.DefaultServerRequest;
-import org.springframework.http.codec.ServerCodecConfigurer;
-import org.springframework.web.reactive.function.BodyInserter;
-import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferUtils;
+import org.springframework.http.codec.HttpMessageReader;
+import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
 
+import org.springframework.web.reactive.function.server.HandlerStrategies;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -47,11 +49,10 @@ public class ReadBodyPredicateFactory
 
 	private static final String TEST_ATTRIBUTE = "read_body_predicate_test_attribute";
 	private static final String CACHE_REQUEST_BODY_OBJECT_KEY = "cachedRequestBodyObject";
-	private final ServerCodecConfigurer codecConfigurer;
+	private static final List<HttpMessageReader<?>> messageReaders = HandlerStrategies.withDefaults().messageReaders();
 
-	public ReadBodyPredicateFactory(ServerCodecConfigurer codecConfigurer) {
+	public ReadBodyPredicateFactory() {
 		super(Config.class);
-		this.codecConfigurer = codecConfigurer;
 	}
 
 	@Override
@@ -66,43 +67,47 @@ public class ReadBodyPredicateFactory
 			// exception will be thrown.  The below if/else caches the body object as a request attribute in the ServerWebExchange
 			// so if this filter is run more than once (due to more than one route using it) we do not try to read the
 			// request body multiple times
-			if(cachedBody != null) {
+			if (cachedBody != null) {
 				try {
 					boolean test = config.predicate.test(cachedBody);
 					exchange.getAttributes().put(TEST_ATTRIBUTE, test);
-				} catch(ClassCastException e) {
-					if(LOGGER.isDebugEnabled()) {
+					return Mono.just(test);
+				} catch (ClassCastException e) {
+					if (LOGGER.isDebugEnabled()) {
 						LOGGER.debug("Predicate test failed because class in predicate does not match the cached body object",
 								e);
 					}
 				}
-				modifiedBody = Mono.just(cachedBody);
+				return Mono.just(false);
 			} else {
-				ServerRequest serverRequest = new DefaultServerRequest(exchange);
-				// TODO: flux or mono
-				modifiedBody = serverRequest.bodyToMono(inClass)
-						// .log("modify_request_mono", Level.INFO)
-						.flatMap(body -> {
-							// TODO: migrate to async
-							exchange.getAttributes().put(CACHE_REQUEST_BODY_OBJECT_KEY, body);
-							boolean test = config.predicate.test(body);
-							exchange.getAttributes().put(TEST_ATTRIBUTE, test);
-							return Mono.just(body);
+				//Join all the DataBuffers so we have a single DataBuffer for the body
+				return DataBufferUtils.join(exchange.getRequest().getBody())
+						.flatMap(dataBuffer -> {
+							//Update the retain counts so we can read the body twice, once to parse into an object
+							//that we can test the predicate against and a second time when the HTTP client sends
+							//the request downstream
+							//Note: if we end up reading the body twice we will run into a problem, but as of right
+							//now there is no good use case for doing this
+							DataBufferUtils.retain(dataBuffer);
+							//Make a slice for each read so each read has its own read/write indexes
+							Flux<DataBuffer> cachedFlux = Flux.defer(() -> Flux.just(dataBuffer.slice(0, dataBuffer.readableByteCount())));
+
+							ServerHttpRequest mutatedRequest = new ServerHttpRequestDecorator(exchange.getRequest()) {
+								@Override
+								public Flux<DataBuffer> getBody() {
+									return cachedFlux;
+								}
+							};
+							return ServerRequest.create(exchange.mutate().request(mutatedRequest).build(), messageReaders)
+									.bodyToMono(inClass)
+									.doOnNext(objectValue -> {
+										exchange.getAttributes().put(CACHE_REQUEST_BODY_OBJECT_KEY, objectValue);
+										exchange.getAttributes().put(CACHED_REQUEST_BODY_KEY, cachedFlux);
+									})
+									.map(objectValue -> config.predicate.test(objectValue));
 						});
+
 			}
-			BodyInserter bodyInserter = BodyInserters.fromPublisher(modifiedBody, inClass);
-			CachedBodyOutputMessage outputMessage = new CachedBodyOutputMessage(exchange,
-					exchange.getRequest().getHeaders());
-			return bodyInserter.insert(outputMessage, new BodyInserterContext())
-					// .log("modify_request", Level.INFO)
-					.then(Mono.defer(() -> {
-						boolean test = (Boolean) exchange.getAttributes()
-								.getOrDefault(TEST_ATTRIBUTE, Boolean.FALSE);
-						exchange.getAttributes().remove(TEST_ATTRIBUTE);
-						exchange.getAttributes().put(CACHED_REQUEST_BODY_KEY,
-								outputMessage.getBody());
-						return Mono.just(test);
-					}));
 		};
 	}
 

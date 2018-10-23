@@ -29,6 +29,7 @@ import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.resources.ConnectionProvider;
 import reactor.netty.tcp.ProxyProvider;
+import reactor.netty.tcp.SslProvider;
 import rx.RxReactiveStreams;
 
 import org.springframework.beans.factory.ObjectProvider;
@@ -208,15 +209,21 @@ public class GatewayAutoConfiguration {
 					|| ssl.isUseInsecureTrustManager()) {
 				httpClient = httpClient.secure(sslContextSpec -> {
 					// configure ssl
+					SslContextBuilder sslContextBuilder = SslContextBuilder.forClient();
+
 					X509Certificate[] trustedX509Certificates = ssl
 							.getTrustedX509CertificatesForTrustManager();
 					if (trustedX509Certificates.length > 0) {
-						sslContextSpec.sslContext(SslContextBuilder.forClient()
-								.trustManager(trustedX509Certificates));
+						sslContextBuilder.trustManager(trustedX509Certificates);
 					} else if (ssl.isUseInsecureTrustManager()) {
-						sslContextSpec.sslContext(SslContextBuilder.forClient()
-								.trustManager(InsecureTrustManagerFactory.INSTANCE));
+						sslContextBuilder.trustManager(InsecureTrustManagerFactory.INSTANCE);
 					}
+
+					sslContextSpec.sslContext(sslContextBuilder)
+							.defaultConfiguration(SslProvider.DefaultConfigurationType.NONE)
+							.handshakeTimeoutMillis(ssl.getHandshakeTimeoutMillis())
+							.closeNotifyFlushTimeoutMillis(ssl.getCloseNotifyFlushTimeoutMillis())
+							.closeNotifyReadTimeoutMillis(ssl.getCloseNotifyReadTimeoutMillis());
 				});
 			}
 
@@ -450,8 +457,8 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	public ReadBodyPredicateFactory readBodyPredicateFactory(ServerCodecConfigurer codecConfigurer) {
-		return new ReadBodyPredicateFactory(codecConfigurer);
+	public ReadBodyPredicateFactory readBodyPredicateFactory() {
+		return new ReadBodyPredicateFactory();
 	}
 
 	@Bean

@@ -18,7 +18,6 @@
 package org.springframework.cloud.gateway.handler.predicate;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 

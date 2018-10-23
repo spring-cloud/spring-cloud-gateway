@@ -56,7 +56,7 @@ public class RouteDefinition {
 	public RouteDefinition() {}
 
 	public RouteDefinition(String text) {
-		int eqIdx = text.indexOf("=");
+		int eqIdx = text.indexOf('=');
 		if (eqIdx <= 0) {
 			throw new ValidationException("Unable to parse RouteDefinition text '" + text + "'" +
 					", must be of the form name=value");
