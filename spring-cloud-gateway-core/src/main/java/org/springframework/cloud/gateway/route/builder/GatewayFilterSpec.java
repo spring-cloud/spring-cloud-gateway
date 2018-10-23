@@ -569,7 +569,4 @@ public class GatewayFilterSpec extends UriSpec {
 				}));
 	}
 
-	private String routeId() {
-		return routeBuilder.getId();
-	}
 }

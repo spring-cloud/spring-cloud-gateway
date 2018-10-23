@@ -23,43 +23,45 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import org.springframework.cloud.gateway.filter.GatewayFilter;
-import org.springframework.cloud.gateway.filter.GatewayFilterChain;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
-import org.springframework.web.reactive.DispatcherHandler;
-import org.springframework.web.server.ResponseStatusException;
-import org.springframework.web.server.ServerWebExchange;
-import org.springframework.web.util.UriComponentsBuilder;
-
 import com.netflix.hystrix.HystrixCommandGroupKey;
 import com.netflix.hystrix.HystrixCommandKey;
 import com.netflix.hystrix.HystrixObservableCommand;
 import com.netflix.hystrix.HystrixObservableCommand.Setter;
 import com.netflix.hystrix.exception.HystrixRuntimeException;
-
-import static com.netflix.hystrix.exception.HystrixRuntimeException.FailureType.TIMEOUT;
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.containsEncodedParts;
-
 import reactor.core.publisher.Mono;
 import rx.Observable;
 import rx.RxReactiveStreams;
 import rx.Subscription;
 
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.GatewayFilterChain;
+import org.springframework.cloud.gateway.support.TimeoutException;
+import org.springframework.core.annotation.AnnotatedElementUtils;
+import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.reactive.DispatcherHandler;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.util.UriComponentsBuilder;
+
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.containsEncodedParts;
+
 /**
  * Depends on `spring-cloud-starter-netflix-hystrix`, {@see http://cloud.spring.io/spring-cloud-netflix/}
  * @author Spencer Gibb
+ * @author Michele Mancioppi
  */
 public class HystrixGatewayFilterFactory extends AbstractGatewayFilterFactory<HystrixGatewayFilterFactory.Config> {
 
 	public static final String FALLBACK_URI = "fallbackUri";
 
-	private final DispatcherHandler dispatcherHandler;
+	private final ObjectProvider<DispatcherHandler> dispatcherHandler;
 
-	public HystrixGatewayFilterFactory(DispatcherHandler dispatcherHandler) {
+	public HystrixGatewayFilterFactory(ObjectProvider<DispatcherHandler> dispatcherHandler) {
 		super(Config.class);
 		this.dispatcherHandler = dispatcherHandler;
 	}
@@ -101,8 +103,24 @@ public class HystrixGatewayFilterFactory extends AbstractGatewayFilterFactory<Hy
 			}).onErrorResume((Function<Throwable, Mono<Void>>) throwable -> {
 				if (throwable instanceof HystrixRuntimeException) {
 					HystrixRuntimeException e = (HystrixRuntimeException) throwable;
-					if (e.getFailureType() == TIMEOUT) {
-						return Mono.error(new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT));
+					HystrixRuntimeException.FailureType failureType = e.getFailureType();
+
+					switch (failureType) {
+						case TIMEOUT:
+							return Mono.error(new TimeoutException());
+						case COMMAND_EXCEPTION: {
+							Throwable cause = e.getCause();
+
+							/*
+							 * We forsake here the null check for cause as HystrixRuntimeException will
+							 * always have a cause if the failure type is COMMAND_EXCEPTION.
+							 */
+							if (cause instanceof ResponseStatusException || AnnotatedElementUtils
+									.findMergedAnnotation(cause.getClass(), ResponseStatus.class) != null) {
+								return Mono.error(cause);
+							}
+						}
+						default: break;
 					}
 				}
 				return Mono.error(throwable);
@@ -149,7 +167,8 @@ public class HystrixGatewayFilterFactory extends AbstractGatewayFilterFactory<Hy
 
 			ServerHttpRequest request = this.exchange.getRequest().mutate().uri(requestUrl).build();
 			ServerWebExchange mutated = exchange.mutate().request(request).build();
-			return RxReactiveStreams.toObservable(HystrixGatewayFilterFactory.this.dispatcherHandler.handle(mutated));
+			DispatcherHandler dispatcherHandler = HystrixGatewayFilterFactory.this.dispatcherHandler.getIfAvailable();
+			return RxReactiveStreams.toObservable(dispatcherHandler.handle(mutated));
 		}
 	}
 
