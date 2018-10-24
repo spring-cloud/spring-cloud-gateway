@@ -69,6 +69,7 @@ import org.springframework.cloud.gateway.filter.factory.RequestHeaderToRequestUr
 import org.springframework.cloud.gateway.filter.factory.RequestRateLimiterGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RetryGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.RewriteResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SaveSessionGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SecureHeadersProperties;
@@ -576,6 +577,11 @@ public class GatewayAutoConfiguration {
 	@Bean
 	public SetResponseHeaderGatewayFilterFactory setResponseHeaderGatewayFilterFactory() {
 		return new SetResponseHeaderGatewayFilterFactory();
+	}
+
+	@Bean
+	public RewriteResponseHeaderGatewayFilterFactory rewriteResponseHeaderGatewayFilterFactory() {
+		return new RewriteResponseHeaderGatewayFilterFactory();
 	}
 
 	@Bean
