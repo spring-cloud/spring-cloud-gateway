@@ -67,11 +67,11 @@ public class RouteDefinitionRouteLocator implements RouteLocator, BeanFactoryAwa
 	private ApplicationEventPublisher publisher;
 
 	public RouteDefinitionRouteLocator(RouteDefinitionLocator routeDefinitionLocator,
-									   List<RoutePredicateFactory> predicates,
+									   List<RoutePredicateFactory> routePredicateFactories,
 									   List<GatewayFilterFactory> gatewayFilterFactories,
 									   GatewayProperties gatewayProperties) {
 		this.routeDefinitionLocator = routeDefinitionLocator;
-		initFactories(predicates);
+		initPredicateFactories(routePredicateFactories);
 		gatewayFilterFactories.forEach(factory -> this.gatewayFilterFactories.put(factory.name(), factory));
 		this.gatewayProperties = gatewayProperties;
 	}
@@ -89,8 +89,8 @@ public class RouteDefinitionRouteLocator implements RouteLocator, BeanFactoryAwa
 		this.publisher = publisher;
 	}
 
-	private void initFactories(List<RoutePredicateFactory> predicates) {
-		predicates.forEach(factory -> {
+	private void initPredicateFactories(List<RoutePredicateFactory> routePredicateFactories) {
+		routePredicateFactories.forEach(factory -> {
 			String key = factory.name();
 			if (this.predicates.containsKey(key)) {
 				this.logger.warn("A RoutePredicateFactory named "+ key
