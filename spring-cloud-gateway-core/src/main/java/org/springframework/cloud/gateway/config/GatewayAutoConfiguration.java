@@ -221,9 +221,9 @@ public class GatewayAutoConfiguration {
 
 					sslContextSpec.sslContext(sslContextBuilder)
 							.defaultConfiguration(ssl.getDefaultConfigurationType())
-							.handshakeTimeoutMillis(ssl.getHandshakeTimeoutMillis())
-							.closeNotifyFlushTimeoutMillis(ssl.getCloseNotifyFlushTimeoutMillis())
-							.closeNotifyReadTimeoutMillis(ssl.getCloseNotifyReadTimeoutMillis());
+							.handshakeTimeout(ssl.getHandshakeTimeout())
+							.closeNotifyFlushTimeout(ssl.getCloseNotifyFlushTimeout())
+							.closeNotifyReadTimeout(ssl.getCloseNotifyReadTimeout());
 				});
 			}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,9 @@
 
 package org.springframework.cloud.gateway.test.ssl;
 
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
@@ -28,12 +27,16 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.reactive.server.JsonPathAssertions;
 import org.springframework.test.web.reactive.server.WebTestClient.ResponseSpec;
 
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
+
 @RunWith(SpringRunner.class)
 // this test works because it assumes TLS hand shake cannot be done in 1ms. It takes closer to 80ms
-@SpringBootTest(webEnvironment = RANDOM_PORT, properties = {"spring.cloud.gateway.httpclient.ssl.handshake-timeout=1ms"})
+@SpringBootTest(webEnvironment = RANDOM_PORT, properties = {"spring.cloud.gateway.httpclient.ssl.handshake-timeout-millis=1"})
 @DirtiesContext
 @ActiveProfiles("ssl")
-public class SSLHandshakeTimeoutTests extends SingleCertSSLTests {
+// this is testing that the deprecated handshake-timeout-millis property still works
+@Deprecated
+public class SSLHandshakeTimeoutDeprecatedTests extends SingleCertSSLTests {
 
 	@Test
 	@Override // here we validate that it the handshake times out

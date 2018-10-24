@@ -18,6 +18,7 @@
 package org.springframework.cloud.gateway.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.DeprecatedConfigurationProperty;
 import org.springframework.boot.web.server.WebServerException;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.util.ResourceUtils;
@@ -230,11 +231,11 @@ public class HttpClientProperties {
 		
 		// use netty default SSL timeouts
 		/** SSL handshake timeout. Default to 10000 ms */
-		private long handshakeTimeoutMillis = 10000L;
+		private Duration handshakeTimeout = Duration.ofMillis(10000);
 		/** SSL close_notify flush timeout. Default to 3000 ms. */
-		private long closeNotifyFlushTimeoutMillis = 3000L;
+		private Duration closeNotifyFlushTimeout = Duration.ofMillis(3000);
 		/** SSL close_notify read timeout. Default to 0 ms. */
-		private long closeNotifyReadTimeoutMillis = 0L;
+		private Duration closeNotifyReadTimeout = Duration.ZERO;
 
 		/** The default ssl configuration type. Defaults to TCP. */
 		private SslProvider.DefaultConfigurationType defaultConfigurationType = SslProvider.DefaultConfigurationType.TCP;
@@ -282,28 +283,61 @@ public class HttpClientProperties {
 			this.useInsecureTrustManager = useInsecureTrustManager;
 		}
 
+		public Duration getHandshakeTimeout() {
+			return handshakeTimeout;
+		}
+
+		public void setHandshakeTimeout(Duration handshakeTimeout) {
+			this.handshakeTimeout = handshakeTimeout;
+		}
+
+		public Duration getCloseNotifyFlushTimeout() {
+			return closeNotifyFlushTimeout;
+		}
+
+		public void setCloseNotifyFlushTimeout(Duration closeNotifyFlushTimeout) {
+			this.closeNotifyFlushTimeout = closeNotifyFlushTimeout;
+		}
+
+		public Duration getCloseNotifyReadTimeout() {
+			return closeNotifyReadTimeout;
+		}
+
+		public void setCloseNotifyReadTimeout(Duration closeNotifyReadTimeout) {
+			this.closeNotifyReadTimeout = closeNotifyReadTimeout;
+		}
+
+		@DeprecatedConfigurationProperty(replacement = "spring.cloud.gateway.httpclient.ssl.handshake-timeout")
+		@Deprecated
 		public long getHandshakeTimeoutMillis() {
-			return handshakeTimeoutMillis;
+			return getHandshakeTimeout().toMillis();
 		}
 
+		@Deprecated
 		public void setHandshakeTimeoutMillis(long handshakeTimeoutMillis) {
-			this.handshakeTimeoutMillis = handshakeTimeoutMillis;
+			setHandshakeTimeout(Duration.ofMillis(handshakeTimeoutMillis));
 		}
-		
+
+		@DeprecatedConfigurationProperty(replacement = "spring.cloud.gateway.httpclient.ssl.close-notify-flush-timeout")
+		@Deprecated
 		public long getCloseNotifyFlushTimeoutMillis() {
-			return closeNotifyFlushTimeoutMillis;
+			return getCloseNotifyFlushTimeout().toMillis();
 		}
 
+		@Deprecated
 		public void setCloseNotifyFlushTimeoutMillis(long closeNotifyFlushTimeoutMillis) {
-			this.closeNotifyFlushTimeoutMillis = closeNotifyFlushTimeoutMillis;
+			setCloseNotifyFlushTimeout(Duration.ofMillis(closeNotifyFlushTimeoutMillis));
 		}
 
+		@DeprecatedConfigurationProperty(replacement = "spring.cloud.gateway.httpclient.ssl.close-notify-read-timeout")
+		@Deprecated
 		public long getCloseNotifyReadTimeoutMillis() {
-			return closeNotifyReadTimeoutMillis;
+			return getCloseNotifyReadTimeout().toMillis();
 		}
 
+		@Deprecated
 		public void setCloseNotifyReadTimeoutMillis(long closeNotifyReadTimeoutMillis) {
-			this.closeNotifyReadTimeoutMillis = closeNotifyReadTimeoutMillis;
+			setCloseNotifyFlushTimeout(Duration.ofMillis(closeNotifyReadTimeoutMillis));
 		}
 
 		public SslProvider.DefaultConfigurationType getDefaultConfigurationType() {
@@ -319,9 +353,9 @@ public class HttpClientProperties {
 			return new ToStringCreator(this)
 					.append("useInsecureTrustManager", useInsecureTrustManager)
 					.append("trustedX509Certificates", trustedX509Certificates)
-					.append("handshakeTimeoutMillis", handshakeTimeoutMillis)
-					.append("closeNotifyFlushTimeoutMillis", closeNotifyFlushTimeoutMillis)
-					.append("closeNotifyReadTimeoutMillis", closeNotifyReadTimeoutMillis)
+					.append("handshakeTimeout", handshakeTimeout)
+					.append("closeNotifyFlushTimeout", closeNotifyFlushTimeout)
+					.append("closeNotifyReadTimeout", closeNotifyReadTimeout)
 					.append("defaultConfigurationType", defaultConfigurationType)
 					.toString();
 		}
