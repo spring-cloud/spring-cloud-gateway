@@ -220,7 +220,7 @@ public class GatewayAutoConfiguration {
 					}
 
 					sslContextSpec.sslContext(sslContextBuilder)
-							.defaultConfiguration(SslProvider.DefaultConfigurationType.NONE)
+							.defaultConfiguration(ssl.getDefaultConfigurationType())
 							.handshakeTimeoutMillis(ssl.getHandshakeTimeoutMillis())
 							.closeNotifyFlushTimeoutMillis(ssl.getCloseNotifyFlushTimeoutMillis())
 							.closeNotifyReadTimeoutMillis(ssl.getCloseNotifyReadTimeoutMillis());

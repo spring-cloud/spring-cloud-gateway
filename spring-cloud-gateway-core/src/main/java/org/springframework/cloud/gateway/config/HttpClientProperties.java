@@ -19,8 +19,10 @@ package org.springframework.cloud.gateway.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.web.server.WebServerException;
+import org.springframework.core.style.ToStringCreator;
 import org.springframework.util.ResourceUtils;
 import reactor.netty.resources.ConnectionProvider;
+import reactor.netty.tcp.SslProvider;
 
 
 import java.io.IOException;
@@ -222,13 +224,20 @@ public class HttpClientProperties {
 	public class Ssl {
 		/** Installs the netty InsecureTrustManagerFactory. This is insecure and not suitable for production. */
 		private boolean useInsecureTrustManager = false;
-				
+
+		/** Trusted certificates for verifying the remote endpoint's certificate. */
 		private List<String> trustedX509Certificates = new ArrayList<>();
 		
 		// use netty default SSL timeouts
+		/** SSL handshake timeout. Default to 10000 ms */
 		private long handshakeTimeoutMillis = 10000L;
+		/** SSL close_notify flush timeout. Default to 3000 ms. */
 		private long closeNotifyFlushTimeoutMillis = 3000L;
+		/** SSL close_notify read timeout. Default to 0 ms. */
 		private long closeNotifyReadTimeoutMillis = 0L;
+
+		/** The default ssl configuration type. Defaults to TCP. */
+		private SslProvider.DefaultConfigurationType defaultConfigurationType = SslProvider.DefaultConfigurationType.TCP;
 
 		public List<String> getTrustedX509Certificates() {
 			return trustedX509Certificates;
@@ -296,29 +305,36 @@ public class HttpClientProperties {
 		public void setCloseNotifyReadTimeoutMillis(long closeNotifyReadTimeoutMillis) {
 			this.closeNotifyReadTimeoutMillis = closeNotifyReadTimeoutMillis;
 		}
-		
-		@Override
-		public String toString() {
-			return "Ssl {useInsecureTrustManager=" + useInsecureTrustManager
-					+ ", trustedX509Certificates=" + trustedX509Certificates
-					+ ", handshakeTimeoutMillis=" + handshakeTimeoutMillis
-					+ ", closeNotifyFlushTimeoutMillis="
-					+ closeNotifyFlushTimeoutMillis
-					+ ", closeNotifyReadTimeoutMillis="
-					+ closeNotifyReadTimeoutMillis + "}";
+
+		public SslProvider.DefaultConfigurationType getDefaultConfigurationType() {
+			return defaultConfigurationType;
 		}
 
+		public void setDefaultConfigurationType(SslProvider.DefaultConfigurationType defaultConfigurationType) {
+			this.defaultConfigurationType = defaultConfigurationType;
+		}
 
+		@Override
+		public String toString() {
+			return new ToStringCreator(this)
+					.append("useInsecureTrustManager", useInsecureTrustManager)
+					.append("trustedX509Certificates", trustedX509Certificates)
+					.append("handshakeTimeoutMillis", handshakeTimeoutMillis)
+					.append("closeNotifyFlushTimeoutMillis", closeNotifyFlushTimeoutMillis)
+					.append("closeNotifyReadTimeoutMillis", closeNotifyReadTimeoutMillis)
+					.append("defaultConfigurationType", defaultConfigurationType)
+					.toString();
+		}
 	}
 
 	@Override
 	public String toString() {
-		return "HttpClientProperties{" +
-				"connectTimeout=" + connectTimeout +
-				", responseTimeout=" + responseTimeout +
-				", pool=" + pool +
-				", proxy=" + proxy +
-				", ssl=" + ssl +
-				'}';
+		return new ToStringCreator(this)
+				.append("connectTimeout", connectTimeout)
+				.append("responseTimeout", responseTimeout)
+				.append("pool", pool)
+				.append("proxy", proxy)
+				.append("ssl", ssl)
+				.toString();
 	}
 }
