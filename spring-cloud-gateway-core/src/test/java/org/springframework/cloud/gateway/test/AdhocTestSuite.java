@@ -25,6 +25,7 @@ import org.junit.runners.Suite.SuiteClasses;
 import org.junit.runners.model.Statement;
 
 import org.springframework.cloud.gateway.filter.GatewayMetricsFilterTests;
+import org.springframework.cloud.gateway.filter.factory.RewriteLocationResponseHeaderGatewayFilterFactoryTests;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
@@ -63,6 +64,7 @@ import static org.junit.Assume.assumeThat;
 		org.springframework.cloud.gateway.filter.factory.SetPathGatewayFilterFactoryTests.class,
 		org.springframework.cloud.gateway.filter.factory.PrefixPathGatewayFilterFactoryTest.class,
 		org.springframework.cloud.gateway.filter.factory.RewriteResponseHeaderGatewayFilterFactoryUnitTests.class,
+		RewriteLocationResponseHeaderGatewayFilterFactoryTests.class,
 		org.springframework.cloud.gateway.filter.factory.RequestRateLimiterGatewayFilterFactoryTests.class,
 		org.springframework.cloud.gateway.filter.factory.RequestHeaderToRequestUriGatewayFilterFactoryIntegrationTests.class,
 		org.springframework.cloud.gateway.filter.factory.RemoveResponseHeaderGatewayFilterFactoryTests.class,
