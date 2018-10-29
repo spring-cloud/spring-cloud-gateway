@@ -1086,7 +1086,70 @@ In the example above, CORS requests will be allowed from requests that originate
 
 == Actuator API
 
-TODO: document the `/gateway` actuator endpoint
+The `/gateway` actuator endpoint allows to monitor and interact with a Spring Cloud Gateway application. To be remotely accessible, the endpoint has to be https://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-endpoints.html#production-ready-endpoints-enabling-endpoints[enabled] and https://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-endpoints.html#production-ready-endpoints-exposing-endpoints[exposed via HTTP or JMX] in the application properties.
+
+.application.properties
+[source,properties]
+----
+management.endpoint.gateway.enabled=true # default value
+management.endpoints.web.exposure.include=gateway
+----
+
+=== Retrieving the filters applied to the routes
+TODO: GET `/gateway/globalfilters`, GET `/gateway/routefilters`
+
+=== Refreshing
+TODO: POST `/gateway/refresh`
+
+=== Retrieving the routes defined in the gateway
+TODO: GET `/gateway/routes`
+
+=== Retrieving information about a particular route
+TODO: GET `/gateway/routes/{id}`, GET `/gateway/routes/{id}/combinedfilters`
+
+=== Updating and deleting a particular route
+TODO: POST `/gateway/routes/{id}` DELETE `/gateway/routes/{id}`
+
+=== List of all endpoints
+The table below summarises the Spring Cloud Gateway actuator endpoints. Note that each endpoint has `/actuator/gateway` as the base-path.
+
+[cols="2,2,5"]
+|===
+| ID | HTTP Method | Description
+
+|`globalfilters`
+|GET
+| Displays the list of <<global-filters,global filters>> applied to the routes.
+
+|`routefilters`
+|GET
+| Displays the list of <<gatewayfilter-factories,GatewayFilter factories>> applied to a particular route.
+
+|`refresh`
+|POST
+| TODO
+
+|`routes`
+|GET
+| Displays the list of routes defined in the gateway.
+
+|`routes/{id}`
+|GET
+| Displays information about a particular route.
+
+|`routes/{id}/combinedfilters`
+|GET
+| TODO
+
+|`routes/{id}`
+|POST
+| Add a new route to the gateway.
+
+|`routes/{id}`
+|DELETE
+| Remove an existing route from the gateway.
+
+|===
 
 == Developer Guide
 
