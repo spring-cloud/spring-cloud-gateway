@@ -49,7 +49,7 @@ public class SetStatusGatewayFilterFactory extends AbstractGatewayFilterFactory<
 	public GatewayFilter apply(Config config) {
 		final HttpStatus status = ServerWebExchangeUtils.parse(config.status);
 		final Integer intStatus;
-		if (status == null) {
+		if (status != null) {
 			intStatus = Integer.parseInt(config.status);
 		} else {
 			intStatus = null;
