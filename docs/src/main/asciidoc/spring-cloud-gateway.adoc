@@ -1131,7 +1131,54 @@ The response contains details of the GatewayFilter factories applied to any part
 To clear the routes cache, make a `POST` request to `/actuator/gateway/refresh`. The request returns a 200 without response body.
 
 === Retrieving the routes defined in the gateway
-TODO: GET `/gateway/routes`
+To retrieve the routes defined in the gateway, make a `GET` request to `/actuator/gateway/routes`. The resulting response is similar to the following:
+
+----
+[{
+  "route_id": "first_route",
+  "route_object": {
+    "predicate": "org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFactory$$Lambda$432/1736826640@1e9d7e7d",
+    "filters": [
+      "OrderedGatewayFilter{delegate=org.springframework.cloud.gateway.filter.factory.PreserveHostHeaderGatewayFilterFactory$$Lambda$436/674480275@6631ef72, order=0}"
+    ]
+  },
+  "order": 0
+},
+{
+  "route_id": "second_route",
+  "route_object": {
+    "predicate": "org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFactory$$Lambda$432/1736826640@cd8d298",
+    "filters": [
+      "OrderedGatewayFilter{delegate=org.springframework.cloud.gateway.filter.factory.PreserveHostHeaderGatewayFilterFactory$$Lambda$436/674480275@6631ef72, order=0}"
+    ]
+  },
+  "order": 0
+}]
+----
+
+The response contains details of all the routes defined in the gateway. The following table describes the structure of each element (i.e., a route) of the response.
+
+[cols="3,2,4"]
+|===
+| Path | Type | Description
+
+|`route_id`
+| String
+| The route id.
+
+|`route_object.predicate`
+| Object
+| The route predicate.
+
+|`route_object.filters`
+| Array
+| The <<gatewayfilter-factories,GatewayFilter factories>> applied to the route.
+
+|`order`
+| Number
+| The route order.
+
+|===
 
 === Retrieving information about a particular route
 TODO: GET `/gateway/routes/{id}`, GET `/gateway/routes/{id}/combinedfilters`
