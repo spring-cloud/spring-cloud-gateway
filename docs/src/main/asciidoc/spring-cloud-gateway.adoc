@@ -1127,8 +1127,8 @@ To retrieve the <<gatewayfilter-factories,GatewayFilter factories>> applied to r
 
 The response contains details of the GatewayFilter factories applied to any particular route. For each factory is provided the string representation of the corresponding object (e.g., `[SecureHeadersGatewayFilterFactory@fceab5d configClass = Object]`). Note that the `null` value is due to an imperfect implementation of the endpoint controller, for that it tries to set the order of the object in the filter chain, which is an information that does not apply to GatewayFilter factories.
 
-=== Refreshing
-TODO: POST `/gateway/refresh`
+=== Refreshing the route cache
+To clear the routes cache, make a `POST` request to `/actuator/gateway/refresh`. The request returns a 200 without response body.
 
 === Retrieving the routes defined in the gateway
 TODO: GET `/gateway/routes`
@@ -1156,7 +1156,7 @@ The table below summarises the Spring Cloud Gateway actuator endpoints. Note tha
 
 |`refresh`
 |POST
-| TODO
+| Clears the routes cache.
 
 |`routes`
 |GET
