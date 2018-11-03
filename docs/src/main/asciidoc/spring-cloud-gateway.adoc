@@ -1148,9 +1148,7 @@ To retrieve the routes defined in the gateway, make a `GET` request to `/actuato
   "route_id": "second_route",
   "route_object": {
     "predicate": "org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFactory$$Lambda$432/1736826640@cd8d298",
-    "filters": [
-      "OrderedGatewayFilter{delegate=org.springframework.cloud.gateway.filter.factory.PreserveHostHeaderGatewayFilterFactory$$Lambda$436/674480275@6631ef72, order=0}"
-    ]
+    "filters": []
   },
   "order": 0
 }]
@@ -1181,12 +1179,55 @@ The response contains details of all the routes defined in the gateway. The foll
 |===
 
 === Retrieving information about a particular route
-TODO: GET `/gateway/routes/{id}`, GET `/gateway/routes/{id}/combinedfilters`
+To retrieve information about a single route, make a `GET` request to `/actuator/gateway/routes/{id}` (e.g., `/actuator/gateway/routes/first_route`). The resulting response is similar to the following:
 
-=== Updating and deleting a particular route
-TODO: POST `/gateway/routes/{id}` DELETE `/gateway/routes/{id}`
+----
+{
+  "id": "first_route",
+  "predicates": [{
+    "name": "Path",
+    "args": {"_genkey_0":"/first"}
+  }],
+  "filters": [],
+  "uri": "http://www.uri-destination.org",
+  "order": 0
+}]
+----
 
-=== List of all endpoints
+The following table describes the structure of the response.
+
+[cols="3,2,4"]
+|===
+| Path | Type | Description
+
+|`id`
+| String
+| The route id.
+
+|`predicates`
+| Array
+| The collection of route predicates. Each item defines the name and the arguments of a given predicate.
+
+|`filters`
+| Array
+| The collection of filters applied to the route.
+
+|`uri`
+| String
+| The destination URI of the route.
+
+|`order`
+| Number
+| The route order.
+
+|===
+
+=== Creating and deleting a particular route
+To create a route, make a `POST` request to `/gateway/routes/{id_route_to_create}` with a JSON body that specifies the fields of the route (see previous section).
+
+To delete a route, make a `DELETE` request to `/gateway/routes/{id_route_to_delete}`.
+
+=== Recap: list of all endpoints
 The table below summarises the Spring Cloud Gateway actuator endpoints. Note that each endpoint has `/actuator/gateway` as the base-path.
 
 [cols="2,2,5"]
@@ -1212,10 +1253,6 @@ The table below summarises the Spring Cloud Gateway actuator endpoints. Note tha
 |`routes/{id}`
 |GET
 | Displays information about a particular route.
-
-|`routes/{id}/combinedfilters`
-|GET
-| TODO
 
 |`routes/{id}`
 |POST
