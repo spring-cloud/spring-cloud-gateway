@@ -1095,8 +1095,37 @@ management.endpoint.gateway.enabled=true # default value
 management.endpoints.web.exposure.include=gateway
 ----
 
-=== Retrieving the filters applied to the routes
-TODO: GET `/gateway/globalfilters`, GET `/gateway/routefilters`
+=== Retrieving route filters
+==== Global Filters
+To retrieve the <<global-filters,global filters>> applied to all routes, make a `GET` request to `/actuator/gateway/globalfilters`. The resulting response is similar to the following:
+
+----
+{
+  "org.springframework.cloud.gateway.filter.LoadBalancerClientFilter@77856cc5": 10100,
+  "org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter@4f6fd101": 10000,
+  "org.springframework.cloud.gateway.filter.NettyWriteResponseFilter@32d22650": -1,
+  "org.springframework.cloud.gateway.filter.ForwardRoutingFilter@106459d9": 2147483647,
+  "org.springframework.cloud.gateway.filter.NettyRoutingFilter@1fbd5e0": 2147483647,
+  "org.springframework.cloud.gateway.filter.ForwardPathFilter@33a71d23": 0,
+  "org.springframework.cloud.gateway.filter.AdaptCachedBodyGlobalFilter@135064ea": 2147483637,
+  "org.springframework.cloud.gateway.filter.WebsocketRoutingFilter@23c05889": 2147483646
+}
+----
+
+The response contains details of the global filters in place. For each global filter is provided the string representation of the filter object (e.g., `org.springframework.cloud.gateway.filter.LoadBalancerClientFilter@77856cc5`) and the corresponding <<Combined Global Filter and GatewayFilter Ordering,order>> in the filter chain.
+
+==== Route Filters
+To retrieve the <<gatewayfilter-factories,GatewayFilter factories>> applied to routes, make a `GET` request to `/actuator/gateway/routefilters`. The resulting response is similar to the following:
+
+----
+{
+  "[AddRequestHeaderGatewayFilterFactory@570ed9c configClass = AbstractNameValueGatewayFilterFactory.NameValueConfig]": null,
+  "[SecureHeadersGatewayFilterFactory@fceab5d configClass = Object]": null,
+  "[SaveSessionGatewayFilterFactory@4449b273 configClass = Object]": null
+}
+----
+
+The response contains details of the GatewayFilter factories applied to any particular route. For each factory is provided the string representation of the corresponding object (e.g., `[SecureHeadersGatewayFilterFactory@fceab5d configClass = Object]`). Note that the `null` value is due to an imperfect implementation of the endpoint controller, for that it tries to set the order of the object in the filter chain, which is an information that does not apply to GatewayFilter factories.
 
 === Refreshing
 TODO: POST `/gateway/refresh`
@@ -1119,11 +1148,11 @@ The table below summarises the Spring Cloud Gateway actuator endpoints. Note tha
 
 |`globalfilters`
 |GET
-| Displays the list of <<global-filters,global filters>> applied to the routes.
+| Displays the list of global filters applied to the routes.
 
 |`routefilters`
 |GET
-| Displays the list of <<gatewayfilter-factories,GatewayFilter factories>> applied to a particular route.
+| Displays the list of GatewayFilter factories applied to a particular route.
 
 |`refresh`
 |POST
