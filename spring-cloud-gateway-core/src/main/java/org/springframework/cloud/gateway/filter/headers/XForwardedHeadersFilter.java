@@ -242,11 +242,12 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 
 						if(requestUriPath!=null && (originalUriPath.endsWith(requestUriPath))) {
 							prefix = originalUriPath.replace(requestUriPath, "");
+							if (prefix != null && prefix.length() > 0 &&
+									prefix.length() <= originalUri.getPath().length()) {
+								write(updated, X_FORWARDED_PREFIX_HEADER, prefix, isPrefixAppend());
+							}
 						}
-						if (prefix != null && prefix.length() > 0 &&
-								prefix.length() < originalUri.getPath().length()) {
-							write(updated, X_FORWARDED_PREFIX_HEADER, prefix, isPrefixAppend());
-						}
+
 					}
 				});
 			}
