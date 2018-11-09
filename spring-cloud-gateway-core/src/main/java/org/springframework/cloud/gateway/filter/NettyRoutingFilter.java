@@ -132,6 +132,12 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 					HttpHeaders filteredResponseHeaders = HttpHeadersFilter.filter(
 							this.headersFilters.getIfAvailable(), headers, exchange, Type.RESPONSE);
 
+					if(!filteredResponseHeaders.containsKey(HttpHeaders.TRANSFER_ENCODING) &&
+							filteredResponseHeaders.containsKey(HttpHeaders.CONTENT_LENGTH)) {
+						//It is not valid to have both the transfer-encoding header and the content-length header
+						//remove the transfer-encoding header in the response if the content-length header is presen
+						response.getHeaders().remove(HttpHeaders.TRANSFER_ENCODING);
+					}
 					response.getHeaders().putAll(filteredResponseHeaders);
 					HttpStatus status = HttpStatus.resolve(res.status().code());
 					if (status != null) {
