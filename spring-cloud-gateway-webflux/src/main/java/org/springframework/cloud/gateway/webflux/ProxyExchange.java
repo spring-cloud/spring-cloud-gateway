@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.reactivestreams.Publisher;
 
@@ -135,6 +136,7 @@ public class ProxyExchange<T> {
 		this.bindingContext = bindingContext;
 		this.responseType = type;
 		this.rest = rest;
+		this.sensitive = DEFAULT_SENSITIVE;
 	}
 
 	/**
@@ -319,7 +321,7 @@ public class ProxyExchange<T> {
 		Type type = this.responseType;
 		RequestBodySpec builder = rest.method(requestEntity.getMethod())
 				.uri(requestEntity.getUrl())
-				.headers(headers -> headers.addAll(requestEntity.getHeaders()));
+				.headers(headers -> addHeaders(headers, requestEntity.getHeaders()));
 		Mono<ClientResponse> result;
 		if (requestEntity.getBody() instanceof Publisher) {
 			@SuppressWarnings("unchecked")
@@ -333,29 +335,31 @@ public class ProxyExchange<T> {
 		else {
 			if (hasBody) {
 				result = builder.headers(
-						headers -> headers.addAll(exchange.getRequest().getHeaders()))
+						headers -> addHeaders(headers, exchange.getRequest().getHeaders()))
 						.body(exchange.getRequest().getBody(), DataBuffer.class)
 						.exchange();
 			}
 			else {
 				result = builder.headers(
-						headers -> headers.addAll(exchange.getRequest().getHeaders()))
+						headers -> addHeaders(headers, exchange.getRequest().getHeaders()))
 						.exchange();
 			}
 		}
 		return result.flatMap(response -> response.toEntity(ParameterizedTypeReference.forType(type)));
 	}
 
+	private void addHeaders(HttpHeaders headers, HttpHeaders toAdd) {
+		Set<String> filteredHeaders = filterHeaderKeys(toAdd);
+		filteredHeaders.stream().forEach(header -> headers.addAll(header, toAdd.get(header)));
+	}
+
+	private Set<String> filterHeaderKeys(HttpHeaders headers) {
+		return headers.keySet().stream().filter(header -> !sensitive.contains(header.toLowerCase())).collect(Collectors.toSet());
+	}
+
 	private BodyBuilder headers(BodyBuilder builder) {
-		Set<String> sensitive = this.sensitive;
-		if (sensitive == null) {
-			sensitive = DEFAULT_SENSITIVE;
-		}
 		proxy();
-		for (String name : headers.keySet()) {
-			if (sensitive.contains(name.toLowerCase())) {
-				continue;
-			}
+		for (String name : filterHeaderKeys(headers)) {
 			builder.header(name, headers.get(name).toArray(new String[0]));
 		}
 		return builder;
