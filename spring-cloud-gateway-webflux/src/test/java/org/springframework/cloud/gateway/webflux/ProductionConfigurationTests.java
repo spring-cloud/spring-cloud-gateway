@@ -55,6 +55,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -175,6 +177,16 @@ public class ProductionConfigurationTests {
 						.isEqualTo("host=localhost;foobar");
 	}
 
+	@Test
+	public void headers() throws Exception {
+		Map<String, List<String>> headers = rest.exchange(RequestEntity.get(rest.getRestTemplate().getUriTemplateHandler()
+				.expand("/proxy/headers")).header("foo", "bar").header("abc", "xyz").build(), Map.class).getBody();
+		assertTrue(!headers.containsKey("foo"));
+		assertTrue(!headers.containsKey("hello"));
+		assertEquals("hello", headers.get("bar"));
+		assertEquals("123", headers.get("abc"));
+	}
+
 	@SpringBootApplication
 	static class TestApplication {
 
@@ -269,6 +281,17 @@ public class ProductionConfigurationTests {
 								.body(response.getBody().iterator().next()));
 			}
 
+			@GetMapping("/proxy/headers")
+			public Mono<ResponseEntity<Map<String, String>>> headers(ProxyExchange<Map<String, String>> proxy) {
+				proxy.sensitive("foo");
+				proxy.sensitive("hello");
+				proxy.header("bar", "hello");
+				proxy.header("abc", "123");
+				proxy.header("hello", "world");
+				return proxy.uri(home.toString() + "/headers").get();
+
+			}
+
 			private <T> ResponseEntity<T> first(ResponseEntity<List<T>> response) {
 				return ResponseEntity.status(response.getStatusCode())
 						.headers(response.getHeaders())
@@ -306,6 +329,11 @@ public class ProductionConfigurationTests {
 				custom = headers.getFirst("forwarded") == null ? custom
 						: headers.getFirst("forwarded") + ";" + custom;
 				return Arrays.asList(new Bar(custom + foos.iterator().next().getName()));
+			}
+
+			@GetMapping("/headers")
+			public Map<String, String> headers(@RequestHeader HttpHeaders headers) {
+				return headers.toSingleValueMap();
 			}
 
 		}
