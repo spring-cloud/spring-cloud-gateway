@@ -16,22 +16,8 @@
 
 package org.springframework.cloud.gateway.route.builder;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import reactor.retry.Repeat;
-import reactor.retry.Retry;
-
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.OrderedGatewayFilter;
@@ -39,6 +25,7 @@ import org.springframework.cloud.gateway.filter.factory.AbstractChangeRequestUri
 import org.springframework.cloud.gateway.filter.factory.AddRequestHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.AddRequestParameterGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.AddResponseHeaderGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.FallbackHeadersGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.HystrixGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.PrefixPathGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.PreserveHostHeaderGatewayFilterFactory;
@@ -65,6 +52,19 @@ import org.springframework.cloud.gateway.route.Route;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.retry.Repeat;
+import reactor.retry.Retry;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Applies specific filters to routes.
@@ -565,6 +565,25 @@ public class GatewayFilterSpec extends UriSpec {
 	 */
 	public GatewayFilterSpec setRequestSize(Long size) {
 		return filter(getBean(RequestSizeGatewayFilterFactory.class).apply(c -> c.setMaxSize(size)));
+	}
+
+	/**
+	 * Adds hystrix execution exception headers to fallback request.
+	 * Depends on @{code org.springframework.cloud::spring-cloud-starter-netflix-hystrix} being on the classpath,
+	 * {@see http://cloud.spring.io/spring-cloud-netflix/}
+	 *
+	 * @param config a {@link FallbackHeadersGatewayFilterFactory.Config} which provides the header names.
+	 *               If header names arguments are not provided, default values are used.
+	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
+	 */
+	public GatewayFilterSpec fallbackHeaders(FallbackHeadersGatewayFilterFactory.Config config) {
+		FallbackHeadersGatewayFilterFactory factory;
+		try {
+			factory = getBean(FallbackHeadersGatewayFilterFactory.class);
+		} catch (NoSuchBeanDefinitionException e) {
+			throw new NoSuchBeanDefinitionException(FallbackHeadersGatewayFilterFactory.class, "This is probably because Hystrix is missing from the classpath, which can be resolved by adding dependency on 'org.springframework.cloud:spring-cloud-starter-netflix-hystrix'");
+		}
+		return filter(factory.apply(config));
 	}
 
 }
