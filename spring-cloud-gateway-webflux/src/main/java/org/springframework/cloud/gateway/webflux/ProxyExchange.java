@@ -350,8 +350,10 @@ public class ProxyExchange<T> {
 	}
 
 	private void addHeaders(HttpHeaders headers, HttpHeaders toAdd) {
-		Set<String> filteredHeaders = filterHeaderKeys(toAdd);
-		filteredHeaders.stream().forEach(header -> headers.addAll(header, toAdd.get(header)));
+		Set<String> filteredKeys = filterHeaderKeys(toAdd);
+		filteredKeys.stream()
+				.filter(key -> !headers.containsKey(key))
+				.forEach(header -> headers.addAll(header, toAdd.get(header)));
 	}
 
 	private Set<String> filterHeaderKeys(HttpHeaders headers) {
