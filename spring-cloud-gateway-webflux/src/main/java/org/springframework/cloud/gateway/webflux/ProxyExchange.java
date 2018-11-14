@@ -136,7 +136,8 @@ public class ProxyExchange<T> {
 		this.bindingContext = bindingContext;
 		this.responseType = type;
 		this.rest = rest;
-		this.sensitive = DEFAULT_SENSITIVE;
+		this.sensitive = new HashSet<>(DEFAULT_SENSITIVE.size());
+		this.sensitive.addAll(DEFAULT_SENSITIVE);
 	}
 
 	/**
