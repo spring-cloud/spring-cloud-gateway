@@ -178,13 +178,16 @@ public class ProductionConfigurationTests {
 	}
 
 	@Test
+	@SuppressWarnings({"Duplicates", "unchecked"})
 	public void headers() throws Exception {
 		Map<String, List<String>> headers = rest.exchange(RequestEntity.get(rest.getRestTemplate().getUriTemplateHandler()
 				.expand("/proxy/headers")).header("foo", "bar").header("abc", "xyz").build(), Map.class).getBody();
-		assertTrue(!headers.containsKey("foo"));
-		assertTrue(!headers.containsKey("hello"));
-		assertEquals("hello", headers.get("bar"));
-		assertEquals("123", headers.get("abc"));
+		assertThat(headers).doesNotContainKey("foo")
+				.doesNotContainKey("hello")
+				.containsKeys("bar", "abc");
+
+		assertThat(headers.get("bar")).containsOnly("hello");
+		assertThat(headers.get("abc")).containsOnly("123");
 	}
 
 	@SpringBootApplication
@@ -282,14 +285,13 @@ public class ProductionConfigurationTests {
 			}
 
 			@GetMapping("/proxy/headers")
-			public Mono<ResponseEntity<Map<String, String>>> headers(ProxyExchange<Map<String, String>> proxy) {
+			public Mono<ResponseEntity<Map<String, List<String>>>> headers(ProxyExchange<Map<String, List<String>>> proxy) {
 				proxy.sensitive("foo");
 				proxy.sensitive("hello");
 				proxy.header("bar", "hello");
 				proxy.header("abc", "123");
 				proxy.header("hello", "world");
 				return proxy.uri(home.toString() + "/headers").get();
-
 			}
 
 			private <T> ResponseEntity<T> first(ResponseEntity<List<T>> response) {
@@ -332,8 +334,8 @@ public class ProductionConfigurationTests {
 			}
 
 			@GetMapping("/headers")
-			public Map<String, String> headers(@RequestHeader HttpHeaders headers) {
-				return headers.toSingleValueMap();
+			public Map<String, List<String>> headers(@RequestHeader HttpHeaders headers) {
+				return headers;
 			}
 
 		}
