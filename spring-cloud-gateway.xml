@@ -371,7 +371,7 @@ If two hops of trusted infrastructure are required before Spring Cloud Gateway i
 </formalpara>
 <simpara>This will add <literal>X-Response-Foo:Bar</literal> header to the downstream response&#8217;s headers for all matching requests.</simpara>
 </section>
-<section xml:id="_hystrix_gatewayfilter_factory">
+<section xml:id="hystrix">
 <title>Hystrix GatewayFilter Factory</title>
 <simpara><link xl:href="https://github.com/Netflix/Hystrix">Hystrix</link> is a library from Netflix that implements the <link xl:href="https://martinfowler.com/bliki/CircuitBreaker.html">circuit breaker pattern</link>.
 The Hystrix GatewayFilter allows you to introduce circuit breakers to your gateway routes, protecting your services from cascading failures and allowing you to provide fallback responses in the event of downstream failures.</simpara>
@@ -412,6 +412,38 @@ The Hystrix GatewayFilter allows you to introduce circuit breakers to your gatew
 </para>
 </formalpara>
 <simpara>This will forward to the <literal>/incaseoffailureusethis</literal> URI when the Hystrix fallback is called. Note that this example also demonstrates (optional) Spring Cloud Netflix Ribbon load-balancing via the <literal>lb</literal> prefix on the destination URI.</simpara>
+<simpara>The primary scenario is to use the <literal>fallbackUri</literal> to an internal controller or handler within the gateway app.
+However, it is also possible to reroute the request to a controller or handler in an external application, like so:</simpara>
+<formalpara>
+<title>application.yml</title>
+<para>
+<programlisting language="yaml" linenumbering="unnumbered">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: ingredients
+        uri: lb://ingredients
+        predicates:
+        - Path=//ingredients/**
+        filters:
+        - name: Hystrix
+          args:
+            name: fetchIngredients
+            fallbackUri: forward:/fallback
+      - id: ingredients-fallback
+        uri: http://localhost:9994
+        predicates:
+        - Path=/fallback</programlisting>
+</para>
+</formalpara>
+<simpara>In this example, there is no <literal>fallback</literal> endpoint or handler in the gateway application, however, there is one in another
+app, registered under <literal><link xl:href="http://localhost:9994">http://localhost:9994</link></literal>.</simpara>
+<simpara>In case of the request being forwarded to fallback, the Hystrix Gateway filter also provides the <literal>Throwable</literal> that has
+caused it. It&#8217;s added to the <literal>ServerWebExchange</literal> as the
+<literal>ServerWebExchangeUtils.HYSTRIX_EXECUTION_EXCEPTION_ATTR</literal> attribute that can be used when
+handling the fallback within the gateway app.</simpara>
+<simpara>For the external controller/ handler scenario, headers can be added with exception details. You can find more information
+on it in  the <link linkend="fallback-headers">FallbackHeaders GatewayFilter Factory section</link>.</simpara>
 <simpara>Hystrix settings (such as timeouts) can be configured with global defaults or on a route by route basis using application properties as explained on the <link xl:href="https://github.com/Netflix/Hystrix/wiki/Configuration">Hystrix wiki</link>.</simpara>
 <simpara>To set a 5 second timeout for the example route above, the following configuration would be used:</simpara>
 <formalpara>
@@ -420,6 +452,57 @@ The Hystrix GatewayFilter allows you to introduce circuit breakers to your gatew
 <programlisting language="yaml" linenumbering="unnumbered">hystrix.command.fallbackcmd.execution.isolation.thread.timeoutInMilliseconds: 5000</programlisting>
 </para>
 </formalpara>
+</section>
+<section xml:id="fallback-headers">
+<title>FallbackHeaders GatewayFilter Factory</title>
+<simpara>The <literal>FallbackHeaders</literal> factory allows you to add Hystrix execution exception details in headers of a request forwarded to
+a <literal>fallbackUri</literal> in an external application, like in the following scenario:</simpara>
+<formalpara>
+<title>application.yml</title>
+<para>
+<programlisting language="yaml" linenumbering="unnumbered">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: ingredients
+        uri: lb://ingredients
+        predicates:
+        - Path=//ingredients/**
+        filters:
+        - name: Hystrix
+          args:
+            name: fetchIngredients
+            fallbackUri: forward:/fallback
+      - id: ingredients-fallback
+        uri: http://localhost:9994
+        predicates:
+        - Path=/fallback
+        filters:
+        - name: FallbackHeaders
+          args:
+            executionExceptionTypeHeaderName: Test-Header</programlisting>
+</para>
+</formalpara>
+<simpara>In this example, after an execution exception occurs while running the <literal>HystrixCommand</literal>, the request will be forwarde to
+the <literal>fallback</literal> endpoint or handler in an app running on <literal>localhost:9994</literal>. The headers with the exception type, message
+and -if available- root cause exception type and message will be added to that request by the <literal>FallbackHeaders</literal> filter.</simpara>
+<simpara>The names of the headers can be overwritten in the config by setting the values of the arguments listed below, along with
+their default values:</simpara>
+<itemizedlist>
+<listitem>
+<simpara><literal>executionExceptionTypeHeaderName</literal> (<literal>"Execution-Exception-Type"</literal>)</simpara>
+</listitem>
+<listitem>
+<simpara><literal>executionExceptionMessageHeaderName</literal> (<literal>"Execution-Exception-Message"</literal>)</simpara>
+</listitem>
+<listitem>
+<simpara><literal>rootCauseExceptionTypeHeaderName</literal> (<literal>"Root-Cause-Exception-Type"</literal>)</simpara>
+</listitem>
+<listitem>
+<simpara><literal>rootCauseExceptionMessageHeaderName</literal> (<literal>"Root-Cause-Exception-Message"</literal>)</simpara>
+</listitem>
+</itemizedlist>
+<simpara>You can find more information on how Hystrix works with Gateway in the <link linkend="hystrix">Hystrix GatewayFilter Factory section</link>.</simpara>
 </section>
 <section xml:id="_prefixpath_gatewayfilter_factory">
 <title>PrefixPath GatewayFilter Factory</title>
