@@ -78,7 +78,7 @@ public class BaseWebClientTests {
 		@RibbonClient(name = "myservice", configuration = TestRibbonConfig.class)
 	})
 	@Import(PermitAllSecurityConfiguration.class)
-	protected static class DefaultTestConfig {
+	public static class DefaultTestConfig {
 		private static final Log log = LogFactory.getLog(DefaultTestConfig.class);
 		
 		@Bean

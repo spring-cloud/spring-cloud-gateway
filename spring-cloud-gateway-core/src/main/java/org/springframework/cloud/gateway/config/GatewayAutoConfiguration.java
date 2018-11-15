@@ -29,7 +29,6 @@ import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.resources.ConnectionProvider;
 import reactor.netty.tcp.ProxyProvider;
-import reactor.netty.tcp.SslProvider;
 import rx.RxReactiveStreams;
 
 import org.springframework.beans.factory.ObjectProvider;
@@ -58,6 +57,7 @@ import org.springframework.cloud.gateway.filter.WeightCalculatorWebFilter;
 import org.springframework.cloud.gateway.filter.factory.AddRequestHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.AddRequestParameterGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.AddResponseHeaderGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.FallbackHeadersGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.HystrixGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.PrefixPathGatewayFilterFactory;
@@ -500,6 +500,11 @@ public class GatewayAutoConfiguration {
 		@Bean
 		public HystrixGatewayFilterFactory hystrixGatewayFilterFactory(ObjectProvider<DispatcherHandler> dispatcherHandler) {
 			return new HystrixGatewayFilterFactory(dispatcherHandler);
+		}
+
+		@Bean
+		public FallbackHeadersGatewayFilterFactory fallbackHeadersGatewayFilterFactory() {
+			return new FallbackHeadersGatewayFilterFactory();
 		}
 	}
 

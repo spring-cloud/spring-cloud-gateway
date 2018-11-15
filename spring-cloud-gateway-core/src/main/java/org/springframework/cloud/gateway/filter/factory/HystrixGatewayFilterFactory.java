@@ -18,7 +18,6 @@
 package org.springframework.cloud.gateway.filter.factory;
 
 import java.net.URI;
-import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -47,16 +46,20 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import static com.netflix.hystrix.exception.HystrixRuntimeException.FailureType.TIMEOUT;
+import static java.util.Collections.singletonList;
+import static java.util.Optional.ofNullable;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.HYSTRIX_EXECUTION_EXCEPTION_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.containsEncodedParts;
 
 /**
  * Depends on `spring-cloud-starter-netflix-hystrix`, {@see http://cloud.spring.io/spring-cloud-netflix/}
  * @author Spencer Gibb
  * @author Michele Mancioppi
+ * @author Olga Maciaszek-Sharma
  */
 public class HystrixGatewayFilterFactory extends AbstractGatewayFilterFactory<HystrixGatewayFilterFactory.Config> {
+
 	private final ObjectProvider<DispatcherHandler> dispatcherHandler;
 
 	public HystrixGatewayFilterFactory(ObjectProvider<DispatcherHandler> dispatcherHandler) {
@@ -66,7 +69,7 @@ public class HystrixGatewayFilterFactory extends AbstractGatewayFilterFactory<Hy
 
 	@Override
 	public List<String> shortcutFieldOrder() {
-		return Arrays.asList(NAME_KEY);
+		return singletonList(NAME_KEY);
 	}
 
 	public GatewayFilter apply(String routeId, Consumer<Config> consumer) {
@@ -162,11 +165,18 @@ public class HystrixGatewayFilterFactory extends AbstractGatewayFilterFactory<Hy
 					.build(encoded)
 					.toUri();
 			exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, requestUrl);
+			addExceptionDetails();
 
 			ServerHttpRequest request = this.exchange.getRequest().mutate().uri(requestUrl).build();
 			ServerWebExchange mutated = exchange.mutate().request(request).build();
 			DispatcherHandler dispatcherHandler = HystrixGatewayFilterFactory.this.dispatcherHandler.getIfAvailable();
 			return RxReactiveStreams.toObservable(dispatcherHandler.handle(mutated));
+		}
+
+		private void addExceptionDetails() {
+			Throwable executionException = getExecutionException();
+			ofNullable(executionException)
+					.ifPresent(exception -> exchange.getAttributes().put(HYSTRIX_EXECUTION_EXCEPTION_ATTR, exception));
 		}
 	}
 

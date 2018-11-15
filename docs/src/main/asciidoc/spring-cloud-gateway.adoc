@@ -356,6 +356,7 @@ spring:
 
 This will add `X-Response-Foo:Bar` header to the downstream response's headers for all matching requests.
 
+[[hystrix]]
 === Hystrix GatewayFilter Factory
 https://github.com/Netflix/Hystrix[Hystrix] is a library from Netflix that implements the https://martinfowler.com/bliki/CircuitBreaker.html[circuit breaker pattern].
 The Hystrix GatewayFilter allows you to introduce circuit breakers to your gateway routes, protecting your services from cascading failures and allowing you to provide fallback responses in the event of downstream failures.
@@ -402,6 +403,42 @@ spring:
 ----
 This will forward to the `/incaseoffailureusethis` URI when the Hystrix fallback is called. Note that this example also demonstrates (optional) Spring Cloud Netflix Ribbon load-balancing via the `lb` prefix on the destination URI.
 
+The primary scenario is to use the `fallbackUri` to an internal controller or handler within the gateway app.
+However, it is also possible to reroute the request to a controller or handler in an external application, like so:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: ingredients
+        uri: lb://ingredients
+        predicates:
+        - Path=//ingredients/**
+        filters:
+        - name: Hystrix
+          args:
+            name: fetchIngredients
+            fallbackUri: forward:/fallback
+      - id: ingredients-fallback
+        uri: http://localhost:9994
+        predicates:
+        - Path=/fallback
+----
+
+In this example, there is no `fallback` endpoint or handler in the gateway application, however, there is one in another
+app, registered under `http://localhost:9994`.
+
+In case of the request being forwarded to fallback, the Hystrix Gateway filter also provides the `Throwable` that has
+caused it. It's added to the `ServerWebExchange` as the
+`ServerWebExchangeUtils.HYSTRIX_EXECUTION_EXCEPTION_ATTR` attribute that can be used when
+handling the fallback within the gateway app.
+
+For the external controller/ handler scenario, headers can be added with exception details. You can find more information
+on it in  the <<fallback-headers, FallbackHeaders GatewayFilter Factory section>>.
+
 Hystrix settings (such as timeouts) can be configured with global defaults or on a route by route basis using application properties as explained on the https://github.com/Netflix/Hystrix/wiki/Configuration[Hystrix wiki].
 
 To set a 5 second timeout for the example route above, the following configuration would be used:
@@ -409,6 +446,52 @@ To set a 5 second timeout for the example route above, the following configurati
 .application.yml
 [source,yaml]
 hystrix.command.fallbackcmd.execution.isolation.thread.timeoutInMilliseconds: 5000
+
+[[fallback-headers]]
+=== FallbackHeaders GatewayFilter Factory
+
+The `FallbackHeaders` factory allows you to add Hystrix execution exception details in headers of a request forwarded to
+a `fallbackUri` in an external application, like in the following scenario:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: ingredients
+        uri: lb://ingredients
+        predicates:
+        - Path=//ingredients/**
+        filters:
+        - name: Hystrix
+          args:
+            name: fetchIngredients
+            fallbackUri: forward:/fallback
+      - id: ingredients-fallback
+        uri: http://localhost:9994
+        predicates:
+        - Path=/fallback
+        filters:
+        - name: FallbackHeaders
+          args:
+            executionExceptionTypeHeaderName: Test-Header
+----
+
+In this example, after an execution exception occurs while running the `HystrixCommand`, the request will be forwarde to
+the `fallback` endpoint or handler in an app running on `localhost:9994`. The headers with the exception type, message
+and -if available- root cause exception type and message will be added to that request by the `FallbackHeaders` filter.
+
+The names of the headers can be overwritten in the config by setting the values of the arguments listed below, along with
+their default values:
+
+* `executionExceptionTypeHeaderName` (`"Execution-Exception-Type"`)
+* `executionExceptionMessageHeaderName` (`"Execution-Exception-Message"`)
+* `rootCauseExceptionTypeHeaderName` (`"Root-Cause-Exception-Type"`)
+* `rootCauseExceptionMessageHeaderName` (`"Root-Cause-Exception-Message"`)
+
+You can find more information on how Hystrix works with Gateway in the <<hystrix, Hystrix GatewayFilter Factory section>>.
 
 === PrefixPath GatewayFilter Factory
 The PrefixPath GatewayFilter Factory takes a single `prefix` parameter.

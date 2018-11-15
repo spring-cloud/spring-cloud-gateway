@@ -17,40 +17,26 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
-import java.util.Collections;
-import java.util.Map;
-
-import com.netflix.loadbalancer.Server;
-import com.netflix.loadbalancer.ServerList;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.SpringBootConfiguration;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.web.server.LocalServerPort;
-import org.springframework.cloud.gateway.route.RouteLocator;
-import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
-import org.springframework.cloud.netflix.ribbon.RibbonClient;
-import org.springframework.cloud.netflix.ribbon.StaticServerList;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.Assert;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.hamcrest.core.StringContains.containsString;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
+import static org.springframework.cloud.gateway.filter.factory.ExceptionFallbackHandler.RETRIEVED_EXCEPTION;
 import static org.springframework.http.MediaType.TEXT_HTML;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT, properties = "debug=true")
+@ContextConfiguration(classes = HystrixTestConfig.class)
 @DirtiesContext
 public class HystrixGatewayFilterFactoryTests extends BaseWebClientTests {
 
@@ -98,6 +84,15 @@ public class HystrixGatewayFilterFactoryTests extends BaseWebClientTests {
 	}
 
 	@Test
+	public void hystrixFilterExceptionFallback() {
+		testClient.get().uri("/delay/3")
+				.header("Host", "www.hystrixexceptionfallback.org")
+				.exchange()
+				.expectStatus().isOk()
+				.expectHeader().value(RETRIEVED_EXCEPTION, containsString("HystrixTimeoutException"));
+	}
+
+	@Test
 	public void hystrixFilterWorksJavaDsl() {
 		testClient.get().uri("/get")
 				.header("Host", "www.hystrixjava.org")
@@ -138,59 +133,5 @@ public class HystrixGatewayFilterFactoryTests extends BaseWebClientTests {
 			Assert.isTrue(body.contains("(type=Internal Server Error, status=500)"),
 					"Cannot find the expected error status report in the response");
 		});
-	}
-
-	@EnableAutoConfiguration
-	@SpringBootConfiguration
-	@Import(DefaultTestConfig.class)
-	@RestController
-	@RibbonClient(name = "badservice", configuration = TestBadRibbonConfig.class)
-	public static class TestConfig {
-
-		@Value("${test.uri}")
-		private String uri;
-
-		@RequestMapping("/fallbackcontroller")
-		public Map<String, String> fallbackcontroller(@RequestParam("a") String a) {
-			return Collections.singletonMap("from", "fallbackcontroller");
-		}
-
-		@RequestMapping("/fallbackcontroller2")
-		public Map<String, String> fallbackcontroller2() {
-			return Collections.singletonMap("from", "fallbackcontroller2");
-		}
-
-		@Bean
-		public RouteLocator hystrixRouteLocator(RouteLocatorBuilder builder) {
-			return builder.routes()
-					.route("hystrix_java", r -> r.host("**.hystrixjava.org")
-							.filters(f -> f.prefixPath("/httpbin")
-									.hystrix(config -> config.setFallbackUri("forward:/fallbackcontroller2")))
-							.uri(uri))
-					.route("hystrix_connection_failure", r -> r.host("**.hystrixconnectfail.org")
-							.filters(f -> f.prefixPath("/httpbin")
-									.hystrix(config -> {}))
-							.uri("lb:badservice"))
-					/*
-					 * This is a route encapsulated in a hystrix command that is ready to wait
-					 * for a response far longer than the underpinning WebClient would.
-					 */
-					.route("hystrix_response_stall", r -> r.host("**.hystrixresponsestall.org")
-							.filters(f -> f.prefixPath("/httpbin")
-									.hystrix(config -> config.setName("stalling-command")))
-							.uri(uri))
-					.build();
-		}
-	}
-
-	protected static class TestBadRibbonConfig {
-
-		@LocalServerPort
-		protected int port = 0;
-
-		@Bean
-		public ServerList<Server> ribbonServerList() {
-			return new StaticServerList<>(new Server("https", "localhost", this.port));
-		}
 	}
 }

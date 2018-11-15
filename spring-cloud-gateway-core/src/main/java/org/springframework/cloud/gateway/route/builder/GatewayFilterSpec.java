@@ -39,6 +39,7 @@ import org.springframework.cloud.gateway.filter.factory.AbstractChangeRequestUri
 import org.springframework.cloud.gateway.filter.factory.AddRequestHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.AddRequestParameterGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.AddResponseHeaderGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.FallbackHeadersGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.HystrixGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.PrefixPathGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.PreserveHostHeaderGatewayFilterFactory;
@@ -565,6 +566,45 @@ public class GatewayFilterSpec extends UriSpec {
 	 */
 	public GatewayFilterSpec setRequestSize(Long size) {
 		return filter(getBean(RequestSizeGatewayFilterFactory.class).apply(c -> c.setMaxSize(size)));
+	}
+
+	/**
+	 * Adds hystrix execution exception headers to fallback request.
+	 * Depends on @{code org.springframework.cloud::spring-cloud-starter-netflix-hystrix} being on the classpath,
+	 * {@see http://cloud.spring.io/spring-cloud-netflix/}
+	 *
+	 * @param config a {@link FallbackHeadersGatewayFilterFactory.Config} which provides the header names.
+	 *               If header names arguments are not provided, default values are used.
+	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
+	 */
+	public GatewayFilterSpec fallbackHeaders(FallbackHeadersGatewayFilterFactory.Config config) {
+		FallbackHeadersGatewayFilterFactory factory = getFallbackHeadersGatewayFilterFactory();
+		return filter(factory.apply(config));
+	}
+
+	/**
+	 * Adds hystrix execution exception headers to fallback request.
+	 * Depends on @{code org.springframework.cloud::spring-cloud-starter-netflix-hystrix} being on the classpath,
+	 * {@see http://cloud.spring.io/spring-cloud-netflix/}
+	 *
+	 * @param configConsumer a {@link Consumer} which can be used to set up the names of the headers in the config.
+	 *               If header names arguments are not provided, default values are used.
+	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
+	 */
+	public GatewayFilterSpec fallbackHeaders(Consumer<FallbackHeadersGatewayFilterFactory.Config> configConsumer) {
+		FallbackHeadersGatewayFilterFactory factory = getFallbackHeadersGatewayFilterFactory();
+		return filter(factory.apply(configConsumer));
+	}
+
+	private FallbackHeadersGatewayFilterFactory getFallbackHeadersGatewayFilterFactory() {
+		FallbackHeadersGatewayFilterFactory factory;
+		try {
+			factory = getBean(FallbackHeadersGatewayFilterFactory.class);
+		} catch (NoSuchBeanDefinitionException e) {
+			throw new NoSuchBeanDefinitionException(FallbackHeadersGatewayFilterFactory.class,
+					"This is probably because Hystrix is missing from the classpath, which can be resolved by adding dependency on 'org.springframework.cloud:spring-cloud-starter-netflix-hystrix'");
+		}
+		return factory;
 	}
 
 }
