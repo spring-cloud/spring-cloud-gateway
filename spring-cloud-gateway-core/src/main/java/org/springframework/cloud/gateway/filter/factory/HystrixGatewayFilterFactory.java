@@ -49,7 +49,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import static java.util.Collections.singletonList;
 import static java.util.Optional.ofNullable;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.HYSTRIX_EXECUTION_EXCEPTION;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.HYSTRIX_EXECUTION_EXCEPTION_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.containsEncodedParts;
 
 /**
@@ -176,7 +176,7 @@ public class HystrixGatewayFilterFactory extends AbstractGatewayFilterFactory<Hy
 		private void addExceptionDetails() {
 			Throwable executionException = getExecutionException();
 			ofNullable(executionException)
-					.ifPresent(exception -> exchange.getAttributes().put(HYSTRIX_EXECUTION_EXCEPTION, exception));
+					.ifPresent(exception -> exchange.getAttributes().put(HYSTRIX_EXECUTION_EXCEPTION_ATTR, exception));
 		}
 	}
 

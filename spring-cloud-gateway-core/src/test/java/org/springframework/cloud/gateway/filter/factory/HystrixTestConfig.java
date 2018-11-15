@@ -43,7 +43,7 @@ import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.HYSTRIX_EXECUTION_EXCEPTION;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.HYSTRIX_EXECUTION_EXCEPTION_ATTR;
 import static org.springframework.web.reactive.function.server.RequestPredicates.GET;
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
 
@@ -106,7 +106,7 @@ class ExceptionFallbackHandler {
 	static final String RETRIEVED_EXCEPTION = "Retrieved-Exception";
 
 	Mono<ServerResponse> retrieveExceptionInfo(ServerRequest serverRequest) {
-		String exceptionName = serverRequest.attribute(HYSTRIX_EXECUTION_EXCEPTION)
+		String exceptionName = serverRequest.attribute(HYSTRIX_EXECUTION_EXCEPTION_ATTR)
 				.map(exception -> exception.getClass().getName())
 				.orElse("");
 		return ServerResponse.ok().header(RETRIEVED_EXCEPTION, exceptionName)

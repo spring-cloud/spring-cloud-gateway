@@ -432,7 +432,8 @@ In this example, there is no `fallback` endpoint or handler in the gateway appli
 app, registered under `http://localhost:9994`.
 
 In case of the request being forwarded to fallback, the Hystrix Gateway filter also provides the `Throwable` that has
-caused it. It's added to the `ServerWebExchange` as the `hystrixExecutionException` attribute that can be used when
+caused it. It's added to the `ServerWebExchange` as the
+`ServerWebExchangeUtils.HYSTRIX_EXECUTION_EXCEPTION_ATTR` attribute that can be used when
 handling the fallback within the gateway app.
 
 For the external controller/ handler scenario, headers can be added with exception details. You can find more information

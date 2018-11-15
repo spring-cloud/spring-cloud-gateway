@@ -26,7 +26,7 @@ import org.springframework.web.server.ServerWebExchange;
 import static java.util.Collections.singletonList;
 import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang.exception.ExceptionUtils.getRootCause;
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.HYSTRIX_EXECUTION_EXCEPTION;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.HYSTRIX_EXECUTION_EXCEPTION_ATTR;
 
 /**
  * @author Olga Maciaszek-Sharma
@@ -45,7 +45,8 @@ public class FallbackHeadersGatewayFilterFactory extends AbstractGatewayFilterFa
 	@Override
 	public GatewayFilter apply(Config config) {
 		return (exchange, chain) -> {
-			ServerWebExchange filteredExchange = ofNullable((Throwable) exchange.getAttribute(HYSTRIX_EXECUTION_EXCEPTION))
+			ServerWebExchange filteredExchange = ofNullable((Throwable) exchange
+					.getAttribute(HYSTRIX_EXECUTION_EXCEPTION_ATTR))
 					.map(executionException -> {
 						ServerHttpRequest.Builder requestBuilder = exchange.getRequest().mutate();
 						requestBuilder.header(config.executionExceptionTypeHeaderName, executionException.getClass().getName());
