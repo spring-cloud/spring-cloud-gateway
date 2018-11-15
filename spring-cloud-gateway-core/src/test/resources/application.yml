@@ -91,6 +91,17 @@ spring:
             fallbackUri: forward:/fallbackcontroller
 
       # =====================================
+      - id: hystrix_exception_fallback_test
+        uri: ${test.uri}
+        predicates:
+        - Host=**.hystrixexceptionfallback.org
+        filters:
+        - name: Hystrix
+          args:
+            name: fallbackcmd
+            fallbackUri: forward:/exceptionFallback
+
+      # =====================================
       - id: hystrix_success_test
         uri: ${test.uri}
         predicates:

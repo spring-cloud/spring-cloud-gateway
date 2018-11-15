@@ -1,3 +1,20 @@
+/*
+ * Copyright 2013-2018 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
 package org.springframework.cloud.gateway.filter.factory;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
@@ -28,8 +45,7 @@ public class FallbackHeadersGatewayFilterFactory extends AbstractGatewayFilterFa
 	@Override
 	public GatewayFilter apply(Config config) {
 		return (exchange, chain) -> {
-			ServerWebExchange filteredExchange = ofNullable((Throwable) exchange.getAttributes()
-					.get(HYSTRIX_EXECUTION_EXCEPTION))
+			ServerWebExchange filteredExchange = ofNullable((Throwable) exchange.getAttribute(HYSTRIX_EXECUTION_EXCEPTION))
 					.map(executionException -> {
 						ServerHttpRequest.Builder requestBuilder = exchange.getRequest().mutate();
 						requestBuilder.header(config.executionExceptionTypeHeaderName, executionException.getClass().getName());
