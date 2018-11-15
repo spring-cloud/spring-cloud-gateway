@@ -17,17 +17,18 @@
 
 package org.springframework.cloud.gateway.support;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.cloud.gateway.handler.AsyncPredicate;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ServerWebExchange;
-import reactor.core.publisher.Mono;
-
 import java.net.URI;
 import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.function.Predicate;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import reactor.core.publisher.Mono;
+
+import org.springframework.cloud.gateway.handler.AsyncPredicate;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ServerWebExchange;
 
 /**
  * @author Spencer Gibb

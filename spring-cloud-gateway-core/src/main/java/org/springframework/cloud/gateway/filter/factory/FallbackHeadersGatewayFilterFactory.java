@@ -17,11 +17,11 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
+import java.util.List;
+
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
-
-import java.util.List;
 
 import static java.util.Collections.singletonList;
 import static java.util.Optional.ofNullable;

@@ -17,8 +17,13 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
+import java.util.Collections;
+import java.util.Map;
+
 import com.netflix.loadbalancer.Server;
 import com.netflix.loadbalancer.ServerList;
+import reactor.core.publisher.Mono;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -37,10 +42,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
-import reactor.core.publisher.Mono;
-
-import java.util.Collections;
-import java.util.Map;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.HYSTRIX_EXECUTION_EXCEPTION;
 import static org.springframework.web.reactive.function.server.RequestPredicates.GET;
