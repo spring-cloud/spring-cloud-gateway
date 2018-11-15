@@ -236,7 +236,6 @@ public class ProductionConfigurationTests {
 	public void headers() throws Exception {
 		Map<String, List<String>> headers = rest.exchange(RequestEntity.get(rest.getRestTemplate().getUriTemplateHandler()
 				.expand("/proxy/headers")).header("foo", "bar").header("abc", "xyz").build(), Map.class).getBody();
-		System.out.println(headers);
 		assertThat(headers).doesNotContainKey("foo")
 				.doesNotContainKey("hello")
 				.containsKeys("bar", "abc");
