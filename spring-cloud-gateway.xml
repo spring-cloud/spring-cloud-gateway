@@ -722,6 +722,24 @@ KeyResolver userKeyResolver() {
 </formalpara>
 <simpara>For a request path of <literal>/foo/bar</literal>, this will set the path to <literal>/bar</literal> before making the downstream request. Notice the <literal>$\</literal> which is replaced with <literal>$</literal> because of the YAML spec.</simpara>
 </section>
+<section xml:id="_rewriteresponseheader_gatewayfilter_factory">
+<title>RewriteResponseHeader GatewayFilter Factory</title>
+<simpara>The RewriteResponseHeader GatewayFilter Factory takes <literal>name</literal>, <literal>regexp</literal>, and <literal>replacement</literal> parameters. It uses Java regular expressions for a flexible way to rewrite the response header value.</simpara>
+<formalpara>
+<title>application.yml</title>
+<para>
+<programlisting language="yaml" linenumbering="unnumbered">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: rewriteresponseheader_route
+        uri: http://example.org
+        filters:
+        - RewriteResponseHeader=X-Response-Foo, , password=[^&amp;]+, password=***</programlisting>
+</para>
+</formalpara>
+<simpara>For a header value of <literal>/42?user=ford&amp;password=omg!what&amp;flag=true</literal>, it will be set to <literal>/42?user=ford&amp;password=***&amp;flag=true</literal> after making the downstream request. Please use <literal>$\</literal> to mean <literal>$</literal> because of the YAML spec.</simpara>
+</section>
 <section xml:id="_savesession_gatewayfilter_factory">
 <title>SaveSession GatewayFilter Factory</title>
 <simpara>The SaveSession GatewayFilter Factory forces a <literal>WebSession::save</literal> operation <emphasis>before</emphasis> forwarding the call downstream. This is of particular use when
