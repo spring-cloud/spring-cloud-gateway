@@ -24,11 +24,13 @@ import com.netflix.hystrix.HystrixObservableCommand;
 import io.netty.channel.ChannelOption;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
+import org.springframework.cloud.gateway.filter.factory.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.resources.ConnectionProvider;
 import reactor.netty.tcp.ProxyProvider;
+import reactor.netty.tcp.SslProvider;
 import rx.RxReactiveStreams;
 
 import org.springframework.beans.factory.ObjectProvider;
@@ -54,31 +56,6 @@ import org.springframework.cloud.gateway.filter.NettyWriteResponseFilter;
 import org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter;
 import org.springframework.cloud.gateway.filter.WebsocketRoutingFilter;
 import org.springframework.cloud.gateway.filter.WeightCalculatorWebFilter;
-import org.springframework.cloud.gateway.filter.factory.AddRequestHeaderGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.AddRequestParameterGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.AddResponseHeaderGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.FallbackHeadersGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.HystrixGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.PrefixPathGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.PreserveHostHeaderGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.RedirectToGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.RemoveRequestHeaderGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.RemoveResponseHeaderGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.RequestHeaderToRequestUriGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.RequestRateLimiterGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.RequestSizeGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.RetryGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.RewriteResponseHeaderGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.SaveSessionGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.SecureHeadersProperties;
-import org.springframework.cloud.gateway.filter.factory.SetPathGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.SetRequestHeaderGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.SetResponseHeaderGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.SetStatusGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.StripPrefixGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyRequestBodyGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyResponseBodyGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.headers.ForwardedHeadersFilter;
@@ -502,11 +479,6 @@ public class GatewayAutoConfiguration {
 		public HystrixGatewayFilterFactory hystrixGatewayFilterFactory(ObjectProvider<DispatcherHandler> dispatcherHandler) {
 			return new HystrixGatewayFilterFactory(dispatcherHandler);
 		}
-
-		@Bean
-		public FallbackHeadersGatewayFilterFactory fallbackHeadersGatewayFilterFactory() {
-			return new FallbackHeadersGatewayFilterFactory();
-		}
 	}
 
 	@Bean
@@ -587,11 +559,6 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	public RewriteResponseHeaderGatewayFilterFactory rewriteResponseHeaderGatewayFilterFactory() {
-		return new RewriteResponseHeaderGatewayFilterFactory();
-	}
-
-	@Bean
 	public SetStatusGatewayFilterFactory setStatusGatewayFilterFactory() {
 		return new SetStatusGatewayFilterFactory();
 	}
@@ -614,6 +581,11 @@ public class GatewayAutoConfiguration {
 	@Bean
 	public RequestSizeGatewayFilterFactory requestSizeGatewayFilterFactory() {
 		return new RequestSizeGatewayFilterFactory();
+	}
+
+	@Bean
+	public RequestHeaderSizeGatewayFilterFactory requestHeaderSizeGatewayFilterFactory() {
+		return new RequestHeaderSizeGatewayFilterFactory();
 	}
 
 	@Configuration
