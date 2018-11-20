@@ -48,6 +48,7 @@ import org.springframework.cloud.gateway.filter.factory.PreserveHostHeaderGatewa
 import org.springframework.cloud.gateway.filter.factory.RedirectToGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RemoveRequestHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RemoveResponseHeaderGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.RequestHeaderSizeGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RequestHeaderToRequestUriGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RequestRateLimiterGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RequestSizeGatewayFilterFactory;
@@ -68,6 +69,7 @@ import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpStatus;
+import org.springframework.util.unit.DataSize;
 import org.springframework.web.server.ServerWebExchange;
 
 /**
@@ -661,6 +663,15 @@ public class GatewayFilterSpec extends UriSpec {
 	public GatewayFilterSpec setRequestSize(Long size) {
 		return filter(getBean(RequestSizeGatewayFilterFactory.class)
 				.apply(c -> c.setMaxSize(size)));
+	}
+
+	/**
+	 * A filter that sets the maximum permissible size of headers of Request.
+	 * @param size the maximum size of header of request
+	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
+	 */
+	public GatewayFilterSpec setRequestHeaderSize(DataSize size) {
+		return filter(getBean(RequestHeaderSizeGatewayFilterFactory.class).apply(c -> c.setMaxSize(size)));
 	}
 
 	/**
