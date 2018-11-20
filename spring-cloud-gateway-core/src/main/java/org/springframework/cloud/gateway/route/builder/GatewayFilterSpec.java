@@ -29,13 +29,36 @@ import java.util.stream.Stream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.cloud.gateway.filter.factory.*;
 import reactor.retry.Repeat;
 import reactor.retry.Retry;
 
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.OrderedGatewayFilter;
+import org.springframework.cloud.gateway.filter.factory.AbstractChangeRequestUriGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.AddRequestHeaderGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.AddRequestParameterGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.AddResponseHeaderGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.FallbackHeadersGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.HystrixGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.PrefixPathGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.PreserveHostHeaderGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.RedirectToGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.RemoveRequestHeaderGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.RemoveResponseHeaderGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.RequestHeaderToRequestUriGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.RequestRateLimiterGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.RequestSizeGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.RetryGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.RewriteResponseHeaderGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.SaveSessionGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.SetPathGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.SetRequestHeaderGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.SetResponseHeaderGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.SetStatusGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.StripPrefixGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyRequestBodyGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyResponseBodyGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.rewrite.RewriteFunction;
@@ -456,6 +479,18 @@ public class GatewayFilterSpec extends UriSpec {
 	}
 
 	/**
+	 * A filter that rewrites a header value on the response before it is returned to the client by the Gateway.
+	 * @param headerName the header name
+	 * @param regex a Java regular expression to match the path against
+	 * @param replacement the replacement for the path
+	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
+	 */
+	public GatewayFilterSpec rewriteResponseHeader(String headerName, String regex, String replacement) {
+		return filter(getBean(RewriteResponseHeaderGatewayFilterFactory.class)
+				.apply(c -> c.setReplacement(replacement).setRegexp(regex).setName(headerName)));
+	}
+
+	/**
 	 * A filter that sets the status on the response before it is returned to the client by the Gateway.
 	 * @param status the status to set on the response
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
@@ -535,7 +570,7 @@ public class GatewayFilterSpec extends UriSpec {
 				}.apply(c -> {
 				}));
 	}
-	
+
 
 	/**
 	 * A filter that sets the maximum permissible size of a Request.
@@ -546,6 +581,45 @@ public class GatewayFilterSpec extends UriSpec {
 		return filter(getBean(RequestSizeGatewayFilterFactory.class).apply(c -> c.setMaxSize(size)));
 	}
 
+	/**
+	 * Adds hystrix execution exception headers to fallback request.
+	 * Depends on @{code org.springframework.cloud::spring-cloud-starter-netflix-hystrix} being on the classpath,
+	 * {@see http://cloud.spring.io/spring-cloud-netflix/}
+	 *
+	 * @param config a {@link FallbackHeadersGatewayFilterFactory.Config} which provides the header names.
+	 *               If header names arguments are not provided, default values are used.
+	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
+	 */
+	public GatewayFilterSpec fallbackHeaders(FallbackHeadersGatewayFilterFactory.Config config) {
+		FallbackHeadersGatewayFilterFactory factory = getFallbackHeadersGatewayFilterFactory();
+		return filter(factory.apply(config));
+	}
+
+	/**
+	 * Adds hystrix execution exception headers to fallback request.
+	 * Depends on @{code org.springframework.cloud::spring-cloud-starter-netflix-hystrix} being on the classpath,
+	 * {@see http://cloud.spring.io/spring-cloud-netflix/}
+	 *
+	 * @param configConsumer a {@link Consumer} which can be used to set up the names of the headers in the config.
+	 *               If header names arguments are not provided, default values are used.
+	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
+	 */
+	public GatewayFilterSpec fallbackHeaders(Consumer<FallbackHeadersGatewayFilterFactory.Config> configConsumer) {
+		FallbackHeadersGatewayFilterFactory factory = getFallbackHeadersGatewayFilterFactory();
+		return filter(factory.apply(configConsumer));
+	}
+
+	private FallbackHeadersGatewayFilterFactory getFallbackHeadersGatewayFilterFactory() {
+		FallbackHeadersGatewayFilterFactory factory;
+		try {
+			factory = getBean(FallbackHeadersGatewayFilterFactory.class);
+		} catch (NoSuchBeanDefinitionException e) {
+			throw new NoSuchBeanDefinitionException(FallbackHeadersGatewayFilterFactory.class,
+					"This is probably because Hystrix is missing from the classpath, which can be resolved by adding dependency on 'org.springframework.cloud:spring-cloud-starter-netflix-hystrix'");
+		}
+		return factory;
+	}
+	
 	/**
 	 * A filter that sets the maximum permissible size of headers of Request.
 	 * @param size the maximum size of header of request
