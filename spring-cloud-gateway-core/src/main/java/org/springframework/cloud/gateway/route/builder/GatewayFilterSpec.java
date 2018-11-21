@@ -29,6 +29,7 @@ import java.util.stream.Stream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.util.unit.DataSize;
 import reactor.retry.Repeat;
 import reactor.retry.Retry;
 
@@ -626,7 +627,7 @@ public class GatewayFilterSpec extends UriSpec {
 	 * @param size the maximum size of header of request
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
-	public GatewayFilterSpec setRequestHeaderSize(Long size) {
+	public GatewayFilterSpec setRequestHeaderSize(DataSize size) {
 		return filter(getBean(RequestHeaderSizeGatewayFilterFactory.class).apply(c -> c.setMaxSize(size)));
 	}
 

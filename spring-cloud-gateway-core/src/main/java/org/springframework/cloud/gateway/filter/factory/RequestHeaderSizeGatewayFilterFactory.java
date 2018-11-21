@@ -21,6 +21,8 @@ import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.util.unit.DataSize;
+import org.springframework.util.unit.DataUnit;
 
 import java.util.List;
 import java.util.Map;
@@ -35,7 +37,6 @@ import java.util.Map;
 public class RequestHeaderSizeGatewayFilterFactory
 		extends AbstractGatewayFilterFactory<RequestHeaderSizeGatewayFilterFactory.Config> {
 
-	private static String PREFIX = "kMGTPE";
 	private static String ERROR = "Request Header/s size is larger than permissible limit."
 			+ " Request Header/s size is %s where permissible limit is %s";
 
@@ -58,7 +59,7 @@ public class RequestHeaderSizeGatewayFilterFactory
 				}
 			}
 
-			if(headerSizeInBytes > config.getMaxSize()){
+			if(headerSizeInBytes > config.getMaxSize().toBytes()){
 				exchange.getResponse().setStatusCode(HttpStatus.REQUEST_HEADER_FIELDS_TOO_LARGE);
 				exchange.getResponse().getHeaders().add("errorMessage",
 						getErrorMessage(headerSizeInBytes, config.getMaxSize()));
@@ -70,27 +71,18 @@ public class RequestHeaderSizeGatewayFilterFactory
 		};
 	}
 
-	private static String getErrorMessage(Long currentRequestSize, Long maxSize) {
-		return String.format(ERROR, getReadableByteCount(currentRequestSize), getReadableByteCount(maxSize));
-	}
-
-	private static String getReadableByteCount(long bytes) {
-		int unit = 1000;
-		if (bytes < unit)
-			return bytes + " B";
-		int exp = (int) (Math.log(bytes) / Math.log(unit));
-		String pre = Character.toString(PREFIX.charAt(exp - 1));
-		return String.format("%.1f %sB", bytes / Math.pow(unit, exp), pre);
+	private static String getErrorMessage(Long currentRequestSize, DataSize maxSize) {
+		return String.format(ERROR, DataSize.of(currentRequestSize,DataUnit.BYTES), maxSize);
 	}
 
 	public static class Config {
-		private Long maxSize = 16000L;
+		private DataSize maxSize = DataSize.of(16000L,DataUnit.BYTES);
 
-		public Long getMaxSize() {
+		public DataSize getMaxSize() {
 			return maxSize;
 		}
 
-		public void setMaxSize(Long maxSize) {
+		public void setMaxSize(DataSize maxSize) {
 			this.maxSize = maxSize;
 		}
 	}

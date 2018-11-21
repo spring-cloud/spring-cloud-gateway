@@ -14,6 +14,8 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.util.unit.DataSize;
+import org.springframework.util.unit.DataUnit;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -26,7 +28,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @DirtiesContext
 public class RequestHeaderSizeGatewayFilterFactoryTest extends BaseWebClientTests {
 
-	private static final String responseMesssage = "Request Header/s size is larger than permissible limit. Request Header/s size is 73 B where permissible limit is 46 B";
+	private static final String responseMesssage = "Request Header/s size is larger than permissible limit. Request Header/s size is 73B where permissible limit is 46B";
 
 	@Test
 	public void setRequestSizeFilterWorks() {
@@ -47,7 +49,7 @@ public class RequestHeaderSizeGatewayFilterFactoryTest extends BaseWebClientTest
 		@Bean
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes().route("test_request_header_size",
-					r -> r.order(-1).host("**.test.org").filters(f -> f.setRequestHeaderSize(46L)).uri(uri))
+					r -> r.order(-1).host("**.test.org").filters(f -> f.setRequestHeaderSize(DataSize.of(46L, DataUnit.BYTES))).uri(uri))
 					.build();
 		}
 	}
