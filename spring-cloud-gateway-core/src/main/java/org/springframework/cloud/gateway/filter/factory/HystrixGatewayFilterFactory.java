@@ -59,11 +59,11 @@ public class HystrixGatewayFilterFactory extends AbstractGatewayFilterFactory<Hy
 
 	public static final String FALLBACK_URI = "fallbackUri";
 
-	private final ObjectProvider<DispatcherHandler> dispatcherHandler;
+	private final DispatcherHandler dispatcherHandler;
 
-	public HystrixGatewayFilterFactory(ObjectProvider<DispatcherHandler> dispatcherHandler) {
+	public HystrixGatewayFilterFactory(ObjectProvider<DispatcherHandler> dispatcherHandlerProvider) {
 		super(Config.class);
-		this.dispatcherHandler = dispatcherHandler;
+		this.dispatcherHandler = dispatcherHandlerProvider.getIfAvailable();
 	}
 
 	@Override
@@ -167,7 +167,7 @@ public class HystrixGatewayFilterFactory extends AbstractGatewayFilterFactory<Hy
 
 			ServerHttpRequest request = this.exchange.getRequest().mutate().uri(requestUrl).build();
 			ServerWebExchange mutated = exchange.mutate().request(request).build();
-			DispatcherHandler dispatcherHandler = HystrixGatewayFilterFactory.this.dispatcherHandler.getIfAvailable();
+			DispatcherHandler dispatcherHandler = HystrixGatewayFilterFactory.this.dispatcherHandler;
 			return RxReactiveStreams.toObservable(dispatcherHandler.handle(mutated));
 		}
 	}

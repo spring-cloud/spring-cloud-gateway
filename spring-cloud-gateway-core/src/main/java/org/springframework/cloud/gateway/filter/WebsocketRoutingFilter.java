@@ -38,14 +38,22 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 
 	private final WebSocketClient webSocketClient;
 	private final WebSocketService webSocketService;
-	private final ObjectProvider<List<HttpHeadersFilter>> headersFilters;
+	private final List<HttpHeadersFilter> headersFilters;
 
 	public WebsocketRoutingFilter(WebSocketClient webSocketClient,
 								  WebSocketService webSocketService,
-								  ObjectProvider<List<HttpHeadersFilter>> headersFilters) {
+								  ObjectProvider<List<HttpHeadersFilter>> headersFiltersProvider) {
 		this.webSocketClient = webSocketClient;
 		this.webSocketService = webSocketService;
-		this.headersFilters = headersFilters;
+		List<HttpHeadersFilter> filters = headersFiltersProvider.getIfAvailable(() -> new ArrayList<>());
+		filters.add((headers, exchange) -> {
+			HttpHeaders filtered = new HttpHeaders();
+			headers.entrySet().stream()
+					.filter(entry -> !entry.getKey().toLowerCase().startsWith("sec-websocket"))
+					.forEach(header -> filtered.addAll(header.getKey(), header.getValue()));
+			return filtered;
+		});
+		this.headersFilters = filters;
 	}
 
 	@Override
@@ -68,8 +76,7 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 
 
 		HttpHeaders headers = exchange.getRequest().getHeaders();
-		HttpHeaders filtered = filterRequest(getHeadersFilters(),
-				exchange);
+		HttpHeaders filtered = filterRequest(headersFilters, exchange);
 
 		List<String> protocols = headers.get(SEC_WEBSOCKET_PROTOCOL);
 		if (protocols != null) {
@@ -82,23 +89,6 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 		return this.webSocketService.handleRequest(exchange,
 				new ProxyWebSocketHandler(requestUrl, this.webSocketClient,
 						filtered, protocols));
-	}
-
-	private List<HttpHeadersFilter> getHeadersFilters() {
-		List<HttpHeadersFilter> filters = this.headersFilters.getIfAvailable();
-		if (filters == null) {
-			filters = new ArrayList<>();
-		}
-
-		filters.add((headers, exchange) -> {
-			HttpHeaders filtered = new HttpHeaders();
-			headers.entrySet().stream()
-					.filter(entry -> !entry.getKey().toLowerCase().startsWith("sec-websocket"))
-					.forEach(header -> filtered.addAll(header.getKey(), header.getValue()));
-			return filtered;
-		});
-
-		return filters;
 	}
 
 	private void changeSchemeIfIsWebSocketUpgrade(ServerWebExchange exchange) {

@@ -61,14 +61,14 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.s
 public class NettyRoutingFilter implements GlobalFilter, Ordered {
 
 	private final HttpClient httpClient;
-	private final ObjectProvider<List<HttpHeadersFilter>> headersFilters;
+	private final List<HttpHeadersFilter> headersFilters;
 	private final HttpClientProperties properties;
 
 	public NettyRoutingFilter(HttpClient httpClient,
-							  ObjectProvider<List<HttpHeadersFilter>> headersFilters,
+							  ObjectProvider<List<HttpHeadersFilter>> headersFiltersProvider,
 							  HttpClientProperties properties) {
 		this.httpClient = httpClient;
-		this.headersFilters = headersFilters;
+		this.headersFilters = headersFiltersProvider.getIfAvailable();
 		this.properties = properties;
 	}
 
@@ -92,8 +92,7 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 		final HttpMethod method = HttpMethod.valueOf(request.getMethod().toString());
 		final String url = requestUrl.toString();
 
-		HttpHeaders filtered = filterRequest(this.headersFilters.getIfAvailable(),
-				exchange);
+		HttpHeaders filtered = filterRequest(this.headersFilters, exchange);
 
 		final DefaultHttpHeaders httpHeaders = new DefaultHttpHeaders();
 		filtered.forEach(httpHeaders::set);
@@ -138,7 +137,7 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 			}
 
 			HttpHeaders filteredResponseHeaders = HttpHeadersFilter.filter(
-					this.headersFilters.getIfAvailable(), headers, exchange, Type.RESPONSE);
+					this.headersFilters, headers, exchange, Type.RESPONSE);
 			
 			response.getHeaders().putAll(filteredResponseHeaders);
 			HttpStatus status = HttpStatus.resolve(res.status().code());
