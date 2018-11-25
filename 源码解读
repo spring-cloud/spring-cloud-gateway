@@ -1,0 +1,5 @@
+Glossary（词汇表）
+
+Route: 路由网关的基本构建块。 它由ID，目标URI，谓词(Predicate)集合和过滤器(Filter)集合定义。 如果聚合谓词(aggregate predicate)为真，则匹配路由。
+Predicate: 这是一个Java 8函数谓词。 输入类型是Spring Framework ServerWebExchange。 这允许开发人员匹配HTTP请求中的任何内容，例如标头或参数。
+Filter: 这些是使用特定工厂构建的Spring Framework GatewayFilter实例。 通过这些过滤器实例可以在发送下游请求(sending the downstream request)之前或之后修改请求和响应。
