@@ -7,6 +7,13 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * 用来要求我们Spring Cloud Gateway 目前只和Spring WebFlux兼容，与Spring MVC不兼容。而且Spring MVC不能够在classpath下，因为如果在的话，Spring Boot会优先自动配置Spring MVC。具体的原因是因为大多数使用Spring
+ * MVC的程序员同时会使用WebFlux的webClient
+ * Adding both spring-boot-starter-web and spring-boot-starter-webflux modules in your application results in Spring Boot auto-configuring Spring MVC, not WebFlux.
+ * This behavior has been chosen because many Spring developers add spring-boot-starter-webflux to their Spring MVC application to use the reactive WebClient.
+ * You can still enforce your choice by setting the chosen application type toSpringApplication.setWebApplicationType(WebApplicationType.REACTIVE)
+ */
 @Configuration
 @AutoConfigureBefore(GatewayAutoConfiguration.class)
 public class GatewayClassPathWarningAutoConfiguration {

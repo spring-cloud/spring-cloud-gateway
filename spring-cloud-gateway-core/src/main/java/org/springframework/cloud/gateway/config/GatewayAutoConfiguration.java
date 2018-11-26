@@ -136,6 +136,9 @@ import org.springframework.web.server.WebFilterChain;
 
 import static org.springframework.cloud.gateway.config.HttpClientProperties.Pool.PoolType.DISABLED;
 import static org.springframework.cloud.gateway.config.HttpClientProperties.Pool.PoolType.FIXED;
+/**
+ * 这个类里面定义了非常多的内容，我们大部分用到的过滤器，过滤器工厂都是在这里构建的。包括之前的gatewayControllerEndpoint也是在这里注入容器中的
+ */
 
 /**
  * @author Spencer Gibb
