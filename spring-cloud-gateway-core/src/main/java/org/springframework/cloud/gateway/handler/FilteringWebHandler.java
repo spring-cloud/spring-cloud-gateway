@@ -39,6 +39,15 @@ import org.springframework.web.server.WebHandler;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
 
 /**
+ * 通过过滤器处理web请求的处理器,执行顺序
+ * 1、构建一个包含全局过滤器的集合（combined）
+ * 2、获取上下中的路由信息GATEWAY_ROUTE_ATTR
+ * 3、将路由里的过滤器添加到集合中（combined）
+ * 4、对过滤器集合进行排序操作
+ * 5、通过过滤器集合组装过滤器链表，并进行调用（DefaultGatewayFilterChain与Servlet中的FilterChain与原理是一致的）
+ * 6、通过过滤器来处理请求到具体业务服务
+ */
+/**
  * WebHandler that delegates to a chain of {@link GlobalFilter} instances and
  * {@link GatewayFilterFactory} instances then to the target {@link WebHandler}.
  *
@@ -49,18 +58,27 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.G
 public class FilteringWebHandler implements WebHandler {
 	protected static final Log logger = LogFactory.getLog(FilteringWebHandler.class);
 
+	/**
+	 * 全局过滤器
+	 */
 	private final List<GatewayFilter> globalFilters;
 
 	public FilteringWebHandler(List<GlobalFilter> globalFilters) {
 		this.globalFilters = loadFilters(globalFilters);
 	}
 
+	/**
+	 * 包装加载全局的过滤器，将全局过滤器包装成GatewayFilter
+	 */
 	private static List<GatewayFilter> loadFilters(List<GlobalFilter> filters) {
 		return filters.stream()
 				.map(filter -> {
+					//将所有的全局过滤器包装成网关过滤器
 					GatewayFilterAdapter gatewayFilter = new GatewayFilterAdapter(filter);
+					//判断全局过滤器是否实现了可排序接口
 					if (filter instanceof Ordered) {
 						int order = ((Ordered) filter).getOrder();
+						//包装成可排序的网关过滤器
 						return new OrderedGatewayFilter(gatewayFilter, order);
 					}
 					return gatewayFilter;
@@ -79,12 +97,13 @@ public class FilteringWebHandler implements WebHandler {
 	 */
 	@Override
 	public Mono<Void> handle(ServerWebExchange exchange) {
+		//获取请求上下文设置的路由实例
 		Route route = exchange.getRequiredAttribute(GATEWAY_ROUTE_ATTR);
-		//当前路由的过滤器
+		//获取路由定义下的网关过滤器集合
 		List<GatewayFilter> gatewayFilters = route.getFilters();
-
 		//全局过滤器
 		List<GatewayFilter> combined = new ArrayList<>(this.globalFilters);
+		//组合全局的过滤器与路由配置的过滤器
 		combined.addAll(gatewayFilters);
 		//TODO: needed or cached?
 		AnnotationAwareOrderComparator.sort(combined);
@@ -92,7 +111,7 @@ public class FilteringWebHandler implements WebHandler {
 		if (logger.isDebugEnabled()) {
 			logger.debug("Sorted gatewayFilterFactories: "+ combined);
 		}
-
+		//创建过滤器链表对其进行链式调用
 		return new DefaultGatewayFilterChain(combined).filter(exchange);
 	}
 

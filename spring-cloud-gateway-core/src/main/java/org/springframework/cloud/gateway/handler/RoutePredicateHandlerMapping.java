@@ -32,6 +32,13 @@ import org.springframework.web.server.ServerWebExchange;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_HANDLER_MAPPER_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_PREDICATE_ROUTE_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
+/**
+ * 路由谓词处理映射,它的执行顺序如下
+ * 1、通过路由定位器获取全部路由（RouteLocator）
+ * 2、通过路由的谓语（Predicate）过滤掉不可用的路由信息
+ * 3、查找到路由信息后将路由信息设置当上下文环境中（GATEWAY_ROUTE_ATTR）
+ * 4、返回gatway自定的webhandler（FilteringWebHandler）
+ */
 
 /**
  * @author Spencer Gibb
@@ -51,6 +58,11 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 		} else {
 			managmentPort = null;
 		}
+		/**
+		 * 设置排序字段1，此处的目的是Spring Cloud Gateway 的 GatewayWebfluxEndpoint 提供 HTTP API ，不需要经过网关
+		 *  它通过 RequestMappingHandlerMapping 进行请求匹配处理。RequestMappingHandlerMapping 的 order = 0 ，
+		 *  需要排在 RoutePredicateHandlerMapping 前面。所有，RoutePredicateHandlerMapping 设置 order = 1 。
+		 */
 		setOrder(1);		
 		setCorsConfigurations(globalCorsProperties.getCorsConfigurations());
 	}
@@ -61,6 +73,7 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 		if (managmentPort != null && exchange.getRequest().getURI().getPort() == managmentPort.intValue()) {
 			return Mono.empty();
 		}
+		//put("org.springframework.cloud.gateway.support.ServerWebExchangeUtils.gatewayHandlerMapper",RoutePredicateHandlerMapping)
 		exchange.getAttributes().put(GATEWAY_HANDLER_MAPPER_ATTR, getSimpleName());
 
 		//寻找符合匹配的路由
@@ -71,10 +84,12 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 					if (logger.isDebugEnabled()) {
 						logger.debug("Mapping [" + getExchangeDesc(exchange) + "] to " + r);
 					}
-
+					//将找到的路由信息设置到上下文环境中
 					exchange.getAttributes().put(GATEWAY_ROUTE_ATTR, r);
+					//返回mapping对应的WebHandler即FilteringWebHandler
 					return Mono.just(webHandler);
 				}).switchIfEmpty(Mono.empty().then(Mono.fromRunnable(() -> {
+					//当前未找到路由时返回空，并移除GATEWAY_PREDICATE_ROUTE_ATTR
 					exchange.getAttributes().remove(GATEWAY_PREDICATE_ROUTE_ATTR);
 					if (logger.isTraceEnabled()) {
 						logger.trace("No RouteDefinition found for [" + getExchangeDesc(exchange) + "]");
@@ -101,6 +116,11 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 		return out.toString();
 	}
 
+	/**
+	 * 通过路由定位器获取路由信息
+	 * @param exchange
+	 * @return
+	 */
 	protected Mono<Route> lookupRoute(ServerWebExchange exchange) {
 		return this.routeLocator
 				.getRoutes()
