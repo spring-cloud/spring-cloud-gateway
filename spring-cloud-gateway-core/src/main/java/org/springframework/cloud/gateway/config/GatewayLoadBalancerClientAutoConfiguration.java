@@ -29,7 +29,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.DispatcherHandler;
 
 /**
- * 这个是gateway负载均衡的过滤器实现的加载，它将LoadBalancerClientFilter注入到了容器中
+ * 这个是gateway负载均衡的过滤器实现的加载，LoadBalancerClientFilter初始化并注入到了容器中
  */
 
 /**

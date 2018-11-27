@@ -152,7 +152,7 @@ public class RouteDefinitionRouteLocator implements RouteLocator, BeanFactoryAwa
 
                     ConfigurationUtils.bind(configuration, properties,
                             factory.shortcutFieldPrefix(), definition.getName(), validator);
-
+					//调用factory生成gatewayFilter
                     GatewayFilter gatewayFilter = factory.apply(configuration);
                     if (this.publisher != null) {
                         this.publisher.publishEvent(new FilterArgsEvent(this, id, properties));

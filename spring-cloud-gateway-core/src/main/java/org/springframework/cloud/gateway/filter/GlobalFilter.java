@@ -23,6 +23,10 @@ import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import reactor.core.publisher.Mono;
 
 /**
+ * 全局过滤器，不需要在配置文件中配置，作用在所有的路由上，最终通过GatewayFilterAdapter包装成GatewayFilterChain可识别的过滤器
+ */
+
+/**
  * Contract for interception-style, chained processing of Web requests that may
  * be used to implement cross-cutting, application-agnostic requirements such
  * as security, timeouts, and others.

@@ -20,6 +20,10 @@ import org.springframework.cloud.gateway.support.ShortcutConfigurable;
 import org.springframework.web.server.ServerWebExchange;
 
 import reactor.core.publisher.Mono;
+/**
+ * 用于拦截式处理Web请求的契约，可用于实现横切，与应用程序无关的需求，如安全性，超时等。
+ * 它需要通过spring.cloud.routes.filters 配置在具体路由下，只作用在当前路由上或通过spring.cloud.default-filters配置在全局，作用在所有路由上。
+ */
 
 /**
  * Contract for interception-style, chained processing of Web requests that may

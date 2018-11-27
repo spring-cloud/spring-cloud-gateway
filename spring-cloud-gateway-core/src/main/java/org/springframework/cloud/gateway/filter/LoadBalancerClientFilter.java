@@ -33,6 +33,9 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.G
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.addOriginalRequestUrl;
 
 import reactor.core.publisher.Mono;
+/**
+ * 负载均衡客户端过滤器
+ */
 
 /**
  * @author Spencer Gibb
@@ -56,16 +59,19 @@ public class LoadBalancerClientFilter implements GlobalFilter, Ordered {
 
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+		//获取URL
 		URI url = exchange.getAttribute(GATEWAY_REQUEST_URL_ATTR);
 		String schemePrefix = exchange.getAttribute(GATEWAY_SCHEME_PREFIX_ATTR);
 		if (url == null || (!"lb".equals(url.getScheme()) && !"lb".equals(schemePrefix))) {
 			return chain.filter(exchange);
 		}
+		// 添加原始请求URI 到 GATEWAY_ORIGINAL_REQUEST_URL_ATTR
 		//preserve the original url
 		addOriginalRequestUrl(exchange, url);
 
 		log.trace("LoadBalancerClientFilter url before: " + url);
 
+		// 获取服务实例
 		final ServiceInstance instance = choose(exchange);
 
 		if (instance == null) {
@@ -80,7 +86,6 @@ public class LoadBalancerClientFilter implements GlobalFilter, Ordered {
 		if (schemePrefix != null) {
 			overrideScheme = url.getScheme();
 		}
-
 		URI requestUrl = loadBalancer.reconstructURI(new DelegatingServiceInstance(instance, overrideScheme), uri);
 
 		log.trace("LoadBalancerClientFilter url chosen: " + requestUrl);

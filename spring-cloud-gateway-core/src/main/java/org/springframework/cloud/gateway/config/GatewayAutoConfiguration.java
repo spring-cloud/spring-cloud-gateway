@@ -251,6 +251,10 @@ public class GatewayAutoConfiguration {
 			return new NettyWriteResponseFilter(properties.getStreamingMediaTypes());
 		}
 
+		/**
+		 * 用于下文 WebsocketRoutingFilter 的 Bean 对象创建
+		 * @return
+		 */
 		@Bean
 		public ReactorNettyWebSocketClient reactorNettyWebSocketClient(/*@Qualifier("nettyClientOptions") Consumer<? super HttpClientOptions.Builder> options*/) {
 			return new ReactorNettyWebSocketClient(/*options*/); //FIXME 2.1.0
@@ -313,6 +317,12 @@ public class GatewayAutoConfiguration {
 		return new RouteRefreshListener(publisher);
 	}
 
+	/**
+	 * 加载FilteringWebHandler
+	 * 当所有 org.springframework.cloud.gateway.filter.GlobalFilter 初始化完成时( 包括上面的 NettyRoutingFilter / NettyWriteResponseFilter )，创建一个类型为 org.springframework.cloud.gateway.handler.FilteringWebHandler 的 Bean 对象，
+	 * @param globalFilters
+	 * @return
+	 */
 	@Bean
 	public FilteringWebHandler filteringWebHandler(List<GlobalFilter> globalFilters) {
 		return new FilteringWebHandler(globalFilters);
@@ -370,7 +380,7 @@ public class GatewayAutoConfiguration {
 		return new XForwardedHeadersFilter();
 	}
 
-	// GlobalFilter beans
+	// GlobalFilter beans 加载globalFilter
 	
 	@Bean
 	public AdaptCachedBodyGlobalFilter adaptCachedBodyGlobalFilter() {

@@ -36,6 +36,11 @@ import org.springframework.expression.spel.support.SimpleEvaluationContext;
 import org.springframework.util.StringUtils;
 
 /**
+ * DiscoveryClientRouteDefinitionLocator 通过调用 org.springframework.cloud.client.discovery.DiscoveryClient
+ * 获取注册在注册中心的服务列表，生成对应的 RouteDefinition 数组。
+ */
+
+/**
  * TODO: change to RouteLocator? use java dsl
  * @author Spencer Gibb
  */
@@ -89,8 +94,10 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 					String serviceId = instance.getServiceId();
 
                     RouteDefinition routeDefinition = new RouteDefinition();
+                    //设置ID
                     routeDefinition.setId(this.routeIdPrefix + serviceId);
 					String uri = urlExpr.getValue(evalCtxt, instance, String.class);
+					//设置URI
 					routeDefinition.setUri(URI.create(uri));
 
 					final ServiceInstance instanceForEval = new DelegatingServiceInstance(instance, properties);
@@ -102,6 +109,7 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 							String value = getValueFromExpr(evalCtxt, parser, instanceForEval, entry);
 							predicate.addArg(entry.getKey(), value);
 						}
+						//增加匹配断言
 						routeDefinition.getPredicates().add(predicate);
 					}
 
@@ -112,6 +120,7 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 							String value = getValueFromExpr(evalCtxt, parser, instanceForEval, entry);
 							filter.addArg(entry.getKey(), value);
 						}
+						//添加过滤器
 						routeDefinition.getFilters().add(filter);
 					}
 
