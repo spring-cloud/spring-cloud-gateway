@@ -1287,7 +1287,221 @@ public RouteLocator customRouteLocator(RouteLocatorBuilder builder, ThrottleGate
 </chapter>
 <chapter xml:id="_actuator_api">
 <title>Actuator API</title>
-<simpara>TODO: document the <literal>/gateway</literal> actuator endpoint</simpara>
+<simpara>The <literal>/gateway</literal> actuator endpoint allows to monitor and interact with a Spring Cloud Gateway application. To be remotely accessible, the endpoint has to be <link xl:href="https://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-endpoints.html#production-ready-endpoints-enabling-endpoints">enabled</link> and <link xl:href="https://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-endpoints.html#production-ready-endpoints-exposing-endpoints">exposed via HTTP or JMX</link> in the application properties.</simpara>
+<formalpara>
+<title>application.properties</title>
+<para>
+<programlisting language="properties" linenumbering="unnumbered">management.endpoint.gateway.enabled=true # default value
+management.endpoints.web.exposure.include=gateway</programlisting>
+</para>
+</formalpara>
+<section xml:id="_retrieving_route_filters">
+<title>Retrieving route filters</title>
+<section xml:id="_global_filters_2">
+<title>Global Filters</title>
+<simpara>To retrieve the <link linkend="global-filters">global filters</link> applied to all routes, make a <literal>GET</literal> request to <literal>/actuator/gateway/globalfilters</literal>. The resulting response is similar to the following:</simpara>
+<screen>{
+  "org.springframework.cloud.gateway.filter.LoadBalancerClientFilter@77856cc5": 10100,
+  "org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter@4f6fd101": 10000,
+  "org.springframework.cloud.gateway.filter.NettyWriteResponseFilter@32d22650": -1,
+  "org.springframework.cloud.gateway.filter.ForwardRoutingFilter@106459d9": 2147483647,
+  "org.springframework.cloud.gateway.filter.NettyRoutingFilter@1fbd5e0": 2147483647,
+  "org.springframework.cloud.gateway.filter.ForwardPathFilter@33a71d23": 0,
+  "org.springframework.cloud.gateway.filter.AdaptCachedBodyGlobalFilter@135064ea": 2147483637,
+  "org.springframework.cloud.gateway.filter.WebsocketRoutingFilter@23c05889": 2147483646
+}</screen>
+<simpara>The response contains details of the global filters in place. For each global filter is provided the string representation of the filter object (e.g., <literal>org.springframework.cloud.gateway.filter.LoadBalancerClientFilter@77856cc5</literal>) and the corresponding <link linkend="_combined_global_filter_and_gatewayfilter_ordering">order</link> in the filter chain.</simpara>
+</section>
+<section xml:id="_route_filters">
+<title>Route Filters</title>
+<simpara>To retrieve the <link linkend="gatewayfilter-factories">GatewayFilter factories</link> applied to routes, make a <literal>GET</literal> request to <literal>/actuator/gateway/routefilters</literal>. The resulting response is similar to the following:</simpara>
+<screen>{
+  "[AddRequestHeaderGatewayFilterFactory@570ed9c configClass = AbstractNameValueGatewayFilterFactory.NameValueConfig]": null,
+  "[SecureHeadersGatewayFilterFactory@fceab5d configClass = Object]": null,
+  "[SaveSessionGatewayFilterFactory@4449b273 configClass = Object]": null
+}</screen>
+<simpara>The response contains details of the GatewayFilter factories applied to any particular route. For each factory is provided the string representation of the corresponding object (e.g., <literal>[SecureHeadersGatewayFilterFactory@fceab5d configClass = Object]</literal>). Note that the <literal>null</literal> value is due to an incomplete implementation of the endpoint controller, for that it tries to set the order of the object in the filter chain, which does not apply to a GatewayFilter factory object.</simpara>
+</section>
+</section>
+<section xml:id="_refreshing_the_route_cache">
+<title>Refreshing the route cache</title>
+<simpara>To clear the routes cache, make a <literal>POST</literal> request to <literal>/actuator/gateway/refresh</literal>. The request returns a 200 without response body.</simpara>
+</section>
+<section xml:id="_retrieving_the_routes_defined_in_the_gateway">
+<title>Retrieving the routes defined in the gateway</title>
+<simpara>To retrieve the routes defined in the gateway, make a <literal>GET</literal> request to <literal>/actuator/gateway/routes</literal>. The resulting response is similar to the following:</simpara>
+<screen>[{
+  "route_id": "first_route",
+  "route_object": {
+    "predicate": "org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFactory$$Lambda$432/1736826640@1e9d7e7d",
+    "filters": [
+      "OrderedGatewayFilter{delegate=org.springframework.cloud.gateway.filter.factory.PreserveHostHeaderGatewayFilterFactory$$Lambda$436/674480275@6631ef72, order=0}"
+    ]
+  },
+  "order": 0
+},
+{
+  "route_id": "second_route",
+  "route_object": {
+    "predicate": "org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFactory$$Lambda$432/1736826640@cd8d298",
+    "filters": []
+  },
+  "order": 0
+}]</screen>
+<simpara>The response contains details of all the routes defined in the gateway. The following table describes the structure of each element (i.e., a route) of the response.</simpara>
+<informaltable frame="all" rowsep="1" colsep="1">
+<tgroup cols="3">
+<colspec colname="col_1" colwidth="33.3333*"/>
+<colspec colname="col_2" colwidth="22.2222*"/>
+<colspec colname="col_3" colwidth="44.4445*"/>
+<thead>
+<row>
+<entry align="left" valign="top">Path</entry>
+<entry align="left" valign="top">Type</entry>
+<entry align="left" valign="top">Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry align="left" valign="top"><simpara><literal>route_id</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>String</simpara></entry>
+<entry align="left" valign="top"><simpara>The route id.</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara><literal>route_object.predicate</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>Object</simpara></entry>
+<entry align="left" valign="top"><simpara>The route predicate.</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara><literal>route_object.filters</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>Array</simpara></entry>
+<entry align="left" valign="top"><simpara>The <link linkend="gatewayfilter-factories">GatewayFilter factories</link> applied to the route.</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara><literal>order</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>Number</simpara></entry>
+<entry align="left" valign="top"><simpara>The route order.</simpara></entry>
+</row>
+</tbody>
+</tgroup>
+</informaltable>
+</section>
+<section xml:id="_retrieving_information_about_a_particular_route">
+<title>Retrieving information about a particular route</title>
+<simpara>To retrieve information about a single route, make a <literal>GET</literal> request to <literal>/actuator/gateway/routes/{id}</literal> (e.g., <literal>/actuator/gateway/routes/first_route</literal>). The resulting response is similar to the following:</simpara>
+<screen>{
+  "id": "first_route",
+  "predicates": [{
+    "name": "Path",
+    "args": {"_genkey_0":"/first"}
+  }],
+  "filters": [],
+  "uri": "http://www.uri-destination.org",
+  "order": 0
+}]</screen>
+<simpara>The following table describes the structure of the response.</simpara>
+<informaltable frame="all" rowsep="1" colsep="1">
+<tgroup cols="3">
+<colspec colname="col_1" colwidth="33.3333*"/>
+<colspec colname="col_2" colwidth="22.2222*"/>
+<colspec colname="col_3" colwidth="44.4445*"/>
+<thead>
+<row>
+<entry align="left" valign="top">Path</entry>
+<entry align="left" valign="top">Type</entry>
+<entry align="left" valign="top">Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry align="left" valign="top"><simpara><literal>id</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>String</simpara></entry>
+<entry align="left" valign="top"><simpara>The route id.</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara><literal>predicates</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>Array</simpara></entry>
+<entry align="left" valign="top"><simpara>The collection of route predicates. Each item defines the name and the arguments of a given predicate.</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara><literal>filters</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>Array</simpara></entry>
+<entry align="left" valign="top"><simpara>The collection of filters applied to the route.</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara><literal>uri</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>String</simpara></entry>
+<entry align="left" valign="top"><simpara>The destination URI of the route.</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara><literal>order</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>Number</simpara></entry>
+<entry align="left" valign="top"><simpara>The route order.</simpara></entry>
+</row>
+</tbody>
+</tgroup>
+</informaltable>
+</section>
+<section xml:id="_creating_and_deleting_a_particular_route">
+<title>Creating and deleting a particular route</title>
+<simpara>To create a route, make a <literal>POST</literal> request to <literal>/gateway/routes/{id_route_to_create}</literal> with a JSON body that specifies the fields of the route (see the previous subsection).</simpara>
+<simpara>To delete a route, make a <literal>DELETE</literal> request to <literal>/gateway/routes/{id_route_to_delete}</literal>.</simpara>
+</section>
+<section xml:id="_recap_list_of_all_endpoints">
+<title>Recap: list of all endpoints</title>
+<simpara>The table below summarises the Spring Cloud Gateway actuator endpoints. Note that each endpoint has <literal>/actuator/gateway</literal> as the base-path.</simpara>
+<informaltable frame="all" rowsep="1" colsep="1">
+<tgroup cols="3">
+<colspec colname="col_1" colwidth="22.2222*"/>
+<colspec colname="col_2" colwidth="22.2222*"/>
+<colspec colname="col_3" colwidth="55.5556*"/>
+<thead>
+<row>
+<entry align="left" valign="top">ID</entry>
+<entry align="left" valign="top">HTTP Method</entry>
+<entry align="left" valign="top">Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry align="left" valign="top"><simpara><literal>globalfilters</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>GET</simpara></entry>
+<entry align="left" valign="top"><simpara>Displays the list of global filters applied to the routes.</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara><literal>routefilters</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>GET</simpara></entry>
+<entry align="left" valign="top"><simpara>Displays the list of GatewayFilter factories applied to a particular route.</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara><literal>refresh</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>POST</simpara></entry>
+<entry align="left" valign="top"><simpara>Clears the routes cache.</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara><literal>routes</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>GET</simpara></entry>
+<entry align="left" valign="top"><simpara>Displays the list of routes defined in the gateway.</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara><literal>routes/{id}</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>GET</simpara></entry>
+<entry align="left" valign="top"><simpara>Displays information about a particular route.</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara><literal>routes/{id}</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>POST</simpara></entry>
+<entry align="left" valign="top"><simpara>Add a new route to the gateway.</simpara></entry>
+</row>
+<row>
+<entry align="left" valign="top"><simpara><literal>routes/{id}</literal></simpara></entry>
+<entry align="left" valign="top"><simpara>DELETE</simpara></entry>
+<entry align="left" valign="top"><simpara>Remove an existing route from the gateway.</simpara></entry>
+</row>
+</tbody>
+</tgroup>
+</informaltable>
+</section>
 </chapter>
 <chapter xml:id="_developer_guide">
 <title>Developer Guide</title>
