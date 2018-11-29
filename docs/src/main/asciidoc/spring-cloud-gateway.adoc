@@ -1086,7 +1086,183 @@ In the example above, CORS requests will be allowed from requests that originate
 
 == Actuator API
 
-TODO: document the `/gateway` actuator endpoint
+The `/gateway` actuator endpoint allows to monitor and interact with a Spring Cloud Gateway application. To be remotely accessible, the endpoint has to be https://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-endpoints.html#production-ready-endpoints-enabling-endpoints[enabled] and https://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-endpoints.html#production-ready-endpoints-exposing-endpoints[exposed via HTTP or JMX] in the application properties.
+
+.application.properties
+[source,properties]
+----
+management.endpoint.gateway.enabled=true # default value
+management.endpoints.web.exposure.include=gateway
+----
+
+=== Retrieving route filters
+==== Global Filters
+To retrieve the <<global-filters,global filters>> applied to all routes, make a `GET` request to `/actuator/gateway/globalfilters`. The resulting response is similar to the following:
+
+----
+{
+  "org.springframework.cloud.gateway.filter.LoadBalancerClientFilter@77856cc5": 10100,
+  "org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter@4f6fd101": 10000,
+  "org.springframework.cloud.gateway.filter.NettyWriteResponseFilter@32d22650": -1,
+  "org.springframework.cloud.gateway.filter.ForwardRoutingFilter@106459d9": 2147483647,
+  "org.springframework.cloud.gateway.filter.NettyRoutingFilter@1fbd5e0": 2147483647,
+  "org.springframework.cloud.gateway.filter.ForwardPathFilter@33a71d23": 0,
+  "org.springframework.cloud.gateway.filter.AdaptCachedBodyGlobalFilter@135064ea": 2147483637,
+  "org.springframework.cloud.gateway.filter.WebsocketRoutingFilter@23c05889": 2147483646
+}
+----
+
+The response contains details of the global filters in place. For each global filter is provided the string representation of the filter object (e.g., `org.springframework.cloud.gateway.filter.LoadBalancerClientFilter@77856cc5`) and the corresponding <<Combined Global Filter and GatewayFilter Ordering,order>> in the filter chain.
+
+==== Route Filters
+To retrieve the <<gatewayfilter-factories,GatewayFilter factories>> applied to routes, make a `GET` request to `/actuator/gateway/routefilters`. The resulting response is similar to the following:
+
+----
+{
+  "[AddRequestHeaderGatewayFilterFactory@570ed9c configClass = AbstractNameValueGatewayFilterFactory.NameValueConfig]": null,
+  "[SecureHeadersGatewayFilterFactory@fceab5d configClass = Object]": null,
+  "[SaveSessionGatewayFilterFactory@4449b273 configClass = Object]": null
+}
+----
+
+The response contains details of the GatewayFilter factories applied to any particular route. For each factory is provided the string representation of the corresponding object (e.g., `[SecureHeadersGatewayFilterFactory@fceab5d configClass = Object]`). Note that the `null` value is due to an incomplete implementation of the endpoint controller, for that it tries to set the order of the object in the filter chain, which does not apply to a GatewayFilter factory object.
+
+=== Refreshing the route cache
+To clear the routes cache, make a `POST` request to `/actuator/gateway/refresh`. The request returns a 200 without response body.
+
+=== Retrieving the routes defined in the gateway
+To retrieve the routes defined in the gateway, make a `GET` request to `/actuator/gateway/routes`. The resulting response is similar to the following:
+
+----
+[{
+  "route_id": "first_route",
+  "route_object": {
+    "predicate": "org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFactory$$Lambda$432/1736826640@1e9d7e7d",
+    "filters": [
+      "OrderedGatewayFilter{delegate=org.springframework.cloud.gateway.filter.factory.PreserveHostHeaderGatewayFilterFactory$$Lambda$436/674480275@6631ef72, order=0}"
+    ]
+  },
+  "order": 0
+},
+{
+  "route_id": "second_route",
+  "route_object": {
+    "predicate": "org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFactory$$Lambda$432/1736826640@cd8d298",
+    "filters": []
+  },
+  "order": 0
+}]
+----
+
+The response contains details of all the routes defined in the gateway. The following table describes the structure of each element (i.e., a route) of the response.
+
+[cols="3,2,4"]
+|===
+| Path | Type | Description
+
+|`route_id`
+| String
+| The route id.
+
+|`route_object.predicate`
+| Object
+| The route predicate.
+
+|`route_object.filters`
+| Array
+| The <<gatewayfilter-factories,GatewayFilter factories>> applied to the route.
+
+|`order`
+| Number
+| The route order.
+
+|===
+
+=== Retrieving information about a particular route
+To retrieve information about a single route, make a `GET` request to `/actuator/gateway/routes/{id}` (e.g., `/actuator/gateway/routes/first_route`). The resulting response is similar to the following:
+
+----
+{
+  "id": "first_route",
+  "predicates": [{
+    "name": "Path",
+    "args": {"_genkey_0":"/first"}
+  }],
+  "filters": [],
+  "uri": "http://www.uri-destination.org",
+  "order": 0
+}]
+----
+
+The following table describes the structure of the response.
+
+[cols="3,2,4"]
+|===
+| Path | Type | Description
+
+|`id`
+| String
+| The route id.
+
+|`predicates`
+| Array
+| The collection of route predicates. Each item defines the name and the arguments of a given predicate.
+
+|`filters`
+| Array
+| The collection of filters applied to the route.
+
+|`uri`
+| String
+| The destination URI of the route.
+
+|`order`
+| Number
+| The route order.
+
+|===
+
+=== Creating and deleting a particular route
+To create a route, make a `POST` request to `/gateway/routes/{id_route_to_create}` with a JSON body that specifies the fields of the route (see the previous subsection).
+
+To delete a route, make a `DELETE` request to `/gateway/routes/{id_route_to_delete}`.
+
+=== Recap: list of all endpoints
+The table below summarises the Spring Cloud Gateway actuator endpoints. Note that each endpoint has `/actuator/gateway` as the base-path.
+
+[cols="2,2,5"]
+|===
+| ID | HTTP Method | Description
+
+|`globalfilters`
+|GET
+| Displays the list of global filters applied to the routes.
+
+|`routefilters`
+|GET
+| Displays the list of GatewayFilter factories applied to a particular route.
+
+|`refresh`
+|POST
+| Clears the routes cache.
+
+|`routes`
+|GET
+| Displays the list of routes defined in the gateway.
+
+|`routes/{id}`
+|GET
+| Displays information about a particular route.
+
+|`routes/{id}`
+|POST
+| Add a new route to the gateway.
+
+|`routes/{id}`
+|DELETE
+| Remove an existing route from the gateway.
+
+|===
 
 == Developer Guide
 
