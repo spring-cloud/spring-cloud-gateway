@@ -60,8 +60,8 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 		}
 		/**
 		 * 设置排序字段1，此处的目的是Spring Cloud Gateway 的 GatewayWebfluxEndpoint 提供 HTTP API ，不需要经过网关
-		 *  它通过 RequestMappingHandlerMapping 进行请求匹配处理。RequestMappingHandlerMapping 的 order = 0 ，
-		 *  需要排在 RoutePredicateHandlerMapping 前面。所有，RoutePredicateHandlerMapping 设置 order = 1 。
+		 * 它通过 RequestMappingHandlerMapping 进行请求匹配处理。RequestMappingHandlerMapping 的 order = 0 ，
+		 * 需要排在 RoutePredicateHandlerMapping 前面。所以RoutePredicateHandlerMapping 设置 order = 1 。
 		 */
 		setOrder(1);		
 		setCorsConfigurations(globalCorsProperties.getCorsConfigurations());

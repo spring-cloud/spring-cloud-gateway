@@ -23,7 +23,7 @@ import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import reactor.core.publisher.Mono;
 
 /**
- * 全局过滤器，不需要在配置文件中配置，作用在所有的路由上，最终通过GatewayFilterAdapter包装成GatewayFilterChain可识别的过滤器
+ * 全局过滤器，不需要在配置文件中配置，作用在所有的路由上，通过FilteringWebHandler.java文件中的GatewayFilterAdapter包装成GatewayFilterChain可识别的GatewayFilter过滤器
  */
 
 /**

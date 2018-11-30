@@ -27,6 +27,9 @@ import org.springframework.cloud.gateway.support.NameUtils;
 import org.springframework.validation.annotation.Validated;
 
 import static org.springframework.util.StringUtils.tokenizeToStringArray;
+/**
+ * 过滤器定义
+ */
 
 /**
  * @author Spencer Gibb

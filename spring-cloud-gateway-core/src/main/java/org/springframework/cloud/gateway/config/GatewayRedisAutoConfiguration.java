@@ -26,7 +26,7 @@ import org.springframework.validation.Validator;
 import org.springframework.web.reactive.DispatcherHandler;
 
 /**
- * 自动配置Redis
+ * 自动配置Redis，加载Redis限流、数据访问配置
  */
 @Configuration
 @AutoConfigureAfter(RedisReactiveAutoConfiguration.class)

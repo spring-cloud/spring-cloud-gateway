@@ -28,12 +28,21 @@ import reactor.core.publisher.Flux;
 import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
 
 /**
+ * 缓存路由定义定位器， 它是 RouteDefinitionLocator 包裝實現類，實現了路由定義的本地緩存功能。并且实现了ApplicationListener<RefreshRoutesEvent>，用来监听路由的刷新事件
+ */
+
+/**
  * @author Spencer Gibb
  */
 public class CachingRouteDefinitionLocator implements RouteDefinitionLocator, ApplicationListener<RefreshRoutesEvent> {
-
+	/**
+	 * 实际委托的路由定义定位器
+	 */
 	private final RouteDefinitionLocator delegate;
 	private final Flux<RouteDefinition> routeDefinitions;
+	/**
+	 * 路由定义的本地缓存
+	 */
 	private final Map<String, List> cache = new HashMap<>();
 
 	public CachingRouteDefinitionLocator(RouteDefinitionLocator delegate) {

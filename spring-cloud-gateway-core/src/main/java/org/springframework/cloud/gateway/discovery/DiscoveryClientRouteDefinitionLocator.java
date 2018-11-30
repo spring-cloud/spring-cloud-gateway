@@ -36,8 +36,9 @@ import org.springframework.expression.spel.support.SimpleEvaluationContext;
 import org.springframework.util.StringUtils;
 
 /**
+ * 配置中心路由定義定位器
  * DiscoveryClientRouteDefinitionLocator 通过调用 org.springframework.cloud.client.discovery.DiscoveryClient
- * 获取注册在注册中心的服务列表，生成对应的 RouteDefinition 数组。
+ * 获取注册在注册中心的服务列表，生成对应的 RouteDefinition 数组。该bean在GatewayDiscoveryClientAutoConfiguration中注册
  */
 
 /**
@@ -46,8 +47,17 @@ import org.springframework.util.StringUtils;
  */
 public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLocator {
 
+	/**
+	 * 注册中心客户端
+	 */
 	private final DiscoveryClient discoveryClient;
+	/**
+	 * 服务发现配置信息
+	 */
 	private final DiscoveryLocatorProperties properties;
+	/**
+	 * 路由ID前缀
+	 */
 	private final String routeIdPrefix;
 	private final SimpleEvaluationContext evalCtxt;
 
@@ -65,6 +75,10 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 				.build();
 	}
 
+	/**
+	 * 通過註冊中心查找服務組裝路由定義信息
+	 * @return
+	 */
 	@Override
 	public Flux<RouteDefinition> getRouteDefinitions() {
 

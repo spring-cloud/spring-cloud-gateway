@@ -32,7 +32,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.DispatcherHandler;
 
 /**
- * 性能指标自动配置
+ * 性能指标自动配置，用于加载性能指标全局过滤器
  */
 @Configuration
 @ConditionalOnProperty(name = "spring.cloud.gateway.enabled", matchIfMissing = true)

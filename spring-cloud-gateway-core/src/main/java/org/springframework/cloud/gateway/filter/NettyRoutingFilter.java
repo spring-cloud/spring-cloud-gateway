@@ -54,6 +54,10 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.i
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.setAlreadyRouted;
 
 /**
+ * NettyRoutingFilter 这个filter真正做请求的发送，他使用HttpClient进行请求的发送
+ */
+
+/**
  * @author Spencer Gibb
  * @author Biju Kunjummen
  */

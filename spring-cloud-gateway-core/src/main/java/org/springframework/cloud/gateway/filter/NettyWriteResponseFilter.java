@@ -36,6 +36,10 @@ import org.springframework.web.server.ServerWebExchange;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.CLIENT_RESPONSE_CONN_ATTR;
 
 /**
+ * 用于返回response 也就是请求完成后返回的对象
+ */
+
+/**
  * @author Spencer Gibb
  */
 public class NettyWriteResponseFilter implements GlobalFilter, Ordered {

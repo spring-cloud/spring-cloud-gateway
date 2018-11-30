@@ -32,7 +32,6 @@ import org.springframework.validation.annotation.Validated;
 /**
  * gateway配置属性
  */
-
 /**
  * @author Spencer Gibb
  */

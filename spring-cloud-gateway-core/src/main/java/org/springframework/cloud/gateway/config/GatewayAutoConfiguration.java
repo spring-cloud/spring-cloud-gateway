@@ -137,7 +137,8 @@ import org.springframework.web.server.WebFilterChain;
 import static org.springframework.cloud.gateway.config.HttpClientProperties.Pool.PoolType.DISABLED;
 import static org.springframework.cloud.gateway.config.HttpClientProperties.Pool.PoolType.FIXED;
 /**
- * 这个类里面定义了非常多的内容，我们大部分用到的过滤器，过滤器工厂都是在这里构建的。包括之前的gatewayControllerEndpoint也是在这里注入容器中的
+ * 这个类里面定义了非常多的内容，我们大部分用到的过滤器，过滤器工厂都是在这里构建的。
+ * 包括actuate包中的GatewayControllerEndpoint也是在这里注入容器中的
  */
 
 /**
@@ -152,6 +153,9 @@ import static org.springframework.cloud.gateway.config.HttpClientProperties.Pool
 @ConditionalOnClass(DispatcherHandler.class)
 public class GatewayAutoConfiguration {
 
+	/**
+	 * 由于Spring Cloud是基于Netty实现的，所里这里面有一系列关于Netty的配置
+	 */
 	@Configuration
 	@ConditionalOnClass(HttpClient.class)
 	protected static class NettyConfiguration {
@@ -252,7 +256,7 @@ public class GatewayAutoConfiguration {
 		}
 
 		/**
-		 * 用于下文 WebsocketRoutingFilter 的 Bean 对象创建
+		 * 用于下文 WebsocketRoutingFilter 的Bean对象创建
 		 * @return
 		 */
 		@Bean
@@ -640,7 +644,15 @@ public class GatewayAutoConfiguration {
 	@Configuration
 	@ConditionalOnClass(Health.class)
 	protected static class GatewayActuatorConfiguration {
-
+		/**
+		 * 在引入spring-boot-starter-actuator时，加载GatewayControllerEndpoint
+		 * @param routeDefinitionLocator
+		 * @param globalFilters
+		 * @param GatewayFilters
+		 * @param routeDefinitionWriter
+		 * @param routeLocator
+		 * @return
+		 */
 		@Bean
 		@ConditionalOnEnabledEndpoint
 		public GatewayControllerEndpoint gatewayControllerEndpoint(RouteDefinitionLocator routeDefinitionLocator, List<GlobalFilter> globalFilters,

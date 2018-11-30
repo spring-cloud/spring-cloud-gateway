@@ -41,6 +41,9 @@ import static org.springframework.cloud.gateway.filter.factory.RewritePathGatewa
 import static org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory.PATTERN_KEY;
 import static org.springframework.cloud.gateway.support.NameUtils.normalizeFilterFactoryName;
 import static org.springframework.cloud.gateway.support.NameUtils.normalizeRoutePredicateName;
+/**
+ * 网关发现客户端自动配置
+ */
 
 /**
  * @author Spencer Gibb

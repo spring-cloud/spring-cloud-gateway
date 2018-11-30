@@ -23,6 +23,9 @@ import java.util.Map;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping;
 import org.springframework.web.cors.CorsConfiguration;
+/**
+ * "跨域资源共享"（Cross-origin resource sharing）配置属性
+ */
 
 /**
  * Configuration properties for global configuration of cors. See

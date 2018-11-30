@@ -48,6 +48,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+/**
+ * gateway actuator 提供一些对外的接口，可以获取网关的一些信息，比如路由的信息，改变路由地址等等。
+ */
 
 /**
  * @author Spencer Gibb

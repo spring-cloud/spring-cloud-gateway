@@ -31,7 +31,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 /**
- * Sample throttling filter.
+ * Sample throttling filter. 限流过滤器
  * See https://github.com/bbeck/token-bucket
  */
 public class ThrottleGatewayFilter implements GatewayFilter {
