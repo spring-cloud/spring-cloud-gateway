@@ -19,11 +19,15 @@ package org.springframework.cloud.gateway.handler.predicate;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping;
+import org.springframework.cloud.gateway.route.RouteLocator;
+import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -37,18 +41,57 @@ public class HostRoutePredicateFactoryTests extends BaseWebClientTests {
 
 	@Test
 	public void hostRouteWorks() {
+		expectHostRoute("www.example.org", "host_example_to_httpbin");
+	}
+
+	public void expectHostRoute(String host, String routeId) {
 		testClient.get()
 				.uri("/get")
-				.header("Host", "www.example.org")
+				.header("Host", host)
 				.exchange()
 				.expectStatus().isOk()
 				.expectHeader().valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName())
-				.expectHeader().valueEquals(ROUTE_ID_HEADER, "host_example_to_httpbin");
+				.expectHeader().valueEquals(ROUTE_ID_HEADER, routeId);
+	}
+
+	@Test
+	public void hostRouteBackwardsCompatiblePatternWorks() {
+		expectHostRoute("www.hostpatternarg.org", "host_backwards_compatible_test");
+	}
+
+	@Test
+	public void hostRouteBackwardsCompatibleShortcutWorks() {
+		expectHostRoute("www.hostpatternshortcut.org", "host_backwards_compatible_shortcut_test");
+	}
+
+	@Test
+	public void mulitHostRouteWorks() {
+		expectHostRoute("www.hostmulti1.org", "host_multi_test");
+		expectHostRoute("www.hostmulti2.org", "host_multi_test");
+	}
+
+	@Test
+	public void mulitHostRouteDslWorks() {
+		expectHostRoute("www.hostmultidsl1.org", "host_multi_dsl");
+		expectHostRoute("www.hostmultidsl2.org", "host_multi_dsl");
 	}
 
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
-	public static class TestConfig { }
+	public static class TestConfig {
+
+		@Value("${test.uri}")
+		String uri;
+
+		@Bean
+		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
+			return builder.routes()
+					.route("host_multi_dsl", r -> r.host("**.hostmultidsl1.org", "**.hostmultidsl2.org")
+							.filters(f -> f.prefixPath("/httpbin"))
+							.uri(uri))
+					.build();
+		}
+	}
 
 }

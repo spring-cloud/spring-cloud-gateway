@@ -17,6 +17,7 @@
 package org.springframework.cloud.gateway.route.builder;
 
 import java.time.ZonedDateTime;
+import java.util.Arrays;
 import java.util.function.Predicate;
 
 import org.springframework.cloud.gateway.handler.AsyncPredicate;
@@ -134,9 +135,9 @@ public class PredicateSpec extends UriSpec {
 	 * @param pattern the pattern to check against.  The pattern is an Ant style pattern with {@code .} as a separator
 	 * @return a {@link BooleanSpec} to be used to add logical operators
 	 */
-	public BooleanSpec host(String pattern) {
+	public BooleanSpec host(String... pattern) {
 		return asyncPredicate(getBean(HostRoutePredicateFactory.class)
-				.applyAsync(c-> c.setPattern(pattern)));
+				.applyAsync(c-> c.setPatterns(Arrays.asList(pattern))));
 	}
 
 	/**

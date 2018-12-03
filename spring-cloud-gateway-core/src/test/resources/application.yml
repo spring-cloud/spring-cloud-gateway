@@ -82,6 +82,26 @@ spring:
         - Host=**.forward.org
 
       # =====================================
+      - id: host_backwards_compatible_test
+        uri: ${test.uri}
+        predicates:
+          - name: Host
+            args:
+              pattern: '**.hostpatternarg.org'
+
+      # =====================================
+      - id: host_backwards_compatible_shortcut_test
+        uri: ${test.uri}
+        predicates:
+        - Host=**.hostpatternshortcut.org
+
+      # =====================================
+      - id: host_multi_test
+        uri: ${test.uri}
+        predicates:
+        - Host=**.hostmulti1.org,**.hostmulti2.org
+
+      # =====================================
       - id: hystrix_failure_test
         uri: ${test.uri}
         predicates:

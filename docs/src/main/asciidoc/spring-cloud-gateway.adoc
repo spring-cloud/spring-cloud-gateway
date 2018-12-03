@@ -134,7 +134,7 @@ spring:
 This route matches if the request has a header named `X-Request-Id` whos value matches the `\d+` regular expression (has a value of one or more digits).
 
 === Host Route Predicate Factory
-The Host Route Predicate Factory takes one parameter: the host name pattern. The pattern is an Ant style pattern with `.` as the separator. This predicates matches the `Host` header that matches the pattern.
+The Host Route Predicate Factory takes one parameter: a list of host name patterns. The pattern is an Ant style pattern with `.` as the separator. This predicates matches the `Host` header that matches the pattern.
 
 .application.yml
 [source,yaml]
@@ -146,10 +146,10 @@ spring:
       - id: host_route
         uri: http://example.org
         predicates:
-        - Host=**.somehost.org
+        - Host=**.somehost.org,**.anotherhost.org
 ----
 
-This route would match if the request has a `Host` header has the value `www.somehost.org` or `beta.somehost.org`.
+This route would match if the request has a `Host` header has the value `www.somehost.org` or `beta.somehost.org` or `www.anotherhost.org`.
 
 
 === Method Route Predicate Factory
