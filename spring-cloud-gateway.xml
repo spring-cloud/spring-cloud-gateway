@@ -145,7 +145,7 @@ for details on setting up your build system with the current Spring Cloud Releas
 </section>
 <section xml:id="_host_route_predicate_factory">
 <title>Host Route Predicate Factory</title>
-<simpara>The Host Route Predicate Factory takes one parameter: the host name pattern. The pattern is an Ant style pattern with <literal>.</literal> as the separator. This predicates matches the <literal>Host</literal> header that matches the pattern.</simpara>
+<simpara>The Host Route Predicate Factory takes one parameter: a list of host name patterns. The pattern is an Ant style pattern with <literal>.</literal> as the separator. This predicates matches the <literal>Host</literal> header that matches the pattern.</simpara>
 <formalpara>
 <title>application.yml</title>
 <para>
@@ -156,10 +156,10 @@ for details on setting up your build system with the current Spring Cloud Releas
       - id: host_route
         uri: http://example.org
         predicates:
-        - Host=**.somehost.org</programlisting>
+        - Host=**.somehost.org,**.anotherhost.org</programlisting>
 </para>
 </formalpara>
-<simpara>This route would match if the request has a <literal>Host</literal> header has the value <literal>www.somehost.org</literal> or <literal>beta.somehost.org</literal>.</simpara>
+<simpara>This route would match if the request has a <literal>Host</literal> header has the value <literal>www.somehost.org</literal> or <literal>beta.somehost.org</literal> or <literal>www.anotherhost.org</literal>.</simpara>
 </section>
 <section xml:id="_method_route_predicate_factory">
 <title>Method Route Predicate Factory</title>
