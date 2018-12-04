@@ -115,12 +115,14 @@ import org.springframework.cloud.gateway.route.RouteDefinitionWriter;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.RouteRefreshListener;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
+import org.springframework.cloud.gateway.support.StringToZonedDateTimeConverter;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Primary;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.core.env.Environment;
 import org.springframework.http.codec.ServerCodecConfigurer;
 import org.springframework.util.StringUtils;
@@ -254,6 +256,11 @@ public class GatewayAutoConfiguration {
 		}
 	}
 
+	@Bean
+	public StringToZonedDateTimeConverter stringToZonedDateTimeConverter() {
+		return new StringToZonedDateTimeConverter();
+	}
+
 	//TODO: remove when not needed anymore
 	// either https://jira.spring.io/browse/SPR-17291 or
 	// https://github.com/spring-projects/spring-boot/issues/14520 needs to be fixed
@@ -292,10 +299,12 @@ public class GatewayAutoConfiguration {
 
 	@Bean
 	public RouteLocator routeDefinitionRouteLocator(GatewayProperties properties,
-												   List<GatewayFilterFactory> GatewayFilters,
-												   List<RoutePredicateFactory> predicates,
-												   RouteDefinitionLocator routeDefinitionLocator) {
-		return new RouteDefinitionRouteLocator(routeDefinitionLocator, predicates, GatewayFilters, properties);
+													List<GatewayFilterFactory> GatewayFilters,
+													List<RoutePredicateFactory> predicates,
+													RouteDefinitionLocator routeDefinitionLocator,
+													ConversionService conversionService) {
+		return new RouteDefinitionRouteLocator(routeDefinitionLocator, predicates, GatewayFilters,
+				properties, conversionService);
 	}
 
 	@Bean

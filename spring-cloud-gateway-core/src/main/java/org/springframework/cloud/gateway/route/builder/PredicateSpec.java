@@ -75,7 +75,7 @@ public class PredicateSpec extends UriSpec {
 	 */
 	public BooleanSpec after(ZonedDateTime datetime) {
 		return asyncPredicate(getBean(AfterRoutePredicateFactory.class)
-				.applyAsync(c-> c.setDatetime(datetime.toString())));
+				.applyAsync(c-> c.setDatetime(datetime)));
 	}
 
 	/**
@@ -84,7 +84,7 @@ public class PredicateSpec extends UriSpec {
 	 * @return a {@link BooleanSpec} to be used to add logical operators
 	 */
 	public BooleanSpec before(ZonedDateTime datetime) {
-		return asyncPredicate(getBean(BeforeRoutePredicateFactory.class).applyAsync(c -> c.setDatetime(datetime.toString())));
+		return asyncPredicate(getBean(BeforeRoutePredicateFactory.class).applyAsync(c -> c.setDatetime(datetime)));
 	}
 
 	/**
@@ -95,7 +95,7 @@ public class PredicateSpec extends UriSpec {
 	 */
 	public BooleanSpec between(ZonedDateTime datetime1, ZonedDateTime datetime2) {
 		return asyncPredicate(getBean(BetweenRoutePredicateFactory.class)
-				.applyAsync(c -> c.setDatetime1(datetime1.toString()).setDatetime2(datetime2.toString())));
+				.applyAsync(c -> c.setDatetime1(datetime1).setDatetime2(datetime2)));
 	}
 
 	/**

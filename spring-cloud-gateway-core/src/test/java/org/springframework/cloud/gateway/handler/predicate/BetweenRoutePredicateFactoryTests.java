@@ -22,7 +22,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 
 import org.junit.Test;
+import org.springframework.boot.convert.ApplicationConversionService;
 import org.springframework.cloud.gateway.support.ConfigurationUtils;
+import org.springframework.cloud.gateway.support.StringToZonedDateTimeConverter;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
@@ -101,8 +103,8 @@ public class BetweenRoutePredicateFactoryTests {
 	@Test
 	public void testPredicates() {
 		boolean result = new BetweenRoutePredicateFactory()
-				.apply(c -> c.setDatetime1(ZonedDateTime.now().minusHours(2).toString())
-						.setDatetime2(ZonedDateTime.now().plusHours(1).toString()))
+				.apply(c -> c.setDatetime1(ZonedDateTime.now().minusHours(2))
+						.setDatetime2(ZonedDateTime.now().plusHours(1)))
 				.test(getExchange());
 		assertThat(result).isTrue();
 	}
@@ -114,11 +116,19 @@ public class BetweenRoutePredicateFactoryTests {
 
 		BetweenRoutePredicateFactory factory = new BetweenRoutePredicateFactory();
 
-		BetweenRoutePredicateFactory.Config config = factory.newConfig();
-
-		ConfigurationUtils.bind(config, map, "", "myname", null);
+		BetweenRoutePredicateFactory.Config config = bindConfig(map, factory);
 
 		return factory.apply(config).test(getExchange());
+	}
+
+	static <T> T bindConfig(HashMap<String, Object> properties,
+									AbstractRoutePredicateFactory<T> factory) {
+		T config = factory.newConfig();
+
+		ApplicationConversionService conversionService = new ApplicationConversionService();
+		conversionService.addConverter(new StringToZonedDateTimeConverter());
+		ConfigurationUtils.bind(config, properties, "", "myname", null, conversionService);
+		return config;
 	}
 
 	static String minusHoursMillis(int hours) {

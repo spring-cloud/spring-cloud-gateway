@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Test;
+
 import org.springframework.cloud.gateway.config.GatewayProperties;
 import org.springframework.cloud.gateway.config.PropertiesRouteDefinitionLocator;
 import org.springframework.cloud.gateway.filter.FilterDefinition;
@@ -17,6 +18,7 @@ import org.springframework.cloud.gateway.filter.factory.RemoveResponseHeaderGate
 import org.springframework.cloud.gateway.handler.predicate.HostRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
 import org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory;
+import org.springframework.core.convert.support.DefaultConversionService;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -49,7 +51,7 @@ public class RouteDefinitionRouteLocatorTests {
 
 		RouteDefinitionRouteLocator routeDefinitionRouteLocator = new RouteDefinitionRouteLocator(
 				new PropertiesRouteDefinitionLocator(gatewayProperties), predicates,
-				gatewayFilterFactories, gatewayProperties);
+				gatewayFilterFactories, gatewayProperties, new DefaultConversionService());
 
 		List<Route> routes = routeDefinitionRouteLocator.getRoutes().collectList()
 				.block();

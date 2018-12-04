@@ -17,6 +17,7 @@
 
 package org.springframework.cloud.gateway.support;
 
+import java.util.Collections;
 import java.util.Map;
 
 import org.springframework.aop.framework.Advised;
@@ -24,6 +25,7 @@ import org.springframework.aop.support.AopUtils;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.boot.context.properties.source.MapConfigurationPropertySource;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
@@ -32,9 +34,14 @@ import org.springframework.validation.Validator;
 public abstract class ConfigurationUtils {
 
 	public static void bind(Object o, Map<String, Object> properties, String configurationPropertyName, String bindingName, Validator validator) {
+		bind(o, properties, configurationPropertyName, bindingName, validator, null);
+	}
+
+	public static void bind(Object o, Map<String, Object> properties, String configurationPropertyName, String bindingName,
+							Validator validator, ConversionService conversionService) {
 		Object toBind = getTargetObject(o);
 
-		new Binder(new MapConfigurationPropertySource(properties))
+		new Binder(Collections.singletonList(new MapConfigurationPropertySource(properties)), null, conversionService)
                 .bind(configurationPropertyName, Bindable.ofInstance(toBind));
 
 		if (validator != null) {

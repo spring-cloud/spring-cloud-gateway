@@ -52,13 +52,13 @@ public class BeforeRoutePredicateFactory extends AbstractRoutePredicateFactory<B
 	}
 
 	public static class Config {
-		private String datetime;
+		private ZonedDateTime datetime;
 
-		public String getDatetime() {
+		public ZonedDateTime getDatetime() {
 			return datetime;
 		}
 
-		public void setDatetime(String datetime) {
+		public void setDatetime(ZonedDateTime datetime) {
 			this.datetime = datetime;
 		}
 	}

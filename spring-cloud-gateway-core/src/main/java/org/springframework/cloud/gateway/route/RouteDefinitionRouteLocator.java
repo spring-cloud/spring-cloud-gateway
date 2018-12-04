@@ -45,6 +45,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.validation.Validator;
 import org.springframework.web.server.ServerWebExchange;
@@ -59,6 +60,7 @@ public class RouteDefinitionRouteLocator implements RouteLocator, BeanFactoryAwa
 	protected final Log logger = LogFactory.getLog(getClass());
 
 	private final RouteDefinitionLocator routeDefinitionLocator;
+	private final ConversionService conversionService;
 	private final Map<String, RoutePredicateFactory> predicates = new LinkedHashMap<>();
 	private final Map<String, GatewayFilterFactory> gatewayFilterFactories = new HashMap<>();
 	private final GatewayProperties gatewayProperties;
@@ -69,8 +71,10 @@ public class RouteDefinitionRouteLocator implements RouteLocator, BeanFactoryAwa
 	public RouteDefinitionRouteLocator(RouteDefinitionLocator routeDefinitionLocator,
 									   List<RoutePredicateFactory> predicates,
 									   List<GatewayFilterFactory> gatewayFilterFactories,
-									   GatewayProperties gatewayProperties) {
+									   GatewayProperties gatewayProperties,
+									   ConversionService conversionService) {
 		this.routeDefinitionLocator = routeDefinitionLocator;
+		this.conversionService = conversionService;
 		initFactories(predicates);
 		gatewayFilterFactories.forEach(factory -> this.gatewayFilterFactories.put(factory.name(), factory));
 		this.gatewayProperties = gatewayProperties;
@@ -150,8 +154,8 @@ public class RouteDefinitionRouteLocator implements RouteLocator, BeanFactoryAwa
 
                     Object configuration = factory.newConfig();
 
-                    ConfigurationUtils.bind(configuration, properties,
-                            factory.shortcutFieldPrefix(), definition.getName(), validator);
+                    ConfigurationUtils.bind(configuration, properties, factory.shortcutFieldPrefix(),
+							definition.getName(), validator, conversionService);
 
                     GatewayFilter gatewayFilter = factory.apply(configuration);
                     if (this.publisher != null) {
@@ -218,8 +222,8 @@ public class RouteDefinitionRouteLocator implements RouteLocator, BeanFactoryAwa
 
         Map<String, Object> properties = factory.shortcutType().normalize(args, factory, this.parser, this.beanFactory);
         Object config = factory.newConfig();
-        ConfigurationUtils.bind(config, properties,
-                factory.shortcutFieldPrefix(), predicate.getName(), validator);
+        ConfigurationUtils.bind(config, properties, factory.shortcutFieldPrefix(), predicate.getName(),
+				validator, conversionService);
         if (this.publisher != null) {
             this.publisher.publishEvent(new PredicateArgsEvent(this, route.getId(), properties));
         }

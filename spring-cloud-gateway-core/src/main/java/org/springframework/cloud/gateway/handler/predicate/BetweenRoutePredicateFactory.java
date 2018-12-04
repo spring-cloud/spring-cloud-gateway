@@ -24,11 +24,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 
+import javax.validation.constraints.NotNull;
+
 import org.springframework.util.Assert;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.server.ServerWebExchange;
-
-import javax.validation.constraints.NotEmpty;
 
 /**
  * @author Spencer Gibb
@@ -64,25 +64,25 @@ public class BetweenRoutePredicateFactory extends AbstractRoutePredicateFactory<
 
 	@Validated
 	public static class Config {
-		@NotEmpty
-		private String datetime1;
-		@NotEmpty
-		private String datetime2;
+		@NotNull
+		private ZonedDateTime datetime1;
+		@NotNull
+		private ZonedDateTime datetime2;
 
-		public String getDatetime1() {
+		public ZonedDateTime getDatetime1() {
 			return datetime1;
 		}
 
-		public Config setDatetime1(String datetime1) {
+		public Config setDatetime1(ZonedDateTime datetime1) {
 			this.datetime1 = datetime1;
 			return this;
 		}
 
-		public String getDatetime2() {
+		public ZonedDateTime getDatetime2() {
 			return datetime2;
 		}
 
-		public Config setDatetime2(String datetime2) {
+		public Config setDatetime2(ZonedDateTime datetime2) {
 			this.datetime2 = datetime2;
 			return this;
 		}

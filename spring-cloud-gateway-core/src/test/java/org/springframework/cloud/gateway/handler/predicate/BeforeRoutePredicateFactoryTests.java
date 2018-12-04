@@ -20,8 +20,11 @@ package org.springframework.cloud.gateway.handler.predicate;
 import org.junit.Test;
 
 import java.time.ZonedDateTime;
+import java.util.HashMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.cloud.gateway.handler.predicate.BeforeRoutePredicateFactory.DATETIME_KEY;
+import static org.springframework.cloud.gateway.handler.predicate.BetweenRoutePredicateFactoryTests.bindConfig;
 import static org.springframework.cloud.gateway.handler.predicate.BetweenRoutePredicateFactoryTests.getExchange;
 import static org.springframework.cloud.gateway.handler.predicate.BetweenRoutePredicateFactoryTests.minusHours;
 import static org.springframework.cloud.gateway.handler.predicate.BetweenRoutePredicateFactoryTests.minusHoursMillis;
@@ -71,11 +74,18 @@ public class BeforeRoutePredicateFactoryTests {
 
 	@Test
 	public void testPredicates() {
-		boolean result = new BeforeRoutePredicateFactory().apply(c -> c.setDatetime(ZonedDateTime.now().minusHours(2).toString())).test(getExchange());
+		boolean result = new BeforeRoutePredicateFactory().apply(c -> c.setDatetime(ZonedDateTime.now().minusHours(2))).test(getExchange());
 		assertThat(result).isFalse();
 	}
 
 	private boolean runPredicate(String dateString) {
-		return new BeforeRoutePredicateFactory().apply(c -> c.setDatetime(dateString)).test(getExchange());
+		HashMap<String, Object> map = new HashMap<>();
+		map.put(DATETIME_KEY, dateString);
+
+		BeforeRoutePredicateFactory factory = new BeforeRoutePredicateFactory();
+
+		BeforeRoutePredicateFactory.Config config = bindConfig(map, factory);
+
+		return factory.apply(config).test(getExchange());
 	}
 }

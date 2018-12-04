@@ -17,7 +17,13 @@
 
 package org.springframework.cloud.gateway.filter;
 
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
+import io.micrometer.core.instrument.Timer;
+import io.micrometer.core.instrument.Timer.Sample;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.core.Ordered;
@@ -26,15 +32,13 @@ import org.springframework.http.server.reactive.AbstractServerHttpResponse;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.server.ServerWebExchange;
 
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Tags;
-import io.micrometer.core.instrument.Timer;
-import io.micrometer.core.instrument.Timer.Sample;
-import reactor.core.publisher.Mono;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
 
 public class GatewayMetricsFilter implements GlobalFilter, Ordered {
 
-	private MeterRegistry meterRegistry;
+	private final Log log = LogFactory.getLog(getClass());
+
+	private final MeterRegistry meterRegistry;
 
 	public GatewayMetricsFilter(MeterRegistry meterRegistry) {
 		this.meterRegistry = meterRegistry;
@@ -93,6 +97,9 @@ public class GatewayMetricsFilter implements GlobalFilter, Ordered {
 		Route route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
 		Tags tags = Tags.of("outcome", outcome, "status", status, "routeId",
 				route.getId(), "routeUri", route.getUri().toString());
+		if (log.isTraceEnabled()) {
+			log.trace("Stopping timer 'gateway.requests' with tags " + tags);
+		}
 		sample.stop(meterRegistry.timer("gateway.requests", tags));
 	}
 }
