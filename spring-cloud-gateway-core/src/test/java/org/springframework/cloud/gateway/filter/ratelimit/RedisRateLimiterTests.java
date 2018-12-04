@@ -32,7 +32,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 public class RedisRateLimiterTests extends BaseWebClientTests {
 
 	@Rule
-	public final RedisRule redis = RedisRule.bindToPort(6379);
+	public final RedisRule redis = RedisRule.bindToDefaultPort();
 
 	@Autowired
 	private RedisRateLimiter rateLimiter;
