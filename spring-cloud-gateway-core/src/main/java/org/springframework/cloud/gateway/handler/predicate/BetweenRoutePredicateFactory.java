@@ -49,9 +49,8 @@ public class BetweenRoutePredicateFactory extends AbstractRoutePredicateFactory<
 
 	@Override
 	public Predicate<ServerWebExchange> apply(Config config) {
-		//TODO: figure out boot conversion
-		ZonedDateTime datetime1 = getZonedDateTime(config.datetime1);
-		ZonedDateTime datetime2 = getZonedDateTime(config.datetime2);
+		ZonedDateTime datetime1 = config.datetime1;
+		ZonedDateTime datetime2 = config.datetime2;
 		Assert.isTrue(datetime1.isBefore(datetime2),
 				config.datetime1 +
 				" must be before " + config.datetime2);
@@ -86,31 +85,6 @@ public class BetweenRoutePredicateFactory extends AbstractRoutePredicateFactory<
 			this.datetime2 = datetime2;
 			return this;
 		}
-	}
-
-	public static ZonedDateTime getZonedDateTime(Object value) {
-		ZonedDateTime dateTime;
-		if (value instanceof ZonedDateTime) {
-			dateTime = ZonedDateTime.class.cast(value);
-		} else {
-			dateTime = parseZonedDateTime(value.toString());
-		}
-		return dateTime;
-	}
-
-	public static ZonedDateTime parseZonedDateTime(String dateString) {
-		ZonedDateTime dateTime;
-		try {
-			long epoch = Long.parseLong(dateString);
-
-			dateTime = Instant.ofEpochMilli(epoch).atOffset(ZoneOffset.ofTotalSeconds(0))
-					.toZonedDateTime();
-		} catch (NumberFormatException e) {
-			// try ZonedDateTime instead
-			dateTime = ZonedDateTime.parse(dateString);
-		}
-
-		return dateTime;
 	}
 
 }
