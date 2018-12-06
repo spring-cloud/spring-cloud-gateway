@@ -1077,7 +1077,7 @@ spring:
       globalcors:
         corsConfigurations:
           '[/**]':
-            allowedOrigins: "docs.spring.io"
+            allowedOrigins: "http://docs.spring.io"
             allowedMethods:
             - GET
 ----
