@@ -1278,7 +1278,7 @@ public RouteLocator customRouteLocator(RouteLocatorBuilder builder, ThrottleGate
       globalcors:
         corsConfigurations:
           '[/**]':
-            allowedOrigins: "docs.spring.io"
+            allowedOrigins: "http://docs.spring.io"
             allowedMethods:
             - GET</programlisting>
 </para>
