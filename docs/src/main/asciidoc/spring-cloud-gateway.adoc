@@ -970,6 +970,9 @@ spring:
         - Path=/service/**
 ----
 
+NOTE By default when a service instance cannot be found in the `LoadBalancer` a `503` will be returned.
+You can configure the Gateway to return a `404` by setting `spring.cloud.gateway.loadbalancer.use404=true`.
+
 === Netty Routing Filter
 
 The Netty Routing Filter runs if the url located in the `ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR` exchange attribute has a `http` or `https` scheme. It uses the Netty `HttpClient` to make the downstream proxy request. The response is put in the `ServerWebExchangeUtils.CLIENT_RESPONSE_ATTR` exchange attribute for use in a later filter. (There is an experimental `WebClientHttpRoutingFilter` that performs the same function, but does not require netty)
