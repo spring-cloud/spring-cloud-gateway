@@ -151,7 +151,7 @@ public class GatewayIntegrationTests extends BaseWebClientTests {
 				.expectStatus().value(new BaseMatcher<Integer>() {
 			@Override
 			public boolean matches(Object item) {
-				if(Integer.class.isInstance(item)) {
+				if (Integer.class.isInstance(item)) {
 					Integer toMatch = (Integer) item;
 					return toMatch.intValue() == 503;
 				}
