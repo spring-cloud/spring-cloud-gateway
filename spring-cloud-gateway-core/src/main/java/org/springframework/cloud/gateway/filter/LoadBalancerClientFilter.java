@@ -24,13 +24,17 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
+import org.springframework.cloud.gateway.config.LoadBalancerProperties;
+import org.springframework.cloud.gateway.discovery.DiscoveryLocatorProperties;
 import org.springframework.cloud.gateway.support.NotFoundException;
 import org.springframework.core.Ordered;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.server.ServerWebExchange;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_SCHEME_PREFIX_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.addOriginalRequestUrl;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 import reactor.core.publisher.Mono;
 
@@ -45,8 +49,11 @@ public class LoadBalancerClientFilter implements GlobalFilter, Ordered {
 
 	protected final LoadBalancerClient loadBalancer;
 
-	public LoadBalancerClientFilter(LoadBalancerClient loadBalancer) {
+	private LoadBalancerProperties properties;
+
+	public LoadBalancerClientFilter(LoadBalancerClient loadBalancer, LoadBalancerProperties properties) {
 		this.loadBalancer = loadBalancer;
+		this.properties = properties;
 	}
 
 	@Override
@@ -69,7 +76,11 @@ public class LoadBalancerClientFilter implements GlobalFilter, Ordered {
 		final ServiceInstance instance = choose(exchange);
 
 		if (instance == null) {
-			throw new NotFoundException("Unable to find instance for " + url.getHost());
+			String msg = "Unable to find instance for " + url.getHost();
+			if(properties.isUse404()) {
+				throw new FourOFourNotFoundException(msg);
+			}
+			throw new NotFoundException(msg);
 		}
 
 		URI uri = exchange.getRequest().getURI();
@@ -90,6 +101,12 @@ public class LoadBalancerClientFilter implements GlobalFilter, Ordered {
 
 	protected ServiceInstance choose(ServerWebExchange exchange) {
 		return loadBalancer.choose(((URI) exchange.getAttribute(GATEWAY_REQUEST_URL_ATTR)).getHost());
+	}
+	@ResponseStatus(value = NOT_FOUND, reason = "The service was not found.")
+	static class FourOFourNotFoundException extends RuntimeException {
+		public FourOFourNotFoundException(String msg) {
+			super(msg);
+		}
 	}
 
 	class DelegatingServiceInstance implements ServiceInstance {

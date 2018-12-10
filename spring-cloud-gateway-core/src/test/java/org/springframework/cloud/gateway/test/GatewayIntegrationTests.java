@@ -21,6 +21,8 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hamcrest.BaseMatcher;
+import org.hamcrest.Description;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import reactor.core.publisher.Mono;
@@ -146,7 +148,21 @@ public class GatewayIntegrationTests extends BaseWebClientTests {
 		testClient.get().uri("/get")
 				.header("Host", "www.loadbalancerclientempty.org")
 				.exchange()
-				.expectStatus().is5xxServerError();
+				.expectStatus().value(new BaseMatcher<Integer>() {
+			@Override
+			public boolean matches(Object item) {
+				if (Integer.class.isInstance(item)) {
+					Integer toMatch = (Integer) item;
+					return toMatch.intValue() == 503;
+				}
+				return false;
+			}
+
+			@Override
+			public void describeTo(Description description) {
+				description.appendText("Expected 503");
+			}
+		});
 	}
 
 	@Test

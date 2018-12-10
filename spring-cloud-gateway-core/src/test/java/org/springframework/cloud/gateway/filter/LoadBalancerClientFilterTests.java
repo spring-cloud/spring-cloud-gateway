@@ -15,6 +15,8 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.cloud.client.DefaultServiceInstance;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
+import org.springframework.cloud.gateway.config.LoadBalancerProperties;
+import org.springframework.cloud.gateway.discovery.DiscoveryLocatorProperties;
 import org.springframework.cloud.gateway.support.NotFoundException;
 import org.springframework.cloud.netflix.ribbon.RibbonLoadBalancerClient;
 import org.springframework.cloud.netflix.ribbon.RibbonLoadBalancerContext;
@@ -48,17 +50,20 @@ public class LoadBalancerClientFilterTests {
 
 	private ServerWebExchange exchange;
 
+	private LoadBalancerProperties properties;
+
 	@Mock
 	private GatewayFilterChain chain;
 
 	@Mock
 	private LoadBalancerClient loadBalancerClient;
 
-	@InjectMocks
 	private LoadBalancerClientFilter loadBalancerClientFilter;
 
 	@Before
 	public void setup() {
+		properties = new LoadBalancerProperties();
+		loadBalancerClientFilter = new LoadBalancerClientFilter(loadBalancerClient, properties);
 		exchange = MockServerWebExchange.from(MockServerHttpRequest.get("loadbalancerclient.org").build());
 	}
 
@@ -88,6 +93,14 @@ public class LoadBalancerClientFilterTests {
 		URI uri = UriComponentsBuilder.fromUriString("lb://myservice").build().toUri();
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, uri);
 
+		loadBalancerClientFilter.filter(exchange, chain);
+	}
+
+	@Test(expected = LoadBalancerClientFilter.FourOFourNotFoundException.class)
+	public void shouldThrow4O4ExceptionWhenNoServiceInstanceIsFound() {
+		URI uri = UriComponentsBuilder.fromUriString("lb://myservice").build().toUri();
+		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, uri);
+		properties.setUse404(true);
 		loadBalancerClientFilter.filter(exchange, chain);
 	}
 
@@ -252,7 +265,7 @@ public class LoadBalancerClientFilterTests {
 			}
 		};
 
-		LoadBalancerClientFilter loadBalancerClientFilter = new LoadBalancerClientFilter(loadBalancerClient) {
+		LoadBalancerClientFilter loadBalancerClientFilter = new LoadBalancerClientFilter(loadBalancerClient, properties) {
 			protected ServiceInstance choose(ServerWebExchange exchange) {
 				URI attribute = (URI) exchange.getAttribute(GATEWAY_REQUEST_URL_ATTR);
 				return loadBalancer.choose(attribute.getHost() + "<<>>" + attribute.getPort());
@@ -292,7 +305,7 @@ public class LoadBalancerClientFilterTests {
 
 		RibbonLoadBalancerClient client = new RibbonLoadBalancerClient(clientFactory);
 
-		LoadBalancerClientFilter filter = new LoadBalancerClientFilter(client);
+		LoadBalancerClientFilter filter = new LoadBalancerClientFilter(client, properties);
 		filter.filter(exchange, chain);
 
 		return captor.getValue();

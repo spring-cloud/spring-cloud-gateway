@@ -24,6 +24,7 @@ import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
+import org.springframework.cloud.gateway.config.LoadBalancerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -35,17 +36,26 @@ public class GatewayDiscoveryClientAutoConfigurationTests {
 
 	@RunWith(SpringRunner.class)
 	@SpringBootTest(classes = Config.class,
-			properties = "spring.cloud.gateway.discovery.locator.enabled=true")
+			properties = {"spring.cloud.gateway.discovery.locator.enabled=true",
+					"spring.cloud.gateway.loadbalancer.use404=true"})
 	public static class EnabledByProperty {
 
 		@Autowired(required = false)
 		private DiscoveryClientRouteDefinitionLocator locator;
+
+		@Autowired(required = false)
+		private LoadBalancerProperties properties;
 
 		@Test
 		public void routeLocatorBeanExists() {
 			assertThat(locator)
 					.as("DiscoveryClientRouteDefinitionLocator was null")
 					.isNotNull();
+		}
+
+		@Test
+		public void use404() {
+			assertThat(properties.isUse404()).isTrue();
 		}
 	}
 
