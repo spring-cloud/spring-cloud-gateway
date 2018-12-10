@@ -19,6 +19,7 @@ import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -53,31 +54,45 @@ public class RequestRateLimiterGatewayFilterFactoryTests extends BaseWebClientTe
 	private GatewayFilterChain filterChain;
 
 	@Autowired
-	@Qualifier("resolver1")
-	KeyResolver resolver1;
-
-	@Autowired
 	@Qualifier("resolver2")
 	KeyResolver resolver2;
 
 	@Test
-	public void allowedWorks() throws Exception {
-		assertFilterFactory(resolver1, "allowedkey", true, HttpStatus.OK);
+	public void allowedWorks() {
+		// tests that auto wired as default works
+		assertFilterFactory(null, "allowedkey", true, HttpStatus.OK);
 	}
 
 	@Test
-	public void notAllowedWorks() throws Exception {
+	public void notAllowedWorks() {
 		assertFilterFactory(resolver2, "notallowedkey", false, HttpStatus.TOO_MANY_REQUESTS);
 	}
 
+	@Test
+	public void emptyKeyDenied() {
+		assertFilterFactory(exchange -> Mono.empty(), null, true, HttpStatus.FORBIDDEN);
+	}
+
+	@Test
+	public void emptyKeyAllowed() {
+		assertFilterFactory(exchange -> Mono.empty(), null, true, HttpStatus.OK, false);
+	}
+
 	private void assertFilterFactory(KeyResolver keyResolver, String key, boolean allowed, HttpStatus expectedStatus) {
+		assertFilterFactory(keyResolver, key, allowed, expectedStatus, null);
+	}
+
+	private void assertFilterFactory(KeyResolver keyResolver, String key, boolean allowed, HttpStatus expectedStatus,
+									 Boolean denyEmptyKey) {
 
 		String tokensRemaining = allowed ? "1" : "0";
 
 		Map<String, String> headers = Collections.singletonMap("X-Tokens-Remaining", tokensRemaining);
 
-		when(rateLimiter.isAllowed("myroute", key))
-				.thenReturn(Mono.just(new Response(allowed, headers)));
+		if (key != null) {
+			when(rateLimiter.isAllowed("myroute", key))
+					.thenReturn(Mono.just(new Response(allowed, headers)));
+		}
 
 		MockServerHttpRequest request = MockServerHttpRequest.get("/").build();
 		MockServerWebExchange exchange = MockServerWebExchange.from(request);
@@ -89,6 +104,9 @@ public class RequestRateLimiterGatewayFilterFactoryTests extends BaseWebClientTe
 		when(this.filterChain.filter(exchange)).thenReturn(Mono.empty());
 
 		RequestRateLimiterGatewayFilterFactory factory = this.context.getBean(RequestRateLimiterGatewayFilterFactory.class);
+		if (denyEmptyKey != null) {
+			factory.setDenyEmptyKey(denyEmptyKey);
+		}
 		GatewayFilter filter = factory.apply(config -> config.setKeyResolver(keyResolver));
 
 		Mono<Void> response = filter.filter(exchange, this.filterChain);
@@ -105,6 +123,7 @@ public class RequestRateLimiterGatewayFilterFactoryTests extends BaseWebClientTe
 	@Import(BaseWebClientTests.DefaultTestConfig.class)
 	public static class TestConfig {
 		@Bean
+		@Primary
 		KeyResolver resolver1() {
 			return exchange -> Mono.just("allowedkey");
 		}

@@ -28,6 +28,7 @@ import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.handler.AsyncPredicate;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.server.reactive.AbstractServerHttpResponse;
 import org.springframework.web.server.ServerWebExchange;
 
 /**
@@ -76,6 +77,21 @@ public class ServerWebExchangeUtils {
 			logger.warn("Unable to set status code to "+ httpStatus + ". Response already committed.");
 		}
 		return response;
+	}
+
+	public static boolean setResponseStatus(ServerWebExchange exchange, HttpStatusHolder statusHolder) {
+		if (exchange.getResponse().isCommitted()) {
+			return false;
+		}
+		if (statusHolder.getHttpStatus() != null) {
+			return setResponseStatus(exchange, statusHolder.getHttpStatus());
+		}
+		if (statusHolder.getStatus() != null
+				&& exchange.getResponse() instanceof AbstractServerHttpResponse) { //non-standard
+			((AbstractServerHttpResponse)exchange.getResponse()).setStatusCodeValue(statusHolder.getStatus());
+			return true;
+		}
+		return false;
 	}
 
 	public static boolean containsEncodedParts(URI uri) {
