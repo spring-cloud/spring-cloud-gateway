@@ -18,6 +18,7 @@ package org.springframework.cloud.gateway.route.builder;
 
 import java.time.ZonedDateTime;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.function.Predicate;
 
 import org.springframework.cloud.gateway.handler.AsyncPredicate;
@@ -162,13 +163,13 @@ public class PredicateSpec extends UriSpec {
 
 	/**
 	 * A predicate that checks if the path of the request matches the given pattern
-	 * @param pattern the pattern to check the path against.
+	 * @param patterns the pattern to check the path against.
 	 *                The pattern is a {@link org.springframework.util.PathMatcher} pattern
 	 * @return a {@link BooleanSpec} to be used to add logical operators
 	 */
-	public BooleanSpec path(String pattern) {
+	public BooleanSpec path(String... patterns) {
 		return asyncPredicate(getBean(PathRoutePredicateFactory.class)
-				.applyAsync(c -> c.setPattern(pattern)));
+				.applyAsync(c -> c.setPatterns(Arrays.asList(patterns))));
 	}
 
 	/**
@@ -179,9 +180,25 @@ public class PredicateSpec extends UriSpec {
 	 *                                       when there is a trailing <code>/</code>
 	 * @return a {@link BooleanSpec} to be used to add logical operators
 	 */
+	@Deprecated
 	public BooleanSpec path(String pattern, boolean matchOptionalTrailingSeparator) {
 		return asyncPredicate(getBean(PathRoutePredicateFactory.class)
-				.applyAsync(c -> c.setPattern(pattern).setMatchOptionalTrailingSeparator(matchOptionalTrailingSeparator)));
+				.applyAsync(c -> c.setPatterns(Collections.singletonList(pattern))
+						.setMatchOptionalTrailingSeparator(matchOptionalTrailingSeparator)));
+	}
+
+	/**
+	 * A predicate that checks if the path of the request matches the given pattern
+	 * @param patterns the pattern to check the path against.
+	 *                The pattern is a {@link org.springframework.util.PathMatcher} pattern
+	 * @param matchOptionalTrailingSeparator set to false if you do not want this path to match
+	 *                                       when there is a trailing <code>/</code>
+	 * @return a {@link BooleanSpec} to be used to add logical operators
+	 */
+	public BooleanSpec path(boolean matchOptionalTrailingSeparator, String... patterns) {
+		return asyncPredicate(getBean(PathRoutePredicateFactory.class)
+				.applyAsync(c -> c.setPatterns(Arrays.asList(patterns))
+						.setMatchOptionalTrailingSeparator(matchOptionalTrailingSeparator)));
 	}
 
 	/**

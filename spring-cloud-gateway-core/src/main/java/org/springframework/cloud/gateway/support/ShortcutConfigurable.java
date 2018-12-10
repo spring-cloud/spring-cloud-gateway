@@ -25,6 +25,7 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.util.Assert;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -64,6 +65,35 @@ public interface ShortcutConfigurable {
 						"Shortcut Configuration Type GATHER_LIST must have shortcutFieldOrder of size 1");
 				String fieldName = fieldOrder.get(0);
 				map.put(fieldName, args.values().stream()
+						.map(value -> getValue(parser, beanFactory, value))
+						.collect(Collectors.toList()));
+				return map;
+			}
+		},
+
+		// list is all elements except last which is a boolean flag
+		GATHER_LIST_TAIL_FLAG {
+			@Override
+			public Map<String, Object> normalize(Map<String, String> args, ShortcutConfigurable shortcutConf, SpelExpressionParser parser, BeanFactory beanFactory) {
+				Map<String, Object> map = new HashMap<>();
+				// field order should be of size 1
+				List<String> fieldOrder = shortcutConf.shortcutFieldOrder();
+				Assert.isTrue(fieldOrder != null
+								&& fieldOrder.size() == 2,
+						"Shortcut Configuration Type GATHER_LIST_HEAD must have shortcutFieldOrder of size 2");
+				List<String> values = new ArrayList<>(args.values());
+				if (!values.isEmpty()) {
+					// strip boolean flag if last entry is true or false
+					int lastIdx = values.size() - 1;
+					String lastValue = values.get(lastIdx);
+					if (lastValue.equalsIgnoreCase("true")
+							|| lastValue.equalsIgnoreCase("false")) {
+						values = values.subList(0, lastIdx);
+						map.put(fieldOrder.get(1), getValue(parser, beanFactory, lastValue));
+					}
+				}
+				String fieldName = fieldOrder.get(0);
+				map.put(fieldName, values.stream()
 						.map(value -> getValue(parser, beanFactory, value))
 						.collect(Collectors.toList()));
 				return map;

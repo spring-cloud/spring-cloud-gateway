@@ -183,6 +183,15 @@ spring:
         filters:
         - SetStatus=404
 
+        # =====================================
+      - id: path_multi
+        uri: ${test.uri}
+        predicates:
+          - Host=**.pathmulti.org
+          - Path=/anything/multi1{num},/anything/multi2{num}
+        filters:
+          - SetPath=/anything/multi{num}
+
       # =====================================
       - id: redirect_to_test
         uri: ${test.uri}

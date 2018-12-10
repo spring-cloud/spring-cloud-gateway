@@ -171,7 +171,7 @@ spring:
 This route would match if the request method was a `GET`.
 
 === Path Route Predicate Factory
-The Path Route Predicate Factory takes one parameter: a Spring `PathMatcher` pattern.
+The Path Route Predicate Factory takes two parameter: a list of Spring `PathMatcher` patterns and an optional flag to `matchOptionalTrailingSeparator`.
 
 .application.yml
 [source,yaml]
@@ -183,10 +183,10 @@ spring:
       - id: host_route
         uri: http://example.org
         predicates:
-        - Path=/foo/{segment}
+        - Path=/foo/{segment},/bar/{segment}
 ----
 
-This route would match if the request path was, for example: `/foo/1` or `/foo/bar`.
+This route would match if the request path was, for example: `/foo/1` or `/foo/bar` or `/bar/baz`.
 
 This predicate extracts the URI template variables (like `segment` defined in the example above) as a map of names and values and places it in the `ServerWebExchange.getAttributes()` with a key defined in `PathRoutePredicate.URL_PREDICATE_VARS_ATTR`. Those values are then available for use by <<gateway-route-filters,GatewayFilter Factories>>
 

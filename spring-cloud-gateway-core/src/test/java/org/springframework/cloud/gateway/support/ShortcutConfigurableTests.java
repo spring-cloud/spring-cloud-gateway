@@ -87,6 +87,48 @@ public class ShortcutConfigurableTests {
 				.containsExactly(42, "val1", "val2");
 	}
 
+	@Test
+	public void testNormalizeGatherListTailFlagFlagExists() {
+		assertListTailFlag(true);
+	}
+
+	@Test
+	public void testNormalizeGatherListTailFlagFlagMissing() {
+		assertListTailFlag(false);
+	}
+
+	@SuppressWarnings("unchecked")
+	private void assertListTailFlag(boolean hasTailFlag) {
+		parser = new SpelExpressionParser();
+		ShortcutConfigurable shortcutConfigurable = new ShortcutConfigurable() {
+			@Override
+			public List<String> shortcutFieldOrder() {
+				return Arrays.asList("values", "flag");
+			}
+
+			@Override
+			public ShortcutType shortcutType() {
+				return ShortcutType.GATHER_LIST_TAIL_FLAG;
+			}
+		};
+		Map<String, String> args = new HashMap<>();
+		args.put("1", "val0");
+		args.put("2", "val1");
+		args.put("3", "val2");
+		if (hasTailFlag) {
+			args.put("4", "false");
+		}
+		Map<String, Object> map = ShortcutType.GATHER_LIST_TAIL_FLAG.normalize(args, shortcutConfigurable, parser, this.beanFactory);
+		assertThat(map).isNotNull().containsKey("values");
+		assertThat((List)map.get("values"))
+				.containsExactly("val0", "val1", "val2");
+		if (hasTailFlag) {
+			assertThat(map.get("flag")).isEqualTo("false");
+		} else {
+			assertThat(map).doesNotContainKeys("flag");
+		}
+	}
+
 	@SpringBootConfiguration
 	protected static class TestConfig {
 		@Bean

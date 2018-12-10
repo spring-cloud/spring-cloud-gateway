@@ -19,11 +19,15 @@ package org.springframework.cloud.gateway.handler.predicate;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping;
+import org.springframework.cloud.gateway.route.RouteLocator;
+import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.annotation.DirtiesContext;
@@ -38,12 +42,7 @@ public class PathRoutePredicateFactoryTests extends BaseWebClientTests {
 
 	@Test
 	public void pathRouteWorks() {
-		testClient.get().uri("/abc/123/function")
-				.header(HttpHeaders.HOST, "www.path.org")
-				.exchange()
-				.expectStatus().isOk()
-				.expectHeader().valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName())
-				.expectHeader().valueEquals(ROUTE_ID_HEADER, "path_test");
+		expectPathRoute("/abc/123/function", "www.path.org", "path_test");
 	}
 
 	@Test
@@ -57,16 +56,49 @@ public class PathRoutePredicateFactoryTests extends BaseWebClientTests {
 
 	@Test
 	public void defaultPathRouteWorks() {
-		testClient.get().uri("/get")
+		expectPathRoute("/get", "www.thispathshouldnotmatch.org", "default_path_to_httpbin");
+	}
+
+	private void expectPathRoute(String uri, String host, String routeId) {
+		testClient.get().uri(uri)
+				.header(HttpHeaders.HOST, host)
 				.exchange()
 				.expectStatus().isOk()
 				.expectHeader().valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName())
-				.expectHeader().valueEquals(ROUTE_ID_HEADER, "default_path_to_httpbin");
+				.expectHeader().valueEquals(ROUTE_ID_HEADER, routeId);
+	}
+
+	@Test
+	public void mulitPathRouteWorks() {
+		expectPathRoute("/anything/multi11", "www.pathmulti.org", "path_multi");
+		expectPathRoute("/anything/multi22", "www.pathmulti.org", "path_multi");
+		expectPathRoute("/anything/multi33", "www.pathmulti.org", "default_path_to_httpbin");
+	}
+
+	@Test
+	public void mulitPathDslRouteWorks() {
+		expectPathRoute("/anything/multidsl1", "www.pathmultidsl.org", "path_multi_dsl");
+		expectPathRoute("/anything/multidsl2", "www.pathmultidsl.org", "default_path_to_httpbin");
+		expectPathRoute("/anything/multidsl3", "www.pathmultidsl.org", "path_multi_dsl");
 	}
 
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
-	public static class TestConfig { }
+	public static class TestConfig {
+
+		@Value("${test.uri}")
+		String uri;
+
+		@Bean
+		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
+			return builder.routes()
+					.route("path_multi_dsl", r -> r.host("**.pathmultidsl.org")
+							.and().path(false, "/anything/multidsl1", "/anything/multidsl3")
+							.filters(f -> f.prefixPath("/httpbin"))
+							.uri(uri))
+					.build();
+		}
+	}
 
 }
