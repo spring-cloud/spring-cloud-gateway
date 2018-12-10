@@ -547,6 +547,8 @@ The `KeyResolver` interface allows pluggable strategies to derive the key for li
 
 The default implementation of `KeyResolver` is the `PrincipalNameKeyResolver` which retrieves the `Principal` from the `ServerWebExchange` and calls `Principal.getName()`.
 
+By default, if the `KeyResolver` does not find a key, requests will be denied. This behavior can be adjust with the `spring.cloud.gateway.filter.request-rate-limiter.deny-empty-key` (true or false) and `spring.cloud.gateway.filter.request-rate-limiter.empty-key-status-code` properties.
+
 NOTE: The RequestRateLimiter is not configurable via the "shortcut" notation. The example below is __invalid__
 
 .application.properties
