@@ -32,6 +32,7 @@ import reactor.netty.tcp.ProxyProvider;
 import rx.RxReactiveStreams;
 
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.actuate.autoconfigure.endpoint.condition.ConditionalOnEnabledEndpoint;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -302,6 +303,7 @@ public class GatewayAutoConfiguration {
 													List<GatewayFilterFactory> GatewayFilters,
 													List<RoutePredicateFactory> predicates,
 													RouteDefinitionLocator routeDefinitionLocator,
+													@Qualifier("webFluxConversionService")
 													ConversionService conversionService) {
 		return new RouteDefinitionRouteLocator(routeDefinitionLocator, predicates, GatewayFilters,
 				properties, conversionService);
