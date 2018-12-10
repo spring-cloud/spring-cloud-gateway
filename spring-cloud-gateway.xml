@@ -1031,6 +1031,8 @@ public GlobalFilter c() {
         - Path=/service/**</programlisting>
 </para>
 </formalpara>
+<simpara>NOTE By default when a service instance cannot be found in the <literal>LoadBalancer</literal> a <literal>503</literal> will be returned.
+You can configure the Gateway to return a <literal>404</literal> by setting <literal>spring.cloud.gateway.loadbalancer.use404=true</literal>.</simpara>
 </section>
 <section xml:id="_netty_routing_filter">
 <title>Netty Routing Filter</title>
