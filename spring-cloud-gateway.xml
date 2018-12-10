@@ -181,7 +181,7 @@ for details on setting up your build system with the current Spring Cloud Releas
 </section>
 <section xml:id="_path_route_predicate_factory">
 <title>Path Route Predicate Factory</title>
-<simpara>The Path Route Predicate Factory takes one parameter: a Spring <literal>PathMatcher</literal> pattern.</simpara>
+<simpara>The Path Route Predicate Factory takes two parameter: a list of Spring <literal>PathMatcher</literal> patterns and an optional flag to <literal>matchOptionalTrailingSeparator</literal>.</simpara>
 <formalpara>
 <title>application.yml</title>
 <para>
@@ -192,10 +192,10 @@ for details on setting up your build system with the current Spring Cloud Releas
       - id: host_route
         uri: http://example.org
         predicates:
-        - Path=/foo/{segment}</programlisting>
+        - Path=/foo/{segment},/bar/{segment}</programlisting>
 </para>
 </formalpara>
-<simpara>This route would match if the request path was, for example: <literal>/foo/1</literal> or <literal>/foo/bar</literal>.</simpara>
+<simpara>This route would match if the request path was, for example: <literal>/foo/1</literal> or <literal>/foo/bar</literal> or <literal>/bar/baz</literal>.</simpara>
 <simpara>This predicate extracts the URI template variables (like <literal>segment</literal> defined in the example above) as a map of names and values and places it in the <literal>ServerWebExchange.getAttributes()</literal> with a key defined in <literal>PathRoutePredicate.URL_PREDICATE_VARS_ATTR</literal>. Those values are then available for use by <link linkend="gateway-route-filters">GatewayFilter Factories</link></simpara>
 </section>
 <section xml:id="_query_route_predicate_factory">
