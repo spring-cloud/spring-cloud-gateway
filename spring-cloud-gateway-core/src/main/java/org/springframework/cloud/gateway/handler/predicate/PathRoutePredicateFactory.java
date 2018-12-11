@@ -71,10 +71,8 @@ public class PathRoutePredicateFactory extends AbstractRoutePredicateFactory<Pat
 			if (match) {
 				PathMatchInfo uriTemplateVariables = config.pathPattern.matchAndExtract(path);
 				exchange.getAttributes().put(URI_TEMPLATE_VARIABLES_ATTRIBUTE, uriTemplateVariables);
-				return true;
-			} else {
-				return false;
 			}
+			return match;
 		};
 	}
 
