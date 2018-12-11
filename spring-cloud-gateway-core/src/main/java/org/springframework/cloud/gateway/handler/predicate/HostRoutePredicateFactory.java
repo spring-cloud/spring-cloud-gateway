@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
@@ -60,8 +61,17 @@ public class HostRoutePredicateFactory extends AbstractRoutePredicateFactory<Hos
 	public Predicate<ServerWebExchange> apply(Config config) {
 		return exchange -> {
 			String host = exchange.getRequest().getHeaders().getFirst("Host");
-			return config.getPatterns().stream()
-					.anyMatch(pattern -> this.pathMatcher.match(pattern, host));
+			Optional<String> optionalPattern = config.getPatterns().stream()
+					.filter(pattern -> this.pathMatcher.match(pattern, host))
+					.findFirst();
+
+			if (optionalPattern.isPresent()) {
+				Map<String, String> variables = this.pathMatcher.extractUriTemplateVariables(optionalPattern.get(), host);
+				ServerWebExchangeUtils.putUriTemplateVariables(exchange, variables);
+				return true;
+			}
+
+			return false;
 		};
 	}
 
