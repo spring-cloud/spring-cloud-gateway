@@ -19,18 +19,16 @@ package org.springframework.cloud.gateway.filter.factory;
 
 import java.net.URI;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.util.UriTemplate;
-import org.springframework.web.util.pattern.PathPattern.PathMatchInfo;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.URI_TEMPLATE_VARIABLES_ATTRIBUTE;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.addOriginalRequestUrl;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.getPathPredicateVariables;
 
 /**
  * @author Spencer Gibb
@@ -53,16 +51,10 @@ public class SetPathGatewayFilterFactory extends AbstractGatewayFilterFactory<Se
 		UriTemplate uriTemplate = new UriTemplate(config.template);
 
 		return (exchange, chain) -> {
-			PathMatchInfo variables = exchange.getAttribute(URI_TEMPLATE_VARIABLES_ATTRIBUTE);
 			ServerHttpRequest req = exchange.getRequest();
 			addOriginalRequestUrl(exchange, req.getURI());
-			Map<String, String> uriVariables;
 
-			if (variables != null) {
-				uriVariables = variables.getUriVariables();
-			} else {
-				uriVariables = Collections.emptyMap();
-			}
+			Map<String, String> uriVariables = getPathPredicateVariables(exchange);
 
 			URI uri = uriTemplate.expand(uriVariables);
 			String newPath = uri.getRawPath();
