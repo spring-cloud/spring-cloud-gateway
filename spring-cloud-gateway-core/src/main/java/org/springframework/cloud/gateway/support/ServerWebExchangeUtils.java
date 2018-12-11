@@ -127,11 +127,7 @@ public class ServerWebExchangeUtils {
 		return t -> Mono.just(predicate.test(t));
 	}
 
-	public static Map<String, String> getPathPredicateVariables(ServerWebExchange exchange) {
-		return getPathMatchVariables(exchange, URI_TEMPLATE_VARIABLES_ATTRIBUTE);
-	}
-
-	public static Map<String, String> getPathMatchVariables(ServerWebExchange exchange, String attr) {
+	public static Map<String, String> getPathMatchVariables(ServerWebExchange exchange) {
 		PathPattern.PathMatchInfo variables = exchange.getAttribute(URI_TEMPLATE_VARIABLES_ATTRIBUTE);
 
 		if (variables != null) {
