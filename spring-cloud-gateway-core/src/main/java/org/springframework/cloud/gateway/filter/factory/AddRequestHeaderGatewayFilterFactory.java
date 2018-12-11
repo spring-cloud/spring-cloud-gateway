@@ -18,6 +18,7 @@
 package org.springframework.cloud.gateway.filter.factory;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 
 /**
@@ -28,8 +29,9 @@ public class AddRequestHeaderGatewayFilterFactory extends AbstractNameValueGatew
 	@Override
 	public GatewayFilter apply(NameValueConfig config) {
 		return (exchange, chain) -> {
+			String value = ServerWebExchangeUtils.expand(exchange, config.getValue());
 			ServerHttpRequest request = exchange.getRequest().mutate()
-					.header(config.getName(), config.getValue())
+					.header(config.getName(), value)
 					.build();
 
 			return chain.filter(exchange.mutate().request(request).build());

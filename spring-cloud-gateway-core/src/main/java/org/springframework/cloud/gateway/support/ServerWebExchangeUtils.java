@@ -31,7 +31,9 @@ import reactor.core.publisher.Mono;
 import org.springframework.cloud.gateway.handler.AsyncPredicate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.AbstractServerHttpResponse;
+import org.springframework.util.Assert;
 import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.util.UriComponentsBuilder;
 
 /**
  * @author Spencer Gibb
@@ -124,6 +126,20 @@ public class ServerWebExchangeUtils {
 	public static AsyncPredicate<ServerWebExchange> toAsyncPredicate(Predicate<? super ServerWebExchange> predicate) {
 		Objects.requireNonNull(predicate, "predicate must not be null");
 		return t -> Mono.just(predicate.test(t));
+	}
+
+	public static String expand(ServerWebExchange exchange, String template) {
+		Assert.notNull(exchange, "exchange may not be null");
+		Assert.notNull(template, "template may not be null");
+
+		if (template.indexOf('{') == -1) { //short circuit
+			return template;
+		}
+
+		Map<String, String> variables = getUriTemplateVariables(exchange);
+		return UriComponentsBuilder.fromPath(template).build()
+				.expand(variables)
+				.getPath();
 	}
 
 	@SuppressWarnings("unchecked")
