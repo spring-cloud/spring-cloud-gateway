@@ -149,7 +149,11 @@ spring:
         - Host=**.somehost.org,**.anotherhost.org
 ----
 
+URI template variables are supported as well, such as `{sub}.myhost.org`.
+
 This route would match if the request has a `Host` header has the value `www.somehost.org` or `beta.somehost.org` or `www.anotherhost.org`.
+
+This predicate extracts the URI template variables (like `sub` defined in the example above) as a map of names and values and places it in the `ServerWebExchange.getAttributes()` with a key defined in `ServerWebExchangeUtils.URI_TEMPLATE_VARIABLES_ATTRIBUTE`. Those values are then available for use by <<gateway-route-filters,GatewayFilter Factories>>
 
 
 === Method Route Predicate Factory
@@ -188,7 +192,7 @@ spring:
 
 This route would match if the request path was, for example: `/foo/1` or `/foo/bar` or `/bar/baz`.
 
-This predicate extracts the URI template variables (like `segment` defined in the example above) as a map of names and values and places it in the `ServerWebExchange.getAttributes()` with a key defined in `PathRoutePredicate.URL_PREDICATE_VARS_ATTR`. Those values are then available for use by <<gateway-route-filters,GatewayFilter Factories>>
+This predicate extracts the URI template variables (like `segment` defined in the example above) as a map of names and values and places it in the `ServerWebExchange.getAttributes()` with a key defined in `ServerWebExchangeUtils.URI_TEMPLATE_VARIABLES_ATTRIBUTE`. Those values are then available for use by <<gateway-route-filters,GatewayFilter Factories>>
 
 A utility method is available to make access to these variables easier.
 

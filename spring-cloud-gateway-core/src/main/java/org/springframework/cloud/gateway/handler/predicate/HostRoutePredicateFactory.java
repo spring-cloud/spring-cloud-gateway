@@ -20,8 +20,10 @@ package org.springframework.cloud.gateway.handler.predicate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Predicate;
 
+import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.CollectionUtils;

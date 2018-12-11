@@ -35,7 +35,7 @@ import org.springframework.web.util.pattern.PathPattern;
 import org.springframework.web.util.pattern.PathPattern.PathMatchInfo;
 import org.springframework.web.util.pattern.PathPatternParser;
 
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.URI_TEMPLATE_VARIABLES_ATTRIBUTE;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.putUriTemplateVariables;
 import static org.springframework.http.server.PathContainer.parsePath;
 
 /**
@@ -85,8 +85,8 @@ public class PathRoutePredicateFactory extends AbstractRoutePredicateFactory<Pat
 			if (optionalPathPattern.isPresent()) {
 				PathPattern pathPattern = optionalPathPattern.get();
 				traceMatch("Pattern", pathPattern.getPatternString(), path, true);
-				PathMatchInfo uriTemplateVariables = pathPattern.matchAndExtract(path);
-				exchange.getAttributes().put(URI_TEMPLATE_VARIABLES_ATTRIBUTE, uriTemplateVariables);
+				PathMatchInfo pathMatchInfo = pathPattern.matchAndExtract(path);
+				putUriTemplateVariables(exchange, pathMatchInfo.getUriVariables());
 				return true;
 			} else {
 				traceMatch("Pattern", config.getPatterns(), path, false);

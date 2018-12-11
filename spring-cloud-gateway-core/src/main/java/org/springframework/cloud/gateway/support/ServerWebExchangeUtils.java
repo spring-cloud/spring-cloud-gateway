@@ -18,7 +18,7 @@
 package org.springframework.cloud.gateway.support;
 
 import java.net.URI;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Objects;
@@ -32,7 +32,6 @@ import org.springframework.cloud.gateway.handler.AsyncPredicate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.AbstractServerHttpResponse;
 import org.springframework.web.server.ServerWebExchange;
-import org.springframework.web.util.pattern.PathPattern;
 
 /**
  * @author Spencer Gibb
@@ -129,16 +128,20 @@ public class ServerWebExchangeUtils {
 		return t -> Mono.just(predicate.test(t));
 	}
 
-	public static Map<String, String> getPathPredicateVariables(ServerWebExchange exchange) {
-		return getPathMatchVariables(exchange, URI_TEMPLATE_VARIABLES_ATTRIBUTE);
+	@SuppressWarnings("unchecked")
+	public static void putUriTemplateVariables(ServerWebExchange exchange, Map<String, String> uriVariables) {
+		if (exchange.getAttributes().containsKey(URI_TEMPLATE_VARIABLES_ATTRIBUTE)) {
+			Map<String, Object> existingVariables = (Map<String, Object>) exchange.getAttributes().get(URI_TEMPLATE_VARIABLES_ATTRIBUTE);
+			HashMap<String, Object> newVariables = new HashMap<>();
+			newVariables.putAll(existingVariables);
+			newVariables.putAll(uriVariables);
+			exchange.getAttributes().put(URI_TEMPLATE_VARIABLES_ATTRIBUTE, newVariables);
+		} else {
+			exchange.getAttributes().put(URI_TEMPLATE_VARIABLES_ATTRIBUTE, uriVariables);
+		}
 	}
 
-	public static Map<String, String> getPathMatchVariables(ServerWebExchange exchange, String attr) {
-		PathPattern.PathMatchInfo variables = exchange.getAttribute(URI_TEMPLATE_VARIABLES_ATTRIBUTE);
-
-		if (variables != null) {
-			return variables.getUriVariables();
-		}
-		return Collections.emptyMap();
+	public static Map<String, String> getUriTemplateVariables(ServerWebExchange exchange) {
+		return exchange.getAttributeOrDefault(URI_TEMPLATE_VARIABLES_ATTRIBUTE, new HashMap<>());
 	}
 }

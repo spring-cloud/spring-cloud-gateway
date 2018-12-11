@@ -28,7 +28,7 @@ import org.springframework.web.util.UriTemplate;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.addOriginalRequestUrl;
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.getPathPredicateVariables;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.getUriTemplateVariables;
 
 /**
  * @author Spencer Gibb
@@ -54,7 +54,7 @@ public class SetPathGatewayFilterFactory extends AbstractGatewayFilterFactory<Se
 			ServerHttpRequest req = exchange.getRequest();
 			addOriginalRequestUrl(exchange, req.getURI());
 
-			Map<String, String> uriVariables = getPathPredicateVariables(exchange);
+			Map<String, String> uriVariables = getUriTemplateVariables(exchange);
 
 			URI uri = uriTemplate.expand(uriVariables);
 			String newPath = uri.getRawPath();
