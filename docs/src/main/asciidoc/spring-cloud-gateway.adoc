@@ -146,10 +146,14 @@ spring:
       - id: host_route
         uri: http://example.org
         predicates:
-        - Host=**.somehost.org
+        - Host={sub}.somehost.org
 ----
 
+Ant patterns work as well, such as `**.somehost.org`.
+
 This route would match if the request has a `Host` header has the value `www.somehost.org` or `beta.somehost.org`.
+
+This predicate extracts the URI template variables (like `sub` defined in the example above) as a map of names and values and places it in the `ServerWebExchange.getAttributes()` with a key defined in `ServerWebExchangeUtils.URI_TEMPLATE_VARIABLES_ATTRIBUTE`. Those values are then available for use by <<gateway-route-filters,GatewayFilter Factories>>
 
 
 === Method Route Predicate Factory

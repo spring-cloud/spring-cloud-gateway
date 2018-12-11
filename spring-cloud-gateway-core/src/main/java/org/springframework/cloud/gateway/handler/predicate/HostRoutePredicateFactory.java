@@ -19,8 +19,10 @@ package org.springframework.cloud.gateway.handler.predicate;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Predicate;
 
+import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.PathMatcher;
@@ -51,7 +53,12 @@ public class HostRoutePredicateFactory extends AbstractRoutePredicateFactory<Hos
 	public Predicate<ServerWebExchange> apply(Config config) {
 		return exchange -> {
 			String host = exchange.getRequest().getHeaders().getFirst("Host");
-			return this.pathMatcher.match(config.getPattern(), host);
+			boolean match = this.pathMatcher.match(config.getPattern(), host);
+			if (match) {
+				Map<String, String> variables = this.pathMatcher.extractUriTemplateVariables(config.getPattern(), host);
+				ServerWebExchangeUtils.putUriTemplateVariables(exchange, variables);
+			}
+			return match;
 		};
 	}
 

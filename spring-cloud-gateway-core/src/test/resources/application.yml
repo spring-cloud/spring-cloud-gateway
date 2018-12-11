@@ -196,6 +196,14 @@ spring:
         filters:
         - SetPath=/{segment}
 
+        # =====================================
+      - id: set_path_host_test
+        uri: ${test.uri}
+        predicates:
+          - Host={subdomain}.setpathhost.org
+        filters:
+          - SetPath=/{subdomain}
+
       # =====================================
       - id: strip_prefix_test
         uri: ${test.uri}
