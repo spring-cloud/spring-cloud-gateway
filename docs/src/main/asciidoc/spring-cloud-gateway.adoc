@@ -190,6 +190,15 @@ This route would match if the request path was, for example: `/foo/1` or `/foo/b
 
 This predicate extracts the URI template variables (like `segment` defined in the example above) as a map of names and values and places it in the `ServerWebExchange.getAttributes()` with a key defined in `PathRoutePredicate.URL_PREDICATE_VARS_ATTR`. Those values are then available for use by <<gateway-route-filters,GatewayFilter Factories>>
 
+A utility method is available to make access to these variables easier.
+
+[source,java]
+----
+Map<String, String> uriVariables = ServerWebExchangeUtils.getPathPredicateVariables(exchange);
+
+String segment = uriVariables.get("segment");
+----
+
 === Query Route Predicate Factory
 The Query Route Predicate Factory takes two parameters: a required `param` and an optional `regexp`.
 

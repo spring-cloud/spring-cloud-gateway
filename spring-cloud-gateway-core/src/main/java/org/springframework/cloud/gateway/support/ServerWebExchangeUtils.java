@@ -18,7 +18,9 @@
 package org.springframework.cloud.gateway.support;
 
 import java.net.URI;
+import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
 
@@ -30,6 +32,7 @@ import org.springframework.cloud.gateway.handler.AsyncPredicate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.AbstractServerHttpResponse;
 import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.util.pattern.PathPattern;
 
 /**
  * @author Spencer Gibb
@@ -124,5 +127,18 @@ public class ServerWebExchangeUtils {
 	public static AsyncPredicate<ServerWebExchange> toAsyncPredicate(Predicate<? super ServerWebExchange> predicate) {
 		Objects.requireNonNull(predicate, "predicate must not be null");
 		return t -> Mono.just(predicate.test(t));
+	}
+
+	public static Map<String, String> getPathPredicateVariables(ServerWebExchange exchange) {
+		return getPathMatchVariables(exchange, URI_TEMPLATE_VARIABLES_ATTRIBUTE);
+	}
+
+	public static Map<String, String> getPathMatchVariables(ServerWebExchange exchange, String attr) {
+		PathPattern.PathMatchInfo variables = exchange.getAttribute(URI_TEMPLATE_VARIABLES_ATTRIBUTE);
+
+		if (variables != null) {
+			return variables.getUriVariables();
+		}
+		return Collections.emptyMap();
 	}
 }
