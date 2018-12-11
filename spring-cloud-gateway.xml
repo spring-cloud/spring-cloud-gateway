@@ -159,7 +159,9 @@ for details on setting up your build system with the current Spring Cloud Releas
         - Host=**.somehost.org,**.anotherhost.org</programlisting>
 </para>
 </formalpara>
+<simpara>URI template variables are supported as well, such as <literal>{sub}.myhost.org</literal>.</simpara>
 <simpara>This route would match if the request has a <literal>Host</literal> header has the value <literal>www.somehost.org</literal> or <literal>beta.somehost.org</literal> or <literal>www.anotherhost.org</literal>.</simpara>
+<simpara>This predicate extracts the URI template variables (like <literal>sub</literal> defined in the example above) as a map of names and values and places it in the <literal>ServerWebExchange.getAttributes()</literal> with a key defined in <literal>ServerWebExchangeUtils.URI_TEMPLATE_VARIABLES_ATTRIBUTE</literal>. Those values are then available for use by <link linkend="gateway-route-filters">GatewayFilter Factories</link></simpara>
 </section>
 <section xml:id="_method_route_predicate_factory">
 <title>Method Route Predicate Factory</title>
@@ -196,7 +198,7 @@ for details on setting up your build system with the current Spring Cloud Releas
 </para>
 </formalpara>
 <simpara>This route would match if the request path was, for example: <literal>/foo/1</literal> or <literal>/foo/bar</literal> or <literal>/bar/baz</literal>.</simpara>
-<simpara>This predicate extracts the URI template variables (like <literal>segment</literal> defined in the example above) as a map of names and values and places it in the <literal>ServerWebExchange.getAttributes()</literal> with a key defined in <literal>PathRoutePredicate.URL_PREDICATE_VARS_ATTR</literal>. Those values are then available for use by <link linkend="gateway-route-filters">GatewayFilter Factories</link></simpara>
+<simpara>This predicate extracts the URI template variables (like <literal>segment</literal> defined in the example above) as a map of names and values and places it in the <literal>ServerWebExchange.getAttributes()</literal> with a key defined in <literal>ServerWebExchangeUtils.URI_TEMPLATE_VARIABLES_ATTRIBUTE</literal>. Those values are then available for use by <link linkend="gateway-route-filters">GatewayFilter Factories</link></simpara>
 <simpara>A utility method is available to make access to these variables easier.</simpara>
 <programlisting language="java" linenumbering="unnumbered">Map&lt;String, String&gt; uriVariables = ServerWebExchangeUtils.getPathPredicateVariables(exchange);
 
