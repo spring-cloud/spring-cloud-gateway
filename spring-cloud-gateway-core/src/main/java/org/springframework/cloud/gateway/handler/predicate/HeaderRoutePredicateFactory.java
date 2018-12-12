@@ -18,11 +18,13 @@
 package org.springframework.cloud.gateway.handler.predicate;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 
 import javax.validation.constraints.NotEmpty;
 
+import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -45,16 +47,21 @@ public class HeaderRoutePredicateFactory extends AbstractRoutePredicateFactory<H
 
 	@Override
 	public Predicate<ServerWebExchange> apply(Config config) {
+		boolean hasRegex = !StringUtils.isEmpty(config.regexp);
+
 		return exchange -> {
-			List<String> values = exchange.getRequest().getHeaders().get(config.header);
-			if (values != null) {
-				for (String value : values) {
-					if (value.matches(config.regexp)) {
-						return true;
-					}
-				}
+			List<String> values = exchange.getRequest().getHeaders().getOrDefault(config.header, Collections.emptyList());
+			if (values.isEmpty()) {
+				return false;
 			}
-			return false;
+			// values is now guaranteed to not be empty
+			if (hasRegex) {
+				// check if a header value matches
+				return values.stream().anyMatch(value -> value.matches(config.regexp));
+			}
+
+			// there is a value and since regexp is empty, we only check existence.
+			return true;
 		};
 	}
 
