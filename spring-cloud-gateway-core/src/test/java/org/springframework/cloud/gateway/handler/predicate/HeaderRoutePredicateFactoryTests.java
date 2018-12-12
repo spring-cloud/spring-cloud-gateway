@@ -19,11 +19,15 @@ package org.springframework.cloud.gateway.handler.predicate;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping;
+import org.springframework.cloud.gateway.route.RouteLocator;
+import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -60,9 +64,35 @@ public class HeaderRoutePredicateFactoryTests extends BaseWebClientTests {
 				.expectHeader().valueEquals(ROUTE_ID_HEADER, "default_path_to_httpbin");
 	}
 
+	@Test
+	public void headerExistsWorksWithDsl() {
+		testClient.get()
+				.uri("/get")
+				.header("X-Foo", "bar")
+				.exchange()
+				.expectStatus().isOk()
+				.expectHeader().valueEquals(HANDLER_MAPPER_HEADER,
+				RoutePredicateHandlerMapping.class.getSimpleName())
+				.expectHeader().valueEquals(ROUTE_ID_HEADER, "header_exists_dsl");
+	}
+
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
-	public static class TestConfig { }
+	public static class TestConfig {
+
+		@Value("${test.uri}")
+		private String uri;
+
+		@Bean
+		RouteLocator queryRouteLocator(RouteLocatorBuilder builder) {
+			return builder.routes()
+					.route("header_exists_dsl", r ->
+							r.header("X-Foo")
+							.filters(f -> f.prefixPath("/httpbin"))
+							.uri(uri))
+					.build();
+		}
+	}
 
 }
