@@ -117,7 +117,7 @@ public class PredicateSpec extends UriSpec {
 	 */
 	public BooleanSpec header(String header) {
 		return asyncPredicate(getBean(HeaderRoutePredicateFactory.class)
-				.applyAsync(c -> c.setHeader(header))); //TODO: default regexp
+				.applyAsync(c -> c.setHeader(header)));
 	}
 
 	/**
