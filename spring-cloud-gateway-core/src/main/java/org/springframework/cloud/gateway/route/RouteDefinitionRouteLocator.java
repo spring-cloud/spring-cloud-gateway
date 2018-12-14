@@ -59,6 +59,7 @@ import reactor.core.publisher.Flux;
 public class RouteDefinitionRouteLocator implements RouteLocator, BeanFactoryAware, ApplicationEventPublisherAware {
 	protected final Log logger = LogFactory.getLog(getClass());
 
+	public static final String DEFAULT_FILTERS = "defaultFilters";
 	private final RouteDefinitionLocator routeDefinitionLocator;
 	private final ConversionService conversionService;
 	private final Map<String, RoutePredicateFactory> predicates = new LinkedHashMap<>();
@@ -184,7 +185,7 @@ public class RouteDefinitionRouteLocator implements RouteLocator, BeanFactoryAwa
 
 		//TODO: support option to apply defaults after route specific filters?
 		if (!this.gatewayProperties.getDefaultFilters().isEmpty()) {
-			filters.addAll(loadGatewayFilters("defaultFilters",
+			filters.addAll(loadGatewayFilters(DEFAULT_FILTERS,
 					this.gatewayProperties.getDefaultFilters()));
 		}
 

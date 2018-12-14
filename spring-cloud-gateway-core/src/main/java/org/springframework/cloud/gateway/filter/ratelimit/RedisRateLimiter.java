@@ -12,6 +12,7 @@ import javax.validation.constraints.Min;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.cloud.gateway.route.RouteDefinitionRouteLocator;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -138,11 +139,7 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 			throw new IllegalStateException("RedisRateLimiter is not initialized");
 		}
 
-		Config routeConfig = getConfig().getOrDefault(routeId, defaultConfig);
-
-		if (routeConfig == null) {
-			throw new IllegalArgumentException("No Configuration found for route " + routeId);
-		}
+		Config routeConfig = loadConfiguration(routeId);
 
 		// How many requests per second do you want a user to be allowed to do?
 		int replenishRate = routeConfig.getReplenishRate();
@@ -185,6 +182,19 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 			log.error("Error determining if user allowed from redis", e);
 		}
 		return Mono.just(new Response(true, getHeaders(routeConfig, -1L)));
+	}
+
+	/* for testing */ Config loadConfiguration(String routeId) {
+		Config routeConfig = getConfig().getOrDefault(routeId, defaultConfig);
+
+		if (routeConfig == null) {
+			routeConfig = getConfig().get(RouteDefinitionRouteLocator.DEFAULT_FILTERS);
+		}
+
+		if (routeConfig == null) {
+			throw new IllegalArgumentException("No Configuration found for route " + routeId +" or defaultFilters");
+		}
+		return routeConfig;
 	}
 
 	@NotNull

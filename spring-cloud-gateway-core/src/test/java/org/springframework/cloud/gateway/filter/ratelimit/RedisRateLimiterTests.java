@@ -10,6 +10,7 @@ import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter.Response;
+import org.springframework.cloud.gateway.route.RouteDefinitionRouteLocator;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.cloud.gateway.test.support.redis.RedisRule;
 import org.springframework.context.annotation.Import;
@@ -71,7 +72,7 @@ public class RedisRateLimiterTests extends BaseWebClientTests {
 
 		Thread.sleep(1000);
 
-        // # After the burst is done, check the steady state
+		// # After the burst is done, check the steady state
 		for (int i = 0; i < replenishRate; i++) {
 			response = rateLimiter.isAllowed(routeId, id).block();
 			assertThat(response.isAllowed()).as("steady state # %s is allowed", i).isTrue();
@@ -80,7 +81,7 @@ public class RedisRateLimiterTests extends BaseWebClientTests {
 		response = rateLimiter.isAllowed(routeId, id).block();
 		assertThat(response.isAllowed()).as("steady state # %s is allowed", replenishRate).isFalse();
 	}
-	
+
 	@Test
 	public void keysUseRedisKeyHashTags() {
 		assertThat(RedisRateLimiter.getKeys("1"))
