@@ -10,6 +10,7 @@ import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter.Response;
+import org.springframework.cloud.gateway.support.FilterConfig;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.cloud.gateway.test.support.redis.RedisRule;
 import org.springframework.context.annotation.Import;
@@ -47,10 +48,11 @@ public class RedisRateLimiterTests extends BaseWebClientTests {
 		int replenishRate = 10;
 		int burstCapacity = 2 * replenishRate;
 
-		String routeId = "myroute";
-		rateLimiter.getConfig().put(routeId, new RedisRateLimiter.Config()
+		rateLimiter.getConfig().put(FilterConfig.DEFAULT_FILTERS, new RedisRateLimiter.Config()
 				.setBurstCapacity(burstCapacity)
 				.setReplenishRate(replenishRate));
+
+		String routeId = "myroute";
 
 		// Bursts work
 		for (int i = 0; i < burstCapacity; i++) {

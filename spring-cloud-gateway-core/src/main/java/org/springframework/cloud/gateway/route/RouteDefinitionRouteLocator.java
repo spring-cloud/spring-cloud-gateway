@@ -41,6 +41,7 @@ import org.springframework.cloud.gateway.handler.AsyncPredicate;
 import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
 import org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory;
 import org.springframework.cloud.gateway.support.ConfigurationUtils;
+import org.springframework.cloud.gateway.support.FilterConfig;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.core.Ordered;
@@ -184,7 +185,7 @@ public class RouteDefinitionRouteLocator implements RouteLocator, BeanFactoryAwa
 
 		//TODO: support option to apply defaults after route specific filters?
 		if (!this.gatewayProperties.getDefaultFilters().isEmpty()) {
-			filters.addAll(loadGatewayFilters("defaultFilters",
+			filters.addAll(loadGatewayFilters(FilterConfig.DEFAULT_FILTERS,
 					this.gatewayProperties.getDefaultFilters()));
 		}
 

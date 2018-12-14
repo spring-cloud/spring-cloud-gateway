@@ -1,10 +1,7 @@
 package org.springframework.cloud.gateway.filter.ratelimit;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.validation.constraints.Min;
@@ -12,6 +9,7 @@ import javax.validation.constraints.Min;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.cloud.gateway.support.FilterConfig;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -138,10 +136,11 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 			throw new IllegalStateException("RedisRateLimiter is not initialized");
 		}
 
-		Config routeConfig = getConfig().getOrDefault(routeId, defaultConfig);
+		Config routeConfig = Optional.ofNullable(getConfig().getOrDefault(routeId, defaultConfig))
+				.orElse(getConfig().get(FilterConfig.DEFAULT_FILTERS));
 
 		if (routeConfig == null) {
-			throw new IllegalArgumentException("No Configuration found for route " + routeId);
+			throw new IllegalArgumentException("No Configuration found for route " + routeId +" or defaultFilters");
 		}
 
 		// How many requests per second do you want a user to be allowed to do?
