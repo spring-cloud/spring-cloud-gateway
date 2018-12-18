@@ -876,6 +876,13 @@ spring:
         - Path=/service/**
 ----
 
+NOTE: The `isSecure` value of the `ServiceInstance` returned from the `LoadBalancer` will override
+the scheme specified in the request made to the Gateway.  For example, if the request comes into the Gateway over `HTTPS`
+but the `ServiceInstance` indicates it is not secure, then the downstream request will be made over
+`HTTP`.  The opposite situation can also apply.  However if `GATEWAY_SCHEME_PREFIX_ATTR` is specified for the
+route in the Gateway configuration, the prefix will be stripped and the resulting scheme from the
+route URL will override the `ServiceInstance` configuration.
+
 === Netty Routing Filter
 
 The Netty Routing Filter runs if the url located in the `ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR` exchange attribute has a `http` or `https` scheme. It uses the Netty `HttpClient` to make the downstream proxy request. The response is put in the `ServerWebExchangeUtils.CLIENT_RESPONSE_ATTR` exchange attribute for use in a later filter. (There is an experimental `WebClientHttpRoutingFilter` that performs the same function, but does not require netty)
