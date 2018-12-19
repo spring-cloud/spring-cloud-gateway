@@ -41,7 +41,6 @@ import org.springframework.cloud.gateway.handler.AsyncPredicate;
 import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
 import org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory;
 import org.springframework.cloud.gateway.support.ConfigurationUtils;
-import org.springframework.cloud.gateway.support.FilterConfig;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.core.Ordered;
@@ -60,6 +59,7 @@ import reactor.core.publisher.Flux;
 public class RouteDefinitionRouteLocator implements RouteLocator, BeanFactoryAware, ApplicationEventPublisherAware {
 	protected final Log logger = LogFactory.getLog(getClass());
 
+    public static final String DEFAULT_FILTERS = "defaultFilters";
 	private final RouteDefinitionLocator routeDefinitionLocator;
 	private final ConversionService conversionService;
 	private final Map<String, RoutePredicateFactory> predicates = new LinkedHashMap<>();
@@ -185,7 +185,7 @@ public class RouteDefinitionRouteLocator implements RouteLocator, BeanFactoryAwa
 
 		//TODO: support option to apply defaults after route specific filters?
 		if (!this.gatewayProperties.getDefaultFilters().isEmpty()) {
-			filters.addAll(loadGatewayFilters(FilterConfig.DEFAULT_FILTERS,
+			filters.addAll(loadGatewayFilters(DEFAULT_FILTERS,
 					this.gatewayProperties.getDefaultFilters()));
 		}
 

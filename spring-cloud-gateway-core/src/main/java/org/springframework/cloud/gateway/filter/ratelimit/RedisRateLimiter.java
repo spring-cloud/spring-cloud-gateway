@@ -13,7 +13,7 @@ import javax.validation.constraints.Min;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.cloud.gateway.support.FilterConfig;
+import org.springframework.cloud.gateway.route.RouteDefinitionRouteLocator;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -141,7 +141,7 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 		}
 
 		Config routeConfig = Optional.ofNullable(getConfig().getOrDefault(routeId, defaultConfig))
-				.orElse(getConfig().get(FilterConfig.DEFAULT_FILTERS));
+				.orElse(getConfig().get(RouteDefinitionRouteLocator.DEFAULT_FILTERS));
 
 		if (routeConfig == null) {
 			throw new IllegalArgumentException("No Configuration found for route " + routeId +" or defaultFilters");
