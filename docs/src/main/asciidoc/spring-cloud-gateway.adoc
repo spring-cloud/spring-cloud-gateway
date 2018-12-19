@@ -917,6 +917,67 @@ The RequestSize GatewayFilter Factory set the response status as `413 Payload To
 
 NOTE: The default Request size will be set to 5 MB if not provided as filter argument in route definition.
 
+=== Modify Request Body GatewayFilter Factory
+
+*This filter is considered BETA and the API may change in the future*
+
+This filter can be used to modify the request body before it is sent downstream by the Gateway.
+
+NOTE: This filter can only be configured using the Java DSL
+
+[source,java]
+----
+@Bean
+public RouteLocator routes(RouteLocatorBuilder builder) {
+    return builder.routes()
+        .route("rewrite_request_obj", r -> r.host("*.rewriterequestobj.org")
+            .filters(f -> f.prefixPath("/httpbin")
+                .modifyRequestBody(String.class, Hello.class, MediaType.APPLICATION_JSON_VALUE,
+                    (exchange, s) -> return Mono.just(new Hello(s.toUpperCase())))).uri(uri))
+        .build();
+}
+
+static class Hello {
+    String message;
+
+    public Hello() { }
+
+    public Hello(String message) {
+        this.message = message;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+}
+----
+
+=== Modify Response Body GatewayFilter Factory
+
+*This filter is considered BETA and the API may change in the future*
+
+This filter can be used to modify the response body before it is sent back to the Client.
+
+NOTE: This filter can only be configured using the Java DSL
+
+[source,java]
+----
+@Bean
+public RouteLocator routes(RouteLocatorBuilder builder) {
+    return builder.routes()
+        .route("rewrite_response_upper", r -> r.host("*.rewriteresponseupper.org")
+            .filters(f -> f.prefixPath("/httpbin")
+        		.modifyResponseBody(String.class, String.class,
+        		    (exchange, s) -> Mono.just(s.toUpperCase()))).uri(uri)
+        .build();
+}
+----
+
+
 == Global Filters
 
 The `GlobalFilter` interface has the same signature as `GatewayFilter`. These are special filters that are conditionally applied to all routes. (This interface and usage are subject to change in future milestones).
