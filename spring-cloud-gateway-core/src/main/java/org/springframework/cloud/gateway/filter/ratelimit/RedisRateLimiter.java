@@ -139,11 +139,11 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 			throw new IllegalStateException("RedisRateLimiter is not initialized");
 		}
 
-        Config routeConfig = getConfig().getOrDefault(routeId, defaultConfig);
+		Config routeConfig = getConfig().getOrDefault(routeId, defaultConfig);
 
 		if (routeConfig == null) {
-            routeConfig = getConfig().get(RouteDefinitionRouteLocator.DEFAULT_FILTERS);
-        }
+			routeConfig = getConfig().get(RouteDefinitionRouteLocator.DEFAULT_FILTERS);
+		}
 
 		if (routeConfig == null) {
 			throw new IllegalArgumentException("No Configuration found for route " + routeId +" or defaultFilters");
