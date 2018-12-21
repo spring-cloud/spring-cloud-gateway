@@ -30,4 +30,13 @@ public class TimeoutException extends Exception {
 	public TimeoutException(String message) {
 		super(message);
 	}
+
+	/**
+	 * Disables fillInStackTrace for performance reasons.
+	 * @return
+	 */
+	@Override
+	public synchronized Throwable fillInStackTrace() {
+		return this;
+	}
 }
