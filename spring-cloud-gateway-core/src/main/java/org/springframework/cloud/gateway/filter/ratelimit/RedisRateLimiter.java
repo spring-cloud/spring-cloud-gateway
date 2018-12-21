@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.validation.constraints.Min;
@@ -140,8 +139,11 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 			throw new IllegalStateException("RedisRateLimiter is not initialized");
 		}
 
-		Config routeConfig = Optional.ofNullable(getConfig().getOrDefault(routeId, defaultConfig))
-				.orElse(getConfig().get(RouteDefinitionRouteLocator.DEFAULT_FILTERS));
+        Config routeConfig = getConfig().getOrDefault(routeId, defaultConfig);
+
+		if (routeConfig == null) {
+            routeConfig = getConfig().get(RouteDefinitionRouteLocator.DEFAULT_FILTERS);
+        }
 
 		if (routeConfig == null) {
 			throw new IllegalArgumentException("No Configuration found for route " + routeId +" or defaultFilters");
