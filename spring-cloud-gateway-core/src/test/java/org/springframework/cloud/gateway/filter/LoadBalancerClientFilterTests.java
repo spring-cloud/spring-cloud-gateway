@@ -123,6 +123,58 @@ public class LoadBalancerClientFilterTests {
 		verifyNoMoreInteractions(chain);
 	}
 
+	@Test
+	public void instanceOverrideNonSecureScheme() {
+		MockServerHttpRequest request = MockServerHttpRequest
+				.get("https://localhost")
+				.build();
+
+		URI lbUri = URI.create("lb://service1");
+		ServerWebExchange webExchange = testFilter(request, lbUri);
+		URI uri = webExchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
+		assertThat(uri).hasScheme("http").hasHost("service1-host1");
+	}
+
+	@Test
+	public void instanceOverrideSecureScheme() {
+		MockServerHttpRequest request = MockServerHttpRequest
+				.get("http://localhost")
+				.build();
+
+		URI lbUri = URI.create("lb://service1");
+		ServerWebExchange webExchange = testFilter(request, lbUri, 443);
+		URI uri = webExchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
+		assertThat(uri).hasScheme("https").hasHost("service1-host1");
+	}
+
+	@Test
+	public void instanceOverrideSecureSchemePrefix() {
+		MockServerHttpRequest request = MockServerHttpRequest
+				.get("https://localhost")
+				.build();
+
+		URI lbUri = URI.create("http://service1");
+		ServerWebExchange exchange = MockServerWebExchange.from(request);
+		exchange.getAttributes().put(GATEWAY_SCHEME_PREFIX_ATTR, "lb");
+		ServerWebExchange webExchange = testFilter(exchange, lbUri, 443);
+		URI uri = webExchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
+		assertThat(uri).hasScheme("http").hasHost("service1-host1");
+	}
+
+	@Test
+	public void instanceOverrideNonSecureSchemePrefix() {
+		MockServerHttpRequest request = MockServerHttpRequest
+				.get("http://localhost")
+				.build();
+
+		URI lbUri = URI.create("https://service1");
+		ServerWebExchange exchange = MockServerWebExchange.from(request);
+		exchange.getAttributes().put(GATEWAY_SCHEME_PREFIX_ATTR, "lb");
+		ServerWebExchange webExchange = testFilter(exchange, lbUri, 8081);
+		URI uri = webExchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
+		assertThat(uri).hasScheme("https").hasHost("service1-host1");
+	}
+
 
 	@Test
 	public void happyPath() {
@@ -208,7 +260,7 @@ public class LoadBalancerClientFilterTests {
 		exchange = MockServerWebExchange.from(request);
 		exchange.getAttributes().put(GATEWAY_SCHEME_PREFIX_ATTR, "lb");
 
-		ServerWebExchange webExchange = testFilter(exchange, lbUri);
+		ServerWebExchange webExchange = testFilter(exchange, lbUri, 8081);
 		URI uri = webExchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
 		assertThat(uri).hasScheme("ws").hasHost("service1-host1")
 				.hasParameter("a", "b");
@@ -274,10 +326,14 @@ public class LoadBalancerClientFilterTests {
 	}
 
 	private ServerWebExchange testFilter(MockServerHttpRequest request, URI uri) {
-		return testFilter(MockServerWebExchange.from(request), uri);
+		return testFilter(MockServerWebExchange.from(request), uri, 8081);
 	}
 
-    private ServerWebExchange testFilter(ServerWebExchange exchange, URI uri) {
+	private ServerWebExchange testFilter(MockServerHttpRequest request, URI uri, int port) {
+		return testFilter(MockServerWebExchange.from(request), uri, port);
+	}
+
+    private ServerWebExchange testFilter(ServerWebExchange exchange, URI uri, int port) {
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, uri);
 
 		ArgumentCaptor<ServerWebExchange> captor = ArgumentCaptor.forClass(ServerWebExchange.class);
@@ -288,7 +344,7 @@ public class LoadBalancerClientFilterTests {
 
 		when(clientFactory.getLoadBalancerContext("service1")).thenReturn(new RibbonLoadBalancerContext(loadBalancer));
 		when(clientFactory.getLoadBalancer("service1")).thenReturn(loadBalancer);
-		when(loadBalancer.chooseServer(any())).thenReturn(new Server("service1-host1", 8081));
+		when(loadBalancer.chooseServer(any())).thenReturn(new Server("service1-host1", port));
 
 		RibbonLoadBalancerClient client = new RibbonLoadBalancerClient(clientFactory);
 
