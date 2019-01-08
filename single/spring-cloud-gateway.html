@@ -673,7 +673,7 @@ spring.cloud.gateway.discovery.locator.filters[1].args[replacement]: "'/${remain
 		<span xmlns:d="http://docbook.org/ns/docbook" class="hl-comment">// grab configuration from Config object</span>
 		<span xmlns:d="http://docbook.org/ns/docbook" class="hl-keyword">return</span> (exchange, chain) -&gt; {
             <span xmlns:d="http://docbook.org/ns/docbook" class="hl-comment">//If you want to build a "pre" filter you need to manipulate the</span>
-            <span xmlns:d="http://docbook.org/ns/docbook" class="hl-comment">//request before calling change.filter</span>
+            <span xmlns:d="http://docbook.org/ns/docbook" class="hl-comment">//request before calling chain.filter</span>
             ServerHttpRequest.Builder builder = exchange.getRequest().mutate();
             <span xmlns:d="http://docbook.org/ns/docbook" class="hl-comment">//use builder to manipulate the request</span>
             <span xmlns:d="http://docbook.org/ns/docbook" class="hl-keyword">return</span> chain.filter(exchange.mutate().request(request).build());
