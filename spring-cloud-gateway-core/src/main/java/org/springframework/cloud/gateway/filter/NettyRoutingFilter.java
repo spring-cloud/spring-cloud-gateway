@@ -137,10 +137,6 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 				exchange.getAttributes().put(ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR, contentTypeValue);
 			}
 
-			HttpHeaders filteredResponseHeaders = HttpHeadersFilter.filter(
-					this.headersFilters.getIfAvailable(), headers, exchange, Type.RESPONSE);
-			
-			response.getHeaders().putAll(filteredResponseHeaders);
 			HttpStatus status = HttpStatus.resolve(res.status().code());
 			if (status != null) {
 				response.setStatusCode(status);
@@ -150,6 +146,12 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 			} else {
 				throw new IllegalStateException("Unable to set status code on response: " +res.status().code()+", "+response.getClass());
 			}
+
+			// make sure headers filters run after setting status so it is available in response
+			HttpHeaders filteredResponseHeaders = HttpHeadersFilter.filter(
+					this.headersFilters.getIfAvailable(), headers, exchange, Type.RESPONSE);
+
+			response.getHeaders().putAll(filteredResponseHeaders);
 
 			// Defer committing the response until all route filters have run
 			// Put client response as ServerWebExchange attribute and write response later NettyWriteResponseFilter
