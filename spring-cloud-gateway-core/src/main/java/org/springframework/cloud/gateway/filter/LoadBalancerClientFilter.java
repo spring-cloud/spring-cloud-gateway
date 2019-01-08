@@ -87,7 +87,7 @@ public class LoadBalancerClientFilter implements GlobalFilter, Ordered {
 
 		// if the `lb:<scheme>` mechanism was used, use `<scheme>` as the default,
 		// if the loadbalancer doesn't provide one.
-		String overrideScheme = null;
+		String overrideScheme = instance.isSecure() ? "https" : "http";
 		if (schemePrefix != null) {
 			overrideScheme = url.getScheme();
 		}

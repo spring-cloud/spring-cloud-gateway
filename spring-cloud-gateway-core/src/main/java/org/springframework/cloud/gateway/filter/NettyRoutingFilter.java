@@ -129,6 +129,17 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 						exchange.getAttributes().put(ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR, contentTypeValue);
 					}
 
+					HttpStatus status = HttpStatus.resolve(res.status().code());
+					if (status != null) {
+						response.setStatusCode(status);
+					} else if (response instanceof AbstractServerHttpResponse) {
+						// https://jira.spring.io/browse/SPR-16748
+						((AbstractServerHttpResponse) response).setStatusCodeValue(res.status().code());
+					} else {
+						throw new IllegalStateException("Unable to set status code on response: " + res.status().code() + ", " + response.getClass());
+					}
+
+					// make sure headers filters run after setting status so it is available in response
 					HttpHeaders filteredResponseHeaders = HttpHeadersFilter.filter(
 							this.headersFilters.getIfAvailable(), headers, exchange, Type.RESPONSE);
 
@@ -139,15 +150,6 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 						response.getHeaders().remove(HttpHeaders.TRANSFER_ENCODING);
 					}
 					response.getHeaders().putAll(filteredResponseHeaders);
-					HttpStatus status = HttpStatus.resolve(res.status().code());
-					if (status != null) {
-						response.setStatusCode(status);
-					} else if (response instanceof AbstractServerHttpResponse) {
-						// https://jira.spring.io/browse/SPR-16748
-						((AbstractServerHttpResponse) response).setStatusCodeValue(res.status().code());
-					} else {
-						throw new IllegalStateException("Unable to set status code on response: " + res.status().code() + ", " + response.getClass());
-					}
 
 					// Defer committing the response until all route filters have run
 					// Put client response as ServerWebExchange attribute and write response later NettyWriteResponseFilter

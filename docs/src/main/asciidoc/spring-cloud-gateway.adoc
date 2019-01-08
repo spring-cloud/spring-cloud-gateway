@@ -1046,8 +1046,15 @@ spring:
         - Path=/service/**
 ----
 
-NOTE By default when a service instance cannot be found in the `LoadBalancer` a `503` will be returned.
+NOTE: By default when a service instance cannot be found in the `LoadBalancer` a `503` will be returned.
 You can configure the Gateway to return a `404` by setting `spring.cloud.gateway.loadbalancer.use404=true`.
+
+NOTE: The `isSecure` value of the `ServiceInstance` returned from the `LoadBalancer` will override
+the scheme specified in the request made to the Gateway.  For example, if the request comes into the Gateway over `HTTPS`
+but the `ServiceInstance` indicates it is not secure, then the downstream request will be made over
+`HTTP`.  The opposite situation can also apply.  However if `GATEWAY_SCHEME_PREFIX_ATTR` is specified for the
+route in the Gateway configuration, the prefix will be stripped and the resulting scheme from the
+route URL will override the `ServiceInstance` configuration.
 
 === Netty Routing Filter
 
