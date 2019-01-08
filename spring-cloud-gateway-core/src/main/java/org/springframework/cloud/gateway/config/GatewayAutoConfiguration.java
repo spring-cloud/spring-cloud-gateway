@@ -262,19 +262,6 @@ public class GatewayAutoConfiguration {
 		return new StringToZonedDateTimeConverter();
 	}
 
-	//TODO: remove when not needed anymore
-	// either https://jira.spring.io/browse/SPR-17291 or
-	// https://github.com/spring-projects/spring-boot/issues/14520 needs to be fixed
-	@Bean
-	public HiddenHttpMethodFilter disabledHiddenHttpMethodFilter() {
-		return new HiddenHttpMethodFilter() {
-			@Override
-			public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
-				return chain.filter(exchange);
-			}
-		};
-	}
-
 	@Bean
 	public RouteLocatorBuilder routeLocatorBuilder(ConfigurableApplicationContext context) {
 		return new RouteLocatorBuilder(context);

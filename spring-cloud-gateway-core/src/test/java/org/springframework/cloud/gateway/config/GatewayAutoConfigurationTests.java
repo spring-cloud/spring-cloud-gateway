@@ -20,15 +20,34 @@ package org.springframework.cloud.gateway.config;
 import org.junit.Test;
 import reactor.netty.http.client.HttpClient;
 
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.actuate.autoconfigure.metrics.MetricsAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.metrics.export.simple.SimpleMetricsExportAutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.reactive.WebFluxAutoConfiguration;
 import org.springframework.boot.test.context.runner.ReactiveWebApplicationContextRunner;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.web.filter.reactive.HiddenHttpMethodFilter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class GatewayAutoConfigurationTests {
+
+	@Test
+	public void noHiddenHttpMethodFilter() {
+		try (ConfigurableApplicationContext ctx =
+					 SpringApplication.run(NoHiddenHttpMethodFilterConfig.class)) {
+			assertThat(ctx.getEnvironment().getProperty("spring.webflux.hiddenmethod.filter.enabled"))
+					.isEqualTo("false");
+			assertThat(ctx.getBeanNamesForType(HiddenHttpMethodFilter.class)).isEmpty();
+		}
+	}
+
+	@EnableAutoConfiguration
+	@SpringBootConfiguration
+	protected static class NoHiddenHttpMethodFilterConfig {}
 
 	@Test
 	public void nettyHttpClientDefaults() {
