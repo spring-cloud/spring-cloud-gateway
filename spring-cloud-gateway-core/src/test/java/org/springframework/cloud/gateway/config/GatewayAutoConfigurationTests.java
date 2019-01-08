@@ -38,7 +38,7 @@ public class GatewayAutoConfigurationTests {
 	@Test
 	public void noHiddenHttpMethodFilter() {
 		try (ConfigurableApplicationContext ctx =
-					 SpringApplication.run(NoHiddenHttpMethodFilterConfig.class)) {
+					 SpringApplication.run(NoHiddenHttpMethodFilterConfig.class, "--spring.jmx.enabled=false")) {
 			assertThat(ctx.getEnvironment().getProperty("spring.webflux.hiddenmethod.filter.enabled"))
 					.isEqualTo("false");
 			assertThat(ctx.getBeanNamesForType(HiddenHttpMethodFilter.class)).isEmpty();
