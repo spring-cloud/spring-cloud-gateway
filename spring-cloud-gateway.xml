@@ -1090,8 +1090,18 @@ public GlobalFilter c() {
         - Path=/service/**</programlisting>
 </para>
 </formalpara>
-<simpara>NOTE By default when a service instance cannot be found in the <literal>LoadBalancer</literal> a <literal>503</literal> will be returned.
+<note>
+<simpara>By default when a service instance cannot be found in the <literal>LoadBalancer</literal> a <literal>503</literal> will be returned.
 You can configure the Gateway to return a <literal>404</literal> by setting <literal>spring.cloud.gateway.loadbalancer.use404=true</literal>.</simpara>
+</note>
+<note>
+<simpara>The <literal>isSecure</literal> value of the <literal>ServiceInstance</literal> returned from the <literal>LoadBalancer</literal> will override
+the scheme specified in the request made to the Gateway.  For example, if the request comes into the Gateway over <literal>HTTPS</literal>
+but the <literal>ServiceInstance</literal> indicates it is not secure, then the downstream request will be made over
+<literal>HTTP</literal>.  The opposite situation can also apply.  However if <literal>GATEWAY_SCHEME_PREFIX_ATTR</literal> is specified for the
+route in the Gateway configuration, the prefix will be stripped and the resulting scheme from the
+route URL will override the <literal>ServiceInstance</literal> configuration.</simpara>
+</note>
 </section>
 <section xml:id="_netty_routing_filter">
 <title>Netty Routing Filter</title>
