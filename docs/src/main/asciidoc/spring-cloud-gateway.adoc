@@ -889,6 +889,8 @@ spring:
             statuses: BAD_GATEWAY
 ----
 
+NOTE: The retry filter does not currently support retrying with a body (e.g. for POST or PUT requests with a body).
+
 NOTE: When using the retry filter with a `forward:` prefixed URL, the target endpoint should be written carefully so that in case of an error it does not do anything that could result in a response being sent to the client and committed. For example, if the target endpoint is an annotated controller, the target controller method should not return `ResponseEntity` with an error status code. Instead it should throw an `Exception`, or signal an error, e.g. via a `Mono.error(ex)` return value, which the retry filter can be configured to handle by retrying.
 
 === RequestSize GatewayFilter Factory
