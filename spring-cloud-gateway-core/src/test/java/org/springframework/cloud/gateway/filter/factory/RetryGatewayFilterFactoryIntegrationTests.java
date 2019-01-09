@@ -59,7 +59,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTests {
 
 	@Test
-	@Ignore //FIXME: 2.1.0
+	// @Ignore //FIXME: 2.1.0
 	public void retryFilterGet() {
 		testClient.get()
 				.uri("/retry?key=get")
@@ -81,7 +81,7 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 	}
 
 	@Test
-	@Ignore //FIXME: 2.1.0
+	// @Ignore //FIXME: 2.1.0
 	public void retryFilterGetJavaDsl() {
 		testClient.get()
 				.uri("/retry?key=getjava&count=2")

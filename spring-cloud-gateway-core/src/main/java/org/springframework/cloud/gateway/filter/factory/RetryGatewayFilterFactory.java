@@ -20,13 +20,16 @@ package org.springframework.cloud.gateway.filter.factory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Predicate;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.reactivestreams.Publisher;
 import org.springframework.cloud.gateway.support.TimeoutException;
+import org.springframework.http.HttpHeaders;
 import reactor.core.publisher.Mono;
 import reactor.retry.Repeat;
 import reactor.retry.RepeatContext;
@@ -40,6 +43,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatus.Series;
 import org.springframework.util.Assert;
 import org.springframework.web.server.ServerWebExchange;
+
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.CLIENT_RESPONSE_HEADER_NAMES;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ALREADY_ROUTED_ATTR;
 
 public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<RetryGatewayFilterFactory.RetryConfig> {
 
@@ -63,7 +69,6 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 				}
 
 				HttpStatus statusCode = exchange.getResponse().getStatusCode();
-				HttpMethod httpMethod = exchange.getRequest().getMethod();
 
 				boolean retryableStatusCode = retryConfig.getStatuses().contains(statusCode);
 
@@ -73,7 +78,14 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 							.anyMatch(series -> statusCode.series().equals(series));
 				}
 
+				trace("retryableStatusCode: %b, statusCode %s, configured statuses %s, configured series %s",
+						retryableStatusCode, statusCode, retryConfig.getStatuses(), retryConfig.getSeries());
+
+				HttpMethod httpMethod = exchange.getRequest().getMethod();
 				boolean retryableMethod = retryConfig.getMethods().contains(httpMethod);
+
+				trace("retryableMethod: %b, httpMethod %s, configured methods %s",
+						retryableMethod, httpMethod, retryConfig.getMethods());
 				return retryableMethod && retryableStatusCode;
 			};
 
@@ -92,9 +104,13 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 
 				for (Class<? extends Throwable> clazz : retryConfig.getExceptions()) {
 					if (clazz.isInstance(context.exception())) {
+						trace("exception is retryable %s, configured exceptions",
+								context.exception().getClass().getName(), retryConfig.getExceptions());
 						return true;
 					}
 				}
+				trace("exception is not retryable %s, configured exceptions",
+						context.exception().getClass().getName(), retryConfig.getExceptions());
 				return false;
 			};
 			exceptionRetry = Retry.onlyIf(retryContextPredicate)
@@ -110,26 +126,31 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 		Integer iteration = exchange.getAttribute(RETRY_ITERATION_KEY);
 
 		//TODO: deal with null iteration
-		return iteration != null && iteration >= retryConfig.getRetries();
+		boolean exceeds = iteration != null && iteration >= retryConfig.getRetries();
+		trace("exceedsMaxIterations %b, iteration %d, configured retries %d",
+				exceeds, iteration, retryConfig.getRetries());
+		return exceeds;
 	}
 
 	public void reset(ServerWebExchange exchange) {
 		//TODO: what else to do to reset SWE?
-		exchange.getAttributes().remove(ServerWebExchangeUtils.GATEWAY_ALREADY_ROUTED_ATTR);
+		Set<String> addedHeaders = exchange.getAttributeOrDefault(CLIENT_RESPONSE_HEADER_NAMES, Collections.emptySet());
+		addedHeaders.forEach(header -> exchange.getResponse().getHeaders().remove(header));
+		exchange.getAttributes().remove(GATEWAY_ALREADY_ROUTED_ATTR);
 	}
 
 	public GatewayFilter apply(Repeat<ServerWebExchange> repeat, Retry<ServerWebExchange> retry) {
 		return (exchange, chain) -> {
-			if (log.isTraceEnabled()) {
-				log.trace("Entering retry-filter");
-			}
+			trace("Entering retry-filter");
 
 			// chain.filter returns a Mono<Void>
             Publisher<Void> publisher = chain.filter(exchange)
                     //.log("retry-filter", Level.INFO)
                     .doOnSuccessOrError((aVoid, throwable) -> {
                         int iteration = exchange.getAttributeOrDefault(RETRY_ITERATION_KEY, -1);
-                        exchange.getAttributes().put(RETRY_ITERATION_KEY, iteration + 1);
+						int newIteration = iteration + 1;
+						trace("setting new iteration in attr %d", newIteration);
+						exchange.getAttributes().put(RETRY_ITERATION_KEY, newIteration);
                     });
 
             if (retry != null) {
@@ -145,6 +166,12 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 
             return Mono.fromDirect(publisher);
 		};
+	}
+
+	private void trace(String message, Object... args) {
+		if (log.isTraceEnabled()) {
+			log.trace(String.format(message, args));
+		}
 	}
 
 	private static <T> List<T> toList(T... items) {

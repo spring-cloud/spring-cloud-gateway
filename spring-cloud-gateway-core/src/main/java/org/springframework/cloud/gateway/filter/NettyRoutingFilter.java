@@ -47,6 +47,7 @@ import org.springframework.web.server.ServerWebExchange;
 import static org.springframework.cloud.gateway.filter.headers.HttpHeadersFilter.filterRequest;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.CLIENT_RESPONSE_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.CLIENT_RESPONSE_CONN_ATTR;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.CLIENT_RESPONSE_HEADER_NAMES;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.PRESERVE_HOST_HEADER_ATTRIBUTE;
@@ -149,6 +150,9 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 						//remove the transfer-encoding header in the response if the content-length header is presen
 						response.getHeaders().remove(HttpHeaders.TRANSFER_ENCODING);
 					}
+
+					exchange.getAttributes().put(CLIENT_RESPONSE_HEADER_NAMES, filteredResponseHeaders.keySet());
+
 					response.getHeaders().putAll(filteredResponseHeaders);
 
 					// Defer committing the response until all route filters have run
