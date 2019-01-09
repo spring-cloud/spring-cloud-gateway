@@ -21,6 +21,8 @@ import java.net.URI;
 import java.util.Map;
 import java.util.function.Predicate;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Flux;
 
 import org.springframework.cloud.client.ServiceInstance;
@@ -30,7 +32,9 @@ import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
 import org.springframework.cloud.gateway.route.RouteDefinition;
 import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
 import org.springframework.core.style.ToStringCreator;
+import org.springframework.expression.EvaluationException;
 import org.springframework.expression.Expression;
+import org.springframework.expression.ParseException;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.SimpleEvaluationContext;
 import org.springframework.util.StringUtils;
@@ -40,6 +44,8 @@ import org.springframework.util.StringUtils;
  * @author Spencer Gibb
  */
 public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLocator {
+
+	private static final Log log = LogFactory.getLog(DiscoveryClientRouteDefinitionLocator.class);
 
 	private final DiscoveryClient discoveryClient;
 	private final DiscoveryLocatorProperties properties;
@@ -54,8 +60,7 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 		} else {
 			this.routeIdPrefix = this.discoveryClient.getClass().getSimpleName() + "_";
 		}
-		evalCtxt = SimpleEvaluationContext
-				.forReadOnlyDataBinding()
+		evalCtxt = SimpleEvaluationContext.forReadOnlyDataBinding()
 				.withInstanceMethods()
 				.build();
 	}
@@ -120,8 +125,15 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 	}
 
 	String getValueFromExpr(SimpleEvaluationContext evalCtxt, SpelExpressionParser parser, ServiceInstance instance, Map.Entry<String, String> entry) {
-		Expression valueExpr = parser.parseExpression(entry.getValue());
-		return valueExpr.getValue(evalCtxt, instance, String.class);
+		try {
+			Expression valueExpr = parser.parseExpression(entry.getValue());
+			return valueExpr.getValue(evalCtxt, instance, String.class);
+		} catch (ParseException | EvaluationException e) {
+			if (log.isDebugEnabled()) {
+				log.debug("Unable to parse " + entry.getValue(), e);
+			}
+			throw e;
+		}
 	}
 
 	private static class DelegatingServiceInstance implements ServiceInstance {
