@@ -17,8 +17,6 @@
 
 package org.springframework.cloud.gateway.filter;
 
-import java.util.Map;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -31,7 +29,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @RunWith(SpringRunner.class)
