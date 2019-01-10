@@ -17,6 +17,7 @@
 
 package org.springframework.cloud.gateway.filter;
 
+import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import io.micrometer.core.instrument.search.MeterNotFoundException;
@@ -46,6 +47,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -100,15 +103,20 @@ public class GatewayMetricFilterTests extends BaseWebClientTests {
 	}
 
 	private void assertMetricsContainsTag(String tagKey, String tagValue) {
+		List<Meter.Id> meterIds = null;
 		try {
+			meterIds = this.meterRegistry.getMeters().stream()
+					.map(meter -> meter.getId())
+					.collect(Collectors.toList());
 			Collection<Timer> timers = this.meterRegistry.get(REQUEST_METRICS_NAME).timers();
 			System.err.println("Looking for gateway.requests: tag: " + tagKey + ", value: "+ tagValue);
-			timers.forEach(timer -> System.err.println(timer.getId()));
+			timers.forEach(timer -> System.err.println(timer.getId()+timer.getClass().getSimpleName()));
 			assertThat(this.meterRegistry.get(REQUEST_METRICS_NAME).tag(tagKey, tagValue)
 					.timer().count()).isEqualTo(1);
 		} catch (MeterNotFoundException e) {
-			System.err.println("Error finding gatway.requests meter: tag: " + tagKey + ", value: "+ tagValue);
-			this.meterRegistry.forEachMeter(meter -> System.err.println(meter.getId()));
+			System.err.println("\n\n\nError finding gatway.requests meter: tag: " + tagKey + ", value: "+ tagValue);
+			System.err.println("Meter ids prior to search: "+meterIds);
+			this.meterRegistry.forEachMeter(meter -> System.err.println(meter.getId() + meter.getClass().getSimpleName()));
 			throw e;
 		}
 	}
