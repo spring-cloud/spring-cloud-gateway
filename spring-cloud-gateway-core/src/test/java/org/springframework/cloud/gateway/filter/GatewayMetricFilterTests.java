@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,11 @@
 
 package org.springframework.cloud.gateway.filter;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
-
-import org.junit.Ignore;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.search.MeterNotFoundException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
@@ -44,7 +43,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import io.micrometer.core.instrument.MeterRegistry;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -79,7 +79,6 @@ public class GatewayMetricFilterTests extends BaseWebClientTests {
 	}
 
 	@Test
-	@Ignore // FIXME: 2.1.0
 	public void hasMetricsForSetStatusFilter() {
 		HttpHeaders headers = new HttpHeaders();
 		headers.set(HttpHeaders.HOST, "www.setcustomstatusmetrics.org");
@@ -95,8 +94,14 @@ public class GatewayMetricFilterTests extends BaseWebClientTests {
 	}
 
 	private void assertMetricsContainsTag(String tagKey, String tagValue) {
-		assertThat(this.meterRegistry.get(REQUEST_METRICS_NAME).tag(tagKey, tagValue)
-				.timer().count()).isEqualTo(1);
+		try {
+			assertThat(this.meterRegistry.get(REQUEST_METRICS_NAME).tag(tagKey, tagValue)
+					.timer().count()).isEqualTo(1);
+		} catch (MeterNotFoundException e) {
+			System.err.println("Error finding meter: ");
+			this.meterRegistry.forEachMeter(meter -> System.err.println(meter.getId()));
+			throw e;
+		}
 	}
 
 	@EnableAutoConfiguration

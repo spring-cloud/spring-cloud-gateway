@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ public class GatewayMetricsFilter implements GlobalFilter, Ordered {
 	public int getOrder() {
 		// start the timer as soon as possible and report the metric event before we write
 		// response to client
-		return NettyWriteResponseFilter.WRITE_RESPONSE_FILTER_ORDER + 1;
+		return Ordered.HIGHEST_PRECEDENCE + 10000;
 	}
 
 	@Override
