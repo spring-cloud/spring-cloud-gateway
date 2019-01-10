@@ -65,10 +65,12 @@ public class GatewayMetricFilterTests extends BaseWebClientTests {
 
 	@Test
 	public void gatewayRequestsMeterFilterHasTags() {
-		testClient.get().uri("/headers").exchange().expectStatus().isOk();
+		testClient.get().uri("/headers")
+				.header(HttpHeaders.HOST, "www.metricshappypath.org")
+				.exchange().expectStatus().isOk();
 		assertMetricsContainsTag("outcome", HttpStatus.Series.SUCCESSFUL.name());
 		assertMetricsContainsTag("status", HttpStatus.OK.name());
-		assertMetricsContainsTag("routeId", "default_path_to_httpbin");
+		assertMetricsContainsTag("routeId", "test_metrics_happy_path");
 		assertMetricsContainsTag("routeUri", "lb://testservice");
 	}
 
@@ -122,6 +124,8 @@ public class GatewayMetricFilterTests extends BaseWebClientTests {
 		@Bean
 		public RouteLocator myRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes()
+					.route("test_metrics_happy_path", r -> r.host("*.metricshappypath.org")
+							.uri(testUri))
 					.route("test_custom_http_status_metrics", r -> r.host("*.setcustomstatusmetrics.org")
 							.filters(f -> f.setStatus(432))
 							.uri(testUri))
