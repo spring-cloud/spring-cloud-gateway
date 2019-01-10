@@ -70,21 +70,27 @@ public class GatewayMetricFilterTests extends BaseWebClientTests {
 	public void gatewayRequestsMeterFilterHasTags() {
 		testClient.get().uri("/headers")
 				.header(HttpHeaders.HOST, "www.metricshappypath.org")
-				.exchange().expectStatus().isOk();
-		assertMetricsContainsTag("outcome", HttpStatus.Series.SUCCESSFUL.name());
-		assertMetricsContainsTag("status", HttpStatus.OK.name());
-		assertMetricsContainsTag("routeId", "test_metrics_happy_path");
-		assertMetricsContainsTag("routeUri", "lb://testservice");
+				.exchange()
+				.expectStatus().isOk()
+				.returnResult(String.class).consumeWith(result -> {
+			assertMetricsContainsTag("outcome", HttpStatus.Series.SUCCESSFUL.name());
+			assertMetricsContainsTag("status", HttpStatus.OK.name());
+			assertMetricsContainsTag("routeId", "test_metrics_happy_path");
+			assertMetricsContainsTag("routeUri", "lb://testservice");
+		});
 	}
 
 	@Test
 	public void gatewayRequestsMeterFilterHasTagsForBadTargetUri() {
-		testClient.get().uri("/badtargeturi").exchange().expectStatus()
-				.is5xxServerError();
-		assertMetricsContainsTag("outcome", HttpStatus.Series.SERVER_ERROR.name());
-		assertMetricsContainsTag("status", HttpStatus.INTERNAL_SERVER_ERROR.name());
-		assertMetricsContainsTag("routeId", "default_path_to_httpbin");
-		assertMetricsContainsTag("routeUri", testUri);
+		testClient.get().uri("/badtargeturi")
+				.exchange()
+				.expectStatus().is5xxServerError()
+				.returnResult(String.class).consumeWith(result -> {
+			assertMetricsContainsTag("outcome", HttpStatus.Series.SERVER_ERROR.name());
+			assertMetricsContainsTag("status", HttpStatus.INTERNAL_SERVER_ERROR.name());
+			assertMetricsContainsTag("routeId", "default_path_to_httpbin");
+			assertMetricsContainsTag("routeUri", testUri);
+		});
 	}
 
 	@Test
@@ -114,8 +120,8 @@ public class GatewayMetricFilterTests extends BaseWebClientTests {
 			assertThat(this.meterRegistry.get(REQUEST_METRICS_NAME).tag(tagKey, tagValue)
 					.timer().count()).isEqualTo(1);
 		} catch (MeterNotFoundException e) {
+			System.err.println("\n\n\nMeter ids prior to search: "+meterIds);
 			System.err.println("\n\n\nError finding gatway.requests meter: tag: " + tagKey + ", value: "+ tagValue);
-			System.err.println("Meter ids prior to search: "+meterIds);
 			this.meterRegistry.forEachMeter(meter -> System.err.println(meter.getId() + meter.getClass().getSimpleName()));
 			throw e;
 		}
