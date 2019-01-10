@@ -252,8 +252,8 @@ public class GatewayAutoConfiguration {
 		}
 
 		@Bean
-		public ReactorNettyWebSocketClient reactorNettyWebSocketClient(/*@Qualifier("nettyClientOptions") Consumer<? super HttpClientOptions.Builder> options*/) {
-			return new ReactorNettyWebSocketClient(/*options*/); //FIXME 2.1.0
+		public ReactorNettyWebSocketClient reactorNettyWebSocketClient(HttpClient httpClient) {
+			return new ReactorNettyWebSocketClient(httpClient);
 		}
 	}
 
