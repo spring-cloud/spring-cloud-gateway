@@ -112,7 +112,7 @@ public class GatewayMetricFilterTests extends BaseWebClientTests {
 		List<Meter.Id> meterIds = null;
 		try {
 			meterIds = this.meterRegistry.getMeters().stream()
-					.map(meter -> meter.getId())
+					.map(Meter::getId)
 					.collect(Collectors.toList());
 			Collection<Timer> timers = this.meterRegistry.get(REQUEST_METRICS_NAME).timers();
 			System.err.println("Looking for gateway.requests: tag: " + tagKey + ", value: "+ tagValue);
@@ -120,8 +120,8 @@ public class GatewayMetricFilterTests extends BaseWebClientTests {
 			assertThat(this.meterRegistry.get(REQUEST_METRICS_NAME).tag(tagKey, tagValue)
 					.timer().count()).isEqualTo(1);
 		} catch (MeterNotFoundException e) {
-			System.err.println("\n\n\nMeter ids prior to search: "+meterIds);
 			System.err.println("\n\n\nError finding gatway.requests meter: tag: " + tagKey + ", value: "+ tagValue);
+			System.err.println("\n\n\nMeter ids prior to search: "+meterIds + "\n\n\n and after:");
 			this.meterRegistry.forEachMeter(meter -> System.err.println(meter.getId() + meter.getClass().getSimpleName()));
 			throw e;
 		}
