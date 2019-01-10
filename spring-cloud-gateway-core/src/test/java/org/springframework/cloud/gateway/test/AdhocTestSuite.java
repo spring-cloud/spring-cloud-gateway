@@ -82,6 +82,7 @@ import static org.junit.Assume.assumeThat;
 		org.springframework.cloud.gateway.filter.RouteToRequestUrlFilterTests.class,
 		org.springframework.cloud.gateway.filter.headers.ForwardedHeadersFilterTests.class,
 		org.springframework.cloud.gateway.filter.headers.XForwardedHeadersFilterTests.class,
+		org.springframework.cloud.gateway.filter.headers.HttpStatusInResponseHeadersFilterTests.class,
 		org.springframework.cloud.gateway.filter.headers.HttpHeadersFilterMixedTypeTests.class,
 		org.springframework.cloud.gateway.filter.headers.HttpHeadersFilterTests.class,
 		org.springframework.cloud.gateway.filter.headers.NonStandardHeadersInResponseTests.class,
