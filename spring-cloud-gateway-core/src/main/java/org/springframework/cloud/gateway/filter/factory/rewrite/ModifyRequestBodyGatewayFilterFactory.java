@@ -61,8 +61,8 @@ public class ModifyRequestBodyGatewayFilterFactory
 	public GatewayFilter apply(Config config) {
 		return (exchange, chain) -> {
 			Class inClass = config.getInClass();
+			ServerRequest serverRequest = new DefaultServerRequest(exchange, this.messageReaders);
 
-			ServerRequest serverRequest = new DefaultServerRequest(exchange, messageReaders);
 			//TODO: flux or mono
 			Mono<?> modifiedBody = serverRequest.bodyToMono(inClass)
 					// .log("modify_request_mono", Level.INFO)
