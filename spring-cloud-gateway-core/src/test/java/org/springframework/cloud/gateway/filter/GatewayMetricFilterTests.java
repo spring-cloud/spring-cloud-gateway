@@ -117,14 +117,24 @@ public class GatewayMetricFilterTests extends BaseWebClientTests {
 			Collection<Timer> timers = this.meterRegistry.get(REQUEST_METRICS_NAME).timers();
 			System.err.println("Looking for gateway.requests: tag: " + tagKey + ", value: "+ tagValue);
 			timers.forEach(timer -> System.err.println(timer.getId()+timer.getClass().getSimpleName()));
-			assertThat(this.meterRegistry.get(REQUEST_METRICS_NAME).tag(tagKey, tagValue)
-					.timer().count()).isEqualTo(1);
+			long count = getCount(tagKey, tagValue);
+			assertThat(count).isEqualTo(1);
 		} catch (MeterNotFoundException e) {
 			System.err.println("\n\n\nError finding gatway.requests meter: tag: " + tagKey + ", value: "+ tagValue);
 			System.err.println("\n\n\nMeter ids prior to search: "+meterIds + "\n\n\n and after:");
 			this.meterRegistry.forEachMeter(meter -> System.err.println(meter.getId() + meter.getClass().getSimpleName()));
-			throw e;
+
+			// try again?
+			long count = getCount(tagKey, tagValue);
+			if (count != 1) {
+				throw e;
+			}
 		}
+	}
+
+	private long getCount(String tagKey, String tagValue) {
+		return this.meterRegistry.get(REQUEST_METRICS_NAME).tag(tagKey, tagValue)
+				.timer().count();
 	}
 
 	@EnableAutoConfiguration
