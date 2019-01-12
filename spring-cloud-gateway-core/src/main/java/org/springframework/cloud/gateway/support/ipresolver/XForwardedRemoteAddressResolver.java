@@ -1,16 +1,16 @@
 package org.springframework.cloud.gateway.support.ipresolver;
 
-import java.net.InetSocketAddress;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
 import org.apache.logging.log4j.util.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.util.Assert;
 import org.springframework.web.server.ServerWebExchange;
+
+import java.net.InetSocketAddress;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Parses the client address from the X-Forwarded-For header. If header is not present,
