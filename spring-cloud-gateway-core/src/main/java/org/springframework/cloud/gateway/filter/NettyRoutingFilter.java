@@ -88,7 +88,7 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 
 		ServerHttpRequest request = exchange.getRequest();
 
-		final HttpMethod method = getMethod(request);
+		final HttpMethod method = HttpMethod.valueOf(request.getMethodValue());
 		final String url = requestUrl.toString();
 
 		HttpHeaders filtered = filterRequest(this.headersFilters.getIfAvailable(),
@@ -164,15 +164,6 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 		}
 
 		return responseFlux.then(chain.filter(exchange));
-	}
-
-	private HttpMethod getMethod(ServerHttpRequest request){
-		org.springframework.http.HttpMethod httpMethod = request.getMethod();
-		if(httpMethod != null){
-			return HttpMethod.valueOf(httpMethod.toString());
-		}else {
-			return HttpMethod.valueOf(request.getMethodValue());
-		}
 	}
 
 }
