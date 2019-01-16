@@ -243,10 +243,9 @@ public final class ServerWebExchangeUtils {
 		uris.add(url);
 	}
 
-	public static AsyncPredicate<ServerWebExchange> toAsyncPredicate(
-			Predicate<? super ServerWebExchange> predicate) {
+	public static AsyncPredicate<ServerWebExchange> toAsyncPredicate(Predicate<? super ServerWebExchange> predicate) {
 		Assert.notNull(predicate, "predicate must not be null");
-		return t -> Mono.just(predicate.test(t));
+		return AsyncPredicate.from(predicate);
 	}
 
 	@SuppressWarnings("unchecked")
