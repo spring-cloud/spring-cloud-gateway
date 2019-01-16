@@ -89,7 +89,7 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 
 		ServerHttpRequest request = exchange.getRequest();
 
-		final HttpMethod method = HttpMethod.valueOf(request.getMethod().toString());
+		final HttpMethod method = HttpMethod.valueOf(request.getMethodValue());
 		final String url = requestUrl.toString();
 
 		HttpHeaders filtered = filterRequest(this.headersFilters.getIfAvailable(),
@@ -162,4 +162,5 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 								properties.getResponseTimeout()))
 				.then(chain.filter(exchange));
 	}
+
 }
