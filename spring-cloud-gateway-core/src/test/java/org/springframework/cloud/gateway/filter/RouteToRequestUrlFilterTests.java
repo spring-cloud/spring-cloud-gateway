@@ -66,6 +66,14 @@ public class RouteToRequestUrlFilterTests {
 		assertThat(uri).hasScheme("lb").hasHost("myhost");
 	}
 
+	@Test(expected = IllegalStateException.class)
+	public void invalidHost() {
+		MockServerHttpRequest request = MockServerHttpRequest
+				.get("http://localhost/getb")
+				.build();
+		testFilter(request, "lb://my_host");
+	}
+
 	@Test
 	public void happyPathLbPlusScheme() {
 		MockServerHttpRequest request = MockServerHttpRequest

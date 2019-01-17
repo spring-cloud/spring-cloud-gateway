@@ -68,6 +68,12 @@ public class RouteToRequestUrlFilter implements GlobalFilter, Ordered {
 			routeUri = URI.create(routeUri.getSchemeSpecificPart());
 		}
 
+		if("lb".equalsIgnoreCase(routeUri.getScheme()) && routeUri.getHost() == null) {
+			//Load balanced URIs should always have a host.  If the host is null it is most
+			//likely because the host name was invalid (for example included an underscore)
+			throw new IllegalStateException("Invalid host: " + routeUri.toString());
+		}
+
 		URI mergedUrl = UriComponentsBuilder.fromUri(uri)
 				// .uri(routeUri)
 				.scheme(routeUri.getScheme())
