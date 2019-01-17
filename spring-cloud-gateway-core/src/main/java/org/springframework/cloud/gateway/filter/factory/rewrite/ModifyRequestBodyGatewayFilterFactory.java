@@ -17,10 +17,13 @@
 
 package org.springframework.cloud.gateway.filter.factory.rewrite;
 
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.cloud.gateway.support.BodyInserterContext;
 import org.springframework.cloud.gateway.support.CachedBodyOutputMessage;
+import org.springframework.http.codec.HttpMessageReader;
+import org.springframework.web.reactive.function.server.HandlerStrategies;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -41,8 +44,11 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 public class ModifyRequestBodyGatewayFilterFactory
 		extends AbstractGatewayFilterFactory<ModifyRequestBodyGatewayFilterFactory.Config> {
 
+	private final List<HttpMessageReader<?>> messageReaders;
+
 	public ModifyRequestBodyGatewayFilterFactory() {
 		super(Config.class);
+		this.messageReaders = HandlerStrategies.withDefaults().messageReaders();
 	}
 
 	@Deprecated
@@ -55,8 +61,8 @@ public class ModifyRequestBodyGatewayFilterFactory
 	public GatewayFilter apply(Config config) {
 		return (exchange, chain) -> {
 			Class inClass = config.getInClass();
+			ServerRequest serverRequest = new DefaultServerRequest(exchange, this.messageReaders);
 
-			ServerRequest serverRequest = new DefaultServerRequest(exchange);
 			//TODO: flux or mono
 			Mono<?> modifiedBody = serverRequest.bodyToMono(inClass)
 					// .log("modify_request_mono", Level.INFO)
