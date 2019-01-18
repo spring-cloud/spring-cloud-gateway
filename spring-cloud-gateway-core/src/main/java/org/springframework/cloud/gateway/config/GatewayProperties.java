@@ -24,6 +24,8 @@ import java.util.List;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.cloud.gateway.filter.FilterDefinition;
 import org.springframework.cloud.gateway.route.RouteDefinition;
@@ -37,6 +39,7 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 public class GatewayProperties {
 
+	private final Log logger = LogFactory.getLog(getClass());
 	/**
 	 * List of Routes
 	 */
@@ -56,8 +59,12 @@ public class GatewayProperties {
 		return routes;
 	}
 
+
 	public void setRoutes(List<RouteDefinition> routes) {
 		this.routes = routes;
+		if (routes != null && routes.size() > 0 && logger.isDebugEnabled()) {
+			logger.debug("Routes supplied from Gateway Properties: "+routes);
+		}
 	}
 
 	public List<FilterDefinition> getDefaultFilters() {
