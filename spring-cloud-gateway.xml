@@ -8,7 +8,7 @@
 </info>
 <preface>
 <title></title>
-<simpara><emphasis role="strong">2.1.0.BUILD-SNAPSHOT</emphasis></simpara>
+<simpara><emphasis role="strong">2.1.1.BUILD-SNAPSHOT</emphasis></simpara>
 <simpara>This project provides an API Gateway built on top of the Spring Ecosystem, including: Spring 5, Spring Boot 2 and Project Reactor. Spring Cloud Gateway aims to provide a simple, yet effective way to route to APIs and provide cross cutting concerns to them such as: security, monitoring/metrics, and resiliency.</simpara>
 </preface>
 <chapter xml:id="gateway-starter">
