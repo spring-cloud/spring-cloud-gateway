@@ -43,6 +43,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.cloud.gateway.rsocket.GatewayRSocket;
 import org.springframework.cloud.gateway.rsocket.GatewaySocketAcceptor;
 import org.springframework.cloud.gateway.rsocket.Metadata;
 import org.springframework.cloud.gateway.rsocket.Registry;
@@ -71,10 +72,15 @@ public class PingPongApp {
 		return new Registry();
 	}
 
+	@Bean
+	public GatewayRSocket gatewayRSocket(Registry registry) {
+		return new GatewayRSocket(registry);
+	}
+
 	//TODO: move to auto-configuration
 	@Bean
-	public GatewaySocketAcceptor socketAcceptor(Registry registry) {
-		return new GatewaySocketAcceptor(registry);
+	public GatewaySocketAcceptor socketAcceptor(Registry registry, GatewayRSocket rsocket) {
+		return new GatewaySocketAcceptor(registry, rsocket);
 	}
 
 	@Bean

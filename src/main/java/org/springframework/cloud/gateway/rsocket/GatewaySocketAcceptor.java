@@ -17,34 +17,31 @@
 
 package org.springframework.cloud.gateway.rsocket;
 
+import java.util.Collections;
+
 import io.rsocket.ConnectionSetupPayload;
 import io.rsocket.RSocket;
 import io.rsocket.SocketAcceptor;
 import reactor.core.publisher.Mono;
 
-import java.util.UUID;
-
 public class GatewaySocketAcceptor implements SocketAcceptor {
 
 	private final Registry registry;
+	private final RSocket proxyRSocket;
 
-	public GatewaySocketAcceptor(Registry registry) {
+	public GatewaySocketAcceptor(Registry registry, RSocket proxyRSocket) {
 		this.registry = registry;
+		this.proxyRSocket = proxyRSocket;
 	}
 
 	@Override
 	public Mono<RSocket> accept(ConnectionSetupPayload setup, RSocket sendingSocket) {
 
-		String id = null;
 		if (setup.hasMetadata()) { // and setup.metadataMimeType() is Announcement metadata
 			String annoucementMetadata = Metadata.decodeAnnouncement(setup.sliceMetadata());
-			//TODO: key generation
-			registry.put(annoucementMetadata, sendingSocket);
-			id = annoucementMetadata;
-		} else {
-			id = UUID.randomUUID().toString();
+			registry.register(Collections.singletonList(annoucementMetadata), sendingSocket);
 		}
 
-		return Mono.just(new GatewayRSocket(id, registry));
+		return Mono.just(proxyRSocket);
 	}
 }

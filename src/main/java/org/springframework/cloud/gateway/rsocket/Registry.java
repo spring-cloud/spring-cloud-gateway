@@ -21,22 +21,42 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 import io.rsocket.RSocket;
+import reactor.core.publisher.MonoProcessor;
 
+import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
+//TODO: name?
 public class Registry {
+
+	//TODO: List<MonoProcessor<RSocket>>
+	private final ConcurrentHashMap<String, MonoProcessor<RSocket>> pendingRequests = new ConcurrentHashMap<>();
 
 	//TODO: List<RSocket>
 	private ConcurrentHashMap<String, RSocket> rsockets = new ConcurrentHashMap<>();
 
-	public void put(String key, RSocket rsocket) {
-		rsockets.put(key, rsocket);
+	public void register(List<String> tags, RSocket rsocket) {
+		Assert.notEmpty(tags, "tags may not be empty");
+		rsockets.put(tags.get(0), rsocket);
 	}
 
-	public RSocket find(List<String> tags) {
+	public RSocket getRegistered(List<String> tags) {
 		if (CollectionUtils.isEmpty(tags)) {
 			return null;
 		}
 		return rsockets.get(tags.get(0));
 	}
+
+	public MonoProcessor<RSocket> getPendingRequests(List<String> tags) {
+		if (CollectionUtils.isEmpty(tags)) {
+			return null;
+		}
+		return this.pendingRequests.get(tags);
+	}
+
+	public void pendingRequest(List<String> tags, MonoProcessor<RSocket> processor) {
+		Assert.notEmpty(tags, "tags may not be empty");
+		this.pendingRequests.put(tags.get(0), processor);
+	}
+
 }

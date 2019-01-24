@@ -27,6 +27,7 @@ import org.apache.commons.logging.LogFactory;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.MonoProcessor;
 
 import org.springframework.util.CollectionUtils;
 
@@ -34,36 +35,99 @@ public class GatewayRSocket extends AbstractRSocket {
 
 	private static final Log log = LogFactory.getLog(GatewayRSocket.class);
 
-	private final String id;
 	private final Registry registry;
 
-	public GatewayRSocket(String id, Registry registry) {
-		this.id = id;
+	public GatewayRSocket(Registry registry) {
 		this.registry = registry;
 	}
 
 	@Override
+	public Mono<Void> fireAndForget(Payload payload) {
+		List<String> metadata = getRoutingMetadata(payload);
+		RSocket service = findRSocket(metadata);
+
+		if (service != null) {
+			return service.fireAndForget(payload);
+		}
+
+		MonoProcessor<RSocket> processor = MonoProcessor.create();
+		this.registry.pendingRequest(metadata, processor);
+
+		return processor
+				.flatMap(rSocket -> rSocket.fireAndForget(payload));
+	}
+
+	@Override
 	public Flux<Payload> requestChannel(Publisher<Payload> payloads) {
-		log.debug("Entering requestChannel: " + id);
 		return Flux.from(payloads)
-				// .log("gateway rc b4son1")
 				.switchOnFirst((signal, payloadFlux) -> {
-					if (signal.hasValue()) {
-						Payload payload = signal.get();
-
-						RSocket rsocket = discover(payload);
-
-						if (rsocket == null) {
-							return Flux.empty();
-						}
-						return rsocket.requestChannel(payloadFlux);
+					if (!signal.hasValue()) {
+						return payloadFlux;
 					}
-					return Flux.empty();
+
+					Payload payload = signal.get();
+					List<String> metadata = getRoutingMetadata(payload);
+					RSocket service = findRSocket(metadata);
+
+					if (service != null) {
+						return service.requestChannel(payloadFlux);
+					}
+
+					MonoProcessor<RSocket> processor = MonoProcessor.create();
+					this.registry.pendingRequest(metadata, processor);
+
+					return processor
+							.flatMapMany(rSocket -> rSocket.requestChannel(payloadFlux));
 				});
 	}
 
-	private RSocket discover(Payload payload) {
+	@Override
+	public Mono<Payload> requestResponse(Payload payload) {
+		List<String> metadata = getRoutingMetadata(payload);
+		RSocket service = findRSocket(metadata);
 
+		if (service != null) {
+			return service.requestResponse(payload);
+		}
+
+		MonoProcessor<RSocket> processor = MonoProcessor.create();
+		this.registry.pendingRequest(metadata, processor);
+
+		return processor
+				.flatMap(rSocket -> rSocket.requestResponse(payload));
+	}
+
+	@Override
+	public Flux<Payload> requestStream(Payload payload) {
+		List<String> metadata = getRoutingMetadata(payload);
+		RSocket service = findRSocket(metadata);
+
+		if (service != null) {
+			return service.requestStream(payload);
+		}
+
+		MonoProcessor<RSocket> processor = MonoProcessor.create();
+		this.registry.pendingRequest(metadata, processor);
+
+		return processor
+				.flatMapMany(rSocket -> rSocket.requestStream(payload));
+	}
+
+	private RSocket findRSocket(List<String> tags) {
+		if (tags == null) return null;
+
+		RSocket rsocket = registry.getRegistered(tags);
+
+		if (rsocket == null) {
+			log.debug("Unable to getRegistered destination RSocket for " + tags);
+		}
+		// TODO: deal with connecting to cluster?
+
+		// if not connected previously, initialize connection
+		return rsocket;
+	}
+
+	private List<String> getRoutingMetadata(Payload payload) {
 		if (payload == null || !payload.hasMetadata()) { // and metadata is routing
 			return null;
 		}
@@ -77,16 +141,7 @@ public class GatewayRSocket extends AbstractRSocket {
 		}
 
 		log.debug("discovered service " + tags);
-
-		RSocket rsocket = registry.find(tags);
-
-		if (rsocket == null) {
-			log.debug("Unable to find destination RSocket for " + tags);
-		}
-		// TODO: deal with connecting to cluster?
-
-		// if not connected previously, initialize connection
-		return rsocket;
+		return tags;
 	}
 }
 
