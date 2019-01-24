@@ -15,19 +15,29 @@
  *
  */
 
-package org.springframework.cloud.rsocket.springcloudgatewayrsocket;
+package org.springframework.cloud.gateway.rsocket;
 
-import io.rsocket.AbstractRSocket;
-import io.rsocket.Payload;
-import org.reactivestreams.Publisher;
-import reactor.core.publisher.Flux;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
-public class GatewayRSocket extends AbstractRSocket {
+import io.rsocket.RSocket;
+import reactor.core.publisher.Mono;
 
-	@Override
-	public Flux<Payload> requestChannel(Publisher<Payload> payloads) {
-		//TODO: implement requestChannel()
-		return super.requestChannel(payloads);
+import org.springframework.util.CollectionUtils;
+
+public class Registry {
+
+	//TODO: List<Mono<RSocket>>
+	private ConcurrentHashMap<String, Mono<RSocket>> rsockets = new ConcurrentHashMap<>();
+
+	public void put(String key, Mono<RSocket> rsocket) {
+		rsockets.put(key, rsocket);
+	}
+
+	public Mono<RSocket> find(List<String> tags) {
+		if (CollectionUtils.isEmpty(tags)) {
+			return Mono.empty();
+		}
+		return rsockets.get(tags.get(0));
 	}
 }
-

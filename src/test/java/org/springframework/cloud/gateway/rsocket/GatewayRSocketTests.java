@@ -15,7 +15,7 @@
  *
  */
 
-package org.springframework.cloud.rsocket.springcloudgatewayrsocket;
+package org.springframework.cloud.gateway.rsocket;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
