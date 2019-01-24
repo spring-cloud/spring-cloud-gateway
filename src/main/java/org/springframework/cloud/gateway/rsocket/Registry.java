@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 import io.rsocket.RSocket;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.MonoProcessor;
 
 import org.springframework.util.Assert;
@@ -28,6 +30,7 @@ import org.springframework.util.CollectionUtils;
 
 //TODO: name?
 public class Registry {
+	private static final Log log = LogFactory.getLog(Registry.class);
 
 	//TODO: List<MonoProcessor<RSocket>>
 	private final ConcurrentHashMap<String, MonoProcessor<RSocket>> pendingRequests = new ConcurrentHashMap<>();
@@ -37,6 +40,7 @@ public class Registry {
 
 	public void register(List<String> tags, RSocket rsocket) {
 		Assert.notEmpty(tags, "tags may not be empty");
+		log.debug("Registered RSocket: " + tags);
 		rsockets.put(tags.get(0), rsocket);
 	}
 
@@ -51,11 +55,17 @@ public class Registry {
 		if (CollectionUtils.isEmpty(tags)) {
 			return null;
 		}
-		return this.pendingRequests.get(tags);
+		MonoProcessor<RSocket> monoProcessor = this.pendingRequests.get(tags.get(0));
+		if (monoProcessor != null) {
+			log.debug("Found pending request: " + tags);
+			this.pendingRequests.remove(tags.get(0));
+		}
+		return monoProcessor;
 	}
 
 	public void pendingRequest(List<String> tags, MonoProcessor<RSocket> processor) {
 		Assert.notEmpty(tags, "tags may not be empty");
+		log.debug("Adding pending request: " + tags);
 		this.pendingRequests.put(tags.get(0), processor);
 	}
 

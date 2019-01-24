@@ -18,11 +18,13 @@
 package org.springframework.cloud.gateway.rsocket;
 
 import java.util.Collections;
+import java.util.List;
 
 import io.rsocket.ConnectionSetupPayload;
 import io.rsocket.RSocket;
 import io.rsocket.SocketAcceptor;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.MonoProcessor;
 
 public class GatewaySocketAcceptor implements SocketAcceptor {
 
@@ -39,7 +41,14 @@ public class GatewaySocketAcceptor implements SocketAcceptor {
 
 		if (setup.hasMetadata()) { // and setup.metadataMimeType() is Announcement metadata
 			String annoucementMetadata = Metadata.decodeAnnouncement(setup.sliceMetadata());
-			registry.register(Collections.singletonList(annoucementMetadata), sendingSocket);
+			List<String> tags = Collections.singletonList(annoucementMetadata);
+			registry.register(tags, sendingSocket);
+
+			MonoProcessor<RSocket> processor = this.registry.getPendingRequests(tags);
+			if (processor != null) {
+				processor.onNext(sendingSocket);
+				processor.onComplete();
+			}
 		}
 
 		return Mono.just(proxyRSocket);

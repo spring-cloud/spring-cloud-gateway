@@ -119,7 +119,7 @@ public class GatewayRSocket extends AbstractRSocket {
 		RSocket rsocket = registry.getRegistered(tags);
 
 		if (rsocket == null) {
-			log.debug("Unable to getRegistered destination RSocket for " + tags);
+			log.debug("Unable to find destination RSocket for " + tags);
 		}
 		// TODO: deal with connecting to cluster?
 
@@ -140,7 +140,7 @@ public class GatewayRSocket extends AbstractRSocket {
 			return null;
 		}
 
-		log.debug("discovered service " + tags);
+		log.debug("found routing metadata " + tags);
 		return tags;
 	}
 }
