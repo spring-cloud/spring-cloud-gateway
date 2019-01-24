@@ -39,7 +39,7 @@ public class GatewaySocketAcceptor implements SocketAcceptor {
 		if (setup.hasMetadata()) { // and setup.metadataMimeType() is Announcement metadata
 			String annoucementMetadata = Metadata.decodeAnnouncement(setup.sliceMetadata());
 			//TODO: key generation
-			registry.put(annoucementMetadata, Mono.just(sendingSocket));
+			registry.put(annoucementMetadata, sendingSocket);
 			id = annoucementMetadata;
 		} else {
 			id = UUID.randomUUID().toString();

@@ -21,22 +21,21 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 import io.rsocket.RSocket;
-import reactor.core.publisher.Mono;
 
 import org.springframework.util.CollectionUtils;
 
 public class Registry {
 
-	//TODO: List<Mono<RSocket>>
-	private ConcurrentHashMap<String, Mono<RSocket>> rsockets = new ConcurrentHashMap<>();
+	//TODO: List<RSocket>
+	private ConcurrentHashMap<String, RSocket> rsockets = new ConcurrentHashMap<>();
 
-	public void put(String key, Mono<RSocket> rsocket) {
+	public void put(String key, RSocket rsocket) {
 		rsockets.put(key, rsocket);
 	}
 
-	public Mono<RSocket> find(List<String> tags) {
+	public RSocket find(List<String> tags) {
 		if (CollectionUtils.isEmpty(tags)) {
-			return Mono.empty();
+			return null;
 		}
 		return rsockets.get(tags.get(0));
 	}

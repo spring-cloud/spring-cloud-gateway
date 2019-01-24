@@ -51,20 +51,21 @@ public class GatewayRSocket extends AbstractRSocket {
 					if (signal.hasValue()) {
 						Payload payload = signal.get();
 
-						Mono<RSocket> rsocket = discover(payload);
+						RSocket rsocket = discover(payload);
 
-						return rsocket//.log("gateway rc discovered rsocket")
-								.flatMapMany(rSocket -> rSocket.requestChannel(payloadFlux));
-						// .log("gateway rc proxy rc"));
+						if (rsocket == null) {
+							return Flux.empty();
+						}
+						return rsocket.requestChannel(payloadFlux);
 					}
 					return Flux.empty();
 				});
 	}
 
-	private Mono<RSocket> discover(Payload payload) {
+	private RSocket discover(Payload payload) {
 
 		if (payload == null || !payload.hasMetadata()) { // and metadata is routing
-			return Mono.empty();
+			return null;
 		}
 
 		// TODO: deal with composite metadata
@@ -72,13 +73,16 @@ public class GatewayRSocket extends AbstractRSocket {
 		List<String> tags = Metadata.decodeRouting(payload.sliceMetadata());
 
 		if (CollectionUtils.isEmpty(tags)) {
-			return Mono.empty();
+			return null;
 		}
 
 		log.debug("discovered service " + tags);
 
-		Mono<RSocket> rsocket = registry.find(tags);
+		RSocket rsocket = registry.find(tags);
 
+		if (rsocket == null) {
+			log.debug("Unable to find destination RSocket for " + tags);
+		}
 		// TODO: deal with connecting to cluster?
 
 		// if not connected previously, initialize connection
