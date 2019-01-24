@@ -46,6 +46,7 @@ public class GatewaySocketAcceptor implements SocketAcceptor {
 
 			MonoProcessor<RSocket> processor = this.registry.getPendingRequests(tags);
 			if (processor != null) {
+				processor.log("resume-pending-request");
 				processor.onNext(sendingSocket);
 				processor.onComplete();
 			}

@@ -54,6 +54,7 @@ public class GatewayRSocket extends AbstractRSocket {
 		this.registry.pendingRequest(metadata, processor);
 
 		return processor
+				.log("pending-request")
 				.flatMap(rSocket -> rSocket.fireAndForget(payload));
 	}
 
@@ -77,6 +78,7 @@ public class GatewayRSocket extends AbstractRSocket {
 					this.registry.pendingRequest(metadata, processor);
 
 					return processor
+							.log("pending-request")
 							.flatMapMany(rSocket -> rSocket.requestChannel(payloadFlux));
 				});
 	}
@@ -94,6 +96,7 @@ public class GatewayRSocket extends AbstractRSocket {
 		this.registry.pendingRequest(metadata, processor);
 
 		return processor
+				.log("pending-request")
 				.flatMap(rSocket -> rSocket.requestResponse(payload));
 	}
 
@@ -110,6 +113,7 @@ public class GatewayRSocket extends AbstractRSocket {
 		this.registry.pendingRequest(metadata, processor);
 
 		return processor
+				.log("pending-request")
 				.flatMapMany(rSocket -> rSocket.requestStream(payload));
 	}
 

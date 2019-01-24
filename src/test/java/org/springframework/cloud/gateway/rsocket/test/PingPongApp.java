@@ -106,7 +106,8 @@ public class PingPongApp {
 
 		@Override
 		public int getOrder() {
-			return 0;
+			// return 0;
+			return HIGHEST_PRECEDENCE;
 		}
 
 		@Override
@@ -156,16 +157,12 @@ public class PingPongApp {
 
 		@Override
 		public int getOrder() {
-			return Ordered.LOWEST_PRECEDENCE;
+			// return Ordered.LOWEST_PRECEDENCE;
+			return 0;
 		}
 
 		@Override
 		public void onApplicationEvent(ApplicationReadyEvent event) {
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
 			log.info("Starting Ping"+id);
 			MicrometerRSocketInterceptor interceptor = new MicrometerRSocketInterceptor(meterRegistry, Tag.of("component", "ping"));
 			ByteBuf announcementMetadata = Metadata.encodeAnnouncement("ping");
@@ -183,6 +180,7 @@ public class PingPongApp {
 												ByteBuf routingMetadata = Metadata.encodeRouting("pong");
 												return DefaultPayload.create(data, routingMetadata);
 											})
+									.onBackpressureDrop(payload -> log.debug("Dropped payload " + payload.getDataUtf8())) // this is needed in case pong is not available yet
 							).map(Payload::getDataUtf8)
 									.doOnNext(str -> log.info("received " + str + " in Ping"+id))
 									// .take(10)
@@ -201,11 +199,17 @@ public class PingPongApp {
 
 		@Override
 		public int getOrder() {
+			// return 1;
 			return 1;
 		}
 
 		@Override
 		public void onApplicationEvent(ApplicationReadyEvent event) {
+			try {
+				Thread.sleep(5000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 			log.info("Starting Pong");
 			MicrometerRSocketInterceptor interceptor = new MicrometerRSocketInterceptor(meterRegistry, Tag.of("component", "pong"));
 			ByteBuf announcementMetadata = Metadata.encodeAnnouncement("pong");
