@@ -18,7 +18,6 @@
 package org.springframework.cloud.gateway.rsocket;
 
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 
 import io.rsocket.RSocket;
 import org.apache.commons.logging.Log;
@@ -27,36 +26,35 @@ import reactor.core.publisher.MonoProcessor;
 
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.MultiValueMap;
 
 //TODO: name?
 public class Registry {
 	private static final Log log = LogFactory.getLog(Registry.class);
 
-	//TODO: List<MonoProcessor<RSocket>>
-	private final ConcurrentHashMap<String, MonoProcessor<RSocket>> pendingRequests = new ConcurrentHashMap<>();
+	private final MultiValueMap<String, MonoProcessor<RSocket>> pendingRequests = new ConcurrentMultiValueMap<>();
 
-	//TODO: List<RSocket>
-	private ConcurrentHashMap<String, RSocket> rsockets = new ConcurrentHashMap<>();
+	private final MultiValueMap<String, RSocket> rsockets = new ConcurrentMultiValueMap<>();
 
 	public void register(List<String> tags, RSocket rsocket) {
 		Assert.notEmpty(tags, "tags may not be empty");
 		log.debug("Registered RSocket: " + tags);
-		rsockets.put(tags.get(0), rsocket);
+		rsockets.add(tags.get(0), rsocket);
 	}
 
-	public RSocket getRegistered(List<String> tags) {
+	public List<RSocket> getRegistered(List<String> tags) {
 		if (CollectionUtils.isEmpty(tags)) {
 			return null;
 		}
 		return rsockets.get(tags.get(0));
 	}
 
-	public MonoProcessor<RSocket> getPendingRequests(List<String> tags) {
+	public List<MonoProcessor<RSocket>> getPendingRequests(List<String> tags) {
 		if (CollectionUtils.isEmpty(tags)) {
 			return null;
 		}
-		MonoProcessor<RSocket> monoProcessor = this.pendingRequests.get(tags.get(0));
-		if (monoProcessor != null) {
+		List<MonoProcessor<RSocket>> monoProcessor = this.pendingRequests.get(tags.get(0));
+		if (!CollectionUtils.isEmpty(monoProcessor)) {
 			log.debug("Found pending request: " + tags);
 			this.pendingRequests.remove(tags.get(0));
 		}
@@ -66,7 +64,7 @@ public class Registry {
 	public void pendingRequest(List<String> tags, MonoProcessor<RSocket> processor) {
 		Assert.notEmpty(tags, "tags may not be empty");
 		log.debug("Adding pending request: " + tags);
-		this.pendingRequests.put(tags.get(0), processor);
+		this.pendingRequests.add(tags.get(0), processor);
 	}
 
 }

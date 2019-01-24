@@ -50,6 +50,7 @@ public class GatewayRSocket extends AbstractRSocket {
 			return service.fireAndForget(payload);
 		}
 
+		//TODO: handle concurrency issues
 		MonoProcessor<RSocket> processor = MonoProcessor.create();
 		this.registry.pendingRequest(metadata, processor);
 
@@ -120,12 +121,16 @@ public class GatewayRSocket extends AbstractRSocket {
 	private RSocket findRSocket(List<String> tags) {
 		if (tags == null) return null;
 
-		RSocket rsocket = registry.getRegistered(tags);
+		List<RSocket> rsockets = registry.getRegistered(tags);
 
-		if (rsocket == null) {
+		if (CollectionUtils.isEmpty(rsockets)) {
 			log.debug("Unable to find destination RSocket for " + tags);
+			return null;
 		}
 		// TODO: deal with connecting to cluster?
+
+		// TODO: load balancing
+		RSocket rsocket = rsockets.get(0);
 
 		// if not connected previously, initialize connection
 		return rsocket;
