@@ -111,9 +111,6 @@ following command:
 The generated eclipse projects can be imported by selecting `import existing projects`
 from the `file` menu.
 
-
-
-Unresolved directive in README.adoc - include::https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/master/docs/src/main/asciidoc/building-lombok.adoc[]
 == Contributing
 
 Spring Cloud is released under the non-restrictive Apache 2.0 license,
