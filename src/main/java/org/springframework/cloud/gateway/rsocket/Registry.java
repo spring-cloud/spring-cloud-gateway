@@ -20,10 +20,13 @@ package org.springframework.cloud.gateway.rsocket;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 import io.rsocket.RSocket;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import reactor.core.Disposable;
+import reactor.core.publisher.EmitterProcessor;
 import reactor.core.publisher.MonoProcessor;
 
 import org.springframework.util.Assert;
@@ -34,10 +37,9 @@ import org.springframework.util.MultiValueMap;
 public class Registry {
 	private static final Log log = LogFactory.getLog(Registry.class);
 
-	//TODO: replace with PendingRequestRSocket
-	private final MultiValueMap<String, MonoProcessor<RSocket>> pendingRequests = new ConcurrentMultiValueMap<>();
-
 	private final Map<String, LoadBalancedRSocket> rsockets = new ConcurrentHashMap<>();
+
+	private final EmitterProcessor<RegisteredEvent> registeredEvents = EmitterProcessor.create();
 
 	public void register(List<String> tags, RSocket rsocket) {
 		Assert.notEmpty(tags, "tags may not be empty");
@@ -45,6 +47,7 @@ public class Registry {
 		log.debug("Registered RSocket: " + tags);
 		LoadBalancedRSocket composite = rsockets.computeIfAbsent(tags.get(0), s -> new LoadBalancedRSocket());
 		composite.addRSocket(rsocket);
+		registeredEvents.onNext(new RegisteredEvent(tags, rsocket));
 	}
 
 	public RSocket getRegistered(List<String> tags) {
@@ -54,22 +57,35 @@ public class Registry {
 		return rsockets.get(tags.get(0));
 	}
 
-	public List<MonoProcessor<RSocket>> getPendingRequests(List<String> tags) {
-		if (CollectionUtils.isEmpty(tags)) {
-			return null;
-		}
-		List<MonoProcessor<RSocket>> monoProcessor = this.pendingRequests.get(tags.get(0));
-		if (!CollectionUtils.isEmpty(monoProcessor)) {
-			log.debug("Found pending request: " + tags);
-			this.pendingRequests.remove(tags.get(0));
-		}
-		return monoProcessor;
+	public Disposable addListener(Consumer<RegisteredEvent> consumer) {
+		return this.registeredEvents.subscribe(consumer);
 	}
 
-	public void pendingRequest(List<String> tags, MonoProcessor<RSocket> processor) {
-		Assert.notEmpty(tags, "tags may not be empty");
-		log.debug("Adding pending request: " + tags);
-		this.pendingRequests.add(tags.get(0), processor);
-	}
+	public static class RegisteredEvent {
+		private final List<String> routingMetadata;
+		private final RSocket rSocket;
 
+		public RegisteredEvent(List<String> routingMetadata, RSocket rSocket) {
+			Assert.notEmpty(routingMetadata, "routingMetadata may not be empty");
+			Assert.notNull(rSocket, "RSocket may not be null");
+			this.routingMetadata = routingMetadata;
+			this.rSocket = rSocket;
+		}
+
+		public List<String> getRoutingMetadata() {
+			return routingMetadata;
+		}
+
+		public RSocket getRSocket() {
+			return rSocket;
+		}
+
+		public boolean matches(List<String> otherRoutingMetadata) {
+			if (!CollectionUtils.isEmpty(otherRoutingMetadata)) {
+				//TODO: key generation
+				return this.routingMetadata.get(0).equals(otherRoutingMetadata.get(0));
+			}
+			return false;
+		}
+	}
 }
