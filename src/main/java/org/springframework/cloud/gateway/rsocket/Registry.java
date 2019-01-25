@@ -18,6 +18,8 @@
 package org.springframework.cloud.gateway.rsocket;
 
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import io.rsocket.RSocket;
 import org.apache.commons.logging.Log;
@@ -32,17 +34,20 @@ import org.springframework.util.MultiValueMap;
 public class Registry {
 	private static final Log log = LogFactory.getLog(Registry.class);
 
+	//TODO: replace with PendingRequestRSocket
 	private final MultiValueMap<String, MonoProcessor<RSocket>> pendingRequests = new ConcurrentMultiValueMap<>();
 
-	private final MultiValueMap<String, RSocket> rsockets = new ConcurrentMultiValueMap<>();
+	private final Map<String, LoadBalancedRSocket> rsockets = new ConcurrentHashMap<>();
 
 	public void register(List<String> tags, RSocket rsocket) {
 		Assert.notEmpty(tags, "tags may not be empty");
+		Assert.notNull(rsocket, "RSocket may not be null");
 		log.debug("Registered RSocket: " + tags);
-		rsockets.add(tags.get(0), rsocket);
+		LoadBalancedRSocket composite = rsockets.computeIfAbsent(tags.get(0), s -> new LoadBalancedRSocket());
+		composite.addRSocket(rsocket);
 	}
 
-	public List<RSocket> getRegistered(List<String> tags) {
+	public RSocket getRegistered(List<String> tags) {
 		if (CollectionUtils.isEmpty(tags)) {
 			return null;
 		}

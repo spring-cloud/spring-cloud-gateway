@@ -121,18 +121,13 @@ public class GatewayRSocket extends AbstractRSocket {
 	private RSocket findRSocket(List<String> tags) {
 		if (tags == null) return null;
 
-		List<RSocket> rsockets = registry.getRegistered(tags);
+		RSocket rsocket = registry.getRegistered(tags);
 
-		if (CollectionUtils.isEmpty(rsockets)) {
+		if (rsocket == null) {
 			log.debug("Unable to find destination RSocket for " + tags);
-			return null;
 		}
 		// TODO: deal with connecting to cluster?
 
-		// TODO: load balancing
-		RSocket rsocket = rsockets.get(0);
-
-		// if not connected previously, initialize connection
 		return rsocket;
 	}
 
