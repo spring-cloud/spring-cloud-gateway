@@ -27,9 +27,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.jetbrains.annotations.NotNull;
+import reactor.core.publisher.Mono;
+
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cloud.gateway.event.PredicateArgsEvent;
+import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
 import org.springframework.cloud.gateway.event.WeightDefinedEvent;
+import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.support.ConfigurationUtils;
 import org.springframework.cloud.gateway.support.WeightConfig;
 import org.springframework.context.ApplicationEvent;
@@ -43,8 +47,6 @@ import org.springframework.web.server.WebFilterChain;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.WEIGHT_ATTR;
 
-import reactor.core.publisher.Mono;
-
 /**
  * @author Spencer Gibb
  */
@@ -55,17 +57,24 @@ public class WeightCalculatorWebFilter implements WebFilter, Ordered, SmartAppli
 	public static final int WEIGHT_CALC_FILTER_ORDER = 10001;
 
 	private final Validator validator;
+	private final ObjectProvider<RouteLocator> routeLocator;
 	private Random random = new Random();
 	private int order = WEIGHT_CALC_FILTER_ORDER;
 
 	private Map<String, GroupWeightConfig> groupWeights = new ConcurrentHashMap<>();
 
 	/* for testing */ WeightCalculatorWebFilter() {
-		this(null);
+		this(null, null);
 	}
 
+	@Deprecated
 	public WeightCalculatorWebFilter(Validator validator) {
+		this(validator, null);
+	}
+
+	public WeightCalculatorWebFilter(Validator validator, ObjectProvider<RouteLocator> routeLocator) {
 		this.validator = validator;
+		this.routeLocator = routeLocator;
 	}
 
 	@Override
@@ -84,7 +93,8 @@ public class WeightCalculatorWebFilter implements WebFilter, Ordered, SmartAppli
 	@Override
 	public boolean supportsEventType(Class<? extends ApplicationEvent> eventType) {
 		return PredicateArgsEvent.class.isAssignableFrom(eventType) || // config file
-				WeightDefinedEvent.class.isAssignableFrom(eventType);  // java dsl
+				WeightDefinedEvent.class.isAssignableFrom(eventType) ||  // java dsl
+				RefreshRoutesEvent.class.isAssignableFrom(eventType); // force initialization
 	}
 
 	@Override
@@ -98,6 +108,8 @@ public class WeightCalculatorWebFilter implements WebFilter, Ordered, SmartAppli
 			handle((PredicateArgsEvent) event);
 		} else if (event instanceof WeightDefinedEvent) {
 			addWeightConfig(((WeightDefinedEvent)event).getWeightConfig());
+		} else if (event instanceof RefreshRoutesEvent && routeLocator != null) {
+			routeLocator.ifAvailable(locator -> locator.getRoutes().subscribe()); // forces initialization
 		}
 
 	}
@@ -197,7 +209,6 @@ public class WeightCalculatorWebFilter implements WebFilter, Ordered, SmartAppli
 		return chain.filter(exchange);
 	}
 
-	@NotNull
 	/* for testing */ static Map<String, String> getWeights(ServerWebExchange exchange) {
 		Map<String, String> weights = exchange.getAttribute(WEIGHT_ATTR);
 
