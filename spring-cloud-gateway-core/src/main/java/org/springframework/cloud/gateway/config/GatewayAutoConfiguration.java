@@ -392,8 +392,8 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	public WeightCalculatorWebFilter weightCalculatorWebFilter(Validator validator) {
-		return new WeightCalculatorWebFilter(validator);
+	public WeightCalculatorWebFilter weightCalculatorWebFilter(Validator validator, ObjectProvider<RouteLocator> routeLocator) {
+		return new WeightCalculatorWebFilter(validator, routeLocator);
 	}
 
 	/*@Bean
