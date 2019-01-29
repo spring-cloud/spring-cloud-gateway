@@ -57,8 +57,13 @@ import static io.netty.buffer.Unpooled.EMPTY_BUFFER;
 public class PingPongApp {
 
 	@Bean
-	public Ping ping() {
-		return new Ping();
+	public Ping ping1() {
+		return new Ping("1");
+	}
+
+	@Bean
+	public Ping ping2() {
+		return new Ping("2");
 	}
 
 	@Bean

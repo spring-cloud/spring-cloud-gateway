@@ -24,9 +24,6 @@ import io.rsocket.ConnectionSetupPayload;
 import io.rsocket.RSocket;
 import io.rsocket.SocketAcceptor;
 import reactor.core.publisher.Mono;
-import reactor.core.publisher.MonoProcessor;
-
-import org.springframework.util.CollectionUtils;
 
 public class GatewaySocketAcceptor implements SocketAcceptor {
 
@@ -45,15 +42,6 @@ public class GatewaySocketAcceptor implements SocketAcceptor {
 			String annoucementMetadata = Metadata.decodeAnnouncement(setup.sliceMetadata());
 			List<String> tags = Collections.singletonList(annoucementMetadata);
 			registry.register(tags, sendingSocket);
-
-			List<MonoProcessor<RSocket>> processors = this.registry.getPendingRequests(tags);
-			if (!CollectionUtils.isEmpty(processors)) {
-				processors.forEach(processor -> {
-					processor.log("resume-pending-request");
-					processor.onNext(sendingSocket);
-					processor.onComplete();
-				});
-			}
 		}
 
 		return Mono.just(proxyRSocket);

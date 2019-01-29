@@ -27,7 +27,6 @@ import org.apache.commons.logging.LogFactory;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.core.publisher.MonoProcessor;
 
 import org.springframework.util.CollectionUtils;
 
@@ -43,20 +42,8 @@ public class GatewayRSocket extends AbstractRSocket {
 
 	@Override
 	public Mono<Void> fireAndForget(Payload payload) {
-		List<String> metadata = getRoutingMetadata(payload);
-		RSocket service = findRSocket(metadata);
-
-		if (service != null) {
-			return service.fireAndForget(payload);
-		}
-
-		//TODO: handle concurrency issues
-		MonoProcessor<RSocket> processor = MonoProcessor.create();
-		this.registry.pendingRequest(metadata, processor);
-
-		return processor
-				.log("pending-request")
-				.flatMap(rSocket -> rSocket.fireAndForget(payload));
+		RSocket service = findRSocket(payload);
+		return service.fireAndForget(payload);
 	}
 
 	@Override
@@ -67,59 +54,38 @@ public class GatewayRSocket extends AbstractRSocket {
 						return payloadFlux;
 					}
 
-					Payload payload = signal.get();
-					List<String> metadata = getRoutingMetadata(payload);
-					RSocket service = findRSocket(metadata);
-
-					if (service != null) {
-						return service.requestChannel(payloadFlux);
-					}
-
-					MonoProcessor<RSocket> processor = MonoProcessor.create();
-					this.registry.pendingRequest(metadata, processor);
-
-					return processor
-							.log("pending-request")
-							.flatMapMany(rSocket -> rSocket.requestChannel(payloadFlux));
+					RSocket service = findRSocket(signal.get());
+					return service.requestChannel(payloadFlux);
 				});
 	}
 
 	@Override
 	public Mono<Payload> requestResponse(Payload payload) {
-		List<String> metadata = getRoutingMetadata(payload);
-		RSocket service = findRSocket(metadata);
-
-		if (service != null) {
-			return service.requestResponse(payload);
-		}
-
-		MonoProcessor<RSocket> processor = MonoProcessor.create();
-		this.registry.pendingRequest(metadata, processor);
-
-		return processor
-				.log("pending-request")
-				.flatMap(rSocket -> rSocket.requestResponse(payload));
+		RSocket service = findRSocket(payload);
+		return service.requestResponse(payload);
 	}
 
 	@Override
 	public Flux<Payload> requestStream(Payload payload) {
+		RSocket service = findRSocket(payload);
+		return service.requestStream(payload);
+	}
+
+	private RSocket findRSocket(Payload payload) {
 		List<String> metadata = getRoutingMetadata(payload);
 		RSocket service = findRSocket(metadata);
 
-		if (service != null) {
-			return service.requestStream(payload);
+		if (service == null) {
+			PendingRequestRSocket pending = new PendingRequestRSocket(metadata);
+			this.registry.addListener(pending); //TODO: deal with removing?
+			service = pending;
 		}
 
-		MonoProcessor<RSocket> processor = MonoProcessor.create();
-		this.registry.pendingRequest(metadata, processor);
-
-		return processor
-				.log("pending-request")
-				.flatMapMany(rSocket -> rSocket.requestStream(payload));
+		return service;
 	}
 
 	private RSocket findRSocket(List<String> tags) {
-		if (tags == null) return null;
+		if (tags == null) return null; //TODO: error
 
 		RSocket rsocket = registry.getRegistered(tags);
 
