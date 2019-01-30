@@ -26,18 +26,26 @@ import io.rsocket.RSocket;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import reactor.core.Disposable;
-import reactor.core.publisher.EmitterProcessor;
+import reactor.core.publisher.DirectProcessor;
+import reactor.core.publisher.FluxSink;
 
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
+/**
+ * The Registry handles all RSocket connections that have been made that have associated
+ * announcement metadata. RSocket connections can then be found based on routing metadata.
+ * When a new RSocket is registered, a RegisteredEvent is pushed onto a DirectProcessor
+ * that is acting as an event bus for registered Consumers.
+ */
 //TODO: name?
 public class Registry {
 	private static final Log log = LogFactory.getLog(Registry.class);
 
 	private final Map<String, LoadBalancedRSocket> rsockets = new ConcurrentHashMap<>();
 
-	private final EmitterProcessor<RegisteredEvent> registeredEvents = EmitterProcessor.create();
+	private final DirectProcessor<RegisteredEvent> registeredEvents = DirectProcessor.create();
+	private final FluxSink<RegisteredEvent> registeredEventsSink = registeredEvents.sink(FluxSink.OverflowStrategy.DROP);
 
 	public void register(List<String> tags, RSocket rsocket) {
 		Assert.notEmpty(tags, "tags may not be empty");
@@ -45,7 +53,7 @@ public class Registry {
 		log.debug("Registered RSocket: " + tags);
 		LoadBalancedRSocket composite = rsockets.computeIfAbsent(tags.get(0), s -> new LoadBalancedRSocket());
 		composite.addRSocket(rsocket);
-		registeredEvents.onNext(new RegisteredEvent(tags, rsocket));
+		registeredEventsSink.next(new RegisteredEvent(tags, rsocket));
 	}
 
 	public RSocket getRegistered(List<String> tags) {
