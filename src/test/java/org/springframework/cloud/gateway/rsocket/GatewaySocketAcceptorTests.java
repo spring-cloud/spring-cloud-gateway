@@ -218,18 +218,4 @@ public class GatewaySocketAcceptorTests {
 		}
 	}*/
 
-
-	private static class StubWebHandler extends SocketAcceptorExchange {
-
-		private volatile boolean invoked;
-
-		public StubWebHandler() {
-			super(mock(ConnectionSetupPayload.class), mock(RSocket.class));
-		}
-
-		public boolean invoked() {
-			return this.invoked;
-		}
-	}
-
 }

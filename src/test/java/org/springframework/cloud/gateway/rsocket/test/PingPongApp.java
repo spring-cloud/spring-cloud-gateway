@@ -45,6 +45,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.cloud.gateway.rsocket.GatewayRSocket;
+import org.springframework.cloud.gateway.rsocket.GatewayRSocket.GatewayFilter;
 import org.springframework.cloud.gateway.rsocket.GatewaySocketAcceptor;
 import org.springframework.cloud.gateway.rsocket.GatewaySocketAcceptor.SocketAcceptorFilter;
 import org.springframework.cloud.gateway.rsocket.Metadata;
@@ -106,8 +107,8 @@ public class PingPongApp {
 
 	//TODO: move to auto-configuration
 	@Bean
-	public GatewayRSocket gatewayRSocket(Registry registry) {
-		return new GatewayRSocket(registry);
+	public GatewayRSocket gatewayRSocket(Registry registry, List<GatewayFilter> filters) {
+		return new GatewayRSocket(registry, filters);
 	}
 
 	//TODO: move to auto-configuration
