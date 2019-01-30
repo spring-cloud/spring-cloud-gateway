@@ -18,6 +18,7 @@
 package org.springframework.cloud.gateway.rsocket.test;
 
 import java.time.Duration;
+import java.util.List;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
@@ -45,8 +46,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.cloud.gateway.rsocket.GatewayRSocket;
 import org.springframework.cloud.gateway.rsocket.GatewaySocketAcceptor;
+import org.springframework.cloud.gateway.rsocket.GatewaySocketAcceptor.SocketAcceptorFilter;
 import org.springframework.cloud.gateway.rsocket.Metadata;
 import org.springframework.cloud.gateway.rsocket.Registry;
+import org.springframework.cloud.gateway.rsocket.RegistrySocketAcceptorFilter;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.Ordered;
@@ -77,6 +80,31 @@ public class PingPongApp {
 		return new Registry();
 	}
 
+	//TODO: move to auto-configuration
+	@Bean
+	public RegistrySocketAcceptorFilter registrySocketAcceptorFilter(Registry registry) {
+		return new RegistrySocketAcceptorFilter(registry);
+	}
+
+	@Bean
+	public MySocketAcceptorFilter mySocketAcceptorFilter() {
+		return new MySocketAcceptorFilter();
+	}
+
+	static class MySocketAcceptorFilter implements SocketAcceptorFilter, Ordered {
+		@Override
+		public Mono<Void> filter(GatewaySocketAcceptor.SocketAcceptorExchange exchange, GatewaySocketAcceptor.SocketAcceptorFilterChain chain) {
+			System.out.println("mySocketAcceptorFilter");
+			return chain.filter(exchange);
+		}
+
+		@Override
+		public int getOrder() {
+			return 0;
+		}
+	}
+
+	//TODO: move to auto-configuration
 	@Bean
 	public GatewayRSocket gatewayRSocket(Registry registry) {
 		return new GatewayRSocket(registry);
@@ -84,8 +112,8 @@ public class PingPongApp {
 
 	//TODO: move to auto-configuration
 	@Bean
-	public GatewaySocketAcceptor socketAcceptor(Registry registry, GatewayRSocket rsocket) {
-		return new GatewaySocketAcceptor(registry, rsocket);
+	public GatewaySocketAcceptor socketAcceptor(GatewayRSocket rsocket, List<SocketAcceptorFilter> filters) {
+		return new GatewaySocketAcceptor(rsocket, filters);
 	}
 
 	@Bean
