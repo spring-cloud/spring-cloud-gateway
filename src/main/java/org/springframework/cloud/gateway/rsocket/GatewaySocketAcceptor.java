@@ -45,10 +45,8 @@ public class GatewaySocketAcceptor implements SocketAcceptor {
 
 		return this.filterChain.filter(exchange)
 				.log("socket acceptor filter chain")
-				.map(aVoid -> this.proxyRSocket)
-				// filter chain should always return empty
-				// TODO: is there a better way?
-				.switchIfEmpty(Mono.just(this.proxyRSocket));
+				.filter(bool -> bool)
+				.map(bool -> this.proxyRSocket);
 	}
 
 	public interface SocketAcceptorFilter extends RSocketFilter<SocketAcceptorExchange, SocketAcceptorFilterChain> {}

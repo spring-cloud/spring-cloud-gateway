@@ -37,5 +37,6 @@ public interface RSocketFilter<E extends RSocketExchange, FC extends FilterChain
 	 * @param chain provides a way to delegate to the next filter
 	 * @return {@code Mono<Void>} to indicate when request processing is complete
 	 */
-	Mono<Void> filter(E exchange, FC chain);
+	//TODO: consider a single value enum rather than boolean
+	Mono<Boolean> filter(E exchange, FC chain);
 }

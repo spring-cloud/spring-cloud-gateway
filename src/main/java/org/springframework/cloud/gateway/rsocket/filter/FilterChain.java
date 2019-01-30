@@ -31,5 +31,5 @@ public interface FilterChain<E extends RSocketExchange> {
 	 * @param exchange the current server exchange
 	 * @return {@code Mono<Void>} to indicate when request handling is complete
 	 */
-	Mono<Void> filter(E exchange);
+	Mono<Boolean> filter(E exchange);
 }

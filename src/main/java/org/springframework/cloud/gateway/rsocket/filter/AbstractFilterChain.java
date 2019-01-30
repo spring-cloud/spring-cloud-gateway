@@ -94,16 +94,12 @@ public abstract class AbstractFilterChain<F extends RSocketFilter, E extends RSo
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public Mono<Void> filter(E exchange) {
+	public Mono<Boolean> filter(E exchange) {
 		return Mono.defer(() ->
 				this.currentFilter != null && this.next != null ?
 						this.currentFilter.filter(exchange, this.next) :
-						notEmpty());
+						MONO_TRUE);
 	}
 
-	private static final Mono<Void> INSTANCE = Mono.just("notempty").then();
-
-	private static Mono<Void> notEmpty() {
-		return INSTANCE;
-	}
+	private static final Mono<Boolean> MONO_TRUE = Mono.just(true);
 }
