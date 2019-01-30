@@ -36,7 +36,7 @@ public class RegistrySocketAcceptorFilter implements SocketAcceptorFilter, Order
 	}
 
 	@Override
-	public Mono<Boolean> filter(SocketAcceptorExchange exchange, SocketAcceptorFilterChain chain) {
+	public Mono<Success> filter(SocketAcceptorExchange exchange, SocketAcceptorFilterChain chain) {
 		ConnectionSetupPayload setup = exchange.getSetup();
 		if (setup.hasMetadata()) { // and setup.metadataMimeType() is Announcement metadata
 			String annoucementMetadata = Metadata.decodeAnnouncement(setup.sliceMetadata());

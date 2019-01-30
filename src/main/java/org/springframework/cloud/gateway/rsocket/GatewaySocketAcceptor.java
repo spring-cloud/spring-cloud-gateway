@@ -45,7 +45,6 @@ public class GatewaySocketAcceptor implements SocketAcceptor {
 
 		return this.filterChain.filter(exchange)
 				.log("socket acceptor filter chain")
-				.filter(bool -> bool)
 				.map(bool -> this.proxyRSocket);
 	}
 

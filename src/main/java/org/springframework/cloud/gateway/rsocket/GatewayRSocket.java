@@ -92,7 +92,6 @@ public class GatewayRSocket extends AbstractRSocket {
 
 		return this.filterChain.filter(exchange)
 				.log("gateway filter chain")
-				.filter(bool -> bool)
 				.map(bool -> rSocket);
 	}
 

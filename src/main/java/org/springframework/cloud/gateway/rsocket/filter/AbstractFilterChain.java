@@ -23,6 +23,7 @@ import java.util.ListIterator;
 
 import reactor.core.publisher.Mono;
 
+import org.springframework.cloud.gateway.rsocket.filter.RSocketFilter.Success;
 import org.springframework.lang.Nullable;
 
 /**
@@ -94,12 +95,12 @@ public abstract class AbstractFilterChain<F extends RSocketFilter, E extends RSo
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public Mono<Boolean> filter(E exchange) {
+	public Mono<Success> filter(E exchange) {
 		return Mono.defer(() ->
 				this.currentFilter != null && this.next != null ?
 						this.currentFilter.filter(exchange, this.next) :
-						MONO_TRUE);
+						MONO_SUCCESS);
 	}
 
-	private static final Mono<Boolean> MONO_TRUE = Mono.just(true);
+	private static final Mono<Success> MONO_SUCCESS = Mono.just(Success.INSTANCE);
 }

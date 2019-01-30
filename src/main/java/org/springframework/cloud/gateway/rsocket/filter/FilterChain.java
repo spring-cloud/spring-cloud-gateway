@@ -19,6 +19,8 @@ package org.springframework.cloud.gateway.rsocket.filter;
 
 import reactor.core.publisher.Mono;
 
+import org.springframework.cloud.gateway.rsocket.filter.RSocketFilter.Success;
+
 /**
  * Contract to allow a {@link RSocketFilter} to delegate to the next in the chain.
  *
@@ -31,5 +33,5 @@ public interface FilterChain<E extends RSocketExchange> {
 	 * @param exchange the current server exchange
 	 * @return {@code Mono<Void>} to indicate when request handling is complete
 	 */
-	Mono<Boolean> filter(E exchange);
+	Mono<Success> filter(E exchange);
 }

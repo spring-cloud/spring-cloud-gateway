@@ -31,12 +31,18 @@ import reactor.core.publisher.Mono;
 public interface RSocketFilter<E extends RSocketExchange, FC extends FilterChain<E>> {
 
 	/**
+	 * Enum to signal successful end of chain reached without the end being empty,
+	 * i.e. Mono&lt;Void&gt; via Mono.empty(). This is because at the end of the chain
+	 * an actual value needs to be returned. We can map success, but not empty.
+	 */
+	enum Success { INSTANCE } // should never have more than one value
+
+	/**
 	 * Process the Web request and (optionally) delegate to the next
 	 * {@code RSocketFilter} through the given {@link FilterChain}.
 	 * @param exchange the current RSocket exchange
 	 * @param chain provides a way to delegate to the next filter
-	 * @return {@code Mono<Void>} to indicate when request processing is complete
+	 * @return {@code Mono<Success>} to indicate when request processing is complete.
 	 */
-	//TODO: consider a single value enum rather than boolean
-	Mono<Boolean> filter(E exchange, FC chain);
+	Mono<Success> filter(E exchange, FC chain);
 }

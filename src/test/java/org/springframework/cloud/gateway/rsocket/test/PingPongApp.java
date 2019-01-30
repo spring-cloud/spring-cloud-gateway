@@ -94,7 +94,7 @@ public class PingPongApp {
 
 	static class MySocketAcceptorFilter implements SocketAcceptorFilter, Ordered {
 		@Override
-		public Mono<Boolean> filter(GatewaySocketAcceptor.SocketAcceptorExchange exchange, GatewaySocketAcceptor.SocketAcceptorFilterChain chain) {
+		public Mono<Success> filter(GatewaySocketAcceptor.SocketAcceptorExchange exchange, GatewaySocketAcceptor.SocketAcceptorFilterChain chain) {
 			System.out.println("mySocketAcceptorFilter");
 			return chain.filter(exchange);
 		}

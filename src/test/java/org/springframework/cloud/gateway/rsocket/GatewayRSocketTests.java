@@ -113,24 +113,6 @@ public class GatewayRSocketTests {
 	}
 
 	@Test
-	public void shortcircuitFalseFilter()  {
-
-		TestFilter filter1 = new TestFilter();
-		FalseFilter filter2 = new FalseFilter();
-		TestFilter filter3 = new TestFilter();
-
-
-		Payload payload = new GatewayRSocket(registry, Arrays.asList(filter1, filter2, filter3))
-				.requestResponse(incomingPayload)
-				.block(Duration.ZERO);
-
-		assertTrue(filter1.invoked());
-		assertTrue(filter2.invoked());
-		assertFalse(filter3.invoked());
-		assertNull(payload);
-	}
-
-	@Test
 	public void asyncFilter()  {
 
 		AsyncFilter filter = new AsyncFilter();
@@ -166,12 +148,12 @@ public class GatewayRSocketTests {
 		}
 
 		@Override
-		public Mono<Boolean> filter(GatewayExchange exchange, GatewayFilterChain chain) {
+		public Mono<Success> filter(GatewayExchange exchange, GatewayFilterChain chain) {
 			this.invoked = true;
 			return doFilter(exchange, chain);
 		}
 
-		public Mono<Boolean> doFilter(GatewayExchange exchange, GatewayFilterChain chain) {
+		public Mono<Success> doFilter(GatewayExchange exchange, GatewayFilterChain chain) {
 			return chain.filter(exchange);
 		}
 	}
@@ -180,23 +162,15 @@ public class GatewayRSocketTests {
 	private static class ShortcircuitingFilter extends TestFilter {
 
 		@Override
-		public Mono<Boolean> doFilter(GatewayExchange exchange, GatewayFilterChain chain) {
+		public Mono<Success> doFilter(GatewayExchange exchange, GatewayFilterChain chain) {
 			return Mono.empty();
-		}
-	}
-
-	private static class FalseFilter extends TestFilter {
-
-		@Override
-		public Mono<Boolean> doFilter(GatewayExchange exchange, GatewayFilterChain chain) {
-			return Mono.just(false);
 		}
 	}
 
 	private static class AsyncFilter extends TestFilter {
 
 		@Override
-		public Mono<Boolean> doFilter(GatewayExchange exchange, GatewayFilterChain chain) {
+		public Mono<Success> doFilter(GatewayExchange exchange, GatewayFilterChain chain) {
 			return doAsyncWork().flatMap(asyncResult -> {
 				logger.debug("Async result: " + asyncResult);
 				return chain.filter(exchange);
@@ -212,7 +186,7 @@ public class GatewayRSocketTests {
 	private static class ExceptionFilter implements GatewayFilter {
 
 		@Override
-		public Mono<Boolean> filter(GatewayExchange exchange, GatewayFilterChain chain) {
+		public Mono<Success> filter(GatewayExchange exchange, GatewayFilterChain chain) {
 			return Mono.error(new IllegalStateException("boo"));
 		}
 	}
