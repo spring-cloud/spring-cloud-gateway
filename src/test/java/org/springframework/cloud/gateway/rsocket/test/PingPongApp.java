@@ -18,7 +18,8 @@
 package org.springframework.cloud.gateway.rsocket.test;
 
 import java.time.Duration;
-import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
@@ -28,14 +29,11 @@ import io.netty.buffer.ByteBufUtil;
 import io.rsocket.Payload;
 import io.rsocket.RSocket;
 import io.rsocket.RSocketFactory;
-import io.rsocket.SocketAcceptor;
 import io.rsocket.micrometer.MicrometerRSocketInterceptor;
 import io.rsocket.transport.netty.client.TcpClientTransport;
-import io.rsocket.transport.netty.server.CloseableChannel;
-import io.rsocket.transport.netty.server.TcpServerTransport;
 import io.rsocket.util.DefaultPayload;
 import io.rsocket.util.RSocketProxy;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -43,17 +41,18 @@ import reactor.core.publisher.Mono;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.cloud.gateway.rsocket.GatewayRSocket;
+import org.springframework.cloud.gateway.rsocket.GatewayRSocket.GatewayExchange;
 import org.springframework.cloud.gateway.rsocket.GatewayRSocket.GatewayFilter;
+import org.springframework.cloud.gateway.rsocket.GatewayRSocket.GatewayFilterChain;
 import org.springframework.cloud.gateway.rsocket.GatewaySocketAcceptor;
 import org.springframework.cloud.gateway.rsocket.GatewaySocketAcceptor.SocketAcceptorFilter;
 import org.springframework.cloud.gateway.rsocket.Metadata;
-import org.springframework.cloud.gateway.rsocket.Registry;
-import org.springframework.cloud.gateway.rsocket.RegistrySocketAcceptorFilter;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.Ordered;
+import org.springframework.core.env.ConfigurableEnvironment;
 
 import static io.netty.buffer.Unpooled.EMPTY_BUFFER;
 
@@ -66,6 +65,7 @@ public class PingPongApp {
 	}
 
 	@Bean
+	@ConditionalOnProperty("ping.two.enabled")
 	public Ping ping2() {
 		return new Ping("2");
 	}
@@ -75,16 +75,9 @@ public class PingPongApp {
 		return new Pong();
 	}
 
-	//TODO: move to auto-configuration
 	@Bean
-	public Registry registry() {
-		return new Registry();
-	}
-
-	//TODO: move to auto-configuration
-	@Bean
-	public RegistrySocketAcceptorFilter registrySocketAcceptorFilter(Registry registry) {
-		return new RegistrySocketAcceptorFilter(registry);
+	public MyGatewayFilter myGatewayFilter() {
+		return new MyGatewayFilter();
 	}
 
 	@Bean
@@ -92,72 +85,8 @@ public class PingPongApp {
 		return new MySocketAcceptorFilter();
 	}
 
-	static class MySocketAcceptorFilter implements SocketAcceptorFilter, Ordered {
-		@Override
-		public Mono<Success> filter(GatewaySocketAcceptor.SocketAcceptorExchange exchange, GatewaySocketAcceptor.SocketAcceptorFilterChain chain) {
-			System.out.println("mySocketAcceptorFilter");
-			return chain.filter(exchange);
-		}
-
-		@Override
-		public int getOrder() {
-			return 0;
-		}
-	}
-
-	//TODO: move to auto-configuration
-	@Bean
-	public GatewayRSocket gatewayRSocket(Registry registry, List<GatewayFilter> filters) {
-		return new GatewayRSocket(registry, filters);
-	}
-
-	//TODO: move to auto-configuration
-	@Bean
-	public GatewaySocketAcceptor socketAcceptor(GatewayRSocket rsocket, List<SocketAcceptorFilter> filters) {
-		return new GatewaySocketAcceptor(rsocket, filters);
-	}
-
-	@Bean
-	public GatewayApp gatewayApp(GatewaySocketAcceptor socketAcceptor, MeterRegistry meterRegistry) {
-		return new GatewayApp(socketAcceptor, meterRegistry);
-	}
-
 	public static void main(String[] args) {
 		SpringApplication.run(PingPongApp.class, args);
-	}
-
-	@Log4j2
-	static class GatewayApp implements Ordered, ApplicationListener<ApplicationReadyEvent> {
-
-		private final SocketAcceptor socketAcceptor;
-		private final MeterRegistry meterRegistry;
-		private MicrometerRSocketInterceptor interceptor;
-
-		public GatewayApp(SocketAcceptor socketAcceptor, MeterRegistry meterRegistry) {
-			this.socketAcceptor = socketAcceptor;
-			this.meterRegistry = meterRegistry;
-		}
-
-		@Override
-		public int getOrder() {
-			// return 0;
-			return HIGHEST_PRECEDENCE;
-		}
-
-		@Override
-		public void onApplicationEvent(ApplicationReadyEvent event) {
-			log.info("Starting Gateway App");
-			interceptor = new MicrometerRSocketInterceptor(meterRegistry, Tag.of("component", "proxy"));
-			TcpServerTransport transport = TcpServerTransport.create(7002);
-
-			Mono<CloseableChannel> rsocketServer = RSocketFactory.receive()
-					.addServerPlugin(interceptor)
-					.acceptor(this.socketAcceptor)
-					.transport(transport)
-					.start();
-
-			rsocketServer.subscribe();
-		}
 	}
 
 	static String reply(String in) {
@@ -174,16 +103,16 @@ public class PingPongApp {
 		}
 	}
 
-	@Log4j2
-	static class Ping implements Ordered, ApplicationListener<ApplicationReadyEvent> {
+	@Slf4j
+	public static class Ping implements Ordered, ApplicationListener<ApplicationReadyEvent> {
 
 		@Autowired
-		MeterRegistry meterRegistry;
+		private MeterRegistry meterRegistry;
 
-		private String id = "";
+		private final String id;
 
-		public Ping() {
-		}
+		private final AtomicInteger pongsReceived = new AtomicInteger();
+		private Flux<String> pongFlux;
 
 		public Ping(String id) {
 			this.id = id;
@@ -191,60 +120,87 @@ public class PingPongApp {
 
 		@Override
 		public int getOrder() {
-			// return Ordered.LOWEST_PRECEDENCE;
 			return 0;
 		}
 
 		@Override
 		public void onApplicationEvent(ApplicationReadyEvent event) {
 			log.info("Starting Ping"+id);
+			ConfigurableEnvironment env = event.getApplicationContext().getEnvironment();
+			Integer take = env.getProperty("ping.take", Integer.class, null);
+			Integer gatewayPort = env.getProperty("spring.cloud.gateway.rsocket.server.port",
+					Integer.class, 7002);
+
+			log.info("ping.take: " + take);
+
 			MicrometerRSocketInterceptor interceptor = new MicrometerRSocketInterceptor(meterRegistry, Tag.of("component", "ping"));
 			ByteBuf announcementMetadata = Metadata.encodeAnnouncement("ping");
-			RSocketFactory.connect()
+			pongFlux = RSocketFactory.connect()
 					.metadataMimeType(Metadata.ROUTING_MIME_TYPE)
 					.setupPayload(DefaultPayload.create(EMPTY_BUFFER, announcementMetadata))
 					.addClientPlugin(interceptor)
-					.transport(TcpClientTransport.create(7002)) // proxy
+					.transport(TcpClientTransport.create(gatewayPort)) // proxy
 					.start()
 					.flatMapMany(socket ->
-							socket.requestChannel(
-									Flux.interval(Duration.ofSeconds(1))
-											.map(i -> {
-												ByteBuf data = ByteBufUtil.writeUtf8(ByteBufAllocator.DEFAULT, "ping" + id);
-												ByteBuf routingMetadata = Metadata.encodeRouting("pong");
-												return DefaultPayload.create(data, routingMetadata);
-											})
-									.onBackpressureDrop(payload -> log.debug("Dropped payload " + payload.getDataUtf8())) // this is needed in case pong is not available yet
-							).map(Payload::getDataUtf8)
-									.doOnNext(str -> log.info("received " + str + " in Ping"+id))
-									// .take(10)
-									.doFinally(signal -> socket.dispose())
-					)
-					.then()
-					.subscribe();
+							{
+								Flux<String> pong = socket.requestChannel(
+										Flux.interval(Duration.ofSeconds(1))
+												.map(i -> {
+													ByteBuf data = ByteBufUtil.writeUtf8(ByteBufAllocator.DEFAULT, "ping" + id);
+													ByteBuf routingMetadata = Metadata.encodeRouting("pong");
+													return DefaultPayload.create(data, routingMetadata);
+												})
+												.onBackpressureDrop(payload -> log.debug("Dropped payload " + payload.getDataUtf8())) // this is needed in case pong is not available yet
+								).map(Payload::getDataUtf8)
+										.doOnNext(str -> {
+											int received = pongsReceived.incrementAndGet();
+											log.info("received " + str + "(" + received + ") in Ping" + id);
+										})
+										.doFinally(signal -> socket.dispose());
+								if (take != null) {
+									return pong.take(take);
+								}
+								return pong;
+							}
+					);
+
+			pongFlux.subscribe();
+		}
+
+		public Flux<String> getPongFlux() {
+			return pongFlux;
+		}
+
+		public int getPongsReceived() {
+			return pongsReceived.get();
 		}
 	}
 
-	@Log4j2
-	static class Pong implements Ordered, ApplicationListener<ApplicationReadyEvent> {
+	@Slf4j
+	public static class Pong implements Ordered, ApplicationListener<ApplicationReadyEvent> {
 
 		@Autowired
-		MeterRegistry meterRegistry;
+		private MeterRegistry meterRegistry;
+
+		private final AtomicInteger pingsReceived = new AtomicInteger();
 
 		@Override
 		public int getOrder() {
-			// return 1;
 			return 1;
 		}
 
 		@Override
 		public void onApplicationEvent(ApplicationReadyEvent event) {
+			ConfigurableEnvironment env = event.getApplicationContext().getEnvironment();
+			Integer pongDelay = env.getProperty("pong.delay", Integer.class, 5000);
 			try {
-				Thread.sleep(5000);
+				Thread.sleep(pongDelay);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 			log.info("Starting Pong");
+			Integer gatewayPort = env.getProperty("spring.cloud.gateway.rsocket.server.port",
+					Integer.class, 7002);
 			MicrometerRSocketInterceptor interceptor = new MicrometerRSocketInterceptor(meterRegistry, Tag.of("component", "pong"));
 			ByteBuf announcementMetadata = Metadata.encodeAnnouncement("pong");
 			RSocketFactory.connect()
@@ -252,9 +208,8 @@ public class PingPongApp {
 					.setupPayload(DefaultPayload.create(EMPTY_BUFFER, announcementMetadata))
 					.addClientPlugin(interceptor)
 					.acceptor(this::accept)
-					.transport(TcpClientTransport.create(7002)) // proxy
+					.transport(TcpClientTransport.create(gatewayPort)) // proxy
 					.start()
-					.then()
 					.block();
 		}
 
@@ -266,7 +221,10 @@ public class PingPongApp {
 				public Flux<Payload> requestChannel(Publisher<Payload> payloads) {
 					return Flux.from(payloads)
 							.map(Payload::getDataUtf8)
-							.doOnNext(str -> log.info("received " + str + " in Pong"))
+							.doOnNext(str -> {
+								int received = pingsReceived.incrementAndGet();
+								log.info("received " + str + "("+received+") in Pong");
+							})
 							.map(PingPongApp::reply)
 							.map(reply -> {
 								ByteBuf data = ByteBufUtil.writeUtf8(ByteBufAllocator.DEFAULT, reply);
@@ -277,5 +235,49 @@ public class PingPongApp {
 			};
 			return pong;
 		}
+
+		public int getPingsReceived() {
+			return pingsReceived.get();
+		}
 	}
+
+	@Slf4j
+	public static class MyGatewayFilter implements GatewayFilter {
+		private AtomicBoolean invoked = new AtomicBoolean(false);
+
+		@Override
+		public Mono<Success> filter(GatewayExchange exchange, GatewayFilterChain chain) {
+			log.info("in custom gateway filter");
+			invoked.compareAndSet(false, true);
+			return chain.filter(exchange);
+		}
+
+		public boolean invoked() {
+			return invoked.get();
+		}
+	}
+
+	@Slf4j
+	public static class MySocketAcceptorFilter implements SocketAcceptorFilter, Ordered {
+
+		private AtomicBoolean invoked = new AtomicBoolean(false);
+
+		@Override
+		public Mono<Success> filter(GatewaySocketAcceptor.SocketAcceptorExchange exchange, GatewaySocketAcceptor.SocketAcceptorFilterChain chain) {
+			log.info("in custom socket acceptor filter");
+			invoked.compareAndSet(false, true);
+			return chain.filter(exchange);
+		}
+
+		@Override
+		public int getOrder() {
+			return 0;
+		}
+
+		public boolean invoked() {
+			return invoked.get();
+		}
+	}
+
+
 }
