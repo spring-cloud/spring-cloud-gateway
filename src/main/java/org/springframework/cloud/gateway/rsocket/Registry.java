@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import io.rsocket.RSocket;
 import org.apache.commons.logging.Log;
@@ -46,21 +47,40 @@ public class Registry {
 
 	private final DirectProcessor<RegisteredEvent> registeredEvents = DirectProcessor.create();
 	private final FluxSink<RegisteredEvent> registeredEventsSink = registeredEvents.sink(FluxSink.OverflowStrategy.DROP);
+	private final Function<List<String>, String> keyFunction;
+
+	public Registry() {
+		this(tags -> {
+			if (CollectionUtils.isEmpty(tags)) {
+				return null; // throw error?
+			}
+			//TODO: key generation
+			return tags.get(0);
+		});
+	}
+
+	public Registry(Function<List<String>, String> keyFunction) {
+		this.keyFunction = keyFunction;
+	}
+
+	public String computeKey(List<String> tags) {
+		return keyFunction.apply(tags);
+	}
 
 	public void register(List<String> tags, RSocket rsocket) {
 		Assert.notEmpty(tags, "tags may not be empty");
 		Assert.notNull(rsocket, "RSocket may not be null");
 		log.debug("Registered RSocket: " + tags);
-		LoadBalancedRSocket composite = rsockets.computeIfAbsent(tags.get(0), s -> new LoadBalancedRSocket());
+		LoadBalancedRSocket composite = rsockets.computeIfAbsent(computeKey(tags), s -> new LoadBalancedRSocket());
 		composite.addRSocket(rsocket);
-		registeredEventsSink.next(new RegisteredEvent(tags, rsocket));
+		registeredEventsSink.next(new RegisteredEvent(keyFunction, tags, rsocket));
 	}
 
 	public RSocket getRegistered(List<String> tags) {
 		if (CollectionUtils.isEmpty(tags)) {
 			return null;
 		}
-		return rsockets.get(tags.get(0));
+		return rsockets.get(computeKey(tags));
 	}
 
 	public Disposable addListener(Consumer<RegisteredEvent> consumer) {
@@ -68,12 +88,16 @@ public class Registry {
 	}
 
 	public static class RegisteredEvent {
+		private final Function<List<String>, String> keyFunction;
 		private final List<String> routingMetadata;
 		private final RSocket rSocket;
 
-		public RegisteredEvent(List<String> routingMetadata, RSocket rSocket) {
+		public RegisteredEvent(Function<List<String>, String> keyFunction, List<String> routingMetadata,
+							   RSocket rSocket) {
+			Assert.notNull(keyFunction, "keyFunction may not be null");
 			Assert.notEmpty(routingMetadata, "routingMetadata may not be empty");
 			Assert.notNull(rSocket, "RSocket may not be null");
+			this.keyFunction = keyFunction;
 			this.routingMetadata = routingMetadata;
 			this.rSocket = rSocket;
 		}
@@ -88,8 +112,9 @@ public class Registry {
 
 		public boolean matches(List<String> otherRoutingMetadata) {
 			if (!CollectionUtils.isEmpty(otherRoutingMetadata)) {
-				//TODO: key generation
-				return this.routingMetadata.get(0).equals(otherRoutingMetadata.get(0));
+				String thisKey = keyFunction.apply(routingMetadata);
+				String otherKey = keyFunction.apply(otherRoutingMetadata);
+				return thisKey.equals(otherKey);
 			}
 			return false;
 		}

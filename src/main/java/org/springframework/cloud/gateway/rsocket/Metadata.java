@@ -34,25 +34,45 @@ public abstract class Metadata {
 
 	private Metadata() {}
 
-	public static ByteBuf encodeAnnouncement(String announcement) {
-		return encodeAnnouncement(ByteBufAllocator.DEFAULT, announcement);
+	public static ByteBuf encodeAnnouncement(String... tags) {
+		return encodeAnnouncement(ByteBufAllocator.DEFAULT, tags);
 	}
 
-	public static ByteBuf encodeAnnouncement(ByteBufAllocator allocator, String announcement) {
+	@SuppressWarnings("Duplicates")
+	public static ByteBuf encodeAnnouncement(ByteBufAllocator allocator, String... tags) {
+		Assert.notEmpty(tags, "tags may not be null or empty"); //TODO: is this true?
 		ByteBuf byteBuf = allocator.buffer();
-		ByteBufUtil.writeUtf8(byteBuf, announcement);
+
+		for (String tag : tags) {
+			int tagLength = NumberUtils.requireUnsignedByte(ByteBufUtil.utf8Bytes(tag));
+			byteBuf.writeByte(tagLength);
+			ByteBufUtil.reserveAndWriteUtf8(byteBuf, tag, tagLength);
+		}
 		return byteBuf;
 	}
 
 	//TODO: either rsocket spec or custom spec
-	public static String decodeAnnouncement(ByteBuf metadata) {
-		return metadata.toString(StandardCharsets.UTF_8);
+	@SuppressWarnings("Duplicates")
+	public static List<String> decodeAnnouncement(ByteBuf byteBuf) {
+		ArrayList<String> tags = new ArrayList<>();
+
+		int offset = 0;
+		while (offset < byteBuf.readableBytes()) { //TODO: What is the best conditional here?
+			int tagLength = byteBuf.getByte(offset);
+			offset += Byte.BYTES;
+			String tag = byteBuf.toString(offset, tagLength, StandardCharsets.UTF_8);
+			tags.add(tag);
+			offset += tagLength;
+		}
+
+		return tags;
 	}
 
 	public static ByteBuf encodeRouting(String... tags) {
 		return encodeRouting(ByteBufAllocator.DEFAULT, tags);
 	}
 
+	@SuppressWarnings("Duplicates")
 	public static ByteBuf encodeRouting(ByteBufAllocator allocator, String... tags) {
 		Assert.notEmpty(tags, "tags may not be null or empty"); //TODO: is this true?
 		ByteBuf byteBuf = allocator.buffer();
@@ -65,6 +85,7 @@ public abstract class Metadata {
 		return byteBuf;
 	}
 
+	@SuppressWarnings("Duplicates")
 	public static List<String> decodeRouting(ByteBuf byteBuf) {
 		ArrayList<String> tags = new ArrayList<>();
 
