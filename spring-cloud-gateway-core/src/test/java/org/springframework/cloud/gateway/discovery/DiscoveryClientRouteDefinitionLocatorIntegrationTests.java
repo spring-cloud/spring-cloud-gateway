@@ -20,7 +20,7 @@ package org.springframework.cloud.gateway.discovery;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -53,12 +53,17 @@ public class DiscoveryClientRouteDefinitionLocatorIntegrationTests {
     @Autowired
 	private ApplicationEventPublisher publisher;
 
+    @Autowired
+	private TestDiscoveryClient discoveryClient;
+
     @Test
     public void newServiceAddsRoute() {
 		List<Route> routes = routeLocator.getRoutes()
 				.filter(route -> route.getId().startsWith("test__"))
 				.collectList().block();
 		assertThat(routes).hasSize(1);
+
+		discoveryClient.multiple();
 
 		publisher.publishEvent(new HeartbeatEvent(this, 1L));
 
@@ -73,39 +78,45 @@ public class DiscoveryClientRouteDefinitionLocatorIntegrationTests {
 	protected static class Config {
 
 		@Bean
-		DiscoveryClient discoveryClient() {
-			DefaultServiceInstance instance1 = new DefaultServiceInstance("service1", "localhost", 8001,
-					false);
-			DefaultServiceInstance instance2 = new DefaultServiceInstance("service2", "localhost", 8001,
-					false);
-			return new DiscoveryClient() {
+		TestDiscoveryClient discoveryClient() {
+			return new TestDiscoveryClient();
+		}
+	}
 
-				AtomicInteger calls = new AtomicInteger(0);
+	private static class TestDiscoveryClient implements DiscoveryClient {
+		AtomicBoolean single = new AtomicBoolean(true);
 
-				@Override
-				public String description() {
-					return null;
-				}
+		DefaultServiceInstance instance1 = new DefaultServiceInstance("service1_1",
+				"service1", "localhost", 8001, false);
+		DefaultServiceInstance instance2 = new DefaultServiceInstance("service2_1",
+				"service2", "localhost", 8001, false);
 
-				@Override
-				public List<ServiceInstance> getInstances(String serviceId) {
-					if (serviceId.equals("service1")) {
-						return Collections.singletonList(instance1);
-					}
-					if (serviceId.equals("service2")) {
-						return Collections.singletonList(instance2);
-					}
-					return Collections.emptyList();
-				}
+		public void multiple() {
+			single.set(false);
+		}
 
-				@Override
-				public List<String> getServices() {
-					if (calls.compareAndSet(0, 1)) {
-						return Collections.singletonList("service1");
-					}
-					return Arrays.asList("service1", "service2");
-				}
-			};
+		@Override
+		public String description() {
+			return null;
+		}
+
+		@Override
+		public List<ServiceInstance> getInstances(String serviceId) {
+			if (serviceId.equals("service1")) {
+				return Collections.singletonList(instance1);
+			}
+			if (serviceId.equals("service2")) {
+				return Collections.singletonList(instance2);
+			}
+			return Collections.emptyList();
+		}
+
+		@Override
+		public List<String> getServices() {
+			if (single.get()) {
+				return Collections.singletonList("service1");
+			}
+			return Arrays.asList("service1", "service2");
 		}
 	}
 }
