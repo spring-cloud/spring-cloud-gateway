@@ -17,7 +17,6 @@
 
 package org.springframework.cloud.gateway.rsocket;
 
-import java.util.Collections;
 import java.util.List;
 
 import io.rsocket.ConnectionSetupPayload;
@@ -25,25 +24,69 @@ import io.rsocket.RSocket;
 import io.rsocket.SocketAcceptor;
 import reactor.core.publisher.Mono;
 
+import org.springframework.cloud.gateway.rsocket.filter.AbstractFilterChain;
+import org.springframework.cloud.gateway.rsocket.filter.RSocketExchange;
+import org.springframework.cloud.gateway.rsocket.filter.RSocketFilter;
+
 public class GatewaySocketAcceptor implements SocketAcceptor {
 
-	private final Registry registry;
 	private final RSocket proxyRSocket;
+	private final SocketAcceptorFilterChain filterChain;
 
-	public GatewaySocketAcceptor(Registry registry, RSocket proxyRSocket) {
-		this.registry = registry;
+	public GatewaySocketAcceptor(RSocket proxyRSocket, List<SocketAcceptorFilter> filters) {
 		this.proxyRSocket = proxyRSocket;
+		this.filterChain = new SocketAcceptorFilterChain(filters);
 	}
 
 	@Override
 	public Mono<RSocket> accept(ConnectionSetupPayload setup, RSocket sendingSocket) {
 
-		if (setup.hasMetadata()) { // and setup.metadataMimeType() is Announcement metadata
-			String annoucementMetadata = Metadata.decodeAnnouncement(setup.sliceMetadata());
-			List<String> tags = Collections.singletonList(annoucementMetadata);
-			registry.register(tags, sendingSocket);
+		SocketAcceptorExchange exchange = new SocketAcceptorExchange(setup, sendingSocket);
+
+		return this.filterChain.filter(exchange)
+				.log("socket acceptor filter chain")
+				.map(bool -> this.proxyRSocket);
+	}
+
+	public interface SocketAcceptorFilter extends RSocketFilter<SocketAcceptorExchange, SocketAcceptorFilterChain> {}
+
+	public static class SocketAcceptorExchange implements RSocketExchange {
+		private final ConnectionSetupPayload setup;
+		private final RSocket sendingSocket;
+
+		public SocketAcceptorExchange(ConnectionSetupPayload setup, RSocket sendingSocket) {
+			this.setup = setup;
+			this.sendingSocket = sendingSocket;
 		}
 
-		return Mono.just(proxyRSocket);
+		public ConnectionSetupPayload getSetup() {
+			return setup;
+		}
+
+		public RSocket getSendingSocket() {
+			return sendingSocket;
+		}
+	}
+
+	public static class SocketAcceptorFilterChain
+			extends AbstractFilterChain<SocketAcceptorFilter, SocketAcceptorExchange, SocketAcceptorFilterChain> {
+
+		/**
+		 * Public constructor with the list of filters and the target handler to use.
+		 *
+		 * @param filters the filters ahead of the handler
+		 */
+		public SocketAcceptorFilterChain(List<SocketAcceptorFilter> filters) {
+			super(filters);
+		}
+
+		public SocketAcceptorFilterChain(List<SocketAcceptorFilter> allFilters, SocketAcceptorFilter currentFilter, SocketAcceptorFilterChain next) {
+			super(allFilters, currentFilter, next);
+		}
+
+		@Override
+		protected SocketAcceptorFilterChain create(List<SocketAcceptorFilter> allFilters, SocketAcceptorFilter currentFilter, SocketAcceptorFilterChain next) {
+			return new SocketAcceptorFilterChain(allFilters, currentFilter, next);
+		}
 	}
 }
