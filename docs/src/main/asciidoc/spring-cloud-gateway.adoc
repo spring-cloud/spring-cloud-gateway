@@ -1112,7 +1112,7 @@ These metrics are then available to be scraped from ``/actuator/metrics/gateway.
 
 NOTE: To enable the pometheus endpoint add micrometer-registry-prometheus as a project dependency.
 
-=== Making An Exchange As Routed
+=== Marking An Exchange As Routed
 
 After the Gateway has routed a `ServerWebExchange` it will mark that exchange as "routed" by adding `gatewayAlreadyRouted`
 to the exchange attributes.  Once a request has been marked as routed, other routing filters will not route the request again,
