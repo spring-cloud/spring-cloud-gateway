@@ -1168,8 +1168,8 @@ route URL will override the <literal>ServiceInstance</literal> configuration.</s
 <simpara>To enable the pometheus endpoint add micrometer-registry-prometheus as a project dependency.</simpara>
 </note>
 </section>
-<section xml:id="_making_an_exchange_as_routed">
-<title>Making An Exchange As Routed</title>
+<section xml:id="_marking_an_exchange_as_routed">
+<title>Marking An Exchange As Routed</title>
 <simpara>After the Gateway has routed a <literal>ServerWebExchange</literal> it will mark that exchange as "routed" by adding <literal>gatewayAlreadyRouted</literal>
 to the exchange attributes.  Once a request has been marked as routed, other routing filters will not route the request again,
 essentially skipping the filter.  There are convenience methods that you can use to mark an exchange as routed
