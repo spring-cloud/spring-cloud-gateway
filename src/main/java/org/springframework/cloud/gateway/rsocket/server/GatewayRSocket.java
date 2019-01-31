@@ -18,6 +18,7 @@
 package org.springframework.cloud.gateway.rsocket.server;
 
 import java.util.List;
+import java.util.Map;
 
 import io.rsocket.AbstractRSocket;
 import io.rsocket.Payload;
@@ -25,14 +26,14 @@ import io.rsocket.RSocket;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.reactivestreams.Publisher;
-import org.springframework.cloud.gateway.rsocket.registry.Registry;
-import org.springframework.cloud.gateway.rsocket.support.Metadata;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.rsocket.filter.AbstractFilterChain;
 import org.springframework.cloud.gateway.rsocket.filter.RSocketExchange;
 import org.springframework.cloud.gateway.rsocket.filter.RSocketFilter;
+import org.springframework.cloud.gateway.rsocket.registry.Registry;
+import org.springframework.cloud.gateway.rsocket.support.Metadata;
 import org.springframework.util.CollectionUtils;
 
 public class GatewayRSocket extends AbstractRSocket {
@@ -79,7 +80,7 @@ public class GatewayRSocket extends AbstractRSocket {
 	}
 
 	private Mono<RSocket> findRSocket(Payload payload) {
-		List<String> metadata = getRoutingMetadata(payload);
+		Map<String, String> metadata = getRoutingMetadata(payload);
 		RSocket service = findRSocket(metadata);
 
 		if (service == null) {
@@ -97,34 +98,34 @@ public class GatewayRSocket extends AbstractRSocket {
 				.map(bool -> rSocket);
 	}
 
-	private RSocket findRSocket(List<String> tags) {
-		if (tags == null) return null; //TODO: error
+	private RSocket findRSocket(Map<String, String> properties) {
+		if (properties == null) return null; //TODO: error
 
-		RSocket rsocket = registry.getRegistered(tags);
+		RSocket rsocket = registry.getRegistered(properties);
 
 		if (rsocket == null) {
-			log.debug("Unable to find destination RSocket for " + tags);
+			log.debug("Unable to find destination RSocket for " + properties);
 		}
 		// TODO: deal with connecting to cluster?
 
 		return rsocket;
 	}
 
-	private List<String> getRoutingMetadata(Payload payload) {
+	private Map<String, String> getRoutingMetadata(Payload payload) {
 		if (payload == null || !payload.hasMetadata()) { // and metadata is routing
 			return null;
 		}
 
 		// TODO: deal with composite metadata
 
-		List<String> tags = Metadata.decodeRouting(payload.sliceMetadata());
+		Map<String, String> properties = Metadata.decodeProperties(payload.sliceMetadata());
 
-		if (CollectionUtils.isEmpty(tags)) {
+		if (CollectionUtils.isEmpty(properties)) {
 			return null;
 		}
 
-		log.debug("found routing metadata " + tags);
-		return tags;
+		log.debug("found routing metadata " + properties);
+		return properties;
 	}
 
 

@@ -17,7 +17,7 @@
 
 package org.springframework.cloud.gateway.rsocket.server;
 
-import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import io.rsocket.AbstractRSocket;
@@ -32,10 +32,10 @@ import org.springframework.cloud.gateway.rsocket.registry.Registry.RegisteredEve
 
 public class PendingRequestRSocket extends AbstractRSocket implements Consumer<RegisteredEvent> {
 
-	private final List<String> routingMetadata;
+	private final Map<String, String> routingMetadata;
 	private final MonoProcessor<RSocket> processor;
 
-	public PendingRequestRSocket(List<String> routingMetadata) {
+	public PendingRequestRSocket(Map<String, String> routingMetadata) {
 		this.routingMetadata = routingMetadata;
 		this.processor = MonoProcessor.create();
 	}

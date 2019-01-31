@@ -17,7 +17,6 @@
 
 package org.springframework.cloud.gateway.rsocket.registry;
 
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
@@ -26,11 +25,11 @@ import java.util.function.Function;
 import io.rsocket.RSocket;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.cloud.gateway.rsocket.server.LoadBalancedRSocket;
 import reactor.core.Disposable;
 import reactor.core.publisher.DirectProcessor;
 import reactor.core.publisher.FluxSink;
 
+import org.springframework.cloud.gateway.rsocket.server.LoadBalancedRSocket;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
@@ -48,7 +47,7 @@ public class Registry {
 
 	private final DirectProcessor<RegisteredEvent> registeredEvents = DirectProcessor.create();
 	private final FluxSink<RegisteredEvent> registeredEventsSink = registeredEvents.sink(FluxSink.OverflowStrategy.DROP);
-	private final Function<List<String>, String> keyFunction;
+	private final Function<Map<String, String>, String> keyFunction;
 
 	public Registry() {
 		this(tags -> {
@@ -56,32 +55,32 @@ public class Registry {
 				return null; // throw error?
 			}
 			//TODO: key generation
-			return tags.get(0);
+			return tags.get("name");
 		});
 	}
 
-	public Registry(Function<List<String>, String> keyFunction) {
+	public Registry(Function<Map<String, String>, String> keyFunction) {
 		this.keyFunction = keyFunction;
 	}
 
-	public String computeKey(List<String> tags) {
-		return keyFunction.apply(tags);
+	public String computeKey(Map<String, String> properties) {
+		return keyFunction.apply(properties);
 	}
 
-	public void register(List<String> tags, RSocket rsocket) {
-		Assert.notEmpty(tags, "tags may not be empty");
+	public void register(Map<String, String> properties, RSocket rsocket) {
+		Assert.notEmpty(properties, "properties may not be empty");
 		Assert.notNull(rsocket, "RSocket may not be null");
-		log.debug("Registered RSocket: " + tags);
-		LoadBalancedRSocket composite = rsockets.computeIfAbsent(computeKey(tags), s -> new LoadBalancedRSocket());
+		log.debug("Registered RSocket: " + properties);
+		LoadBalancedRSocket composite = rsockets.computeIfAbsent(computeKey(properties), s -> new LoadBalancedRSocket());
 		composite.addRSocket(rsocket);
-		registeredEventsSink.next(new RegisteredEvent(keyFunction, tags, rsocket));
+		registeredEventsSink.next(new RegisteredEvent(keyFunction, properties, rsocket));
 	}
 
-	public RSocket getRegistered(List<String> tags) {
-		if (CollectionUtils.isEmpty(tags)) {
+	public RSocket getRegistered(Map<String, String> properties) {
+		if (CollectionUtils.isEmpty(properties)) {
 			return null;
 		}
-		return rsockets.get(computeKey(tags));
+		return rsockets.get(computeKey(properties));
 	}
 
 	public Disposable addListener(Consumer<RegisteredEvent> consumer) {
@@ -89,11 +88,11 @@ public class Registry {
 	}
 
 	public static class RegisteredEvent {
-		private final Function<List<String>, String> keyFunction;
-		private final List<String> routingMetadata;
+		private final Function<Map<String, String>, String> keyFunction;
+		private final Map<String, String> routingMetadata;
 		private final RSocket rSocket;
 
-		public RegisteredEvent(Function<List<String>, String> keyFunction, List<String> routingMetadata,
+		public RegisteredEvent(Function<Map<String, String>, String> keyFunction, Map<String, String> routingMetadata,
 							   RSocket rSocket) {
 			Assert.notNull(keyFunction, "keyFunction may not be null");
 			Assert.notEmpty(routingMetadata, "routingMetadata may not be empty");
@@ -103,7 +102,7 @@ public class Registry {
 			this.rSocket = rSocket;
 		}
 
-		public List<String> getRoutingMetadata() {
+		public Map<String, String> getRoutingMetadata() {
 			return routingMetadata;
 		}
 
@@ -111,7 +110,7 @@ public class Registry {
 			return rSocket;
 		}
 
-		public boolean matches(List<String> otherRoutingMetadata) {
+		public boolean matches(Map<String, String> otherRoutingMetadata) {
 			if (!CollectionUtils.isEmpty(otherRoutingMetadata)) {
 				String thisKey = keyFunction.apply(routingMetadata);
 				String otherKey = keyFunction.apply(otherRoutingMetadata);

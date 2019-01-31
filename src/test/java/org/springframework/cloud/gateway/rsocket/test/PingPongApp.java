@@ -134,7 +134,7 @@ public class PingPongApp {
 			log.info("ping.take: " + take);
 
 			MicrometerRSocketInterceptor interceptor = new MicrometerRSocketInterceptor(meterRegistry, Tag.of("component", "ping"));
-			ByteBuf announcementMetadata = Metadata.encodeAnnouncement("ping", "ping"+id);
+			ByteBuf announcementMetadata = Metadata.encodeTags("name:ping", "id:ping"+id);
 			pongFlux = RSocketFactory.connect()
 					.metadataMimeType(Metadata.ROUTING_MIME_TYPE)
 					.setupPayload(DefaultPayload.create(EMPTY_BUFFER, announcementMetadata))
@@ -147,7 +147,7 @@ public class PingPongApp {
 										Flux.interval(Duration.ofSeconds(1))
 												.map(i -> {
 													ByteBuf data = ByteBufUtil.writeUtf8(ByteBufAllocator.DEFAULT, "ping" + id);
-													ByteBuf routingMetadata = Metadata.encodeRouting("pong");
+													ByteBuf routingMetadata = Metadata.encodeTags("name:pong");
 													return DefaultPayload.create(data, routingMetadata);
 												})
 												.onBackpressureDrop(payload -> log.debug("Dropped payload " + payload.getDataUtf8())) // this is needed in case pong is not available yet
@@ -202,7 +202,7 @@ public class PingPongApp {
 			Integer gatewayPort = env.getProperty("spring.cloud.gateway.rsocket.server.port",
 					Integer.class, 7002);
 			MicrometerRSocketInterceptor interceptor = new MicrometerRSocketInterceptor(meterRegistry, Tag.of("component", "pong"));
-			ByteBuf announcementMetadata = Metadata.encodeAnnouncement("pong", "pong1");
+			ByteBuf announcementMetadata = Metadata.encodeTags("name:pong", "id:pong1");
 			RSocketFactory.connect()
 					.metadataMimeType(Metadata.ROUTING_MIME_TYPE)
 					.setupPayload(DefaultPayload.create(EMPTY_BUFFER, announcementMetadata))
@@ -228,7 +228,7 @@ public class PingPongApp {
 							.map(PingPongApp::reply)
 							.map(reply -> {
 								ByteBuf data = ByteBufUtil.writeUtf8(ByteBufAllocator.DEFAULT, reply);
-								ByteBuf routingMetadata = Metadata.encodeRouting("ping");
+								ByteBuf routingMetadata = Metadata.encodeTags("name:ping");
 								return DefaultPayload.create(data, routingMetadata);
 							});
 				}

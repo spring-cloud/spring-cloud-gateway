@@ -29,20 +29,20 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.cloud.gateway.rsocket.registry.Registry;
-import org.springframework.cloud.gateway.rsocket.support.Metadata;
 import reactor.core.publisher.Mono;
 
+import org.springframework.cloud.gateway.rsocket.registry.Registry;
 import org.springframework.cloud.gateway.rsocket.server.GatewayRSocket.GatewayExchange;
 import org.springframework.cloud.gateway.rsocket.server.GatewayRSocket.GatewayFilter;
 import org.springframework.cloud.gateway.rsocket.server.GatewayRSocket.GatewayFilterChain;
+import org.springframework.cloud.gateway.rsocket.support.Metadata;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -61,10 +61,10 @@ public class GatewayRSocketTests {
 	public void init() {
 		registry = mock(Registry.class);
 		incomingPayload = DefaultPayload.create(Unpooled.EMPTY_BUFFER,
-				Metadata.encodeRouting("mock"));
+				Metadata.encodeTags("name:mock"));
 
 		rSocket = mock(RSocket.class);
-		when(registry.getRegistered(anyList())).thenReturn(rSocket);
+		when(registry.getRegistered(anyMap())).thenReturn(rSocket);
 
 		when(rSocket.requestResponse(any(Payload.class)))
 				.thenReturn(Mono.just(DefaultPayload.create("response")));

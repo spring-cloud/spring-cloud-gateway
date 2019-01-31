@@ -17,15 +17,15 @@
 
 package org.springframework.cloud.gateway.rsocket.registry;
 
-import java.util.List;
+import java.util.Map;
 
 import io.rsocket.ConnectionSetupPayload;
-import org.springframework.cloud.gateway.rsocket.support.Metadata;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.rsocket.server.GatewaySocketAcceptor.SocketAcceptorExchange;
 import org.springframework.cloud.gateway.rsocket.server.GatewaySocketAcceptor.SocketAcceptorFilter;
 import org.springframework.cloud.gateway.rsocket.server.GatewaySocketAcceptor.SocketAcceptorFilterChain;
+import org.springframework.cloud.gateway.rsocket.support.Metadata;
 import org.springframework.core.Ordered;
 
 public class RegistrySocketAcceptorFilter implements SocketAcceptorFilter, Ordered {
@@ -39,8 +39,8 @@ public class RegistrySocketAcceptorFilter implements SocketAcceptorFilter, Order
 	public Mono<Success> filter(SocketAcceptorExchange exchange, SocketAcceptorFilterChain chain) {
 		ConnectionSetupPayload setup = exchange.getSetup();
 		if (setup.hasMetadata()) { // and setup.metadataMimeType() is Announcement metadata
-			List<String> tags = Metadata.decodeAnnouncement(setup.sliceMetadata());
-			registry.register(tags, exchange.getSendingSocket());
+			Map<String, String> properties = Metadata.decodeProperties(setup.sliceMetadata());
+			registry.register(properties, exchange.getSendingSocket());
 		}
 
 		return chain.filter(exchange);

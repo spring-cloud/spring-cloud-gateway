@@ -19,7 +19,12 @@ package org.springframework.cloud.gateway.rsocket.support;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
@@ -27,6 +32,7 @@ import io.netty.buffer.ByteBufUtil;
 import io.rsocket.util.NumberUtils;
 
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 public abstract class Metadata {
 
@@ -34,12 +40,23 @@ public abstract class Metadata {
 
 	private Metadata() {}
 
-	public static ByteBuf encodeAnnouncement(String... tags) {
-		return encodeAnnouncement(ByteBufAllocator.DEFAULT, tags);
+	public static ByteBuf encodeProperties(Map<String, String> properties) {
+		return encodeProperties(ByteBufAllocator.DEFAULT, properties);
 	}
 
-	@SuppressWarnings("Duplicates")
-	public static ByteBuf encodeAnnouncement(ByteBufAllocator allocator, String... tags) {
+	public static ByteBuf encodeProperties(ByteBufAllocator allocator, Map<String, String> properties) {
+		Assert.notEmpty(properties, "tags may not be null or empty"); //TODO: is this true?
+		List<String> pairs = properties.entrySet().stream()
+				.map(entry -> entry.getValue() + ":" + entry.getValue())
+				.collect(Collectors.toList());
+		return encodeTags(allocator, pairs.toArray(new String[0]));
+	}
+
+	public static ByteBuf encodeTags(String... tags) {
+		return encodeTags(ByteBufAllocator.DEFAULT, tags);
+	}
+
+	public static ByteBuf encodeTags(ByteBufAllocator allocator, String... tags) {
 		Assert.notEmpty(tags, "tags may not be null or empty"); //TODO: is this true?
 		ByteBuf byteBuf = allocator.buffer();
 
@@ -51,9 +68,16 @@ public abstract class Metadata {
 		return byteBuf;
 	}
 
-	//TODO: either rsocket spec or custom spec
-	@SuppressWarnings("Duplicates")
-	public static List<String> decodeAnnouncement(ByteBuf byteBuf) {
+	public static Map<String, String> decodeProperties(ByteBuf byteBuf) {
+		return decodeTags(byteBuf).stream()
+				.map(Pair::parse)
+				.filter(Objects::nonNull)
+				.collect(LinkedHashMap::new,
+						(map, pair) -> map.put(pair.name, pair.value),
+						HashMap::putAll);
+	}
+
+	public static List<String> decodeTags(ByteBuf byteBuf) {
 		ArrayList<String> tags = new ArrayList<>();
 
 		int offset = 0;
@@ -68,36 +92,47 @@ public abstract class Metadata {
 		return tags;
 	}
 
-	public static ByteBuf encodeRouting(String... tags) {
-		return encodeRouting(ByteBufAllocator.DEFAULT, tags);
-	}
+	/**
+	 * A single name value pair.
+	 */
+	public static class Pair {
 
-	@SuppressWarnings("Duplicates")
-	public static ByteBuf encodeRouting(ByteBufAllocator allocator, String... tags) {
-		Assert.notEmpty(tags, "tags may not be null or empty"); //TODO: is this true?
-		ByteBuf byteBuf = allocator.buffer();
+		private String name;
 
-		for (String tag : tags) {
-			int tagLength = NumberUtils.requireUnsignedByte(ByteBufUtil.utf8Bytes(tag));
-			byteBuf.writeByte(tagLength);
-			ByteBufUtil.reserveAndWriteUtf8(byteBuf, tag, tagLength);
-		}
-		return byteBuf;
-	}
+		private String value;
 
-	@SuppressWarnings("Duplicates")
-	public static List<String> decodeRouting(ByteBuf byteBuf) {
-		ArrayList<String> tags = new ArrayList<>();
-
-		int offset = 0;
-		while (offset < byteBuf.readableBytes()) { //TODO: What is the best conditional here?
-			int tagLength = byteBuf.getByte(offset);
-			offset += Byte.BYTES;
-			String tag = byteBuf.toString(offset, tagLength, StandardCharsets.UTF_8);
-			tags.add(tag);
-			offset += tagLength;
+		public Pair(String name, String value) {
+			Assert.hasLength(name, "Name must not be empty");
+			this.name = name;
+			this.value = value;
 		}
 
-		return tags;
+		public static Pair parse(String pair) {
+			int index = getSeparatorIndex(pair);
+			String name = (index > 0) ? pair.substring(0, index) : pair;
+			String value = (index > 0) ? pair.substring(index + 1) : "";
+			return of(name.trim(), value.trim());
+		}
+
+		private static int getSeparatorIndex(String pair) {
+			int colonIndex = pair.indexOf(':');
+			int equalIndex = pair.indexOf('=');
+			if (colonIndex == -1) {
+				return equalIndex;
+			}
+			if (equalIndex == -1) {
+				return colonIndex;
+			}
+			return Math.min(colonIndex, equalIndex);
+		}
+
+		private static Pair of(String name, String value) {
+			if (StringUtils.isEmpty(name) && StringUtils.isEmpty(value)) {
+				return null;
+			}
+			return new Pair(name, value);
+		}
+
 	}
+
 }
