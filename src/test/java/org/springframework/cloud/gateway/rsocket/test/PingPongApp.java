@@ -134,7 +134,7 @@ public class PingPongApp {
 			log.info("ping.take: " + take);
 
 			MicrometerRSocketInterceptor interceptor = new MicrometerRSocketInterceptor(meterRegistry, Tag.of("component", "ping"));
-			ByteBuf announcementMetadata = Metadata.encodeAnnouncement("ping");
+			ByteBuf announcementMetadata = Metadata.encodeAnnouncement("ping", "ping"+id);
 			pongFlux = RSocketFactory.connect()
 					.metadataMimeType(Metadata.ROUTING_MIME_TYPE)
 					.setupPayload(DefaultPayload.create(EMPTY_BUFFER, announcementMetadata))
@@ -202,7 +202,7 @@ public class PingPongApp {
 			Integer gatewayPort = env.getProperty("spring.cloud.gateway.rsocket.server.port",
 					Integer.class, 7002);
 			MicrometerRSocketInterceptor interceptor = new MicrometerRSocketInterceptor(meterRegistry, Tag.of("component", "pong"));
-			ByteBuf announcementMetadata = Metadata.encodeAnnouncement("pong");
+			ByteBuf announcementMetadata = Metadata.encodeAnnouncement("pong", "pong1");
 			RSocketFactory.connect()
 					.metadataMimeType(Metadata.ROUTING_MIME_TYPE)
 					.setupPayload(DefaultPayload.create(EMPTY_BUFFER, announcementMetadata))
