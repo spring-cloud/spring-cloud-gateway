@@ -60,11 +60,21 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.c
  */
 public class HystrixGatewayFilterFactory extends AbstractGatewayFilterFactory<HystrixGatewayFilterFactory.Config> {
 
-	private final ObjectProvider<DispatcherHandler> dispatcherHandler;
+	private final ObjectProvider<DispatcherHandler> dispatcherHandlerProvider;
+	//do not use this dispatcherHandler directly, use getDispatcherHandler() instead.
+	private volatile DispatcherHandler dispatcherHandler;
 
-	public HystrixGatewayFilterFactory(ObjectProvider<DispatcherHandler> dispatcherHandler) {
+	public HystrixGatewayFilterFactory(ObjectProvider<DispatcherHandler> dispatcherHandlerProvider) {
 		super(Config.class);
-		this.dispatcherHandler = dispatcherHandler;
+		this.dispatcherHandlerProvider = dispatcherHandlerProvider;
+	}
+
+	private DispatcherHandler getDispatcherHandler() {
+		if (dispatcherHandler == null) {
+			dispatcherHandler = dispatcherHandlerProvider.getIfAvailable();
+		}
+
+		return dispatcherHandler;
 	}
 
 	@Override
@@ -169,8 +179,7 @@ public class HystrixGatewayFilterFactory extends AbstractGatewayFilterFactory<Hy
 
 			ServerHttpRequest request = this.exchange.getRequest().mutate().uri(requestUrl).build();
 			ServerWebExchange mutated = exchange.mutate().request(request).build();
-			DispatcherHandler dispatcherHandler = HystrixGatewayFilterFactory.this.dispatcherHandler.getIfAvailable();
-			return RxReactiveStreams.toObservable(dispatcherHandler.handle(mutated));
+			return RxReactiveStreams.toObservable(getDispatcherHandler().handle(mutated));
 		}
 
 		private void addExceptionDetails() {

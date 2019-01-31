@@ -19,10 +19,20 @@ public class ForwardRoutingFilter implements GlobalFilter, Ordered {
 
 	private static final Log log = LogFactory.getLog(ForwardRoutingFilter.class);
 
-	private final ObjectProvider<DispatcherHandler> dispatcherHandler;
+	private final ObjectProvider<DispatcherHandler> dispatcherHandlerProvider;
+	//do not use this dispatcherHandler directly, use getDispatcherHandler() instead.
+	private volatile DispatcherHandler dispatcherHandler;
 
-	public ForwardRoutingFilter(ObjectProvider<DispatcherHandler> dispatcherHandler) {
-		this.dispatcherHandler = dispatcherHandler;
+	public ForwardRoutingFilter(ObjectProvider<DispatcherHandler> dispatcherHandlerProvider) {
+		this.dispatcherHandlerProvider = dispatcherHandlerProvider;
+	}
+
+	private DispatcherHandler getDispatcherHandler() {
+		if (dispatcherHandler == null) {
+			dispatcherHandler = dispatcherHandlerProvider.getIfAvailable();
+		}
+
+		return dispatcherHandler;
 	}
 
 	@Override
@@ -46,6 +56,6 @@ public class ForwardRoutingFilter implements GlobalFilter, Ordered {
 			log.trace("Forwarding to URI: "+requestUrl);
 		}
 
-		return this.dispatcherHandler.getIfAvailable().handle(exchange);
+		return this.getDispatcherHandler().handle(exchange);
 	}
 }
