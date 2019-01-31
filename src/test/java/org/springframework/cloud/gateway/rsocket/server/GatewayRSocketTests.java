@@ -15,7 +15,7 @@
  *
  */
 
-package org.springframework.cloud.gateway.rsocket;
+package org.springframework.cloud.gateway.rsocket.server;
 
 import java.time.Duration;
 import java.util.Arrays;
@@ -29,11 +29,13 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.cloud.gateway.rsocket.registry.Registry;
+import org.springframework.cloud.gateway.rsocket.support.Metadata;
 import reactor.core.publisher.Mono;
 
-import org.springframework.cloud.gateway.rsocket.GatewayRSocket.GatewayExchange;
-import org.springframework.cloud.gateway.rsocket.GatewayRSocket.GatewayFilter;
-import org.springframework.cloud.gateway.rsocket.GatewayRSocket.GatewayFilterChain;
+import org.springframework.cloud.gateway.rsocket.server.GatewayRSocket.GatewayExchange;
+import org.springframework.cloud.gateway.rsocket.server.GatewayRSocket.GatewayFilter;
+import org.springframework.cloud.gateway.rsocket.server.GatewayRSocket.GatewayFilterChain;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;

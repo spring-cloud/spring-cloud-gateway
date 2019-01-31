@@ -15,7 +15,7 @@
  *
  */
 
-package org.springframework.cloud.gateway.rsocket;
+package org.springframework.cloud.gateway.rsocket.server;
 
 import java.util.List;
 

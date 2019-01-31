@@ -15,7 +15,7 @@
  *
  */
 
-package org.springframework.cloud.gateway.rsocket;
+package org.springframework.cloud.gateway.rsocket.server;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -28,7 +28,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.MonoProcessor;
 
-import org.springframework.cloud.gateway.rsocket.Registry.RegisteredEvent;
+import org.springframework.cloud.gateway.rsocket.registry.Registry.RegisteredEvent;
 
 public class PendingRequestRSocket extends AbstractRSocket implements Consumer<RegisteredEvent> {
 

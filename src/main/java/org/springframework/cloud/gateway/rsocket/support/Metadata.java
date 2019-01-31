@@ -15,7 +15,7 @@
  *
  */
 
-package org.springframework.cloud.gateway.rsocket;
+package org.springframework.cloud.gateway.rsocket.support;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;

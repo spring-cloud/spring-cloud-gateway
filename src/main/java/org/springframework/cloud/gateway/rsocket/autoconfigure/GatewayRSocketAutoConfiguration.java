@@ -15,7 +15,7 @@
  *
  */
 
-package org.springframework.cloud.gateway.rsocket;
+package org.springframework.cloud.gateway.rsocket.autoconfigure;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -30,8 +30,13 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cloud.gateway.rsocket.GatewayRSocket.GatewayFilter;
-import org.springframework.cloud.gateway.rsocket.GatewaySocketAcceptor.SocketAcceptorFilter;
+import org.springframework.cloud.gateway.rsocket.server.GatewayRSocket;
+import org.springframework.cloud.gateway.rsocket.server.GatewayRSocket.GatewayFilter;
+import org.springframework.cloud.gateway.rsocket.server.GatewayRSocketServer;
+import org.springframework.cloud.gateway.rsocket.server.GatewaySocketAcceptor;
+import org.springframework.cloud.gateway.rsocket.server.GatewaySocketAcceptor.SocketAcceptorFilter;
+import org.springframework.cloud.gateway.rsocket.registry.Registry;
+import org.springframework.cloud.gateway.rsocket.registry.RegistrySocketAcceptorFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

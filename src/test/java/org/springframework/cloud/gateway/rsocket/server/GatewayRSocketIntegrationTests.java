@@ -15,12 +15,13 @@
  *
  */
 
-package org.springframework.cloud.gateway.rsocket;
+package org.springframework.cloud.gateway.rsocket.server;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.cloud.gateway.rsocket.autoconfigure.GatewayRSocketProperties;
 import reactor.test.StepVerifier;
 
 import org.springframework.beans.factory.annotation.Autowired;

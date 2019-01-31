@@ -15,7 +15,7 @@
  *
  */
 
-package org.springframework.cloud.gateway.rsocket;
+package org.springframework.cloud.gateway.rsocket.server;
 
 import java.util.Arrays;
 import java.util.List;
@@ -29,7 +29,8 @@ import io.rsocket.transport.netty.server.TcpServerTransport;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.cloud.gateway.rsocket.GatewayRSocketProperties.Server.TransportType;
+import org.springframework.cloud.gateway.rsocket.autoconfigure.GatewayRSocketProperties;
+import org.springframework.cloud.gateway.rsocket.autoconfigure.GatewayRSocketProperties.Server.TransportType;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.core.Ordered;
 import org.springframework.util.Assert;

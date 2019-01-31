@@ -15,7 +15,7 @@
  *
  */
 
-package org.springframework.cloud.gateway.rsocket;
+package org.springframework.cloud.gateway.rsocket.registry;
 
 import java.util.List;
 import java.util.Map;
@@ -26,6 +26,7 @@ import java.util.function.Function;
 import io.rsocket.RSocket;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.cloud.gateway.rsocket.server.LoadBalancedRSocket;
 import reactor.core.Disposable;
 import reactor.core.publisher.DirectProcessor;
 import reactor.core.publisher.FluxSink;

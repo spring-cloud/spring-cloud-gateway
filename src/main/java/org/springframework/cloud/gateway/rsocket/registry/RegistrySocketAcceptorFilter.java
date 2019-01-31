@@ -15,16 +15,17 @@
  *
  */
 
-package org.springframework.cloud.gateway.rsocket;
+package org.springframework.cloud.gateway.rsocket.registry;
 
 import java.util.List;
 
 import io.rsocket.ConnectionSetupPayload;
+import org.springframework.cloud.gateway.rsocket.support.Metadata;
 import reactor.core.publisher.Mono;
 
-import org.springframework.cloud.gateway.rsocket.GatewaySocketAcceptor.SocketAcceptorExchange;
-import org.springframework.cloud.gateway.rsocket.GatewaySocketAcceptor.SocketAcceptorFilter;
-import org.springframework.cloud.gateway.rsocket.GatewaySocketAcceptor.SocketAcceptorFilterChain;
+import org.springframework.cloud.gateway.rsocket.server.GatewaySocketAcceptor.SocketAcceptorExchange;
+import org.springframework.cloud.gateway.rsocket.server.GatewaySocketAcceptor.SocketAcceptorFilter;
+import org.springframework.cloud.gateway.rsocket.server.GatewaySocketAcceptor.SocketAcceptorFilterChain;
 import org.springframework.core.Ordered;
 
 public class RegistrySocketAcceptorFilter implements SocketAcceptorFilter, Ordered {

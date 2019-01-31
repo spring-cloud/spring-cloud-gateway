@@ -15,7 +15,7 @@
  *
  */
 
-package org.springframework.cloud.gateway.rsocket;
+package org.springframework.cloud.gateway.rsocket.autoconfigure;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import io.rsocket.micrometer.MicrometerRSocketInterceptor;
@@ -26,6 +26,11 @@ import org.springframework.boot.actuate.autoconfigure.metrics.MetricsAutoConfigu
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ReactiveWebApplicationContextRunner;
+import org.springframework.cloud.gateway.rsocket.server.GatewayRSocket;
+import org.springframework.cloud.gateway.rsocket.server.GatewayRSocketServer;
+import org.springframework.cloud.gateway.rsocket.server.GatewaySocketAcceptor;
+import org.springframework.cloud.gateway.rsocket.registry.Registry;
+import org.springframework.cloud.gateway.rsocket.registry.RegistrySocketAcceptorFilter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
