@@ -17,17 +17,28 @@
 
 package org.springframework.cloud.gateway.rsocket.socketacceptor;
 
+import java.util.Collections;
+import java.util.Map;
+
 import io.rsocket.ConnectionSetupPayload;
 import io.rsocket.RSocket;
+
 import org.springframework.cloud.gateway.rsocket.filter.RSocketExchange;
 
 public class SocketAcceptorExchange implements RSocketExchange {
 	private final ConnectionSetupPayload setup;
 	private final RSocket sendingSocket;
+	private final Map<String, String> metadata;
 
 	public SocketAcceptorExchange(ConnectionSetupPayload setup, RSocket sendingSocket) {
+		this(setup, sendingSocket, Collections.emptyMap());
+	}
+
+	public SocketAcceptorExchange(ConnectionSetupPayload setup, RSocket sendingSocket,
+								  Map<String, String> metadata) {
 		this.setup = setup;
 		this.sendingSocket = sendingSocket;
+		this.metadata = metadata;
 	}
 
 	public ConnectionSetupPayload getSetup() {
@@ -36,5 +47,9 @@ public class SocketAcceptorExchange implements RSocketExchange {
 
 	public RSocket getSendingSocket() {
 		return sendingSocket;
+	}
+
+	public Map<String, String> getMetadata() {
+		return metadata;
 	}
 }

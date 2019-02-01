@@ -26,11 +26,13 @@ import org.springframework.boot.actuate.autoconfigure.metrics.MetricsAutoConfigu
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ReactiveWebApplicationContextRunner;
+import org.springframework.cloud.gateway.rsocket.registry.Registry;
+import org.springframework.cloud.gateway.rsocket.registry.RegistrySocketAcceptorFilter;
 import org.springframework.cloud.gateway.rsocket.server.GatewayRSocket;
 import org.springframework.cloud.gateway.rsocket.server.GatewayRSocketServer;
 import org.springframework.cloud.gateway.rsocket.socketacceptor.GatewaySocketAcceptor;
-import org.springframework.cloud.gateway.rsocket.registry.Registry;
-import org.springframework.cloud.gateway.rsocket.registry.RegistrySocketAcceptorFilter;
+import org.springframework.cloud.gateway.rsocket.socketacceptor.SocketAcceptorPredicate;
+import org.springframework.cloud.gateway.rsocket.socketacceptor.SocketAcceptorPredicateFilter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -51,6 +53,8 @@ public class GatewayRSocketAutoConfigurationTests {
 						.hasSingleBean(GatewayRSocketServer.class)
 						.hasSingleBean(GatewayRSocketProperties.class)
 						.hasSingleBean(GatewaySocketAcceptor.class)
+						.hasSingleBean(SocketAcceptorPredicateFilter.class)
+						.doesNotHaveBean(SocketAcceptorPredicate.class)
 						.hasSingleBean(MicrometerRSocketInterceptor.class)
 				);
 	}
@@ -71,6 +75,8 @@ public class GatewayRSocketAutoConfigurationTests {
 						.hasSingleBean(GatewayRSocketServer.class)
 						.hasSingleBean(GatewayRSocketProperties.class)
 						.hasSingleBean(GatewaySocketAcceptor.class)
+						.hasSingleBean(SocketAcceptorPredicateFilter.class)
+						.doesNotHaveBean(SocketAcceptorPredicate.class)
 						.doesNotHaveBean(MicrometerRSocketInterceptor.class)
 				);
 	}

@@ -24,19 +24,21 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
 import io.rsocket.RSocket;
-
 import io.rsocket.micrometer.MicrometerRSocketInterceptor;
+
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cloud.gateway.rsocket.server.GatewayRSocket;
+import org.springframework.cloud.gateway.rsocket.registry.Registry;
+import org.springframework.cloud.gateway.rsocket.registry.RegistrySocketAcceptorFilter;
 import org.springframework.cloud.gateway.rsocket.server.GatewayFilter;
+import org.springframework.cloud.gateway.rsocket.server.GatewayRSocket;
 import org.springframework.cloud.gateway.rsocket.server.GatewayRSocketServer;
 import org.springframework.cloud.gateway.rsocket.socketacceptor.GatewaySocketAcceptor;
 import org.springframework.cloud.gateway.rsocket.socketacceptor.SocketAcceptorFilter;
-import org.springframework.cloud.gateway.rsocket.registry.Registry;
-import org.springframework.cloud.gateway.rsocket.registry.RegistrySocketAcceptorFilter;
+import org.springframework.cloud.gateway.rsocket.socketacceptor.SocketAcceptorPredicate;
+import org.springframework.cloud.gateway.rsocket.socketacceptor.SocketAcceptorPredicateFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -67,6 +69,11 @@ public class GatewayRSocketAutoConfiguration {
 	@Bean
 	public GatewayRSocketProperties gatewayRSocketProperties() {
 		return new GatewayRSocketProperties();
+	}
+
+	@Bean
+	public SocketAcceptorPredicateFilter socketAcceptorPredicateFilter(List<SocketAcceptorPredicate> predicates) {
+		return new SocketAcceptorPredicateFilter(predicates);
 	}
 
 	@Bean
