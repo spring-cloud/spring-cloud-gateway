@@ -29,13 +29,14 @@ import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import org.springframework.cloud.gateway.rsocket.filter.AbstractFilterChain;
-import org.springframework.cloud.gateway.rsocket.filter.RSocketExchange;
-import org.springframework.cloud.gateway.rsocket.filter.RSocketFilter;
 import org.springframework.cloud.gateway.rsocket.registry.Registry;
 import org.springframework.cloud.gateway.rsocket.support.Metadata;
 import org.springframework.util.CollectionUtils;
 
+/**
+ * Acts as a proxy to other registered sockets. Looks up target RSocket
+ * via Registry. Creates GatewayExchange and executes a GatewayFilterChain.
+ */
 public class GatewayRSocket extends AbstractRSocket {
 
 	private static final Log log = LogFactory.getLog(GatewayRSocket.class);
@@ -129,40 +130,5 @@ public class GatewayRSocket extends AbstractRSocket {
 	}
 
 
-	public interface GatewayFilter extends RSocketFilter<GatewayExchange, GatewayFilterChain> {}
-
-	public static class GatewayExchange implements RSocketExchange {
-		private final Payload payload;
-
-		public GatewayExchange(Payload payload) {
-			this.payload = payload;
-		}
-
-		public Payload getPayload() {
-			return payload;
-		}
-	}
-
-	public static class GatewayFilterChain
-			extends AbstractFilterChain<GatewayFilter, GatewayExchange, GatewayFilterChain> {
-
-		/**
-		 * Public constructor with the list of filters and the target handler to use.
-		 *
-		 * @param filters the filters ahead of the handler
-		 */
-		public GatewayFilterChain(List<GatewayFilter> filters) {
-			super(filters);
-		}
-
-		public GatewayFilterChain(List<GatewayFilter> allFilters, GatewayFilter currentFilter, GatewayFilterChain next) {
-			super(allFilters, currentFilter, next);
-		}
-
-		@Override
-		protected GatewayFilterChain create(List<GatewayFilter> allFilters, GatewayFilter currentFilter, GatewayFilterChain next) {
-			return new GatewayFilterChain(allFilters, currentFilter, next);
-		}
-	}
 }
 

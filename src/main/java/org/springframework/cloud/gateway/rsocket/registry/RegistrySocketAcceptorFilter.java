@@ -22,9 +22,9 @@ import java.util.Map;
 import io.rsocket.ConnectionSetupPayload;
 import reactor.core.publisher.Mono;
 
-import org.springframework.cloud.gateway.rsocket.server.GatewaySocketAcceptor.SocketAcceptorExchange;
-import org.springframework.cloud.gateway.rsocket.server.GatewaySocketAcceptor.SocketAcceptorFilter;
-import org.springframework.cloud.gateway.rsocket.server.GatewaySocketAcceptor.SocketAcceptorFilterChain;
+import org.springframework.cloud.gateway.rsocket.socketacceptor.SocketAcceptorExchange;
+import org.springframework.cloud.gateway.rsocket.socketacceptor.SocketAcceptorFilter;
+import org.springframework.cloud.gateway.rsocket.socketacceptor.SocketAcceptorFilterChain;
 import org.springframework.cloud.gateway.rsocket.support.Metadata;
 import org.springframework.core.Ordered;
 

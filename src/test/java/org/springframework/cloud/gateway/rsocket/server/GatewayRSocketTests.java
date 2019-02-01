@@ -32,9 +32,6 @@ import org.junit.Test;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.rsocket.registry.Registry;
-import org.springframework.cloud.gateway.rsocket.server.GatewayRSocket.GatewayExchange;
-import org.springframework.cloud.gateway.rsocket.server.GatewayRSocket.GatewayFilter;
-import org.springframework.cloud.gateway.rsocket.server.GatewayRSocket.GatewayFilterChain;
 import org.springframework.cloud.gateway.rsocket.support.Metadata;
 
 import static org.junit.Assert.assertFalse;

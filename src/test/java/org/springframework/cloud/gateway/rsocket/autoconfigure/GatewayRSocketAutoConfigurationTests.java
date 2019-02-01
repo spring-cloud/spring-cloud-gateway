@@ -28,7 +28,7 @@ import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ReactiveWebApplicationContextRunner;
 import org.springframework.cloud.gateway.rsocket.server.GatewayRSocket;
 import org.springframework.cloud.gateway.rsocket.server.GatewayRSocketServer;
-import org.springframework.cloud.gateway.rsocket.server.GatewaySocketAcceptor;
+import org.springframework.cloud.gateway.rsocket.socketacceptor.GatewaySocketAcceptor;
 import org.springframework.cloud.gateway.rsocket.registry.Registry;
 import org.springframework.cloud.gateway.rsocket.registry.RegistrySocketAcceptorFilter;
 

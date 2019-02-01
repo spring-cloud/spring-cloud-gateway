@@ -15,7 +15,7 @@
  *
  */
 
-package org.springframework.cloud.gateway.rsocket.server;
+package org.springframework.cloud.gateway.rsocket.registry;
 
 import io.rsocket.AbstractRSocket;
 import io.rsocket.Payload;

@@ -43,11 +43,12 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.cloud.gateway.rsocket.server.GatewayRSocket.GatewayExchange;
-import org.springframework.cloud.gateway.rsocket.server.GatewayRSocket.GatewayFilter;
-import org.springframework.cloud.gateway.rsocket.server.GatewayRSocket.GatewayFilterChain;
-import org.springframework.cloud.gateway.rsocket.server.GatewaySocketAcceptor;
-import org.springframework.cloud.gateway.rsocket.server.GatewaySocketAcceptor.SocketAcceptorFilter;
+import org.springframework.cloud.gateway.rsocket.server.GatewayExchange;
+import org.springframework.cloud.gateway.rsocket.server.GatewayFilter;
+import org.springframework.cloud.gateway.rsocket.server.GatewayFilterChain;
+import org.springframework.cloud.gateway.rsocket.socketacceptor.SocketAcceptorExchange;
+import org.springframework.cloud.gateway.rsocket.socketacceptor.SocketAcceptorFilter;
+import org.springframework.cloud.gateway.rsocket.socketacceptor.SocketAcceptorFilterChain;
 import org.springframework.cloud.gateway.rsocket.support.Metadata;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
@@ -263,7 +264,7 @@ public class PingPongApp {
 		private AtomicBoolean invoked = new AtomicBoolean(false);
 
 		@Override
-		public Mono<Success> filter(GatewaySocketAcceptor.SocketAcceptorExchange exchange, GatewaySocketAcceptor.SocketAcceptorFilterChain chain) {
+		public Mono<Success> filter(SocketAcceptorExchange exchange, SocketAcceptorFilterChain chain) {
 			log.info("in custom socket acceptor filter");
 			invoked.compareAndSet(false, true);
 			return chain.filter(exchange);
