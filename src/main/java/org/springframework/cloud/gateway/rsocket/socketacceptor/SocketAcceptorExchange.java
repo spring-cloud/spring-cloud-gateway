@@ -23,9 +23,9 @@ import java.util.Map;
 import io.rsocket.ConnectionSetupPayload;
 import io.rsocket.RSocket;
 
-import org.springframework.cloud.gateway.rsocket.filter.RSocketExchange;
+import org.springframework.cloud.gateway.rsocket.filter.AbstractRSocketExchange;
 
-public class SocketAcceptorExchange implements RSocketExchange {
+public class SocketAcceptorExchange extends AbstractRSocketExchange {
 	private final ConnectionSetupPayload setup;
 	private final RSocket sendingSocket;
 	private final Map<String, String> metadata;
@@ -35,7 +35,7 @@ public class SocketAcceptorExchange implements RSocketExchange {
 	}
 
 	public SocketAcceptorExchange(ConnectionSetupPayload setup, RSocket sendingSocket,
-								  Map<String, String> metadata) {
+			Map<String, String> metadata) {
 		this.setup = setup;
 		this.sendingSocket = sendingSocket;
 		this.metadata = metadata;

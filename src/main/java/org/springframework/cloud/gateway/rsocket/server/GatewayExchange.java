@@ -19,9 +19,11 @@ package org.springframework.cloud.gateway.rsocket.server;
 
 import java.util.Map;
 
-import org.springframework.cloud.gateway.rsocket.filter.RSocketExchange;
+import org.springframework.cloud.gateway.rsocket.filter.AbstractRSocketExchange;
 
-public class GatewayExchange implements RSocketExchange {
+public class GatewayExchange extends AbstractRSocketExchange {
+
+	public static final String ROUTE_ATTR = "__route_attr_";
 
 	enum Type { FIRE_AND_FORGET, REQUEST_CHANNEL, REQUEST_RESPONSE, REQUEST_STREAM, UNKNOWN }
 

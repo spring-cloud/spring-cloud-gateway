@@ -33,8 +33,8 @@ import org.springframework.cloud.gateway.rsocket.registry.Registry;
 import org.springframework.cloud.gateway.rsocket.route.Routes;
 import org.springframework.cloud.gateway.rsocket.support.Metadata;
 import org.springframework.util.CollectionUtils;
-import reactor.util.context.Context;
 
+import static org.springframework.cloud.gateway.rsocket.server.GatewayExchange.ROUTE_ATTR;
 import static org.springframework.cloud.gateway.rsocket.server.GatewayExchange.Type.FIRE_AND_FORGET;
 import static org.springframework.cloud.gateway.rsocket.server.GatewayExchange.Type.REQUEST_CHANNEL;
 import static org.springframework.cloud.gateway.rsocket.server.GatewayExchange.Type.REQUEST_RESPONSE;
@@ -121,17 +121,19 @@ public class GatewayRSocket extends AbstractRSocket {
 	private Mono<RSocket> findRSocket(GatewayExchange exchange) {
 		return this.routes.findRoute(exchange)
 				.log("find route", Level.FINE)
-				// TODO: see if I can store the route in the pending rsocket
-				.flatMap(route -> executeFilterChain(route.getFilters(), exchange)
-						.map(success -> {
-							RSocket rsocket = registry.getRegistered(exchange.getRoutingMetadata());
+				.flatMap(route -> {
+					// put route in exchange for later use
+					exchange.getAttributes().put(ROUTE_ATTR, route);
+					return executeFilterChain(route.getFilters(), exchange)
+							.map(success -> {
+								RSocket rsocket = registry.getRegistered(exchange.getRoutingMetadata());
 
-							if (rsocket == null) {
-								log.debug("Unable to find destination RSocket for " + exchange.getRoutingMetadata());
-							}
-							return rsocket;
-						})
-						.subscriberContext(Context.of("route", route)));
+								if (rsocket == null) {
+									log.debug("Unable to find destination RSocket for " + exchange.getRoutingMetadata());
+								}
+								return rsocket;
+							});
+				});
 
 		// TODO: deal with connecting to cluster?
 	}

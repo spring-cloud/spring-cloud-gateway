@@ -35,6 +35,8 @@ import org.springframework.cloud.gateway.rsocket.route.Route;
 import org.springframework.cloud.gateway.rsocket.route.Routes;
 import org.springframework.cloud.gateway.rsocket.support.Metadata;
 
+import static org.springframework.cloud.gateway.rsocket.server.GatewayExchange.ROUTE_ATTR;
+
 public class PendingRequestRSocket extends AbstractRSocket implements Consumer<RegisteredEvent> {
 
 	private final Routes routes;
@@ -60,15 +62,30 @@ public class PendingRequestRSocket extends AbstractRSocket implements Consumer<R
 	 */
 	@Override
 	public void accept(RegisteredEvent registeredEvent) {
-		//TODO: cache route if not already here
-		this.routes.findRoute(pendingExchange)
+		findRoute()
 				.log("find route pending", Level.FINE)
 				// can this be replaced with filter?
-				.map(route -> executeFilterChain(route, registeredEvent.getRoutingMetadata()))
+				.map(route -> {
+					if (!pendingExchange.getAttributes().containsKey(ROUTE_ATTR)) {
+						pendingExchange.getAttributes().put(ROUTE_ATTR, route);
+					}
+					return executeFilterChain(route, registeredEvent.getRoutingMetadata());
+				})
 				.subscribe(success -> {
 					this.processor.onNext(registeredEvent.getRSocket());
 					this.processor.onComplete();
 				});
+	}
+
+	private Mono<Route> findRoute() {
+		Mono<Route> routeMono;
+		if (pendingExchange.getAttributes().containsKey(ROUTE_ATTR)) {
+			Route r = pendingExchange.getRequiredAttribute(ROUTE_ATTR);
+			routeMono = Mono.just(r);
+		} else {
+			routeMono = this.routes.findRoute(pendingExchange);
+		}
+		return routeMono;
 	}
 
 	private Mono<Success> executeFilterChain(Route route, Map<String, String> annoucementMetadata) {
