@@ -93,6 +93,32 @@ public abstract class Metadata {
 	}
 
 	/**
+	 * All keys in targetMetadata must have a "match" in announcementMetadata
+	 * @param targetMetadata
+	 * @param annoucementMetadata
+	 * @return
+	 */
+	//TODO: find a way to make this more performant
+	public static boolean matches(Map<String, String> targetMetadata, Map<String, String> annoucementMetadata) {
+		if (targetMetadata != null && annoucementMetadata != null
+				// if announced key contains all target keys
+				&& annoucementMetadata.keySet().containsAll(targetMetadata.keySet())) {
+			for (Map.Entry<String, String> entry : targetMetadata.entrySet()) {
+				String targetKey = entry.getKey();
+				String targetValue = entry.getValue();
+				String announcementValue = annoucementMetadata.get(targetKey);
+
+				//TODO: regex and possibly SpEL
+				if (!targetValue.equals(announcementValue)) {
+					return false;
+				}
+			}
+			return true;
+		}
+		return false;
+	}
+
+	/**
 	 * A single name value pair.
 	 */
 	public static class Pair {

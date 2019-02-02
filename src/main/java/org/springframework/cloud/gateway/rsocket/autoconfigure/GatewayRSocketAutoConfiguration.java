@@ -31,8 +31,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClas
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.gateway.rsocket.registry.Registry;
+import org.springframework.cloud.gateway.rsocket.registry.RegistryRoutes;
 import org.springframework.cloud.gateway.rsocket.registry.RegistrySocketAcceptorFilter;
-import org.springframework.cloud.gateway.rsocket.server.GatewayFilter;
+import org.springframework.cloud.gateway.rsocket.route.Routes;
 import org.springframework.cloud.gateway.rsocket.server.GatewayRSocket;
 import org.springframework.cloud.gateway.rsocket.server.GatewayRSocketServer;
 import org.springframework.cloud.gateway.rsocket.socketacceptor.GatewaySocketAcceptor;
@@ -56,14 +57,22 @@ public class GatewayRSocketAutoConfiguration {
 		return new Registry();
 	}
 
+	//TODO: CompositeRoutes
+	@Bean
+	public RegistryRoutes registryRoutes(Registry registry) {
+		RegistryRoutes registryRoutes = new RegistryRoutes();
+		registry.addListener(registryRoutes);
+		return registryRoutes;
+	}
+
 	@Bean
 	public RegistrySocketAcceptorFilter registrySocketAcceptorFilter(Registry registry) {
 		return new RegistrySocketAcceptorFilter(registry);
 	}
 
 	@Bean
-	public GatewayRSocket gatewayRSocket(Registry registry, List<GatewayFilter> filters) {
-		return new GatewayRSocket(registry, filters);
+	public GatewayRSocket gatewayRSocket(Registry registry, Routes routes) {
+		return new GatewayRSocket(registry, routes);
 	}
 
 	@Bean

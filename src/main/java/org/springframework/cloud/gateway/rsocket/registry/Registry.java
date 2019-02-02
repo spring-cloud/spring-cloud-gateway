@@ -72,7 +72,7 @@ public class Registry {
 		log.debug("Registered RSocket: " + properties);
 		LoadBalancedRSocket composite = rsockets.computeIfAbsent(computeKey(properties), s -> new LoadBalancedRSocket());
 		composite.addRSocket(rsocket);
-		registeredEventsSink.next(new RegisteredEvent(keyFunction, properties, rsocket));
+		registeredEventsSink.next(new RegisteredEvent(properties, rsocket));
 	}
 
 	public RSocket getRegistered(Map<String, String> properties) {
@@ -87,16 +87,12 @@ public class Registry {
 	}
 
 	public static class RegisteredEvent {
-		private final Function<Map<String, String>, String> keyFunction;
 		private final Map<String, String> routingMetadata;
 		private final RSocket rSocket;
 
-		public RegisteredEvent(Function<Map<String, String>, String> keyFunction, Map<String, String> routingMetadata,
-							   RSocket rSocket) {
-			Assert.notNull(keyFunction, "keyFunction may not be null");
+		public RegisteredEvent(Map<String, String> routingMetadata, RSocket rSocket) {
 			Assert.notEmpty(routingMetadata, "routingMetadata may not be empty");
 			Assert.notNull(rSocket, "RSocket may not be null");
-			this.keyFunction = keyFunction;
 			this.routingMetadata = routingMetadata;
 			this.rSocket = rSocket;
 		}
@@ -109,13 +105,5 @@ public class Registry {
 			return rSocket;
 		}
 
-		public boolean matches(Map<String, String> otherRoutingMetadata) {
-			if (!CollectionUtils.isEmpty(otherRoutingMetadata)) {
-				String thisKey = keyFunction.apply(routingMetadata);
-				String otherKey = keyFunction.apply(otherRoutingMetadata);
-				return thisKey.equals(otherKey);
-			}
-			return false;
-		}
 	}
 }

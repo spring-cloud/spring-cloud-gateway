@@ -17,9 +17,12 @@
 
 package org.springframework.cloud.gateway.rsocket.server;
 
-import org.springframework.cloud.gateway.rsocket.filter.AbstractFilterChain;
-
 import java.util.List;
+
+import reactor.core.publisher.Mono;
+
+import org.springframework.cloud.gateway.rsocket.filter.AbstractFilterChain;
+import org.springframework.cloud.gateway.rsocket.filter.RSocketFilter.Success;
 
 public class GatewayFilterChain
 		extends AbstractFilterChain<GatewayFilter, GatewayExchange, GatewayFilterChain> {
@@ -29,16 +32,21 @@ public class GatewayFilterChain
 	 *
 	 * @param filters the filters ahead of the handler
 	 */
-	public GatewayFilterChain(List<GatewayFilter> filters) {
+	private GatewayFilterChain(List<GatewayFilter> filters) {
 		super(filters);
 	}
 
-	public GatewayFilterChain(List<GatewayFilter> allFilters, GatewayFilter currentFilter, GatewayFilterChain next) {
+	protected GatewayFilterChain(List<GatewayFilter> allFilters, GatewayFilter currentFilter, GatewayFilterChain next) {
 		super(allFilters, currentFilter, next);
 	}
 
 	@Override
 	protected GatewayFilterChain create(List<GatewayFilter> allFilters, GatewayFilter currentFilter, GatewayFilterChain next) {
 		return new GatewayFilterChain(allFilters, currentFilter, next);
+	}
+
+	public static Mono<Success> executeFilterChain(List<GatewayFilter> filters, GatewayExchange exchange) {
+		return new GatewayFilterChain(filters)
+				.filter(exchange);
 	}
 }

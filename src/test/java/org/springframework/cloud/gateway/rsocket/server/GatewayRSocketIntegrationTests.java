@@ -21,12 +21,12 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.cloud.gateway.rsocket.autoconfigure.GatewayRSocketProperties;
 import reactor.test.StepVerifier;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.cloud.gateway.rsocket.autoconfigure.GatewayRSocketProperties;
 import org.springframework.cloud.gateway.rsocket.test.PingPongApp;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.SocketUtils;
@@ -54,9 +54,6 @@ public class GatewayRSocketIntegrationTests {
 	private PingPongApp.MySocketAcceptorFilter mySocketAcceptorFilter;
 
 	@Autowired
-	private PingPongApp.MyGatewayFilter myGatewayFilter;
-
-	@Autowired
 	private GatewayRSocketServer server;
 
 	@BeforeClass
@@ -82,7 +79,6 @@ public class GatewayRSocketIntegrationTests {
 		assertThat(pong.getPingsReceived()).isGreaterThan(0);
 		assertThat(properties.getServer().getPort()).isNotEqualTo(7002);
 		assertThat(mySocketAcceptorFilter.invoked()).isTrue();
-		assertThat(myGatewayFilter.invoked()).isTrue();
 		assertThat(server.isRunning()).isFalse();
 	}
 

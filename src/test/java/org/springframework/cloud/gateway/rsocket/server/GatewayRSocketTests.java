@@ -20,6 +20,7 @@ package org.springframework.cloud.gateway.rsocket.server;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import io.netty.buffer.Unpooled;
 import io.rsocket.Payload;
@@ -29,14 +30,18 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
 import org.junit.Test;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.MonoProcessor;
+import reactor.test.StepVerifier;
 
 import org.springframework.cloud.gateway.rsocket.registry.Registry;
+import org.springframework.cloud.gateway.rsocket.route.Route;
+import org.springframework.cloud.gateway.rsocket.route.Routes;
 import org.springframework.cloud.gateway.rsocket.support.Metadata;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
@@ -52,7 +57,6 @@ public class GatewayRSocketTests {
 
 	private Registry registry;
 	private Payload incomingPayload;
-	private RSocket rSocket;
 
 	@Before
 	public void init() {
@@ -60,7 +64,7 @@ public class GatewayRSocketTests {
 		incomingPayload = DefaultPayload.create(Unpooled.EMPTY_BUFFER,
 				Metadata.encodeTags("name:mock"));
 
-		rSocket = mock(RSocket.class);
+		RSocket rSocket = mock(RSocket.class);
 		when(registry.getRegistered(anyMap())).thenReturn(rSocket);
 
 		when(rSocket.requestResponse(any(Payload.class)))
@@ -74,7 +78,7 @@ public class GatewayRSocketTests {
 		TestFilter filter2 = new TestFilter();
 		TestFilter filter3 = new TestFilter();
 
-		Payload payload = new GatewayRSocket(registry, Arrays.asList(filter1, filter2, filter3))
+		Payload payload = new TestGatewayRSocket(registry, new TestRoutes(filter1, filter2, filter3))
 				.requestResponse(incomingPayload)
 				.block(Duration.ZERO);
 
@@ -86,7 +90,7 @@ public class GatewayRSocketTests {
 
 	@Test
 	public void zeroFilters()  {
-		Payload payload = new GatewayRSocket(registry, Collections.emptyList())
+		Payload payload = new TestGatewayRSocket(registry, new TestRoutes())
 				.requestResponse(incomingPayload)
 				.block(Duration.ZERO);
 
@@ -101,14 +105,20 @@ public class GatewayRSocketTests {
 		TestFilter filter3 = new TestFilter();
 
 
-		Payload payload = new GatewayRSocket(registry, Arrays.asList(filter1, filter2, filter3))
-				.requestResponse(incomingPayload)
-				.block(Duration.ZERO);
+		TestGatewayRSocket gatewayRSocket = new TestGatewayRSocket(registry, new TestRoutes(filter1, filter2, filter3));
+		Mono<Payload> response = gatewayRSocket.requestResponse(incomingPayload);
+
+		// a false filter will create a pending rsocket that blocks forever
+		// this tweaks the rsocket to compelte.
+		gatewayRSocket.processor.onNext(null);
+
+		StepVerifier.withVirtualTime(() -> response)
+				.expectSubscription()
+				.verifyComplete();
 
 		assertTrue(filter1.invoked());
 		assertTrue(filter2.invoked());
 		assertFalse(filter3.invoked());
-		assertNull(payload);
 	}
 
 	@Test
@@ -116,7 +126,7 @@ public class GatewayRSocketTests {
 
 		AsyncFilter filter = new AsyncFilter();
 
-		Payload payload = new GatewayRSocket(registry, Collections.singletonList(filter))
+		Payload payload = new TestGatewayRSocket(registry, new TestRoutes(filter))
 				.requestResponse(incomingPayload)
 				.block(Duration.ofSeconds(5));
 
@@ -130,11 +140,57 @@ public class GatewayRSocketTests {
 
 		ExceptionFilter filter = new ExceptionFilter();
 
-		new GatewayRSocket(registry, Collections.singletonList(filter))
+		new TestGatewayRSocket(registry, new TestRoutes(filter))
 				.requestResponse(incomingPayload)
 				.block(Duration.ofSeconds(5));
 
 		// assertNull(socket);
+	}
+
+	private static class TestGatewayRSocket extends GatewayRSocket {
+
+		private final MonoProcessor<RSocket> processor = MonoProcessor.create();
+
+		public TestGatewayRSocket(Registry registry, Routes routes) {
+			super(registry, routes);
+		}
+
+		@Override
+		PendingRequestRSocket constructPendingRSocket(GatewayExchange exchange) {
+			return new PendingRequestRSocket(getRoutes(), exchange, processor);
+		}
+
+		public MonoProcessor<RSocket> getProcessor() {
+			return processor;
+		}
+	}
+
+	private static class TestRoutes implements Routes {
+		private final Route route;
+		private List<GatewayFilter> filters;
+
+		public TestRoutes() {
+			this(Collections.emptyList());
+		}
+
+		public TestRoutes(GatewayFilter... filters) {
+			this(Arrays.asList(filters));
+		}
+
+		public TestRoutes(List<GatewayFilter> filters) {
+			this.filters = filters;
+			route = Route.builder()
+					.id("route1")
+					.routingMetadata(Collections.singletonMap("name", "mock"))
+					.predicate(exchange -> Mono.just(true))
+					.filters(filters)
+					.build();
+		}
+
+		@Override
+		public Flux<Route> getRoutes() {
+			return Flux.just(route);
+		}
 	}
 
 

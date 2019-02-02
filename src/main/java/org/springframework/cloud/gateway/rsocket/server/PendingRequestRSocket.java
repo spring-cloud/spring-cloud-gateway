@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.rsocket.server;
 
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.logging.Level;
 
 import io.rsocket.AbstractRSocket;
 import io.rsocket.Payload;
@@ -28,51 +29,81 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.MonoProcessor;
 
+import org.springframework.cloud.gateway.rsocket.filter.RSocketFilter.Success;
 import org.springframework.cloud.gateway.rsocket.registry.Registry.RegisteredEvent;
+import org.springframework.cloud.gateway.rsocket.route.Route;
+import org.springframework.cloud.gateway.rsocket.route.Routes;
+import org.springframework.cloud.gateway.rsocket.support.Metadata;
 
 public class PendingRequestRSocket extends AbstractRSocket implements Consumer<RegisteredEvent> {
 
-	private final Map<String, String> routingMetadata;
+	private final Routes routes;
+	private final GatewayExchange pendingExchange;
 	private final MonoProcessor<RSocket> processor;
 
-	public PendingRequestRSocket(Map<String, String> routingMetadata) {
-		this.routingMetadata = routingMetadata;
-		this.processor = MonoProcessor.create();
+	public PendingRequestRSocket(Routes routes, GatewayExchange pendingExchange) {
+		this(routes, pendingExchange, MonoProcessor.create());
 	}
 
+	/* for testing */ PendingRequestRSocket(Routes routes, GatewayExchange pendingExchange, MonoProcessor<RSocket> processor) {
+		this.routes = routes;
+		this.pendingExchange = pendingExchange;
+		this.processor = processor;
+	}
+
+	/**
+	 * Find route (if needed) using pendingExchange.
+	 * If found, see if the route target matches the registered service.
+	 * If it matches, execute filter chain.
+	 * If chain is successful, send registered RSocket to processor.
+	 * @param registeredEvent
+	 */
 	@Override
 	public void accept(RegisteredEvent registeredEvent) {
-		if (registeredEvent.matches(this.routingMetadata)) {
-			this.processor.onNext(registeredEvent.getRSocket());
-			this.processor.onComplete();
+		//TODO: cache route if not already here
+		this.routes.findRoute(pendingExchange)
+				.log("find route pending", Level.FINE)
+				// can this be replaced with filter?
+				.map(route -> executeFilterChain(route, registeredEvent.getRoutingMetadata()))
+				.subscribe(success -> {
+					this.processor.onNext(registeredEvent.getRSocket());
+					this.processor.onComplete();
+				});
+	}
+
+	private Mono<Success> executeFilterChain(Route route, Map<String, String> annoucementMetadata) {
+		Map<String, String> targetMetadata = route.getTargetMetadata();
+		if (Metadata.matches(targetMetadata, annoucementMetadata)) {
+			return GatewayFilterChain.executeFilterChain(route.getFilters(), pendingExchange);
 		}
+		return Mono.empty();
 	}
 
 	@Override
 	public Mono<Void> fireAndForget(Payload payload) {
 		return processor
-				.log("pending-request")
+				.log("pending-request-faf", Level.FINE)
 				.flatMap(rsocket -> rsocket.fireAndForget(payload));
 	}
 
 	@Override
 	public Mono<Payload> requestResponse(Payload payload) {
 		return processor
-				.log("pending-request")
+				.log("pending-request-rr", Level.FINE)
 				.flatMap(rsocket -> rsocket.requestResponse(payload));
 	}
 
 	@Override
 	public Flux<Payload> requestStream(Payload payload) {
 		return processor
-				.log("pending-request")
+				.log("pending-request-rs", Level.FINE)
 				.flatMapMany(rsocket -> rsocket.requestStream(payload));
 	}
 
 	@Override
 	public Flux<Payload> requestChannel(Publisher<Payload> payloads) {
 		return processor
-				.log("pending-request")
+				.log("pending-request-rc", Level.FINE)
 				.flatMapMany(rsocket -> rsocket.requestChannel(payloads));
 	}
 }

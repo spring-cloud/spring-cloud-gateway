@@ -77,11 +77,6 @@ public class PingPongApp {
 	}
 
 	@Bean
-	public MyGatewayFilter myGatewayFilter() {
-		return new MyGatewayFilter();
-	}
-
-	@Bean
 	public MySocketAcceptorFilter mySocketAcceptorFilter() {
 		return new MySocketAcceptorFilter();
 	}
@@ -132,7 +127,7 @@ public class PingPongApp {
 			Integer gatewayPort = env.getProperty("spring.cloud.gateway.rsocket.server.port",
 					Integer.class, 7002);
 
-			log.info("ping.take: " + take);
+			log.debug("ping.take: " + take);
 
 			MicrometerRSocketInterceptor interceptor = new MicrometerRSocketInterceptor(meterRegistry, Tag.of("component", "ping"));
 			ByteBuf announcementMetadata = Metadata.encodeTags("name:ping", "id:ping"+id);

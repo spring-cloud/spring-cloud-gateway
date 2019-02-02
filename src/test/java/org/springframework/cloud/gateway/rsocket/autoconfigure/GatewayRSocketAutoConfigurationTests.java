@@ -27,6 +27,7 @@ import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ReactiveWebApplicationContextRunner;
 import org.springframework.cloud.gateway.rsocket.registry.Registry;
+import org.springframework.cloud.gateway.rsocket.registry.RegistryRoutes;
 import org.springframework.cloud.gateway.rsocket.registry.RegistrySocketAcceptorFilter;
 import org.springframework.cloud.gateway.rsocket.server.GatewayRSocket;
 import org.springframework.cloud.gateway.rsocket.server.GatewayRSocketServer;
@@ -48,6 +49,7 @@ public class GatewayRSocketAutoConfigurationTests {
 						))
 				.run(context -> assertThat(context)
 						.hasSingleBean(Registry.class)
+						.hasSingleBean(RegistryRoutes.class)
 						.hasSingleBean(RegistrySocketAcceptorFilter.class)
 						.hasSingleBean(GatewayRSocket.class)
 						.hasSingleBean(GatewayRSocketServer.class)
@@ -70,6 +72,7 @@ public class GatewayRSocketAutoConfigurationTests {
 				.withClassLoader(new FilteredClassLoader(MeterRegistry.class, MicrometerRSocketInterceptor.class))
 				.run(context -> assertThat(context)
 						.hasSingleBean(Registry.class)
+						.hasSingleBean(RegistryRoutes.class)
 						.hasSingleBean(RegistrySocketAcceptorFilter.class)
 						.hasSingleBean(GatewayRSocket.class)
 						.hasSingleBean(GatewayRSocketServer.class)

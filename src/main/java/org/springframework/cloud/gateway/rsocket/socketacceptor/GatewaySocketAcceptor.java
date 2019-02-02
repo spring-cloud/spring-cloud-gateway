@@ -18,6 +18,7 @@
 package org.springframework.cloud.gateway.rsocket.socketacceptor;
 
 import java.util.List;
+import java.util.logging.Level;
 
 import io.rsocket.ConnectionSetupPayload;
 import io.rsocket.RSocket;
@@ -40,7 +41,7 @@ public class GatewaySocketAcceptor implements SocketAcceptor {
 		SocketAcceptorExchange exchange = new SocketAcceptorExchange(setup, sendingSocket);
 
 		return this.filterChain.filter(exchange)
-				.log("socket acceptor filter chain")
+				.log("socket acceptor filter chain", Level.FINE)
 				.map(bool -> this.proxyRSocket);
 	}
 

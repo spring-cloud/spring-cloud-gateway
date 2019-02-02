@@ -17,17 +17,27 @@
 
 package org.springframework.cloud.gateway.rsocket.server;
 
-import io.rsocket.Payload;
+import java.util.Map;
+
 import org.springframework.cloud.gateway.rsocket.filter.RSocketExchange;
 
 public class GatewayExchange implements RSocketExchange {
-	private final Payload payload;
 
-	public GatewayExchange(Payload payload) {
-		this.payload = payload;
+	enum Type { FIRE_AND_FORGET, REQUEST_CHANNEL, REQUEST_RESPONSE, REQUEST_STREAM, UNKNOWN }
+
+	private final Type type;
+	private final Map<String, String> routingMetadata;
+
+	public GatewayExchange(Type type, Map<String, String> routingMetadata) {
+		this.type = type;
+		this.routingMetadata = routingMetadata;
 	}
 
-	public Payload getPayload() {
-		return payload;
+	public Type getType() {
+		return type;
+	}
+
+	public Map<String, String> getRoutingMetadata() {
+		return routingMetadata;
 	}
 }
