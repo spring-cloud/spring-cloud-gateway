@@ -128,7 +128,7 @@ public class GatewayRSocket extends AbstractRSocket {
 							.map(success -> {
 								RSocket rsocket = registry.getRegistered(exchange.getRoutingMetadata());
 
-								if (rsocket == null) {
+								if (rsocket == null && log.isDebugEnabled()) {
 									log.debug("Unable to find destination RSocket for " + exchange.getRoutingMetadata());
 								}
 								return rsocket;
@@ -151,7 +151,9 @@ public class GatewayRSocket extends AbstractRSocket {
 			return null;
 		}
 
-		log.debug("found routing metadata " + properties);
+		if (log.isDebugEnabled()) {
+			log.debug("found routing metadata " + properties);
+		}
 		return properties;
 	}
 
