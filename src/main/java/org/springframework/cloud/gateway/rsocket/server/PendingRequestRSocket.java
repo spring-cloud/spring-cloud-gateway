@@ -25,6 +25,7 @@ import io.rsocket.AbstractRSocket;
 import io.rsocket.Payload;
 import io.rsocket.RSocket;
 import org.reactivestreams.Publisher;
+import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.MonoProcessor;
@@ -42,6 +43,7 @@ public class PendingRequestRSocket extends AbstractRSocket implements Consumer<R
 	private final Routes routes;
 	private final GatewayExchange pendingExchange;
 	private final MonoProcessor<RSocket> processor;
+	private Disposable subscriptionDisposable;
 
 	public PendingRequestRSocket(Routes routes, GatewayExchange pendingExchange) {
 		this(routes, pendingExchange, MonoProcessor.create());
@@ -74,6 +76,9 @@ public class PendingRequestRSocket extends AbstractRSocket implements Consumer<R
 				.subscribe(success -> {
 					this.processor.onNext(registeredEvent.getRSocket());
 					this.processor.onComplete();
+					if (this.subscriptionDisposable != null) {
+						this.subscriptionDisposable.dispose();
+					}
 				});
 	}
 
@@ -122,5 +127,9 @@ public class PendingRequestRSocket extends AbstractRSocket implements Consumer<R
 		return processor
 				.log("pending-request-rc", Level.FINE)
 				.flatMapMany(rsocket -> rsocket.requestChannel(payloads));
+	}
+
+	public void setSubscriptionDisposable(Disposable subscriptionDisposable) {
+		this.subscriptionDisposable = subscriptionDisposable;
 	}
 }

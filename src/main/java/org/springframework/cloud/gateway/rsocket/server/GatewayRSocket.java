@@ -25,6 +25,7 @@ import io.rsocket.RSocket;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.reactivestreams.Publisher;
+import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -105,7 +106,8 @@ public class GatewayRSocket extends AbstractRSocket {
 			log.debug("creating pending RSocket for " + exchange.getRoutingMetadata());
 		}
 		PendingRequestRSocket pending = constructPendingRSocket(exchange);
-		this.registry.addListener(pending); //TODO: deal with removing?
+		Disposable disposable = this.registry.addListener(pending);
+		pending.setSubscriptionDisposable(disposable);
 		return Mono.just(pending);
 	}
 
