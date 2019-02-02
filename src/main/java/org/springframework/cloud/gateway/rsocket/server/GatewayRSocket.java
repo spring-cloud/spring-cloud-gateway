@@ -17,7 +17,6 @@
 
 package org.springframework.cloud.gateway.rsocket.server;
 
-import java.util.Map;
 import java.util.logging.Level;
 
 import io.rsocket.AbstractRSocket;
@@ -31,8 +30,6 @@ import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.rsocket.registry.Registry;
 import org.springframework.cloud.gateway.rsocket.route.Routes;
-import org.springframework.cloud.gateway.rsocket.support.Metadata;
-import org.springframework.util.CollectionUtils;
 
 import static org.springframework.cloud.gateway.rsocket.server.GatewayExchange.ROUTE_ATTR;
 import static org.springframework.cloud.gateway.rsocket.server.GatewayExchange.Type.FIRE_AND_FORGET;
@@ -97,9 +94,7 @@ public class GatewayRSocket extends AbstractRSocket {
 	}
 
 	private Mono<RSocket> findRSocket(GatewayExchange.Type type, Payload payload) {
-		Map<String, String> metadata = getRoutingMetadata(payload);
-		GatewayExchange exchange = new GatewayExchange(type, metadata);
-
+		GatewayExchange exchange = GatewayExchange.fromPayload(type, payload);
 		return findRSocket(exchange)
 				// if a route can't be found or registered RSocket, create pending
 				.switchIfEmpty(createPendingRSocket(exchange));
@@ -138,24 +133,6 @@ public class GatewayRSocket extends AbstractRSocket {
 		// TODO: deal with connecting to cluster?
 	}
 
-	private Map<String, String> getRoutingMetadata(Payload payload) {
-		if (payload == null || !payload.hasMetadata()) { // and metadata is routing
-			return null;
-		}
-
-		// TODO: deal with composite metadata
-
-		Map<String, String> properties = Metadata.decodeProperties(payload.sliceMetadata());
-
-		if (CollectionUtils.isEmpty(properties)) {
-			return null;
-		}
-
-		if (log.isDebugEnabled()) {
-			log.debug("found routing metadata " + properties);
-		}
-		return properties;
-	}
 
 
 }

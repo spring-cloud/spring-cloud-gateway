@@ -19,16 +19,46 @@ package org.springframework.cloud.gateway.rsocket.server;
 
 import java.util.Map;
 
+import io.rsocket.Payload;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.cloud.gateway.rsocket.filter.AbstractRSocketExchange;
+import org.springframework.cloud.gateway.rsocket.support.Metadata;
+import org.springframework.util.CollectionUtils;
 
 public class GatewayExchange extends AbstractRSocketExchange {
 
+	private static final Log log = LogFactory.getLog(GatewayExchange.class);
 	public static final String ROUTE_ATTR = "__route_attr_";
 
-	enum Type { FIRE_AND_FORGET, REQUEST_CHANNEL, REQUEST_RESPONSE, REQUEST_STREAM, UNKNOWN }
+	enum Type { FIRE_AND_FORGET, REQUEST_CHANNEL, REQUEST_RESPONSE, REQUEST_STREAM }
 
 	private final Type type;
 	private final Map<String, String> routingMetadata;
+
+	public static GatewayExchange fromPayload(Type type, Payload payload) {
+		return new GatewayExchange(type, getRoutingMetadata(payload));
+	}
+
+	private static Map<String, String> getRoutingMetadata(Payload payload) {
+		if (payload == null || !payload.hasMetadata()) { // and metadata is routing
+			return null;
+		}
+
+		// TODO: deal with composite metadata
+
+		Map<String, String> properties = Metadata.decodeProperties(payload.sliceMetadata());
+
+		if (CollectionUtils.isEmpty(properties)) {
+			return null;
+		}
+
+		if (log.isDebugEnabled()) {
+			log.debug("found routing metadata " + properties);
+		}
+		return properties;
+	}
 
 	public GatewayExchange(Type type, Map<String, String> routingMetadata) {
 		this.type = type;
