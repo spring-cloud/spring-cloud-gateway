@@ -71,7 +71,7 @@ public class PendingRequestRSocket extends AbstractRSocket implements Consumer<R
 					if (!pendingExchange.getAttributes().containsKey(ROUTE_ATTR)) {
 						pendingExchange.getAttributes().put(ROUTE_ATTR, route);
 					}
-					return executeFilterChain(route, registeredEvent.getRoutingMetadata());
+					return matchRouteAndExecuteFilterChain(route, registeredEvent.getRoutingMetadata());
 				})
 				.subscribe(success -> {
 					this.processor.onNext(registeredEvent.getRSocket());
@@ -93,7 +93,7 @@ public class PendingRequestRSocket extends AbstractRSocket implements Consumer<R
 		return routeMono;
 	}
 
-	private Mono<Success> executeFilterChain(Route route, Map<String, String> annoucementMetadata) {
+	private Mono<Success> matchRouteAndExecuteFilterChain(Route route, Map<String, String> annoucementMetadata) {
 		Map<String, String> targetMetadata = route.getTargetMetadata();
 		if (Metadata.matches(targetMetadata, annoucementMetadata)) {
 			return GatewayFilterChain.executeFilterChain(route.getFilters(), pendingExchange);
