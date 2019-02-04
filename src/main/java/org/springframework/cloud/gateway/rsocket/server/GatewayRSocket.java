@@ -121,9 +121,6 @@ public class GatewayRSocket extends AbstractRSocket {
 		return Mono.just(pending);
 	}
 
-	/**
-	 *
-	 */
 	/* for testing */ PendingRequestRSocket constructPendingRSocket(GatewayExchange exchange) {
 		return new PendingRequestRSocket(routes, exchange);
 	}
@@ -154,7 +151,4 @@ public class GatewayRSocket extends AbstractRSocket {
 		// TODO: deal with connecting to cluster?
 	}
 
-
-
 }
-
