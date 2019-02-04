@@ -50,17 +50,17 @@ public class PendingRequestRSocket extends AbstractRSocket implements Consumer<R
 
 	private final Routes routes;
 	private final GatewayExchange pendingExchange;
-	private final MonoProcessor<RSocket> processor;
+	private final MonoProcessor<RSocket> rSocketProcessor;
 	private Disposable subscriptionDisposable;
 
 	public PendingRequestRSocket(Routes routes, GatewayExchange pendingExchange) {
 		this(routes, pendingExchange, MonoProcessor.create());
 	}
 
-	/* for testing */ PendingRequestRSocket(Routes routes, GatewayExchange pendingExchange, MonoProcessor<RSocket> processor) {
+	/* for testing */ PendingRequestRSocket(Routes routes, GatewayExchange pendingExchange, MonoProcessor<RSocket> rSocketProcessor) {
 		this.routes = routes;
 		this.pendingExchange = pendingExchange;
-		this.processor = processor;
+		this.rSocketProcessor = rSocketProcessor;
 	}
 
 	/**
@@ -85,8 +85,8 @@ public class PendingRequestRSocket extends AbstractRSocket implements Consumer<R
 					return matchRoute(route, registeredEvent.getRoutingMetadata());
 				})
 				.subscribe(route -> {
-					this.processor.onNext(registeredEvent.getRSocket());
-					this.processor.onComplete();
+					this.rSocketProcessor.onNext(registeredEvent.getRSocket());
+					this.rSocketProcessor.onComplete();
 					if (this.subscriptionDisposable != null) {
 						this.subscriptionDisposable.dispose();
 					}
@@ -148,7 +148,7 @@ public class PendingRequestRSocket extends AbstractRSocket implements Consumer<R
 	 * @return
 	 */
 	protected Mono<Tuple2<RSocket, Success>> processor(String logCategory, Payload payload) {
-		return processor
+		return rSocketProcessor
 				.log(logCategory, Level.FINE)
 				.flatMap(rSocket -> {
 					Route route = pendingExchange.getAttribute(ROUTE_ATTR);
