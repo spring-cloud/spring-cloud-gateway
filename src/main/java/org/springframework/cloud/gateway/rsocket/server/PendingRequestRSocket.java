@@ -24,11 +24,14 @@ import java.util.logging.Level;
 import io.rsocket.AbstractRSocket;
 import io.rsocket.Payload;
 import io.rsocket.RSocket;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.reactivestreams.Publisher;
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.MonoProcessor;
+import reactor.util.function.Tuple2;
 
 import org.springframework.cloud.gateway.rsocket.filter.RSocketFilter.Success;
 import org.springframework.cloud.gateway.rsocket.registry.Registry.RegisteredEvent;
@@ -36,9 +39,14 @@ import org.springframework.cloud.gateway.rsocket.route.Route;
 import org.springframework.cloud.gateway.rsocket.route.Routes;
 import org.springframework.cloud.gateway.rsocket.support.Metadata;
 
+import static org.springframework.cloud.gateway.rsocket.server.GatewayExchange.FIRST_PAYLOAD_ATTR;
 import static org.springframework.cloud.gateway.rsocket.server.GatewayExchange.ROUTE_ATTR;
+import static org.springframework.cloud.gateway.rsocket.server.GatewayExchange.Type.REQUEST_STREAM;
+import static org.springframework.cloud.gateway.rsocket.server.GatewayFilterChain.executeFilterChain;
 
 public class PendingRequestRSocket extends AbstractRSocket implements Consumer<RegisteredEvent> {
+
+	private static final Log log = LogFactory.getLog(PendingRequestRSocket.class);
 
 	private final Routes routes;
 	private final GatewayExchange pendingExchange;
@@ -58,8 +66,8 @@ public class PendingRequestRSocket extends AbstractRSocket implements Consumer<R
 	/**
 	 * Find route (if needed) using pendingExchange.
 	 * If found, see if the route target matches the registered service.
-	 * If it matches, execute filter chain.
-	 * If chain is successful, send registered RSocket to processor.
+	 * If it matches, send registered RSocket to processor.
+	 * Then execute normal filter chain. If filter chain is successful, execute request.
 	 * @param registeredEvent
 	 */
 	@Override
@@ -67,13 +75,16 @@ public class PendingRequestRSocket extends AbstractRSocket implements Consumer<R
 		findRoute()
 				.log("find route pending", Level.FINE)
 				// can this be replaced with filter?
-				.map(route -> {
+				.flatMap(route -> {
 					if (!pendingExchange.getAttributes().containsKey(ROUTE_ATTR)) {
+						if (log.isDebugEnabled()) {
+							log.debug("route not in exchange, adding.");
+						}
 						pendingExchange.getAttributes().put(ROUTE_ATTR, route);
 					}
-					return matchRouteAndExecuteFilterChain(route, registeredEvent.getRoutingMetadata());
+					return matchRoute(route, registeredEvent.getRoutingMetadata());
 				})
-				.subscribe(success -> {
+				.subscribe(route -> {
 					this.processor.onNext(registeredEvent.getRSocket());
 					this.processor.onComplete();
 					if (this.subscriptionDisposable != null) {
@@ -93,40 +104,59 @@ public class PendingRequestRSocket extends AbstractRSocket implements Consumer<R
 		return routeMono;
 	}
 
-	private Mono<Success> matchRouteAndExecuteFilterChain(Route route, Map<String, String> annoucementMetadata) {
+	private Mono<Route> matchRoute(Route route, Map<String, String> annoucementMetadata) {
 		Map<String, String> targetMetadata = route.getTargetMetadata();
 		if (Metadata.matches(targetMetadata, annoucementMetadata)) {
-			return GatewayFilterChain.executeFilterChain(route.getFilters(), pendingExchange);
+			return Mono.just(route);
 		}
 		return Mono.empty();
 	}
 
 	@Override
 	public Mono<Void> fireAndForget(Payload payload) {
-		return processor
-				.log("pending-request-faf", Level.FINE)
-				.flatMap(rsocket -> rsocket.fireAndForget(payload));
+		return processor("pending-request-faf", payload)
+				.flatMap(tuple -> tuple.getT1().fireAndForget(payload));
 	}
 
 	@Override
 	public Mono<Payload> requestResponse(Payload payload) {
-		return processor
-				.log("pending-request-rr", Level.FINE)
-				.flatMap(rsocket -> rsocket.requestResponse(payload));
+		return processor("pending-request-rr", payload)
+				.flatMap(tuple -> tuple.getT1().requestResponse(payload));
 	}
 
 	@Override
 	public Flux<Payload> requestStream(Payload payload) {
-		return processor
-				.log("pending-request-rs", Level.FINE)
-				.flatMapMany(rsocket -> rsocket.requestStream(payload));
+		return processor("pending-request-rs", payload)
+				.flatMapMany(tuple -> tuple.getT1().requestStream(payload));
 	}
 
 	@Override
 	public Flux<Payload> requestChannel(Publisher<Payload> payloads) {
+		//TODO: remove this when new RSocketServer method for requestChannel is here
+		// otherwise there is a dual subscription error
+		Payload firstPaylad = pendingExchange.getRequiredAttribute(FIRST_PAYLOAD_ATTR);
+		return processor("pending-request-rc", firstPaylad)
+				.flatMapMany(tuple -> tuple.getT1().requestChannel(payloads));
+	}
+
+	/**
+	 * After processor receives onNext signal, get route from exchange attrs,
+	 * create a new exchange from payload. Copy exchange attrs.
+	 * Execute filter chain, if successful, execute request.
+	 * @param logCategory
+	 * @param payload
+	 * @return
+	 */
+	protected Mono<Tuple2<RSocket, Success>> processor(String logCategory, Payload payload) {
 		return processor
-				.log("pending-request-rc", Level.FINE)
-				.flatMapMany(rsocket -> rsocket.requestChannel(payloads));
+				.log(logCategory, Level.FINE)
+				.flatMap(rSocket -> {
+					Route route = pendingExchange.getAttribute(ROUTE_ATTR);
+					GatewayExchange exchange = GatewayExchange.fromPayload(REQUEST_STREAM, payload);
+					exchange.getAttributes().putAll(pendingExchange.getAttributes());
+					return Mono.just(rSocket).zipWith(executeFilterChain(route.getFilters(), exchange));
+				});
+
 	}
 
 	public void setSubscriptionDisposable(Disposable subscriptionDisposable) {

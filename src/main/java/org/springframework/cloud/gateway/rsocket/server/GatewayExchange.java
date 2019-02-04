@@ -31,6 +31,7 @@ public class GatewayExchange extends AbstractRSocketExchange {
 
 	private static final Log log = LogFactory.getLog(GatewayExchange.class);
 	public static final String ROUTE_ATTR = "__route_attr_";
+	static final String FIRST_PAYLOAD_ATTR = "firstPayload";
 
 	enum Type { FIRE_AND_FORGET, REQUEST_CHANNEL, REQUEST_RESPONSE, REQUEST_STREAM }
 
@@ -38,7 +39,10 @@ public class GatewayExchange extends AbstractRSocketExchange {
 	private final Map<String, String> routingMetadata;
 
 	public static GatewayExchange fromPayload(Type type, Payload payload) {
-		return new GatewayExchange(type, getRoutingMetadata(payload));
+		GatewayExchange exchange = new GatewayExchange(type, getRoutingMetadata(payload));
+		//TODO: remove this when new RSocketServer method for requestChannel is here
+		exchange.getAttributes().put(FIRST_PAYLOAD_ATTR, payload);
+		return exchange;
 	}
 
 	private static Map<String, String> getRoutingMetadata(Payload payload) {
