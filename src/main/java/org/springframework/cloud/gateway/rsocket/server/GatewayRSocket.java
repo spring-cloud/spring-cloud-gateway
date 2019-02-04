@@ -40,8 +40,11 @@ import static org.springframework.cloud.gateway.rsocket.server.GatewayExchange.T
 import static org.springframework.cloud.gateway.rsocket.server.GatewayFilterChain.executeFilterChain;
 
 /**
- * Acts as a proxy to other registered sockets. Looks up target RSocket
- * via Registry. Creates GatewayExchange and executes a GatewayFilterChain.
+ * Acts as a proxy to other registered sockets. Creates a GatewayExchange and attempts
+ * to locate a Route. If a Route is found, it is added to the exchange and the filter
+ * chains is executed againts the Route's filters. If the filter chain is successful,
+ * an attempt to locate a target RSocket via the Registry is executed. If not found
+ * a pending RSocket * is returned.
  */
 public class GatewayRSocket extends AbstractRSocket {
 
@@ -94,6 +97,13 @@ public class GatewayRSocket extends AbstractRSocket {
 				.flatMapMany(rSocket -> rSocket.requestStream(payload));
 	}
 
+	/**
+	 * Create GatewayExchange and attempt to locate target RSocket via filter chain.
+	 * If not found, create a pending RSocket.
+	 * @param type
+	 * @param payload
+	 * @return
+	 */
 	private Mono<RSocket> findRSocket(GatewayExchange.Type type, Payload payload) {
 		GatewayExchange exchange = GatewayExchange.fromPayload(type, payload);
 		return findRSocket(exchange)
@@ -111,10 +121,19 @@ public class GatewayRSocket extends AbstractRSocket {
 		return Mono.just(pending);
 	}
 
+	/**
+	 *
+	 */
 	/* for testing */ PendingRequestRSocket constructPendingRSocket(GatewayExchange exchange) {
 		return new PendingRequestRSocket(routes, exchange);
 	}
 
+	/**
+	 * First locate Route. If found, put route in exchange and execute filter chain.
+	 * If successful, locate target RSocket.
+	 * @param exchange
+	 * @return Target RSocket or empty.
+	 */
 	private Mono<RSocket> findRSocket(GatewayExchange exchange) {
 		return this.routes.findRoute(exchange)
 				.log("find route", Level.FINE)
