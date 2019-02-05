@@ -73,7 +73,7 @@ public class PendingRequestRSocket extends AbstractRSocket implements Consumer<R
 	@Override
 	public void accept(RegisteredEvent registeredEvent) {
 		findRoute()
-				.log("find route pending", Level.FINE)
+				.log(PendingRequestRSocket.class.getName()+".find route pending", Level.FINE)
 				// can this be replaced with filter?
 				.flatMap(route -> {
 					if (!pendingExchange.getAttributes().containsKey(ROUTE_ATTR)) {
@@ -149,7 +149,7 @@ public class PendingRequestRSocket extends AbstractRSocket implements Consumer<R
 	 */
 	protected Mono<Tuple2<RSocket, Success>> processor(String logCategory, Payload payload) {
 		return rSocketProcessor
-				.log(logCategory, Level.FINE)
+				.log(PendingRequestRSocket.class.getName()+"."+logCategory, Level.FINE)
 				.flatMap(rSocket -> {
 					Route route = pendingExchange.getAttribute(ROUTE_ATTR);
 					GatewayExchange exchange = GatewayExchange.fromPayload(REQUEST_STREAM, payload);

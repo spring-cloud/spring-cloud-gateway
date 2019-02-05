@@ -133,7 +133,7 @@ public class GatewayRSocket extends AbstractRSocket {
 	 */
 	private Mono<RSocket> findRSocket(GatewayExchange exchange) {
 		return this.routes.findRoute(exchange)
-				.log("find route", Level.FINE)
+				.log(GatewayRSocket.class.getName()+".find route", Level.FINE)
 				.flatMap(route -> {
 					// put route in exchange for later use
 					exchange.getAttributes().put(ROUTE_ATTR, route);

@@ -21,6 +21,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.ListIterator;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.rsocket.filter.RSocketFilter.Success;
@@ -41,6 +43,8 @@ import org.springframework.lang.Nullable;
  */
 public abstract class AbstractFilterChain<F extends RSocketFilter, E extends RSocketExchange, FC extends AbstractFilterChain>
 		implements FilterChain<E> {
+
+	private final Log log = LogFactory.getLog(getClass());
 
 	protected final List<F> allFilters;
 
@@ -99,7 +103,14 @@ public abstract class AbstractFilterChain<F extends RSocketFilter, E extends RSo
 		return Mono.defer(() ->
 				this.currentFilter != null && this.next != null ?
 						this.currentFilter.filter(exchange, this.next) :
-						MONO_SUCCESS);
+						getMonoSuccess());
+	}
+
+	private Mono<Success> getMonoSuccess() {
+		if (log.isDebugEnabled()) {
+			log.debug("filter chain completed with success");
+		}
+		return MONO_SUCCESS;
 	}
 
 	private static final Mono<Success> MONO_SUCCESS = Mono.just(Success.INSTANCE);
