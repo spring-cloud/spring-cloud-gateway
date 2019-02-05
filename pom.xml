@@ -33,7 +33,7 @@
 
 	<properties>
 		<java.version>1.8</java.version>
-		<rsocket.version>0.11.15</rsocket.version>
+		<rsocket.version>0.11.16</rsocket.version>
 		<reactor.version>Californium-SR4</reactor.version>
 	</properties>
 
@@ -69,6 +69,7 @@
 			<groupId>io.rsocket</groupId>
 			<artifactId>rsocket-micrometer</artifactId>
 			<version>${rsocket.version}</version>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>io.rsocket</groupId>

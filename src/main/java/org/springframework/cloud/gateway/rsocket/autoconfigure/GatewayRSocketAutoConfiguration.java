@@ -24,12 +24,12 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
 import io.rsocket.RSocket;
-import io.rsocket.micrometer.MicrometerRSocketInterceptor;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.cloud.gateway.rsocket.metrics.MicrometerResponderRSocketInterceptor;
 import org.springframework.cloud.gateway.rsocket.registry.Registry;
 import org.springframework.cloud.gateway.rsocket.registry.RegistryRoutes;
 import org.springframework.cloud.gateway.rsocket.registry.RegistrySocketAcceptorFilter;
@@ -91,7 +91,7 @@ public class GatewayRSocketAutoConfiguration {
 	}
 
 	@Configuration
-	@ConditionalOnClass({ MeterRegistry.class, MicrometerRSocketInterceptor.class })
+	@ConditionalOnClass(MeterRegistry.class)
 	protected static class GatewayRSocketServerMicrometerConfiguration {
 
 		private final GatewayRSocketProperties properties;
@@ -101,22 +101,22 @@ public class GatewayRSocketAutoConfiguration {
 		}
 
 		@Bean
-		public MicrometerRSocketInterceptor micrometerRSocketInterceptor(MeterRegistry meterRegistry) {
+		public MicrometerResponderRSocketInterceptor micrometerResponderRSocketInterceptor(MeterRegistry meterRegistry) {
 			Tags tags = Tags.of(properties.getServer().getMicrometerTags().toArray(new String[]{}));
 			List<Tag> tagList = tags.stream().collect(Collectors.toList());
-			return new MicrometerRSocketInterceptor(meterRegistry, tagList.toArray(new Tag[]{}));
+			return new MicrometerResponderRSocketInterceptor(meterRegistry, tagList.toArray(new Tag[]{}));
 		}
 
 		@Bean
 		public GatewayRSocketServer gatewayApp(GatewaySocketAcceptor socketAcceptor,
-											   MicrometerRSocketInterceptor micrometerInterceptor) {
+											   MicrometerResponderRSocketInterceptor micrometerInterceptor) {
 			return new GatewayRSocketServer(properties, socketAcceptor, micrometerInterceptor);
 		}
 
 	}
 
 	@Configuration
-	@ConditionalOnMissingClass({ "io.micrometer.core.instrument.MeterRegistry", "io.rsocket.micrometer.MicrometerRSocketInterceptor" })
+	@ConditionalOnMissingClass("io.micrometer.core.instrument.MeterRegistry")
 	protected static class GatewayRSocketServerConfiguration {
 
 		@Bean

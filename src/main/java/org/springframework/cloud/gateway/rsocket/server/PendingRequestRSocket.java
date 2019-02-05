@@ -24,6 +24,7 @@ import java.util.logging.Level;
 import io.rsocket.AbstractRSocket;
 import io.rsocket.Payload;
 import io.rsocket.RSocket;
+import io.rsocket.ResponderRSocket;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.reactivestreams.Publisher;
@@ -39,12 +40,11 @@ import org.springframework.cloud.gateway.rsocket.route.Route;
 import org.springframework.cloud.gateway.rsocket.route.Routes;
 import org.springframework.cloud.gateway.rsocket.support.Metadata;
 
-import static org.springframework.cloud.gateway.rsocket.server.GatewayExchange.FIRST_PAYLOAD_ATTR;
 import static org.springframework.cloud.gateway.rsocket.server.GatewayExchange.ROUTE_ATTR;
 import static org.springframework.cloud.gateway.rsocket.server.GatewayExchange.Type.REQUEST_STREAM;
 import static org.springframework.cloud.gateway.rsocket.server.GatewayFilterChain.executeFilterChain;
 
-public class PendingRequestRSocket extends AbstractRSocket implements Consumer<RegisteredEvent> {
+public class PendingRequestRSocket extends AbstractRSocket implements ResponderRSocket, Consumer<RegisteredEvent> {
 
 	private static final Log log = LogFactory.getLog(PendingRequestRSocket.class);
 
@@ -131,12 +131,16 @@ public class PendingRequestRSocket extends AbstractRSocket implements Consumer<R
 	}
 
 	@Override
-	public Flux<Payload> requestChannel(Publisher<Payload> payloads) {
-		//TODO: remove this when new RSocketServer method for requestChannel is here
-		// otherwise there is a dual subscription error
-		Payload firstPaylad = pendingExchange.getRequiredAttribute(FIRST_PAYLOAD_ATTR);
-		return processor("pending-request-rc", firstPaylad)
-				.flatMapMany(tuple -> tuple.getT1().requestChannel(payloads));
+	public Flux<Payload> requestChannel(Payload payload, Publisher<Payload> payloads) {
+		return processor("pending-request-rc", payload)
+				.flatMapMany(tuple -> {
+					RSocket rSocket = tuple.getT1();
+					if (rSocket instanceof ResponderRSocket) {
+						ResponderRSocket socket = (ResponderRSocket) rSocket;
+						return socket.requestChannel(payload, payloads);
+					}
+					return rSocket.requestChannel(payloads);
+				});
 	}
 
 	/**

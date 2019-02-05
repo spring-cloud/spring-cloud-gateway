@@ -66,6 +66,7 @@ public class Registry {
 		return keyFunction.apply(properties);
 	}
 
+	//TODO: Mono<Void>?
 	public void register(Map<String, String> properties, RSocket rsocket) {
 		Assert.notEmpty(properties, "properties may not be empty");
 		Assert.notNull(rsocket, "RSocket may not be null");

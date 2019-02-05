@@ -22,6 +22,7 @@ import java.util.logging.Level;
 import io.rsocket.AbstractRSocket;
 import io.rsocket.Payload;
 import io.rsocket.RSocket;
+import io.rsocket.ResponderRSocket;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.reactivestreams.Publisher;
@@ -46,7 +47,7 @@ import static org.springframework.cloud.gateway.rsocket.server.GatewayFilterChai
  * an attempt to locate a target RSocket via the Registry is executed. If not found
  * a pending RSocket * is returned.
  */
-public class GatewayRSocket extends AbstractRSocket {
+public class GatewayRSocket extends AbstractRSocket implements ResponderRSocket {
 
 	private static final Log log = LogFactory.getLog(GatewayRSocket.class);
 
@@ -73,15 +74,14 @@ public class GatewayRSocket extends AbstractRSocket {
 	}
 
 	@Override
-	public Flux<Payload> requestChannel(Publisher<Payload> payloads) {
-		return Flux.from(payloads)
-				.switchOnFirst((signal, payloadFlux) -> {
-					if (!signal.hasValue()) {
-						return payloadFlux;
+	public Flux<Payload> requestChannel(Payload payload, Publisher<Payload> payloads) {
+		return findRSocket(REQUEST_CHANNEL, payload)
+				.flatMapMany(rSocket -> {
+					if (rSocket instanceof ResponderRSocket) {
+						ResponderRSocket socket = (ResponderRSocket) rSocket;
+						return socket.requestChannel(payload, payloads);
 					}
-
-					return findRSocket(REQUEST_CHANNEL, signal.get())
-							.flatMapMany(rSocket -> rSocket.requestChannel(payloadFlux));
+					return rSocket.requestChannel(payloads);
 				});
 	}
 
