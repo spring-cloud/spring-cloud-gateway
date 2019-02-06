@@ -44,7 +44,8 @@ public class NettyRoutingFilterIntegrationTests extends BaseWebClientTests {
 				.exchange()
 				.expectStatus().isEqualTo(HttpStatus.GATEWAY_TIMEOUT)
 				.expectBody()
-					.jsonPath("$.status").isEqualTo(String.valueOf(HttpStatus.GATEWAY_TIMEOUT.value()));
+					.jsonPath("$.status").isEqualTo(String.valueOf(HttpStatus.GATEWAY_TIMEOUT.value()))
+					.jsonPath("$.message").isEqualTo("Response took longer than timeout: PT3S");
 	}
 
 	@EnableAutoConfiguration

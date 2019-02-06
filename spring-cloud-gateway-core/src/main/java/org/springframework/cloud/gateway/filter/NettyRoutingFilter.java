@@ -87,6 +87,7 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 	}
 
 	@Override
+	@SuppressWarnings("Duplicates")
 	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 		URI requestUrl = exchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
 
@@ -174,7 +175,9 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 		if (properties.getResponseTimeout() != null) {
 			responseFlux = responseFlux.timeout(properties.getResponseTimeout(),
 					Mono.error(new TimeoutException("Response took longer than timeout: " +
-							properties.getResponseTimeout()))).onErrorMap(TimeoutException.class, th -> new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT, null, th));
+							properties.getResponseTimeout())))
+					.onErrorMap(TimeoutException.class,
+							th -> new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT, th.getMessage(), th));
 		}
 
 		return responseFlux.then(chain.filter(exchange));
