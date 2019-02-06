@@ -184,7 +184,16 @@ public class WeightCalculatorWebFilter implements WebFilter, Ordered, SmartAppli
 	public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
 		Map<String, String> weights = getWeights(exchange);
 
-		groupWeights.forEach((group, config) -> {
+		for (String group : groupWeights.keySet()) {
+			GroupWeightConfig config = groupWeights.get(group);
+
+			if (config == null) {
+				if (log.isDebugEnabled()) {
+					log.debug("No GroupWeightConfig found for group: " + group);
+				}
+				continue; // nothing we can do, but this is odd
+			}
+
 			double r = this.random.nextDouble();
 
 			List<Double> ranges = config.ranges;
@@ -200,7 +209,7 @@ public class WeightCalculatorWebFilter implements WebFilter, Ordered, SmartAppli
 					break;
 				}
 			}
-		});
+		}
 
 		if (log.isTraceEnabled()) {
 			log.trace("Weights attr: "+weights);
