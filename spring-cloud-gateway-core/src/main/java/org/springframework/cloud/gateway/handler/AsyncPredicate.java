@@ -17,12 +17,13 @@
 
 package org.springframework.cloud.gateway.handler;
 
-import java.util.Objects;
 import java.util.function.Function;
 
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import org.springframework.util.Assert;
 
 /**
  * @author Ben Hale
@@ -30,7 +31,7 @@ import reactor.core.publisher.Mono;
 public interface AsyncPredicate<T> extends Function<T, Publisher<Boolean>> {
 
 	default AsyncPredicate<T> and(AsyncPredicate<? super T> other) {
-		Objects.requireNonNull(other, "other must not be null");
+		Assert.notNull(other, "other must not be null");
 
 		return t -> Flux.zip(apply(t), other.apply(t))
 				.map(tuple -> tuple.getT1() && tuple.getT2());
@@ -41,7 +42,7 @@ public interface AsyncPredicate<T> extends Function<T, Publisher<Boolean>> {
 	}
 
 	default AsyncPredicate<T> or(AsyncPredicate<? super T> other) {
-		Objects.requireNonNull(other, "other must not be null");
+		Assert.notNull(other, "other must not be null");
 
 		return t -> Flux.zip(apply(t), other.apply(t))
 				.map(tuple -> tuple.getT1() || tuple.getT2());
