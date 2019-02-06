@@ -9,19 +9,20 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import reactor.core.publisher.Mono;
+
 import org.springframework.cloud.client.DefaultServiceInstance;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.cloud.gateway.config.LoadBalancerProperties;
-import org.springframework.cloud.gateway.discovery.DiscoveryLocatorProperties;
 import org.springframework.cloud.gateway.support.NotFoundException;
 import org.springframework.cloud.netflix.ribbon.RibbonLoadBalancerClient;
 import org.springframework.cloud.netflix.ribbon.RibbonLoadBalancerContext;
 import org.springframework.cloud.netflix.ribbon.SpringClientFactory;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.util.StringUtils;
@@ -38,8 +39,6 @@ import static org.mockito.Mockito.when;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_SCHEME_PREFIX_ATTR;
-
-import reactor.core.publisher.Mono;
 
 /**
  * @author Spencer Gibb
@@ -88,20 +87,32 @@ public class LoadBalancerClientFilterTests {
 		verifyZeroInteractions(loadBalancerClient);
 	}
 
-	@Test(expected = NotFoundException.class)
+	@Test
 	public void shouldThrowExceptionWhenNoServiceInstanceIsFound() {
 		URI uri = UriComponentsBuilder.fromUriString("lb://myservice").build().toUri();
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, uri);
 
-		loadBalancerClientFilter.filter(exchange, chain);
+		try {
+			loadBalancerClientFilter.filter(exchange, chain);
+		} catch (NotFoundException e) {
+			assertThat(e.getStatus()).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
+		} catch (Exception e) {
+			throw e;
+		}
 	}
 
-	@Test(expected = LoadBalancerClientFilter.FourOFourNotFoundException.class)
+	@Test
 	public void shouldThrow4O4ExceptionWhenNoServiceInstanceIsFound() {
 		URI uri = UriComponentsBuilder.fromUriString("lb://myservice").build().toUri();
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, uri);
 		properties.setUse404(true);
-		loadBalancerClientFilter.filter(exchange, chain);
+		try {
+			loadBalancerClientFilter.filter(exchange, chain);
+		} catch (NotFoundException e) {
+			assertThat(e.getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
+		} catch (Exception e) {
+			throw e;
+		}
 	}
 
 	@Test

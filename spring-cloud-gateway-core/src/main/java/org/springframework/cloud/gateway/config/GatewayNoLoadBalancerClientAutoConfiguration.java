@@ -24,6 +24,7 @@ import reactor.core.publisher.Mono;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
@@ -44,16 +45,23 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.G
 @Configuration
 @ConditionalOnMissingClass("org.springframework.cloud.netflix.ribbon.RibbonAutoConfiguration")
 @ConditionalOnMissingBean(LoadBalancerClient.class)
+@EnableConfigurationProperties(LoadBalancerProperties.class)
 @AutoConfigureAfter(GatewayLoadBalancerClientAutoConfiguration.class)
 public class GatewayNoLoadBalancerClientAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean(LoadBalancerClientFilter.class)
-	public NoLoadBalancerClientFilter noLoadBalancerClientFilter() {
-			return new NoLoadBalancerClientFilter();
-		}
+	public NoLoadBalancerClientFilter noLoadBalancerClientFilter(LoadBalancerProperties properties) {
+		return new NoLoadBalancerClientFilter(properties.isUse404());
+	}
 
 	protected static class NoLoadBalancerClientFilter implements GlobalFilter, Ordered {
+
+		private final boolean use404;
+
+		public NoLoadBalancerClientFilter(boolean use404) {
+			this.use404 = use404;
+		}
 
 		@Override
 		public int getOrder() {
@@ -69,7 +77,7 @@ public class GatewayNoLoadBalancerClientAutoConfiguration {
 				return chain.filter(exchange);
 			}
 
-			throw new NotFoundException("Unable to find instance for " + url.getHost());
+			throw NotFoundException.create(use404, "Unable to find instance for " + url.getHost());
 		}
 	}
 }

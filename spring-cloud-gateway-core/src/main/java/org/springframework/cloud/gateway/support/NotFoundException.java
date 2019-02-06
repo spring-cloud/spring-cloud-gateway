@@ -17,20 +17,37 @@
 
 package org.springframework.cloud.gateway.support;
 
-import org.springframework.web.bind.annotation.ResponseStatus;
-
-import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
  * @author Spencer Gibb
  */
-@ResponseStatus(value = SERVICE_UNAVAILABLE, reason = "The service or item was not found.")
-public class NotFoundException extends RuntimeException {
+public class NotFoundException extends ResponseStatusException {
 	public NotFoundException(String message) {
-		super(message);
+		this(HttpStatus.SERVICE_UNAVAILABLE, message);
 	}
 
 	public NotFoundException(String message, Throwable cause) {
-		super(message, cause);
+		this(HttpStatus.SERVICE_UNAVAILABLE, message, cause);
 	}
+
+	private NotFoundException(HttpStatus httpStatus, String message) {
+		super(httpStatus, message);
+	}
+
+	private NotFoundException(HttpStatus httpStatus, String message, Throwable cause) {
+		super(httpStatus, message, cause);
+	}
+
+	public static NotFoundException create(boolean with404, String message) {
+		HttpStatus httpStatus = with404? HttpStatus.NOT_FOUND: HttpStatus.SERVICE_UNAVAILABLE;
+		return new NotFoundException(httpStatus, message);
+	}
+
+	public static NotFoundException create(boolean with404, String message, Throwable cause) {
+		HttpStatus httpStatus = with404? HttpStatus.NOT_FOUND: HttpStatus.SERVICE_UNAVAILABLE;
+		return new NotFoundException(httpStatus, message, cause);
+	}
+
 }
