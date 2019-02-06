@@ -24,6 +24,8 @@ import org.springframework.web.reactive.function.client.ClientResponse;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.time.Duration;
+
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
@@ -56,7 +58,7 @@ public class RemoteAddrRoutePredicateFactoryTests extends BaseWebClientTests {
 
 		StepVerifier.create(result)
 				.consumeNextWith(response -> assertStatus(response, HttpStatus.OK))
-				.expectComplete().verify(DURATION);
+				.expectComplete().verify(Duration.ofSeconds(20));
 	}
 
 	@EnableAutoConfiguration
