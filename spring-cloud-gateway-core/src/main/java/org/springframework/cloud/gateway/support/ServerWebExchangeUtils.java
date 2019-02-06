@@ -21,7 +21,6 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.Predicate;
 
 import org.apache.commons.logging.Log;
@@ -31,6 +30,7 @@ import reactor.core.publisher.Mono;
 import org.springframework.cloud.gateway.handler.AsyncPredicate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.AbstractServerHttpResponse;
+import org.springframework.util.Assert;
 import org.springframework.web.server.ServerWebExchange;
 
 /**
@@ -125,7 +125,7 @@ public class ServerWebExchangeUtils {
 	}
 
 	public static AsyncPredicate<ServerWebExchange> toAsyncPredicate(Predicate<? super ServerWebExchange> predicate) {
-		Objects.requireNonNull(predicate, "predicate must not be null");
+		Assert.notNull(predicate, "predicate must not be null");
 		return t -> Mono.just(predicate.test(t));
 	}
 
