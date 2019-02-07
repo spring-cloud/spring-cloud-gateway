@@ -7,6 +7,11 @@ test:
 spring:
   cloud:
     gateway:
+
+      httpclient:
+        connect-timeout: 100
+        response-timeout: 500ms
+
       globalcors:
         corsConfigurations:
           '[/**]':

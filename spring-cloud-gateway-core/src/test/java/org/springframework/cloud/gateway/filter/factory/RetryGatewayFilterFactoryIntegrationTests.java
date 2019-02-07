@@ -56,6 +56,8 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @DirtiesContext
 public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTests {
 
+	static ConcurrentHashMap<String, AtomicInteger> retries = new ConcurrentHashMap<>();
+
 	@Test
 	public void retryFilterGet() {
 		testClient.get().uri("/retry?key=get").exchange().expectStatus().isOk()
@@ -87,6 +89,20 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 	}
 
 	@Test
+	public void retriesSleepyRequest() throws Exception {
+		testClient.get()
+				.uri("/sleep?key=sleepyRequest&millis=550")
+				.header(HttpHeaders.HOST, "www.retryjava.org")
+				.exchange()
+				.expectStatus()
+				.isEqualTo(HttpStatus.GATEWAY_TIMEOUT);
+
+		assertThat(retries.get("sleepyRequest"))
+				.isNotNull()
+				.hasValue(3);
+	}
+
+	@Test
 	@SuppressWarnings("unchecked")
 	public void retryFilterLoadBalancedWithMultipleServers() {
 		String host = "www.retrywithloadbalancer.org";
@@ -109,35 +125,50 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 
 		Log log = LogFactory.getLog(getClass());
 
-		ConcurrentHashMap<String, AtomicInteger> map = new ConcurrentHashMap<>();
-
 		@Value("${test.uri}")
 		private String uri;
 
+		@RequestMapping("/httpbin/sleep")
+		public ResponseEntity<String> sleep(@RequestParam("key") String key,
+											@RequestParam("millis") long millisToSleep) {
+			int retryCount = getAndIncrementRetryCount(key);
+			log.warn("Retry count: " + retryCount);
+			try {
+				Thread.sleep(millisToSleep);
+			} catch (InterruptedException e) {
+			}
+			return ResponseEntity.status(HttpStatus.OK)
+					.header("X-Retry-Count", String.valueOf(retryCount))
+					.body("slept " + millisToSleep + " ms");
+		}
+
 		@RequestMapping("/httpbin/retryalwaysfail")
-		public ResponseEntity<String> retryalwaysfail(@RequestParam("key") String key,
-				@RequestParam(name = "count", defaultValue = "3") int count) {
-			AtomicInteger num = map.computeIfAbsent(key, s -> new AtomicInteger());
-			int i = num.incrementAndGet();
-			log.warn("Retry count: " + i);
+		public ResponseEntity<String> retryalwaysfail(@RequestParam("key") String key, @RequestParam(name = "count", defaultValue = "3") int count) {
+			int retryCount = getAndIncrementRetryCount(key);
+			log.warn("Retry count: " + retryCount);
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-					.header("X-Retry-Count", String.valueOf(i))
+					.header("X-Retry-Count", String.valueOf(retryCount))
 					.body("permanently broken");
 		}
 
 		@RequestMapping("/httpbin/retry")
-		public ResponseEntity<String> retry(@RequestParam("key") String key,
-				@RequestParam(name = "count", defaultValue = "3") int count) {
-			AtomicInteger num = map.computeIfAbsent(key, s -> new AtomicInteger());
-			int i = num.incrementAndGet();
-			log.warn("Retry count: " + i);
-			String body = String.valueOf(i);
-			if (i < count) {
+		public ResponseEntity<String> retry(@RequestParam("key") String key, @RequestParam(name = "count", defaultValue = "3") int count) {
+			int retryCount = getAndIncrementRetryCount(key);
+			log.warn("Retry count: " + retryCount);
+			String body = String.valueOf(retryCount);
+			if (retryCount < count) {
 				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-						.header("X-Retry-Count", body).body("temporarily broken");
+						.header("X-Retry-Count", body)
+						.body("temporarily broken");
 			}
-			return ResponseEntity.status(HttpStatus.OK).header("X-Retry-Count", body)
+			return ResponseEntity.status(HttpStatus.OK)
+					.header("X-Retry-Count", body)
 					.body(body);
+		}
+
+		private int getAndIncrementRetryCount(@RequestParam("key") String key) {
+			AtomicInteger num = retries.computeIfAbsent(key, s -> new AtomicInteger());
+			return num.incrementAndGet();
 		}
 
 		@Bean

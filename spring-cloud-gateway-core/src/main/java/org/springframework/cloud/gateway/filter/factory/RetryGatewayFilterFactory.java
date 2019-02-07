@@ -112,17 +112,17 @@ public class RetryGatewayFilterFactory
 					return false;
 				}
 
-				for (Class<? extends Throwable> clazz : retryConfig.getExceptions()) {
-					if (clazz.isInstance(context.exception())) {
-						trace("exception is retryable %s, configured exceptions",
-								context.exception().getClass().getName(),
-								retryConfig.getExceptions());
+				Throwable exception = context.exception();
+				for (Class<? extends Throwable> retryableClass : retryConfig.getExceptions()) {
+					if (retryableClass.isInstance(exception)
+							|| (exception != null && retryableClass.isInstance(exception.getCause()))) {
+						trace("exception is retryable %s, configured exceptions %s",
+								exception.getClass().getName(), retryConfig.getExceptions());
 						return true;
 					}
 				}
-				trace("exception is not retryable %s, configured exceptions",
-						context.exception().getClass().getName(),
-						retryConfig.getExceptions());
+				trace("exception is not retryable %s, configured exceptions %s",
+						exception.getClass().getName(), retryConfig.getExceptions());
 				return false;
 			};
 			exceptionRetry = Retry.onlyIf(retryContextPredicate)
