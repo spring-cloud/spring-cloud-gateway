@@ -1,7 +1,3 @@
-test:
-  hostport: httpbin.org:80
-  uri: lb://testservice
-
 spring:
   cloud:
     gateway:

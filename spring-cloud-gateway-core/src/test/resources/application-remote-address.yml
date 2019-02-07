@@ -1,6 +1,3 @@
-test:
-  uri: lb://myservice
-
 spring:
   cloud:
     gateway:

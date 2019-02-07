@@ -66,18 +66,21 @@ public class BaseWebClientTests {
 
 	@Before
 	public void setup() {
-		ClientHttpConnector httpConnector = new ReactorClientHttpConnector();
+		setup(new ReactorClientHttpConnector(), "http://localhost:" + port);
+	}
 
-		baseUri = "http://localhost:" + port;
+	protected void setup(ClientHttpConnector httpConnector, String baseUri) {
+		this.baseUri = baseUri;
 		this.webClient = WebClient.builder().clientConnector(httpConnector)
-				.baseUrl(baseUri).build();
-		this.testClient = WebTestClient.bindToServer().baseUrl(baseUri).build();
+				.baseUrl(this.baseUri).build();
+		this.testClient = WebTestClient.bindToServer(httpConnector)
+				.baseUrl(this.baseUri).build();
 	}
 
 	@Configuration
 	@RibbonClients({
-			@RibbonClient(name = "testservice", configuration = TestRibbonConfig.class),
-			@RibbonClient(name = "myservice", configuration = TestRibbonConfig.class) })
+		@RibbonClient(name = "testservice", configuration = TestRibbonConfig.class)
+	})
 	@Import(PermitAllSecurityConfiguration.class)
 	public static class DefaultTestConfig {
 

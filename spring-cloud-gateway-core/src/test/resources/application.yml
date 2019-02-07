@@ -5,6 +5,9 @@ test:
   uri: lb://testservice
 
 spring:
+  profiles:
+    include: logging
+
   cloud:
     gateway:
       globalcors:
@@ -141,7 +144,7 @@ spring:
 
       # =====================================
       - id: load_balancer_client_test
-        uri: lb://myservice
+        uri: lb://testservice
         predicates:
         - Host=**.loadbalancerclient.org
 
@@ -346,17 +349,7 @@ spring:
 
 hystrix.command.successcmd.execution.isolation.thread.timeoutInMilliseconds: 5000
 
-logging:
-  level:
-    org.springframework.cloud.gateway: TRACE
-    org.springframework.http.server.reactive: DEBUG
-    org.springframework.web.reactive: DEBUG
-    org.springframework.boot.autoconfigure.web: DEBUG
-    reactor.netty: DEBUG
-    redisratelimiter: DEBUG
-
 eureka:
   client:
     enabled: false
-#  port: 8081
 

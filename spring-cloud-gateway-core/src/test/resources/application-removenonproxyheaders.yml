@@ -7,7 +7,6 @@ spring:
       routes:
       # =====================================
       - id: remove_request_header_test
-        #        uri: http://httpbin.org:80
         uri: lb://testservice
         predicates:
         - Host=**.removenonproxyheaders.org
