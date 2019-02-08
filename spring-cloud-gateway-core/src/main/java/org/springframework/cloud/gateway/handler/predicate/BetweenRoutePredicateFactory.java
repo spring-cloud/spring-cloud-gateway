@@ -12,13 +12,10 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.handler.predicate;
 
-import java.time.Instant;
-import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -35,7 +32,14 @@ import org.springframework.web.server.ServerWebExchange;
  */
 public class BetweenRoutePredicateFactory extends AbstractRoutePredicateFactory<BetweenRoutePredicateFactory.Config> {
 
+	/**
+	 * DateTime 1 key.
+	 */
 	public static final String DATETIME1_KEY = "datetime1";
+
+	/**
+	 * DateTime 2 key.
+	 */
 	public static final String DATETIME2_KEY = "datetime2";
 
 	public BetweenRoutePredicateFactory() {
@@ -53,7 +57,7 @@ public class BetweenRoutePredicateFactory extends AbstractRoutePredicateFactory<
 		ZonedDateTime datetime2 = config.datetime2;
 		Assert.isTrue(datetime1.isBefore(datetime2),
 				config.datetime1 +
-				" must be before " + config.datetime2);
+						" must be before " + config.datetime2);
 
 		return exchange -> {
 			final ZonedDateTime now = ZonedDateTime.now();

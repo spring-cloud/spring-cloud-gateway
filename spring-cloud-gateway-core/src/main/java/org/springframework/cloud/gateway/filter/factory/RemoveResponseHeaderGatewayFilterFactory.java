@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.filter.factory;
@@ -20,14 +19,15 @@ package org.springframework.cloud.gateway.filter.factory;
 import java.util.Arrays;
 import java.util.List;
 
-import org.springframework.cloud.gateway.filter.GatewayFilter;
-
 import reactor.core.publisher.Mono;
+
+import org.springframework.cloud.gateway.filter.GatewayFilter;
 
 /**
  * @author Spencer Gibb
  */
-public class RemoveResponseHeaderGatewayFilterFactory extends AbstractGatewayFilterFactory<AbstractGatewayFilterFactory.NameConfig> {
+public class RemoveResponseHeaderGatewayFilterFactory
+		extends AbstractGatewayFilterFactory<AbstractGatewayFilterFactory.NameConfig> {
 
 	public RemoveResponseHeaderGatewayFilterFactory() {
 		super(NameConfig.class);

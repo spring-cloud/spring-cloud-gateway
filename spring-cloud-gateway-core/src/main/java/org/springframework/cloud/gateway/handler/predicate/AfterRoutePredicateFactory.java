@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.handler.predicate;
@@ -22,15 +21,18 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 
-import org.springframework.web.server.ServerWebExchange;
-
 import javax.validation.constraints.NotNull;
+
+import org.springframework.web.server.ServerWebExchange;
 
 /**
  * @author Spencer Gibb
  */
 public class AfterRoutePredicateFactory extends AbstractRoutePredicateFactory<AfterRoutePredicateFactory.Config> {
 
+	/**
+	 * DateTime key.
+	 */
 	public static final String DATETIME_KEY = "datetime";
 
 	public AfterRoutePredicateFactory() {

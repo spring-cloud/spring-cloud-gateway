@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.handler.predicate;
@@ -51,8 +50,7 @@ public class QueryRoutePredicateFactoryTests extends BaseWebClientTests {
 		testClient.get().uri("/get")
 				.exchange()
 				.expectStatus().isOk()
-				.expectHeader().valueEquals(ROUTE_ID_HEADER, "default_path_to_httpbin");;
-
+				.expectHeader().valueEquals(ROUTE_ID_HEADER, "default_path_to_httpbin");
 		output.expect(not(containsString("Error applying predicate for route: foo_query_param")));
 	}
 
@@ -61,7 +59,7 @@ public class QueryRoutePredicateFactoryTests extends BaseWebClientTests {
 		testClient.get().uri("/get?foo=bar")
 				.exchange()
 				.expectStatus().isOk()
-				.expectHeader().valueEquals(ROUTE_ID_HEADER, "foo_query_param");;
+				.expectHeader().valueEquals(ROUTE_ID_HEADER, "foo_query_param");
 	}
 
 	@Test
@@ -69,8 +67,7 @@ public class QueryRoutePredicateFactoryTests extends BaseWebClientTests {
 		testClient.get().uri("/get?foo")
 				.exchange()
 				.expectStatus().isOk()
-				.expectHeader().valueEquals(ROUTE_ID_HEADER, "default_path_to_httpbin");;
-
+				.expectHeader().valueEquals(ROUTE_ID_HEADER, "default_path_to_httpbin");
 		output.expect(not(containsString("Error applying predicate for route: foo_query_param")));
 	}
 
@@ -87,8 +84,8 @@ public class QueryRoutePredicateFactoryTests extends BaseWebClientTests {
 			return builder.routes()
 					.route("foo_query_param", r ->
 							r.query("foo", "bar")
-							.filters(f -> f.prefixPath("/httpbin"))
-							.uri(uri))
+									.filters(f -> f.prefixPath("/httpbin"))
+									.uri(uri))
 					.build();
 		}
 	}

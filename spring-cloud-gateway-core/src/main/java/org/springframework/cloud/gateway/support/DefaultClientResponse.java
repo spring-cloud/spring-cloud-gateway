@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.support;
@@ -23,8 +22,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalLong;
 
-import org.springframework.web.reactive.function.client.ClientResponse;
-import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -41,6 +38,8 @@ import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.BodyExtractor;
 import org.springframework.web.reactive.function.BodyExtractors;
+import org.springframework.web.reactive.function.client.ClientResponse;
+import org.springframework.web.reactive.function.client.ExchangeStrategies;
 
 /**
  * Default implementation of {@link ClientResponse}.
@@ -97,10 +96,12 @@ public class DefaultClientResponse implements ClientResponse {
 			public List<HttpMessageReader<?>> messageReaders() {
 				return strategies.messageReaders();
 			}
+
 			@Override
 			public Optional<ServerHttpResponse> serverResponse() {
 				return Optional.empty();
 			}
+
 			@Override
 			public Map<String, Object> hints() {
 				return Collections.emptyMap();
@@ -206,6 +207,9 @@ public class DefaultClientResponse implements ClientResponse {
 				.map(body -> new ResponseEntity<>(body, headers, statusCode));
 	}
 
+	@SuppressWarnings("serial")
+	private static class ReadCancellationException extends RuntimeException {
+	}
 
 	private class DefaultHeaders implements Headers {
 
@@ -237,11 +241,6 @@ public class DefaultClientResponse implements ClientResponse {
 		private OptionalLong toOptionalLong(long value) {
 			return (value != -1 ? OptionalLong.of(value) : OptionalLong.empty());
 		}
-	}
-
-
-	@SuppressWarnings("serial")
-	private static class ReadCancellationException extends RuntimeException {
 	}
 
 }

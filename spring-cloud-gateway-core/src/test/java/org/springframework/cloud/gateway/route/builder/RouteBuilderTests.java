@@ -16,17 +16,18 @@
  */
 package org.springframework.cloud.gateway.route.builder;
 
+import java.net.URI;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import reactor.test.StepVerifier;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.junit4.SpringRunner;
-import reactor.test.StepVerifier;
-
-import java.net.URI;
 
 /**
  * @author Biju Kunjummen
@@ -58,7 +59,7 @@ public class RouteBuilderTests {
 				.expectNextMatches(
 						r -> r.getId().equals("test2") && r.getFilters().size() == 1
 								&& r.getUri()
-										.equals(URI.create("https://httpbin.org:9090")))
+								.equals(URI.create("https://httpbin.org:9090")))
 				.expectComplete().verify();
 	}
 

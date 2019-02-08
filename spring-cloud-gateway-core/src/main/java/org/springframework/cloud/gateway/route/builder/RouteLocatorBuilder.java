@@ -21,11 +21,11 @@ import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
 
+import reactor.core.publisher.Flux;
+
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.context.ConfigurableApplicationContext;
-
-import reactor.core.publisher.Flux;
 
 /**
  * Used to build a {@link RouteLocator}
@@ -86,7 +86,8 @@ public class RouteLocatorBuilder {
 		 * @return a {@link RouteLocator}
 		 */
 		public RouteLocator build() {
-			return () -> Flux.fromIterable(this.routes).map(routeBuilder -> routeBuilder.build());
+			return () -> Flux.fromIterable(this.routes)
+					.map(routeBuilder -> routeBuilder.build());
 		}
 
 		ConfigurableApplicationContext getContext() {
@@ -121,6 +122,5 @@ public class RouteLocatorBuilder {
 		}
 
 	}
-
 
 }

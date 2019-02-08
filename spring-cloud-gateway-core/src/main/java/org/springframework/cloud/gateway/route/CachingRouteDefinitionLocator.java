@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.route;
@@ -21,11 +20,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.context.ApplicationListener;
 import reactor.cache.CacheFlux;
 import reactor.core.publisher.Flux;
 
 import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
+import org.springframework.context.ApplicationListener;
 
 /**
  * @author Spencer Gibb
@@ -49,7 +48,7 @@ public class CachingRouteDefinitionLocator implements RouteDefinitionLocator, Ap
 	}
 
 	/**
-	 * Clears the cache of routeDefinisions
+	 * Clears the cache of routeDefinitions.
 	 * @return routeDefinitions flux
 	 */
 	public Flux<RouteDefinition> refresh() {
@@ -63,7 +62,7 @@ public class CachingRouteDefinitionLocator implements RouteDefinitionLocator, Ap
 	}
 
 	@Deprecated
-    /* for testing */ void handleRefresh() {
-        refresh();
-    }
+		/* for testing */ void handleRefresh() {
+		refresh();
+	}
 }

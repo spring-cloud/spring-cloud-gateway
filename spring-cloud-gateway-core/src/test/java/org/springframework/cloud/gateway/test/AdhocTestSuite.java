@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.test;
@@ -122,7 +121,7 @@ import static org.junit.Assume.assumeThat;
 		org.springframework.cloud.gateway.test.WebfluxNotIncludedTests.class,
 		org.springframework.cloud.gateway.test.HttpStatusTests.class,
 		org.springframework.cloud.gateway.test.GatewayIntegrationTests.class,
-		org.springframework.cloud.gateway.test.sse.SseIntegrationTests.class,
+		org.springframework.cloud.gateway.test.sse.SseIntegrationTests.class
 })
 public class AdhocTestSuite {
 

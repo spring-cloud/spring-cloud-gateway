@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.filter.factory;
@@ -21,6 +20,7 @@ import java.util.Map;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -47,14 +47,15 @@ public class RemoveRequestHeaderGatewayFilterFactoryTests extends BaseWebClientT
 				.exchange()
 				.expectStatus().isOk()
 				.expectBody(Map.class).consumeWith(result -> {
-					Map<String, Object> headers = getMap(result.getResponseBody(), "headers");
-					assertThat(headers).doesNotContainKey("X-Request-Foo");
-				});
+			Map<String, Object> headers = getMap(result.getResponseBody(), "headers");
+			assertThat(headers).doesNotContainKey("X-Request-Foo");
+		});
 	}
 
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
-	public static class TestConfig { }
+	public static class TestConfig {
 
+	}
 }

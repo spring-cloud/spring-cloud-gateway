@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.support;
@@ -33,16 +32,18 @@ import org.springframework.validation.Validator;
 
 public abstract class ConfigurationUtils {
 
-	public static void bind(Object o, Map<String, Object> properties, String configurationPropertyName, String bindingName, Validator validator) {
+	public static void bind(Object o, Map<String, Object> properties,
+			String configurationPropertyName, String bindingName, Validator validator) {
 		bind(o, properties, configurationPropertyName, bindingName, validator, null);
 	}
 
 	public static void bind(Object o, Map<String, Object> properties, String configurationPropertyName, String bindingName,
-							Validator validator, ConversionService conversionService) {
+			Validator validator, ConversionService conversionService) {
 		Object toBind = getTargetObject(o);
 
-		new Binder(Collections.singletonList(new MapConfigurationPropertySource(properties)), null, conversionService)
-                .bind(configurationPropertyName, Bindable.ofInstance(toBind));
+		new Binder(Collections
+				.singletonList(new MapConfigurationPropertySource(properties)), null, conversionService)
+				.bind(configurationPropertyName, Bindable.ofInstance(toBind));
 
 		if (validator != null) {
 			BindingResult errors = new BeanPropertyBindingResult(toBind, bindingName);

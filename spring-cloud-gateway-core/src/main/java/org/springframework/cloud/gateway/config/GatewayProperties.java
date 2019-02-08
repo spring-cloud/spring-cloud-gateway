@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.config;
@@ -26,6 +25,7 @@ import javax.validation.constraints.NotNull;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.cloud.gateway.filter.FilterDefinition;
 import org.springframework.cloud.gateway.route.RouteDefinition;
@@ -40,8 +40,9 @@ import org.springframework.validation.annotation.Validated;
 public class GatewayProperties {
 
 	private final Log logger = LogFactory.getLog(getClass());
+
 	/**
-	 * List of Routes
+	 * List of Routes.
 	 */
 	@NotNull
 	@Valid
@@ -52,8 +53,9 @@ public class GatewayProperties {
 	 */
 	private List<FilterDefinition> defaultFilters = new ArrayList<>();
 
-	private List<MediaType> streamingMediaTypes = Arrays.asList(MediaType.TEXT_EVENT_STREAM,
-			MediaType.APPLICATION_STREAM_JSON);
+	private List<MediaType> streamingMediaTypes = Arrays
+			.asList(MediaType.TEXT_EVENT_STREAM,
+					MediaType.APPLICATION_STREAM_JSON);
 
 	public List<RouteDefinition> getRoutes() {
 		return routes;
@@ -63,7 +65,7 @@ public class GatewayProperties {
 	public void setRoutes(List<RouteDefinition> routes) {
 		this.routes = routes;
 		if (routes != null && routes.size() > 0 && logger.isDebugEnabled()) {
-			logger.debug("Routes supplied from Gateway Properties: "+routes);
+			logger.debug("Routes supplied from Gateway Properties: " + routes);
 		}
 	}
 

@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.filter.headers;
@@ -25,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.jetbrains.annotations.Nullable;
+
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -36,7 +36,54 @@ import org.springframework.web.server.ServerWebExchange;
 
 public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 
+	/**
+	 * Forwarded header.
+	 */
 	public static final String FORWARDED_HEADER = "Forwarded";
+
+	/* for testing */
+	static List<Forwarded> parse(List<String> values) {
+		ArrayList<Forwarded> forwardeds = new ArrayList<>();
+		if (CollectionUtils.isEmpty(values)) {
+			return forwardeds;
+		}
+		for (String value : values) {
+			Forwarded forwarded = parse(value);
+			forwardeds.add(forwarded);
+		}
+		return forwardeds;
+	}
+
+	/* for testing */
+	static Forwarded parse(String value) {
+		String[] pairs = StringUtils.tokenizeToStringArray(value, ";");
+
+		LinkedCaseInsensitiveMap<String> result = splitIntoCaseInsensitiveMap(pairs);
+		if (result == null) {
+			return null;
+		}
+
+		Forwarded forwarded = new Forwarded(result);
+
+		return forwarded;
+	}
+
+	@Nullable
+	/* for testing */ static LinkedCaseInsensitiveMap<String> splitIntoCaseInsensitiveMap(String[] pairs) {
+		if (ObjectUtils.isEmpty(pairs)) {
+			return null;
+		}
+
+		LinkedCaseInsensitiveMap<String> result = new LinkedCaseInsensitiveMap<>();
+		for (String element : pairs) {
+			String[] splittedElement = StringUtils.split(element, "=");
+			if (splittedElement == null) {
+				continue;
+			}
+			result.put(splittedElement[0].trim(), splittedElement[1].trim());
+		}
+		return result;
+	}
 
 	@Override
 	public int getOrder() {
@@ -51,7 +98,8 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 
 		// copy all headers except Forwarded
 		original.entrySet().stream()
-				.filter(entry -> !entry.getKey().toLowerCase().equalsIgnoreCase(FORWARDED_HEADER))
+				.filter(entry -> !entry.getKey().toLowerCase()
+						.equalsIgnoreCase(FORWARDED_HEADER))
 				.forEach(entry -> updated.addAll(entry.getKey(), entry.getValue()));
 
 		List<Forwarded> forwardeds = parse(original.get(FORWARDED_HEADER));
@@ -83,47 +131,6 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 		return updated;
 	}
 
-
-	/* for testing */ static List<Forwarded> parse(List<String> values) {
-		ArrayList<Forwarded> forwardeds = new ArrayList<>();
-		if (CollectionUtils.isEmpty(values)) {
-			return forwardeds;
-		}
-    	for (String value : values) {
-			Forwarded forwarded = parse(value);
-			forwardeds.add(forwarded);
-		}
-		return forwardeds;
-	}
-
-	/* for testing */ static Forwarded parse(String value) {
-		String[] pairs = StringUtils.tokenizeToStringArray(value, ";");
-
-		LinkedCaseInsensitiveMap<String> result = splitIntoCaseInsensitiveMap(pairs);
-		if (result == null) return null;
-
-		Forwarded forwarded = new Forwarded(result);
-
-		return forwarded;
-	}
-
-	@Nullable
-	/* for testing */ static LinkedCaseInsensitiveMap<String> splitIntoCaseInsensitiveMap(String[] pairs) {
-		if (ObjectUtils.isEmpty(pairs)) {
-			return null;
-		}
-
-		LinkedCaseInsensitiveMap<String> result = new LinkedCaseInsensitiveMap<>();
-		for (String element : pairs) {
-			String[] splittedElement = StringUtils.split(element, "=");
-			if (splittedElement == null) {
-				continue;
-			}
-			result.put(splittedElement[0].trim(), splittedElement[1].trim());
-		}
-		return result;
-	}
-
 	/* for testing */ static class Forwarded {
 
 		private static final char EQUALS = '=';
@@ -131,11 +138,11 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 
 		private final Map<String, String> values;
 
-		public Forwarded() {
+		Forwarded() {
 			this.values = new HashMap<>();
 		}
 
-		public Forwarded(Map<String, String> values) {
+		Forwarded(Map<String, String> values) {
 			this.values = values;
 		}
 
@@ -147,7 +154,7 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 
 		private String quoteIfNeeded(String s) {
 			if (s != null && s.contains(":")) { //TODO: broaded quote
-				return "\""+s+"\"";
+				return "\"" + s + "\"";
 			}
 			return s;
 		}

@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.handler.predicate;
@@ -32,7 +31,14 @@ import org.springframework.web.server.ServerWebExchange;
  */
 public class QueryRoutePredicateFactory extends AbstractRoutePredicateFactory<QueryRoutePredicateFactory.Config> {
 
+	/**
+	 * Param key.
+	 */
 	public static final String PARAM_KEY = "param";
+
+	/**
+	 * Regexp key.
+	 */
 	public static final String REGEXP_KEY = "regexp";
 
 	public QueryRoutePredicateFactory() {
@@ -53,7 +59,8 @@ public class QueryRoutePredicateFactory extends AbstractRoutePredicateFactory<Qu
 			}
 
 
-			List<String> values = exchange.getRequest().getQueryParams().get(config.param);
+			List<String> values = exchange.getRequest().getQueryParams()
+					.get(config.param);
 			if (values == null) {
 				return false;
 			}

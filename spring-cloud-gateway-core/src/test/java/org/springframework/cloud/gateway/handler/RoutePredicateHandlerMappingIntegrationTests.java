@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.handler;
@@ -53,7 +52,7 @@ public class RoutePredicateHandlerMappingIntegrationTests extends BaseWebClientT
 
 	@Test
 	public void requestsToManagementPortReturn404() {
-		testClient.mutate().baseUrl("http://localhost:"+managementPort).build()
+		testClient.mutate().baseUrl("http://localhost:" + managementPort).build()
 				.get().uri("/get")
 				.exchange()
 				.expectStatus().isNotFound();
@@ -62,6 +61,8 @@ public class RoutePredicateHandlerMappingIntegrationTests extends BaseWebClientT
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
-	public static class TestConfig { }
+	public static class TestConfig {
+
+	}
 
 }

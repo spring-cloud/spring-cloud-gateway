@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.discovery;
@@ -45,7 +44,8 @@ import org.springframework.util.StringUtils;
  */
 public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLocator {
 
-	private static final Log log = LogFactory.getLog(DiscoveryClientRouteDefinitionLocator.class);
+	private static final Log log = LogFactory
+			.getLog(DiscoveryClientRouteDefinitionLocator.class);
 
 	private final DiscoveryClient discoveryClient;
 	private final DiscoveryLocatorProperties properties;
@@ -57,7 +57,8 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 		this.properties = properties;
 		if (StringUtils.hasText(properties.getRouteIdPrefix())) {
 			this.routeIdPrefix = properties.getRouteIdPrefix();
-		} else {
+		}
+		else {
 			this.routeIdPrefix = this.discoveryClient.getClass().getSimpleName() + "_";
 		}
 		evalCtxt = SimpleEvaluationContext.forReadOnlyDataBinding()
@@ -69,13 +70,16 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 	public Flux<RouteDefinition> getRouteDefinitions() {
 
 		SpelExpressionParser parser = new SpelExpressionParser();
-		Expression includeExpr = parser.parseExpression(properties.getIncludeExpression());
+		Expression includeExpr = parser
+				.parseExpression(properties.getIncludeExpression());
 		Expression urlExpr = parser.parseExpression(properties.getUrlExpression());
 
 		Predicate<ServiceInstance> includePredicate;
-		if (properties.getIncludeExpression() == null || "true".equalsIgnoreCase(properties.getIncludeExpression())) {
+		if (properties.getIncludeExpression() == null || "true"
+				.equalsIgnoreCase(properties.getIncludeExpression())) {
 			includePredicate = instance -> true;
-		} else {
+		}
+		else {
 			includePredicate = instance -> {
 				Boolean include = includeExpr.getValue(evalCtxt, instance, Boolean.class);
 				if (include == null) {
@@ -93,8 +97,8 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 				.map(instance -> {
 					String serviceId = instance.getServiceId();
 
-                    RouteDefinition routeDefinition = new RouteDefinition();
-                    routeDefinition.setId(this.routeIdPrefix + serviceId);
+					RouteDefinition routeDefinition = new RouteDefinition();
+					routeDefinition.setId(this.routeIdPrefix + serviceId);
 					String uri = urlExpr.getValue(evalCtxt, instance, String.class);
 					routeDefinition.setUri(URI.create(uri));
 
@@ -103,32 +107,36 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 					for (PredicateDefinition original : this.properties.getPredicates()) {
 						PredicateDefinition predicate = new PredicateDefinition();
 						predicate.setName(original.getName());
-						for (Map.Entry<String, String> entry : original.getArgs().entrySet()) {
+						for (Map.Entry<String, String> entry : original.getArgs()
+								.entrySet()) {
 							String value = getValueFromExpr(evalCtxt, parser, instanceForEval, entry);
 							predicate.addArg(entry.getKey(), value);
 						}
 						routeDefinition.getPredicates().add(predicate);
 					}
 
-                    for (FilterDefinition original : this.properties.getFilters()) {
-                    	FilterDefinition filter = new FilterDefinition();
-                    	filter.setName(original.getName());
-						for (Map.Entry<String, String> entry : original.getArgs().entrySet()) {
+					for (FilterDefinition original : this.properties.getFilters()) {
+						FilterDefinition filter = new FilterDefinition();
+						filter.setName(original.getName());
+						for (Map.Entry<String, String> entry : original.getArgs()
+								.entrySet()) {
 							String value = getValueFromExpr(evalCtxt, parser, instanceForEval, entry);
 							filter.addArg(entry.getKey(), value);
 						}
 						routeDefinition.getFilters().add(filter);
 					}
 
-                    return routeDefinition;
+					return routeDefinition;
 				});
 	}
 
-	String getValueFromExpr(SimpleEvaluationContext evalCtxt, SpelExpressionParser parser, ServiceInstance instance, Map.Entry<String, String> entry) {
+	String getValueFromExpr(SimpleEvaluationContext evalCtxt, SpelExpressionParser parser,
+			ServiceInstance instance, Map.Entry<String, String> entry) {
 		try {
 			Expression valueExpr = parser.parseExpression(entry.getValue());
 			return valueExpr.getValue(evalCtxt, instance, String.class);
-		} catch (ParseException | EvaluationException e) {
+		}
+		catch (ParseException | EvaluationException e) {
 			if (log.isDebugEnabled()) {
 				log.debug("Unable to parse " + entry.getValue(), e);
 			}

@@ -1,3 +1,19 @@
+/*
+ * Copyright 2018-2019 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.springframework.cloud.gateway.support.ipresolver;
 
 import java.net.InetSocketAddress;
@@ -8,6 +24,7 @@ import java.util.List;
 import org.apache.logging.log4j.util.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.util.Assert;
 import org.springframework.web.server.ServerWebExchange;
@@ -17,18 +34,21 @@ import org.springframework.web.server.ServerWebExchange;
  * falls back to {@link RemoteAddressResolver} and
  * {@link ServerHttpRequest#getRemoteAddress()}. Use the static constructor methods which
  * meets your security requirements.
- *
+ * @author Andrew Fitzgerald
  * @see <a href=
  * "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-For">X-Forwarded-For
  * reference</a>
- * @author Andrew Fitzgerald
  */
 public class XForwardedRemoteAddressResolver implements RemoteAddressResolver {
 
+	/**
+	 * Forwarded-For header name.
+	 */
 	public static final String X_FORWARDED_FOR = "X-Forwarded-For";
 	private static final Logger log = LoggerFactory
 			.getLogger(XForwardedRemoteAddressResolver.class);
-	private final RemoteAddressResolver defaultRemoteIpResolver = new RemoteAddressResolver() {};
+	private final RemoteAddressResolver defaultRemoteIpResolver = new RemoteAddressResolver() {
+	};
 
 	private final int maxTrustedIndex;
 
@@ -50,7 +70,6 @@ public class XForwardedRemoteAddressResolver implements RemoteAddressResolver {
 	}
 
 	/**
-	 * @return a {@link XForwardedRemoteAddressResolver} which extracts the last
 	 * <em>trusted</em> IP address found in the X-Forwarded-For header (when present).
 	 * This configuration exists to prevent a malicious actor from spoofing the value of
 	 * the X-Forwarded-For header. If you know that your gateway application is only
@@ -60,7 +79,7 @@ public class XForwardedRemoteAddressResolver implements RemoteAddressResolver {
 	 *
 	 *
 	 * Given the X-Forwarded-For value of [0.0.0.1, 0.0.0.2, 0.0.0.3]:
-	 * 
+	 *
 	 * <pre>
 	 * maxTrustedIndex -> result
 	 *
@@ -73,6 +92,7 @@ public class XForwardedRemoteAddressResolver implements RemoteAddressResolver {
 	 *
 	 * @param maxTrustedIndex correlates to the number of trusted proxies expected in
 	 * front of Spring Cloud Gateway (index starts at 1).
+	 * @return a {@link XForwardedRemoteAddressResolver} which extracts the last
 	 */
 	public static XForwardedRemoteAddressResolver maxTrustedIndex(
 			int maxTrustedIndex) {

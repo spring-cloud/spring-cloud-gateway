@@ -12,19 +12,9 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.config;
-
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.DeprecatedConfigurationProperty;
-import org.springframework.boot.web.server.WebServerException;
-import org.springframework.core.style.ToStringCreator;
-import org.springframework.util.ResourceUtils;
-import reactor.netty.resources.ConnectionProvider;
-import reactor.netty.tcp.SslProvider;
-
 
 import java.io.IOException;
 import java.net.URL;
@@ -37,8 +27,17 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import reactor.netty.resources.ConnectionProvider;
+import reactor.netty.tcp.SslProvider;
+
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.DeprecatedConfigurationProperty;
+import org.springframework.boot.web.server.WebServerException;
+import org.springframework.core.style.ToStringCreator;
+import org.springframework.util.ResourceUtils;
+
 /**
- * Configuration properties for the Netty {@link reactor.netty.http.client.HttpClient}
+ * Configuration properties for the Netty {@link reactor.netty.http.client.HttpClient}.
  */
 @ConfigurationProperties("spring.cloud.gateway.httpclient")
 public class HttpClientProperties {
@@ -49,17 +48,21 @@ public class HttpClientProperties {
 	/** The response timeout. */
 	private Duration responseTimeout;
 
-	/** Pool configuration for Netty HttpClient */
+	/** Pool configuration for Netty HttpClient. */
 	private Pool pool = new Pool();
 
-	/** Proxy configuration for Netty HttpClient */
+	/** Proxy configuration for Netty HttpClient. */
 	private Proxy proxy = new Proxy();
 
-	/** SSL configuration for Netty HttpClient */
+	/** SSL configuration for Netty HttpClient. */
 	private Ssl ssl = new Ssl();
 
 	public Integer getConnectTimeout() {
 		return connectTimeout;
+	}
+
+	public void setConnectTimeout(Integer connectTimeout) {
+		this.connectTimeout = connectTimeout;
 	}
 
 	public Duration getResponseTimeout() {
@@ -68,10 +71,6 @@ public class HttpClientProperties {
 
 	public void setResponseTimeout(Duration responseTimeout) {
 		this.responseTimeout = responseTimeout;
-	}
-
-	public void setConnectTimeout(Integer connectTimeout) {
-		this.connectTimeout = connectTimeout;
 	}
 
 	public Pool getPool() {
@@ -98,19 +97,25 @@ public class HttpClientProperties {
 		this.ssl = ssl;
 	}
 
-	public static class Pool {
+	@Override
+	public String toString() {
+		return new ToStringCreator(this)
+				.append("connectTimeout", connectTimeout)
+				.append("responseTimeout", responseTimeout)
+				.append("pool", pool)
+				.append("proxy", proxy)
+				.append("ssl", ssl)
+				.toString();
+	}
 
-		public enum PoolType { ELASTIC, FIXED, DISABLED }
+	public static class Pool {
 
 		/** Type of pool for HttpClient to use, defaults to ELASTIC. */
 		private PoolType type = PoolType.ELASTIC;
-
 		/** The channel pool map name, defaults to proxy. */
 		private String name = "proxy";
-
 		/** Only for type FIXED, the maximum number of connections before starting pending acquisition on existing ones. */
 		private Integer maxConnections = ConnectionProvider.DEFAULT_POOL_MAX_CONNECTIONS;
-
 		/** Only for type FIXED, the maximum time in millis to wait for aquiring. */
 		private Long acquireTimeout = ConnectionProvider.DEFAULT_POOL_ACQUIRE_TIMEOUT;
 
@@ -155,6 +160,23 @@ public class HttpClientProperties {
 					", acquireTimeout=" + acquireTimeout +
 					'}';
 		}
+
+		public enum PoolType {
+			/**
+			 * Elastic pool type.
+			 */
+			ELASTIC,
+
+			/**
+			 * Fixed pool type.
+			 */
+			FIXED,
+
+			/**
+			 * Disabled pool type.
+			 */
+			DISABLED
+		}
 	}
 
 	public class Proxy {
@@ -166,7 +188,7 @@ public class HttpClientProperties {
 		private String username;
 		/** Password for proxy configuration of Netty HttpClient. */
 		private String password;
-		/** Regular expression (Java) for a configured list of hosts
+		/** Regular expression (Java) for a configured list of hosts.
 		 * that should be reached directly, bypassing the proxy */
 		private String nonProxyHostsPattern;
 
@@ -228,7 +250,7 @@ public class HttpClientProperties {
 
 		/** Trusted certificates for verifying the remote endpoint's certificate. */
 		private List<String> trustedX509Certificates = new ArrayList<>();
-		
+
 		// use netty default SSL timeouts
 		/** SSL handshake timeout. Default to 10000 ms */
 		private Duration handshakeTimeout = Duration.ofMillis(10000);
@@ -243,7 +265,11 @@ public class HttpClientProperties {
 		public List<String> getTrustedX509Certificates() {
 			return trustedX509Certificates;
 		}
-		
+
+		public void setTrustedX509Certificates(List<String> trustedX509) {
+			this.trustedX509Certificates = trustedX509;
+		}
+
 		public X509Certificate[] getTrustedX509CertificatesForTrustManager() {
 			try {
 				CertificateFactory certificateFactory = CertificateFactory
@@ -267,10 +293,6 @@ public class HttpClientProperties {
 				throw new WebServerException("Could not load CertificateFactory X.509",
 						e1);
 			}
-		}
-
-		public void setTrustedX509Certificates(List<String> trustedX509) {
-			this.trustedX509Certificates = trustedX509;
 		}
 
 		//TODO: support configuration of other trust manager factories
@@ -359,16 +381,5 @@ public class HttpClientProperties {
 					.append("defaultConfigurationType", defaultConfigurationType)
 					.toString();
 		}
-	}
-
-	@Override
-	public String toString() {
-		return new ToStringCreator(this)
-				.append("connectTimeout", connectTimeout)
-				.append("responseTimeout", responseTimeout)
-				.append("pool", pool)
-				.append("proxy", proxy)
-				.append("ssl", ssl)
-				.toString();
 	}
 }

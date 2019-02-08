@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.filter.factory;
@@ -31,7 +30,8 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.H
 /**
  * @author Olga Maciaszek-Sharma
  */
-public class FallbackHeadersGatewayFilterFactory extends AbstractGatewayFilterFactory<FallbackHeadersGatewayFilterFactory.Config> {
+public class FallbackHeadersGatewayFilterFactory
+		extends AbstractGatewayFilterFactory<FallbackHeadersGatewayFilterFactory.Config> {
 
 	public FallbackHeadersGatewayFilterFactory() {
 		super(Config.class);
@@ -48,13 +48,23 @@ public class FallbackHeadersGatewayFilterFactory extends AbstractGatewayFilterFa
 			ServerWebExchange filteredExchange = ofNullable((Throwable) exchange
 					.getAttribute(HYSTRIX_EXECUTION_EXCEPTION_ATTR))
 					.map(executionException -> {
-						ServerHttpRequest.Builder requestBuilder = exchange.getRequest().mutate();
-						requestBuilder.header(config.executionExceptionTypeHeaderName, executionException.getClass().getName());
-						requestBuilder.header(config.executionExceptionMessageHeaderName, executionException.getMessage());
-						ofNullable(getRootCause(executionException)).ifPresent(rootCause -> {
-							requestBuilder.header(config.rootCauseExceptionTypeHeaderName, rootCause.getClass().getName());
-							requestBuilder.header(config.rootCauseExceptionMessageHeaderName, rootCause.getMessage());
-						});
+						ServerHttpRequest.Builder requestBuilder = exchange.getRequest()
+								.mutate();
+						requestBuilder
+								.header(config.executionExceptionTypeHeaderName, executionException
+										.getClass().getName());
+						requestBuilder
+								.header(config.executionExceptionMessageHeaderName, executionException
+										.getMessage());
+						ofNullable(getRootCause(executionException))
+								.ifPresent(rootCause -> {
+									requestBuilder
+											.header(config.rootCauseExceptionTypeHeaderName, rootCause
+													.getClass().getName());
+									requestBuilder
+											.header(config.rootCauseExceptionMessageHeaderName, rootCause
+													.getMessage());
+								});
 						return exchange.mutate().request(requestBuilder.build()).build();
 					}).orElse(exchange);
 			return chain.filter(filteredExchange);

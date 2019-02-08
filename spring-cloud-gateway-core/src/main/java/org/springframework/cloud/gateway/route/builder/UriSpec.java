@@ -16,9 +16,9 @@
 
 package org.springframework.cloud.gateway.route.builder;
 
-import org.springframework.cloud.gateway.route.Route;
-
 import java.net.URI;
+
+import org.springframework.cloud.gateway.route.Route;
 
 /**
  * A specification to add a URI to a route.

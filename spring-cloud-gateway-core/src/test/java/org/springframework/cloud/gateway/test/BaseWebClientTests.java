@@ -12,16 +12,18 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.test;
 
 import java.time.Duration;
 
+import com.netflix.loadbalancer.Server;
+import com.netflix.loadbalancer.ServerList;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
+
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.web.server.LocalServerPort;
@@ -38,9 +40,6 @@ import org.springframework.http.client.reactive.ClientHttpConnector;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.client.WebClient;
-
-import com.netflix.loadbalancer.Server;
-import com.netflix.loadbalancer.ServerList;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_HANDLER_MAPPER_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
@@ -74,13 +73,13 @@ public class BaseWebClientTests {
 
 	@Configuration
 	@RibbonClients({
-		@RibbonClient(name = "testservice", configuration = TestRibbonConfig.class),
-		@RibbonClient(name = "myservice", configuration = TestRibbonConfig.class)
+			@RibbonClient(name = "testservice", configuration = TestRibbonConfig.class),
+			@RibbonClient(name = "myservice", configuration = TestRibbonConfig.class)
 	})
 	@Import(PermitAllSecurityConfiguration.class)
 	public static class DefaultTestConfig {
 		private static final Log log = LogFactory.getLog(DefaultTestConfig.class);
-		
+
 		@Bean
 		public HttpBinCompatibleController httpBinController() {
 			return new HttpBinCompatibleController();
@@ -91,11 +90,13 @@ public class BaseWebClientTests {
 		public GlobalFilter modifyResponseFilter() {
 			return (exchange, chain) -> {
 				log.info("modifyResponseFilter start");
-				String value = exchange.getAttributeOrDefault(GATEWAY_HANDLER_MAPPER_ATTR, "N/A");
+				String value = exchange
+						.getAttributeOrDefault(GATEWAY_HANDLER_MAPPER_ATTR, "N/A");
 				exchange.getResponse().getHeaders().add(HANDLER_MAPPER_HEADER, value);
-				Route route = exchange.getAttributeOrDefault(GATEWAY_ROUTE_ATTR,null);
+				Route route = exchange.getAttributeOrDefault(GATEWAY_ROUTE_ATTR, null);
 				if (route != null) {
-					exchange.getResponse().getHeaders().add(ROUTE_ID_HEADER, route.getId());
+					exchange.getResponse().getHeaders()
+							.add(ROUTE_ID_HEADER, route.getId());
 				}
 				return chain.filter(exchange);
 			};
@@ -105,7 +106,9 @@ public class BaseWebClientTests {
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
-	public static class MainConfig { }
+	public static class MainConfig {
+
+	}
 
 	protected static class TestRibbonConfig {
 

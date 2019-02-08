@@ -1,3 +1,19 @@
+/*
+ * Copyright 2017-2019 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.springframework.cloud.gateway.filter.ratelimit;
 
 import java.time.Instant;
@@ -12,12 +28,12 @@ import javax.validation.constraints.Min;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.cloud.gateway.route.RouteDefinitionRouteLocator;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import org.springframework.beans.BeansException;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.cloud.gateway.route.RouteDefinitionRouteLocator;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
@@ -27,21 +43,48 @@ import org.springframework.validation.annotation.Validated;
 
 /**
  * See https://stripe.com/blog/rate-limiters and
- * https://gist.github.com/ptarjan/e38f45f2dfe601419ca3af937fff574d#file-1-check_request_rate_limiter-rb-L11-L34
+ * https://gist.github.com/ptarjan/e38f45f2dfe601419ca3af937fff574d#file-1-check_request_rate_limiter-rb-L11-L34.
  *
  * @author Spencer Gibb
  */
 @ConfigurationProperties("spring.cloud.gateway.redis-rate-limiter")
 public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Config> implements ApplicationContextAware {
+
+	/**
+	 * @deprecated use {@link Config#replenishRate}
+	 */
 	@Deprecated
 	public static final String REPLENISH_RATE_KEY = "replenishRate";
+
+	/**
+	 * @deprecated use {@link Config#burstCapacity}
+	 */
 	@Deprecated
 	public static final String BURST_CAPACITY_KEY = "burstCapacity";
 
+	/**
+	 * Redis Rate Limiter property name.
+	 */
 	public static final String CONFIGURATION_PROPERTY_NAME = "redis-rate-limiter";
+
+	/**
+	 * Redis Script name.
+	 */
 	public static final String REDIS_SCRIPT_NAME = "redisRequestRateLimiterScript";
+
+	/**
+	 * Remaining Rate Limit header name.
+	 */
 	public static final String REMAINING_HEADER = "X-RateLimit-Remaining";
+
+	/**
+	 * Replenish Rate Limit header name.
+	 */
 	public static final String REPLENISH_RATE_HEADER = "X-RateLimit-Replenish-Rate";
+
+	/**
+	 * Burst Capacity Header name.
+	 */
 	public static final String BURST_CAPACITY_HEADER = "X-RateLimit-Burst-Capacity";
 
 	private Log log = LogFactory.getLog(getClass());
@@ -65,7 +108,7 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 	private String burstCapacityHeader = BURST_CAPACITY_HEADER;
 
 	public RedisRateLimiter(ReactiveRedisTemplate<String, String> redisTemplate,
-							RedisScript<List<Long>> script, Validator validator) {
+			RedisScript<List<Long>> script, Validator validator) {
 		super(Config.class, CONFIGURATION_PROPERTY_NAME, validator);
 		this.redisTemplate = redisTemplate;
 		this.script = script;
@@ -77,6 +120,19 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 		this.defaultConfig = new Config()
 				.setReplenishRate(defaultReplenishRate)
 				.setBurstCapacity(defaultBurstCapacity);
+	}
+
+	static List<String> getKeys(String id) {
+		// use `{}` around keys to use Redis Key hash tags
+		// this allows for using redis cluster
+
+		// Make a unique key per user.
+		String prefix = "request_rate_limiter.{" + id;
+
+		// You need two Redis keys for Token Bucket.
+		String tokenKey = prefix + "}.tokens";
+		String timestampKey = prefix + "}.timestamp";
+		return Arrays.asList(tokenKey, timestampKey);
 	}
 
 	public boolean isIncludeHeaders() {
@@ -115,7 +171,8 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 	@SuppressWarnings("unchecked")
 	public void setApplicationContext(ApplicationContext context) throws BeansException {
 		if (initialized.compareAndSet(false, true)) {
-			this.redisTemplate = context.getBean("stringReactiveRedisTemplate", ReactiveRedisTemplate.class);
+			this.redisTemplate = context
+					.getBean("stringReactiveRedisTemplate", ReactiveRedisTemplate.class);
 			this.script = context.getBean(REDIS_SCRIPT_NAME, RedisScript.class);
 			if (context.getBeanNamesForType(Validator.class).length > 0) {
 				this.setValidator(context.getBean(Validator.class));
@@ -152,16 +209,18 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 
 
 			// The arguments to the LUA script. time() returns unixtime in seconds.
-			List<String> scriptArgs = Arrays.asList(replenishRate + "", burstCapacity + "",
-					Instant.now().getEpochSecond() + "", "1");
+			List<String> scriptArgs = Arrays
+					.asList(replenishRate + "", burstCapacity + "",
+							Instant.now().getEpochSecond() + "", "1");
 			// allowed, tokens_left = redis.eval(SCRIPT, keys, args)
-			Flux<List<Long>> flux = this.redisTemplate.execute(this.script, keys, scriptArgs);
-					// .log("redisratelimiter", Level.FINER);
+			Flux<List<Long>> flux = this.redisTemplate
+					.execute(this.script, keys, scriptArgs);
+			// .log("redisratelimiter", Level.FINER);
 			return flux.onErrorResume(throwable -> Flux.just(Arrays.asList(1L, -1L)))
 					.reduce(new ArrayList<Long>(), (longs, l) -> {
 						longs.addAll(l);
 						return longs;
-					}) .map(results -> {
+					}).map(results -> {
 						boolean allowed = results.get(0) == 1L;
 						Long tokensLeft = results.get(1);
 
@@ -192,7 +251,7 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 		}
 
 		if (routeConfig == null) {
-			throw new IllegalArgumentException("No Configuration found for route " + routeId +" or defaultFilters");
+			throw new IllegalArgumentException("No Configuration found for route " + routeId + " or defaultFilters");
 		}
 		return routeConfig;
 	}
@@ -204,19 +263,6 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 		headers.put(this.replenishRateHeader, String.valueOf(config.getReplenishRate()));
 		headers.put(this.burstCapacityHeader, String.valueOf(config.getBurstCapacity()));
 		return headers;
-	}
-
-	static List<String> getKeys(String id) {
-		// use `{}` around keys to use Redis Key hash tags
-		// this allows for using redis cluster
-
-		// Make a unique key per user.
-		String prefix = "request_rate_limiter.{" + id;
-
-		// You need two Redis keys for Token Bucket.
-		String tokenKey = prefix + "}.tokens";
-		String timestampKey = prefix + "}.timestamp";
-		return Arrays.asList(tokenKey, timestampKey);
 	}
 
 	@Validated

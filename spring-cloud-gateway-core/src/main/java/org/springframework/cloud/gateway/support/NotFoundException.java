@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.support;
@@ -41,12 +40,12 @@ public class NotFoundException extends ResponseStatusException {
 	}
 
 	public static NotFoundException create(boolean with404, String message) {
-		HttpStatus httpStatus = with404? HttpStatus.NOT_FOUND: HttpStatus.SERVICE_UNAVAILABLE;
+		HttpStatus httpStatus = with404 ? HttpStatus.NOT_FOUND : HttpStatus.SERVICE_UNAVAILABLE;
 		return new NotFoundException(httpStatus, message);
 	}
 
 	public static NotFoundException create(boolean with404, String message, Throwable cause) {
-		HttpStatus httpStatus = with404? HttpStatus.NOT_FOUND: HttpStatus.SERVICE_UNAVAILABLE;
+		HttpStatus httpStatus = with404 ? HttpStatus.NOT_FOUND : HttpStatus.SERVICE_UNAVAILABLE;
 		return new NotFoundException(httpStatus, message, cause);
 	}
 

@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.handler;
@@ -42,23 +41,28 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 	private final RouteLocator routeLocator;
 	private final Integer managmentPort;
 
-	public RoutePredicateHandlerMapping(FilteringWebHandler webHandler, RouteLocator routeLocator, GlobalCorsProperties globalCorsProperties, Environment environment) {
+	public RoutePredicateHandlerMapping(FilteringWebHandler webHandler,
+			RouteLocator routeLocator, GlobalCorsProperties globalCorsProperties,
+			Environment environment) {
 		this.webHandler = webHandler;
 		this.routeLocator = routeLocator;
 
 		if (environment.containsProperty("management.server.port")) {
-			managmentPort = new Integer(environment.getProperty("management.server.port"));
-		} else {
+			managmentPort = new Integer(environment
+					.getProperty("management.server.port"));
+		}
+		else {
 			managmentPort = null;
 		}
-		setOrder(1);		
+		setOrder(1);
 		setCorsConfigurations(globalCorsProperties.getCorsConfigurations());
 	}
 
 	@Override
 	protected Mono<?> getHandlerInternal(ServerWebExchange exchange) {
 		// don't handle requests on the management port if set
-		if (managmentPort != null && exchange.getRequest().getURI().getPort() == managmentPort.intValue()) {
+		if (managmentPort != null && exchange.getRequest().getURI()
+				.getPort() == managmentPort.intValue()) {
 			return Mono.empty();
 		}
 		exchange.getAttributes().put(GATEWAY_HANDLER_MAPPER_ATTR, getSimpleName());
@@ -82,11 +86,11 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 	}
 
 	@Override
-	protected CorsConfiguration getCorsConfiguration(Object handler, ServerWebExchange exchange) {
+	protected CorsConfiguration getCorsConfiguration(Object handler,
+			ServerWebExchange exchange) {
 		// TODO: support cors configuration via properties on a route see gh-229
 		// see RequestMappingHandlerMapping.initCorsConfiguration()
-		// also see https://github.com/spring-projects/spring-framework/blob/master/spring-web/src/test/java/org/springframework/web/cors/reactive/CorsWebFilterTests.java	        
-	    
+		// also see https://github.com/spring-projects/spring-framework/blob/master/spring-web/src/test/java/org/springframework/web/cors/reactive/CorsWebFilterTests.java
 		return super.getCorsConfiguration(handler, exchange);
 	}
 
@@ -108,11 +112,14 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 						.just(route)
 						.filterWhen(r -> {
 							// add the current route we are testing
-							exchange.getAttributes().put(GATEWAY_PREDICATE_ROUTE_ATTR, r.getId());
+							exchange.getAttributes()
+									.put(GATEWAY_PREDICATE_ROUTE_ATTR, r.getId());
 							return r.getPredicate().apply(exchange);
 						})
 						//instead of immediately stopping main flux due to error, log and swallow it
-						.doOnError(e -> logger.error("Error applying predicate for route: "+route.getId(), e))
+						.doOnError(e -> logger
+								.error("Error applying predicate for route: " + route
+										.getId(), e))
 						.onErrorResume(e -> Mono.empty())
 				)
 				// .defaultIfEmpty() put a static Route not found

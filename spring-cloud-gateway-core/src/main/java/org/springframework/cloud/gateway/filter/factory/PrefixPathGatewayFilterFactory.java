@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.filter.factory;
@@ -22,6 +21,7 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 
@@ -32,11 +32,15 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.a
 /**
  * @author Spencer Gibb
  */
-public class PrefixPathGatewayFilterFactory extends AbstractGatewayFilterFactory<PrefixPathGatewayFilterFactory.Config> {
+public class PrefixPathGatewayFilterFactory
+		extends AbstractGatewayFilterFactory<PrefixPathGatewayFilterFactory.Config> {
 
-	private static final Log log = LogFactory.getLog(PrefixPathGatewayFilterFactory.class);
-
+	/**
+	 * Prefix key.
+	 */
 	public static final String PREFIX_KEY = "prefix";
+	private static final Log log = LogFactory
+			.getLog(PrefixPathGatewayFilterFactory.class);
 
 	public PrefixPathGatewayFilterFactory() {
 		super(Config.class);
@@ -51,7 +55,8 @@ public class PrefixPathGatewayFilterFactory extends AbstractGatewayFilterFactory
 	public GatewayFilter apply(Config config) {
 		return (exchange, chain) -> {
 
-			boolean alreadyPrefixed = exchange.getAttributeOrDefault(GATEWAY_ALREADY_PREFIXED_ATTR, false);
+			boolean alreadyPrefixed = exchange
+					.getAttributeOrDefault(GATEWAY_ALREADY_PREFIXED_ATTR, false);
 			if (alreadyPrefixed) {
 				return chain.filter(exchange);
 			}
@@ -68,7 +73,8 @@ public class PrefixPathGatewayFilterFactory extends AbstractGatewayFilterFactory
 			exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, request.getURI());
 
 			if (log.isTraceEnabled()) {
-				log.trace("Prefixed URI with: "+config.prefix+" -> "+request.getURI());
+				log.trace("Prefixed URI with: " + config.prefix + " -> " + request
+						.getURI());
 			}
 
 			return chain.filter(exchange.mutate().request(request).build());

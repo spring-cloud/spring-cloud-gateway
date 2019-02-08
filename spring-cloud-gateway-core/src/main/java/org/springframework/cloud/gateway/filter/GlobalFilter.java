@@ -12,15 +12,13 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.filter;
 
-import org.springframework.web.server.ServerWebExchange;
-import org.springframework.cloud.gateway.filter.GatewayFilterChain;
-
 import reactor.core.publisher.Mono;
+
+import org.springframework.web.server.ServerWebExchange;
 
 /**
  * Contract for interception-style, chained processing of Web requests that may

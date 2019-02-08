@@ -12,15 +12,13 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.test.ssl;
 
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
@@ -28,9 +26,11 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.reactive.server.JsonPathAssertions;
 import org.springframework.test.web.reactive.server.WebTestClient.ResponseSpec;
 
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
+
 @RunWith(SpringRunner.class)
 // this test works because it assumes TLS hand shake cannot be done in 1ms. It takes closer to 80ms
-@SpringBootTest(webEnvironment = RANDOM_PORT, properties = {"spring.cloud.gateway.httpclient.ssl.handshake-timeout=1ms"})
+@SpringBootTest(webEnvironment = RANDOM_PORT, properties = { "spring.cloud.gateway.httpclient.ssl.handshake-timeout=1ms" })
 @DirtiesContext
 @ActiveProfiles("ssl")
 public class SSLHandshakeTimeoutTests extends SingleCertSSLTests {
@@ -43,6 +43,5 @@ public class SSLHandshakeTimeoutTests extends SingleCertSSLTests {
 		JsonPathAssertions jsonPath = responseSpec.expectBody().jsonPath("message");
 		jsonPath.isEqualTo("handshake timed out");
 	}
-	
 
 }

@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.filter;
@@ -21,11 +20,14 @@ import java.net.URI;
 
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import reactor.core.publisher.Mono;
+
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.http.HttpMethod;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -33,9 +35,6 @@ import static org.mockito.Mockito.when;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_SCHEME_PREFIX_ATTR;
-
-import org.springframework.web.util.UriComponentsBuilder;
-import reactor.core.publisher.Mono;
 
 /**
  * @author Spencer Gibb
@@ -83,7 +82,8 @@ public class RouteToRequestUrlFilterTests {
 		ServerWebExchange webExchange = testFilter(request, "lb:http://myhost");
 		URI uri = webExchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
 		assertThat(uri).hasScheme("http").hasHost("myhost");
-		String schemePrefix = webExchange.getRequiredAttribute(GATEWAY_SCHEME_PREFIX_ATTR);
+		String schemePrefix = webExchange
+				.getRequiredAttribute(GATEWAY_SCHEME_PREFIX_ATTR);
 		assertThat(schemePrefix).isEqualTo("lb");
 	}
 
@@ -100,7 +100,8 @@ public class RouteToRequestUrlFilterTests {
 
 	@Test
 	public void encodedParameters() {
-		URI url = UriComponentsBuilder.fromUriString("http://localhost/get?a=b&c=d[]").buildAndExpand().encode().toUri();
+		URI url = UriComponentsBuilder.fromUriString("http://localhost/get?a=b&c=d[]")
+				.buildAndExpand().encode().toUri();
 
 		// prove that it is encoded
 		assertThat(url.getRawQuery()).isEqualTo("a=b&c=d%5B%5D");
@@ -123,7 +124,8 @@ public class RouteToRequestUrlFilterTests {
 
 	@Test
 	public void encodedUrl() {
-		URI url = UriComponentsBuilder.fromUriString("http://localhost/abc def/get").buildAndExpand().encode().toUri();
+		URI url = UriComponentsBuilder.fromUriString("http://localhost/abc def/get")
+				.buildAndExpand().encode().toUri();
 
 		// prove that it is encoded
 		assertThat(url.getRawPath()).isEqualTo("/abc%20def/get");
@@ -186,7 +188,8 @@ public class RouteToRequestUrlFilterTests {
 		for (String s : uris) {
 			URI uri = URI.create(s);
 			boolean result = RouteToRequestUrlFilter.hasAnotherScheme(uri);
-			assertThat(result).as("%s should match: %s", s, result).isEqualTo(shouldMatch);
+			assertThat(result).as("%s should match: %s", s, result)
+					.isEqualTo(shouldMatch);
 		}
 	}
 
@@ -202,7 +205,8 @@ public class RouteToRequestUrlFilterTests {
 
 		GatewayFilterChain filterChain = mock(GatewayFilterChain.class);
 
-		ArgumentCaptor<ServerWebExchange> captor = ArgumentCaptor.forClass(ServerWebExchange.class);
+		ArgumentCaptor<ServerWebExchange> captor = ArgumentCaptor
+				.forClass(ServerWebExchange.class);
 		when(filterChain.filter(captor.capture())).thenReturn(Mono.empty());
 
 		RouteToRequestUrlFilter filter = new RouteToRequestUrlFilter();

@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.support;
@@ -24,6 +23,7 @@ import java.util.Map;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
@@ -39,10 +39,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest
 public class ShortcutConfigurableTests {
 
-	private SpelExpressionParser parser;
-
 	@Autowired
 	BeanFactory beanFactory;
+	private SpelExpressionParser parser;
 
 	@Test
 	public void testNormalizeDefaultTypeWithSpel() {
@@ -56,7 +55,8 @@ public class ShortcutConfigurableTests {
 		Map<String, String> args = new HashMap<>();
 		args.put("bean", "#{@foo}");
 		args.put("arg1", "val1");
-		Map<String, Object> map = ShortcutType.DEFAULT.normalize(args, shortcutConfigurable, parser, this.beanFactory);
+		Map<String, Object> map = ShortcutType.DEFAULT
+				.normalize(args, shortcutConfigurable, parser, this.beanFactory);
 		assertThat(map).isNotNull()
 				.containsEntry("bean", 42)
 				.containsEntry("arg1", "val1");
@@ -81,9 +81,10 @@ public class ShortcutConfigurableTests {
 		args.put("1", "#{@foo}");
 		args.put("2", "val1");
 		args.put("3", "val2");
-		Map<String, Object> map = ShortcutType.GATHER_LIST.normalize(args, shortcutConfigurable, parser, this.beanFactory);
+		Map<String, Object> map = ShortcutType.GATHER_LIST
+				.normalize(args, shortcutConfigurable, parser, this.beanFactory);
 		assertThat(map).isNotNull().containsKey("values");
-		assertThat((List)map.get("values"))
+		assertThat((List) map.get("values"))
 				.containsExactly(42, "val1", "val2");
 	}
 
@@ -118,13 +119,15 @@ public class ShortcutConfigurableTests {
 		if (hasTailFlag) {
 			args.put("4", "false");
 		}
-		Map<String, Object> map = ShortcutType.GATHER_LIST_TAIL_FLAG.normalize(args, shortcutConfigurable, parser, this.beanFactory);
+		Map<String, Object> map = ShortcutType.GATHER_LIST_TAIL_FLAG
+				.normalize(args, shortcutConfigurable, parser, this.beanFactory);
 		assertThat(map).isNotNull().containsKey("values");
-		assertThat((List)map.get("values"))
+		assertThat((List) map.get("values"))
 				.containsExactly("val0", "val1", "val2");
 		if (hasTailFlag) {
 			assertThat(map.get("flag")).isEqualTo("false");
-		} else {
+		}
+		else {
 			assertThat(map).doesNotContainKeys("flag");
 		}
 	}

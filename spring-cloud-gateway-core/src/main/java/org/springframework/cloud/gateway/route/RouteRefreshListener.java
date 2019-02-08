@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.route;
@@ -34,8 +33,8 @@ import org.springframework.util.Assert;
 public class RouteRefreshListener
 		implements ApplicationListener<ApplicationEvent> {
 
-	private HeartbeatMonitor monitor = new HeartbeatMonitor();
 	private final ApplicationEventPublisher publisher;
+	private HeartbeatMonitor monitor = new HeartbeatMonitor();
 
 	public RouteRefreshListener(ApplicationEventPublisher publisher) {
 		Assert.notNull(publisher, "publisher may not be null");

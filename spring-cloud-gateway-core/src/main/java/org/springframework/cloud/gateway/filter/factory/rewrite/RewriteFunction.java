@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.filter.factory.rewrite;
@@ -20,12 +19,13 @@ package org.springframework.cloud.gateway.filter.factory.rewrite;
 import java.util.function.BiFunction;
 
 import org.reactivestreams.Publisher;
+
 import org.springframework.web.server.ServerWebExchange;
 
 /**
  * This interface is BETA and may be subject to change in a future release.
- * @param <T>
- * @param <R>
+ * @param <T> the type of the first argument to the function
+ * @param <R> the type of element signaled by the {@link Publisher}
  */
 public interface RewriteFunction<T, R> extends BiFunction<ServerWebExchange, T, Publisher<R>> {
 }

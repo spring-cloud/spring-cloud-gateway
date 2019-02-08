@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.support;
@@ -21,8 +20,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.springframework.web.reactive.function.server.HandlerStrategies;
-import org.springframework.web.reactive.result.view.ViewResolver;
 import reactor.core.publisher.Mono;
 
 import org.springframework.http.HttpHeaders;
@@ -34,7 +31,9 @@ import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.util.Assert;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.BodyInserter;
+import org.springframework.web.reactive.function.server.HandlerStrategies;
 import org.springframework.web.reactive.function.server.ServerResponse;
+import org.springframework.web.reactive.result.view.ViewResolver;
 import org.springframework.web.server.ServerWebExchange;
 
 public class DefaultServerResponse<T> implements ServerResponse {
@@ -82,10 +81,12 @@ public class DefaultServerResponse<T> implements ServerResponse {
 			public List<HttpMessageWriter<?>> messageWriters() {
 				return context.messageWriters();
 			}
+
 			@Override
 			public Optional<ServerHttpRequest> serverRequest() {
 				return Optional.of(exchange.getRequest());
 			}
+
 			@Override
 			public Map<String, Object> hints() {
 				return hints;

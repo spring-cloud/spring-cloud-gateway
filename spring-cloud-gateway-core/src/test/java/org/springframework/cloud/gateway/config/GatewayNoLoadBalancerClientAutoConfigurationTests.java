@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.config;
@@ -38,7 +37,7 @@ import org.springframework.util.SocketUtils;
 import org.springframework.web.bind.annotation.RestController;
 
 @RunWith(ModifiedClassPathRunner.class)
-@ClassPathExclusions({"spring-cloud-netflix-ribbon-*.jar"})
+@ClassPathExclusions({ "spring-cloud-netflix-ribbon-*.jar" })
 public class GatewayNoLoadBalancerClientAutoConfigurationTests {
 
 	private static int port;
@@ -51,8 +50,9 @@ public class GatewayNoLoadBalancerClientAutoConfigurationTests {
 	@Test
 	public void noLoadBalancerClientReportsError() {
 		try (ConfigurableApplicationContext context = new SpringApplication(Config.class)
-				.run("--server.port="+port, "--spring.jmx.enabled=false")) {
-			WebTestClient client = WebTestClient.bindToServer().baseUrl("http://localhost:" + port).build();
+				.run("--server.port=" + port, "--spring.jmx.enabled=false")) {
+			WebTestClient client = WebTestClient.bindToServer()
+					.baseUrl("http://localhost:" + port).build();
 			client.get()
 					.header(HttpHeaders.HOST, "www.lbfail.org")
 					.exchange()

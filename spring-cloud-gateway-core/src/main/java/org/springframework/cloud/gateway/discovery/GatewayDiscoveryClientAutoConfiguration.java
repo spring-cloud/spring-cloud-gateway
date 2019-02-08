@@ -16,6 +16,9 @@
 
 package org.springframework.cloud.gateway.discovery;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -33,9 +36,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.DispatcherHandler;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import static org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactory.REGEXP_KEY;
 import static org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactory.REPLACEMENT_KEY;
 import static org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory.PATTERN_KEY;
@@ -49,25 +49,9 @@ import static org.springframework.cloud.gateway.support.NameUtils.normalizeRoute
 @ConditionalOnProperty(name = "spring.cloud.gateway.enabled", matchIfMissing = true)
 @AutoConfigureBefore(GatewayAutoConfiguration.class)
 @AutoConfigureAfter(CompositeDiscoveryClientAutoConfiguration.class)
-@ConditionalOnClass({DispatcherHandler.class, DiscoveryClient.class})
+@ConditionalOnClass({ DispatcherHandler.class, DiscoveryClient.class })
 @EnableConfigurationProperties
 public class GatewayDiscoveryClientAutoConfiguration {
-
-	@Bean
-	@ConditionalOnBean(DiscoveryClient.class)
-	@ConditionalOnProperty(name = "spring.cloud.gateway.discovery.locator.enabled")
-	public DiscoveryClientRouteDefinitionLocator discoveryClientRouteDefinitionLocator(
-			DiscoveryClient discoveryClient, DiscoveryLocatorProperties properties) {
-		return new DiscoveryClientRouteDefinitionLocator(discoveryClient, properties);
-	}
-
-	@Bean
-	public DiscoveryLocatorProperties discoveryLocatorProperties() {
-		DiscoveryLocatorProperties properties = new DiscoveryLocatorProperties();
-		properties.setPredicates(initPredicates());
-		properties.setFilters(initFilters());
-		return properties;
-	}
 
 	public static List<PredicateDefinition> initPredicates() {
 		ArrayList<PredicateDefinition> definitions = new ArrayList<>();
@@ -94,6 +78,22 @@ public class GatewayDiscoveryClientAutoConfiguration {
 		definitions.add(filter);
 
 		return definitions;
+	}
+
+	@Bean
+	@ConditionalOnBean(DiscoveryClient.class)
+	@ConditionalOnProperty(name = "spring.cloud.gateway.discovery.locator.enabled")
+	public DiscoveryClientRouteDefinitionLocator discoveryClientRouteDefinitionLocator(
+			DiscoveryClient discoveryClient, DiscoveryLocatorProperties properties) {
+		return new DiscoveryClientRouteDefinitionLocator(discoveryClient, properties);
+	}
+
+	@Bean
+	public DiscoveryLocatorProperties discoveryLocatorProperties() {
+		DiscoveryLocatorProperties properties = new DiscoveryLocatorProperties();
+		properties.setPredicates(initPredicates());
+		properties.setFilters(initFilters());
+		return properties;
 	}
 
 }

@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.filter.factory.rewrite;
@@ -62,108 +61,6 @@ public class ModifyResponseBodyGatewayFilterFactory
 	@Override
 	public GatewayFilter apply(Config config) {
 		return new ModifyResponseGatewayFilter(config);
-	}
-
-	public class ModifyResponseGatewayFilter implements GatewayFilter, Ordered {
-		private final Config config;
-
-		public ModifyResponseGatewayFilter(Config config) {
-			this.config = config;
-		}
-
-		@Override
-		@SuppressWarnings("unchecked")
-		public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-
-			ServerHttpResponseDecorator responseDecorator = new ServerHttpResponseDecorator(exchange.getResponse()) {
-
-				@Override
-				public Mono<Void> writeWith(Publisher<? extends DataBuffer> body) {
-
-					Class inClass = config.getInClass();
-					Class outClass = config.getOutClass();
-
-					String originalResponseContentType = exchange.getAttribute(ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR);
-					HttpHeaders httpHeaders = new HttpHeaders();
-					//explicitly add it in this way instead of 'httpHeaders.setContentType(originalResponseContentType)'
-					//this will prevent exception in case of using non-standard media types like "Content-Type: image"
-					httpHeaders.add(HttpHeaders.CONTENT_TYPE, originalResponseContentType);
-					ResponseAdapter responseAdapter = new ResponseAdapter(body, httpHeaders);
-					DefaultClientResponse clientResponse = new DefaultClientResponse(responseAdapter, ExchangeStrategies.withDefaults());
-
-					//TODO: flux or mono
-					Mono modifiedBody = clientResponse.bodyToMono(inClass)
-							.flatMap(originalBody -> config.rewriteFunction.apply(exchange, originalBody));
-
-					BodyInserter bodyInserter = BodyInserters.fromPublisher(modifiedBody, outClass);
-					CachedBodyOutputMessage outputMessage = new CachedBodyOutputMessage(exchange, exchange.getResponse().getHeaders());
-					return bodyInserter.insert(outputMessage, new BodyInserterContext())
-							.then(Mono.defer(() -> {
-								Flux<DataBuffer> messageBody = outputMessage.getBody();
-								HttpHeaders headers = getDelegate().getHeaders();
-								if (!headers.containsKey(HttpHeaders.TRANSFER_ENCODING)) {
-									messageBody = messageBody.doOnNext(data -> headers.setContentLength(data.readableByteCount()));
-								}
-								//TODO: use isStreamingMediaType?
-								return getDelegate().writeWith(messageBody);
-							}));
-				}
-
-				@Override
-				public Mono<Void> writeAndFlushWith(Publisher<? extends Publisher<? extends DataBuffer>> body) {
-					return writeWith(Flux.from(body)
-							.flatMapSequential(p -> p));
-				}
-			};
-
-			return chain.filter(exchange.mutate().response(responseDecorator).build());
-		}
-
-		@Override
-		public int getOrder() {
-			return NettyWriteResponseFilter.WRITE_RESPONSE_FILTER_ORDER - 1;
-		}
-
-	}
-
-	public class ResponseAdapter implements ClientHttpResponse {
-
-		private final Flux<DataBuffer> flux;
-		private final HttpHeaders headers;
-
-		public ResponseAdapter(Publisher<? extends DataBuffer> body, HttpHeaders headers) {
-			this.headers = headers;
-			if (body instanceof Flux) {
-				flux = (Flux) body;
-			} else {
-				flux = ((Mono)body).flux();
-			}
-		}
-
-		@Override
-		public Flux<DataBuffer> getBody() {
-			return flux;
-		}
-
-		@Override
-		public HttpHeaders getHeaders() {
-			return headers;
-		}
-
-		@Override
-		public HttpStatus getStatusCode() {
-			return null;
-		}
-
-		@Override
-		public int getRawStatusCode() {
-			return 0;
-		}
-
-		@Override
-		public MultiValueMap<String, ResponseCookie> getCookies() {
-			return null;
-		}
 	}
 
 	public static class Config {
@@ -224,6 +121,11 @@ public class ModifyResponseBodyGatewayFilterFactory
 			return rewriteFunction;
 		}
 
+		public Config setRewriteFunction(RewriteFunction rewriteFunction) {
+			this.rewriteFunction = rewriteFunction;
+			return this;
+		}
+
 		public <T, R> Config setRewriteFunction(Class<T> inClass, Class<R> outClass,
 				RewriteFunction<T, R> rewriteFunction) {
 			setInClass(inClass);
@@ -231,10 +133,116 @@ public class ModifyResponseBodyGatewayFilterFactory
 			setRewriteFunction(rewriteFunction);
 			return this;
 		}
+	}
 
-		public Config setRewriteFunction(RewriteFunction rewriteFunction) {
-			this.rewriteFunction = rewriteFunction;
-			return this;
+	public class ModifyResponseGatewayFilter implements GatewayFilter, Ordered {
+		private final Config config;
+
+		public ModifyResponseGatewayFilter(Config config) {
+			this.config = config;
+		}
+
+		@Override
+		@SuppressWarnings("unchecked")
+		public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+
+			ServerHttpResponseDecorator responseDecorator = new ServerHttpResponseDecorator(exchange
+					.getResponse()) {
+
+				@Override
+				public Mono<Void> writeWith(Publisher<? extends DataBuffer> body) {
+
+					Class inClass = config.getInClass();
+					Class outClass = config.getOutClass();
+
+					String originalResponseContentType = exchange
+							.getAttribute(ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR);
+					HttpHeaders httpHeaders = new HttpHeaders();
+					//explicitly add it in this way instead of 'httpHeaders.setContentType(originalResponseContentType)'
+					//this will prevent exception in case of using non-standard media types like "Content-Type: image"
+					httpHeaders
+							.add(HttpHeaders.CONTENT_TYPE, originalResponseContentType);
+					ResponseAdapter responseAdapter = new ResponseAdapter(body, httpHeaders);
+					DefaultClientResponse clientResponse = new DefaultClientResponse(responseAdapter, ExchangeStrategies
+							.withDefaults());
+
+					//TODO: flux or mono
+					Mono modifiedBody = clientResponse.bodyToMono(inClass)
+							.flatMap(originalBody -> config.rewriteFunction
+									.apply(exchange, originalBody));
+
+					BodyInserter bodyInserter = BodyInserters
+							.fromPublisher(modifiedBody, outClass);
+					CachedBodyOutputMessage outputMessage = new CachedBodyOutputMessage(exchange, exchange
+							.getResponse().getHeaders());
+					return bodyInserter.insert(outputMessage, new BodyInserterContext())
+							.then(Mono.defer(() -> {
+								Flux<DataBuffer> messageBody = outputMessage.getBody();
+								HttpHeaders headers = getDelegate().getHeaders();
+								if (!headers.containsKey(HttpHeaders.TRANSFER_ENCODING)) {
+									messageBody = messageBody.doOnNext(data -> headers
+											.setContentLength(data.readableByteCount()));
+								}
+								//TODO: use isStreamingMediaType?
+								return getDelegate().writeWith(messageBody);
+							}));
+				}
+
+				@Override
+				public Mono<Void> writeAndFlushWith(Publisher<? extends Publisher<? extends DataBuffer>> body) {
+					return writeWith(Flux.from(body)
+							.flatMapSequential(p -> p));
+				}
+			};
+
+			return chain.filter(exchange.mutate().response(responseDecorator).build());
+		}
+
+		@Override
+		public int getOrder() {
+			return NettyWriteResponseFilter.WRITE_RESPONSE_FILTER_ORDER - 1;
+		}
+
+	}
+
+	public class ResponseAdapter implements ClientHttpResponse {
+
+		private final Flux<DataBuffer> flux;
+		private final HttpHeaders headers;
+
+		public ResponseAdapter(Publisher<? extends DataBuffer> body, HttpHeaders headers) {
+			this.headers = headers;
+			if (body instanceof Flux) {
+				flux = (Flux) body;
+			}
+			else {
+				flux = ((Mono) body).flux();
+			}
+		}
+
+		@Override
+		public Flux<DataBuffer> getBody() {
+			return flux;
+		}
+
+		@Override
+		public HttpHeaders getHeaders() {
+			return headers;
+		}
+
+		@Override
+		public HttpStatus getStatusCode() {
+			return null;
+		}
+
+		@Override
+		public int getRawStatusCode() {
+			return 0;
+		}
+
+		@Override
+		public MultiValueMap<String, ResponseCookie> getCookies() {
+			return null;
 		}
 	}
 }

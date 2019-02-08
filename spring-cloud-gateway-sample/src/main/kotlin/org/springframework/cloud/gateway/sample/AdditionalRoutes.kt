@@ -10,19 +10,19 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 open class AdditionalRoutes {
 
-	@Value("\${test.uri:http://httpbin.org:80}")
-	var uri: String? = null
+    @Value("\${test.uri:http://httpbin.org:80}")
+    var uri: String? = null
 
-	@Bean
-	open fun additionalRouteLocator(builder: RouteLocatorBuilder) = builder.routes {
-		route(id = "test-kotlin") {
-			host("kotlin.abc.org") and path("/image/png")
-			filters {
-				prefixPath("/httpbin")
-				addResponseHeader("X-TestHeader", "foobar")
-			}
-			uri(uri)
-		}
-	}
+    @Bean
+    open fun additionalRouteLocator(builder: RouteLocatorBuilder) = builder.routes {
+        route(id = "test-kotlin") {
+            host("kotlin.abc.org") and path("/image/png")
+            filters {
+                prefixPath("/httpbin")
+                addResponseHeader("X-TestHeader", "foobar")
+            }
+            uri(uri)
+        }
+    }
 
 }

@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.handler.predicate;
@@ -51,6 +50,14 @@ public class PathRoutePredicateFactory extends AbstractRoutePredicateFactory<Pat
 		super(Config.class);
 	}
 
+	private static void traceMatch(String prefix, Object desired, Object actual, boolean match) {
+		if (log.isTraceEnabled()) {
+			String message = String.format("%s \"%s\" %s against value \"%s\"",
+					prefix, desired, match ? "matches" : "does not match", actual);
+			log.trace(message);
+		}
+	}
+
 	public void setPathPatternParser(PathPatternParser pathPatternParser) {
 		this.pathPatternParser = pathPatternParser;
 	}
@@ -69,7 +76,8 @@ public class PathRoutePredicateFactory extends AbstractRoutePredicateFactory<Pat
 	public Predicate<ServerWebExchange> apply(Config config) {
 		final ArrayList<PathPattern> pathPatterns = new ArrayList<>();
 		synchronized (this.pathPatternParser) {
-			pathPatternParser.setMatchOptionalTrailingSeparator(config.isMatchOptionalTrailingSeparator());
+			pathPatternParser.setMatchOptionalTrailingSeparator(config
+					.isMatchOptionalTrailingSeparator());
 			config.getPatterns().forEach(pattern -> {
 				PathPattern pathPattern = this.pathPatternParser.parse(pattern);
 				pathPatterns.add(pathPattern);
@@ -88,19 +96,12 @@ public class PathRoutePredicateFactory extends AbstractRoutePredicateFactory<Pat
 				PathMatchInfo pathMatchInfo = pathPattern.matchAndExtract(path);
 				putUriTemplateVariables(exchange, pathMatchInfo.getUriVariables());
 				return true;
-			} else {
+			}
+			else {
 				traceMatch("Pattern", config.getPatterns(), path, false);
 				return false;
 			}
 		};
-	}
-
-	private static void traceMatch(String prefix, Object desired, Object actual, boolean match) {
-		if (log.isTraceEnabled()) {
-			String message = String.format("%s \"%s\" %s against value \"%s\"",
-					prefix, desired, match ? "matches" : "does not match", actual);
-			log.trace(message);
-		}
 	}
 
 	@Validated
@@ -149,6 +150,5 @@ public class PathRoutePredicateFactory extends AbstractRoutePredicateFactory<Pat
 					.toString();
 		}
 	}
-
 
 }

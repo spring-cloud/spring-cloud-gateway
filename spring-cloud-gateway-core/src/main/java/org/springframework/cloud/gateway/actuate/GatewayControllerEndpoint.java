@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.actuate;
@@ -25,11 +24,14 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
 import org.springframework.boot.actuate.endpoint.web.annotation.RestControllerEndpoint;
+import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
-import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.route.RouteDefinition;
 import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
@@ -45,9 +47,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 /**
  * @author Spencer Gibb
@@ -65,8 +64,8 @@ public class GatewayControllerEndpoint implements ApplicationEventPublisherAware
 	private ApplicationEventPublisher publisher;
 
 	public GatewayControllerEndpoint(RouteDefinitionLocator routeDefinitionLocator, List<GlobalFilter> globalFilters,
-									 List<GatewayFilterFactory> GatewayFilters, RouteDefinitionWriter routeDefinitionWriter,
-									 RouteLocator routeLocator) {
+			List<GatewayFilterFactory> GatewayFilters, RouteDefinitionWriter routeDefinitionWriter,
+			RouteLocator routeLocator) {
 		this.routeDefinitionLocator = routeDefinitionLocator;
 		this.globalFilters = globalFilters;
 		this.GatewayFilters = GatewayFilters;
@@ -83,7 +82,7 @@ public class GatewayControllerEndpoint implements ApplicationEventPublisherAware
 
 	@PostMapping("/refresh")
 	public Mono<Void> refresh() {
-	    this.publisher.publishEvent(new RefreshRoutesEvent(this));
+		this.publisher.publishEvent(new RefreshRoutesEvent(this));
 		return Mono.empty();
 	}
 
@@ -104,7 +103,7 @@ public class GatewayControllerEndpoint implements ApplicationEventPublisherAware
 	private HashMap<String, Object> putItem(HashMap<String, Object> map, Object o) {
 		Integer order = null;
 		if (o instanceof Ordered) {
-			order = ((Ordered)o).getOrder();
+			order = ((Ordered) o).getOrder();
 		}
 		//filters.put(o.getClass().getName(), order);
 		map.put(o.toString(), order);
@@ -114,7 +113,8 @@ public class GatewayControllerEndpoint implements ApplicationEventPublisherAware
 	// TODO: Flush out routes without a definition
 	@GetMapping("/routes")
 	public Mono<List<Map<String, Object>>> routes() {
-		Mono<Map<String, RouteDefinition>> routeDefs = this.routeDefinitionLocator.getRouteDefinitions()
+		Mono<Map<String, RouteDefinition>> routeDefs = this.routeDefinitionLocator
+				.getRouteDefinitions()
 				.collectMap(RouteDefinition::getId);
 		Mono<List<Route>> routes = this.routeLocator.getRoutes().collectList();
 		return Mono.zip(routeDefs, routes).map(tuple -> {
@@ -129,7 +129,8 @@ public class GatewayControllerEndpoint implements ApplicationEventPublisherAware
 
 				if (defs.containsKey(route.getId())) {
 					r.put("route_definition", defs.get(route.getId()));
-				} else {
+				}
+				else {
 					HashMap<String, Object> obj = new HashMap<>();
 
 					obj.put("predicate", route.getPredicate().toString());
@@ -154,18 +155,18 @@ public class GatewayControllerEndpoint implements ApplicationEventPublisherAware
 		});
 	}
 
-/*
-http POST :8080/admin/gateway/routes/apiaddreqhead uri=http://httpbin.org:80 predicates:='["Host=**.apiaddrequestheader.org", "Path=/headers"]' filters:='["AddRequestHeader=X-Request-ApiFoo, ApiBar"]'
-*/
+	/*
+	http POST :8080/admin/gateway/routes/apiaddreqhead uri=http://httpbin.org:80 predicates:='["Host=**.apiaddrequestheader.org", "Path=/headers"]' filters:='["AddRequestHeader=X-Request-ApiFoo, ApiBar"]'
+	*/
 	@PostMapping("/routes/{id}")
 	@SuppressWarnings("unchecked")
 	public Mono<ResponseEntity<Void>> save(@PathVariable String id, @RequestBody Mono<RouteDefinition> route) {
-		return this.routeDefinitionWriter.save(route.map(r ->  {
+		return this.routeDefinitionWriter.save(route.map(r -> {
 			r.setId(id);
 			log.debug("Saving route: " + route);
 			return r;
 		})).then(Mono.defer(() ->
-			Mono.just(ResponseEntity.created(URI.create("/routes/"+id)).build())
+				Mono.just(ResponseEntity.created(URI.create("/routes/" + id)).build())
 		));
 	}
 
@@ -173,7 +174,8 @@ http POST :8080/admin/gateway/routes/apiaddreqhead uri=http://httpbin.org:80 pre
 	public Mono<ResponseEntity<Object>> delete(@PathVariable String id) {
 		return this.routeDefinitionWriter.delete(Mono.just(id))
 				.then(Mono.defer(() -> Mono.just(ResponseEntity.ok().build())))
-				.onErrorResume(t -> t instanceof NotFoundException, t -> Mono.just(ResponseEntity.notFound().build()));
+				.onErrorResume(t -> t instanceof NotFoundException, t -> Mono
+						.just(ResponseEntity.notFound().build()));
 	}
 
 	@GetMapping("/routes/{id}")

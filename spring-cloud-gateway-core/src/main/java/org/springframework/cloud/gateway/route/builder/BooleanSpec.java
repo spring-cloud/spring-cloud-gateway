@@ -33,8 +33,6 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.t
  */
 public class BooleanSpec extends UriSpec {
 
-	enum Operator { AND, OR, NEGATE }
-
 	final AsyncPredicate<ServerWebExchange> predicate;
 
 	public BooleanSpec(Route.AsyncBuilder routeBuilder, RouteLocatorBuilder.Builder builder) {
@@ -77,6 +75,8 @@ public class BooleanSpec extends UriSpec {
 		return fn.apply(new GatewayFilterSpec(routeBuilder, builder));
 	}
 
+	enum Operator {AND, OR, NEGATE}
+
 	public static class BooleanOpSpec extends PredicateSpec {
 
 		private Operator operator;
@@ -88,20 +88,20 @@ public class BooleanSpec extends UriSpec {
 		}
 
 		public BooleanSpec predicate(Predicate<ServerWebExchange> predicate) {
-		    return asyncPredicate(toAsyncPredicate(predicate));
+			return asyncPredicate(toAsyncPredicate(predicate));
 		}
 
 		@Override
 		public BooleanSpec asyncPredicate(AsyncPredicate<ServerWebExchange> predicate) {
 			switch (this.operator) {
-				case AND:
-					this.routeBuilder.and(predicate);
-					break;
-				case OR:
-					this.routeBuilder.or(predicate);
-					break;
-				case NEGATE:
-					this.routeBuilder.negate();
+			case AND:
+				this.routeBuilder.and(predicate);
+				break;
+			case OR:
+				this.routeBuilder.or(predicate);
+				break;
+			case NEGATE:
+				this.routeBuilder.negate();
 			}
 			return new BooleanSpec(this.routeBuilder, this.builder);
 		}

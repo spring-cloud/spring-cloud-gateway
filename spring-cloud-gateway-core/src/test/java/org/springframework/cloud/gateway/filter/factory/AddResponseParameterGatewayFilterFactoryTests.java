@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.filter.factory;
@@ -43,8 +42,9 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 public class AddResponseParameterGatewayFilterFactoryTests extends BaseWebClientTests {
 
 	@Test
-    public void testResposneParameterFilter() {
-		URI uri = UriComponentsBuilder.fromUriString(this.baseUri+"/get").build(true).toUri();
+	public void testResposneParameterFilter() {
+		URI uri = UriComponentsBuilder.fromUriString(this.baseUri + "/get").build(true)
+				.toUri();
 		String host = "www.addresponseparamjava.org";
 		String expectedValue = "myresponsevalue";
 		testClient.get()

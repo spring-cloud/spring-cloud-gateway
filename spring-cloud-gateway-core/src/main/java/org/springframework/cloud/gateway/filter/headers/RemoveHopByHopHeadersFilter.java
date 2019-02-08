@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.filter.headers;
@@ -29,6 +28,9 @@ import org.springframework.web.server.ServerWebExchange;
 @ConfigurationProperties("spring.cloud.gateway.filter.remove-hop-by-hop")
 public class RemoveHopByHopHeadersFilter implements HttpHeadersFilter, Ordered {
 
+	/**
+	 * Headers to remove as the result of applying the filter.
+	 */
 	public static final Set<String> HEADERS_REMOVED_ON_REQUEST =
 			new HashSet<>(Arrays.asList(
 					"connection",
@@ -43,7 +45,7 @@ public class RemoveHopByHopHeadersFilter implements HttpHeadersFilter, Ordered {
 					// these two are not listed in https://tools.ietf.org/html/draft-ietf-httpbis-p1-messaging-14#section-7.1.3
 					//"proxy-connection",
 					// "content-length",
-					));
+			));
 
 	private int order = Ordered.LOWEST_PRECEDENCE;
 
@@ -69,7 +71,7 @@ public class RemoveHopByHopHeadersFilter implements HttpHeadersFilter, Ordered {
 	@Override
 	public HttpHeaders filter(HttpHeaders input, ServerWebExchange exchange) {
 		HttpHeaders filtered = new HttpHeaders();
-		
+
 		input.entrySet().stream()
 				.filter(entry -> !this.headers.contains(entry.getKey().toLowerCase()))
 				.forEach(entry -> filtered.addAll(entry.getKey(), entry.getValue()));
@@ -77,7 +79,7 @@ public class RemoveHopByHopHeadersFilter implements HttpHeadersFilter, Ordered {
 		return filtered;
 	}
 
-	@Override 
+	@Override
 	public boolean supports(Type type) {
 		return type.equals(Type.REQUEST) ||
 				type.equals(Type.RESPONSE);

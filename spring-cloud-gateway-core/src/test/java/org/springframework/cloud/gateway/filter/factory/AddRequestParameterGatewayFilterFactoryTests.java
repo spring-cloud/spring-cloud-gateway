@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.filter.factory;
@@ -24,6 +23,7 @@ import java.util.Map;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -73,14 +73,16 @@ public class AddRequestParameterGatewayFilterFactoryTests extends BaseWebClientT
 		testRequestParameterFilter("www.addrequestparameter.org", "ValueA", name, value);
 	}
 
-    private void testRequestParameterFilter(String host, String expectedValue, String name, String value) {
+	private void testRequestParameterFilter(String host, String expectedValue, String name, String value) {
 		String query;
 		if (name != null) {
 			query = "?" + name + "=" + value;
-		} else {
+		}
+		else {
 			query = "";
 		}
-		URI uri = UriComponentsBuilder.fromUriString(this.baseUri+"/get" + query).build(true).toUri();
+		URI uri = UriComponentsBuilder.fromUriString(this.baseUri + "/get" + query)
+				.build(true).toUri();
 		boolean checkForEncodedValue = containsEncodedParts(uri);
 		testClient.get()
 				.uri(uri)
@@ -89,19 +91,22 @@ public class AddRequestParameterGatewayFilterFactoryTests extends BaseWebClientT
 				.expectBody(Map.class)
 				.consumeWith(response -> {
 					Map<String, Object> args = getMap(response.getResponseBody(), "args");
-                    assertThat(args).containsEntry("example", expectedValue);
-                    if (name != null) {
-                        if (checkForEncodedValue) {
-                            try {
-                                assertThat(args).containsEntry(name, URLDecoder.decode(value, "UTF-8"));
-                            } catch (UnsupportedEncodingException e) {
-                                throw new RuntimeException(e);
-                            }
-                        } else {
-                            assertThat(args).containsEntry(name, value);
-                        }
-                    }
-                });
+					assertThat(args).containsEntry("example", expectedValue);
+					if (name != null) {
+						if (checkForEncodedValue) {
+							try {
+								assertThat(args).containsEntry(name, URLDecoder
+										.decode(value, "UTF-8"));
+							}
+							catch (UnsupportedEncodingException e) {
+								throw new RuntimeException(e);
+							}
+						}
+						else {
+							assertThat(args).containsEntry(name, value);
+						}
+					}
+				});
 	}
 
 	@EnableAutoConfiguration
@@ -116,7 +121,8 @@ public class AddRequestParameterGatewayFilterFactoryTests extends BaseWebClientT
 			return builder.routes()
 					.route("add_request_param_java_test", r ->
 							r.path("/get").and().host("**.addreqparamjava.org")
-									.filters(f -> f.prefixPath("/httpbin").addRequestParameter("example", "ValueB"))
+									.filters(f -> f.prefixPath("/httpbin")
+											.addRequestParameter("example", "ValueB"))
 									.uri(uri))
 					.build();
 		}

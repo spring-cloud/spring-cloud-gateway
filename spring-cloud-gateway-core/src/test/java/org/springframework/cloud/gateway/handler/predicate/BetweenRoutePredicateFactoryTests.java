@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.handler.predicate;
@@ -22,6 +21,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 
 import org.junit.Test;
+
 import org.springframework.boot.convert.ApplicationConversionService;
 import org.springframework.cloud.gateway.support.ConfigurationUtils;
 import org.springframework.cloud.gateway.support.StringToZonedDateTimeConverter;
@@ -37,6 +37,43 @@ import static org.springframework.cloud.gateway.handler.predicate.BetweenRoutePr
  * @author Spencer Gibb
  */
 public class BetweenRoutePredicateFactoryTests {
+
+	static <T> T bindConfig(HashMap<String, Object> properties,
+			AbstractRoutePredicateFactory<T> factory) {
+		T config = factory.newConfig();
+
+		ApplicationConversionService conversionService = new ApplicationConversionService();
+		conversionService.addConverter(new StringToZonedDateTimeConverter());
+		ConfigurationUtils
+				.bind(config, properties, "", "myname", null, conversionService);
+		return config;
+	}
+
+	static String minusHoursMillis(int hours) {
+		final int millis = hours * 1000 * 60 * 60;
+		return String.valueOf(System.currentTimeMillis() - millis);
+	}
+
+	static String plusHoursMillis(int hours) {
+		final int millis = hours * 1000 * 60 * 60;
+		return String.valueOf(System.currentTimeMillis() + millis);
+	}
+
+	static String minusHours(int hours) {
+		return ZonedDateTime.now().minusHours(hours)
+				.format(DateTimeFormatter.ISO_ZONED_DATE_TIME);
+	}
+
+	static String plusHours(int hours) {
+		return ZonedDateTime.now().plusHours(hours)
+				.format(DateTimeFormatter.ISO_ZONED_DATE_TIME);
+	}
+
+	static ServerWebExchange getExchange() {
+		MockServerHttpRequest request = MockServerHttpRequest.get("http://example.com")
+				.build();
+		return MockServerWebExchange.from(request);
+	}
 
 	@Test
 	public void beforeStringWorks() {
@@ -57,7 +94,8 @@ public class BetweenRoutePredicateFactoryTests {
 
 		final boolean result = runPredicate(dateString1, dateString2);
 
-		assertThat(result).as("Now is not between %s and %s", dateString1, dateString2).isTrue();
+		assertThat(result).as("Now is not between %s and %s", dateString1, dateString2)
+				.isTrue();
 	}
 
 	@Test
@@ -87,7 +125,8 @@ public class BetweenRoutePredicateFactoryTests {
 
 		final boolean result = runPredicate(dateString1, dateString2);
 
-		assertThat(result).as("Now is not between %s and %s", dateString1, dateString2).isTrue();
+		assertThat(result).as("Now is not between %s and %s", dateString1, dateString2)
+				.isTrue();
 	}
 
 	@Test
@@ -119,38 +158,5 @@ public class BetweenRoutePredicateFactoryTests {
 		BetweenRoutePredicateFactory.Config config = bindConfig(map, factory);
 
 		return factory.apply(config).test(getExchange());
-	}
-
-	static <T> T bindConfig(HashMap<String, Object> properties,
-									AbstractRoutePredicateFactory<T> factory) {
-		T config = factory.newConfig();
-
-		ApplicationConversionService conversionService = new ApplicationConversionService();
-		conversionService.addConverter(new StringToZonedDateTimeConverter());
-		ConfigurationUtils.bind(config, properties, "", "myname", null, conversionService);
-		return config;
-	}
-
-	static String minusHoursMillis(int hours) {
-		final int millis = hours * 1000 * 60 * 60;
-		return String.valueOf(System.currentTimeMillis() - millis);
-	}
-
-	static String plusHoursMillis(int hours) {
-		final int millis = hours * 1000 * 60 * 60;
-		return String.valueOf(System.currentTimeMillis() + millis);
-	}
-
-	static String minusHours(int hours) {
-		return ZonedDateTime.now().minusHours(hours).format(DateTimeFormatter.ISO_ZONED_DATE_TIME);
-	}
-
-	static String plusHours(int hours) {
-		return ZonedDateTime.now().plusHours(hours).format(DateTimeFormatter.ISO_ZONED_DATE_TIME);
-	}
-
-	static ServerWebExchange getExchange() {
-		MockServerHttpRequest request = MockServerHttpRequest.get("http://example.com").build();
-		return MockServerWebExchange.from(request);
 	}
 }

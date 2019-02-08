@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.handler.predicate;
@@ -47,6 +46,13 @@ public class WeightRoutePredicateFactoryYaml404Tests extends BaseWebClientTests 
 	@Autowired
 	private WeightCalculatorWebFilter filter;
 
+	private static Random getRandom(double value) {
+		Random random = mock(Random.class);
+		when(random.nextDouble())
+				.thenReturn(value);
+		return random;
+	}
+
 	@Test
 	public void weightsFromYamlNot404() {
 		filter.setRandom(getRandom(0.5));
@@ -69,13 +75,6 @@ public class WeightRoutePredicateFactoryYaml404Tests extends BaseWebClientTests 
 			filter.setRandom(random);
 		}
 
-	}
-
-	private static Random getRandom(double value) {
-		Random random = mock(Random.class);
-		when(random.nextDouble())
-                .thenReturn(value);
-		return random;
 	}
 
 }

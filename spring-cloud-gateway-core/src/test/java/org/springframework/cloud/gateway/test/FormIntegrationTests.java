@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.test;
@@ -42,6 +41,7 @@ import org.springframework.web.reactive.function.BodyInserters;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.cloud.gateway.test.TestUtils.getMap;
+import static org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED;
 import static org.springframework.web.reactive.function.BodyExtractors.toMono;
 
 @RunWith(SpringRunner.class)
@@ -50,7 +50,8 @@ import static org.springframework.web.reactive.function.BodyExtractors.toMono;
 @SuppressWarnings("unchecked")
 public class FormIntegrationTests extends BaseWebClientTests {
 
-	public static final MediaType FORM_URL_ENCODED_CONTENT_TYPE = new MediaType(MediaType.APPLICATION_FORM_URLENCODED, Charset.forName("UTF-8"));
+	public static final MediaType FORM_URL_ENCODED_CONTENT_TYPE = new MediaType(APPLICATION_FORM_URLENCODED, Charset
+			.forName("UTF-8"));
 
 	@Test
 	public void formUrlencodedWorks() {
@@ -106,6 +107,8 @@ public class FormIntegrationTests extends BaseWebClientTests {
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
-	public static class TestConfig { }
+	public static class TestConfig {
+
+	}
 
 }

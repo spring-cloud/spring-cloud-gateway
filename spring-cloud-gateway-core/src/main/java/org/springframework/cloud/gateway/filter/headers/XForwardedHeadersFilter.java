@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.filter.headers;
@@ -20,6 +19,7 @@ package org.springframework.cloud.gateway.filter.headers;
 import java.net.URI;
 import java.util.LinkedHashSet;
 import java.util.List;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
@@ -32,31 +32,32 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.G
 
 @ConfigurationProperties("spring.cloud.gateway.x-forwarded")
 public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
-	/** default http port */
+
+	/** Default http port. */
 	public static final int HTTP_PORT = 80;
 
-	/** default https port */
+	/** Default https port. */
 	public static final int HTTPS_PORT = 443;
 
-	/** http url scheme */
+	/** Http url scheme. */
 	public static final String HTTP_SCHEME = "http";
 
-	/** https url scheme */
+	/** Https url scheme. */
 	public static final String HTTPS_SCHEME = "https";
 
-	/** X-Forwarded-For Header */
+	/** X-Forwarded-For Header. */
 	public static final String X_FORWARDED_FOR_HEADER = "X-Forwarded-For";
 
-	/** X-Forwarded-Host Header */
+	/** X-Forwarded-Host Header. */
 	public static final String X_FORWARDED_HOST_HEADER = "X-Forwarded-Host";
 
-	/** X-Forwarded-Port Header */
+	/** X-Forwarded-Port Header. */
 	public static final String X_FORWARDED_PORT_HEADER = "X-Forwarded-Port";
 
-	/** X-Forwarded-Proto Header */
+	/** X-Forwarded-Proto Header. */
 	public static final String X_FORWARDED_PROTO_HEADER = "X-Forwarded-Proto";
 
-	/** X-Forwarded-Prefix Header */
+	/** X-Forwarded-Prefix Header. */
 	public static final String X_FORWARDED_PREFIX_HEADER = "X-Forwarded-Prefix";
 
 
@@ -185,12 +186,12 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 		this.protoAppend = protoAppend;
 	}
 
-	public void setPrefixAppend(boolean prefixAppend) {
-		this.prefixAppend = prefixAppend;
-	}
-
 	public boolean isPrefixAppend() {
 		return prefixAppend;
+	}
+
+	public void setPrefixAppend(boolean prefixAppend) {
+		this.prefixAppend = prefixAppend;
 	}
 
 	@Override
@@ -205,8 +206,8 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 				.forEach(entry -> updated.addAll(entry.getKey(), entry.getValue()));
 
 		if (isForEnabled() &&
-			request.getRemoteAddress() != null && request.getRemoteAddress().getAddress() != null)
-		{
+				request.getRemoteAddress() != null && request.getRemoteAddress()
+				.getAddress() != null) {
 			String remoteAddr = request.getRemoteAddress().getAddress().getHostAddress();
 			List<String> xforwarded = original.get(X_FORWARDED_FOR_HEADER);
 			// prevent duplicates
@@ -221,32 +222,30 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 			write(updated, X_FORWARDED_PROTO_HEADER, proto, isProtoAppend());
 		}
 
-		if(isPrefixEnabled()) {
-			//if the path of the url that the gw is routing to is a subset (and ending part) of the url that it is routing from then the difference is the prefix
-			//e.g. if request original.com/prefix/get/ is routed to routedservice:8090/get then /prefix is the prefix - see XForwardedHeadersFilterTests
-			//so first get uris, then extract paths and remove one from another if it's the ending part
+		if (isPrefixEnabled()) {
+			// If the path of the url that the gw is routing to is a subset
+			// (and ending part) of the url that it is routing from then the difference
+			// is the prefix e.g. if request original.com/prefix/get/ is routed
+			// to routedservice:8090/get then /prefix is the prefix
+			// - see XForwardedHeadersFilterTests, so first get uris, then extract paths
+			// and remove one from another if it's the ending part.
 
-			LinkedHashSet<URI> originalUris = exchange.getAttribute(GATEWAY_ORIGINAL_REQUEST_URL_ATTR);
+			LinkedHashSet<URI> originalUris = exchange
+					.getAttribute(GATEWAY_ORIGINAL_REQUEST_URL_ATTR);
 			URI requestUri = exchange.getAttribute(GATEWAY_REQUEST_URL_ATTR);
 
-			if(originalUris != null && requestUri != null) {
+			if (originalUris != null && requestUri != null) {
 
 				originalUris.stream().forEach(originalUri -> {
 
-					if(originalUri!=null && originalUri.getPath()!=null) {
+					if (originalUri != null && originalUri.getPath() != null) {
 						String prefix = originalUri.getPath();
 
 						//strip trailing slashes before checking if request path is end of original path
 						String originalUriPath = stripTrailingSlash(originalUri);
 						String requestUriPath = stripTrailingSlash(requestUri);
 
-						if(requestUriPath!=null && (originalUriPath.endsWith(requestUriPath))) {
-							prefix = originalUriPath.replace(requestUriPath, "");
-							if (prefix != null && prefix.length() > 0 &&
-									prefix.length() <= originalUri.getPath().length()) {
-								write(updated, X_FORWARDED_PREFIX_HEADER, prefix, isPrefixAppend());
-							}
-						}
+						updateRequest(updated, originalUri, originalUriPath, requestUriPath);
 
 					}
 				});
@@ -269,6 +268,18 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 		return updated;
 	}
 
+	private void updateRequest(HttpHeaders updated, URI originalUri, String originalUriPath, String requestUriPath) {
+		String prefix;
+		if (requestUriPath != null && (originalUriPath
+				.endsWith(requestUriPath))) {
+			prefix = originalUriPath.replace(requestUriPath, "");
+			if (prefix != null && prefix.length() > 0 &&
+					prefix.length() <= originalUri.getPath().length()) {
+				write(updated, X_FORWARDED_PREFIX_HEADER, prefix, isPrefixAppend());
+			}
+		}
+	}
+
 	private void write(HttpHeaders headers, String name, String value, boolean append) {
 		if (append) {
 			headers.add(name, value);
@@ -276,7 +287,8 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 			List<String> values = headers.get(name);
 			String delimitedValue = StringUtils.collectionToCommaDelimitedString(values);
 			headers.set(name, delimitedValue);
-		} else {
+		}
+		else {
 			headers.set(name, value);
 		}
 	}
@@ -308,7 +320,8 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 	private String stripTrailingSlash(URI uri) {
 		if (uri.getPath().endsWith("/")) {
 			return uri.getPath().substring(0, uri.getPath().length() - 1);
-		} else {
+		}
+		else {
 			return uri.getPath();
 		}
 	}

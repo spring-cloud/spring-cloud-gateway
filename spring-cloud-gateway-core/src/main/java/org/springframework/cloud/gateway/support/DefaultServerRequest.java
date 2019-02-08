@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.support;
@@ -30,7 +29,6 @@ import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.function.Function;
 
-import org.springframework.web.reactive.function.server.HandlerStrategies;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -49,6 +47,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.BodyExtractor;
 import org.springframework.web.reactive.function.BodyExtractors;
 import org.springframework.web.reactive.function.UnsupportedMediaTypeException;
+import org.springframework.web.reactive.function.server.HandlerStrategies;
 import org.springframework.web.reactive.function.server.RouterFunctions;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.server.ServerWebExchange;
@@ -67,7 +66,8 @@ public class DefaultServerRequest implements ServerRequest {
 
 	private static final Function<UnsupportedMediaTypeException, UnsupportedMediaTypeStatusException> ERROR_MAPPER =
 			ex -> (ex.getContentType() != null ?
-					new UnsupportedMediaTypeStatusException(ex.getContentType(), ex.getSupportedMediaTypes()) :
+					new UnsupportedMediaTypeStatusException(ex.getContentType(), ex
+							.getSupportedMediaTypes()) :
 					new UnsupportedMediaTypeStatusException(ex.getMessage()));
 
 
@@ -83,7 +83,8 @@ public class DefaultServerRequest implements ServerRequest {
 
 	public DefaultServerRequest(ServerWebExchange exchange, List<HttpMessageReader<?>> messageReaders) {
 		this.exchange = exchange;
-		this.messageReaders = Collections.unmodifiableList(new ArrayList<>(messageReaders));
+		this.messageReaders = Collections
+				.unmodifiableList(new ArrayList<>(messageReaders));
 		this.headers = new DefaultHeaders();
 	}
 
@@ -141,10 +142,12 @@ public class DefaultServerRequest implements ServerRequest {
 					public List<HttpMessageReader<?>> messageReaders() {
 						return messageReaders;
 					}
+
 					@Override
 					public Optional<ServerHttpResponse> serverResponse() {
 						return Optional.of(exchange().getResponse());
 					}
+
 					@Override
 					public Map<String, Object> hints() {
 						return hints;

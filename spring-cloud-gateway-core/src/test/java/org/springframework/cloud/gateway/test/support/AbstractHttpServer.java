@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.test.support;
@@ -33,38 +32,31 @@ import org.springframework.util.StopWatch;
  */
 public abstract class AbstractHttpServer implements HttpServer {
 
-	protected Log logger = LogFactory.getLog(getClass().getName());
-
-	private String host = "0.0.0.0";
-
-	private int port = 0;
-
-	private HttpHandler httpHandler;
-
-	private Map<String, HttpHandler> handlerMap;
-
-	private volatile boolean running;
-
 	private final Object lifecycleMonitor = new Object();
-
-
-	@Override
-	public void setHost(String host) {
-		this.host = host;
-	}
+	protected Log logger = LogFactory.getLog(getClass().getName());
+	private String host = "0.0.0.0";
+	private int port = 0;
+	private HttpHandler httpHandler;
+	private Map<String, HttpHandler> handlerMap;
+	private volatile boolean running;
 
 	public String getHost() {
 		return host;
 	}
 
 	@Override
-	public void setPort(int port) {
-		this.port = port;
+	public void setHost(String host) {
+		this.host = host;
 	}
 
 	@Override
 	public int getPort() {
 		return this.port;
+	}
+
+	@Override
+	public void setPort(int port) {
+		this.port = port;
 	}
 
 	@Override
@@ -151,7 +143,8 @@ public abstract class AbstractHttpServer implements HttpServer {
 					StopWatch stopWatch = new StopWatch();
 					stopWatch.start();
 					stopInternal();
-					logger.debug("Server stopped (" + stopWatch.getTotalTimeMillis() + " millis).");
+					logger.debug("Server stopped (" + stopWatch
+							.getTotalTimeMillis() + " millis).");
 				}
 				catch (Throwable ex) {
 					throw new IllegalStateException(ex);

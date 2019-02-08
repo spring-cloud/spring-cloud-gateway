@@ -12,13 +12,15 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.filter.factory;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
+
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -42,9 +44,6 @@ import static org.springframework.cloud.gateway.filter.factory.SecureHeadersGate
 import static org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory.X_XSS_PROTECTION_HEADER;
 import static org.springframework.cloud.gateway.test.TestUtils.assertStatus;
 
-import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
-
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
@@ -64,14 +63,27 @@ public class SecureHeadersGatewayFilterFactoryTests extends BaseWebClientTests {
 						response -> {
 							assertStatus(response, HttpStatus.OK);
 							HttpHeaders httpHeaders = response.headers().asHttpHeaders();
-							assertThat(httpHeaders.getFirst(X_XSS_PROTECTION_HEADER)).isEqualTo(defaults.getXssProtectionHeader());
-							assertThat(httpHeaders.getFirst(STRICT_TRANSPORT_SECURITY_HEADER)).isEqualTo(defaults.getStrictTransportSecurity());
-							assertThat(httpHeaders.getFirst(X_FRAME_OPTIONS_HEADER)).isEqualTo(defaults.getFrameOptions());
-							assertThat(httpHeaders.getFirst(X_CONTENT_TYPE_OPTIONS_HEADER)).isEqualTo(defaults.getContentTypeOptions());
-							assertThat(httpHeaders.getFirst(REFERRER_POLICY_HEADER)).isEqualTo(defaults.getReferrerPolicy());
-							assertThat(httpHeaders.getFirst(CONTENT_SECURITY_POLICY_HEADER)).isEqualTo(defaults.getContentSecurityPolicy());
-							assertThat(httpHeaders.getFirst(X_DOWNLOAD_OPTIONS_HEADER)).isEqualTo(defaults.getDownloadOptions());
-							assertThat(httpHeaders.getFirst(X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER)).isEqualTo(defaults.getPermittedCrossDomainPolicies());
+							assertThat(httpHeaders.getFirst(X_XSS_PROTECTION_HEADER))
+									.isEqualTo(defaults.getXssProtectionHeader());
+							assertThat(httpHeaders
+									.getFirst(STRICT_TRANSPORT_SECURITY_HEADER))
+									.isEqualTo(defaults.getStrictTransportSecurity());
+							assertThat(httpHeaders.getFirst(X_FRAME_OPTIONS_HEADER))
+									.isEqualTo(defaults.getFrameOptions());
+							assertThat(httpHeaders
+									.getFirst(X_CONTENT_TYPE_OPTIONS_HEADER))
+									.isEqualTo(defaults.getContentTypeOptions());
+							assertThat(httpHeaders.getFirst(REFERRER_POLICY_HEADER))
+									.isEqualTo(defaults.getReferrerPolicy());
+							assertThat(httpHeaders
+									.getFirst(CONTENT_SECURITY_POLICY_HEADER))
+									.isEqualTo(defaults.getContentSecurityPolicy());
+							assertThat(httpHeaders.getFirst(X_DOWNLOAD_OPTIONS_HEADER))
+									.isEqualTo(defaults.getDownloadOptions());
+							assertThat(httpHeaders
+									.getFirst(X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER))
+									.isEqualTo(defaults
+											.getPermittedCrossDomainPolicies());
 						})
 				.expectComplete()
 				.verify(DURATION);
@@ -80,6 +92,8 @@ public class SecureHeadersGatewayFilterFactoryTests extends BaseWebClientTests {
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
-	public static class TestConfig { }
+	public static class TestConfig {
+
+	}
 
 }

@@ -21,9 +21,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -52,9 +53,6 @@ import org.springframework.web.reactive.DispatcherHandler;
 import org.springframework.web.server.ServerWebExchange;
 
 import static org.assertj.core.api.Assertions.assertThat;
-
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
@@ -112,7 +110,7 @@ public class ReactiveTests {
 		ResponseEntity<List<Foo>> result = rest.exchange(RequestEntity
 				.get(rest.getRestTemplate().getUriTemplateHandler().expand("/foos"))
 				.build(), new ParameterizedTypeReference<List<Foo>>() {
-				});
+		});
 		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
 		assertThat(result.getBody().iterator().next().getName()).isEqualTo("hello");
 	}
@@ -189,10 +187,10 @@ public class ReactiveTests {
 		static class Foo {
 			private String name;
 
-			public Foo() {
+			Foo() {
 			}
 
-			public Foo(String name) {
+			Foo(String name) {
 				this.name = name;
 			}
 
@@ -209,10 +207,10 @@ public class ReactiveTests {
 		static class Bar {
 			private String name;
 
-			public Bar() {
+			Bar() {
 			}
 
-			public Bar(String name) {
+			Bar(String name) {
 				this.name = name;
 			}
 

@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.support;
@@ -22,7 +21,8 @@ import java.util.Map;
 
 import org.springframework.core.style.ToStringCreator;
 
-public abstract class AbstractStatefulConfigurable<C> extends AbstractConfigurable<C> implements StatefulConfigurable<C> {
+public abstract class AbstractStatefulConfigurable<C>
+		extends AbstractConfigurable<C> implements StatefulConfigurable<C> {
 	private Map<String, C> config = new HashMap<>();
 
 	protected AbstractStatefulConfigurable(Class<C> configClass) {

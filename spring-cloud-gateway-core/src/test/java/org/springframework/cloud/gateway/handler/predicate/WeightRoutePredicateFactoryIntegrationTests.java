@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.handler.predicate;
@@ -21,6 +20,7 @@ import java.util.Random;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
@@ -48,6 +48,13 @@ public class WeightRoutePredicateFactoryIntegrationTests extends BaseWebClientTe
 	@Autowired
 	private WeightCalculatorWebFilter filter;
 
+	private static Random getRandom(double value) {
+		Random random = mock(Random.class);
+		when(random.nextDouble())
+				.thenReturn(value);
+		return random;
+	}
+
 	@Test
 	public void highWeight() {
 		filter.setRandom(getRandom(0.9));
@@ -59,8 +66,8 @@ public class WeightRoutePredicateFactoryIntegrationTests extends BaseWebClientTe
 				.expectHeader().valueEquals(ROUTE_ID_HEADER, "weight_high_test");
 	}
 
-    @Test
-    public void lowWeight() {
+	@Test
+	public void lowWeight() {
 		filter.setRandom(getRandom(0.1));
 
 		testClient.get().uri("/get")
@@ -88,20 +95,13 @@ public class WeightRoutePredicateFactoryIntegrationTests extends BaseWebClientTe
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes()
 					.route("weight_low_test", r ->
-                            r.weight("group1", 2)
-							.and().host("**.weightlow.org")
-							.filters(f -> f.prefixPath("/httpbin"))
-							.uri(this.uri))
+							r.weight("group1", 2)
+									.and().host("**.weightlow.org")
+									.filters(f -> f.prefixPath("/httpbin"))
+									.uri(this.uri))
 					.build();
 		}
 
-	}
-
-	private static Random getRandom(double value) {
-		Random random = mock(Random.class);
-		when(random.nextDouble())
-                .thenReturn(value);
-		return random;
 	}
 
 }

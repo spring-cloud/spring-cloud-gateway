@@ -12,15 +12,18 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.handler.predicate;
 
 
 import java.util.function.Predicate;
+
+import com.netflix.loadbalancer.Server;
+import com.netflix.loadbalancer.ServerList;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -43,9 +46,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.reactive.function.BodyInserters;
-
-import com.netflix.loadbalancer.Server;
-import com.netflix.loadbalancer.ServerList;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -96,10 +96,12 @@ public class ReadBodyPredicateFactoryTest {
 			return builder.routes()
 					.route(p -> p.path("/events").and().method(HttpMethod.POST).and().
 							readBody(Event.class, eventPredicate("message.channels")).
-							filters(f -> f.setPath("/messageChannel/events")).uri("lb://messageChannel"))
+							filters(f -> f.setPath("/messageChannel/events"))
+							.uri("lb://messageChannel"))
 					.route(p -> p.path("/events").and().method(HttpMethod.POST).and().
 							readBody(Event.class, eventPredicate("message"))
-							.filters(f -> f.setPath("/message/events")).uri("lb://message"))
+							.filters(f -> f.setPath("/message/events"))
+							.uri("lb://message"))
 					.build();
 		}
 
@@ -130,13 +132,15 @@ public class ReadBodyPredicateFactoryTest {
 	}
 
 }
- class Event {
+
+class Event {
 	private String foo;
 	private String bar;
 
-	public Event() {}
+	Event() {
+	}
 
-	public Event(String foo, String bar) {
+	Event(String foo, String bar) {
 		this.foo = foo;
 		this.bar = bar;
 	}

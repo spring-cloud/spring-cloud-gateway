@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.config;
@@ -38,16 +37,14 @@ public class GatewayAutoConfigurationTests {
 	@Test
 	public void noHiddenHttpMethodFilter() {
 		try (ConfigurableApplicationContext ctx =
-					 SpringApplication.run(NoHiddenHttpMethodFilterConfig.class, "--spring.jmx.enabled=false")) {
-			assertThat(ctx.getEnvironment().getProperty("spring.webflux.hiddenmethod.filter.enabled"))
+			SpringApplication.run(NoHiddenHttpMethodFilterConfig.class,
+					"--spring.jmx.enabled=false")) {
+			assertThat(ctx.getEnvironment()
+					.getProperty("spring.webflux.hiddenmethod.filter.enabled"))
 					.isEqualTo("false");
 			assertThat(ctx.getBeanNamesForType(HiddenHttpMethodFilter.class)).isEmpty();
 		}
 	}
-
-	@EnableAutoConfiguration
-	@SpringBootConfiguration
-	protected static class NoHiddenHttpMethodFilterConfig {}
 
 	@Test
 	public void nettyHttpClientDefaults() {
@@ -105,5 +102,11 @@ public class GatewayAutoConfigurationTests {
 					assertThat(sslContext).isNotNull();*/
 					//TODO: howto test SslContext
 				});
+	}
+
+	@EnableAutoConfiguration
+	@SpringBootConfiguration
+	protected static class NoHiddenHttpMethodFilterConfig {
+
 	}
 }

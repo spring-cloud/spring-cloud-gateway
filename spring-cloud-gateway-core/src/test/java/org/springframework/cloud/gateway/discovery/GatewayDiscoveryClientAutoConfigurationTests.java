@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.discovery;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -36,8 +37,8 @@ public class GatewayDiscoveryClientAutoConfigurationTests {
 
 	@RunWith(SpringRunner.class)
 	@SpringBootTest(classes = Config.class,
-			properties = {"spring.cloud.gateway.discovery.locator.enabled=true",
-					"spring.cloud.gateway.loadbalancer.use404=true"})
+			properties = { "spring.cloud.gateway.discovery.locator.enabled=true",
+					"spring.cloud.gateway.loadbalancer.use404=true" })
 	public static class EnabledByProperty {
 
 		@Autowired(required = false)

@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.filter;
@@ -44,8 +43,10 @@ public class NettyRoutingFilterIntegrationTests extends BaseWebClientTests {
 				.exchange()
 				.expectStatus().isEqualTo(HttpStatus.GATEWAY_TIMEOUT)
 				.expectBody()
-					.jsonPath("$.status").isEqualTo(String.valueOf(HttpStatus.GATEWAY_TIMEOUT.value()))
-					.jsonPath("$.message").isEqualTo("Response took longer than timeout: PT3S");
+				.jsonPath("$.status")
+				.isEqualTo(String.valueOf(HttpStatus.GATEWAY_TIMEOUT.value()))
+				.jsonPath("$.message")
+				.isEqualTo("Response took longer than timeout: PT3S");
 	}
 
 	@EnableAutoConfiguration

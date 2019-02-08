@@ -1,11 +1,11 @@
 package org.springframework.cloud.gateway.route.builder;
 
 import org.junit.Test;
-import org.springframework.cloud.gateway.filter.OrderedGatewayFilter;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
+import org.springframework.cloud.gateway.filter.OrderedGatewayFilter;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.Ordered;
@@ -27,7 +27,7 @@ public class GatewayFilterSpecTests {
 	}
 
 	private void testFilter(Class<? extends GatewayFilter> type,
-							GatewayFilter gatewayFilter, int order) {
+			GatewayFilter gatewayFilter, int order) {
 		ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
 		Route.AsyncBuilder routeBuilder = Route.async()
 				.id("123")

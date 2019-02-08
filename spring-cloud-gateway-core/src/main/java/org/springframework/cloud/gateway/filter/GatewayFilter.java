@@ -1,7 +1,5 @@
-package org.springframework.cloud.gateway.filter;
-
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +14,12 @@ package org.springframework.cloud.gateway.filter;
  * limitations under the License.
  */
 
-import org.springframework.cloud.gateway.support.ShortcutConfigurable;
-import org.springframework.web.server.ServerWebExchange;
+package org.springframework.cloud.gateway.filter;
 
 import reactor.core.publisher.Mono;
+
+import org.springframework.cloud.gateway.support.ShortcutConfigurable;
+import org.springframework.web.server.ServerWebExchange;
 
 /**
  * Contract for interception-style, chained processing of Web requests that may
@@ -33,7 +33,14 @@ import reactor.core.publisher.Mono;
  */
 public interface GatewayFilter extends ShortcutConfigurable {
 
+	/**
+	 * Name key.
+	 */
 	String NAME_KEY = "name";
+
+	/**
+	 * Value key.
+	 */
 	String VALUE_KEY = "value";
 
 	/**

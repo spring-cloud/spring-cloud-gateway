@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.filter.factory;
@@ -53,7 +52,7 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.H
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.containsEncodedParts;
 
 /**
- * Depends on `spring-cloud-starter-netflix-hystrix`, {@see http://cloud.spring.io/spring-cloud-netflix/}
+ * Depends on `spring-cloud-starter-netflix-hystrix`, {@see http://cloud.spring.io/spring-cloud-netflix/}.
  * @author Spencer Gibb
  * @author Michele Mancioppi
  * @author Olga Maciaszek-Sharma
@@ -98,7 +97,8 @@ public class HystrixGatewayFilterFactory extends AbstractGatewayFilterFactory<Hy
 		//TODO: if no name is supplied, generate one from command id (useful for default filter)
 		if (config.setter == null) {
 			Assert.notNull(config.name, "A name must be supplied for the Hystrix Command Key");
-			HystrixCommandGroupKey groupKey = HystrixCommandGroupKey.Factory.asKey(getClass().getSimpleName());
+			HystrixCommandGroupKey groupKey = HystrixCommandGroupKey.Factory
+					.asKey(getClass().getSimpleName());
 			HystrixCommandKey commandKey = HystrixCommandKey.Factory.asKey(config.name);
 
 			config.setter = Setter.withGroupKey(groupKey)
@@ -109,7 +109,8 @@ public class HystrixGatewayFilterFactory extends AbstractGatewayFilterFactory<Hy
 			RouteHystrixCommand command = new RouteHystrixCommand(config.setter, config.fallbackUri, exchange, chain);
 
 			return Mono.create(s -> {
-				Subscription sub = command.toObservable().subscribe(s::success, s::error, s::success);
+				Subscription sub = command.toObservable()
+						.subscribe(s::success, s::error, s::success);
 				s.onCancel(sub::unsubscribe);
 			}).onErrorResume((Function<Throwable, Mono<Void>>) throwable -> {
 				if (throwable instanceof HystrixRuntimeException) {
@@ -117,26 +118,66 @@ public class HystrixGatewayFilterFactory extends AbstractGatewayFilterFactory<Hy
 					HystrixRuntimeException.FailureType failureType = e.getFailureType();
 
 					switch (failureType) {
-						case TIMEOUT:
-							return Mono.error(new TimeoutException());
-						case COMMAND_EXCEPTION: {
-							Throwable cause = e.getCause();
+					case TIMEOUT:
+						return Mono.error(new TimeoutException());
+					case COMMAND_EXCEPTION: {
+						Throwable cause = e.getCause();
 
-							/*
-							 * We forsake here the null check for cause as HystrixRuntimeException will
-							 * always have a cause if the failure type is COMMAND_EXCEPTION.
-							 */
-							if (cause instanceof ResponseStatusException || AnnotatedElementUtils
-									.findMergedAnnotation(cause.getClass(), ResponseStatus.class) != null) {
-								return Mono.error(cause);
-							}
+						/*
+						 * We forsake here the null check for cause as HystrixRuntimeException will
+						 * always have a cause if the failure type is COMMAND_EXCEPTION.
+						 */
+						if (cause instanceof ResponseStatusException || AnnotatedElementUtils
+								.findMergedAnnotation(cause
+										.getClass(), ResponseStatus.class) != null) {
+							return Mono.error(cause);
 						}
-						default: break;
+					}
+					default:
+						break;
 					}
 				}
 				return Mono.error(throwable);
 			}).then();
 		};
+	}
+
+	public static class Config {
+		private String name;
+		private Setter setter;
+		private URI fallbackUri;
+
+		public String getName() {
+			return name;
+		}
+
+		public Config setName(String name) {
+			this.name = name;
+			return this;
+		}
+
+		public Config setFallbackUri(String fallbackUri) {
+			if (fallbackUri != null) {
+				setFallbackUri(URI.create(fallbackUri));
+			}
+			return this;
+		}
+
+		public URI getFallbackUri() {
+			return fallbackUri;
+		}
+
+		public void setFallbackUri(URI fallbackUri) {
+			if (fallbackUri != null && !"forward".equals(fallbackUri.getScheme())) {
+				throw new IllegalArgumentException("Hystrix Filter currently only supports 'forward' URIs, found " + fallbackUri);
+			}
+			this.fallbackUri = fallbackUri;
+		}
+
+		public Config setSetter(Setter setter) {
+			this.setter = setter;
+			return this;
+		}
 	}
 
 	//TODO: replace with HystrixMonoCommand that we write
@@ -177,7 +218,8 @@ public class HystrixGatewayFilterFactory extends AbstractGatewayFilterFactory<Hy
 			exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, requestUrl);
 			addExceptionDetails();
 
-			ServerHttpRequest request = this.exchange.getRequest().mutate().uri(requestUrl).build();
+			ServerHttpRequest request = this.exchange.getRequest().mutate()
+					.uri(requestUrl).build();
 			ServerWebExchange mutated = exchange.mutate().request(request).build();
 			return RxReactiveStreams.toObservable(getDispatcherHandler().handle(mutated));
 		}
@@ -185,45 +227,8 @@ public class HystrixGatewayFilterFactory extends AbstractGatewayFilterFactory<Hy
 		private void addExceptionDetails() {
 			Throwable executionException = getExecutionException();
 			ofNullable(executionException)
-					.ifPresent(exception -> exchange.getAttributes().put(HYSTRIX_EXECUTION_EXCEPTION_ATTR, exception));
-		}
-	}
-
-	public static class Config {
-		private String name;
-		private Setter setter;
-		private URI fallbackUri;
-
-		public String getName() {
-			return name;
-		}
-
-		public Config setName(String name) {
-			this.name = name;
-			return this;
-		}
-
-		public Config setFallbackUri(String fallbackUri) {
-			if (fallbackUri != null) {
-				setFallbackUri(URI.create(fallbackUri));
-			}
-			return this;
-		}
-
-		public URI getFallbackUri() {
-			return fallbackUri;
-		}
-
-		public void setFallbackUri(URI fallbackUri) {
-			if (fallbackUri != null && !"forward".equals(fallbackUri.getScheme())) {
-				throw new IllegalArgumentException("Hystrix Filter currently only supports 'forward' URIs, found " + fallbackUri);
-			}
-			this.fallbackUri = fallbackUri;
-		}
-
-		public Config setSetter(Setter setter) {
-			this.setter = setter;
-			return this;
+					.ifPresent(exception -> exchange.getAttributes()
+							.put(HYSTRIX_EXECUTION_EXCEPTION_ATTR, exception));
 		}
 	}
 }

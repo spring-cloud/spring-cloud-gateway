@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.filter;
@@ -41,9 +40,11 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.a
  */
 public class LoadBalancerClientFilter implements GlobalFilter, Ordered {
 
-	private static final Log log = LogFactory.getLog(LoadBalancerClientFilter.class);
+	/**
+	 * Filter order for {@link LoadBalancerClientFilter}.
+	 */
 	public static final int LOAD_BALANCER_CLIENT_FILTER_ORDER = 10100;
-
+	private static final Log log = LogFactory.getLog(LoadBalancerClientFilter.class);
 	protected final LoadBalancerClient loadBalancer;
 
 	private LoadBalancerProperties properties;
@@ -63,7 +64,8 @@ public class LoadBalancerClientFilter implements GlobalFilter, Ordered {
 	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 		URI url = exchange.getAttribute(GATEWAY_REQUEST_URL_ATTR);
 		String schemePrefix = exchange.getAttribute(GATEWAY_SCHEME_PREFIX_ATTR);
-		if (url == null || (!"lb".equals(url.getScheme()) && !"lb".equals(schemePrefix))) {
+		if (url == null || (!"lb".equals(url.getScheme()) && !"lb"
+				.equals(schemePrefix))) {
 			return chain.filter(exchange);
 		}
 		//preserve the original url
@@ -74,7 +76,9 @@ public class LoadBalancerClientFilter implements GlobalFilter, Ordered {
 		final ServiceInstance instance = choose(exchange);
 
 		if (instance == null) {
-			throw NotFoundException.create(properties.isUse404(), "Unable to find instance for " + url.getHost());
+			throw NotFoundException
+					.create(properties.isUse404(), "Unable to find instance for " + url
+							.getHost());
 		}
 
 		URI uri = exchange.getRequest().getURI();
@@ -86,7 +90,8 @@ public class LoadBalancerClientFilter implements GlobalFilter, Ordered {
 			overrideScheme = url.getScheme();
 		}
 
-		URI requestUrl = loadBalancer.reconstructURI(new DelegatingServiceInstance(instance, overrideScheme), uri);
+		URI requestUrl = loadBalancer
+				.reconstructURI(new DelegatingServiceInstance(instance, overrideScheme), uri);
 
 		log.trace("LoadBalancerClientFilter url chosen: " + requestUrl);
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, requestUrl);
@@ -94,7 +99,8 @@ public class LoadBalancerClientFilter implements GlobalFilter, Ordered {
 	}
 
 	protected ServiceInstance choose(ServerWebExchange exchange) {
-		return loadBalancer.choose(((URI) exchange.getAttribute(GATEWAY_REQUEST_URL_ATTR)).getHost());
+		return loadBalancer.choose(((URI) exchange.getAttribute(GATEWAY_REQUEST_URL_ATTR))
+				.getHost());
 	}
 
 	class DelegatingServiceInstance implements ServiceInstance {

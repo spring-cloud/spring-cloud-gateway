@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.discovery;
@@ -43,21 +42,21 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = DiscoveryClientRouteDefinitionLocatorIntegrationTests.Config.class,
-        properties = {"spring.cloud.gateway.discovery.locator.enabled=true",
-				"spring.cloud.gateway.discovery.locator.route-id-prefix=test__", })
+		properties = { "spring.cloud.gateway.discovery.locator.enabled=true",
+				"spring.cloud.gateway.discovery.locator.route-id-prefix=test__" })
 public class DiscoveryClientRouteDefinitionLocatorIntegrationTests {
 
-    @Autowired
-    private RouteLocator routeLocator;
+	@Autowired
+	private RouteLocator routeLocator;
 
-    @Autowired
+	@Autowired
 	private ApplicationEventPublisher publisher;
 
-    @Autowired
+	@Autowired
 	private TestDiscoveryClient discoveryClient;
 
-    @Test
-    public void newServiceAddsRoute() {
+	@Test
+	public void newServiceAddsRoute() {
 		List<Route> routes = routeLocator.getRoutes()
 				.filter(route -> route.getId().startsWith("test__"))
 				.collectList().block();

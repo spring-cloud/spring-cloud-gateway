@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.handler.predicate;
@@ -33,6 +32,10 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.t
  */
 @FunctionalInterface
 public interface RoutePredicateFactory<C> extends ShortcutConfigurable, Configurable<C> {
+
+	/**
+	 * Pattern key.
+	 */
 	String PATTERN_KEY = "pattern";
 
 	// useful for javadsl
@@ -59,7 +62,8 @@ public interface RoutePredicateFactory<C> extends ShortcutConfigurable, Configur
 		throw new UnsupportedOperationException("newConfig() not implemented");
 	}
 
-	default void beforeApply(C config) {}
+	default void beforeApply(C config) {
+	}
 
 	Predicate<ServerWebExchange> apply(C config);
 

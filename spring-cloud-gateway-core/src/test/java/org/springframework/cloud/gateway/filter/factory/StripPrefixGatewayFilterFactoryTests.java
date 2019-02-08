@@ -12,17 +12,17 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
-package org.springframework.cloud.gateway.filter.factory;
 
-import reactor.core.publisher.Mono;
+package org.springframework.cloud.gateway.filter.factory;
 
 import java.net.URI;
 import java.util.LinkedHashSet;
 
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import reactor.core.publisher.Mono;
+
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
@@ -60,14 +60,15 @@ public class StripPrefixGatewayFilterFactoryTests {
 				c -> c.setParts(parts));
 
 		MockServerHttpRequest request = MockServerHttpRequest
-				.get("http://localhost"+ actualPath)
+				.get("http://localhost" + actualPath)
 				.build();
 
 		ServerWebExchange exchange = MockServerWebExchange.from(request);
 
 		GatewayFilterChain filterChain = mock(GatewayFilterChain.class);
 
-		ArgumentCaptor<ServerWebExchange> captor = ArgumentCaptor.forClass(ServerWebExchange.class);
+		ArgumentCaptor<ServerWebExchange> captor = ArgumentCaptor
+				.forClass(ServerWebExchange.class);
 		when(filterChain.filter(captor.capture())).thenReturn(Mono.empty());
 
 		filter.filter(exchange, filterChain);
@@ -77,8 +78,10 @@ public class StripPrefixGatewayFilterFactoryTests {
 		assertThat(webExchange.getRequest().getURI()).hasPath(expectedPath);
 
 		URI requestUrl = webExchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
-		assertThat(requestUrl).hasScheme("http").hasHost("localhost").hasNoPort().hasPath(expectedPath);
-		LinkedHashSet<URI> uris = webExchange.getRequiredAttribute(GATEWAY_ORIGINAL_REQUEST_URL_ATTR);
+		assertThat(requestUrl).hasScheme("http").hasHost("localhost").hasNoPort()
+				.hasPath(expectedPath);
+		LinkedHashSet<URI> uris = webExchange
+				.getRequiredAttribute(GATEWAY_ORIGINAL_REQUEST_URL_ATTR);
 		assertThat(uris).contains(request.getURI());
 	}
 

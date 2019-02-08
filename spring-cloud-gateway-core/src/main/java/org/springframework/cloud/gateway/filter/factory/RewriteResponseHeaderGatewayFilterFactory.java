@@ -12,24 +12,32 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.filter.factory;
 
-import org.springframework.cloud.gateway.filter.GatewayFilter;
-import org.springframework.web.server.ServerWebExchange;
-import reactor.core.publisher.Mono;
-
 import java.util.Arrays;
 import java.util.List;
+
+import reactor.core.publisher.Mono;
+
+import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.web.server.ServerWebExchange;
 
 /**
  * @author Vitaliy Pavlyuk
  */
-public class RewriteResponseHeaderGatewayFilterFactory extends AbstractGatewayFilterFactory<RewriteResponseHeaderGatewayFilterFactory.Config> {
+public class RewriteResponseHeaderGatewayFilterFactory
+		extends AbstractGatewayFilterFactory<RewriteResponseHeaderGatewayFilterFactory.Config> {
 
+	/**
+	 * Regexp key.
+	 */
 	public static final String REGEXP_KEY = "regexp";
+
+	/**
+	 * Replacement key.
+	 */
 	public static final String REPLACEMENT_KEY = "replacement";
 
 	public RewriteResponseHeaderGatewayFilterFactory() {
@@ -54,7 +62,8 @@ public class RewriteResponseHeaderGatewayFilterFactory extends AbstractGatewayFi
 		if (value == null) {
 			return;
 		}
-		final String newValue = rewrite(value, config.getRegexp(), config.getReplacement());
+		final String newValue = rewrite(value, config.getRegexp(), config
+				.getReplacement());
 		exchange.getResponse().getHeaders().set(name, newValue);
 	}
 

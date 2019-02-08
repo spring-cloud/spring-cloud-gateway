@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.handler.predicate;
@@ -66,7 +65,8 @@ public class HostRoutePredicateFactory extends AbstractRoutePredicateFactory<Hos
 					.findFirst();
 
 			if (optionalPattern.isPresent()) {
-				Map<String, String> variables = this.pathMatcher.extractUriTemplateVariables(optionalPattern.get(), host);
+				Map<String, String> variables = this.pathMatcher
+						.extractUriTemplateVariables(optionalPattern.get(), host);
 				ServerWebExchangeUtils.putUriTemplateVariables(exchange, variables);
 				return true;
 			}

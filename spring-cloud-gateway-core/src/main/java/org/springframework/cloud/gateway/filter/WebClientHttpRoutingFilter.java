@@ -12,12 +12,13 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.filter;
 
 import java.net.URI;
+
+import reactor.core.publisher.Mono;
 
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
@@ -34,8 +35,6 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.C
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.isAlreadyRouted;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.setAlreadyRouted;
-
-import reactor.core.publisher.Mono;
 
 /**
  * @author Spencer Gibb
@@ -58,7 +57,8 @@ public class WebClientHttpRoutingFilter implements GlobalFilter, Ordered {
 		URI requestUrl = exchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
 
 		String scheme = requestUrl.getScheme();
-		if (isAlreadyRouted(exchange) || (!"http".equals(scheme) && !"https".equals(scheme))) {
+		if (isAlreadyRouted(exchange) || (!"http".equals(scheme) && !"https"
+				.equals(scheme))) {
 			return chain.filter(exchange);
 		}
 		setAlreadyRouted(exchange);
@@ -78,7 +78,8 @@ public class WebClientHttpRoutingFilter implements GlobalFilter, Ordered {
 		RequestHeadersSpec<?> headersSpec;
 		if (requiresBody(method)) {
 			headersSpec = bodySpec.body(BodyInserters.fromDataBuffers(request.getBody()));
-		} else {
+		}
+		else {
 			headersSpec = bodySpec;
 		}
 
@@ -97,12 +98,12 @@ public class WebClientHttpRoutingFilter implements GlobalFilter, Ordered {
 
 	private boolean requiresBody(HttpMethod method) {
 		switch (method) {
-			case PUT:
-			case POST:
-			case PATCH:
-				return true;
-			default:
-				return false;
+		case PUT:
+		case POST:
+		case PATCH:
+			return true;
+		default:
+			return false;
 		}
 	}
 }

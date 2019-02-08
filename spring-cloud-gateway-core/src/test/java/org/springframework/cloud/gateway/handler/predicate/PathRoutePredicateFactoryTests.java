@@ -12,13 +12,13 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.handler.predicate;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -64,7 +64,9 @@ public class PathRoutePredicateFactoryTests extends BaseWebClientTests {
 				.header(HttpHeaders.HOST, host)
 				.exchange()
 				.expectStatus().isOk()
-				.expectHeader().valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName())
+				.expectHeader()
+				.valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class
+						.getSimpleName())
 				.expectHeader().valueEquals(ROUTE_ID_HEADER, routeId);
 	}
 
@@ -94,7 +96,8 @@ public class PathRoutePredicateFactoryTests extends BaseWebClientTests {
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes()
 					.route("path_multi_dsl", r -> r.host("**.pathmultidsl.org")
-							.and().path(false, "/anything/multidsl1", "/anything/multidsl3")
+							.and()
+							.path(false, "/anything/multidsl1", "/anything/multidsl3")
 							.filters(f -> f.prefixPath("/httpbin"))
 							.uri(uri))
 					.build();

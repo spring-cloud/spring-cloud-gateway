@@ -12,8 +12,8 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
+
 package org.springframework.cloud.gateway.filter.factory;
 
 import java.util.Arrays;
@@ -29,11 +29,15 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.a
 
 /**
  * This filter removes the first part of the path, known as the prefix, from the request
- * before sending it downstream
+ * before sending it downstream.
  * @author Ryan Baxter
  */
-public class StripPrefixGatewayFilterFactory extends AbstractGatewayFilterFactory<StripPrefixGatewayFilterFactory.Config> {
+public class StripPrefixGatewayFilterFactory
+		extends AbstractGatewayFilterFactory<StripPrefixGatewayFilterFactory.Config> {
 
+	/**
+	 * Parts key.
+	 */
 	public static final String PARTS_KEY = "parts";
 
 	public StripPrefixGatewayFilterFactory() {
@@ -47,11 +51,12 @@ public class StripPrefixGatewayFilterFactory extends AbstractGatewayFilterFactor
 
 	@Override
 	public GatewayFilter apply(Config config) {
-		return (exchange, chain) ->  {
+		return (exchange, chain) -> {
 			ServerHttpRequest request = exchange.getRequest();
 			addOriginalRequestUrl(exchange, request.getURI());
 			String path = request.getURI().getRawPath();
-			String newPath = "/" + Arrays.stream(StringUtils.tokenizeToStringArray(path, "/"))
+			String newPath = "/" + Arrays
+					.stream(StringUtils.tokenizeToStringArray(path, "/"))
 					.skip(config.parts).collect(Collectors.joining("/"));
 			newPath += (newPath.length() > 1 && path.endsWith("/") ? "/" : "");
 			ServerHttpRequest newRequest = request.mutate()

@@ -12,16 +12,18 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.filter;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import io.micrometer.core.instrument.search.MeterNotFoundException;
-import io.micrometer.core.instrument.search.RequiredSearch;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -45,10 +47,6 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -114,15 +112,22 @@ public class GatewayMetricFilterTests extends BaseWebClientTests {
 			meterIds = this.meterRegistry.getMeters().stream()
 					.map(Meter::getId)
 					.collect(Collectors.toList());
-			Collection<Timer> timers = this.meterRegistry.get(REQUEST_METRICS_NAME).timers();
-			System.err.println("Looking for gateway.requests: tag: " + tagKey + ", value: "+ tagValue);
-			timers.forEach(timer -> System.err.println(timer.getId()+timer.getClass().getSimpleName()));
+			Collection<Timer> timers = this.meterRegistry.get(REQUEST_METRICS_NAME)
+					.timers();
+			System.err
+					.println("Looking for gateway.requests: tag: " + tagKey + ", value: " + tagValue);
+			timers.forEach(timer -> System.err
+					.println(timer.getId() + timer.getClass().getSimpleName()));
 			long count = getCount(tagKey, tagValue);
 			assertThat(count).isEqualTo(1);
-		} catch (MeterNotFoundException e) {
-			System.err.println("\n\n\nError finding gatway.requests meter: tag: " + tagKey + ", value: "+ tagValue);
-			System.err.println("\n\n\nMeter ids prior to search: "+meterIds + "\n\n\n and after:");
-			this.meterRegistry.forEachMeter(meter -> System.err.println(meter.getId() + meter.getClass().getSimpleName()));
+		}
+		catch (MeterNotFoundException e) {
+			System.err
+					.println("\n\n\nError finding gatway.requests meter: tag: " + tagKey + ", value: " + tagValue);
+			System.err
+					.println("\n\n\nMeter ids prior to search: " + meterIds + "\n\n\n and after:");
+			this.meterRegistry.forEachMeter(meter -> System.err
+					.println(meter.getId() + meter.getClass().getSimpleName()));
 
 			// try again?
 			long count = getCount(tagKey, tagValue);
@@ -148,9 +153,11 @@ public class GatewayMetricFilterTests extends BaseWebClientTests {
 		@Bean
 		public RouteLocator myRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes()
-					.route("test_metrics_happy_path", r -> r.host("*.metricshappypath.org")
+					.route("test_metrics_happy_path", r -> r
+							.host("*.metricshappypath.org")
 							.uri(testUri))
-					.route("test_custom_http_status_metrics", r -> r.host("*.setcustomstatusmetrics.org")
+					.route("test_custom_http_status_metrics", r -> r
+							.host("*.setcustomstatusmetrics.org")
 							.filters(f -> f.setStatus(432))
 							.uri(testUri))
 					.build();

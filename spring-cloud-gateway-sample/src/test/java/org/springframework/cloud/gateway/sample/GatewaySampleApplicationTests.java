@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.sample;
@@ -46,22 +45,19 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.util.SocketUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 /**
  * @author Spencer Gibb
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = { GatewaySampleApplicationTests.TestConfig.class},
+@SpringBootTest(classes = { GatewaySampleApplicationTests.TestConfig.class },
 		webEnvironment = RANDOM_PORT, properties = "management.server.port=${test.port}")
 public class GatewaySampleApplicationTests {
 
+	protected static int managementPort;
 	@LocalServerPort
 	protected int port = 0;
-
-	protected static int managementPort;
-
 	protected WebTestClient webClient;
 	protected String baseUri;
 
@@ -80,7 +76,8 @@ public class GatewaySampleApplicationTests {
 	@Before
 	public void setup() {
 		baseUri = "http://localhost:" + port;
-		this.webClient = WebTestClient.bindToServer().responseTimeout(Duration.ofSeconds(10)).baseUrl(baseUri).build();
+		this.webClient = WebTestClient.bindToServer()
+				.responseTimeout(Duration.ofSeconds(10)).baseUrl(baseUri).build();
 	}
 
 	@Test
@@ -118,7 +115,8 @@ public class GatewaySampleApplicationTests {
 				.expectHeader().valueEquals("X-TestHeader", "rewrite_request_upper")
 				.expectBody(Map.class)
 				.consumeWith(result ->
-						assertThat(result.getResponseBody()).containsEntry("data", "HELLOHELLO"));
+						assertThat(result.getResponseBody())
+								.containsEntry("data", "HELLOHELLO"));
 	}
 
 	@Test
@@ -133,7 +131,8 @@ public class GatewaySampleApplicationTests {
 				.expectHeader().valueEquals("X-TestHeader", "rewrite_request")
 				.expectBody(Map.class)
 				.consumeWith(result ->
-						assertThat(result.getResponseBody()).containsEntry("data", "{\"message\":\"HELLO\"}"));
+						assertThat(result.getResponseBody())
+								.containsEntry("data", "{\"message\":\"HELLO\"}"));
 	}
 
 	@Test
@@ -148,7 +147,8 @@ public class GatewaySampleApplicationTests {
 				.expectHeader().valueEquals("X-TestHeader", "rewrite_response_upper")
 				.expectBody(Map.class)
 				.consumeWith(result ->
-						assertThat(result.getResponseBody()).containsEntry("DATA", "HELLO"));
+						assertThat(result.getResponseBody())
+								.containsEntry("DATA", "HELLO"));
 	}
 
 	@Test
@@ -180,7 +180,7 @@ public class GatewaySampleApplicationTests {
 	@Test
 	public void actuatorManagementPort() {
 		webClient.get()
-				.uri("http://localhost:"+managementPort+"/actuator/gateway/routes")
+				.uri("http://localhost:" + managementPort + "/actuator/gateway/routes")
 				.exchange()
 				.expectStatus().isOk();
 	}
@@ -192,18 +192,19 @@ public class GatewaySampleApplicationTests {
 				.uri("http://localhost:" + managementPort
 						+ "/actuator/metrics/gateway.requests")
 				.exchange().expectStatus().isOk().expectBody().consumeWith(i -> {
-					String body = new String(i.getResponseBodyContent());
-					ObjectMapper mapper = new ObjectMapper();
-					try {
-						JsonNode actualObj = mapper.readTree(body);
-						JsonNode findValue = actualObj.findValue("name");
-						assertEquals("Expected to find metric with name gateway.requests",
-								"gateway.requests", findValue.asText());
-					}
-					catch (IOException e) {
-						throw new IllegalStateException(e);
-					}
-				});
+			String body = new String(i.getResponseBodyContent());
+			ObjectMapper mapper = new ObjectMapper();
+			try {
+				JsonNode actualObj = mapper.readTree(body);
+				JsonNode findValue = actualObj.findValue("name");
+				assertThat(findValue.asText())
+						.as("Expected to find metric with name gateway.requests")
+						.isEqualTo("gateway.requests");
+			}
+			catch (IOException e) {
+				throw new IllegalStateException(e);
+			}
+		});
 	}
 
 	@Configuration

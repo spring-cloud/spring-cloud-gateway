@@ -76,7 +76,7 @@ public class PredicateSpec extends UriSpec {
 	 */
 	public BooleanSpec after(ZonedDateTime datetime) {
 		return asyncPredicate(getBean(AfterRoutePredicateFactory.class)
-				.applyAsync(c-> c.setDatetime(datetime)));
+				.applyAsync(c -> c.setDatetime(datetime)));
 	}
 
 	/**
@@ -85,7 +85,8 @@ public class PredicateSpec extends UriSpec {
 	 * @return a {@link BooleanSpec} to be used to add logical operators
 	 */
 	public BooleanSpec before(ZonedDateTime datetime) {
-		return asyncPredicate(getBean(BeforeRoutePredicateFactory.class).applyAsync(c -> c.setDatetime(datetime)));
+		return asyncPredicate(getBean(BeforeRoutePredicateFactory.class)
+				.applyAsync(c -> c.setDatetime(datetime)));
 	}
 
 	/**
@@ -138,7 +139,7 @@ public class PredicateSpec extends UriSpec {
 	 */
 	public BooleanSpec host(String... pattern) {
 		return asyncPredicate(getBean(HostRoutePredicateFactory.class)
-				.applyAsync(c-> c.setPatterns(Arrays.asList(pattern))));
+				.applyAsync(c -> c.setPatterns(Arrays.asList(pattern))));
 	}
 
 	/**
@@ -241,7 +242,6 @@ public class PredicateSpec extends UriSpec {
 	 * This may not match the actual client IP address if Spring Cloud Gateway sits behind a proxy layer.
 	 * Use {@link PredicateSpec#remoteAddr(RemoteAddressResolver, String...)} to customize the resolver.
 	 * You can customize the way that the remote address is resolved by setting a custom RemoteAddressResolver.
-
 	 * @param addrs the remote address to verify.  Should use CIDR-notation (IPv4 or IPv6) strings.
 	 * @return a {@link BooleanSpec} to be used to add logical operators
 	 */
@@ -259,12 +259,13 @@ public class PredicateSpec extends UriSpec {
 	 * @return a {@link BooleanSpec} to be used to add logical operators
 	 */
 	public BooleanSpec remoteAddr(RemoteAddressResolver resolver, String... addrs) {
-		return asyncPredicate(getBean(RemoteAddrRoutePredicateFactory.class).applyAsync(c -> {
-			c.setSources(addrs);
-			if (resolver != null) {
-				c.setRemoteAddressResolver(resolver);
-			}
-		}));
+		return asyncPredicate(getBean(RemoteAddrRoutePredicateFactory.class)
+				.applyAsync(c -> {
+					c.setSources(addrs);
+					if (resolver != null) {
+						c.setRemoteAddressResolver(resolver);
+					}
+				}));
 	}
 
 	/**

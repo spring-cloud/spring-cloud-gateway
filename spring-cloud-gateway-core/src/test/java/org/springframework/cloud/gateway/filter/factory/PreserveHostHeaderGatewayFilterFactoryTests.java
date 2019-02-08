@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.filter.factory;
@@ -21,6 +20,7 @@ import java.util.Map;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -54,7 +54,8 @@ public class PreserveHostHeaderGatewayFilterFactoryTests extends BaseWebClientTe
 				.expectStatus().isOk()
 				.expectBody(Map.class)
 				.consumeWith(result -> {
-					Map<String, Object> headers = getMap(result.getResponseBody(), "headers");
+					Map<String, Object> headers = getMap(result
+							.getResponseBody(), "headers");
 					assertThat(headers).containsEntry("Host", "myhost.net");
 				});
 	}
@@ -69,12 +70,12 @@ public class PreserveHostHeaderGatewayFilterFactoryTests extends BaseWebClientTe
 		@Bean
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes().route("test_preserve_host_header",
-                r -> r.order(-1)
-					.host("**.preservehostheader.org")
-					.filters(f -> f.prefixPath("/httpbin")
-							.preserveHostHeader()
-							.setRequestHeader("Host", "myhost.net"))
-					.uri(uri))
+					r -> r.order(-1)
+							.host("**.preservehostheader.org")
+							.filters(f -> f.prefixPath("/httpbin")
+									.preserveHostHeader()
+									.setRequestHeader("Host", "myhost.net"))
+							.uri(uri))
 					.build();
 		}
 	}

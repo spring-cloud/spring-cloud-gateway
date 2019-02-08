@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.actuate;
@@ -49,7 +48,7 @@ public class GatewayControllerEndpointTests {
 	@Test
 	public void testRefresh() {
 		testClient.post()
-				.uri("http://localhost:"+port+"/actuator/gateway/refresh")
+				.uri("http://localhost:" + port + "/actuator/gateway/refresh")
 				.exchange()
 				.expectStatus().isOk();
 	}
@@ -57,7 +56,7 @@ public class GatewayControllerEndpointTests {
 	@Test
 	public void testRoutes() {
 		testClient.get()
-				.uri("http://localhost:"+port+"/actuator/gateway/routes")
+				.uri("http://localhost:" + port + "/actuator/gateway/routes")
 				.exchange()
 				.expectStatus().isOk()
 				.expectBodyList(Map.class)
@@ -70,5 +69,7 @@ public class GatewayControllerEndpointTests {
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	@Import(PermitAllSecurityConfiguration.class)
-	static class TestConfig{}
+	static class TestConfig {
+
+	}
 }

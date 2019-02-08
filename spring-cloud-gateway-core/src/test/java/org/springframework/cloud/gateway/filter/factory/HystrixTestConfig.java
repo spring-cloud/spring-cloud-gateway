@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.filter.factory;
@@ -72,9 +71,11 @@ public class HystrixTestConfig {
 		return builder.routes()
 				.route("hystrix_java", r -> r.host("**.hystrixjava.org")
 						.filters(f -> f.prefixPath("/httpbin")
-								.hystrix(config -> config.setFallbackUri("forward:/fallbackcontroller2")))
+								.hystrix(config -> config
+										.setFallbackUri("forward:/fallbackcontroller2")))
 						.uri(uri))
-				.route("hystrix_connection_failure", r -> r.host("**.hystrixconnectfail.org")
+				.route("hystrix_connection_failure", r -> r
+						.host("**.hystrixconnectfail.org")
 						.filters(f -> f.prefixPath("/httpbin")
 								.hystrix(config -> {
 								}))
@@ -83,7 +84,8 @@ public class HystrixTestConfig {
 				 * This is a route encapsulated in a hystrix command that is ready to wait
 				 * for a response far longer than the underpinning WebClient would.
 				 */
-				.route("hystrix_response_stall", r -> r.host("**.hystrixresponsestall.org")
+				.route("hystrix_response_stall", r -> r
+						.host("**.hystrixresponsestall.org")
 						.filters(f -> f.prefixPath("/httpbin")
 								.hystrix(config -> config.setName("stalling-command")))
 						.uri(uri))

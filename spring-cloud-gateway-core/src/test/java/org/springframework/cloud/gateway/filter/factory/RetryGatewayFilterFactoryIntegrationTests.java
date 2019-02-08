@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.filter.factory;
@@ -74,8 +73,8 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 				.exchange()
 				.expectStatus().is5xxServerError()
 				.expectBody(String.class).consumeWith(result -> {
-					assertThat(result.getResponseBody()).contains("permanently broken");
-                });
+			assertThat(result.getResponseBody()).contains("permanently broken");
+		});
 	}
 
 	@Test
@@ -95,7 +94,7 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 				.uri("/retry?key=post")
 				.exchange()
 				.expectStatus().is5xxServerError();
-				// .expectBody(String.class).isEqualTo("3");
+		// .expectBody(String.class).isEqualTo("3");
 	}
 
 	@Test
@@ -111,7 +110,8 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 				.consumeWith(res -> {
 					Map body = res.getResponseBody();
 					assertThat(body).isNotNull();
-					Map<String, Object> headers = (Map<String, Object>) body.get("headers");
+					Map<String, Object> headers = (Map<String, Object>) body
+							.get("headers");
 					assertThat(headers).containsEntry("X-Forwarded-Host", host);
 				});
 	}
@@ -123,27 +123,27 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 	@RibbonClient(name = "badservice2", configuration = TestBadRibbonConfig.class)
 	public static class TestConfig {
 		Log log = LogFactory.getLog(getClass());
-
+		ConcurrentHashMap<String, AtomicInteger> map = new ConcurrentHashMap<>();
 		@Value("${test.uri}")
 		private String uri;
 
-		ConcurrentHashMap<String, AtomicInteger> map = new ConcurrentHashMap<>();
-
 		@RequestMapping("/httpbin/retryalwaysfail")
-		public ResponseEntity<String> retryalwaysfail(@RequestParam("key") String key, @RequestParam(name = "count", defaultValue = "3") int count) {
+		public ResponseEntity<String> retryalwaysfail(@RequestParam("key") String key,
+				@RequestParam(name = "count", defaultValue = "3") int count) {
 			AtomicInteger num = map.computeIfAbsent(key, s -> new AtomicInteger());
 			int i = num.incrementAndGet();
-			log.warn("Retry count: "+i);
+			log.warn("Retry count: " + i);
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
 					.header("X-Retry-Count", String.valueOf(i))
 					.body("permanently broken");
 		}
 
 		@RequestMapping("/httpbin/retry")
-		public ResponseEntity<String> retry(@RequestParam("key") String key, @RequestParam(name = "count", defaultValue = "3") int count) {
+		public ResponseEntity<String> retry(@RequestParam("key") String key,
+				@RequestParam(name = "count", defaultValue = "3") int count) {
 			AtomicInteger num = map.computeIfAbsent(key, s -> new AtomicInteger());
 			int i = num.incrementAndGet();
-			log.warn("Retry count: "+i);
+			log.warn("Retry count: " + i);
 			String body = String.valueOf(i);
 			if (i < count) {
 				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -163,7 +163,8 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 							.filters(f -> f.prefixPath("/httpbin")
 									.retry(config -> config.setRetries(2)))
 							.uri(uri))
-					.route("retry_with_loadbalancer", r -> r.host("**.retrywithloadbalancer.org")
+					.route("retry_with_loadbalancer", r -> r
+							.host("**.retrywithloadbalancer.org")
 							.filters(f -> f.prefixPath("/httpbin")
 									.retry(config -> config.setRetries(2)))
 							.uri("lb://badservice2"))
@@ -178,7 +179,9 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 
 		@Bean
 		public ServerList<Server> ribbonServerList() {
-			return new StaticServerList<>(new Server("https", "localhost.domain.doesnot.exist", this.port), new Server("localhost", this.port));
+			return new StaticServerList<>(new Server("https",
+					"localhost.domain.doesnot.exist", this.port),
+					new Server("localhost", this.port));
 		}
 	}
 

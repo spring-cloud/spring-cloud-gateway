@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.filter.factory;
@@ -26,15 +25,16 @@ import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.validation.annotation.Validated;
 
-public abstract class AbstractNameValueGatewayFilterFactory extends AbstractGatewayFilterFactory<AbstractNameValueGatewayFilterFactory.NameValueConfig> {
+public abstract class AbstractNameValueGatewayFilterFactory
+		extends AbstractGatewayFilterFactory<AbstractNameValueGatewayFilterFactory.NameValueConfig> {
 
 	public AbstractNameValueGatewayFilterFactory() {
 		super(NameValueConfig.class);
 	}
 
 	public List<String> shortcutFieldOrder() {
-        return Arrays.asList(GatewayFilter.NAME_KEY, GatewayFilter.VALUE_KEY);
-    }
+		return Arrays.asList(GatewayFilter.NAME_KEY, GatewayFilter.VALUE_KEY);
+	}
 
 
 	@Validated

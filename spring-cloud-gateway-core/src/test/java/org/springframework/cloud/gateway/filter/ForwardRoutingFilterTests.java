@@ -1,3 +1,19 @@
+/*
+ * Copyright 2013-2019 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.springframework.cloud.gateway.filter;
 
 import java.net.URI;
@@ -49,7 +65,8 @@ public class ForwardRoutingFilterTests {
 
 	@Before
 	public void setup() {
-		exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localendpoint").build());
+		exchange = MockServerWebExchange
+				.from(MockServerHttpRequest.get("localendpoint").build());
 		when(objectProvider.getIfAvailable()).thenReturn(this.dispatcherHandler);
 	}
 
@@ -66,7 +83,8 @@ public class ForwardRoutingFilterTests {
 
 	@Test
 	public void shouldFilterWhenGatewayRequestUrlSchemeIsForward() {
-		URI uri = UriComponentsBuilder.fromUriString("forward://endpoint").build().toUri();
+		URI uri = UriComponentsBuilder.fromUriString("forward://endpoint").build()
+				.toUri();
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, uri);
 
 		assertThat(exchange.getAttributes().get(GATEWAY_ALREADY_ROUTED_ATTR)).isNull();
@@ -76,16 +94,19 @@ public class ForwardRoutingFilterTests {
 		verifyNoMoreInteractions(chain);
 		verify(dispatcherHandler).handle(exchange);
 
-		assertThat(exchange.getAttributes().get(GATEWAY_ALREADY_ROUTED_ATTR)).isEqualTo(true);
+		assertThat(exchange.getAttributes().get(GATEWAY_ALREADY_ROUTED_ATTR))
+				.isEqualTo(true);
 	}
 
 	@Test
 	public void shouldFilterAndKeepHostPathAsSpecified() {
 
-		URI uri = UriComponentsBuilder.fromUriString("forward://host/outage").build().toUri();
+		URI uri = UriComponentsBuilder.fromUriString("forward://host/outage").build()
+				.toUri();
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, uri);
 
-		ArgumentCaptor<ServerWebExchange> captor = ArgumentCaptor.forClass(ServerWebExchange.class);
+		ArgumentCaptor<ServerWebExchange> captor = ArgumentCaptor
+				.forClass(ServerWebExchange.class);
 
 		forwardRoutingFilter.filter(exchange, chain);
 

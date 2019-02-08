@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.filter.factory;
@@ -28,8 +27,6 @@ import java.util.function.Predicate;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.reactivestreams.Publisher;
-import org.springframework.cloud.gateway.support.TimeoutException;
-import org.springframework.http.HttpHeaders;
 import reactor.core.publisher.Mono;
 import reactor.retry.Repeat;
 import reactor.retry.RepeatContext;
@@ -37,7 +34,7 @@ import reactor.retry.Retry;
 import reactor.retry.RetryContext;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
-import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
+import org.springframework.cloud.gateway.support.TimeoutException;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatus.Series;
@@ -49,11 +46,18 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.G
 
 public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<RetryGatewayFilterFactory.RetryConfig> {
 
+	/**
+	 * Retry iteration key.
+	 */
 	public static final String RETRY_ITERATION_KEY = "retry_iteration";
 	private static final Log log = LogFactory.getLog(RetryGatewayFilterFactory.class);
 
 	public RetryGatewayFilterFactory() {
 		super(RetryConfig.class);
+	}
+
+	private static <T> List<T> toList(T... items) {
+		return new ArrayList<>(Arrays.asList(items));
 	}
 
 	@Override
@@ -70,7 +74,8 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 
 				HttpStatus statusCode = exchange.getResponse().getStatusCode();
 
-				boolean retryableStatusCode = retryConfig.getStatuses().contains(statusCode);
+				boolean retryableStatusCode = retryConfig.getStatuses()
+						.contains(statusCode);
 
 				if (!retryableStatusCode && statusCode != null) { // null status code might mean a network exception?
 					// try the series
@@ -79,7 +84,8 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 				}
 
 				trace("retryableStatusCode: %b, statusCode %s, configured statuses %s, configured series %s",
-						retryableStatusCode, statusCode, retryConfig.getStatuses(), retryConfig.getSeries());
+						retryableStatusCode, statusCode, retryConfig
+								.getStatuses(), retryConfig.getSeries());
 
 				HttpMethod httpMethod = exchange.getRequest().getMethod();
 				boolean retryableMethod = retryConfig.getMethods().contains(httpMethod);
@@ -105,12 +111,14 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 				for (Class<? extends Throwable> clazz : retryConfig.getExceptions()) {
 					if (clazz.isInstance(context.exception())) {
 						trace("exception is retryable %s, configured exceptions",
-								context.exception().getClass().getName(), retryConfig.getExceptions());
+								context.exception().getClass().getName(), retryConfig
+										.getExceptions());
 						return true;
 					}
 				}
 				trace("exception is not retryable %s, configured exceptions",
-						context.exception().getClass().getName(), retryConfig.getExceptions());
+						context.exception().getClass().getName(), retryConfig
+								.getExceptions());
 				return false;
 			};
 			exceptionRetry = Retry.onlyIf(retryContextPredicate)
@@ -134,8 +142,11 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 
 	public void reset(ServerWebExchange exchange) {
 		//TODO: what else to do to reset SWE?
-		Set<String> addedHeaders = exchange.getAttributeOrDefault(CLIENT_RESPONSE_HEADER_NAMES, Collections.emptySet());
-		addedHeaders.forEach(header -> exchange.getResponse().getHeaders().remove(header));
+		Set<String> addedHeaders = exchange
+				.getAttributeOrDefault(CLIENT_RESPONSE_HEADER_NAMES, Collections
+						.emptySet());
+		addedHeaders
+				.forEach(header -> exchange.getResponse().getHeaders().remove(header));
 		exchange.getAttributes().remove(GATEWAY_ALREADY_ROUTED_ATTR);
 	}
 
@@ -144,27 +155,30 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 			trace("Entering retry-filter");
 
 			// chain.filter returns a Mono<Void>
-            Publisher<Void> publisher = chain.filter(exchange)
-                    //.log("retry-filter", Level.INFO)
-                    .doOnSuccessOrError((aVoid, throwable) -> {
-                        int iteration = exchange.getAttributeOrDefault(RETRY_ITERATION_KEY, -1);
+			Publisher<Void> publisher = chain.filter(exchange)
+					//.log("retry-filter", Level.INFO)
+					.doOnSuccessOrError((aVoid, throwable) -> {
+						int iteration = exchange
+								.getAttributeOrDefault(RETRY_ITERATION_KEY, -1);
 						int newIteration = iteration + 1;
 						trace("setting new iteration in attr %d", newIteration);
 						exchange.getAttributes().put(RETRY_ITERATION_KEY, newIteration);
-                    });
+					});
 
-            if (retry != null) {
+			if (retry != null) {
 				// retryWhen returns a Mono<Void>
 				// retry needs to go before repeat
-				publisher = ((Mono<Void>)publisher).retryWhen(retry.withApplicationContext(exchange));
+				publisher = ((Mono<Void>) publisher)
+						.retryWhen(retry.withApplicationContext(exchange));
 			}
 			if (repeat != null) {
-            	// repeatWhen returns a Flux<Void>
+				// repeatWhen returns a Flux<Void>
 				// so this needs to be last and the variable a Publisher<Void>
-				publisher = ((Mono<Void>)publisher).repeatWhen(repeat.withApplicationContext(exchange));
+				publisher = ((Mono<Void>) publisher)
+						.repeatWhen(repeat.withApplicationContext(exchange));
 			}
 
-            return Mono.fromDirect(publisher);
+			return Mono.fromDirect(publisher);
 		};
 	}
 
@@ -174,54 +188,26 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 		}
 	}
 
-	private static <T> List<T> toList(T... items) {
-		return new ArrayList<>(Arrays.asList(items));
-	}
-
 	@SuppressWarnings("unchecked")
 	public static class RetryConfig {
 		private int retries = 3;
-		
+
 		private List<Series> series = toList(Series.SERVER_ERROR);
-		
+
 		private List<HttpStatus> statuses = new ArrayList<>();
-		
+
 		private List<HttpMethod> methods = toList(HttpMethod.GET);
 
 		private List<Class<? extends Throwable>> exceptions = toList(IOException.class, TimeoutException.class);
-
-		public RetryConfig setRetries(int retries) {
-			this.retries = retries;
-			return this;
-		}
-		
-		public RetryConfig setSeries(Series... series) {
-			this.series = Arrays.asList(series);
-			return this;
-		}
-		
-		public RetryConfig setStatuses(HttpStatus... statuses) {
-			this.statuses = Arrays.asList(statuses);
-			return this;
-		}
-		
-		public RetryConfig setMethods(HttpMethod... methods) {
-			this.methods = Arrays.asList(methods);
-			return this;
-		}
 
 		public RetryConfig allMethods() {
 			return setMethods(HttpMethod.values());
 		}
 
-		public RetryConfig setExceptions(Class<? extends Throwable>... exceptions) {
-			this.exceptions = Arrays.asList(exceptions);
-			return this;
-		}
-
 		public void validate() {
 			Assert.isTrue(this.retries > 0, "retries must be greater than 0");
-			Assert.isTrue(!this.series.isEmpty() || !this.statuses.isEmpty() || !this.exceptions.isEmpty(),
+			Assert.isTrue(!this.series.isEmpty() || !this.statuses
+							.isEmpty() || !this.exceptions.isEmpty(),
 					"series, status and exceptions may not all be empty");
 			Assert.notEmpty(this.methods, "methods may not be empty");
 		}
@@ -230,20 +216,45 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 			return retries;
 		}
 
+		public RetryConfig setRetries(int retries) {
+			this.retries = retries;
+			return this;
+		}
+
 		public List<Series> getSeries() {
 			return series;
+		}
+
+		public RetryConfig setSeries(Series... series) {
+			this.series = Arrays.asList(series);
+			return this;
 		}
 
 		public List<HttpStatus> getStatuses() {
 			return statuses;
 		}
 
+		public RetryConfig setStatuses(HttpStatus... statuses) {
+			this.statuses = Arrays.asList(statuses);
+			return this;
+		}
+
 		public List<HttpMethod> getMethods() {
 			return methods;
 		}
 
+		public RetryConfig setMethods(HttpMethod... methods) {
+			this.methods = Arrays.asList(methods);
+			return this;
+		}
+
 		public List<Class<? extends Throwable>> getExceptions() {
 			return exceptions;
+		}
+
+		public RetryConfig setExceptions(Class<? extends Throwable>... exceptions) {
+			this.exceptions = Arrays.asList(exceptions);
+			return this;
 		}
 
 	}

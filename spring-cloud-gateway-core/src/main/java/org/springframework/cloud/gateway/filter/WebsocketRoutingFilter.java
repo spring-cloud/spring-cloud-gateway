@@ -1,3 +1,19 @@
+/*
+ * Copyright 2017-2019 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.springframework.cloud.gateway.filter;
 
 import java.net.URI;
@@ -33,9 +49,12 @@ import static org.springframework.util.StringUtils.commaDelimitedListToStringArr
  * @author Spencer Gibb
  */
 public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
-	private static final Log log = LogFactory.getLog(WebsocketRoutingFilter.class);
-	public static final String SEC_WEBSOCKET_PROTOCOL = "Sec-WebSocket-Protocol";
 
+	/**
+	 * Sec-Websocket protocol.
+	 */
+	public static final String SEC_WEBSOCKET_PROTOCOL = "Sec-WebSocket-Protocol";
+	private static final Log log = LogFactory.getLog(WebsocketRoutingFilter.class);
 	private final WebSocketClient webSocketClient;
 	private final WebSocketService webSocketService;
 	private final ObjectProvider<List<HttpHeadersFilter>> headersFiltersProvider;
@@ -43,11 +62,17 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 	private volatile List<HttpHeadersFilter> headersFilters;
 
 	public WebsocketRoutingFilter(WebSocketClient webSocketClient,
-								  WebSocketService webSocketService,
-								  ObjectProvider<List<HttpHeadersFilter>> headersFiltersProvider) {
+			WebSocketService webSocketService,
+			ObjectProvider<List<HttpHeadersFilter>> headersFiltersProvider) {
 		this.webSocketClient = webSocketClient;
 		this.webSocketService = webSocketService;
 		this.headersFiltersProvider = headersFiltersProvider;
+	}
+
+	/* for testing */
+	static String convertHttpToWs(String scheme) {
+		scheme = scheme.toLowerCase();
+		return "http".equals(scheme) ? "ws" : "https".equals(scheme) ? "wss" : scheme;
 	}
 
 	@Override
@@ -63,7 +88,8 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 		URI requestUrl = exchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
 		String scheme = requestUrl.getScheme();
 
-		if (isAlreadyRouted(exchange) || (!"ws".equals(scheme) && !"wss".equals(scheme))) {
+		if (isAlreadyRouted(exchange) || (!"ws".equals(scheme) && !"wss"
+				.equals(scheme))) {
 			return chain.filter(exchange);
 		}
 		setAlreadyRouted(exchange);
@@ -75,7 +101,8 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 		List<String> protocols = headers.get(SEC_WEBSOCKET_PROTOCOL);
 		if (protocols != null) {
 			protocols = headers.get(SEC_WEBSOCKET_PROTOCOL).stream()
-					.flatMap(header -> Arrays.stream(commaDelimitedListToStringArray(header)))
+					.flatMap(header -> Arrays
+							.stream(commaDelimitedListToStringArray(header)))
 					.map(String::trim)
 					.collect(Collectors.toList());
 		}
@@ -87,13 +114,16 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 
 	private List<HttpHeadersFilter> getHeadersFilters() {
 		if (this.headersFilters == null) {
-			this.headersFilters = this.headersFiltersProvider.getIfAvailable(ArrayList::new);
+			this.headersFilters = this.headersFiltersProvider
+					.getIfAvailable(ArrayList::new);
 
 			headersFilters.add((headers, exchange) -> {
 				HttpHeaders filtered = new HttpHeaders();
 				headers.entrySet().stream()
-						.filter(entry -> !entry.getKey().toLowerCase().startsWith("sec-websocket"))
-						.forEach(header -> filtered.addAll(header.getKey(), header.getValue()));
+						.filter(entry -> !entry.getKey().toLowerCase()
+								.startsWith("sec-websocket"))
+						.forEach(header -> filtered
+								.addAll(header.getKey(), header.getValue()));
 				return filtered;
 			});
 		}
@@ -107,19 +137,16 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 		String scheme = requestUrl.getScheme().toLowerCase();
 		String upgrade = exchange.getRequest().getHeaders().getUpgrade();
 		// change the scheme if the socket client send a "http" or "https"
-		if ("WebSocket".equalsIgnoreCase(upgrade) && ("http".equals(scheme) || "https".equals(scheme))) {
+		if ("WebSocket".equalsIgnoreCase(upgrade) && ("http".equals(scheme) || "https"
+				.equals(scheme))) {
 			String wsScheme = convertHttpToWs(scheme);
-			URI wsRequestUrl = UriComponentsBuilder.fromUri(requestUrl).scheme(wsScheme).build().toUri();
+			URI wsRequestUrl = UriComponentsBuilder.fromUri(requestUrl).scheme(wsScheme)
+					.build().toUri();
 			exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, wsRequestUrl);
 			if (log.isTraceEnabled()) {
 				log.trace("changeSchemeTo:[" + wsRequestUrl + "]");
 			}
 		}
-	}
-
-	/* for testing */ static String convertHttpToWs(String scheme) {
-		scheme = scheme.toLowerCase();
-		return "http".equals(scheme) ? "ws" : "https".equals(scheme) ? "wss" : scheme;
 	}
 
 	private static class ProxyWebSocketHandler implements WebSocketHandler {
@@ -129,13 +156,14 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 		private final HttpHeaders headers;
 		private final List<String> subProtocols;
 
-		public ProxyWebSocketHandler(URI url, WebSocketClient client, HttpHeaders headers, List<String> protocols) {
+		ProxyWebSocketHandler(URI url, WebSocketClient client, HttpHeaders headers, List<String> protocols) {
 			this.client = client;
 			this.url = url;
 			this.headers = headers;
 			if (protocols != null) {
 				this.subProtocols = protocols;
-			} else {
+			}
+			else {
 				this.subProtocols = Collections.emptyList();
 			}
 		}
@@ -154,10 +182,11 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 					// Use retain() for Reactor Netty
 					Mono<Void> proxySessionSend = proxySession
 							.send(session.receive().doOnNext(WebSocketMessage::retain));
-                            // .log("proxySessionSend", Level.FINE);
+					// .log("proxySessionSend", Level.FINE);
 					Mono<Void> serverSessionSend = session
-							.send(proxySession.receive().doOnNext(WebSocketMessage::retain));
-                            // .log("sessionSend", Level.FINE);
+							.send(proxySession.receive()
+									.doOnNext(WebSocketMessage::retain));
+					// .log("sessionSend", Level.FINE);
 					return Mono.zip(proxySessionSend, serverSessionSend).then();
 				}
 

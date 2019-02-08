@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.filter.factory;
@@ -89,7 +88,8 @@ public class HystrixGatewayFilterFactoryTests extends BaseWebClientTests {
 				.header("Host", "www.hystrixexceptionfallback.org")
 				.exchange()
 				.expectStatus().isOk()
-				.expectHeader().value(RETRIEVED_EXCEPTION, containsString("HystrixTimeoutException"));
+				.expectHeader()
+				.value(RETRIEVED_EXCEPTION, containsString("HystrixTimeoutException"));
 	}
 
 	@Test

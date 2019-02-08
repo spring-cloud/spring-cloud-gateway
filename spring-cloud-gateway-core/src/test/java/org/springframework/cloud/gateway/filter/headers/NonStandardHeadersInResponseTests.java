@@ -12,15 +12,18 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.filter.headers;
+
+import java.net.URI;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import reactor.core.publisher.Mono;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -37,18 +40,14 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponentsBuilder;
-import reactor.core.publisher.Mono;
 
-import java.net.URI;
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(
 		webEnvironment = DEFINED_PORT,
-		properties = {"server.port=62175"}
+		properties = { "server.port=62175" }
 )
 @DirtiesContext
 public class NonStandardHeadersInResponseTests extends BaseWebClientTests {
@@ -68,10 +67,11 @@ public class NonStandardHeadersInResponseTests extends BaseWebClientTests {
 				.get()
 				.uri(uri)
 				.exchange()
-				.map(clientResponse -> clientResponse.headers().asHttpHeaders().getFirst(HttpHeaders.CONTENT_TYPE))
+				.map(clientResponse -> clientResponse.headers().asHttpHeaders()
+						.getFirst(HttpHeaders.CONTENT_TYPE))
 				.block();
 
-		assertEquals(CONTENT_TYPE_IMAGE, contentType);
+		assertThat(contentType).isEqualTo(CONTENT_TYPE_IMAGE);
 	}
 
 	@EnableAutoConfiguration
@@ -91,7 +91,8 @@ public class NonStandardHeadersInResponseTests extends BaseWebClientTests {
 				log.info("addNonStandardHeaderFilter pre phase");
 				return chain.filter(exchange).then(Mono.fromRunnable(() -> {
 					log.info("addNonStandardHeaderFilter post phase");
-					exchange.getResponse().getHeaders().set(HttpHeaders.CONTENT_TYPE, CONTENT_TYPE_IMAGE);
+					exchange.getResponse().getHeaders()
+							.set(HttpHeaders.CONTENT_TYPE, CONTENT_TYPE_IMAGE);
 				}));
 			};
 		}

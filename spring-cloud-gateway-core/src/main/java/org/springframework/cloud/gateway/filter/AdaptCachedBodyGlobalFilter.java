@@ -12,28 +12,33 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.filter;
+
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import org.springframework.core.Ordered;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
 import org.springframework.web.server.ServerWebExchange;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 public class AdaptCachedBodyGlobalFilter implements GlobalFilter, Ordered {
 
+	/**
+	 * Cached request body key.
+	 */
 	public static final String CACHED_REQUEST_BODY_KEY = "cachedRequestBody";
 
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 
-		Flux<DataBuffer> body = exchange.getAttributeOrDefault(CACHED_REQUEST_BODY_KEY, null);
+		Flux<DataBuffer> body = exchange
+				.getAttributeOrDefault(CACHED_REQUEST_BODY_KEY, null);
 		if (body != null) {
-			ServerHttpRequestDecorator decorator = new ServerHttpRequestDecorator(exchange.getRequest()) {
+			ServerHttpRequestDecorator decorator = new ServerHttpRequestDecorator(exchange
+					.getRequest()) {
 				@Override
 				public Flux<DataBuffer> getBody() {
 					return body;

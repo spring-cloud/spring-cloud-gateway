@@ -12,16 +12,15 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.support;
 
-import org.springframework.core.convert.converter.Converter;
-
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+
+import org.springframework.core.convert.converter.Converter;
 
 public class StringToZonedDateTimeConverter implements Converter<String, ZonedDateTime> {
 	@Override
@@ -32,7 +31,8 @@ public class StringToZonedDateTimeConverter implements Converter<String, ZonedDa
 
 			dateTime = Instant.ofEpochMilli(epoch).atOffset(ZoneOffset.ofTotalSeconds(0))
 					.toZonedDateTime();
-		} catch (NumberFormatException e) {
+		}
+		catch (NumberFormatException e) {
 			// try ZonedDateTime instead
 			dateTime = ZonedDateTime.parse(source);
 		}

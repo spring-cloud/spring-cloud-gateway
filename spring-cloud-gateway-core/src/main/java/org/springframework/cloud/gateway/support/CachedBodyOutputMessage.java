@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.support;
@@ -84,6 +83,7 @@ public class CachedBodyOutputMessage implements ReactiveHttpOutputMessage {
 	/**
 	 * Return the request body, or an error stream if the body was never set
 	 * or when {@link #setWriteHandler} is configured.
+	 * @return body as {@link Flux}
 	 */
 	public Flux<DataBuffer> getBody() {
 		return this.body;

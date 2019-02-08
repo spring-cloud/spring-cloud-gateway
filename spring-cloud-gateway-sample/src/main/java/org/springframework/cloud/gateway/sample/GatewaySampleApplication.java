@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.sample;
@@ -45,9 +44,14 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 @Import(AdditionalRoutes.class)
 public class GatewaySampleApplication {
 
-	public static final String HELLO_FROM_FAKE_ACTUATOR_METRICS_GATEWAY_REQUESTS = "hello from fake /actuator/metrics/gateway.requests";
+	public static final String HELLO_FROM_FAKE_ACTUATOR_METRICS_GATEWAY_REQUESTS
+			= "hello from fake /actuator/metrics/gateway.requests";
 	@Value("${test.uri:http://httpbin.org:80}")
 	String uri;
+
+	public static void main(String[] args) {
+		SpringApplication.run(GatewaySampleApplication.class, args);
+	}
 
 	@Bean
 	public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
@@ -82,7 +86,7 @@ public class GatewaySampleApplication {
 							.addResponseHeader("X-TestHeader", "rewrite_request_upper")
 							.modifyRequestBody(String.class, String.class,
 									(exchange, s) -> {
-										return Mono.just(s.toUpperCase()+s.toUpperCase());
+										return Mono.just(s.toUpperCase() + s.toUpperCase());
 									})
 					).uri(uri)
 				)
@@ -138,16 +142,18 @@ public class GatewaySampleApplication {
 	public RouterFunction<ServerResponse> testWhenMetricPathIsNotMeet() {
 		RouterFunction<ServerResponse> route = RouterFunctions.route(
 				RequestPredicates.path("/actuator/metrics/gateway.requests"),
-				request -> ServerResponse.ok().body(BodyInserters.fromObject(HELLO_FROM_FAKE_ACTUATOR_METRICS_GATEWAY_REQUESTS)));
+				request -> ServerResponse.ok().body(BodyInserters
+						.fromObject(HELLO_FROM_FAKE_ACTUATOR_METRICS_GATEWAY_REQUESTS)));
 		return route;
 	}
 
 	static class Hello {
 		String message;
 
-		public Hello() { }
+		Hello() {
+		}
 
-		public Hello(String message) {
+		Hello(String message) {
 			this.message = message;
 		}
 
@@ -158,9 +164,5 @@ public class GatewaySampleApplication {
 		public void setMessage(String message) {
 			this.message = message;
 		}
-	}
-
-	public static void main(String[] args) {
-		SpringApplication.run(GatewaySampleApplication.class, args);
 	}
 }

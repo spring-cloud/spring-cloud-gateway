@@ -101,8 +101,9 @@ public class GatewayFilterSpec extends UriSpec {
 	public GatewayFilterSpec filter(GatewayFilter gatewayFilter, int order) {
 		if (gatewayFilter instanceof Ordered) {
 			this.routeBuilder.filter(gatewayFilter);
-			log.warn("GatewayFilter already implements ordered "+gatewayFilter.getClass()
-					+ "ignoring order parameter: "+order);
+			log.warn("GatewayFilter already implements ordered " + gatewayFilter
+					.getClass()
+					+ "ignoring order parameter: " + order);
 			return this;
 		}
 		this.routeBuilder.filter(new OrderedGatewayFilter(gatewayFilter, order));
@@ -115,7 +116,8 @@ public class GatewayFilterSpec extends UriSpec {
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
 	public GatewayFilterSpec filters(GatewayFilter... gatewayFilters) {
-		List<GatewayFilter> filters = transformToOrderedFilters(Stream.of(gatewayFilters));
+		List<GatewayFilter> filters = transformToOrderedFilters(Stream
+				.of(gatewayFilters));
 		this.routeBuilder.filters(filters);
 		return this;
 	}
@@ -125,7 +127,8 @@ public class GatewayFilterSpec extends UriSpec {
 				.map(filter -> {
 					if (filter instanceof Ordered) {
 						return filter;
-					} else {
+					}
+					else {
 						return new OrderedGatewayFilter(filter, 0);
 					}
 				}).collect(Collectors.toList());
@@ -222,8 +225,10 @@ public class GatewayFilterSpec extends UriSpec {
 	 */
 	public <T, R> GatewayFilterSpec modifyRequestBody(Class<T> inClass, Class<R> outClass, String newContentType, RewriteFunction<T, R> rewriteFunction) {
 		return filter(getBean(ModifyRequestBodyGatewayFilterFactory.class)
-				.apply(c -> c.setRewriteFunction(inClass, outClass, rewriteFunction).setContentType(newContentType)));
+				.apply(c -> c.setRewriteFunction(inClass, outClass, rewriteFunction)
+						.setContentType(newContentType)));
 	}
+
 	/**
 	 * A filter that can be used to modify the response body
 	 * This filter is BETA and may be subject to change in a future release.
@@ -253,7 +258,8 @@ public class GatewayFilterSpec extends UriSpec {
 	//TODO: setup custom spec
 	public <T, R> GatewayFilterSpec modifyResponseBody(Class<T> inClass, Class<R> outClass, String newContentType, RewriteFunction<T, R> rewriteFunction) {
 		return filter(getBean(ModifyResponseBodyGatewayFilterFactory.class)
-				.apply(c -> c.setRewriteFunction(inClass, outClass, rewriteFunction).setNewContentType(newContentType)));
+				.apply(c -> c.setRewriteFunction(inClass, outClass, rewriteFunction)
+						.setNewContentType(newContentType)));
 	}
 
 	/**
@@ -322,8 +328,10 @@ public class GatewayFilterSpec extends UriSpec {
 	 */
 	public GatewayFilterSpec redirect(HttpStatus status, URL url) {
 		try {
-			return filter(getBean(RedirectToGatewayFilterFactory.class).apply(status, url.toURI()));
-		} catch (URISyntaxException e) {
+			return filter(getBean(RedirectToGatewayFilterFactory.class)
+					.apply(status, url.toURI()));
+		}
+		catch (URISyntaxException e) {
 			throw new IllegalArgumentException("Invalid URL", e);
 		}
 	}
@@ -354,43 +362,16 @@ public class GatewayFilterSpec extends UriSpec {
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
 	public GatewayFilterSpec requestRateLimiter(Consumer<RequestRateLimiterGatewayFilterFactory.Config> configConsumer) {
-		return filter(getBean(RequestRateLimiterGatewayFilterFactory.class).apply(configConsumer));
+		return filter(getBean(RequestRateLimiterGatewayFilterFactory.class)
+				.apply(configConsumer));
 	}
 
 	/**
 	 * A filter that will set up a request rate limiter for a route.
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
-    public RequestRateLimiterSpec requestRateLimiter() {
+	public RequestRateLimiterSpec requestRateLimiter() {
 		return new RequestRateLimiterSpec(getBean(RequestRateLimiterGatewayFilterFactory.class));
-	}
-
-	public class RequestRateLimiterSpec {
-		private final RequestRateLimiterGatewayFilterFactory filter;
-
-		public RequestRateLimiterSpec(RequestRateLimiterGatewayFilterFactory filter) {
-			this.filter = filter;
-		}
-
-		public <C, R extends RateLimiter<C>> RequestRateLimiterSpec rateLimiter(Class<R> rateLimiterType,
-																				Consumer<C> configConsumer) {
-			R rateLimiter = getBean(rateLimiterType);
-			C config = rateLimiter.newConfig();
-			configConsumer.accept(config);
-			rateLimiter.getConfig().put(routeBuilder.getId(), config);
-			return this;
-		}
-
-		public GatewayFilterSpec configure(Consumer<RequestRateLimiterGatewayFilterFactory.Config> configConsumer) {
-			filter(this.filter.apply(configConsumer));
-			return GatewayFilterSpec.this;
-		}
-
-		// useful when nothing to configure
-		public GatewayFilterSpec and() {
-			return configure(config -> {});
-		}
-
 	}
 
 	/**
@@ -442,7 +423,8 @@ public class GatewayFilterSpec extends UriSpec {
 	 */
 	@SuppressWarnings("unchecked")
 	public GatewayFilterSpec secureHeaders() {
-		return filter(getBean(SecureHeadersGatewayFilterFactory.class).apply(c -> {}));
+		return filter(getBean(SecureHeadersGatewayFilterFactory.class).apply(c -> {
+		}));
 	}
 
 	/**
@@ -487,7 +469,8 @@ public class GatewayFilterSpec extends UriSpec {
 	 */
 	public GatewayFilterSpec rewriteResponseHeader(String headerName, String regex, String replacement) {
 		return filter(getBean(RewriteResponseHeaderGatewayFilterFactory.class)
-				.apply(c -> c.setReplacement(replacement).setRegexp(regex).setName(headerName)));
+				.apply(c -> c.setReplacement(replacement).setRegexp(regex)
+						.setName(headerName)));
 	}
 
 	/**
@@ -528,7 +511,8 @@ public class GatewayFilterSpec extends UriSpec {
 	 */
 	@SuppressWarnings("unchecked")
 	public GatewayFilterSpec saveSession() {
-		return filter(getBean(SaveSessionGatewayFilterFactory.class).apply(c -> {}));
+		return filter(getBean(SaveSessionGatewayFilterFactory.class).apply(c -> {
+		}));
 	}
 
 	/**
@@ -571,14 +555,14 @@ public class GatewayFilterSpec extends UriSpec {
 				}));
 	}
 
-
 	/**
 	 * A filter that sets the maximum permissible size of a Request.
 	 * @param size the maximum size of a request
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
 	public GatewayFilterSpec setRequestSize(Long size) {
-		return filter(getBean(RequestSizeGatewayFilterFactory.class).apply(c -> c.setMaxSize(size)));
+		return filter(getBean(RequestSizeGatewayFilterFactory.class)
+				.apply(c -> c.setMaxSize(size)));
 	}
 
 	/**
@@ -613,11 +597,41 @@ public class GatewayFilterSpec extends UriSpec {
 		FallbackHeadersGatewayFilterFactory factory;
 		try {
 			factory = getBean(FallbackHeadersGatewayFilterFactory.class);
-		} catch (NoSuchBeanDefinitionException e) {
+		}
+		catch (NoSuchBeanDefinitionException e) {
 			throw new NoSuchBeanDefinitionException(FallbackHeadersGatewayFilterFactory.class,
 					"This is probably because Hystrix is missing from the classpath, which can be resolved by adding dependency on 'org.springframework.cloud:spring-cloud-starter-netflix-hystrix'");
 		}
 		return factory;
+	}
+
+	public class RequestRateLimiterSpec {
+		private final RequestRateLimiterGatewayFilterFactory filter;
+
+		public RequestRateLimiterSpec(RequestRateLimiterGatewayFilterFactory filter) {
+			this.filter = filter;
+		}
+
+		public <C, R extends RateLimiter<C>> RequestRateLimiterSpec rateLimiter(Class<R> rateLimiterType,
+				Consumer<C> configConsumer) {
+			R rateLimiter = getBean(rateLimiterType);
+			C config = rateLimiter.newConfig();
+			configConsumer.accept(config);
+			rateLimiter.getConfig().put(routeBuilder.getId(), config);
+			return this;
+		}
+
+		public GatewayFilterSpec configure(Consumer<RequestRateLimiterGatewayFilterFactory.Config> configConsumer) {
+			filter(this.filter.apply(configConsumer));
+			return GatewayFilterSpec.this;
+		}
+
+		// useful when nothing to configure
+		public GatewayFilterSpec and() {
+			return configure(config -> {
+			});
+		}
+
 	}
 
 }

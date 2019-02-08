@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.support;
@@ -23,7 +22,15 @@ import org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory
 /**
  * @author Spencer Gibb
  */
-public class NameUtils {
+public final class NameUtils {
+
+	private NameUtils() {
+		throw new AssertionError("Must not instantiate utility class.");
+	}
+
+	/**
+	 * Generated name prefix.
+	 */
 	public static final String GENERATED_NAME_PREFIX = "_genkey_";
 
 	public static String generateName(int i) {
@@ -31,11 +38,13 @@ public class NameUtils {
 	}
 
 	public static String normalizeRoutePredicateName(Class<? extends RoutePredicateFactory> clazz) {
-		return removeGarbage(clazz.getSimpleName().replace(RoutePredicateFactory.class.getSimpleName(), ""));
+		return removeGarbage(clazz.getSimpleName()
+				.replace(RoutePredicateFactory.class.getSimpleName(), ""));
 	}
 
 	public static String normalizeFilterFactoryName(Class<? extends GatewayFilterFactory> clazz) {
-		return removeGarbage(clazz.getSimpleName().replace(GatewayFilterFactory.class.getSimpleName(), ""));
+		return removeGarbage(clazz.getSimpleName()
+				.replace(GatewayFilterFactory.class.getSimpleName(), ""));
 	}
 
 	private static String removeGarbage(String s) {

@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.route;
@@ -51,6 +50,16 @@ public class Route implements Ordered {
 
 	private final List<GatewayFilter> gatewayFilters;
 
+	private Route(String id, URI uri, int order,
+			AsyncPredicate<ServerWebExchange> predicate,
+			List<GatewayFilter> gatewayFilters) {
+		this.id = id;
+		this.uri = uri;
+		this.order = order;
+		this.predicate = predicate;
+		this.gatewayFilters = gatewayFilters;
+	}
+
 	public static Builder builder() {
 		return new Builder();
 	}
@@ -73,12 +82,57 @@ public class Route implements Ordered {
 				.order(routeDefinition.getOrder());
 	}
 
-	private Route(String id, URI uri, int order, AsyncPredicate<ServerWebExchange> predicate, List<GatewayFilter> gatewayFilters) {
-		this.id = id;
-		this.uri = uri;
-		this.order = order;
-		this.predicate = predicate;
-		this.gatewayFilters = gatewayFilters;
+	public String getId() {
+		return this.id;
+	}
+
+	public URI getUri() {
+		return this.uri;
+	}
+
+	public int getOrder() {
+		return order;
+	}
+
+	public AsyncPredicate<ServerWebExchange> getPredicate() {
+		return this.predicate;
+	}
+
+	public List<GatewayFilter> getFilters() {
+		return Collections.unmodifiableList(this.gatewayFilters);
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		Route route = (Route) o;
+		return Objects.equals(id, route.id) &&
+				Objects.equals(uri, route.uri) &&
+				Objects.equals(order, route.order) &&
+				Objects.equals(predicate, route.predicate) &&
+				Objects.equals(gatewayFilters, route.gatewayFilters);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(id, uri, predicate, gatewayFilters);
+	}
+
+	@Override
+	public String toString() {
+		final StringBuffer sb = new StringBuffer("Route{");
+		sb.append("id='").append(id).append('\'');
+		sb.append(", uri=").append(uri);
+		sb.append(", order=").append(order);
+		sb.append(", predicate=").append(predicate);
+		sb.append(", gatewayFilters=").append(gatewayFilters);
+		sb.append('}');
+		return sb.toString();
 	}
 
 	public abstract static class AbstractBuilder<B extends AbstractBuilder<B>> {
@@ -90,7 +144,8 @@ public class Route implements Ordered {
 
 		protected List<GatewayFilter> gatewayFilters = new ArrayList<>();
 
-		protected AbstractBuilder() {}
+		protected AbstractBuilder() {
+		}
 
 		protected abstract B getThis();
 
@@ -128,7 +183,6 @@ public class Route implements Ordered {
 		}
 
 		public abstract AsyncPredicate<ServerWebExchange> getPredicate();
-
 
 
 		public B replaceFilters(List<GatewayFilter> gatewayFilters) {
@@ -233,54 +287,5 @@ public class Route implements Ordered {
 			return this;
 		}
 
-	}
-
-	public String getId() {
-		return this.id;
-	}
-
-	public URI getUri() {
-		return this.uri;
-	}
-
-	public int getOrder() {
-		return order;
-	}
-
-	public AsyncPredicate<ServerWebExchange> getPredicate() {
-		return this.predicate;
-	}
-
-	public List<GatewayFilter> getFilters() {
-		return Collections.unmodifiableList(this.gatewayFilters);
-	}
-
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
-		Route route = (Route) o;
-		return Objects.equals(id, route.id) &&
-				Objects.equals(uri, route.uri) &&
-				Objects.equals(order, route.order) &&
-				Objects.equals(predicate, route.predicate) &&
-				Objects.equals(gatewayFilters, route.gatewayFilters);
-	}
-
-	@Override
-	public int hashCode() {
-		return Objects.hash(id, uri, predicate, gatewayFilters);
-	}
-
-	@Override
-	public String toString() {
-		final StringBuffer sb = new StringBuffer("Route{");
-		sb.append("id='").append(id).append('\'');
-		sb.append(", uri=").append(uri);
-		sb.append(", order=").append(order);
-		sb.append(", predicate=").append(predicate);
-		sb.append(", gatewayFilters=").append(gatewayFilters);
-		sb.append('}');
-		return sb.toString();
 	}
 }

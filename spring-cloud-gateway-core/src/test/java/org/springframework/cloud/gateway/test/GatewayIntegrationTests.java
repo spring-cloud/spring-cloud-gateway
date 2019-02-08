@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.test;
@@ -72,8 +71,10 @@ public class GatewayIntegrationTests extends BaseWebClientTests {
 				.expectStatus().isOk()
 				.expectBody(Map.class)
 				.consumeWith(result -> {
-					Map<String, Object> headers = getMap(result.getResponseBody(), "headers");
-					assertThat(headers).containsEntry(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_UTF8_VALUE);
+					Map<String, Object> headers = getMap(result
+							.getResponseBody(), "headers");
+					assertThat(headers)
+							.containsEntry(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_UTF8_VALUE);
 				});
 	}
 
@@ -86,21 +87,26 @@ public class GatewayIntegrationTests extends BaseWebClientTests {
 				.expectStatus().isOk()
 				.expectBody(Map.class)
 				.consumeWith(result -> {
-					Map<String, Object> headers = getMap(result.getResponseBody(), "headers");
-					assertThat(headers).containsKeys(ForwardedHeadersFilter.FORWARDED_HEADER,
-							XForwardedHeadersFilter.X_FORWARDED_FOR_HEADER,
-							XForwardedHeadersFilter.X_FORWARDED_HOST_HEADER,
-							XForwardedHeadersFilter.X_FORWARDED_PORT_HEADER,
-							XForwardedHeadersFilter.X_FORWARDED_PROTO_HEADER);
+					Map<String, Object> headers = getMap(result
+							.getResponseBody(), "headers");
+					assertThat(headers)
+							.containsKeys(ForwardedHeadersFilter.FORWARDED_HEADER,
+									XForwardedHeadersFilter.X_FORWARDED_FOR_HEADER,
+									XForwardedHeadersFilter.X_FORWARDED_HOST_HEADER,
+									XForwardedHeadersFilter.X_FORWARDED_PORT_HEADER,
+									XForwardedHeadersFilter.X_FORWARDED_PROTO_HEADER);
 					assertThat(headers.get(ForwardedHeadersFilter.FORWARDED_HEADER))
 							.asString().contains("proto=http")
 							.contains("host=\"localhost:")
 							.contains("for=\"127.0.0.1:");
-					assertThat(headers.get(XForwardedHeadersFilter.X_FORWARDED_HOST_HEADER))
-							.asString().isEqualTo("localhost:"+this.port);
-					assertThat(headers.get(XForwardedHeadersFilter.X_FORWARDED_PORT_HEADER))
-							.asString().isEqualTo(""+this.port);
-					assertThat(headers.get(XForwardedHeadersFilter.X_FORWARDED_PROTO_HEADER))
+					assertThat(headers
+							.get(XForwardedHeadersFilter.X_FORWARDED_HOST_HEADER))
+							.asString().isEqualTo("localhost:" + this.port);
+					assertThat(headers
+							.get(XForwardedHeadersFilter.X_FORWARDED_PORT_HEADER))
+							.asString().isEqualTo("" + this.port);
+					assertThat(headers
+							.get(XForwardedHeadersFilter.X_FORWARDED_PROTO_HEADER))
 							.asString().isEqualTo("http");
 				});
 	}
@@ -114,8 +120,9 @@ public class GatewayIntegrationTests extends BaseWebClientTests {
 				.exchange()
 				.expectStatus().isOk()
 				.expectHeader().valueEquals(HANDLER_MAPPER_HEADER,
-                        RoutePredicateHandlerMapping.class.getSimpleName())
-				.expectHeader().valueEquals(ROUTE_ID_HEADER, "host_foo_path_headers_to_httpbin")
+				RoutePredicateHandlerMapping.class.getSimpleName())
+				.expectHeader()
+				.valueEquals(ROUTE_ID_HEADER, "host_foo_path_headers_to_httpbin")
 				.expectHeader().valueEquals("X-Response-Foo", "Bar");
 	}
 
@@ -129,9 +136,9 @@ public class GatewayIntegrationTests extends BaseWebClientTests {
 				.expectStatus().isOk()
 				.expectHeader().valueEquals("X-Response-Default-Foo", "Default-Bar")
 				.returnResult(Object.class).consumeWith(result -> {
-                        HttpHeaders httpHeaders = result.getResponseHeaders();
-                        assertThat(httpHeaders.get("X-Response-Default-Foo")).hasSize(1);
-                });
+			HttpHeaders httpHeaders = result.getResponseHeaders();
+			assertThat(httpHeaders.get("X-Response-Default-Foo")).hasSize(1);
+		});
 	}
 
 	@Test
@@ -181,6 +188,12 @@ public class GatewayIntegrationTests extends BaseWebClientTests {
 
 		private static final Log log = LogFactory.getLog(TestConfig.class);
 
+		private static Mono<Void> postFilterWork(ServerWebExchange exchange) {
+			log.info("postFilterWork");
+			exchange.getResponse().getHeaders().add("X-Post-Header", "AddedAfterRoute");
+			return Mono.empty();
+		}
+
 		@RequestMapping("/httpbin/nocontenttype")
 		public ResponseEntity<Void> nocontenttype() {
 			return ResponseEntity.status(204).build();
@@ -193,12 +206,6 @@ public class GatewayIntegrationTests extends BaseWebClientTests {
 				log.info("postFilter start");
 				return chain.filter(exchange).then(postFilterWork(exchange));
 			};
-		}
-
-		private static Mono<Void> postFilterWork(ServerWebExchange exchange) {
-			log.info("postFilterWork");
-			exchange.getResponse().getHeaders().add("X-Post-Header", "AddedAfterRoute");
-			return Mono.empty();
 		}
 
 	}

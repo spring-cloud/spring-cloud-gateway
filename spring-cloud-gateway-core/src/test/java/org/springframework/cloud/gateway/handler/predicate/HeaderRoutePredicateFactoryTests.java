@@ -12,13 +12,13 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.handler.predicate;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -47,7 +47,7 @@ public class HeaderRoutePredicateFactoryTests extends BaseWebClientTests {
 				.exchange()
 				.expectStatus().isOk()
 				.expectHeader().valueEquals(HANDLER_MAPPER_HEADER,
-                            RoutePredicateHandlerMapping.class.getSimpleName())
+				RoutePredicateHandlerMapping.class.getSimpleName())
 				.expectHeader().valueEquals(ROUTE_ID_HEADER, "header_test");
 	}
 
@@ -60,7 +60,7 @@ public class HeaderRoutePredicateFactoryTests extends BaseWebClientTests {
 				.exchange()
 				.expectStatus().isOk()
 				.expectHeader().valueEquals(HANDLER_MAPPER_HEADER,
-						RoutePredicateHandlerMapping.class.getSimpleName())
+				RoutePredicateHandlerMapping.class.getSimpleName())
 				.expectHeader().valueEquals(ROUTE_ID_HEADER, "default_path_to_httpbin");
 	}
 
@@ -89,8 +89,8 @@ public class HeaderRoutePredicateFactoryTests extends BaseWebClientTests {
 			return builder.routes()
 					.route("header_exists_dsl", r ->
 							r.header("X-Foo")
-							.filters(f -> f.prefixPath("/httpbin"))
-							.uri(uri))
+									.filters(f -> f.prefixPath("/httpbin"))
+									.uri(uri))
 					.build();
 		}
 	}

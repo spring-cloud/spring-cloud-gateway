@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.event;
@@ -24,12 +23,12 @@ import org.springframework.context.ApplicationEvent;
  */
 public class RefreshRoutesEvent extends ApplicationEvent {
 
-    /**
-     * Create a new ApplicationEvent.
-     *
-     * @param source the object on which the event initially occurred (never {@code null})
-     */
-    public RefreshRoutesEvent(Object source) {
-        super(source);
-    }
+	/**
+	 * Create a new ApplicationEvent.
+	 *
+	 * @param source the object on which the event initially occurred (never {@code null})
+	 */
+	public RefreshRoutesEvent(Object source) {
+		super(source);
+	}
 }

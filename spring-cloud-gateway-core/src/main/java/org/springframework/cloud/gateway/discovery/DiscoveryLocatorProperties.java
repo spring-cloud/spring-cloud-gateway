@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.discovery;
@@ -29,7 +28,7 @@ import org.springframework.core.style.ToStringCreator;
 @ConfigurationProperties("spring.cloud.gateway.discovery.locator")
 public class DiscoveryLocatorProperties {
 
-	/** Flag that enables DiscoveryClient gateway integration */
+	/** Flag that enables DiscoveryClient gateway integration. */
 	private boolean enabled = false;
 
 	/**
@@ -40,11 +39,11 @@ public class DiscoveryLocatorProperties {
 
 	/**
 	 * SpEL expression that will evaluate whether to include a service in gateway integration or not,
-	 * defaults to: true
+	 * defaults to: true.
 	 */
 	private String includeExpression = "true";
 
-	/** SpEL expression that create the uri for each route, defaults to: 'lb://'+serviceId */
+	/** SpEL expression that create the uri for each route, defaults to: 'lb://'+serviceId. */
 	private String urlExpression = "'lb://'+serviceId";
 
 	/**

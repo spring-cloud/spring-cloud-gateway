@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.filter.factory;
@@ -68,8 +67,9 @@ public class SetStatusGatewayFilterFactoryTests extends BaseWebClientTests {
 	public void nonStandardCodeWorks() {
 		HttpHeaders headers = new HttpHeaders();
 		headers.set(HttpHeaders.HOST, "www.setcustomstatus.org");
-		ResponseEntity<String> response = new TestRestTemplate().exchange(baseUri + "/headers",
-				HttpMethod.GET, new HttpEntity<>(headers), String.class);
+		ResponseEntity<String> response = new TestRestTemplate()
+				.exchange(baseUri + "/headers",
+						HttpMethod.GET, new HttpEntity<>(headers), String.class);
 		assertThat(response.getStatusCodeValue()).isEqualTo(432);
 
 		// https://jira.spring.io/browse/SPR-16748

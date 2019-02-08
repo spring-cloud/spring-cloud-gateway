@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,10 +23,11 @@ import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -55,11 +56,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
@@ -132,7 +128,8 @@ public class ProductionConfigurationTests {
 								.singletonList(Collections.singletonMap("name", "foo"))),
 				new ParameterizedTypeReference<List<Bar>>() {
 				});
-		assertThat(result.getBody().iterator().next().getName()).isEqualTo("host=localhost;foo");
+		assertThat(result.getBody().iterator().next().getName())
+				.isEqualTo("host=localhost;foo");
 	}
 
 	@Test
@@ -167,21 +164,23 @@ public class ProductionConfigurationTests {
 	public void single() throws Exception {
 		assertThat(rest.postForObject("/proxy/single",
 				Collections.singletonMap("name", "foobar"), Bar.class).getName())
-						.isEqualTo("host=localhost;foobar");
+				.isEqualTo("host=localhost;foobar");
 	}
 
 	@Test
 	public void converter() throws Exception {
 		assertThat(rest.postForObject("/proxy/converter",
 				Collections.singletonMap("name", "foobar"), Bar.class).getName())
-						.isEqualTo("host=localhost;foobar");
+				.isEqualTo("host=localhost;foobar");
 	}
 
 	@Test
-	@SuppressWarnings({"Duplicates", "unchecked"})
+	@SuppressWarnings({ "Duplicates", "unchecked" })
 	public void headers() throws Exception {
-		Map<String, List<String>> headers = rest.exchange(RequestEntity.get(rest.getRestTemplate().getUriTemplateHandler()
-				.expand("/proxy/headers")).header("foo", "bar").header("abc", "xyz").build(), Map.class).getBody();
+		Map<String, List<String>> headers = rest
+				.exchange(RequestEntity.get(rest.getRestTemplate().getUriTemplateHandler()
+						.expand("/proxy/headers")).header("foo", "bar")
+						.header("abc", "xyz").build(), Map.class).getBody();
 		assertThat(headers).doesNotContainKey("foo")
 				.doesNotContainKey("hello")
 				.containsKeys("bar", "abc");
@@ -192,6 +191,13 @@ public class ProductionConfigurationTests {
 
 	@SpringBootApplication
 	static class TestApplication {
+
+		@Autowired
+		private ProxyController controller;
+
+		public void setHome(URI home) {
+			controller.setHome(home);
+		}
 
 		@RestController
 		static class ProxyController {
@@ -302,13 +308,6 @@ public class ProductionConfigurationTests {
 
 		}
 
-		@Autowired
-		private ProxyController controller;
-
-		public void setHome(URI home) {
-			controller.setHome(home);
-		}
-
 		@RestController
 		static class TestController {
 
@@ -344,10 +343,10 @@ public class ProductionConfigurationTests {
 		static class Foo {
 			private String name;
 
-			public Foo() {
+			Foo() {
 			}
 
-			public Foo(String name) {
+			Foo(String name) {
 				this.name = name;
 			}
 
@@ -364,10 +363,10 @@ public class ProductionConfigurationTests {
 		static class Bar {
 			private String name;
 
-			public Bar() {
+			Bar() {
 			}
 
-			public Bar(String name) {
+			Bar(String name) {
 				this.name = name;
 			}
 
@@ -381,5 +380,4 @@ public class ProductionConfigurationTests {
 		}
 
 	}
-
 }
