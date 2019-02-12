@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,8 @@ import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
 import java.util.Set;
 
+import reactor.core.publisher.Mono;
+
 import org.springframework.cloud.gateway.webflux.ProxyExchange;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpHeaders;
@@ -29,8 +31,6 @@ import org.springframework.web.reactive.BindingContext;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.result.method.HandlerMethodArgumentResolver;
 import org.springframework.web.server.ServerWebExchange;
-
-import reactor.core.publisher.Mono;
 
 /**
  * @author Dave Syer

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.filter.factory;
@@ -29,9 +28,17 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.a
 /**
  * @author Spencer Gibb
  */
-public class RewritePathGatewayFilterFactory extends AbstractGatewayFilterFactory<RewritePathGatewayFilterFactory.Config> {
+public class RewritePathGatewayFilterFactory
+		extends AbstractGatewayFilterFactory<RewritePathGatewayFilterFactory.Config> {
 
+	/**
+	 * Regexp key.
+	 */
 	public static final String REGEXP_KEY = "regexp";
+
+	/**
+	 * Replacement key.
+	 */
 	public static final String REPLACEMENT_KEY = "replacement";
 
 	public RewritePathGatewayFilterFactory() {
@@ -52,9 +59,7 @@ public class RewritePathGatewayFilterFactory extends AbstractGatewayFilterFactor
 			String path = req.getURI().getRawPath();
 			String newPath = path.replaceAll(config.regexp, replacement);
 
-			ServerHttpRequest request = req.mutate()
-					.path(newPath)
-					.build();
+			ServerHttpRequest request = req.mutate().path(newPath).build();
 
 			exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, request.getURI());
 
@@ -63,7 +68,9 @@ public class RewritePathGatewayFilterFactory extends AbstractGatewayFilterFactor
 	}
 
 	public static class Config {
+
 		private String regexp;
+
 		private String replacement;
 
 		public String getRegexp() {
@@ -83,5 +90,7 @@ public class RewritePathGatewayFilterFactory extends AbstractGatewayFilterFactor
 			this.replacement = replacement;
 			return this;
 		}
+
 	}
+
 }

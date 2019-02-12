@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.discovery;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -35,9 +36,9 @@ import static org.mockito.Mockito.mock;
 public class GatewayDiscoveryClientAutoConfigurationTests {
 
 	@RunWith(SpringRunner.class)
-	@SpringBootTest(classes = Config.class,
-			properties = {"spring.cloud.gateway.discovery.locator.enabled=true",
-					"spring.cloud.gateway.loadbalancer.use404=true"})
+	@SpringBootTest(classes = Config.class, properties = {
+			"spring.cloud.gateway.discovery.locator.enabled=true",
+			"spring.cloud.gateway.loadbalancer.use404=true" })
 	public static class EnabledByProperty {
 
 		@Autowired(required = false)
@@ -48,8 +49,7 @@ public class GatewayDiscoveryClientAutoConfigurationTests {
 
 		@Test
 		public void routeLocatorBeanExists() {
-			assertThat(locator)
-					.as("DiscoveryClientRouteDefinitionLocator was null")
+			assertThat(locator).as("DiscoveryClientRouteDefinitionLocator was null")
 					.isNotNull();
 		}
 
@@ -57,22 +57,23 @@ public class GatewayDiscoveryClientAutoConfigurationTests {
 		public void use404() {
 			assertThat(properties.isUse404()).isTrue();
 		}
+
 	}
 
 	@RunWith(SpringRunner.class)
 	@SpringBootTest(classes = Config.class)
 	public static class DisabledByDefault {
+
 		@Autowired(required = false)
 		private DiscoveryClientRouteDefinitionLocator locator;
 
 		@Test
 		public void routeLocatorBeanMissing() {
-			assertThat(locator)
-					.as("DiscoveryClientRouteDefinitionLocator exists")
+			assertThat(locator).as("DiscoveryClientRouteDefinitionLocator exists")
 					.isNull();
 		}
-	}
 
+	}
 
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
@@ -82,5 +83,7 @@ public class GatewayDiscoveryClientAutoConfigurationTests {
 		DiscoveryClient discoveryClient() {
 			return mock(DiscoveryClient.class);
 		}
+
 	}
+
 }

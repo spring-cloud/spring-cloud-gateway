@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.filter;
@@ -33,8 +32,10 @@ import static org.springframework.util.StringUtils.tokenizeToStringArray;
  */
 @Validated
 public class FilterDefinition {
+
 	@NotNull
 	private String name;
+
 	private Map<String, String> args = new LinkedHashMap<>();
 
 	public FilterDefinition() {
@@ -48,9 +49,9 @@ public class FilterDefinition {
 		}
 		setName(text.substring(0, eqIdx));
 
-		String[] args = tokenizeToStringArray(text.substring(eqIdx+1), ",");
+		String[] args = tokenizeToStringArray(text.substring(eqIdx + 1), ",");
 
-		for (int i=0; i < args.length; i++) {
+		for (int i = 0; i < args.length; i++) {
 			this.args.put(NameUtils.generateName(i), args[i]);
 		}
 	}
@@ -77,11 +78,14 @@ public class FilterDefinition {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
 		FilterDefinition that = (FilterDefinition) o;
-		return Objects.equals(name, that.name) &&
-				Objects.equals(args, that.args);
+		return Objects.equals(name, that.name) && Objects.equals(args, that.args);
 	}
 
 	@Override
@@ -97,4 +101,5 @@ public class FilterDefinition {
 		sb.append('}');
 		return sb.toString();
 	}
+
 }

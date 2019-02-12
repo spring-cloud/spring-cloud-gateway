@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.actuate;
@@ -48,19 +47,14 @@ public class GatewayControllerEndpointTests {
 
 	@Test
 	public void testRefresh() {
-		testClient.post()
-				.uri("http://localhost:"+port+"/actuator/gateway/refresh")
-				.exchange()
-				.expectStatus().isOk();
+		testClient.post().uri("http://localhost:" + port + "/actuator/gateway/refresh")
+				.exchange().expectStatus().isOk();
 	}
 
 	@Test
 	public void testRoutes() {
-		testClient.get()
-				.uri("http://localhost:"+port+"/actuator/gateway/routes")
-				.exchange()
-				.expectStatus().isOk()
-				.expectBodyList(Map.class)
+		testClient.get().uri("http://localhost:" + port + "/actuator/gateway/routes")
+				.exchange().expectStatus().isOk().expectBodyList(Map.class)
 				.consumeWith(result -> {
 					List<Map> responseBody = result.getResponseBody();
 					assertThat(responseBody).isNotEmpty();
@@ -70,5 +64,8 @@ public class GatewayControllerEndpointTests {
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	@Import(PermitAllSecurityConfiguration.class)
-	static class TestConfig{}
+	static class TestConfig {
+
+	}
+
 }

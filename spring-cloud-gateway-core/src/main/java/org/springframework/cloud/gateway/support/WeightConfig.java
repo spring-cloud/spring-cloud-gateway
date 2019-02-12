@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,47 +12,53 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.support;
 
-import org.springframework.core.style.ToStringCreator;
-import org.springframework.validation.annotation.Validated;
-
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
 
+import org.springframework.core.style.ToStringCreator;
+import org.springframework.validation.annotation.Validated;
+
 @Validated
 public class WeightConfig {
+
+	/**
+	 * Configuration prefix for {@link WeightConfig}.
+	 */
 	public static final String CONFIG_PREFIX = "weight";
 
 	@NotEmpty
-    private String group;
+	private String group;
+
 	private String routeId;
-    @Min(0)
-    private int weight;
 
-    private WeightConfig() { }
+	@Min(0)
+	private int weight;
 
-    public WeightConfig(String group, String routeId, int weight) {
-        this.routeId = routeId;
-        this.group = group;
-        this.weight = weight;
-    }
+	private WeightConfig() {
+	}
 
-    public WeightConfig(String routeId) {
-        this.routeId = routeId;
-    }
+	public WeightConfig(String group, String routeId, int weight) {
+		this.routeId = routeId;
+		this.group = group;
+		this.weight = weight;
+	}
 
-    public String getGroup() {
-        return group;
-    }
+	public WeightConfig(String routeId) {
+		this.routeId = routeId;
+	}
 
-    public WeightConfig setGroup(String group) {
-        this.group = group;
-        return this;
-    }
+	public String getGroup() {
+		return group;
+	}
+
+	public WeightConfig setGroup(String group) {
+		this.group = group;
+		return this;
+	}
 
 	public String getRouteId() {
 		return routeId;
@@ -69,15 +75,13 @@ public class WeightConfig {
 
 	public WeightConfig setWeight(int weight) {
 		this.weight = weight;
-        return this;
-    }
+		return this;
+	}
 
-    @Override
-    public String toString() {
-        return new ToStringCreator(this)
-                .append("group", group)
-                .append("routeId", routeId)
-                .append("weight", weight)
-                .toString();
-    }
+	@Override
+	public String toString() {
+		return new ToStringCreator(this).append("group", group).append("routeId", routeId)
+				.append("weight", weight).toString();
+	}
+
 }

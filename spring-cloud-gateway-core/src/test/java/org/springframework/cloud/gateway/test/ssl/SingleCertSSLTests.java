@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.test.ssl;
@@ -43,7 +42,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import static org.junit.Assert.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @RunWith(SpringRunner.class)
@@ -65,11 +63,12 @@ public class SingleCertSSLTests extends BaseWebClientTests {
 			baseUri = "https://localhost:" + port;
 			this.webClient = WebClient.builder().clientConnector(httpConnector)
 					.baseUrl(baseUri).build();
-			this.testClient = WebTestClient.bindToServer(httpConnector).baseUrl(baseUri).build();
+			this.testClient = WebTestClient.bindToServer(httpConnector).baseUrl(baseUri)
+					.build();
 		}
 		catch (SSLException e) {
 			throw new RuntimeException(e);
-		}		
+		}
 	}
 
 	@Test

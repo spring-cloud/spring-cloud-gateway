@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,7 +70,7 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestResponseBody
  * Spring will inject one of these into your MVC handler method, and you get return a
  * <code>ResponseEntity</code> that you get from one of the HTTP methods {@link #get()},
  * {@link #post()}, {@link #put()}, {@link #patch()}, {@link #delete()} etc. Example:
- * 
+ *
  * <pre>
  * &#64;GetMapping("/proxy/{id}")
  * public ResponseEntity&lt;?&gt; proxy(@PathVariable Integer id, ProxyExchange&lt;?&gt; proxy)
@@ -78,7 +78,7 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestResponseBody
  * 	return proxy.uri("http://localhost:9000/foos/" + id).get();
  * }
  * </pre>
- * 
+ *
  * <p>
  * By default the incoming request body and headers are sent intact to the downstream
  * service (with the exception of "sensitive" headers). To manipulate the downstream
@@ -99,7 +99,7 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestResponseBody
  * <p>
  * To manipulate the response use the overloaded HTTP methods with a <code>Function</code>
  * argument and pass in code to transform the response. E.g.
- * 
+ *
  * <pre>
  * &#64;PostMapping("/proxy")
  * public ResponseEntity&lt;Foo&gt; proxy(ProxyExchange&lt;Foo&gt; proxy) throws Exception {
@@ -110,9 +110,9 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestResponseBody
  * 					.body(response.getBody()) //
  * 			);
  * }
- * 
+ *
  * </pre>
- * 
+ *
  * </p>
  * <p>
  * The full machinery of Spring {@link HttpMessageConverter message converters} is applied
@@ -125,13 +125,17 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestResponseBody
  * <p>
  * As well as the HTTP methods for a backend call you can also use
  * {@link #forward(String)} for a local in-container dispatch.
+ * <p>
  * </p>
- * 
+ *
  * @author Dave Syer
  *
  */
 public class ProxyExchange<T> {
 
+	/**
+	 * Contains headers that are considered case-sensitive by default.
+	 */
 	public static Set<String> DEFAULT_SENSITIVE = new HashSet<>(
 			Arrays.asList("cookie", "authorization"));
 
@@ -173,7 +177,6 @@ public class ProxyExchange<T> {
 	 * request downstream without changing it. If you want to transform the incoming
 	 * request you can declare it as a <code>@RequestBody</code> in your
 	 * <code>@RequestMapping</code> in the usual Spring MVC way.
-	 * 
 	 * @param body the request body to send downstream
 	 * @return this for convenience
 	 */
@@ -184,9 +187,8 @@ public class ProxyExchange<T> {
 
 	/**
 	 * Sets a header for the downstream call.
-	 * 
-	 * @param name
-	 * @param value
+	 * @param name Header name
+	 * @param value Header values
 	 * @return this for convenience
 	 */
 	public ProxyExchange<T> header(String name, String... value) {
@@ -197,7 +199,6 @@ public class ProxyExchange<T> {
 	/**
 	 * Additional headers, or overrides of the incoming ones, to be used in the downstream
 	 * call.
-	 * 
 	 * @param headers the http headers to use in the downstream call
 	 * @return this for convenience
 	 */
@@ -209,7 +210,6 @@ public class ProxyExchange<T> {
 	/**
 	 * Sets the names of sensitive headers that are not passed downstream to the backend
 	 * service.
-	 * 
 	 * @param names the names of sensitive headers
 	 * @return this for convenience
 	 */
@@ -225,7 +225,6 @@ public class ProxyExchange<T> {
 
 	/**
 	 * Sets the uri for the backend call when triggered by the HTTP methods.
-	 * 
 	 * @param uri the backend uri to send the request to
 	 * @return this for convenience
 	 */
@@ -429,7 +428,6 @@ public class ProxyExchange<T> {
 	 * Search for the request body if it was already deserialized using
 	 * <code>@RequestBody</code>. If it is not found then deserialize it in the same way
 	 * that it would have been for a <code>@RequestBody</code>.
-	 * 
 	 * @return the request body
 	 */
 	private Object getRequestBody() {
@@ -453,6 +451,23 @@ public class ProxyExchange<T> {
 		return result.getTarget();
 	}
 
+	protected static class BodyGrabber {
+
+		public Object body(@RequestBody Object body) {
+			return body;
+		}
+
+	}
+
+	protected static class BodySender {
+
+		@ResponseBody
+		public Object body() {
+			return null;
+		}
+
+	}
+
 	/**
 	 * A servlet request wrapper that can be safely passed downstream to an internal
 	 * forward dispatch, caching its body, and making it available in converted form using
@@ -460,7 +475,9 @@ public class ProxyExchange<T> {
 	 *
 	 */
 	class BodyForwardingHttpServletRequest extends HttpServletRequestWrapper {
+
 		private HttpServletRequest request;
+
 		private HttpServletResponse response;
 
 		BodyForwardingHttpServletRequest(HttpServletRequest request,
@@ -521,19 +538,7 @@ public class ProxyExchange<T> {
 			}
 			return super.getHeader(name);
 		}
-	}
 
-	protected static class BodyGrabber {
-		public Object body(@RequestBody Object body) {
-			return body;
-		}
-	}
-
-	protected static class BodySender {
-		@ResponseBody
-		public Object body() {
-			return null;
-		}
 	}
 
 }
@@ -545,7 +550,7 @@ public class ProxyExchange<T> {
  * will need to be read and analysed more than once. Apart from using the message
  * converters the other main feature of this class is that the request body is cached and
  * can be read repeatedly as necessary.
- * 
+ *
  * @author Dave Syer
  *
  */
@@ -553,7 +558,7 @@ class ServletOutputToInputConverter extends HttpServletResponseWrapper {
 
 	private StringBuilder builder = new StringBuilder();
 
-	public ServletOutputToInputConverter(HttpServletResponse response) {
+	ServletOutputToInputConverter(HttpServletResponse response) {
 		super(response);
 	}
 

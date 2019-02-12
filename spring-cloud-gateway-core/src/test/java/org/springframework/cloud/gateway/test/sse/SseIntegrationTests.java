@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.test.sse;
@@ -52,8 +51,7 @@ import org.springframework.web.reactive.config.EnableWebFlux;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.adapter.WebHttpHandlerBuilder;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.core.ResolvableType.forClassWithGenerics;
 import static org.springframework.http.MediaType.TEXT_EVENT_STREAM;
 import static org.springframework.web.reactive.function.BodyExtractors.toFlux;
@@ -63,11 +61,11 @@ import static org.springframework.web.reactive.function.BodyExtractors.toFlux;
  */
 public class SseIntegrationTests {
 
+	public HttpServer server;
+
 	protected Log logger = LogFactory.getLog(getClass());
 
 	protected int serverPort;
-
-	public HttpServer server;
 
 	private AnnotationConfigApplicationContext wac;
 
@@ -76,6 +74,14 @@ public class SseIntegrationTests {
 	private ConfigurableApplicationContext gatewayContext;
 
 	private int gatewayPort;
+
+	/**
+	 * Return an interval stream of with n number of ticks and buffer the emissions to
+	 * avoid back pressure failures (e.g. on slow CI server).
+	 */
+	public static Flux<Long> interval(Duration period, int count) {
+		return Flux.interval(period).take(count).onBackpressureBuffer(2);
+	}
 
 	@Before
 	public void setup() throws Exception {
@@ -86,19 +92,21 @@ public class SseIntegrationTests {
 
 		// Set dynamically chosen port
 		this.serverPort = this.server.getPort();
-		logger.info("SSE Port: "+this.serverPort);
-
+		logger.info("SSE Port: " + this.serverPort);
 
 		this.gatewayContext = new SpringApplicationBuilder(GatewayConfig.class)
-				.properties("sse.server.port:"+this.serverPort, "server.port=0", "spring.jmx.enabled=false")
+				.properties("sse.server.port:" + this.serverPort, "server.port=0",
+						"spring.jmx.enabled=false")
 				.run();
 
-		ConfigurableEnvironment env = this.gatewayContext.getBean(ConfigurableEnvironment.class);
+		ConfigurableEnvironment env = this.gatewayContext
+				.getBean(ConfigurableEnvironment.class);
 		this.gatewayPort = Integer.valueOf(env.getProperty("local.server.port"));
 
-		this.webClient = WebClient.create("http://localhost:" + this.gatewayPort + "/sse");
+		this.webClient = WebClient
+				.create("http://localhost:" + this.gatewayPort + "/sse");
 
-		logger.info("Gateway Port: "+this.gatewayPort);
+		logger.info("Gateway Port: " + this.gatewayPort);
 	}
 
 	@After
@@ -120,31 +128,22 @@ public class SseIntegrationTests {
 
 	@Test
 	public void sseAsString() {
-		Flux<String> result = this.webClient.get()
-				.uri("/string")
-				.accept(TEXT_EVENT_STREAM)
-				.exchange()
+		Flux<String> result = this.webClient.get().uri("/string")
+				.accept(TEXT_EVENT_STREAM).exchange()
 				.flatMapMany(response -> response.bodyToFlux(String.class));
 
-		StepVerifier.create(result)
-				.expectNext("foo 0")
-				.expectNext("foo 1")
-				.thenCancel()
+		StepVerifier.create(result).expectNext("foo 0").expectNext("foo 1").thenCancel()
 				.verify(Duration.ofSeconds(5L));
 	}
 
 	@Test
 	public void sseAsPerson() {
-		Flux<Person> result = this.webClient.get()
-				.uri("/person")
-				.accept(TEXT_EVENT_STREAM)
-				.exchange()
+		Flux<Person> result = this.webClient.get().uri("/person")
+				.accept(TEXT_EVENT_STREAM).exchange()
 				.flatMapMany(response -> response.bodyToFlux(Person.class));
 
-		StepVerifier.create(result)
-				.expectNext(new Person("foo 0"))
-				.expectNext(new Person("foo 1"))
-				.thenCancel()
+		StepVerifier.create(result).expectNext(new Person("foo 0"))
+				.expectNext(new Person("foo 1")).thenCancel()
 				.verify(Duration.ofSeconds(5L));
 	}
 
@@ -152,67 +151,49 @@ public class SseIntegrationTests {
 	@SuppressWarnings("Duplicates")
 	public void sseAsEvent() {
 		ResolvableType type = forClassWithGenerics(ServerSentEvent.class, String.class);
-		Flux<ServerSentEvent<String>> result = this.webClient.get()
-				.uri("/event")
-				.accept(TEXT_EVENT_STREAM)
-				.exchange()
+		Flux<ServerSentEvent<String>> result = this.webClient.get().uri("/event")
+				.accept(TEXT_EVENT_STREAM).exchange()
 				.flatMapMany(response -> response.body(
-						toFlux(new ParameterizedTypeReference<ServerSentEvent<String>>() {})));
+						toFlux(new ParameterizedTypeReference<ServerSentEvent<String>>() {
+						})));
 
-		StepVerifier.create(result)
-				.consumeNextWith( event -> {
-					assertEquals("0", event.id());
-					assertEquals("foo", event.data());
-					assertEquals("bar", event.comment());
-					assertNull(event.event());
-					assertNull(event.retry());
-				})
-				.consumeNextWith( event -> {
-					assertEquals("1", event.id());
-					assertEquals("foo", event.data());
-					assertEquals("bar", event.comment());
-					assertNull(event.event());
-					assertNull(event.retry());
-				})
-				.thenCancel()
-				.verify(Duration.ofSeconds(5L));
+		StepVerifier.create(result).consumeNextWith(event -> {
+			assertThat(event.id()).isEqualTo("0");
+			assertThat(event.data()).isEqualTo("foo");
+			assertThat(event.comment()).isEqualTo("bar");
+			assertThat(event.event()).isNull();
+			assertThat(event.retry()).isNull();
+		}).consumeNextWith(event -> {
+			assertThat(event.id()).isEqualTo("1");
+			assertThat(event.data()).isEqualTo("foo");
+			assertThat(event.comment()).isEqualTo("bar");
+			assertThat(event.event()).isNull();
+			assertThat(event.retry()).isNull();
+		}).thenCancel().verify(Duration.ofSeconds(5L));
 	}
 
 	@Test
 	@SuppressWarnings("Duplicates")
 	public void sseAsEventWithoutAcceptHeader() {
-		Flux<ServerSentEvent<String>> result = this.webClient.get()
-				.uri("/event")
-				.accept(TEXT_EVENT_STREAM)
-				.exchange()
+		Flux<ServerSentEvent<String>> result = this.webClient.get().uri("/event")
+				.accept(TEXT_EVENT_STREAM).exchange()
 				.flatMapMany(response -> response.body(
-						toFlux(new ParameterizedTypeReference<ServerSentEvent<String>>() {})));
+						toFlux(new ParameterizedTypeReference<ServerSentEvent<String>>() {
+						})));
 
-		StepVerifier.create(result)
-				.consumeNextWith( event -> {
-					assertEquals("0", event.id());
-					assertEquals("foo", event.data());
-					assertEquals("bar", event.comment());
-					assertNull(event.event());
-					assertNull(event.retry());
-				})
-				.consumeNextWith( event -> {
-					assertEquals("1", event.id());
-					assertEquals("foo", event.data());
-					assertEquals("bar", event.comment());
-					assertNull(event.event());
-					assertNull(event.retry());
-				})
-				.thenCancel()
-				.verify(Duration.ofSeconds(5L));
-	}
-
-	/**
-	 * Return an interval stream of with n number of ticks and buffer the
-	 * emissions to avoid back pressure failures (e.g. on slow CI server).
-	 */
-	public static Flux<Long> interval(Duration period, int count) {
-		return Flux.interval(period).take(count).onBackpressureBuffer(2);
+		StepVerifier.create(result).consumeNextWith(event -> {
+			assertThat(event.id()).isEqualTo("0");
+			assertThat(event.data()).isEqualTo("foo");
+			assertThat(event.comment()).isEqualTo("bar");
+			assertThat(event.event()).isNull();
+			assertThat(event.retry()).isNull();
+		}).consumeNextWith(event -> {
+			assertThat(event.id()).isEqualTo("1");
+			assertThat(event.data()).isEqualTo("foo");
+			assertThat(event.comment()).isEqualTo("bar");
+			assertThat(event.event()).isNull();
+			assertThat(event.retry()).isNull();
+		}).thenCancel().verify(Duration.ofSeconds(5L));
 	}
 
 	@RestController
@@ -220,7 +201,6 @@ public class SseIntegrationTests {
 	static class SseController {
 
 		private static final Flux<Long> INTERVAL = interval(Duration.ofMillis(100), 50);
-
 
 		@RequestMapping("/sse/string")
 		Flux<String> string() {
@@ -234,14 +214,11 @@ public class SseIntegrationTests {
 
 		@RequestMapping("/sse/event")
 		Flux<ServerSentEvent<String>> sse() {
-			return INTERVAL.map(l -> ServerSentEvent.builder("foo")
-					.id(Long.toString(l))
-					.comment("bar")
-					.build());
+			return INTERVAL.map(l -> ServerSentEvent.builder("foo").id(Long.toString(l))
+					.comment("bar").build());
 		}
 
 	}
-
 
 	@Configuration
 	@EnableWebFlux
@@ -252,6 +229,7 @@ public class SseIntegrationTests {
 		public SseController sseController() {
 			return new SseController();
 		}
+
 	}
 
 	@Configuration
@@ -265,22 +243,22 @@ public class SseIntegrationTests {
 		@Bean
 		public RouteLocator sseRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes()
-					.route("sse_route", r -> r.alwaysTrue()
-							.uri("http://localhost:"+this.port))
+					.route("sse_route",
+							r -> r.alwaysTrue().uri("http://localhost:" + this.port))
 					.build();
 		}
-	}
 
+	}
 
 	@SuppressWarnings("unused")
 	private static class Person {
 
 		private String name;
 
-		public Person() {
+		Person() {
 		}
 
-		public Person(String name) {
+		Person(String name) {
 			this.name = name;
 		}
 
@@ -301,7 +279,8 @@ public class SseIntegrationTests {
 				return false;
 			}
 			Person person = (Person) o;
-			return !(this.name != null ? !this.name.equals(person.name) : person.name != null);
+			return !(this.name != null ? !this.name.equals(person.name)
+					: person.name != null);
 		}
 
 		@Override
@@ -313,6 +292,7 @@ public class SseIntegrationTests {
 		public String toString() {
 			return "Person{name='" + this.name + '\'' + '}';
 		}
+
 	}
 
 }

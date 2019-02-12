@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,11 +21,11 @@ import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
 
+import reactor.core.publisher.Flux;
+
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.context.ConfigurableApplicationContext;
-
-import reactor.core.publisher.Flux;
 
 /**
  * Used to build a {@link RouteLocator}
@@ -52,6 +52,7 @@ public class RouteLocatorBuilder {
 	public static class Builder {
 
 		private List<Route.AsyncBuilder> routes = new ArrayList<>();
+
 		private ConfigurableApplicationContext context;
 
 		public Builder(ConfigurableApplicationContext context) {
@@ -61,7 +62,8 @@ public class RouteLocatorBuilder {
 		/**
 		 * Creates a new {@link Route}
 		 * @param id the unique id for the route
-		 * @param fn a function which takes in a {@link PredicateSpec} and returns a {@link Route.AsyncBuilder}
+		 * @param fn a function which takes in a {@link PredicateSpec} and returns a
+		 * {@link Route.AsyncBuilder}
 		 * @return a {@link Builder}
 		 */
 		public Builder route(String id, Function<PredicateSpec, Route.AsyncBuilder> fn) {
@@ -72,7 +74,8 @@ public class RouteLocatorBuilder {
 
 		/**
 		 * Creates a new {@link Route}
-		 * @param fn a function which takes in a {@link PredicateSpec} and returns a {@link Route.AsyncBuilder}
+		 * @param fn a function which takes in a {@link PredicateSpec} and returns a
+		 * {@link Route.AsyncBuilder}
 		 * @return a {@link Builder}
 		 */
 		public Builder route(Function<PredicateSpec, Route.AsyncBuilder> fn) {
@@ -86,7 +89,8 @@ public class RouteLocatorBuilder {
 		 * @return a {@link RouteLocator}
 		 */
 		public RouteLocator build() {
-			return () -> Flux.fromIterable(this.routes).map(routeBuilder -> routeBuilder.build());
+			return () -> Flux.fromIterable(this.routes)
+					.map(routeBuilder -> routeBuilder.build());
 		}
 
 		ConfigurableApplicationContext getContext() {
@@ -96,11 +100,13 @@ public class RouteLocatorBuilder {
 		void add(Route.AsyncBuilder route) {
 			routes.add(route);
 		}
+
 	}
 
-
 	public static class RouteSpec {
+
 		private final Route.AsyncBuilder routeBuilder = Route.async();
+
 		private final Builder builder;
 
 		RouteSpec(Builder builder) {
@@ -121,6 +127,5 @@ public class RouteLocatorBuilder {
 		}
 
 	}
-
 
 }

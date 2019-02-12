@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.handler.predicate;
@@ -21,6 +20,7 @@ import java.time.ZonedDateTime;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -44,24 +44,18 @@ public class BetweenRoutePredicateFactoryIntegrationTests extends BaseWebClientT
 
 	@Test
 	public void betweenPredicateWithValidDates() {
-		testClient.get()
-				.uri("/get")
-				.header(HttpHeaders.HOST, "www.betweenvalid.org")
-				.exchange()
-				.expectStatus().isOk()
-				.expectHeader().valueEquals(HANDLER_MAPPER_HEADER,
-                            RoutePredicateHandlerMapping.class.getSimpleName())
+		testClient.get().uri("/get").header(HttpHeaders.HOST, "www.betweenvalid.org")
+				.exchange().expectStatus().isOk().expectHeader()
+				.valueEquals(HANDLER_MAPPER_HEADER,
+						RoutePredicateHandlerMapping.class.getSimpleName())
 				.expectHeader().valueEquals(ROUTE_ID_HEADER, "test_between_valid");
 	}
 
 	@Test
 	public void notBetweenPredicateWorks() {
-		testClient.get()
-				.uri("/get")
-				.header(HttpHeaders.HOST, "www.notbetween.org")
-				.exchange()
-				.expectStatus().isOk()
-				.expectHeader().valueEquals(HANDLER_MAPPER_HEADER,
+		testClient.get().uri("/get").header(HttpHeaders.HOST, "www.notbetween.org")
+				.exchange().expectStatus().isOk().expectHeader()
+				.valueEquals(HANDLER_MAPPER_HEADER,
 						RoutePredicateHandlerMapping.class.getSimpleName())
 				// should NOT be not_between_test because Between dates are in the past
 				.expectHeader().valueEquals(ROUTE_ID_HEADER, "default_path_to_httpbin");
@@ -78,12 +72,14 @@ public class BetweenRoutePredicateFactoryIntegrationTests extends BaseWebClientT
 		@Bean
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes()
-					.route("test_between_valid", r -> r.host("**.betweenvalid.org")
-							.and().between(ZonedDateTime.now().minusDays(1), ZonedDateTime.now().plusDays(1))
-							.filters(f -> f.prefixPath("/httpbin"))
-							.uri(uri))
+					.route("test_between_valid",
+							r -> r.host("**.betweenvalid.org").and()
+									.between(ZonedDateTime.now().minusDays(1),
+											ZonedDateTime.now().plusDays(1))
+									.filters(f -> f.prefixPath("/httpbin")).uri(uri))
 					.build();
 		}
+
 	}
 
 }

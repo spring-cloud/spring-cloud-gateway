@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,11 +12,9 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.discovery;
-
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,28 +27,30 @@ import org.springframework.core.style.ToStringCreator;
 @ConfigurationProperties("spring.cloud.gateway.discovery.locator")
 public class DiscoveryLocatorProperties {
 
-	/** Flag that enables DiscoveryClient gateway integration */
+	/** Flag that enables DiscoveryClient gateway integration. */
 	private boolean enabled = false;
 
 	/**
-	 * The prefix for the routeId, defaults to discoveryClient.getClass().getSimpleName() + "_".
-	 * Service Id will be appended to create the routeId.
+	 * The prefix for the routeId, defaults to discoveryClient.getClass().getSimpleName()
+	 * + "_". Service Id will be appended to create the routeId.
 	 */
 	private String routeIdPrefix;
 
 	/**
-	 * SpEL expression that will evaluate whether to include a service in gateway integration or not,
-	 * defaults to: true
+	 * SpEL expression that will evaluate whether to include a service in gateway
+	 * integration or not, defaults to: true.
 	 */
 	private String includeExpression = "true";
 
-	/** SpEL expression that create the uri for each route, defaults to: 'lb://'+serviceId */
+	/**
+	 * SpEL expression that create the uri for each route, defaults to: 'lb://'+serviceId.
+	 */
 	private String urlExpression = "'lb://'+serviceId";
 
 	/**
-	 * Option to lower case serviceId in predicates and filters, defaults to false.
-	 * Useful with eureka when it automatically uppercases serviceId.
-	 * so MYSERIVCE, would match /myservice/**
+	 * Option to lower case serviceId in predicates and filters, defaults to false. Useful
+	 * with eureka when it automatically uppercases serviceId. so MYSERIVCE, would match
+	 * /myservice/**
 	 */
 	private boolean lowerCaseServiceId = false;
 
@@ -116,14 +116,12 @@ public class DiscoveryLocatorProperties {
 
 	@Override
 	public String toString() {
-		return new ToStringCreator(this)
-				.append("enabled", enabled)
+		return new ToStringCreator(this).append("enabled", enabled)
 				.append("routeIdPrefix", routeIdPrefix)
 				.append("includeExpression", includeExpression)
 				.append("urlExpression", urlExpression)
 				.append("lowerCaseServiceId", lowerCaseServiceId)
-				.append("predicates", predicates)
-				.append("filters", filters)
-				.toString();
+				.append("predicates", predicates).append("filters", filters).toString();
 	}
+
 }

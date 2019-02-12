@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2018-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,21 +12,22 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
+
 package org.springframework.cloud.gateway.route.builder;
+
+import java.net.URI;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import reactor.test.StepVerifier;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.junit4.SpringRunner;
-import reactor.test.StepVerifier;
-
-import java.net.URI;
 
 /**
  * @author Biju Kunjummen
@@ -65,5 +66,7 @@ public class RouteBuilderTests {
 	@EnableAutoConfiguration
 	@Configuration
 	public static class SpringConfig {
+
 	}
+
 }

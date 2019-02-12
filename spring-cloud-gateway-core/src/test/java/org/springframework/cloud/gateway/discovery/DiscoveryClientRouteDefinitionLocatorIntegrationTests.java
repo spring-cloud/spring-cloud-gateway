@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.discovery;
@@ -42,25 +41,25 @@ import org.springframework.test.context.junit4.SpringRunner;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = DiscoveryClientRouteDefinitionLocatorIntegrationTests.Config.class,
-        properties = {"spring.cloud.gateway.discovery.locator.enabled=true",
-				"spring.cloud.gateway.discovery.locator.route-id-prefix=test__", })
+@SpringBootTest(classes = DiscoveryClientRouteDefinitionLocatorIntegrationTests.Config.class, properties = {
+		"spring.cloud.gateway.discovery.locator.enabled=true",
+		"spring.cloud.gateway.discovery.locator.route-id-prefix=test__" })
 public class DiscoveryClientRouteDefinitionLocatorIntegrationTests {
 
-    @Autowired
-    private RouteLocator routeLocator;
+	@Autowired
+	private RouteLocator routeLocator;
 
-    @Autowired
+	@Autowired
 	private ApplicationEventPublisher publisher;
 
-    @Autowired
+	@Autowired
 	private TestDiscoveryClient discoveryClient;
 
-    @Test
-    public void newServiceAddsRoute() {
+	@Test
+	public void newServiceAddsRoute() {
 		List<Route> routes = routeLocator.getRoutes()
-				.filter(route -> route.getId().startsWith("test__"))
-				.collectList().block();
+				.filter(route -> route.getId().startsWith("test__")).collectList()
+				.block();
 		assertThat(routes).hasSize(1);
 
 		discoveryClient.multiple();
@@ -68,8 +67,8 @@ public class DiscoveryClientRouteDefinitionLocatorIntegrationTests {
 		publisher.publishEvent(new HeartbeatEvent(this, 1L));
 
 		routes = routeLocator.getRoutes()
-				.filter(route -> route.getId().startsWith("test__"))
-				.collectList().block();
+				.filter(route -> route.getId().startsWith("test__")).collectList()
+				.block();
 		assertThat(routes).hasSize(2);
 	}
 
@@ -81,13 +80,16 @@ public class DiscoveryClientRouteDefinitionLocatorIntegrationTests {
 		TestDiscoveryClient discoveryClient() {
 			return new TestDiscoveryClient();
 		}
+
 	}
 
 	private static class TestDiscoveryClient implements DiscoveryClient {
+
 		AtomicBoolean single = new AtomicBoolean(true);
 
 		DefaultServiceInstance instance1 = new DefaultServiceInstance("service1_1",
 				"service1", "localhost", 8001, false);
+
 		DefaultServiceInstance instance2 = new DefaultServiceInstance("service2_1",
 				"service2", "localhost", 8001, false);
 
@@ -118,5 +120,7 @@ public class DiscoveryClientRouteDefinitionLocatorIntegrationTests {
 			}
 			return Arrays.asList("service1", "service2");
 		}
+
 	}
+
 }

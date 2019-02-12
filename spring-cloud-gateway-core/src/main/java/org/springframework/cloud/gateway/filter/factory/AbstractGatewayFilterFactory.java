@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.filter.factory;
@@ -21,10 +20,11 @@ import org.springframework.cloud.gateway.support.AbstractConfigurable;
 
 /**
  * This class is BETA and may be subject to change in a future release.
- * @param <C>
+ *
+ * @param <C> {@link AbstractConfigurable} subtype
  */
-public abstract class AbstractGatewayFilterFactory<C>
-		extends AbstractConfigurable<C> implements GatewayFilterFactory<C> {
+public abstract class AbstractGatewayFilterFactory<C> extends AbstractConfigurable<C>
+		implements GatewayFilterFactory<C> {
 
 	@SuppressWarnings("unchecked")
 	public AbstractGatewayFilterFactory() {
@@ -36,6 +36,7 @@ public abstract class AbstractGatewayFilterFactory<C>
 	}
 
 	public static class NameConfig {
+
 		private String name;
 
 		public String getName() {
@@ -45,5 +46,7 @@ public abstract class AbstractGatewayFilterFactory<C>
 		public void setName(String name) {
 			this.name = name;
 		}
+
 	}
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.filter.headers;
@@ -25,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.jetbrains.annotations.Nullable;
+
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -36,7 +36,55 @@ import org.springframework.web.server.ServerWebExchange;
 
 public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 
+	/**
+	 * Forwarded header.
+	 */
 	public static final String FORWARDED_HEADER = "Forwarded";
+
+	/* for testing */
+	static List<Forwarded> parse(List<String> values) {
+		ArrayList<Forwarded> forwardeds = new ArrayList<>();
+		if (CollectionUtils.isEmpty(values)) {
+			return forwardeds;
+		}
+		for (String value : values) {
+			Forwarded forwarded = parse(value);
+			forwardeds.add(forwarded);
+		}
+		return forwardeds;
+	}
+
+	/* for testing */
+	static Forwarded parse(String value) {
+		String[] pairs = StringUtils.tokenizeToStringArray(value, ";");
+
+		LinkedCaseInsensitiveMap<String> result = splitIntoCaseInsensitiveMap(pairs);
+		if (result == null) {
+			return null;
+		}
+
+		Forwarded forwarded = new Forwarded(result);
+
+		return forwarded;
+	}
+
+	@Nullable
+	/* for testing */ static LinkedCaseInsensitiveMap<String> splitIntoCaseInsensitiveMap(
+			String[] pairs) {
+		if (ObjectUtils.isEmpty(pairs)) {
+			return null;
+		}
+
+		LinkedCaseInsensitiveMap<String> result = new LinkedCaseInsensitiveMap<>();
+		for (String element : pairs) {
+			String[] splittedElement = StringUtils.split(element, "=");
+			if (splittedElement == null) {
+				continue;
+			}
+			result.put(splittedElement[0].trim(), splittedElement[1].trim());
+		}
+		return result;
+	}
 
 	@Override
 	public int getOrder() {
@@ -50,8 +98,8 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 		HttpHeaders updated = new HttpHeaders();
 
 		// copy all headers except Forwarded
-		original.entrySet().stream()
-				.filter(entry -> !entry.getKey().toLowerCase().equalsIgnoreCase(FORWARDED_HEADER))
+		original.entrySet().stream().filter(
+				entry -> !entry.getKey().toLowerCase().equalsIgnoreCase(FORWARDED_HEADER))
 				.forEach(entry -> updated.addAll(entry.getKey(), entry.getValue()));
 
 		List<Forwarded> forwardeds = parse(original.get(FORWARDED_HEADER));
@@ -60,12 +108,11 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 			updated.add(FORWARDED_HEADER, f.toHeaderValue());
 		}
 
-		//TODO: add new forwarded
+		// TODO: add new forwarded
 		URI uri = request.getURI();
 		String host = original.getFirst(HttpHeaders.HOST);
-		Forwarded forwarded = new Forwarded()
-				.put("host", host)
-				.put("proto", uri.getScheme());
+		Forwarded forwarded = new Forwarded().put("host", host).put("proto",
+				uri.getScheme());
 
 		InetSocketAddress remoteAddress = request.getRemoteAddress();
 		if (remoteAddress != null) {
@@ -83,59 +130,19 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 		return updated;
 	}
 
-
-	/* for testing */ static List<Forwarded> parse(List<String> values) {
-		ArrayList<Forwarded> forwardeds = new ArrayList<>();
-		if (CollectionUtils.isEmpty(values)) {
-			return forwardeds;
-		}
-    	for (String value : values) {
-			Forwarded forwarded = parse(value);
-			forwardeds.add(forwarded);
-		}
-		return forwardeds;
-	}
-
-	/* for testing */ static Forwarded parse(String value) {
-		String[] pairs = StringUtils.tokenizeToStringArray(value, ";");
-
-		LinkedCaseInsensitiveMap<String> result = splitIntoCaseInsensitiveMap(pairs);
-		if (result == null) return null;
-
-		Forwarded forwarded = new Forwarded(result);
-
-		return forwarded;
-	}
-
-	@Nullable
-	/* for testing */ static LinkedCaseInsensitiveMap<String> splitIntoCaseInsensitiveMap(String[] pairs) {
-		if (ObjectUtils.isEmpty(pairs)) {
-			return null;
-		}
-
-		LinkedCaseInsensitiveMap<String> result = new LinkedCaseInsensitiveMap<>();
-		for (String element : pairs) {
-			String[] splittedElement = StringUtils.split(element, "=");
-			if (splittedElement == null) {
-				continue;
-			}
-			result.put(splittedElement[0].trim(), splittedElement[1].trim());
-		}
-		return result;
-	}
-
 	/* for testing */ static class Forwarded {
 
 		private static final char EQUALS = '=';
+
 		private static final char SEMICOLON = ';';
 
 		private final Map<String, String> values;
 
-		public Forwarded() {
+		Forwarded() {
 			this.values = new HashMap<>();
 		}
 
-		public Forwarded(Map<String, String> values) {
+		Forwarded(Map<String, String> values) {
 			this.values = values;
 		}
 
@@ -144,10 +151,9 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 			return this;
 		}
 
-
 		private String quoteIfNeeded(String s) {
-			if (s != null && s.contains(":")) { //TODO: broaded quote
-				return "\""+s+"\"";
+			if (s != null && s.contains(":")) { // TODO: broaded quote
+				return "\"" + s + "\"";
 			}
 			return s;
 		}
@@ -162,9 +168,7 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 
 		@Override
 		public String toString() {
-			return "Forwarded{" +
-					"values=" + this.values +
-					'}';
+			return "Forwarded{" + "values=" + this.values + '}';
 		}
 
 		public String toHeaderValue() {
@@ -173,12 +177,11 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 				if (builder.length() > 0) {
 					builder.append(SEMICOLON);
 				}
-				builder.append(entry.getKey())
-						.append(EQUALS)
-						.append(entry.getValue());
+				builder.append(entry.getKey()).append(EQUALS).append(entry.getValue());
 			}
 			return builder.toString();
 		}
+
 	}
 
 }

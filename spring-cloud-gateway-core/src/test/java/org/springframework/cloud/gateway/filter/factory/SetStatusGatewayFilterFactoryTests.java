@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.filter.factory;
@@ -57,27 +56,24 @@ public class SetStatusGatewayFilterFactoryTests extends BaseWebClientTests {
 	}
 
 	private void setStatusStringTest(String host, HttpStatus status) {
-		testClient.get()
-				.uri("/headers")
-				.header("Host", host)
-				.exchange()
-				.expectStatus().isEqualTo(status);
+		testClient.get().uri("/headers").header("Host", host).exchange().expectStatus()
+				.isEqualTo(status);
 	}
 
 	@Test
 	public void nonStandardCodeWorks() {
 		HttpHeaders headers = new HttpHeaders();
 		headers.set(HttpHeaders.HOST, "www.setcustomstatus.org");
-		ResponseEntity<String> response = new TestRestTemplate().exchange(baseUri + "/headers",
-				HttpMethod.GET, new HttpEntity<>(headers), String.class);
+		ResponseEntity<String> response = new TestRestTemplate().exchange(
+				baseUri + "/headers", HttpMethod.GET, new HttpEntity<>(headers),
+				String.class);
 		assertThat(response.getStatusCodeValue()).isEqualTo(432);
 
 		// https://jira.spring.io/browse/SPR-16748
-		/*testClient.get()
-				.uri("/status/432")
-				.exchange()
-				.expectStatus().isEqualTo(432)
-				.expectBody(String.class).isEqualTo("Failed with 432");*/
+		/*
+		 * testClient.get() .uri("/status/432") .exchange() .expectStatus().isEqualTo(432)
+		 * .expectBody(String.class).isEqualTo("Failed with 432");
+		 */
 	}
 
 	@EnableAutoConfiguration
@@ -92,10 +88,10 @@ public class SetStatusGatewayFilterFactoryTests extends BaseWebClientTests {
 		public RouteLocator myRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes()
 					.route("test_custom_http_status", r -> r.host("*.setcustomstatus.org")
-							.filters(f -> f.setStatus(432))
-							.uri(uri))
+							.filters(f -> f.setStatus(432)).uri(uri))
 					.build();
 		}
+
 	}
 
 }

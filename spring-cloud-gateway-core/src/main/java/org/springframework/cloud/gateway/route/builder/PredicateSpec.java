@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,7 +76,7 @@ public class PredicateSpec extends UriSpec {
 	 */
 	public BooleanSpec after(ZonedDateTime datetime) {
 		return asyncPredicate(getBean(AfterRoutePredicateFactory.class)
-				.applyAsync(c-> c.setDatetime(datetime)));
+				.applyAsync(c -> c.setDatetime(datetime)));
 	}
 
 	/**
@@ -85,7 +85,8 @@ public class PredicateSpec extends UriSpec {
 	 * @return a {@link BooleanSpec} to be used to add logical operators
 	 */
 	public BooleanSpec before(ZonedDateTime datetime) {
-		return asyncPredicate(getBean(BeforeRoutePredicateFactory.class).applyAsync(c -> c.setDatetime(datetime)));
+		return asyncPredicate(getBean(BeforeRoutePredicateFactory.class)
+				.applyAsync(c -> c.setDatetime(datetime)));
 	}
 
 	/**
@@ -102,7 +103,8 @@ public class PredicateSpec extends UriSpec {
 	/**
 	 * A predicate that checks if a cookie matches a given regular expression
 	 * @param name the name of the cookie
-	 * @param regex the value of the cookies will be evaluated against this regular expression
+	 * @param regex the value of the cookies will be evaluated against this regular
+	 * expression
 	 * @return a {@link BooleanSpec} to be used to add logical operators
 	 */
 	public BooleanSpec cookie(String name, String regex) {
@@ -121,7 +123,8 @@ public class PredicateSpec extends UriSpec {
 	}
 
 	/**
-	 * A predicate that checks if a given headers has a value which matches a regular expression
+	 * A predicate that checks if a given headers has a value which matches a regular
+	 * expression
 	 * @param header the header name to check
 	 * @param regex the regular expression to check against
 	 * @return a {@link BooleanSpec} to be used to add logical operators
@@ -133,12 +136,13 @@ public class PredicateSpec extends UriSpec {
 
 	/**
 	 * A predicate that checks if the {@code host} header matches a given pattern
-	 * @param pattern the pattern to check against.  The pattern is an Ant style pattern with {@code .} as a separator
+	 * @param pattern the pattern to check against. The pattern is an Ant style pattern
+	 * with {@code .} as a separator
 	 * @return a {@link BooleanSpec} to be used to add logical operators
 	 */
 	public BooleanSpec host(String... pattern) {
 		return asyncPredicate(getBean(HostRoutePredicateFactory.class)
-				.applyAsync(c-> c.setPatterns(Arrays.asList(pattern))));
+				.applyAsync(c -> c.setPatterns(Arrays.asList(pattern))));
 	}
 
 	/**
@@ -163,8 +167,8 @@ public class PredicateSpec extends UriSpec {
 
 	/**
 	 * A predicate that checks if the path of the request matches the given pattern
-	 * @param patterns the pattern to check the path against.
-	 *                The pattern is a {@link org.springframework.util.PathMatcher} pattern
+	 * @param patterns the pattern to check the path against. The pattern is a
+	 * {@link org.springframework.util.PathMatcher} pattern
 	 * @return a {@link BooleanSpec} to be used to add logical operators
 	 */
 	public BooleanSpec path(String... patterns) {
@@ -174,36 +178,36 @@ public class PredicateSpec extends UriSpec {
 
 	/**
 	 * A predicate that checks if the path of the request matches the given pattern
-	 * @param pattern the pattern to check the path against.
-	 *                The pattern is a {@link org.springframework.util.PathMatcher} pattern
-	 * @param matchOptionalTrailingSeparator set to false if you do not want this path to match
-	 *                                       when there is a trailing <code>/</code>
+	 * @param pattern the pattern to check the path against. The pattern is a
+	 * {@link org.springframework.util.PathMatcher} pattern
+	 * @param matchOptionalTrailingSeparator set to false if you do not want this path to
+	 * match when there is a trailing <code>/</code>
 	 * @return a {@link BooleanSpec} to be used to add logical operators
 	 */
 	@Deprecated
 	public BooleanSpec path(String pattern, boolean matchOptionalTrailingSeparator) {
-		return asyncPredicate(getBean(PathRoutePredicateFactory.class)
-				.applyAsync(c -> c.setPatterns(Collections.singletonList(pattern))
-						.setMatchOptionalTrailingSeparator(matchOptionalTrailingSeparator)));
+		return asyncPredicate(getBean(PathRoutePredicateFactory.class).applyAsync(c -> c
+				.setPatterns(Collections.singletonList(pattern))
+				.setMatchOptionalTrailingSeparator(matchOptionalTrailingSeparator)));
 	}
 
 	/**
 	 * A predicate that checks if the path of the request matches the given pattern
-	 * @param patterns the pattern to check the path against.
-	 *                The pattern is a {@link org.springframework.util.PathMatcher} pattern
-	 * @param matchOptionalTrailingSeparator set to false if you do not want this path to match
-	 *                                       when there is a trailing <code>/</code>
+	 * @param patterns the pattern to check the path against. The pattern is a
+	 * {@link org.springframework.util.PathMatcher} pattern
+	 * @param matchOptionalTrailingSeparator set to false if you do not want this path to
+	 * match when there is a trailing <code>/</code>
 	 * @return a {@link BooleanSpec} to be used to add logical operators
 	 */
 	public BooleanSpec path(boolean matchOptionalTrailingSeparator, String... patterns) {
-		return asyncPredicate(getBean(PathRoutePredicateFactory.class)
-				.applyAsync(c -> c.setPatterns(Arrays.asList(patterns))
-						.setMatchOptionalTrailingSeparator(matchOptionalTrailingSeparator)));
+		return asyncPredicate(getBean(PathRoutePredicateFactory.class).applyAsync(c -> c
+				.setPatterns(Arrays.asList(patterns))
+				.setMatchOptionalTrailingSeparator(matchOptionalTrailingSeparator)));
 	}
 
 	/**
-	 * This predicate is BETA and may be subject to change in a future release.
-	 * A predicate that checks the contents of the request body
+	 * This predicate is BETA and may be subject to change in a future release. A
+	 * predicate that checks the contents of the request body
 	 * @param inClass the class to parse the body to
 	 * @param predicate a predicate to check the contents of the body
 	 * @param <T> the type the body is parsed to
@@ -236,13 +240,15 @@ public class PredicateSpec extends UriSpec {
 	}
 
 	/**
-	 * A predicate which checks the remote address of the request.
-	 * By default the RemoteAddr Route Predicate Factory uses the remote address from the incoming request.
-	 * This may not match the actual client IP address if Spring Cloud Gateway sits behind a proxy layer.
-	 * Use {@link PredicateSpec#remoteAddr(RemoteAddressResolver, String...)} to customize the resolver.
-	 * You can customize the way that the remote address is resolved by setting a custom RemoteAddressResolver.
-
-	 * @param addrs the remote address to verify.  Should use CIDR-notation (IPv4 or IPv6) strings.
+	 * A predicate which checks the remote address of the request. By default the
+	 * RemoteAddr Route Predicate Factory uses the remote address from the incoming
+	 * request. This may not match the actual client IP address if Spring Cloud Gateway
+	 * sits behind a proxy layer. Use
+	 * {@link PredicateSpec#remoteAddr(RemoteAddressResolver, String...)} to customize the
+	 * resolver. You can customize the way that the remote address is resolved by setting
+	 * a custom RemoteAddressResolver.
+	 * @param addrs the remote address to verify. Should use CIDR-notation (IPv4 or IPv6)
+	 * strings.
 	 * @return a {@link BooleanSpec} to be used to add logical operators
 	 */
 	public BooleanSpec remoteAddr(String... addrs) {
@@ -250,34 +256,38 @@ public class PredicateSpec extends UriSpec {
 	}
 
 	/**
-	 * A predicate which checks the remote address of the request.  Useful if Spring Cloud Gateway site behind a proxy
-	 * layer.  Spring Cloud Gateway comes with one non-default remote address resolver which is based off of the
-	 * {@code X-Forwarded-For} header, {@link org.springframework.cloud.gateway.support.ipresolver.XForwardedRemoteAddressResolver}.
-	 * See {@link org.springframework.cloud.gateway.support.ipresolver.XForwardedRemoteAddressResolver} for more information.
-	 * @param resolver the {@link RemoteAddressResolver} to use to resolve the remote IP address against
-	 * @param addrs the remote address to verify.  Should use CIDR-notation (IPv4 or IPv6) strings.
+	 * A predicate which checks the remote address of the request. Useful if Spring Cloud
+	 * Gateway site behind a proxy layer. Spring Cloud Gateway comes with one non-default
+	 * remote address resolver which is based off of the {@code X-Forwarded-For} header,
+	 * {@link org.springframework.cloud.gateway.support.ipresolver.XForwardedRemoteAddressResolver}.
+	 * See
+	 * {@link org.springframework.cloud.gateway.support.ipresolver.XForwardedRemoteAddressResolver}
+	 * for more information.
+	 * @param resolver the {@link RemoteAddressResolver} to use to resolve the remote IP
+	 * address against
+	 * @param addrs the remote address to verify. Should use CIDR-notation (IPv4 or IPv6)
+	 * strings.
 	 * @return a {@link BooleanSpec} to be used to add logical operators
 	 */
 	public BooleanSpec remoteAddr(RemoteAddressResolver resolver, String... addrs) {
-		return asyncPredicate(getBean(RemoteAddrRoutePredicateFactory.class).applyAsync(c -> {
-			c.setSources(addrs);
-			if (resolver != null) {
-				c.setRemoteAddressResolver(resolver);
-			}
-		}));
+		return asyncPredicate(
+				getBean(RemoteAddrRoutePredicateFactory.class).applyAsync(c -> {
+					c.setSources(addrs);
+					if (resolver != null) {
+						c.setRemoteAddressResolver(resolver);
+					}
+				}));
 	}
 
 	/**
-	 * A predicate which will select a route based on its assigned weight.  The
+	 * A predicate which will select a route based on its assigned weight. The
 	 * @param group the group the route belongs to
 	 * @param weight the weight for the route
 	 * @return a {@link BooleanSpec} to be used to add logical operators
 	 */
 	public BooleanSpec weight(String group, int weight) {
-		return asyncPredicate(getBean(WeightRoutePredicateFactory.class)
-				.applyAsync(c -> c.setGroup(group)
-						.setRouteId(routeBuilder.getId())
-						.setWeight(weight)));
+		return asyncPredicate(getBean(WeightRoutePredicateFactory.class).applyAsync(c -> c
+				.setGroup(group).setRouteId(routeBuilder.getId()).setWeight(weight)));
 	}
 
 	public BooleanSpec cloudFoundryRouteService() {
@@ -293,4 +303,5 @@ public class PredicateSpec extends UriSpec {
 	public BooleanSpec alwaysTrue() {
 		return predicate(exchange -> true);
 	}
+
 }

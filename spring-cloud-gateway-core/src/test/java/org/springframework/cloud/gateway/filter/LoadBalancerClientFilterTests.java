@@ -1,3 +1,19 @@
+/*
+ * Copyright 2017-2019 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.springframework.cloud.gateway.filter;
 
 import java.net.URI;
@@ -62,8 +78,10 @@ public class LoadBalancerClientFilterTests {
 	@Before
 	public void setup() {
 		properties = new LoadBalancerProperties();
-		loadBalancerClientFilter = new LoadBalancerClientFilter(loadBalancerClient, properties);
-		exchange = MockServerWebExchange.from(MockServerHttpRequest.get("loadbalancerclient.org").build());
+		loadBalancerClientFilter = new LoadBalancerClientFilter(loadBalancerClient,
+				properties);
+		exchange = MockServerWebExchange
+				.from(MockServerHttpRequest.get("loadbalancerclient.org").build());
 	}
 
 	@Test
@@ -94,9 +112,11 @@ public class LoadBalancerClientFilterTests {
 
 		try {
 			loadBalancerClientFilter.filter(exchange, chain);
-		} catch (NotFoundException e) {
+		}
+		catch (NotFoundException e) {
 			assertThat(e.getStatus()).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			throw e;
 		}
 	}
@@ -108,9 +128,11 @@ public class LoadBalancerClientFilterTests {
 		properties.setUse404(true);
 		try {
 			loadBalancerClientFilter.filter(exchange, chain);
-		} catch (NotFoundException e) {
+		}
+		catch (NotFoundException e) {
 			assertThat(e.getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			throw e;
 		}
 	}
@@ -120,15 +142,19 @@ public class LoadBalancerClientFilterTests {
 		URI url = UriComponentsBuilder.fromUriString("lb://myservice").build().toUri();
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, url);
 
-		ServiceInstance serviceInstance = new DefaultServiceInstance("myservice", "localhost", 8080, true);
+		ServiceInstance serviceInstance = new DefaultServiceInstance("myservice",
+				"localhost", 8080, true);
 		when(loadBalancerClient.choose("myservice")).thenReturn(serviceInstance);
 
-		URI requestUrl = UriComponentsBuilder.fromUriString("https://localhost:8080").build().toUri();
-		when(loadBalancerClient.reconstructURI(any(ServiceInstance.class), any(URI.class))).thenReturn(requestUrl);
+		URI requestUrl = UriComponentsBuilder.fromUriString("https://localhost:8080")
+				.build().toUri();
+		when(loadBalancerClient.reconstructURI(any(ServiceInstance.class),
+				any(URI.class))).thenReturn(requestUrl);
 
 		loadBalancerClientFilter.filter(exchange, chain);
 
-		LinkedHashSet<URI> attribute = exchange.getAttribute(GATEWAY_ORIGINAL_REQUEST_URL_ATTR);
+		LinkedHashSet<URI> attribute = exchange
+				.getAttribute(GATEWAY_ORIGINAL_REQUEST_URL_ATTR);
 		assertThat(attribute).contains(url);
 
 		verify(loadBalancerClient).choose("myservice");
@@ -142,7 +168,8 @@ public class LoadBalancerClientFilterTests {
 
 		verifyNoMoreInteractions(loadBalancerClient);
 
-		assertThat((URI)exchange.getAttribute(GATEWAY_REQUEST_URL_ATTR)).isEqualTo(requestUrl);
+		assertThat((URI) exchange.getAttribute(GATEWAY_REQUEST_URL_ATTR))
+				.isEqualTo(requestUrl);
 
 		verify(chain).filter(exchange);
 		verifyNoMoreInteractions(chain);
@@ -150,8 +177,7 @@ public class LoadBalancerClientFilterTests {
 
 	@Test
 	public void instanceOverrideNonSecureScheme() {
-		MockServerHttpRequest request = MockServerHttpRequest
-				.get("https://localhost")
+		MockServerHttpRequest request = MockServerHttpRequest.get("https://localhost")
 				.build();
 
 		URI lbUri = URI.create("lb://service1");
@@ -162,8 +188,7 @@ public class LoadBalancerClientFilterTests {
 
 	@Test
 	public void instanceOverrideSecureScheme() {
-		MockServerHttpRequest request = MockServerHttpRequest
-				.get("http://localhost")
+		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost")
 				.build();
 
 		URI lbUri = URI.create("lb://service1");
@@ -174,8 +199,7 @@ public class LoadBalancerClientFilterTests {
 
 	@Test
 	public void instanceOverrideSecureSchemePrefix() {
-		MockServerHttpRequest request = MockServerHttpRequest
-				.get("https://localhost")
+		MockServerHttpRequest request = MockServerHttpRequest.get("https://localhost")
 				.build();
 
 		URI lbUri = URI.create("http://service1");
@@ -188,8 +212,7 @@ public class LoadBalancerClientFilterTests {
 
 	@Test
 	public void instanceOverrideNonSecureSchemePrefix() {
-		MockServerHttpRequest request = MockServerHttpRequest
-				.get("http://localhost")
+		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost")
 				.build();
 
 		URI lbUri = URI.create("https://service1");
@@ -200,24 +223,21 @@ public class LoadBalancerClientFilterTests {
 		assertThat(uri).hasScheme("https").hasHost("service1-host1");
 	}
 
-
 	@Test
 	public void happyPath() {
 		MockServerHttpRequest request = MockServerHttpRequest
-				.get("http://localhost/get?a=b")
-				.build();
+				.get("http://localhost/get?a=b").build();
 
 		URI lbUri = URI.create("lb://service1?a=b");
 		ServerWebExchange webExchange = testFilter(request, lbUri);
 		URI uri = webExchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
-		assertThat(uri).hasScheme("http").hasHost("service1-host1")
-				.hasParameter("a", "b");
+		assertThat(uri).hasScheme("http").hasHost("service1-host1").hasParameter("a",
+				"b");
 	}
 
 	@Test
 	public void noQueryParams() {
-		MockServerHttpRequest request = MockServerHttpRequest
-				.get("http://localhost/get")
+		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost/get")
 				.build();
 
 		ServerWebExchange webExchange = testFilter(request, URI.create("lb://service1"));
@@ -227,13 +247,14 @@ public class LoadBalancerClientFilterTests {
 
 	@Test
 	public void encodedParameters() {
-		URI url = UriComponentsBuilder.fromUriString("http://localhost/get?a=b&c=d[]").buildAndExpand().encode().toUri();
+		URI url = UriComponentsBuilder.fromUriString("http://localhost/get?a=b&c=d[]")
+				.buildAndExpand().encode().toUri();
 
-		MockServerHttpRequest request = MockServerHttpRequest
-				.method(HttpMethod.GET, url)
+		MockServerHttpRequest request = MockServerHttpRequest.method(HttpMethod.GET, url)
 				.build();
 
-		URI lbUrl = UriComponentsBuilder.fromUriString("lb://service1?a=b&c=d[]").buildAndExpand().encode().toUri();
+		URI lbUrl = UriComponentsBuilder.fromUriString("lb://service1?a=b&c=d[]")
+				.buildAndExpand().encode().toUri();
 
 		// prove that it is encoded
 		assertThat(lbUrl.getRawQuery()).isEqualTo("a=b&c=d%5B%5D");
@@ -242,8 +263,7 @@ public class LoadBalancerClientFilterTests {
 
 		ServerWebExchange webExchange = testFilter(request, lbUrl);
 		URI uri = webExchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
-		assertThat(uri).hasScheme("http").hasHost("service1-host1")
-				.hasParameter("a", "b")
+		assertThat(uri).hasScheme("http").hasHost("service1-host1").hasParameter("a", "b")
 				.hasParameter("c", "d[]");
 
 		// prove that it is not double encoded
@@ -254,8 +274,7 @@ public class LoadBalancerClientFilterTests {
 	public void unencodedParameters() {
 		URI url = URI.create("http://localhost/get?a=b&c=d[]");
 
-		MockServerHttpRequest request = MockServerHttpRequest
-				.method(HttpMethod.GET, url)
+		MockServerHttpRequest request = MockServerHttpRequest.method(HttpMethod.GET, url)
 				.build();
 
 		URI lbUrl = URI.create("lb://service1?a=b&c=d[]");
@@ -266,8 +285,7 @@ public class LoadBalancerClientFilterTests {
 		ServerWebExchange webExchange = testFilter(request, lbUrl);
 
 		URI uri = webExchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
-		assertThat(uri).hasScheme("http").hasHost("service1-host1")
-				.hasParameter("a", "b")
+		assertThat(uri).hasScheme("http").hasHost("service1-host1").hasParameter("a", "b")
 				.hasParameter("c", "d[]");
 
 		// prove that it is NOT encoded
@@ -277,8 +295,7 @@ public class LoadBalancerClientFilterTests {
 	@Test
 	public void happyPathWithAttributeRatherThanScheme() {
 		MockServerHttpRequest request = MockServerHttpRequest
-				.get("ws://localhost/get?a=b")
-				.build();
+				.get("ws://localhost/get?a=b").build();
 
 		URI lbUri = URI.create("ws://service1?a=b");
 
@@ -287,8 +304,7 @@ public class LoadBalancerClientFilterTests {
 
 		ServerWebExchange webExchange = testFilter(exchange, lbUri, 8081);
 		URI uri = webExchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
-		assertThat(uri).hasScheme("ws").hasHost("service1-host1")
-				.hasParameter("a", "b");
+		assertThat(uri).hasScheme("ws").hasHost("service1-host1").hasParameter("a", "b");
 	}
 
 	@Test
@@ -306,76 +322,97 @@ public class LoadBalancerClientFilterTests {
 
 	@Test
 	public void shouldSelectSpecifiedServer() {
-		URI uri1 = UriComponentsBuilder.fromUriString("lb://myservice").port(11111).build().toUri();
-		URI uri2 = UriComponentsBuilder.fromUriString("lb://myservice").port(22222).build().toUri();
+		URI uri1 = UriComponentsBuilder.fromUriString("lb://myservice").port(11111)
+				.build().toUri();
+		URI uri2 = UriComponentsBuilder.fromUriString("lb://myservice").port(22222)
+				.build().toUri();
 
 		SpringClientFactory clientFactory = mock(SpringClientFactory.class);
 		ILoadBalancer loadBalancer = mock(ILoadBalancer.class);
-		when(clientFactory.getLoadBalancerContext("myservice")).thenReturn(new RibbonLoadBalancerContext(loadBalancer));
+		when(clientFactory.getLoadBalancerContext("myservice"))
+				.thenReturn(new RibbonLoadBalancerContext(loadBalancer));
 		when(clientFactory.getLoadBalancer("myservice")).thenReturn(loadBalancer);
 
-		when(loadBalancer.chooseServer("11111")).thenReturn(new Server("myservice-host1", 8081));
-		when(loadBalancer.chooseServer("22222")).thenReturn(new Server("myservice-host2", 8081));
+		when(loadBalancer.chooseServer("11111"))
+				.thenReturn(new Server("myservice-host1", 8081));
+		when(loadBalancer.chooseServer("22222"))
+				.thenReturn(new Server("myservice-host2", 8081));
 
-		LoadBalancerClient loadBalancerClient = new RibbonLoadBalancerClient(clientFactory) {
+		LoadBalancerClient loadBalancerClient = new RibbonLoadBalancerClient(
+				clientFactory) {
 			private String loadBalancerKey;
+
 			public ServiceInstance choose(String serviceId) {
 				String[] strings = serviceId.split("<<>>");
 				loadBalancerKey = strings[1];
 				return super.choose(strings[0], loadBalancerKey);
 			}
+
 			protected Server getServer(ILoadBalancer loadBalancer) {
-				return loadBalancer == null ? null : loadBalancer.chooseServer(StringUtils.isEmpty(loadBalancerKey) ? "default" : loadBalancerKey);
+				return loadBalancer == null ? null
+						: loadBalancer.chooseServer(StringUtils.isEmpty(loadBalancerKey)
+								? "default" : loadBalancerKey);
 			}
 		};
 
-		LoadBalancerClientFilter loadBalancerClientFilter = new LoadBalancerClientFilter(loadBalancerClient, properties) {
+		LoadBalancerClientFilter loadBalancerClientFilter = new LoadBalancerClientFilter(
+				loadBalancerClient, properties) {
 			protected ServiceInstance choose(ServerWebExchange exchange) {
 				URI attribute = (URI) exchange.getAttribute(GATEWAY_REQUEST_URL_ATTR);
-				return loadBalancer.choose(attribute.getHost() + "<<>>" + attribute.getPort());
+				return loadBalancer
+						.choose(attribute.getHost() + "<<>>" + attribute.getPort());
 			}
 		};
 
-		MockServerHttpRequest request = MockServerHttpRequest
-				.get("http://localhost/get")
+		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost/get")
 				.build();
 		ServerWebExchange exchange = MockServerWebExchange.from(request);
 
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, uri1);
 		loadBalancerClientFilter.filter(exchange, chain);
-		assertThat(((URI)exchange.getAttributes().get(GATEWAY_REQUEST_URL_ATTR)).getHost()).isEqualTo("myservice-host1");
+		assertThat(
+				((URI) exchange.getAttributes().get(GATEWAY_REQUEST_URL_ATTR)).getHost())
+						.isEqualTo("myservice-host1");
 
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, uri2);
 		loadBalancerClientFilter.filter(exchange, chain);
-		assertThat(((URI)exchange.getAttributes().get(GATEWAY_REQUEST_URL_ATTR)).getHost()).isEqualTo("myservice-host2");
+		assertThat(
+				((URI) exchange.getAttributes().get(GATEWAY_REQUEST_URL_ATTR)).getHost())
+						.isEqualTo("myservice-host2");
 	}
 
 	private ServerWebExchange testFilter(MockServerHttpRequest request, URI uri) {
 		return testFilter(MockServerWebExchange.from(request), uri, 8081);
 	}
 
-	private ServerWebExchange testFilter(MockServerHttpRequest request, URI uri, int port) {
+	private ServerWebExchange testFilter(MockServerHttpRequest request, URI uri,
+			int port) {
 		return testFilter(MockServerWebExchange.from(request), uri, port);
 	}
 
-    private ServerWebExchange testFilter(ServerWebExchange exchange, URI uri, int port) {
+	private ServerWebExchange testFilter(ServerWebExchange exchange, URI uri, int port) {
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, uri);
 
-		ArgumentCaptor<ServerWebExchange> captor = ArgumentCaptor.forClass(ServerWebExchange.class);
+		ArgumentCaptor<ServerWebExchange> captor = ArgumentCaptor
+				.forClass(ServerWebExchange.class);
 		when(chain.filter(captor.capture())).thenReturn(Mono.empty());
 
 		SpringClientFactory clientFactory = mock(SpringClientFactory.class);
 		ILoadBalancer loadBalancer = mock(ILoadBalancer.class);
 
-		when(clientFactory.getLoadBalancerContext("service1")).thenReturn(new RibbonLoadBalancerContext(loadBalancer));
+		when(clientFactory.getLoadBalancerContext("service1"))
+				.thenReturn(new RibbonLoadBalancerContext(loadBalancer));
 		when(clientFactory.getLoadBalancer("service1")).thenReturn(loadBalancer);
-		when(loadBalancer.chooseServer(any())).thenReturn(new Server("service1-host1", port));
+		when(loadBalancer.chooseServer(any()))
+				.thenReturn(new Server("service1-host1", port));
 
 		RibbonLoadBalancerClient client = new RibbonLoadBalancerClient(clientFactory);
 
-		LoadBalancerClientFilter filter = new LoadBalancerClientFilter(client, properties);
+		LoadBalancerClientFilter filter = new LoadBalancerClientFilter(client,
+				properties);
 		filter.filter(exchange, chain);
 
 		return captor.getValue();
 	}
+
 }

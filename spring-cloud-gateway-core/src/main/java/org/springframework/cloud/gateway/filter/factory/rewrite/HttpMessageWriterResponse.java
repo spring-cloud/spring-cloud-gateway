@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,12 +12,16 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.filter.factory.rewrite;
 
+import java.util.function.Supplier;
+
 import org.reactivestreams.Publisher;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.http.HttpHeaders;
@@ -25,24 +29,21 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.util.MultiValueMap;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-
-import java.util.function.Supplier;
 
 /**
- * This class is BETA and may be subject to change in a future release.
- * Response who's job it is to gather the Publisher&lt;DataBuffer&gt; from the writeWith message
- * during a call to HttpMessageWriter.write. Also gathers any headers set there.
+ * This class is BETA and may be subject to change in a future release. Response who's job
+ * it is to gather the Publisher&lt;DataBuffer&gt; from the writeWith message during a
+ * call to HttpMessageWriter.write. Also gathers any headers set there.
  */
 public class HttpMessageWriterResponse implements ServerHttpResponse {
 
 	private final HttpHeaders headers = new HttpHeaders();
+
 	private final DataBufferFactory dataBufferFactory;
 
 	private Publisher<? extends DataBuffer> body;
 
-    public HttpMessageWriterResponse(DataBufferFactory dataBufferFactory) {
+	public HttpMessageWriterResponse(DataBufferFactory dataBufferFactory) {
 		this.dataBufferFactory = dataBufferFactory;
 	}
 
@@ -52,21 +53,21 @@ public class HttpMessageWriterResponse implements ServerHttpResponse {
 	}
 
 	@Override
-    public Mono<Void> writeWith(Publisher<? extends DataBuffer> body) {
-        this.body = body;
-        return Mono.empty();
-    }
+	public Mono<Void> writeWith(Publisher<? extends DataBuffer> body) {
+		this.body = body;
+		return Mono.empty();
+	}
 
-    @Override
-    public Mono<Void> writeAndFlushWith(Publisher<? extends Publisher<? extends DataBuffer>> body) {
-    	//TODO: is this kosher?
-		return writeWith(Flux.from(body)
-						.flatMapSequential(p -> p));
-    }
+	@Override
+	public Mono<Void> writeAndFlushWith(
+			Publisher<? extends Publisher<? extends DataBuffer>> body) {
+		// TODO: is this kosher?
+		return writeWith(Flux.from(body).flatMapSequential(p -> p));
+	}
 
-    public Publisher<? extends DataBuffer> getBody() {
-        return body;
-    }
+	public Publisher<? extends DataBuffer> getBody() {
+		return body;
+	}
 
 	@Override
 	public boolean setStatusCode(HttpStatus status) {
@@ -107,4 +108,5 @@ public class HttpMessageWriterResponse implements ServerHttpResponse {
 	public Mono<Void> setComplete() {
 		return null;
 	}
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.test;
@@ -44,6 +43,7 @@ import org.springframework.web.server.ServerWebExchange;
 @RestController
 @RequestMapping("/httpbin")
 public class HttpBinCompatibleController {
+
 	private static final Log log = LogFactory.getLog(HttpBinCompatibleController.class);
 
 	@RequestMapping("/")
@@ -51,8 +51,8 @@ public class HttpBinCompatibleController {
 		return "httpbin compatible home";
 	}
 
-	@RequestMapping(path = "/headers", method = {
-			RequestMethod.GET, RequestMethod.POST}, produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(path = "/headers", method = { RequestMethod.GET,
+			RequestMethod.POST }, produces = MediaType.APPLICATION_JSON_VALUE)
 	public Map<String, Object> headers(ServerWebExchange exchange) {
 		Map<String, Object> result = new HashMap<>();
 		result.put("headers", getHeaders(exchange));
@@ -60,13 +60,15 @@ public class HttpBinCompatibleController {
 	}
 
 	@RequestMapping(path = "/delay/{sec}", produces = MediaType.APPLICATION_JSON_VALUE)
-	public Mono<Map<String, Object>> get(ServerWebExchange exchange, @PathVariable int sec) throws InterruptedException {
+	public Mono<Map<String, Object>> get(ServerWebExchange exchange,
+			@PathVariable int sec) throws InterruptedException {
 		int delay = Math.min(sec, 10);
 		return Mono.just(get(exchange)).delayElement(Duration.ofSeconds(delay));
 	}
 
 	@RequestMapping(path = "/anything/{anything}", produces = MediaType.APPLICATION_JSON_VALUE)
-	public Map<String, Object> anything(ServerWebExchange exchange, @PathVariable(required = false) String anything) {
+	public Map<String, Object> anything(ServerWebExchange exchange,
+			@PathVariable(required = false) String anything) {
 		return get(exchange);
 	}
 
@@ -75,33 +77,37 @@ public class HttpBinCompatibleController {
 		if (log.isDebugEnabled()) {
 			log.debug("httpbin /get");
 		}
-        HashMap<String, Object> result = new HashMap<>();
-        HashMap<String, String> params = new HashMap<>();
-        exchange.getRequest().getQueryParams().forEach((name, values) -> {
-            params.put(name, values.get(0));
-        });
-        result.put("args", params);
-        result.put("headers", getHeaders(exchange));
-        return result;
+		HashMap<String, Object> result = new HashMap<>();
+		HashMap<String, String> params = new HashMap<>();
+		exchange.getRequest().getQueryParams().forEach((name, values) -> {
+			params.put(name, values.get(0));
+		});
+		result.put("args", params);
+		result.put("headers", getHeaders(exchange));
+		return result;
 	}
 
 	@RequestMapping(value = "/post", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public Mono<Map<String, Object>> postFormData(@RequestBody Mono<MultiValueMap<String, Part>> parts) {
+	public Mono<Map<String, Object>> postFormData(
+			@RequestBody Mono<MultiValueMap<String, Part>> parts) {
 		// StringDecoder decoder = StringDecoder.allMimeTypes(true);
 		return parts.flux().flatMap(map -> Flux.fromIterable(map.values()))
-				.flatMap(Flux::fromIterable)
-				.filter(part -> part instanceof FilePart)
+				.flatMap(Flux::fromIterable).filter(part -> part instanceof FilePart)
 				.reduce(new HashMap<String, Object>(), (files, part) -> {
 					MediaType contentType = part.headers().getContentType();
 					long contentLength = part.headers().getContentLength();
-					files.put(part.name(), "data:"+contentType+";base64,"+contentLength); //TODO: get part data
+					files.put(part.name(),
+							"data:" + contentType + ";base64," + contentLength); // TODO:
+																					// get
+																					// part
+																					// data
 					return files;
 				}).map(files -> Collections.singletonMap("files", files));
 	}
 
 	@RequestMapping(path = "/post", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public Mono<Map<String, Object>> postUrlEncoded(ServerWebExchange exchange) throws
-			IOException {
+	public Mono<Map<String, Object>> postUrlEncoded(ServerWebExchange exchange)
+			throws IOException {
 		return post(exchange, null);
 	}
 
@@ -115,7 +121,7 @@ public class HttpBinCompatibleController {
 		ret.put("form", form);
 
 		return exchange.getFormData().flatMap(map -> {
-			for (Map.Entry<String, List<String>> entry: map.entrySet()) {
+			for (Map.Entry<String, List<String>> entry : map.entrySet()) {
 				for (String value : entry.getValue()) {
 					form.put(entry.getKey(), value);
 				}
@@ -126,10 +132,11 @@ public class HttpBinCompatibleController {
 
 	@RequestMapping("/status/{status}")
 	public ResponseEntity<String> status(@PathVariable int status) {
-		return ResponseEntity.status(status).body("Failed with "+status);
+		return ResponseEntity.status(status).body("Failed with " + status);
 	}
 
 	public Map<String, String> getHeaders(ServerWebExchange exchange) {
 		return exchange.getRequest().getHeaders().toSingleValueMap();
 	}
+
 }

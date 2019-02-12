@@ -1,11 +1,27 @@
+/*
+ * Copyright 2018-2019 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.springframework.cloud.gateway.route.builder;
 
 import org.junit.Test;
-import org.springframework.cloud.gateway.filter.OrderedGatewayFilter;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
+import org.springframework.cloud.gateway.filter.OrderedGatewayFilter;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.Ordered;
@@ -27,11 +43,10 @@ public class GatewayFilterSpecTests {
 	}
 
 	private void testFilter(Class<? extends GatewayFilter> type,
-							GatewayFilter gatewayFilter, int order) {
-		ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
-		Route.AsyncBuilder routeBuilder = Route.async()
-				.id("123")
-				.uri("abc:123")
+			GatewayFilter gatewayFilter, int order) {
+		ConfigurableApplicationContext context = mock(
+				ConfigurableApplicationContext.class);
+		Route.AsyncBuilder routeBuilder = Route.async().id("123").uri("abc:123")
 				.predicate(exchange -> true);
 		RouteLocatorBuilder.Builder routes = new RouteLocatorBuilder(context).routes();
 		GatewayFilterSpec spec = new GatewayFilterSpec(routeBuilder, routes);
@@ -42,7 +57,8 @@ public class GatewayFilterSpecTests {
 		assertFilter(route.getFilters().get(0), type, order);
 	}
 
-	private void assertFilter(GatewayFilter filter, Class<? extends GatewayFilter> type, int order) {
+	private void assertFilter(GatewayFilter filter, Class<? extends GatewayFilter> type,
+			int order) {
 		assertThat(filter).isInstanceOf(type);
 		Ordered ordered = (Ordered) filter;
 		assertThat(ordered.getOrder()).isEqualTo(order);
@@ -50,10 +66,9 @@ public class GatewayFilterSpecTests {
 
 	@Test
 	public void testFilters() {
-		ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
-		Route.AsyncBuilder routeBuilder = Route.async()
-				.id("123")
-				.uri("abc:123")
+		ConfigurableApplicationContext context = mock(
+				ConfigurableApplicationContext.class);
+		Route.AsyncBuilder routeBuilder = Route.async().id("123").uri("abc:123")
 				.predicate(exchange -> true);
 		RouteLocatorBuilder.Builder routes = new RouteLocatorBuilder(context).routes();
 		GatewayFilterSpec spec = new GatewayFilterSpec(routeBuilder, routes);
@@ -67,6 +82,7 @@ public class GatewayFilterSpecTests {
 	}
 
 	protected static class MyOrderedFilter implements GatewayFilter, Ordered {
+
 		@Override
 		public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 			return Mono.empty();
@@ -76,12 +92,16 @@ public class GatewayFilterSpecTests {
 		public int getOrder() {
 			return 1000;
 		}
+
 	}
 
 	protected static class MyUnorderedFilter implements GatewayFilter {
+
 		@Override
 		public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 			return Mono.empty();
 		}
+
 	}
+
 }

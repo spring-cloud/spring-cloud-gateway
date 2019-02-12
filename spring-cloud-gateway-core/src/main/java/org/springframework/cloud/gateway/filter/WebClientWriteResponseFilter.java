@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,13 +12,14 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.filter;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import reactor.core.publisher.Mono;
+
 import org.springframework.core.Ordered;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.reactive.function.BodyExtractors;
@@ -27,16 +28,17 @@ import org.springframework.web.server.ServerWebExchange;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.CLIENT_RESPONSE_ATTR;
 
-import reactor.core.publisher.Mono;
-
 /**
  * @author Spencer Gibb
  */
 public class WebClientWriteResponseFilter implements GlobalFilter, Ordered {
 
-	private static final Log log = LogFactory.getLog(WebClientWriteResponseFilter.class);
-
+	/**
+	 * Order of Write Response Filter.
+	 */
 	public static final int WRITE_RESPONSE_FILTER_ORDER = -1;
+
+	private static final Log log = LogFactory.getLog(WebClientWriteResponseFilter.class);
 
 	@Override
 	public int getOrder() {
@@ -55,7 +57,8 @@ public class WebClientWriteResponseFilter implements GlobalFilter, Ordered {
 			log.trace("WebClientWriteResponseFilter start");
 			ServerHttpResponse response = exchange.getResponse();
 
-			return response.writeWith(clientResponse.body(BodyExtractors.toDataBuffers())).log("webClient response");
+			return response.writeWith(clientResponse.body(BodyExtractors.toDataBuffers()))
+					.log("webClient response");
 		}));
 	}
 

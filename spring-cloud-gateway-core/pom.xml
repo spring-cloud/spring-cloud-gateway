@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xmlns="http://maven.apache.org/POM/4.0.0"
 		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
@@ -134,7 +135,9 @@
 				<executions>
 					<execution>
 						<id>compile</id>
-						<goals> <goal>compile</goal> </goals>
+						<goals>
+							<goal>compile</goal>
+						</goals>
 						<configuration>
 							<sourceDirs>
 								<sourceDir>${project.basedir}/src/main/kotlin</sourceDir>
@@ -144,7 +147,9 @@
 					</execution>
 					<execution>
 						<id>test-compile</id>
-						<goals> <goal>test-compile</goal> </goals>
+						<goals>
+							<goal>test-compile</goal>
+						</goals>
 						<configuration>
 							<sourceDirs>
 								<sourceDir>${project.basedir}/src/test/kotlin</sourceDir>
@@ -176,15 +181,15 @@
 					<execution>
 						<id>java-compile</id>
 						<phase>compile</phase>
-						<goals> 
-							<goal>compile</goal> 
+						<goals>
+							<goal>compile</goal>
 						</goals>
 					</execution>
 					<execution>
 						<id>java-test-compile</id>
 						<phase>test-compile</phase>
-						<goals> 
-							<goal>testCompile</goal> 
+						<goals>
+							<goal>testCompile</goal>
 						</goals>
 					</execution>
 				</executions>

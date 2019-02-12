@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2018-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.cloud.gateway.filter.factory;
 
 import java.time.Duration;
@@ -21,6 +22,9 @@ import java.util.Map;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
+
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -32,8 +36,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.server.WebSession;
 import org.springframework.web.server.session.WebSessionManager;
-import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -58,15 +60,12 @@ public class SaveSessionGatewayFilterFactoryTests extends BaseWebClientTests {
 		when(mockWebSession.getAttributes()).thenReturn(new HashMap<>());
 		when(mockWebSession.save()).thenReturn(Mono.empty());
 
-		Mono<Map> result = webClient.get()
-			.uri("/get")
-			.exchange()
-			.flatMap(response -> response.body(toMono(Map.class)));
+		Mono<Map> result = webClient.get().uri("/get").exchange()
+				.flatMap(response -> response.body(toMono(Map.class)));
 
-		StepVerifier.create(result)
-			.consumeNextWith(response -> {/* Don't care about data, just need to catch signal */})
-			.expectComplete()
-			.verify(Duration.ofMinutes(10));
+		StepVerifier.create(result).consumeNextWith(response -> {
+			// Don't care about data, just need to catch signal
+		}).expectComplete().verify(Duration.ofMinutes(10));
 
 		verify(mockWebSession).save();
 	}
@@ -80,6 +79,7 @@ public class SaveSessionGatewayFilterFactoryTests extends BaseWebClientTests {
 		WebSessionManager webSessionManager() {
 			return exchange -> Mono.just(mockWebSession);
 		}
+
 	}
 
 }

@@ -1,10 +1,28 @@
+/*
+ * Copyright 2018-2019 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.springframework.cloud.gateway.handler.predicate;
 
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
-import static org.springframework.cloud.gateway.test.TestUtils.assertStatus;
+import java.time.Duration;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -21,10 +39,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.reactive.function.client.ClientResponse;
 
-import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
-
-import java.time.Duration;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
+import static org.springframework.cloud.gateway.test.TestUtils.assertStatus;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -45,8 +61,7 @@ public class RemoteAddrRoutePredicateFactoryTests extends BaseWebClientTests {
 	public void remoteAddrRejects() {
 		Mono<ClientResponse> result = webClient.get().uri("/nok/httpbin/").exchange();
 
-		StepVerifier
-				.create(result)
+		StepVerifier.create(result)
 				.consumeNextWith(response -> assertStatus(response, HttpStatus.NOT_FOUND))
 				.expectComplete().verify(DURATION);
 	}
@@ -65,6 +80,7 @@ public class RemoteAddrRoutePredicateFactoryTests extends BaseWebClientTests {
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
 	public static class TestConfig {
+
 		@Value("${test.uri}")
 		String uri;
 
@@ -76,6 +92,7 @@ public class RemoteAddrRoutePredicateFactoryTests extends BaseWebClientTests {
 							"12.34.56.78")
 					.filters(f -> f.setStatus(200)).uri(uri)).build();
 		}
+
 	}
 
 }

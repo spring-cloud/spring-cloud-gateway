@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,16 +12,17 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
-package org.springframework.cloud.gateway.filter.factory;
 
-import reactor.core.publisher.Mono;
+package org.springframework.cloud.gateway.filter.factory;
 
 import java.net.URI;
 import java.util.LinkedHashSet;
+
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import reactor.core.publisher.Mono;
+
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
@@ -44,19 +45,18 @@ public class PrefixPathGatewayFilterFactoryTest {
 		testPrefixPathFilter("/foo", "/hello%20world", "/foo/hello%20world");
 	}
 
-
 	private void testPrefixPathFilter(String prefix, String path, String expectedPath) {
-		GatewayFilter filter = new PrefixPathGatewayFilterFactory().apply(c -> c.setPrefix(prefix));
+		GatewayFilter filter = new PrefixPathGatewayFilterFactory()
+				.apply(c -> c.setPrefix(prefix));
 		MockServerHttpRequest request = MockServerHttpRequest
-				.get("http://localhost" + path)
-				.build();
+				.get("http://localhost" + path).build();
 
 		ServerWebExchange exchange = MockServerWebExchange.from(request);
 
-
 		GatewayFilterChain filterChain = mock(GatewayFilterChain.class);
 
-		ArgumentCaptor<ServerWebExchange> captor = ArgumentCaptor.forClass(ServerWebExchange.class);
+		ArgumentCaptor<ServerWebExchange> captor = ArgumentCaptor
+				.forClass(ServerWebExchange.class);
 		when(filterChain.filter(captor.capture())).thenReturn(Mono.empty());
 
 		filter.filter(exchange, filterChain);
@@ -64,7 +64,8 @@ public class PrefixPathGatewayFilterFactoryTest {
 		ServerWebExchange webExchange = captor.getValue();
 
 		assertThat(webExchange.getRequest().getURI()).hasPath(expectedPath);
-		LinkedHashSet<URI> uris = webExchange.getRequiredAttribute(GATEWAY_ORIGINAL_REQUEST_URL_ATTR);
+		LinkedHashSet<URI> uris = webExchange
+				.getRequiredAttribute(GATEWAY_ORIGINAL_REQUEST_URL_ATTR);
 		assertThat(uris).contains(request.getURI());
 	}
 

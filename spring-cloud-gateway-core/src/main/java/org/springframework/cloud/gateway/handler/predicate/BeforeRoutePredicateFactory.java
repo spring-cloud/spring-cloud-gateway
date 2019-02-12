@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.handler.predicate;
@@ -27,8 +26,12 @@ import org.springframework.web.server.ServerWebExchange;
 /**
  * @author Spencer Gibb
  */
-public class BeforeRoutePredicateFactory extends AbstractRoutePredicateFactory<BeforeRoutePredicateFactory.Config> {
+public class BeforeRoutePredicateFactory
+		extends AbstractRoutePredicateFactory<BeforeRoutePredicateFactory.Config> {
 
+	/**
+	 * DateTime key.
+	 */
 	public static final String DATETIME_KEY = "datetime";
 
 	public BeforeRoutePredicateFactory() {
@@ -50,6 +53,7 @@ public class BeforeRoutePredicateFactory extends AbstractRoutePredicateFactory<B
 	}
 
 	public static class Config {
+
 		private ZonedDateTime datetime;
 
 		public ZonedDateTime getDatetime() {
@@ -59,5 +63,7 @@ public class BeforeRoutePredicateFactory extends AbstractRoutePredicateFactory<B
 		public void setDatetime(ZonedDateTime datetime) {
 			this.datetime = datetime;
 		}
+
 	}
+
 }

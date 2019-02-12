@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.sample;
@@ -23,24 +22,27 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.isomorphism.util.TokenBucket;
 import org.isomorphism.util.TokenBuckets;
+import reactor.core.publisher.Mono;
+
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 
-import reactor.core.publisher.Mono;
-
 /**
- * Sample throttling filter.
- * See https://github.com/bbeck/token-bucket
+ * Sample throttling filter. See https://github.com/bbeck/token-bucket
  */
 public class ThrottleGatewayFilter implements GatewayFilter {
+
 	private static final Log log = LogFactory.getLog(ThrottleGatewayFilter.class);
 
-    int capacity;
-    int refillTokens;
-    int refillPeriod;
-    TimeUnit refillUnit;
+	int capacity;
+
+	int refillTokens;
+
+	int refillPeriod;
+
+	TimeUnit refillUnit;
 
 	public int getCapacity() {
 		return capacity;
@@ -81,18 +83,18 @@ public class ThrottleGatewayFilter implements GatewayFilter {
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 
-		TokenBucket tokenBucket = TokenBuckets.builder()
-				.withCapacity(capacity)
+		TokenBucket tokenBucket = TokenBuckets.builder().withCapacity(capacity)
 				.withFixedIntervalRefillStrategy(refillTokens, refillPeriod, refillUnit)
 				.build();
 
-        //TODO: get a token bucket for a key
-        log.debug("TokenBucket capacity: " + tokenBucket.getCapacity());
-        boolean consumed = tokenBucket.tryConsume();
-        if (consumed) {
-            return chain.filter(exchange);
-        }
-        exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
-        return exchange.getResponse().setComplete();
+		// TODO: get a token bucket for a key
+		log.debug("TokenBucket capacity: " + tokenBucket.getCapacity());
+		boolean consumed = tokenBucket.tryConsume();
+		if (consumed) {
+			return chain.filter(exchange);
+		}
+		exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
+		return exchange.getResponse().setComplete();
 	}
+
 }

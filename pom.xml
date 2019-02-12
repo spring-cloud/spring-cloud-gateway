@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xmlns="http://maven.apache.org/POM/4.0.0"
 		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
@@ -19,8 +20,11 @@
 	</parent>
 	<scm>
 		<url>https://github.com/spring-cloud-incubator/spring-cloud-gateway</url>
-		<connection>scm:git:git://github.com/spring-cloud-incubator/spring-cloud-gateway.git</connection>
-		<developerConnection>scm:git:ssh://git@github.com/spring-cloud-incubator/spring-cloud-gateway.git
+		<connection>
+			scm:git:git://github.com/spring-cloud-incubator/spring-cloud-gateway.git
+		</connection>
+		<developerConnection>
+			scm:git:ssh://git@github.com/spring-cloud-incubator/spring-cloud-gateway.git
 		</developerConnection>
 		<tag>HEAD</tag>
 	</scm>
@@ -51,6 +55,11 @@
 		<spring-cloud-commons.version>2.1.1.BUILD-SNAPSHOT</spring-cloud-commons.version>
 		<spring-cloud-netflix.version>2.1.1.BUILD-SNAPSHOT</spring-cloud-netflix.version>
 		<embedded-redis.version>0.6</embedded-redis.version>
+		<maven-checkstyle-plugin.includeTestSourceDirectory>true
+		</maven-checkstyle-plugin.includeTestSourceDirectory>
+		<maven-checkstyle-plugin.failsOnError>true</maven-checkstyle-plugin.failsOnError>
+		<maven-checkstyle-plugin.failOnViolation>true
+		</maven-checkstyle-plugin.failOnViolation>
 	</properties>
 
 	<dependencyManagement>
@@ -130,6 +139,19 @@
 		<module>docs</module>
 	</modules>
 
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>io.spring.javaformat</groupId>
+				<artifactId>spring-javaformat-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-checkstyle-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+
 	<profiles>
 		<profile>
 			<id>spring</id>
@@ -207,7 +229,8 @@
 								</goals>
 								<configuration>
 									<propertyName>surefireArgLine</propertyName>
-									<destFile>${project.build.directory}/jacoco.exec</destFile>
+									<destFile>${project.build.directory}/jacoco.exec
+									</destFile>
 								</configuration>
 							</execution>
 							<execution>
@@ -218,7 +241,8 @@
 								</goals>
 								<configuration>
 									<!-- Sets the path to the file which contains the execution data. -->
-									<dataFile>${project.build.directory}/jacoco.exec</dataFile>
+									<dataFile>${project.build.directory}/jacoco.exec
+									</dataFile>
 								</configuration>
 							</execution>
 						</executions>

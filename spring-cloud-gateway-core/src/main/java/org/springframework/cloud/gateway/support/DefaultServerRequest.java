@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.support;
@@ -30,7 +29,6 @@ import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.function.Function;
 
-import org.springframework.web.reactive.function.server.HandlerStrategies;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -49,6 +47,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.BodyExtractor;
 import org.springframework.web.reactive.function.BodyExtractors;
 import org.springframework.web.reactive.function.UnsupportedMediaTypeException;
+import org.springframework.web.reactive.function.server.HandlerStrategies;
 import org.springframework.web.reactive.function.server.RouterFunctions;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.server.ServerWebExchange;
@@ -65,11 +64,11 @@ import org.springframework.web.util.UriComponentsBuilder;
  */
 public class DefaultServerRequest implements ServerRequest {
 
-	private static final Function<UnsupportedMediaTypeException, UnsupportedMediaTypeStatusException> ERROR_MAPPER =
-			ex -> (ex.getContentType() != null ?
-					new UnsupportedMediaTypeStatusException(ex.getContentType(), ex.getSupportedMediaTypes()) :
-					new UnsupportedMediaTypeStatusException(ex.getMessage()));
-
+	private static final Function<UnsupportedMediaTypeException, UnsupportedMediaTypeStatusException> ERROR_MAPPER = ex -> (ex
+			.getContentType() != null
+					? new UnsupportedMediaTypeStatusException(ex.getContentType(),
+							ex.getSupportedMediaTypes())
+					: new UnsupportedMediaTypeStatusException(ex.getMessage()));
 
 	private final ServerWebExchange exchange;
 
@@ -81,12 +80,13 @@ public class DefaultServerRequest implements ServerRequest {
 		this(exchange, HandlerStrategies.withDefaults().messageReaders());
 	}
 
-	public DefaultServerRequest(ServerWebExchange exchange, List<HttpMessageReader<?>> messageReaders) {
+	public DefaultServerRequest(ServerWebExchange exchange,
+			List<HttpMessageReader<?>> messageReaders) {
 		this.exchange = exchange;
-		this.messageReaders = Collections.unmodifiableList(new ArrayList<>(messageReaders));
+		this.messageReaders = Collections
+				.unmodifiableList(new ArrayList<>(messageReaders));
 		this.headers = new DefaultHeaders();
 	}
-
 
 	@Override
 	public String methodName() {
@@ -134,22 +134,24 @@ public class DefaultServerRequest implements ServerRequest {
 	}
 
 	@Override
-	public <T> T body(BodyExtractor<T, ? super ServerHttpRequest> extractor, Map<String, Object> hints) {
-		return extractor.extract(request(),
-				new BodyExtractor.Context() {
-					@Override
-					public List<HttpMessageReader<?>> messageReaders() {
-						return messageReaders;
-					}
-					@Override
-					public Optional<ServerHttpResponse> serverResponse() {
-						return Optional.of(exchange().getResponse());
-					}
-					@Override
-					public Map<String, Object> hints() {
-						return hints;
-					}
-				});
+	public <T> T body(BodyExtractor<T, ? super ServerHttpRequest> extractor,
+			Map<String, Object> hints) {
+		return extractor.extract(request(), new BodyExtractor.Context() {
+			@Override
+			public List<HttpMessageReader<?>> messageReaders() {
+				return messageReaders;
+			}
+
+			@Override
+			public Optional<ServerHttpResponse> serverResponse() {
+				return Optional.of(exchange().getResponse());
+			}
+
+			@Override
+			public Map<String, Object> hints() {
+				return hints;
+			}
+		});
 	}
 
 	@Override
@@ -225,7 +227,6 @@ public class DefaultServerRequest implements ServerRequest {
 		return String.format("%s %s", method(), path());
 	}
 
-
 	private class DefaultHeaders implements Headers {
 
 		private HttpHeaders delegate() {
@@ -283,8 +284,8 @@ public class DefaultServerRequest implements ServerRequest {
 		public String toString() {
 			return delegate().toString();
 		}
-	}
 
+	}
 
 	private final class ServerRequestAdapter implements HttpRequest {
 
@@ -302,6 +303,7 @@ public class DefaultServerRequest implements ServerRequest {
 		public HttpHeaders getHeaders() {
 			return request().getHeaders();
 		}
+
 	}
 
 }

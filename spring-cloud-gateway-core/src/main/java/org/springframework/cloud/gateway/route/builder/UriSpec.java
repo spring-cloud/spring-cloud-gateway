@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,17 @@
 
 package org.springframework.cloud.gateway.route.builder;
 
-import org.springframework.cloud.gateway.route.Route;
-
 import java.net.URI;
+
+import org.springframework.cloud.gateway.route.Route;
 
 /**
  * A specification to add a URI to a route.
  */
 public class UriSpec {
+
 	final Route.AsyncBuilder routeBuilder;
+
 	final RouteLocatorBuilder.Builder builder;
 
 	UriSpec(Route.AsyncBuilder routeBuilder, RouteLocatorBuilder.Builder builder) {
@@ -50,8 +52,8 @@ public class UriSpec {
 		return this.routeBuilder.uri(uri);
 	}
 
-
 	<T> T getBean(Class<T> type) {
 		return this.builder.getContext().getBean(type);
 	}
+
 }

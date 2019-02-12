@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.filter.factory;
@@ -20,6 +19,8 @@ package org.springframework.cloud.gateway.filter.factory;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
+
+import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.support.HttpStatusHolder;
@@ -30,14 +31,20 @@ import org.springframework.util.Assert;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.setResponseStatus;
 
-import reactor.core.publisher.Mono;
-
 /**
  * @author Spencer Gibb
  */
-public class RedirectToGatewayFilterFactory extends AbstractGatewayFilterFactory<RedirectToGatewayFilterFactory.Config> {
+public class RedirectToGatewayFilterFactory
+		extends AbstractGatewayFilterFactory<RedirectToGatewayFilterFactory.Config> {
 
+	/**
+	 * Status key.
+	 */
 	public static final String STATUS_KEY = "status";
+
+	/**
+	 * URL key.
+	 */
 	public static final String URL_KEY = "url";
 
 	public RedirectToGatewayFilterFactory() {
@@ -56,7 +63,8 @@ public class RedirectToGatewayFilterFactory extends AbstractGatewayFilterFactory
 
 	public GatewayFilter apply(String statusString, String urlString) {
 		HttpStatusHolder httpStatus = HttpStatusHolder.parse(statusString);
-		Assert.isTrue(httpStatus.is3xxRedirection(), "status must be a 3xx code, but was " + statusString);
+		Assert.isTrue(httpStatus.is3xxRedirection(),
+				"status must be a 3xx code, but was " + statusString);
 		final URI url = URI.create(urlString);
 		return apply(httpStatus, url);
 	}
@@ -66,21 +74,22 @@ public class RedirectToGatewayFilterFactory extends AbstractGatewayFilterFactory
 	}
 
 	public GatewayFilter apply(HttpStatusHolder httpStatus, URI uri) {
-		return (exchange, chain) ->
-			chain.filter(exchange).then(Mono.defer(() -> {
-				if (!exchange.getResponse().isCommitted()) {
-					setResponseStatus(exchange, httpStatus);
+		return (exchange, chain) -> chain.filter(exchange).then(Mono.defer(() -> {
+			if (!exchange.getResponse().isCommitted()) {
+				setResponseStatus(exchange, httpStatus);
 
-					final ServerHttpResponse response = exchange.getResponse();
-					response.getHeaders().set(HttpHeaders.LOCATION, uri.toString());
-					return response.setComplete();
-				}
-				return Mono.empty();
-			}));
+				final ServerHttpResponse response = exchange.getResponse();
+				response.getHeaders().set(HttpHeaders.LOCATION, uri.toString());
+				return response.setComplete();
+			}
+			return Mono.empty();
+		}));
 	}
 
 	public static class Config {
+
 		String status;
+
 		String url;
 
 		public String getStatus() {
@@ -98,6 +107,7 @@ public class RedirectToGatewayFilterFactory extends AbstractGatewayFilterFactory
 		public void setUrl(String url) {
 			this.url = url;
 		}
+
 	}
 
 }

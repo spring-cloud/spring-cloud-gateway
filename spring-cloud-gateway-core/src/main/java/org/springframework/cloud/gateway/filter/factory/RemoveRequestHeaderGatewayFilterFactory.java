@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.filter.factory;
@@ -26,7 +25,8 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 /**
  * @author Spencer Gibb
  */
-public class RemoveRequestHeaderGatewayFilterFactory extends AbstractGatewayFilterFactory<AbstractGatewayFilterFactory.NameConfig> {
+public class RemoveRequestHeaderGatewayFilterFactory
+		extends AbstractGatewayFilterFactory<AbstractGatewayFilterFactory.NameConfig> {
 
 	public RemoveRequestHeaderGatewayFilterFactory() {
 		super(NameConfig.class);
@@ -41,10 +41,10 @@ public class RemoveRequestHeaderGatewayFilterFactory extends AbstractGatewayFilt
 	public GatewayFilter apply(NameConfig config) {
 		return (exchange, chain) -> {
 			ServerHttpRequest request = exchange.getRequest().mutate()
-					.headers(httpHeaders -> httpHeaders.remove(config.getName()))
-					.build();
+					.headers(httpHeaders -> httpHeaders.remove(config.getName())).build();
 
 			return chain.filter(exchange.mutate().request(request).build());
 		};
 	}
+
 }

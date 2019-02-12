@@ -1,7 +1,7 @@
 test:
   hostport: httpbin.org:80
-#  hostport: localhost:5000
-#  uri: http://${test.hostport}
+  #  hostport: localhost:5000
+  #  uri: http://${test.hostport}
   uri: lb://testservice
 
 spring:
@@ -85,9 +85,9 @@ spring:
       - id: host_backwards_compatible_test
         uri: ${test.uri}
         predicates:
-          - name: Host
-            args:
-              pattern: '**.hostpatternarg.org'
+        - name: Host
+          args:
+            pattern: '**.hostpatternarg.org'
 
       # =====================================
       - id: host_backwards_compatible_shortcut_test
@@ -187,10 +187,10 @@ spring:
       - id: path_multi
         uri: ${test.uri}
         predicates:
-          - Host=**.pathmulti.org
-          - Path=/anything/multi1{num},/anything/multi2{num}
+        - Host=**.pathmulti.org
+        - Path=/anything/multi1{num},/anything/multi2{num}
         filters:
-          - SetPath=/anything/multi{num}
+        - SetPath=/anything/multi{num}
 
       # =====================================
       - id: redirect_to_test
@@ -249,9 +249,9 @@ spring:
       - id: set_path_host_test
         uri: ${test.uri}
         predicates:
-          - Host={subdomain}.setpathhost.org
+        - Host={subdomain}.setpathhost.org
         filters:
-          - SetPath=/{subdomain}
+        - SetPath=/{subdomain}
 
       # =====================================
       - id: strip_prefix_test

@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.handler;
@@ -47,6 +46,7 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.G
  * @since 0.1
  */
 public class FilteringWebHandler implements WebHandler {
+
 	protected static final Log logger = LogFactory.getLog(FilteringWebHandler.class);
 
 	private final List<GatewayFilter> globalFilters;
@@ -56,21 +56,20 @@ public class FilteringWebHandler implements WebHandler {
 	}
 
 	private static List<GatewayFilter> loadFilters(List<GlobalFilter> filters) {
-		return filters.stream()
-				.map(filter -> {
-					GatewayFilterAdapter gatewayFilter = new GatewayFilterAdapter(filter);
-					if (filter instanceof Ordered) {
-						int order = ((Ordered) filter).getOrder();
-						return new OrderedGatewayFilter(gatewayFilter, order);
-					}
-					return gatewayFilter;
-				}).collect(Collectors.toList());
+		return filters.stream().map(filter -> {
+			GatewayFilterAdapter gatewayFilter = new GatewayFilterAdapter(filter);
+			if (filter instanceof Ordered) {
+				int order = ((Ordered) filter).getOrder();
+				return new OrderedGatewayFilter(gatewayFilter, order);
+			}
+			return gatewayFilter;
+		}).collect(Collectors.toList());
 	}
 
-    /* TODO: relocate @EventListener(RefreshRoutesEvent.class)
-    void handleRefresh() {
-        this.combinedFiltersForRoute.clear();
-    }*/
+	/*
+	 * TODO: relocate @EventListener(RefreshRoutesEvent.class) void handleRefresh() {
+	 * this.combinedFiltersForRoute.clear();
+	 */
 
 	@Override
 	public Mono<Void> handle(ServerWebExchange exchange) {
@@ -79,11 +78,11 @@ public class FilteringWebHandler implements WebHandler {
 
 		List<GatewayFilter> combined = new ArrayList<>(this.globalFilters);
 		combined.addAll(gatewayFilters);
-		//TODO: needed or cached?
+		// TODO: needed or cached?
 		AnnotationAwareOrderComparator.sort(combined);
 
 		if (logger.isDebugEnabled()) {
-			logger.debug("Sorted gatewayFilterFactories: "+ combined);
+			logger.debug("Sorted gatewayFilterFactories: " + combined);
 		}
 
 		return new DefaultGatewayFilterChain(combined).filter(exchange);
@@ -92,9 +91,10 @@ public class FilteringWebHandler implements WebHandler {
 	private static class DefaultGatewayFilterChain implements GatewayFilterChain {
 
 		private final int index;
+
 		private final List<GatewayFilter> filters;
 
-		public DefaultGatewayFilterChain(List<GatewayFilter> filters) {
+		DefaultGatewayFilterChain(List<GatewayFilter> filters) {
 			this.filters = filters;
 			this.index = 0;
 		}
@@ -113,20 +113,23 @@ public class FilteringWebHandler implements WebHandler {
 			return Mono.defer(() -> {
 				if (this.index < filters.size()) {
 					GatewayFilter filter = filters.get(this.index);
-					DefaultGatewayFilterChain chain = new DefaultGatewayFilterChain(this, this.index + 1);
+					DefaultGatewayFilterChain chain = new DefaultGatewayFilterChain(this,
+							this.index + 1);
 					return filter.filter(exchange, chain);
-				} else {
+				}
+				else {
 					return Mono.empty(); // complete
 				}
 			});
 		}
+
 	}
 
 	private static class GatewayFilterAdapter implements GatewayFilter {
 
 		private final GlobalFilter delegate;
 
-		public GatewayFilterAdapter(GlobalFilter delegate) {
+		GatewayFilterAdapter(GlobalFilter delegate) {
 			this.delegate = delegate;
 		}
 
@@ -142,6 +145,7 @@ public class FilteringWebHandler implements WebHandler {
 			sb.append('}');
 			return sb.toString();
 		}
+
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.handler.predicate;
@@ -31,9 +30,17 @@ import org.springframework.web.server.ServerWebExchange;
 /**
  * @author Spencer Gibb
  */
-public class HeaderRoutePredicateFactory extends AbstractRoutePredicateFactory<HeaderRoutePredicateFactory.Config> {
+public class HeaderRoutePredicateFactory
+		extends AbstractRoutePredicateFactory<HeaderRoutePredicateFactory.Config> {
 
+	/**
+	 * Header key.
+	 */
 	public static final String HEADER_KEY = "header";
+
+	/**
+	 * Regexp key.
+	 */
 	public static final String REGEXP_KEY = "regexp";
 
 	public HeaderRoutePredicateFactory() {
@@ -50,7 +57,8 @@ public class HeaderRoutePredicateFactory extends AbstractRoutePredicateFactory<H
 		boolean hasRegex = !StringUtils.isEmpty(config.regexp);
 
 		return exchange -> {
-			List<String> values = exchange.getRequest().getHeaders().getOrDefault(config.header, Collections.emptyList());
+			List<String> values = exchange.getRequest().getHeaders()
+					.getOrDefault(config.header, Collections.emptyList());
 			if (values.isEmpty()) {
 				return false;
 			}
@@ -67,8 +75,10 @@ public class HeaderRoutePredicateFactory extends AbstractRoutePredicateFactory<H
 
 	@Validated
 	public static class Config {
+
 		@NotEmpty
 		private String header;
+
 		private String regexp;
 
 		public String getHeader() {
@@ -88,5 +98,7 @@ public class HeaderRoutePredicateFactory extends AbstractRoutePredicateFactory<H
 			this.regexp = regexp;
 			return this;
 		}
+
 	}
+
 }

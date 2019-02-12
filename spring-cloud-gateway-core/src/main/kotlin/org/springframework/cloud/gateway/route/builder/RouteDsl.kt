@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ import java.util.function.Predicate
  * @author Spencer Gibb
  */
 fun RouteLocatorBuilder.routes(routeLocator: RouteLocatorDsl.() -> Unit): RouteLocator {
-	return RouteLocatorDsl(this).apply(routeLocator).build()
+    return RouteLocatorDsl(this).apply(routeLocator).build()
 }
 
 
@@ -52,45 +52,45 @@ fun RouteLocatorBuilder.routes(routeLocator: RouteLocatorDsl.() -> Unit): RouteL
  * Provider for [RouteLocator] DSL functionality
  */
 class RouteLocatorDsl(val builder: RouteLocatorBuilder) {
-	private val routes = builder.routes()
+    private val routes = builder.routes()
 
-	/**
-	 * DSL to add a route to the [RouteLocator]
-	 *
-	 * @see [Route.Builder]
-	 */
-	fun route(id: String? = null, order: Int = 0, uri: String? = null, init: PredicateSpec.() -> Unit) {
-		val predicateSpec = if (id == null) {
-			RouteSpec(routes).randomId()
-		} else {
-			RouteSpec(routes).id(id)
-		}
-		predicateSpec.order(order)
-		if (uri != null) {
-			predicateSpec.uri(uri)
-		}
-		
-		predicateSpec.apply(init)
-		
-		val route: Route.AsyncBuilder = predicateSpec.routeBuilder
-		routes.add(route)
-	}
+    /**
+     * DSL to add a route to the [RouteLocator]
+     *
+     * @see [Route.Builder]
+     */
+    fun route(id: String? = null, order: Int = 0, uri: String? = null, init: PredicateSpec.() -> Unit) {
+        val predicateSpec = if (id == null) {
+            RouteSpec(routes).randomId()
+        } else {
+            RouteSpec(routes).id(id)
+        }
+        predicateSpec.order(order)
+        if (uri != null) {
+            predicateSpec.uri(uri)
+        }
 
-	fun build(): RouteLocator {
-		return routes.build()
-	}
+        predicateSpec.apply(init)
 
-	/**
-	 * A helper to return a composed [Predicate] that tests against this [Predicate] AND the [other] predicate
-	 */
-	infix fun BooleanSpec.and(other: BooleanSpec) =
-			this.routeBuilder.asyncPredicate(this.predicate.and(other.predicate))
+        val route: Route.AsyncBuilder = predicateSpec.routeBuilder
+        routes.add(route)
+    }
 
-	/**
-	 * A helper to return a composed [Predicate] that tests against this [Predicate] OR the [other] predicate
-	 */
-	infix fun BooleanSpec.or(other: BooleanSpec) =
-			this.routeBuilder.asyncPredicate(this.predicate.or(other.predicate))
+    fun build(): RouteLocator {
+        return routes.build()
+    }
+
+    /**
+     * A helper to return a composed [Predicate] that tests against this [Predicate] AND the [other] predicate
+     */
+    infix fun BooleanSpec.and(other: BooleanSpec) =
+            this.routeBuilder.asyncPredicate(this.predicate.and(other.predicate))
+
+    /**
+     * A helper to return a composed [Predicate] that tests against this [Predicate] OR the [other] predicate
+     */
+    infix fun BooleanSpec.or(other: BooleanSpec) =
+            this.routeBuilder.asyncPredicate(this.predicate.or(other.predicate))
 
 
 }
@@ -99,8 +99,8 @@ class RouteLocatorDsl(val builder: RouteLocatorBuilder) {
  * Extension method to add filters {} block to dsl
  */
 fun PredicateSpec.filters(init: GatewayFilterSpec.() -> Unit) {
-	val spec = createGatewayFilterSpec()
-	spec.apply(init)
+    val spec = createGatewayFilterSpec()
+    spec.apply(init)
 }
 
 

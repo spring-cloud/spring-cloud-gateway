@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.filter.factory;
@@ -69,24 +68,23 @@ public class HystrixTestConfig {
 
 	@Bean
 	public RouteLocator hystrixRouteLocator(RouteLocatorBuilder builder) {
-		return builder.routes()
-				.route("hystrix_java", r -> r.host("**.hystrixjava.org")
-						.filters(f -> f.prefixPath("/httpbin")
-								.hystrix(config -> config.setFallbackUri("forward:/fallbackcontroller2")))
-						.uri(uri))
-				.route("hystrix_connection_failure", r -> r.host("**.hystrixconnectfail.org")
-						.filters(f -> f.prefixPath("/httpbin")
-								.hystrix(config -> {
-								}))
-						.uri("lb:badservice"))
+		return builder.routes().route("hystrix_java", r -> r.host("**.hystrixjava.org")
+				.filters(f -> f.prefixPath("/httpbin").hystrix(
+						config -> config.setFallbackUri("forward:/fallbackcontroller2")))
+				.uri(uri))
+				.route("hystrix_connection_failure",
+						r -> r.host("**.hystrixconnectfail.org")
+								.filters(f -> f.prefixPath("/httpbin").hystrix(config -> {
+								})).uri("lb:badservice"))
 				/*
 				 * This is a route encapsulated in a hystrix command that is ready to wait
 				 * for a response far longer than the underpinning WebClient would.
 				 */
-				.route("hystrix_response_stall", r -> r.host("**.hystrixresponsestall.org")
-						.filters(f -> f.prefixPath("/httpbin")
-								.hystrix(config -> config.setName("stalling-command")))
-						.uri(uri))
+				.route("hystrix_response_stall",
+						r -> r.host("**.hystrixresponsestall.org")
+								.filters(f -> f.prefixPath("/httpbin").hystrix(
+										config -> config.setName("stalling-command")))
+								.uri(uri))
 				.build();
 	}
 
@@ -96,9 +94,12 @@ public class HystrixTestConfig {
 	}
 
 	@Bean
-	RouterFunction<ServerResponse> routerFunction(ExceptionFallbackHandler exceptionFallbackHandler) {
-		return route(GET("/exceptionFallback"), exceptionFallbackHandler::retrieveExceptionInfo);
+	RouterFunction<ServerResponse> routerFunction(
+			ExceptionFallbackHandler exceptionFallbackHandler) {
+		return route(GET("/exceptionFallback"),
+				exceptionFallbackHandler::retrieveExceptionInfo);
 	}
+
 }
 
 class ExceptionFallbackHandler {
@@ -107,11 +108,10 @@ class ExceptionFallbackHandler {
 
 	Mono<ServerResponse> retrieveExceptionInfo(ServerRequest serverRequest) {
 		String exceptionName = serverRequest.attribute(HYSTRIX_EXECUTION_EXCEPTION_ATTR)
-				.map(exception -> exception.getClass().getName())
-				.orElse("");
-		return ServerResponse.ok().header(RETRIEVED_EXCEPTION, exceptionName)
-				.build();
+				.map(exception -> exception.getClass().getName()).orElse("");
+		return ServerResponse.ok().header(RETRIEVED_EXCEPTION, exceptionName).build();
 	}
+
 }
 
 @Configuration
@@ -124,4 +124,5 @@ class TestBadRibbonConfig {
 	public ServerList<Server> ribbonServerList() {
 		return new StaticServerList<>(new Server("https", "localhost", this.port));
 	}
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.route;
@@ -31,11 +30,11 @@ import org.springframework.util.Assert;
 
 // see ZuulDiscoveryRefreshListener
 // TODO: make abstract class in commons?
-public class RouteRefreshListener
-		implements ApplicationListener<ApplicationEvent> {
+public class RouteRefreshListener implements ApplicationListener<ApplicationEvent> {
+
+	private final ApplicationEventPublisher publisher;
 
 	private HeartbeatMonitor monitor = new HeartbeatMonitor();
-	private final ApplicationEventPublisher publisher;
 
 	public RouteRefreshListener(ApplicationEventPublisher publisher) {
 		Assert.notNull(publisher, "publisher may not be null");

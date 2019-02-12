@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.handler.predicate;
@@ -48,30 +47,24 @@ public class QueryRoutePredicateFactoryTests extends BaseWebClientTests {
 
 	@Test
 	public void noQueryParamWorks() {
-		testClient.get().uri("/get")
-				.exchange()
-				.expectStatus().isOk()
-				.expectHeader().valueEquals(ROUTE_ID_HEADER, "default_path_to_httpbin");;
-
-		output.expect(not(containsString("Error applying predicate for route: foo_query_param")));
+		testClient.get().uri("/get").exchange().expectStatus().isOk().expectHeader()
+				.valueEquals(ROUTE_ID_HEADER, "default_path_to_httpbin");
+		output.expect(not(
+				containsString("Error applying predicate for route: foo_query_param")));
 	}
 
 	@Test
 	public void queryParamWorks() {
-		testClient.get().uri("/get?foo=bar")
-				.exchange()
-				.expectStatus().isOk()
-				.expectHeader().valueEquals(ROUTE_ID_HEADER, "foo_query_param");;
+		testClient.get().uri("/get?foo=bar").exchange().expectStatus().isOk()
+				.expectHeader().valueEquals(ROUTE_ID_HEADER, "foo_query_param");
 	}
 
 	@Test
 	public void emptyQueryParamWorks() {
-		testClient.get().uri("/get?foo")
-				.exchange()
-				.expectStatus().isOk()
-				.expectHeader().valueEquals(ROUTE_ID_HEADER, "default_path_to_httpbin");;
-
-		output.expect(not(containsString("Error applying predicate for route: foo_query_param")));
+		testClient.get().uri("/get?foo").exchange().expectStatus().isOk().expectHeader()
+				.valueEquals(ROUTE_ID_HEADER, "default_path_to_httpbin");
+		output.expect(not(
+				containsString("Error applying predicate for route: foo_query_param")));
 	}
 
 	@EnableAutoConfiguration
@@ -85,12 +78,12 @@ public class QueryRoutePredicateFactoryTests extends BaseWebClientTests {
 		@Bean
 		RouteLocator queryRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes()
-					.route("foo_query_param", r ->
-							r.query("foo", "bar")
-							.filters(f -> f.prefixPath("/httpbin"))
-							.uri(uri))
+					.route("foo_query_param",
+							r -> r.query("foo", "bar")
+									.filters(f -> f.prefixPath("/httpbin")).uri(uri))
 					.build();
 		}
+
 	}
 
 }

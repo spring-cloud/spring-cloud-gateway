@@ -12,22 +12,25 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.config;
+
+import java.util.Collections;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.env.EnvironmentPostProcessor;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
 
-import java.util.Collections;
-
 public class GatewayEnvironmentPostProcessor implements EnvironmentPostProcessor {
+
 	@Override
-	public void postProcessEnvironment(ConfigurableEnvironment env, SpringApplication application) {
-		env.getPropertySources().addFirst(new MapPropertySource("gateway-properties",
-				Collections.singletonMap("spring.webflux.hiddenmethod.filter.enabled", "false")));
+	public void postProcessEnvironment(ConfigurableEnvironment env,
+			SpringApplication application) {
+		env.getPropertySources().addFirst(
+				new MapPropertySource("gateway-properties", Collections.singletonMap(
+						"spring.webflux.hiddenmethod.filter.enabled", "false")));
 	}
+
 }

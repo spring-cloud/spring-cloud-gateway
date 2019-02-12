@@ -12,13 +12,13 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.handler.predicate;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -41,38 +41,30 @@ public class HeaderRoutePredicateFactoryTests extends BaseWebClientTests {
 
 	@Test
 	public void headerRouteWorks() {
-		testClient.get()
-				.uri("/get")
-				.header("Foo", "bar")
-				.exchange()
-				.expectStatus().isOk()
-				.expectHeader().valueEquals(HANDLER_MAPPER_HEADER,
-                            RoutePredicateHandlerMapping.class.getSimpleName())
+		testClient.get().uri("/get").header("Foo", "bar").exchange().expectStatus().isOk()
+				.expectHeader()
+				.valueEquals(HANDLER_MAPPER_HEADER,
+						RoutePredicateHandlerMapping.class.getSimpleName())
 				.expectHeader().valueEquals(ROUTE_ID_HEADER, "header_test");
 	}
 
 	@Test
 	@SuppressWarnings("Duplicates")
 	public void headerRouteIgnoredWhenHeaderMissing() {
-		testClient.get()
-				.uri("/get")
+		testClient.get().uri("/get")
 				// no headers set. Test used to throw a null pointer exception.
-				.exchange()
-				.expectStatus().isOk()
-				.expectHeader().valueEquals(HANDLER_MAPPER_HEADER,
+				.exchange().expectStatus().isOk().expectHeader()
+				.valueEquals(HANDLER_MAPPER_HEADER,
 						RoutePredicateHandlerMapping.class.getSimpleName())
 				.expectHeader().valueEquals(ROUTE_ID_HEADER, "default_path_to_httpbin");
 	}
 
 	@Test
 	public void headerExistsWorksWithDsl() {
-		testClient.get()
-				.uri("/get")
-				.header("X-Foo", "bar")
-				.exchange()
-				.expectStatus().isOk()
-				.expectHeader().valueEquals(HANDLER_MAPPER_HEADER,
-				RoutePredicateHandlerMapping.class.getSimpleName())
+		testClient.get().uri("/get").header("X-Foo", "bar").exchange().expectStatus()
+				.isOk().expectHeader()
+				.valueEquals(HANDLER_MAPPER_HEADER,
+						RoutePredicateHandlerMapping.class.getSimpleName())
 				.expectHeader().valueEquals(ROUTE_ID_HEADER, "header_exists_dsl");
 	}
 
@@ -86,13 +78,10 @@ public class HeaderRoutePredicateFactoryTests extends BaseWebClientTests {
 
 		@Bean
 		RouteLocator queryRouteLocator(RouteLocatorBuilder builder) {
-			return builder.routes()
-					.route("header_exists_dsl", r ->
-							r.header("X-Foo")
-							.filters(f -> f.prefixPath("/httpbin"))
-							.uri(uri))
-					.build();
+			return builder.routes().route("header_exists_dsl", r -> r.header("X-Foo")
+					.filters(f -> f.prefixPath("/httpbin")).uri(uri)).build();
 		}
+
 	}
 
 }

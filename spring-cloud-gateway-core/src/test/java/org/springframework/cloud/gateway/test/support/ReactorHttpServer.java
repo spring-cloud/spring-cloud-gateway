@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.test.support;
@@ -34,13 +33,11 @@ public class ReactorHttpServer extends AbstractHttpServer {
 
 	private AtomicReference<DisposableServer> serverRef = new AtomicReference<>();
 
-
 	@Override
 	protected void initServer() {
 		this.reactorHandler = createHttpHandlerAdapter();
 		this.reactorServer = reactor.netty.http.server.HttpServer.create()
-				.tcpConfiguration(server -> server.host(getHost()))
-				.port(getPort());
+				.tcpConfiguration(server -> server.host(getHost())).port(getPort());
 	}
 
 	private ReactorHttpHandlerAdapter createHttpHandlerAdapter() {
@@ -49,7 +46,8 @@ public class ReactorHttpServer extends AbstractHttpServer {
 
 	@Override
 	protected void startInternal() {
-		DisposableServer server = this.reactorServer.handle(this.reactorHandler).bind().block();
+		DisposableServer server = this.reactorServer.handle(this.reactorHandler).bind()
+				.block();
 		setPort(server.address().getPort());
 		this.serverRef.set(server);
 	}

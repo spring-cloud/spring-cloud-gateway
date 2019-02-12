@@ -1,7 +1,7 @@
 test:
-#  hostport: httpbin.org:80
-#  hostport: localhost:5000
-#  uri: http://${test.hostport}
+  #  hostport: httpbin.org:80
+  #  hostport: localhost:5000
+  #  uri: http://${test.hostport}
   uri: lb://httpbin
 
 

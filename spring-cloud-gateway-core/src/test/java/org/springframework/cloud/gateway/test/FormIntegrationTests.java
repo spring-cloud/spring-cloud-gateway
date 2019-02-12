@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.test;
@@ -42,6 +41,7 @@ import org.springframework.web.reactive.function.BodyInserters;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.cloud.gateway.test.TestUtils.getMap;
+import static org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED;
 import static org.springframework.web.reactive.function.BodyExtractors.toMono;
 
 @RunWith(SpringRunner.class)
@@ -50,7 +50,8 @@ import static org.springframework.web.reactive.function.BodyExtractors.toMono;
 @SuppressWarnings("unchecked")
 public class FormIntegrationTests extends BaseWebClientTests {
 
-	public static final MediaType FORM_URL_ENCODED_CONTENT_TYPE = new MediaType(MediaType.APPLICATION_FORM_URLENCODED, Charset.forName("UTF-8"));
+	public static final MediaType FORM_URL_ENCODED_CONTENT_TYPE = new MediaType(
+			APPLICATION_FORM_URLENCODED, Charset.forName("UTF-8"));
 
 	@Test
 	public void formUrlencodedWorks() {
@@ -58,14 +59,9 @@ public class FormIntegrationTests extends BaseWebClientTests {
 		formData.add("foo", "bar");
 		formData.add("baz", "bam");
 
-		testClient.post()
-				.uri("/post")
-				.contentType(FORM_URL_ENCODED_CONTENT_TYPE)
-				.body(BodyInserters.fromFormData(formData))
-				.exchange()
-				.expectStatus().isOk()
-				.expectBody(Map.class)
-				.consumeWith(result -> {
+		testClient.post().uri("/post").contentType(FORM_URL_ENCODED_CONTENT_TYPE)
+				.body(BodyInserters.fromFormData(formData)).exchange().expectStatus()
+				.isOk().expectBody(Map.class).consumeWith(result -> {
 					Map map = result.getResponseBody();
 					Map<String, Object> form = getMap(map, "form");
 					assertThat(form).containsEntry("foo", "bar");
@@ -85,27 +81,24 @@ public class FormIntegrationTests extends BaseWebClientTests {
 		MultiValueMap<String, Object> parts = new LinkedMultiValueMap<>();
 		parts.add("imgpart", entity);
 
-		Mono<Map> result = webClient.post()
-				.uri("/post")
+		Mono<Map> result = webClient.post().uri("/post")
 				.contentType(MediaType.MULTIPART_FORM_DATA)
-				.body(BodyInserters.fromMultipartData(parts))
-				.exchange()
+				.body(BodyInserters.fromMultipartData(parts)).exchange()
 				.flatMap(response -> response.body(toMono(Map.class)));
 
-		StepVerifier.create(result)
-				.consumeNextWith(map -> {
-					Map<String, Object> files = getMap(map, "files");
-					assertThat(files).containsKey("imgpart");
-					String file = (String) files.get("imgpart");
-					assertThat(file).startsWith("data:").contains(";base64,");
-				})
-				.expectComplete()
-				.verify(DURATION);
+		StepVerifier.create(result).consumeNextWith(map -> {
+			Map<String, Object> files = getMap(map, "files");
+			assertThat(files).containsKey("imgpart");
+			String file = (String) files.get("imgpart");
+			assertThat(file).startsWith("data:").contains(";base64,");
+		}).expectComplete().verify(DURATION);
 	}
 
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
-	public static class TestConfig { }
+	public static class TestConfig {
+
+	}
 
 }

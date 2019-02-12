@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.filter.factory;
@@ -24,6 +23,7 @@ import java.util.Map;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -66,60 +66,65 @@ public class AddRequestParameterGatewayFilterFactoryTests extends BaseWebClientT
 
 	@Test
 	public void addRequestParameterFilterWorksEncodedQueryJavaDsl() {
-		testRequestParameterFilter("www.addreqparamjava.org", "ValueB", "javaname", "%E6%89%8E%E6%A0%B9");
+		testRequestParameterFilter("www.addreqparamjava.org", "ValueB", "javaname",
+				"%E6%89%8E%E6%A0%B9");
 	}
 
 	private void testRequestParameterFilter(String name, String value) {
 		testRequestParameterFilter("www.addrequestparameter.org", "ValueA", name, value);
 	}
 
-    private void testRequestParameterFilter(String host, String expectedValue, String name, String value) {
+	private void testRequestParameterFilter(String host, String expectedValue,
+			String name, String value) {
 		String query;
 		if (name != null) {
 			query = "?" + name + "=" + value;
-		} else {
+		}
+		else {
 			query = "";
 		}
-		URI uri = UriComponentsBuilder.fromUriString(this.baseUri+"/get" + query).build(true).toUri();
+		URI uri = UriComponentsBuilder.fromUriString(this.baseUri + "/get" + query)
+				.build(true).toUri();
 		boolean checkForEncodedValue = containsEncodedParts(uri);
-		testClient.get()
-				.uri(uri)
-				.header("Host", host)
-				.exchange()
-				.expectBody(Map.class)
+		testClient.get().uri(uri).header("Host", host).exchange().expectBody(Map.class)
 				.consumeWith(response -> {
 					Map<String, Object> args = getMap(response.getResponseBody(), "args");
-                    assertThat(args).containsEntry("example", expectedValue);
-                    if (name != null) {
-                        if (checkForEncodedValue) {
-                            try {
-                                assertThat(args).containsEntry(name, URLDecoder.decode(value, "UTF-8"));
-                            } catch (UnsupportedEncodingException e) {
-                                throw new RuntimeException(e);
-                            }
-                        } else {
-                            assertThat(args).containsEntry(name, value);
-                        }
-                    }
-                });
+					assertThat(args).containsEntry("example", expectedValue);
+					if (name != null) {
+						if (checkForEncodedValue) {
+							try {
+								assertThat(args).containsEntry(name,
+										URLDecoder.decode(value, "UTF-8"));
+							}
+							catch (UnsupportedEncodingException e) {
+								throw new RuntimeException(e);
+							}
+						}
+						else {
+							assertThat(args).containsEntry(name, value);
+						}
+					}
+				});
 	}
 
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
 	public static class TestConfig {
+
 		@Value("${test.uri}")
 		String uri;
 
 		@Bean
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
-			return builder.routes()
-					.route("add_request_param_java_test", r ->
-							r.path("/get").and().host("**.addreqparamjava.org")
-									.filters(f -> f.prefixPath("/httpbin").addRequestParameter("example", "ValueB"))
-									.uri(uri))
+			return builder.routes().route("add_request_param_java_test",
+					r -> r.path("/get").and().host("**.addreqparamjava.org")
+							.filters(f -> f.prefixPath("/httpbin")
+									.addRequestParameter("example", "ValueB"))
+							.uri(uri))
 					.build();
 		}
+
 	}
 
 }

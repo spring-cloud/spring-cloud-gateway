@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,15 +12,14 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.filter;
 
+import reactor.core.publisher.Mono;
+
 import org.springframework.core.Ordered;
 import org.springframework.web.server.ServerWebExchange;
-
-import reactor.core.publisher.Mono;
 
 /**
  * @author Spencer Gibb
@@ -28,6 +27,7 @@ import reactor.core.publisher.Mono;
 public class OrderedGatewayFilter implements GatewayFilter, Ordered {
 
 	private final GatewayFilter delegate;
+
 	private final int order;
 
 	public OrderedGatewayFilter(GatewayFilter delegate, int order) {
@@ -57,4 +57,5 @@ public class OrderedGatewayFilter implements GatewayFilter, Ordered {
 		sb.append('}');
 		return sb.toString();
 	}
+
 }

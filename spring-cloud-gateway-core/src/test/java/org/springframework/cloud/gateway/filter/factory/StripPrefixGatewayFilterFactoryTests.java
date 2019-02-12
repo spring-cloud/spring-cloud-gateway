@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,17 +12,17 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
-package org.springframework.cloud.gateway.filter.factory;
 
-import reactor.core.publisher.Mono;
+package org.springframework.cloud.gateway.filter.factory;
 
 import java.net.URI;
 import java.util.LinkedHashSet;
 
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import reactor.core.publisher.Mono;
+
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
@@ -51,23 +51,24 @@ public class StripPrefixGatewayFilterFactoryTests {
 		testStripPrefixFilter("/", "/", 1);
 		testStripPrefixFilter("/", "/", 2);
 		testStripPrefixFilter("", "/", 2);
-		testStripPrefixFilter("/this/is/a/long/path/with/a/lot/of/slashes", "/path/with/a/lot/of/slashes", 4);
+		testStripPrefixFilter("/this/is/a/long/path/with/a/lot/of/slashes",
+				"/path/with/a/lot/of/slashes", 4);
 	}
 
-
-	private void testStripPrefixFilter(String actualPath, String expectedPath, int parts) {
-		GatewayFilter filter = new StripPrefixGatewayFilterFactory().apply(
-				c -> c.setParts(parts));
+	private void testStripPrefixFilter(String actualPath, String expectedPath,
+			int parts) {
+		GatewayFilter filter = new StripPrefixGatewayFilterFactory()
+				.apply(c -> c.setParts(parts));
 
 		MockServerHttpRequest request = MockServerHttpRequest
-				.get("http://localhost"+ actualPath)
-				.build();
+				.get("http://localhost" + actualPath).build();
 
 		ServerWebExchange exchange = MockServerWebExchange.from(request);
 
 		GatewayFilterChain filterChain = mock(GatewayFilterChain.class);
 
-		ArgumentCaptor<ServerWebExchange> captor = ArgumentCaptor.forClass(ServerWebExchange.class);
+		ArgumentCaptor<ServerWebExchange> captor = ArgumentCaptor
+				.forClass(ServerWebExchange.class);
 		when(filterChain.filter(captor.capture())).thenReturn(Mono.empty());
 
 		filter.filter(exchange, filterChain);
@@ -77,8 +78,10 @@ public class StripPrefixGatewayFilterFactoryTests {
 		assertThat(webExchange.getRequest().getURI()).hasPath(expectedPath);
 
 		URI requestUrl = webExchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
-		assertThat(requestUrl).hasScheme("http").hasHost("localhost").hasNoPort().hasPath(expectedPath);
-		LinkedHashSet<URI> uris = webExchange.getRequiredAttribute(GATEWAY_ORIGINAL_REQUEST_URL_ATTR);
+		assertThat(requestUrl).hasScheme("http").hasHost("localhost").hasNoPort()
+				.hasPath(expectedPath);
+		LinkedHashSet<URI> uris = webExchange
+				.getRequiredAttribute(GATEWAY_ORIGINAL_REQUEST_URL_ATTR);
 		assertThat(uris).contains(request.getURI());
 	}
 

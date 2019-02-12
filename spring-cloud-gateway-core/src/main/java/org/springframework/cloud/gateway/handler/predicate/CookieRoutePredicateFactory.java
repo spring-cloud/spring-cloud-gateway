@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.handler.predicate;
@@ -30,9 +29,17 @@ import org.springframework.web.server.ServerWebExchange;
 /**
  * @author Spencer Gibb
  */
-public class CookieRoutePredicateFactory extends AbstractRoutePredicateFactory<CookieRoutePredicateFactory.Config> {
+public class CookieRoutePredicateFactory
+		extends AbstractRoutePredicateFactory<CookieRoutePredicateFactory.Config> {
 
+	/**
+	 * Name key.
+	 */
 	public static final String NAME_KEY = "name";
+
+	/**
+	 * Regexp key.
+	 */
 	public static final String REGEXP_KEY = "regexp";
 
 	public CookieRoutePredicateFactory() {
@@ -47,7 +54,8 @@ public class CookieRoutePredicateFactory extends AbstractRoutePredicateFactory<C
 	@Override
 	public Predicate<ServerWebExchange> apply(Config config) {
 		return exchange -> {
-			List<HttpCookie> cookies = exchange.getRequest().getCookies().get(config.name);
+			List<HttpCookie> cookies = exchange.getRequest().getCookies()
+					.get(config.name);
 			if (cookies == null) {
 				return false;
 			}
@@ -65,6 +73,7 @@ public class CookieRoutePredicateFactory extends AbstractRoutePredicateFactory<C
 
 		@NotEmpty
 		private String name;
+
 		@NotEmpty
 		private String regexp;
 
@@ -85,5 +94,7 @@ public class CookieRoutePredicateFactory extends AbstractRoutePredicateFactory<C
 			this.regexp = regexp;
 			return this;
 		}
+
 	}
+
 }

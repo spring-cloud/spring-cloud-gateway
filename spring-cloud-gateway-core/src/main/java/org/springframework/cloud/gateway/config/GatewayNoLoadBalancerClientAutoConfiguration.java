@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.config;
@@ -51,7 +50,8 @@ public class GatewayNoLoadBalancerClientAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean(LoadBalancerClientFilter.class)
-	public NoLoadBalancerClientFilter noLoadBalancerClientFilter(LoadBalancerProperties properties) {
+	public NoLoadBalancerClientFilter noLoadBalancerClientFilter(
+			LoadBalancerProperties properties) {
 		return new NoLoadBalancerClientFilter(properties.isUse404());
 	}
 
@@ -73,11 +73,15 @@ public class GatewayNoLoadBalancerClientAutoConfiguration {
 		public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 			URI url = exchange.getAttribute(GATEWAY_REQUEST_URL_ATTR);
 			String schemePrefix = exchange.getAttribute(GATEWAY_SCHEME_PREFIX_ATTR);
-			if (url == null || (!"lb".equals(url.getScheme()) && !"lb".equals(schemePrefix))) {
+			if (url == null
+					|| (!"lb".equals(url.getScheme()) && !"lb".equals(schemePrefix))) {
 				return chain.filter(exchange);
 			}
 
-			throw NotFoundException.create(use404, "Unable to find instance for " + url.getHost());
+			throw NotFoundException.create(use404,
+					"Unable to find instance for " + url.getHost());
 		}
+
 	}
+
 }

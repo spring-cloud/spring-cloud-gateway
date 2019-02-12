@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,13 +12,13 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.handler.predicate;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -45,12 +45,10 @@ public class HostRoutePredicateFactoryTests extends BaseWebClientTests {
 	}
 
 	public void expectHostRoute(String host, String routeId) {
-		testClient.get()
-				.uri("/get")
-				.header("Host", host)
-				.exchange()
-				.expectStatus().isOk()
-				.expectHeader().valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName())
+		testClient.get().uri("/get").header("Host", host).exchange().expectStatus().isOk()
+				.expectHeader()
+				.valueEquals(HANDLER_MAPPER_HEADER,
+						RoutePredicateHandlerMapping.class.getSimpleName())
 				.expectHeader().valueEquals(ROUTE_ID_HEADER, routeId);
 	}
 
@@ -61,7 +59,8 @@ public class HostRoutePredicateFactoryTests extends BaseWebClientTests {
 
 	@Test
 	public void hostRouteBackwardsCompatibleShortcutWorks() {
-		expectHostRoute("www.hostpatternshortcut.org", "host_backwards_compatible_shortcut_test");
+		expectHostRoute("www.hostpatternshortcut.org",
+				"host_backwards_compatible_shortcut_test");
 	}
 
 	@Test
@@ -87,11 +86,12 @@ public class HostRoutePredicateFactoryTests extends BaseWebClientTests {
 		@Bean
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes()
-					.route("host_multi_dsl", r -> r.host("**.hostmultidsl1.org", "**.hostmultidsl2.org")
-							.filters(f -> f.prefixPath("/httpbin"))
-							.uri(uri))
+					.route("host_multi_dsl",
+							r -> r.host("**.hostmultidsl1.org", "**.hostmultidsl2.org")
+									.filters(f -> f.prefixPath("/httpbin")).uri(uri))
 					.build();
 		}
+
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.sample;
@@ -24,6 +23,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.cloud.gateway.sample.GatewaySampleApplicationTests.TestConfig;
@@ -35,13 +35,15 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.util.SocketUtils;
 
 @RunWith(ModifiedClassPathRunner.class)
-@ClassPathExclusions({ "micrometer-*.jar", "spring-boot-actuator-*.jar", "spring-boot-actuator-autoconfigure-*.jar" })
+@ClassPathExclusions({ "micrometer-*.jar", "spring-boot-actuator-*.jar",
+		"spring-boot-actuator-autoconfigure-*.jar" })
 @DirtiesContext
 public class GatewaySampleApplicationWithoutMetricsTests {
 
 	static protected int port;
 
 	protected WebTestClient webClient;
+
 	protected String baseUri;
 
 	@BeforeClass

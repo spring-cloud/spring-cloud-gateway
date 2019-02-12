@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.filter;
@@ -40,9 +39,12 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.C
  */
 public class NettyWriteResponseFilter implements GlobalFilter, Ordered {
 
-	private static final Log log = LogFactory.getLog(NettyWriteResponseFilter.class);
-
+	/**
+	 * Order for write response filter.
+	 */
 	public static final int WRITE_RESPONSE_FILTER_ORDER = -1;
+
+	private static final Log log = LogFactory.getLog(NettyWriteResponseFilter.class);
 
 	private final List<MediaType> streamingMediaTypes;
 
@@ -68,29 +70,32 @@ public class NettyWriteResponseFilter implements GlobalFilter, Ordered {
 			log.trace("NettyWriteResponseFilter start");
 			ServerHttpResponse response = exchange.getResponse();
 
-			NettyDataBufferFactory factory = (NettyDataBufferFactory) response.bufferFactory();
-			//TODO: what if it's not netty
+			NettyDataBufferFactory factory = (NettyDataBufferFactory) response
+					.bufferFactory();
+			// TODO: what if it's not netty
 
-			final Flux<NettyDataBuffer> body = connection.inbound().receive()
-					.retain() //TODO: needed?
+			final Flux<NettyDataBuffer> body = connection.inbound().receive().retain() // TODO:
+																						// needed?
 					.map(factory::wrap);
 
 			MediaType contentType = null;
 			try {
 				contentType = response.getHeaders().getContentType();
-			} catch (Exception e) {
+			}
+			catch (Exception e) {
 				log.trace("invalid media type", e);
 			}
-			return (isStreamingMediaType(contentType) ?
-					response.writeAndFlushWith(body.map(Flux::just)) : response.writeWith(body));
+			return (isStreamingMediaType(contentType)
+					? response.writeAndFlushWith(body.map(Flux::just))
+					: response.writeWith(body));
 		}));
 	}
 
-	//TODO: use framework if possible
-	//TODO: port to WebClientWriteResponseFilter
+	// TODO: use framework if possible
+	// TODO: port to WebClientWriteResponseFilter
 	private boolean isStreamingMediaType(@Nullable MediaType contentType) {
 		return (contentType != null && this.streamingMediaTypes.stream()
-						.anyMatch(contentType::isCompatibleWith));
+				.anyMatch(contentType::isCompatibleWith));
 	}
 
 }

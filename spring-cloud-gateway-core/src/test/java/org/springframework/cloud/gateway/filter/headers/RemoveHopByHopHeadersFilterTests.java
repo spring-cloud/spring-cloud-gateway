@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.filter.headers;
@@ -22,6 +21,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.junit.Test;
+
 import org.springframework.http.HttpHeaders;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -38,8 +38,9 @@ public class RemoveHopByHopHeadersFilterTests {
 	public void happyPath() {
 		MockServerHttpRequest.BaseBuilder<?> builder = MockServerHttpRequest
 				.get("http://localhost/get");
-		
-		HEADERS_REMOVED_ON_REQUEST.forEach(header -> builder.header(header, header+"1"));
+
+		HEADERS_REMOVED_ON_REQUEST
+				.forEach(header -> builder.header(header, header + "1"));
 
 		testFilter(MockServerWebExchange.from(builder));
 	}
@@ -49,7 +50,8 @@ public class RemoveHopByHopHeadersFilterTests {
 		MockServerHttpRequest.BaseBuilder<?> builder = MockServerHttpRequest
 				.get("http://localhost/get");
 
-		HEADERS_REMOVED_ON_REQUEST.forEach(header -> builder.header(header.toLowerCase(), header+"1"));
+		HEADERS_REMOVED_ON_REQUEST
+				.forEach(header -> builder.header(header.toLowerCase(), header + "1"));
 
 		testFilter(MockServerWebExchange.from(builder));
 	}
@@ -74,4 +76,5 @@ public class RemoveHopByHopHeadersFilterTests {
 		toRemove.addAll(Arrays.asList(additionalHeaders));
 		assertThat(headers).doesNotContainKeys(toRemove.toArray(new String[0]));
 	}
+
 }

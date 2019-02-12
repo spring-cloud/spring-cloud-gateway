@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,9 +21,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -52,9 +53,6 @@ import org.springframework.web.reactive.DispatcherHandler;
 import org.springframework.web.server.ServerWebExchange;
 
 import static org.assertj.core.api.Assertions.assertThat;
-
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
@@ -187,12 +185,13 @@ public class ReactiveTests {
 
 		@JsonIgnoreProperties(ignoreUnknown = true)
 		static class Foo {
+
 			private String name;
 
-			public Foo() {
+			Foo() {
 			}
 
-			public Foo(String name) {
+			Foo(String name) {
 				this.name = name;
 			}
 
@@ -203,16 +202,18 @@ public class ReactiveTests {
 			public void setName(String name) {
 				this.name = name;
 			}
+
 		}
 
 		@JsonIgnoreProperties(ignoreUnknown = true)
 		static class Bar {
+
 			private String name;
 
-			public Bar() {
+			Bar() {
 			}
 
-			public Bar(String name) {
+			Bar(String name) {
 				this.name = name;
 			}
 
@@ -223,6 +224,7 @@ public class ReactiveTests {
 			public void setName(String name) {
 				this.name = name;
 			}
+
 		}
 
 	}

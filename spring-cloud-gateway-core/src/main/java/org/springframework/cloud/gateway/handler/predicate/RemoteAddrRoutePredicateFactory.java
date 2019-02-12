@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,21 +12,10 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.handler.predicate;
 
-import io.netty.handler.ipfilter.IpFilterRuleType;
-import io.netty.handler.ipfilter.IpSubnetFilterRule;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.cloud.gateway.support.ipresolver.RemoteAddressResolver;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.server.ServerWebExchange;
-
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,14 +23,28 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+
+import io.netty.handler.ipfilter.IpFilterRuleType;
+import io.netty.handler.ipfilter.IpSubnetFilterRule;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import org.springframework.cloud.gateway.support.ipresolver.RemoteAddressResolver;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.server.ServerWebExchange;
+
 import static org.springframework.cloud.gateway.support.ShortcutConfigurable.ShortcutType.GATHER_LIST;
 
 /**
  * @author Spencer Gibb
  */
-public class RemoteAddrRoutePredicateFactory extends AbstractRoutePredicateFactory<RemoteAddrRoutePredicateFactory.Config> {
+public class RemoteAddrRoutePredicateFactory
+		extends AbstractRoutePredicateFactory<RemoteAddrRoutePredicateFactory.Config> {
 
-	private static final Log log = LogFactory.getLog(RemoteAddrRoutePredicateFactory.class);
+	private static final Log log = LogFactory
+			.getLog(RemoteAddrRoutePredicateFactory.class);
 
 	public RemoteAddrRoutePredicateFactory() {
 		super(Config.class);
@@ -60,24 +63,26 @@ public class RemoteAddrRoutePredicateFactory extends AbstractRoutePredicateFacto
 	@NotNull
 	private List<IpSubnetFilterRule> convert(List<String> values) {
 		List<IpSubnetFilterRule> sources = new ArrayList<>();
-        for (String arg : values) {
-            addSource(sources, arg);
-        }
+		for (String arg : values) {
+			addSource(sources, arg);
+		}
 		return sources;
 	}
 
 	@Override
 	public Predicate<ServerWebExchange> apply(Config config) {
-        List<IpSubnetFilterRule> sources = convert(config.sources);
+		List<IpSubnetFilterRule> sources = convert(config.sources);
 
 		return exchange -> {
-			InetSocketAddress remoteAddress = config.remoteAddressResolver.resolve(exchange);
+			InetSocketAddress remoteAddress = config.remoteAddressResolver
+					.resolve(exchange);
 			if (remoteAddress != null && remoteAddress.getAddress() != null) {
 				String hostAddress = remoteAddress.getAddress().getHostAddress();
 				String host = exchange.getRequest().getURI().getHost();
 
 				if (log.isDebugEnabled() && !hostAddress.equals(host)) {
-					log.debug("Remote addresses didn't match " + hostAddress + " != " + host);
+					log.debug("Remote addresses didn't match " + hostAddress + " != "
+							+ host);
 				}
 
 				for (IpSubnetFilterRule source : sources) {
@@ -96,20 +101,23 @@ public class RemoteAddrRoutePredicateFactory extends AbstractRoutePredicateFacto
 			source = source + "/32";
 		}
 
-		String[] ipAddressCidrPrefix = source.split("/",2);
+		String[] ipAddressCidrPrefix = source.split("/", 2);
 		String ipAddress = ipAddressCidrPrefix[0];
 		int cidrPrefix = Integer.parseInt(ipAddressCidrPrefix[1]);
 
-		sources.add(new IpSubnetFilterRule(ipAddress, cidrPrefix, IpFilterRuleType.ACCEPT));
+		sources.add(
+				new IpSubnetFilterRule(ipAddress, cidrPrefix, IpFilterRuleType.ACCEPT));
 	}
 
 	@Validated
 	public static class Config {
+
 		@NotEmpty
 		private List<String> sources = new ArrayList<>();
 
 		@NotNull
-		private RemoteAddressResolver remoteAddressResolver = new RemoteAddressResolver(){};
+		private RemoteAddressResolver remoteAddressResolver = new RemoteAddressResolver() {
+		};
 
 		public List<String> getSources() {
 			return sources;
@@ -125,10 +133,12 @@ public class RemoteAddrRoutePredicateFactory extends AbstractRoutePredicateFacto
 			return this;
 		}
 
-
-		public Config setRemoteAddressResolver(RemoteAddressResolver remoteAddressResolver) {
+		public Config setRemoteAddressResolver(
+				RemoteAddressResolver remoteAddressResolver) {
 			this.remoteAddressResolver = remoteAddressResolver;
 			return this;
 		}
+
 	}
+
 }

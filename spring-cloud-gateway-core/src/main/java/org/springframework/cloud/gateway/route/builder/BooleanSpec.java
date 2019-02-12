@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,11 +33,10 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.t
  */
 public class BooleanSpec extends UriSpec {
 
-	enum Operator { AND, OR, NEGATE }
-
 	final AsyncPredicate<ServerWebExchange> predicate;
 
-	public BooleanSpec(Route.AsyncBuilder routeBuilder, RouteLocatorBuilder.Builder builder) {
+	public BooleanSpec(Route.AsyncBuilder routeBuilder,
+			RouteLocatorBuilder.Builder builder) {
 		super(routeBuilder, builder);
 		// save current predicate useful in kotlin dsl
 		predicate = routeBuilder.getPredicate();
@@ -70,41 +69,50 @@ public class BooleanSpec extends UriSpec {
 
 	/**
 	 * Add filters to the route definition.
-	 * @param fn A {@link Function} that takes in a {@link GatewayFilterSpec} and returns a {@link UriSpec}
+	 * @param fn A {@link Function} that takes in a {@link GatewayFilterSpec} and returns
+	 * a {@link UriSpec}
 	 * @return a {@link UriSpec}
 	 */
 	public UriSpec filters(Function<GatewayFilterSpec, UriSpec> fn) {
 		return fn.apply(new GatewayFilterSpec(routeBuilder, builder));
 	}
 
+	enum Operator {
+
+		AND, OR, NEGATE
+
+	}
+
 	public static class BooleanOpSpec extends PredicateSpec {
 
 		private Operator operator;
 
-		BooleanOpSpec(Route.AsyncBuilder routeBuilder, RouteLocatorBuilder.Builder builder, Operator operator) {
+		BooleanOpSpec(Route.AsyncBuilder routeBuilder,
+				RouteLocatorBuilder.Builder builder, Operator operator) {
 			super(routeBuilder, builder);
 			Assert.notNull(operator, "operator may not be null");
 			this.operator = operator;
 		}
 
 		public BooleanSpec predicate(Predicate<ServerWebExchange> predicate) {
-		    return asyncPredicate(toAsyncPredicate(predicate));
+			return asyncPredicate(toAsyncPredicate(predicate));
 		}
 
 		@Override
 		public BooleanSpec asyncPredicate(AsyncPredicate<ServerWebExchange> predicate) {
 			switch (this.operator) {
-				case AND:
-					this.routeBuilder.and(predicate);
-					break;
-				case OR:
-					this.routeBuilder.or(predicate);
-					break;
-				case NEGATE:
-					this.routeBuilder.negate();
+			case AND:
+				this.routeBuilder.and(predicate);
+				break;
+			case OR:
+				this.routeBuilder.or(predicate);
+				break;
+			case NEGATE:
+				this.routeBuilder.negate();
 			}
 			return new BooleanSpec(this.routeBuilder, this.builder);
 		}
+
 	}
 
 }

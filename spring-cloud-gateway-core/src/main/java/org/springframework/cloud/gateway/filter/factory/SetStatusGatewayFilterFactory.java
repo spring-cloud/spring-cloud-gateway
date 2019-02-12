@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.filter.factory;
@@ -30,8 +29,12 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.s
 /**
  * @author Spencer Gibb
  */
-public class SetStatusGatewayFilterFactory extends AbstractGatewayFilterFactory<SetStatusGatewayFilterFactory.Config> {
+public class SetStatusGatewayFilterFactory
+		extends AbstractGatewayFilterFactory<SetStatusGatewayFilterFactory.Config> {
 
+	/**
+	 * Status key.
+	 */
 	public static final String STATUS_KEY = "status";
 
 	public SetStatusGatewayFilterFactory() {
@@ -49,11 +52,11 @@ public class SetStatusGatewayFilterFactory extends AbstractGatewayFilterFactory<
 		return (exchange, chain) -> {
 
 			// option 1 (runs in filter order)
-			/*exchange.getResponse().beforeCommit(() -> {
-				exchange.getResponse().setStatusCode(finalStatus);
-				return Mono.empty();
-			});
-			return chain.filter(exchange);*/
+			/*
+			 * exchange.getResponse().beforeCommit(() -> {
+			 * exchange.getResponse().setStatusCode(finalStatus); return Mono.empty(); });
+			 * return chain.filter(exchange);
+			 */
 
 			// option 2 (runs in reverse filter order)
 			return chain.filter(exchange).then(Mono.fromRunnable(() -> {
@@ -65,7 +68,8 @@ public class SetStatusGatewayFilterFactory extends AbstractGatewayFilterFactory<
 	}
 
 	public static class Config {
-		//TODO: relaxed HttpStatus converter
+
+		// TODO: relaxed HttpStatus converter
 		private String status;
 
 		public String getStatus() {
@@ -75,6 +79,7 @@ public class SetStatusGatewayFilterFactory extends AbstractGatewayFilterFactory<
 		public void setStatus(String status) {
 			this.status = status;
 		}
+
 	}
 
 }

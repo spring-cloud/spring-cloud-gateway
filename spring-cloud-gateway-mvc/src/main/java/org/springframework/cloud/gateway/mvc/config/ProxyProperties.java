@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,44 +27,45 @@ import org.springframework.http.HttpHeaders;
 /**
  * Configuration properties for the {@link ProxyExchange} argument handler in
  * <code>@RequestMapping</code> methods.
+ *
  * @author Dave Syer
  *
  */
 @ConfigurationProperties("spring.cloud.gateway.proxy")
 public class ProxyProperties {
 
-    /**
-     * Fixed header values that will be added to all downstream requests.
-     */
-    private Map<String, String> headers = new LinkedHashMap<>();
+	/**
+	 * Fixed header values that will be added to all downstream requests.
+	 */
+	private Map<String, String> headers = new LinkedHashMap<>();
 
-    /**
-     * A set of sensitive header names that will not be sent downstream by default.
-     */
-    private Set<String> sensitive = null;
+	/**
+	 * A set of sensitive header names that will not be sent downstream by default.
+	 */
+	private Set<String> sensitive = null;
 
-    public Map<String, String> getHeaders() {
-        return headers;
-    }
+	public Map<String, String> getHeaders() {
+		return headers;
+	}
 
-    public void setHeaders(Map<String, String> headers) {
-        this.headers = headers;
-    }
+	public void setHeaders(Map<String, String> headers) {
+		this.headers = headers;
+	}
 
-    public Set<String> getSensitive() {
-        return sensitive;
-    }
+	public Set<String> getSensitive() {
+		return sensitive;
+	}
 
-    public void setSensitive(Set<String> sensitive) {
-        this.sensitive = sensitive;
-    }
+	public void setSensitive(Set<String> sensitive) {
+		this.sensitive = sensitive;
+	}
 
-    public HttpHeaders convertHeaders() {
-        HttpHeaders headers = new HttpHeaders();
-        for (String key : this.headers.keySet()) {
-            headers.set(key, this.headers.get(key));
-        }
-        return headers;
-    }
+	public HttpHeaders convertHeaders() {
+		HttpHeaders headers = new HttpHeaders();
+		for (String key : this.headers.keySet()) {
+			headers.set(key, this.headers.get(key));
+		}
+		return headers;
+	}
 
 }
