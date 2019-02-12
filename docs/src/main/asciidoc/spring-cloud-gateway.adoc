@@ -1584,7 +1584,7 @@ public class PostGatewayFilterFactory extends AbstractGatewayFilterFactory<PostG
 
 === Writing Custom Global Filters
 
-In order to write a custom global filter, you will need to implement `GlobalFilter` interface. This will apply the filter to all requests. (This interface and its usages are subject to change in future milestones)
+In order to write a custom global filter, you will need to implement `GlobalFilter` interface. This will apply the filter to all requests.
 
 Example of how to set up a Global Pre and Post filter, respectively
 
