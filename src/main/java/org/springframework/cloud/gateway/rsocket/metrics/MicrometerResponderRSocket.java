@@ -17,7 +17,6 @@
 
 package org.springframework.cloud.gateway.rsocket.metrics;
 
-import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -34,6 +33,8 @@ import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.SignalType;
+
+import org.springframework.util.Assert;
 
 import static reactor.core.publisher.SignalType.CANCEL;
 import static reactor.core.publisher.SignalType.ON_COMPLETE;
@@ -59,12 +60,13 @@ public class MicrometerResponderRSocket implements ResponderRSocket {
 	 * @param delegate the {@link RSocket} to delegate to
 	 * @param meterRegistry the {@link MeterRegistry} to use
 	 * @param tags additional tags to attach to {@link Meter}s
-	 * @throws NullPointerException if {@code delegate} or {@code meterRegistry} is {@code null}
+	 * @throws IllegalArgumentException if {@code delegate} or {@code meterRegistry} is {@code null}
 	 */
 	MicrometerResponderRSocket(RSocket delegate, MeterRegistry meterRegistry, Tag... tags) {
-		this.delegate = Objects.requireNonNull(delegate, "delegate must not be null");
-		Objects.requireNonNull(meterRegistry, "meterRegistry must not be null");
+		Assert.notNull(delegate, "delegate must not be null");
+		Assert.notNull(meterRegistry, "meterRegistry must not be null");
 
+		this.delegate = delegate;
 		this.metadataPush = new InteractionCounters(meterRegistry, "metadata.push", tags);
 		this.requestChannel = new InteractionCounters(meterRegistry, "request.channel", tags);
 		this.requestFireAndForget = new InteractionCounters(meterRegistry, "request.fnf", tags);
