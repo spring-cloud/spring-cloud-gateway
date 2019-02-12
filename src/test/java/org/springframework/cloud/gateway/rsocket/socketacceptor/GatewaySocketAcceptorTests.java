@@ -29,10 +29,8 @@ import org.junit.Before;
 import org.junit.Test;
 import reactor.core.publisher.Mono;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static java.util.Collections.singletonList;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -48,81 +46,79 @@ public class GatewaySocketAcceptorTests {
 
 	@Before
 	public void init() {
-		proxyRSocket = mock(RSocket.class);
-		setupPayload = mock(ConnectionSetupPayload.class);
-		sendingSocket = mock(RSocket.class);
+		this.proxyRSocket = mock(RSocket.class);
+		this.setupPayload = mock(ConnectionSetupPayload.class);
+		this.sendingSocket = mock(RSocket.class);
 	}
 
 
 	@Test
-	public void multipleFilters()  {
+	public void multipleFilters() {
 		TestFilter filter1 = new TestFilter();
 		TestFilter filter2 = new TestFilter();
 		TestFilter filter3 = new TestFilter();
 
-		RSocket socket = new GatewaySocketAcceptor(proxyRSocket, Arrays.asList(filter1, filter2, filter3))
-				.accept(setupPayload, sendingSocket)
+		RSocket socket = new GatewaySocketAcceptor(this.proxyRSocket, Arrays.asList(filter1, filter2, filter3))
+				.accept(this.setupPayload, this.sendingSocket)
 				.block(Duration.ZERO);
 
-		assertTrue(filter1.invoked());
-		assertTrue(filter2.invoked());
-		assertTrue(filter3.invoked());
-		assertNotNull(socket);
+		assertThat(filter1.invoked()).isTrue();
+		assertThat(filter2.invoked()).isTrue();
+		assertThat(filter3.invoked()).isTrue();
+		assertThat(socket).isNotNull();
 	}
 
 	@Test
-	public void zeroFilters()  {
-		RSocket socket = new GatewaySocketAcceptor(proxyRSocket, Collections.emptyList())
-				.accept(setupPayload, sendingSocket)
+	public void zeroFilters() {
+		RSocket socket = new GatewaySocketAcceptor(this.proxyRSocket, Collections.emptyList())
+				.accept(this.setupPayload, this.sendingSocket)
 				.block(Duration.ZERO);
 
-		assertNotNull(socket);
+		assertThat(socket).isNotNull();
 	}
 
 	@Test
-	public void shortcircuitFilter()  {
+	public void shortcircuitFilter() {
 
 		TestFilter filter1 = new TestFilter();
 		ShortcircuitingFilter filter2 = new ShortcircuitingFilter();
 		TestFilter filter3 = new TestFilter();
 
 
-		RSocket socket = new GatewaySocketAcceptor(proxyRSocket, Arrays.asList(filter1, filter2, filter3))
-				.accept(setupPayload, sendingSocket)
+		RSocket socket = new GatewaySocketAcceptor(this.proxyRSocket, Arrays.asList(filter1, filter2, filter3))
+				.accept(this.setupPayload, this.sendingSocket)
 				.block(Duration.ZERO);
 
-		assertTrue(filter1.invoked());
-		assertTrue(filter2.invoked());
-		assertFalse(filter3.invoked());
-		assertNull(socket);
+		assertThat(filter1.invoked()).isTrue();
+		assertThat(filter2.invoked()).isTrue();
+		assertThat(filter3.invoked()).isFalse();
+		assertThat(socket).isNull();
 	}
 
 	@Test
-	public void asyncFilter()  {
+	public void asyncFilter() {
 
 		AsyncFilter filter = new AsyncFilter();
 
-		RSocket socket = new GatewaySocketAcceptor(proxyRSocket, Collections.singletonList(filter))
-				.accept(setupPayload, sendingSocket)
+		RSocket socket = new GatewaySocketAcceptor(this.proxyRSocket, singletonList(filter))
+				.accept(this.setupPayload, this.sendingSocket)
 				.block(Duration.ofSeconds(5));
 
-		assertTrue(filter.invoked());
-		assertNotNull(socket);
+		assertThat(filter.invoked()).isTrue();
+		assertThat(socket).isNotNull();
 	}
 
 	//TODO: add exception handlers?
 	@Test(expected = IllegalStateException.class)
-	public void handleErrorFromFilter()  {
+	public void handleErrorFromFilter() {
 
 		ExceptionFilter filter = new ExceptionFilter();
 
-		new GatewaySocketAcceptor(proxyRSocket, Collections.singletonList(filter))
-				.accept(setupPayload, sendingSocket)
+		new GatewaySocketAcceptor(this.proxyRSocket, singletonList(filter))
+				.accept(this.setupPayload, this.sendingSocket)
 				.block(Duration.ofSeconds(5));
 
-		// assertNull(socket);
 	}
-
 
 	private static class TestFilter implements SocketAcceptorFilter {
 
@@ -166,7 +162,6 @@ public class GatewaySocketAcceptorTests {
 			return Mono.delay(Duration.ofMillis(100L)).map(l -> "123");
 		}
 	}
-
 
 	private static class ExceptionFilter implements SocketAcceptorFilter {
 

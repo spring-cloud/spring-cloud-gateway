@@ -28,6 +28,9 @@ import org.springframework.cloud.gateway.rsocket.socketacceptor.SocketAcceptorFi
 import org.springframework.cloud.gateway.rsocket.support.Metadata;
 import org.springframework.core.Ordered;
 
+/**
+ * Filter that enriches the SocketAcceptorExchange with metadata from ConnectionSetupPayload.
+ */
 public class RegistrySocketAcceptorFilter implements SocketAcceptorFilter, Ordered {
 	private final Registry registry;
 
@@ -42,7 +45,7 @@ public class RegistrySocketAcceptorFilter implements SocketAcceptorFilter, Order
 			Map<String, String> properties = Metadata.decodeProperties(setup.sliceMetadata());
 			// enrich exchange to have metadata
 			exchange = new SocketAcceptorExchange(exchange.getSetup(), exchange.getSendingSocket(), properties);
-			registry.register(properties, exchange.getSendingSocket());
+			this.registry.register(properties, exchange.getSendingSocket());
 		}
 
 		return chain.filter(exchange);
