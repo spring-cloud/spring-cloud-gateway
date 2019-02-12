@@ -36,12 +36,8 @@ public class RewriteResponseHeaderGatewayFilterFactoryTests extends BaseWebClien
 
 	@Test
 	public void rewriteResponseHeaderFilterWorks() {
-		testClient.get()
-				.uri("/headers")
-				.header("Host", "www.rewriteresponseheader.org")
-				.exchange()
-				.expectStatus().isOk()
-				.expectHeader()
+		testClient.get().uri("/headers").header("Host", "www.rewriteresponseheader.org")
+				.exchange().expectStatus().isOk().expectHeader()
 				.valueEquals("X-Request-Foo", "/42?user=ford&password=***&flag=true");
 	}
 

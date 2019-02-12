@@ -52,33 +52,31 @@ class GatewayRedisAutoConfiguration {
 	@SuppressWarnings("unchecked")
 	public RedisScript redisRequestRateLimiterScript() {
 		DefaultRedisScript redisScript = new DefaultRedisScript<>();
-		redisScript
-				.setScriptSource(new ResourceScriptSource(new ClassPathResource("META-INF/scripts/request_rate_limiter.lua")));
+		redisScript.setScriptSource(new ResourceScriptSource(
+				new ClassPathResource("META-INF/scripts/request_rate_limiter.lua")));
 		redisScript.setResultType(List.class);
 		return redisScript;
 	}
 
 	@Bean
-	//TODO: replace with ReactiveStringRedisTemplate in future
+	// TODO: replace with ReactiveStringRedisTemplate in future
 	public ReactiveRedisTemplate<String, String> stringReactiveRedisTemplate(
 			ReactiveRedisConnectionFactory reactiveRedisConnectionFactory) {
 		RedisSerializer<String> serializer = new StringRedisSerializer();
 		RedisSerializationContext<String, String> serializationContext = RedisSerializationContext
-				.<String, String>newSerializationContext()
-				.key(serializer)
-				.value(serializer)
-				.hashKey(serializer)
-				.hashValue(serializer)
-				.build();
+				.<String, String>newSerializationContext().key(serializer)
+				.value(serializer).hashKey(serializer).hashValue(serializer).build();
 		return new ReactiveRedisTemplate<>(reactiveRedisConnectionFactory,
 				serializationContext);
 	}
 
 	@Bean
 	@ConditionalOnMissingBean
-	public RedisRateLimiter redisRateLimiter(ReactiveRedisTemplate<String, String> redisTemplate,
+	public RedisRateLimiter redisRateLimiter(
+			ReactiveRedisTemplate<String, String> redisTemplate,
 			@Qualifier(RedisRateLimiter.REDIS_SCRIPT_NAME) RedisScript<List<Long>> redisScript,
 			Validator validator) {
 		return new RedisRateLimiter(redisTemplate, redisScript, validator);
 	}
+
 }

@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.gateway.discovery;
 
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,24 +31,26 @@ public class DiscoveryLocatorProperties {
 	private boolean enabled = false;
 
 	/**
-	 * The prefix for the routeId, defaults to discoveryClient.getClass().getSimpleName() + "_".
-	 * Service Id will be appended to create the routeId.
+	 * The prefix for the routeId, defaults to discoveryClient.getClass().getSimpleName()
+	 * + "_". Service Id will be appended to create the routeId.
 	 */
 	private String routeIdPrefix;
 
 	/**
-	 * SpEL expression that will evaluate whether to include a service in gateway integration or not,
-	 * defaults to: true.
+	 * SpEL expression that will evaluate whether to include a service in gateway
+	 * integration or not, defaults to: true.
 	 */
 	private String includeExpression = "true";
 
-	/** SpEL expression that create the uri for each route, defaults to: 'lb://'+serviceId. */
+	/**
+	 * SpEL expression that create the uri for each route, defaults to: 'lb://'+serviceId.
+	 */
 	private String urlExpression = "'lb://'+serviceId";
 
 	/**
-	 * Option to lower case serviceId in predicates and filters, defaults to false.
-	 * Useful with eureka when it automatically uppercases serviceId.
-	 * so MYSERIVCE, would match /myservice/**
+	 * Option to lower case serviceId in predicates and filters, defaults to false. Useful
+	 * with eureka when it automatically uppercases serviceId. so MYSERIVCE, would match
+	 * /myservice/**
 	 */
 	private boolean lowerCaseServiceId = false;
 
@@ -115,14 +116,12 @@ public class DiscoveryLocatorProperties {
 
 	@Override
 	public String toString() {
-		return new ToStringCreator(this)
-				.append("enabled", enabled)
+		return new ToStringCreator(this).append("enabled", enabled)
 				.append("routeIdPrefix", routeIdPrefix)
 				.append("includeExpression", includeExpression)
 				.append("urlExpression", urlExpression)
 				.append("lowerCaseServiceId", lowerCaseServiceId)
-				.append("predicates", predicates)
-				.append("filters", filters)
-				.toString();
+				.append("predicates", predicates).append("filters", filters).toString();
 	}
+
 }

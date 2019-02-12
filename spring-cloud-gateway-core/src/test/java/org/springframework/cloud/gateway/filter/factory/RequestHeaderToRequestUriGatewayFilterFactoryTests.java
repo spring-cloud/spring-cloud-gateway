@@ -97,4 +97,5 @@ public class RequestHeaderToRequestUriGatewayFilterFactoryTests {
 		assertThat(uri).isNotNull();
 		assertThat(uri.toURL().toString()).isEqualTo("http://localhost");
 	}
+
 }

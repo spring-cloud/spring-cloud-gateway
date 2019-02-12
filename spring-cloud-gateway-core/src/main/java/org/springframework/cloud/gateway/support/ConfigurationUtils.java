@@ -37,13 +37,15 @@ public abstract class ConfigurationUtils {
 		bind(o, properties, configurationPropertyName, bindingName, validator, null);
 	}
 
-	public static void bind(Object o, Map<String, Object> properties, String configurationPropertyName, String bindingName,
-			Validator validator, ConversionService conversionService) {
+	public static void bind(Object o, Map<String, Object> properties,
+			String configurationPropertyName, String bindingName, Validator validator,
+			ConversionService conversionService) {
 		Object toBind = getTargetObject(o);
 
-		new Binder(Collections
-				.singletonList(new MapConfigurationPropertySource(properties)), null, conversionService)
-				.bind(configurationPropertyName, Bindable.ofInstance(toBind));
+		new Binder(
+				Collections.singletonList(new MapConfigurationPropertySource(properties)),
+				null, conversionService).bind(configurationPropertyName,
+						Bindable.ofInstance(toBind));
 
 		if (validator != null) {
 			BindingResult errors = new BeanPropertyBindingResult(toBind, bindingName);
@@ -66,4 +68,5 @@ public abstract class ConfigurationUtils {
 		}
 		return (T) candidate;
 	}
+
 }

@@ -25,12 +25,14 @@ import org.springframework.util.StringUtils;
 /**
  * This filter blocks the request, if the request size is more than the permissible size.
  * The default request size is 5 MB.
+ *
  * @author Arpan
  */
-public class RequestSizeGatewayFilterFactory
-		extends AbstractGatewayFilterFactory<RequestSizeGatewayFilterFactory.RequestSizeConfig> {
+public class RequestSizeGatewayFilterFactory extends
+		AbstractGatewayFilterFactory<RequestSizeGatewayFilterFactory.RequestSizeConfig> {
 
 	private static String PREFIX = "kMGTPE";
+
 	private static String ERROR = "Request size is larger than permissible limit."
 			+ " Request size is %s where permissible limit is %s";
 
@@ -39,8 +41,8 @@ public class RequestSizeGatewayFilterFactory
 	}
 
 	private static String getErrorMessage(Long currentRequestSize, Long maxSize) {
-		return String
-				.format(ERROR, getReadableByteCount(currentRequestSize), getReadableByteCount(maxSize));
+		return String.format(ERROR, getReadableByteCount(currentRequestSize),
+				getReadableByteCount(maxSize));
 	}
 
 	private static String getReadableByteCount(long bytes) {
@@ -54,7 +56,8 @@ public class RequestSizeGatewayFilterFactory
 	}
 
 	@Override
-	public GatewayFilter apply(RequestSizeGatewayFilterFactory.RequestSizeConfig requestSizeConfig) {
+	public GatewayFilter apply(
+			RequestSizeGatewayFilterFactory.RequestSizeConfig requestSizeConfig) {
 		requestSizeConfig.validate();
 		return (exchange, chain) -> {
 			ServerHttpRequest request = exchange.getRequest();
@@ -64,8 +67,8 @@ public class RequestSizeGatewayFilterFactory
 				if (currentRequestSize > requestSizeConfig.getMaxSize()) {
 					exchange.getResponse().setStatusCode(HttpStatus.PAYLOAD_TOO_LARGE);
 					exchange.getResponse().getHeaders().add("errorMessage",
-							getErrorMessage(currentRequestSize, requestSizeConfig
-									.getMaxSize()));
+							getErrorMessage(currentRequestSize,
+									requestSizeConfig.getMaxSize()));
 					return exchange.getResponse().setComplete();
 				}
 			}
@@ -81,14 +84,18 @@ public class RequestSizeGatewayFilterFactory
 			return maxSize;
 		}
 
-		public RequestSizeGatewayFilterFactory.RequestSizeConfig setMaxSize(Long maxSize) {
+		public RequestSizeGatewayFilterFactory.RequestSizeConfig setMaxSize(
+				Long maxSize) {
 			this.maxSize = maxSize;
 			return this;
 		}
 
 		public void validate() {
-			Assert.isTrue(this.maxSize != null && this.maxSize > 0, "maxSize must be greater than 0");
+			Assert.isTrue(this.maxSize != null && this.maxSize > 0,
+					"maxSize must be greater than 0");
 			Assert.isInstanceOf(Long.class, maxSize, "maxSize must be a number");
 		}
+
 	}
+
 }

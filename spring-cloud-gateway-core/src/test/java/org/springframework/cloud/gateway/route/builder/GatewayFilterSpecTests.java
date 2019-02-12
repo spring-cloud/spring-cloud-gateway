@@ -28,10 +28,9 @@ public class GatewayFilterSpecTests {
 
 	private void testFilter(Class<? extends GatewayFilter> type,
 			GatewayFilter gatewayFilter, int order) {
-		ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
-		Route.AsyncBuilder routeBuilder = Route.async()
-				.id("123")
-				.uri("abc:123")
+		ConfigurableApplicationContext context = mock(
+				ConfigurableApplicationContext.class);
+		Route.AsyncBuilder routeBuilder = Route.async().id("123").uri("abc:123")
 				.predicate(exchange -> true);
 		RouteLocatorBuilder.Builder routes = new RouteLocatorBuilder(context).routes();
 		GatewayFilterSpec spec = new GatewayFilterSpec(routeBuilder, routes);
@@ -42,7 +41,8 @@ public class GatewayFilterSpecTests {
 		assertFilter(route.getFilters().get(0), type, order);
 	}
 
-	private void assertFilter(GatewayFilter filter, Class<? extends GatewayFilter> type, int order) {
+	private void assertFilter(GatewayFilter filter, Class<? extends GatewayFilter> type,
+			int order) {
 		assertThat(filter).isInstanceOf(type);
 		Ordered ordered = (Ordered) filter;
 		assertThat(ordered.getOrder()).isEqualTo(order);
@@ -50,10 +50,9 @@ public class GatewayFilterSpecTests {
 
 	@Test
 	public void testFilters() {
-		ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
-		Route.AsyncBuilder routeBuilder = Route.async()
-				.id("123")
-				.uri("abc:123")
+		ConfigurableApplicationContext context = mock(
+				ConfigurableApplicationContext.class);
+		Route.AsyncBuilder routeBuilder = Route.async().id("123").uri("abc:123")
 				.predicate(exchange -> true);
 		RouteLocatorBuilder.Builder routes = new RouteLocatorBuilder(context).routes();
 		GatewayFilterSpec spec = new GatewayFilterSpec(routeBuilder, routes);
@@ -67,6 +66,7 @@ public class GatewayFilterSpecTests {
 	}
 
 	protected static class MyOrderedFilter implements GatewayFilter, Ordered {
+
 		@Override
 		public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 			return Mono.empty();
@@ -76,12 +76,16 @@ public class GatewayFilterSpecTests {
 		public int getOrder() {
 			return 1000;
 		}
+
 	}
 
 	protected static class MyUnorderedFilter implements GatewayFilter {
+
 		@Override
 		public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 			return Mono.empty();
 		}
+
 	}
+
 }

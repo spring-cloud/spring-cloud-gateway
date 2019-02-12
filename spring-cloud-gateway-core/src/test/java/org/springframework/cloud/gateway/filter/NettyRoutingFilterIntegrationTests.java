@@ -38,12 +38,8 @@ public class NettyRoutingFilterIntegrationTests extends BaseWebClientTests {
 
 	@Test
 	public void responseTimeoutWorks() {
-		testClient.get()
-				.uri("/delay/5")
-				.exchange()
-				.expectStatus().isEqualTo(HttpStatus.GATEWAY_TIMEOUT)
-				.expectBody()
-				.jsonPath("$.status")
+		testClient.get().uri("/delay/5").exchange().expectStatus()
+				.isEqualTo(HttpStatus.GATEWAY_TIMEOUT).expectBody().jsonPath("$.status")
 				.isEqualTo(String.valueOf(HttpStatus.GATEWAY_TIMEOUT.value()))
 				.jsonPath("$.message")
 				.isEqualTo("Response took longer than timeout: PT3S");
@@ -53,6 +49,7 @@ public class NettyRoutingFilterIntegrationTests extends BaseWebClientTests {
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
 	public static class TestConfig {
+
 	}
 
 }

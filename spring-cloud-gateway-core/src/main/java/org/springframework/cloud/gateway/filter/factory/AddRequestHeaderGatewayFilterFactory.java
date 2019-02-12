@@ -22,14 +22,14 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 /**
  * @author Spencer Gibb
  */
-public class AddRequestHeaderGatewayFilterFactory extends AbstractNameValueGatewayFilterFactory {
+public class AddRequestHeaderGatewayFilterFactory
+		extends AbstractNameValueGatewayFilterFactory {
 
 	@Override
 	public GatewayFilter apply(NameValueConfig config) {
 		return (exchange, chain) -> {
 			ServerHttpRequest request = exchange.getRequest().mutate()
-					.header(config.getName(), config.getValue())
-					.build();
+					.header(config.getName(), config.getValue()).build();
 
 			return chain.filter(exchange.mutate().request(request).build());
 		};

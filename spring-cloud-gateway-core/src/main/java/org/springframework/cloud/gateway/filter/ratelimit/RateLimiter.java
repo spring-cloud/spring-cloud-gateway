@@ -32,8 +32,11 @@ public interface RateLimiter<C> extends StatefulConfigurable<C> {
 	Mono<Response> isAllowed(String routeId, String id);
 
 	class Response {
+
 		private final boolean allowed;
+
 		private final long tokensRemaining;
+
 		private final Map<String, String> headers;
 
 		public Response(boolean allowed, Map<String, String> headers) {
@@ -72,5 +75,7 @@ public interface RateLimiter<C> extends StatefulConfigurable<C> {
 			sb.append('}');
 			return sb.toString();
 		}
+
 	}
+
 }

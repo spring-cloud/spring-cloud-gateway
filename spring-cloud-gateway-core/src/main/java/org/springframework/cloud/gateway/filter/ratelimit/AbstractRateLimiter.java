@@ -25,13 +25,15 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.validation.Validator;
 
-public abstract class AbstractRateLimiter<C>
-		extends AbstractStatefulConfigurable<C>
+public abstract class AbstractRateLimiter<C> extends AbstractStatefulConfigurable<C>
 		implements RateLimiter<C>, ApplicationListener<FilterArgsEvent> {
+
 	private String configurationPropertyName;
+
 	private Validator validator;
 
-	protected AbstractRateLimiter(Class<C> configClass, String configurationPropertyName, Validator validator) {
+	protected AbstractRateLimiter(Class<C> configClass, String configurationPropertyName,
+			Validator validator) {
 		super(configClass);
 		this.configurationPropertyName = configurationPropertyName;
 		this.validator = validator;
@@ -59,8 +61,8 @@ public abstract class AbstractRateLimiter<C>
 
 		String routeId = event.getRouteId();
 		C routeConfig = newConfig();
-		ConfigurationUtils.bind(routeConfig, args,
-				configurationPropertyName, configurationPropertyName, validator);
+		ConfigurationUtils.bind(routeConfig, args, configurationPropertyName,
+				configurationPropertyName, validator);
 		getConfig().put(routeId, routeConfig);
 	}
 
@@ -73,8 +75,7 @@ public abstract class AbstractRateLimiter<C>
 	public String toString() {
 		return new ToStringCreator(this)
 				.append("configurationPropertyName", configurationPropertyName)
-				.append("config", getConfig())
-				.append("configClass", getConfigClass())
+				.append("config", getConfig()).append("configClass", getConfigClass())
 				.toString();
 	}
 

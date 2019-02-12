@@ -125,6 +125,7 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestResponseBody
  * <p>
  * As well as the HTTP methods for a backend call you can also use
  * {@link #forward(String)} for a local in-container dispatch.
+ * <p>
  * </p>
  *
  * @author Dave Syer
@@ -176,7 +177,6 @@ public class ProxyExchange<T> {
 	 * request downstream without changing it. If you want to transform the incoming
 	 * request you can declare it as a <code>@RequestBody</code> in your
 	 * <code>@RequestMapping</code> in the usual Spring MVC way.
-	 *
 	 * @param body the request body to send downstream
 	 * @return this for convenience
 	 */
@@ -187,7 +187,6 @@ public class ProxyExchange<T> {
 
 	/**
 	 * Sets a header for the downstream call.
-	 *
 	 * @param name Header name
 	 * @param value Header values
 	 * @return this for convenience
@@ -200,7 +199,6 @@ public class ProxyExchange<T> {
 	/**
 	 * Additional headers, or overrides of the incoming ones, to be used in the downstream
 	 * call.
-	 *
 	 * @param headers the http headers to use in the downstream call
 	 * @return this for convenience
 	 */
@@ -212,7 +210,6 @@ public class ProxyExchange<T> {
 	/**
 	 * Sets the names of sensitive headers that are not passed downstream to the backend
 	 * service.
-	 *
 	 * @param names the names of sensitive headers
 	 * @return this for convenience
 	 */
@@ -228,7 +225,6 @@ public class ProxyExchange<T> {
 
 	/**
 	 * Sets the uri for the backend call when triggered by the HTTP methods.
-	 *
 	 * @param uri the backend uri to send the request to
 	 * @return this for convenience
 	 */
@@ -432,7 +428,6 @@ public class ProxyExchange<T> {
 	 * Search for the request body if it was already deserialized using
 	 * <code>@RequestBody</code>. If it is not found then deserialize it in the same way
 	 * that it would have been for a <code>@RequestBody</code>.
-	 *
 	 * @return the request body
 	 */
 	private Object getRequestBody() {
@@ -457,16 +452,20 @@ public class ProxyExchange<T> {
 	}
 
 	protected static class BodyGrabber {
+
 		public Object body(@RequestBody Object body) {
 			return body;
 		}
+
 	}
 
 	protected static class BodySender {
+
 		@ResponseBody
 		public Object body() {
 			return null;
 		}
+
 	}
 
 	/**
@@ -476,7 +475,9 @@ public class ProxyExchange<T> {
 	 *
 	 */
 	class BodyForwardingHttpServletRequest extends HttpServletRequestWrapper {
+
 		private HttpServletRequest request;
+
 		private HttpServletResponse response;
 
 		BodyForwardingHttpServletRequest(HttpServletRequest request,
@@ -537,6 +538,7 @@ public class ProxyExchange<T> {
 			}
 			return super.getHeader(name);
 		}
+
 	}
 
 }

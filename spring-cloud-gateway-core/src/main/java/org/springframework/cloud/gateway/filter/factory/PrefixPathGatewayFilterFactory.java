@@ -39,6 +39,7 @@ public class PrefixPathGatewayFilterFactory
 	 * Prefix key.
 	 */
 	public static final String PREFIX_KEY = "prefix";
+
 	private static final Log log = LogFactory
 			.getLog(PrefixPathGatewayFilterFactory.class);
 
@@ -66,15 +67,13 @@ public class PrefixPathGatewayFilterFactory
 			addOriginalRequestUrl(exchange, req.getURI());
 			String newPath = config.prefix + req.getURI().getRawPath();
 
-			ServerHttpRequest request = req.mutate()
-					.path(newPath)
-					.build();
+			ServerHttpRequest request = req.mutate().path(newPath).build();
 
 			exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, request.getURI());
 
 			if (log.isTraceEnabled()) {
-				log.trace("Prefixed URI with: " + config.prefix + " -> " + request
-						.getURI());
+				log.trace("Prefixed URI with: " + config.prefix + " -> "
+						+ request.getURI());
 			}
 
 			return chain.filter(exchange.mutate().request(request).build());
@@ -82,6 +81,7 @@ public class PrefixPathGatewayFilterFactory
 	}
 
 	public static class Config {
+
 		private String prefix;
 
 		public String getPrefix() {
@@ -91,5 +91,7 @@ public class PrefixPathGatewayFilterFactory
 		public void setPrefix(String prefix) {
 			this.prefix = prefix;
 		}
+
 	}
+
 }

@@ -76,4 +76,5 @@ public class RemoveHopByHopHeadersFilterTests {
 		toRemove.addAll(Arrays.asList(additionalHeaders));
 		assertThat(headers).doesNotContainKeys(toRemove.toArray(new String[0]));
 	}
+
 }

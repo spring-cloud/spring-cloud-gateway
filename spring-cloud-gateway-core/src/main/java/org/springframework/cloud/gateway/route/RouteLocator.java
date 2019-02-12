@@ -21,8 +21,9 @@ import reactor.core.publisher.Flux;
 /**
  * @author Spencer Gibb
  */
-//TODO: rename to Routes?
+// TODO: rename to Routes?
 public interface RouteLocator {
 
 	Flux<Route> getRoutes();
+
 }

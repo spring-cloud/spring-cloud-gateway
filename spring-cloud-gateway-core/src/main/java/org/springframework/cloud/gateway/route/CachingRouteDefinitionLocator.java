@@ -29,10 +29,13 @@ import org.springframework.context.ApplicationListener;
 /**
  * @author Spencer Gibb
  */
-public class CachingRouteDefinitionLocator implements RouteDefinitionLocator, ApplicationListener<RefreshRoutesEvent> {
+public class CachingRouteDefinitionLocator
+		implements RouteDefinitionLocator, ApplicationListener<RefreshRoutesEvent> {
 
 	private final RouteDefinitionLocator delegate;
+
 	private final Flux<RouteDefinition> routeDefinitions;
+
 	private final Map<String, List> cache = new HashMap<>();
 
 	public CachingRouteDefinitionLocator(RouteDefinitionLocator delegate) {
@@ -62,7 +65,8 @@ public class CachingRouteDefinitionLocator implements RouteDefinitionLocator, Ap
 	}
 
 	@Deprecated
-		/* for testing */ void handleRefresh() {
+	/* for testing */ void handleRefresh() {
 		refresh();
 	}
+
 }

@@ -44,12 +44,14 @@ import org.springframework.web.server.ServerWebExchange;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.CLIENT_RESPONSE_HEADER_NAMES;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ALREADY_ROUTED_ATTR;
 
-public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<RetryGatewayFilterFactory.RetryConfig> {
+public class RetryGatewayFilterFactory
+		extends AbstractGatewayFilterFactory<RetryGatewayFilterFactory.RetryConfig> {
 
 	/**
 	 * Retry iteration key.
 	 */
 	public static final String RETRY_ITERATION_KEY = "retry_iteration";
+
 	private static final Log log = LogFactory.getLog(RetryGatewayFilterFactory.class);
 
 	public RetryGatewayFilterFactory() {
@@ -77,15 +79,17 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 				boolean retryableStatusCode = retryConfig.getStatuses()
 						.contains(statusCode);
 
-				if (!retryableStatusCode && statusCode != null) { // null status code might mean a network exception?
+				if (!retryableStatusCode && statusCode != null) { // null status code
+																	// might mean a
+																	// network exception?
 					// try the series
 					retryableStatusCode = retryConfig.getSeries().stream()
 							.anyMatch(series -> statusCode.series().equals(series));
 				}
 
 				trace("retryableStatusCode: %b, statusCode %s, configured statuses %s, configured series %s",
-						retryableStatusCode, statusCode, retryConfig
-								.getStatuses(), retryConfig.getSeries());
+						retryableStatusCode, statusCode, retryConfig.getStatuses(),
+						retryConfig.getSeries());
 
 				HttpMethod httpMethod = exchange.getRequest().getMethod();
 				boolean retryableMethod = retryConfig.getMethods().contains(httpMethod);
@@ -99,7 +103,7 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 					.doOnRepeat(context -> reset(context.applicationContext()));
 		}
 
-		//TODO: support timeout, backoff, jitter, etc... in Builder
+		// TODO: support timeout, backoff, jitter, etc... in Builder
 
 		Retry<ServerWebExchange> exceptionRetry = null;
 		if (!retryConfig.getExceptions().isEmpty()) {
@@ -111,14 +115,14 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 				for (Class<? extends Throwable> clazz : retryConfig.getExceptions()) {
 					if (clazz.isInstance(context.exception())) {
 						trace("exception is retryable %s, configured exceptions",
-								context.exception().getClass().getName(), retryConfig
-										.getExceptions());
+								context.exception().getClass().getName(),
+								retryConfig.getExceptions());
 						return true;
 					}
 				}
 				trace("exception is not retryable %s, configured exceptions",
-						context.exception().getClass().getName(), retryConfig
-								.getExceptions());
+						context.exception().getClass().getName(),
+						retryConfig.getExceptions());
 				return false;
 			};
 			exceptionRetry = Retry.onlyIf(retryContextPredicate)
@@ -126,37 +130,37 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 					.retryMax(retryConfig.getRetries());
 		}
 
-
 		return apply(statusCodeRepeat, exceptionRetry);
 	}
 
-	public boolean exceedsMaxIterations(ServerWebExchange exchange, RetryConfig retryConfig) {
+	public boolean exceedsMaxIterations(ServerWebExchange exchange,
+			RetryConfig retryConfig) {
 		Integer iteration = exchange.getAttribute(RETRY_ITERATION_KEY);
 
-		//TODO: deal with null iteration
+		// TODO: deal with null iteration
 		boolean exceeds = iteration != null && iteration >= retryConfig.getRetries();
-		trace("exceedsMaxIterations %b, iteration %d, configured retries %d",
-				exceeds, iteration, retryConfig.getRetries());
+		trace("exceedsMaxIterations %b, iteration %d, configured retries %d", exceeds,
+				iteration, retryConfig.getRetries());
 		return exceeds;
 	}
 
 	public void reset(ServerWebExchange exchange) {
-		//TODO: what else to do to reset SWE?
-		Set<String> addedHeaders = exchange
-				.getAttributeOrDefault(CLIENT_RESPONSE_HEADER_NAMES, Collections
-						.emptySet());
+		// TODO: what else to do to reset SWE?
+		Set<String> addedHeaders = exchange.getAttributeOrDefault(
+				CLIENT_RESPONSE_HEADER_NAMES, Collections.emptySet());
 		addedHeaders
 				.forEach(header -> exchange.getResponse().getHeaders().remove(header));
 		exchange.getAttributes().remove(GATEWAY_ALREADY_ROUTED_ATTR);
 	}
 
-	public GatewayFilter apply(Repeat<ServerWebExchange> repeat, Retry<ServerWebExchange> retry) {
+	public GatewayFilter apply(Repeat<ServerWebExchange> repeat,
+			Retry<ServerWebExchange> retry) {
 		return (exchange, chain) -> {
 			trace("Entering retry-filter");
 
 			// chain.filter returns a Mono<Void>
 			Publisher<Void> publisher = chain.filter(exchange)
-					//.log("retry-filter", Level.INFO)
+					// .log("retry-filter", Level.INFO)
 					.doOnSuccessOrError((aVoid, throwable) -> {
 						int iteration = exchange
 								.getAttributeOrDefault(RETRY_ITERATION_KEY, -1);
@@ -190,6 +194,7 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 
 	@SuppressWarnings("unchecked")
 	public static class RetryConfig {
+
 		private int retries = 3;
 
 		private List<Series> series = toList(Series.SERVER_ERROR);
@@ -198,7 +203,8 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 
 		private List<HttpMethod> methods = toList(HttpMethod.GET);
 
-		private List<Class<? extends Throwable>> exceptions = toList(IOException.class, TimeoutException.class);
+		private List<Class<? extends Throwable>> exceptions = toList(IOException.class,
+				TimeoutException.class);
 
 		public RetryConfig allMethods() {
 			return setMethods(HttpMethod.values());
@@ -206,8 +212,9 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 
 		public void validate() {
 			Assert.isTrue(this.retries > 0, "retries must be greater than 0");
-			Assert.isTrue(!this.series.isEmpty() || !this.statuses
-							.isEmpty() || !this.exceptions.isEmpty(),
+			Assert.isTrue(
+					!this.series.isEmpty() || !this.statuses.isEmpty()
+							|| !this.exceptions.isEmpty(),
 					"series, status and exceptions may not all be empty");
 			Assert.notEmpty(this.methods, "methods may not be empty");
 		}
@@ -258,4 +265,5 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 		}
 
 	}
+
 }

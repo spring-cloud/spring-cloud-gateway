@@ -27,8 +27,8 @@ import org.springframework.web.server.ServerWebExchange;
 /**
  * @author Vitaliy Pavlyuk
  */
-public class RewriteResponseHeaderGatewayFilterFactory
-		extends AbstractGatewayFilterFactory<RewriteResponseHeaderGatewayFilterFactory.Config> {
+public class RewriteResponseHeaderGatewayFilterFactory extends
+		AbstractGatewayFilterFactory<RewriteResponseHeaderGatewayFilterFactory.Config> {
 
 	/**
 	 * Regexp key.
@@ -62,8 +62,8 @@ public class RewriteResponseHeaderGatewayFilterFactory
 		if (value == null) {
 			return;
 		}
-		final String newValue = rewrite(value, config.getRegexp(), config
-				.getReplacement());
+		final String newValue = rewrite(value, config.getRegexp(),
+				config.getReplacement());
 		exchange.getResponse().getHeaders().set(name, newValue);
 	}
 
@@ -72,7 +72,9 @@ public class RewriteResponseHeaderGatewayFilterFactory
 	}
 
 	public static class Config extends AbstractGatewayFilterFactory.NameConfig {
+
 		private String regexp;
+
 		private String replacement;
 
 		public String getRegexp() {
@@ -92,5 +94,7 @@ public class RewriteResponseHeaderGatewayFilterFactory
 			this.replacement = replacement;
 			return this;
 		}
+
 	}
+
 }

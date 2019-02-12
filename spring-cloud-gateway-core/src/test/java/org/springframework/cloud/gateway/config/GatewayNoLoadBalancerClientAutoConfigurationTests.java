@@ -53,9 +53,7 @@ public class GatewayNoLoadBalancerClientAutoConfigurationTests {
 				.run("--server.port=" + port, "--spring.jmx.enabled=false")) {
 			WebTestClient client = WebTestClient.bindToServer()
 					.baseUrl("http://localhost:" + port).build();
-			client.get()
-					.header(HttpHeaders.HOST, "www.lbfail.org")
-					.exchange()
+			client.get().header(HttpHeaders.HOST, "www.lbfail.org").exchange()
 					.expectStatus().is5xxServerError();
 		}
 	}
@@ -69,9 +67,10 @@ public class GatewayNoLoadBalancerClientAutoConfigurationTests {
 		@Bean
 		public RouteLocator hystrixRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes()
-					.route("lb_fail", r -> r.host("**.lbfail.org")
-							.uri("lb://fail"))
+					.route("lb_fail", r -> r.host("**.lbfail.org").uri("lb://fail"))
 					.build();
 		}
+
 	}
+
 }

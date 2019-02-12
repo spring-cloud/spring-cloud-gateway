@@ -21,12 +21,15 @@ import java.util.function.Predicate;
 import org.springframework.web.server.ServerWebExchange;
 
 /**
- * Creates a predicate which indicates if the request is intended for a Cloud Foundry Route Service.
- * @see <a href="https://docs.cloudfoundry.org/services/route-services.html">Cloud Foundry Route Service documentation</a>.
+ * Creates a predicate which indicates if the request is intended for a Cloud Foundry
+ * Route Service.
+ *
  * @author Andrew Fitzgerald
+ * @see <a href="https://docs.cloudfoundry.org/services/route-services.html">Cloud Foundry
+ * Route Service documentation</a>
  */
-public class CloudFoundryRouteServiceRoutePredicateFactory extends
-		AbstractRoutePredicateFactory<Object> {
+public class CloudFoundryRouteServiceRoutePredicateFactory
+		extends AbstractRoutePredicateFactory<Object> {
 
 	/**
 	 * Forwarded URL header name.
@@ -42,6 +45,7 @@ public class CloudFoundryRouteServiceRoutePredicateFactory extends
 	 * Proxy metadata header name.
 	 */
 	public static final String X_CF_PROXY_METADATA = "X-CF-Proxy-Metadata";
+
 	private final HeaderRoutePredicateFactory factory = new HeaderRoutePredicateFactory();
 
 	public CloudFoundryRouteServiceRoutePredicateFactory() {
@@ -49,8 +53,7 @@ public class CloudFoundryRouteServiceRoutePredicateFactory extends
 	}
 
 	@Override
-	public Predicate<ServerWebExchange> apply(
-			Object unused) {
+	public Predicate<ServerWebExchange> apply(Object unused) {
 		return headerPredicate(X_CF_FORWARDED_URL)
 				.and(headerPredicate(X_CF_PROXY_SIGNATURE))
 				.and(headerPredicate(X_CF_PROXY_METADATA));
@@ -62,4 +65,5 @@ public class CloudFoundryRouteServiceRoutePredicateFactory extends
 		config.setRegexp(".*");
 		return factory.apply(config);
 	}
+
 }

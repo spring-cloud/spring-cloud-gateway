@@ -30,10 +30,13 @@ import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 /**
  * @author Spencer Gibb
  */
-public class CachingRouteLocator implements RouteLocator, ApplicationListener<RefreshRoutesEvent> {
+public class CachingRouteLocator
+		implements RouteLocator, ApplicationListener<RefreshRoutesEvent> {
 
 	private final RouteLocator delegate;
+
 	private final Flux<Route> routes;
+
 	private final Map<String, List> cache = new HashMap<>();
 
 	public CachingRouteLocator(RouteLocator delegate) {
@@ -63,7 +66,8 @@ public class CachingRouteLocator implements RouteLocator, ApplicationListener<Re
 	}
 
 	@Deprecated
-		/* for testing */ void handleRefresh() {
+	/* for testing */ void handleRefresh() {
 		refresh();
 	}
+
 }

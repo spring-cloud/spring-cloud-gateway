@@ -52,6 +52,7 @@ public class RouteLocatorBuilder {
 	public static class Builder {
 
 		private List<Route.AsyncBuilder> routes = new ArrayList<>();
+
 		private ConfigurableApplicationContext context;
 
 		public Builder(ConfigurableApplicationContext context) {
@@ -61,7 +62,8 @@ public class RouteLocatorBuilder {
 		/**
 		 * Creates a new {@link Route}
 		 * @param id the unique id for the route
-		 * @param fn a function which takes in a {@link PredicateSpec} and returns a {@link Route.AsyncBuilder}
+		 * @param fn a function which takes in a {@link PredicateSpec} and returns a
+		 * {@link Route.AsyncBuilder}
 		 * @return a {@link Builder}
 		 */
 		public Builder route(String id, Function<PredicateSpec, Route.AsyncBuilder> fn) {
@@ -72,7 +74,8 @@ public class RouteLocatorBuilder {
 
 		/**
 		 * Creates a new {@link Route}
-		 * @param fn a function which takes in a {@link PredicateSpec} and returns a {@link Route.AsyncBuilder}
+		 * @param fn a function which takes in a {@link PredicateSpec} and returns a
+		 * {@link Route.AsyncBuilder}
 		 * @return a {@link Builder}
 		 */
 		public Builder route(Function<PredicateSpec, Route.AsyncBuilder> fn) {
@@ -97,11 +100,13 @@ public class RouteLocatorBuilder {
 		void add(Route.AsyncBuilder route) {
 			routes.add(route);
 		}
+
 	}
 
-
 	public static class RouteSpec {
+
 		private final Route.AsyncBuilder routeBuilder = Route.async();
+
 		private final Builder builder;
 
 		RouteSpec(Builder builder) {

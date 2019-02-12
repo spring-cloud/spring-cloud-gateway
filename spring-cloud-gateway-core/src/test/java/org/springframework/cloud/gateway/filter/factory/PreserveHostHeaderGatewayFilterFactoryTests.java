@@ -37,7 +37,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.cloud.gateway.test.TestUtils.getMap;
 
-
 /**
  * @author Spencer Gibb
  */
@@ -48,14 +47,11 @@ public class PreserveHostHeaderGatewayFilterFactoryTests extends BaseWebClientTe
 
 	@Test
 	public void preserveHostHeaderGatewayFilterFactoryWorks() {
-		testClient.get().uri("/headers")
-				.header("Host", "www.preservehostheader.org")
-				.exchange()
-				.expectStatus().isOk()
-				.expectBody(Map.class)
+		testClient.get().uri("/headers").header("Host", "www.preservehostheader.org")
+				.exchange().expectStatus().isOk().expectBody(Map.class)
 				.consumeWith(result -> {
-					Map<String, Object> headers = getMap(result
-							.getResponseBody(), "headers");
+					Map<String, Object> headers = getMap(result.getResponseBody(),
+							"headers");
 					assertThat(headers).containsEntry("Host", "myhost.net");
 				});
 	}
@@ -64,20 +60,20 @@ public class PreserveHostHeaderGatewayFilterFactoryTests extends BaseWebClientTe
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
 	public static class TestConfig {
+
 		@Value("${test.uri}")
 		String uri;
 
 		@Bean
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes().route("test_preserve_host_header",
-					r -> r.order(-1)
-							.host("**.preservehostheader.org")
-							.filters(f -> f.prefixPath("/httpbin")
-									.preserveHostHeader()
+					r -> r.order(-1).host("**.preservehostheader.org")
+							.filters(f -> f.prefixPath("/httpbin").preserveHostHeader()
 									.setRequestHeader("Host", "myhost.net"))
 							.uri(uri))
 					.build();
 		}
+
 	}
 
 }

@@ -110,7 +110,7 @@ public class ReactiveTests {
 		ResponseEntity<List<Foo>> result = rest.exchange(RequestEntity
 				.get(rest.getRestTemplate().getUriTemplateHandler().expand("/foos"))
 				.build(), new ParameterizedTypeReference<List<Foo>>() {
-		});
+				});
 		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
 		assertThat(result.getBody().iterator().next().getName()).isEqualTo("hello");
 	}
@@ -185,6 +185,7 @@ public class ReactiveTests {
 
 		@JsonIgnoreProperties(ignoreUnknown = true)
 		static class Foo {
+
 			private String name;
 
 			Foo() {
@@ -201,10 +202,12 @@ public class ReactiveTests {
 			public void setName(String name) {
 				this.name = name;
 			}
+
 		}
 
 		@JsonIgnoreProperties(ignoreUnknown = true)
 		static class Bar {
+
 			private String name;
 
 			Bar() {
@@ -221,6 +224,7 @@ public class ReactiveTests {
 			public void setName(String name) {
 				this.name = name;
 			}
+
 		}
 
 	}

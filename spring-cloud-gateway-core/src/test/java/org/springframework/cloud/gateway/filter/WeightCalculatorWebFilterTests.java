@@ -56,13 +56,16 @@ public class WeightCalculatorWebFilterTests {
 		assertWeightCalculation(filter, grp2, grp2idx++, 1, asList(1.0));
 		assertWeightCalculation(filter, grp1, grp1idx++, 3, asList(0.25, 0.75), 0.25);
 		assertWeightCalculation(filter, grp2, grp2idx++, 1, asList(0.5, 0.5), 0.5);
-		assertWeightCalculation(filter, grp1, grp1idx++, 6, asList(0.1, 0.3, 0.6), 0.1, 0.4);
-		assertWeightCalculation(filter, grp2, grp2idx++, 2, asList(0.25, 0.25, 0.5), 0.25, 0.5);
-		assertWeightCalculation(filter, grp2, grp2idx++, 4, asList(0.125, 0.125, 0.25, 0.5), 0.125, 0.25, 0.5);
+		assertWeightCalculation(filter, grp1, grp1idx++, 6, asList(0.1, 0.3, 0.6), 0.1,
+				0.4);
+		assertWeightCalculation(filter, grp2, grp2idx++, 2, asList(0.25, 0.25, 0.5), 0.25,
+				0.5);
+		assertWeightCalculation(filter, grp2, grp2idx++, 4,
+				asList(0.125, 0.125, 0.25, 0.5), 0.125, 0.25, 0.5);
 	}
 
-	private void assertWeightCalculation(WeightCalculatorWebFilter filter, String group, int item,
-			int weight, List<Double> normalized, Double... middleRanges) {
+	private void assertWeightCalculation(WeightCalculatorWebFilter filter, String group,
+			int item, int weight, List<Double> normalized, Double... middleRanges) {
 		String routeId = route(item);
 
 		filter.addWeightConfig(new WeightConfig(group, routeId, weight));
@@ -72,23 +75,19 @@ public class WeightCalculatorWebFilterTests {
 
 		GroupWeightConfig config = groupWeights.get(group);
 		assertThat(config.group).isEqualTo(group);
-		assertThat(config.weights).hasSize(item)
-				.containsEntry(routeId, weight);
+		assertThat(config.weights).hasSize(item).containsEntry(routeId, weight);
 		assertThat(config.normalizedWeights).hasSize(item);
 
 		for (int i = 0; i < normalized.size(); i++) {
-			assertThat(config.normalizedWeights)
-					.containsEntry(route(i + 1), normalized.get(i));
+			assertThat(config.normalizedWeights).containsEntry(route(i + 1),
+					normalized.get(i));
 		}
 
 		for (int i = 0; i < normalized.size(); i++) {
-			assertThat(config.rangeIndexes)
-					.containsEntry(i, route(i + 1));
+			assertThat(config.rangeIndexes).containsEntry(i, route(i + 1));
 		}
 
-		assertThat(config.ranges).hasSize(item + 1)
-				.startsWith(0.0)
-				.endsWith(1.0);
+		assertThat(config.ranges).hasSize(item + 1).startsWith(0.0).endsWith(1.0);
 
 		if (middleRanges.length > 0) {
 			assertThat(config.ranges).contains(middleRanges);
@@ -109,10 +108,7 @@ public class WeightCalculatorWebFilterTests {
 
 		Random random = mock(Random.class);
 
-		when(random.nextDouble())
-				.thenReturn(0.05)
-				.thenReturn(0.2)
-				.thenReturn(0.6);
+		when(random.nextDouble()).thenReturn(0.05).thenReturn(0.2).thenReturn(0.6);
 
 		filter.setRandom(random);
 
@@ -154,4 +150,5 @@ public class WeightCalculatorWebFilterTests {
 		assertThat(weightConfig.getRouteId()).isEqualTo("routeA");
 		assertThat(weightConfig.getWeight()).isEqualTo(1);
 	}
+
 }

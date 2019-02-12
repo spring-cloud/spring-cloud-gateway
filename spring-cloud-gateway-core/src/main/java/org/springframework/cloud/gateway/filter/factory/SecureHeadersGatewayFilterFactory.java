@@ -21,6 +21,7 @@ import org.springframework.http.HttpHeaders;
 
 /**
  * https://blog.appcanary.com/2017/http-security-headers.html.
+ *
  * @author Spencer Gibb
  */
 public class SecureHeadersGatewayFilterFactory extends AbstractGatewayFilterFactory {
@@ -73,26 +74,27 @@ public class SecureHeadersGatewayFilterFactory extends AbstractGatewayFilterFact
 
 	@Override
 	public GatewayFilter apply(Object config) {
-		//TODO: allow args to override properties
+		// TODO: allow args to override properties
 
 		return (exchange, chain) -> {
 			HttpHeaders headers = exchange.getResponse().getHeaders();
 
-			//TODO: allow header to be disabled
+			// TODO: allow header to be disabled
 			headers.add(X_XSS_PROTECTION_HEADER, properties.getXssProtectionHeader());
-			headers.add(STRICT_TRANSPORT_SECURITY_HEADER, properties
-					.getStrictTransportSecurity());
+			headers.add(STRICT_TRANSPORT_SECURITY_HEADER,
+					properties.getStrictTransportSecurity());
 			headers.add(X_FRAME_OPTIONS_HEADER, properties.getFrameOptions());
-			headers.add(X_CONTENT_TYPE_OPTIONS_HEADER, properties
-					.getContentTypeOptions());
+			headers.add(X_CONTENT_TYPE_OPTIONS_HEADER,
+					properties.getContentTypeOptions());
 			headers.add(REFERRER_POLICY_HEADER, properties.getReferrerPolicy());
-			headers.add(CONTENT_SECURITY_POLICY_HEADER, properties
-					.getContentSecurityPolicy());
+			headers.add(CONTENT_SECURITY_POLICY_HEADER,
+					properties.getContentSecurityPolicy());
 			headers.add(X_DOWNLOAD_OPTIONS_HEADER, properties.getDownloadOptions());
-			headers.add(X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER, properties
-					.getPermittedCrossDomainPolicies());
+			headers.add(X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER,
+					properties.getPermittedCrossDomainPolicies());
 
 			return chain.filter(exchange);
 		};
 	}
+
 }

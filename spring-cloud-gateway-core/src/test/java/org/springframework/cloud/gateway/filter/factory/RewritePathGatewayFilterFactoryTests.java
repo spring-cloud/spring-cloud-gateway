@@ -54,17 +54,18 @@ public class RewritePathGatewayFilterFactoryTests {
 
 	@Test
 	public void rewritePathFilterWithNamedGroupWorks() {
-		testRewriteFilter("/foo/(?<id>\\d.*)", "/bar/baz/$\\{id}", "/foo/123", "/bar/baz/123");
+		testRewriteFilter("/foo/(?<id>\\d.*)", "/bar/baz/$\\{id}", "/foo/123",
+				"/bar/baz/123");
 	}
 
-	private ServerWebExchange testRewriteFilter(String regex, String replacement, String actualPath, String expectedPath) {
+	private ServerWebExchange testRewriteFilter(String regex, String replacement,
+			String actualPath, String expectedPath) {
 		GatewayFilter filter = new RewritePathGatewayFilterFactory()
 				.apply(c -> c.setRegexp(regex).setReplacement(replacement));
 
 		URI url = UriComponentsBuilder.fromUriString("http://localhost" + actualPath)
 				.build(true).toUri();
-		MockServerHttpRequest request = MockServerHttpRequest
-				.method(HttpMethod.GET, url)
+		MockServerHttpRequest request = MockServerHttpRequest.method(HttpMethod.GET, url)
 				.build();
 
 		ServerWebExchange exchange = MockServerWebExchange.from(request);
@@ -94,10 +95,10 @@ public class RewritePathGatewayFilterFactoryTests {
 	@Test
 	public void rewritePathWithEncodedParams() {
 		ServerWebExchange exchange = testRewriteFilter("/foo", "/baz",
-				"/foo/bar?name=%E6%89%8E%E6%A0%B9",
-				"/baz/bar");
+				"/foo/bar?name=%E6%89%8E%E6%A0%B9", "/baz/bar");
 
 		URI uri = exchange.getRequest().getURI();
 		assertThat(uri.getRawQuery()).isEqualTo("name=%E6%89%8E%E6%A0%B9");
 	}
+
 }

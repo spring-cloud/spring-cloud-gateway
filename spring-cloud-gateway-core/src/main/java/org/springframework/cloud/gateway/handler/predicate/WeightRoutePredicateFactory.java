@@ -37,7 +37,7 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.W
 /**
  * @author Spencer Gibb
  */
-//TODO: make this a generic Choose out of group predicate?
+// TODO: make this a generic Choose out of group predicate?
 public class WeightRoutePredicateFactory
 		extends AbstractRoutePredicateFactory<WeightConfig>
 		implements ApplicationEventPublisherAware {
@@ -51,7 +51,9 @@ public class WeightRoutePredicateFactory
 	 * Weight config weight key.
 	 */
 	public static final String WEIGHT_KEY = WeightConfig.CONFIG_PREFIX + ".weight";
+
 	private static final Log log = LogFactory.getLog(WeightRoutePredicateFactory.class);
+
 	private ApplicationEventPublisher publisher;
 
 	public WeightRoutePredicateFactory() {
@@ -95,16 +97,19 @@ public class WeightRoutePredicateFactory
 
 				String chosenRoute = weights.get(group);
 				if (log.isTraceEnabled()) {
-					log.trace("in group weight: " + group + ", current route: " + routeId + ", chosen route: " + chosenRoute);
+					log.trace("in group weight: " + group + ", current route: " + routeId
+							+ ", chosen route: " + chosenRoute);
 				}
 
 				return routeId.equals(chosenRoute);
 			}
 			else if (log.isTraceEnabled()) {
-				log.trace("no weights found for group: " + group + ", current route: " + routeId);
+				log.trace("no weights found for group: " + group + ", current route: "
+						+ routeId);
 			}
 
 			return false;
 		};
 	}
+
 }

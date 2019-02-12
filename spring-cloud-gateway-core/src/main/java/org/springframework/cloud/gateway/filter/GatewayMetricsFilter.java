@@ -101,4 +101,5 @@ public class GatewayMetricsFilter implements GlobalFilter, Ordered {
 		}
 		sample.stop(meterRegistry.timer("gateway.requests", tags));
 	}
+
 }

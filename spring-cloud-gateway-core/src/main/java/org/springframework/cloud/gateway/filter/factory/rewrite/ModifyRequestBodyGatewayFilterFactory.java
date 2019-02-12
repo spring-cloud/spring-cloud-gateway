@@ -40,8 +40,8 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 /**
  * This filter is BETA and may be subject to change in a future release.
  */
-public class ModifyRequestBodyGatewayFilterFactory
-		extends AbstractGatewayFilterFactory<ModifyRequestBodyGatewayFilterFactory.Config> {
+public class ModifyRequestBodyGatewayFilterFactory extends
+		AbstractGatewayFilterFactory<ModifyRequestBodyGatewayFilterFactory.Config> {
 
 	private final List<HttpMessageReader<?>> messageReaders;
 
@@ -60,15 +60,16 @@ public class ModifyRequestBodyGatewayFilterFactory
 	public GatewayFilter apply(Config config) {
 		return (exchange, chain) -> {
 			Class inClass = config.getInClass();
-			ServerRequest serverRequest = new DefaultServerRequest(exchange, this.messageReaders);
+			ServerRequest serverRequest = new DefaultServerRequest(exchange,
+					this.messageReaders);
 
-			//TODO: flux or mono
+			// TODO: flux or mono
 			Mono<?> modifiedBody = serverRequest.bodyToMono(inClass)
 					// .log("modify_request_mono", Level.INFO)
 					.flatMap(o -> config.rewriteFunction.apply(exchange, o));
 
-			BodyInserter bodyInserter = BodyInserters
-					.fromPublisher(modifiedBody, config.getOutClass());
+			BodyInserter bodyInserter = BodyInserters.fromPublisher(modifiedBody,
+					config.getOutClass());
 			HttpHeaders headers = new HttpHeaders();
 			headers.putAll(exchange.getRequest().getHeaders());
 
@@ -76,11 +77,13 @@ public class ModifyRequestBodyGatewayFilterFactory
 			// and then set in the request decorator
 			headers.remove(HttpHeaders.CONTENT_LENGTH);
 
-			// if the body is changing content types, set it here, to the bodyInserter will know about it
+			// if the body is changing content types, set it here, to the bodyInserter
+			// will know about it
 			if (config.getContentType() != null) {
 				headers.set(HttpHeaders.CONTENT_TYPE, config.getContentType());
 			}
-			CachedBodyOutputMessage outputMessage = new CachedBodyOutputMessage(exchange, headers);
+			CachedBodyOutputMessage outputMessage = new CachedBodyOutputMessage(exchange,
+					headers);
 			return bodyInserter.insert(outputMessage, new BodyInserterContext())
 					// .log("modify_request", Level.INFO)
 					.then(Mono.defer(() -> {
@@ -95,9 +98,10 @@ public class ModifyRequestBodyGatewayFilterFactory
 									httpHeaders.setContentLength(contentLength);
 								}
 								else {
-									// TODO: this causes a 'HTTP/1.1 411 Length Required' on httpbin.org
-									httpHeaders
-											.set(HttpHeaders.TRANSFER_ENCODING, "chunked");
+									// TODO: this causes a 'HTTP/1.1 411 Length Required'
+									// on httpbin.org
+									httpHeaders.set(HttpHeaders.TRANSFER_ENCODING,
+											"chunked");
 								}
 								return httpHeaders;
 							}
@@ -114,13 +118,16 @@ public class ModifyRequestBodyGatewayFilterFactory
 	}
 
 	public static class Config {
+
 		private Class inClass;
+
 		private Class outClass;
 
 		private String contentType;
 
 		@Deprecated
 		private Map<String, Object> inHints;
+
 		@Deprecated
 		private Map<String, Object> outHints;
 
@@ -191,5 +198,7 @@ public class ModifyRequestBodyGatewayFilterFactory
 			this.contentType = contentType;
 			return this;
 		}
+
 	}
+
 }

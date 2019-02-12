@@ -40,6 +40,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * TODO: change to RouteLocator? use java dsl
+ *
  * @author Spencer Gibb
  */
 public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLocator {
@@ -48,11 +49,15 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 			.getLog(DiscoveryClientRouteDefinitionLocator.class);
 
 	private final DiscoveryClient discoveryClient;
+
 	private final DiscoveryLocatorProperties properties;
+
 	private final String routeIdPrefix;
+
 	private final SimpleEvaluationContext evalCtxt;
 
-	public DiscoveryClientRouteDefinitionLocator(DiscoveryClient discoveryClient, DiscoveryLocatorProperties properties) {
+	public DiscoveryClientRouteDefinitionLocator(DiscoveryClient discoveryClient,
+			DiscoveryLocatorProperties properties) {
 		this.discoveryClient = discoveryClient;
 		this.properties = properties;
 		if (StringUtils.hasText(properties.getRouteIdPrefix())) {
@@ -61,8 +66,7 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 		else {
 			this.routeIdPrefix = this.discoveryClient.getClass().getSimpleName() + "_";
 		}
-		evalCtxt = SimpleEvaluationContext.forReadOnlyDataBinding()
-				.withInstanceMethods()
+		evalCtxt = SimpleEvaluationContext.forReadOnlyDataBinding().withInstanceMethods()
 				.build();
 	}
 
@@ -75,8 +79,8 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 		Expression urlExpr = parser.parseExpression(properties.getUrlExpression());
 
 		Predicate<ServiceInstance> includePredicate;
-		if (properties.getIncludeExpression() == null || "true"
-				.equalsIgnoreCase(properties.getIncludeExpression())) {
+		if (properties.getIncludeExpression() == null
+				|| "true".equalsIgnoreCase(properties.getIncludeExpression())) {
 			includePredicate = instance -> true;
 		}
 		else {
@@ -92,8 +96,7 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 		return Flux.fromIterable(discoveryClient.getServices())
 				.map(discoveryClient::getInstances)
 				.filter(instances -> !instances.isEmpty())
-				.map(instances -> instances.get(0))
-				.filter(includePredicate)
+				.map(instances -> instances.get(0)).filter(includePredicate)
 				.map(instance -> {
 					String serviceId = instance.getServiceId();
 
@@ -102,14 +105,16 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 					String uri = urlExpr.getValue(evalCtxt, instance, String.class);
 					routeDefinition.setUri(URI.create(uri));
 
-					final ServiceInstance instanceForEval = new DelegatingServiceInstance(instance, properties);
+					final ServiceInstance instanceForEval = new DelegatingServiceInstance(
+							instance, properties);
 
 					for (PredicateDefinition original : this.properties.getPredicates()) {
 						PredicateDefinition predicate = new PredicateDefinition();
 						predicate.setName(original.getName());
 						for (Map.Entry<String, String> entry : original.getArgs()
 								.entrySet()) {
-							String value = getValueFromExpr(evalCtxt, parser, instanceForEval, entry);
+							String value = getValueFromExpr(evalCtxt, parser,
+									instanceForEval, entry);
 							predicate.addArg(entry.getKey(), value);
 						}
 						routeDefinition.getPredicates().add(predicate);
@@ -120,7 +125,8 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 						filter.setName(original.getName());
 						for (Map.Entry<String, String> entry : original.getArgs()
 								.entrySet()) {
-							String value = getValueFromExpr(evalCtxt, parser, instanceForEval, entry);
+							String value = getValueFromExpr(evalCtxt, parser,
+									instanceForEval, entry);
 							filter.addArg(entry.getKey(), value);
 						}
 						routeDefinition.getFilters().add(filter);
@@ -147,9 +153,11 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 	private static class DelegatingServiceInstance implements ServiceInstance {
 
 		final ServiceInstance delegate;
+
 		private final DiscoveryLocatorProperties properties;
 
-		private DelegatingServiceInstance(ServiceInstance delegate, DiscoveryLocatorProperties properties) {
+		private DelegatingServiceInstance(ServiceInstance delegate,
+				DiscoveryLocatorProperties properties) {
 			this.delegate = delegate;
 			this.properties = properties;
 		}
@@ -194,10 +202,10 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 
 		@Override
 		public String toString() {
-			return new ToStringCreator(this)
-					.append("delegate", delegate)
-					.append("properties", properties)
-					.toString();
+			return new ToStringCreator(this).append("delegate", delegate)
+					.append("properties", properties).toString();
 		}
+
 	}
+
 }

@@ -69,7 +69,8 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 	}
 
 	@Nullable
-	/* for testing */ static LinkedCaseInsensitiveMap<String> splitIntoCaseInsensitiveMap(String[] pairs) {
+	/* for testing */ static LinkedCaseInsensitiveMap<String> splitIntoCaseInsensitiveMap(
+			String[] pairs) {
 		if (ObjectUtils.isEmpty(pairs)) {
 			return null;
 		}
@@ -97,9 +98,8 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 		HttpHeaders updated = new HttpHeaders();
 
 		// copy all headers except Forwarded
-		original.entrySet().stream()
-				.filter(entry -> !entry.getKey().toLowerCase()
-						.equalsIgnoreCase(FORWARDED_HEADER))
+		original.entrySet().stream().filter(
+				entry -> !entry.getKey().toLowerCase().equalsIgnoreCase(FORWARDED_HEADER))
 				.forEach(entry -> updated.addAll(entry.getKey(), entry.getValue()));
 
 		List<Forwarded> forwardeds = parse(original.get(FORWARDED_HEADER));
@@ -108,12 +108,11 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 			updated.add(FORWARDED_HEADER, f.toHeaderValue());
 		}
 
-		//TODO: add new forwarded
+		// TODO: add new forwarded
 		URI uri = request.getURI();
 		String host = original.getFirst(HttpHeaders.HOST);
-		Forwarded forwarded = new Forwarded()
-				.put("host", host)
-				.put("proto", uri.getScheme());
+		Forwarded forwarded = new Forwarded().put("host", host).put("proto",
+				uri.getScheme());
 
 		InetSocketAddress remoteAddress = request.getRemoteAddress();
 		if (remoteAddress != null) {
@@ -134,6 +133,7 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 	/* for testing */ static class Forwarded {
 
 		private static final char EQUALS = '=';
+
 		private static final char SEMICOLON = ';';
 
 		private final Map<String, String> values;
@@ -151,9 +151,8 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 			return this;
 		}
 
-
 		private String quoteIfNeeded(String s) {
-			if (s != null && s.contains(":")) { //TODO: broaded quote
+			if (s != null && s.contains(":")) { // TODO: broaded quote
 				return "\"" + s + "\"";
 			}
 			return s;
@@ -169,9 +168,7 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 
 		@Override
 		public String toString() {
-			return "Forwarded{" +
-					"values=" + this.values +
-					'}';
+			return "Forwarded{" + "values=" + this.values + '}';
 		}
 
 		public String toHeaderValue() {
@@ -180,12 +177,11 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 				if (builder.length() > 0) {
 					builder.append(SEMICOLON);
 				}
-				builder.append(entry.getKey())
-						.append(EQUALS)
-						.append(entry.getValue());
+				builder.append(entry.getKey()).append(EQUALS).append(entry.getValue());
 			}
 			return builder.toString();
 		}
+
 	}
 
 }

@@ -52,10 +52,8 @@ public class RoutePredicateHandlerMappingIntegrationTests extends BaseWebClientT
 
 	@Test
 	public void requestsToManagementPortReturn404() {
-		testClient.mutate().baseUrl("http://localhost:" + managementPort).build()
-				.get().uri("/get")
-				.exchange()
-				.expectStatus().isNotFound();
+		testClient.mutate().baseUrl("http://localhost:" + managementPort).build().get()
+				.uri("/get").exchange().expectStatus().isNotFound();
 	}
 
 	@EnableAutoConfiguration

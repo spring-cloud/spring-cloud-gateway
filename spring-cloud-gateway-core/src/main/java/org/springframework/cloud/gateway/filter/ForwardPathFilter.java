@@ -30,9 +30,11 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.i
 /**
  * Filter to set the path in the request URI if the {@link Route} URI has the scheme
  * <code>forward</code>.
+ *
  * @author Ryan Baxter
  */
 public class ForwardPathFilter implements GlobalFilter, Ordered {
+
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 		Route route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
@@ -41,8 +43,8 @@ public class ForwardPathFilter implements GlobalFilter, Ordered {
 		if (isAlreadyRouted(exchange) || !"forward".equals(scheme)) {
 			return chain.filter(exchange);
 		}
-		exchange = exchange.mutate().request(
-				exchange.getRequest().mutate().path(routeUri.getPath()).build())
+		exchange = exchange.mutate()
+				.request(exchange.getRequest().mutate().path(routeUri.getPath()).build())
 				.build();
 		return chain.filter(exchange);
 	}
@@ -51,4 +53,5 @@ public class ForwardPathFilter implements GlobalFilter, Ordered {
 	public int getOrder() {
 		return 0;
 	}
+
 }

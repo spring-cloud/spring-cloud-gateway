@@ -23,7 +23,8 @@ import org.springframework.cloud.gateway.filter.GatewayFilter;
 /**
  * @author Spencer Gibb
  */
-public class SetResponseHeaderGatewayFilterFactory extends AbstractNameValueGatewayFilterFactory {
+public class SetResponseHeaderGatewayFilterFactory
+		extends AbstractNameValueGatewayFilterFactory {
 
 	@Override
 	public GatewayFilter apply(NameValueConfig config) {
@@ -31,4 +32,5 @@ public class SetResponseHeaderGatewayFilterFactory extends AbstractNameValueGate
 			exchange.getResponse().getHeaders().set(config.name, config.value);
 		}));
 	}
+
 }

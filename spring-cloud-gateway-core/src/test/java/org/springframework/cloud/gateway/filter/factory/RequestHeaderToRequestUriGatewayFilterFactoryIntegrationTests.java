@@ -47,6 +47,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @DirtiesContext
 public class RequestHeaderToRequestUriGatewayFilterFactoryIntegrationTests
 		extends BaseWebClientTests {
+
 	@LocalServerPort
 	int port;
 
@@ -84,6 +85,7 @@ public class RequestHeaderToRequestUriGatewayFilterFactoryIntegrationTests
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
 	public static class TestConfig {
+
 		@Bean
 		public RouteLocator routeLocator(RouteLocatorBuilder builder) {
 			return builder.routes()
@@ -96,5 +98,7 @@ public class RequestHeaderToRequestUriGatewayFilterFactoryIntegrationTests
 							.uri("http://example.com"))
 					.build();
 		}
+
 	}
+
 }

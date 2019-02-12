@@ -27,6 +27,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Spencer Gibb
  */
 public class TestUtils {
+
 	@SuppressWarnings("unchecked")
 	public static Map<String, Object> getMap(Map response, String key) {
 		assertThat(response).containsKey(key).isInstanceOf(Map.class);

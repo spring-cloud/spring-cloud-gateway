@@ -26,7 +26,8 @@ import org.springframework.web.server.ServerWebExchange;
 /**
  * @author Spencer Gibb
  */
-public class MethodRoutePredicateFactory extends AbstractRoutePredicateFactory<MethodRoutePredicateFactory.Config> {
+public class MethodRoutePredicateFactory
+		extends AbstractRoutePredicateFactory<MethodRoutePredicateFactory.Config> {
 
 	/**
 	 * Method key.
@@ -51,6 +52,7 @@ public class MethodRoutePredicateFactory extends AbstractRoutePredicateFactory<M
 	}
 
 	public static class Config {
+
 		private HttpMethod method;
 
 		public HttpMethod getMethod() {
@@ -60,5 +62,7 @@ public class MethodRoutePredicateFactory extends AbstractRoutePredicateFactory<M
 		public void setMethod(HttpMethod method) {
 			this.method = method;
 		}
+
 	}
+
 }

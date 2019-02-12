@@ -28,7 +28,8 @@ import org.springframework.web.server.ServerWebExchange;
 /**
  * @author Spencer Gibb
  */
-public class AfterRoutePredicateFactory extends AbstractRoutePredicateFactory<AfterRoutePredicateFactory.Config> {
+public class AfterRoutePredicateFactory
+		extends AbstractRoutePredicateFactory<AfterRoutePredicateFactory.Config> {
 
 	/**
 	 * DateTime key.
@@ -54,6 +55,7 @@ public class AfterRoutePredicateFactory extends AbstractRoutePredicateFactory<Af
 	}
 
 	public static class Config {
+
 		@NotNull
 		private ZonedDateTime datetime;
 
@@ -64,6 +66,7 @@ public class AfterRoutePredicateFactory extends AbstractRoutePredicateFactory<Af
 		public void setDatetime(ZonedDateTime datetime) {
 			this.datetime = datetime;
 		}
+
 	}
 
 }

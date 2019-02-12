@@ -36,12 +36,11 @@ public class GatewayAutoConfigurationTests {
 
 	@Test
 	public void noHiddenHttpMethodFilter() {
-		try (ConfigurableApplicationContext ctx =
-			SpringApplication.run(NoHiddenHttpMethodFilterConfig.class,
-					"--spring.jmx.enabled=false")) {
+		try (ConfigurableApplicationContext ctx = SpringApplication.run(
+				NoHiddenHttpMethodFilterConfig.class, "--spring.jmx.enabled=false")) {
 			assertThat(ctx.getEnvironment()
 					.getProperty("spring.webflux.hiddenmethod.filter.enabled"))
-					.isEqualTo("false");
+							.isEqualTo("false");
 			assertThat(ctx.getBeanNamesForType(HiddenHttpMethodFilter.class)).isEmpty();
 		}
 	}
@@ -53,22 +52,22 @@ public class GatewayAutoConfigurationTests {
 						MetricsAutoConfiguration.class,
 						SimpleMetricsExportAutoConfiguration.class,
 						GatewayAutoConfiguration.class))
-				.withPropertyValues("debug=true")
-				.run(context -> {
+				.withPropertyValues("debug=true").run(context -> {
 					assertThat(context).hasSingleBean(HttpClient.class);
 					HttpClient httpClient = context.getBean(HttpClient.class);
-					/*FIXME: 2.1.0
-					HttpClientOptions options = httpClient.options();
-
-					PoolResources poolResources = options.getPoolResources();
-					assertThat(poolResources).isNotNull();
-					//TODO: howto test PoolResources
-
-					ClientProxyOptions proxyOptions = options.getProxyOptions();
-					assertThat(proxyOptions).isNull();
-
-					SslContext sslContext = options.sslContext();
-					assertThat(sslContext).isNull();*/
+					/*
+					 * FIXME: 2.1.0 HttpClientOptions options = httpClient.options();
+					 *
+					 * PoolResources poolResources = options.getPoolResources();
+					 * assertThat(poolResources).isNotNull(); //TODO: howto test
+					 * PoolResources
+					 *
+					 * ClientProxyOptions proxyOptions = options.getProxyOptions();
+					 * assertThat(proxyOptions).isNull();
+					 *
+					 * SslContext sslContext = options.sslContext();
+					 * assertThat(sslContext).isNull();
+					 */
 				});
 	}
 
@@ -79,7 +78,8 @@ public class GatewayAutoConfigurationTests {
 						MetricsAutoConfiguration.class,
 						SimpleMetricsExportAutoConfiguration.class,
 						GatewayAutoConfiguration.class))
-				.withPropertyValues("spring.cloud.gateway.httpclient.ssl.use-insecure-trust-manager=true",
+				.withPropertyValues(
+						"spring.cloud.gateway.httpclient.ssl.use-insecure-trust-manager=true",
 						"spring.cloud.gateway.httpclient.connect-timeout=10",
 						"spring.cloud.gateway.httpclient.response-timeout=10s",
 						"spring.cloud.gateway.httpclient.pool.type=fixed",
@@ -87,20 +87,22 @@ public class GatewayAutoConfigurationTests {
 				.run(context -> {
 					assertThat(context).hasSingleBean(HttpClient.class);
 					HttpClient httpClient = context.getBean(HttpClient.class);
-					/* FIXME: 2.1.0
-					HttpClientOptions options = httpClient.options();
-
-					PoolResources poolResources = options.getPoolResources();
-					assertThat(poolResources).isNotNull();
-					//TODO: howto test PoolResources
-
-					ClientProxyOptions proxyOptions = options.getProxyOptions();
-					assertThat(proxyOptions).isNotNull();
-					assertThat(proxyOptions.getAddress().get().getHostName()).isEqualTo("myhost");
-
-					SslContext sslContext = options.sslContext();
-					assertThat(sslContext).isNotNull();*/
-					//TODO: howto test SslContext
+					/*
+					 * FIXME: 2.1.0 HttpClientOptions options = httpClient.options();
+					 *
+					 * PoolResources poolResources = options.getPoolResources();
+					 * assertThat(poolResources).isNotNull(); //TODO: howto test
+					 * PoolResources
+					 *
+					 * ClientProxyOptions proxyOptions = options.getProxyOptions();
+					 * assertThat(proxyOptions).isNotNull();
+					 * assertThat(proxyOptions.getAddress().get().getHostName()).isEqualTo
+					 * ("myhost");
+					 *
+					 * SslContext sslContext = options.sslContext();
+					 * assertThat(sslContext).isNotNull();
+					 */
+					// TODO: howto test SslContext
 				});
 	}
 
@@ -109,4 +111,5 @@ public class GatewayAutoConfigurationTests {
 	protected static class NoHiddenHttpMethodFilterConfig {
 
 	}
+
 }

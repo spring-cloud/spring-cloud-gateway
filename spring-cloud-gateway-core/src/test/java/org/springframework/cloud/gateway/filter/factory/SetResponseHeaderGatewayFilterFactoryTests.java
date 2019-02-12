@@ -36,18 +36,16 @@ public class SetResponseHeaderGatewayFilterFactoryTests extends BaseWebClientTes
 
 	@Test
 	public void setResponseHeaderFilterWorks() {
-		testClient.get()
-				.uri("/headers")
-				.header("Host", "www.setreresponseheader.org")
-				.exchange()
-				.expectStatus().isOk()
-				.expectHeader().valueEquals("X-Request-Foo", "Bar");
+		testClient.get().uri("/headers").header("Host", "www.setreresponseheader.org")
+				.exchange().expectStatus().isOk().expectHeader()
+				.valueEquals("X-Request-Foo", "Bar");
 	}
 
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
 	public static class TestConfig {
+
 	}
 
 }

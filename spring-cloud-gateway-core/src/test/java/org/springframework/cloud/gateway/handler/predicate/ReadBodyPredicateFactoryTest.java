@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.gateway.handler.predicate;
 
-
 import java.util.function.Predicate;
 
 import com.netflix.loadbalancer.Server;
@@ -66,19 +65,14 @@ public class ReadBodyPredicateFactoryTest {
 		Event messageEvent = new Event("message", "bar");
 		Event messageChannelEvent = new Event("message.channels", "bar");
 
-		webClient
-				.post().uri("/events").body(BodyInserters.fromObject(messageEvent))
-				.exchange()
-				.expectStatus().isOk()
-				.expectBody()
-				.jsonPath("$.headers.Hello").isEqualTo("World");
+		webClient.post().uri("/events").body(BodyInserters.fromObject(messageEvent))
+				.exchange().expectStatus().isOk().expectBody().jsonPath("$.headers.Hello")
+				.isEqualTo("World");
 
-		webClient
-				.post().uri("/events").body(BodyInserters.fromObject(messageChannelEvent))
-				.exchange()
-				.expectStatus().isOk()
-				.expectBody()
-				.jsonPath("$.headers.World").isEqualTo("Hello");
+		webClient.post().uri("/events")
+				.body(BodyInserters.fromObject(messageChannelEvent)).exchange()
+				.expectStatus().isOk().expectBody().jsonPath("$.headers.World")
+				.isEqualTo("Hello");
 
 	}
 
@@ -86,20 +80,20 @@ public class ReadBodyPredicateFactoryTest {
 	@SpringBootConfiguration
 	@RibbonClients({
 			@RibbonClient(name = "message", configuration = TestRibbonConfig.class),
-			@RibbonClient(name = "messageChannel", configuration = TestRibbonConfig.class)
-	})
+			@RibbonClient(name = "messageChannel", configuration = TestRibbonConfig.class) })
 	@Import(PermitAllSecurityConfiguration.class)
 	@RestController
 	public static class TestConfig {
+
 		@Bean
 		public RouteLocator routeLocator(RouteLocatorBuilder builder) {
 			return builder.routes()
-					.route(p -> p.path("/events").and().method(HttpMethod.POST).and().
-							readBody(Event.class, eventPredicate("message.channels")).
-							filters(f -> f.setPath("/messageChannel/events"))
+					.route(p -> p.path("/events").and().method(HttpMethod.POST).and()
+							.readBody(Event.class, eventPredicate("message.channels"))
+							.filters(f -> f.setPath("/messageChannel/events"))
 							.uri("lb://messageChannel"))
-					.route(p -> p.path("/events").and().method(HttpMethod.POST).and().
-							readBody(Event.class, eventPredicate("message"))
+					.route(p -> p.path("/events").and().method(HttpMethod.POST).and()
+							.readBody(Event.class, eventPredicate("message"))
 							.filters(f -> f.setPath("/message/events"))
 							.uri("lb://message"))
 					.build();
@@ -118,6 +112,7 @@ public class ReadBodyPredicateFactoryTest {
 		public String messageChannelEvents(@RequestBody Event e) {
 			return "{\"headers\":{\"World\":\"Hello\"}}";
 		}
+
 	}
 
 	protected static class TestRibbonConfig {
@@ -129,12 +124,15 @@ public class ReadBodyPredicateFactoryTest {
 		public ServerList<Server> ribbonServerList() {
 			return new StaticServerList<>(new Server("localhost", this.port));
 		}
+
 	}
 
 }
 
 class Event {
+
 	private String foo;
+
 	private String bar;
 
 	Event() {
@@ -160,4 +158,5 @@ class Event {
 	public void setBar(String bar) {
 		this.bar = bar;
 	}
+
 }

@@ -32,13 +32,15 @@ public class SecureHeadersProperties {
 	/**
 	 * Strict transport security header default.
 	 */
-	public static final String STRICT_TRANSPORT_SECURITY_HEADER_DEFAULT =
-			"max-age=631138519"; //; includeSubDomains preload")
+	public static final String STRICT_TRANSPORT_SECURITY_HEADER_DEFAULT = "max-age=631138519"; // ;
+																								// includeSubDomains
+																								// preload")
 
 	/**
 	 * Frame Options header default.
 	 */
-	public static final String X_FRAME_OPTIONS_HEADER_DEFAULT = "DENY"; //SAMEORIGIN = ALLOW-FROM
+	public static final String X_FRAME_OPTIONS_HEADER_DEFAULT = "DENY"; // SAMEORIGIN =
+																		// ALLOW-FROM
 
 	/**
 	 * Content-Type Options header default.
@@ -48,13 +50,24 @@ public class SecureHeadersProperties {
 	/**
 	 * Referrer Policy header default.
 	 */
-	public static final String REFERRER_POLICY_HEADER_DEFAULT = "no-referrer"; //no-referrer-when-downgrade = origin = origin-when-cross-origin = same-origin = strict-origin = strict-origin-when-cross-origin = unsafe-url
+	public static final String REFERRER_POLICY_HEADER_DEFAULT = "no-referrer"; // no-referrer-when-downgrade
+																				// =
+																				// origin
+																				// =
+																				// origin-when-cross-origin
+																				// =
+																				// same-origin
+																				// =
+																				// strict-origin
+																				// =
+																				// strict-origin-when-cross-origin
+																				// =
+																				// unsafe-url
 
 	/**
 	 * Content-Security Policy header default.
 	 */
-	public static final String CONTENT_SECURITY_POLICY_HEADER_DEFAULT
-			= "default-src 'self' https:; font-src 'self' https: data:; img-src 'self' https: data:; object-src 'none'; script-src https:; style-src 'self' https: 'unsafe-inline'";
+	public static final String CONTENT_SECURITY_POLICY_HEADER_DEFAULT = "default-src 'self' https:; font-src 'self' https: data:; img-src 'self' https: data:; object-src 'none'; script-src https:; style-src 'self' https: 'unsafe-inline'";
 
 	/**
 	 * Download Options header default.
@@ -67,12 +80,19 @@ public class SecureHeadersProperties {
 	public static final String X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER_DEFAULT = "none";
 
 	private String xssProtectionHeader = X_XSS_PROTECTION_HEADER_DEFAULT;
+
 	private String strictTransportSecurity = STRICT_TRANSPORT_SECURITY_HEADER_DEFAULT;
+
 	private String frameOptions = X_FRAME_OPTIONS_HEADER_DEFAULT;
+
 	private String contentTypeOptions = X_CONTENT_TYPE_OPTIONS_HEADER_DEFAULT;
+
 	private String referrerPolicy = REFERRER_POLICY_HEADER_DEFAULT;
+
 	private String contentSecurityPolicy = CONTENT_SECURITY_POLICY_HEADER_DEFAULT;
+
 	private String downloadOptions = X_DOWNLOAD_OPTIONS_HEADER_DEFAULT;
+
 	private String permittedCrossDomainPolicies = X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER_DEFAULT;
 
 	public String getXssProtectionHeader() {
@@ -155,4 +175,5 @@ public class SecureHeadersProperties {
 		sb.append('}');
 		return sb.toString();
 	}
+
 }

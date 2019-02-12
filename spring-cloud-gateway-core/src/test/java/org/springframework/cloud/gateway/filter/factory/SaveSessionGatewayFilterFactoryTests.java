@@ -60,16 +60,12 @@ public class SaveSessionGatewayFilterFactoryTests extends BaseWebClientTests {
 		when(mockWebSession.getAttributes()).thenReturn(new HashMap<>());
 		when(mockWebSession.save()).thenReturn(Mono.empty());
 
-		Mono<Map> result = webClient.get()
-				.uri("/get")
-				.exchange()
+		Mono<Map> result = webClient.get().uri("/get").exchange()
 				.flatMap(response -> response.body(toMono(Map.class)));
 
-		StepVerifier.create(result)
-				.consumeNextWith(response -> { /* Don't care about data, just need to
-				catch signal */ })
-				.expectComplete()
-				.verify(Duration.ofMinutes(10));
+		StepVerifier.create(result).consumeNextWith(response -> {
+			// Don't care about data, just need to catch signal
+		}).expectComplete().verify(Duration.ofMinutes(10));
 
 		verify(mockWebSession).save();
 	}
@@ -83,6 +79,7 @@ public class SaveSessionGatewayFilterFactoryTests extends BaseWebClientTests {
 		WebSessionManager webSessionManager() {
 			return exchange -> Mono.just(mockWebSession);
 		}
+
 	}
 
 }

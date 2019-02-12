@@ -35,6 +35,7 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.G
  */
 public abstract class AbstractChangeRequestUriGatewayFilterFactory<T>
 		extends AbstractGatewayFilterFactory<T> {
+
 	private final int order;
 
 	public AbstractChangeRequestUriGatewayFilterFactory(Class<T> clazz, int order) {
@@ -59,4 +60,5 @@ public abstract class AbstractChangeRequestUriGatewayFilterFactory<T>
 			return chain.filter(exchange);
 		}, this.order);
 	}
+
 }

@@ -29,7 +29,8 @@ import org.springframework.web.server.ServerWebExchange;
 /**
  * @author Spencer Gibb
  */
-public class QueryRoutePredicateFactory extends AbstractRoutePredicateFactory<QueryRoutePredicateFactory.Config> {
+public class QueryRoutePredicateFactory
+		extends AbstractRoutePredicateFactory<QueryRoutePredicateFactory.Config> {
 
 	/**
 	 * Param key.
@@ -58,7 +59,6 @@ public class QueryRoutePredicateFactory extends AbstractRoutePredicateFactory<Qu
 				return exchange.getRequest().getQueryParams().containsKey(config.param);
 			}
 
-
 			List<String> values = exchange.getRequest().getQueryParams()
 					.get(config.param);
 			if (values == null) {
@@ -75,6 +75,7 @@ public class QueryRoutePredicateFactory extends AbstractRoutePredicateFactory<Qu
 
 	@Validated
 	public static class Config {
+
 		@NotEmpty
 		private String param;
 
@@ -97,5 +98,7 @@ public class QueryRoutePredicateFactory extends AbstractRoutePredicateFactory<Qu
 			this.regexp = regexp;
 			return this;
 		}
+
 	}
+
 }

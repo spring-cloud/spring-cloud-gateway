@@ -43,32 +43,34 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @DirtiesContext
 public class RequestSizeGatewayFilterFactoryTest extends BaseWebClientTests {
 
-	private static final String responseMesssage
-			= "Request size is larger than permissible limit. Request size is 6.0 MB "
+	private static final String responseMesssage = "Request size is larger than permissible limit. Request size is 6.0 MB "
 			+ "where permissible limit is 5.0 MB";
 
 	@Test
 	public void setRequestSizeFilterWorks() {
-		testClient.get().uri("/headers")
-				.header("Host", "www.setrequestsize.org")
-				.header("content-length", "6000000")
-				.exchange().expectStatus().isEqualTo(HttpStatus.PAYLOAD_TOO_LARGE)
-				.expectHeader().valueMatches("errorMessage", responseMesssage);
+		testClient.get().uri("/headers").header("Host", "www.setrequestsize.org")
+				.header("content-length", "6000000").exchange().expectStatus()
+				.isEqualTo(HttpStatus.PAYLOAD_TOO_LARGE).expectHeader()
+				.valueMatches("errorMessage", responseMesssage);
 	}
 
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
 	public static class TestConfig {
+
 		@Value("${test.uri}")
 		String uri;
 
 		@Bean
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
-			return builder.routes().route("test_request_size",
-					r -> r.order(-1).host("**.setrequestsize.org")
-							.filters(f -> f.setRequestSize(5000000L)).uri(uri))
+			return builder.routes()
+					.route("test_request_size",
+							r -> r.order(-1).host("**.setrequestsize.org")
+									.filters(f -> f.setRequestSize(5000000L)).uri(uri))
 					.build();
 		}
+
 	}
+
 }

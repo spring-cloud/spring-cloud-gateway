@@ -20,10 +20,11 @@ import org.springframework.cloud.gateway.support.AbstractConfigurable;
 
 /**
  * This class is BETA and may be subject to change in a future release.
+ *
  * @param <C> {@link AbstractConfigurable} subtype
  */
-public abstract class AbstractGatewayFilterFactory<C>
-		extends AbstractConfigurable<C> implements GatewayFilterFactory<C> {
+public abstract class AbstractGatewayFilterFactory<C> extends AbstractConfigurable<C>
+		implements GatewayFilterFactory<C> {
 
 	@SuppressWarnings("unchecked")
 	public AbstractGatewayFilterFactory() {
@@ -35,6 +36,7 @@ public abstract class AbstractGatewayFilterFactory<C>
 	}
 
 	public static class NameConfig {
+
 		private String name;
 
 		public String getName() {
@@ -44,5 +46,7 @@ public abstract class AbstractGatewayFilterFactory<C>
 		public void setName(String name) {
 			this.name = name;
 		}
+
 	}
+
 }

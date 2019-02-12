@@ -30,8 +30,8 @@ public class CachingRouteDefinitionLocatorTests {
 	public void getRouteDefinitionsWorks() {
 		RouteDefinition routeDef1 = routeDef(1);
 		RouteDefinition routeDef2 = routeDef(2);
-		CachingRouteDefinitionLocator locator = new CachingRouteDefinitionLocator(() -> Flux
-				.just(routeDef2, routeDef1));
+		CachingRouteDefinitionLocator locator = new CachingRouteDefinitionLocator(
+				() -> Flux.just(routeDef2, routeDef1));
 
 		List<RouteDefinition> routes = locator.getRouteDefinitions().collectList()
 				.block();
@@ -39,22 +39,22 @@ public class CachingRouteDefinitionLocatorTests {
 		assertThat(routes).containsExactlyInAnyOrder(routeDef1, routeDef2);
 	}
 
-
 	@Test
 	public void refreshWorks() {
 		RouteDefinition routeDef1 = routeDef(1);
 		RouteDefinition routeDef2 = routeDef(2);
-		CachingRouteDefinitionLocator locator = new CachingRouteDefinitionLocator(new RouteDefinitionLocator() {
-			int i = 0;
+		CachingRouteDefinitionLocator locator = new CachingRouteDefinitionLocator(
+				new RouteDefinitionLocator() {
+					int i = 0;
 
-			@Override
-			public Flux<RouteDefinition> getRouteDefinitions() {
-				if (i++ == 0) {
-					return Flux.just(routeDef2);
-				}
-				return Flux.just(routeDef2, routeDef1);
-			}
-		});
+					@Override
+					public Flux<RouteDefinition> getRouteDefinitions() {
+						if (i++ == 0) {
+							return Flux.just(routeDef2);
+						}
+						return Flux.just(routeDef2, routeDef1);
+					}
+				});
 
 		List<RouteDefinition> routes = locator.getRouteDefinitions().collectList()
 				.block();
@@ -71,4 +71,5 @@ public class CachingRouteDefinitionLocatorTests {
 		def.setOrder(id);
 		return def;
 	}
+
 }

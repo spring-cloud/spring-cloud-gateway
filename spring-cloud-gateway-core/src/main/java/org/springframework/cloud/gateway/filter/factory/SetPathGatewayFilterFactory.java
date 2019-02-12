@@ -32,7 +32,8 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.g
 /**
  * @author Spencer Gibb
  */
-public class SetPathGatewayFilterFactory extends AbstractGatewayFilterFactory<SetPathGatewayFilterFactory.Config> {
+public class SetPathGatewayFilterFactory
+		extends AbstractGatewayFilterFactory<SetPathGatewayFilterFactory.Config> {
 
 	/**
 	 * Template key.
@@ -63,15 +64,14 @@ public class SetPathGatewayFilterFactory extends AbstractGatewayFilterFactory<Se
 
 			exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, uri);
 
-			ServerHttpRequest request = req.mutate()
-					.path(newPath)
-					.build();
+			ServerHttpRequest request = req.mutate().path(newPath).build();
 
 			return chain.filter(exchange.mutate().request(request).build());
 		};
 	}
 
 	public static class Config {
+
 		private String template;
 
 		public String getTemplate() {
@@ -81,5 +81,7 @@ public class SetPathGatewayFilterFactory extends AbstractGatewayFilterFactory<Se
 		public void setTemplate(String template) {
 			this.template = template;
 		}
+
 	}
+
 }

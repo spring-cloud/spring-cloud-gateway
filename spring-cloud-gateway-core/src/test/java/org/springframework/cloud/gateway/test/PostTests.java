@@ -38,22 +38,18 @@ import static org.springframework.web.reactive.function.BodyExtractors.toMono;
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
 @SuppressWarnings("unchecked")
-//TODO: why does this have to be in a separate test?
+// TODO: why does this have to be in a separate test?
 public class PostTests extends BaseWebClientTests {
 
 	@Test
 	public void postWorks() {
-		Mono<Map> result = webClient.post()
-				.uri("/post")
-				.header("Host", "www.example.org")
-				.syncBody("testdata")
-				.exchange()
+		Mono<Map> result = webClient.post().uri("/post").header("Host", "www.example.org")
+				.syncBody("testdata").exchange()
 				.flatMap(response -> response.body(toMono(Map.class)));
 
 		StepVerifier.create(result)
 				.consumeNextWith(map -> assertThat(map).containsEntry("data", "testdata"))
-				.expectComplete()
-				.verify(DURATION);
+				.expectComplete().verify(DURATION);
 	}
 
 	@EnableAutoConfiguration

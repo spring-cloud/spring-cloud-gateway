@@ -37,6 +37,7 @@ public class WebClientWriteResponseFilter implements GlobalFilter, Ordered {
 	 * Order of Write Response Filter.
 	 */
 	public static final int WRITE_RESPONSE_FILTER_ORDER = -1;
+
 	private static final Log log = LogFactory.getLog(WebClientWriteResponseFilter.class);
 
 	@Override

@@ -35,13 +35,15 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.util.SocketUtils;
 
 @RunWith(ModifiedClassPathRunner.class)
-@ClassPathExclusions({ "micrometer-*.jar", "spring-boot-actuator-*.jar", "spring-boot-actuator-autoconfigure-*.jar" })
+@ClassPathExclusions({ "micrometer-*.jar", "spring-boot-actuator-*.jar",
+		"spring-boot-actuator-autoconfigure-*.jar" })
 @DirtiesContext
 public class GatewaySampleApplicationWithoutMetricsTests {
 
 	static protected int port;
 
 	protected WebTestClient webClient;
+
 	protected String baseUri;
 
 	@BeforeClass
@@ -74,7 +76,7 @@ public class GatewaySampleApplicationWithoutMetricsTests {
 		webClient.get()
 				.uri("http://localhost:" + port + "/actuator/metrics/gateway.requests")
 				.exchange().expectStatus().isOk().expectBody(String.class).isEqualTo(
-				GatewaySampleApplication.HELLO_FROM_FAKE_ACTUATOR_METRICS_GATEWAY_REQUESTS);
+						GatewaySampleApplication.HELLO_FROM_FAKE_ACTUATOR_METRICS_GATEWAY_REQUESTS);
 	}
 
 }

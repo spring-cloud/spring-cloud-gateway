@@ -59,7 +59,7 @@ public interface GatewayFilterFactory<C> extends ShortcutConfigurable, Configura
 	GatewayFilter apply(C config);
 
 	default String name() {
-		//TODO: deal with proxys
+		// TODO: deal with proxys
 		return NameUtils.normalizeFilterFactoryName(getClass());
 	}
 
@@ -67,4 +67,5 @@ public interface GatewayFilterFactory<C> extends ShortcutConfigurable, Configura
 	default ServerHttpRequest.Builder mutate(ServerHttpRequest request) {
 		return request.mutate();
 	}
+
 }

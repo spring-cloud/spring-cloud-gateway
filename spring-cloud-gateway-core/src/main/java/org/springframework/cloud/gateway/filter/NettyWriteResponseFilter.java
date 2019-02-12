@@ -43,7 +43,9 @@ public class NettyWriteResponseFilter implements GlobalFilter, Ordered {
 	 * Order for write response filter.
 	 */
 	public static final int WRITE_RESPONSE_FILTER_ORDER = -1;
+
 	private static final Log log = LogFactory.getLog(NettyWriteResponseFilter.class);
+
 	private final List<MediaType> streamingMediaTypes;
 
 	public NettyWriteResponseFilter(List<MediaType> streamingMediaTypes) {
@@ -70,10 +72,10 @@ public class NettyWriteResponseFilter implements GlobalFilter, Ordered {
 
 			NettyDataBufferFactory factory = (NettyDataBufferFactory) response
 					.bufferFactory();
-			//TODO: what if it's not netty
+			// TODO: what if it's not netty
 
-			final Flux<NettyDataBuffer> body = connection.inbound().receive()
-					.retain() //TODO: needed?
+			final Flux<NettyDataBuffer> body = connection.inbound().receive().retain() // TODO:
+																						// needed?
 					.map(factory::wrap);
 
 			MediaType contentType = null;
@@ -83,14 +85,14 @@ public class NettyWriteResponseFilter implements GlobalFilter, Ordered {
 			catch (Exception e) {
 				log.trace("invalid media type", e);
 			}
-			return (isStreamingMediaType(contentType) ?
-					response.writeAndFlushWith(body.map(Flux::just)) : response
-					.writeWith(body));
+			return (isStreamingMediaType(contentType)
+					? response.writeAndFlushWith(body.map(Flux::just))
+					: response.writeWith(body));
 		}));
 	}
 
-	//TODO: use framework if possible
-	//TODO: port to WebClientWriteResponseFilter
+	// TODO: use framework if possible
+	// TODO: port to WebClientWriteResponseFilter
 	private boolean isStreamingMediaType(@Nullable MediaType contentType) {
 		return (contentType != null && this.streamingMediaTypes.stream()
 				.anyMatch(contentType::isCompatibleWith));

@@ -57,4 +57,5 @@ public class HttpHeadersFilterTests {
 
 		return filtered;
 	}
+
 }

@@ -20,6 +20,7 @@ import org.springframework.cloud.gateway.support.WeightConfig;
 import org.springframework.context.ApplicationEvent;
 
 public class WeightDefinedEvent extends ApplicationEvent {
+
 	private final WeightConfig weightConfig;
 
 	public WeightDefinedEvent(Object source, WeightConfig weightConfig) {
@@ -30,4 +31,5 @@ public class WeightDefinedEvent extends ApplicationEvent {
 	public WeightConfig getWeightConfig() {
 		return weightConfig;
 	}
+
 }

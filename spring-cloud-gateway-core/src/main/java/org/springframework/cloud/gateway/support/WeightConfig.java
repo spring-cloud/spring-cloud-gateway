@@ -32,7 +32,9 @@ public class WeightConfig {
 
 	@NotEmpty
 	private String group;
+
 	private String routeId;
+
 	@Min(0)
 	private int weight;
 
@@ -78,10 +80,8 @@ public class WeightConfig {
 
 	@Override
 	public String toString() {
-		return new ToStringCreator(this)
-				.append("group", group)
-				.append("routeId", routeId)
-				.append("weight", weight)
-				.toString();
+		return new ToStringCreator(this).append("group", group).append("routeId", routeId)
+				.append("weight", weight).toString();
 	}
+
 }

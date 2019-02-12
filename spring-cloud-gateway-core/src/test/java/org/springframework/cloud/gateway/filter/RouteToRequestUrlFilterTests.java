@@ -44,20 +44,17 @@ public class RouteToRequestUrlFilterTests {
 	@Test
 	public void happyPath() {
 		MockServerHttpRequest request = MockServerHttpRequest
-				.get("http://localhost/get?a=b")
-				.build();
+				.get("http://localhost/get?a=b").build();
 
 		ServerWebExchange webExchange = testFilter(request, "http://myhost/mypath");
 		URI uri = webExchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
-		assertThat(uri).hasScheme("http").hasHost("myhost")
-				.hasPath("/get")
+		assertThat(uri).hasScheme("http").hasHost("myhost").hasPath("/get")
 				.hasParameter("a", "b");
 	}
 
 	@Test
 	public void happyPathLb() {
-		MockServerHttpRequest request = MockServerHttpRequest
-				.get("http://localhost/getb")
+		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost/getb")
 				.build();
 
 		ServerWebExchange webExchange = testFilter(request, "lb://myhost");
@@ -67,16 +64,14 @@ public class RouteToRequestUrlFilterTests {
 
 	@Test(expected = IllegalStateException.class)
 	public void invalidHost() {
-		MockServerHttpRequest request = MockServerHttpRequest
-				.get("http://localhost/getb")
+		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost/getb")
 				.build();
 		testFilter(request, "lb://my_host");
 	}
 
 	@Test
 	public void happyPathLbPlusScheme() {
-		MockServerHttpRequest request = MockServerHttpRequest
-				.get("http://localhost/getb")
+		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost/getb")
 				.build();
 
 		ServerWebExchange webExchange = testFilter(request, "lb:http://myhost");
@@ -89,8 +84,7 @@ public class RouteToRequestUrlFilterTests {
 
 	@Test
 	public void noQueryParams() {
-		MockServerHttpRequest request = MockServerHttpRequest
-				.get("http://localhost/get")
+		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost/get")
 				.build();
 
 		ServerWebExchange webExchange = testFilter(request, "http://myhost");
@@ -108,14 +102,12 @@ public class RouteToRequestUrlFilterTests {
 
 		assertThat(url).hasParameter("c", "d[]");
 
-		MockServerHttpRequest request = MockServerHttpRequest
-				.method(HttpMethod.GET, url)
+		MockServerHttpRequest request = MockServerHttpRequest.method(HttpMethod.GET, url)
 				.build();
 
 		ServerWebExchange webExchange = testFilter(request, "http://myhost");
 		URI uri = webExchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
-		assertThat(uri).hasScheme("http").hasHost("myhost")
-				.hasParameter("a", "b")
+		assertThat(uri).hasScheme("http").hasHost("myhost").hasParameter("a", "b")
 				.hasParameter("c", "d[]");
 
 		// prove that it is not double encoded
@@ -132,14 +124,13 @@ public class RouteToRequestUrlFilterTests {
 
 		assertThat(url).hasPath("/abc def/get");
 
-		MockServerHttpRequest request = MockServerHttpRequest
-				.method(HttpMethod.GET, url)
+		MockServerHttpRequest request = MockServerHttpRequest.method(HttpMethod.GET, url)
 				.build();
 
-		ServerWebExchange webExchange = testFilter(request, "http://myhost/abc%20def/get");
+		ServerWebExchange webExchange = testFilter(request,
+				"http://myhost/abc%20def/get");
 		URI uri = webExchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
-		assertThat(uri).hasScheme("http").hasHost("myhost")
-				.hasPath("/abc def/get");
+		assertThat(uri).hasScheme("http").hasHost("myhost").hasPath("/abc def/get");
 
 		// prove that it is not double encoded
 		assertThat(uri.getRawPath()).isEqualTo("/abc%20def/get");
@@ -152,15 +143,13 @@ public class RouteToRequestUrlFilterTests {
 		// prove that it is unencoded
 		assertThat(url.getRawQuery()).isEqualTo("a=b&c=d[]");
 
-		MockServerHttpRequest request = MockServerHttpRequest
-				.method(HttpMethod.GET, url)
+		MockServerHttpRequest request = MockServerHttpRequest.method(HttpMethod.GET, url)
 				.build();
 
 		ServerWebExchange webExchange = testFilter(request, "http://myhost");
 
 		URI uri = webExchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
-		assertThat(uri).hasScheme("http").hasHost("myhost")
-				.hasParameter("a", "b")
+		assertThat(uri).hasScheme("http").hasHost("myhost").hasParameter("a", "b")
 				.hasParameter("c", "d[]");
 
 		// prove that it is NOT encoded
@@ -169,19 +158,9 @@ public class RouteToRequestUrlFilterTests {
 
 	@Test
 	public void matcherWorks() {
-		testMatcher(true,
-				"lb:a123:stuff",
-				"lb:abc:stuff",
-				"lb:a.bc:stuff",
-				"lb:a-bc:stuff",
-				"lb:a+bc:stuff"
-		);
-		testMatcher(false,
-				"lb:a",
-				"lb:a123",
-				"lb:123:stuff",
-				"lb:a//:stuff"
-		);
+		testMatcher(true, "lb:a123:stuff", "lb:abc:stuff", "lb:a.bc:stuff",
+				"lb:a-bc:stuff", "lb:a+bc:stuff");
+		testMatcher(false, "lb:a", "lb:a123", "lb:123:stuff", "lb:a//:stuff");
 	}
 
 	private void testMatcher(boolean shouldMatch, String... uris) {
@@ -194,11 +173,8 @@ public class RouteToRequestUrlFilterTests {
 	}
 
 	private ServerWebExchange testFilter(MockServerHttpRequest request, String routeUri) {
-		Route value = Route.async().id("1")
-				.uri(URI.create(routeUri))
-				.order(0)
-				.predicate(swe -> true)
-				.build();
+		Route value = Route.async().id("1").uri(URI.create(routeUri)).order(0)
+				.predicate(swe -> true).build();
 
 		ServerWebExchange exchange = MockServerWebExchange.from(request);
 		exchange.getAttributes().put(GATEWAY_ROUTE_ATTR, value);
@@ -214,4 +190,5 @@ public class RouteToRequestUrlFilterTests {
 
 		return captor.getValue();
 	}
+
 }

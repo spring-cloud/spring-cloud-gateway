@@ -59,9 +59,7 @@ public class RewritePathGatewayFilterFactory
 			String path = req.getURI().getRawPath();
 			String newPath = path.replaceAll(config.regexp, replacement);
 
-			ServerHttpRequest request = req.mutate()
-					.path(newPath)
-					.build();
+			ServerHttpRequest request = req.mutate().path(newPath).build();
 
 			exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, request.getURI());
 
@@ -70,7 +68,9 @@ public class RewritePathGatewayFilterFactory
 	}
 
 	public static class Config {
+
 		private String regexp;
+
 		private String replacement;
 
 		public String getRegexp() {
@@ -90,5 +90,7 @@ public class RewritePathGatewayFilterFactory
 			this.replacement = replacement;
 			return this;
 		}
+
 	}
+
 }

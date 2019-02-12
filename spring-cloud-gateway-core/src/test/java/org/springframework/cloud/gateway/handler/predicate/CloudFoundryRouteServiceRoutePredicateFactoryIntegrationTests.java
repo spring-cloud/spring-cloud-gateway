@@ -43,6 +43,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @DirtiesContext
 public class CloudFoundryRouteServiceRoutePredicateFactoryIntegrationTests
 		extends BaseWebClientTests {
+
 	@LocalServerPort
 	int port;
 
@@ -81,6 +82,7 @@ public class CloudFoundryRouteServiceRoutePredicateFactoryIntegrationTests
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
 	public static class TestConfig {
+
 		@Bean
 		public RouteLocator routeLocator(RouteLocatorBuilder builder) {
 			return builder.routes().route(r -> r.cloudFoundryRouteService().and()
@@ -88,5 +90,7 @@ public class CloudFoundryRouteServiceRoutePredicateFactoryIntegrationTests
 					.filters(f -> f.requestHeaderToRequestUri("X-CF-Forwarded-Url"))
 					.uri("http://example.com")).build();
 		}
+
 	}
+
 }

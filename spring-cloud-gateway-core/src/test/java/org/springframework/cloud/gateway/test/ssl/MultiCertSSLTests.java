@@ -31,5 +31,4 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @ActiveProfiles("multi-cert-ssl")
 public class MultiCertSSLTests extends SingleCertSSLTests {
 
-
 }

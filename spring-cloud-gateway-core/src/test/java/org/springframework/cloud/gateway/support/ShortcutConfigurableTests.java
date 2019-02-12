@@ -41,6 +41,7 @@ public class ShortcutConfigurableTests {
 
 	@Autowired
 	BeanFactory beanFactory;
+
 	private SpelExpressionParser parser;
 
 	@Test
@@ -55,11 +56,10 @@ public class ShortcutConfigurableTests {
 		Map<String, String> args = new HashMap<>();
 		args.put("bean", "#{@foo}");
 		args.put("arg1", "val1");
-		Map<String, Object> map = ShortcutType.DEFAULT
-				.normalize(args, shortcutConfigurable, parser, this.beanFactory);
-		assertThat(map).isNotNull()
-				.containsEntry("bean", 42)
-				.containsEntry("arg1", "val1");
+		Map<String, Object> map = ShortcutType.DEFAULT.normalize(args,
+				shortcutConfigurable, parser, this.beanFactory);
+		assertThat(map).isNotNull().containsEntry("bean", 42).containsEntry("arg1",
+				"val1");
 	}
 
 	@Test
@@ -81,11 +81,10 @@ public class ShortcutConfigurableTests {
 		args.put("1", "#{@foo}");
 		args.put("2", "val1");
 		args.put("3", "val2");
-		Map<String, Object> map = ShortcutType.GATHER_LIST
-				.normalize(args, shortcutConfigurable, parser, this.beanFactory);
+		Map<String, Object> map = ShortcutType.GATHER_LIST.normalize(args,
+				shortcutConfigurable, parser, this.beanFactory);
 		assertThat(map).isNotNull().containsKey("values");
-		assertThat((List) map.get("values"))
-				.containsExactly(42, "val1", "val2");
+		assertThat((List) map.get("values")).containsExactly(42, "val1", "val2");
 	}
 
 	@Test
@@ -119,11 +118,10 @@ public class ShortcutConfigurableTests {
 		if (hasTailFlag) {
 			args.put("4", "false");
 		}
-		Map<String, Object> map = ShortcutType.GATHER_LIST_TAIL_FLAG
-				.normalize(args, shortcutConfigurable, parser, this.beanFactory);
+		Map<String, Object> map = ShortcutType.GATHER_LIST_TAIL_FLAG.normalize(args,
+				shortcutConfigurable, parser, this.beanFactory);
 		assertThat(map).isNotNull().containsKey("values");
-		assertThat((List) map.get("values"))
-				.containsExactly("val0", "val1", "val2");
+		assertThat((List) map.get("values")).containsExactly("val0", "val1", "val2");
 		if (hasTailFlag) {
 			assertThat(map.get("flag")).isEqualTo("false");
 		}
@@ -134,9 +132,12 @@ public class ShortcutConfigurableTests {
 
 	@SpringBootConfiguration
 	protected static class TestConfig {
+
 		@Bean
 		public Integer foo() {
 			return 42;
 		}
+
 	}
+
 }

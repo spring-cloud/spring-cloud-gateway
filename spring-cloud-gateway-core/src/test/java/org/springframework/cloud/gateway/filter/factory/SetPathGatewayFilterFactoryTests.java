@@ -75,12 +75,12 @@ public class SetPathGatewayFilterFactoryTests {
 		testFilter("/bar/baz/{id}", "/bar/baz/12 3", variables);
 	}
 
-	private void testFilter(String template, String expectedPath, HashMap<String, String> variables) {
+	private void testFilter(String template, String expectedPath,
+			HashMap<String, String> variables) {
 		GatewayFilter filter = new SetPathGatewayFilterFactory()
 				.apply(c -> c.setTemplate(template));
 
-		MockServerHttpRequest request = MockServerHttpRequest
-				.get("http://localhost")
+		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost")
 				.build();
 
 		ServerWebExchange exchange = MockServerWebExchange.from(request);
@@ -101,4 +101,5 @@ public class SetPathGatewayFilterFactoryTests {
 				.getRequiredAttribute(GATEWAY_ORIGINAL_REQUEST_URL_ATTR);
 		assertThat(uris).contains(request.getURI());
 	}
+
 }

@@ -35,7 +35,8 @@ public class BooleanSpec extends UriSpec {
 
 	final AsyncPredicate<ServerWebExchange> predicate;
 
-	public BooleanSpec(Route.AsyncBuilder routeBuilder, RouteLocatorBuilder.Builder builder) {
+	public BooleanSpec(Route.AsyncBuilder routeBuilder,
+			RouteLocatorBuilder.Builder builder) {
 		super(routeBuilder, builder);
 		// save current predicate useful in kotlin dsl
 		predicate = routeBuilder.getPredicate();
@@ -68,20 +69,26 @@ public class BooleanSpec extends UriSpec {
 
 	/**
 	 * Add filters to the route definition.
-	 * @param fn A {@link Function} that takes in a {@link GatewayFilterSpec} and returns a {@link UriSpec}
+	 * @param fn A {@link Function} that takes in a {@link GatewayFilterSpec} and returns
+	 * a {@link UriSpec}
 	 * @return a {@link UriSpec}
 	 */
 	public UriSpec filters(Function<GatewayFilterSpec, UriSpec> fn) {
 		return fn.apply(new GatewayFilterSpec(routeBuilder, builder));
 	}
 
-	enum Operator {AND, OR, NEGATE}
+	enum Operator {
+
+		AND, OR, NEGATE
+
+	}
 
 	public static class BooleanOpSpec extends PredicateSpec {
 
 		private Operator operator;
 
-		BooleanOpSpec(Route.AsyncBuilder routeBuilder, RouteLocatorBuilder.Builder builder, Operator operator) {
+		BooleanOpSpec(Route.AsyncBuilder routeBuilder,
+				RouteLocatorBuilder.Builder builder, Operator operator) {
 			super(routeBuilder, builder);
 			Assert.notNull(operator, "operator may not be null");
 			this.operator = operator;
@@ -105,6 +112,7 @@ public class BooleanSpec extends UriSpec {
 			}
 			return new BooleanSpec(this.routeBuilder, this.builder);
 		}
+
 	}
 
 }

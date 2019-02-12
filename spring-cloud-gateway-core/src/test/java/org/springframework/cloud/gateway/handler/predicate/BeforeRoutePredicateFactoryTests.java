@@ -89,4 +89,5 @@ public class BeforeRoutePredicateFactoryTests {
 
 		return factory.apply(config).test(getExchange());
 	}
+
 }

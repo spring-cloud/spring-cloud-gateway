@@ -37,7 +37,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.cloud.gateway.test.TestUtils.getMap;
 
-
 /**
  * @author Spencer Gibb
  * @author Biju Kunjummen
@@ -49,14 +48,11 @@ public class SetRequestHeaderGatewayFilterFactoryTests extends BaseWebClientTest
 
 	@Test
 	public void setRequestHeaderFilterWorks() {
-		testClient.get().uri("/headers")
-				.header("Host", "www.setrequestheader.org")
-				.exchange()
-				.expectStatus().isOk()
-				.expectBody(Map.class)
+		testClient.get().uri("/headers").header("Host", "www.setrequestheader.org")
+				.exchange().expectStatus().isOk().expectBody(Map.class)
 				.consumeWith(result -> {
-					Map<String, Object> headers = getMap(result
-							.getResponseBody(), "headers");
+					Map<String, Object> headers = getMap(result.getResponseBody(),
+							"headers");
 					assertThat(headers).containsEntry("X-Req-Foo", "Second");
 				});
 	}
@@ -65,20 +61,21 @@ public class SetRequestHeaderGatewayFilterFactoryTests extends BaseWebClientTest
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
 	public static class TestConfig {
+
 		@Value("${test.uri}")
 		String uri;
 
 		@Bean
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes().route("test_set_request_header",
-					r -> r.order(-1)
-							.host("**.setrequestheader.org")
+					r -> r.order(-1).host("**.setrequestheader.org")
 							.filters(f -> f.prefixPath("/httpbin")
 									.addRequestHeader("X-Req-Foo", "First")
 									.setRequestHeader("X-Req-Foo", "Second"))
 							.uri(uri))
 					.build();
 		}
+
 	}
 
 }

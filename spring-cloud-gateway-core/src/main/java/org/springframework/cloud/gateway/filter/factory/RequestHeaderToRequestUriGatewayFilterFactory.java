@@ -36,6 +36,7 @@ import org.springframework.web.server.ServerWebExchange;
  */
 public class RequestHeaderToRequestUriGatewayFilterFactory extends
 		AbstractChangeRequestUriGatewayFilterFactory<AbstractGatewayFilterFactory.NameConfig> {
+
 	private final Logger log = LoggerFactory
 			.getLogger(RequestHeaderToRequestUriGatewayFilterFactory.class);
 
@@ -63,4 +64,5 @@ public class RequestHeaderToRequestUriGatewayFilterFactory extends
 			}
 		});
 	}
+
 }

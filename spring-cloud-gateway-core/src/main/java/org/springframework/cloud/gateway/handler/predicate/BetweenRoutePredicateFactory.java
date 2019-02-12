@@ -30,7 +30,8 @@ import org.springframework.web.server.ServerWebExchange;
 /**
  * @author Spencer Gibb
  */
-public class BetweenRoutePredicateFactory extends AbstractRoutePredicateFactory<BetweenRoutePredicateFactory.Config> {
+public class BetweenRoutePredicateFactory
+		extends AbstractRoutePredicateFactory<BetweenRoutePredicateFactory.Config> {
 
 	/**
 	 * DateTime 1 key.
@@ -56,8 +57,7 @@ public class BetweenRoutePredicateFactory extends AbstractRoutePredicateFactory<
 		ZonedDateTime datetime1 = config.datetime1;
 		ZonedDateTime datetime2 = config.datetime2;
 		Assert.isTrue(datetime1.isBefore(datetime2),
-				config.datetime1 +
-						" must be before " + config.datetime2);
+				config.datetime1 + " must be before " + config.datetime2);
 
 		return exchange -> {
 			final ZonedDateTime now = ZonedDateTime.now();
@@ -67,8 +67,10 @@ public class BetweenRoutePredicateFactory extends AbstractRoutePredicateFactory<
 
 	@Validated
 	public static class Config {
+
 		@NotNull
 		private ZonedDateTime datetime1;
+
 		@NotNull
 		private ZonedDateTime datetime2;
 
@@ -89,6 +91,7 @@ public class BetweenRoutePredicateFactory extends AbstractRoutePredicateFactory<
 			this.datetime2 = datetime2;
 			return this;
 		}
+
 	}
 
 }

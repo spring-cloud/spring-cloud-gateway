@@ -72,10 +72,9 @@ import org.springframework.web.server.ServerWebExchange;
  * the response body, so it comes out in the {@link ResponseEntity} that you return from
  * your <code>@RequestMapping</code>. If you don't care about the type of the request and
  * response body (e.g. if it's just a passthru) then use a wildcard, or
- * <code>byte[]</code> (<code>Object</code> probably won't work unless you provide a converter).
- * Use a concrete type if you want to
- * transform or manipulate the response, or if you want to assert that it is convertible
- * to the type you declare.
+ * <code>byte[]</code> (<code>Object</code> probably won't work unless you provide a
+ * converter). Use a concrete type if you want to transform or manipulate the response, or
+ * if you want to assert that it is convertible to the type you declare.
  * </p>
  * <p>
  * To manipulate the response use the overloaded HTTP methods with a <code>Function</code>
@@ -124,6 +123,7 @@ public class ProxyExchange<T> {
 	private boolean hasBody = false;
 
 	private ServerWebExchange exchange;
+
 	private BindingContext bindingContext;
 
 	private Set<String> sensitive;
@@ -148,7 +148,6 @@ public class ProxyExchange<T> {
 	 * request downstream without changing it. If you want to transform the incoming
 	 * request you can declare it as a <code>@RequestBody</code> in your
 	 * <code>@RequestMapping</code> in the usual Spring MVC way.
-	 *
 	 * @param body the request body to send downstream
 	 * @return this for convenience
 	 */
@@ -163,7 +162,6 @@ public class ProxyExchange<T> {
 	 * request downstream without changing it. If you want to transform the incoming
 	 * request you can declare it as a <code>@RequestBody</code> in your
 	 * <code>@RequestMapping</code> in the usual Spring MVC way.
-	 *
 	 * @param body the request body to send downstream
 	 * @return this for convenience
 	 */
@@ -175,7 +173,6 @@ public class ProxyExchange<T> {
 
 	/**
 	 * Sets a header for the downstream call.
-	 *
 	 * @param name Header name
 	 * @param value Header values
 	 * @return this for convenience
@@ -188,7 +185,6 @@ public class ProxyExchange<T> {
 	/**
 	 * Additional headers, or overrides of the incoming ones, to be used in the downstream
 	 * call.
-	 *
 	 * @param headers the http headers to use in the downstream call
 	 * @return this for convenience
 	 */
@@ -200,7 +196,6 @@ public class ProxyExchange<T> {
 	/**
 	 * Sets the names of sensitive headers that are not passed downstream to the backend
 	 * service.
-	 *
 	 * @param names the names of sensitive headers
 	 * @return this for convenience
 	 */
@@ -216,7 +211,6 @@ public class ProxyExchange<T> {
 
 	/**
 	 * Sets the uri for the backend call when triggered by the HTTP methods.
-	 *
 	 * @param uri the backend uri to send the request to
 	 * @return this for convenience
 	 */
@@ -337,27 +331,24 @@ public class ProxyExchange<T> {
 		}
 		else {
 			if (hasBody) {
-				result = builder.headers(
-						headers -> addHeaders(headers, exchange.getRequest()
-								.getHeaders()))
+				result = builder
+						.headers(headers -> addHeaders(headers,
+								exchange.getRequest().getHeaders()))
 						.body(exchange.getRequest().getBody(), DataBuffer.class)
 						.exchange();
 			}
 			else {
-				result = builder.headers(
-						headers -> addHeaders(headers, exchange.getRequest()
-								.getHeaders()))
-						.exchange();
+				result = builder.headers(headers -> addHeaders(headers,
+						exchange.getRequest().getHeaders())).exchange();
 			}
 		}
-		return result.flatMap(response -> response
-				.toEntity(ParameterizedTypeReference.forType(type)));
+		return result.flatMap(
+				response -> response.toEntity(ParameterizedTypeReference.forType(type)));
 	}
 
 	private void addHeaders(HttpHeaders headers, HttpHeaders toAdd) {
 		Set<String> filteredKeys = filterHeaderKeys(toAdd);
-		filteredKeys.stream()
-				.filter(key -> !headers.containsKey(key))
+		filteredKeys.stream().filter(key -> !headers.containsKey(key))
 				.forEach(header -> headers.addAll(header, toAdd.get(header)));
 	}
 
@@ -430,7 +421,6 @@ public class ProxyExchange<T> {
 	 * Search for the request body if it was already deserialized using
 	 * <code>@RequestBody</code>. If it is not found then deserialize it in the same way
 	 * that it would have been for a <code>@RequestBody</code>.
-	 *
 	 * @return the request body
 	 */
 	private Mono<Object> getRequestBody() {
@@ -445,16 +435,20 @@ public class ProxyExchange<T> {
 	}
 
 	protected static class BodyGrabber {
+
 		public Publisher<Object> body(@RequestBody Publisher<Object> body) {
 			return body;
 		}
+
 	}
 
 	protected static class BodySender {
+
 		@ResponseBody
 		public Publisher<Object> body() {
 			return null;
 		}
+
 	}
 
 }

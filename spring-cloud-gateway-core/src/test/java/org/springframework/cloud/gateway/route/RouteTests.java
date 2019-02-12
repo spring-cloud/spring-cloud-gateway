@@ -29,45 +29,32 @@ public class RouteTests {
 
 	@Test
 	public void defeaultHttpPort() {
-		Route route = Route.async().id("1")
-				.predicate(exchange -> true)
-				.uri("http://acme.com")
-				.build();
+		Route route = Route.async().id("1").predicate(exchange -> true)
+				.uri("http://acme.com").build();
 
-		assertThat(route.getUri()).hasHost("acme.com")
-				.hasScheme("http")
-				.hasPort(80);
+		assertThat(route.getUri()).hasHost("acme.com").hasScheme("http").hasPort(80);
 	}
 
 	@Test
 	public void defeaultHttpsPort() {
-		Route route = Route.async().id("1")
-				.predicate(exchange -> true)
-				.uri("https://acme.com")
-				.build();
+		Route route = Route.async().id("1").predicate(exchange -> true)
+				.uri("https://acme.com").build();
 
-		assertThat(route.getUri()).hasHost("acme.com")
-				.hasScheme("https")
-				.hasPort(443);
+		assertThat(route.getUri()).hasHost("acme.com").hasScheme("https").hasPort(443);
 	}
 
 	@Test
 	public void fullUri() {
-		Route route = Route.async().id("1")
-				.predicate(exchange -> true)
-				.uri("http://acme.com:8080")
-				.build();
+		Route route = Route.async().id("1").predicate(exchange -> true)
+				.uri("http://acme.com:8080").build();
 
-		assertThat(route.getUri()).hasHost("acme.com")
-				.hasScheme("http")
-				.hasPort(8080);
+		assertThat(route.getUri()).hasHost("acme.com").hasScheme("http").hasPort(8080);
 	}
 
 	@Test
 	public void nullScheme() {
 		exception.expect(IllegalArgumentException.class);
-		Route.async().id("1")
-				.predicate(exchange -> true)
-				.uri("/pathonly");
+		Route.async().id("1").predicate(exchange -> true).uri("/pathonly");
 	}
+
 }

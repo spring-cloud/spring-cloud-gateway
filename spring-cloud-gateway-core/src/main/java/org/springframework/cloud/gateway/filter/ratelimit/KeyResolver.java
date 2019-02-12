@@ -24,5 +24,7 @@ import org.springframework.web.server.ServerWebExchange;
  * @author Spencer Gibb
  */
 public interface KeyResolver {
+
 	Mono<String> resolve(ServerWebExchange exchange);
+
 }

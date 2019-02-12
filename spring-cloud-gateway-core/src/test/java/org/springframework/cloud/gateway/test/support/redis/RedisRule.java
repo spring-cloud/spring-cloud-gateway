@@ -30,9 +30,13 @@ import static java.util.stream.IntStream.range;
 public final class RedisRule extends ExternalResource {
 
 	public static final int DEFAULT_REDIS_PORT = 6379;
+
 	private final int port;
+
 	private final boolean ignoreDefaultPortFailure;
+
 	private Log log = LogFactory.getLog(getClass());
+
 	private RedisServer redisServer;
 
 	private RedisRule(int port) {
@@ -57,11 +61,10 @@ public final class RedisRule extends ExternalResource {
 	}
 
 	private static int findOpenPort(final int startInclusive, final int endExclusive) {
-		return range(startInclusive, endExclusive)
-				.filter(RedisRule::testPort)
-				.findFirst()
-				.orElseThrow(() -> new IllegalStateException(format(
-						"No open port found in the range [%d, %d]", startInclusive, endExclusive)));
+		return range(startInclusive, endExclusive).filter(RedisRule::testPort).findFirst()
+				.orElseThrow(() -> new IllegalStateException(
+						format("No open port found in the range [%d, %d]", startInclusive,
+								endExclusive)));
 	}
 
 	private static boolean testPort(int port) {
@@ -83,11 +86,13 @@ public final class RedisRule extends ExternalResource {
 		}
 		catch (final Exception e) {
 			if (port == DEFAULT_REDIS_PORT && ignoreDefaultPortFailure) {
-				log.info("Unable to start embedded Redis on default port. Ignoring error. Assuming redis is already running.");
+				log.info(
+						"Unable to start embedded Redis on default port. Ignoring error. Assuming redis is already running.");
 			}
 			else {
-				throw new RuntimeException(format("Error while initializing the Redis server"
-						+ " on port %d", port), e);
+				throw new RuntimeException(format(
+						"Error while initializing the Redis server" + " on port %d",
+						port), e);
 			}
 		}
 	}
@@ -98,4 +103,3 @@ public final class RedisRule extends ExternalResource {
 	}
 
 }
-

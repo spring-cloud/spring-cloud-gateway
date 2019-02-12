@@ -29,7 +29,8 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.s
 /**
  * @author Spencer Gibb
  */
-public class SetStatusGatewayFilterFactory extends AbstractGatewayFilterFactory<SetStatusGatewayFilterFactory.Config> {
+public class SetStatusGatewayFilterFactory
+		extends AbstractGatewayFilterFactory<SetStatusGatewayFilterFactory.Config> {
 
 	/**
 	 * Status key.
@@ -51,11 +52,11 @@ public class SetStatusGatewayFilterFactory extends AbstractGatewayFilterFactory<
 		return (exchange, chain) -> {
 
 			// option 1 (runs in filter order)
-			/*exchange.getResponse().beforeCommit(() -> {
-				exchange.getResponse().setStatusCode(finalStatus);
-				return Mono.empty();
-			});
-			return chain.filter(exchange);*/
+			/*
+			 * exchange.getResponse().beforeCommit(() -> {
+			 * exchange.getResponse().setStatusCode(finalStatus); return Mono.empty(); });
+			 * return chain.filter(exchange);
+			 */
 
 			// option 2 (runs in reverse filter order)
 			return chain.filter(exchange).then(Mono.fromRunnable(() -> {
@@ -67,7 +68,8 @@ public class SetStatusGatewayFilterFactory extends AbstractGatewayFilterFactory<
 	}
 
 	public static class Config {
-		//TODO: relaxed HttpStatus converter
+
+		// TODO: relaxed HttpStatus converter
 		private String status;
 
 		public String getStatus() {
@@ -77,6 +79,7 @@ public class SetStatusGatewayFilterFactory extends AbstractGatewayFilterFactory<
 		public void setStatus(String status) {
 			this.status = status;
 		}
+
 	}
 
 }

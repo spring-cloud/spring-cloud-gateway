@@ -45,10 +45,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(
-		webEnvironment = DEFINED_PORT,
-		properties = { "server.port=62175" }
-)
+@SpringBootTest(webEnvironment = DEFINED_PORT, properties = { "server.port=62175" })
 @DirtiesContext
 public class NonStandardHeadersInResponseTests extends BaseWebClientTests {
 
@@ -56,18 +53,11 @@ public class NonStandardHeadersInResponseTests extends BaseWebClientTests {
 
 	@Test
 	public void nonStandardHeadersInResponse() {
-		URI uri = UriComponentsBuilder
-				.fromUriString(this.baseUri + "/get-image")
-				.build(true)
-				.toUri();
+		URI uri = UriComponentsBuilder.fromUriString(this.baseUri + "/get-image")
+				.build(true).toUri();
 
-		String contentType = WebClient.builder()
-				.baseUrl(baseUri)
-				.build()
-				.get()
-				.uri(uri)
-				.exchange()
-				.map(clientResponse -> clientResponse.headers().asHttpHeaders()
+		String contentType = WebClient.builder().baseUrl(baseUri).build().get().uri(uri)
+				.exchange().map(clientResponse -> clientResponse.headers().asHttpHeaders()
 						.getFirst(HttpHeaders.CONTENT_TYPE))
 				.block();
 
@@ -78,9 +68,12 @@ public class NonStandardHeadersInResponseTests extends BaseWebClientTests {
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
 	public static class TestConfig {
+
 		private static final Log log = LogFactory.getLog(TestConfig.class);
+
 		@Value("${test.uri}")
 		String uri;
+
 		@Value("${server.port}")
 		int port;
 
@@ -91,8 +84,8 @@ public class NonStandardHeadersInResponseTests extends BaseWebClientTests {
 				log.info("addNonStandardHeaderFilter pre phase");
 				return chain.filter(exchange).then(Mono.fromRunnable(() -> {
 					log.info("addNonStandardHeaderFilter post phase");
-					exchange.getResponse().getHeaders()
-							.set(HttpHeaders.CONTENT_TYPE, CONTENT_TYPE_IMAGE);
+					exchange.getResponse().getHeaders().set(HttpHeaders.CONTENT_TYPE,
+							CONTENT_TYPE_IMAGE);
 				}));
 			};
 		}
@@ -100,17 +93,12 @@ public class NonStandardHeadersInResponseTests extends BaseWebClientTests {
 		@Bean
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes()
-					.route("non_standard_header_route", r ->
-							r.path("/get-image/**")
-									.filters(f -> f
-											.addRequestHeader(HttpHeaders.HOST, "www.addrequestparameter.org")
-											.stripPrefix(1)
-									)
-									.uri("http://localhost:" + port + "/get"))
-					.route("internal_route", r ->
-							r.path("/get/**")
-									.filters(f -> f.prefixPath("/httpbin"))
-									.uri(uri))
+					.route("non_standard_header_route", r -> r.path("/get-image/**")
+							.filters(f -> f.addRequestHeader(HttpHeaders.HOST,
+									"www.addrequestparameter.org").stripPrefix(1))
+							.uri("http://localhost:" + port + "/get"))
+					.route("internal_route", r -> r.path("/get/**")
+							.filters(f -> f.prefixPath("/httpbin")).uri(uri))
 					.build();
 		}
 

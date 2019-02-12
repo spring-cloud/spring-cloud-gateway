@@ -45,16 +45,13 @@ public class PrefixPathGatewayFilterFactoryTest {
 		testPrefixPathFilter("/foo", "/hello%20world", "/foo/hello%20world");
 	}
 
-
 	private void testPrefixPathFilter(String prefix, String path, String expectedPath) {
 		GatewayFilter filter = new PrefixPathGatewayFilterFactory()
 				.apply(c -> c.setPrefix(prefix));
 		MockServerHttpRequest request = MockServerHttpRequest
-				.get("http://localhost" + path)
-				.build();
+				.get("http://localhost" + path).build();
 
 		ServerWebExchange exchange = MockServerWebExchange.from(request);
-
 
 		GatewayFilterChain filterChain = mock(GatewayFilterChain.class);
 
@@ -71,4 +68,5 @@ public class PrefixPathGatewayFilterFactoryTest {
 				.getRequiredAttribute(GATEWAY_ORIGINAL_REQUEST_URL_ATTR);
 		assertThat(uris).contains(request.getURI());
 	}
+
 }

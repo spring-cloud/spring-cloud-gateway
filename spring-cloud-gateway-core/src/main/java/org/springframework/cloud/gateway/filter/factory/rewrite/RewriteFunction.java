@@ -24,8 +24,11 @@ import org.springframework.web.server.ServerWebExchange;
 
 /**
  * This interface is BETA and may be subject to change in a future release.
+ *
  * @param <T> the type of the first argument to the function
  * @param <R> the type of element signaled by the {@link Publisher}
  */
-public interface RewriteFunction<T, R> extends BiFunction<ServerWebExchange, T, Publisher<R>> {
+public interface RewriteFunction<T, R>
+		extends BiFunction<ServerWebExchange, T, Publisher<R>> {
+
 }

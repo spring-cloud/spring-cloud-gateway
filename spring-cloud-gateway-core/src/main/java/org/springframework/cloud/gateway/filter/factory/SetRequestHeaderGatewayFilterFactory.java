@@ -22,7 +22,8 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 /**
  * @author Spencer Gibb
  */
-public class SetRequestHeaderGatewayFilterFactory extends AbstractNameValueGatewayFilterFactory {
+public class SetRequestHeaderGatewayFilterFactory
+		extends AbstractNameValueGatewayFilterFactory {
 
 	@Override
 	public GatewayFilter apply(NameValueConfig config) {
@@ -34,4 +35,5 @@ public class SetRequestHeaderGatewayFilterFactory extends AbstractNameValueGatew
 			return chain.filter(exchange.mutate().request(request).build());
 		};
 	}
+
 }

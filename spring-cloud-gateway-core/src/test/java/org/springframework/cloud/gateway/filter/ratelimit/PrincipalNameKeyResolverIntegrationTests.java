@@ -57,16 +57,18 @@ import static org.springframework.web.reactive.function.client.ExchangeFilterFun
 @SpringBootTest(webEnvironment = DEFINED_PORT)
 @ActiveProfiles("principalname")
 public class PrincipalNameKeyResolverIntegrationTests {
+
 	@LocalServerPort
 	protected int port = 0;
 
 	protected WebTestClient client;
+
 	protected String baseUri;
 
 	@BeforeClass
 	public static void beforeClass() {
-		System.setProperty("server.port", String
-				.valueOf(SocketUtils.findAvailableTcpPort()));
+		System.setProperty("server.port",
+				String.valueOf(SocketUtils.findAvailableTcpPort()));
 	}
 
 	@AfterClass
@@ -82,16 +84,10 @@ public class PrincipalNameKeyResolverIntegrationTests {
 
 	@Test
 	public void keyResolverWorks() {
-		this.client.mutate()
-				.filter(basicAuthentication("user", "password"))
-				.build()
-				.get()
-				.uri("/myapi/1")
-				.exchange()
-				.expectStatus().isOk()
-				.expectBody().json("{\"user\":\"1\"}");
+		this.client.mutate().filter(basicAuthentication("user", "password")).build().get()
+				.uri("/myapi/1").exchange().expectStatus().isOk().expectBody()
+				.json("{\"user\":\"1\"}");
 	}
-
 
 	@RestController
 	@RequestMapping("/downstream")
@@ -109,13 +105,11 @@ public class PrincipalNameKeyResolverIntegrationTests {
 
 		@Bean
 		public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
-			return builder.routes()
-					.route(r -> r.path("/myapi/**")
-							.filters(f -> f.requestRateLimiter(c -> c
-									.setRateLimiter(myRateLimiter()))
-									.prefixPath("/downstream"))
-							.uri("http://localhost:" + port))
-					.build();
+			return builder.routes().route(r -> r.path("/myapi/**")
+					.filters(f -> f
+							.requestRateLimiter(c -> c.setRateLimiter(myRateLimiter()))
+							.prefixPath("/downstream"))
+					.uri("http://localhost:" + port)).build();
 		}
 
 		@Bean
@@ -126,12 +120,8 @@ public class PrincipalNameKeyResolverIntegrationTests {
 
 		@Bean
 		SecurityWebFilterChain springWebFilterChain(ServerHttpSecurity http) {
-			return http.httpBasic().and()
-					.authorizeExchange()
-					.pathMatchers("/myapi/**").authenticated()
-					.anyExchange().permitAll()
-					.and()
-					.build();
+			return http.httpBasic().and().authorizeExchange().pathMatchers("/myapi/**")
+					.authenticated().anyExchange().permitAll().and().build();
 		}
 
 		@Bean
@@ -165,6 +155,9 @@ public class PrincipalNameKeyResolverIntegrationTests {
 			public Object newConfig() {
 				return null;
 			}
+
 		}
+
 	}
+
 }

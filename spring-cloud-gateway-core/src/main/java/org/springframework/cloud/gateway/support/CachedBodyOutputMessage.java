@@ -33,6 +33,7 @@ import org.springframework.web.server.ServerWebExchange;
 
 /**
  * Mock implementation of {@link ClientHttpRequest}.
+ *
  * @author Brian Clozel
  * @author Rossen Stoyanchev
  * @since 5.0
@@ -40,11 +41,12 @@ import org.springframework.web.server.ServerWebExchange;
 public class CachedBodyOutputMessage implements ReactiveHttpOutputMessage {
 
 	private final DataBufferFactory bufferFactory;
+
 	private final HttpHeaders httpHeaders;
 
-	private Flux<DataBuffer> body = Flux.error(
-			new IllegalStateException("The body is not set. " +
-					"Did handling complete with success? Is a custom \"writeHandler\" configured?"));
+	private Flux<DataBuffer> body = Flux
+			.error(new IllegalStateException("The body is not set. "
+					+ "Did handling complete with success? Is a custom \"writeHandler\" configured?"));
 
 	private Function<Flux<DataBuffer>, Mono<Void>> writeHandler = initDefaultWriteHandler();
 
@@ -81,8 +83,8 @@ public class CachedBodyOutputMessage implements ReactiveHttpOutputMessage {
 	}
 
 	/**
-	 * Return the request body, or an error stream if the body was never set
-	 * or when {@link #setWriteHandler} is configured.
+	 * Return the request body, or an error stream if the body was never set or when
+	 * {@link #setWriteHandler} is configured.
 	 * @return body as {@link Flux}
 	 */
 	public Flux<DataBuffer> getBody() {
@@ -92,12 +94,12 @@ public class CachedBodyOutputMessage implements ReactiveHttpOutputMessage {
 	/**
 	 * Configure a custom handler for writing the request body.
 	 *
-	 * <p>The default write handler consumes and caches the request body so it
-	 * may be accessed subsequently, e.g. in test assertions. Use this property
-	 * when the request body is an infinite stream.
-	 *
-	 * @param writeHandler the write handler to use returning {@code Mono<Void>}
-	 * when the body has been "written" (i.e. consumed).
+	 * <p>
+	 * The default write handler consumes and caches the request body so it may be
+	 * accessed subsequently, e.g. in test assertions. Use this property when the request
+	 * body is an infinite stream.
+	 * @param writeHandler the write handler to use returning {@code Mono<Void>} when the
+	 * body has been "written" (i.e. consumed).
 	 */
 	public void setWriteHandler(Function<Flux<DataBuffer>, Mono<Void>> writeHandler) {
 		Assert.notNull(writeHandler, "'writeHandler' is required");
@@ -110,7 +112,8 @@ public class CachedBodyOutputMessage implements ReactiveHttpOutputMessage {
 	}
 
 	@Override
-	public Mono<Void> writeAndFlushWith(Publisher<? extends Publisher<? extends DataBuffer>> body) {
+	public Mono<Void> writeAndFlushWith(
+			Publisher<? extends Publisher<? extends DataBuffer>> body) {
 		return writeWith(Flux.from(body).flatMap(p -> p));
 	}
 

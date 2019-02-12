@@ -23,6 +23,7 @@ import java.time.ZonedDateTime;
 import org.springframework.core.convert.converter.Converter;
 
 public class StringToZonedDateTimeConverter implements Converter<String, ZonedDateTime> {
+
 	@Override
 	public ZonedDateTime convert(String source) {
 		ZonedDateTime dateTime;
@@ -39,4 +40,5 @@ public class StringToZonedDateTimeConverter implements Converter<String, ZonedDa
 
 		return dateTime;
 	}
+
 }

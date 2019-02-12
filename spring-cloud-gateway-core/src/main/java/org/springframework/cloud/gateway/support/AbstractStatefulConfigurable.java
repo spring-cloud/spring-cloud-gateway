@@ -21,8 +21,9 @@ import java.util.Map;
 
 import org.springframework.core.style.ToStringCreator;
 
-public abstract class AbstractStatefulConfigurable<C>
-		extends AbstractConfigurable<C> implements StatefulConfigurable<C> {
+public abstract class AbstractStatefulConfigurable<C> extends AbstractConfigurable<C>
+		implements StatefulConfigurable<C> {
+
 	private Map<String, C> config = new HashMap<>();
 
 	protected AbstractStatefulConfigurable(Class<C> configClass) {
@@ -36,9 +37,8 @@ public abstract class AbstractStatefulConfigurable<C>
 
 	@Override
 	public String toString() {
-		return new ToStringCreator(this)
-				.append("config", config)
-				.append("configClass", getConfigClass())
-				.toString();
+		return new ToStringCreator(this).append("config", config)
+				.append("configClass", getConfigClass()).toString();
 	}
+
 }

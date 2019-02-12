@@ -30,6 +30,7 @@ public class GatewayClassPathWarningAutoConfiguration {
 
 	private static final Log log = LogFactory
 			.getLog(GatewayClassPathWarningAutoConfiguration.class);
+
 	private static final String BORDER = "\n\n**********************************************************\n\n";
 
 	@Configuration
@@ -37,8 +38,9 @@ public class GatewayClassPathWarningAutoConfiguration {
 	protected static class SpringMvcFoundOnClasspathConfiguration {
 
 		public SpringMvcFoundOnClasspathConfiguration() {
-			log.warn(BORDER + "Spring MVC found on classpath, which is incompatible with Spring Cloud Gateway at this time. " +
-					"Please remove spring-boot-starter-web dependency." + BORDER);
+			log.warn(BORDER
+					+ "Spring MVC found on classpath, which is incompatible with Spring Cloud Gateway at this time. "
+					+ "Please remove spring-boot-starter-web dependency." + BORDER);
 		}
 
 	}
@@ -49,9 +51,10 @@ public class GatewayClassPathWarningAutoConfiguration {
 
 		public WebfluxMissingFromClasspathConfiguration() {
 			log.warn(BORDER + "Spring Webflux is missing from the classpath, "
-					+ "which is required for Spring Cloud Gateway at this time. " +
-					"Please add spring-boot-starter-webflux dependency." + BORDER);
+					+ "which is required for Spring Cloud Gateway at this time. "
+					+ "Please add spring-boot-starter-webflux dependency." + BORDER);
 		}
 
 	}
+
 }

@@ -61,8 +61,7 @@ public class RemoteAddrRoutePredicateFactoryTests extends BaseWebClientTests {
 	public void remoteAddrRejects() {
 		Mono<ClientResponse> result = webClient.get().uri("/nok/httpbin/").exchange();
 
-		StepVerifier
-				.create(result)
+		StepVerifier.create(result)
 				.consumeNextWith(response -> assertStatus(response, HttpStatus.NOT_FOUND))
 				.expectComplete().verify(DURATION);
 	}
@@ -81,6 +80,7 @@ public class RemoteAddrRoutePredicateFactoryTests extends BaseWebClientTests {
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
 	public static class TestConfig {
+
 		@Value("${test.uri}")
 		String uri;
 
@@ -92,6 +92,7 @@ public class RemoteAddrRoutePredicateFactoryTests extends BaseWebClientTests {
 							"12.34.56.78")
 					.filters(f -> f.setStatus(200)).uri(uri)).build();
 		}
+
 	}
 
 }

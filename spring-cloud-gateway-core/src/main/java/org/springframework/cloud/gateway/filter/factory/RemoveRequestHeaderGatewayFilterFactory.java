@@ -41,10 +41,10 @@ public class RemoveRequestHeaderGatewayFilterFactory
 	public GatewayFilter apply(NameConfig config) {
 		return (exchange, chain) -> {
 			ServerHttpRequest request = exchange.getRequest().mutate()
-					.headers(httpHeaders -> httpHeaders.remove(config.getName()))
-					.build();
+					.headers(httpHeaders -> httpHeaders.remove(config.getName())).build();
 
 			return chain.filter(exchange.mutate().request(request).build());
 		};
 	}
+
 }

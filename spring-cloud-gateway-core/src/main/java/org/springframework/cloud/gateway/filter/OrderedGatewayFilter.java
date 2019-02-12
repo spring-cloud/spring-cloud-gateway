@@ -27,6 +27,7 @@ import org.springframework.web.server.ServerWebExchange;
 public class OrderedGatewayFilter implements GatewayFilter, Ordered {
 
 	private final GatewayFilter delegate;
+
 	private final int order;
 
 	public OrderedGatewayFilter(GatewayFilter delegate, int order) {
@@ -56,4 +57,5 @@ public class OrderedGatewayFilter implements GatewayFilter, Ordered {
 		sb.append('}');
 		return sb.toString();
 	}
+
 }

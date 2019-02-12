@@ -48,7 +48,8 @@ import org.springframework.validation.annotation.Validated;
  * @author Spencer Gibb
  */
 @ConfigurationProperties("spring.cloud.gateway.redis-rate-limiter")
-public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Config> implements ApplicationContextAware {
+public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Config>
+		implements ApplicationContextAware {
 
 	/**
 	 * @deprecated use {@link Config#replenishRate}
@@ -90,15 +91,24 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 	private Log log = LogFactory.getLog(getClass());
 
 	private ReactiveRedisTemplate<String, String> redisTemplate;
+
 	private RedisScript<List<Long>> script;
+
 	private AtomicBoolean initialized = new AtomicBoolean(false);
+
 	private Config defaultConfig;
 
 	// configuration properties
-	/** Whether or not to include headers containing rate limiter information, defaults to true. */
+	/**
+	 * Whether or not to include headers containing rate limiter information, defaults to
+	 * true.
+	 */
 	private boolean includeHeaders = true;
 
-	/** The name of the header that returns number of remaining requests during the current second. */
+	/**
+	 * The name of the header that returns number of remaining requests during the current
+	 * second.
+	 */
 	private String remainingHeader = REMAINING_HEADER;
 
 	/** The name of the header that returns the replenish rate configuration. */
@@ -117,8 +127,7 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 
 	public RedisRateLimiter(int defaultReplenishRate, int defaultBurstCapacity) {
 		super(Config.class, CONFIGURATION_PROPERTY_NAME, null);
-		this.defaultConfig = new Config()
-				.setReplenishRate(defaultReplenishRate)
+		this.defaultConfig = new Config().setReplenishRate(defaultReplenishRate)
 				.setBurstCapacity(defaultBurstCapacity);
 	}
 
@@ -171,8 +180,8 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 	@SuppressWarnings("unchecked")
 	public void setApplicationContext(ApplicationContext context) throws BeansException {
 		if (initialized.compareAndSet(false, true)) {
-			this.redisTemplate = context
-					.getBean("stringReactiveRedisTemplate", ReactiveRedisTemplate.class);
+			this.redisTemplate = context.getBean("stringReactiveRedisTemplate",
+					ReactiveRedisTemplate.class);
 			this.script = context.getBean(REDIS_SCRIPT_NAME, RedisScript.class);
 			if (context.getBeanNamesForType(Validator.class).length > 0) {
 				this.setValidator(context.getBean(Validator.class));
@@ -207,14 +216,12 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 		try {
 			List<String> keys = getKeys(id);
 
-
 			// The arguments to the LUA script. time() returns unixtime in seconds.
-			List<String> scriptArgs = Arrays
-					.asList(replenishRate + "", burstCapacity + "",
-							Instant.now().getEpochSecond() + "", "1");
+			List<String> scriptArgs = Arrays.asList(replenishRate + "",
+					burstCapacity + "", Instant.now().getEpochSecond() + "", "1");
 			// allowed, tokens_left = redis.eval(SCRIPT, keys, args)
-			Flux<List<Long>> flux = this.redisTemplate
-					.execute(this.script, keys, scriptArgs);
+			Flux<List<Long>> flux = this.redisTemplate.execute(this.script, keys,
+					scriptArgs);
 			// .log("redisratelimiter", Level.FINER);
 			return flux.onErrorResume(throwable -> Flux.just(Arrays.asList(1L, -1L)))
 					.reduce(new ArrayList<Long>(), (longs, l) -> {
@@ -224,7 +231,8 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 						boolean allowed = results.get(0) == 1L;
 						Long tokensLeft = results.get(1);
 
-						Response response = new Response(allowed, getHeaders(routeConfig, tokensLeft));
+						Response response = new Response(allowed,
+								getHeaders(routeConfig, tokensLeft));
 
 						if (log.isDebugEnabled()) {
 							log.debug("response: " + response);
@@ -251,7 +259,8 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 		}
 
 		if (routeConfig == null) {
-			throw new IllegalArgumentException("No Configuration found for route " + routeId + " or defaultFilters");
+			throw new IllegalArgumentException(
+					"No Configuration found for route " + routeId + " or defaultFilters");
 		}
 		return routeConfig;
 	}
@@ -267,6 +276,7 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 
 	@Validated
 	public static class Config {
+
 		@Min(1)
 		private int replenishRate;
 
@@ -293,10 +303,10 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 
 		@Override
 		public String toString() {
-			return "Config{" +
-					"replenishRate=" + replenishRate +
-					", burstCapacity=" + burstCapacity +
-					'}';
+			return "Config{" + "replenishRate=" + replenishRate + ", burstCapacity="
+					+ burstCapacity + '}';
 		}
+
 	}
+
 }

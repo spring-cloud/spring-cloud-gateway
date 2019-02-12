@@ -27,6 +27,7 @@ import org.springframework.web.reactive.function.BodyInserter;
 import org.springframework.web.reactive.function.client.ExchangeStrategies;
 
 public class BodyInserterContext implements BodyInserter.Context {
+
 	private final ExchangeStrategies exchangeStrategies;
 
 	public BodyInserterContext() {
@@ -34,7 +35,7 @@ public class BodyInserterContext implements BodyInserter.Context {
 	}
 
 	public BodyInserterContext(ExchangeStrategies exchangeStrategies) {
-		this.exchangeStrategies = exchangeStrategies; //TODO: support custom strategies
+		this.exchangeStrategies = exchangeStrategies; // TODO: support custom strategies
 	}
 
 	@Override
@@ -49,6 +50,7 @@ public class BodyInserterContext implements BodyInserter.Context {
 
 	@Override
 	public Map<String, Object> hints() {
-		return Collections.emptyMap(); //TODO: support hints
+		return Collections.emptyMap(); // TODO: support hints
 	}
+
 }

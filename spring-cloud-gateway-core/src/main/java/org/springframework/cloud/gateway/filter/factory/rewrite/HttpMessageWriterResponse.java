@@ -31,13 +31,14 @@ import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.util.MultiValueMap;
 
 /**
- * This class is BETA and may be subject to change in a future release.
- * Response who's job it is to gather the Publisher&lt;DataBuffer&gt; from the writeWith message
- * during a call to HttpMessageWriter.write. Also gathers any headers set there.
+ * This class is BETA and may be subject to change in a future release. Response who's job
+ * it is to gather the Publisher&lt;DataBuffer&gt; from the writeWith message during a
+ * call to HttpMessageWriter.write. Also gathers any headers set there.
  */
 public class HttpMessageWriterResponse implements ServerHttpResponse {
 
 	private final HttpHeaders headers = new HttpHeaders();
+
 	private final DataBufferFactory dataBufferFactory;
 
 	private Publisher<? extends DataBuffer> body;
@@ -58,10 +59,10 @@ public class HttpMessageWriterResponse implements ServerHttpResponse {
 	}
 
 	@Override
-	public Mono<Void> writeAndFlushWith(Publisher<? extends Publisher<? extends DataBuffer>> body) {
-		//TODO: is this kosher?
-		return writeWith(Flux.from(body)
-				.flatMapSequential(p -> p));
+	public Mono<Void> writeAndFlushWith(
+			Publisher<? extends Publisher<? extends DataBuffer>> body) {
+		// TODO: is this kosher?
+		return writeWith(Flux.from(body).flatMapSequential(p -> p));
 	}
 
 	public Publisher<? extends DataBuffer> getBody() {
@@ -107,4 +108,5 @@ public class HttpMessageWriterResponse implements ServerHttpResponse {
 	public Mono<Void> setComplete() {
 		return null;
 	}
+
 }

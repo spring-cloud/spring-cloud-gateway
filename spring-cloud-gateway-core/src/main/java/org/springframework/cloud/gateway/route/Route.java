@@ -65,9 +65,7 @@ public class Route implements Ordered {
 	}
 
 	public static Builder builder(RouteDefinition routeDefinition) {
-		return new Builder()
-				.id(routeDefinition.getId())
-				.uri(routeDefinition.getUri())
+		return new Builder().id(routeDefinition.getId()).uri(routeDefinition.getUri())
 				.order(routeDefinition.getOrder());
 	}
 
@@ -76,10 +74,8 @@ public class Route implements Ordered {
 	}
 
 	public static AsyncBuilder async(RouteDefinition routeDefinition) {
-		return new AsyncBuilder()
-				.id(routeDefinition.getId())
-				.uri(routeDefinition.getUri())
-				.order(routeDefinition.getOrder());
+		return new AsyncBuilder().id(routeDefinition.getId())
+				.uri(routeDefinition.getUri()).order(routeDefinition.getOrder());
 	}
 
 	public String getId() {
@@ -111,11 +107,10 @@ public class Route implements Ordered {
 			return false;
 		}
 		Route route = (Route) o;
-		return Objects.equals(id, route.id) &&
-				Objects.equals(uri, route.uri) &&
-				Objects.equals(order, route.order) &&
-				Objects.equals(predicate, route.predicate) &&
-				Objects.equals(gatewayFilters, route.gatewayFilters);
+		return Objects.equals(id, route.id) && Objects.equals(uri, route.uri)
+				&& Objects.equals(order, route.order)
+				&& Objects.equals(predicate, route.predicate)
+				&& Objects.equals(gatewayFilters, route.gatewayFilters);
 	}
 
 	@Override
@@ -136,6 +131,7 @@ public class Route implements Ordered {
 	}
 
 	public abstract static class AbstractBuilder<B extends AbstractBuilder<B>> {
+
 		protected String id;
 
 		protected URI uri;
@@ -170,20 +166,18 @@ public class Route implements Ordered {
 		public B uri(URI uri) {
 			this.uri = uri;
 			String scheme = this.uri.getScheme();
-			Assert.hasText(scheme, "The parameter [" + this.uri + "] format is incorrect, scheme can not be empty");
+			Assert.hasText(scheme, "The parameter [" + this.uri
+					+ "] format is incorrect, scheme can not be empty");
 			if (this.uri.getPort() < 0 && scheme.startsWith("http")) {
 				// default known http ports
 				int port = this.uri.getScheme().equals("https") ? 443 : 80;
-				this.uri = UriComponentsBuilder.fromUri(this.uri)
-						.port(port)
-						.build(false)
+				this.uri = UriComponentsBuilder.fromUri(this.uri).port(port).build(false)
 						.toUri();
 			}
 			return getThis();
 		}
 
 		public abstract AsyncPredicate<ServerWebExchange> getPredicate();
-
 
 		public B replaceFilters(List<GatewayFilter> gatewayFilters) {
 			this.gatewayFilters = gatewayFilters;
@@ -210,8 +204,10 @@ public class Route implements Ordered {
 			AsyncPredicate<ServerWebExchange> predicate = getPredicate();
 			Assert.notNull(predicate, "predicate can not be null");
 
-			return new Route(this.id, this.uri, this.order, predicate, this.gatewayFilters);
+			return new Route(this.id, this.uri, this.order, predicate,
+					this.gatewayFilters);
 		}
+
 	}
 
 	public static class AsyncBuilder extends AbstractBuilder<AsyncBuilder> {
@@ -254,9 +250,11 @@ public class Route implements Ordered {
 			this.predicate = this.predicate.negate();
 			return this;
 		}
+
 	}
 
 	public static class Builder extends AbstractBuilder<Builder> {
+
 		protected Predicate<ServerWebExchange> predicate;
 
 		@Override
@@ -288,4 +286,5 @@ public class Route implements Ordered {
 		}
 
 	}
+
 }

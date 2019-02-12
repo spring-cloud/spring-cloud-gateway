@@ -29,7 +29,8 @@ import org.springframework.web.server.ServerWebExchange;
 /**
  * @author Spencer Gibb
  */
-public class CookieRoutePredicateFactory extends AbstractRoutePredicateFactory<CookieRoutePredicateFactory.Config> {
+public class CookieRoutePredicateFactory
+		extends AbstractRoutePredicateFactory<CookieRoutePredicateFactory.Config> {
 
 	/**
 	 * Name key.
@@ -72,6 +73,7 @@ public class CookieRoutePredicateFactory extends AbstractRoutePredicateFactory<C
 
 		@NotEmpty
 		private String name;
+
 		@NotEmpty
 		private String regexp;
 
@@ -92,5 +94,7 @@ public class CookieRoutePredicateFactory extends AbstractRoutePredicateFactory<C
 			this.regexp = regexp;
 			return this;
 		}
+
 	}
+
 }

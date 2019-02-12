@@ -37,5 +37,7 @@ public class WebfluxNotIncludedTests {
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	public static class Config {
+
 	}
+
 }

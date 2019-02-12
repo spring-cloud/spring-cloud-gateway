@@ -131,8 +131,8 @@ public class ProductionConfigurationTests {
 	public void postForwardHeader() throws Exception {
 		ResponseEntity<List<Bar>> result = rest.exchange(
 				RequestEntity
-						.post(rest.getRestTemplate().getUriTemplateHandler().expand(
-								"/forward/special/bars"))
+						.post(rest.getRestTemplate().getUriTemplateHandler()
+								.expand("/forward/special/bars"))
 						.body(Collections
 								.singletonList(Collections.singletonMap("name", "foo"))),
 				new ParameterizedTypeReference<List<Bar>>() {
@@ -145,8 +145,8 @@ public class ProductionConfigurationTests {
 	public void postForwardBody() throws Exception {
 		ResponseEntity<String> result = rest.exchange(
 				RequestEntity
-						.post(rest.getRestTemplate().getUriTemplateHandler().expand(
-								"/forward/body/bars"))
+						.post(rest.getRestTemplate().getUriTemplateHandler()
+								.expand("/forward/body/bars"))
 						.body(Collections
 								.singletonList(Collections.singletonMap("name", "foo"))),
 				String.class);
@@ -158,8 +158,8 @@ public class ProductionConfigurationTests {
 	public void postForwardForgetBody() throws Exception {
 		ResponseEntity<String> result = rest.exchange(
 				RequestEntity
-						.post(rest.getRestTemplate().getUriTemplateHandler().expand(
-								"/forward/forget/bars"))
+						.post(rest.getRestTemplate().getUriTemplateHandler()
+								.expand("/forward/forget/bars"))
 						.body(Collections
 								.singletonList(Collections.singletonMap("name", "foo"))),
 				String.class);
@@ -171,8 +171,8 @@ public class ProductionConfigurationTests {
 	public void postForwardBodyFoo() throws Exception {
 		ResponseEntity<List<Bar>> result = rest.exchange(
 				RequestEntity
-						.post(rest.getRestTemplate().getUriTemplateHandler().expand(
-								"/forward/body/bars"))
+						.post(rest.getRestTemplate().getUriTemplateHandler()
+								.expand("/forward/body/bars"))
 						.body(Collections
 								.singletonList(Collections.singletonMap("name", "foo"))),
 				new ParameterizedTypeReference<List<Bar>>() {
@@ -185,8 +185,8 @@ public class ProductionConfigurationTests {
 	public void list() throws Exception {
 		assertThat(rest.exchange(
 				RequestEntity
-						.post(rest.getRestTemplate().getUriTemplateHandler().expand(
-								"/proxy"))
+						.post(rest.getRestTemplate().getUriTemplateHandler()
+								.expand("/proxy"))
 						.body(Collections
 								.singletonList(Collections.singletonMap("name", "foo"))),
 				new ParameterizedTypeReference<List<Bar>>() {
@@ -225,25 +225,24 @@ public class ProductionConfigurationTests {
 	public void single() throws Exception {
 		assertThat(rest.postForObject("/proxy/single",
 				Collections.singletonMap("name", "foobar"), Bar.class).getName())
-				.isEqualTo("host=localhost;foobar");
+						.isEqualTo("host=localhost;foobar");
 	}
 
 	@Test
 	public void converter() throws Exception {
 		assertThat(rest.postForObject("/proxy/converter",
 				Collections.singletonMap("name", "foobar"), Bar.class).getName())
-				.isEqualTo("host=localhost;foobar");
+						.isEqualTo("host=localhost;foobar");
 	}
 
 	@Test
 	@SuppressWarnings({ "Duplicates", "unchecked" })
 	public void headers() throws Exception {
-		Map<String, List<String>> headers = rest
-				.exchange(RequestEntity.get(rest.getRestTemplate().getUriTemplateHandler()
-						.expand("/proxy/headers")).header("foo", "bar")
-						.header("abc", "xyz").build(), Map.class).getBody();
-		assertThat(headers).doesNotContainKey("foo")
-				.doesNotContainKey("hello")
+		Map<String, List<String>> headers = rest.exchange(RequestEntity
+				.get(rest.getRestTemplate().getUriTemplateHandler()
+						.expand("/proxy/headers"))
+				.header("foo", "bar").header("abc", "xyz").build(), Map.class).getBody();
+		assertThat(headers).doesNotContainKey("foo").doesNotContainKey("hello")
 				.containsKeys("bar", "abc");
 
 		assertThat(headers.get("bar")).containsOnly("hello");
@@ -388,7 +387,8 @@ public class ProductionConfigurationTests {
 
 			@GetMapping("/proxy/headers")
 			@SuppressWarnings("Duplicates")
-			public ResponseEntity<Map<String, List<String>>> headers(ProxyExchange<Map<String, List<String>>> proxy) {
+			public ResponseEntity<Map<String, List<String>>> headers(
+					ProxyExchange<Map<String, List<String>>> proxy) {
 				proxy.sensitive("foo");
 				proxy.sensitive("hello");
 				proxy.header("bar", "hello");
@@ -424,8 +424,8 @@ public class ProductionConfigurationTests {
 					@RequestHeader HttpHeaders headers) {
 				String custom = headers.getFirst("X-Custom");
 				custom = custom == null ? "" : custom;
-				custom = headers.getFirst("forwarded") == null ? custom : headers
-						.getFirst("forwarded") + ";" + custom;
+				custom = headers.getFirst("forwarded") == null ? custom
+						: headers.getFirst("forwarded") + ";" + custom;
 				return Arrays.asList(new Bar(custom + foos.iterator().next().getName()));
 			}
 
@@ -433,10 +433,12 @@ public class ProductionConfigurationTests {
 			public Map<String, List<String>> headers(@RequestHeader HttpHeaders headers) {
 				return new LinkedMultiValueMap<>(headers);
 			}
+
 		}
 
 		@JsonIgnoreProperties(ignoreUnknown = true)
 		static class Foo {
+
 			private String name;
 
 			Foo() {
@@ -453,10 +455,12 @@ public class ProductionConfigurationTests {
 			public void setName(String name) {
 				this.name = name;
 			}
+
 		}
 
 		@JsonIgnoreProperties(ignoreUnknown = true)
 		static class Bar {
+
 			private String name;
 
 			Bar() {
@@ -473,6 +477,7 @@ public class ProductionConfigurationTests {
 			public void setName(String name) {
 				this.name = name;
 			}
+
 		}
 
 	}

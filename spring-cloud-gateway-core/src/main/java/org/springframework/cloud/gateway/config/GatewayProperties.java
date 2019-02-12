@@ -54,13 +54,11 @@ public class GatewayProperties {
 	private List<FilterDefinition> defaultFilters = new ArrayList<>();
 
 	private List<MediaType> streamingMediaTypes = Arrays
-			.asList(MediaType.TEXT_EVENT_STREAM,
-					MediaType.APPLICATION_STREAM_JSON);
+			.asList(MediaType.TEXT_EVENT_STREAM, MediaType.APPLICATION_STREAM_JSON);
 
 	public List<RouteDefinition> getRoutes() {
 		return routes;
 	}
-
 
 	public void setRoutes(List<RouteDefinition> routes) {
 		this.routes = routes;
@@ -87,10 +85,8 @@ public class GatewayProperties {
 
 	@Override
 	public String toString() {
-		return "GatewayProperties{" +
-				"routes=" + routes +
-				", defaultFilters=" + defaultFilters +
-				", streamingMediaTypes=" + streamingMediaTypes +
-				'}';
+		return "GatewayProperties{" + "routes=" + routes + ", defaultFilters="
+				+ defaultFilters + ", streamingMediaTypes=" + streamingMediaTypes + '}';
 	}
+
 }

@@ -45,14 +45,10 @@ public class HostRoutePredicateFactoryTests extends BaseWebClientTests {
 	}
 
 	public void expectHostRoute(String host, String routeId) {
-		testClient.get()
-				.uri("/get")
-				.header("Host", host)
-				.exchange()
-				.expectStatus().isOk()
+		testClient.get().uri("/get").header("Host", host).exchange().expectStatus().isOk()
 				.expectHeader()
-				.valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class
-						.getSimpleName())
+				.valueEquals(HANDLER_MAPPER_HEADER,
+						RoutePredicateHandlerMapping.class.getSimpleName())
 				.expectHeader().valueEquals(ROUTE_ID_HEADER, routeId);
 	}
 
@@ -63,7 +59,8 @@ public class HostRoutePredicateFactoryTests extends BaseWebClientTests {
 
 	@Test
 	public void hostRouteBackwardsCompatibleShortcutWorks() {
-		expectHostRoute("www.hostpatternshortcut.org", "host_backwards_compatible_shortcut_test");
+		expectHostRoute("www.hostpatternshortcut.org",
+				"host_backwards_compatible_shortcut_test");
 	}
 
 	@Test
@@ -89,12 +86,12 @@ public class HostRoutePredicateFactoryTests extends BaseWebClientTests {
 		@Bean
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes()
-					.route("host_multi_dsl", r -> r
-							.host("**.hostmultidsl1.org", "**.hostmultidsl2.org")
-							.filters(f -> f.prefixPath("/httpbin"))
-							.uri(uri))
+					.route("host_multi_dsl",
+							r -> r.host("**.hostmultidsl1.org", "**.hostmultidsl2.org")
+									.filters(f -> f.prefixPath("/httpbin")).uri(uri))
 					.build();
 		}
+
 	}
 
 }

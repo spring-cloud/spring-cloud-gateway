@@ -56,13 +56,12 @@ public class DefaultClientResponse implements ClientResponse {
 
 	private final ExchangeStrategies strategies;
 
-
-	public DefaultClientResponse(ClientHttpResponse response, ExchangeStrategies strategies) {
+	public DefaultClientResponse(ClientHttpResponse response,
+			ExchangeStrategies strategies) {
 		this.response = response;
 		this.strategies = strategies;
 		this.headers = new DefaultHeaders();
 	}
-
 
 	@Override
 	public ExchangeStrategies strategies() {
@@ -121,13 +120,10 @@ public class DefaultClientResponse implements ClientResponse {
 
 	@SuppressWarnings("unchecked")
 	private <T> Mono<T> consumeAndCancel() {
-		return (Mono<T>) this.response.getBody()
-				.map(buffer -> {
-					DataBufferUtils.release(buffer);
-					throw new ReadCancellationException();
-				})
-				.onErrorResume(ReadCancellationException.class, ex -> Mono.empty())
-				.then();
+		return (Mono<T>) this.response.getBody().map(buffer -> {
+			DataBufferUtils.release(buffer);
+			throw new ReadCancellationException();
+		}).onErrorResume(ReadCancellationException.class, ex -> Mono.empty()).then();
 	}
 
 	@Override
@@ -171,7 +167,8 @@ public class DefaultClientResponse implements ClientResponse {
 	}
 
 	@Override
-	public <T> Mono<ResponseEntity<T>> toEntity(ParameterizedTypeReference<T> typeReference) {
+	public <T> Mono<ResponseEntity<T>> toEntity(
+			ParameterizedTypeReference<T> typeReference) {
 		if (Void.class.isAssignableFrom(typeReference.getType().getClass())) {
 			return toEntityInternal(consumeAndCancel());
 		}
@@ -183,8 +180,7 @@ public class DefaultClientResponse implements ClientResponse {
 	private <T> Mono<ResponseEntity<T>> toEntityInternal(Mono<T> bodyMono) {
 		HttpHeaders headers = headers().asHttpHeaders();
 		HttpStatus statusCode = statusCode();
-		return bodyMono
-				.map(body -> new ResponseEntity<>(body, headers, statusCode))
+		return bodyMono.map(body -> new ResponseEntity<>(body, headers, statusCode))
 				.switchIfEmpty(Mono.defer(
 						() -> Mono.just(new ResponseEntity<>(headers, statusCode))));
 	}
@@ -195,20 +191,21 @@ public class DefaultClientResponse implements ClientResponse {
 	}
 
 	@Override
-	public <T> Mono<ResponseEntity<List<T>>> toEntityList(ParameterizedTypeReference<T> typeReference) {
+	public <T> Mono<ResponseEntity<List<T>>> toEntityList(
+			ParameterizedTypeReference<T> typeReference) {
 		return toEntityListInternal(bodyToFlux(typeReference));
 	}
 
 	private <T> Mono<ResponseEntity<List<T>>> toEntityListInternal(Flux<T> bodyFlux) {
 		HttpHeaders headers = headers().asHttpHeaders();
 		HttpStatus statusCode = statusCode();
-		return bodyFlux
-				.collectList()
+		return bodyFlux.collectList()
 				.map(body -> new ResponseEntity<>(body, headers, statusCode));
 	}
 
 	@SuppressWarnings("serial")
 	private static class ReadCancellationException extends RuntimeException {
+
 	}
 
 	private class DefaultHeaders implements Headers {
@@ -241,6 +238,7 @@ public class DefaultClientResponse implements ClientResponse {
 		private OptionalLong toOptionalLong(long value) {
 			return (value != -1 ? OptionalLong.of(value) : OptionalLong.empty());
 		}
+
 	}
 
 }

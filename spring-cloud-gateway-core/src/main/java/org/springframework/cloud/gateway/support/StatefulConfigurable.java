@@ -21,4 +21,5 @@ import java.util.Map;
 public interface StatefulConfigurable<C> extends Configurable<C> {
 
 	Map<String, C> getConfig();
+
 }

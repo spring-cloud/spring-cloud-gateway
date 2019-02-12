@@ -23,6 +23,7 @@ import org.springframework.util.Assert;
 public class HttpStatusHolder {
 
 	private final HttpStatus httpStatus;
+
 	private final Integer status;
 
 	public HttpStatusHolder(HttpStatus httpStatus, Integer status) {
@@ -80,7 +81,6 @@ public class HttpStatusHolder {
 		return HttpStatus.Series.REDIRECTION.equals(getSeries());
 	}
 
-
 	/**
 	 * Whether this status code is in the HTTP series
 	 * {@link org.springframework.http.HttpStatus.Series#CLIENT_ERROR}.
@@ -109,7 +109,6 @@ public class HttpStatusHolder {
 		return null;
 	}
 
-
 	/**
 	 * Whether this status code is in the HTTP series
 	 * {@link org.springframework.http.HttpStatus.Series#CLIENT_ERROR} or
@@ -122,9 +121,8 @@ public class HttpStatusHolder {
 
 	@Override
 	public String toString() {
-		return new ToStringCreator(this)
-				.append("httpStatus", httpStatus)
-				.append("status", status)
-				.toString();
+		return new ToStringCreator(this).append("httpStatus", httpStatus)
+				.append("status", status).toString();
 	}
+
 }

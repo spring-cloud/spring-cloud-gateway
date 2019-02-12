@@ -48,8 +48,8 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.O
 /**
  * This filter is BETA and may be subject to change in a future release.
  */
-public class ModifyResponseBodyGatewayFilterFactory
-		extends AbstractGatewayFilterFactory<ModifyResponseBodyGatewayFilterFactory.Config> {
+public class ModifyResponseBodyGatewayFilterFactory extends
+		AbstractGatewayFilterFactory<ModifyResponseBodyGatewayFilterFactory.Config> {
 
 	private final ServerCodecConfigurer codecConfigurer;
 
@@ -64,10 +64,15 @@ public class ModifyResponseBodyGatewayFilterFactory
 	}
 
 	public static class Config {
+
 		private Class inClass;
+
 		private Class outClass;
+
 		private Map<String, Object> inHints;
+
 		private Map<String, Object> outHints;
+
 		private String newContentType;
 
 		private RewriteFunction rewriteFunction;
@@ -133,9 +138,11 @@ public class ModifyResponseBodyGatewayFilterFactory
 			setRewriteFunction(rewriteFunction);
 			return this;
 		}
+
 	}
 
 	public class ModifyResponseGatewayFilter implements GatewayFilter, Ordered {
+
 		private final Config config;
 
 		public ModifyResponseGatewayFilter(Config config) {
@@ -146,8 +153,8 @@ public class ModifyResponseBodyGatewayFilterFactory
 		@SuppressWarnings("unchecked")
 		public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 
-			ServerHttpResponseDecorator responseDecorator = new ServerHttpResponseDecorator(exchange
-					.getResponse()) {
+			ServerHttpResponseDecorator responseDecorator = new ServerHttpResponseDecorator(
+					exchange.getResponse()) {
 
 				@Override
 				public Mono<Void> writeWith(Publisher<? extends DataBuffer> body) {
@@ -158,23 +165,26 @@ public class ModifyResponseBodyGatewayFilterFactory
 					String originalResponseContentType = exchange
 							.getAttribute(ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR);
 					HttpHeaders httpHeaders = new HttpHeaders();
-					//explicitly add it in this way instead of 'httpHeaders.setContentType(originalResponseContentType)'
-					//this will prevent exception in case of using non-standard media types like "Content-Type: image"
-					httpHeaders
-							.add(HttpHeaders.CONTENT_TYPE, originalResponseContentType);
-					ResponseAdapter responseAdapter = new ResponseAdapter(body, httpHeaders);
-					DefaultClientResponse clientResponse = new DefaultClientResponse(responseAdapter, ExchangeStrategies
-							.withDefaults());
+					// explicitly add it in this way instead of
+					// 'httpHeaders.setContentType(originalResponseContentType)'
+					// this will prevent exception in case of using non-standard media
+					// types like "Content-Type: image"
+					httpHeaders.add(HttpHeaders.CONTENT_TYPE,
+							originalResponseContentType);
+					ResponseAdapter responseAdapter = new ResponseAdapter(body,
+							httpHeaders);
+					DefaultClientResponse clientResponse = new DefaultClientResponse(
+							responseAdapter, ExchangeStrategies.withDefaults());
 
-					//TODO: flux or mono
+					// TODO: flux or mono
 					Mono modifiedBody = clientResponse.bodyToMono(inClass)
 							.flatMap(originalBody -> config.rewriteFunction
 									.apply(exchange, originalBody));
 
-					BodyInserter bodyInserter = BodyInserters
-							.fromPublisher(modifiedBody, outClass);
-					CachedBodyOutputMessage outputMessage = new CachedBodyOutputMessage(exchange, exchange
-							.getResponse().getHeaders());
+					BodyInserter bodyInserter = BodyInserters.fromPublisher(modifiedBody,
+							outClass);
+					CachedBodyOutputMessage outputMessage = new CachedBodyOutputMessage(
+							exchange, exchange.getResponse().getHeaders());
 					return bodyInserter.insert(outputMessage, new BodyInserterContext())
 							.then(Mono.defer(() -> {
 								Flux<DataBuffer> messageBody = outputMessage.getBody();
@@ -183,15 +193,15 @@ public class ModifyResponseBodyGatewayFilterFactory
 									messageBody = messageBody.doOnNext(data -> headers
 											.setContentLength(data.readableByteCount()));
 								}
-								//TODO: use isStreamingMediaType?
+								// TODO: use isStreamingMediaType?
 								return getDelegate().writeWith(messageBody);
 							}));
 				}
 
 				@Override
-				public Mono<Void> writeAndFlushWith(Publisher<? extends Publisher<? extends DataBuffer>> body) {
-					return writeWith(Flux.from(body)
-							.flatMapSequential(p -> p));
+				public Mono<Void> writeAndFlushWith(
+						Publisher<? extends Publisher<? extends DataBuffer>> body) {
+					return writeWith(Flux.from(body).flatMapSequential(p -> p));
 				}
 			};
 
@@ -208,9 +218,11 @@ public class ModifyResponseBodyGatewayFilterFactory
 	public class ResponseAdapter implements ClientHttpResponse {
 
 		private final Flux<DataBuffer> flux;
+
 		private final HttpHeaders headers;
 
-		public ResponseAdapter(Publisher<? extends DataBuffer> body, HttpHeaders headers) {
+		public ResponseAdapter(Publisher<? extends DataBuffer> body,
+				HttpHeaders headers) {
 			this.headers = headers;
 			if (body instanceof Flux) {
 				flux = (Flux) body;
@@ -244,5 +256,7 @@ public class ModifyResponseBodyGatewayFilterFactory
 		public MultiValueMap<String, ResponseCookie> getCookies() {
 			return null;
 		}
+
 	}
+
 }

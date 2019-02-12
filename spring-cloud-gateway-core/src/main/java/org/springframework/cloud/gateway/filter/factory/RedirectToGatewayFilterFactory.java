@@ -63,8 +63,8 @@ public class RedirectToGatewayFilterFactory
 
 	public GatewayFilter apply(String statusString, String urlString) {
 		HttpStatusHolder httpStatus = HttpStatusHolder.parse(statusString);
-		Assert.isTrue(httpStatus
-				.is3xxRedirection(), "status must be a 3xx code, but was " + statusString);
+		Assert.isTrue(httpStatus.is3xxRedirection(),
+				"status must be a 3xx code, but was " + statusString);
 		final URI url = URI.create(urlString);
 		return apply(httpStatus, url);
 	}
@@ -74,21 +74,22 @@ public class RedirectToGatewayFilterFactory
 	}
 
 	public GatewayFilter apply(HttpStatusHolder httpStatus, URI uri) {
-		return (exchange, chain) ->
-				chain.filter(exchange).then(Mono.defer(() -> {
-					if (!exchange.getResponse().isCommitted()) {
-						setResponseStatus(exchange, httpStatus);
+		return (exchange, chain) -> chain.filter(exchange).then(Mono.defer(() -> {
+			if (!exchange.getResponse().isCommitted()) {
+				setResponseStatus(exchange, httpStatus);
 
-						final ServerHttpResponse response = exchange.getResponse();
-						response.getHeaders().set(HttpHeaders.LOCATION, uri.toString());
-						return response.setComplete();
-					}
-					return Mono.empty();
-				}));
+				final ServerHttpResponse response = exchange.getResponse();
+				response.getHeaders().set(HttpHeaders.LOCATION, uri.toString());
+				return response.setComplete();
+			}
+			return Mono.empty();
+		}));
 	}
 
 	public static class Config {
+
 		String status;
+
 		String url;
 
 		public String getStatus() {
@@ -106,6 +107,7 @@ public class RedirectToGatewayFilterFactory
 		public void setUrl(String url) {
 			this.url = url;
 		}
+
 	}
 
 }

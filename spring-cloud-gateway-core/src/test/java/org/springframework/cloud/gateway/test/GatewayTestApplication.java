@@ -36,9 +36,9 @@ public class GatewayTestApplication {
 	}
 
 	/*
-	TO test run `spring cloud configserver eureka`,
-	then run this app with `--spring.profiles.active=discovery`
-	should be able to hit http://localhost:8008/configserver/foo/default a normal configserver api
+	 * TO test run `spring cloud configserver eureka`, then run this app with
+	 * `--spring.profiles.active=discovery` should be able to hit
+	 * http://localhost:8008/configserver/foo/default a normal configserver api
 	 */
 	@Configuration
 	@EnableDiscoveryClient
@@ -46,9 +46,11 @@ public class GatewayTestApplication {
 	protected static class GatewayDiscoveryConfiguration {
 
 		@Bean
-		public DiscoveryClientRouteDefinitionLocator discoveryClientRouteLocator(DiscoveryClient discoveryClient,
-				DiscoveryLocatorProperties properties) {
+		public DiscoveryClientRouteDefinitionLocator discoveryClientRouteLocator(
+				DiscoveryClient discoveryClient, DiscoveryLocatorProperties properties) {
 			return new DiscoveryClientRouteDefinitionLocator(discoveryClient, properties);
 		}
+
 	}
+
 }

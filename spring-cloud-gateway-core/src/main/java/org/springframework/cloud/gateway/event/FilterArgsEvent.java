@@ -21,7 +21,9 @@ import java.util.Map;
 import org.springframework.context.ApplicationEvent;
 
 public class FilterArgsEvent extends ApplicationEvent {
+
 	private final Map<String, Object> args;
+
 	private String routeId;
 
 	public FilterArgsEvent(Object source, String routeId, Map<String, Object> args) {
@@ -37,4 +39,5 @@ public class FilterArgsEvent extends ApplicationEvent {
 	public Map<String, Object> getArgs() {
 		return args;
 	}
+
 }

@@ -40,8 +40,11 @@ import static org.springframework.http.server.PathContainer.parsePath;
 /**
  * @author Spencer Gibb
  */
-public class PathRoutePredicateFactory extends AbstractRoutePredicateFactory<PathRoutePredicateFactory.Config> {
+public class PathRoutePredicateFactory
+		extends AbstractRoutePredicateFactory<PathRoutePredicateFactory.Config> {
+
 	private static final Log log = LogFactory.getLog(RoutePredicateFactory.class);
+
 	private static final String MATCH_OPTIONAL_TRAILING_SEPARATOR_KEY = "matchOptionalTrailingSeparator";
 
 	private PathPatternParser pathPatternParser = new PathPatternParser();
@@ -50,10 +53,11 @@ public class PathRoutePredicateFactory extends AbstractRoutePredicateFactory<Pat
 		super(Config.class);
 	}
 
-	private static void traceMatch(String prefix, Object desired, Object actual, boolean match) {
+	private static void traceMatch(String prefix, Object desired, Object actual,
+			boolean match) {
 		if (log.isTraceEnabled()) {
-			String message = String.format("%s \"%s\" %s against value \"%s\"",
-					prefix, desired, match ? "matches" : "does not match", actual);
+			String message = String.format("%s \"%s\" %s against value \"%s\"", prefix,
+					desired, match ? "matches" : "does not match", actual);
 			log.trace(message);
 		}
 	}
@@ -76,8 +80,8 @@ public class PathRoutePredicateFactory extends AbstractRoutePredicateFactory<Pat
 	public Predicate<ServerWebExchange> apply(Config config) {
 		final ArrayList<PathPattern> pathPatterns = new ArrayList<>();
 		synchronized (this.pathPatternParser) {
-			pathPatternParser.setMatchOptionalTrailingSeparator(config
-					.isMatchOptionalTrailingSeparator());
+			pathPatternParser.setMatchOptionalTrailingSeparator(
+					config.isMatchOptionalTrailingSeparator());
 			config.getPatterns().forEach(pattern -> {
 				PathPattern pathPattern = this.pathPatternParser.parse(pattern);
 				pathPatterns.add(pathPattern);
@@ -87,8 +91,7 @@ public class PathRoutePredicateFactory extends AbstractRoutePredicateFactory<Pat
 			PathContainer path = parsePath(exchange.getRequest().getURI().getPath());
 
 			Optional<PathPattern> optionalPathPattern = pathPatterns.stream()
-					.filter(pattern -> pattern.matches(path))
-					.findFirst();
+					.filter(pattern -> pattern.matches(path)).findFirst();
 
 			if (optionalPathPattern.isPresent()) {
 				PathPattern pathPattern = optionalPathPattern.get();
@@ -106,7 +109,9 @@ public class PathRoutePredicateFactory extends AbstractRoutePredicateFactory<Pat
 
 	@Validated
 	public static class Config {
+
 		private List<String> patterns = new ArrayList<>();
+
 		private boolean matchOptionalTrailingSeparator = true;
 
 		@Deprecated
@@ -137,18 +142,20 @@ public class PathRoutePredicateFactory extends AbstractRoutePredicateFactory<Pat
 			return matchOptionalTrailingSeparator;
 		}
 
-		public Config setMatchOptionalTrailingSeparator(boolean matchOptionalTrailingSeparator) {
+		public Config setMatchOptionalTrailingSeparator(
+				boolean matchOptionalTrailingSeparator) {
 			this.matchOptionalTrailingSeparator = matchOptionalTrailingSeparator;
 			return this;
 		}
 
 		@Override
 		public String toString() {
-			return new ToStringCreator(this)
-					.append("patterns", patterns)
-					.append("matchOptionalTrailingSeparator", matchOptionalTrailingSeparator)
+			return new ToStringCreator(this).append("patterns", patterns)
+					.append("matchOptionalTrailingSeparator",
+							matchOptionalTrailingSeparator)
 					.toString();
 		}
+
 	}
 
 }

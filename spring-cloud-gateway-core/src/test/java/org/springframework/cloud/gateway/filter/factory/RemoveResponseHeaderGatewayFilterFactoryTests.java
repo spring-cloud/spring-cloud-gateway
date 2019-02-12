@@ -36,12 +36,9 @@ public class RemoveResponseHeaderGatewayFilterFactoryTests extends BaseWebClient
 
 	@Test
 	public void removeResponseHeaderFilterWorks() {
-		testClient.get()
-				.uri("/headers")
-				.header("Host", "www.removereresponseheader.org")
-				.exchange()
-				.expectStatus().isOk()
-				.expectHeader().doesNotExist("X-Request-Foo");
+		testClient.get().uri("/headers").header("Host", "www.removereresponseheader.org")
+				.exchange().expectStatus().isOk().expectHeader()
+				.doesNotExist("X-Request-Foo");
 	}
 
 	@EnableAutoConfiguration

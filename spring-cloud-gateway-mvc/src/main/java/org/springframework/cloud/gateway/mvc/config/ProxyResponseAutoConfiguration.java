@@ -86,4 +86,5 @@ public class ProxyResponseAutoConfiguration implements WebMvcConfigurer {
 		}
 
 	}
+
 }

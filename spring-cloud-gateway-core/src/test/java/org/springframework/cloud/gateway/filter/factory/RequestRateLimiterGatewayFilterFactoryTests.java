@@ -52,7 +52,9 @@ import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 /**
- * see https://gist.github.com/ptarjan/e38f45f2dfe601419ca3af937fff574d#file-1-check_request_rate_limiter-rb-L36-L62
+ * see
+ * https://gist.github.com/ptarjan/e38f45f2dfe601419ca3af937fff574d#file-1-check_request_rate_limiter-rb-L36-L62
+ *
  * @author Spencer Gibb
  */
 @RunWith(SpringRunner.class)
@@ -63,10 +65,13 @@ public class RequestRateLimiterGatewayFilterFactoryTests extends BaseWebClientTe
 	@Autowired
 	@Qualifier("resolver2")
 	KeyResolver resolver2;
+
 	@Autowired
 	private ApplicationContext context;
+
 	@MockBean
 	private RateLimiter rateLimiter;
+
 	@MockBean
 	private GatewayFilterChain filterChain;
 
@@ -78,7 +83,8 @@ public class RequestRateLimiterGatewayFilterFactoryTests extends BaseWebClientTe
 
 	@Test
 	public void notAllowedWorks() {
-		assertFilterFactory(resolver2, "notallowedkey", false, HttpStatus.TOO_MANY_REQUESTS);
+		assertFilterFactory(resolver2, "notallowedkey", false,
+				HttpStatus.TOO_MANY_REQUESTS);
 	}
 
 	@Test
@@ -91,17 +97,18 @@ public class RequestRateLimiterGatewayFilterFactoryTests extends BaseWebClientTe
 		assertFilterFactory(exchange -> Mono.empty(), null, true, HttpStatus.OK, false);
 	}
 
-	private void assertFilterFactory(KeyResolver keyResolver, String key, boolean allowed, HttpStatus expectedStatus) {
+	private void assertFilterFactory(KeyResolver keyResolver, String key, boolean allowed,
+			HttpStatus expectedStatus) {
 		assertFilterFactory(keyResolver, key, allowed, expectedStatus, null);
 	}
 
-	private void assertFilterFactory(KeyResolver keyResolver, String key, boolean allowed, HttpStatus expectedStatus,
-			Boolean denyEmptyKey) {
+	private void assertFilterFactory(KeyResolver keyResolver, String key, boolean allowed,
+			HttpStatus expectedStatus, Boolean denyEmptyKey) {
 
 		String tokensRemaining = allowed ? "1" : "0";
 
-		Map<String, String> headers = Collections
-				.singletonMap("X-Tokens-Remaining", tokensRemaining);
+		Map<String, String> headers = Collections.singletonMap("X-Tokens-Remaining",
+				tokensRemaining);
 
 		if (key != null) {
 			when(rateLimiter.isAllowed("myroute", key))
@@ -112,8 +119,8 @@ public class RequestRateLimiterGatewayFilterFactoryTests extends BaseWebClientTe
 		MockServerWebExchange exchange = MockServerWebExchange.from(request);
 		exchange.getResponse().setStatusCode(HttpStatus.OK);
 		exchange.getAttributes().put(ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR,
-				Route.async().id("myroute").predicate(ex -> true)
-						.uri("http://localhost").build());
+				Route.async().id("myroute").predicate(ex -> true).uri("http://localhost")
+						.build());
 
 		when(this.filterChain.filter(exchange)).thenReturn(Mono.empty());
 
@@ -128,9 +135,8 @@ public class RequestRateLimiterGatewayFilterFactoryTests extends BaseWebClientTe
 		Mono<Void> response = filter.filter(exchange, this.filterChain);
 		response.subscribe(aVoid -> {
 			assertThat(exchange.getResponse().getStatusCode()).isEqualTo(expectedStatus);
-			assertThat(exchange.getResponse().getHeaders()).
-					containsEntry("X-Tokens-Remaining", Collections
-							.singletonList(tokensRemaining));
+			assertThat(exchange.getResponse().getHeaders()).containsEntry(
+					"X-Tokens-Remaining", Collections.singletonList(tokensRemaining));
 		});
 
 	}
@@ -139,6 +145,7 @@ public class RequestRateLimiterGatewayFilterFactoryTests extends BaseWebClientTe
 	@SpringBootConfiguration
 	@Import(BaseWebClientTests.DefaultTestConfig.class)
 	public static class TestConfig {
+
 		@Bean
 		@Primary
 		KeyResolver resolver1() {
@@ -149,5 +156,7 @@ public class RequestRateLimiterGatewayFilterFactoryTests extends BaseWebClientTe
 		KeyResolver resolver2() {
 			return exchange -> Mono.just("notallowedkey");
 		}
+
 	}
+
 }

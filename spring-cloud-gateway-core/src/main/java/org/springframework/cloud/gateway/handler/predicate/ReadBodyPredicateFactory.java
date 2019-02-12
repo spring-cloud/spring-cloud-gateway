@@ -42,10 +42,13 @@ import static org.springframework.cloud.gateway.filter.AdaptCachedBodyGlobalFilt
  */
 public class ReadBodyPredicateFactory
 		extends AbstractRoutePredicateFactory<ReadBodyPredicateFactory.Config> {
+
 	protected static final Log LOGGER = LogFactory.getLog(ReadBodyPredicateFactory.class);
 
 	private static final String TEST_ATTRIBUTE = "read_body_predicate_test_attribute";
+
 	private static final String CACHE_REQUEST_BODY_OBJECT_KEY = "cachedRequestBodyObject";
+
 	private static final List<HttpMessageReader<?>> messageReaders = HandlerStrategies
 			.withDefaults().messageReaders();
 
@@ -62,7 +65,7 @@ public class ReadBodyPredicateFactory
 			Object cachedBody = exchange.getAttribute(CACHE_REQUEST_BODY_OBJECT_KEY);
 			Mono<?> modifiedBody;
 			// We can only read the body from the request once, once that happens if we
-			// try to read the body again an exception will be thrown.  The below if/else
+			// try to read the body again an exception will be thrown. The below if/else
 			// caches the body object as a request attribute in the ServerWebExchange
 			// so if this filter is run more than once (due to more than one route
 			// using it) we do not try to read the request body multiple times
@@ -81,22 +84,25 @@ public class ReadBodyPredicateFactory
 				return Mono.just(false);
 			}
 			else {
-				//Join all the DataBuffers so we have a single DataBuffer for the body
+				// Join all the DataBuffers so we have a single DataBuffer for the body
 				return DataBufferUtils.join(exchange.getRequest().getBody())
 						.flatMap(dataBuffer -> {
-							//Update the retain counts so we can read the body twice, once to parse into an object
-							//that we can test the predicate against and a second time when the HTTP client sends
-							//the request downstream
-							//Note: if we end up reading the body twice we will run into a problem, but as of right
-							//now there is no good use case for doing this
+							// Update the retain counts so we can read the body twice,
+							// once to parse into an object
+							// that we can test the predicate against and a second time
+							// when the HTTP client sends
+							// the request downstream
+							// Note: if we end up reading the body twice we will run into
+							// a problem, but as of right
+							// now there is no good use case for doing this
 							DataBufferUtils.retain(dataBuffer);
-							//Make a slice for each read so each read has its own read/write indexes
-							Flux<DataBuffer> cachedFlux = Flux.defer(() -> Flux
-									.just(dataBuffer
-											.slice(0, dataBuffer.readableByteCount())));
+							// Make a slice for each read so each read has its own
+							// read/write indexes
+							Flux<DataBuffer> cachedFlux = Flux.defer(() -> Flux.just(
+									dataBuffer.slice(0, dataBuffer.readableByteCount())));
 
-							ServerHttpRequest mutatedRequest = new ServerHttpRequestDecorator(exchange
-									.getRequest()) {
+							ServerHttpRequest mutatedRequest = new ServerHttpRequestDecorator(
+									exchange.getRequest()) {
 								@Override
 								public Flux<DataBuffer> getBody() {
 									return cachedFlux;
@@ -105,14 +111,13 @@ public class ReadBodyPredicateFactory
 							return ServerRequest
 									.create(exchange.mutate().request(mutatedRequest)
 											.build(), messageReaders)
-									.bodyToMono(inClass)
-									.doOnNext(objectValue -> {
-										exchange.getAttributes()
-												.put(CACHE_REQUEST_BODY_OBJECT_KEY, objectValue);
+									.bodyToMono(inClass).doOnNext(objectValue -> {
+										exchange.getAttributes().put(
+												CACHE_REQUEST_BODY_OBJECT_KEY,
+												objectValue);
 										exchange.getAttributes()
 												.put(CACHED_REQUEST_BODY_KEY, cachedFlux);
-									})
-									.map(objectValue -> config.predicate
+									}).map(objectValue -> config.predicate
 											.test(objectValue));
 						});
 
@@ -128,8 +133,11 @@ public class ReadBodyPredicateFactory
 	}
 
 	public static class Config {
+
 		private Class inClass;
+
 		private Predicate predicate;
+
 		private Map<String, Object> hints;
 
 		public Class getInClass() {
@@ -164,5 +172,7 @@ public class ReadBodyPredicateFactory
 			this.hints = hints;
 			return this;
 		}
+
 	}
+
 }

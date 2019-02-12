@@ -37,14 +37,10 @@ public class MethodRoutePredicateFactoryTests extends BaseWebClientTests {
 
 	@Test
 	public void methodRouteWorks() {
-		testClient.get()
-				.uri("/get")
-				.header("Host", "www.method.org")
-				.exchange()
-				.expectStatus().isOk()
-				.expectHeader()
-				.valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class
-						.getSimpleName())
+		testClient.get().uri("/get").header("Host", "www.method.org").exchange()
+				.expectStatus().isOk().expectHeader()
+				.valueEquals(HANDLER_MAPPER_HEADER,
+						RoutePredicateHandlerMapping.class.getSimpleName())
 				.expectHeader().valueEquals(ROUTE_ID_HEADER, "method_test");
 	}
 

@@ -32,8 +32,10 @@ import static org.springframework.util.StringUtils.tokenizeToStringArray;
  */
 @Validated
 public class FilterDefinition {
+
 	@NotNull
 	private String name;
+
 	private Map<String, String> args = new LinkedHashMap<>();
 
 	public FilterDefinition() {
@@ -83,8 +85,7 @@ public class FilterDefinition {
 			return false;
 		}
 		FilterDefinition that = (FilterDefinition) o;
-		return Objects.equals(name, that.name) &&
-				Objects.equals(args, that.args);
+		return Objects.equals(name, that.name) && Objects.equals(args, that.args);
 	}
 
 	@Override
@@ -100,4 +101,5 @@ public class FilterDefinition {
 		sb.append('}');
 		return sb.toString();
 	}
+
 }

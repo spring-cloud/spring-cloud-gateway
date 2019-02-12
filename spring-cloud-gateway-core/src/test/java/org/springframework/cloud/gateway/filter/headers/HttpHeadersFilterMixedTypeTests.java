@@ -41,21 +41,17 @@ public class HttpHeadersFilterMixedTypeTests {
 				.header("header1", "value1").header("header2", "value2")
 				.header("header3", "value3").build();
 
-		HttpHeadersFilter filter1 = filterRemovingHeaders(Type.RESPONSE,
-				"header1");
+		HttpHeadersFilter filter1 = filterRemovingHeaders(Type.RESPONSE, "header1");
 
-		HttpHeadersFilter filter2 = filterRemovingHeaders(Type.REQUEST,
-				"header2");
+		HttpHeadersFilter filter2 = filterRemovingHeaders(Type.REQUEST, "header2");
 
-		HttpHeaders result = HttpHeadersFilter
-				.filterRequest(Arrays.asList(filter1, filter2),
-						MockServerWebExchange.from(mockRequest));
+		HttpHeaders result = HttpHeadersFilter.filterRequest(
+				Arrays.asList(filter1, filter2), MockServerWebExchange.from(mockRequest));
 
 		assertThat(result).containsOnlyKeys("header1", "header3");
 	}
 
-	private HttpHeadersFilter filterRemovingHeaders(Type type,
-			String... headerNames) {
+	private HttpHeadersFilter filterRemovingHeaders(Type type, String... headerNames) {
 		Set<String> headerNamesSet = new HashSet<>(Arrays.asList(headerNames));
 		HttpHeadersFilter filter = new HttpHeadersFilter() {
 			@Override
@@ -76,4 +72,5 @@ public class HttpHeadersFilterMixedTypeTests {
 		};
 		return filter;
 	}
+
 }

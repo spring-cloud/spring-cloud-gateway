@@ -34,11 +34,11 @@ public class AdaptCachedBodyGlobalFilter implements GlobalFilter, Ordered {
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 
-		Flux<DataBuffer> body = exchange
-				.getAttributeOrDefault(CACHED_REQUEST_BODY_KEY, null);
+		Flux<DataBuffer> body = exchange.getAttributeOrDefault(CACHED_REQUEST_BODY_KEY,
+				null);
 		if (body != null) {
-			ServerHttpRequestDecorator decorator = new ServerHttpRequestDecorator(exchange
-					.getRequest()) {
+			ServerHttpRequestDecorator decorator = new ServerHttpRequestDecorator(
+					exchange.getRequest()) {
 				@Override
 				public Flux<DataBuffer> getBody() {
 					return body;
@@ -55,4 +55,5 @@ public class AdaptCachedBodyGlobalFilter implements GlobalFilter, Ordered {
 	public int getOrder() {
 		return Ordered.HIGHEST_PRECEDENCE + 1000;
 	}
+
 }

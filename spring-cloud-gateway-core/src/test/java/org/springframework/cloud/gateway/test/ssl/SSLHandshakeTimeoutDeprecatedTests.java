@@ -29,8 +29,10 @@ import org.springframework.test.web.reactive.server.WebTestClient.ResponseSpec;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @RunWith(SpringRunner.class)
-// this test works because it assumes TLS hand shake cannot be done in 1ms. It takes closer to 80ms
-@SpringBootTest(webEnvironment = RANDOM_PORT, properties = { "spring.cloud.gateway.httpclient.ssl.handshake-timeout-millis=1" })
+// this test works because it assumes TLS hand shake cannot be done in 1ms. It takes
+// closer to 80ms
+@SpringBootTest(webEnvironment = RANDOM_PORT, properties = {
+		"spring.cloud.gateway.httpclient.ssl.handshake-timeout-millis=1" })
 @DirtiesContext
 @ActiveProfiles("ssl")
 // this is testing that the deprecated handshake-timeout-millis property still works

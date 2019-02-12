@@ -60,7 +60,6 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 	/** X-Forwarded-Prefix Header. */
 	public static final String X_FORWARDED_PREFIX_HEADER = "X-Forwarded-Prefix";
 
-
 	/** The order of the XForwardedHeadersFilter. */
 	private int order = 0;
 
@@ -197,7 +196,6 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 	@Override
 	public HttpHeaders filter(HttpHeaders input, ServerWebExchange exchange) {
 
-
 		ServerHttpRequest request = exchange.getRequest();
 		HttpHeaders original = input;
 		HttpHeaders updated = new HttpHeaders();
@@ -205,14 +203,13 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 		original.entrySet().stream()
 				.forEach(entry -> updated.addAll(entry.getKey(), entry.getValue()));
 
-		if (isForEnabled() &&
-				request.getRemoteAddress() != null && request.getRemoteAddress()
-				.getAddress() != null) {
+		if (isForEnabled() && request.getRemoteAddress() != null
+				&& request.getRemoteAddress().getAddress() != null) {
 			String remoteAddr = request.getRemoteAddress().getAddress().getHostAddress();
 			List<String> xforwarded = original.get(X_FORWARDED_FOR_HEADER);
 			// prevent duplicates
-			if (remoteAddr != null &&
-					(xforwarded == null || !xforwarded.contains(remoteAddr))) {
+			if (remoteAddr != null
+					&& (xforwarded == null || !xforwarded.contains(remoteAddr))) {
 				write(updated, X_FORWARDED_FOR_HEADER, remoteAddr, isForAppend());
 			}
 		}
@@ -241,11 +238,13 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 					if (originalUri != null && originalUri.getPath() != null) {
 						String prefix = originalUri.getPath();
 
-						//strip trailing slashes before checking if request path is end of original path
+						// strip trailing slashes before checking if request path is end
+						// of original path
 						String originalUriPath = stripTrailingSlash(originalUri);
 						String requestUriPath = stripTrailingSlash(requestUri);
 
-						updateRequest(updated, originalUri, originalUriPath, requestUriPath);
+						updateRequest(updated, originalUri, originalUriPath,
+								requestUriPath);
 
 					}
 				});
@@ -268,13 +267,13 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 		return updated;
 	}
 
-	private void updateRequest(HttpHeaders updated, URI originalUri, String originalUriPath, String requestUriPath) {
+	private void updateRequest(HttpHeaders updated, URI originalUri,
+			String originalUriPath, String requestUriPath) {
 		String prefix;
-		if (requestUriPath != null && (originalUriPath
-				.endsWith(requestUriPath))) {
+		if (requestUriPath != null && (originalUriPath.endsWith(requestUriPath))) {
 			prefix = originalUriPath.replace(requestUriPath, "");
-			if (prefix != null && prefix.length() > 0 &&
-					prefix.length() <= originalUri.getPath().length()) {
+			if (prefix != null && prefix.length() > 0
+					&& prefix.length() <= originalUri.getPath().length()) {
 				write(updated, X_FORWARDED_PREFIX_HEADER, prefix, isPrefixAppend());
 			}
 		}
@@ -299,10 +298,8 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 
 	private boolean hasHeader(ServerHttpRequest request, String name) {
 		HttpHeaders headers = request.getHeaders();
-		return headers.containsKey(name) &&
-				StringUtils.hasLength(headers.getFirst(name));
+		return headers.containsKey(name) && StringUtils.hasLength(headers.getFirst(name));
 	}
-
 
 	private String toHostHeader(ServerHttpRequest request) {
 		int port = request.getURI().getPort();
@@ -325,4 +322,5 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 			return uri.getPath();
 		}
 	}
+
 }

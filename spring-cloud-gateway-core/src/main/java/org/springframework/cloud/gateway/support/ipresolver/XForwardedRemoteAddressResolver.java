@@ -34,6 +34,7 @@ import org.springframework.web.server.ServerWebExchange;
  * falls back to {@link RemoteAddressResolver} and
  * {@link ServerHttpRequest#getRemoteAddress()}. Use the static constructor methods which
  * meets your security requirements.
+ *
  * @author Andrew Fitzgerald
  * @see <a href=
  * "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-For">X-Forwarded-For
@@ -45,8 +46,10 @@ public class XForwardedRemoteAddressResolver implements RemoteAddressResolver {
 	 * Forwarded-For header name.
 	 */
 	public static final String X_FORWARDED_FOR = "X-Forwarded-For";
+
 	private static final Logger log = LoggerFactory
 			.getLogger(XForwardedRemoteAddressResolver.class);
+
 	private final RemoteAddressResolver defaultRemoteIpResolver = new RemoteAddressResolver() {
 	};
 
@@ -59,11 +62,10 @@ public class XForwardedRemoteAddressResolver implements RemoteAddressResolver {
 	/**
 	 * @return a {@link XForwardedRemoteAddressResolver} which always extracts the first
 	 * IP address found in the X-Forwarded-For header (when present). Equivalent to
-	 * calling {@link #maxTrustedIndex(int)} with a
-	 * {@link #maxTrustedIndex} of {@link Integer#MAX_VALUE}. This configuration is
-	 * vulnerable to spoofing via manually setting the X-Forwarded-For header. If the
-	 * resulting IP address is used for security purposes, use
-	 * {@link #maxTrustedIndex(int)} instead.
+	 * calling {@link #maxTrustedIndex(int)} with a {@link #maxTrustedIndex} of
+	 * {@link Integer#MAX_VALUE}. This configuration is vulnerable to spoofing via
+	 * manually setting the X-Forwarded-For header. If the resulting IP address is used
+	 * for security purposes, use {@link #maxTrustedIndex(int)} instead.
 	 */
 	public static XForwardedRemoteAddressResolver trustAll() {
 		return new XForwardedRemoteAddressResolver(Integer.MAX_VALUE);
@@ -89,13 +91,11 @@ public class XForwardedRemoteAddressResolver implements RemoteAddressResolver {
 	 * 3 -> 0.0.0.1
 	 * [4, MAX_VALUE] -> 0.0.0.1
 	 * </pre>
-	 *
 	 * @param maxTrustedIndex correlates to the number of trusted proxies expected in
 	 * front of Spring Cloud Gateway (index starts at 1).
 	 * @return a {@link XForwardedRemoteAddressResolver} which extracts the last
 	 */
-	public static XForwardedRemoteAddressResolver maxTrustedIndex(
-			int maxTrustedIndex) {
+	public static XForwardedRemoteAddressResolver maxTrustedIndex(int maxTrustedIndex) {
 		Assert.isTrue(maxTrustedIndex > 0, "An index greater than 0 is required");
 		return new XForwardedRemoteAddressResolver(maxTrustedIndex);
 	}
@@ -134,4 +134,5 @@ public class XForwardedRemoteAddressResolver implements RemoteAddressResolver {
 		}
 		return values;
 	}
+
 }

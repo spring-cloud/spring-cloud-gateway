@@ -50,28 +50,20 @@ public class AddRequestHeaderGatewayFilterFactoryTests extends BaseWebClientTest
 
 	@Test
 	public void addRequestHeaderFilterWorks() {
-		testClient.get()
-				.uri("/headers")
-				.header("Host", "www.addrequestheader.org")
-				.exchange()
-				.expectBody(Map.class)
-				.consumeWith(result -> {
-					Map<String, Object> headers = getMap(result
-							.getResponseBody(), "headers");
+		testClient.get().uri("/headers").header("Host", "www.addrequestheader.org")
+				.exchange().expectBody(Map.class).consumeWith(result -> {
+					Map<String, Object> headers = getMap(result.getResponseBody(),
+							"headers");
 					assertThat(headers).containsEntry("X-Request-Example", "ValueA");
 				});
 	}
 
 	@Test
 	public void addRequestHeaderFilterWorksJavaDsl() {
-		testClient.get()
-				.uri("/headers")
-				.header("Host", "www.addrequestheaderjava.org")
-				.exchange()
-				.expectBody(Map.class)
-				.consumeWith(result -> {
-					Map<String, Object> headers = getMap(result
-							.getResponseBody(), "headers");
+		testClient.get().uri("/headers").header("Host", "www.addrequestheaderjava.org")
+				.exchange().expectBody(Map.class).consumeWith(result -> {
+					Map<String, Object> headers = getMap(result.getResponseBody(),
+							"headers");
 					assertThat(headers).containsEntry("X-Request-Acme", "ValueB");
 				});
 	}
@@ -86,14 +78,14 @@ public class AddRequestHeaderGatewayFilterFactoryTests extends BaseWebClientTest
 
 		@Bean
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
-			return builder.routes()
-					.route("add_request_header_java_test", r ->
-							r.path("/headers").and().host("**.addrequestheaderjava.org")
-									.filters(f -> f.prefixPath("/httpbin")
-											.addRequestHeader("X-Request-Acme", "ValueB"))
-									.uri(uri))
+			return builder.routes().route("add_request_header_java_test",
+					r -> r.path("/headers").and().host("**.addrequestheaderjava.org")
+							.filters(f -> f.prefixPath("/httpbin")
+									.addRequestHeader("X-Request-Acme", "ValueB"))
+							.uri(uri))
 					.build();
 		}
+
 	}
 
 }

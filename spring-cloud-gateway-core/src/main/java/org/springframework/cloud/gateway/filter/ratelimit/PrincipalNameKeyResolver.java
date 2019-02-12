@@ -34,4 +34,5 @@ public class PrincipalNameKeyResolver implements KeyResolver {
 		return exchange.getPrincipal().map(Principal::getName)
 				.switchIfEmpty(Mono.empty());
 	}
+
 }

@@ -119,15 +119,16 @@ public class ProductionConfigurationTests {
 
 	@Test
 	public void list() throws Exception {
-		ResponseEntity<List<Bar>> result = rest.exchange(
-				RequestEntity
-						.post(rest.getRestTemplate().getUriTemplateHandler()
-								.expand("/proxy"))
-						.contentType(MediaType.APPLICATION_JSON)
-						.body(Collections
-								.singletonList(Collections.singletonMap("name", "foo"))),
-				new ParameterizedTypeReference<List<Bar>>() {
-				});
+		ResponseEntity<List<Bar>> result = rest
+				.exchange(
+						RequestEntity
+								.post(rest.getRestTemplate().getUriTemplateHandler()
+										.expand("/proxy"))
+								.contentType(MediaType.APPLICATION_JSON)
+								.body(Collections.singletonList(
+										Collections.singletonMap("name", "foo"))),
+						new ParameterizedTypeReference<List<Bar>>() {
+						});
 		assertThat(result.getBody().iterator().next().getName())
 				.isEqualTo("host=localhost;foo");
 	}
@@ -164,25 +165,24 @@ public class ProductionConfigurationTests {
 	public void single() throws Exception {
 		assertThat(rest.postForObject("/proxy/single",
 				Collections.singletonMap("name", "foobar"), Bar.class).getName())
-				.isEqualTo("host=localhost;foobar");
+						.isEqualTo("host=localhost;foobar");
 	}
 
 	@Test
 	public void converter() throws Exception {
 		assertThat(rest.postForObject("/proxy/converter",
 				Collections.singletonMap("name", "foobar"), Bar.class).getName())
-				.isEqualTo("host=localhost;foobar");
+						.isEqualTo("host=localhost;foobar");
 	}
 
 	@Test
 	@SuppressWarnings({ "Duplicates", "unchecked" })
 	public void headers() throws Exception {
-		Map<String, List<String>> headers = rest
-				.exchange(RequestEntity.get(rest.getRestTemplate().getUriTemplateHandler()
-						.expand("/proxy/headers")).header("foo", "bar")
-						.header("abc", "xyz").build(), Map.class).getBody();
-		assertThat(headers).doesNotContainKey("foo")
-				.doesNotContainKey("hello")
+		Map<String, List<String>> headers = rest.exchange(RequestEntity
+				.get(rest.getRestTemplate().getUriTemplateHandler()
+						.expand("/proxy/headers"))
+				.header("foo", "bar").header("abc", "xyz").build(), Map.class).getBody();
+		assertThat(headers).doesNotContainKey("foo").doesNotContainKey("hello")
 				.containsKeys("bar", "abc");
 
 		assertThat(headers.get("bar")).containsOnly("hello");
@@ -209,14 +209,14 @@ public class ProductionConfigurationTests {
 			}
 
 			@GetMapping("/proxy/{id}")
-			public Mono<ResponseEntity<Object>> proxyFoos(@PathVariable Integer id, ProxyExchange<Object> proxy)
-					throws Exception {
+			public Mono<ResponseEntity<Object>> proxyFoos(@PathVariable Integer id,
+					ProxyExchange<Object> proxy) throws Exception {
 				return proxy.uri(home.toString() + "/foos/" + id).get();
 			}
 
 			@GetMapping("/proxy/path/**")
-			public Mono<ResponseEntity<Object>> proxyPath(ProxyExchange<Object> proxy, UriComponentsBuilder uri)
-					throws Exception {
+			public Mono<ResponseEntity<Object>> proxyPath(ProxyExchange<Object> proxy,
+					UriComponentsBuilder uri) throws Exception {
 				String path = proxy.path("/proxy/path/");
 				return proxy.uri(home.toString() + "/foos/" + path).get();
 			}
@@ -229,20 +229,21 @@ public class ProductionConfigurationTests {
 			}
 
 			@GetMapping("/proxy/typeless/**")
-			public Mono<ResponseEntity<byte[]>> proxyTypeless(ProxyExchange<byte[]> proxy, UriComponentsBuilder uri)
-					throws Exception {
+			public Mono<ResponseEntity<byte[]>> proxyTypeless(ProxyExchange<byte[]> proxy,
+					UriComponentsBuilder uri) throws Exception {
 				String path = proxy.path("/proxy/typeless");
 				return proxy.uri(home.toString() + path).get();
 			}
 
 			@GetMapping("/proxy/missing/{id}")
-			public Mono<ResponseEntity<Object>> proxyMissing(@PathVariable Integer id, ProxyExchange<Object> proxy)
-					throws Exception {
+			public Mono<ResponseEntity<Object>> proxyMissing(@PathVariable Integer id,
+					ProxyExchange<Object> proxy) throws Exception {
 				return proxy.uri(home.toString() + "/missing/" + id).get();
 			}
 
 			@GetMapping("/proxy")
-			public Mono<ResponseEntity<Object>> proxyUri(ProxyExchange<Object> proxy) throws Exception {
+			public Mono<ResponseEntity<Object>> proxyUri(ProxyExchange<Object> proxy)
+					throws Exception {
 				return proxy.uri(home.toString() + "/foos").get();
 			}
 
@@ -256,7 +257,8 @@ public class ProductionConfigurationTests {
 			}
 
 			@PostMapping("/proxy")
-			public Mono<ResponseEntity<List<Object>>> barsWithNoBody(ProxyExchange<List<Object>> proxy) throws Exception {
+			public Mono<ResponseEntity<List<Object>>> barsWithNoBody(
+					ProxyExchange<List<Object>> proxy) throws Exception {
 				return proxy.uri(home.toString() + "/bars").post();
 			}
 
@@ -291,7 +293,8 @@ public class ProductionConfigurationTests {
 			}
 
 			@GetMapping("/proxy/headers")
-			public Mono<ResponseEntity<Map<String, List<String>>>> headers(ProxyExchange<Map<String, List<String>>> proxy) {
+			public Mono<ResponseEntity<Map<String, List<String>>>> headers(
+					ProxyExchange<Map<String, List<String>>> proxy) {
 				proxy.sensitive("foo");
 				proxy.sensitive("hello");
 				proxy.header("bar", "hello");
@@ -341,6 +344,7 @@ public class ProductionConfigurationTests {
 
 		@JsonIgnoreProperties(ignoreUnknown = true)
 		static class Foo {
+
 			private String name;
 
 			Foo() {
@@ -357,10 +361,12 @@ public class ProductionConfigurationTests {
 			public void setName(String name) {
 				this.name = name;
 			}
+
 		}
 
 		@JsonIgnoreProperties(ignoreUnknown = true)
 		static class Bar {
+
 			private String name;
 
 			Bar() {
@@ -377,7 +383,9 @@ public class ProductionConfigurationTests {
 			public void setName(String name) {
 				this.name = name;
 			}
+
 		}
 
 	}
+
 }

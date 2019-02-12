@@ -47,30 +47,28 @@ public class AddResponseParameterGatewayFilterFactoryTests extends BaseWebClient
 				.toUri();
 		String host = "www.addresponseparamjava.org";
 		String expectedValue = "myresponsevalue";
-		testClient.get()
-				.uri(uri)
-				.header("Host", host)
-				.exchange()
-				.expectHeader().valueEquals("example", expectedValue);
+		testClient.get().uri(uri).header("Host", host).exchange().expectHeader()
+				.valueEquals("example", expectedValue);
 	}
 
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
 	public static class TestConfig {
+
 		@Value("${test.uri}")
 		String uri;
 
 		@Bean
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
-			return builder.routes()
-					.route("add_response_param_java_test", r ->
-							r.path("/get").and().host("**.addresponseparamjava.org")
-									.filters(f -> f.prefixPath("/httpbin")
-											.addResponseHeader("example", "myresponsevalue"))
-									.uri(uri))
+			return builder.routes().route("add_response_param_java_test",
+					r -> r.path("/get").and().host("**.addresponseparamjava.org")
+							.filters(f -> f.prefixPath("/httpbin")
+									.addResponseHeader("example", "myresponsevalue"))
+							.uri(uri))
 					.build();
 		}
+
 	}
 
 }

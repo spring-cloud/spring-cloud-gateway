@@ -26,7 +26,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 /**
  * @author Spencer Gibb
  */
-public class AddRequestParameterGatewayFilterFactory extends AbstractNameValueGatewayFilterFactory {
+public class AddRequestParameterGatewayFilterFactory
+		extends AbstractNameValueGatewayFilterFactory {
 
 	@Override
 	public GatewayFilter apply(NameValueConfig config) {
@@ -42,16 +43,14 @@ public class AddRequestParameterGatewayFilterFactory extends AbstractNameValueGa
 				}
 			}
 
-			//TODO urlencode?
+			// TODO urlencode?
 			query.append(config.getName());
 			query.append('=');
 			query.append(config.getValue());
 
 			try {
 				URI newUri = UriComponentsBuilder.fromUri(uri)
-						.replaceQuery(query.toString())
-						.build(true)
-						.toUri();
+						.replaceQuery(query.toString()).build(true).toUri();
 
 				ServerHttpRequest request = exchange.getRequest().mutate().uri(newUri)
 						.build();
@@ -59,8 +58,8 @@ public class AddRequestParameterGatewayFilterFactory extends AbstractNameValueGa
 				return chain.filter(exchange.mutate().request(request).build());
 			}
 			catch (RuntimeException ex) {
-				throw new IllegalStateException("Invalid URI query: \"" + query
-						.toString() + "\"");
+				throw new IllegalStateException(
+						"Invalid URI query: \"" + query.toString() + "\"");
 			}
 		};
 	}

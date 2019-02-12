@@ -58,42 +58,31 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 
 	@Test
 	public void retryFilterGet() {
-		testClient.get()
-				.uri("/retry?key=get")
-				.exchange()
-				.expectStatus().isOk()
+		testClient.get().uri("/retry?key=get").exchange().expectStatus().isOk()
 				.expectBody(String.class).isEqualTo("3");
 	}
 
 	@Test
 	public void retryFilterFailure() {
-		testClient.get()
-				.uri("/retryalwaysfail?key=getjavafailure&count=4")
-				.header(HttpHeaders.HOST, "www.retryjava.org")
-				.exchange()
-				.expectStatus().is5xxServerError()
-				.expectBody(String.class).consumeWith(result -> {
-			assertThat(result.getResponseBody()).contains("permanently broken");
-		});
+		testClient.get().uri("/retryalwaysfail?key=getjavafailure&count=4")
+				.header(HttpHeaders.HOST, "www.retryjava.org").exchange().expectStatus()
+				.is5xxServerError().expectBody(String.class).consumeWith(result -> {
+					assertThat(result.getResponseBody()).contains("permanently broken");
+				});
 	}
 
 	@Test
 	public void retryFilterGetJavaDsl() {
-		testClient.get()
-				.uri("/retry?key=getjava&count=2")
-				.header(HttpHeaders.HOST, "www.retryjava.org")
-				.exchange()
-				.expectStatus().isOk()
-				.expectBody(String.class).isEqualTo("2");
+		testClient.get().uri("/retry?key=getjava&count=2")
+				.header(HttpHeaders.HOST, "www.retryjava.org").exchange().expectStatus()
+				.isOk().expectBody(String.class).isEqualTo("2");
 	}
 
 	@Test
-	//TODO: support post
+	// TODO: support post
 	public void retryFilterPost() {
-		testClient.post()
-				.uri("/retry?key=post")
-				.exchange()
-				.expectStatus().is5xxServerError();
+		testClient.post().uri("/retry?key=post").exchange().expectStatus()
+				.is5xxServerError();
 		// .expectBody(String.class).isEqualTo("3");
 	}
 
@@ -101,13 +90,8 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 	@SuppressWarnings("unchecked")
 	public void retryFilterLoadBalancedWithMultipleServers() {
 		String host = "www.retrywithloadbalancer.org";
-		testClient.get()
-				.uri("/get")
-				.header(HttpHeaders.HOST, host)
-				.exchange()
-				.expectStatus().isOk()
-				.expectBody(Map.class)
-				.consumeWith(res -> {
+		testClient.get().uri("/get").header(HttpHeaders.HOST, host).exchange()
+				.expectStatus().isOk().expectBody(Map.class).consumeWith(res -> {
 					Map body = res.getResponseBody();
 					assertThat(body).isNotNull();
 					Map<String, Object> headers = (Map<String, Object>) body
@@ -122,8 +106,11 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 	@Import(DefaultTestConfig.class)
 	@RibbonClient(name = "badservice2", configuration = TestBadRibbonConfig.class)
 	public static class TestConfig {
+
 		Log log = LogFactory.getLog(getClass());
+
 		ConcurrentHashMap<String, AtomicInteger> map = new ConcurrentHashMap<>();
+
 		@Value("${test.uri}")
 		private String uri;
 
@@ -147,14 +134,11 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 			String body = String.valueOf(i);
 			if (i < count) {
 				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-						.header("X-Retry-Count", body)
-						.body("temporarily broken");
+						.header("X-Retry-Count", body).body("temporarily broken");
 			}
-			return ResponseEntity.status(HttpStatus.OK)
-					.header("X-Retry-Count", body)
+			return ResponseEntity.status(HttpStatus.OK).header("X-Retry-Count", body)
 					.body(body);
 		}
-
 
 		@Bean
 		public RouteLocator hystrixRouteLocator(RouteLocatorBuilder builder) {
@@ -163,13 +147,14 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 							.filters(f -> f.prefixPath("/httpbin")
 									.retry(config -> config.setRetries(2)))
 							.uri(uri))
-					.route("retry_with_loadbalancer", r -> r
-							.host("**.retrywithloadbalancer.org")
-							.filters(f -> f.prefixPath("/httpbin")
-									.retry(config -> config.setRetries(2)))
-							.uri("lb://badservice2"))
+					.route("retry_with_loadbalancer",
+							r -> r.host("**.retrywithloadbalancer.org")
+									.filters(f -> f.prefixPath("/httpbin")
+											.retry(config -> config.setRetries(2)))
+									.uri("lb://badservice2"))
 					.build();
 		}
+
 	}
 
 	protected static class TestBadRibbonConfig {
@@ -179,10 +164,11 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 
 		@Bean
 		public ServerList<Server> ribbonServerList() {
-			return new StaticServerList<>(new Server("https",
-					"localhost.domain.doesnot.exist", this.port),
+			return new StaticServerList<>(
+					new Server("https", "localhost.domain.doesnot.exist", this.port),
 					new Server("localhost", this.port));
 		}
+
 	}
 
 }

@@ -31,4 +31,5 @@ public class WebsocketRoutingFilterTests {
 		assertThat(convertHttpToWs("HTTPS")).isEqualTo("wss");
 		assertThat(convertHttpToWs("tcp")).isEqualTo("tcp");
 	}
+
 }

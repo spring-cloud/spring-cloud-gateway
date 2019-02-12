@@ -33,4 +33,5 @@ public class CompositeRouteDefinitionLocator implements RouteDefinitionLocator {
 	public Flux<RouteDefinition> getRouteDefinitions() {
 		return this.delegates.flatMap(RouteDefinitionLocator::getRouteDefinitions);
 	}
+
 }

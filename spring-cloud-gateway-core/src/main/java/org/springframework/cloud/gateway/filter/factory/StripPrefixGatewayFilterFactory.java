@@ -30,6 +30,7 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.a
 /**
  * This filter removes the first part of the path, known as the prefix, from the request
  * before sending it downstream.
+ *
  * @author Ryan Baxter
  */
 public class StripPrefixGatewayFilterFactory
@@ -55,13 +56,11 @@ public class StripPrefixGatewayFilterFactory
 			ServerHttpRequest request = exchange.getRequest();
 			addOriginalRequestUrl(exchange, request.getURI());
 			String path = request.getURI().getRawPath();
-			String newPath = "/" + Arrays
-					.stream(StringUtils.tokenizeToStringArray(path, "/"))
-					.skip(config.parts).collect(Collectors.joining("/"));
+			String newPath = "/"
+					+ Arrays.stream(StringUtils.tokenizeToStringArray(path, "/"))
+							.skip(config.parts).collect(Collectors.joining("/"));
 			newPath += (newPath.length() > 1 && path.endsWith("/") ? "/" : "");
-			ServerHttpRequest newRequest = request.mutate()
-					.path(newPath)
-					.build();
+			ServerHttpRequest newRequest = request.mutate().path(newPath).build();
 
 			exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, newRequest.getURI());
 
@@ -70,6 +69,7 @@ public class StripPrefixGatewayFilterFactory
 	}
 
 	public static class Config {
+
 		private int parts;
 
 		public int getParts() {
@@ -79,6 +79,7 @@ public class StripPrefixGatewayFilterFactory
 		public void setParts(int parts) {
 			this.parts = parts;
 		}
+
 	}
 
 }

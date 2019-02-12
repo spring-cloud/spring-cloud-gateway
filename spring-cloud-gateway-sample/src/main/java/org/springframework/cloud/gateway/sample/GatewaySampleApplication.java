@@ -44,8 +44,8 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 @Import(AdditionalRoutes.class)
 public class GatewaySampleApplication {
 
-	public static final String HELLO_FROM_FAKE_ACTUATOR_METRICS_GATEWAY_REQUESTS
-			= "hello from fake /actuator/metrics/gateway.requests";
+	public static final String HELLO_FROM_FAKE_ACTUATOR_METRICS_GATEWAY_REQUESTS = "hello from fake /actuator/metrics/gateway.requests";
+
 	@Value("${test.uri:http://httpbin.org:80}")
 	String uri;
 
@@ -148,6 +148,7 @@ public class GatewaySampleApplication {
 	}
 
 	static class Hello {
+
 		String message;
 
 		Hello() {
@@ -164,5 +165,7 @@ public class GatewaySampleApplication {
 		public void setMessage(String message) {
 			this.message = message;
 		}
+
 	}
+
 }

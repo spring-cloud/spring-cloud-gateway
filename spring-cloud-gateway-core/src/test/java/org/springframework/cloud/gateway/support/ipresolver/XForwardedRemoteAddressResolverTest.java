@@ -152,4 +152,5 @@ public class XForwardedRemoteAddressResolverTest {
 			MockServerHttpRequest.BaseBuilder requestBuilder) {
 		return MockServerWebExchange.from(requestBuilder.build());
 	}
+
 }

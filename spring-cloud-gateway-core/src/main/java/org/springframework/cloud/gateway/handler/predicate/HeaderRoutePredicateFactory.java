@@ -30,7 +30,8 @@ import org.springframework.web.server.ServerWebExchange;
 /**
  * @author Spencer Gibb
  */
-public class HeaderRoutePredicateFactory extends AbstractRoutePredicateFactory<HeaderRoutePredicateFactory.Config> {
+public class HeaderRoutePredicateFactory
+		extends AbstractRoutePredicateFactory<HeaderRoutePredicateFactory.Config> {
 
 	/**
 	 * Header key.
@@ -74,8 +75,10 @@ public class HeaderRoutePredicateFactory extends AbstractRoutePredicateFactory<H
 
 	@Validated
 	public static class Config {
+
 		@NotEmpty
 		private String header;
+
 		private String regexp;
 
 		public String getHeader() {
@@ -95,5 +98,7 @@ public class HeaderRoutePredicateFactory extends AbstractRoutePredicateFactory<H
 			this.regexp = regexp;
 			return this;
 		}
+
 	}
+
 }

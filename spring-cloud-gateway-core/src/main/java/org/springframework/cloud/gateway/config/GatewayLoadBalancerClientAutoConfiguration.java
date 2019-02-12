@@ -32,7 +32,8 @@ import org.springframework.web.reactive.DispatcherHandler;
  * @author Spencer Gibb
  */
 @Configuration
-@ConditionalOnClass({ LoadBalancerClient.class, RibbonAutoConfiguration.class, DispatcherHandler.class })
+@ConditionalOnClass({ LoadBalancerClient.class, RibbonAutoConfiguration.class,
+		DispatcherHandler.class })
 @AutoConfigureAfter(RibbonAutoConfiguration.class)
 @EnableConfigurationProperties(LoadBalancerProperties.class)
 public class GatewayLoadBalancerClientAutoConfiguration {
@@ -46,4 +47,5 @@ public class GatewayLoadBalancerClientAutoConfiguration {
 			LoadBalancerProperties properties) {
 		return new LoadBalancerClientFilter(client, properties);
 	}
+
 }

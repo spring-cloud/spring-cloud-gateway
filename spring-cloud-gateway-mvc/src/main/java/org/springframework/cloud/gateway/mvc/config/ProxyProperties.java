@@ -27,6 +27,7 @@ import org.springframework.http.HttpHeaders;
 /**
  * Configuration properties for the {@link ProxyExchange} argument handler in
  * <code>@RequestMapping</code> methods.
+ *
  * @author Dave Syer
  *
  */

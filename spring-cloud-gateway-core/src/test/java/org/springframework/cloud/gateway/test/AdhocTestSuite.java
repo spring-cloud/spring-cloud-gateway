@@ -30,6 +30,7 @@ import static org.junit.Assume.assumeThat;
 
 /**
  * To run this suite in an IDE, set env var GATEWAY_ADHOC_ENABLED=true in test runner.
+ *
  * @author Spencer Gibb
  */
 @RunWith(Suite.class)
@@ -121,8 +122,7 @@ import static org.junit.Assume.assumeThat;
 		org.springframework.cloud.gateway.test.WebfluxNotIncludedTests.class,
 		org.springframework.cloud.gateway.test.HttpStatusTests.class,
 		org.springframework.cloud.gateway.test.GatewayIntegrationTests.class,
-		org.springframework.cloud.gateway.test.sse.SseIntegrationTests.class
-})
+		org.springframework.cloud.gateway.test.sse.SseIntegrationTests.class })
 public class AdhocTestSuite {
 
 	@ClassRule
@@ -132,11 +132,12 @@ public class AdhocTestSuite {
 
 		@Override
 		public Statement apply(Statement base, Description description) {
-			assumeThat("Adhoc Tests ignored",
-					System.getenv("GATEWAY_ADHOC_ENABLED"),
+			assumeThat("Adhoc Tests ignored", System.getenv("GATEWAY_ADHOC_ENABLED"),
 					is(equalTo("true")));
 
 			return base;
 		}
+
 	}
+
 }

@@ -36,12 +36,15 @@ import org.springframework.web.reactive.DispatcherHandler;
 @AutoConfigureBefore(HttpHandlerAutoConfiguration.class)
 @AutoConfigureAfter({ MetricsAutoConfiguration.class,
 		CompositeMeterRegistryAutoConfiguration.class })
-@ConditionalOnClass({ DispatcherHandler.class, MeterRegistry.class, MetricsAutoConfiguration.class })
+@ConditionalOnClass({ DispatcherHandler.class, MeterRegistry.class,
+		MetricsAutoConfiguration.class })
 public class GatewayMetricsAutoConfiguration {
+
 	@Bean
 	@ConditionalOnBean(MeterRegistry.class)
 	@ConditionalOnProperty(name = "spring.cloud.gateway.metrics.enabled", matchIfMissing = true)
 	public GatewayMetricsFilter gatewayMetricFilter(MeterRegistry meterRegistry) {
 		return new GatewayMetricsFilter(meterRegistry);
 	}
+
 }

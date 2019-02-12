@@ -49,16 +49,22 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.W
 /**
  * @author Spencer Gibb
  */
-public class WeightCalculatorWebFilter implements WebFilter, Ordered, SmartApplicationListener {
+public class WeightCalculatorWebFilter
+		implements WebFilter, Ordered, SmartApplicationListener {
 
 	/**
 	 * Order of Weight Calculator Web filter.
 	 */
 	public static final int WEIGHT_CALC_FILTER_ORDER = 10001;
+
 	private static final Log log = LogFactory.getLog(WeightCalculatorWebFilter.class);
+
 	private final Validator validator;
+
 	private final ObjectProvider<RouteLocator> routeLocator;
+
 	private Random random = new Random();
+
 	private int order = WEIGHT_CALC_FILTER_ORDER;
 
 	private Map<String, GroupWeightConfig> groupWeights = new ConcurrentHashMap<>();
@@ -72,7 +78,8 @@ public class WeightCalculatorWebFilter implements WebFilter, Ordered, SmartAppli
 		this(validator, null);
 	}
 
-	public WeightCalculatorWebFilter(Validator validator, ObjectProvider<RouteLocator> routeLocator) {
+	public WeightCalculatorWebFilter(Validator validator,
+			ObjectProvider<RouteLocator> routeLocator) {
 		this.validator = validator;
 		this.routeLocator = routeLocator;
 	}
@@ -104,9 +111,9 @@ public class WeightCalculatorWebFilter implements WebFilter, Ordered, SmartAppli
 	@Override
 	public boolean supportsEventType(Class<? extends ApplicationEvent> eventType) {
 		return PredicateArgsEvent.class.isAssignableFrom(eventType) || // config file
-				WeightDefinedEvent.class.isAssignableFrom(eventType) ||  // java dsl
-				RefreshRoutesEvent.class
-						.isAssignableFrom(eventType); // force initialization
+				WeightDefinedEvent.class.isAssignableFrom(eventType) || // java dsl
+				RefreshRoutesEvent.class.isAssignableFrom(eventType); // force
+																		// initialization
 	}
 
 	@Override
@@ -123,8 +130,8 @@ public class WeightCalculatorWebFilter implements WebFilter, Ordered, SmartAppli
 			addWeightConfig(((WeightDefinedEvent) event).getWeightConfig());
 		}
 		else if (event instanceof RefreshRoutesEvent && routeLocator != null) {
-			routeLocator.ifAvailable(locator -> locator.getRoutes()
-					.subscribe()); // forces initialization
+			routeLocator.ifAvailable(locator -> locator.getRoutes().subscribe()); // forces
+																					// initialization
 		}
 
 	}
@@ -138,8 +145,8 @@ public class WeightCalculatorWebFilter implements WebFilter, Ordered, SmartAppli
 
 		WeightConfig config = new WeightConfig(event.getRouteId());
 
-		ConfigurationUtils.bind(config, args,
-				WeightConfig.CONFIG_PREFIX, WeightConfig.CONFIG_PREFIX, validator);
+		ConfigurationUtils.bind(config, args, WeightConfig.CONFIG_PREFIX,
+				WeightConfig.CONFIG_PREFIX, validator);
 
 		addWeightConfig(config);
 	}
@@ -159,7 +166,7 @@ public class WeightCalculatorWebFilter implements WebFilter, Ordered, SmartAppli
 		GroupWeightConfig config = c;
 		config.weights.put(weightConfig.getRouteId(), weightConfig.getWeight());
 
-		//recalculate
+		// recalculate
 
 		// normalize weights
 		int weightsSum = config.weights.values().stream().mapToInt(Integer::intValue)
@@ -174,7 +181,7 @@ public class WeightCalculatorWebFilter implements WebFilter, Ordered, SmartAppli
 			config.rangeIndexes.put(index.getAndIncrement(), routeId);
 		});
 
-		//TODO: calculate ranges
+		// TODO: calculate ranges
 		config.ranges.clear();
 
 		config.ranges.add(0.0);
@@ -215,7 +222,8 @@ public class WeightCalculatorWebFilter implements WebFilter, Ordered, SmartAppli
 			List<Double> ranges = config.ranges;
 
 			if (log.isTraceEnabled()) {
-				log.trace("Weight for group: " + group + ", ranges: " + ranges + ", r: " + r);
+				log.trace("Weight for group: " + group + ", ranges: " + ranges + ", r: "
+						+ r);
 			}
 
 			for (int i = 0; i < ranges.size() - 1; i++) {
@@ -235,6 +243,7 @@ public class WeightCalculatorWebFilter implements WebFilter, Ordered, SmartAppli
 	}
 
 	/* for testing */ static class GroupWeightConfig {
+
 		String group;
 
 		LinkedHashMap<String, Integer> weights = new LinkedHashMap<>();
@@ -242,6 +251,7 @@ public class WeightCalculatorWebFilter implements WebFilter, Ordered, SmartAppli
 		LinkedHashMap<String, Double> normalizedWeights = new LinkedHashMap<>();
 
 		LinkedHashMap<Integer, String> rangeIndexes = new LinkedHashMap<>();
+
 		List<Double> ranges = new ArrayList<>();
 
 		GroupWeightConfig(String group) {
@@ -250,13 +260,12 @@ public class WeightCalculatorWebFilter implements WebFilter, Ordered, SmartAppli
 
 		@Override
 		public String toString() {
-			return new ToStringCreator(this)
-					.append("group", group)
+			return new ToStringCreator(this).append("group", group)
 					.append("weights", weights)
 					.append("normalizedWeights", normalizedWeights)
-					.append("rangeIndexes", rangeIndexes)
-					.toString();
+					.append("rangeIndexes", rangeIndexes).toString();
 		}
+
 	}
 
 }

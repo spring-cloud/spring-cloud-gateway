@@ -59,12 +59,14 @@ public class RouteBuilderTests {
 				.expectNextMatches(
 						r -> r.getId().equals("test2") && r.getFilters().size() == 1
 								&& r.getUri()
-								.equals(URI.create("https://httpbin.org:9090")))
+										.equals(URI.create("https://httpbin.org:9090")))
 				.expectComplete().verify();
 	}
 
 	@EnableAutoConfiguration
 	@Configuration
 	public static class SpringConfig {
+
 	}
+
 }

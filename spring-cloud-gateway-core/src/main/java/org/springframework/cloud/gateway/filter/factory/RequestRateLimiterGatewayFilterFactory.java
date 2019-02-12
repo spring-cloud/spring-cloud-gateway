@@ -33,19 +33,23 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.s
  * User Request Rate Limiter filter. See https://stripe.com/blog/rate-limiters and
  */
 @ConfigurationProperties("spring.cloud.gateway.filter.request-rate-limiter")
-public class RequestRateLimiterGatewayFilterFactory
-		extends AbstractGatewayFilterFactory<RequestRateLimiterGatewayFilterFactory.Config> {
+public class RequestRateLimiterGatewayFilterFactory extends
+		AbstractGatewayFilterFactory<RequestRateLimiterGatewayFilterFactory.Config> {
 
 	/**
 	 * Key-Resolver key.
 	 */
 	public static final String KEY_RESOLVER_KEY = "keyResolver";
+
 	private static final String EMPTY_KEY = "____EMPTY_KEY__";
 
 	private final RateLimiter defaultRateLimiter;
+
 	private final KeyResolver defaultKeyResolver;
 
-	/** Switch to deny requests if the Key Resolver returns an empty key, defaults to true. */
+	/**
+	 * Switch to deny requests if the Key Resolver returns an empty key, defaults to true.
+	 */
 	private boolean denyEmptyKey = true;
 
 	/** HttpStatus to return when denyEmptyKey is true, defaults to FORBIDDEN. */
@@ -86,7 +90,8 @@ public class RequestRateLimiterGatewayFilterFactory
 	@Override
 	public GatewayFilter apply(Config config) {
 		KeyResolver resolver = getOrDefault(config.keyResolver, defaultKeyResolver);
-		RateLimiter<Object> limiter = getOrDefault(config.rateLimiter, defaultRateLimiter);
+		RateLimiter<Object> limiter = getOrDefault(config.rateLimiter,
+				defaultRateLimiter);
 		boolean denyEmpty = getOrDefault(config.denyEmptyKey, this.denyEmptyKey);
 		HttpStatusHolder emptyKeyStatus = HttpStatusHolder
 				.parse(getOrDefault(config.emptyKeyStatus, this.emptyKeyStatusCode));
@@ -107,8 +112,8 @@ public class RequestRateLimiterGatewayFilterFactory
 
 					for (Map.Entry<String, String> header : response.getHeaders()
 							.entrySet()) {
-						exchange.getResponse().getHeaders()
-								.add(header.getKey(), header.getValue());
+						exchange.getResponse().getHeaders().add(header.getKey(),
+								header.getValue());
 					}
 
 					if (response.isAllowed()) {
@@ -127,10 +132,15 @@ public class RequestRateLimiterGatewayFilterFactory
 	}
 
 	public static class Config {
+
 		private KeyResolver keyResolver;
+
 		private RateLimiter rateLimiter;
+
 		private HttpStatus statusCode = HttpStatus.TOO_MANY_REQUESTS;
+
 		private Boolean denyEmptyKey;
+
 		private String emptyKeyStatus;
 
 		public KeyResolver getKeyResolver() {
@@ -177,6 +187,7 @@ public class RequestRateLimiterGatewayFilterFactory
 			this.emptyKeyStatus = emptyKeyStatus;
 			return this;
 		}
+
 	}
 
 }

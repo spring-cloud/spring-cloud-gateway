@@ -47,19 +47,14 @@ public class GatewayControllerEndpointTests {
 
 	@Test
 	public void testRefresh() {
-		testClient.post()
-				.uri("http://localhost:" + port + "/actuator/gateway/refresh")
-				.exchange()
-				.expectStatus().isOk();
+		testClient.post().uri("http://localhost:" + port + "/actuator/gateway/refresh")
+				.exchange().expectStatus().isOk();
 	}
 
 	@Test
 	public void testRoutes() {
-		testClient.get()
-				.uri("http://localhost:" + port + "/actuator/gateway/routes")
-				.exchange()
-				.expectStatus().isOk()
-				.expectBodyList(Map.class)
+		testClient.get().uri("http://localhost:" + port + "/actuator/gateway/routes")
+				.exchange().expectStatus().isOk().expectBodyList(Map.class)
 				.consumeWith(result -> {
 					List<Map> responseBody = result.getResponseBody();
 					assertThat(responseBody).isNotEmpty();
@@ -72,4 +67,5 @@ public class GatewayControllerEndpointTests {
 	static class TestConfig {
 
 	}
+
 }

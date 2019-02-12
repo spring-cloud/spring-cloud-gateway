@@ -75,4 +75,5 @@ public class CloudFoundryRouteServiceRoutePredicateFactoryTest {
 
 		assertThat(predicate.test(exchange)).isFalse();
 	}
+
 }

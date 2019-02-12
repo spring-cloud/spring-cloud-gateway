@@ -36,4 +36,5 @@ public class PropertiesRouteDefinitionLocator implements RouteDefinitionLocator 
 	public Flux<RouteDefinition> getRouteDefinitions() {
 		return Flux.fromIterable(this.properties.getRoutes());
 	}
+
 }

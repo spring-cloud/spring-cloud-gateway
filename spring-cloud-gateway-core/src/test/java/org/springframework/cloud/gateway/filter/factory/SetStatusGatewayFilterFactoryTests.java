@@ -56,28 +56,24 @@ public class SetStatusGatewayFilterFactoryTests extends BaseWebClientTests {
 	}
 
 	private void setStatusStringTest(String host, HttpStatus status) {
-		testClient.get()
-				.uri("/headers")
-				.header("Host", host)
-				.exchange()
-				.expectStatus().isEqualTo(status);
+		testClient.get().uri("/headers").header("Host", host).exchange().expectStatus()
+				.isEqualTo(status);
 	}
 
 	@Test
 	public void nonStandardCodeWorks() {
 		HttpHeaders headers = new HttpHeaders();
 		headers.set(HttpHeaders.HOST, "www.setcustomstatus.org");
-		ResponseEntity<String> response = new TestRestTemplate()
-				.exchange(baseUri + "/headers",
-						HttpMethod.GET, new HttpEntity<>(headers), String.class);
+		ResponseEntity<String> response = new TestRestTemplate().exchange(
+				baseUri + "/headers", HttpMethod.GET, new HttpEntity<>(headers),
+				String.class);
 		assertThat(response.getStatusCodeValue()).isEqualTo(432);
 
 		// https://jira.spring.io/browse/SPR-16748
-		/*testClient.get()
-				.uri("/status/432")
-				.exchange()
-				.expectStatus().isEqualTo(432)
-				.expectBody(String.class).isEqualTo("Failed with 432");*/
+		/*
+		 * testClient.get() .uri("/status/432") .exchange() .expectStatus().isEqualTo(432)
+		 * .expectBody(String.class).isEqualTo("Failed with 432");
+		 */
 	}
 
 	@EnableAutoConfiguration
@@ -92,10 +88,10 @@ public class SetStatusGatewayFilterFactoryTests extends BaseWebClientTests {
 		public RouteLocator myRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes()
 					.route("test_custom_http_status", r -> r.host("*.setcustomstatus.org")
-							.filters(f -> f.setStatus(432))
-							.uri(uri))
+							.filters(f -> f.setStatus(432)).uri(uri))
 					.build();
 		}
+
 	}
 
 }

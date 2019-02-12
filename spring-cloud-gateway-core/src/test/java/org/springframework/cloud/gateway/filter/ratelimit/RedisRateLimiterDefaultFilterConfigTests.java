@@ -49,8 +49,8 @@ public class RedisRateLimiterDefaultFilterConfigTests {
 
 	@Before
 	public void init() {
-		routeLocator.getRoutes().collectList()
-				.block(); // prime routes since getRoutes() no longer blocks
+		routeLocator.getRoutes().collectList().block(); // prime routes since getRoutes()
+														// no longer blocks
 	}
 
 	@Test
@@ -60,7 +60,8 @@ public class RedisRateLimiterDefaultFilterConfigTests {
 		assertConfigAndRoute(routeId, 70, 80, config);
 	}
 
-	private void assertConfigAndRoute(String key, int replenishRate, int burstCapacity, RedisRateLimiter.Config config) {
+	private void assertConfigAndRoute(String key, int replenishRate, int burstCapacity,
+			RedisRateLimiter.Config config) {
 		assertThat(config).isNotNull();
 		assertThat(config.getReplenishRate()).isEqualTo(replenishRate);
 		assertThat(config.getBurstCapacity()).isEqualTo(burstCapacity);
@@ -74,5 +75,7 @@ public class RedisRateLimiterDefaultFilterConfigTests {
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	public static class TestConfig {
+
 	}
+
 }

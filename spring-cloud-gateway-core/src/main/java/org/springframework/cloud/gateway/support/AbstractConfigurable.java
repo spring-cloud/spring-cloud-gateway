@@ -20,6 +20,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.core.style.ToStringCreator;
 
 public abstract class AbstractConfigurable<C> implements Configurable<C> {
+
 	private Class<C> configClass;
 
 	protected AbstractConfigurable(Class<C> configClass) {
@@ -37,8 +38,7 @@ public abstract class AbstractConfigurable<C> implements Configurable<C> {
 
 	@Override
 	public String toString() {
-		return new ToStringCreator(this)
-				.append("configClass", configClass)
-				.toString();
+		return new ToStringCreator(this).append("configClass", configClass).toString();
 	}
+
 }

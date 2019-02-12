@@ -23,6 +23,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  */
 @ConfigurationProperties("spring.cloud.gateway.loadbalancer")
 public class LoadBalancerProperties {
+
 	private boolean use404;
 
 	public boolean isUse404() {
@@ -32,4 +33,5 @@ public class LoadBalancerProperties {
 	public void setUse404(boolean use404) {
 		this.use404 = use404;
 	}
+
 }

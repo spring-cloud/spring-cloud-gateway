@@ -34,8 +34,7 @@ public interface HttpHeadersFilter {
 		HttpHeaders response = input;
 		if (filters != null) {
 			HttpHeaders reduce = filters.stream()
-					.filter(headersFilter -> headersFilter.supports(type))
-					.reduce(input,
+					.filter(headersFilter -> headersFilter.supports(type)).reduce(input,
 							(headers, filter) -> filter.filter(headers, exchange),
 							(httpHeaders, httpHeaders2) -> {
 								httpHeaders.addAll(httpHeaders2);
@@ -49,7 +48,6 @@ public interface HttpHeadersFilter {
 
 	/**
 	 * Filters a set of Http Headers.
-	 *
 	 * @param input Http Headers
 	 * @param exchange a {@link ServerWebExchange} that should be filtered
 	 * @return filtered Http Headers
@@ -61,6 +59,9 @@ public interface HttpHeadersFilter {
 	}
 
 	enum Type {
+
 		REQUEST, RESPONSE
+
 	}
+
 }

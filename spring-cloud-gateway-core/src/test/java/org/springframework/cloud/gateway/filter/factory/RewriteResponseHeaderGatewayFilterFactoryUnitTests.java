@@ -32,15 +32,14 @@ public class RewriteResponseHeaderGatewayFilterFactoryUnitTests {
 
 	@Test
 	public void testRewriteDollarSlash() {
-		assertThat(filterFactory.rewrite(
-				"/foo/bar", "/foo/(?<segment>.*)", "/$\\{segment}/$\\{segment}/42"))
-				.isEqualTo("/bar/bar/42");
+		assertThat(filterFactory.rewrite("/foo/bar", "/foo/(?<segment>.*)",
+				"/$\\{segment}/$\\{segment}/42")).isEqualTo("/bar/bar/42");
 	}
 
 	@Test
 	public void testRewriteMultiple() {
-		assertThat(filterFactory.rewrite(
-				"/foo/bar/wat/bar", "bar", "cafe")).isEqualTo("/foo/cafe/wat/cafe");
+		assertThat(filterFactory.rewrite("/foo/bar/wat/bar", "bar", "cafe"))
+				.isEqualTo("/foo/cafe/wat/cafe");
 	}
 
 }

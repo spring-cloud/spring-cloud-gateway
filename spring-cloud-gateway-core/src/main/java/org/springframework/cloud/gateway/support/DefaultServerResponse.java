@@ -38,7 +38,6 @@ import org.springframework.web.server.ServerWebExchange;
 
 public class DefaultServerResponse<T> implements ServerResponse {
 
-
 	private final ServerWebExchange exchange;
 
 	private final BodyInserter<T, ? super ServerHttpResponse> inserter;
@@ -60,7 +59,7 @@ public class DefaultServerResponse<T> implements ServerResponse {
 
 	@Override
 	public final HttpStatus statusCode() {
-		//TODO: non standard status code
+		// TODO: non standard status code
 		return HttpStatus.valueOf(response().getStatusCode().value());
 	}
 
@@ -94,8 +93,8 @@ public class DefaultServerResponse<T> implements ServerResponse {
 		});
 	}
 
-
-	public static class HandlerStrategiesResponseContext implements ServerResponse.Context {
+	public static class HandlerStrategiesResponseContext
+			implements ServerResponse.Context {
 
 		private HandlerStrategies strategies = HandlerStrategies.withDefaults();
 
@@ -115,5 +114,7 @@ public class DefaultServerResponse<T> implements ServerResponse {
 		public List<ViewResolver> viewResolvers() {
 			return this.strategies.viewResolvers();
 		}
+
 	}
+
 }

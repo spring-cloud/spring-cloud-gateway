@@ -49,11 +49,9 @@ public class HttpStatusTests extends BaseWebClientTests {
 
 	@Test
 	public void notFoundResponseWorks() {
-		testClient.get()
-				.uri("/status/404")
-				.exchange()
-				.expectStatus().isEqualTo(HttpStatus.NOT_FOUND)
-				.expectBody(String.class).isEqualTo("Failed with 404");
+		testClient.get().uri("/status/404").exchange().expectStatus()
+				.isEqualTo(HttpStatus.NOT_FOUND).expectBody(String.class)
+				.isEqualTo("Failed with 404");
 	}
 
 	@Test
@@ -63,34 +61,27 @@ public class HttpStatusTests extends BaseWebClientTests {
 		assertThat(response.getStatusCodeValue()).isEqualTo(432);
 		assertThat(response.getBody()).isEqualTo("Failed with 432");
 
-
-		/*testClient.get()
-				.uri("/status/432")
-				.exchange()
-				.expectStatus().isEqualTo(432)
-				.expectBody(String.class).isEqualTo("Failed with 432");*/
+		/*
+		 * testClient.get() .uri("/status/432") .exchange() .expectStatus().isEqualTo(432)
+		 * .expectBody(String.class).isEqualTo("Failed with 432");
+		 */
 	}
 
 	@Test
 	public void serverErrorResponseWorks() {
-		testClient.get()
-				.uri("/status/500")
-				.exchange()
-				.expectStatus().isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR)
-				.expectBody(String.class).isEqualTo("Failed with 500");
+		testClient.get().uri("/status/500").exchange().expectStatus()
+				.isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR).expectBody(String.class)
+				.isEqualTo("Failed with 500");
 	}
 
 	@Test
 	public void normalErrorPageWorks() {
-		testClient.get()
-				.uri("/exception")
-				.exchange()
-				.expectStatus().isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR)
-				.expectBody(Map.class).consumeWith(result -> {
-			assertThat(result.getResponseBody())
-					.hasSize(5)
-					.containsKeys("timestamp", "path", "status", "error", "message");
-		});
+		testClient.get().uri("/exception").exchange().expectStatus()
+				.isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR).expectBody(Map.class)
+				.consumeWith(result -> {
+					assertThat(result.getResponseBody()).hasSize(5).containsKeys(
+							"timestamp", "path", "status", "error", "message");
+				});
 	}
 
 	@EnableAutoConfiguration

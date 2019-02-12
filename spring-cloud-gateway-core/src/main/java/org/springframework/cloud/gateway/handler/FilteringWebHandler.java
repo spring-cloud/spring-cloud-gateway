@@ -46,6 +46,7 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.G
  * @since 0.1
  */
 public class FilteringWebHandler implements WebHandler {
+
 	protected static final Log logger = LogFactory.getLog(FilteringWebHandler.class);
 
 	private final List<GatewayFilter> globalFilters;
@@ -55,21 +56,19 @@ public class FilteringWebHandler implements WebHandler {
 	}
 
 	private static List<GatewayFilter> loadFilters(List<GlobalFilter> filters) {
-		return filters.stream()
-				.map(filter -> {
-					GatewayFilterAdapter gatewayFilter = new GatewayFilterAdapter(filter);
-					if (filter instanceof Ordered) {
-						int order = ((Ordered) filter).getOrder();
-						return new OrderedGatewayFilter(gatewayFilter, order);
-					}
-					return gatewayFilter;
-				}).collect(Collectors.toList());
+		return filters.stream().map(filter -> {
+			GatewayFilterAdapter gatewayFilter = new GatewayFilterAdapter(filter);
+			if (filter instanceof Ordered) {
+				int order = ((Ordered) filter).getOrder();
+				return new OrderedGatewayFilter(gatewayFilter, order);
+			}
+			return gatewayFilter;
+		}).collect(Collectors.toList());
 	}
 
 	/*
-	TODO: relocate @EventListener(RefreshRoutesEvent.class)
-	void handleRefresh() {
-    this.combinedFiltersForRoute.clear();
+	 * TODO: relocate @EventListener(RefreshRoutesEvent.class) void handleRefresh() {
+	 * this.combinedFiltersForRoute.clear();
 	 */
 
 	@Override
@@ -79,7 +78,7 @@ public class FilteringWebHandler implements WebHandler {
 
 		List<GatewayFilter> combined = new ArrayList<>(this.globalFilters);
 		combined.addAll(gatewayFilters);
-		//TODO: needed or cached?
+		// TODO: needed or cached?
 		AnnotationAwareOrderComparator.sort(combined);
 
 		if (logger.isDebugEnabled()) {
@@ -92,6 +91,7 @@ public class FilteringWebHandler implements WebHandler {
 	private static class DefaultGatewayFilterChain implements GatewayFilterChain {
 
 		private final int index;
+
 		private final List<GatewayFilter> filters;
 
 		DefaultGatewayFilterChain(List<GatewayFilter> filters) {
@@ -113,7 +113,8 @@ public class FilteringWebHandler implements WebHandler {
 			return Mono.defer(() -> {
 				if (this.index < filters.size()) {
 					GatewayFilter filter = filters.get(this.index);
-					DefaultGatewayFilterChain chain = new DefaultGatewayFilterChain(this, this.index + 1);
+					DefaultGatewayFilterChain chain = new DefaultGatewayFilterChain(this,
+							this.index + 1);
 					return filter.filter(exchange, chain);
 				}
 				else {
@@ -121,6 +122,7 @@ public class FilteringWebHandler implements WebHandler {
 				}
 			});
 		}
+
 	}
 
 	private static class GatewayFilterAdapter implements GatewayFilter {
@@ -143,6 +145,7 @@ public class FilteringWebHandler implements WebHandler {
 			sb.append('}');
 			return sb.toString();
 		}
+
 	}
 
 }

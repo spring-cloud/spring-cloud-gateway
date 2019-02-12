@@ -57,6 +57,7 @@
 		<embedded-redis.version>0.6</embedded-redis.version>
 		<maven-checkstyle-plugin.includeTestSourceDirectory>true
 		</maven-checkstyle-plugin.includeTestSourceDirectory>
+		<maven-checkstyle-plugin.failsOnError>true</maven-checkstyle-plugin.failsOnError>
 		<maven-checkstyle-plugin.failOnViolation>true
 		</maven-checkstyle-plugin.failOnViolation>
 	</properties>
@@ -138,6 +139,19 @@
 		<module>docs</module>
 	</modules>
 
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>io.spring.javaformat</groupId>
+				<artifactId>spring-javaformat-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-checkstyle-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+
 	<profiles>
 		<profile>
 			<id>spring</id>
@@ -204,14 +218,6 @@
 			<id>sonar</id>
 			<build>
 				<plugins>
-					<plugin>
-						<groupId>io.spring.javaformat</groupId>
-						<artifactId>spring-javaformat-maven-plugin</artifactId>
-					</plugin>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-checkstyle-plugin</artifactId>
-					</plugin>
 					<plugin>
 						<groupId>org.jacoco</groupId>
 						<artifactId>jacoco-maven-plugin</artifactId>

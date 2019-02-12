@@ -36,4 +36,5 @@ public class PreserveHostHeaderGatewayFilterFactory extends AbstractGatewayFilte
 			return chain.filter(exchange);
 		};
 	}
+
 }

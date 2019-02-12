@@ -67,7 +67,8 @@ public class RouteDefinitionRouteLocatorTests {
 
 		RouteDefinitionRouteLocator routeDefinitionRouteLocator = new RouteDefinitionRouteLocator(
 				new PropertiesRouteDefinitionLocator(gatewayProperties), predicates,
-				gatewayFilterFactories, gatewayProperties, new DefaultConversionService());
+				gatewayFilterFactories, gatewayProperties,
+				new DefaultConversionService());
 
 		List<Route> routes = routeDefinitionRouteLocator.getRoutes().collectList()
 				.block();
@@ -89,10 +90,13 @@ public class RouteDefinitionRouteLocatorTests {
 	}
 
 	static class TestOrderedGatewayFilterFactory extends AbstractGatewayFilterFactory {
+
 		@Override
 		public GatewayFilter apply(Object config) {
 			return new OrderedGatewayFilter((exchange, chain) -> chain.filter(exchange),
 					9999);
 		}
+
 	}
+
 }

@@ -29,14 +29,13 @@ public class CachingRouteLocatorTests {
 	public void getRoutesWorks() {
 		Route route1 = route(1);
 		Route route2 = route(2);
-		CachingRouteLocator locator = new CachingRouteLocator(() -> Flux
-				.just(route2, route1));
+		CachingRouteLocator locator = new CachingRouteLocator(
+				() -> Flux.just(route2, route1));
 
 		List<Route> routes = locator.getRoutes().collectList().block();
 
 		assertThat(routes).containsExactly(route1, route2);
 	}
-
 
 	@Test
 	public void refreshWorks() {
@@ -62,9 +61,8 @@ public class CachingRouteLocatorTests {
 	}
 
 	Route route(int id) {
-		return Route.async().id(String.valueOf(id))
-				.uri("http://localhost/" + id)
-				.order(id)
-				.predicate(exchange -> true).build();
+		return Route.async().id(String.valueOf(id)).uri("http://localhost/" + id)
+				.order(id).predicate(exchange -> true).build();
 	}
+
 }

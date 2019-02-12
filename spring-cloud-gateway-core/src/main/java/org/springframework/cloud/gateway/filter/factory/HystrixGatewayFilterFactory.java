@@ -52,18 +52,23 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.H
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.containsEncodedParts;
 
 /**
- * Depends on `spring-cloud-starter-netflix-hystrix`, {@see http://cloud.spring.io/spring-cloud-netflix/}.
+ * Depends on `spring-cloud-starter-netflix-hystrix`,
+ * {@see http://cloud.spring.io/spring-cloud-netflix/}.
+ *
  * @author Spencer Gibb
  * @author Michele Mancioppi
  * @author Olga Maciaszek-Sharma
  */
-public class HystrixGatewayFilterFactory extends AbstractGatewayFilterFactory<HystrixGatewayFilterFactory.Config> {
+public class HystrixGatewayFilterFactory
+		extends AbstractGatewayFilterFactory<HystrixGatewayFilterFactory.Config> {
 
 	private final ObjectProvider<DispatcherHandler> dispatcherHandlerProvider;
-	//do not use this dispatcherHandler directly, use getDispatcherHandler() instead.
+
+	// do not use this dispatcherHandler directly, use getDispatcherHandler() instead.
 	private volatile DispatcherHandler dispatcherHandler;
 
-	public HystrixGatewayFilterFactory(ObjectProvider<DispatcherHandler> dispatcherHandlerProvider) {
+	public HystrixGatewayFilterFactory(
+			ObjectProvider<DispatcherHandler> dispatcherHandlerProvider) {
 		super(Config.class);
 		this.dispatcherHandlerProvider = dispatcherHandlerProvider;
 	}
@@ -94,23 +99,25 @@ public class HystrixGatewayFilterFactory extends AbstractGatewayFilterFactory<Hy
 
 	@Override
 	public GatewayFilter apply(Config config) {
-		//TODO: if no name is supplied, generate one from command id (useful for default filter)
+		// TODO: if no name is supplied, generate one from command id (useful for default
+		// filter)
 		if (config.setter == null) {
-			Assert.notNull(config.name, "A name must be supplied for the Hystrix Command Key");
+			Assert.notNull(config.name,
+					"A name must be supplied for the Hystrix Command Key");
 			HystrixCommandGroupKey groupKey = HystrixCommandGroupKey.Factory
 					.asKey(getClass().getSimpleName());
 			HystrixCommandKey commandKey = HystrixCommandKey.Factory.asKey(config.name);
 
-			config.setter = Setter.withGroupKey(groupKey)
-					.andCommandKey(commandKey);
+			config.setter = Setter.withGroupKey(groupKey).andCommandKey(commandKey);
 		}
 
 		return (exchange, chain) -> {
-			RouteHystrixCommand command = new RouteHystrixCommand(config.setter, config.fallbackUri, exchange, chain);
+			RouteHystrixCommand command = new RouteHystrixCommand(config.setter,
+					config.fallbackUri, exchange, chain);
 
 			return Mono.create(s -> {
-				Subscription sub = command.toObservable()
-						.subscribe(s::success, s::error, s::success);
+				Subscription sub = command.toObservable().subscribe(s::success, s::error,
+						s::success);
 				s.onCancel(sub::unsubscribe);
 			}).onErrorResume((Function<Throwable, Mono<Void>>) throwable -> {
 				if (throwable instanceof HystrixRuntimeException) {
@@ -124,12 +131,13 @@ public class HystrixGatewayFilterFactory extends AbstractGatewayFilterFactory<Hy
 						Throwable cause = e.getCause();
 
 						/*
-						 * We forsake here the null check for cause as HystrixRuntimeException will
-						 * always have a cause if the failure type is COMMAND_EXCEPTION.
+						 * We forsake here the null check for cause as
+						 * HystrixRuntimeException will always have a cause if the failure
+						 * type is COMMAND_EXCEPTION.
 						 */
-						if (cause instanceof ResponseStatusException || AnnotatedElementUtils
-								.findMergedAnnotation(cause
-										.getClass(), ResponseStatus.class) != null) {
+						if (cause instanceof ResponseStatusException
+								|| AnnotatedElementUtils.findMergedAnnotation(
+										cause.getClass(), ResponseStatus.class) != null) {
 							return Mono.error(cause);
 						}
 					}
@@ -143,8 +151,11 @@ public class HystrixGatewayFilterFactory extends AbstractGatewayFilterFactory<Hy
 	}
 
 	public static class Config {
+
 		private String name;
+
 		private Setter setter;
+
 		private URI fallbackUri;
 
 		public String getName() {
@@ -169,7 +180,9 @@ public class HystrixGatewayFilterFactory extends AbstractGatewayFilterFactory<Hy
 
 		public void setFallbackUri(URI fallbackUri) {
 			if (fallbackUri != null && !"forward".equals(fallbackUri.getScheme())) {
-				throw new IllegalArgumentException("Hystrix Filter currently only supports 'forward' URIs, found " + fallbackUri);
+				throw new IllegalArgumentException(
+						"Hystrix Filter currently only supports 'forward' URIs, found "
+								+ fallbackUri);
 			}
 			this.fallbackUri = fallbackUri;
 		}
@@ -178,16 +191,20 @@ public class HystrixGatewayFilterFactory extends AbstractGatewayFilterFactory<Hy
 			this.setter = setter;
 			return this;
 		}
+
 	}
 
-	//TODO: replace with HystrixMonoCommand that we write
+	// TODO: replace with HystrixMonoCommand that we write
 	private class RouteHystrixCommand extends HystrixObservableCommand<Void> {
 
 		private final URI fallbackUri;
+
 		private final ServerWebExchange exchange;
+
 		private final GatewayFilterChain chain;
 
-		RouteHystrixCommand(Setter setter, URI fallbackUri, ServerWebExchange exchange, GatewayFilterChain chain) {
+		RouteHystrixCommand(Setter setter, URI fallbackUri, ServerWebExchange exchange,
+				GatewayFilterChain chain) {
 			super(setter);
 			this.fallbackUri = fallbackUri;
 			this.exchange = exchange;
@@ -205,16 +222,12 @@ public class HystrixGatewayFilterFactory extends AbstractGatewayFilterFactory<Hy
 				return super.resumeWithFallback();
 			}
 
-			//TODO: copied from RouteToRequestUrlFilter
+			// TODO: copied from RouteToRequestUrlFilter
 			URI uri = exchange.getRequest().getURI();
-			//TODO: assume always?
+			// TODO: assume always?
 			boolean encoded = containsEncodedParts(uri);
-			URI requestUrl = UriComponentsBuilder.fromUri(uri)
-					.host(null)
-					.port(null)
-					.uri(this.fallbackUri)
-					.build(encoded)
-					.toUri();
+			URI requestUrl = UriComponentsBuilder.fromUri(uri).host(null).port(null)
+					.uri(this.fallbackUri).build(encoded).toUri();
 			exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, requestUrl);
 			addExceptionDetails();
 
@@ -226,9 +239,10 @@ public class HystrixGatewayFilterFactory extends AbstractGatewayFilterFactory<Hy
 
 		private void addExceptionDetails() {
 			Throwable executionException = getExecutionException();
-			ofNullable(executionException)
-					.ifPresent(exception -> exchange.getAttributes()
-							.put(HYSTRIX_EXECUTION_EXCEPTION_ATTR, exception));
+			ofNullable(executionException).ifPresent(exception -> exchange.getAttributes()
+					.put(HYSTRIX_EXECUTION_EXCEPTION_ATTR, exception));
 		}
+
 	}
+
 }

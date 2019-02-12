@@ -36,10 +36,12 @@ public class ForwardRoutingFilter implements GlobalFilter, Ordered {
 	private static final Log log = LogFactory.getLog(ForwardRoutingFilter.class);
 
 	private final ObjectProvider<DispatcherHandler> dispatcherHandlerProvider;
-	//do not use this dispatcherHandler directly, use getDispatcherHandler() instead.
+
+	// do not use this dispatcherHandler directly, use getDispatcherHandler() instead.
 	private volatile DispatcherHandler dispatcherHandler;
 
-	public ForwardRoutingFilter(ObjectProvider<DispatcherHandler> dispatcherHandlerProvider) {
+	public ForwardRoutingFilter(
+			ObjectProvider<DispatcherHandler> dispatcherHandlerProvider) {
 		this.dispatcherHandlerProvider = dispatcherHandlerProvider;
 	}
 
@@ -66,7 +68,7 @@ public class ForwardRoutingFilter implements GlobalFilter, Ordered {
 		}
 		setAlreadyRouted(exchange);
 
-		//TODO: translate url?
+		// TODO: translate url?
 
 		if (log.isTraceEnabled()) {
 			log.trace("Forwarding to URI: " + requestUrl);
@@ -74,4 +76,5 @@ public class ForwardRoutingFilter implements GlobalFilter, Ordered {
 
 		return this.getDispatcherHandler().handle(exchange);
 	}
+
 }

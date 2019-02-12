@@ -44,4 +44,5 @@ public class RemoveResponseHeaderGatewayFilterFactory
 			exchange.getResponse().getHeaders().remove(config.getName());
 		}));
 	}
+
 }

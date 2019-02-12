@@ -99,23 +99,25 @@ public class HttpClientProperties {
 
 	@Override
 	public String toString() {
-		return new ToStringCreator(this)
-				.append("connectTimeout", connectTimeout)
-				.append("responseTimeout", responseTimeout)
-				.append("pool", pool)
-				.append("proxy", proxy)
-				.append("ssl", ssl)
-				.toString();
+		return new ToStringCreator(this).append("connectTimeout", connectTimeout)
+				.append("responseTimeout", responseTimeout).append("pool", pool)
+				.append("proxy", proxy).append("ssl", ssl).toString();
 	}
 
 	public static class Pool {
 
 		/** Type of pool for HttpClient to use, defaults to ELASTIC. */
 		private PoolType type = PoolType.ELASTIC;
+
 		/** The channel pool map name, defaults to proxy. */
 		private String name = "proxy";
-		/** Only for type FIXED, the maximum number of connections before starting pending acquisition on existing ones. */
+
+		/**
+		 * Only for type FIXED, the maximum number of connections before starting pending
+		 * acquisition on existing ones.
+		 */
 		private Integer maxConnections = ConnectionProvider.DEFAULT_POOL_MAX_CONNECTIONS;
+
 		/** Only for type FIXED, the maximum time in millis to wait for aquiring. */
 		private Long acquireTimeout = ConnectionProvider.DEFAULT_POOL_ACQUIRE_TIMEOUT;
 
@@ -153,15 +155,13 @@ public class HttpClientProperties {
 
 		@Override
 		public String toString() {
-			return "Pool{" +
-					"type=" + type +
-					", name='" + name + '\'' +
-					", maxConnections=" + maxConnections +
-					", acquireTimeout=" + acquireTimeout +
-					'}';
+			return "Pool{" + "type=" + type + ", name='" + name + '\''
+					+ ", maxConnections=" + maxConnections + ", acquireTimeout="
+					+ acquireTimeout + '}';
 		}
 
 		public enum PoolType {
+
 			/**
 			 * Elastic pool type.
 			 */
@@ -176,20 +176,29 @@ public class HttpClientProperties {
 			 * Disabled pool type.
 			 */
 			DISABLED
+
 		}
+
 	}
 
 	public class Proxy {
+
 		/** Hostname for proxy configuration of Netty HttpClient. */
 		private String host;
+
 		/** Port for proxy configuration of Netty HttpClient. */
 		private Integer port;
+
 		/** Username for proxy configuration of Netty HttpClient. */
 		private String username;
+
 		/** Password for proxy configuration of Netty HttpClient. */
 		private String password;
-		/** Regular expression (Java) for a configured list of hosts.
-		 * that should be reached directly, bypassing the proxy */
+
+		/**
+		 * Regular expression (Java) for a configured list of hosts. that should be
+		 * reached directly, bypassing the proxy
+		 */
 		private String nonProxyHostsPattern;
 
 		public String getHost() {
@@ -234,18 +243,19 @@ public class HttpClientProperties {
 
 		@Override
 		public String toString() {
-			return "Proxy{" +
-					"host='" + host + '\'' +
-					", port=" + port +
-					", username='" + username + '\'' +
-					", password='" + password + '\'' +
-					", nonProxyHostsPattern='" + nonProxyHostsPattern + '\'' +
-					'}';
+			return "Proxy{" + "host='" + host + '\'' + ", port=" + port + ", username='"
+					+ username + '\'' + ", password='" + password + '\''
+					+ ", nonProxyHostsPattern='" + nonProxyHostsPattern + '\'' + '}';
 		}
+
 	}
 
 	public class Ssl {
-		/** Installs the netty InsecureTrustManagerFactory. This is insecure and not suitable for production. */
+
+		/**
+		 * Installs the netty InsecureTrustManagerFactory. This is insecure and not
+		 * suitable for production.
+		 */
 		private boolean useInsecureTrustManager = false;
 
 		/** Trusted certificates for verifying the remote endpoint's certificate. */
@@ -254,8 +264,10 @@ public class HttpClientProperties {
 		// use netty default SSL timeouts
 		/** SSL handshake timeout. Default to 10000 ms */
 		private Duration handshakeTimeout = Duration.ofMillis(10000);
+
 		/** SSL close_notify flush timeout. Default to 3000 ms. */
 		private Duration closeNotifyFlushTimeout = Duration.ofMillis(3000);
+
 		/** SSL close_notify read timeout. Default to 0 ms. */
 		private Duration closeNotifyReadTimeout = Duration.ZERO;
 
@@ -295,7 +307,7 @@ public class HttpClientProperties {
 			}
 		}
 
-		//TODO: support configuration of other trust manager factories
+		// TODO: support configuration of other trust manager factories
 
 		public boolean isUseInsecureTrustManager() {
 			return useInsecureTrustManager;
@@ -366,7 +378,8 @@ public class HttpClientProperties {
 			return defaultConfigurationType;
 		}
 
-		public void setDefaultConfigurationType(SslProvider.DefaultConfigurationType defaultConfigurationType) {
+		public void setDefaultConfigurationType(
+				SslProvider.DefaultConfigurationType defaultConfigurationType) {
 			this.defaultConfigurationType = defaultConfigurationType;
 		}
 
@@ -381,5 +394,7 @@ public class HttpClientProperties {
 					.append("defaultConfigurationType", defaultConfigurationType)
 					.toString();
 		}
+
 	}
+
 }

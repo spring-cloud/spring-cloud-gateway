@@ -53,7 +53,8 @@ public class CorsTests extends BaseWebClientTests {
 		assertThat(bodyToMono.block()).isNull();
 		assertThat(asHttpHeaders.getAccessControlAllowOrigin())
 				.as("Missing header value in response: "
-						+ HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN).isEqualTo("*");
+						+ HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN)
+				.isEqualTo("*");
 		assertThat(asHttpHeaders.getAccessControlAllowMethods())
 				.as("Missing header value in response: "
 						+ HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS)
@@ -72,7 +73,8 @@ public class CorsTests extends BaseWebClientTests {
 		assertThat(bodyToMono.block()).isNotNull();
 		assertThat(asHttpHeaders.getAccessControlAllowOrigin())
 				.as("Missing header value in response: "
-						+ HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN).isEqualTo("*");
+						+ HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN)
+				.isEqualTo("*");
 		assertThat(clientResponse.statusCode()).as("CORS request failed.")
 				.isEqualTo(HttpStatus.OK);
 	}

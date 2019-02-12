@@ -64,12 +64,11 @@ import org.springframework.web.util.UriComponentsBuilder;
  */
 public class DefaultServerRequest implements ServerRequest {
 
-	private static final Function<UnsupportedMediaTypeException, UnsupportedMediaTypeStatusException> ERROR_MAPPER =
-			ex -> (ex.getContentType() != null ?
-					new UnsupportedMediaTypeStatusException(ex.getContentType(), ex
-							.getSupportedMediaTypes()) :
-					new UnsupportedMediaTypeStatusException(ex.getMessage()));
-
+	private static final Function<UnsupportedMediaTypeException, UnsupportedMediaTypeStatusException> ERROR_MAPPER = ex -> (ex
+			.getContentType() != null
+					? new UnsupportedMediaTypeStatusException(ex.getContentType(),
+							ex.getSupportedMediaTypes())
+					: new UnsupportedMediaTypeStatusException(ex.getMessage()));
 
 	private final ServerWebExchange exchange;
 
@@ -81,13 +80,13 @@ public class DefaultServerRequest implements ServerRequest {
 		this(exchange, HandlerStrategies.withDefaults().messageReaders());
 	}
 
-	public DefaultServerRequest(ServerWebExchange exchange, List<HttpMessageReader<?>> messageReaders) {
+	public DefaultServerRequest(ServerWebExchange exchange,
+			List<HttpMessageReader<?>> messageReaders) {
 		this.exchange = exchange;
 		this.messageReaders = Collections
 				.unmodifiableList(new ArrayList<>(messageReaders));
 		this.headers = new DefaultHeaders();
 	}
-
 
 	@Override
 	public String methodName() {
@@ -135,24 +134,24 @@ public class DefaultServerRequest implements ServerRequest {
 	}
 
 	@Override
-	public <T> T body(BodyExtractor<T, ? super ServerHttpRequest> extractor, Map<String, Object> hints) {
-		return extractor.extract(request(),
-				new BodyExtractor.Context() {
-					@Override
-					public List<HttpMessageReader<?>> messageReaders() {
-						return messageReaders;
-					}
+	public <T> T body(BodyExtractor<T, ? super ServerHttpRequest> extractor,
+			Map<String, Object> hints) {
+		return extractor.extract(request(), new BodyExtractor.Context() {
+			@Override
+			public List<HttpMessageReader<?>> messageReaders() {
+				return messageReaders;
+			}
 
-					@Override
-					public Optional<ServerHttpResponse> serverResponse() {
-						return Optional.of(exchange().getResponse());
-					}
+			@Override
+			public Optional<ServerHttpResponse> serverResponse() {
+				return Optional.of(exchange().getResponse());
+			}
 
-					@Override
-					public Map<String, Object> hints() {
-						return hints;
-					}
-				});
+			@Override
+			public Map<String, Object> hints() {
+				return hints;
+			}
+		});
 	}
 
 	@Override
@@ -228,7 +227,6 @@ public class DefaultServerRequest implements ServerRequest {
 		return String.format("%s %s", method(), path());
 	}
 
-
 	private class DefaultHeaders implements Headers {
 
 		private HttpHeaders delegate() {
@@ -286,8 +284,8 @@ public class DefaultServerRequest implements ServerRequest {
 		public String toString() {
 			return delegate().toString();
 		}
-	}
 
+	}
 
 	private final class ServerRequestAdapter implements HttpRequest {
 
@@ -305,6 +303,7 @@ public class DefaultServerRequest implements ServerRequest {
 		public HttpHeaders getHeaders() {
 			return request().getHeaders();
 		}
+
 	}
 
 }

@@ -44,8 +44,8 @@ public class BetweenRoutePredicateFactoryTests {
 
 		ApplicationConversionService conversionService = new ApplicationConversionService();
 		conversionService.addConverter(new StringToZonedDateTimeConverter());
-		ConfigurationUtils
-				.bind(config, properties, "", "myname", null, conversionService);
+		ConfigurationUtils.bind(config, properties, "", "myname", null,
+				conversionService);
 		return config;
 	}
 
@@ -159,4 +159,5 @@ public class BetweenRoutePredicateFactoryTests {
 
 		return factory.apply(config).test(getExchange());
 	}
+
 }

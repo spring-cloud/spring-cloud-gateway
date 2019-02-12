@@ -44,17 +44,20 @@ import static org.springframework.cloud.gateway.filter.factory.RewritePathGatewa
 import static org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory.PATTERN_KEY;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = DiscoveryClientRouteDefinitionLocatorTests.Config.class,
-		properties = { "spring.cloud.gateway.discovery.locator.enabled=true",
-				"spring.cloud.gateway.discovery.locator.route-id-prefix=testedge_",
-				"spring.cloud.gateway.discovery.locator.include-expression=metadata['edge'] == 'true'",
-				"spring.cloud.gateway.discovery.locator.lower-case-service-id=true"
-				/*"spring.cloud.gateway.discovery.locator.predicates[0].name=Path",
-				"spring.cloud.gateway.discovery.locator.predicates[0].args[pattern]='/'+serviceId.toLowerCase()+'/**'",
-				"spring.cloud.gateway.discovery.locator.filters[0].name=RewritePath",
-				"spring.cloud.gateway.discovery.locator.filters[0].args[regexp]='/' + serviceId.toLowerCase() + '/(?<remaining>.*)'",
-				"spring.cloud.gateway.discovery.locator.filters[0].args[replacement]='/$\\\\{remaining}'",*/
-		})
+@SpringBootTest(classes = DiscoveryClientRouteDefinitionLocatorTests.Config.class, properties = {
+		"spring.cloud.gateway.discovery.locator.enabled=true",
+		"spring.cloud.gateway.discovery.locator.route-id-prefix=testedge_",
+		"spring.cloud.gateway.discovery.locator.include-expression=metadata['edge'] == 'true'",
+		"spring.cloud.gateway.discovery.locator.lower-case-service-id=true"
+		/*
+		 * "spring.cloud.gateway.discovery.locator.predicates[0].name=Path",
+		 * "spring.cloud.gateway.discovery.locator.predicates[0].args[pattern]='/'+serviceId.toLowerCase()+'/**'",
+		 * "spring.cloud.gateway.discovery.locator.filters[0].name=RewritePath",
+		 * "spring.cloud.gateway.discovery.locator.filters[0].args[regexp]='/' + serviceId.toLowerCase() + '/(?<remaining>.*)'"
+		 * ,
+		 * "spring.cloud.gateway.discovery.locator.filters[0].args[replacement]='/$\\\\{remaining}'",
+		 */
+})
 public class DiscoveryClientRouteDefinitionLocatorTests {
 
 	@Autowired(required = false)
@@ -62,8 +65,7 @@ public class DiscoveryClientRouteDefinitionLocatorTests {
 
 	@Test
 	public void includeExpressionWorks() {
-		assertThat(locator)
-				.as("DiscoveryClientRouteDefinitionLocator was null")
+		assertThat(locator).as("DiscoveryClientRouteDefinitionLocator was null")
 				.isNotNull();
 
 		List<RouteDefinition> definitions = locator.getRouteDefinitions().collectList()
@@ -72,14 +74,13 @@ public class DiscoveryClientRouteDefinitionLocatorTests {
 
 		RouteDefinition definition = definitions.get(0);
 		assertThat(definition.getId()).isEqualTo("testedge_SERVICE1");
-		assertThat(definition.getUri()).hasScheme("lb")
-				.hasHost("SERVICE1");
+		assertThat(definition.getUri()).hasScheme("lb").hasHost("SERVICE1");
 
 		assertThat(definition.getPredicates()).hasSize(1);
 		PredicateDefinition predicate = definition.getPredicates().get(0);
 		assertThat(predicate.getName()).isEqualTo("Path");
-		assertThat(predicate.getArgs()).hasSize(1)
-				.containsEntry(PATTERN_KEY, "/service1/**");
+		assertThat(predicate.getArgs()).hasSize(1).containsEntry(PATTERN_KEY,
+				"/service1/**");
 
 		assertThat(definition.getFilters()).hasSize(1);
 		FilterDefinition filter = definition.getFilters().get(0);
@@ -98,17 +99,20 @@ public class DiscoveryClientRouteDefinitionLocatorTests {
 			DiscoveryClient discoveryClient = mock(DiscoveryClient.class);
 			when(discoveryClient.getServices())
 					.thenReturn(Arrays.asList("SERVICE1", "Service2"));
-			whenInstance(discoveryClient, "SERVICE1", Collections
-					.singletonMap("edge", "true"));
+			whenInstance(discoveryClient, "SERVICE1",
+					Collections.singletonMap("edge", "true"));
 			whenInstance(discoveryClient, "Service2", Collections.emptyMap());
 			return discoveryClient;
 		}
 
-		private void whenInstance(DiscoveryClient discoveryClient, String serviceId, Map<String, String> metadata) {
-			DefaultServiceInstance instance1 = new DefaultServiceInstance(serviceId, "localhost", 8001,
-					false, metadata);
-			when(discoveryClient.getInstances(serviceId)).
-					thenReturn(Collections.singletonList(instance1));
+		private void whenInstance(DiscoveryClient discoveryClient, String serviceId,
+				Map<String, String> metadata) {
+			DefaultServiceInstance instance1 = new DefaultServiceInstance(serviceId,
+					"localhost", 8001, false, metadata);
+			when(discoveryClient.getInstances(serviceId))
+					.thenReturn(Collections.singletonList(instance1));
 		}
+
 	}
+
 }

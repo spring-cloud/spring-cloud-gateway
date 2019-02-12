@@ -33,13 +33,11 @@ public class ReactorHttpServer extends AbstractHttpServer {
 
 	private AtomicReference<DisposableServer> serverRef = new AtomicReference<>();
 
-
 	@Override
 	protected void initServer() {
 		this.reactorHandler = createHttpHandlerAdapter();
 		this.reactorServer = reactor.netty.http.server.HttpServer.create()
-				.tcpConfiguration(server -> server.host(getHost()))
-				.port(getPort());
+				.tcpConfiguration(server -> server.host(getHost())).port(getPort());
 	}
 
 	private ReactorHttpHandlerAdapter createHttpHandlerAdapter() {

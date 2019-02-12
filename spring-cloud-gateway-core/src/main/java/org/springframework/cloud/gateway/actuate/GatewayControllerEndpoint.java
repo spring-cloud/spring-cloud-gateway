@@ -57,15 +57,20 @@ public class GatewayControllerEndpoint implements ApplicationEventPublisherAware
 	private static final Log log = LogFactory.getLog(GatewayControllerEndpoint.class);
 
 	private RouteDefinitionLocator routeDefinitionLocator;
+
 	private List<GlobalFilter> globalFilters;
+
 	private List<GatewayFilterFactory> GatewayFilters;
+
 	private RouteDefinitionWriter routeDefinitionWriter;
+
 	private RouteLocator routeLocator;
+
 	private ApplicationEventPublisher publisher;
 
-	public GatewayControllerEndpoint(RouteDefinitionLocator routeDefinitionLocator, List<GlobalFilter> globalFilters,
-			List<GatewayFilterFactory> GatewayFilters, RouteDefinitionWriter routeDefinitionWriter,
-			RouteLocator routeLocator) {
+	public GatewayControllerEndpoint(RouteDefinitionLocator routeDefinitionLocator,
+			List<GlobalFilter> globalFilters, List<GatewayFilterFactory> GatewayFilters,
+			RouteDefinitionWriter routeDefinitionWriter, RouteLocator routeLocator) {
 		this.routeDefinitionLocator = routeDefinitionLocator;
 		this.globalFilters = globalFilters;
 		this.GatewayFilters = GatewayFilters;
@@ -105,7 +110,7 @@ public class GatewayControllerEndpoint implements ApplicationEventPublisherAware
 		if (o instanceof Ordered) {
 			order = ((Ordered) o).getOrder();
 		}
-		//filters.put(o.getClass().getName(), order);
+		// filters.put(o.getClass().getName(), order);
 		map.put(o.toString(), order);
 		return map;
 	}
@@ -114,8 +119,7 @@ public class GatewayControllerEndpoint implements ApplicationEventPublisherAware
 	@GetMapping("/routes")
 	public Mono<List<Map<String, Object>>> routes() {
 		Mono<Map<String, RouteDefinition>> routeDefs = this.routeDefinitionLocator
-				.getRouteDefinitions()
-				.collectMap(RouteDefinition::getId);
+				.getRouteDefinitions().collectMap(RouteDefinition::getId);
 		Mono<List<Route>> routes = this.routeLocator.getRoutes().collectList();
 		return Mono.zip(routeDefs, routes).map(tuple -> {
 			Map<String, RouteDefinition> defs = tuple.getT1();
@@ -156,43 +160,44 @@ public class GatewayControllerEndpoint implements ApplicationEventPublisherAware
 	}
 
 	/*
-	http POST :8080/admin/gateway/routes/apiaddreqhead uri=http://httpbin.org:80 predicates:='["Host=**.apiaddrequestheader.org", "Path=/headers"]' filters:='["AddRequestHeader=X-Request-ApiFoo, ApiBar"]'
-	*/
+	 * http POST :8080/admin/gateway/routes/apiaddreqhead uri=http://httpbin.org:80
+	 * predicates:='["Host=**.apiaddrequestheader.org", "Path=/headers"]'
+	 * filters:='["AddRequestHeader=X-Request-ApiFoo, ApiBar"]'
+	 */
 	@PostMapping("/routes/{id}")
 	@SuppressWarnings("unchecked")
-	public Mono<ResponseEntity<Void>> save(@PathVariable String id, @RequestBody Mono<RouteDefinition> route) {
+	public Mono<ResponseEntity<Void>> save(@PathVariable String id,
+			@RequestBody Mono<RouteDefinition> route) {
 		return this.routeDefinitionWriter.save(route.map(r -> {
 			r.setId(id);
 			log.debug("Saving route: " + route);
 			return r;
-		})).then(Mono.defer(() ->
-				Mono.just(ResponseEntity.created(URI.create("/routes/" + id)).build())
-		));
+		})).then(Mono.defer(() -> Mono
+				.just(ResponseEntity.created(URI.create("/routes/" + id)).build())));
 	}
 
 	@DeleteMapping("/routes/{id}")
 	public Mono<ResponseEntity<Object>> delete(@PathVariable String id) {
 		return this.routeDefinitionWriter.delete(Mono.just(id))
 				.then(Mono.defer(() -> Mono.just(ResponseEntity.ok().build())))
-				.onErrorResume(t -> t instanceof NotFoundException, t -> Mono
-						.just(ResponseEntity.notFound().build()));
+				.onErrorResume(t -> t instanceof NotFoundException,
+						t -> Mono.just(ResponseEntity.notFound().build()));
 	}
 
 	@GetMapping("/routes/{id}")
 	public Mono<ResponseEntity<RouteDefinition>> route(@PathVariable String id) {
-		//TODO: missing RouteLocator
+		// TODO: missing RouteLocator
 		return this.routeDefinitionLocator.getRouteDefinitions()
-				.filter(route -> route.getId().equals(id))
-				.singleOrEmpty()
+				.filter(route -> route.getId().equals(id)).singleOrEmpty()
 				.map(ResponseEntity::ok)
 				.switchIfEmpty(Mono.just(ResponseEntity.notFound().build()));
 	}
 
 	@GetMapping("/routes/{id}/combinedfilters")
 	public Mono<HashMap<String, Object>> combinedfilters(@PathVariable String id) {
-		//TODO: missing global filters
-		return this.routeLocator.getRoutes()
-				.filter(route -> route.getId().equals(id))
+		// TODO: missing global filters
+		return this.routeLocator.getRoutes().filter(route -> route.getId().equals(id))
 				.reduce(new HashMap<>(), this::putItem);
 	}
+
 }

@@ -38,6 +38,7 @@ import static org.springframework.util.StringUtils.tokenizeToStringArray;
  */
 @Validated
 public class RouteDefinition {
+
 	@NotEmpty
 	private String id = UUID.randomUUID().toString();
 
@@ -59,8 +60,8 @@ public class RouteDefinition {
 	public RouteDefinition(String text) {
 		int eqIdx = text.indexOf('=');
 		if (eqIdx <= 0) {
-			throw new ValidationException("Unable to parse RouteDefinition text '" + text + "'" +
-					", must be of the form name=value");
+			throw new ValidationException("Unable to parse RouteDefinition text '" + text
+					+ "'" + ", must be of the form name=value");
 		}
 
 		setId(text.substring(0, eqIdx));
@@ -123,10 +124,10 @@ public class RouteDefinition {
 			return false;
 		}
 		RouteDefinition routeDefinition = (RouteDefinition) o;
-		return Objects.equals(id, routeDefinition.id) &&
-				Objects.equals(predicates, routeDefinition.predicates) &&
-				Objects.equals(order, routeDefinition.order) &&
-				Objects.equals(uri, routeDefinition.uri);
+		return Objects.equals(id, routeDefinition.id)
+				&& Objects.equals(predicates, routeDefinition.predicates)
+				&& Objects.equals(order, routeDefinition.order)
+				&& Objects.equals(uri, routeDefinition.uri);
 	}
 
 	@Override
@@ -136,12 +137,8 @@ public class RouteDefinition {
 
 	@Override
 	public String toString() {
-		return "RouteDefinition{" +
-				"id='" + id + '\'' +
-				", predicates=" + predicates +
-				", filters=" + filters +
-				", uri=" + uri +
-				", order=" + order +
-				'}';
+		return "RouteDefinition{" + "id='" + id + '\'' + ", predicates=" + predicates
+				+ ", filters=" + filters + ", uri=" + uri + ", order=" + order + '}';
 	}
+
 }

@@ -50,8 +50,8 @@ import static org.springframework.web.reactive.function.BodyExtractors.toMono;
 @SuppressWarnings("unchecked")
 public class FormIntegrationTests extends BaseWebClientTests {
 
-	public static final MediaType FORM_URL_ENCODED_CONTENT_TYPE = new MediaType(APPLICATION_FORM_URLENCODED, Charset
-			.forName("UTF-8"));
+	public static final MediaType FORM_URL_ENCODED_CONTENT_TYPE = new MediaType(
+			APPLICATION_FORM_URLENCODED, Charset.forName("UTF-8"));
 
 	@Test
 	public void formUrlencodedWorks() {
@@ -59,14 +59,9 @@ public class FormIntegrationTests extends BaseWebClientTests {
 		formData.add("foo", "bar");
 		formData.add("baz", "bam");
 
-		testClient.post()
-				.uri("/post")
-				.contentType(FORM_URL_ENCODED_CONTENT_TYPE)
-				.body(BodyInserters.fromFormData(formData))
-				.exchange()
-				.expectStatus().isOk()
-				.expectBody(Map.class)
-				.consumeWith(result -> {
+		testClient.post().uri("/post").contentType(FORM_URL_ENCODED_CONTENT_TYPE)
+				.body(BodyInserters.fromFormData(formData)).exchange().expectStatus()
+				.isOk().expectBody(Map.class).consumeWith(result -> {
 					Map map = result.getResponseBody();
 					Map<String, Object> form = getMap(map, "form");
 					assertThat(form).containsEntry("foo", "bar");
@@ -86,22 +81,17 @@ public class FormIntegrationTests extends BaseWebClientTests {
 		MultiValueMap<String, Object> parts = new LinkedMultiValueMap<>();
 		parts.add("imgpart", entity);
 
-		Mono<Map> result = webClient.post()
-				.uri("/post")
+		Mono<Map> result = webClient.post().uri("/post")
 				.contentType(MediaType.MULTIPART_FORM_DATA)
-				.body(BodyInserters.fromMultipartData(parts))
-				.exchange()
+				.body(BodyInserters.fromMultipartData(parts)).exchange()
 				.flatMap(response -> response.body(toMono(Map.class)));
 
-		StepVerifier.create(result)
-				.consumeNextWith(map -> {
-					Map<String, Object> files = getMap(map, "files");
-					assertThat(files).containsKey("imgpart");
-					String file = (String) files.get("imgpart");
-					assertThat(file).startsWith("data:").contains(";base64,");
-				})
-				.expectComplete()
-				.verify(DURATION);
+		StepVerifier.create(result).consumeNextWith(map -> {
+			Map<String, Object> files = getMap(map, "files");
+			assertThat(files).containsKey("imgpart");
+			String file = (String) files.get("imgpart");
+			assertThat(file).startsWith("data:").contains(";base64,");
+		}).expectComplete().verify(DURATION);
 	}
 
 	@EnableAutoConfiguration

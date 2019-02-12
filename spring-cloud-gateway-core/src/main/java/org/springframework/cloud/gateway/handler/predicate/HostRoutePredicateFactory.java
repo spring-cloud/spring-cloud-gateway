@@ -34,7 +34,8 @@ import org.springframework.web.server.ServerWebExchange;
 /**
  * @author Spencer Gibb
  */
-public class HostRoutePredicateFactory extends AbstractRoutePredicateFactory<HostRoutePredicateFactory.Config> {
+public class HostRoutePredicateFactory
+		extends AbstractRoutePredicateFactory<HostRoutePredicateFactory.Config> {
 
 	private PathMatcher pathMatcher = new AntPathMatcher(".");
 
@@ -61,8 +62,7 @@ public class HostRoutePredicateFactory extends AbstractRoutePredicateFactory<Hos
 		return exchange -> {
 			String host = exchange.getRequest().getHeaders().getFirst("Host");
 			Optional<String> optionalPattern = config.getPatterns().stream()
-					.filter(pattern -> this.pathMatcher.match(pattern, host))
-					.findFirst();
+					.filter(pattern -> this.pathMatcher.match(pattern, host)).findFirst();
 
 			if (optionalPattern.isPresent()) {
 				Map<String, String> variables = this.pathMatcher
@@ -77,6 +77,7 @@ public class HostRoutePredicateFactory extends AbstractRoutePredicateFactory<Hos
 
 	@Validated
 	public static class Config {
+
 		private List<String> patterns = new ArrayList<>();
 
 		@Deprecated
@@ -104,9 +105,9 @@ public class HostRoutePredicateFactory extends AbstractRoutePredicateFactory<Hos
 
 		@Override
 		public String toString() {
-			return new ToStringCreator(this)
-					.append("patterns", patterns)
-					.toString();
+			return new ToStringCreator(this).append("patterns", patterns).toString();
 		}
+
 	}
+
 }

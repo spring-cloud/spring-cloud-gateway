@@ -42,33 +42,23 @@ public class RoutePredicateHandlerMappingTests {
 
 	@Test
 	public void lookupRouteFromSyncPredicates() {
-		Route routeFalse = Route.async()
-				.id("routeFalse")
-				.uri("http://localhost")
-				.predicate(swe -> false)
-				.build();
-		Route routeFail = Route.async()
-				.id("routeFail")
-				.uri("http://localhost")
+		Route routeFalse = Route.async().id("routeFalse").uri("http://localhost")
+				.predicate(swe -> false).build();
+		Route routeFail = Route.async().id("routeFail").uri("http://localhost")
 				.predicate(swe -> {
 					throw new IllegalStateException("boom");
-				})
-				.build();
-		Route routeTrue = Route.async()
-				.id("routeTrue")
-				.uri("http://localhost")
-				.predicate(swe -> true)
-				.build();
-		RouteLocator routeLocator =
-				() -> Flux.just(routeFalse, routeFail, routeTrue).hide();
-		RoutePredicateHandlerMapping mapping =
-				new RoutePredicateHandlerMapping(null, routeLocator, new GlobalCorsProperties(), new MockEnvironment());
+				}).build();
+		Route routeTrue = Route.async().id("routeTrue").uri("http://localhost")
+				.predicate(swe -> true).build();
+		RouteLocator routeLocator = () -> Flux.just(routeFalse, routeFail, routeTrue)
+				.hide();
+		RoutePredicateHandlerMapping mapping = new RoutePredicateHandlerMapping(null,
+				routeLocator, new GlobalCorsProperties(), new MockEnvironment());
 
-		final Mono<Route> routeMono =
-				mapping.lookupRoute(Mockito.mock(ServerWebExchange.class));
+		final Mono<Route> routeMono = mapping
+				.lookupRoute(Mockito.mock(ServerWebExchange.class));
 
-		StepVerifier.create(routeMono.map(Route::getId))
-				.expectNext("routeTrue")
+		StepVerifier.create(routeMono.map(Route::getId)).expectNext("routeTrue")
 				.verifyComplete();
 
 		outputCapture
@@ -78,38 +68,26 @@ public class RoutePredicateHandlerMappingTests {
 
 	@Test
 	public void lookupRouteFromAsyncPredicates() {
-		Route routeFalse = Route.async()
-				.id("routeFalse")
-				.uri("http://localhost")
-				.asyncPredicate(swe -> Mono.just(false))
-				.build();
-		Route routeError = Route.async()
-				.id("routeError")
-				.uri("http://localhost")
+		Route routeFalse = Route.async().id("routeFalse").uri("http://localhost")
+				.asyncPredicate(swe -> Mono.just(false)).build();
+		Route routeError = Route.async().id("routeError").uri("http://localhost")
 				.asyncPredicate(swe -> Mono.error(new IllegalStateException("boom1")))
 				.build();
-		Route routeFail = Route.async()
-				.id("routeFail")
-				.uri("http://localhost")
+		Route routeFail = Route.async().id("routeFail").uri("http://localhost")
 				.asyncPredicate(swe -> {
 					throw new IllegalStateException("boom2");
-				})
-				.build();
-		Route routeTrue = Route.async()
-				.id("routeTrue")
-				.uri("http://localhost")
-				.asyncPredicate(swe -> Mono.just(true))
-				.build();
-		RouteLocator routeLocator =
-				() -> Flux.just(routeFalse, routeError, routeFail, routeTrue).hide();
-		RoutePredicateHandlerMapping mapping =
-				new RoutePredicateHandlerMapping(null, routeLocator, new GlobalCorsProperties(), new MockEnvironment());
+				}).build();
+		Route routeTrue = Route.async().id("routeTrue").uri("http://localhost")
+				.asyncPredicate(swe -> Mono.just(true)).build();
+		RouteLocator routeLocator = () -> Flux
+				.just(routeFalse, routeError, routeFail, routeTrue).hide();
+		RoutePredicateHandlerMapping mapping = new RoutePredicateHandlerMapping(null,
+				routeLocator, new GlobalCorsProperties(), new MockEnvironment());
 
-		final Mono<Route> routeMono =
-				mapping.lookupRoute(Mockito.mock(ServerWebExchange.class));
+		final Mono<Route> routeMono = mapping
+				.lookupRoute(Mockito.mock(ServerWebExchange.class));
 
-		StepVerifier.create(routeMono.map(Route::getId))
-				.expectNext("routeTrue")
+		StepVerifier.create(routeMono.map(Route::getId)).expectNext("routeTrue")
 				.verifyComplete();
 
 		outputCapture
@@ -120,4 +98,5 @@ public class RoutePredicateHandlerMappingTests {
 				.expect(containsString("Error applying predicate for route: routeFail"));
 		outputCapture.expect(containsString("java.lang.IllegalStateException: boom2"));
 	}
+
 }

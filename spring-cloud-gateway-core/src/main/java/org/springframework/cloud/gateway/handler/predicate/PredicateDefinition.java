@@ -33,8 +33,10 @@ import static org.springframework.util.StringUtils.tokenizeToStringArray;
  */
 @Validated
 public class PredicateDefinition {
+
 	@NotNull
 	private String name;
+
 	private Map<String, String> args = new LinkedHashMap<>();
 
 	public PredicateDefinition() {
@@ -43,8 +45,8 @@ public class PredicateDefinition {
 	public PredicateDefinition(String text) {
 		int eqIdx = text.indexOf('=');
 		if (eqIdx <= 0) {
-			throw new ValidationException("Unable to parse PredicateDefinition text '" + text + "'" +
-					", must be of the form name=value");
+			throw new ValidationException("Unable to parse PredicateDefinition text '"
+					+ text + "'" + ", must be of the form name=value");
 		}
 		setName(text.substring(0, eqIdx));
 
@@ -84,8 +86,7 @@ public class PredicateDefinition {
 			return false;
 		}
 		PredicateDefinition that = (PredicateDefinition) o;
-		return Objects.equals(name, that.name) &&
-				Objects.equals(args, that.args);
+		return Objects.equals(name, that.name) && Objects.equals(args, that.args);
 	}
 
 	@Override
@@ -101,4 +102,5 @@ public class PredicateDefinition {
 		sb.append('}');
 		return sb.toString();
 	}
+
 }

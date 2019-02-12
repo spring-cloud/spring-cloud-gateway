@@ -26,4 +26,5 @@ public interface RouteDefinitionWriter {
 	Mono<Void> save(Mono<RouteDefinition> route);
 
 	Mono<Void> delete(Mono<String> routeId);
+
 }

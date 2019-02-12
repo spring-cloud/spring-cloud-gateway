@@ -43,6 +43,7 @@ import org.springframework.web.server.ServerWebExchange;
 @RestController
 @RequestMapping("/httpbin")
 public class HttpBinCompatibleController {
+
 	private static final Log log = LogFactory.getLog(HttpBinCompatibleController.class);
 
 	@RequestMapping("/")
@@ -50,8 +51,8 @@ public class HttpBinCompatibleController {
 		return "httpbin compatible home";
 	}
 
-	@RequestMapping(path = "/headers", method = {
-			RequestMethod.GET, RequestMethod.POST }, produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(path = "/headers", method = { RequestMethod.GET,
+			RequestMethod.POST }, produces = MediaType.APPLICATION_JSON_VALUE)
 	public Map<String, Object> headers(ServerWebExchange exchange) {
 		Map<String, Object> result = new HashMap<>();
 		result.put("headers", getHeaders(exchange));
@@ -59,13 +60,15 @@ public class HttpBinCompatibleController {
 	}
 
 	@RequestMapping(path = "/delay/{sec}", produces = MediaType.APPLICATION_JSON_VALUE)
-	public Mono<Map<String, Object>> get(ServerWebExchange exchange, @PathVariable int sec) throws InterruptedException {
+	public Mono<Map<String, Object>> get(ServerWebExchange exchange,
+			@PathVariable int sec) throws InterruptedException {
 		int delay = Math.min(sec, 10);
 		return Mono.just(get(exchange)).delayElement(Duration.ofSeconds(delay));
 	}
 
 	@RequestMapping(path = "/anything/{anything}", produces = MediaType.APPLICATION_JSON_VALUE)
-	public Map<String, Object> anything(ServerWebExchange exchange, @PathVariable(required = false) String anything) {
+	public Map<String, Object> anything(ServerWebExchange exchange,
+			@PathVariable(required = false) String anything) {
 		return get(exchange);
 	}
 
@@ -84,27 +87,27 @@ public class HttpBinCompatibleController {
 		return result;
 	}
 
-	@RequestMapping(value = "/post", consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
-			produces = MediaType.APPLICATION_JSON_VALUE)
-	public Mono<Map<String, Object>> postFormData(@RequestBody Mono<MultiValueMap<String,
-			Part>> parts) {
+	@RequestMapping(value = "/post", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public Mono<Map<String, Object>> postFormData(
+			@RequestBody Mono<MultiValueMap<String, Part>> parts) {
 		// StringDecoder decoder = StringDecoder.allMimeTypes(true);
 		return parts.flux().flatMap(map -> Flux.fromIterable(map.values()))
-				.flatMap(Flux::fromIterable)
-				.filter(part -> part instanceof FilePart)
+				.flatMap(Flux::fromIterable).filter(part -> part instanceof FilePart)
 				.reduce(new HashMap<String, Object>(), (files, part) -> {
 					MediaType contentType = part.headers().getContentType();
 					long contentLength = part.headers().getContentLength();
-					files.put(part
-							.name(), "data:" + contentType + ";base64," + contentLength); //TODO: get part data
+					files.put(part.name(),
+							"data:" + contentType + ";base64," + contentLength); // TODO:
+																					// get
+																					// part
+																					// data
 					return files;
 				}).map(files -> Collections.singletonMap("files", files));
 	}
 
-	@RequestMapping(path = "/post", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-			produces = MediaType.APPLICATION_JSON_VALUE)
-	public Mono<Map<String, Object>> postUrlEncoded(ServerWebExchange exchange) throws
-			IOException {
+	@RequestMapping(path = "/post", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public Mono<Map<String, Object>> postUrlEncoded(ServerWebExchange exchange)
+			throws IOException {
 		return post(exchange, null);
 	}
 
@@ -135,4 +138,5 @@ public class HttpBinCompatibleController {
 	public Map<String, String> getHeaders(ServerWebExchange exchange) {
 		return exchange.getRequest().getHeaders().toSingleValueMap();
 	}
+
 }

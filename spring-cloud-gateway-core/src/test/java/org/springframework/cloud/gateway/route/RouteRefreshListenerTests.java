@@ -64,4 +64,5 @@ public class RouteRefreshListenerTests {
 
 		verify(publisher, times(2)).publishEvent(any(RefreshRoutesEvent.class));
 	}
+
 }

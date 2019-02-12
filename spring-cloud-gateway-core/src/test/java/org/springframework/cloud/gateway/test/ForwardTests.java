@@ -42,6 +42,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @DirtiesContext
 @SuppressWarnings("unchecked")
 public class ForwardTests {
+
 	@LocalServerPort
 	protected int port = 0;
 
@@ -50,27 +51,21 @@ public class ForwardTests {
 	@Before
 	public void setup() {
 		String baseUri = "http://localhost:" + port;
-		this.client = WebTestClient.bindToServer()
-				.baseUrl(baseUri)
-				.build();
+		this.client = WebTestClient.bindToServer().baseUrl(baseUri).build();
 	}
 
 	@Test
 	public void forwardWorks() {
 		this.client.get().uri("/localcontroller")
-				.header(HttpHeaders.HOST, "www.forward.org")
-				.exchange()
-				.expectStatus().isOk()
-				.expectBody().json("{\"from\":\"localcontroller\"}");
+				.header(HttpHeaders.HOST, "www.forward.org").exchange().expectStatus()
+				.isOk().expectBody().json("{\"from\":\"localcontroller\"}");
 	}
 
 	@Test
 	public void forwardWithCorrectPath() {
-		this.client.get().uri("/foo")
-				.header(HttpHeaders.HOST, "www.forward.org")
-				.exchange()
-				.expectStatus().isOk()
-				.expectBody().json("{\"from\":\"localcontroller\"}");
+		this.client.get().uri("/foo").header(HttpHeaders.HOST, "www.forward.org")
+				.exchange().expectStatus().isOk().expectBody()
+				.json("{\"from\":\"localcontroller\"}");
 	}
 
 	@EnableAutoConfiguration
@@ -83,6 +78,7 @@ public class ForwardTests {
 		public Map<String, String> localController() {
 			return Collections.singletonMap("from", "localcontroller");
 		}
+
 	}
 
 }

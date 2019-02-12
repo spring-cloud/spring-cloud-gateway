@@ -44,10 +44,7 @@ public class HttpStatusInResponseHeadersFilterTests extends BaseWebClientTests {
 
 	@Test
 	public void statusCodeAvailableInResponseHttpHeadersFilter() {
-		testClient.get()
-				.uri("/get")
-				.exchange()
-				.expectStatus().isOk();
+		testClient.get().uri("/get").exchange().expectStatus().isOk();
 	}
 
 	@EnableAutoConfiguration
@@ -73,4 +70,5 @@ public class HttpStatusInResponseHeadersFilterTests extends BaseWebClientTests {
 		}
 
 	}
+
 }
