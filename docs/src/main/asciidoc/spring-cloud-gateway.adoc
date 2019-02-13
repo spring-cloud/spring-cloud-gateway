@@ -1387,7 +1387,38 @@ public class PostGatewayFilterFactory extends AbstractGatewayFilterFactory<PostG
 
 === Writing Custom Global Filters
 
-TODO: document writing Custom Global Filters
+In order to write a custom global filter, you will need to implement `GlobalFilter` interface. This will apply the filter to all requests.
+
+Example of how to set up a Global Pre and Post filter, respectively
+
+[source,java]
+----
+@Bean
+public GlobalFilter customGlobalFilter() {
+    return (exchange, chain) -> exchange.getPrincipal()
+        .map(Principal::getName)
+        .defaultIfEmpty("Default User")
+        .map(userName -> {
+          //adds header to proxied request
+          exchange.getRequest().mutate().header("CUSTOM-REQUEST-HEADER", userName).build();
+          return exchange;
+        })
+        .flatMap(chain::filter);
+}
+
+@Bean
+public GlobalFilter customGlobalPostFilter() {
+    return (exchange, chain) -> chain.filter(exchange)
+        .then(Mono.just(exchange))
+        .map(serverWebExchange -> {
+          //adds header to response
+          serverWebExchange.getResponse().getHeaders().set("CUSTOM-RESPONSE-HEADER",
+              HttpStatus.OK.equals(serverWebExchange.getResponse().getStatusCode()) ? "It worked": "It did not work");
+          return serverWebExchange;
+        })
+        .then();
+}
+---
 
 === Writing Custom Route Locators and Writers
 
