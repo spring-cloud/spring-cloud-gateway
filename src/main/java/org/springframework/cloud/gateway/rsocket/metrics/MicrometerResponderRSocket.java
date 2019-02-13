@@ -120,9 +120,9 @@ public class MicrometerResponderRSocket implements ResponderRSocket {
 	public Flux<Payload> requestChannel(Payload payload, Publisher<Payload> payloads) {
 		if (delegate instanceof ResponderRSocket) {
 			ResponderRSocket rSocket = (ResponderRSocket) delegate;
-			return rSocket.requestChannel(payload, payloads);
+			return rSocket.requestChannel(payload, payloads).doFinally(requestChannel);
 		}
-		return delegate.requestChannel(payloads);
+		return delegate.requestChannel(payloads).doFinally(requestChannel);
 	}
 
 	private static final class InteractionCounters implements Consumer<SignalType> {
