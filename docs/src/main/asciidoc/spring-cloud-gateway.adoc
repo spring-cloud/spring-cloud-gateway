@@ -1420,6 +1420,8 @@ public GlobalFilter customGlobalPostFilter() {
 }
 ---
 
+=== Writing Custom Route Locators and Writers
+
 TODO: document writing Custom Route Locators and Writers
 
 == Building a Simple Gateway Using Spring MVC or Webflux
