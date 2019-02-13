@@ -1672,18 +1672,47 @@ management.endpoints.web.exposure.include=gateway</programlisting>
 </section>
 <section xml:id="_writing_custom_global_filters">
 <title>Writing Custom Global Filters</title>
-<simpara>TODO: document writing Custom Global Filters</simpara>
-</section>
-<section xml:id="_writing_custom_route_locators_and_writers">
-<title>Writing Custom Route Locators and Writers</title>
-<simpara>TODO: document writing Custom Route Locators and Writers</simpara>
-</section>
-</chapter>
-<chapter xml:id="_building_a_simple_gateway_using_spring_mvc_or_webflux">
-<title>Building a Simple Gateway Using Spring MVC or Webflux</title>
-<simpara>Spring Cloud Gateway provides a utility object called <literal>ProxyExchange</literal> which you can use inside a regular Spring web handler as a method parameter. It supports basic downstream HTTP exchanges via methods that mirror the HTTP verbs. With MVC it also supports forwarding to a local handler via the <literal>forward()</literal> method. To use the <literal>ProxyExchange</literal> just include the right module in your classpath (either <literal>spring-cloud-gateway-mvc</literal> or <literal>spring-cloud-gateway-webflux</literal>).</simpara>
-<simpara>MVC example (proxying a request to "/test" downstream to a remote server):</simpara>
-<programlisting language="java" linenumbering="unnumbered">@RestController
+<simpara>In order to write a custom global filter, you will need to implement <literal>GlobalFilter</literal> interface. This will apply the filter to all requests.</simpara>
+<simpara>Example of how to set up a Global Pre and Post filter, respectively</simpara>
+<programlisting language="java" linenumbering="unnumbered">@Bean
+public GlobalFilter customGlobalFilter() {
+    return (exchange, chain) -&gt; exchange.getPrincipal()
+        .map(Principal::getName)
+        .defaultIfEmpty("Default User")
+        .map(userName -&gt; {
+          //adds header to proxied request
+          exchange.getRequest().mutate().header("CUSTOM-REQUEST-HEADER", userName).build();
+          return exchange;
+        })
+        .flatMap(chain::filter);
+}
+
+@Bean
+public GlobalFilter customGlobalPostFilter() {
+    return (exchange, chain) -&gt; chain.filter(exchange)
+        .then(Mono.just(exchange))
+        .map(serverWebExchange -&gt; {
+          //adds header to response
+          serverWebExchange.getResponse().getHeaders().set("CUSTOM-RESPONSE-HEADER",
+              HttpStatus.OK.equals(serverWebExchange.getResponse().getStatusCode()) ? "It worked": "It did not work");
+          return serverWebExchange;
+        })
+        .then();
+}
+---
+
+=== Writing Custom Route Locators and Writers
+
+TODO: document writing Custom Route Locators and Writers
+
+== Building a Simple Gateway Using Spring MVC or Webflux
+
+Spring Cloud Gateway provides a utility object called `ProxyExchange` which you can use inside a regular Spring web handler as a method parameter. It supports basic downstream HTTP exchanges via methods that mirror the HTTP verbs. With MVC it also supports forwarding to a local handler via the `forward()` method. To use the `ProxyExchange` just include the right module in your classpath (either `spring-cloud-gateway-mvc` or `spring-cloud-gateway-webflux`).
+
+MVC example (proxying a request to "/test" downstream to a remote server):
+
+```java
+@RestController
 @SpringBootApplication
 public class GatewaySampleApplication {
 
@@ -1695,9 +1724,13 @@ public class GatewaySampleApplication {
 		return proxy.uri(home.toString() + "/image/png").get();
 	}
 
-}</programlisting>
-<simpara>The same thing with Webflux:</simpara>
-<programlisting language="java" linenumbering="unnumbered">@RestController
+}
+```
+
+The same thing with Webflux:
+
+```java
+@RestController
 @SpringBootApplication
 public class GatewaySampleApplication {
 
@@ -1709,16 +1742,26 @@ public class GatewaySampleApplication {
 		return proxy.uri(home.toString() + "/image/png").get();
 	}
 
-}</programlisting>
-<simpara>There are convenience methods on the <literal>ProxyExchange</literal> to enable the handler method to discover and enhance the URI path of the incoming request. For example you might want to extract the trailing elements of a path to pass them downstream:</simpara>
-<programlisting language="java" linenumbering="unnumbered">@GetMapping("/proxy/path/**")
+}
+```
+
+There are convenience methods on the `ProxyExchange` to enable the handler method to discover and enhance the URI path of the incoming request. For example you might want to extract the trailing elements of a path to pass them downstream:
+
+```java
+@GetMapping("/proxy/path/**")
 public ResponseEntity&lt;?&gt; proxyPath(ProxyExchange&lt;byte[]&gt; proxy) throws Exception {
   String path = proxy.path("/proxy/path/");
   return proxy.uri(home.toString() + "/foos/" + path).get();
-}</programlisting>
-<simpara>All the features of Spring MVC or Webflux are available to Gateway handler methods. So you can inject request headers and query parameters, for instance, and you can constrain the incoming requests with declarations in the mapping annotation. See the documentation for <literal>@RequestMapping</literal> in Spring MVC for more details of those features.</simpara>
-<simpara>Headers can be added to the downstream response using the <literal>header()</literal> methods on <literal>ProxyExchange</literal>.</simpara>
-<simpara>You can also manipulate response headers (and anything else you like in the response) by adding a mapper to the <literal>get()</literal> etc. method. The mapper is a <literal>Function</literal> that takes the incoming <literal>ResponseEntity</literal> and converts it to an outgoing one.</simpara>
-<simpara>First class support is provided for "sensitive" headers ("cookie" and "authorization" by default) which are not passed downstream, and for "proxy" headers (<literal>x-forwarded-*</literal>).</simpara>
+}
+```
+
+All the features of Spring MVC or Webflux are available to Gateway handler methods. So you can inject request headers and query parameters, for instance, and you can constrain the incoming requests with declarations in the mapping annotation. See the documentation for `@RequestMapping` in Spring MVC for more details of those features.
+
+Headers can be added to the downstream response using the `header()` methods on `ProxyExchange`.
+
+You can also manipulate response headers (and anything else you like in the response) by adding a mapper to the `get()` etc. method. The mapper is a `Function` that takes the incoming `ResponseEntity` and converts it to an outgoing one.
+
+First class support is provided for "sensitive" headers ("cookie" and "authorization" by default) which are not passed downstream, and for "proxy" headers (`x-forwarded-*`).</programlisting>
+</section>
 </chapter>
 </book>
