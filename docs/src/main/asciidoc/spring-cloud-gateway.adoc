@@ -1418,7 +1418,7 @@ public GlobalFilter customGlobalPostFilter() {
         })
         .then();
 }
----
+----
 
 === Writing Custom Route Locators and Writers
 
