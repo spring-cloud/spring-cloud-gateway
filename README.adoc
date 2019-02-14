@@ -113,7 +113,6 @@ from the `file` menu.
 
 
 
-Unresolved directive in README.adoc - include::https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/master/docs/src/main/asciidoc/building-lombok.adoc[]
 == Contributing
 
 :spring-cloud-build-branch: master
