@@ -17,8 +17,13 @@
 
 package org.springframework.cloud.gateway.rsocket.server;
 
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
+import io.micrometer.core.instrument.Timer;
 import io.rsocket.AbstractRSocket;
 import io.rsocket.Payload;
 import io.rsocket.RSocket;
@@ -30,6 +35,7 @@ import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import org.springframework.cloud.gateway.rsocket.autoconfigure.GatewayRSocketProperties;
 import org.springframework.cloud.gateway.rsocket.registry.Registry;
 import org.springframework.cloud.gateway.rsocket.route.Routes;
 
@@ -53,11 +59,19 @@ public class GatewayRSocket extends AbstractRSocket implements ResponderRSocket 
 
 	private final Registry registry;
 	private final Routes routes;
+	private final MeterRegistry meterRegistry;
+	private final GatewayRSocketProperties properties;
+	private final Map<String, String> metadata;
 
-	public GatewayRSocket(Registry registry, Routes routes) {
+	GatewayRSocket(Registry registry, Routes routes, MeterRegistry meterRegistry,
+			GatewayRSocketProperties properties, Map<String, String> metadata) {
 		this.registry = registry;
 		this.routes = routes;
+		this.meterRegistry = meterRegistry;
+		this.properties = properties;
+		this.metadata = metadata;
 	}
+
 
 	protected Registry getRegistry() {
 		return registry;
@@ -69,43 +83,87 @@ public class GatewayRSocket extends AbstractRSocket implements ResponderRSocket 
 
 	@Override
 	public Mono<Void> fireAndForget(Payload payload) {
-		return findRSocket(FIRE_AND_FORGET, payload)
-				.flatMap(rSocket -> rSocket.fireAndForget(payload));
+		GatewayExchange exchange = GatewayExchange.fromPayload(FIRE_AND_FORGET, payload);
+		Tags tags = getTags(exchange);
+		return findRSocketOrCreatePending(exchange)
+				.flatMap(rSocket -> rSocket.fireAndForget(payload))
+				.doOnError(t -> count("forward.request.fnf.error", tags))
+				.doFinally(s -> count("forward.request.fnf", tags));
+	}
+
+	private Tags getTags(GatewayExchange exchange) {
+		//TODO: add tags to exchange
+		String responderName = this.metadata.get("name");
+		String responderId = this.metadata.get("id");
+		String requestorName = exchange.getRoutingMetadata().get("name");
+		//String requestorId = TODO: where to get requestorId
+		//TODO: deal with missing tags?
+		return Tags.of("requester.name", requestorName, //"requester.id", requestorId,
+				"responder.name", responderName, "responder.id", responderId,
+				"gateway.id", this.properties.getId());
 	}
 
 	@Override
 	public Flux<Payload> requestChannel(Payload payload, Publisher<Payload> payloads) {
-		return findRSocket(REQUEST_CHANNEL, payload)
+		GatewayExchange exchange = GatewayExchange.fromPayload(REQUEST_CHANNEL, payload);
+		Tags tags = getTags(exchange);
+		Tags responderTags = tags.and("source", "responder");
+		return findRSocketOrCreatePending(exchange)
 				.flatMapMany(rSocket -> {
+					Tags requesterTags = tags.and("source", "requester");
+					Flux<Payload> flux = Flux.from(payloads)
+							.doOnNext(s -> count("forward.request.channel.payload", requesterTags))
+							.doOnError(t -> count("forward.request.channel.error", requesterTags))
+							.doFinally(s -> count("forward.request.channel", requesterTags));
+
 					if (rSocket instanceof ResponderRSocket) {
 						ResponderRSocket socket = (ResponderRSocket) rSocket;
-						return socket.requestChannel(payload, payloads);
+						return socket.requestChannel(payload, flux)
+								.log(GatewayRSocket.class.getName()+".request-channel", Level.FINE);
 					}
-					return rSocket.requestChannel(payloads);
-				});
+					return rSocket.requestChannel(flux);
+				})
+				.doOnNext(s -> count("forward.request.channel.payload", responderTags))
+				.doOnError(t -> count("forward.request.channel.error", responderTags))
+				.doFinally(s -> count("forward.request.channel", responderTags));
+	}
+
+	private void count(String name, Tags responderTags) {
+		this.meterRegistry.counter(name, responderTags).increment();
 	}
 
 	@Override
 	public Mono<Payload> requestResponse(Payload payload) {
-		return findRSocket(REQUEST_RESPONSE, payload)
-				.flatMap(rSocket -> rSocket.requestResponse(payload));
+		AtomicReference<Timer.Sample> timer = new AtomicReference<>();
+		GatewayExchange exchange = GatewayExchange.fromPayload(REQUEST_RESPONSE, payload);
+		Tags tags = getTags(exchange);
+		return findRSocketOrCreatePending(exchange)
+				.flatMap(rSocket -> rSocket.requestResponse(payload))
+				.doOnSubscribe(s -> timer.set(Timer.start(meterRegistry)))
+				.doOnError(t -> count("forward.request.response.error", tags))
+				.doFinally(s -> timer.get().stop(meterRegistry.timer("forward.request.response", tags)));
 	}
 
 	@Override
 	public Flux<Payload> requestStream(Payload payload) {
-		return findRSocket(REQUEST_STREAM, payload)
-				.flatMapMany(rSocket -> rSocket.requestStream(payload));
+		GatewayExchange exchange = GatewayExchange.fromPayload(REQUEST_STREAM, payload);
+		Tags tags = getTags(exchange);
+		return findRSocketOrCreatePending(exchange)
+				.flatMapMany(rSocket -> rSocket.requestStream(payload))
+				// S N E F
+				//TODO: move tagnames to enum
+				.doOnNext(s -> count("forward.request.stream.payload", tags))
+				.doOnError(t -> count("forward.request.stream.error", tags))
+				.doFinally(s -> count("forward.request.stream", tags));
 	}
 
 	/**
-	 * Create GatewayExchange and attempt to locate target RSocket via filter chain.
+	 * Attempt to locate target RSocket via filter chain.
 	 * If not found, create a pending RSocket.
-	 * @param type
-	 * @param payload
+	 * @param exchange
 	 * @return
 	 */
-	private Mono<RSocket> findRSocket(GatewayExchange.Type type, Payload payload) {
-		GatewayExchange exchange = GatewayExchange.fromPayload(type, payload);
+	private Mono<RSocket> findRSocketOrCreatePending(GatewayExchange exchange) {
 		return findRSocket(exchange)
 				// if a route can't be found or registered RSocket, create pending
 				.switchIfEmpty(createPendingRSocket(exchange));
@@ -149,6 +207,26 @@ public class GatewayRSocket extends AbstractRSocket implements ResponderRSocket 
 				});
 
 		// TODO: deal with connecting to cluster?
+	}
+
+	public static class Factory {
+		private final Registry registry;
+		private final Routes routes;
+		private final MeterRegistry meterRegistry;
+		private final GatewayRSocketProperties properties;
+
+		public Factory(Registry registry, Routes routes, MeterRegistry meterRegistry,
+				GatewayRSocketProperties properties) {
+			this.registry = registry;
+			this.routes = routes;
+			this.meterRegistry = meterRegistry;
+			this.properties = properties;
+		}
+
+		public GatewayRSocket create(Map<String, String> metadata) {
+			return new GatewayRSocket(this.registry, this.routes, this.meterRegistry,
+					this.properties, metadata);
+		}
 	}
 
 }

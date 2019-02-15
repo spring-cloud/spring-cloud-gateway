@@ -224,7 +224,7 @@ public class PingPongApp {
 							.map(PingPongApp::reply)
 							.map(reply -> {
 								ByteBuf data = ByteBufUtil.writeUtf8(ByteBufAllocator.DEFAULT, reply);
-								ByteBuf routingMetadata = Metadata.encodeTags("name:ping");
+								ByteBuf routingMetadata = Metadata.encodeTags("name:ping", "id:");
 								return DefaultPayload.create(data, routingMetadata);
 							});
 				}

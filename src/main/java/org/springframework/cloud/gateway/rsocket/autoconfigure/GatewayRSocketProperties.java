@@ -31,6 +31,8 @@ public class GatewayRSocketProperties {
 	 */
 	private boolean enabled = true;
 
+	private String id = "gateway"; // TODO: + UUID?
+
 	private final Server server = new Server();
 
 	public boolean isEnabled() {
@@ -41,6 +43,14 @@ public class GatewayRSocketProperties {
 		this.enabled = enabled;
 	}
 
+	public String getId() {
+		return this.id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
 	public Server getServer() {
 		return server;
 	}
@@ -49,6 +59,7 @@ public class GatewayRSocketProperties {
 	public String toString() {
 		return new ToStringCreator(this)
 				.append("enabled", enabled)
+				.append("id", id)
 				.append("server", server)
 				.toString();
 	}

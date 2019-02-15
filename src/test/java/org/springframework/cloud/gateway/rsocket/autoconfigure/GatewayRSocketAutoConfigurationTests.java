@@ -17,14 +17,11 @@
 
 package org.springframework.cloud.gateway.rsocket.autoconfigure;
 
-import io.micrometer.core.instrument.MeterRegistry;
-import io.rsocket.micrometer.MicrometerRSocketInterceptor;
 import org.junit.Test;
 
 import org.springframework.boot.actuate.autoconfigure.metrics.CompositeMeterRegistryAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.metrics.MetricsAutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
-import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ReactiveWebApplicationContextRunner;
 import org.springframework.cloud.gateway.rsocket.metrics.MicrometerResponderRSocketInterceptor;
 import org.springframework.cloud.gateway.rsocket.registry.Registry;
@@ -41,7 +38,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class GatewayRSocketAutoConfigurationTests {
 
 	@Test
-	public void gatewayRSocketWithMicrometerConfigured() {
+	public void gatewayRSocketConfigured() {
 		new ReactiveWebApplicationContextRunner()
 				.withConfiguration(AutoConfigurations.of(
 						GatewayRSocketAutoConfiguration.class,
@@ -52,36 +49,12 @@ public class GatewayRSocketAutoConfigurationTests {
 						.hasSingleBean(Registry.class)
 						.hasSingleBean(RegistryRoutes.class)
 						.hasSingleBean(RegistrySocketAcceptorFilter.class)
-						.hasSingleBean(GatewayRSocket.class)
 						.hasSingleBean(GatewayRSocketServer.class)
 						.hasSingleBean(GatewayRSocketProperties.class)
 						.hasSingleBean(GatewaySocketAcceptor.class)
 						.hasSingleBean(SocketAcceptorPredicateFilter.class)
 						.doesNotHaveBean(SocketAcceptorPredicate.class)
-						.hasSingleBean(MicrometerResponderRSocketInterceptor.class)
 				);
 	}
 
-	@Test
-	public void gatewayRSocketWithoutMicrometerConfigured() {
-		new ReactiveWebApplicationContextRunner()
-				.withConfiguration(AutoConfigurations.of(
-						GatewayRSocketAutoConfiguration.class,
-						CompositeMeterRegistryAutoConfiguration.class,
-						MetricsAutoConfiguration.class
-				))
-				.withClassLoader(new FilteredClassLoader(MeterRegistry.class))
-				.run(context -> assertThat(context)
-						.hasSingleBean(Registry.class)
-						.hasSingleBean(RegistryRoutes.class)
-						.hasSingleBean(RegistrySocketAcceptorFilter.class)
-						.hasSingleBean(GatewayRSocket.class)
-						.hasSingleBean(GatewayRSocketServer.class)
-						.hasSingleBean(GatewayRSocketProperties.class)
-						.hasSingleBean(GatewaySocketAcceptor.class)
-						.hasSingleBean(SocketAcceptorPredicateFilter.class)
-						.doesNotHaveBean(SocketAcceptorPredicate.class)
-						.doesNotHaveBean(MicrometerResponderRSocketInterceptor.class)
-				);
-	}
 }

@@ -17,19 +17,16 @@
 
 package org.springframework.cloud.gateway.rsocket.registry;
 
-import java.util.Map;
-
-import io.rsocket.ConnectionSetupPayload;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.rsocket.socketacceptor.SocketAcceptorExchange;
 import org.springframework.cloud.gateway.rsocket.socketacceptor.SocketAcceptorFilter;
 import org.springframework.cloud.gateway.rsocket.socketacceptor.SocketAcceptorFilterChain;
-import org.springframework.cloud.gateway.rsocket.support.Metadata;
 import org.springframework.core.Ordered;
+import org.springframework.util.CollectionUtils;
 
 /**
- * Filter that enriches the SocketAcceptorExchange with metadata from ConnectionSetupPayload.
+ * Filter that registers the SendingSocket.
  */
 public class RegistrySocketAcceptorFilter implements SocketAcceptorFilter, Ordered {
 	private final Registry registry;
@@ -40,12 +37,8 @@ public class RegistrySocketAcceptorFilter implements SocketAcceptorFilter, Order
 
 	@Override
 	public Mono<Success> filter(SocketAcceptorExchange exchange, SocketAcceptorFilterChain chain) {
-		ConnectionSetupPayload setup = exchange.getSetup();
-		if (setup.hasMetadata()) { //TODO: and setup.metadataMimeType() is Announcement metadata
-			Map<String, String> properties = Metadata.decodeProperties(setup.sliceMetadata());
-			// enrich exchange to have metadata
-			exchange = new SocketAcceptorExchange(exchange.getSetup(), exchange.getSendingSocket(), properties);
-			this.registry.register(properties, exchange.getSendingSocket());
+		if (!CollectionUtils.isEmpty(exchange.getMetadata())) {
+			this.registry.register(exchange.getMetadata(), exchange.getSendingSocket());
 		}
 
 		return chain.filter(exchange);

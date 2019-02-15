@@ -20,15 +20,21 @@ package org.springframework.cloud.gateway.rsocket.server;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tag;
+import io.micrometer.core.instrument.Tags;
 import io.rsocket.RSocketFactory;
 import io.rsocket.SocketAcceptor;
+import io.rsocket.micrometer.MicrometerDuplexConnectionInterceptor;
 import io.rsocket.plugins.RSocketInterceptor;
 import io.rsocket.transport.netty.server.CloseableChannel;
 import io.rsocket.transport.netty.server.TcpServerTransport;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.rsocket.autoconfigure.GatewayRSocketProperties;
 import org.springframework.cloud.gateway.rsocket.autoconfigure.GatewayRSocketProperties.Server.TransportType;
 import org.springframework.context.SmartLifecycle;
@@ -45,6 +51,8 @@ public class GatewayRSocketServer implements Ordered, SmartLifecycle {
 	private final List<RSocketInterceptor> serverInterceptors;
 	private final AtomicBoolean running = new AtomicBoolean();
 	private CloseableChannel closeableChannel;
+	@Autowired
+	MeterRegistry meterRegistry;
 
 	public GatewayRSocketServer(GatewayRSocketProperties properties, SocketAcceptor socketAcceptor) {
 		this(properties, socketAcceptor, EMPTY_INTERCEPTORS);
@@ -90,9 +98,10 @@ public class GatewayRSocketServer implements Ordered, SmartLifecycle {
 	}
 
 	protected void startServer() {
-		int port = properties.getServer().getPort();
+		GatewayRSocketProperties.Server server = properties.getServer();
+		int port = server.getPort();
 
-		TransportType transportType = properties.getServer().getTransport();
+		TransportType transportType = server.getTransport();
 		TcpServerTransport transport;
 		switch (transportType) {
 			case TCP:
@@ -110,7 +119,17 @@ public class GatewayRSocketServer implements Ordered, SmartLifecycle {
 
 		serverInterceptors.forEach(factory::addServerPlugin);
 
-		factory.acceptor(this.socketAcceptor)
+		List<String> micrometerTags = server.getMicrometerTags();
+		Tag[] tags = Tags.of(micrometerTags.toArray(new String[] {}))
+				.and("gateway.id", properties.getId())
+				.stream()
+				.collect(Collectors.toList())
+				.toArray(new Tag[]{});
+
+		factory
+				//TODO: add as bean lice serverInterceptors above
+				.addConnectionPlugin(new MicrometerDuplexConnectionInterceptor(meterRegistry, tags))
+				.acceptor(this.socketAcceptor)
 				.transport(transport)
 				.start()
 				.map(closeableChannel -> {

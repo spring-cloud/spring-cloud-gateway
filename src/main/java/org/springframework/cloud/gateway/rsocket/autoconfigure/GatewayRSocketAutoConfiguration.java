@@ -18,18 +18,13 @@
 package org.springframework.cloud.gateway.rsocket.autoconfigure;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Tag;
-import io.micrometer.core.instrument.Tags;
 import io.rsocket.RSocket;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cloud.gateway.rsocket.metrics.MicrometerResponderRSocketInterceptor;
 import org.springframework.cloud.gateway.rsocket.registry.Registry;
 import org.springframework.cloud.gateway.rsocket.registry.RegistryRoutes;
 import org.springframework.cloud.gateway.rsocket.registry.RegistrySocketAcceptorFilter;
@@ -42,6 +37,7 @@ import org.springframework.cloud.gateway.rsocket.socketacceptor.SocketAcceptorPr
 import org.springframework.cloud.gateway.rsocket.socketacceptor.SocketAcceptorPredicateFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 
 /**
  * @author Spencer Gibb
@@ -71,13 +67,18 @@ public class GatewayRSocketAutoConfiguration {
 	}
 
 	@Bean
-	public GatewayRSocket gatewayRSocket(Registry registry, Routes routes) {
-		return new GatewayRSocket(registry, routes);
+	public GatewayRSocket.Factory gatewayRSocketFactory(Registry registry, Routes routes,
+			MeterRegistry meterRegistry, GatewayRSocketProperties properties) {
+		return new GatewayRSocket.Factory(registry, routes, meterRegistry, properties);
 	}
 
 	@Bean
-	public GatewayRSocketProperties gatewayRSocketProperties() {
-		return new GatewayRSocketProperties();
+	public GatewayRSocketProperties gatewayRSocketProperties(Environment env) {
+		GatewayRSocketProperties properties = new GatewayRSocketProperties();
+		if (env.containsProperty("spring.application.name")) {
+			properties.setId(env.getProperty("spring.application.name")); // set default from env
+		}
+		return properties;
 	}
 
 	@Bean
@@ -86,43 +87,15 @@ public class GatewayRSocketAutoConfiguration {
 	}
 
 	@Bean
-	public GatewaySocketAcceptor socketAcceptor(GatewayRSocket rsocket, List<SocketAcceptorFilter> filters) {
-		return new GatewaySocketAcceptor(rsocket, filters);
+	public GatewaySocketAcceptor socketAcceptor(GatewayRSocket.Factory rsocketFactory,
+			List<SocketAcceptorFilter> filters, MeterRegistry meterRegistry,
+			GatewayRSocketProperties properties) {
+		return new GatewaySocketAcceptor(rsocketFactory, filters, meterRegistry, properties);
 	}
 
-	@Configuration
-	@ConditionalOnClass(MeterRegistry.class)
-	protected static class GatewayRSocketServerMicrometerConfiguration {
-
-		private final GatewayRSocketProperties properties;
-
-		public GatewayRSocketServerMicrometerConfiguration(GatewayRSocketProperties properties) {
-			this.properties = properties;
-		}
-
-		@Bean
-		public MicrometerResponderRSocketInterceptor micrometerResponderRSocketInterceptor(MeterRegistry meterRegistry) {
-			Tags tags = Tags.of(properties.getServer().getMicrometerTags().toArray(new String[]{}));
-			List<Tag> tagList = tags.stream().collect(Collectors.toList());
-			return new MicrometerResponderRSocketInterceptor(meterRegistry, tagList.toArray(new Tag[]{}));
-		}
-
-		@Bean
-		public GatewayRSocketServer gatewayApp(GatewaySocketAcceptor socketAcceptor,
-											   MicrometerResponderRSocketInterceptor micrometerInterceptor) {
-			return new GatewayRSocketServer(properties, socketAcceptor, micrometerInterceptor);
-		}
-
-	}
-
-	@Configuration
-	@ConditionalOnMissingClass("io.micrometer.core.instrument.MeterRegistry")
-	protected static class GatewayRSocketServerConfiguration {
-
-		@Bean
-		public GatewayRSocketServer gatewayApp(GatewayRSocketProperties properties, GatewaySocketAcceptor socketAcceptor) {
-			return new GatewayRSocketServer(properties, socketAcceptor);
-		}
-
+	@Bean
+	public GatewayRSocketServer gatewayApp(GatewaySocketAcceptor socketAcceptor,
+			GatewayRSocketProperties properties) {
+		return new GatewayRSocketServer(properties, socketAcceptor);
 	}
 }

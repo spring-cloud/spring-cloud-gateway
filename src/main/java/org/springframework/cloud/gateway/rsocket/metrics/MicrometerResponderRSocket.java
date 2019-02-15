@@ -62,7 +62,7 @@ public class MicrometerResponderRSocket implements ResponderRSocket {
 	 * @param tags additional tags to attach to {@link Meter}s
 	 * @throws IllegalArgumentException if {@code delegate} or {@code meterRegistry} is {@code null}
 	 */
-	MicrometerResponderRSocket(RSocket delegate, MeterRegistry meterRegistry, Tag... tags) {
+	public MicrometerResponderRSocket(RSocket delegate, MeterRegistry meterRegistry, Tag... tags) {
 		Assert.notNull(delegate, "delegate must not be null");
 		Assert.notNull(meterRegistry, "meterRegistry must not be null");
 

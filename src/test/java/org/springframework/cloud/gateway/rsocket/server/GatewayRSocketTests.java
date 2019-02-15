@@ -20,8 +20,11 @@ package org.springframework.cloud.gateway.rsocket.server;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import io.netty.buffer.Unpooled;
 import io.rsocket.Payload;
 import io.rsocket.RSocket;
@@ -35,6 +38,7 @@ import reactor.core.publisher.Mono;
 import reactor.core.publisher.MonoProcessor;
 import reactor.test.StepVerifier;
 
+import org.springframework.cloud.gateway.rsocket.autoconfigure.GatewayRSocketProperties;
 import org.springframework.cloud.gateway.rsocket.registry.Registry;
 import org.springframework.cloud.gateway.rsocket.route.Route;
 import org.springframework.cloud.gateway.rsocket.route.Routes;
@@ -58,11 +62,13 @@ public class GatewayRSocketTests {
 	private Registry registry;
 	private Payload incomingPayload;
 
+	//TODO: add tests for metrics and other request types
+
 	@Before
 	public void init() {
 		registry = mock(Registry.class);
 		incomingPayload = DefaultPayload.create(Unpooled.EMPTY_BUFFER,
-				Metadata.encodeTags("name:mock"));
+				Metadata.encodeTags("name:mock", "id:mock1"));
 
 		RSocket rSocket = mock(RSocket.class);
 		when(registry.getRegistered(anyMap())).thenReturn(rSocket);
@@ -152,7 +158,15 @@ public class GatewayRSocketTests {
 		private final MonoProcessor<RSocket> processor = MonoProcessor.create();
 
 		public TestGatewayRSocket(Registry registry, Routes routes) {
-			super(registry, routes);
+			super(registry, routes, new SimpleMeterRegistry(), new GatewayRSocketProperties(),
+					getMetadata());
+		}
+
+		private static Map<String, String> getMetadata() {
+			HashMap<String, String> map = new HashMap<>();
+			map.put("name", "service");
+			map.put("id", "service1");
+			return map;
 		}
 
 		@Override

@@ -21,6 +21,8 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import io.rsocket.ConnectionSetupPayload;
 import io.rsocket.RSocket;
 import org.apache.commons.logging.Log;
@@ -29,9 +31,14 @@ import org.junit.Before;
 import org.junit.Test;
 import reactor.core.publisher.Mono;
 
+import org.springframework.cloud.gateway.rsocket.autoconfigure.GatewayRSocketProperties;
+import org.springframework.cloud.gateway.rsocket.server.GatewayRSocket;
+
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Rossen Stoyanchev
@@ -40,17 +47,23 @@ public class GatewaySocketAcceptorTests {
 
 	private static Log logger = LogFactory.getLog(GatewaySocketAcceptorTests.class);
 
-	private RSocket proxyRSocket;
+	private GatewayRSocket.Factory factory;
 	private ConnectionSetupPayload setupPayload;
 	private RSocket sendingSocket;
+	private MeterRegistry meterRegistry;
+	private GatewayRSocketProperties properties = new GatewayRSocketProperties();	
 
 	@Before
 	public void init() {
-		this.proxyRSocket = mock(RSocket.class);
+		this.factory = mock(GatewayRSocket.Factory.class);
 		this.setupPayload = mock(ConnectionSetupPayload.class);
 		this.sendingSocket = mock(RSocket.class);
+		this.meterRegistry = new SimpleMeterRegistry();
+
+		when(this.factory.create(anyMap())).thenReturn(mock(GatewayRSocket.class));
 	}
 
+	//TODO: test metrics
 
 	@Test
 	public void multipleFilters() {
@@ -58,7 +71,8 @@ public class GatewaySocketAcceptorTests {
 		TestFilter filter2 = new TestFilter();
 		TestFilter filter3 = new TestFilter();
 
-		RSocket socket = new GatewaySocketAcceptor(this.proxyRSocket, Arrays.asList(filter1, filter2, filter3))
+		RSocket socket = new GatewaySocketAcceptor(this.factory, Arrays.asList(filter1, filter2, filter3), 
+				this.meterRegistry, this.properties)
 				.accept(this.setupPayload, this.sendingSocket)
 				.block(Duration.ZERO);
 
@@ -70,7 +84,8 @@ public class GatewaySocketAcceptorTests {
 
 	@Test
 	public void zeroFilters() {
-		RSocket socket = new GatewaySocketAcceptor(this.proxyRSocket, Collections.emptyList())
+		RSocket socket = new GatewaySocketAcceptor(this.factory, Collections.emptyList(), 
+				this.meterRegistry, this.properties)
 				.accept(this.setupPayload, this.sendingSocket)
 				.block(Duration.ZERO);
 
@@ -85,7 +100,8 @@ public class GatewaySocketAcceptorTests {
 		TestFilter filter3 = new TestFilter();
 
 
-		RSocket socket = new GatewaySocketAcceptor(this.proxyRSocket, Arrays.asList(filter1, filter2, filter3))
+		RSocket socket = new GatewaySocketAcceptor(this.factory, Arrays.asList(filter1, filter2, filter3), 
+				this.meterRegistry, this.properties)
 				.accept(this.setupPayload, this.sendingSocket)
 				.block(Duration.ZERO);
 
@@ -100,7 +116,8 @@ public class GatewaySocketAcceptorTests {
 
 		AsyncFilter filter = new AsyncFilter();
 
-		RSocket socket = new GatewaySocketAcceptor(this.proxyRSocket, singletonList(filter))
+		RSocket socket = new GatewaySocketAcceptor(this.factory, singletonList(filter), 
+				this.meterRegistry, this.properties)
 				.accept(this.setupPayload, this.sendingSocket)
 				.block(Duration.ofSeconds(5));
 
@@ -114,7 +131,8 @@ public class GatewaySocketAcceptorTests {
 
 		ExceptionFilter filter = new ExceptionFilter();
 
-		new GatewaySocketAcceptor(this.proxyRSocket, singletonList(filter))
+		new GatewaySocketAcceptor(this.factory, singletonList(filter), 
+				this.meterRegistry, this.properties)
 				.accept(this.setupPayload, this.sendingSocket)
 				.block(Duration.ofSeconds(5));
 
