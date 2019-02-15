@@ -96,7 +96,7 @@ public class GatewayRSocket extends AbstractRSocket implements ResponderRSocket 
 		String responderName = this.metadata.get("name");
 		String responderId = this.metadata.get("id");
 		String requestorName = exchange.getRoutingMetadata().get("name");
-		//String requestorId = TODO: where to get requestorId
+		//String requestorId = TODO: how to get requestorId (it's part of metadata in Registry)
 		//TODO: deal with missing tags?
 		return Tags.of("requester.name", requestorName, //"requester.id", requestorId,
 				"responder.name", responderName, "responder.id", responderId,
