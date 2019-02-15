@@ -38,6 +38,7 @@ import reactor.core.publisher.Mono;
 import org.springframework.cloud.gateway.rsocket.autoconfigure.GatewayRSocketProperties;
 import org.springframework.cloud.gateway.rsocket.registry.Registry;
 import org.springframework.cloud.gateway.rsocket.route.Routes;
+import org.springframework.util.StringUtils;
 
 import static org.springframework.cloud.gateway.rsocket.server.GatewayExchange.ROUTE_ATTR;
 import static org.springframework.cloud.gateway.rsocket.server.GatewayExchange.Type.FIRE_AND_FORGET;
@@ -83,12 +84,18 @@ public class GatewayRSocket extends AbstractRSocket implements ResponderRSocket 
 
 	@Override
 	public Mono<Void> fireAndForget(Payload payload) {
-		GatewayExchange exchange = GatewayExchange.fromPayload(FIRE_AND_FORGET, payload);
-		Tags tags = getTags(exchange);
+		GatewayExchange exchange = createExchange(FIRE_AND_FORGET, payload);
 		return findRSocketOrCreatePending(exchange)
 				.flatMap(rSocket -> rSocket.fireAndForget(payload))
-				.doOnError(t -> count("forward.request.fnf.error", tags))
-				.doFinally(s -> count("forward.request.fnf", tags));
+				.doOnError(t -> count(exchange, "error"))
+				.doFinally(s -> count(exchange, ""));
+	}
+
+	private GatewayExchange createExchange(GatewayExchange.Type type, Payload payload) {
+		GatewayExchange exchange = GatewayExchange.fromPayload(type, payload);
+		Tags tags = getTags(exchange);
+		exchange.setTags(tags);	
+		return exchange;
 	}
 
 	private Tags getTags(GatewayExchange exchange) {
@@ -105,16 +112,15 @@ public class GatewayRSocket extends AbstractRSocket implements ResponderRSocket 
 
 	@Override
 	public Flux<Payload> requestChannel(Payload payload, Publisher<Payload> payloads) {
-		GatewayExchange exchange = GatewayExchange.fromPayload(REQUEST_CHANNEL, payload);
-		Tags tags = getTags(exchange);
-		Tags responderTags = tags.and("source", "responder");
+		GatewayExchange exchange = createExchange(REQUEST_CHANNEL, payload);
+		Tags responderTags = Tags.of("source", "responder");
 		return findRSocketOrCreatePending(exchange)
 				.flatMapMany(rSocket -> {
-					Tags requesterTags = tags.and("source", "requester");
+					Tags requesterTags = Tags.of("source", "requester");
 					Flux<Payload> flux = Flux.from(payloads)
-							.doOnNext(s -> count("forward.request.channel.payload", requesterTags))
-							.doOnError(t -> count("forward.request.channel.error", requesterTags))
-							.doFinally(s -> count("forward.request.channel", requesterTags));
+							.doOnNext(s -> count(exchange, "payload", requesterTags))
+							.doOnError(t -> count(exchange, "error", requesterTags))
+							.doFinally(s -> count(exchange, requesterTags));
 
 					if (rSocket instanceof ResponderRSocket) {
 						ResponderRSocket socket = (ResponderRSocket) rSocket;
@@ -123,38 +129,59 @@ public class GatewayRSocket extends AbstractRSocket implements ResponderRSocket 
 					}
 					return rSocket.requestChannel(flux);
 				})
-				.doOnNext(s -> count("forward.request.channel.payload", responderTags))
-				.doOnError(t -> count("forward.request.channel.error", responderTags))
-				.doFinally(s -> count("forward.request.channel", responderTags));
+				.doOnNext(s -> count(exchange, "payload", responderTags))
+				.doOnError(t -> count(exchange, "error", responderTags))
+				.doFinally(s -> count(exchange, responderTags));
 	}
 
-	private void count(String name, Tags responderTags) {
-		this.meterRegistry.counter(name, responderTags).increment();
+	private void count(GatewayExchange exchange, String suffix) {
+		count(exchange, suffix, Tags.empty());
+	}
+
+	private void count(GatewayExchange exchange, Tags additionalTags) {
+		count(exchange, null, additionalTags);
+	}
+
+	private void count(GatewayExchange exchange, String suffix, Tags additionalTags) {
+		Tags tags = exchange.getTags().and(additionalTags);
+		String name = getMetricName(exchange, suffix);
+		this.meterRegistry.counter(name, tags).increment();
+	}
+
+	private String getMetricName(GatewayExchange exchange) {
+		return getMetricName(exchange, null);
+	}
+
+	private String getMetricName(GatewayExchange exchange, String suffix) {
+		StringBuilder name = new StringBuilder("forward.");
+		name.append(exchange.getType().getKey());
+		if (StringUtils.hasLength(suffix)) {
+			name.append(".");
+			name.append(suffix);
+		}
+		return name.toString();
 	}
 
 	@Override
 	public Mono<Payload> requestResponse(Payload payload) {
 		AtomicReference<Timer.Sample> timer = new AtomicReference<>();
-		GatewayExchange exchange = GatewayExchange.fromPayload(REQUEST_RESPONSE, payload);
-		Tags tags = getTags(exchange);
+		GatewayExchange exchange = createExchange(REQUEST_RESPONSE, payload);
 		return findRSocketOrCreatePending(exchange)
 				.flatMap(rSocket -> rSocket.requestResponse(payload))
 				.doOnSubscribe(s -> timer.set(Timer.start(meterRegistry)))
-				.doOnError(t -> count("forward.request.response.error", tags))
-				.doFinally(s -> timer.get().stop(meterRegistry.timer("forward.request.response", tags)));
+				.doOnError(t -> count(exchange, "error"))
+				.doFinally(s -> timer.get().stop(meterRegistry.timer(getMetricName(exchange), exchange.getTags())));
 	}
 
 	@Override
 	public Flux<Payload> requestStream(Payload payload) {
-		GatewayExchange exchange = GatewayExchange.fromPayload(REQUEST_STREAM, payload);
-		Tags tags = getTags(exchange);
+		GatewayExchange exchange = createExchange(REQUEST_STREAM, payload);
 		return findRSocketOrCreatePending(exchange)
 				.flatMapMany(rSocket -> rSocket.requestStream(payload))
 				// S N E F
-				//TODO: move tagnames to enum
-				.doOnNext(s -> count("forward.request.stream.payload", tags))
-				.doOnError(t -> count("forward.request.stream.error", tags))
-				.doFinally(s -> count("forward.request.stream", tags));
+				.doOnNext(s -> count(exchange, "payload"))
+				.doOnError(t -> count(exchange, "error"))
+				.doFinally(s -> count(exchange, Tags.empty()));
 	}
 
 	/**

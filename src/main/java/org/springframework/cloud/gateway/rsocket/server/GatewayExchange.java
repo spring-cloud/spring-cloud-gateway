@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.rsocket.server;
 
 import java.util.Map;
 
+import io.micrometer.core.instrument.Tags;
 import io.rsocket.Payload;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -32,10 +33,26 @@ public class GatewayExchange extends AbstractRSocketExchange {
 	private static final Log log = LogFactory.getLog(GatewayExchange.class);
 	public static final String ROUTE_ATTR = "__route_attr_";
 
-	enum Type { FIRE_AND_FORGET, REQUEST_CHANNEL, REQUEST_RESPONSE, REQUEST_STREAM }
+	enum Type {
+		FIRE_AND_FORGET("request.fnf"),
+		REQUEST_CHANNEL("request.channel"),
+		REQUEST_RESPONSE("request.response"),
+		REQUEST_STREAM("request.stream");
+
+		private String key;
+
+		Type(String key) {
+			this.key = key;
+		}
+
+		String getKey() {
+			return this.key;
+		}
+	}
 
 	private final Type type;
 	private final Map<String, String> routingMetadata;
+	private Tags tags = Tags.empty();
 
 	public static GatewayExchange fromPayload(Type type, Payload payload) {
 		return new GatewayExchange(type, getRoutingMetadata(payload));
@@ -71,5 +88,13 @@ public class GatewayExchange extends AbstractRSocketExchange {
 
 	public Map<String, String> getRoutingMetadata() {
 		return routingMetadata;
+	}
+
+	public Tags getTags() {
+		return this.tags;
+	}
+
+	public void setTags(Tags tags) {
+		this.tags = tags;
 	}
 }
