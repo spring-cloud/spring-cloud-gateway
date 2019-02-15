@@ -42,7 +42,8 @@ public class GatewaySocketAcceptor implements SocketAcceptor {
 	private final MeterRegistry meterRegistry;
 	private final GatewayRSocketProperties properties;
 
-	public GatewaySocketAcceptor(GatewayRSocket.Factory rSocketFactory, List<SocketAcceptorFilter> filters, MeterRegistry meterRegistry, GatewayRSocketProperties properties) {
+	public GatewaySocketAcceptor(GatewayRSocket.Factory rSocketFactory, List<SocketAcceptorFilter> filters,
+			MeterRegistry meterRegistry, GatewayRSocketProperties properties) {
 		this.rSocketFactory = rSocketFactory;
 		this.filterChain = new SocketAcceptorFilterChain(filters);
 		this.meterRegistry = meterRegistry;
