@@ -127,7 +127,7 @@ public class GatewayRSocketServer implements Ordered, SmartLifecycle {
 				.toArray(new Tag[]{});
 
 		factory
-				//TODO: add as bean lice serverInterceptors above
+				//TODO: add as bean like serverInterceptors above
 				.addConnectionPlugin(new MicrometerDuplexConnectionInterceptor(meterRegistry, tags))
 				.acceptor(this.socketAcceptor)
 				.transport(transport)
