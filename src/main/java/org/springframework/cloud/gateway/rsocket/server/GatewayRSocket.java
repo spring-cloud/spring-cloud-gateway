@@ -106,9 +106,8 @@ public class GatewayRSocket extends AbstractRSocket implements ResponderRSocket 
 		String responderName = this.metadata.get("name");
 		String responderId = this.metadata.get("id");
 		String requestorName = exchange.getRoutingMetadata().get("name");
-		//String requestorId = TODO: how to get requestorId (it's part of metadata in Registry)
-		//TODO: deal with missing tags?
-		return Tags.of("requester.name", requestorName, //"requester.id", requestorId,
+		//requestor.id happens in a callback, later
+		return Tags.of("requester.name", requestorName,
 				"responder.name", responderName, "responder.id", responderId,
 				"gateway.id", this.properties.getId());
 	}
@@ -212,7 +211,10 @@ public class GatewayRSocket extends AbstractRSocket implements ResponderRSocket 
 	/* for testing */ PendingRequestRSocket constructPendingRSocket(GatewayExchange exchange) {
 		Function<Registry.RegisteredEvent, Mono<Route>> routeFinder = registeredEvent ->
 				getRouteMono(registeredEvent, exchange);
-		return new PendingRequestRSocket(routeFinder);
+		return new PendingRequestRSocket(routeFinder, map -> {
+			Tags tags = exchange.getTags().and("requester.id", map.get("id"));
+			exchange.setTags(tags);
+		});
 	}
 
 	protected Mono<Route> getRouteMono(Registry.RegisteredEvent registeredEvent, GatewayExchange exchange) {

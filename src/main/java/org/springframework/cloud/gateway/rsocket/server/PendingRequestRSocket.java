@@ -17,6 +17,7 @@
 
 package org.springframework.cloud.gateway.rsocket.server;
 
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.logging.Level;
@@ -47,17 +48,21 @@ public class PendingRequestRSocket extends AbstractRSocket implements ResponderR
 	private static final Log log = LogFactory.getLog(PendingRequestRSocket.class);
 
 	private final Function<RegisteredEvent, Mono<Route>> routeFinder;
+	private final Consumer<Map<String, String>> metadataCallback;
 	private final MonoProcessor<RSocket> rSocketProcessor;
 	private Disposable subscriptionDisposable;
 	private Route route;
 
-	public PendingRequestRSocket(Function<RegisteredEvent, Mono<Route>> routeFinder) {
-		this(routeFinder, MonoProcessor.create());
+	public PendingRequestRSocket(Function<RegisteredEvent, Mono<Route>> routeFinder,
+			Consumer<Map<String, String>> metadataCallback) {
+		this(routeFinder, metadataCallback, MonoProcessor.create());
 	}
 
 	/* for testing */ PendingRequestRSocket(Function<RegisteredEvent, Mono<Route>> routeFinder,
+			Consumer<Map<String, String>> metadataCallback,
 			MonoProcessor<RSocket> rSocketProcessor) {
 		this.routeFinder = routeFinder;
+		this.metadataCallback = metadataCallback;
 		this.rSocketProcessor = rSocketProcessor;
 	}
 
@@ -73,6 +78,7 @@ public class PendingRequestRSocket extends AbstractRSocket implements ResponderR
 		this.routeFinder.apply(registeredEvent)
 				.subscribe(route -> {
 					this.route = route;
+					this.metadataCallback.accept(registeredEvent.getRoutingMetadata());
 					this.rSocketProcessor.onNext(registeredEvent.getRSocket());
 					this.rSocketProcessor.onComplete();
 					if (this.subscriptionDisposable != null) {

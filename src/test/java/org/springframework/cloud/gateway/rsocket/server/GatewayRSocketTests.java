@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
+import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import io.netty.buffer.Unpooled;
 import io.rsocket.Payload;
@@ -174,7 +175,10 @@ public class GatewayRSocketTests {
 		PendingRequestRSocket constructPendingRSocket(GatewayExchange exchange) {
 			Function<Registry.RegisteredEvent, Mono<Route>> routeFinder = registeredEvent ->
 					getRouteMono(registeredEvent, exchange);
-			return new PendingRequestRSocket(routeFinder, processor);
+			return new PendingRequestRSocket(routeFinder, map -> {
+				Tags tags = exchange.getTags().and("requester.id", map.get("id"));
+				exchange.setTags(tags);
+			}, processor);
 		}
 
 		public MonoProcessor<RSocket> getProcessor() {
