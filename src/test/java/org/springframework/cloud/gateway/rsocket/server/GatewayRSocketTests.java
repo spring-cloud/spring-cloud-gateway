@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import io.netty.buffer.Unpooled;
@@ -171,7 +172,9 @@ public class GatewayRSocketTests {
 
 		@Override
 		PendingRequestRSocket constructPendingRSocket(GatewayExchange exchange) {
-			return new PendingRequestRSocket(getRoutes(), exchange, processor);
+			Function<Registry.RegisteredEvent, Mono<Route>> routeFinder = registeredEvent ->
+					getRouteMono(registeredEvent, exchange);
+			return new PendingRequestRSocket(routeFinder, processor);
 		}
 
 		public MonoProcessor<RSocket> getProcessor() {

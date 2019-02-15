@@ -17,8 +17,8 @@
 
 package org.springframework.cloud.gateway.rsocket.server;
 
-import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.logging.Level;
 
 import io.rsocket.AbstractRSocket;
@@ -37,8 +37,6 @@ import reactor.util.function.Tuple2;
 import org.springframework.cloud.gateway.rsocket.filter.RSocketFilter.Success;
 import org.springframework.cloud.gateway.rsocket.registry.Registry.RegisteredEvent;
 import org.springframework.cloud.gateway.rsocket.route.Route;
-import org.springframework.cloud.gateway.rsocket.route.Routes;
-import org.springframework.cloud.gateway.rsocket.support.Metadata;
 
 import static org.springframework.cloud.gateway.rsocket.server.GatewayExchange.ROUTE_ATTR;
 import static org.springframework.cloud.gateway.rsocket.server.GatewayExchange.Type.REQUEST_STREAM;
@@ -48,18 +46,18 @@ public class PendingRequestRSocket extends AbstractRSocket implements ResponderR
 
 	private static final Log log = LogFactory.getLog(PendingRequestRSocket.class);
 
-	private final Routes routes;
-	private final GatewayExchange pendingExchange;
+	private final Function<RegisteredEvent, Mono<Route>> routeFinder;
 	private final MonoProcessor<RSocket> rSocketProcessor;
 	private Disposable subscriptionDisposable;
+	private Route route;
 
-	public PendingRequestRSocket(Routes routes, GatewayExchange pendingExchange) {
-		this(routes, pendingExchange, MonoProcessor.create());
+	public PendingRequestRSocket(Function<RegisteredEvent, Mono<Route>> routeFinder) {
+		this(routeFinder, MonoProcessor.create());
 	}
 
-	/* for testing */ PendingRequestRSocket(Routes routes, GatewayExchange pendingExchange, MonoProcessor<RSocket> rSocketProcessor) {
-		this.routes = routes;
-		this.pendingExchange = pendingExchange;
+	/* for testing */ PendingRequestRSocket(Function<RegisteredEvent, Mono<Route>> routeFinder,
+			MonoProcessor<RSocket> rSocketProcessor) {
+		this.routeFinder = routeFinder;
 		this.rSocketProcessor = rSocketProcessor;
 	}
 
@@ -72,44 +70,15 @@ public class PendingRequestRSocket extends AbstractRSocket implements ResponderR
 	 */
 	@Override
 	public void accept(RegisteredEvent registeredEvent) {
-		findRoute()
-				.log(PendingRequestRSocket.class.getName()+".find route pending", Level.FINE)
-				// can this be replaced with filter?
-				.flatMap(route -> {
-					if (!pendingExchange.getAttributes().containsKey(ROUTE_ATTR)) {
-						if (log.isDebugEnabled()) {
-							log.debug("route not in exchange, adding.");
-						}
-						pendingExchange.getAttributes().put(ROUTE_ATTR, route);
-					}
-					return matchRoute(route, registeredEvent.getRoutingMetadata());
-				})
+		this.routeFinder.apply(registeredEvent)
 				.subscribe(route -> {
+					this.route = route;
 					this.rSocketProcessor.onNext(registeredEvent.getRSocket());
 					this.rSocketProcessor.onComplete();
 					if (this.subscriptionDisposable != null) {
 						this.subscriptionDisposable.dispose();
 					}
 				});
-	}
-
-	private Mono<Route> findRoute() {
-		Mono<Route> routeMono;
-		if (pendingExchange.getAttributes().containsKey(ROUTE_ATTR)) {
-			Route r = pendingExchange.getRequiredAttribute(ROUTE_ATTR);
-			routeMono = Mono.just(r);
-		} else {
-			routeMono = this.routes.findRoute(pendingExchange);
-		}
-		return routeMono;
-	}
-
-	private Mono<Route> matchRoute(Route route, Map<String, String> annoucementMetadata) {
-		Map<String, String> targetMetadata = route.getTargetMetadata();
-		if (Metadata.matches(targetMetadata, annoucementMetadata)) {
-			return Mono.just(route);
-		}
-		return Mono.empty();
 	}
 
 	@Override
@@ -155,9 +124,9 @@ public class PendingRequestRSocket extends AbstractRSocket implements ResponderR
 		return rSocketProcessor
 				.log(PendingRequestRSocket.class.getName()+"."+logCategory, Level.FINE)
 				.flatMap(rSocket -> {
-					Route route = pendingExchange.getAttribute(ROUTE_ATTR);
 					GatewayExchange exchange = GatewayExchange.fromPayload(REQUEST_STREAM, payload);
-					exchange.getAttributes().putAll(pendingExchange.getAttributes());
+					exchange.getAttributes().put(ROUTE_ATTR, route);
+					//exchange.getAttributes().putAll(pendingExchange.getAttributes());
 					return Mono.just(rSocket).zipWith(executeFilterChain(route.getFilters(), exchange));
 				});
 

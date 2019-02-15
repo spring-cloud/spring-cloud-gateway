@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.rsocket.server;
 
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 import java.util.logging.Level;
 
 import io.micrometer.core.instrument.MeterRegistry;
@@ -37,7 +38,9 @@ import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.rsocket.autoconfigure.GatewayRSocketProperties;
 import org.springframework.cloud.gateway.rsocket.registry.Registry;
+import org.springframework.cloud.gateway.rsocket.route.Route;
 import org.springframework.cloud.gateway.rsocket.route.Routes;
+import org.springframework.cloud.gateway.rsocket.support.Metadata;
 import org.springframework.util.StringUtils;
 
 import static org.springframework.cloud.gateway.rsocket.server.GatewayExchange.ROUTE_ATTR;
@@ -207,7 +210,36 @@ public class GatewayRSocket extends AbstractRSocket implements ResponderRSocket 
 	}
 
 	/* for testing */ PendingRequestRSocket constructPendingRSocket(GatewayExchange exchange) {
-		return new PendingRequestRSocket(routes, exchange);
+		Function<Registry.RegisteredEvent, Mono<Route>> routeFinder = registeredEvent ->
+				getRouteMono(registeredEvent, exchange);
+		return new PendingRequestRSocket(routeFinder);
+	}
+
+	protected Mono<Route> getRouteMono(Registry.RegisteredEvent registeredEvent, GatewayExchange exchange) {
+		return findRoute(exchange)
+				.log(PendingRequestRSocket.class.getName()+".find route pending", Level.FINE)
+				// can this be replaced with filter?
+				.flatMap(route -> {
+					return matchRoute(route, registeredEvent.getRoutingMetadata());
+				});
+	}
+
+	private Mono<Route> findRoute(GatewayExchange exchange) {
+		Mono<Route> routeMono;
+		/*if (this.route != null) { //TODO: cache Route?
+			routeMono = Mono.just(route);
+		} else {*/
+			routeMono = this.routes.findRoute(exchange);
+		//}
+		return routeMono;
+	}
+
+	private Mono<Route> matchRoute(Route route, Map<String, String> annoucementMetadata) {
+		Map<String, String> targetMetadata = route.getTargetMetadata();
+		if (Metadata.matches(targetMetadata, annoucementMetadata)) {
+			return Mono.just(route);
+		}
+		return Mono.empty();
 	}
 
 	/**
