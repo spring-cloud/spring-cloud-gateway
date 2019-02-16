@@ -37,6 +37,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.rsocket.autoconfigure.GatewayRSocketProperties;
+import org.springframework.cloud.gateway.rsocket.registry.LoadBalancedRSocket;
 import org.springframework.cloud.gateway.rsocket.registry.Registry;
 import org.springframework.cloud.gateway.rsocket.route.Route;
 import org.springframework.cloud.gateway.rsocket.route.Routes;
@@ -257,17 +258,29 @@ public class GatewayRSocket extends AbstractRSocket implements ResponderRSocket 
 					// put route in exchange for later use
 					exchange.getAttributes().put(ROUTE_ATTR, route);
 					return executeFilterChain(route.getFilters(), exchange)
-							.map(success -> {
-								RSocket rsocket = registry.getRegistered(exchange.getRoutingMetadata());
+							.flatMap(success -> {
+								LoadBalancedRSocket loadBalancedRSocket = registry
+										.getRegistered(exchange.getRoutingMetadata());
 
-								if (rsocket == null && log.isDebugEnabled()) {
-									log.debug("Unable to find destination RSocket for " + exchange.getRoutingMetadata());
-								}
-								return rsocket;
-							});
+								return loadBalancedRSocket.choose();
+							}).map(enrichedRSocket -> {
+								Map<String, String> metadata = enrichedRSocket
+										.getMetadata();
+								Tags tags = exchange.getTags().and("requester.id", metadata.get("id"));
+								exchange.setTags(tags);
+								return enrichedRSocket;
+							}).cast(RSocket.class)
+							.switchIfEmpty(doOnEmpty(exchange));
 				});
 
 		// TODO: deal with connecting to cluster?
+	}
+
+	private Mono<RSocket> doOnEmpty(GatewayExchange exchange) {
+		if (log.isDebugEnabled()) {
+			log.debug("Unable to find destination RSocket for " + exchange.getRoutingMetadata());
+		}
+		return Mono.empty();
 	}
 
 	public static class Factory {

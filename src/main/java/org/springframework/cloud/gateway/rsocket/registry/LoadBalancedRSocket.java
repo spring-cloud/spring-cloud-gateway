@@ -17,15 +17,6 @@
 
 package org.springframework.cloud.gateway.rsocket.registry;
 
-import io.rsocket.AbstractRSocket;
-import io.rsocket.Payload;
-import io.rsocket.RSocket;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.reactivestreams.Publisher;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -33,93 +24,87 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
-public class LoadBalancedRSocket extends AbstractRSocket {
+import io.rsocket.RSocket;
+import io.rsocket.util.RSocketProxy;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import reactor.core.publisher.Mono;
+
+public class LoadBalancedRSocket {
 
 	private static final Log log = LogFactory.getLog(LoadBalancedRSocket.class);
 
-	private final List<RSocket> delegates = new CopyOnWriteArrayList<>();
+	private final List<EnrichedRSocket> delegates = new CopyOnWriteArrayList<>();
 
-	private final Map<String, String> properties;
-
+	private final String serviceName;
 	private final LoadBalancer loadBalancer;
 
-	public LoadBalancedRSocket(Map<String, String> properties) {
-		this(properties, new RoundRobinLoadBalancer(properties));
+	public LoadBalancedRSocket(String serviceName) {
+		this(serviceName, new RoundRobinLoadBalancer(serviceName));
 	}
 
-	public LoadBalancedRSocket(Map<String, String> properties, LoadBalancer loadBalancer) {
-		this.properties = properties;
+	public LoadBalancedRSocket(String serviceName, LoadBalancer loadBalancer) {
+		this.serviceName = serviceName;
 		this.loadBalancer = loadBalancer;
 	}
 
-	public Mono<RSocket> choose() {
+	public Mono<EnrichedRSocket> choose() {
 		return this.loadBalancer.apply(this.delegates);
 	}
 
-	public void addRSocket(RSocket rsocket) {
-		this.delegates.add(rsocket);
+	public void addRSocket(RSocket rsocket, Map<String, String> metadata) {
+		this.delegates.add(new EnrichedRSocket(rsocket, metadata));
 	}
 
-	public List<RSocket> getDelegates() {
+	public List<EnrichedRSocket> getDelegates() {
 		return this.delegates;
 	}
 
-	@Override
-	public Mono<Void> fireAndForget(Payload payload) {
-		return choose().flatMap(rSocket -> rSocket.fireAndForget(payload));
-	}
+	public static class EnrichedRSocket extends RSocketProxy {
 
-	@Override
-	public Mono<Payload> requestResponse(Payload payload) {
-		return choose().flatMap(rSocket -> rSocket.requestResponse(payload));
-	}
+		private final Map<String, String> metadata;
 
-	@Override
-	public Flux<Payload> requestStream(Payload payload) {
-		return choose().flatMapMany(rSocket -> rSocket.requestStream(payload));
-	}
+		public EnrichedRSocket(RSocket source, Map<String, String> metadata) {
+			super(source);
+			this.metadata = metadata;
+		}
 
-	@Override
-	public Flux<Payload> requestChannel(Publisher<Payload> payloads) {
-		return choose().flatMapMany(rSocket -> rSocket.requestChannel(payloads));
-	}
-
-	@Override
-	public Mono<Void> metadataPush(Payload payload) {
-		return choose().flatMap(rSocket -> rSocket.metadataPush(payload));
+		public Map<String, String> getMetadata() {
+			return this.metadata;
+		}
 	}
 
 	//TODO: Flux<RSocket> as input?
 	//TODO: reuse commons load balancer?
-	public interface LoadBalancer extends Function<List<RSocket>, Mono<RSocket>> {
+	public interface LoadBalancer extends Function<List<EnrichedRSocket>, Mono<EnrichedRSocket>> {
 	}
 
 	public static class RoundRobinLoadBalancer implements LoadBalancer {
 
 		private final AtomicInteger position;
-		private final Map<String, String> properties;
+		private final String serviceName;
 
-		public RoundRobinLoadBalancer(Map<String, String> properties) {
-			this(properties, new Random().nextInt(1000));
+		public RoundRobinLoadBalancer(String serviceName) {
+			this(serviceName, new Random().nextInt(1000));
 		}
 
-		public RoundRobinLoadBalancer(Map<String, String> properties, int seedPosition) {
-			this.properties = properties;
+		public RoundRobinLoadBalancer(String serviceName, int seedPosition) {
+			this.serviceName = serviceName;
 			this.position = new AtomicInteger(seedPosition);
 		}
 
 		@Override
-		public Mono<RSocket> apply(List<RSocket> rSockets) {
+		public Mono<EnrichedRSocket> apply(List<EnrichedRSocket> rSockets) {
 			if (rSockets.isEmpty()) {
 				if (log.isWarnEnabled()) {
-					log.warn("No servers available for: " + this.properties);
+					log.warn("No servers available for: " + this.serviceName);
 				}
 				return Mono.empty();
 			}
 			// TODO: enforce order?
 			int pos = Math.abs(this.position.incrementAndGet());
 
-			RSocket rSocket = rSockets.get(pos % rSockets.size());
+			EnrichedRSocket rSocket = rSockets.get(pos % rSockets.size());
 			return Mono.just(rSocket);
 		}
 	}

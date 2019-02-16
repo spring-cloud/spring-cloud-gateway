@@ -73,7 +73,7 @@ public class GatewayRSocketTests {
 				Metadata.encodeTags("name:mock", "id:mock1"));
 
 		RSocket rSocket = mock(RSocket.class);
-		when(registry.getRegistered(anyMap())).thenReturn(rSocket);
+		//FIXME: when(registry.getRegistered(anyMap())).thenReturn(rSocket);
 
 		when(rSocket.requestResponse(any(Payload.class)))
 				.thenReturn(Mono.just(DefaultPayload.create("response")));

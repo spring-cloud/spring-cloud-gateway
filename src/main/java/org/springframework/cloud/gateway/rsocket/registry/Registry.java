@@ -72,12 +72,12 @@ public class Registry {
 		Assert.notNull(rsocket, "RSocket may not be null");
 		log.debug("Registered RSocket: " + properties);
 		LoadBalancedRSocket composite = rsockets.computeIfAbsent(computeKey(properties), s ->
-				new LoadBalancedRSocket(properties));
-		composite.addRSocket(rsocket);
+				new LoadBalancedRSocket(properties.get("name")));
+		composite.addRSocket(rsocket, properties);
 		registeredEventsSink.next(new RegisteredEvent(properties, rsocket));
 	}
 
-	public RSocket getRegistered(Map<String, String> properties) {
+	public LoadBalancedRSocket getRegistered(Map<String, String> properties) {
 		if (CollectionUtils.isEmpty(properties)) {
 			return null;
 		}
