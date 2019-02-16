@@ -25,7 +25,7 @@
 		<version>2.1.2.RELEASE</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>org.springframework.cloud.rsocket</groupId>
+	<groupId>org.springframework.cloud</groupId>
 	<artifactId>spring-cloud-gateway-rsocket</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>spring-cloud-gateway-rsocket</name>
