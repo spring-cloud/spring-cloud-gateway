@@ -34,7 +34,7 @@
 	<properties>
 		<java.version>1.8</java.version>
 		<rsocket.version>0.11.16</rsocket.version>
-		<reactor.version>Californium-SR4</reactor.version>
+		<reactor.version>Californium-SR5</reactor.version>
 	</properties>
 
 	<dependencyManagement>
@@ -42,9 +42,29 @@
 			<dependency>
 				<groupId>io.projectreactor</groupId>
 				<artifactId>reactor-bom</artifactId>
-				<version>Californium-SR5</version>
+				<version>${reactor.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-configuration-processor</artifactId>
+				<optional>true</optional>
+			</dependency>
+			<dependency>
+				<groupId>io.rsocket</groupId>
+				<artifactId>rsocket-core</artifactId>
+				<version>${rsocket.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.rsocket</groupId>
+				<artifactId>rsocket-micrometer</artifactId>
+				<version>${rsocket.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.rsocket</groupId>
+				<artifactId>rsocket-transport-netty</artifactId>
+				<version>${rsocket.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
@@ -63,17 +83,14 @@
 		<dependency>
 			<groupId>io.rsocket</groupId>
 			<artifactId>rsocket-core</artifactId>
-			<version>${rsocket.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.rsocket</groupId>
 			<artifactId>rsocket-micrometer</artifactId>
-			<version>${rsocket.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.rsocket</groupId>
 			<artifactId>rsocket-transport-netty</artifactId>
-			<version>${rsocket.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.micrometer</groupId>
