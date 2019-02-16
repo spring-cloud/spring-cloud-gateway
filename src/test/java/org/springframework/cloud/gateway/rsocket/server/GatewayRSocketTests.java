@@ -41,6 +41,8 @@ import reactor.core.publisher.MonoProcessor;
 import reactor.test.StepVerifier;
 
 import org.springframework.cloud.gateway.rsocket.autoconfigure.GatewayRSocketProperties;
+import org.springframework.cloud.gateway.rsocket.registry.LoadBalancedRSocket;
+import org.springframework.cloud.gateway.rsocket.registry.LoadBalancedRSocket.EnrichedRSocket;
 import org.springframework.cloud.gateway.rsocket.registry.Registry;
 import org.springframework.cloud.gateway.rsocket.route.Route;
 import org.springframework.cloud.gateway.rsocket.route.Routes;
@@ -73,7 +75,12 @@ public class GatewayRSocketTests {
 				Metadata.encodeTags("name:mock", "id:mock1"));
 
 		RSocket rSocket = mock(RSocket.class);
-		//FIXME: when(registry.getRegistered(anyMap())).thenReturn(rSocket);
+		LoadBalancedRSocket loadBalancedRSocket = mock(LoadBalancedRSocket.class);
+		when(registry.getRegistered(anyMap())).thenReturn(loadBalancedRSocket);
+
+		Mono<EnrichedRSocket> mono = Mono
+				.just(new EnrichedRSocket(rSocket, getMetadata()));
+		when(loadBalancedRSocket.choose()).thenReturn(mono);
 
 		when(rSocket.requestResponse(any(Payload.class)))
 				.thenReturn(Mono.just(DefaultPayload.create("response")));
@@ -164,13 +171,6 @@ public class GatewayRSocketTests {
 					getMetadata());
 		}
 
-		private static Map<String, String> getMetadata() {
-			HashMap<String, String> map = new HashMap<>();
-			map.put("name", "service");
-			map.put("id", "service1");
-			return map;
-		}
-
 		@Override
 		PendingRequestRSocket constructPendingRSocket(GatewayExchange exchange) {
 			Function<Registry.RegisteredEvent, Mono<Route>> routeFinder = registeredEvent ->
@@ -184,6 +184,13 @@ public class GatewayRSocketTests {
 		public MonoProcessor<RSocket> getProcessor() {
 			return processor;
 		}
+	}
+
+	private static Map<String, String> getMetadata() {
+		HashMap<String, String> map = new HashMap<>();
+		map.put("name", "service");
+		map.put("id", "service1");
+		return map;
 	}
 
 	private static class TestRoutes implements Routes {
