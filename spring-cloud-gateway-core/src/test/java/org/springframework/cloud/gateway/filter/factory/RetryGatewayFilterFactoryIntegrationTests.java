@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
+import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -24,6 +25,7 @@ import com.netflix.loadbalancer.Server;
 import com.netflix.loadbalancer.ServerList;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hamcrest.CoreMatchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -69,6 +71,16 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 				.is5xxServerError().expectBody(String.class).consumeWith(result -> {
 					assertThat(result.getResponseBody()).contains("permanently broken");
 				});
+	}
+
+	@Test
+	public void retryWithBackoff() {
+		testClient.get()
+				.uri("/retry?key=retry-with-backoff&count=3")
+				.header(HttpHeaders.HOST, "www.retrywithbackoff.org")
+				.exchange()
+				.expectStatus().isOk()
+				.expectHeader().value("X-Retry-Count", CoreMatchers.equalTo("3"));
 	}
 
 	@Test
@@ -147,6 +159,14 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 							.filters(f -> f.prefixPath("/httpbin")
 									.retry(config -> config.setRetries(2)))
 							.uri(uri))
+
+					.route("retry_with_backoff", r -> r.host("**.retrywithbackoff.org")
+							.filters(f -> f.prefixPath("/httpbin")
+									.retry(config -> config.setRetries(2)
+											.setBackoff(new RetryGatewayFilterFactory.BackoffConfig(Duration.ofMillis(100), null, 2, true))
+									))
+							.uri(uri))
+
 					.route("retry_with_loadbalancer",
 							r -> r.host("**.retrywithloadbalancer.org")
 									.filters(f -> f.prefixPath("/httpbin")

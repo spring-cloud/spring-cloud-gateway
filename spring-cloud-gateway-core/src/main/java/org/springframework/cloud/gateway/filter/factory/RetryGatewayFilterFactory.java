@@ -17,6 +17,7 @@
 package org.springframework.cloud.gateway.filter.factory;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -28,6 +29,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Mono;
+import reactor.retry.Backoff;
 import reactor.retry.Repeat;
 import reactor.retry.RepeatContext;
 import reactor.retry.Retry;
@@ -101,6 +103,11 @@ public class RetryGatewayFilterFactory
 
 			statusCodeRepeat = Repeat.onlyIf(repeatPredicate)
 					.doOnRepeat(context -> reset(context.applicationContext()));
+
+			BackoffConfig backoff = retryConfig.getBackoff();
+			if(backoff != null) {
+				statusCodeRepeat = statusCodeRepeat.backoff(getBackoff(backoff));
+			}
 		}
 
 		// TODO: support timeout, backoff, jitter, etc... in Builder
@@ -128,9 +135,17 @@ public class RetryGatewayFilterFactory
 			exceptionRetry = Retry.onlyIf(retryContextPredicate)
 					.doOnRetry(context -> reset(context.applicationContext()))
 					.retryMax(retryConfig.getRetries());
+			BackoffConfig backoff = retryConfig.getBackoff();
+			if(backoff != null) {
+				exceptionRetry = exceptionRetry.backoff(getBackoff(backoff));
+			}
 		}
 
 		return apply(statusCodeRepeat, exceptionRetry);
+	}
+
+	private Backoff getBackoff(BackoffConfig backoff) {
+		return Backoff.exponential(backoff.firstBackoff, backoff.maxBackoff, backoff.factor, backoff.basedOnPreviousValue);
 	}
 
 	public boolean exceedsMaxIterations(ServerWebExchange exchange,
@@ -206,6 +221,8 @@ public class RetryGatewayFilterFactory
 		private List<Class<? extends Throwable>> exceptions = toList(IOException.class,
 				TimeoutException.class);
 
+		private BackoffConfig backoff;
+
 		public RetryConfig allMethods() {
 			return setMethods(HttpMethod.values());
 		}
@@ -217,6 +234,18 @@ public class RetryGatewayFilterFactory
 							|| !this.exceptions.isEmpty(),
 					"series, status and exceptions may not all be empty");
 			Assert.notEmpty(this.methods, "methods may not be empty");
+			if (this.backoff != null) {
+				this.backoff.validate();
+			}
+		}
+
+		public BackoffConfig getBackoff() {
+			return backoff;
+		}
+
+		public RetryConfig setBackoff(BackoffConfig backoff) {
+			this.backoff = backoff;
+			return this;
 		}
 
 		public int getRetries() {
@@ -264,6 +293,60 @@ public class RetryGatewayFilterFactory
 			return this;
 		}
 
+	}
+
+	public static class BackoffConfig {
+		private Duration firstBackoff = Duration.ofMillis(5);
+		private Duration maxBackoff;
+		private int factor = 2;
+		private boolean basedOnPreviousValue = true;
+
+		public BackoffConfig() {
+		}
+
+		public BackoffConfig(Duration firstBackoff, Duration maxBackoff,
+							 int factor, boolean basedOnPreviousValue) {
+			this.firstBackoff = firstBackoff;
+			this.maxBackoff = maxBackoff;
+			this.factor = factor;
+			this.basedOnPreviousValue = basedOnPreviousValue;
+		}
+
+		public void validate() {
+			Assert.notNull(this.firstBackoff, "firstBackoff must be present");
+		}
+
+		public Duration getFirstBackoff() {
+			return firstBackoff;
+		}
+
+		public void setFirstBackoff(Duration firstBackoff) {
+			this.firstBackoff = firstBackoff;
+		}
+
+		public Duration getMaxBackoff() {
+			return maxBackoff;
+		}
+
+		public void setMaxBackoff(Duration maxBackoff) {
+			this.maxBackoff = maxBackoff;
+		}
+
+		public int getFactor() {
+			return factor;
+		}
+
+		public void setFactor(int factor) {
+			this.factor = factor;
+		}
+
+		public boolean isBasedOnPreviousValue() {
+			return basedOnPreviousValue;
+		}
+
+		public void setBasedOnPreviousValue(boolean basedOnPreviousValue) {
+			this.basedOnPreviousValue = basedOnPreviousValue;
+		}
 	}
 
 }
