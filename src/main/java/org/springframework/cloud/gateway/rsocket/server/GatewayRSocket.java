@@ -42,6 +42,7 @@ import org.springframework.cloud.gateway.rsocket.registry.Registry;
 import org.springframework.cloud.gateway.rsocket.route.Route;
 import org.springframework.cloud.gateway.rsocket.route.Routes;
 import org.springframework.cloud.gateway.rsocket.support.Metadata;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import static org.springframework.cloud.gateway.rsocket.server.GatewayExchange.ROUTE_ATTR;
@@ -75,6 +76,18 @@ public class GatewayRSocket extends AbstractRSocket implements ResponderRSocket 
 		this.meterRegistry = meterRegistry;
 		this.properties = properties;
 		this.metadata = metadata;
+		this.onClose()
+				.doOnSuccess(v -> registry.deregister(metadata))
+				//.doOnNext(v -> log.error("OnClose doOnNext"))
+				.doOnError(t -> {
+					if (log.isErrorEnabled()) {
+						log.error("Error received, deregistering " + metadata, t);
+					}
+					registry.deregister(metadata);
+				})
+				//.doOnTerminate(() -> log.error("OnClose doOnTerminate"))
+				//.doFinally(st -> log.error("OnClose doFinally"))
+				.subscribe();
 	}
 
 
@@ -107,6 +120,9 @@ public class GatewayRSocket extends AbstractRSocket implements ResponderRSocket 
 		String responderName = this.metadata.get("name");
 		String responderId = this.metadata.get("id");
 		String requestorName = exchange.getRoutingMetadata().get("name");
+		Assert.hasText(responderName, "responderName must not be empty");
+		Assert.hasText(responderId, "responderId must not be empty");
+		Assert.hasText(requestorName, "requestorName must not be empty");
 		//requestor.id happens in a callback, later
 		return Tags.of("requester.name", requestorName,
 				"responder.name", responderName, "responder.id", responderId,
