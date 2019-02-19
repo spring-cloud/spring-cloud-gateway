@@ -77,7 +77,7 @@ public class GatewaySocketAcceptor implements SocketAcceptor {
 
 		//decorate with metrics gateway id, type responder, service name, service id (instance id)
 		return this.filterChain.filter(exchange)
-				.log(GatewaySocketAcceptor.class.getName()+".socket acceptor filter chain", Level.FINE)
+				.log(GatewaySocketAcceptor.class.getName()+".socket acceptor filter chain", Level.FINEST)
 				.map(success -> decorate(this.rSocketFactory.create(exchange.getMetadata()), responderTags));
 	}
 

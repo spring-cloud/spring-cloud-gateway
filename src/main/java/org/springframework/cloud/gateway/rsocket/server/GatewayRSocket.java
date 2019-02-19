@@ -144,7 +144,7 @@ public class GatewayRSocket extends AbstractRSocket implements ResponderRSocket 
 					if (rSocket instanceof ResponderRSocket) {
 						ResponderRSocket socket = (ResponderRSocket) rSocket;
 						return socket.requestChannel(payload, flux)
-								.log(GatewayRSocket.class.getName()+".request-channel", Level.FINE);
+								.log(GatewayRSocket.class.getName()+".request-channel", Level.FINEST);
 					}
 					return rSocket.requestChannel(flux);
 				})
@@ -236,7 +236,7 @@ public class GatewayRSocket extends AbstractRSocket implements ResponderRSocket 
 
 	protected Mono<Route> getRouteMono(Registry.RegisteredEvent registeredEvent, GatewayExchange exchange) {
 		return findRoute(exchange)
-				.log(PendingRequestRSocket.class.getName()+".find route pending", Level.FINE)
+				.log(PendingRequestRSocket.class.getName()+".find route pending", Level.FINEST)
 				// can this be replaced with filter?
 				.flatMap(route -> {
 					return matchRoute(route, registeredEvent.getRoutingMetadata());
@@ -269,7 +269,7 @@ public class GatewayRSocket extends AbstractRSocket implements ResponderRSocket 
 	 */
 	private Mono<RSocket> findRSocket(GatewayExchange exchange) {
 		return this.routes.findRoute(exchange)
-				.log(GatewayRSocket.class.getName()+".find route", Level.FINE)
+				.log(GatewayRSocket.class.getName()+".find route", Level.FINEST)
 				.flatMap(route -> {
 					// put route in exchange for later use
 					exchange.getAttributes().put(ROUTE_ATTR, route);

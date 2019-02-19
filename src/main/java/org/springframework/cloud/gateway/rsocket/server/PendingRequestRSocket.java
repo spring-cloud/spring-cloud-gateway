@@ -128,7 +128,7 @@ public class PendingRequestRSocket extends AbstractRSocket implements ResponderR
 	 */
 	protected Mono<Tuple2<RSocket, Success>> processor(String logCategory, Payload payload) {
 		return rSocketProcessor
-				.log(PendingRequestRSocket.class.getName()+"."+logCategory, Level.FINE)
+				.log(PendingRequestRSocket.class.getName()+"."+logCategory, Level.FINEST)
 				.flatMap(rSocket -> {
 					GatewayExchange exchange = GatewayExchange.fromPayload(REQUEST_STREAM, payload);
 					exchange.getAttributes().put(ROUTE_ATTR, route);
