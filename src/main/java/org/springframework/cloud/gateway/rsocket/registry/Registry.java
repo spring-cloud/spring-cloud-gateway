@@ -70,11 +70,25 @@ public class Registry {
 	public void register(Map<String, String> properties, RSocket rsocket) {
 		Assert.notEmpty(properties, "properties may not be empty");
 		Assert.notNull(rsocket, "RSocket may not be null");
-		log.debug("Registered RSocket: " + properties);
+		if (log.isDebugEnabled()) {
+			log.debug("Registering RSocket: " + properties);
+		}
 		LoadBalancedRSocket composite = rsockets.computeIfAbsent(computeKey(properties), s ->
 				new LoadBalancedRSocket(properties.get("name")));
 		composite.addRSocket(rsocket, properties);
 		registeredEventsSink.next(new RegisteredEvent(properties, rsocket));
+	}
+
+	public void deregister(Map<String, String> metadata) {
+		Assert.notEmpty(metadata, "metadata may not be empty");
+		if (log.isDebugEnabled()) {
+			log.debug("Deregistering RSocket: " + metadata);
+		}
+		String key = computeKey(metadata);
+		LoadBalancedRSocket loadBalanced = this.rsockets.get(key);
+		if (loadBalanced != null) {
+			loadBalanced.remove(metadata);
+		}
 	}
 
 	public LoadBalancedRSocket getRegistered(Map<String, String> properties) {

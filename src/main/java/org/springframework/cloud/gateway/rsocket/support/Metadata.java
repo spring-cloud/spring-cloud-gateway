@@ -93,29 +93,29 @@ public abstract class Metadata {
 	}
 
 	/**
-	 * All keys in targetMetadata must have a "match" in announcementMetadata
-	 * @param targetMetadata
-	 * @param annoucementMetadata
-	 * @return
+	 * Matches leftMetadata to rightMetadata. rightMetadata must contain all key with
+	 * equal values (ignoring case) of leftMetadata.
+	 * @param leftMetadata first metadata to compare.
+	 * @param rightMetadata second metadata to compare.
+	 * @return true if all keys and values (case-insensitive) from leftMetadata are in rightMetadata.
 	 */
 	//TODO: find a way to make this more performant
-	public static boolean matches(Map<String, String> targetMetadata, Map<String, String> annoucementMetadata) {
-		if (targetMetadata != null && annoucementMetadata != null
-				// if announced key contains all target keys
-				&& annoucementMetadata.keySet().containsAll(targetMetadata.keySet())) {
-			for (Map.Entry<String, String> entry : targetMetadata.entrySet()) {
-				String targetKey = entry.getKey();
-				String targetValue = entry.getValue();
-				String announcementValue = annoucementMetadata.get(targetKey);
-
-				//TODO: regex and possibly SpEL
-				if (!targetValue.equals(announcementValue)) {
-					return false;
-				}
-			}
-			return true;
+	public static boolean matches(Map<String, String> leftMetadata, Map<String, String> rightMetadata) {
+		if (leftMetadata == null || rightMetadata == null) {
+			return false;
 		}
-		return false;
+
+		for (Map.Entry<String, String> entry : leftMetadata.entrySet()) {
+			String enrichedValue = rightMetadata.get(entry.getKey());
+			if (enrichedValue == null ||
+					//TODO: regex and possibly SpEL?
+					!enrichedValue.equalsIgnoreCase(entry.getValue())) {
+				return false;
+			}
+		}
+
+		// all entries in metadata exist and match corresponding entries in enriched.metadata
+		return true;
 	}
 
 	/**

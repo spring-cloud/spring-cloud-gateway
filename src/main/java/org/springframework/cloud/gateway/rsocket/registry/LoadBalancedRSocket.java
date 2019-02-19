@@ -30,6 +30,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Mono;
 
+import org.springframework.cloud.gateway.rsocket.support.Metadata;
+
 public class LoadBalancedRSocket {
 
 	private static final Log log = LogFactory.getLog(LoadBalancedRSocket.class);
@@ -56,6 +58,16 @@ public class LoadBalancedRSocket {
 		this.delegates.add(new EnrichedRSocket(rsocket, metadata));
 	}
 
+	public void remove(Map<String, String> metadata) {
+		//TODO: move delegates to a map for easy removal
+		this.delegates.stream()
+				.filter(enriched -> Metadata.matches(metadata, enriched.getMetadata()))
+				.findFirst()
+				.ifPresent(this.delegates::remove);
+	}
+
+
+
 	public List<EnrichedRSocket> getDelegates() {
 		return this.delegates;
 	}
@@ -71,6 +83,10 @@ public class LoadBalancedRSocket {
 
 		public Map<String, String> getMetadata() {
 			return this.metadata;
+		}
+
+		public RSocket getSource() {
+			return this.source;
 		}
 	}
 
