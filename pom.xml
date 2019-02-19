@@ -47,11 +47,6 @@
 				<scope>import</scope>
 			</dependency>
 			<dependency>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-configuration-processor</artifactId>
-				<optional>true</optional>
-			</dependency>
-			<dependency>
 				<groupId>io.rsocket</groupId>
 				<artifactId>rsocket-core</artifactId>
 				<version>${rsocket.version}</version>
