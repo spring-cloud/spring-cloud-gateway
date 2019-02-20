@@ -1422,7 +1422,71 @@ public GlobalFilter customGlobalPostFilter() {
 
 === Writing Custom Route Locators and Writers
 
-TODO: document writing Custom Route Locators and Writers
+If you create a custom ``RouteDefinition``, you can use ``RouteDefinitionWriter`` to add and delete Route.
+
+Example of how to add and delete Route info by custom ``RouteDefinition``.
+
+.CustomRouteLocator.java
+[source, java]
+----
+@Component
+public class CustomRouteLocator {
+
+  @Autowired
+  private RouteDefinitionWriter routeDefinitionWriter;
+
+  /**
+   * use routeId to delete Route info
+   *
+   * @param routeId RouteDefinition id
+   * @return CustomRouteLocator
+   */
+  public Mono<ResponseEntity> deleteRoute(String routeId) {
+    return routeDefinitionWriter.delete(Mono.just(routeId))
+        .then(Mono.defer(() -> Mono.just(ResponseEntity.ok("delete success!"))));
+  }
+
+  /**
+   * prepare a custom RouteDefinition add to Route
+   *
+   * @param routeDefinition custom routeDefinition
+   * @return CustomRouteLocator
+   */
+  public Mono<ResponseEntity> addRoute(RouteDefinition routeDefinition) {
+    return routeDefinitionWriter.save(Mono.just(routeDefinition))
+        .then(Mono.defer(() -> Mono.just(ResponseEntity.ok("add success!"))));
+  }
+}
+----
+
+.CustomController.java
+[source, java]
+----
+@RestController
+@RequestMapping
+public class CustomController {
+
+  @Autowired
+  private CustomRouteLocator routeLocator;
+
+  @PostMapping("/addroute")
+  public Mono<ResponseEntity> addRoute() {
+    RouteDefinition definition = new RouteDefinition();
+    PredicateDefinition predicate = new PredicateDefinition();
+    Map<String, String> predicateParams = new ConcurrentHashMap<>(8);
+    definition.setId("getRoute");
+    predicate.setName("Path");
+    predicateParams.put("pattern", "/get");
+    predicateParams.put("pathPattern", "/get");
+    predicate.setArgs(predicateParams);
+    definition.setPredicates(Arrays.asList(predicate));
+    URI uri = UriComponentsBuilder.fromHttpUrl("http://httpbin.org/get").build().toUri();
+    definition.setUri(uri);
+    return routeLocator.addRoute(definition);
+  }
+}
+
+----
 
 == Building a Simple Gateway Using Spring MVC or Webflux
 
