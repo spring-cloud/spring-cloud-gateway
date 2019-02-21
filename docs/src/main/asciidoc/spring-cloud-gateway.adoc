@@ -564,8 +564,8 @@ spring:
 
 This will send a status 302 with a `Location:http://acme.org` header to perform a redirect.
 
-=== RemoveNonProxyHeaders GatewayFilter Factory
-The RemoveNonProxyHeaders GatewayFilter Factory removes headers from forwarded requests. The default list of headers that is removed comes from the https://tools.ietf.org/html/draft-ietf-httpbis-p1-messaging-14#section-7.1.3[IETF].
+=== RemoveHopByHopHeadersFilter GatewayFilter Factory
+The RemoveHopByHopHeadersFilter GatewayFilter Factory removes headers from forwarded requests. The default list of headers that is removed comes from the https://tools.ietf.org/html/draft-ietf-httpbis-p1-messaging-14#section-7.1.3[IETF].
 
 .The default removed headers are:
  *  Connection
