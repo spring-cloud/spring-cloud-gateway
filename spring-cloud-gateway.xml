@@ -641,9 +641,9 @@ KeyResolver userKeyResolver() {
 </formalpara>
 <simpara>This will send a status 302 with a <literal>Location:http://acme.org</literal> header to perform a redirect.</simpara>
 </section>
-<section xml:id="_removenonproxyheaders_gatewayfilter_factory">
-<title>RemoveNonProxyHeaders GatewayFilter Factory</title>
-<simpara>The RemoveNonProxyHeaders GatewayFilter Factory removes headers from forwarded requests. The default list of headers that is removed comes from the <link xl:href="https://tools.ietf.org/html/draft-ietf-httpbis-p1-messaging-14#section-7.1.3">IETF</link>.</simpara>
+<section xml:id="_removehopbyhopheadersfilter_gatewayfilter_factory">
+<title>RemoveHopByHopHeadersFilter GatewayFilter Factory</title>
+<simpara>The RemoveHopByHopHeadersFilter GatewayFilter Factory removes headers from forwarded requests. The default list of headers that is removed comes from the <link xl:href="https://tools.ietf.org/html/draft-ietf-httpbis-p1-messaging-14#section-7.1.3">IETF</link>.</simpara>
 <itemizedlist>
 <title>The default removed headers are:</title>
 <listitem>
