@@ -6,7 +6,7 @@
 
 	<groupId>org.springframework.cloud</groupId>
 	<artifactId>spring-cloud-gateway</artifactId>
-	<version>2.1.1.BUILD-SNAPSHOT</version>
+	<version>2.2.0.BUILD-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>Spring Cloud Gateway</name>
@@ -134,6 +134,7 @@
 		<module>spring-cloud-gateway-mvc</module>
 		<module>spring-cloud-gateway-webflux</module>
 		<module>spring-cloud-gateway-core</module>
+		<module>spring-cloud-gateway-rsocket</module>
 		<module>spring-cloud-starter-gateway</module>
 		<module>spring-cloud-gateway-sample</module>
 		<module>docs</module>

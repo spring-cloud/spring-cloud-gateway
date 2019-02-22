@@ -21,14 +21,13 @@
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
-		<artifactId>spring-cloud-gateway-rsocket-parent</artifactId>
-		<version>0.0.1-SNAPSHOT</version>
-		<relativePath>..</relativePath>
+		<artifactId>spring-cloud-gateway</artifactId>
+		<version>2.2.0.BUILD-SNAPSHOT</version>
+		<relativePath>..</relativePath> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>org.springframework.cloud</groupId>
 	<artifactId>spring-cloud-gateway-rsocket</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-	<name>spring-cloud-gateway-rsocket</name>
+	<name>Spring Cloud Gateway RSocket</name>
 	<description>Spring Cloud Gateway RSocket</description>
 
 	<properties>
@@ -112,10 +111,77 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-
 	<build>
 		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<compilerArgs>
+						<arg>-parameters</arg>
+					</compilerArgs>
+				</configuration>
+				<executions>
+					<!-- Replacing default-compile as it is treated specially by maven -->
+					<execution>
+						<id>default-compile</id>
+						<phase>none</phase>
+					</execution>
+					<!-- Replacing default-testCompile as it is treated specially by maven -->
+					<execution>
+						<id>default-testCompile</id>
+						<phase>none</phase>
+					</execution>
+					<execution>
+						<id>java-compile</id>
+						<phase>compile</phase>
+						<goals>
+							<goal>compile</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>java-test-compile</id>
+						<phase>test-compile</phase>
+						<goals>
+							<goal>testCompile</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>3.1.0</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>test-jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
+	<profiles>
+		<profile>
+			<id>java8plus</id>
+			<activation>
+				<jdk>[1.8,2.0)</jdk>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-compiler-plugin</artifactId>
+						<configuration>
+							<compilerArgs>
+								<arg>-parameters</arg>
+							</compilerArgs>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 
 </project>
