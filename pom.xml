@@ -17,7 +17,7 @@
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>org.springframework.boot</groupId>
@@ -25,97 +25,19 @@
 		<version>2.1.2.RELEASE</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
+	<packaging>pom</packaging>
 	<groupId>org.springframework.cloud</groupId>
-	<artifactId>spring-cloud-gateway-rsocket</artifactId>
+	<artifactId>spring-cloud-gateway-rsocket-parent</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>spring-cloud-gateway-rsocket</name>
-	<description>Spring Cloud Gateway RSocket</description>
+	<name>spring-cloud-gateway-rsocket-parent</name>
+	<description>Spring Cloud Gateway RSocket Parent</description>
 
 	<properties>
 		<java.version>1.8</java.version>
-		<rsocket.version>0.11.16</rsocket.version>
-		<reactor.version>Californium-SR5</reactor.version>
 	</properties>
 
-	<dependencyManagement>
-		<dependencies>
-			<dependency>
-				<groupId>io.projectreactor</groupId>
-				<artifactId>reactor-bom</artifactId>
-				<version>${reactor.version}</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
-			<dependency>
-				<groupId>io.rsocket</groupId>
-				<artifactId>rsocket-core</artifactId>
-				<version>${rsocket.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>io.rsocket</groupId>
-				<artifactId>rsocket-micrometer</artifactId>
-				<version>${rsocket.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>io.rsocket</groupId>
-				<artifactId>rsocket-transport-netty</artifactId>
-				<version>${rsocket.version}</version>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
-
-	<dependencies>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-webflux</artifactId>
-			<!-- TODO: optional -->
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-configuration-processor</artifactId>
-			<optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>io.rsocket</groupId>
-			<artifactId>rsocket-core</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>io.rsocket</groupId>
-			<artifactId>rsocket-micrometer</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>io.rsocket</groupId>
-			<artifactId>rsocket-transport-netty</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>io.micrometer</groupId>
-			<artifactId>micrometer-core</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-actuator</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>io.projectreactor</groupId>
-			<artifactId>reactor-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-	</dependencies>
-
-	<build>
-		<plugins>
-		</plugins>
-	</build>
+	<modules>
+		<module>spring-cloud-gateway-rsocket</module>
+	</modules>
 
 </project>

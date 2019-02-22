@@ -1,25 +1,20 @@
-/target/
-!.mvn/wrapper/maven-wrapper.jar
-
-### STS ###
-.apt_generated
+*~
+#*
+*#
+.#*
 .classpath
-.factorypath
 .project
-.settings
+.settings/
 .springBeans
-.sts4-cache
-
-### IntelliJ IDEA ###
+target/
+bin/
+_site/
 .idea
-*.iws
 *.iml
 *.ipr
-
-### NetBeans ###
-/nbproject/private/
-/build/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
+*.iws
+.factorypath
+*.log
+.shelf
+*.swp
+*.swo
