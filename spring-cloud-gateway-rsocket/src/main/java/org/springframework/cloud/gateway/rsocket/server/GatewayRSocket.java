@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.rsocket.server;
@@ -52,20 +51,24 @@ import static org.springframework.cloud.gateway.rsocket.server.GatewayExchange.T
 import static org.springframework.cloud.gateway.rsocket.server.GatewayFilterChain.executeFilterChain;
 
 /**
- * Acts as a proxy to other registered sockets. Creates a GatewayExchange and attempts
- * to locate a Route. If a Route is found, it is added to the exchange and the filter
- * chains is executed againts the Route's filters. If the filter chain is successful,
- * an attempt to locate a target RSocket via the Registry is executed. If not found
- * a pending RSocket * is returned.
+ * Acts as a proxy to other registered sockets. Creates a GatewayExchange and attempts to
+ * locate a Route. If a Route is found, it is added to the exchange and the filter chains
+ * is executed againts the Route's filters. If the filter chain is successful, an attempt
+ * to locate a target RSocket via the Registry is executed. If not found a pending RSocket
+ * * is returned.
  */
 public class GatewayRSocket extends AbstractRSocket implements ResponderRSocket {
 
 	private static final Log log = LogFactory.getLog(GatewayRSocket.class);
 
 	private final Registry registry;
+
 	private final Routes routes;
+
 	private final MeterRegistry meterRegistry;
+
 	private final GatewayRSocketProperties properties;
+
 	private final Metadata metadata;
 
 	GatewayRSocket(Registry registry, Routes routes, MeterRegistry meterRegistry,
@@ -75,20 +78,18 @@ public class GatewayRSocket extends AbstractRSocket implements ResponderRSocket 
 		this.meterRegistry = meterRegistry;
 		this.properties = properties;
 		this.metadata = metadata;
-		this.onClose()
-				.doOnSuccess(v -> registry.deregister(metadata))
-				//.doOnNext(v -> log.error("OnClose doOnNext"))
+		this.onClose().doOnSuccess(v -> registry.deregister(metadata))
+				// .doOnNext(v -> log.error("OnClose doOnNext"))
 				.doOnError(t -> {
 					if (log.isErrorEnabled()) {
 						log.error("Error received, deregistering " + metadata, t);
 					}
 					registry.deregister(metadata);
 				})
-				//.doOnTerminate(() -> log.error("OnClose doOnTerminate"))
-				//.doFinally(st -> log.error("OnClose doFinally"))
+				// .doOnTerminate(() -> log.error("OnClose doOnTerminate"))
+				// .doFinally(st -> log.error("OnClose doFinally"))
 				.subscribe();
 	}
-
 
 	protected Registry getRegistry() {
 		return registry;
@@ -110,44 +111,42 @@ public class GatewayRSocket extends AbstractRSocket implements ResponderRSocket 
 	private GatewayExchange createExchange(GatewayExchange.Type type, Payload payload) {
 		GatewayExchange exchange = GatewayExchange.fromPayload(type, payload);
 		Tags tags = getTags(exchange);
-		exchange.setTags(tags);	
+		exchange.setTags(tags);
 		return exchange;
 	}
 
 	private Tags getTags(GatewayExchange exchange) {
-		//TODO: add tags to exchange
+		// TODO: add tags to exchange
 		String responderName = this.metadata.getName();
 		String responderId = this.metadata.get("id");
 		String requestorName = exchange.getRoutingMetadata().getName();
 		Assert.hasText(responderName, "responderName must not be empty");
 		Assert.hasText(responderId, "responderId must not be empty");
 		Assert.hasText(requestorName, "requestorName must not be empty");
-		//requestor.id happens in a callback, later
-		return Tags.of("requester.name", requestorName,
-				"responder.name", responderName, "responder.id", responderId,
-				"gateway.id", this.properties.getId());
+		// requestor.id happens in a callback, later
+		return Tags.of("requester.name", requestorName, "responder.name", responderName,
+				"responder.id", responderId, "gateway.id", this.properties.getId());
 	}
 
 	@Override
 	public Flux<Payload> requestChannel(Payload payload, Publisher<Payload> payloads) {
 		GatewayExchange exchange = createExchange(REQUEST_CHANNEL, payload);
 		Tags responderTags = Tags.of("source", "responder");
-		return findRSocketOrCreatePending(exchange)
-				.flatMapMany(rSocket -> {
-					Tags requesterTags = Tags.of("source", "requester");
-					Flux<Payload> flux = Flux.from(payloads)
-							.doOnNext(s -> count(exchange, "payload", requesterTags))
-							.doOnError(t -> count(exchange, "error", requesterTags))
-							.doFinally(s -> count(exchange, requesterTags));
+		return findRSocketOrCreatePending(exchange).flatMapMany(rSocket -> {
+			Tags requesterTags = Tags.of("source", "requester");
+			Flux<Payload> flux = Flux.from(payloads)
+					.doOnNext(s -> count(exchange, "payload", requesterTags))
+					.doOnError(t -> count(exchange, "error", requesterTags))
+					.doFinally(s -> count(exchange, requesterTags));
 
-					if (rSocket instanceof ResponderRSocket) {
-						ResponderRSocket socket = (ResponderRSocket) rSocket;
-						return socket.requestChannel(payload, flux)
-								.log(GatewayRSocket.class.getName()+".request-channel", Level.FINEST);
-					}
-					return rSocket.requestChannel(flux);
-				})
-				.doOnNext(s -> count(exchange, "payload", responderTags))
+			if (rSocket instanceof ResponderRSocket) {
+				ResponderRSocket socket = (ResponderRSocket) rSocket;
+				return socket.requestChannel(payload, flux).log(
+						GatewayRSocket.class.getName() + ".request-channel",
+						Level.FINEST);
+			}
+			return rSocket.requestChannel(flux);
+		}).doOnNext(s -> count(exchange, "payload", responderTags))
 				.doOnError(t -> count(exchange, "error", responderTags))
 				.doFinally(s -> count(exchange, responderTags));
 	}
@@ -188,7 +187,8 @@ public class GatewayRSocket extends AbstractRSocket implements ResponderRSocket 
 				.flatMap(rSocket -> rSocket.requestResponse(payload))
 				.doOnSubscribe(s -> timer.set(Timer.start(meterRegistry)))
 				.doOnError(t -> count(exchange, "error"))
-				.doFinally(s -> timer.get().stop(meterRegistry.timer(getMetricName(exchange), exchange.getTags())));
+				.doFinally(s -> timer.get().stop(meterRegistry
+						.timer(getMetricName(exchange), exchange.getTags())));
 	}
 
 	@Override
@@ -203,9 +203,9 @@ public class GatewayRSocket extends AbstractRSocket implements ResponderRSocket 
 	}
 
 	/**
-	 * Attempt to locate target RSocket via filter chain.
-	 * If not found, create a pending RSocket.
-	 * @param exchange
+	 * Attempt to locate target RSocket via filter chain. If not found, create a pending
+	 * RSocket.
+	 * @param exchange GatewayExchange
 	 * @return
 	 */
 	private Mono<RSocket> findRSocketOrCreatePending(GatewayExchange exchange) {
@@ -224,18 +224,21 @@ public class GatewayRSocket extends AbstractRSocket implements ResponderRSocket 
 		return Mono.just(pending);
 	}
 
-	/* for testing */ PendingRequestRSocket constructPendingRSocket(GatewayExchange exchange) {
-		Function<Registry.RegisteredEvent, Mono<Route>> routeFinder = registeredEvent ->
-				getRouteMono(registeredEvent, exchange);
+	/* for testing */ PendingRequestRSocket constructPendingRSocket(
+			GatewayExchange exchange) {
+		Function<Registry.RegisteredEvent, Mono<Route>> routeFinder = registeredEvent -> getRouteMono(
+				registeredEvent, exchange);
 		return new PendingRequestRSocket(routeFinder, map -> {
 			Tags tags = exchange.getTags().and("requester.id", map.get("id"));
 			exchange.setTags(tags);
 		});
 	}
 
-	protected Mono<Route> getRouteMono(Registry.RegisteredEvent registeredEvent, GatewayExchange exchange) {
+	protected Mono<Route> getRouteMono(Registry.RegisteredEvent registeredEvent,
+			GatewayExchange exchange) {
 		return findRoute(exchange)
-				.log(PendingRequestRSocket.class.getName()+".find route pending", Level.FINEST)
+				.log(PendingRequestRSocket.class.getName() + ".find route pending",
+						Level.FINEST)
 				// can this be replaced with filter?
 				.flatMap(route -> {
 					return matchRoute(route, registeredEvent.getRoutingMetadata());
@@ -244,11 +247,12 @@ public class GatewayRSocket extends AbstractRSocket implements ResponderRSocket 
 
 	private Mono<Route> findRoute(GatewayExchange exchange) {
 		Mono<Route> routeMono;
-		/*if (this.route != null) { //TODO: cache Route?
-			routeMono = Mono.just(route);
-		} else {*/
-			routeMono = this.routes.findRoute(exchange);
-		//}
+		/*
+		 * if (this.route != null) { //TODO: cache Route? routeMono = Mono.just(route); }
+		 * else {
+		 */
+		routeMono = this.routes.findRoute(exchange);
+		// }
 		return routeMono;
 	}
 
@@ -261,14 +265,14 @@ public class GatewayRSocket extends AbstractRSocket implements ResponderRSocket 
 	}
 
 	/**
-	 * First locate Route. If found, put route in exchange and execute filter chain.
-	 * If successful, locate target RSocket.
-	 * @param exchange
+	 * First locate Route. If found, put route in exchange and execute filter chain. If
+	 * successful, locate target RSocket.
+	 * @param exchange GatewayExchange.
 	 * @return Target RSocket or empty.
 	 */
 	private Mono<RSocket> findRSocket(GatewayExchange exchange) {
 		return this.routes.findRoute(exchange)
-				.log(GatewayRSocket.class.getName()+".find route", Level.FINEST)
+				.log(GatewayRSocket.class.getName() + ".find route", Level.FINEST)
 				.flatMap(route -> {
 					// put route in exchange for later use
 					exchange.getAttributes().put(ROUTE_ATTR, route);
@@ -279,13 +283,12 @@ public class GatewayRSocket extends AbstractRSocket implements ResponderRSocket 
 
 								return loadBalancedRSocket.choose();
 							}).map(enrichedRSocket -> {
-								Metadata metadata = enrichedRSocket
-										.getMetadata();
-								Tags tags = exchange.getTags().and("requester.id", metadata.get("id"));
+								Metadata metadata = enrichedRSocket.getMetadata();
+								Tags tags = exchange.getTags().and("requester.id",
+										metadata.get("id"));
 								exchange.setTags(tags);
 								return enrichedRSocket;
-							}).cast(RSocket.class)
-							.switchIfEmpty(doOnEmpty(exchange));
+							}).cast(RSocket.class).switchIfEmpty(doOnEmpty(exchange));
 				});
 
 		// TODO: deal with connecting to cluster?
@@ -293,15 +296,20 @@ public class GatewayRSocket extends AbstractRSocket implements ResponderRSocket 
 
 	private Mono<RSocket> doOnEmpty(GatewayExchange exchange) {
 		if (log.isDebugEnabled()) {
-			log.debug("Unable to find destination RSocket for " + exchange.getRoutingMetadata());
+			log.debug("Unable to find destination RSocket for "
+					+ exchange.getRoutingMetadata());
 		}
 		return Mono.empty();
 	}
 
 	public static class Factory {
+
 		private final Registry registry;
+
 		private final Routes routes;
+
 		private final MeterRegistry meterRegistry;
+
 		private final GatewayRSocketProperties properties;
 
 		public Factory(Registry registry, Routes routes, MeterRegistry meterRegistry,
@@ -316,6 +324,7 @@ public class GatewayRSocket extends AbstractRSocket implements ResponderRSocket 
 			return new GatewayRSocket(this.registry, this.routes, this.meterRegistry,
 					this.properties, metadata);
 		}
+
 	}
 
 }

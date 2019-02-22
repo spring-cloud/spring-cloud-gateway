@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.rsocket.autoconfigure;
@@ -23,11 +22,9 @@ import org.springframework.boot.actuate.autoconfigure.metrics.CompositeMeterRegi
 import org.springframework.boot.actuate.autoconfigure.metrics.MetricsAutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ReactiveWebApplicationContextRunner;
-import org.springframework.cloud.gateway.rsocket.metrics.MicrometerResponderRSocketInterceptor;
 import org.springframework.cloud.gateway.rsocket.registry.Registry;
 import org.springframework.cloud.gateway.rsocket.registry.RegistryRoutes;
 import org.springframework.cloud.gateway.rsocket.registry.RegistrySocketAcceptorFilter;
-import org.springframework.cloud.gateway.rsocket.server.GatewayRSocket;
 import org.springframework.cloud.gateway.rsocket.server.GatewayRSocketServer;
 import org.springframework.cloud.gateway.rsocket.socketacceptor.GatewaySocketAcceptor;
 import org.springframework.cloud.gateway.rsocket.socketacceptor.SocketAcceptorPredicate;
@@ -40,21 +37,18 @@ public class GatewayRSocketAutoConfigurationTests {
 	@Test
 	public void gatewayRSocketConfigured() {
 		new ReactiveWebApplicationContextRunner()
-				.withConfiguration(AutoConfigurations.of(
-						GatewayRSocketAutoConfiguration.class,
-						CompositeMeterRegistryAutoConfiguration.class,
-						MetricsAutoConfiguration.class
-						))
-				.run(context -> assertThat(context)
-						.hasSingleBean(Registry.class)
+				.withConfiguration(
+						AutoConfigurations.of(GatewayRSocketAutoConfiguration.class,
+								CompositeMeterRegistryAutoConfiguration.class,
+								MetricsAutoConfiguration.class))
+				.run(context -> assertThat(context).hasSingleBean(Registry.class)
 						.hasSingleBean(RegistryRoutes.class)
 						.hasSingleBean(RegistrySocketAcceptorFilter.class)
 						.hasSingleBean(GatewayRSocketServer.class)
 						.hasSingleBean(GatewayRSocketProperties.class)
 						.hasSingleBean(GatewaySocketAcceptor.class)
 						.hasSingleBean(SocketAcceptorPredicateFilter.class)
-						.doesNotHaveBean(SocketAcceptorPredicate.class)
-				);
+						.doesNotHaveBean(SocketAcceptorPredicate.class));
 	}
 
 }

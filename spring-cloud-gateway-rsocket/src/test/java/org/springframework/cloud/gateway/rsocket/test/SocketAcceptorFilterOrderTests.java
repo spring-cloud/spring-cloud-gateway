@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.rsocket.test;
@@ -36,12 +35,15 @@ public class SocketAcceptorFilterOrderTests {
 
 	@Test
 	public void predicateFilterAfterRegistryFilter() {
-		SocketAcceptorFilter predicateFilter = new SocketAcceptorPredicateFilter(Collections.emptyList());
-		SocketAcceptorFilter registryFilter = new RegistrySocketAcceptorFilter(mock(Registry.class));
-		List<SocketAcceptorFilter> filters = Arrays.asList(predicateFilter, registryFilter);
+		SocketAcceptorFilter predicateFilter = new SocketAcceptorPredicateFilter(
+				Collections.emptyList());
+		SocketAcceptorFilter registryFilter = new RegistrySocketAcceptorFilter(
+				mock(Registry.class));
+		List<SocketAcceptorFilter> filters = Arrays.asList(predicateFilter,
+				registryFilter);
 		OrderComparator.sort(filters);
 
-		assertThat(filters)
-				.containsExactly(registryFilter, predicateFilter);
+		assertThat(filters).containsExactly(registryFilter, predicateFilter);
 	}
+
 }

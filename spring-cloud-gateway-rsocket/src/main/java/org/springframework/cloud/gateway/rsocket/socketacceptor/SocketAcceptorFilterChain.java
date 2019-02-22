@@ -12,33 +12,34 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.rsocket.socketacceptor;
 
-import org.springframework.cloud.gateway.rsocket.filter.AbstractFilterChain;
-
 import java.util.List;
 
-public class SocketAcceptorFilterChain
-		extends AbstractFilterChain<SocketAcceptorFilter, SocketAcceptorExchange, SocketAcceptorFilterChain> {
+import org.springframework.cloud.gateway.rsocket.filter.AbstractFilterChain;
+
+public class SocketAcceptorFilterChain extends
+		AbstractFilterChain<SocketAcceptorFilter, SocketAcceptorExchange, SocketAcceptorFilterChain> {
 
 	/**
 	 * Public constructor with the list of filters and the target handler to use.
-	 *
 	 * @param filters the filters ahead of the handler
 	 */
 	public SocketAcceptorFilterChain(List<SocketAcceptorFilter> filters) {
 		super(filters);
 	}
 
-	public SocketAcceptorFilterChain(List<SocketAcceptorFilter> allFilters, SocketAcceptorFilter currentFilter, SocketAcceptorFilterChain next) {
+	public SocketAcceptorFilterChain(List<SocketAcceptorFilter> allFilters,
+			SocketAcceptorFilter currentFilter, SocketAcceptorFilterChain next) {
 		super(allFilters, currentFilter, next);
 	}
 
 	@Override
-	protected SocketAcceptorFilterChain create(List<SocketAcceptorFilter> allFilters, SocketAcceptorFilter currentFilter, SocketAcceptorFilterChain next) {
+	protected SocketAcceptorFilterChain create(List<SocketAcceptorFilter> allFilters,
+			SocketAcceptorFilter currentFilter, SocketAcceptorFilterChain next) {
 		return new SocketAcceptorFilterChain(allFilters, currentFilter, next);
 	}
+
 }

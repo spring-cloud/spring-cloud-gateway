@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.rsocket.socketacceptor;
@@ -38,18 +37,14 @@ public class SocketAcceptorPredicateFilterTests {
 	@Test
 	public void noPredicateWorks() {
 		Mono<Success> result = runFilter(Collections.emptyList());
-		StepVerifier.create(result)
-				.expectNext(Success.INSTANCE)
-				.verifyComplete();
+		StepVerifier.create(result).expectNext(Success.INSTANCE).verifyComplete();
 	}
 
 	@Test
 	public void singleTruePredicateWorks() {
 		TestPredicate predicate = new TestPredicate(true);
 		Mono<Success> result = runFilter(predicate);
-		StepVerifier.create(result)
-				.expectNext(Success.INSTANCE)
-				.verifyComplete();
+		StepVerifier.create(result).expectNext(Success.INSTANCE).verifyComplete();
 		assertThat(predicate.invoked()).isTrue();
 	}
 
@@ -57,8 +52,7 @@ public class SocketAcceptorPredicateFilterTests {
 	public void singleFalsePredicateWorks() {
 		TestPredicate predicate = new TestPredicate(false);
 		Mono<Success> result = runFilter(predicate);
-		StepVerifier.create(result)
-				.verifyComplete();
+		StepVerifier.create(result).verifyComplete();
 
 		assertThat(predicate.invoked()).isTrue();
 	}
@@ -68,11 +62,10 @@ public class SocketAcceptorPredicateFilterTests {
 		TestPredicate predicate = new TestPredicate(false);
 		TestPredicate predicate2 = new TestPredicate(false);
 		Mono<Success> result = runFilter(predicate, predicate2);
-		StepVerifier.create(result)
-				.verifyComplete();
+		StepVerifier.create(result).verifyComplete();
 
 		assertThat(predicate.invoked()).isTrue();
-		assertThat(predicate2.invoked()).isTrue(); //Async predicates don't short circuit
+		assertThat(predicate2.invoked()).isTrue(); // Async predicates don't short circuit
 	}
 
 	@Test
@@ -80,8 +73,7 @@ public class SocketAcceptorPredicateFilterTests {
 		TestPredicate truePredicate = new TestPredicate(true);
 		TestPredicate falsePredicate = new TestPredicate(false);
 		Mono<Success> result = runFilter(truePredicate, falsePredicate);
-		StepVerifier.create(result)
-				.verifyComplete();
+		StepVerifier.create(result).verifyComplete();
 		assertThat(truePredicate.invoked()).isTrue();
 		assertThat(falsePredicate.invoked()).isTrue();
 	}
@@ -91,9 +83,7 @@ public class SocketAcceptorPredicateFilterTests {
 		TestPredicate truePredicate = new TestPredicate(true);
 		TestPredicate truePredicate2 = new TestPredicate(true);
 		Mono<Success> result = runFilter(truePredicate, truePredicate2);
-		StepVerifier.create(result)
-				.expectNext(Success.INSTANCE)
-				.verifyComplete();
+		StepVerifier.create(result).expectNext(Success.INSTANCE).verifyComplete();
 		assertThat(truePredicate.invoked()).isTrue();
 		assertThat(truePredicate2.invoked()).isTrue();
 	}
@@ -107,9 +97,12 @@ public class SocketAcceptorPredicateFilterTests {
 	}
 
 	private Mono<Success> runFilter(List<SocketAcceptorPredicate> predicates) {
-		SocketAcceptorPredicateFilter filter = new SocketAcceptorPredicateFilter(predicates);
-		SocketAcceptorExchange exchange = new SocketAcceptorExchange(mock(ConnectionSetupPayload.class), mock(RSocket.class));
-		SocketAcceptorFilterChain filterChain = new SocketAcceptorFilterChain(Collections.singletonList(filter));
+		SocketAcceptorPredicateFilter filter = new SocketAcceptorPredicateFilter(
+				predicates);
+		SocketAcceptorExchange exchange = new SocketAcceptorExchange(
+				mock(ConnectionSetupPayload.class), mock(RSocket.class));
+		SocketAcceptorFilterChain filterChain = new SocketAcceptorFilterChain(
+				Collections.singletonList(filter));
 		return filter.filter(exchange, filterChain);
 	}
 
@@ -119,7 +112,7 @@ public class SocketAcceptorPredicateFilterTests {
 
 		private final Mono<Boolean> test;
 
-		public TestPredicate(boolean value) {
+		TestPredicate(boolean value) {
 			test = Mono.just(value);
 		}
 
@@ -132,5 +125,7 @@ public class SocketAcceptorPredicateFilterTests {
 		public boolean invoked() {
 			return invoked;
 		}
+
 	}
+
 }

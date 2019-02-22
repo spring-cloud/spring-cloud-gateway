@@ -12,11 +12,13 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.rsocket.server;
 
 import org.springframework.cloud.gateway.rsocket.filter.RSocketFilter;
 
-public interface GatewayFilter extends RSocketFilter<GatewayExchange, GatewayFilterChain> {}
+public interface GatewayFilter
+		extends RSocketFilter<GatewayExchange, GatewayFilterChain> {
+
+}

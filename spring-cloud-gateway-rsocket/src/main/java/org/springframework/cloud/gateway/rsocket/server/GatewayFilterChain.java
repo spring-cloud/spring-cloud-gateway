@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.rsocket.server;
@@ -29,24 +28,26 @@ public class GatewayFilterChain
 
 	/**
 	 * Public constructor with the list of filters and the target handler to use.
-	 *
 	 * @param filters the filters ahead of the handler
 	 */
 	private GatewayFilterChain(List<GatewayFilter> filters) {
 		super(filters);
 	}
 
-	protected GatewayFilterChain(List<GatewayFilter> allFilters, GatewayFilter currentFilter, GatewayFilterChain next) {
+	protected GatewayFilterChain(List<GatewayFilter> allFilters,
+			GatewayFilter currentFilter, GatewayFilterChain next) {
 		super(allFilters, currentFilter, next);
 	}
 
 	@Override
-	protected GatewayFilterChain create(List<GatewayFilter> allFilters, GatewayFilter currentFilter, GatewayFilterChain next) {
+	protected GatewayFilterChain create(List<GatewayFilter> allFilters,
+			GatewayFilter currentFilter, GatewayFilterChain next) {
 		return new GatewayFilterChain(allFilters, currentFilter, next);
 	}
 
-	public static Mono<Success> executeFilterChain(List<GatewayFilter> filters, GatewayExchange exchange) {
-		return new GatewayFilterChain(filters)
-				.filter(exchange);
+	public static Mono<Success> executeFilterChain(List<GatewayFilter> filters,
+			GatewayExchange exchange) {
+		return new GatewayFilterChain(filters).filter(exchange);
 	}
+
 }

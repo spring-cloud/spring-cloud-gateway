@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.rsocket.test;
@@ -90,17 +89,18 @@ public class PingPongApp {
 			in = in.substring(0, 4);
 		}
 		switch (in.toLowerCase()) {
-			case "ping":
-				return "pong";
-			case "pong":
-				return "ping";
-			default:
-				throw new IllegalArgumentException("Value must be ping or pong, not " + in);
+		case "ping":
+			return "pong";
+		case "pong":
+			return "ping";
+		default:
+			throw new IllegalArgumentException("Value must be ping or pong, not " + in);
 		}
 	}
 
 	@Slf4j
-	public static class Ping implements Ordered, ApplicationListener<ApplicationReadyEvent> {
+	public static class Ping
+			implements Ordered, ApplicationListener<ApplicationReadyEvent> {
 
 		@Autowired
 		private MeterRegistry meterRegistry;
@@ -108,6 +108,7 @@ public class PingPongApp {
 		private final String id;
 
 		private final AtomicInteger pongsReceived = new AtomicInteger();
+
 		private Flux<String> pongFlux;
 
 		public Ping(String id) {
@@ -121,44 +122,53 @@ public class PingPongApp {
 
 		@Override
 		public void onApplicationEvent(ApplicationReadyEvent event) {
-			log.info("Starting Ping"+id);
+			log.info("Starting Ping" + id);
 			ConfigurableEnvironment env = event.getApplicationContext().getEnvironment();
 			Integer take = env.getProperty("ping.take", Integer.class, null);
-			Integer gatewayPort = env.getProperty("spring.cloud.gateway.rsocket.server.port",
-					Integer.class, 7002);
+			Integer gatewayPort = env.getProperty(
+					"spring.cloud.gateway.rsocket.server.port", Integer.class, 7002);
 
 			log.debug("ping.take: " + take);
 
-			MicrometerRSocketInterceptor interceptor = new MicrometerRSocketInterceptor(meterRegistry, Tag.of("component", "ping"));
-			ByteBuf announcementMetadata = Metadata.from("ping").with("id", "ping"+id).encode();
+			MicrometerRSocketInterceptor interceptor = new MicrometerRSocketInterceptor(
+					meterRegistry, Tag.of("component", "ping"));
+			ByteBuf announcementMetadata = Metadata.from("ping").with("id", "ping" + id)
+					.encode();
 			pongFlux = RSocketFactory.connect()
 					.metadataMimeType(Metadata.ROUTING_MIME_TYPE)
-					.setupPayload(DefaultPayload.create(EMPTY_BUFFER, announcementMetadata))
+					.setupPayload(
+							DefaultPayload.create(EMPTY_BUFFER, announcementMetadata))
 					.addClientPlugin(interceptor)
 					.transport(TcpClientTransport.create(gatewayPort)) // proxy
-					.start()
-					.flatMapMany(socket ->
-							{
-								Flux<String> pong = socket.requestChannel(
-										Flux.interval(Duration.ofSeconds(1))
-												.map(i -> {
-													ByteBuf data = ByteBufUtil.writeUtf8(ByteBufAllocator.DEFAULT, "ping" + id);
-													ByteBuf routingMetadata = Metadata.from("pong").encode();
-													return DefaultPayload.create(data, routingMetadata);
-												})
-												.onBackpressureDrop(payload -> log.debug("Dropped payload " + payload.getDataUtf8())) // this is needed in case pong is not available yet
-								).map(Payload::getDataUtf8)
-										.doOnNext(str -> {
-											int received = pongsReceived.incrementAndGet();
-											log.info("received " + str + "(" + received + ") in Ping" + id);
-										})
-										.doFinally(signal -> socket.dispose());
-								if (take != null) {
-									return pong.take(take);
-								}
-								return pong;
-							}
-					);
+					.start().flatMapMany(socket -> {
+						Flux<String> pong = socket.requestChannel(
+								Flux.interval(Duration.ofSeconds(1)).map(i -> {
+									ByteBuf data = ByteBufUtil.writeUtf8(
+											ByteBufAllocator.DEFAULT, "ping" + id);
+									ByteBuf routingMetadata = Metadata.from("pong")
+											.encode();
+									return DefaultPayload.create(data, routingMetadata);
+								}).onBackpressureDrop(payload -> log.debug(
+										"Dropped payload " + payload.getDataUtf8())) // this
+																						// is
+																						// needed
+																						// in
+																						// case
+																						// pong
+																						// is
+																						// not
+																						// available
+																						// yet
+						).map(Payload::getDataUtf8).doOnNext(str -> {
+							int received = pongsReceived.incrementAndGet();
+							log.info("received " + str + "(" + received + ") in Ping"
+									+ id);
+						}).doFinally(signal -> socket.dispose());
+						if (take != null) {
+							return pong.take(take);
+						}
+						return pong;
+					});
 
 			pongFlux.subscribe();
 		}
@@ -170,10 +180,12 @@ public class PingPongApp {
 		public int getPongsReceived() {
 			return pongsReceived.get();
 		}
+
 	}
 
 	@Slf4j
-	public static class Pong implements Ordered, ApplicationListener<ApplicationReadyEvent> {
+	public static class Pong
+			implements Ordered, ApplicationListener<ApplicationReadyEvent> {
 
 		@Autowired
 		private MeterRegistry meterRegistry;
@@ -191,22 +203,23 @@ public class PingPongApp {
 			Integer pongDelay = env.getProperty("pong.delay", Integer.class, 5000);
 			try {
 				Thread.sleep(pongDelay);
-			} catch (InterruptedException e) {
+			}
+			catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 			log.info("Starting Pong");
-			Integer gatewayPort = env.getProperty("spring.cloud.gateway.rsocket.server.port",
-					Integer.class, 7002);
-			MicrometerRSocketInterceptor interceptor = new MicrometerRSocketInterceptor(meterRegistry, Tag.of("component", "pong"));
-			ByteBuf announcementMetadata = Metadata.from("pong").with("id", "pong1").encode();
-			RSocketFactory.connect()
-					.metadataMimeType(Metadata.ROUTING_MIME_TYPE)
-					.setupPayload(DefaultPayload.create(EMPTY_BUFFER, announcementMetadata))
-					.addClientPlugin(interceptor)
-					.acceptor(this::accept)
+			Integer gatewayPort = env.getProperty(
+					"spring.cloud.gateway.rsocket.server.port", Integer.class, 7002);
+			MicrometerRSocketInterceptor interceptor = new MicrometerRSocketInterceptor(
+					meterRegistry, Tag.of("component", "pong"));
+			ByteBuf announcementMetadata = Metadata.from("pong").with("id", "pong1")
+					.encode();
+			RSocketFactory.connect().metadataMimeType(Metadata.ROUTING_MIME_TYPE)
+					.setupPayload(
+							DefaultPayload.create(EMPTY_BUFFER, announcementMetadata))
+					.addClientPlugin(interceptor).acceptor(this::accept)
 					.transport(TcpClientTransport.create(gatewayPort)) // proxy
-					.start()
-					.block();
+					.start().block();
 		}
 
 		@SuppressWarnings("Duplicates")
@@ -215,18 +228,15 @@ public class PingPongApp {
 
 				@Override
 				public Flux<Payload> requestChannel(Publisher<Payload> payloads) {
-					return Flux.from(payloads)
-							.map(Payload::getDataUtf8)
-							.doOnNext(str -> {
-								int received = pingsReceived.incrementAndGet();
-								log.info("received " + str + "("+received+") in Pong");
-							})
-							.map(PingPongApp::reply)
-							.map(reply -> {
-								ByteBuf data = ByteBufUtil.writeUtf8(ByteBufAllocator.DEFAULT, reply);
-								ByteBuf routingMetadata = Metadata.from("ping").encode();
-								return DefaultPayload.create(data, routingMetadata);
-							});
+					return Flux.from(payloads).map(Payload::getDataUtf8).doOnNext(str -> {
+						int received = pingsReceived.incrementAndGet();
+						log.info("received " + str + "(" + received + ") in Pong");
+					}).map(PingPongApp::reply).map(reply -> {
+						ByteBuf data = ByteBufUtil.writeUtf8(ByteBufAllocator.DEFAULT,
+								reply);
+						ByteBuf routingMetadata = Metadata.from("ping").encode();
+						return DefaultPayload.create(data, routingMetadata);
+					});
 				}
 			};
 			return pong;
@@ -235,10 +245,12 @@ public class PingPongApp {
 		public int getPingsReceived() {
 			return pingsReceived.get();
 		}
+
 	}
 
 	@Slf4j
 	public static class MyGatewayFilter implements GatewayFilter {
+
 		private AtomicBoolean invoked = new AtomicBoolean(false);
 
 		@Override
@@ -251,6 +263,7 @@ public class PingPongApp {
 		public boolean invoked() {
 			return invoked.get();
 		}
+
 	}
 
 	@Slf4j
@@ -259,7 +272,8 @@ public class PingPongApp {
 		private AtomicBoolean invoked = new AtomicBoolean(false);
 
 		@Override
-		public Mono<Success> filter(SocketAcceptorExchange exchange, SocketAcceptorFilterChain chain) {
+		public Mono<Success> filter(SocketAcceptorExchange exchange,
+				SocketAcceptorFilterChain chain) {
 			log.info("in custom socket acceptor filter");
 			invoked.compareAndSet(false, true);
 			return chain.filter(exchange);
@@ -273,7 +287,7 @@ public class PingPongApp {
 		public boolean invoked() {
 			return invoked.get();
 		}
-	}
 
+	}
 
 }

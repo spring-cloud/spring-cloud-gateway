@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.rsocket.filter;
@@ -31,14 +30,17 @@ import org.springframework.lang.Nullable;
 /**
  * Default implementation of {@link FilterChain}.
  *
- * <p>Each instance of this class represents one link in the chain. The public
- * constructor {@link #AbstractFilterChain(List)}
- * initializes the full chain and represents its first link.
+ * <p>
+ * Each instance of this class represents one link in the chain. The public constructor
+ * {@link #AbstractFilterChain(List)} initializes the full chain and represents its first
+ * link.
  *
- * <p>This class is immutable and thread-safe. It can be created once and
- * re-used to handle request concurrently.
+ * <p>
+ * This class is immutable and thread-safe. It can be created once and re-used to handle
+ * request concurrently.
  *
  * Copied from org.springframework.web.server.handler.AbstractFilterChain
+ *
  * @since 5.0
  */
 public abstract class AbstractFilterChain<F extends RSocketFilter, E extends RSocketExchange, FC extends AbstractFilterChain>
@@ -54,7 +56,6 @@ public abstract class AbstractFilterChain<F extends RSocketFilter, E extends RSo
 	@Nullable
 	protected final FC next;
 
-
 	/**
 	 * Public constructor with the list of filters and the target handler to use.
 	 * @param filters the filters ahead of the handler
@@ -63,8 +64,8 @@ public abstract class AbstractFilterChain<F extends RSocketFilter, E extends RSo
 	protected AbstractFilterChain(List<F> filters) {
 		this.allFilters = Collections.unmodifiableList(filters);
 		FC chain = initChain(filters);
-		this.currentFilter = (F)chain.currentFilter;
-		this.next = (FC)chain.next;
+		this.currentFilter = (F) chain.currentFilter;
+		this.next = (FC) chain.next;
 	}
 
 	private FC initChain(List<F> filters) {
@@ -80,7 +81,7 @@ public abstract class AbstractFilterChain<F extends RSocketFilter, E extends RSo
 	 * Private constructor to represent one link in the chain.
 	 */
 	protected AbstractFilterChain(List<F> allFilters, @Nullable F currentFilter,
-								  @Nullable FC next) {
+			@Nullable FC next) {
 
 		this.allFilters = allFilters;
 		this.currentFilter = currentFilter;
@@ -91,7 +92,7 @@ public abstract class AbstractFilterChain<F extends RSocketFilter, E extends RSo
 	 * Private constructor to represent one link in the chain.
 	 */
 	protected abstract FC create(List<F> allFilters, @Nullable F currentFilter,
-								 @Nullable FC next);
+			@Nullable FC next);
 
 	public List<F> getFilters() {
 		return this.allFilters;
@@ -100,10 +101,8 @@ public abstract class AbstractFilterChain<F extends RSocketFilter, E extends RSo
 	@Override
 	@SuppressWarnings("unchecked")
 	public Mono<Success> filter(E exchange) {
-		return Mono.defer(() ->
-				this.currentFilter != null && this.next != null ?
-						this.currentFilter.filter(exchange, this.next) :
-						getMonoSuccess());
+		return Mono.defer(() -> this.currentFilter != null && this.next != null
+				? this.currentFilter.filter(exchange, this.next) : getMonoSuccess());
 	}
 
 	private Mono<Success> getMonoSuccess() {
@@ -114,4 +113,5 @@ public abstract class AbstractFilterChain<F extends RSocketFilter, E extends RSo
 	}
 
 	private static final Mono<Success> MONO_SUCCESS = Mono.just(Success.INSTANCE);
+
 }

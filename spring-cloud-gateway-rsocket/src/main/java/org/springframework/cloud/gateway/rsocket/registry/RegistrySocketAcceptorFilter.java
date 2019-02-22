@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.rsocket.registry;
@@ -29,6 +28,7 @@ import org.springframework.util.StringUtils;
  * Filter that registers the SendingSocket.
  */
 public class RegistrySocketAcceptorFilter implements SocketAcceptorFilter, Ordered {
+
 	private final Registry registry;
 
 	public RegistrySocketAcceptorFilter(Registry registry) {
@@ -36,8 +36,10 @@ public class RegistrySocketAcceptorFilter implements SocketAcceptorFilter, Order
 	}
 
 	@Override
-	public Mono<Success> filter(SocketAcceptorExchange exchange, SocketAcceptorFilterChain chain) {
-		if (exchange.getMetadata() != null && StringUtils.hasLength(exchange.getMetadata().getName())) {
+	public Mono<Success> filter(SocketAcceptorExchange exchange,
+			SocketAcceptorFilterChain chain) {
+		if (exchange.getMetadata() != null
+				&& StringUtils.hasLength(exchange.getMetadata().getName())) {
 			this.registry.register(exchange.getMetadata(), exchange.getSendingSocket());
 		}
 
@@ -48,4 +50,5 @@ public class RegistrySocketAcceptorFilter implements SocketAcceptorFilter, Order
 	public int getOrder() {
 		return HIGHEST_PRECEDENCE + 1000;
 	}
+
 }

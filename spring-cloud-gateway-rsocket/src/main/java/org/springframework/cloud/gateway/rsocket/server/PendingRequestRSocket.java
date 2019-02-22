@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.rsocket.server;
@@ -43,14 +42,19 @@ import static org.springframework.cloud.gateway.rsocket.server.GatewayExchange.R
 import static org.springframework.cloud.gateway.rsocket.server.GatewayExchange.Type.REQUEST_STREAM;
 import static org.springframework.cloud.gateway.rsocket.server.GatewayFilterChain.executeFilterChain;
 
-public class PendingRequestRSocket extends AbstractRSocket implements ResponderRSocket, Consumer<RegisteredEvent> {
+public class PendingRequestRSocket extends AbstractRSocket
+		implements ResponderRSocket, Consumer<RegisteredEvent> {
 
 	private static final Log log = LogFactory.getLog(PendingRequestRSocket.class);
 
 	private final Function<RegisteredEvent, Mono<Route>> routeFinder;
+
 	private final Consumer<Metadata> metadataCallback;
+
 	private final MonoProcessor<RSocket> rSocketProcessor;
+
 	private Disposable subscriptionDisposable;
+
 	private Route route;
 
 	public PendingRequestRSocket(Function<RegisteredEvent, Mono<Route>> routeFinder,
@@ -58,7 +62,8 @@ public class PendingRequestRSocket extends AbstractRSocket implements ResponderR
 		this(routeFinder, metadataCallback, MonoProcessor.create());
 	}
 
-	/* for testing */ PendingRequestRSocket(Function<RegisteredEvent, Mono<Route>> routeFinder,
+	/* for testing */ PendingRequestRSocket(
+			Function<RegisteredEvent, Mono<Route>> routeFinder,
 			Consumer<Metadata> metadataCallback,
 			MonoProcessor<RSocket> rSocketProcessor) {
 		this.routeFinder = routeFinder;
@@ -67,24 +72,23 @@ public class PendingRequestRSocket extends AbstractRSocket implements ResponderR
 	}
 
 	/**
-	 * Find route (if needed) using pendingExchange.
-	 * If found, see if the route target matches the registered service.
-	 * If it matches, send registered RSocket to processor.
-	 * Then execute normal filter chain. If filter chain is successful, execute request.
-	 * @param registeredEvent
+	 * Find route (if needed) using pendingExchange. If found, see if the route target
+	 * matches the registered service. If it matches, send registered RSocket to
+	 * processor. Then execute normal filter chain. If filter chain is successful, execute
+	 * request.
+	 * @param registeredEvent the RegisteredEvent
 	 */
 	@Override
 	public void accept(RegisteredEvent registeredEvent) {
-		this.routeFinder.apply(registeredEvent)
-				.subscribe(route -> {
-					this.route = route;
-					this.metadataCallback.accept(registeredEvent.getRoutingMetadata());
-					this.rSocketProcessor.onNext(registeredEvent.getRSocket());
-					this.rSocketProcessor.onComplete();
-					if (this.subscriptionDisposable != null) {
-						this.subscriptionDisposable.dispose();
-					}
-				});
+		this.routeFinder.apply(registeredEvent).subscribe(route -> {
+			this.route = route;
+			this.metadataCallback.accept(registeredEvent.getRoutingMetadata());
+			this.rSocketProcessor.onNext(registeredEvent.getRSocket());
+			this.rSocketProcessor.onComplete();
+			if (this.subscriptionDisposable != null) {
+				this.subscriptionDisposable.dispose();
+			}
+		});
 	}
 
 	@Override
@@ -107,33 +111,36 @@ public class PendingRequestRSocket extends AbstractRSocket implements ResponderR
 
 	@Override
 	public Flux<Payload> requestChannel(Payload payload, Publisher<Payload> payloads) {
-		return processor("pending-request-rc", payload)
-				.flatMapMany(tuple -> {
-					RSocket rSocket = tuple.getT1();
-					if (rSocket instanceof ResponderRSocket) {
-						ResponderRSocket socket = (ResponderRSocket) rSocket;
-						return socket.requestChannel(payload, payloads);
-					}
-					return rSocket.requestChannel(payloads);
-				});
+		return processor("pending-request-rc", payload).flatMapMany(tuple -> {
+			RSocket rSocket = tuple.getT1();
+			if (rSocket instanceof ResponderRSocket) {
+				ResponderRSocket socket = (ResponderRSocket) rSocket;
+				return socket.requestChannel(payload, payloads);
+			}
+			return rSocket.requestChannel(payloads);
+		});
 	}
 
 	/**
-	 * After processor receives onNext signal, get route from exchange attrs,
-	 * create a new exchange from payload. Copy exchange attrs.
-	 * Execute filter chain, if successful, execute request.
-	 * @param logCategory
-	 * @param payload
+	 * After processor receives onNext signal, get route from exchange attrs, create a new
+	 * exchange from payload. Copy exchange attrs. Execute filter chain, if successful,
+	 * execute request.
+	 * @param logCategory log category
+	 * @param payload payload.
 	 * @return
 	 */
-	protected Mono<Tuple2<RSocket, Success>> processor(String logCategory, Payload payload) {
+	protected Mono<Tuple2<RSocket, Success>> processor(String logCategory,
+			Payload payload) {
 		return rSocketProcessor
-				.log(PendingRequestRSocket.class.getName()+"."+logCategory, Level.FINEST)
+				.log(PendingRequestRSocket.class.getName() + "." + logCategory,
+						Level.FINEST)
 				.flatMap(rSocket -> {
-					GatewayExchange exchange = GatewayExchange.fromPayload(REQUEST_STREAM, payload);
+					GatewayExchange exchange = GatewayExchange.fromPayload(REQUEST_STREAM,
+							payload);
 					exchange.getAttributes().put(ROUTE_ATTR, route);
-					//exchange.getAttributes().putAll(pendingExchange.getAttributes());
-					return Mono.just(rSocket).zipWith(executeFilterChain(route.getFilters(), exchange));
+					// exchange.getAttributes().putAll(pendingExchange.getAttributes());
+					return Mono.just(rSocket)
+							.zipWith(executeFilterChain(route.getFilters(), exchange));
 				});
 
 	}
@@ -141,4 +148,5 @@ public class PendingRequestRSocket extends AbstractRSocket implements ResponderR
 	public void setSubscriptionDisposable(Disposable subscriptionDisposable) {
 		this.subscriptionDisposable = subscriptionDisposable;
 	}
+
 }

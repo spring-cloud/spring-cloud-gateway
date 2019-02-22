@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.rsocket.filter;
@@ -26,6 +25,7 @@ public interface RSocketExchange {
 
 	/**
 	 * Return a mutable map of request attributes for the current exchange.
+	 * @return current attributes.
 	 */
 	Map<String, Object> getAttributes();
 
@@ -66,4 +66,5 @@ public interface RSocketExchange {
 	default <T> T getAttributeOrDefault(String name, T defaultValue) {
 		return (T) getAttributes().getOrDefault(name, defaultValue);
 	}
+
 }

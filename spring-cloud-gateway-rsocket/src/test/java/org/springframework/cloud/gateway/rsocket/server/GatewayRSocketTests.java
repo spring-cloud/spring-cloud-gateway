@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.rsocket.server;
@@ -46,9 +45,7 @@ import org.springframework.cloud.gateway.rsocket.route.Route;
 import org.springframework.cloud.gateway.rsocket.route.Routes;
 import org.springframework.cloud.gateway.rsocket.support.Metadata;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -61,9 +58,10 @@ public class GatewayRSocketTests {
 	private static Log logger = LogFactory.getLog(GatewayRSocketTests.class);
 
 	private Registry registry;
+
 	private Payload incomingPayload;
 
-	//TODO: add tests for metrics and other request types
+	// TODO: add tests for metrics and other request types
 
 	@Before
 	public void init() {
@@ -83,95 +81,94 @@ public class GatewayRSocketTests {
 				.thenReturn(Mono.just(DefaultPayload.create("response")));
 	}
 
-
 	@Test
-	public void multipleFilters()  {
+	public void multipleFilters() {
 		TestFilter filter1 = new TestFilter();
 		TestFilter filter2 = new TestFilter();
 		TestFilter filter3 = new TestFilter();
 
-		Payload payload = new TestGatewayRSocket(registry, new TestRoutes(filter1, filter2, filter3))
-				.requestResponse(incomingPayload)
-				.block(Duration.ZERO);
+		Payload payload = new TestGatewayRSocket(registry,
+				new TestRoutes(filter1, filter2, filter3))
+						.requestResponse(incomingPayload).block(Duration.ZERO);
 
-		assertTrue(filter1.invoked());
-		assertTrue(filter2.invoked());
-		assertTrue(filter3.invoked());
-		assertNotNull(payload);
+		assertThat(filter1.invoked()).isTrue();
+		assertThat(filter2.invoked()).isTrue();
+		assertThat(filter3.invoked()).isTrue();
+		assertThat(payload).isNotNull();
 	}
 
 	@Test
-	public void zeroFilters()  {
+	public void zeroFilters() {
 		Payload payload = new TestGatewayRSocket(registry, new TestRoutes())
-				.requestResponse(incomingPayload)
-				.block(Duration.ZERO);
+				.requestResponse(incomingPayload).block(Duration.ZERO);
 
-		assertNotNull(payload);
+		assertThat(payload).isNotNull();
 	}
 
 	@Test
-	public void shortcircuitFilter()  {
+	public void shortcircuitFilter() {
 
 		TestFilter filter1 = new TestFilter();
 		ShortcircuitingFilter filter2 = new ShortcircuitingFilter();
 		TestFilter filter3 = new TestFilter();
 
-
-		TestGatewayRSocket gatewayRSocket = new TestGatewayRSocket(registry, new TestRoutes(filter1, filter2, filter3));
+		TestGatewayRSocket gatewayRSocket = new TestGatewayRSocket(registry,
+				new TestRoutes(filter1, filter2, filter3));
 		Mono<Payload> response = gatewayRSocket.requestResponse(incomingPayload);
 
 		// a false filter will create a pending rsocket that blocks forever
 		// this tweaks the rsocket to compelte.
 		gatewayRSocket.processor.onNext(null);
 
-		StepVerifier.withVirtualTime(() -> response)
-				.expectSubscription()
+		StepVerifier.withVirtualTime(() -> response).expectSubscription()
 				.verifyComplete();
 
-		assertTrue(filter1.invoked());
-		assertTrue(filter2.invoked());
-		assertFalse(filter3.invoked());
+		assertThat(filter1.invoked()).isTrue();
+		assertThat(filter2.invoked()).isTrue();
+		assertThat(filter3.invoked()).isFalse();
 	}
 
 	@Test
-	public void asyncFilter()  {
+	public void asyncFilter() {
 
 		AsyncFilter filter = new AsyncFilter();
 
 		Payload payload = new TestGatewayRSocket(registry, new TestRoutes(filter))
-				.requestResponse(incomingPayload)
-				.block(Duration.ofSeconds(5));
+				.requestResponse(incomingPayload).block(Duration.ofSeconds(5));
 
-		assertTrue(filter.invoked());
-		assertNotNull(payload);
+		assertThat(filter.invoked()).isTrue();
+		assertThat(payload).isNotNull();
 	}
 
-	//TODO: add exception handlers?
+	// TODO: add exception handlers?
 	@Test(expected = IllegalStateException.class)
-	public void handleErrorFromFilter()  {
+	public void handleErrorFromFilter() {
 
 		ExceptionFilter filter = new ExceptionFilter();
 
 		new TestGatewayRSocket(registry, new TestRoutes(filter))
-				.requestResponse(incomingPayload)
-				.block(Duration.ofSeconds(5));
+				.requestResponse(incomingPayload).block(Duration.ofSeconds(5));
 
 		// assertNull(socket);
+	}
+
+	private static Metadata getMetadata() {
+		return Metadata.from("service").with("id", "service1").build();
 	}
 
 	private static class TestGatewayRSocket extends GatewayRSocket {
 
 		private final MonoProcessor<RSocket> processor = MonoProcessor.create();
 
-		public TestGatewayRSocket(Registry registry, Routes routes) {
-			super(registry, routes, new SimpleMeterRegistry(), new GatewayRSocketProperties(),
-					getMetadata());
+		TestGatewayRSocket(Registry registry, Routes routes) {
+			super(registry, routes, new SimpleMeterRegistry(),
+					new GatewayRSocketProperties(), getMetadata());
 		}
 
 		@Override
 		PendingRequestRSocket constructPendingRSocket(GatewayExchange exchange) {
-			Function<Registry.RegisteredEvent, Mono<Route>> routeFinder = registeredEvent ->
-					getRouteMono(registeredEvent, exchange);
+			Function<Registry.RegisteredEvent, Mono<Route>> routeFinder = registeredEvent -> getRouteMono(
+					registeredEvent, exchange);
 			return new PendingRequestRSocket(routeFinder, map -> {
 				Tags tags = exchange.getTags().and("requester.id", map.get("id"));
 				exchange.setTags(tags);
@@ -181,42 +178,36 @@ public class GatewayRSocketTests {
 		public MonoProcessor<RSocket> getProcessor() {
 			return processor;
 		}
-	}
 
-	private static Metadata getMetadata() {
-		return Metadata.from("service")
-				.with("id", "service1")
-				.build();
 	}
 
 	private static class TestRoutes implements Routes {
+
 		private final Route route;
+
 		private List<GatewayFilter> filters;
 
-		public TestRoutes() {
+		TestRoutes() {
 			this(Collections.emptyList());
 		}
 
-		public TestRoutes(GatewayFilter... filters) {
+		TestRoutes(GatewayFilter... filters) {
 			this(Arrays.asList(filters));
 		}
 
-		public TestRoutes(List<GatewayFilter> filters) {
+		TestRoutes(List<GatewayFilter> filters) {
 			this.filters = filters;
-			route = Route.builder()
-					.id("route1")
+			route = Route.builder().id("route1")
 					.routingMetadata(Metadata.from("mock").build())
-					.predicate(exchange -> Mono.just(true))
-					.filters(filters)
-					.build();
+					.predicate(exchange -> Mono.just(true)).filters(filters).build();
 		}
 
 		@Override
 		public Flux<Route> getRoutes() {
 			return Flux.just(route);
 		}
-	}
 
+	}
 
 	private static class TestFilter implements GatewayFilter {
 
@@ -232,24 +223,28 @@ public class GatewayRSocketTests {
 			return doFilter(exchange, chain);
 		}
 
-		public Mono<Success> doFilter(GatewayExchange exchange, GatewayFilterChain chain) {
+		public Mono<Success> doFilter(GatewayExchange exchange,
+				GatewayFilterChain chain) {
 			return chain.filter(exchange);
 		}
-	}
 
+	}
 
 	private static class ShortcircuitingFilter extends TestFilter {
 
 		@Override
-		public Mono<Success> doFilter(GatewayExchange exchange, GatewayFilterChain chain) {
+		public Mono<Success> doFilter(GatewayExchange exchange,
+				GatewayFilterChain chain) {
 			return Mono.empty();
 		}
+
 	}
 
 	private static class AsyncFilter extends TestFilter {
 
 		@Override
-		public Mono<Success> doFilter(GatewayExchange exchange, GatewayFilterChain chain) {
+		public Mono<Success> doFilter(GatewayExchange exchange,
+				GatewayFilterChain chain) {
 			return doAsyncWork().flatMap(asyncResult -> {
 				logger.debug("Async result: " + asyncResult);
 				return chain.filter(exchange);
@@ -259,8 +254,8 @@ public class GatewayRSocketTests {
 		private Mono<String> doAsyncWork() {
 			return Mono.delay(Duration.ofMillis(100L)).map(l -> "123");
 		}
-	}
 
+	}
 
 	private static class ExceptionFilter implements GatewayFilter {
 
@@ -268,18 +263,16 @@ public class GatewayRSocketTests {
 		public Mono<Success> filter(GatewayExchange exchange, GatewayFilterChain chain) {
 			return Mono.error(new IllegalStateException("boo"));
 		}
+
 	}
 
-
-	/*private static class TestExceptionHandler implements WebExceptionHandler {
-
-		private Throwable ex;
-
-		@Override
-		public Mono<Void> handle(GatewayExchange exchange, Throwable ex) {
-			this.ex = ex;
-			return Mono.error(ex);
-		}
-	}*/
+	/*
+	 * private static class TestExceptionHandler implements WebExceptionHandler {
+	 *
+	 * private Throwable ex;
+	 *
+	 * @Override public Mono<Void> handle(GatewayExchange exchange, Throwable ex) {
+	 * this.ex = ex; return Mono.error(ex); } }
+	 */
 
 }

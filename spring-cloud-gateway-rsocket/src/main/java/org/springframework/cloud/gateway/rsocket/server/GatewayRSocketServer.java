@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.rsocket.server;
@@ -43,20 +42,29 @@ import org.springframework.util.Assert;
 public class GatewayRSocketServer implements Ordered, SmartLifecycle {
 
 	private static final Log log = LogFactory.getLog(GatewayRSocketServer.class);
+
 	private static final RSocketInterceptor[] EMPTY_INTERCEPTORS = new RSocketInterceptor[0];
 
 	private final GatewayRSocketProperties properties;
+
 	private final SocketAcceptor socketAcceptor;
+
 	private final List<RSocketInterceptor> serverInterceptors;
+
 	private final AtomicBoolean running = new AtomicBoolean();
+
 	private CloseableChannel closeableChannel;
+
 	private final MeterRegistry meterRegistry;
 
-	public GatewayRSocketServer(GatewayRSocketProperties properties, SocketAcceptor socketAcceptor, MeterRegistry meterRegistry) {
+	public GatewayRSocketServer(GatewayRSocketProperties properties,
+			SocketAcceptor socketAcceptor, MeterRegistry meterRegistry) {
 		this(properties, socketAcceptor, meterRegistry, EMPTY_INTERCEPTORS);
 	}
 
-	public GatewayRSocketServer(GatewayRSocketProperties properties, SocketAcceptor socketAcceptor, MeterRegistry meterRegistry, RSocketInterceptor... interceptors) {
+	public GatewayRSocketServer(GatewayRSocketProperties properties,
+			SocketAcceptor socketAcceptor, MeterRegistry meterRegistry,
+			RSocketInterceptor... interceptors) {
 		Assert.notNull(properties, "properties may not be null");
 		Assert.notNull(socketAcceptor, "socketAcceptor may not be null");
 		Assert.notNull(meterRegistry, "meterRegistry may not be null");
@@ -104,15 +112,17 @@ public class GatewayRSocketServer implements Ordered, SmartLifecycle {
 		TransportType transportType = server.getTransport();
 		TcpServerTransport transport;
 		switch (transportType) {
-			case TCP:
-				transport = TcpServerTransport.create(port);
-				break;
-			default:
-				throw new IllegalArgumentException("No support for server transport " + transportType);
+		case TCP:
+			transport = TcpServerTransport.create(port);
+			break;
+		default:
+			throw new IllegalArgumentException(
+					"No support for server transport " + transportType);
 		}
 
 		if (log.isInfoEnabled()) {
-			log.info("Starting Gateway RSocket Server on port: " + port + ", transport: " + transportType);
+			log.info("Starting Gateway RSocket Server on port: " + port + ", transport: "
+					+ transportType);
 		}
 
 		RSocketFactory.ServerRSocketFactory factory = RSocketFactory.receive();
@@ -121,25 +131,23 @@ public class GatewayRSocketServer implements Ordered, SmartLifecycle {
 
 		List<String> micrometerTags = server.getMicrometerTags();
 		Tag[] tags = Tags.of(micrometerTags.toArray(new String[] {}))
-				.and("gateway.id", properties.getId())
-				.stream()
-				.collect(Collectors.toList())
-				.toArray(new Tag[]{});
+				.and("gateway.id", properties.getId()).stream()
+				.collect(Collectors.toList()).toArray(new Tag[] {});
 
 		factory
-				//TODO: add as bean like serverInterceptors above
-				.addConnectionPlugin(new MicrometerDuplexConnectionInterceptor(meterRegistry, tags))
+				// TODO: add as bean like serverInterceptors above
+				.addConnectionPlugin(
+						new MicrometerDuplexConnectionInterceptor(meterRegistry, tags))
 				.errorConsumer(throwable -> {
 					if (log.isDebugEnabled()) {
 						log.debug("Error with connection", throwable);
 					}
-				}) //TODO: add configurable errorConsumer
-				.acceptor(this.socketAcceptor)
-				.transport(transport)
-				.start()
+				}) // TODO: add configurable errorConsumer
+				.acceptor(this.socketAcceptor).transport(transport).start()
 				.map(closeableChannel -> {
 					this.closeableChannel = closeableChannel;
 					return closeableChannel;
 				}).subscribe();
 	}
+
 }

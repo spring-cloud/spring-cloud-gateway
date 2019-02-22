@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.rsocket.socketacceptor;
@@ -37,12 +36,16 @@ import org.springframework.cloud.gateway.rsocket.support.Metadata;
 public class GatewaySocketAcceptor implements SocketAcceptor {
 
 	private final SocketAcceptorFilterChain filterChain;
+
 	private final GatewayRSocket.Factory rSocketFactory;
+
 	private final MeterRegistry meterRegistry;
+
 	private final GatewayRSocketProperties properties;
 
-	public GatewaySocketAcceptor(GatewayRSocket.Factory rSocketFactory, List<SocketAcceptorFilter> filters,
-			MeterRegistry meterRegistry, GatewayRSocketProperties properties) {
+	public GatewaySocketAcceptor(GatewayRSocket.Factory rSocketFactory,
+			List<SocketAcceptorFilter> filters, MeterRegistry meterRegistry,
+			GatewayRSocketProperties properties) {
 		this.rSocketFactory = rSocketFactory;
 		this.filterChain = new SocketAcceptorFilterChain(filters);
 		this.meterRegistry = meterRegistry;
@@ -53,31 +56,41 @@ public class GatewaySocketAcceptor implements SocketAcceptor {
 	@SuppressWarnings("Duplicates")
 	public Mono<RSocket> accept(ConnectionSetupPayload setup, RSocket sendingSocket) {
 
-		//decorate sendingSocket with metrics
+		// decorate sendingSocket with metrics
 		// current gateway id, type requester, service name (from metadata), service id
 
-		Tags requesterTags = Tags.of("gateway.id", properties.getId(), "type", "requester");
+		Tags requesterTags = Tags.of("gateway.id", properties.getId(), "type",
+				"requester");
 
 		Tags metadataTags;
 		SocketAcceptorExchange exchange;
-		if (setup.hasMetadata()) { //TODO: and setup.metadataMimeType() is Announcement metadata or composite
+		if (setup.hasMetadata()) { // TODO: and setup.metadataMimeType() is Announcement
+									// metadata or composite
 			Metadata metadata = Metadata.decodeMetadata(setup.sliceMetadata());
-			metadataTags = Tags.of("service.name", metadata.getName())
-					.and("service.id", metadata.get("id"));
+			metadataTags = Tags.of("service.name", metadata.getName()).and("service.id",
+					metadata.get("id"));
 			// enrich exchange to have metadata
-			exchange = new SocketAcceptorExchange(setup, decorate(sendingSocket, requesterTags.and(metadataTags)), metadata);
-		} else {
+			exchange = new SocketAcceptorExchange(setup,
+					decorate(sendingSocket, requesterTags.and(metadataTags)), metadata);
+		}
+		else {
 			metadataTags = Tags.empty();
-			exchange = new SocketAcceptorExchange(setup, decorate(sendingSocket, requesterTags));
+			exchange = new SocketAcceptorExchange(setup,
+					decorate(sendingSocket, requesterTags));
 		}
 
-		Tags responderTags = Tags.of("gateway.id", properties.getId(), "type", "responder")
+		Tags responderTags = Tags
+				.of("gateway.id", properties.getId(), "type", "responder")
 				.and(metadataTags);
 
-		//decorate with metrics gateway id, type responder, service name, service id (instance id)
+		// decorate with metrics gateway id, type responder, service name, service id
+		// (instance id)
 		return this.filterChain.filter(exchange)
-				.log(GatewaySocketAcceptor.class.getName()+".socket acceptor filter chain", Level.FINEST)
-				.map(success -> decorate(this.rSocketFactory.create(exchange.getMetadata()), responderTags));
+				.log(GatewaySocketAcceptor.class.getName()
+						+ ".socket acceptor filter chain", Level.FINEST)
+				.map(success -> decorate(
+						this.rSocketFactory.create(exchange.getMetadata()),
+						responderTags));
 	}
 
 	private RSocket decorate(RSocket rSocket, Tags tags) {

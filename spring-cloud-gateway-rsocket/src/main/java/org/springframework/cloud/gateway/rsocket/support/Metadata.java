@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.rsocket.support;
@@ -32,9 +31,19 @@ import org.springframework.util.Assert;
 
 public class Metadata {
 
+	/**
+	 * Mime type of routing extension.
+	 */
 	public static final String ROUTING_MIME_TYPE = "message/x.rsocket.routing.v0";
 
+	/**
+	 * The logical name.
+	 */
 	private final String name;
+
+	/**
+	 * Keys and values associated with name.
+	 */
 	private final Map<String, String> properties;
 
 	public Metadata(String name, Map<String, String> properties) {
@@ -60,10 +69,8 @@ public class Metadata {
 
 	@Override
 	public String toString() {
-		return new ToStringCreator(this)
-				.append("name", name)
-				.append("properties", properties)
-				.toString();
+		return new ToStringCreator(this).append("name", name)
+				.append("properties", properties).toString();
 	}
 
 	public static Builder from(String name) {
@@ -110,7 +117,8 @@ public class Metadata {
 		String name = decodeString(byteBuf, offset);
 
 		Map<String, String> properties = new LinkedHashMap<>();
-		while (offset.get() < byteBuf.readableBytes()) { //TODO: What is the best conditional here?
+		while (offset.get() < byteBuf.readableBytes()) { // TODO: What is the best
+															// conditional here?
 			String key = decodeString(byteBuf, offset);
 			String value = null;
 			if (offset.get() < byteBuf.readableBytes()) {
@@ -148,10 +156,12 @@ public class Metadata {
 	 * equal values (ignoring case) of leftMetadata.
 	 * @param leftMetadata first metadata to compare.
 	 * @param rightMetadata second metadata to compare.
-	 * @return true if all keys and values (case-insensitive) from leftMetadata are in rightMetadata.
+	 * @return true if all keys and values (case-insensitive) from leftMetadata are in
+	 * rightMetadata.
 	 */
-	//TODO: find a way to make this more performant
-	public static boolean matches(Map<String, String> leftMetadata, Map<String, String> rightMetadata) {
+	// TODO: find a way to make this more performant
+	public static boolean matches(Map<String, String> leftMetadata,
+			Map<String, String> rightMetadata) {
 		if (leftMetadata == null || rightMetadata == null) {
 			return false;
 		}
@@ -159,17 +169,19 @@ public class Metadata {
 		for (Map.Entry<String, String> entry : leftMetadata.entrySet()) {
 			String enrichedValue = rightMetadata.get(entry.getKey());
 			if (enrichedValue == null ||
-					//TODO: regex and possibly SpEL?
+			// TODO: regex and possibly SpEL?
 					!enrichedValue.equalsIgnoreCase(entry.getValue())) {
 				return false;
 			}
 		}
 
-		// all entries in metadata exist and match corresponding entries in enriched.metadata
+		// all entries in metadata exist and match corresponding entries in
+		// enriched.metadata
 		return true;
 	}
 
 	public static class Builder {
+
 		private final Metadata metadata;
 
 		public Builder(String name) {
@@ -189,6 +201,7 @@ public class Metadata {
 		public ByteBuf encode() {
 			return Metadata.encode(build());
 		}
+
 	}
 
 }

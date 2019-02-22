@@ -12,16 +12,15 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.rsocket.autoconfigure;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.core.style.ToStringCreator;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.core.style.ToStringCreator;
 
 @ConfigurationProperties("spring.cloud.gateway.rsocket")
 public class GatewayRSocketProperties {
@@ -57,11 +56,8 @@ public class GatewayRSocketProperties {
 
 	@Override
 	public String toString() {
-		return new ToStringCreator(this)
-				.append("enabled", enabled)
-				.append("id", id)
-				.append("server", server)
-				.toString();
+		return new ToStringCreator(this).append("enabled", enabled).append("id", id)
+				.append("server", server).toString();
 	}
 
 	/**
@@ -69,8 +65,15 @@ public class GatewayRSocketProperties {
 	 */
 	public static class Server {
 
-		//TODO: other transports
-		public enum TransportType { TCP }
+		// TODO: other transports
+		public enum TransportType {
+
+			/**
+			 * TCP Transport type.
+			 */
+			TCP
+
+		}
 
 		/**
 		 * Tag names and values to be supplied to Micrometer Interceptor.
@@ -80,7 +83,7 @@ public class GatewayRSocketProperties {
 		/**
 		 * Server port.
 		 */
-		private int port = 7002; //TODO: different default port?
+		private int port = 7002; // TODO: different default port?
 
 		public Server() {
 			micrometerTags.add("component");
@@ -118,12 +121,10 @@ public class GatewayRSocketProperties {
 
 		@Override
 		public String toString() {
-			return new ToStringCreator(this)
-					.append("micrometerTags", micrometerTags)
-					.append("port", port)
-					.append("transport", transport)
-					.toString();
+			return new ToStringCreator(this).append("micrometerTags", micrometerTags)
+					.append("port", port).append("transport", transport).toString();
 		}
+
 	}
 
 }

@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.rsocket.registry;
@@ -33,7 +32,7 @@ import org.springframework.cloud.gateway.rsocket.route.Routes;
 import org.springframework.cloud.gateway.rsocket.support.Metadata;
 
 /**
- * Creates routes from RegisteredEvents
+ * Creates routes from RegisteredEvents.
  */
 public class RegistryRoutes implements Routes, Consumer<Registry.RegisteredEvent> {
 
@@ -43,8 +42,8 @@ public class RegistryRoutes implements Routes, Consumer<Registry.RegisteredEvent
 
 	@Override
 	public Flux<Route> getRoutes() {
-		//TODO: sorting
-		//TODO: caching
+		// TODO: sorting
+		// TODO: caching
 		Collection<Route> routeCollection = routes.values();
 		if (log.isDebugEnabled()) {
 			log.debug("Found routes: " + routeCollection);
@@ -69,14 +68,13 @@ public class RegistryRoutes implements Routes, Consumer<Registry.RegisteredEvent
 	}
 
 	private Route createRoute(String id, Metadata routingMetadata) {
-		Route route = Route.builder()
-				.id(id)
-				.routingMetadata(routingMetadata)
+		Route route = Route.builder().id(id).routingMetadata(routingMetadata)
 				.predicate(exchange -> {
 					// TODO: standard predicates
 					// TODO: allow customized predicates
 					Metadata incomingRouting = exchange.getRoutingMetadata();
-					boolean matches = incomingRouting.getName().equalsIgnoreCase(routingMetadata.getName());
+					boolean matches = incomingRouting.getName()
+							.equalsIgnoreCase(routingMetadata.getName());
 					return Mono.just(matches);
 				})
 				// TODO: allow customized filters
@@ -88,4 +86,5 @@ public class RegistryRoutes implements Routes, Consumer<Registry.RegisteredEvent
 
 		return route;
 	}
+
 }

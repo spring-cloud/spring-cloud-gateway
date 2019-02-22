@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.rsocket.server;
@@ -20,4 +19,5 @@ package org.springframework.cloud.gateway.rsocket.server;
 import org.springframework.cloud.gateway.rsocket.support.AsyncPredicate;
 
 public interface GatewayPredicate extends AsyncPredicate<GatewayExchange> {
+
 }

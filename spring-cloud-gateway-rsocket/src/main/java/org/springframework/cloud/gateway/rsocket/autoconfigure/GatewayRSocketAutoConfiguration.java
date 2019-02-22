@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.rsocket.autoconfigure;
@@ -53,7 +52,7 @@ public class GatewayRSocketAutoConfiguration {
 		return new Registry();
 	}
 
-	//TODO: CompositeRoutes
+	// TODO: CompositeRoutes
 	@Bean
 	public RegistryRoutes registryRoutes(Registry registry) {
 		RegistryRoutes registryRoutes = new RegistryRoutes();
@@ -76,13 +75,15 @@ public class GatewayRSocketAutoConfiguration {
 	public GatewayRSocketProperties gatewayRSocketProperties(Environment env) {
 		GatewayRSocketProperties properties = new GatewayRSocketProperties();
 		if (env.containsProperty("spring.application.name")) {
-			properties.setId(env.getProperty("spring.application.name")); // set default from env
+			properties.setId(env.getProperty("spring.application.name")); // set default
+																			// from env
 		}
 		return properties;
 	}
 
 	@Bean
-	public SocketAcceptorPredicateFilter socketAcceptorPredicateFilter(List<SocketAcceptorPredicate> predicates) {
+	public SocketAcceptorPredicateFilter socketAcceptorPredicateFilter(
+			List<SocketAcceptorPredicate> predicates) {
 		return new SocketAcceptorPredicateFilter(predicates);
 	}
 
@@ -90,7 +91,8 @@ public class GatewayRSocketAutoConfiguration {
 	public GatewaySocketAcceptor socketAcceptor(GatewayRSocket.Factory rsocketFactory,
 			List<SocketAcceptorFilter> filters, MeterRegistry meterRegistry,
 			GatewayRSocketProperties properties) {
-		return new GatewaySocketAcceptor(rsocketFactory, filters, meterRegistry, properties);
+		return new GatewaySocketAcceptor(rsocketFactory, filters, meterRegistry,
+				properties);
 	}
 
 	@Bean
@@ -98,4 +100,5 @@ public class GatewayRSocketAutoConfiguration {
 			GatewayRSocketProperties properties, MeterRegistry meterRegistry) {
 		return new GatewayRSocketServer(properties, socketAcceptor, meterRegistry);
 	}
+
 }

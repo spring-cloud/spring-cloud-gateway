@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.rsocket.metrics;
@@ -56,22 +55,27 @@ public class MicrometerResponderRSocket implements ResponderRSocket {
 
 	/**
 	 * Creates a new {@link RSocket}.
-	 *
 	 * @param delegate the {@link RSocket} to delegate to
 	 * @param meterRegistry the {@link MeterRegistry} to use
 	 * @param tags additional tags to attach to {@link Meter}s
-	 * @throws IllegalArgumentException if {@code delegate} or {@code meterRegistry} is {@code null}
+	 * @throws IllegalArgumentException if {@code delegate} or {@code meterRegistry} is
+	 * {@code null}
 	 */
-	public MicrometerResponderRSocket(RSocket delegate, MeterRegistry meterRegistry, Tag... tags) {
+	public MicrometerResponderRSocket(RSocket delegate, MeterRegistry meterRegistry,
+			Tag... tags) {
 		Assert.notNull(delegate, "delegate must not be null");
 		Assert.notNull(meterRegistry, "meterRegistry must not be null");
 
 		this.delegate = delegate;
 		this.metadataPush = new InteractionCounters(meterRegistry, "metadata.push", tags);
-		this.requestChannel = new InteractionCounters(meterRegistry, "request.channel", tags);
-		this.requestFireAndForget = new InteractionCounters(meterRegistry, "request.fnf", tags);
-		this.requestResponse = new InteractionTimers(meterRegistry, "request.response", tags);
-		this.requestStream = new InteractionCounters(meterRegistry, "request.stream", tags);
+		this.requestChannel = new InteractionCounters(meterRegistry, "request.channel",
+				tags);
+		this.requestFireAndForget = new InteractionCounters(meterRegistry, "request.fnf",
+				tags);
+		this.requestResponse = new InteractionTimers(meterRegistry, "request.response",
+				tags);
+		this.requestStream = new InteractionCounters(meterRegistry, "request.stream",
+				tags);
 	}
 
 	@Override
@@ -101,14 +105,12 @@ public class MicrometerResponderRSocket implements ResponderRSocket {
 
 	@Override
 	public Mono<Payload> requestResponse(Payload payload) {
-		return Mono.defer(
-				() -> {
-					Timer.Sample sample = requestResponse.start();
+		return Mono.defer(() -> {
+			Timer.Sample sample = requestResponse.start();
 
-					return delegate
-							.requestResponse(payload)
-							.doFinally(signalType -> requestResponse.accept(sample, signalType));
-				});
+			return delegate.requestResponse(payload)
+					.doFinally(signalType -> requestResponse.accept(sample, signalType));
+		});
 	}
 
 	@Override
@@ -133,7 +135,8 @@ public class MicrometerResponderRSocket implements ResponderRSocket {
 
 		private final Counter onError;
 
-		private InteractionCounters(MeterRegistry meterRegistry, String interactionModel, Tag... tags) {
+		private InteractionCounters(MeterRegistry meterRegistry, String interactionModel,
+				Tag... tags) {
 			this.cancel = counter(meterRegistry, interactionModel, CANCEL, tags);
 			this.onComplete = counter(meterRegistry, interactionModel, ON_COMPLETE, tags);
 			this.onError = counter(meterRegistry, interactionModel, ON_ERROR, tags);
@@ -142,27 +145,29 @@ public class MicrometerResponderRSocket implements ResponderRSocket {
 		@Override
 		public void accept(SignalType signalType) {
 			switch (signalType) {
-				case CANCEL:
-					cancel.increment();
-					break;
-				case ON_COMPLETE:
-					onComplete.increment();
-					break;
-				case ON_ERROR:
-					onError.increment();
-					break;
+			case CANCEL:
+				cancel.increment();
+				break;
+			case ON_COMPLETE:
+				onComplete.increment();
+				break;
+			case ON_ERROR:
+				onError.increment();
+				break;
 			}
 		}
 
-		private static Counter counter(
-				MeterRegistry meterRegistry, String interactionModel, SignalType signalType, Tag... tags) {
+		private static Counter counter(MeterRegistry meterRegistry,
+				String interactionModel, SignalType signalType, Tag... tags) {
 
-			return meterRegistry.counter(
-					"rsocket." + interactionModel, Tags.of(tags).and("signal.type", signalType.name()));
+			return meterRegistry.counter("rsocket." + interactionModel,
+					Tags.of(tags).and("signal.type", signalType.name()));
 		}
+
 	}
 
-	private static final class InteractionTimers implements BiConsumer<Timer.Sample, SignalType> {
+	private static final class InteractionTimers
+			implements BiConsumer<Timer.Sample, SignalType> {
 
 		private final Timer cancel;
 
@@ -172,7 +177,8 @@ public class MicrometerResponderRSocket implements ResponderRSocket {
 
 		private final Timer onError;
 
-		private InteractionTimers(MeterRegistry meterRegistry, String interactionModel, Tag... tags) {
+		private InteractionTimers(MeterRegistry meterRegistry, String interactionModel,
+				Tag... tags) {
 			this.meterRegistry = meterRegistry;
 
 			this.cancel = timer(meterRegistry, interactionModel, CANCEL, tags);
@@ -183,15 +189,15 @@ public class MicrometerResponderRSocket implements ResponderRSocket {
 		@Override
 		public void accept(Timer.Sample sample, SignalType signalType) {
 			switch (signalType) {
-				case CANCEL:
-					sample.stop(cancel);
-					break;
-				case ON_COMPLETE:
-					sample.stop(onComplete);
-					break;
-				case ON_ERROR:
-					sample.stop(onError);
-					break;
+			case CANCEL:
+				sample.stop(cancel);
+				break;
+			case ON_COMPLETE:
+				sample.stop(onComplete);
+				break;
+			case ON_ERROR:
+				sample.stop(onError);
+				break;
 			}
 		}
 
@@ -199,11 +205,13 @@ public class MicrometerResponderRSocket implements ResponderRSocket {
 			return Timer.start(meterRegistry);
 		}
 
-		private static Timer timer(
-				MeterRegistry meterRegistry, String interactionModel, SignalType signalType, Tag... tags) {
+		private static Timer timer(MeterRegistry meterRegistry, String interactionModel,
+				SignalType signalType, Tag... tags) {
 
-			return meterRegistry.timer(
-					"rsocket." + interactionModel, Tags.of(tags).and("signal.type", signalType.name()));
+			return meterRegistry.timer("rsocket." + interactionModel,
+					Tags.of(tags).and("signal.type", signalType.name()));
 		}
+
 	}
+
 }

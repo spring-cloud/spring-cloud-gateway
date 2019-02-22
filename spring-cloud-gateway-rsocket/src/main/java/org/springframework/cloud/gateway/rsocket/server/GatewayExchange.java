@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.rsocket.server;
@@ -25,16 +24,23 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.cloud.gateway.rsocket.filter.AbstractRSocketExchange;
 import org.springframework.cloud.gateway.rsocket.support.Metadata;
 
+/**
+ * Exchange object used in GatewayFilterChain started by GatewayRSocket.
+ */
 public class GatewayExchange extends AbstractRSocketExchange {
 
 	private static final Log log = LogFactory.getLog(GatewayExchange.class);
+
+	/**
+	 * Key for the route object in attributes.
+	 */
 	public static final String ROUTE_ATTR = "__route_attr_";
 
 	enum Type {
-		FIRE_AND_FORGET("request.fnf"),
-		REQUEST_CHANNEL("request.channel"),
-		REQUEST_RESPONSE("request.response"),
-		REQUEST_STREAM("request.stream");
+
+		FIRE_AND_FORGET("request.fnf"), REQUEST_CHANNEL(
+				"request.channel"), REQUEST_RESPONSE(
+						"request.response"), REQUEST_STREAM("request.stream");
 
 		private String key;
 
@@ -45,10 +51,13 @@ public class GatewayExchange extends AbstractRSocketExchange {
 		String getKey() {
 			return this.key;
 		}
+
 	}
 
 	private final Type type;
+
 	private final Metadata routingMetadata;
+
 	private Tags tags = Tags.empty();
 
 	public static GatewayExchange fromPayload(Type type, Payload payload) {
@@ -90,4 +99,5 @@ public class GatewayExchange extends AbstractRSocketExchange {
 	public void setTags(Tags tags) {
 		this.tags = tags;
 	}
+
 }

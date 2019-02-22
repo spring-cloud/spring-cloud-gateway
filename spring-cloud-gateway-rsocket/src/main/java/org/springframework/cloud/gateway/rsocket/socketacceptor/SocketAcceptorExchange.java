@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.rsocket.socketacceptor;
@@ -26,8 +25,11 @@ import org.springframework.cloud.gateway.rsocket.filter.AbstractRSocketExchange;
 import org.springframework.cloud.gateway.rsocket.support.Metadata;
 
 public class SocketAcceptorExchange extends AbstractRSocketExchange {
+
 	private final ConnectionSetupPayload setup;
+
 	private final RSocket sendingSocket;
+
 	private final Metadata metadata;
 
 	public SocketAcceptorExchange(ConnectionSetupPayload setup, RSocket sendingSocket) {
@@ -52,4 +54,5 @@ public class SocketAcceptorExchange extends AbstractRSocketExchange {
 	public Metadata getMetadata() {
 		return metadata;
 	}
+
 }

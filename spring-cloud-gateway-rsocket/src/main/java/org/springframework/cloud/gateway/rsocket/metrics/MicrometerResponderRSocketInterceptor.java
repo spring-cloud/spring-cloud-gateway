@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.rsocket.metrics;
@@ -33,13 +32,14 @@ public class MicrometerResponderRSocketInterceptor implements RSocketInterceptor
 
 	/**
 	 * Creates a new {@link RSocketInterceptor}.
-	 *
 	 * @param meterRegistry the {@link MeterRegistry} to use to create {@link Meter}s.
 	 * @param tags the additional tags to attach to each {@link Meter}
 	 * @throws NullPointerException if {@code meterRegistry} is {@code null}
 	 */
-	public MicrometerResponderRSocketInterceptor(MeterRegistry meterRegistry, Tag... tags) {
-		this.meterRegistry = Objects.requireNonNull(meterRegistry, "meterRegistry must not be null");
+	public MicrometerResponderRSocketInterceptor(MeterRegistry meterRegistry,
+			Tag... tags) {
+		this.meterRegistry = Objects.requireNonNull(meterRegistry,
+				"meterRegistry must not be null");
 		this.tags = tags;
 	}
 

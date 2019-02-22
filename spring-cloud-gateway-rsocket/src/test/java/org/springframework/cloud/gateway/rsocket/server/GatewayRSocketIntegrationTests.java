@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.rsocket.server;
@@ -34,9 +33,8 @@ import org.springframework.util.SocketUtils;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = PingPongApp.class,
-		properties = { "ping.take=5" },
-		webEnvironment = WebEnvironment.RANDOM_PORT)
+@SpringBootTest(classes = PingPongApp.class, properties = {
+		"ping.take=5" }, webEnvironment = WebEnvironment.RANDOM_PORT)
 public class GatewayRSocketIntegrationTests {
 
 	private static int port;
@@ -59,7 +57,8 @@ public class GatewayRSocketIntegrationTests {
 	@BeforeClass
 	public static void init() {
 		port = SocketUtils.findAvailableTcpPort();
-		System.setProperty("spring.cloud.gateway.rsocket.server.port", String.valueOf(port));
+		System.setProperty("spring.cloud.gateway.rsocket.server.port",
+				String.valueOf(port));
 	}
 
 	@AfterClass
@@ -68,12 +67,9 @@ public class GatewayRSocketIntegrationTests {
 	}
 
 	@Test
-	public void contextLoads()  {
-		StepVerifier.create(ping.getPongFlux())
-				.expectSubscription()
-				.then(() -> server.stop())
-				.thenConsumeWhile(s -> true)
-				.verifyComplete();
+	public void contextLoads() {
+		StepVerifier.create(ping.getPongFlux()).expectSubscription()
+				.then(() -> server.stop()).thenConsumeWhile(s -> true).verifyComplete();
 
 		assertThat(ping.getPongsReceived()).isGreaterThan(0);
 		assertThat(pong.getPingsReceived()).isGreaterThan(0);

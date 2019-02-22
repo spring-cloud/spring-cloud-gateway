@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.rsocket.registry;
@@ -37,27 +36,31 @@ import org.springframework.util.Assert;
  * When a new RSocket is registered, a RegisteredEvent is pushed onto a DirectProcessor
  * that is acting as an event bus for registered Consumers.
  */
-//TODO: name?
+// TODO: name?
 public class Registry {
+
 	private static final Log log = LogFactory.getLog(Registry.class);
 
 	private final Map<String, LoadBalancedRSocket> rsockets = new ConcurrentHashMap<>();
 
-	private final DirectProcessor<RegisteredEvent> registeredEvents = DirectProcessor.create();
-	private final FluxSink<RegisteredEvent> registeredEventsSink = registeredEvents.sink(FluxSink.OverflowStrategy.DROP);
+	private final DirectProcessor<RegisteredEvent> registeredEvents = DirectProcessor
+			.create();
+
+	private final FluxSink<RegisteredEvent> registeredEventsSink = registeredEvents
+			.sink(FluxSink.OverflowStrategy.DROP);
 
 	public Registry() {
 	}
 
-	//TODO: Mono<Void>?
+	// TODO: Mono<Void>?
 	public void register(Metadata metadata, RSocket rsocket) {
 		Assert.notNull(metadata, "metadata may not be null");
 		Assert.notNull(rsocket, "RSocket may not be null");
 		if (log.isDebugEnabled()) {
 			log.debug("Registering RSocket: " + metadata);
 		}
-		LoadBalancedRSocket composite = rsockets.computeIfAbsent(metadata.getName(), s ->
-				new LoadBalancedRSocket(metadata.getName()));
+		LoadBalancedRSocket composite = rsockets.computeIfAbsent(metadata.getName(),
+				s -> new LoadBalancedRSocket(metadata.getName()));
 		composite.addRSocket(rsocket, metadata);
 		registeredEventsSink.next(new RegisteredEvent(metadata, rsocket));
 	}
@@ -82,7 +85,9 @@ public class Registry {
 	}
 
 	public static class RegisteredEvent {
+
 		private final Metadata routingMetadata;
+
 		private final RSocket rSocket;
 
 		public RegisteredEvent(Metadata routingMetadata, RSocket rSocket) {
@@ -101,4 +106,5 @@ public class Registry {
 		}
 
 	}
+
 }

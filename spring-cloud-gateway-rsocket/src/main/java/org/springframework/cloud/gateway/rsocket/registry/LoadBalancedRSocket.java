@@ -12,13 +12,11 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.rsocket.registry;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -39,6 +37,7 @@ public class LoadBalancedRSocket {
 	private final List<EnrichedRSocket> delegates = new CopyOnWriteArrayList<>();
 
 	private final String serviceName;
+
 	private final LoadBalancer loadBalancer;
 
 	public LoadBalancedRSocket(String serviceName) {
@@ -59,14 +58,11 @@ public class LoadBalancedRSocket {
 	}
 
 	public void remove(Metadata metadata) {
-		//TODO: move delegates to a map for easy removal
+		// TODO: move delegates to a map for easy removal
 		this.delegates.stream()
-				.filter(enriched -> metadata.matches(enriched.getMetadata()))
-				.findFirst()
+				.filter(enriched -> metadata.matches(enriched.getMetadata())).findFirst()
 				.ifPresent(this.delegates::remove);
 	}
-
-
 
 	public List<EnrichedRSocket> getDelegates() {
 		return this.delegates;
@@ -88,16 +84,20 @@ public class LoadBalancedRSocket {
 		public RSocket getSource() {
 			return this.source;
 		}
+
 	}
 
-	//TODO: Flux<RSocket> as input?
-	//TODO: reuse commons load balancer?
-	public interface LoadBalancer extends Function<List<EnrichedRSocket>, Mono<EnrichedRSocket>> {
+	// TODO: Flux<RSocket> as input?
+	// TODO: reuse commons load balancer?
+	public interface LoadBalancer
+			extends Function<List<EnrichedRSocket>, Mono<EnrichedRSocket>> {
+
 	}
 
 	public static class RoundRobinLoadBalancer implements LoadBalancer {
 
 		private final AtomicInteger position;
+
 		private final String serviceName;
 
 		public RoundRobinLoadBalancer(String serviceName) {
@@ -123,5 +123,7 @@ public class LoadBalancedRSocket {
 			EnrichedRSocket rSocket = rSockets.get(pos % rSockets.size());
 			return Mono.just(rSocket);
 		}
+
 	}
+
 }

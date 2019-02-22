@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.rsocket.support;
@@ -39,14 +38,11 @@ public class MetadataTests {
 
 	@Test
 	public void encodeAndDecodeWorks() {
-		ByteBuf byteBuf = Metadata.from("test1")
-				.with("key1111", "val111111")
-				.with("key22", "val222")
-				.encode();
+		ByteBuf byteBuf = Metadata.from("test1").with("key1111", "val111111")
+				.with("key22", "val222").encode();
 		Metadata metadata = assertMetadata(byteBuf, "test1");
 		Map<String, String> properties = metadata.getProperties();
-		assertThat(properties).hasSize(2)
-				.containsOnlyKeys("key1111", "key22")
+		assertThat(properties).hasSize(2).containsOnlyKeys("key1111", "key22")
 				.containsValues("val111111", "val222");
 	}
 
@@ -82,7 +78,8 @@ public class MetadataTests {
 	private Map<String, String> metadata(int size) {
 		Assert.isTrue(size > 0, "size must be > 0");
 		HashMap<String, String> metadata = new HashMap<>();
-		IntStream.rangeClosed(1, size).forEach(i -> metadata.put("key"+i, "val"+i));
+		IntStream.rangeClosed(1, size).forEach(i -> metadata.put("key" + i, "val" + i));
 		return metadata;
 	}
+
 }

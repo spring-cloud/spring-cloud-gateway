@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.rsocket.filter;
@@ -20,9 +19,9 @@ package org.springframework.cloud.gateway.rsocket.filter;
 import reactor.core.publisher.Mono;
 
 /**
- * Contract for interception-style, chained processing of Web requests that may
- * be used to implement cross-cutting, application-agnostic requirements such
- * as security, timeouts, and others.
+ * Contract for interception-style, chained processing of Web requests that may be used to
+ * implement cross-cutting, application-agnostic requirements such as security, timeouts,
+ * and others.
  *
  * Copied from WebFilter
  *
@@ -31,18 +30,23 @@ import reactor.core.publisher.Mono;
 public interface RSocketFilter<E extends RSocketExchange, FC extends FilterChain<E>> {
 
 	/**
-	 * Enum to signal successful end of chain reached without the end being empty,
-	 * i.e. Mono&lt;Void&gt; via Mono.empty(). This is because at the end of the chain
-	 * an actual value needs to be returned. We can map success, but not empty.
+	 * Enum to signal successful end of chain reached without the end being empty, i.e.
+	 * Mono&lt;Void&gt; via Mono.empty(). This is because at the end of the chain an
+	 * actual value needs to be returned. We can map success, but not empty.
 	 */
-	enum Success { INSTANCE } // should never have more than one value
+	enum Success {
+
+		INSTANCE
+
+	} // should never have more than one value
 
 	/**
-	 * Process the Web request and (optionally) delegate to the next
-	 * {@code RSocketFilter} through the given {@link FilterChain}.
+	 * Process the Web request and (optionally) delegate to the next {@code RSocketFilter}
+	 * through the given {@link FilterChain}.
 	 * @param exchange the current RSocket exchange
 	 * @param chain provides a way to delegate to the next filter
 	 * @return {@code Mono<Success>} to indicate when request processing is complete.
 	 */
 	Mono<Success> filter(E exchange, FC chain);
+
 }

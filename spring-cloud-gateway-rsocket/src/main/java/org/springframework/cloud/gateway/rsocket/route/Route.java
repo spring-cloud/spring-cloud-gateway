@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.rsocket.route;
@@ -31,7 +30,6 @@ import org.springframework.cloud.gateway.rsocket.support.Metadata;
 import org.springframework.core.Ordered;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.util.Assert;
-
 
 /**
  * @author Spencer Gibb
@@ -52,7 +50,9 @@ public class Route implements Ordered {
 		return new Builder();
 	}
 
-	private Route(String id, Metadata targetMetadata, int order, AsyncPredicate<GatewayExchange> predicate, List<GatewayFilter> gatewayFilters) {
+	private Route(String id, Metadata targetMetadata, int order,
+			AsyncPredicate<GatewayExchange> predicate,
+			List<GatewayFilter> gatewayFilters) {
 		this.id = id;
 		this.targetMetadata = targetMetadata;
 		this.order = order;
@@ -60,7 +60,57 @@ public class Route implements Ordered {
 		this.gatewayFilters = gatewayFilters;
 	}
 
+	public String getId() {
+		return this.id;
+	}
+
+	public Metadata getTargetMetadata() {
+		return this.targetMetadata;
+	}
+
+	public int getOrder() {
+		return order;
+	}
+
+	public AsyncPredicate<GatewayExchange> getPredicate() {
+		return this.predicate;
+	}
+
+	public List<GatewayFilter> getFilters() {
+		return Collections.unmodifiableList(this.gatewayFilters);
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		Route route = (Route) o;
+		return Objects.equals(id, route.id)
+				&& Objects.equals(targetMetadata, route.targetMetadata)
+				&& Objects.equals(order, route.order)
+				&& Objects.equals(predicate, route.predicate)
+				&& Objects.equals(gatewayFilters, route.gatewayFilters);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(id, targetMetadata, predicate, gatewayFilters);
+	}
+
+	@Override
+	public String toString() {
+		return new ToStringCreator(this).append("id", id)
+				.append("targetMetadata", targetMetadata).append("order", order)
+				.append("predicate", predicate).append("gatewayFilters", gatewayFilters)
+				.toString();
+	}
+
 	public static class Builder {
+
 		protected String id;
 
 		protected Metadata routingMetadata;
@@ -71,7 +121,8 @@ public class Route implements Ordered {
 
 		protected List<GatewayFilter> gatewayFilters = new ArrayList<>();
 
-		protected Builder() {}
+		protected Builder() {
+		}
 
 		public Builder id(String id) {
 			this.id = id;
@@ -115,7 +166,6 @@ public class Route implements Ordered {
 			return filters(Arrays.asList(gatewayFilters));
 		}
 
-
 		public Builder predicate(AsyncPredicate<GatewayExchange> predicate) {
 			this.predicate = predicate;
 			return this;
@@ -144,55 +194,10 @@ public class Route implements Ordered {
 			Assert.notNull(this.routingMetadata, "targetMetadata can not be null");
 			Assert.notNull(this.predicate, "predicate can not be null");
 
-			return new Route(this.id, this.routingMetadata, this.order, predicate, this.gatewayFilters);
+			return new Route(this.id, this.routingMetadata, this.order, predicate,
+					this.gatewayFilters);
 		}
+
 	}
 
-	public String getId() {
-		return this.id;
-	}
-
-	public Metadata getTargetMetadata() {
-		return this.targetMetadata;
-	}
-
-	public int getOrder() {
-		return order;
-	}
-
-	public AsyncPredicate<GatewayExchange> getPredicate() {
-		return this.predicate;
-	}
-
-	public List<GatewayFilter> getFilters() {
-		return Collections.unmodifiableList(this.gatewayFilters);
-	}
-
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
-		Route route = (Route) o;
-		return Objects.equals(id, route.id) &&
-				Objects.equals(targetMetadata, route.targetMetadata) &&
-				Objects.equals(order, route.order) &&
-				Objects.equals(predicate, route.predicate) &&
-				Objects.equals(gatewayFilters, route.gatewayFilters);
-	}
-
-	@Override
-	public int hashCode() {
-		return Objects.hash(id, targetMetadata, predicate, gatewayFilters);
-	}
-
-	@Override
-	public String toString() {
-		return new ToStringCreator(this)
-				.append("id", id)
-				.append("targetMetadata", targetMetadata)
-				.append("order", order)
-				.append("predicate", predicate)
-				.append("gatewayFilters", gatewayFilters)
-				.toString();
-	}
 }
