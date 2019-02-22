@@ -20,9 +20,7 @@ package org.springframework.cloud.gateway.rsocket.server;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Function;
 
 import io.micrometer.core.instrument.Tags;
@@ -52,7 +50,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -72,11 +69,11 @@ public class GatewayRSocketTests {
 	public void init() {
 		registry = mock(Registry.class);
 		incomingPayload = DefaultPayload.create(Unpooled.EMPTY_BUFFER,
-				Metadata.encodeTags("name:mock", "id:mock1"));
+				Metadata.from("mock").with("id", "mock1").encode());
 
 		RSocket rSocket = mock(RSocket.class);
 		LoadBalancedRSocket loadBalancedRSocket = mock(LoadBalancedRSocket.class);
-		when(registry.getRegistered(anyMap())).thenReturn(loadBalancedRSocket);
+		when(registry.getRegistered(any(Metadata.class))).thenReturn(loadBalancedRSocket);
 
 		Mono<EnrichedRSocket> mono = Mono
 				.just(new EnrichedRSocket(rSocket, getMetadata()));
@@ -186,11 +183,10 @@ public class GatewayRSocketTests {
 		}
 	}
 
-	private static Map<String, String> getMetadata() {
-		HashMap<String, String> map = new HashMap<>();
-		map.put("name", "service");
-		map.put("id", "service1");
-		return map;
+	private static Metadata getMetadata() {
+		return Metadata.from("service")
+				.with("id", "service1")
+				.build();
 	}
 
 	private static class TestRoutes implements Routes {
@@ -209,7 +205,7 @@ public class GatewayRSocketTests {
 			this.filters = filters;
 			route = Route.builder()
 					.id("route1")
-					.routingMetadata(Collections.singletonMap("name", "mock"))
+					.routingMetadata(Metadata.from("mock").build())
 					.predicate(exchange -> Mono.just(true))
 					.filters(filters)
 					.build();

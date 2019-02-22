@@ -30,6 +30,7 @@ import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.rsocket.route.Route;
 import org.springframework.cloud.gateway.rsocket.route.Routes;
+import org.springframework.cloud.gateway.rsocket.support.Metadata;
 
 /**
  * Creates routes from RegisteredEvents
@@ -53,30 +54,29 @@ public class RegistryRoutes implements Routes, Consumer<Registry.RegisteredEvent
 
 	@Override
 	public void accept(Registry.RegisteredEvent registeredEvent) {
-		Map<String, String> routingMetadata = registeredEvent.getRoutingMetadata();
+		Metadata routingMetadata = registeredEvent.getRoutingMetadata();
 		String id = getId(routingMetadata);
 
 		routes.computeIfAbsent(id, key -> createRoute(id, routingMetadata));
 	}
 
-	private String getId(Map<String, String> routingMetadata) {
-		String id = routingMetadata.get("name");
+	private String getId(Metadata routingMetadata) {
+		String id = routingMetadata.getName();
 		if (id == null) {
 			id = UUID.randomUUID().toString();
 		}
 		return id;
 	}
 
-	private Route createRoute(String id, Map<String, String> routingMetadata) {
+	private Route createRoute(String id, Metadata routingMetadata) {
 		Route route = Route.builder()
 				.id(id)
 				.routingMetadata(routingMetadata)
 				.predicate(exchange -> {
 					// TODO: standard predicates
 					// TODO: allow customized predicates
-					Map<String, String> incomingRouting = exchange.getRoutingMetadata();
-					boolean matches = incomingRouting.containsKey("name")
-							&& incomingRouting.get("name").equals(routingMetadata.get("name"));
+					Metadata incomingRouting = exchange.getRoutingMetadata();
+					boolean matches = incomingRouting.getName().equalsIgnoreCase(routingMetadata.getName());
 					return Mono.just(matches);
 				})
 				// TODO: allow customized filters

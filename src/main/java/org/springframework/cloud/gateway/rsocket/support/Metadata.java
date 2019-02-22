@@ -18,78 +18,129 @@
 package org.springframework.cloud.gateway.rsocket.support;
 
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufUtil;
 import io.rsocket.util.NumberUtils;
 
+import org.springframework.core.style.ToStringCreator;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
-public abstract class Metadata {
+public class Metadata {
 
 	public static final String ROUTING_MIME_TYPE = "message/x.rsocket.routing.v0";
 
-	private Metadata() {}
+	private final String name;
+	private final Map<String, String> properties;
 
-	public static ByteBuf encodeProperties(Map<String, String> properties) {
-		return encodeProperties(ByteBufAllocator.DEFAULT, properties);
+	public Metadata(String name, Map<String, String> properties) {
+		this.name = name;
+		this.properties = properties;
 	}
 
-	public static ByteBuf encodeProperties(ByteBufAllocator allocator, Map<String, String> properties) {
-		Assert.notEmpty(properties, "tags may not be null or empty"); //TODO: is this true?
-		List<String> pairs = properties.entrySet().stream()
-				.map(entry -> entry.getValue() + ":" + entry.getValue())
-				.collect(Collectors.toList());
-		return encodeTags(allocator, pairs.toArray(new String[0]));
+	public String getName() {
+		return this.name;
 	}
 
-	public static ByteBuf encodeTags(String... tags) {
-		return encodeTags(ByteBufAllocator.DEFAULT, tags);
+	public Map<String, String> getProperties() {
+		return this.properties;
 	}
 
-	public static ByteBuf encodeTags(ByteBufAllocator allocator, String... tags) {
-		Assert.notEmpty(tags, "tags may not be null or empty"); //TODO: is this true?
+	public String get(String key) {
+		return this.properties.get(key);
+	}
+
+	public String put(String key, String value) {
+		return this.properties.put(key, value);
+	}
+
+	@Override
+	public String toString() {
+		return new ToStringCreator(this)
+				.append("name", name)
+				.append("properties", properties)
+				.toString();
+	}
+
+	public static Builder from(String name) {
+		return new Builder(name);
+	}
+
+	public static ByteBuf encode(Metadata metadata) {
+		return encode(ByteBufAllocator.DEFAULT, metadata);
+	}
+
+	public static ByteBuf encode(ByteBufAllocator allocator, Metadata metadata) {
+		return encode(allocator, metadata.getName(), metadata.getProperties());
+	}
+
+	public static ByteBuf encode(String name, Map<String, String> properties) {
+		return encode(ByteBufAllocator.DEFAULT, name, properties);
+	}
+
+	public static ByteBuf encode(ByteBufAllocator allocator, String name,
+			Map<String, String> properties) {
+		Assert.hasText(name, "name may not be empty");
+		Assert.notNull(properties, "properties may not be null");
+		Assert.notNull(allocator, "allocator may not be null");
 		ByteBuf byteBuf = allocator.buffer();
 
-		for (String tag : tags) {
-			int tagLength = NumberUtils.requireUnsignedByte(ByteBufUtil.utf8Bytes(tag));
-			byteBuf.writeByte(tagLength);
-			ByteBufUtil.reserveAndWriteUtf8(byteBuf, tag, tagLength);
-		}
+		encodeString(byteBuf, name);
+
+		properties.entrySet().stream().forEach(entry -> {
+			encodeString(byteBuf, entry.getKey());
+			encodeString(byteBuf, entry.getValue());
+		});
 		return byteBuf;
 	}
 
-	public static Map<String, String> decodeProperties(ByteBuf byteBuf) {
-		return decodeTags(byteBuf).stream()
-				.map(Pair::parse)
-				.filter(Objects::nonNull)
-				.collect(LinkedHashMap::new,
-						(map, pair) -> map.put(pair.name, pair.value),
-						HashMap::putAll);
+	private static void encodeString(ByteBuf byteBuf, String s) {
+		int length = NumberUtils.requireUnsignedByte(ByteBufUtil.utf8Bytes(s));
+		byteBuf.writeByte(length);
+		ByteBufUtil.reserveAndWriteUtf8(byteBuf, s, length);
 	}
 
-	public static List<String> decodeTags(ByteBuf byteBuf) {
-		ArrayList<String> tags = new ArrayList<>();
+	public static Metadata decodeMetadata(ByteBuf byteBuf) {
+		AtomicInteger offset = new AtomicInteger(0);
 
-		int offset = 0;
-		while (offset < byteBuf.readableBytes()) { //TODO: What is the best conditional here?
-			int tagLength = byteBuf.getByte(offset);
-			offset += Byte.BYTES;
-			String tag = byteBuf.toString(offset, tagLength, StandardCharsets.UTF_8);
-			tags.add(tag);
-			offset += tagLength;
+		String name = decodeString(byteBuf, offset);
+
+		Map<String, String> properties = new LinkedHashMap<>();
+		while (offset.get() < byteBuf.readableBytes()) { //TODO: What is the best conditional here?
+			String key = decodeString(byteBuf, offset);
+			String value = null;
+			if (offset.get() < byteBuf.readableBytes()) {
+				value = decodeString(byteBuf, offset);
+			}
+			properties.put(key, value);
 		}
 
-		return tags;
+		return new Metadata(name, properties);
+	}
+
+	private static String decodeString(ByteBuf byteBuf, AtomicInteger offset) {
+		int length = byteBuf.getByte(offset.get());
+		int index = offset.addAndGet(Byte.BYTES);
+		String s = byteBuf.toString(index, length, StandardCharsets.UTF_8);
+		offset.addAndGet(length);
+		return s;
+	}
+
+	public boolean matches(Metadata other) {
+		if (other == null) {
+			return false;
+		}
+		if (other.getName() == null) {
+			return false;
+		}
+		if (!getName().equalsIgnoreCase(other.getName())) {
+			return false;
+		}
+		return matches(getProperties(), other.getProperties());
 	}
 
 	/**
@@ -118,47 +169,26 @@ public abstract class Metadata {
 		return true;
 	}
 
-	/**
-	 * A single name value pair.
-	 */
-	public static class Pair {
+	public static class Builder {
+		private final Metadata metadata;
 
-		private String name;
-
-		private String value;
-
-		public Pair(String name, String value) {
-			Assert.hasLength(name, "Name must not be empty");
-			this.name = name;
-			this.value = value;
+		public Builder(String name) {
+			Assert.hasText(name, "Name must not be empty.");
+			this.metadata = new Metadata(name, new LinkedHashMap<>());
 		}
 
-		public static Pair parse(String pair) {
-			int index = getSeparatorIndex(pair);
-			String name = (index > 0) ? pair.substring(0, index) : pair;
-			String value = (index > 0) ? pair.substring(index + 1) : "";
-			return of(name.trim(), value.trim());
+		public Builder with(String key, String value) {
+			this.metadata.put(key, value);
+			return this;
 		}
 
-		private static int getSeparatorIndex(String pair) {
-			int colonIndex = pair.indexOf(':');
-			int equalIndex = pair.indexOf('=');
-			if (colonIndex == -1) {
-				return equalIndex;
-			}
-			if (equalIndex == -1) {
-				return colonIndex;
-			}
-			return Math.min(colonIndex, equalIndex);
+		public Metadata build() {
+			return this.metadata;
 		}
 
-		private static Pair of(String name, String value) {
-			if (StringUtils.isEmpty(name) && StringUtils.isEmpty(value)) {
-				return null;
-			}
-			return new Pair(name, value);
+		public ByteBuf encode() {
+			return Metadata.encode(build());
 		}
-
 	}
 
 }

@@ -17,8 +17,6 @@
 
 package org.springframework.cloud.gateway.rsocket.server;
 
-import java.util.Map;
-
 import io.micrometer.core.instrument.Tags;
 import io.rsocket.Payload;
 import org.apache.commons.logging.Log;
@@ -26,7 +24,6 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.gateway.rsocket.filter.AbstractRSocketExchange;
 import org.springframework.cloud.gateway.rsocket.support.Metadata;
-import org.springframework.util.CollectionUtils;
 
 public class GatewayExchange extends AbstractRSocketExchange {
 
@@ -51,33 +48,29 @@ public class GatewayExchange extends AbstractRSocketExchange {
 	}
 
 	private final Type type;
-	private final Map<String, String> routingMetadata;
+	private final Metadata routingMetadata;
 	private Tags tags = Tags.empty();
 
 	public static GatewayExchange fromPayload(Type type, Payload payload) {
 		return new GatewayExchange(type, getRoutingMetadata(payload));
 	}
 
-	private static Map<String, String> getRoutingMetadata(Payload payload) {
+	private static Metadata getRoutingMetadata(Payload payload) {
 		if (payload == null || !payload.hasMetadata()) { // and metadata is routing
 			return null;
 		}
 
 		// TODO: deal with composite metadata
 
-		Map<String, String> properties = Metadata.decodeProperties(payload.sliceMetadata());
-
-		if (CollectionUtils.isEmpty(properties)) {
-			return null;
-		}
+		Metadata metadata = Metadata.decodeMetadata(payload.sliceMetadata());
 
 		if (log.isDebugEnabled()) {
-			log.debug("found routing metadata " + properties);
+			log.debug("found routing metadata " + metadata);
 		}
-		return properties;
+		return metadata;
 	}
 
-	public GatewayExchange(Type type, Map<String, String> routingMetadata) {
+	public GatewayExchange(Type type, Metadata routingMetadata) {
 		this.type = type;
 		this.routingMetadata = routingMetadata;
 	}
@@ -86,7 +79,7 @@ public class GatewayExchange extends AbstractRSocketExchange {
 		return type;
 	}
 
-	public Map<String, String> getRoutingMetadata() {
+	public Metadata getRoutingMetadata() {
 		return routingMetadata;
 	}
 

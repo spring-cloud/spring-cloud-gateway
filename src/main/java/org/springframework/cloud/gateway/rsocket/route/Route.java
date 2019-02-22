@@ -22,12 +22,12 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 import org.springframework.cloud.gateway.rsocket.server.GatewayExchange;
 import org.springframework.cloud.gateway.rsocket.server.GatewayFilter;
 import org.springframework.cloud.gateway.rsocket.support.AsyncPredicate;
+import org.springframework.cloud.gateway.rsocket.support.Metadata;
 import org.springframework.core.Ordered;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.util.Assert;
@@ -40,7 +40,7 @@ public class Route implements Ordered {
 
 	private final String id;
 
-	private final Map<String, String> targetMetadata;
+	private final Metadata targetMetadata;
 
 	private final int order;
 
@@ -52,7 +52,7 @@ public class Route implements Ordered {
 		return new Builder();
 	}
 
-	private Route(String id, Map<String, String> targetMetadata, int order, AsyncPredicate<GatewayExchange> predicate, List<GatewayFilter> gatewayFilters) {
+	private Route(String id, Metadata targetMetadata, int order, AsyncPredicate<GatewayExchange> predicate, List<GatewayFilter> gatewayFilters) {
 		this.id = id;
 		this.targetMetadata = targetMetadata;
 		this.order = order;
@@ -63,7 +63,7 @@ public class Route implements Ordered {
 	public static class Builder {
 		protected String id;
 
-		protected Map<String, String> routingMetadata;
+		protected Metadata routingMetadata;
 
 		protected int order = 0;
 
@@ -91,7 +91,7 @@ public class Route implements Ordered {
 			return this.predicate;
 		}
 
-		public Builder routingMetadata(Map<String, String> routingMetadata) {
+		public Builder routingMetadata(Metadata routingMetadata) {
 			this.routingMetadata = routingMetadata;
 			return this;
 		}
@@ -141,7 +141,7 @@ public class Route implements Ordered {
 
 		public Route build() {
 			Assert.notNull(this.id, "id can not be null");
-			Assert.notEmpty(this.routingMetadata, "targetMetadata can not be null or empty");
+			Assert.notNull(this.routingMetadata, "targetMetadata can not be null");
 			Assert.notNull(this.predicate, "predicate can not be null");
 
 			return new Route(this.id, this.routingMetadata, this.order, predicate, this.gatewayFilters);
@@ -152,7 +152,7 @@ public class Route implements Ordered {
 		return this.id;
 	}
 
-	public Map<String, String> getTargetMetadata() {
+	public Metadata getTargetMetadata() {
 		return this.targetMetadata;
 	}
 

@@ -20,7 +20,6 @@ package org.springframework.cloud.gateway.rsocket.registry;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 import io.rsocket.RSocket;
 import org.apache.commons.logging.Log;
@@ -29,8 +28,8 @@ import reactor.core.Disposable;
 import reactor.core.publisher.DirectProcessor;
 import reactor.core.publisher.FluxSink;
 
+import org.springframework.cloud.gateway.rsocket.support.Metadata;
 import org.springframework.util.Assert;
-import org.springframework.util.CollectionUtils;
 
 /**
  * The Registry handles all RSocket connections that have been made that have associated
@@ -46,56 +45,36 @@ public class Registry {
 
 	private final DirectProcessor<RegisteredEvent> registeredEvents = DirectProcessor.create();
 	private final FluxSink<RegisteredEvent> registeredEventsSink = registeredEvents.sink(FluxSink.OverflowStrategy.DROP);
-	private final Function<Map<String, String>, String> keyFunction;
 
 	public Registry() {
-		this(tags -> {
-			if (CollectionUtils.isEmpty(tags)) {
-				return null; // throw error?
-			}
-			//TODO: key generation
-			return tags.get("name");
-		});
-	}
-
-	public Registry(Function<Map<String, String>, String> keyFunction) {
-		this.keyFunction = keyFunction;
-	}
-
-	public String computeKey(Map<String, String> properties) {
-		return keyFunction.apply(properties);
 	}
 
 	//TODO: Mono<Void>?
-	public void register(Map<String, String> properties, RSocket rsocket) {
-		Assert.notEmpty(properties, "properties may not be empty");
+	public void register(Metadata metadata, RSocket rsocket) {
+		Assert.notNull(metadata, "metadata may not be null");
 		Assert.notNull(rsocket, "RSocket may not be null");
 		if (log.isDebugEnabled()) {
-			log.debug("Registering RSocket: " + properties);
+			log.debug("Registering RSocket: " + metadata);
 		}
-		LoadBalancedRSocket composite = rsockets.computeIfAbsent(computeKey(properties), s ->
-				new LoadBalancedRSocket(properties.get("name")));
-		composite.addRSocket(rsocket, properties);
-		registeredEventsSink.next(new RegisteredEvent(properties, rsocket));
+		LoadBalancedRSocket composite = rsockets.computeIfAbsent(metadata.getName(), s ->
+				new LoadBalancedRSocket(metadata.getName()));
+		composite.addRSocket(rsocket, metadata);
+		registeredEventsSink.next(new RegisteredEvent(metadata, rsocket));
 	}
 
-	public void deregister(Map<String, String> metadata) {
-		Assert.notEmpty(metadata, "metadata may not be empty");
+	public void deregister(Metadata metadata) {
+		Assert.notNull(metadata, "metadata may not be null");
 		if (log.isDebugEnabled()) {
 			log.debug("Deregistering RSocket: " + metadata);
 		}
-		String key = computeKey(metadata);
-		LoadBalancedRSocket loadBalanced = this.rsockets.get(key);
+		LoadBalancedRSocket loadBalanced = this.rsockets.get(metadata.getName());
 		if (loadBalanced != null) {
 			loadBalanced.remove(metadata);
 		}
 	}
 
-	public LoadBalancedRSocket getRegistered(Map<String, String> properties) {
-		if (CollectionUtils.isEmpty(properties)) {
-			return null;
-		}
-		return rsockets.get(computeKey(properties));
+	public LoadBalancedRSocket getRegistered(Metadata metadata) {
+		return rsockets.get(metadata.getName());
 	}
 
 	public Disposable addListener(Consumer<RegisteredEvent> consumer) {
@@ -103,17 +82,17 @@ public class Registry {
 	}
 
 	public static class RegisteredEvent {
-		private final Map<String, String> routingMetadata;
+		private final Metadata routingMetadata;
 		private final RSocket rSocket;
 
-		public RegisteredEvent(Map<String, String> routingMetadata, RSocket rSocket) {
-			Assert.notEmpty(routingMetadata, "routingMetadata may not be empty");
+		public RegisteredEvent(Metadata routingMetadata, RSocket rSocket) {
+			Assert.notNull(routingMetadata, "routingMetadata may not be null");
 			Assert.notNull(rSocket, "RSocket may not be null");
 			this.routingMetadata = routingMetadata;
 			this.rSocket = rSocket;
 		}
 
-		public Map<String, String> getRoutingMetadata() {
+		public Metadata getRoutingMetadata() {
 			return routingMetadata;
 		}
 

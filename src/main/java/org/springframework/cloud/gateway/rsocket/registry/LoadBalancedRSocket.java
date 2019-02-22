@@ -54,14 +54,14 @@ public class LoadBalancedRSocket {
 		return this.loadBalancer.apply(this.delegates);
 	}
 
-	public void addRSocket(RSocket rsocket, Map<String, String> metadata) {
+	public void addRSocket(RSocket rsocket, Metadata metadata) {
 		this.delegates.add(new EnrichedRSocket(rsocket, metadata));
 	}
 
-	public void remove(Map<String, String> metadata) {
+	public void remove(Metadata metadata) {
 		//TODO: move delegates to a map for easy removal
 		this.delegates.stream()
-				.filter(enriched -> Metadata.matches(metadata, enriched.getMetadata()))
+				.filter(enriched -> metadata.matches(enriched.getMetadata()))
 				.findFirst()
 				.ifPresent(this.delegates::remove);
 	}
@@ -74,14 +74,14 @@ public class LoadBalancedRSocket {
 
 	public static class EnrichedRSocket extends RSocketProxy {
 
-		private final Map<String, String> metadata;
+		private final Metadata metadata;
 
-		public EnrichedRSocket(RSocket source, Map<String, String> metadata) {
+		public EnrichedRSocket(RSocket source, Metadata metadata) {
 			super(source);
 			this.metadata = metadata;
 		}
 
-		public Map<String, String> getMetadata() {
+		public Metadata getMetadata() {
 			return this.metadata;
 		}
 

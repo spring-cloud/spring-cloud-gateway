@@ -17,7 +17,6 @@
 
 package org.springframework.cloud.gateway.rsocket.server;
 
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.logging.Level;
@@ -67,10 +66,10 @@ public class GatewayRSocket extends AbstractRSocket implements ResponderRSocket 
 	private final Routes routes;
 	private final MeterRegistry meterRegistry;
 	private final GatewayRSocketProperties properties;
-	private final Map<String, String> metadata;
+	private final Metadata metadata;
 
 	GatewayRSocket(Registry registry, Routes routes, MeterRegistry meterRegistry,
-			GatewayRSocketProperties properties, Map<String, String> metadata) {
+			GatewayRSocketProperties properties, Metadata metadata) {
 		this.registry = registry;
 		this.routes = routes;
 		this.meterRegistry = meterRegistry;
@@ -117,9 +116,9 @@ public class GatewayRSocket extends AbstractRSocket implements ResponderRSocket 
 
 	private Tags getTags(GatewayExchange exchange) {
 		//TODO: add tags to exchange
-		String responderName = this.metadata.get("name");
+		String responderName = this.metadata.getName();
 		String responderId = this.metadata.get("id");
-		String requestorName = exchange.getRoutingMetadata().get("name");
+		String requestorName = exchange.getRoutingMetadata().getName();
 		Assert.hasText(responderName, "responderName must not be empty");
 		Assert.hasText(responderId, "responderId must not be empty");
 		Assert.hasText(requestorName, "requestorName must not be empty");
@@ -253,9 +252,9 @@ public class GatewayRSocket extends AbstractRSocket implements ResponderRSocket 
 		return routeMono;
 	}
 
-	private Mono<Route> matchRoute(Route route, Map<String, String> annoucementMetadata) {
-		Map<String, String> targetMetadata = route.getTargetMetadata();
-		if (Metadata.matches(targetMetadata, annoucementMetadata)) {
+	private Mono<Route> matchRoute(Route route, Metadata annoucementMetadata) {
+		Metadata targetMetadata = route.getTargetMetadata();
+		if (targetMetadata.matches(annoucementMetadata)) {
 			return Mono.just(route);
 		}
 		return Mono.empty();
@@ -280,7 +279,7 @@ public class GatewayRSocket extends AbstractRSocket implements ResponderRSocket 
 
 								return loadBalancedRSocket.choose();
 							}).map(enrichedRSocket -> {
-								Map<String, String> metadata = enrichedRSocket
+								Metadata metadata = enrichedRSocket
 										.getMetadata();
 								Tags tags = exchange.getTags().and("requester.id", metadata.get("id"));
 								exchange.setTags(tags);
@@ -313,7 +312,7 @@ public class GatewayRSocket extends AbstractRSocket implements ResponderRSocket 
 			this.properties = properties;
 		}
 
-		public GatewayRSocket create(Map<String, String> metadata) {
+		public GatewayRSocket create(Metadata metadata) {
 			return new GatewayRSocket(this.registry, this.routes, this.meterRegistry,
 					this.properties, metadata);
 		}

@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.IntStream;
 
+import io.netty.buffer.ByteBuf;
 import org.junit.Test;
 
 import org.springframework.util.Assert;
@@ -29,6 +30,32 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.gateway.rsocket.support.Metadata.matches;
 
 public class MetadataTests {
+
+	@Test
+	public void encodeAndDecodeJustName() {
+		ByteBuf byteBuf = Metadata.from("test").encode();
+		assertMetadata(byteBuf, "test");
+	}
+
+	@Test
+	public void encodeAndDecodeWorks() {
+		ByteBuf byteBuf = Metadata.from("test1")
+				.with("key1111", "val111111")
+				.with("key22", "val222")
+				.encode();
+		Metadata metadata = assertMetadata(byteBuf, "test1");
+		Map<String, String> properties = metadata.getProperties();
+		assertThat(properties).hasSize(2)
+				.containsOnlyKeys("key1111", "key22")
+				.containsValues("val111111", "val222");
+	}
+
+	private Metadata assertMetadata(ByteBuf byteBuf, String name) {
+		Metadata metadata = Metadata.decodeMetadata(byteBuf);
+		assertThat(metadata).isNotNull();
+		assertThat(metadata.getName()).isEqualTo(name);
+		return metadata;
+	}
 
 	@Test
 	public void nullMetadataDoesNotMatch() {

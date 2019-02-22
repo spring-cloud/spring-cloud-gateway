@@ -33,10 +33,11 @@ import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.rsocket.autoconfigure.GatewayRSocketProperties;
 import org.springframework.cloud.gateway.rsocket.server.GatewayRSocket;
+import org.springframework.cloud.gateway.rsocket.support.Metadata;
 
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -60,7 +61,7 @@ public class GatewaySocketAcceptorTests {
 		this.sendingSocket = mock(RSocket.class);
 		this.meterRegistry = new SimpleMeterRegistry();
 
-		when(this.factory.create(anyMap())).thenReturn(mock(GatewayRSocket.class));
+		when(this.factory.create(any(Metadata.class))).thenReturn(mock(GatewayRSocket.class));
 	}
 
 	//TODO: test metrics

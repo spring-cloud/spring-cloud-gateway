@@ -95,7 +95,7 @@ public class GatewayRSocketAutoConfiguration {
 
 	@Bean
 	public GatewayRSocketServer gatewayApp(GatewaySocketAcceptor socketAcceptor,
-			GatewayRSocketProperties properties) {
-		return new GatewayRSocketServer(properties, socketAcceptor);
+			GatewayRSocketProperties properties, MeterRegistry meterRegistry) {
+		return new GatewayRSocketServer(properties, socketAcceptor, meterRegistry);
 	}
 }

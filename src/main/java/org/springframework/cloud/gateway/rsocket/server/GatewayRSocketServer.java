@@ -34,7 +34,6 @@ import io.rsocket.transport.netty.server.TcpServerTransport;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.rsocket.autoconfigure.GatewayRSocketProperties;
 import org.springframework.cloud.gateway.rsocket.autoconfigure.GatewayRSocketProperties.Server.TransportType;
 import org.springframework.context.SmartLifecycle;
@@ -51,19 +50,20 @@ public class GatewayRSocketServer implements Ordered, SmartLifecycle {
 	private final List<RSocketInterceptor> serverInterceptors;
 	private final AtomicBoolean running = new AtomicBoolean();
 	private CloseableChannel closeableChannel;
-	@Autowired
-	MeterRegistry meterRegistry;
+	private final MeterRegistry meterRegistry;
 
-	public GatewayRSocketServer(GatewayRSocketProperties properties, SocketAcceptor socketAcceptor) {
-		this(properties, socketAcceptor, EMPTY_INTERCEPTORS);
+	public GatewayRSocketServer(GatewayRSocketProperties properties, SocketAcceptor socketAcceptor, MeterRegistry meterRegistry) {
+		this(properties, socketAcceptor, meterRegistry, EMPTY_INTERCEPTORS);
 	}
 
-	public GatewayRSocketServer(GatewayRSocketProperties properties, SocketAcceptor socketAcceptor, RSocketInterceptor... interceptors) {
+	public GatewayRSocketServer(GatewayRSocketProperties properties, SocketAcceptor socketAcceptor, MeterRegistry meterRegistry, RSocketInterceptor... interceptors) {
 		Assert.notNull(properties, "properties may not be null");
 		Assert.notNull(socketAcceptor, "socketAcceptor may not be null");
+		Assert.notNull(meterRegistry, "meterRegistry may not be null");
 		Assert.notNull(interceptors, "interceptors may not be null");
 		this.properties = properties;
 		this.socketAcceptor = socketAcceptor;
+		this.meterRegistry = meterRegistry;
 		this.serverInterceptors = Arrays.asList(interceptors);
 	}
 
@@ -129,7 +129,11 @@ public class GatewayRSocketServer implements Ordered, SmartLifecycle {
 		factory
 				//TODO: add as bean like serverInterceptors above
 				.addConnectionPlugin(new MicrometerDuplexConnectionInterceptor(meterRegistry, tags))
-				//.errorConsumer() TODO: add errorConsumer
+				.errorConsumer(throwable -> {
+					if (log.isDebugEnabled()) {
+						log.debug("Error with connection", throwable);
+					}
+				}) //TODO: add configurable errorConsumer
 				.acceptor(this.socketAcceptor)
 				.transport(transport)
 				.start()

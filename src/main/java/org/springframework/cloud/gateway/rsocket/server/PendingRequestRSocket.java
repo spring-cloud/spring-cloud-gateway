@@ -17,7 +17,6 @@
 
 package org.springframework.cloud.gateway.rsocket.server;
 
-import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.logging.Level;
@@ -38,6 +37,7 @@ import reactor.util.function.Tuple2;
 import org.springframework.cloud.gateway.rsocket.filter.RSocketFilter.Success;
 import org.springframework.cloud.gateway.rsocket.registry.Registry.RegisteredEvent;
 import org.springframework.cloud.gateway.rsocket.route.Route;
+import org.springframework.cloud.gateway.rsocket.support.Metadata;
 
 import static org.springframework.cloud.gateway.rsocket.server.GatewayExchange.ROUTE_ATTR;
 import static org.springframework.cloud.gateway.rsocket.server.GatewayExchange.Type.REQUEST_STREAM;
@@ -48,18 +48,18 @@ public class PendingRequestRSocket extends AbstractRSocket implements ResponderR
 	private static final Log log = LogFactory.getLog(PendingRequestRSocket.class);
 
 	private final Function<RegisteredEvent, Mono<Route>> routeFinder;
-	private final Consumer<Map<String, String>> metadataCallback;
+	private final Consumer<Metadata> metadataCallback;
 	private final MonoProcessor<RSocket> rSocketProcessor;
 	private Disposable subscriptionDisposable;
 	private Route route;
 
 	public PendingRequestRSocket(Function<RegisteredEvent, Mono<Route>> routeFinder,
-			Consumer<Map<String, String>> metadataCallback) {
+			Consumer<Metadata> metadataCallback) {
 		this(routeFinder, metadataCallback, MonoProcessor.create());
 	}
 
 	/* for testing */ PendingRequestRSocket(Function<RegisteredEvent, Mono<Route>> routeFinder,
-			Consumer<Map<String, String>> metadataCallback,
+			Consumer<Metadata> metadataCallback,
 			MonoProcessor<RSocket> rSocketProcessor) {
 		this.routeFinder = routeFinder;
 		this.metadataCallback = metadataCallback;

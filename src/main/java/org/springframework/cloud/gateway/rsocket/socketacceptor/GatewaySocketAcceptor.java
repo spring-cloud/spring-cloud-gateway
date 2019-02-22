@@ -18,7 +18,6 @@
 package org.springframework.cloud.gateway.rsocket.socketacceptor;
 
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -62,11 +61,11 @@ public class GatewaySocketAcceptor implements SocketAcceptor {
 		Tags metadataTags;
 		SocketAcceptorExchange exchange;
 		if (setup.hasMetadata()) { //TODO: and setup.metadataMimeType() is Announcement metadata or composite
-			Map<String, String> properties = Metadata.decodeProperties(setup.sliceMetadata());
-			metadataTags = Tags.of("service.name", properties.get("name"))
-					.and("service.id", properties.get("id"));
+			Metadata metadata = Metadata.decodeMetadata(setup.sliceMetadata());
+			metadataTags = Tags.of("service.name", metadata.getName())
+					.and("service.id", metadata.get("id"));
 			// enrich exchange to have metadata
-			exchange = new SocketAcceptorExchange(setup, decorate(sendingSocket, requesterTags.and(metadataTags)), properties);
+			exchange = new SocketAcceptorExchange(setup, decorate(sendingSocket, requesterTags.and(metadataTags)), metadata);
 		} else {
 			metadataTags = Tags.empty();
 			exchange = new SocketAcceptorExchange(setup, decorate(sendingSocket, requesterTags));

@@ -23,7 +23,7 @@ import org.springframework.cloud.gateway.rsocket.socketacceptor.SocketAcceptorEx
 import org.springframework.cloud.gateway.rsocket.socketacceptor.SocketAcceptorFilter;
 import org.springframework.cloud.gateway.rsocket.socketacceptor.SocketAcceptorFilterChain;
 import org.springframework.core.Ordered;
-import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * Filter that registers the SendingSocket.
@@ -37,7 +37,7 @@ public class RegistrySocketAcceptorFilter implements SocketAcceptorFilter, Order
 
 	@Override
 	public Mono<Success> filter(SocketAcceptorExchange exchange, SocketAcceptorFilterChain chain) {
-		if (!CollectionUtils.isEmpty(exchange.getMetadata())) {
+		if (exchange.getMetadata() != null && StringUtils.hasLength(exchange.getMetadata().getName())) {
 			this.registry.register(exchange.getMetadata(), exchange.getSendingSocket());
 		}
 
