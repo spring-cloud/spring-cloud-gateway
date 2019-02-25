@@ -170,7 +170,7 @@ public class GatewayRSocketTests {
 			Function<Registry.RegisteredEvent, Mono<Route>> routeFinder = registeredEvent -> getRouteMono(
 					registeredEvent, exchange);
 			return new PendingRequestRSocket(routeFinder, map -> {
-				Tags tags = exchange.getTags().and("requester.id", map.get("id"));
+				Tags tags = exchange.getTags().and("responder.id", map.get("id"));
 				exchange.setTags(tags);
 			}, processor);
 		}

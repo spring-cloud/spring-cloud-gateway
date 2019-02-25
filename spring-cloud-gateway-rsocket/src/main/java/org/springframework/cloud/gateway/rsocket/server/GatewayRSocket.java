@@ -117,15 +117,15 @@ public class GatewayRSocket extends AbstractRSocket implements ResponderRSocket 
 
 	private Tags getTags(GatewayExchange exchange) {
 		// TODO: add tags to exchange
-		String responderName = this.metadata.getName();
-		String responderId = this.metadata.get("id");
-		String requestorName = exchange.getRoutingMetadata().getName();
+		String requesterName = this.metadata.getName();
+		String requesterId = this.metadata.get("id");
+		String responderName = exchange.getRoutingMetadata().getName();
 		Assert.hasText(responderName, "responderName must not be empty");
-		Assert.hasText(responderId, "responderId must not be empty");
-		Assert.hasText(requestorName, "requestorName must not be empty");
-		// requestor.id happens in a callback, later
-		return Tags.of("requester.name", requestorName, "responder.name", responderName,
-				"responder.id", responderId, "gateway.id", this.properties.getId());
+		Assert.hasText(requesterId, "requesterId must not be empty");
+		Assert.hasText(requesterName, "requesterName must not be empty");
+		// responder.id happens in a callback, later
+		return Tags.of("requester.name", requesterName, "responder.name", responderName,
+				"requester.id", requesterId, "gateway.id", this.properties.getId());
 	}
 
 	@Override
@@ -229,7 +229,7 @@ public class GatewayRSocket extends AbstractRSocket implements ResponderRSocket 
 		Function<Registry.RegisteredEvent, Mono<Route>> routeFinder = registeredEvent -> getRouteMono(
 				registeredEvent, exchange);
 		return new PendingRequestRSocket(routeFinder, map -> {
-			Tags tags = exchange.getTags().and("requester.id", map.get("id"));
+			Tags tags = exchange.getTags().and("responder.id", map.get("id"));
 			exchange.setTags(tags);
 		});
 	}
@@ -240,9 +240,8 @@ public class GatewayRSocket extends AbstractRSocket implements ResponderRSocket 
 				.log(PendingRequestRSocket.class.getName() + ".find route pending",
 						Level.FINEST)
 				// can this be replaced with filter?
-				.flatMap(route -> {
-					return matchRoute(route, registeredEvent.getRoutingMetadata());
-				});
+				.flatMap(
+						route -> matchRoute(route, registeredEvent.getRoutingMetadata()));
 	}
 
 	private Mono<Route> findRoute(GatewayExchange exchange) {
@@ -284,7 +283,7 @@ public class GatewayRSocket extends AbstractRSocket implements ResponderRSocket 
 								return loadBalancedRSocket.choose();
 							}).map(enrichedRSocket -> {
 								Metadata metadata = enrichedRSocket.getMetadata();
-								Tags tags = exchange.getTags().and("requester.id",
+								Tags tags = exchange.getTags().and("responder.id",
 										metadata.get("id"));
 								exchange.setTags(tags);
 								return enrichedRSocket;
