@@ -28,6 +28,8 @@ import io.micrometer.core.instrument.Timer;
 import io.rsocket.Payload;
 import io.rsocket.RSocket;
 import io.rsocket.ResponderRSocket;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -40,6 +42,8 @@ import static reactor.core.publisher.SignalType.ON_COMPLETE;
 import static reactor.core.publisher.SignalType.ON_ERROR;
 
 public class MicrometerResponderRSocket implements ResponderRSocket {
+
+	private static final Log log = LogFactory.getLog(MicrometerResponderRSocket.class);
 
 	private final RSocket delegate;
 
@@ -146,22 +150,36 @@ public class MicrometerResponderRSocket implements ResponderRSocket {
 		public void accept(SignalType signalType) {
 			switch (signalType) {
 			case CANCEL:
-				cancel.increment();
+				if (this.cancel != null) {
+					this.cancel.increment();
+				}
 				break;
 			case ON_COMPLETE:
-				onComplete.increment();
+				if (this.onComplete != null) {
+					this.onComplete.increment();
+				}
 				break;
 			case ON_ERROR:
-				onError.increment();
+				if (this.onError != null) {
+					this.onError.increment();
+				}
 				break;
 			}
 		}
 
-		private static Counter counter(MeterRegistry meterRegistry,
-				String interactionModel, SignalType signalType, Tag... tags) {
+		private Counter counter(MeterRegistry meterRegistry, String interactionModel,
+				SignalType signalType, Tag... tags) {
 
-			return meterRegistry.counter("rsocket." + interactionModel,
-					Tags.of(tags).and("signal.type", signalType.name()));
+			Tags withType = Tags.of(tags).and("signal.type", signalType.name());
+			try {
+				return meterRegistry.counter("rsocket." + interactionModel, withType);
+			}
+			catch (Exception e) {
+				if (log.isTraceEnabled()) {
+					log.trace("Error creating counter with tags: " + withType, e);
+				}
+				return null;
+			}
 		}
 
 	}
@@ -190,13 +208,19 @@ public class MicrometerResponderRSocket implements ResponderRSocket {
 		public void accept(Timer.Sample sample, SignalType signalType) {
 			switch (signalType) {
 			case CANCEL:
-				sample.stop(cancel);
+				if (this.cancel != null) {
+					sample.stop(this.cancel);
+				}
 				break;
 			case ON_COMPLETE:
-				sample.stop(onComplete);
+				if (this.onComplete != null) {
+					sample.stop(this.onComplete);
+				}
 				break;
 			case ON_ERROR:
-				sample.stop(onError);
+				if (this.onError != null) {
+					sample.stop(this.onError);
+				}
 				break;
 			}
 		}
@@ -208,8 +232,16 @@ public class MicrometerResponderRSocket implements ResponderRSocket {
 		private static Timer timer(MeterRegistry meterRegistry, String interactionModel,
 				SignalType signalType, Tag... tags) {
 
-			return meterRegistry.timer("rsocket." + interactionModel,
-					Tags.of(tags).and("signal.type", signalType.name()));
+			Tags withType = Tags.of(tags).and("signal.type", signalType.name());
+			try {
+				return meterRegistry.timer("rsocket." + interactionModel, withType);
+			}
+			catch (Exception e) {
+				if (log.isTraceEnabled()) {
+					log.trace("Error creating timer with tags: " + withType, e);
+				}
+				return null;
+			}
 		}
 
 	}
