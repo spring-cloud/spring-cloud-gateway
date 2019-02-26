@@ -29,6 +29,9 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.reactive.handler.AbstractHandlerMapping;
 import org.springframework.web.server.ServerWebExchange;
 
+import static org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping.ManagementPortType.DIFFERENT;
+import static org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping.ManagementPortType.DISABLED;
+import static org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping.ManagementPortType.SAME;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_HANDLER_MAPPER_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_PREDICATE_ROUTE_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
@@ -40,25 +43,39 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 
 	private final FilteringWebHandler webHandler;
 	private final RouteLocator routeLocator;
-	private final Integer managmentPort;
+	private final Integer managementPort;
+	private final ManagementPortType managementPortType;
 
 	public RoutePredicateHandlerMapping(FilteringWebHandler webHandler, RouteLocator routeLocator, GlobalCorsProperties globalCorsProperties, Environment environment) {
 		this.webHandler = webHandler;
 		this.routeLocator = routeLocator;
 
-		if (environment.containsProperty("management.server.port")) {
-			managmentPort = new Integer(environment.getProperty("management.server.port"));
-		} else {
-			managmentPort = null;
-		}
-		setOrder(1);		
+		this.managementPort = getPortProperty(environment, "management.server.");
+		this.managementPortType = getManagementPortType(environment);
+		setOrder(1);
 		setCorsConfigurations(globalCorsProperties.getCorsConfigurations());
+	}
+
+	private ManagementPortType getManagementPortType(Environment environment) {
+		Integer serverPort = getPortProperty(environment, "server.");
+		if (this.managementPort != null && this.managementPort < 0) {
+			return DISABLED;
+		}
+		return ((this.managementPort == null
+				|| (serverPort == null && this.managementPort.equals(8080))
+				|| (this.managementPort != 0 && this.managementPort.equals(serverPort))) ? SAME
+				: DIFFERENT);
+	}
+
+	private static Integer getPortProperty(Environment environment, String prefix) {
+		return environment.getProperty(prefix + "port", Integer.class);
 	}
 
 	@Override
 	protected Mono<?> getHandlerInternal(ServerWebExchange exchange) {
-		// don't handle requests on the management port if set
-		if (managmentPort != null && exchange.getRequest().getURI().getPort() == managmentPort.intValue()) {
+		// don't handle requests on management port if set and different than server port
+		if (this.managementPortType == DIFFERENT && this.managementPort != null
+				&& exchange.getRequest().getURI().getPort() == this.managementPort) {
 			return Mono.empty();
 		}
 		exchange.getAttributes().put(GATEWAY_HANDLER_MAPPER_ATTR, getSimpleName());
@@ -148,5 +165,23 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 
 	protected String getSimpleName() {
 		return "RoutePredicateHandlerMapping";
+	}
+
+	public enum ManagementPortType {
+
+		/**
+		 * The management port has been disabled.
+		 */
+		DISABLED,
+
+		/**
+		 * The management port is the same as the server port.
+		 */
+		SAME,
+
+		/**
+		 * The management port and server port are different.
+		 */
+		DIFFERENT;
 	}
 }
