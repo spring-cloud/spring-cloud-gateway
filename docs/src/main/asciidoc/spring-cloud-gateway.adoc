@@ -1422,68 +1422,38 @@ public GlobalFilter customGlobalPostFilter() {
 
 === Writing Custom Route Locators and Writers
 
-If you create a custom ``RouteDefinition``, you can use ``RouteDefinitionWriter`` to add and delete Route.
+In order to write a custom Route RouteDefinition Repository, you will need implement ``RouteDefinitionRepository`` which one already extends ``RouteDefinitionLocator`` and ``RouteDefinitionWriter``.
 
-Example of how to add and delete Route info by custom ``RouteDefinition``.
-
-.CustomRouteLocator.java
+.RouteDefinitionRepository.java
 [source, java]
 ----
-@Component
-public class CustomRouteLocator {
 
-  @Autowired
-  private RouteDefinitionWriter routeDefinitionWriter;
+@Service
+public class CustomRouteDefinitionRepository implements RouteDefinitionRepository {
 
-  /**
-   * use routeId to delete Route info
-   *
-   * @param routeId RouteDefinition id
-   * @return CustomRouteLocator
-   */
-  public Mono<ResponseEntity> deleteRoute(String routeId) {
-    return routeDefinitionWriter.delete(Mono.just(routeId))
-        .then(Mono.defer(() -> Mono.just(ResponseEntity.ok("delete success!"))));
-  }
+    // At first, definition a store type. like Map, Redis, etc..
 
-  /**
-   * prepare a custom RouteDefinition add to Route
-   *
-   * @param routeDefinition custom routeDefinition
-   * @return CustomRouteLocator
-   */
-  public Mono<ResponseEntity> addRoute(RouteDefinition routeDefinition) {
-    return routeDefinitionWriter.save(Mono.just(routeDefinition))
-        .then(Mono.defer(() -> Mono.just(ResponseEntity.ok("add success!"))));
-  }
-}
-----
+    @Override
+    public Mono<Void> save(Mono<RouteDefinition> route) {
+        return route.flatMap(routeDefinition -> {
+          // store route
+          return Mono.empty();
+        });
+    }
 
-.CustomController.java
-[source, java]
-----
-@RestController
-@RequestMapping
-public class CustomController {
+    @Override
+    public Mono<Void> delete(Mono<String> routeId) {
+        return routeId.flatMap(s -> {
+          // delete route by route id
+          return Mono.empty();
+        });
+    }
 
-  @Autowired
-  private CustomRouteLocator routeLocator;
-
-  @PostMapping("/addroute")
-  public Mono<ResponseEntity> addRoute() {
-    RouteDefinition definition = new RouteDefinition();
-    PredicateDefinition predicate = new PredicateDefinition();
-    Map<String, String> predicateParams = new ConcurrentHashMap<>(8);
-    definition.setId("getRoute");
-    predicate.setName("Path");
-    predicateParams.put("pattern", "/get");
-    predicateParams.put("pathPattern", "/get");
-    predicate.setArgs(predicateParams);
-    definition.setPredicates(Arrays.asList(predicate));
-    URI uri = UriComponentsBuilder.fromHttpUrl("http://httpbin.org/get").build().toUri();
-    definition.setUri(uri);
-    return routeLocator.addRoute(definition);
-  }
+    @Override
+    public Flux<RouteDefinition> getRouteDefinitions() {
+      // return all routes
+      return Flux.fromIterable(routes.values());
+    }
 }
 
 ----
