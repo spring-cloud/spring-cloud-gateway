@@ -56,7 +56,7 @@ public class GatewaySocketAcceptor implements SocketAcceptor {
 	@SuppressWarnings("Duplicates")
 	public Mono<RSocket> accept(ConnectionSetupPayload setup, RSocket sendingSocket) {
 
-		// decorate sendingSocket with metrics
+		// decorate GatewayRSocket with metrics
 		// current gateway id, type requester, service name (from metadata), service id
 
 		Tags requesterTags = Tags.of("gateway.id", properties.getId(), "type",
