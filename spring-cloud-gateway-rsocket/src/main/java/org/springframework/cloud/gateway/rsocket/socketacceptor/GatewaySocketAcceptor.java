@@ -74,7 +74,8 @@ public class GatewaySocketAcceptor implements SocketAcceptor {
 					decorate(sendingSocket, requesterTags.and(metadataTags)), metadata);
 		}
 		else {
-			metadataTags = Tags.empty();
+			metadataTags = Tags.of("service.name", "UNKNOWN").and("service.id",
+					"UNKNOWN");
 			exchange = new SocketAcceptorExchange(setup,
 					decorate(sendingSocket, requesterTags));
 		}
