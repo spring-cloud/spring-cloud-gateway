@@ -44,6 +44,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
  * https://gist.github.com/ptarjan/e38f45f2dfe601419ca3af937fff574d#file-1-check_request_rate_limiter-rb-L36-L62
  *
  * @author Spencer Gibb
+ * @author Ronny Bräunlich
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -108,6 +109,25 @@ public class RedisRateLimiterTests extends BaseWebClientTests {
 	public void keysUseRedisKeyHashTags() {
 		assertThat(RedisRateLimiter.getKeys("1")).containsExactly(
 				"request_rate_limiter.{1}.tokens", "request_rate_limiter.{1}.timestamp");
+	}
+
+	@Test
+	public void redisRateLimiterDoesNotSendHeadersIfDeactivated() throws Exception {
+		assumeThat("Ignore on Circle", System.getenv("CIRCLECI"), is(nullValue()));
+
+		String id = UUID.randomUUID().toString();
+		String routeId = "myroute";
+
+		rateLimiter.setIncludeHeaders(false);
+
+		Response response = rateLimiter.isAllowed(routeId, id).block();
+		assertThat(response.isAllowed()).isTrue();
+		assertThat(response.getHeaders())
+				.doesNotContainKey(RedisRateLimiter.REMAINING_HEADER);
+		assertThat(response.getHeaders())
+				.doesNotContainKey(RedisRateLimiter.REPLENISH_RATE_HEADER);
+		assertThat(response.getHeaders())
+				.doesNotContainKey(RedisRateLimiter.BURST_CAPACITY_HEADER);
 	}
 
 	@EnableAutoConfiguration

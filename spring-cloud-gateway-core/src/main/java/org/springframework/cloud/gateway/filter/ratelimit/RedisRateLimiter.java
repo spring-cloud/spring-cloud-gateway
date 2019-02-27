@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.validation.constraints.Min;
@@ -46,6 +47,7 @@ import org.springframework.validation.annotation.Validated;
  * https://gist.github.com/ptarjan/e38f45f2dfe601419ca3af937fff574d#file-1-check_request_rate_limiter-rb-L11-L34.
  *
  * @author Spencer Gibb
+ * @author Ronny Bräunlich
  */
 @ConfigurationProperties("spring.cloud.gateway.redis-rate-limiter")
 public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Config>
@@ -266,11 +268,15 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 	}
 
 	@NotNull
-	public HashMap<String, String> getHeaders(Config config, Long tokensLeft) {
-		HashMap<String, String> headers = new HashMap<>();
-		headers.put(this.remainingHeader, tokensLeft.toString());
-		headers.put(this.replenishRateHeader, String.valueOf(config.getReplenishRate()));
-		headers.put(this.burstCapacityHeader, String.valueOf(config.getBurstCapacity()));
+	public Map<String, String> getHeaders(Config config, Long tokensLeft) {
+		Map<String, String> headers = new HashMap<>();
+		if (isIncludeHeaders()) {
+			headers.put(this.remainingHeader, tokensLeft.toString());
+			headers.put(this.replenishRateHeader,
+					String.valueOf(config.getReplenishRate()));
+			headers.put(this.burstCapacityHeader,
+					String.valueOf(config.getBurstCapacity()));
+		}
 		return headers;
 	}
 
