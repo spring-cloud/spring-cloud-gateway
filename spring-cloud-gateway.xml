@@ -717,6 +717,9 @@ KeyResolver userKeyResolver() {
 </para>
 </formalpara>
 <simpara>This will remove the <literal>X-Response-Foo</literal> header from the response before it is returned to the gateway client.</simpara>
+<simpara>To remove any kind of sensitive header you should configure this filter for any routes that you may
+want to do so.  In addition you can configure this filter once using <literal>spring.cloud.gateway.default-filters</literal>
+and have it applied to all routes.</simpara>
 </section>
 <section xml:id="_rewritepath_gatewayfilter_factory">
 <title>RewritePath GatewayFilter Factory</title>
@@ -1035,6 +1038,22 @@ public RouteLocator routes(RouteLocatorBuilder builder) {
         		    (exchange, s) -&gt; Mono.just(s.toUpperCase()))).uri(uri)
         .build();
 }</programlisting>
+</section>
+<section xml:id="_default_filters">
+<title>Default Filters</title>
+<simpara>If you would like to add a filter and apply it to all routes you can use <literal>spring.cloud.gateway.default-filters</literal>.
+This property takes a list of filters</simpara>
+<formalpara>
+<title>application.yml</title>
+<para>
+<programlisting language="yaml" linenumbering="unnumbered">spring:
+  cloud:
+    gateway:
+      default-filters:
+      - AddResponseHeader=X-Response-Default-Foo, Default-Bar
+      - PrefixPath=/httpbin</programlisting>
+</para>
+</formalpara>
 </section>
 </chapter>
 <chapter xml:id="_global_filters">
