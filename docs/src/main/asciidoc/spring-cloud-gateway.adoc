@@ -623,6 +623,10 @@ spring:
 
 This will remove the `X-Response-Foo` header from the response before it is returned to the gateway client.
 
+To remove any kind of sensitive header you should configure this filter for any routes that you may
+want to do so.  In addition you can configure this filter once using `spring.cloud.gateway.default-filters`
+and have it applied to all routes.
+
 === RewritePath GatewayFilter Factory
 The RewritePath GatewayFilter Factory takes a path `regexp` parameter and a `replacement` parameter. This uses Java regular expressions for a flexible way to rewrite the request path.
 
@@ -815,6 +819,22 @@ spring:
 ----
 
 NOTE: When using the retry filter with a `forward:` prefixed URL, the target endpoint should be written carefully so that in case of an error it does not do anything that could result in a response being sent to the client and committed. For example, if the target endpoint is an annotated controller, the target controller method should not return `ResponseEntity` with an error status code. Instead it should throw an `Exception`, or signal an error, e.g. via a `Mono.error(ex)` return value, which the retry filter can be configured to handle by retrying.
+
+=== Default Filters
+
+If you would like to add a filter and apply it to all routes you can use `spring.cloud.gateway.default-filters`.
+This property takes a list of filters
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      default-filters:
+      - AddResponseHeader=X-Response-Default-Foo, Default-Bar
+      - PrefixPath=/httpbin
+----
 
 == Global Filters
 
