@@ -24,7 +24,6 @@ import java.util.function.Predicate;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.handler.AsyncPredicate;
@@ -32,6 +31,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.AbstractServerHttpResponse;
 import org.springframework.util.Assert;
 import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.util.UriComponentsBuilder;
 
 /**
  * @author Spencer Gibb
@@ -184,7 +184,8 @@ public final class ServerWebExchangeUtils {
 			try {
 				UriComponentsBuilder.fromUri(uri).build(true);
 				return true;
-			} catch (IllegalArgumentException ignore) {
+			}
+			catch (IllegalArgumentException ignore) {
 			}
 
 			return false;
