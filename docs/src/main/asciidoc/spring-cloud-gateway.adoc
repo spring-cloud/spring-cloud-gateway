@@ -21,6 +21,14 @@ for details on setting up your build system with the current Spring Cloud Releas
 
 If you include the starter, but, for some reason, you do not want the gateway to be enabled, set `spring.cloud.gateway.enabled=false`.
 
+IMPORTANT: Spring Cloud Gateway is built upon https://spring.io/projects/spring-boot#learn[Spring Boot 2.0],
+https://docs.spring.io/spring/docs/current/spring-framework-reference/web-reactive.html[Spring WebFlux],
+and https://projectreactor.io/docs[Project Reactor].  As a consequence
+many of the familiar synchronous libraries (Spring Data and Spring Security, for example) and patterns you may
+not apply when using Spring Cloud Gateway.  If you are unfamiliar with these projects we suggest you
+begin by reading their documentation to familiarize yourself with some of the new concepts before
+working with Spring Cloud Gateway.
+
 IMPORTANT: Spring Cloud Gateway requires the Netty runtime provided by Spring Boot and Spring Webflux. It does not work in a traditional Servlet Container or built as a WAR.
 
 == Glossary
