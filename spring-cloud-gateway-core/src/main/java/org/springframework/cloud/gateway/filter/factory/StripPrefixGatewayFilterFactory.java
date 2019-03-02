@@ -53,6 +53,7 @@ public class StripPrefixGatewayFilterFactory extends AbstractGatewayFilterFactor
 			String path = request.getURI().getRawPath();
 			String newPath = "/" + Arrays.stream(StringUtils.tokenizeToStringArray(path, "/"))
 					.skip(config.parts).collect(Collectors.joining("/"));
+			newPath += (newPath.length() > 1 && path.endsWith("/") ? "/" : "");
 			ServerHttpRequest newRequest = request.mutate()
 					.path(newPath)
 					.build();
@@ -74,4 +75,5 @@ public class StripPrefixGatewayFilterFactory extends AbstractGatewayFilterFactor
 			this.parts = parts;
 		}
 	}
+
 }

@@ -66,6 +66,16 @@ spring:
         - AddResponseHeader=X-Request-Foo, Bar
 
       # =====================================
+      - id: rewrite_response_header_test
+        uri: ${test.uri}
+        predicates:
+        - Host=**.rewriteresponseheader.org
+        - Path=/headers
+        filters:
+        - AddResponseHeader=X-Request-Foo, /42?user=ford&password=omg!what&flag=true
+        - RewriteResponseHeader=X-Request-Foo, password=[^&]+, password=***
+
+      # =====================================
       - id: forward_test
         uri: forward:/localcontroller
         predicates:
@@ -185,6 +195,14 @@ spring:
         - Path=/foo/{segment}
         filters:
         - SetPath=/{segment}
+
+        # =====================================
+      - id: set_path_host_test
+        uri: ${test.uri}
+        predicates:
+          - Host={subdomain}.setpathhost.org
+        filters:
+          - SetPath=/{subdomain}
 
       # =====================================
       - id: strip_prefix_test

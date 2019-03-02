@@ -44,6 +44,7 @@ import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -230,7 +231,20 @@ public class ProductionConfigurationTests {
                         .isEqualTo("host=localhost;foobar");
     }
 
-    @SpringBootApplication
+	@Test
+	@SuppressWarnings({"Duplicates", "unchecked"})
+	public void headers() throws Exception {
+		Map<String, List<String>> headers = rest.exchange(RequestEntity.get(rest.getRestTemplate().getUriTemplateHandler()
+				.expand("/proxy/headers")).header("foo", "bar").header("abc", "xyz").build(), Map.class).getBody();
+		assertThat(headers).doesNotContainKey("foo")
+				.doesNotContainKey("hello")
+				.containsKeys("bar", "abc");
+
+		assertThat(headers.get("bar")).containsOnly("hello");
+		assertThat(headers.get("abc")).containsOnly("123");
+	}
+
+	@SpringBootApplication
     static class TestApplication {
 
         @RestController
@@ -359,6 +373,17 @@ public class ProductionConfigurationTests {
                 proxy.forward(path);
             }
 
+			@GetMapping("/proxy/headers")
+			@SuppressWarnings("Duplicates")
+			public ResponseEntity<Map<String, List<String>>> headers(ProxyExchange<Map<String, List<String>>> proxy) {
+				proxy.sensitive("foo");
+				proxy.sensitive("hello");
+				proxy.header("bar", "hello");
+				proxy.header("abc", "123");
+				proxy.header("hello", "world");
+				return proxy.uri(home.toString() + "/headers").get();
+			}
+
             private <T> ResponseEntity<T> first(ResponseEntity<List<T>> response) {
                 return ResponseEntity.status(response.getStatusCode())
                         .headers(response.getHeaders())
@@ -397,6 +422,10 @@ public class ProductionConfigurationTests {
                 return Arrays.asList(new Bar(custom + foos.iterator().next().getName()));
             }
 
+			@GetMapping("/headers")
+			public Map<String, List<String>> headers(@RequestHeader HttpHeaders headers) {
+				return new LinkedMultiValueMap<>(headers);
+			}
         }
 
         @JsonIgnoreProperties(ignoreUnknown = true)

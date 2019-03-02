@@ -22,12 +22,12 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.support.HttpStatusHolder;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.util.Assert;
 
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.parse;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.setResponseStatus;
 
 import reactor.core.publisher.Mono;
@@ -55,14 +55,17 @@ public class RedirectToGatewayFilterFactory extends AbstractGatewayFilterFactory
 	}
 
 	public GatewayFilter apply(String statusString, String urlString) {
-		final HttpStatus httpStatus = parse(statusString);
+		HttpStatusHolder httpStatus = HttpStatusHolder.parse(statusString);
 		Assert.isTrue(httpStatus.is3xxRedirection(), "status must be a 3xx code, but was " + statusString);
 		final URI url = URI.create(urlString);
 		return apply(httpStatus, url);
 	}
 
 	public GatewayFilter apply(HttpStatus httpStatus, URI uri) {
+		return apply(new HttpStatusHolder(httpStatus, null), uri);
+	}
 
+	public GatewayFilter apply(HttpStatusHolder httpStatus, URI uri) {
 		return (exchange, chain) ->
 			chain.filter(exchange).then(Mono.defer(() -> {
 				if (!exchange.getResponse().isCommitted()) {

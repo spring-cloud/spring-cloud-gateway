@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,26 +32,16 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
-public class SetPathGatewayFilterFactoryIntegrationTests extends BaseWebClientTests {
+public class RewriteResponseHeaderGatewayFilterFactoryTests extends BaseWebClientTests {
 
 	@Test
-	public void setPathFilterDefaultValuesWork() {
+	public void rewriteResponseHeaderFilterWorks() {
 		testClient.get()
-				.uri("/foo/get")
-				.header("Host", "www.setpath.org")
+				.uri("/headers")
+				.header("Host", "www.rewriteresponseheader.org")
 				.exchange()
 				.expectStatus().isOk()
-				.expectHeader().valueEquals(ROUTE_ID_HEADER, "set_path_test");
-	}
-
-	@Test
-	public void setPathViaHostFilterWork() {
-		testClient.get()
-				.uri("/")
-				.header("Host", "get.setpathhost.org")
-				.exchange()
-				.expectStatus().isOk()
-				.expectHeader().valueEquals(ROUTE_ID_HEADER, "set_path_host_test");
+				.expectHeader().valueEquals("X-Request-Foo", "/42?user=ford&password=***&flag=true");
 	}
 
 	@EnableAutoConfiguration

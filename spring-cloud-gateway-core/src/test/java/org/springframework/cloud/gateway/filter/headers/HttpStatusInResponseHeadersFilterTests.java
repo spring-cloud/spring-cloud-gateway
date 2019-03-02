@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,48 +15,63 @@
  *
  */
 
-package org.springframework.cloud.gateway.filter.factory;
+package org.springframework.cloud.gateway.filter.headers;
 
 import org.junit.Test;
+
 import org.junit.runner.RunWith;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.web.server.ServerWebExchange;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
+/**
+ * @author Spencer Gibb
+ */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
-public class SetPathGatewayFilterFactoryIntegrationTests extends BaseWebClientTests {
+public class HttpStatusInResponseHeadersFilterTests extends BaseWebClientTests  {
 
 	@Test
-	public void setPathFilterDefaultValuesWork() {
+	public void statusCodeAvailableInResponseHttpHeadersFilter() {
 		testClient.get()
-				.uri("/foo/get")
-				.header("Host", "www.setpath.org")
+				.uri("/get")
 				.exchange()
-				.expectStatus().isOk()
-				.expectHeader().valueEquals(ROUTE_ID_HEADER, "set_path_test");
-	}
-
-	@Test
-	public void setPathViaHostFilterWork() {
-		testClient.get()
-				.uri("/")
-				.header("Host", "get.setpathhost.org")
-				.exchange()
-				.expectStatus().isOk()
-				.expectHeader().valueEquals(ROUTE_ID_HEADER, "set_path_host_test");
+				.expectStatus().isOk();
 	}
 
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
-	public static class TestConfig { }
+	public static class TestConfig {
 
+		@Bean
+		public HttpHeadersFilter checkStatusFilter() {
+			return new HttpHeadersFilter() {
+				@Override
+				public HttpHeaders filter(HttpHeaders input, ServerWebExchange exchange) {
+					HttpStatus statusCode = exchange.getResponse().getStatusCode();
+					assertThat(statusCode).isEqualTo(HttpStatus.OK);
+					return input;
+				}
+
+				@Override
+				public boolean supports(Type type) {
+					return type == Type.RESPONSE;
+				}
+			};
+		}
+
+	}
 }

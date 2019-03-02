@@ -39,7 +39,7 @@ public class CachingRouteDefinitionLocator implements RouteDefinitionLocator {
 	public CachingRouteDefinitionLocator(RouteDefinitionLocator delegate) {
 		this.delegate = delegate;
 		routeDefinitions = CacheFlux.lookup(cache, "routeDefs", RouteDefinition.class)
-				.onCacheMissResume(() -> this.delegate.getRouteDefinitions());
+				.onCacheMissResume(this.delegate::getRouteDefinitions);
 
 	}
 

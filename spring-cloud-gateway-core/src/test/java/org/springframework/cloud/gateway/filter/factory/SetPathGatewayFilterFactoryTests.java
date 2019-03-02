@@ -17,30 +17,25 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
-import java.lang.reflect.Constructor;
 import java.net.URI;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
-import java.util.Map;
 
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import reactor.core.publisher.Mono;
+
 import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.GatewayFilterChain;
+import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
-import org.springframework.util.ReflectionUtils;
 import org.springframework.web.server.ServerWebExchange;
-import org.springframework.cloud.gateway.filter.GatewayFilterChain;
-import org.springframework.web.util.pattern.PathPattern.PathMatchInfo;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR;
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.URI_TEMPLATE_VARIABLES_ATTRIBUTE;
-
-import reactor.core.publisher.Mono;
 
 /**
  * @author Spencer Gibb
@@ -89,15 +84,7 @@ public class SetPathGatewayFilterFactoryTests {
 				.build();
 
 		ServerWebExchange exchange = MockServerWebExchange.from(request);
-
-		try {
-			Constructor<PathMatchInfo> constructor = ReflectionUtils.accessibleConstructor(PathMatchInfo.class, Map.class, Map.class);
-			constructor.setAccessible(true);
-			PathMatchInfo pathMatchInfo = constructor.newInstance(variables, Collections.emptyMap());
-			exchange.getAttributes().put(URI_TEMPLATE_VARIABLES_ATTRIBUTE, pathMatchInfo);
-		} catch (Exception e) {
-			ReflectionUtils.rethrowRuntimeException(e);
-		}
+		ServerWebExchangeUtils.putUriTemplateVariables(exchange, variables);
 
 		GatewayFilterChain filterChain = mock(GatewayFilterChain.class);
 

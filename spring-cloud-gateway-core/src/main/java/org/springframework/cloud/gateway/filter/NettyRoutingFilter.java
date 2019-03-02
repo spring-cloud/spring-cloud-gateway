@@ -61,15 +61,24 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.s
 public class NettyRoutingFilter implements GlobalFilter, Ordered {
 
 	private final HttpClient httpClient;
-	private final ObjectProvider<List<HttpHeadersFilter>> headersFilters;
+	private final ObjectProvider<List<HttpHeadersFilter>> headersFiltersProvider;
 	private final HttpClientProperties properties;
+	//do not use this headersFilters directly, use getHeadersFilters() instead.
+	private volatile List<HttpHeadersFilter> headersFilters;
 
 	public NettyRoutingFilter(HttpClient httpClient,
-							  ObjectProvider<List<HttpHeadersFilter>> headersFilters,
+							  ObjectProvider<List<HttpHeadersFilter>> headersFiltersProvider,
 							  HttpClientProperties properties) {
 		this.httpClient = httpClient;
-		this.headersFilters = headersFilters;
+		this.headersFiltersProvider = headersFiltersProvider;
 		this.properties = properties;
+	}
+
+	public List<HttpHeadersFilter> getHeadersFilters() {
+		if (headersFilters == null) {
+			headersFilters = headersFiltersProvider.getIfAvailable();
+		}
+		return headersFilters;
 	}
 
 	@Override
@@ -89,11 +98,10 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 
 		ServerHttpRequest request = exchange.getRequest();
 
-		final HttpMethod method = HttpMethod.valueOf(request.getMethod().toString());
+		final HttpMethod method = HttpMethod.valueOf(request.getMethodValue());
 		final String url = requestUrl.toString();
 
-		HttpHeaders filtered = filterRequest(this.headersFilters.getIfAvailable(),
-				exchange);
+		HttpHeaders filtered = filterRequest(getHeadersFilters(), exchange);
 
 		final DefaultHttpHeaders httpHeaders = new DefaultHttpHeaders();
 		filtered.forEach(httpHeaders::set);
@@ -137,10 +145,6 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 				exchange.getAttributes().put(ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR, contentTypeValue);
 			}
 
-			HttpHeaders filteredResponseHeaders = HttpHeadersFilter.filter(
-					this.headersFilters.getIfAvailable(), headers, exchange, Type.RESPONSE);
-			
-			response.getHeaders().putAll(filteredResponseHeaders);
 			HttpStatus status = HttpStatus.resolve(res.status().code());
 			if (status != null) {
 				response.setStatusCode(status);
@@ -151,6 +155,12 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 				throw new IllegalStateException("Unable to set status code on response: " +res.status().code()+", "+response.getClass());
 			}
 
+			// make sure headers filters run after setting status so it is available in response
+			HttpHeaders filteredResponseHeaders = HttpHeadersFilter.filter(
+					getHeadersFilters(), headers, exchange, Type.RESPONSE);
+
+			response.getHeaders().putAll(filteredResponseHeaders);
+
 			// Defer committing the response until all route filters have run
 			// Put client response as ServerWebExchange attribute and write response later NettyWriteResponseFilter
 			exchange.getAttributes().put(CLIENT_RESPONSE_ATTR, res);
@@ -160,4 +170,5 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 								properties.getResponseTimeout()))
 				.then(chain.filter(exchange));
 	}
+
 }

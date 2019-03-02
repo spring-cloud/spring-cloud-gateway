@@ -45,6 +45,8 @@ public class StripPrefixGatewayFilterFactoryTests {
 		testStripPrefixFilter("/foo/bar", "/bar", 1);
 		testStripPrefixFilter("/foo/bar", "/", 2);
 		testStripPrefixFilter("/foo/bar", "/foo/bar", 0);
+		testStripPrefixFilter("/foo/bar/", "/", 2);
+		testStripPrefixFilter("/foo/bar/", "/foo/bar/", 0);
 		testStripPrefixFilter("", "/", 1);
 		testStripPrefixFilter("/", "/", 1);
 		testStripPrefixFilter("/", "/", 2);

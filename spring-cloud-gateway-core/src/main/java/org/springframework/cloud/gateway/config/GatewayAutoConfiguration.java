@@ -69,6 +69,7 @@ import org.springframework.cloud.gateway.filter.factory.RequestHeaderToRequestUr
 import org.springframework.cloud.gateway.filter.factory.RequestRateLimiterGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RetryGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.RewriteResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SaveSessionGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SecureHeadersProperties;
@@ -166,6 +167,9 @@ public class GatewayAutoConfiguration {
 
 				// configure ssl
 				HttpClientProperties.Ssl ssl = properties.getSsl();
+				opts.sslHandshakeTimeoutMillis(ssl.getHandshakeTimeoutMillis());
+				opts.sslCloseNotifyFlushTimeoutMillis(ssl.getCloseNotifyFlushTimeoutMillis());
+				opts.sslCloseNotifyReadTimeoutMillis(ssl.getCloseNotifyReadTimeoutMillis());
 				X509Certificate[] trustedX509Certificates = ssl
 						.getTrustedX509CertificatesForTrustManager();
 				if (trustedX509Certificates.length > 0) {
@@ -366,7 +370,7 @@ public class GatewayAutoConfiguration {
 
 	@Bean
 	@ConditionalOnBean(DispatcherHandler.class)
-	public ForwardRoutingFilter forwardRoutingFilter(DispatcherHandler dispatcherHandler) {
+	public ForwardRoutingFilter forwardRoutingFilter(ObjectProvider<DispatcherHandler> dispatcherHandler) {
 		return new ForwardRoutingFilter(dispatcherHandler);
 	}
 
@@ -388,8 +392,8 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	public WeightCalculatorWebFilter weightCalculatorWebFilter(Validator validator) {
-		return new WeightCalculatorWebFilter(validator);
+	public WeightCalculatorWebFilter weightCalculatorWebFilter(Validator validator, ObjectProvider<RouteLocator> routeLocator) {
+		return new WeightCalculatorWebFilter(validator, routeLocator);
 	}
 
 	/*@Bean
@@ -452,8 +456,8 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	public ReadBodyPredicateFactory readBodyPredicateFactory(ServerCodecConfigurer codecConfigurer) {
-		return new ReadBodyPredicateFactory(codecConfigurer);
+	public ReadBodyPredicateFactory readBodyPredicateFactory() {
+		return new ReadBodyPredicateFactory();
 	}
 
 	@Bean
@@ -493,7 +497,7 @@ public class GatewayAutoConfiguration {
 	@ConditionalOnClass({HystrixObservableCommand.class, RxReactiveStreams.class})
 	protected static class HystrixConfiguration {
 		@Bean
-		public HystrixGatewayFilterFactory hystrixGatewayFilterFactory(DispatcherHandler dispatcherHandler) {
+		public HystrixGatewayFilterFactory hystrixGatewayFilterFactory(ObjectProvider<DispatcherHandler> dispatcherHandler) {
 			return new HystrixGatewayFilterFactory(dispatcherHandler);
 		}
 	}
@@ -535,13 +539,14 @@ public class GatewayAutoConfiguration {
 
 	@Bean(name = PrincipalNameKeyResolver.BEAN_NAME)
 	@ConditionalOnBean(RateLimiter.class)
+	@ConditionalOnMissingBean(KeyResolver.class)
 	public PrincipalNameKeyResolver principalNameKeyResolver() {
 		return new PrincipalNameKeyResolver();
 	}
 
 	@Bean
 	@ConditionalOnBean({RateLimiter.class, KeyResolver.class})
-	public RequestRateLimiterGatewayFilterFactory requestRateLimiterGatewayFilterFactory(RateLimiter rateLimiter, PrincipalNameKeyResolver resolver) {
+	public RequestRateLimiterGatewayFilterFactory requestRateLimiterGatewayFilterFactory(RateLimiter rateLimiter, KeyResolver resolver) {
 		return new RequestRateLimiterGatewayFilterFactory(rateLimiter, resolver);
 	}
 
@@ -573,6 +578,11 @@ public class GatewayAutoConfiguration {
 	@Bean
 	public SetResponseHeaderGatewayFilterFactory setResponseHeaderGatewayFilterFactory() {
 		return new SetResponseHeaderGatewayFilterFactory();
+	}
+
+	@Bean
+	public RewriteResponseHeaderGatewayFilterFactory rewriteResponseHeaderGatewayFilterFactory() {
+		return new RewriteResponseHeaderGatewayFilterFactory();
 	}
 
 	@Bean

@@ -41,7 +41,7 @@ public class FilterDefinition {
 	}
 
 	public FilterDefinition(String text) {
-		int eqIdx = text.indexOf("=");
+		int eqIdx = text.indexOf('=');
 		if (eqIdx <= 0) {
 			setName(text);
 			return;

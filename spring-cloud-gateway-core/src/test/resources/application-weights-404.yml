@@ -1,0 +1,22 @@
+test:
+  uri: lb://testservice
+
+spring:
+  cloud:
+    gateway:
+      default-filters:
+        - PrefixPath=/httpbin
+      routes:
+        # =====================================
+      - id: weight_first_404_test_1
+        uri: ${test.uri}
+        predicates:
+          - Host=**.weight4041.org
+          - Weight=group404, 8
+
+        # =====================================
+      - id: weight_first_404_test_2
+        uri: ${test.uri}
+        predicates:
+          - Host=**.weight4042.org
+          - Weight=group404, 2

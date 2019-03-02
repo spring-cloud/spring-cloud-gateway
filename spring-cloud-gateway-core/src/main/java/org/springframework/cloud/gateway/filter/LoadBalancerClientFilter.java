@@ -55,6 +55,7 @@ public class LoadBalancerClientFilter implements GlobalFilter, Ordered {
 	}
 
 	@Override
+	@SuppressWarnings("Duplicates")
 	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 		URI url = exchange.getAttribute(GATEWAY_REQUEST_URL_ATTR);
 		String schemePrefix = exchange.getAttribute(GATEWAY_SCHEME_PREFIX_ATTR);
@@ -76,7 +77,7 @@ public class LoadBalancerClientFilter implements GlobalFilter, Ordered {
 
 		// if the `lb:<scheme>` mechanism was used, use `<scheme>` as the default,
 		// if the loadbalancer doesn't provide one.
-		String overrideScheme = null;
+		String overrideScheme = instance.isSecure() ? "https" : "http";
 		if (schemePrefix != null) {
 			overrideScheme = url.getScheme();
 		}

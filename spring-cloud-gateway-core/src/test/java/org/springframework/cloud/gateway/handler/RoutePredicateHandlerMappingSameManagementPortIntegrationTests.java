@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,13 @@
  *
  */
 
-package org.springframework.cloud.gateway.filter.factory;
+package org.springframework.cloud.gateway.handler;
 
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -26,32 +29,36 @@ import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.util.SocketUtils;
 
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = RANDOM_PORT)
+@SpringBootTest(webEnvironment = DEFINED_PORT)
 @DirtiesContext
-public class SetPathGatewayFilterFactoryIntegrationTests extends BaseWebClientTests {
+public class RoutePredicateHandlerMappingSameManagementPortIntegrationTests extends BaseWebClientTests {
 
-	@Test
-	public void setPathFilterDefaultValuesWork() {
-		testClient.get()
-				.uri("/foo/get")
-				.header("Host", "www.setpath.org")
-				.exchange()
-				.expectStatus().isOk()
-				.expectHeader().valueEquals(ROUTE_ID_HEADER, "set_path_test");
+	private static int samePort;
+
+	@BeforeClass
+	public static void beforeClass() {
+		samePort = SocketUtils.findAvailableTcpPort();
+		System.setProperty("server.port", String.valueOf(samePort));
+		System.setProperty("management.server.port", String.valueOf(samePort));
+	}
+
+	@AfterClass
+	public static void afterClass() {
+		System.clearProperty("server.port");
+		System.clearProperty("management.server.port");
 	}
 
 	@Test
-	public void setPathViaHostFilterWork() {
-		testClient.get()
-				.uri("/")
-				.header("Host", "get.setpathhost.org")
+	public void requestsToGatewaySucceed() {
+		testClient.mutate().baseUrl("http://localhost:"+ samePort).build()
+				.get().uri("/get")
 				.exchange()
-				.expectStatus().isOk()
-				.expectHeader().valueEquals(ROUTE_ID_HEADER, "set_path_host_test");
+				.expectStatus().isOk();
 	}
 
 	@EnableAutoConfiguration
