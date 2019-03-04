@@ -1,5 +1,4 @@
 test:
-  hostport: httpbin.org:80
   uri: lb:https://testservice
 
 server:
@@ -27,12 +26,4 @@ spring:
         - name: Path
           args:
             pattern: /**
-
-logging:
-  level:
-    org.springframework.cloud.gateway: TRACE
-    org.springframework.http.server.reactive: DEBUG
-    org.springframework.web.reactive: DEBUG
-    reactor.ipc.netty: DEBUG
-    redisratelimiter: DEBUG
 
