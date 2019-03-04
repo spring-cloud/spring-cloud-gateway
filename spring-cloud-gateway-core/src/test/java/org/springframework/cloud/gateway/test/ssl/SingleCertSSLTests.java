@@ -32,15 +32,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.reactive.ClientHttpConnector;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -57,10 +54,12 @@ public class SingleCertSSLTests extends BaseWebClientTests {
 					.trustManager(InsecureTrustManagerFactory.INSTANCE).build();
 			HttpClient httpClient = HttpClient.create()
 					.secure(ssl -> ssl.sslContext(sslContext));
-			setup(new ReactorClientHttpConnector(httpClient), "https://localhost:" + port);
-		} catch (SSLException e) {
+			setup(new ReactorClientHttpConnector(httpClient),
+					"https://localhost:" + port);
+		}
+		catch (SSLException e) {
 			throw new RuntimeException(e);
-		}		
+		}
 	}
 
 	@Test

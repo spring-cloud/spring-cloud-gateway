@@ -73,14 +73,13 @@ public class BaseWebClientTests {
 		this.baseUri = baseUri;
 		this.webClient = WebClient.builder().clientConnector(httpConnector)
 				.baseUrl(this.baseUri).build();
-		this.testClient = WebTestClient.bindToServer(httpConnector)
-				.baseUrl(this.baseUri).build();
+		this.testClient = WebTestClient.bindToServer(httpConnector).baseUrl(this.baseUri)
+				.build();
 	}
 
 	@Configuration
 	@RibbonClients({
-		@RibbonClient(name = "testservice", configuration = TestRibbonConfig.class)
-	})
+			@RibbonClient(name = "testservice", configuration = TestRibbonConfig.class) })
 	@Import(PermitAllSecurityConfiguration.class)
 	public static class DefaultTestConfig {
 
