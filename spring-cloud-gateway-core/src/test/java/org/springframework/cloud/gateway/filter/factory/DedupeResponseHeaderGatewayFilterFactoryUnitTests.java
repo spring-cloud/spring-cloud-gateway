@@ -27,7 +27,8 @@ import java.util.Arrays;
 
 public class DedupeResponseHeaderGatewayFilterFactoryUnitTests {
 
-    private static final String NAME = HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN;
+    private static final String NAME_1 = HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN;
+    private static final String NAME_2 = HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS;
 
     private HttpHeaders headers;
     private DedupeResponseHeaderGatewayFilterFactory.Config config;
@@ -49,61 +50,64 @@ public class DedupeResponseHeaderGatewayFilterFactoryUnitTests {
 
     @Test
     public void dedupNullValues() {
-        config.setName(NAME);
-        Mockito.when(headers.get(NAME)).thenReturn(null);
+        config.setName(NAME_1);
+        Mockito.when(headers.get(NAME_1)).thenReturn(null);
         filter.dedupe(headers, config);
-        Mockito.verify(headers).get(NAME);
+        Mockito.verify(headers).get(NAME_1);
         Mockito.verify(headers, Mockito.never()).set(Mockito.anyString(), Mockito.anyString());
     }
 
     @Test
     public void dedupEmptyValues() {
-        config.setName(NAME);
-        Mockito.when(headers.get(NAME)).thenReturn(new ArrayList<>());
+        config.setName(NAME_1);
+        Mockito.when(headers.get(NAME_1)).thenReturn(new ArrayList<>());
         filter.dedupe(headers, config);
-        Mockito.verify(headers).get(NAME);
+        Mockito.verify(headers).get(NAME_1);
         Mockito.verify(headers, Mockito.never()).set(Mockito.anyString(), Mockito.anyString());
     }
 
     @Test
     public void dedupSingleValue() {
-        config.setName(NAME);
-        Mockito.when(headers.get(NAME)).thenReturn(Arrays.asList("1"));
+        config.setName(NAME_1);
+        Mockito.when(headers.get(NAME_1)).thenReturn(Arrays.asList("1"));
         filter.dedupe(headers, config);
-        Mockito.verify(headers).get(NAME);
+        Mockito.verify(headers).get(NAME_1);
         Mockito.verify(headers, Mockito.never()).set(Mockito.anyString(), Mockito.anyString());
     }
 
 
     @Test
     public void dedupMultipleValuesRetainFirst() {
-        config.setName(NAME);
-        Mockito.when(headers.get(NAME)).thenReturn(Arrays.asList("2", "3", "3", "4"));
+        config.setName(NAME_1 + " " + NAME_2);
+        Mockito.when(headers.get(NAME_1)).thenReturn(Arrays.asList("2", "3", "3", "4"));
+        Mockito.when(headers.get(NAME_2)).thenReturn(Arrays.asList("true", "false"));
         filter.dedupe(headers, config);
-        Mockito.verify(headers).get(NAME);
-        Mockito.verify(headers).set(NAME, "2");
-        Mockito.verify(headers).set(Mockito.anyString(), Mockito.anyString());
+		Mockito.verify(headers).get(NAME_1);
+		Mockito.verify(headers).set(NAME_1, "2");
+		Mockito.verify(headers).get(NAME_2);
+		Mockito.verify(headers).set(NAME_2, "true");
+        Mockito.verify(headers, Mockito.times(2)).set(Mockito.anyString(), Mockito.anyString());
     }
 
     @Test
     public void dedupMultipleValuesRetainLast() {
-        config.setName(NAME);
+        config.setName(NAME_1);
         config.setStrategy(DedupeResponseHeaderGatewayFilterFactory.Strategy.RETAIN_LAST);
-        Mockito.when(headers.get(NAME)).thenReturn(Arrays.asList("2", "3", "3", "4"));
+        Mockito.when(headers.get(NAME_1)).thenReturn(Arrays.asList("2", "3", "3", "4"));
         filter.dedupe(headers, config);
-        Mockito.verify(headers).get(NAME);
-        Mockito.verify(headers).set(NAME, "4");
+        Mockito.verify(headers).get(NAME_1);
+        Mockito.verify(headers).set(NAME_1, "4");
         Mockito.verify(headers).set(Mockito.anyString(), Mockito.anyString());
     }
 
     @Test
     public void dedupMultipleValuesRetainUnique() {
-        config.setName(NAME);
+        config.setName(NAME_1);
         config.setStrategy(DedupeResponseHeaderGatewayFilterFactory.Strategy.RETAIN_UNIQUE);
-        Mockito.when(headers.get(NAME)).thenReturn(Arrays.asList("2", "3", "3", "4"));
+        Mockito.when(headers.get(NAME_1)).thenReturn(Arrays.asList("2", "3", "3", "4"));
         filter.dedupe(headers, config);
-        Mockito.verify(headers).get(NAME);
-        Mockito.verify(headers).put(Mockito.eq(NAME), Mockito.eq(Arrays.asList("2", "3", "4")));
+        Mockito.verify(headers).get(NAME_1);
+        Mockito.verify(headers).put(Mockito.eq(NAME_1), Mockito.eq(Arrays.asList("2", "3", "4")));
         Mockito.verify(headers).put(Mockito.anyString(), Mockito.anyList());
     }
 }

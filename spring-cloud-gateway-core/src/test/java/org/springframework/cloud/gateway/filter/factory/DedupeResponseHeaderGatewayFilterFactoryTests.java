@@ -43,6 +43,7 @@ public class DedupeResponseHeaderGatewayFilterFactoryTests extends BaseWebClient
 				.expectStatus().isOk()
 				.expectHeader().valueEquals("Access-Control-Allow-Credentials", "true")
 				.expectHeader().valueEquals("Access-Control-Allow-Origin", "https://musk.mars")
+				.expectHeader().valueEquals("Scout-Cookie", "S'mores")
 				.expectHeader().valueEquals("Next-Week-Lottery-Numbers", "4", "2", "42");
 	}
 

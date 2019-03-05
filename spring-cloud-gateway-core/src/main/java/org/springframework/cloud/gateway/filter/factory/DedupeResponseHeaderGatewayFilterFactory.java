@@ -30,12 +30,11 @@ Use case: Both your legacy backend and your API gateway add CORS header values. 
           Access-Control-Allow-Credentials: true, true
           Access-Control-Allow-Origin: https://musk.mars, https://musk.mars
 (The one from the gateway will be the first of the two.) To fix, add
-          DedupeResponseHeader=Access-Control-Allow-Credentials
-          DedupeResponseHeader=Access-Control-Allow-Origin
+          DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
 
 Configuration parameters:
 - name
-    String representing a response header name. Required.
+    String representing response header names, space separated. Required.
 - strategy
 	RETAIN_FIRST - Default. Retain the first value only.
 	RETAIN_LAST - Retain the last value only.
@@ -105,31 +104,37 @@ public class DedupeResponseHeaderGatewayFilterFactory
     }
 
     void dedupe(HttpHeaders headers, Config config) {
-        String name = config.getName();
+        String names = config.getName();
         Strategy strategy = config.getStrategy();
-        if (headers == null || name == null || strategy == null) {
+        if (headers == null || names == null || strategy == null) {
             return;
         }
-        List<String> values = headers.get(name);
-        if (values == null || values.size() <= 1) {
-            return;
-        }
-        switch (strategy) {
-            case RETAIN_FIRST:
-                headers.set(name, values.get(0));
-                break;
-            case RETAIN_LAST:
-                headers.set(name, values.get(values.size() - 1));
-                break;
-            case RETAIN_UNIQUE:
-                headers.put(name, values.stream().distinct().collect(Collectors.toList()));
-                break;
-            default:
-                break;
-        }
-    }
+        for (String name : names.split(" ")) {
+			dedupe(headers, name.trim(), strategy);
+		}
+	}
 
-    public static class Config extends AbstractGatewayFilterFactory.NameConfig {
+	private void dedupe(HttpHeaders headers, String name, Strategy strategy) {
+		List<String> values = headers.get(name);
+		if (values == null || values.size() <= 1) {
+			return;
+		}
+		switch (strategy) {
+			case RETAIN_FIRST:
+				headers.set(name, values.get(0));
+				break;
+			case RETAIN_LAST:
+				headers.set(name, values.get(values.size() - 1));
+				break;
+			case RETAIN_UNIQUE:
+				headers.put(name, values.stream().distinct().collect(Collectors.toList()));
+				break;
+			default:
+				break;
+		}
+	}
+
+	public static class Config extends AbstractGatewayFilterFactory.NameConfig {
         private Strategy strategy = Strategy.RETAIN_FIRST;
 
         public Strategy getStrategy() {

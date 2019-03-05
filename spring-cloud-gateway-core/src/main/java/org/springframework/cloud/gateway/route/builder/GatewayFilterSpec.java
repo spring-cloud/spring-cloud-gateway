@@ -177,7 +177,7 @@ public class GatewayFilterSpec extends UriSpec {
 
 	/**
 	 * A filter that removes duplication on a response header before it is returned to the client by the Gateway.
-	 * @param headerName the header name
+	 * @param headerName the header name(s), space separated
 	 * @param strategy RETAIN_FIRST, RETAIN_LAST, or RETAIN_UNIQUE
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
