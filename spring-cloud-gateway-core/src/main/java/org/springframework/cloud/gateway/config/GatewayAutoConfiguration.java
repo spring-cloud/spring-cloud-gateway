@@ -18,11 +18,13 @@ package org.springframework.cloud.gateway.config;
 
 import java.security.cert.X509Certificate;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import com.netflix.hystrix.HystrixObservableCommand;
 import io.netty.channel.ChannelOption;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
+import io.netty.handler.timeout.ReadTimeoutHandler;
 import reactor.core.publisher.Flux;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.resources.ConnectionProvider;
@@ -531,6 +533,12 @@ public class GatewayAutoConfiguration {
 							tcpClient = tcpClient.option(
 									ChannelOption.CONNECT_TIMEOUT_MILLIS,
 									properties.getConnectTimeout());
+						}
+
+						if (properties.getResponseTimeout() != null) {
+							long readTimeout = properties.getResponseTimeout().getSeconds();
+							tcpClient.doOnConnected(connection ->
+									connection.addHandlerLast(new ReadTimeoutHandler(readTimeout, TimeUnit.SECONDS)));
 						}
 
 						// configure proxy if proxy host is set.

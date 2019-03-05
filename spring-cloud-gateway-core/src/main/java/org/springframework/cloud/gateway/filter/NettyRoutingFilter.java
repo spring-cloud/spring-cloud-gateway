@@ -21,6 +21,7 @@ import java.util.List;
 
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.timeout.ReadTimeoutException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.netty.NettyPipeline;
@@ -69,8 +70,8 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 	private volatile List<HttpHeadersFilter> headersFilters;
 
 	public NettyRoutingFilter(HttpClient httpClient,
-			ObjectProvider<List<HttpHeadersFilter>> headersFiltersProvider,
-			HttpClientProperties properties) {
+							  ObjectProvider<List<HttpHeadersFilter>> headersFiltersProvider,
+							  HttpClientProperties properties) {
 		this.httpClient = httpClient;
 		this.headersFiltersProvider = headersFiltersProvider;
 		this.properties = properties;
@@ -168,7 +169,7 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 					if (!filteredResponseHeaders
 							.containsKey(HttpHeaders.TRANSFER_ENCODING)
 							&& filteredResponseHeaders
-									.containsKey(HttpHeaders.CONTENT_LENGTH)) {
+							.containsKey(HttpHeaders.CONTENT_LENGTH)) {
 						// It is not valid to have both the transfer-encoding header and
 						// the content-length header
 						// remove the transfer-encoding header in the response if the
@@ -191,15 +192,12 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 				});
 
 		if (properties.getResponseTimeout() != null) {
-			responseFlux = responseFlux.timeout(properties.getResponseTimeout(),
-					Mono.error(new TimeoutException("Response took longer than timeout: "
-							+ properties.getResponseTimeout())))
-					.onErrorMap(TimeoutException.class,
-							th -> new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT,
-									th.getMessage(), th));
+			responseFlux = responseFlux.onErrorMap(t -> t instanceof ReadTimeoutException,
+					t -> new TimeoutException("Response took longer than timeout: "
+							+ properties.getResponseTimeout())).onErrorMap(TimeoutException.class,
+					th -> new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT,
+							th.getMessage(), th));
 		}
-
 		return responseFlux.then(chain.filter(exchange));
 	}
-
 }
