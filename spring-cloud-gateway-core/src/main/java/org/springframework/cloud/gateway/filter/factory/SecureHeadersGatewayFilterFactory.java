@@ -19,6 +19,8 @@ package org.springframework.cloud.gateway.filter.factory;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.http.HttpHeaders;
 
+import java.util.List;
+
 /**
  * https://blog.appcanary.com/2017/http-security-headers.html.
  *
@@ -78,20 +80,43 @@ public class SecureHeadersGatewayFilterFactory extends AbstractGatewayFilterFact
 
 		return (exchange, chain) -> {
 			HttpHeaders headers = exchange.getResponse().getHeaders();
+			List<String> disabledHeaders = properties.getDisable();
 
-			// TODO: allow header to be disabled
-			headers.add(X_XSS_PROTECTION_HEADER, properties.getXssProtectionHeader());
-			headers.add(STRICT_TRANSPORT_SECURITY_HEADER,
-					properties.getStrictTransportSecurity());
-			headers.add(X_FRAME_OPTIONS_HEADER, properties.getFrameOptions());
-			headers.add(X_CONTENT_TYPE_OPTIONS_HEADER,
-					properties.getContentTypeOptions());
-			headers.add(REFERRER_POLICY_HEADER, properties.getReferrerPolicy());
-			headers.add(CONTENT_SECURITY_POLICY_HEADER,
-					properties.getContentSecurityPolicy());
-			headers.add(X_DOWNLOAD_OPTIONS_HEADER, properties.getDownloadOptions());
-			headers.add(X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER,
-					properties.getPermittedCrossDomainPolicies());
+			if (!disabledHeaders.contains(X_XSS_PROTECTION_HEADER)) {
+				headers.add(X_XSS_PROTECTION_HEADER, properties.getXssProtectionHeader());
+			}
+
+			if (!disabledHeaders.contains(STRICT_TRANSPORT_SECURITY_HEADER)) {
+				headers.add(STRICT_TRANSPORT_SECURITY_HEADER,
+						properties.getStrictTransportSecurity());
+			}
+
+			if (!disabledHeaders.contains(X_FRAME_OPTIONS_HEADER)) {
+				headers.add(X_FRAME_OPTIONS_HEADER, properties.getFrameOptions());
+			}
+
+			if (!disabledHeaders.contains(X_CONTENT_TYPE_OPTIONS_HEADER)) {
+				headers.add(X_CONTENT_TYPE_OPTIONS_HEADER,
+						properties.getContentTypeOptions());
+			}
+
+			if (!disabledHeaders.contains(REFERRER_POLICY_HEADER)) {
+				headers.add(REFERRER_POLICY_HEADER, properties.getReferrerPolicy());
+			}
+
+			if (!disabledHeaders.contains(CONTENT_SECURITY_POLICY_HEADER)) {
+				headers.add(CONTENT_SECURITY_POLICY_HEADER,
+						properties.getContentSecurityPolicy());
+			}
+
+			if (!disabledHeaders.contains(X_DOWNLOAD_OPTIONS_HEADER)) {
+				headers.add(X_DOWNLOAD_OPTIONS_HEADER, properties.getDownloadOptions());
+			}
+
+			if (!disabledHeaders.contains(X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER)) {
+				headers.add(X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER,
+						properties.getPermittedCrossDomainPolicies());
+			}
 
 			return chain.filter(exchange);
 		};
