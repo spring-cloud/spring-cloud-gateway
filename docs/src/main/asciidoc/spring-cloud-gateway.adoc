@@ -960,6 +960,8 @@ To enable Gateway Metrics add spring-boot-starter-actuator as a project dependen
 * `routeUri`: The URI that the API will be routed to
 * `outcome`: Outcome as classified by link:https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/http/HttpStatus.Series.html[HttpStatus.Series]
 * `status`: Http Status of the request returned to the client
+* `httpStatusCode`: Http Status of the request returned to the client
+* `httpMethod`: The Http method used for the request
 
 These metrics are then available to be scraped from ``/actuator/metrics/gateway.requests`` and can be easily integated with Prometheus to create a link:images/gateway-grafana-dashboard.jpeg[Grafana] link:gateway-grafana-dashboard.json[dashboard].
 

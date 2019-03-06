@@ -73,8 +73,12 @@ public class GatewayMetricsFilter implements GlobalFilter, Ordered {
 	private void endTimerInner(ServerWebExchange exchange, Sample sample) {
 		String outcome = "CUSTOM";
 		String status = "CUSTOM";
+		String httpStatusCodeStr = "NA";
+
+		String httpMethod = exchange.getRequest().getMethodValue();
 		HttpStatus statusCode = exchange.getResponse().getStatusCode();
 		if (statusCode != null) {
+			httpStatusCodeStr = String.valueOf(statusCode.value());
 			outcome = statusCode.series().name();
 			status = statusCode.name();
 		}
@@ -84,15 +88,18 @@ public class GatewayMetricsFilter implements GlobalFilter, Ordered {
 						.getStatusCodeValue();
 				if (statusInt != null) {
 					status = String.valueOf(statusInt);
+					httpStatusCodeStr = status;
 				}
 				else {
 					status = "NA";
 				}
 			}
 		}
+		// TODO refactor to allow Tags provider like in MetricsWebFilter
 		Route route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
-		Tags tags = Tags.of("outcome", outcome, "status", status, "routeId",
-				route.getId(), "routeUri", route.getUri().toString());
+		Tags tags = Tags.of("outcome", outcome, "status", status, "httpStatusCode",
+				httpStatusCodeStr, "routeId", route.getId(), "routeUri",
+				route.getUri().toString(), "httpMethod", httpMethod);
 		sample.stop(meterRegistry.timer("gateway.requests", tags));
 	}
 }
