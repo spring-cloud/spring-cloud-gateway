@@ -17,9 +17,12 @@
 package org.springframework.cloud.gateway.filter;
 
 import java.net.URI;
+import java.util.List;
 
 import reactor.core.publisher.Mono;
 
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.cloud.gateway.filter.headers.HttpHeadersFilter;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -31,8 +34,10 @@ import org.springframework.web.reactive.function.client.WebClient.RequestBodySpe
 import org.springframework.web.reactive.function.client.WebClient.RequestHeadersSpec;
 import org.springframework.web.server.ServerWebExchange;
 
+import static org.springframework.cloud.gateway.filter.headers.HttpHeadersFilter.filterRequest;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.CLIENT_RESPONSE_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.PRESERVE_HOST_HEADER_ATTRIBUTE;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.isAlreadyRouted;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.setAlreadyRouted;
 
@@ -43,8 +48,22 @@ public class WebClientHttpRoutingFilter implements GlobalFilter, Ordered {
 
 	private final WebClient webClient;
 
-	public WebClientHttpRoutingFilter(WebClient webClient) {
+	private final ObjectProvider<List<HttpHeadersFilter>> headersFiltersProvider;
+
+	// do not use this headersFilters directly, use getHeadersFilters() instead.
+	private volatile List<HttpHeadersFilter> headersFilters;
+
+	public WebClientHttpRoutingFilter(WebClient webClient,
+			ObjectProvider<List<HttpHeadersFilter>> headersFiltersProvider) {
 		this.webClient = webClient;
+		this.headersFiltersProvider = headersFiltersProvider;
+	}
+
+	public List<HttpHeadersFilter> getHeadersFilters() {
+		if (headersFilters == null) {
+			headersFilters = headersFiltersProvider.getIfAvailable();
+		}
+		return headersFilters;
 	}
 
 	@Override
@@ -67,11 +86,17 @@ public class WebClientHttpRoutingFilter implements GlobalFilter, Ordered {
 
 		HttpMethod method = request.getMethod();
 
+		HttpHeaders filteredHeaders = filterRequest(getHeadersFilters(), exchange);
+
+		boolean preserveHost = exchange.getAttributeOrDefault(PRESERVE_HOST_HEADER_ATTRIBUTE, false);
+
 		RequestBodySpec bodySpec = this.webClient.method(method).uri(requestUrl)
 				.headers(httpHeaders -> {
-					httpHeaders.addAll(request.getHeaders());
+					httpHeaders.addAll(filteredHeaders);
 					// TODO: can this support preserviceHostHeader?
-					httpHeaders.remove(HttpHeaders.HOST);
+					if (!preserveHost) {
+						httpHeaders.remove(HttpHeaders.HOST);
+					}
 				});
 
 		RequestHeadersSpec<?> headersSpec;
