@@ -5,430 +5,9 @@
 <!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 1.5.7.1">
-<title>Untitled</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
-<style>
-/* Asciidoctor default stylesheet | MIT License | http://asciidoctor.org */
-/* Uncomment @import statement below to use as custom stylesheet */
-/*@import "https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700";*/
-article,aside,details,figcaption,figure,footer,header,hgroup,main,nav,section,summary{display:block}
-audio,canvas,video{display:inline-block}
-audio:not([controls]){display:none;height:0}
-script{display:none!important}
-html{font-family:sans-serif;-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%}
-a{background:transparent}
-a:focus{outline:thin dotted}
-a:active,a:hover{outline:0}
-h1{font-size:2em;margin:.67em 0}
-abbr[title]{border-bottom:1px dotted}
-b,strong{font-weight:bold}
-dfn{font-style:italic}
-hr{-moz-box-sizing:content-box;box-sizing:content-box;height:0}
-mark{background:#ff0;color:#000}
-code,kbd,pre,samp{font-family:monospace;font-size:1em}
-pre{white-space:pre-wrap}
-q{quotes:"\201C" "\201D" "\2018" "\2019"}
-small{font-size:80%}
-sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}
-sup{top:-.5em}
-sub{bottom:-.25em}
-img{border:0}
-svg:not(:root){overflow:hidden}
-figure{margin:0}
-fieldset{border:1px solid silver;margin:0 2px;padding:.35em .625em .75em}
-legend{border:0;padding:0}
-button,input,select,textarea{font-family:inherit;font-size:100%;margin:0}
-button,input{line-height:normal}
-button,select{text-transform:none}
-button,html input[type="button"],input[type="reset"],input[type="submit"]{-webkit-appearance:button;cursor:pointer}
-button[disabled],html input[disabled]{cursor:default}
-input[type="checkbox"],input[type="radio"]{box-sizing:border-box;padding:0}
-button::-moz-focus-inner,input::-moz-focus-inner{border:0;padding:0}
-textarea{overflow:auto;vertical-align:top}
-table{border-collapse:collapse;border-spacing:0}
-*,*::before,*::after{-moz-box-sizing:border-box;-webkit-box-sizing:border-box;box-sizing:border-box}
-html,body{font-size:100%}
-body{background:#fff;color:rgba(0,0,0,.8);padding:0;margin:0;font-family:"Noto Serif","DejaVu Serif",serif;font-weight:400;font-style:normal;line-height:1;position:relative;cursor:auto;tab-size:4;-moz-osx-font-smoothing:grayscale;-webkit-font-smoothing:antialiased}
-a:hover{cursor:pointer}
-img,object,embed{max-width:100%;height:auto}
-object,embed{height:100%}
-img{-ms-interpolation-mode:bicubic}
-.left{float:left!important}
-.right{float:right!important}
-.text-left{text-align:left!important}
-.text-right{text-align:right!important}
-.text-center{text-align:center!important}
-.text-justify{text-align:justify!important}
-.hide{display:none}
-img,object,svg{display:inline-block;vertical-align:middle}
-textarea{height:auto;min-height:50px}
-select{width:100%}
-.center{margin-left:auto;margin-right:auto}
-.stretch{width:100%}
-.subheader,.admonitionblock td.content>.title,.audioblock>.title,.exampleblock>.title,.imageblock>.title,.listingblock>.title,.literalblock>.title,.stemblock>.title,.openblock>.title,.paragraph>.title,.quoteblock>.title,table.tableblock>.title,.verseblock>.title,.videoblock>.title,.dlist>.title,.olist>.title,.ulist>.title,.qlist>.title,.hdlist>.title{line-height:1.45;color:#7a2518;font-weight:400;margin-top:0;margin-bottom:.25em}
-div,dl,dt,dd,ul,ol,li,h1,h2,h3,#toctitle,.sidebarblock>.content>.title,h4,h5,h6,pre,form,p,blockquote,th,td{margin:0;padding:0;direction:ltr}
-a{color:#2156a5;text-decoration:underline;line-height:inherit}
-a:hover,a:focus{color:#1d4b8f}
-a img{border:none}
-p{font-family:inherit;font-weight:400;font-size:1em;line-height:1.6;margin-bottom:1.25em;text-rendering:optimizeLegibility}
-p aside{font-size:.875em;line-height:1.35;font-style:italic}
-h1,h2,h3,#toctitle,.sidebarblock>.content>.title,h4,h5,h6{font-family:"Open Sans","DejaVu Sans",sans-serif;font-weight:300;font-style:normal;color:#ba3925;text-rendering:optimizeLegibility;margin-top:1em;margin-bottom:.5em;line-height:1.0125em}
-h1 small,h2 small,h3 small,#toctitle small,.sidebarblock>.content>.title small,h4 small,h5 small,h6 small{font-size:60%;color:#e99b8f;line-height:0}
-h1{font-size:2.125em}
-h2{font-size:1.6875em}
-h3,#toctitle,.sidebarblock>.content>.title{font-size:1.375em}
-h4,h5{font-size:1.125em}
-h6{font-size:1em}
-hr{border:solid #ddddd8;border-width:1px 0 0;clear:both;margin:1.25em 0 1.1875em;height:0}
-em,i{font-style:italic;line-height:inherit}
-strong,b{font-weight:bold;line-height:inherit}
-small{font-size:60%;line-height:inherit}
-code{font-family:"Droid Sans Mono","DejaVu Sans Mono",monospace;font-weight:400;color:rgba(0,0,0,.9)}
-ul,ol,dl{font-size:1em;line-height:1.6;margin-bottom:1.25em;list-style-position:outside;font-family:inherit}
-ul,ol{margin-left:1.5em}
-ul li ul,ul li ol{margin-left:1.25em;margin-bottom:0;font-size:1em}
-ul.square li ul,ul.circle li ul,ul.disc li ul{list-style:inherit}
-ul.square{list-style-type:square}
-ul.circle{list-style-type:circle}
-ul.disc{list-style-type:disc}
-ol li ul,ol li ol{margin-left:1.25em;margin-bottom:0}
-dl dt{margin-bottom:.3125em;font-weight:bold}
-dl dd{margin-bottom:1.25em}
-abbr,acronym{text-transform:uppercase;font-size:90%;color:rgba(0,0,0,.8);border-bottom:1px dotted #ddd;cursor:help}
-abbr{text-transform:none}
-blockquote{margin:0 0 1.25em;padding:.5625em 1.25em 0 1.1875em;border-left:1px solid #ddd}
-blockquote cite{display:block;font-size:.9375em;color:rgba(0,0,0,.6)}
-blockquote cite::before{content:"\2014 \0020"}
-blockquote cite a,blockquote cite a:visited{color:rgba(0,0,0,.6)}
-blockquote,blockquote p{line-height:1.6;color:rgba(0,0,0,.85)}
-@media screen and (min-width:768px){h1,h2,h3,#toctitle,.sidebarblock>.content>.title,h4,h5,h6{line-height:1.2}
-h1{font-size:2.75em}
-h2{font-size:2.3125em}
-h3,#toctitle,.sidebarblock>.content>.title{font-size:1.6875em}
-h4{font-size:1.4375em}}
-table{background:#fff;margin-bottom:1.25em;border:solid 1px #dedede}
-table thead,table tfoot{background:#f7f8f7}
-table thead tr th,table thead tr td,table tfoot tr th,table tfoot tr td{padding:.5em .625em .625em;font-size:inherit;color:rgba(0,0,0,.8);text-align:left}
-table tr th,table tr td{padding:.5625em .625em;font-size:inherit;color:rgba(0,0,0,.8)}
-table tr.even,table tr.alt,table tr:nth-of-type(even){background:#f8f8f7}
-table thead tr th,table tfoot tr th,table tbody tr td,table tr td,table tfoot tr td{display:table-cell;line-height:1.6}
-h1,h2,h3,#toctitle,.sidebarblock>.content>.title,h4,h5,h6{line-height:1.2;word-spacing:-.05em}
-h1 strong,h2 strong,h3 strong,#toctitle strong,.sidebarblock>.content>.title strong,h4 strong,h5 strong,h6 strong{font-weight:400}
-.clearfix::before,.clearfix::after,.float-group::before,.float-group::after{content:" ";display:table}
-.clearfix::after,.float-group::after{clear:both}
-*:not(pre)>code{font-size:.9375em;font-style:normal!important;letter-spacing:0;padding:.1em .5ex;word-spacing:-.15em;background-color:#f7f7f8;-webkit-border-radius:4px;border-radius:4px;line-height:1.45;text-rendering:optimizeSpeed;word-wrap:break-word}
-*:not(pre)>code.nobreak{word-wrap:normal}
-*:not(pre)>code.nowrap{white-space:nowrap}
-pre,pre>code{line-height:1.45;color:rgba(0,0,0,.9);font-family:"Droid Sans Mono","DejaVu Sans Mono",monospace;font-weight:400;text-rendering:optimizeSpeed}
-em em{font-style:normal}
-strong strong{font-weight:400}
-.keyseq{color:rgba(51,51,51,.8)}
-kbd{font-family:"Droid Sans Mono","DejaVu Sans Mono",monospace;display:inline-block;color:rgba(0,0,0,.8);font-size:.65em;line-height:1.45;background-color:#f7f7f7;border:1px solid #ccc;-webkit-border-radius:3px;border-radius:3px;-webkit-box-shadow:0 1px 0 rgba(0,0,0,.2),0 0 0 .1em white inset;box-shadow:0 1px 0 rgba(0,0,0,.2),0 0 0 .1em #fff inset;margin:0 .15em;padding:.2em .5em;vertical-align:middle;position:relative;top:-.1em;white-space:nowrap}
-.keyseq kbd:first-child{margin-left:0}
-.keyseq kbd:last-child{margin-right:0}
-.menuseq,.menuref{color:#000}
-.menuseq b:not(.caret),.menuref{font-weight:inherit}
-.menuseq{word-spacing:-.02em}
-.menuseq b.caret{font-size:1.25em;line-height:.8}
-.menuseq i.caret{font-weight:bold;text-align:center;width:.45em}
-b.button::before,b.button::after{position:relative;top:-1px;font-weight:400}
-b.button::before{content:"[";padding:0 3px 0 2px}
-b.button::after{content:"]";padding:0 2px 0 3px}
-p a>code:hover{color:rgba(0,0,0,.9)}
-#header,#content,#footnotes,#footer{width:100%;margin-left:auto;margin-right:auto;margin-top:0;margin-bottom:0;max-width:62.5em;*zoom:1;position:relative;padding-left:.9375em;padding-right:.9375em}
-#header::before,#header::after,#content::before,#content::after,#footnotes::before,#footnotes::after,#footer::before,#footer::after{content:" ";display:table}
-#header::after,#content::after,#footnotes::after,#footer::after{clear:both}
-#content{margin-top:1.25em}
-#content::before{content:none}
-#header>h1:first-child{color:rgba(0,0,0,.85);margin-top:2.25rem;margin-bottom:0}
-#header>h1:first-child+#toc{margin-top:8px;border-top:1px solid #ddddd8}
-#header>h1:only-child,body.toc2 #header>h1:nth-last-child(2){border-bottom:1px solid #ddddd8;padding-bottom:8px}
-#header .details{border-bottom:1px solid #ddddd8;line-height:1.45;padding-top:.25em;padding-bottom:.25em;padding-left:.25em;color:rgba(0,0,0,.6);display:-ms-flexbox;display:-webkit-flex;display:flex;-ms-flex-flow:row wrap;-webkit-flex-flow:row wrap;flex-flow:row wrap}
-#header .details span:first-child{margin-left:-.125em}
-#header .details span.email a{color:rgba(0,0,0,.85)}
-#header .details br{display:none}
-#header .details br+span::before{content:"\00a0\2013\00a0"}
-#header .details br+span.author::before{content:"\00a0\22c5\00a0";color:rgba(0,0,0,.85)}
-#header .details br+span#revremark::before{content:"\00a0|\00a0"}
-#header #revnumber{text-transform:capitalize}
-#header #revnumber::after{content:"\00a0"}
-#content>h1:first-child:not([class]){color:rgba(0,0,0,.85);border-bottom:1px solid #ddddd8;padding-bottom:8px;margin-top:0;padding-top:1rem;margin-bottom:1.25rem}
-#toc{border-bottom:1px solid #efefed;padding-bottom:.5em}
-#toc>ul{margin-left:.125em}
-#toc ul.sectlevel0>li>a{font-style:italic}
-#toc ul.sectlevel0 ul.sectlevel1{margin:.5em 0}
-#toc ul{font-family:"Open Sans","DejaVu Sans",sans-serif;list-style-type:none}
-#toc li{line-height:1.3334;margin-top:.3334em}
-#toc a{text-decoration:none}
-#toc a:active{text-decoration:underline}
-#toctitle{color:#7a2518;font-size:1.2em}
-@media screen and (min-width:768px){#toctitle{font-size:1.375em}
-body.toc2{padding-left:15em;padding-right:0}
-#toc.toc2{margin-top:0!important;background-color:#f8f8f7;position:fixed;width:15em;left:0;top:0;border-right:1px solid #efefed;border-top-width:0!important;border-bottom-width:0!important;z-index:1000;padding:1.25em 1em;height:100%;overflow:auto}
-#toc.toc2 #toctitle{margin-top:0;margin-bottom:.8rem;font-size:1.2em}
-#toc.toc2>ul{font-size:.9em;margin-bottom:0}
-#toc.toc2 ul ul{margin-left:0;padding-left:1em}
-#toc.toc2 ul.sectlevel0 ul.sectlevel1{padding-left:0;margin-top:.5em;margin-bottom:.5em}
-body.toc2.toc-right{padding-left:0;padding-right:15em}
-body.toc2.toc-right #toc.toc2{border-right-width:0;border-left:1px solid #efefed;left:auto;right:0}}
-@media screen and (min-width:1280px){body.toc2{padding-left:20em;padding-right:0}
-#toc.toc2{width:20em}
-#toc.toc2 #toctitle{font-size:1.375em}
-#toc.toc2>ul{font-size:.95em}
-#toc.toc2 ul ul{padding-left:1.25em}
-body.toc2.toc-right{padding-left:0;padding-right:20em}}
-#content #toc{border-style:solid;border-width:1px;border-color:#e0e0dc;margin-bottom:1.25em;padding:1.25em;background:#f8f8f7;-webkit-border-radius:4px;border-radius:4px}
-#content #toc>:first-child{margin-top:0}
-#content #toc>:last-child{margin-bottom:0}
-#footer{max-width:100%;background-color:rgba(0,0,0,.8);padding:1.25em}
-#footer-text{color:rgba(255,255,255,.8);line-height:1.44}
-#content{margin-bottom:.625em}
-.sect1{padding-bottom:.625em}
-@media screen and (min-width:768px){#content{margin-bottom:1.25em}
-.sect1{padding-bottom:1.25em}}
-.sect1:last-child{padding-bottom:0}
-.sect1+.sect1{border-top:1px solid #efefed}
-#content h1>a.anchor,h2>a.anchor,h3>a.anchor,#toctitle>a.anchor,.sidebarblock>.content>.title>a.anchor,h4>a.anchor,h5>a.anchor,h6>a.anchor{position:absolute;z-index:1001;width:1.5ex;margin-left:-1.5ex;display:block;text-decoration:none!important;visibility:hidden;text-align:center;font-weight:400}
-#content h1>a.anchor::before,h2>a.anchor::before,h3>a.anchor::before,#toctitle>a.anchor::before,.sidebarblock>.content>.title>a.anchor::before,h4>a.anchor::before,h5>a.anchor::before,h6>a.anchor::before{content:"\00A7";font-size:.85em;display:block;padding-top:.1em}
-#content h1:hover>a.anchor,#content h1>a.anchor:hover,h2:hover>a.anchor,h2>a.anchor:hover,h3:hover>a.anchor,#toctitle:hover>a.anchor,.sidebarblock>.content>.title:hover>a.anchor,h3>a.anchor:hover,#toctitle>a.anchor:hover,.sidebarblock>.content>.title>a.anchor:hover,h4:hover>a.anchor,h4>a.anchor:hover,h5:hover>a.anchor,h5>a.anchor:hover,h6:hover>a.anchor,h6>a.anchor:hover{visibility:visible}
-#content h1>a.link,h2>a.link,h3>a.link,#toctitle>a.link,.sidebarblock>.content>.title>a.link,h4>a.link,h5>a.link,h6>a.link{color:#ba3925;text-decoration:none}
-#content h1>a.link:hover,h2>a.link:hover,h3>a.link:hover,#toctitle>a.link:hover,.sidebarblock>.content>.title>a.link:hover,h4>a.link:hover,h5>a.link:hover,h6>a.link:hover{color:#a53221}
-.audioblock,.imageblock,.literalblock,.listingblock,.stemblock,.videoblock{margin-bottom:1.25em}
-.admonitionblock td.content>.title,.audioblock>.title,.exampleblock>.title,.imageblock>.title,.listingblock>.title,.literalblock>.title,.stemblock>.title,.openblock>.title,.paragraph>.title,.quoteblock>.title,table.tableblock>.title,.verseblock>.title,.videoblock>.title,.dlist>.title,.olist>.title,.ulist>.title,.qlist>.title,.hdlist>.title{text-rendering:optimizeLegibility;text-align:left;font-family:"Noto Serif","DejaVu Serif",serif;font-size:1rem;font-style:italic}
-table.tableblock.fit-content>caption.title{white-space:nowrap;width:0}
-.paragraph.lead>p,#preamble>.sectionbody>[class="paragraph"]:first-of-type p{font-size:1.21875em;line-height:1.6;color:rgba(0,0,0,.85)}
-table.tableblock #preamble>.sectionbody>[class="paragraph"]:first-of-type p{font-size:inherit}
-.admonitionblock>table{border-collapse:separate;border:0;background:none;width:100%}
-.admonitionblock>table td.icon{text-align:center;width:80px}
-.admonitionblock>table td.icon img{max-width:none}
-.admonitionblock>table td.icon .title{font-weight:bold;font-family:"Open Sans","DejaVu Sans",sans-serif;text-transform:uppercase}
-.admonitionblock>table td.content{padding-left:1.125em;padding-right:1.25em;border-left:1px solid #ddddd8;color:rgba(0,0,0,.6)}
-.admonitionblock>table td.content>:last-child>:last-child{margin-bottom:0}
-.exampleblock>.content{border-style:solid;border-width:1px;border-color:#e6e6e6;margin-bottom:1.25em;padding:1.25em;background:#fff;-webkit-border-radius:4px;border-radius:4px}
-.exampleblock>.content>:first-child{margin-top:0}
-.exampleblock>.content>:last-child{margin-bottom:0}
-.sidebarblock{border-style:solid;border-width:1px;border-color:#e0e0dc;margin-bottom:1.25em;padding:1.25em;background:#f8f8f7;-webkit-border-radius:4px;border-radius:4px}
-.sidebarblock>:first-child{margin-top:0}
-.sidebarblock>:last-child{margin-bottom:0}
-.sidebarblock>.content>.title{color:#7a2518;margin-top:0;text-align:center}
-.exampleblock>.content>:last-child>:last-child,.exampleblock>.content .olist>ol>li:last-child>:last-child,.exampleblock>.content .ulist>ul>li:last-child>:last-child,.exampleblock>.content .qlist>ol>li:last-child>:last-child,.sidebarblock>.content>:last-child>:last-child,.sidebarblock>.content .olist>ol>li:last-child>:last-child,.sidebarblock>.content .ulist>ul>li:last-child>:last-child,.sidebarblock>.content .qlist>ol>li:last-child>:last-child{margin-bottom:0}
-.literalblock pre,.listingblock pre:not(.highlight),.listingblock pre[class="highlight"],.listingblock pre[class^="highlight "],.listingblock pre.CodeRay,.listingblock pre.prettyprint{background:#f7f7f8}
-.sidebarblock .literalblock pre,.sidebarblock .listingblock pre:not(.highlight),.sidebarblock .listingblock pre[class="highlight"],.sidebarblock .listingblock pre[class^="highlight "],.sidebarblock .listingblock pre.CodeRay,.sidebarblock .listingblock pre.prettyprint{background:#f2f1f1}
-.literalblock pre,.literalblock pre[class],.listingblock pre,.listingblock pre[class]{-webkit-border-radius:4px;border-radius:4px;word-wrap:break-word;padding:1em;font-size:.8125em}
-.literalblock pre.nowrap,.literalblock pre[class].nowrap,.listingblock pre.nowrap,.listingblock pre[class].nowrap{overflow-x:auto;white-space:pre;word-wrap:normal}
-@media screen and (min-width:768px){.literalblock pre,.literalblock pre[class],.listingblock pre,.listingblock pre[class]{font-size:.90625em}}
-@media screen and (min-width:1280px){.literalblock pre,.literalblock pre[class],.listingblock pre,.listingblock pre[class]{font-size:1em}}
-.literalblock.output pre{color:#f7f7f8;background-color:rgba(0,0,0,.9)}
-.listingblock pre.highlightjs{padding:0}
-.listingblock pre.highlightjs>code{padding:1em;-webkit-border-radius:4px;border-radius:4px}
-.listingblock pre.prettyprint{border-width:0}
-.listingblock>.content{position:relative}
-.listingblock code[data-lang]::before{display:none;content:attr(data-lang);position:absolute;font-size:.75em;top:.425rem;right:.5rem;line-height:1;text-transform:uppercase;color:#999}
-.listingblock:hover code[data-lang]::before{display:block}
-.listingblock.terminal pre .command::before{content:attr(data-prompt);padding-right:.5em;color:#999}
-.listingblock.terminal pre .command:not([data-prompt])::before{content:"$"}
-table.pyhltable{border-collapse:separate;border:0;margin-bottom:0;background:none}
-table.pyhltable td{vertical-align:top;padding-top:0;padding-bottom:0;line-height:1.45}
-table.pyhltable td.code{padding-left:.75em;padding-right:0}
-pre.pygments .lineno,table.pyhltable td:not(.code){color:#999;padding-left:0;padding-right:.5em;border-right:1px solid #ddddd8}
-pre.pygments .lineno{display:inline-block;margin-right:.25em}
-table.pyhltable .linenodiv{background:none!important;padding-right:0!important}
-.quoteblock{margin:0 1em 1.25em 1.5em;display:table}
-.quoteblock>.title{margin-left:-1.5em;margin-bottom:.75em}
-.quoteblock blockquote,.quoteblock blockquote p{color:rgba(0,0,0,.85);font-size:1.15rem;line-height:1.75;word-spacing:.1em;letter-spacing:0;font-style:italic;text-align:justify}
-.quoteblock blockquote{margin:0;padding:0;border:0}
-.quoteblock blockquote::before{content:"\201c";float:left;font-size:2.75em;font-weight:bold;line-height:.6em;margin-left:-.6em;color:#7a2518;text-shadow:0 1px 2px rgba(0,0,0,.1)}
-.quoteblock blockquote>.paragraph:last-child p{margin-bottom:0}
-.quoteblock .attribution{margin-top:.5em;margin-right:.5ex;text-align:right}
-.quoteblock .quoteblock{margin-left:0;margin-right:0;padding:.5em 0;border-left:3px solid rgba(0,0,0,.6)}
-.quoteblock .quoteblock blockquote{padding:0 0 0 .75em}
-.quoteblock .quoteblock blockquote::before{display:none}
-.verseblock{margin:0 1em 1.25em}
-.verseblock pre{font-family:"Open Sans","DejaVu Sans",sans;font-size:1.15rem;color:rgba(0,0,0,.85);font-weight:300;text-rendering:optimizeLegibility}
-.verseblock pre strong{font-weight:400}
-.verseblock .attribution{margin-top:1.25rem;margin-left:.5ex}
-.quoteblock .attribution,.verseblock .attribution{font-size:.9375em;line-height:1.45;font-style:italic}
-.quoteblock .attribution br,.verseblock .attribution br{display:none}
-.quoteblock .attribution cite,.verseblock .attribution cite{display:block;letter-spacing:-.025em;color:rgba(0,0,0,.6)}
-.quoteblock.abstract{margin:0 1em 1.25em;display:block}
-.quoteblock.abstract>.title{margin:0 0 .375em;font-size:1.15em;text-align:center}
-.quoteblock.abstract blockquote,.quoteblock.abstract blockquote p{word-spacing:0;line-height:1.6}
-.quoteblock.abstract blockquote::before,.quoteblock.abstract p::before{display:none}
-table.tableblock{max-width:100%;border-collapse:separate}
-p.tableblock:last-child{margin-bottom:0}
-td.tableblock>.content{margin-bottom:-1.25em}
-table.tableblock,th.tableblock,td.tableblock{border:0 solid #dedede}
-table.grid-all>thead>tr>.tableblock,table.grid-all>tbody>tr>.tableblock{border-width:0 1px 1px 0}
-table.grid-all>tfoot>tr>.tableblock{border-width:1px 1px 0 0}
-table.grid-cols>*>tr>.tableblock{border-width:0 1px 0 0}
-table.grid-rows>thead>tr>.tableblock,table.grid-rows>tbody>tr>.tableblock{border-width:0 0 1px}
-table.grid-rows>tfoot>tr>.tableblock{border-width:1px 0 0}
-table.grid-all>*>tr>.tableblock:last-child,table.grid-cols>*>tr>.tableblock:last-child{border-right-width:0}
-table.grid-all>tbody>tr:last-child>.tableblock,table.grid-all>thead:last-child>tr>.tableblock,table.grid-rows>tbody>tr:last-child>.tableblock,table.grid-rows>thead:last-child>tr>.tableblock{border-bottom-width:0}
-table.frame-all{border-width:1px}
-table.frame-sides{border-width:0 1px}
-table.frame-topbot,table.frame-ends{border-width:1px 0}
-table.stripes-all tr,table.stripes-odd tr:nth-of-type(odd){background:#f8f8f7}
-table.stripes-none tr,table.stripes-odd tr:nth-of-type(even){background:none}
-th.halign-left,td.halign-left{text-align:left}
-th.halign-right,td.halign-right{text-align:right}
-th.halign-center,td.halign-center{text-align:center}
-th.valign-top,td.valign-top{vertical-align:top}
-th.valign-bottom,td.valign-bottom{vertical-align:bottom}
-th.valign-middle,td.valign-middle{vertical-align:middle}
-table thead th,table tfoot th{font-weight:bold}
-tbody tr th{display:table-cell;line-height:1.6;background:#f7f8f7}
-tbody tr th,tbody tr th p,tfoot tr th,tfoot tr th p{color:rgba(0,0,0,.8);font-weight:bold}
-p.tableblock>code:only-child{background:none;padding:0}
-p.tableblock{font-size:1em}
-td>div.verse{white-space:pre}
-ol{margin-left:1.75em}
-ul li ol{margin-left:1.5em}
-dl dd{margin-left:1.125em}
-dl dd:last-child,dl dd:last-child>:last-child{margin-bottom:0}
-ol>li p,ul>li p,ul dd,ol dd,.olist .olist,.ulist .ulist,.ulist .olist,.olist .ulist{margin-bottom:.625em}
-ul.checklist,ul.none,ol.none,ul.no-bullet,ol.no-bullet,ol.unnumbered,ul.unstyled,ol.unstyled{list-style-type:none}
-ul.no-bullet,ol.no-bullet,ol.unnumbered{margin-left:.625em}
-ul.unstyled,ol.unstyled{margin-left:0}
-ul.checklist{margin-left:.625em}
-ul.checklist li>p:first-child>.fa-square-o:first-child,ul.checklist li>p:first-child>.fa-check-square-o:first-child{width:1.25em;font-size:.8em;position:relative;bottom:.125em}
-ul.checklist li>p:first-child>input[type="checkbox"]:first-child{margin-right:.25em}
-ul.inline{display:-ms-flexbox;display:-webkit-box;display:flex;-ms-flex-flow:row wrap;-webkit-flex-flow:row wrap;flex-flow:row wrap;list-style:none;margin:0 0 .625em -1.25em}
-ul.inline>li{margin-left:1.25em}
-.unstyled dl dt{font-weight:400;font-style:normal}
-ol.arabic{list-style-type:decimal}
-ol.decimal{list-style-type:decimal-leading-zero}
-ol.loweralpha{list-style-type:lower-alpha}
-ol.upperalpha{list-style-type:upper-alpha}
-ol.lowerroman{list-style-type:lower-roman}
-ol.upperroman{list-style-type:upper-roman}
-ol.lowergreek{list-style-type:lower-greek}
-.hdlist>table,.colist>table{border:0;background:none}
-.hdlist>table>tbody>tr,.colist>table>tbody>tr{background:none}
-td.hdlist1,td.hdlist2{vertical-align:top;padding:0 .625em}
-td.hdlist1{font-weight:bold;padding-bottom:1.25em}
-.literalblock+.colist,.listingblock+.colist{margin-top:-.5em}
-.colist td:not([class]):first-child{padding:.4em .75em 0;line-height:1;vertical-align:top}
-.colist td:not([class]):first-child img{max-width:none}
-.colist td:not([class]):last-child{padding:.25em 0}
-.thumb,.th{line-height:0;display:inline-block;border:solid 4px #fff;-webkit-box-shadow:0 0 0 1px #ddd;box-shadow:0 0 0 1px #ddd}
-.imageblock.left,.imageblock[style*="float: left"]{margin:.25em .625em 1.25em 0}
-.imageblock.right,.imageblock[style*="float: right"]{margin:.25em 0 1.25em .625em}
-.imageblock>.title{margin-bottom:0}
-.imageblock.thumb,.imageblock.th{border-width:6px}
-.imageblock.thumb>.title,.imageblock.th>.title{padding:0 .125em}
-.image.left,.image.right{margin-top:.25em;margin-bottom:.25em;display:inline-block;line-height:0}
-.image.left{margin-right:.625em}
-.image.right{margin-left:.625em}
-a.image{text-decoration:none;display:inline-block}
-a.image object{pointer-events:none}
-sup.footnote,sup.footnoteref{font-size:.875em;position:static;vertical-align:super}
-sup.footnote a,sup.footnoteref a{text-decoration:none}
-sup.footnote a:active,sup.footnoteref a:active{text-decoration:underline}
-#footnotes{padding-top:.75em;padding-bottom:.75em;margin-bottom:.625em}
-#footnotes hr{width:20%;min-width:6.25em;margin:-.25em 0 .75em;border-width:1px 0 0}
-#footnotes .footnote{padding:0 .375em 0 .225em;line-height:1.3334;font-size:.875em;margin-left:1.2em;margin-bottom:.2em}
-#footnotes .footnote a:first-of-type{font-weight:bold;text-decoration:none;margin-left:-1.05em}
-#footnotes .footnote:last-of-type{margin-bottom:0}
-#content #footnotes{margin-top:-.625em;margin-bottom:0;padding:.75em 0}
-.gist .file-data>table{border:0;background:#fff;width:100%;margin-bottom:0}
-.gist .file-data>table td.line-data{width:99%}
-div.unbreakable{page-break-inside:avoid}
-.big{font-size:larger}
-.small{font-size:smaller}
-.underline{text-decoration:underline}
-.overline{text-decoration:overline}
-.line-through{text-decoration:line-through}
-.aqua{color:#00bfbf}
-.aqua-background{background-color:#00fafa}
-.black{color:#000}
-.black-background{background-color:#000}
-.blue{color:#0000bf}
-.blue-background{background-color:#0000fa}
-.fuchsia{color:#bf00bf}
-.fuchsia-background{background-color:#fa00fa}
-.gray{color:#606060}
-.gray-background{background-color:#7d7d7d}
-.green{color:#006000}
-.green-background{background-color:#007d00}
-.lime{color:#00bf00}
-.lime-background{background-color:#00fa00}
-.maroon{color:#600000}
-.maroon-background{background-color:#7d0000}
-.navy{color:#000060}
-.navy-background{background-color:#00007d}
-.olive{color:#606000}
-.olive-background{background-color:#7d7d00}
-.purple{color:#600060}
-.purple-background{background-color:#7d007d}
-.red{color:#bf0000}
-.red-background{background-color:#fa0000}
-.silver{color:#909090}
-.silver-background{background-color:#bcbcbc}
-.teal{color:#006060}
-.teal-background{background-color:#007d7d}
-.white{color:#bfbfbf}
-.white-background{background-color:#fafafa}
-.yellow{color:#bfbf00}
-.yellow-background{background-color:#fafa00}
-span.icon>.fa{cursor:default}
-a span.icon>.fa{cursor:inherit}
-.admonitionblock td.icon [class^="fa icon-"]{font-size:2.5em;text-shadow:1px 1px 2px rgba(0,0,0,.5);cursor:default}
-.admonitionblock td.icon .icon-note::before{content:"\f05a";color:#19407c}
-.admonitionblock td.icon .icon-tip::before{content:"\f0eb";text-shadow:1px 1px 2px rgba(155,155,0,.8);color:#111}
-.admonitionblock td.icon .icon-warning::before{content:"\f071";color:#bf6900}
-.admonitionblock td.icon .icon-caution::before{content:"\f06d";color:#bf3400}
-.admonitionblock td.icon .icon-important::before{content:"\f06a";color:#bf0000}
-.conum[data-value]{display:inline-block;color:#fff!important;background-color:rgba(0,0,0,.8);-webkit-border-radius:100px;border-radius:100px;text-align:center;font-size:.75em;width:1.67em;height:1.67em;line-height:1.67em;font-family:"Open Sans","DejaVu Sans",sans-serif;font-style:normal;font-weight:bold}
-.conum[data-value] *{color:#fff!important}
-.conum[data-value]+b{display:none}
-.conum[data-value]::after{content:attr(data-value)}
-pre .conum[data-value]{position:relative;top:-.125em}
-b.conum *{color:inherit!important}
-.conum:not([data-value]):empty{display:none}
-dt,th.tableblock,td.content,div.footnote{text-rendering:optimizeLegibility}
-h1,h2,p,td.content,span.alt{letter-spacing:-.01em}
-p strong,td.content strong,div.footnote strong{letter-spacing:-.005em}
-p,blockquote,dt,td.content,span.alt{font-size:1.0625rem}
-p{margin-bottom:1.25rem}
-.sidebarblock p,.sidebarblock dt,.sidebarblock td.content,p.tableblock{font-size:1em}
-.exampleblock>.content{background-color:#fffef7;border-color:#e0e0dc;-webkit-box-shadow:0 1px 4px #e0e0dc;box-shadow:0 1px 4px #e0e0dc}
-.print-only{display:none!important}
-@page{margin:1.25cm .75cm}
-@media print{*{-webkit-box-shadow:none!important;box-shadow:none!important;text-shadow:none!important}
-html{font-size:80%}
-a{color:inherit!important;text-decoration:underline!important}
-a.bare,a[href^="#"],a[href^="mailto:"]{text-decoration:none!important}
-a[href^="http:"]:not(.bare)::after,a[href^="https:"]:not(.bare)::after{content:"(" attr(href) ")";display:inline-block;font-size:.875em;padding-left:.25em}
-abbr[title]::after{content:" (" attr(title) ")"}
-pre,blockquote,tr,img,object,svg{page-break-inside:avoid}
-thead{display:table-header-group}
-svg{max-width:100%}
-p,blockquote,dt,td.content{font-size:1em;orphans:3;widows:3}
-h2,h3,#toctitle,.sidebarblock>.content>.title{page-break-after:avoid}
-#toc,.sidebarblock,.exampleblock>.content{background:none!important}
-#toc{border-bottom:1px solid #ddddd8!important;padding-bottom:0!important}
-body.book #header{text-align:center}
-body.book #header>h1:first-child{border:0!important;margin:2.5em 0 1em}
-body.book #header .details{border:0!important;display:block;padding:0!important}
-body.book #header .details span:first-child{margin-left:0!important}
-body.book #header .details br{display:block}
-body.book #header .details br+span::before{content:none!important}
-body.book #toc{border:0!important;text-align:left!important;padding:0!important;margin:0!important}
-body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-break-before:always}
-.listingblock code[data-lang]::before{display:block}
-#footer{padding:0 .9375em}
-.hide-on-print{display:none!important}
-.print-only{display:block!important}
-.hide-for-print{display:none!important}
-.show-for-print{display:inherit!important}}
-@media print,amzn-kf8{#header>h1:first-child{margin-top:1.25rem}
-.sect1{padding:0!important}
-.sect1+.sect1{border:0}
-#footer{background:none}
-#footer-text{color:rgba(0,0,0,.6);font-size:.9em}}
-@media amzn-kf8{#header,#content,#footnotes,#footer{padding:0}}
-</style>
+<title>Spring Cloud Gateway</title>
+<link rel="stylesheet" href="css/spring.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 <style>
 .hidden {
 	display: none;
@@ -504,47 +83,2442 @@ $(addBlockSwitches);
 </script>
 </head>
 
-<body class="article">
+<body class="book toc2 toc-left">
 <div id="header">
+<h1>Spring Cloud Gateway</h1>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#gateway-starter">How to Include Spring Cloud Gateway</a></li>
+<li><a href="#_glossary">Glossary</a></li>
+<li><a href="#gateway-how-it-works">How It Works</a></li>
+<li><a href="#gateway-request-predicates-factories">Route Predicate Factories</a>
+<ul class="sectlevel2">
+<li><a href="#_after_route_predicate_factory">After Route Predicate Factory</a></li>
+<li><a href="#_before_route_predicate_factory">Before Route Predicate Factory</a></li>
+<li><a href="#_between_route_predicate_factory">Between Route Predicate Factory</a></li>
+<li><a href="#_cookie_route_predicate_factory">Cookie Route Predicate Factory</a></li>
+<li><a href="#_header_route_predicate_factory">Header Route Predicate Factory</a></li>
+<li><a href="#_host_route_predicate_factory">Host Route Predicate Factory</a></li>
+<li><a href="#_method_route_predicate_factory">Method Route Predicate Factory</a></li>
+<li><a href="#_path_route_predicate_factory">Path Route Predicate Factory</a></li>
+<li><a href="#_query_route_predicate_factory">Query Route Predicate Factory</a></li>
+<li><a href="#_remoteaddr_route_predicate_factory">RemoteAddr Route Predicate Factory</a></li>
+</ul>
+</li>
+<li><a href="#_gatewayfilter_factories">GatewayFilter Factories</a>
+<ul class="sectlevel2">
+<li><a href="#_addrequestheader_gatewayfilter_factory">AddRequestHeader GatewayFilter Factory</a></li>
+<li><a href="#_addrequestparameter_gatewayfilter_factory">AddRequestParameter GatewayFilter Factory</a></li>
+<li><a href="#_addresponseheader_gatewayfilter_factory">AddResponseHeader GatewayFilter Factory</a></li>
+<li><a href="#hystrix">Hystrix GatewayFilter Factory</a></li>
+<li><a href="#fallback-headers">FallbackHeaders GatewayFilter Factory</a></li>
+<li><a href="#_prefixpath_gatewayfilter_factory">PrefixPath GatewayFilter Factory</a></li>
+<li><a href="#_preservehostheader_gatewayfilter_factory">PreserveHostHeader GatewayFilter Factory</a></li>
+<li><a href="#_requestratelimiter_gatewayfilter_factory">RequestRateLimiter GatewayFilter Factory</a></li>
+<li><a href="#_redirectto_gatewayfilter_factory">RedirectTo GatewayFilter Factory</a></li>
+<li><a href="#_removehopbyhopheadersfilter_gatewayfilter_factory">RemoveHopByHopHeadersFilter GatewayFilter Factory</a></li>
+<li><a href="#_removerequestheader_gatewayfilter_factory">RemoveRequestHeader GatewayFilter Factory</a></li>
+<li><a href="#_removeresponseheader_gatewayfilter_factory">RemoveResponseHeader GatewayFilter Factory</a></li>
+<li><a href="#_rewritepath_gatewayfilter_factory">RewritePath GatewayFilter Factory</a></li>
+<li><a href="#_rewriteresponseheader_gatewayfilter_factory">RewriteResponseHeader GatewayFilter Factory</a></li>
+<li><a href="#_savesession_gatewayfilter_factory">SaveSession GatewayFilter Factory</a></li>
+<li><a href="#_secureheaders_gatewayfilter_factory">SecureHeaders GatewayFilter Factory</a></li>
+<li><a href="#_setpath_gatewayfilter_factory">SetPath GatewayFilter Factory</a></li>
+<li><a href="#_setresponseheader_gatewayfilter_factory">SetResponseHeader GatewayFilter Factory</a></li>
+<li><a href="#_setstatus_gatewayfilter_factory">SetStatus GatewayFilter Factory</a></li>
+<li><a href="#_stripprefix_gatewayfilter_factory">StripPrefix GatewayFilter Factory</a></li>
+<li><a href="#_retry_gatewayfilter_factory">Retry GatewayFilter Factory</a></li>
+<li><a href="#_requestsize_gatewayfilter_factory">RequestSize GatewayFilter Factory</a></li>
+<li><a href="#_modify_request_body_gatewayfilter_factory">Modify Request Body GatewayFilter Factory</a></li>
+<li><a href="#_modify_response_body_gatewayfilter_factory">Modify Response Body GatewayFilter Factory</a></li>
+<li><a href="#_default_filters">Default Filters</a></li>
+</ul>
+</li>
+<li><a href="#_global_filters">Global Filters</a>
+<ul class="sectlevel2">
+<li><a href="#_combined_global_filter_and_gatewayfilter_ordering">Combined Global Filter and GatewayFilter Ordering</a></li>
+<li><a href="#_forward_routing_filter">Forward Routing Filter</a></li>
+<li><a href="#_loadbalancerclient_filter">LoadBalancerClient Filter</a></li>
+<li><a href="#_netty_routing_filter">Netty Routing Filter</a></li>
+<li><a href="#_netty_write_response_filter">Netty Write Response Filter</a></li>
+<li><a href="#_routetorequesturl_filter">RouteToRequestUrl Filter</a></li>
+<li><a href="#_websocket_routing_filter">Websocket Routing Filter</a></li>
+<li><a href="#_gateway_metrics_filter">Gateway Metrics Filter</a></li>
+<li><a href="#_marking_an_exchange_as_routed">Marking An Exchange As Routed</a></li>
+</ul>
+</li>
+<li><a href="#_tls_ssl">TLS / SSL</a>
+<ul class="sectlevel2">
+<li><a href="#_tls_handshake">TLS Handshake</a></li>
+</ul>
+</li>
+<li><a href="#_configuration">Configuration</a>
+<ul class="sectlevel2">
+<li><a href="#_fluent_java_routes_api">Fluent Java Routes API</a></li>
+<li><a href="#_discoveryclient_route_definition_locator">DiscoveryClient Route Definition Locator</a></li>
+</ul>
+</li>
+<li><a href="#_reactor_netty_access_logs">Reactor Netty Access Logs</a></li>
+<li><a href="#_cors_configuration">CORS Configuration</a></li>
+<li><a href="#_actuator_api">Actuator API</a>
+<ul class="sectlevel2">
+<li><a href="#_retrieving_route_filters">Retrieving route filters</a></li>
+<li><a href="#_refreshing_the_route_cache">Refreshing the route cache</a></li>
+<li><a href="#_retrieving_the_routes_defined_in_the_gateway">Retrieving the routes defined in the gateway</a></li>
+<li><a href="#_retrieving_information_about_a_particular_route">Retrieving information about a particular route</a></li>
+<li><a href="#_creating_and_deleting_a_particular_route">Creating and deleting a particular route</a></li>
+<li><a href="#_recap_list_of_all_endpoints">Recap: list of all endpoints</a></li>
+</ul>
+</li>
+<li><a href="#_developer_guide">Developer Guide</a>
+<ul class="sectlevel2">
+<li><a href="#_writing_custom_route_predicate_factories">Writing Custom Route Predicate Factories</a></li>
+<li><a href="#_writing_custom_gatewayfilter_factories">Writing Custom GatewayFilter Factories</a></li>
+<li><a href="#_writing_custom_global_filters">Writing Custom Global Filters</a></li>
+<li><a href="#_writing_custom_route_locators_and_writers">Writing Custom Route Locators and Writers</a></li>
+</ul>
+</li>
+<li><a href="#_building_a_simple_gateway_using_spring_mvc_or_webflux">Building a Simple Gateway Using Spring MVC or Webflux</a></li>
+</ul>
+</div>
 </div>
 <div id="content">
-<div class="literalblock">
-<div class="content">
-<pre>:linkcss:
-:stylesdir: css
-:stylesheet: manual-singlepage.css</pre>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p><strong>2.2.0.BUILD-SNAPSHOT</strong></p>
+</div>
+<div class="paragraph">
+<p>This project provides an API Gateway built on top of the Spring Ecosystem, including: Spring 5, Spring Boot 2 and Project Reactor. Spring Cloud Gateway aims to provide a simple, yet effective way to route to APIs and provide cross cutting concerns to them such as: security, monitoring/metrics, and resiliency.</p>
 </div>
 </div>
-<div class="literalblock">
-<div class="content">
-<pre>= {docs-main}</pre>
+</div>
+<div class="sect1">
+<h2 id="gateway-starter"><a class="link" href="#gateway-starter">How to Include Spring Cloud Gateway</a></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To include Spring Cloud Gateway in your project use the starter with group <code>org.springframework.cloud</code>
+and artifact id <code>spring-cloud-starter-gateway</code>. See the <a href="http://projects.spring.io/spring-cloud/">Spring Cloud Project page</a>
+for details on setting up your build system with the current Spring Cloud Release Train.</p>
+</div>
+<div class="paragraph">
+<p>If you include the starter, but, for some reason, you do not want the gateway to be enabled, set <code>spring.cloud.gateway.enabled=false</code>.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+Spring Cloud Gateway is built upon <a href="https://spring.io/projects/spring-boot#learn">Spring Boot 2.0</a>,
+<a href="https://docs.spring.io/spring/docs/current/spring-framework-reference/web-reactive.html">Spring WebFlux</a>,
+and <a href="https://projectreactor.io/docs">Project Reactor</a>.  As a consequence
+many of the familiar synchronous libraries (Spring Data and Spring Security, for example) and patterns you may
+not apply when using Spring Cloud Gateway.  If you are unfamiliar with these projects we suggest you
+begin by reading their documentation to familiarize yourself with some of the new concepts before
+working with Spring Cloud Gateway.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+Spring Cloud Gateway requires the Netty runtime provided by Spring Boot and Spring Webflux. It does not work in a traditional Servlet Container or built as a WAR.
+</td>
+</tr>
+</table>
 </div>
 </div>
-<div class="literalblock">
-<div class="content">
-<pre>{spring-cloud-version}</pre>
 </div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>== Pick The Documentation Option</pre>
-</div>
-</div>
+<div class="sect1">
+<h2 id="_glossary"><a class="link" href="#_glossary">Glossary</a></h2>
+<div class="sectionbody">
 <div class="ulist">
 <ul>
 <li>
-<p><a href="single/spring-cloud-gateway.html">Single
-HTML</a></p>
+<p><strong>Route</strong>: Route the basic building block of the gateway. It is defined by an ID, a destination URI, a collection of predicates and a collection of filters. A route is matched if aggregate predicate is true.</p>
 </li>
 <li>
-<p><a href="multi/multi_spring-cloud-gateway.html">Multi
-HTML</a></p>
+<p><strong>Predicate</strong>: This is a <a href="http://docs.oracle.com/javase/8/docs/api/java/util/function/Predicate.html">Java 8 Function Predicate</a>. The input type is a <a href="http://docs.spring.io/spring/docs/5.0.x/javadoc-api/org/springframework/web/server/ServerWebExchange.html">Spring Framework <code>ServerWebExchange</code></a>. This allows developers to match on anything from the HTTP request, such as headers or parameters.</p>
+</li>
+<li>
+<p><strong>Filter</strong>: These are instances <a href="http://docs.spring.io/spring/docs/5.0.x/javadoc-api/org/springframework/web/server/GatewayFilter.html">Spring Framework <code>GatewayFilter</code></a> constructed in with a specific factory. Here, requests and responses can be modified before or after sending the downstream request.</p>
 </li>
 </ul>
 </div>
 </div>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prettify/r298/prettify.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/prettify/r298/prettify.min.js"></script>
-<script>prettyPrint()</script>
+</div>
+<div class="sect1">
+<h2 id="gateway-how-it-works"><a class="link" href="#gateway-how-it-works">How It Works</a></h2>
+<div class="sectionbody">
+<div class="imageblock">
+<div class="content">
+<img src="https://raw.githubusercontent.com/spring-cloud/spring-cloud-gateway/master/docs/src/main/asciidoc/images/spring_cloud_gateway_diagram.png" alt="Spring Cloud Gateway Diagram">
+</div>
+</div>
+<div class="paragraph">
+<p>Clients make requests to Spring Cloud Gateway. If the Gateway Handler Mapping determines that a request matches a Route, it is sent to the Gateway Web Handler. This handler runs sends the request through a filter chain that is specific to the request. The reason the filters are divided by the dotted line, is that filters may execute logic before the proxy request is sent or after. All "pre" filter logic is executed, then the proxy request is made. After the proxy request is made, the "post" filter logic is executed.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+URIs defined in routes without a port will get a default port set to 80 and 443 for HTTP and HTTPS URIs respectively.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="gateway-request-predicates-factories"><a class="link" href="#gateway-request-predicates-factories">Route Predicate Factories</a></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Spring Cloud Gateway matches routes as part of the Spring WebFlux <code>HandlerMapping</code> infrastructure. Spring Cloud Gateway includes many built-in Route Predicate Factories. All of these predicates match on different attributes of the HTTP request. Multiple Route Predicate Factories can be combined and are combined via logical <code>and</code>.</p>
+</div>
+<div class="sect2">
+<h3 id="_after_route_predicate_factory"><a class="link" href="#_after_route_predicate_factory">After Route Predicate Factory</a></h3>
+<div class="paragraph">
+<p>The After Route Predicate Factory takes one parameter, a datetime. This predicate matches requests that happen after the current datetime.</p>
+</div>
+<div class="listingblock">
+<div class="title">application.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: after_route
+        uri: http://example.org
+        predicates:
+        - After=2017-01-20T17:42:47.789-07:00[America/Denver]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This route matches any request after Jan 20, 2017 17:42 Mountain Time (Denver).</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_before_route_predicate_factory"><a class="link" href="#_before_route_predicate_factory">Before Route Predicate Factory</a></h3>
+<div class="paragraph">
+<p>The Before Route Predicate Factory takes one parameter, a datetime. This predicate matches requests that happen before the current datetime.</p>
+</div>
+<div class="listingblock">
+<div class="title">application.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: before_route
+        uri: http://example.org
+        predicates:
+        - Before=2017-01-20T17:42:47.789-07:00[America/Denver]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This route matches any request before Jan 20, 2017 17:42 Mountain Time (Denver).</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_between_route_predicate_factory"><a class="link" href="#_between_route_predicate_factory">Between Route Predicate Factory</a></h3>
+<div class="paragraph">
+<p>The Between Route Predicate Factory takes two parameters, datetime1 and datetime2. This predicate matches requests that happen after datetime1 and before datetime2. The datetime2 parameter must be after datetime1.</p>
+</div>
+<div class="listingblock">
+<div class="title">application.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: between_route
+        uri: http://example.org
+        predicates:
+        - Between=2017-01-20T17:42:47.789-07:00[America/Denver], 2017-01-21T17:42:47.789-07:00[America/Denver]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This route matches any request after Jan 20, 2017 17:42 Mountain Time (Denver) and before Jan 21, 2017 17:42 Mountain Time (Denver). This could be useful for maintenance windows.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_cookie_route_predicate_factory"><a class="link" href="#_cookie_route_predicate_factory">Cookie Route Predicate Factory</a></h3>
+<div class="paragraph">
+<p>The Cookie Route Predicate Factory takes two parameters, the cookie name and a regular expression. This predicate matches cookies that have the given name and the value matches the regular expression.</p>
+</div>
+<div class="listingblock">
+<div class="title">application.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: cookie_route
+        uri: http://example.org
+        predicates:
+        - Cookie=chocolate, ch.p</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This route matches the request has a cookie named <code>chocolate</code> who&#8217;s value matches the <code>ch.p</code> regular expression.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_header_route_predicate_factory"><a class="link" href="#_header_route_predicate_factory">Header Route Predicate Factory</a></h3>
+<div class="paragraph">
+<p>The Header Route Predicate Factory takes two parameters, the header name and a regular expression. This predicate matches with a header that has the given name and the value matches the regular expression.</p>
+</div>
+<div class="listingblock">
+<div class="title">application.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: header_route
+        uri: http://example.org
+        predicates:
+        - Header=X-Request-Id, \d+</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This route matches if the request has a header named <code>X-Request-Id</code> whos value matches the <code>\d+</code> regular expression (has a value of one or more digits).</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_host_route_predicate_factory"><a class="link" href="#_host_route_predicate_factory">Host Route Predicate Factory</a></h3>
+<div class="paragraph">
+<p>The Host Route Predicate Factory takes one parameter: a list of host name patterns. The pattern is an Ant style pattern with <code>.</code> as the separator. This predicates matches the <code>Host</code> header that matches the pattern.</p>
+</div>
+<div class="listingblock">
+<div class="title">application.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: host_route
+        uri: http://example.org
+        predicates:
+        - Host=**.somehost.org,**.anotherhost.org</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>URI template variables are supported as well, such as <code>{sub}.myhost.org</code>.</p>
+</div>
+<div class="paragraph">
+<p>This route would match if the request has a <code>Host</code> header has the value <code>www.somehost.org</code> or <code>beta.somehost.org</code> or <code>www.anotherhost.org</code>.</p>
+</div>
+<div class="paragraph">
+<p>This predicate extracts the URI template variables (like <code>sub</code> defined in the example above) as a map of names and values and places it in the <code>ServerWebExchange.getAttributes()</code> with a key defined in <code>ServerWebExchangeUtils.URI_TEMPLATE_VARIABLES_ATTRIBUTE</code>. Those values are then available for use by <a href="#gateway-route-filters">GatewayFilter Factories</a></p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_method_route_predicate_factory"><a class="link" href="#_method_route_predicate_factory">Method Route Predicate Factory</a></h3>
+<div class="paragraph">
+<p>The Method Route Predicate Factory takes one parameter: the HTTP method to match.</p>
+</div>
+<div class="listingblock">
+<div class="title">application.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: method_route
+        uri: http://example.org
+        predicates:
+        - Method=GET</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This route would match if the request method was a <code>GET</code>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_path_route_predicate_factory"><a class="link" href="#_path_route_predicate_factory">Path Route Predicate Factory</a></h3>
+<div class="paragraph">
+<p>The Path Route Predicate Factory takes two parameter: a list of Spring <code>PathMatcher</code> patterns and an optional flag to <code>matchOptionalTrailingSeparator</code>.</p>
+</div>
+<div class="listingblock">
+<div class="title">application.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: host_route
+        uri: http://example.org
+        predicates:
+        - Path=/foo/{segment},/bar/{segment}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This route would match if the request path was, for example: <code>/foo/1</code> or <code>/foo/bar</code> or <code>/bar/baz</code>.</p>
+</div>
+<div class="paragraph">
+<p>This predicate extracts the URI template variables (like <code>segment</code> defined in the example above) as a map of names and values and places it in the <code>ServerWebExchange.getAttributes()</code> with a key defined in <code>ServerWebExchangeUtils.URI_TEMPLATE_VARIABLES_ATTRIBUTE</code>. Those values are then available for use by <a href="#gateway-route-filters">GatewayFilter Factories</a></p>
+</div>
+<div class="paragraph">
+<p>A utility method is available to make access to these variables easier.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">Map&lt;String, String&gt; uriVariables = ServerWebExchangeUtils.getPathPredicateVariables(exchange);
+
+String segment = uriVariables.get("segment");</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_query_route_predicate_factory"><a class="link" href="#_query_route_predicate_factory">Query Route Predicate Factory</a></h3>
+<div class="paragraph">
+<p>The Query Route Predicate Factory takes two parameters: a required <code>param</code> and an optional <code>regexp</code>.</p>
+</div>
+<div class="listingblock">
+<div class="title">application.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: query_route
+        uri: http://example.org
+        predicates:
+        - Query=baz</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This route would match if the request contained a <code>baz</code> query parameter.</p>
+</div>
+<div class="listingblock">
+<div class="title">application.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: query_route
+        uri: http://example.org
+        predicates:
+        - Query=foo, ba.</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This route would match if the request contained a <code>foo</code> query parameter whose value matched the <code>ba.</code> regexp, so <code>bar</code> and <code>baz</code> would match.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_remoteaddr_route_predicate_factory"><a class="link" href="#_remoteaddr_route_predicate_factory">RemoteAddr Route Predicate Factory</a></h3>
+<div class="paragraph">
+<p>The RemoteAddr Route Predicate Factory takes a list (min size 1) of CIDR-notation (IPv4 or IPv6) strings, e.g. <code>192.168.0.1/16</code> (where <code>192.168.0.1</code> is an IP address and <code>16</code> is a subnet mask).</p>
+</div>
+<div class="listingblock">
+<div class="title">application.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: remoteaddr_route
+        uri: http://example.org
+        predicates:
+        - RemoteAddr=192.168.1.1/24</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This route would match if the remote address of the request was, for example, <code>192.168.1.10</code>.</p>
+</div>
+<div class="sect3">
+<h4 id="_modifying_the_way_remote_addresses_are_resolved"><a class="link" href="#_modifying_the_way_remote_addresses_are_resolved">Modifying the way remote addresses are resolved</a></h4>
+<div class="paragraph">
+<p>By default the RemoteAddr Route Predicate Factory uses the remote address from the incoming request.
+This may not match the actual client IP address if Spring Cloud Gateway sits behind a proxy layer.</p>
+</div>
+<div class="paragraph">
+<p>You can customize the way that the remote address is resolved by setting a custom <code>RemoteAddressResolver</code>.
+Spring Cloud Gateway comes with one non-default remote address resolver which is based off of the <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-For">X-Forwarded-For header</a>, <code>XForwardedRemoteAddressResolver</code>.</p>
+</div>
+<div class="paragraph">
+<p><code>XForwardedRemoteAddressResolver</code> has two static constructor methods which take different approaches to security:</p>
+</div>
+<div class="paragraph">
+<p><code>XForwardedRemoteAddressResolver::trustAll</code> returns a <code>RemoteAddressResolver</code> which always takes the first IP address found in the <code>X-Forwarded-For</code> header.
+This approach is vulnerable to spoofing, as a malicious client could set an initial value for the <code>X-Forwarded-For</code> which would be accepted by the resolver.</p>
+</div>
+<div class="paragraph">
+<p><code>XForwardedRemoteAddressResolver::maxTrustedIndex</code> takes an index which correlates to the number of trusted infrastructure running in front of Spring Cloud Gateway.
+If Spring Cloud Gateway is, for example only accessible via HAProxy, then a value of 1 should be used.
+If two hops of trusted infrastructure are required before Spring Cloud Gateway is accessible, then a value of 2 should be used.</p>
+</div>
+<div class="paragraph">
+<p>Given the following header value:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code>X-Forwarded-For: 0.0.0.1, 0.0.0.2, 0.0.0.3</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>maxTrustedIndex</code> values below will yield the following remote addresses.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top"><code>maxTrustedIndex</code></th>
+<th class="tableblock halign-left valign-top">result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">[<code>Integer.MIN_VALUE</code>,0]</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(invalid, <code>IllegalArgumentException</code> during initialization)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0.0.0.3</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">2</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0.0.0.2</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0.0.0.1</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">[4, <code>Integer.MAX_VALUE</code>]</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0.0.0.1</p></td>
+</tr>
+</tbody>
+</table>
+<div id="gateway-route-filters" class="paragraph">
+<p>Using Java config:</p>
+</div>
+<div class="paragraph">
+<p>GatewayConfig.java</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">RemoteAddressResolver resolver = XForwardedRemoteAddressResolver
+    .maxTrustedIndex(1);
+
+...
+
+.route("direct-route",
+    r -&gt; r.remoteAddr("10.1.1.1", "10.10.1.1/24")
+        .uri("https://downstream1")
+.route("proxied-route",
+    r -&gt; r.remoteAddr(resolver,  "10.10.1.1", "10.10.1.1/24")
+        .uri("https://downstream2")
+)</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_gatewayfilter_factories"><a class="link" href="#_gatewayfilter_factories">GatewayFilter Factories</a></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Route filters allow the modification of the incoming HTTP request or outgoing HTTP response in some manner. Route filters are scoped to a particular route. Spring Cloud Gateway includes many built-in GatewayFilter Factories.</p>
+</div>
+<div class="paragraph">
+<p>NOTE For more detailed examples on how to use any of the following filters, take a look at the <a href="https://github.com/spring-cloud/spring-cloud-gateway/tree/master/spring-cloud-gateway-core/src/test/java/org/springframework/cloud/gateway/filter/factory">unit tests</a>.</p>
+</div>
+<div class="sect2">
+<h3 id="_addrequestheader_gatewayfilter_factory"><a class="link" href="#_addrequestheader_gatewayfilter_factory">AddRequestHeader GatewayFilter Factory</a></h3>
+<div class="paragraph">
+<p>The AddRequestHeader GatewayFilter Factory takes a name and value parameter.</p>
+</div>
+<div class="listingblock">
+<div class="title">application.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: add_request_header_route
+        uri: http://example.org
+        filters:
+        - AddRequestHeader=X-Request-Foo, Bar</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This will add <code>X-Request-Foo:Bar</code> header to the downstream request&#8217;s headers for all matching requests.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_addrequestparameter_gatewayfilter_factory"><a class="link" href="#_addrequestparameter_gatewayfilter_factory">AddRequestParameter GatewayFilter Factory</a></h3>
+<div class="paragraph">
+<p>The AddRequestParameter GatewayFilter Factory takes a name and value parameter.</p>
+</div>
+<div class="listingblock">
+<div class="title">application.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: add_request_parameter_route
+        uri: http://example.org
+        filters:
+        - AddRequestParameter=foo, bar</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This will add <code>foo=bar</code> to the downstream request&#8217;s query string for all matching requests.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_addresponseheader_gatewayfilter_factory"><a class="link" href="#_addresponseheader_gatewayfilter_factory">AddResponseHeader GatewayFilter Factory</a></h3>
+<div class="paragraph">
+<p>The AddResponseHeader GatewayFilter Factory takes a name and value parameter.</p>
+</div>
+<div class="listingblock">
+<div class="title">application.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: add_request_header_route
+        uri: http://example.org
+        filters:
+        - AddResponseHeader=X-Response-Foo, Bar</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This will add <code>X-Response-Foo:Bar</code> header to the downstream response&#8217;s headers for all matching requests.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="hystrix"><a class="link" href="#hystrix">Hystrix GatewayFilter Factory</a></h3>
+<div class="paragraph">
+<p><a href="https://github.com/Netflix/Hystrix">Hystrix</a> is a library from Netflix that implements the <a href="https://martinfowler.com/bliki/CircuitBreaker.html">circuit breaker pattern</a>.
+The Hystrix GatewayFilter allows you to introduce circuit breakers to your gateway routes, protecting your services from cascading failures and allowing you to provide fallback responses in the event of downstream failures.</p>
+</div>
+<div class="paragraph">
+<p>To enable Hystrix GatewayFilters in your project, add a dependency on <code>spring-cloud-starter-netflix-hystrix</code> from <a href="http://cloud.spring.io/spring-cloud-netflix/">Spring Cloud Netflix</a>.</p>
+</div>
+<div class="paragraph">
+<p>The Hystrix GatewayFilter Factory requires a single <code>name</code> parameter, which is the name of the <code>HystrixCommand</code>.</p>
+</div>
+<div class="listingblock">
+<div class="title">application.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: hystrix_route
+        uri: http://example.org
+        filters:
+        - Hystrix=myCommandName</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This wraps the remaining filters in a <code>HystrixCommand</code> with command name <code>myCommandName</code>.</p>
+</div>
+<div class="paragraph">
+<p>The Hystrix filter can also accept an optional <code>fallbackUri</code> parameter. Currently, only <code>forward:</code> schemed URIs are supported. If the fallback is called, the request will be forwarded to the controller matched by the URI.</p>
+</div>
+<div class="listingblock">
+<div class="title">application.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: hystrix_route
+        uri: lb://backing-service:8088
+        predicates:
+        - Path=/consumingserviceendpoint
+        filters:
+        - name: Hystrix
+          args:
+            name: fallbackcmd
+            fallbackUri: forward:/incaseoffailureusethis
+        - RewritePath=/consumingserviceendpoint, /backingserviceendpoint</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This will forward to the <code>/incaseoffailureusethis</code> URI when the Hystrix fallback is called. Note that this example also demonstrates (optional) Spring Cloud Netflix Ribbon load-balancing via the <code>lb</code> prefix on the destination URI.</p>
+</div>
+<div class="paragraph">
+<p>The primary scenario is to use the <code>fallbackUri</code> to an internal controller or handler within the gateway app.
+However, it is also possible to reroute the request to a controller or handler in an external application, like so:</p>
+</div>
+<div class="listingblock">
+<div class="title">application.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: ingredients
+        uri: lb://ingredients
+        predicates:
+        - Path=//ingredients/**
+        filters:
+        - name: Hystrix
+          args:
+            name: fetchIngredients
+            fallbackUri: forward:/fallback
+      - id: ingredients-fallback
+        uri: http://localhost:9994
+        predicates:
+        - Path=/fallback</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this example, there is no <code>fallback</code> endpoint or handler in the gateway application, however, there is one in another
+app, registered under <code><a href="http://localhost:9994" class="bare">http://localhost:9994</a></code>.</p>
+</div>
+<div class="paragraph">
+<p>In case of the request being forwarded to fallback, the Hystrix Gateway filter also provides the <code>Throwable</code> that has
+caused it. It&#8217;s added to the <code>ServerWebExchange</code> as the
+<code>ServerWebExchangeUtils.HYSTRIX_EXECUTION_EXCEPTION_ATTR</code> attribute that can be used when
+handling the fallback within the gateway app.</p>
+</div>
+<div class="paragraph">
+<p>For the external controller/ handler scenario, headers can be added with exception details. You can find more information
+on it in  the <a href="#fallback-headers">FallbackHeaders GatewayFilter Factory section</a>.</p>
+</div>
+<div class="paragraph">
+<p>Hystrix settings (such as timeouts) can be configured with global defaults or on a route by route basis using application properties as explained on the <a href="https://github.com/Netflix/Hystrix/wiki/Configuration">Hystrix wiki</a>.</p>
+</div>
+<div class="paragraph">
+<p>To set a 5 second timeout for the example route above, the following configuration would be used:</p>
+</div>
+<div class="listingblock">
+<div class="title">application.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">hystrix.command.fallbackcmd.execution.isolation.thread.timeoutInMilliseconds: 5000</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="fallback-headers"><a class="link" href="#fallback-headers">FallbackHeaders GatewayFilter Factory</a></h3>
+<div class="paragraph">
+<p>The <code>FallbackHeaders</code> factory allows you to add Hystrix execution exception details in headers of a request forwarded to
+a <code>fallbackUri</code> in an external application, like in the following scenario:</p>
+</div>
+<div class="listingblock">
+<div class="title">application.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: ingredients
+        uri: lb://ingredients
+        predicates:
+        - Path=//ingredients/**
+        filters:
+        - name: Hystrix
+          args:
+            name: fetchIngredients
+            fallbackUri: forward:/fallback
+      - id: ingredients-fallback
+        uri: http://localhost:9994
+        predicates:
+        - Path=/fallback
+        filters:
+        - name: FallbackHeaders
+          args:
+            executionExceptionTypeHeaderName: Test-Header</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this example, after an execution exception occurs while running the <code>HystrixCommand</code>, the request will be forwarde to
+the <code>fallback</code> endpoint or handler in an app running on <code>localhost:9994</code>. The headers with the exception type, message
+and -if available- root cause exception type and message will be added to that request by the <code>FallbackHeaders</code> filter.</p>
+</div>
+<div class="paragraph">
+<p>The names of the headers can be overwritten in the config by setting the values of the arguments listed below, along with
+their default values:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>executionExceptionTypeHeaderName</code> (<code>"Execution-Exception-Type"</code>)</p>
+</li>
+<li>
+<p><code>executionExceptionMessageHeaderName</code> (<code>"Execution-Exception-Message"</code>)</p>
+</li>
+<li>
+<p><code>rootCauseExceptionTypeHeaderName</code> (<code>"Root-Cause-Exception-Type"</code>)</p>
+</li>
+<li>
+<p><code>rootCauseExceptionMessageHeaderName</code> (<code>"Root-Cause-Exception-Message"</code>)</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>You can find more information on how Hystrix works with Gateway in the <a href="#hystrix">Hystrix GatewayFilter Factory section</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_prefixpath_gatewayfilter_factory"><a class="link" href="#_prefixpath_gatewayfilter_factory">PrefixPath GatewayFilter Factory</a></h3>
+<div class="paragraph">
+<p>The PrefixPath GatewayFilter Factory takes a single <code>prefix</code> parameter.</p>
+</div>
+<div class="listingblock">
+<div class="title">application.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: prefixpath_route
+        uri: http://example.org
+        filters:
+        - PrefixPath=/mypath</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This will prefix <code>/mypath</code> to the path of all matching requests. So a request to <code>/hello</code>, would be sent to <code>/mypath/hello</code>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_preservehostheader_gatewayfilter_factory"><a class="link" href="#_preservehostheader_gatewayfilter_factory">PreserveHostHeader GatewayFilter Factory</a></h3>
+<div class="paragraph">
+<p>The PreserveHostHeader GatewayFilter Factory has not parameters. This filter, sets a request attribute that the routing filter will inspect to determine if the original host header should be sent, rather than the host header determined by the http client.</p>
+</div>
+<div class="listingblock">
+<div class="title">application.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: preserve_host_route
+        uri: http://example.org
+        filters:
+        - PreserveHostHeader</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_requestratelimiter_gatewayfilter_factory"><a class="link" href="#_requestratelimiter_gatewayfilter_factory">RequestRateLimiter GatewayFilter Factory</a></h3>
+<div class="paragraph">
+<p>The RequestRateLimiter GatewayFilter Factory is uses a <code>RateLimiter</code> implementation to determine if the current request is allowed to proceed. If it is not, a status of <code>HTTP 429 - Too Many Requests</code> (by default) is returned.</p>
+</div>
+<div class="paragraph">
+<p>This filter takes an optional <code>keyResolver</code> parameter and parameters specific to the rate limiter (see below).</p>
+</div>
+<div class="paragraph">
+<p><code>keyResolver</code> is a bean that implements the <code>KeyResolver</code> interface. In configuration, reference the bean by name using SpEL. <code>#{@myKeyResolver}</code> is a SpEL expression referencing a bean with the name <code>myKeyResolver</code>.</p>
+</div>
+<div class="listingblock">
+<div class="title">KeyResolver.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">public interface KeyResolver {
+	Mono&lt;String&gt; resolve(ServerWebExchange exchange);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>KeyResolver</code> interface allows pluggable strategies to derive the key for limiting requests. In future milestones, there will be some <code>KeyResolver</code> implementations.</p>
+</div>
+<div class="paragraph">
+<p>The default implementation of <code>KeyResolver</code> is the <code>PrincipalNameKeyResolver</code> which retrieves the <code>Principal</code> from the <code>ServerWebExchange</code> and calls <code>Principal.getName()</code>.</p>
+</div>
+<div class="paragraph">
+<p>By default, if the <code>KeyResolver</code> does not find a key, requests will be denied. This behavior can be adjust with the <code>spring.cloud.gateway.filter.request-rate-limiter.deny-empty-key</code> (true or false) and <code>spring.cloud.gateway.filter.request-rate-limiter.empty-key-status-code</code> properties.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The RequestRateLimiter is not configurable via the "shortcut" notation. The example below is <em>invalid</em>
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="title">application.properties</div>
+<div class="content">
+<pre># INVALID SHORTCUT CONFIGURATION
+spring.cloud.gateway.routes[0].filters[0]=RequestRateLimiter=2, 2, #{@userkeyresolver}</pre>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_redis_ratelimiter"><a class="link" href="#_redis_ratelimiter">Redis RateLimiter</a></h4>
+<div class="paragraph">
+<p>The redis implementation is based off of work done at <a href="https://stripe.com/blog/rate-limiters">Stripe</a>. It requires the use of the <code>spring-boot-starter-data-redis-reactive</code> Spring Boot starter.</p>
+</div>
+<div class="paragraph">
+<p>The algorithm used is the <a href="https://en.wikipedia.org/wiki/Token_bucket">Token Bucket Algorithm</a>.</p>
+</div>
+<div class="paragraph">
+<p>The <code>redis-rate-limiter.replenishRate</code> is how many requests per second do you want a user to be allowed to do, without any dropped requests. This is the rate that the token bucket is filled.</p>
+</div>
+<div class="paragraph">
+<p>The <code>redis-rate-limiter.burstCapacity</code> is the maximum number of requests a user is allowed to do in a single second. This is the number of tokens the token bucket can hold. Setting this value to zero will block all requests.</p>
+</div>
+<div class="paragraph">
+<p>A steady rate is accomplished by setting the same value in <code>replenishRate</code> and <code>burstCapacity</code>. Temporary bursts can be allowed by setting <code>burstCapacity</code> higher than <code>replenishRate</code>. In this case, the rate limiter needs to be allowed some time between bursts (according to <code>replenishRate</code>), as 2 consecutive bursts will result in dropped requests (<code>HTTP 429 - Too Many Requests</code>).</p>
+</div>
+<div class="listingblock">
+<div class="title">application.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: requestratelimiter_route
+        uri: http://example.org
+        filters:
+        - name: RequestRateLimiter
+          args:
+            redis-rate-limiter.replenishRate: 10
+            redis-rate-limiter.burstCapacity: 20</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Config.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Bean
+KeyResolver userKeyResolver() {
+    return exchange -&gt; Mono.just(exchange.getRequest().getQueryParams().getFirst("user"));
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This defines a request rate limit of 10 per user. A burst of 20 is allowed, but the next second only 10 requests will be available. The <code>KeyResolver</code> is a simple one that gets the <code>user</code> request parameter (note: this is not recommended for production).</p>
+</div>
+<div class="paragraph">
+<p>A rate limiter can also be defined as a bean implementing the <code>RateLimiter</code> interface. In configuration, reference the bean by name using SpEL. <code>#{@myRateLimiter}</code> is a SpEL expression referencing a bean with the name <code>myRateLimiter</code>.</p>
+</div>
+<div class="listingblock">
+<div class="title">application.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: requestratelimiter_route
+        uri: http://example.org
+        filters:
+        - name: RequestRateLimiter
+          args:
+            rate-limiter: "#{@myRateLimiter}"
+            key-resolver: "#{@userKeyResolver}"</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_redirectto_gatewayfilter_factory"><a class="link" href="#_redirectto_gatewayfilter_factory">RedirectTo GatewayFilter Factory</a></h3>
+<div class="paragraph">
+<p>The RedirectTo GatewayFilter Factory takes a <code>status</code> and a <code>url</code> parameter. The status should be a 300 series redirect http code, such as 301. The url should be a valid url. This will be the value of the <code>Location</code> header.</p>
+</div>
+<div class="listingblock">
+<div class="title">application.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: prefixpath_route
+        uri: http://example.org
+        filters:
+        - RedirectTo=302, http://acme.org</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This will send a status 302 with a <code>Location:http://acme.org</code> header to perform a redirect.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_removehopbyhopheadersfilter_gatewayfilter_factory"><a class="link" href="#_removehopbyhopheadersfilter_gatewayfilter_factory">RemoveHopByHopHeadersFilter GatewayFilter Factory</a></h3>
+<div class="paragraph">
+<p>The RemoveHopByHopHeadersFilter GatewayFilter Factory removes headers from forwarded requests. The default list of headers that is removed comes from the <a href="https://tools.ietf.org/html/draft-ietf-httpbis-p1-messaging-14#section-7.1.3">IETF</a>.</p>
+</div>
+<div class="ulist">
+<div class="title">The default removed headers are:</div>
+<ul>
+<li>
+<p>Connection</p>
+</li>
+<li>
+<p>Keep-Alive</p>
+</li>
+<li>
+<p>Proxy-Authenticate</p>
+</li>
+<li>
+<p>Proxy-Authorization</p>
+</li>
+<li>
+<p>TE</p>
+</li>
+<li>
+<p>Trailer</p>
+</li>
+<li>
+<p>Transfer-Encoding</p>
+</li>
+<li>
+<p>Upgrade</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>To change this, set the <code>spring.cloud.gateway.filter.remove-non-proxy-headers.headers</code> property to the list of header names to remove.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_removerequestheader_gatewayfilter_factory"><a class="link" href="#_removerequestheader_gatewayfilter_factory">RemoveRequestHeader GatewayFilter Factory</a></h3>
+<div class="paragraph">
+<p>The RemoveRequestHeader GatewayFilter Factory takes a <code>name</code> parameter. It is the name of the header to be removed.</p>
+</div>
+<div class="listingblock">
+<div class="title">application.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: removerequestheader_route
+        uri: http://example.org
+        filters:
+        - RemoveRequestHeader=X-Request-Foo</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This will remove the <code>X-Request-Foo</code> header before it is sent downstream.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_removeresponseheader_gatewayfilter_factory"><a class="link" href="#_removeresponseheader_gatewayfilter_factory">RemoveResponseHeader GatewayFilter Factory</a></h3>
+<div class="paragraph">
+<p>The RemoveResponseHeader GatewayFilter Factory takes a <code>name</code> parameter. It is the name of the header to be removed.</p>
+</div>
+<div class="listingblock">
+<div class="title">application.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: removeresponseheader_route
+        uri: http://example.org
+        filters:
+        - RemoveResponseHeader=X-Response-Foo</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This will remove the <code>X-Response-Foo</code> header from the response before it is returned to the gateway client.</p>
+</div>
+<div class="paragraph">
+<p>To remove any kind of sensitive header you should configure this filter for any routes that you may
+want to do so.  In addition you can configure this filter once using <code>spring.cloud.gateway.default-filters</code>
+and have it applied to all routes.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_rewritepath_gatewayfilter_factory"><a class="link" href="#_rewritepath_gatewayfilter_factory">RewritePath GatewayFilter Factory</a></h3>
+<div class="paragraph">
+<p>The RewritePath GatewayFilter Factory takes a path <code>regexp</code> parameter and a <code>replacement</code> parameter. This uses Java regular expressions for a flexible way to rewrite the request path.</p>
+</div>
+<div class="listingblock">
+<div class="title">application.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: rewritepath_route
+        uri: http://example.org
+        predicates:
+        - Path=/foo/**
+        filters:
+        - RewritePath=/foo/(?&lt;segment&gt;.*), /$\{segment}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For a request path of <code>/foo/bar</code>, this will set the path to <code>/bar</code> before making the downstream request. Notice the <code>$\</code> which is replaced with <code>$</code> because of the YAML spec.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_rewriteresponseheader_gatewayfilter_factory"><a class="link" href="#_rewriteresponseheader_gatewayfilter_factory">RewriteResponseHeader GatewayFilter Factory</a></h3>
+<div class="paragraph">
+<p>The RewriteResponseHeader GatewayFilter Factory takes <code>name</code>, <code>regexp</code>, and <code>replacement</code> parameters. It uses Java regular expressions for a flexible way to rewrite the response header value.</p>
+</div>
+<div class="listingblock">
+<div class="title">application.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: rewriteresponseheader_route
+        uri: http://example.org
+        filters:
+        - RewriteResponseHeader=X-Response-Foo, , password=[^&amp;]+, password=***</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For a header value of <code>/42?user=ford&amp;password=omg!what&amp;flag=true</code>, it will be set to <code>/42?user=ford&amp;password=***&amp;flag=true</code> after making the downstream request. Please use <code>$\</code> to mean <code>$</code> because of the YAML spec.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_savesession_gatewayfilter_factory"><a class="link" href="#_savesession_gatewayfilter_factory">SaveSession GatewayFilter Factory</a></h3>
+<div class="paragraph">
+<p>The SaveSession GatewayFilter Factory forces a <code>WebSession::save</code> operation <em>before</em> forwarding the call downstream. This is of particular use when
+using something like <a href="http://projects.spring.io/spring-session/">Spring Session</a> with a lazy data store and need to ensure the session state has been saved before making the forwarded call.</p>
+</div>
+<div class="listingblock">
+<div class="title">application.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: save_session
+        uri: http://example.org
+        predicates:
+        - Path=/foo/**
+        filters:
+        - SaveSession</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you are integrating <a href="http://projects.spring.io/spring-security/">Spring Security</a> with Spring Session, and want to ensure security details have been forwarded to the remote process, this is critical.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_secureheaders_gatewayfilter_factory"><a class="link" href="#_secureheaders_gatewayfilter_factory">SecureHeaders GatewayFilter Factory</a></h3>
+<div class="paragraph">
+<p>The SecureHeaders GatewayFilter Factory adds a number of headers to the response at the reccomendation from <a href="https://blog.appcanary.com/2017/http-security-headers.html">this blog post</a>.</p>
+</div>
+<div class="ulist">
+<div class="title">The following headers are added (allong with default values):</div>
+<ul>
+<li>
+<p><code>X-Xss-Protection:1; mode=block</code></p>
+</li>
+<li>
+<p><code>Strict-Transport-Security:max-age=631138519</code></p>
+</li>
+<li>
+<p><code>X-Frame-Options:DENY</code></p>
+</li>
+<li>
+<p><code>X-Content-Type-Options:nosniff</code></p>
+</li>
+<li>
+<p><code>Referrer-Policy:no-referrer</code></p>
+</li>
+<li>
+<p><code>Content-Security-Policy:default-src 'self' https:; font-src 'self' https: data:; img-src 'self' https: data:; object-src 'none'; script-src https:; style-src 'self' https: 'unsafe-inline'</code></p>
+</li>
+<li>
+<p><code>X-Download-Options:noopen</code></p>
+</li>
+<li>
+<p><code>X-Permitted-Cross-Domain-Policies:none</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>To change the default values set the appropriate property in the <code>spring.cloud.gateway.filter.secure-headers</code> namespace:</p>
+</div>
+<div class="ulist">
+<div class="title">Property to change:</div>
+<ul>
+<li>
+<p><code>xss-protection-header</code></p>
+</li>
+<li>
+<p><code>strict-transport-security</code></p>
+</li>
+<li>
+<p><code>frame-options</code></p>
+</li>
+<li>
+<p><code>content-type-options</code></p>
+</li>
+<li>
+<p><code>referrer-policy</code></p>
+</li>
+<li>
+<p><code>content-security-policy</code></p>
+</li>
+<li>
+<p><code>download-options</code></p>
+</li>
+<li>
+<p><code>permitted-cross-domain-policies</code></p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_setpath_gatewayfilter_factory"><a class="link" href="#_setpath_gatewayfilter_factory">SetPath GatewayFilter Factory</a></h3>
+<div class="paragraph">
+<p>The SetPath GatewayFilter Factory takes a path <code>template</code> parameter. It offers a simple way to manipulate the request path by allowing templated segments of the path. This uses the uri templates from Spring Framework. Multiple matching segments are allowed.</p>
+</div>
+<div class="listingblock">
+<div class="title">application.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: setpath_route
+        uri: http://example.org
+        predicates:
+        - Path=/foo/{segment}
+        filters:
+        - SetPath=/{segment}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For a request path of <code>/foo/bar</code>, this will set the path to <code>/bar</code> before making the downstream request.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_setresponseheader_gatewayfilter_factory"><a class="link" href="#_setresponseheader_gatewayfilter_factory">SetResponseHeader GatewayFilter Factory</a></h3>
+<div class="paragraph">
+<p>The SetResponseHeader GatewayFilter Factory takes <code>name</code> and <code>value</code> parameters.</p>
+</div>
+<div class="listingblock">
+<div class="title">application.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: setresponseheader_route
+        uri: http://example.org
+        filters:
+        - SetResponseHeader=X-Response-Foo, Bar</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This GatewayFilter replaces all headers with the given name, rather than adding. So if the downstream server responded with a <code>X-Response-Foo:1234</code>, this would be replaced with <code>X-Response-Foo:Bar</code>, which is what the gateway client would receive.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_setstatus_gatewayfilter_factory"><a class="link" href="#_setstatus_gatewayfilter_factory">SetStatus GatewayFilter Factory</a></h3>
+<div class="paragraph">
+<p>The SetStatus GatewayFilter Factory takes a single <code>status</code> parameter. It must be a valid Spring <code>HttpStatus</code>. It may be the integer value <code>404</code> or the string representation of the enumeration <code>NOT_FOUND</code>.</p>
+</div>
+<div class="listingblock">
+<div class="title">application.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: setstatusstring_route
+        uri: http://example.org
+        filters:
+        - SetStatus=BAD_REQUEST
+      - id: setstatusint_route
+        uri: http://example.org
+        filters:
+        - SetStatus=401</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In either case, the HTTP status of the response will be set to 401.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_stripprefix_gatewayfilter_factory"><a class="link" href="#_stripprefix_gatewayfilter_factory">StripPrefix GatewayFilter Factory</a></h3>
+<div class="paragraph">
+<p>The StripPrefix GatewayFilter Factory takes one paramter, <code>parts</code>.  The <code>parts</code> parameter indicated the number of parts in the path to strip from the request before sending it downstream.</p>
+</div>
+<div class="listingblock">
+<div class="title">application.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: nameRoot
+        uri: http://nameservice
+        predicates:
+        - Path=/name/**
+        filters:
+        - StripPrefix=2</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When a request is made through the gateway to <code>/name/bar/foo</code> the request made to <code>nameservice</code> will look like <code><a href="http://nameservice/foo" class="bare">http://nameservice/foo</a></code>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_retry_gatewayfilter_factory"><a class="link" href="#_retry_gatewayfilter_factory">Retry GatewayFilter Factory</a></h3>
+<div class="paragraph">
+<p>The Retry GatewayFilter Factory takes <code>retries</code>, <code>statuses</code>, <code>methods</code>, and <code>series</code> as parameters.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>retries</code>: the number of retries that should be attempted</p>
+</li>
+<li>
+<p><code>statuses</code>: the HTTP status codes that should be retried, represented using <code>org.springframework.http.HttpStatus</code></p>
+</li>
+<li>
+<p><code>methods</code>: the HTTP methods that should be retried, represented using <code>org.springframework.http.HttpMethod</code></p>
+</li>
+<li>
+<p><code>series</code>: the series of status codes to be retried, represented using <code>org.springframework.http.HttpStatus.Series</code></p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">application.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: retry_test
+        uri: http://localhost:8080/flakey
+        predicates:
+        - Host=*.retry.com
+        filters:
+        - name: Retry
+          args:
+            retries: 3
+            statuses: BAD_GATEWAY</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The retry filter does not currently support retrying with a body (e.g. for POST or PUT requests with a body).
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+When using the retry filter with a <code>forward:</code> prefixed URL, the target endpoint should be written carefully so that in case of an error it does not do anything that could result in a response being sent to the client and committed. For example, if the target endpoint is an annotated controller, the target controller method should not return <code>ResponseEntity</code> with an error status code. Instead it should throw an <code>Exception</code>, or signal an error, e.g. via a <code>Mono.error(ex)</code> return value, which the retry filter can be configured to handle by retrying.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_requestsize_gatewayfilter_factory"><a class="link" href="#_requestsize_gatewayfilter_factory">RequestSize GatewayFilter Factory</a></h3>
+<div class="paragraph">
+<p>The RequestSize GatewayFilter Factory can restrict a request from reaching the downstream service , when the request size is greater than the permissible limit. The filter takes <code>RequestSize</code> as parameter which is the permissible size limit of the request defined in bytes.</p>
+</div>
+<div class="listingblock">
+<div class="title">application.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: request_size_route
+      uri: http://localhost:8080/upload
+      predicates:
+      - Path=/upload
+      filters:
+      - name: RequestSize
+        args:
+          maxSize: 5000000</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The RequestSize GatewayFilter Factory set the response status as <code>413 Payload Too Large</code> with a additional header <code>errorMessage</code> when the Request is rejected due to size. Following is an example of such an <code>errorMessage</code> .</p>
+</div>
+<div class="paragraph">
+<p><code>errorMessage</code> : <code>Request size is larger than permissible limit. Request size is 6.0 MB where permissible limit is 5.0 MB</code></p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The default Request size will be set to 5 MB if not provided as filter argument in route definition.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_modify_request_body_gatewayfilter_factory"><a class="link" href="#_modify_request_body_gatewayfilter_factory">Modify Request Body GatewayFilter Factory</a></h3>
+<div class="paragraph">
+<p><strong>This filter is considered BETA and the API may change in the future</strong></p>
+</div>
+<div class="paragraph">
+<p>This filter can be used to modify the request body before it is sent downstream by the Gateway.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+This filter can only be configured using the Java DSL
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Bean
+public RouteLocator routes(RouteLocatorBuilder builder) {
+    return builder.routes()
+        .route("rewrite_request_obj", r -&gt; r.host("*.rewriterequestobj.org")
+            .filters(f -&gt; f.prefixPath("/httpbin")
+                .modifyRequestBody(String.class, Hello.class, MediaType.APPLICATION_JSON_VALUE,
+                    (exchange, s) -&gt; return Mono.just(new Hello(s.toUpperCase())))).uri(uri))
+        .build();
+}
+
+static class Hello {
+    String message;
+
+    public Hello() { }
+
+    public Hello(String message) {
+        this.message = message;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_modify_response_body_gatewayfilter_factory"><a class="link" href="#_modify_response_body_gatewayfilter_factory">Modify Response Body GatewayFilter Factory</a></h3>
+<div class="paragraph">
+<p><strong>This filter is considered BETA and the API may change in the future</strong></p>
+</div>
+<div class="paragraph">
+<p>This filter can be used to modify the response body before it is sent back to the Client.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+This filter can only be configured using the Java DSL
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Bean
+public RouteLocator routes(RouteLocatorBuilder builder) {
+    return builder.routes()
+        .route("rewrite_response_upper", r -&gt; r.host("*.rewriteresponseupper.org")
+            .filters(f -&gt; f.prefixPath("/httpbin")
+        		.modifyResponseBody(String.class, String.class,
+        		    (exchange, s) -&gt; Mono.just(s.toUpperCase()))).uri(uri)
+        .build();
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_default_filters"><a class="link" href="#_default_filters">Default Filters</a></h3>
+<div class="paragraph">
+<p>If you would like to add a filter and apply it to all routes you can use <code>spring.cloud.gateway.default-filters</code>.
+This property takes a list of filters</p>
+</div>
+<div class="listingblock">
+<div class="title">application.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  cloud:
+    gateway:
+      default-filters:
+      - AddResponseHeader=X-Response-Default-Foo, Default-Bar
+      - PrefixPath=/httpbin</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_global_filters"><a class="link" href="#_global_filters">Global Filters</a></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>GlobalFilter</code> interface has the same signature as <code>GatewayFilter</code>. These are special filters that are conditionally applied to all routes. (This interface and usage are subject to change in future milestones).</p>
+</div>
+<div class="sect2">
+<h3 id="_combined_global_filter_and_gatewayfilter_ordering"><a class="link" href="#_combined_global_filter_and_gatewayfilter_ordering">Combined Global Filter and GatewayFilter Ordering</a></h3>
+<div class="paragraph">
+<p>When a request comes in (and matches a Route) the Filtering Web Handler will add all instances of <code>GlobalFilter</code> and all route specific instances of <code>GatewayFilter</code> to a filter chain. This combined filter chain is sorted by the <code>org.springframework.core.Ordered</code> interface, which can be set by implementing the <code>getOrder()</code> method or by using the <code>@Order</code> annotation.</p>
+</div>
+<div class="paragraph">
+<p>As Spring Cloud Gateway distinguishes between "pre" and "post" phases for filter logic execution (see: How It Works), the filter with the highest precedence will be the first in the "pre"-phase and the last in the "post"-phase.</p>
+</div>
+<div class="listingblock">
+<div class="title">ExampleConfiguration.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Bean
+@Order(-1)
+public GlobalFilter a() {
+    return (exchange, chain) -&gt; {
+        log.info("first pre filter");
+        return chain.filter(exchange).then(Mono.fromRunnable(() -&gt; {
+            log.info("third post filter");
+        }));
+    };
+}
+
+@Bean
+@Order(0)
+public GlobalFilter b() {
+    return (exchange, chain) -&gt; {
+        log.info("second pre filter");
+        return chain.filter(exchange).then(Mono.fromRunnable(() -&gt; {
+            log.info("second post filter");
+        }));
+    };
+}
+
+@Bean
+@Order(1)
+public GlobalFilter c() {
+    return (exchange, chain) -&gt; {
+        log.info("third pre filter");
+        return chain.filter(exchange).then(Mono.fromRunnable(() -&gt; {
+            log.info("first post filter");
+        }));
+    };
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_forward_routing_filter"><a class="link" href="#_forward_routing_filter">Forward Routing Filter</a></h3>
+<div class="paragraph">
+<p>The <code>ForwardRoutingFilter</code> looks for a URI in the exchange attribute <code>ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR</code>. If the url has a <code>forward</code> scheme (ie <code>forward:///localendpoint</code>), it will use the Spring <code>DispatcherHandler</code> to handler the request.  The path part of the request URL will be overridden with the path in the forward URL. The unmodified original url is appended to the list in the <code>ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR</code> attribute.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_loadbalancerclient_filter"><a class="link" href="#_loadbalancerclient_filter">LoadBalancerClient Filter</a></h3>
+<div class="paragraph">
+<p>The <code>LoadBalancerClientFilter</code> looks for a URI in the exchange attribute <code>ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR</code>. If the url has a <code>lb</code> scheme (ie <code>lb://myservice</code>), it will use the Spring Cloud <code>LoadBalancerClient</code> to resolve the name (<code>myservice</code> in the previous example) to an actual host and port and replace the URI in the same attribute. The unmodified original url is appended to the list in the <code>ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR</code> attribute. The filter will also look in the <code>ServerWebExchangeUtils.GATEWAY_SCHEME_PREFIX_ATTR</code> attribute to see if it equals <code>lb</code> and then the same rules apply.</p>
+</div>
+<div class="listingblock">
+<div class="title">application.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: myRoute
+        uri: lb://service
+        predicates:
+        - Path=/service/**</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+By default when a service instance cannot be found in the <code>LoadBalancer</code> a <code>503</code> will be returned.
+You can configure the Gateway to return a <code>404</code> by setting <code>spring.cloud.gateway.loadbalancer.use404=true</code>.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The <code>isSecure</code> value of the <code>ServiceInstance</code> returned from the <code>LoadBalancer</code> will override
+the scheme specified in the request made to the Gateway.  For example, if the request comes into the Gateway over <code>HTTPS</code>
+but the <code>ServiceInstance</code> indicates it is not secure, then the downstream request will be made over
+<code>HTTP</code>.  The opposite situation can also apply.  However if <code>GATEWAY_SCHEME_PREFIX_ATTR</code> is specified for the
+route in the Gateway configuration, the prefix will be stripped and the resulting scheme from the
+route URL will override the <code>ServiceInstance</code> configuration.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_netty_routing_filter"><a class="link" href="#_netty_routing_filter">Netty Routing Filter</a></h3>
+<div class="paragraph">
+<p>The Netty Routing Filter runs if the url located in the <code>ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR</code> exchange attribute has a <code>http</code> or <code>https</code> scheme. It uses the Netty <code>HttpClient</code> to make the downstream proxy request. The response is put in the <code>ServerWebExchangeUtils.CLIENT_RESPONSE_ATTR</code> exchange attribute for use in a later filter. (There is an experimental <code>WebClientHttpRoutingFilter</code> that performs the same function, but does not require netty)</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_netty_write_response_filter"><a class="link" href="#_netty_write_response_filter">Netty Write Response Filter</a></h3>
+<div class="paragraph">
+<p>The <code>NettyWriteResponseFilter</code> runs if there is a Netty <code>HttpClientResponse</code> in the <code>ServerWebExchangeUtils.CLIENT_RESPONSE_ATTR</code> exchange attribute. It is run after all other filters have completed and writes the proxy response back to the gateway client response. (There is an experimental <code>WebClientWriteResponseFilter</code> that performs the same function, but does not require netty)</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_routetorequesturl_filter"><a class="link" href="#_routetorequesturl_filter">RouteToRequestUrl Filter</a></h3>
+<div class="paragraph">
+<p>The <code>RouteToRequestUrlFilter</code> runs if there is a <code>Route</code> object in the <code>ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR</code> exchange attribute. It creates a new URI, based off of the request URI, but updated with the URI attribute of the <code>Route</code> object. The new URI is placed in the <code>ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR</code> exchange attribute`.</p>
+</div>
+<div class="paragraph">
+<p>If the URI has a scheme prefix, such as <code>lb:ws://serviceid</code>, the <code>lb</code> scheme is stripped from the URI and placed in the <code>ServerWebExchangeUtils.GATEWAY_SCHEME_PREFIX_ATTR</code> for use later in the filter chain.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_websocket_routing_filter"><a class="link" href="#_websocket_routing_filter">Websocket Routing Filter</a></h3>
+<div class="paragraph">
+<p>The Websocket Routing Filter runs if the url located in the <code>ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR</code> exchange attribute has a <code>ws</code> or <code>wss</code> scheme. It uses the Spring Web Socket infrastructure to forward the Websocket request downstream.</p>
+</div>
+<div class="paragraph">
+<p>Websockets may be load-balanced by prefixing the URI with <code>lb</code>, such as <code>lb:ws://serviceid</code>.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+If you are using <a href="https://github.com/sockjs">SockJS</a> as a fallback over normal http, you should configure a normal HTTP route as well as the Websocket Route.
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="title">application.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  cloud:
+    gateway:
+      routes:
+      # SockJS route
+      - id: websocket_sockjs_route
+        uri: http://localhost:3001
+        predicates:
+        - Path=/websocket/info/**
+      # Normwal Websocket route
+      - id: websocket_route
+        uri: ws://localhost:3001
+        predicates:
+        - Path=/websocket/**</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_gateway_metrics_filter"><a class="link" href="#_gateway_metrics_filter">Gateway Metrics Filter</a></h3>
+<div class="paragraph">
+<p>To enable Gateway Metrics add spring-boot-starter-actuator as a project dependency. Then, by default, the Gateway Metrics Filter runs as long as the property <code>spring.cloud.gateway.metrics.enabled</code> is not set to <code>false</code>. This filter adds a timer metric named "gateway.requests" with the following tags:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>routeId</code>: The route id</p>
+</li>
+<li>
+<p><code>routeUri</code>: The URI that the API will be routed to</p>
+</li>
+<li>
+<p><code>outcome</code>: Outcome as classified by <a href="https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/http/HttpStatus.Series.html">HttpStatus.Series</a></p>
+</li>
+<li>
+<p><code>status</code>: Http Status of the request returned to the client</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>These metrics are then available to be scraped from <code>/actuator/metrics/gateway.requests</code> and can be easily integated with Prometheus to create a <a href="images/gateway-grafana-dashboard.jpeg">Grafana</a> <a href="gateway-grafana-dashboard.json">dashboard</a>.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+To enable the pometheus endpoint add micrometer-registry-prometheus as a project dependency.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_marking_an_exchange_as_routed"><a class="link" href="#_marking_an_exchange_as_routed">Marking An Exchange As Routed</a></h3>
+<div class="paragraph">
+<p>After the Gateway has routed a <code>ServerWebExchange</code> it will mark that exchange as "routed" by adding <code>gatewayAlreadyRouted</code>
+to the exchange attributes.  Once a request has been marked as routed, other routing filters will not route the request again,
+essentially skipping the filter.  There are convenience methods that you can use to mark an exchange as routed
+or check if an exchange has already been routed.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>ServerWebExchangeUtils.isAlreadyRouted</code> takes a <code>ServerWebExchange</code> object and checks if it has been "routed"</p>
+</li>
+<li>
+<p><code>ServerWebExchangeUtils.setAlreadyRouted</code> takes a <code>ServerWebExchange</code> object and marks it as "routed"</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_tls_ssl"><a class="link" href="#_tls_ssl">TLS / SSL</a></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The Gateway can listen for requests on https by following the usual Spring server configuration. Example:</p>
+</div>
+<div class="listingblock">
+<div class="title">application.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">server:
+  ssl:
+    enabled: true
+    key-alias: scg
+    key-store-password: scg1234
+    key-store: classpath:scg-keystore.p12
+    key-store-type: PKCS12</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Gateway routes can be routed to both http and https backends. If routing to a https backend then the Gateway can be configured to trust all downstream certificates with the following configuration:</p>
+</div>
+<div class="listingblock">
+<div class="title">application.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  cloud:
+    gateway:
+      httpclient:
+        ssl:
+          useInsecureTrustManager: true</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Using an insecure trust manager is not suitable for production. For a production deployment the Gateway can be configured with a set of known certificates that it can trust with the follwing configuration:</p>
+</div>
+<div class="listingblock">
+<div class="title">application.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  cloud:
+    gateway:
+      httpclient:
+        ssl:
+          trustedX509Certificates:
+          - cert1.pem
+          - cert2.pem</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If the Spring Cloud Gateway is not provisioned with trusted certificates the default trust store is used (which can be overriden with system property javax.net.ssl.trustStore).</p>
+</div>
+<div class="sect2">
+<h3 id="_tls_handshake"><a class="link" href="#_tls_handshake">TLS Handshake</a></h3>
+<div class="paragraph">
+<p>The Gateway maintains a client pool that it uses to route to backends. When communicating over https the client initiates a TLS handshake. A number of timeouts are assoicated with this handshake. These timeouts can be configured (defaults shown):</p>
+</div>
+<div class="listingblock">
+<div class="title">application.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  cloud:
+    gateway:
+      httpclient:
+        ssl:
+          handshake-timeout-millis: 10000
+          close-notify-flush-timeout-millis: 3000
+          close-notify-read-timeout-millis: 0</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_configuration"><a class="link" href="#_configuration">Configuration</a></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Configuration for Spring Cloud Gateway is driven by a collection of `RouteDefinitionLocator`s.</p>
+</div>
+<div class="listingblock">
+<div class="title">RouteDefinitionLocator.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">public interface RouteDefinitionLocator {
+	Flux&lt;RouteDefinition&gt; getRouteDefinitions();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>By default, a <code>PropertiesRouteDefinitionLocator</code> loads properties using Spring Boot&#8217;s <code>@ConfigurationProperties</code> mechanism.</p>
+</div>
+<div class="paragraph">
+<p>The configuration examples above all use a shortcut notation that uses positional arguments rather than named ones. The two examples below are equivalent:</p>
+</div>
+<div class="listingblock">
+<div class="title">application.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: setstatus_route
+        uri: http://example.org
+        filters:
+        - name: SetStatus
+          args:
+            status: 401
+      - id: setstatusshortcut_route
+        uri: http://example.org
+        filters:
+        - SetStatus=401</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For some usages of the gateway, properties will be adequate, but some production use cases will benefit from loading configuration from an external source, such as a database. Future milestone versions will have <code>RouteDefinitionLocator</code> implementations based off of Spring Data Repositories such as: Redis, MongoDB and Cassandra.</p>
+</div>
+<div class="sect2">
+<h3 id="_fluent_java_routes_api"><a class="link" href="#_fluent_java_routes_api">Fluent Java Routes API</a></h3>
+<div class="paragraph">
+<p>To allow for simple configuration in Java, there is a fluent API defined in the <code>RouteLocatorBuilder</code> bean.</p>
+</div>
+<div class="listingblock">
+<div class="title">GatewaySampleApplication.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">// static imports from GatewayFilters and RoutePredicates
+@Bean
+public RouteLocator customRouteLocator(RouteLocatorBuilder builder, ThrottleGatewayFilterFactory throttle) {
+    return builder.routes()
+            .route(r -&gt; r.host("**.abc.org").and().path("/image/png")
+                .filters(f -&gt;
+                        f.addResponseHeader("X-TestHeader", "foobar"))
+                .uri("http://httpbin.org:80")
+            )
+            .route(r -&gt; r.path("/image/webp")
+                .filters(f -&gt;
+                        f.addResponseHeader("X-AnotherHeader", "baz"))
+                .uri("http://httpbin.org:80")
+            )
+            .route(r -&gt; r.order(-1)
+                .host("**.throttle.org").and().path("/get")
+                .filters(f -&gt; f.filter(throttle.apply(1,
+                        1,
+                        10,
+                        TimeUnit.SECONDS)))
+                .uri("http://httpbin.org:80")
+            )
+            .build();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This style also allows for more custom predicate assertions. The predicates defined by <code>RouteDefinitionLocator</code> beans are combined using logical <code>and</code>. By using the fluent Java API, you can use the <code>and()</code>, <code>or()</code> and <code>negate()</code> operators on the <code>Predicate</code> class.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_discoveryclient_route_definition_locator"><a class="link" href="#_discoveryclient_route_definition_locator">DiscoveryClient Route Definition Locator</a></h3>
+<div class="paragraph">
+<p>The Gateway can be configured to create routes based on services registered with a <code>DiscoveryClient</code> compatible service registry.</p>
+</div>
+<div class="paragraph">
+<p>To enable this, set <code>spring.cloud.gateway.discovery.locator.enabled=true</code> and make sure a <code>DiscoveryClient</code> implementation is on the classpath and enabled (such as Netflix Eureka, Consul or Zookeeper).</p>
+</div>
+<div class="sect3">
+<h4 id="_configuring_predicates_and_filters_for_discoveryclient_routes"><a class="link" href="#_configuring_predicates_and_filters_for_discoveryclient_routes">Configuring Predicates and Filters For DiscoveryClient Routes</a></h4>
+<div class="paragraph">
+<p>By default the Gateway defines a single predicate and filter for routes created via a <code>DiscoveryClient</code>.</p>
+</div>
+<div class="paragraph">
+<p>The default predicate is a path predicate defined with the pattern <code>/serviceId/**</code>, where <code>serviceId</code> is
+the id of the service from the <code>DiscoveryClient</code>.</p>
+</div>
+<div class="paragraph">
+<p>The default filter is rewrite path filter with the regex <code>/serviceId/(?&lt;remaining&gt;.*)</code> and the replacement
+<code>/${remaining}</code>.  This just strips the service id from the path before the request is sent
+downstream.</p>
+</div>
+<div class="paragraph">
+<p>If you would like to customize the predicates and/or filters used by the <code>DiscoveryClient</code> routes you can do so
+by setting <code>spring.cloud.gateway.discovery.locator.predicates[x]</code> and <code>spring.cloud.gateway.discovery.locator.filters[y]</code>.
+When doing so you need to make sure to include the default predicate and filter above, if you want to retain
+that functionality.  Below is an example of what this looks like.</p>
+</div>
+<div class="listingblock">
+<div class="title">application.properties</div>
+<div class="content">
+<pre>spring.cloud.gateway.discovery.locator.predicates[0].name: Path
+spring.cloud.gateway.discovery.locator.predicates[0].args[pattern]: "'/'+serviceId+'/**'"
+spring.cloud.gateway.discovery.locator.predicates[1].name: Host
+spring.cloud.gateway.discovery.locator.predicates[1].args[pattern]: "'**.foo.com'"
+spring.cloud.gateway.discovery.locator.filters[0].name: Hystrix
+spring.cloud.gateway.discovery.locator.filters[0].args[name]: serviceId
+spring.cloud.gateway.discovery.locator.filters[1].name: RewritePath
+spring.cloud.gateway.discovery.locator.filters[1].args[regexp]: "'/' + serviceId + '/(?&lt;remaining&gt;.*)'"
+spring.cloud.gateway.discovery.locator.filters[1].args[replacement]: "'/${remaining}'"</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_reactor_netty_access_logs"><a class="link" href="#_reactor_netty_access_logs">Reactor Netty Access Logs</a></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To enable Reactor Netty access logs, set <code>-Dreactor.netty.http.server.accessLogEnabled=true</code>. (It must be a Java System Property, not a Spring Boot property).</p>
+</div>
+<div class="paragraph">
+<p>The logging system can be configured to have a separate access log file. Below is an example logback configuration:</p>
+</div>
+<div class="listingblock">
+<div class="title">logback.xml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">    &lt;appender name="accessLog" class="ch.qos.logback.core.FileAppender"&gt;
+        &lt;file&gt;access_log.log&lt;/file&gt;
+        &lt;encoder&gt;
+            &lt;pattern&gt;%msg%n&lt;/pattern&gt;
+        &lt;/encoder&gt;
+    &lt;/appender&gt;
+    &lt;appender name="async" class="ch.qos.logback.classic.AsyncAppender"&gt;
+        &lt;appender-ref ref="accessLog" /&gt;
+    &lt;/appender&gt;
+
+    &lt;logger name="reactor.netty.http.server.AccessLog" level="INFO" additivity="false"&gt;
+        &lt;appender-ref ref="async"/&gt;
+    &lt;/logger&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_cors_configuration"><a class="link" href="#_cors_configuration">CORS Configuration</a></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The gateway can be configured to control CORS behavior. The "global" CORS configuration is a map of URL patterns to <a href="https://docs.spring.io/spring/docs/5.0.x/javadoc-api/org/springframework/web/cors/CorsConfiguration.html">Spring Framework <code>CorsConfiguration</code></a>.</p>
+</div>
+<div class="listingblock">
+<div class="title">application.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  cloud:
+    gateway:
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins: "http://docs.spring.io"
+            allowedMethods:
+            - GET</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In the example above, CORS requests will be allowed from requests that originate from docs.spring.io for all GET requested paths.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_actuator_api"><a class="link" href="#_actuator_api">Actuator API</a></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>/gateway</code> actuator endpoint allows to monitor and interact with a Spring Cloud Gateway application. To be remotely accessible, the endpoint has to be <a href="https://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-endpoints.html#production-ready-endpoints-enabling-endpoints">enabled</a> and <a href="https://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-endpoints.html#production-ready-endpoints-exposing-endpoints">exposed via HTTP or JMX</a> in the application properties.</p>
+</div>
+<div class="listingblock">
+<div class="title">application.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">management.endpoint.gateway.enabled=true # default value
+management.endpoints.web.exposure.include=gateway</code></pre>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_retrieving_route_filters"><a class="link" href="#_retrieving_route_filters">Retrieving route filters</a></h3>
+<div class="sect3">
+<h4 id="_global_filters_2"><a class="link" href="#_global_filters_2">Global Filters</a></h4>
+<div class="paragraph">
+<p>To retrieve the <a href="#global-filters">global filters</a> applied to all routes, make a <code>GET</code> request to <code>/actuator/gateway/globalfilters</code>. The resulting response is similar to the following:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>{
+  "org.springframework.cloud.gateway.filter.LoadBalancerClientFilter@77856cc5": 10100,
+  "org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter@4f6fd101": 10000,
+  "org.springframework.cloud.gateway.filter.NettyWriteResponseFilter@32d22650": -1,
+  "org.springframework.cloud.gateway.filter.ForwardRoutingFilter@106459d9": 2147483647,
+  "org.springframework.cloud.gateway.filter.NettyRoutingFilter@1fbd5e0": 2147483647,
+  "org.springframework.cloud.gateway.filter.ForwardPathFilter@33a71d23": 0,
+  "org.springframework.cloud.gateway.filter.AdaptCachedBodyGlobalFilter@135064ea": 2147483637,
+  "org.springframework.cloud.gateway.filter.WebsocketRoutingFilter@23c05889": 2147483646
+}</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The response contains details of the global filters in place. For each global filter is provided the string representation of the filter object (e.g., <code>org.springframework.cloud.gateway.filter.LoadBalancerClientFilter@77856cc5</code>) and the corresponding <a href="#_combined_global_filter_and_gatewayfilter_ordering">order</a> in the filter chain.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_route_filters"><a class="link" href="#_route_filters">Route Filters</a></h4>
+<div class="paragraph">
+<p>To retrieve the <a href="#gatewayfilter-factories">GatewayFilter factories</a> applied to routes, make a <code>GET</code> request to <code>/actuator/gateway/routefilters</code>. The resulting response is similar to the following:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>{
+  "[AddRequestHeaderGatewayFilterFactory@570ed9c configClass = AbstractNameValueGatewayFilterFactory.NameValueConfig]": null,
+  "[SecureHeadersGatewayFilterFactory@fceab5d configClass = Object]": null,
+  "[SaveSessionGatewayFilterFactory@4449b273 configClass = Object]": null
+}</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The response contains details of the GatewayFilter factories applied to any particular route. For each factory is provided the string representation of the corresponding object (e.g., <code>[SecureHeadersGatewayFilterFactory@fceab5d configClass = Object]</code>). Note that the <code>null</code> value is due to an incomplete implementation of the endpoint controller, for that it tries to set the order of the object in the filter chain, which does not apply to a GatewayFilter factory object.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_refreshing_the_route_cache"><a class="link" href="#_refreshing_the_route_cache">Refreshing the route cache</a></h3>
+<div class="paragraph">
+<p>To clear the routes cache, make a <code>POST</code> request to <code>/actuator/gateway/refresh</code>. The request returns a 200 without response body.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_retrieving_the_routes_defined_in_the_gateway"><a class="link" href="#_retrieving_the_routes_defined_in_the_gateway">Retrieving the routes defined in the gateway</a></h3>
+<div class="paragraph">
+<p>To retrieve the routes defined in the gateway, make a <code>GET</code> request to <code>/actuator/gateway/routes</code>. The resulting response is similar to the following:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>[{
+  "route_id": "first_route",
+  "route_object": {
+    "predicate": "org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFactory$$Lambda$432/1736826640@1e9d7e7d",
+    "filters": [
+      "OrderedGatewayFilter{delegate=org.springframework.cloud.gateway.filter.factory.PreserveHostHeaderGatewayFilterFactory$$Lambda$436/674480275@6631ef72, order=0}"
+    ]
+  },
+  "order": 0
+},
+{
+  "route_id": "second_route",
+  "route_object": {
+    "predicate": "org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFactory$$Lambda$432/1736826640@cd8d298",
+    "filters": []
+  },
+  "order": 0
+}]</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The response contains details of all the routes defined in the gateway. The following table describes the structure of each element (i.e., a route) of the response.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 22.2222%;">
+<col style="width: 44.4445%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Path</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>route_id</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">String</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The route id.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>route_object.predicate</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Object</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The route predicate.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>route_object.filters</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Array</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The <a href="#gatewayfilter-factories">GatewayFilter factories</a> applied to the route.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>order</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Number</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The route order.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_retrieving_information_about_a_particular_route"><a class="link" href="#_retrieving_information_about_a_particular_route">Retrieving information about a particular route</a></h3>
+<div class="paragraph">
+<p>To retrieve information about a single route, make a <code>GET</code> request to <code>/actuator/gateway/routes/{id}</code> (e.g., <code>/actuator/gateway/routes/first_route</code>). The resulting response is similar to the following:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>{
+  "id": "first_route",
+  "predicates": [{
+    "name": "Path",
+    "args": {"_genkey_0":"/first"}
+  }],
+  "filters": [],
+  "uri": "http://www.uri-destination.org",
+  "order": 0
+}]</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The following table describes the structure of the response.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 22.2222%;">
+<col style="width: 44.4445%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Path</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>id</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">String</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The route id.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>predicates</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Array</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The collection of route predicates. Each item defines the name and the arguments of a given predicate.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>filters</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Array</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The collection of filters applied to the route.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>uri</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">String</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The destination URI of the route.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>order</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Number</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The route order.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_creating_and_deleting_a_particular_route"><a class="link" href="#_creating_and_deleting_a_particular_route">Creating and deleting a particular route</a></h3>
+<div class="paragraph">
+<p>To create a route, make a <code>POST</code> request to <code>/gateway/routes/{id_route_to_create}</code> with a JSON body that specifies the fields of the route (see the previous subsection).</p>
+</div>
+<div class="paragraph">
+<p>To delete a route, make a <code>DELETE</code> request to <code>/gateway/routes/{id_route_to_delete}</code>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_recap_list_of_all_endpoints"><a class="link" href="#_recap_list_of_all_endpoints">Recap: list of all endpoints</a></h3>
+<div class="paragraph">
+<p>The table below summarises the Spring Cloud Gateway actuator endpoints. Note that each endpoint has <code>/actuator/gateway</code> as the base-path.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 22.2222%;">
+<col style="width: 22.2222%;">
+<col style="width: 55.5556%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">ID</th>
+<th class="tableblock halign-left valign-top">HTTP Method</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>globalfilters</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">GET</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Displays the list of global filters applied to the routes.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>routefilters</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">GET</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Displays the list of GatewayFilter factories applied to a particular route.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>refresh</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">POST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Clears the routes cache.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>routes</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">GET</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Displays the list of routes defined in the gateway.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>routes/{id}</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">GET</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Displays information about a particular route.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>routes/{id}</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">POST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Add a new route to the gateway.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>routes/{id}</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DELETE</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Remove an existing route from the gateway.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_developer_guide"><a class="link" href="#_developer_guide">Developer Guide</a></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>TODO: overview of writing custom integrations</p>
+</div>
+<div class="sect2">
+<h3 id="_writing_custom_route_predicate_factories"><a class="link" href="#_writing_custom_route_predicate_factories">Writing Custom Route Predicate Factories</a></h3>
+<div class="paragraph">
+<p>TODO: document writing Custom Route Predicate Factories</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_writing_custom_gatewayfilter_factories"><a class="link" href="#_writing_custom_gatewayfilter_factories">Writing Custom GatewayFilter Factories</a></h3>
+<div class="paragraph">
+<p>In order to write a GatewayFilter you will need to implement <code>GatewayFilterFactory</code>.  There is an abstract class called <code>AbstractGatewayFilterFactory</code> which you can extend.</p>
+</div>
+<div class="listingblock">
+<div class="title">PreGatewayFilterFactory.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">public class PreGatewayFilterFactory extends AbstractGatewayFilterFactory&lt;PreGatewayFilterFactory.Config&gt; {
+
+	public PreGatewayFilterFactory() {
+		super(Config.class);
+	}
+
+	@Override
+	public GatewayFilter apply(Config config) {
+		// grab configuration from Config object
+		return (exchange, chain) -&gt; {
+            //If you want to build a "pre" filter you need to manipulate the
+            //request before calling chain.filter
+            ServerHttpRequest.Builder builder = exchange.getRequest().mutate();
+            //use builder to manipulate the request
+            return chain.filter(exchange.mutate().request(request).build());
+		};
+	}
+
+	public static class Config {
+        //Put the configuration properties for your filter here
+	}
+
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">PostGatewayFilterFactory.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">public class PostGatewayFilterFactory extends AbstractGatewayFilterFactory&lt;PostGatewayFilterFactory.Config&gt; {
+
+	public PostGatewayFilterFactory() {
+		super(Config.class);
+	}
+
+	@Override
+	public GatewayFilter apply(Config config) {
+		// grab configuration from Config object
+		return (exchange, chain) -&gt; {
+			return chain.filter(exchange).then(Mono.fromRunnable(() -&gt; {
+				ServerHttpResponse response = exchange.getResponse();
+				//Manipulate the response in some way
+			}));
+		};
+	}
+
+	public static class Config {
+        //Put the configuration properties for your filter here
+	}
+
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_writing_custom_global_filters"><a class="link" href="#_writing_custom_global_filters">Writing Custom Global Filters</a></h3>
+<div class="paragraph">
+<p>In order to write a custom global filter, you will need to implement <code>GlobalFilter</code> interface. This will apply the filter to all requests.</p>
+</div>
+<div class="paragraph">
+<p>Example of how to set up a Global Pre and Post filter, respectively</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@Bean
+public GlobalFilter customGlobalFilter() {
+    return (exchange, chain) -&gt; exchange.getPrincipal()
+        .map(Principal::getName)
+        .defaultIfEmpty("Default User")
+        .map(userName -&gt; {
+          //adds header to proxied request
+          exchange.getRequest().mutate().header("CUSTOM-REQUEST-HEADER", userName).build();
+          return exchange;
+        })
+        .flatMap(chain::filter);
+}
+
+@Bean
+public GlobalFilter customGlobalPostFilter() {
+    return (exchange, chain) -&gt; chain.filter(exchange)
+        .then(Mono.just(exchange))
+        .map(serverWebExchange -&gt; {
+          //adds header to response
+          serverWebExchange.getResponse().getHeaders().set("CUSTOM-RESPONSE-HEADER",
+              HttpStatus.OK.equals(serverWebExchange.getResponse().getStatusCode()) ? "It worked": "It did not work");
+          return serverWebExchange;
+        })
+        .then();
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_writing_custom_route_locators_and_writers"><a class="link" href="#_writing_custom_route_locators_and_writers">Writing Custom Route Locators and Writers</a></h3>
+<div class="paragraph">
+<p>TODO: document writing Custom Route Locators and Writers</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_building_a_simple_gateway_using_spring_mvc_or_webflux"><a class="link" href="#_building_a_simple_gateway_using_spring_mvc_or_webflux">Building a Simple Gateway Using Spring MVC or Webflux</a></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Spring Cloud Gateway provides a utility object called <code>ProxyExchange</code> which you can use inside a regular Spring web handler as a method parameter. It supports basic downstream HTTP exchanges via methods that mirror the HTTP verbs. With MVC it also supports forwarding to a local handler via the <code>forward()</code> method. To use the <code>ProxyExchange</code> just include the right module in your classpath (either <code>spring-cloud-gateway-mvc</code> or <code>spring-cloud-gateway-webflux</code>).</p>
+</div>
+<div class="paragraph">
+<p>MVC example (proxying a request to "/test" downstream to a remote server):</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@RestController
+@SpringBootApplication
+public class GatewaySampleApplication {
+
+	@Value("${remote.home}")
+	private URI home;
+
+	@GetMapping("/test")
+	public ResponseEntity&lt;?&gt; proxy(ProxyExchange&lt;byte[]&gt; proxy) throws Exception {
+		return proxy.uri(home.toString() + "/image/png").get();
+	}
+
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The same thing with Webflux:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@RestController
+@SpringBootApplication
+public class GatewaySampleApplication {
+
+	@Value("${remote.home}")
+	private URI home;
+
+	@GetMapping("/test")
+	public Mono&lt;ResponseEntity&lt;?&gt;&gt; proxy(ProxyExchange&lt;byte[]&gt; proxy) throws Exception {
+		return proxy.uri(home.toString() + "/image/png").get();
+	}
+
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>There are convenience methods on the <code>ProxyExchange</code> to enable the handler method to discover and enhance the URI path of the incoming request. For example you might want to extract the trailing elements of a path to pass them downstream:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@GetMapping("/proxy/path/**")
+public ResponseEntity&lt;?&gt; proxyPath(ProxyExchange&lt;byte[]&gt; proxy) throws Exception {
+  String path = proxy.path("/proxy/path/");
+  return proxy.uri(home.toString() + "/foos/" + path).get();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>All the features of Spring MVC or Webflux are available to Gateway handler methods. So you can inject request headers and query parameters, for instance, and you can constrain the incoming requests with declarations in the mapping annotation. See the documentation for <code>@RequestMapping</code> in Spring MVC for more details of those features.</p>
+</div>
+<div class="paragraph">
+<p>Headers can be added to the downstream response using the <code>header()</code> methods on <code>ProxyExchange</code>.</p>
+</div>
+<div class="paragraph">
+<p>You can also manipulate response headers (and anything else you like in the response) by adding a mapper to the <code>get()</code> etc. method. The mapper is a <code>Function</code> that takes the incoming <code>ResponseEntity</code> and converts it to an outgoing one.</p>
+</div>
+<div class="paragraph">
+<p>First class support is provided for "sensitive" headers ("cookie" and "authorization" by default) which are not passed downstream, and for "proxy" headers (<code>x-forwarded-*</code>).</p>
+</div>
+</div>
+</div>
+</div>
+<script type="text/javascript" src="js/tocbot/tocbot.min.js"></script>
+<script type="text/javascript" src="js/toc.js"></script>
+<link rel="stylesheet" href="js/highlight/styles/atom-one-dark-reasonable.min.css">
+<script src="js/highlight/highlight.min.js"></script>
+<script>hljs.initHighlighting()</script>
 </body>
 </html>
