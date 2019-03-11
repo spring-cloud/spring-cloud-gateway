@@ -18,6 +18,7 @@
 	<description>Spring Cloud Gateway Dependencies</description>
 
 	<properties>
+		<rsocket.version>0.11.17</rsocket.version>
 	</properties>
 
 	<dependencyManagement>
@@ -39,8 +40,28 @@
 			</dependency>
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-gateway-rsocket</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-starter-gateway</artifactId>
 				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.rsocket</groupId>
+				<artifactId>rsocket-core</artifactId>
+				<version>${rsocket.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.rsocket</groupId>
+				<artifactId>rsocket-micrometer</artifactId>
+				<version>${rsocket.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.rsocket</groupId>
+				<artifactId>rsocket-transport-netty</artifactId>
+				<version>${rsocket.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

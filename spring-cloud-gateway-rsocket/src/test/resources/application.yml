@@ -1,0 +1,9 @@
+logging:
+  level:
+    org.springframework.cloud.gateway.rsocket: DEBUG
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
