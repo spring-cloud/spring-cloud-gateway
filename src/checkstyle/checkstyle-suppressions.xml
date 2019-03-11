@@ -3,6 +3,7 @@
 		"-//Puppy Crawl//DTD Suppressions 1.1//EN"
 		"http://www.puppycrawl.com/dtds/suppressions_1_1.dtd">
 <suppressions>
+	<suppress files=".*AbstractFilterChain\.java" checks="LineLengthCheck"/>
 	<suppress files=".*AbstractNameValueGatewayFilterFactory\.java" checks="LineLengthCheck"/>
 	<suppress files=".*AdhocTestSuite\.java" checks="LineLengthCheck"/>
 	<suppress files=".*CloudFoundryRouteServiceRoutePredicateFactory\.java" checks="JavadocTagContinuationIndentationCheck"/>

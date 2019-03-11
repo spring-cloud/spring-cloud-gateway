@@ -88,7 +88,8 @@ public class WebClientHttpRoutingFilter implements GlobalFilter, Ordered {
 
 		HttpHeaders filteredHeaders = filterRequest(getHeadersFilters(), exchange);
 
-		boolean preserveHost = exchange.getAttributeOrDefault(PRESERVE_HOST_HEADER_ATTRIBUTE, false);
+		boolean preserveHost = exchange
+				.getAttributeOrDefault(PRESERVE_HOST_HEADER_ATTRIBUTE, false);
 
 		RequestBodySpec bodySpec = this.webClient.method(method).uri(requestUrl)
 				.headers(httpHeaders -> {
