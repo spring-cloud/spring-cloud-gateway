@@ -68,11 +68,13 @@ public class GatewayRSocketIntegrationTests {
 
 	@Test
 	public void contextLoads() {
+		// @formatter:off
 		StepVerifier.create(ping.getPongFlux())
 				.expectSubscription()
 				.then(() -> server.stop())
 				.thenConsumeWhile(s -> true)
 				.verifyComplete();
+		// @formatter:on
 
 		assertThat(ping.getPongsReceived()).isGreaterThan(0);
 		assertThat(pong.getPingsReceived()).isGreaterThan(0);
