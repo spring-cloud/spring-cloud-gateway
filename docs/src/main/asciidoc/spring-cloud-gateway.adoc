@@ -139,7 +139,7 @@ spring:
         - Header=X-Request-Id, \d+
 ----
 
-This route matches if the request has a header named `X-Request-Id` whos value matches the `\d+` regular expression (has a value of one or more digits).
+This route matches if the request has a header named `X-Request-Id` whose value matches the `\d+` regular expression (has a value of one or more digits).
 
 === Host Route Predicate Factory
 The Host Route Predicate Factory takes one parameter: a list of host name patterns. The pattern is an Ant style pattern with `.` as the separator. This predicates matches the `Host` header that matches the pattern.
@@ -183,7 +183,7 @@ spring:
 This route would match if the request method was a `GET`.
 
 === Path Route Predicate Factory
-The Path Route Predicate Factory takes two parameter: a list of Spring `PathMatcher` patterns and an optional flag to `matchOptionalTrailingSeparator`.
+The Path Route Predicate Factory takes two parameters: a list of Spring `PathMatcher` patterns and an optional flag to `matchOptionalTrailingSeparator`.
 
 .application.yml
 [source,yaml]
@@ -500,7 +500,7 @@ spring:
             executionExceptionTypeHeaderName: Test-Header
 ----
 
-In this example, after an execution exception occurs while running the `HystrixCommand`, the request will be forwarde to
+In this example, after an execution exception occurs while running the `HystrixCommand`, the request will be forwarded to
 the `fallback` endpoint or handler in an app running on `localhost:9994`. The headers with the exception type, message
 and -if available- root cause exception type and message will be added to that request by the `FallbackHeaders` filter.
 
@@ -533,7 +533,7 @@ spring:
 This will prefix `/mypath` to the path of all matching requests. So a request to `/hello`, would be sent to `/mypath/hello`.
 
 === PreserveHostHeader GatewayFilter Factory
-The PreserveHostHeader GatewayFilter Factory has not parameters. This filter, sets a request attribute that the routing filter will inspect to determine if the original host header should be sent, rather than the host header determined by the http client.
+The PreserveHostHeader GatewayFilter Factory has no parameters. This filter sets a request attribute that the routing filter will inspect to determine if the original host header should be sent, rather than the host header determined by the http client.
 
 .application.yml
 [source,yaml]
@@ -568,7 +568,7 @@ The `KeyResolver` interface allows pluggable strategies to derive the key for li
 
 The default implementation of `KeyResolver` is the `PrincipalNameKeyResolver` which retrieves the `Principal` from the `ServerWebExchange` and calls `Principal.getName()`.
 
-By default, if the `KeyResolver` does not find a key, requests will be denied. This behavior can be adjust with the `spring.cloud.gateway.filter.request-rate-limiter.deny-empty-key` (true or false) and `spring.cloud.gateway.filter.request-rate-limiter.empty-key-status-code` properties.
+By default, if the `KeyResolver` does not find a key, requests will be denied. This behavior can be adjusted with the `spring.cloud.gateway.filter.request-rate-limiter.deny-empty-key` (true or false) and `spring.cloud.gateway.filter.request-rate-limiter.empty-key-status-code` properties.
 
 NOTE: The RequestRateLimiter is not configurable via the "shortcut" notation. The example below is __invalid__
 
@@ -772,7 +772,7 @@ If you are integrating http://projects.spring.io/spring-security/[Spring Securit
 === SecureHeaders GatewayFilter Factory
 The SecureHeaders GatewayFilter Factory adds a number of headers to the response at the reccomendation from https://blog.appcanary.com/2017/http-security-headers.html[this blog post].
 
-.The following headers are added (allong with default values):
+.The following headers are added (along with default values):
  * `X-Xss-Protection:1; mode=block`
  * `Strict-Transport-Security:max-age=631138519`
  * `X-Frame-Options:DENY`
@@ -856,7 +856,7 @@ spring:
 In either case, the HTTP status of the response will be set to 401.
 
 === StripPrefix GatewayFilter Factory
-The StripPrefix GatewayFilter Factory takes one paramter, `parts`.  The `parts` parameter indicated the number of parts in the path to strip from the request before sending it downstream.
+The StripPrefix GatewayFilter Factory takes one parameter, `parts`.  The `parts` parameter indicated the number of parts in the path to strip from the request before sending it downstream.
 
 .application.yml
 [source,yaml]
@@ -1178,7 +1178,7 @@ spring:
           useInsecureTrustManager: true
 ----
 
-Using an insecure trust manager is not suitable for production. For a production deployment the Gateway can be configured with a set of known certificates that it can trust with the follwing configuration:
+Using an insecure trust manager is not suitable for production. For a production deployment the Gateway can be configured with a set of known certificates that it can trust with the following configuration:
 
 .application.yml
 [source,yaml]
@@ -1193,11 +1193,11 @@ spring:
           - cert2.pem
 ----
 
-If the Spring Cloud Gateway is not provisioned with trusted certificates the default trust store is used (which can be overriden with system property javax.net.ssl.trustStore).
+If the Spring Cloud Gateway is not provisioned with trusted certificates the default trust store is used (which can be overridden with system property javax.net.ssl.trustStore).
 
 === TLS Handshake
 
-The Gateway maintains a client pool that it uses to route to backends. When communicating over https the client initiates a TLS handshake. A number of timeouts are assoicated with this handshake. These timeouts can be configured (defaults shown):
+The Gateway maintains a client pool that it uses to route to backends. When communicating over https the client initiates a TLS handshake. A number of timeouts are associated with this handshake. These timeouts can be configured (defaults shown):
 
 .application.yml
 [source,yaml]
