@@ -183,7 +183,7 @@ spring:
 This route would match if the request method was a `GET`.
 
 === Path Route Predicate Factory
-The Path Route Predicate Factory takes two parameter: a list of Spring `PathMatcher` patterns and an optional flag to `matchOptionalTrailingSeparator`.
+The Path Route Predicate Factory takes two parameters: a list of Spring `PathMatcher` patterns and an optional flag to `matchOptionalTrailingSeparator`.
 
 .application.yml
 [source,yaml]
