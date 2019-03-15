@@ -393,7 +393,7 @@ URIs defined in routes without a port will get a default port set to 80 and 443 
 </div>
 </div>
 <div class="paragraph">
-<p>This route matches if the request has a header named <code>X-Request-Id</code> whos value matches the <code>\d+</code> regular expression (has a value of one or more digits).</p>
+<p>This route matches if the request has a header named <code>X-Request-Id</code> whose value matches the <code>\d+</code> regular expression (has a value of one or more digits).</p>
 </div>
 </div>
 <div class="sect2">
@@ -449,7 +449,7 @@ URIs defined in routes without a port will get a default port set to 80 and 443 
 <div class="sect2">
 <h3 id="_path_route_predicate_factory"><a class="link" href="#_path_route_predicate_factory">Path Route Predicate Factory</a></h3>
 <div class="paragraph">
-<p>The Path Route Predicate Factory takes two parameter: a list of Spring <code>PathMatcher</code> patterns and an optional flag to <code>matchOptionalTrailingSeparator</code>.</p>
+<p>The Path Route Predicate Factory takes two parameters: a list of Spring <code>PathMatcher</code> patterns and an optional flag to <code>matchOptionalTrailingSeparator</code>.</p>
 </div>
 <div class="listingblock">
 <div class="title">application.yml</div>
@@ -847,7 +847,7 @@ a <code>fallbackUri</code> in an external application, like in the following sce
 </div>
 </div>
 <div class="paragraph">
-<p>In this example, after an execution exception occurs while running the <code>HystrixCommand</code>, the request will be forwarde to
+<p>In this example, after an execution exception occurs while running the <code>HystrixCommand</code>, the request will be forwarded to
 the <code>fallback</code> endpoint or handler in an app running on <code>localhost:9994</code>. The headers with the exception type, message
 and -if available- root cause exception type and message will be added to that request by the <code>FallbackHeaders</code> filter.</p>
 </div>
@@ -900,7 +900,7 @@ their default values:</p>
 <div class="sect2">
 <h3 id="_preservehostheader_gatewayfilter_factory"><a class="link" href="#_preservehostheader_gatewayfilter_factory">PreserveHostHeader GatewayFilter Factory</a></h3>
 <div class="paragraph">
-<p>The PreserveHostHeader GatewayFilter Factory has not parameters. This filter, sets a request attribute that the routing filter will inspect to determine if the original host header should be sent, rather than the host header determined by the http client.</p>
+<p>The PreserveHostHeader GatewayFilter Factory has no parameters. This filter sets a request attribute that the routing filter will inspect to determine if the original host header should be sent, rather than the host header determined by the http client.</p>
 </div>
 <div class="listingblock">
 <div class="title">application.yml</div>
@@ -942,7 +942,7 @@ their default values:</p>
 <p>The default implementation of <code>KeyResolver</code> is the <code>PrincipalNameKeyResolver</code> which retrieves the <code>Principal</code> from the <code>ServerWebExchange</code> and calls <code>Principal.getName()</code>.</p>
 </div>
 <div class="paragraph">
-<p>By default, if the <code>KeyResolver</code> does not find a key, requests will be denied. This behavior can be adjust with the <code>spring.cloud.gateway.filter.request-rate-limiter.deny-empty-key</code> (true or false) and <code>spring.cloud.gateway.filter.request-rate-limiter.empty-key-status-code</code> properties.</p>
+<p>By default, if the <code>KeyResolver</code> does not find a key, requests will be denied. This behavior can be adjusted with the <code>spring.cloud.gateway.filter.request-rate-limiter.deny-empty-key</code> (true or false) and <code>spring.cloud.gateway.filter.request-rate-limiter.empty-key-status-code</code> properties.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -1215,7 +1215,7 @@ using something like <a href="http://projects.spring.io/spring-session/">Spring 
 <p>The SecureHeaders GatewayFilter Factory adds a number of headers to the response at the reccomendation from <a href="https://blog.appcanary.com/2017/http-security-headers.html">this blog post</a>.</p>
 </div>
 <div class="ulist">
-<div class="title">The following headers are added (allong with default values):</div>
+<div class="title">The following headers are added (along with default values):</div>
 <ul>
 <li>
 <p><code>X-Xss-Protection:1; mode=block</code></p>
@@ -1351,7 +1351,7 @@ using something like <a href="http://projects.spring.io/spring-session/">Spring 
 <div class="sect2">
 <h3 id="_stripprefix_gatewayfilter_factory"><a class="link" href="#_stripprefix_gatewayfilter_factory">StripPrefix GatewayFilter Factory</a></h3>
 <div class="paragraph">
-<p>The StripPrefix GatewayFilter Factory takes one paramter, <code>parts</code>.  The <code>parts</code> parameter indicated the number of parts in the path to strip from the request before sending it downstream.</p>
+<p>The StripPrefix GatewayFilter Factory takes one parameter, <code>parts</code>.  The <code>parts</code> parameter indicated the number of parts in the path to strip from the request before sending it downstream.</p>
 </div>
 <div class="listingblock">
 <div class="title">application.yml</div>
@@ -1842,7 +1842,7 @@ or check if an exchange has already been routed.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>Using an insecure trust manager is not suitable for production. For a production deployment the Gateway can be configured with a set of known certificates that it can trust with the follwing configuration:</p>
+<p>Using an insecure trust manager is not suitable for production. For a production deployment the Gateway can be configured with a set of known certificates that it can trust with the following configuration:</p>
 </div>
 <div class="listingblock">
 <div class="title">application.yml</div>
@@ -1858,12 +1858,12 @@ or check if an exchange has already been routed.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>If the Spring Cloud Gateway is not provisioned with trusted certificates the default trust store is used (which can be overriden with system property javax.net.ssl.trustStore).</p>
+<p>If the Spring Cloud Gateway is not provisioned with trusted certificates the default trust store is used (which can be overridden with system property javax.net.ssl.trustStore).</p>
 </div>
 <div class="sect2">
 <h3 id="_tls_handshake"><a class="link" href="#_tls_handshake">TLS Handshake</a></h3>
 <div class="paragraph">
-<p>The Gateway maintains a client pool that it uses to route to backends. When communicating over https the client initiates a TLS handshake. A number of timeouts are assoicated with this handshake. These timeouts can be configured (defaults shown):</p>
+<p>The Gateway maintains a client pool that it uses to route to backends. When communicating over https the client initiates a TLS handshake. A number of timeouts are associated with this handshake. These timeouts can be configured (defaults shown):</p>
 </div>
 <div class="listingblock">
 <div class="title">application.yml</div>
