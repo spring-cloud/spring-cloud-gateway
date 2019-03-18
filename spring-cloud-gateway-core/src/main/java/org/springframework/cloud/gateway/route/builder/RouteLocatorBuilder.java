@@ -26,6 +26,9 @@ import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.context.ConfigurableApplicationContext;
 
 import reactor.core.publisher.Flux;
+/**
+ * 路由定位器构造器
+ */
 
 /**
  * Used to build a {@link RouteLocator}
