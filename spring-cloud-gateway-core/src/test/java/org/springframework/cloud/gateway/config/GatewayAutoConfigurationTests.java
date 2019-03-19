@@ -29,6 +29,7 @@ import org.springframework.boot.autoconfigure.web.reactive.WebFluxAutoConfigurat
 import org.springframework.boot.test.context.runner.ReactiveWebApplicationContextRunner;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.web.filter.reactive.HiddenHttpMethodFilter;
+import org.springframework.web.reactive.socket.client.ReactorNettyWebSocketClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -83,7 +84,8 @@ public class GatewayAutoConfigurationTests {
 						"spring.cloud.gateway.httpclient.connect-timeout=10",
 						"spring.cloud.gateway.httpclient.response-timeout=10s",
 						"spring.cloud.gateway.httpclient.pool.type=fixed",
-						"spring.cloud.gateway.httpclient.proxy.host=myhost")
+						"spring.cloud.gateway.httpclient.proxy.host=myhost",
+						"spring.cloud.gateway.httpclient.websocket.max-frame-payload-length=1024")
 				.run(context -> {
 					assertThat(context).hasSingleBean(HttpClient.class);
 					HttpClient httpClient = context.getBean(HttpClient.class);
@@ -103,6 +105,11 @@ public class GatewayAutoConfigurationTests {
 					 * assertThat(sslContext).isNotNull();
 					 */
 					// TODO: howto test SslContext
+					assertThat(context).hasSingleBean(ReactorNettyWebSocketClient.class);
+					ReactorNettyWebSocketClient webSocketClient = context
+							.getBean(ReactorNettyWebSocketClient.class);
+					assertThat(webSocketClient.getMaxFramePayloadLength())
+							.isEqualTo(1024);
 				});
 	}
 

@@ -57,6 +57,9 @@ public class HttpClientProperties {
 	/** SSL configuration for Netty HttpClient. */
 	private Ssl ssl = new Ssl();
 
+	/** Websocket configuration for Netty HttpClient. */
+	private Websocket websocket = new Websocket();
+
 	public Integer getConnectTimeout() {
 		return connectTimeout;
 	}
@@ -97,11 +100,27 @@ public class HttpClientProperties {
 		this.ssl = ssl;
 	}
 
+	public Websocket getWebsocket() {
+		return this.websocket;
+	}
+
+	public void setWebsocket(Websocket websocket) {
+		this.websocket = websocket;
+	}
+
 	@Override
 	public String toString() {
-		return new ToStringCreator(this).append("connectTimeout", connectTimeout)
-				.append("responseTimeout", responseTimeout).append("pool", pool)
-				.append("proxy", proxy).append("ssl", ssl).toString();
+		// @formatter:off
+		return new ToStringCreator(this)
+				.append("connectTimeout", connectTimeout)
+				.append("responseTimeout", responseTimeout)
+				.append("pool", pool)
+				.append("proxy", proxy)
+				.append("ssl", ssl)
+				.append("websocket", websocket)
+				.toString();
+		// @formatter:on
+
 	}
 
 	public static class Pool {
@@ -393,6 +412,27 @@ public class HttpClientProperties {
 					.append("closeNotifyReadTimeout", closeNotifyReadTimeout)
 					.append("defaultConfigurationType", defaultConfigurationType)
 					.toString();
+		}
+
+	}
+
+	public class Websocket {
+
+		/** Max frame payload length. */
+		private Integer maxFramePayloadLength;
+
+		public Integer getMaxFramePayloadLength() {
+			return this.maxFramePayloadLength;
+		}
+
+		public void setMaxFramePayloadLength(Integer maxFramePayloadLength) {
+			this.maxFramePayloadLength = maxFramePayloadLength;
+		}
+
+		@Override
+		public String toString() {
+			return new ToStringCreator(this)
+					.append("maxFramePayloadLength", maxFramePayloadLength).toString();
 		}
 
 	}

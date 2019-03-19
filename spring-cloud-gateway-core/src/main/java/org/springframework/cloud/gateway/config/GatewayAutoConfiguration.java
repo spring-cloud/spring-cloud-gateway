@@ -605,8 +605,14 @@ public class GatewayAutoConfiguration {
 
 		@Bean
 		public ReactorNettyWebSocketClient reactorNettyWebSocketClient(
-				HttpClient httpClient) {
-			return new ReactorNettyWebSocketClient(httpClient);
+				HttpClientProperties properties, HttpClient httpClient) {
+			ReactorNettyWebSocketClient webSocketClient = new ReactorNettyWebSocketClient(
+					httpClient);
+			if (properties.getWebsocket().getMaxFramePayloadLength() != null) {
+				webSocketClient.setMaxFramePayloadLength(
+						properties.getWebsocket().getMaxFramePayloadLength());
+			}
+			return webSocketClient;
 		}
 
 	}
