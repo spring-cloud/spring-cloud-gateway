@@ -86,10 +86,10 @@ public class PathRoutePredicateFactoryTests extends BaseWebClientTests {
 	@Test
 	public void pathRouteWorksWithPercent() {
 		testClient.get().uri("/abc/123%/function")
-				.header(HttpHeaders.HOST, "www.path.org")
-				.exchange()
-				.expectStatus().isOk()
-				.expectHeader().valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName())
+				.header(HttpHeaders.HOST, "www.path.org").exchange().expectStatus().isOk()
+				.expectHeader()
+				.valueEquals(HANDLER_MAPPER_HEADER,
+						RoutePredicateHandlerMapping.class.getSimpleName())
 				.expectHeader().valueEquals(ROUTE_ID_HEADER, "path_test");
 	}
 

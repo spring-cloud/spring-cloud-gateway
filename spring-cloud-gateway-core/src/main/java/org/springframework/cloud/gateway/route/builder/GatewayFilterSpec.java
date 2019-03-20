@@ -180,14 +180,15 @@ public class GatewayFilterSpec extends UriSpec {
 	}
 
 	/**
-	 * A filter that removes duplication on a response header before it is returned to the client by the Gateway.
+	 * A filter that removes duplication on a response header before it is returned to the
+	 * client by the Gateway.
 	 * @param headerName the header name(s), space separated
 	 * @param strategy RETAIN_FIRST, RETAIN_LAST, or RETAIN_UNIQUE
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
 	public GatewayFilterSpec dedupeResponseHeader(String headerName, String strategy) {
-		return filter(getBean(DedupeResponseHeaderGatewayFilterFactory.class)
-				.apply(c -> c.setStrategy(Strategy.valueOf(strategy)).setName(headerName)));
+		return filter(getBean(DedupeResponseHeaderGatewayFilterFactory.class).apply(
+				c -> c.setStrategy(Strategy.valueOf(strategy)).setName(headerName)));
 	}
 
 	/**

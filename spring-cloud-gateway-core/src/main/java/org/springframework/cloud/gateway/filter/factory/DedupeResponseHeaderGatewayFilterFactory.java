@@ -12,18 +12,18 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.filter.factory;
 
-import org.springframework.cloud.gateway.filter.GatewayFilter;
-import org.springframework.http.HttpHeaders;
-import reactor.core.publisher.Mono;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import reactor.core.publisher.Mono;
+
+import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.http.HttpHeaders;
 
 /*
 Use case: Both your legacy backend and your API gateway add CORS header values. So, your consumer ends up with
@@ -65,51 +65,53 @@ Modified response header Access-Control-Allow-Credentials: true
 /**
  * @author Vitaliy Pavlyuk
  */
-public class DedupeResponseHeaderGatewayFilterFactory
-        extends AbstractGatewayFilterFactory<DedupeResponseHeaderGatewayFilterFactory.Config> {
+public class DedupeResponseHeaderGatewayFilterFactory extends
+		AbstractGatewayFilterFactory<DedupeResponseHeaderGatewayFilterFactory.Config> {
 
-    private static final String STRATEGY_KEY = "strategy";
+	private static final String STRATEGY_KEY = "strategy";
 
-    public DedupeResponseHeaderGatewayFilterFactory() {
-        super(Config.class);
-    }
+	public DedupeResponseHeaderGatewayFilterFactory() {
+		super(Config.class);
+	}
 
-    @Override
-    public List<String> shortcutFieldOrder() {
-        return Arrays.asList(NAME_KEY, STRATEGY_KEY);
-    }
+	@Override
+	public List<String> shortcutFieldOrder() {
+		return Arrays.asList(NAME_KEY, STRATEGY_KEY);
+	}
 
-    @Override
-    public GatewayFilter apply(Config config) {
-        return (exchange, chain) -> chain.filter(exchange).then(Mono.fromRunnable(() -> {
-            dedupe(exchange.getResponse().getHeaders(), config);
-        }));
-    }
+	@Override
+	public GatewayFilter apply(Config config) {
+		return (exchange, chain) -> chain.filter(exchange).then(Mono.fromRunnable(() -> {
+			dedupe(exchange.getResponse().getHeaders(), config);
+		}));
+	}
 
-    public enum Strategy {
-        /*
-        Default: Retain the first value only.
-         */
-        RETAIN_FIRST,
+	public enum Strategy {
 
-        /*
-        Retain the last value only.
-         */
-        RETAIN_LAST,
+		/**
+		 * Default: Retain the first value only.
+		 */
+		RETAIN_FIRST,
 
-        /*
-        Retain all unique values in the order of their first encounter.
-         */
-        RETAIN_UNIQUE
-    }
+		/**
+		 * Retain the last value only.
+		 */
+		RETAIN_LAST,
 
-    void dedupe(HttpHeaders headers, Config config) {
-        String names = config.getName();
-        Strategy strategy = config.getStrategy();
-        if (headers == null || names == null || strategy == null) {
-            return;
-        }
-        for (String name : names.split(" ")) {
+		/**
+		 * Retain all unique values in the order of their first encounter.
+		 */
+		RETAIN_UNIQUE
+
+	}
+
+	void dedupe(HttpHeaders headers, Config config) {
+		String names = config.getName();
+		Strategy strategy = config.getStrategy();
+		if (headers == null || names == null || strategy == null) {
+			return;
+		}
+		for (String name : names.split(" ")) {
 			dedupe(headers, name.trim(), strategy);
 		}
 	}
@@ -120,30 +122,33 @@ public class DedupeResponseHeaderGatewayFilterFactory
 			return;
 		}
 		switch (strategy) {
-			case RETAIN_FIRST:
-				headers.set(name, values.get(0));
-				break;
-			case RETAIN_LAST:
-				headers.set(name, values.get(values.size() - 1));
-				break;
-			case RETAIN_UNIQUE:
-				headers.put(name, values.stream().distinct().collect(Collectors.toList()));
-				break;
-			default:
-				break;
+		case RETAIN_FIRST:
+			headers.set(name, values.get(0));
+			break;
+		case RETAIN_LAST:
+			headers.set(name, values.get(values.size() - 1));
+			break;
+		case RETAIN_UNIQUE:
+			headers.put(name, values.stream().distinct().collect(Collectors.toList()));
+			break;
+		default:
+			break;
 		}
 	}
 
 	public static class Config extends AbstractGatewayFilterFactory.NameConfig {
-        private Strategy strategy = Strategy.RETAIN_FIRST;
 
-        public Strategy getStrategy() {
-            return strategy;
-        }
+		private Strategy strategy = Strategy.RETAIN_FIRST;
 
-        public Config setStrategy(Strategy strategy) {
-            this.strategy = strategy;
-            return this;
-        }
-    }
+		public Strategy getStrategy() {
+			return strategy;
+		}
+
+		public Config setStrategy(Strategy strategy) {
+			this.strategy = strategy;
+			return this;
+		}
+
+	}
+
 }

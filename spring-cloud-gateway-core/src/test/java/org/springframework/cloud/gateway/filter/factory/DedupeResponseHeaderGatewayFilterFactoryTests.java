@@ -12,13 +12,13 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.filter.factory;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -36,20 +36,19 @@ public class DedupeResponseHeaderGatewayFilterFactoryTests extends BaseWebClient
 
 	@Test
 	public void dedupeResponseHeaderFilterWorks() {
-		testClient.get()
-				.uri("/headers")
-				.header("Host", "www.deduperesponseheader.org")
-				.exchange()
-				.expectStatus().isOk()
-				.expectHeader().valueEquals("Access-Control-Allow-Credentials", "true")
-				.expectHeader().valueEquals("Access-Control-Allow-Origin", "https://musk.mars")
-				.expectHeader().valueEquals("Scout-Cookie", "S'mores")
-				.expectHeader().valueEquals("Next-Week-Lottery-Numbers", "4", "2", "42");
+		testClient.get().uri("/headers").header("Host", "www.deduperesponseheader.org")
+				.exchange().expectStatus().isOk().expectHeader()
+				.valueEquals("Access-Control-Allow-Credentials", "true").expectHeader()
+				.valueEquals("Access-Control-Allow-Origin", "https://musk.mars")
+				.expectHeader().valueEquals("Scout-Cookie", "S'mores").expectHeader()
+				.valueEquals("Next-Week-Lottery-Numbers", "4", "2", "42");
 	}
 
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
-	public static class TestConfig { }
+	public static class TestConfig {
+
+	}
 
 }
