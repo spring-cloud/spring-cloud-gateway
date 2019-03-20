@@ -46,7 +46,7 @@ public class RouteToRequestUrlFilterTests {
 		MockServerHttpRequest request = MockServerHttpRequest
 				.get("http://localhost/get?a=b").build();
 
-		ServerWebExchange webExchange = testFilter(request, "http://myhost/mypath");
+		ServerWebExchange webExchange = testFilter(request, "https://myhost/mypath");
 		URI uri = webExchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
 		assertThat(uri).hasScheme("http").hasHost("myhost").hasPath("/get")
 				.hasParameter("a", "b");
@@ -74,7 +74,7 @@ public class RouteToRequestUrlFilterTests {
 		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost/getb")
 				.build();
 
-		ServerWebExchange webExchange = testFilter(request, "lb:http://myhost");
+		ServerWebExchange webExchange = testFilter(request, "lb:https://myhost");
 		URI uri = webExchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
 		assertThat(uri).hasScheme("http").hasHost("myhost");
 		String schemePrefix = webExchange
@@ -87,7 +87,7 @@ public class RouteToRequestUrlFilterTests {
 		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost/get")
 				.build();
 
-		ServerWebExchange webExchange = testFilter(request, "http://myhost");
+		ServerWebExchange webExchange = testFilter(request, "https://myhost");
 		URI uri = webExchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
 		assertThat(uri).hasScheme("http").hasHost("myhost");
 	}
@@ -105,7 +105,7 @@ public class RouteToRequestUrlFilterTests {
 		MockServerHttpRequest request = MockServerHttpRequest.method(HttpMethod.GET, url)
 				.build();
 
-		ServerWebExchange webExchange = testFilter(request, "http://myhost");
+		ServerWebExchange webExchange = testFilter(request, "https://myhost");
 		URI uri = webExchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
 		assertThat(uri).hasScheme("http").hasHost("myhost").hasParameter("a", "b")
 				.hasParameter("c", "d[]");
@@ -129,7 +129,7 @@ public class RouteToRequestUrlFilterTests {
 		MockServerHttpRequest request = MockServerHttpRequest.method(HttpMethod.GET, url)
 				.build();
 
-		ServerWebExchange webExchange = testFilter(request, "http://myhost");
+		ServerWebExchange webExchange = testFilter(request, "https://myhost");
 		URI uri = webExchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
 		assertThat(uri).hasScheme("http").hasHost("myhost")
 				.hasParameter("key[]", "test= key").hasParameter("start", "1533108081");
@@ -153,7 +153,7 @@ public class RouteToRequestUrlFilterTests {
 				.build();
 
 		ServerWebExchange webExchange = testFilter(request,
-				"http://myhost/abc%20def/get");
+				"https://myhost/abc%20def/get");
 		URI uri = webExchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
 		assertThat(uri).hasScheme("http").hasHost("myhost").hasPath("/abc def/get");
 
@@ -171,7 +171,7 @@ public class RouteToRequestUrlFilterTests {
 		MockServerHttpRequest request = MockServerHttpRequest.method(HttpMethod.GET, url)
 				.build();
 
-		ServerWebExchange webExchange = testFilter(request, "http://myhost");
+		ServerWebExchange webExchange = testFilter(request, "https://myhost");
 
 		URI uri = webExchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
 		assertThat(uri).hasScheme("http").hasHost("myhost").hasParameter("a", "b")

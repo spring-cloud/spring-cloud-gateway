@@ -168,7 +168,7 @@ public class XForwardedHeadersFilterTests {
 	@Test
 	public void prefixToInfer() throws Exception {
 		MockServerHttpRequest request = MockServerHttpRequest
-				.get("http://originalhost:8080/prefix/get")
+				.get("https://originalhost:8080/prefix/get")
 				.remoteAddress(
 						new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80))
 				.build();
@@ -180,11 +180,11 @@ public class XForwardedHeadersFilterTests {
 		ServerWebExchange exchange = MockServerWebExchange.from(request);
 		LinkedHashSet<URI> originalUris = new LinkedHashSet<>();
 		originalUris.add(UriComponentsBuilder
-				.fromUriString("http://originalhost:8080/prefix/get/").build().toUri()); // trailing
+				.fromUriString("https://originalhost:8080/prefix/get/").build().toUri()); // trailing
 																							// slash
 		exchange.getAttributes().put(GATEWAY_ORIGINAL_REQUEST_URL_ATTR, originalUris);
 		URI requestUri = UriComponentsBuilder
-				.fromUriString("http://routedservice:8090/get").build().toUri();
+				.fromUriString("https://routedservice:8090/get").build().toUri();
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, requestUri);
 
 		HttpHeaders headers = filter.filter(request.getHeaders(), exchange);
@@ -197,7 +197,7 @@ public class XForwardedHeadersFilterTests {
 	@Test
 	public void prefixAddedWithoutTrailingSlash() throws Exception {
 		MockServerHttpRequest request = MockServerHttpRequest
-				.get("http://originalhost:8080/foo/bar")
+				.get("https://originalhost:8080/foo/bar")
 				.remoteAddress(
 						new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80))
 				.build();
@@ -209,9 +209,9 @@ public class XForwardedHeadersFilterTests {
 		ServerWebExchange exchange = MockServerWebExchange.from(request);
 		LinkedHashSet<URI> originalUris = new LinkedHashSet<>();
 		originalUris.add(UriComponentsBuilder
-				.fromUriString("http://originalhost:8080/foo/bar").build().toUri());
+				.fromUriString("https://originalhost:8080/foo/bar").build().toUri());
 		exchange.getAttributes().put(GATEWAY_ORIGINAL_REQUEST_URL_ATTR, originalUris);
-		URI requestUri = UriComponentsBuilder.fromUriString("http://routedservice:8090/")
+		URI requestUri = UriComponentsBuilder.fromUriString("https://routedservice:8090/")
 				.build().toUri();
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, requestUri);
 
@@ -223,7 +223,7 @@ public class XForwardedHeadersFilterTests {
 	@Test
 	public void noPrefixToInfer() throws Exception {
 		MockServerHttpRequest request = MockServerHttpRequest
-				.get("http://originalhost:8080/get")
+				.get("https://originalhost:8080/get")
 				.remoteAddress(
 						new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80))
 				.build();
@@ -239,10 +239,10 @@ public class XForwardedHeadersFilterTests {
 		ServerWebExchange exchange = MockServerWebExchange.from(request);
 		LinkedHashSet<URI> originalUris = new LinkedHashSet<>();
 		originalUris.add(UriComponentsBuilder
-				.fromUriString("http://originalhost:8080/get/").build().toUri());
+				.fromUriString("https://originalhost:8080/get/").build().toUri());
 		exchange.getAttributes().put(GATEWAY_ORIGINAL_REQUEST_URL_ATTR, originalUris);
 		URI requestUri = UriComponentsBuilder
-				.fromUriString("http://routedservice:8090/get").build().toUri();
+				.fromUriString("https://routedservice:8090/get").build().toUri();
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, requestUri);
 
 		HttpHeaders headers = filter.filter(request.getHeaders(), exchange);
@@ -253,7 +253,7 @@ public class XForwardedHeadersFilterTests {
 	@Test
 	public void routedPathInRequestPathButNotPrefix() throws Exception {
 		MockServerHttpRequest request = MockServerHttpRequest
-				.get("http://originalhost:8080/get")
+				.get("https://originalhost:8080/get")
 				.remoteAddress(
 						new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80))
 				.build();
@@ -269,10 +269,10 @@ public class XForwardedHeadersFilterTests {
 		ServerWebExchange exchange = MockServerWebExchange.from(request);
 		LinkedHashSet<URI> originalUris = new LinkedHashSet<>();
 		originalUris.add(UriComponentsBuilder
-				.fromUriString("http://originalhost:8080/one/two/three").build().toUri());
+				.fromUriString("https://originalhost:8080/one/two/three").build().toUri());
 		exchange.getAttributes().put(GATEWAY_ORIGINAL_REQUEST_URL_ATTR, originalUris);
 		URI requestUri = UriComponentsBuilder
-				.fromUriString("http://routedservice:8090/two").build().toUri();
+				.fromUriString("https://routedservice:8090/two").build().toUri();
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, requestUri);
 
 		HttpHeaders headers = filter.filter(request.getHeaders(), exchange);

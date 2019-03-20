@@ -72,7 +72,7 @@ public class ForwardRoutingFilterTests {
 
 	@Test
 	public void shouldNotFilterWhenGatewayRequestUrlSchemeIsNotForward() {
-		URI uri = UriComponentsBuilder.fromUriString("http://endpoint").build().toUri();
+		URI uri = UriComponentsBuilder.fromUriString("https://endpoint").build().toUri();
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, uri);
 		forwardRoutingFilter.filter(exchange, chain);
 

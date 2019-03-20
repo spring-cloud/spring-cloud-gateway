@@ -55,7 +55,7 @@ public class RouteDefinitionRouteLocatorTests {
 		gatewayProperties.setRoutes(Arrays.asList(new RouteDefinition() {
 			{
 				setId("foo");
-				setUri(URI.create("http://foo.example.com"));
+				setUri(URI.create("https://foo.example.com"));
 				setPredicates(
 						Arrays.asList(new PredicateDefinition("Host=*.example.com")));
 				setFilters(Arrays.asList(

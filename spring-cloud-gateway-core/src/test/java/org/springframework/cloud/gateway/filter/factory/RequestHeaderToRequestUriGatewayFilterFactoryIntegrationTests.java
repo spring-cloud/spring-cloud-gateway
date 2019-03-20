@@ -91,11 +91,11 @@ public class RequestHeaderToRequestUriGatewayFilterFactoryIntegrationTests
 			return builder.routes()
 					.route(r -> r.host("**.changeuri.org").and().header("X-Next-Url")
 							.filters(f -> f.requestHeaderToRequestUri("X-Next-Url"))
-							.uri("http://example.com"))
+							.uri("https://example.com"))
 					.route(r -> r.host("**.changeuri.org").and().query("url")
 							.filters(f -> f.changeRequestUri(e -> Optional.of(URI.create(
 									e.getRequest().getQueryParams().getFirst("url")))))
-							.uri("http://example.com"))
+							.uri("https://example.com"))
 					.build();
 		}
 
