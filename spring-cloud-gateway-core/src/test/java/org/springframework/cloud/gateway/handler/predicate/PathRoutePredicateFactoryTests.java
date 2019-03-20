@@ -83,6 +83,16 @@ public class PathRoutePredicateFactoryTests extends BaseWebClientTests {
 		expectPathRoute("/anything/multidsl3", "www.pathmultidsl.org", "path_multi_dsl");
 	}
 
+	@Test
+	public void pathRouteWorksWithPercent() {
+		testClient.get().uri("/abc/123%/function")
+				.header(HttpHeaders.HOST, "www.path.org").exchange().expectStatus().isOk()
+				.expectHeader()
+				.valueEquals(HANDLER_MAPPER_HEADER,
+						RoutePredicateHandlerMapping.class.getSimpleName())
+				.expectHeader().valueEquals(ROUTE_ID_HEADER, "path_test");
+	}
+
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
