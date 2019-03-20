@@ -111,6 +111,7 @@ $(addBlockSwitches);
 <li><a href="#_addrequestheader_gatewayfilter_factory">AddRequestHeader GatewayFilter Factory</a></li>
 <li><a href="#_addrequestparameter_gatewayfilter_factory">AddRequestParameter GatewayFilter Factory</a></li>
 <li><a href="#_addresponseheader_gatewayfilter_factory">AddResponseHeader GatewayFilter Factory</a></li>
+<li><a href="#_deduperesponseheader_gatewayfilter_factory">DedupeResponseHeader GatewayFilter Factory</a></li>
 <li><a href="#hystrix">Hystrix GatewayFilter Factory</a></li>
 <li><a href="#fallback-headers">FallbackHeaders GatewayFilter Factory</a></li>
 <li><a href="#_prefixpath_gatewayfilter_factory">PrefixPath GatewayFilter Factory</a></li>
@@ -698,7 +699,7 @@ If two hops of trusted infrastructure are required before Spring Cloud Gateway i
   cloud:
     gateway:
       routes:
-      - id: add_request_header_route
+      - id: add_response_header_route
         uri: http://example.org
         filters:
         - AddResponseHeader=X-Response-Foo, Bar</code></pre>
@@ -706,6 +707,31 @@ If two hops of trusted infrastructure are required before Spring Cloud Gateway i
 </div>
 <div class="paragraph">
 <p>This will add <code>X-Response-Foo:Bar</code> header to the downstream response&#8217;s headers for all matching requests.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_deduperesponseheader_gatewayfilter_factory"><a class="link" href="#_deduperesponseheader_gatewayfilter_factory">DedupeResponseHeader GatewayFilter Factory</a></h3>
+<div class="paragraph">
+<p>The DedupeResponseHeader GatewayFilter Factory takes a <code>name</code> parameter and an optional <code>strategy</code> parameter. <code>name</code> can contain a list of header names, space separated.</p>
+</div>
+<div class="listingblock">
+<div class="title">application.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: dedupe_response_header_route
+        uri: http://example.org
+        filters:
+        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This will remove duplicate values of <code>Access-Control-Allow-Credentials</code> and <code>Access-Control-Allow-Origin</code> response headers in cases when both the gateway CORS logic and the downstream add them.</p>
+</div>
+<div class="paragraph">
+<p>The DedupeResponseHeader filter also accepts an optional <code>strategy</code> parameter. The accepted values are <code>RETAIN_FIRST</code> (default), <code>RETAIN_LAST</code>, and <code>RETAIN_UNIQUE</code>.</p>
 </div>
 </div>
 <div class="sect2">
