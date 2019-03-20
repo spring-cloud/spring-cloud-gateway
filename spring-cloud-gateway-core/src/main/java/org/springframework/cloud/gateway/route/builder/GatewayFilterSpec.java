@@ -39,6 +39,8 @@ import org.springframework.cloud.gateway.filter.factory.AbstractChangeRequestUri
 import org.springframework.cloud.gateway.filter.factory.AddRequestHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.AddRequestParameterGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.AddResponseHeaderGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.DedupeResponseHeaderGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.DedupeResponseHeaderGatewayFilterFactory.Strategy;
 import org.springframework.cloud.gateway.filter.factory.FallbackHeadersGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.HystrixGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.PrefixPathGatewayFilterFactory;
@@ -175,6 +177,17 @@ public class GatewayFilterSpec extends UriSpec {
 	public GatewayFilterSpec addResponseHeader(String headerName, String headerValue) {
 		return filter(getBean(AddResponseHeaderGatewayFilterFactory.class)
 				.apply(c -> c.setName(headerName).setValue(headerValue)));
+	}
+
+	/**
+	 * A filter that removes duplication on a response header before it is returned to the client by the Gateway.
+	 * @param headerName the header name(s), space separated
+	 * @param strategy RETAIN_FIRST, RETAIN_LAST, or RETAIN_UNIQUE
+	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
+	 */
+	public GatewayFilterSpec dedupeResponseHeader(String headerName, String strategy) {
+		return filter(getBean(DedupeResponseHeaderGatewayFilterFactory.class)
+				.apply(c -> c.setStrategy(Strategy.valueOf(strategy)).setName(headerName)));
 	}
 
 	/**

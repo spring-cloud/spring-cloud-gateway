@@ -369,13 +369,33 @@ spring:
   cloud:
     gateway:
       routes:
-      - id: add_request_header_route
+      - id: add_response_header_route
         uri: http://example.org
         filters:
         - AddResponseHeader=X-Response-Foo, Bar
 ----
 
 This will add `X-Response-Foo:Bar` header to the downstream response's headers for all matching requests.
+
+=== DedupeResponseHeader GatewayFilter Factory
+The DedupeResponseHeader GatewayFilter Factory takes a `name` parameter and an optional `strategy` parameter. `name` can contain a list of header names, space separated.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: dedupe_response_header_route
+        uri: http://example.org
+        filters:
+        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+----
+
+This will remove duplicate values of `Access-Control-Allow-Credentials` and `Access-Control-Allow-Origin` response headers in cases when both the gateway CORS logic and the downstream add them.
+
+The DedupeResponseHeader filter also accepts an optional `strategy` parameter. The accepted values are `RETAIN_FIRST` (default), `RETAIN_LAST`, and `RETAIN_UNIQUE`.
 
 [[hystrix]]
 === Hystrix GatewayFilter Factory

@@ -88,7 +88,7 @@ public class PathRoutePredicateFactory
 			});
 		}
 		return exchange -> {
-			PathContainer path = parsePath(exchange.getRequest().getURI().getPath());
+			PathContainer path = parsePath(exchange.getRequest().getURI().getRawPath());
 
 			Optional<PathPattern> optionalPathPattern = pathPatterns.stream()
 					.filter(pattern -> pattern.matches(path)).findFirst();
