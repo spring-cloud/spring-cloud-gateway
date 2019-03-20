@@ -378,13 +378,32 @@ If two hops of trusted infrastructure are required before Spring Cloud Gateway i
   cloud:
     gateway:
       routes:
-      - id: add_request_header_route
+      - id: add_response_header_route
         uri: http://example.org
         filters:
         - AddResponseHeader=X-Response-Foo, Bar</programlisting>
 </para>
 </formalpara>
 <simpara>This will add <literal>X-Response-Foo:Bar</literal> header to the downstream response&#8217;s headers for all matching requests.</simpara>
+</section>
+<section xml:id="_deduperesponseheader_gatewayfilter_factory">
+<title>DedupeResponseHeader GatewayFilter Factory</title>
+<simpara>The DedupeResponseHeader GatewayFilter Factory takes a <literal>name</literal> parameter and an optional <literal>strategy</literal> parameter. <literal>name</literal> can contain a list of header names, space separated.</simpara>
+<formalpara>
+<title>application.yml</title>
+<para>
+<programlisting language="yaml" linenumbering="unnumbered">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: dedupe_response_header_route
+        uri: http://example.org
+        filters:
+        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin</programlisting>
+</para>
+</formalpara>
+<simpara>This will remove duplicate values of <literal>Access-Control-Allow-Credentials</literal> and <literal>Access-Control-Allow-Origin</literal> response headers in cases when both the gateway CORS logic and the downstream add them.</simpara>
+<simpara>The DedupeResponseHeader filter also accepts an optional <literal>strategy</literal> parameter. The accepted values are <literal>RETAIN_FIRST</literal> (default), <literal>RETAIN_LAST</literal>, and <literal>RETAIN_UNIQUE</literal>.</simpara>
 </section>
 <section xml:id="hystrix">
 <title>Hystrix GatewayFilter Factory</title>
