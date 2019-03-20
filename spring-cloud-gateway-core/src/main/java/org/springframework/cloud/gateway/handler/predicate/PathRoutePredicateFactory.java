@@ -64,7 +64,7 @@ public class PathRoutePredicateFactory extends AbstractRoutePredicateFactory<Pat
 			config.pathPattern = this.pathPatternParser.parse(config.pattern);
 		}
 		return exchange -> {
-			PathContainer path = parsePath(exchange.getRequest().getURI().getPath());
+			PathContainer path = parsePath(exchange.getRequest().getURI().getRawPath());
 
 			boolean match = config.pathPattern.matches(path);
 			traceMatch("Pattern", config.pathPattern.getPatternString(), path, match);
