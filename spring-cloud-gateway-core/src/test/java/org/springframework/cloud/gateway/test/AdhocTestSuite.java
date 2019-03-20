@@ -27,6 +27,7 @@ import org.junit.runners.model.Statement;
 
 import org.springframework.cloud.gateway.filter.factory.AddRequestHeaderGatewayFilterFactoryTests;
 import org.springframework.cloud.gateway.filter.factory.AddRequestParameterGatewayFilterFactoryTests;
+import org.springframework.cloud.gateway.filter.factory.DedupeResponseHeaderGatewayFilterFactoryTests;
 import org.springframework.cloud.gateway.filter.factory.HystrixGatewayFilterFactoryTests;
 import org.springframework.cloud.gateway.filter.factory.PreserveHostHeaderGatewayFilterFactoryTests;
 import org.springframework.cloud.gateway.filter.factory.RedirectToGatewayFilterFactoryTests;
@@ -90,6 +91,7 @@ import static org.junit.Assume.assumeThat;
 		SetPathGatewayFilterFactoryIntegrationTests.class,
 		AddRequestParameterGatewayFilterFactoryTests.class,
 		SetResponseHeaderGatewayFilterFactoryTests.class,
+		DedupeResponseHeaderGatewayFilterFactoryTests.class,
 		RewriteResponseHeaderGatewayFilterFactoryTests.class,
 		PrincipalNameKeyResolverIntegrationTests.class,
 		RedisRateLimiterTests.class,

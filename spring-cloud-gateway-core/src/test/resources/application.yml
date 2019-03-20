@@ -66,6 +66,27 @@ spring:
         - AddResponseHeader=X-Request-Foo, Bar
 
       # =====================================
+      - id: dedupe_response_header_test
+        uri: ${test.uri}
+        predicates:
+          - Host=**.deduperesponseheader.org
+          - Path=/headers
+        filters:
+          - AddResponseHeader=Access-Control-Allow-Credentials, true
+          - AddResponseHeader=Access-Control-Allow-Credentials, false
+          - AddResponseHeader=Access-Control-Allow-Origin, https://musk.mars
+          - AddResponseHeader=Access-Control-Allow-Origin, *
+          - AddResponseHeader=Scout-Cookie, Thin Mints
+          - AddResponseHeader=Scout-Cookie, S'mores
+          - AddResponseHeader=Next-Week-Lottery-Numbers, 4
+          - AddResponseHeader=Next-Week-Lottery-Numbers, 2
+          - AddResponseHeader=Next-Week-Lottery-Numbers, 2
+          - AddResponseHeader=Next-Week-Lottery-Numbers, 42
+          - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin, RETAIN_FIRST
+          - DedupeResponseHeader=Scout-Cookie, RETAIN_LAST
+          - DedupeResponseHeader=Next-Week-Lottery-Numbers, RETAIN_UNIQUE
+
+        # =====================================
       - id: rewrite_response_header_test
         uri: ${test.uri}
         predicates:
