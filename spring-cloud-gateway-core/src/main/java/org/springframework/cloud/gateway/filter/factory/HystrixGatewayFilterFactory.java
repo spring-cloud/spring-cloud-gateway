@@ -53,7 +53,7 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.c
 
 /**
  * Depends on `spring-cloud-starter-netflix-hystrix`,
- * {@see http://cloud.spring.io/spring-cloud-netflix/}.
+ * {@see https://cloud.spring.io/spring-cloud-netflix/}.
  *
  * @author Spencer Gibb
  * @author Michele Mancioppi

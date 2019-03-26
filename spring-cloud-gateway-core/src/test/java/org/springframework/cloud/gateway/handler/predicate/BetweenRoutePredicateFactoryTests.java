@@ -70,7 +70,7 @@ public class BetweenRoutePredicateFactoryTests {
 	}
 
 	static ServerWebExchange getExchange() {
-		MockServerHttpRequest request = MockServerHttpRequest.get("http://example.com")
+		MockServerHttpRequest request = MockServerHttpRequest.get("https://example.com")
 				.build();
 		return MockServerWebExchange.from(request);
 	}
