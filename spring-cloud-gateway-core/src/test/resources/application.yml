@@ -170,7 +170,7 @@ spring:
         predicates:
         - Host=**.redirectto.org
         filters:
-        - RedirectTo=302, http://example.org
+        - RedirectTo=302, https://example.org
 
       # =====================================
       - id: remove_request_header_test

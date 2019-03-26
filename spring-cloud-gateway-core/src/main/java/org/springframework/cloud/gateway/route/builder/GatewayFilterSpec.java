@@ -189,7 +189,7 @@ public class GatewayFilterSpec extends UriSpec {
 	/**
 	 * Wraps the route in a Hystrix command.
 	 * Depends on @{code org.springframework.cloud::spring-cloud-starter-netflix-hystrix} being on the classpath,
-	 * {@see http://cloud.spring.io/spring-cloud-netflix/}
+	 * {@see https://cloud.spring.io/spring-cloud-netflix/}
 	 * @param configConsumer a {@link Consumer} which provides configuration for the Hystrix command
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
@@ -531,9 +531,9 @@ public class GatewayFilterSpec extends UriSpec {
 
 	/**
 	 * A filter which forces a {@code WebSession::save} operation before forwarding the call downstream. This is of
-	 * particular use when using something like <a href="http://projects.spring.io/spring-session/">Spring Session</a>
+	 * particular use when using something like <a href="https://projects.spring.io/spring-session/">Spring Session</a>
 	 * with a lazy data store and need to ensure the session state has been saved before making the forwarded call.
-	 * If you are integrating <a href="http://projects.spring.io/spring-security/">Spring Security</a> with
+	 * If you are integrating <a href="https://projects.spring.io/spring-security/">Spring Security</a> with
 	 * Spring Session, and want to ensure security details have been forwarded to the remote process, this is critical.
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
