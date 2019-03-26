@@ -55,7 +55,7 @@ public class RedirectToWebFilterFactoryTests extends BaseWebClientTests {
 							assertStatus(response, HttpStatus.FOUND);
 							HttpHeaders httpHeaders = response.headers().asHttpHeaders();
 							assertThat(httpHeaders.getFirst(HttpHeaders.LOCATION))
-									.isEqualTo("http://example.org");
+									.isEqualTo("https://example.org");
 						})
 				.expectComplete()
 				.verify(DURATION);
