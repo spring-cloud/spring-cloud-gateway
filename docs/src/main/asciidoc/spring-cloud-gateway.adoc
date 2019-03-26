@@ -16,7 +16,7 @@ include::intro.adoc[]
 == How to Include Spring Cloud Gateway
 
 To include Spring Cloud Gateway in your project use the starter with group `org.springframework.cloud`
-and artifact id `spring-cloud-starter-gateway`. See the http://projects.spring.io/spring-cloud/[Spring Cloud Project page]
+and artifact id `spring-cloud-starter-gateway`. See the https://projects.spring.io/spring-cloud/[Spring Cloud Project page]
 for details on setting up your build system with the current Spring Cloud Release Train.
 
 If you include the starter, but, for some reason, you do not want the gateway to be enabled, set `spring.cloud.gateway.enabled=false`.
@@ -26,8 +26,8 @@ IMPORTANT: Spring Cloud Gateway requires the Netty runtime provided by Spring Bo
 == Glossary
 
 * *Route*: Route the basic building block of the gateway. It is defined by an ID, a destination URI, a collection of predicates and a collection of filters. A route is matched if aggregate predicate is true.
-* *Predicate*: This is a http://docs.oracle.com/javase/8/docs/api/java/util/function/Predicate.html[Java 8 Function Predicate]. The input type is a http://docs.spring.io/spring/docs/5.0.x/javadoc-api/org/springframework/web/server/ServerWebExchange.html[Spring Framework `ServerWebExchange`]. This allows developers to match on anything from the HTTP request, such as headers or parameters.
-* *Filter*: These are instances http://docs.spring.io/spring/docs/5.0.x/javadoc-api/org/springframework/web/server/GatewayFilter.html[Spring Framework `GatewayFilter`] constructed in with a specific factory. Here, requests and responses can be modified before or after sending the downstream request.
+* *Predicate*: This is a https://docs.oracle.com/javase/8/docs/api/java/util/function/Predicate.html[Java 8 Function Predicate]. The input type is a https://docs.spring.io/spring/docs/5.0.x/javadoc-api/org/springframework/web/server/ServerWebExchange.html[Spring Framework `ServerWebExchange`]. This allows developers to match on anything from the HTTP request, such as headers or parameters.
+* *Filter*: These are instances https://docs.spring.io/spring/docs/5.0.x/javadoc-api/org/springframework/web/server/GatewayFilter.html[Spring Framework `GatewayFilter`] constructed in with a specific factory. Here, requests and responses can be modified before or after sending the downstream request.
 
 [[gateway-how-it-works]]
 == How It Works
@@ -54,7 +54,7 @@ spring:
     gateway:
       routes:
       - id: after_route
-        uri: http://example.org
+        uri: https://example.org
         predicates:
         - After=2017-01-20T17:42:47.789-07:00[America/Denver]
 ----
@@ -72,7 +72,7 @@ spring:
     gateway:
       routes:
       - id: before_route
-        uri: http://example.org
+        uri: https://example.org
         predicates:
         - Before=2017-01-20T17:42:47.789-07:00[America/Denver]
 ----
@@ -90,7 +90,7 @@ spring:
     gateway:
       routes:
       - id: between_route
-        uri: http://example.org
+        uri: https://example.org
         predicates:
         - Between=2017-01-20T17:42:47.789-07:00[America/Denver], 2017-01-21T17:42:47.789-07:00[America/Denver]
 ----
@@ -108,7 +108,7 @@ spring:
     gateway:
       routes:
       - id: cookie_route
-        uri: http://example.org
+        uri: https://example.org
         predicates:
         - Cookie=chocolate, ch.p
 ----
@@ -126,7 +126,7 @@ spring:
     gateway:
       routes:
       - id: header_route
-        uri: http://example.org
+        uri: https://example.org
         predicates:
         - Header=X-Request-Id, \d+
 ----
@@ -144,7 +144,7 @@ spring:
     gateway:
       routes:
       - id: host_route
-        uri: http://example.org
+        uri: https://example.org
         predicates:
         - Host=**.somehost.org
 ----
@@ -163,7 +163,7 @@ spring:
     gateway:
       routes:
       - id: method_route
-        uri: http://example.org
+        uri: https://example.org
         predicates:
         - Method=GET
 ----
@@ -181,7 +181,7 @@ spring:
     gateway:
       routes:
       - id: host_route
-        uri: http://example.org
+        uri: https://example.org
         predicates:
         - Path=/foo/{segment}
 ----
@@ -201,7 +201,7 @@ spring:
     gateway:
       routes:
       - id: query_route
-        uri: http://example.org
+        uri: https://example.org
         predicates:
         - Query=baz
 ----
@@ -216,7 +216,7 @@ spring:
     gateway:
       routes:
       - id: query_route
-        uri: http://example.org
+        uri: https://example.org
         predicates:
         - Query=foo, ba.
 ----
@@ -235,7 +235,7 @@ spring:
     gateway:
       routes:
       - id: remoteaddr_route
-        uri: http://example.org
+        uri: https://example.org
         predicates:
         - RemoteAddr=192.168.1.1/24
 ----
@@ -313,7 +313,7 @@ spring:
     gateway:
       routes:
       - id: add_request_header_route
-        uri: http://example.org
+        uri: https://example.org
         filters:
         - AddRequestHeader=X-Request-Foo, Bar
 ----
@@ -331,7 +331,7 @@ spring:
     gateway:
       routes:
       - id: add_request_parameter_route
-        uri: http://example.org
+        uri: https://example.org
         filters:
         - AddRequestParameter=foo, bar
 ----
@@ -349,7 +349,7 @@ spring:
     gateway:
       routes:
       - id: add_request_header_route
-        uri: http://example.org
+        uri: https://example.org
         filters:
         - AddResponseHeader=X-Response-Foo, Bar
 ----
@@ -360,7 +360,7 @@ This will add `X-Response-Foo:Bar` header to the downstream response's headers f
 https://github.com/Netflix/Hystrix[Hystrix] is a library from Netflix that implements the https://martinfowler.com/bliki/CircuitBreaker.html[circuit breaker pattern].
 The Hystrix GatewayFilter allows you to introduce circuit breakers to your gateway routes, protecting your services from cascading failures and allowing you to provide fallback responses in the event of downstream failures.
 
-To enable Hystrix GatewayFilters in your project, add a dependency on `spring-cloud-starter-netflix-hystrix` from http://cloud.spring.io/spring-cloud-netflix/[Spring Cloud Netflix].
+To enable Hystrix GatewayFilters in your project, add a dependency on `spring-cloud-starter-netflix-hystrix` from https://cloud.spring.io/spring-cloud-netflix/[Spring Cloud Netflix].
 
 The Hystrix GatewayFilter Factory requires a single `name` parameter, which is the name of the `HystrixCommand`.
 
@@ -372,7 +372,7 @@ spring:
     gateway:
       routes:
       - id: hystrix_route
-        uri: http://example.org
+        uri: https://example.org
         filters:
         - Hystrix=myCommandName
 ----
@@ -421,7 +421,7 @@ spring:
     gateway:
       routes:
       - id: prefixpath_route
-        uri: http://example.org
+        uri: https://example.org
         filters:
         - PrefixPath=/mypath
 ----
@@ -439,7 +439,7 @@ spring:
     gateway:
       routes:
       - id: preserve_host_route
-        uri: http://example.org
+        uri: https://example.org
         filters:
         - PreserveHostHeader
 ----
@@ -492,7 +492,7 @@ spring:
     gateway:
       routes:
       - id: requestratelimiter_route
-        uri: http://example.org
+        uri: https://example.org
         filters:
         - name: RequestRateLimiter
           args:
@@ -522,7 +522,7 @@ spring:
     gateway:
       routes:
       - id: requestratelimiter_route
-        uri: http://example.org
+        uri: https://example.org
         filters:
         - name: RequestRateLimiter
           args:
@@ -542,12 +542,12 @@ spring:
     gateway:
       routes:
       - id: prefixpath_route
-        uri: http://example.org
+        uri: https://example.org
         filters:
-        - RedirectTo=302, http://acme.org
+        - RedirectTo=302, https://acme.org
 ----
 
-This will send a status 302 with a `Location:http://acme.org` header to perform a redirect.
+This will send a status 302 with a `Location:https://acme.org` header to perform a redirect.
 
 === RemoveNonProxyHeaders GatewayFilter Factory
 The RemoveNonProxyHeaders GatewayFilter Factory removes headers from forwarded requests. The default list of headers that is removed comes from the https://tools.ietf.org/html/draft-ietf-httpbis-p1-messaging-14#section-7.1.3[IETF].
@@ -575,7 +575,7 @@ spring:
     gateway:
       routes:
       - id: removerequestheader_route
-        uri: http://example.org
+        uri: https://example.org
         filters:
         - RemoveRequestHeader=X-Request-Foo
 ----
@@ -593,7 +593,7 @@ spring:
     gateway:
       routes:
       - id: removeresponseheader_route
-        uri: http://example.org
+        uri: https://example.org
         filters:
         - RemoveResponseHeader=X-Response-Foo
 ----
@@ -611,7 +611,7 @@ spring:
     gateway:
       routes:
       - id: rewritepath_route
-        uri: http://example.org
+        uri: https://example.org
         predicates:
         - Path=/foo/**
         filters:
@@ -622,7 +622,7 @@ For a request path of `/foo/bar`, this will set the path to `/bar` before making
 
 === SaveSession GatewayFilter Factory
 The SaveSession GatewayFilter Factory forces a `WebSession::save` operation _before_ forwarding the call downstream. This is of particular use when
-using something like http://projects.spring.io/spring-session/[Spring Session] with a lazy data store and need to ensure the session state has been saved before making the forwarded call.
+using something like https://projects.spring.io/spring-session/[Spring Session] with a lazy data store and need to ensure the session state has been saved before making the forwarded call.
 
 .application.yml
 [source,yaml]
@@ -632,14 +632,14 @@ spring:
     gateway:
       routes:
       - id: save_session
-        uri: http://example.org
+        uri: https://example.org
         predicates:
         - Path=/foo/**
         filters:
         - SaveSession
 ----
 
-If you are integrating http://projects.spring.io/spring-security/[Spring Security] with Spring Session, and want to ensure security details have been forwarded to the remote process, this is critical.
+If you are integrating https://projects.spring.io/spring-security/[Spring Security] with Spring Session, and want to ensure security details have been forwarded to the remote process, this is critical.
 
 === SecureHeaders GatewayFilter Factory
 The SecureHeaders GatewayFilter Factory adds a number of headers to the response at the reccomendation from https://blog.appcanary.com/2017/http-security-headers.html[this blog post].
@@ -678,7 +678,7 @@ spring:
     gateway:
       routes:
       - id: setpath_route
-        uri: http://example.org
+        uri: https://example.org
         predicates:
         - Path=/foo/{segment}
         filters:
@@ -698,7 +698,7 @@ spring:
     gateway:
       routes:
       - id: setresponseheader_route
-        uri: http://example.org
+        uri: https://example.org
         filters:
         - SetResponseHeader=X-Response-Foo, Bar
 ----
@@ -716,11 +716,11 @@ spring:
     gateway:
       routes:
       - id: setstatusstring_route
-        uri: http://example.org
+        uri: https://example.org
         filters:
         - SetStatus=BAD_REQUEST
       - id: setstatusint_route
-        uri: http://example.org
+        uri: https://example.org
         filters:
         - SetStatus=401
 ----
@@ -1019,13 +1019,13 @@ spring:
     gateway:
       routes:
       - id: setstatus_route
-        uri: http://example.org
+        uri: https://example.org
         filters:
         - name: SetStatus
           args:
             status: 401
       - id: setstatusshortcut_route
-        uri: http://example.org
+        uri: https://example.org
         filters:
         - SetStatus=401
 ----
