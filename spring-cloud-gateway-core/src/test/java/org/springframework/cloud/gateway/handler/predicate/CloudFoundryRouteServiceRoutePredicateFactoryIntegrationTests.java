@@ -70,7 +70,7 @@ public class CloudFoundryRouteServiceRoutePredicateFactoryIntegrationTests
 			return builder.routes().route(r -> r.cloudFoundryRouteService().and()
 					.header("Host", "dsl.routeservice.example.com")
 					.filters(f -> f.requestHeaderToRequestUri("X-CF-Forwarded-Url"))
-					.uri("http://example.com")).build();
+					.uri("https://example.com")).build();
 		}
 	}
 }
