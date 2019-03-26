@@ -51,7 +51,7 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.G
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.containsEncodedParts;
 
 /**
- * Depends on `spring-cloud-starter-netflix-hystrix`, {@see http://cloud.spring.io/spring-cloud-netflix/}
+ * Depends on `spring-cloud-starter-netflix-hystrix`, {@see https://cloud.spring.io/spring-cloud-netflix/}
  * @author Spencer Gibb
  * @author Michele Mancioppi
  */
