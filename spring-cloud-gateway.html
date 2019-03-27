@@ -33,7 +33,7 @@
 	color: #ffffff;
 }
 </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/zepto/1.2.0/zepto.min.js"></script>
+<script src="http://cdnjs.cloudflare.com/ajax/libs/zepto/1.2.0/zepto.min.js"></script>
 <script type="text/javascript">
 function addBlockSwitches() {
 	$('.primary').each(function() {
@@ -200,7 +200,7 @@ $(addBlockSwitches);
 <div class="sectionbody">
 <div class="paragraph">
 <p>To include Spring Cloud Gateway in your project use the starter with group <code>org.springframework.cloud</code>
-and artifact id <code>spring-cloud-starter-gateway</code>. See the <a href="https://projects.spring.io/spring-cloud/">Spring Cloud Project page</a>
+and artifact id <code>spring-cloud-starter-gateway</code>. See the <a href="http://projects.spring.io/spring-cloud/">Spring Cloud Project page</a>
 for details on setting up your build system with the current Spring Cloud Release Train.</p>
 </div>
 <div class="paragraph">
@@ -247,10 +247,10 @@ Spring Cloud Gateway requires the Netty runtime provided by Spring Boot and Spri
 <p><strong>Route</strong>: Route the basic building block of the gateway. It is defined by an ID, a destination URI, a collection of predicates and a collection of filters. A route is matched if aggregate predicate is true.</p>
 </li>
 <li>
-<p><strong>Predicate</strong>: This is a <a href="https://docs.oracle.com/javase/8/docs/api/java/util/function/Predicate.html">Java 8 Function Predicate</a>. The input type is a <a href="https://docs.spring.io/spring/docs/5.0.x/javadoc-api/org/springframework/web/server/ServerWebExchange.html">Spring Framework <code>ServerWebExchange</code></a>. This allows developers to match on anything from the HTTP request, such as headers or parameters.</p>
+<p><strong>Predicate</strong>: This is a <a href="http://docs.oracle.com/javase/8/docs/api/java/util/function/Predicate.html">Java 8 Function Predicate</a>. The input type is a <a href="http://docs.spring.io/spring/docs/5.0.x/javadoc-api/org/springframework/web/server/ServerWebExchange.html">Spring Framework <code>ServerWebExchange</code></a>. This allows developers to match on anything from the HTTP request, such as headers or parameters.</p>
 </li>
 <li>
-<p><strong>Filter</strong>: These are instances <a href="https://docs.spring.io/spring/docs/5.0.x/javadoc-api/org/springframework/web/server/GatewayFilter.html">Spring Framework <code>GatewayFilter</code></a> constructed in with a specific factory. Here, requests and responses can be modified before or after sending the downstream request.</p>
+<p><strong>Filter</strong>: These are instances <a href="http://docs.spring.io/spring/docs/5.0.x/javadoc-api/org/springframework/web/server/GatewayFilter.html">Spring Framework <code>GatewayFilter</code></a> constructed in with a specific factory. Here, requests and responses can be modified before or after sending the downstream request.</p>
 </li>
 </ul>
 </div>
@@ -300,7 +300,7 @@ URIs defined in routes without a port will get a default port set to 80 and 443 
     gateway:
       routes:
       - id: after_route
-        uri: https://example.org
+        uri: http://example.org
         predicates:
         - After=2017-01-20T17:42:47.789-07:00[America/Denver]</code></pre>
 </div>
@@ -322,7 +322,7 @@ URIs defined in routes without a port will get a default port set to 80 and 443 
     gateway:
       routes:
       - id: before_route
-        uri: https://example.org
+        uri: http://example.org
         predicates:
         - Before=2017-01-20T17:42:47.789-07:00[America/Denver]</code></pre>
 </div>
@@ -344,7 +344,7 @@ URIs defined in routes without a port will get a default port set to 80 and 443 
     gateway:
       routes:
       - id: between_route
-        uri: https://example.org
+        uri: http://example.org
         predicates:
         - Between=2017-01-20T17:42:47.789-07:00[America/Denver], 2017-01-21T17:42:47.789-07:00[America/Denver]</code></pre>
 </div>
@@ -366,7 +366,7 @@ URIs defined in routes without a port will get a default port set to 80 and 443 
     gateway:
       routes:
       - id: cookie_route
-        uri: https://example.org
+        uri: http://example.org
         predicates:
         - Cookie=chocolate, ch.p</code></pre>
 </div>
@@ -388,7 +388,7 @@ URIs defined in routes without a port will get a default port set to 80 and 443 
     gateway:
       routes:
       - id: header_route
-        uri: https://example.org
+        uri: http://example.org
         predicates:
         - Header=X-Request-Id, \d+</code></pre>
 </div>
@@ -410,7 +410,7 @@ URIs defined in routes without a port will get a default port set to 80 and 443 
     gateway:
       routes:
       - id: host_route
-        uri: https://example.org
+        uri: http://example.org
         predicates:
         - Host=**.somehost.org,**.anotherhost.org</code></pre>
 </div>
@@ -438,7 +438,7 @@ URIs defined in routes without a port will get a default port set to 80 and 443 
     gateway:
       routes:
       - id: method_route
-        uri: https://example.org
+        uri: http://example.org
         predicates:
         - Method=GET</code></pre>
 </div>
@@ -460,7 +460,7 @@ URIs defined in routes without a port will get a default port set to 80 and 443 
     gateway:
       routes:
       - id: host_route
-        uri: https://example.org
+        uri: http://example.org
         predicates:
         - Path=/foo/{segment},/bar/{segment}</code></pre>
 </div>
@@ -495,7 +495,7 @@ String segment = uriVariables.get("segment");</code></pre>
     gateway:
       routes:
       - id: query_route
-        uri: https://example.org
+        uri: http://example.org
         predicates:
         - Query=baz</code></pre>
 </div>
@@ -511,7 +511,7 @@ String segment = uriVariables.get("segment");</code></pre>
     gateway:
       routes:
       - id: query_route
-        uri: https://example.org
+        uri: http://example.org
         predicates:
         - Query=foo, ba.</code></pre>
 </div>
@@ -533,7 +533,7 @@ String segment = uriVariables.get("segment");</code></pre>
     gateway:
       routes:
       - id: remoteaddr_route
-        uri: https://example.org
+        uri: http://example.org
         predicates:
         - RemoteAddr=192.168.1.1/24</code></pre>
 </div>
@@ -656,7 +656,7 @@ If two hops of trusted infrastructure are required before Spring Cloud Gateway i
     gateway:
       routes:
       - id: add_request_header_route
-        uri: https://example.org
+        uri: http://example.org
         filters:
         - AddRequestHeader=X-Request-Foo, Bar</code></pre>
 </div>
@@ -678,7 +678,7 @@ If two hops of trusted infrastructure are required before Spring Cloud Gateway i
     gateway:
       routes:
       - id: add_request_parameter_route
-        uri: https://example.org
+        uri: http://example.org
         filters:
         - AddRequestParameter=foo, bar</code></pre>
 </div>
@@ -700,7 +700,7 @@ If two hops of trusted infrastructure are required before Spring Cloud Gateway i
     gateway:
       routes:
       - id: add_response_header_route
-        uri: https://example.org
+        uri: http://example.org
         filters:
         - AddResponseHeader=X-Response-Foo, Bar</code></pre>
 </div>
@@ -722,7 +722,7 @@ If two hops of trusted infrastructure are required before Spring Cloud Gateway i
     gateway:
       routes:
       - id: dedupe_response_header_route
-        uri: https://example.org
+        uri: http://example.org
         filters:
         - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin</code></pre>
 </div>
@@ -741,7 +741,7 @@ If two hops of trusted infrastructure are required before Spring Cloud Gateway i
 The Hystrix GatewayFilter allows you to introduce circuit breakers to your gateway routes, protecting your services from cascading failures and allowing you to provide fallback responses in the event of downstream failures.</p>
 </div>
 <div class="paragraph">
-<p>To enable Hystrix GatewayFilters in your project, add a dependency on <code>spring-cloud-starter-netflix-hystrix</code> from <a href="https://cloud.spring.io/spring-cloud-netflix/">Spring Cloud Netflix</a>.</p>
+<p>To enable Hystrix GatewayFilters in your project, add a dependency on <code>spring-cloud-starter-netflix-hystrix</code> from <a href="http://cloud.spring.io/spring-cloud-netflix/">Spring Cloud Netflix</a>.</p>
 </div>
 <div class="paragraph">
 <p>The Hystrix GatewayFilter Factory requires a single <code>name</code> parameter, which is the name of the <code>HystrixCommand</code>.</p>
@@ -754,7 +754,7 @@ The Hystrix GatewayFilter allows you to introduce circuit breakers to your gatew
     gateway:
       routes:
       - id: hystrix_route
-        uri: https://example.org
+        uri: http://example.org
         filters:
         - Hystrix=myCommandName</code></pre>
 </div>
@@ -914,7 +914,7 @@ their default values:</p>
     gateway:
       routes:
       - id: prefixpath_route
-        uri: https://example.org
+        uri: http://example.org
         filters:
         - PrefixPath=/mypath</code></pre>
 </div>
@@ -936,7 +936,7 @@ their default values:</p>
     gateway:
       routes:
       - id: preserve_host_route
-        uri: https://example.org
+        uri: http://example.org
         filters:
         - PreserveHostHeader</code></pre>
 </div>
@@ -1014,7 +1014,7 @@ spring.cloud.gateway.routes[0].filters[0]=RequestRateLimiter=2, 2, #{@userkeyres
     gateway:
       routes:
       - id: requestratelimiter_route
-        uri: https://example.org
+        uri: http://example.org
         filters:
         - name: RequestRateLimiter
           args:
@@ -1045,7 +1045,7 @@ KeyResolver userKeyResolver() {
     gateway:
       routes:
       - id: requestratelimiter_route
-        uri: https://example.org
+        uri: http://example.org
         filters:
         - name: RequestRateLimiter
           args:
@@ -1068,13 +1068,13 @@ KeyResolver userKeyResolver() {
     gateway:
       routes:
       - id: prefixpath_route
-        uri: https://example.org
+        uri: http://example.org
         filters:
-        - RedirectTo=302, https://acme.org</code></pre>
+        - RedirectTo=302, http://acme.org</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>This will send a status 302 with a <code>Location:https://acme.org</code> header to perform a redirect.</p>
+<p>This will send a status 302 with a <code>Location:http://acme.org</code> header to perform a redirect.</p>
 </div>
 </div>
 <div class="sect2">
@@ -1128,7 +1128,7 @@ KeyResolver userKeyResolver() {
     gateway:
       routes:
       - id: removerequestheader_route
-        uri: https://example.org
+        uri: http://example.org
         filters:
         - RemoveRequestHeader=X-Request-Foo</code></pre>
 </div>
@@ -1150,7 +1150,7 @@ KeyResolver userKeyResolver() {
     gateway:
       routes:
       - id: removeresponseheader_route
-        uri: https://example.org
+        uri: http://example.org
         filters:
         - RemoveResponseHeader=X-Response-Foo</code></pre>
 </div>
@@ -1177,7 +1177,7 @@ and have it applied to all routes.</p>
     gateway:
       routes:
       - id: rewritepath_route
-        uri: https://example.org
+        uri: http://example.org
         predicates:
         - Path=/foo/**
         filters:
@@ -1201,7 +1201,7 @@ and have it applied to all routes.</p>
     gateway:
       routes:
       - id: rewriteresponseheader_route
-        uri: https://example.org
+        uri: http://example.org
         filters:
         - RewriteResponseHeader=X-Response-Foo, , password=[^&amp;]+, password=***</code></pre>
 </div>
@@ -1214,7 +1214,7 @@ and have it applied to all routes.</p>
 <h3 id="_savesession_gatewayfilter_factory"><a class="link" href="#_savesession_gatewayfilter_factory">SaveSession GatewayFilter Factory</a></h3>
 <div class="paragraph">
 <p>The SaveSession GatewayFilter Factory forces a <code>WebSession::save</code> operation <em>before</em> forwarding the call downstream. This is of particular use when
-using something like <a href="https://projects.spring.io/spring-session/">Spring Session</a> with a lazy data store and need to ensure the session state has been saved before making the forwarded call.</p>
+using something like <a href="http://projects.spring.io/spring-session/">Spring Session</a> with a lazy data store and need to ensure the session state has been saved before making the forwarded call.</p>
 </div>
 <div class="listingblock">
 <div class="title">application.yml</div>
@@ -1224,7 +1224,7 @@ using something like <a href="https://projects.spring.io/spring-session/">Spring
     gateway:
       routes:
       - id: save_session
-        uri: https://example.org
+        uri: http://example.org
         predicates:
         - Path=/foo/**
         filters:
@@ -1232,7 +1232,7 @@ using something like <a href="https://projects.spring.io/spring-session/">Spring
 </div>
 </div>
 <div class="paragraph">
-<p>If you are integrating <a href="https://projects.spring.io/spring-security/">Spring Security</a> with Spring Session, and want to ensure security details have been forwarded to the remote process, this is critical.</p>
+<p>If you are integrating <a href="http://projects.spring.io/spring-security/">Spring Security</a> with Spring Session, and want to ensure security details have been forwarded to the remote process, this is critical.</p>
 </div>
 </div>
 <div class="sect2">
@@ -1315,7 +1315,7 @@ using something like <a href="https://projects.spring.io/spring-session/">Spring
     gateway:
       routes:
       - id: setpath_route
-        uri: https://example.org
+        uri: http://example.org
         predicates:
         - Path=/foo/{segment}
         filters:
@@ -1339,7 +1339,7 @@ using something like <a href="https://projects.spring.io/spring-session/">Spring
     gateway:
       routes:
       - id: setresponseheader_route
-        uri: https://example.org
+        uri: http://example.org
         filters:
         - SetResponseHeader=X-Response-Foo, Bar</code></pre>
 </div>
@@ -1361,11 +1361,11 @@ using something like <a href="https://projects.spring.io/spring-session/">Spring
     gateway:
       routes:
       - id: setstatusstring_route
-        uri: https://example.org
+        uri: http://example.org
         filters:
         - SetStatus=BAD_REQUEST
       - id: setstatusint_route
-        uri: https://example.org
+        uri: http://example.org
         filters:
         - SetStatus=401</code></pre>
 </div>
@@ -1935,13 +1935,13 @@ or check if an exchange has already been routed.</p>
     gateway:
       routes:
       - id: setstatus_route
-        uri: https://example.org
+        uri: http://example.org
         filters:
         - name: SetStatus
           args:
             status: 401
       - id: setstatusshortcut_route
-        uri: https://example.org
+        uri: http://example.org
         filters:
         - SetStatus=401</code></pre>
 </div>
@@ -2077,7 +2077,7 @@ spring.cloud.gateway.discovery.locator.filters[1].args[replacement]: "'/${remain
       globalcors:
         corsConfigurations:
           '[/**]':
-            allowedOrigins: "https://docs.spring.io"
+            allowedOrigins: "http://docs.spring.io"
             allowedMethods:
             - GET</code></pre>
 </div>
@@ -2231,7 +2231,7 @@ management.endpoints.web.exposure.include=gateway</code></pre>
     "args": {"_genkey_0":"/first"}
   }],
   "filters": [],
-  "uri": "https://www.uri-destination.org",
+  "uri": "http://www.uri-destination.org",
   "order": 0
 }]</pre>
 </div>
