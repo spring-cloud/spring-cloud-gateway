@@ -1,7 +1,7 @@
 :github-tag: master
 :github-repo: spring-cloud-incubator/spring-cloud-gateway
-:github-raw: http://raw.github.com/{github-repo}/{github-tag}
-:github-code: http://github.com/{github-repo}/tree/{github-tag}
+:github-raw: https://raw.github.com/{github-repo}/{github-tag}
+:github-code: https://github.com/{github-repo}/tree/{github-tag}
 :all: {asterisk}{asterisk}
 :nofooter:
 :imagesdir: ./images
@@ -15,7 +15,7 @@ include::intro.adoc[]
 == How to Include Spring Cloud Gateway
 
 To include Spring Cloud Gateway in your project use the starter with group `org.springframework.cloud`
-and artifact id `spring-cloud-starter-gateway`. See the http://projects.spring.io/spring-cloud/[Spring Cloud Project page]
+and artifact id `spring-cloud-starter-gateway`. See the https://projects.spring.io/spring-cloud/[Spring Cloud Project page]
 for details on setting up your build system with the current Spring Cloud Release Train.
 
 Include the `@EnableGateway` annotation on any `@Configuration` class to enable Spring Cloud Gateway.
@@ -55,7 +55,7 @@ spring:
       routes:
       # =====================================
       - id: cookie_route
-        uri: http://example.org
+        uri: https://example.org
         predicates:
         - Cookie=chocolate, ch.p
 ----
@@ -74,7 +74,7 @@ spring:
       routes:
       # =====================================
       - id: header_route
-        uri: http://example.org
+        uri: https://example.org
         predicates:
         - Header=X-Request-Id, \d+
 ----
@@ -93,7 +93,7 @@ spring:
       routes:
       # =====================================
       - id: host_route
-        uri: http://example.org
+        uri: https://example.org
         predicates:
         - Host=**.somehost.org
 ----
@@ -113,7 +113,7 @@ spring:
       routes:
       # =====================================
       - id: method_route
-        uri: http://example.org
+        uri: https://example.org
         predicates:
         - Method=GET
 ----
@@ -132,7 +132,7 @@ spring:
       routes:
       # =====================================
       - id: host_route
-        uri: http://example.org
+        uri: https://example.org
         predicates:
         - Path=/foo/{segment}
 ----

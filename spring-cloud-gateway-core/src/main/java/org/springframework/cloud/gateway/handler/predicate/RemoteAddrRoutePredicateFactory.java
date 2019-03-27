@@ -74,7 +74,7 @@ public class RemoteAddrRoutePredicateFactory implements RoutePredicateFactory {
 			source = source + "/32";
 		}
 		if (source.endsWith("/32")) {
-			//http://stackoverflow.com/questions/2942299/converting-cidr-address-to-subnet-mask-and-network-address#answer-6858429
+			//https://stackoverflow.com/questions/2942299/converting-cidr-address-to-subnet-mask-and-network-address#answer-6858429
 			inclusiveHostCount = true;
 		}
 		//TODO: howto support ipv6 as well?
