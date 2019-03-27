@@ -6,7 +6,7 @@
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">    gateway</span>:
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">      routes</span>:
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">      - id</span>: after_route
-<span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        uri</span>: https://example.org
+<span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        uri</span>: http://example.org
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        predicates</span>:
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        - After</span>=<span class="hl-number">2017</span>-<span class="hl-number">01</span>-<span class="hl-number">20</span>T17:<span class="hl-number">42</span>:<span class="hl-number">47.789</span>-<span class="hl-number">07</span>:<span class="hl-number">00</span>[America/Denver<span xmlns:d="http://docbook.org/ns/docbook" class="hl-keyword">]</span></pre><p>
 </p><p>This route matches any request after Jan 20, 2017 17:42 Mountain Time (Denver).</p></div><div class="section"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="_before_route_predicate_factory" href="#_before_route_predicate_factory"></a>4.2&nbsp;Before Route Predicate Factory</h2></div></div></div><p>The Before Route Predicate Factory takes one parameter, a datetime. This predicate matches requests that happen before the current datetime.</p><p><b>application.yml.&nbsp;</b>
@@ -15,7 +15,7 @@
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">    gateway</span>:
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">      routes</span>:
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">      - id</span>: before_route
-<span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        uri</span>: https://example.org
+<span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        uri</span>: http://example.org
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        predicates</span>:
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        - Before</span>=<span class="hl-number">2017</span>-<span class="hl-number">01</span>-<span class="hl-number">20</span>T17:<span class="hl-number">42</span>:<span class="hl-number">47.789</span>-<span class="hl-number">07</span>:<span class="hl-number">00</span>[America/Denver<span xmlns:d="http://docbook.org/ns/docbook" class="hl-keyword">]</span></pre><p>
 </p><p>This route matches any request before Jan 20, 2017 17:42 Mountain Time (Denver).</p></div><div class="section"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="_between_route_predicate_factory" href="#_between_route_predicate_factory"></a>4.3&nbsp;Between Route Predicate Factory</h2></div></div></div><p>The Between Route Predicate Factory takes two parameters, datetime1 and datetime2. This predicate matches requests that happen after datetime1 and before datetime2. The datetime2 parameter must be after datetime1.</p><p><b>application.yml.&nbsp;</b>
@@ -24,7 +24,7 @@
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">    gateway</span>:
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">      routes</span>:
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">      - id</span>: between_route
-<span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        uri</span>: https://example.org
+<span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        uri</span>: http://example.org
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        predicates</span>:
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        - Between</span>=<span class="hl-number">2017</span>-<span class="hl-number">01</span>-<span class="hl-number">20</span>T17:<span class="hl-number">42</span>:<span class="hl-number">47.789</span>-<span class="hl-number">07</span>:<span class="hl-number">00</span>[America/Denver]<span xmlns:d="http://docbook.org/ns/docbook" class="hl-keyword">,</span> <span class="hl-number">2017</span>-<span class="hl-number">01</span>-<span class="hl-number">21</span>T17:<span class="hl-number">42</span>:<span class="hl-number">47.789</span>-<span class="hl-number">07</span>:<span class="hl-number">00</span>[America/Denver<span xmlns:d="http://docbook.org/ns/docbook" class="hl-keyword">]</span></pre><p>
 </p><p>This route matches any request after Jan 20, 2017 17:42 Mountain Time (Denver) and before Jan 21, 2017 17:42 Mountain Time (Denver). This could be useful for maintenance windows.</p></div><div class="section"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="_cookie_route_predicate_factory" href="#_cookie_route_predicate_factory"></a>4.4&nbsp;Cookie Route Predicate Factory</h2></div></div></div><p>The Cookie Route Predicate Factory takes two parameters, the cookie name and a regular expression. This predicate matches cookies that have the given name and the value matches the regular expression.</p><p><b>application.yml.&nbsp;</b>
@@ -33,7 +33,7 @@
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">    gateway</span>:
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">      routes</span>:
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">      - id</span>: cookie_route
-<span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        uri</span>: https://example.org
+<span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        uri</span>: http://example.org
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        predicates</span>:
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        - Cookie</span>=chocolate<span xmlns:d="http://docbook.org/ns/docbook" class="hl-keyword">,</span> ch.p</pre><p>
 </p><p>This route matches the request has a cookie named <code class="literal">chocolate</code> who&#8217;s value matches the <code class="literal">ch.p</code> regular expression.</p></div><div class="section"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="_header_route_predicate_factory" href="#_header_route_predicate_factory"></a>4.5&nbsp;Header Route Predicate Factory</h2></div></div></div><p>The Header Route Predicate Factory takes two parameters, the header name and a regular expression. This predicate matches with a header that has the given name and the value matches the regular expression.</p><p><b>application.yml.&nbsp;</b>
@@ -42,7 +42,7 @@
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">    gateway</span>:
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">      routes</span>:
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">      - id</span>: header_route
-<span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        uri</span>: https://example.org
+<span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        uri</span>: http://example.org
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        predicates</span>:
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        - Header</span>=X-Request-Id<span xmlns:d="http://docbook.org/ns/docbook" class="hl-keyword">,</span> \d+</pre><p>
 </p><p>This route matches if the request has a header named <code class="literal">X-Request-Id</code> whos value matches the <code class="literal">\d+</code> regular expression (has a value of one or more digits).</p></div><div class="section"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="_host_route_predicate_factory" href="#_host_route_predicate_factory"></a>4.6&nbsp;Host Route Predicate Factory</h2></div></div></div><p>The Host Route Predicate Factory takes one parameter: a list of host name patterns. The pattern is an Ant style pattern with <code class="literal">.</code> as the separator. This predicates matches the <code class="literal">Host</code> header that matches the pattern.</p><p><b>application.yml.&nbsp;</b>
@@ -51,7 +51,7 @@
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">    gateway</span>:
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">      routes</span>:
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">      - id</span>: host_route
-<span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        uri</span>: https://example.org
+<span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        uri</span>: http://example.org
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        predicates</span>:
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        - Host</span>=**.somehost.org,**.anotherhost.org</pre><p>
 </p><p>URI template variables are supported as well, such as <code class="literal">{sub}.myhost.org</code>.</p><p>This route would match if the request has a <code class="literal">Host</code> header has the value <code class="literal">www.somehost.org</code> or <code class="literal">beta.somehost.org</code> or <code class="literal">www.anotherhost.org</code>.</p><p>This predicate extracts the URI template variables (like <code class="literal">sub</code> defined in the example above) as a map of names and values and places it in the <code class="literal">ServerWebExchange.getAttributes()</code> with a key defined in <code class="literal">ServerWebExchangeUtils.URI_TEMPLATE_VARIABLES_ATTRIBUTE</code>. Those values are then available for use by <a class="link" href="multi_gateway-request-predicates-factories.html#gateway-route-filters">GatewayFilter Factories</a></p></div><div class="section"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="_method_route_predicate_factory" href="#_method_route_predicate_factory"></a>4.7&nbsp;Method Route Predicate Factory</h2></div></div></div><p>The Method Route Predicate Factory takes one parameter: the HTTP method to match.</p><p><b>application.yml.&nbsp;</b>
@@ -60,7 +60,7 @@
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">    gateway</span>:
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">      routes</span>:
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">      - id</span>: method_route
-<span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        uri</span>: https://example.org
+<span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        uri</span>: http://example.org
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        predicates</span>:
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        - Method</span>=GET</pre><p>
 </p><p>This route would match if the request method was a <code class="literal">GET</code>.</p></div><div class="section"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="_path_route_predicate_factory" href="#_path_route_predicate_factory"></a>4.8&nbsp;Path Route Predicate Factory</h2></div></div></div><p>The Path Route Predicate Factory takes two parameter: a list of Spring <code class="literal">PathMatcher</code> patterns and an optional flag to <code class="literal">matchOptionalTrailingSeparator</code>.</p><p><b>application.yml.&nbsp;</b>
@@ -69,7 +69,7 @@
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">    gateway</span>:
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">      routes</span>:
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">      - id</span>: host_route
-<span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        uri</span>: https://example.org
+<span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        uri</span>: http://example.org
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        predicates</span>:
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        - Path</span>=/foo/{segment},/bar/{segment<span xmlns:d="http://docbook.org/ns/docbook" class="hl-keyword">}</span></pre><p>
 </p><p>This route would match if the request path was, for example: <code class="literal">/foo/1</code> or <code class="literal">/foo/bar</code> or <code class="literal">/bar/baz</code>.</p><p>This predicate extracts the URI template variables (like <code class="literal">segment</code> defined in the example above) as a map of names and values and places it in the <code class="literal">ServerWebExchange.getAttributes()</code> with a key defined in <code class="literal">ServerWebExchangeUtils.URI_TEMPLATE_VARIABLES_ATTRIBUTE</code>. Those values are then available for use by <a class="link" href="multi_gateway-request-predicates-factories.html#gateway-route-filters">GatewayFilter Factories</a></p><p>A utility method is available to make access to these variables easier.</p><pre class="programlisting">Map&lt;String, String&gt; uriVariables = ServerWebExchangeUtils.getPathPredicateVariables(exchange);
@@ -80,7 +80,7 @@ String segment = uriVariables.get(<span xmlns:d="http://docbook.org/ns/docbook" 
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">    gateway</span>:
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">      routes</span>:
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">      - id</span>: query_route
-<span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        uri</span>: https://example.org
+<span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        uri</span>: http://example.org
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        predicates</span>:
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        - Query</span>=baz</pre><p>
 </p><p>This route would match if the request contained a <code class="literal">baz</code> query parameter.</p><p><b>application.yml.&nbsp;</b>
@@ -89,7 +89,7 @@ String segment = uriVariables.get(<span xmlns:d="http://docbook.org/ns/docbook" 
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">    gateway</span>:
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">      routes</span>:
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">      - id</span>: query_route
-<span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        uri</span>: https://example.org
+<span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        uri</span>: http://example.org
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        predicates</span>:
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        - Query</span>=foo<span xmlns:d="http://docbook.org/ns/docbook" class="hl-keyword">,</span> ba.</pre><p>
 </p><p>This route would match if the request contained a <code class="literal">foo</code> query parameter whose value matched the <code class="literal">ba.</code> regexp, so <code class="literal">bar</code> and <code class="literal">baz</code> would match.</p></div><div class="section"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="_remoteaddr_route_predicate_factory" href="#_remoteaddr_route_predicate_factory"></a>4.10&nbsp;RemoteAddr Route Predicate Factory</h2></div></div></div><p>The RemoteAddr Route Predicate Factory takes a list (min size 1) of CIDR-notation (IPv4 or IPv6) strings, e.g. <code class="literal">192.168.0.1/16</code> (where <code class="literal">192.168.0.1</code> is an IP address and <code class="literal">16</code> is a subnet mask).</p><p><b>application.yml.&nbsp;</b>
@@ -98,7 +98,7 @@ String segment = uriVariables.get(<span xmlns:d="http://docbook.org/ns/docbook" 
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">    gateway</span>:
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">      routes</span>:
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">      - id</span>: remoteaddr_route
-<span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        uri</span>: https://example.org
+<span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        uri</span>: http://example.org
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        predicates</span>:
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        - RemoteAddr</span>=<span class="hl-number">192.168</span>.<span class="hl-number">1.1</span>/<span class="hl-number">24</span></pre><p>
 </p><p>This route would match if the remote address of the request was, for example, <code class="literal">192.168.1.10</code>.</p><div class="section"><div class="titlepage"><div><div><h3 class="title"><a name="_modifying_the_way_remote_addresses_are_resolved" href="#_modifying_the_way_remote_addresses_are_resolved"></a>4.10.1&nbsp;Modifying the way remote addresses are resolved</h3></div></div></div><p>By default the RemoteAddr Route Predicate Factory uses the remote address from the incoming request.
