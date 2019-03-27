@@ -13,7 +13,7 @@
 </preface>
 <chapter xml:id="gateway-starter">
 <title>How to Include Spring Cloud Gateway</title>
-<simpara>To include Spring Cloud Gateway in your project add a dependency with group <literal>org.springframework.cloud</literal> and artifact id <literal>spring-cloud-gateway-mvc</literal>. See the <link xl:href="http://projects.spring.io/spring-cloud/">Spring Cloud Project page</link> for details on setting up your build system with the current Spring Cloud Release Train.</simpara>
+<simpara>To include Spring Cloud Gateway in your project add a dependency with group <literal>org.springframework.cloud</literal> and artifact id <literal>spring-cloud-gateway-mvc</literal>. See the <link xl:href="https://projects.spring.io/spring-cloud/">Spring Cloud Project page</link> for details on setting up your build system with the current Spring Cloud Release Train.</simpara>
 </chapter>
 <chapter xml:id="_building_a_gateway_using_spring_mvc">
 <title>Building a Gateway Using Spring MVC</title>
