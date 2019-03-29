@@ -1022,6 +1022,18 @@ spring:
 
 In either case, the HTTP status of the response will be set to 401.
 
+The SetStatus GatewayFilter can be configured to return the original HTTP status code from the proxied request in a header in the response. Header will be added to the response if configured using following property.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      set-status:
+        original-status-header-name: original-http-status
+----
+
 === StripPrefix GatewayFilter Factory
 The StripPrefix GatewayFilter Factory takes one parameter, `parts`.  The `parts` parameter indicated the number of parts in the path to strip from the request before sending it downstream.
 
