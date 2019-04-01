@@ -20,6 +20,8 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.Timer;
 import io.micrometer.core.instrument.Timer.Sample;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.route.Route;
@@ -35,6 +37,8 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.G
  * @author Tony Clarke
  */
 public class GatewayMetricsFilter implements GlobalFilter, Ordered {
+
+	private static final Log log = LogFactory.getLog(GatewayMetricsFilter.class);
 
 	private MeterRegistry meterRegistry;
 
@@ -78,30 +82,42 @@ public class GatewayMetricsFilter implements GlobalFilter, Ordered {
 		String httpStatusCodeStr = "NA";
 
 		String httpMethod = exchange.getRequest().getMethodValue();
-		HttpStatus statusCode = exchange.getResponse().getStatusCode();
-		if (statusCode != null) {
-			httpStatusCodeStr = String.valueOf(statusCode.value());
-			outcome = statusCode.series().name();
-			status = statusCode.name();
-		}
-		else { // a non standard HTTPS status could be used. Let's be defensive here
-			if (exchange.getResponse() instanceof AbstractServerHttpResponse) {
-				Integer statusInt = ((AbstractServerHttpResponse) exchange.getResponse())
-						.getStatusCodeValue();
-				if (statusInt != null) {
-					status = String.valueOf(statusInt);
-					httpStatusCodeStr = status;
-				}
-				else {
-					status = "NA";
+
+		// a non standard HTTPS status could be used. Let's be defensive here
+		// it needs to be checked for first, otherwise the delegate response
+		// who's status DIDN"T change, will be used
+		if (exchange.getResponse() instanceof AbstractServerHttpResponse) {
+			Integer statusInt = ((AbstractServerHttpResponse) exchange.getResponse())
+					.getStatusCodeValue();
+			if (statusInt != null) {
+				status = String.valueOf(statusInt);
+				httpStatusCodeStr = status;
+				HttpStatus resolved = HttpStatus.resolve(statusInt);
+				if (resolved != null) {
+					// this is not a CUSTOM status, so use series here.
+					outcome = resolved.series().name();
+					status = resolved.name();
 				}
 			}
 		}
+		else {
+			HttpStatus statusCode = exchange.getResponse().getStatusCode();
+			if (statusCode != null) {
+				httpStatusCodeStr = String.valueOf(statusCode.value());
+				outcome = statusCode.series().name();
+				status = statusCode.name();
+			}
+		}
+
 		// TODO refactor to allow Tags provider like in MetricsWebFilter
 		Route route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
 		Tags tags = Tags.of("outcome", outcome, "status", status, "httpStatusCode",
 				httpStatusCodeStr, "routeId", route.getId(), "routeUri",
 				route.getUri().toString(), "httpMethod", httpMethod);
+
+		if (log.isTraceEnabled()) {
+			log.trace("gateway.requests tags: " + tags);
+		}
 		sample.stop(meterRegistry.timer("gateway.requests", tags));
 	}
 
