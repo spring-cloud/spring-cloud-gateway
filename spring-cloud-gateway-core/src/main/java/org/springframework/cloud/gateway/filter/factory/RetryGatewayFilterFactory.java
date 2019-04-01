@@ -22,11 +22,17 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.reactivestreams.Publisher;
+import org.springframework.cloud.gateway.filter.GatewayFilterChain;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferUtils;
+import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.retry.Repeat;
 import reactor.retry.RepeatContext;
@@ -51,6 +57,8 @@ public class RetryGatewayFilterFactory
 	 * Retry iteration key.
 	 */
 	public static final String RETRY_ITERATION_KEY = "retry_iteration";
+
+	public static final String RETRY_BODY_KEY = "retry_body";
 
 	private static final Log log = LogFactory.getLog(RetryGatewayFilterFactory.class);
 
@@ -153,13 +161,57 @@ public class RetryGatewayFilterFactory
 		exchange.getAttributes().remove(GATEWAY_ALREADY_ROUTED_ATTR);
 	}
 
+	public Mono<Void> preparedRequest(ServerWebExchange exchange,
+			GatewayFilterChain chain) {
+		return Mono.fromCallable(() -> {
+			DataBuffer originalRequestBuffer = exchange
+					.getAttributeOrDefault(RETRY_BODY_KEY, null);
+
+			return Optional.ofNullable(originalRequestBuffer);
+		}).flatMap(optionalDataBuffer -> {
+			Mono<DataBuffer> preparedRequest;
+			// Place the original request buffer into the context as a single aggregated
+			// buffer
+			if (!optionalDataBuffer.isPresent()) {
+				preparedRequest = DataBufferUtils.join(exchange.getRequest().getBody())
+						.map(dataBuffer -> {
+							exchange.getAttributes().put(RETRY_BODY_KEY, dataBuffer);
+							return dataBuffer;
+						});
+			}
+			else {
+				preparedRequest = Mono.just(optionalDataBuffer.get());
+			}
+
+			return preparedRequest.flatMap(dataBuffer -> {
+				ServerHttpRequestDecorator decorator = new ServerHttpRequestDecorator(
+						exchange.getRequest()) {
+					@Override
+					public Flux<DataBuffer> getBody() {
+						if (dataBuffer.readableByteCount() > 0) {
+							return Flux.defer(() -> {
+								DataBufferUtils.retain(dataBuffer);
+								return Flux.just(dataBuffer.slice(0,
+										dataBuffer.readableByteCount()));
+							});
+
+						}
+						return Flux.empty();
+					}
+				};
+				return chain.filter(exchange.mutate().request(decorator).build());
+			});
+		});
+	}
+
 	public GatewayFilter apply(Repeat<ServerWebExchange> repeat,
 			Retry<ServerWebExchange> retry) {
 		return (exchange, chain) -> {
 			trace("Entering retry-filter");
 
 			// chain.filter returns a Mono<Void>
-			Publisher<Void> publisher = chain.filter(exchange)
+			Publisher<Void> publisher = preparedRequest(exchange, chain)
+					.then(chain.filter(exchange))
 					// .log("retry-filter", Level.INFO)
 					.doOnSuccessOrError((aVoid, throwable) -> {
 						int iteration = exchange
@@ -182,7 +234,11 @@ public class RetryGatewayFilterFactory
 						.repeatWhen(repeat.withApplicationContext(exchange));
 			}
 
-			return Mono.fromDirect(publisher);
+			return Mono.fromDirect(publisher).doFinally(signalType -> {
+				DataBuffer originalRequestBuffer = exchange
+						.getAttributeOrDefault(RETRY_BODY_KEY, null);
+				DataBufferUtils.release(originalRequestBuffer);
+			});
 		};
 	}
 
