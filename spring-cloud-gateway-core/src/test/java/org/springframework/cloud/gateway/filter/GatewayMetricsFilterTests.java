@@ -47,7 +47,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
-public class GatewayMetricFilterTests extends BaseWebClientTests {
+public class GatewayMetricsFilterTests extends BaseWebClientTests {
 
 	private static final String REQUEST_METRICS_NAME = "gateway.requests";
 
