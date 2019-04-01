@@ -236,7 +236,9 @@ public class RetryGatewayFilterFactory
 			return Mono.fromDirect(publisher).doFinally(signalType -> {
 				Optional<DataBuffer> originalRequestBuffer = exchange
 						.getAttributeOrDefault(RETRY_BODY_KEY, Optional.empty());
-				// If we have a buffer here then attempt to release it
+				// If we have a buffer here then attempt to release it.  We assume that downstream will always clean
+				// up a body that has been read.  When we no longer have to replay or retry, we must clean up what
+				// we originally retained.
 				if (originalRequestBuffer.isPresent()) {
 					DataBufferUtils.release(originalRequestBuffer.get());
 				}
