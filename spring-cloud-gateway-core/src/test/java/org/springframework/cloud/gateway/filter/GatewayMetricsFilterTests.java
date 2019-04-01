@@ -85,7 +85,7 @@ public class GatewayMetricsFilterTests extends BaseWebClientTests {
 	@Test
 	public void hasMetricsForSetStatusFilter() throws InterruptedException {
 		HttpHeaders headers = new HttpHeaders();
-		headers.set(HttpHeaders.HOST, "www.setcustomstatus.org");
+		headers.set(HttpHeaders.HOST, "www.setcustomstatusmetrics.org");
 		// cannot use netty client since we cannot read custom http status
 		ResponseEntity<String> response = new TestRestTemplate().exchange(
 				baseUri + "/headers", HttpMethod.POST, new HttpEntity<>(headers),
@@ -93,7 +93,7 @@ public class GatewayMetricsFilterTests extends BaseWebClientTests {
 		assertThat(response.getStatusCodeValue()).isEqualTo(432);
 		assertMetricsContainsTag("outcome", "CUSTOM");
 		assertMetricsContainsTag("status", "432");
-		assertMetricsContainsTag("routeId", "test_custom_http_status");
+		assertMetricsContainsTag("routeId", "test_custom_http_status_metrics");
 		assertMetricsContainsTag("routeUri", testUri);
 		assertMetricsContainsTag("httpStatusCode", "432");
 		assertMetricsContainsTag("httpMethod", HttpMethod.POST.toString());
@@ -116,8 +116,9 @@ public class GatewayMetricsFilterTests extends BaseWebClientTests {
 		@Bean
 		public RouteLocator myRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes()
-					.route("test_custom_http_status", r -> r.host("*.setcustomstatus.org")
-							.filters(f -> f.setStatus(432)).uri(testUri))
+					.route("test_custom_http_status_metrics",
+							r -> r.host("*.setcustomstatusmetrics.org")
+									.filters(f -> f.setStatus(432)).uri(testUri))
 					.build();
 		}
 

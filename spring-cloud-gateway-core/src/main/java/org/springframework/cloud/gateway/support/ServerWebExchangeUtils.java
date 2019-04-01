@@ -163,6 +163,9 @@ public final class ServerWebExchangeUtils {
 		if (exchange.getResponse().isCommitted()) {
 			return false;
 		}
+		if (logger.isDebugEnabled()) {
+			logger.debug("Setting response status to " + statusHolder);
+		}
 		if (statusHolder.getHttpStatus() != null) {
 			return setResponseStatus(exchange, statusHolder.getHttpStatus());
 		}
