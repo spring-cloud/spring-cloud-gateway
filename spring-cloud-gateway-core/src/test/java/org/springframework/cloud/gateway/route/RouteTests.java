@@ -32,7 +32,7 @@ public class RouteTests {
 	public void defeaultHttpPort() {
 		Route route = Route.async().id("1")
 				.predicate(exchange -> true)
-				.uri("https://acme.com")
+				.uri("http://acme.com")
 				.build();
 
 		assertThat(route.getUri()).hasHost("acme.com")
@@ -56,7 +56,7 @@ public class RouteTests {
 	public void fullUri() {
 		Route route = Route.async().id("1")
 				.predicate(exchange -> true)
-				.uri("https://acme.com:8080")
+				.uri("http://acme.com:8080")
 				.build();
 
 		assertThat(route.getUri()).hasHost("acme.com")

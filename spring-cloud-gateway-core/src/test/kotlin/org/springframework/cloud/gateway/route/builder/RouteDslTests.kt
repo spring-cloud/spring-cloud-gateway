@@ -85,7 +85,7 @@ class RouteDslTests {
 	@Test
 	fun dslWithFunctionParameters() {
 		val routerLocator = builder.routes {
-			route(id = "test1", order = 10, uri = "https://httpbin.org") {
+            route(id = "test1", order = 10, uri = "http://httpbin.org") {
 				host("**.abc.org")
 			}
 			route(id = "test2", order = 10, uri = "http://someurl") {
