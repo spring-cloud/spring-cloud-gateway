@@ -46,7 +46,7 @@ public class RedirectToGatewayFilterFactoryTests extends BaseWebClientTests {
 				.header("Host", "www.redirectto.org")
 				.exchange()
 				.expectStatus().isEqualTo(HttpStatus.FOUND)
-				.expectHeader().valueEquals(HttpHeaders.LOCATION, "http://example.org");
+				.expectHeader().valueEquals(HttpHeaders.LOCATION, "https://example.org");
 	}
 
 	@Test
