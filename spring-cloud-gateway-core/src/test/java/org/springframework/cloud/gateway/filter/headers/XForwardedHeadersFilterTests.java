@@ -269,7 +269,8 @@ public class XForwardedHeadersFilterTests {
 		ServerWebExchange exchange = MockServerWebExchange.from(request);
 		LinkedHashSet<URI> originalUris = new LinkedHashSet<>();
 		originalUris.add(UriComponentsBuilder
-				.fromUriString("https://originalhost:8080/one/two/three").build().toUri());
+				.fromUriString("https://originalhost:8080/one/two/three").build()
+				.toUri());
 		exchange.getAttributes().put(GATEWAY_ORIGINAL_REQUEST_URL_ATTR, originalUris);
 		URI requestUri = UriComponentsBuilder
 				.fromUriString("https://routedservice:8090/two").build().toUri();

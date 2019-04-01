@@ -12,12 +12,15 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.filter;
 
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
+import io.micrometer.core.instrument.Timer;
+import io.micrometer.core.instrument.Timer.Sample;
+import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.core.Ordered;
@@ -26,11 +29,7 @@ import org.springframework.http.server.reactive.AbstractServerHttpResponse;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.server.ServerWebExchange;
 
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Tags;
-import io.micrometer.core.instrument.Timer;
-import io.micrometer.core.instrument.Timer.Sample;
-import reactor.core.publisher.Mono;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
 
 public class GatewayMetricsFilter implements GlobalFilter, Ordered {
 
@@ -102,4 +101,5 @@ public class GatewayMetricsFilter implements GlobalFilter, Ordered {
 				route.getUri().toString(), "httpMethod", httpMethod);
 		sample.stop(meterRegistry.timer("gateway.requests", tags));
 	}
+
 }
