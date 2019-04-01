@@ -95,7 +95,7 @@ public class LoadBalancerClientFilterTests {
 
 	@Test
 	public void shouldNotFilterWhenGatewayRequestUrlSchemeIsNotLb() {
-		URI uri = UriComponentsBuilder.fromUriString("http://myservice").build().toUri();
+		URI uri = UriComponentsBuilder.fromUriString("https://myservice").build().toUri();
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, uri);
 
 		loadBalancerClientFilter.filter(exchange, chain);
@@ -202,7 +202,7 @@ public class LoadBalancerClientFilterTests {
 		MockServerHttpRequest request = MockServerHttpRequest.get("https://localhost")
 				.build();
 
-		URI lbUri = URI.create("http://service1");
+		URI lbUri = URI.create("https://service1");
 		ServerWebExchange exchange = MockServerWebExchange.from(request);
 		exchange.getAttributes().put(GATEWAY_SCHEME_PREFIX_ATTR, "lb");
 		ServerWebExchange webExchange = testFilter(exchange, lbUri, 443);
@@ -309,7 +309,7 @@ public class LoadBalancerClientFilterTests {
 
 	@Test
 	public void shouldNotFilterWhenGatewaySchemePrefixAttrIsNotLb() {
-		URI uri = UriComponentsBuilder.fromUriString("http://myservice").build().toUri();
+		URI uri = UriComponentsBuilder.fromUriString("https://myservice").build().toUri();
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, uri);
 		exchange.getAttributes().put(GATEWAY_SCHEME_PREFIX_ATTR, "xx");
 

@@ -45,7 +45,7 @@ public class RouteBuilderTests {
 		RouteLocator routeLocator = this.routeLocatorBuilder.routes()
 				.route("test1", r -> r.host("*.somehost.org").and().path("/somepath")
 						.filters(f -> f.addRequestHeader("header1", "header-value-1"))
-						.uri("http://someuri"))
+						.uri("https://someuri"))
 				.route("test2", r -> r.host("*.somehost2.org")
 						.filters(f -> f.addResponseHeader("header-response-1",
 								"header-response-1"))
@@ -55,7 +55,7 @@ public class RouteBuilderTests {
 		StepVerifier.create(routeLocator.getRoutes())
 				.expectNextMatches(
 						r -> r.getId().equals("test1") && r.getFilters().size() == 1
-								&& r.getUri().equals(URI.create("http://someuri:80")))
+								&& r.getUri().equals(URI.create("https://someuri:80")))
 				.expectNextMatches(
 						r -> r.getId().equals("test2") && r.getFilters().size() == 1
 								&& r.getUri()
