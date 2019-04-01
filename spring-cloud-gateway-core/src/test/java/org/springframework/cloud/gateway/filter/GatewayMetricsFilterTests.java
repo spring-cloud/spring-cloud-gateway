@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.filter;
@@ -48,7 +47,7 @@ import io.micrometer.core.instrument.MeterRegistry;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
-public class GatewayMetricFilterTests extends BaseWebClientTests {
+public class GatewayMetricsFilterTests extends BaseWebClientTests {
 
 	private static final String REQUEST_METRICS_NAME = "gateway.requests";
 
