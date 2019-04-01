@@ -164,44 +164,44 @@ public class RetryGatewayFilterFactory
 	public Mono<Void> preparedRequest(ServerWebExchange exchange,
 			GatewayFilterChain chain) {
 		return Mono.fromCallable(() -> {
-			DataBuffer originalRequestBuffer = exchange
+			Optional<DataBuffer> cachedRequestBuffer = exchange
 					.getAttributeOrDefault(RETRY_BODY_KEY, null);
 
-			return Optional.ofNullable(originalRequestBuffer);
-		}).flatMap(optionalDataBuffer -> {
-			Mono<DataBuffer> preparedRequest;
+			Mono<Optional<DataBuffer>> preparedRequest;
 			// Place the original request buffer into the context as a single aggregated
 			// buffer
-			if (!optionalDataBuffer.isPresent()) {
+			if (cachedRequestBuffer == null) {
 				preparedRequest = DataBufferUtils.join(exchange.getRequest().getBody())
-						.map(dataBuffer -> {
-							exchange.getAttributes().put(RETRY_BODY_KEY, dataBuffer);
-							return dataBuffer;
-						});
+						.map(dataBuffer -> Optional.of(dataBuffer))
+						.defaultIfEmpty(Optional.empty())
+						.doOnNext(optionalDataBuffer -> exchange.getAttributes()
+								.put(RETRY_BODY_KEY, optionalDataBuffer));
 			}
 			else {
-				preparedRequest = Mono.just(optionalDataBuffer.get());
+				preparedRequest = Mono.just(cachedRequestBuffer);
 			}
+			return preparedRequest;
+		}).flatMap(
+				cachedRequestBuffer -> cachedRequestBuffer.flatMap(optionalDataBuffer -> {
+					ServerHttpRequestDecorator decorator = new ServerHttpRequestDecorator(
+							exchange.getRequest()) {
+						@Override
+						public Flux<DataBuffer> getBody() {
+							if (optionalDataBuffer.isPresent()) {
+								DataBuffer dataBuffer = optionalDataBuffer.get();
+								return Flux.defer(() -> {
+									// Retain the buffer, we will release down the chain
+									DataBufferUtils.retain(dataBuffer);
+									return Flux.just(dataBuffer.slice(0,
+											dataBuffer.readableByteCount()));
+								});
 
-			return preparedRequest.flatMap(dataBuffer -> {
-				ServerHttpRequestDecorator decorator = new ServerHttpRequestDecorator(
-						exchange.getRequest()) {
-					@Override
-					public Flux<DataBuffer> getBody() {
-						if (dataBuffer.readableByteCount() > 0) {
-							return Flux.defer(() -> {
-								DataBufferUtils.retain(dataBuffer);
-								return Flux.just(dataBuffer.slice(0,
-										dataBuffer.readableByteCount()));
-							});
-
+							}
+							return Flux.empty();
 						}
-						return Flux.empty();
-					}
-				};
-				return chain.filter(exchange.mutate().request(decorator).build());
-			});
-		});
+					};
+					return chain.filter(exchange.mutate().request(decorator).build());
+				}));
 	}
 
 	public GatewayFilter apply(Repeat<ServerWebExchange> repeat,
@@ -235,9 +235,12 @@ public class RetryGatewayFilterFactory
 			}
 
 			return Mono.fromDirect(publisher).doFinally(signalType -> {
-				DataBuffer originalRequestBuffer = exchange
-						.getAttributeOrDefault(RETRY_BODY_KEY, null);
-				DataBufferUtils.release(originalRequestBuffer);
+				Optional<DataBuffer> originalRequestBuffer = exchange
+						.getAttributeOrDefault(RETRY_BODY_KEY, Optional.empty());
+				// If we have a buffer here then attempt to release it
+				if (originalRequestBuffer.isPresent()) {
+					DataBufferUtils.release(originalRequestBuffer.get());
+				}
 			});
 		};
 	}
