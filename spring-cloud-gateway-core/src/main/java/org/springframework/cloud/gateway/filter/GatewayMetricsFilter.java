@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,6 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.Timer;
 import io.micrometer.core.instrument.Timer.Sample;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.route.Route;
@@ -33,11 +31,12 @@ import org.springframework.web.server.ServerWebExchange;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
 
+/**
+ * @author Tony Clarke
+ */
 public class GatewayMetricsFilter implements GlobalFilter, Ordered {
 
-	private final Log log = LogFactory.getLog(getClass());
-
-	private final MeterRegistry meterRegistry;
+	private MeterRegistry meterRegistry;
 
 	public GatewayMetricsFilter(MeterRegistry meterRegistry) {
 		this.meterRegistry = meterRegistry;
@@ -47,7 +46,7 @@ public class GatewayMetricsFilter implements GlobalFilter, Ordered {
 	public int getOrder() {
 		// start the timer as soon as possible and report the metric event before we write
 		// response to client
-		return Ordered.HIGHEST_PRECEDENCE + 10000;
+		return NettyWriteResponseFilter.WRITE_RESPONSE_FILTER_ORDER + 1;
 	}
 
 	@Override
@@ -76,8 +75,12 @@ public class GatewayMetricsFilter implements GlobalFilter, Ordered {
 	private void endTimerInner(ServerWebExchange exchange, Sample sample) {
 		String outcome = "CUSTOM";
 		String status = "CUSTOM";
+		String httpStatusCodeStr = "NA";
+
+		String httpMethod = exchange.getRequest().getMethodValue();
 		HttpStatus statusCode = exchange.getResponse().getStatusCode();
 		if (statusCode != null) {
+			httpStatusCodeStr = String.valueOf(statusCode.value());
 			outcome = statusCode.series().name();
 			status = statusCode.name();
 		}
@@ -87,18 +90,18 @@ public class GatewayMetricsFilter implements GlobalFilter, Ordered {
 						.getStatusCodeValue();
 				if (statusInt != null) {
 					status = String.valueOf(statusInt);
+					httpStatusCodeStr = status;
 				}
 				else {
 					status = "NA";
 				}
 			}
 		}
+		// TODO refactor to allow Tags provider like in MetricsWebFilter
 		Route route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
-		Tags tags = Tags.of("outcome", outcome, "status", status, "routeId",
-				route.getId(), "routeUri", route.getUri().toString());
-		if (log.isTraceEnabled()) {
-			log.trace("Stopping timer 'gateway.requests' with tags " + tags);
-		}
+		Tags tags = Tags.of("outcome", outcome, "status", status, "httpStatusCode",
+				httpStatusCodeStr, "routeId", route.getId(), "routeUri",
+				route.getUri().toString(), "httpMethod", httpMethod);
 		sample.stop(meterRegistry.timer("gateway.requests", tags));
 	}
 
