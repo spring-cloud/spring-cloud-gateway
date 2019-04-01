@@ -211,7 +211,6 @@ public class RetryGatewayFilterFactory
 
 			// chain.filter returns a Mono<Void>
 			Publisher<Void> publisher = preparedRequest(exchange, chain)
-					.then(chain.filter(exchange))
 					// .log("retry-filter", Level.INFO)
 					.doOnSuccessOrError((aVoid, throwable) -> {
 						int iteration = exchange
