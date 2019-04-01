@@ -63,8 +63,10 @@ public class GatewayMetricFilterTests extends BaseWebClientTests {
 		testClient.get().uri("/headers").exchange().expectStatus().isOk();
 		assertMetricsContainsTag("outcome", HttpStatus.Series.SUCCESSFUL.name());
 		assertMetricsContainsTag("status", HttpStatus.OK.name());
+		assertMetricsContainsTag("httpStatusCode", String.valueOf(HttpStatus.OK.value()));
+		assertMetricsContainsTag("httpMethod", HttpMethod.GET.toString());
 		assertMetricsContainsTag("routeId", "default_path_to_httpbin");
-		assertMetricsContainsTag("routeUri", "lb://testservice");
+		assertMetricsContainsTag("routeUri", testUri);
 	}
 
 	@Test
@@ -74,6 +76,8 @@ public class GatewayMetricFilterTests extends BaseWebClientTests {
 				.is5xxServerError();
 		assertMetricsContainsTag("outcome", HttpStatus.Series.SERVER_ERROR.name());
 		assertMetricsContainsTag("status", HttpStatus.INTERNAL_SERVER_ERROR.name());
+		assertMetricsContainsTag("httpStatusCode", String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()));
+		assertMetricsContainsTag("httpMethod", HttpMethod.GET.toString());
 		assertMetricsContainsTag("routeId", "default_path_to_httpbin");
 		assertMetricsContainsTag("routeUri", testUri);
 	}
@@ -84,13 +88,15 @@ public class GatewayMetricFilterTests extends BaseWebClientTests {
 		headers.set(HttpHeaders.HOST, "www.setcustomstatus.org");
 		// cannot use netty client since we cannot read custom http status
 		ResponseEntity<String> response = new TestRestTemplate().exchange(
-				baseUri + "/headers", HttpMethod.GET, new HttpEntity<>(headers),
+				baseUri + "/headers", HttpMethod.POST, new HttpEntity<>(headers),
 				String.class);
 		assertThat(response.getStatusCodeValue()).isEqualTo(432);
 		assertMetricsContainsTag("outcome", "CUSTOM");
 		assertMetricsContainsTag("status", "432");
 		assertMetricsContainsTag("routeId", "test_custom_http_status");
 		assertMetricsContainsTag("routeUri", testUri);
+		assertMetricsContainsTag("httpStatusCode", "432");
+		assertMetricsContainsTag("httpMethod", HttpMethod.POST.toString());
 	}
 
 	private void assertMetricsContainsTag(String tagKey, String tagValue) {
