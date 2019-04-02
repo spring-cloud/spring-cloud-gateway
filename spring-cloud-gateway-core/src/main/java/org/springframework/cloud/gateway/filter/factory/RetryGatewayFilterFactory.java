@@ -163,7 +163,7 @@ public class RetryGatewayFilterFactory
 
 	public Mono<Void> preparedRequest(ServerWebExchange exchange,
 			GatewayFilterChain chain) {
-		return Mono.fromCallable(() -> {
+		return Mono.defer(() -> {
 			Optional<DataBuffer> cachedRequestBuffer = exchange
 					.getAttributeOrDefault(RETRY_BODY_KEY, null);
 
@@ -181,27 +181,26 @@ public class RetryGatewayFilterFactory
 				preparedRequest = Mono.just(cachedRequestBuffer);
 			}
 			return preparedRequest;
-		}).flatMap(
-				cachedRequestBuffer -> cachedRequestBuffer.flatMap(optionalDataBuffer -> {
-					ServerHttpRequestDecorator decorator = new ServerHttpRequestDecorator(
-							exchange.getRequest()) {
-						@Override
-						public Flux<DataBuffer> getBody() {
-							if (optionalDataBuffer.isPresent()) {
-								DataBuffer dataBuffer = optionalDataBuffer.get();
-								return Flux.defer(() -> {
-									// Retain the buffer, we will release down the chain
-									DataBufferUtils.retain(dataBuffer);
-									return Flux.just(dataBuffer.slice(0,
-											dataBuffer.readableByteCount()));
-								});
+		}).flatMap(optionalDataBuffer -> {
+			ServerHttpRequestDecorator decorator = new ServerHttpRequestDecorator(
+					exchange.getRequest()) {
+				@Override
+				public Flux<DataBuffer> getBody() {
+					if (optionalDataBuffer.isPresent()) {
+						DataBuffer dataBuffer = optionalDataBuffer.get();
+						return Flux.defer(() -> {
+							// Retain the buffer, we will release down the chain
+							DataBufferUtils.retain(dataBuffer);
+							return Flux.just(
+									dataBuffer.slice(0, dataBuffer.readableByteCount()));
+						});
 
-							}
-							return Flux.empty();
-						}
-					};
-					return chain.filter(exchange.mutate().request(decorator).build());
-				}));
+					}
+					return Flux.empty();
+				}
+			};
+			return chain.filter(exchange.mutate().request(decorator).build());
+		});
 	}
 
 	public GatewayFilter apply(Repeat<ServerWebExchange> repeat,
@@ -236,8 +235,10 @@ public class RetryGatewayFilterFactory
 			return Mono.fromDirect(publisher).doFinally(signalType -> {
 				Optional<DataBuffer> originalRequestBuffer = exchange
 						.getAttributeOrDefault(RETRY_BODY_KEY, Optional.empty());
-				// If we have a buffer here then attempt to release it.  We assume that downstream will always clean
-				// up a body that has been read.  When we no longer have to replay or retry, we must clean up what
+				// If we have a buffer here then attempt to release it. We assume that
+				// downstream will always clean
+				// up a body that has been read. When we no longer have to replay or
+				// retry, we must clean up what
 				// we originally retained.
 				if (originalRequestBuffer.isPresent()) {
 					DataBufferUtils.release(originalRequestBuffer.get());
