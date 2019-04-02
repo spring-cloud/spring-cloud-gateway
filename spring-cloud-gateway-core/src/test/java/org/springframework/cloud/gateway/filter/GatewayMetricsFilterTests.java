@@ -58,7 +58,7 @@ public class GatewayMetricsFilterTests extends BaseWebClientTests {
 	private String testUri;
 
 	@Test
-	public void gatewayRequestsMeterFilterHasTags() throws InterruptedException {
+	public void gatewayRequestsMeterFilterHasTags() {
 		testClient.get().uri("/headers").exchange().expectStatus().isOk();
 		assertMetricsContainsTag("outcome", HttpStatus.Series.SUCCESSFUL.name());
 		assertMetricsContainsTag("status", HttpStatus.OK.name());
@@ -69,8 +69,7 @@ public class GatewayMetricsFilterTests extends BaseWebClientTests {
 	}
 
 	@Test
-	public void gatewayRequestsMeterFilterHasTagsForBadTargetUri()
-			throws InterruptedException {
+	public void gatewayRequestsMeterFilterHasTagsForBadTargetUri() {
 		testClient.get().uri("/badtargeturi").exchange().expectStatus()
 				.is5xxServerError();
 		assertMetricsContainsTag("outcome", HttpStatus.Series.SERVER_ERROR.name());
@@ -83,7 +82,7 @@ public class GatewayMetricsFilterTests extends BaseWebClientTests {
 	}
 
 	@Test
-	public void hasMetricsForSetStatusFilter() throws InterruptedException {
+	public void hasMetricsForSetStatusFilter() {
 		HttpHeaders headers = new HttpHeaders();
 		headers.set(HttpHeaders.HOST, "www.setcustomstatusmetrics.org");
 		// cannot use netty client since we cannot read custom http status
