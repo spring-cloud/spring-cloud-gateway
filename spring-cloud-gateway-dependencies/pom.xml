@@ -18,7 +18,7 @@
 	<description>Spring Cloud Gateway Dependencies</description>
 
 	<properties>
-		<rsocket.version>0.11.18</rsocket.version>
+		<rsocket.version>0.12.1-RC3</rsocket.version>
 	</properties>
 
 	<dependencyManagement>
