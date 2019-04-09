@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.gateway.rsocket.server;
 
+import java.time.Duration;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -73,7 +75,9 @@ public class GatewayRSocketIntegrationTests {
 				.expectSubscription()
 				.then(() -> server.stop())
 				.thenConsumeWhile(s -> true)
-				.verifyComplete();
+				//.expectComplete()
+				.thenCancel()  // https://github.com/rsocket/rsocket-java/issues/613
+				.verify(Duration.ofSeconds(20));
 		// @formatter:on
 
 		assertThat(ping.getPongsReceived()).isGreaterThan(0);
