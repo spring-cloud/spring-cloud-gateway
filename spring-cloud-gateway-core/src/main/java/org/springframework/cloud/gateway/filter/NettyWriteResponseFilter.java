@@ -61,34 +61,54 @@ public class NettyWriteResponseFilter implements GlobalFilter, Ordered {
 	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 		// NOTICE: nothing in "pre" filter stage as CLIENT_RESPONSE_CONN_ATTR is not added
 		// until the NettyRoutingFilter is run
-		return chain.filter(exchange).then(Mono.defer(() -> {
-			Connection connection = exchange.getAttribute(CLIENT_RESPONSE_CONN_ATTR);
+		// @formatter:off
+		return chain.filter(exchange)
+				.doOnError(throwable -> cleanup(exchange))
+				.then(Mono.defer(() -> {
+					Connection connection = exchange.getAttribute(CLIENT_RESPONSE_CONN_ATTR);
 
-			if (connection == null) {
-				return Mono.empty();
-			}
-			log.trace("NettyWriteResponseFilter start");
-			ServerHttpResponse response = exchange.getResponse();
+					if (connection == null) {
+						return Mono.empty();
+					}
+					if (log.isTraceEnabled()) {
+						log.trace("NettyWriteResponseFilter start inbound: "
+								+ connection.channel().id().asShortText() + ", outbound: "
+								+ exchange.getLogPrefix());
+					}
+					ServerHttpResponse response = exchange.getResponse();
 
-			NettyDataBufferFactory factory = (NettyDataBufferFactory) response
-					.bufferFactory();
-			// TODO: what if it's not netty
+					// TODO: what if it's not netty
+					NettyDataBufferFactory factory = (NettyDataBufferFactory) response
+							.bufferFactory();
 
-			final Flux<NettyDataBuffer> body = connection.inbound().receive().retain() // TODO:
-																						// needed?
-					.map(factory::wrap);
+					// TODO: needed?
+					final Flux<NettyDataBuffer> body = connection
+							.inbound()
+							.receive()
+							.retain()
+							.map(factory::wrap);
 
-			MediaType contentType = null;
-			try {
-				contentType = response.getHeaders().getContentType();
-			}
-			catch (Exception e) {
-				log.trace("invalid media type", e);
-			}
-			return (isStreamingMediaType(contentType)
-					? response.writeAndFlushWith(body.map(Flux::just))
-					: response.writeWith(body));
-		}));
+					MediaType contentType = null;
+					try {
+						contentType = response.getHeaders().getContentType();
+					}
+					catch (Exception e) {
+						if (log.isTraceEnabled()) {
+							log.trace("invalid media type", e);
+						}
+					}
+					return (isStreamingMediaType(contentType)
+							? response.writeAndFlushWith(body.map(Flux::just))
+							: response.writeWith(body));
+				})).doOnCancel(() -> cleanup(exchange));
+		// @formatter:on
+	}
+
+	private void cleanup(ServerWebExchange exchange) {
+		Connection connection = exchange.getAttribute(CLIENT_RESPONSE_CONN_ATTR);
+		if (connection != null) {
+			connection.dispose();
+		}
 	}
 
 	// TODO: use framework if possible

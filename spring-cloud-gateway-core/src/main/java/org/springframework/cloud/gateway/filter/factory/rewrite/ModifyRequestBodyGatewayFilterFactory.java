@@ -25,8 +25,6 @@ import reactor.core.publisher.Mono;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.cloud.gateway.support.BodyInserterContext;
-import org.springframework.cloud.gateway.support.CachedBodyOutputMessage;
-import org.springframework.cloud.gateway.support.DefaultServerRequest;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.codec.HttpMessageReader;
@@ -60,7 +58,7 @@ public class ModifyRequestBodyGatewayFilterFactory extends
 	public GatewayFilter apply(Config config) {
 		return (exchange, chain) -> {
 			Class inClass = config.getInClass();
-			ServerRequest serverRequest = new DefaultServerRequest(exchange,
+			ServerRequest serverRequest = ServerRequest.create(exchange,
 					this.messageReaders);
 
 			// TODO: flux or mono
