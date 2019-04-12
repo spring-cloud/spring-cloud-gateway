@@ -29,11 +29,13 @@ import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.codec.HttpMessageReader;
 import org.springframework.http.codec.ServerCodecConfigurer;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
 import org.springframework.web.reactive.function.BodyInserter;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.server.HandlerStrategies;
 import org.springframework.web.reactive.function.server.ServerRequest;
+import org.springframework.web.server.ServerWebExchange;
 
 /**
  * This filter is BETA and may be subject to change in a future release.
@@ -85,33 +87,37 @@ public class ModifyRequestBodyGatewayFilterFactory extends
 			return bodyInserter.insert(outputMessage, new BodyInserterContext())
 					// .log("modify_request", Level.INFO)
 					.then(Mono.defer(() -> {
-						ServerHttpRequestDecorator decorator = new ServerHttpRequestDecorator(
-								exchange.getRequest()) {
-							@Override
-							public HttpHeaders getHeaders() {
-								long contentLength = headers.getContentLength();
-								HttpHeaders httpHeaders = new HttpHeaders();
-								httpHeaders.putAll(super.getHeaders());
-								if (contentLength > 0) {
-									httpHeaders.setContentLength(contentLength);
-								}
-								else {
-									// TODO: this causes a 'HTTP/1.1 411 Length Required'
-									// on httpbin.org
-									httpHeaders.set(HttpHeaders.TRANSFER_ENCODING,
-											"chunked");
-								}
-								return httpHeaders;
-							}
-
-							@Override
-							public Flux<DataBuffer> getBody() {
-								return outputMessage.getBody();
-							}
-						};
+						ServerHttpRequest decorator = decorate(exchange, headers,
+								outputMessage);
 						return chain.filter(exchange.mutate().request(decorator).build());
 					}));
 
+		};
+	}
+
+	ServerHttpRequestDecorator decorate(ServerWebExchange exchange, HttpHeaders headers,
+			CachedBodyOutputMessage outputMessage) {
+		return new ServerHttpRequestDecorator(exchange.getRequest()) {
+			@Override
+			public HttpHeaders getHeaders() {
+				long contentLength = headers.getContentLength();
+				HttpHeaders httpHeaders = new HttpHeaders();
+				httpHeaders.putAll(super.getHeaders());
+				if (contentLength > 0) {
+					httpHeaders.setContentLength(contentLength);
+				}
+				else {
+					// TODO: this causes a 'HTTP/1.1 411 Length Required' // on
+					// httpbin.org
+					httpHeaders.set(HttpHeaders.TRANSFER_ENCODING, "chunked");
+				}
+				return httpHeaders;
+			}
+
+			@Override
+			public Flux<DataBuffer> getBody() {
+				return outputMessage.getBody();
+			}
 		};
 	}
 

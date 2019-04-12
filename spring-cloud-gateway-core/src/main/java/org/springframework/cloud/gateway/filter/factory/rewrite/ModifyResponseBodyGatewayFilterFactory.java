@@ -31,6 +31,7 @@ import org.springframework.core.Ordered;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.codec.ServerCodecConfigurer;
+import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.web.reactive.function.BodyInserter;
 import org.springframework.web.reactive.function.BodyInserters;
@@ -146,10 +147,14 @@ public class ModifyResponseBodyGatewayFilterFactory extends
 		}
 
 		@Override
-		@SuppressWarnings("unchecked")
-		public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 
-			ServerHttpResponseDecorator responseDecorator = new ServerHttpResponseDecorator(
+		public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+			return chain.filter(exchange.mutate().response(decorate(exchange)).build());
+		}
+
+		@SuppressWarnings("unchecked")
+		ServerHttpResponse decorate(ServerWebExchange exchange) {
+			return new ServerHttpResponseDecorator(
 					exchange.getResponse()) {
 
 				@Override
@@ -201,8 +206,6 @@ public class ModifyResponseBodyGatewayFilterFactory extends
 					return writeWith(Flux.from(body).flatMapSequential(p -> p));
 				}
 			};
-
-			return chain.filter(exchange.mutate().response(responseDecorator).build());
 		}
 
 		@Override
