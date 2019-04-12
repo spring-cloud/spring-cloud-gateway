@@ -78,10 +78,9 @@ public class HttpStatusTests extends BaseWebClientTests {
 	public void normalErrorPageWorks() {
 		testClient.get().uri("/exception").exchange().expectStatus()
 				.isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR).expectBody(Map.class)
-				.consumeWith(result -> {
-					assertThat(result.getResponseBody()).hasSize(5).containsKeys(
-							"timestamp", "path", "status", "error", "message");
-				});
+				.consumeWith(result -> assertThat(result.getResponseBody())
+						.hasSizeGreaterThanOrEqualTo(5)
+						.containsKeys("timestamp", "path", "status", "error", "message"));
 	}
 
 	@EnableAutoConfiguration
