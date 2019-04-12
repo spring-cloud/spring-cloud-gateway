@@ -38,7 +38,9 @@ import org.springframework.web.server.ServerWebExchange;
 import static org.springframework.cloud.gateway.filter.AdaptCachedBodyGlobalFilter.CACHED_REQUEST_BODY_KEY;
 
 /**
- * This predicate is BETA and may be subject to change in a future release.
+ * Predicate that reads the body and applies a user provided predicate to run on the body.
+ * The body is cached in memory so that possible subsequent calls to the predicate do not
+ * need to deserialize again.
  */
 public class ReadBodyPredicateFactory
 		extends AbstractRoutePredicateFactory<ReadBodyPredicateFactory.Config> {
@@ -87,19 +89,15 @@ public class ReadBodyPredicateFactory
 				// Join all the DataBuffers so we have a single DataBuffer for the body
 				return DataBufferUtils.join(exchange.getRequest().getBody())
 						.flatMap(dataBuffer -> {
-							// Update the retain counts so we can read the body twice,
-							// once to parse into an object
-							// that we can test the predicate against and a second time
-							// when the HTTP client sends
-							// the request downstream
-							// Note: if we end up reading the body twice we will run into
-							// a problem, but as of right
-							// now there is no good use case for doing this
-							DataBufferUtils.retain(dataBuffer);
-							// Make a slice for each read so each read has its own
-							// read/write indexes
-							Flux<DataBuffer> cachedFlux = Flux.defer(() -> Flux.just(
-									dataBuffer.slice(0, dataBuffer.readableByteCount())));
+							byte[] bytes = new byte[dataBuffer.readableByteCount()];
+							dataBuffer.read(bytes);
+							DataBufferUtils.release(dataBuffer);
+							Flux<DataBuffer> cachedFlux = Flux.defer(() -> {
+								DataBuffer buffer = exchange.getResponse().bufferFactory()
+										.wrap(bytes);
+								DataBufferUtils.retain(buffer);
+								return Mono.just(buffer);
+							});
 
 							ServerHttpRequest mutatedRequest = new ServerHttpRequestDecorator(
 									exchange.getRequest()) {
