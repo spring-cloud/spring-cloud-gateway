@@ -70,8 +70,6 @@ import org.springframework.core.Ordered;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 
-import com.re6exp.svetlitsa.filters.Token;
-
 /**
  * Applies specific filters to routes.
  */
@@ -303,7 +301,6 @@ public class GatewayFilterSpec extends UriSpec {
 	 * @param <R> the new response body class
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
-	// TODO: setup custom spec
 	public <T, R> GatewayFilterSpec modifyResponseBody(Class<T> inClass,
 			Class<R> outClass, String newContentType,
 			RewriteFunction<T, R> rewriteFunction) {
