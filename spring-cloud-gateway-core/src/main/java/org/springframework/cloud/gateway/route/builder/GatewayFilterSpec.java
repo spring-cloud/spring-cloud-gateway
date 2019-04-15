@@ -70,6 +70,8 @@ import org.springframework.core.Ordered;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 
+import com.re6exp.svetlitsa.filters.Token;
+
 /**
  * Applies specific filters to routes.
  */
