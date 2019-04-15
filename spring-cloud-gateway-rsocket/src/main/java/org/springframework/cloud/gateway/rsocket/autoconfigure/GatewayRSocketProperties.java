@@ -32,7 +32,15 @@ public class GatewayRSocketProperties {
 
 	private String id = "gateway"; // TODO: + UUID?
 
-	private final Server server = new Server();
+	/**
+	 * Tag names and values to be supplied to Micrometer Interceptor.
+	 */
+	private List<String> micrometerTags = new ArrayList<>();
+
+	public GatewayRSocketProperties() {
+		micrometerTags.add("component");
+		micrometerTags.add("gateway");
+	}
 
 	public boolean isEnabled() {
 		return enabled;
@@ -50,81 +58,23 @@ public class GatewayRSocketProperties {
 		this.id = id;
 	}
 
-	public Server getServer() {
-		return server;
+	public List<String> getMicrometerTags() {
+		return micrometerTags;
+	}
+
+	public void setMicrometerTags(List<String> micrometerTags) {
+		this.micrometerTags = micrometerTags;
 	}
 
 	@Override
 	public String toString() {
-		return new ToStringCreator(this).append("enabled", enabled).append("id", id)
-				.append("server", server).toString();
-	}
-
-	/**
-	 * Server properties.
-	 */
-	public static class Server {
-
-		// TODO: other transports
-		public enum TransportType {
-
-			/**
-			 * TCP Transport type.
-			 */
-			TCP
-
-		}
-
-		/**
-		 * Tag names and values to be supplied to Micrometer Interceptor.
-		 */
-		private List<String> micrometerTags = new ArrayList<>();
-
-		/**
-		 * Server port.
-		 */
-		private int port = 7002; // TODO: different default port?
-
-		public Server() {
-			micrometerTags.add("component");
-			micrometerTags.add("gateway");
-		}
-
-		/**
-		 * Server transport type. Defaults to TCP.
-		 */
-		private TransportType transport = TransportType.TCP;
-
-		public List<String> getMicrometerTags() {
-			return micrometerTags;
-		}
-
-		public void setMicrometerTags(List<String> micrometerTags) {
-			this.micrometerTags = micrometerTags;
-		}
-
-		public int getPort() {
-			return port;
-		}
-
-		public void setPort(int port) {
-			this.port = port;
-		}
-
-		public TransportType getTransport() {
-			return transport;
-		}
-
-		public void setTransport(TransportType transport) {
-			this.transport = transport;
-		}
-
-		@Override
-		public String toString() {
-			return new ToStringCreator(this).append("micrometerTags", micrometerTags)
-					.append("port", port).append("transport", transport).toString();
-		}
-
+		// @formatter:off
+		return new ToStringCreator(this)
+				.append("enabled", enabled)
+				.append("id", id)
+				.append("micrometerTags", micrometerTags)
+				.toString();
+		// @formatter:on
 	}
 
 }

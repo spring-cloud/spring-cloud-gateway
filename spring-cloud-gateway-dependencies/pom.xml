@@ -50,17 +50,7 @@
 			</dependency>
 			<dependency>
 				<groupId>io.rsocket</groupId>
-				<artifactId>rsocket-core</artifactId>
-				<version>${rsocket.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>io.rsocket</groupId>
 				<artifactId>rsocket-micrometer</artifactId>
-				<version>${rsocket.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>io.rsocket</groupId>
-				<artifactId>rsocket-transport-netty</artifactId>
 				<version>${rsocket.version}</version>
 			</dependency>
 		</dependencies>

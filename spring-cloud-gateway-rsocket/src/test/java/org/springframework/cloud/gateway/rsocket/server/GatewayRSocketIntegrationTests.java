@@ -25,11 +25,13 @@ import org.junit.runner.RunWith;
 import reactor.test.StepVerifier;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.rsocket.RSocketProperties;
+import org.springframework.boot.rsocket.netty.NettyRSocketBootstrap;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.cloud.gateway.rsocket.autoconfigure.GatewayRSocketProperties;
 import org.springframework.cloud.gateway.rsocket.test.PingPongApp;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.util.SocketUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -48,24 +50,23 @@ public class GatewayRSocketIntegrationTests {
 	private PingPongApp.Pong pong;
 
 	@Autowired
-	private GatewayRSocketProperties properties;
+	private RSocketProperties properties;
 
 	@Autowired
 	private PingPongApp.MySocketAcceptorFilter mySocketAcceptorFilter;
 
 	@Autowired
-	private GatewayRSocketServer server;
+	private NettyRSocketBootstrap server;
 
 	@BeforeClass
 	public static void init() {
 		port = SocketUtils.findAvailableTcpPort();
-		System.setProperty("spring.cloud.gateway.rsocket.server.port",
-				String.valueOf(port));
+		System.setProperty("spring.rsocket.server.port", String.valueOf(port));
 	}
 
 	@AfterClass
 	public static void after() {
-		System.clearProperty("spring.cloud.gateway.rsocket.server.port");
+		System.clearProperty("spring.rsocket.server.port");
 	}
 
 	@Test
@@ -82,9 +83,11 @@ public class GatewayRSocketIntegrationTests {
 
 		assertThat(ping.getPongsReceived()).isGreaterThan(0);
 		assertThat(pong.getPingsReceived()).isGreaterThan(0);
-		assertThat(properties.getServer().getPort()).isNotEqualTo(7002);
+		Object server = properties.getServer();
+		Object port = ReflectionTestUtils.invokeGetterMethod(server, "port");
+		assertThat(port).isNotEqualTo(7002);
 		assertThat(mySocketAcceptorFilter.invoked()).isTrue();
-		assertThat(server.isRunning()).isFalse();
+		assertThat(this.server.isRunning()).isFalse();
 	}
 
 }

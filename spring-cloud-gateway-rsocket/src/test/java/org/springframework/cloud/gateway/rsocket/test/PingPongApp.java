@@ -125,8 +125,8 @@ public class PingPongApp {
 			log.info("Starting Ping" + id);
 			ConfigurableEnvironment env = event.getApplicationContext().getEnvironment();
 			Integer take = env.getProperty("ping.take", Integer.class, null);
-			Integer gatewayPort = env.getProperty(
-					"spring.cloud.gateway.rsocket.server.port", Integer.class, 7002);
+			Integer gatewayPort = env.getProperty("spring.rsocket.server.port",
+					Integer.class, 7002);
 
 			log.debug("ping.take: " + take);
 
@@ -208,8 +208,8 @@ public class PingPongApp {
 				e.printStackTrace();
 			}
 			log.info("Starting Pong");
-			Integer gatewayPort = env.getProperty(
-					"spring.cloud.gateway.rsocket.server.port", Integer.class, 7002);
+			Integer gatewayPort = env.getProperty("spring.rsocket.server.port",
+					Integer.class, 7002);
 			MicrometerRSocketInterceptor interceptor = new MicrometerRSocketInterceptor(
 					meterRegistry, Tag.of("component", "pong"));
 			ByteBuf announcementMetadata = Metadata.from("pong").with("id", "pong1")

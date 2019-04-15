@@ -29,7 +29,7 @@ import org.springframework.cloud.gateway.rsocket.registry.RegistryRoutes;
 import org.springframework.cloud.gateway.rsocket.registry.RegistrySocketAcceptorFilter;
 import org.springframework.cloud.gateway.rsocket.route.Routes;
 import org.springframework.cloud.gateway.rsocket.server.GatewayRSocket;
-import org.springframework.cloud.gateway.rsocket.server.GatewayRSocketServer;
+import org.springframework.cloud.gateway.rsocket.server.GatewayServerRSocketFactoryCustomizer;
 import org.springframework.cloud.gateway.rsocket.socketacceptor.GatewaySocketAcceptor;
 import org.springframework.cloud.gateway.rsocket.socketacceptor.SocketAcceptorFilter;
 import org.springframework.cloud.gateway.rsocket.socketacceptor.SocketAcceptorPredicate;
@@ -96,9 +96,9 @@ public class GatewayRSocketAutoConfiguration {
 	}
 
 	@Bean
-	public GatewayRSocketServer gatewayApp(GatewaySocketAcceptor socketAcceptor,
+	public GatewayServerRSocketFactoryCustomizer gatewayServerRSocketFactoryCustomizer(
 			GatewayRSocketProperties properties, MeterRegistry meterRegistry) {
-		return new GatewayRSocketServer(properties, socketAcceptor, meterRegistry);
+		return new GatewayServerRSocketFactoryCustomizer(properties, meterRegistry);
 	}
 
 }
