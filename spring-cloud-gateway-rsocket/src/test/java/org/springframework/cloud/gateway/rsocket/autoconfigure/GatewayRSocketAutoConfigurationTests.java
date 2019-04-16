@@ -25,7 +25,7 @@ import org.springframework.boot.test.context.runner.ReactiveWebApplicationContex
 import org.springframework.cloud.gateway.rsocket.registry.Registry;
 import org.springframework.cloud.gateway.rsocket.registry.RegistryRoutes;
 import org.springframework.cloud.gateway.rsocket.registry.RegistrySocketAcceptorFilter;
-import org.springframework.cloud.gateway.rsocket.server.GatewayServerRSocketFactoryCustomizer;
+import org.springframework.cloud.gateway.rsocket.core.GatewayServerRSocketFactoryCustomizer;
 import org.springframework.cloud.gateway.rsocket.socketacceptor.GatewaySocketAcceptor;
 import org.springframework.cloud.gateway.rsocket.socketacceptor.SocketAcceptorPredicate;
 import org.springframework.cloud.gateway.rsocket.socketacceptor.SocketAcceptorPredicateFilter;

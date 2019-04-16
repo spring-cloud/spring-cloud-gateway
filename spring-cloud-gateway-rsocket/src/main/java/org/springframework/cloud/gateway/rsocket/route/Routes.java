@@ -21,7 +21,7 @@ import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import org.springframework.cloud.gateway.rsocket.server.GatewayExchange;
+import org.springframework.cloud.gateway.rsocket.core.GatewayExchange;
 
 /**
  * @author Spencer Gibb

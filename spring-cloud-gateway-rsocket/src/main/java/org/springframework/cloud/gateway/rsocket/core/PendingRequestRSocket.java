@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.gateway.rsocket.server;
+package org.springframework.cloud.gateway.rsocket.core;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -38,9 +38,9 @@ import org.springframework.cloud.gateway.rsocket.registry.Registry.RegisteredEve
 import org.springframework.cloud.gateway.rsocket.route.Route;
 import org.springframework.cloud.gateway.rsocket.support.Metadata;
 
-import static org.springframework.cloud.gateway.rsocket.server.GatewayExchange.ROUTE_ATTR;
-import static org.springframework.cloud.gateway.rsocket.server.GatewayExchange.Type.REQUEST_STREAM;
-import static org.springframework.cloud.gateway.rsocket.server.GatewayFilterChain.executeFilterChain;
+import static org.springframework.cloud.gateway.rsocket.core.GatewayExchange.ROUTE_ATTR;
+import static org.springframework.cloud.gateway.rsocket.core.GatewayExchange.Type.REQUEST_STREAM;
+import static org.springframework.cloud.gateway.rsocket.core.GatewayFilterChain.executeFilterChain;
 
 public class PendingRequestRSocket extends AbstractRSocket
 		implements ResponderRSocket, Consumer<RegisteredEvent> {

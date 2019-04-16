@@ -42,9 +42,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.cloud.gateway.rsocket.server.GatewayExchange;
-import org.springframework.cloud.gateway.rsocket.server.GatewayFilter;
-import org.springframework.cloud.gateway.rsocket.server.GatewayFilterChain;
+import org.springframework.cloud.gateway.rsocket.core.GatewayExchange;
+import org.springframework.cloud.gateway.rsocket.core.GatewayFilter;
+import org.springframework.cloud.gateway.rsocket.core.GatewayFilterChain;
 import org.springframework.cloud.gateway.rsocket.socketacceptor.SocketAcceptorExchange;
 import org.springframework.cloud.gateway.rsocket.socketacceptor.SocketAcceptorFilter;
 import org.springframework.cloud.gateway.rsocket.socketacceptor.SocketAcceptorFilterChain;
@@ -140,37 +140,31 @@ public class PingPongApp {
 							DefaultPayload.create(EMPTY_BUFFER, announcementMetadata))
 					.addClientPlugin(interceptor)
 					.transport(TcpClientTransport.create(gatewayPort)) // proxy
-					.start().flatMapMany(socket -> {
-						Flux<String> pong = socket.requestChannel(
-								Flux.interval(Duration.ofSeconds(1)).map(i -> {
-									ByteBuf data = ByteBufUtil.writeUtf8(
-											ByteBufAllocator.DEFAULT, "ping" + id);
-									ByteBuf routingMetadata = Metadata.from("pong")
-											.encode();
-									return DefaultPayload.create(data, routingMetadata);
-								}).onBackpressureDrop(payload -> log.debug(
-										"Dropped payload " + payload.getDataUtf8())) // this
-																						// is
-																						// needed
-																						// in
-																						// case
-																						// pong
-																						// is
-																						// not
-																						// available
-																						// yet
-						).map(Payload::getDataUtf8).doOnNext(str -> {
-							int received = pongsReceived.incrementAndGet();
-							log.info("received " + str + "(" + received + ") in Ping"
-									+ id);
-						}).doFinally(signal -> socket.dispose());
-						if (take != null) {
-							return pong.take(take);
-						}
-						return pong;
-					});
+					.start().flatMapMany(socket -> doPing(take, socket));
 
 			pongFlux.subscribe();
+		}
+
+		Publisher<? extends String> doPing(Integer take, RSocket socket) {
+			Flux<String> pong = socket.requestChannel(
+					Flux.interval(Duration.ofSeconds(1)).map(i -> {
+						ByteBuf data = ByteBufUtil.writeUtf8(
+								ByteBufAllocator.DEFAULT, "ping" + id);
+						ByteBuf routingMetadata = Metadata.from("pong")
+								.encode();
+						return DefaultPayload.create(data, routingMetadata);
+						// onBackpressue is needed in case pong is not available yet
+					}).onBackpressureDrop(payload -> log.debug(
+							"Dropped payload " + payload.getDataUtf8()))
+			).map(Payload::getDataUtf8).doOnNext(str -> {
+				int received = pongsReceived.incrementAndGet();
+				log.info("received " + str + "(" + received + ") in Ping"
+						+ id);
+			}).doFinally(signal -> socket.dispose());
+			if (take != null) {
+				return pong.take(take);
+			}
+			return pong;
 		}
 
 		public Flux<String> getPongFlux() {

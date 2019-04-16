@@ -31,7 +31,7 @@ import org.junit.Test;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.rsocket.autoconfigure.GatewayRSocketProperties;
-import org.springframework.cloud.gateway.rsocket.server.GatewayRSocket;
+import org.springframework.cloud.gateway.rsocket.core.GatewayRSocket;
 import org.springframework.cloud.gateway.rsocket.support.Metadata;
 
 import static java.util.Collections.singletonList;

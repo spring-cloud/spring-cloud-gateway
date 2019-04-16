@@ -23,8 +23,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-import org.springframework.cloud.gateway.rsocket.server.GatewayExchange;
-import org.springframework.cloud.gateway.rsocket.server.GatewayFilter;
+import org.springframework.cloud.gateway.rsocket.core.GatewayExchange;
+import org.springframework.cloud.gateway.rsocket.core.GatewayFilter;
 import org.springframework.cloud.gateway.rsocket.support.AsyncPredicate;
 import org.springframework.cloud.gateway.rsocket.support.Metadata;
 import org.springframework.core.Ordered;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.gateway.rsocket.server;
+package org.springframework.cloud.gateway.rsocket.core;
 
 import java.time.Duration;
 import java.util.Arrays;

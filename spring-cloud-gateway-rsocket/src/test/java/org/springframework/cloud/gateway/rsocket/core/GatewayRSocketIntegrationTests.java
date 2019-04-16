@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.gateway.rsocket.server;
+package org.springframework.cloud.gateway.rsocket.core;
 
 import java.time.Duration;
 
@@ -26,7 +26,7 @@ import reactor.test.StepVerifier;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.rsocket.RSocketProperties;
-import org.springframework.boot.rsocket.netty.NettyRSocketBootstrap;
+import org.springframework.boot.rsocket.server.RSocketServerBootstrap;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.cloud.gateway.rsocket.test.PingPongApp;
@@ -56,7 +56,7 @@ public class GatewayRSocketIntegrationTests {
 	private PingPongApp.MySocketAcceptorFilter mySocketAcceptorFilter;
 
 	@Autowired
-	private NettyRSocketBootstrap server;
+	private RSocketServerBootstrap server;
 
 	@BeforeClass
 	public static void init() {
