@@ -18,7 +18,6 @@
 	<description>Spring Cloud Gateway Dependencies</description>
 
 	<properties>
-		<rsocket.version>0.12.1-RC3</rsocket.version>
 	</properties>
 
 	<dependencyManagement>
@@ -47,11 +46,6 @@
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-starter-gateway</artifactId>
 				<version>${project.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>io.rsocket</groupId>
-				<artifactId>rsocket-micrometer</artifactId>
-				<version>${rsocket.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
