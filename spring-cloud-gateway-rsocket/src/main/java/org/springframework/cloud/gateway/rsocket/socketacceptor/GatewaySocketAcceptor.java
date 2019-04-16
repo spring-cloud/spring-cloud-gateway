@@ -29,8 +29,8 @@ import io.rsocket.SocketAcceptor;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.rsocket.autoconfigure.GatewayRSocketProperties;
-import org.springframework.cloud.gateway.rsocket.metrics.MicrometerResponderRSocket;
 import org.springframework.cloud.gateway.rsocket.core.GatewayRSocket;
+import org.springframework.cloud.gateway.rsocket.metrics.MicrometerResponderRSocket;
 import org.springframework.cloud.gateway.rsocket.support.Metadata;
 
 public class GatewaySocketAcceptor implements SocketAcceptor {

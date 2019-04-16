@@ -22,10 +22,10 @@ import org.springframework.boot.actuate.autoconfigure.metrics.CompositeMeterRegi
 import org.springframework.boot.actuate.autoconfigure.metrics.MetricsAutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ReactiveWebApplicationContextRunner;
+import org.springframework.cloud.gateway.rsocket.core.GatewayServerRSocketFactoryCustomizer;
 import org.springframework.cloud.gateway.rsocket.registry.Registry;
 import org.springframework.cloud.gateway.rsocket.registry.RegistryRoutes;
 import org.springframework.cloud.gateway.rsocket.registry.RegistrySocketAcceptorFilter;
-import org.springframework.cloud.gateway.rsocket.core.GatewayServerRSocketFactoryCustomizer;
 import org.springframework.cloud.gateway.rsocket.socketacceptor.GatewaySocketAcceptor;
 import org.springframework.cloud.gateway.rsocket.socketacceptor.SocketAcceptorPredicate;
 import org.springframework.cloud.gateway.rsocket.socketacceptor.SocketAcceptorPredicateFilter;
