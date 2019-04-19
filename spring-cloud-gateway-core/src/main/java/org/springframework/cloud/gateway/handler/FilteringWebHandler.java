@@ -101,11 +101,13 @@ public class FilteringWebHandler implements WebHandler {
 		Route route = exchange.getRequiredAttribute(GATEWAY_ROUTE_ATTR);
 		//获取路由定义下的网关过滤器集合
 		List<GatewayFilter> gatewayFilters = route.getFilters();
+
 		//全局过滤器,这里是通过GatewayFilterAdapter将GlobalFilter转换成GatewayFilter
 		List<GatewayFilter> combined = new ArrayList<>(this.globalFilters);
 		//组合全局的过滤器与路由配置的过滤器
 		combined.addAll(gatewayFilters);
 		//TODO: needed or cached?
+		//对Filter进行排序
 		AnnotationAwareOrderComparator.sort(combined);
 
 		if (logger.isDebugEnabled()) {
@@ -118,6 +120,7 @@ public class FilteringWebHandler implements WebHandler {
 	private static class DefaultGatewayFilterChain implements GatewayFilterChain {
 
 		private final int index;
+		//过滤器集合
 		private final List<GatewayFilter> filters;
 
 		public DefaultGatewayFilterChain(List<GatewayFilter> filters) {
