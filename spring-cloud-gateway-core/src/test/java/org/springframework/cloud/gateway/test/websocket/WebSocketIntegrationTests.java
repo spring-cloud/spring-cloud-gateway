@@ -358,7 +358,8 @@ public class WebSocketIntegrationTests {
 	@Configuration
 	@EnableAutoConfiguration
 	@Import(PermitAllSecurityConfiguration.class)
-	@RibbonClient(name = "wsservice", configuration = LocalRibbonClientConfiguration.class)
+	@RibbonClient(name = "wsservice",
+			configuration = LocalRibbonClientConfiguration.class)
 	protected static class GatewayConfig {
 
 		@Bean

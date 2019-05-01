@@ -51,8 +51,8 @@ public class HttpBinCompatibleController {
 		return "httpbin compatible home";
 	}
 
-	@RequestMapping(path = "/headers", method = { RequestMethod.GET,
-			RequestMethod.POST }, produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(path = "/headers", method = { RequestMethod.GET, RequestMethod.POST },
+			produces = MediaType.APPLICATION_JSON_VALUE)
 	public Map<String, Object> headers(ServerWebExchange exchange) {
 		Map<String, Object> result = new HashMap<>();
 		result.put("headers", getHeaders(exchange));
@@ -66,7 +66,8 @@ public class HttpBinCompatibleController {
 		return Mono.just(get(exchange)).delayElement(Duration.ofSeconds(delay));
 	}
 
-	@RequestMapping(path = "/anything/{anything}", produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(path = "/anything/{anything}",
+			produces = MediaType.APPLICATION_JSON_VALUE)
 	public Map<String, Object> anything(ServerWebExchange exchange,
 			@PathVariable(required = false) String anything) {
 		return get(exchange);
@@ -87,7 +88,8 @@ public class HttpBinCompatibleController {
 		return result;
 	}
 
-	@RequestMapping(value = "/post", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(value = "/post", consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
+			produces = MediaType.APPLICATION_JSON_VALUE)
 	public Mono<Map<String, Object>> postFormData(
 			@RequestBody Mono<MultiValueMap<String, Part>> parts) {
 		// StringDecoder decoder = StringDecoder.allMimeTypes(true);
@@ -105,13 +107,16 @@ public class HttpBinCompatibleController {
 				}).map(files -> Collections.singletonMap("files", files));
 	}
 
-	@RequestMapping(path = "/post", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(path = "/post",
+			consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+			produces = MediaType.APPLICATION_JSON_VALUE)
 	public Mono<Map<String, Object>> postUrlEncoded(ServerWebExchange exchange)
 			throws IOException {
 		return post(exchange, null);
 	}
 
-	@RequestMapping(path = "/post", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(path = "/post", method = RequestMethod.POST,
+			produces = MediaType.APPLICATION_JSON_VALUE)
 	public Mono<Map<String, Object>> post(ServerWebExchange exchange,
 			@RequestBody(required = false) String body) throws IOException {
 		HashMap<String, Object> ret = new HashMap<>();

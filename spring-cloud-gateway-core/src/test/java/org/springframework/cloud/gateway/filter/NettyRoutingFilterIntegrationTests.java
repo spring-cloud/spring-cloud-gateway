@@ -31,7 +31,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(properties = "spring.cloud.gateway.httpclient.response-timeout=3s", webEnvironment = RANDOM_PORT)
+@SpringBootTest(properties = "spring.cloud.gateway.httpclient.response-timeout=3s",
+		webEnvironment = RANDOM_PORT)
 @DirtiesContext
 @SuppressWarnings("unchecked")
 public class NettyRoutingFilterIntegrationTests extends BaseWebClientTests {

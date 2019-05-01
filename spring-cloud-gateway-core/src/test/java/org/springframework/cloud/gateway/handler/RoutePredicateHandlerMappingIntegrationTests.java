@@ -33,7 +33,8 @@ import org.springframework.util.SocketUtils;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = RANDOM_PORT, properties = "management.server.port=${test.port}")
+@SpringBootTest(webEnvironment = RANDOM_PORT,
+		properties = "management.server.port=${test.port}")
 @DirtiesContext
 public class RoutePredicateHandlerMappingIntegrationTests extends BaseWebClientTests {
 

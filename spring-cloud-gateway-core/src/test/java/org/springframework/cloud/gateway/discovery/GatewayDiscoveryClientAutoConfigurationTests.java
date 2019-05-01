@@ -36,9 +36,9 @@ import static org.mockito.Mockito.mock;
 public class GatewayDiscoveryClientAutoConfigurationTests {
 
 	@RunWith(SpringRunner.class)
-	@SpringBootTest(classes = Config.class, properties = {
-			"spring.cloud.gateway.discovery.locator.enabled=true",
-			"spring.cloud.gateway.loadbalancer.use404=true" })
+	@SpringBootTest(classes = Config.class,
+			properties = { "spring.cloud.gateway.discovery.locator.enabled=true",
+					"spring.cloud.gateway.loadbalancer.use404=true" })
 	public static class EnabledByProperty {
 
 		@Autowired(required = false)

@@ -80,7 +80,8 @@ public class ReadBodyPredicateFactoryTest {
 	@SpringBootConfiguration
 	@RibbonClients({
 			@RibbonClient(name = "message", configuration = TestRibbonConfig.class),
-			@RibbonClient(name = "messageChannel", configuration = TestRibbonConfig.class) })
+			@RibbonClient(name = "messageChannel",
+					configuration = TestRibbonConfig.class) })
 	@Import(PermitAllSecurityConfiguration.class)
 	@RestController
 	public static class TestConfig {
@@ -103,12 +104,14 @@ public class ReadBodyPredicateFactoryTest {
 			return r -> r.getFoo().equals(type);
 		}
 
-		@PostMapping(path = "message/events", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+		@PostMapping(path = "message/events",
+				produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 		public String messageEvents(@RequestBody Event e) {
 			return "{\"headers\":{\"Hello\":\"World\"}}";
 		}
 
-		@PostMapping(path = "messageChannel/events", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+		@PostMapping(path = "messageChannel/events",
+				produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 		public String messageChannelEvents(@RequestBody Event e) {
 			return "{\"headers\":{\"World\":\"Hello\"}}";
 		}

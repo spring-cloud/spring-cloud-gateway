@@ -41,9 +41,10 @@ import org.springframework.test.context.junit4.SpringRunner;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = DiscoveryClientRouteDefinitionLocatorIntegrationTests.Config.class, properties = {
-		"spring.cloud.gateway.discovery.locator.enabled=true",
-		"spring.cloud.gateway.discovery.locator.route-id-prefix=test__" })
+@SpringBootTest(
+		classes = DiscoveryClientRouteDefinitionLocatorIntegrationTests.Config.class,
+		properties = { "spring.cloud.gateway.discovery.locator.enabled=true",
+				"spring.cloud.gateway.discovery.locator.route-id-prefix=test__" })
 public class DiscoveryClientRouteDefinitionLocatorIntegrationTests {
 
 	@Autowired

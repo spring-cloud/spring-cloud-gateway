@@ -360,7 +360,8 @@ public class HttpClientProperties {
 			this.closeNotifyReadTimeout = closeNotifyReadTimeout;
 		}
 
-		@DeprecatedConfigurationProperty(replacement = "spring.cloud.gateway.httpclient.ssl.handshake-timeout")
+		@DeprecatedConfigurationProperty(
+				replacement = "spring.cloud.gateway.httpclient.ssl.handshake-timeout")
 		@Deprecated
 		public long getHandshakeTimeoutMillis() {
 			return getHandshakeTimeout().toMillis();
@@ -371,7 +372,8 @@ public class HttpClientProperties {
 			setHandshakeTimeout(Duration.ofMillis(handshakeTimeoutMillis));
 		}
 
-		@DeprecatedConfigurationProperty(replacement = "spring.cloud.gateway.httpclient.ssl.close-notify-flush-timeout")
+		@DeprecatedConfigurationProperty(
+				replacement = "spring.cloud.gateway.httpclient.ssl.close-notify-flush-timeout")
 		@Deprecated
 		public long getCloseNotifyFlushTimeoutMillis() {
 			return getCloseNotifyFlushTimeout().toMillis();
@@ -382,7 +384,8 @@ public class HttpClientProperties {
 			setCloseNotifyFlushTimeout(Duration.ofMillis(closeNotifyFlushTimeoutMillis));
 		}
 
-		@DeprecatedConfigurationProperty(replacement = "spring.cloud.gateway.httpclient.ssl.close-notify-read-timeout")
+		@DeprecatedConfigurationProperty(
+				replacement = "spring.cloud.gateway.httpclient.ssl.close-notify-read-timeout")
 		@Deprecated
 		public long getCloseNotifyReadTimeoutMillis() {
 			return getCloseNotifyReadTimeout().toMillis();
