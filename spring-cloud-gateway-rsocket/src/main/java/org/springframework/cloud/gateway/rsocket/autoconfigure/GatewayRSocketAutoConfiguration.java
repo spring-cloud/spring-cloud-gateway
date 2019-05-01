@@ -42,7 +42,8 @@ import org.springframework.core.env.Environment;
  * @author Spencer Gibb
  */
 @Configuration
-@ConditionalOnProperty(name = "spring.cloud.gateway.rsocket.enabled", matchIfMissing = true)
+@ConditionalOnProperty(name = "spring.cloud.gateway.rsocket.enabled",
+		matchIfMissing = true)
 @EnableConfigurationProperties
 @ConditionalOnClass(RSocket.class)
 public class GatewayRSocketAutoConfiguration {

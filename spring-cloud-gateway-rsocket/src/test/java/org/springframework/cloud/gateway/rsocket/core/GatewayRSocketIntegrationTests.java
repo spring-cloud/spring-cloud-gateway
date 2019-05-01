@@ -37,8 +37,8 @@ import org.springframework.util.SocketUtils;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = PingPongApp.class, properties = {
-		"ping.take=5" }, webEnvironment = WebEnvironment.RANDOM_PORT)
+@SpringBootTest(classes = PingPongApp.class, properties = { "ping.take=5" },
+		webEnvironment = WebEnvironment.RANDOM_PORT)
 public class GatewayRSocketIntegrationTests {
 
 	private static int port;

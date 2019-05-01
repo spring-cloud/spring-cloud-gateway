@@ -146,21 +146,19 @@ public class PingPongApp {
 		}
 
 		Publisher<? extends String> doPing(Integer take, RSocket socket) {
-			Flux<String> pong = socket.requestChannel(
-					Flux.interval(Duration.ofSeconds(1)).map(i -> {
-						ByteBuf data = ByteBufUtil.writeUtf8(
-								ByteBufAllocator.DEFAULT, "ping" + id);
-						ByteBuf routingMetadata = Metadata.from("pong")
-								.encode();
+			Flux<String> pong = socket
+					.requestChannel(Flux.interval(Duration.ofSeconds(1)).map(i -> {
+						ByteBuf data = ByteBufUtil.writeUtf8(ByteBufAllocator.DEFAULT,
+								"ping" + id);
+						ByteBuf routingMetadata = Metadata.from("pong").encode();
 						return DefaultPayload.create(data, routingMetadata);
 						// onBackpressue is needed in case pong is not available yet
-					}).onBackpressureDrop(payload -> log.debug(
-							"Dropped payload " + payload.getDataUtf8()))
-			).map(Payload::getDataUtf8).doOnNext(str -> {
-				int received = pongsReceived.incrementAndGet();
-				log.info("received " + str + "(" + received + ") in Ping"
-						+ id);
-			}).doFinally(signal -> socket.dispose());
+					}).onBackpressureDrop(payload -> log
+							.debug("Dropped payload " + payload.getDataUtf8())))
+					.map(Payload::getDataUtf8).doOnNext(str -> {
+						int received = pongsReceived.incrementAndGet();
+						log.info("received " + str + "(" + received + ") in Ping" + id);
+					}).doFinally(signal -> socket.dispose());
 			if (take != null) {
 				return pong.take(take);
 			}
