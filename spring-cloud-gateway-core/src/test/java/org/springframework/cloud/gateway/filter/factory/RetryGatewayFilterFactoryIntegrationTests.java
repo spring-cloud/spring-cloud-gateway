@@ -24,6 +24,7 @@ import com.netflix.loadbalancer.Server;
 import com.netflix.loadbalancer.ServerList;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -72,6 +73,7 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 	}
 
 	@Test
+	@Ignore //gh-982
 	public void retryFilterGetJavaDsl() {
 		testClient.get().uri("/retry?key=getjava&count=2")
 				.header(HttpHeaders.HOST, "www.retryjava.org").exchange().expectStatus()
