@@ -114,15 +114,10 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 		final DefaultHttpHeaders httpHeaders = new DefaultHttpHeaders();
 		filtered.forEach(httpHeaders::set);
 
-		String transferEncoding = request.getHeaders()
-				.getFirst(HttpHeaders.TRANSFER_ENCODING);
-		boolean chunkedTransfer = "chunked".equalsIgnoreCase(transferEncoding);
-
 		boolean preserveHost = exchange
 				.getAttributeOrDefault(PRESERVE_HOST_HEADER_ATTRIBUTE, false);
 
-		Flux<HttpClientResponse> responseFlux = this.httpClient
-				.chunkedTransfer(chunkedTransfer).request(method).uri(url)
+		Flux<HttpClientResponse> responseFlux = this.httpClient.request(method).uri(url)
 				.send((req, nettyOutbound) -> {
 					req.headers(httpHeaders);
 
