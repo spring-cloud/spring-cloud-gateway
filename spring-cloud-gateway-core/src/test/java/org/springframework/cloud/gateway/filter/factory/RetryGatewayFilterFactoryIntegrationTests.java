@@ -58,14 +58,14 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTests {
 
 	@Test
-	@Ignore //gh-982
+	@Ignore // gh-982
 	public void retryFilterGet() {
 		testClient.get().uri("/retry?key=get").exchange().expectStatus().isOk()
 				.expectBody(String.class).isEqualTo("3");
 	}
 
 	@Test
-	@Ignore //gh-982
+	@Ignore // gh-982
 	public void retryFilterFailure() {
 		testClient.get().uri("/retryalwaysfail?key=getjavafailure&count=4")
 				.header(HttpHeaders.HOST, "www.retryjava.org").exchange().expectStatus()
@@ -75,7 +75,7 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 	}
 
 	@Test
-	@Ignore //gh-982
+	@Ignore // gh-982
 	public void retryFilterGetJavaDsl() {
 		testClient.get().uri("/retry?key=getjava&count=2")
 				.header(HttpHeaders.HOST, "www.retryjava.org").exchange().expectStatus()
@@ -91,7 +91,7 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 	}
 
 	@Test
-	@Ignore //gh-982
+	@Ignore // gh-982
 	@SuppressWarnings("unchecked")
 	public void retryFilterLoadBalancedWithMultipleServers() {
 		String host = "www.retrywithloadbalancer.org";
