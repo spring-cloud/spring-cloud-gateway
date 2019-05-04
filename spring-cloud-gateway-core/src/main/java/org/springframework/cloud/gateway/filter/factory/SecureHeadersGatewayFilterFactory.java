@@ -16,13 +16,15 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
+import java.util.List;
+
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.http.HttpHeaders;
 
 /**
  * https://blog.appcanary.com/2017/http-security-headers.html.
  *
- * @author Spencer Gibb
+ * @author Spencer Gibb, Thirunavukkarasu Ravichandran
  */
 public class SecureHeadersGatewayFilterFactory extends AbstractGatewayFilterFactory {
 
@@ -79,22 +81,50 @@ public class SecureHeadersGatewayFilterFactory extends AbstractGatewayFilterFact
 		return (exchange, chain) -> {
 			HttpHeaders headers = exchange.getResponse().getHeaders();
 
-			// TODO: allow header to be disabled
-			headers.add(X_XSS_PROTECTION_HEADER, properties.getXssProtectionHeader());
-			headers.add(STRICT_TRANSPORT_SECURITY_HEADER,
-					properties.getStrictTransportSecurity());
-			headers.add(X_FRAME_OPTIONS_HEADER, properties.getFrameOptions());
-			headers.add(X_CONTENT_TYPE_OPTIONS_HEADER,
-					properties.getContentTypeOptions());
-			headers.add(REFERRER_POLICY_HEADER, properties.getReferrerPolicy());
-			headers.add(CONTENT_SECURITY_POLICY_HEADER,
-					properties.getContentSecurityPolicy());
-			headers.add(X_DOWNLOAD_OPTIONS_HEADER, properties.getDownloadOptions());
-			headers.add(X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER,
-					properties.getPermittedCrossDomainPolicies());
+			List<String> disabled = properties.getDisable();
+
+			if (isDisabled(disabled, X_XSS_PROTECTION_HEADER)) {
+				headers.add(X_XSS_PROTECTION_HEADER, properties.getXssProtectionHeader());
+			}
+
+			if (isDisabled(disabled, STRICT_TRANSPORT_SECURITY_HEADER)) {
+				headers.add(STRICT_TRANSPORT_SECURITY_HEADER,
+						properties.getStrictTransportSecurity());
+			}
+
+			if (isDisabled(disabled, X_FRAME_OPTIONS_HEADER)) {
+				headers.add(X_FRAME_OPTIONS_HEADER, properties.getFrameOptions());
+			}
+
+			if (isDisabled(disabled, X_CONTENT_TYPE_OPTIONS_HEADER)) {
+				headers.add(X_CONTENT_TYPE_OPTIONS_HEADER,
+						properties.getContentTypeOptions());
+			}
+
+			if (isDisabled(disabled, REFERRER_POLICY_HEADER)) {
+				headers.add(REFERRER_POLICY_HEADER, properties.getReferrerPolicy());
+			}
+
+			if (isDisabled(disabled, CONTENT_SECURITY_POLICY_HEADER)) {
+				headers.add(CONTENT_SECURITY_POLICY_HEADER,
+						properties.getContentSecurityPolicy());
+			}
+
+			if (isDisabled(disabled, X_DOWNLOAD_OPTIONS_HEADER)) {
+				headers.add(X_DOWNLOAD_OPTIONS_HEADER, properties.getDownloadOptions());
+			}
+
+			if (isDisabled(disabled, X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER)) {
+				headers.add(X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER,
+						properties.getPermittedCrossDomainPolicies());
+			}
 
 			return chain.filter(exchange);
 		};
+	}
+
+	private boolean isDisabled(List<String> disabledHeaders, String header) {
+		return !disabledHeaders.contains(header.toLowerCase());
 	}
 
 }

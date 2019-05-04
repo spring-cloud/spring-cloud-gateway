@@ -16,10 +16,13 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * @author Spencer Gibb
+ * @author Spencer Gibb, Thirunavukkarasu Ravichandran
  */
 @ConfigurationProperties("spring.cloud.gateway.filter.secure-headers")
 public class SecureHeadersProperties {
@@ -95,6 +98,8 @@ public class SecureHeadersProperties {
 
 	private String permittedCrossDomainPolicies = X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER_DEFAULT;
 
+	private List<String> disable = new ArrayList<>();
+
 	public String getXssProtectionHeader() {
 		return xssProtectionHeader;
 	}
@@ -159,6 +164,14 @@ public class SecureHeadersProperties {
 		this.permittedCrossDomainPolicies = permittedCrossDomainPolicies;
 	}
 
+	public List<String> getDisable() {
+		return disable;
+	}
+
+	public void setDisable(List<String> disable) {
+		this.disable = disable;
+	}
+
 	@Override
 	public String toString() {
 		final StringBuffer sb = new StringBuffer("SecureHeadersProperties{");
@@ -172,6 +185,7 @@ public class SecureHeadersProperties {
 		sb.append(", downloadOptions='").append(downloadOptions).append('\'');
 		sb.append(", permittedCrossDomainPolicies='").append(permittedCrossDomainPolicies)
 				.append('\'');
+		sb.append(", disabled='").append(disable).append('\'');
 		sb.append('}');
 		return sb.toString();
 	}
