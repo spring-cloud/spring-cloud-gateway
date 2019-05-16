@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2017 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.springframework.cloud.gateway.filter.factory;
@@ -54,6 +53,7 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.c
  * Depends on `spring-cloud-starter-netflix-hystrix`, {@see https://cloud.spring.io/spring-cloud-netflix/}
  * @author Spencer Gibb
  * @author Michele Mancioppi
+ * @author Olga Maciaszek-Sharma
  */
 public class HystrixGatewayFilterFactory extends AbstractGatewayFilterFactory<HystrixGatewayFilterFactory.Config> {
 
@@ -171,6 +171,7 @@ public class HystrixGatewayFilterFactory extends AbstractGatewayFilterFactory<Hy
 					.host(null)
 					.port(null)
 					.uri(this.fallbackUri)
+					.scheme(null)
 					.build(encoded)
 					.toUri();
 			exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, requestUrl);
