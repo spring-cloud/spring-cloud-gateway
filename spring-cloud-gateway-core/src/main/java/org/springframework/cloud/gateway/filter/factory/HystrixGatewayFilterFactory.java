@@ -50,7 +50,9 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.G
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.containsEncodedParts;
 
 /**
- * Depends on `spring-cloud-starter-netflix-hystrix`, {@see https://cloud.spring.io/spring-cloud-netflix/}
+ * Depends on `spring-cloud-starter-netflix-hystrix`,
+ * {@see https://cloud.spring.io/spring-cloud-netflix/}.
+ *
  * @author Spencer Gibb
  * @author Michele Mancioppi
  * @author Olga Maciaszek-Sharma
@@ -60,10 +62,12 @@ public class HystrixGatewayFilterFactory extends AbstractGatewayFilterFactory<Hy
 	public static final String FALLBACK_URI = "fallbackUri";
 
 	private final ObjectProvider<DispatcherHandler> dispatcherHandlerProvider;
-	//do not use this dispatcherHandler directly, use getDispatcherHandler() instead.
+
+	// do not use this dispatcherHandler directly, use getDispatcherHandler() instead.
 	private volatile DispatcherHandler dispatcherHandler;
 
-	public HystrixGatewayFilterFactory(ObjectProvider<DispatcherHandler> dispatcherHandlerProvider) {
+	public HystrixGatewayFilterFactory(
+			ObjectProvider<DispatcherHandler> dispatcherHandlerProvider) {
 		super(Config.class);
 		this.dispatcherHandlerProvider = dispatcherHandlerProvider;
 	}
