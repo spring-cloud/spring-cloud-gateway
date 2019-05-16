@@ -227,7 +227,7 @@ public class HystrixGatewayFilterFactory
 			// TODO: assume always?
 			boolean encoded = containsEncodedParts(uri);
 			URI requestUrl = UriComponentsBuilder.fromUri(uri).host(null).port(null)
-					.uri(this.fallbackUri).build(encoded).toUri();
+					.uri(this.fallbackUri).scheme(null).build(encoded).toUri();
 			exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, requestUrl);
 			addExceptionDetails();
 
