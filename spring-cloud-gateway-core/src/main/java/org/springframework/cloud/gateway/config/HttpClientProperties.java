@@ -293,6 +293,36 @@ public class HttpClientProperties {
 		/** The default ssl configuration type. Defaults to TCP. */
 		private SslProvider.DefaultConfigurationType defaultConfigurationType = SslProvider.DefaultConfigurationType.TCP;
 
+		private String keyCertChainPath;
+
+		private String keyFilePath;
+
+		private String keyPassword;
+
+		public String getKeyCertChainPath() {
+			return keyCertChainPath;
+		}
+
+		public String getKeyFilePath() {
+			return keyFilePath;
+		}
+
+		public String getKeyPassword() {
+			return keyPassword;
+		}
+
+		public void setKeyPassword(String keyPassword) {
+			this.keyPassword = keyPassword;
+		}
+
+		public void setKeyCertChainPath(String keyCertChainPath) {
+			this.keyCertChainPath = keyCertChainPath;
+		}
+
+		public void setKeyFilePath(String keyFilePath) {
+			this.keyFilePath = keyFilePath;
+		}
+
 		public List<String> getTrustedX509Certificates() {
 			return trustedX509Certificates;
 		}

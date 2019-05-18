@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.gateway.config;
 
+import java.io.File;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
@@ -581,6 +582,9 @@ public class GatewayAutoConfiguration {
 						sslContextBuilder
 								.trustManager(InsecureTrustManagerFactory.INSTANCE);
 					}
+
+					sslContextBuilder.keyManager(new File(ssl.getKeyCertChainPath()),
+							new File(ssl.getKeyFilePath()), ssl.getKeyPassword());
 
 					sslContextSpec.sslContext(sslContextBuilder)
 							.defaultConfiguration(ssl.getDefaultConfigurationType())
