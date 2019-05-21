@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.test;
 import java.nio.charset.Charset;
 import java.util.Map;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import reactor.core.publisher.Mono;
@@ -70,6 +71,7 @@ public class FormIntegrationTests extends BaseWebClientTests {
 	}
 
 	@Test
+	@Ignore // un-ignore when https://github.com/spring-cloud/spring-cloud-gateway/issues/1071 is fixed
 	public void multipartFormDataWorks() {
 		ClassPathResource img = new ClassPathResource("1x1.png");
 
