@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.gateway.test;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -30,6 +31,7 @@ import org.springframework.cloud.test.ModifiedClassPathRunner;
 public class WebfluxNotIncludedTests {
 
 	@Test
+	@Ignore // un-ignore when https://github.com/spring-cloud/spring-cloud-gateway/issues/1070 is fixed
 	public void noWebfluxWorks() {
 		new SpringApplication(Config.class).run();
 	}
