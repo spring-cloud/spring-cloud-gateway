@@ -145,7 +145,7 @@ public class RetryGatewayFilterFactory
 	}
 
 	public void reset(ServerWebExchange exchange) {
-		// TODO: what else to do to reset SWE?
+		// TODO: what else to do to reset exchange?
 		Set<String> addedHeaders = exchange.getAttributeOrDefault(
 				CLIENT_RESPONSE_HEADER_NAMES, Collections.emptySet());
 		addedHeaders

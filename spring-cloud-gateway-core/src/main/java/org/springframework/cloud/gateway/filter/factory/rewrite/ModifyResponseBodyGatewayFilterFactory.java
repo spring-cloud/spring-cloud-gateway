@@ -154,8 +154,7 @@ public class ModifyResponseBodyGatewayFilterFactory extends
 
 		@SuppressWarnings("unchecked")
 		ServerHttpResponse decorate(ServerWebExchange exchange) {
-			return new ServerHttpResponseDecorator(
-					exchange.getResponse()) {
+			return new ServerHttpResponseDecorator(exchange.getResponse()) {
 
 				@Override
 				public Mono<Void> writeWith(Publisher<? extends DataBuffer> body) {
