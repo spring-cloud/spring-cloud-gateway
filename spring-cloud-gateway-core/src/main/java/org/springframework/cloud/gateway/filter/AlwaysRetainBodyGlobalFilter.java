@@ -24,7 +24,7 @@ import reactor.core.publisher.Mono;
 import org.springframework.core.Ordered;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
-import org.springframework.core.io.buffer.PooledDataBuffer;
+import org.springframework.core.io.buffer.NettyDataBuffer;
 import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -65,8 +65,10 @@ public class AlwaysRetainBodyGlobalFilter implements GlobalFilter, Ordered {
 									// probably == downstream closed
 									return null;
 								}
-								PooledDataBuffer pdb = (PooledDataBuffer) dataBuffer;
-								return pdb.retain();
+								// TODO: deal with Netty
+								NettyDataBuffer pdb = (NettyDataBuffer) dataBuffer;
+								return pdb.factory()
+										.wrap(pdb.getNativeBuffer().retainedSlice());
 							}).flux();
 						}
 					};
