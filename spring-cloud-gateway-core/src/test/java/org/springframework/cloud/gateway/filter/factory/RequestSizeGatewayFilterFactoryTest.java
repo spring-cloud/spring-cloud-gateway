@@ -43,14 +43,14 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @DirtiesContext
 public class RequestSizeGatewayFilterFactoryTest extends BaseWebClientTests {
 
-	private static final String responseMesssage = "Request size is larger than permissible limit. Request size is 6.0 MB "
-			+ "where permissible limit is 5.0 MB";
+	private static final String responseMesssage = "Request size is larger than permissible limit. Request size is . . "
+			+ "where permissible limit is .*";
 
 	@Test
 	public void setRequestSizeFilterWorks() {
-		testClient.get().uri("/headers").header("Host", "www.setrequestsize.org")
-				.header("content-length", "6000000").exchange().expectStatus()
-				.isEqualTo(HttpStatus.PAYLOAD_TOO_LARGE).expectHeader()
+		testClient.post().uri("/post").header("Host", "www.setrequestsize.org")
+				.header("content-length", "6").syncBody("123456").exchange()
+				.expectStatus().isEqualTo(HttpStatus.PAYLOAD_TOO_LARGE).expectHeader()
 				.valueMatches("errorMessage", responseMesssage);
 	}
 
@@ -67,7 +67,7 @@ public class RequestSizeGatewayFilterFactoryTest extends BaseWebClientTests {
 			return builder.routes()
 					.route("test_request_size",
 							r -> r.order(-1).host("**.setrequestsize.org")
-									.filters(f -> f.setRequestSize(5000000L)).uri(uri))
+									.filters(f -> f.setRequestSize(5L)).uri(uri))
 					.build();
 		}
 
