@@ -303,8 +303,16 @@ public class HttpClientProperties {
 			return keyCertChainPath;
 		}
 
+		public void setKeyCertChainPath(String keyCertChainPath) {
+			this.keyCertChainPath = keyCertChainPath;
+		}
+
 		public String getKeyFilePath() {
 			return keyFilePath;
+		}
+
+		public void setKeyFilePath(String keyFilePath) {
+			this.keyFilePath = keyFilePath;
 		}
 
 		public String getKeyPassword() {
@@ -313,14 +321,6 @@ public class HttpClientProperties {
 
 		public void setKeyPassword(String keyPassword) {
 			this.keyPassword = keyPassword;
-		}
-
-		public void setKeyCertChainPath(String keyCertChainPath) {
-			this.keyCertChainPath = keyCertChainPath;
-		}
-
-		public void setKeyFilePath(String keyFilePath) {
-			this.keyFilePath = keyFilePath;
 		}
 
 		public List<String> getTrustedX509Certificates() {

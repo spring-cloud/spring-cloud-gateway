@@ -567,7 +567,8 @@ public class GatewayAutoConfiguration {
 					});
 
 			HttpClientProperties.Ssl ssl = properties.getSsl();
-			if (ssl.getTrustedX509CertificatesForTrustManager().length > 0
+			if ((ssl.getKeyFilePath() != null && ssl.getKeyCertChainPath() != null)
+					|| ssl.getTrustedX509CertificatesForTrustManager().length > 0
 					|| ssl.isUseInsecureTrustManager()) {
 				httpClient = httpClient.secure(sslContextSpec -> {
 					// configure ssl
@@ -583,8 +584,10 @@ public class GatewayAutoConfiguration {
 								.trustManager(InsecureTrustManagerFactory.INSTANCE);
 					}
 
-					sslContextBuilder.keyManager(new File(ssl.getKeyCertChainPath()),
-							new File(ssl.getKeyFilePath()), ssl.getKeyPassword());
+					if( ssl.getKeyCertChainPath() != null && ssl.getKeyCertChainPath().length()>0 && ssl.getKeyFilePath() != null && ssl.getKeyFilePath().length()>0){
+						sslContextBuilder
+								.keyManager(new File(ssl.getKeyCertChainPath()), new File(ssl.getKeyFilePath()), ssl.getKeyPassword());
+					}
 
 					sslContextSpec.sslContext(sslContextBuilder)
 							.defaultConfiguration(ssl.getDefaultConfigurationType())
