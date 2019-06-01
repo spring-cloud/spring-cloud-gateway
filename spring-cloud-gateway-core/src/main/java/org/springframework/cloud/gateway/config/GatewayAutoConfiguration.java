@@ -567,7 +567,7 @@ public class GatewayAutoConfiguration {
 					});
 
 			HttpClientProperties.Ssl ssl = properties.getSsl();
-			if ((ssl.getKeyFilePath() != null && ssl.getKeyCertChainPath() != null)
+			if ((ssl.getKey() != null && ssl.getKeyCertChain() != null)
 					|| ssl.getTrustedX509CertificatesForTrustManager().length > 0
 					|| ssl.isUseInsecureTrustManager()) {
 				httpClient = httpClient.secure(sslContextSpec -> {
@@ -577,16 +577,20 @@ public class GatewayAutoConfiguration {
 					X509Certificate[] trustedX509Certificates = ssl
 							.getTrustedX509CertificatesForTrustManager();
 					if (trustedX509Certificates.length > 0) {
-						sslContextBuilder.trustManager(trustedX509Certificates);
+						sslContextBuilder = sslContextBuilder
+								.trustManager(trustedX509Certificates);
 					}
 					else if (ssl.isUseInsecureTrustManager()) {
-						sslContextBuilder
+						sslContextBuilder = sslContextBuilder
 								.trustManager(InsecureTrustManagerFactory.INSTANCE);
 					}
 
-					if( ssl.getKeyCertChainPath() != null && ssl.getKeyCertChainPath().length()>0 && ssl.getKeyFilePath() != null && ssl.getKeyFilePath().length()>0){
-						sslContextBuilder
-								.keyManager(new File(ssl.getKeyCertChainPath()), new File(ssl.getKeyFilePath()), ssl.getKeyPassword());
+					if (ssl.getKeyCertChain() != null
+							&& ssl.getKeyCertChain().length() > 0 && ssl.getKey() != null
+							&& ssl.getKey().length() > 0) {
+						sslContextBuilder = sslContextBuilder.keyManager(
+								new File(ssl.getKeyCertChain()), new File(ssl.getKey()),
+								ssl.getKeyPassword());
 					}
 
 					sslContextSpec.sslContext(sslContextBuilder)
