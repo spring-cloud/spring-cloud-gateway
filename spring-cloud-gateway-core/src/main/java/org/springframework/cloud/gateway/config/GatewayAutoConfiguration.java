@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.gateway.config;
 
+import java.io.File;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
@@ -566,7 +567,8 @@ public class GatewayAutoConfiguration {
 					});
 
 			HttpClientProperties.Ssl ssl = properties.getSsl();
-			if (ssl.getTrustedX509CertificatesForTrustManager().length > 0
+			if ((ssl.getKeyCertChain() != null && ssl.getKey() != null)
+					|| ssl.getTrustedX509CertificatesForTrustManager().length > 0
 					|| ssl.isUseInsecureTrustManager()) {
 				httpClient = httpClient.secure(sslContextSpec -> {
 					// configure ssl
@@ -575,11 +577,20 @@ public class GatewayAutoConfiguration {
 					X509Certificate[] trustedX509Certificates = ssl
 							.getTrustedX509CertificatesForTrustManager();
 					if (trustedX509Certificates.length > 0) {
-						sslContextBuilder.trustManager(trustedX509Certificates);
+						sslContextBuilder = sslContextBuilder
+								.trustManager(trustedX509Certificates);
 					}
 					else if (ssl.isUseInsecureTrustManager()) {
-						sslContextBuilder
+						sslContextBuilder = sslContextBuilder
 								.trustManager(InsecureTrustManagerFactory.INSTANCE);
+					}
+
+					if (ssl.getKeyCertChain() != null
+							&& ssl.getKeyCertChain().length() > 0 && ssl.getKey() != null
+							&& ssl.getKey().length() > 0) {
+						sslContextBuilder = sslContextBuilder.keyManager(
+								new File(ssl.getKeyCertChain()), new File(ssl.getKey()),
+								ssl.getKeyPassword());
 					}
 
 					sslContextSpec.sslContext(sslContextBuilder)
