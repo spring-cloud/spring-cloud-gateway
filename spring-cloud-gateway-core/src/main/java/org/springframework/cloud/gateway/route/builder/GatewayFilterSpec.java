@@ -235,6 +235,30 @@ public class GatewayFilterSpec extends UriSpec {
 		return filter(getBean(ModifyRequestBodyGatewayFilterFactory.class)
 				.apply(c -> c.setRewriteFunction(inClass, outClass, rewriteFunction).setContentType(newContentType)));
 	}
+	
+	/**
+	 * A filter that can be used to modify the request body. This filter is BETA and may
+	 * be subject to change in a future release.
+	 * @param configConsumer request spec for response modification
+	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
+	 * <pre>
+	 * {@code
+	 * ...
+	 * .modifyRequestBody(c -> c
+	 *		.setInClass(Some.class)
+	 *		.setOutClass(SomeOther.class)
+ 	 *		.setInHints(hintsIn)
+	 *		.setOutHints(hintsOut)
+	 *		.setRewriteFunction(rewriteFunction))
+	 * }
+	 * </pre>
+ 	 */
+	public <T, R> GatewayFilterSpec modifyRequestBody(
+			Consumer<ModifyRequestBodyGatewayFilterFactory.Config> configConsumer) {
+		return filter(getBean(ModifyRequestBodyGatewayFilterFactory.class)
+				.apply(configConsumer));
+	}
+
 	/**
 	 * A filter that can be used to modify the response body
 	 * This filter is BETA and may be subject to change in a future release.
@@ -265,6 +289,28 @@ public class GatewayFilterSpec extends UriSpec {
 	public <T, R> GatewayFilterSpec modifyResponseBody(Class<T> inClass, Class<R> outClass, String newContentType, RewriteFunction<T, R> rewriteFunction) {
 		return filter(getBean(ModifyResponseBodyGatewayFilterFactory.class)
 				.apply(c -> c.setRewriteFunction(inClass, outClass, rewriteFunction).setNewContentType(newContentType)));
+	}
+	
+	/**
+	 * A filter that can be used to modify the response body using custom spec.
+	 * This filter is BETA and may be subject to change in a future release.
+	 * @param configConsumer response spec for response modification
+	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
+	 * <pre>
+	 * {@code
+	 * ...
+	 * .modifyResponseBody(c -> c
+	 *		.setInClass(Some.class)
+	 *		.setOutClass(SomeOther.class)
+	 *		.setOutHints(hintsOut)
+	 *		.setRewriteFunction(rewriteFunction))
+	 * }
+	 * </pre>
+	 */
+	public <T, R> GatewayFilterSpec modifyResponseBody(
+			Consumer<ModifyResponseBodyGatewayFilterFactory.Config> configConsumer) {
+		return filter(getBean(ModifyResponseBodyGatewayFilterFactory.class)
+				.apply(configConsumer));
 	}
 
 	/**
