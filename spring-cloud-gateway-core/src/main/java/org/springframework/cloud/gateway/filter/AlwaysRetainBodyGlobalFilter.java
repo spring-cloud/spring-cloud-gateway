@@ -16,11 +16,17 @@
 
 package org.springframework.cloud.gateway.filter;
 
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import org.springframework.cloud.gateway.event.EnableBodyCachingEvent;
+import org.springframework.cloud.gateway.route.Route;
+import org.springframework.context.ApplicationListener;
 import org.springframework.core.Ordered;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
@@ -28,20 +34,31 @@ import org.springframework.core.io.buffer.NettyDataBuffer;
 import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
 import org.springframework.web.server.ServerWebExchange;
 
-public class AlwaysRetainBodyGlobalFilter implements GlobalFilter, Ordered {
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
+
+public class AlwaysRetainBodyGlobalFilter implements GlobalFilter, Ordered,
+		ApplicationListener<EnableBodyCachingEvent> {
 
 	private static final Log log = LogFactory.getLog(AlwaysRetainBodyGlobalFilter.class);
 
+	private ConcurrentMap<String, Boolean> routesToCache = new ConcurrentHashMap<>();
+
 	/**
-	 * cache key.
+	 * Request body cache key.
 	 */
 	public static final String ALWAYS_CACHE_REQUEST_BODY_KEY = "alwaysCacheRequestBody";
 
 	@Override
+	public void onApplicationEvent(EnableBodyCachingEvent event) {
+		this.routesToCache.putIfAbsent(event.getRouteId(), true);
+	}
+
+	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 		Object body = exchange.getAttributeOrDefault(ALWAYS_CACHE_REQUEST_BODY_KEY, null);
+		Route route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
 
-		if (body != null) {
+		if (body != null || !this.routesToCache.containsKey(route.getId())) {
 			return chain.filter(exchange);
 		}
 
