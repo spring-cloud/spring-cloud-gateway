@@ -147,7 +147,7 @@ public class RouteDefinitionRouteLocator
 				.replaceFilters(gatewayFilters).build();
 	}
 
-	@SuppressWarnings({"Duplicates", "unchecked"})
+	@SuppressWarnings({ "Duplicates", "unchecked" })
 	private List<GatewayFilter> loadGatewayFilters(String id,
 			List<FilterDefinition> filterDefinitions) {
 		List<GatewayFilter> filters = filterDefinitions.stream().map(definition -> {

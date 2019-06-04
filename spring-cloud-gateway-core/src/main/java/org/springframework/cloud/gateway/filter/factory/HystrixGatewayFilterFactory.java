@@ -87,7 +87,7 @@ public class HystrixGatewayFilterFactory
 	}
 
 	@Override
-	//TODO: make Config implement HasRouteId and remove this method.
+	// TODO: make Config implement HasRouteId and remove this method.
 	public GatewayFilter apply(String routeId, Consumer<Config> consumer) {
 		Config config = newConfig();
 		consumer.accept(config);

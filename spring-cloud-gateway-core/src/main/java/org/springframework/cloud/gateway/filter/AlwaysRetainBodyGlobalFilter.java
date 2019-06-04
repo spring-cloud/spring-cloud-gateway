@@ -36,8 +36,8 @@ import org.springframework.web.server.ServerWebExchange;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
 
-public class AlwaysRetainBodyGlobalFilter implements GlobalFilter, Ordered,
-		ApplicationListener<EnableBodyCachingEvent> {
+public class AlwaysRetainBodyGlobalFilter
+		implements GlobalFilter, Ordered, ApplicationListener<EnableBodyCachingEvent> {
 
 	private static final Log log = LogFactory.getLog(AlwaysRetainBodyGlobalFilter.class);
 

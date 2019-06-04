@@ -455,9 +455,9 @@ public class GatewayFilterSpec extends UriSpec {
 	 */
 	public GatewayFilterSpec retry(Repeat<ServerWebExchange> repeat,
 			Retry<ServerWebExchange> retry) {
-		RetryGatewayFilterFactory filterFactory = getBean(RetryGatewayFilterFactory.class);
-		return filter(filterFactory
-				.apply(this.routeBuilder.getId(), repeat, retry));
+		RetryGatewayFilterFactory filterFactory = getBean(
+				RetryGatewayFilterFactory.class);
+		return filter(filterFactory.apply(this.routeBuilder.getId(), repeat, retry));
 	}
 
 	/**
