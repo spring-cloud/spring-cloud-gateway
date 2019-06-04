@@ -801,7 +801,7 @@ using something like <link xl:href="https://projects.spring.io/spring-session/">
 </section>
 <section xml:id="_secureheaders_gatewayfilter_factory">
 <title>SecureHeaders GatewayFilter Factory</title>
-<simpara>The SecureHeaders GatewayFilter Factory adds a number of headers to the response at the reccomendation from <link xl:href="https://blog.appcanary.com/2017/http-security-headers.html">this blog post</link>.</simpara>
+<simpara>The SecureHeaders GatewayFilter Factory adds a number of headers to the response at the recommendation from <link xl:href="https://blog.appcanary.com/2017/http-security-headers.html">this blog post</link>.</simpara>
 <itemizedlist>
 <title>The following headers are added (allong with default values):</title>
 <listitem>
@@ -857,6 +857,11 @@ using something like <link xl:href="https://projects.spring.io/spring-session/">
 <simpara><literal>permitted-cross-domain-policies</literal></simpara>
 </listitem>
 </itemizedlist>
+<simpara>To disable the default values set the property <literal>spring.cloud.gateway.filter.secure-headers.disable</literal> with comma separated values.</simpara>
+<formalpara>
+<title>Example:</title>
+<para><literal>spring.cloud.gateway.filter.secure-headers.disable=frame-options,download-options</literal></para>
+</formalpara>
 </section>
 <section xml:id="_setpath_gatewayfilter_factory">
 <title>SetPath GatewayFilter Factory</title>
