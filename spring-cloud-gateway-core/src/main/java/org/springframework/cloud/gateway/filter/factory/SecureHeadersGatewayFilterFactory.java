@@ -83,38 +83,38 @@ public class SecureHeadersGatewayFilterFactory extends AbstractGatewayFilterFact
 
 			List<String> disabled = properties.getDisable();
 
-			if (isDisabled(disabled, X_XSS_PROTECTION_HEADER)) {
+			if (isEnabled(disabled, X_XSS_PROTECTION_HEADER)) {
 				headers.add(X_XSS_PROTECTION_HEADER, properties.getXssProtectionHeader());
 			}
 
-			if (isDisabled(disabled, STRICT_TRANSPORT_SECURITY_HEADER)) {
+			if (isEnabled(disabled, STRICT_TRANSPORT_SECURITY_HEADER)) {
 				headers.add(STRICT_TRANSPORT_SECURITY_HEADER,
 						properties.getStrictTransportSecurity());
 			}
 
-			if (isDisabled(disabled, X_FRAME_OPTIONS_HEADER)) {
+			if (isEnabled(disabled, X_FRAME_OPTIONS_HEADER)) {
 				headers.add(X_FRAME_OPTIONS_HEADER, properties.getFrameOptions());
 			}
 
-			if (isDisabled(disabled, X_CONTENT_TYPE_OPTIONS_HEADER)) {
+			if (isEnabled(disabled, X_CONTENT_TYPE_OPTIONS_HEADER)) {
 				headers.add(X_CONTENT_TYPE_OPTIONS_HEADER,
 						properties.getContentTypeOptions());
 			}
 
-			if (isDisabled(disabled, REFERRER_POLICY_HEADER)) {
+			if (isEnabled(disabled, REFERRER_POLICY_HEADER)) {
 				headers.add(REFERRER_POLICY_HEADER, properties.getReferrerPolicy());
 			}
 
-			if (isDisabled(disabled, CONTENT_SECURITY_POLICY_HEADER)) {
+			if (isEnabled(disabled, CONTENT_SECURITY_POLICY_HEADER)) {
 				headers.add(CONTENT_SECURITY_POLICY_HEADER,
 						properties.getContentSecurityPolicy());
 			}
 
-			if (isDisabled(disabled, X_DOWNLOAD_OPTIONS_HEADER)) {
+			if (isEnabled(disabled, X_DOWNLOAD_OPTIONS_HEADER)) {
 				headers.add(X_DOWNLOAD_OPTIONS_HEADER, properties.getDownloadOptions());
 			}
 
-			if (isDisabled(disabled, X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER)) {
+			if (isEnabled(disabled, X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER)) {
 				headers.add(X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER,
 						properties.getPermittedCrossDomainPolicies());
 			}
@@ -123,7 +123,7 @@ public class SecureHeadersGatewayFilterFactory extends AbstractGatewayFilterFact
 		};
 	}
 
-	private boolean isDisabled(List<String> disabledHeaders, String header) {
+	private boolean isEnabled(List<String> disabledHeaders, String header) {
 		return !disabledHeaders.contains(header.toLowerCase());
 	}
 
