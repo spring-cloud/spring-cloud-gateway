@@ -1238,7 +1238,7 @@ using something like <a href="https://projects.spring.io/spring-session/">Spring
 <div class="sect2">
 <h3 id="_secureheaders_gatewayfilter_factory"><a class="link" href="#_secureheaders_gatewayfilter_factory">SecureHeaders GatewayFilter Factory</a></h3>
 <div class="paragraph">
-<p>The SecureHeaders GatewayFilter Factory adds a number of headers to the response at the reccomendation from <a href="https://blog.appcanary.com/2017/http-security-headers.html">this blog post</a>.</p>
+<p>The SecureHeaders GatewayFilter Factory adds a number of headers to the response at the recommendation from <a href="https://blog.appcanary.com/2017/http-security-headers.html">this blog post</a>.</p>
 </div>
 <div class="ulist">
 <div class="title">The following headers are added (along with default values):</div>
@@ -1300,6 +1300,13 @@ using something like <a href="https://projects.spring.io/spring-session/">Spring
 <p><code>permitted-cross-domain-policies</code></p>
 </li>
 </ul>
+</div>
+<div class="paragraph">
+<p>To disable the default values set the property <code>spring.cloud.gateway.filter.secure-headers.disable</code> with comma separated values.</p>
+</div>
+<div class="paragraph">
+<div class="title">Example:</div>
+<p><code>spring.cloud.gateway.filter.secure-headers.disable=frame-options,download-options</code></p>
 </div>
 </div>
 <div class="sect2">
