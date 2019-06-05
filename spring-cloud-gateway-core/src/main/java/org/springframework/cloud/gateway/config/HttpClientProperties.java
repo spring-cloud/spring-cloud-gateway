@@ -18,6 +18,7 @@ package org.springframework.cloud.gateway.config;
 
 import java.io.IOException;
 import java.net.URL;
+import java.security.KeyStore;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
@@ -26,6 +27,8 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
+import javax.net.ssl.KeyManagerFactory;
 
 import reactor.netty.resources.ConnectionProvider;
 import reactor.netty.tcp.SslProvider;
@@ -293,26 +296,54 @@ public class HttpClientProperties {
 		/** The default ssl configuration type. Defaults to TCP. */
 		private SslProvider.DefaultConfigurationType defaultConfigurationType = SslProvider.DefaultConfigurationType.TCP;
 
-		private String keyCertChain;
+		/** Spring Cloud Gateway keystore path. */
+		private String keyStore;
 
-		private String key;
+		/** Spring Cloud Gateway keystore type, default is JKS. */
+		private String keyStoreType;
 
+		/** Spring Cloud Gateway keystore provider, optional field. */
+		private String keyStoreProvider;
+
+		/** Spring Cloud Gateway keystore password. */
+		private String keyStorePassword;
+
+		/**
+		 * Spring Cloud Gateway key password, if not passed will consider same as
+		 * keyStorePassword.
+		 */
 		private String keyPassword;
 
-		public String getKeyCertChain() {
-			return keyCertChain;
+		public String getKeyStorePassword() {
+			return keyStorePassword;
 		}
 
-		public void setKeyCertChain(String keyCertChain) {
-			this.keyCertChain = keyCertChain;
+		public void setKeyStorePassword(String keyStorePassword) {
+			this.keyStorePassword = keyStorePassword;
 		}
 
-		public String getKey() {
-			return key;
+		public String getKeyStoreType() {
+			return keyStoreType;
 		}
 
-		public void setKey(String key) {
-			this.key = key;
+		public void setKeyStoreType(String keyStoreType) {
+			this.keyStoreType = keyStoreType;
+		}
+
+		public String getKeyStoreProvider() {
+			return keyStoreProvider;
+		}
+
+		public void setKeyStoreProvider(String keyStoreProvider) {
+			this.keyStoreProvider = keyStoreProvider;
+		}
+
+		public String getKeyStore() {
+			return keyStore;
+		}
+
+		public void setKeyStore(String keyStore) {
+			this.keyStore = keyStore;
 		}
 
 		public String getKeyPassword() {
@@ -354,6 +385,50 @@ public class HttpClientProperties {
 				throw new WebServerException("Could not load CertificateFactory X.509",
 						e1);
 			}
+		}
+
+		public KeyManagerFactory getKeyManagerFactory() {
+			try {
+				KeyManagerFactory keyManagerFactory = KeyManagerFactory
+						.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+				char[] keyPassword = ssl.getKeyPassword() != null
+						? ssl.getKeyPassword().toCharArray() : null;
+
+				if (keyPassword == null && ssl.getKeyStorePassword() != null) {
+					keyPassword = ssl.getKeyStorePassword().toCharArray();
+				}
+
+				keyManagerFactory.init(this.createKeyStore(), keyPassword);
+
+				return keyManagerFactory;
+			}
+			catch (Exception e) {
+				throw new IllegalStateException(e);
+			}
+		}
+
+		public KeyStore createKeyStore() throws Exception {
+
+			if (ssl.getKeyStoreType() == null) {
+				ssl.setKeyStoreType("JKS");
+			}
+
+			KeyStore store = ssl.getKeyStoreProvider() != null
+					? KeyStore.getInstance(ssl.getKeyStoreType(),
+							ssl.getKeyStoreProvider())
+					: KeyStore.getInstance(ssl.getKeyStoreType());
+
+			try {
+				URL url = ResourceUtils.getURL(ssl.getKeyStore());
+				store.load(url.openStream(), ssl.getKeyStorePassword() != null
+						? ssl.getKeyStorePassword().toCharArray() : null);
+			}
+			catch (Exception e) {
+				throw new WebServerException(
+						"Could not load key store ' " + ssl.getKeyStore() + "'", e);
+			}
+
+			return store;
 		}
 
 		// TODO: support configuration of other trust manager factories

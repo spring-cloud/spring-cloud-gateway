@@ -17,9 +17,9 @@ spring:
     gateway:
       httpclient:
         ssl:
-          keyCertChain: src/test/resources/single-cert.pem
-          key: src/test/resources/scg-key.pk8
-          keyPassword: scg1234
+          key-store: classpath:scg-keystore.p12
+          key-store-password: scg1234
+          key-store-type: PKCS12
           trustedX509Certificates:
           - src/test/resources/single-cert.pem
       default-filters:

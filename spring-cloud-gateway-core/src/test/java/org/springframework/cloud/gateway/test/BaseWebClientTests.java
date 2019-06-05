@@ -65,7 +65,7 @@ public class BaseWebClientTests {
 	protected String baseUri;
 
 	@Before
-	public void setup() {
+	public void setup() throws Exception {
 		setup(new ReactorClientHttpConnector(), "http://localhost:" + port);
 	}
 

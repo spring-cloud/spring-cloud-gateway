@@ -48,7 +48,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 public class SingleCertSSLTests extends BaseWebClientTests {
 
 	@Before
-	public void setup() {
+	public void setup() throws Exception {
 		try {
 			SslContext sslContext = SslContextBuilder.forClient()
 					.trustManager(InsecureTrustManagerFactory.INSTANCE).build();

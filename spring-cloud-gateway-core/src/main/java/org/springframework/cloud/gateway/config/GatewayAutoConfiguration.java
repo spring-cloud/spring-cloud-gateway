@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.gateway.config;
 
-import java.io.File;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
@@ -24,6 +23,8 @@ import com.netflix.hystrix.HystrixObservableCommand;
 import io.netty.channel.ChannelOption;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Flux;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.resources.ConnectionProvider;
@@ -514,6 +515,8 @@ public class GatewayAutoConfiguration {
 	@ConditionalOnClass(HttpClient.class)
 	protected static class NettyConfiguration {
 
+		protected final Log logger = LogFactory.getLog(getClass());
+
 		@Bean
 		@ConditionalOnMissingBean
 		public HttpClient httpClient(HttpClientProperties properties) {
@@ -567,7 +570,7 @@ public class GatewayAutoConfiguration {
 					});
 
 			HttpClientProperties.Ssl ssl = properties.getSsl();
-			if ((ssl.getKey() != null && ssl.getKeyCertChain() != null)
+			if ((ssl.getKeyStore() != null && ssl.getKeyStore().length() > 0)
 					|| ssl.getTrustedX509CertificatesForTrustManager().length > 0
 					|| ssl.isUseInsecureTrustManager()) {
 				httpClient = httpClient.secure(sslContextSpec -> {
@@ -585,12 +588,14 @@ public class GatewayAutoConfiguration {
 								.trustManager(InsecureTrustManagerFactory.INSTANCE);
 					}
 
-					if (ssl.getKeyCertChain() != null
-							&& ssl.getKeyCertChain().length() > 0 && ssl.getKey() != null
-							&& ssl.getKey().length() > 0) {
-						sslContextBuilder = sslContextBuilder.keyManager(
-								new File(ssl.getKeyCertChain()), new File(ssl.getKey()),
-								ssl.getKeyPassword());
+					if (ssl.getKeyStore() != null && ssl.getKeyStore().length() > 0) {
+						try {
+							sslContextBuilder = sslContextBuilder
+									.keyManager(ssl.getKeyManagerFactory());
+						}
+						catch (Exception e) {
+							logger.info(e);
+						}
 					}
 
 					sslContextSpec.sslContext(sslContextBuilder)
