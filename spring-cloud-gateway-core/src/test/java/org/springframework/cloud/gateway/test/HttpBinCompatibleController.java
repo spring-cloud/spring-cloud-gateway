@@ -98,11 +98,9 @@ public class HttpBinCompatibleController {
 				.reduce(new HashMap<String, Object>(), (files, part) -> {
 					MediaType contentType = part.headers().getContentType();
 					long contentLength = part.headers().getContentLength();
+					// TODO: get part data
 					files.put(part.name(),
-							"data:" + contentType + ";base64," + contentLength); // TODO:
-																					// get
-																					// part
-																					// data
+							"data:" + contentType + ";base64," + contentLength);
 					return files;
 				}).map(files -> Collections.singletonMap("files", files));
 	}

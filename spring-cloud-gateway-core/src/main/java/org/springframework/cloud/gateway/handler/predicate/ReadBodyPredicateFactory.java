@@ -95,7 +95,6 @@ public class ReadBodyPredicateFactory
 							Flux<DataBuffer> cachedFlux = Flux.defer(() -> {
 								DataBuffer buffer = exchange.getResponse().bufferFactory()
 										.wrap(bytes);
-								DataBufferUtils.retain(buffer);
 								return Mono.just(buffer);
 							});
 
