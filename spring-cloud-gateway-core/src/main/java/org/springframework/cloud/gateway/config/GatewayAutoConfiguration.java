@@ -588,14 +588,12 @@ public class GatewayAutoConfiguration {
 								.trustManager(InsecureTrustManagerFactory.INSTANCE);
 					}
 
-					if (ssl.getKeyStore() != null && ssl.getKeyStore().length() > 0) {
-						try {
-							sslContextBuilder = sslContextBuilder
-									.keyManager(ssl.getKeyManagerFactory());
-						}
-						catch (Exception e) {
-							logger.info(e);
-						}
+					try {
+						sslContextBuilder = sslContextBuilder
+								.keyManager(ssl.getKeyManagerFactory());
+					}
+					catch (Exception e) {
+						logger.error(e);
 					}
 
 					sslContextSpec.sslContext(sslContextBuilder)

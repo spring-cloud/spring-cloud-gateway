@@ -389,18 +389,22 @@ public class HttpClientProperties {
 
 		public KeyManagerFactory getKeyManagerFactory() {
 			try {
-				KeyManagerFactory keyManagerFactory = KeyManagerFactory
-						.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-				char[] keyPassword = ssl.getKeyPassword() != null
-						? ssl.getKeyPassword().toCharArray() : null;
+				if (ssl.getKeyStore() != null && ssl.getKeyStore().length() > 0) {
+					KeyManagerFactory keyManagerFactory = KeyManagerFactory
+							.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+					char[] keyPassword = ssl.getKeyPassword() != null
+							? ssl.getKeyPassword().toCharArray() : null;
 
-				if (keyPassword == null && ssl.getKeyStorePassword() != null) {
-					keyPassword = ssl.getKeyStorePassword().toCharArray();
+					if (keyPassword == null && ssl.getKeyStorePassword() != null) {
+						keyPassword = ssl.getKeyStorePassword().toCharArray();
+					}
+
+					keyManagerFactory.init(this.createKeyStore(), keyPassword);
+
+					return keyManagerFactory;
 				}
 
-				keyManagerFactory.init(this.createKeyStore(), keyPassword);
-
-				return keyManagerFactory;
+				return null;
 			}
 			catch (Exception e) {
 				throw new IllegalStateException(e);
