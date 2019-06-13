@@ -21,7 +21,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -148,20 +147,26 @@ public class RouteDefinitionRouteLocator
 	}
 
 	@SuppressWarnings("unchecked")
-	List<GatewayFilter> loadGatewayFilters(String id, List<FilterDefinition> filterDefinitions) {
+	List<GatewayFilter> loadGatewayFilters(String id,
+			List<FilterDefinition> filterDefinitions) {
 		ArrayList<GatewayFilter> ordered = new ArrayList<>(filterDefinitions.size());
 		for (int i = 0; i < filterDefinitions.size(); i++) {
 			FilterDefinition definition = filterDefinitions.get(i);
-			GatewayFilterFactory factory = this.gatewayFilterFactories.get(definition.getName());
+			GatewayFilterFactory factory = this.gatewayFilterFactories
+					.get(definition.getName());
 			if (factory == null) {
-				throw new IllegalArgumentException("Unable to find GatewayFilterFactory with name " + definition.getName());
+				throw new IllegalArgumentException(
+						"Unable to find GatewayFilterFactory with name "
+								+ definition.getName());
 			}
 			Map<String, String> args = definition.getArgs();
 			if (logger.isDebugEnabled()) {
-				logger.debug("RouteDefinition " + id + " applying filter " + args + " to " + definition.getName());
+				logger.debug("RouteDefinition " + id + " applying filter " + args + " to "
+						+ definition.getName());
 			}
 
-			Map<String, Object> properties = factory.shortcutType().normalize(args, factory, this.parser, this.beanFactory);
+			Map<String, Object> properties = factory.shortcutType().normalize(args,
+					factory, this.parser, this.beanFactory);
 
 			Object configuration = factory.newConfig();
 
