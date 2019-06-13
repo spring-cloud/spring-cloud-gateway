@@ -134,36 +134,30 @@ public class RouteDefinitionRouteLocator implements RouteLocator, BeanFactoryAwa
 	}
 
 	@SuppressWarnings("unchecked")
-	private List<GatewayFilter> loadGatewayFilters(String id, List<FilterDefinition> filterDefinitions) {
-		List<GatewayFilter> filters = filterDefinitions.stream()
-				.map(definition -> {
-					GatewayFilterFactory factory = this.gatewayFilterFactories.get(definition.getName());
-					if (factory == null) {
-                        throw new IllegalArgumentException("Unable to find GatewayFilterFactory with name " + definition.getName());
-					}
-					Map<String, String> args = definition.getArgs();
-					if (logger.isDebugEnabled()) {
-						logger.debug("RouteDefinition " + id + " applying filter " + args + " to " + definition.getName());
-					}
+	List<GatewayFilter> loadGatewayFilters(String id, List<FilterDefinition> filterDefinitions) {
+		ArrayList<GatewayFilter> ordered = new ArrayList<>(filterDefinitions.size());
+		for (int i = 0; i < filterDefinitions.size(); i++) {
+			FilterDefinition definition = filterDefinitions.get(i);
+			GatewayFilterFactory factory = this.gatewayFilterFactories.get(definition.getName());
+			if (factory == null) {
+				throw new IllegalArgumentException("Unable to find GatewayFilterFactory with name " + definition.getName());
+			}
+			Map<String, String> args = definition.getArgs();
+			if (logger.isDebugEnabled()) {
+				logger.debug("RouteDefinition " + id + " applying filter " + args + " to " + definition.getName());
+			}
 
-                    Map<String, Object> properties = factory.shortcutType().normalize(args, factory, this.parser, this.beanFactory);
+			Map<String, Object> properties = factory.shortcutType().normalize(args, factory, this.parser, this.beanFactory);
 
-                    Object configuration = factory.newConfig();
+			Object configuration = factory.newConfig();
 
-                    ConfigurationUtils.bind(configuration, properties,
-                            factory.shortcutFieldPrefix(), definition.getName(), validator);
+			ConfigurationUtils.bind(configuration, properties,
+					factory.shortcutFieldPrefix(), definition.getName(), validator);
 
-                    GatewayFilter gatewayFilter = factory.apply(configuration);
-                    if (this.publisher != null) {
-                        this.publisher.publishEvent(new FilterArgsEvent(this, id, properties));
-                    }
-                    return gatewayFilter;
-				})
-				.collect(Collectors.toList());
-
-		ArrayList<GatewayFilter> ordered = new ArrayList<>(filters.size());
-		for (int i = 0; i < filters.size(); i++) {
-			GatewayFilter gatewayFilter = filters.get(i);
+			GatewayFilter gatewayFilter = factory.apply(configuration);
+			if (this.publisher != null) {
+				this.publisher.publishEvent(new FilterArgsEvent(this, id, properties));
+			}
 			if (gatewayFilter instanceof Ordered) {
 				ordered.add(gatewayFilter);
 			}
