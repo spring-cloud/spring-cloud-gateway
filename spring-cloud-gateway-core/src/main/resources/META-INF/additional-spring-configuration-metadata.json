@@ -16,7 +16,7 @@
       "name": "spring.cloud.gateway.metrics.enabled",
       "type": "java.lang.Boolean",
       "description": "Enables the collection of metrics data.",
-      "defaultValue": "false"
+      "defaultValue": "true"
     }
   ]
 }
