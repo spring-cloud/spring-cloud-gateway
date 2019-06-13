@@ -222,7 +222,7 @@ public class ProxyExchange<T> {
 		}
 		return this;
 	}
-	
+
 	/**
 	 * Sets the uri for the backend call when triggered by the HTTP methods.
 	 * @param uri the backend uri to send the request to

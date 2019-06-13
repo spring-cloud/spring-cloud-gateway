@@ -102,8 +102,9 @@ public class HystrixGatewayFilterFactory
 	/**
 	 * Create a {@link Setter} based on incoming request attribute. <br>
 	 * This could be useful for example to create a Setter with {@link HystrixCommandKey}
-	 * being set as the target service's host:port, as obtained from {@link ServerWebExchange#getRequest()}
-	 * to do per service instance level circuit breaking.
+	 * being set as the target service's host:port, as obtained from
+	 * {@link ServerWebExchange#getRequest()} to do per service instance level circuit
+	 * breaking.
 	 */
 	protected Setter createCommandSetter(Config config, ServerWebExchange exchange) {
 		return config.setter;
@@ -124,8 +125,9 @@ public class HystrixGatewayFilterFactory
 		}
 
 		return (exchange, chain) -> {
-			RouteHystrixCommand command = new RouteHystrixCommand(createCommandSetter(config, exchange),
-					config.fallbackUri, exchange, chain);
+			RouteHystrixCommand command = new RouteHystrixCommand(
+					createCommandSetter(config, exchange), config.fallbackUri, exchange,
+					chain);
 
 			return Mono.create(s -> {
 				Subscription sub = command.toObservable().subscribe(s::success, s::error,
