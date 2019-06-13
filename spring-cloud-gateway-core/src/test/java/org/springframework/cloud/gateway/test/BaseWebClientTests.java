@@ -97,11 +97,15 @@ public class BaseWebClientTests {
 				log.info("modifyResponseFilter start");
 				String value = exchange.getAttributeOrDefault(GATEWAY_HANDLER_MAPPER_ATTR,
 						"N/A");
-				exchange.getResponse().getHeaders().add(HANDLER_MAPPER_HEADER, value);
+				if (!exchange.getResponse().isCommitted()) {
+					exchange.getResponse().getHeaders().add(HANDLER_MAPPER_HEADER, value);
+				}
 				Route route = exchange.getAttributeOrDefault(GATEWAY_ROUTE_ATTR, null);
 				if (route != null) {
-					exchange.getResponse().getHeaders().add(ROUTE_ID_HEADER,
-							route.getId());
+					if (!exchange.getResponse().isCommitted()) {
+						exchange.getResponse().getHeaders().add(ROUTE_ID_HEADER,
+								route.getId());
+					}
 				}
 				return chain.filter(exchange);
 			};
