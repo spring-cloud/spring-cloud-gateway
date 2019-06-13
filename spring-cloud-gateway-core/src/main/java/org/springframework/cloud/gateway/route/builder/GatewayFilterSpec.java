@@ -474,8 +474,9 @@ public class GatewayFilterSpec extends UriSpec {
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
 	public GatewayFilterSpec retry(int retries) {
-		return filter(getBean(RetryGatewayFilterFactory.class)
-				.apply(retryConfig -> retryConfig.setRetries(retries)));
+		return filter(
+				getBean(RetryGatewayFilterFactory.class).apply(this.routeBuilder.getId(),
+						retryConfig -> retryConfig.setRetries(retries)));
 	}
 
 	/**
@@ -487,7 +488,8 @@ public class GatewayFilterSpec extends UriSpec {
 	 */
 	public GatewayFilterSpec retry(
 			Consumer<RetryGatewayFilterFactory.RetryConfig> retryConsumer) {
-		return filter(getBean(RetryGatewayFilterFactory.class).apply(retryConsumer));
+		return filter(getBean(RetryGatewayFilterFactory.class)
+				.apply(this.routeBuilder.getId(), retryConsumer));
 	}
 
 	/**
@@ -498,7 +500,9 @@ public class GatewayFilterSpec extends UriSpec {
 	 */
 	public GatewayFilterSpec retry(Repeat<ServerWebExchange> repeat,
 			Retry<ServerWebExchange> retry) {
-		return filter(getBean(RetryGatewayFilterFactory.class).apply(repeat, retry));
+		RetryGatewayFilterFactory filterFactory = getBean(
+				RetryGatewayFilterFactory.class);
+		return filter(filterFactory.apply(this.routeBuilder.getId(), repeat, retry));
 	}
 
 	/**

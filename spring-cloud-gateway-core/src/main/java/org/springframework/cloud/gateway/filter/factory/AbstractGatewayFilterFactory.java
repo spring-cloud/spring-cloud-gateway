@@ -17,6 +17,8 @@
 package org.springframework.cloud.gateway.filter.factory;
 
 import org.springframework.cloud.gateway.support.AbstractConfigurable;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
 
 /**
  * This class is BETA and may be subject to change in a future release.
@@ -24,7 +26,9 @@ import org.springframework.cloud.gateway.support.AbstractConfigurable;
  * @param <C> {@link AbstractConfigurable} subtype
  */
 public abstract class AbstractGatewayFilterFactory<C> extends AbstractConfigurable<C>
-		implements GatewayFilterFactory<C> {
+		implements GatewayFilterFactory<C>, ApplicationEventPublisherAware {
+
+	private ApplicationEventPublisher publisher;
 
 	@SuppressWarnings("unchecked")
 	public AbstractGatewayFilterFactory() {
@@ -33,6 +37,15 @@ public abstract class AbstractGatewayFilterFactory<C> extends AbstractConfigurab
 
 	public AbstractGatewayFilterFactory(Class<C> configClass) {
 		super(configClass);
+	}
+
+	protected ApplicationEventPublisher getPublisher() {
+		return this.publisher;
+	}
+
+	@Override
+	public void setApplicationEventPublisher(ApplicationEventPublisher publisher) {
+		this.publisher = publisher;
 	}
 
 	public static class NameConfig {

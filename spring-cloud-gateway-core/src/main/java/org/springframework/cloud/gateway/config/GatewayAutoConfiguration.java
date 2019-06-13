@@ -45,11 +45,13 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.cloud.gateway.actuate.GatewayControllerEndpoint;
 import org.springframework.cloud.gateway.filter.AdaptCachedBodyGlobalFilter;
+import org.springframework.cloud.gateway.filter.AlwaysRetainBodyGlobalFilter;
 import org.springframework.cloud.gateway.filter.ForwardPathFilter;
 import org.springframework.cloud.gateway.filter.ForwardRoutingFilter;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.NettyRoutingFilter;
 import org.springframework.cloud.gateway.filter.NettyWriteResponseFilter;
+import org.springframework.cloud.gateway.filter.RemoveCachedBodyFilter;
 import org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter;
 import org.springframework.cloud.gateway.filter.WebsocketRoutingFilter;
 import org.springframework.cloud.gateway.filter.WeightCalculatorWebFilter;
@@ -261,6 +263,16 @@ public class GatewayAutoConfiguration {
 	@Bean
 	public AdaptCachedBodyGlobalFilter adaptCachedBodyGlobalFilter() {
 		return new AdaptCachedBodyGlobalFilter();
+	}
+
+	@Bean
+	public AlwaysRetainBodyGlobalFilter alwaysRetainBodyGlobalFilter() {
+		return new AlwaysRetainBodyGlobalFilter();
+	}
+
+	@Bean
+	public RemoveCachedBodyFilter removeCachedBodyFilter() {
+		return new RemoveCachedBodyFilter();
 	}
 
 	@Bean
@@ -589,6 +601,9 @@ public class GatewayAutoConfiguration {
 							.closeNotifyReadTimeout(ssl.getCloseNotifyReadTimeout());
 				});
 			}
+
+			//TODO: add configuration to turn on wiretap
+			//httpClient = httpClient.wiretap(true);
 
 			return httpClient;
 		}
