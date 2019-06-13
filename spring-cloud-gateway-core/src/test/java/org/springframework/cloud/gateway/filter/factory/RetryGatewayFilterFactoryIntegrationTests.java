@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
+import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -65,7 +66,8 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 
 	@Test
 	public void retryFilterFailure() {
-		testClient.get().uri("/retryalwaysfail?key=getjavafailure&count=4")
+		testClient.mutate().responseTimeout(Duration.ofSeconds(10)).build()
+				.get().uri("/retryalwaysfail?key=getjavafailure&count=4")
 				.header(HttpHeaders.HOST, "www.retryjava.org").exchange().expectStatus()
 				.is5xxServerError().expectBody(String.class).consumeWith(result -> {
 					assertThat(result.getResponseBody()).contains("permanently broken");
