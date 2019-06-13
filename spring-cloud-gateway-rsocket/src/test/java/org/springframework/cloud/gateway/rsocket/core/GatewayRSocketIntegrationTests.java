@@ -20,6 +20,7 @@ import java.time.Duration;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import reactor.test.StepVerifier;
@@ -69,6 +70,7 @@ public class GatewayRSocketIntegrationTests {
 		System.clearProperty("spring.rsocket.server.port");
 	}
 
+	@Ignore // FIXME: 2.2.0 gh-1114
 	@Test
 	public void contextLoads() {
 		// @formatter:off
