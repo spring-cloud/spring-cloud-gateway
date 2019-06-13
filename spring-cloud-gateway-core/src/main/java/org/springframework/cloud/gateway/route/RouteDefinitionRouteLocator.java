@@ -147,7 +147,7 @@ public class RouteDefinitionRouteLocator
 				.replaceFilters(gatewayFilters).build();
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "Duplicates", "unchecked" })
 	private List<GatewayFilter> loadGatewayFilters(String id,
 			List<FilterDefinition> filterDefinitions) {
 		List<GatewayFilter> filters = filterDefinitions.stream().map(definition -> {
@@ -173,7 +173,7 @@ public class RouteDefinitionRouteLocator
 					factory.shortcutFieldPrefix(), definition.getName(), validator,
 					conversionService);
 
-			GatewayFilter gatewayFilter = factory.apply(configuration);
+			GatewayFilter gatewayFilter = factory.apply(id, configuration);
 			if (this.publisher != null) {
 				this.publisher.publishEvent(new FilterArgsEvent(this, id, properties));
 			}

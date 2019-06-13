@@ -33,7 +33,9 @@ import reactor.retry.RepeatContext;
 import reactor.retry.Retry;
 import reactor.retry.RetryContext;
 
+import org.springframework.cloud.gateway.event.EnableBodyCachingEvent;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.support.HasRouteId;
 import org.springframework.cloud.gateway.support.TimeoutException;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -130,7 +132,7 @@ public class RetryGatewayFilterFactory
 					.retryMax(retryConfig.getRetries());
 		}
 
-		return apply(statusCodeRepeat, exceptionRetry);
+		return apply(retryConfig.getRouteId(), statusCodeRepeat, exceptionRetry);
 	}
 
 	public boolean exceedsMaxIterations(ServerWebExchange exchange,
@@ -145,7 +147,7 @@ public class RetryGatewayFilterFactory
 	}
 
 	public void reset(ServerWebExchange exchange) {
-		// TODO: what else to do to reset SWE?
+		// TODO: what else to do to reset exchange?
 		Set<String> addedHeaders = exchange.getAttributeOrDefault(
 				CLIENT_RESPONSE_HEADER_NAMES, Collections.emptySet());
 		addedHeaders
@@ -153,8 +155,18 @@ public class RetryGatewayFilterFactory
 		exchange.getAttributes().remove(GATEWAY_ALREADY_ROUTED_ATTR);
 	}
 
+	@Deprecated
 	public GatewayFilter apply(Repeat<ServerWebExchange> repeat,
 			Retry<ServerWebExchange> retry) {
+		return apply(null, repeat, retry);
+	}
+
+	public GatewayFilter apply(String routeId, Repeat<ServerWebExchange> repeat,
+			Retry<ServerWebExchange> retry) {
+		if (routeId != null && getPublisher() != null) {
+			// send an event to enable caching
+			getPublisher().publishEvent(new EnableBodyCachingEvent(this, routeId));
+		}
 		return (exchange, chain) -> {
 			trace("Entering retry-filter");
 
@@ -193,7 +205,9 @@ public class RetryGatewayFilterFactory
 	}
 
 	@SuppressWarnings("unchecked")
-	public static class RetryConfig {
+	public static class RetryConfig implements HasRouteId {
+
+		private String routeId;
 
 		private int retries = 3;
 
@@ -217,6 +231,16 @@ public class RetryGatewayFilterFactory
 							|| !this.exceptions.isEmpty(),
 					"series, status and exceptions may not all be empty");
 			Assert.notEmpty(this.methods, "methods may not be empty");
+		}
+
+		@Override
+		public void setRouteId(String routeId) {
+			this.routeId = routeId;
+		}
+
+		@Override
+		public String getRouteId() {
+			return this.routeId;
 		}
 
 		public int getRetries() {
