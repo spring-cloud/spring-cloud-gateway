@@ -602,8 +602,8 @@ public class GatewayAutoConfiguration {
 				});
 			}
 
-			//TODO: add configuration to turn on wiretap
-			//httpClient = httpClient.wiretap(true);
+			// TODO: add configuration to turn on wiretap
+			// httpClient = httpClient.wiretap(true);
 
 			return httpClient;
 		}
