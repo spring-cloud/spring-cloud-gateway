@@ -66,7 +66,7 @@ public class DefaultGatewayTagsProviderTests {
 		exchange.getAttributes().put(GATEWAY_ROUTE_ATTR, route);
 		exchange.getResponse().setStatusCode(HttpStatus.OK);
 
-		Tags tags = defaultTagsProvider.tags(exchange);
+		Tags tags = defaultTagsProvider.apply(exchange);
 		assertThat(tags).isEqualTo(defaultTags);
 	}
 
@@ -75,7 +75,7 @@ public class DefaultGatewayTagsProviderTests {
 		ServerWebExchange exchange = MockServerWebExchange
 				.from(MockServerHttpRequest.get(ROUTE_URI).build());
 
-		Tags tags = defaultTagsProvider.tags(exchange);
+		Tags tags = defaultTagsProvider.apply(exchange);
 		assertThat(tags).isEqualTo(Tags.of("outcome", "CUSTOM", "status", "CUSTOM",
 				"httpStatusCode", "NA", "httpMethod", "GET"));
 	}
@@ -92,7 +92,7 @@ public class DefaultGatewayTagsProviderTests {
 		when(mockExchange.getResponse()).thenReturn(responseDecorator);
 		when(mockExchange.getAttribute(GATEWAY_ROUTE_ATTR)).thenReturn(route);
 
-		Tags tags = defaultTagsProvider.tags(mockExchange);
+		Tags tags = defaultTagsProvider.apply(mockExchange);
 		assertThat(tags).isEqualTo(defaultTags);
 	}
 

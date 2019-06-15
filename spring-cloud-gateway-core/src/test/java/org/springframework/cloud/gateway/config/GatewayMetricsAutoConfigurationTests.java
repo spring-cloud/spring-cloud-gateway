@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.gateway.config;
 
+import java.util.List;
+
 import io.micrometer.core.instrument.Tags;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
@@ -47,12 +49,13 @@ public class GatewayMetricsAutoConfigurationTests {
 		private GatewayMetricsFilter filter;
 
 		@Autowired(required = false)
-		private GatewayTagsProvider tagsProvider;
+		private List<GatewayTagsProvider> tagsProviders;
 
 		@Test
 		public void gatewayMetricsBeansExists() {
 			assertThat(filter).isNotNull();
-			assertThat(tagsProvider).isInstanceOf(DefaultGatewayTagsProvider.class);
+			assertThat(tagsProviders).extracting("class")
+					.containsOnlyOnce(DefaultGatewayTagsProvider.class);
 		}
 
 	}
@@ -72,21 +75,55 @@ public class GatewayMetricsAutoConfigurationTests {
 	}
 
 	@RunWith(SpringRunner.class)
+	@SpringBootTest(classes = Config.class,
+			properties = "spring.cloud.gateway.metrics.default-tags.enabled=false")
+	public static class DisableDefaultTagProvider {
+
+		@Autowired(required = false)
+		private List<GatewayTagsProvider> tagsProviders;
+
+		@Test
+		public void gatewayMetricsBeanMissing() {
+			assertThat(tagsProviders).isNullOrEmpty();
+		}
+
+	}
+
+	@RunWith(SpringRunner.class)
 	@SpringBootTest(classes = CustomTagsProviderConfig.class)
-	public static class EnabledCustomTagsProvider {
+	public static class AddCustomTagsProvider {
 
 		@Autowired(required = false)
 		private GatewayMetricsFilter filter;
 
-		@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 		@Autowired(required = false)
-		private GatewayTagsProvider tagsProvider;
+		private List<GatewayTagsProvider> tagsProviders;
 
 		@Test
 		public void gatewayMetricsBeansExists() {
 			assertThat(filter).isNotNull();
-			assertThat(tagsProvider).isNotInstanceOf(DefaultGatewayTagsProvider.class)
-					.isInstanceOf(GatewayTagsProvider.class);
+			assertThat(tagsProviders).extracting("class")
+					.hasSize(2);
+		}
+
+	}
+
+	@RunWith(SpringRunner.class)
+	@SpringBootTest(classes = CustomTagsProviderConfig.class,
+			properties = "spring.cloud.gateway.metrics.default-tags.enabled=false")
+	public static class OnlyCustomTagsProviderByProperty  {
+
+		@Autowired(required = false)
+		private GatewayMetricsFilter filter;
+
+		@Autowired(required = false)
+		private List<GatewayTagsProvider> tagsProviders;
+
+		@Test
+		public void gatewayMetricsBeansExists() {
+			assertThat(filter).isNotNull();
+			assertThat(tagsProviders).extracting("class")
+					.doesNotContain(DefaultGatewayTagsProvider.class).hasSize(1);
 		}
 
 	}

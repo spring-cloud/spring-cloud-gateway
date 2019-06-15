@@ -16,6 +16,9 @@
 
 package org.springframework.cloud.gateway.filter;
 
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.Timer;
@@ -24,7 +27,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Mono;
 
+import org.springframework.beans.BeansException;
 import org.springframework.cloud.gateway.support.tagsprovider.GatewayTagsProvider;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.Ordered;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.server.ServerWebExchange;
@@ -33,18 +39,28 @@ import org.springframework.web.server.ServerWebExchange;
  * @author Tony Clarke
  * @author Ingyu Hwang
  */
-public class GatewayMetricsFilter implements GlobalFilter, Ordered {
+public class GatewayMetricsFilter
+		implements GlobalFilter, Ordered, ApplicationContextAware {
 
 	private static final Log log = LogFactory.getLog(GatewayMetricsFilter.class);
 
-	private MeterRegistry meterRegistry;
+	private final MeterRegistry meterRegistry;
 
-	private GatewayTagsProvider tagsProvider;
+	private GatewayTagsProvider compositeTagsProvider;
+
+	private AtomicBoolean initialized = new AtomicBoolean(false);
 
 	public GatewayMetricsFilter(MeterRegistry meterRegistry,
-			GatewayTagsProvider tagsProvider) {
+			List<GatewayTagsProvider> tagsProviders) {
 		this.meterRegistry = meterRegistry;
-		this.tagsProvider = tagsProvider;
+		this.compositeTagsProvider = tagsProviders.stream()
+				.reduce(exchange -> Tags.empty(), GatewayTagsProvider::and);
+		initialized.compareAndSet(false, true);
+	}
+
+	@Deprecated
+	public GatewayMetricsFilter(MeterRegistry meterRegistry) {
+		this.meterRegistry = meterRegistry;
 	}
 
 	@Override
@@ -52,6 +68,14 @@ public class GatewayMetricsFilter implements GlobalFilter, Ordered {
 		// start the timer as soon as possible and report the metric event before we write
 		// response to client
 		return NettyWriteResponseFilter.WRITE_RESPONSE_FILTER_ORDER + 1;
+	}
+
+	@Override
+	public void setApplicationContext(ApplicationContext context) throws BeansException {
+		if (initialized.compareAndSet(false, true)) {
+			this.compositeTagsProvider = context.getBean("defaultGatewayTagsProvider",
+					GatewayTagsProvider.class);
+		}
 	}
 
 	@Override
@@ -78,8 +102,7 @@ public class GatewayMetricsFilter implements GlobalFilter, Ordered {
 	}
 
 	private void endTimerInner(ServerWebExchange exchange, Sample sample) {
-
-		Tags tags = tagsProvider.tags(exchange);
+		Tags tags = compositeTagsProvider.apply(exchange);
 
 		if (log.isTraceEnabled()) {
 			log.trace("gateway.requests tags: " + tags);

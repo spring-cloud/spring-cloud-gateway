@@ -26,7 +26,7 @@ import org.springframework.web.server.ServerWebExchange;
 public class DefaultGatewayTagsProvider implements GatewayTagsProvider {
 
 	@Override
-	public Tags tags(ServerWebExchange exchange) {
+	public Tags apply(ServerWebExchange exchange) {
 		return Tags.concat(GatewayTags.http(exchange), GatewayTags.route(exchange));
 	}
 
