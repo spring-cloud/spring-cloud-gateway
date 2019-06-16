@@ -45,7 +45,6 @@ import org.springframework.web.reactive.DispatcherHandler;
 public class GatewayMetricsAutoConfiguration {
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.gateway.metrics.default-tags.enabled", matchIfMissing = true)
 	public GatewayTagsProvider defaultGatewayTagsProvider() {
 		return new DefaultGatewayTagsProvider();
 	}

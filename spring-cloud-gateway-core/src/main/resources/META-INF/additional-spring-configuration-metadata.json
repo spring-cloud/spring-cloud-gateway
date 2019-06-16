@@ -17,12 +17,6 @@
       "type": "java.lang.Boolean",
       "description": "Enables the collection of metrics data.",
       "defaultValue": "true"
-    },
-    {
-      "name": "spring.cloud.gateway.metrics.default-tags.enabled",
-      "type": "java.lang.Boolean",
-      "description": "Enables the default tags of metrics.",
-      "defaultValue": "true"
     }
   ]
 }

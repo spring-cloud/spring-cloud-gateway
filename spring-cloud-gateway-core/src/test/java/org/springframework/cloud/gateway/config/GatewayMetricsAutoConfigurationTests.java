@@ -75,21 +75,6 @@ public class GatewayMetricsAutoConfigurationTests {
 	}
 
 	@RunWith(SpringRunner.class)
-	@SpringBootTest(classes = Config.class,
-			properties = "spring.cloud.gateway.metrics.default-tags.enabled=false")
-	public static class DisableDefaultTagProvider {
-
-		@Autowired(required = false)
-		private List<GatewayTagsProvider> tagsProviders;
-
-		@Test
-		public void gatewayMetricsBeanMissing() {
-			assertThat(tagsProviders).isNullOrEmpty();
-		}
-
-	}
-
-	@RunWith(SpringRunner.class)
 	@SpringBootTest(classes = CustomTagsProviderConfig.class)
 	public static class AddCustomTagsProvider {
 
@@ -104,26 +89,6 @@ public class GatewayMetricsAutoConfigurationTests {
 			assertThat(filter).isNotNull();
 			assertThat(tagsProviders).extracting("class")
 					.hasSize(2);
-		}
-
-	}
-
-	@RunWith(SpringRunner.class)
-	@SpringBootTest(classes = CustomTagsProviderConfig.class,
-			properties = "spring.cloud.gateway.metrics.default-tags.enabled=false")
-	public static class OnlyCustomTagsProviderByProperty  {
-
-		@Autowired(required = false)
-		private GatewayMetricsFilter filter;
-
-		@Autowired(required = false)
-		private List<GatewayTagsProvider> tagsProviders;
-
-		@Test
-		public void gatewayMetricsBeansExists() {
-			assertThat(filter).isNotNull();
-			assertThat(tagsProviders).extracting("class")
-					.doesNotContain(DefaultGatewayTagsProvider.class).hasSize(1);
 		}
 
 	}
