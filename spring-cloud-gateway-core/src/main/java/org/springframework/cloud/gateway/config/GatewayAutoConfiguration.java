@@ -45,7 +45,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.cloud.gateway.actuate.GatewayControllerEndpoint;
 import org.springframework.cloud.gateway.filter.AdaptCachedBodyGlobalFilter;
-import org.springframework.cloud.gateway.filter.AlwaysRetainBodyGlobalFilter;
 import org.springframework.cloud.gateway.filter.ForwardPathFilter;
 import org.springframework.cloud.gateway.filter.ForwardRoutingFilter;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
@@ -126,7 +125,6 @@ import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.env.Environment;
-import org.springframework.http.codec.ServerCodecConfigurer;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.Validator;
 import org.springframework.web.reactive.DispatcherHandler;
@@ -266,11 +264,6 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	public AlwaysRetainBodyGlobalFilter alwaysRetainBodyGlobalFilter() {
-		return new AlwaysRetainBodyGlobalFilter();
-	}
-
-	@Bean
 	public RemoveCachedBodyFilter removeCachedBodyFilter() {
 		return new RemoveCachedBodyFilter();
 	}
@@ -405,9 +398,8 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	public ModifyRequestBodyGatewayFilterFactory modifyRequestBodyGatewayFilterFactory(
-			ServerCodecConfigurer codecConfigurer) {
-		return new ModifyRequestBodyGatewayFilterFactory(codecConfigurer);
+	public ModifyRequestBodyGatewayFilterFactory modifyRequestBodyGatewayFilterFactory() {
+		return new ModifyRequestBodyGatewayFilterFactory();
 	}
 
 	@Bean
@@ -416,9 +408,8 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	public ModifyResponseBodyGatewayFilterFactory modifyResponseBodyGatewayFilterFactory(
-			ServerCodecConfigurer codecConfigurer) {
-		return new ModifyResponseBodyGatewayFilterFactory(codecConfigurer);
+	public ModifyResponseBodyGatewayFilterFactory modifyResponseBodyGatewayFilterFactory() {
+		return new ModifyResponseBodyGatewayFilterFactory();
 	}
 
 	@Bean

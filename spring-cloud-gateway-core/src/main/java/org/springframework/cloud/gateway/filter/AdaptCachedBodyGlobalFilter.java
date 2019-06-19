@@ -16,39 +16,65 @@
 
 package org.springframework.cloud.gateway.filter;
 
-import reactor.core.publisher.Flux;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
 import reactor.core.publisher.Mono;
 
+import org.springframework.cloud.gateway.event.EnableBodyCachingEvent;
+import org.springframework.cloud.gateway.route.Route;
+import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
+import org.springframework.context.ApplicationListener;
 import org.springframework.core.Ordered;
 import org.springframework.core.io.buffer.DataBuffer;
-import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
 
-public class AdaptCachedBodyGlobalFilter implements GlobalFilter, Ordered {
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.CACHED_REQUEST_BODY_ATTR;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.CACHED_SERVER_HTTP_REQUEST_DECORATOR_ATTR;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
+
+public class AdaptCachedBodyGlobalFilter
+		implements GlobalFilter, Ordered, ApplicationListener<EnableBodyCachingEvent> {
+
+	private ConcurrentMap<String, Boolean> routesToCache = new ConcurrentHashMap<>();
 
 	/**
 	 * Cached request body key.
 	 */
-	public static final String CACHED_REQUEST_BODY_KEY = "cachedRequestBody";
+	@Deprecated
+	public static final String CACHED_REQUEST_BODY_KEY = CACHED_REQUEST_BODY_ATTR;
+
+	@Override
+	public void onApplicationEvent(EnableBodyCachingEvent event) {
+		this.routesToCache.putIfAbsent(event.getRouteId(), true);
+	}
 
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-
-		Flux<DataBuffer> body = exchange.getAttributeOrDefault(CACHED_REQUEST_BODY_KEY,
-				null);
-		if (body != null) {
-			ServerHttpRequestDecorator decorator = new ServerHttpRequestDecorator(
-					exchange.getRequest()) {
-				@Override
-				public Flux<DataBuffer> getBody() {
-					return body;
-				}
-			};
-			exchange.getAttributes().remove(CACHED_REQUEST_BODY_KEY);
-			return chain.filter(exchange.mutate().request(decorator).build());
+		// the cached ServerHttpRequest is used when the ServerWebExchange can not be
+		// mutated, for example, during a predicate where the body is read, but still
+		// needs to be cached.
+		ServerHttpRequest cachedRequest = exchange
+				.getAttributeOrDefault(CACHED_SERVER_HTTP_REQUEST_DECORATOR_ATTR, null);
+		if (cachedRequest != null) {
+			exchange.getAttributes().remove(CACHED_SERVER_HTTP_REQUEST_DECORATOR_ATTR);
+			return chain.filter(exchange.mutate().request(cachedRequest).build());
 		}
 
-		return chain.filter(exchange);
+		//
+		DataBuffer body = exchange.getAttributeOrDefault(CACHED_REQUEST_BODY_ATTR, null);
+		Route route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
+
+		if (body != null || !this.routesToCache.containsKey(route.getId())) {
+			return chain.filter(exchange);
+		}
+
+		return ServerWebExchangeUtils
+				.cacheRequestBody(exchange,
+						(serverHttpRequest) -> chain.filter(
+								exchange.mutate().request(serverHttpRequest).build()))
+				.switchIfEmpty(chain.filter(exchange));
 	}
 
 	@Override
