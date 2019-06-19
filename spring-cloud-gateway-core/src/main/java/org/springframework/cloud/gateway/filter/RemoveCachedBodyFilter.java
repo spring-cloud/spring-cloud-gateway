@@ -24,7 +24,7 @@ import org.springframework.core.Ordered;
 import org.springframework.core.io.buffer.PooledDataBuffer;
 import org.springframework.web.server.ServerWebExchange;
 
-import static org.springframework.cloud.gateway.filter.AlwaysRetainBodyGlobalFilter.ALWAYS_CACHE_REQUEST_BODY_KEY;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.CACHED_REQUEST_BODY_ATTR;
 
 public class RemoveCachedBodyFilter implements GlobalFilter, Ordered {
 
@@ -33,13 +33,13 @@ public class RemoveCachedBodyFilter implements GlobalFilter, Ordered {
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 		return chain.filter(exchange).doFinally(s -> {
-			PooledDataBuffer b = (PooledDataBuffer) exchange.getAttributes()
-					.remove(ALWAYS_CACHE_REQUEST_BODY_KEY);
-			if (b != null && b.isAllocated()) {
+			PooledDataBuffer dataBuffer = (PooledDataBuffer) exchange.getAttributes()
+					.remove(CACHED_REQUEST_BODY_ATTR);
+			if (dataBuffer != null && dataBuffer.isAllocated()) {
 				if (log.isTraceEnabled()) {
 					log.trace("releasing cached body in exchange attribute");
 				}
-				b.release();
+				dataBuffer.release();
 			}
 		});
 	}

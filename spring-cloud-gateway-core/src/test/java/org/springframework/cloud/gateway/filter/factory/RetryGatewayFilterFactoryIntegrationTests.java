@@ -66,8 +66,8 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 
 	@Test
 	public void retryFilterFailure() {
-		testClient.mutate().responseTimeout(Duration.ofSeconds(10)).build()
-				.get().uri("/retryalwaysfail?key=getjavafailure&count=4")
+		testClient.mutate().responseTimeout(Duration.ofSeconds(10)).build().get()
+				.uri("/retryalwaysfail?key=getjavafailure&count=4")
 				.header(HttpHeaders.HOST, "www.retryjava.org").exchange().expectStatus()
 				.is5xxServerError().expectBody(String.class).consumeWith(result -> {
 					assertThat(result.getResponseBody()).contains("permanently broken");

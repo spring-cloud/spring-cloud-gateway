@@ -127,36 +127,36 @@ public class ReadBodyPredicateFactoryTest {
 
 	}
 
-}
+	static class Event {
 
-class Event {
+		private String foo;
 
-	private String foo;
+		private String bar;
 
-	private String bar;
+		Event() {
+		}
 
-	Event() {
-	}
+		Event(String foo, String bar) {
+			this.foo = foo;
+			this.bar = bar;
+		}
 
-	Event(String foo, String bar) {
-		this.foo = foo;
-		this.bar = bar;
-	}
+		public String getFoo() {
+			return foo;
+		}
 
-	public String getFoo() {
-		return foo;
-	}
+		public void setFoo(String foo) {
+			this.foo = foo;
+		}
 
-	public void setFoo(String foo) {
-		this.foo = foo;
-	}
+		public String getBar() {
+			return bar;
+		}
 
-	public String getBar() {
-		return bar;
-	}
+		public void setBar(String bar) {
+			this.bar = bar;
+		}
 
-	public void setBar(String bar) {
-		this.bar = bar;
 	}
 
 }

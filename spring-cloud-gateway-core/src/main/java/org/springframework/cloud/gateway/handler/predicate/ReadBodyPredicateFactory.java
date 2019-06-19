@@ -22,20 +22,14 @@ import java.util.function.Predicate;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.handler.AsyncPredicate;
-import org.springframework.core.io.buffer.DataBuffer;
-import org.springframework.core.io.buffer.DataBufferUtils;
+import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.http.codec.HttpMessageReader;
-import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
 import org.springframework.web.reactive.function.server.HandlerStrategies;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.server.ServerWebExchange;
-
-import static org.springframework.cloud.gateway.filter.AdaptCachedBodyGlobalFilter.CACHED_REQUEST_BODY_KEY;
 
 /**
  * Predicate that reads the body and applies a user provided predicate to run on the body.
@@ -45,7 +39,7 @@ import static org.springframework.cloud.gateway.filter.AdaptCachedBodyGlobalFilt
 public class ReadBodyPredicateFactory
 		extends AbstractRoutePredicateFactory<ReadBodyPredicateFactory.Config> {
 
-	protected static final Log LOGGER = LogFactory.getLog(ReadBodyPredicateFactory.class);
+	protected static final Log log = LogFactory.getLog(ReadBodyPredicateFactory.class);
 
 	private static final String TEST_ATTRIBUTE = "read_body_predicate_test_attribute";
 
@@ -78,47 +72,23 @@ public class ReadBodyPredicateFactory
 					return Mono.just(test);
 				}
 				catch (ClassCastException e) {
-					if (LOGGER.isDebugEnabled()) {
-						LOGGER.debug("Predicate test failed because class in predicate "
+					if (log.isDebugEnabled()) {
+						log.debug("Predicate test failed because class in predicate "
 								+ "does not match the cached body object", e);
 					}
 				}
 				return Mono.just(false);
 			}
 			else {
-				// Join all the DataBuffers so we have a single DataBuffer for the body
-				return DataBufferUtils.join(exchange.getRequest().getBody())
-						.flatMap(dataBuffer -> {
-							byte[] bytes = new byte[dataBuffer.readableByteCount()];
-							dataBuffer.read(bytes);
-							DataBufferUtils.release(dataBuffer);
-							Flux<DataBuffer> cachedFlux = Flux.defer(() -> {
-								DataBuffer buffer = exchange.getResponse().bufferFactory()
-										.wrap(bytes);
-								DataBufferUtils.retain(buffer);
-								return Mono.just(buffer);
-							});
-
-							ServerHttpRequest mutatedRequest = new ServerHttpRequestDecorator(
-									exchange.getRequest()) {
-								@Override
-								public Flux<DataBuffer> getBody() {
-									return cachedFlux;
-								}
-							};
-							return ServerRequest
-									.create(exchange.mutate().request(mutatedRequest)
-											.build(), messageReaders)
-									.bodyToMono(inClass).doOnNext(objectValue -> {
-										exchange.getAttributes().put(
-												CACHE_REQUEST_BODY_OBJECT_KEY,
-												objectValue);
-										exchange.getAttributes()
-												.put(CACHED_REQUEST_BODY_KEY, cachedFlux);
-									}).map(objectValue -> config.predicate
-											.test(objectValue));
-						});
-
+				return ServerWebExchangeUtils.cacheRequestBodyAndRequest(exchange,
+						(serverHttpRequest) -> ServerRequest
+								.create(exchange.mutate().request(serverHttpRequest)
+										.build(), messageReaders)
+								.bodyToMono(inClass)
+								.doOnNext(objectValue -> exchange.getAttributes()
+										.put(CACHE_REQUEST_BODY_OBJECT_KEY, objectValue))
+								.map(objectValue -> config.getPredicate()
+										.test(objectValue)));
 			}
 		};
 	}
