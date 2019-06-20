@@ -148,8 +148,9 @@ public final class ServerWebExchangeUtils {
 	public static final String CACHED_SERVER_HTTP_REQUEST_DECORATOR_ATTR = "cachedServerHttpRequestDecorator";
 
 	/**
-	 * Cached request body key. Used when {@link #cacheRequestBodyAndRequest(ServerWebExchange, Function)}
-	 * or {@link #cacheRequestBody(ServerWebExchange, Function)} are called.
+	 * Cached request body key. Used when
+	 * {@link #cacheRequestBodyAndRequest(ServerWebExchange, Function)} or
+	 * {@link #cacheRequestBody(ServerWebExchange, Function)} are called.
 	 */
 	public static final String CACHED_REQUEST_BODY_ATTR = "cachedRequestBody";
 
@@ -272,9 +273,10 @@ public final class ServerWebExchangeUtils {
 
 	/**
 	 * Caches the request body and the created {@link ServerHttpRequestDecorator} in
-	 * ServerWebExchange attributes. Those attributes are {@link #CACHED_REQUEST_BODY_ATTR}
-	 * and {@link #CACHED_SERVER_HTTP_REQUEST_DECORATOR_ATTR} respectively. This method
-	 * is useful when the {@link ServerWebExchange} can not be modified, such as a
+	 * ServerWebExchange attributes. Those attributes are
+	 * {@link #CACHED_REQUEST_BODY_ATTR} and
+	 * {@link #CACHED_SERVER_HTTP_REQUEST_DECORATOR_ATTR} respectively. This method is
+	 * useful when the {@link ServerWebExchange} can not be modified, such as a
 	 * {@link RoutePredicateFactory}.
 	 * @param exchange the available ServerWebExchange.
 	 * @param function a function that accepts the created ServerHttpRequestDecorator.
@@ -302,13 +304,13 @@ public final class ServerWebExchangeUtils {
 
 	/**
 	 * Caches the request body in a ServerWebExchange attribute. The attribute is
-	 * {@link #CACHED_REQUEST_BODY_ATTR}. If this method is called from a location
-	 * that can not mutate the ServerWebExchange (such as a Predicate), setting
-	 * cacheDecoratedRequest to true will put a {@link ServerHttpRequestDecorator} in
-	 * an attribute {@link #CACHED_SERVER_HTTP_REQUEST_DECORATOR_ATTR} for adaptation
-	 * later.
+	 * {@link #CACHED_REQUEST_BODY_ATTR}. If this method is called from a location that
+	 * can not mutate the ServerWebExchange (such as a Predicate), setting
+	 * cacheDecoratedRequest to true will put a {@link ServerHttpRequestDecorator} in an
+	 * attribute {@link #CACHED_SERVER_HTTP_REQUEST_DECORATOR_ATTR} for adaptation later.
 	 * @param exchange the available ServerWebExchange.
-	 * @param cacheDecoratedRequest if true, the ServerHttpRequestDecorator will be cached.
+	 * @param cacheDecoratedRequest if true, the ServerHttpRequestDecorator will be
+	 * cached.
 	 * @param function a function that accepts the created ServerHttpRequestDecorator.
 	 * @param <T> generic type for the return {@link Mono}.
 	 * @return Mono of type T created by the function parameter.
@@ -323,7 +325,8 @@ public final class ServerWebExchangeUtils {
 						if (log.isTraceEnabled()) {
 							log.trace("retaining body in exchange attribute");
 						}
-						exchange.getAttributes().put(CACHED_REQUEST_BODY_ATTR, dataBuffer);
+						exchange.getAttributes().put(CACHED_REQUEST_BODY_ATTR,
+								dataBuffer);
 					}
 
 					ServerHttpRequestDecorator decorator = new ServerHttpRequestDecorator(
@@ -344,10 +347,11 @@ public final class ServerWebExchangeUtils {
 						}
 					};
 					if (cacheDecoratedRequest) {
-						exchange.getAttributes().put(CACHED_SERVER_HTTP_REQUEST_DECORATOR_ATTR,
-								decorator);
+						exchange.getAttributes().put(
+								CACHED_SERVER_HTTP_REQUEST_DECORATOR_ATTR, decorator);
 					}
 					return function.apply(decorator);
 				});
 	}
+
 }
