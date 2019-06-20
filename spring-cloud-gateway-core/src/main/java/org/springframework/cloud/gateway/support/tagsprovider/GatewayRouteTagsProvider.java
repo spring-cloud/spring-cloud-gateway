@@ -18,16 +18,26 @@ package org.springframework.cloud.gateway.support.tagsprovider;
 
 import io.micrometer.core.instrument.Tags;
 
+import org.springframework.cloud.gateway.route.Route;
 import org.springframework.web.server.ServerWebExchange;
+
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
 
 /**
  * @author Ingyu Hwang
  */
-public class DefaultGatewayTagsProvider implements GatewayTagsProvider {
+public class GatewayRouteTagsProvider implements GatewayTagsProvider {
 
 	@Override
 	public Tags apply(ServerWebExchange exchange) {
-		return Tags.concat(GatewayTags.http(exchange), GatewayTags.route(exchange));
+		Route route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
+
+		if (route != null) {
+			return Tags.of("routeId", route.getId(), "routeUri",
+					route.getUri().toString());
+		}
+
+		return Tags.empty();
 	}
 
 }

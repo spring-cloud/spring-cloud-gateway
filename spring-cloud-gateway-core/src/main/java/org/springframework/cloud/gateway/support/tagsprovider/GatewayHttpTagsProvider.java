@@ -18,23 +18,17 @@ package org.springframework.cloud.gateway.support.tagsprovider;
 
 import io.micrometer.core.instrument.Tags;
 
-import org.springframework.cloud.gateway.route.Route;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.AbstractServerHttpResponse;
 import org.springframework.web.server.ServerWebExchange;
 
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
-
 /**
  * @author Ingyu Hwang
  */
-public final class GatewayTags {
+public class GatewayHttpTagsProvider implements GatewayTagsProvider {
 
-	private GatewayTags() {
-		throw new AssertionError("Must not instantiate utility class.");
-	}
-
-	public static Tags http(ServerWebExchange exchange) {
+	@Override
+	public Tags apply(ServerWebExchange exchange) {
 		String outcome = "CUSTOM";
 		String status = "CUSTOM";
 		String httpStatusCodeStr = "NA";
@@ -69,17 +63,6 @@ public final class GatewayTags {
 
 		return Tags.of("outcome", outcome, "status", status,
 				"httpStatusCode", httpStatusCodeStr, "httpMethod", httpMethod);
-	}
-
-	public static Tags route(ServerWebExchange exchange) {
-		Route route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
-
-		if (route != null) {
-			return Tags.of("routeId", route.getId(),
-					"routeUri", route.getUri().toString());
-		}
-
-		return Tags.empty();
 	}
 
 }

@@ -28,10 +28,10 @@ import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.filter.GatewayMetricsFilter;
-import org.springframework.cloud.gateway.support.tagsprovider.DefaultGatewayTagsProvider;
 import org.springframework.cloud.gateway.support.tagsprovider.GatewayTagsProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.web.server.ServerWebExchange;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -54,8 +54,7 @@ public class GatewayMetricsAutoConfigurationTests {
 		@Test
 		public void gatewayMetricsBeansExists() {
 			assertThat(filter).isNotNull();
-			assertThat(tagsProviders).extracting("class")
-					.containsOnlyOnce(DefaultGatewayTagsProvider.class);
+			assertThat(tagsProviders).isNotEmpty();
 		}
 
 	}
@@ -88,7 +87,7 @@ public class GatewayMetricsAutoConfigurationTests {
 		public void gatewayMetricsBeansExists() {
 			assertThat(filter).isNotNull();
 			assertThat(tagsProviders).extracting("class")
-					.hasSize(2);
+					.contains(CustomTagsProviderConfig.EmptyTagsProvider.class);
 		}
 
 	}
@@ -105,7 +104,16 @@ public class GatewayMetricsAutoConfigurationTests {
 
 		@Bean
 		public GatewayTagsProvider emptyTagsProvider() {
-			return (exchange) -> Tags.empty();
+			return new EmptyTagsProvider();
+		}
+
+		protected static class EmptyTagsProvider implements GatewayTagsProvider {
+
+			@Override
+			public Tags apply(ServerWebExchange exchange) {
+				return Tags.empty();
+			}
+
 		}
 
 	}

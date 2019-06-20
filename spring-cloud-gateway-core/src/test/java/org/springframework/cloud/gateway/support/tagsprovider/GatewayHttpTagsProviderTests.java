@@ -17,11 +17,8 @@
 package org.springframework.cloud.gateway.support.tagsprovider;
 
 import io.micrometer.core.instrument.Tags;
-import org.junit.Before;
 import org.junit.Test;
 
-import org.springframework.cloud.gateway.route.Route;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.http.server.reactive.MockServerHttpResponse;
@@ -31,43 +28,28 @@ import org.springframework.web.server.ServerWebExchange;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
+import static org.springframework.http.HttpStatus.OK;
 
 /**
  * @author Ingyu Hwang
  */
-public class DefaultGatewayTagsProviderTests {
+public class GatewayHttpTagsProviderTests {
 
-	private Route route;
-
-	private DefaultGatewayTagsProvider defaultTagsProvider;
-
-	private Tags defaultTags;
+	private final GatewayHttpTagsProvider tagsProvider = new GatewayHttpTagsProvider();
 
 	private static final String ROUTE_URI = "http://gatewaytagsprovider.org:80";
 
-	@Before
-	public void setup() {
-		String routeId = "test-route";
-		HttpStatus ok = HttpStatus.OK;
-
-		route = Route.async().id(routeId).uri(ROUTE_URI).predicate(swe -> true).build();
-
-		defaultTagsProvider = new DefaultGatewayTagsProvider();
-		defaultTags = Tags.of("outcome", ok.series().name(), "status", ok.name(),
-				"httpStatusCode", String.valueOf(ok.value()), "httpMethod", "GET",
-				"routeId", routeId, "routeUri", ROUTE_URI);
-	}
+	private static final Tags DEFAULT_TAGS = Tags.of("outcome", OK.series().name(),
+			"status", OK.name(), "httpStatusCode", String.valueOf(OK.value()), "httpMethod", "GET");
 
 	@Test
-	public void defaultProvider() {
+	public void httpTags() {
 		ServerWebExchange exchange = MockServerWebExchange
 				.from(MockServerHttpRequest.get(ROUTE_URI).build());
-		exchange.getAttributes().put(GATEWAY_ROUTE_ATTR, route);
-		exchange.getResponse().setStatusCode(HttpStatus.OK);
+		exchange.getResponse().setStatusCode(OK);
 
-		Tags tags = defaultTagsProvider.apply(exchange);
-		assertThat(tags).isEqualTo(defaultTags);
+		Tags tags = tagsProvider.apply(exchange);
+		assertThat(tags).isEqualTo(DEFAULT_TAGS);
 	}
 
 	@Test
@@ -75,7 +57,7 @@ public class DefaultGatewayTagsProviderTests {
 		ServerWebExchange exchange = MockServerWebExchange
 				.from(MockServerHttpRequest.get(ROUTE_URI).build());
 
-		Tags tags = defaultTagsProvider.apply(exchange);
+		Tags tags = tagsProvider.apply(exchange);
 		assertThat(tags).isEqualTo(Tags.of("outcome", "CUSTOM", "status", "CUSTOM",
 				"httpStatusCode", "NA", "httpMethod", "GET"));
 	}
@@ -85,15 +67,14 @@ public class DefaultGatewayTagsProviderTests {
 		ServerWebExchange mockExchange = mock(ServerWebExchange.class);
 		ServerHttpResponseDecorator responseDecorator = new ServerHttpResponseDecorator(
 				new MockServerHttpResponse());
-		responseDecorator.setStatusCode(HttpStatus.OK);
+		responseDecorator.setStatusCode(OK);
 
 		when(mockExchange.getRequest())
 				.thenReturn(MockServerHttpRequest.get(ROUTE_URI).build());
 		when(mockExchange.getResponse()).thenReturn(responseDecorator);
-		when(mockExchange.getAttribute(GATEWAY_ROUTE_ATTR)).thenReturn(route);
 
-		Tags tags = defaultTagsProvider.apply(mockExchange);
-		assertThat(tags).isEqualTo(defaultTags);
+		Tags tags = tagsProvider.apply(mockExchange);
+		assertThat(tags).isEqualTo(DEFAULT_TAGS);
 	}
 
 }

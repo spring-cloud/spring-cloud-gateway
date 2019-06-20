@@ -16,8 +16,8 @@
 
 package org.springframework.cloud.gateway.filter;
 
+import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
@@ -27,10 +27,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Mono;
 
-import org.springframework.beans.BeansException;
+import org.springframework.cloud.gateway.support.tagsprovider.GatewayHttpTagsProvider;
+import org.springframework.cloud.gateway.support.tagsprovider.GatewayRouteTagsProvider;
 import org.springframework.cloud.gateway.support.tagsprovider.GatewayTagsProvider;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.Ordered;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.server.ServerWebExchange;
@@ -39,8 +38,7 @@ import org.springframework.web.server.ServerWebExchange;
  * @author Tony Clarke
  * @author Ingyu Hwang
  */
-public class GatewayMetricsFilter
-		implements GlobalFilter, Ordered, ApplicationContextAware {
+public class GatewayMetricsFilter implements GlobalFilter, Ordered {
 
 	private static final Log log = LogFactory.getLog(GatewayMetricsFilter.class);
 
@@ -48,19 +46,16 @@ public class GatewayMetricsFilter
 
 	private GatewayTagsProvider compositeTagsProvider;
 
-	private AtomicBoolean initialized = new AtomicBoolean(false);
-
 	public GatewayMetricsFilter(MeterRegistry meterRegistry,
 			List<GatewayTagsProvider> tagsProviders) {
 		this.meterRegistry = meterRegistry;
 		this.compositeTagsProvider = tagsProviders.stream()
 				.reduce(exchange -> Tags.empty(), GatewayTagsProvider::and);
-		initialized.compareAndSet(false, true);
 	}
 
 	@Deprecated
 	public GatewayMetricsFilter(MeterRegistry meterRegistry) {
-		this.meterRegistry = meterRegistry;
+		this(meterRegistry, Arrays.asList(new GatewayHttpTagsProvider(), new GatewayRouteTagsProvider()));
 	}
 
 	@Override
@@ -68,14 +63,6 @@ public class GatewayMetricsFilter
 		// start the timer as soon as possible and report the metric event before we write
 		// response to client
 		return NettyWriteResponseFilter.WRITE_RESPONSE_FILTER_ORDER + 1;
-	}
-
-	@Override
-	public void setApplicationContext(ApplicationContext context) throws BeansException {
-		if (initialized.compareAndSet(false, true)) {
-			this.compositeTagsProvider = context.getBean("defaultGatewayTagsProvider",
-					GatewayTagsProvider.class);
-		}
 	}
 
 	@Override

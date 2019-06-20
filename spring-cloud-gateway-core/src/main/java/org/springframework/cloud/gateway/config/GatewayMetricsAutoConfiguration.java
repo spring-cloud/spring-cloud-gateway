@@ -29,7 +29,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.web.reactive.HttpHandlerAutoConfiguration;
 import org.springframework.cloud.gateway.filter.GatewayMetricsFilter;
-import org.springframework.cloud.gateway.support.tagsprovider.DefaultGatewayTagsProvider;
+import org.springframework.cloud.gateway.support.tagsprovider.GatewayHttpTagsProvider;
+import org.springframework.cloud.gateway.support.tagsprovider.GatewayRouteTagsProvider;
 import org.springframework.cloud.gateway.support.tagsprovider.GatewayTagsProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -45,8 +46,13 @@ import org.springframework.web.reactive.DispatcherHandler;
 public class GatewayMetricsAutoConfiguration {
 
 	@Bean
-	public GatewayTagsProvider defaultGatewayTagsProvider() {
-		return new DefaultGatewayTagsProvider();
+	public GatewayTagsProvider gatewayHttpTagsProvider() {
+		return new GatewayHttpTagsProvider();
+	}
+
+	@Bean
+	public GatewayTagsProvider gatewayRouteTagsProvider() {
+		return new GatewayRouteTagsProvider();
 	}
 
 	@Bean
