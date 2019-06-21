@@ -46,12 +46,12 @@ import org.springframework.web.reactive.DispatcherHandler;
 public class GatewayMetricsAutoConfiguration {
 
 	@Bean
-	public GatewayTagsProvider gatewayHttpTagsProvider() {
+	public GatewayHttpTagsProvider gatewayHttpTagsProvider() {
 		return new GatewayHttpTagsProvider();
 	}
 
 	@Bean
-	public GatewayTagsProvider gatewayRouteTagsProvider() {
+	public GatewayRouteTagsProvider gatewayRouteTagsProvider() {
 		return new GatewayRouteTagsProvider();
 	}
 
