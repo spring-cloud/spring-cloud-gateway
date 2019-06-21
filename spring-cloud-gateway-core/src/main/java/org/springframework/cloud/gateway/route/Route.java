@@ -21,7 +21,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
 
@@ -50,14 +52,17 @@ public class Route implements Ordered {
 
 	private final List<GatewayFilter> gatewayFilters;
 
+	private final Map<String, Object> metadata;
+
 	private Route(String id, URI uri, int order,
 			AsyncPredicate<ServerWebExchange> predicate,
-			List<GatewayFilter> gatewayFilters) {
+			List<GatewayFilter> gatewayFilters, Map<String, Object> metadata) {
 		this.id = id;
 		this.uri = uri;
 		this.order = order;
 		this.predicate = predicate;
 		this.gatewayFilters = gatewayFilters;
+		this.metadata = metadata;
 	}
 
 	public static Builder builder() {
@@ -98,6 +103,18 @@ public class Route implements Ordered {
 		return Collections.unmodifiableList(this.gatewayFilters);
 	}
 
+	public Object getMetadata(String key) {
+		return metadata.get(key);
+	}
+
+	public Map<String, Object> getMetadata() {
+		return Collections.unmodifiableMap(metadata);
+	}
+
+	public boolean isEmpty() {
+		return metadata.isEmpty();
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) {
@@ -126,6 +143,7 @@ public class Route implements Ordered {
 		sb.append(", order=").append(order);
 		sb.append(", predicate=").append(predicate);
 		sb.append(", gatewayFilters=").append(gatewayFilters);
+		sb.append(", metadata=").append(metadata);
 		sb.append('}');
 		return sb.toString();
 	}
@@ -139,6 +157,8 @@ public class Route implements Ordered {
 		protected int order = 0;
 
 		protected List<GatewayFilter> gatewayFilters = new ArrayList<>();
+
+		protected Map<String, Object> metadata = new HashMap<>();
 
 		protected AbstractBuilder() {
 		}
@@ -177,6 +197,16 @@ public class Route implements Ordered {
 			return getThis();
 		}
 
+		public B metadata(Map<String, Object> options) {
+			this.metadata.putAll(options);
+			return getThis();
+		}
+
+		public B addMetadata(String key, Object value) {
+			this.metadata.put(key, value);
+			return getThis();
+		}
+
 		public abstract AsyncPredicate<ServerWebExchange> getPredicate();
 
 		public B replaceFilters(List<GatewayFilter> gatewayFilters) {
@@ -205,7 +235,7 @@ public class Route implements Ordered {
 			Assert.notNull(predicate, "predicate can not be null");
 
 			return new Route(this.id, this.uri, this.order, predicate,
-					this.gatewayFilters);
+					this.gatewayFilters, this.metadata);
 		}
 
 	}

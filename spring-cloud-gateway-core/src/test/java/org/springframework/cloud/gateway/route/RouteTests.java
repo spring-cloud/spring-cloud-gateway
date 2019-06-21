@@ -16,9 +16,11 @@
 
 package org.springframework.cloud.gateway.route;
 
+import org.assertj.core.util.Maps;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -55,6 +57,24 @@ public class RouteTests {
 	public void nullScheme() {
 		exception.expect(IllegalArgumentException.class);
 		Route.async().id("1").predicate(exchange -> true).uri("/pathonly");
+	}
+
+	@Test
+	public void defaultMetadataToEmpty() {
+		Route route = Route.async().id("1").predicate(exchange -> true)
+				.uri("http://acme.com:8080").build();
+
+		assertThat(route.getMetadata()).isEmpty();
+	}
+
+	@Test
+	public void isAbleToAddMetadata() {
+		Route route = Route.async().id("1").predicate(exchange -> true)
+				.uri("http://acme.com:8080").metadata(Maps.newHashMap("key", "value"))
+				.addMetadata("key2", "value2").build();
+
+		assertThat(route.getMetadata()).hasSize(2).containsEntry("key", "value")
+				.containsEntry("key2", "value2");
 	}
 
 }

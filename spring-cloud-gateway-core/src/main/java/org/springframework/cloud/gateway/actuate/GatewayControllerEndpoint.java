@@ -147,7 +147,9 @@ public class GatewayControllerEndpoint implements ApplicationEventPublisherAware
 
 						obj.put("filters", filters);
 					}
-
+					if (!route.getMetadata().isEmpty()) {
+						obj.put("metadata", route.getMetadata());
+					}
 					if (!obj.isEmpty()) {
 						r.put("route_object", obj);
 					}

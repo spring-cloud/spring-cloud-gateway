@@ -18,7 +18,9 @@ package org.springframework.cloud.gateway.route;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -51,6 +53,8 @@ public class RouteDefinition {
 
 	@NotNull
 	private URI uri;
+
+	private Map<String, Object> metadata = new HashMap<>();
 
 	private int order = 0;
 
@@ -115,6 +119,22 @@ public class RouteDefinition {
 		this.order = order;
 	}
 
+	public Map<String, Object> getMetadata() {
+		return metadata;
+	}
+
+	public void setMetadata(Map<String, Object> metadata) {
+		this.metadata = metadata;
+	}
+
+	public void addMetadata(Map<String, Object> metadata) {
+		this.metadata.putAll(metadata);
+	}
+
+	public void addMetadata(String key, Object value) {
+		this.metadata.put(key, value);
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) {
@@ -138,7 +158,8 @@ public class RouteDefinition {
 	@Override
 	public String toString() {
 		return "RouteDefinition{" + "id='" + id + '\'' + ", predicates=" + predicates
-				+ ", filters=" + filters + ", uri=" + uri + ", order=" + order + '}';
+				+ ", filters=" + filters + ", uri=" + uri + ", order=" + order
+				+ ", metadata=" + metadata + '}';
 	}
 
 }
