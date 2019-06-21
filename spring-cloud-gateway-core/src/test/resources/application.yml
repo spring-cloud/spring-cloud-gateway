@@ -387,6 +387,19 @@ spring:
         - name: Path
           args:
             pattern: /**
+      # =====================================
+      - id: route_with_metadata
+        uri: ${test.uri}
+        order: 10000
+        predicates:
+          - name: Path
+            args:
+              pattern: /route_with_metadata
+        metadata:
+          optionName: "OptionValue"
+          compositeObject:
+              name: "value"
+          iAmNumber: 1
 
 hystrix.command.successcmd.execution.isolation.thread.timeoutInMilliseconds: 5000
 

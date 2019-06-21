@@ -33,6 +33,7 @@ import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
 import org.springframework.cloud.gateway.route.RouteDefinitionWriter;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
@@ -79,6 +80,10 @@ public class GatewayLegacyControllerEndpoint extends AbstractGatewayControllerEn
 						}
 
 						obj.put("filters", filters);
+					}
+
+					if (!CollectionUtils.isEmpty(route.getMetadata())) {
+						obj.put("metadata", route.getMetadata());
 					}
 
 					if (!obj.isEmpty()) {

@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.actuate;
 import java.util.List;
 import java.util.Map;
 
+import org.assertj.core.util.Maps;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -78,6 +79,18 @@ public class GatewayControllerEndpointTests {
 					assertThat(responseBody.size()).isEqualTo(1);
 					assertThat(responseBody).isNotEmpty();
 				});
+	}
+
+	@Test
+	public void testRouteReturnsMetadata() {
+		testClient.get()
+				.uri("http://localhost:" + port
+						+ "/actuator/gateway/routes/route_with_metadata")
+				.exchange().expectStatus().isOk().expectBody().jsonPath("$.metadata")
+				.value(map -> assertThat((Map<String, Object>) map).hasSize(3)
+						.containsEntry("optionName", "OptionValue")
+						.containsEntry("iAmNumber", 1).containsEntry("compositeObject",
+								Maps.newHashMap("name", "value")));
 	}
 
 	@SpringBootConfiguration

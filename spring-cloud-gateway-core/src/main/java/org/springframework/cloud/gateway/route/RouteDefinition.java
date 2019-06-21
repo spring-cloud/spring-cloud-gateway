@@ -18,7 +18,9 @@ package org.springframework.cloud.gateway.route;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -51,6 +53,8 @@ public class RouteDefinition {
 
 	@NotNull
 	private URI uri;
+
+	private Map<String, Object> metadata = new HashMap<>();
 
 	private int order = 0;
 
@@ -115,6 +119,14 @@ public class RouteDefinition {
 		this.order = order;
 	}
 
+	public Map<String, Object> getMetadata() {
+		return metadata;
+	}
+
+	public void setMetadata(Map<String, Object> metadata) {
+		this.metadata = metadata;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) {
@@ -123,22 +135,25 @@ public class RouteDefinition {
 		if (o == null || getClass() != o.getClass()) {
 			return false;
 		}
-		RouteDefinition routeDefinition = (RouteDefinition) o;
-		return Objects.equals(id, routeDefinition.id)
-				&& Objects.equals(predicates, routeDefinition.predicates)
-				&& Objects.equals(order, routeDefinition.order)
-				&& Objects.equals(uri, routeDefinition.uri);
+		RouteDefinition that = (RouteDefinition) o;
+		return this.order == that.order && Objects.equals(this.id, that.id)
+				&& Objects.equals(this.predicates, that.predicates)
+				&& Objects.equals(this.filters, that.filters)
+				&& Objects.equals(this.uri, that.uri)
+				&& Objects.equals(this.metadata, that.metadata);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(id, predicates, uri);
+		return Objects.hash(this.id, this.predicates, this.filters, this.uri,
+				this.metadata, this.order);
 	}
 
 	@Override
 	public String toString() {
 		return "RouteDefinition{" + "id='" + id + '\'' + ", predicates=" + predicates
-				+ ", filters=" + filters + ", uri=" + uri + ", order=" + order + '}';
+				+ ", filters=" + filters + ", uri=" + uri + ", order=" + order
+				+ ", metadata=" + metadata + '}';
 	}
 
 }
