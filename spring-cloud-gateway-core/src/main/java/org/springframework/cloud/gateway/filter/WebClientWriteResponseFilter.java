@@ -49,20 +49,18 @@ public class WebClientWriteResponseFilter implements GlobalFilter, Ordered {
 	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 		// NOTICE: nothing in "pre" filter stage as CLIENT_RESPONSE_ATTR is not added
 		// until the WebHandler is run
-		return chain.filter(exchange).doOnError(throwable -> cleanup(exchange))
+		return chain.filter(exchange)
+				.doOnError(throwable -> cleanup(exchange))
 				.then(Mono.defer(() -> {
-					ClientResponse clientResponse = exchange
-							.getAttribute(CLIENT_RESPONSE_ATTR);
+					ClientResponse clientResponse = exchange.getAttribute(CLIENT_RESPONSE_ATTR);
 					if (clientResponse == null) {
 						return Mono.empty();
 					}
 					log.trace("WebClientWriteResponseFilter start");
 					ServerHttpResponse response = exchange.getResponse();
 
-					return response
-							.writeWith(
-									clientResponse.body(BodyExtractors.toDataBuffers()))
-							// .log("webClient response")
+					return response.writeWith(clientResponse.body(BodyExtractors.toDataBuffers()))
+							//.log("webClient response")
 							.doOnCancel(() -> cleanup(exchange));
 				}));
 	}
@@ -73,5 +71,4 @@ public class WebClientWriteResponseFilter implements GlobalFilter, Ordered {
 			clientResponse.bodyToMono(Void.class).subscribe();
 		}
 	}
-
 }
