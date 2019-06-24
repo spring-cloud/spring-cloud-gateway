@@ -296,22 +296,19 @@ public class HttpClientProperties {
 		/** The default ssl configuration type. Defaults to TCP. */
 		private SslProvider.DefaultConfigurationType defaultConfigurationType = SslProvider.DefaultConfigurationType.TCP;
 
-		/** Spring Cloud Gateway keystore path. */
+		/** Keystore path for Netty HttpClient. */
 		private String keyStore;
 
-		/** Spring Cloud Gateway keystore type, default is JKS. */
-		private String keyStoreType;
+		/** Keystore type for Netty HttpClient, default is JKS. */
+		private String keyStoreType = "JKS";
 
-		/** Spring Cloud Gateway keystore provider, optional field. */
+		/** Keystore provider for Netty HttpClient, optional field. */
 		private String keyStoreProvider;
 
-		/** Spring Cloud Gateway keystore password. */
+		/** Keystore password. */
 		private String keyStorePassword;
 
-		/**
-		 * Spring Cloud Gateway key password, if not passed will consider same as
-		 * keyStorePassword.
-		 */
+		/** Key password, default is same as keyStorePassword. */
 		private String keyPassword;
 
 		public String getKeyStorePassword() {
@@ -412,11 +409,6 @@ public class HttpClientProperties {
 		}
 
 		public KeyStore createKeyStore() throws Exception {
-
-			if (ssl.getKeyStoreType() == null) {
-				ssl.setKeyStoreType("JKS");
-			}
-
 			KeyStore store = ssl.getKeyStoreProvider() != null
 					? KeyStore.getInstance(ssl.getKeyStoreType(),
 							ssl.getKeyStoreProvider())
