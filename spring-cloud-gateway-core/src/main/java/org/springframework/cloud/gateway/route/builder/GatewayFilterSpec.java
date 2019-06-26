@@ -43,6 +43,7 @@ import org.springframework.cloud.gateway.filter.factory.DedupeResponseHeaderGate
 import org.springframework.cloud.gateway.filter.factory.DedupeResponseHeaderGatewayFilterFactory.Strategy;
 import org.springframework.cloud.gateway.filter.factory.FallbackHeadersGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.HystrixGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.MapRequestHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.PrefixPathGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.PreserveHostHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RedirectToGatewayFilterFactory;
@@ -214,6 +215,17 @@ public class GatewayFilterSpec extends UriSpec {
 					"This is probably because Hystrix is missing from the classpath, which can be resolved by adding dependency on 'org.springframework.cloud:spring-cloud-starter-netflix-hystrix'");
 		}
 		return filter(factory.apply(this.routeBuilder.getId(), configConsumer));
+	}
+
+	/**
+	 * Maps headers from one name to another.
+	 * @param fromHeader the header name of the original header.
+	 * @param toHeader the header name of the new header.
+	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
+	 */
+	public GatewayFilterSpec mapRequestHeader(String fromHeader, String toHeader) {
+		return filter(getBean(MapRequestHeaderGatewayFilterFactory.class)
+				.apply(c -> c.setFromHeader(fromHeader).setToHeader(toHeader)));
 	}
 
 	/**

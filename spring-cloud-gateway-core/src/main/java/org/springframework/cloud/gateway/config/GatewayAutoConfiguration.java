@@ -66,6 +66,7 @@ import org.springframework.cloud.gateway.filter.factory.DedupeResponseHeaderGate
 import org.springframework.cloud.gateway.filter.factory.FallbackHeadersGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.HystrixGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.MapRequestHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.PrefixPathGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.PreserveHostHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RedirectToGatewayFilterFactory;
@@ -391,6 +392,11 @@ public class GatewayAutoConfiguration {
 	@Bean
 	public AddRequestHeaderGatewayFilterFactory addRequestHeaderGatewayFilterFactory() {
 		return new AddRequestHeaderGatewayFilterFactory();
+	}
+
+	@Bean
+	public MapRequestHeaderGatewayFilterFactory mapRequestHeaderGatewayFilterFactory() {
+		return new MapRequestHeaderGatewayFilterFactory();
 	}
 
 	@Bean

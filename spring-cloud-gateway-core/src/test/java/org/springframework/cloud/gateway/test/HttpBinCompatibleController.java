@@ -59,6 +59,14 @@ public class HttpBinCompatibleController {
 		return result;
 	}
 
+	@RequestMapping(path = "/multivalueheaders", method = { RequestMethod.GET,
+			RequestMethod.POST }, produces = MediaType.APPLICATION_JSON_VALUE)
+	public Map<String, Object> multiValueHeaders(ServerWebExchange exchange) {
+		Map<String, Object> result = new HashMap<>();
+		result.put("headers", exchange.getRequest().getHeaders());
+		return result;
+	}
+
 	@RequestMapping(path = "/delay/{sec}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public Mono<Map<String, Object>> get(ServerWebExchange exchange,
 			@PathVariable int sec) throws InterruptedException {
