@@ -1,0 +1,10 @@
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: add_request_header_test
+        uri: ${test.uri}
+        predicates:
+        - Path=/headers
+        filters:
+        - MapRequestHeader=X-Request-Example, a

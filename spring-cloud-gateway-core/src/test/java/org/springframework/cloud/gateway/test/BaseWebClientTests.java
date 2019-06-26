@@ -20,6 +20,7 @@ import java.time.Duration;
 
 import com.netflix.loadbalancer.Server;
 import com.netflix.loadbalancer.ServerList;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
@@ -73,7 +74,7 @@ public class BaseWebClientTests {
 		this.baseUri = baseUri;
 		this.webClient = WebClient.builder().clientConnector(httpConnector)
 				.baseUrl(this.baseUri).build();
-		this.testClient = WebTestClient.bindToServer(httpConnector).baseUrl(this.baseUri)
+		this.testClient = WebTestClient.bindToServer(httpConnector).baseUrl(this.baseUri).responseTimeout(Duration.ofHours(1))
 				.build();
 	}
 

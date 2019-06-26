@@ -14,7 +14,7 @@ spring:
         corsConfigurations:
           '[/**]':
             maxAge: 10
-            allowedOrigins: "*"
+            allowedOrigins: "www.path.org"
             allowedMethods:
             - GET
       default-filters:
