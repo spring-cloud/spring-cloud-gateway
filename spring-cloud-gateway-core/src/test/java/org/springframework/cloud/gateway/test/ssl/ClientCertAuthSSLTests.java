@@ -32,6 +32,7 @@ import reactor.netty.http.client.HttpClient;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.web.server.WebServerException;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
@@ -52,20 +53,33 @@ public class ClientCertAuthSSLTests extends SingleCertSSLTests {
 	@Value("${spring.cloud.gateway.httpclient.ssl.key-store-password}")
 	private String keyStorePassword;
 
+	@Value("${spring.cloud.gateway.httpclient.ssl.key-password}")
+	private String keyPassword;
+
 	@Before
 	public void setup() throws Exception {
+		KeyStore store = KeyStore.getInstance("JKS");
 
-		KeyStore store = null;
-
-		store = KeyStore.getInstance("PKCS12");
-
-		URL url = ResourceUtils.getURL(keyStore);
-		store.load(url.openStream(), keyStorePassword.toCharArray());
+		try {
+			URL url = ResourceUtils.getURL(keyStore);
+			store.load(url.openStream(),
+					keyStorePassword != null ? keyStorePassword.toCharArray() : null);
+		}
+		catch (Exception e) {
+			throw new WebServerException("Could not load key store ' " + keyStore + "'",
+					e);
+		}
 
 		KeyManagerFactory keyManagerFactory = KeyManagerFactory
 				.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+		char[] keyPasswordCharArray = keyPassword != null ? keyPassword.toCharArray()
+				: null;
 
-		keyManagerFactory.init(store, keyStorePassword.toCharArray());
+		if (keyPasswordCharArray == null && keyStorePassword != null) {
+			keyPasswordCharArray = keyStorePassword.toCharArray();
+		}
+
+		keyManagerFactory.init(store, keyPasswordCharArray);
 
 		try {
 			SslContext sslContext = SslContextBuilder.forClient()

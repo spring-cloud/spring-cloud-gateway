@@ -6,22 +6,24 @@ server:
     enabled: true
     key-alias: scg
     key-store-password: scg1234
-    key-store: classpath:scg-keystore.p12
-    trust-store: classpath:scg-truststore.p12
+    key-password: keyscg1234
+    key-store: classpath:scg-keystore-with-different-key-password.jks
+    trust-store: classpath:scg-truststore.jks
     trust-store-password: scg1234
-    trust-store-type: PKCS12
-    key-store-type: PKCS12
+    trust-store-type: JKS
+    key-store-type: JKS
     client-auth: Need
 spring:
   cloud:
     gateway:
       httpclient:
         ssl:
-          key-store: classpath:scg-keystore.p12
+          key-store: classpath:scg-keystore-with-different-key-password.jks
+          key-password: keyscg1234
           key-store-password: scg1234
-          key-store-type: PKCS12
+          key-store-type: JKS
           trustedX509Certificates:
-          - src/test/resources/single-cert.pem
+          - src/test/resources/single-cert-for-different-key-password.pem
       default-filters:
       - PrefixPath=/httpbin
       routes:
