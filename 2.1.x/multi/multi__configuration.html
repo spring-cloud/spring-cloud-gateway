@@ -14,14 +14,14 @@
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        filters</span>:
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        - name</span>: SetStatus
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">          args</span>:
-<span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">            status</span>: <span class="hl-number">401</span>
+<span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">            status</span>: <xslthl:number xmlns:xslthl="http://xslthl.sourceforge.net/">401</xslthl:number>
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">      - id</span>: setstatusshortcut_route
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        uri</span>: https://example.org
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        filters</span>:
-<span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        - SetStatus</span>=<span class="hl-number">401</span></pre><p>
+<span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">        - SetStatus</span>=<xslthl:number xmlns:xslthl="http://xslthl.sourceforge.net/">401</xslthl:number></pre><p>
 </p><p>For some usages of the gateway, properties will be adequate, but some production use cases will benefit from loading configuration from an external source, such as a database. Future milestone versions will have <code class="literal">RouteDefinitionLocator</code> implementations based off of Spring Data Repositories such as: Redis, MongoDB and Cassandra.</p><div class="section"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="_fluent_java_routes_api" href="#_fluent_java_routes_api"></a>8.1&nbsp;Fluent Java Routes API</h2></div></div></div><p>To allow for simple configuration in Java, there is a fluent API defined in the <code class="literal">RouteLocatorBuilder</code> bean.</p><p><b>GatewaySampleApplication.java.&nbsp;</b>
 </p><pre class="programlisting"><span xmlns:d="http://docbook.org/ns/docbook" class="hl-comment">// static imports from GatewayFilters and RoutePredicates</span>
-<em><span class="hl-annotation" style="color: gray">@Bean</span></em>
+<xslthl:annotation xmlns:xslthl="http://xslthl.sourceforge.net/">@Bean</xslthl:annotation>
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-keyword">public</span> RouteLocator customRouteLocator(RouteLocatorBuilder builder, ThrottleGatewayFilterFactory throttle) {
     <span xmlns:d="http://docbook.org/ns/docbook" class="hl-keyword">return</span> builder.routes()
             .route(r -&gt; r.host(<span xmlns:d="http://docbook.org/ns/docbook" class="hl-string">"**.abc.org"</span>).and().path(<span xmlns:d="http://docbook.org/ns/docbook" class="hl-string">"/image/png"</span>)
@@ -34,11 +34,11 @@
                         f.addResponseHeader(<span xmlns:d="http://docbook.org/ns/docbook" class="hl-string">"X-AnotherHeader"</span>, <span xmlns:d="http://docbook.org/ns/docbook" class="hl-string">"baz"</span>))
                 .uri(<span xmlns:d="http://docbook.org/ns/docbook" class="hl-string">"http://httpbin.org:80"</span>)
             )
-            .route(r -&gt; r.order(-<span class="hl-number">1</span>)
+            .route(r -&gt; r.order(-<xslthl:number xmlns:xslthl="http://xslthl.sourceforge.net/">1</xslthl:number>)
                 .host(<span xmlns:d="http://docbook.org/ns/docbook" class="hl-string">"**.throttle.org"</span>).and().path(<span xmlns:d="http://docbook.org/ns/docbook" class="hl-string">"/get"</span>)
-                .filters(f -&gt; f.filter(throttle.apply(<span class="hl-number">1</span>,
-                        <span class="hl-number">1</span>,
-                        <span class="hl-number">10</span>,
+                .filters(f -&gt; f.filter(throttle.apply(<xslthl:number xmlns:xslthl="http://xslthl.sourceforge.net/">1</xslthl:number>,
+                        <xslthl:number xmlns:xslthl="http://xslthl.sourceforge.net/">1</xslthl:number>,
+                        <xslthl:number xmlns:xslthl="http://xslthl.sourceforge.net/">10</xslthl:number>,
                         TimeUnit.SECONDS)))
                 .uri(<span xmlns:d="http://docbook.org/ns/docbook" class="hl-string">"http://httpbin.org:80"</span>)
             )

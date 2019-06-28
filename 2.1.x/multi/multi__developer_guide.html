@@ -7,7 +7,7 @@
 		<span xmlns:d="http://docbook.org/ns/docbook" class="hl-keyword">super</span>(Config.<span xmlns:d="http://docbook.org/ns/docbook" class="hl-keyword">class</span>);
 	}
 
-	<em><span class="hl-annotation" style="color: gray">@Override</span></em>
+	<xslthl:annotation xmlns:xslthl="http://xslthl.sourceforge.net/">@Override</xslthl:annotation>
 	<span xmlns:d="http://docbook.org/ns/docbook" class="hl-keyword">public</span> GatewayFilter apply(Config config) {
 		<span xmlns:d="http://docbook.org/ns/docbook" class="hl-comment">// grab configuration from Config object</span>
 		<span xmlns:d="http://docbook.org/ns/docbook" class="hl-keyword">return</span> (exchange, chain) -&gt; {
@@ -31,7 +31,7 @@
 		<span xmlns:d="http://docbook.org/ns/docbook" class="hl-keyword">super</span>(Config.<span xmlns:d="http://docbook.org/ns/docbook" class="hl-keyword">class</span>);
 	}
 
-	<em><span class="hl-annotation" style="color: gray">@Override</span></em>
+	<xslthl:annotation xmlns:xslthl="http://xslthl.sourceforge.net/">@Override</xslthl:annotation>
 	<span xmlns:d="http://docbook.org/ns/docbook" class="hl-keyword">public</span> GatewayFilter apply(Config config) {
 		<span xmlns:d="http://docbook.org/ns/docbook" class="hl-comment">// grab configuration from Config object</span>
 		<span xmlns:d="http://docbook.org/ns/docbook" class="hl-keyword">return</span> (exchange, chain) -&gt; {
@@ -47,7 +47,7 @@
 	}
 
 }</pre><p>
-</p></div><div class="section"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="_writing_custom_global_filters" href="#_writing_custom_global_filters"></a>12.3&nbsp;Writing Custom Global Filters</h2></div></div></div><p>In order to write a custom global filter, you will need to implement <code class="literal">GlobalFilter</code> interface. This will apply the filter to all requests.</p><p>Example of how to set up a Global Pre and Post filter, respectively</p><pre class="programlisting"><em><span class="hl-annotation" style="color: gray">@Bean</span></em>
+</p></div><div class="section"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="_writing_custom_global_filters" href="#_writing_custom_global_filters"></a>12.3&nbsp;Writing Custom Global Filters</h2></div></div></div><p>In order to write a custom global filter, you will need to implement <code class="literal">GlobalFilter</code> interface. This will apply the filter to all requests.</p><p>Example of how to set up a Global Pre and Post filter, respectively</p><pre class="programlisting"><xslthl:annotation xmlns:xslthl="http://xslthl.sourceforge.net/">@Bean</xslthl:annotation>
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-keyword">public</span> GlobalFilter customGlobalFilter() {
     <span xmlns:d="http://docbook.org/ns/docbook" class="hl-keyword">return</span> (exchange, chain) -&gt; exchange.getPrincipal()
         .map(Principal::getName)
@@ -60,7 +60,7 @@
         .flatMap(chain::filter);
 }
 
-<em><span class="hl-annotation" style="color: gray">@Bean</span></em>
+<xslthl:annotation xmlns:xslthl="http://xslthl.sourceforge.net/">@Bean</xslthl:annotation>
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-keyword">public</span> GlobalFilter customGlobalPostFilter() {
     <span xmlns:d="http://docbook.org/ns/docbook" class="hl-keyword">return</span> (exchange, chain) -&gt; chain.filter(exchange)
         .then(Mono.just(exchange))
