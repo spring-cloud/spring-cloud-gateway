@@ -20,7 +20,6 @@ import java.time.Duration;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import reactor.test.StepVerifier;
@@ -38,7 +37,10 @@ import org.springframework.util.SocketUtils;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = PingPongApp.class, properties = { "ping.take=5" },
+@SpringBootTest(classes = PingPongApp.class, properties = { "ping.take=10",
+		// TODO: remove after
+		// https://github.com/spring-cloud/spring-cloud-gateway/issues/1140
+		"spring.main.allow-bean-definition-overriding=true" },
 		webEnvironment = WebEnvironment.RANDOM_PORT)
 public class GatewayRSocketIntegrationTests {
 
@@ -70,7 +72,6 @@ public class GatewayRSocketIntegrationTests {
 		System.clearProperty("spring.rsocket.server.port");
 	}
 
-	@Ignore // FIXME: 2.2.0 gh-1114
 	@Test
 	public void contextLoads() {
 		// @formatter:off
@@ -78,8 +79,7 @@ public class GatewayRSocketIntegrationTests {
 				.expectSubscription()
 				.then(() -> server.stop())
 				.thenConsumeWhile(s -> true)
-				//.expectComplete()
-				.thenCancel()  // https://github.com/rsocket/rsocket-java/issues/613
+				.expectComplete()
 				.verify(Duration.ofSeconds(20));
 		// @formatter:on
 
