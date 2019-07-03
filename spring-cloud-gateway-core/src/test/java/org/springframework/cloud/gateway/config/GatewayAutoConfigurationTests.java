@@ -56,6 +56,7 @@ public class GatewayAutoConfigurationTests {
 						GatewayAutoConfiguration.class))
 				.withPropertyValues("debug=true").run(context -> {
 					assertThat(context).hasSingleBean(HttpClient.class);
+					assertThat(context).hasBean("gatewayHttpClient");
 					HttpClient httpClient = context.getBean(HttpClient.class);
 					/*
 					 * FIXME: 2.1.0 HttpClientOptions options = httpClient.options();
