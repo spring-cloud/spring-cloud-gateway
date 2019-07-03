@@ -516,7 +516,7 @@ public class GatewayAutoConfiguration {
 
 		@Bean
 		@ConditionalOnMissingBean
-		public HttpClient httpClient(HttpClientProperties properties) {
+		public HttpClient gatewayHttpClient(HttpClientProperties properties) {
 
 			// configure pool resources
 			HttpClientProperties.Pool pool = properties.getPool();
