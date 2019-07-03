@@ -46,6 +46,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -83,7 +84,7 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 
 	@Test
 	public void retryFilterPost() {
-		testClient.post().uri("/retry?key=post")
+		testClient.post().uri("/retrypost?key=post&expectedbody=Hello")
 				.header(HttpHeaders.HOST, "www.retryjava.org").syncBody("Hello")
 				.exchange().expectStatus().isOk().expectBody(String.class).isEqualTo("3");
 	}
@@ -119,7 +120,7 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 		@RequestMapping("/httpbin/retryalwaysfail")
 		public ResponseEntity<String> retryalwaysfail(@RequestParam("key") String key,
 				@RequestParam(name = "count", defaultValue = "3") int count) {
-			AtomicInteger num = map.computeIfAbsent(key, s -> new AtomicInteger());
+			AtomicInteger num = getCount(key);
 			int i = num.incrementAndGet();
 			log.warn("Retry count: " + i);
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -127,10 +128,24 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 					.body("permanently broken");
 		}
 
+		@RequestMapping("/httpbin/retrypost")
+		public ResponseEntity<String> retry(@RequestParam("key") String key,
+				@RequestParam(name = "count", defaultValue = "3") int count,
+				@RequestParam("expectedbody") String expectedbody, @RequestBody String body) {
+			ResponseEntity<String> response = retry(key, count);
+			if (!expectedbody.equals(body)) {
+				AtomicInteger num = getCount(key);
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+						.header("X-Retry-Count", String.valueOf(num))
+						.body("bodys did not match on try" + num);
+			}
+			return response;
+		}
+
 		@RequestMapping("/httpbin/retry")
 		public ResponseEntity<String> retry(@RequestParam("key") String key,
 				@RequestParam(name = "count", defaultValue = "3") int count) {
-			AtomicInteger num = map.computeIfAbsent(key, s -> new AtomicInteger());
+			AtomicInteger num = getCount(key);
 			int i = num.incrementAndGet();
 			log.warn("Retry count: " + i);
 			String body = String.valueOf(i);
@@ -140,6 +155,10 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 			}
 			return ResponseEntity.status(HttpStatus.OK).header("X-Retry-Count", body)
 					.body(body);
+		}
+
+		AtomicInteger getCount(@RequestParam("key") String key) {
+			return map.computeIfAbsent(key, s -> new AtomicInteger());
 		}
 
 		@Bean
