@@ -354,7 +354,7 @@ spring:
       - id: add_request_header_route
         uri: https://example.org
         filters:
-        - AddRequestHeader=X-Request-Foo, Bar
+        - MapRequestHeader=X-Request-Foo, Bar
 ----
 
 This will add `X-Request-Foo:Bar` header to the downstream request's with the same value that the `Bar` header had.
