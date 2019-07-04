@@ -20,7 +20,6 @@ import java.time.Duration;
 
 import com.netflix.loadbalancer.Server;
 import com.netflix.loadbalancer.ServerList;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
