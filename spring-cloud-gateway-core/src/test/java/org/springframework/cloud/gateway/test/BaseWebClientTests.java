@@ -73,8 +73,8 @@ public class BaseWebClientTests {
 		this.baseUri = baseUri;
 		this.webClient = WebClient.builder().clientConnector(httpConnector)
 				.baseUrl(this.baseUri).build();
-		this.testClient = WebTestClient.bindToServer(httpConnector).baseUrl(this.baseUri).responseTimeout(Duration.ofHours(1))
-				.build();
+		this.testClient = WebTestClient.bindToServer(httpConnector)
+				.baseUrl(this.baseUri).build();
 	}
 
 	@Configuration
