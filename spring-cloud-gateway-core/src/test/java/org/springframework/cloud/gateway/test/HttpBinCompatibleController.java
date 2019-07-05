@@ -22,6 +22,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -57,6 +59,12 @@ public class HttpBinCompatibleController {
 		Map<String, Object> result = new HashMap<>();
 		result.put("headers", getHeaders(exchange));
 		return result;
+	}
+
+	@RequestMapping(path = "/multivalueheaders", method = { RequestMethod.GET,
+			RequestMethod.POST }, produces = MediaType.APPLICATION_JSON_VALUE)
+	public Set<Entry<String, List<String>>> multiValueHeaders(ServerWebExchange exchange) {
+		return getMutliValuedHeaders(exchange);
 	}
 
 	@RequestMapping(path = "/delay/{sec}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -133,6 +141,10 @@ public class HttpBinCompatibleController {
 	@RequestMapping("/status/{status}")
 	public ResponseEntity<String> status(@PathVariable int status) {
 		return ResponseEntity.status(status).body("Failed with " + status);
+	}
+
+	public Set<Entry<String, List<String>>> getMutliValuedHeaders(ServerWebExchange exchange) {
+		return exchange.getRequest().getHeaders().entrySet();
 	}
 
 	public Map<String, String> getHeaders(ServerWebExchange exchange) {

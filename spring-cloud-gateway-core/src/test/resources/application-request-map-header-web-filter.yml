@@ -2,9 +2,15 @@ spring:
   cloud:
     gateway:
       routes:
-      - id: add_request_header_test
+      - id: add_request_header_test_singleresponse
         uri: ${test.uri}
         predicates:
         - Path=/headers
+        filters:
+        - MapRequestHeader=X-Request-Example, a
+      - id: add_request_header_test_multiresponse
+        uri: ${test.uri}
+        predicates:
+        - Path=/multivalueheaders
         filters:
         - MapRequestHeader=X-Request-Example, a

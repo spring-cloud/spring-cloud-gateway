@@ -16,12 +16,16 @@
 
 package org.springframework.cloud.gateway.test;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.reactive.function.client.ClientResponse;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Spencer Gibb
@@ -32,6 +36,15 @@ public class TestUtils {
 	public static Map<String, Object> getMap(Map response, String key) {
 		assertThat(response).containsKey(key).isInstanceOf(Map.class);
 		return (Map<String, Object>) response.get(key);
+	}
+
+	public static List<String> getMultiValuedHeader(Set<Map<String, List<String>>> response, String key) {
+		Optional<Map<String, List<String>>> findFirst = response.stream().filter(i -> i.containsKey(key)).findFirst();
+		if(!findFirst.isPresent()) {
+			return Collections.emptyList();
+		} else {
+			return findFirst.get().get(key);
+		}
 	}
 
 	public static void assertStatus(ClientResponse response, HttpStatus status) {

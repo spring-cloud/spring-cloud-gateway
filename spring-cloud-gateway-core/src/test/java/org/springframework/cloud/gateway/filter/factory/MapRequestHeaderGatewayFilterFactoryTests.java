@@ -16,8 +16,11 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import org.assertj.core.util.Arrays;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -37,6 +40,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.cloud.gateway.test.TestUtils.getMap;
+import static org.springframework.cloud.gateway.test.TestUtils.getMultiValuedHeader;
 
 /**
  * @author Tony Clarke
@@ -57,13 +61,13 @@ public class MapRequestHeaderGatewayFilterFactoryTests extends BaseWebClientTest
 				});
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Test
 	public void mapRequestHeaderWithMultiValueFilterWorks() {
-		testClient.get().uri("/headers").header("Host", "www.addrequestheader.org").header("a", "tome", "toyou")
-				.exchange().expectBody(Map.class).consumeWith(result -> {
-					Map<String, Object> headers = getMap(result.getResponseBody(),
-							"headers");
-					assertThat(headers).containsEntry("X-Request-Example", "tome, toyou");
+		testClient.get().uri("/multivalueheaders").header("Host", "www.addrequestheader.org").header("a", "tome", "toyou")
+				.exchange().expectBody(Set.class).consumeWith(result -> {
+					List<String> multiValuedHeader = getMultiValuedHeader(result.getResponseBody(), "X-Request-Example");
+					assertThat(multiValuedHeader).contains("tome", "toyou");
 				});
 	}
 	

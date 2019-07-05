@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
-import java.util.Iterator;
 import java.util.List;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
@@ -25,8 +24,7 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 /**
  * @author Tony Clarke
  */
-public class MapRequestHeaderGatewayFilterFactory
-		extends AbstractNameValueGatewayFilterFactory {
+public class MapRequestHeaderGatewayFilterFactory extends AbstractNameValueGatewayFilterFactory {
 
 	@Override
 	public GatewayFilter apply(NameValueConfig config) {
@@ -35,24 +33,12 @@ public class MapRequestHeaderGatewayFilterFactory
 				return chain.filter(exchange);
 			}
 			List<String> headerValues = exchange.getRequest().getHeaders().get(config.getValue());
-			String value = toCommaDelimitedString(headerValues);
+
 			ServerHttpRequest request = exchange.getRequest().mutate()
-					.header(config.getName(), value).build();
+					.headers(i -> i.addAll(config.getName(), headerValues)).build();
 
 			return chain.filter(exchange.mutate().request(request).build());
 		};
-	}
-	
-	private String toCommaDelimitedString(List<String> headerValues) {
-		StringBuilder builder = new StringBuilder();
-		for (Iterator<String> it = headerValues.iterator(); it.hasNext(); ) {
-			String val = it.next();
-			builder.append(val);
-			if (it.hasNext()) {
-				builder.append(", ");
-			}
-		}
-		return builder.toString();
 	}
 
 }
