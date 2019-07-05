@@ -16,8 +16,6 @@
 
 package org.springframework.cloud.gateway.test;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +24,8 @@ import java.util.Set;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.reactive.function.client.ClientResponse;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Spencer Gibb

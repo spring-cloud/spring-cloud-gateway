@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.assertj.core.util.Arrays;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
