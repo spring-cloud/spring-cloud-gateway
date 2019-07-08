@@ -342,7 +342,7 @@ spring:
 This will add `X-Request-Foo:Bar` header to the downstream request's headers for all matching requests.
 
 === MapRequestHeader GatewayFilter Factory
-The MapRequestHeader GatewayFilter Factory takes a name and value parameter. It creates a new named header (config name) and the value is extracted out of some existing named header (config value) in the input. If the input header does not exist then the filter has no impact.
+The MapRequestHeader GatewayFilter Factory takes a name and value parameter. It creates a new named header (config name) and the value is extracted out of an existing named header (config value) from the incoming http request. If the input header does not exist then the filter has no impact. If the new named header already exists then it's values will be augmented with the new values.
 
 .application.yml
 [source,yaml]
@@ -357,7 +357,7 @@ spring:
         - MapRequestHeader=X-Request-Foo, Bar
 ----
 
-This will add `X-Request-Foo:Bar` header to the downstream request's with the same value that the `Bar` header had.
+This will add `X-Request-Foo:<values>` header to the downstream request's with updated values from the incoming http request `Bar` header.
 
 === AddRequestParameter GatewayFilter Factory
 The AddRequestParameter GatewayFilter Factory takes a name and value parameter.
