@@ -84,6 +84,14 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 
 	@Test
 	public void retryFilterPost() {
+		testClient.post().uri("/retrypost?key=postconfig&expectedbody=HelloConfig")
+				.header(HttpHeaders.HOST, "www.retrypostconfig.org")
+				.syncBody("HelloConfig").exchange().expectStatus().isOk()
+				.expectBody(String.class).isEqualTo("3");
+	}
+
+	@Test
+	public void retryFilterPostJavaDsl() {
 		testClient.post().uri("/retrypost?key=post&expectedbody=Hello")
 				.header(HttpHeaders.HOST, "www.retryjava.org").syncBody("Hello")
 				.exchange().expectStatus().isOk().expectBody(String.class).isEqualTo("3");
@@ -131,7 +139,8 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 		@RequestMapping("/httpbin/retrypost")
 		public ResponseEntity<String> retry(@RequestParam("key") String key,
 				@RequestParam(name = "count", defaultValue = "3") int count,
-				@RequestParam("expectedbody") String expectedbody, @RequestBody String body) {
+				@RequestParam("expectedbody") String expectedbody,
+				@RequestBody String body) {
 			ResponseEntity<String> response = retry(key, count);
 			if (!expectedbody.equals(body)) {
 				AtomicInteger num = getCount(key);
