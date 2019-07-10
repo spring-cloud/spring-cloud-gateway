@@ -41,6 +41,7 @@ import org.springframework.cloud.gateway.handler.AsyncPredicate;
 import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
 import org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory;
 import org.springframework.cloud.gateway.support.ConfigurationUtils;
+import org.springframework.cloud.gateway.support.HasRouteId;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.core.Ordered;
@@ -172,6 +173,13 @@ public class RouteDefinitionRouteLocator
 
 			ConfigurationUtils.bind(configuration, properties,
 					factory.shortcutFieldPrefix(), definition.getName(), validator);
+
+			// some filters require routeId
+			// TODO: is there a better place to apply this?
+			if (configuration instanceof HasRouteId) {
+				HasRouteId hasRouteId = (HasRouteId) configuration;
+				hasRouteId.setRouteId(id);
+			}
 
 			GatewayFilter gatewayFilter = factory.apply(configuration);
 			if (this.publisher != null) {
