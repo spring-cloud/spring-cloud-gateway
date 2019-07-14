@@ -803,6 +803,24 @@ To remove any kind of sensitive header you should configure this filter for any 
 want to do so.  In addition you can configure this filter once using `spring.cloud.gateway.default-filters`
 and have it applied to all routes.
 
+=== RemoveRequestParameter GatewayFilter Factory
+The RemoveRequestParameter GatewayFilter Factory takes a `name` parameter. It is the name of the query parameter to be removed.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: removerequestparameter_route
+        uri: https://example.org
+        filters:
+        - RemoveRequestParameter=foo
+----
+
+This will remove the `foo` parameter before it is sent downstream.
+
 === RewritePath GatewayFilter Factory
 The RewritePath GatewayFilter Factory takes a path `regexp` parameter and a `replacement` parameter. This uses Java regular expressions for a flexible way to rewrite the request path.
 

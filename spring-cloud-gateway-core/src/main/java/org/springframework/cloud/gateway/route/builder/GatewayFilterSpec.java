@@ -47,6 +47,7 @@ import org.springframework.cloud.gateway.filter.factory.PrefixPathGatewayFilterF
 import org.springframework.cloud.gateway.filter.factory.PreserveHostHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RedirectToGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RemoveRequestHeaderGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.RemoveRequestParameterGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RemoveResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RequestHeaderToRequestUriGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RequestRateLimiterGatewayFilterFactory;
@@ -422,6 +423,17 @@ public class GatewayFilterSpec extends UriSpec {
 	public GatewayFilterSpec removeRequestHeader(String headerName) {
 		return filter(getBean(RemoveRequestHeaderGatewayFilterFactory.class)
 				.apply(c -> c.setName(headerName)));
+	}
+
+	/**
+	 * A filter that will remove a request param before the request is routed by the
+	 * Gateway.
+	 * @param paramName the name of the header to remove
+	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
+	 */
+	public GatewayFilterSpec removeRequestParameter(String paramName) {
+		return filter(getBean(RemoveRequestParameterGatewayFilterFactory.class)
+				.apply(c -> c.setName(paramName)));
 	}
 
 	/**
