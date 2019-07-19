@@ -263,6 +263,28 @@ spring:
 
 This route would match if the remote address of the request was, for example, `192.168.1.10`.
 
+=== Weight Route Predicate Factory
+The Weight Route Predicate Factory takes two argument group and weight. The weights are calculated per group.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: weight_high
+        uri: https://weighthigh.org
+        predicates:
+        - Weight=group1, 8
+      - id: weight_low
+        uri: https://weightlow.org
+        predicates:
+        - Weight=group1, 2
+----
+
+This route would forward ~80% of traffic to https://weighthigh.org and ~20% of traffic to https://weighlow.org
+
 ==== Modifying the way remote addresses are resolved
 By default the RemoteAddr Route Predicate Factory uses the remote address from the incoming request.
 This may not match the actual client IP address if Spring Cloud Gateway sits behind a proxy layer.
@@ -1155,7 +1177,7 @@ spring:
 
 To enable Gateway Metrics add spring-boot-starter-actuator as a project dependency. Then, by default, the Gateway Metrics Filter runs as long as the property `spring.cloud.gateway.metrics.enabled` is not set to `false`. This filter adds a timer metric named "gateway.requests" with the following tags:
 
-* `routeId`: The route id 
+* `routeId`: The route id
 * `routeUri`: The URI that the API will be routed to
 * `outcome`: Outcome as classified by link:https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/http/HttpStatus.Series.html[HttpStatus.Series]
 * `status`: Http Status of the request returned to the client
@@ -1371,7 +1393,7 @@ The logging system can be configured to have a separate access log file. Below i
 
 == CORS Configuration
 
-The gateway can be configured to control CORS behavior. The "global" CORS configuration is a map of URL patterns to https://docs.spring.io/spring/docs/5.0.x/javadoc-api/org/springframework/web/cors/CorsConfiguration.html[Spring Framework `CorsConfiguration`]. 
+The gateway can be configured to control CORS behavior. The "global" CORS configuration is a map of URL patterns to https://docs.spring.io/spring/docs/5.0.x/javadoc-api/org/springframework/web/cors/CorsConfiguration.html[Spring Framework `CorsConfiguration`].
 
 .application.yml
 [source,yaml]
