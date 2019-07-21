@@ -19,6 +19,8 @@ package org.springframework.cloud.gateway.config;
 import java.io.IOException;
 import java.net.URL;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchProviderException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
@@ -408,12 +410,11 @@ public class HttpClientProperties {
 			}
 		}
 
-		public KeyStore createKeyStore() throws Exception {
-			KeyStore store = ssl.getKeyStoreProvider() != null
-					? KeyStore.getInstance(ssl.getKeyStoreType(),
+		public KeyStore createKeyStore() {
+			try {
+			KeyStore store = ssl.getKeyStoreProvider() != null ? KeyStore.getInstance(ssl.getKeyStoreType(),
 							ssl.getKeyStoreProvider())
 					: KeyStore.getInstance(ssl.getKeyStoreType());
-
 			try {
 				URL url = ResourceUtils.getURL(ssl.getKeyStore());
 				store.load(url.openStream(), ssl.getKeyStorePassword() != null
@@ -425,6 +426,11 @@ public class HttpClientProperties {
 			}
 
 			return store;
+			}
+			catch (KeyStoreException | NoSuchProviderException e) {
+				throw new WebServerException(
+						"Could not load KeyStore for given type and provider", e);
+			}
 		}
 
 		// TODO: support configuration of other trust manager factories
