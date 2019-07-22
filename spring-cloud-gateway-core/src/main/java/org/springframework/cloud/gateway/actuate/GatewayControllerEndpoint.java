@@ -185,11 +185,12 @@ public class GatewayControllerEndpoint implements ApplicationEventPublisherAware
 	}
 
 	@GetMapping("/routes/{id}")
-	public Mono<ResponseEntity<RouteDefinition>> route(@PathVariable String id) {
-		// TODO: missing RouteLocator
-		return this.routeDefinitionLocator.getRouteDefinitions()
-				.filter(route -> route.getId().equals(id)).singleOrEmpty()
-				.map(ResponseEntity::ok)
+	public Mono<ResponseEntity<Map<String, Object>>> route(@PathVariable String id) {
+		return routes().flatMap(allRoutes -> Flux.fromStream(allRoutes.stream())
+				.filter(route -> route.containsKey("route_id") && route.get("route_id")
+						.equals(id))
+				.singleOrEmpty()
+				.map(ResponseEntity::ok))
 				.switchIfEmpty(Mono.just(ResponseEntity.notFound().build()));
 	}
 
