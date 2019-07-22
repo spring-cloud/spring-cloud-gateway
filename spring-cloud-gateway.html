@@ -111,6 +111,7 @@ $(addBlockSwitches);
 <li><a href="#_path_route_predicate_factory">Path Route Predicate Factory</a></li>
 <li><a href="#_query_route_predicate_factory">Query Route Predicate Factory</a></li>
 <li><a href="#_remoteaddr_route_predicate_factory">RemoteAddr Route Predicate Factory</a></li>
+<li><a href="#_weight_route_predicate_factory">Weight Route Predicate Factory</a></li>
 </ul>
 </li>
 <li><a href="#_gatewayfilter_factories">GatewayFilter Factories</a>
@@ -547,6 +548,32 @@ String segment = uriVariables.get("segment");</code></pre>
 </div>
 <div class="paragraph">
 <p>This route would match if the remote address of the request was, for example, <code>192.168.1.10</code>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_weight_route_predicate_factory"><a class="link" href="#_weight_route_predicate_factory">Weight Route Predicate Factory</a></h3>
+<div class="paragraph">
+<p>The Weight Route Predicate Factory takes two argument group and weight. The weights are calculated per group.</p>
+</div>
+<div class="listingblock">
+<div class="title">application.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: weight_high
+        uri: https://weighthigh.org
+        predicates:
+        - Weight=group1, 8
+      - id: weight_low
+        uri: https://weightlow.org
+        predicates:
+        - Weight=group1, 2</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This route would forward ~80% of traffic to <a href="https://weighthigh.org" class="bare">https://weighthigh.org</a> and ~20% of traffic to <a href="https://weighlow.org" class="bare">https://weighlow.org</a></p>
 </div>
 <div class="sect3">
 <h4 id="_modifying_the_way_remote_addresses_are_resolved"><a class="link" href="#_modifying_the_way_remote_addresses_are_resolved">Modifying the way remote addresses are resolved</a></h4>
