@@ -56,8 +56,6 @@ public class GatewayControllerEndpoint implements ApplicationEventPublisherAware
 
 	private static final Log log = LogFactory.getLog(GatewayControllerEndpoint.class);
 
-	private RouteDefinitionLocator routeDefinitionLocator;
-
 	private List<GlobalFilter> globalFilters;
 
 	private List<GatewayFilterFactory> GatewayFilters;
@@ -68,10 +66,9 @@ public class GatewayControllerEndpoint implements ApplicationEventPublisherAware
 
 	private ApplicationEventPublisher publisher;
 
-	public GatewayControllerEndpoint(RouteDefinitionLocator routeDefinitionLocator,
-			List<GlobalFilter> globalFilters, List<GatewayFilterFactory> GatewayFilters,
+	public GatewayControllerEndpoint(List<GlobalFilter> globalFilters,
+			List<GatewayFilterFactory> GatewayFilters,
 			RouteDefinitionWriter routeDefinitionWriter, RouteLocator routeLocator) {
-		this.routeDefinitionLocator = routeDefinitionLocator;
 		this.globalFilters = globalFilters;
 		this.GatewayFilters = GatewayFilters;
 		this.routeDefinitionWriter = routeDefinitionWriter;
@@ -118,23 +115,24 @@ public class GatewayControllerEndpoint implements ApplicationEventPublisherAware
 	// TODO: Flush out routes without a definition
 	@GetMapping("/routes")
 	public Flux<Map<String, Object>> routes() {
-		return this.routeLocator.getRoutes()
-				.map(route -> {
-					HashMap<String, Object> r = new HashMap<>();
-					r.put("route_id", route.getId());
-					r.put("order", route.getOrder());
-					r.put("predicate", route.getPredicate().toString());
+		return this.routeLocator.getRoutes().map(this::serialize);
+	}
 
-					ArrayList<String> filters = new ArrayList<>();
+	Map<String, Object> serialize(Route route) {
+		HashMap<String, Object> r = new HashMap<>();
+		r.put("route_id", route.getId());
+		r.put("order", route.getOrder());
+		r.put("predicate", route.getPredicate().toString());
 
-					for (int i = 0; i < route.getFilters().size(); i++) {
-						GatewayFilter gatewayFilter = route.getFilters().get(i);
-						filters.add(gatewayFilter.toString());
-					}
+		ArrayList<String> filters = new ArrayList<>();
 
-					r.put("filters", filters);
-					return r;
-				});
+		for (int i = 0; i < route.getFilters().size(); i++) {
+			GatewayFilter gatewayFilter = route.getFilters().get(i);
+			filters.add(gatewayFilter.toString());
+		}
+
+		r.put("filters", filters);
+		return r;
 	}
 
 	/*
@@ -163,10 +161,10 @@ public class GatewayControllerEndpoint implements ApplicationEventPublisherAware
 	}
 
 	@GetMapping("/routes/{id}")
-	public Mono<ResponseEntity<RouteDefinition>> route(@PathVariable String id) {
-		// TODO: missing RouteLocator
-		return this.routeDefinitionLocator.getRouteDefinitions()
+	public Mono<ResponseEntity<Map<String, Object>>> route(@PathVariable String id) {
+		return this.routeLocator.getRoutes()
 				.filter(route -> route.getId().equals(id)).singleOrEmpty()
+				.map(this::serialize)
 				.map(ResponseEntity::ok)
 				.switchIfEmpty(Mono.just(ResponseEntity.notFound().build()));
 	}
