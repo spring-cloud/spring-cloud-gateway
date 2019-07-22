@@ -25,10 +25,12 @@ import org.springframework.cloud.gateway.discovery.DiscoveryClientRouteDefinitio
 import org.springframework.cloud.gateway.discovery.DiscoveryLocatorProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Profile;
 
 @SpringBootConfiguration
 @EnableAutoConfiguration
+@Import(PermitAllSecurityConfiguration.class)
 public class GatewayTestApplication {
 
 	public static void main(String[] args) {
