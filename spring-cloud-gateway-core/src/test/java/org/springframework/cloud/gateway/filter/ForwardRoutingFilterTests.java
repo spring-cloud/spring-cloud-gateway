@@ -94,8 +94,7 @@ public class ForwardRoutingFilterTests {
 		verifyNoMoreInteractions(chain);
 		verify(dispatcherHandler).handle(exchange);
 
-		assertThat(exchange.getAttributes().get(GATEWAY_ALREADY_ROUTED_ATTR))
-				.isEqualTo(true);
+		assertThat(exchange.getAttributes().get(GATEWAY_ALREADY_ROUTED_ATTR)).isNull();
 	}
 
 	@Test
@@ -111,6 +110,8 @@ public class ForwardRoutingFilterTests {
 		forwardRoutingFilter.filter(exchange, chain);
 
 		verify(dispatcherHandler).handle(captor.capture());
+
+		assertThat(exchange.getAttributes().get(GATEWAY_ALREADY_ROUTED_ATTR)).isNull();
 
 		ServerWebExchange webExchange = captor.getValue();
 
