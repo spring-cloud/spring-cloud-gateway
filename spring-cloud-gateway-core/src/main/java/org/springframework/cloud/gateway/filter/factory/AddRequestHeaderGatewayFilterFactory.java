@@ -46,7 +46,7 @@ public class AddRequestHeaderGatewayFilterFactory
 			@Override
 			public String toString() {
 				return filterToStringCreator(AddRequestHeaderGatewayFilterFactory.this)
-						.append(config.getName(), config.getName()).toString();
+						.append(config.getName(), config.getValue()).toString();
 			}
 		};
 	}

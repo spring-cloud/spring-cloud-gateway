@@ -22,11 +22,14 @@ import org.junit.runner.RunWith;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.factory.AbstractNameValueGatewayFilterFactory.NameValueConfig;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @RunWith(SpringRunner.class)
@@ -39,6 +42,14 @@ public class SetResponseHeaderGatewayFilterFactoryTests extends BaseWebClientTes
 		testClient.get().uri("/headers").header("Host", "www.setreresponseheader.org")
 				.exchange().expectStatus().isOk().expectHeader()
 				.valueEquals("X-Request-Foo", "Bar");
+	}
+
+	@Test
+	public void toStringFormat() {
+		NameValueConfig config = new NameValueConfig().setName("myname")
+				.setValue("myvalue");
+		GatewayFilter filter = new SetResponseHeaderGatewayFilterFactory().apply(config);
+		assertThat(filter.toString()).contains("myname").contains("myvalue");
 	}
 
 	@EnableAutoConfiguration

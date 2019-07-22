@@ -35,6 +35,7 @@ import reactor.retry.RetryContext;
 
 import org.springframework.cloud.gateway.event.EnableBodyCachingEvent;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.support.HasRouteId;
 import org.springframework.cloud.gateway.support.TimeoutException;
 import org.springframework.http.HttpMethod;
@@ -43,6 +44,7 @@ import org.springframework.http.HttpStatus.Series;
 import org.springframework.util.Assert;
 import org.springframework.web.server.ServerWebExchange;
 
+import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.CLIENT_RESPONSE_HEADER_NAMES;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ALREADY_ROUTED_ATTR;
 
@@ -132,7 +134,25 @@ public class RetryGatewayFilterFactory
 					.retryMax(retryConfig.getRetries());
 		}
 
-		return apply(retryConfig.getRouteId(), statusCodeRepeat, exceptionRetry);
+		GatewayFilter gatewayFilter = apply(retryConfig.getRouteId(), statusCodeRepeat,
+				exceptionRetry);
+		return new GatewayFilter() {
+			@Override
+			public Mono<Void> filter(ServerWebExchange exchange,
+					GatewayFilterChain chain) {
+				return gatewayFilter.filter(exchange, chain);
+			}
+
+			@Override
+			public String toString() {
+				return filterToStringCreator(RetryGatewayFilterFactory.this)
+						.append("retries", retryConfig.getRetries())
+						.append("series", retryConfig.getSeries())
+						.append("statuses", retryConfig.getStatuses())
+						.append("methods", retryConfig.getMethods())
+						.append("exceptions", retryConfig.getExceptions()).toString();
+			}
+		};
 	}
 
 	public boolean exceedsMaxIterations(ServerWebExchange exchange,

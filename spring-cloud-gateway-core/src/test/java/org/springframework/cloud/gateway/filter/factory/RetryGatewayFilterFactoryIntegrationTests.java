@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -33,6 +34,8 @@ import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.factory.RetryGatewayFilterFactory.RetryConfig;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
@@ -109,6 +112,18 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 							.get("headers");
 					assertThat(headers).containsEntry("X-Forwarded-Host", host);
 				});
+	}
+
+	@Test
+	public void toStringFormat() {
+		RetryConfig config = new RetryConfig();
+		config.setRetries(4);
+		config.setMethods(HttpMethod.GET);
+		config.setSeries(HttpStatus.Series.SERVER_ERROR);
+		config.setExceptions(IOException.class);
+		GatewayFilter filter = new RetryGatewayFilterFactory().apply(config);
+		assertThat(filter.toString()).contains("4").contains("[GET]")
+				.contains("[SERVER_ERROR]").contains("[IOException]");
 	}
 
 	@RestController

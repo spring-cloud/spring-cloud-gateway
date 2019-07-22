@@ -18,8 +18,11 @@ package org.springframework.cloud.gateway.handler.predicate;
 
 import java.time.ZonedDateTime;
 import java.util.HashMap;
+import java.util.function.Predicate;
 
 import org.junit.Test;
+
+import org.springframework.cloud.gateway.handler.predicate.AfterRoutePredicateFactory.Config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.gateway.handler.predicate.AfterRoutePredicateFactory.DATETIME_KEY;
@@ -84,9 +87,17 @@ public class AfterRoutePredicateFactoryTests {
 		map.put(DATETIME_KEY, dateString);
 		AfterRoutePredicateFactory factory = new AfterRoutePredicateFactory();
 
-		AfterRoutePredicateFactory.Config config = bindConfig(map, factory);
+		Config config = bindConfig(map, factory);
 
 		return factory.apply(config).test(getExchange());
+	}
+
+	@Test
+	public void toStringFormat() {
+		Config config = new Config();
+		config.setDatetime(ZonedDateTime.now());
+		Predicate predicate = new AfterRoutePredicateFactory().apply(config);
+		assertThat(predicate.toString()).contains("After: " + config.getDatetime());
 	}
 
 }

@@ -25,6 +25,7 @@ import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
+import org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactory.Config;
 import org.springframework.http.HttpMethod;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -99,6 +100,13 @@ public class RewritePathGatewayFilterFactoryTests {
 
 		URI uri = exchange.getRequest().getURI();
 		assertThat(uri.getRawQuery()).isEqualTo("name=%E6%89%8E%E6%A0%B9");
+	}
+
+	@Test
+	public void toStringFormat() {
+		Config config = new Config().setRegexp("regexp1").setReplacement("replacement1");
+		GatewayFilter filter = new RewritePathGatewayFilterFactory().apply(config);
+		assertThat(filter.toString()).contains("regexp1").contains("replacement1");
 	}
 
 }

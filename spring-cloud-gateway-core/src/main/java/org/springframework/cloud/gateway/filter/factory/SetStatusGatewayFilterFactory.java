@@ -22,8 +22,11 @@ import java.util.List;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.support.HttpStatusHolder;
+import org.springframework.web.server.ServerWebExchange;
 
+import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.setResponseStatus;
 
 /**
@@ -49,21 +52,31 @@ public class SetStatusGatewayFilterFactory
 	@Override
 	public GatewayFilter apply(Config config) {
 		HttpStatusHolder statusHolder = HttpStatusHolder.parse(config.status);
-		return (exchange, chain) -> {
 
-			// option 1 (runs in filter order)
-			/*
-			 * exchange.getResponse().beforeCommit(() -> {
-			 * exchange.getResponse().setStatusCode(finalStatus); return Mono.empty(); });
-			 * return chain.filter(exchange);
-			 */
+		return new GatewayFilter() {
+			@Override
+			public Mono<Void> filter(ServerWebExchange exchange,
+					GatewayFilterChain chain) {
+				// option 1 (runs in filter order)
+				/*
+				 * exchange.getResponse().beforeCommit(() -> {
+				 * exchange.getResponse().setStatusCode(finalStatus); return Mono.empty();
+				 * }); return chain.filter(exchange);
+				 */
 
-			// option 2 (runs in reverse filter order)
-			return chain.filter(exchange).then(Mono.fromRunnable(() -> {
-				// check not really needed, since it is guarded in setStatusCode,
-				// but it's a good example
-				setResponseStatus(exchange, statusHolder);
-			}));
+				// option 2 (runs in reverse filter order)
+				return chain.filter(exchange).then(Mono.fromRunnable(() -> {
+					// check not really needed, since it is guarded in setStatusCode,
+					// but it's a good example
+					setResponseStatus(exchange, statusHolder);
+				}));
+			}
+
+			@Override
+			public String toString() {
+				return filterToStringCreator(SetStatusGatewayFilterFactory.this)
+						.append("status", config.getStatus()).toString();
+			}
 		};
 	}
 

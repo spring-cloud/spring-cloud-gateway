@@ -107,8 +107,9 @@ public class HostRoutePredicateFactory
 			return patterns;
 		}
 
-		public void setPatterns(List<String> patterns) {
+		public Config setPatterns(List<String> patterns) {
 			this.patterns = patterns;
+			return this;
 		}
 
 		@Override

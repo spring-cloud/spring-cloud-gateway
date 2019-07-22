@@ -26,8 +26,13 @@ import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import reactor.core.publisher.Mono;
 
+import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.web.server.ServerWebExchange;
+
+import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
 
 /**
  * This filter changes the request uri by a request header.
@@ -47,6 +52,25 @@ public class RequestHeaderToRequestUriGatewayFilterFactory extends
 	@Override
 	public List<String> shortcutFieldOrder() {
 		return Arrays.asList(NAME_KEY);
+	}
+
+	@Override
+	public GatewayFilter apply(NameConfig config) {
+		GatewayFilter gatewayFilter = super.apply(config);
+		return new GatewayFilter() {
+			@Override
+			public Mono<Void> filter(ServerWebExchange exchange,
+					GatewayFilterChain chain) {
+				return gatewayFilter.filter(exchange, chain);
+			}
+
+			@Override
+			public String toString() {
+				return filterToStringCreator(
+						RequestHeaderToRequestUriGatewayFilterFactory.this)
+								.append("name", config.getName()).toString();
+			}
+		};
 	}
 
 	@Override

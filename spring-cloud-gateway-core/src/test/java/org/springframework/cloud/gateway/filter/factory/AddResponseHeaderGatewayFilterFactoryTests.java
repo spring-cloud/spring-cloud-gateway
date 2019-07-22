@@ -25,6 +25,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.factory.AbstractNameValueGatewayFilterFactory.NameValueConfig;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
@@ -34,21 +36,40 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
-public class AddResponseParameterGatewayFilterFactoryTests extends BaseWebClientTests {
+public class AddResponseHeaderGatewayFilterFactoryTests extends BaseWebClientTests {
 
 	@Test
-	public void testResposneParameterFilter() {
+	public void testResposneHeaderFilter() {
+		URI uri = UriComponentsBuilder.fromUriString(this.baseUri + "/headers")
+				.build(true).toUri();
+		String host = "www.addresponseheader.org";
+		String expectedValue = "Bar";
+		testClient.get().uri(uri).header("Host", host).exchange().expectHeader()
+				.valueEquals("X-Request-Foo", expectedValue);
+	}
+
+	@Test
+	public void testResposneHeaderFilterJavaDsl() {
 		URI uri = UriComponentsBuilder.fromUriString(this.baseUri + "/get").build(true)
 				.toUri();
-		String host = "www.addresponseparamjava.org";
+		String host = "www.addresponseheaderjava.org";
 		String expectedValue = "myresponsevalue";
 		testClient.get().uri(uri).header("Host", host).exchange().expectHeader()
 				.valueEquals("example", expectedValue);
+	}
+
+	@Test
+	public void toStringFormat() {
+		NameValueConfig config = new NameValueConfig().setName("myname")
+				.setValue("myvalue");
+		GatewayFilter filter = new AddResponseHeaderGatewayFilterFactory().apply(config);
+		assertThat(filter.toString()).contains("myname").contains("myvalue");
 	}
 
 	@EnableAutoConfiguration
@@ -61,8 +82,8 @@ public class AddResponseParameterGatewayFilterFactoryTests extends BaseWebClient
 
 		@Bean
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
-			return builder.routes().route("add_response_param_java_test",
-					r -> r.path("/get").and().host("**.addresponseparamjava.org")
+			return builder.routes().route("add_response_header_java_test",
+					r -> r.path("/get").and().host("**.addresponseheaderjava.org")
 							.filters(f -> f.prefixPath("/httpbin")
 									.addResponseHeader("example", "myresponsevalue"))
 							.uri(uri))

@@ -28,6 +28,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.factory.AbstractNameValueGatewayFilterFactory.NameValueConfig;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
@@ -105,6 +107,15 @@ public class AddRequestParameterGatewayFilterFactoryTests extends BaseWebClientT
 						}
 					}
 				});
+	}
+
+	@Test
+	public void toStringFormat() {
+		NameValueConfig config = new NameValueConfig().setName("myname")
+				.setValue("myvalue");
+		GatewayFilter filter = new AddRequestParameterGatewayFilterFactory()
+				.apply(config);
+		assertThat(filter.toString()).contains("myname").contains("myvalue");
 	}
 
 	@EnableAutoConfiguration

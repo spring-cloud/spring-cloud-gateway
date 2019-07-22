@@ -17,6 +17,7 @@
 package org.springframework.cloud.gateway.handler.predicate;
 
 import java.util.Random;
+import java.util.function.Predicate;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,6 +30,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.filter.WeightCalculatorWebFilter;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
+import org.springframework.cloud.gateway.support.WeightConfig;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
@@ -36,6 +38,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -70,6 +73,13 @@ public class WeightRoutePredicateFactoryIntegrationTests extends BaseWebClientTe
 		testClient.get().uri("/get").header(HttpHeaders.HOST, "www.weightlow.org")
 				.exchange().expectStatus().isOk().expectHeader()
 				.valueEquals(ROUTE_ID_HEADER, "weight_low_test");
+	}
+
+	@Test
+	public void toStringFormat() {
+		WeightConfig config = new WeightConfig("mygroup", "myroute", 5);
+		Predicate predicate = new WeightRoutePredicateFactory().apply(config);
+		assertThat(predicate.toString()).contains("Weight: mygroup 5");
 	}
 
 	@EnableAutoConfiguration

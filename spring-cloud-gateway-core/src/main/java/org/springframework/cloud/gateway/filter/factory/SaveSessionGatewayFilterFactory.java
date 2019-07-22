@@ -16,8 +16,14 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
+import reactor.core.publisher.Mono;
+
 import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.GatewayFilterChain;
+import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebSession;
+
+import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
 
 /**
  * Save the current {@link WebSession} before executing the rest of the
@@ -33,8 +39,20 @@ public class SaveSessionGatewayFilterFactory extends AbstractGatewayFilterFactor
 
 	@Override
 	public GatewayFilter apply(Object config) {
-		return (exchange, chain) -> exchange.getSession().map(WebSession::save)
-				.then(chain.filter(exchange));
+		return new GatewayFilter() {
+			@Override
+			public Mono<Void> filter(ServerWebExchange exchange,
+					GatewayFilterChain chain) {
+				return exchange.getSession().map(WebSession::save)
+						.then(chain.filter(exchange));
+			}
+
+			@Override
+			public String toString() {
+				return filterToStringCreator(SaveSessionGatewayFilterFactory.this)
+						.toString();
+			}
+		};
 	}
 
 }
