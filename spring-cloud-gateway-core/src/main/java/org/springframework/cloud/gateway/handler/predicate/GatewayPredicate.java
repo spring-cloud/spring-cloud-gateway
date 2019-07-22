@@ -44,7 +44,8 @@ public interface GatewayPredicate extends Predicate<ServerWebExchange> {
 
 		if (other instanceof GatewayPredicate) {
 			right = (GatewayPredicate) other;
-		} else {
+		}
+		else {
 			right = new GatewayPredicateWrapper(other);
 		}
 		return right;
@@ -68,6 +69,7 @@ public interface GatewayPredicate extends Predicate<ServerWebExchange> {
 		public String toString() {
 			return this.delegate.getClass().getSimpleName();
 		}
+
 	}
 
 	class NegateGatewayPredicate implements GatewayPredicate {
@@ -88,6 +90,7 @@ public interface GatewayPredicate extends Predicate<ServerWebExchange> {
 		public String toString() {
 			return String.format("!%s", this.predicate);
 		}
+
 	}
 
 	class AndGatewayPredicate implements GatewayPredicate {
@@ -112,8 +115,8 @@ public interface GatewayPredicate extends Predicate<ServerWebExchange> {
 		public String toString() {
 			return String.format("(%s && %s)", this.left, this.right);
 		}
-	}
 
+	}
 
 	class OrGatewayPredicate implements GatewayPredicate {
 
@@ -137,5 +140,7 @@ public interface GatewayPredicate extends Predicate<ServerWebExchange> {
 		public String toString() {
 			return String.format("(%s || %s)", this.left, this.right);
 		}
+
 	}
+
 }

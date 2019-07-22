@@ -64,11 +64,11 @@ public class HostRoutePredicateFactory
 			public boolean test(ServerWebExchange exchange) {
 				String host = exchange.getRequest().getHeaders().getFirst("Host");
 				Optional<String> optionalPattern = config.getPatterns().stream()
-						.filter(pattern -> pathMatcher.match(pattern, host))
-						.findFirst();
+						.filter(pattern -> pathMatcher.match(pattern, host)).findFirst();
 
 				if (optionalPattern.isPresent()) {
-					Map<String, String> variables = pathMatcher.extractUriTemplateVariables(optionalPattern.get(), host);
+					Map<String, String> variables = pathMatcher
+							.extractUriTemplateVariables(optionalPattern.get(), host);
 					ServerWebExchangeUtils.putUriTemplateVariables(exchange, variables);
 					return true;
 				}

@@ -60,15 +60,14 @@ public class RewritePathGatewayFilterFactory
 		String replacement = config.replacement.replace("$\\", "$");
 		return new GatewayFilter() {
 			@Override
-			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+			public Mono<Void> filter(ServerWebExchange exchange,
+					GatewayFilterChain chain) {
 				ServerHttpRequest req = exchange.getRequest();
 				addOriginalRequestUrl(exchange, req.getURI());
 				String path = req.getURI().getRawPath();
 				String newPath = path.replaceAll(config.regexp, replacement);
 
-				ServerHttpRequest request = req.mutate()
-						.path(newPath)
-						.build();
+				ServerHttpRequest request = req.mutate().path(newPath).build();
 
 				exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, request.getURI());
 
@@ -78,8 +77,7 @@ public class RewritePathGatewayFilterFactory
 			@Override
 			public String toString() {
 				return filterToStringCreator(RewritePathGatewayFilterFactory.this)
-						.append(config.getRegexp(), replacement)
-						.toString();
+						.append(config.getRegexp(), replacement).toString();
 			}
 		};
 	}

@@ -35,10 +35,10 @@ public class AddRequestHeaderGatewayFilterFactory
 	public GatewayFilter apply(NameValueConfig config) {
 		return new GatewayFilter() {
 			@Override
-			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+			public Mono<Void> filter(ServerWebExchange exchange,
+					GatewayFilterChain chain) {
 				ServerHttpRequest request = exchange.getRequest().mutate()
-						.header(config.getName(), config.getValue())
-						.build();
+						.header(config.getName(), config.getValue()).build();
 
 				return chain.filter(exchange.mutate().request(request).build());
 			}
@@ -46,8 +46,7 @@ public class AddRequestHeaderGatewayFilterFactory
 			@Override
 			public String toString() {
 				return filterToStringCreator(AddRequestHeaderGatewayFilterFactory.this)
-						.append(config.getName(), config.getName())
-						.toString();
+						.append(config.getName(), config.getName()).toString();
 			}
 		};
 	}

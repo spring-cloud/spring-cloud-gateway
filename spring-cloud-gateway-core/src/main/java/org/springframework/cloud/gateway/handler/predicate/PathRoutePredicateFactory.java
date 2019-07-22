@@ -90,11 +90,11 @@ public class PathRoutePredicateFactory
 		return new GatewayPredicate() {
 			@Override
 			public boolean test(ServerWebExchange exchange) {
-				PathContainer path = parsePath(exchange.getRequest().getURI().getRawPath());
+				PathContainer path = parsePath(
+						exchange.getRequest().getURI().getRawPath());
 
 				Optional<PathPattern> optionalPathPattern = pathPatterns.stream()
-						.filter(pattern -> pattern.matches(path))
-						.findFirst();
+						.filter(pattern -> pattern.matches(path)).findFirst();
 
 				if (optionalPathPattern.isPresent()) {
 					PathPattern pathPattern = optionalPathPattern.get();
@@ -102,7 +102,8 @@ public class PathRoutePredicateFactory
 					PathMatchInfo pathMatchInfo = pathPattern.matchAndExtract(path);
 					putUriTemplateVariables(exchange, pathMatchInfo.getUriVariables());
 					return true;
-				} else {
+				}
+				else {
 					traceMatch("Pattern", config.getPatterns(), path, false);
 					return false;
 				}
@@ -110,8 +111,8 @@ public class PathRoutePredicateFactory
 
 			@Override
 			public String toString() {
-				return String.format("Paths: %s, match trailing slash: %b", config.getPatterns(),
-						config.isMatchOptionalTrailingSeparator());
+				return String.format("Paths: %s, match trailing slash: %b",
+						config.getPatterns(), config.isMatchOptionalTrailingSeparator());
 			}
 		};
 	}

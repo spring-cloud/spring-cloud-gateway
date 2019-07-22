@@ -44,7 +44,8 @@ public interface AsyncPredicate<T> extends Function<T, Publisher<Boolean>> {
 		return new OrAsyncPredicate<>(this, other);
 	}
 
-	static AsyncPredicate<ServerWebExchange> from(Predicate<? super ServerWebExchange> predicate) {
+	static AsyncPredicate<ServerWebExchange> from(
+			Predicate<? super ServerWebExchange> predicate) {
 		return new DefaultAsyncPredicate<>(GatewayPredicate.wrapIfNeeded(predicate));
 	}
 
@@ -65,8 +66,8 @@ public interface AsyncPredicate<T> extends Function<T, Publisher<Boolean>> {
 		public String toString() {
 			return this.delegate.toString();
 		}
-	}
 
+	}
 
 	class NegateAsyncPredicate<T> implements AsyncPredicate<T> {
 
@@ -86,6 +87,7 @@ public interface AsyncPredicate<T> extends Function<T, Publisher<Boolean>> {
 		public String toString() {
 			return String.format("!%s", this.predicate);
 		}
+
 	}
 
 	class AndAsyncPredicate<T> implements AsyncPredicate<T> {
@@ -94,7 +96,8 @@ public interface AsyncPredicate<T> extends Function<T, Publisher<Boolean>> {
 
 		private final AsyncPredicate<? super T> right;
 
-		public AndAsyncPredicate(AsyncPredicate<? super T> left, AsyncPredicate<? super T> right) {
+		public AndAsyncPredicate(AsyncPredicate<? super T> left,
+				AsyncPredicate<? super T> right) {
 			Assert.notNull(left, "Left AsyncPredicate must not be null");
 			Assert.notNull(right, "Right AsyncPredicate must not be null");
 			this.left = left;
@@ -111,8 +114,8 @@ public interface AsyncPredicate<T> extends Function<T, Publisher<Boolean>> {
 		public String toString() {
 			return String.format("(%s && %s)", this.left, this.right);
 		}
-	}
 
+	}
 
 	class OrAsyncPredicate<T> implements AsyncPredicate<T> {
 
@@ -120,7 +123,8 @@ public interface AsyncPredicate<T> extends Function<T, Publisher<Boolean>> {
 
 		private final AsyncPredicate<? super T> right;
 
-		public OrAsyncPredicate(AsyncPredicate<? super T> left, AsyncPredicate<? super T> right) {
+		public OrAsyncPredicate(AsyncPredicate<? super T> left,
+				AsyncPredicate<? super T> right) {
 			Assert.notNull(left, "Left AsyncPredicate must not be null");
 			Assert.notNull(right, "Right AsyncPredicate must not be null");
 			this.left = left;
@@ -137,5 +141,7 @@ public interface AsyncPredicate<T> extends Function<T, Publisher<Boolean>> {
 		public String toString() {
 			return String.format("(%s || %s)", this.left, this.right);
 		}
+
 	}
+
 }

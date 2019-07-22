@@ -243,7 +243,8 @@ public final class ServerWebExchangeUtils {
 		uris.add(url);
 	}
 
-	public static AsyncPredicate<ServerWebExchange> toAsyncPredicate(Predicate<? super ServerWebExchange> predicate) {
+	public static AsyncPredicate<ServerWebExchange> toAsyncPredicate(
+			Predicate<? super ServerWebExchange> predicate) {
 		Assert.notNull(predicate, "predicate must not be null");
 		return AsyncPredicate.from(predicate);
 	}
