@@ -30,6 +30,7 @@ import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
+import org.springframework.cloud.gateway.filter.OrderedGatewayFilter;
 import org.springframework.web.server.ServerWebExchange;
 
 import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
@@ -56,14 +57,9 @@ public class RequestHeaderToRequestUriGatewayFilterFactory extends
 
 	@Override
 	public GatewayFilter apply(NameConfig config) {
-		GatewayFilter gatewayFilter = super.apply(config);
-		return new GatewayFilter() {
-			@Override
-			public Mono<Void> filter(ServerWebExchange exchange,
-					GatewayFilterChain chain) {
-				return gatewayFilter.filter(exchange, chain);
-			}
-
+		// AbstractChangeRequestUriGatewayFilterFactory.apply() returns OrderedGatewayFilter
+		OrderedGatewayFilter gatewayFilter = (OrderedGatewayFilter) super.apply(config);
+		return new OrderedGatewayFilter(gatewayFilter, gatewayFilter.getOrder()) {
 			@Override
 			public String toString() {
 				return filterToStringCreator(

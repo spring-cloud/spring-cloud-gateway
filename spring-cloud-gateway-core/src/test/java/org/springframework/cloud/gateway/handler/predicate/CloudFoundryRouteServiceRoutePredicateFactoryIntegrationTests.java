@@ -17,7 +17,6 @@
 package org.springframework.cloud.gateway.handler.predicate;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -48,7 +47,6 @@ public class CloudFoundryRouteServiceRoutePredicateFactoryIntegrationTests
 	@LocalServerPort
 	int port;
 
-	@Ignore // FIXME: tostring
 	@Test
 	public void predicateWorkWithProperties() {
 		testClient.get().uri("/").header("Host", "props.routeservice.example.com")
@@ -69,7 +67,6 @@ public class CloudFoundryRouteServiceRoutePredicateFactoryIntegrationTests
 				.expectHeader().valueEquals(ROUTE_ID_HEADER, "default_path_to_httpbin");
 	}
 
-	@Ignore // FIXME: tostring
 	@Test
 	public void predicateWorkWithDsl() {
 		testClient.get().uri("/").header("Host", "dsl.routeservice.example.com")
