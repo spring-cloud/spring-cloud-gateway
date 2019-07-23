@@ -18,7 +18,7 @@ and artifact id <literal>spring-cloud-starter-gateway</literal>. See the <link x
 for details on setting up your build system with the current Spring Cloud Release Train.</simpara>
 <simpara>If you include the starter, but, for some reason, you do not want the gateway to be enabled, set <literal>spring.cloud.gateway.enabled=false</literal>.</simpara>
 <important>
-<simpara>Spring Cloud Gateway is built upon <link xl:href="https://spring.io/projects/spring-boot#learn">Spring Boot 2.0</link>,
+<simpara>Spring Cloud Gateway is built upon <link xl:href="https://spring.io/projects/spring-boot#learn">Spring Boot 2.x</link>,
 <link xl:href="https://docs.spring.io/spring/docs/current/spring-framework-reference/web-reactive.html">Spring WebFlux</link>,
 and <link xl:href="https://projectreactor.io/docs">Project Reactor</link>.  As a consequence
 many of the familiar synchronous libraries (Spring Data and Spring Security, for example) and patterns you may
@@ -1784,6 +1784,42 @@ management.endpoints.web.exposure.include=gateway</programlisting>
 </tbody>
 </tgroup>
 </informaltable>
+</section>
+</chapter>
+<chapter xml:id="troubleshooting">
+<title>Troubleshooting</title>
+<section xml:id="_log_levels">
+<title>Log Levels</title>
+<simpara>Below are some useful loggers that contain valuable trouble shooting infomration at the <literal>DEBUG</literal> and <literal>TRACE</literal> levels.</simpara>
+<itemizedlist>
+<listitem>
+<simpara><literal>org.springframework.cloud.gateway</literal></simpara>
+</listitem>
+<listitem>
+<simpara><literal>org.springframework.http.server.reactive</literal></simpara>
+</listitem>
+<listitem>
+<simpara><literal>org.springframework.web.reactive</literal></simpara>
+</listitem>
+<listitem>
+<simpara><literal>org.springframework.boot.autoconfigure.web</literal></simpara>
+</listitem>
+<listitem>
+<simpara><literal>reactor.netty</literal></simpara>
+</listitem>
+<listitem>
+<simpara><literal>redisratelimiter</literal></simpara>
+</listitem>
+</itemizedlist>
+</section>
+<section xml:id="_wiretap">
+<title>Wiretap</title>
+<simpara>The Reactor Netty <literal>HttpClient</literal> and <literal>HttpServer</literal> can have wiretap enabled. When combined
+with setting the <literal>reactor.netty</literal> log level to <literal>DEBUG</literal> or <literal>TRACE</literal> will enable logging of
+information such as headers and bodies sent and received across the wire. To enable this,
+set <literal>spring.cloud.gateway.httpserver.wiretap=true</literal> and/or
+<literal>spring.cloud.gateway.httpclient.wiretap=true</literal> for the <literal>HttpServer</literal> and <literal>HttpClient</literal>
+respectively.</simpara>
 </section>
 </chapter>
 <chapter xml:id="_developer_guide">
