@@ -31,7 +31,7 @@ import rx.RxReactiveStreams;
 
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.actuate.autoconfigure.endpoint.condition.ConditionalOnEnabledEndpoint;
+import org.springframework.boot.actuate.autoconfigure.endpoint.condition.ConditionalOnAvailableEndpoint;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
@@ -656,8 +656,9 @@ public class GatewayAutoConfiguration {
 	protected static class GatewayActuatorConfiguration {
 
 		@Bean
-		@ConditionalOnProperty("spring.cloud.gateway.actuator.verbose.enabled")
-		@ConditionalOnEnabledEndpoint
+		@ConditionalOnProperty(name = "spring.cloud.gateway.actuator.verbose.enabled",
+				matchIfMissing = true)
+		@ConditionalOnAvailableEndpoint
 		public GatewayControllerEndpoint gatewayControllerEndpoint(
 				List<GlobalFilter> globalFilters,
 				List<GatewayFilterFactory> gatewayFilters,
@@ -668,7 +669,7 @@ public class GatewayAutoConfiguration {
 
 		@Bean
 		@Conditional(OnVerboseDisabledCondition.class)
-		@ConditionalOnEnabledEndpoint
+		@ConditionalOnAvailableEndpoint
 		public GatewayLegacyControllerEndpoint gatewayLegacyControllerEndpoint(
 				RouteDefinitionLocator routeDefinitionLocator,
 				List<GlobalFilter> globalFilters,
@@ -686,7 +687,8 @@ public class GatewayAutoConfiguration {
 			super(ConfigurationPhase.REGISTER_BEAN);
 		}
 
-		@ConditionalOnProperty("spring.cloud.gateway.actuator.verbose.enabled")
+		@ConditionalOnProperty(name = "spring.cloud.gateway.actuator.verbose.enabled",
+				matchIfMissing = true)
 		static class VerboseDisabled {
 
 		}

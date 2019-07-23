@@ -130,8 +130,8 @@ public class HystrixGatewayFilterFactory
 			public Mono<Void> filter(ServerWebExchange exchange,
 					GatewayFilterChain chain) {
 				RouteHystrixCommand command = new RouteHystrixCommand(
-						createCommandSetter(config, exchange),
-						config.fallbackUri, exchange, chain);
+						createCommandSetter(config, exchange), config.fallbackUri,
+						exchange, chain);
 
 				return Mono.create(s -> {
 					Subscription sub = command.toObservable().subscribe(s::success,

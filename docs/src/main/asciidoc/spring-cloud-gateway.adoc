@@ -1444,12 +1444,12 @@ A new, more verbose format has been added to Gateway. This adds more detail to e
 ]
 ----
 
-To enable this feature, set the following property:
+This feature is enabled by default. To disable it, set the following property:
 
 .application.properties
 [source,properties]
 ----
-spring.cloud.gateway.actuator.verbose.enabled=true
+spring.cloud.gateway.actuator.verbose.enabled=false
 ----
 
 This will default to true in a future release.
