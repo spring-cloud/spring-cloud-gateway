@@ -57,6 +57,9 @@ public class HttpClientProperties {
 	/** SSL configuration for Netty HttpClient. */
 	private Ssl ssl = new Ssl();
 
+	/** Enables wiretap debugging for Netty HttpClient. */
+	private boolean wiretap;
+
 	public Integer getConnectTimeout() {
 		return connectTimeout;
 	}
@@ -97,11 +100,26 @@ public class HttpClientProperties {
 		this.ssl = ssl;
 	}
 
+	public boolean isWiretap() {
+		return this.wiretap;
+	}
+
+	public void setWiretap(boolean wiretap) {
+		this.wiretap = wiretap;
+	}
+
 	@Override
 	public String toString() {
-		return new ToStringCreator(this).append("connectTimeout", connectTimeout)
-				.append("responseTimeout", responseTimeout).append("pool", pool)
-				.append("proxy", proxy).append("ssl", ssl).toString();
+		// @formatter:off
+		return new ToStringCreator(this)
+				.append("connectTimeout", connectTimeout)
+				.append("responseTimeout", responseTimeout)
+				.append("pool", pool)
+				.append("proxy", proxy)
+				.append("ssl", ssl)
+				.append("wiretap", wiretap)
+				.toString();
+		// @formatter:on
 	}
 
 	public static class Pool {
