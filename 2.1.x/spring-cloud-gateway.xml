@@ -349,6 +349,22 @@ If two hops of trusted infrastructure are required before Spring Cloud Gateway i
 </para>
 </formalpara>
 <simpara>This will add <literal>X-Request-Foo:Bar</literal> header to the downstream request&#8217;s headers for all matching requests.</simpara>
+<simpara>AddRequestHeader is aware of URI variables used to match a path or host. URI variables may be used in the value and will be expanded at runtime.</simpara>
+<formalpara>
+<title>application.yml</title>
+<para>
+<programlisting language="yaml" linenumbering="unnumbered">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: add_request_header_route
+        uri: https://example.org
+        predicates:
+        - Path=/foo/{segment}
+        filters:
+        - AddRequestHeader=X-Request-Foo, Bar-{segment}</programlisting>
+</para>
+</formalpara>
 </section>
 <section xml:id="_addrequestparameter_gatewayfilter_factory">
 <title>AddRequestParameter GatewayFilter Factory</title>
@@ -367,6 +383,22 @@ If two hops of trusted infrastructure are required before Spring Cloud Gateway i
 </para>
 </formalpara>
 <simpara>This will add <literal>foo=bar</literal> to the downstream request&#8217;s query string for all matching requests.</simpara>
+<simpara>AddRequestParameter is aware of URI variables used to match a path or host. URI variables may be used in the value and will be expanded at runtime.</simpara>
+<formalpara>
+<title>application.yml</title>
+<para>
+<programlisting language="yaml" linenumbering="unnumbered">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: add_request_parameter_route
+        uri: https://example.org
+        predicates:
+        - Host: {segment}.myhost.org
+        filters:
+        - AddRequestParameter=foo, bar-{segment}</programlisting>
+</para>
+</formalpara>
 </section>
 <section xml:id="_addresponseheader_gatewayfilter_factory">
 <title>AddResponseHeader GatewayFilter Factory</title>
@@ -385,6 +417,22 @@ If two hops of trusted infrastructure are required before Spring Cloud Gateway i
 </para>
 </formalpara>
 <simpara>This will add <literal>X-Response-Foo:Bar</literal> header to the downstream response&#8217;s headers for all matching requests.</simpara>
+<simpara>AddResponseHeader is aware of URI variables used to match a path or host. URI variables may be used in the value and will be expanded at runtime.</simpara>
+<formalpara>
+<title>application.yml</title>
+<para>
+<programlisting language="yaml" linenumbering="unnumbered">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: add_response_header_route
+        uri: https://example.org
+        predicates:
+        - Host: {segment}.myhost.org
+        filters:
+        - AddResponseHeader=foo, bar-{segment}</programlisting>
+</para>
+</formalpara>
 </section>
 <section xml:id="_deduperesponseheader_gatewayfilter_factory">
 <title>DedupeResponseHeader GatewayFilter Factory</title>
@@ -883,6 +931,40 @@ using something like <link xl:href="https://projects.spring.io/spring-session/">
 </formalpara>
 <simpara>For a request path of <literal>/foo/bar</literal>, this will set the path to <literal>/bar</literal> before making the downstream request.</simpara>
 </section>
+<section xml:id="_setrequestheader_gatewayfilter_factory">
+<title>SetRequestHeader GatewayFilter Factory</title>
+<simpara>The SetRequestHeader GatewayFilter Factory takes <literal>name</literal> and <literal>value</literal> parameters.</simpara>
+<formalpara>
+<title>application.yml</title>
+<para>
+<programlisting language="yaml" linenumbering="unnumbered">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: setrequestheader_route
+        uri: https://example.org
+        filters:
+        - SetRequestHeader=X-Request-Foo, Bar</programlisting>
+</para>
+</formalpara>
+<simpara>This GatewayFilter replaces all headers with the given name, rather than adding. So if the downstream server responded with a <literal>X-Request-Foo:1234</literal>, this would be replaced with <literal>X-Request-Foo:Bar</literal>, which is what the downstream service would receive.</simpara>
+<simpara>SetRequestHeader is aware of URI variables used to match a path or host. URI variables may be used in the value and will be expanded at runtime.</simpara>
+<formalpara>
+<title>application.yml</title>
+<para>
+<programlisting language="yaml" linenumbering="unnumbered">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: setrequestheader_route
+        uri: https://example.org
+        predicates:
+        - Host: {segment}.myhost.org
+        filters:
+        - SetRequestHeader=foo, bar-{segment}</programlisting>
+</para>
+</formalpara>
+</section>
 <section xml:id="_setresponseheader_gatewayfilter_factory">
 <title>SetResponseHeader GatewayFilter Factory</title>
 <simpara>The SetResponseHeader GatewayFilter Factory takes <literal>name</literal> and <literal>value</literal> parameters.</simpara>
@@ -900,6 +982,22 @@ using something like <link xl:href="https://projects.spring.io/spring-session/">
 </para>
 </formalpara>
 <simpara>This GatewayFilter replaces all headers with the given name, rather than adding. So if the downstream server responded with a <literal>X-Response-Foo:1234</literal>, this would be replaced with <literal>X-Response-Foo:Bar</literal>, which is what the gateway client would receive.</simpara>
+<simpara>SetResponseHeader is aware of URI variables used to match a path or host. URI variables may be used in the value and will be expanded at runtime.</simpara>
+<formalpara>
+<title>application.yml</title>
+<para>
+<programlisting language="yaml" linenumbering="unnumbered">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: setresponseheader_route
+        uri: https://example.org
+        predicates:
+        - Host: {segment}.myhost.org
+        filters:
+        - SetResponseHeader=foo, bar-{segment}</programlisting>
+</para>
+</formalpara>
 </section>
 <section xml:id="_setstatus_gatewayfilter_factory">
 <title>SetStatus GatewayFilter Factory</title>
