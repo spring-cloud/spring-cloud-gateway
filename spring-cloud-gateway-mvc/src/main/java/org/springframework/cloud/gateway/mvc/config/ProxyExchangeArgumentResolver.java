@@ -18,7 +18,11 @@ package org.springframework.cloud.gateway.mvc.config;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.Collections;
+import java.util.Enumeration;
 import java.util.Set;
+
+import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.cloud.gateway.mvc.ProxyExchange;
 import org.springframework.core.MethodParameter;
@@ -31,13 +35,15 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 
 /**
  * @author Dave Syer
- *
+ * @author Tim Ysewyn
  */
 public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResolver {
 
 	private RestTemplate rest;
 
 	private HttpHeaders headers;
+
+	private Set<String> autoForwardedHeaders;
 
 	private Set<String> sensitive;
 
@@ -47,6 +53,10 @@ public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResol
 
 	public void setHeaders(HttpHeaders headers) {
 		this.headers = headers;
+	}
+
+	public void setAutoForwardedHeaders(Set<String> autoForwardedHeaders) {
+		this.autoForwardedHeaders = autoForwardedHeaders;
 	}
 
 	public void setSensitive(Set<String> sensitive) {
@@ -65,6 +75,9 @@ public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResol
 		ProxyExchange<?> proxy = new ProxyExchange<>(rest, webRequest, mavContainer,
 				binderFactory, type(parameter));
 		proxy.headers(headers);
+		if (this.autoForwardedHeaders.size() > 0) {
+			proxy.headers(extractAutoForwardedHeaders(webRequest));
+		}
 		if (sensitive != null) {
 			proxy.sensitive(sensitive.toArray(new String[0]));
 		}
@@ -78,6 +91,21 @@ public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResol
 			type = param.getActualTypeArguments()[0];
 		}
 		return type;
+	}
+
+	private HttpHeaders extractAutoForwardedHeaders(NativeWebRequest webRequest) {
+		HttpServletRequest nativeRequest = webRequest
+				.getNativeRequest(HttpServletRequest.class);
+		Enumeration<String> headerNames = nativeRequest.getHeaderNames();
+		HttpHeaders headers = new HttpHeaders();
+		while (headerNames.hasMoreElements()) {
+			String header = headerNames.nextElement();
+			if (this.autoForwardedHeaders.contains(header)) {
+				headers.addAll(header,
+						Collections.list(nativeRequest.getHeaders(header)));
+			}
+		}
+		return headers;
 	}
 
 }

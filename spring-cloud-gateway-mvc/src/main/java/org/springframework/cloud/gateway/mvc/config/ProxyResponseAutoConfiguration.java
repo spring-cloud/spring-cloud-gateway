@@ -43,6 +43,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  * <code>@RequestMapping</code> methods.
  *
  * @author Dave Syer
+ * @author Tim Ysewyn
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnWebApplication
@@ -69,6 +70,7 @@ public class ProxyResponseAutoConfiguration implements WebMvcConfigurer {
 		ProxyExchangeArgumentResolver resolver = new ProxyExchangeArgumentResolver(
 				template);
 		resolver.setHeaders(proxy.convertHeaders());
+		resolver.setAutoForwardedHeaders(proxy.getAutoForward());
 		resolver.setSensitive(proxy.getSensitive()); // can be null
 		return resolver;
 	}
