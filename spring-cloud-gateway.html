@@ -172,6 +172,7 @@ $(addBlockSwitches);
 <li><a href="#_cors_configuration">CORS Configuration</a></li>
 <li><a href="#_actuator_api">Actuator API</a>
 <ul class="sectlevel2">
+<li><a href="#_verbose_actuator_format">Verbose Actuator Format</a></li>
 <li><a href="#_retrieving_route_filters">Retrieving route filters</a></li>
 <li><a href="#_refreshing_the_route_cache">Refreshing the route cache</a></li>
 <li><a href="#_retrieving_the_routes_defined_in_the_gateway">Retrieving the routes defined in the gateway</a></li>
@@ -2145,6 +2146,44 @@ spring.cloud.gateway.discovery.locator.filters[1].args[replacement]: "'/${remain
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">management.endpoint.gateway.enabled=true # default value
 management.endpoints.web.exposure.include=gateway</code></pre>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_verbose_actuator_format"><a class="link" href="#_verbose_actuator_format">Verbose Actuator Format</a></h3>
+<div class="paragraph">
+<p>A new, more verbose format has been added to Gateway. This adds more detail to each route allowing to view the predicates and filters associated to each route along with any configuration that is available.</p>
+</div>
+<div class="paragraph">
+<p><code>/actuator/gateway/routes</code></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">[
+  {
+    "predicate": "(Hosts: [**.addrequestheader.org] &amp;&amp; Paths: [/headers], match trailing slash: true)",
+    "route_id": "add_request_header_test",
+    "filters": [
+      "[[AddResponseHeader X-Response-Default-Foo = 'Default-Bar'], order = 1]",
+      "[[AddRequestHeader X-Request-Foo = 'Bar'], order = 1]",
+      "[[PrefixPath prefix = '/httpbin'], order = 2]"
+    ],
+    "uri": "lb://testservice",
+    "order": 0
+  }
+]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This feature is enabled by default. To disable it, set the following property:</p>
+</div>
+<div class="listingblock">
+<div class="title">application.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">spring.cloud.gateway.actuator.verbose.enabled=false</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This will default to true in a future release.</p>
 </div>
 </div>
 <div class="sect2">
