@@ -26,6 +26,7 @@ import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.NettyWriteResponseFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
 import org.springframework.cloud.gateway.support.BodyInserterContext;
 import org.springframework.core.Ordered;
 import org.springframework.core.io.buffer.DataBuffer;
@@ -38,10 +39,11 @@ import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.server.ServerWebExchange;
 
+import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR;
 
 /**
- * This filter is BETA and may be subject to change in a future release.
+ * GatewayFilter that modifies the respons body.
  */
 public class ModifyResponseBodyGatewayFilterFactory extends
 		AbstractGatewayFilterFactory<ModifyResponseBodyGatewayFilterFactory.Config> {
@@ -57,7 +59,10 @@ public class ModifyResponseBodyGatewayFilterFactory extends
 
 	@Override
 	public GatewayFilter apply(Config config) {
-		return new ModifyResponseGatewayFilter(config);
+		ModifyResponseGatewayFilter gatewayFilter = new ModifyResponseGatewayFilter(
+				config);
+		gatewayFilter.setFactory(this);
+		return gatewayFilter;
 	}
 
 	public static class Config {
@@ -142,12 +147,13 @@ public class ModifyResponseBodyGatewayFilterFactory extends
 
 		private final Config config;
 
+		private GatewayFilterFactory<Config> gatewayFilterFactory;
+
 		public ModifyResponseGatewayFilter(Config config) {
 			this.config = config;
 		}
 
 		@Override
-
 		public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 			return chain.filter(exchange.mutate().response(decorate(exchange)).build());
 		}
@@ -210,6 +216,20 @@ public class ModifyResponseBodyGatewayFilterFactory extends
 		@Override
 		public int getOrder() {
 			return NettyWriteResponseFilter.WRITE_RESPONSE_FILTER_ORDER - 1;
+		}
+
+		@Override
+		public String toString() {
+			Object obj = (this.gatewayFilterFactory != null) ? this.gatewayFilterFactory
+					: this;
+			return filterToStringCreator(obj)
+					.append("New content type", config.getNewContentType())
+					.append("In class", config.getInClass())
+					.append("Out class", config.getOutClass()).toString();
+		}
+
+		public void setFactory(GatewayFilterFactory<Config> gatewayFilterFactory) {
+			this.gatewayFilterFactory = gatewayFilterFactory;
 		}
 
 	}

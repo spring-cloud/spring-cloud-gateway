@@ -24,6 +24,7 @@ import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
+import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory.NameConfig;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
@@ -96,6 +97,15 @@ public class RequestHeaderToRequestUriGatewayFilterFactoryTests {
 		URI uri = (URI) webExchange.getAttributes().get(GATEWAY_REQUEST_URL_ATTR);
 		assertThat(uri).isNotNull();
 		assertThat(uri.toURL().toString()).isEqualTo("http://localhost");
+	}
+
+	@Test
+	public void toStringFormat() {
+		NameConfig config = new NameConfig();
+		config.setName("myname");
+		GatewayFilter filter = new RequestHeaderToRequestUriGatewayFilterFactory()
+				.apply(config);
+		assertThat(filter.toString()).contains("myname");
 	}
 
 }

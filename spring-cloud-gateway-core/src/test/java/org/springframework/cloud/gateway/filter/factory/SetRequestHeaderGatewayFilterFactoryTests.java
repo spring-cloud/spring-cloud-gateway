@@ -25,6 +25,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.factory.AbstractNameValueGatewayFilterFactory.NameValueConfig;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
@@ -53,8 +55,18 @@ public class SetRequestHeaderGatewayFilterFactoryTests extends BaseWebClientTest
 				.consumeWith(result -> {
 					Map<String, Object> headers = getMap(result.getResponseBody(),
 							"headers");
-					assertThat(headers).containsEntry("X-Req-Foo", "Second");
+					// add was called first, so sets will overwrite
+					assertThat(headers).doesNotContainEntry("X-Req-Foo", "First");
+					assertThat(headers).containsEntry("X-Req-Foo", "Second-www");
 				});
+	}
+
+	@Test
+	public void toStringFormat() {
+		NameValueConfig config = new NameValueConfig().setName("myname")
+				.setValue("myvalue");
+		GatewayFilter filter = new SetRequestHeaderGatewayFilterFactory().apply(config);
+		assertThat(filter.toString()).contains("myname").contains("myvalue");
 	}
 
 	@EnableAutoConfiguration
@@ -68,10 +80,10 @@ public class SetRequestHeaderGatewayFilterFactoryTests extends BaseWebClientTest
 		@Bean
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes().route("test_set_request_header",
-					r -> r.order(-1).host("**.setrequestheader.org")
+					r -> r.order(-1).host("{sub}.setrequestheader.org")
 							.filters(f -> f.prefixPath("/httpbin")
 									.addRequestHeader("X-Req-Foo", "First")
-									.setRequestHeader("X-Req-Foo", "Second"))
+									.setRequestHeader("X-Req-Foo", "Second-{sub}"))
 							.uri(uri))
 					.build();
 		}

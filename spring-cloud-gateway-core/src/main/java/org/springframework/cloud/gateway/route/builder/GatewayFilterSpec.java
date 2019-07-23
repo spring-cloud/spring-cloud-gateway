@@ -248,6 +248,29 @@ public class GatewayFilterSpec extends UriSpec {
 	}
 
 	/**
+	 * A filter that can be used to modify the request body. This filter is BETA and may
+	 * be subject to change in a future release.
+	 * @param configConsumer request spec for response modification
+	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
+	 * <pre>
+	 * {@code
+	 * ...
+	 * .modifyRequestBody(c -> c
+	 *		.setInClass(Some.class)
+	 *		.setOutClass(SomeOther.class)
+	 *		.setInHints(hintsIn)
+	 *		.setOutHints(hintsOut)
+	 *		.setRewriteFunction(rewriteFunction))
+	 * }
+	 * </pre>
+	 */
+	public <T, R> GatewayFilterSpec modifyRequestBody(
+			Consumer<ModifyRequestBodyGatewayFilterFactory.Config> configConsumer) {
+		return filter(getBean(ModifyRequestBodyGatewayFilterFactory.class)
+				.apply(configConsumer));
+	}
+
+	/**
 	 * A filter that can be used to modify the response body This filter is BETA and may
 	 * be subject to change in a future release.
 	 * @param inClass the class to conver the response body to
@@ -285,6 +308,28 @@ public class GatewayFilterSpec extends UriSpec {
 		return filter(getBean(ModifyResponseBodyGatewayFilterFactory.class)
 				.apply(c -> c.setRewriteFunction(inClass, outClass, rewriteFunction)
 						.setNewContentType(newContentType)));
+	}
+
+	/**
+	 * A filter that can be used to modify the response body using custom spec. This
+	 * filter is BETA and may be subject to change in a future release.
+	 * @param configConsumer response spec for response modification
+	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
+	 * <pre>
+	 * {@code
+	 * ...
+	 * .modifyResponseBody(c -> c
+	 *		.setInClass(Some.class)
+	 *		.setOutClass(SomeOther.class)
+	 *		.setOutHints(hintsOut)
+	 *		.setRewriteFunction(rewriteFunction))
+	 * }
+	 * </pre>
+	 */
+	public <T, R> GatewayFilterSpec modifyResponseBody(
+			Consumer<ModifyResponseBodyGatewayFilterFactory.Config> configConsumer) {
+		return filter(getBean(ModifyResponseBodyGatewayFilterFactory.class)
+				.apply(configConsumer));
 	}
 
 	/**
@@ -429,8 +474,9 @@ public class GatewayFilterSpec extends UriSpec {
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
 	public GatewayFilterSpec retry(int retries) {
-		return filter(getBean(RetryGatewayFilterFactory.class)
-				.apply(retryConfig -> retryConfig.setRetries(retries)));
+		return filter(
+				getBean(RetryGatewayFilterFactory.class).apply(this.routeBuilder.getId(),
+						retryConfig -> retryConfig.setRetries(retries)));
 	}
 
 	/**
@@ -442,7 +488,8 @@ public class GatewayFilterSpec extends UriSpec {
 	 */
 	public GatewayFilterSpec retry(
 			Consumer<RetryGatewayFilterFactory.RetryConfig> retryConsumer) {
-		return filter(getBean(RetryGatewayFilterFactory.class).apply(retryConsumer));
+		return filter(getBean(RetryGatewayFilterFactory.class)
+				.apply(this.routeBuilder.getId(), retryConsumer));
 	}
 
 	/**
@@ -453,7 +500,9 @@ public class GatewayFilterSpec extends UriSpec {
 	 */
 	public GatewayFilterSpec retry(Repeat<ServerWebExchange> repeat,
 			Retry<ServerWebExchange> retry) {
-		return filter(getBean(RetryGatewayFilterFactory.class).apply(repeat, retry));
+		RetryGatewayFilterFactory filterFactory = getBean(
+				RetryGatewayFilterFactory.class);
+		return filter(filterFactory.apply(this.routeBuilder.getId(), repeat, retry));
 	}
 
 	/**

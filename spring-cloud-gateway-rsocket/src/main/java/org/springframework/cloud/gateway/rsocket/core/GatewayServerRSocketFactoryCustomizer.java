@@ -64,7 +64,7 @@ public class GatewayServerRSocketFactoryCustomizer
 
 	@Override
 	public ServerRSocketFactory apply(ServerRSocketFactory factory) {
-		serverInterceptors.forEach(factory::addServerPlugin);
+		serverInterceptors.forEach(factory::addResponderPlugin);
 
 		List<String> micrometerTags = properties.getMicrometerTags();
 		Tag[] tags = Tags.of(micrometerTags.toArray(new String[] {}))

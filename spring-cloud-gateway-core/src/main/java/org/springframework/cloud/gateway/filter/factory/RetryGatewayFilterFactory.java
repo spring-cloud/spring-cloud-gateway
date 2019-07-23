@@ -33,7 +33,10 @@ import reactor.retry.RepeatContext;
 import reactor.retry.Retry;
 import reactor.retry.RetryContext;
 
+import org.springframework.cloud.gateway.event.EnableBodyCachingEvent;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.GatewayFilterChain;
+import org.springframework.cloud.gateway.support.HasRouteId;
 import org.springframework.cloud.gateway.support.TimeoutException;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -41,6 +44,7 @@ import org.springframework.http.HttpStatus.Series;
 import org.springframework.util.Assert;
 import org.springframework.web.server.ServerWebExchange;
 
+import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.CLIENT_RESPONSE_HEADER_NAMES;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ALREADY_ROUTED_ATTR;
 
@@ -130,7 +134,25 @@ public class RetryGatewayFilterFactory
 					.retryMax(retryConfig.getRetries());
 		}
 
-		return apply(statusCodeRepeat, exceptionRetry);
+		GatewayFilter gatewayFilter = apply(retryConfig.getRouteId(), statusCodeRepeat,
+				exceptionRetry);
+		return new GatewayFilter() {
+			@Override
+			public Mono<Void> filter(ServerWebExchange exchange,
+					GatewayFilterChain chain) {
+				return gatewayFilter.filter(exchange, chain);
+			}
+
+			@Override
+			public String toString() {
+				return filterToStringCreator(RetryGatewayFilterFactory.this)
+						.append("retries", retryConfig.getRetries())
+						.append("series", retryConfig.getSeries())
+						.append("statuses", retryConfig.getStatuses())
+						.append("methods", retryConfig.getMethods())
+						.append("exceptions", retryConfig.getExceptions()).toString();
+			}
+		};
 	}
 
 	public boolean exceedsMaxIterations(ServerWebExchange exchange,
@@ -145,7 +167,7 @@ public class RetryGatewayFilterFactory
 	}
 
 	public void reset(ServerWebExchange exchange) {
-		// TODO: what else to do to reset SWE?
+		// TODO: what else to do to reset exchange?
 		Set<String> addedHeaders = exchange.getAttributeOrDefault(
 				CLIENT_RESPONSE_HEADER_NAMES, Collections.emptySet());
 		addedHeaders
@@ -153,8 +175,18 @@ public class RetryGatewayFilterFactory
 		exchange.getAttributes().remove(GATEWAY_ALREADY_ROUTED_ATTR);
 	}
 
+	@Deprecated
 	public GatewayFilter apply(Repeat<ServerWebExchange> repeat,
 			Retry<ServerWebExchange> retry) {
+		return apply(null, repeat, retry);
+	}
+
+	public GatewayFilter apply(String routeId, Repeat<ServerWebExchange> repeat,
+			Retry<ServerWebExchange> retry) {
+		if (routeId != null && getPublisher() != null) {
+			// send an event to enable caching
+			getPublisher().publishEvent(new EnableBodyCachingEvent(this, routeId));
+		}
 		return (exchange, chain) -> {
 			trace("Entering retry-filter");
 
@@ -193,7 +225,9 @@ public class RetryGatewayFilterFactory
 	}
 
 	@SuppressWarnings("unchecked")
-	public static class RetryConfig {
+	public static class RetryConfig implements HasRouteId {
+
+		private String routeId;
 
 		private int retries = 3;
 
@@ -217,6 +251,16 @@ public class RetryGatewayFilterFactory
 							|| !this.exceptions.isEmpty(),
 					"series, status and exceptions may not all be empty");
 			Assert.notEmpty(this.methods, "methods may not be empty");
+		}
+
+		@Override
+		public void setRouteId(String routeId) {
+			this.routeId = routeId;
+		}
+
+		@Override
+		public String getRouteId() {
+			return this.routeId;
 		}
 
 		public int getRetries() {

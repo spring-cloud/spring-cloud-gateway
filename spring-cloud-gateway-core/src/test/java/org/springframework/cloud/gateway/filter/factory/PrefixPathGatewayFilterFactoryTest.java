@@ -25,6 +25,7 @@ import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
+import org.springframework.cloud.gateway.filter.factory.PrefixPathGatewayFilterFactory.Config;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
@@ -67,6 +68,14 @@ public class PrefixPathGatewayFilterFactoryTest {
 		LinkedHashSet<URI> uris = webExchange
 				.getRequiredAttribute(GATEWAY_ORIGINAL_REQUEST_URL_ATTR);
 		assertThat(uris).contains(request.getURI());
+	}
+
+	@Test
+	public void toStringFormat() {
+		Config config = new Config();
+		config.setPrefix("myprefix");
+		GatewayFilter filter = new PrefixPathGatewayFilterFactory().apply(config);
+		assertThat(filter.toString()).contains("myprefix");
 	}
 
 }

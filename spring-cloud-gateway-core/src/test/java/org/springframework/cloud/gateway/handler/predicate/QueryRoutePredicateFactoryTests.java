@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.gateway.handler.predicate;
 
+import java.util.function.Predicate;
+
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -25,6 +27,7 @@ import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.rule.OutputCapture;
+import org.springframework.cloud.gateway.handler.predicate.QueryRoutePredicateFactory.Config;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
@@ -33,6 +36,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -65,6 +69,15 @@ public class QueryRoutePredicateFactoryTests extends BaseWebClientTests {
 				.valueEquals(ROUTE_ID_HEADER, "default_path_to_httpbin");
 		output.expect(not(
 				containsString("Error applying predicate for route: foo_query_param")));
+	}
+
+	@Test
+	public void toStringFormat() {
+		Config config = new Config();
+		config.setParam("myparam");
+		config.setRegexp("myregexp");
+		Predicate predicate = new QueryRoutePredicateFactory().apply(config);
+		assertThat(predicate.toString()).contains("Query: param=myparam regexp=myregexp");
 	}
 
 	@EnableAutoConfiguration

@@ -22,11 +22,14 @@ import org.junit.runner.RunWith;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory.NameConfig;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @RunWith(SpringRunner.class)
@@ -39,6 +42,15 @@ public class RemoveResponseHeaderGatewayFilterFactoryTests extends BaseWebClient
 		testClient.get().uri("/headers").header("Host", "www.removereresponseheader.org")
 				.exchange().expectStatus().isOk().expectHeader()
 				.doesNotExist("X-Request-Foo");
+	}
+
+	@Test
+	public void toStringFormat() {
+		NameConfig config = new NameConfig();
+		config.setName("myname");
+		GatewayFilter filter = new RemoveResponseHeaderGatewayFilterFactory()
+				.apply(config);
+		assertThat(filter.toString()).contains("myname");
 	}
 
 	@EnableAutoConfiguration

@@ -45,10 +45,17 @@ public class BeforeRoutePredicateFactory
 
 	@Override
 	public Predicate<ServerWebExchange> apply(Config config) {
-		ZonedDateTime datetime = config.getDatetime();
-		return exchange -> {
-			final ZonedDateTime now = ZonedDateTime.now();
-			return now.isBefore(datetime);
+		return new GatewayPredicate() {
+			@Override
+			public boolean test(ServerWebExchange serverWebExchange) {
+				final ZonedDateTime now = ZonedDateTime.now();
+				return now.isBefore(config.getDatetime());
+			}
+
+			@Override
+			public String toString() {
+				return String.format("Before: %s", config.getDatetime());
+			}
 		};
 	}
 

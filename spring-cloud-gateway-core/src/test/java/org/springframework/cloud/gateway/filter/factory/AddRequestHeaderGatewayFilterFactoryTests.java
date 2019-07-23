@@ -25,6 +25,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.factory.AbstractNameValueGatewayFilterFactory.NameValueConfig;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
@@ -64,8 +66,16 @@ public class AddRequestHeaderGatewayFilterFactoryTests extends BaseWebClientTest
 				.exchange().expectBody(Map.class).consumeWith(result -> {
 					Map<String, Object> headers = getMap(result.getResponseBody(),
 							"headers");
-					assertThat(headers).containsEntry("X-Request-Acme", "ValueB");
+					assertThat(headers).containsEntry("X-Request-Acme", "ValueB-www");
 				});
+	}
+
+	@Test
+	public void toStringFormat() {
+		NameValueConfig config = new NameValueConfig().setName("myname")
+				.setValue("myvalue");
+		GatewayFilter filter = new AddRequestHeaderGatewayFilterFactory().apply(config);
+		assertThat(filter.toString()).contains("myname").contains("myvalue");
 	}
 
 	@EnableAutoConfiguration
@@ -79,9 +89,9 @@ public class AddRequestHeaderGatewayFilterFactoryTests extends BaseWebClientTest
 		@Bean
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes().route("add_request_header_java_test",
-					r -> r.path("/headers").and().host("**.addrequestheaderjava.org")
+					r -> r.path("/headers").and().host("{sub}.addrequestheaderjava.org")
 							.filters(f -> f.prefixPath("/httpbin")
-									.addRequestHeader("X-Request-Acme", "ValueB"))
+									.addRequestHeader("X-Request-Acme", "ValueB-{sub}"))
 							.uri(uri))
 					.build();
 		}

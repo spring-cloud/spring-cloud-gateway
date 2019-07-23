@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.gateway.handler.predicate;
 
+import java.util.function.Predicate;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -24,6 +26,7 @@ import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping;
+import org.springframework.cloud.gateway.handler.predicate.HeaderRoutePredicateFactory.Config;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
@@ -32,6 +35,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @RunWith(SpringRunner.class)
@@ -66,6 +70,15 @@ public class HeaderRoutePredicateFactoryTests extends BaseWebClientTests {
 				.valueEquals(HANDLER_MAPPER_HEADER,
 						RoutePredicateHandlerMapping.class.getSimpleName())
 				.expectHeader().valueEquals(ROUTE_ID_HEADER, "header_exists_dsl");
+	}
+
+	@Test
+	public void toStringFormat() {
+		Config config = new Config();
+		config.setHeader("myheader");
+		config.setRegexp("myregexp");
+		Predicate predicate = new HeaderRoutePredicateFactory().apply(config);
+		assertThat(predicate.toString()).contains("Header: myheader regexp=myregexp");
 	}
 
 	@EnableAutoConfiguration

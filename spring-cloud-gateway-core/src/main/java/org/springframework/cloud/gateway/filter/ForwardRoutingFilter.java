@@ -29,7 +29,6 @@ import org.springframework.web.server.ServerWebExchange;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.isAlreadyRouted;
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.setAlreadyRouted;
 
 public class ForwardRoutingFilter implements GlobalFilter, Ordered {
 
@@ -66,7 +65,6 @@ public class ForwardRoutingFilter implements GlobalFilter, Ordered {
 		if (isAlreadyRouted(exchange) || !"forward".equals(scheme)) {
 			return chain.filter(exchange);
 		}
-		setAlreadyRouted(exchange);
 
 		// TODO: translate url?
 

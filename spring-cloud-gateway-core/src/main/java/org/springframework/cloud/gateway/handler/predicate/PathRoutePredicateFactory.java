@@ -87,22 +87,32 @@ public class PathRoutePredicateFactory
 				pathPatterns.add(pathPattern);
 			});
 		}
-		return exchange -> {
-			PathContainer path = parsePath(exchange.getRequest().getURI().getRawPath());
+		return new GatewayPredicate() {
+			@Override
+			public boolean test(ServerWebExchange exchange) {
+				PathContainer path = parsePath(
+						exchange.getRequest().getURI().getRawPath());
 
-			Optional<PathPattern> optionalPathPattern = pathPatterns.stream()
-					.filter(pattern -> pattern.matches(path)).findFirst();
+				Optional<PathPattern> optionalPathPattern = pathPatterns.stream()
+						.filter(pattern -> pattern.matches(path)).findFirst();
 
-			if (optionalPathPattern.isPresent()) {
-				PathPattern pathPattern = optionalPathPattern.get();
-				traceMatch("Pattern", pathPattern.getPatternString(), path, true);
-				PathMatchInfo pathMatchInfo = pathPattern.matchAndExtract(path);
-				putUriTemplateVariables(exchange, pathMatchInfo.getUriVariables());
-				return true;
+				if (optionalPathPattern.isPresent()) {
+					PathPattern pathPattern = optionalPathPattern.get();
+					traceMatch("Pattern", pathPattern.getPatternString(), path, true);
+					PathMatchInfo pathMatchInfo = pathPattern.matchAndExtract(path);
+					putUriTemplateVariables(exchange, pathMatchInfo.getUriVariables());
+					return true;
+				}
+				else {
+					traceMatch("Pattern", config.getPatterns(), path, false);
+					return false;
+				}
 			}
-			else {
-				traceMatch("Pattern", config.getPatterns(), path, false);
-				return false;
+
+			@Override
+			public String toString() {
+				return String.format("Paths: %s, match trailing slash: %b",
+						config.getPatterns(), config.isMatchOptionalTrailingSeparator());
 			}
 		};
 	}

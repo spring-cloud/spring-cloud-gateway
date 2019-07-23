@@ -251,6 +251,16 @@ spring:
         filters:
         - Retry
 
+        # =====================================
+      - id: retry_post_test
+        uri: ${test.uri}
+        predicates:
+        - Host=**.retrypostconfig.org
+        filters:
+        - name: Retry
+          args:
+            methods: GET,POST
+
       # =====================================
       - id: secure_headers_test
         uri: ${test.uri}
@@ -293,9 +303,9 @@ spring:
         - Host=**.setreresponseheader.org
         - Path=/headers
         filters:
-        - AddResponseHeader=X-Request-Foo, Bar1
-        - AddResponseHeader=X-Request-Foo, Bar2
-        - SetResponseHeader=X-Request-Foo, Bar
+        - AddResponseHeader=X-Response-Foo, Bar1
+        - AddResponseHeader=X-Response-Foo, Bar2
+        - SetResponseHeader=X-Response-Foo, Bar
 
       # =====================================
       - id: set_status_int_test
@@ -374,3 +384,8 @@ eureka:
   client:
     enabled: false
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"

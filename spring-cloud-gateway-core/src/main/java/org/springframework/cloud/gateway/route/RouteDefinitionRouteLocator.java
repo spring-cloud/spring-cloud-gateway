@@ -21,7 +21,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -42,6 +41,7 @@ import org.springframework.cloud.gateway.handler.AsyncPredicate;
 import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
 import org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory;
 import org.springframework.cloud.gateway.support.ConfigurationUtils;
+import org.springframework.cloud.gateway.support.HasRouteId;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.core.Ordered;
@@ -148,9 +148,11 @@ public class RouteDefinitionRouteLocator
 	}
 
 	@SuppressWarnings("unchecked")
-	private List<GatewayFilter> loadGatewayFilters(String id,
+	List<GatewayFilter> loadGatewayFilters(String id,
 			List<FilterDefinition> filterDefinitions) {
-		List<GatewayFilter> filters = filterDefinitions.stream().map(definition -> {
+		ArrayList<GatewayFilter> ordered = new ArrayList<>(filterDefinitions.size());
+		for (int i = 0; i < filterDefinitions.size(); i++) {
+			FilterDefinition definition = filterDefinitions.get(i);
 			GatewayFilterFactory factory = this.gatewayFilterFactories
 					.get(definition.getName());
 			if (factory == null) {
@@ -170,19 +172,19 @@ public class RouteDefinitionRouteLocator
 			Object configuration = factory.newConfig();
 
 			ConfigurationUtils.bind(configuration, properties,
-					factory.shortcutFieldPrefix(), definition.getName(), validator,
-					conversionService);
+					factory.shortcutFieldPrefix(), definition.getName(), validator);
+
+			// some filters require routeId
+			// TODO: is there a better place to apply this?
+			if (configuration instanceof HasRouteId) {
+				HasRouteId hasRouteId = (HasRouteId) configuration;
+				hasRouteId.setRouteId(id);
+			}
 
 			GatewayFilter gatewayFilter = factory.apply(configuration);
 			if (this.publisher != null) {
 				this.publisher.publishEvent(new FilterArgsEvent(this, id, properties));
 			}
-			return gatewayFilter;
-		}).collect(Collectors.toList());
-
-		ArrayList<GatewayFilter> ordered = new ArrayList<>(filters.size());
-		for (int i = 0; i < filters.size(); i++) {
-			GatewayFilter gatewayFilter = filters.get(i);
 			if (gatewayFilter instanceof Ordered) {
 				ordered.add(gatewayFilter);
 			}

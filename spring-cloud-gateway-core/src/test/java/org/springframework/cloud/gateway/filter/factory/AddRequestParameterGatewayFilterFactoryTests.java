@@ -28,6 +28,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.factory.AbstractNameValueGatewayFilterFactory.NameValueConfig;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
@@ -66,7 +68,7 @@ public class AddRequestParameterGatewayFilterFactoryTests extends BaseWebClientT
 
 	@Test
 	public void addRequestParameterFilterWorksEncodedQueryJavaDsl() {
-		testRequestParameterFilter("www.addreqparamjava.org", "ValueB", "javaname",
+		testRequestParameterFilter("www.addreqparamjava.org", "ValueB-www", "javaname",
 				"%E6%89%8E%E6%A0%B9");
 	}
 
@@ -107,6 +109,15 @@ public class AddRequestParameterGatewayFilterFactoryTests extends BaseWebClientT
 				});
 	}
 
+	@Test
+	public void toStringFormat() {
+		NameValueConfig config = new NameValueConfig().setName("myname")
+				.setValue("myvalue");
+		GatewayFilter filter = new AddRequestParameterGatewayFilterFactory()
+				.apply(config);
+		assertThat(filter.toString()).contains("myname").contains("myvalue");
+	}
+
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
@@ -118,9 +129,9 @@ public class AddRequestParameterGatewayFilterFactoryTests extends BaseWebClientT
 		@Bean
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes().route("add_request_param_java_test",
-					r -> r.path("/get").and().host("**.addreqparamjava.org")
+					r -> r.path("/get").and().host("{sub}.addreqparamjava.org")
 							.filters(f -> f.prefixPath("/httpbin")
-									.addRequestParameter("example", "ValueB"))
+									.addRequestParameter("example", "ValueB-{sub}"))
 							.uri(uri))
 					.build();
 		}

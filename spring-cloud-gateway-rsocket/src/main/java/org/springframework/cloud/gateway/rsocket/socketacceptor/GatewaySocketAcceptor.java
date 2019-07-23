@@ -26,6 +26,8 @@ import io.micrometer.core.instrument.Tags;
 import io.rsocket.ConnectionSetupPayload;
 import io.rsocket.RSocket;
 import io.rsocket.SocketAcceptor;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.rsocket.autoconfigure.GatewayRSocketProperties;
@@ -34,6 +36,8 @@ import org.springframework.cloud.gateway.rsocket.metrics.MicrometerResponderRSoc
 import org.springframework.cloud.gateway.rsocket.support.Metadata;
 
 public class GatewaySocketAcceptor implements SocketAcceptor {
+
+	private static final Log log = LogFactory.getLog(GatewaySocketAcceptor.class);
 
 	private final SocketAcceptorFilterChain filterChain;
 
@@ -55,7 +59,9 @@ public class GatewaySocketAcceptor implements SocketAcceptor {
 	@Override
 	@SuppressWarnings("Duplicates")
 	public Mono<RSocket> accept(ConnectionSetupPayload setup, RSocket sendingSocket) {
-
+		if (log.isTraceEnabled()) {
+			log.trace("accept()");
+		}
 		// decorate GatewayRSocket with metrics
 		// current gateway id, type requester, service name (from metadata), service id
 

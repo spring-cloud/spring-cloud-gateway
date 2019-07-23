@@ -28,6 +28,7 @@ import io.netty.buffer.ByteBufUtil;
 import io.rsocket.Payload;
 import io.rsocket.RSocket;
 import io.rsocket.RSocketFactory;
+import io.rsocket.frame.decoder.PayloadDecoder;
 import io.rsocket.micrometer.MicrometerRSocketInterceptor;
 import io.rsocket.transport.netty.client.TcpClientTransport;
 import io.rsocket.util.DefaultPayload;
@@ -35,12 +36,13 @@ import io.rsocket.util.RSocketProxy;
 import lombok.extern.slf4j.Slf4j;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Hooks;
 import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.cloud.gateway.rsocket.core.GatewayExchange;
 import org.springframework.cloud.gateway.rsocket.core.GatewayFilter;
@@ -81,7 +83,12 @@ public class PingPongApp {
 	}
 
 	public static void main(String[] args) {
-		SpringApplication.run(PingPongApp.class, args);
+		Hooks.onOperatorDebug();
+		new SpringApplicationBuilder(PingPongApp.class)
+				// TODO: remove after
+				// https://github.com/spring-cloud/spring-cloud-gateway/issues/1140
+				.properties("spring.main.allow-bean-definition-overriding=true")
+				.run(args);
 	}
 
 	static String reply(String in) {
@@ -134,11 +141,11 @@ public class PingPongApp {
 					meterRegistry, Tag.of("component", "ping"));
 			ByteBuf announcementMetadata = Metadata.from("ping").with("id", "ping" + id)
 					.encode();
-			pongFlux = RSocketFactory.connect()
+			pongFlux = RSocketFactory.connect().frameDecoder(PayloadDecoder.ZERO_COPY)
 					.metadataMimeType(Metadata.ROUTING_MIME_TYPE)
 					.setupPayload(
 							DefaultPayload.create(EMPTY_BUFFER, announcementMetadata))
-					.addClientPlugin(interceptor)
+					.addRequesterPlugin(interceptor)
 					.transport(TcpClientTransport.create(gatewayPort)) // proxy
 					.start().flatMapMany(socket -> doPing(take, socket));
 
@@ -151,10 +158,12 @@ public class PingPongApp {
 						ByteBuf data = ByteBufUtil.writeUtf8(ByteBufAllocator.DEFAULT,
 								"ping" + id);
 						ByteBuf routingMetadata = Metadata.from("pong").encode();
+						log.debug("Sending ping" + id);
 						return DefaultPayload.create(data, routingMetadata);
 						// onBackpressue is needed in case pong is not available yet
-					}).onBackpressureDrop(payload -> log
-							.debug("Dropped payload " + payload.getDataUtf8())))
+					}).log("doPing")
+							.onBackpressureDrop(payload -> log
+									.debug("Dropped payload " + payload.getDataUtf8())))
 					.map(Payload::getDataUtf8).doOnNext(str -> {
 						int received = pongsReceived.incrementAndGet();
 						log.info("received " + str + "(" + received + ") in Ping" + id);
@@ -209,7 +218,7 @@ public class PingPongApp {
 			RSocketFactory.connect().metadataMimeType(Metadata.ROUTING_MIME_TYPE)
 					.setupPayload(
 							DefaultPayload.create(EMPTY_BUFFER, announcementMetadata))
-					.addClientPlugin(interceptor).acceptor(this::accept)
+					.addRequesterPlugin(interceptor).acceptor(this::accept)
 					.transport(TcpClientTransport.create(gatewayPort)) // proxy
 					.start().block();
 		}

@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.gateway.handler.predicate;
 
+import java.util.function.Predicate;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -23,11 +25,14 @@ import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping;
+import org.springframework.cloud.gateway.handler.predicate.MethodRoutePredicateFactory.Config;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpMethod;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @RunWith(SpringRunner.class)
@@ -42,6 +47,14 @@ public class MethodRoutePredicateFactoryTests extends BaseWebClientTests {
 				.valueEquals(HANDLER_MAPPER_HEADER,
 						RoutePredicateHandlerMapping.class.getSimpleName())
 				.expectHeader().valueEquals(ROUTE_ID_HEADER, "method_test");
+	}
+
+	@Test
+	public void toStringFormat() {
+		Config config = new Config();
+		config.setMethod(HttpMethod.GET);
+		Predicate predicate = new MethodRoutePredicateFactory().apply(config);
+		assertThat(predicate.toString()).contains("Method: " + config.getMethod());
 	}
 
 	@EnableAutoConfiguration

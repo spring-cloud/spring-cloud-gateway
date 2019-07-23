@@ -30,22 +30,6 @@
 	<name>Spring Cloud Gateway RSocket</name>
 	<description>Spring Cloud Gateway RSocket</description>
 
-	<properties>
-		<reactor.version>Californium-SR5</reactor.version>
-	</properties>
-
-	<dependencyManagement>
-		<dependencies>
-			<dependency>
-				<groupId>io.projectreactor</groupId>
-				<artifactId>reactor-bom</artifactId>
-				<version>${reactor.version}</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
-
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

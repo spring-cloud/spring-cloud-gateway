@@ -19,12 +19,12 @@
 		<relativePath/>
 	</parent>
 	<scm>
-		<url>https://github.com/spring-cloud-incubator/spring-cloud-gateway</url>
+		<url>https://github.com/spring-cloud/spring-cloud-gateway</url>
 		<connection>
-			scm:git:git://github.com/spring-cloud-incubator/spring-cloud-gateway.git
+			scm:git:git://github.com/spring-cloud/spring-cloud-gateway.git
 		</connection>
 		<developerConnection>
-			scm:git:ssh://git@github.com/spring-cloud-incubator/spring-cloud-gateway.git
+			scm:git:ssh://git@github.com/spring-cloud/spring-cloud-gateway.git
 		</developerConnection>
 		<tag>HEAD</tag>
 	</scm>

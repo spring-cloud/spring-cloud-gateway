@@ -35,6 +35,7 @@ import org.springframework.cloud.gateway.handler.predicate.HostRoutePredicateFac
 import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
 import org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory;
 import org.springframework.core.convert.support.DefaultConversionService;
+import org.springframework.util.StringUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -74,10 +75,10 @@ public class RouteDefinitionRouteLocatorTests {
 				.block();
 		List<GatewayFilter> filters = routes.get(0).getFilters();
 		assertThat(filters).hasSize(3);
-		assertThat(getFilterClassName(filters.get(0))).startsWith("RemoveResponseHeader");
-		assertThat(getFilterClassName(filters.get(1))).startsWith("AddResponseHeader");
+		assertThat(getFilterClassName(filters.get(0))).contains("RemoveResponseHeader");
+		assertThat(getFilterClassName(filters.get(1))).contains("AddResponseHeader");
 		assertThat(getFilterClassName(filters.get(2)))
-				.startsWith("RouteDefinitionRouteLocatorTests$TestOrderedGateway");
+				.contains("RouteDefinitionRouteLocatorTests$TestOrderedGateway");
 	}
 
 	private String getFilterClassName(GatewayFilter target) {
@@ -85,7 +86,12 @@ public class RouteDefinitionRouteLocatorTests {
 			return getFilterClassName(((OrderedGatewayFilter) target).getDelegate());
 		}
 		else {
-			return target.getClass().getSimpleName();
+			String simpleName = target.getClass().getSimpleName();
+			if (StringUtils.isEmpty(simpleName)) {
+				// maybe a lambda using new toString methods
+				simpleName = target.toString();
+			}
+			return simpleName;
 		}
 	}
 

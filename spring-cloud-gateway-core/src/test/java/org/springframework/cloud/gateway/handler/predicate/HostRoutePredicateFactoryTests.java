@@ -16,6 +16,9 @@
 
 package org.springframework.cloud.gateway.handler.predicate;
 
+import java.util.Arrays;
+import java.util.function.Predicate;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -24,6 +27,7 @@ import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping;
+import org.springframework.cloud.gateway.handler.predicate.HostRoutePredicateFactory.Config;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
@@ -32,6 +36,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @RunWith(SpringRunner.class)
@@ -73,6 +78,13 @@ public class HostRoutePredicateFactoryTests extends BaseWebClientTests {
 	public void mulitHostRouteDslWorks() {
 		expectHostRoute("www.hostmultidsl1.org", "host_multi_dsl");
 		expectHostRoute("www.hostmultidsl2.org", "host_multi_dsl");
+	}
+
+	@Test
+	public void toStringFormat() {
+		Config config = new Config().setPatterns(Arrays.asList("pattern1", "pattern2"));
+		Predicate predicate = new HostRoutePredicateFactory().apply(config);
+		assertThat(predicate.toString()).contains("pattern1").contains("pattern2");
 	}
 
 	@EnableAutoConfiguration

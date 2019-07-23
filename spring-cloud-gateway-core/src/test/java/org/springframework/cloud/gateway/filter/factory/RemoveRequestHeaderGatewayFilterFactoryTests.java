@@ -24,6 +24,8 @@ import org.junit.runner.RunWith;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory.NameConfig;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
@@ -47,6 +49,15 @@ public class RemoveRequestHeaderGatewayFilterFactoryTests extends BaseWebClientT
 							"headers");
 					assertThat(headers).doesNotContainKey("X-Request-Foo");
 				});
+	}
+
+	@Test
+	public void toStringFormat() {
+		NameConfig config = new NameConfig();
+		config.setName("myname");
+		GatewayFilter filter = new RemoveRequestHeaderGatewayFilterFactory()
+				.apply(config);
+		assertThat(filter.toString()).contains("myname");
 	}
 
 	@EnableAutoConfiguration
