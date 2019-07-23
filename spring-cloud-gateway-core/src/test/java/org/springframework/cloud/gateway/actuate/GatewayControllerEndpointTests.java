@@ -78,6 +78,28 @@ public class GatewayControllerEndpointTests {
 				});
 	}
 
+	@Test
+	public void testRouteFilters() {
+		testClient.get()
+				.uri("http://localhost:" + port + "/actuator/gateway/routefilters")
+				.exchange().expectStatus().isOk().expectBody(Map.class)
+				.consumeWith(result -> {
+					Map<?, ?> responseBody = result.getResponseBody();
+					assertThat(responseBody).isNotEmpty();
+				});
+	}
+
+	@Test
+	public void testRoutePredicates() {
+		testClient.get()
+				.uri("http://localhost:" + port + "/actuator/gateway/routepredicates")
+				.exchange().expectStatus().isOk().expectBody(Map.class)
+				.consumeWith(result -> {
+					Map<?, ?> responseBody = result.getResponseBody();
+					assertThat(responseBody).isNotEmpty();
+				});
+	}
+
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	@Import(PermitAllSecurityConfiguration.class)
