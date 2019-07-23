@@ -72,6 +72,7 @@ import org.springframework.cloud.gateway.filter.factory.PrefixPathGatewayFilterF
 import org.springframework.cloud.gateway.filter.factory.PreserveHostHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RedirectToGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RemoveRequestHeaderGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.RemoveRequestParameterGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RemoveResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RequestHeaderToRequestUriGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RequestRateLimiterGatewayFilterFactory;
@@ -438,6 +439,11 @@ public class GatewayAutoConfiguration {
 	@Bean
 	public RemoveRequestHeaderGatewayFilterFactory removeRequestHeaderGatewayFilterFactory() {
 		return new RemoveRequestHeaderGatewayFilterFactory();
+	}
+
+	@Bean
+	public RemoveRequestParameterGatewayFilterFactory removeRequestParameterGatewayFilterFactory() {
+		return new RemoveRequestParameterGatewayFilterFactory();
 	}
 
 	@Bean
