@@ -20,6 +20,7 @@ import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
+import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -37,9 +38,9 @@ public class SetRequestHeaderGatewayFilterFactory
 			@Override
 			public Mono<Void> filter(ServerWebExchange exchange,
 					GatewayFilterChain chain) {
+				String value = ServerWebExchangeUtils.expand(exchange, config.getValue());
 				ServerHttpRequest request = exchange.getRequest().mutate()
-						.headers(
-								httpHeaders -> httpHeaders.set(config.name, config.value))
+						.headers(httpHeaders -> httpHeaders.set(config.name, value))
 						.build();
 
 				return chain.filter(exchange.mutate().request(request).build());

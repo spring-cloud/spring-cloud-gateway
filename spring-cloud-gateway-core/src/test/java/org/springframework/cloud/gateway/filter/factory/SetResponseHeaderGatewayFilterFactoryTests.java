@@ -19,12 +19,16 @@ package org.springframework.cloud.gateway.filter.factory;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractNameValueGatewayFilterFactory.NameValueConfig;
+import org.springframework.cloud.gateway.route.RouteLocator;
+import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -41,7 +45,14 @@ public class SetResponseHeaderGatewayFilterFactoryTests extends BaseWebClientTes
 	public void setResponseHeaderFilterWorks() {
 		testClient.get().uri("/headers").header("Host", "www.setreresponseheader.org")
 				.exchange().expectStatus().isOk().expectHeader()
-				.valueEquals("X-Request-Foo", "Bar");
+				.valueEquals("X-Response-Foo", "Bar");
+	}
+
+	@Test
+	public void setResponseHeaderFilterWorksJavaDsl() {
+		testClient.get().uri("/headers").header("Host", "www.setresponseheaderdsl.org")
+				.exchange().expectStatus().isOk().expectHeader()
+				.valueEquals("X-Res-Foo", "Second-www");
 	}
 
 	@Test
@@ -56,6 +67,20 @@ public class SetResponseHeaderGatewayFilterFactoryTests extends BaseWebClientTes
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
 	public static class TestConfig {
+
+		@Value("${test.uri}")
+		String uri;
+
+		@Bean
+		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
+			return builder.routes().route("test_set_response_header_dsl",
+					r -> r.order(-1).host("{sub}.setresponseheaderdsl.org")
+							.filters(f -> f.prefixPath("/httpbin")
+									.addResponseHeader("X-Res-Foo", "First")
+									.setResponseHeader("X-Res-Foo", "Second-{sub}"))
+							.uri(uri))
+					.build();
+		}
 
 	}
 

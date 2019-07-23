@@ -253,13 +253,12 @@ public final class ServerWebExchangeUtils {
 		Assert.notNull(exchange, "exchange may not be null");
 		Assert.notNull(template, "template may not be null");
 
-		if (template.indexOf('{') == -1) { //short circuit
+		if (template.indexOf('{') == -1) { // short circuit
 			return template;
 		}
 
 		Map<String, String> variables = getUriTemplateVariables(exchange);
-		return UriComponentsBuilder.fromPath(template).build()
-				.expand(variables)
+		return UriComponentsBuilder.fromPath(template).build().expand(variables)
 				.getPath();
 	}
 
