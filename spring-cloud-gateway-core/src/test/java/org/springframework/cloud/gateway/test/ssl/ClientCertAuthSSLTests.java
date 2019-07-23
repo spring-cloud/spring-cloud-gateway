@@ -16,6 +16,10 @@
 
 package org.springframework.cloud.gateway.test.ssl;
 
+import java.net.URL;
+import java.security.KeyStore;
+
+import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLException;
 
 import io.netty.handler.ssl.SslContext;
@@ -26,32 +30,61 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import reactor.netty.http.client.HttpClient;
 
-import org.springframework.boot.SpringBootConfiguration;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.gateway.test.BaseWebClientTests;
-import org.springframework.context.annotation.Import;
-import org.springframework.http.ResponseEntity;
+import org.springframework.boot.web.server.WebServerException;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.util.ResourceUtils;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
-@ActiveProfiles("single-cert-ssl")
-public class SingleCertSSLTests extends BaseWebClientTests {
+@ActiveProfiles("client-auth-ssl")
+public class ClientCertAuthSSLTests extends SingleCertSSLTests {
+
+	@Value("${spring.cloud.gateway.httpclient.ssl.key-store}")
+	private String keyStore;
+
+	@Value("${spring.cloud.gateway.httpclient.ssl.key-store-password}")
+	private String keyStorePassword;
+
+	@Value("${spring.cloud.gateway.httpclient.ssl.key-password}")
+	private String keyPassword;
 
 	@Before
 	public void setup() throws Exception {
+		KeyStore store = KeyStore.getInstance("JKS");
+
+		try {
+			URL url = ResourceUtils.getURL(keyStore);
+			store.load(url.openStream(),
+					keyStorePassword != null ? keyStorePassword.toCharArray() : null);
+		}
+		catch (Exception e) {
+			throw new WebServerException("Could not load key store ' " + keyStore + "'",
+					e);
+		}
+
+		KeyManagerFactory keyManagerFactory = KeyManagerFactory
+				.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+		char[] keyPasswordCharArray = keyPassword != null ? keyPassword.toCharArray()
+				: null;
+
+		if (keyPasswordCharArray == null && keyStorePassword != null) {
+			keyPasswordCharArray = keyStorePassword.toCharArray();
+		}
+
+		keyManagerFactory.init(store, keyPasswordCharArray);
+
 		try {
 			SslContext sslContext = SslContextBuilder.forClient()
-					.trustManager(InsecureTrustManagerFactory.INSTANCE).build();
+					.trustManager(InsecureTrustManagerFactory.INSTANCE)
+					.keyManager(keyManagerFactory).build();
 			HttpClient httpClient = HttpClient.create()
 					.secure(ssl -> ssl.sslContext(sslContext));
 			setup(new ReactorClientHttpConnector(httpClient),
@@ -65,19 +98,6 @@ public class SingleCertSSLTests extends BaseWebClientTests {
 	@Test
 	public void testSslTrust() {
 		testClient.get().uri("/ssltrust").exchange().expectStatus().is2xxSuccessful();
-	}
-
-	@EnableAutoConfiguration
-	@SpringBootConfiguration
-	@Import(DefaultTestConfig.class)
-	@RestController
-	public static class TestConfig {
-
-		@RequestMapping("/httpbin/ssltrust")
-		public ResponseEntity<Void> nocontenttype() {
-			return ResponseEntity.status(204).build();
-		}
-
 	}
 
 }

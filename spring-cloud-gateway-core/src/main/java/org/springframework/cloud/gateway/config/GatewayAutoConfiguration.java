@@ -23,6 +23,8 @@ import com.netflix.hystrix.HystrixObservableCommand;
 import io.netty.channel.ChannelOption;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Flux;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.resources.ConnectionProvider;
@@ -522,6 +524,8 @@ public class GatewayAutoConfiguration {
 	@ConditionalOnClass(HttpClient.class)
 	protected static class NettyConfiguration {
 
+		protected final Log logger = LogFactory.getLog(getClass());
+
 		@Bean
 		@ConditionalOnProperty(name = "spring.cloud.gateway.httpserver.wiretap")
 		public NettyWebServerFactoryCustomizer nettyServerWiretapCustomizer(
@@ -588,7 +592,8 @@ public class GatewayAutoConfiguration {
 					});
 
 			HttpClientProperties.Ssl ssl = properties.getSsl();
-			if (ssl.getTrustedX509CertificatesForTrustManager().length > 0
+			if ((ssl.getKeyStore() != null && ssl.getKeyStore().length() > 0)
+					|| ssl.getTrustedX509CertificatesForTrustManager().length > 0
 					|| ssl.isUseInsecureTrustManager()) {
 				httpClient = httpClient.secure(sslContextSpec -> {
 					// configure ssl
@@ -597,11 +602,20 @@ public class GatewayAutoConfiguration {
 					X509Certificate[] trustedX509Certificates = ssl
 							.getTrustedX509CertificatesForTrustManager();
 					if (trustedX509Certificates.length > 0) {
-						sslContextBuilder.trustManager(trustedX509Certificates);
+						sslContextBuilder = sslContextBuilder
+								.trustManager(trustedX509Certificates);
 					}
 					else if (ssl.isUseInsecureTrustManager()) {
-						sslContextBuilder
+						sslContextBuilder = sslContextBuilder
 								.trustManager(InsecureTrustManagerFactory.INSTANCE);
+					}
+
+					try {
+						sslContextBuilder = sslContextBuilder
+								.keyManager(ssl.getKeyManagerFactory());
+					}
+					catch (Exception e) {
+						logger.error(e);
 					}
 
 					sslContextSpec.sslContext(sslContextBuilder)
