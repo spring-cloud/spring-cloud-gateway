@@ -20,6 +20,7 @@ import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
+import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.web.server.ServerWebExchange;
 
 import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
@@ -36,8 +37,8 @@ public class AddResponseHeaderGatewayFilterFactory
 			@Override
 			public Mono<Void> filter(ServerWebExchange exchange,
 					GatewayFilterChain chain) {
-				exchange.getResponse().getHeaders().add(config.getName(),
-						config.getValue());
+				String value = ServerWebExchangeUtils.expand(exchange, config.getValue());
+				exchange.getResponse().getHeaders().add(config.getName(), value);
 
 				return chain.filter(exchange);
 			}

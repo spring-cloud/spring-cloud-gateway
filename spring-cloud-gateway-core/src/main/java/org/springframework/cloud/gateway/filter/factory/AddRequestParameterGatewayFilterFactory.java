@@ -22,6 +22,7 @@ import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
+import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
@@ -52,10 +53,11 @@ public class AddRequestParameterGatewayFilterFactory
 					}
 				}
 
+				String value = ServerWebExchangeUtils.expand(exchange, config.getValue());
 				// TODO urlencode?
 				query.append(config.getName());
 				query.append('=');
-				query.append(config.getValue());
+				query.append(value);
 
 				try {
 					URI newUri = UriComponentsBuilder.fromUri(uri)

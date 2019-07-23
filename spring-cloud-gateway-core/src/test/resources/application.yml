@@ -303,9 +303,9 @@ spring:
         - Host=**.setreresponseheader.org
         - Path=/headers
         filters:
-        - AddResponseHeader=X-Request-Foo, Bar1
-        - AddResponseHeader=X-Request-Foo, Bar2
-        - SetResponseHeader=X-Request-Foo, Bar
+        - AddResponseHeader=X-Response-Foo, Bar1
+        - AddResponseHeader=X-Response-Foo, Bar2
+        - SetResponseHeader=X-Response-Foo, Bar
 
       # =====================================
       - id: set_status_int_test

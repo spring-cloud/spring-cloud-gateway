@@ -249,6 +249,19 @@ public final class ServerWebExchangeUtils {
 		return AsyncPredicate.from(predicate);
 	}
 
+	public static String expand(ServerWebExchange exchange, String template) {
+		Assert.notNull(exchange, "exchange may not be null");
+		Assert.notNull(template, "template may not be null");
+
+		if (template.indexOf('{') == -1) { // short circuit
+			return template;
+		}
+
+		Map<String, String> variables = getUriTemplateVariables(exchange);
+		return UriComponentsBuilder.fromPath(template).build().expand(variables)
+				.getPath();
+	}
+
 	@SuppressWarnings("unchecked")
 	public static void putUriTemplateVariables(ServerWebExchange exchange,
 			Map<String, String> uriVariables) {
