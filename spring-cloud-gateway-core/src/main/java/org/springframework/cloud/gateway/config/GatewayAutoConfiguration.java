@@ -648,7 +648,7 @@ public class GatewayAutoConfiguration {
 	protected static class GatewayActuatorConfiguration {
 
 		@Bean
-		@ConditionalOnProperty(value = "spring.cloud.gateway.actuator.verbose.enabled")
+		@ConditionalOnProperty("spring.cloud.gateway.actuator.verbose.enabled")
 		@ConditionalOnEnabledEndpoint
 		public GatewayControllerEndpoint gatewayControllerEndpoint(
 				List<GlobalFilter> globalFilters,
@@ -677,8 +677,8 @@ public class GatewayAutoConfiguration {
 			super(ConfigurationPhase.REGISTER_BEAN);
 		}
 
-		@ConditionalOnProperty(value = "spring.cloud.gateway.actuator.verbose.enabled")
-		static class VerboseDisabled {}
+		@ConditionalOnProperty("spring.cloud.gateway.actuator.verbose.enabled")
+		static class VerboseDisabled { }
 
 	}
 
