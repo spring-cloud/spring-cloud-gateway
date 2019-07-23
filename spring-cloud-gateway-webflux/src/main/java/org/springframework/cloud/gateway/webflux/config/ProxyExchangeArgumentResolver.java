@@ -85,7 +85,9 @@ public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResol
 		ProxyExchange<?> proxy = new ProxyExchange<>(rest, exchange, bindingContext,
 				type(parameter));
 		proxy.headers(headers);
-		proxy.headers(extractAutoForwardedHeaders(exchange));
+		if (this.autoForwardedHeaders.size() > 0) {
+			proxy.headers(extractAutoForwardedHeaders(exchange));
+		}
 		if (sensitive != null) {
 			proxy.sensitive(sensitive.toArray(new String[0]));
 		}

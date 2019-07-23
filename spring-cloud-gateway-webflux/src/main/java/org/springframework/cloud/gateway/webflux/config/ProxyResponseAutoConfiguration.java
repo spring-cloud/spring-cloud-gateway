@@ -57,7 +57,7 @@ public class ProxyResponseAutoConfiguration implements WebFluxConfigurer {
 		ProxyExchangeArgumentResolver resolver = new ProxyExchangeArgumentResolver(
 				template);
 		resolver.setHeaders(proxy.convertHeaders());
-		resolver.setAutoForwardedHeaders(proxy.getAutoForward()); // can be null
+		resolver.setAutoForwardedHeaders(proxy.getAutoForward());
 		resolver.setSensitive(proxy.getSensitive()); // can be null
 		return resolver;
 	}
