@@ -39,7 +39,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(properties = "management.endpoints.web.exposure.include=*", webEnvironment = RANDOM_PORT)
+@SpringBootTest(properties = { "management.endpoints.web.exposure.include=*",
+		"spring.cloud.gateway.actuator.verbose.enabled=true" }, webEnvironment = RANDOM_PORT)
 public class GatewayControllerEndpointTests {
 
 	@Autowired
@@ -66,7 +67,8 @@ public class GatewayControllerEndpointTests {
 
 	@Test
 	public void testGetSpecificRoute() {
-		testClient.get().uri("http://localhost:" + port + "/actuator/gateway/routes/test-service")
+		testClient.get()
+				.uri("http://localhost:" + port + "/actuator/gateway/routes/test-service")
 				.exchange().expectStatus().isOk().expectBodyList(Map.class)
 				.consumeWith(result -> {
 					List<Map> responseBody = result.getResponseBody();
@@ -80,12 +82,15 @@ public class GatewayControllerEndpointTests {
 	@EnableAutoConfiguration
 	@Import(PermitAllSecurityConfiguration.class)
 	static class TestConfig {
+
 		@Bean
 		RouteLocator testRouteLocator(RouteLocatorBuilder routeLocatorBuilder) {
 			return routeLocatorBuilder.routes()
-					.route("test-service", routePredicate -> routePredicate.path("/test-service/**").uri("lb://test-service"))
+					.route("test-service",
+							r -> r.path("/test-service/**").uri("lb://test-service"))
 					.build();
 		}
+
 	}
 
 }
