@@ -134,6 +134,7 @@ $(addBlockSwitches);
 <li><a href="#_savesession_gatewayfilter_factory">SaveSession GatewayFilter Factory</a></li>
 <li><a href="#_secureheaders_gatewayfilter_factory">SecureHeaders GatewayFilter Factory</a></li>
 <li><a href="#_setpath_gatewayfilter_factory">SetPath GatewayFilter Factory</a></li>
+<li><a href="#_setrequestheader_gatewayfilter_factory">SetRequestHeader GatewayFilter Factory</a></li>
 <li><a href="#_setresponseheader_gatewayfilter_factory">SetResponseHeader GatewayFilter Factory</a></li>
 <li><a href="#_setstatus_gatewayfilter_factory">SetStatus GatewayFilter Factory</a></li>
 <li><a href="#_stripprefix_gatewayfilter_factory">StripPrefix GatewayFilter Factory</a></li>
@@ -699,6 +700,24 @@ If two hops of trusted infrastructure are required before Spring Cloud Gateway i
 <div class="paragraph">
 <p>This will add <code>X-Request-Foo:Bar</code> header to the downstream request&#8217;s headers for all matching requests.</p>
 </div>
+<div class="paragraph">
+<p>AddRequestHeader is aware of URI variables used to match a path or host. URI variables may be used in the value and will be expanded at runtime.</p>
+</div>
+<div class="listingblock">
+<div class="title">application.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: add_request_header_route
+        uri: https://example.org
+        predicates:
+        - Path=/foo/{segment}
+        filters:
+        - AddRequestHeader=X-Request-Foo, Bar-{segment}</code></pre>
+</div>
+</div>
 </div>
 <div class="sect2">
 <h3 id="_addrequestparameter_gatewayfilter_factory"><a class="link" href="#_addrequestparameter_gatewayfilter_factory">AddRequestParameter GatewayFilter Factory</a></h3>
@@ -721,6 +740,24 @@ If two hops of trusted infrastructure are required before Spring Cloud Gateway i
 <div class="paragraph">
 <p>This will add <code>foo=bar</code> to the downstream request&#8217;s query string for all matching requests.</p>
 </div>
+<div class="paragraph">
+<p>AddRequestParameter is aware of URI variables used to match a path or host. URI variables may be used in the value and will be expanded at runtime.</p>
+</div>
+<div class="listingblock">
+<div class="title">application.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: add_request_parameter_route
+        uri: https://example.org
+        predicates:
+        - Host: {segment}.myhost.org
+        filters:
+        - AddRequestParameter=foo, bar-{segment}</code></pre>
+</div>
+</div>
 </div>
 <div class="sect2">
 <h3 id="_addresponseheader_gatewayfilter_factory"><a class="link" href="#_addresponseheader_gatewayfilter_factory">AddResponseHeader GatewayFilter Factory</a></h3>
@@ -742,6 +779,24 @@ If two hops of trusted infrastructure are required before Spring Cloud Gateway i
 </div>
 <div class="paragraph">
 <p>This will add <code>X-Response-Foo:Bar</code> header to the downstream response&#8217;s headers for all matching requests.</p>
+</div>
+<div class="paragraph">
+<p>AddResponseHeader is aware of URI variables used to match a path or host. URI variables may be used in the value and will be expanded at runtime.</p>
+</div>
+<div class="listingblock">
+<div class="title">application.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: add_response_header_route
+        uri: https://example.org
+        predicates:
+        - Host: {segment}.myhost.org
+        filters:
+        - AddResponseHeader=foo, bar-{segment}</code></pre>
+</div>
 </div>
 </div>
 <div class="sect2">
@@ -1369,6 +1424,46 @@ using something like <a href="https://projects.spring.io/spring-session/">Spring
 </div>
 </div>
 <div class="sect2">
+<h3 id="_setrequestheader_gatewayfilter_factory"><a class="link" href="#_setrequestheader_gatewayfilter_factory">SetRequestHeader GatewayFilter Factory</a></h3>
+<div class="paragraph">
+<p>The SetRequestHeader GatewayFilter Factory takes <code>name</code> and <code>value</code> parameters.</p>
+</div>
+<div class="listingblock">
+<div class="title">application.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: setrequestheader_route
+        uri: https://example.org
+        filters:
+        - SetRequestHeader=X-Request-Foo, Bar</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This GatewayFilter replaces all headers with the given name, rather than adding. So if the downstream server responded with a <code>X-Request-Foo:1234</code>, this would be replaced with <code>X-Request-Foo:Bar</code>, which is what the downstream service would receive.</p>
+</div>
+<div class="paragraph">
+<p>SetRequestHeader is aware of URI variables used to match a path or host. URI variables may be used in the value and will be expanded at runtime.</p>
+</div>
+<div class="listingblock">
+<div class="title">application.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: setrequestheader_route
+        uri: https://example.org
+        predicates:
+        - Host: {segment}.myhost.org
+        filters:
+        - SetRequestHeader=foo, bar-{segment}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
 <h3 id="_setresponseheader_gatewayfilter_factory"><a class="link" href="#_setresponseheader_gatewayfilter_factory">SetResponseHeader GatewayFilter Factory</a></h3>
 <div class="paragraph">
 <p>The SetResponseHeader GatewayFilter Factory takes <code>name</code> and <code>value</code> parameters.</p>
@@ -1388,6 +1483,24 @@ using something like <a href="https://projects.spring.io/spring-session/">Spring
 </div>
 <div class="paragraph">
 <p>This GatewayFilter replaces all headers with the given name, rather than adding. So if the downstream server responded with a <code>X-Response-Foo:1234</code>, this would be replaced with <code>X-Response-Foo:Bar</code>, which is what the gateway client would receive.</p>
+</div>
+<div class="paragraph">
+<p>SetResponseHeader is aware of URI variables used to match a path or host. URI variables may be used in the value and will be expanded at runtime.</p>
+</div>
+<div class="listingblock">
+<div class="title">application.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: setresponseheader_route
+        uri: https://example.org
+        predicates:
+        - Host: {segment}.myhost.org
+        filters:
+        - SetResponseHeader=foo, bar-{segment}</code></pre>
+</div>
 </div>
 </div>
 <div class="sect2">
