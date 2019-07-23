@@ -341,7 +341,7 @@ spring:
 
 This will add `X-Request-Foo:Bar` header to the downstream request's headers for all matching requests.
 
-AddRequestHeader is aware of URI variables used to match a path or host. URI may be used in the value and will be expanded at runtime.
+AddRequestHeader is aware of URI variables used to match a path or host. URI variables may be used in the value and will be expanded at runtime.
 
 .application.yml
 [source,yaml]
@@ -376,7 +376,7 @@ spring:
 
 This will add `foo=bar` to the downstream request's query string for all matching requests.
 
-AddRequestParameter is aware of URI variables used to match a path or host. URI may be used in the value and will be expanded at runtime.
+AddRequestParameter is aware of URI variables used to match a path or host. URI variables may be used in the value and will be expanded at runtime.
 
 .application.yml
 [source,yaml]
@@ -411,7 +411,7 @@ spring:
 
 This will add `X-Response-Foo:Bar` header to the downstream response's headers for all matching requests.
 
-AddResponseHeader is aware of URI variables used to match a path or host. URI may be used in the value and will be expanded at runtime.
+AddResponseHeader is aware of URI variables used to match a path or host. URI variables may be used in the value and will be expanded at runtime.
 
 .application.yml
 [source,yaml]
@@ -906,9 +906,9 @@ spring:
         - SetRequestHeader=X-Request-Foo, Bar
 ----
 
-This GatewayFilter replaces all headers with the given name, rather than adding. So if the downstream server responded with a `X-Response-Foo:1234`, this would be replaced with `X-Response-Foo:Bar`, which is what the gateway client would receive.
+This GatewayFilter replaces all headers with the given name, rather than adding. So if the downstream server responded with a `X-Request-Foo:1234`, this would be replaced with `X-Request-Foo:Bar`, which is what the downstream service would receive.
 
-SetRequestHeader is aware of URI variables used to match a path or host. URI may be used in the value and will be expanded at runtime.
+SetRequestHeader is aware of URI variables used to match a path or host. URI variables may be used in the value and will be expanded at runtime.
 
 .application.yml
 [source,yaml]
@@ -943,7 +943,7 @@ spring:
 
 This GatewayFilter replaces all headers with the given name, rather than adding. So if the downstream server responded with a `X-Response-Foo:1234`, this would be replaced with `X-Response-Foo:Bar`, which is what the gateway client would receive.
 
-SetResponseHeader is aware of URI variables used to match a path or host. URI may be used in the value and will be expanded at runtime.
+SetResponseHeader is aware of URI variables used to match a path or host. URI variables may be used in the value and will be expanded at runtime.
 
 .application.yml
 [source,yaml]
