@@ -648,10 +648,10 @@ public class GatewayAutoConfiguration {
 		@ConditionalOnEnabledEndpoint
 		public GatewayControllerEndpoint gatewayControllerEndpoint(
 				List<GlobalFilter> globalFilters,
-				List<GatewayFilterFactory> GatewayFilters,
+				List<GatewayFilterFactory> gatewayFilters,
 				RouteDefinitionWriter routeDefinitionWriter, RouteLocator routeLocator) {
 			return new GatewayControllerEndpoint(globalFilters,
-					GatewayFilters, routeDefinitionWriter, routeLocator);
+					gatewayFilters, routeDefinitionWriter, routeLocator);
 		}
 
 	}
