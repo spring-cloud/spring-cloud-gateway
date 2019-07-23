@@ -32,6 +32,7 @@ import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
+import org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.route.RouteDefinition;
 import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
@@ -60,7 +61,9 @@ public class GatewayControllerEndpoint implements ApplicationEventPublisherAware
 
 	private List<GlobalFilter> globalFilters;
 
-	private List<GatewayFilterFactory> GatewayFilters;
+	private List<GatewayFilterFactory> gatewayFilters;
+
+	private List<RoutePredicateFactory> routePredicates;
 
 	private RouteDefinitionWriter routeDefinitionWriter;
 
@@ -69,11 +72,13 @@ public class GatewayControllerEndpoint implements ApplicationEventPublisherAware
 	private ApplicationEventPublisher publisher;
 
 	public GatewayControllerEndpoint(RouteDefinitionLocator routeDefinitionLocator,
-			List<GlobalFilter> globalFilters, List<GatewayFilterFactory> GatewayFilters,
+			List<GlobalFilter> globalFilters, List<GatewayFilterFactory> gatewayFilters,
+			List<RoutePredicateFactory> routePredicates,
 			RouteDefinitionWriter routeDefinitionWriter, RouteLocator routeLocator) {
 		this.routeDefinitionLocator = routeDefinitionLocator;
 		this.globalFilters = globalFilters;
-		this.GatewayFilters = GatewayFilters;
+		this.gatewayFilters = gatewayFilters;
+		this.routePredicates = routePredicates;
 		this.routeDefinitionWriter = routeDefinitionWriter;
 		this.routeLocator = routeLocator;
 	}
@@ -98,7 +103,12 @@ public class GatewayControllerEndpoint implements ApplicationEventPublisherAware
 
 	@GetMapping("/routefilters")
 	public Mono<HashMap<String, Object>> routefilers() {
-		return getNamesToOrders(this.GatewayFilters);
+		return getNamesToOrders(this.gatewayFilters);
+	}
+
+	@GetMapping("/routepredicates")
+	public Mono<HashMap<String, Object>> routepredicates() {
+		return getNamesToOrders(this.routePredicates);
 	}
 
 	private <T> Mono<HashMap<String, Object>> getNamesToOrders(List<T> list) {

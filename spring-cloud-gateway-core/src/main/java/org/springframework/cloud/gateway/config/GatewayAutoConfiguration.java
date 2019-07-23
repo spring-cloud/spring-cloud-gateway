@@ -649,10 +649,11 @@ public class GatewayAutoConfiguration {
 		public GatewayControllerEndpoint gatewayControllerEndpoint(
 				RouteDefinitionLocator routeDefinitionLocator,
 				List<GlobalFilter> globalFilters,
-				List<GatewayFilterFactory> GatewayFilters,
+				List<GatewayFilterFactory> gatewayFilters,
+				List<RoutePredicateFactory> routePredicates,
 				RouteDefinitionWriter routeDefinitionWriter, RouteLocator routeLocator) {
 			return new GatewayControllerEndpoint(routeDefinitionLocator, globalFilters,
-					GatewayFilters, routeDefinitionWriter, routeLocator);
+					gatewayFilters, routePredicates, routeDefinitionWriter, routeLocator);
 		}
 
 	}
