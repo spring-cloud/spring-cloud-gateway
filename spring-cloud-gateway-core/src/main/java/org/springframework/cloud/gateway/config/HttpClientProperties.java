@@ -424,20 +424,21 @@ public class HttpClientProperties {
 
 		public KeyStore createKeyStore() {
 			try {
-			KeyStore store = ssl.getKeyStoreProvider() != null ? KeyStore.getInstance(ssl.getKeyStoreType(),
-							ssl.getKeyStoreProvider())
-					: KeyStore.getInstance(ssl.getKeyStoreType());
-			try {
-				URL url = ResourceUtils.getURL(ssl.getKeyStore());
-				store.load(url.openStream(), ssl.getKeyStorePassword() != null
-						? ssl.getKeyStorePassword().toCharArray() : null);
-			}
-			catch (Exception e) {
-				throw new WebServerException(
-						"Could not load key store ' " + ssl.getKeyStore() + "'", e);
-			}
+				KeyStore store = ssl.getKeyStoreProvider() != null
+						? KeyStore.getInstance(ssl.getKeyStoreType(),
+								ssl.getKeyStoreProvider())
+						: KeyStore.getInstance(ssl.getKeyStoreType());
+				try {
+					URL url = ResourceUtils.getURL(ssl.getKeyStore());
+					store.load(url.openStream(), ssl.getKeyStorePassword() != null
+							? ssl.getKeyStorePassword().toCharArray() : null);
+				}
+				catch (Exception e) {
+					throw new WebServerException(
+							"Could not load key store ' " + ssl.getKeyStore() + "'", e);
+				}
 
-			return store;
+				return store;
 			}
 			catch (KeyStoreException | NoSuchProviderException e) {
 				throw new WebServerException(
