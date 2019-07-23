@@ -34,7 +34,6 @@ import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.route.RouteDefinition;
-import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
 import org.springframework.cloud.gateway.route.RouteDefinitionWriter;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.support.NotFoundException;
@@ -58,7 +57,7 @@ public class GatewayControllerEndpoint implements ApplicationEventPublisherAware
 
 	private List<GlobalFilter> globalFilters;
 
-	private List<GatewayFilterFactory> GatewayFilters;
+	private List<GatewayFilterFactory> gatewayFilters;
 
 	private RouteDefinitionWriter routeDefinitionWriter;
 
@@ -67,10 +66,10 @@ public class GatewayControllerEndpoint implements ApplicationEventPublisherAware
 	private ApplicationEventPublisher publisher;
 
 	public GatewayControllerEndpoint(List<GlobalFilter> globalFilters,
-			List<GatewayFilterFactory> GatewayFilters,
+			List<GatewayFilterFactory> gatewayFilters,
 			RouteDefinitionWriter routeDefinitionWriter, RouteLocator routeLocator) {
 		this.globalFilters = globalFilters;
-		this.GatewayFilters = GatewayFilters;
+		this.gatewayFilters = gatewayFilters;
 		this.routeDefinitionWriter = routeDefinitionWriter;
 		this.routeLocator = routeLocator;
 	}
@@ -95,7 +94,7 @@ public class GatewayControllerEndpoint implements ApplicationEventPublisherAware
 
 	@GetMapping("/routefilters")
 	public Mono<HashMap<String, Object>> routefilers() {
-		return getNamesToOrders(this.GatewayFilters);
+		return getNamesToOrders(this.gatewayFilters);
 	}
 
 	private <T> Mono<HashMap<String, Object>> getNamesToOrders(List<T> list) {
