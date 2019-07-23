@@ -27,7 +27,10 @@ import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.cloud.gateway.route.RouteLocator;
+import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.PermitAllSecurityConfiguration;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.reactive.server.WebTestClient;
@@ -61,11 +64,28 @@ public class GatewayControllerEndpointTests {
 				});
 	}
 
+	@Test
+	public void testGetSpecificRoute() {
+		testClient.get().uri("http://localhost:" + port + "/actuator/gateway/routes/test-service")
+				.exchange().expectStatus().isOk().expectBodyList(Map.class)
+				.consumeWith(result -> {
+					List<Map> responseBody = result.getResponseBody();
+					assertThat(responseBody).isNotNull();
+					assertThat(responseBody.size()).isEqualTo(1);
+					assertThat(responseBody).isNotEmpty();
+				});
+	}
+
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	@Import(PermitAllSecurityConfiguration.class)
 	static class TestConfig {
-
+		@Bean
+		RouteLocator testRouteLocator(RouteLocatorBuilder routeLocatorBuilder) {
+			return routeLocatorBuilder.routes()
+					.route("test-service", routePredicate -> routePredicate.path("/test-service/**").uri("lb://test-service"))
+					.build();
+		}
 	}
 
 }
