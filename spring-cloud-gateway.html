@@ -182,6 +182,12 @@ $(addBlockSwitches);
 <li><a href="#_recap_list_of_all_endpoints">Recap: list of all endpoints</a></li>
 </ul>
 </li>
+<li><a href="#troubleshooting">Troubleshooting</a>
+<ul class="sectlevel2">
+<li><a href="#_log_levels">Log Levels</a></li>
+<li><a href="#_wiretap">Wiretap</a></li>
+</ul>
+</li>
 <li><a href="#_developer_guide">Developer Guide</a>
 <ul class="sectlevel2">
 <li><a href="#_writing_custom_route_predicate_factories">Writing Custom Route Predicate Factories</a></li>
@@ -223,7 +229,7 @@ for details on setting up your build system with the current Spring Cloud Releas
 <i class="fa icon-important" title="Important"></i>
 </td>
 <td class="content">
-Spring Cloud Gateway is built upon <a href="https://spring.io/projects/spring-boot#learn">Spring Boot 2.0</a>,
+Spring Cloud Gateway is built upon <a href="https://spring.io/projects/spring-boot#learn">Spring Boot 2.x</a>,
 <a href="https://docs.spring.io/spring/docs/current/spring-framework-reference/web-reactive.html">Spring WebFlux</a>,
 and <a href="https://projectreactor.io/docs">Project Reactor</a>.  As a consequence
 many of the familiar synchronous libraries (Spring Data and Spring Security, for example) and patterns you may
@@ -2545,6 +2551,50 @@ management.endpoints.web.exposure.include=gateway</code></pre>
 </tr>
 </tbody>
 </table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="troubleshooting"><a class="link" href="#troubleshooting">Troubleshooting</a></h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_log_levels"><a class="link" href="#_log_levels">Log Levels</a></h3>
+<div class="paragraph">
+<p>Below are some useful loggers that contain valuable trouble shooting infomration at the <code>DEBUG</code> and <code>TRACE</code> levels.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>org.springframework.cloud.gateway</code></p>
+</li>
+<li>
+<p><code>org.springframework.http.server.reactive</code></p>
+</li>
+<li>
+<p><code>org.springframework.web.reactive</code></p>
+</li>
+<li>
+<p><code>org.springframework.boot.autoconfigure.web</code></p>
+</li>
+<li>
+<p><code>reactor.netty</code></p>
+</li>
+<li>
+<p><code>redisratelimiter</code></p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_wiretap"><a class="link" href="#_wiretap">Wiretap</a></h3>
+<div class="paragraph">
+<p>The Reactor Netty <code>HttpClient</code> and <code>HttpServer</code> can have wiretap enabled. When combined
+with setting the <code>reactor.netty</code> log level to <code>DEBUG</code> or <code>TRACE</code> will enable logging of
+information such as headers and bodies sent and received across the wire. To enable this,
+set <code>spring.cloud.gateway.httpserver.wiretap=true</code> and/or
+<code>spring.cloud.gateway.httpclient.wiretap=true</code> for the <code>HttpServer</code> and <code>HttpClient</code>
+respectively.</p>
+</div>
 </div>
 </div>
 </div>
