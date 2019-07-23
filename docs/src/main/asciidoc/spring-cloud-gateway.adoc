@@ -1400,6 +1400,38 @@ management.endpoint.gateway.enabled=true # default value
 management.endpoints.web.exposure.include=gateway
 ----
 
+=== Verbose Actuator Format
+
+A new, more verbose format has been added to Gateway. This adds more detail to each route allowing to view the predicates and filters associated to each route along with any configuration that is available.
+
+`/actuator/gateway/routes`
+[source,json]
+----
+[
+  {
+    "predicate": "(Hosts: [**.addrequestheader.org] && Paths: [/headers], match trailing slash: true)",
+    "route_id": "add_request_header_test",
+    "filters": [
+      "[[AddResponseHeader X-Response-Default-Foo = 'Default-Bar'], order = 1]",
+      "[[AddRequestHeader X-Request-Foo = 'Bar'], order = 1]",
+      "[[PrefixPath prefix = '/httpbin'], order = 2]"
+    ],
+    "uri": "lb://testservice",
+    "order": 0
+  }
+]
+----
+
+To enable this feature, set the following property:
+
+.application.properties
+[source,properties]
+----
+spring.cloud.gateway.actuator.verbose.enabled=true
+----
+
+This will default to true in a future release.
+
 === Retrieving route filters
 ==== Global Filters
 To retrieve the <<global-filters,global filters>> applied to all routes, make a `GET` request to `/actuator/gateway/globalfilters`. The resulting response is similar to the following:
