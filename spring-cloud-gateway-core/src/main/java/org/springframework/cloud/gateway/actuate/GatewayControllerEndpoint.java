@@ -121,6 +121,7 @@ public class GatewayControllerEndpoint implements ApplicationEventPublisherAware
 	Map<String, Object> serialize(Route route) {
 		HashMap<String, Object> r = new HashMap<>();
 		r.put("route_id", route.getId());
+		r.put("uri", route.getUri().toString());
 		r.put("order", route.getOrder());
 		r.put("predicate", route.getPredicate().toString());
 

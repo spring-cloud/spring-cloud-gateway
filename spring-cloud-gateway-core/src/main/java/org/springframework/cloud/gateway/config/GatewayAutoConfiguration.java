@@ -647,11 +647,10 @@ public class GatewayAutoConfiguration {
 		@Bean
 		@ConditionalOnEnabledEndpoint
 		public GatewayControllerEndpoint gatewayControllerEndpoint(
-				RouteDefinitionLocator routeDefinitionLocator,
 				List<GlobalFilter> globalFilters,
 				List<GatewayFilterFactory> GatewayFilters,
 				RouteDefinitionWriter routeDefinitionWriter, RouteLocator routeLocator) {
-			return new GatewayControllerEndpoint(routeDefinitionLocator, globalFilters,
+			return new GatewayControllerEndpoint(globalFilters,
 					GatewayFilters, routeDefinitionWriter, routeLocator);
 		}
 
