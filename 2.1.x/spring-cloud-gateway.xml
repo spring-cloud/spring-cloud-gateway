@@ -1454,6 +1454,32 @@ spring.cloud.gateway.discovery.locator.filters[1].args[replacement]: "'/${remain
 management.endpoints.web.exposure.include=gateway</programlisting>
 </para>
 </formalpara>
+<section xml:id="_verbose_actuator_format">
+<title>Verbose Actuator Format</title>
+<simpara>A new, more verbose format has been added to Gateway. This adds more detail to each route allowing to view the predicates and filters associated to each route along with any configuration that is available.</simpara>
+<simpara><literal>/actuator/gateway/routes</literal></simpara>
+<programlisting language="json" linenumbering="unnumbered">[
+  {
+    "predicate": "(Hosts: [**.addrequestheader.org] &amp;&amp; Paths: [/headers], match trailing slash: true)",
+    "route_id": "add_request_header_test",
+    "filters": [
+      "[[AddResponseHeader X-Response-Default-Foo = 'Default-Bar'], order = 1]",
+      "[[AddRequestHeader X-Request-Foo = 'Bar'], order = 1]",
+      "[[PrefixPath prefix = '/httpbin'], order = 2]"
+    ],
+    "uri": "lb://testservice",
+    "order": 0
+  }
+]</programlisting>
+<simpara>To enable this feature, set the following property:</simpara>
+<formalpara>
+<title>application.properties</title>
+<para>
+<programlisting language="properties" linenumbering="unnumbered">spring.cloud.gateway.actuator.verbose.enabled=true</programlisting>
+</para>
+</formalpara>
+<simpara>This will default to true in a future release.</simpara>
+</section>
 <section xml:id="_retrieving_route_filters">
 <title>Retrieving route filters</title>
 <section xml:id="_global_filters_2">
