@@ -654,8 +654,8 @@ public class GatewayAutoConfiguration {
 				List<GlobalFilter> globalFilters,
 				List<GatewayFilterFactory> gatewayFilters,
 				RouteDefinitionWriter routeDefinitionWriter, RouteLocator routeLocator) {
-			return new GatewayControllerEndpoint(globalFilters,
-					gatewayFilters, routeDefinitionWriter, routeLocator);
+			return new GatewayControllerEndpoint(globalFilters, gatewayFilters,
+					routeDefinitionWriter, routeLocator);
 		}
 
 		@Bean
@@ -669,6 +669,7 @@ public class GatewayAutoConfiguration {
 			return new GatewayLegacyControllerEndpoint(routeDefinitionLocator,
 					globalFilters, gatewayFilters, routeDefinitionWriter, routeLocator);
 		}
+
 	}
 
 	private static class OnVerboseDisabledCondition extends NoneNestedConditions {
@@ -678,7 +679,9 @@ public class GatewayAutoConfiguration {
 		}
 
 		@ConditionalOnProperty("spring.cloud.gateway.actuator.verbose.enabled")
-		static class VerboseDisabled { }
+		static class VerboseDisabled {
+
+		}
 
 	}
 

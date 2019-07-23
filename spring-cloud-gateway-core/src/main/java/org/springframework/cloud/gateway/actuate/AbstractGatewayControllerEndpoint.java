@@ -62,7 +62,8 @@ public class AbstractGatewayControllerEndpoint implements ApplicationEventPublis
 
 	protected ApplicationEventPublisher publisher;
 
-	public AbstractGatewayControllerEndpoint(RouteDefinitionLocator routeDefinitionLocator,
+	public AbstractGatewayControllerEndpoint(
+			RouteDefinitionLocator routeDefinitionLocator,
 			List<GlobalFilter> globalFilters, List<GatewayFilterFactory> GatewayFilters,
 			RouteDefinitionWriter routeDefinitionWriter, RouteLocator routeLocator) {
 		this.routeDefinitionLocator = routeDefinitionLocator;

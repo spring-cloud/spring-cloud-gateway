@@ -44,8 +44,7 @@ public class GatewayControllerEndpoint extends AbstractGatewayControllerEndpoint
 	public GatewayControllerEndpoint(List<GlobalFilter> globalFilters,
 			List<GatewayFilterFactory> gatewayFilters,
 			RouteDefinitionWriter routeDefinitionWriter, RouteLocator routeLocator) {
-		super(null, globalFilters, gatewayFilters,
-				routeDefinitionWriter, routeLocator);
+		super(null, globalFilters, gatewayFilters, routeDefinitionWriter, routeLocator);
 	}
 
 	// TODO: Flush out routes without a definition
@@ -74,11 +73,14 @@ public class GatewayControllerEndpoint extends AbstractGatewayControllerEndpoint
 
 	@GetMapping("/routes/{id}")
 	public Mono<ResponseEntity<Map<String, Object>>> route(@PathVariable String id) {
+		// @formatter:off
 		return this.routeLocator.getRoutes()
-				.filter(route -> route.getId().equals(id)).singleOrEmpty()
+				.filter(route -> route.getId().equals(id))
+				.singleOrEmpty()
 				.map(this::serialize)
 				.map(ResponseEntity::ok)
 				.switchIfEmpty(Mono.just(ResponseEntity.notFound().build()));
+		// @formatter:on
 	}
 
 }

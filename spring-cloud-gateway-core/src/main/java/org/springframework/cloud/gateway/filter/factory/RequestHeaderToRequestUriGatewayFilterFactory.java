@@ -55,7 +55,8 @@ public class RequestHeaderToRequestUriGatewayFilterFactory extends
 
 	@Override
 	public GatewayFilter apply(NameConfig config) {
-		// AbstractChangeRequestUriGatewayFilterFactory.apply() returns OrderedGatewayFilter
+		// AbstractChangeRequestUriGatewayFilterFactory.apply() returns
+		// OrderedGatewayFilter
 		OrderedGatewayFilter gatewayFilter = (OrderedGatewayFilter) super.apply(config);
 		return new OrderedGatewayFilter(gatewayFilter, gatewayFilter.getOrder()) {
 			@Override
