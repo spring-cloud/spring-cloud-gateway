@@ -341,6 +341,23 @@ spring:
 
 This will add `X-Request-Foo:Bar` header to the downstream request's headers for all matching requests.
 
+AddRequestHeader is aware of URI variables used to match a path or host. URI variables may be used in the value and will be expanded at runtime.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: add_request_header_route
+        uri: https://example.org
+        predicates:
+        - Path=/foo/{segment}
+        filters:
+        - AddRequestHeader=X-Request-Foo, Bar-{segment}
+----
+
 === AddRequestParameter GatewayFilter Factory
 The AddRequestParameter GatewayFilter Factory takes a name and value parameter.
 
@@ -359,6 +376,23 @@ spring:
 
 This will add `foo=bar` to the downstream request's query string for all matching requests.
 
+AddRequestParameter is aware of URI variables used to match a path or host. URI variables may be used in the value and will be expanded at runtime.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: add_request_parameter_route
+        uri: https://example.org
+        predicates:
+        - Host: {segment}.myhost.org
+        filters:
+        - AddRequestParameter=foo, bar-{segment}
+----
+
 === AddResponseHeader GatewayFilter Factory
 The AddResponseHeader GatewayFilter Factory takes a name and value parameter.
 
@@ -376,6 +410,23 @@ spring:
 ----
 
 This will add `X-Response-Foo:Bar` header to the downstream response's headers for all matching requests.
+
+AddResponseHeader is aware of URI variables used to match a path or host. URI variables may be used in the value and will be expanded at runtime.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: add_response_header_route
+        uri: https://example.org
+        predicates:
+        - Host: {segment}.myhost.org
+        filters:
+        - AddResponseHeader=foo, bar-{segment}
+----
 
 === DedupeResponseHeader GatewayFilter Factory
 The DedupeResponseHeader GatewayFilter Factory takes a `name` parameter and an optional `strategy` parameter. `name` can contain a list of header names, space separated.
@@ -839,6 +890,41 @@ spring:
 
 For a request path of `/foo/bar`, this will set the path to `/bar` before making the downstream request.
 
+=== SetRequestHeader GatewayFilter Factory
+The SetRequestHeader GatewayFilter Factory takes `name` and `value` parameters.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: setrequestheader_route
+        uri: https://example.org
+        filters:
+        - SetRequestHeader=X-Request-Foo, Bar
+----
+
+This GatewayFilter replaces all headers with the given name, rather than adding. So if the downstream server responded with a `X-Request-Foo:1234`, this would be replaced with `X-Request-Foo:Bar`, which is what the downstream service would receive.
+
+SetRequestHeader is aware of URI variables used to match a path or host. URI variables may be used in the value and will be expanded at runtime.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: setrequestheader_route
+        uri: https://example.org
+        predicates:
+        - Host: {segment}.myhost.org
+        filters:
+        - SetRequestHeader=foo, bar-{segment}
+----
+
 === SetResponseHeader GatewayFilter Factory
 The SetResponseHeader GatewayFilter Factory takes `name` and `value` parameters.
 
@@ -856,6 +942,23 @@ spring:
 ----
 
 This GatewayFilter replaces all headers with the given name, rather than adding. So if the downstream server responded with a `X-Response-Foo:1234`, this would be replaced with `X-Response-Foo:Bar`, which is what the gateway client would receive.
+
+SetResponseHeader is aware of URI variables used to match a path or host. URI variables may be used in the value and will be expanded at runtime.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: setresponseheader_route
+        uri: https://example.org
+        predicates:
+        - Host: {segment}.myhost.org
+        filters:
+        - SetResponseHeader=foo, bar-{segment}
+----
 
 === SetStatus GatewayFilter Factory
 The SetStatus GatewayFilter Factory takes a single `status` parameter. It must be a valid Spring `HttpStatus`. It may be the integer value `404` or the string representation of the enumeration `NOT_FOUND`.

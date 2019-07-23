@@ -68,7 +68,7 @@ public class AddRequestParameterGatewayFilterFactoryTests extends BaseWebClientT
 
 	@Test
 	public void addRequestParameterFilterWorksEncodedQueryJavaDsl() {
-		testRequestParameterFilter("www.addreqparamjava.org", "ValueB", "javaname",
+		testRequestParameterFilter("www.addreqparamjava.org", "ValueB-www", "javaname",
 				"%E6%89%8E%E6%A0%B9");
 	}
 
@@ -129,9 +129,9 @@ public class AddRequestParameterGatewayFilterFactoryTests extends BaseWebClientT
 		@Bean
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes().route("add_request_param_java_test",
-					r -> r.path("/get").and().host("**.addreqparamjava.org")
+					r -> r.path("/get").and().host("{sub}.addreqparamjava.org")
 							.filters(f -> f.prefixPath("/httpbin")
-									.addRequestParameter("example", "ValueB"))
+									.addRequestParameter("example", "ValueB-{sub}"))
 							.uri(uri))
 					.build();
 		}

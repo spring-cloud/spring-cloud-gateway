@@ -66,7 +66,7 @@ public class AddRequestHeaderGatewayFilterFactoryTests extends BaseWebClientTest
 				.exchange().expectBody(Map.class).consumeWith(result -> {
 					Map<String, Object> headers = getMap(result.getResponseBody(),
 							"headers");
-					assertThat(headers).containsEntry("X-Request-Acme", "ValueB");
+					assertThat(headers).containsEntry("X-Request-Acme", "ValueB-www");
 				});
 	}
 
@@ -89,9 +89,9 @@ public class AddRequestHeaderGatewayFilterFactoryTests extends BaseWebClientTest
 		@Bean
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes().route("add_request_header_java_test",
-					r -> r.path("/headers").and().host("**.addrequestheaderjava.org")
+					r -> r.path("/headers").and().host("{sub}.addrequestheaderjava.org")
 							.filters(f -> f.prefixPath("/httpbin")
-									.addRequestHeader("X-Request-Acme", "ValueB"))
+									.addRequestHeader("X-Request-Acme", "ValueB-{sub}"))
 							.uri(uri))
 					.build();
 		}
