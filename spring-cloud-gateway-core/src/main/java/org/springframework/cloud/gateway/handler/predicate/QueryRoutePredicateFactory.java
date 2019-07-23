@@ -53,23 +53,33 @@ public class QueryRoutePredicateFactory
 
 	@Override
 	public Predicate<ServerWebExchange> apply(Config config) {
-		return exchange -> {
-			if (!StringUtils.hasText(config.regexp)) {
-				// check existence of header
-				return exchange.getRequest().getQueryParams().containsKey(config.param);
-			}
+		return new GatewayPredicate() {
+			@Override
+			public boolean test(ServerWebExchange exchange) {
+				if (!StringUtils.hasText(config.regexp)) {
+					// check existence of header
+					return exchange.getRequest().getQueryParams()
+							.containsKey(config.param);
+				}
 
-			List<String> values = exchange.getRequest().getQueryParams()
-					.get(config.param);
-			if (values == null) {
+				List<String> values = exchange.getRequest().getQueryParams()
+						.get(config.param);
+				if (values == null) {
+					return false;
+				}
+				for (String value : values) {
+					if (value != null && value.matches(config.regexp)) {
+						return true;
+					}
+				}
 				return false;
 			}
-			for (String value : values) {
-				if (value != null && value.matches(config.regexp)) {
-					return true;
-				}
+
+			@Override
+			public String toString() {
+				return String.format("Query: param=%s regexp=%s", config.getParam(),
+						config.getRegexp());
 			}
-			return false;
 		};
 	}
 

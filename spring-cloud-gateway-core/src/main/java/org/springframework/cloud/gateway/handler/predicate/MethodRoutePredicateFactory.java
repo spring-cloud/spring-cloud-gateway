@@ -45,9 +45,17 @@ public class MethodRoutePredicateFactory
 
 	@Override
 	public Predicate<ServerWebExchange> apply(Config config) {
-		return exchange -> {
-			HttpMethod requestMethod = exchange.getRequest().getMethod();
-			return requestMethod == config.getMethod();
+		return new GatewayPredicate() {
+			@Override
+			public boolean test(ServerWebExchange exchange) {
+				HttpMethod requestMethod = exchange.getRequest().getMethod();
+				return requestMethod == config.getMethod();
+			}
+
+			@Override
+			public String toString() {
+				return String.format("Method: %s", config.getMethod());
+			}
 		};
 	}
 

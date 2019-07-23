@@ -19,9 +19,14 @@ package org.springframework.cloud.gateway.filter.factory;
 import java.util.Arrays;
 import java.util.List;
 
-import org.springframework.cloud.gateway.filter.GatewayFilter;
-import org.springframework.http.server.reactive.ServerHttpRequest;
+import reactor.core.publisher.Mono;
 
+import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.GatewayFilterChain;
+import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.web.server.ServerWebExchange;
+
+import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.addOriginalRequestUrl;
 
@@ -53,17 +58,27 @@ public class RewritePathGatewayFilterFactory
 	@Override
 	public GatewayFilter apply(Config config) {
 		String replacement = config.replacement.replace("$\\", "$");
-		return (exchange, chain) -> {
-			ServerHttpRequest req = exchange.getRequest();
-			addOriginalRequestUrl(exchange, req.getURI());
-			String path = req.getURI().getRawPath();
-			String newPath = path.replaceAll(config.regexp, replacement);
+		return new GatewayFilter() {
+			@Override
+			public Mono<Void> filter(ServerWebExchange exchange,
+					GatewayFilterChain chain) {
+				ServerHttpRequest req = exchange.getRequest();
+				addOriginalRequestUrl(exchange, req.getURI());
+				String path = req.getURI().getRawPath();
+				String newPath = path.replaceAll(config.regexp, replacement);
 
-			ServerHttpRequest request = req.mutate().path(newPath).build();
+				ServerHttpRequest request = req.mutate().path(newPath).build();
 
-			exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, request.getURI());
+				exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, request.getURI());
 
-			return chain.filter(exchange.mutate().request(request).build());
+				return chain.filter(exchange.mutate().request(request).build());
+			}
+
+			@Override
+			public String toString() {
+				return filterToStringCreator(RewritePathGatewayFilterFactory.this)
+						.append(config.getRegexp(), replacement).toString();
+			}
 		};
 	}
 

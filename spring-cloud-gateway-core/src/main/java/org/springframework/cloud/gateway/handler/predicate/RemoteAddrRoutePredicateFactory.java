@@ -73,26 +73,34 @@ public class RemoteAddrRoutePredicateFactory
 	public Predicate<ServerWebExchange> apply(Config config) {
 		List<IpSubnetFilterRule> sources = convert(config.sources);
 
-		return exchange -> {
-			InetSocketAddress remoteAddress = config.remoteAddressResolver
-					.resolve(exchange);
-			if (remoteAddress != null && remoteAddress.getAddress() != null) {
-				String hostAddress = remoteAddress.getAddress().getHostAddress();
-				String host = exchange.getRequest().getURI().getHost();
+		return new GatewayPredicate() {
+			@Override
+			public boolean test(ServerWebExchange exchange) {
+				InetSocketAddress remoteAddress = config.remoteAddressResolver
+						.resolve(exchange);
+				if (remoteAddress != null && remoteAddress.getAddress() != null) {
+					String hostAddress = remoteAddress.getAddress().getHostAddress();
+					String host = exchange.getRequest().getURI().getHost();
 
-				if (log.isDebugEnabled() && !hostAddress.equals(host)) {
-					log.debug("Remote addresses didn't match " + hostAddress + " != "
-							+ host);
-				}
+					if (log.isDebugEnabled() && !hostAddress.equals(host)) {
+						log.debug("Remote addresses didn't match " + hostAddress + " != "
+								+ host);
+					}
 
-				for (IpSubnetFilterRule source : sources) {
-					if (source.matches(remoteAddress)) {
-						return true;
+					for (IpSubnetFilterRule source : sources) {
+						if (source.matches(remoteAddress)) {
+							return true;
+						}
 					}
 				}
+
+				return false;
 			}
 
-			return false;
+			@Override
+			public String toString() {
+				return String.format("RemoteAddrs: %s", config.getSources());
+			}
 		};
 	}
 

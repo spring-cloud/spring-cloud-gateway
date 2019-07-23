@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.handler.predicate;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.function.Predicate;
 
 import org.junit.Test;
 
@@ -158,6 +159,16 @@ public class BetweenRoutePredicateFactoryTests {
 		BetweenRoutePredicateFactory.Config config = bindConfig(map, factory);
 
 		return factory.apply(config).test(getExchange());
+	}
+
+	@Test
+	public void toStringFormat() {
+		BetweenRoutePredicateFactory.Config config = new BetweenRoutePredicateFactory.Config();
+		config.setDatetime1(ZonedDateTime.now());
+		config.setDatetime2(ZonedDateTime.now().plusHours(1));
+		Predicate predicate = new BetweenRoutePredicateFactory().apply(config);
+		assertThat(predicate.toString()).contains(
+				"Between: " + config.getDatetime1() + " and " + config.getDatetime2());
 	}
 
 }

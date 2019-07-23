@@ -18,6 +18,7 @@ package org.springframework.cloud.gateway.handler.predicate;
 
 import java.time.ZonedDateTime;
 import java.util.HashMap;
+import java.util.function.Predicate;
 
 import org.junit.Test;
 
@@ -88,6 +89,14 @@ public class BeforeRoutePredicateFactoryTests {
 		BeforeRoutePredicateFactory.Config config = bindConfig(map, factory);
 
 		return factory.apply(config).test(getExchange());
+	}
+
+	@Test
+	public void toStringFormat() {
+		BeforeRoutePredicateFactory.Config config = new BeforeRoutePredicateFactory.Config();
+		config.setDatetime(ZonedDateTime.now());
+		Predicate predicate = new BeforeRoutePredicateFactory().apply(config);
+		assertThat(predicate.toString()).contains("Before: " + config.getDatetime());
 	}
 
 }

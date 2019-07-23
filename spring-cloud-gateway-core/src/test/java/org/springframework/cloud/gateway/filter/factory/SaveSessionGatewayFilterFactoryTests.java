@@ -28,6 +28,7 @@ import reactor.test.StepVerifier;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
@@ -37,6 +38,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.server.WebSession;
 import org.springframework.web.server.session.WebSessionManager;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -68,6 +70,12 @@ public class SaveSessionGatewayFilterFactoryTests extends BaseWebClientTests {
 		}).expectComplete().verify(Duration.ofMinutes(10));
 
 		verify(mockWebSession).save();
+	}
+
+	@Test
+	public void toStringFormat() {
+		GatewayFilter filter = new SaveSessionGatewayFilterFactory().apply("");
+		assertThat(filter.toString()).contains("SaveSession");
 	}
 
 	@EnableAutoConfiguration

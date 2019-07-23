@@ -22,7 +22,10 @@ import java.util.List;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.web.server.ServerWebExchange;
+
+import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
 
 /**
  * @author Vitaliy Pavlyuk
@@ -51,9 +54,24 @@ public class RewriteResponseHeaderGatewayFilterFactory extends
 
 	@Override
 	public GatewayFilter apply(Config config) {
-		return (exchange, chain) -> chain.filter(exchange).then(Mono.fromRunnable(() -> {
-			rewriteHeader(exchange, config);
-		}));
+		return new GatewayFilter() {
+			@Override
+			public Mono<Void> filter(ServerWebExchange exchange,
+					GatewayFilterChain chain) {
+				return chain.filter(exchange)
+						.then(Mono.fromRunnable(() -> rewriteHeader(exchange, config)));
+			}
+
+			@Override
+			public String toString() {
+				return filterToStringCreator(
+						RewriteResponseHeaderGatewayFilterFactory.this)
+								.append("name", config.getName())
+								.append("regexp", config.getRegexp())
+								.append("replacement", config.getReplacement())
+								.toString();
+			}
+		};
 	}
 
 	protected void rewriteHeader(ServerWebExchange exchange, Config config) {

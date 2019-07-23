@@ -57,4 +57,14 @@ public class CookieRoutePredicateFactoryTests extends BaseWebClientTests {
 		assertThat(predicate.test(exchange)).isTrue();
 	}
 
+	@Test
+	public void toStringFormat() {
+		Config config = new Config();
+		config.setName("mycookie");
+		config.setRegexp("myregexp");
+		Predicate predicate = new CookieRoutePredicateFactory().apply(config);
+		assertThat(predicate.toString())
+				.contains("Cookie: name=mycookie regexp=myregexp");
+	}
+
 }

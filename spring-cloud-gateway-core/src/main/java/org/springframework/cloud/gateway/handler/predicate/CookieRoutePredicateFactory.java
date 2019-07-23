@@ -53,18 +53,27 @@ public class CookieRoutePredicateFactory
 
 	@Override
 	public Predicate<ServerWebExchange> apply(Config config) {
-		return exchange -> {
-			List<HttpCookie> cookies = exchange.getRequest().getCookies()
-					.get(config.name);
-			if (cookies == null) {
+		return new GatewayPredicate() {
+			@Override
+			public boolean test(ServerWebExchange exchange) {
+				List<HttpCookie> cookies = exchange.getRequest().getCookies()
+						.get(config.name);
+				if (cookies == null) {
+					return false;
+				}
+				for (HttpCookie cookie : cookies) {
+					if (cookie.getValue().matches(config.regexp)) {
+						return true;
+					}
+				}
 				return false;
 			}
-			for (HttpCookie cookie : cookies) {
-				if (cookie.getValue().matches(config.regexp)) {
-					return true;
-				}
+
+			@Override
+			public String toString() {
+				return String.format("Cookie: name=%s regexp=%s", config.name,
+						config.regexp);
 			}
-			return false;
 		};
 	}
 

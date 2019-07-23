@@ -20,6 +20,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.annotation.DirtiesContext;
@@ -28,6 +29,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.Assert;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.cloud.gateway.filter.factory.ExceptionFallbackHandler.RETRIEVED_EXCEPTION;
@@ -115,6 +117,14 @@ public class HystrixGatewayFilterFactoryTests extends BaseWebClientTests {
 							body.contains("(type=Internal Server Error, status=500)"),
 							"Cannot find the expected error status report in the response");
 				});
+	}
+
+	@Test
+	public void toStringFormat() {
+		HystrixGatewayFilterFactory.Config config = new HystrixGatewayFilterFactory.Config()
+				.setName("myname").setFallbackUri("forward:/myfallback");
+		GatewayFilter filter = new HystrixGatewayFilterFactory(null).apply(config);
+		assertThat(filter.toString()).contains("myname").contains("forward:/myfallback");
 	}
 
 }

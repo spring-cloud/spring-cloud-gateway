@@ -47,10 +47,17 @@ public class AfterRoutePredicateFactory
 
 	@Override
 	public Predicate<ServerWebExchange> apply(Config config) {
-		ZonedDateTime datetime = config.getDatetime();
-		return exchange -> {
-			final ZonedDateTime now = ZonedDateTime.now();
-			return now.isAfter(datetime);
+		return new GatewayPredicate() {
+			@Override
+			public boolean test(ServerWebExchange serverWebExchange) {
+				final ZonedDateTime now = ZonedDateTime.now();
+				return now.isAfter(config.getDatetime());
+			}
+
+			@Override
+			public String toString() {
+				return String.format("After: %s", config.getDatetime());
+			}
 		};
 	}
 

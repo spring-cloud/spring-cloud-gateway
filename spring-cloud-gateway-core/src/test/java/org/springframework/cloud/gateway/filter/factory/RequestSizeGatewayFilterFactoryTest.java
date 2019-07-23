@@ -23,6 +23,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.factory.RequestSizeGatewayFilterFactory.RequestSizeConfig;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
@@ -32,6 +34,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 /**
@@ -52,6 +55,14 @@ public class RequestSizeGatewayFilterFactoryTest extends BaseWebClientTests {
 				.header("content-length", "6").syncBody("123456").exchange()
 				.expectStatus().isEqualTo(HttpStatus.PAYLOAD_TOO_LARGE).expectHeader()
 				.valueMatches("errorMessage", responseMesssage);
+	}
+
+	@Test
+	public void toStringFormat() {
+		RequestSizeConfig config = new RequestSizeConfig();
+		config.setMaxSize(1000L);
+		GatewayFilter filter = new RequestSizeGatewayFilterFactory().apply(config);
+		assertThat(filter.toString()).contains("max").contains("1000");
 	}
 
 	@EnableAutoConfiguration

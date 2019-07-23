@@ -39,11 +39,13 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.NoneNestedConditions;
 import org.springframework.boot.autoconfigure.web.reactive.HttpHandlerAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.reactive.WebFluxAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.cloud.gateway.actuate.GatewayControllerEndpoint;
+import org.springframework.cloud.gateway.actuate.GatewayLegacyControllerEndpoint;
 import org.springframework.cloud.gateway.filter.AdaptCachedBodyGlobalFilter;
 import org.springframework.cloud.gateway.filter.ForwardPathFilter;
 import org.springframework.cloud.gateway.filter.ForwardRoutingFilter;
@@ -120,6 +122,7 @@ import org.springframework.cloud.gateway.support.StringToZonedDateTimeConverter;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Primary;
@@ -653,14 +656,39 @@ public class GatewayAutoConfiguration {
 	protected static class GatewayActuatorConfiguration {
 
 		@Bean
+		@ConditionalOnProperty("spring.cloud.gateway.actuator.verbose.enabled")
 		@ConditionalOnEnabledEndpoint
 		public GatewayControllerEndpoint gatewayControllerEndpoint(
+				List<GlobalFilter> globalFilters,
+				List<GatewayFilterFactory> gatewayFilters,
+				RouteDefinitionWriter routeDefinitionWriter, RouteLocator routeLocator) {
+			return new GatewayControllerEndpoint(globalFilters, gatewayFilters,
+					routeDefinitionWriter, routeLocator);
+		}
+
+		@Bean
+		@Conditional(OnVerboseDisabledCondition.class)
+		@ConditionalOnEnabledEndpoint
+		public GatewayLegacyControllerEndpoint gatewayLegacyControllerEndpoint(
 				RouteDefinitionLocator routeDefinitionLocator,
 				List<GlobalFilter> globalFilters,
-				List<GatewayFilterFactory> GatewayFilters,
+				List<GatewayFilterFactory> gatewayFilters,
 				RouteDefinitionWriter routeDefinitionWriter, RouteLocator routeLocator) {
-			return new GatewayControllerEndpoint(routeDefinitionLocator, globalFilters,
-					GatewayFilters, routeDefinitionWriter, routeLocator);
+			return new GatewayLegacyControllerEndpoint(routeDefinitionLocator,
+					globalFilters, gatewayFilters, routeDefinitionWriter, routeLocator);
+		}
+
+	}
+
+	private static class OnVerboseDisabledCondition extends NoneNestedConditions {
+
+		OnVerboseDisabledCondition() {
+			super(ConfigurationPhase.REGISTER_BEAN);
+		}
+
+		@ConditionalOnProperty("spring.cloud.gateway.actuator.verbose.enabled")
+		static class VerboseDisabled {
+
 		}
 
 	}

@@ -59,19 +59,27 @@ public class HostRoutePredicateFactory
 
 	@Override
 	public Predicate<ServerWebExchange> apply(Config config) {
-		return exchange -> {
-			String host = exchange.getRequest().getHeaders().getFirst("Host");
-			Optional<String> optionalPattern = config.getPatterns().stream()
-					.filter(pattern -> this.pathMatcher.match(pattern, host)).findFirst();
+		return new GatewayPredicate() {
+			@Override
+			public boolean test(ServerWebExchange exchange) {
+				String host = exchange.getRequest().getHeaders().getFirst("Host");
+				Optional<String> optionalPattern = config.getPatterns().stream()
+						.filter(pattern -> pathMatcher.match(pattern, host)).findFirst();
 
-			if (optionalPattern.isPresent()) {
-				Map<String, String> variables = this.pathMatcher
-						.extractUriTemplateVariables(optionalPattern.get(), host);
-				ServerWebExchangeUtils.putUriTemplateVariables(exchange, variables);
-				return true;
+				if (optionalPattern.isPresent()) {
+					Map<String, String> variables = pathMatcher
+							.extractUriTemplateVariables(optionalPattern.get(), host);
+					ServerWebExchangeUtils.putUriTemplateVariables(exchange, variables);
+					return true;
+				}
+
+				return false;
 			}
 
-			return false;
+			@Override
+			public String toString() {
+				return String.format("Hosts: %s", config.getPatterns());
+			}
 		};
 	}
 
@@ -99,8 +107,9 @@ public class HostRoutePredicateFactory
 			return patterns;
 		}
 
-		public void setPatterns(List<String> patterns) {
+		public Config setPatterns(List<String> patterns) {
 			this.patterns = patterns;
+			return this;
 		}
 
 		@Override
