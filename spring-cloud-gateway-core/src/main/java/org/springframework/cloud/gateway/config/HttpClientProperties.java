@@ -60,6 +60,9 @@ public class HttpClientProperties {
 	/** Websocket configuration for Netty HttpClient. */
 	private Websocket websocket = new Websocket();
 
+	/** Enables wiretap debugging for Netty HttpClient. */
+	private boolean wiretap;
+
 	public Integer getConnectTimeout() {
 		return connectTimeout;
 	}
@@ -108,6 +111,14 @@ public class HttpClientProperties {
 		this.websocket = websocket;
 	}
 
+	public boolean isWiretap() {
+		return this.wiretap;
+	}
+
+	public void setWiretap(boolean wiretap) {
+		this.wiretap = wiretap;
+	}
+
 	@Override
 	public String toString() {
 		// @formatter:off
@@ -118,6 +129,7 @@ public class HttpClientProperties {
 				.append("proxy", proxy)
 				.append("ssl", ssl)
 				.append("websocket", websocket)
+				.append("wiretap", wiretap)
 				.toString();
 		// @formatter:on
 

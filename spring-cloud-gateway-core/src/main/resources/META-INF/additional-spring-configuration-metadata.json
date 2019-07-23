@@ -17,6 +17,12 @@
       "type": "java.lang.Boolean",
       "description": "Enables the collection of metrics data.",
       "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.httpserver.wiretap",
+      "type": "java.lang.Boolean",
+      "description": "Enables wiretap debugging for Netty HttpServer.",
+      "defaultValue": "false"
     }
   ]
 }
