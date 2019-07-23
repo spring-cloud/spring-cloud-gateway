@@ -19,6 +19,9 @@ package org.springframework.cloud.gateway.filter.factory;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.factory.RewriteResponseHeaderGatewayFilterFactory.Config;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class RewriteResponseHeaderGatewayFilterFactoryUnitTests {
@@ -40,6 +43,18 @@ public class RewriteResponseHeaderGatewayFilterFactoryUnitTests {
 	public void testRewriteMultiple() {
 		assertThat(filterFactory.rewrite("/foo/bar/wat/bar", "bar", "cafe"))
 				.isEqualTo("/foo/cafe/wat/cafe");
+	}
+
+	@Test
+	public void toStringFormat() {
+		Config config = new Config();
+		config.setName("myname");
+		config.setRegexp("myregexp");
+		config.setReplacement("myreplacement");
+		GatewayFilter filter = new RewriteResponseHeaderGatewayFilterFactory()
+				.apply(config);
+		assertThat(filter.toString()).contains("myname").contains("myregexp")
+				.contains("myreplacement");
 	}
 
 }

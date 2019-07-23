@@ -23,7 +23,11 @@ import java.util.stream.Collectors;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.http.HttpHeaders;
+import org.springframework.web.server.ServerWebExchange;
+
+import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
 
 /*
 Use case: Both your legacy backend and your API gateway add CORS header values. So, your consumer ends up with
@@ -81,9 +85,22 @@ public class DedupeResponseHeaderGatewayFilterFactory extends
 
 	@Override
 	public GatewayFilter apply(Config config) {
-		return (exchange, chain) -> chain.filter(exchange).then(Mono.fromRunnable(() -> {
-			dedupe(exchange.getResponse().getHeaders(), config);
-		}));
+		return new GatewayFilter() {
+			@Override
+			public Mono<Void> filter(ServerWebExchange exchange,
+					GatewayFilterChain chain) {
+				return chain.filter(exchange).then(Mono.fromRunnable(
+						() -> dedupe(exchange.getResponse().getHeaders(), config)));
+			}
+
+			@Override
+			public String toString() {
+				return filterToStringCreator(
+						DedupeResponseHeaderGatewayFilterFactory.this)
+								.append(config.getName(), config.getStrategy())
+								.toString();
+			}
+		};
 	}
 
 	public enum Strategy {

@@ -23,12 +23,15 @@ import java.util.List;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.support.HttpStatusHolder;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.util.Assert;
+import org.springframework.web.server.ServerWebExchange;
 
+import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.setResponseStatus;
 
 /**
@@ -74,16 +77,33 @@ public class RedirectToGatewayFilterFactory
 	}
 
 	public GatewayFilter apply(HttpStatusHolder httpStatus, URI uri) {
-		return (exchange, chain) -> chain.filter(exchange).then(Mono.defer(() -> {
-			if (!exchange.getResponse().isCommitted()) {
-				setResponseStatus(exchange, httpStatus);
+		return new GatewayFilter() {
+			@Override
+			public Mono<Void> filter(ServerWebExchange exchange,
+					GatewayFilterChain chain) {
+				if (!exchange.getResponse().isCommitted()) {
+					setResponseStatus(exchange, httpStatus);
 
-				final ServerHttpResponse response = exchange.getResponse();
-				response.getHeaders().set(HttpHeaders.LOCATION, uri.toString());
-				return response.setComplete();
+					final ServerHttpResponse response = exchange.getResponse();
+					response.getHeaders().set(HttpHeaders.LOCATION, uri.toString());
+					return response.setComplete();
+				}
+				return Mono.empty();
 			}
-			return Mono.empty();
-		}));
+
+			@Override
+			public String toString() {
+				String status;
+				if (httpStatus.getHttpStatus() != null) {
+					status = String.valueOf(httpStatus.getHttpStatus().value());
+				}
+				else {
+					status = httpStatus.getStatus().toString();
+				}
+				return filterToStringCreator(RedirectToGatewayFilterFactory.this)
+						.append(status, uri).toString();
+			}
+		};
 	}
 
 	public static class Config {

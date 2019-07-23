@@ -23,6 +23,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.cloud.gateway.support.BodyInserterContext;
 import org.springframework.core.io.buffer.DataBuffer;
@@ -37,8 +38,10 @@ import org.springframework.web.reactive.function.server.HandlerStrategies;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.server.ServerWebExchange;
 
+import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
+
 /**
- * This filter is BETA and may be subject to change in a future release.
+ * GatewayFilter that modifies the request body.
  */
 public class ModifyRequestBodyGatewayFilterFactory extends
 		AbstractGatewayFilterFactory<ModifyRequestBodyGatewayFilterFactory.Config> {
@@ -58,40 +61,52 @@ public class ModifyRequestBodyGatewayFilterFactory extends
 	@Override
 	@SuppressWarnings("unchecked")
 	public GatewayFilter apply(Config config) {
-		return (exchange, chain) -> {
-			Class inClass = config.getInClass();
-			ServerRequest serverRequest = ServerRequest.create(exchange,
-					this.messageReaders);
+		return new GatewayFilter() {
+			@Override
+			public Mono<Void> filter(ServerWebExchange exchange,
+					GatewayFilterChain chain) {
+				Class inClass = config.getInClass();
+				ServerRequest serverRequest = ServerRequest.create(exchange,
+						messageReaders);
 
-			// TODO: flux or mono
-			Mono<?> modifiedBody = serverRequest.bodyToMono(inClass)
-					// .log("modify_request_mono", Level.INFO)
-					.flatMap(o -> config.rewriteFunction.apply(exchange, o));
+				// TODO: flux or mono
+				Mono<?> modifiedBody = serverRequest.bodyToMono(inClass)
+						// .log("modify_request_mono", Level.INFO)
+						.flatMap(o -> config.rewriteFunction.apply(exchange, o));
 
-			BodyInserter bodyInserter = BodyInserters.fromPublisher(modifiedBody,
-					config.getOutClass());
-			HttpHeaders headers = new HttpHeaders();
-			headers.putAll(exchange.getRequest().getHeaders());
+				BodyInserter bodyInserter = BodyInserters.fromPublisher(modifiedBody,
+						config.getOutClass());
+				HttpHeaders headers = new HttpHeaders();
+				headers.putAll(exchange.getRequest().getHeaders());
 
-			// the new content type will be computed by bodyInserter
-			// and then set in the request decorator
-			headers.remove(HttpHeaders.CONTENT_LENGTH);
+				// the new content type will be computed by bodyInserter
+				// and then set in the request decorator
+				headers.remove(HttpHeaders.CONTENT_LENGTH);
 
-			// if the body is changing content types, set it here, to the bodyInserter
-			// will know about it
-			if (config.getContentType() != null) {
-				headers.set(HttpHeaders.CONTENT_TYPE, config.getContentType());
+				// if the body is changing content types, set it here, to the bodyInserter
+				// will know about it
+				if (config.getContentType() != null) {
+					headers.set(HttpHeaders.CONTENT_TYPE, config.getContentType());
+				}
+				CachedBodyOutputMessage outputMessage = new CachedBodyOutputMessage(
+						exchange, headers);
+				return bodyInserter.insert(outputMessage, new BodyInserterContext())
+						// .log("modify_request", Level.INFO)
+						.then(Mono.defer(() -> {
+							ServerHttpRequest decorator = decorate(exchange, headers,
+									outputMessage);
+							return chain
+									.filter(exchange.mutate().request(decorator).build());
+						}));
 			}
-			CachedBodyOutputMessage outputMessage = new CachedBodyOutputMessage(exchange,
-					headers);
-			return bodyInserter.insert(outputMessage, new BodyInserterContext())
-					// .log("modify_request", Level.INFO)
-					.then(Mono.defer(() -> {
-						ServerHttpRequest decorator = decorate(exchange, headers,
-								outputMessage);
-						return chain.filter(exchange.mutate().request(decorator).build());
-					}));
 
+			@Override
+			public String toString() {
+				return filterToStringCreator(ModifyRequestBodyGatewayFilterFactory.this)
+						.append("Content type", config.getContentType())
+						.append("In class", config.getInClass())
+						.append("Out class", config.getOutClass()).toString();
+			}
 		};
 	}
 

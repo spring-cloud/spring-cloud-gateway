@@ -26,6 +26,7 @@ import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
+import org.springframework.cloud.gateway.filter.factory.SetPathGatewayFilterFactory.Config;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -100,6 +101,14 @@ public class SetPathGatewayFilterFactoryTests {
 		LinkedHashSet<URI> uris = webExchange
 				.getRequiredAttribute(GATEWAY_ORIGINAL_REQUEST_URL_ATTR);
 		assertThat(uris).contains(request.getURI());
+	}
+
+	@Test
+	public void toStringFormat() {
+		Config config = new Config();
+		config.setTemplate("mytemplate");
+		GatewayFilter filter = new SetPathGatewayFilterFactory().apply(config);
+		assertThat(filter.toString()).contains("mytemplate");
 	}
 
 }

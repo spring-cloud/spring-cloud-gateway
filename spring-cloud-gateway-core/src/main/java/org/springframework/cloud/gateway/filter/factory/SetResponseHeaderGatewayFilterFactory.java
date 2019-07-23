@@ -19,6 +19,10 @@ package org.springframework.cloud.gateway.filter.factory;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.GatewayFilterChain;
+import org.springframework.web.server.ServerWebExchange;
+
+import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
 
 /**
  * @author Spencer Gibb
@@ -28,9 +32,20 @@ public class SetResponseHeaderGatewayFilterFactory
 
 	@Override
 	public GatewayFilter apply(NameValueConfig config) {
-		return (exchange, chain) -> chain.filter(exchange).then(Mono.fromRunnable(() -> {
-			exchange.getResponse().getHeaders().set(config.name, config.value);
-		}));
+		return new GatewayFilter() {
+			@Override
+			public Mono<Void> filter(ServerWebExchange exchange,
+					GatewayFilterChain chain) {
+				return chain.filter(exchange).then(Mono.fromRunnable(() -> exchange
+						.getResponse().getHeaders().set(config.name, config.value)));
+			}
+
+			@Override
+			public String toString() {
+				return filterToStringCreator(SetResponseHeaderGatewayFilterFactory.this)
+						.append(config.getName(), config.getValue()).toString();
+			}
+		};
 	}
 
 }

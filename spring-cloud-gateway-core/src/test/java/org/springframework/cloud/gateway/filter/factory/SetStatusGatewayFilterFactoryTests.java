@@ -24,6 +24,8 @@ import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.factory.SetStatusGatewayFilterFactory.Config;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
@@ -74,6 +76,14 @@ public class SetStatusGatewayFilterFactoryTests extends BaseWebClientTests {
 		 * testClient.get() .uri("/status/432") .exchange() .expectStatus().isEqualTo(432)
 		 * .expectBody(String.class).isEqualTo("Failed with 432");
 		 */
+	}
+
+	@Test
+	public void toStringFormat() {
+		Config config = new Config();
+		config.setStatus("401");
+		GatewayFilter filter = new SetStatusGatewayFilterFactory().apply(config);
+		assertThat(filter.toString()).contains("401");
 	}
 
 	@EnableAutoConfiguration

@@ -17,6 +17,7 @@
 package org.springframework.cloud.gateway.handler.predicate;
 
 import java.time.Duration;
+import java.util.function.Predicate;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -27,6 +28,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.gateway.handler.predicate.RemoteAddrRoutePredicateFactory.Config;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.support.ipresolver.XForwardedRemoteAddressResolver;
@@ -39,6 +41,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.reactive.function.client.ClientResponse;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.cloud.gateway.test.TestUtils.assertStatus;
 
@@ -74,6 +77,14 @@ public class RemoteAddrRoutePredicateFactoryTests extends BaseWebClientTests {
 		StepVerifier.create(result)
 				.consumeNextWith(response -> assertStatus(response, HttpStatus.OK))
 				.expectComplete().verify(Duration.ofSeconds(20));
+	}
+
+	@Test
+	public void toStringFormat() {
+		Config config = new Config();
+		config.setSources("1.2.3.4", "5.6.7.8");
+		Predicate predicate = new RemoteAddrRoutePredicateFactory().apply(config);
+		assertThat(predicate.toString()).contains("RemoteAddrs: [1.2.3.4, 5.6.7.8]");
 	}
 
 	@EnableAutoConfiguration

@@ -54,14 +54,22 @@ public class BetweenRoutePredicateFactory
 
 	@Override
 	public Predicate<ServerWebExchange> apply(Config config) {
-		ZonedDateTime datetime1 = config.datetime1;
-		ZonedDateTime datetime2 = config.datetime2;
-		Assert.isTrue(datetime1.isBefore(datetime2),
-				config.datetime1 + " must be before " + config.datetime2);
+		Assert.isTrue(config.getDatetime1().isBefore(config.getDatetime2()),
+				config.getDatetime1() + " must be before " + config.getDatetime2());
 
-		return exchange -> {
-			final ZonedDateTime now = ZonedDateTime.now();
-			return now.isAfter(datetime1) && now.isBefore(datetime2);
+		return new GatewayPredicate() {
+			@Override
+			public boolean test(ServerWebExchange serverWebExchange) {
+				final ZonedDateTime now = ZonedDateTime.now();
+				return now.isAfter(config.getDatetime1())
+						&& now.isBefore(config.getDatetime2());
+			}
+
+			@Override
+			public String toString() {
+				return String.format("Between: %s and %s", config.getDatetime1(),
+						config.getDatetime2());
+			}
 		};
 	}
 

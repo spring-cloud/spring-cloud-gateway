@@ -20,10 +20,15 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import reactor.core.publisher.Mono;
+
 import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.util.StringUtils;
+import org.springframework.web.server.ServerWebExchange;
 
+import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.addOriginalRequestUrl;
 
@@ -52,19 +57,30 @@ public class StripPrefixGatewayFilterFactory
 
 	@Override
 	public GatewayFilter apply(Config config) {
-		return (exchange, chain) -> {
-			ServerHttpRequest request = exchange.getRequest();
-			addOriginalRequestUrl(exchange, request.getURI());
-			String path = request.getURI().getRawPath();
-			String newPath = "/"
-					+ Arrays.stream(StringUtils.tokenizeToStringArray(path, "/"))
-							.skip(config.parts).collect(Collectors.joining("/"));
-			newPath += (newPath.length() > 1 && path.endsWith("/") ? "/" : "");
-			ServerHttpRequest newRequest = request.mutate().path(newPath).build();
+		return new GatewayFilter() {
+			@Override
+			public Mono<Void> filter(ServerWebExchange exchange,
+					GatewayFilterChain chain) {
+				ServerHttpRequest request = exchange.getRequest();
+				addOriginalRequestUrl(exchange, request.getURI());
+				String path = request.getURI().getRawPath();
+				String newPath = "/"
+						+ Arrays.stream(StringUtils.tokenizeToStringArray(path, "/"))
+								.skip(config.parts).collect(Collectors.joining("/"));
+				newPath += (newPath.length() > 1 && path.endsWith("/") ? "/" : "");
+				ServerHttpRequest newRequest = request.mutate().path(newPath).build();
 
-			exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, newRequest.getURI());
+				exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR,
+						newRequest.getURI());
 
-			return chain.filter(exchange.mutate().request(newRequest).build());
+				return chain.filter(exchange.mutate().request(newRequest).build());
+			}
+
+			@Override
+			public String toString() {
+				return filterToStringCreator(StripPrefixGatewayFilterFactory.this)
+						.append("parts", config.getParts()).toString();
+			}
 		};
 	}
 

@@ -27,6 +27,8 @@ import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.reactive.WebFluxAutoConfiguration;
 import org.springframework.boot.test.context.runner.ReactiveWebApplicationContextRunner;
+import org.springframework.cloud.gateway.actuate.GatewayControllerEndpoint;
+import org.springframework.cloud.gateway.actuate.GatewayLegacyControllerEndpoint;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.web.filter.reactive.HiddenHttpMethodFilter;
 
@@ -36,9 +38,8 @@ public class GatewayAutoConfigurationTests {
 
 	@Test
 	public void noHiddenHttpMethodFilter() {
-		try (ConfigurableApplicationContext ctx = SpringApplication.run(
-				NoHiddenHttpMethodFilterConfig.class, "--spring.jmx.enabled=false",
-				"--server.port=0")) {
+		try (ConfigurableApplicationContext ctx = SpringApplication.run(Config.class,
+				"--spring.jmx.enabled=false", "--server.port=0")) {
 			assertThat(ctx.getEnvironment()
 					.getProperty("spring.webflux.hiddenmethod.filter.enabled"))
 							.isEqualTo("false");
@@ -108,9 +109,30 @@ public class GatewayAutoConfigurationTests {
 				});
 	}
 
+	@Test
+	public void legacyActuatorEnabledByDefault() {
+		try (ConfigurableApplicationContext ctx = SpringApplication.run(Config.class,
+				"--spring.jmx.enabled=false", "--server.port=0")) {
+			assertThat(ctx.getBeanNamesForType(GatewayControllerEndpoint.class))
+					.isEmpty();
+			assertThat(ctx.getBeanNamesForType(GatewayLegacyControllerEndpoint.class))
+					.hasSize(1);
+		}
+	}
+
+	@Test
+	public void verboseActuatorEnabled() {
+		try (ConfigurableApplicationContext ctx = SpringApplication.run(Config.class,
+				"--spring.jmx.enabled=false", "--server.port=0",
+				"--spring.cloud.gateway.actuator.verbose.enabled=true")) {
+			assertThat(ctx.getBeanNamesForType(GatewayControllerEndpoint.class))
+					.hasSize(1);
+		}
+	}
+
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
-	protected static class NoHiddenHttpMethodFilterConfig {
+	protected static class Config {
 
 	}
 

@@ -21,10 +21,14 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.web.server.ServerWebExchange;
 
+import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ALREADY_PREFIXED_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.addOriginalRequestUrl;
@@ -54,29 +58,38 @@ public class PrefixPathGatewayFilterFactory
 
 	@Override
 	public GatewayFilter apply(Config config) {
-		return (exchange, chain) -> {
+		return new GatewayFilter() {
+			@Override
+			public Mono<Void> filter(ServerWebExchange exchange,
+					GatewayFilterChain chain) {
+				boolean alreadyPrefixed = exchange
+						.getAttributeOrDefault(GATEWAY_ALREADY_PREFIXED_ATTR, false);
+				if (alreadyPrefixed) {
+					return chain.filter(exchange);
+				}
+				exchange.getAttributes().put(GATEWAY_ALREADY_PREFIXED_ATTR, true);
 
-			boolean alreadyPrefixed = exchange
-					.getAttributeOrDefault(GATEWAY_ALREADY_PREFIXED_ATTR, false);
-			if (alreadyPrefixed) {
-				return chain.filter(exchange);
+				ServerHttpRequest req = exchange.getRequest();
+				addOriginalRequestUrl(exchange, req.getURI());
+				String newPath = config.prefix + req.getURI().getRawPath();
+
+				ServerHttpRequest request = req.mutate().path(newPath).build();
+
+				exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, request.getURI());
+
+				if (log.isTraceEnabled()) {
+					log.trace("Prefixed URI with: " + config.prefix + " -> "
+							+ request.getURI());
+				}
+
+				return chain.filter(exchange.mutate().request(request).build());
 			}
-			exchange.getAttributes().put(GATEWAY_ALREADY_PREFIXED_ATTR, true);
 
-			ServerHttpRequest req = exchange.getRequest();
-			addOriginalRequestUrl(exchange, req.getURI());
-			String newPath = config.prefix + req.getURI().getRawPath();
-
-			ServerHttpRequest request = req.mutate().path(newPath).build();
-
-			exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, request.getURI());
-
-			if (log.isTraceEnabled()) {
-				log.trace("Prefixed URI with: " + config.prefix + " -> "
-						+ request.getURI());
+			@Override
+			public String toString() {
+				return filterToStringCreator(PrefixPathGatewayFilterFactory.this)
+						.append("prefix", config.getPrefix()).toString();
 			}
-
-			return chain.filter(exchange.mutate().request(request).build());
 		};
 	}
 
