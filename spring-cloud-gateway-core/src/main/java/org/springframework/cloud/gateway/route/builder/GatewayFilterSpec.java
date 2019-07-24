@@ -671,7 +671,8 @@ public class GatewayFilterSpec extends UriSpec {
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
 	public GatewayFilterSpec setRequestHeaderSize(DataSize size) {
-		return filter(getBean(RequestHeaderSizeGatewayFilterFactory.class).apply(c -> c.setMaxSize(size)));
+		return filter(getBean(RequestHeaderSizeGatewayFilterFactory.class)
+				.apply(c -> c.setMaxSize(size)));
 	}
 
 	/**
