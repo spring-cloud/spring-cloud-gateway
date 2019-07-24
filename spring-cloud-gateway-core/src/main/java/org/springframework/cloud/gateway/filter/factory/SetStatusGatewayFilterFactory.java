@@ -21,17 +21,21 @@ import java.util.List;
 
 import reactor.core.publisher.Mono;
 
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.support.HttpStatusHolder;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 
+import static java.util.Collections.singletonList;
 import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.setResponseStatus;
 
 /**
  * @author Spencer Gibb
  */
+@ConfigurationProperties("spring.cloud.gateway.set-status")
 public class SetStatusGatewayFilterFactory
 		extends AbstractGatewayFilterFactory<SetStatusGatewayFilterFactory.Config> {
 
@@ -39,6 +43,11 @@ public class SetStatusGatewayFilterFactory
 	 * Status key.
 	 */
 	public static final String STATUS_KEY = "status";
+
+	/**
+	 * The name of the header which contains http code of the proxied request.
+	 */
+	private String originalStatusHeaderName;
 
 	public SetStatusGatewayFilterFactory() {
 		super(Config.class);
@@ -68,7 +77,12 @@ public class SetStatusGatewayFilterFactory
 				return chain.filter(exchange).then(Mono.fromRunnable(() -> {
 					// check not really needed, since it is guarded in setStatusCode,
 					// but it's a good example
-					setResponseStatus(exchange, statusHolder);
+					HttpStatus statusCode = exchange.getResponse().getStatusCode();
+					boolean isStatusCodeUpdated = setResponseStatus(exchange, statusHolder);
+					if (isStatusCodeUpdated && originalStatusHeaderName != null) {
+						exchange.getResponse().getHeaders().set(originalStatusHeaderName,
+								singletonList(statusCode.value()).toString());
+					}
 				}));
 			}
 
@@ -78,6 +92,14 @@ public class SetStatusGatewayFilterFactory
 						.append("status", config.getStatus()).toString();
 			}
 		};
+	}
+
+	public String getOriginalStatusHeaderName() {
+		return originalStatusHeaderName;
+	}
+
+	public void setOriginalStatusHeaderName(String originalStatusHeaderName) {
+		this.originalStatusHeaderName = originalStatusHeaderName;
 	}
 
 	public static class Config {

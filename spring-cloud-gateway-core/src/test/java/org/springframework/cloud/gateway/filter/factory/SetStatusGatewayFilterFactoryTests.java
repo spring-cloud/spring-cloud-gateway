@@ -16,9 +16,11 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -38,6 +40,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.web.reactive.server.WebTestClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -47,6 +50,9 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @DirtiesContext
 public class SetStatusGatewayFilterFactoryTests extends BaseWebClientTests {
 
+	@Autowired
+	private SetStatusGatewayFilterFactory filterFactory;
+
 	@Test
 	public void setStatusIntWorks() {
 		setStatusStringTest("www.setstatusint.org", HttpStatus.UNAUTHORIZED);
@@ -55,11 +61,6 @@ public class SetStatusGatewayFilterFactoryTests extends BaseWebClientTests {
 	@Test
 	public void setStatusStringWorks() {
 		setStatusStringTest("www.setstatusstring.org", HttpStatus.BAD_REQUEST);
-	}
-
-	private void setStatusStringTest(String host, HttpStatus status) {
-		testClient.get().uri("/headers").header("Host", host).exchange().expectStatus()
-				.isEqualTo(status);
 	}
 
 	@Test
@@ -79,11 +80,25 @@ public class SetStatusGatewayFilterFactoryTests extends BaseWebClientTests {
 	}
 
 	@Test
+	public void shouldSetStatusIntAndAddOriginalHeader() {
+		String headerName = "original-http-status";
+		filterFactory.setOriginalStatusHeaderName(headerName);
+		setStatusStringTest("www.setstatusint.org", HttpStatus.UNAUTHORIZED)
+				.expectHeader().value(headerName, Matchers.is("[200]"));
+
+	}
+
+	@Test
 	public void toStringFormat() {
 		Config config = new Config();
 		config.setStatus("401");
 		GatewayFilter filter = new SetStatusGatewayFilterFactory().apply(config);
 		assertThat(filter.toString()).contains("401");
+	}
+
+	private WebTestClient.ResponseSpec setStatusStringTest(String host, HttpStatus status) {
+		return testClient.get().uri("/headers").header("Host", host).exchange()
+				.expectStatus().isEqualTo(status);
 	}
 
 	@EnableAutoConfiguration
@@ -96,10 +111,14 @@ public class SetStatusGatewayFilterFactoryTests extends BaseWebClientTests {
 
 		@Bean
 		public RouteLocator myRouteLocator(RouteLocatorBuilder builder) {
+			// @formatter:off
 			return builder.routes()
-					.route("test_custom_http_status", r -> r.host("*.setcustomstatus.org")
-							.filters(f -> f.setStatus(432)).uri(uri))
+					.route("test_custom_http_status",
+							r -> r.host("*.setcustomstatus.org")
+									.filters(f -> f.setStatus(432))
+									.uri(uri))
 					.build();
+			// @formatter:on
 		}
 
 	}
