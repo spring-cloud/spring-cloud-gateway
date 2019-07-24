@@ -131,6 +131,7 @@ $(addBlockSwitches);
 <li><a href="#_removeresponseheader_gatewayfilter_factory">RemoveResponseHeader GatewayFilter Factory</a></li>
 <li><a href="#_removerequestparameter_gatewayfilter_factory">RemoveRequestParameter GatewayFilter Factory</a></li>
 <li><a href="#_rewritepath_gatewayfilter_factory">RewritePath GatewayFilter Factory</a></li>
+<li><a href="#_rewritelocationresponseheader_gatewayfilter_factory">RewriteLocationResponseHeader GatewayFilter Factory</a></li>
 <li><a href="#_rewriteresponseheader_gatewayfilter_factory">RewriteResponseHeader GatewayFilter Factory</a></li>
 <li><a href="#_savesession_gatewayfilter_factory">SaveSession GatewayFilter Factory</a></li>
 <li><a href="#_secureheaders_gatewayfilter_factory">SecureHeaders GatewayFilter Factory</a></li>
@@ -1305,6 +1306,50 @@ and have it applied to all routes.</p>
 </div>
 <div class="paragraph">
 <p>For a request path of <code>/foo/bar</code>, this will set the path to <code>/bar</code> before making the downstream request. Notice the <code>$\</code> which is replaced with <code>$</code> because of the YAML spec.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_rewritelocationresponseheader_gatewayfilter_factory"><a class="link" href="#_rewritelocationresponseheader_gatewayfilter_factory">RewriteLocationResponseHeader GatewayFilter Factory</a></h3>
+<div class="paragraph">
+<p>The RewriteLocationResponseHeader GatewayFilter Factory modifies the value of <code>Location</code> response header, usually to get rid of backend specific details. It takes <code>stripVersionMode</code>, <code>locationHeaderName</code>, <code>hostValue</code>, and <code>protocolsRegex</code> parameters.</p>
+</div>
+<div class="listingblock">
+<div class="title">application.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: rewritelocationresponseheader_route
+        uri: http://example.org
+        filters:
+        - RewriteLocationResponseHeader=AS_IN_REQUEST, Location, ,</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For example, for a request <code>POST <a href="https://api.example.com/some/object/name" class="bare">https://api.example.com/some/object/name</a></code>, <code>Location</code> response header value <code><a href="https://object-service.prod.example.net/v2/some/object/id" class="bare">https://object-service.prod.example.net/v2/some/object/id</a></code> will be rewritten as <code><a href="https://api.example.com/some/object/id" class="bare">https://api.example.com/some/object/id</a></code>.</p>
+</div>
+<div class="paragraph">
+<p>Parameter <code>stripVersionMode</code> has the following possible values: <code>NEVER_STRIP</code>, <code>AS_IN_REQUEST</code> (default), <code>ALWAYS_STRIP</code>.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>NEVER_STRIP</code> - Version will not be stripped, even if the original request path contains no version</p>
+</li>
+<li>
+<p><code>AS_IN_REQUEST</code> - Version will be stripped only if the original request path contains no version</p>
+</li>
+<li>
+<p><code>ALWAYS_STRIP</code> - Version will be stripped, even if the original request path contains version</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Parameter <code>hostValue</code>, if provided, will be used to replace the <code>host:port</code> portion of the response <code>Location</code> header. If not provided, the value of the <code>Host</code> request header will be used.</p>
+</div>
+<div class="paragraph">
+<p>Parameter <code>protocolsRegex</code> must be a valid regex <code>String</code>, against which the protocol name will be matched. If not matched, the filter will do nothing. Default is <code>http|https|ftp|ftps</code>.</p>
 </div>
 </div>
 <div class="sect2">
