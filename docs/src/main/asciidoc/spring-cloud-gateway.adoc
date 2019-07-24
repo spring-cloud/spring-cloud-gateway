@@ -607,6 +607,24 @@ their default values:
 
 You can find more information on how Hystrix works with Gateway in the <<hystrix, Hystrix GatewayFilter Factory section>>.
 
+=== MapRequestHeader GatewayFilter Factory
+The MapRequestHeader GatewayFilter Factory takes 'fromHeader' and 'toHeader' parameters. It creates a new named header (toHeader) and the value is extracted out of an existing named header (fromHeader) from the incoming http request. If the input header does not exist then the filter has no impact. If the new named header already exists then it's values will be augmented with the new values.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: map_request_header_route
+        uri: https://example.org
+        filters:
+        - MapRequestHeader=Bar, X-Request-Foo
+----
+
+This will add `X-Request-Foo:<values>` header to the downstream request's with updated values from the incoming http request `Bar` header.
+
 === PrefixPath GatewayFilter Factory
 The PrefixPath GatewayFilter Factory takes a single `prefix` parameter.
 
@@ -854,7 +872,7 @@ spring:
       - id: rewritelocationresponseheader_route
         uri: http://example.org
         filters:
-        - RewriteLocationResponseHeader=AS_IN_REQUEST, Location, , 
+        - RewriteLocationResponseHeader=AS_IN_REQUEST, Location, ,
 ----
 
 For example, for a request `POST https://api.example.com/some/object/name`, `Location` response header value `https://object-service.prod.example.net/v2/some/object/id` will be rewritten as `https://api.example.com/some/object/id`.
