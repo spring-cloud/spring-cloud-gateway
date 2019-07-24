@@ -166,7 +166,8 @@ $(addBlockSwitches);
 <li><a href="#_tls_handshake">TLS Handshake</a></li>
 </ul>
 </li>
-<li><a href="#_configuration">Configuration</a>
+<li><a href="#_configuration">Configuration</a></li>
+<li><a href="#_route_metadata_configuration">Route metadata configuration</a>
 <ul class="sectlevel2">
 <li><a href="#_fluent_java_routes_api">Fluent Java Routes API</a></li>
 <li><a href="#_discoveryclient_route_definition_locator">DiscoveryClient Route Definition Locator</a></li>
@@ -2220,6 +2221,42 @@ or check if an exchange has already been routed.</p>
 <div class="paragraph">
 <p>For some usages of the gateway, properties will be adequate, but some production use cases will benefit from loading configuration from an external source, such as a database. Future milestone versions will have <code>RouteDefinitionLocator</code> implementations based off of Spring Data Repositories such as: Redis, MongoDB and Cassandra.</p>
 </div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_route_metadata_configuration"><a class="link" href="#_route_metadata_configuration">Route metadata configuration</a></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Additional parameters can be configured for each route using metadata:</p>
+</div>
+<div class="listingblock">
+<div class="title">application.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: route_with_metadata
+        uri: https://example.org
+        metadata:
+          optionName: "OptionValue"
+          compositeObject:
+            name: "value"
+          iAmNumber: 1</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>All metadata properties could be acquired from exchange:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code>Route route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
+// get all metadata properties
+route.getMetadata();
+// get a single metadata property
+route.getMetadata(someKey);</code></pre>
+</div>
+</div>
 <div class="sect2">
 <h3 id="_fluent_java_routes_api"><a class="link" href="#_fluent_java_routes_api">Fluent Java Routes API</a></h3>
 <div class="paragraph">
@@ -2241,6 +2278,7 @@ public RouteLocator customRouteLocator(RouteLocatorBuilder builder, ThrottleGate
                 .filters(f -&gt;
                         f.addResponseHeader("X-AnotherHeader", "baz"))
                 .uri("http://httpbin.org:80")
+                .metadata("key", "value")
             )
             .route(r -&gt; r.order(-1)
                 .host("**.throttle.org").and().path("/get")
@@ -2249,6 +2287,7 @@ public RouteLocator customRouteLocator(RouteLocatorBuilder builder, ThrottleGate
                         10,
                         TimeUnit.SECONDS)))
                 .uri("http://httpbin.org:80")
+                .metadata("key", "value")
             )
             .build();
 }</code></pre>
