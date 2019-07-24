@@ -78,7 +78,8 @@ public class SetStatusGatewayFilterFactory
 					// check not really needed, since it is guarded in setStatusCode,
 					// but it's a good example
 					HttpStatus statusCode = exchange.getResponse().getStatusCode();
-					boolean isStatusCodeUpdated = setResponseStatus(exchange, statusHolder);
+					boolean isStatusCodeUpdated = setResponseStatus(exchange,
+							statusHolder);
 					if (isStatusCodeUpdated && originalStatusHeaderName != null) {
 						exchange.getResponse().getHeaders().set(originalStatusHeaderName,
 								singletonList(statusCode.value()).toString());

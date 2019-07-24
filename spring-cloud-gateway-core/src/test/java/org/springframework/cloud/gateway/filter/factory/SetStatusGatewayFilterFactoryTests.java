@@ -96,7 +96,8 @@ public class SetStatusGatewayFilterFactoryTests extends BaseWebClientTests {
 		assertThat(filter.toString()).contains("401");
 	}
 
-	private WebTestClient.ResponseSpec setStatusStringTest(String host, HttpStatus status) {
+	private WebTestClient.ResponseSpec setStatusStringTest(String host,
+			HttpStatus status) {
 		return testClient.get().uri("/headers").header("Host", host).exchange()
 				.expectStatus().isEqualTo(status);
 	}

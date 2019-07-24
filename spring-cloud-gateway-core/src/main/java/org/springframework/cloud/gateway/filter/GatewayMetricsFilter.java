@@ -16,6 +16,9 @@
 
 package org.springframework.cloud.gateway.filter;
 
+import java.util.Arrays;
+import java.util.List;
+
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.Timer;
@@ -24,26 +27,36 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Mono;
 
-import org.springframework.cloud.gateway.route.Route;
+import org.springframework.cloud.gateway.support.tagsprovider.GatewayHttpTagsProvider;
+import org.springframework.cloud.gateway.support.tagsprovider.GatewayRouteTagsProvider;
+import org.springframework.cloud.gateway.support.tagsprovider.GatewayTagsProvider;
 import org.springframework.core.Ordered;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.server.reactive.AbstractServerHttpResponse;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.server.ServerWebExchange;
 
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
-
 /**
  * @author Tony Clarke
+ * @author Ingyu Hwang
  */
 public class GatewayMetricsFilter implements GlobalFilter, Ordered {
 
 	private static final Log log = LogFactory.getLog(GatewayMetricsFilter.class);
 
-	private MeterRegistry meterRegistry;
+	private final MeterRegistry meterRegistry;
 
-	public GatewayMetricsFilter(MeterRegistry meterRegistry) {
+	private GatewayTagsProvider compositeTagsProvider;
+
+	public GatewayMetricsFilter(MeterRegistry meterRegistry,
+			List<GatewayTagsProvider> tagsProviders) {
 		this.meterRegistry = meterRegistry;
+		this.compositeTagsProvider = tagsProviders.stream()
+				.reduce(exchange -> Tags.empty(), GatewayTagsProvider::and);
+	}
+
+	@Deprecated
+	public GatewayMetricsFilter(MeterRegistry meterRegistry) {
+		this(meterRegistry, Arrays.asList(new GatewayHttpTagsProvider(),
+				new GatewayRouteTagsProvider()));
 	}
 
 	@Override
@@ -77,43 +90,7 @@ public class GatewayMetricsFilter implements GlobalFilter, Ordered {
 	}
 
 	private void endTimerInner(ServerWebExchange exchange, Sample sample) {
-		String outcome = "CUSTOM";
-		String status = "CUSTOM";
-		String httpStatusCodeStr = "NA";
-
-		String httpMethod = exchange.getRequest().getMethodValue();
-
-		// a non standard HTTPS status could be used. Let's be defensive here
-		// it needs to be checked for first, otherwise the delegate response
-		// who's status DIDN"T change, will be used
-		if (exchange.getResponse() instanceof AbstractServerHttpResponse) {
-			Integer statusInt = ((AbstractServerHttpResponse) exchange.getResponse())
-					.getStatusCodeValue();
-			if (statusInt != null) {
-				status = String.valueOf(statusInt);
-				httpStatusCodeStr = status;
-				HttpStatus resolved = HttpStatus.resolve(statusInt);
-				if (resolved != null) {
-					// this is not a CUSTOM status, so use series here.
-					outcome = resolved.series().name();
-					status = resolved.name();
-				}
-			}
-		}
-		else {
-			HttpStatus statusCode = exchange.getResponse().getStatusCode();
-			if (statusCode != null) {
-				httpStatusCodeStr = String.valueOf(statusCode.value());
-				outcome = statusCode.series().name();
-				status = statusCode.name();
-			}
-		}
-
-		// TODO refactor to allow Tags provider like in MetricsWebFilter
-		Route route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
-		Tags tags = Tags.of("outcome", outcome, "status", status, "httpStatusCode",
-				httpStatusCodeStr, "routeId", route.getId(), "routeUri",
-				route.getUri().toString(), "httpMethod", httpMethod);
+		Tags tags = compositeTagsProvider.apply(exchange);
 
 		if (log.isTraceEnabled()) {
 			log.trace("gateway.requests tags: " + tags);
