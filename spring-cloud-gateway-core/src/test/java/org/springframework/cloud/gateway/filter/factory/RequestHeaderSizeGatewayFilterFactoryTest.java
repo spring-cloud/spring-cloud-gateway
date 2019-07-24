@@ -23,6 +23,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.factory.RequestHeaderSizeGatewayFilterFactory.Config;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
@@ -34,6 +36,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.unit.DataSize;
 import org.springframework.util.unit.DataUnit;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 /**
@@ -53,6 +56,14 @@ public class RequestHeaderSizeGatewayFilterFactoryTest extends BaseWebClientTest
 				.header("HeaderName", "Some Very Large Header Name").exchange()
 				.expectStatus().isEqualTo(HttpStatus.REQUEST_HEADER_FIELDS_TOO_LARGE)
 				.expectHeader().valueMatches("errorMessage", responseMesssage);
+	}
+
+	@Test
+	public void toStringFormat() {
+		Config config = new Config();
+		config.setMaxSize(DataSize.ofBytes(1000L));
+		GatewayFilter filter = new RequestHeaderSizeGatewayFilterFactory().apply(config);
+		assertThat(filter.toString()).contains("max").contains("1000B");
 	}
 
 	@EnableAutoConfiguration

@@ -19,12 +19,18 @@ package org.springframework.cloud.gateway.filter.factory;
 import java.util.List;
 import java.util.Map;
 
+import reactor.core.publisher.Mono;
+
 import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.util.unit.DataSize;
 import org.springframework.util.unit.DataUnit;
+import org.springframework.web.server.ServerWebExchange;
+
+import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
 
 /**
  * This filter validates the size of each Request Header in the request. If size of any of
@@ -46,28 +52,38 @@ public class RequestHeaderSizeGatewayFilterFactory extends
 
 	@Override
 	public GatewayFilter apply(RequestHeaderSizeGatewayFilterFactory.Config config) {
-		return (exchange, chain) -> {
-			ServerHttpRequest request = exchange.getRequest();
-			HttpHeaders headers = request.getHeaders();
-			Long headerSizeInBytes = 0L;
+		return new GatewayFilter() {
+			@Override
+			public Mono<Void> filter(ServerWebExchange exchange,
+					GatewayFilterChain chain) {
+				ServerHttpRequest request = exchange.getRequest();
+				HttpHeaders headers = request.getHeaders();
+				Long headerSizeInBytes = 0L;
 
-			for (Map.Entry<String, List<String>> headerEntry : headers.entrySet()) {
-				List<String> values = headerEntry.getValue();
-				for (String value : values) {
-					headerSizeInBytes += Long.valueOf(value.getBytes().length);
+				for (Map.Entry<String, List<String>> headerEntry : headers.entrySet()) {
+					List<String> values = headerEntry.getValue();
+					for (String value : values) {
+						headerSizeInBytes += Long.valueOf(value.getBytes().length);
+					}
 				}
+
+				if (headerSizeInBytes > config.getMaxSize().toBytes()) {
+					exchange.getResponse()
+							.setStatusCode(HttpStatus.REQUEST_HEADER_FIELDS_TOO_LARGE);
+					exchange.getResponse().getHeaders().add("errorMessage",
+							getErrorMessage(headerSizeInBytes, config.getMaxSize()));
+					return exchange.getResponse().setComplete();
+
+				}
+
+				return chain.filter(exchange);
 			}
 
-			if (headerSizeInBytes > config.getMaxSize().toBytes()) {
-				exchange.getResponse()
-						.setStatusCode(HttpStatus.REQUEST_HEADER_FIELDS_TOO_LARGE);
-				exchange.getResponse().getHeaders().add("errorMessage",
-						getErrorMessage(headerSizeInBytes, config.getMaxSize()));
-				return exchange.getResponse().setComplete();
-
+			@Override
+			public String toString() {
+				return filterToStringCreator(RequestHeaderSizeGatewayFilterFactory.this)
+						.append("max", config.getMaxSize()).toString();
 			}
-
-			return chain.filter(exchange);
 		};
 	}
 
@@ -78,7 +94,7 @@ public class RequestHeaderSizeGatewayFilterFactory extends
 
 	public static class Config {
 
-		private DataSize maxSize = DataSize.of(16000L, DataUnit.BYTES);
+		private DataSize maxSize = DataSize.ofBytes(16000L);
 
 		public DataSize getMaxSize() {
 			return maxSize;

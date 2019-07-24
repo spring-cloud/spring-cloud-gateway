@@ -673,6 +673,15 @@ public class GatewayFilterSpec extends UriSpec {
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
 	public GatewayFilterSpec setRequestSize(Long size) {
+		return setRequestSize(DataSize.ofBytes(size));
+	}
+
+	/**
+	 * A filter that sets the maximum permissible size of a Request.
+	 * @param size the maximum size of a request
+	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
+	 */
+	public GatewayFilterSpec setRequestSize(DataSize size) {
 		return filter(getBean(RequestSizeGatewayFilterFactory.class)
 				.apply(c -> c.setMaxSize(size)));
 	}

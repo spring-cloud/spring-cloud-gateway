@@ -33,6 +33,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.util.unit.DataSize;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -60,7 +61,7 @@ public class RequestSizeGatewayFilterFactoryTest extends BaseWebClientTests {
 	@Test
 	public void toStringFormat() {
 		RequestSizeConfig config = new RequestSizeConfig();
-		config.setMaxSize(1000L);
+		config.setMaxSize(DataSize.ofBytes(1000L));
 		GatewayFilter filter = new RequestSizeGatewayFilterFactory().apply(config);
 		assertThat(filter.toString()).contains("max").contains("1000");
 	}
