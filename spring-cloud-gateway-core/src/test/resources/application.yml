@@ -100,6 +100,16 @@ spring:
         - RewriteResponseHeader=X-Request-Foo, password=[^&]+, password=***
 
       # =====================================
+      - id: rewrite_location_response_header_test
+        uri: ${test.uri}
+        predicates:
+        - Host=**.rewritelocationresponseheader.org
+        - Path=/headers
+        filters:
+        - AddResponseHeader=Location, https://backend.org:443/v1/some/object/id
+        - RewriteLocationResponseHeader
+
+      # =====================================
       - id: forward_test
         uri: forward:/localcontroller
         predicates:

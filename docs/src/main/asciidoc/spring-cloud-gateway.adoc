@@ -841,6 +841,34 @@ spring:
 
 For a request path of `/foo/bar`, this will set the path to `/bar` before making the downstream request. Notice the `$\` which is replaced with `$` because of the YAML spec.
 
+=== RewriteLocationResponseHeader GatewayFilter Factory
+The RewriteLocationResponseHeader GatewayFilter Factory modifies the value of `Location` response header, usually to get rid of backend specific details. It takes `stripVersionMode`, `locationHeaderName`, `hostValue`, and `protocolsRegex` parameters.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: rewritelocationresponseheader_route
+        uri: http://example.org
+        filters:
+        - RewriteLocationResponseHeader=AS_IN_REQUEST, Location, , 
+----
+
+For example, for a request `POST https://api.example.com/some/object/name`, `Location` response header value `https://object-service.prod.example.net/v2/some/object/id` will be rewritten as `https://api.example.com/some/object/id`.
+
+Parameter `stripVersionMode` has the following possible values: `NEVER_STRIP`, `AS_IN_REQUEST` (default), `ALWAYS_STRIP`.
+
+ * `NEVER_STRIP` - Version will not be stripped, even if the original request path contains no version
+ * `AS_IN_REQUEST` - Version will be stripped only if the original request path contains no version
+ * `ALWAYS_STRIP` - Version will be stripped, even if the original request path contains version
+
+Parameter `hostValue`, if provided, will be used to replace the `host:port` portion of the response `Location` header. If not provided, the value of the `Host` request header will be used.
+
+Parameter `protocolsRegex` must be a valid regex `String`, against which the protocol name will be matched. If not matched, the filter will do nothing. Default is `http|https|ftp|ftps`.
+
 === RewriteResponseHeader GatewayFilter Factory
 The RewriteResponseHeader GatewayFilter Factory takes `name`, `regexp`, and `replacement` parameters. It uses Java regular expressions for a flexible way to rewrite the response header value.
 

@@ -55,6 +55,8 @@ import org.springframework.cloud.gateway.filter.factory.RequestRateLimiterGatewa
 import org.springframework.cloud.gateway.filter.factory.RequestSizeGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RetryGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.RewriteLocationResponseHeaderGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.RewriteLocationResponseHeaderGatewayFilterFactory.StripVersion;
 import org.springframework.cloud.gateway.filter.factory.RewriteResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SaveSessionGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory;
@@ -577,6 +579,24 @@ public class GatewayFilterSpec extends UriSpec {
 			String replacement) {
 		return filter(getBean(RewriteResponseHeaderGatewayFilterFactory.class).apply(
 				c -> c.setReplacement(replacement).setRegexp(regex).setName(headerName)));
+	}
+
+	/**
+	 * A filter that rewrites the value of Location response header, ridding it of backend
+	 * specific details.
+	 * @param stripVersionMode NEVER_STRIP, AS_IN_REQUEST, or ALWAYS_STRIP
+	 * @param locationHeaderName a location header name
+	 * @param hostValue host value
+	 * @param protocolsRegex a valid regex String, against which the protocol name will be
+	 * matched
+	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
+	 */
+	public GatewayFilterSpec rewriteLocationResponseHeader(String stripVersionMode,
+			String locationHeaderName, String hostValue, String protocolsRegex) {
+		return filter(getBean(RewriteLocationResponseHeaderGatewayFilterFactory.class)
+				.apply(c -> c.setStripVersion(StripVersion.valueOf(stripVersionMode))
+						.setLocationHeaderName(locationHeaderName).setHostValue(hostValue)
+						.setProtocols(protocolsRegex)));
 	}
 
 	/**
