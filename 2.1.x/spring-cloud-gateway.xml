@@ -808,6 +808,38 @@ and have it applied to all routes.</simpara>
 </formalpara>
 <simpara>For a request path of <literal>/foo/bar</literal>, this will set the path to <literal>/bar</literal> before making the downstream request. Notice the <literal>$\</literal> which is replaced with <literal>$</literal> because of the YAML spec.</simpara>
 </section>
+<section xml:id="_rewritelocationresponseheader_gatewayfilter_factory">
+<title>RewriteLocationResponseHeader GatewayFilter Factory</title>
+<simpara>The RewriteLocationResponseHeader GatewayFilter Factory modifies the value of <literal>Location</literal> response header, usually to get rid of backend specific details. It takes <literal>stripVersionMode</literal>, <literal>locationHeaderName</literal>, <literal>hostValue</literal>, and <literal>protocolsRegex</literal> parameters.</simpara>
+<formalpara>
+<title>application.yml</title>
+<para>
+<programlisting language="yaml" linenumbering="unnumbered">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: rewritelocationresponseheader_route
+        uri: http://example.org
+        filters:
+        - RewriteLocationResponseHeader=AS_IN_REQUEST, Location, ,</programlisting>
+</para>
+</formalpara>
+<simpara>For example, for a request <literal>POST <link xl:href="https://api.example.com/some/object/name">https://api.example.com/some/object/name</link></literal>, <literal>Location</literal> response header value <literal><link xl:href="https://object-service.prod.example.net/v2/some/object/id">https://object-service.prod.example.net/v2/some/object/id</link></literal> will be rewritten as <literal><link xl:href="https://api.example.com/some/object/id">https://api.example.com/some/object/id</link></literal>.</simpara>
+<simpara>Parameter <literal>stripVersionMode</literal> has the following possible values: <literal>NEVER_STRIP</literal>, <literal>AS_IN_REQUEST</literal> (default), <literal>ALWAYS_STRIP</literal>.</simpara>
+<itemizedlist>
+<listitem>
+<simpara><literal>NEVER_STRIP</literal> - Version will not be stripped, even if the original request path contains no version</simpara>
+</listitem>
+<listitem>
+<simpara><literal>AS_IN_REQUEST</literal> - Version will be stripped only if the original request path contains no version</simpara>
+</listitem>
+<listitem>
+<simpara><literal>ALWAYS_STRIP</literal> - Version will be stripped, even if the original request path contains version</simpara>
+</listitem>
+</itemizedlist>
+<simpara>Parameter <literal>hostValue</literal>, if provided, will be used to replace the <literal>host:port</literal> portion of the response <literal>Location</literal> header. If not provided, the value of the <literal>Host</literal> request header will be used.</simpara>
+<simpara>Parameter <literal>protocolsRegex</literal> must be a valid regex <literal>String</literal>, against which the protocol name will be matched. If not matched, the filter will do nothing. Default is <literal>http|https|ftp|ftps</literal>.</simpara>
+</section>
 <section xml:id="_rewriteresponseheader_gatewayfilter_factory">
 <title>RewriteResponseHeader GatewayFilter Factory</title>
 <simpara>The RewriteResponseHeader GatewayFilter Factory takes <literal>name</literal>, <literal>regexp</literal>, and <literal>replacement</literal> parameters. It uses Java regular expressions for a flexible way to rewrite the response header value.</simpara>
