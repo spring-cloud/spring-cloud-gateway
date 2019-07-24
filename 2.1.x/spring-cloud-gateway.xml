@@ -586,6 +586,24 @@ their default values:</simpara>
 </itemizedlist>
 <simpara>You can find more information on how Hystrix works with Gateway in the <link linkend="hystrix">Hystrix GatewayFilter Factory section</link>.</simpara>
 </section>
+<section xml:id="_maprequestheader_gatewayfilter_factory">
+<title>MapRequestHeader GatewayFilter Factory</title>
+<simpara>The MapRequestHeader GatewayFilter Factory takes 'fromHeader' and 'toHeader' parameters. It creates a new named header (toHeader) and the value is extracted out of an existing named header (fromHeader) from the incoming http request. If the input header does not exist then the filter has no impact. If the new named header already exists then it&#8217;s values will be augmented with the new values.</simpara>
+<formalpara>
+<title>application.yml</title>
+<para>
+<programlisting language="yaml" linenumbering="unnumbered">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: map_request_header_route
+        uri: https://example.org
+        filters:
+        - MapRequestHeader=Bar, X-Request-Foo</programlisting>
+</para>
+</formalpara>
+<simpara>This will add <literal>X-Request-Foo:&lt;values&gt;</literal> header to the downstream request&#8217;s with updated values from the incoming http request <literal>Bar</literal> header.</simpara>
+</section>
 <section xml:id="_prefixpath_gatewayfilter_factory">
 <title>PrefixPath GatewayFilter Factory</title>
 <simpara>The PrefixPath GatewayFilter Factory takes a single <literal>prefix</literal> parameter.</simpara>
