@@ -17,9 +17,12 @@
 package org.springframework.cloud.gateway.route.builder;
 
 import java.net.URI;
+import java.util.Map;
 
+import org.assertj.core.util.Maps;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import reactor.test.StepVerifier;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,6 +63,31 @@ public class RouteBuilderTests {
 						r -> r.getId().equals("test2") && r.getFilters().size() == 1
 								&& r.getUri()
 										.equals(URI.create("https://httpbin.org:9090")))
+				.expectComplete().verify();
+	}
+
+	@Test
+	public void testRouteOptionsPropagatedToRoute() {
+		Map<String, Object> routeMetadata = Maps.newHashMap("key", "value");
+		RouteLocator routeLocator = this.routeLocatorBuilder.routes()
+				.route("test1", r -> r.host("*.somehost.org").and().path("/somepath")
+						.filters(f -> f.addRequestHeader("header1", "header-value-1"))
+						.uri("http://someuri").metadata("key", "value"))
+				.route("test2", r -> r.host("*.somehost2.org")
+						.filters(f -> f.addResponseHeader("header-response-1",
+								"header-response-1"))
+						.uri("https://httpbin.org:9090"))
+				.build();
+
+		StepVerifier.create(routeLocator.getRoutes())
+				.expectNextMatches(
+						r -> r.getId().equals("test1") && r.getFilters().size() == 1
+								&& r.getUri().equals(URI.create("http://someuri:80"))
+								&& r.getMetadata().equals(routeMetadata))
+				.expectNextMatches(r -> r.getId().equals("test2")
+						&& r.getFilters().size() == 1
+						&& r.getUri().equals(URI.create("https://httpbin.org:9090"))
+						&& r.getMetadata().isEmpty())
 				.expectComplete().verify();
 	}
 

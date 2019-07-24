@@ -32,6 +32,7 @@ import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.route.RouteDefinitionWriter;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
@@ -59,6 +60,9 @@ public class GatewayControllerEndpoint extends AbstractGatewayControllerEndpoint
 		r.put("uri", route.getUri().toString());
 		r.put("order", route.getOrder());
 		r.put("predicate", route.getPredicate().toString());
+		if (!CollectionUtils.isEmpty(route.getMetadata())) {
+			r.put("metadata", route.getMetadata());
+		}
 
 		ArrayList<String> filters = new ArrayList<>();
 

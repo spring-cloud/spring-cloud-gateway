@@ -1476,6 +1476,34 @@ spring:
 
 For some usages of the gateway, properties will be adequate, but some production use cases will benefit from loading configuration from an external source, such as a database. Future milestone versions will have `RouteDefinitionLocator` implementations based off of Spring Data Repositories such as: Redis, MongoDB and Cassandra.
 
+== Route metadata configuration
+Additional parameters can be configured for each route using metadata:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: route_with_metadata
+        uri: https://example.org
+        metadata:
+          optionName: "OptionValue"
+          compositeObject:
+            name: "value"
+          iAmNumber: 1
+----
+
+All metadata properties could be acquired from exchange:
+```
+Route route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
+// get all metadata properties
+route.getMetadata();
+// get a single metadata property
+route.getMetadata(someKey);
+```
+
 === Fluent Java Routes API
 To allow for simple configuration in Java, there is a fluent API defined in the `RouteLocatorBuilder` bean.
 
@@ -1495,6 +1523,7 @@ public RouteLocator customRouteLocator(RouteLocatorBuilder builder, ThrottleGate
                 .filters(f ->
                         f.addResponseHeader("X-AnotherHeader", "baz"))
                 .uri("http://httpbin.org:80")
+                .metadata("key", "value")
             )
             .route(r -> r.order(-1)
                 .host("**.throttle.org").and().path("/get")
@@ -1503,6 +1532,7 @@ public RouteLocator customRouteLocator(RouteLocatorBuilder builder, ThrottleGate
                         10,
                         TimeUnit.SECONDS)))
                 .uri("http://httpbin.org:80")
+                .metadata("key", "value")
             )
             .build();
 }
