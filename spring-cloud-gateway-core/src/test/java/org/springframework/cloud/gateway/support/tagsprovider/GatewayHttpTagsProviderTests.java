@@ -40,7 +40,8 @@ public class GatewayHttpTagsProviderTests {
 	private static final String ROUTE_URI = "http://gatewaytagsprovider.org:80";
 
 	private static final Tags DEFAULT_TAGS = Tags.of("outcome", OK.series().name(),
-			"status", OK.name(), "httpStatusCode", String.valueOf(OK.value()), "httpMethod", "GET");
+			"status", OK.name(), "httpStatusCode", String.valueOf(OK.value()),
+			"httpMethod", "GET");
 
 	@Test
 	public void httpTags() {

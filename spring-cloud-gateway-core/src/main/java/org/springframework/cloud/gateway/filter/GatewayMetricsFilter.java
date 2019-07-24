@@ -55,7 +55,8 @@ public class GatewayMetricsFilter implements GlobalFilter, Ordered {
 
 	@Deprecated
 	public GatewayMetricsFilter(MeterRegistry meterRegistry) {
-		this(meterRegistry, Arrays.asList(new GatewayHttpTagsProvider(), new GatewayRouteTagsProvider()));
+		this(meterRegistry, Arrays.asList(new GatewayHttpTagsProvider(),
+				new GatewayRouteTagsProvider()));
 	}
 
 	@Override
