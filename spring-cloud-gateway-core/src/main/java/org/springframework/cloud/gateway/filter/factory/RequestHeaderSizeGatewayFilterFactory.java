@@ -54,7 +54,8 @@ public class RequestHeaderSizeGatewayFilterFactory extends
 	public GatewayFilter apply(RequestHeaderSizeGatewayFilterFactory.Config config) {
 		return new GatewayFilter() {
 			@Override
-			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+			public Mono<Void> filter(ServerWebExchange exchange,
+					GatewayFilterChain chain) {
 				ServerHttpRequest request = exchange.getRequest();
 				HttpHeaders headers = request.getHeaders();
 				Long headerSizeInBytes = 0L;
@@ -93,7 +94,7 @@ public class RequestHeaderSizeGatewayFilterFactory extends
 
 	public static class Config {
 
-		private DataSize maxSize = DataSize.of(16000L, DataUnit.BYTES);
+		private DataSize maxSize = DataSize.ofBytes(16000L);
 
 		public DataSize getMaxSize() {
 			return maxSize;
