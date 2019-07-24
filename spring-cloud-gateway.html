@@ -1557,6 +1557,19 @@ using something like <a href="https://projects.spring.io/spring-session/">Spring
 <div class="paragraph">
 <p>In either case, the HTTP status of the response will be set to 401.</p>
 </div>
+<div class="paragraph">
+<p>The SetStatus GatewayFilter can be configured to return the original HTTP status code from the proxied request in a header in the response. Header will be added to the response if configured using following property.</p>
+</div>
+<div class="listingblock">
+<div class="title">application.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  cloud:
+    gateway:
+      set-status:
+        original-status-header-name: original-http-status</code></pre>
+</div>
+</div>
 </div>
 <div class="sect2">
 <h3 id="_stripprefix_gatewayfilter_factory"><a class="link" href="#_stripprefix_gatewayfilter_factory">StripPrefix GatewayFilter Factory</a></h3>
