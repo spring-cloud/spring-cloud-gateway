@@ -122,6 +122,7 @@ $(addBlockSwitches);
 <li><a href="#_deduperesponseheader_gatewayfilter_factory">DedupeResponseHeader GatewayFilter Factory</a></li>
 <li><a href="#hystrix">Hystrix GatewayFilter Factory</a></li>
 <li><a href="#fallback-headers">FallbackHeaders GatewayFilter Factory</a></li>
+<li><a href="#_maprequestheader_gatewayfilter_factory">MapRequestHeader GatewayFilter Factory</a></li>
 <li><a href="#_prefixpath_gatewayfilter_factory">PrefixPath GatewayFilter Factory</a></li>
 <li><a href="#_preservehostheader_gatewayfilter_factory">PreserveHostHeader GatewayFilter Factory</a></li>
 <li><a href="#_requestratelimiter_gatewayfilter_factory">RequestRateLimiter GatewayFilter Factory</a></li>
@@ -997,6 +998,28 @@ their default values:</p>
 </div>
 <div class="paragraph">
 <p>You can find more information on how Hystrix works with Gateway in the <a href="#hystrix">Hystrix GatewayFilter Factory section</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_maprequestheader_gatewayfilter_factory"><a class="link" href="#_maprequestheader_gatewayfilter_factory">MapRequestHeader GatewayFilter Factory</a></h3>
+<div class="paragraph">
+<p>The MapRequestHeader GatewayFilter Factory takes 'fromHeader' and 'toHeader' parameters. It creates a new named header (toHeader) and the value is extracted out of an existing named header (fromHeader) from the incoming http request. If the input header does not exist then the filter has no impact. If the new named header already exists then it&#8217;s values will be augmented with the new values.</p>
+</div>
+<div class="listingblock">
+<div class="title">application.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: map_request_header_route
+        uri: https://example.org
+        filters:
+        - MapRequestHeader=Bar, X-Request-Foo</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This will add <code>X-Request-Foo:&lt;values&gt;</code> header to the downstream request&#8217;s with updated values from the incoming http request <code>Bar</code> header.</p>
 </div>
 </div>
 <div class="sect2">
