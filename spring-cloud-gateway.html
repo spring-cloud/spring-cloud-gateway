@@ -1667,7 +1667,7 @@ using something like <a href="https://projects.spring.io/spring-session/">Spring
 <div class="sect2">
 <h3 id="_retry_gatewayfilter_factory"><a class="link" href="#_retry_gatewayfilter_factory">Retry GatewayFilter Factory</a></h3>
 <div class="paragraph">
-<p>The Retry GatewayFilter Factory takes <code>retries</code>, <code>statuses</code>, <code>methods</code>, and <code>series</code> as parameters.</p>
+<p>The Retry GatewayFilter Factory support following set of parameters:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -1682,6 +1682,36 @@ using something like <a href="https://projects.spring.io/spring-session/">Spring
 </li>
 <li>
 <p><code>series</code>: the series of status codes to be retried, represented using <code>org.springframework.http.HttpStatus.Series</code></p>
+</li>
+<li>
+<p><code>exceptions</code>: list of exceptions thrown that should be retried</p>
+</li>
+<li>
+<p><code>backoff</code>: configured exponential backoff for the retries. Retries are performed after a backoff interval of <code>firstBackoff * (factor ^ n)</code> where <code>n</code> is the iteration.
+If <code>maxBackoff</code> is configured, the maximum backoff applied will be limited to <code>maxBackoff</code>.
+If <code>basedOnPreviousValue</code> is true, backoff will be calculated using <code>prevBackoff * factor</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The following defaults are configured for <code>Retry</code> filter if enabled:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>retries</code>&#8201;&#8212;&#8201;3 times</p>
+</li>
+<li>
+<p><code>series</code>&#8201;&#8212;&#8201;5XX series</p>
+</li>
+<li>
+<p><code>methods</code>&#8201;&#8212;&#8201;GET method</p>
+</li>
+<li>
+<p><code>exceptions</code>&#8201;&#8212;&#8201;<code>IOException</code> and <code>TimeoutException</code></p>
+</li>
+<li>
+<p><code>backoff</code>&#8201;&#8212;&#8201;disabled</p>
 </li>
 </ul>
 </div>
@@ -1700,7 +1730,12 @@ using something like <a href="https://projects.spring.io/spring-session/">Spring
         - name: Retry
           args:
             retries: 3
-            statuses: BAD_GATEWAY</code></pre>
+            statuses: BAD_GATEWAY
+            backoff:
+              firstBackoff: 10ms
+              maxBackoff: 50ms
+              factor: 2
+              basedOnPreviousValue: false</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -2071,7 +2106,7 @@ If you are using <a href="https://github.com/sockjs">SockJS</a> as a fallback ov
 </ul>
 </div>
 <div class="paragraph">
-<p>These metrics are then available to be scraped from <code>/actuator/metrics/gateway.requests</code> and can be easily integated with Prometheus to create a <a href="images/gateway-grafana-dashboard.jpeg">Grafana</a> <a href="gateway-grafana-dashboard.json">dashboard</a>.</p>
+<p>These metrics are then available to be scraped from <code>/actuator/metrics/gateway.requests</code> and can be easily integrated with Prometheus to create a <a href="images/gateway-grafana-dashboard.jpeg">Grafana</a> <a href="gateway-grafana-dashboard.json">dashboard</a>.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -2080,7 +2115,7 @@ If you are using <a href="https://github.com/sockjs">SockJS</a> as a fallback ov
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-To enable the pometheus endpoint add micrometer-registry-prometheus as a project dependency.
+To enable the prometheus endpoint add micrometer-registry-prometheus as a project dependency.
 </td>
 </tr>
 </table>
