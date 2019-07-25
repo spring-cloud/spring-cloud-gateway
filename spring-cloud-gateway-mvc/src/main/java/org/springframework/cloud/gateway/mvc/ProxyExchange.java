@@ -462,7 +462,7 @@ public class ProxyExchange<T> {
 
 	protected static class BodyGrabber {
 
-		public Object body(@RequestBody Object body) {
+		public Object body(@RequestBody(required = false) Object body) {
 			return body;
 		}
 
