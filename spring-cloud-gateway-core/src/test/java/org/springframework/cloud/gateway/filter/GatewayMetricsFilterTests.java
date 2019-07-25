@@ -117,7 +117,8 @@ public class GatewayMetricsFilterTests extends BaseWebClientTests {
 			return builder.routes()
 					.route("test_custom_http_status_metrics",
 							r -> r.host("*.setcustomstatusmetrics.org")
-									.filters(f -> f.setStatus(432)).uri(testUri))
+									.filters(f -> f.prefixPath("/httpbin").setStatus(432))
+									.uri(testUri))
 					.build();
 		}
 

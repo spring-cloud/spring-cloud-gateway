@@ -116,24 +116,21 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 		boolean preserveHost = exchange
 				.getAttributeOrDefault(PRESERVE_HOST_HEADER_ATTRIBUTE, false);
 
-		Flux<HttpClientResponse> responseFlux = this.httpClient.request(method).uri(url)
-				.send((req, nettyOutbound) -> {
-					req.headers(httpHeaders);
-
-					if (preserveHost) {
-						String host = request.getHeaders().getFirst(HttpHeaders.HOST);
-						req.header(HttpHeaders.HOST, host);
-					}
-					if (log.isTraceEnabled()) {
-						nettyOutbound
-								.withConnection(connection -> log.trace("outbound route: "
-										+ connection.channel().id().asShortText()
-										+ ", inbound: " + exchange.getLogPrefix()));
-					}
-					return nettyOutbound.send(request.getBody()
-							.map(dataBuffer -> ((NettyDataBuffer) dataBuffer)
-									.getNativeBuffer()));
-				}).responseConnection((res, connection) -> {
+		Flux<HttpClientResponse> responseFlux = this.httpClient.headers(headers -> {
+			headers.add(httpHeaders);
+			if (preserveHost) {
+				String host = request.getHeaders().getFirst(HttpHeaders.HOST);
+				headers.add(HttpHeaders.HOST, host);
+			}
+		}).doOnRequest((req, conn) -> {
+			if (log.isTraceEnabled()) {
+				log.trace("outbound route: " + conn.channel().id().asShortText()
+						+ ", inbound: " + exchange.getLogPrefix());
+			}
+		}).request(method).uri(url)
+				.send(request.getBody().map(
+						dataBuffer -> ((NettyDataBuffer) dataBuffer).getNativeBuffer()))
+				.responseConnection((res, connection) -> {
 
 					// Defer committing the response until all route filters have run
 					// Put client response as ServerWebExchange attribute and write
