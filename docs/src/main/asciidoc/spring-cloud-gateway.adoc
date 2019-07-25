@@ -1049,12 +1049,25 @@ spring:
 When a request is made through the gateway to `/name/bar/foo` the request made to `nameservice` will look like `http://nameservice/foo`.
 
 === Retry GatewayFilter Factory
-The Retry GatewayFilter Factory takes `retries`, `statuses`, `methods`, and `series` as parameters.
+
+The Retry GatewayFilter Factory support following set of parameters:
 
 * `retries`: the number of retries that should be attempted
 * `statuses`: the HTTP status codes that should be retried, represented using `org.springframework.http.HttpStatus`
 * `methods`: the HTTP methods that should be retried, represented using `org.springframework.http.HttpMethod`
 * `series`: the series of status codes to be retried, represented using `org.springframework.http.HttpStatus.Series`
+* `exceptions`: list of exceptions thrown that should be retried
+* `backoff`: configured exponential backoff for the retries. Retries are performed after a backoff interval of `firstBackoff * (factor ^ n)` where `n` is the iteration.
+If `maxBackoff` is configured, the maximum backoff applied will be limited to `maxBackoff`.
+If `basedOnPreviousValue` is true, backoff will be calculated using `prevBackoff * factor`.
+
+The following defaults are configured for `Retry` filter if enabled:
+
+* `retries` -- 3 times
+* `series` -- 5XX series
+* `methods` -- GET method
+* `exceptions` -- `IOException` and `TimeoutException`
+* `backoff` -- disabled
 
 .application.yml
 [source,yaml]
@@ -1072,6 +1085,11 @@ spring:
           args:
             retries: 3
             statuses: BAD_GATEWAY
+            backoff:
+              firstBackoff: 10ms
+              maxBackoff: 50ms
+              factor: 2
+              basedOnPreviousValue: false
 ----
 
 NOTE: The retry filter does not currently support retrying with a body (e.g. for POST or PUT requests with a body).
@@ -1311,9 +1329,9 @@ To enable Gateway Metrics add spring-boot-starter-actuator as a project dependen
 * `httpStatusCode`: Http Status of the request returned to the client
 * `httpMethod`: The Http method used for the request
 
-These metrics are then available to be scraped from ``/actuator/metrics/gateway.requests`` and can be easily integated with Prometheus to create a link:images/gateway-grafana-dashboard.jpeg[Grafana] link:gateway-grafana-dashboard.json[dashboard].
+These metrics are then available to be scraped from ``/actuator/metrics/gateway.requests`` and can be easily integrated with Prometheus to create a link:images/gateway-grafana-dashboard.jpeg[Grafana] link:gateway-grafana-dashboard.json[dashboard].
 
-NOTE: To enable the pometheus endpoint add micrometer-registry-prometheus as a project dependency.
+NOTE: To enable the prometheus endpoint add micrometer-registry-prometheus as a project dependency.
 
 === Marking An Exchange As Routed
 
