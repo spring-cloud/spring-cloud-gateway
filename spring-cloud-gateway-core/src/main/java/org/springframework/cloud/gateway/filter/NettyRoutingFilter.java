@@ -25,7 +25,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.netty.NettyPipeline;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.client.HttpClientResponse;
 
@@ -131,10 +130,9 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 										+ connection.channel().id().asShortText()
 										+ ", inbound: " + exchange.getLogPrefix()));
 					}
-					return nettyOutbound.options(NettyPipeline.SendOptions::flushOnEach)
-							.send(request.getBody()
-									.map(dataBuffer -> ((NettyDataBuffer) dataBuffer)
-											.getNativeBuffer()));
+					return nettyOutbound.send(request.getBody()
+							.map(dataBuffer -> ((NettyDataBuffer) dataBuffer)
+									.getNativeBuffer()));
 				}).responseConnection((res, connection) -> {
 
 					// Defer committing the response until all route filters have run
