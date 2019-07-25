@@ -2430,6 +2430,9 @@ spring.cloud.gateway.discovery.locator.filters[1].args[replacement]: "'/${remain
 <div class="paragraph">
 <p>In the example above, CORS requests will be allowed from requests that originate from docs.spring.io for all GET requested paths.</p>
 </div>
+<div class="paragraph">
+<p>To provide the same CORS configuration to requests that are not handled by some gateway route predicate, set the property <code>spring.cloud.gateway.globalcors.add-to-simple-url-handler-mapping</code> equal to true. This is useful when trying to support CORS preflight requests and your route predicate doesn&#8217;t evalute to true because the http method is <code>options</code>.</p>
+</div>
 </div>
 </div>
 <div class="sect1">
