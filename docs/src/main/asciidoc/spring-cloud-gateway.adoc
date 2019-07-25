@@ -1638,6 +1638,8 @@ spring:
 
 In the example above, CORS requests will be allowed from requests that originate from docs.spring.io for all GET requested paths.
 
+To provide the same CORS configuration to requests that are not handled by some gateway route predicate, set the property `spring.cloud.gateway.globalcors.add-to-simple-url-handler-mapping` equal to true. This is useful when trying to support CORS preflight requests and your route predicate doesn't evalute to true because the http method is `options`.
+
 == Actuator API
 
 The `/gateway` actuator endpoint allows to monitor and interact with a Spring Cloud Gateway application. To be remotely accessible, the endpoint has to be https://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-endpoints.html#production-ready-endpoints-enabling-endpoints[enabled] and https://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-endpoints.html#production-ready-endpoints-exposing-endpoints[exposed via HTTP or JMX] in the application properties.
