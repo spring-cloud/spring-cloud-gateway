@@ -59,8 +59,9 @@ public class HttpBinCompatibleController {
 		return result;
 	}
 
-	@RequestMapping(path = "/multivalueheaders", method = { RequestMethod.GET,
-			RequestMethod.POST }, produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(path = "/multivalueheaders",
+			method = { RequestMethod.GET, RequestMethod.POST },
+			produces = MediaType.APPLICATION_JSON_VALUE)
 	public Map<String, Object> multiValueHeaders(ServerWebExchange exchange) {
 		Map<String, Object> result = new HashMap<>();
 		result.put("headers", exchange.getRequest().getHeaders());
