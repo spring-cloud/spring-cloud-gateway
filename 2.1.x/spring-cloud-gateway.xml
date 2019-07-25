@@ -1093,7 +1093,7 @@ using something like <link xl:href="https://projects.spring.io/spring-session/">
 </section>
 <section xml:id="_retry_gatewayfilter_factory">
 <title>Retry GatewayFilter Factory</title>
-<simpara>The Retry GatewayFilter Factory takes <literal>retries</literal>, <literal>statuses</literal>, <literal>methods</literal>, and <literal>series</literal> as parameters.</simpara>
+<simpara>The Retry GatewayFilter Factory support following set of parameters:</simpara>
 <itemizedlist>
 <listitem>
 <simpara><literal>retries</literal>: the number of retries that should be attempted</simpara>
@@ -1106,6 +1106,32 @@ using something like <link xl:href="https://projects.spring.io/spring-session/">
 </listitem>
 <listitem>
 <simpara><literal>series</literal>: the series of status codes to be retried, represented using <literal>org.springframework.http.HttpStatus.Series</literal></simpara>
+</listitem>
+<listitem>
+<simpara><literal>exceptions</literal>: list of exceptions thrown that should be retried</simpara>
+</listitem>
+<listitem>
+<simpara><literal>backoff</literal>: configured exponential backoff for the retries. Retries are performed after a backoff interval of <literal>firstBackoff * (factor ^ n)</literal> where <literal>n</literal> is the iteration.
+If <literal>maxBackoff</literal> is configured, the maximum backoff applied will be limited to <literal>maxBackoff</literal>.
+If <literal>basedOnPreviousValue</literal> is true, backoff will be calculated using <literal>prevBackoff * factor</literal>.</simpara>
+</listitem>
+</itemizedlist>
+<simpara>The following defaults are configured for <literal>Retry</literal> filter if enabled:</simpara>
+<itemizedlist>
+<listitem>
+<simpara><literal>retries</literal>&#8201;&#8212;&#8201;3 times</simpara>
+</listitem>
+<listitem>
+<simpara><literal>series</literal>&#8201;&#8212;&#8201;5XX series</simpara>
+</listitem>
+<listitem>
+<simpara><literal>methods</literal>&#8201;&#8212;&#8201;GET method</simpara>
+</listitem>
+<listitem>
+<simpara><literal>exceptions</literal>&#8201;&#8212;&#8201;<literal>IOException</literal> and <literal>TimeoutException</literal></simpara>
+</listitem>
+<listitem>
+<simpara><literal>backoff</literal>&#8201;&#8212;&#8201;disabled</simpara>
 </listitem>
 </itemizedlist>
 <formalpara>
@@ -1123,7 +1149,12 @@ using something like <link xl:href="https://projects.spring.io/spring-session/">
         - name: Retry
           args:
             retries: 3
-            statuses: BAD_GATEWAY</programlisting>
+            statuses: BAD_GATEWAY
+            backoff:
+              firstBackoff: 10ms
+              maxBackoff: 50ms
+              factor: 2
+              basedOnPreviousValue: false</programlisting>
 </para>
 </formalpara>
 <note>
@@ -1369,9 +1400,9 @@ route URL will override the <literal>ServiceInstance</literal> configuration.</s
 <simpara><literal>httpMethod</literal>: The Http method used for the request</simpara>
 </listitem>
 </itemizedlist>
-<simpara>These metrics are then available to be scraped from <literal>/actuator/metrics/gateway.requests</literal> and can be easily integated with Prometheus to create a <link xl:href="images/gateway-grafana-dashboard.jpeg">Grafana</link> <link xl:href="gateway-grafana-dashboard.json">dashboard</link>.</simpara>
+<simpara>These metrics are then available to be scraped from <literal>/actuator/metrics/gateway.requests</literal> and can be easily integrated with Prometheus to create a <link xl:href="images/gateway-grafana-dashboard.jpeg">Grafana</link> <link xl:href="gateway-grafana-dashboard.json">dashboard</link>.</simpara>
 <note>
-<simpara>To enable the pometheus endpoint add micrometer-registry-prometheus as a project dependency.</simpara>
+<simpara>To enable the prometheus endpoint add micrometer-registry-prometheus as a project dependency.</simpara>
 </note>
 </section>
 <section xml:id="_marking_an_exchange_as_routed">
