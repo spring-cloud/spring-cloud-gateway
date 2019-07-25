@@ -236,6 +236,12 @@ public class ProductionConfigurationTests {
 	}
 
 	@Test
+	public void noBody() throws Exception {
+		Foo foo = rest.postForObject("/proxy/no-body", null, Foo.class);
+		assertThat(foo.getName()).isEqualTo("hello");
+	}
+
+	@Test
 	@SuppressWarnings({ "Duplicates", "unchecked" })
 	public void headers() throws Exception {
 		Map<String, List<String>> headers = rest.exchange(RequestEntity
@@ -351,6 +357,12 @@ public class ProductionConfigurationTests {
 								.body(response.getBody().iterator().next()));
 			}
 
+			@PostMapping("/proxy/no-body")
+			public ResponseEntity<Foo> noBody(ProxyExchange<Foo> proxy) throws Exception {
+				return proxy.uri(home.toString() + "/foos")
+						.post();
+			}
+
 			@GetMapping("/forward/**")
 			public void forward(ProxyExchange<?> proxy) throws Exception {
 				String path = proxy.path("/forward");
@@ -411,6 +423,11 @@ public class ProductionConfigurationTests {
 			@GetMapping("/foos")
 			public List<Foo> foos() {
 				return Arrays.asList(new Foo("hello"));
+			}
+
+			@PostMapping("/foos")
+			public Foo postFoos() {
+				return new Foo("hello");
 			}
 
 			@GetMapping("/foos/{id}")
