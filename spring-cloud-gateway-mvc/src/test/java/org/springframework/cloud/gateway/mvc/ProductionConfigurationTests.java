@@ -359,8 +359,7 @@ public class ProductionConfigurationTests {
 
 			@PostMapping("/proxy/no-body")
 			public ResponseEntity<Foo> noBody(ProxyExchange<Foo> proxy) throws Exception {
-				return proxy.uri(home.toString() + "/foos")
-						.post();
+				return proxy.uri(home.toString() + "/foos").post();
 			}
 
 			@GetMapping("/forward/**")

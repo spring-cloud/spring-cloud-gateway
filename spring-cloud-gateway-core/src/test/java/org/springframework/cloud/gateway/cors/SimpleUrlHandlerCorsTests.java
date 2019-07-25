@@ -57,11 +57,12 @@ public class SimpleUrlHandlerCorsTests extends BaseWebClientTests {
 		assertThat(bodyToMono.block()).isNull();
 		assertThat(asHttpHeaders.getAccessControlAllowOrigin())
 				.as("Missing header value in response: "
-						+ HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN).isEqualTo("*");
+						+ HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN)
+				.isEqualTo("*");
 		assertThat(asHttpHeaders.getAccessControlAllowMethods())
 				.as("Missing header value in response: "
 						+ HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS)
-				.isEqualTo(Arrays.asList(new HttpMethod[] {HttpMethod.GET}));
+				.isEqualTo(Arrays.asList(new HttpMethod[] { HttpMethod.GET }));
 		assertThat(clientResponse.statusCode()).as("Pre Flight call failed.")
 				.isEqualTo(HttpStatus.OK);
 	}
@@ -76,7 +77,8 @@ public class SimpleUrlHandlerCorsTests extends BaseWebClientTests {
 		assertThat(bodyToMono.block()).isNotNull();
 		assertThat(asHttpHeaders.getAccessControlAllowOrigin())
 				.as("Missing header value in response: "
-						+ HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN).isEqualTo("*");
+						+ HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN)
+				.isEqualTo("*");
 		assertThat(clientResponse.statusCode()).as("CORS request failed.")
 				.isEqualTo(HttpStatus.NOT_FOUND);
 	}

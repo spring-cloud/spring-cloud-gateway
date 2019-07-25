@@ -208,12 +208,10 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 							.uri(uri))
 
 					.route("retry_with_backoff", r -> r.host("**.retrywithbackoff.org")
-							.filters(f -> f.prefixPath("/httpbin")
-									.retry(config -> {
-										config.setRetries(2).setBackoff(
-												Duration.ofMillis(100), null, 2, true);
-									}))
-							.uri(uri))
+							.filters(f -> f.prefixPath("/httpbin").retry(config -> {
+								config.setRetries(2).setBackoff(Duration.ofMillis(100),
+										null, 2, true);
+							})).uri(uri))
 
 					.route("retry_with_loadbalancer",
 							r -> r.host("**.retrywithloadbalancer.org")
