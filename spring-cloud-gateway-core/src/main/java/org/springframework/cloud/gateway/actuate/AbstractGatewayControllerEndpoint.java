@@ -150,8 +150,8 @@ public class AbstractGatewayControllerEndpoint implements ApplicationEventPublis
 								.equals(gatewayFilterFactory.name())));
 
 		boolean hasValidPredicateDefinitions = routeDefinition.getPredicates().stream()
-				.allMatch(filterDefinition -> routePredicates.stream()
-						.anyMatch(routePredicate -> filterDefinition.getName()
+				.allMatch(predicateDefinition -> routePredicates.stream()
+						.anyMatch(routePredicate -> predicateDefinition.getName()
 								.equals(routePredicate.name())));
 		log.debug("FilterDefinitions valid: " + hasValidFilterDefinitions);
 		log.debug("PredicateDefinitions valid: " + hasValidPredicateDefinitions);
