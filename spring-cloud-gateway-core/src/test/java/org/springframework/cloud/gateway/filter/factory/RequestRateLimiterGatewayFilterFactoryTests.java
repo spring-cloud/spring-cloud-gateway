@@ -129,8 +129,10 @@ public class RequestRateLimiterGatewayFilterFactoryTests extends BaseWebClientTe
 		if (denyEmptyKey != null) {
 			factory.setDenyEmptyKey(denyEmptyKey);
 		}
-		GatewayFilter filter = factory
-				.apply(config -> config.setKeyResolver(keyResolver));
+		GatewayFilter filter = factory.apply(config -> {
+			config.setRouteId("myroute");
+			config.setKeyResolver(keyResolver);
+		});
 
 		Mono<Void> response = filter.filter(exchange, this.filterChain);
 		response.subscribe(aVoid -> {
