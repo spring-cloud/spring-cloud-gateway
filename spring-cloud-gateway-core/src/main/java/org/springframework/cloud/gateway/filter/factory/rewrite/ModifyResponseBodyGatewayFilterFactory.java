@@ -79,6 +79,8 @@ public class ModifyResponseBodyGatewayFilterFactory extends
 
 		private RewriteFunction rewriteFunction;
 
+		private EmptyBodyRewriteFunction emptyBodyRewriteFunction;
+
 		public Class getInClass() {
 			return inClass;
 		}
@@ -141,6 +143,14 @@ public class ModifyResponseBodyGatewayFilterFactory extends
 			return this;
 		}
 
+		public EmptyBodyRewriteFunction getEmptyBodyRewriteFunction() {
+			return emptyBodyRewriteFunction;
+		}
+
+		public Config setEmptyBodyRewriteFunction(EmptyBodyRewriteFunction emptyBodyRewriteFunction) {
+			this.emptyBodyRewriteFunction =  emptyBodyRewriteFunction;
+			return this;
+		}
 	}
 
 	public class ModifyResponseGatewayFilter implements GatewayFilter, Ordered {
@@ -185,8 +195,12 @@ public class ModifyResponseBodyGatewayFilterFactory extends
 
 					// TODO: flux or mono
 					Mono modifiedBody = clientResponse.bodyToMono(inClass)
-							.flatMap(originalBody -> config.rewriteFunction
-									.apply(exchange, originalBody));
+							.flatMap(originalBody -> config.getRewriteFunction()
+									.apply(exchange, originalBody))
+									.switchIfEmpty(Mono.defer(() ->
+											config.getEmptyBodyRewriteFunction() != null
+											? (Mono) config.getEmptyBodyRewriteFunction().apply(exchange)
+											: Mono.empty()));
 
 					BodyInserter bodyInserter = BodyInserters.fromPublisher(modifiedBody,
 							outClass);

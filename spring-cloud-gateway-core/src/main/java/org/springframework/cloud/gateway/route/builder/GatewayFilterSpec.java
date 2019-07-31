@@ -55,9 +55,9 @@ import org.springframework.cloud.gateway.filter.factory.RequestHeaderToRequestUr
 import org.springframework.cloud.gateway.filter.factory.RequestRateLimiterGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RequestSizeGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RetryGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RewriteLocationResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RewriteLocationResponseHeaderGatewayFilterFactory.StripVersion;
+import org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RewriteResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SaveSessionGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory;
@@ -66,6 +66,7 @@ import org.springframework.cloud.gateway.filter.factory.SetRequestHeaderGatewayF
 import org.springframework.cloud.gateway.filter.factory.SetResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SetStatusGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.StripPrefixGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.rewrite.EmptyBodyRewriteFunction;
 import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyRequestBodyGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyResponseBodyGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.rewrite.RewriteFunction;
@@ -268,6 +269,8 @@ public class GatewayFilterSpec extends UriSpec {
 	 * A filter that can be used to modify the request body. This filter is BETA and may
 	 * be subject to change in a future release.
 	 * @param configConsumer request spec for response modification
+	 * @param <T> the original request body class
+	 * @param <R> the new request body class
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 * <pre>
 	 * {@code
@@ -311,6 +314,26 @@ public class GatewayFilterSpec extends UriSpec {
 	 * @param inClass the class to conver the response body to
 	 * @param outClass the class the Gateway will add to the response before it is
 	 * returned to the client
+	 * @param rewriteFunction the {@link RewriteFunction} that transforms the response
+	 * body
+	 * @param emptyBodyRewriteFunction the {@link EmptyBodyRewriteFunction} that provides response body
+	 * @param <T> the original response body class
+	 * @param <R> the new response body class
+	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
+	 */
+	public <T, R> GatewayFilterSpec modifyResponseBody(Class<T> inClass,
+			Class<R> outClass, RewriteFunction<T, R> rewriteFunction,
+			EmptyBodyRewriteFunction emptyBodyRewriteFunction) {
+		return filter(getBean(ModifyResponseBodyGatewayFilterFactory.class)
+				.apply(c -> c.setRewriteFunction(inClass, outClass, rewriteFunction).setEmptyBodyRewriteFunction(emptyBodyRewriteFunction)));
+	}
+
+	/**
+	 * A filter that can be used to modify the response body This filter is BETA and may
+	 * be subject to change in a future release.
+	 * @param inClass the class to conver the response body to
+	 * @param outClass the class the Gateway will add to the response before it is
+	 * returned to the client
 	 * @param newContentType the new Content-Type header to be returned
 	 * @param rewriteFunction the {@link RewriteFunction} that transforms the response
 	 * body
@@ -331,6 +354,8 @@ public class GatewayFilterSpec extends UriSpec {
 	 * A filter that can be used to modify the response body using custom spec. This
 	 * filter is BETA and may be subject to change in a future release.
 	 * @param configConsumer response spec for response modification
+	 * @param <T> the original response body class
+	 * @param <R> the new response body class
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 * <pre>
 	 * {@code
@@ -339,7 +364,8 @@ public class GatewayFilterSpec extends UriSpec {
 	 *		.setInClass(Some.class)
 	 *		.setOutClass(SomeOther.class)
 	 *		.setOutHints(hintsOut)
-	 *		.setRewriteFunction(rewriteFunction))
+	 *		.setRewriteFunction(rewriteFunction)
+	 *	    .setEmptyBodyRewriteFunction(emptyBodyRewriteFunction))
 	 * }
 	 * </pre>
 	 */
@@ -485,7 +511,7 @@ public class GatewayFilterSpec extends UriSpec {
 	}
 
 	/**
-	 * A filter which rewrites the request path before it is routed by the Gateway
+	 * A filter which rewrites the request path before it is routed by the Gateway.
 	 * @param regex a Java regular expression to match the path against
 	 * @param replacement the replacement for the path
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters

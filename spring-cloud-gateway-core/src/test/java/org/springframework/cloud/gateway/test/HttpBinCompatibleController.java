@@ -147,6 +147,12 @@ public class HttpBinCompatibleController {
 		return ResponseEntity.status(status).body("Failed with " + status);
 	}
 
+	@RequestMapping(path = "/post/empty", method = RequestMethod.POST,
+			produces = MediaType.APPLICATION_JSON_VALUE)
+	public Mono<String> emptyResponse() {
+		return Mono.empty();
+	}
+
 	public Map<String, String> getHeaders(ServerWebExchange exchange) {
 		return exchange.getRequest().getHeaders().toSingleValueMap();
 	}
