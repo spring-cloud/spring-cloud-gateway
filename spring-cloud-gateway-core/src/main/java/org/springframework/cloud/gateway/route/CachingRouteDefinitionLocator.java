@@ -23,7 +23,6 @@ import java.util.stream.Collectors;
 
 import reactor.cache.CacheFlux;
 import reactor.core.publisher.Flux;
-import reactor.core.scheduler.Schedulers;
 
 import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
 import org.springframework.context.ApplicationListener;
@@ -69,8 +68,7 @@ public class CachingRouteDefinitionLocator
 	@Override
 	public void onApplicationEvent(RefreshRoutesEvent event) {
 		fetch().materialize().collect(Collectors.toList())
-				.map(routes -> cache.put(CACHE_KEY, routes))
-				.subscribeOn(Schedulers.elastic()).subscribe();
+				.map(routes -> cache.put(CACHE_KEY, routes)).subscribe();
 	}
 
 	@Deprecated

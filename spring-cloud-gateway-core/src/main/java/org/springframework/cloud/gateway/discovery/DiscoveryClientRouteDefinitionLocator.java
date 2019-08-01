@@ -23,6 +23,8 @@ import java.util.function.Predicate;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
@@ -93,8 +95,8 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 			};
 		}
 
-		return Flux.fromIterable(discoveryClient.getServices())
-				.map(discoveryClient::getInstances)
+		return Mono.fromSupplier(discoveryClient::getServices)
+				.flatMapMany(Flux::fromIterable).map(discoveryClient::getInstances)
 				.filter(instances -> !instances.isEmpty())
 				.map(instances -> instances.get(0)).filter(includePredicate)
 				.map(instance -> {
@@ -133,7 +135,7 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 					}
 
 					return routeDefinition;
-				});
+				}).subscribeOn(Schedulers.elastic());
 	}
 
 	String getValueFromExpr(SimpleEvaluationContext evalCtxt, SpelExpressionParser parser,

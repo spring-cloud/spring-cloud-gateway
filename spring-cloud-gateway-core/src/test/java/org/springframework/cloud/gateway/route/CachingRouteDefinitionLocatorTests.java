@@ -20,9 +20,9 @@ import java.net.URI;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
-import org.junit.Assert;
 import org.junit.Test;
 import reactor.core.publisher.Flux;
+import reactor.core.scheduler.Schedulers;
 
 import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
 
@@ -75,7 +75,7 @@ public class CachingRouteDefinitionLocatorTests {
 						throw new IllegalStateException(e);
 					}
 					return Flux.just(routeDef1, routeDef2);
-				})));
+				}).subscribeOn(Schedulers.single())));
 
 		List<RouteDefinition> routes = locator.getRouteDefinitions().collectList()
 				.block();
@@ -104,30 +104,9 @@ public class CachingRouteDefinitionLocatorTests {
 
 		locator.onApplicationEvent(new RefreshRoutesEvent(this));
 
-		poll(() -> {
-			List<RouteDefinition> updatedRoutes = locator.getRouteDefinitions()
-					.collectList().block();
-			assertThat(updatedRoutes).containsExactlyInAnyOrder(routeDef1, routeDef2);
-		});
-	}
-
-	private void poll(Runnable runnable) {
-		for (int i = 0; i < 40; i++) {
-			try {
-				try {
-					runnable.run();
-					return;
-				}
-				catch (AssertionError ignored) {
-					Thread.sleep(50);
-				}
-			}
-			catch (InterruptedException e) {
-				Thread.currentThread().interrupt();
-				throw new IllegalStateException(e);
-			}
-		}
-		Assert.fail("Not able to obtain updated route definitions after 2 seconds.");
+		List<RouteDefinition> updatedRoutes = locator.getRouteDefinitions().collectList()
+				.block();
+		assertThat(updatedRoutes).containsExactlyInAnyOrder(routeDef1, routeDef2);
 	}
 
 	RouteDefinition routeDef(int id) {
