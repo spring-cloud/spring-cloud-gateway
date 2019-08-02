@@ -26,6 +26,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.data.redis.RedisReactiveAutoConfiguration;
 import org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiter;
+import org.springframework.cloud.gateway.support.ConfigurationService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
@@ -35,7 +36,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.scripting.support.ResourceScriptSource;
-import org.springframework.validation.Validator;
 import org.springframework.web.reactive.DispatcherHandler;
 
 @Configuration
@@ -59,8 +59,8 @@ class GatewayRedisAutoConfiguration {
 	@ConditionalOnMissingBean
 	public RedisRateLimiter redisRateLimiter(ReactiveStringRedisTemplate redisTemplate,
 			@Qualifier(RedisRateLimiter.REDIS_SCRIPT_NAME) RedisScript<List<Long>> redisScript,
-			Validator validator) {
-		return new RedisRateLimiter(redisTemplate, redisScript, validator);
+			ConfigurationService configurationService) {
+		return new RedisRateLimiter(redisTemplate, redisScript, configurationService);
 	}
 
 }

@@ -23,7 +23,6 @@ import java.util.Random;
 
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
 
 import org.springframework.cloud.gateway.event.PredicateArgsEvent;
 import org.springframework.cloud.gateway.filter.WeightCalculatorWebFilter.GroupWeightConfig;
@@ -34,11 +33,7 @@ import org.springframework.web.server.WebFilterChain;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doCallRealMethod;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class WeightCalculatorWebFilterTests {
@@ -131,9 +126,7 @@ public class WeightCalculatorWebFilterTests {
 
 	@Test
 	public void receivesPredicateArgsEvent() {
-		WeightCalculatorWebFilter filter = mock(WeightCalculatorWebFilter.class);
-		doNothing().when(filter).addWeightConfig(any(WeightConfig.class));
-		doCallRealMethod().when(filter).handle(any(PredicateArgsEvent.class));
+		TestWeightCalculatorWebFilter filter = new TestWeightCalculatorWebFilter();
 
 		HashMap<String, Object> args = new HashMap<>();
 		args.put("weight.group", "group1");
@@ -141,14 +134,21 @@ public class WeightCalculatorWebFilterTests {
 		PredicateArgsEvent event = new PredicateArgsEvent(this, "routeA", args);
 		filter.handle(event);
 
-		ArgumentCaptor<WeightConfig> configCaptor = ArgumentCaptor
-				.forClass(WeightConfig.class);
-		verify(filter).addWeightConfig(configCaptor.capture());
-
-		WeightConfig weightConfig = configCaptor.getValue();
+		WeightConfig weightConfig = filter.weightConfig;
 		assertThat(weightConfig.getGroup()).isEqualTo("group1");
 		assertThat(weightConfig.getRouteId()).isEqualTo("routeA");
 		assertThat(weightConfig.getWeight()).isEqualTo(1);
+	}
+
+	class TestWeightCalculatorWebFilter extends WeightCalculatorWebFilter {
+
+		private WeightConfig weightConfig;
+
+		@Override
+		void addWeightConfig(WeightConfig weightConfig) {
+			this.weightConfig = weightConfig;
+		}
+
 	}
 
 }

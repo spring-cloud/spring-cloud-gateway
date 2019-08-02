@@ -33,7 +33,7 @@ import org.springframework.cloud.gateway.event.PredicateArgsEvent;
 import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
 import org.springframework.cloud.gateway.event.WeightDefinedEvent;
 import org.springframework.cloud.gateway.route.RouteLocator;
-import org.springframework.cloud.gateway.support.ConfigurationUtils;
+import org.springframework.cloud.gateway.support.ConfigurationService;
 import org.springframework.cloud.gateway.support.WeightConfig;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.event.SmartApplicationListener;
@@ -59,9 +59,9 @@ public class WeightCalculatorWebFilter
 
 	private static final Log log = LogFactory.getLog(WeightCalculatorWebFilter.class);
 
-	private final Validator validator;
-
 	private final ObjectProvider<RouteLocator> routeLocator;
+
+	private final ConfigurationService configurationService;
 
 	private Random random = new Random();
 
@@ -70,7 +70,8 @@ public class WeightCalculatorWebFilter
 	private Map<String, GroupWeightConfig> groupWeights = new ConcurrentHashMap<>();
 
 	/* for testing */ WeightCalculatorWebFilter() {
-		this(null, null);
+		this.routeLocator = null;
+		this.configurationService = new ConfigurationService();
 	}
 
 	@Deprecated
@@ -78,10 +79,18 @@ public class WeightCalculatorWebFilter
 		this(validator, null);
 	}
 
+	@Deprecated
 	public WeightCalculatorWebFilter(Validator validator,
 			ObjectProvider<RouteLocator> routeLocator) {
-		this.validator = validator;
 		this.routeLocator = routeLocator;
+		this.configurationService = new ConfigurationService();
+		this.configurationService.setValidator(validator);
+	}
+
+	public WeightCalculatorWebFilter(ObjectProvider<RouteLocator> routeLocator,
+			ConfigurationService configurationService) {
+		this.routeLocator = routeLocator;
+		this.configurationService = configurationService;
 	}
 
 	/* for testing */
@@ -110,10 +119,12 @@ public class WeightCalculatorWebFilter
 
 	@Override
 	public boolean supportsEventType(Class<? extends ApplicationEvent> eventType) {
-		return PredicateArgsEvent.class.isAssignableFrom(eventType) || // config file
-				WeightDefinedEvent.class.isAssignableFrom(eventType) || // java dsl
-				RefreshRoutesEvent.class.isAssignableFrom(eventType); // force
-																		// initialization
+		// from config file
+		return PredicateArgsEvent.class.isAssignableFrom(eventType) ||
+		// from java dsl
+				WeightDefinedEvent.class.isAssignableFrom(eventType) ||
+				// force initialization
+				RefreshRoutesEvent.class.isAssignableFrom(eventType);
 	}
 
 	@Override
@@ -130,8 +141,8 @@ public class WeightCalculatorWebFilter
 			addWeightConfig(((WeightDefinedEvent) event).getWeightConfig());
 		}
 		else if (event instanceof RefreshRoutesEvent && routeLocator != null) {
-			routeLocator.ifAvailable(locator -> locator.getRoutes().subscribe()); // forces
-																					// initialization
+			// forces initialization
+			routeLocator.ifAvailable(locator -> locator.getRoutes().subscribe());
 		}
 
 	}
@@ -145,8 +156,8 @@ public class WeightCalculatorWebFilter
 
 		WeightConfig config = new WeightConfig(event.getRouteId());
 
-		ConfigurationUtils.bind(config, args, WeightConfig.CONFIG_PREFIX,
-				WeightConfig.CONFIG_PREFIX, validator);
+		this.configurationService.with(config).name(WeightConfig.CONFIG_PREFIX)
+				.normalizedProperties(args).bind();
 
 		addWeightConfig(config);
 	}

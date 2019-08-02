@@ -40,14 +40,13 @@ import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
 import org.springframework.cloud.gateway.handler.AsyncPredicate;
 import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
 import org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory;
-import org.springframework.cloud.gateway.support.ConfigurationUtils;
+import org.springframework.cloud.gateway.support.ConfigurationService;
 import org.springframework.cloud.gateway.support.HasRouteId;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.validation.Validator;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -68,7 +67,7 @@ public class RouteDefinitionRouteLocator
 
 	private final RouteDefinitionLocator routeDefinitionLocator;
 
-	private final ConversionService conversionService;
+	private final ConfigurationService configurationService;
 
 	private final Map<String, RoutePredicateFactory> predicates = new LinkedHashMap<>();
 
@@ -76,21 +75,27 @@ public class RouteDefinitionRouteLocator
 
 	private final GatewayProperties gatewayProperties;
 
-	private final SpelExpressionParser parser = new SpelExpressionParser();
-
-	private BeanFactory beanFactory;
-
-	private ApplicationEventPublisher publisher;
-
-	@Autowired
-	private Validator validator;
-
+	@Deprecated
 	public RouteDefinitionRouteLocator(RouteDefinitionLocator routeDefinitionLocator,
 			List<RoutePredicateFactory> predicates,
 			List<GatewayFilterFactory> gatewayFilterFactories,
 			GatewayProperties gatewayProperties, ConversionService conversionService) {
 		this.routeDefinitionLocator = routeDefinitionLocator;
-		this.conversionService = conversionService;
+		this.configurationService = new ConfigurationService();
+		this.configurationService.setConversionService(conversionService);
+		initFactories(predicates);
+		gatewayFilterFactories.forEach(
+				factory -> this.gatewayFilterFactories.put(factory.name(), factory));
+		this.gatewayProperties = gatewayProperties;
+	}
+
+	public RouteDefinitionRouteLocator(RouteDefinitionLocator routeDefinitionLocator,
+			List<RoutePredicateFactory> predicates,
+			List<GatewayFilterFactory> gatewayFilterFactories,
+			GatewayProperties gatewayProperties,
+			ConfigurationService configurationService) {
+		this.routeDefinitionLocator = routeDefinitionLocator;
+		this.configurationService = configurationService;
 		initFactories(predicates);
 		gatewayFilterFactories.forEach(
 				factory -> this.gatewayFilterFactories.put(factory.name(), factory));
@@ -98,13 +103,27 @@ public class RouteDefinitionRouteLocator
 	}
 
 	@Override
+	@Deprecated
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-		this.beanFactory = beanFactory;
+		if (this.configurationService.getBeanFactory() == null) {
+			this.configurationService.setBeanFactory(beanFactory);
+		}
+	}
+
+	@Autowired
+	@Deprecated
+	public void setValidator(Validator validator) {
+		if (this.configurationService.getValidator() == null) {
+			this.configurationService.setValidator(validator);
+		}
 	}
 
 	@Override
+	@Deprecated
 	public void setApplicationEventPublisher(ApplicationEventPublisher publisher) {
-		this.publisher = publisher;
+		if (this.configurationService.getPublisher() == null) {
+			this.configurationService.setApplicationEventPublisher(publisher);
+		}
 	}
 
 	private void initFactories(List<RoutePredicateFactory> predicates) {
@@ -160,19 +179,20 @@ public class RouteDefinitionRouteLocator
 						"Unable to find GatewayFilterFactory with name "
 								+ definition.getName());
 			}
-			Map<String, String> args = definition.getArgs();
 			if (logger.isDebugEnabled()) {
-				logger.debug("RouteDefinition " + id + " applying filter " + args + " to "
-						+ definition.getName());
+				logger.debug("RouteDefinition " + id + " applying filter "
+						+ definition.getArgs() + " to " + definition.getName());
 			}
 
-			Map<String, Object> properties = factory.shortcutType().normalize(args,
-					factory, this.parser, this.beanFactory);
-
-			Object configuration = factory.newConfig();
-
-			ConfigurationUtils.bind(configuration, properties,
-					factory.shortcutFieldPrefix(), definition.getName(), validator);
+			// @formatter:off
+			Object configuration = this.configurationService.with(factory)
+					.name(definition.getName())
+					.properties(definition.getArgs())
+					.eventFunction((bound, properties) -> new FilterArgsEvent(
+							// TODO: why explicit cast needed or java compile fails
+							RouteDefinitionRouteLocator.this, id, (Map<String, Object>) properties))
+					.bind();
+			// @formatter:on
 
 			// some filters require routeId
 			// TODO: is there a better place to apply this?
@@ -182,9 +202,6 @@ public class RouteDefinitionRouteLocator
 			}
 
 			GatewayFilter gatewayFilter = factory.apply(configuration);
-			if (this.publisher != null) {
-				this.publisher.publishEvent(new FilterArgsEvent(this, id, properties));
-			}
 			if (gatewayFilter instanceof Ordered) {
 				ordered.add(gatewayFilter);
 			}
@@ -239,21 +256,20 @@ public class RouteDefinitionRouteLocator
 					"Unable to find RoutePredicateFactory with name "
 							+ predicate.getName());
 		}
-		Map<String, String> args = predicate.getArgs();
 		if (logger.isDebugEnabled()) {
-			logger.debug("RouteDefinition " + route.getId() + " applying " + args + " to "
-					+ predicate.getName());
+			logger.debug("RouteDefinition " + route.getId() + " applying "
+					+ predicate.getArgs() + " to " + predicate.getName());
 		}
 
-		Map<String, Object> properties = factory.shortcutType().normalize(args, factory,
-				this.parser, this.beanFactory);
-		Object config = factory.newConfig();
-		ConfigurationUtils.bind(config, properties, factory.shortcutFieldPrefix(),
-				predicate.getName(), validator, conversionService);
-		if (this.publisher != null) {
-			this.publisher.publishEvent(
-					new PredicateArgsEvent(this, route.getId(), properties));
-		}
+		// @formatter:off
+		Object config = this.configurationService.with(factory)
+				.name(predicate.getName())
+				.properties(predicate.getArgs())
+				.eventFunction((bound, properties) -> new PredicateArgsEvent(
+						RouteDefinitionRouteLocator.this, route.getId(), properties))
+				.bind();
+		// @formatter:on
+
 		return factory.applyAsync(config);
 	}
 

@@ -24,7 +24,7 @@ import java.util.function.Predicate;
 import org.junit.Test;
 
 import org.springframework.boot.convert.ApplicationConversionService;
-import org.springframework.cloud.gateway.support.ConfigurationUtils;
+import org.springframework.cloud.gateway.support.ConfigurationService;
 import org.springframework.cloud.gateway.support.StringToZonedDateTimeConverter;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -41,12 +41,15 @@ public class BetweenRoutePredicateFactoryTests {
 
 	static <T> T bindConfig(HashMap<String, Object> properties,
 			AbstractRoutePredicateFactory<T> factory) {
-		T config = factory.newConfig();
-
 		ApplicationConversionService conversionService = new ApplicationConversionService();
 		conversionService.addConverter(new StringToZonedDateTimeConverter());
-		ConfigurationUtils.bind(config, properties, "", "myname", null,
-				conversionService);
+		// @formatter:off
+		T config = new ConfigurationService(null, conversionService, null)
+				.with(factory)
+				.name("myname")
+				.normalizedProperties(properties)
+				.bind();
+		// @formatter:on
 		return config;
 	}
 

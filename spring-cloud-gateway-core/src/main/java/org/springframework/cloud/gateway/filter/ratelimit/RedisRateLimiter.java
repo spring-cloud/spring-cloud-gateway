@@ -35,6 +35,7 @@ import reactor.core.publisher.Mono;
 import org.springframework.beans.BeansException;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.cloud.gateway.route.RouteDefinitionRouteLocator;
+import org.springframework.cloud.gateway.support.ConfigurationService;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
@@ -120,15 +121,30 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 	private String burstCapacityHeader = BURST_CAPACITY_HEADER;
 
 	public RedisRateLimiter(ReactiveStringRedisTemplate redisTemplate,
+			RedisScript<List<Long>> script, ConfigurationService configurationService) {
+		super(Config.class, CONFIGURATION_PROPERTY_NAME, configurationService);
+		this.redisTemplate = redisTemplate;
+		this.script = script;
+		this.initialized.compareAndSet(false, true);
+	}
+
+	@Deprecated
+	public RedisRateLimiter(ReactiveStringRedisTemplate redisTemplate,
 			RedisScript<List<Long>> script, Validator validator) {
 		super(Config.class, CONFIGURATION_PROPERTY_NAME, validator);
 		this.redisTemplate = redisTemplate;
 		this.script = script;
-		initialized.compareAndSet(false, true);
+		this.initialized.compareAndSet(false, true);
 	}
 
+	/**
+	 * This creates an instance with default static configuration, useful in Java DSL.
+	 * @param defaultReplenishRate how many tokens per second in token-bucket algorithm.
+	 * @param defaultBurstCapacity how many tokens the bucket can hold in token-bucket
+	 * alogritm.
+	 */
 	public RedisRateLimiter(int defaultReplenishRate, int defaultBurstCapacity) {
-		super(Config.class, CONFIGURATION_PROPERTY_NAME, null);
+		super(Config.class, CONFIGURATION_PROPERTY_NAME, (ConfigurationService) null);
 		this.defaultConfig = new Config().setReplenishRate(defaultReplenishRate)
 				.setBurstCapacity(defaultBurstCapacity);
 	}
@@ -178,6 +194,11 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 		this.burstCapacityHeader = burstCapacityHeader;
 	}
 
+	/**
+	 * Used when setting default configuration in constructor.
+	 * @param context the ApplicationContext object to be used by this object
+	 * @throws BeansException if thrown by application context methods
+	 */
 	@Override
 	@SuppressWarnings("unchecked")
 	public void setApplicationContext(ApplicationContext context) throws BeansException {
@@ -186,8 +207,8 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 				this.redisTemplate = context.getBean(ReactiveStringRedisTemplate.class);
 			}
 			this.script = context.getBean(REDIS_SCRIPT_NAME, RedisScript.class);
-			if (context.getBeanNamesForType(Validator.class).length > 0) {
-				this.setValidator(context.getBean(Validator.class));
+			if (context.getBeanNamesForType(ConfigurationService.class).length > 0) {
+				setConfigurationService(context.getBean(ConfigurationService.class));
 			}
 		}
 	}

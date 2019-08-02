@@ -31,6 +31,7 @@ import reactor.netty.resources.ConnectionProvider;
 import reactor.netty.tcp.ProxyProvider;
 import rx.RxReactiveStreams;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.actuate.autoconfigure.endpoint.condition.ConditionalOnAvailableEndpoint;
@@ -127,6 +128,7 @@ import org.springframework.cloud.gateway.route.RouteDefinitionWriter;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.RouteRefreshListener;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
+import org.springframework.cloud.gateway.support.ConfigurationService;
 import org.springframework.cloud.gateway.support.StringToZonedDateTimeConverter;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -194,13 +196,20 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
+	public ConfigurationService gatewayConfigurationService(BeanFactory beanFactory,
+			@Qualifier("webFluxConversionService") ConversionService conversionService,
+			Validator validator) {
+		return new ConfigurationService(beanFactory, conversionService, validator);
+	}
+
+	@Bean
 	public RouteLocator routeDefinitionRouteLocator(GatewayProperties properties,
 			List<GatewayFilterFactory> GatewayFilters,
 			List<RoutePredicateFactory> predicates,
 			RouteDefinitionLocator routeDefinitionLocator,
-			@Qualifier("webFluxConversionService") ConversionService conversionService) {
+			ConfigurationService configurationService) {
 		return new RouteDefinitionRouteLocator(routeDefinitionLocator, predicates,
-				GatewayFilters, properties, conversionService);
+				GatewayFilters, properties, configurationService);
 	}
 
 	@Bean
@@ -310,9 +319,10 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	public WeightCalculatorWebFilter weightCalculatorWebFilter(Validator validator,
+	public WeightCalculatorWebFilter weightCalculatorWebFilter(
+			ConfigurationService configurationService,
 			ObjectProvider<RouteLocator> routeLocator) {
-		return new WeightCalculatorWebFilter(validator, routeLocator);
+		return new WeightCalculatorWebFilter(routeLocator, configurationService);
 	}
 
 	@Bean
