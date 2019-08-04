@@ -428,6 +428,26 @@ spring:
           compositeObject:
               name: "value"
           iAmNumber: 1
+      # =====================================
+      - id: per_route_response_timeout
+        uri: ${test.uri}
+        predicates:
+          - name: Path
+            args:
+              pattern: /route/delay/{timeout}
+        filters:
+        - StripPrefix=1
+        metadata:
+          response-timeout: 1000
+      # =====================================
+      - id: per_route_connect_timeout
+        uri: http://localhost:32167
+        predicates:
+          - name: Path
+            args:
+              pattern: /connect/delay/{timeout}
+        metadata:
+          connect-timeout: 5
 
 hystrix.command.successcmd.execution.isolation.thread.timeoutInMilliseconds: 5000
 

@@ -17,8 +17,10 @@
 package org.springframework.cloud.gateway.filter;
 
 import java.net.URI;
+import java.time.Duration;
 import java.util.List;
 
+import io.netty.channel.ChannelOption;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import org.apache.commons.logging.Log;
@@ -32,6 +34,7 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cloud.gateway.config.HttpClientProperties;
 import org.springframework.cloud.gateway.filter.headers.HttpHeadersFilter;
 import org.springframework.cloud.gateway.filter.headers.HttpHeadersFilter.Type;
+import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.support.TimeoutException;
 import org.springframework.core.Ordered;
 import org.springframework.core.io.buffer.NettyDataBuffer;
@@ -45,10 +48,13 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
 
 import static org.springframework.cloud.gateway.filter.headers.HttpHeadersFilter.filterRequest;
+import static org.springframework.cloud.gateway.support.RouteMetadataUtils.CONNECT_TIMEOUT_ATTR;
+import static org.springframework.cloud.gateway.support.RouteMetadataUtils.RESPONSE_TIMEOUT_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.CLIENT_RESPONSE_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.CLIENT_RESPONSE_CONN_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.CLIENT_RESPONSE_HEADER_NAMES;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.PRESERVE_HOST_HEADER_ATTRIBUTE;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.isAlreadyRouted;
@@ -115,8 +121,9 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 
 		boolean preserveHost = exchange
 				.getAttributeOrDefault(PRESERVE_HOST_HEADER_ATTRIBUTE, false);
+		Route route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
 
-		Flux<HttpClientResponse> responseFlux = this.httpClient.headers(headers -> {
+		Flux<HttpClientResponse> responseFlux = httpClientWithTimeoutFrom(route).headers(headers -> {
 			headers.add(httpHeaders);
 			// Will either be set below, or later by Netty
 			headers.remove(HttpHeaders.HOST);
@@ -190,16 +197,32 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 			return Mono.just(res);
 		});
 
-		if (properties.getResponseTimeout() != null) {
-			responseFlux = responseFlux.timeout(properties.getResponseTimeout(),
-					Mono.error(new TimeoutException("Response took longer than timeout: "
-							+ properties.getResponseTimeout())))
+		Duration responseTimeout = getResponseTimeout(route);
+		if (responseTimeout != null) {
+			responseFlux = responseFlux
+					.timeout(responseTimeout, Mono.error(new TimeoutException(
+							"Response took longer than timeout: " + responseTimeout)))
 					.onErrorMap(TimeoutException.class,
 							th -> new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT,
 									th.getMessage(), th));
 		}
 
 		return responseFlux.then(chain.filter(exchange));
+	}
+
+	private HttpClient httpClientWithTimeoutFrom(Route route) {
+		Integer connectTimeout = (Integer) route.getMetadata().get(CONNECT_TIMEOUT_ATTR);
+		if (connectTimeout != null) {
+			return this.httpClient.tcpConfiguration((tcpClient) -> tcpClient
+					.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, connectTimeout));
+		}
+		return httpClient;
+	}
+
+	private Duration getResponseTimeout(Route route) {
+		Number responseTimeout = (Number) route.getMetadata().get(RESPONSE_TIMEOUT_ATTR);
+		return responseTimeout != null ? Duration.ofMillis(responseTimeout.longValue())
+				: properties.getResponseTimeout();
 	}
 
 }
