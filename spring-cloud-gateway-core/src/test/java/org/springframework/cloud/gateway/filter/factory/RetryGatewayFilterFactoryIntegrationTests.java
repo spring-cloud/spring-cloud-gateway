@@ -59,7 +59,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = RANDOM_PORT)
+@SpringBootTest(webEnvironment = RANDOM_PORT, properties = {
+		"spring.cloud.gateway.httpclient.connect-timeout=500",
+		"spring.cloud.gateway.httpclient.response-timeout=2s" })
 @DirtiesContext
 public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTests {
 
@@ -114,6 +116,16 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 	}
 
 	@Test
+	public void retriesSleepyRequest() throws Exception {
+		testClient.mutate().responseTimeout(Duration.ofSeconds(10)).build().get()
+				.uri("/sleep?key=sleepyRequest&millis=3000")
+				.header(HttpHeaders.HOST, "www.retryjava.org").exchange().expectStatus()
+				.isEqualTo(HttpStatus.GATEWAY_TIMEOUT);
+
+		assertThat(TestConfig.map.get("sleepyRequest")).isNotNull().hasValue(3);
+	}
+
+	@Test
 	@SuppressWarnings("unchecked")
 	public void retryFilterLoadBalancedWithMultipleServers() {
 		String host = "www.retrywithloadbalancer.org";
@@ -148,10 +160,26 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 
 		Log log = LogFactory.getLog(getClass());
 
-		ConcurrentHashMap<String, AtomicInteger> map = new ConcurrentHashMap<>();
+		static ConcurrentHashMap<String, AtomicInteger> map = new ConcurrentHashMap<>();
 
 		@Value("${test.uri}")
 		private String uri;
+
+		@RequestMapping("/httpbin/sleep")
+		public ResponseEntity<String> sleep(@RequestParam("key") String key,
+				@RequestParam("millis") long millisToSleep) {
+			AtomicInteger num = getCount(key);
+			int retryCount = num.incrementAndGet();
+			log.warn("Retry count: " + retryCount);
+			try {
+				Thread.sleep(millisToSleep);
+			}
+			catch (InterruptedException e) {
+			}
+			return ResponseEntity.status(HttpStatus.OK)
+					.header("X-Retry-Count", String.valueOf(retryCount))
+					.body("slept " + millisToSleep + " ms");
+		}
 
 		@RequestMapping("/httpbin/retryalwaysfail")
 		public ResponseEntity<String> retryalwaysfail(@RequestParam("key") String key,
@@ -194,7 +222,7 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 					.body(body);
 		}
 
-		AtomicInteger getCount(@RequestParam("key") String key) {
+		AtomicInteger getCount(String key) {
 			return map.computeIfAbsent(key, s -> new AtomicInteger());
 		}
 
