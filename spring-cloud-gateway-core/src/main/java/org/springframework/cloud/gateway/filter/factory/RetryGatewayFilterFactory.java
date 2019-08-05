@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -93,16 +94,17 @@ public class RetryGatewayFilterFactory
 							.anyMatch(series -> statusCode.series().equals(series));
 				}
 
+				final boolean finalRetryableStatusCode = retryableStatusCode;
 				trace("retryableStatusCode: %b, statusCode %s, configured statuses %s, configured series %s",
-						retryableStatusCode, statusCode, retryConfig.getStatuses(),
-						retryConfig.getSeries());
+						() -> finalRetryableStatusCode, () -> statusCode,
+						retryConfig::getStatuses, retryConfig::getSeries);
 
 				HttpMethod httpMethod = exchange.getRequest().getMethod();
 				boolean retryableMethod = retryConfig.getMethods().contains(httpMethod);
 
 				trace("retryableMethod: %b, httpMethod %s, configured methods %s",
-						retryableMethod, httpMethod, retryConfig.getMethods());
-				return retryableMethod && retryableStatusCode;
+						() -> retryableMethod, () -> httpMethod, retryConfig::getMethods);
+				return retryableMethod && finalRetryableStatusCode;
 			};
 
 			statusCodeRepeat = Repeat.onlyIf(repeatPredicate)
@@ -123,17 +125,20 @@ public class RetryGatewayFilterFactory
 					return false;
 				}
 
-				for (Class<? extends Throwable> clazz : retryConfig.getExceptions()) {
-					if (clazz.isInstance(context.exception())) {
-						trace("exception is retryable %s, configured exceptions",
-								context.exception().getClass().getName(),
-								retryConfig.getExceptions());
+				Throwable exception = context.exception();
+				for (Class<? extends Throwable> retryableClass : retryConfig
+						.getExceptions()) {
+					if (retryableClass.isInstance(exception) || (exception != null
+							&& retryableClass.isInstance(exception.getCause()))) {
+						trace("exception or its cause is retryable %s, configured exceptions %s",
+								() -> getExceptionNameWithCause(exception),
+								retryConfig::getExceptions);
 						return true;
 					}
 				}
-				trace("exception is not retryable %s, configured exceptions",
-						context.exception().getClass().getName(),
-						retryConfig.getExceptions());
+				trace("exception or its cause is not retryable %s, configured exceptions %s",
+						() -> getExceptionNameWithCause(exception),
+						retryConfig::getExceptions);
 				return false;
 			};
 			exceptionRetry = Retry.onlyIf(retryContextPredicate)
@@ -166,6 +171,20 @@ public class RetryGatewayFilterFactory
 		};
 	}
 
+	private String getExceptionNameWithCause(Throwable exception) {
+		if (exception != null) {
+			StringBuilder builder = new StringBuilder(exception.getClass().getName());
+			Throwable cause = exception.getCause();
+			if (cause != null) {
+				builder.append("{cause=").append(cause.getClass().getName()).append("}");
+			}
+			return builder.toString();
+		}
+		else {
+			return "null";
+		}
+	}
+
 	private Backoff getBackoff(BackoffConfig backoff) {
 		return Backoff.exponential(backoff.firstBackoff, backoff.maxBackoff,
 				backoff.factor, backoff.basedOnPreviousValue);
@@ -177,8 +196,8 @@ public class RetryGatewayFilterFactory
 
 		// TODO: deal with null iteration
 		boolean exceeds = iteration != null && iteration >= retryConfig.getRetries();
-		trace("exceedsMaxIterations %b, iteration %d, configured retries %d", exceeds,
-				iteration, retryConfig.getRetries());
+		trace("exceedsMaxIterations %b, iteration %d, configured retries %d",
+				() -> exceeds, () -> iteration, retryConfig::getRetries);
 		return exceeds;
 	}
 
@@ -213,7 +232,7 @@ public class RetryGatewayFilterFactory
 						int iteration = exchange
 								.getAttributeOrDefault(RETRY_ITERATION_KEY, -1);
 						int newIteration = iteration + 1;
-						trace("setting new iteration in attr %d", newIteration);
+						trace("setting new iteration in attr %d", () -> newIteration);
 						exchange.getAttributes().put(RETRY_ITERATION_KEY, newIteration);
 					});
 
@@ -234,8 +253,15 @@ public class RetryGatewayFilterFactory
 		};
 	}
 
-	private void trace(String message, Object... args) {
+	@SafeVarargs
+	private final void trace(String message, Supplier<Object>... argSuppliers) {
 		if (log.isTraceEnabled()) {
+			Object[] args = new Object[argSuppliers.length];
+			int i = 0;
+			for (Supplier<Object> a : argSuppliers) {
+				args[i] = a.get();
+				++i;
+			}
 			log.trace(String.format(message, args));
 		}
 	}
