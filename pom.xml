@@ -52,6 +52,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<java.version>1.8</java.version>
+		<rsocket.version>1.0.0-RC2</rsocket.version>
 		<spring-cloud-commons.version>2.2.0.BUILD-SNAPSHOT</spring-cloud-commons.version>
 		<spring-cloud-netflix.version>2.2.0.BUILD-SNAPSHOT</spring-cloud-netflix.version>
 		<embedded-redis.version>0.6</embedded-redis.version>
@@ -59,14 +60,38 @@
 
 	<dependencyManagement>
 		<dependencies>
-			<!-- Remove when boot updates -->
+			<!-- Remove RSocket dep mgmt when boot updates -->
 			<dependency>
-				<groupId>io.projectreactor</groupId>
-				<artifactId>reactor-bom</artifactId>
-				<version>Dysprosium-BUILD-SNAPSHOT</version>
-				<type>pom</type>
-				<scope>import</scope>
+				<groupId>io.rsocket</groupId>
+				<artifactId>rsocket-core</artifactId>
+				<version>${rsocket.version}</version>
 			</dependency>
+			<dependency>
+				<groupId>io.rsocket</groupId>
+				<artifactId>rsocket-load-balancer</artifactId>
+				<version>${rsocket.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.rsocket</groupId>
+				<artifactId>rsocket-micrometer</artifactId>
+				<version>${rsocket.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.rsocket</groupId>
+				<artifactId>rsocket-test</artifactId>
+				<version>${rsocket.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.rsocket</groupId>
+				<artifactId>rsocket-transport-local</artifactId>
+				<version>${rsocket.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.rsocket</groupId>
+				<artifactId>rsocket-transport-netty</artifactId>
+				<version>${rsocket.version}</version>
+			</dependency>
+			<!-- end Remove RSocket dep mgmt when boot updates -->
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-gateway-dependencies</artifactId>
