@@ -333,6 +333,7 @@ public final class ServerWebExchangeUtils {
 			Function<ServerHttpRequest, Mono<T>> function) {
 		// Join all the DataBuffers so we have a single DataBuffer for the body
 		return DataBufferUtils.join(exchange.getRequest().getBody())
+				.defaultIfEmpty(exchange.getResponse().bufferFactory().wrap(new byte[0]))
 				.flatMap(dataBuffer -> {
 					if (dataBuffer.readableByteCount() > 0) {
 						if (log.isTraceEnabled()) {
