@@ -21,7 +21,7 @@ import java.util.List;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.rsocket.RSocket;
 
-import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.rsocket.RSocketServerAutoConfiguration;
@@ -50,7 +50,7 @@ import org.springframework.core.env.Environment;
 		matchIfMissing = true)
 @EnableConfigurationProperties
 @ConditionalOnClass(RSocket.class)
-@AutoConfigureAfter(RSocketServerAutoConfiguration.class)
+@AutoConfigureBefore(RSocketServerAutoConfiguration.class)
 public class GatewayRSocketAutoConfiguration {
 
 	@Bean
@@ -108,7 +108,7 @@ public class GatewayRSocketAutoConfiguration {
 	}
 
 	@Bean
-	public RSocketServerBootstrap rSocketServerBootstrap(
+	public RSocketServerBootstrap gatewayRSocketServerBootstrap(
 			RSocketServerFactory rSocketServerFactory,
 			GatewaySocketAcceptor gatewaySocketAcceptor) {
 		return new RSocketServerBootstrap(rSocketServerFactory, gatewaySocketAcceptor);
