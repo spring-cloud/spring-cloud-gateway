@@ -34,6 +34,7 @@ import rx.Subscription;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
+import org.springframework.cloud.gateway.support.ServiceUnavailableException;
 import org.springframework.cloud.gateway.support.TimeoutException;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -134,6 +135,8 @@ public class HystrixGatewayFilterFactory
 						switch (failureType) {
 						case TIMEOUT:
 							return Mono.error(new TimeoutException());
+						case SHORTCIRCUIT:
+							return Mono.error(new ServiceUnavailableException());
 						case COMMAND_EXCEPTION: {
 							Throwable cause = e.getCause();
 
