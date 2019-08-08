@@ -72,7 +72,7 @@ public class HystrixGatewayFilterFactoryTests extends BaseWebClientTests {
 		HealthCountsStream.reset();
 		Hystrix.reset();
 		ConfigurationManager.getConfigInstance()
-				.setProperty("hystrix.command.failcmd.circuitBreaker.forceClosed", true);
+				.setProperty("hystrix.command.failcmd.circuitBreaker.forceOpen", false);
 	}
 
 	/*
