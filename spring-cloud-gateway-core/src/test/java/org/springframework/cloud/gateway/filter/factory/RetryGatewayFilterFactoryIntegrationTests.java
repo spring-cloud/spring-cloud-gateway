@@ -59,9 +59,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = RANDOM_PORT, properties = {
-		"spring.cloud.gateway.httpclient.connect-timeout=500",
-		"spring.cloud.gateway.httpclient.response-timeout=2s" })
+@SpringBootTest(webEnvironment = RANDOM_PORT,
+		properties = { "spring.cloud.gateway.httpclient.connect-timeout=500",
+				"spring.cloud.gateway.httpclient.response-timeout=2s" })
 @DirtiesContext
 public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTests {
 
