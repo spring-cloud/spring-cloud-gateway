@@ -37,10 +37,7 @@ import org.springframework.util.SocketUtils;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = PingPongApp.class, properties = { "ping.take=10",
-		// TODO: remove after
-		// https://github.com/spring-cloud/spring-cloud-gateway/issues/1140
-		"spring.main.allow-bean-definition-overriding=true" },
+@SpringBootTest(classes = PingPongApp.class, properties = { "ping.take=10" },
 		webEnvironment = WebEnvironment.RANDOM_PORT)
 public class GatewayRSocketIntegrationTests {
 
