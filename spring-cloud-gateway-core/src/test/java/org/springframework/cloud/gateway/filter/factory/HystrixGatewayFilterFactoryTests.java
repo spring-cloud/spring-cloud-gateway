@@ -16,6 +16,9 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
+import com.netflix.config.ConfigurationManager;
+import com.netflix.hystrix.Hystrix;
+import com.netflix.hystrix.metric.consumer.HealthCountsStream;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -54,6 +57,22 @@ public class HystrixGatewayFilterFactoryTests extends BaseWebClientTests {
 				.exchange().expectStatus().isEqualTo(HttpStatus.GATEWAY_TIMEOUT)
 				.expectBody().jsonPath("$.status")
 				.isEqualTo(String.valueOf(HttpStatus.GATEWAY_TIMEOUT.value()));
+	}
+
+	@Test
+	public void hystrixFilterServiceUnavailable() {
+		HealthCountsStream.reset();
+		Hystrix.reset();
+		ConfigurationManager.getConfigInstance()
+				.setProperty("hystrix.command.failcmd.circuitBreaker.forceOpen", true);
+
+		testClient.get().uri("/delay/3").header("Host", "www.hystrixfailure.org")
+				.exchange().expectStatus().isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
+
+		HealthCountsStream.reset();
+		Hystrix.reset();
+		ConfigurationManager.getConfigInstance()
+				.setProperty("hystrix.command.failcmd.circuitBreaker.forceOpen", false);
 	}
 
 	/*
