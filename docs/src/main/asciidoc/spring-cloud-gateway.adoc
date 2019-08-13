@@ -1159,13 +1159,13 @@ spring:
     gateway:
       routes:
       - id: request_size_route
-      uri: http://localhost:8080/upload
-      predicates:
-      - Path=/upload
-      filters:
-      - name: RequestSize
-        args:
-          maxSize: 5000000
+        uri: http://localhost:8080/upload
+        predicates:
+        - Path=/upload
+        filters:
+        - name: RequestSize
+          args:
+            maxSize: 5000000
 ----
 
 The RequestSize GatewayFilter Factory set the response status as `413 Payload Too Large` with a additional header `errorMessage` when the Request is rejected due to size. Following is an example of such an `errorMessage` .
