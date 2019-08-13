@@ -857,7 +857,7 @@ spring:
         - RewritePath=/foo/(?<segment>.*), /$\{segment}
 ----
 
-For a request path of `/foo/bar`, this will set the path to `/bar` before making the downstream request. Notice the `$\` which is replaced with `$` because of the YAML spec.
+For a request path of `/foo/bar`, this will set the path to `/bar` before making the downstream request. Notice the `$` Should be replaced with `$\` because of the YAML spec.
 
 === RewriteLocationResponseHeader GatewayFilter Factory
 The RewriteLocationResponseHeader GatewayFilter Factory modifies the value of `Location` response header, usually to get rid of backend specific details. It takes `stripVersionMode`, `locationHeaderName`, `hostValue`, and `protocolsRegex` parameters.
