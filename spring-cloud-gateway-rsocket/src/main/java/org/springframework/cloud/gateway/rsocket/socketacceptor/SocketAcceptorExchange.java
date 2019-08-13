@@ -22,7 +22,7 @@ import io.rsocket.ConnectionSetupPayload;
 import io.rsocket.RSocket;
 
 import org.springframework.cloud.gateway.rsocket.filter.AbstractRSocketExchange;
-import org.springframework.cloud.gateway.rsocket.support.Metadata;
+import org.springframework.cloud.gateway.rsocket.support.RouteSetup;
 
 public class SocketAcceptorExchange extends AbstractRSocketExchange {
 
@@ -30,14 +30,14 @@ public class SocketAcceptorExchange extends AbstractRSocketExchange {
 
 	private final RSocket sendingSocket;
 
-	private final Metadata metadata;
+	private final RouteSetup metadata;
 
 	public SocketAcceptorExchange(ConnectionSetupPayload setup, RSocket sendingSocket) {
-		this(setup, sendingSocket, new Metadata(null, Collections.emptyMap()));
+		this(setup, sendingSocket, new RouteSetup(null, null, Collections.emptyMap()));
 	}
 
 	public SocketAcceptorExchange(ConnectionSetupPayload setup, RSocket sendingSocket,
-			Metadata metadata) {
+			RouteSetup metadata) {
 		this.setup = setup;
 		this.sendingSocket = sendingSocket;
 		this.metadata = metadata;
@@ -51,7 +51,7 @@ public class SocketAcceptorExchange extends AbstractRSocketExchange {
 		return sendingSocket;
 	}
 
-	public Metadata getMetadata() {
+	public RouteSetup getMetadata() {
 		return metadata;
 	}
 

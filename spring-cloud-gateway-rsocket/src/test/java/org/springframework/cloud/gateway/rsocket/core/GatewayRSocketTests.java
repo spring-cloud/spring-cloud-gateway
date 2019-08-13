@@ -19,12 +19,12 @@ package org.springframework.cloud.gateway.rsocket.core;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.function.Function;
 
 import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
-import io.netty.buffer.Unpooled;
 import io.rsocket.Payload;
 import io.rsocket.RSocket;
 import io.rsocket.util.DefaultPayload;
@@ -36,46 +36,72 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.MonoProcessor;
 import reactor.test.StepVerifier;
+import reactor.util.function.Tuple2;
+import reactor.util.function.Tuples;
 
 import org.springframework.cloud.gateway.rsocket.autoconfigure.GatewayRSocketProperties;
-import org.springframework.cloud.gateway.rsocket.registry.LoadBalancedRSocket;
-import org.springframework.cloud.gateway.rsocket.registry.LoadBalancedRSocket.EnrichedRSocket;
-import org.springframework.cloud.gateway.rsocket.registry.Registry;
+import org.springframework.cloud.gateway.rsocket.registry.LoadBalancerFactory;
+import org.springframework.cloud.gateway.rsocket.registry.RoutingTable;
+import org.springframework.cloud.gateway.rsocket.route.DefaultRoute;
 import org.springframework.cloud.gateway.rsocket.route.Route;
 import org.springframework.cloud.gateway.rsocket.route.Routes;
+import org.springframework.cloud.gateway.rsocket.support.Forwarding;
 import org.springframework.cloud.gateway.rsocket.support.Metadata;
+import org.springframework.cloud.gateway.rsocket.support.RouteSetup;
+import org.springframework.cloud.gateway.rsocket.support.TagsMetadata;
+import org.springframework.cloud.gateway.rsocket.support.WellKnownKey;
+import org.springframework.cloud.gateway.rsocket.test.MetadataEncoder;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.messaging.rsocket.DefaultMetadataExtractor;
+import org.springframework.messaging.rsocket.MetadataExtractor;
+import org.springframework.messaging.rsocket.PayloadUtils;
+import org.springframework.messaging.rsocket.RSocketStrategies;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.springframework.cloud.gateway.rsocket.support.Forwarding.FORWARDING_MIME_TYPE;
 
 /**
- * @author Rossen Stoyanchev
+ * @author Spencer Gibb
  */
 public class GatewayRSocketTests {
 
 	private static Log logger = LogFactory.getLog(GatewayRSocketTests.class);
 
-	private Registry registry;
+	private RoutingTable routingTable;
 
 	private Payload incomingPayload;
+
+	private final RSocketStrategies rSocketStrategies = RSocketStrategies.builder()
+			.decoder(new Forwarding.Decoder()).encoder(new Forwarding.Encoder()).build();
+
+	private DefaultMetadataExtractor metadataExtractor = new DefaultMetadataExtractor(
+			rSocketStrategies.decoders());
 
 	// TODO: add tests for metrics and other request types
 
 	@Before
 	public void init() {
-		registry = mock(Registry.class);
-		incomingPayload = DefaultPayload.create(Unpooled.EMPTY_BUFFER,
-				Metadata.from("mock").with("id", "mock1").encode());
+		routingTable = mock(RoutingTable.class);
+
+		this.metadataExtractor.metadataToExtract(FORWARDING_MIME_TYPE, Forwarding.class,
+				"forwarding");
+
+		MetadataEncoder encoder = new MetadataEncoder(Metadata.COMPOSITE_MIME_TYPE,
+				this.rSocketStrategies);
+		TagsMetadata tagsMetadata = TagsMetadata.builder()
+				.with(WellKnownKey.SERVICE_NAME, "mock").build();
+		Forwarding metadata = new Forwarding(1, tagsMetadata.getTags());
+		DataBuffer dataBuffer = encoder.metadata(metadata, FORWARDING_MIME_TYPE).encode();
+		DataBuffer data = MetadataEncoder.emptyDataBuffer(rSocketStrategies);
+		incomingPayload = PayloadUtils.createPayload(data, dataBuffer);
 
 		RSocket rSocket = mock(RSocket.class);
-		LoadBalancedRSocket loadBalancedRSocket = mock(LoadBalancedRSocket.class);
-		when(registry.getRegistered(any(Metadata.class))).thenReturn(loadBalancedRSocket);
-
-		Mono<EnrichedRSocket> mono = Mono
-				.just(new EnrichedRSocket(rSocket, getMetadata()));
-		when(loadBalancedRSocket.choose()).thenReturn(mono);
+		Tuple2<String, RSocket> tuple = Tuples.of("1111", rSocket);
+		when(routingTable.findRSockets(any(TagsMetadata.class)))
+				.thenReturn(Collections.singletonList(tuple));
 
 		when(rSocket.requestResponse(any(Payload.class)))
 				.thenReturn(Mono.just(DefaultPayload.create("response")));
@@ -87,8 +113,8 @@ public class GatewayRSocketTests {
 		TestFilter filter2 = new TestFilter();
 		TestFilter filter3 = new TestFilter();
 
-		Payload payload = new TestGatewayRSocket(registry,
-				new TestRoutes(filter1, filter2, filter3))
+		Payload payload = new TestGatewayRSocket(routingTable,
+				new TestRoutes(filter1, filter2, filter3), metadataExtractor)
 						.requestResponse(incomingPayload).block(Duration.ZERO);
 
 		assertThat(filter1.invoked()).isTrue();
@@ -99,8 +125,8 @@ public class GatewayRSocketTests {
 
 	@Test
 	public void zeroFilters() {
-		Payload payload = new TestGatewayRSocket(registry, new TestRoutes())
-				.requestResponse(incomingPayload).block(Duration.ZERO);
+		Payload payload = new TestGatewayRSocket(routingTable, new TestRoutes(),
+				metadataExtractor).requestResponse(incomingPayload).block(Duration.ZERO);
 
 		assertThat(payload).isNotNull();
 	}
@@ -112,13 +138,13 @@ public class GatewayRSocketTests {
 		ShortcircuitingFilter filter2 = new ShortcircuitingFilter();
 		TestFilter filter3 = new TestFilter();
 
-		TestGatewayRSocket gatewayRSocket = new TestGatewayRSocket(registry,
-				new TestRoutes(filter1, filter2, filter3));
+		TestGatewayRSocket gatewayRSocket = new TestGatewayRSocket(routingTable,
+				new TestRoutes(filter1, filter2, filter3), metadataExtractor);
 		Mono<Payload> response = gatewayRSocket.requestResponse(incomingPayload);
 
 		// a false filter will create a pending rsocket that blocks forever
-		// this tweaks the rsocket to compelte.
-		gatewayRSocket.processor.onNext(null);
+		// this tweaks the rsocket to complete.
+		gatewayRSocket.getProcessor().onNext(null);
 
 		StepVerifier.withVirtualTime(() -> response).expectSubscription()
 				.verifyComplete();
@@ -133,8 +159,9 @@ public class GatewayRSocketTests {
 
 		AsyncFilter filter = new AsyncFilter();
 
-		Payload payload = new TestGatewayRSocket(registry, new TestRoutes(filter))
-				.requestResponse(incomingPayload).block(Duration.ofSeconds(5));
+		Payload payload = new TestGatewayRSocket(routingTable, new TestRoutes(filter),
+				metadataExtractor).requestResponse(incomingPayload)
+						.block(Duration.ofSeconds(5));
 
 		assertThat(filter.invoked()).isTrue();
 		assertThat(payload).isNotNull();
@@ -146,37 +173,55 @@ public class GatewayRSocketTests {
 
 		ExceptionFilter filter = new ExceptionFilter();
 
-		new TestGatewayRSocket(registry, new TestRoutes(filter))
+		new TestGatewayRSocket(routingTable, new TestRoutes(filter), metadataExtractor)
 				.requestResponse(incomingPayload).block(Duration.ofSeconds(5));
 
 		// assertNull(socket);
 	}
 
-	private static Metadata getMetadata() {
-		return Metadata.from("service").with("id", "service1").build();
+	private static RouteSetup getMetadata() {
+		return new RouteSetup(1L, "service", new LinkedHashMap<>());
 	}
 
 	private static class TestGatewayRSocket extends GatewayRSocket {
 
+		TestGatewayRSocket(RoutingTable routingTable, Routes routes,
+				MetadataExtractor metadataExtractor) {
+			super(routes, new TestPendingFactory(routingTable, routes, metadataExtractor),
+					new LoadBalancerFactory(routingTable), new SimpleMeterRegistry(),
+					new GatewayRSocketProperties(), metadataExtractor, getMetadata());
+		}
+
+		private MonoProcessor<RSocket> getProcessor() {
+			TestPendingFactory factory = (TestPendingFactory) super.getPendingFactory();
+			return factory.processor;
+		}
+
+	}
+
+	private static class TestPendingFactory extends PendingRequestRSocketFactory {
+
 		private final MonoProcessor<RSocket> processor = MonoProcessor.create();
 
-		TestGatewayRSocket(Registry registry, Routes routes) {
-			super(registry, routes, new SimpleMeterRegistry(),
-					new GatewayRSocketProperties(), getMetadata());
+		private final MetadataExtractor metadataExtractor;
+
+		TestPendingFactory(RoutingTable routingTable, Routes routes,
+				MetadataExtractor metadataExtractor) {
+			super(routingTable, routes, metadataExtractor);
+			this.metadataExtractor = metadataExtractor;
 		}
 
 		@Override
-		PendingRequestRSocket constructPendingRSocket(GatewayExchange exchange) {
-			Function<Registry.RegisteredEvent, Mono<Route>> routeFinder = registeredEvent -> getRouteMono(
+		protected PendingRequestRSocket constructPendingRSocket(
+				GatewayExchange exchange) {
+			Function<RoutingTable.RegisteredEvent, Mono<Route>> routeFinder = registeredEvent -> getRouteMono(
 					registeredEvent, exchange);
-			return new PendingRequestRSocket(routeFinder, map -> {
-				Tags tags = exchange.getTags().and("responder.id", map.get("id"));
-				exchange.setTags(tags);
-			}, processor);
-		}
-
-		public MonoProcessor<RSocket> getProcessor() {
-			return processor;
+			return new PendingRequestRSocket(metadataExtractor, routeFinder,
+					tagsMetadata -> {
+						Tags tags = exchange.getTags().and("responder.id",
+								tagsMetadata.getRouteId());
+						exchange.setTags(tags);
+					}, processor);
 		}
 
 	}
@@ -197,8 +242,8 @@ public class GatewayRSocketTests {
 
 		TestRoutes(List<GatewayFilter> filters) {
 			this.filters = filters;
-			route = Route.builder().id("route1")
-					.routingMetadata(Metadata.from("mock").build())
+			route = DefaultRoute.builder().id("route1")
+					.routingMetadata(new RouteSetup(1L, "mock", new LinkedHashMap<>()))
 					.predicate(exchange -> Mono.just(true)).filters(filters).build();
 		}
 

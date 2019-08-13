@@ -18,6 +18,7 @@
 	<description>Spring Cloud Gateway Dependencies</description>
 
 	<properties>
+		<roaringbitmap.version>0.8.9</roaringbitmap.version>
 	</properties>
 
 	<dependencyManagement>
@@ -46,6 +47,11 @@
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-starter-gateway</artifactId>
 				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.roaringbitmap</groupId>
+				<artifactId>RoaringBitmap</artifactId>
+				<version>${roaringbitmap.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

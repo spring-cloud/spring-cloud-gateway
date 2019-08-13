@@ -22,6 +22,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import reactor.core.publisher.Hooks;
 import reactor.test.StepVerifier;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +38,8 @@ import org.springframework.util.SocketUtils;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = PingPongApp.class, properties = { "ping.take=10" },
+@SpringBootTest(classes = PingPongApp.class,
+		properties = { "ping.take=10", "ping.subscribe=false" },
 		webEnvironment = WebEnvironment.RANDOM_PORT)
 public class GatewayRSocketIntegrationTests {
 
@@ -60,6 +62,7 @@ public class GatewayRSocketIntegrationTests {
 
 	@BeforeClass
 	public static void init() {
+		Hooks.onOperatorDebug();
 		port = SocketUtils.findAvailableTcpPort();
 		System.setProperty("spring.rsocket.server.port", String.valueOf(port));
 	}

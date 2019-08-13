@@ -22,25 +22,26 @@ import org.springframework.cloud.gateway.rsocket.socketacceptor.SocketAcceptorEx
 import org.springframework.cloud.gateway.rsocket.socketacceptor.SocketAcceptorFilter;
 import org.springframework.cloud.gateway.rsocket.socketacceptor.SocketAcceptorFilterChain;
 import org.springframework.core.Ordered;
-import org.springframework.util.StringUtils;
 
 /**
  * Filter that registers the SendingSocket.
  */
 public class RegistrySocketAcceptorFilter implements SocketAcceptorFilter, Ordered {
 
-	private final Registry registry;
+	private final RoutingTable routingTable;
 
-	public RegistrySocketAcceptorFilter(Registry registry) {
-		this.registry = registry;
+	public RegistrySocketAcceptorFilter(RoutingTable routingTable) {
+		this.routingTable = routingTable;
 	}
 
 	@Override
 	public Mono<Success> filter(SocketAcceptorExchange exchange,
 			SocketAcceptorFilterChain chain) {
-		if (exchange.getMetadata() != null
-				&& StringUtils.hasLength(exchange.getMetadata().getName())) {
-			this.registry.register(exchange.getMetadata(), exchange.getSendingSocket());
+		if (exchange.getMetadata() != null) {
+			// TODO: needed? &&
+			// StringUtils.hasLength(exchange.getMetadata().getServiceName())) {
+			this.routingTable.register(exchange.getMetadata().getEnrichedTagsMetadata(),
+					exchange.getSendingSocket());
 		}
 
 		return chain.filter(exchange);

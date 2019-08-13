@@ -22,8 +22,8 @@ import java.util.List;
 
 import org.junit.Test;
 
-import org.springframework.cloud.gateway.rsocket.registry.Registry;
 import org.springframework.cloud.gateway.rsocket.registry.RegistrySocketAcceptorFilter;
+import org.springframework.cloud.gateway.rsocket.registry.RoutingTable;
 import org.springframework.cloud.gateway.rsocket.socketacceptor.SocketAcceptorFilter;
 import org.springframework.cloud.gateway.rsocket.socketacceptor.SocketAcceptorPredicateFilter;
 import org.springframework.core.OrderComparator;
@@ -38,7 +38,7 @@ public class SocketAcceptorFilterOrderTests {
 		SocketAcceptorFilter predicateFilter = new SocketAcceptorPredicateFilter(
 				Collections.emptyList());
 		SocketAcceptorFilter registryFilter = new RegistrySocketAcceptorFilter(
-				mock(Registry.class));
+				mock(RoutingTable.class));
 		List<SocketAcceptorFilter> filters = Arrays.asList(predicateFilter,
 				registryFilter);
 		OrderComparator.sort(filters);

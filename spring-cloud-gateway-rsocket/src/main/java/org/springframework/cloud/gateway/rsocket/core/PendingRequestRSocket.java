@@ -34,9 +34,10 @@ import reactor.core.publisher.MonoProcessor;
 import reactor.util.function.Tuple2;
 
 import org.springframework.cloud.gateway.rsocket.filter.RSocketFilter.Success;
-import org.springframework.cloud.gateway.rsocket.registry.Registry.RegisteredEvent;
+import org.springframework.cloud.gateway.rsocket.registry.RoutingTable.RegisteredEvent;
 import org.springframework.cloud.gateway.rsocket.route.Route;
-import org.springframework.cloud.gateway.rsocket.support.Metadata;
+import org.springframework.cloud.gateway.rsocket.support.TagsMetadata;
+import org.springframework.messaging.rsocket.MetadataExtractor;
 
 import static org.springframework.cloud.gateway.rsocket.core.GatewayExchange.ROUTE_ATTR;
 import static org.springframework.cloud.gateway.rsocket.core.GatewayExchange.Type.REQUEST_STREAM;
@@ -47,9 +48,12 @@ public class PendingRequestRSocket extends AbstractRSocket
 
 	private static final Log log = LogFactory.getLog(PendingRequestRSocket.class);
 
+	// TODO: if this were just routeId & route wasn't an exchange attr would be simpler.
 	private final Function<RegisteredEvent, Mono<Route>> routeFinder;
 
-	private final Consumer<Metadata> metadataCallback;
+	private final MetadataExtractor metadataExtractor;
+
+	private final Consumer<TagsMetadata> metadataCallback;
 
 	private final MonoProcessor<RSocket> rSocketProcessor;
 
@@ -57,16 +61,18 @@ public class PendingRequestRSocket extends AbstractRSocket
 
 	private Route route;
 
-	public PendingRequestRSocket(Function<RegisteredEvent, Mono<Route>> routeFinder,
-			Consumer<Metadata> metadataCallback) {
-		this(routeFinder, metadataCallback, MonoProcessor.create());
+	public PendingRequestRSocket(MetadataExtractor metadataExtractor,
+			Function<RegisteredEvent, Mono<Route>> routeFinder,
+			Consumer<TagsMetadata> metadataCallback) {
+		this(metadataExtractor, routeFinder, metadataCallback, MonoProcessor.create());
 	}
 
-	/* for testing */ PendingRequestRSocket(
+	/* for testing */ PendingRequestRSocket(MetadataExtractor metadataExtractor,
 			Function<RegisteredEvent, Mono<Route>> routeFinder,
-			Consumer<Metadata> metadataCallback,
+			Consumer<TagsMetadata> metadataCallback,
 			MonoProcessor<RSocket> rSocketProcessor) {
 		this.routeFinder = routeFinder;
+		this.metadataExtractor = metadataExtractor;
 		this.metadataCallback = metadataCallback;
 		this.rSocketProcessor = rSocketProcessor;
 	}
@@ -136,7 +142,7 @@ public class PendingRequestRSocket extends AbstractRSocket
 						Level.FINEST)
 				.flatMap(rSocket -> {
 					GatewayExchange exchange = GatewayExchange.fromPayload(REQUEST_STREAM,
-							payload);
+							payload, metadataExtractor);
 					exchange.getAttributes().put(ROUTE_ATTR, route);
 					// exchange.getAttributes().putAll(pendingExchange.getAttributes());
 					return Mono.just(rSocket)

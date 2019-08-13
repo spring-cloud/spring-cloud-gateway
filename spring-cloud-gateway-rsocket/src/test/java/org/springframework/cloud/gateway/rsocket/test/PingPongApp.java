@@ -17,6 +17,7 @@
 package org.springframework.cloud.gateway.rsocket.test;
 
 import java.time.Duration;
+import java.util.LinkedHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -40,9 +41,9 @@ import reactor.core.publisher.Hooks;
 import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.cloud.gateway.rsocket.core.GatewayExchange;
 import org.springframework.cloud.gateway.rsocket.core.GatewayFilter;
@@ -50,11 +51,17 @@ import org.springframework.cloud.gateway.rsocket.core.GatewayFilterChain;
 import org.springframework.cloud.gateway.rsocket.socketacceptor.SocketAcceptorExchange;
 import org.springframework.cloud.gateway.rsocket.socketacceptor.SocketAcceptorFilter;
 import org.springframework.cloud.gateway.rsocket.socketacceptor.SocketAcceptorFilterChain;
+import org.springframework.cloud.gateway.rsocket.support.Forwarding;
 import org.springframework.cloud.gateway.rsocket.support.Metadata;
+import org.springframework.cloud.gateway.rsocket.support.RouteSetup;
+import org.springframework.cloud.gateway.rsocket.support.TagsMetadata;
+import org.springframework.cloud.gateway.rsocket.support.WellKnownKey;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.Ordered;
 import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.messaging.rsocket.RSocketStrategies;
 
 import static io.netty.buffer.Unpooled.EMPTY_BUFFER;
 
@@ -63,13 +70,13 @@ public class PingPongApp {
 
 	@Bean
 	public Ping ping1() {
-		return new Ping("1");
+		return new Ping(1L);
 	}
 
 	@Bean
 	@ConditionalOnProperty("ping.two.enabled")
 	public Ping ping2() {
-		return new Ping("2");
+		return new Ping(2L);
 	}
 
 	@Bean
@@ -84,11 +91,7 @@ public class PingPongApp {
 
 	public static void main(String[] args) {
 		Hooks.onOperatorDebug();
-		new SpringApplicationBuilder(PingPongApp.class)
-				// TODO: remove after
-				// https://github.com/spring-cloud/spring-cloud-gateway/issues/1140
-				.properties("spring.main.allow-bean-definition-overriding=true")
-				.run(args);
+		SpringApplication.run(PingPongApp.class, args);
 	}
 
 	static String reply(String in) {
@@ -105,6 +108,28 @@ public class PingPongApp {
 		}
 	}
 
+	static ByteBuf getRouteSetupMetadata(RSocketStrategies strategies, String name,
+			long id) {
+		LinkedHashMap<TagsMetadata.Key, String> tags = new LinkedHashMap<>();
+		tags.put(new TagsMetadata.Key(WellKnownKey.TIME_ZONE),
+				System.currentTimeMillis() + "");
+		DataBuffer routeSetup = new MetadataEncoder(Metadata.COMPOSITE_MIME_TYPE,
+				strategies)
+						.metadata(new RouteSetup(id, name, tags),
+								RouteSetup.ROUTE_SETUP_MIME_TYPE)
+						.encode();
+		return TagsMetadata.asByteBuf(routeSetup);
+	}
+
+	static ByteBuf getForwardingMetadata(RSocketStrategies strategies, String name,
+			long id) {
+		Forwarding metadata = new Forwarding(id, TagsMetadata.builder()
+				.with(WellKnownKey.SERVICE_NAME, name).build().getTags());
+		DataBuffer routeSetup = new MetadataEncoder(Metadata.COMPOSITE_MIME_TYPE,
+				strategies).metadata(metadata, Forwarding.FORWARDING_MIME_TYPE).encode();
+		return TagsMetadata.asByteBuf(routeSetup);
+	}
+
 	@Slf4j
 	public static class Ping
 			implements Ordered, ApplicationListener<ApplicationReadyEvent> {
@@ -112,13 +137,16 @@ public class PingPongApp {
 		@Autowired
 		private MeterRegistry meterRegistry;
 
-		private final String id;
+		@Autowired
+		private RSocketStrategies strategies;
+
+		private final Long id;
 
 		private final AtomicInteger pongsReceived = new AtomicInteger();
 
 		private Flux<String> pongFlux;
 
-		public Ping(String id) {
+		public Ping(Long id) {
 			this.id = id;
 		}
 
@@ -139,17 +167,26 @@ public class PingPongApp {
 
 			MicrometerRSocketInterceptor interceptor = new MicrometerRSocketInterceptor(
 					meterRegistry, Tag.of("component", "ping"));
-			ByteBuf announcementMetadata = Metadata.from("ping").with("id", "ping" + id)
-					.encode();
-			pongFlux = RSocketFactory.connect().frameDecoder(PayloadDecoder.ZERO_COPY)
-					.metadataMimeType(Metadata.ROUTING_MIME_TYPE)
-					.setupPayload(
-							DefaultPayload.create(EMPTY_BUFFER, announcementMetadata))
-					.addRequesterPlugin(interceptor)
-					.transport(TcpClientTransport.create(gatewayPort)) // proxy
-					.start().flatMapMany(socket -> doPing(take, socket));
+			ByteBuf metadata = getRouteSetupMetadata(strategies, "ping", id);
+			Payload setupPayload = DefaultPayload.create(EMPTY_BUFFER, metadata);
 
-			pongFlux.subscribe();
+			pongFlux = RSocketFactory.connect().frameDecoder(PayloadDecoder.ZERO_COPY)
+					.metadataMimeType(Metadata.COMPOSITE_MIME_TYPE.toString())
+					.setupPayload(setupPayload).addRequesterPlugin(interceptor)
+					.transport(TcpClientTransport.create(gatewayPort)) // proxy
+					.start().log("startPing" + id)
+					.flatMapMany(socket -> doPing(take, socket)).cast(String.class)
+					.doOnSubscribe(o -> {
+						if (log.isDebugEnabled()) {
+							log.debug("ping doOnSubscribe");
+						}
+					});
+
+			boolean subscribe = env.getProperty("ping.subscribe", Boolean.class, true);
+
+			if (subscribe) {
+				pongFlux.subscribe();
+			}
 		}
 
 		Publisher<? extends String> doPing(Integer take, RSocket socket) {
@@ -157,7 +194,8 @@ public class PingPongApp {
 					.requestChannel(Flux.interval(Duration.ofSeconds(1)).map(i -> {
 						ByteBuf data = ByteBufUtil.writeUtf8(ByteBufAllocator.DEFAULT,
 								"ping" + id);
-						ByteBuf routingMetadata = Metadata.from("pong").encode();
+						ByteBuf routingMetadata = getForwardingMetadata(strategies,
+								"pong", id);
 						log.debug("Sending ping" + id);
 						return DefaultPayload.create(data, routingMetadata);
 						// onBackpressue is needed in case pong is not available yet
@@ -191,6 +229,9 @@ public class PingPongApp {
 		@Autowired
 		private MeterRegistry meterRegistry;
 
+		@Autowired
+		private RSocketStrategies strategies;
+
 		private final AtomicInteger pingsReceived = new AtomicInteger();
 
 		@Override
@@ -213,9 +254,10 @@ public class PingPongApp {
 					Integer.class, 7002);
 			MicrometerRSocketInterceptor interceptor = new MicrometerRSocketInterceptor(
 					meterRegistry, Tag.of("component", "pong"));
-			ByteBuf announcementMetadata = Metadata.from("pong").with("id", "pong1")
-					.encode();
-			RSocketFactory.connect().metadataMimeType(Metadata.ROUTING_MIME_TYPE)
+
+			ByteBuf announcementMetadata = getRouteSetupMetadata(strategies, "pong", 3L);
+			RSocketFactory.connect()
+					.metadataMimeType(Metadata.COMPOSITE_MIME_TYPE.toString())
 					.setupPayload(
 							DefaultPayload.create(EMPTY_BUFFER, announcementMetadata))
 					.addRequesterPlugin(interceptor).acceptor(this::accept)
@@ -235,7 +277,8 @@ public class PingPongApp {
 					}).map(PingPongApp::reply).map(reply -> {
 						ByteBuf data = ByteBufUtil.writeUtf8(ByteBufAllocator.DEFAULT,
 								reply);
-						ByteBuf routingMetadata = Metadata.from("ping").encode();
+						ByteBuf routingMetadata = getForwardingMetadata(strategies,
+								"ping", 1L);
 						return DefaultPayload.create(data, routingMetadata);
 					});
 				}

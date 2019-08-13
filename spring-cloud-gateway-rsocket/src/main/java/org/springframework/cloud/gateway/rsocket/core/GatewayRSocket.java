@@ -17,31 +17,26 @@
 package org.springframework.cloud.gateway.rsocket.core;
 
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Function;
 import java.util.logging.Level;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.Timer;
-import io.rsocket.AbstractRSocket;
 import io.rsocket.Payload;
 import io.rsocket.RSocket;
 import io.rsocket.ResponderRSocket;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.reactivestreams.Publisher;
-import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.rsocket.autoconfigure.GatewayRSocketProperties;
-import org.springframework.cloud.gateway.rsocket.registry.LoadBalancedRSocket;
-import org.springframework.cloud.gateway.rsocket.registry.Registry;
+import org.springframework.cloud.gateway.rsocket.registry.LoadBalancerFactory;
 import org.springframework.cloud.gateway.rsocket.route.Route;
 import org.springframework.cloud.gateway.rsocket.route.Routes;
-import org.springframework.cloud.gateway.rsocket.support.Metadata;
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
+import org.springframework.cloud.gateway.rsocket.support.TagsMetadata;
+import org.springframework.messaging.rsocket.MetadataExtractor;
 
 import static org.springframework.cloud.gateway.rsocket.core.GatewayExchange.ROUTE_ATTR;
 import static org.springframework.cloud.gateway.rsocket.core.GatewayExchange.Type.FIRE_AND_FORGET;
@@ -57,46 +52,28 @@ import static org.springframework.cloud.gateway.rsocket.core.GatewayFilterChain.
  * to locate a target RSocket via the Registry is executed. If not found a pending RSocket
  * * is returned.
  */
-public class GatewayRSocket extends AbstractRSocket implements ResponderRSocket {
+public class GatewayRSocket extends AbstractGatewayRSocket {
 
 	private static final Log log = LogFactory.getLog(GatewayRSocket.class);
 
-	private final Registry registry;
-
 	private final Routes routes;
 
-	private final MeterRegistry meterRegistry;
+	private final PendingRequestRSocketFactory pendingFactory;
 
-	private final GatewayRSocketProperties properties;
+	private final LoadBalancerFactory loadBalancerFactory;
 
-	private final Metadata metadata;
-
-	GatewayRSocket(Registry registry, Routes routes, MeterRegistry meterRegistry,
-			GatewayRSocketProperties properties, Metadata metadata) {
-		this.registry = registry;
+	GatewayRSocket(Routes routes, PendingRequestRSocketFactory pendingFactory,
+			LoadBalancerFactory loadBalancerFactory, MeterRegistry meterRegistry,
+			GatewayRSocketProperties properties, MetadataExtractor metadataExtractor,
+			TagsMetadata metadata) {
+		super(meterRegistry, properties, metadataExtractor, metadata);
 		this.routes = routes;
-		this.meterRegistry = meterRegistry;
-		this.properties = properties;
-		this.metadata = metadata;
-		this.onClose().doOnSuccess(v -> registry.deregister(metadata))
-				// .doOnNext(v -> log.error("OnClose doOnNext"))
-				.doOnError(t -> {
-					if (log.isErrorEnabled()) {
-						log.error("Error received, deregistering " + metadata, t);
-					}
-					registry.deregister(metadata);
-				})
-				// .doOnTerminate(() -> log.error("OnClose doOnTerminate"))
-				// .doFinally(st -> log.error("OnClose doFinally"))
-				.subscribe();
+		this.pendingFactory = pendingFactory;
+		this.loadBalancerFactory = loadBalancerFactory;
 	}
 
-	protected Registry getRegistry() {
-		return registry;
-	}
-
-	protected Routes getRoutes() {
-		return routes;
+	protected PendingRequestRSocketFactory getPendingFactory() {
+		return this.pendingFactory;
 	}
 
 	@Override
@@ -106,26 +83,6 @@ public class GatewayRSocket extends AbstractRSocket implements ResponderRSocket 
 				.flatMap(rSocket -> rSocket.fireAndForget(payload))
 				.doOnError(t -> count(exchange, "error"))
 				.doFinally(s -> count(exchange, ""));
-	}
-
-	private GatewayExchange createExchange(GatewayExchange.Type type, Payload payload) {
-		GatewayExchange exchange = GatewayExchange.fromPayload(type, payload);
-		Tags tags = getTags(exchange);
-		exchange.setTags(tags);
-		return exchange;
-	}
-
-	private Tags getTags(GatewayExchange exchange) {
-		// TODO: add tags to exchange
-		String requesterName = this.metadata.getName();
-		String requesterId = this.metadata.get("id");
-		String responderName = exchange.getRoutingMetadata().getName();
-		Assert.hasText(responderName, "responderName must not be empty");
-		Assert.hasText(requesterId, "requesterId must not be empty");
-		Assert.hasText(requesterName, "requesterName must not be empty");
-		// responder.id happens in a callback, later
-		return Tags.of("requester.name", requesterName, "responder.name", responderName,
-				"requester.id", requesterId, "gateway.id", this.properties.getId());
 	}
 
 	@Override
@@ -149,34 +106,6 @@ public class GatewayRSocket extends AbstractRSocket implements ResponderRSocket 
 		}).doOnNext(s -> count(exchange, "payload", responderTags))
 				.doOnError(t -> count(exchange, "error", responderTags))
 				.doFinally(s -> count(exchange, responderTags));
-	}
-
-	private void count(GatewayExchange exchange, String suffix) {
-		count(exchange, suffix, Tags.empty());
-	}
-
-	private void count(GatewayExchange exchange, Tags additionalTags) {
-		count(exchange, null, additionalTags);
-	}
-
-	private void count(GatewayExchange exchange, String suffix, Tags additionalTags) {
-		Tags tags = exchange.getTags().and(additionalTags);
-		String name = getMetricName(exchange, suffix);
-		this.meterRegistry.counter(name, tags).increment();
-	}
-
-	private String getMetricName(GatewayExchange exchange) {
-		return getMetricName(exchange, null);
-	}
-
-	private String getMetricName(GatewayExchange exchange, String suffix) {
-		StringBuilder name = new StringBuilder("forward.");
-		name.append(exchange.getType().getKey());
-		if (StringUtils.hasLength(suffix)) {
-			name.append(".");
-			name.append(suffix);
-		}
-		return name.toString();
 	}
 
 	@Override
@@ -211,56 +140,7 @@ public class GatewayRSocket extends AbstractRSocket implements ResponderRSocket 
 	private Mono<RSocket> findRSocketOrCreatePending(GatewayExchange exchange) {
 		return findRSocket(exchange)
 				// if a route can't be found or registered RSocket, create pending
-				.switchIfEmpty(createPendingRSocket(exchange));
-	}
-
-	private Mono<RSocket> createPendingRSocket(GatewayExchange exchange) {
-		if (log.isDebugEnabled()) {
-			log.debug("creating pending RSocket for " + exchange.getRoutingMetadata());
-		}
-		PendingRequestRSocket pending = constructPendingRSocket(exchange);
-		Disposable disposable = this.registry.addListener(pending);
-		pending.setSubscriptionDisposable(disposable);
-		return Mono.just(pending);
-	}
-
-	/* for testing */ PendingRequestRSocket constructPendingRSocket(
-			GatewayExchange exchange) {
-		Function<Registry.RegisteredEvent, Mono<Route>> routeFinder = registeredEvent -> getRouteMono(
-				registeredEvent, exchange);
-		return new PendingRequestRSocket(routeFinder, map -> {
-			Tags tags = exchange.getTags().and("responder.id", map.get("id"));
-			exchange.setTags(tags);
-		});
-	}
-
-	protected Mono<Route> getRouteMono(Registry.RegisteredEvent registeredEvent,
-			GatewayExchange exchange) {
-		return findRoute(exchange)
-				.log(PendingRequestRSocket.class.getName() + ".find route pending",
-						Level.FINEST)
-				// can this be replaced with filter?
-				.flatMap(
-						route -> matchRoute(route, registeredEvent.getRoutingMetadata()));
-	}
-
-	private Mono<Route> findRoute(GatewayExchange exchange) {
-		Mono<Route> routeMono;
-		/*
-		 * if (this.route != null) { //TODO: cache Route? routeMono = Mono.just(route); }
-		 * else {
-		 */
-		routeMono = this.routes.findRoute(exchange);
-		// }
-		return routeMono;
-	}
-
-	private Mono<Route> matchRoute(Route route, Metadata annoucementMetadata) {
-		Metadata targetMetadata = route.getTargetMetadata();
-		if (targetMetadata.matches(annoucementMetadata)) {
-			return Mono.just(route);
-		}
-		return Mono.empty();
+				.switchIfEmpty(pendingFactory.create(exchange));
 	}
 
 	/**
@@ -275,55 +155,21 @@ public class GatewayRSocket extends AbstractRSocket implements ResponderRSocket 
 				.flatMap(route -> {
 					// put route in exchange for later use
 					exchange.getAttributes().put(ROUTE_ATTR, route);
-					return executeFilterChain(route.getFilters(), exchange)
-							.flatMap(success -> {
-								LoadBalancedRSocket loadBalancedRSocket = registry
-										.getRegistered(exchange.getRoutingMetadata());
-
-								return loadBalancedRSocket.choose();
-							}).map(enrichedRSocket -> {
-								Metadata metadata = enrichedRSocket.getMetadata();
-								Tags tags = exchange.getTags().and("responder.id",
-										metadata.get("id"));
-								exchange.setTags(tags);
-								return enrichedRSocket;
-							}).cast(RSocket.class).switchIfEmpty(doOnEmpty(exchange));
+					return findRSocket(exchange, route);
 				});
 
 		// TODO: deal with connecting to cluster?
 	}
 
-	private Mono<RSocket> doOnEmpty(GatewayExchange exchange) {
-		if (log.isDebugEnabled()) {
-			log.debug("Unable to find destination RSocket for "
-					+ exchange.getRoutingMetadata());
-		}
-		return Mono.empty();
-	}
-
-	public static class Factory {
-
-		private final Registry registry;
-
-		private final Routes routes;
-
-		private final MeterRegistry meterRegistry;
-
-		private final GatewayRSocketProperties properties;
-
-		public Factory(Registry registry, Routes routes, MeterRegistry meterRegistry,
-				GatewayRSocketProperties properties) {
-			this.registry = registry;
-			this.routes = routes;
-			this.meterRegistry = meterRegistry;
-			this.properties = properties;
-		}
-
-		public GatewayRSocket create(Metadata metadata) {
-			return new GatewayRSocket(this.registry, this.routes, this.meterRegistry,
-					this.properties, metadata);
-		}
-
+	private Mono<RSocket> findRSocket(GatewayExchange exchange, Route route) {
+		return executeFilterChain(route.getFilters(), exchange).flatMap(
+				success -> loadBalancerFactory.choose(exchange.getRoutingMetadata()))
+				.map(tuple -> {
+					// TODO: this is routeId, should it be service name?
+					Tags tags = exchange.getTags().and("responder.id", tuple.getT1());
+					exchange.setTags(tags);
+					return tuple.getT2();
+				}).cast(RSocket.class).switchIfEmpty(doOnEmpty(exchange));
 	}
 
 }

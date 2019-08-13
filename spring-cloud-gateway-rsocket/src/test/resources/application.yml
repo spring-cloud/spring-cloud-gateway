@@ -1,6 +1,7 @@
 logging:
   level:
     org.springframework.cloud.gateway.rsocket: DEBUG
+#    org.springframework.cloud.gateway.rsocket: TRACE
 
 management:
   endpoints:

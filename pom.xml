@@ -52,7 +52,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<java.version>1.8</java.version>
-		<rsocket.version>1.0.0-RC2</rsocket.version>
+		<rsocket.version>1.0.0-RC3-SNAPSHOT</rsocket.version>
 		<spring-cloud-commons.version>2.2.0.BUILD-SNAPSHOT</spring-cloud-commons.version>
 		<spring-cloud-netflix.version>2.2.0.BUILD-SNAPSHOT</spring-cloud-netflix.version>
 		<embedded-redis.version>0.6</embedded-redis.version>
@@ -210,6 +210,15 @@
 					<url>https://repo.spring.io/release</url>
 					<snapshots>
 						<enabled>false</enabled>
+					</snapshots>
+				</repository>
+				<!-- RSocket Snapshots -->
+				<repository>
+					<id>jfrog-snapshots</id>
+					<name>JFRog Snapshots</name>
+					<url>https://oss.jfrog.org/artifactory/libs-snapshot</url>
+					<snapshots>
+						<enabled>true</enabled>
 					</snapshots>
 				</repository>
 			</repositories>
