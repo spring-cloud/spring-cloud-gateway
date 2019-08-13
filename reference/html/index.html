@@ -1329,7 +1329,7 @@ and have it applied to all routes.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>For a request path of <code>/foo/bar</code>, this will set the path to <code>/bar</code> before making the downstream request. Notice the <code>$\</code> which is replaced with <code>$</code> because of the YAML spec.</p>
+<p>For a request path of <code>/foo/bar</code>, this will set the path to <code>/bar</code> before making the downstream request. Notice the <code>$</code> Should be replaced with <code>$\</code> because of the YAML spec.</p>
 </div>
 </div>
 <div class="sect2">
@@ -1776,13 +1776,13 @@ When using the retry filter with a <code>forward:</code> prefixed URL, the targe
     gateway:
       routes:
       - id: request_size_route
-      uri: http://localhost:8080/upload
-      predicates:
-      - Path=/upload
-      filters:
-      - name: RequestSize
-        args:
-          maxSize: 5000000</code></pre>
+        uri: http://localhost:8080/upload
+        predicates:
+        - Path=/upload
+        filters:
+        - name: RequestSize
+          args:
+            maxSize: 5000000</code></pre>
 </div>
 </div>
 <div class="paragraph">
