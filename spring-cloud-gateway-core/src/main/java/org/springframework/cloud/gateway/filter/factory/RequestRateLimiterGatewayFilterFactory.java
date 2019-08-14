@@ -22,8 +22,10 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
 import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter;
+import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.support.HasRouteId;
 import org.springframework.cloud.gateway.support.HttpStatusHolder;
+import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.http.HttpStatus;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.setResponseStatus;
@@ -105,22 +107,27 @@ public class RequestRateLimiterGatewayFilterFactory extends
 						}
 						return chain.filter(exchange);
 					}
-					return limiter.isAllowed(config.getRouteId(), key)
-							.flatMap(response -> {
+					String routeId = config.getRouteId();
+					if (routeId == null) {
+						Route route = exchange
+								.getAttribute(ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR);
+						routeId = route.getId();
+					}
+					return limiter.isAllowed(routeId, key).flatMap(response -> {
 
-								for (Map.Entry<String, String> header : response
-										.getHeaders().entrySet()) {
-									exchange.getResponse().getHeaders()
-											.add(header.getKey(), header.getValue());
-								}
+						for (Map.Entry<String, String> header : response.getHeaders()
+								.entrySet()) {
+							exchange.getResponse().getHeaders().add(header.getKey(),
+									header.getValue());
+						}
 
-								if (response.isAllowed()) {
-									return chain.filter(exchange);
-								}
+						if (response.isAllowed()) {
+							return chain.filter(exchange);
+						}
 
-								setResponseStatus(exchange, config.getStatusCode());
-								return exchange.getResponse().setComplete();
-							});
+						setResponseStatus(exchange, config.getStatusCode());
+						return exchange.getResponse().setComplete();
+					});
 				});
 	}
 
