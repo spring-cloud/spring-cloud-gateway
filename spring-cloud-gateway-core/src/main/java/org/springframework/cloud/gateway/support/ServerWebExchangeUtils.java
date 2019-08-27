@@ -154,8 +154,6 @@ public final class ServerWebExchangeUtils {
 	 */
 	public static final String CACHED_REQUEST_BODY_ATTR = "cachedRequestBody";
 
-	private static final Log logger = LogFactory.getLog(ServerWebExchangeUtils.class);
-
 	private ServerWebExchangeUtils() {
 		throw new AssertionError("Must not instantiate utility class.");
 	}
@@ -175,8 +173,8 @@ public final class ServerWebExchangeUtils {
 	public static boolean setResponseStatus(ServerWebExchange exchange,
 			HttpStatus httpStatus) {
 		boolean response = exchange.getResponse().setStatusCode(httpStatus);
-		if (!response && logger.isWarnEnabled()) {
-			logger.warn("Unable to set status code to " + httpStatus
+		if (!response && log.isWarnEnabled()) {
+			log.warn("Unable to set status code to " + httpStatus
 					+ ". Response already committed.");
 		}
 		return response;
@@ -187,8 +185,8 @@ public final class ServerWebExchangeUtils {
 		if (exchange.getResponse().isCommitted()) {
 			return false;
 		}
-		if (logger.isDebugEnabled()) {
-			logger.debug("Setting response status to " + statusHolder);
+		if (log.isDebugEnabled()) {
+			log.debug("Setting response status to " + statusHolder);
 		}
 		if (statusHolder.getHttpStatus() != null) {
 			return setResponseStatus(exchange, statusHolder.getHttpStatus());
