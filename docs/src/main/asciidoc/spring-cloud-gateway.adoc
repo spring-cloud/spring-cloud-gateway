@@ -814,7 +814,7 @@ spring:
         predicates:
         - Path=/foo/**
         filters:
-        - RewritePath=/foo/(?<segment>.*), /$\{segment}
+        - RewritePath=/foo(?<segment>/?.*), $\{segment}
 ----
 
 For a request path of `/foo/bar`, this will set the path to `/bar` before making the downstream request. Notice the `$\` which is replaced with `$` because of the YAML spec.
