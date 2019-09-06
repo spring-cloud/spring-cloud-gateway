@@ -16,8 +16,11 @@
 
 package org.springframework.cloud.gateway.sample;
 
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import com.google.common.collect.Maps;
+import com.google.common.hash.BloomFilter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.isomorphism.util.TokenBucket;
@@ -36,13 +39,15 @@ public class ThrottleGatewayFilter implements GatewayFilter {
 
 	private static final Log log = LogFactory.getLog(ThrottleGatewayFilter.class);
 
-	int capacity;
+	private int capacity;
 
-	int refillTokens;
+	private int refillTokens;
 
-	int refillPeriod;
+	private int refillPeriod;
 
-	TimeUnit refillUnit;
+	private TimeUnit refillUnit;
+
+	private Map<String, TokenBucket> stringTokenBucketMap = Maps.newConcurrentMap();
 
 	public int getCapacity() {
 		return capacity;
@@ -82,12 +87,18 @@ public class ThrottleGatewayFilter implements GatewayFilter {
 
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-
-		TokenBucket tokenBucket = TokenBuckets.builder().withCapacity(capacity)
-				.withFixedIntervalRefillStrategy(refillTokens, refillPeriod, refillUnit)
-				.build();
-
-		// TODO: get a token bucket for a key
+		String fullAddress = exchange.getRequest().getRemoteAddress().toString();
+		String ip = fullAddress.substring(1, fullAddress.indexOf(":"));
+		synchronized (this) {
+			if (!stringTokenBucketMap.containsKey(ip)) {
+				TokenBucket tokenBucket = TokenBuckets.builder().withCapacity(capacity)
+						.withFixedIntervalRefillStrategy(refillTokens, refillPeriod, refillUnit)
+						.build();
+				stringTokenBucketMap.put(ip, tokenBucket);
+			}
+		}
+		//get a token bucket for ip
+		TokenBucket tokenBucket = stringTokenBucketMap.get(ip);
 		log.debug("TokenBucket capacity: " + tokenBucket.getCapacity());
 		boolean consumed = tokenBucket.tryConsume();
 		if (consumed) {
