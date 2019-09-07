@@ -164,19 +164,14 @@ public class GatewayRSocketAutoConfiguration {
 		};
 	}
 
-/*
-	@Bean
-	public GatewayRSocketActuatorRegistrar gatewayRSocketActuatorRegistrar(
-			RoutingTable routingTable, RSocketMessageHandler messageHandler,
-			GatewayRSocketProperties properties) {
-		return new GatewayRSocketActuatorRegistrar(routingTable, messageHandler,
-				properties);
-	}
-
-	@Bean
-	public GatwayRSocketActuator gatwayRSocketActuator() {
-		return new GatwayRSocketActuator();
-	}
-*/
+	/*
+	 * @Bean public GatewayRSocketActuatorRegistrar gatewayRSocketActuatorRegistrar(
+	 * RoutingTable routingTable, RSocketMessageHandler messageHandler,
+	 * GatewayRSocketProperties properties) { return new
+	 * GatewayRSocketActuatorRegistrar(routingTable, messageHandler, properties); }
+	 *
+	 * @Bean public GatwayRSocketActuator gatwayRSocketActuator() { return new
+	 * GatwayRSocketActuator(); }
+	 */
 
 }
