@@ -82,12 +82,7 @@ public class GatewayExchange extends AbstractRSocketExchange {
 
 	public static GatewayExchange fromPayload(Type type, Payload payload,
 			MetadataExtractor metadataExtractor) {
-		return new GatewayExchange(type, getRoutingMetadata(metadataExtractor, payload));
-	}
-
-	private static Forwarding getRoutingMetadata(MetadataExtractor metadataExtractor,
-			Payload payload) {
-		if (payload == null || !payload.hasMetadata()) { // and metadata is routing
+		if (payload == null || !payload.hasMetadata()) {
 			return null;
 		}
 
@@ -95,6 +90,19 @@ public class GatewayExchange extends AbstractRSocketExchange {
 		Map<String, Object> metadataMap = metadataExtractor.extract(payload,
 				Metadata.COMPOSITE_MIME_TYPE);
 
+		GatewayExchange exchange = new GatewayExchange(type,
+				getForwardingMetadata(metadataMap));
+
+		// TODO: custm metadata extractors
+		// Adds routing metadata to exchange
+		if (metadataMap.containsKey("route")) {
+			exchange.getAttributes().put("route-metadata", metadataMap.get("route"));
+		}
+
+		return exchange;
+	}
+
+	private static Forwarding getForwardingMetadata(Map<String, Object> metadataMap) {
 		if (metadataMap.containsKey("forwarding")) {
 			Forwarding metadata = (Forwarding) metadataMap.get("forwarding");
 
