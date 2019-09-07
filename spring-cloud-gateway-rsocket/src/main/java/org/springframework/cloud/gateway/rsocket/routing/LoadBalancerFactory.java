@@ -27,7 +27,7 @@ import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
 
-import org.springframework.cloud.gateway.rsocket.support.TagsMetadata;
+import org.springframework.cloud.gateway.rsocket.metadata.TagsMetadata;
 
 public class LoadBalancerFactory {
 

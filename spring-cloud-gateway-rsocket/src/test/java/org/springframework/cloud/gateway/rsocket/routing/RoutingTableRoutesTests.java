@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.gateway.rsocket.routing;
 
-import java.util.HashMap;
 import java.util.HashSet;
 
 import io.rsocket.RSocket;
@@ -25,10 +24,11 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import org.springframework.cloud.gateway.rsocket.core.GatewayExchange;
+import org.springframework.cloud.gateway.rsocket.metadata.Forwarding;
+import org.springframework.cloud.gateway.rsocket.metadata.TagsMetadata;
 import org.springframework.cloud.gateway.rsocket.route.Route;
-import org.springframework.cloud.gateway.rsocket.support.Forwarding;
-import org.springframework.cloud.gateway.rsocket.support.TagsMetadata;
-import org.springframework.cloud.gateway.rsocket.support.WellKnownKey;
+import org.springframework.cloud.gateway.rsocket.routing.RoutingTable.RegisteredEvent;
+import org.springframework.cloud.gateway.rsocket.routing.RoutingTable.RouteEntry;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -50,9 +50,7 @@ public class RoutingTableRoutesTests {
 		addRoute(routes, "2");
 		addRoute(routes, "3");
 
-		HashMap<TagsMetadata.Key, String> tags = new HashMap<>();
-		tags.put(new TagsMetadata.Key(WellKnownKey.ROUTE_ID), "2");
-		Forwarding forwarding = new Forwarding(1L, tags);
+		Forwarding forwarding = Forwarding.of(1L).routeId("2").build();
 		Mono<Route> routeMono = routes
 				.findRoute(new GatewayExchange(REQUEST_RESPONSE, forwarding));
 
@@ -62,14 +60,10 @@ public class RoutingTableRoutesTests {
 	}
 
 	void addRoute(RoutingTableRoutes routes, String routeId) {
-		// @formatter:off
-		TagsMetadata tagsMetadata = TagsMetadata.builder()
-				.with(WellKnownKey.ROUTE_ID, routeId)
-				.build();
-		// @formatter:on
+		TagsMetadata tagsMetadata = TagsMetadata.builder().routeId(routeId).build();
 
-		routes.accept(
-				new RoutingTable.RegisteredEvent(tagsMetadata, mock(RSocket.class)));
+		RSocket rsocket = mock(RSocket.class);
+		routes.accept(new RegisteredEvent(new RouteEntry(rsocket, tagsMetadata)));
 	}
 
 }

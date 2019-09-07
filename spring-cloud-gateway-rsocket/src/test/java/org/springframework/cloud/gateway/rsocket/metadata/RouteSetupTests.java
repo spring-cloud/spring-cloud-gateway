@@ -14,18 +14,17 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.gateway.rsocket.support;
+package org.springframework.cloud.gateway.rsocket.metadata;
 
 import java.math.BigInteger;
-import java.util.LinkedHashMap;
 
 import io.netty.buffer.ByteBuf;
 import org.junit.Test;
 
-import org.springframework.cloud.gateway.rsocket.support.TagsMetadata.Key;
+import org.springframework.cloud.gateway.rsocket.metadata.TagsMetadata.Key;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.cloud.gateway.rsocket.support.WellKnownKey.REGION;
+import static org.springframework.cloud.gateway.rsocket.metadata.WellKnownKey.REGION;
 
 public class RouteSetupTests {
 
@@ -75,12 +74,11 @@ public class RouteSetupTests {
 	}
 
 	protected ByteBuf createRouteSetup(BigInteger id, boolean addTags) {
-		LinkedHashMap<Key, String> tags = new LinkedHashMap<>();
+		RouteSetup.Builder routeSetup = RouteSetup.of(id, "myservice11111111");
 		if (addTags) {
-			tags.put(new Key(REGION), "us-east-1");
+			routeSetup.with(REGION, "us-east-1");
 		}
-		RouteSetup routeSetup = new RouteSetup(id, "myservice11111111", tags);
-		return encode(routeSetup);
+		return encode(routeSetup.build());
 	}
 
 	protected ByteBuf encode(RouteSetup routeSetup) {
@@ -107,7 +105,7 @@ public class RouteSetupTests {
 	}
 
 	protected RouteSetup decode(ByteBuf byteBuf) {
-		return RouteSetup.decode(byteBuf);
+		return RouteSetup.decodeRouteSetup(byteBuf);
 	}
 
 }

@@ -27,10 +27,10 @@ import org.apache.commons.logging.LogFactory;
 import reactor.core.Disposable;
 import reactor.core.publisher.Mono;
 
+import org.springframework.cloud.gateway.rsocket.metadata.TagsMetadata;
 import org.springframework.cloud.gateway.rsocket.route.Route;
 import org.springframework.cloud.gateway.rsocket.route.Routes;
 import org.springframework.cloud.gateway.rsocket.routing.RoutingTable;
-import org.springframework.cloud.gateway.rsocket.support.TagsMetadata;
 import org.springframework.messaging.rsocket.MetadataExtractor;
 
 public class PendingRequestRSocketFactory {

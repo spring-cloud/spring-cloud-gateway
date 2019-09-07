@@ -34,9 +34,9 @@ import reactor.core.publisher.MonoProcessor;
 import reactor.util.function.Tuple2;
 
 import org.springframework.cloud.gateway.rsocket.filter.RSocketFilter.Success;
+import org.springframework.cloud.gateway.rsocket.metadata.TagsMetadata;
 import org.springframework.cloud.gateway.rsocket.route.Route;
 import org.springframework.cloud.gateway.rsocket.routing.RoutingTable.RegisteredEvent;
-import org.springframework.cloud.gateway.rsocket.support.TagsMetadata;
 import org.springframework.messaging.rsocket.MetadataExtractor;
 
 import static org.springframework.cloud.gateway.rsocket.core.GatewayExchange.ROUTE_ATTR;

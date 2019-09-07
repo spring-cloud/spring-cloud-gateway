@@ -16,13 +16,13 @@
 
 package org.springframework.cloud.gateway.rsocket.socketacceptor;
 
-import java.util.Collections;
+import java.math.BigInteger;
 
 import io.rsocket.ConnectionSetupPayload;
 import io.rsocket.RSocket;
 
 import org.springframework.cloud.gateway.rsocket.filter.AbstractRSocketExchange;
-import org.springframework.cloud.gateway.rsocket.support.RouteSetup;
+import org.springframework.cloud.gateway.rsocket.metadata.RouteSetup;
 
 public class SocketAcceptorExchange extends AbstractRSocketExchange {
 
@@ -33,7 +33,7 @@ public class SocketAcceptorExchange extends AbstractRSocketExchange {
 	private final RouteSetup metadata;
 
 	public SocketAcceptorExchange(ConnectionSetupPayload setup, RSocket sendingSocket) {
-		this(setup, sendingSocket, new RouteSetup(null, null, Collections.emptyMap()));
+		this(setup, sendingSocket, RouteSetup.of((BigInteger) null, null).build());
 	}
 
 	public SocketAcceptorExchange(ConnectionSetupPayload setup, RSocket sendingSocket,

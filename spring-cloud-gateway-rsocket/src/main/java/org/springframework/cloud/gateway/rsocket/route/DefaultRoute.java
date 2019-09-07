@@ -25,8 +25,8 @@ import java.util.Objects;
 
 import org.springframework.cloud.gateway.rsocket.core.GatewayExchange;
 import org.springframework.cloud.gateway.rsocket.core.GatewayFilter;
+import org.springframework.cloud.gateway.rsocket.metadata.RouteSetup;
 import org.springframework.cloud.gateway.rsocket.support.AsyncPredicate;
-import org.springframework.cloud.gateway.rsocket.support.RouteSetup;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.util.Assert;
 

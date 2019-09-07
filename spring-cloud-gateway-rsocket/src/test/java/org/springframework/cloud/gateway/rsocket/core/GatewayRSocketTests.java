@@ -19,7 +19,6 @@ package org.springframework.cloud.gateway.rsocket.core;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.function.Function;
 
@@ -40,16 +39,16 @@ import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
 
 import org.springframework.cloud.gateway.rsocket.autoconfigure.GatewayRSocketProperties;
+import org.springframework.cloud.gateway.rsocket.metadata.Forwarding;
+import org.springframework.cloud.gateway.rsocket.metadata.Metadata;
+import org.springframework.cloud.gateway.rsocket.metadata.RouteSetup;
+import org.springframework.cloud.gateway.rsocket.metadata.TagsMetadata;
+import org.springframework.cloud.gateway.rsocket.metadata.WellKnownKey;
 import org.springframework.cloud.gateway.rsocket.route.DefaultRoute;
 import org.springframework.cloud.gateway.rsocket.route.Route;
 import org.springframework.cloud.gateway.rsocket.route.Routes;
 import org.springframework.cloud.gateway.rsocket.routing.LoadBalancerFactory;
 import org.springframework.cloud.gateway.rsocket.routing.RoutingTable;
-import org.springframework.cloud.gateway.rsocket.support.Forwarding;
-import org.springframework.cloud.gateway.rsocket.support.Metadata;
-import org.springframework.cloud.gateway.rsocket.support.RouteSetup;
-import org.springframework.cloud.gateway.rsocket.support.TagsMetadata;
-import org.springframework.cloud.gateway.rsocket.support.WellKnownKey;
 import org.springframework.cloud.gateway.rsocket.test.MetadataEncoder;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.messaging.rsocket.DefaultMetadataExtractor;
@@ -61,7 +60,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.springframework.cloud.gateway.rsocket.support.Forwarding.FORWARDING_MIME_TYPE;
+import static org.springframework.cloud.gateway.rsocket.metadata.Forwarding.FORWARDING_MIME_TYPE;
 
 /**
  * @author Spencer Gibb
@@ -91,9 +90,8 @@ public class GatewayRSocketTests {
 
 		MetadataEncoder encoder = new MetadataEncoder(Metadata.COMPOSITE_MIME_TYPE,
 				this.rSocketStrategies);
-		TagsMetadata tagsMetadata = TagsMetadata.builder()
-				.with(WellKnownKey.SERVICE_NAME, "mock").build();
-		Forwarding metadata = new Forwarding(1, tagsMetadata.getTags());
+		Forwarding metadata = Forwarding.of(1).with(WellKnownKey.SERVICE_NAME, "mock")
+				.build();
 		DataBuffer dataBuffer = encoder.metadata(metadata, FORWARDING_MIME_TYPE).encode();
 		DataBuffer data = MetadataEncoder.emptyDataBuffer(rSocketStrategies);
 		incomingPayload = PayloadUtils.createPayload(data, dataBuffer);
@@ -180,7 +178,7 @@ public class GatewayRSocketTests {
 	}
 
 	private static RouteSetup getMetadata() {
-		return new RouteSetup(1L, "service", new LinkedHashMap<>());
+		return RouteSetup.of(1L, "service").build();
 	}
 
 	private static class TestGatewayRSocket extends GatewayRSocket {
@@ -243,7 +241,7 @@ public class GatewayRSocketTests {
 		TestRoutes(List<GatewayFilter> filters) {
 			this.filters = filters;
 			route = DefaultRoute.builder().id("route1")
-					.routingMetadata(new RouteSetup(1L, "mock", new LinkedHashMap<>()))
+					.routingMetadata(RouteSetup.of(1L, "mock").build())
 					.predicate(exchange -> Mono.just(true)).filters(filters).build();
 		}
 

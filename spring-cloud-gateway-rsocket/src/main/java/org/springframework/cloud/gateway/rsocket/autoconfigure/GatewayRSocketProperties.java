@@ -32,6 +32,10 @@ public class GatewayRSocketProperties {
 
 	private String id = "gateway"; // TODO: + UUID?
 
+	private String routeId;
+
+	private String serviceName = "gateway";
+
 	/**
 	 * Tag names and values to be supplied to Micrometer Interceptor.
 	 */
@@ -66,6 +70,22 @@ public class GatewayRSocketProperties {
 		this.micrometerTags = micrometerTags;
 	}
 
+	public String getRouteId() {
+		return this.routeId;
+	}
+
+	public void setRouteId(String routeId) {
+		this.routeId = routeId;
+	}
+
+	public String getServiceName() {
+		return this.serviceName;
+	}
+
+	public void setServiceName(String serviceName) {
+		this.serviceName = serviceName;
+	}
+
 	@Override
 	public String toString() {
 		// @formatter:off
@@ -73,6 +93,8 @@ public class GatewayRSocketProperties {
 				.append("enabled", enabled)
 				.append("id", id)
 				.append("micrometerTags", micrometerTags)
+				.append("routeId", routeId)
+				.append("serviceName", serviceName)
 				.toString();
 		// @formatter:on
 	}

@@ -19,7 +19,6 @@ package org.springframework.cloud.gateway.rsocket.socketacceptor;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
@@ -35,9 +34,9 @@ import reactor.core.publisher.Mono;
 import org.springframework.cloud.gateway.rsocket.autoconfigure.GatewayRSocketProperties;
 import org.springframework.cloud.gateway.rsocket.core.GatewayRSocket;
 import org.springframework.cloud.gateway.rsocket.core.GatewayRSocketFactory;
-import org.springframework.cloud.gateway.rsocket.support.Metadata;
-import org.springframework.cloud.gateway.rsocket.support.RouteSetup;
-import org.springframework.cloud.gateway.rsocket.support.TagsMetadata;
+import org.springframework.cloud.gateway.rsocket.metadata.Metadata;
+import org.springframework.cloud.gateway.rsocket.metadata.RouteSetup;
+import org.springframework.cloud.gateway.rsocket.metadata.TagsMetadata;
 import org.springframework.cloud.gateway.rsocket.test.MetadataEncoder;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.messaging.rsocket.DefaultMetadataExtractor;
@@ -49,7 +48,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.springframework.cloud.gateway.rsocket.support.RouteSetup.ROUTE_SETUP_MIME_TYPE;
+import static org.springframework.cloud.gateway.rsocket.metadata.RouteSetup.ROUTE_SETUP_MIME_TYPE;
 
 /**
  * @author Spencer Gibb
@@ -94,8 +93,7 @@ public class GatewaySocketAcceptorTests {
 
 		MetadataEncoder encoder = new MetadataEncoder(Metadata.COMPOSITE_MIME_TYPE,
 				this.rSocketStrategies);
-		encoder.metadata(new RouteSetup(1, "myservice", new LinkedHashMap<>()),
-				ROUTE_SETUP_MIME_TYPE);
+		encoder.metadata(RouteSetup.of(1L, "myservice").build(), ROUTE_SETUP_MIME_TYPE);
 		DataBuffer dataBuffer = encoder.encode();
 		DataBuffer data = MetadataEncoder.emptyDataBuffer(rSocketStrategies);
 		Payload payload = PayloadUtils.createPayload(data, dataBuffer);

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.gateway.rsocket.support;
+package org.springframework.cloud.gateway.rsocket.metadata;
 
 import java.math.BigInteger;
 import java.util.LinkedHashMap;
@@ -22,12 +22,12 @@ import java.util.LinkedHashMap;
 import io.netty.buffer.ByteBuf;
 import org.junit.Test;
 
-import org.springframework.cloud.gateway.rsocket.support.TagsMetadata.Key;
+import org.springframework.cloud.gateway.rsocket.metadata.TagsMetadata.Key;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.cloud.gateway.rsocket.support.RouteSetupTests.MAX_BIGINT;
-import static org.springframework.cloud.gateway.rsocket.support.RouteSetupTests.TWO_BYTE_BIGINT;
-import static org.springframework.cloud.gateway.rsocket.support.WellKnownKey.REGION;
+import static org.springframework.cloud.gateway.rsocket.metadata.RouteSetupTests.MAX_BIGINT;
+import static org.springframework.cloud.gateway.rsocket.metadata.RouteSetupTests.TWO_BYTE_BIGINT;
+import static org.springframework.cloud.gateway.rsocket.metadata.WellKnownKey.REGION;
 
 public class ForwardingTests {
 
@@ -51,8 +51,8 @@ public class ForwardingTests {
 
 	protected ByteBuf createForwarding(BigInteger originRouteId) {
 		LinkedHashMap<Key, String> tags = new LinkedHashMap<>();
-		tags.put(new Key(REGION), "us-east-1");
-		Forwarding forwarding = new Forwarding(originRouteId, tags);
+		Forwarding forwarding = Forwarding.of(originRouteId).with(REGION, "us-east-1")
+				.build();
 		return encode(forwarding);
 	}
 
@@ -69,7 +69,7 @@ public class ForwardingTests {
 	}
 
 	protected Forwarding decode(ByteBuf byteBuf) {
-		return Forwarding.decode(byteBuf);
+		return Forwarding.decodeForwarding(byteBuf);
 	}
 
 }

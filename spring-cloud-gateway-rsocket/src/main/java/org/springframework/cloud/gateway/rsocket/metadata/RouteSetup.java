@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.gateway.rsocket.support;
+package org.springframework.cloud.gateway.rsocket.metadata;
 
 import java.math.BigInteger;
 import java.util.Map;
@@ -36,7 +36,12 @@ import org.springframework.core.style.ToStringCreator;
 import org.springframework.util.Assert;
 import org.springframework.util.MimeType;
 
-public class RouteSetup extends TagsMetadata {
+public final class RouteSetup extends TagsMetadata {
+
+	/**
+	 * Forwarding metadata key.
+	 */
+	public static final String METADATA_KEY = "routesetup";
 
 	/**
 	 * Route Setup subtype.
@@ -53,11 +58,7 @@ public class RouteSetup extends TagsMetadata {
 
 	private final String serviceName;
 
-	public RouteSetup(long id, String serviceName, Map<Key, String> tags) {
-		this(BigInteger.valueOf(id), serviceName, tags);
-	}
-
-	public RouteSetup(BigInteger id, String serviceName, Map<Key, String> tags) {
+	private RouteSetup(BigInteger id, String serviceName, Map<Key, String> tags) {
 		super(tags);
 		this.id = id;
 		this.serviceName = serviceName;
@@ -98,6 +99,14 @@ public class RouteSetup extends TagsMetadata {
 		// @formatter:on
 	}
 
+	public static Builder of(BigInteger id, String serviceName) {
+		return new Builder(id, serviceName);
+	}
+
+	public static Builder of(Long id, String serviceName) {
+		return of(BigInteger.valueOf(id), serviceName);
+	}
+
 	static ByteBuf encode(RouteSetup routeSetup) {
 		return encode(ByteBufAllocator.DEFAULT, routeSetup);
 	}
@@ -116,7 +125,7 @@ public class RouteSetup extends TagsMetadata {
 		return byteBuf;
 	}
 
-	static RouteSetup decode(ByteBuf byteBuf) {
+	static RouteSetup decodeRouteSetup(ByteBuf byteBuf) {
 		AtomicInteger offset = new AtomicInteger(0);
 
 		BigInteger id = decodeBigInteger(byteBuf, offset);
@@ -170,7 +179,48 @@ public class RouteSetup extends TagsMetadata {
 		public RouteSetup decode(DataBuffer buffer, ResolvableType targetType,
 				MimeType mimeType, Map<String, Object> hints) throws DecodingException {
 			ByteBuf byteBuf = TagsMetadata.asByteBuf(buffer);
-			return RouteSetup.decode(byteBuf);
+			return RouteSetup.decodeRouteSetup(byteBuf);
+		}
+
+	}
+
+	public static final class Builder {
+
+		private final BigInteger id;
+
+		private final String serviceName;
+
+		private final TagsMetadata.Builder tagsBuilder = TagsMetadata.builder();
+
+		private Builder(BigInteger id, String serviceName) {
+			// Assert.notNull(id, "id may not be null");
+			// Assert.hasText(serviceName, "serviceName may not be empty");
+			this.id = id;
+			this.serviceName = serviceName;
+		}
+
+		public Builder with(String key, String value) {
+			tagsBuilder.with(key, value);
+			return this;
+		}
+
+		public Builder with(WellKnownKey key, String value) {
+			tagsBuilder.with(key, value);
+			return this;
+		}
+
+		public Builder with(Key key, String value) {
+			tagsBuilder.with(key, value);
+			return this;
+		}
+
+		public Builder with(TagsMetadata tagsMetadata) {
+			tagsBuilder.with(tagsMetadata);
+			return this;
+		}
+
+		public RouteSetup build() {
+			return new RouteSetup(id, serviceName, tagsBuilder.build().getTags());
 		}
 
 	}
