@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.gateway.rsocket.registry;
+package org.springframework.cloud.gateway.rsocket.routing;
 
 import java.util.ArrayList;
 import java.util.Collections;

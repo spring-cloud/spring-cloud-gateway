@@ -40,11 +40,11 @@ import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
 
 import org.springframework.cloud.gateway.rsocket.autoconfigure.GatewayRSocketProperties;
-import org.springframework.cloud.gateway.rsocket.registry.LoadBalancerFactory;
-import org.springframework.cloud.gateway.rsocket.registry.RoutingTable;
 import org.springframework.cloud.gateway.rsocket.route.DefaultRoute;
 import org.springframework.cloud.gateway.rsocket.route.Route;
 import org.springframework.cloud.gateway.rsocket.route.Routes;
+import org.springframework.cloud.gateway.rsocket.routing.LoadBalancerFactory;
+import org.springframework.cloud.gateway.rsocket.routing.RoutingTable;
 import org.springframework.cloud.gateway.rsocket.support.Forwarding;
 import org.springframework.cloud.gateway.rsocket.support.Metadata;
 import org.springframework.cloud.gateway.rsocket.support.RouteSetup;

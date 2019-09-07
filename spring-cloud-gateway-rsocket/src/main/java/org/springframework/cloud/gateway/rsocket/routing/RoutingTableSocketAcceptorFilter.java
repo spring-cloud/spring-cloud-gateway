@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.gateway.rsocket.registry;
+package org.springframework.cloud.gateway.rsocket.routing;
 
 import reactor.core.publisher.Mono;
 
@@ -26,11 +26,11 @@ import org.springframework.core.Ordered;
 /**
  * Filter that registers the SendingSocket.
  */
-public class RegistrySocketAcceptorFilter implements SocketAcceptorFilter, Ordered {
+public class RoutingTableSocketAcceptorFilter implements SocketAcceptorFilter, Ordered {
 
 	private final RoutingTable routingTable;
 
-	public RegistrySocketAcceptorFilter(RoutingTable routingTable) {
+	public RoutingTableSocketAcceptorFilter(RoutingTable routingTable) {
 		this.routingTable = routingTable;
 	}
 

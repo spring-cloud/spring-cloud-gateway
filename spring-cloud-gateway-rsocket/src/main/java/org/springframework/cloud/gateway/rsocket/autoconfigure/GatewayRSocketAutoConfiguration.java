@@ -32,11 +32,11 @@ import org.springframework.boot.rsocket.server.RSocketServerFactory;
 import org.springframework.cloud.gateway.rsocket.core.GatewayRSocketFactory;
 import org.springframework.cloud.gateway.rsocket.core.GatewayServerRSocketFactoryCustomizer;
 import org.springframework.cloud.gateway.rsocket.core.PendingRequestRSocketFactory;
-import org.springframework.cloud.gateway.rsocket.registry.LoadBalancerFactory;
-import org.springframework.cloud.gateway.rsocket.registry.RegistrySocketAcceptorFilter;
-import org.springframework.cloud.gateway.rsocket.registry.RoutingTable;
-import org.springframework.cloud.gateway.rsocket.registry.RoutingTableRoutes;
 import org.springframework.cloud.gateway.rsocket.route.Routes;
+import org.springframework.cloud.gateway.rsocket.routing.LoadBalancerFactory;
+import org.springframework.cloud.gateway.rsocket.routing.RoutingTable;
+import org.springframework.cloud.gateway.rsocket.routing.RoutingTableRoutes;
+import org.springframework.cloud.gateway.rsocket.routing.RoutingTableSocketAcceptorFilter;
 import org.springframework.cloud.gateway.rsocket.socketacceptor.GatewaySocketAcceptor;
 import org.springframework.cloud.gateway.rsocket.socketacceptor.SocketAcceptorFilter;
 import org.springframework.cloud.gateway.rsocket.socketacceptor.SocketAcceptorPredicate;
@@ -76,9 +76,9 @@ public class GatewayRSocketAutoConfiguration {
 	}
 
 	@Bean
-	public RegistrySocketAcceptorFilter registrySocketAcceptorFilter(
+	public RoutingTableSocketAcceptorFilter registrySocketAcceptorFilter(
 			RoutingTable routingTable) {
-		return new RegistrySocketAcceptorFilter(routingTable);
+		return new RoutingTableSocketAcceptorFilter(routingTable);
 	}
 
 	@Bean
@@ -163,5 +163,20 @@ public class GatewayRSocketAutoConfiguration {
 					.encoder(new Forwarding.Encoder(), new RouteSetup.Encoder());
 		};
 	}
+
+/*
+	@Bean
+	public GatewayRSocketActuatorRegistrar gatewayRSocketActuatorRegistrar(
+			RoutingTable routingTable, RSocketMessageHandler messageHandler,
+			GatewayRSocketProperties properties) {
+		return new GatewayRSocketActuatorRegistrar(routingTable, messageHandler,
+				properties);
+	}
+
+	@Bean
+	public GatwayRSocketActuator gatwayRSocketActuator() {
+		return new GatwayRSocketActuator();
+	}
+*/
 
 }

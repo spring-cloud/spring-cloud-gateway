@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.gateway.rsocket.registry;
+package org.springframework.cloud.gateway.rsocket.routing;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
