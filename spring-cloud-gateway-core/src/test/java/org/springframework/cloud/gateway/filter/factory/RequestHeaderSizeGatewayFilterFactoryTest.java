@@ -48,7 +48,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @DirtiesContext
 public class RequestHeaderSizeGatewayFilterFactoryTest extends BaseWebClientTests {
 
-	private static final String responseMesssage = "Request Header/s size is larger than permissible limit. Request Header/s size is 73B where permissible limit is 46B";
+	private static final String responseMesssage = "Request Header/s size is larger than permissible limit. Request Header/s size is \\d\\dB where permissible limit is \\d\\dB";
 
 	@Test
 	public void setRequestSizeFilterWorks() {
