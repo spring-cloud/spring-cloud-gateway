@@ -39,17 +39,17 @@ import reactor.core.publisher.FluxSink;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
 
-import org.springframework.cloud.gateway.rsocket.support.TagsMetadata;
-import org.springframework.cloud.gateway.rsocket.support.WellKnownKey;
+import org.springframework.cloud.gateway.rsocket.metadata.TagsMetadata;
+import org.springframework.cloud.gateway.rsocket.metadata.WellKnownKey;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
  * The RoutingTable handles all RSocket connections that have been made that have
- * associated announcement metadata. RSocket connections can then be found based on
- * routing metadata. When a new RSocket is registered, a RegisteredEvent is pushed onto a
- * DirectProcessor that is acting as an event bus for registered Consumers.
+ * associated RouteSetup metadata. RSocket connections can then be found based on
+ * Forwarding metadata. When a new RSocket is registered, a RegisteredEvent is pushed onto
+ * a DirectProcessor that is acting as an event bus for registered Consumers.
  */
 public class RoutingTable {
 
@@ -59,11 +59,9 @@ public class RoutingTable {
 
 	final Map<Integer, String> internalRouteIdToRouteId = new ConcurrentHashMap<>();
 
-	final Map<RegistryKey, RoaringBitmap> tagsToBitmaps = new ConcurrentHashMap<>();
+	final Map<TagKey, RoaringBitmap> tagsToBitmaps = new ConcurrentHashMap<>();
 
-	final Map<String, RSocket> routeIdToRSocket = new ConcurrentHashMap<>();
-
-	final Map<String, TagsMetadata> routeIdToTags = new ConcurrentHashMap<>();
+	final Map<String, RouteEntry> routeEntries = new ConcurrentHashMap<>();
 
 	private final DirectProcessor<RegisteredEvent> registeredEvents = DirectProcessor
 			.create();
@@ -76,33 +74,33 @@ public class RoutingTable {
 
 	// TODO: Mono<Void>?
 	public void register(TagsMetadata tagsMetadata, RSocket rsocket) {
-		Assert.notNull(tagsMetadata, "tagsMetadata may not be null");
-		Assert.notNull(rsocket, "RSocket may not be null");
+		register(new RouteEntry(rsocket, tagsMetadata));
+	}
 
+	private void register(RouteEntry routeEntry) {
 		if (log.isDebugEnabled()) {
-			log.debug("Registering RSocket: " + tagsMetadata);
+			log.debug("Registering RSocket: " + routeEntry.tagsMetadata);
 		}
 
 		// TODO: only register new route if timestamp is newer
-		String routeId = tagsMetadata.getRouteId();
+		String routeId = routeEntry.getRouteId();
 
-		if (routeIdToRSocket.containsKey(routeId)) {
+		if (routeEntries.containsKey(routeId)) {
 			throw new IllegalStateException("Route Id already registered: " + routeId);
 		}
 
 		int internalId = internalRouteId.incrementAndGet();
 		internalRouteIdToRouteId.put(internalId, routeId);
-		routeIdToRSocket.put(routeId, rsocket);
-		routeIdToTags.put(routeId, tagsMetadata);
+		routeEntries.put(routeId, routeEntry);
 
-		tagsMetadata.getTags().forEach((key, value) -> {
+		routeEntry.getTags().forEach((key, value) -> {
 			// TODO: deal with string keys?
 			RoaringBitmap bitmap = tagsToBitmaps.computeIfAbsent(
-					new RegistryKey(key, value), k -> new RoaringBitmap());
+					new TagKey(key, value), k -> new RoaringBitmap());
 			bitmap.add(internalId);
 		});
 
-		registeredEventsSink.next(new RegisteredEvent(tagsMetadata, rsocket));
+		registeredEventsSink.next(new RegisteredEvent(routeEntry));
 	}
 
 	public boolean deregister(TagsMetadata metadata) {
@@ -132,14 +130,13 @@ public class RoutingTable {
 
 		int internalId = found.first();
 		internalRouteIdToRouteId.remove(internalId);
-		routeIdToTags.remove(routeId);
-		routeIdToRSocket.remove(routeId);
+		routeEntries.remove(routeId);
 
 		metadata.getTags().forEach((key, value) -> {
 			// TODO: deal with string keys?
-			RegistryKey registryKey = new RegistryKey(key, value);
-			if (tagsToBitmaps.containsKey(registryKey)) {
-				RoaringBitmap bitmap = tagsToBitmaps.get(registryKey);
+			TagKey tagKey = new TagKey(key, value);
+			if (tagsToBitmaps.containsKey(tagKey)) {
+				RoaringBitmap bitmap = tagsToBitmaps.get(tagKey);
 				bitmap.remove(internalId);
 			}
 		});
@@ -179,7 +176,8 @@ public class RoutingTable {
 		ArrayList<Tuple2<String, RSocket>> rSockets = new ArrayList<>();
 		found.forEach((IntConsumer) internalId -> {
 			String routeId = internalRouteIdToRouteId.get(internalId);
-			RSocket rSocket = routeIdToRSocket.get(routeId);
+			RouteEntry routeEntry = routeEntries.get(routeId);
+			RSocket rSocket = routeEntry.getRSocket();
 			rSockets.add(Tuples.of(routeId, rSocket));
 		});
 		return rSockets;
@@ -194,9 +192,9 @@ public class RoutingTable {
 		RoaringBitmap found = new RoaringBitmap();
 		AtomicBoolean first = new AtomicBoolean(true);
 		tagsMetadata.getTags().forEach((key, value) -> {
-			RegistryKey registryKey = new RegistryKey(key, value);
-			if (tagsToBitmaps.containsKey(registryKey)) {
-				RoaringBitmap search = tagsToBitmaps.get(registryKey);
+			TagKey tagKey = new TagKey(key, value);
+			if (tagsToBitmaps.containsKey(tagKey)) {
+				RoaringBitmap search = tagsToBitmaps.get(tagKey);
 				if (first.get()) {
 					// initiliaze found bitmap with current search
 					found.or(search);
@@ -216,34 +214,78 @@ public class RoutingTable {
 
 	public static class RegisteredEvent {
 
-		private final TagsMetadata routingMetadata;
+		private final RouteEntry routeEntry;
 
-		private final RSocket rSocket;
-
-		public RegisteredEvent(TagsMetadata routingMetadata, RSocket rSocket) {
-			Assert.notNull(routingMetadata, "routingMetadata may not be null");
-			Assert.notNull(rSocket, "RSocket may not be null");
-			this.routingMetadata = routingMetadata;
-			this.rSocket = rSocket;
+		public RegisteredEvent(RouteEntry routeEntry) {
+			Assert.notNull(routeEntry, "routeEntry may not be null");
+			this.routeEntry = routeEntry;
 		}
 
 		public TagsMetadata getRoutingMetadata() {
-			return routingMetadata;
+			return this.routeEntry.getTagsMetadata();
 		}
 
 		public RSocket getRSocket() {
-			return rSocket;
+			return this.routeEntry.getRSocket();
 		}
 
 	}
 
-	static class RegistryKey {
+	static class RouteEntry {
+		private final RSocket rSocket;
+		private final TagsMetadata tagsMetadata;
+		private final Long timestamp;
+
+		RouteEntry(RSocket rSocket, TagsMetadata tagsMetadata) {
+			this(rSocket, tagsMetadata, System.currentTimeMillis());
+		}
+
+		RouteEntry(RSocket rSocket, TagsMetadata tagsMetadata, Long timestamp) {
+			Assert.notNull(tagsMetadata, "tagsMetadata may not be null");
+			Assert.notNull(rSocket, "RSocket may not be null");
+			this.rSocket = rSocket;
+			this.tagsMetadata = tagsMetadata;
+			this.timestamp = timestamp;
+		}
+
+		public RSocket getRSocket() {
+			return this.rSocket;
+		}
+
+		public TagsMetadata getTagsMetadata() {
+			return this.tagsMetadata;
+		}
+
+		public Long getTimestamp() {
+			return this.timestamp;
+		}
+
+		public String getRouteId() {
+			return this.tagsMetadata.getRouteId();
+		}
+
+		public Map<TagsMetadata.Key, String> getTags() {
+			return this.getTagsMetadata().getTags();
+		}
+
+		@Override
+		public String toString() {
+			// @formatter:off
+			return new ToStringCreator(this)
+					.append("rSocket", rSocket)
+					.append("tagsMetadata", tagsMetadata)
+					.toString();
+			// @formatter:on
+		}
+	}
+
+	static class TagKey {
 
 		final TagsMetadata.Key key;
 
 		final String value;
 
-		RegistryKey(TagsMetadata.Key key, String value) {
+		TagKey(TagsMetadata.Key key, String value) {
 			// TODO: Assert non null
 			this.key = key;
 			this.value = value.toLowerCase();
@@ -265,7 +307,7 @@ public class RoutingTable {
 			if (o == null || getClass() != o.getClass()) {
 				return false;
 			}
-			RegistryKey that = (RegistryKey) o;
+			TagKey that = (TagKey) o;
 			return Objects.equals(this.key, that.key)
 					&& Objects.equals(this.value, that.value);
 		}

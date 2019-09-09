@@ -48,14 +48,13 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.cloud.gateway.rsocket.core.GatewayExchange;
 import org.springframework.cloud.gateway.rsocket.core.GatewayFilter;
 import org.springframework.cloud.gateway.rsocket.core.GatewayFilterChain;
+import org.springframework.cloud.gateway.rsocket.metadata.Forwarding;
+import org.springframework.cloud.gateway.rsocket.metadata.RouteSetup;
+import org.springframework.cloud.gateway.rsocket.metadata.TagsMetadata;
+import org.springframework.cloud.gateway.rsocket.metadata.WellKnownKey;
 import org.springframework.cloud.gateway.rsocket.socketacceptor.SocketAcceptorExchange;
 import org.springframework.cloud.gateway.rsocket.socketacceptor.SocketAcceptorFilter;
 import org.springframework.cloud.gateway.rsocket.socketacceptor.SocketAcceptorFilterChain;
-import org.springframework.cloud.gateway.rsocket.support.Forwarding;
-import org.springframework.cloud.gateway.rsocket.support.Metadata;
-import org.springframework.cloud.gateway.rsocket.support.RouteSetup;
-import org.springframework.cloud.gateway.rsocket.support.TagsMetadata;
-import org.springframework.cloud.gateway.rsocket.support.WellKnownKey;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.Ordered;
@@ -64,6 +63,8 @@ import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.messaging.rsocket.RSocketStrategies;
 
 import static io.netty.buffer.Unpooled.EMPTY_BUFFER;
+import static org.springframework.cloud.gateway.rsocket.metadata.Metadata.COMPOSITE_MIME_TYPE;
+import static org.springframework.cloud.gateway.rsocket.metadata.RouteSetup.ROUTE_SETUP_MIME_TYPE;
 
 @SpringBootApplication
 public class PingPongApp {
@@ -110,24 +111,22 @@ public class PingPongApp {
 
 	static ByteBuf getRouteSetupMetadata(RSocketStrategies strategies, String name,
 			long id) {
+		RouteSetup routeSetup = RouteSetup.of(id, name)
+				.with("current-time", String.valueOf(System.currentTimeMillis())).build();
 		LinkedHashMap<TagsMetadata.Key, String> tags = new LinkedHashMap<>();
 		tags.put(new TagsMetadata.Key(WellKnownKey.TIME_ZONE),
 				System.currentTimeMillis() + "");
-		DataBuffer routeSetup = new MetadataEncoder(Metadata.COMPOSITE_MIME_TYPE,
-				strategies)
-						.metadata(new RouteSetup(id, name, tags),
-								RouteSetup.ROUTE_SETUP_MIME_TYPE)
-						.encode();
-		return TagsMetadata.asByteBuf(routeSetup);
+		DataBuffer dataBuffer = new MetadataEncoder(COMPOSITE_MIME_TYPE, strategies)
+				.metadata(routeSetup, ROUTE_SETUP_MIME_TYPE).encode();
+		return TagsMetadata.asByteBuf(dataBuffer);
 	}
 
 	static ByteBuf getForwardingMetadata(RSocketStrategies strategies, String name,
 			long id) {
-		Forwarding metadata = new Forwarding(id, TagsMetadata.builder()
-				.with(WellKnownKey.SERVICE_NAME, name).build().getTags());
-		DataBuffer routeSetup = new MetadataEncoder(Metadata.COMPOSITE_MIME_TYPE,
-				strategies).metadata(metadata, Forwarding.FORWARDING_MIME_TYPE).encode();
-		return TagsMetadata.asByteBuf(routeSetup);
+		Forwarding metadata = Forwarding.of(id).serviceName(name).build();
+		DataBuffer dataBuffer = new MetadataEncoder(COMPOSITE_MIME_TYPE, strategies)
+				.metadata(metadata, Forwarding.FORWARDING_MIME_TYPE).encode();
+		return TagsMetadata.asByteBuf(dataBuffer);
 	}
 
 	@Slf4j
@@ -171,7 +170,7 @@ public class PingPongApp {
 			Payload setupPayload = DefaultPayload.create(EMPTY_BUFFER, metadata);
 
 			pongFlux = RSocketFactory.connect().frameDecoder(PayloadDecoder.ZERO_COPY)
-					.metadataMimeType(Metadata.COMPOSITE_MIME_TYPE.toString())
+					.metadataMimeType(COMPOSITE_MIME_TYPE.toString())
 					.setupPayload(setupPayload).addRequesterPlugin(interceptor)
 					.transport(TcpClientTransport.create(gatewayPort)) // proxy
 					.start().log("startPing" + id)
@@ -256,8 +255,7 @@ public class PingPongApp {
 					meterRegistry, Tag.of("component", "pong"));
 
 			ByteBuf announcementMetadata = getRouteSetupMetadata(strategies, "pong", 3L);
-			RSocketFactory.connect()
-					.metadataMimeType(Metadata.COMPOSITE_MIME_TYPE.toString())
+			RSocketFactory.connect().metadataMimeType(COMPOSITE_MIME_TYPE.toString())
 					.setupPayload(
 							DefaultPayload.create(EMPTY_BUFFER, announcementMetadata))
 					.addRequesterPlugin(interceptor).acceptor(this::accept)

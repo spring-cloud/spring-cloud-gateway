@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.gateway.rsocket.support;
+package org.springframework.cloud.gateway.rsocket.metadata;
 
 import io.netty.buffer.ByteBuf;
 import org.junit.Test;
 
-import org.springframework.cloud.gateway.rsocket.support.TagsMetadata.Key;
+import org.springframework.cloud.gateway.rsocket.metadata.TagsMetadata.Key;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.cloud.gateway.rsocket.support.WellKnownKey.ROUTE_ID;
-import static org.springframework.cloud.gateway.rsocket.support.WellKnownKey.SERVICE_NAME;
+import static org.springframework.cloud.gateway.rsocket.metadata.WellKnownKey.ROUTE_ID;
+import static org.springframework.cloud.gateway.rsocket.metadata.WellKnownKey.SERVICE_NAME;
 
 public class TagsMetadataTests {
 

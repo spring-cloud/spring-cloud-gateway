@@ -32,10 +32,10 @@ import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.rsocket.core.GatewayExchange;
 import org.springframework.cloud.gateway.rsocket.core.GatewayFilter;
+import org.springframework.cloud.gateway.rsocket.metadata.TagsMetadata;
 import org.springframework.cloud.gateway.rsocket.route.Route;
 import org.springframework.cloud.gateway.rsocket.route.Routes;
 import org.springframework.cloud.gateway.rsocket.support.AsyncPredicate;
-import org.springframework.cloud.gateway.rsocket.support.TagsMetadata;
 import org.springframework.core.style.ToStringCreator;
 
 /**

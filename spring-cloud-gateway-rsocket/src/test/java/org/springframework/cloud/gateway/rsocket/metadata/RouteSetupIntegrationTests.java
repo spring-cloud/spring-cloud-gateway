@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.gateway.rsocket.support;
+package org.springframework.cloud.gateway.rsocket.metadata;
 
 import java.util.Map;
 
@@ -39,28 +39,28 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(properties = "spring.rsocket.server.port=0", webEnvironment = RANDOM_PORT)
-public class ForwardingIntegrationTests extends ForwardingTests {
+public class RouteSetupIntegrationTests extends RouteSetupTests {
 
 	@Autowired
 	private RSocketStrategies strategies;
 
 	@Override
-	protected ByteBuf encode(Forwarding forwarding) {
+	protected ByteBuf encode(RouteSetup routeSetup) {
 		DataBuffer dataBuffer = new MetadataEncoder(Metadata.COMPOSITE_MIME_TYPE,
-				strategies).metadata(forwarding, Forwarding.FORWARDING_MIME_TYPE)
+				strategies).metadata(routeSetup, RouteSetup.ROUTE_SETUP_MIME_TYPE)
 						.encode();
 		return TagsMetadata.asByteBuf(dataBuffer);
 	}
 
 	@Override
-	protected Forwarding decode(ByteBuf byteBuf) {
+	protected RouteSetup decode(ByteBuf byteBuf) {
 		MetadataExtractor metadataExtractor = strategies.metadataExtractor();
 		Payload payload = DefaultPayload.create(Unpooled.EMPTY_BUFFER, byteBuf);
 		Map<String, Object> metadata = metadataExtractor.extract(payload,
 				Metadata.COMPOSITE_MIME_TYPE);
-		assertThat(metadata).containsKey("forwarding");
+		assertThat(metadata).containsKey(RouteSetup.METADATA_KEY);
 
-		return (Forwarding) metadata.get("forwarding");
+		return (RouteSetup) metadata.get(RouteSetup.METADATA_KEY);
 	}
 
 	@SpringBootConfiguration

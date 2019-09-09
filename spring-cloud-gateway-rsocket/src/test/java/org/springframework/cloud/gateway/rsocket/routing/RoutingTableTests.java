@@ -26,8 +26,8 @@ import org.roaringbitmap.RoaringBitmap;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
 
-import org.springframework.cloud.gateway.rsocket.support.TagsMetadata;
-import org.springframework.cloud.gateway.rsocket.support.WellKnownKey;
+import org.springframework.cloud.gateway.rsocket.metadata.TagsMetadata;
+import org.springframework.cloud.gateway.rsocket.metadata.WellKnownKey;
 import org.springframework.core.style.ToStringCreator;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -126,8 +126,7 @@ public class RoutingTableTests {
 		assertThat(result).isTrue();
 		String routeId = tagsMetadata.getRouteId();
 		assertThat(routingTable.internalRouteIdToRouteId).doesNotContainValue(routeId);
-		assertThat(routingTable.routeIdToRSocket).doesNotContainKey(routeId);
-		assertThat(routingTable.routeIdToTags).doesNotContainKey(routeId);
+		assertThat(routingTable.routeEntries).doesNotContainKey(routeId);
 	}
 
 	private RSocket assertRegister(RoutingTable routingTable, TagsMetadata tagsMetadata,
@@ -139,12 +138,12 @@ public class RoutingTableTests {
 		assertThat(routingTable.internalRouteId).hasValue(internalId);
 		assertThat(routingTable.internalRouteIdToRouteId).containsEntry(internalId,
 				routeId);
-		assertThat(routingTable.routeIdToRSocket).containsKey(routeId);
+		assertThat(routingTable.routeEntries).containsKey(routeId);
 		tagsMetadata.getTags().forEach((key, value) -> {
-			RoutingTable.RegistryKey registryKey = new RoutingTable.RegistryKey(key,
+			RoutingTable.TagKey tagKey = new RoutingTable.TagKey(key,
 					value);
-			assertThat(routingTable.tagsToBitmaps).containsKey(registryKey);
-			RoaringBitmap bitmap = routingTable.tagsToBitmaps.get(registryKey);
+			assertThat(routingTable.tagsToBitmaps).containsKey(tagKey);
+			RoaringBitmap bitmap = routingTable.tagsToBitmaps.get(tagKey);
 			assertThat(bitmap.contains(internalId));
 		});
 

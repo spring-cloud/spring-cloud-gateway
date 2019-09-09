@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.gateway.rsocket.support;
+package org.springframework.cloud.gateway.rsocket.metadata;
 
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
@@ -33,12 +33,14 @@ import io.rsocket.util.NumberUtils;
 
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.NettyDataBuffer;
-import org.springframework.core.style.ToStringCreator;
 import org.springframework.util.Assert;
+
+import static org.springframework.cloud.gateway.rsocket.metadata.WellKnownKey.ROUTE_ID;
+import static org.springframework.cloud.gateway.rsocket.metadata.WellKnownKey.SERVICE_NAME;
 
 public class TagsMetadata {
 
-	private static final Key ROUTE_ID_KEY = new Key(WellKnownKey.ROUTE_ID);
+	private static final Key ROUTE_ID_KEY = new Key(ROUTE_ID);
 
 	private static final int WELL_KNOWN_TAG = 0x80;
 
@@ -48,7 +50,7 @@ public class TagsMetadata {
 
 	private final Map<Key, String> tags;
 
-	TagsMetadata(Map<Key, String> tags) {
+	protected TagsMetadata(Map<Key, String> tags) {
 		this.tags = tags;
 	}
 
@@ -82,11 +84,6 @@ public class TagsMetadata {
 		return this;
 	}
 
-	public String toStrin() {
-		return new ToStringCreator(this).append("tags", tags).toString();
-
-	}
-
 	@Override
 	public String toString() {
 		return "TagsMetadata" + tags;
@@ -101,18 +98,18 @@ public class TagsMetadata {
 		return builder.with(existing);
 	}
 
-	static ByteBuf encode(TagsMetadata metadata) {
+	protected static ByteBuf encode(TagsMetadata metadata) {
 		return encode(ByteBufAllocator.DEFAULT, metadata.tags);
 	}
 
-	static ByteBuf encode(ByteBufAllocator allocator, Map<Key, String> tags) {
+	protected static ByteBuf encode(ByteBufAllocator allocator, Map<Key, String> tags) {
 		Assert.notNull(tags, "tags may not be null");
 		Assert.notNull(allocator, "allocator may not be null");
 		ByteBuf byteBuf = allocator.buffer();
 		return encode(byteBuf, tags);
 	}
 
-	static ByteBuf encode(ByteBuf byteBuf, Map<Key, String> tags) {
+	protected static ByteBuf encode(ByteBuf byteBuf, Map<Key, String> tags) {
 		Assert.notNull(byteBuf, "byteBuf may not be null");
 
 		Iterator<Map.Entry<Key, String>> it = tags.entrySet().iterator();
@@ -177,12 +174,12 @@ public class TagsMetadata {
 		ByteBufUtil.reserveAndWriteUtf8(byteBuf, s, length);
 	}
 
-	static TagsMetadata decode(ByteBuf byteBuf) {
+	protected static TagsMetadata decode(ByteBuf byteBuf) {
 		AtomicInteger offset = new AtomicInteger(0);
 		return decode(offset, byteBuf);
 	}
 
-	static TagsMetadata decode(AtomicInteger offset, ByteBuf byteBuf) {
+	protected static TagsMetadata decode(AtomicInteger offset, ByteBuf byteBuf) {
 
 		Builder builder = TagsMetadata.builder();
 
@@ -235,6 +232,10 @@ public class TagsMetadata {
 		return new BigInteger(idBytes);
 	}
 
+	protected static long decodeLong(ByteBuf byteBuf, AtomicInteger offset) {
+		return byteBuf.getLong(offset.getAndAdd(8));
+	}
+
 	protected static String decodeString(ByteBuf byteBuf, AtomicInteger offset) {
 		int length = byteBuf.getByte(offset.get());
 		int index = offset.addAndGet(Byte.BYTES);
@@ -265,6 +266,16 @@ public class TagsMetadata {
 			Assert.notNull(key, "key may not be null");
 			this.metadata.put(key, value);
 			return this;
+		}
+
+		public Builder routeId(String routeId) {
+			Assert.notNull(routeId, "routeId may not be null");
+			return with(ROUTE_ID, routeId);
+		}
+
+		public Builder serviceName(String serviceName) {
+			Assert.notNull(serviceName, "serviceName may not be null");
+			return with(SERVICE_NAME, serviceName);
 		}
 
 		public Builder with(TagsMetadata tagsMetadata) {

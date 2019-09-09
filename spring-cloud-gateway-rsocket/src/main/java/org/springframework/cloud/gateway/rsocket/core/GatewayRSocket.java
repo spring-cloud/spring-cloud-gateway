@@ -32,10 +32,10 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.rsocket.autoconfigure.GatewayRSocketProperties;
+import org.springframework.cloud.gateway.rsocket.metadata.TagsMetadata;
 import org.springframework.cloud.gateway.rsocket.route.Route;
 import org.springframework.cloud.gateway.rsocket.route.Routes;
 import org.springframework.cloud.gateway.rsocket.routing.LoadBalancerFactory;
-import org.springframework.cloud.gateway.rsocket.support.TagsMetadata;
 import org.springframework.messaging.rsocket.MetadataExtractor;
 
 import static org.springframework.cloud.gateway.rsocket.core.GatewayExchange.ROUTE_ATTR;
@@ -50,7 +50,7 @@ import static org.springframework.cloud.gateway.rsocket.core.GatewayFilterChain.
  * locate a Route. If a Route is found, it is added to the exchange and the filter chains
  * is executed againts the Route's filters. If the filter chain is successful, an attempt
  * to locate a target RSocket via the Registry is executed. If not found a pending RSocket
- * * is returned.
+ * is returned.
  */
 public class GatewayRSocket extends AbstractGatewayRSocket {
 
@@ -132,44 +132,50 @@ public class GatewayRSocket extends AbstractGatewayRSocket {
 	}
 
 	/**
-	 * Attempt to locate target RSocket via filter chain. If not found, create a pending
-	 * RSocket.
-	 * @param exchange GatewayExchange
-	 * @return
-	 */
-	private Mono<RSocket> findRSocketOrCreatePending(GatewayExchange exchange) {
-		return findRSocket(exchange)
-				// if a route can't be found or registered RSocket, create pending
-				.switchIfEmpty(pendingFactory.create(exchange));
-	}
-
-	/**
 	 * First locate Route. If found, put route in exchange and execute filter chain. If
-	 * successful, locate target RSocket.
+	 * successful, locate target RSocket. If not found, create a pending RSocket.
 	 * @param exchange GatewayExchange.
 	 * @return Target RSocket or empty.
 	 */
-	private Mono<RSocket> findRSocket(GatewayExchange exchange) {
+	private Mono<RSocket> findRSocketOrCreatePending(GatewayExchange exchange) {
 		return this.routes.findRoute(exchange)
 				.log(GatewayRSocket.class.getName() + ".find route", Level.FINEST)
 				.flatMap(route -> {
 					// put route in exchange for later use
 					exchange.getAttributes().put(ROUTE_ATTR, route);
-					return findRSocket(exchange, route);
+					return findRSocketOrCreatePending(exchange, route);
 				});
 
 		// TODO: deal with connecting to cluster?
 	}
 
-	private Mono<RSocket> findRSocket(GatewayExchange exchange, Route route) {
-		return executeFilterChain(route.getFilters(), exchange).flatMap(
-				success -> loadBalancerFactory.choose(exchange.getRoutingMetadata()))
+	private Mono<RSocket> findRSocketOrCreatePending(GatewayExchange exchange,
+			Route route) {
+		return executeFilterChain(route.getFilters(), exchange)
+				.log(GatewayRSocket.class.getName() + ".after filter chain", Level.FINEST)
+				.flatMap(success -> loadBalancerFactory
+						.choose(exchange.getRoutingMetadata()))
 				.map(tuple -> {
 					// TODO: this is routeId, should it be service name?
 					Tags tags = exchange.getTags().and("responder.id", tuple.getT1());
 					exchange.setTags(tags);
 					return tuple.getT2();
-				}).cast(RSocket.class).switchIfEmpty(doOnEmpty(exchange));
+				}).cast(RSocket.class).map(rSocket -> {
+					if (log.isDebugEnabled()) {
+						log.debug("Found RSocket: " + rSocket);
+					}
+					return rSocket;
+				}).log(GatewayRSocket.class.getName() + ".find rsocket", Level.FINEST)
+				.switchIfEmpty(createPending(exchange));
+	}
+
+	protected Mono<RSocket> createPending(GatewayExchange exchange) {
+		if (log.isDebugEnabled()) {
+			log.debug("Unable to find destination RSocket for "
+					+ exchange.getRoutingMetadata());
+		}
+		// if a route can't be found or registered RSocket, create pending
+		return pendingFactory.create(exchange).cast(RSocket.class);
 	}
 
 }

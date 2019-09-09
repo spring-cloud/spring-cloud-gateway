@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.gateway.rsocket.support;
+package org.springframework.cloud.gateway.rsocket.metadata;
 
 import java.math.BigInteger;
 import java.util.Map;
@@ -36,8 +36,16 @@ import org.springframework.core.style.ToStringCreator;
 import org.springframework.util.Assert;
 import org.springframework.util.MimeType;
 
+import static org.springframework.cloud.gateway.rsocket.metadata.WellKnownKey.ROUTE_ID;
+import static org.springframework.cloud.gateway.rsocket.metadata.WellKnownKey.SERVICE_NAME;
+
 // TODO: currently an ENVELOPE frame in RSocket extension, also discarding metadata
-public class Forwarding extends TagsMetadata {
+public final class Forwarding extends TagsMetadata {
+
+	/**
+	 * Forwarding metadata key.
+	 */
+	public static final String METADATA_KEY = "forwarding";
 
 	/**
 	 * Forwarding subtype.
@@ -52,13 +60,17 @@ public class Forwarding extends TagsMetadata {
 
 	private final BigInteger originRouteId;
 
-	public Forwarding(long originRouteId, Map<TagsMetadata.Key, String> tags) {
-		this(BigInteger.valueOf(originRouteId), tags);
-	}
-
-	public Forwarding(BigInteger originRouteId, Map<TagsMetadata.Key, String> tags) {
+	private Forwarding(BigInteger originRouteId, Map<TagsMetadata.Key, String> tags) {
 		super(tags);
 		this.originRouteId = originRouteId;
+	}
+
+	public static Builder of(long originRouteId) {
+		return of(BigInteger.valueOf(originRouteId));
+	}
+
+	public static Builder of(BigInteger originRouteId) {
+		return new Builder(originRouteId);
 	}
 
 	public BigInteger getOriginRouteId() {
@@ -95,7 +107,7 @@ public class Forwarding extends TagsMetadata {
 		return byteBuf;
 	}
 
-	static Forwarding decode(ByteBuf byteBuf) {
+	static Forwarding decodeForwarding(ByteBuf byteBuf) {
 		AtomicInteger offset = new AtomicInteger(0);
 
 		BigInteger originRouteId = decodeBigInteger(byteBuf, offset);
@@ -147,7 +159,60 @@ public class Forwarding extends TagsMetadata {
 		public Forwarding decode(DataBuffer buffer, ResolvableType targetType,
 				MimeType mimeType, Map<String, Object> hints) throws DecodingException {
 			ByteBuf byteBuf = TagsMetadata.asByteBuf(buffer);
-			return Forwarding.decode(byteBuf);
+			return Forwarding.decodeForwarding(byteBuf);
+		}
+
+	}
+
+	public final static class Builder {
+
+		private final BigInteger originRouteId;
+
+		private final TagsMetadata.Builder tagsBuilder = TagsMetadata.builder();
+
+		private Builder(BigInteger originRouteId) {
+			// Assert.notNull(id, "id may not be null");
+			this.originRouteId = originRouteId;
+		}
+
+		public Builder with(String key, String value) {
+			tagsBuilder.with(key, value);
+			return this;
+		}
+
+		public Builder with(WellKnownKey key, String value) {
+			tagsBuilder.with(key, value);
+			return this;
+		}
+
+		public Builder with(Key key, String value) {
+			tagsBuilder.with(key, value);
+			return this;
+		}
+
+		public Builder with(TagsMetadata tagsMetadata) {
+			tagsBuilder.with(tagsMetadata);
+			return this;
+		}
+
+		public Builder routeId(String routeId) {
+			tagsBuilder.with(ROUTE_ID, routeId);
+			return this;
+		}
+
+		public Builder serviceName(String serviceName) {
+			tagsBuilder.with(SERVICE_NAME, serviceName);
+			return this;
+		}
+
+		public Builder disableProxy() {
+			// TODO: move to well known implementation key
+			tagsBuilder.with("proxy", Boolean.FALSE.toString());
+			return this;
+		}
+
+		public Forwarding build() {
+			return new Forwarding(originRouteId, tagsBuilder.build().getTags());
 		}
 
 	}

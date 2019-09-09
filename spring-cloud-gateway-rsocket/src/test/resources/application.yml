@@ -1,10 +1,17 @@
+
 logging:
   level:
-    org.springframework.cloud.gateway.rsocket: DEBUG
-#    org.springframework.cloud.gateway.rsocket: TRACE
+    #    org.springframework.cloud.gateway.rsocket: DEBUG
+    org.springframework.cloud.gateway.rsocket: TRACE
+    org.springframework.messaging.handler.invocation.reactive: TRACE
 
 management:
   endpoints:
     web:
       exposure:
         include: '*'
+spring:
+  cloud:
+    gateway:
+      rsocket:
+        route-id: 1234

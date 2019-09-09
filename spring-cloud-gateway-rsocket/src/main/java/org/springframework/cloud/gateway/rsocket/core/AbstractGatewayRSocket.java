@@ -20,14 +20,12 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
 import io.rsocket.AbstractRSocket;
 import io.rsocket.Payload;
-import io.rsocket.RSocket;
 import io.rsocket.ResponderRSocket;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.rsocket.autoconfigure.GatewayRSocketProperties;
-import org.springframework.cloud.gateway.rsocket.support.TagsMetadata;
+import org.springframework.cloud.gateway.rsocket.metadata.TagsMetadata;
 import org.springframework.messaging.rsocket.MetadataExtractor;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -104,14 +102,6 @@ public abstract class AbstractGatewayRSocket extends AbstractRSocket
 			name.append(suffix);
 		}
 		return name.toString();
-	}
-
-	protected Mono<RSocket> doOnEmpty(GatewayExchange exchange) {
-		if (log.isDebugEnabled()) {
-			log.debug("Unable to find destination RSocket for "
-					+ exchange.getRoutingMetadata());
-		}
-		return Mono.empty();
 	}
 
 }

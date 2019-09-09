@@ -22,6 +22,7 @@ import org.junit.Test;
 import org.springframework.boot.actuate.autoconfigure.metrics.CompositeMeterRegistryAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.metrics.MetricsAutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.autoconfigure.rsocket.RSocketMessagingAutoConfiguration;
 import org.springframework.boot.autoconfigure.rsocket.RSocketStrategiesAutoConfiguration;
 import org.springframework.boot.rsocket.server.RSocketServer;
 import org.springframework.boot.rsocket.server.RSocketServerBootstrap;
@@ -47,8 +48,10 @@ public class GatewayRSocketAutoConfigurationTests {
 	@Test
 	public void gatewayRSocketConfigured() {
 		new ReactiveWebApplicationContextRunner().withUserConfiguration(MyConfig.class)
+				.withSystemProperties("spring.cloud.gateway.rsocket.route-id=11")
 				.withConfiguration(
 						AutoConfigurations.of(RSocketStrategiesAutoConfiguration.class,
+								RSocketMessagingAutoConfiguration.class,
 								GatewayRSocketAutoConfiguration.class,
 								CompositeMeterRegistryAutoConfiguration.class,
 								MetricsAutoConfiguration.class))

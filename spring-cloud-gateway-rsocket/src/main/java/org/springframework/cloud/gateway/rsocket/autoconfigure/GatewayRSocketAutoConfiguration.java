@@ -29,9 +29,13 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.rsocket.messaging.RSocketStrategiesCustomizer;
 import org.springframework.boot.rsocket.server.RSocketServerBootstrap;
 import org.springframework.boot.rsocket.server.RSocketServerFactory;
+import org.springframework.cloud.gateway.rsocket.actuate.GatewayRSocketActuator;
+import org.springframework.cloud.gateway.rsocket.actuate.GatewayRSocketActuatorRegistrar;
 import org.springframework.cloud.gateway.rsocket.core.GatewayRSocketFactory;
 import org.springframework.cloud.gateway.rsocket.core.GatewayServerRSocketFactoryCustomizer;
 import org.springframework.cloud.gateway.rsocket.core.PendingRequestRSocketFactory;
+import org.springframework.cloud.gateway.rsocket.metadata.Forwarding;
+import org.springframework.cloud.gateway.rsocket.metadata.RouteSetup;
 import org.springframework.cloud.gateway.rsocket.route.Routes;
 import org.springframework.cloud.gateway.rsocket.routing.LoadBalancerFactory;
 import org.springframework.cloud.gateway.rsocket.routing.RoutingTable;
@@ -41,17 +45,16 @@ import org.springframework.cloud.gateway.rsocket.socketacceptor.GatewaySocketAcc
 import org.springframework.cloud.gateway.rsocket.socketacceptor.SocketAcceptorFilter;
 import org.springframework.cloud.gateway.rsocket.socketacceptor.SocketAcceptorPredicate;
 import org.springframework.cloud.gateway.rsocket.socketacceptor.SocketAcceptorPredicateFilter;
-import org.springframework.cloud.gateway.rsocket.support.Forwarding;
-import org.springframework.cloud.gateway.rsocket.support.RouteSetup;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.messaging.rsocket.DefaultMetadataExtractor;
 import org.springframework.messaging.rsocket.MetadataExtractor;
 import org.springframework.messaging.rsocket.RSocketStrategies;
+import org.springframework.messaging.rsocket.annotation.support.RSocketMessageHandler;
 
-import static org.springframework.cloud.gateway.rsocket.support.Forwarding.FORWARDING_MIME_TYPE;
-import static org.springframework.cloud.gateway.rsocket.support.RouteSetup.ROUTE_SETUP_MIME_TYPE;
+import static org.springframework.cloud.gateway.rsocket.metadata.Forwarding.FORWARDING_MIME_TYPE;
+import static org.springframework.cloud.gateway.rsocket.metadata.RouteSetup.ROUTE_SETUP_MIME_TYPE;
 
 /**
  * @author Spencer Gibb
@@ -136,9 +139,9 @@ public class GatewayRSocketAutoConfiguration {
 		if (metadataExtractor instanceof DefaultMetadataExtractor) {
 			DefaultMetadataExtractor extractor = (DefaultMetadataExtractor) metadataExtractor;
 			extractor.metadataToExtract(FORWARDING_MIME_TYPE, Forwarding.class,
-					"forwarding");
+					Forwarding.METADATA_KEY);
 			extractor.metadataToExtract(ROUTE_SETUP_MIME_TYPE, RouteSetup.class,
-					"routesetup");
+					RouteSetup.METADATA_KEY);
 		}
 		return metadataExtractor;
 	}
@@ -164,14 +167,17 @@ public class GatewayRSocketAutoConfiguration {
 		};
 	}
 
-	/*
-	 * @Bean public GatewayRSocketActuatorRegistrar gatewayRSocketActuatorRegistrar(
-	 * RoutingTable routingTable, RSocketMessageHandler messageHandler,
-	 * GatewayRSocketProperties properties) { return new
-	 * GatewayRSocketActuatorRegistrar(routingTable, messageHandler, properties); }
-	 *
-	 * @Bean public GatwayRSocketActuator gatwayRSocketActuator() { return new
-	 * GatwayRSocketActuator(); }
-	 */
+	@Bean
+	public GatewayRSocketActuatorRegistrar gatewayRSocketActuatorRegistrar(
+			RoutingTable routingTable, RSocketMessageHandler messageHandler,
+			GatewayRSocketProperties properties) {
+		return new GatewayRSocketActuatorRegistrar(routingTable, messageHandler,
+				properties);
+	}
+
+	@Bean
+	public GatewayRSocketActuator gatwayRSocketActuator() {
+		return new GatewayRSocketActuator();
+	}
 
 }
