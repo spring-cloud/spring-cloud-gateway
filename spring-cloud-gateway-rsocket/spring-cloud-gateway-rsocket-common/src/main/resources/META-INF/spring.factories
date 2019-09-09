@@ -1,0 +1,4 @@
+# Auto Configure
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+org.springframework.cloud.gateway.rsocket.common.autoconfigure.GatewayRSocketCommonAutoConfiguration,\
+org.springframework.cloud.gateway.rsocket.common.autoconfigure.GatewayRSocketCommonMetadataAutoConfiguration

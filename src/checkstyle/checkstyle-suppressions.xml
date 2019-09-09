@@ -28,4 +28,5 @@
 	<suppress files=".*Route\.java" checks="FinalClass"/>
 	<suppress files=".*HystrixGatewayFilterFactory\.java" checks="AvoidNestedBlocks"/>
 	<suppress files=".*WellKnownKey\.java" checks="JavadocVariable"/>
+	<suppress files=".*MetadataEncoder\.java" checks="JavadocMethod"/>
 </suppressions>
