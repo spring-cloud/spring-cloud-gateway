@@ -144,7 +144,7 @@ public class GatewayRSocket extends AbstractGatewayRSocket {
 					// put route in exchange for later use
 					exchange.getAttributes().put(ROUTE_ATTR, route);
 					return findRSocketOrCreatePending(exchange, route);
-				});
+				}).switchIfEmpty(createPending(exchange));
 
 		// TODO: deal with connecting to cluster?
 	}
@@ -165,8 +165,7 @@ public class GatewayRSocket extends AbstractGatewayRSocket {
 						log.debug("Found RSocket: " + rSocket);
 					}
 					return rSocket;
-				}).log(GatewayRSocket.class.getName() + ".find rsocket", Level.FINEST)
-				.switchIfEmpty(createPending(exchange));
+				}).log(GatewayRSocket.class.getName() + ".find rsocket", Level.FINEST);
 	}
 
 	protected Mono<RSocket> createPending(GatewayExchange exchange) {
