@@ -21,7 +21,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.logging.log4j.util.Strings;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -129,7 +129,7 @@ public class XForwardedRemoteAddressResolver implements RemoteAddressResolver {
 			return Collections.emptyList();
 		}
 		List<String> values = Arrays.asList(xForwardedValues.get(0).split(", "));
-		if (values.size() == 1 && Strings.isBlank(values.get(0))) {
+		if (values.size() == 1 && StringUtils.isBlank(values.get(0))) {
 			return Collections.emptyList();
 		}
 		return values;
