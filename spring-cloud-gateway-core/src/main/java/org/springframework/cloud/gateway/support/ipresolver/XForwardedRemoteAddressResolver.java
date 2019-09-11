@@ -21,12 +21,12 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.logging.log4j.util.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
 
 /**
@@ -129,7 +129,7 @@ public class XForwardedRemoteAddressResolver implements RemoteAddressResolver {
 			return Collections.emptyList();
 		}
 		List<String> values = Arrays.asList(xForwardedValues.get(0).split(", "));
-		if (values.size() == 1 && Strings.isBlank(values.get(0))) {
+		if (values.size() == 1 && !StringUtils.hasText(values.get(0))) {
 			return Collections.emptyList();
 		}
 		return values;
