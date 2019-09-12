@@ -53,7 +53,7 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.G
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_SCHEME_PREFIX_ATTR;
 
 /**
- * Tests for {@link ReactiveLoadBalancerClientFilter}.
+ * Tests for {@link ReactorLoadBalancerClientFilter}.
  *
  * @author Spencer Gibb
  * @author Tim Ysewyn
@@ -61,7 +61,7 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.G
  */
 @SuppressWarnings("UnassignedFluxMonoInstance")
 @RunWith(MockitoJUnitRunner.class)
-public class ReactiveLoadBalancerClientFilterTests {
+public class ReactorLoadBalancerClientFilterTests {
 
 	private ServerWebExchange exchange;
 
@@ -74,7 +74,7 @@ public class ReactiveLoadBalancerClientFilterTests {
 	private LoadBalancerClientFactory clientFactory;
 
 	@InjectMocks
-	private ReactiveLoadBalancerClientFilter filter;
+	private ReactorLoadBalancerClientFilter filter;
 
 	@Before
 	public void setup() {
@@ -123,8 +123,8 @@ public class ReactiveLoadBalancerClientFilterTests {
 
 		when(clientFactory.getInstance("myservice", ReactorLoadBalancer.class,
 				ServiceInstance.class)).thenReturn(new RoundRobinLoadBalancer("myservice",
-				ServiceInstanceSuppliers.toProvider("myservice", serviceInstance),
-				-1));
+						ServiceInstanceSuppliers.toProvider("myservice", serviceInstance),
+						-1));
 
 		when(chain.filter(exchange)).thenReturn(Mono.empty());
 
@@ -244,14 +244,21 @@ public class ReactiveLoadBalancerClientFilterTests {
 
 	@Test
 	public void shouldThrow4O4ExceptionWhenNoServiceInstanceIsFound() {
-		URI uri = UriComponentsBuilder.fromUriString("lb://myservice").build().toUri();
+		URI uri = UriComponentsBuilder.fromUriString("lb://service1").build().toUri();
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, uri);
+		when(clientFactory.getInstance("service1", ReactorLoadBalancer.class,
+				ServiceInstance.class))
+						.thenReturn(new RoundRobinLoadBalancer("service1",
+								ServiceInstanceSuppliers.toProvider("service1"), -1));
 		properties.setUse404(true);
+		ReactorLoadBalancerClientFilter filter = new ReactorLoadBalancerClientFilter(
+				clientFactory, properties);
+		when(chain.filter(exchange)).thenReturn(Mono.empty());
 		try {
-			filter.filter(exchange, chain);
+			filter.filter(exchange, chain).block();
 		}
 		catch (NotFoundException exception) {
-			assertThat(HttpStatus.NOT_FOUND).isEqualTo(exception.getStatus());
+			assertThat(exception.getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
 		}
 	}
 
@@ -268,14 +275,14 @@ public class ReactiveLoadBalancerClientFilterTests {
 
 		when(clientFactory.getInstance("service1", ReactorLoadBalancer.class,
 				ServiceInstance.class))
-				.thenReturn(new RoundRobinLoadBalancer("service1",
-						ServiceInstanceSuppliers.toProvider("service1",
-								new DefaultServiceInstance("service1_1",
-										"service1", "service1-host1", 8081,
-										false)),
-						-1));
+						.thenReturn(new RoundRobinLoadBalancer("service1",
+								ServiceInstanceSuppliers.toProvider("service1",
+										new DefaultServiceInstance("service1_1",
+												"service1", "service1-host1", 8081,
+												false)),
+								-1));
 
-		ReactiveLoadBalancerClientFilter filter = new ReactiveLoadBalancerClientFilter(
+		ReactorLoadBalancerClientFilter filter = new ReactorLoadBalancerClientFilter(
 				clientFactory, properties);
 		filter.filter(exchange, chain).block();
 

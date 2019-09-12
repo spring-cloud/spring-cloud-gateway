@@ -26,7 +26,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClas
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.client.loadbalancer.reactive.ReactiveLoadBalancer;
-import org.springframework.cloud.gateway.filter.ReactiveLoadBalancerClientFilter;
+import org.springframework.cloud.gateway.filter.ReactorLoadBalancerClientFilter;
 import org.springframework.cloud.loadbalancer.config.LoadBalancerAutoConfiguration;
 import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
 import org.springframework.context.annotation.Bean;
@@ -35,26 +35,26 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.DispatcherHandler;
 
 /**
- * AutoConfiguration for {@link ReactiveLoadBalancerClientFilter}.
+ * AutoConfiguration for {@link ReactorLoadBalancerClientFilter}.
  *
  * @author Spencer Gibb
  * @author Olga Maciaszek-Sharma
  */
 @Configuration
-@ConditionalOnClass({ReactiveLoadBalancer.class, LoadBalancerAutoConfiguration.class,
-		DispatcherHandler.class})
+@ConditionalOnClass({ ReactiveLoadBalancer.class, LoadBalancerAutoConfiguration.class,
+		DispatcherHandler.class })
 @AutoConfigureBefore(GatewayLoadBalancerClientAutoConfiguration.class)
 @AutoConfigureAfter(LoadBalancerAutoConfiguration.class)
 @EnableConfigurationProperties(LoadBalancerProperties.class)
-public class GatewayReactiveLoadBalancerClientAutoConfiguration {
+public class GatewayReactorLoadBalancerClientAutoConfiguration {
 
 	@Bean
 	@ConditionalOnBean(LoadBalancerClientFactory.class)
-	@ConditionalOnMissingBean(ReactiveLoadBalancerClientFilter.class)
+	@ConditionalOnMissingBean(ReactorLoadBalancerClientFilter.class)
 	@Conditional(OnNoRibbonDefaultCondition.class)
-	public ReactiveLoadBalancerClientFilter gatewayLoadBalancerClientFilter(
+	public ReactorLoadBalancerClientFilter gatewayLoadBalancerClientFilter(
 			LoadBalancerClientFactory clientFactory, LoadBalancerProperties properties) {
-		return new ReactiveLoadBalancerClientFilter(clientFactory, properties);
+		return new ReactorLoadBalancerClientFilter(clientFactory, properties);
 	}
 
 	private static final class OnNoRibbonDefaultCondition extends AnyNestedCondition {

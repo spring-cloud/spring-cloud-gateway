@@ -40,16 +40,17 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.G
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.addOriginalRequestUrl;
 
 /**
- * A {@link GlobalFilter} implementation that routes requests using reactive Spring Cloud LoadBalancer.
+ * A {@link GlobalFilter} implementation that routes requests using reactive Spring Cloud
+ * LoadBalancer.
  *
  * @author Spencer Gibb
  * @author Tim Ysewyn
  * @author Olga Maciaszek-Sharma
  */
-public class ReactiveLoadBalancerClientFilter implements GlobalFilter, Ordered {
+public class ReactorLoadBalancerClientFilter implements GlobalFilter, Ordered {
 
 	private static final Log log = LogFactory
-			.getLog(ReactiveLoadBalancerClientFilter.class);
+			.getLog(ReactorLoadBalancerClientFilter.class);
 
 	private static final int LOAD_BALANCER_CLIENT_FILTER_ORDER = 10150;
 
@@ -57,7 +58,7 @@ public class ReactiveLoadBalancerClientFilter implements GlobalFilter, Ordered {
 
 	private LoadBalancerProperties properties;
 
-	public ReactiveLoadBalancerClientFilter(LoadBalancerClientFactory clientFactory,
+	public ReactorLoadBalancerClientFilter(LoadBalancerClientFactory clientFactory,
 			LoadBalancerProperties properties) {
 		this.clientFactory = clientFactory;
 		this.properties = properties;
@@ -81,7 +82,8 @@ public class ReactiveLoadBalancerClientFilter implements GlobalFilter, Ordered {
 		addOriginalRequestUrl(exchange, url);
 
 		if (log.isTraceEnabled()) {
-			log.trace("ReactiveLoadBalancerClientFilter url before: " + url);
+			log.trace(ReactorLoadBalancerClientFilter.class.getSimpleName()
+					+ " url before: " + url);
 		}
 
 		return choose(exchange).doOnNext(response -> {

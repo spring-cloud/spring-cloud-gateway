@@ -74,7 +74,9 @@ public class LoadBalancerClientFilter implements GlobalFilter, Ordered {
 		// preserve the original url
 		addOriginalRequestUrl(exchange, url);
 
-		log.trace("LoadBalancerClientFilter url before: " + url);
+		if (log.isTraceEnabled()) {
+			log.trace("LoadBalancerClientFilter url before: " + url);
+		}
 
 		final ServiceInstance instance = choose(exchange);
 
@@ -95,7 +97,10 @@ public class LoadBalancerClientFilter implements GlobalFilter, Ordered {
 		URI requestUrl = loadBalancer.reconstructURI(
 				new DelegatingServiceInstance(instance, overrideScheme), uri);
 
-		log.trace("LoadBalancerClientFilter url chosen: " + requestUrl);
+		if (log.isTraceEnabled()) {
+			log.trace("LoadBalancerClientFilter url chosen: " + requestUrl);
+		}
+
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, requestUrl);
 		return chain.filter(exchange);
 	}

@@ -23,7 +23,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.cloud.gateway.filter.LoadBalancerClientFilter;
-import org.springframework.cloud.gateway.filter.ReactiveLoadBalancerClientFilter;
+import org.springframework.cloud.gateway.filter.ReactorLoadBalancerClientFilter;
 import org.springframework.cloud.netflix.ribbon.RibbonAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -45,7 +45,7 @@ public class GatewayLoadBalancerClientAutoConfiguration {
 	@Bean
 	@ConditionalOnBean(LoadBalancerClient.class)
 	@ConditionalOnMissingBean({ LoadBalancerClientFilter.class,
-			ReactiveLoadBalancerClientFilter.class })
+			ReactorLoadBalancerClientFilter.class })
 	public LoadBalancerClientFilter loadBalancerClientFilter(LoadBalancerClient client,
 			LoadBalancerProperties properties) {
 		return new LoadBalancerClientFilter(client, properties);
