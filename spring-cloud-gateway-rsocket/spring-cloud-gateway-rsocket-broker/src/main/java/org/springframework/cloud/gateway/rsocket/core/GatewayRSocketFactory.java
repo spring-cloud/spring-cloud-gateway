@@ -20,7 +20,7 @@ import io.micrometer.core.instrument.MeterRegistry;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.cloud.gateway.rsocket.autoconfigure.GatewayRSocketProperties;
+import org.springframework.cloud.gateway.rsocket.autoconfigure.BrokerProperties;
 import org.springframework.cloud.gateway.rsocket.common.metadata.TagsMetadata;
 import org.springframework.cloud.gateway.rsocket.route.Routes;
 import org.springframework.cloud.gateway.rsocket.routing.LoadBalancerFactory;
@@ -45,14 +45,14 @@ public class GatewayRSocketFactory {
 
 	private final MeterRegistry meterRegistry;
 
-	private final GatewayRSocketProperties properties;
+	private final BrokerProperties properties;
 
 	private final MetadataExtractor metadataExtractor;
 
 	public GatewayRSocketFactory(RoutingTable routingTable, Routes routes,
 			PendingRequestRSocketFactory pendingFactory,
 			LoadBalancerFactory loadBalancerFactory, MeterRegistry meterRegistry,
-			GatewayRSocketProperties properties, MetadataExtractor metadataExtractor) {
+			BrokerProperties properties, MetadataExtractor metadataExtractor) {
 		this.routingTable = routingTable;
 		this.routes = routes;
 		this.pendingFactory = pendingFactory;
@@ -62,6 +62,7 @@ public class GatewayRSocketFactory {
 		this.metadataExtractor = metadataExtractor;
 	}
 
+	@SuppressWarnings("Duplicates")
 	public GatewayRSocket create(TagsMetadata metadata) {
 		Assert.hasText(metadata.get(ROUTE_ID), "metadata must contain " + ROUTE_ID);
 		Assert.hasText(metadata.get(SERVICE_NAME),

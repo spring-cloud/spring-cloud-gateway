@@ -17,7 +17,6 @@
 package org.springframework.cloud.gateway.rsocket.client;
 
 import java.math.BigInteger;
-import java.security.SecureRandom;
 import java.util.function.Supplier;
 
 import io.micrometer.core.instrument.MeterRegistry;
@@ -42,10 +41,13 @@ import org.springframework.messaging.rsocket.RSocketRequester;
 import org.springframework.messaging.rsocket.RSocketStrategies;
 import org.springframework.messaging.rsocket.annotation.support.RSocketMessageHandler;
 
+import static org.springframework.cloud.gateway.rsocket.common.autoconfigure.GatewayRSocketCommonAutoConfiguration.ID_GENERATOR_BEAN_NAME;
+
 /**
  * @author Spencer Gibb
  */
 @Configuration
+// TODO: add this property to config metadata
 @ConditionalOnProperty(name = "spring.cloud.gateway.rsocket.enabled",
 		matchIfMissing = true)
 @EnableConfigurationProperties
@@ -54,14 +56,7 @@ import org.springframework.messaging.rsocket.annotation.support.RSocketMessageHa
 @AutoConfigureBefore(RSocketRequesterAutoConfiguration.class)
 public class GatewayRSocketClientAutoConfiguration {
 
-	/**
-	 * Name of client id generator bean.
-	 */
-	public static final String RSOCKET_CLIENT_ID_GENERATOR_NAME = "rsocketClientIdGenerator";
-
 	private final RSocketMessageHandler messageHandler;
-
-	private final SecureRandom secureRandom = new SecureRandom();
 
 	public GatewayRSocketClientAutoConfiguration(RSocketMessageHandler handler) {
 		messageHandler = handler;
@@ -94,21 +89,11 @@ public class GatewayRSocketClientAutoConfiguration {
 		return new BrokerClient(properties, builder);
 	}
 
-	@Bean(name = RSOCKET_CLIENT_ID_GENERATOR_NAME)
-	@ConditionalOnMissingBean(name = RSOCKET_CLIENT_ID_GENERATOR_NAME)
-	public Supplier<BigInteger> rsocketClientIdGenerator() {
-		return () -> {
-			byte[] bytes = new byte[16];
-			secureRandom.nextBytes(bytes);
-			return new BigInteger(bytes);
-		};
-	}
-
 	@Bean
 	public ClientProperties clientProperties(
-			@Qualifier(RSOCKET_CLIENT_ID_GENERATOR_NAME) Supplier<BigInteger> clientIdGenerator) {
+			@Qualifier(ID_GENERATOR_BEAN_NAME) Supplier<BigInteger> idGenerator) {
 		ClientProperties clientProperties = new ClientProperties();
-		clientProperties.setRouteId(clientIdGenerator.get());
+		clientProperties.setRouteId(idGenerator.get());
 		return clientProperties;
 	}
 

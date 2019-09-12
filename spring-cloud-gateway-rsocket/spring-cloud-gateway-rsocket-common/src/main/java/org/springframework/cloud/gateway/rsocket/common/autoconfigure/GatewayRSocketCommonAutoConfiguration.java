@@ -16,10 +16,15 @@
 
 package org.springframework.cloud.gateway.rsocket.common.autoconfigure;
 
+import java.math.BigInteger;
+import java.security.SecureRandom;
+import java.util.function.Supplier;
+
 import io.rsocket.RSocket;
 
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.rsocket.RSocketStrategiesAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -40,11 +45,28 @@ import org.springframework.context.annotation.Configuration;
 @AutoConfigureBefore(RSocketStrategiesAutoConfiguration.class)
 public class GatewayRSocketCommonAutoConfiguration {
 
+	/**
+	 * Name of id generator bean.
+	 */
+	public static final String ID_GENERATOR_BEAN_NAME = "gatewayRSocketIdGenerator";
+
+	private final SecureRandom secureRandom = new SecureRandom();
+
 	@Bean
 	public RSocketStrategiesCustomizer gatewayRSocketStrategiesCustomizer() {
 		return strategies -> {
 			strategies.decoder(new Forwarding.Decoder(), new RouteSetup.Decoder())
 					.encoder(new Forwarding.Encoder(), new RouteSetup.Encoder());
+		};
+	}
+
+	@Bean(name = ID_GENERATOR_BEAN_NAME)
+	@ConditionalOnMissingBean(name = ID_GENERATOR_BEAN_NAME)
+	public Supplier<BigInteger> gatewayRSocketIdGenerator() {
+		return () -> {
+			byte[] bytes = new byte[16];
+			secureRandom.nextBytes(bytes);
+			return new BigInteger(bytes);
 		};
 	}
 

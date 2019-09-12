@@ -16,14 +16,16 @@
 
 package org.springframework.cloud.gateway.rsocket.autoconfigure;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.cloud.gateway.rsocket.common.autoconfigure.Broker;
 import org.springframework.core.style.ToStringCreator;
 
 @ConfigurationProperties("spring.cloud.gateway.rsocket")
-public class GatewayRSocketProperties {
+public class BrokerProperties {
 
 	/**
 	 * Enable Gateway RSocket.
@@ -32,16 +34,18 @@ public class GatewayRSocketProperties {
 
 	private String id = "gateway"; // TODO: + UUID?
 
-	private String routeId;
+	private BigInteger routeId;
 
 	private String serviceName = "gateway";
+
+	private List<Broker> brokers = new ArrayList<>();
 
 	/**
 	 * Tag names and values to be supplied to Micrometer Interceptor.
 	 */
 	private List<String> micrometerTags = new ArrayList<>();
 
-	public GatewayRSocketProperties() {
+	public BrokerProperties() {
 		micrometerTags.add("component");
 		micrometerTags.add("gateway");
 	}
@@ -70,11 +74,11 @@ public class GatewayRSocketProperties {
 		this.micrometerTags = micrometerTags;
 	}
 
-	public String getRouteId() {
+	public BigInteger getRouteId() {
 		return this.routeId;
 	}
 
-	public void setRouteId(String routeId) {
+	public void setRouteId(BigInteger routeId) {
 		this.routeId = routeId;
 	}
 
@@ -86,6 +90,14 @@ public class GatewayRSocketProperties {
 		this.serviceName = serviceName;
 	}
 
+	public List<Broker> getBrokers() {
+		return this.brokers;
+	}
+
+	public void setBrokers(List<Broker> brokers) {
+		this.brokers = brokers;
+	}
+
 	@Override
 	public String toString() {
 		// @formatter:off
@@ -95,6 +107,7 @@ public class GatewayRSocketProperties {
 				.append("micrometerTags", micrometerTags)
 				.append("routeId", routeId)
 				.append("serviceName", serviceName)
+				.append("brokers", brokers)
 				.toString();
 		// @formatter:on
 	}

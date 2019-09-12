@@ -20,6 +20,7 @@ import java.util.function.Consumer;
 
 import reactor.core.publisher.Mono;
 
+import org.springframework.cloud.gateway.rsocket.common.autoconfigure.Broker;
 import org.springframework.cloud.gateway.rsocket.common.metadata.Forwarding;
 import org.springframework.messaging.rsocket.RSocketRequester;
 
@@ -47,7 +48,7 @@ public class BrokerClient {
 	}
 
 	public Mono<RSocketRequester> connect(RSocketRequester.Builder requesterBuilder) {
-		ClientProperties.Broker broker = properties.getBroker();
+		Broker broker = properties.getBroker();
 		switch (broker.getConnectionType()) {
 		case WEBSOCKET:
 			return requesterBuilder.connectWebSocket(broker.getWsUri());

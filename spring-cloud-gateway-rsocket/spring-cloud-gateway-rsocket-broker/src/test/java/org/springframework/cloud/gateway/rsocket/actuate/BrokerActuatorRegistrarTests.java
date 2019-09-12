@@ -32,10 +32,10 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 		properties = { "spring.rsocket.server.port=0",
 				"spring.cloud.gateway.rsocket.route-id=55",
 				"spring.cloud.gateway.rsocket.service-name=gateway" })
-public class GatewayRSocketActuatorRegistrarTests {
+public class BrokerActuatorRegistrarTests {
 
 	@Autowired
-	private GatewayRSocketActuatorRegistrar registrar;
+	private BrokerActuatorHandlerRegistration registrar;
 
 	@Test
 	public void test() {

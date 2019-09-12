@@ -31,7 +31,7 @@ import org.junit.Before;
 import org.junit.Test;
 import reactor.core.publisher.Mono;
 
-import org.springframework.cloud.gateway.rsocket.autoconfigure.GatewayRSocketProperties;
+import org.springframework.cloud.gateway.rsocket.autoconfigure.BrokerProperties;
 import org.springframework.cloud.gateway.rsocket.common.metadata.Metadata;
 import org.springframework.cloud.gateway.rsocket.common.metadata.RouteSetup;
 import org.springframework.cloud.gateway.rsocket.common.metadata.TagsMetadata;
@@ -65,7 +65,7 @@ public class GatewaySocketAcceptorTests {
 
 	private MeterRegistry meterRegistry;
 
-	private GatewayRSocketProperties properties = new GatewayRSocketProperties();
+	private BrokerProperties properties = new BrokerProperties();
 
 	private final RSocketStrategies rSocketStrategies = RSocketStrategies.builder()
 			.decoder(new RouteSetup.Decoder()).encoder(new RouteSetup.Encoder()).build();

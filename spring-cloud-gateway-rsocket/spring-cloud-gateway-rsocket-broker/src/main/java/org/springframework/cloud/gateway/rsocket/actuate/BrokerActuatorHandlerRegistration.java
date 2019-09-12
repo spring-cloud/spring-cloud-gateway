@@ -28,7 +28,7 @@ import io.rsocket.SocketAcceptor;
 import io.rsocket.frame.SetupFrameFlyweight;
 import io.rsocket.util.DefaultPayload;
 
-import org.springframework.cloud.gateway.rsocket.autoconfigure.GatewayRSocketProperties;
+import org.springframework.cloud.gateway.rsocket.autoconfigure.BrokerProperties;
 import org.springframework.cloud.gateway.rsocket.common.metadata.TagsMetadata;
 import org.springframework.cloud.gateway.rsocket.routing.RoutingTable;
 import org.springframework.context.SmartLifecycle;
@@ -39,7 +39,7 @@ import org.springframework.messaging.rsocket.annotation.support.RSocketMessageHa
 import static io.rsocket.metadata.WellKnownMimeType.APPLICATION_CBOR;
 import static io.rsocket.metadata.WellKnownMimeType.MESSAGE_RSOCKET_COMPOSITE_METADATA;
 
-public class GatewayRSocketActuatorRegistrar implements SmartLifecycle {
+public class BrokerActuatorHandlerRegistration implements SmartLifecycle {
 
 	private final AtomicBoolean running = new AtomicBoolean();
 
@@ -47,10 +47,10 @@ public class GatewayRSocketActuatorRegistrar implements SmartLifecycle {
 
 	private final RSocketMessageHandler messageHandler;
 
-	private final GatewayRSocketProperties properties;
+	private final BrokerProperties properties;
 
-	public GatewayRSocketActuatorRegistrar(RoutingTable routingTable,
-			RSocketMessageHandler messageHandler, GatewayRSocketProperties properties) {
+	public BrokerActuatorHandlerRegistration(RoutingTable routingTable,
+			RSocketMessageHandler messageHandler, BrokerProperties properties) {
 		this.routingTable = routingTable;
 		this.messageHandler = messageHandler;
 		this.properties = properties;
@@ -64,7 +64,7 @@ public class GatewayRSocketActuatorRegistrar implements SmartLifecycle {
 			responder.accept(connectionSetupPayload, new AbstractRSocket() {
 			}).subscribe(rSocket -> {
 				TagsMetadata tagsMetadata = TagsMetadata.builder()
-						.routeId(properties.getRouteId())
+						.routeId(properties.getRouteId().toString())
 						.serviceName(properties.getServiceName())
 						// TODO: move to well known implementation key
 						.with("proxy", Boolean.FALSE.toString()).build();

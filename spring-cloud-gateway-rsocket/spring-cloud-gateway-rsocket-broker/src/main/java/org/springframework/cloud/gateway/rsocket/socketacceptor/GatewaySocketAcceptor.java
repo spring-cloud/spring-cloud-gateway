@@ -31,7 +31,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Mono;
 
-import org.springframework.cloud.gateway.rsocket.autoconfigure.GatewayRSocketProperties;
+import org.springframework.cloud.gateway.rsocket.autoconfigure.BrokerProperties;
 import org.springframework.cloud.gateway.rsocket.common.metadata.RouteSetup;
 import org.springframework.cloud.gateway.rsocket.common.metadata.TagsMetadata;
 import org.springframework.cloud.gateway.rsocket.core.GatewayRSocketFactory;
@@ -49,13 +49,13 @@ public class GatewaySocketAcceptor implements SocketAcceptor {
 
 	private final MeterRegistry meterRegistry;
 
-	private final GatewayRSocketProperties properties;
+	private final BrokerProperties properties;
 
 	private final MetadataExtractor metadataExtractor;
 
 	public GatewaySocketAcceptor(GatewayRSocketFactory rSocketFactory,
 			List<SocketAcceptorFilter> filters, MeterRegistry meterRegistry,
-			GatewayRSocketProperties properties, MetadataExtractor metadataExtractor) {
+			BrokerProperties properties, MetadataExtractor metadataExtractor) {
 		this.rSocketFactory = rSocketFactory;
 		this.filterChain = new SocketAcceptorFilterChain(filters);
 		this.meterRegistry = meterRegistry;

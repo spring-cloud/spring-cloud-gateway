@@ -30,7 +30,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.boot.rsocket.server.ServerRSocketFactoryCustomizer;
-import org.springframework.cloud.gateway.rsocket.autoconfigure.GatewayRSocketProperties;
+import org.springframework.cloud.gateway.rsocket.autoconfigure.BrokerProperties;
 import org.springframework.util.Assert;
 
 public class GatewayServerRSocketFactoryCustomizer
@@ -41,18 +41,18 @@ public class GatewayServerRSocketFactoryCustomizer
 
 	private static final RSocketInterceptor[] EMPTY_INTERCEPTORS = new RSocketInterceptor[0];
 
-	private final GatewayRSocketProperties properties;
+	private final BrokerProperties properties;
 
 	private final List<RSocketInterceptor> serverInterceptors;
 
 	private final MeterRegistry meterRegistry;
 
-	public GatewayServerRSocketFactoryCustomizer(GatewayRSocketProperties properties,
+	public GatewayServerRSocketFactoryCustomizer(BrokerProperties properties,
 			MeterRegistry meterRegistry) {
 		this(properties, meterRegistry, EMPTY_INTERCEPTORS);
 	}
 
-	public GatewayServerRSocketFactoryCustomizer(GatewayRSocketProperties properties,
+	public GatewayServerRSocketFactoryCustomizer(BrokerProperties properties,
 			MeterRegistry meterRegistry, RSocketInterceptor... interceptors) {
 		Assert.notNull(properties, "properties may not be null");
 		Assert.notNull(meterRegistry, "meterRegistry may not be null");

@@ -24,7 +24,7 @@ import io.rsocket.ResponderRSocket;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.cloud.gateway.rsocket.autoconfigure.GatewayRSocketProperties;
+import org.springframework.cloud.gateway.rsocket.autoconfigure.BrokerProperties;
 import org.springframework.cloud.gateway.rsocket.common.metadata.TagsMetadata;
 import org.springframework.messaging.rsocket.MetadataExtractor;
 import org.springframework.util.Assert;
@@ -40,15 +40,14 @@ public abstract class AbstractGatewayRSocket extends AbstractRSocket
 
 	protected final MeterRegistry meterRegistry;
 
-	private final GatewayRSocketProperties properties;
+	private final BrokerProperties properties;
 
 	private final MetadataExtractor metadataExtractor;
 
 	private final TagsMetadata metadata;
 
-	AbstractGatewayRSocket(MeterRegistry meterRegistry,
-			GatewayRSocketProperties properties, MetadataExtractor metadataExtractor,
-			TagsMetadata metadata) {
+	AbstractGatewayRSocket(MeterRegistry meterRegistry, BrokerProperties properties,
+			MetadataExtractor metadataExtractor, TagsMetadata metadata) {
 		this.meterRegistry = meterRegistry;
 		this.properties = properties;
 		this.metadataExtractor = metadataExtractor;

@@ -31,7 +31,7 @@ import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import org.springframework.cloud.gateway.rsocket.autoconfigure.GatewayRSocketProperties;
+import org.springframework.cloud.gateway.rsocket.autoconfigure.BrokerProperties;
 import org.springframework.cloud.gateway.rsocket.common.metadata.TagsMetadata;
 import org.springframework.cloud.gateway.rsocket.route.Route;
 import org.springframework.cloud.gateway.rsocket.route.Routes;
@@ -64,7 +64,7 @@ public class GatewayRSocket extends AbstractGatewayRSocket {
 
 	GatewayRSocket(Routes routes, PendingRequestRSocketFactory pendingFactory,
 			LoadBalancerFactory loadBalancerFactory, MeterRegistry meterRegistry,
-			GatewayRSocketProperties properties, MetadataExtractor metadataExtractor,
+			BrokerProperties properties, MetadataExtractor metadataExtractor,
 			TagsMetadata metadata) {
 		super(meterRegistry, properties, metadataExtractor, metadata);
 		this.routes = routes;

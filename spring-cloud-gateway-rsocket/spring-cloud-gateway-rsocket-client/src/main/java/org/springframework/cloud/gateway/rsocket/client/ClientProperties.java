@@ -17,7 +17,6 @@
 package org.springframework.cloud.gateway.rsocket.client;
 
 import java.math.BigInteger;
-import java.net.URI;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -26,6 +25,8 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.NestedConfigurationProperty;
+import org.springframework.cloud.gateway.rsocket.common.autoconfigure.Broker;
 import org.springframework.cloud.gateway.rsocket.common.metadata.WellKnownKey;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.validation.annotation.Validated;
@@ -45,6 +46,7 @@ public class ClientProperties {
 	private Map<String, String> customTags = new LinkedHashMap<>();
 
 	@Valid
+	@NestedConfigurationProperty
 	private Broker broker = new Broker();
 
 	public BigInteger getRouteId() {
@@ -98,73 +100,6 @@ public class ClientProperties {
 				.append("broker", broker)
 				.toString();
 		// @formatter:on
-	}
-
-	public enum ConnectionType {
-
-		/** TCP RSocket connection. */
-		TCP,
-		/** WEBSOCKET RSocket connection. */
-		WEBSOCKET
-
-	}
-
-	public static class Broker {
-
-		// FIXME: validate based on connectionType
-		private String host;
-
-		private int port;
-
-		@NotNull
-		private ConnectionType connectionType = ConnectionType.TCP;
-
-		private URI wsUri;
-
-		public String getHost() {
-			return this.host;
-		}
-
-		public void setHost(String host) {
-			this.host = host;
-		}
-
-		public int getPort() {
-			return this.port;
-		}
-
-		public void setPort(int port) {
-			this.port = port;
-		}
-
-		public ConnectionType getConnectionType() {
-			return this.connectionType;
-		}
-
-		public void setConnectionType(ConnectionType connectionType) {
-			this.connectionType = connectionType;
-		}
-
-		public URI getWsUri() {
-			return this.wsUri;
-		}
-
-		public void setWsUri(URI wsUri) {
-			this.wsUri = wsUri;
-		}
-
-		@Override
-		public String toString() {
-			// @formatter:off
-			return new ToStringCreator(this)
-					.append("host", host)
-					.append("port", port)
-					.append("wsUri", wsUri)
-					.append("connectionType", connectionType)
-					.toString();
-			// @formatter:on
-		}
-
 	}
 
 }

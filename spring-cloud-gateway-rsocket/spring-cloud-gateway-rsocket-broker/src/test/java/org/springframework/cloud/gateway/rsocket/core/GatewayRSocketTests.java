@@ -38,7 +38,7 @@ import reactor.test.StepVerifier;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
 
-import org.springframework.cloud.gateway.rsocket.autoconfigure.GatewayRSocketProperties;
+import org.springframework.cloud.gateway.rsocket.autoconfigure.BrokerProperties;
 import org.springframework.cloud.gateway.rsocket.common.metadata.Forwarding;
 import org.springframework.cloud.gateway.rsocket.common.metadata.Metadata;
 import org.springframework.cloud.gateway.rsocket.common.metadata.RouteSetup;
@@ -187,7 +187,7 @@ public class GatewayRSocketTests {
 				MetadataExtractor metadataExtractor) {
 			super(routes, new TestPendingFactory(routingTable, routes, metadataExtractor),
 					new LoadBalancerFactory(routingTable), new SimpleMeterRegistry(),
-					new GatewayRSocketProperties(), metadataExtractor, getMetadata());
+					new BrokerProperties(), metadataExtractor, getMetadata());
 		}
 
 		private MonoProcessor<RSocket> getProcessor() {

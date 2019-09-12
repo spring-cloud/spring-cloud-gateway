@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.gateway.rsocket.actuate;
 
+import java.math.BigInteger;
 import java.util.Random;
 
 import org.junit.AfterClass;
@@ -30,6 +31,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.cloud.gateway.rsocket.cluster.ClusterService;
 import org.springframework.cloud.gateway.rsocket.common.metadata.Forwarding;
 import org.springframework.cloud.gateway.rsocket.common.metadata.RouteSetup;
 import org.springframework.messaging.rsocket.RSocketRequester;
@@ -38,18 +41,22 @@ import org.springframework.util.SocketUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
-import static org.springframework.cloud.gateway.rsocket.actuate.GatewayRSocketActuator.BROKER_INFO_PATH;
-import static org.springframework.cloud.gateway.rsocket.actuate.GatewayRSocketActuator.ROUTE_JOIN_PATH;
-import static org.springframework.cloud.gateway.rsocket.actuate.GatewayRSocketActuator.ROUTE_REMOVE_PATH;
+import static org.springframework.cloud.gateway.rsocket.actuate.BrokerActuator.BROKER_INFO_PATH;
+import static org.springframework.cloud.gateway.rsocket.actuate.BrokerActuator.ROUTE_JOIN_PATH;
+import static org.springframework.cloud.gateway.rsocket.actuate.BrokerActuator.ROUTE_REMOVE_PATH;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = RANDOM_PORT)
-public class GatewayRSocketActuatorIntegrationTests {
+@SpringBootTest(webEnvironment = RANDOM_PORT,
+		properties = "spring.cloud.gateway.rsocket.cluster.enabled=false")
+public class BrokerActuatorIntegrationTests {
 
 	private final Random random = new Random();
 
 	@Autowired
 	private RSocketRequester.Builder requesterBuilder;
+
+	@MockBean
+	private ClusterService clusterService;
 
 	// @LocalServerPort
 	private static int port;
@@ -72,58 +79,80 @@ public class GatewayRSocketActuatorIntegrationTests {
 
 		BrokerInfo data = BrokerInfo.of(brokerId).build();
 
-		Mono<BrokerInfo> result = callActuator(brokerId, BrokerInfo.class, data,
+		Mono<BigInteger> result = callActuator(brokerId, BigInteger.class, data,
 				BROKER_INFO_PATH);
 
-		StepVerifier.create(result)
-				.consumeNextWith(res -> assertThat(res).isNotNull().isEqualTo(data))
+		StepVerifier.create(result).consumeNextWith(
+				res -> assertThat(res).isNotNull().isEqualTo(BigInteger.valueOf(1234L)))
 				.verifyComplete();
+
+		// TODO: assert server side calls worked
 	}
 
 	@Test
-	public void routeJoinWorks() {
+	public void routeJoinRemoveWorks() {
 		long brokerId = random.nextLong();
 		long routeId = random.nextLong();
 
 		RouteJoin data = RouteJoin.builder().brokerId(brokerId).routeId(routeId)
 				.serviceName("testServiceName").build();
 
-		Mono<RouteJoin> result = callActuator(brokerId, RouteJoin.class, data,
+		RSocketRequester requester = getRequester(brokerId);
+		Mono<RouteJoin> result = callActuator(requester, brokerId, RouteJoin.class, data,
 				ROUTE_JOIN_PATH);
 
 		StepVerifier.create(result)
 				.consumeNextWith(res -> assertThat(res).isNotNull().isEqualTo(data))
 				.verifyComplete();
+		// TODO: assert server side calls worked
+
+		routeRemoveWorks(requester, routeId);
 	}
 
-	@Test
-	public void routeRemoveWorks() {
+	public void routeRemoveWorks(RSocketRequester requester, long routeId) {
 		long brokerId = random.nextLong();
-		long routeId = random.nextLong();
-
 		RouteRemove data = RouteRemove.builder().brokerId(brokerId).routeId(routeId)
 				.build();
 
-		Mono<RouteRemove> result = callActuator(brokerId, RouteRemove.class, data,
+		Mono<Boolean> result = callActuator(requester, brokerId, Boolean.class, data,
 				ROUTE_REMOVE_PATH);
 
 		StepVerifier.create(result)
-				.consumeNextWith(res -> assertThat(res).isNotNull().isEqualTo(data))
+				.consumeNextWith(res -> assertThat(res).isTrue())
+				.verifyComplete();
+		// TODO: assert server side calls worked
+
+
+		result = callActuator(brokerId, Boolean.class, data,
+				ROUTE_REMOVE_PATH);
+
+		StepVerifier.create(result)
+				.consumeNextWith(res -> assertThat(res).isFalse())
 				.verifyComplete();
 	}
 
-	private <T> Mono<T> callActuator(long brokerId, Class<T> type, T data, String path) {
-		RouteSetup routeSetup = RouteSetup.of(brokerId, "brokerInfoTest").build();
+	private <T, D> Mono<T> callActuator(long brokerId, Class<T> type, D data,
+			String path) {
+		RSocketRequester requester = getRequester(brokerId);
 
-		RSocketRequester requester = requesterBuilder
-				.setupMetadata(routeSetup, RouteSetup.ROUTE_SETUP_MIME_TYPE)
-				.connectTcp("localhost", port).block();
+		return callActuator(requester, brokerId, type, data, path);
+	}
+
+	private <T, D> Mono<T> callActuator(RSocketRequester requester, long brokerId,
+			Class<T> type, D data, String path) {
 
 		Forwarding forwarding = Forwarding.of(brokerId).serviceName("gateway")
 				.disableProxy().build();
 
 		return requester.route(path).metadata(forwarding, Forwarding.FORWARDING_MIME_TYPE)
 				.data(data).retrieveMono(type);
+	}
+
+	private RSocketRequester getRequester(long brokerId) {
+		RouteSetup routeSetup = RouteSetup.of(brokerId, "brokerInfoTest").build();
+		return requesterBuilder
+					.setupMetadata(routeSetup, RouteSetup.ROUTE_SETUP_MIME_TYPE)
+					.connectTcp("localhost", port).block();
 	}
 
 	@SpringBootConfiguration
