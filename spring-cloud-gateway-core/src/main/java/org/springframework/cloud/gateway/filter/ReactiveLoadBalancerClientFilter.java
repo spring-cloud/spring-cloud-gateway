@@ -23,20 +23,20 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import reactor.core.publisher.Mono;
+
+import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.loadbalancer.reactive.ReactiveLoadBalancer;
 import org.springframework.cloud.client.loadbalancer.reactive.Request;
 import org.springframework.cloud.client.loadbalancer.reactive.Response;
 import org.springframework.cloud.gateway.support.DelegatingServiceInstance;
+import org.springframework.cloud.gateway.support.NotFoundException;
 import org.springframework.cloud.loadbalancer.core.ReactorLoadBalancer;
 import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
-import org.springframework.util.StringUtils;
-import org.springframework.web.util.UriComponentsBuilder;
-import reactor.core.publisher.Mono;
-
-import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.gateway.support.NotFoundException;
 import org.springframework.core.Ordered;
+import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_SCHEME_PREFIX_ATTR;
@@ -63,6 +63,7 @@ public class ReactiveLoadBalancerClientFilter implements GlobalFilter, Ordered {
 	}
 
 	@Override
+	@SuppressWarnings("Duplicates")
 	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 		URI url = exchange.getAttribute(GATEWAY_REQUEST_URL_ATTR);
 		String schemePrefix = exchange.getAttribute(GATEWAY_SCHEME_PREFIX_ATTR);
@@ -102,7 +103,7 @@ public class ReactiveLoadBalancerClientFilter implements GlobalFilter, Ordered {
 		}).then(chain.filter(exchange));
 	}
 
-	protected Mono<Response<ServiceInstance>> choose(ServerWebExchange exchange) {
+	private Mono<Response<ServiceInstance>> choose(ServerWebExchange exchange) {
 		URI uri = exchange.getAttribute(GATEWAY_REQUEST_URL_ATTR);
 		ReactorLoadBalancer<ServiceInstance> loadBalancer = this.clientFactory.getInstance(uri.getHost(), ReactorLoadBalancer.class, ServiceInstance.class);
 		if (loadBalancer == null) {
@@ -111,7 +112,7 @@ public class ReactiveLoadBalancerClientFilter implements GlobalFilter, Ordered {
 		return loadBalancer.choose(createRequest());
 	}
 
-	protected Request createRequest() {
+	private Request createRequest() {
 		return ReactiveLoadBalancer.REQUEST;
 	}
 
@@ -131,9 +132,9 @@ public class ReactiveLoadBalancerClientFilter implements GlobalFilter, Ordered {
 	 *
 	 * @param uri
 	 * @param serviceInstance
-	 * @return
+	 * @return secured uri as {@link String}
 	 */
-	static String updateToSecureScheme(URI uri, ServiceInstance serviceInstance) {
+	private static String updateToSecureScheme(URI uri, ServiceInstance serviceInstance) {
 		String scheme = uri.getScheme();
 
 		if (StringUtils.isEmpty(scheme)) {
@@ -148,7 +149,7 @@ public class ReactiveLoadBalancerClientFilter implements GlobalFilter, Ordered {
 		return scheme;
 	}
 
-	static URI updateUri(URI uri, ServiceInstance serviceInstance) {
+	private static URI updateUri(URI uri, ServiceInstance serviceInstance) {
 		UriComponentsBuilder builder = UriComponentsBuilder
 				.fromUri(uri)
 				.scheme(updateToSecureScheme(uri, serviceInstance))
