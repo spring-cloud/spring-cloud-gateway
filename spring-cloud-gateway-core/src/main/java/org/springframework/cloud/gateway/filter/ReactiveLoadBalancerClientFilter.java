@@ -47,10 +47,10 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.a
  * @author Tim Ysewyn
  * @author Olga Maciaszek-Sharma
  */
-public class ReactorLoadBalancerClientFilter implements GlobalFilter, Ordered {
+public class ReactiveLoadBalancerClientFilter implements GlobalFilter, Ordered {
 
 	private static final Log log = LogFactory
-			.getLog(ReactorLoadBalancerClientFilter.class);
+			.getLog(ReactiveLoadBalancerClientFilter.class);
 
 	private static final int LOAD_BALANCER_CLIENT_FILTER_ORDER = 10150;
 
@@ -58,7 +58,7 @@ public class ReactorLoadBalancerClientFilter implements GlobalFilter, Ordered {
 
 	private LoadBalancerProperties properties;
 
-	public ReactorLoadBalancerClientFilter(LoadBalancerClientFactory clientFactory,
+	public ReactiveLoadBalancerClientFilter(LoadBalancerClientFactory clientFactory,
 			LoadBalancerProperties properties) {
 		this.clientFactory = clientFactory;
 		this.properties = properties;
@@ -82,7 +82,7 @@ public class ReactorLoadBalancerClientFilter implements GlobalFilter, Ordered {
 		addOriginalRequestUrl(exchange, url);
 
 		if (log.isTraceEnabled()) {
-			log.trace(ReactorLoadBalancerClientFilter.class.getSimpleName()
+			log.trace(ReactiveLoadBalancerClientFilter.class.getSimpleName()
 					+ " url before: " + url);
 		}
 

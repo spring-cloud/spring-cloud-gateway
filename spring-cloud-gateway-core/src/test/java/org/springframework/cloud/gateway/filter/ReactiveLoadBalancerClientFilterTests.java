@@ -53,7 +53,7 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.G
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_SCHEME_PREFIX_ATTR;
 
 /**
- * Tests for {@link ReactorLoadBalancerClientFilter}.
+ * Tests for {@link ReactiveLoadBalancerClientFilter}.
  *
  * @author Spencer Gibb
  * @author Tim Ysewyn
@@ -61,7 +61,7 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.G
  */
 @SuppressWarnings("UnassignedFluxMonoInstance")
 @RunWith(MockitoJUnitRunner.class)
-public class ReactorLoadBalancerClientFilterTests {
+public class ReactiveLoadBalancerClientFilterTests {
 
 	private ServerWebExchange exchange;
 
@@ -74,7 +74,7 @@ public class ReactorLoadBalancerClientFilterTests {
 	private LoadBalancerClientFactory clientFactory;
 
 	@InjectMocks
-	private ReactorLoadBalancerClientFilter filter;
+	private ReactiveLoadBalancerClientFilter filter;
 
 	@Before
 	public void setup() {
@@ -251,7 +251,7 @@ public class ReactorLoadBalancerClientFilterTests {
 						.thenReturn(new RoundRobinLoadBalancer("service1",
 								ServiceInstanceSuppliers.toProvider("service1"), -1));
 		properties.setUse404(true);
-		ReactorLoadBalancerClientFilter filter = new ReactorLoadBalancerClientFilter(
+		ReactiveLoadBalancerClientFilter filter = new ReactiveLoadBalancerClientFilter(
 				clientFactory, properties);
 		when(chain.filter(exchange)).thenReturn(Mono.empty());
 		try {
@@ -282,7 +282,7 @@ public class ReactorLoadBalancerClientFilterTests {
 												false)),
 								-1));
 
-		ReactorLoadBalancerClientFilter filter = new ReactorLoadBalancerClientFilter(
+		ReactiveLoadBalancerClientFilter filter = new ReactiveLoadBalancerClientFilter(
 				clientFactory, properties);
 		filter.filter(exchange, chain).block();
 
