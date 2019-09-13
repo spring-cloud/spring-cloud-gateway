@@ -153,6 +153,7 @@ $(addBlockSwitches);
 <li><a href="#_combined_global_filter_and_gatewayfilter_ordering">Combined Global Filter and GatewayFilter Ordering</a></li>
 <li><a href="#_forward_routing_filter">Forward Routing Filter</a></li>
 <li><a href="#_loadbalancerclient_filter">LoadBalancerClient Filter</a></li>
+<li><a href="#reactive-loadbalancer-client-filter">ReactiveLoadBalancerClientFilter</a></li>
 <li><a href="#_netty_routing_filter">Netty Routing Filter</a></li>
 <li><a href="#_netty_write_response_filter">Netty Write Response Filter</a></li>
 <li><a href="#_routetorequesturl_filter">RouteToRequestUrl Filter</a></li>
@@ -2007,6 +2008,75 @@ You can configure the Gateway to return a <code>404</code> by setting <code>spri
 </td>
 <td class="content">
 The <code>isSecure</code> value of the <code>ServiceInstance</code> returned from the <code>LoadBalancer</code> will override
+the scheme specified in the request made to the Gateway.  For example, if the request comes into the Gateway over <code>HTTPS</code>
+but the <code>ServiceInstance</code> indicates it is not secure, then the downstream request will be made over
+<code>HTTP</code>.  The opposite situation can also apply.  However if <code>GATEWAY_SCHEME_PREFIX_ATTR</code> is specified for the
+route in the Gateway configuration, the prefix will be stripped and the resulting scheme from the
+route URL will override the <code>ServiceInstance</code> configuration.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<code>LoadBalancerClientFilter</code> uses a blocking Ribbon <code>LoadBalancerClient</code> under the hood.
+We suggest you use <a href="#reactive-loadbalancer-client-filter"><code>ReactiveLoadBalancerClientFilter</code> instead</a>.
+You can switch to using it by setting the value of the <code>spring.cloud.loadbalancer.ribbon.enabled</code> to <code>false</code>.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="reactive-loadbalancer-client-filter"><a class="link" href="#reactive-loadbalancer-client-filter">ReactiveLoadBalancerClientFilter</a></h3>
+<div class="paragraph">
+<p>The <code>ReactiveLoadBalancerClientFilter</code> looks for a URI in the exchange attribute
+<code>ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR</code>. If the url has a <code>lb</code> scheme (ie <code>lb://myservice</code>),
+it will use the Spring Cloud <code>ReactorLoadBalancer</code> to resolve the name (<code>myservice</code> in the previous example)
+to an actual host and port and replace the URI in the same attribute. The unmodified
+original url is appended to the list in the <code>ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR</code> attribute.
+The filter will also look in the <code>ServerWebExchangeUtils.GATEWAY_SCHEME_PREFIX_ATTR</code> attribute to see if it equals
+<code>lb</code> and then the same rules apply.</p>
+</div>
+<div class="listingblock">
+<div class="title">application.yml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: myRoute
+        uri: lb://service
+        predicates:
+        - Path=/service/**</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+By default when a service instance cannot be found by the <code>ReactorLoadBalancer</code>, a <code>503</code> will be returned.
+You can configure the Gateway to return a <code>404</code> by setting <code>spring.cloud.gateway.loadbalancer.use404=true</code>.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The <code>isSecure</code> value of the <code>ServiceInstance</code> returned from the <code>ReactiveLoadBalancerClientFilter</code> will override
 the scheme specified in the request made to the Gateway.  For example, if the request comes into the Gateway over <code>HTTPS</code>
 but the <code>ServiceInstance</code> indicates it is not secure, then the downstream request will be made over
 <code>HTTP</code>.  The opposite situation can also apply.  However if <code>GATEWAY_SCHEME_PREFIX_ATTR</code> is specified for the
