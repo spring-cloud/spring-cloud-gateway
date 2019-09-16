@@ -27,6 +27,7 @@ import org.springframework.boot.actuate.endpoint.web.annotation.RestControllerEn
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
+import org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.route.RouteDefinition;
 import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
@@ -44,8 +45,9 @@ public class GatewayLegacyControllerEndpoint extends AbstractGatewayControllerEn
 
 	public GatewayLegacyControllerEndpoint(RouteDefinitionLocator routeDefinitionLocator,
 			List<GlobalFilter> globalFilters, List<GatewayFilterFactory> GatewayFilters,
+			List<RoutePredicateFactory> routePredicates,
 			RouteDefinitionWriter routeDefinitionWriter, RouteLocator routeLocator) {
-		super(routeDefinitionLocator, globalFilters, GatewayFilters,
+		super(routeDefinitionLocator, globalFilters, GatewayFilters, routePredicates,
 				routeDefinitionWriter, routeLocator);
 	}
 
