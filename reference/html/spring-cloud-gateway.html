@@ -202,6 +202,7 @@ $(addBlockSwitches);
 </ul>
 </li>
 <li><a href="#_building_a_simple_gateway_using_spring_mvc_or_webflux">Building a Simple Gateway Using Spring MVC or Webflux</a></li>
+<li><a href="#_configuration_properties">Configuration properties</a></li>
 </ul>
 </div>
 </div>
@@ -282,7 +283,7 @@ Spring Cloud Gateway requires the Netty runtime provided by Spring Boot and Spri
 <div class="sectionbody">
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/spring-cloud/spring-cloud-gateway/${github-tag}/docs/src/main/asciidoc/images/spring_cloud_gateway_diagram.png" alt="Spring Cloud Gateway Diagram">
+<img src="https://raw.githubusercontent.com/spring-cloud/spring-cloud-gateway/master/docs/src/main/asciidoc/images/spring_cloud_gateway_diagram.png" alt="Spring Cloud Gateway Diagram">
 </div>
 </div>
 <div class="paragraph">
@@ -3037,6 +3038,14 @@ public ResponseEntity&lt;?&gt; proxyPath(ProxyExchange&lt;byte[]&gt; proxy) thro
 </div>
 <div class="paragraph">
 <p>First class support is provided for "sensitive" headers ("cookie" and "authorization" by default) which are not passed downstream, and for "proxy" headers (<code>x-forwarded-*</code>).</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_configuration_properties"><a class="link" href="#_configuration_properties">Configuration properties</a></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To see the list of all Sleuth related configuration properties please check <a href="appendix.html">the Appendix page</a>.</p>
 </div>
 </div>
 </div>
