@@ -2076,3 +2076,7 @@ Headers can be added to the downstream response using the `header()` methods on 
 You can also manipulate response headers (and anything else you like in the response) by adding a mapper to the `get()` etc. method. The mapper is a `Function` that takes the incoming `ResponseEntity` and converts it to an outgoing one.
 
 First class support is provided for "sensitive" headers ("cookie" and "authorization" by default) which are not passed downstream, and for "proxy" headers (`x-forwarded-*`).
+
+== Configuration properties
+
+To see the list of all Sleuth related configuration properties please check link:appendix.html[the Appendix page].
