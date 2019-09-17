@@ -1,12 +1,5 @@
-:github-tag: master
-:github-repo: spring-cloud/spring-cloud-gateway
-:github-raw: https://raw.githubusercontent.com/{github-repo}/{github-tag}
-:github-code: https://github.com/{github-repo}/tree/{github-tag}
-:all: {asterisk}{asterisk}
-:nofooter:
-:imagesdir: ./images
-:imagesurl: {github-raw}/docs/src/main/asciidoc/images
 = Spring Cloud Gateway
+include::_attributes.adoc[]
 
 *{spring-cloud-version}*
 
@@ -2079,4 +2072,4 @@ First class support is provided for "sensitive" headers ("cookie" and "authoriza
 
 == Configuration properties
 
-To see the list of all Sleuth related configuration properties please check link:appendix.html[the Appendix page].
+To see the list of all Spring Cloud Gateway related configuration properties please check link:appendix.html[the Appendix page].
