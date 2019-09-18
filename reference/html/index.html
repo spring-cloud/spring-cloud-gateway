@@ -1339,7 +1339,7 @@ and have it applied to all routes.</p>
         predicates:
         - Path=/foo/**
         filters:
-        - RewritePath=/foo/(?&lt;segment&gt;.*), /$\{segment}</code></pre>
+        - RewritePath=/foo(?&lt;segment&gt;/?.*), $\{segment}</code></pre>
 </div>
 </div>
 <div class="paragraph">
