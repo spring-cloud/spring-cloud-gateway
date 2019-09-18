@@ -28,6 +28,7 @@ import reactor.core.publisher.Mono;
 import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
+import org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory;
 import org.springframework.cloud.gateway.route.RouteDefinition;
 import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
 import org.springframework.cloud.gateway.route.RouteDefinitionWriter;
@@ -56,6 +57,8 @@ public class AbstractGatewayControllerEndpoint implements ApplicationEventPublis
 
 	protected List<GatewayFilterFactory> GatewayFilters;
 
+	protected List<RoutePredicateFactory> routePredicates;
+
 	protected RouteDefinitionWriter routeDefinitionWriter;
 
 	protected RouteLocator routeLocator;
@@ -65,10 +68,12 @@ public class AbstractGatewayControllerEndpoint implements ApplicationEventPublis
 	public AbstractGatewayControllerEndpoint(
 			RouteDefinitionLocator routeDefinitionLocator,
 			List<GlobalFilter> globalFilters, List<GatewayFilterFactory> GatewayFilters,
+			List<RoutePredicateFactory> routePredicates,
 			RouteDefinitionWriter routeDefinitionWriter, RouteLocator routeLocator) {
 		this.routeDefinitionLocator = routeDefinitionLocator;
 		this.globalFilters = globalFilters;
 		this.GatewayFilters = GatewayFilters;
+		this.routePredicates = routePredicates;
 		this.routeDefinitionWriter = routeDefinitionWriter;
 		this.routeLocator = routeLocator;
 	}
@@ -96,6 +101,11 @@ public class AbstractGatewayControllerEndpoint implements ApplicationEventPublis
 		return getNamesToOrders(this.GatewayFilters);
 	}
 
+	@GetMapping("/routepredicates")
+	public Mono<HashMap<String, Object>> routepredicates() {
+		return getNamesToOrders(this.routePredicates);
+	}
+
 	private <T> Mono<HashMap<String, Object>> getNamesToOrders(List<T> list) {
 		return Flux.fromIterable(list).reduce(new HashMap<>(), this::putItem);
 	}
@@ -117,14 +127,35 @@ public class AbstractGatewayControllerEndpoint implements ApplicationEventPublis
 	 */
 	@PostMapping("/routes/{id}")
 	@SuppressWarnings("unchecked")
-	public Mono<ResponseEntity<Void>> save(@PathVariable String id,
-			@RequestBody Mono<RouteDefinition> route) {
-		return this.routeDefinitionWriter.save(route.map(r -> {
-			r.setId(id);
-			log.debug("Saving route: " + route);
-			return r;
-		})).then(Mono.defer(() -> Mono
-				.just(ResponseEntity.created(URI.create("/routes/" + id)).build())));
+	public Mono<ResponseEntity<Object>> save(@PathVariable String id,
+			@RequestBody RouteDefinition route) {
+
+		return Mono.just(route).filter(this::validateRouteDefinition)
+				.flatMap(routeDefinition -> this.routeDefinitionWriter
+						.save(Mono.just(routeDefinition).map(r -> {
+							r.setId(id);
+							log.debug("Saving route: " + route);
+							return r;
+						}))
+						.then(Mono.defer(() -> Mono.just(ResponseEntity
+								.created(URI.create("/routes/" + id)).build()))))
+				.switchIfEmpty(
+						Mono.defer(() -> Mono.just(ResponseEntity.badRequest().build())));
+	}
+
+	private boolean validateRouteDefinition(RouteDefinition routeDefinition) {
+		boolean hasValidFilterDefinitions = routeDefinition.getFilters().stream()
+				.allMatch(filterDefinition -> GatewayFilters.stream()
+						.anyMatch(gatewayFilterFactory -> filterDefinition.getName()
+								.equals(gatewayFilterFactory.name())));
+
+		boolean hasValidPredicateDefinitions = routeDefinition.getPredicates().stream()
+				.allMatch(predicateDefinition -> routePredicates.stream()
+						.anyMatch(routePredicate -> predicateDefinition.getName()
+								.equals(routePredicate.name())));
+		log.debug("FilterDefinitions valid: " + hasValidFilterDefinitions);
+		log.debug("PredicateDefinitions valid: " + hasValidPredicateDefinitions);
+		return hasValidFilterDefinitions && hasValidPredicateDefinitions;
 	}
 
 	@DeleteMapping("/routes/{id}")

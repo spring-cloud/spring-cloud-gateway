@@ -28,6 +28,7 @@ import org.springframework.boot.actuate.endpoint.web.annotation.RestControllerEn
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
+import org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.route.RouteDefinitionWriter;
 import org.springframework.cloud.gateway.route.RouteLocator;
@@ -44,8 +45,10 @@ public class GatewayControllerEndpoint extends AbstractGatewayControllerEndpoint
 
 	public GatewayControllerEndpoint(List<GlobalFilter> globalFilters,
 			List<GatewayFilterFactory> gatewayFilters,
+			List<RoutePredicateFactory> routePredicates,
 			RouteDefinitionWriter routeDefinitionWriter, RouteLocator routeLocator) {
-		super(null, globalFilters, gatewayFilters, routeDefinitionWriter, routeLocator);
+		super(null, globalFilters, gatewayFilters, routePredicates, routeDefinitionWriter,
+				routeLocator);
 	}
 
 	// TODO: Flush out routes without a definition

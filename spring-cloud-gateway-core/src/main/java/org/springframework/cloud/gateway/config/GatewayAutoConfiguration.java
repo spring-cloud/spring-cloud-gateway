@@ -727,9 +727,10 @@ public class GatewayAutoConfiguration {
 		public GatewayControllerEndpoint gatewayControllerEndpoint(
 				List<GlobalFilter> globalFilters,
 				List<GatewayFilterFactory> gatewayFilters,
+				List<RoutePredicateFactory> routePredicates,
 				RouteDefinitionWriter routeDefinitionWriter, RouteLocator routeLocator) {
 			return new GatewayControllerEndpoint(globalFilters, gatewayFilters,
-					routeDefinitionWriter, routeLocator);
+					routePredicates, routeDefinitionWriter, routeLocator);
 		}
 
 		@Bean
@@ -739,9 +740,11 @@ public class GatewayAutoConfiguration {
 				RouteDefinitionLocator routeDefinitionLocator,
 				List<GlobalFilter> globalFilters,
 				List<GatewayFilterFactory> gatewayFilters,
+				List<RoutePredicateFactory> routePredicates,
 				RouteDefinitionWriter routeDefinitionWriter, RouteLocator routeLocator) {
 			return new GatewayLegacyControllerEndpoint(routeDefinitionLocator,
-					globalFilters, gatewayFilters, routeDefinitionWriter, routeLocator);
+					globalFilters, gatewayFilters, routePredicates, routeDefinitionWriter,
+					routeLocator);
 		}
 
 	}
