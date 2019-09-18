@@ -117,7 +117,7 @@ public class ModifyRequestBodyGatewayFilterFactory extends
 			public HttpHeaders getHeaders() {
 				long contentLength = headers.getContentLength();
 				HttpHeaders httpHeaders = new HttpHeaders();
-				httpHeaders.putAll(super.getHeaders());
+				httpHeaders.putAll(headers);
 				if (contentLength > 0) {
 					httpHeaders.setContentLength(contentLength);
 				}
