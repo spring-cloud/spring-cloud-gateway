@@ -100,8 +100,12 @@ public class GatewayMetricsFilterTests extends BaseWebClientTests {
 	}
 
 	private void assertMetricsContainsTag(String tagKey, String tagValue) {
+		// @formatter:off
 		assertThat(this.meterRegistry.get(REQUEST_METRICS_NAME).tag(tagKey, tagValue)
-				.timer().count()).isEqualTo(1);
+				.timer().count())
+				.as("Wrong value for metric %s: %s", tagKey, tagValue)
+				.isGreaterThanOrEqualTo(1);
+		// @formatter:on
 	}
 
 	@EnableAutoConfiguration
