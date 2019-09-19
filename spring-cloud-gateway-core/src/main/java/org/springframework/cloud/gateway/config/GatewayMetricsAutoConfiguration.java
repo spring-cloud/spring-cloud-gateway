@@ -59,7 +59,8 @@ public class GatewayMetricsAutoConfiguration {
 	}
 
 	@Bean
-	public PropertiesTagsProvider propertiesTagsProvider(GatewayMetricsProperties gatewayMetricsProperties) {
+	public PropertiesTagsProvider propertiesTagsProvider(
+			GatewayMetricsProperties gatewayMetricsProperties) {
 		return new PropertiesTagsProvider(gatewayMetricsProperties.getTags());
 	}
 

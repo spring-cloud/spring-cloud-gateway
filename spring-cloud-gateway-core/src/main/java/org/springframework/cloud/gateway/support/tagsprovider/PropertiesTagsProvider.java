@@ -41,4 +41,5 @@ public class PropertiesTagsProvider implements GatewayTagsProvider {
 	public Tags apply(ServerWebExchange serverWebExchange) {
 		return propertiesTags;
 	}
+
 }
