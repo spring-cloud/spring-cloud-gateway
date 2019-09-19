@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.gateway.test;
 
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import org.junit.Test;
@@ -52,7 +52,7 @@ import static org.springframework.http.MediaType.MULTIPART_FORM_DATA;
 public class FormIntegrationTests extends BaseWebClientTests {
 
 	public static final MediaType FORM_URL_ENCODED_CONTENT_TYPE = new MediaType(
-			APPLICATION_FORM_URLENCODED, Charset.forName("UTF-8"));
+			APPLICATION_FORM_URLENCODED, StandardCharsets.UTF_8);
 
 	@Test
 	public void formUrlencodedWorks() {
@@ -80,7 +80,7 @@ public class FormIntegrationTests extends BaseWebClientTests {
 
 		// @formatter:off
 		testClient.post().uri("/post").contentType(MULTIPART_FORM_DATA)
-				.syncBody(formData)
+				.bodyValue(formData)
 				.exchange()
 				.expectStatus().isOk()
 				.expectBody(Map.class)
