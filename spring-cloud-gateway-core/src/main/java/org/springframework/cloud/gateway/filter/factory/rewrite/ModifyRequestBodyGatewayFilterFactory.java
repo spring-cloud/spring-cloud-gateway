@@ -18,6 +18,8 @@ package org.springframework.cloud.gateway.filter.factory.rewrite;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -71,8 +73,9 @@ public class ModifyRequestBodyGatewayFilterFactory extends
 
 				// TODO: flux or mono
 				Mono<?> modifiedBody = serverRequest.bodyToMono(inClass)
-						// .log("modify_request_mono", Level.INFO)
-						.flatMap(o -> config.rewriteFunction.apply(exchange, o));
+						.map((Function<Object, Optional<?>>) Optional::of).defaultIfEmpty(Optional.empty())
+						.flatMap((Function<Optional<?>, Mono<?>>) o ->
+								(Mono<?>) config.rewriteFunction.apply(exchange, o.orElse(null)));
 
 				BodyInserter bodyInserter = BodyInserters.fromPublisher(modifiedBody,
 						config.getOutClass());
