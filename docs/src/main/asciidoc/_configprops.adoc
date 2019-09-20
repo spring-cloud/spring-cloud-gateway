@@ -55,6 +55,7 @@
 |spring.cloud.gateway.httpserver.wiretap | false | Enables wiretap debugging for Netty HttpServer.
 |spring.cloud.gateway.loadbalancer.use404 | false | 
 |spring.cloud.gateway.metrics.enabled | true | Enables the collection of metrics data.
+|spring.cloud.gateway.metrics.tags |  | Tags map that added to metrics.
 |spring.cloud.gateway.redis-rate-limiter.burst-capacity-header | X-RateLimit-Burst-Capacity | The name of the header that returns the burst capacity configuration.
 |spring.cloud.gateway.redis-rate-limiter.config |  | 
 |spring.cloud.gateway.redis-rate-limiter.include-headers | true | Whether or not to include headers containing rate limiter information, defaults to true.
