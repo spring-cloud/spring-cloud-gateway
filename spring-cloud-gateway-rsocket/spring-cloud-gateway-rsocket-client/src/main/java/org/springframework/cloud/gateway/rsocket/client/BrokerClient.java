@@ -56,20 +56,20 @@ public class BrokerClient {
 		return requesterBuilder.connectTcp(broker.getHost(), broker.getPort());
 	}
 
-	public Consumer<RSocketRequester.RequestSpec> forwarding(String destServiceName) {
-		return requestSpec -> {
+	public Consumer<RSocketRequester.MetadataSpec<?>> forwarding(String destServiceName) {
+		return spec -> {
 			Forwarding forwarding = Forwarding.of(properties.getRouteId())
 					.serviceName(destServiceName).build();
-			requestSpec.metadata(forwarding, Forwarding.FORWARDING_MIME_TYPE);
+			spec.metadata(forwarding, Forwarding.FORWARDING_MIME_TYPE);
 		};
 	}
 
-	public Consumer<RSocketRequester.RequestSpec> forwarding(
+	public Consumer<RSocketRequester.MetadataSpec<?>> forwarding(
 			Consumer<Forwarding.Builder> builderConsumer) {
-		return requestSpec -> {
+		return spec -> {
 			Forwarding.Builder builder = Forwarding.of(properties.getRouteId());
 			builderConsumer.accept(builder);
-			requestSpec.metadata(builder.build(), Forwarding.FORWARDING_MIME_TYPE);
+			spec.metadata(builder.build(), Forwarding.FORWARDING_MIME_TYPE);
 		};
 	}
 
