@@ -27,6 +27,7 @@ import java.util.function.Consumer;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -75,22 +76,44 @@ public class RoutingTableRoutes
 		routes.computeIfAbsent(routeId, key -> createRoute(routeId));
 	}
 
-	private Route createRoute(String id) {
-		AsyncPredicate<GatewayExchange> predicate = exchange -> {
-			// TODO: standard predicates
-			// TODO: allow customized predicates
-			Set<String> routeIds = routingTable
-					.findRouteIds(exchange.getRoutingMetadata());
-			return Mono.just(routeIds.contains(id));
-		};
+	private Route createRoute(String routeId) {
+		AsyncPredicate<GatewayExchange> predicate = new RoutIdPredicate(routingTable,
+				routeId);
 
-		RegistryRoute route = new RegistryRoute(id, predicate);
+		RegistryRoute route = new RegistryRoute(routeId, predicate);
 
 		if (log.isDebugEnabled()) {
 			log.debug("Created Route for registered service " + route);
 		}
 
 		return route;
+	}
+
+	static class RoutIdPredicate implements AsyncPredicate<GatewayExchange> {
+
+		private final RoutingTable routingTable;
+
+		private final String routeId;
+
+		RoutIdPredicate(RoutingTable routingTable, String routeId) {
+			this.routingTable = routingTable;
+			this.routeId = routeId;
+		}
+
+		@Override
+		public Publisher<Boolean> apply(GatewayExchange exchange) {
+			// TODO: standard predicates
+			// TODO: allow customized predicates
+			Set<String> routeIds = routingTable
+					.findRouteIds(exchange.getRoutingMetadata());
+			return Mono.just(routeIds.contains(routeId));
+		}
+
+		@Override
+		public String toString() {
+			return String.format("[RoutIdPredicate %s]", routeId);
+		}
+
 	}
 
 	static class RegistryRoute implements Route {

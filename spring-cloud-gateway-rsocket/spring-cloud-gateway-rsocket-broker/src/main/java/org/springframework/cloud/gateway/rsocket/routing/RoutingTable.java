@@ -78,8 +78,8 @@ public class RoutingTable {
 	}
 
 	private void register(RouteEntry routeEntry) {
-		if (log.isDebugEnabled()) {
-			log.debug("Registering RSocket: " + routeEntry.tagsMetadata);
+		if (log.isInfoEnabled()) {
+			log.info("Registering RSocket: " + routeEntry.tagsMetadata);
 		}
 
 		// TODO: only register new route if timestamp is newer
@@ -112,8 +112,8 @@ public class RoutingTable {
 			}
 			return false;
 		}
-		if (log.isDebugEnabled()) {
-			log.debug("Deregistering RSocket: " + metadata);
+		if (log.isInfoEnabled()) {
+			log.info("Deregistering RSocket: " + metadata);
 		}
 
 		TagsMetadata findByRouteId = TagsMetadata.builder()

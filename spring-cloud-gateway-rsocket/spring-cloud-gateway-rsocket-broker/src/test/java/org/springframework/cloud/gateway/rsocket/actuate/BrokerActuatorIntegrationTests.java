@@ -21,6 +21,7 @@ import java.util.Random;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import reactor.core.publisher.Hooks;
@@ -36,6 +37,7 @@ import org.springframework.cloud.gateway.rsocket.cluster.ClusterService;
 import org.springframework.cloud.gateway.rsocket.common.metadata.Forwarding;
 import org.springframework.cloud.gateway.rsocket.common.metadata.RouteSetup;
 import org.springframework.messaging.rsocket.RSocketRequester;
+import org.springframework.messaging.rsocket.annotation.support.RSocketMessageHandler;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.SocketUtils;
 
@@ -47,13 +49,17 @@ import static org.springframework.cloud.gateway.rsocket.actuate.BrokerActuator.R
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT,
-		properties = "spring.cloud.gateway.rsocket.cluster.enabled=false")
+		properties = { "spring.cloud.gateway.rsocket.cluster.enabled=false",
+				"spring.cloud.gateway.rsocket.broker.actuator.enabled=true" })
 public class BrokerActuatorIntegrationTests {
 
 	private final Random random = new Random();
 
 	@Autowired
 	private RSocketRequester.Builder requesterBuilder;
+
+	@Autowired
+	private RSocketMessageHandler messageHandler;
 
 	@MockBean
 	private ClusterService clusterService;
@@ -90,6 +96,7 @@ public class BrokerActuatorIntegrationTests {
 	}
 
 	@Test
+	@Ignore // TODO: move to integration tests module
 	public void routeJoinRemoveWorks() {
 		long brokerId = random.nextLong();
 		long routeId = random.nextLong();
@@ -117,18 +124,37 @@ public class BrokerActuatorIntegrationTests {
 		Mono<Boolean> result = callActuator(requester, brokerId, Boolean.class, data,
 				ROUTE_REMOVE_PATH);
 
-		StepVerifier.create(result)
-				.consumeNextWith(res -> assertThat(res).isTrue())
+		StepVerifier.create(result).consumeNextWith(res -> assertThat(res).isTrue())
 				.verifyComplete();
 		// TODO: assert server side calls worked
 
+		result = callActuator(brokerId, Boolean.class, data, ROUTE_REMOVE_PATH);
 
-		result = callActuator(brokerId, Boolean.class, data,
-				ROUTE_REMOVE_PATH);
-
-		StepVerifier.create(result)
-				.consumeNextWith(res -> assertThat(res).isFalse())
+		StepVerifier.create(result).consumeNextWith(res -> assertThat(res).isTrue())
 				.verifyComplete();
+	}
+
+	@Test
+	@Ignore // TODO: move to integration tests module
+	public void routeJoinCloseDeregisters() {
+		long brokerId = random.nextLong();
+		long routeId = random.nextLong();
+
+		RouteJoin data = RouteJoin.builder().brokerId(brokerId).routeId(routeId)
+				.serviceName("testServiceName").build();
+
+		RSocketRequester requester = getRequester(brokerId);
+		Mono<RouteJoin> result = callActuator(requester, brokerId, RouteJoin.class, data,
+				ROUTE_JOIN_PATH);
+
+		result.block();
+		StepVerifier.create(result)
+				.consumeNextWith(res -> assertThat(res).isNotNull().isEqualTo(data))
+				.verifyComplete();
+
+		requester.rsocket().dispose();
+
+		// TODO: assert server side calls worked
 	}
 
 	private <T, D> Mono<T> callActuator(long brokerId, Class<T> type, D data,
@@ -149,10 +175,14 @@ public class BrokerActuatorIntegrationTests {
 	}
 
 	private RSocketRequester getRequester(long brokerId) {
-		RouteSetup routeSetup = RouteSetup.of(brokerId, "brokerInfoTest").build();
+		RouteSetup routeSetup = RouteSetup.of(brokerId, "gateway")
+				.with("proxy", Boolean.FALSE.toString()).build();
+		// mimic rsocket client autoconfig
 		return requesterBuilder
-					.setupMetadata(routeSetup, RouteSetup.ROUTE_SETUP_MIME_TYPE)
-					.connectTcp("localhost", port).block();
+				.setupMetadata(routeSetup, RouteSetup.ROUTE_SETUP_MIME_TYPE)
+				.rsocketFactory(rsocketFactory -> rsocketFactory
+						.acceptor(messageHandler.responder()))
+				.connectTcp("localhost", port).block();
 	}
 
 	@SpringBootConfiguration
