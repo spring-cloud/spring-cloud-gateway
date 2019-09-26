@@ -198,7 +198,7 @@ public class PingPongApp {
 								"pong", id);
 						log.debug("Sending ping" + id);
 						return DefaultPayload.create(data, routingMetadata);
-						// onBackpressue is needed in case pong is not available yet
+						// onBackpressure is needed in case pong is not available yet
 					}).log("doPing")
 							.onBackpressureDrop(payload -> log
 									.debug("Dropped payload " + payload.getDataUtf8())))
