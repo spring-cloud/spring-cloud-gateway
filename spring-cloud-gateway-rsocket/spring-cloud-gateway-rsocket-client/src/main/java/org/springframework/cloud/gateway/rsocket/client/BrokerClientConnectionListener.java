@@ -19,7 +19,10 @@ package org.springframework.cloud.gateway.rsocket.client;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationListener;
+import org.springframework.context.PayloadApplicationEvent;
 import org.springframework.core.Ordered;
+import org.springframework.core.ResolvableType;
+import org.springframework.messaging.rsocket.RSocketRequester;
 
 /**
  * Automatically subscribes to {@link BrokerClient}.
@@ -41,12 +44,30 @@ public class BrokerClientConnectionListener
 	public void onApplicationEvent(ApplicationReadyEvent event) {
 		// TODO: is there a better event the just RSocketRequester?
 		// TODO: save Disposable?
-		this.brokerClient.connect().subscribe(publisher::publishEvent);
+		this.brokerClient.connect()
+				.subscribe(requester -> publisher
+						.publishEvent(new RSocketRequesterEvent<>(
+								BrokerClientConnectionListener.this, requester)));
 	}
 
 	@Override
 	public int getOrder() {
 		return Ordered.HIGHEST_PRECEDENCE; // TODO: configurable
+	}
+
+	private static final class RSocketRequesterEvent<T extends RSocketRequester>
+			extends PayloadApplicationEvent<T> {
+
+		private RSocketRequesterEvent(Object source, T payload) {
+			super(source, payload);
+		}
+
+		@Override
+		public ResolvableType getResolvableType() {
+			return ResolvableType.forClassWithGenerics(getClass(),
+					ResolvableType.forClass(RSocketRequester.class));
+		}
+
 	}
 
 }
