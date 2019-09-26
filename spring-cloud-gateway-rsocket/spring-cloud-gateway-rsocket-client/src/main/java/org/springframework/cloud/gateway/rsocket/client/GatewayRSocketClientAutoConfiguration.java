@@ -34,6 +34,7 @@ import org.springframework.boot.autoconfigure.rsocket.RSocketRequesterAutoConfig
 import org.springframework.boot.autoconfigure.rsocket.RSocketStrategiesAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.gateway.rsocket.common.metadata.RouteSetup;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
@@ -63,7 +64,7 @@ public class GatewayRSocketClientAutoConfiguration {
 	}
 
 	@Bean
-	@Scope("prototype")
+	@Scope("prototype") // TODO: I don't think prototype works here
 	@ConditionalOnMissingBean
 	public RSocketRequester.Builder gatewayRSocketRequesterBuilder(
 			RSocketStrategies strategies, ClientProperties properties,
@@ -87,6 +88,14 @@ public class GatewayRSocketClientAutoConfiguration {
 	public BrokerClient brokerClient(RSocketRequester.Builder builder,
 			ClientProperties properties) {
 		return new BrokerClient(properties, builder);
+	}
+
+	@Bean
+	@ConditionalOnProperty(name = "spring.cloud.gateway.rsocket.client.auto-connect",
+			matchIfMissing = true)
+	public BrokerClientConnectionListener brokerClientConnectionListener(
+			BrokerClient client, ApplicationEventPublisher publisher) {
+		return new BrokerClientConnectionListener(client, publisher);
 	}
 
 	@Bean
