@@ -86,9 +86,7 @@ public class GatewayRSocket extends AbstractGatewayRSocket {
 	public Mono<Void> fireAndForget(Payload payload) {
 		GatewayExchange exchange = createExchange(FIRE_AND_FORGET, payload);
 		return findRSocketOrCreatePending(exchange).flatMap(rSockets -> {
-			if (rSockets.size() > 1) {
-				payload.retain(rSockets.size() - 1);
-			}
+			retain(payload, rSockets);
 			List<Mono<Void>> results = rSockets.stream()
 					.map(rSocket -> rSocket.fireAndForget(payload))
 					.collect(Collectors.toList());
@@ -103,16 +101,12 @@ public class GatewayRSocket extends AbstractGatewayRSocket {
 		Tags responderTags = Tags.of("source", "responder");
 		return findRSocketOrCreatePending(exchange).flatMapMany(rSockets -> {
 			Tags requesterTags = Tags.of("source", "requester");
-			int size = rSockets.size();
 			Flux<Payload> flux = Flux.from(payloads).doOnNext(p -> {
-				int toRetain = size - 1;
-				if (toRetain > 0) {
-					p.retain(toRetain);
-				}
+				retain(p, rSockets);
 				count(exchange, "payload", requesterTags);
 			}).doOnError(t -> count(exchange, "error", requesterTags))
 					.doFinally(s -> count(exchange, requesterTags)).publish()
-					.refCount(size);
+					.refCount(rSockets.size());
 
 			List<Flux<Payload>> payloadList = rSockets.stream().map(rSocket -> {
 				if (rSocket instanceof ResponderRSocket) {
@@ -136,9 +130,7 @@ public class GatewayRSocket extends AbstractGatewayRSocket {
 		AtomicReference<Timer.Sample> timer = new AtomicReference<>();
 		GatewayExchange exchange = createExchange(REQUEST_RESPONSE, payload);
 		return findRSocketOrCreatePending(exchange).flatMap(rSockets -> {
-			if (rSockets.size() > 1) {
-				payload.retain(rSockets.size() - 1);
-			}
+			retain(payload, rSockets);
 			List<Mono<Payload>> results = rSockets.stream()
 					.map(rSocket -> rSocket.requestResponse(payload))
 					.collect(Collectors.toList());
@@ -155,9 +147,7 @@ public class GatewayRSocket extends AbstractGatewayRSocket {
 	public Flux<Payload> requestStream(Payload payload) {
 		GatewayExchange exchange = createExchange(REQUEST_STREAM, payload);
 		return findRSocketOrCreatePending(exchange).flatMapMany(rSockets -> {
-			if (rSockets.size() > 1) {
-				payload.retain(rSockets.size() - 1);
-			}
+			retain(payload, rSockets);
 			List<Flux<Payload>> results = rSockets.stream()
 					.map(rSocket -> rSocket.requestStream(payload))
 					.collect(Collectors.toList());
@@ -167,6 +157,12 @@ public class GatewayRSocket extends AbstractGatewayRSocket {
 				.doOnNext(s -> count(exchange, "payload"))
 				.doOnError(t -> count(exchange, "error"))
 				.doFinally(s -> count(exchange, Tags.empty()));
+	}
+
+	private void retain(Payload payload, List<RSocket> rSockets) {
+		if (rSockets.size() > 1) {
+			payload.retain(rSockets.size() - 1);
+		}
 	}
 
 	/**
