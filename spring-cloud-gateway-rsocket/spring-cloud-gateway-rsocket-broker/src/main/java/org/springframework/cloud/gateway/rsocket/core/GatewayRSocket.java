@@ -16,8 +16,12 @@
 
 package org.springframework.cloud.gateway.rsocket.core;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
@@ -30,9 +34,11 @@ import org.apache.commons.logging.LogFactory;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.util.function.Tuple2;
 
 import org.springframework.cloud.gateway.rsocket.autoconfigure.BrokerProperties;
 import org.springframework.cloud.gateway.rsocket.common.metadata.TagsMetadata;
+import org.springframework.cloud.gateway.rsocket.common.metadata.TagsMetadata.Key;
 import org.springframework.cloud.gateway.rsocket.route.Route;
 import org.springframework.cloud.gateway.rsocket.route.Routes;
 import org.springframework.cloud.gateway.rsocket.routing.LoadBalancerFactory;
@@ -79,30 +85,47 @@ public class GatewayRSocket extends AbstractGatewayRSocket {
 	@Override
 	public Mono<Void> fireAndForget(Payload payload) {
 		GatewayExchange exchange = createExchange(FIRE_AND_FORGET, payload);
-		return findRSocketOrCreatePending(exchange)
-				.flatMap(rSocket -> rSocket.fireAndForget(payload))
-				.doOnError(t -> count(exchange, "error"))
-				.doFinally(s -> count(exchange, ""));
+		return findRSocketOrCreatePending(exchange).flatMap(rSockets -> {
+			if (rSockets.size() > 1) {
+				payload.retain(rSockets.size() - 1);
+			}
+			List<Mono<Void>> results = rSockets.stream()
+					.map(rSocket -> rSocket.fireAndForget(payload))
+					.collect(Collectors.toList());
+			// TODO: this looks weird
+			return Flux.merge(results).then();
+		}).doOnError(t -> count(exchange, "error")).doFinally(s -> count(exchange, ""));
 	}
 
 	@Override
 	public Flux<Payload> requestChannel(Payload payload, Publisher<Payload> payloads) {
 		GatewayExchange exchange = createExchange(REQUEST_CHANNEL, payload);
 		Tags responderTags = Tags.of("source", "responder");
-		return findRSocketOrCreatePending(exchange).flatMapMany(rSocket -> {
+		return findRSocketOrCreatePending(exchange).flatMapMany(rSockets -> {
 			Tags requesterTags = Tags.of("source", "requester");
-			Flux<Payload> flux = Flux.from(payloads)
-					.doOnNext(s -> count(exchange, "payload", requesterTags))
-					.doOnError(t -> count(exchange, "error", requesterTags))
-					.doFinally(s -> count(exchange, requesterTags));
+			int size = rSockets.size();
+			Flux<Payload> flux = Flux.from(payloads).doOnNext(p -> {
+				int toRetain = size - 1;
+				if (toRetain > 0) {
+					p.retain(toRetain);
+				}
+				count(exchange, "payload", requesterTags);
+			}).doOnError(t -> count(exchange, "error", requesterTags))
+					.doFinally(s -> count(exchange, requesterTags)).publish()
+					.refCount(size);
 
-			if (rSocket instanceof ResponderRSocket) {
-				ResponderRSocket socket = (ResponderRSocket) rSocket;
-				return socket.requestChannel(payload, flux).log(
-						GatewayRSocket.class.getName() + ".request-channel",
-						Level.FINEST);
-			}
-			return rSocket.requestChannel(flux);
+			List<Flux<Payload>> payloadList = rSockets.stream().map(rSocket -> {
+				if (rSocket instanceof ResponderRSocket) {
+					ResponderRSocket socket = (ResponderRSocket) rSocket;
+					return socket.requestChannel(payload, flux);
+				}
+				else {
+					return rSocket.requestChannel(flux);
+				}
+			}).collect(Collectors.toList());
+
+			return Flux.merge(payloadList).log(
+					GatewayRSocket.class.getName() + ".request-channel", Level.FINEST);
 		}).doOnNext(s -> count(exchange, "payload", responderTags))
 				.doOnError(t -> count(exchange, "error", responderTags))
 				.doFinally(s -> count(exchange, responderTags));
@@ -112,9 +135,17 @@ public class GatewayRSocket extends AbstractGatewayRSocket {
 	public Mono<Payload> requestResponse(Payload payload) {
 		AtomicReference<Timer.Sample> timer = new AtomicReference<>();
 		GatewayExchange exchange = createExchange(REQUEST_RESPONSE, payload);
-		return findRSocketOrCreatePending(exchange)
-				.flatMap(rSocket -> rSocket.requestResponse(payload))
-				.doOnSubscribe(s -> timer.set(Timer.start(meterRegistry)))
+		return findRSocketOrCreatePending(exchange).flatMap(rSockets -> {
+			if (rSockets.size() > 1) {
+				payload.retain(rSockets.size() - 1);
+			}
+			List<Mono<Payload>> results = rSockets.stream()
+					.map(rSocket -> rSocket.requestResponse(payload))
+					.collect(Collectors.toList());
+
+			return Flux.merge(results).next();
+			// TODO: does this cancel the others?
+		}).doOnSubscribe(s -> timer.set(Timer.start(meterRegistry)))
 				.doOnError(t -> count(exchange, "error"))
 				.doFinally(s -> timer.get().stop(meterRegistry
 						.timer(getMetricName(exchange), exchange.getTags())));
@@ -123,8 +154,15 @@ public class GatewayRSocket extends AbstractGatewayRSocket {
 	@Override
 	public Flux<Payload> requestStream(Payload payload) {
 		GatewayExchange exchange = createExchange(REQUEST_STREAM, payload);
-		return findRSocketOrCreatePending(exchange)
-				.flatMapMany(rSocket -> rSocket.requestStream(payload))
+		return findRSocketOrCreatePending(exchange).flatMapMany(rSockets -> {
+			if (rSockets.size() > 1) {
+				payload.retain(rSockets.size() - 1);
+			}
+			List<Flux<Payload>> results = rSockets.stream()
+					.map(rSocket -> rSocket.requestStream(payload))
+					.collect(Collectors.toList());
+			return Flux.merge(results);
+		})
 				// S N E F
 				.doOnNext(s -> count(exchange, "payload"))
 				.doOnError(t -> count(exchange, "error"))
@@ -137,7 +175,7 @@ public class GatewayRSocket extends AbstractGatewayRSocket {
 	 * @param exchange GatewayExchange.
 	 * @return Target RSocket or empty.
 	 */
-	private Mono<RSocket> findRSocketOrCreatePending(GatewayExchange exchange) {
+	private Mono<List<RSocket>> findRSocketOrCreatePending(GatewayExchange exchange) {
 		return this.routes.findRoute(exchange)
 				.log(GatewayRSocket.class.getName() + ".find route", Level.FINEST)
 				.flatMap(route -> {
@@ -149,32 +187,43 @@ public class GatewayRSocket extends AbstractGatewayRSocket {
 		// TODO: deal with connecting to cluster?
 	}
 
-	private Mono<RSocket> findRSocketOrCreatePending(GatewayExchange exchange,
+	private Mono<List<RSocket>> findRSocketOrCreatePending(GatewayExchange exchange,
 			Route route) {
 		return executeFilterChain(route.getFilters(), exchange)
 				.log(GatewayRSocket.class.getName() + ".after filter chain", Level.FINEST)
-				.flatMap(success -> loadBalancerFactory
-						.choose(exchange.getRoutingMetadata()))
-				.map(tuple -> {
+				.flatMapMany(success -> {
+					Map<Key, String> tags = exchange.getRoutingMetadata().getTags();
+					// TODO: use frame flag
+					if (tags.containsKey(new Key("multicast"))) {
+						List<Tuple2<String, RSocket>> rsockets = loadBalancerFactory
+								.find(exchange.getRoutingMetadata());
+						return Flux.fromIterable(rsockets);
+					}
+					return loadBalancerFactory.choose(exchange.getRoutingMetadata())
+							.flatMapMany(
+									tuple -> Flux.just((Tuple2<String, RSocket>) tuple));
+				}).map(tuple -> {
 					// TODO: this is routeId, should it be service name?
-					Tags tags = exchange.getTags().and("responder.id", tuple.getT1());
-					exchange.setTags(tags);
+					// Tags tags = exchange.getTags().and("responder.id", tuple.getT1());
+					// exchange.setTags(tags);
 					return tuple.getT2();
 				}).cast(RSocket.class).map(rSocket -> {
 					if (log.isDebugEnabled()) {
 						log.debug("Found RSocket: " + rSocket);
 					}
 					return rSocket;
-				}).log(GatewayRSocket.class.getName() + ".find rsocket", Level.FINEST);
+				}).collectList()
+				.log(GatewayRSocket.class.getName() + ".find rsocket", Level.FINEST);
 	}
 
-	protected Mono<RSocket> createPending(GatewayExchange exchange) {
+	protected Mono<List<RSocket>> createPending(GatewayExchange exchange) {
 		if (log.isDebugEnabled()) {
 			log.debug("Unable to find destination RSocket for "
 					+ exchange.getRoutingMetadata());
 		}
 		// if a route can't be found or registered RSocket, create pending
-		return pendingFactory.create(exchange).cast(RSocket.class);
+		return pendingFactory.create(exchange).cast(RSocket.class)
+				.map(Collections::singletonList);
 	}
 
 }

@@ -39,6 +39,12 @@ public class LoadBalancerFactory {
 		this.routingTable = routingTable;
 	}
 
+	public List<Tuple2<String, RSocket>> find(TagsMetadata tagsMetadata) {
+		List<Tuple2<String, RSocket>> rSockets = this.routingTable
+				.findRSockets(tagsMetadata);
+		return rSockets;
+	}
+
 	// TODO: potentially GatewayExchange or return a new Result Object?
 	public Mono<Tuple2<String, RSocket>> choose(TagsMetadata tagsMetadata) {
 		List<Tuple2<String, RSocket>> rSockets = this.routingTable
