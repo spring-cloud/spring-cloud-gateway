@@ -40,17 +40,17 @@ public class BrokerActuator {
 	/**
 	 * Path for BrokerInfo actuator endpoint.
 	 */
-	public static final String BROKER_INFO_PATH = "/actuator/gateway/brokerinfo";
+	public static final String BROKER_INFO_PATH = "actuator.gateway.brokerinfo";
 
 	/**
 	 * Path for RouteJoin actuator endpoint.
 	 */
-	public static final String ROUTE_JOIN_PATH = "/actuator/gateway/routejoin";
+	public static final String ROUTE_JOIN_PATH = "actuator.gateway.routejoin";
 
 	/**
 	 * Path for RouteJoin actuator endpoint.
 	 */
-	public static final String ROUTE_REMOVE_PATH = "/actuator/gateway/routeremove";
+	public static final String ROUTE_REMOVE_PATH = "actuator.gateway.routeremove";
 
 	private final BrokerProperties properties;
 
