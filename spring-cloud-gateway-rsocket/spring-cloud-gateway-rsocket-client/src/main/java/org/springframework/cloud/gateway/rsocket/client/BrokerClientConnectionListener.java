@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.gateway.rsocket.client;
 
+import java.util.function.Consumer;
+
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationListener;
@@ -25,7 +27,8 @@ import org.springframework.core.ResolvableType;
 import org.springframework.messaging.rsocket.RSocketRequester;
 
 /**
- * Automatically subscribes to {@link BrokerClient}.
+ * Automatically subscribes to {@link BrokerClient}. On subscribe it publishes a
+ * {@link PayloadApplicationEvent} with a generic type of {@link RSocketRequester}.
  */
 public class BrokerClientConnectionListener
 		implements ApplicationListener<ApplicationReadyEvent>, Ordered {
@@ -44,10 +47,12 @@ public class BrokerClientConnectionListener
 	public void onApplicationEvent(ApplicationReadyEvent event) {
 		// TODO: is there a better event the just RSocketRequester?
 		// TODO: save Disposable?
-		this.brokerClient.connect()
-				.subscribe(requester -> publisher
-						.publishEvent(new RSocketRequesterEvent<>(
-								BrokerClientConnectionListener.this, requester)));
+		this.brokerClient.connect().subscribe(publishEvent());
+	}
+
+	private Consumer<RSocketRequester> publishEvent() {
+		return requester -> publisher.publishEvent(new RSocketRequesterEvent<>(
+				BrokerClientConnectionListener.this, requester));
 	}
 
 	@Override
