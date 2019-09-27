@@ -19,6 +19,8 @@ package org.springframework.cloud.gateway.rsocket.client;
 import java.math.BigInteger;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
+import java.util.StringJoiner;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
@@ -29,6 +31,7 @@ import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.springframework.cloud.gateway.rsocket.common.autoconfigure.Broker;
 import org.springframework.cloud.gateway.rsocket.common.metadata.WellKnownKey;
 import org.springframework.core.style.ToStringCreator;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 
 @ConfigurationProperties("spring.cloud.gateway.rsocket.client")
@@ -41,13 +44,13 @@ public class ClientProperties {
 	@NotEmpty
 	private String serviceName;
 
-	private Map<WellKnownKey, String> tags = new LinkedHashMap<>();
-
-	private Map<String, String> customTags = new LinkedHashMap<>();
+	private Map<TagKey, String> tags = new LinkedHashMap<>();
 
 	@Valid
 	@NestedConfigurationProperty
 	private Broker broker = new Broker();
+
+	private Map<String, Map<TagKey, String>> forwarding = new LinkedHashMap<>();
 
 	public BigInteger getRouteId() {
 		return this.routeId;
@@ -65,20 +68,8 @@ public class ClientProperties {
 		this.serviceName = serviceName;
 	}
 
-	public Map<WellKnownKey, String> getTags() {
-		return this.tags;
-	}
-
-	public void setTags(Map<WellKnownKey, String> tags) {
-		this.tags = tags;
-	}
-
-	public Map<String, String> getCustomTags() {
-		return this.customTags;
-	}
-
-	public void setCustomTags(Map<String, String> customTags) {
-		this.customTags = customTags;
+	public Map<TagKey, String> getTags() {
+		return tags;
 	}
 
 	public Broker getBroker() {
@@ -89,6 +80,10 @@ public class ClientProperties {
 		this.broker = broker;
 	}
 
+	public Map<String, Map<TagKey, String>> getForwarding() {
+		return forwarding;
+	}
+
 	@Override
 	public String toString() {
 		// @formatter:off
@@ -96,10 +91,90 @@ public class ClientProperties {
 				.append("routeId", routeId)
 				.append("serviceName", serviceName)
 				.append("tags", tags)
-				.append("customTags", customTags)
 				.append("broker", broker)
+				.append("forwarding", forwarding)
 				.toString();
 		// @formatter:on
+	}
+
+	public static class TagKey {
+
+		private WellKnownKey wellKnownKey;
+
+		private String customKey;
+
+		public TagKey() {
+			System.out.println("here");
+		}
+
+		public TagKey(String text) {
+			if (!StringUtils.isEmpty(text)) {
+				try {
+					wellKnownKey = WellKnownKey.valueOf(text.toUpperCase());
+				}
+				catch (IllegalArgumentException e) {
+					// NOT a valid well know key
+					customKey = text;
+				}
+			}
+		}
+
+		public static TagKey of(WellKnownKey key) {
+			TagKey tagKey = new TagKey();
+			tagKey.setWellKnownKey(key);
+			return tagKey;
+		}
+
+		public static TagKey of(String key) {
+			return new TagKey(key);
+		}
+
+		public WellKnownKey getWellKnownKey() {
+			return wellKnownKey;
+		}
+
+		public void setWellKnownKey(WellKnownKey wellKnownKey) {
+			this.wellKnownKey = wellKnownKey;
+		}
+
+		public String getCustomKey() {
+			return customKey;
+		}
+
+		public void setCustomKey(String customKey) {
+			this.customKey = customKey;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			}
+			if (o == null || getClass() != o.getClass()) {
+				return false;
+			}
+			TagKey tag = (TagKey) o;
+			return wellKnownKey == tag.wellKnownKey
+					&& Objects.equals(customKey, tag.customKey);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(wellKnownKey, customKey);
+		}
+
+		@Override
+		public String toString() {
+			StringJoiner joiner = new StringJoiner(", ", "[", "]");
+			if (wellKnownKey != null) {
+				joiner.add(wellKnownKey.name());
+			}
+			if (customKey != null) {
+				joiner.add("'" + customKey + "'");
+			}
+			return joiner.toString();
+		}
+
 	}
 
 }

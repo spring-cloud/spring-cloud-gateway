@@ -94,7 +94,7 @@ public enum WellKnownKey {
 		return TYPES_BY_ID[id];
 	}
 
-	public static WellKnownKey fromString(String mimeType) {
+	public static WellKnownKey fromMimeType(String mimeType) {
 		if (mimeType == null) {
 			throw new IllegalArgumentException("type must be non-null");
 		}

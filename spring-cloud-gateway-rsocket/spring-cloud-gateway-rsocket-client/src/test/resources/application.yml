@@ -1,0 +1,12 @@
+spring.cloud.gateway.rsocket.client:
+  route-id: 11
+  service-name: test_requester
+  tags:
+    INSTANCE_NAME: test_requester1
+  forwarding:
+    test_responder-rc:
+      service_name: test_responder
+      custom-tag: custom-value
+  broker:
+    host: localhost
+    port: 7002

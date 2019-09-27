@@ -23,6 +23,7 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import io.rsocket.RSocket;
 import io.rsocket.micrometer.MicrometerRSocketInterceptor;
+import io.rsocket.plugins.RSocketInterceptor;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -38,6 +39,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
+import org.springframework.messaging.rsocket.ClientRSocketFactoryConfigurer;
 import org.springframework.messaging.rsocket.RSocketRequester;
 import org.springframework.messaging.rsocket.RSocketStrategies;
 import org.springframework.messaging.rsocket.annotation.support.RSocketMessageHandler;
@@ -71,17 +73,29 @@ public class GatewayRSocketClientAutoConfiguration {
 			MeterRegistry meterRegistry) {
 		RouteSetup.Builder routeSetup = RouteSetup.of(properties.getRouteId(),
 				properties.getServiceName());
-		properties.getTags().forEach(routeSetup::with);
-		properties.getCustomTags().forEach(routeSetup::with);
+		properties.getTags().forEach((key, value) -> {
+			if (key.getWellKnownKey() != null) {
+				routeSetup.with(key.getWellKnownKey(), value);
+			}
+			else if (key.getCustomKey() != null) {
+				routeSetup.with(key.getCustomKey(), value);
+			}
+		});
 
 		MicrometerRSocketInterceptor interceptor = new MicrometerRSocketInterceptor(
 				meterRegistry, Tag.of("servicename", properties.getServiceName()));
 
-		return RSocketRequester.builder()
+		RSocketRequester.Builder builder = RSocketRequester.builder()
 				.setupMetadata(routeSetup.build(), RouteSetup.ROUTE_SETUP_MIME_TYPE)
-				.rsocketStrategies(strategies).rsocketFactory(
-						rsocketFactory -> rsocketFactory.addRequesterPlugin(interceptor)
-								.acceptor(messageHandler.responder()));
+				.rsocketStrategies(strategies).rsocketFactory(configurer(interceptor));
+
+		return new ClientRSocketRequesterBuilder(builder, properties,
+				strategies.routeMatcher());
+	}
+
+	private ClientRSocketFactoryConfigurer configurer(RSocketInterceptor interceptor) {
+		return rsocketFactory -> rsocketFactory.addRequesterPlugin(interceptor)
+				.acceptor(messageHandler.responder());
 	}
 
 	@Bean
