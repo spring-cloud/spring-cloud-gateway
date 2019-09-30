@@ -1,0 +1,5 @@
+spring:
+  cloud:
+    gateway:
+      default-filters:
+        - PrefixPath=/httpbin
