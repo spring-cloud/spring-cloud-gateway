@@ -322,7 +322,8 @@ public final class ServerWebExchangeUtils {
 	 * @param exchange the available ServerWebExchange.
 	 * @param cacheDecoratedRequest if true, the ServerHttpRequestDecorator will be
 	 * cached.
-	 * @param function a function that accepts the created ServerHttpRequestDecorator.
+	 * @param function a function that accepts a ServerHttpRequest. It can be the created
+	 * ServerHttpRequestDecorator or the originial if there is no body.
 	 * @param <T> generic type for the return {@link Mono}.
 	 * @return Mono of type T created by the function parameter.
 	 */
@@ -330,39 +331,37 @@ public final class ServerWebExchangeUtils {
 			boolean cacheDecoratedRequest,
 			Function<ServerHttpRequest, Mono<T>> function) {
 		// Join all the DataBuffers so we have a single DataBuffer for the body
-		return DataBufferUtils.join(exchange.getRequest().getBody())
-				.flatMap(dataBuffer -> {
-					if (dataBuffer.readableByteCount() > 0) {
-						if (log.isTraceEnabled()) {
-							log.trace("retaining body in exchange attribute");
-						}
-						exchange.getAttributes().put(CACHED_REQUEST_BODY_ATTR,
-								dataBuffer);
-					}
+		return DataBufferUtils.join(exchange.getRequest().getBody()).map(dataBuffer -> {
+			if (dataBuffer.readableByteCount() > 0) {
+				if (log.isTraceEnabled()) {
+					log.trace("retaining body in exchange attribute");
+				}
+				exchange.getAttributes().put(CACHED_REQUEST_BODY_ATTR, dataBuffer);
+			}
 
-					ServerHttpRequestDecorator decorator = new ServerHttpRequestDecorator(
-							exchange.getRequest()) {
-						@Override
-						public Flux<DataBuffer> getBody() {
-							return Mono.<DataBuffer>fromSupplier(() -> {
-								if (exchange.getAttributeOrDefault(
-										CACHED_REQUEST_BODY_ATTR, null) == null) {
-									// probably == downstream closed
-									return null;
-								}
-								// TODO: deal with Netty
-								NettyDataBuffer pdb = (NettyDataBuffer) dataBuffer;
-								return pdb.factory()
-										.wrap(pdb.getNativeBuffer().retainedSlice());
-							}).flux();
+			ServerHttpRequest decorator = new ServerHttpRequestDecorator(
+					exchange.getRequest()) {
+				@Override
+				public Flux<DataBuffer> getBody() {
+					return Mono.<DataBuffer>fromSupplier(() -> {
+						if (exchange.getAttributeOrDefault(CACHED_REQUEST_BODY_ATTR,
+								null) == null) {
+							// probably == downstream closed
+							return null;
 						}
-					};
-					if (cacheDecoratedRequest) {
-						exchange.getAttributes().put(
-								CACHED_SERVER_HTTP_REQUEST_DECORATOR_ATTR, decorator);
-					}
-					return function.apply(decorator);
-				});
+						// TODO: deal with Netty
+						NettyDataBuffer pdb = (NettyDataBuffer) dataBuffer;
+						return pdb.factory().wrap(pdb.getNativeBuffer().retainedSlice());
+					}).flux();
+				}
+			};
+			if (cacheDecoratedRequest) {
+				exchange.getAttributes().put(CACHED_SERVER_HTTP_REQUEST_DECORATOR_ATTR,
+						decorator);
+			}
+			return decorator;
+			// return function.apply(decorator)/*.then(monoVoid())*/;
+		}).switchIfEmpty(Mono.just(exchange.getRequest())).flatMap(function);
 	}
 
 }

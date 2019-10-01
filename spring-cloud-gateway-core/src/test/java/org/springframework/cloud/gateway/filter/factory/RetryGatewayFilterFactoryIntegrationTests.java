@@ -70,7 +70,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 // default filter AddResponseHeader suppresses bug
 // https://github.com/spring-cloud/spring-cloud-gateway/issues/1315,
 // so we use only PrefixPath filter
-@ActiveProfiles("only-prefix-filter")
+@ActiveProfiles("retrytests")
 public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTests {
 
 	@Rule
@@ -135,7 +135,7 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 	public void retryFilterPostOneTime() {
 		testClient.post().uri(
 				"/retrypost?key=retryFilterPostOneTime&expectedbody=HelloGateway&count=1")
-				.header(HttpHeaders.HOST, "www.retrypostconfig.org")
+				.header(HttpHeaders.HOST, "www.retrypostonceconfig.org")
 				.syncBody("HelloGateway").exchange().expectStatus().isOk();
 		assertThat(this.capture.toString()).contains("setting new iteration in attr 0");
 		assertThat(this.capture.toString())
@@ -220,7 +220,7 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 		}
 
 		@RequestMapping("/httpbin/retrypost")
-		public ResponseEntity<String> retry(@RequestParam("key") String key,
+		public ResponseEntity<String> retrypost(@RequestParam("key") String key,
 				@RequestParam(name = "count", defaultValue = "3") int count,
 				@RequestParam("expectedbody") String expectedbody,
 				@RequestBody String body) {

@@ -70,18 +70,13 @@ public class AdaptCachedBodyGlobalFilter
 			return chain.filter(exchange);
 		}
 
-		final Mono<String> requestProcessingFinishedFlag = Mono
-				.just("requestProcessingFinishedFlag");
-		return ServerWebExchangeUtils
-				.cacheRequestBody(exchange, (serverHttpRequest) -> chain
-						.filter(exchange.mutate().request(serverHttpRequest).build())
-						// suppress empty mono response from FilteringWebHandler, see
-						// https://github.com/spring-cloud/spring-cloud-gateway/issues/1315
-						.then(requestProcessingFinishedFlag))
-				// when request body is empty - we return from cacheRequestBody() with
-				// empty mono - so we will process that request
-				.switchIfEmpty(chain.filter(exchange).then(requestProcessingFinishedFlag))
-				.then();
+		return ServerWebExchangeUtils.cacheRequestBody(exchange, (serverHttpRequest) -> {
+			// don't mutate and build if same request object
+			if (serverHttpRequest == exchange.getRequest()) {
+				return chain.filter(exchange);
+			}
+			return chain.filter(exchange.mutate().request(serverHttpRequest).build());
+		});
 	}
 
 	@Override
