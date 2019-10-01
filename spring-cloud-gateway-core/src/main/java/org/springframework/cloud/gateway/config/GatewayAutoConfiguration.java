@@ -121,6 +121,8 @@ import org.springframework.cloud.gateway.route.CachingRouteLocator;
 import org.springframework.cloud.gateway.route.CompositeRouteDefinitionLocator;
 import org.springframework.cloud.gateway.route.CompositeRouteLocator;
 import org.springframework.cloud.gateway.route.InMemoryRouteDefinitionRepository;
+import org.springframework.cloud.gateway.route.RedisRouteDefinitionRepository;
+import org.springframework.cloud.gateway.route.RouteDefinition;
 import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
 import org.springframework.cloud.gateway.route.RouteDefinitionRepository;
 import org.springframework.cloud.gateway.route.RouteDefinitionRouteLocator;
@@ -139,6 +141,7 @@ import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.env.Environment;
+import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.Validator;
 import org.springframework.web.reactive.DispatcherHandler;
@@ -179,6 +182,15 @@ public class GatewayAutoConfiguration {
 	public PropertiesRouteDefinitionLocator propertiesRouteDefinitionLocator(
 			GatewayProperties properties) {
 		return new PropertiesRouteDefinitionLocator(properties);
+	}
+
+	@Bean
+	@ConditionalOnProperty(
+			value = "spring.cloud.gateway.redis-route-definition-repository.enabled",
+			havingValue = "true")
+	public RedisRouteDefinitionRepository redisRouteDefinitionRepository(
+			ReactiveRedisTemplate<String, RouteDefinition> reactiveRedisTemplate) {
+		return new RedisRouteDefinitionRepository(reactiveRedisTemplate);
 	}
 
 	@Bean

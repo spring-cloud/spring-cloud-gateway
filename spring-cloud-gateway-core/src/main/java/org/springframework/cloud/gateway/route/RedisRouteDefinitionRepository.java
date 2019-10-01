@@ -19,12 +19,15 @@ package org.springframework.cloud.gateway.route;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import org.springframework.cloud.gateway.support.NotFoundException;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.core.ReactiveValueOperations;
+import org.springframework.stereotype.Repository;
 
 /**
  * @author Dennis Menge
  */
+@Repository
 public class RedisRouteDefinitionRepository implements RouteDefinitionRepository {
 
 	/**
@@ -44,26 +47,39 @@ public class RedisRouteDefinitionRepository implements RouteDefinitionRepository
 
 	@Override
 	public Flux<RouteDefinition> getRouteDefinitions() {
-		return reactiveRedisTemplate.opsForSet()
-				.scan(ROUTEDEFINITION_REDIS_KEY_PREFIX_QUERY + "*");
+		return reactiveRedisTemplate.keys(createKey("*"))
+				.flatMap(key -> reactiveRedisTemplate.opsForValue().get(key));
 	}
 
 	@Override
 	public Mono<Void> save(Mono<RouteDefinition> route) {
-		return route.flatMap(routeDefinition -> {
-			routeDefinitionReactiveValueOperations.set(
-					ROUTEDEFINITION_REDIS_KEY_PREFIX_QUERY + routeDefinition.getId(),
-					routeDefinition);
-			return Mono.empty();
-		});
+		return route.flatMap(routeDefinition -> routeDefinitionReactiveValueOperations
+				.set(createKey(routeDefinition.getId()), routeDefinition)
+				.flatMap(success -> {
+					if (success) {
+						return Mono.empty();
+					}
+					return Mono.defer(() -> Mono.error(new RuntimeException(
+							String.format("Could not add route to redis repository: %s",
+									routeDefinition))));
+				}));
 	}
 
 	@Override
 	public Mono<Void> delete(Mono<String> routeId) {
-		return routeId.flatMap(id -> {
-			routeDefinitionReactiveValueOperations.delete(id);
-			return Mono.empty();
-		});
+		return routeId.flatMap(id -> routeDefinitionReactiveValueOperations.delete(id)
+				.flatMap(success -> {
+					if (success) {
+						return Mono.empty();
+					}
+					return Mono.defer(() -> Mono.error(new NotFoundException(String
+							.format("Could not remove route to redis repository with id: %s",
+									routeId))));
+				}));
+	}
+
+	private String createKey(String routeId) {
+		return ROUTEDEFINITION_REDIS_KEY_PREFIX_QUERY + routeId;
 	}
 
 }
