@@ -46,7 +46,7 @@ import org.springframework.web.reactive.DispatcherHandler;
 @AutoConfigureAfter(RedisReactiveAutoConfiguration.class)
 @AutoConfigureBefore(GatewayAutoConfiguration.class)
 @ConditionalOnBean(ReactiveRedisTemplate.class)
-@ConditionalOnClass({RedisTemplate.class, DispatcherHandler.class})
+@ConditionalOnClass({ RedisTemplate.class, DispatcherHandler.class })
 class GatewayRedisAutoConfiguration {
 
 	@Bean
@@ -66,6 +66,7 @@ class GatewayRedisAutoConfiguration {
 		return new RedisRateLimiter(redisTemplate, redisScript, configurationService);
 	}
 
+	@Bean
 	public ReactiveRedisTemplate<String, RouteDefinition> reactiveRedisRouteDefinitionTemplate(
 			ReactiveRedisConnectionFactory factory) {
 		StringRedisSerializer keySerializer = new StringRedisSerializer();
