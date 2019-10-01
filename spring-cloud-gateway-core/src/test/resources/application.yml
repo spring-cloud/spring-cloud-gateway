@@ -254,24 +254,6 @@ spring:
         - RemoveResponseHeader=X-Request-Foo
 
       # =====================================
-      - id: retry_test
-        uri: ${test.uri}
-        predicates:
-        - Path=/retry
-        filters:
-        - Retry
-
-        # =====================================
-      - id: retry_post_test
-        uri: ${test.uri}
-        predicates:
-        - Host=**.retrypostconfig.org
-        filters:
-        - name: Retry
-          args:
-            methods: GET,POST
-
-      # =====================================
       - id: secure_headers_test
         uri: ${test.uri}
         predicates:

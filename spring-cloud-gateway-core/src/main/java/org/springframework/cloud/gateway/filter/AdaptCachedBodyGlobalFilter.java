@@ -70,11 +70,13 @@ public class AdaptCachedBodyGlobalFilter
 			return chain.filter(exchange);
 		}
 
-		return ServerWebExchangeUtils
-				.cacheRequestBody(exchange,
-						(serverHttpRequest) -> chain.filter(
-								exchange.mutate().request(serverHttpRequest).build()))
-				.switchIfEmpty(chain.filter(exchange));
+		return ServerWebExchangeUtils.cacheRequestBody(exchange, (serverHttpRequest) -> {
+			// don't mutate and build if same request object
+			if (serverHttpRequest == exchange.getRequest()) {
+				return chain.filter(exchange);
+			}
+			return chain.filter(exchange.mutate().request(serverHttpRequest).build());
+		});
 	}
 
 	@Override

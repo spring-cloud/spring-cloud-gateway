@@ -27,6 +27,8 @@ import com.netflix.loadbalancer.ServerList;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hamcrest.CoreMatchers;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -34,6 +36,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.rule.OutputCapture;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.RetryGatewayFilterFactory.RetryConfig;
@@ -49,6 +52,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -63,7 +67,19 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 		properties = { "spring.cloud.gateway.httpclient.connect-timeout=500",
 				"spring.cloud.gateway.httpclient.response-timeout=2s" })
 @DirtiesContext
+// default filter AddResponseHeader suppresses bug
+// https://github.com/spring-cloud/spring-cloud-gateway/issues/1315,
+// so we use only PrefixPath filter
+@ActiveProfiles("retrytests")
 public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTests {
+
+	@Rule
+	public final OutputCapture capture = new OutputCapture();
+
+	@Before
+	public void before() {
+		capture.reset();
+	}
 
 	@Test
 	public void retryFilterGet() {
@@ -113,6 +129,17 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 		testClient.post().uri("/retrypost?key=post&expectedbody=Hello")
 				.header(HttpHeaders.HOST, "www.retryjava.org").syncBody("Hello")
 				.exchange().expectStatus().isOk().expectBody(String.class).isEqualTo("3");
+	}
+
+	@Test
+	public void retryFilterPostOneTime() {
+		testClient.post().uri(
+				"/retrypost?key=retryFilterPostOneTime&expectedbody=HelloGateway&count=1")
+				.header(HttpHeaders.HOST, "www.retrypostonceconfig.org")
+				.syncBody("HelloGateway").exchange().expectStatus().isOk();
+		assertThat(this.capture.toString()).contains("setting new iteration in attr 0");
+		assertThat(this.capture.toString())
+				.doesNotContain("setting new iteration in attr 1");
 	}
 
 	@Test
@@ -193,7 +220,7 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 		}
 
 		@RequestMapping("/httpbin/retrypost")
-		public ResponseEntity<String> retry(@RequestParam("key") String key,
+		public ResponseEntity<String> retrypost(@RequestParam("key") String key,
 				@RequestParam(name = "count", defaultValue = "3") int count,
 				@RequestParam("expectedbody") String expectedbody,
 				@RequestBody String body) {
