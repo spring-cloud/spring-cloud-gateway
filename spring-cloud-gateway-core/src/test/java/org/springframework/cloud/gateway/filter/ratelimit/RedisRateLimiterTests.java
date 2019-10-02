@@ -18,6 +18,8 @@ package org.springframework.cloud.gateway.filter.ratelimit;
 
 import java.util.UUID;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -45,6 +47,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
  *
  * @author Spencer Gibb
  * @author Ronny Bräunlich
+ * @author Denis Cutic
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -57,52 +60,48 @@ public class RedisRateLimiterTests extends BaseWebClientTests {
 	@Autowired
 	private RedisRateLimiter rateLimiter;
 
+	@Before
+	public void setUp() throws Exception {
+		assumeThat("Ignore on Circle", System.getenv("CIRCLECI"), is(nullValue()));
+	}
+
+	@After
+	public void tearDown() throws Exception {
+		rateLimiter.setIncludeHeaders(true);
+	}
+
 	@Test
 	public void redisRateLimiterWorks() throws Exception {
-		assumeThat("Ignore on Circle", System.getenv("CIRCLECI"), is(nullValue()));
-
 		String id = UUID.randomUUID().toString();
 
 		int replenishRate = 10;
 		int burstCapacity = 2 * replenishRate;
+		int requestedTokens = 1;
 
 		String routeId = "myroute";
-		rateLimiter.getConfig().put(routeId, new RedisRateLimiter.Config()
-				.setBurstCapacity(burstCapacity).setReplenishRate(replenishRate));
+		rateLimiter.getConfig().put(routeId,
+				new RedisRateLimiter.Config().setBurstCapacity(burstCapacity)
+						.setReplenishRate(replenishRate)
+						.setRequestedTokens(requestedTokens));
 
-		// Bursts work
-		for (int i = 0; i < burstCapacity; i++) {
-			Response response = rateLimiter.isAllowed(routeId, id).block();
-			assertThat(response.isAllowed()).as("Burst # %s is allowed", i).isTrue();
-			assertThat(response.getHeaders())
-					.containsKey(RedisRateLimiter.REMAINING_HEADER);
-			assertThat(response.getHeaders()).containsEntry(
-					RedisRateLimiter.REPLENISH_RATE_HEADER,
-					String.valueOf(replenishRate));
-			assertThat(response.getHeaders()).containsEntry(
-					RedisRateLimiter.BURST_CAPACITY_HEADER,
-					String.valueOf(burstCapacity));
-		}
+		checkLimitEnforced(id, replenishRate, burstCapacity, requestedTokens, routeId);
+	}
 
-		Response response = rateLimiter.isAllowed(routeId, id).block();
-		if (response.isAllowed()) { // TODO: sometimes there is an off by one error
-			response = rateLimiter.isAllowed(routeId, id).block();
-		}
-		assertThat(response.isAllowed()).as("Burst # %s is not allowed", burstCapacity)
-				.isFalse();
+	@Test
+	public void redisRateLimiterWorksForLowRates() throws Exception {
+		String id = UUID.randomUUID().toString();
 
-		Thread.sleep(1000);
+		int replenishRate = 1;
+		int burstCapacity = 3;
+		int requestedTokens = 3;
 
-		// # After the burst is done, check the steady state
-		for (int i = 0; i < replenishRate; i++) {
-			response = rateLimiter.isAllowed(routeId, id).block();
-			assertThat(response.isAllowed()).as("steady state # %s is allowed", i)
-					.isTrue();
-		}
+		String routeId = "low_rate_route";
+		rateLimiter.getConfig().put(routeId,
+				new RedisRateLimiter.Config().setBurstCapacity(burstCapacity)
+						.setReplenishRate(replenishRate)
+						.setRequestedTokens(requestedTokens));
 
-		response = rateLimiter.isAllowed(routeId, id).block();
-		assertThat(response.isAllowed()).as("steady state # %s is allowed", replenishRate)
-				.isFalse();
+		checkLimitEnforced(id, replenishRate, burstCapacity, requestedTokens, routeId);
 	}
 
 	@Test
@@ -113,8 +112,6 @@ public class RedisRateLimiterTests extends BaseWebClientTests {
 
 	@Test
 	public void redisRateLimiterDoesNotSendHeadersIfDeactivated() throws Exception {
-		assumeThat("Ignore on Circle", System.getenv("CIRCLECI"), is(nullValue()));
-
 		String id = UUID.randomUUID().toString();
 		String routeId = "myroute";
 
@@ -128,6 +125,62 @@ public class RedisRateLimiterTests extends BaseWebClientTests {
 				.doesNotContainKey(RedisRateLimiter.REPLENISH_RATE_HEADER);
 		assertThat(response.getHeaders())
 				.doesNotContainKey(RedisRateLimiter.BURST_CAPACITY_HEADER);
+		assertThat(response.getHeaders())
+				.doesNotContainKey(RedisRateLimiter.REQUESTED_TOKENS_HEADER);
+	}
+
+	private void checkLimitEnforced(String id, int replenishRate, int burstCapacity,
+			int requestedTokens, String routeId) throws InterruptedException {
+		// Bursts work
+		simulateBurst(id, replenishRate, burstCapacity, requestedTokens, routeId);
+
+		checkLimitReached(id, burstCapacity, routeId);
+
+		Thread.sleep(Math.max(1, requestedTokens / replenishRate) * 1000);
+
+		// # After the burst is done, check the steady state
+		checkSteadyState(id, replenishRate, routeId);
+	}
+
+	private void simulateBurst(String id, int replenishRate, int burstCapacity,
+			int requestedTokens, String routeId) {
+		for (int i = 0; i < burstCapacity / requestedTokens; i++) {
+			Response response = rateLimiter.isAllowed(routeId, id).block();
+			assertThat(response.isAllowed()).as("Burst # %s is allowed", i).isTrue();
+			assertThat(response.getHeaders())
+					.containsKey(RedisRateLimiter.REMAINING_HEADER);
+			assertThat(response.getHeaders()).containsEntry(
+					RedisRateLimiter.REPLENISH_RATE_HEADER,
+					String.valueOf(replenishRate));
+			assertThat(response.getHeaders()).containsEntry(
+					RedisRateLimiter.BURST_CAPACITY_HEADER,
+					String.valueOf(burstCapacity));
+			assertThat(response.getHeaders()).containsEntry(
+					RedisRateLimiter.REQUESTED_TOKENS_HEADER,
+					String.valueOf(requestedTokens));
+		}
+	}
+
+	private void checkLimitReached(String id, int burstCapacity, String routeId) {
+		Response response = rateLimiter.isAllowed(routeId, id).block();
+		if (response.isAllowed()) { // TODO: sometimes there is an off by one error
+			response = rateLimiter.isAllowed(routeId, id).block();
+		}
+		assertThat(response.isAllowed()).as("Burst # %s is not allowed", burstCapacity)
+				.isFalse();
+	}
+
+	private void checkSteadyState(String id, int replenishRate, String routeId) {
+		Response response;
+		for (int i = 0; i < replenishRate; i++) {
+			response = rateLimiter.isAllowed(routeId, id).block();
+			assertThat(response.isAllowed()).as("steady state # %s is allowed", i)
+					.isTrue();
+		}
+
+		response = rateLimiter.isAllowed(routeId, id).block();
+		assertThat(response.isAllowed()).as("steady state # %s is allowed", replenishRate)
+				.isFalse();
 	}
 
 	@EnableAutoConfiguration
