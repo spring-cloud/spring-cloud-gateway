@@ -51,27 +51,32 @@ public class RedisRateLimiterConfigTests {
 
 	@Before
 	public void init() {
-		routeLocator.getRoutes().collectList().block(); // prime routes since getRoutes()
-														// no longer blocks
+		// prime routes since getRoutes() no longer blocks
+		routeLocator.getRoutes().collectList().block();
 	}
 
 	@Test
 	public void redisRateConfiguredFromEnvironment() {
-		assertFilter("redis_rate_limiter_config_test", 10, 20, false);
+		assertFilter("redis_rate_limiter_config_test", 10, 20, 1, false);
+	}
+
+	@Test
+	public void redisRateConfiguredFromEnvironmentMinimal() {
+		assertFilter("redis_rate_limiter_minimal_config_test", 2, 1, 1, false);
 	}
 
 	@Test
 	public void redisRateConfiguredFromJavaAPI() {
-		assertFilter("custom_redis_rate_limiter", 20, 40, false);
+		assertFilter("custom_redis_rate_limiter", 20, 40, 10, false);
 	}
 
 	@Test
 	public void redisRateConfiguredFromJavaAPIDirectBean() {
-		assertFilter("alt_custom_redis_rate_limiter", 30, 60, true);
+		assertFilter("alt_custom_redis_rate_limiter", 30, 60, 20, true);
 	}
 
 	private void assertFilter(String key, int replenishRate, int burstCapacity,
-			boolean useDefaultConfig) {
+			int requestedTokens, boolean useDefaultConfig) {
 		RedisRateLimiter.Config config;
 
 		if (useDefaultConfig) {
@@ -84,6 +89,7 @@ public class RedisRateLimiterConfigTests {
 		assertThat(config).isNotNull();
 		assertThat(config.getReplenishRate()).isEqualTo(replenishRate);
 		assertThat(config.getBurstCapacity()).isEqualTo(burstCapacity);
+		assertThat(config.getRequestedTokens()).isEqualTo(requestedTokens);
 
 		Route route = routeLocator.getRoutes().filter(r -> r.getId().equals(key)).next()
 				.block();
@@ -100,7 +106,8 @@ public class RedisRateLimiterConfigTests {
 			return builder.routes().route("custom_redis_rate_limiter",
 					r -> r.path("/custom").filters(f -> f.requestRateLimiter()
 							.rateLimiter(RedisRateLimiter.class,
-									rl -> rl.setBurstCapacity(40).setReplenishRate(20))
+									rl -> rl.setBurstCapacity(40).setReplenishRate(20)
+											.setRequestedTokens(10))
 							.and()).uri("http://localhost"))
 					.route("alt_custom_redis_rate_limiter",
 							r -> r.path("/custom")
@@ -113,7 +120,7 @@ public class RedisRateLimiterConfigTests {
 
 		@Bean
 		public RedisRateLimiter myRateLimiter() {
-			return new RedisRateLimiter(30, 60);
+			return new RedisRateLimiter(30, 60, 20);
 		}
 
 	}

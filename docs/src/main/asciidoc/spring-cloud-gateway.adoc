@@ -994,17 +994,22 @@ It requires the use of the `spring-boot-starter-data-redis-reactive` Spring Boot
 
 The algorithm used is the https://en.wikipedia.org/wiki/Token_bucket[Token Bucket Algorithm].
 
-The `redis-rate-limiter.replenishRate` is how many requests per second you want a user to be allowed to do, without any dropped requests.
+The `redis-rate-limiter.replenishRate` property is how many requests per second you want a user to be allowed to do, without any dropped requests.
 This is the rate at which the token bucket is filled.
 
-The `redis-rate-limiter.burstCapacity` is the maximum number of requests a user is allowed to do in a single second.
+The `redis-rate-limiter.burstCapacity` property is the maximum number of requests a user is allowed to do in a single second.
 This is the number of tokens the token bucket can hold.
 Setting this value to zero blocks all requests.
+
+The `redis-rate-limiter.requestedTokens` property is how many tokens a request costs.
+This is the number of tokens taken from the bucket for each request and defaults to `1`.
 
 A steady rate is accomplished by setting the same value in `replenishRate` and `burstCapacity`.
 Temporary bursts can be allowed by setting `burstCapacity` higher than `replenishRate`.
 In this case, the rate limiter needs to be allowed some time between bursts (according to `replenishRate`), as two consecutive bursts will result in dropped requests (`HTTP 429 - Too Many Requests`).
 The following listing configures a `redis-rate-limiter`:
+
+Rate limits bellow `1 request/s` are accomplished by setting `replenishRate` to the wanted number of requests, `requestedTokens` to the timespan in seconds and `burstCapacity` to the product of `replenishRate` and `requestedTokens`, e.g. setting `replenishRate=1`, `requestedTokens=60` and `burstCapacity=60` will result in a limit of `1 request/min`.
 
 .application.yml
 ====
@@ -1021,6 +1026,7 @@ spring:
           args:
             redis-rate-limiter.replenishRate: 10
             redis-rate-limiter.burstCapacity: 20
+            redis-rate-limiter.requestedTokens: 1
 
 ----
 ====
