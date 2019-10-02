@@ -17,6 +17,7 @@
 package org.springframework.cloud.gateway.discovery;
 
 import java.net.URI;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
@@ -27,6 +28,7 @@ import reactor.core.scheduler.Schedulers;
 
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
+import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
 import org.springframework.cloud.gateway.filter.FilterDefinition;
 import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
 import org.springframework.cloud.gateway.route.RouteDefinition;
@@ -49,23 +51,45 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 	private static final Log log = LogFactory
 			.getLog(DiscoveryClientRouteDefinitionLocator.class);
 
-	private final DiscoveryClient discoveryClient;
-
 	private final DiscoveryLocatorProperties properties;
 
 	private final String routeIdPrefix;
 
 	private final SimpleEvaluationContext evalCtxt;
 
+	private Flux<List<ServiceInstance>> serviceInstances;
+
+	/**
+	 * Kept for backwards compatibility. You should use the reactive discovery client.
+	 * @param discoveryClient the blocking discovery client
+	 * @param properties the configuration properties
+	 * @deprecated kept for backwards compatibility
+	 */
+	@Deprecated
 	public DiscoveryClientRouteDefinitionLocator(DiscoveryClient discoveryClient,
 			DiscoveryLocatorProperties properties) {
-		this.discoveryClient = discoveryClient;
+		this(discoveryClient.getClass().getSimpleName(), properties);
+		serviceInstances = Flux
+				.defer(() -> Flux.fromIterable(discoveryClient.getServices()))
+				.map(discoveryClient::getInstances)
+				.subscribeOn(Schedulers.boundedElastic());
+	}
+
+	public DiscoveryClientRouteDefinitionLocator(ReactiveDiscoveryClient discoveryClient,
+			DiscoveryLocatorProperties properties) {
+		this(discoveryClient.getClass().getSimpleName(), properties);
+		serviceInstances = discoveryClient.getServices()
+				.flatMap(service -> discoveryClient.getInstances(service).collectList());
+	}
+
+	private DiscoveryClientRouteDefinitionLocator(String discoveryClientName,
+			DiscoveryLocatorProperties properties) {
 		this.properties = properties;
 		if (StringUtils.hasText(properties.getRouteIdPrefix())) {
-			this.routeIdPrefix = properties.getRouteIdPrefix();
+			routeIdPrefix = properties.getRouteIdPrefix();
 		}
 		else {
-			this.routeIdPrefix = this.discoveryClient.getClass().getSimpleName() + "_";
+			routeIdPrefix = discoveryClientName + "_";
 		}
 		evalCtxt = SimpleEvaluationContext.forReadOnlyDataBinding().withInstanceMethods()
 				.build();
@@ -94,9 +118,7 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 			};
 		}
 
-		return Flux.defer(() -> Flux.fromIterable(discoveryClient.getServices()))
-				.subscribeOn(Schedulers.elastic()).map(discoveryClient::getInstances)
-				.filter(instances -> !instances.isEmpty())
+		return serviceInstances.filter(instances -> !instances.isEmpty())
 				.map(instances -> instances.get(0)).filter(includePredicate)
 				.map(instance -> {
 					String serviceId = instance.getServiceId();
