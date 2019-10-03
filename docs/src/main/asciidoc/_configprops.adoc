@@ -12,8 +12,8 @@
 |spring.cloud.gateway.enabled | true | Enables gateway functionality.
 |spring.cloud.gateway.filter.remove-hop-by-hop.headers |  | 
 |spring.cloud.gateway.filter.remove-hop-by-hop.order |  | 
-|spring.cloud.gateway.filter.request-rate-limiter.default-key-resolver |  | 
-|spring.cloud.gateway.filter.request-rate-limiter.default-rate-limiter |  | 
+|spring.cloud.gateway.filter.request-rate-limiter.deny-empty-key | true | Switch to deny requests if the Key Resolver returns an empty key, defaults to true.
+|spring.cloud.gateway.filter.request-rate-limiter.empty-key-status-code |  | HttpStatus to return when denyEmptyKey is true, defaults to FORBIDDEN.
 |spring.cloud.gateway.filter.secure-headers.content-security-policy | default-src 'self' https:; font-src 'self' https: data:; img-src 'self' https: data:; object-src 'none'; script-src https:; style-src 'self' https: 'unsafe-inline' | 
 |spring.cloud.gateway.filter.secure-headers.content-type-options | nosniff | 
 |spring.cloud.gateway.filter.secure-headers.disable |  | 
