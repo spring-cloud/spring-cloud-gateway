@@ -39,7 +39,7 @@ import org.springframework.cloud.gateway.rsocket.cluster.ClusterService;
 import org.springframework.cloud.gateway.rsocket.cluster.RouteJoinListener;
 import org.springframework.cloud.gateway.rsocket.common.autoconfigure.GatewayRSocketCommonAutoConfiguration;
 import org.springframework.cloud.gateway.rsocket.core.GatewayRSocketFactory;
-import org.springframework.cloud.gateway.rsocket.core.GatewayServerRSocketFactoryCustomizer;
+import org.springframework.cloud.gateway.rsocket.core.GatewayServerRSocketFactoryProcessor;
 import org.springframework.cloud.gateway.rsocket.core.PendingRequestRSocketFactory;
 import org.springframework.cloud.gateway.rsocket.route.Routes;
 import org.springframework.cloud.gateway.rsocket.routing.LoadBalancerFactory;
@@ -137,9 +137,9 @@ public class GatewayRSocketAutoConfiguration {
 	}
 
 	@Bean
-	public GatewayServerRSocketFactoryCustomizer gatewayServerRSocketFactoryCustomizer(
+	public GatewayServerRSocketFactoryProcessor gatewayServerRSocketFactoryProcessor(
 			BrokerProperties properties, MeterRegistry meterRegistry) {
-		return new GatewayServerRSocketFactoryCustomizer(properties, meterRegistry);
+		return new GatewayServerRSocketFactoryProcessor(properties, meterRegistry);
 	}
 
 	@Bean

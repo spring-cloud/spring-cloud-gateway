@@ -29,15 +29,15 @@ import io.rsocket.plugins.RSocketInterceptor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.boot.rsocket.server.ServerRSocketFactoryCustomizer;
+import org.springframework.boot.rsocket.server.ServerRSocketFactoryProcessor;
 import org.springframework.cloud.gateway.rsocket.autoconfigure.BrokerProperties;
 import org.springframework.util.Assert;
 
-public class GatewayServerRSocketFactoryCustomizer
-		implements ServerRSocketFactoryCustomizer {
+public class GatewayServerRSocketFactoryProcessor
+		implements ServerRSocketFactoryProcessor {
 
 	private static final Log log = LogFactory
-			.getLog(GatewayServerRSocketFactoryCustomizer.class);
+			.getLog(GatewayServerRSocketFactoryProcessor.class);
 
 	private static final RSocketInterceptor[] EMPTY_INTERCEPTORS = new RSocketInterceptor[0];
 
@@ -47,12 +47,12 @@ public class GatewayServerRSocketFactoryCustomizer
 
 	private final MeterRegistry meterRegistry;
 
-	public GatewayServerRSocketFactoryCustomizer(BrokerProperties properties,
+	public GatewayServerRSocketFactoryProcessor(BrokerProperties properties,
 			MeterRegistry meterRegistry) {
 		this(properties, meterRegistry, EMPTY_INTERCEPTORS);
 	}
 
-	public GatewayServerRSocketFactoryCustomizer(BrokerProperties properties,
+	public GatewayServerRSocketFactoryProcessor(BrokerProperties properties,
 			MeterRegistry meterRegistry, RSocketInterceptor... interceptors) {
 		Assert.notNull(properties, "properties may not be null");
 		Assert.notNull(meterRegistry, "meterRegistry may not be null");
@@ -63,7 +63,7 @@ public class GatewayServerRSocketFactoryCustomizer
 	}
 
 	@Override
-	public ServerRSocketFactory apply(ServerRSocketFactory factory) {
+	public ServerRSocketFactory process(ServerRSocketFactory factory) {
 		serverInterceptors.forEach(factory::addResponderPlugin);
 
 		List<String> micrometerTags = properties.getMicrometerTags();

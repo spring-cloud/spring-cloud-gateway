@@ -29,7 +29,7 @@ import org.springframework.boot.rsocket.server.RSocketServer;
 import org.springframework.boot.rsocket.server.RSocketServerFactory;
 import org.springframework.boot.test.context.runner.ReactiveWebApplicationContextRunner;
 import org.springframework.cloud.gateway.rsocket.common.autoconfigure.GatewayRSocketCommonAutoConfiguration;
-import org.springframework.cloud.gateway.rsocket.core.GatewayServerRSocketFactoryCustomizer;
+import org.springframework.cloud.gateway.rsocket.core.GatewayServerRSocketFactoryProcessor;
 import org.springframework.cloud.gateway.rsocket.routing.RoutingTable;
 import org.springframework.cloud.gateway.rsocket.routing.RoutingTableRoutes;
 import org.springframework.cloud.gateway.rsocket.routing.RoutingTableSocketAcceptorFilter;
@@ -60,7 +60,7 @@ public class GatewayRSocketAutoConfigurationTests {
 				.run(context -> assertThat(context).hasSingleBean(RoutingTable.class)
 						.hasSingleBean(RoutingTableRoutes.class)
 						.hasSingleBean(RoutingTableSocketAcceptorFilter.class)
-						.hasSingleBean(GatewayServerRSocketFactoryCustomizer.class)
+						.hasSingleBean(GatewayServerRSocketFactoryProcessor.class)
 						.hasSingleBean(BrokerProperties.class)
 						.hasSingleBean(GatewaySocketAcceptor.class)
 						.hasSingleBean(SocketAcceptorPredicateFilter.class)
