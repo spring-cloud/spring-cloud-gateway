@@ -742,7 +742,7 @@ spring:
 ----
 
 === RedirectTo GatewayFilter Factory
-The RedirectTo GatewayFilter Factory takes a `status` and a `url` parameter. The status should be a 300 series redirect http code, such as 301. The url should be a valid url. This will be the value of the `Location` header.
+The RedirectTo GatewayFilter Factory takes a `status` and a `url` parameter. The status should be a 300 series redirect http code, such as 301. The url should be a valid url. This will be the value of the `Location` header. For relative redirects, you should use `uri: no://op` as the uri of your route definition.
 
 .application.yml
 [source,yaml]
