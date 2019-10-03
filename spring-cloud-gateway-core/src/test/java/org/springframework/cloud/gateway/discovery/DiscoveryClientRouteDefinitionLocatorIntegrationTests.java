@@ -16,13 +16,12 @@
 
 package org.springframework.cloud.gateway.discovery;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import reactor.core.publisher.Flux;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
@@ -30,7 +29,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.client.DefaultServiceInstance;
 import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.client.discovery.DiscoveryClient;
+import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
 import org.springframework.cloud.client.discovery.event.HeartbeatEvent;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.route.RouteLocator;
@@ -84,7 +83,7 @@ public class DiscoveryClientRouteDefinitionLocatorIntegrationTests {
 
 	}
 
-	private static class TestDiscoveryClient implements DiscoveryClient {
+	private static class TestDiscoveryClient implements ReactiveDiscoveryClient {
 
 		AtomicBoolean single = new AtomicBoolean(true);
 
@@ -104,22 +103,22 @@ public class DiscoveryClientRouteDefinitionLocatorIntegrationTests {
 		}
 
 		@Override
-		public List<ServiceInstance> getInstances(String serviceId) {
+		public Flux<ServiceInstance> getInstances(String serviceId) {
 			if (serviceId.equals("service1")) {
-				return Collections.singletonList(instance1);
+				return Flux.just(instance1);
 			}
 			if (serviceId.equals("service2")) {
-				return Collections.singletonList(instance2);
+				return Flux.just(instance2);
 			}
-			return Collections.emptyList();
+			return Flux.empty();
 		}
 
 		@Override
-		public List<String> getServices() {
+		public Flux<String> getServices() {
 			if (single.get()) {
-				return Collections.singletonList("service1");
+				return Flux.just("service1");
 			}
-			return Arrays.asList("service1", "service2");
+			return Flux.just("service1", "service2");
 		}
 
 	}

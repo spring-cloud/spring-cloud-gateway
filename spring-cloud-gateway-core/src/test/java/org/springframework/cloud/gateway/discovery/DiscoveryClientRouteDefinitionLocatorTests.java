@@ -16,20 +16,20 @@
 
 package org.springframework.cloud.gateway.discovery;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import reactor.core.publisher.Flux;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.client.DefaultServiceInstance;
-import org.springframework.cloud.client.discovery.DiscoveryClient;
+import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
 import org.springframework.cloud.gateway.filter.FilterDefinition;
 import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
 import org.springframework.cloud.gateway.route.RouteDefinition;
@@ -95,22 +95,22 @@ public class DiscoveryClientRouteDefinitionLocatorTests {
 	protected static class Config {
 
 		@Bean
-		DiscoveryClient discoveryClient() {
-			DiscoveryClient discoveryClient = mock(DiscoveryClient.class);
+		ReactiveDiscoveryClient discoveryClient() {
+			ReactiveDiscoveryClient discoveryClient = mock(ReactiveDiscoveryClient.class);
 			when(discoveryClient.getServices())
-					.thenReturn(Arrays.asList("SERVICE1", "Service2"));
+					.thenReturn(Flux.just("SERVICE1", "Service2"));
 			whenInstance(discoveryClient, "SERVICE1",
 					Collections.singletonMap("edge", "true"));
 			whenInstance(discoveryClient, "Service2", Collections.emptyMap());
 			return discoveryClient;
 		}
 
-		private void whenInstance(DiscoveryClient discoveryClient, String serviceId,
-				Map<String, String> metadata) {
+		private void whenInstance(ReactiveDiscoveryClient discoveryClient,
+				String serviceId, Map<String, String> metadata) {
 			DefaultServiceInstance instance1 = new DefaultServiceInstance(serviceId,
 					"localhost", 8001, false, metadata);
 			when(discoveryClient.getInstances(serviceId))
-					.thenReturn(Collections.singletonList(instance1));
+					.thenReturn(Flux.just(instance1));
 		}
 
 	}

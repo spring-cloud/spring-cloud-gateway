@@ -19,18 +19,20 @@ package org.springframework.cloud.gateway.discovery;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
+import reactor.core.publisher.Flux;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.client.discovery.DiscoveryClient;
+import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
 import org.springframework.cloud.gateway.config.LoadBalancerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @RunWith(Enclosed.class)
 public class GatewayDiscoveryClientAutoConfigurationTests {
@@ -80,8 +82,10 @@ public class GatewayDiscoveryClientAutoConfigurationTests {
 	protected static class Config {
 
 		@Bean
-		DiscoveryClient discoveryClient() {
-			return mock(DiscoveryClient.class);
+		ReactiveDiscoveryClient discoveryClient() {
+			ReactiveDiscoveryClient discoveryClient = mock(ReactiveDiscoveryClient.class);
+			when(discoveryClient.getServices()).thenReturn(Flux.empty());
+			return discoveryClient;
 		}
 
 	}

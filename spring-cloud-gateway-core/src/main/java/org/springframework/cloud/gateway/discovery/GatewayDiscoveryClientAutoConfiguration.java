@@ -25,7 +25,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cloud.client.discovery.DiscoveryClient;
+import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
 import org.springframework.cloud.client.discovery.composite.CompositeDiscoveryClientAutoConfiguration;
 import org.springframework.cloud.gateway.config.GatewayAutoConfiguration;
 import org.springframework.cloud.gateway.filter.FilterDefinition;
@@ -49,7 +49,7 @@ import static org.springframework.cloud.gateway.support.NameUtils.normalizeRoute
 @ConditionalOnProperty(name = "spring.cloud.gateway.enabled", matchIfMissing = true)
 @AutoConfigureBefore(GatewayAutoConfiguration.class)
 @AutoConfigureAfter(CompositeDiscoveryClientAutoConfiguration.class)
-@ConditionalOnClass({ DispatcherHandler.class, DiscoveryClient.class })
+@ConditionalOnClass({ DispatcherHandler.class, ReactiveDiscoveryClient.class })
 @EnableConfigurationProperties
 public class GatewayDiscoveryClientAutoConfiguration {
 
@@ -81,10 +81,11 @@ public class GatewayDiscoveryClientAutoConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnBean(DiscoveryClient.class)
+	@ConditionalOnBean(ReactiveDiscoveryClient.class)
 	@ConditionalOnProperty(name = "spring.cloud.gateway.discovery.locator.enabled")
 	public DiscoveryClientRouteDefinitionLocator discoveryClientRouteDefinitionLocator(
-			DiscoveryClient discoveryClient, DiscoveryLocatorProperties properties) {
+			ReactiveDiscoveryClient discoveryClient,
+			DiscoveryLocatorProperties properties) {
 		return new DiscoveryClientRouteDefinitionLocator(discoveryClient, properties);
 	}
 
