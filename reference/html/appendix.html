@@ -190,14 +190,14 @@ Also, you can define your own properties.
 <td class="tableblock halign-left valign-top"></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">spring.cloud.gateway.filter.request-rate-limiter.default-key-resolver</p></td>
-<td class="tableblock halign-left valign-top"></td>
-<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">spring.cloud.gateway.filter.request-rate-limiter.deny-empty-key</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">true</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Switch to deny requests if the Key Resolver returns an empty key, defaults to true.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">spring.cloud.gateway.filter.request-rate-limiter.default-rate-limiter</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">spring.cloud.gateway.filter.request-rate-limiter.empty-key-status-code</p></td>
 <td class="tableblock halign-left valign-top"></td>
-<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">HttpStatus to return when denyEmptyKey is true, defaults to FORBIDDEN.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">spring.cloud.gateway.filter.secure-headers.content-security-policy</p></td>
