@@ -20,6 +20,7 @@ import java.time.Duration;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import reactor.core.publisher.Hooks;
@@ -73,6 +74,7 @@ public class GatewayRSocketIntegrationTests {
 	}
 
 	@Test
+	@Ignore
 	public void contextLoads() {
 		// @formatter:off
 		StepVerifier.create(ping.getPongFlux())
