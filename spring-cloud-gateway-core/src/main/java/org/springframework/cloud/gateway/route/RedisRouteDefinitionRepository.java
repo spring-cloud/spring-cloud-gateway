@@ -67,7 +67,8 @@ public class RedisRouteDefinitionRepository implements RouteDefinitionRepository
 
 	@Override
 	public Mono<Void> delete(Mono<String> routeId) {
-		return routeId.flatMap(id -> routeDefinitionReactiveValueOperations.delete(createKey(id))
+		return routeId.flatMap(id -> routeDefinitionReactiveValueOperations
+				.delete(createKey(id))
 				.flatMap(success -> {
 					if (success) {
 						return Mono.empty();

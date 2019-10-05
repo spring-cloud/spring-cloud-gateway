@@ -50,6 +50,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @ActiveProfiles("redis-route-repository")
 public class RedisRouteDefinitionRepositoryTests {
+
 	@Autowired
 	private RedisRouteDefinitionRepository redisRouteDefinitionRepository;
 
@@ -60,8 +61,8 @@ public class RedisRouteDefinitionRepositoryTests {
 
 		redisRouteDefinitionRepository.save(Mono.just(testRouteDefinition)).block();
 
-		List<RouteDefinition> routeDefinitions = redisRouteDefinitionRepository.getRouteDefinitions().collectList()
-				.block();
+		List<RouteDefinition> routeDefinitions = redisRouteDefinitionRepository
+				.getRouteDefinitions().collectList().block();
 
 		assertThat(routeDefinitions.size()).isEqualTo(1);
 		assertThat(routeDefinitions.get(0)).isEqualTo(testRouteDefinition);
@@ -74,8 +75,8 @@ public class RedisRouteDefinitionRepositoryTests {
 
 		redisRouteDefinitionRepository.save(Mono.just(testRouteDefinition)).block();
 
-		List<RouteDefinition> routeDefinitions = redisRouteDefinitionRepository.getRouteDefinitions().collectList()
-				.block();
+		List<RouteDefinition> routeDefinitions = redisRouteDefinitionRepository
+				.getRouteDefinitions().collectList().block();
 		String routeId = routeDefinitions.get(0).getId();
 
 		// Assert that route has been added.
@@ -88,7 +89,6 @@ public class RedisRouteDefinitionRepositoryTests {
 		assertThat(redisRouteDefinitionRepository.getRouteDefinitions().collectList()
 				.block().size()).isEqualTo(0);
 	}
-
 
 	@NotNull
 	private RouteDefinition defaultTestRoute() {
@@ -117,6 +117,7 @@ public class RedisRouteDefinitionRepositoryTests {
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	public static class TestConfig {
+
 		RedisServer redisServer;
 
 		@Bean
@@ -131,5 +132,7 @@ public class RedisRouteDefinitionRepositoryTests {
 		public void destroy() {
 			redisServer.stop();
 		}
+
 	}
+
 }
