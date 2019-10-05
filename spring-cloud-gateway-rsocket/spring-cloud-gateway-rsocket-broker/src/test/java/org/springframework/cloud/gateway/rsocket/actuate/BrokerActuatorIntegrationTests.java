@@ -19,7 +19,6 @@ package org.springframework.cloud.gateway.rsocket.actuate;
 import java.math.BigInteger;
 import java.util.Random;
 
-import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -31,6 +30,7 @@ import reactor.test.StepVerifier;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.rsocket.context.LocalRSocketServerPort;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cloud.gateway.rsocket.cluster.ClusterService;
@@ -39,7 +39,6 @@ import org.springframework.cloud.gateway.rsocket.common.metadata.RouteSetup;
 import org.springframework.messaging.rsocket.RSocketRequester;
 import org.springframework.messaging.rsocket.annotation.support.RSocketMessageHandler;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.util.SocketUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -64,19 +63,12 @@ public class BrokerActuatorIntegrationTests {
 	@MockBean
 	private ClusterService clusterService;
 
-	// @LocalServerPort
-	private static int port;
+	@LocalRSocketServerPort
+	private int port;
 
 	@BeforeClass
 	public static void init() {
 		Hooks.onOperatorDebug();
-		port = SocketUtils.findAvailableTcpPort();
-		System.setProperty("spring.rsocket.server.port", String.valueOf(port));
-	}
-
-	@AfterClass
-	public static void after() {
-		System.clearProperty("spring.rsocket.server.port");
 	}
 
 	@Test
