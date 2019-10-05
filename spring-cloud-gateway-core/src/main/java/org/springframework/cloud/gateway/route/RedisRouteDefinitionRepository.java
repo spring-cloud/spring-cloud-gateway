@@ -67,13 +67,13 @@ public class RedisRouteDefinitionRepository implements RouteDefinitionRepository
 
 	@Override
 	public Mono<Void> delete(Mono<String> routeId) {
-		return routeId.flatMap(id -> routeDefinitionReactiveValueOperations.delete(id)
+		return routeId.flatMap(id -> routeDefinitionReactiveValueOperations.delete(createKey(id))
 				.flatMap(success -> {
 					if (success) {
 						return Mono.empty();
 					}
 					return Mono.defer(() -> Mono.error(new NotFoundException(String
-							.format("Could not remove route to redis repository with id: %s",
+							.format("Could not remove route from redis repository with id: %s",
 									routeId))));
 				}));
 	}
