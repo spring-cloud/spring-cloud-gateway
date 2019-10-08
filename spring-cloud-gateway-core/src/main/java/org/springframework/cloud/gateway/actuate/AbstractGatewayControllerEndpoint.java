@@ -55,7 +55,7 @@ public class AbstractGatewayControllerEndpoint implements ApplicationEventPublis
 
 	protected List<GlobalFilter> globalFilters;
 
-	protected List<GatewayFilterFactory> GatewayFilters;
+	protected List<GatewayFilterFactory> gatewayFilters;
 
 	protected List<RoutePredicateFactory> routePredicates;
 
@@ -67,12 +67,12 @@ public class AbstractGatewayControllerEndpoint implements ApplicationEventPublis
 
 	public AbstractGatewayControllerEndpoint(
 			RouteDefinitionLocator routeDefinitionLocator,
-			List<GlobalFilter> globalFilters, List<GatewayFilterFactory> GatewayFilters,
+			List<GlobalFilter> globalFilters, List<GatewayFilterFactory> gatewayFilters,
 			List<RoutePredicateFactory> routePredicates,
 			RouteDefinitionWriter routeDefinitionWriter, RouteLocator routeLocator) {
 		this.routeDefinitionLocator = routeDefinitionLocator;
 		this.globalFilters = globalFilters;
-		this.GatewayFilters = GatewayFilters;
+		this.gatewayFilters = gatewayFilters;
 		this.routePredicates = routePredicates;
 		this.routeDefinitionWriter = routeDefinitionWriter;
 		this.routeLocator = routeLocator;
@@ -98,7 +98,7 @@ public class AbstractGatewayControllerEndpoint implements ApplicationEventPublis
 
 	@GetMapping("/routefilters")
 	public Mono<HashMap<String, Object>> routefilers() {
-		return getNamesToOrders(this.GatewayFilters);
+		return getNamesToOrders(this.gatewayFilters);
 	}
 
 	@GetMapping("/routepredicates")
@@ -145,7 +145,7 @@ public class AbstractGatewayControllerEndpoint implements ApplicationEventPublis
 
 	private boolean validateRouteDefinition(RouteDefinition routeDefinition) {
 		boolean hasValidFilterDefinitions = routeDefinition.getFilters().stream()
-				.allMatch(filterDefinition -> GatewayFilters.stream()
+				.allMatch(filterDefinition -> gatewayFilters.stream()
 						.anyMatch(gatewayFilterFactory -> filterDefinition.getName()
 								.equals(gatewayFilterFactory.name())));
 
