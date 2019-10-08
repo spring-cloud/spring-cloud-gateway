@@ -31,6 +31,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.route.RedisRouteDefinitionRepository;
 import org.springframework.context.annotation.Bean;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -45,6 +46,7 @@ public class GatewayRedisAutoConfigurationTests {
 	@SpringBootTest(
 			classes = RedisRouteDefinitionRepositoryDisabledByProperty.TestConfig.class,
 			properties = "spring.cloud.gateway.redis-route-definition-repository.enabled=false")
+	@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 	public static class RedisRouteDefinitionRepositoryDisabledByProperty {
 
 		@Autowired(required = false)
@@ -67,6 +69,7 @@ public class GatewayRedisAutoConfigurationTests {
 	@SpringBootTest(
 			classes = RedisRouteDefinitionRepositoryEnabledByProperty.TestConfig.class,
 			properties = "spring.cloud.gateway.redis-route-definition-repository.enabled=true")
+	@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 	public static class RedisRouteDefinitionRepositoryEnabledByProperty {
 
 		@Autowired(required = false)
