@@ -192,12 +192,12 @@ public class GatewayAutoConfiguration {
 
 	@Bean
 	public RouteLocator routeDefinitionRouteLocator(GatewayProperties properties,
-			List<GatewayFilterFactory> GatewayFilters,
+			List<GatewayFilterFactory> gatewayFilters,
 			List<RoutePredicateFactory> predicates,
 			RouteDefinitionLocator routeDefinitionLocator,
 			@Qualifier("webFluxConversionService") ConversionService conversionService) {
 		return new RouteDefinitionRouteLocator(routeDefinitionLocator, predicates,
-				GatewayFilters, properties, conversionService);
+				gatewayFilters, properties, conversionService);
 	}
 
 	@Bean

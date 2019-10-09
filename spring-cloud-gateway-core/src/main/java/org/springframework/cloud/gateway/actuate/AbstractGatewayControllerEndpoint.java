@@ -55,6 +55,7 @@ public class AbstractGatewayControllerEndpoint implements ApplicationEventPublis
 
 	protected List<GlobalFilter> globalFilters;
 
+	//TODO change casing in next major release
 	protected List<GatewayFilterFactory> GatewayFilters;
 
 	protected List<RoutePredicateFactory> routePredicates;
@@ -67,12 +68,12 @@ public class AbstractGatewayControllerEndpoint implements ApplicationEventPublis
 
 	public AbstractGatewayControllerEndpoint(
 			RouteDefinitionLocator routeDefinitionLocator,
-			List<GlobalFilter> globalFilters, List<GatewayFilterFactory> GatewayFilters,
+			List<GlobalFilter> globalFilters, List<GatewayFilterFactory> gatewayFilters,
 			List<RoutePredicateFactory> routePredicates,
 			RouteDefinitionWriter routeDefinitionWriter, RouteLocator routeLocator) {
 		this.routeDefinitionLocator = routeDefinitionLocator;
 		this.globalFilters = globalFilters;
-		this.GatewayFilters = GatewayFilters;
+		this.GatewayFilters = gatewayFilters;
 		this.routePredicates = routePredicates;
 		this.routeDefinitionWriter = routeDefinitionWriter;
 		this.routeLocator = routeLocator;
