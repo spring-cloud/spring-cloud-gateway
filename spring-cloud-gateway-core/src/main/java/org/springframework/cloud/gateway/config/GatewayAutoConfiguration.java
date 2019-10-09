@@ -204,12 +204,12 @@ public class GatewayAutoConfiguration {
 
 	@Bean
 	public RouteLocator routeDefinitionRouteLocator(GatewayProperties properties,
-			List<GatewayFilterFactory> GatewayFilters,
+			List<GatewayFilterFactory> gatewayFilters,
 			List<RoutePredicateFactory> predicates,
 			RouteDefinitionLocator routeDefinitionLocator,
 			ConfigurationService configurationService) {
 		return new RouteDefinitionRouteLocator(routeDefinitionLocator, predicates,
-				GatewayFilters, properties, configurationService);
+				gatewayFilters, properties, configurationService);
 	}
 
 	@Bean
