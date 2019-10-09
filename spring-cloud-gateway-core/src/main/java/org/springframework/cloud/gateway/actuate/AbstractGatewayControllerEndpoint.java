@@ -55,7 +55,7 @@ public class AbstractGatewayControllerEndpoint implements ApplicationEventPublis
 
 	protected List<GlobalFilter> globalFilters;
 
-	//TODO change casing in next major release
+	// TODO change casing in next major release
 	protected List<GatewayFilterFactory> GatewayFilters;
 
 	protected List<RoutePredicateFactory> routePredicates;
