@@ -370,6 +370,17 @@ public class GatewayFilterSpec extends UriSpec {
 	}
 
 	/**
+	 * A filter that will set the Host header to {@param hostName} on the outgoing request
+	 * @param hostName the updated Host header value
+	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
+	 */
+	public GatewayFilterSpec setHostHeader(String hostName) {
+		return preserveHostHeader()
+				.removeRequestHeader("Host")
+				.addRequestHeader("Host", hostName);
+	}
+
+	/**
 	 * A filter that will return a redirect response back to the client.
 	 * @param status an HTTP status code, should be a {@code 300} series redirect
 	 * @param url the URL to redirect to. This URL will be set in the {@code location}
