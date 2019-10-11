@@ -364,6 +364,15 @@ spring:
         filters:
         - SecureHeaders
 
+        # =====================================
+      - id: set_request_host_header_test
+        uri: ${test.uri}
+        predicates:
+          - Host=**.setrequesthostheader.org
+          - Path=/headers
+        filters:
+          - SetRequestHostHeader=otherhost.io
+
       # =====================================
       - id: set_path_test
         uri: ${test.uri}

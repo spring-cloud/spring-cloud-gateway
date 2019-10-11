@@ -90,6 +90,7 @@ import org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilt
 import org.springframework.cloud.gateway.filter.factory.SecureHeadersProperties;
 import org.springframework.cloud.gateway.filter.factory.SetPathGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SetRequestHeaderGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.SetRequestHostHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SetResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SetStatusGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.StripPrefixGatewayFilterFactory;
@@ -523,6 +524,11 @@ public class GatewayAutoConfiguration {
 	@Bean
 	public SetRequestHeaderGatewayFilterFactory setRequestHeaderGatewayFilterFactory() {
 		return new SetRequestHeaderGatewayFilterFactory();
+	}
+
+	@Bean
+	public SetRequestHostHeaderGatewayFilterFactory setRequestHostHeaderGatewayFilterFactory() {
+		return new SetRequestHostHeaderGatewayFilterFactory();
 	}
 
 	@Bean
