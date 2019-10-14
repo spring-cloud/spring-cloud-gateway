@@ -128,11 +128,7 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 		return this.routeLocator.getRoutes()
 				// individually filter routes so that filterWhen error delaying is not a
 				// problem
-				.concatMap(route -> Mono.just(route).filterWhen(r -> {
-					// add the current route we are testing
-					exchange.getAttributes().put(GATEWAY_PREDICATE_ROUTE_ATTR, r.getId());
-					return r.getPredicate().apply(exchange);
-				})
+				.concatMap(route -> Mono.just(route).filterWhen(r -> r.getPredicate().apply(exchange))
 						// instead of immediately stopping main flux due to error, log and
 						// swallow it
 						.doOnError(e -> logger.error(
@@ -149,6 +145,8 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 						logger.debug("Route matched: " + route.getId());
 					}
 					validateRoute(route, exchange);
+					// add the route we tested
+					exchange.getAttributes().put(GATEWAY_PREDICATE_ROUTE_ATTR, route.getId());
 					return route;
 				});
 
