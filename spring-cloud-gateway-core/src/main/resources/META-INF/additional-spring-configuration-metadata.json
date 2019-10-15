@@ -23,6 +23,12 @@
       "type": "java.lang.Boolean",
       "description": "Enables wiretap debugging for Netty HttpServer.",
       "defaultValue": "false"
+    },
+    {
+      "name": "spring.cloud.gateway.globalcors.add-to-simple-url-handler-mapping",
+      "type": "java.lang.Boolean",
+      "description": "If global CORS config should be added to the URL handler.",
+      "defaultValue": "false"
     }
   ]
 }
