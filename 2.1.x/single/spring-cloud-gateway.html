@@ -555,38 +555,24 @@ This property takes a list of filters</p><p><b>application.yml.&nbsp;</b>
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">      default-filters</span>:
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">      - AddResponseHeader</span>=X-Response-Default-Foo<span xmlns:d="http://docbook.org/ns/docbook" class="hl-keyword">,</span> Default-Bar
 <span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">      - PrefixPath</span>=/httpbin</pre><p>
-</p></div></div><div class="chapter"><div class="titlepage"><div><div><h1 class="title"><a name="_global_filters" href="#_global_filters"></a>6.&nbsp;Global Filters</h1></div></div></div><p>The <code class="literal">GlobalFilter</code> interface has the same signature as <code class="literal">GatewayFilter</code>. These are special filters that are conditionally applied to all routes. (This interface and usage are subject to change in future milestones).</p><div class="section"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="_combined_global_filter_and_gatewayfilter_ordering" href="#_combined_global_filter_and_gatewayfilter_ordering"></a>6.1&nbsp;Combined Global Filter and GatewayFilter Ordering</h2></div></div></div><p>When a request comes in (and matches a Route) the Filtering Web Handler will add all instances of <code class="literal">GlobalFilter</code> and all route specific instances of <code class="literal">GatewayFilter</code> to a filter chain. This combined filter chain is sorted by the <code class="literal">org.springframework.core.Ordered</code> interface, which can be set by implementing the <code class="literal">getOrder()</code> method or by using the <code class="literal">@Order</code> annotation.</p><p>As Spring Cloud Gateway distinguishes between "pre" and "post" phases for filter logic execution (see: How It Works), the filter with the highest precedence will be the first in the "pre"-phase and the last in the "post"-phase.</p><p><b>ExampleConfiguration.java.&nbsp;</b>
+</p></div></div><div class="chapter"><div class="titlepage"><div><div><h1 class="title"><a name="_global_filters" href="#_global_filters"></a>6.&nbsp;Global Filters</h1></div></div></div><p>The <code class="literal">GlobalFilter</code> interface has the same signature as <code class="literal">GatewayFilter</code>. These are special filters that are conditionally applied to all routes. (This interface and usage are subject to change in future milestones).</p><div class="section"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="_combined_global_filter_and_gatewayfilter_ordering" href="#_combined_global_filter_and_gatewayfilter_ordering"></a>6.1&nbsp;Combined Global Filter and GatewayFilter Ordering</h2></div></div></div><p>When a request comes in (and matches a Route) the Filtering Web Handler will add all instances of <code class="literal">GlobalFilter</code> and all route specific instances of <code class="literal">GatewayFilter</code> to a filter chain. This combined filter chain is sorted by the <code class="literal">org.springframework.core.Ordered</code> interface, which can be set by implementing the <code class="literal">getOrder()</code> method.</p><p>As Spring Cloud Gateway distinguishes between "pre" and "post" phases for filter logic execution (see: <a class="link" href="#gateway-how-it-works" title="3.&nbsp;How It Works">How it Works</a>), the filter with the highest precedence will be the first in the "pre"-phase and the last in the "post"-phase.</p><p><b>ExampleConfiguration.java.&nbsp;</b>
 </p><pre class="programlisting"><xslthl:annotation xmlns:xslthl="http://xslthl.sourceforge.net/">@Bean</xslthl:annotation>
-<xslthl:annotation xmlns:xslthl="http://xslthl.sourceforge.net/">@Order(-1)</xslthl:annotation>
-<span xmlns:d="http://docbook.org/ns/docbook" class="hl-keyword">public</span> GlobalFilter a() {
-    <span xmlns:d="http://docbook.org/ns/docbook" class="hl-keyword">return</span> (exchange, chain) -&gt; {
-        log.info(<span xmlns:d="http://docbook.org/ns/docbook" class="hl-string">"first pre filter"</span>);
-        <span xmlns:d="http://docbook.org/ns/docbook" class="hl-keyword">return</span> chain.filter(exchange).then(Mono.fromRunnable(() -&gt; {
-            log.info(<span xmlns:d="http://docbook.org/ns/docbook" class="hl-string">"third post filter"</span>);
-        }));
-    };
+<span xmlns:d="http://docbook.org/ns/docbook" class="hl-keyword">public</span> GlobalFilter customFilter() {
+    <span xmlns:d="http://docbook.org/ns/docbook" class="hl-keyword">return</span> CustomGlobalFilter();
 }
 
-<xslthl:annotation xmlns:xslthl="http://xslthl.sourceforge.net/">@Bean</xslthl:annotation>
-<xslthl:annotation xmlns:xslthl="http://xslthl.sourceforge.net/">@Order(0)</xslthl:annotation>
-<span xmlns:d="http://docbook.org/ns/docbook" class="hl-keyword">public</span> GlobalFilter b() {
-    <span xmlns:d="http://docbook.org/ns/docbook" class="hl-keyword">return</span> (exchange, chain) -&gt; {
-        log.info(<span xmlns:d="http://docbook.org/ns/docbook" class="hl-string">"second pre filter"</span>);
-        <span xmlns:d="http://docbook.org/ns/docbook" class="hl-keyword">return</span> chain.filter(exchange).then(Mono.fromRunnable(() -&gt; {
-            log.info(<span xmlns:d="http://docbook.org/ns/docbook" class="hl-string">"second post filter"</span>);
-        }));
-    };
-}
+<span xmlns:d="http://docbook.org/ns/docbook" class="hl-keyword">public</span> <span xmlns:d="http://docbook.org/ns/docbook" class="hl-keyword">class</span> CustomGlobalFilter <span xmlns:d="http://docbook.org/ns/docbook" class="hl-keyword">implements</span> GlobalFilter, Ordered {
 
-<xslthl:annotation xmlns:xslthl="http://xslthl.sourceforge.net/">@Bean</xslthl:annotation>
-<xslthl:annotation xmlns:xslthl="http://xslthl.sourceforge.net/">@Order(1)</xslthl:annotation>
-<span xmlns:d="http://docbook.org/ns/docbook" class="hl-keyword">public</span> GlobalFilter c() {
-    <span xmlns:d="http://docbook.org/ns/docbook" class="hl-keyword">return</span> (exchange, chain) -&gt; {
-        log.info(<span xmlns:d="http://docbook.org/ns/docbook" class="hl-string">"third pre filter"</span>);
-        <span xmlns:d="http://docbook.org/ns/docbook" class="hl-keyword">return</span> chain.filter(exchange).then(Mono.fromRunnable(() -&gt; {
-            log.info(<span xmlns:d="http://docbook.org/ns/docbook" class="hl-string">"first post filter"</span>);
-        }));
-    };
+    <xslthl:annotation xmlns:xslthl="http://xslthl.sourceforge.net/">@Override</xslthl:annotation>
+    <span xmlns:d="http://docbook.org/ns/docbook" class="hl-keyword">public</span> Mono&lt;Void&gt; filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        log.info(<span xmlns:d="http://docbook.org/ns/docbook" class="hl-string">"custom global filter"</span>);
+        <span xmlns:d="http://docbook.org/ns/docbook" class="hl-keyword">return</span> chain.filter(exchange);
+    }
+
+    <xslthl:annotation xmlns:xslthl="http://xslthl.sourceforge.net/">@Override</xslthl:annotation>
+    <span xmlns:d="http://docbook.org/ns/docbook" class="hl-keyword">public</span> <span xmlns:d="http://docbook.org/ns/docbook" class="hl-keyword">int</span> getOrder() {
+        <span xmlns:d="http://docbook.org/ns/docbook" class="hl-keyword">return</span> -<xslthl:number xmlns:xslthl="http://xslthl.sourceforge.net/">1</xslthl:number>;
+    }
 }</pre><p>
 </p></div><div class="section"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="_forward_routing_filter" href="#_forward_routing_filter"></a>6.2&nbsp;Forward Routing Filter</h2></div></div></div><p>The <code class="literal">ForwardRoutingFilter</code> looks for a URI in the exchange attribute <code class="literal">ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR</code>. If the url has a <code class="literal">forward</code> scheme (ie <code class="literal">forward:///localendpoint</code>), it will use the Spring <code class="literal">DispatcherHandler</code> to handler the request.  The path part of the request URL will be overridden with the path in the forward URL. The unmodified original url is appended to the list in the <code class="literal">ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR</code> attribute.</p></div><div class="section"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="_loadbalancerclient_filter" href="#_loadbalancerclient_filter"></a>6.3&nbsp;LoadBalancerClient Filter</h2></div></div></div><p>The <code class="literal">LoadBalancerClientFilter</code> looks for a URI in the exchange attribute <code class="literal">ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR</code>. If the url has a <code class="literal">lb</code> scheme (ie <code class="literal">lb://myservice</code>), it will use the Spring Cloud <code class="literal">LoadBalancerClient</code> to resolve the name (<code class="literal">myservice</code> in the previous example) to an actual host and port and replace the URI in the same attribute. The unmodified original url is appended to the list in the <code class="literal">ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR</code> attribute. The filter will also look in the <code class="literal">ServerWebExchangeUtils.GATEWAY_SCHEME_PREFIX_ATTR</code> attribute to see if it equals <code class="literal">lb</code> and then the same rules apply.</p><p><b>application.yml.&nbsp;</b>
 </p><pre class="programlisting"><span xmlns:d="http://docbook.org/ns/docbook" class="hl-attribute">spring</span>:
