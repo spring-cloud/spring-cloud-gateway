@@ -16,31 +16,30 @@
 
 package org.springframework.cloud.gateway.discovery;
 
+import java.util.List;
+
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
-import reactor.core.publisher.Flux;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
 import org.springframework.cloud.gateway.config.LoadBalancerProperties;
-import org.springframework.context.annotation.Bean;
+import org.springframework.cloud.gateway.route.RouteDefinition;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 @RunWith(Enclosed.class)
-public class GatewayDiscoveryClientAutoConfigurationTests {
+public class ReactiveGatewayDiscoveryClientAutoConfigurationTests {
 
 	@RunWith(SpringRunner.class)
-	@SpringBootTest(classes = Config.class,
-			properties = { "spring.cloud.gateway.discovery.locator.enabled=true",
-					"spring.cloud.gateway.loadbalancer.use404=true" })
+	@SpringBootTest(classes = Config.class, properties = {
+			"spring.cloud.gateway.discovery.locator.enabled=true",
+			"spring.cloud.gateway.loadbalancer.use404=true",
+			"spring.cloud.discovery.client.simple.instances.service[0].uri=https://service1:443" })
 	public static class EnabledByProperty {
 
 		@Autowired(required = false)
@@ -53,6 +52,9 @@ public class GatewayDiscoveryClientAutoConfigurationTests {
 		public void routeLocatorBeanExists() {
 			assertThat(locator).as("DiscoveryClientRouteDefinitionLocator was null")
 					.isNotNull();
+			List<RouteDefinition> definitions = locator.getRouteDefinitions()
+					.collectList().block();
+			assertThat(definitions).hasSize(1);
 		}
 
 		@Test
@@ -80,13 +82,6 @@ public class GatewayDiscoveryClientAutoConfigurationTests {
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	protected static class Config {
-
-		@Bean
-		ReactiveDiscoveryClient discoveryClient() {
-			ReactiveDiscoveryClient discoveryClient = mock(ReactiveDiscoveryClient.class);
-			when(discoveryClient.getServices()).thenReturn(Flux.empty());
-			return discoveryClient;
-		}
 
 	}
 

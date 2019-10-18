@@ -21,10 +21,10 @@ import java.util.List;
 
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
 import org.springframework.cloud.client.discovery.composite.CompositeDiscoveryClientAutoConfiguration;
 import org.springframework.cloud.gateway.config.GatewayAutoConfiguration;
@@ -49,7 +49,7 @@ import static org.springframework.cloud.gateway.support.NameUtils.normalizeRoute
 @ConditionalOnProperty(name = "spring.cloud.gateway.enabled", matchIfMissing = true)
 @AutoConfigureBefore(GatewayAutoConfiguration.class)
 @AutoConfigureAfter(CompositeDiscoveryClientAutoConfiguration.class)
-@ConditionalOnClass({ DispatcherHandler.class, ReactiveDiscoveryClient.class })
+@ConditionalOnClass({ DispatcherHandler.class })
 @EnableConfigurationProperties
 public class GatewayDiscoveryClientAutoConfiguration {
 
@@ -81,20 +81,44 @@ public class GatewayDiscoveryClientAutoConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnBean(ReactiveDiscoveryClient.class)
-	@ConditionalOnProperty(name = "spring.cloud.gateway.discovery.locator.enabled")
-	public DiscoveryClientRouteDefinitionLocator discoveryClientRouteDefinitionLocator(
-			ReactiveDiscoveryClient discoveryClient,
-			DiscoveryLocatorProperties properties) {
-		return new DiscoveryClientRouteDefinitionLocator(discoveryClient, properties);
-	}
-
-	@Bean
 	public DiscoveryLocatorProperties discoveryLocatorProperties() {
 		DiscoveryLocatorProperties properties = new DiscoveryLocatorProperties();
 		properties.setPredicates(initPredicates());
 		properties.setFilters(initFilters());
 		return properties;
+	}
+
+	@Configuration
+	@ConditionalOnProperty(value = "spring.cloud.discovery.reactive.enabled",
+			matchIfMissing = true)
+	public static class ReactiveDiscoveryClientRouteDefinitionLocatorConfiguration {
+
+		@Bean
+		@ConditionalOnProperty(name = "spring.cloud.gateway.discovery.locator.enabled")
+		public DiscoveryClientRouteDefinitionLocator discoveryClientRouteDefinitionLocator(
+				ReactiveDiscoveryClient discoveryClient,
+				DiscoveryLocatorProperties properties) {
+			return new DiscoveryClientRouteDefinitionLocator(discoveryClient, properties);
+		}
+
+	}
+
+	/**
+	 * @deprecated In favor of the native reactive service discovery capability.
+	 */
+	@Configuration
+	@Deprecated
+	@ConditionalOnProperty(value = "spring.cloud.discovery.reactive.enabled",
+			havingValue = "false")
+	public static class BlockingDiscoveryClientRouteDefinitionLocatorConfiguration {
+
+		@Bean
+		@ConditionalOnProperty(name = "spring.cloud.gateway.discovery.locator.enabled")
+		public DiscoveryClientRouteDefinitionLocator discoveryClientRouteDefinitionLocator(
+				DiscoveryClient discoveryClient, DiscoveryLocatorProperties properties) {
+			return new DiscoveryClientRouteDefinitionLocator(discoveryClient, properties);
+		}
+
 	}
 
 }
