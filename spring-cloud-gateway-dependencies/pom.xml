@@ -18,7 +18,6 @@
 	<description>Spring Cloud Gateway Dependencies</description>
 
 	<properties>
-		<roaringbitmap.version>0.8.9</roaringbitmap.version>
 	</properties>
 
 	<dependencyManagement>
@@ -40,33 +39,8 @@
 			</dependency>
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-gateway-rsocket</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-gateway-rsocket-common</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-gateway-rsocket-client</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-gateway-rsocket-broker</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-starter-gateway</artifactId>
 				<version>${project.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.roaringbitmap</groupId>
-				<artifactId>RoaringBitmap</artifactId>
-				<version>${roaringbitmap.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
