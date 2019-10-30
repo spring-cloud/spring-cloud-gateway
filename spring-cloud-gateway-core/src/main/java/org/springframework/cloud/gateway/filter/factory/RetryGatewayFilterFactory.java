@@ -121,6 +121,7 @@ public class RetryGatewayFilterFactory
 		Retry<ServerWebExchange> exceptionRetry = null;
 		if (!retryConfig.getExceptions().isEmpty()) {
 			Predicate<RetryContext<ServerWebExchange>> retryContextPredicate = context -> {
+				ServerWebExchange exchange = context.applicationContext();
 				if (exceedsMaxIterations(context.applicationContext(), retryConfig)) {
 					return false;
 				}
@@ -133,7 +134,10 @@ public class RetryGatewayFilterFactory
 						trace("exception or its cause is retryable %s, configured exceptions %s",
 								() -> getExceptionNameWithCause(exception),
 								retryConfig::getExceptions);
-						return true;
+
+						HttpMethod httpMethod = exchange.getRequest().getMethod();
+
+						return retryConfig.getMethods().contains(httpMethod);
 					}
 				}
 				trace("exception or its cause is not retryable %s, configured exceptions %s",

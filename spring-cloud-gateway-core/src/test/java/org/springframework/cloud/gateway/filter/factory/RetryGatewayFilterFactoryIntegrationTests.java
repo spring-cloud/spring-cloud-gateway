@@ -153,6 +153,16 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 	}
 
 	@Test
+	public void retriesSleepyRequestPut() throws Exception {
+		testClient.mutate().responseTimeout(Duration.ofSeconds(10)).build().put()
+				.uri("/sleep?key=sleepyRequestPut&millis=3000")
+				.header(HttpHeaders.HOST, "www.retryjava.org").exchange()
+				.expectStatus().isEqualTo(HttpStatus.GATEWAY_TIMEOUT);
+
+		assertThat(TestConfig.map.get("sleepyRequestPut")).isNotNull().hasValue(1);
+	}
+
+	@Test
 	@SuppressWarnings("unchecked")
 	public void retryFilterLoadBalancedWithMultipleServers() {
 		String host = "www.retrywithloadbalancer.org";
