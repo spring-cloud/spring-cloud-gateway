@@ -135,9 +135,12 @@ public class RetryGatewayFilterFactory
 								() -> getExceptionNameWithCause(exception),
 								retryConfig::getExceptions);
 
-						HttpMethod httpMethod = exchange.getRequest().getMethod();
-
-						return retryConfig.getMethods().contains(httpMethod);
+						if (retryConfig.retryIgnoreMethods) {
+							return true;
+						} else {
+							HttpMethod httpMethod = exchange.getRequest().getMethod();
+							return retryConfig.getMethods().contains(httpMethod);
+						}
 					}
 				}
 				trace("exception or its cause is not retryable %s, configured exceptions %s",
@@ -286,6 +289,8 @@ public class RetryGatewayFilterFactory
 		private List<Class<? extends Throwable>> exceptions = toList(IOException.class,
 				TimeoutException.class);
 
+		private boolean retryIgnoreMethods = false;
+
 		private BackoffConfig backoff;
 
 		public RetryConfig allMethods() {
@@ -372,6 +377,15 @@ public class RetryGatewayFilterFactory
 
 		public RetryConfig setExceptions(Class<? extends Throwable>... exceptions) {
 			this.exceptions = Arrays.asList(exceptions);
+			return this;
+		}
+
+		public boolean getRetryIgnoreMethods() {
+			return retryIgnoreMethods;
+		}
+
+		public RetryConfig setRetryIgnoreMethods(boolean retryIgnoreMethods) {
+			this.retryIgnoreMethods = retryIgnoreMethods;
 			return this;
 		}
 
