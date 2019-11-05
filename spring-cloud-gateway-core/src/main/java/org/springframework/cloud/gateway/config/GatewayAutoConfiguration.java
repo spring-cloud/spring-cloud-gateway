@@ -710,6 +710,7 @@ public class GatewayAutoConfiguration {
 		}
 
 		@Bean
+		@ConditionalOnMissingBean(FallbackHeadersGatewayFilterFactory.class)
 		public FallbackHeadersGatewayFilterFactory fallbackHeadersGatewayFilterFactory() {
 			return new FallbackHeadersGatewayFilterFactory();
 		}

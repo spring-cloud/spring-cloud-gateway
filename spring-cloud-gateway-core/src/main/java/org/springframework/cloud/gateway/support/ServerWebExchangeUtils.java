@@ -129,6 +129,12 @@ public final class ServerWebExchangeUtils {
 			"hystrixExecutionException");
 
 	/**
+	 * CircuitBreaker execution exception attribute name.
+	 */
+	public static final String CIRCUITBREAKER_EXECUTION_EXCEPTION_ATTR = qualify(
+			"circuitBreakerExecutionException");
+
+	/**
 	 * Used when a routing filter has been successfully called. Allows users to write
 	 * custom routing filters that disable built in routing filters.
 	 */

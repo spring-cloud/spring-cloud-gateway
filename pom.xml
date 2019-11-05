@@ -54,6 +54,7 @@
 		<java.version>1.8</java.version>
 		<spring-cloud-commons.version>2.2.0.BUILD-SNAPSHOT</spring-cloud-commons.version>
 		<spring-cloud-netflix.version>2.2.0.BUILD-SNAPSHOT</spring-cloud-netflix.version>
+		<spring-cloud-circuitbreaker.version>1.0.0.BUILD-SNAPSHOT</spring-cloud-circuitbreaker.version>
 		<embedded-redis.version>0.6</embedded-redis.version>
 	</properties>
 
@@ -110,6 +111,18 @@
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-starter-netflix-hystrix</artifactId>
 				<version>${spring-cloud-netflix.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-circuitbreaker-dependencies</artifactId>
+				<version>${spring-cloud-circuitbreaker.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-starter-circuitbreaker-reactor-resilience4j</artifactId>
+				<version>${spring-cloud-circuitbreaker.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.springframework.boot</groupId>
