@@ -48,10 +48,10 @@ public abstract class SpringCloudCircuitBreakerFilterFactoryTests
 
 	/*
 	 * Tests that timeouts bubbling from the underpinning WebClient are treated the same
-	 * as CircuitBreaker timeouts in terms of outside response. (Internally, timeouts from the
-	 * WebClient are seen as command failures and trigger the opening of circuit breakers
-	 * the same way timeouts do; it may be confusing in terms of the CircuitBreaker metrics
-	 * though)
+	 * as CircuitBreaker timeouts in terms of outside response. (Internally, timeouts from
+	 * the WebClient are seen as command failures and trigger the opening of circuit
+	 * breakers the same way timeouts do; it may be confusing in terms of the
+	 * CircuitBreaker metrics though)
 	 */
 	@Test
 	public void timeoutFromWebClient() {
