@@ -599,15 +599,15 @@ spring:
       - id: circuitbreaker_route
         uri: lb://backing-service:8088
         predicates:
-        - Path=/consumingserviceendpoint
+        - Path=/consumingServiceEndpoint
         filters:
         - name: CircuitBreaker
           args:
             name: myCircuitBreaker
-            fallbackUri: forward:/incaseoffailureusethis
-        - RewritePath=/consumingserviceendpoint, /backingserviceendpoint
+            fallbackUri: forward:/inCaseOfFailureUseThis
+        - RewritePath=/consumingServiceEndpoint, /backingServiceEndpoint
 ----
-This will forward to the `/incaseoffailureusethis` URI when the circuit breaker fallback is called. Note that this example also demonstrates (optional) Spring Cloud Netflix Ribbon load-balancing via the `lb` prefix on the destination URI.
+This will forward to the `/inCaseofFailureUseThis` URI when the circuit breaker fallback is called. Note that this example also demonstrates (optional) Spring Cloud Netflix Ribbon load-balancing via the `lb` prefix on the destination URI.
 
 The primary scenario is to use the `fallbackUri` to an internal controller or handler within the gateway app.
 However, it is also possible to reroute the request to a controller or handler in an external application, like so:
