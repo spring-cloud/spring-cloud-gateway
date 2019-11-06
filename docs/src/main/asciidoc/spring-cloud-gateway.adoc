@@ -465,6 +465,11 @@ The DedupeResponseHeader filter also accepts an optional `strategy` parameter. T
 
 [[hystrix]]
 === Hystrix GatewayFilter Factory
+
+NOTE:  https://cloud.spring.io/spring-cloud-netflix/multi/multi__modules_in_maintenance_mode.html[Netflix has put Hystrix in maintenance mode].  It is suggested you use the <<spring-cloud-circuitbreaker-filter-factory, Spring Cloud CircuitBreaker
+Gateway Filter>> with Resilience4J as support for Hystrix will be removed in a future release.
+
+
 https://github.com/Netflix/Hystrix[Hystrix] is a library from Netflix that implements the https://martinfowler.com/bliki/CircuitBreaker.html[circuit breaker pattern].
 The Hystrix GatewayFilter allows you to introduce circuit breakers to your gateway routes, protecting your services from cascading failures and allowing you to provide fallback responses in the event of downstream failures.
 
@@ -554,10 +559,110 @@ To set a 5 second timeout for the example route above, the following configurati
 [source,yaml]
 hystrix.command.fallbackcmd.execution.isolation.thread.timeoutInMilliseconds: 5000
 
+[[spring-cloud-circuitbreaker-filter-factory]]
+=== Spring Cloud CircuitBreaker GatewayFilter Factory
+
+The Spring Cloud CircuitBreaker filter factory leverages the Spring Cloud CircuitBreaker APIs to wrap Gateway routes in
+a circuit breaker.  Spring Cloud CircuitBreaker supports two libraries which can be used with Spring Cloud Gateway, Hystrix
+and Resilience4J.  Since Netflix has places Hystrix in maintenance only mode we suggest you use Resilience4J.
+
+To enable the Spring Cloud CircuitBreaker filter you will need to either place `spring-cloud-starter-circuitbreaker-reactor-resilience4j` or
+`spring-cloud-starter-netflix-hystrix` on the classpath.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: circuitbreaker_route
+        uri: https://example.org
+        filters:
+        - CircuitBreaker=myCircuitBreaker
+----
+To configure the circuit breaker, see the configuration for the underlying circuit breaker implementation you are using.
+
+* https://cloud.spring.io/spring-cloud-circuitbreaker/reference/html/spring-cloud-circuitbreaker.html[Resilience4J Documentation]
+* https://cloud.spring.io/spring-cloud-netflix/reference/html/[Hystrix Documentation]
+
+The Spring Cloud CircuitBreaker filter can also accept an optional `fallbackUri` parameter. Currently, only `forward:` schemed URIs are supported. If the fallback is called, the request will be forwarded to the controller matched by the URI.
+
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: circuitbreaker_route
+        uri: lb://backing-service:8088
+        predicates:
+        - Path=/consumingServiceEndpoint
+        filters:
+        - name: CircuitBreaker
+          args:
+            name: myCircuitBreaker
+            fallbackUri: forward:/inCaseOfFailureUseThis
+        - RewritePath=/consumingServiceEndpoint, /backingServiceEndpoint
+----
+
+.Application.java
+[source,java]
+----
+@Bean
+public RouteLocator routes(RouteLocatorBuilder builder) {
+    return builder.routes()
+        .route("circuitbreaker_route", r -> r.path("/consumingServiceEndpoint")
+            .filters(f -> f.circuitBreaker(c -> c.name("myCircuitBreaker").fallbackUri("forward:/inCaseOfFailureUseThis"))
+                .rewritePath("/consumingServiceEndpoint", "/backingServiceEndpoint")).uri("lb://backing-service:8088")
+        .build();
+}
+----
+
+This will forward to the `/inCaseofFailureUseThis` URI when the circuit breaker fallback is called. Note that this example also demonstrates (optional) Spring Cloud Netflix Ribbon load-balancing via the `lb` prefix on the destination URI.
+
+The primary scenario is to use the `fallbackUri` to an internal controller or handler within the gateway app.
+However, it is also possible to reroute the request to a controller or handler in an external application, like so:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: ingredients
+        uri: lb://ingredients
+        predicates:
+        - Path=//ingredients/**
+        filters:
+        - name: CircuitBreaker
+          args:
+            name: fetchIngredients
+            fallbackUri: forward:/fallback
+      - id: ingredients-fallback
+        uri: http://localhost:9994
+        predicates:
+        - Path=/fallback
+----
+
+In this example, there is no `fallback` endpoint or handler in the gateway application, however, there is one in another
+app, registered under `http://localhost:9994`.
+
+In case of the request being forwarded to fallback, the Spring Cloud CircuitBreaker Gateway filter also provides the `Throwable` that has
+caused it. It's added to the `ServerWebExchange` as the
+`ServerWebExchangeUtils.CIRCUITBREAKER_EXECUTION_EXCEPTION_ATTR` attribute that can be used when
+handling the fallback within the gateway app.
+
+For the external controller/handler scenario, headers can be added with exception details. You can find more information
+on it in  the <<fallback-headers, FallbackHeaders GatewayFilter Factory section>>.
+
 [[fallback-headers]]
 === FallbackHeaders GatewayFilter Factory
 
-The `FallbackHeaders` factory allows you to add Hystrix execution exception details in headers of a request forwarded to
+The `FallbackHeaders` factory allows you to add Hystrix or Spring Cloud CircuitBreaker execution exception details in headers of a request forwarded to
 a `fallbackUri` in an external application, like in the following scenario:
 
 .application.yml
@@ -572,7 +677,7 @@ spring:
         predicates:
         - Path=//ingredients/**
         filters:
-        - name: Hystrix
+        - name: CircuitBreaker
           args:
             name: fetchIngredients
             fallbackUri: forward:/fallback
@@ -586,7 +691,7 @@ spring:
             executionExceptionTypeHeaderName: Test-Header
 ----
 
-In this example, after an execution exception occurs while running the `HystrixCommand`, the request will be forwarded to
+In this example, after an execution exception occurs while running the circuit breaker, the request will be forwarded to
 the `fallback` endpoint or handler in an app running on `localhost:9994`. The headers with the exception type, message
 and -if available- root cause exception type and message will be added to that request by the `FallbackHeaders` filter.
 
@@ -598,7 +703,8 @@ their default values:
 * `rootCauseExceptionTypeHeaderName` (`"Root-Cause-Exception-Type"`)
 * `rootCauseExceptionMessageHeaderName` (`"Root-Cause-Exception-Message"`)
 
-You can find more information on how Hystrix works with Gateway in the <<hystrix, Hystrix GatewayFilter Factory section>>.
+For more information of circuit beakers and the Gateway see the <<hystrix, Hystrix GatewayFilter Factory section>> or
+<<spring-cloud-circuitbreaker-filter-factory, Spring Cloud CircuitBreaker Factory section>>.
 
 === MapRequestHeader GatewayFilter Factory
 The MapRequestHeader GatewayFilter Factory takes 'fromHeader' and 'toHeader' parameters. It creates a new named header (toHeader) and the value is extracted out of an existing named header (fromHeader) from the incoming http request. If the input header does not exist then the filter has no impact. If the new named header already exists then it's values will be augmented with the new values.

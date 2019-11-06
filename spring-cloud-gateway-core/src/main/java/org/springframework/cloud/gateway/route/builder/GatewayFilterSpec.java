@@ -65,6 +65,7 @@ import org.springframework.cloud.gateway.filter.factory.SetPathGatewayFilterFact
 import org.springframework.cloud.gateway.filter.factory.SetRequestHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SetResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SetStatusGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.SpringCloudCircuitBreakerFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.StripPrefixGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyRequestBodyGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyResponseBodyGatewayFilterFactory;
@@ -73,6 +74,7 @@ import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpStatus;
+import org.springframework.util.StringUtils;
 import org.springframework.util.unit.DataSize;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -216,6 +218,20 @@ public class GatewayFilterSpec extends UriSpec {
 					"This is probably because Hystrix is missing from the classpath, which can be resolved by adding dependency on 'org.springframework.cloud:spring-cloud-starter-netflix-hystrix'");
 		}
 		return filter(factory.apply(this.routeBuilder.getId(), configConsumer));
+	}
+
+	public GatewayFilterSpec circuitBreaker(
+			Consumer<SpringCloudCircuitBreakerFilterFactory.Config> configConsumer) {
+		SpringCloudCircuitBreakerFilterFactory filterFactory;
+		try {
+			filterFactory = getBean(SpringCloudCircuitBreakerFilterFactory.class);
+		}
+		catch (NoSuchBeanDefinitionException e) {
+			throw new NoSuchBeanDefinitionException(
+					SpringCloudCircuitBreakerFilterFactory.class,
+					"There needs to be a circuit breaker implementation on the classpath that supports reactive APIs.");
+		}
+		return filter(filterFactory.apply(this.routeBuilder.getId(), configConsumer));
 	}
 
 	/**
