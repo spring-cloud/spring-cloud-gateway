@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-gateway</artifactId>
+    <version>2.2.0.BUILD-SNAPSHOT</version>
+  </parent>
+  <groupId>org.springframework.cloud</groupId>
+  <artifactId>spring-cloud-gateway-docs</artifactId>
+  <version>2.2.0.BUILD-SNAPSHOT</version>
+  <packaging>pom</packaging>
+  <name>Spring Cloud Gateway Docs</name>
+  <description>Spring Cloud Docs</description>
+  <url>https://spring.io/spring-cloud/spring-cloud-gateway/spring-cloud-gateway-docs</url>
+  <organization>
+    <name>Pivotal Software, Inc.</name>
+    <url>https://www.spring.io</url>
+  </organization>
+  <licenses>
+    <license>
+      <name>Apache License, Version 2.0</name>
+      <url>https://www.apache.org/licenses/LICENSE-2.0</url>
+    </license>
+  </licenses>
+  <developers>
+    <developer>
+      <id>sgibb</id>
+      <name>Spencer Gibb</name>
+      <email>sgibb at pivotal.io</email>
+      <organization>Pivotal Software, Inc.</organization>
+      <organizationUrl>https://www.spring.io</organizationUrl>
+      <roles>
+        <role>Project lead</role>
+      </roles>
+    </developer>
+  </developers>
+  <scm>
+    <connection>scm:git:git://github.com/spring-cloud/spring-cloud-gateway.git/spring-cloud-gateway-docs</connection>
+    <developerConnection>scm:git:ssh://git@github.com/spring-cloud/spring-cloud-gateway.git/spring-cloud-gateway-docs</developerConnection>
+    <url>https://github.com/spring-cloud/spring-cloud-gateway/spring-cloud-gateway-docs</url>
+  </scm>
+  <dependencies>
+    <dependency>
+      <groupId>org.springframework.cloud</groupId>
+      <artifactId>spring-cloud-starter-gateway</artifactId>
+      <version>2.2.0.BUILD-SNAPSHOT</version>
+      <scope>compile</scope>
+    </dependency>
+  </dependencies>
+</project>
