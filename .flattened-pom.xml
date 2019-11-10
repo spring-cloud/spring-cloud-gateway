@@ -5,12 +5,12 @@
   <parent>
     <groupId>org.springframework.cloud</groupId>
     <artifactId>spring-cloud-build</artifactId>
-    <version>2.2.0.BUILD-SNAPSHOT</version>
+    <version>2.2.0.RC2</version>
     <relativePath></relativePath>
   </parent>
   <groupId>org.springframework.cloud</groupId>
   <artifactId>spring-cloud-gateway</artifactId>
-  <version>2.2.0.BUILD-SNAPSHOT</version>
+  <version>2.2.0.RC2</version>
   <packaging>pom</packaging>
   <name>Spring Cloud Gateway</name>
   <description>Spring Cloud Gateway</description>
