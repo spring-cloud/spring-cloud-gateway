@@ -122,6 +122,10 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 				String host = request.getHeaders().getFirst(HttpHeaders.HOST);
 				headers.add(HttpHeaders.HOST, host);
 			}
+			else {
+				// let Netty set it based on hostname
+				headers.remove(HttpHeaders.HOST);
+			}
 		}).request(method).uri(url).send((req, nettyOutbound) -> {
 			if (log.isTraceEnabled()) {
 				nettyOutbound.withConnection(connection -> log.trace(
