@@ -114,7 +114,7 @@ class ExceptionFallbackHandler {
 
 }
 
-@Configuration
+@Configuration(proxyBeanMethods = false)
 class TestBadRibbonConfig {
 
 	@LocalServerPort

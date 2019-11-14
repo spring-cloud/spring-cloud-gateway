@@ -92,7 +92,7 @@ public class RouteBuilderTests {
 	}
 
 	@EnableAutoConfiguration
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	public static class SpringConfig {
 
 	}

@@ -41,7 +41,7 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.G
 /**
  * @author Spencer Gibb
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @ConditionalOnMissingClass("org.springframework.cloud.netflix.ribbon.RibbonAutoConfiguration")
 @ConditionalOnMissingBean(LoadBalancerClient.class)
 @EnableConfigurationProperties(LoadBalancerProperties.class)

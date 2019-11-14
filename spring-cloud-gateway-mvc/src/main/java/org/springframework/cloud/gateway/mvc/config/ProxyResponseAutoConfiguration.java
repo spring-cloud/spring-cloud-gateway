@@ -44,7 +44,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  *
  * @author Dave Syer
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @ConditionalOnWebApplication
 @ConditionalOnClass({ HandlerMethodReturnValueHandler.class })
 @EnableConfigurationProperties(ProxyProperties.class)

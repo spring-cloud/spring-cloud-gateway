@@ -261,7 +261,7 @@ public class WebSocketIntegrationTests {
 		}).block(Duration.ofMillis(5000));
 	}
 
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	static class WebSocketTestConfig {
 
 		@Bean
@@ -355,7 +355,7 @@ public class WebSocketIntegrationTests {
 
 	}
 
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	@EnableAutoConfiguration
 	@Import(PermitAllSecurityConfiguration.class)
 	@RibbonClient(name = "wsservice",

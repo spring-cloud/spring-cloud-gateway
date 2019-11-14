@@ -23,7 +23,7 @@ import org.springframework.cloud.gateway.route.builder.routes
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
-@Configuration
+@Configuration(proxyBeanMethods = false)
 open class AdditionalRoutes {
 
     @Value("\${test.uri:http://httpbin.org:80}")
