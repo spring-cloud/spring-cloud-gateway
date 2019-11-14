@@ -27,6 +27,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.web.reactive.server.WebTestClient;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -43,6 +44,18 @@ public class NettyRoutingFilterIntegrationTests extends BaseWebClientTests {
 				.isEqualTo(String.valueOf(HttpStatus.GATEWAY_TIMEOUT.value()))
 				.jsonPath("$.message")
 				.isEqualTo("Response took longer than timeout: PT3S");
+	}
+
+	@Test
+	public void outboundHostHeaderNotOverwrittenByInbound() {
+		// different base url to have different host header in inbound / outbound requests
+		// Host: 127.0.0.1 -> request to Gateway, Host: localhost -> request from Gateway,
+		// resolved from lb://testservice
+		WebTestClient client = testClient.mutate().baseUrl("http://127.0.0.1:" + port)
+				.build();
+
+		client.get().uri("/headers").exchange().expectBody().jsonPath("$.headers.host")
+				.isEqualTo("localhost:" + port);
 	}
 
 	@EnableAutoConfiguration
