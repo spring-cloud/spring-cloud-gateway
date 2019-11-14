@@ -586,10 +586,12 @@ public class GatewayAutoConfiguration {
 			}
 			else if (pool.getType() == FIXED) {
 				connectionProvider = ConnectionProvider.fixed(pool.getName(),
-						pool.getMaxConnections(), pool.getAcquireTimeout());
+						pool.getMaxConnections(), pool.getAcquireTimeout(),
+						pool.getMaxIdleTime());
 			}
 			else {
-				connectionProvider = ConnectionProvider.elastic(pool.getName());
+				connectionProvider = ConnectionProvider.elastic(pool.getName(),
+						pool.getMaxIdleTime());
 			}
 
 			HttpClient httpClient = HttpClient.create(connectionProvider)
