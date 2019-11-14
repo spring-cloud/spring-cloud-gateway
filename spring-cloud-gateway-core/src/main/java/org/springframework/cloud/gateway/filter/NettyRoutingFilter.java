@@ -20,6 +20,7 @@ import java.net.URI;
 import java.util.List;
 
 import io.netty.handler.codec.http.DefaultHttpHeaders;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpMethod;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -117,7 +118,12 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 				.getAttributeOrDefault(PRESERVE_HOST_HEADER_ATTRIBUTE, false);
 
 		Flux<HttpClientResponse> responseFlux = this.httpClient.headers(headers -> {
+			String originalHost = headers.get(HttpHeaderNames.HOST);
 			headers.add(httpHeaders);
+			if (originalHost != null) {
+				headers.set(HttpHeaderNames.HOST, originalHost);
+			}
+
 			if (preserveHost) {
 				String host = request.getHeaders().getFirst(HttpHeaders.HOST);
 				headers.add(HttpHeaders.HOST, host);
