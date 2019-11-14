@@ -16,9 +16,11 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -38,9 +40,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -84,6 +83,24 @@ public class SetStatusGatewayFilterFactoryTests extends BaseWebClientTests {
 		config.setStatus("401");
 		GatewayFilter filter = new SetStatusGatewayFilterFactory().apply(config);
 		assertThat(filter.toString()).contains("401");
+	}
+
+	@EnableAutoConfiguration
+	@SpringBootConfiguration
+	@Import(DefaultTestConfig.class)
+	public static class TestEnumConfig {
+
+		@Value("${test.uri}")
+		String uri;
+
+		@Bean
+		public RouteLocator enumRouteLocator(RouteLocatorBuilder builder) {
+			return builder.routes()
+					.route("test_enum_http_status", r -> r.host("*.setenumstatus.org")
+							.filters(f -> f.setStatus(HttpStatus.UNAUTHORIZED)).uri(uri))
+					.build();
+		}
+
 	}
 
 	@EnableAutoConfiguration
