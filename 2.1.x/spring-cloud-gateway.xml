@@ -1322,6 +1322,47 @@ but the <literal>ServiceInstance</literal> indicates it is not secure, then the 
 route in the Gateway configuration, the prefix will be stripped and the resulting scheme from the
 route URL will override the <literal>ServiceInstance</literal> configuration.</simpara>
 </note>
+<warning>
+<simpara><literal>LoadBalancerClientFilter</literal> uses a blocking Ribbon <literal>LoadBalancerClient</literal> under the hood.
+We suggest you use <link linkend="reactive-loadbalancer-client-filter"><literal>ReactiveLoadBalancerClientFilter</literal> instead</link>.
+You can switch to using it by adding <literal>org.springframework.cloud:spring-cloud-loadbalancer</literal> dependency to your project
+and setting the value of the <literal>spring.cloud.loadbalancer.ribbon.enabled</literal> to <literal>false</literal>.</simpara>
+</warning>
+</section>
+<section xml:id="reactive-loadbalancer-client-filter">
+<title>ReactiveLoadBalancerClientFilter</title>
+<simpara>The <literal>ReactiveLoadBalancerClientFilter</literal> looks for a URI in the exchange attribute
+<literal>ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR</literal>. If the url has a <literal>lb</literal> scheme (ie <literal>lb://myservice</literal>),
+it will use the Spring Cloud <literal>ReactorLoadBalancer</literal> to resolve the name (<literal>myservice</literal> in the previous example)
+to an actual host and port and replace the URI in the same attribute. The unmodified
+original url is appended to the list in the <literal>ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR</literal> attribute.
+The filter will also look in the <literal>ServerWebExchangeUtils.GATEWAY_SCHEME_PREFIX_ATTR</literal> attribute to see if it equals
+<literal>lb</literal> and then the same rules apply.</simpara>
+<formalpara>
+<title>application.yml</title>
+<para>
+<programlisting language="yaml" linenumbering="unnumbered">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: myRoute
+        uri: lb://service
+        predicates:
+        - Path=/service/**</programlisting>
+</para>
+</formalpara>
+<note>
+<simpara>By default when a service instance cannot be found by the <literal>ReactorLoadBalancer</literal>, a <literal>503</literal> will be returned.
+You can configure the Gateway to return a <literal>404</literal> by setting <literal>spring.cloud.gateway.loadbalancer.use404=true</literal>.</simpara>
+</note>
+<note>
+<simpara>The <literal>isSecure</literal> value of the <literal>ServiceInstance</literal> returned from the <literal>ReactiveLoadBalancerClientFilter</literal> will override
+the scheme specified in the request made to the Gateway.  For example, if the request comes into the Gateway over <literal>HTTPS</literal>
+but the <literal>ServiceInstance</literal> indicates it is not secure, then the downstream request will be made over
+<literal>HTTP</literal>.  The opposite situation can also apply.  However if <literal>GATEWAY_SCHEME_PREFIX_ATTR</literal> is specified for the
+route in the Gateway configuration, the prefix will be stripped and the resulting scheme from the
+route URL will override the <literal>ServiceInstance</literal> configuration.</simpara>
+</note>
 </section>
 <section xml:id="_netty_routing_filter">
 <title>Netty Routing Filter</title>
