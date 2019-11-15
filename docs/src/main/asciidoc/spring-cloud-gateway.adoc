@@ -1265,7 +1265,8 @@ route URL will override the `ServiceInstance` configuration.
 
 WARNING: `LoadBalancerClientFilter` uses a blocking Ribbon `LoadBalancerClient` under the hood.
 We suggest you use <<reactive-loadbalancer-client-filter,`ReactiveLoadBalancerClientFilter` instead>>.
-You can switch to using it by setting the value of the `spring.cloud.loadbalancer.ribbon.enabled` to `false`.
+You can switch to using it by adding `org.springframework.cloud:spring-cloud-loadbalancer` dependency to your project
+and setting the value of the `spring.cloud.loadbalancer.ribbon.enabled` to `false`.
 
 [[reactive-loadbalancer-client-filter]]
 === ReactiveLoadBalancerClientFilter

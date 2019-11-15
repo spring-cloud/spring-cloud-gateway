@@ -63,8 +63,7 @@ public class GatewayReactiveLoadBalancerClientAutoConfiguration {
 			super(ConfigurationPhase.REGISTER_BEAN);
 		}
 
-		@ConditionalOnProperty(value = "spring.cloud.loadbalancer.ribbon.enabled",
-				havingValue = "false")
+		@ConditionalOnProperty(value = "spring.cloud.loadbalancer.ribbon.enabled", havingValue = "false")
 		static class RibbonNotEnabled {
 
 		}
