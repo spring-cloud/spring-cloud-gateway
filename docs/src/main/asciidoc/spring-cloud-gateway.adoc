@@ -1263,6 +1263,45 @@ but the `ServiceInstance` indicates it is not secure, then the downstream reques
 route in the Gateway configuration, the prefix will be stripped and the resulting scheme from the
 route URL will override the `ServiceInstance` configuration.
 
+WARNING: `LoadBalancerClientFilter` uses a blocking Ribbon `LoadBalancerClient` under the hood.
+We suggest you use <<reactive-loadbalancer-client-filter,`ReactiveLoadBalancerClientFilter` instead>>.
+You can switch to using it by adding `org.springframework.cloud:spring-cloud-loadbalancer` dependency to your project
+and setting the value of the `spring.cloud.loadbalancer.ribbon.enabled` to `false`.
+
+[[reactive-loadbalancer-client-filter]]
+=== ReactiveLoadBalancerClientFilter
+
+The `ReactiveLoadBalancerClientFilter` looks for a URI in the exchange attribute
+`ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR`. If the url has a `lb` scheme (ie `lb://myservice`),
+it will use the Spring Cloud `ReactorLoadBalancer` to resolve the name (`myservice` in the previous example)
+to an actual host and port and replace the URI in the same attribute. The unmodified
+original url is appended to the list in the `ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR` attribute.
+The filter will also look in the `ServerWebExchangeUtils.GATEWAY_SCHEME_PREFIX_ATTR` attribute to see if it equals
+`lb` and then the same rules apply.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: myRoute
+        uri: lb://service
+        predicates:
+        - Path=/service/**
+----
+
+NOTE: By default when a service instance cannot be found by the `ReactorLoadBalancer`, a `503` will be returned.
+You can configure the Gateway to return a `404` by setting `spring.cloud.gateway.loadbalancer.use404=true`.
+
+NOTE: The `isSecure` value of the `ServiceInstance` returned from the `ReactiveLoadBalancerClientFilter` will override
+the scheme specified in the request made to the Gateway.  For example, if the request comes into the Gateway over `HTTPS`
+but the `ServiceInstance` indicates it is not secure, then the downstream request will be made over
+`HTTP`.  The opposite situation can also apply.  However if `GATEWAY_SCHEME_PREFIX_ATTR` is specified for the
+route in the Gateway configuration, the prefix will be stripped and the resulting scheme from the
+route URL will override the `ServiceInstance` configuration.
+
 === Netty Routing Filter
 
 The Netty Routing Filter runs if the url located in the `ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR` exchange attribute has a `http` or `https` scheme. It uses the Netty `HttpClient` to make the downstream proxy request. The response is put in the `ServerWebExchangeUtils.CLIENT_RESPONSE_ATTR` exchange attribute for use in a later filter. (There is an experimental `WebClientHttpRoutingFilter` that performs the same function, but does not require netty)
