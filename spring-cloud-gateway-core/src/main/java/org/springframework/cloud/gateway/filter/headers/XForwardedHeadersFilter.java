@@ -27,6 +27,7 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
 
+import static org.apache.commons.lang.StringUtils.substringBeforeLast;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
 
@@ -271,7 +272,7 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 			String originalUriPath, String requestUriPath) {
 		String prefix;
 		if (requestUriPath != null && (originalUriPath.endsWith(requestUriPath))) {
-			prefix = originalUriPath.replace(requestUriPath, "");
+			prefix = substringBeforeLast(originalUriPath, requestUriPath);
 			if (prefix != null && prefix.length() > 0
 					&& prefix.length() <= originalUri.getPath().length()) {
 				write(updated, X_FORWARDED_PREFIX_HEADER, prefix, isPrefixAppend());
