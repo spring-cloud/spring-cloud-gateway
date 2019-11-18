@@ -197,7 +197,7 @@ public class XForwardedHeadersFilterTests {
 	@Test
 	public void prefixToInferWhenEqualsResource() throws Exception {
 		MockServerHttpRequest request = MockServerHttpRequest
-				.get("https://originalhost:8080/prefix/get")
+				.get("https://originalhost:8080/resource/resource/")
 				.remoteAddress(
 						new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80))
 				.build();
