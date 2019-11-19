@@ -64,9 +64,22 @@ public class SpringCloudCircuitBreakerTestConfig {
 		return Collections.singletonMap("from", "circuitbreakerfallbackcontroller2");
 	}
 
+	@RequestMapping("/circuitbreakerFallbackController3")
+	public Map<String, String> fallbackcontroller3() {
+		return Collections.singletonMap("from", "circuitbreakerfallbackcontroller3");
+	}
+
 	@Bean
 	public RouteLocator circuitBreakerRouteLocator(RouteLocatorBuilder builder) {
-		return builder.routes()
+		return builder.routes().route("circuitbreaker_fallback_forward",
+				r -> r.host("**.circuitbreakerforward.org")
+						.filters(f -> f.circuitBreaker(
+								config -> config.setFallbackUri("forward:/fallback")))
+						.uri(uri))
+				.route("fallback_controller_3",
+						r -> r.path("/fallback").filters(
+								f -> f.setPath("/circuitbreakerFallbackController3"))
+								.uri(uri))
 				.route("circuitbreaker_java", r -> r.host("**.circuitbreakerjava.org")
 						.filters(f -> f.prefixPath("/httpbin")
 								.circuitBreaker(config -> config.setFallbackUri(

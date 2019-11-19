@@ -69,6 +69,14 @@ public abstract class SpringCloudCircuitBreakerFilterFactoryTests
 	}
 
 	@Test
+	public void filterFallbackForward() {
+		testClient.get().uri("/delay/3?a=c")
+				.header("Host", "www.circuitbreakerforward.org").exchange().expectStatus()
+				.isOk().expectBody()
+				.json("{\"from\":\"circuitbreakerfallbackcontroller3\"}");
+	}
+
+	@Test
 	public void filterWorksJavaDsl() {
 		testClient.get().uri("/get").header("Host", "www.circuitbreakerjava.org")
 				.exchange().expectStatus().isOk().expectHeader()
