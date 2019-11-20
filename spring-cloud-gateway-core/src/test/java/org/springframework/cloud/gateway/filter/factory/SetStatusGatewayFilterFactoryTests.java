@@ -89,6 +89,24 @@ public class SetStatusGatewayFilterFactoryTests extends BaseWebClientTests {
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
+	public static class TestEnumConfig {
+
+		@Value("${test.uri}")
+		String uri;
+
+		@Bean
+		public RouteLocator enumRouteLocator(RouteLocatorBuilder builder) {
+			return builder.routes()
+					.route("test_enum_http_status", r -> r.host("*.setenumstatus.org")
+							.filters(f -> f.setStatus(HttpStatus.UNAUTHORIZED)).uri(uri))
+					.build();
+		}
+
+	}
+
+	@EnableAutoConfiguration
+	@SpringBootConfiguration
+	@Import(DefaultTestConfig.class)
 	public static class TestConfig {
 
 		@Value("${test.uri}")
