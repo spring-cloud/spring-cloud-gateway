@@ -27,7 +27,7 @@ import reactor.core.scheduler.Schedulers;
 public class CustomBlockHoundIntegrationTest {
 
 	@Test
-	public void builderShouldNotLoadIntegrations() {
+	public void shouldThrowErrorForBlockingCallWithCustomBlockHoundIntegration() {
 		Assertions.assertThrows(RuntimeException.class, () -> Mono.fromCallable(() -> {
 			Thread.sleep(1);
 			return null;
