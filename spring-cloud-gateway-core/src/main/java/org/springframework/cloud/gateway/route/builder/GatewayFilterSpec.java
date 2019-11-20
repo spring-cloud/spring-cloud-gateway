@@ -644,7 +644,7 @@ public class GatewayFilterSpec extends UriSpec {
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
 	public GatewayFilterSpec setStatus(HttpStatus status) {
-		return setStatus(status.toString());
+		return setStatus(status.name());
 	}
 
 	/**
