@@ -31,6 +31,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
@@ -193,19 +194,15 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 		private String uri;
 
 		@RequestMapping("/httpbin/sleep")
-		public ResponseEntity<String> sleep(@RequestParam("key") String key,
+		public Mono<ResponseEntity<String>> sleep(@RequestParam("key") String key,
 				@RequestParam("millis") long millisToSleep) {
 			AtomicInteger num = getCount(key);
 			int retryCount = num.incrementAndGet();
 			log.warn("Retry count: " + retryCount);
-			try {
-				Thread.sleep(millisToSleep);
-			}
-			catch (InterruptedException e) {
-			}
-			return ResponseEntity.status(HttpStatus.OK)
-					.header("X-Retry-Count", String.valueOf(retryCount))
-					.body("slept " + millisToSleep + " ms");
+			return Mono.delay(Duration.ofMillis(millisToSleep))
+					.thenReturn(ResponseEntity.status(HttpStatus.OK)
+							.header("X-Retry-Count", String.valueOf(retryCount))
+							.body("slept " + millisToSleep + " ms"));
 		}
 
 		@RequestMapping("/httpbin/retryalwaysfail")

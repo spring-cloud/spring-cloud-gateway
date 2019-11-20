@@ -25,65 +25,44 @@ public class CustomBlockHoundIntegration implements BlockHoundIntegration {
 
 	@Override
 	public void applyTo(BlockHound.Builder builder) {
-		try {
-			Class.forName("ch.qos.logback.classic.spi.PackagingDataCalculator");
-			// Used from
-			// org.springframework.boot.autoconfigure.web.reactive.error.AbstractErrorWebExceptionHandler.logError
-			builder.allowBlockingCallsInside(
-					"ch.qos.logback.classic.spi.PackagingDataCalculator",
-					"getImplementationVersion");
-		}
-		catch (ClassNotFoundException e) {
-		}
-		try {
-			Class.forName("org.springframework.util.JdkIdGenerator");
-			// Used from
-			// org.springframework.web.server.session.InMemoryWebSessionStore$InMemoryWebSession.<init>
-			builder.allowBlockingCallsInside("org.springframework.util.JdkIdGenerator",
-					"generateId");
-		}
-		catch (ClassNotFoundException e) {
-		}
-		try {
-			Class.forName("javax.net.ssl.SSLContext");
-			// Used from
-			// org.springframework.cloud.commons.httpclient.DefaultApacheHttpClientConnectionManagerFactory.newConnectionManager
-			builder.allowBlockingCallsInside("javax.net.ssl.SSLContext", "init");
-		}
-		catch (ClassNotFoundException e) {
-		}
-		try {
-			Class.forName("org.springframework.security.crypto.bcrypt.BCrypt");
-			// Uses java.security.SecureRandom.nextBytes
-			// Used from
-			// org.springframework.security.authentication.AbstractUserDetailsReactiveAuthenticationManager.lambda$authenticate$4
-			builder.allowBlockingCallsInside(
-					"org.springframework.security.crypto.bcrypt.BCrypt", "gensalt");
-		}
-		catch (ClassNotFoundException e) {
-		}
-		try {
-			Class.forName("io.netty.handler.ssl.SslHandler");
-			// For HTTPS traffic
-			builder.allowBlockingCallsInside("io.netty.handler.ssl.SslHandler",
-					"channelActive");
-			builder.allowBlockingCallsInside("io.netty.handler.ssl.SslHandler", "unwrap");
-		}
-		catch (ClassNotFoundException e) {
-		}
-		try {
-			Class.forName("org.springframework.util.MimeTypeUtils");
-			// Uses java.util.Random.nextInt
-			builder.allowBlockingCallsInside("org.springframework.util.MimeTypeUtils",
-					"generateMultipartBoundary");
-		}
-		catch (ClassNotFoundException e) {
-		}
-
-		// Test support
+		// Uses
+		// ch.qos.logback.classic.spi.PackagingDataCalculator#getImplementationVersion
 		builder.allowBlockingCallsInside(
-				"org.springframework.cloud.gateway.filter.factory.RetryGatewayFilterFactoryIntegrationTests$TestConfig",
-				"sleep");
+				"org.springframework.boot.autoconfigure.web.reactive.error.AbstractErrorWebExceptionHandler",
+				"logError");
+		builder.allowBlockingCallsInside("reactor.util.Loggers$Slf4JLogger", "debug");
+
+		// Uses org.springframework.util.JdkIdGenerator#generateId
+		// Uses UUID#randomUUID
+		builder.allowBlockingCallsInside(
+				"org.springframework.web.server.session.InMemoryWebSessionStore",
+				"lambda$createWebSession$0");
+
+		// Uses java.util.Random#nextInt
+		builder.allowBlockingCallsInside("org.springframework.util.MimeTypeUtils",
+				"generateMultipartBoundary");
+
+		// SECURITY RELATED
+
+		// For HTTPS traffic
+		builder.allowBlockingCallsInside("io.netty.handler.ssl.SslHandler",
+				"channelActive");
+		builder.allowBlockingCallsInside("io.netty.handler.ssl.SslHandler", "unwrap");
+		builder.allowBlockingCallsInside("io.netty.handler.ssl.SslContext",
+				"newClientContextInternal");
+
+		// Uses
+		// org.springframework.cloud.commons.httpclient.DefaultApacheHttpClientConnectionManagerFactory#newConnectionManager
+		// Uses javax.net.ssl.SSLContext#init
+		builder.allowBlockingCallsInside(
+				"org.springframework.cloud.netflix.ribbon.SpringClientFactory",
+				"getContext");
+
+		// Uses org.springframework.security.crypto.bcrypt.BCrypt#gensalt
+		// Uses java.security.SecureRandom#nextBytes
+		builder.allowBlockingCallsInside(
+				"org.springframework.security.authentication.AbstractUserDetailsReactiveAuthenticationManager",
+				"lambda$authenticate$4");
 	}
 
 }
