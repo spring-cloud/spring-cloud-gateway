@@ -54,9 +54,9 @@ import org.springframework.cloud.gateway.filter.factory.RequestHeaderToRequestUr
 import org.springframework.cloud.gateway.filter.factory.RequestRateLimiterGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RequestSizeGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RetryGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RewriteLocationResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RewriteLocationResponseHeaderGatewayFilterFactory.StripVersion;
+import org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RewriteResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SaveSessionGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory;
@@ -460,7 +460,7 @@ public class GatewayFilterSpec extends UriSpec {
 	public GatewayFilterSpec requestRateLimiter(
 			Consumer<RequestRateLimiterGatewayFilterFactory.Config> configConsumer) {
 		return filter(getBean(RequestRateLimiterGatewayFilterFactory.class)
-				.apply(configConsumer));
+				.apply(this.routeBuilder.getId(), configConsumer));
 	}
 
 	/**
@@ -778,7 +778,7 @@ public class GatewayFilterSpec extends UriSpec {
 
 		public GatewayFilterSpec configure(
 				Consumer<RequestRateLimiterGatewayFilterFactory.Config> configConsumer) {
-			filter(this.filter.apply(configConsumer));
+			filter(this.filter.apply(routeBuilder.getId(), configConsumer));
 			return GatewayFilterSpec.this;
 		}
 
