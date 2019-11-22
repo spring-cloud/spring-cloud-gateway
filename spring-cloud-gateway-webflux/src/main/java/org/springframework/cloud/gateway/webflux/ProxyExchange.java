@@ -35,6 +35,7 @@ import org.springframework.http.RequestEntity;
 import org.springframework.http.RequestEntity.BodyBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -396,11 +397,15 @@ public class ProxyExchange<T> {
 		else {
 			forwarded = "";
 		}
-		forwarded = forwarded + forwarded(uri);
+		forwarded = forwarded
+				+ forwarded(uri, exchange.getRequest().getHeaders().getFirst("host"));
 		headers.set("forwarded", forwarded);
 	}
 
-	private String forwarded(URI uri) {
+	private String forwarded(URI uri, String hostHeader) {
+		if (!StringUtils.isEmpty(hostHeader)) {
+			return "host=" + hostHeader;
+		}
 		if ("http".equals(uri.getScheme())) {
 			return "host=" + uri.getHost();
 		}
