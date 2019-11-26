@@ -25,7 +25,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.data.redis.RedisReactiveAutoConfiguration;
-import org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiter;
+import org.springframework.cloud.gateway.filter.redis.quota.RedisQuotaFilter;
+import org.springframework.cloud.gateway.filter.redis.ratelimit.RedisRateLimiter;
 import org.springframework.cloud.gateway.support.ConfigurationService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -56,11 +57,29 @@ class GatewayRedisAutoConfiguration {
 	}
 
 	@Bean
+	@SuppressWarnings("unchecked")
+	public RedisScript redisRequestQuotaLimiterScript() {
+		DefaultRedisScript redisScript = new DefaultRedisScript<>();
+		redisScript.setScriptSource(new ResourceScriptSource(
+				new ClassPathResource("META-INF/scripts/request_quota_limiter.lua")));
+		redisScript.setResultType(List.class);
+		return redisScript;
+	}
+
+	@Bean
 	@ConditionalOnMissingBean
 	public RedisRateLimiter redisRateLimiter(ReactiveStringRedisTemplate redisTemplate,
 			@Qualifier(RedisRateLimiter.REDIS_SCRIPT_NAME) RedisScript<List<Long>> redisScript,
 			ConfigurationService configurationService) {
 		return new RedisRateLimiter(redisTemplate, redisScript, configurationService);
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	public RedisQuotaFilter redisQuotaFilter(ReactiveStringRedisTemplate redisTemplate,
+			@Qualifier(RedisQuotaFilter.REDIS_SCRIPT_NAME) RedisScript<List<Long>> redisScript,
+			ConfigurationService configurationService) {
+		return new RedisQuotaFilter(redisTemplate, redisScript, configurationService);
 	}
 
 }
