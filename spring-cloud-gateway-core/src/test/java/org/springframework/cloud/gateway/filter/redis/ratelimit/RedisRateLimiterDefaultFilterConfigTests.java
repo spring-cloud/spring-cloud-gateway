@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.gateway.filter.ratelimit;
+package org.springframework.cloud.gateway.filter.redis.ratelimit;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -26,8 +26,6 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.route.RouteLocator;
-import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
-import org.springframework.context.annotation.Bean;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -40,8 +38,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @DirtiesContext
-@ActiveProfiles("redis-rate-limiter-config")
-public class RedisRateLimiterConfigTests {
+@ActiveProfiles("redis-rate-limiter-default-config")
+public class RedisRateLimiterDefaultFilterConfigTests {
 
 	@Autowired
 	private RedisRateLimiter rateLimiter;
@@ -56,31 +54,14 @@ public class RedisRateLimiterConfigTests {
 	}
 
 	@Test
-	public void redisRateConfiguredFromEnvironment() {
-		assertFilter("redis_rate_limiter_config_test", 10, 20, false);
+	public void redisRateConfiguredFromEnvironmentDefaultFilters() {
+		String routeId = "redis_rate_limiter_config_default_test";
+		RedisRateLimiter.Config config = rateLimiter.loadConfiguration(routeId);
+		assertConfigAndRoute(routeId, 70, 80, config);
 	}
 
-	@Test
-	public void redisRateConfiguredFromJavaAPI() {
-		assertFilter("custom_redis_rate_limiter", 20, 40, false);
-	}
-
-	@Test
-	public void redisRateConfiguredFromJavaAPIDirectBean() {
-		assertFilter("alt_custom_redis_rate_limiter", 30, 60, true);
-	}
-
-	private void assertFilter(String key, int replenishRate, int burstCapacity,
-			boolean useDefaultConfig) {
-		RedisRateLimiter.Config config;
-
-		if (useDefaultConfig) {
-			config = rateLimiter.getDefaultConfig();
-		}
-		else {
-			assertThat(rateLimiter.getConfig()).containsKey(key);
-			config = rateLimiter.getConfig().get(key);
-		}
+	private void assertConfigAndRoute(String key, int replenishRate, int burstCapacity,
+			RedisRateLimiter.Config config) {
 		assertThat(config).isNotNull();
 		assertThat(config.getReplenishRate()).isEqualTo(replenishRate);
 		assertThat(config.getBurstCapacity()).isEqualTo(burstCapacity);
@@ -88,33 +69,12 @@ public class RedisRateLimiterConfigTests {
 		Route route = routeLocator.getRoutes().filter(r -> r.getId().equals(key)).next()
 				.block();
 		assertThat(route).isNotNull();
-		assertThat(route.getFilters()).hasSize(1);
+		assertThat(route.getFilters()).isNotEmpty();
 	}
 
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	public static class TestConfig {
-
-		@Bean
-		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
-			return builder.routes().route("custom_redis_rate_limiter",
-					r -> r.path("/custom").filters(f -> f.requestRateLimiter()
-							.rateLimiter(RedisRateLimiter.class,
-									rl -> rl.setBurstCapacity(40).setReplenishRate(20))
-							.and()).uri("http://localhost"))
-					.route("alt_custom_redis_rate_limiter",
-							r -> r.path("/custom")
-									.filters(f -> f.requestRateLimiter(
-											c -> c.setRateLimiter(myRateLimiter())))
-									.uri("http://localhost"))
-					.build();
-
-		}
-
-		@Bean
-		public RedisRateLimiter myRateLimiter() {
-			return new RedisRateLimiter(30, 60);
-		}
 
 	}
 

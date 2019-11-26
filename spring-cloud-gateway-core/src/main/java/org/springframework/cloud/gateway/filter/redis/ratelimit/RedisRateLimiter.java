@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.gateway.filter.ratelimit;
+package org.springframework.cloud.gateway.filter.redis.ratelimit;
 
 import java.time.Instant;
 import java.util.ArrayList;
