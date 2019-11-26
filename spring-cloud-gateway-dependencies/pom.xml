@@ -11,7 +11,7 @@
 	</parent>
 
 	<artifactId>spring-cloud-gateway-dependencies</artifactId>
-	<version>2.2.0.BUILD-SNAPSHOT</version>
+	<version>2.2.0.RELEASE</version>
 	<packaging>pom</packaging>
 
 	<name>spring-cloud-gateway-dependencies</name>

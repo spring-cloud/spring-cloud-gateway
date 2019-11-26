@@ -5,11 +5,11 @@
   <parent>
     <groupId>org.springframework.cloud</groupId>
     <artifactId>spring-cloud-gateway</artifactId>
-    <version>2.2.0.BUILD-SNAPSHOT</version>
+    <version>2.2.0.RELEASE</version>
   </parent>
   <groupId>org.springframework.cloud</groupId>
   <artifactId>spring-cloud-gateway-docs</artifactId>
-  <version>2.2.0.BUILD-SNAPSHOT</version>
+  <version>2.2.0.RELEASE</version>
   <packaging>pom</packaging>
   <name>Spring Cloud Gateway Docs</name>
   <description>Spring Cloud Docs</description>
@@ -45,7 +45,7 @@
     <dependency>
       <groupId>org.springframework.cloud</groupId>
       <artifactId>spring-cloud-starter-gateway</artifactId>
-      <version>2.2.0.BUILD-SNAPSHOT</version>
+      <version>2.2.0.RELEASE</version>
       <scope>compile</scope>
     </dependency>
   </dependencies>
