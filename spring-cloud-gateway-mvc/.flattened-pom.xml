@@ -5,12 +5,12 @@
   <parent>
     <groupId>org.springframework.cloud</groupId>
     <artifactId>spring-cloud-gateway</artifactId>
-    <version>2.2.0.RELEASE</version>
+    <version>2.2.0.BUILD-SNAPSHOT</version>
     <relativePath>..</relativePath>
   </parent>
   <groupId>org.springframework.cloud</groupId>
   <artifactId>spring-cloud-gateway-mvc</artifactId>
-  <version>2.2.0.RELEASE</version>
+  <version>2.2.0.BUILD-SNAPSHOT</version>
   <name>spring-cloud-gateway-mvc</name>
   <description>Spring Cloud Gateway MVC</description>
   <url>https://spring.io/spring-cloud/spring-cloud-gateway/spring-cloud-gateway-mvc</url>
