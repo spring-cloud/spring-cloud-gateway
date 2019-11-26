@@ -5,12 +5,12 @@
   <parent>
     <groupId>org.springframework.cloud</groupId>
     <artifactId>spring-cloud-gateway</artifactId>
-    <version>2.2.0.BUILD-SNAPSHOT</version>
+    <version>2.2.1.BUILD-SNAPSHOT</version>
     <relativePath>..</relativePath>
   </parent>
   <groupId>org.springframework.cloud</groupId>
   <artifactId>spring-cloud-starter-gateway</artifactId>
-  <version>2.2.0.BUILD-SNAPSHOT</version>
+  <version>2.2.1.BUILD-SNAPSHOT</version>
   <name>spring-cloud-starter-gateway</name>
   <description>Spring Cloud Starter</description>
   <url>https://projects.spring.io/spring-cloud</url>
@@ -45,13 +45,13 @@
     <dependency>
       <groupId>org.springframework.cloud</groupId>
       <artifactId>spring-cloud-starter</artifactId>
-      <version>2.2.0.BUILD-SNAPSHOT</version>
+      <version>2.2.1.BUILD-SNAPSHOT</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.springframework.cloud</groupId>
       <artifactId>spring-cloud-gateway-core</artifactId>
-      <version>2.2.0.BUILD-SNAPSHOT</version>
+      <version>2.2.1.BUILD-SNAPSHOT</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
@@ -63,7 +63,7 @@
     <dependency>
       <groupId>org.springframework.cloud</groupId>
       <artifactId>spring-cloud-starter-loadbalancer</artifactId>
-      <version>2.2.0.BUILD-SNAPSHOT</version>
+      <version>2.2.1.BUILD-SNAPSHOT</version>
       <scope>compile</scope>
       <optional>true</optional>
     </dependency>
