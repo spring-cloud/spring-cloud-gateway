@@ -1,4 +1,5 @@
 = Spring Cloud Gateway
+
 include::_attributes.adoc[]
 
 *{spring-cloud-version}*
@@ -9,43 +10,57 @@ include::intro.adoc[]
 == How to Include Spring Cloud Gateway
 
 To include Spring Cloud Gateway in your project use the starter with group `org.springframework.cloud`
-and artifact id `spring-cloud-starter-gateway`. See the https://projects.spring.io/spring-cloud/[Spring Cloud Project page]
+and artifact id `spring-cloud-starter-gateway`.
+See the https://projects.spring.io/spring-cloud/[Spring Cloud Project page]
 for details on setting up your build system with the current Spring Cloud Release Train.
 
 If you include the starter, but, for some reason, you do not want the gateway to be enabled, set `spring.cloud.gateway.enabled=false`.
 
 IMPORTANT: Spring Cloud Gateway is built upon https://spring.io/projects/spring-boot#learn[Spring Boot 2.x],
-https://docs.spring.io/spring/docs/current/spring-framework-reference/web-reactive.html[Spring WebFlux],
-and https://projectreactor.io/docs[Project Reactor].  As a consequence
-many of the familiar synchronous libraries (Spring Data and Spring Security, for example) and patterns you may
-not apply when using Spring Cloud Gateway.  If you are unfamiliar with these projects we suggest you
-begin by reading their documentation to familiarize yourself with some of the new concepts before
-working with Spring Cloud Gateway.
+https://docs.spring.io/spring/docs/current/spring-framework-reference/web-reactive.html[Spring WebFlux], and https://projectreactor.io/docs[Project Reactor].
+As a consequence many of the familiar synchronous libraries (Spring Data and Spring Security, for example) and patterns you may not apply when using Spring Cloud Gateway.
+If you are unfamiliar with these projects we suggest you begin by reading their documentation to familiarize yourself with some of the new concepts before working with Spring Cloud Gateway.
 
-IMPORTANT: Spring Cloud Gateway requires the Netty runtime provided by Spring Boot and Spring Webflux. It does not work in a traditional Servlet Container or built as a WAR.
+IMPORTANT: Spring Cloud Gateway requires the Netty runtime provided by Spring Boot and Spring Webflux.
+It does not work in a traditional Servlet Container or built as a WAR.
 
 == Glossary
 
-* *Route*: Route the basic building block of the gateway. It is defined by an ID, a destination URI, a collection of predicates and a collection of filters. A route is matched if aggregate predicate is true.
-* *Predicate*: This is a https://docs.oracle.com/javase/8/docs/api/java/util/function/Predicate.html[Java 8 Function Predicate]. The input type is a https://docs.spring.io/spring/docs/5.0.x/javadoc-api/org/springframework/web/server/ServerWebExchange.html[Spring Framework `ServerWebExchange`]. This allows developers to match on anything from the HTTP request, such as headers or parameters.
-* *Filter*: These are instances https://docs.spring.io/spring/docs/5.0.x/javadoc-api/org/springframework/web/server/GatewayFilter.html[Spring Framework `GatewayFilter`] constructed in with a specific factory. Here, requests and responses can be modified before or after sending the downstream request.
+* *Route*: Route the basic building block of the gateway.
+It is defined by an ID, a destination URI, a collection of predicates and a collection of filters.
+A route is matched if aggregate predicate is true.
+* *Predicate*: This is a https://docs.oracle.com/javase/8/docs/api/java/util/function/Predicate.html[Java 8 Function Predicate].
+The input type is a https://docs.spring.io/spring/docs/5.0.x/javadoc-api/org/springframework/web/server/ServerWebExchange.html[Spring Framework `ServerWebExchange`].
+This allows developers to match on anything from the HTTP request, such as headers or parameters.
+* *Filter*: These are instances https://docs.spring.io/spring/docs/5.0.x/javadoc-api/org/springframework/web/server/GatewayFilter.html[Spring Framework `GatewayFilter`] constructed in with a specific factory.
+Here, requests and responses can be modified before or after sending the downstream request.
 
 [[gateway-how-it-works]]
 == How It Works
 
 image::{imagesurl}/spring_cloud_gateway_diagram.png[Spring Cloud Gateway Diagram]
 
-Clients make requests to Spring Cloud Gateway. If the Gateway Handler Mapping determines that a request matches a Route, it is sent to the Gateway Web Handler. This handler runs sends the request through a filter chain that is specific to the request. The reason the filters are divided by the dotted line, is that filters may execute logic before the proxy request is sent or after. All "pre" filter logic is executed, then the proxy request is made. After the proxy request is made, the "post" filter logic is executed.
+Clients make requests to Spring Cloud Gateway.
+If the Gateway Handler Mapping determines that a request matches a Route, it is sent to the Gateway Web Handler.
+This handler runs sends the request through a filter chain that is specific to the request.
+The reason the filters are divided by the dotted line, is that filters may execute logic before the proxy request is sent or after.
+All "pre" filter logic is executed, then the proxy request is made.
+After the proxy request is made, the "post" filter logic is executed.
 
 NOTE: URIs defined in routes without a port will get a default port set to 80 and 443 for HTTP and HTTPS URIs respectively.
 
 [[gateway-request-predicates-factories]]
 == Route Predicate Factories
 
-Spring Cloud Gateway matches routes as part of the Spring WebFlux `HandlerMapping` infrastructure. Spring Cloud Gateway includes many built-in Route Predicate Factories. All of these predicates match on different attributes of the HTTP request. Multiple Route Predicate Factories can be combined and are combined via logical `and`.
+Spring Cloud Gateway matches routes as part of the Spring WebFlux `HandlerMapping` infrastructure.
+Spring Cloud Gateway includes many built-in Route Predicate Factories.
+All of these predicates match on different attributes of the HTTP request.
+Multiple Route Predicate Factories can be combined and are combined via logical `and`.
 
 === After Route Predicate Factory
-The After Route Predicate Factory takes one parameter, a datetime. This predicate matches requests that happen after the current datetime.
+
+The After Route Predicate Factory takes one parameter, a datetime.
+This predicate matches requests that happen after the current datetime.
 
 .application.yml
 [source,yaml]
@@ -63,7 +78,9 @@ spring:
 This route matches any request after Jan 20, 2017 17:42 Mountain Time (Denver).
 
 === Before Route Predicate Factory
-The Before Route Predicate Factory takes one parameter, a datetime. This predicate matches requests that happen before the current datetime.
+
+The Before Route Predicate Factory takes one parameter, a datetime.
+This predicate matches requests that happen before the current datetime.
 
 .application.yml
 [source,yaml]
@@ -81,6 +98,7 @@ spring:
 This route matches any request before Jan 20, 2017 17:42 Mountain Time (Denver).
 
 === Between Route Predicate Factory
+
 The Between Route Predicate Factory takes two parameters, datetime1 and datetime2. This predicate matches requests that happen after datetime1 and before datetime2. The datetime2 parameter must be after datetime1.
 
 .application.yml
@@ -96,10 +114,13 @@ spring:
         - Between=2017-01-20T17:42:47.789-07:00[America/Denver], 2017-01-21T17:42:47.789-07:00[America/Denver]
 ----
 
-This route matches any request after Jan 20, 2017 17:42 Mountain Time (Denver) and before Jan 21, 2017 17:42 Mountain Time (Denver). This could be useful for maintenance windows.
+This route matches any request after Jan 20, 2017 17:42 Mountain Time (Denver) and before Jan 21, 2017 17:42 Mountain Time (Denver).
+This could be useful for maintenance windows.
 
 === Cookie Route Predicate Factory
-The Cookie Route Predicate Factory takes two parameters, the cookie name and a regular expression. This predicate matches cookies that have the given name and the value matches the regular expression.
+
+The Cookie Route Predicate Factory takes two parameters, the cookie name and a regular expression.
+This predicate matches cookies that have the given name and the value matches the regular expression.
 
 .application.yml
 [source,yaml]
@@ -117,7 +138,9 @@ spring:
 This route matches the request has a cookie named `chocolate` who's value matches the `ch.p` regular expression.
 
 === Header Route Predicate Factory
-The Header Route Predicate Factory takes two parameters, the header name and a regular expression. This predicate matches with a header that has the given name and the value matches the regular expression.
+
+The Header Route Predicate Factory takes two parameters, the header name and a regular expression.
+This predicate matches with a header that has the given name and the value matches the regular expression.
 
 .application.yml
 [source,yaml]
@@ -135,7 +158,10 @@ spring:
 This route matches if the request has a header named `X-Request-Id` whose value matches the `\d+` regular expression (has a value of one or more digits).
 
 === Host Route Predicate Factory
-The Host Route Predicate Factory takes one parameter: a list of host name patterns. The pattern is an Ant style pattern with `.` as the separator. This predicates matches the `Host` header that matches the pattern.
+
+The Host Route Predicate Factory takes one parameter: a list of host name patterns.
+The pattern is an Ant style pattern with `.` as the separator.
+This predicates matches the `Host` header that matches the pattern.
 
 .application.yml
 [source,yaml]
@@ -154,10 +180,11 @@ URI template variables are supported as well, such as `{sub}.myhost.org`.
 
 This route would match if the request has a `Host` header has the value `www.somehost.org` or `beta.somehost.org` or `www.anotherhost.org`.
 
-This predicate extracts the URI template variables (like `sub` defined in the example above) as a map of names and values and places it in the `ServerWebExchange.getAttributes()` with a key defined in `ServerWebExchangeUtils.URI_TEMPLATE_VARIABLES_ATTRIBUTE`. Those values are then available for use by <<gateway-route-filters,GatewayFilter Factories>>
-
+This predicate extracts the URI template variables (like `sub` defined in the example above) as a map of names and values and places it in the `ServerWebExchange.getAttributes()` with a key defined in `ServerWebExchangeUtils.URI_TEMPLATE_VARIABLES_ATTRIBUTE`.
+Those values are then available for use by <<gateway-route-filters,GatewayFilter Factories>>
 
 === Method Route Predicate Factory
+
 The Method Route Predicate Factory takes one parameter: the HTTP method to match.
 
 .application.yml
@@ -176,6 +203,7 @@ spring:
 This route would match if the request method was a `GET`.
 
 === Path Route Predicate Factory
+
 The Path Route Predicate Factory takes two parameters: a list of Spring `PathMatcher` patterns and an optional flag to `matchOptionalTrailingSeparator`.
 
 .application.yml
@@ -193,7 +221,8 @@ spring:
 
 This route would match if the request path was, for example: `/foo/1` or `/foo/bar` or `/bar/baz`.
 
-This predicate extracts the URI template variables (like `segment` defined in the example above) as a map of names and values and places it in the `ServerWebExchange.getAttributes()` with a key defined in `ServerWebExchangeUtils.URI_TEMPLATE_VARIABLES_ATTRIBUTE`. Those values are then available for use by <<gateway-route-filters,GatewayFilter Factories>>
+This predicate extracts the URI template variables (like `segment` defined in the example above) as a map of names and values and places it in the `ServerWebExchange.getAttributes()` with a key defined in `ServerWebExchangeUtils.URI_TEMPLATE_VARIABLES_ATTRIBUTE`.
+Those values are then available for use by <<gateway-route-filters,GatewayFilter Factories>>
 
 A utility method is available to make access to these variables easier.
 
@@ -205,6 +234,7 @@ String segment = uriVariables.get("segment");
 ----
 
 === Query Route Predicate Factory
+
 The Query Route Predicate Factory takes two parameters: a required `param` and an optional `regexp`.
 
 .application.yml
@@ -237,8 +267,8 @@ spring:
 
 This route would match if the request contained a `foo` query parameter whose value matched the `ba.` regexp, so `bar` and `baz` would match.
 
-
 === RemoteAddr Route Predicate Factory
+
 The RemoteAddr Route Predicate Factory takes a list (min size 1) of CIDR-notation (IPv4 or IPv6) strings, e.g. `192.168.0.1/16` (where `192.168.0.1` is an IP address and `16` is a subnet mask).
 
 .application.yml
@@ -257,7 +287,9 @@ spring:
 This route would match if the remote address of the request was, for example, `192.168.1.10`.
 
 === Weight Route Predicate Factory
-The Weight Route Predicate Factory takes two argument group and weight. The weights are calculated per group.
+
+The Weight Route Predicate Factory takes two argument group and weight.
+The weights are calculated per group.
 
 .application.yml
 [source,yaml]
@@ -279,6 +311,7 @@ spring:
 This route would forward ~80% of traffic to https://weighthigh.org and ~20% of traffic to https://weighlow.org
 
 ==== Modifying the way remote addresses are resolved
+
 By default the RemoteAddr Route Predicate Factory uses the remote address from the incoming request.
 This may not match the actual client IP address if Spring Cloud Gateway sits behind a proxy layer.
 
@@ -299,7 +332,6 @@ Given the following header value:
 [source]
 X-Forwarded-For: 0.0.0.1, 0.0.0.2, 0.0.0.3
 
-
 The `maxTrustedIndex` values below will yield the following remote addresses.
 
 [options="header"]
@@ -311,11 +343,12 @@ The `maxTrustedIndex` values below will yield the following remote addresses.
 |3                           | 0.0.0.1
 |[4, `Integer.MAX_VALUE`]    | 0.0.0.1
 |===
-[[gateway-route-filters]]
 
+[[gateway-route-filters]]
 Using Java config:
 
 GatewayConfig.java
+
 [source,java]
 ----
 RemoteAddressResolver resolver = XForwardedRemoteAddressResolver
@@ -334,11 +367,14 @@ RemoteAddressResolver resolver = XForwardedRemoteAddressResolver
 
 == GatewayFilter Factories
 
-Route filters allow the modification of the incoming HTTP request or outgoing HTTP response in some manner. Route filters are scoped to a particular route. Spring Cloud Gateway includes many built-in GatewayFilter Factories.
+Route filters allow the modification of the incoming HTTP request or outgoing HTTP response in some manner.
+Route filters are scoped to a particular route.
+Spring Cloud Gateway includes many built-in GatewayFilter Factories.
 
 NOTE For more detailed examples on how to use any of the following filters, take a look at the https://github.com/spring-cloud/spring-cloud-gateway/tree/master/spring-cloud-gateway-core/src/test/java/org/springframework/cloud/gateway/filter/factory[unit tests].
 
 === AddRequestHeader GatewayFilter Factory
+
 The AddRequestHeader GatewayFilter Factory takes a name and value parameter.
 
 .application.yml
@@ -356,7 +392,8 @@ spring:
 
 This will add `X-Request-Foo:Bar` header to the downstream request's headers for all matching requests.
 
-AddRequestHeader is aware of URI variables used to match a path or host. URI variables may be used in the value and will be expanded at runtime.
+AddRequestHeader is aware of URI variables used to match a path or host.
+URI variables may be used in the value and will be expanded at runtime.
 
 .application.yml
 [source,yaml]
@@ -374,6 +411,7 @@ spring:
 ----
 
 === AddRequestParameter GatewayFilter Factory
+
 The AddRequestParameter GatewayFilter Factory takes a name and value parameter.
 
 .application.yml
@@ -391,7 +429,8 @@ spring:
 
 This will add `foo=bar` to the downstream request's query string for all matching requests.
 
-AddRequestParameter is aware of URI variables used to match a path or host. URI variables may be used in the value and will be expanded at runtime.
+AddRequestParameter is aware of URI variables used to match a path or host.
+URI variables may be used in the value and will be expanded at runtime.
 
 .application.yml
 [source,yaml]
@@ -409,6 +448,7 @@ spring:
 ----
 
 === AddResponseHeader GatewayFilter Factory
+
 The AddResponseHeader GatewayFilter Factory takes a name and value parameter.
 
 .application.yml
@@ -426,7 +466,8 @@ spring:
 
 This will add `X-Response-Foo:Bar` header to the downstream response's headers for all matching requests.
 
-AddResponseHeader is aware of URI variables used to match a path or host. URI variables may be used in the value and will be expanded at runtime.
+AddResponseHeader is aware of URI variables used to match a path or host.
+URI variables may be used in the value and will be expanded at runtime.
 
 .application.yml
 [source,yaml]
@@ -444,6 +485,7 @@ spring:
 ----
 
 === DedupeResponseHeader GatewayFilter Factory
+
 The DedupeResponseHeader GatewayFilter Factory takes a `name` parameter and an optional `strategy` parameter. `name` can contain a list of header names, space separated.
 
 .application.yml
@@ -461,13 +503,14 @@ spring:
 
 This will remove duplicate values of `Access-Control-Allow-Credentials` and `Access-Control-Allow-Origin` response headers in cases when both the gateway CORS logic and the downstream add them.
 
-The DedupeResponseHeader filter also accepts an optional `strategy` parameter. The accepted values are `RETAIN_FIRST` (default), `RETAIN_LAST`, and `RETAIN_UNIQUE`.
+The DedupeResponseHeader filter also accepts an optional `strategy` parameter.
+The accepted values are `RETAIN_FIRST` (default), `RETAIN_LAST`, and `RETAIN_UNIQUE`.
 
 [[hystrix]]
 === Hystrix GatewayFilter Factory
 
-NOTE:  https://cloud.spring.io/spring-cloud-netflix/multi/multi__modules_in_maintenance_mode.html[Netflix has put Hystrix in maintenance mode].  It is suggested you use the <<spring-cloud-circuitbreaker-filter-factory, Spring Cloud CircuitBreaker
-Gateway Filter>> with Resilience4J as support for Hystrix will be removed in a future release.
+NOTE:  https://cloud.spring.io/spring-cloud-netflix/multi/multi__modules_in_maintenance_mode.html[Netflix has put Hystrix in maintenance mode].
+It is suggested you use the <<spring-cloud-circuitbreaker-filter-factory, Spring Cloud CircuitBreaker Gateway Filter>> with Resilience4J as support for Hystrix will be removed in a future release.
 
 
 https://github.com/Netflix/Hystrix[Hystrix] is a library from Netflix that implements the https://martinfowler.com/bliki/CircuitBreaker.html[circuit breaker pattern].
@@ -492,8 +535,9 @@ spring:
 
 This wraps the remaining filters in a `HystrixCommand` with command name `myCommandName`.
 
-The Hystrix filter can also accept an optional `fallbackUri` parameter. Currently, only `forward:` schemed URIs are supported. If the fallback is called, the request will be forwarded to the controller matched by the URI.
-
+The Hystrix filter can also accept an optional `fallbackUri` parameter.
+Currently, only `forward:` schemed URIs are supported.
+If the fallback is called, the request will be forwarded to the controller matched by the URI.
 
 .application.yml
 [source,yaml]
@@ -513,7 +557,9 @@ spring:
             fallbackUri: forward:/incaseoffailureusethis
         - RewritePath=/consumingserviceendpoint, /backingserviceendpoint
 ----
-This will forward to the `/incaseoffailureusethis` URI when the Hystrix fallback is called. Note that this example also demonstrates (optional) Spring Cloud Netflix Ribbon load-balancing via the `lb` prefix on the destination URI.
+
+This will forward to the `/incaseoffailureusethis` URI when the Hystrix fallback is called.
+Note that this example also demonstrates (optional) Spring Cloud Netflix Ribbon load-balancing via the `lb` prefix on the destination URI.
 
 The primary scenario is to use the `fallbackUri` to an internal controller or handler within the gateway app.
 However, it is also possible to reroute the request to a controller or handler in an external application, like so:
@@ -540,16 +586,14 @@ spring:
         - Path=/fallback
 ----
 
-In this example, there is no `fallback` endpoint or handler in the gateway application, however, there is one in another
-app, registered under `http://localhost:9994`.
+In this example, there is no `fallback` endpoint or handler in the gateway application, however, there is one in another app, registered under `http://localhost:9994`.
 
-In case of the request being forwarded to fallback, the Hystrix Gateway filter also provides the `Throwable` that has
-caused it. It's added to the `ServerWebExchange` as the
-`ServerWebExchangeUtils.HYSTRIX_EXECUTION_EXCEPTION_ATTR` attribute that can be used when
-handling the fallback within the gateway app.
+In case of the request being forwarded to fallback, the Hystrix Gateway filter also provides the `Throwable` that has caused it.
+It's added to the `ServerWebExchange` as the
+`ServerWebExchangeUtils.HYSTRIX_EXECUTION_EXCEPTION_ATTR` attribute that can be used when handling the fallback within the gateway app.
 
-For the external controller/ handler scenario, headers can be added with exception details. You can find more information
-on it in  the <<fallback-headers, FallbackHeaders GatewayFilter Factory section>>.
+For the external controller/ handler scenario, headers can be added with exception details.
+You can find more information on it in the <<fallback-headers, FallbackHeaders GatewayFilter Factory section>>.
 
 Hystrix settings (such as timeouts) can be configured with global defaults or on a route by route basis using application properties as explained on the https://github.com/Netflix/Hystrix/wiki/Configuration[Hystrix wiki].
 
@@ -562,9 +606,8 @@ hystrix.command.fallbackcmd.execution.isolation.thread.timeoutInMilliseconds: 50
 [[spring-cloud-circuitbreaker-filter-factory]]
 === Spring Cloud CircuitBreaker GatewayFilter Factory
 
-The Spring Cloud CircuitBreaker filter factory leverages the Spring Cloud CircuitBreaker APIs to wrap Gateway routes in
-a circuit breaker.  Spring Cloud CircuitBreaker supports two libraries which can be used with Spring Cloud Gateway, Hystrix
-and Resilience4J.  Since Netflix has places Hystrix in maintenance only mode we suggest you use Resilience4J.
+The Spring Cloud CircuitBreaker filter factory leverages the Spring Cloud CircuitBreaker APIs to wrap Gateway routes in a circuit breaker.
+Spring Cloud CircuitBreaker supports two libraries which can be used with Spring Cloud Gateway, Hystrix and Resilience4J. Since Netflix has places Hystrix in maintenance only mode we suggest you use Resilience4J.
 
 To enable the Spring Cloud CircuitBreaker filter you will need to either place `spring-cloud-starter-circuitbreaker-reactor-resilience4j` or
 `spring-cloud-starter-netflix-hystrix` on the classpath.
@@ -581,13 +624,15 @@ spring:
         filters:
         - CircuitBreaker=myCircuitBreaker
 ----
+
 To configure the circuit breaker, see the configuration for the underlying circuit breaker implementation you are using.
 
 * https://cloud.spring.io/spring-cloud-circuitbreaker/reference/html/spring-cloud-circuitbreaker.html[Resilience4J Documentation]
 * https://cloud.spring.io/spring-cloud-netflix/reference/html/[Hystrix Documentation]
 
-The Spring Cloud CircuitBreaker filter can also accept an optional `fallbackUri` parameter. Currently, only `forward:` schemed URIs are supported. If the fallback is called, the request will be forwarded to the controller matched by the URI.
-
+The Spring Cloud CircuitBreaker filter can also accept an optional `fallbackUri` parameter.
+Currently, only `forward:` schemed URIs are supported.
+If the fallback is called, the request will be forwarded to the controller matched by the URI.
 
 .application.yml
 [source,yaml]
@@ -621,7 +666,8 @@ public RouteLocator routes(RouteLocatorBuilder builder) {
 }
 ----
 
-This will forward to the `/inCaseofFailureUseThis` URI when the circuit breaker fallback is called. Note that this example also demonstrates (optional) Spring Cloud Netflix Ribbon load-balancing via the `lb` prefix on the destination URI.
+This will forward to the `/inCaseofFailureUseThis` URI when the circuit breaker fallback is called.
+Note that this example also demonstrates (optional) Spring Cloud Netflix Ribbon load-balancing via the `lb` prefix on the destination URI.
 
 The primary scenario is to use the `fallbackUri` to an internal controller or handler within the gateway app.
 However, it is also possible to reroute the request to a controller or handler in an external application, like so:
@@ -648,22 +694,19 @@ spring:
         - Path=/fallback
 ----
 
-In this example, there is no `fallback` endpoint or handler in the gateway application, however, there is one in another
-app, registered under `http://localhost:9994`.
+In this example, there is no `fallback` endpoint or handler in the gateway application, however, there is one in another app, registered under `http://localhost:9994`.
 
-In case of the request being forwarded to fallback, the Spring Cloud CircuitBreaker Gateway filter also provides the `Throwable` that has
-caused it. It's added to the `ServerWebExchange` as the
-`ServerWebExchangeUtils.CIRCUITBREAKER_EXECUTION_EXCEPTION_ATTR` attribute that can be used when
-handling the fallback within the gateway app.
+In case of the request being forwarded to fallback, the Spring Cloud CircuitBreaker Gateway filter also provides the `Throwable` that has caused it.
+It's added to the `ServerWebExchange` as the
+`ServerWebExchangeUtils.CIRCUITBREAKER_EXECUTION_EXCEPTION_ATTR` attribute that can be used when handling the fallback within the gateway app.
 
-For the external controller/handler scenario, headers can be added with exception details. You can find more information
-on it in  the <<fallback-headers, FallbackHeaders GatewayFilter Factory section>>.
+For the external controller/handler scenario, headers can be added with exception details.
+You can find more information on it in the <<fallback-headers, FallbackHeaders GatewayFilter Factory section>>.
 
 [[fallback-headers]]
 === FallbackHeaders GatewayFilter Factory
 
-The `FallbackHeaders` factory allows you to add Hystrix or Spring Cloud CircuitBreaker execution exception details in headers of a request forwarded to
-a `fallbackUri` in an external application, like in the following scenario:
+The `FallbackHeaders` factory allows you to add Hystrix or Spring Cloud CircuitBreaker execution exception details in headers of a request forwarded to a `fallbackUri` in an external application, like in the following scenario:
 
 .application.yml
 [source,yaml]
@@ -691,12 +734,10 @@ spring:
             executionExceptionTypeHeaderName: Test-Header
 ----
 
-In this example, after an execution exception occurs while running the circuit breaker, the request will be forwarded to
-the `fallback` endpoint or handler in an app running on `localhost:9994`. The headers with the exception type, message
-and -if available- root cause exception type and message will be added to that request by the `FallbackHeaders` filter.
+In this example, after an execution exception occurs while running the circuit breaker, the request will be forwarded to the `fallback` endpoint or handler in an app running on `localhost:9994`.
+The headers with the exception type, message and -if available- root cause exception type and message will be added to that request by the `FallbackHeaders` filter.
 
-The names of the headers can be overwritten in the config by setting the values of the arguments listed below, along with
-their default values:
+The names of the headers can be overwritten in the config by setting the values of the arguments listed below, along with their default values:
 
 * `executionExceptionTypeHeaderName` (`"Execution-Exception-Type"`)
 * `executionExceptionMessageHeaderName` (`"Execution-Exception-Message"`)
@@ -707,7 +748,11 @@ For more information of circuit beakers and the Gateway see the <<hystrix, Hystr
 <<spring-cloud-circuitbreaker-filter-factory, Spring Cloud CircuitBreaker Factory section>>.
 
 === MapRequestHeader GatewayFilter Factory
-The MapRequestHeader GatewayFilter Factory takes 'fromHeader' and 'toHeader' parameters. It creates a new named header (toHeader) and the value is extracted out of an existing named header (fromHeader) from the incoming http request. If the input header does not exist then the filter has no impact. If the new named header already exists then it's values will be augmented with the new values.
+
+The MapRequestHeader GatewayFilter Factory takes 'fromHeader' and 'toHeader' parameters.
+It creates a new named header (toHeader) and the value is extracted out of an existing named header (fromHeader) from the incoming http request.
+If the input header does not exist then the filter has no impact.
+If the new named header already exists then it's values will be augmented with the new values.
 
 .application.yml
 [source,yaml]
@@ -725,6 +770,7 @@ spring:
 This will add `X-Request-Foo:<values>` header to the downstream request's with updated values from the incoming http request `Bar` header.
 
 === PrefixPath GatewayFilter Factory
+
 The PrefixPath GatewayFilter Factory takes a single `prefix` parameter.
 
 .application.yml
@@ -740,10 +786,13 @@ spring:
         - PrefixPath=/mypath
 ----
 
-This will prefix `/mypath` to the path of all matching requests. So a request to `/hello`, would be sent to `/mypath/hello`.
+This will prefix `/mypath` to the path of all matching requests.
+So a request to `/hello`, would be sent to `/mypath/hello`.
 
 === PreserveHostHeader GatewayFilter Factory
-The PreserveHostHeader GatewayFilter Factory has no parameters. This filter sets a request attribute that the routing filter will inspect to determine if the original host header should be sent, rather than the host header determined by the http client.
+
+The PreserveHostHeader GatewayFilter Factory has no parameters.
+This filter sets a request attribute that the routing filter will inspect to determine if the original host header should be sent, rather than the host header determined by the http client.
 
 .application.yml
 [source,yaml]
@@ -760,11 +809,13 @@ spring:
 
 === RequestRateLimiter GatewayFilter Factory
 
-The RequestRateLimiter GatewayFilter Factory is uses a `RateLimiter` implementation to determine if the current request is allowed to proceed. If it is not, a status of `HTTP 429 - Too Many Requests` (by default) is returned.
+The RequestRateLimiter GatewayFilter Factory is uses a `RateLimiter` implementation to determine if the current request is allowed to proceed.
+If it is not, a status of `HTTP 429 - Too Many Requests` (by default) is returned.
 
 This filter takes an optional `keyResolver` parameter and parameters specific to the rate limiter (see below).
 
-`keyResolver` is a bean that implements the `KeyResolver` interface. In configuration, reference the bean by name using SpEL. `#{@myKeyResolver}` is a SpEL expression referencing a bean with the name `myKeyResolver`.
+`keyResolver` is a bean that implements the `KeyResolver` interface.
+In configuration, reference the bean by name using SpEL. `#{@myKeyResolver}` is a SpEL expression referencing a bean with the name `myKeyResolver`.
 
 .KeyResolver.java
 [source,java]
@@ -774,13 +825,16 @@ public interface KeyResolver {
 }
 ----
 
-The `KeyResolver` interface allows pluggable strategies to derive the key for limiting requests. In future milestones, there will be some `KeyResolver` implementations.
+The `KeyResolver` interface allows pluggable strategies to derive the key for limiting requests.
+In future milestones, there will be some `KeyResolver` implementations.
 
 The default implementation of `KeyResolver` is the `PrincipalNameKeyResolver` which retrieves the `Principal` from the `ServerWebExchange` and calls `Principal.getName()`.
 
-By default, if the `KeyResolver` does not find a key, requests will be denied. This behavior can be adjusted with the `spring.cloud.gateway.filter.request-rate-limiter.deny-empty-key` (true or false) and `spring.cloud.gateway.filter.request-rate-limiter.empty-key-status-code` properties.
+By default, if the `KeyResolver` does not find a key, requests will be denied.
+This behavior can be adjusted with the `spring.cloud.gateway.filter.request-rate-limiter.deny-empty-key` (true or false) and `spring.cloud.gateway.filter.request-rate-limiter.empty-key-status-code` properties.
 
-NOTE: The RequestRateLimiter is not configurable via the "shortcut" notation. The example below is __invalid__
+NOTE: The RequestRateLimiter is not configurable via the "shortcut" notation.
+The example below is __invalid__
 
 .application.properties
 ----
@@ -790,15 +844,21 @@ spring.cloud.gateway.routes[0].filters[0]=RequestRateLimiter=2, 2, #{@userkeyres
 
 ==== Redis RateLimiter
 
-The redis implementation is based off of work done at https://stripe.com/blog/rate-limiters[Stripe]. It requires the use of the `spring-boot-starter-data-redis-reactive` Spring Boot starter.
+The redis implementation is based off of work done at https://stripe.com/blog/rate-limiters[Stripe].
+It requires the use of the `spring-boot-starter-data-redis-reactive` Spring Boot starter.
 
 The algorithm used is the https://en.wikipedia.org/wiki/Token_bucket[Token Bucket Algorithm].
 
-The `redis-rate-limiter.replenishRate` is how many requests per second do you want a user to be allowed to do, without any dropped requests. This is the rate that the token bucket is filled.
+The `redis-rate-limiter.replenishRate` is how many requests per second do you want a user to be allowed to do, without any dropped requests.
+This is the rate that the token bucket is filled.
 
-The `redis-rate-limiter.burstCapacity` is the maximum number of requests a user is allowed to do in a single second. This is the number of tokens the token bucket can hold. Setting this value to zero will block all requests.
+The `redis-rate-limiter.burstCapacity` is the maximum number of requests a user is allowed to do in a single second.
+This is the number of tokens the token bucket can hold.
+Setting this value to zero will block all requests.
 
-A steady rate is accomplished by setting the same value in `replenishRate` and `burstCapacity`. Temporary bursts can be allowed by setting `burstCapacity` higher than `replenishRate`. In this case, the rate limiter needs to be allowed some time between bursts (according to `replenishRate`), as 2 consecutive bursts will result in dropped requests (`HTTP 429 - Too Many Requests`).
+A steady rate is accomplished by setting the same value in `replenishRate` and `burstCapacity`.
+Temporary bursts can be allowed by setting `burstCapacity` higher than `replenishRate`.
+In this case, the rate limiter needs to be allowed some time between bursts (according to `replenishRate`), as 2 consecutive bursts will result in dropped requests (`HTTP 429 - Too Many Requests`).
 
 .application.yml
 [source,yaml]
@@ -826,9 +886,12 @@ KeyResolver userKeyResolver() {
 }
 ----
 
-This defines a request rate limit of 10 per user. A burst of 20 is allowed, but the next second only 10 requests will be available. The `KeyResolver` is a simple one that gets the `user` request parameter (note: this is not recommended for production).
+This defines a request rate limit of 10 per user.
+A burst of 20 is allowed, but the next second only 10 requests will be available.
+The `KeyResolver` is a simple one that gets the `user` request parameter (note: this is not recommended for production).
 
-A rate limiter can also be defined as a bean implementing the `RateLimiter` interface. In configuration, reference the bean by name using SpEL. `#{@myRateLimiter}` is a SpEL expression referencing a bean with the name `myRateLimiter`.
+A rate limiter can also be defined as a bean implementing the `RateLimiter` interface.
+In configuration, reference the bean by name using SpEL. `#{@myRateLimiter}` is a SpEL expression referencing a bean with the name `myRateLimiter`.
 
 .application.yml
 [source,yaml]
@@ -847,8 +910,107 @@ spring:
 
 ----
 
+=== RequestQuotaFilter GatewayFilter Factory
+
+The RequestQuotaFilter GatewayFilter Factory is uses a `QuotaFilter` implementation to determine if the current request is allowed to proceed.
+If it is not, a status of `HTTP 429 - Too Many Requests` (by default) is returned.
+
+This filter takes an optional `keyResolver` parameter and parameters specific to the quota filter (see RequestRateLimiter above).
+
+By default, if the `KeyResolver` does not find a key, requests will be denied.
+This behavior can be adjusted with the `spring.cloud.gateway.filter.request-quota-filter.deny-empty-key` (true or false) and `spring.cloud.gateway.filter.request-rate-limiter.empty-key-status-code` properties.
+
+NOTE: The RequestQuotaFilter is not configurable via the "shortcut" notation.
+
+==== Redis QuotaFilter
+
+The redis quota filter requires the use of the `spring-boot-starter-data-redis-reactive` Spring Boot starter.
+
+The `redis-quota-filter.limit` is how many requests a user is allowed to do, without any dropped requests.
+
+The `redis-quota-filter.period` is the period how long the limit will exist.
+The allowed units are:
+`SECONDS, DAYS, HOURS, DAYS or ABS`
+The implementation can be found in the `RedisQuotaFilter.QuotaPeriods.class`.
+The `ABS` filter period will never expire, so the the limit will be not volatile as the other periods.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: request_quota_filter_route
+        uri: https://example.org
+        filters:
+        - name: RequestQuota
+          args:
+            redis-quota-filter.limit: 10
+            redis-quota-filter.period: DAYS
+
+----
+
+This defines a request quota limit of 10 requests per day.
+
+You can use a custom `KeyResolver` where you can specify patterns or request parameter matches where the quota filter will look for.
+
+.Config.java
+[source,java]
+----
+@Bean
+KeyResolver customAuth() {
+    return exchange -> Mono.just(exchange.getRequest().getHeaders().getFirst("X-Authentication"));
+}
+----
+
+The `KeyResolver` is a simple one that gets the first custom header in the request `X-Authentication`.
+
+The defined `KeyResolver` can be uses with the quota filter like:
+.application.yml
+
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: request_quota_filter_route
+        uri: https://example.org
+        filters:
+        - name: RequestQuota
+          args:
+            redis-quota-filter.limit: 10
+            redis-quota-filter.period: DAYS
+            key-resolver: customAuth
+
+----
+
+A quota filter can also be defined as a bean implementing the `QuotaFilter` interface.
+In configuration, reference the bean by name using SpEL. `#{@myQuotaFilter}` is a SpEL expression referencing a bean with the name `myQuotaFilter`.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: requestratelimiter_route
+        uri: https://example.org
+        filters:
+        - name: RequestQuota
+          args:
+            quota-filter: "#{@myQuotaFilter}"
+            key-resolver: "#{@userKeyResolver}"
+
+----
+
 === RedirectTo GatewayFilter Factory
-The RedirectTo GatewayFilter Factory takes a `status` and a `url` parameter. The status should be a 300 series redirect http code, such as 301. The url should be a valid url. This will be the value of the `Location` header.
+
+The RedirectTo GatewayFilter Factory takes a `status` and a `url` parameter.
+The status should be a 300 series redirect http code, such as 301. The url should be a valid url.
+This will be the value of the `Location` header.
 
 .application.yml
 [source,yaml]
@@ -866,22 +1028,26 @@ spring:
 This will send a status 302 with a `Location:https://acme.org` header to perform a redirect.
 
 === RemoveHopByHopHeadersFilter GatewayFilter Factory
-The RemoveHopByHopHeadersFilter GatewayFilter Factory removes headers from forwarded requests. The default list of headers that is removed comes from the https://tools.ietf.org/html/draft-ietf-httpbis-p1-messaging-14#section-7.1.3[IETF].
+
+The RemoveHopByHopHeadersFilter GatewayFilter Factory removes headers from forwarded requests.
+The default list of headers that is removed comes from the https://tools.ietf.org/html/draft-ietf-httpbis-p1-messaging-14#section-7.1.3[IETF].
 
 .The default removed headers are:
- *  Connection
- *  Keep-Alive
- *  Proxy-Authenticate
- *  Proxy-Authorization
- *  TE
- *  Trailer
- *  Transfer-Encoding
- *  Upgrade
+* Connection
+* Keep-Alive
+* Proxy-Authenticate
+* Proxy-Authorization
+* TE
+* Trailer
+* Transfer-Encoding
+* Upgrade
 
 To change this, set the `spring.cloud.gateway.filter.remove-non-proxy-headers.headers` property to the list of header names to remove.
 
 === RemoveRequestHeader GatewayFilter Factory
-The RemoveRequestHeader GatewayFilter Factory takes a `name` parameter. It is the name of the header to be removed.
+
+The RemoveRequestHeader GatewayFilter Factory takes a `name` parameter.
+It is the name of the header to be removed.
 
 .application.yml
 [source,yaml]
@@ -899,7 +1065,9 @@ spring:
 This will remove the `X-Request-Foo` header before it is sent downstream.
 
 === RemoveResponseHeader GatewayFilter Factory
-The RemoveResponseHeader GatewayFilter Factory takes a `name` parameter. It is the name of the header to be removed.
+
+The RemoveResponseHeader GatewayFilter Factory takes a `name` parameter.
+It is the name of the header to be removed.
 
 .application.yml
 [source,yaml]
@@ -916,12 +1084,14 @@ spring:
 
 This will remove the `X-Response-Foo` header from the response before it is returned to the gateway client.
 
-To remove any kind of sensitive header you should configure this filter for any routes that you may
-want to do so.  In addition you can configure this filter once using `spring.cloud.gateway.default-filters`
+To remove any kind of sensitive header you should configure this filter for any routes that you may want to do so.
+In addition you can configure this filter once using `spring.cloud.gateway.default-filters`
 and have it applied to all routes.
 
 === RemoveRequestParameter GatewayFilter Factory
-The RemoveRequestParameter GatewayFilter Factory takes a `name` parameter. It is the name of the query parameter to be removed.
+
+The RemoveRequestParameter GatewayFilter Factory takes a `name` parameter.
+It is the name of the query parameter to be removed.
 
 .application.yml
 [source,yaml]
@@ -939,7 +1109,9 @@ spring:
 This will remove the `foo` parameter before it is sent downstream.
 
 === RewritePath GatewayFilter Factory
-The RewritePath GatewayFilter Factory takes a path `regexp` parameter and a `replacement` parameter. This uses Java regular expressions for a flexible way to rewrite the request path.
+
+The RewritePath GatewayFilter Factory takes a path `regexp` parameter and a `replacement` parameter.
+This uses Java regular expressions for a flexible way to rewrite the request path.
 
 .application.yml
 [source,yaml]
@@ -956,10 +1128,13 @@ spring:
         - RewritePath=/foo(?<segment>/?.*), $\{segment}
 ----
 
-For a request path of `/foo/bar`, this will set the path to `/bar` before making the downstream request. Notice the `$` Should be replaced with `$\` because of the YAML spec.
+For a request path of `/foo/bar`, this will set the path to `/bar` before making the downstream request.
+Notice the `$` Should be replaced with `$\` because of the YAML spec.
 
 === RewriteLocationResponseHeader GatewayFilter Factory
-The RewriteLocationResponseHeader GatewayFilter Factory modifies the value of `Location` response header, usually to get rid of backend specific details. It takes `stripVersionMode`, `locationHeaderName`, `hostValue`, and `protocolsRegex` parameters.
+
+The RewriteLocationResponseHeader GatewayFilter Factory modifies the value of `Location` response header, usually to get rid of backend specific details.
+It takes `stripVersionMode`, `locationHeaderName`, `hostValue`, and `protocolsRegex` parameters.
 
 .application.yml
 [source,yaml]
@@ -978,16 +1153,21 @@ For example, for a request `POST https://api.example.com/some/object/name`, `Loc
 
 Parameter `stripVersionMode` has the following possible values: `NEVER_STRIP`, `AS_IN_REQUEST` (default), `ALWAYS_STRIP`.
 
- * `NEVER_STRIP` - Version will not be stripped, even if the original request path contains no version
- * `AS_IN_REQUEST` - Version will be stripped only if the original request path contains no version
- * `ALWAYS_STRIP` - Version will be stripped, even if the original request path contains version
+* `NEVER_STRIP` - Version will not be stripped, even if the original request path contains no version
+* `AS_IN_REQUEST` - Version will be stripped only if the original request path contains no version
+* `ALWAYS_STRIP` - Version will be stripped, even if the original request path contains version
 
-Parameter `hostValue`, if provided, will be used to replace the `host:port` portion of the response `Location` header. If not provided, the value of the `Host` request header will be used.
+Parameter `hostValue`, if provided, will be used to replace the `host:port` portion of the response `Location` header.
+If not provided, the value of the `Host` request header will be used.
 
-Parameter `protocolsRegex` must be a valid regex `String`, against which the protocol name will be matched. If not matched, the filter will do nothing. Default is `http|https|ftp|ftps`.
+Parameter `protocolsRegex` must be a valid regex `String`, against which the protocol name will be matched.
+If not matched, the filter will do nothing.
+Default is `http|https|ftp|ftps`.
 
 === RewriteResponseHeader GatewayFilter Factory
-The RewriteResponseHeader GatewayFilter Factory takes `name`, `regexp`, and `replacement` parameters. It uses Java regular expressions for a flexible way to rewrite the response header value.
+
+The RewriteResponseHeader GatewayFilter Factory takes `name`, `regexp`, and `replacement` parameters.
+It uses Java regular expressions for a flexible way to rewrite the response header value.
 
 .application.yml
 [source,yaml]
@@ -1002,11 +1182,13 @@ spring:
         - RewriteResponseHeader=X-Response-Foo, , password=[^&]+, password=***
 ----
 
-For a header value of `/42?user=ford&password=omg!what&flag=true`, it will be set to `/42?user=ford&password=\***&flag=true` after making the downstream request. Please use `$\` to mean `$` because of the YAML spec.
+For a header value of `/42?user=ford&password=omg!what&flag=true`, it will be set to `/42?user=ford&password=\***&flag=true` after making the downstream request.
+Please use `$\` to mean `$` because of the YAML spec.
 
 === SaveSession GatewayFilter Factory
-The SaveSession GatewayFilter Factory forces a `WebSession::save` operation _before_ forwarding the call downstream. This is of particular use when
-using something like https://projects.spring.io/spring-session/[Spring Session] with a lazy data store and need to ensure the session state has been saved before making the forwarded call.
+
+The SaveSession GatewayFilter Factory forces a `WebSession::save` operation _before_ forwarding the call downstream.
+This is of particular use when using something like https://projects.spring.io/spring-session/[Spring Session] with a lazy data store and need to ensure the session state has been saved before making the forwarded call.
 
 .application.yml
 [source,yaml]
@@ -1026,29 +1208,30 @@ spring:
 If you are integrating https://projects.spring.io/spring-security/[Spring Security] with Spring Session, and want to ensure security details have been forwarded to the remote process, this is critical.
 
 === SecureHeaders GatewayFilter Factory
+
 The SecureHeaders GatewayFilter Factory adds a number of headers to the response at the recommendation from https://blog.appcanary.com/2017/http-security-headers.html[this blog post].
 
 .The following headers are added (along with default values):
- * `X-Xss-Protection:1; mode=block`
- * `Strict-Transport-Security:max-age=631138519`
- * `X-Frame-Options:DENY`
- * `X-Content-Type-Options:nosniff`
- * `Referrer-Policy:no-referrer`
- * `Content-Security-Policy:default-src 'self' https:; font-src 'self' https: data:; img-src 'self' https: data:; object-src 'none'; script-src https:; style-src 'self' https: 'unsafe-inline'`
- * `X-Download-Options:noopen`
- * `X-Permitted-Cross-Domain-Policies:none`
+* `X-Xss-Protection:1; mode=block`
+* `Strict-Transport-Security:max-age=631138519`
+* `X-Frame-Options:DENY`
+* `X-Content-Type-Options:nosniff`
+* `Referrer-Policy:no-referrer`
+* `Content-Security-Policy:default-src 'self' https:; font-src 'self' https: data:; img-src 'self' https: data:; object-src 'none'; script-src https:; style-src 'self' https: 'unsafe-inline'`
+* `X-Download-Options:noopen`
+* `X-Permitted-Cross-Domain-Policies:none`
 
 To change the default values set the appropriate property in the `spring.cloud.gateway.filter.secure-headers` namespace:
 
 .Property to change:
- * `xss-protection-header`
- * `strict-transport-security`
- * `frame-options`
- * `content-type-options`
- * `referrer-policy`
- * `content-security-policy`
- * `download-options`
- * `permitted-cross-domain-policies`
+* `xss-protection-header`
+* `strict-transport-security`
+* `frame-options`
+* `content-type-options`
+* `referrer-policy`
+* `content-security-policy`
+* `download-options`
+* `permitted-cross-domain-policies`
 
 To disable the default values set the property `spring.cloud.gateway.filter.secure-headers.disable` with comma separated values.
 
@@ -1056,7 +1239,11 @@ To disable the default values set the property `spring.cloud.gateway.filter.secu
 `spring.cloud.gateway.filter.secure-headers.disable=frame-options,download-options`
 
 === SetPath GatewayFilter Factory
-The SetPath GatewayFilter Factory takes a path `template` parameter. It offers a simple way to manipulate the request path by allowing templated segments of the path. This uses the uri templates from Spring Framework. Multiple matching segments are allowed.
+
+The SetPath GatewayFilter Factory takes a path `template` parameter.
+It offers a simple way to manipulate the request path by allowing templated segments of the path.
+This uses the uri templates from Spring Framework.
+Multiple matching segments are allowed.
 
 .application.yml
 [source,yaml]
@@ -1076,6 +1263,7 @@ spring:
 For a request path of `/foo/bar`, this will set the path to `/bar` before making the downstream request.
 
 === SetRequestHeader GatewayFilter Factory
+
 The SetRequestHeader GatewayFilter Factory takes `name` and `value` parameters.
 
 .application.yml
@@ -1091,9 +1279,11 @@ spring:
         - SetRequestHeader=X-Request-Foo, Bar
 ----
 
-This GatewayFilter replaces all headers with the given name, rather than adding. So if the downstream server responded with a `X-Request-Foo:1234`, this would be replaced with `X-Request-Foo:Bar`, which is what the downstream service would receive.
+This GatewayFilter replaces all headers with the given name, rather than adding.
+So if the downstream server responded with a `X-Request-Foo:1234`, this would be replaced with `X-Request-Foo:Bar`, which is what the downstream service would receive.
 
-SetRequestHeader is aware of URI variables used to match a path or host. URI variables may be used in the value and will be expanded at runtime.
+SetRequestHeader is aware of URI variables used to match a path or host.
+URI variables may be used in the value and will be expanded at runtime.
 
 .application.yml
 [source,yaml]
@@ -1111,6 +1301,7 @@ spring:
 ----
 
 === SetResponseHeader GatewayFilter Factory
+
 The SetResponseHeader GatewayFilter Factory takes `name` and `value` parameters.
 
 .application.yml
@@ -1126,9 +1317,11 @@ spring:
         - SetResponseHeader=X-Response-Foo, Bar
 ----
 
-This GatewayFilter replaces all headers with the given name, rather than adding. So if the downstream server responded with a `X-Response-Foo:1234`, this would be replaced with `X-Response-Foo:Bar`, which is what the gateway client would receive.
+This GatewayFilter replaces all headers with the given name, rather than adding.
+So if the downstream server responded with a `X-Response-Foo:1234`, this would be replaced with `X-Response-Foo:Bar`, which is what the gateway client would receive.
 
-SetResponseHeader is aware of URI variables used to match a path or host. URI variables may be used in the value and will be expanded at runtime.
+SetResponseHeader is aware of URI variables used to match a path or host.
+URI variables may be used in the value and will be expanded at runtime.
 
 .application.yml
 [source,yaml]
@@ -1146,7 +1339,10 @@ spring:
 ----
 
 === SetStatus GatewayFilter Factory
-The SetStatus GatewayFilter Factory takes a single `status` parameter. It must be a valid Spring `HttpStatus`. It may be the integer value `404` or the string representation of the enumeration `NOT_FOUND`.
+
+The SetStatus GatewayFilter Factory takes a single `status` parameter.
+It must be a valid Spring `HttpStatus`.
+It may be the integer value `404` or the string representation of the enumeration `NOT_FOUND`.
 
 .application.yml
 [source,yaml]
@@ -1167,7 +1363,8 @@ spring:
 
 In either case, the HTTP status of the response will be set to 401.
 
-The SetStatus GatewayFilter can be configured to return the original HTTP status code from the proxied request in a header in the response. Header will be added to the response if configured using following property.
+The SetStatus GatewayFilter can be configured to return the original HTTP status code from the proxied request in a header in the response.
+Header will be added to the response if configured using following property.
 
 .application.yml
 [source,yaml]
@@ -1180,7 +1377,9 @@ spring:
 ----
 
 === StripPrefix GatewayFilter Factory
-The StripPrefix GatewayFilter Factory takes one parameter, `parts`.  The `parts` parameter indicated the number of parts in the path to strip from the request before sending it downstream.
+
+The StripPrefix GatewayFilter Factory takes one parameter, `parts`.
+The `parts` parameter indicated the number of parts in the path to strip from the request before sending it downstream.
 
 .application.yml
 [source,yaml]
@@ -1208,7 +1407,8 @@ The Retry GatewayFilter Factory support following set of parameters:
 * `methods`: the HTTP methods that should be retried, represented using `org.springframework.http.HttpMethod`
 * `series`: the series of status codes to be retried, represented using `org.springframework.http.HttpStatus.Series`
 * `exceptions`: list of exceptions thrown that should be retried
-* `backoff`: configured exponential backoff for the retries. Retries are performed after a backoff interval of `firstBackoff * (factor ^ n)` where `n` is the iteration.
+* `backoff`: configured exponential backoff for the retries.
+Retries are performed after a backoff interval of `firstBackoff * (factor ^ n)` where `n` is the iteration.
 If `maxBackoff` is configured, the maximum backoff applied will be limited to `maxBackoff`.
 If `basedOnPreviousValue` is true, backoff will be calculated using `prevBackoff * factor`.
 
@@ -1245,10 +1445,14 @@ spring:
 
 NOTE: The retry filter does not currently support retrying with a body (e.g. for POST or PUT requests with a body).
 
-NOTE: When using the retry filter with a `forward:` prefixed URL, the target endpoint should be written carefully so that in case of an error it does not do anything that could result in a response being sent to the client and committed. For example, if the target endpoint is an annotated controller, the target controller method should not return `ResponseEntity` with an error status code. Instead it should throw an `Exception`, or signal an error, e.g. via a `Mono.error(ex)` return value, which the retry filter can be configured to handle by retrying.
+NOTE: When using the retry filter with a `forward:` prefixed URL, the target endpoint should be written carefully so that in case of an error it does not do anything that could result in a response being sent to the client and committed.
+For example, if the target endpoint is an annotated controller, the target controller method should not return `ResponseEntity` with an error status code.
+Instead it should throw an `Exception`, or signal an error, e.g. via a `Mono.error(ex)` return value, which the retry filter can be configured to handle by retrying.
 
 === RequestSize GatewayFilter Factory
-The RequestSize GatewayFilter Factory can restrict a request from reaching the downstream service , when the request size is greater than the permissible limit. The filter takes `RequestSize` as parameter which is the permissible size limit of the request defined in bytes.
+
+The RequestSize GatewayFilter Factory can restrict a request from reaching the downstream service , when the request size is greater than the permissible limit.
+The filter takes `RequestSize` as parameter which is the permissible size limit of the request defined in bytes.
 
 .application.yml
 [source,yaml]
@@ -1267,7 +1471,8 @@ spring:
             maxSize: 5000000
 ----
 
-The RequestSize GatewayFilter Factory set the response status as `413 Payload Too Large` with a additional header `errorMessage` when the Request is rejected due to size. Following is an example of such an `errorMessage` .
+The RequestSize GatewayFilter Factory set the response status as `413 Payload Too Large` with a additional header `errorMessage` when the Request is rejected due to size.
+Following is an example of such an `errorMessage` .
 
 `errorMessage` : `Request size is larger than permissible limit. Request size is 6.0 MB where permissible limit is 5.0 MB`
 
@@ -1333,7 +1538,6 @@ public RouteLocator routes(RouteLocatorBuilder builder) {
 }
 ----
 
-
 === Default Filters
 
 If you would like to add a filter and apply it to all routes you can use `spring.cloud.gateway.default-filters`.
@@ -1352,11 +1556,14 @@ spring:
 
 == Global Filters
 
-The `GlobalFilter` interface has the same signature as `GatewayFilter`. These are special filters that are conditionally applied to all routes. (This interface and usage are subject to change in future milestones).
+The `GlobalFilter` interface has the same signature as `GatewayFilter`.
+These are special filters that are conditionally applied to all routes.
+(This interface and usage are subject to change in future milestones).
 
 === Combined Global Filter and GatewayFilter Ordering
 
-When a request comes in (and matches a Route) the Filtering Web Handler will add all instances of `GlobalFilter` and all route specific instances of `GatewayFilter` to a filter chain. This combined filter chain is sorted by the `org.springframework.core.Ordered` interface, which can be set by implementing the `getOrder()` method.
+When a request comes in (and matches a Route) the Filtering Web Handler will add all instances of `GlobalFilter` and all route specific instances of `GatewayFilter` to a filter chain.
+This combined filter chain is sorted by the `org.springframework.core.Ordered` interface, which can be set by implementing the `getOrder()` method.
 
 As Spring Cloud Gateway distinguishes between "pre" and "post" phases for filter logic execution (see: <<gateway-how-it-works, How it Works>>), the filter with the highest precedence will be the first in the "pre"-phase and the last in the "post"-phase.
 
@@ -1385,11 +1592,16 @@ public class CustomGlobalFilter implements GlobalFilter, Ordered {
 
 === Forward Routing Filter
 
-The `ForwardRoutingFilter` looks for a URI in the exchange attribute `ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR`. If the url has a `forward` scheme (ie `forward:///localendpoint`), it will use the Spring `DispatcherHandler` to handler the request.  The path part of the request URL will be overridden with the path in the forward URL. The unmodified original url is appended to the list in the `ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR` attribute.
+The `ForwardRoutingFilter` looks for a URI in the exchange attribute `ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR`.
+If the url has a `forward` scheme (ie `forward:///localendpoint`), it will use the Spring `DispatcherHandler` to handler the request.
+The path part of the request URL will be overridden with the path in the forward URL. The unmodified original url is appended to the list in the `ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR` attribute.
 
 === LoadBalancerClient Filter
 
-The `LoadBalancerClientFilter` looks for a URI in the exchange attribute `ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR`. If the url has a `lb` scheme (ie `lb://myservice`), it will use the Spring Cloud `LoadBalancerClient` to resolve the name (`myservice` in the previous example) to an actual host and port and replace the URI in the same attribute. The unmodified original url is appended to the list in the `ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR` attribute. The filter will also look in the `ServerWebExchangeUtils.GATEWAY_SCHEME_PREFIX_ATTR` attribute to see if it equals `lb` and then the same rules apply.
+The `LoadBalancerClientFilter` looks for a URI in the exchange attribute `ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR`.
+If the url has a `lb` scheme (ie `lb://myservice`), it will use the Spring Cloud `LoadBalancerClient` to resolve the name (`myservice` in the previous example) to an actual host and port and replace the URI in the same attribute.
+The unmodified original url is appended to the list in the `ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR` attribute.
+The filter will also look in the `ServerWebExchangeUtils.GATEWAY_SCHEME_PREFIX_ATTR` attribute to see if it equals `lb` and then the same rules apply.
 
 .application.yml
 [source,yaml]
@@ -1407,12 +1619,12 @@ spring:
 NOTE: By default when a service instance cannot be found in the `LoadBalancer` a `503` will be returned.
 You can configure the Gateway to return a `404` by setting `spring.cloud.gateway.loadbalancer.use404=true`.
 
-NOTE: The `isSecure` value of the `ServiceInstance` returned from the `LoadBalancer` will override
-the scheme specified in the request made to the Gateway.  For example, if the request comes into the Gateway over `HTTPS`
+NOTE: The `isSecure` value of the `ServiceInstance` returned from the `LoadBalancer` will override the scheme specified in the request made to the Gateway.
+For example, if the request comes into the Gateway over `HTTPS`
 but the `ServiceInstance` indicates it is not secure, then the downstream request will be made over
-`HTTP`.  The opposite situation can also apply.  However if `GATEWAY_SCHEME_PREFIX_ATTR` is specified for the
-route in the Gateway configuration, the prefix will be stripped and the resulting scheme from the
-route URL will override the `ServiceInstance` configuration.
+`HTTP`.
+The opposite situation can also apply.
+However if `GATEWAY_SCHEME_PREFIX_ATTR` is specified for the route in the Gateway configuration, the prefix will be stripped and the resulting scheme from the route URL will override the `ServiceInstance` configuration.
 
 WARNING: `LoadBalancerClientFilter` uses a blocking Ribbon `LoadBalancerClient` under the hood.
 We suggest you use <<reactive-loadbalancer-client-filter,`ReactiveLoadBalancerClientFilter` instead>>.
@@ -1422,10 +1634,9 @@ You can switch to using it by setting the value of the `spring.cloud.loadbalance
 === ReactiveLoadBalancerClientFilter
 
 The `ReactiveLoadBalancerClientFilter` looks for a URI in the exchange attribute
-`ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR`. If the url has a `lb` scheme (ie `lb://myservice`),
-it will use the Spring Cloud `ReactorLoadBalancer` to resolve the name (`myservice` in the previous example)
-to an actual host and port and replace the URI in the same attribute. The unmodified
-original url is appended to the list in the `ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR` attribute.
+`ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR`.
+If the url has a `lb` scheme (ie `lb://myservice`), it will use the Spring Cloud `ReactorLoadBalancer` to resolve the name (`myservice` in the previous example) to an actual host and port and replace the URI in the same attribute.
+The unmodified original url is appended to the list in the `ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR` attribute.
 The filter will also look in the `ServerWebExchangeUtils.GATEWAY_SCHEME_PREFIX_ATTR` attribute to see if it equals
 `lb` and then the same rules apply.
 
@@ -1445,30 +1656,38 @@ spring:
 NOTE: By default when a service instance cannot be found by the `ReactorLoadBalancer`, a `503` will be returned.
 You can configure the Gateway to return a `404` by setting `spring.cloud.gateway.loadbalancer.use404=true`.
 
-NOTE: The `isSecure` value of the `ServiceInstance` returned from the `ReactiveLoadBalancerClientFilter` will override
-the scheme specified in the request made to the Gateway.  For example, if the request comes into the Gateway over `HTTPS`
+NOTE: The `isSecure` value of the `ServiceInstance` returned from the `ReactiveLoadBalancerClientFilter` will override the scheme specified in the request made to the Gateway.
+For example, if the request comes into the Gateway over `HTTPS`
 but the `ServiceInstance` indicates it is not secure, then the downstream request will be made over
-`HTTP`.  The opposite situation can also apply.  However if `GATEWAY_SCHEME_PREFIX_ATTR` is specified for the
-route in the Gateway configuration, the prefix will be stripped and the resulting scheme from the
-route URL will override the `ServiceInstance` configuration.
+`HTTP`.
+The opposite situation can also apply.
+However if `GATEWAY_SCHEME_PREFIX_ATTR` is specified for the route in the Gateway configuration, the prefix will be stripped and the resulting scheme from the route URL will override the `ServiceInstance` configuration.
 
 === Netty Routing Filter
 
-The Netty Routing Filter runs if the url located in the `ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR` exchange attribute has a `http` or `https` scheme. It uses the Netty `HttpClient` to make the downstream proxy request. The response is put in the `ServerWebExchangeUtils.CLIENT_RESPONSE_ATTR` exchange attribute for use in a later filter. (There is an experimental `WebClientHttpRoutingFilter` that performs the same function, but does not require netty)
+The Netty Routing Filter runs if the url located in the `ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR` exchange attribute has a `http` or `https` scheme.
+It uses the Netty `HttpClient` to make the downstream proxy request.
+The response is put in the `ServerWebExchangeUtils.CLIENT_RESPONSE_ATTR` exchange attribute for use in a later filter.
+(There is an experimental `WebClientHttpRoutingFilter` that performs the same function, but does not require netty)
 
 === Netty Write Response Filter
 
-The `NettyWriteResponseFilter` runs if there is a Netty `HttpClientResponse` in the `ServerWebExchangeUtils.CLIENT_RESPONSE_ATTR` exchange attribute. It is run after all other filters have completed and writes the proxy response back to the gateway client response. (There is an experimental `WebClientWriteResponseFilter` that performs the same function, but does not require netty)
+The `NettyWriteResponseFilter` runs if there is a Netty `HttpClientResponse` in the `ServerWebExchangeUtils.CLIENT_RESPONSE_ATTR` exchange attribute.
+It is run after all other filters have completed and writes the proxy response back to the gateway client response.
+(There is an experimental `WebClientWriteResponseFilter` that performs the same function, but does not require netty)
 
 === RouteToRequestUrl Filter
 
-The `RouteToRequestUrlFilter` runs if there is a `Route` object in the `ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR` exchange attribute. It creates a new URI, based off of the request URI, but updated with the URI attribute of the `Route` object. The new URI is placed in the `ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR` exchange attribute`.
+The `RouteToRequestUrlFilter` runs if there is a `Route` object in the `ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR` exchange attribute.
+It creates a new URI, based off of the request URI, but updated with the URI attribute of the `Route` object.
+The new URI is placed in the `ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR` exchange attribute`.
 
 If the URI has a scheme prefix, such as `lb:ws://serviceid`, the `lb` scheme is stripped from the URI and placed in the `ServerWebExchangeUtils.GATEWAY_SCHEME_PREFIX_ATTR` for use later in the filter chain.
 
 === Websocket Routing Filter
 
-The Websocket Routing Filter runs if the url located in the `ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR` exchange attribute has a `ws` or `wss` scheme. It uses the Spring Web Socket infrastructure to forward the Websocket request downstream.
+The Websocket Routing Filter runs if the url located in the `ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR` exchange attribute has a `ws` or `wss` scheme.
+It uses the Spring Web Socket infrastructure to forward the Websocket request downstream.
 
 Websockets may be load-balanced by prefixing the URI with `lb`, such as `lb:ws://serviceid`.
 
@@ -1495,7 +1714,9 @@ spring:
 
 === Gateway Metrics Filter
 
-To enable Gateway Metrics add spring-boot-starter-actuator as a project dependency. Then, by default, the Gateway Metrics Filter runs as long as the property `spring.cloud.gateway.metrics.enabled` is not set to `false`. This filter adds a timer metric named "gateway.requests" with the following tags:
+To enable Gateway Metrics add spring-boot-starter-actuator as a project dependency.
+Then, by default, the Gateway Metrics Filter runs as long as the property `spring.cloud.gateway.metrics.enabled` is not set to `false`.
+This filter adds a timer metric named "gateway.requests" with the following tags:
 
 * `routeId`: The route id
 * `routeUri`: The URI that the API will be routed to
@@ -1511,15 +1732,17 @@ NOTE: To enable the prometheus endpoint add micrometer-registry-prometheus as a 
 === Marking An Exchange As Routed
 
 After the Gateway has routed a `ServerWebExchange` it will mark that exchange as "routed" by adding `gatewayAlreadyRouted`
-to the exchange attributes.  Once a request has been marked as routed, other routing filters will not route the request again,
-essentially skipping the filter.  There are convenience methods that you can use to mark an exchange as routed
-or check if an exchange has already been routed.
+to the exchange attributes.
+Once a request has been marked as routed, other routing filters will not route the request again, essentially skipping the filter.
+There are convenience methods that you can use to mark an exchange as routed or check if an exchange has already been routed.
 
 * `ServerWebExchangeUtils.isAlreadyRouted` takes a `ServerWebExchange` object and checks if it has been "routed"
 * `ServerWebExchangeUtils.setAlreadyRouted` takes a `ServerWebExchange` object and marks it as "routed"
 
 == TLS / SSL
-The Gateway can listen for requests on https by following the usual Spring server configuration. Example:
+
+The Gateway can listen for requests on https by following the usual Spring server configuration.
+Example:
 
 .application.yml
 [source,yaml]
@@ -1533,7 +1756,8 @@ server:
     key-store-type: PKCS12
 ----
 
-Gateway routes can be routed to both http and https backends. If routing to a https backend then the Gateway can be configured to trust all downstream certificates with the following configuration:
+Gateway routes can be routed to both http and https backends.
+If routing to a https backend then the Gateway can be configured to trust all downstream certificates with the following configuration:
 
 .application.yml
 [source,yaml]
@@ -1546,7 +1770,8 @@ spring:
           useInsecureTrustManager: true
 ----
 
-Using an insecure trust manager is not suitable for production. For a production deployment the Gateway can be configured with a set of known certificates that it can trust with the following configuration:
+Using an insecure trust manager is not suitable for production.
+For a production deployment the Gateway can be configured with a set of known certificates that it can trust with the following configuration:
 
 .application.yml
 [source,yaml]
@@ -1565,7 +1790,10 @@ If the Spring Cloud Gateway is not provisioned with trusted certificates the def
 
 === TLS Handshake
 
-The Gateway maintains a client pool that it uses to route to backends. When communicating over https the client initiates a TLS handshake. A number of timeouts are associated with this handshake. These timeouts can be configured (defaults shown):
+The Gateway maintains a client pool that it uses to route to backends.
+When communicating over https the client initiates a TLS handshake.
+A number of timeouts are associated with this handshake.
+These timeouts can be configured (defaults shown):
 
 .application.yml
 [source,yaml]
@@ -1594,7 +1822,8 @@ public interface RouteDefinitionLocator {
 
 By default, a `PropertiesRouteDefinitionLocator` loads properties using Spring Boot's `@ConfigurationProperties` mechanism.
 
-The configuration examples above all use a shortcut notation that uses positional arguments rather than named ones. The two examples below are equivalent:
+The configuration examples above all use a shortcut notation that uses positional arguments rather than named ones.
+The two examples below are equivalent:
 
 .application.yml
 [source,yaml]
@@ -1615,9 +1844,11 @@ spring:
         - SetStatus=401
 ----
 
-For some usages of the gateway, properties will be adequate, but some production use cases will benefit from loading configuration from an external source, such as a database. Future milestone versions will have `RouteDefinitionLocator` implementations based off of Spring Data Repositories such as: Redis, MongoDB and Cassandra.
+For some usages of the gateway, properties will be adequate, but some production use cases will benefit from loading configuration from an external source, such as a database.
+Future milestone versions will have `RouteDefinitionLocator` implementations based off of Spring Data Repositories such as: Redis, MongoDB and Cassandra.
 
 == Route metadata configuration
+
 Additional parameters can be configured for each route using metadata:
 
 .application.yml
@@ -1637,6 +1868,7 @@ spring:
 ----
 
 All metadata properties could be acquired from exchange:
+
 ```
 Route route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
 // get all metadata properties
@@ -1646,6 +1878,7 @@ route.getMetadata(someKey);
 ```
 
 === Fluent Java Routes API
+
 To allow for simple configuration in Java, there is a fluent API defined in the `RouteLocatorBuilder` bean.
 
 .GatewaySampleApplication.java
@@ -1679,7 +1912,9 @@ public RouteLocator customRouteLocator(RouteLocatorBuilder builder, ThrottleGate
 }
 ----
 
-This style also allows for more custom predicate assertions. The predicates defined by `RouteDefinitionLocator` beans are combined using logical `and`. By using the fluent Java API, you can use the `and()`, `or()` and `negate()` operators on the `Predicate` class.
+This style also allows for more custom predicate assertions.
+The predicates defined by `RouteDefinitionLocator` beans are combined using logical `and`.
+By using the fluent Java API, you can use the `and()`, `or()` and `negate()` operators on the `Predicate` class.
 
 === DiscoveryClient Route Definition Locator
 
@@ -1691,17 +1926,15 @@ To enable this, set `spring.cloud.gateway.discovery.locator.enabled=true` and ma
 
 By default the Gateway defines a single predicate and filter for routes created via a `DiscoveryClient`.
 
-The default predicate is a path predicate defined with the pattern `/serviceId/**`, where `serviceId` is
-the id of the service from the `DiscoveryClient`.
+The default predicate is a path predicate defined with the pattern `/serviceId/**`, where `serviceId` is the id of the service from the `DiscoveryClient`.
 
 The default filter is rewrite path filter with the regex `/serviceId/(?<remaining>.*)` and the replacement
-`/${remaining}`.  This just strips the service id from the path before the request is sent
-downstream.
+`/${remaining}`.
+This just strips the service id from the path before the request is sent downstream.
 
-If you would like to customize the predicates and/or filters used by the `DiscoveryClient` routes you can do so
-by setting `spring.cloud.gateway.discovery.locator.predicates[x]` and `spring.cloud.gateway.discovery.locator.filters[y]`.
-When doing so you need to make sure to include the default predicate and filter above, if you want to retain
-that functionality.  Below is an example of what this looks like.
+If you would like to customize the predicates and/or filters used by the `DiscoveryClient` routes you can do so by setting `spring.cloud.gateway.discovery.locator.predicates[x]` and `spring.cloud.gateway.discovery.locator.filters[y]`.
+When doing so you need to make sure to include the default predicate and filter above, if you want to retain that functionality.
+Below is an example of what this looks like.
 
 .application.properties
 [soure,properties]
@@ -1719,9 +1952,11 @@ spring.cloud.gateway.discovery.locator.filters[1].args[replacement]: "'/${remain
 
 == Reactor Netty Access Logs
 
-To enable Reactor Netty access logs, set `-Dreactor.netty.http.server.accessLogEnabled=true`. (It must be a Java System Property, not a Spring Boot property).
+To enable Reactor Netty access logs, set `-Dreactor.netty.http.server.accessLogEnabled=true`.
+(It must be a Java System Property, not a Spring Boot property).
 
-The logging system can be configured to have a separate access log file. Below is an example logback configuration:
+The logging system can be configured to have a separate access log file.
+Below is an example logback configuration:
 
 .logback.xml
 [source,xml]
@@ -1743,7 +1978,8 @@ The logging system can be configured to have a separate access log file. Below i
 
 == CORS Configuration
 
-The gateway can be configured to control CORS behavior. The "global" CORS configuration is a map of URL patterns to https://docs.spring.io/spring/docs/5.0.x/javadoc-api/org/springframework/web/cors/CorsConfiguration.html[Spring Framework `CorsConfiguration`].
+The gateway can be configured to control CORS behavior.
+The "global" CORS configuration is a map of URL patterns to https://docs.spring.io/spring/docs/5.0.x/javadoc-api/org/springframework/web/cors/CorsConfiguration.html[Spring Framework `CorsConfiguration`].
 
 .application.yml
 [source,yaml]
@@ -1761,11 +1997,13 @@ spring:
 
 In the example above, CORS requests will be allowed from requests that originate from docs.spring.io for all GET requested paths.
 
-To provide the same CORS configuration to requests that are not handled by some gateway route predicate, set the property `spring.cloud.gateway.globalcors.add-to-simple-url-handler-mapping` equal to true. This is useful when trying to support CORS preflight requests and your route predicate doesn't evalute to true because the http method is `options`.
+To provide the same CORS configuration to requests that are not handled by some gateway route predicate, set the property `spring.cloud.gateway.globalcors.add-to-simple-url-handler-mapping` equal to true.
+This is useful when trying to support CORS preflight requests and your route predicate doesn't evalute to true because the http method is `options`.
 
 == Actuator API
 
-The `/gateway` actuator endpoint allows to monitor and interact with a Spring Cloud Gateway application. To be remotely accessible, the endpoint has to be https://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-endpoints.html#production-ready-endpoints-enabling-endpoints[enabled] and https://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-endpoints.html#production-ready-endpoints-exposing-endpoints[exposed via HTTP or JMX] in the application properties.
+The `/gateway` actuator endpoint allows to monitor and interact with a Spring Cloud Gateway application.
+To be remotely accessible, the endpoint has to be https://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-endpoints.html#production-ready-endpoints-enabling-endpoints[enabled] and https://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-endpoints.html#production-ready-endpoints-exposing-endpoints[exposed via HTTP or JMX] in the application properties.
 
 .application.properties
 [source,properties]
@@ -1776,9 +2014,11 @@ management.endpoints.web.exposure.include=gateway
 
 === Verbose Actuator Format
 
-A new, more verbose format has been added to Gateway. This adds more detail to each route allowing to view the predicates and filters associated to each route along with any configuration that is available.
+A new, more verbose format has been added to Gateway.
+This adds more detail to each route allowing to view the predicates and filters associated to each route along with any configuration that is available.
 
 `/actuator/gateway/routes`
+
 [source,json]
 ----
 [
@@ -1796,7 +2036,8 @@ A new, more verbose format has been added to Gateway. This adds more detail to e
 ]
 ----
 
-This feature is enabled by default. To disable it, set the following property:
+This feature is enabled by default.
+To disable it, set the following property:
 
 .application.properties
 [source,properties]
@@ -1807,8 +2048,11 @@ spring.cloud.gateway.actuator.verbose.enabled=false
 This will default to true in a future release.
 
 === Retrieving route filters
+
 ==== Global Filters
-To retrieve the <<global-filters,global filters>> applied to all routes, make a `GET` request to `/actuator/gateway/globalfilters`. The resulting response is similar to the following:
+
+To retrieve the <<global-filters,global filters>> applied to all routes, make a `GET` request to `/actuator/gateway/globalfilters`.
+The resulting response is similar to the following:
 
 ----
 {
@@ -1823,10 +2067,13 @@ To retrieve the <<global-filters,global filters>> applied to all routes, make a 
 }
 ----
 
-The response contains details of the global filters in place. For each global filter is provided the string representation of the filter object (e.g., `org.springframework.cloud.gateway.filter.LoadBalancerClientFilter@77856cc5`) and the corresponding <<Combined Global Filter and GatewayFilter Ordering,order>> in the filter chain.
+The response contains details of the global filters in place.
+For each global filter is provided the string representation of the filter object (e.g., `org.springframework.cloud.gateway.filter.LoadBalancerClientFilter@77856cc5`) and the corresponding <<Combined Global Filter and GatewayFilter Ordering,order>> in the filter chain.
 
 ==== Route Filters
-To retrieve the <<gatewayfilter-factories,GatewayFilter factories>> applied to routes, make a `GET` request to `/actuator/gateway/routefilters`. The resulting response is similar to the following:
+
+To retrieve the <<gatewayfilter-factories,GatewayFilter factories>> applied to routes, make a `GET` request to `/actuator/gateway/routefilters`.
+The resulting response is similar to the following:
 
 ----
 {
@@ -1836,13 +2083,19 @@ To retrieve the <<gatewayfilter-factories,GatewayFilter factories>> applied to r
 }
 ----
 
-The response contains details of the GatewayFilter factories applied to any particular route. For each factory is provided the string representation of the corresponding object (e.g., `[SecureHeadersGatewayFilterFactory@fceab5d configClass = Object]`). Note that the `null` value is due to an incomplete implementation of the endpoint controller, for that it tries to set the order of the object in the filter chain, which does not apply to a GatewayFilter factory object.
+The response contains details of the GatewayFilter factories applied to any particular route.
+For each factory is provided the string representation of the corresponding object (e.g., `[SecureHeadersGatewayFilterFactory@fceab5d configClass = Object]`).
+Note that the `null` value is due to an incomplete implementation of the endpoint controller, for that it tries to set the order of the object in the filter chain, which does not apply to a GatewayFilter factory object.
 
 === Refreshing the route cache
-To clear the routes cache, make a `POST` request to `/actuator/gateway/refresh`. The request returns a 200 without response body.
+
+To clear the routes cache, make a `POST` request to `/actuator/gateway/refresh`.
+The request returns a 200 without response body.
 
 === Retrieving the routes defined in the gateway
-To retrieve the routes defined in the gateway, make a `GET` request to `/actuator/gateway/routes`. The resulting response is similar to the following:
+
+To retrieve the routes defined in the gateway, make a `GET` request to `/actuator/gateway/routes`.
+The resulting response is similar to the following:
 
 ----
 [{
@@ -1865,7 +2118,8 @@ To retrieve the routes defined in the gateway, make a `GET` request to `/actuato
 }]
 ----
 
-The response contains details of all the routes defined in the gateway. The following table describes the structure of each element (i.e., a route) of the response.
+The response contains details of all the routes defined in the gateway.
+The following table describes the structure of each element (i.e., a route) of the response.
 
 [cols="3,2,4"]
 |===
@@ -1890,7 +2144,9 @@ The response contains details of all the routes defined in the gateway. The foll
 |===
 
 === Retrieving information about a particular route
-To retrieve information about a single route, make a `GET` request to `/actuator/gateway/routes/{id}` (e.g., `/actuator/gateway/routes/first_route`). The resulting response is similar to the following:
+
+To retrieve information about a single route, make a `GET` request to `/actuator/gateway/routes/{id}` (e.g., `/actuator/gateway/routes/first_route`).
+The resulting response is similar to the following:
 
 ----
 {
@@ -1934,12 +2190,15 @@ The following table describes the structure of the response.
 |===
 
 === Creating and deleting a particular route
+
 To create a route, make a `POST` request to `/gateway/routes/{id_route_to_create}` with a JSON body that specifies the fields of the route (see the previous subsection).
 
 To delete a route, make a `DELETE` request to `/gateway/routes/{id_route_to_delete}`.
 
 === Recap: list of all endpoints
-The table below summarises the Spring Cloud Gateway actuator endpoints. Note that each endpoint has `/actuator/gateway` as the base-path.
+
+The table below summarises the Spring Cloud Gateway actuator endpoints.
+Note that each endpoint has `/actuator/gateway` as the base-path.
 
 [cols="2,2,5"]
 |===
@@ -1991,10 +2250,9 @@ Below are some useful loggers that contain valuable trouble shooting infomration
 
 === Wiretap
 
-The Reactor Netty `HttpClient` and `HttpServer` can have wiretap enabled. When combined
-with setting the `reactor.netty` log level to `DEBUG` or `TRACE` will enable logging of
-information such as headers and bodies sent and received across the wire. To enable this,
-set `spring.cloud.gateway.httpserver.wiretap=true` and/or
+The Reactor Netty `HttpClient` and `HttpServer` can have wiretap enabled.
+When combined with setting the `reactor.netty` log level to `DEBUG` or `TRACE` will enable logging of information such as headers and bodies sent and received across the wire.
+To enable this, set `spring.cloud.gateway.httpserver.wiretap=true` and/or
 `spring.cloud.gateway.httpclient.wiretap=true` for the `HttpServer` and `HttpClient`
 respectively.
 
@@ -2008,7 +2266,8 @@ TODO: document writing Custom Route Predicate Factories
 
 === Writing Custom GatewayFilter Factories
 
-In order to write a GatewayFilter you will need to implement `GatewayFilterFactory`.  There is an abstract class called `AbstractGatewayFilterFactory` which you can extend.
+In order to write a GatewayFilter you will need to implement `GatewayFilterFactory`.
+There is an abstract class called `AbstractGatewayFilterFactory` which you can extend.
 
 .PreGatewayFilterFactory.java
 [source,java]
@@ -2067,7 +2326,8 @@ public class PostGatewayFilterFactory extends AbstractGatewayFilterFactory<PostG
 
 === Writing Custom Global Filters
 
-In order to write a custom global filter, you will need to implement `GlobalFilter` interface. This will apply the filter to all requests.
+In order to write a custom global filter, you will need to implement `GlobalFilter` interface.
+This will apply the filter to all requests.
 
 Example of how to set up a Global Pre and Post filter, respectively
 
@@ -2106,7 +2366,10 @@ TODO: document writing Custom Route Locators and Writers
 
 == Building a Simple Gateway Using Spring MVC or Webflux
 
-Spring Cloud Gateway provides a utility object called `ProxyExchange` which you can use inside a regular Spring web handler as a method parameter. It supports basic downstream HTTP exchanges via methods that mirror the HTTP verbs. With MVC it also supports forwarding to a local handler via the `forward()` method. To use the `ProxyExchange` just include the right module in your classpath (either `spring-cloud-gateway-mvc` or `spring-cloud-gateway-webflux`).
+Spring Cloud Gateway provides a utility object called `ProxyExchange` which you can use inside a regular Spring web handler as a method parameter.
+It supports basic downstream HTTP exchanges via methods that mirror the HTTP verbs.
+With MVC it also supports forwarding to a local handler via the `forward()` method.
+To use the `ProxyExchange` just include the right module in your classpath (either `spring-cloud-gateway-mvc` or `spring-cloud-gateway-webflux`).
 
 MVC example (proxying a request to "/test" downstream to a remote server):
 
@@ -2144,7 +2407,8 @@ public class GatewaySampleApplication {
 }
 ```
 
-There are convenience methods on the `ProxyExchange` to enable the handler method to discover and enhance the URI path of the incoming request. For example you might want to extract the trailing elements of a path to pass them downstream:
+There are convenience methods on the `ProxyExchange` to enable the handler method to discover and enhance the URI path of the incoming request.
+For example you might want to extract the trailing elements of a path to pass them downstream:
 
 ```java
 @GetMapping("/proxy/path/**")
@@ -2154,11 +2418,14 @@ public ResponseEntity<?> proxyPath(ProxyExchange<byte[]> proxy) throws Exception
 }
 ```
 
-All the features of Spring MVC or Webflux are available to Gateway handler methods. So you can inject request headers and query parameters, for instance, and you can constrain the incoming requests with declarations in the mapping annotation. See the documentation for `@RequestMapping` in Spring MVC for more details of those features.
+All the features of Spring MVC or Webflux are available to Gateway handler methods.
+So you can inject request headers and query parameters, for instance, and you can constrain the incoming requests with declarations in the mapping annotation.
+See the documentation for `@RequestMapping` in Spring MVC for more details of those features.
 
 Headers can be added to the downstream response using the `header()` methods on `ProxyExchange`.
 
-You can also manipulate response headers (and anything else you like in the response) by adding a mapper to the `get()` etc. method. The mapper is a `Function` that takes the incoming `ResponseEntity` and converts it to an outgoing one.
+You can also manipulate response headers (and anything else you like in the response) by adding a mapper to the `get()` etc. method.
+The mapper is a `Function` that takes the incoming `ResponseEntity` and converts it to an outgoing one.
 
 First class support is provided for "sensitive" headers ("cookie" and "authorization" by default) which are not passed downstream, and for "proxy" headers (`x-forwarded-*`).
 
