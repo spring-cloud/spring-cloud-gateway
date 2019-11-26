@@ -52,6 +52,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -414,11 +415,14 @@ public class ProxyExchange<T> {
 		else {
 			forwarded = "";
 		}
-		forwarded = forwarded + forwarded(uri);
+		forwarded = forwarded + forwarded(uri, webRequest.getHeader("host"));
 		headers.set("forwarded", forwarded);
 	}
 
-	private String forwarded(URI uri) {
+	private String forwarded(URI uri, String hostHeader) {
+		if (!StringUtils.isEmpty(hostHeader)) {
+			return "host=" + hostHeader;
+		}
 		if ("http".equals(uri.getScheme())) {
 			return "host=" + uri.getHost();
 		}

@@ -42,7 +42,7 @@ public class GatewayTestApplication {
 	 * `--spring.profiles.active=discovery` should be able to hit
 	 * http://localhost:8008/configserver/foo/default a normal configserver api
 	 */
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	@EnableDiscoveryClient
 	@Profile("discovery")
 	protected static class GatewayDiscoveryConfiguration {

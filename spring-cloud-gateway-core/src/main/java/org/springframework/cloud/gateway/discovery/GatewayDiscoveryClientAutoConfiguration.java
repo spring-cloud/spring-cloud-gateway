@@ -45,7 +45,7 @@ import static org.springframework.cloud.gateway.support.NameUtils.normalizeRoute
 /**
  * @author Spencer Gibb
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty(name = "spring.cloud.gateway.enabled", matchIfMissing = true)
 @AutoConfigureBefore(GatewayAutoConfiguration.class)
 @AutoConfigureAfter(CompositeDiscoveryClientAutoConfiguration.class)
@@ -88,7 +88,7 @@ public class GatewayDiscoveryClientAutoConfiguration {
 		return properties;
 	}
 
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	@ConditionalOnProperty(value = "spring.cloud.discovery.reactive.enabled",
 			matchIfMissing = true)
 	public static class ReactiveDiscoveryClientRouteDefinitionLocatorConfiguration {
@@ -106,7 +106,7 @@ public class GatewayDiscoveryClientAutoConfiguration {
 	/**
 	 * @deprecated In favor of the native reactive service discovery capability.
 	 */
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	@Deprecated
 	@ConditionalOnProperty(value = "spring.cloud.discovery.reactive.enabled",
 			havingValue = "false")

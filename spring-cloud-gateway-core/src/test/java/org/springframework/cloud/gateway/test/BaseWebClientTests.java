@@ -77,7 +77,7 @@ public class BaseWebClientTests {
 				.build();
 	}
 
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	@RibbonClients({
 			@RibbonClient(name = "testservice", configuration = TestRibbonConfig.class) })
 	@Import(PermitAllSecurityConfiguration.class)

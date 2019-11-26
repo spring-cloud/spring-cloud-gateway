@@ -220,7 +220,7 @@ public class SseIntegrationTests {
 
 	}
 
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	@EnableWebFlux
 	@SuppressWarnings("unused")
 	static class TestConfiguration {
@@ -232,7 +232,7 @@ public class SseIntegrationTests {
 
 	}
 
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	@EnableAutoConfiguration
 	@Import(PermitAllSecurityConfiguration.class)
 	protected static class GatewayConfig {

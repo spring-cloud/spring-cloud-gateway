@@ -489,7 +489,7 @@ public class GatewayFilterSpec extends UriSpec {
 	public GatewayFilterSpec requestRateLimiter(
 			Consumer<RequestRateLimiterGatewayFilterFactory.Config> configConsumer) {
 		return filter(getBean(RequestRateLimiterGatewayFilterFactory.class)
-				.apply(configConsumer));
+				.apply(this.routeBuilder.getId(), configConsumer));
 	}
 
 	/**
@@ -666,7 +666,7 @@ public class GatewayFilterSpec extends UriSpec {
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
 	public GatewayFilterSpec setStatus(HttpStatus status) {
-		return setStatus(status.toString());
+		return setStatus(status.name());
 	}
 
 	/**
@@ -828,7 +828,7 @@ public class GatewayFilterSpec extends UriSpec {
 
 		public GatewayFilterSpec configure(
 				Consumer<RequestRateLimiterGatewayFilterFactory.Config> configConsumer) {
-			filter(this.filter.apply(configConsumer));
+			filter(this.filter.apply(routeBuilder.getId(), configConsumer));
 			return GatewayFilterSpec.this;
 		}
 

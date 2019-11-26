@@ -155,7 +155,7 @@ import static org.springframework.cloud.gateway.config.HttpClientProperties.Pool
 /**
  * @author Spencer Gibb
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty(name = "spring.cloud.gateway.enabled", matchIfMissing = true)
 @EnableConfigurationProperties
 @AutoConfigureBefore({ HttpHandlerAutoConfiguration.class,
@@ -563,7 +563,7 @@ public class GatewayAutoConfiguration {
 		return new RequestHeaderSizeGatewayFilterFactory();
 	}
 
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	@ConditionalOnClass(HttpClient.class)
 	protected static class NettyConfiguration {
 
@@ -708,7 +708,7 @@ public class GatewayAutoConfiguration {
 
 	}
 
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	@ConditionalOnClass({ HystrixObservableCommand.class, RxReactiveStreams.class })
 	protected static class HystrixConfiguration {
 
@@ -726,7 +726,7 @@ public class GatewayAutoConfiguration {
 
 	}
 
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	@ConditionalOnClass(Health.class)
 	protected static class GatewayActuatorConfiguration {
 

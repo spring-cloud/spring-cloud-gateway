@@ -38,7 +38,7 @@ import org.springframework.web.reactive.result.method.annotation.ArgumentResolve
  *
  * @author Dave Syer
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @ConditionalOnWebApplication
 @ConditionalOnClass({ HandlerMethodReturnValueHandler.class })
 @EnableConfigurationProperties(ProxyProperties.class)

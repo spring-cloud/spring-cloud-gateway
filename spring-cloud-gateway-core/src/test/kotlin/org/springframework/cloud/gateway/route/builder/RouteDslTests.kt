@@ -118,6 +118,6 @@ class RouteDslTests {
     }
 }
 
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @EnableAutoConfiguration
 open class Config {}

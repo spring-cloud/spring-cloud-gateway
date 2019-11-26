@@ -40,7 +40,7 @@ import org.springframework.web.reactive.DispatcherHandler;
  * @author Spencer Gibb
  * @author Olga Maciaszek-Sharma
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @ConditionalOnClass({ ReactiveLoadBalancer.class, LoadBalancerAutoConfiguration.class,
 		DispatcherHandler.class })
 @AutoConfigureBefore(GatewayLoadBalancerClientAutoConfiguration.class)
