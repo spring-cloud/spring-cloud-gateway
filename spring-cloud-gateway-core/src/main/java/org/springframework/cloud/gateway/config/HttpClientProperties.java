@@ -29,7 +29,6 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
 import javax.net.ssl.KeyManagerFactory;
 
@@ -159,10 +158,10 @@ public class HttpClientProperties {
 		private Long acquireTimeout = ConnectionProvider.DEFAULT_POOL_ACQUIRE_TIMEOUT;
 
 		/**
-		 * Time in millis after which the channel will be closed,
-		 * if NULL there is no max idle time.
+		 * Time in millis after which the channel will be closed.
+		 * If NULL, there is no max idle time.
 		 */
-		private Long maxIdleTime = null;
+		private Duration maxIdleTime = null;
 
 		public PoolType getType() {
 			return type;
@@ -197,11 +196,10 @@ public class HttpClientProperties {
 		}
 
 		public Duration getMaxIdleTime() {
-			return Optional.ofNullable(maxIdleTime)
-					.map(it -> Duration.ofMillis(maxIdleTime)).orElse(null);
+			return maxIdleTime;
 		}
 
-		public void setMaxIdleTime(Long maxIdleTime) {
+		public void setMaxIdleTime(Duration maxIdleTime) {
 			this.maxIdleTime = maxIdleTime;
 		}
 
