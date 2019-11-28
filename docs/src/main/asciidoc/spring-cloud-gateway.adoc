@@ -890,40 +890,40 @@ If you are integrating https://projects.spring.io/spring-security/[Spring Securi
 The SecureHeaders GatewayFilter Factory adds a number of headers to the response at the recommendation from https://blog.appcanary.com/2017/http-security-headers.html[this blog post].
 
 .The following headers are added (along with default values):
-* `X-Xss-Protection:1; mode=block`
-* `Strict-Transport-Security:max-age=631138519`
-* `X-Frame-Options:DENY`
-* `X-Content-Type-Options:nosniff`
-* `Referrer-Policy:no-referrer`
-* `Content-Security-Policy:default-src 'self' https:; font-src 'self' https: data:; img-src 'self' https: data:; object-src 'none'; script-src https:; style-src 'self' https: 'unsafe-inline'`
-* `X-Download-Options:noopen`
-* `X-Permitted-Cross-Domain-Policies:none`
+ * `X-Xss-Protection:1; mode=block`
+ * `Strict-Transport-Security:max-age=631138519`
+ * `X-Frame-Options:DENY`
+ * `X-Content-Type-Options:nosniff`
+ * `Referrer-Policy:no-referrer`
+ * `Content-Security-Policy:default-src 'self' https:; font-src 'self' https: data:; img-src 'self' https: data:; object-src 'none'; script-src https:; style-src 'self' https: 'unsafe-inline'`
+ * `X-Download-Options:noopen`
+ * `X-Permitted-Cross-Domain-Policies:none`
 
 To change the default values set the appropriate property in the `spring.cloud.gateway.filter.secure-headers` namespace:
 
 .Property to change:
-* `xss-protection-header`
-* `strict-transport-security`
-* `frame-options`
-* `content-type-options`
-* `referrer-policy`
-* `content-security-policy`
-* `download-options`
-* `permitted-cross-domain-policies`
+ * `xss-protection-header`
+ * `strict-transport-security`
+ * `frame-options`
+ * `content-type-options`
+ * `referrer-policy`
+ * `content-security-policy`
+ * `download-options`
+ * `permitted-cross-domain-policies`
 
 To disable the default values set the property `spring.cloud.gateway.filter.secure-headers.disable` with comma separated values.
 
 NOTE: Need use lowercase and full name of secure headers.
 
 .The following values can use:
-* `x-xss-protection`
-* `strict-transport-security`
-* `x-frame-options`
-* `x-content-type-options`
-* `referrer-policy`
-* `content-security-policy`
-* `x-download-options`
-* `x-permitted-cross-domain-policies`
+ * `x-xss-protection`
+ * `strict-transport-security`
+ * `x-frame-options`
+ * `x-content-type-options`
+ * `referrer-policy`
+ * `content-security-policy`
+ * `x-download-options`
+ * `x-permitted-cross-domain-policies`
 
 .Example:
 `spring.cloud.gateway.filter.secure-headers.disable=x-frame-options,strict-transport-security`
