@@ -158,8 +158,8 @@ public class HttpClientProperties {
 		private Long acquireTimeout = ConnectionProvider.DEFAULT_POOL_ACQUIRE_TIMEOUT;
 
 		/**
-		 * Time in millis after which the channel will be closed.
-		 * If NULL, there is no max idle time.
+		 * Time in millis after which the channel will be closed. If NULL, there is no max
+		 * idle time.
 		 */
 		private Duration maxIdleTime = null;
 
