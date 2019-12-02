@@ -26,10 +26,7 @@ import org.springframework.cloud.circuitbreaker.resilience4j.ReactiveResilience4
 import org.springframework.cloud.circuitbreaker.resilience4j.ReactiveResilience4JCircuitBreakerFactory;
 import org.springframework.cloud.client.circuitbreaker.ReactiveCircuitBreakerFactory;
 import org.springframework.cloud.gateway.filter.factory.FallbackHeadersGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.SpringCloudCircuitBreakerHystrixFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SpringCloudCircuitBreakerResilience4JFilterFactory;
-import org.springframework.cloud.netflix.hystrix.HystrixCircuitBreakerAutoConfiguration;
-import org.springframework.cloud.netflix.hystrix.ReactiveHystrixCircuitBreakerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.DispatcherHandler;
@@ -39,45 +36,15 @@ import org.springframework.web.reactive.DispatcherHandler;
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty(name = "spring.cloud.gateway.enabled", matchIfMissing = true)
-@ConditionalOnClass({ DispatcherHandler.class })
-public class GatewayCircuitBreakerAutoConfiguration {
+@AutoConfigureAfter({ ReactiveResilience4JAutoConfiguration.class })
+@ConditionalOnClass({ DispatcherHandler.class,
+		ReactiveResilience4JAutoConfiguration.class })
+public class GatewayReactiveResilienceCircuitBreakerAutoConfiguration {
 
 	@Configuration(proxyBeanMethods = false)
-	@AutoConfigureAfter({ HystrixCircuitBreakerAutoConfiguration.class })
-	@ConditionalOnClass({ HystrixCircuitBreakerAutoConfiguration.class,
-			ReactiveCircuitBreakerFactory.class,
-			ReactiveHystrixCircuitBreakerFactory.class })
-	protected static class SpringCloudCircuitBreakerHystrixConfiguration {
-
-		@Bean
-		@ConditionalOnBean(ReactiveHystrixCircuitBreakerFactory.class)
-		public SpringCloudCircuitBreakerHystrixFilterFactory springCloudCircuitBreakerHystrixFilterFactory(
-				ReactiveHystrixCircuitBreakerFactory reactiveCircuitBreakerFactory,
-				ObjectProvider<DispatcherHandler> dispatcherHandler) {
-			return new SpringCloudCircuitBreakerHystrixFilterFactory(
-					reactiveCircuitBreakerFactory, dispatcherHandler);
-		}
-
-		@Bean
-		@ConditionalOnMissingBean(FallbackHeadersGatewayFilterFactory.class)
-		public FallbackHeadersGatewayFilterFactory fallbackHeadersGatewayFilterFactory() {
-			return new FallbackHeadersGatewayFilterFactory();
-		}
-
-	}
-
-	@Configuration(proxyBeanMethods = false)
-	@AutoConfigureAfter({ ReactiveResilience4JAutoConfiguration.class })
-	@ConditionalOnClass({ ReactiveResilience4JAutoConfiguration.class,
-			ReactiveCircuitBreakerFactory.class,
+	@ConditionalOnClass({ ReactiveCircuitBreakerFactory.class,
 			ReactiveResilience4JCircuitBreakerFactory.class })
 	protected static class Resilience4JConfiguration {
-
-		@Bean
-		@ConditionalOnMissingBean(FallbackHeadersGatewayFilterFactory.class)
-		public FallbackHeadersGatewayFilterFactory fallbackHeadersGatewayFilterFactory() {
-			return new FallbackHeadersGatewayFilterFactory();
-		}
 
 		@Bean
 		@ConditionalOnBean(ReactiveResilience4JCircuitBreakerFactory.class)
@@ -88,6 +55,11 @@ public class GatewayCircuitBreakerAutoConfiguration {
 					reactiveCircuitBreakerFactory, dispatcherHandler);
 		}
 
+		@Bean
+		@ConditionalOnMissingBean(FallbackHeadersGatewayFilterFactory.class)
+		public FallbackHeadersGatewayFilterFactory fallbackHeadersGatewayFilterFactory() {
+			return new FallbackHeadersGatewayFilterFactory();
+		}
 	}
 
 }
