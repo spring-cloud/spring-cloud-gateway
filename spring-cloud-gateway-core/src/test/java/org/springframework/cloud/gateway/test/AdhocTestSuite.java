@@ -82,6 +82,7 @@ import static org.junit.Assume.assumeThat;
 		org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactoryIntegrationTests.class,
 		org.springframework.cloud.gateway.filter.factory.AddRequestHeaderGatewayFilterFactoryTests.class,
 		org.springframework.cloud.gateway.filter.factory.SetResponseHeaderGatewayFilterFactoryTests.class,
+		org.springframework.cloud.gateway.filter.factory.rewrite.ModifyResponseBodyGatewayFilterFactoryTests.class,
 		org.springframework.cloud.gateway.filter.WeightCalculatorWebFilterTests.class,
 		org.springframework.cloud.gateway.filter.RouteToRequestUrlFilterTests.class,
 		org.springframework.cloud.gateway.filter.headers.ForwardedHeadersFilterTests.class,
