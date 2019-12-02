@@ -43,24 +43,22 @@ import static org.springframework.cloud.gateway.support.GatewayToStringStyler.fi
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR;
 
 /**
- * GatewayFilter that modifies the respons body.
+ * GatewayFilter that modifies the response body.
  */
 public class ModifyResponseBodyGatewayFilterFactory extends
 		AbstractGatewayFilterFactory<ModifyResponseBodyGatewayFilterFactory.Config> {
 
-	public ModifyResponseBodyGatewayFilterFactory() {
-		super(Config.class);
-	}
+	private final ServerCodecConfigurer codecConfigurer;
 
-	@Deprecated
 	public ModifyResponseBodyGatewayFilterFactory(ServerCodecConfigurer codecConfigurer) {
-		this();
+		super(Config.class);
+		this.codecConfigurer = codecConfigurer;
 	}
 
 	@Override
 	public GatewayFilter apply(Config config) {
 		ModifyResponseGatewayFilter gatewayFilter = new ModifyResponseGatewayFilter(
-				config);
+				config, codecConfigurer);
 		gatewayFilter.setFactory(this);
 		return gatewayFilter;
 	}
@@ -147,10 +145,14 @@ public class ModifyResponseBodyGatewayFilterFactory extends
 
 		private final Config config;
 
+		private final ServerCodecConfigurer serverCodecConfigurer;
+
 		private GatewayFilterFactory<Config> gatewayFilterFactory;
 
-		public ModifyResponseGatewayFilter(Config config) {
+		public ModifyResponseGatewayFilter(Config config,
+				ServerCodecConfigurer serverCodecConfigurer) {
 			this.config = config;
+			this.serverCodecConfigurer = serverCodecConfigurer;
 		}
 
 		@Override
@@ -179,7 +181,8 @@ public class ModifyResponseBodyGatewayFilterFactory extends
 							originalResponseContentType);
 
 					ClientResponse clientResponse = ClientResponse
-							.create(exchange.getResponse().getStatusCode())
+							.create(exchange.getResponse().getStatusCode(),
+									serverCodecConfigurer.getReaders())
 							.headers(headers -> headers.putAll(httpHeaders))
 							.body(Flux.from(body)).build();
 
