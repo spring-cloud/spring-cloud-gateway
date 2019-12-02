@@ -39,15 +39,13 @@ import org.springframework.web.reactive.DispatcherHandler;
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty(name = "spring.cloud.gateway.enabled", matchIfMissing = true)
-@AutoConfigureAfter({ ReactiveResilience4JAutoConfiguration.class,
-		HystrixCircuitBreakerAutoConfiguration.class })
-@ConditionalOnClass({ DispatcherHandler.class,
-		ReactiveResilience4JAutoConfiguration.class,
-		HystrixCircuitBreakerAutoConfiguration.class })
+@ConditionalOnClass({ DispatcherHandler.class })
 public class GatewayCircuitBreakerAutoConfiguration {
 
 	@Configuration(proxyBeanMethods = false)
-	@ConditionalOnClass({ ReactiveCircuitBreakerFactory.class,
+	@AutoConfigureAfter({ HystrixCircuitBreakerAutoConfiguration.class })
+	@ConditionalOnClass({ HystrixCircuitBreakerAutoConfiguration.class,
+			ReactiveCircuitBreakerFactory.class,
 			ReactiveHystrixCircuitBreakerFactory.class })
 	protected static class SpringCloudCircuitBreakerHystrixConfiguration {
 
@@ -69,7 +67,9 @@ public class GatewayCircuitBreakerAutoConfiguration {
 	}
 
 	@Configuration(proxyBeanMethods = false)
-	@ConditionalOnClass({ ReactiveCircuitBreakerFactory.class,
+	@AutoConfigureAfter({ ReactiveResilience4JAutoConfiguration.class })
+	@ConditionalOnClass({ ReactiveResilience4JAutoConfiguration.class,
+			ReactiveCircuitBreakerFactory.class,
 			ReactiveResilience4JCircuitBreakerFactory.class })
 	protected static class Resilience4JConfiguration {
 
