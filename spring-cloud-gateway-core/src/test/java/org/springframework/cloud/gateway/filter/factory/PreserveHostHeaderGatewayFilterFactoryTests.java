@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
+import java.util.Collections;
 import java.util.Map;
 
 import org.junit.Test;
@@ -48,13 +49,15 @@ public class PreserveHostHeaderGatewayFilterFactoryTests extends BaseWebClientTe
 
 	@Test
 	public void preserveHostHeaderGatewayFilterFactoryWorks() {
-		testClient.get().uri("/headers").header("Host", "www.preservehostheader.org")
-				.exchange().expectStatus().isOk().expectBody(Map.class)
-				.consumeWith(result -> {
+		testClient.get().uri("/multivalueheaders")
+				.header("Host", "www.preservehostheader.org").exchange().expectStatus()
+				.isOk().expectBody(Map.class).consumeWith(result -> {
 					Map<String, Object> headers = getMap(result.getResponseBody(),
 							"headers");
-					assertThat(headers).containsEntry("Host", "myhost.net");
+			assertThat(headers).containsEntry("Host",
+					Collections.singletonList("myhost.net"));
 				});
+
 	}
 
 	@Test
