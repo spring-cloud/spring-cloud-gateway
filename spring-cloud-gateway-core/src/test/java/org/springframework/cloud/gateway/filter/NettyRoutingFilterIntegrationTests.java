@@ -18,16 +18,24 @@ package org.springframework.cloud.gateway.filter;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import reactor.core.publisher.Mono;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.server.reactive.ServerHttpResponse;
+import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.web.reactive.server.WebTestClient;
+import org.springframework.web.server.ServerWebExchange;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -35,8 +43,11 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @SpringBootTest(properties = "spring.cloud.gateway.httpclient.response-timeout=3s",
 		webEnvironment = RANDOM_PORT)
 @DirtiesContext
-@SuppressWarnings("unchecked")
 public class NettyRoutingFilterIntegrationTests extends BaseWebClientTests {
+
+	@Autowired
+	@Qualifier("responseDecorator")
+	private ResponseDecoratingFilter responseDecorator;
 
 	@Test
 	public void responseTimeoutWorks() {
@@ -52,17 +63,72 @@ public class NettyRoutingFilterIntegrationTests extends BaseWebClientTests {
 		// different base url to have different host header in inbound / outbound requests
 		// Host: 127.0.0.1 -> request to Gateway, Host: localhost -> request from Gateway,
 		// resolved from lb://testservice
-		WebTestClient client = testClient.mutate().baseUrl("http://127.0.0.1:" + port)
-				.build();
-
-		client.get().uri("/headers").exchange().expectBody().jsonPath("$.headers.host")
+		testClient.mutate().baseUrl("http://127.0.0.1:" + port).build().get()
+				.uri("/headers").exchange().expectBody().jsonPath("$.headers.host")
 				.isEqualTo("localhost:" + port);
+	}
+	
+	@Test
+	public void canHandleDecoratedResponseWithNonStandardStatusValue() {
+		final int NON_STANDARD_STATUS = 480;
+		responseDecorator.decorateResponseTimes(1);
+		testClient.mutate().baseUrl("http://localhost:" + port).build().get()
+				.uri("/status/" + NON_STANDARD_STATUS).exchange().expectStatus()
+				.isEqualTo(NON_STANDARD_STATUS);
+	}
+	
+	@Test
+	public void canHandleUndecoratedResponseWithNonStandardStatusValue() {
+		final int NON_STANDARD_STATUS = 480;
+		responseDecorator.decorateResponseTimes(0);
+		testClient.mutate().baseUrl("http://localhost:" + port).build().get()
+				.uri("/status/" + NON_STANDARD_STATUS).exchange().expectStatus()
+				.isEqualTo(NON_STANDARD_STATUS);
+	}
+
+	@Test
+	public void canHandleMultiplyDecoratedResponseWithNonStandardStatusValue() {
+		final int NON_STANDARD_STATUS = 142;
+		responseDecorator.decorateResponseTimes(14);
+		testClient.mutate().baseUrl("http://localhost:" + port).build().get()
+				.uri("/status/" + NON_STANDARD_STATUS).exchange().expectStatus()
+				.isEqualTo(NON_STANDARD_STATUS);
 	}
 
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
 	public static class TestConfig {
+
+		@Bean(name = "responseDecorator")
+		@Order(RouteToRequestUrlFilter.HIGHEST_PRECEDENCE)
+		public ResponseDecoratingFilter decoratingFilter() {
+			return new ResponseDecoratingFilter();
+		}
+
+	}
+
+	public static final class ResponseDecoratingFilter implements GlobalFilter, Ordered {
+
+		int decorationIterations = 1;
+
+		public void decorateResponseTimes(int times) {
+			decorationIterations = times;
+		}
+
+		@Override
+		public int getOrder() {
+			return RouteToRequestUrlFilter.HIGHEST_PRECEDENCE;
+		}
+
+		@Override
+		public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+			ServerHttpResponse decorator = exchange.getResponse();
+			for (int counter = 0; counter < decorationIterations; counter++) {
+				decorator = new ServerHttpResponseDecorator(decorator);
+			}
+			return chain.filter(exchange.mutate().response(decorator).build());
+		}
 
 	}
 
