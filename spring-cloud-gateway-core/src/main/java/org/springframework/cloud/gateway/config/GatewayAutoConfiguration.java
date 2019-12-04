@@ -202,6 +202,7 @@ public class GatewayAutoConfiguration {
 
 	@Bean
 	@Primary
+	@ConditionalOnMissingBean(name = "cachedCompositeRouteLocator")
 	// TODO: property to disable composite?
 	public RouteLocator cachedCompositeRouteLocator(List<RouteLocator> routeLocators) {
 		return new CachingRouteLocator(
