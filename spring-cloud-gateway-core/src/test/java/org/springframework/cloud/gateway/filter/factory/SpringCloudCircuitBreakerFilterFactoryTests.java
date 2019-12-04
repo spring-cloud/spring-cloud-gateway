@@ -20,9 +20,9 @@ import org.junit.Test;
 
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.http.HttpStatus;
-import org.springframework.util.Assert;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.http.MediaType.TEXT_HTML;
 
 /**
@@ -95,13 +95,15 @@ public abstract class SpringCloudCircuitBreakerFilterFactoryTests
 				.header("Host", "www.circuitbreakerconnectfail.org").accept(TEXT_HTML)
 				.exchange().expectStatus().is5xxServerError().expectBody()
 				.consumeWith(res -> {
-					final String body = new String(res.getResponseBody(), UTF_8);
+					assertThat(res).isNotNull();
+					String body = new String(res.getResponseBody(), UTF_8);
 
-					Assert.isTrue(body.contains("<h1>Whitelabel Error Page</h1>"),
-							"Cannot find the expected white-label error page title in the response");
-					Assert.isTrue(
-							body.contains("(type=Internal Server Error, status=500)"),
-							"Cannot find the expected error status report in the response");
+					assertThat(body).as(
+							"Cannot find the expected white-label error page title in the response")
+							.contains("<h1>Whitelabel Error Page</h1>");
+					assertThat(body).as(
+							"Cannot find the expected error status report in the response")
+							.contains("(type=Internal Server Error, status=500)");
 				});
 	}
 

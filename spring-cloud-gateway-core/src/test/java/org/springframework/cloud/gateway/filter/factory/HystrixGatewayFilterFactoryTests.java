@@ -29,7 +29,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.util.Assert;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -128,13 +127,15 @@ public class HystrixGatewayFilterFactoryTests extends BaseWebClientTests {
 		testClient.get().uri("/delay/3").header("Host", "www.hystrixconnectfail.org")
 				.accept(TEXT_HTML).exchange().expectStatus().is5xxServerError()
 				.expectBody().consumeWith(res -> {
-					final String body = new String(res.getResponseBody(), UTF_8);
+					assertThat(res).isNotNull();
+					String body = new String(res.getResponseBody(), UTF_8);
 
-					Assert.isTrue(body.contains("<h1>Whitelabel Error Page</h1>"),
-							"Cannot find the expected white-label error page title in the response");
-					Assert.isTrue(
-							body.contains("(type=Internal Server Error, status=500)"),
-							"Cannot find the expected error status report in the response");
+					assertThat(body).as(
+							"Cannot find the expected white-label error page title in the response")
+							.contains("<h1>Whitelabel Error Page</h1>");
+					assertThat(body).as(
+							"Cannot find the expected error status report in the response")
+							.contains("(type=Internal Server Error, status=500)");
 				});
 	}
 
