@@ -127,7 +127,7 @@ public class HystrixGatewayFilterFactoryTests extends BaseWebClientTests {
 		testClient.get().uri("/delay/3").header("Host", "www.hystrixconnectfail.org")
 				.accept(TEXT_HTML).exchange().expectStatus().is5xxServerError()
 				.expectBody().consumeWith(res -> {
-					assertThat(res).isNotNull();
+					assertThat(res.getResponseBody()).isNotNull();
 					String body = new String(res.getResponseBody(), UTF_8);
 
 					assertThat(body).as(

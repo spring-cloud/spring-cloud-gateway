@@ -95,7 +95,7 @@ public abstract class SpringCloudCircuitBreakerFilterFactoryTests
 				.header("Host", "www.circuitbreakerconnectfail.org").accept(TEXT_HTML)
 				.exchange().expectStatus().is5xxServerError().expectBody()
 				.consumeWith(res -> {
-					assertThat(res).isNotNull();
+					assertThat(res.getResponseBody()).isNotNull();
 					String body = new String(res.getResponseBody(), UTF_8);
 
 					assertThat(body).as(
