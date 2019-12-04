@@ -43,6 +43,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.AbstractServerHttpResponse;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
+import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
@@ -163,22 +164,7 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 								contentTypeValue);
 					}
 
-					HttpStatus status = HttpStatus.resolve(res.status().code());
-					if (status != null) {
-						response.setStatusCode(status);
-					}
-					else if (response instanceof AbstractServerHttpResponse) {
-						// https://jira.spring.io/browse/SPR-16748
-						((AbstractServerHttpResponse) response)
-								.setStatusCodeValue(res.status().code());
-					}
-					else {
-						// TODO: log warning here, not throw error?
-						throw new IllegalStateException(
-								"Unable to set status code on response: "
-										+ res.status().code() + ", "
-										+ response.getClass());
-					}
+					setResponseStatus(res, response);
 
 					// make sure headers filters run after setting status so it is
 					// available in response
@@ -215,6 +201,29 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 		}
 
 		return responseFlux.then(chain.filter(exchange));
+	}
+
+	private void setResponseStatus(HttpClientResponse clientResponse,
+			ServerHttpResponse response) {
+		HttpStatus status = HttpStatus.resolve(clientResponse.status().code());
+		if (status != null) {
+			response.setStatusCode(status);
+		}
+		else {
+			while (response instanceof ServerHttpResponseDecorator) {
+				response = ((ServerHttpResponseDecorator) response).getDelegate();
+			}
+			if (response instanceof AbstractServerHttpResponse) {
+				((AbstractServerHttpResponse) response)
+						.setStatusCodeValue(clientResponse.status().code());
+			}
+			else {
+				// TODO: log warning here, not throw error?
+				throw new IllegalStateException("Unable to set status code "
+						+ clientResponse.status().code() + " on response of type "
+						+ response.getClass().getName());
+			}
+		}
 	}
 
 	private HttpClient httpClientWithTimeoutFrom(Route route) {
