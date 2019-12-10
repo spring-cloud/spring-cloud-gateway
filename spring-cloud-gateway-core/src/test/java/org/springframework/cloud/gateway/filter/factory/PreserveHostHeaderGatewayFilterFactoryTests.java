@@ -50,9 +50,9 @@ public class PreserveHostHeaderGatewayFilterFactoryTests extends BaseWebClientTe
 	@SuppressWarnings("unchecked")
 	@Test
 	public void preserveHostHeaderGatewayFilterFactoryWorks() {
-		testClient.get().uri("/multivalueheaders").header("Host", "www.preservehostheader.org")
-				.exchange().expectStatus().isOk().expectBody(Map.class)
-				.consumeWith(result -> {
+		testClient.get().uri("/multivalueheaders")
+				.header("Host", "www.preservehostheader.org").exchange().expectStatus()
+				.isOk().expectBody(Map.class).consumeWith(result -> {
 					Map<String, Object> headers = getMap(result.getResponseBody(),
 							"headers");
 					assertThat(headers).containsKey("Host");
