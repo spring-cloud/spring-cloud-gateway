@@ -21,9 +21,7 @@ import org.junit.Test;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.http.HttpStatus;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.http.MediaType.TEXT_HTML;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 
 /**
  * @author Ryan Baxter
@@ -92,19 +90,10 @@ public abstract class SpringCloudCircuitBreakerFilterFactoryTests
 	@Test
 	public void filterErrorPage() {
 		testClient.get().uri("/delay/3")
-				.header("Host", "www.circuitbreakerconnectfail.org").accept(TEXT_HTML)
-				.exchange().expectStatus().is5xxServerError().expectBody()
-				.consumeWith(res -> {
-					assertThat(res.getResponseBody()).isNotNull();
-					String body = new String(res.getResponseBody(), UTF_8);
-
-					assertThat(body).as(
-							"Cannot find the expected white-label error page title in the response")
-							.contains("<h1>Whitelabel Error Page</h1>");
-					assertThat(body).as(
-							"Cannot find the expected error status report in the response")
-							.contains("(type=Internal Server Error, status=500)");
-				});
+				.header("Host", "www.circuitbreakerconnectfail.org")
+				.accept(APPLICATION_JSON).exchange().expectStatus().is5xxServerError()
+				.expectBody().jsonPath("$.status").isEqualTo(500).jsonPath("$.message")
+				.isNotEmpty().jsonPath("$.error").isEqualTo("Internal Server Error");
 	}
 
 }
