@@ -118,7 +118,7 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 
 		Flux<HttpClientResponse> responseFlux = this.httpClient.headers(headers -> {
 			headers.add(httpHeaders);
-			if (preserveHost) {
+			if (preserveHost && null == httpHeaders.get(HttpHeaders.HOST)) {
 				String host = request.getHeaders().getFirst(HttpHeaders.HOST);
 				headers.add(HttpHeaders.HOST, host);
 			}
