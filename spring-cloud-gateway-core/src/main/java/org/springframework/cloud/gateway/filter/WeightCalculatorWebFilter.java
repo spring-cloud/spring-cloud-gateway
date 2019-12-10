@@ -48,6 +48,7 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.W
 
 /**
  * @author Spencer Gibb
+ * @author Alexey Nakidkin
  */
 public class WeightCalculatorWebFilter
 		implements WebFilter, Ordered, SmartApplicationListener {
@@ -164,38 +165,40 @@ public class WeightCalculatorWebFilter
 			groupWeights.put(group, c);
 		}
 		GroupWeightConfig config = c;
-		config.weights.put(weightConfig.getRouteId(), weightConfig.getWeight());
+		synchronized (config) {
+			config.weights.put(weightConfig.getRouteId(), weightConfig.getWeight());
 
-		// recalculate
+			// recalculate
 
-		// normalize weights
-		int weightsSum = config.weights.values().stream().mapToInt(Integer::intValue)
-				.sum();
+			// normalize weights
+			int weightsSum = config.weights.values().stream().mapToInt(Integer::intValue)
+					.sum();
 
-		final AtomicInteger index = new AtomicInteger(0);
-		config.weights.forEach((routeId, weight) -> {
-			Double nomalizedWeight = weight / (double) weightsSum;
-			config.normalizedWeights.put(routeId, nomalizedWeight);
+			final AtomicInteger index = new AtomicInteger(0);
+			config.weights.forEach((routeId, weight) -> {
+				Double nomalizedWeight = weight / (double) weightsSum;
+				config.normalizedWeights.put(routeId, nomalizedWeight);
 
-			// recalculate rangeIndexes
-			config.rangeIndexes.put(index.getAndIncrement(), routeId);
-		});
+				// recalculate rangeIndexes
+				config.rangeIndexes.put(index.getAndIncrement(), routeId);
+			});
 
-		// TODO: calculate ranges
-		config.ranges.clear();
+			// TODO: calculate ranges
+			config.ranges.clear();
 
-		config.ranges.add(0.0);
+			config.ranges.add(0.0);
 
-		List<Double> values = new ArrayList<>(config.normalizedWeights.values());
-		for (int i = 0; i < values.size(); i++) {
-			Double currentWeight = values.get(i);
-			Double previousRange = config.ranges.get(i);
-			Double range = previousRange + currentWeight;
-			config.ranges.add(range);
-		}
+			List<Double> values = new ArrayList<>(config.normalizedWeights.values());
+			for (int i = 0; i < values.size(); i++) {
+				Double currentWeight = values.get(i);
+				Double previousRange = config.ranges.get(i);
+				Double range = previousRange + currentWeight;
+				config.ranges.add(range);
+			}
 
-		if (log.isTraceEnabled()) {
-			log.trace("Recalculated group weight config " + config);
+			if (log.isTraceEnabled()) {
+				log.trace("Recalculated group weight config " + config);
+			}
 		}
 	}
 
@@ -219,18 +222,20 @@ public class WeightCalculatorWebFilter
 
 			double r = this.random.nextDouble();
 
-			List<Double> ranges = config.ranges;
+			synchronized (config) {
+				List<Double> ranges = config.ranges;
 
-			if (log.isTraceEnabled()) {
-				log.trace("Weight for group: " + group + ", ranges: " + ranges + ", r: "
-						+ r);
-			}
+				if (log.isTraceEnabled()) {
+					log.trace("Weight for group: " + group + ", ranges: " + ranges
+							+ ", r: " + r);
+				}
 
-			for (int i = 0; i < ranges.size() - 1; i++) {
-				if (r >= ranges.get(i) && r < ranges.get(i + 1)) {
-					String routeId = config.rangeIndexes.get(i);
-					weights.put(group, routeId);
-					break;
+				for (int i = 0; i < ranges.size() - 1; i++) {
+					if (r >= ranges.get(i) && r < ranges.get(i + 1)) {
+						String routeId = config.rangeIndexes.get(i);
+						weights.put(group, routeId);
+						break;
+					}
 				}
 			}
 		}

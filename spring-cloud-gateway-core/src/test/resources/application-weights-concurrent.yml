@@ -1,0 +1,4 @@
+test:
+  concurrent:
+    execution:
+      timeInSeconds: 30
