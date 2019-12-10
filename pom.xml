@@ -55,11 +55,15 @@
 		<spring-cloud-commons.version>2.1.5.BUILD-SNAPSHOT</spring-cloud-commons.version>
 		<spring-cloud-netflix.version>2.1.5.BUILD-SNAPSHOT</spring-cloud-netflix.version>
 		<embedded-redis.version>0.6</embedded-redis.version>
+		<blockhound.version>1.0.1.RELEASE</blockhound.version>
 		<maven-checkstyle-plugin.includeTestSourceDirectory>true
 		</maven-checkstyle-plugin.includeTestSourceDirectory>
 		<maven-checkstyle-plugin.failsOnError>true</maven-checkstyle-plugin.failsOnError>
 		<maven-checkstyle-plugin.failOnViolation>true
 		</maven-checkstyle-plugin.failOnViolation>
+		<junit-jupiter.version>5.5.2</junit-jupiter.version>
+		<maven-failsafe-plugin.version>2.22.2</maven-failsafe-plugin.version>
+		<maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
 	</properties>
 
 	<dependencyManagement>
@@ -84,6 +88,13 @@
 				<version>${spring-cloud-netflix.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.junit</groupId>
+				<artifactId>junit-bom</artifactId>
+				<version>${junit-jupiter.version}</version>
+				<scope>import</scope>
+				<type>pom</type>
 			</dependency>
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
@@ -125,6 +136,11 @@
 				<groupId>com.github.kstyrc</groupId>
 				<artifactId>embedded-redis</artifactId>
 				<version>${embedded-redis.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.projectreactor.tools</groupId>
+				<artifactId>blockhound-junit-platform</artifactId>
+				<version>${blockhound.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
