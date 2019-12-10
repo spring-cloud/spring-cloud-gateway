@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
+import java.util.List;
 import java.util.Map;
 
 import org.junit.Test;
@@ -46,14 +47,17 @@ import static org.springframework.cloud.gateway.test.TestUtils.getMap;
 @DirtiesContext
 public class PreserveHostHeaderGatewayFilterFactoryTests extends BaseWebClientTests {
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void preserveHostHeaderGatewayFilterFactoryWorks() {
-		testClient.get().uri("/headers").header("Host", "www.preservehostheader.org")
+		testClient.get().uri("/multivalueheaders").header("Host", "www.preservehostheader.org")
 				.exchange().expectStatus().isOk().expectBody(Map.class)
 				.consumeWith(result -> {
 					Map<String, Object> headers = getMap(result.getResponseBody(),
 							"headers");
-					assertThat(headers).containsEntry("Host", "myhost.net");
+					assertThat(headers).containsKey("Host");
+					List<String> values = (List<String>) headers.get("Host");
+					assertThat(values).containsExactly("myhost.net");
 				});
 	}
 
