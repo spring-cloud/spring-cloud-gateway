@@ -31,6 +31,8 @@ public class CustomBlockHoundIntegration implements BlockHoundIntegration {
 				"org.springframework.boot.autoconfigure.web.reactive.error.AbstractErrorWebExceptionHandler",
 				"logError");
 		builder.allowBlockingCallsInside("reactor.util.Loggers$Slf4JLogger", "debug");
+		builder.allowBlockingCallsInside("reactor.util.Loggers$Slf4JLogger", "info");
+		builder.allowBlockingCallsInside("reactor.util.Loggers$Slf4JLogger", "error");
 
 		// Uses org.springframework.util.JdkIdGenerator#generateId
 		// Uses UUID#randomUUID
