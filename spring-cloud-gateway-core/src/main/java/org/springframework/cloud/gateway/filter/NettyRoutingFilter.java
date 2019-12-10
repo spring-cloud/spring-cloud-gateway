@@ -118,13 +118,10 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 
 		Flux<HttpClientResponse> responseFlux = this.httpClient.headers(headers -> {
 			headers.add(httpHeaders);
+			headers.remove(HttpHeaders.HOST); //Will either be set below, or later by Netty
 			if (preserveHost) {
 				String host = request.getHeaders().getFirst(HttpHeaders.HOST);
 				headers.add(HttpHeaders.HOST, host);
-			}
-			else {
-				// let Netty set it based on hostname
-				headers.remove(HttpHeaders.HOST);
 			}
 		}).request(method).uri(url).send((req, nettyOutbound) -> {
 			if (log.isTraceEnabled()) {
