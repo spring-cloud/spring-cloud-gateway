@@ -16,22 +16,50 @@
 
 package org.springframework.cloud.gateway.route;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
+
+import org.springframework.util.AlternativeJdkIdGenerator;
+import org.springframework.util.IdGenerator;
 
 /**
  * @author Spencer Gibb
  */
 public class CompositeRouteDefinitionLocator implements RouteDefinitionLocator {
 
+	private static final Log log = LogFactory
+			.getLog(CompositeRouteDefinitionLocator.class);
+
 	private final Flux<RouteDefinitionLocator> delegates;
 
+	private final IdGenerator idGenerator;
+
 	public CompositeRouteDefinitionLocator(Flux<RouteDefinitionLocator> delegates) {
+		this(delegates, new AlternativeJdkIdGenerator());
+	}
+
+	public CompositeRouteDefinitionLocator(Flux<RouteDefinitionLocator> delegates,
+			IdGenerator idGenerator) {
 		this.delegates = delegates;
+		this.idGenerator = idGenerator;
 	}
 
 	@Override
 	public Flux<RouteDefinition> getRouteDefinitions() {
-		return this.delegates.flatMap(RouteDefinitionLocator::getRouteDefinitions);
+		return this.delegates.flatMap(RouteDefinitionLocator::getRouteDefinitions)
+				.flatMap(routeDefinition -> Mono.justOrEmpty(routeDefinition.getId())
+						.defaultIfEmpty(idGenerator.generateId().toString())
+						.publishOn(Schedulers.elastic()).map(id -> {
+							routeDefinition.setId(id);
+							if (log.isDebugEnabled()) {
+								log.debug(
+										"Id set on route definition: " + routeDefinition);
+							}
+							return routeDefinition;
+						}));
 	}
 
 }

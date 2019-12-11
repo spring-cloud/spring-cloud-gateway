@@ -20,7 +20,6 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.UUID;
 
 import javax.validation.Valid;
 import javax.validation.ValidationException;
@@ -39,8 +38,7 @@ import static org.springframework.util.StringUtils.tokenizeToStringArray;
 @Validated
 public class RouteDefinition {
 
-	@NotEmpty
-	private String id = UUID.randomUUID().toString();
+	private String id;
 
 	@NotEmpty
 	@Valid
