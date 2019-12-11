@@ -53,10 +53,12 @@ public class CompositeRouteDefinitionLocator implements RouteDefinitionLocator {
 				.flatMap(routeDefinition -> Mono.justOrEmpty(routeDefinition.getId())
 						.defaultIfEmpty(idGenerator.generateId().toString())
 						.publishOn(Schedulers.boundedElastic()).map(id -> {
-							routeDefinition.setId(id);
-							if (log.isDebugEnabled()) {
-								log.debug(
-										"Id set on route definition: " + routeDefinition);
+							if (routeDefinition.getId() == null) {
+								routeDefinition.setId(id);
+								if (log.isDebugEnabled()) {
+									log.debug(
+											"Id set on route definition: " + routeDefinition);
+								}
 							}
 							return routeDefinition;
 						}));
