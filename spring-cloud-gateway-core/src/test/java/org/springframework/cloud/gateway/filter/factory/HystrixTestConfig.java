@@ -75,7 +75,7 @@ public class HystrixTestConfig {
 				.route("hystrix_connection_failure",
 						r -> r.host("**.hystrixconnectfail.org")
 								.filters(f -> f.prefixPath("/httpbin").hystrix(config -> {
-								})).uri("lb:badservice"))
+								})).uri("lb://badservice"))
 				/*
 				 * This is a route encapsulated in a hystrix command that is ready to wait
 				 * for a response far longer than the underpinning WebClient would.

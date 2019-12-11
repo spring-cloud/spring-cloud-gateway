@@ -31,6 +31,8 @@ public class CustomBlockHoundIntegration implements BlockHoundIntegration {
 				"org.springframework.boot.autoconfigure.web.reactive.error.AbstractErrorWebExceptionHandler",
 				"logError");
 		builder.allowBlockingCallsInside("reactor.util.Loggers$Slf4JLogger", "debug");
+		builder.allowBlockingCallsInside("reactor.util.Loggers$Slf4JLogger", "info");
+		builder.allowBlockingCallsInside("reactor.util.Loggers$Slf4JLogger", "error");
 
 		// Uses org.springframework.util.JdkIdGenerator#generateId
 		// Uses UUID#randomUUID
@@ -42,11 +44,34 @@ public class CustomBlockHoundIntegration implements BlockHoundIntegration {
 		builder.allowBlockingCallsInside("org.springframework.util.MimeTypeUtils",
 				"generateMultipartBoundary");
 
+		// SPRING DATA REDIS RELATED
+
+		// Uses Unsafe#park
+		builder.allowBlockingCallsInside(
+				"org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory",
+				"getReactiveConnection");
+
+		// NETTY RELATED
+
+		// Uses Thread#sleep
+		builder.allowBlockingCallsInside("io.netty.channel.nio.NioEventLoop",
+				"handleLoopException");
+		builder.allowBlockingCallsInside(
+				"io.netty.util.concurrent.SingleThreadEventExecutor", "confirmShutdown");
+
+		// Uses Unsafe#park
+		builder.allowBlockingCallsInside("io.netty.util.concurrent.GlobalEventExecutor",
+				"execute");
+		builder.allowBlockingCallsInside(
+				"io.netty.util.concurrent.SingleThreadEventExecutor$6", "run");
+
 		// SECURITY RELATED
 
 		// For HTTPS traffic
 		builder.allowBlockingCallsInside("io.netty.handler.ssl.SslHandler",
 				"channelActive");
+		builder.allowBlockingCallsInside("io.netty.handler.ssl.SslHandler",
+				"channelInactive");
 		builder.allowBlockingCallsInside("io.netty.handler.ssl.SslHandler", "unwrap");
 		builder.allowBlockingCallsInside("io.netty.handler.ssl.SslContext",
 				"newClientContextInternal");
