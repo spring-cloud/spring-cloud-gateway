@@ -1,4 +1,4 @@
 test:
   concurrent:
     execution:
-      timeInSeconds: 30
+      timeInSeconds: 10
