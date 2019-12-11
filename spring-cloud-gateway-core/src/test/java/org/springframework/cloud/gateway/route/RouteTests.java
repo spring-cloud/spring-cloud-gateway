@@ -20,19 +20,15 @@ import java.net.URI;
 import java.util.HashMap;
 
 import org.assertj.core.util.Maps;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class RouteTests {
 
-	@Rule
-	public ExpectedException exception = ExpectedException.none();
-
 	@Test
-	public void defeaultHttpPort() {
+	public void defaultHttpPort() {
 		Route route = Route.async().id("1").predicate(exchange -> true)
 				.uri("http://acme.com").build();
 
@@ -40,7 +36,7 @@ public class RouteTests {
 	}
 
 	@Test
-	public void defeaultHttpsPort() {
+	public void defaultHttpsPort() {
 		Route route = Route.async().id("1").predicate(exchange -> true)
 				.uri("https://acme.com").build();
 
@@ -57,8 +53,9 @@ public class RouteTests {
 
 	@Test
 	public void nullScheme() {
-		exception.expect(IllegalArgumentException.class);
-		Route.async().id("1").predicate(exchange -> true).uri("/pathonly");
+		assertThatThrownBy(
+				() -> Route.async().id("1").predicate(exchange -> true).uri("/pathonly"))
+				.isInstanceOf(IllegalArgumentException.class);
 	}
 
 	@Test

@@ -29,6 +29,9 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.data.Offset.offset;
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @RunWith(SpringRunner.class)
@@ -58,6 +61,37 @@ public class NettyRoutingFilterIntegrationTests extends BaseWebClientTests {
 		client.get().uri("/headers").exchange().expectBody().jsonPath("$.headers.host")
 				.isEqualTo("localhost:" + port);
 	}
+
+	@Test
+	public void shouldApplyConnectTimeoutPerRoute() {
+		long currentTimeMillisBeforeCall = System.currentTimeMillis();
+
+		testClient.get().uri("/connect/delay/2").exchange().expectStatus()
+				.isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR).expectBody()
+				.jsonPath("$.message")
+				.value(containsString("Connection refused: localhost/127.0.0.1:32167"));
+
+		// default connect timeout is 45 sec, this test verifies that it is possible to
+		// reduce timeout via config
+		assertThat(System.currentTimeMillis() - currentTimeMillisBeforeCall).isCloseTo(5,
+				offset(100L));
+	}
+
+	@Test
+	public void shouldApplyResponseTimeoutPerRoute() {
+		testClient.get().uri("/route/delay/2").exchange().expectStatus()
+				.isEqualTo(HttpStatus.GATEWAY_TIMEOUT).expectBody().jsonPath("$.status")
+				.isEqualTo(String.valueOf(HttpStatus.GATEWAY_TIMEOUT.value()))
+				.jsonPath("$.message")
+				.isEqualTo("Response took longer than timeout: PT1S");
+	}
+
+	@Test
+	public void shouldNotApplyPerRouteTimeoutWhenItIsNotConfigured() {
+		testClient.get().uri("/delay/2").exchange().expectStatus()
+				.isEqualTo(HttpStatus.OK);
+	}
+
 
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
