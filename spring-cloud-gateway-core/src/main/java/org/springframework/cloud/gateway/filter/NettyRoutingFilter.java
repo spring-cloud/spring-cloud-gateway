@@ -123,79 +123,86 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 				.getAttributeOrDefault(PRESERVE_HOST_HEADER_ATTRIBUTE, false);
 		Route route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
 
-		Flux<HttpClientResponse> responseFlux = httpClientWithTimeoutFrom(route).headers(headers -> {
-			headers.add(httpHeaders);
-			// Will either be set below, or later by Netty
-			headers.remove(HttpHeaders.HOST);
-			if (preserveHost) {
-				String host = request.getHeaders().getFirst(HttpHeaders.HOST);
-				headers.add(HttpHeaders.HOST, host);
-			}
-		}).request(method).uri(url).send((req, nettyOutbound) -> {
-			if (log.isTraceEnabled()) {
-				nettyOutbound.withConnection(connection -> log.trace(
-						"outbound route: " + connection.channel().id().asShortText()
-								+ ", inbound: " + exchange.getLogPrefix()));
-			}
-			return nettyOutbound.send(request.getBody()
-					.map(dataBuffer -> ((NettyDataBuffer) dataBuffer).getNativeBuffer()));
-		}).responseConnection((res, connection) -> {
+		Flux<HttpClientResponse> responseFlux = httpClientWithTimeoutFrom(route)
+				.headers(headers -> {
+					headers.add(httpHeaders);
+					// Will either be set below, or later by Netty
+					headers.remove(HttpHeaders.HOST);
+					if (preserveHost) {
+						String host = request.getHeaders().getFirst(HttpHeaders.HOST);
+						headers.add(HttpHeaders.HOST, host);
+					}
+				}).request(method).uri(url).send((req, nettyOutbound) -> {
+					if (log.isTraceEnabled()) {
+						nettyOutbound
+								.withConnection(connection -> log.trace("outbound route: "
+										+ connection.channel().id().asShortText()
+										+ ", inbound: " + exchange.getLogPrefix()));
+					}
+					return nettyOutbound.send(request.getBody()
+							.map(dataBuffer -> ((NettyDataBuffer) dataBuffer)
+									.getNativeBuffer()));
+				}).responseConnection((res, connection) -> {
 
-			// Defer committing the response until all route filters have run
-			// Put client response as ServerWebExchange attribute and write
-			// response later NettyWriteResponseFilter
-			exchange.getAttributes().put(CLIENT_RESPONSE_ATTR, res);
-			exchange.getAttributes().put(CLIENT_RESPONSE_CONN_ATTR, connection);
+					// Defer committing the response until all route filters have run
+					// Put client response as ServerWebExchange attribute and write
+					// response later NettyWriteResponseFilter
+					exchange.getAttributes().put(CLIENT_RESPONSE_ATTR, res);
+					exchange.getAttributes().put(CLIENT_RESPONSE_CONN_ATTR, connection);
 
-			ServerHttpResponse response = exchange.getResponse();
-			// put headers and status so filters can modify the response
-			HttpHeaders headers = new HttpHeaders();
+					ServerHttpResponse response = exchange.getResponse();
+					// put headers and status so filters can modify the response
+					HttpHeaders headers = new HttpHeaders();
 
-			res.responseHeaders()
-					.forEach(entry -> headers.add(entry.getKey(), entry.getValue()));
+					res.responseHeaders().forEach(
+							entry -> headers.add(entry.getKey(), entry.getValue()));
 
-			String contentTypeValue = headers.getFirst(HttpHeaders.CONTENT_TYPE);
-			if (StringUtils.hasLength(contentTypeValue)) {
-				exchange.getAttributes().put(ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR,
-						contentTypeValue);
-			}
+					String contentTypeValue = headers.getFirst(HttpHeaders.CONTENT_TYPE);
+					if (StringUtils.hasLength(contentTypeValue)) {
+						exchange.getAttributes().put(ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR,
+								contentTypeValue);
+					}
 
-			HttpStatus status = HttpStatus.resolve(res.status().code());
-			if (status != null) {
-				response.setStatusCode(status);
-			}
-			else if (response instanceof AbstractServerHttpResponse) {
-				// https://jira.spring.io/browse/SPR-16748
-				((AbstractServerHttpResponse) response)
-						.setStatusCodeValue(res.status().code());
-			}
-			else {
-				// TODO: log warning here, not throw error?
-				throw new IllegalStateException("Unable to set status code on response: "
-						+ res.status().code() + ", " + response.getClass());
-			}
+					HttpStatus status = HttpStatus.resolve(res.status().code());
+					if (status != null) {
+						response.setStatusCode(status);
+					}
+					else if (response instanceof AbstractServerHttpResponse) {
+						// https://jira.spring.io/browse/SPR-16748
+						((AbstractServerHttpResponse) response)
+								.setStatusCodeValue(res.status().code());
+					}
+					else {
+						// TODO: log warning here, not throw error?
+						throw new IllegalStateException(
+								"Unable to set status code on response: "
+										+ res.status().code() + ", "
+										+ response.getClass());
+					}
 
-			// make sure headers filters run after setting status so it is
-			// available in response
-			HttpHeaders filteredResponseHeaders = HttpHeadersFilter
-					.filter(getHeadersFilters(), headers, exchange, Type.RESPONSE);
+					// make sure headers filters run after setting status so it is
+					// available in response
+					HttpHeaders filteredResponseHeaders = HttpHeadersFilter.filter(
+							getHeadersFilters(), headers, exchange, Type.RESPONSE);
 
-			if (!filteredResponseHeaders.containsKey(HttpHeaders.TRANSFER_ENCODING)
-					&& filteredResponseHeaders.containsKey(HttpHeaders.CONTENT_LENGTH)) {
-				// It is not valid to have both the transfer-encoding header and
-				// the content-length header.
-				// Remove the transfer-encoding header in the response if the
-				// content-length header is present.
-				response.getHeaders().remove(HttpHeaders.TRANSFER_ENCODING);
-			}
+					if (!filteredResponseHeaders
+							.containsKey(HttpHeaders.TRANSFER_ENCODING)
+							&& filteredResponseHeaders
+									.containsKey(HttpHeaders.CONTENT_LENGTH)) {
+						// It is not valid to have both the transfer-encoding header and
+						// the content-length header.
+						// Remove the transfer-encoding header in the response if the
+						// content-length header is present.
+						response.getHeaders().remove(HttpHeaders.TRANSFER_ENCODING);
+					}
 
-			exchange.getAttributes().put(CLIENT_RESPONSE_HEADER_NAMES,
-					filteredResponseHeaders.keySet());
+					exchange.getAttributes().put(CLIENT_RESPONSE_HEADER_NAMES,
+							filteredResponseHeaders.keySet());
 
-			response.getHeaders().putAll(filteredResponseHeaders);
+					response.getHeaders().putAll(filteredResponseHeaders);
 
-			return Mono.just(res);
-		});
+					return Mono.just(res);
+				});
 
 		Duration responseTimeout = getResponseTimeout(route);
 		if (responseTimeout != null) {

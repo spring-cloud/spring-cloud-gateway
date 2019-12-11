@@ -92,7 +92,6 @@ public class NettyRoutingFilterIntegrationTests extends BaseWebClientTests {
 				.isEqualTo(HttpStatus.OK);
 	}
 
-
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)

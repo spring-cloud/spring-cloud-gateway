@@ -55,7 +55,7 @@ public class RouteTests {
 	public void nullScheme() {
 		assertThatThrownBy(
 				() -> Route.async().id("1").predicate(exchange -> true).uri("/pathonly"))
-				.isInstanceOf(IllegalArgumentException.class);
+						.isInstanceOf(IllegalArgumentException.class);
 	}
 
 	@Test

@@ -31,4 +31,5 @@ public final class RouteMetadataUtils {
 	private RouteMetadataUtils() {
 		throw new AssertionError("Must not instantiate utility class.");
 	}
+
 }

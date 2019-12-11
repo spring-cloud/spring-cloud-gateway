@@ -64,7 +64,7 @@ public class RouteBuilderTests {
 				.expectNextMatches(
 						r -> r.getId().equals("test2") && r.getFilters().size() == 1
 								&& r.getUri()
-								.equals(URI.create("https://httpbin.org:9090")))
+										.equals(URI.create("https://httpbin.org:9090")))
 				.expectComplete().verify();
 	}
 
@@ -99,7 +99,8 @@ public class RouteBuilderTests {
 				.route("test1", r -> {
 					return r.host("*.somehost.org").and().path("/somepath")
 							.filters(f -> f.addRequestHeader("header1", "header-value-1"))
-							.uri("http://someuri").metadata(RESPONSE_TIMEOUT_ATTR, 1).metadata(CONNECT_TIMEOUT_ATTR, 1);
+							.uri("http://someuri").metadata(RESPONSE_TIMEOUT_ATTR, 1)
+							.metadata(CONNECT_TIMEOUT_ATTR, 1);
 				})
 				.route("test2", r -> r.host("*.somehost2.org")
 						.filters(f -> f.addResponseHeader("header-response-1",
@@ -113,13 +114,12 @@ public class RouteBuilderTests {
 								&& r.getUri().equals(URI.create("http://someuri:80"))
 								&& r.getMetadata().get(RESPONSE_TIMEOUT_ATTR).equals(1)
 								&& r.getMetadata().get(CONNECT_TIMEOUT_ATTR).equals(1))
-				.expectNextMatches(r -> r.getId().equals("test2")
-						&& r.getFilters().size() == 1
-						&& r.getUri().equals(URI.create("https://httpbin.org:9090")))
+				.expectNextMatches(
+						r -> r.getId().equals("test2") && r.getFilters().size() == 1
+								&& r.getUri()
+										.equals(URI.create("https://httpbin.org:9090")))
 				.expectComplete().verify();
 	}
-
-
 
 	@EnableAutoConfiguration
 	@Configuration(proxyBeanMethods = false)
