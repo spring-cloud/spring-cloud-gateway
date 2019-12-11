@@ -177,50 +177,53 @@ $(addBlockSwitches);
 </ul>
 </li>
 <li><a href="#configuration">8. Configuration</a></li>
-<li><a href="#route-metadata-configuration">9. Route metadata configuration</a>
+<li><a href="#route-metadata-configuration">9. Route metadata configuration</a></li>
+<li><a href="#http-timeouts-configuration">10. Http timeouts configuration</a>
 <ul class="sectlevel2">
-<li><a href="#fluent-java-routes-api">9.1. Fluent Java Routes API</a></li>
-<li><a href="#discoveryclient-route-definition-locator">9.2. DiscoveryClient Route Definition Locator</a>
+<li><a href="#global-timeouts">10.1. Global timeouts</a></li>
+<li><a href="#per-route-timeouts">10.2. Per-route timeouts</a></li>
+<li><a href="#fluent-java-routes-api">10.3. Fluent Java Routes API</a></li>
+<li><a href="#discoveryclient-route-definition-locator">10.4. DiscoveryClient Route Definition Locator</a>
 <ul class="sectlevel3">
-<li><a href="#configuring-predicates-and-filters-for-discoveryclient-routes">9.2.1. Configuring Predicates and Filters For DiscoveryClient Routes</a></li>
+<li><a href="#configuring-predicates-and-filters-for-discoveryclient-routes">10.4.1. Configuring Predicates and Filters For DiscoveryClient Routes</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="#reactor-netty-access-logs">10. Reactor Netty Access Logs</a></li>
-<li><a href="#cors-configuration">11. CORS Configuration</a></li>
-<li><a href="#actuator-api">12. Actuator API</a>
+<li><a href="#reactor-netty-access-logs">11. Reactor Netty Access Logs</a></li>
+<li><a href="#cors-configuration">12. CORS Configuration</a></li>
+<li><a href="#actuator-api">13. Actuator API</a>
 <ul class="sectlevel2">
-<li><a href="#verbose-actuator-format">12.1. Verbose Actuator Format</a></li>
-<li><a href="#retrieving-route-filters">12.2. Retrieving route filters</a>
+<li><a href="#verbose-actuator-format">13.1. Verbose Actuator Format</a></li>
+<li><a href="#retrieving-route-filters">13.2. Retrieving route filters</a>
 <ul class="sectlevel3">
-<li><a href="#global-filters-2">12.2.1. Global Filters</a></li>
-<li><a href="#route-filters">12.2.2. Route Filters</a></li>
+<li><a href="#global-filters-2">13.2.1. Global Filters</a></li>
+<li><a href="#route-filters">13.2.2. Route Filters</a></li>
 </ul>
 </li>
-<li><a href="#refreshing-the-route-cache">12.3. Refreshing the route cache</a></li>
-<li><a href="#retrieving-the-routes-defined-in-the-gateway">12.4. Retrieving the routes defined in the gateway</a></li>
-<li><a href="#retrieving-information-about-a-particular-route">12.5. Retrieving information about a particular route</a></li>
-<li><a href="#creating-and-deleting-a-particular-route">12.6. Creating and deleting a particular route</a></li>
-<li><a href="#recap-list-of-all-endpoints">12.7. Recap: list of all endpoints</a></li>
+<li><a href="#refreshing-the-route-cache">13.3. Refreshing the route cache</a></li>
+<li><a href="#retrieving-the-routes-defined-in-the-gateway">13.4. Retrieving the routes defined in the gateway</a></li>
+<li><a href="#retrieving-information-about-a-particular-route">13.5. Retrieving information about a particular route</a></li>
+<li><a href="#creating-and-deleting-a-particular-route">13.6. Creating and deleting a particular route</a></li>
+<li><a href="#recap-list-of-all-endpoints">13.7. Recap: list of all endpoints</a></li>
 </ul>
 </li>
-<li><a href="#troubleshooting">13. Troubleshooting</a>
+<li><a href="#troubleshooting">14. Troubleshooting</a>
 <ul class="sectlevel2">
-<li><a href="#log-levels">13.1. Log Levels</a></li>
-<li><a href="#wiretap">13.2. Wiretap</a></li>
+<li><a href="#log-levels">14.1. Log Levels</a></li>
+<li><a href="#wiretap">14.2. Wiretap</a></li>
 </ul>
 </li>
-<li><a href="#developer-guide">14. Developer Guide</a>
+<li><a href="#developer-guide">15. Developer Guide</a>
 <ul class="sectlevel2">
-<li><a href="#writing-custom-route-predicate-factories">14.1. Writing Custom Route Predicate Factories</a></li>
-<li><a href="#writing-custom-gatewayfilter-factories">14.2. Writing Custom GatewayFilter Factories</a></li>
-<li><a href="#writing-custom-global-filters">14.3. Writing Custom Global Filters</a></li>
-<li><a href="#writing-custom-route-locators-and-writers">14.4. Writing Custom Route Locators and Writers</a></li>
+<li><a href="#writing-custom-route-predicate-factories">15.1. Writing Custom Route Predicate Factories</a></li>
+<li><a href="#writing-custom-gatewayfilter-factories">15.2. Writing Custom GatewayFilter Factories</a></li>
+<li><a href="#writing-custom-global-filters">15.3. Writing Custom Global Filters</a></li>
+<li><a href="#writing-custom-route-locators-and-writers">15.4. Writing Custom Route Locators and Writers</a></li>
 </ul>
 </li>
-<li><a href="#building-a-simple-gateway-using-spring-mvc-or-webflux">15. Building a Simple Gateway Using Spring MVC or Webflux</a></li>
-<li><a href="#configuration-properties">16. Configuration properties</a></li>
+<li><a href="#building-a-simple-gateway-using-spring-mvc-or-webflux">16. Building a Simple Gateway Using Spring MVC or Webflux</a></li>
+<li><a href="#configuration-properties">17. Configuration properties</a></li>
 </ul>
 </div>
 </div>
@@ -2492,8 +2495,77 @@ route.getMetadata();
 route.getMetadata(someKey);</code></pre>
 </div>
 </div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="http-timeouts-configuration"><a class="anchor" href="#http-timeouts-configuration"></a><a class="link" href="#http-timeouts-configuration">10. Http timeouts configuration</a></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Http timeouts (response and connect) can be configured for all routes and overridden for each specific route.</p>
+</div>
 <div class="sect2">
-<h3 id="fluent-java-routes-api"><a class="anchor" href="#fluent-java-routes-api"></a><a class="link" href="#fluent-java-routes-api">9.1. Fluent Java Routes API</a></h3>
+<h3 id="global-timeouts"><a class="anchor" href="#global-timeouts"></a><a class="link" href="#global-timeouts">10.1. Global timeouts</a></h3>
+<div class="paragraph">
+<p>To configure Global http timeouts:<br>
+<code>connect-timeout</code> must be specified in milliseconds.<br>
+<code>response-timeout</code> must be specified as a java.time.Duration</p>
+</div>
+<div class="listingblock">
+<div class="title">global http timeouts example</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  cloud:
+    gateway:
+      httpclient:
+        connect-timeout: 1000
+        response-timeout: 5s</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="per-route-timeouts"><a class="anchor" href="#per-route-timeouts"></a><a class="link" href="#per-route-timeouts">10.2. Per-route timeouts</a></h3>
+<div class="paragraph">
+<p>To configure per-route timeouts:<br>
+<code>connect-timeout</code> must be specified in milliseconds.<br>
+<code>response-timeout</code> must be specified in milliseconds.</p>
+</div>
+<div class="listingblock">
+<div class="title">per-route http timeouts configuration via configuration</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">      - id: per_route_timeouts
+        uri: https://example.org
+        predicates:
+          - name: Path
+            args:
+              pattern: /delay/{timeout}
+        metadata:
+          response-timeout: 200
+          connect-timeout: 200</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">per-route timeouts configuration using Java DSL</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import static org.springframework.cloud.gateway.support.RouteMetadataUtils.CONNECT_TIMEOUT_ATTR;
+import static org.springframework.cloud.gateway.support.RouteMetadataUtils.RESPONSE_TIMEOUT_ATTR;
+
+      @Bean
+      public RouteLocator customRouteLocator(RouteLocatorBuilder routeBuilder){
+         return routeBuilder.routes()
+               .route("test1", r -&gt; {
+                  return r.host("*.somehost.org").and().path("/somepath")
+                        .filters(f -&gt; f.addRequestHeader("header1", "header-value-1"))
+                        .uri("http://someuri")
+                        .metadata(RESPONSE_TIMEOUT_ATTR, 200)
+                        .metadata(CONNECT_TIMEOUT_ATTR, 200);
+               })
+               .build();
+      }</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="fluent-java-routes-api"><a class="anchor" href="#fluent-java-routes-api"></a><a class="link" href="#fluent-java-routes-api">10.3. Fluent Java Routes API</a></h3>
 <div class="paragraph">
 <p>To allow for simple configuration in Java, there is a fluent API defined in the <code>RouteLocatorBuilder</code> bean.</p>
 </div>
@@ -2533,7 +2605,7 @@ public RouteLocator customRouteLocator(RouteLocatorBuilder builder, ThrottleGate
 </div>
 </div>
 <div class="sect2">
-<h3 id="discoveryclient-route-definition-locator"><a class="anchor" href="#discoveryclient-route-definition-locator"></a><a class="link" href="#discoveryclient-route-definition-locator">9.2. DiscoveryClient Route Definition Locator</a></h3>
+<h3 id="discoveryclient-route-definition-locator"><a class="anchor" href="#discoveryclient-route-definition-locator"></a><a class="link" href="#discoveryclient-route-definition-locator">10.4. DiscoveryClient Route Definition Locator</a></h3>
 <div class="paragraph">
 <p>The Gateway can be configured to create routes based on services registered with a <code>DiscoveryClient</code> compatible service registry.</p>
 </div>
@@ -2541,7 +2613,7 @@ public RouteLocator customRouteLocator(RouteLocatorBuilder builder, ThrottleGate
 <p>To enable this, set <code>spring.cloud.gateway.discovery.locator.enabled=true</code> and make sure a <code>DiscoveryClient</code> implementation is on the classpath and enabled (such as Netflix Eureka, Consul or Zookeeper).</p>
 </div>
 <div class="sect3">
-<h4 id="configuring-predicates-and-filters-for-discoveryclient-routes"><a class="anchor" href="#configuring-predicates-and-filters-for-discoveryclient-routes"></a><a class="link" href="#configuring-predicates-and-filters-for-discoveryclient-routes">9.2.1. Configuring Predicates and Filters For DiscoveryClient Routes</a></h4>
+<h4 id="configuring-predicates-and-filters-for-discoveryclient-routes"><a class="anchor" href="#configuring-predicates-and-filters-for-discoveryclient-routes"></a><a class="link" href="#configuring-predicates-and-filters-for-discoveryclient-routes">10.4.1. Configuring Predicates and Filters For DiscoveryClient Routes</a></h4>
 <div class="paragraph">
 <p>By default the Gateway defines a single predicate and filter for routes created via a <code>DiscoveryClient</code>.</p>
 </div>
@@ -2579,7 +2651,7 @@ spring.cloud.gateway.discovery.locator.filters[1].args[replacement]: "'/${remain
 </div>
 </div>
 <div class="sect1">
-<h2 id="reactor-netty-access-logs"><a class="anchor" href="#reactor-netty-access-logs"></a><a class="link" href="#reactor-netty-access-logs">10. Reactor Netty Access Logs</a></h2>
+<h2 id="reactor-netty-access-logs"><a class="anchor" href="#reactor-netty-access-logs"></a><a class="link" href="#reactor-netty-access-logs">11. Reactor Netty Access Logs</a></h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>To enable Reactor Netty access logs, set <code>-Dreactor.netty.http.server.accessLogEnabled=true</code>. (It must be a Java System Property, not a Spring Boot property).</p>
@@ -2608,7 +2680,7 @@ spring.cloud.gateway.discovery.locator.filters[1].args[replacement]: "'/${remain
 </div>
 </div>
 <div class="sect1">
-<h2 id="cors-configuration"><a class="anchor" href="#cors-configuration"></a><a class="link" href="#cors-configuration">11. CORS Configuration</a></h2>
+<h2 id="cors-configuration"><a class="anchor" href="#cors-configuration"></a><a class="link" href="#cors-configuration">12. CORS Configuration</a></h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>The gateway can be configured to control CORS behavior. The "global" CORS configuration is a map of URL patterns to <a href="https://docs.spring.io/spring/docs/5.0.x/javadoc-api/org/springframework/web/cors/CorsConfiguration.html">Spring Framework <code>CorsConfiguration</code></a>.</p>
@@ -2636,7 +2708,7 @@ spring.cloud.gateway.discovery.locator.filters[1].args[replacement]: "'/${remain
 </div>
 </div>
 <div class="sect1">
-<h2 id="actuator-api"><a class="anchor" href="#actuator-api"></a><a class="link" href="#actuator-api">12. Actuator API</a></h2>
+<h2 id="actuator-api"><a class="anchor" href="#actuator-api"></a><a class="link" href="#actuator-api">13. Actuator API</a></h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>The <code>/gateway</code> actuator endpoint allows to monitor and interact with a Spring Cloud Gateway application. To be remotely accessible, the endpoint has to be <a href="https://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-endpoints.html#production-ready-endpoints-enabling-endpoints">enabled</a> and <a href="https://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-endpoints.html#production-ready-endpoints-exposing-endpoints">exposed via HTTP or JMX</a> in the application properties.</p>
@@ -2649,7 +2721,7 @@ management.endpoints.web.exposure.include=gateway</code></pre>
 </div>
 </div>
 <div class="sect2">
-<h3 id="verbose-actuator-format"><a class="anchor" href="#verbose-actuator-format"></a><a class="link" href="#verbose-actuator-format">12.1. Verbose Actuator Format</a></h3>
+<h3 id="verbose-actuator-format"><a class="anchor" href="#verbose-actuator-format"></a><a class="link" href="#verbose-actuator-format">13.1. Verbose Actuator Format</a></h3>
 <div class="paragraph">
 <p>A new, more verbose format has been added to Gateway. This adds more detail to each route allowing to view the predicates and filters associated to each route along with any configuration that is available.</p>
 </div>
@@ -2687,9 +2759,9 @@ management.endpoints.web.exposure.include=gateway</code></pre>
 </div>
 </div>
 <div class="sect2">
-<h3 id="retrieving-route-filters"><a class="anchor" href="#retrieving-route-filters"></a><a class="link" href="#retrieving-route-filters">12.2. Retrieving route filters</a></h3>
+<h3 id="retrieving-route-filters"><a class="anchor" href="#retrieving-route-filters"></a><a class="link" href="#retrieving-route-filters">13.2. Retrieving route filters</a></h3>
 <div class="sect3">
-<h4 id="global-filters-2"><a class="anchor" href="#global-filters-2"></a><a class="link" href="#global-filters-2">12.2.1. Global Filters</a></h4>
+<h4 id="global-filters-2"><a class="anchor" href="#global-filters-2"></a><a class="link" href="#global-filters-2">13.2.1. Global Filters</a></h4>
 <div class="paragraph">
 <p>To retrieve the <a href="#global-filters">global filters</a> applied to all routes, make a <code>GET</code> request to <code>/actuator/gateway/globalfilters</code>. The resulting response is similar to the following:</p>
 </div>
@@ -2712,7 +2784,7 @@ management.endpoints.web.exposure.include=gateway</code></pre>
 </div>
 </div>
 <div class="sect3">
-<h4 id="route-filters"><a class="anchor" href="#route-filters"></a><a class="link" href="#route-filters">12.2.2. Route Filters</a></h4>
+<h4 id="route-filters"><a class="anchor" href="#route-filters"></a><a class="link" href="#route-filters">13.2.2. Route Filters</a></h4>
 <div class="paragraph">
 <p>To retrieve the <a href="#gatewayfilter-factories">GatewayFilter factories</a> applied to routes, make a <code>GET</code> request to <code>/actuator/gateway/routefilters</code>. The resulting response is similar to the following:</p>
 </div>
@@ -2731,13 +2803,13 @@ management.endpoints.web.exposure.include=gateway</code></pre>
 </div>
 </div>
 <div class="sect2">
-<h3 id="refreshing-the-route-cache"><a class="anchor" href="#refreshing-the-route-cache"></a><a class="link" href="#refreshing-the-route-cache">12.3. Refreshing the route cache</a></h3>
+<h3 id="refreshing-the-route-cache"><a class="anchor" href="#refreshing-the-route-cache"></a><a class="link" href="#refreshing-the-route-cache">13.3. Refreshing the route cache</a></h3>
 <div class="paragraph">
 <p>To clear the routes cache, make a <code>POST</code> request to <code>/actuator/gateway/refresh</code>. The request returns a 200 without response body.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="retrieving-the-routes-defined-in-the-gateway"><a class="anchor" href="#retrieving-the-routes-defined-in-the-gateway"></a><a class="link" href="#retrieving-the-routes-defined-in-the-gateway">12.4. Retrieving the routes defined in the gateway</a></h3>
+<h3 id="retrieving-the-routes-defined-in-the-gateway"><a class="anchor" href="#retrieving-the-routes-defined-in-the-gateway"></a><a class="link" href="#retrieving-the-routes-defined-in-the-gateway">13.4. Retrieving the routes defined in the gateway</a></h3>
 <div class="paragraph">
 <p>To retrieve the routes defined in the gateway, make a <code>GET</code> request to <code>/actuator/gateway/routes</code>. The resulting response is similar to the following:</p>
 </div>
@@ -2804,7 +2876,7 @@ management.endpoints.web.exposure.include=gateway</code></pre>
 </table>
 </div>
 <div class="sect2">
-<h3 id="retrieving-information-about-a-particular-route"><a class="anchor" href="#retrieving-information-about-a-particular-route"></a><a class="link" href="#retrieving-information-about-a-particular-route">12.5. Retrieving information about a particular route</a></h3>
+<h3 id="retrieving-information-about-a-particular-route"><a class="anchor" href="#retrieving-information-about-a-particular-route"></a><a class="link" href="#retrieving-information-about-a-particular-route">13.5. Retrieving information about a particular route</a></h3>
 <div class="paragraph">
 <p>To retrieve information about a single route, make a <code>GET</code> request to <code>/actuator/gateway/routes/{id}</code> (e.g., <code>/actuator/gateway/routes/first_route</code>). The resulting response is similar to the following:</p>
 </div>
@@ -2868,7 +2940,7 @@ management.endpoints.web.exposure.include=gateway</code></pre>
 </table>
 </div>
 <div class="sect2">
-<h3 id="creating-and-deleting-a-particular-route"><a class="anchor" href="#creating-and-deleting-a-particular-route"></a><a class="link" href="#creating-and-deleting-a-particular-route">12.6. Creating and deleting a particular route</a></h3>
+<h3 id="creating-and-deleting-a-particular-route"><a class="anchor" href="#creating-and-deleting-a-particular-route"></a><a class="link" href="#creating-and-deleting-a-particular-route">13.6. Creating and deleting a particular route</a></h3>
 <div class="paragraph">
 <p>To create a route, make a <code>POST</code> request to <code>/gateway/routes/{id_route_to_create}</code> with a JSON body that specifies the fields of the route (see the previous subsection).</p>
 </div>
@@ -2877,7 +2949,7 @@ management.endpoints.web.exposure.include=gateway</code></pre>
 </div>
 </div>
 <div class="sect2">
-<h3 id="recap-list-of-all-endpoints"><a class="anchor" href="#recap-list-of-all-endpoints"></a><a class="link" href="#recap-list-of-all-endpoints">12.7. Recap: list of all endpoints</a></h3>
+<h3 id="recap-list-of-all-endpoints"><a class="anchor" href="#recap-list-of-all-endpoints"></a><a class="link" href="#recap-list-of-all-endpoints">13.7. Recap: list of all endpoints</a></h3>
 <div class="paragraph">
 <p>The table below summarises the Spring Cloud Gateway actuator endpoints. Note that each endpoint has <code>/actuator/gateway</code> as the base-path.</p>
 </div>
@@ -2936,10 +3008,10 @@ management.endpoints.web.exposure.include=gateway</code></pre>
 </div>
 </div>
 <div class="sect1">
-<h2 id="troubleshooting"><a class="anchor" href="#troubleshooting"></a><a class="link" href="#troubleshooting">13. Troubleshooting</a></h2>
+<h2 id="troubleshooting"><a class="anchor" href="#troubleshooting"></a><a class="link" href="#troubleshooting">14. Troubleshooting</a></h2>
 <div class="sectionbody">
 <div class="sect2">
-<h3 id="log-levels"><a class="anchor" href="#log-levels"></a><a class="link" href="#log-levels">13.1. Log Levels</a></h3>
+<h3 id="log-levels"><a class="anchor" href="#log-levels"></a><a class="link" href="#log-levels">14.1. Log Levels</a></h3>
 <div class="paragraph">
 <p>Below are some useful loggers that contain valuable trouble shooting infomration at the <code>DEBUG</code> and <code>TRACE</code> levels.</p>
 </div>
@@ -2967,7 +3039,7 @@ management.endpoints.web.exposure.include=gateway</code></pre>
 </div>
 </div>
 <div class="sect2">
-<h3 id="wiretap"><a class="anchor" href="#wiretap"></a><a class="link" href="#wiretap">13.2. Wiretap</a></h3>
+<h3 id="wiretap"><a class="anchor" href="#wiretap"></a><a class="link" href="#wiretap">14.2. Wiretap</a></h3>
 <div class="paragraph">
 <p>The Reactor Netty <code>HttpClient</code> and <code>HttpServer</code> can have wiretap enabled. When combined
 with setting the <code>reactor.netty</code> log level to <code>DEBUG</code> or <code>TRACE</code> will enable logging of
@@ -2980,19 +3052,19 @@ respectively.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="developer-guide"><a class="anchor" href="#developer-guide"></a><a class="link" href="#developer-guide">14. Developer Guide</a></h2>
+<h2 id="developer-guide"><a class="anchor" href="#developer-guide"></a><a class="link" href="#developer-guide">15. Developer Guide</a></h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>TODO: overview of writing custom integrations</p>
 </div>
 <div class="sect2">
-<h3 id="writing-custom-route-predicate-factories"><a class="anchor" href="#writing-custom-route-predicate-factories"></a><a class="link" href="#writing-custom-route-predicate-factories">14.1. Writing Custom Route Predicate Factories</a></h3>
+<h3 id="writing-custom-route-predicate-factories"><a class="anchor" href="#writing-custom-route-predicate-factories"></a><a class="link" href="#writing-custom-route-predicate-factories">15.1. Writing Custom Route Predicate Factories</a></h3>
 <div class="paragraph">
 <p>TODO: document writing Custom Route Predicate Factories</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="writing-custom-gatewayfilter-factories"><a class="anchor" href="#writing-custom-gatewayfilter-factories"></a><a class="link" href="#writing-custom-gatewayfilter-factories">14.2. Writing Custom GatewayFilter Factories</a></h3>
+<h3 id="writing-custom-gatewayfilter-factories"><a class="anchor" href="#writing-custom-gatewayfilter-factories"></a><a class="link" href="#writing-custom-gatewayfilter-factories">15.2. Writing Custom GatewayFilter Factories</a></h3>
 <div class="paragraph">
 <p>In order to write a GatewayFilter you will need to implement <code>GatewayFilterFactory</code>.  There is an abstract class called <code>AbstractGatewayFilterFactory</code> which you can extend.</p>
 </div>
@@ -3053,7 +3125,7 @@ respectively.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="writing-custom-global-filters"><a class="anchor" href="#writing-custom-global-filters"></a><a class="link" href="#writing-custom-global-filters">14.3. Writing Custom Global Filters</a></h3>
+<h3 id="writing-custom-global-filters"><a class="anchor" href="#writing-custom-global-filters"></a><a class="link" href="#writing-custom-global-filters">15.3. Writing Custom Global Filters</a></h3>
 <div class="paragraph">
 <p>In order to write a custom global filter, you will need to implement <code>GlobalFilter</code> interface. This will apply the filter to all requests.</p>
 </div>
@@ -3091,7 +3163,7 @@ public GlobalFilter customGlobalPostFilter() {
 </div>
 </div>
 <div class="sect2">
-<h3 id="writing-custom-route-locators-and-writers"><a class="anchor" href="#writing-custom-route-locators-and-writers"></a><a class="link" href="#writing-custom-route-locators-and-writers">14.4. Writing Custom Route Locators and Writers</a></h3>
+<h3 id="writing-custom-route-locators-and-writers"><a class="anchor" href="#writing-custom-route-locators-and-writers"></a><a class="link" href="#writing-custom-route-locators-and-writers">15.4. Writing Custom Route Locators and Writers</a></h3>
 <div class="paragraph">
 <p>TODO: document writing Custom Route Locators and Writers</p>
 </div>
@@ -3099,7 +3171,7 @@ public GlobalFilter customGlobalPostFilter() {
 </div>
 </div>
 <div class="sect1">
-<h2 id="building-a-simple-gateway-using-spring-mvc-or-webflux"><a class="anchor" href="#building-a-simple-gateway-using-spring-mvc-or-webflux"></a><a class="link" href="#building-a-simple-gateway-using-spring-mvc-or-webflux">15. Building a Simple Gateway Using Spring MVC or Webflux</a></h2>
+<h2 id="building-a-simple-gateway-using-spring-mvc-or-webflux"><a class="anchor" href="#building-a-simple-gateway-using-spring-mvc-or-webflux"></a><a class="link" href="#building-a-simple-gateway-using-spring-mvc-or-webflux">16. Building a Simple Gateway Using Spring MVC or Webflux</a></h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Spring Cloud Gateway provides a utility object called <code>ProxyExchange</code> which you can use inside a regular Spring web handler as a method parameter. It supports basic downstream HTTP exchanges via methods that mirror the HTTP verbs. With MVC it also supports forwarding to a local handler via the <code>forward()</code> method. To use the <code>ProxyExchange</code> just include the right module in your classpath (either <code>spring-cloud-gateway-mvc</code> or <code>spring-cloud-gateway-webflux</code>).</p>
@@ -3171,7 +3243,7 @@ public ResponseEntity&lt;?&gt; proxyPath(ProxyExchange&lt;byte[]&gt; proxy) thro
 </div>
 </div>
 <div class="sect1">
-<h2 id="configuration-properties"><a class="anchor" href="#configuration-properties"></a><a class="link" href="#configuration-properties">16. Configuration properties</a></h2>
+<h2 id="configuration-properties"><a class="anchor" href="#configuration-properties"></a><a class="link" href="#configuration-properties">17. Configuration properties</a></h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>To see the list of all Spring Cloud Gateway related configuration properties please check <a href="appendix.html">the Appendix page</a>.</p>
