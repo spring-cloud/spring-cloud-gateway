@@ -17,6 +17,7 @@
 package org.springframework.cloud.gateway.filter.factory.rewrite;
 
 import java.util.Map;
+import java.util.Optional;
 
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
@@ -34,6 +35,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.codec.ServerCodecConfigurer;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
+import org.springframework.lang.Nullable;
 import org.springframework.web.reactive.function.BodyInserter;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.ClientResponse;
@@ -48,7 +50,14 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.O
 public class ModifyResponseBodyGatewayFilterFactory extends
 		AbstractGatewayFilterFactory<ModifyResponseBodyGatewayFilterFactory.Config> {
 
+	@Nullable
 	private final ServerCodecConfigurer codecConfigurer;
+
+	@Deprecated
+	public ModifyResponseBodyGatewayFilterFactory() {
+		super(Config.class);
+		this.codecConfigurer = null;
+	}
 
 	public ModifyResponseBodyGatewayFilterFactory(ServerCodecConfigurer codecConfigurer) {
 		super(Config.class);
@@ -145,14 +154,15 @@ public class ModifyResponseBodyGatewayFilterFactory extends
 
 		private final Config config;
 
-		private final ServerCodecConfigurer serverCodecConfigurer;
+		@Nullable
+		private final ServerCodecConfigurer codecConfigurer;
 
 		private GatewayFilterFactory<Config> gatewayFilterFactory;
 
 		public ModifyResponseGatewayFilter(Config config,
-				ServerCodecConfigurer serverCodecConfigurer) {
+				@Nullable ServerCodecConfigurer codecConfigurer) {
 			this.config = config;
-			this.serverCodecConfigurer = serverCodecConfigurer;
+			this.codecConfigurer = codecConfigurer;
 		}
 
 		@Override
@@ -180,11 +190,8 @@ public class ModifyResponseBodyGatewayFilterFactory extends
 					httpHeaders.add(HttpHeaders.CONTENT_TYPE,
 							originalResponseContentType);
 
-					ClientResponse clientResponse = ClientResponse
-							.create(exchange.getResponse().getStatusCode(),
-									serverCodecConfigurer.getReaders())
-							.headers(headers -> headers.putAll(httpHeaders))
-							.body(Flux.from(body)).build();
+					ClientResponse clientResponse = prepareClientResponse(body,
+							httpHeaders);
 
 					// TODO: flux or mono
 					Mono modifiedBody = clientResponse.bodyToMono(inClass)
@@ -213,6 +220,19 @@ public class ModifyResponseBodyGatewayFilterFactory extends
 						Publisher<? extends Publisher<? extends DataBuffer>> body) {
 					return writeWith(Flux.from(body).flatMapSequential(p -> p));
 				}
+
+				private ClientResponse prepareClientResponse(
+						Publisher<? extends DataBuffer> body, HttpHeaders httpHeaders) {
+					return Optional.ofNullable(codecConfigurer)
+							.map(it -> ClientResponse.create(
+									exchange.getResponse().getStatusCode(),
+									it.getReaders()))
+							.orElse(ClientResponse
+									.create(exchange.getResponse().getStatusCode()))
+							.headers(headers -> headers.putAll(httpHeaders))
+							.body(Flux.from(body)).build();
+				}
+
 			};
 		}
 
