@@ -23,6 +23,7 @@ import com.netflix.loadbalancer.ServerList;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
+import reactor.core.publisher.Mono;
 
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -88,6 +89,16 @@ public class BaseWebClientTests {
 		@Bean
 		public HttpBinCompatibleController httpBinController() {
 			return new HttpBinCompatibleController();
+		}
+
+		@Bean
+		public GlobalFilter recursiveHttpbinFilter() {
+			return (exchange, chain) -> {
+				if (exchange.getRequest().getPath().toString().contains("httpbin/httpbin")) {
+					return Mono.error(new IllegalStateException("recursive call to /httpbin"));
+				}
+				return chain.filter(exchange);
+			};
 		}
 
 		@Bean
