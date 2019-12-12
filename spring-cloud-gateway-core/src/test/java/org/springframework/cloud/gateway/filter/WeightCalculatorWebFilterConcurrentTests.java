@@ -23,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 
 import io.netty.util.internal.ThreadLocalRandom;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -76,6 +77,7 @@ public class WeightCalculatorWebFilterConcurrentTests {
 		startTime = System.currentTimeMillis();
 	}
 
+	@Ignore
 	@Test
 	public void WeightCalculatorWebFilter_threadSafeTest() {
 		generateEvents();
