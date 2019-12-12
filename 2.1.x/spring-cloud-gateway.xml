@@ -62,6 +62,9 @@ working with Spring Cloud Gateway.</simpara>
 <chapter xml:id="gateway-request-predicates-factories">
 <title>Route Predicate Factories</title>
 <simpara>Spring Cloud Gateway matches routes as part of the Spring WebFlux <literal>HandlerMapping</literal> infrastructure. Spring Cloud Gateway includes many built-in Route Predicate Factories. All of these predicates match on different attributes of the HTTP request. Multiple Route Predicate Factories can be combined and are combined via logical <literal>and</literal>.</simpara>
+<warning>
+<simpara>Previously, Spring Cloud Gateway generated a default Route ID by creating a random UUID. Generating a random UUID is a blocking operation and can lead to instability. Default id generation has been turned off by default. To re-enable this set an environment variable <literal>SPRING_CLOUD_GATEWAY_ROUTE_GENERATE_ID</literal> or system property <literal>spring.cloud.gateway.route.generate-id</literal> to <literal>true</literal>.</simpara>
+</warning>
 <section xml:id="_after_route_predicate_factory">
 <title>After Route Predicate Factory</title>
 <simpara>The After Route Predicate Factory takes one parameter, a datetime. This predicate matches requests that happen after the current datetime.</simpara>
