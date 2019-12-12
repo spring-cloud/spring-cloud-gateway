@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.filter.factory;
 import com.netflix.config.ConfigurationManager;
 import com.netflix.hystrix.Hystrix;
 import com.netflix.hystrix.metric.consumer.HealthCountsStream;
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -125,7 +126,7 @@ public class HystrixGatewayFilterFactoryTests extends BaseWebClientTests {
 	public void hystrixFilterErrorPage() {
 		testClient.get().uri("/delay/3").header("Host", "www.hystrixconnectfail.org")
 				.accept(APPLICATION_JSON).exchange().expectStatus().is5xxServerError()
-				.expectBody().jsonPath("$.status").isEqualTo(500).jsonPath("$.message")
+				.expectBody().jsonPath("$.status").value(Matchers.greaterThanOrEqualTo(500)).jsonPath("$.message")
 				.isNotEmpty().jsonPath("$.error").isEqualTo("Internal Server Error");
 	}
 
