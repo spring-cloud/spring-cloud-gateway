@@ -20,6 +20,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 import javax.validation.Valid;
 import javax.validation.ValidationException;
@@ -38,6 +39,7 @@ import static org.springframework.util.StringUtils.tokenizeToStringArray;
 @Validated
 public class RouteDefinition {
 
+	@NotEmpty
 	private String id;
 
 	@NotEmpty
@@ -53,6 +55,13 @@ public class RouteDefinition {
 	private int order = 0;
 
 	public RouteDefinition() {
+		String envGenerateId = System.getenv("SPRING_CLOUD_GATEWAY_ROUTE_GENERATE_ID");
+		String propGenerateId = System
+				.getProperty("spring.cloud.gateway.route.generate-id", "false");
+		if ("true".equalsIgnoreCase(envGenerateId)
+				|| "true".equalsIgnoreCase(propGenerateId)) {
+			id = UUID.randomUUID().toString();
+		}
 	}
 
 	public RouteDefinition(String text) {
