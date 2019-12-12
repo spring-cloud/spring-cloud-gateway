@@ -16,8 +16,6 @@
 
 package org.springframework.cloud.gateway.route;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -44,16 +42,6 @@ public class RouteDefinitionDefaultIdTests {
 
 	@Autowired
 	private GatewayProperties properties;
-
-	@BeforeClass
-	public static void before() {
-		System.setProperty("spring.cloud.gateway.route.generate-id", "true");
-	}
-
-	@AfterClass
-	public static void after() {
-		System.clearProperty("spring.cloud.gateway.route.generate-id");
-	}
 
 	@Test
 	public void testDefaultIdWorks() {

@@ -51,8 +51,6 @@ NOTE: URIs defined in routes without a port will get a default port set to 80 an
 
 Spring Cloud Gateway matches routes as part of the Spring WebFlux `HandlerMapping` infrastructure. Spring Cloud Gateway includes many built-in Route Predicate Factories. All of these predicates match on different attributes of the HTTP request. Multiple Route Predicate Factories can be combined and are combined via logical `and`.
 
-WARNING: Previously, Spring Cloud Gateway generated a default Route ID by creating a random UUID. Generating a random UUID is a blocking operation and can lead to instability. Default id generation has been turned off by default. To re-enable this set an environment variable `SPRING_CLOUD_GATEWAY_ROUTE_GENERATE_ID` or system property `spring.cloud.gateway.route.generate-id` to `true`.
-
 === After Route Predicate Factory
 The After Route Predicate Factory takes one parameter, a datetime. This predicate matches requests that happen after the current datetime.
 
