@@ -50,6 +50,7 @@ import org.springframework.boot.web.embedded.netty.NettyReactiveWebServerFactory
 import org.springframework.cloud.gateway.actuate.GatewayControllerEndpoint;
 import org.springframework.cloud.gateway.actuate.GatewayLegacyControllerEndpoint;
 import org.springframework.cloud.gateway.filter.AdaptCachedBodyGlobalFilter;
+import org.springframework.cloud.gateway.filter.CleanPathFilter;
 import org.springframework.cloud.gateway.filter.ForwardPathFilter;
 import org.springframework.cloud.gateway.filter.ForwardRoutingFilter;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
@@ -290,6 +291,11 @@ public class GatewayAutoConfiguration {
 	@Bean
 	public ForwardPathFilter forwardPathFilter() {
 		return new ForwardPathFilter();
+	}
+
+	@Bean
+	public CleanPathFilter cleanPathFilter() {
+		return new CleanPathFilter();
 	}
 
 	@Bean

@@ -28,6 +28,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.http.server.PathContainer;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.pattern.PathPattern;
@@ -90,8 +91,8 @@ public class PathRoutePredicateFactory
 		return new GatewayPredicate() {
 			@Override
 			public boolean test(ServerWebExchange exchange) {
-				PathContainer path = parsePath(
-						exchange.getRequest().getURI().getRawPath());
+				PathContainer path = parsePath(StringUtils
+						.cleanPath(exchange.getRequest().getURI().getRawPath()));
 
 				Optional<PathPattern> optionalPathPattern = pathPatterns.stream()
 						.filter(pattern -> pattern.matches(path)).findFirst();

@@ -56,8 +56,8 @@ public class CompositeRouteDefinitionLocator implements RouteDefinitionLocator {
 							if (routeDefinition.getId() == null) {
 								routeDefinition.setId(id);
 								if (log.isDebugEnabled()) {
-									log.debug(
-											"Id set on route definition: " + routeDefinition);
+									log.debug("Id set on route definition: "
+											+ routeDefinition);
 								}
 							}
 							return routeDefinition;

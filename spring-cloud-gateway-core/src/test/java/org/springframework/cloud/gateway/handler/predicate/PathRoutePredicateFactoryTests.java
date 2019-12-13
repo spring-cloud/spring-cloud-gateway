@@ -99,6 +99,12 @@ public class PathRoutePredicateFactoryTests extends BaseWebClientTests {
 	}
 
 	@Test
+	public void navigatingPathHasNoEffect() {
+		testClient.get().uri("/foo/../get").header("www.stripprefix.org").exchange()
+				.expectStatus().isOk();
+	}
+
+	@Test
 	public void toStringFormat() {
 		Config config = new Config().setPatterns(Arrays.asList("patternA", "patternB"))
 				.setMatchOptionalTrailingSeparator(false);
