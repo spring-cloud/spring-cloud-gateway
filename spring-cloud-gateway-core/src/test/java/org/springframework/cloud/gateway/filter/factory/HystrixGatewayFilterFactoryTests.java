@@ -127,7 +127,7 @@ public class HystrixGatewayFilterFactoryTests extends BaseWebClientTests {
 		testClient.get().uri("/delay/3").header("Host", "www.hystrixconnectfail.org")
 				.accept(APPLICATION_JSON).exchange().expectStatus().is5xxServerError()
 				.expectBody().jsonPath("$.status").value(Matchers.greaterThanOrEqualTo(500)).jsonPath("$.message")
-				.isNotEmpty().jsonPath("$.error").isEqualTo("Internal Server Error");
+				.isNotEmpty().jsonPath("$.error").isNotEmpty();
 	}
 
 	@Test
