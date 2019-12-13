@@ -19,9 +19,7 @@ package org.springframework.cloud.gateway.route.builder;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 import org.springframework.cloud.gateway.handler.AsyncPredicate;
 import org.springframework.cloud.gateway.handler.predicate.AfterRoutePredicateFactory;
@@ -43,7 +41,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.web.server.ServerWebExchange;
 
 import static java.util.Arrays.stream;
-import static java.util.stream.Collectors.toList;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.toAsyncPredicate;
 
 /**
@@ -156,7 +153,9 @@ public class PredicateSpec extends UriSpec {
 	 */
 	public BooleanSpec method(String... methods) {
 		return asyncPredicate(getBean(MethodRoutePredicateFactory.class).applyAsync(c -> {
-			c.setMethod(Arrays.asList(methods));
+			HttpMethod[] httpMethods = stream(methods).map(HttpMethod::resolve)
+					.toArray(HttpMethod[]::new);
+			c.setMethod(httpMethods);
 		}));
 	}
 
@@ -167,12 +166,8 @@ public class PredicateSpec extends UriSpec {
 	 */
 	public BooleanSpec method(HttpMethod... methods) {
 		return asyncPredicate(getBean(MethodRoutePredicateFactory.class).applyAsync(c -> {
-			List<String> httpMethods = stream(methods).map(method -> method.name())
-					.collect(toList());
-			c.setMethod(httpMethods);
-		}
-
-		));
+			c.setMethod(methods);
+		}));
 	}
 
 	/**

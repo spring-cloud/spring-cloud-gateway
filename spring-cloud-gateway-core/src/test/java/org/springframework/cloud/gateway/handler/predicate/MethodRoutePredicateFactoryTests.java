@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.gateway.handler.predicate;
 
-import java.util.Arrays;
 import java.util.function.Predicate;
 
 import org.junit.Test;
@@ -80,11 +79,19 @@ public class MethodRoutePredicateFactoryTests extends BaseWebClientTests {
 	}
 
 	@Test
-	public void toStringFormat() {
+	public void toStringFormatSingleMethod() {
 		Config config = new Config();
-		config.setMethod(Arrays.asList(HttpMethod.GET.name()));
+		config.setMethod(HttpMethod.GET);
 		Predicate predicate = new MethodRoutePredicateFactory().apply(config);
-		assertThat(predicate.toString()).contains("Methods: " + config.getMethod());
+		assertThat(predicate.toString()).contains("Methods: [GET]");
+	}
+
+	@Test
+	public void toStringFormatMultipleMethods() {
+		Config config = new Config();
+		config.setMethod(HttpMethod.GET, HttpMethod.PUT);
+		Predicate predicate = new MethodRoutePredicateFactory().apply(config);
+		assertThat(predicate.toString()).contains("Methods: [GET, PUT]");
 	}
 
 	@EnableAutoConfiguration

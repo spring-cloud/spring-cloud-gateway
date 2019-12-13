@@ -20,11 +20,15 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 
+import org.springframework.http.HttpMethod;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.server.ServerWebExchange;
 
+import static java.util.Arrays.stream;
+
 /**
  * @author Spencer Gibb
+ * @author Dennis Menge
  */
 public class MethodRoutePredicateFactory
 		extends AbstractRoutePredicateFactory<MethodRoutePredicateFactory.Config> {
@@ -53,14 +57,14 @@ public class MethodRoutePredicateFactory
 		return new GatewayPredicate() {
 			@Override
 			public boolean test(ServerWebExchange exchange) {
-				String requestMethod = exchange.getRequest().getMethod().name();
-				return config.getMethod().stream().anyMatch(
-						httpMethod -> requestMethod.equalsIgnoreCase(httpMethod));
+				HttpMethod requestMethod = exchange.getRequest().getMethod();
+				return stream(config.getMethod())
+						.anyMatch(httpMethod -> httpMethod == requestMethod);
 			}
 
 			@Override
 			public String toString() {
-				return String.format("Methods: %s", config.getMethod());
+				return String.format("Methods: %s", Arrays.toString(config.getMethod()));
 			}
 		};
 	}
@@ -68,13 +72,13 @@ public class MethodRoutePredicateFactory
 	@Validated
 	public static class Config {
 
-		private List<String> method;
+		private HttpMethod[] method;
 
-		public List<String> getMethod() {
+		public HttpMethod[] getMethod() {
 			return method;
 		}
 
-		public void setMethod(List<String> methods) {
+		public void setMethod(HttpMethod... methods) {
 			this.method = methods;
 		}
 
