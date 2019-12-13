@@ -126,7 +126,8 @@ public class HystrixGatewayFilterFactoryTests extends BaseWebClientTests {
 	public void hystrixFilterErrorPage() {
 		testClient.get().uri("/delay/3").header("Host", "www.hystrixconnectfail.org")
 				.accept(APPLICATION_JSON).exchange().expectStatus().is5xxServerError()
-				.expectBody().jsonPath("$.status").value(Matchers.greaterThanOrEqualTo(500)).jsonPath("$.message")
+				.expectBody().jsonPath("$.status")
+				.value(Matchers.greaterThanOrEqualTo(500)).jsonPath("$.message")
 				.isNotEmpty().jsonPath("$.error").isNotEmpty();
 	}
 
