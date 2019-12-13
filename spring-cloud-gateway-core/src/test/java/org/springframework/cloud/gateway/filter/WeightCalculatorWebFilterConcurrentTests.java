@@ -91,8 +91,8 @@ public class WeightCalculatorWebFilterConcurrentTests {
 	}
 
 	private boolean isContinue() {
-		return (System.currentTimeMillis() - startTime) <
-				TimeUnit.SECONDS.toMillis(maxTestTimeSeconds);
+		return (System.currentTimeMillis() - startTime) < TimeUnit.SECONDS
+				.toMillis(maxTestTimeSeconds);
 	}
 
 	private void generateEvents() {

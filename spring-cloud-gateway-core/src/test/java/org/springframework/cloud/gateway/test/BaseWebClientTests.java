@@ -94,8 +94,10 @@ public class BaseWebClientTests {
 		@Bean
 		public GlobalFilter recursiveHttpbinFilter() {
 			return (exchange, chain) -> {
-				if (exchange.getRequest().getPath().toString().contains("httpbin/httpbin")) {
-					return Mono.error(new IllegalStateException("recursive call to /httpbin"));
+				if (exchange.getRequest().getPath().toString()
+						.contains("httpbin/httpbin")) {
+					return Mono.error(
+							new IllegalStateException("recursive call to /httpbin"));
 				}
 				return chain.filter(exchange);
 			};

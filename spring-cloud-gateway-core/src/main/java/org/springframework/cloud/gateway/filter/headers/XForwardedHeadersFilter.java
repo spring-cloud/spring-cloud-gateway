@@ -29,6 +29,7 @@ import org.springframework.web.server.ServerWebExchange;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
+import static org.springframework.util.StringUtils.isEmpty;
 
 @ConfigurationProperties("spring.cloud.gateway.x-forwarded")
 public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
@@ -271,12 +272,23 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 			String originalUriPath, String requestUriPath) {
 		String prefix;
 		if (requestUriPath != null && (originalUriPath.endsWith(requestUriPath))) {
-			prefix = originalUriPath.replace(requestUriPath, "");
+			prefix = substringBeforeLast(originalUriPath, requestUriPath);
 			if (prefix != null && prefix.length() > 0
 					&& prefix.length() <= originalUri.getPath().length()) {
 				write(updated, X_FORWARDED_PREFIX_HEADER, prefix, isPrefixAppend());
 			}
 		}
+	}
+
+	private static String substringBeforeLast(String str, String separator) {
+		if (isEmpty(str) || isEmpty(separator)) {
+			return str;
+		}
+		int pos = str.lastIndexOf(separator);
+		if (pos == -1) {
+			return str;
+		}
+		return str.substring(0, pos);
 	}
 
 	private void write(HttpHeaders headers, String name, String value, boolean append) {
