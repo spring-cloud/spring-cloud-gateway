@@ -34,6 +34,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.codec.ServerCodecConfigurer;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
+import org.springframework.lang.Nullable;
 import org.springframework.web.reactive.function.BodyInserter;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.ClientResponse;
@@ -43,24 +44,29 @@ import static org.springframework.cloud.gateway.support.GatewayToStringStyler.fi
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR;
 
 /**
- * GatewayFilter that modifies the respons body.
+ * GatewayFilter that modifies the response body.
  */
 public class ModifyResponseBodyGatewayFilterFactory extends
 		AbstractGatewayFilterFactory<ModifyResponseBodyGatewayFilterFactory.Config> {
 
-	public ModifyResponseBodyGatewayFilterFactory() {
-		super(Config.class);
-	}
+	@Nullable
+	private final ServerCodecConfigurer codecConfigurer;
 
 	@Deprecated
+	public ModifyResponseBodyGatewayFilterFactory() {
+		super(Config.class);
+		this.codecConfigurer = null;
+	}
+
 	public ModifyResponseBodyGatewayFilterFactory(ServerCodecConfigurer codecConfigurer) {
-		this();
+		super(Config.class);
+		this.codecConfigurer = codecConfigurer;
 	}
 
 	@Override
 	public GatewayFilter apply(Config config) {
 		ModifyResponseGatewayFilter gatewayFilter = new ModifyResponseGatewayFilter(
-				config);
+				config, codecConfigurer);
 		gatewayFilter.setFactory(this);
 		return gatewayFilter;
 	}
@@ -147,10 +153,20 @@ public class ModifyResponseBodyGatewayFilterFactory extends
 
 		private final Config config;
 
+		@Nullable
+		private final ServerCodecConfigurer codecConfigurer;
+
 		private GatewayFilterFactory<Config> gatewayFilterFactory;
 
+		@Deprecated
 		public ModifyResponseGatewayFilter(Config config) {
+			this(config, null);
+		}
+
+		public ModifyResponseGatewayFilter(Config config,
+				@Nullable ServerCodecConfigurer codecConfigurer) {
 			this.config = config;
+			this.codecConfigurer = codecConfigurer;
 		}
 
 		@Override
@@ -178,10 +194,8 @@ public class ModifyResponseBodyGatewayFilterFactory extends
 					httpHeaders.add(HttpHeaders.CONTENT_TYPE,
 							originalResponseContentType);
 
-					ClientResponse clientResponse = ClientResponse
-							.create(exchange.getResponse().getStatusCode())
-							.headers(headers -> headers.putAll(httpHeaders))
-							.body(Flux.from(body)).build();
+					ClientResponse clientResponse = prepareClientResponse(body,
+							httpHeaders);
 
 					// TODO: flux or mono
 					Mono modifiedBody = clientResponse.bodyToMono(inClass)
@@ -210,6 +224,23 @@ public class ModifyResponseBodyGatewayFilterFactory extends
 						Publisher<? extends Publisher<? extends DataBuffer>> body) {
 					return writeWith(Flux.from(body).flatMapSequential(p -> p));
 				}
+
+				private ClientResponse prepareClientResponse(
+						Publisher<? extends DataBuffer> body, HttpHeaders httpHeaders) {
+					ClientResponse.Builder builder;
+					if (codecConfigurer != null) {
+						builder = ClientResponse.create(
+								exchange.getResponse().getStatusCode(),
+								codecConfigurer.getReaders());
+					}
+					else {
+						builder = ClientResponse
+								.create(exchange.getResponse().getStatusCode());
+					}
+					return builder.headers(headers -> headers.putAll(httpHeaders))
+							.body(Flux.from(body)).build();
+				}
+
 			};
 		}
 
