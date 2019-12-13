@@ -20,7 +20,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 
-import org.springframework.http.HttpMethod;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.server.ServerWebExchange;
 
 /**
@@ -44,31 +44,38 @@ public class MethodRoutePredicateFactory
 	}
 
 	@Override
+	public ShortcutType shortcutType() {
+		return ShortcutType.GATHER_LIST;
+	}
+
+	@Override
 	public Predicate<ServerWebExchange> apply(Config config) {
 		return new GatewayPredicate() {
 			@Override
 			public boolean test(ServerWebExchange exchange) {
-				HttpMethod requestMethod = exchange.getRequest().getMethod();
-				return requestMethod == config.getMethod();
+				String requestMethod = exchange.getRequest().getMethod().name();
+				return config.getMethod().stream().anyMatch(
+						httpMethod -> requestMethod.equalsIgnoreCase(httpMethod));
 			}
 
 			@Override
 			public String toString() {
-				return String.format("Method: %s", config.getMethod());
+				return String.format("Methods: %s", config.getMethod());
 			}
 		};
 	}
 
+	@Validated
 	public static class Config {
 
-		private HttpMethod method;
+		private List<String> method;
 
-		public HttpMethod getMethod() {
+		public List<String> getMethod() {
 			return method;
 		}
 
-		public void setMethod(HttpMethod method) {
-			this.method = method;
+		public void setMethod(List<String> methods) {
+			this.method = methods;
 		}
 
 	}

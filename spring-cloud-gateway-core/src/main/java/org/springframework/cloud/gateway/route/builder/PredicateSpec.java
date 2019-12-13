@@ -19,7 +19,9 @@ package org.springframework.cloud.gateway.route.builder;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import org.springframework.cloud.gateway.handler.AsyncPredicate;
 import org.springframework.cloud.gateway.handler.predicate.AfterRoutePredicateFactory;
@@ -40,6 +42,8 @@ import org.springframework.cloud.gateway.support.ipresolver.RemoteAddressResolve
 import org.springframework.http.HttpMethod;
 import org.springframework.web.server.ServerWebExchange;
 
+import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.toList;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.toAsyncPredicate;
 
 /**
@@ -147,22 +151,28 @@ public class PredicateSpec extends UriSpec {
 
 	/**
 	 * A predicate that checks if the HTTP method matches
-	 * @param method the name of the HTTP method
+	 * @param methods the name of the HTTP methods
 	 * @return a {@link BooleanSpec} to be used to add logical operators
 	 */
-	public BooleanSpec method(String method) {
-		return asyncPredicate(getBean(MethodRoutePredicateFactory.class)
-				.applyAsync(c -> c.setMethod(HttpMethod.resolve(method))));
+	public BooleanSpec method(String... methods) {
+		return asyncPredicate(getBean(MethodRoutePredicateFactory.class).applyAsync(c -> {
+			c.setMethod(Arrays.asList(methods));
+		}));
 	}
 
 	/**
 	 * A predicate that checks if the HTTP method matches
-	 * @param method the HTTP method
+	 * @param methods the HTTP methods
 	 * @return a {@link BooleanSpec} to be used to add logical operators
 	 */
-	public BooleanSpec method(HttpMethod method) {
-		return asyncPredicate(getBean(MethodRoutePredicateFactory.class)
-				.applyAsync(c -> c.setMethod(method)));
+	public BooleanSpec method(HttpMethod... methods) {
+		return asyncPredicate(getBean(MethodRoutePredicateFactory.class).applyAsync(c -> {
+			List<String> httpMethods = stream(methods).map(method -> method.name())
+					.collect(toList());
+			c.setMethod(httpMethods);
+		}
+
+		));
 	}
 
 	/**
