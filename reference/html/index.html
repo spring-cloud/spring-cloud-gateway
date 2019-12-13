@@ -466,7 +466,7 @@ URIs defined in routes without a port will get a default port set to 80 and 443 
 <div class="sect2">
 <h3 id="method-route-predicate-factory"><a class="anchor" href="#method-route-predicate-factory"></a><a class="link" href="#method-route-predicate-factory">4.7. Method Route Predicate Factory</a></h3>
 <div class="paragraph">
-<p>The Method Route Predicate Factory takes one parameter: the HTTP method to match.</p>
+<p>The Method Route Predicate Factory takes one or more parameters: the HTTP methods to match.</p>
 </div>
 <div class="listingblock">
 <div class="title">application.yml</div>
@@ -478,11 +478,11 @@ URIs defined in routes without a port will get a default port set to 80 and 443 
       - id: method_route
         uri: https://example.org
         predicates:
-        - Method=GET</code></pre>
+        - Method=GET,POST</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>This route would match if the request method was a <code>GET</code>.</p>
+<p>This route would match if the request method was a <code>GET</code> or a <code>POST</code>.</p>
 </div>
 </div>
 <div class="sect2">
