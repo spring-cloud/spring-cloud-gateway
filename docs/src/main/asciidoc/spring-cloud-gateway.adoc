@@ -158,7 +158,7 @@ This predicate extracts the URI template variables (like `sub` defined in the ex
 
 
 === Method Route Predicate Factory
-The Method Route Predicate Factory takes one parameter: the HTTP method to match.
+The Method Route Predicate Factory takes one or more parameters: the HTTP methods to match.
 
 .application.yml
 [source,yaml]
@@ -170,10 +170,10 @@ spring:
       - id: method_route
         uri: https://example.org
         predicates:
-        - Method=GET
+        - Method=GET,POST
 ----
 
-This route would match if the request method was a `GET`.
+This route would match if the request method was a `GET` or a `POST`.
 
 === Path Route Predicate Factory
 The Path Route Predicate Factory takes two parameters: a list of Spring `PathMatcher` patterns and an optional flag to `matchOptionalTrailingSeparator`.
