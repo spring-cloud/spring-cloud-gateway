@@ -174,7 +174,7 @@ working with Spring Cloud Gateway.</simpara>
 </section>
 <section xml:id="_method_route_predicate_factory">
 <title>Method Route Predicate Factory</title>
-<simpara>The Method Route Predicate Factory takes one parameter: the HTTP method to match.</simpara>
+<simpara>The Method Route Predicate Factory takes one or more parameters: the HTTP methods to match.</simpara>
 <formalpara>
 <title>application.yml</title>
 <para>
@@ -185,10 +185,10 @@ working with Spring Cloud Gateway.</simpara>
       - id: method_route
         uri: https://example.org
         predicates:
-        - Method=GET</programlisting>
+        - Method=GET,POST</programlisting>
 </para>
 </formalpara>
-<simpara>This route would match if the request method was a <literal>GET</literal>.</simpara>
+<simpara>This route would match if the request method was a <literal>GET</literal> or a <literal>POST</literal>.</simpara>
 </section>
 <section xml:id="_path_route_predicate_factory">
 <title>Path Route Predicate Factory</title>
