@@ -901,7 +901,7 @@ using something like <link xl:href="https://projects.spring.io/spring-session/">
 <title>SecureHeaders GatewayFilter Factory</title>
 <simpara>The SecureHeaders GatewayFilter Factory adds a number of headers to the response at the recommendation from <link xl:href="https://blog.appcanary.com/2017/http-security-headers.html">this blog post</link>.</simpara>
 <itemizedlist>
-<title>The following headers are added (allong with default values):</title>
+<title>The following headers are added (along with default values):</title>
 <listitem>
 <simpara><literal>X-Xss-Protection:1; mode=block</literal></simpara>
 </listitem>
@@ -956,9 +956,39 @@ using something like <link xl:href="https://projects.spring.io/spring-session/">
 </listitem>
 </itemizedlist>
 <simpara>To disable the default values set the property <literal>spring.cloud.gateway.filter.secure-headers.disable</literal> with comma separated values.</simpara>
+<note>
+<simpara>Need use lowercase and full name of secure headers.</simpara>
+</note>
+<itemizedlist>
+<title>The following values can use:</title>
+<listitem>
+<simpara><literal>x-xss-protection</literal></simpara>
+</listitem>
+<listitem>
+<simpara><literal>strict-transport-security</literal></simpara>
+</listitem>
+<listitem>
+<simpara><literal>x-frame-options</literal></simpara>
+</listitem>
+<listitem>
+<simpara><literal>x-content-type-options</literal></simpara>
+</listitem>
+<listitem>
+<simpara><literal>referrer-policy</literal></simpara>
+</listitem>
+<listitem>
+<simpara><literal>content-security-policy</literal></simpara>
+</listitem>
+<listitem>
+<simpara><literal>x-download-options</literal></simpara>
+</listitem>
+<listitem>
+<simpara><literal>x-permitted-cross-domain-policies</literal></simpara>
+</listitem>
+</itemizedlist>
 <formalpara>
 <title>Example:</title>
-<para><literal>spring.cloud.gateway.filter.secure-headers.disable=frame-options,download-options</literal></para>
+<para><literal>spring.cloud.gateway.filter.secure-headers.disable=x-frame-options,strict-transport-security</literal></para>
 </formalpara>
 </section>
 <section xml:id="_setpath_gatewayfilter_factory">
