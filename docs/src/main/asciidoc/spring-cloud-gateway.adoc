@@ -889,7 +889,7 @@ If you are integrating https://projects.spring.io/spring-security/[Spring Securi
 === SecureHeaders GatewayFilter Factory
 The SecureHeaders GatewayFilter Factory adds a number of headers to the response at the recommendation from https://blog.appcanary.com/2017/http-security-headers.html[this blog post].
 
-.The following headers are added (allong with default values):
+.The following headers are added (along with default values):
  * `X-Xss-Protection:1; mode=block`
  * `Strict-Transport-Security:max-age=631138519`
  * `X-Frame-Options:DENY`
@@ -913,8 +913,20 @@ To change the default values set the appropriate property in the `spring.cloud.g
 
 To disable the default values set the property `spring.cloud.gateway.filter.secure-headers.disable` with comma separated values.
 
+NOTE: Need use lowercase and full name of secure headers.
+
+.The following values can use:
+ * `x-xss-protection`
+ * `strict-transport-security`
+ * `x-frame-options`
+ * `x-content-type-options`
+ * `referrer-policy`
+ * `content-security-policy`
+ * `x-download-options`
+ * `x-permitted-cross-domain-policies`
+
 .Example:
-`spring.cloud.gateway.filter.secure-headers.disable=frame-options,download-options`
+`spring.cloud.gateway.filter.secure-headers.disable=x-frame-options,strict-transport-security`
 
 === SetPath GatewayFilter Factory
 The SetPath GatewayFilter Factory takes a path `template` parameter. It offers a simple way to manipulate the request path by allowing templated segments of the path. This uses the uri templates from Spring Framework. Multiple matching segments are allowed.
