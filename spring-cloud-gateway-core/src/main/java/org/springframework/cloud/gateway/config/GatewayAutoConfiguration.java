@@ -139,6 +139,7 @@ import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.env.Environment;
+import org.springframework.http.codec.ServerCodecConfigurer;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.Validator;
 import org.springframework.web.reactive.DispatcherHandler;
@@ -215,6 +216,7 @@ public class GatewayAutoConfiguration {
 
 	@Bean
 	@Primary
+	@ConditionalOnMissingBean(name = "cachedCompositeRouteLocator")
 	// TODO: property to disable composite?
 	public RouteLocator cachedCompositeRouteLocator(List<RouteLocator> routeLocators) {
 		return new CachingRouteLocator(
@@ -436,8 +438,9 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	public ModifyResponseBodyGatewayFilterFactory modifyResponseBodyGatewayFilterFactory() {
-		return new ModifyResponseBodyGatewayFilterFactory();
+	public ModifyResponseBodyGatewayFilterFactory modifyResponseBodyGatewayFilterFactory(
+			ServerCodecConfigurer codecConfigurer) {
+		return new ModifyResponseBodyGatewayFilterFactory(codecConfigurer);
 	}
 
 	@Bean

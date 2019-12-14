@@ -27,7 +27,6 @@ import com.netflix.loadbalancer.ServerList;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hamcrest.CoreMatchers;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,7 +36,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.rule.OutputCapture;
+import org.springframework.boot.test.system.OutputCaptureRule;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.RetryGatewayFilterFactory.RetryConfig;
@@ -75,12 +74,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTests {
 
 	@Rule
-	public final OutputCapture capture = new OutputCapture();
-
-	@Before
-	public void before() {
-		capture.reset();
-	}
+	public final OutputCaptureRule capture = new OutputCaptureRule();
 
 	@Test
 	public void retryFilterGet() {

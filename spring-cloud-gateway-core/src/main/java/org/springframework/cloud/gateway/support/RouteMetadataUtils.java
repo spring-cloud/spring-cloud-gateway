@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2019 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,22 @@
  * limitations under the License.
  */
 
-package reactor.blockhound.integration;
+package org.springframework.cloud.gateway.support;
 
-import org.junit.jupiter.api.Assertions;
-import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
+public final class RouteMetadataUtils {
 
-/**
- * @author Tim Ysewyn
- */
-public class CustomBlockHoundIntegrationTest {
+	/**
+	 * Response timeout attribute name.
+	 */
+	public static final String RESPONSE_TIMEOUT_ATTR = "response-timeout";
 
-	// @Test
-	// ignore fails on java 13
-	public void shouldThrowErrorForBlockingCallWithCustomBlockHoundIntegration() {
-		Assertions.assertThrows(RuntimeException.class, () -> Mono.fromCallable(() -> {
-			Thread.sleep(1);
-			return null;
-		}).subscribeOn(Schedulers.parallel()).block());
+	/**
+	 * Connect timeout attribute name.
+	 */
+	public static final String CONNECT_TIMEOUT_ATTR = "connect-timeout";
+
+	private RouteMetadataUtils() {
+		throw new AssertionError("Must not instantiate utility class.");
 	}
 
 }

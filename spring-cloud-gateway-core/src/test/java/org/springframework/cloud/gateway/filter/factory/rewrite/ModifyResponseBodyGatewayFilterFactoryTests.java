@@ -14,57 +14,45 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.gateway.filter.factory;
+package org.springframework.cloud.gateway.filter.factory.rewrite;
 
-import java.util.List;
+import java.net.URI;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.web.util.UriComponentsBuilder;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
-import static org.springframework.cloud.gateway.test.TestUtils.getMap;
 
-/**
- * @author Spencer Gibb
- */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
-public class PreserveHostHeaderGatewayFilterFactoryTests extends BaseWebClientTests {
-
-	@SuppressWarnings("unchecked")
-	@Test
-	public void preserveHostHeaderGatewayFilterFactoryWorks() {
-		testClient.get().uri("/multivalueheaders")
-				.header("Host", "www.preservehostheader.org").exchange().expectStatus()
-				.isOk().expectBody(Map.class).consumeWith(result -> {
-					Map<String, Object> headers = getMap(result.getResponseBody(),
-							"headers");
-					assertThat(headers).containsKey("Host");
-					List<String> values = (List<String>) headers.get("Host");
-					assertThat(values).containsExactly("myhost.net");
-				});
-	}
+public class ModifyResponseBodyGatewayFilterFactoryTests extends BaseWebClientTests {
 
 	@Test
-	public void toStringFormat() {
-		GatewayFilter filter = new PreserveHostHeaderGatewayFilterFactory().apply();
-		assertThat(filter.toString()).contains("PreserveHostHeader");
+	public void testModificationOfResponseBody() {
+		URI uri = UriComponentsBuilder.fromUriString(this.baseUri + "/").build(true)
+				.toUri();
+
+		testClient.get().uri(uri).header("Host", "www.modifyresponsebodyjava.org")
+				.accept(MediaType.APPLICATION_JSON).exchange().expectBody()
+				.json("{\"value\": \"httpbin compatible home\", \"length\": 23}");
 	}
 
 	@EnableAutoConfiguration
@@ -77,10 +65,17 @@ public class PreserveHostHeaderGatewayFilterFactoryTests extends BaseWebClientTe
 
 		@Bean
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
-			return builder.routes().route("test_preserve_host_header",
-					r -> r.order(-1).host("**.preservehostheader.org")
-							.filters(f -> f.prefixPath("/httpbin").preserveHostHeader()
-									.setRequestHeader("Host", "myhost.net"))
+			return builder.routes().route("modify_response_java_test",
+					r -> r.path("/").and().host("www.modifyresponsebodyjava.org")
+							.filters(f -> f.prefixPath("/httpbin").modifyResponseBody(
+									String.class, Map.class,
+									(webExchange, originalResponse) -> {
+										Map<String, Object> modifiedResponse = new HashMap<>();
+										modifiedResponse.put("value", originalResponse);
+										modifiedResponse.put("length",
+												originalResponse.length());
+										return Mono.just(modifiedResponse);
+									}))
 							.uri(uri))
 					.build();
 		}

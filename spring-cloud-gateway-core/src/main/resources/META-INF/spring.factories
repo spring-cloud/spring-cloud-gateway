@@ -2,7 +2,8 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
 org.springframework.cloud.gateway.config.GatewayClassPathWarningAutoConfiguration,\
 org.springframework.cloud.gateway.config.GatewayAutoConfiguration,\
-org.springframework.cloud.gateway.config.GatewayCircuitBreakerAutoConfiguration,\
+org.springframework.cloud.gateway.config.GatewayHystrixCircuitBreakerAutoConfiguration,\
+org.springframework.cloud.gateway.config.GatewayResilience4JCircuitBreakerAutoConfiguration,\
 org.springframework.cloud.gateway.config.GatewayLoadBalancerClientAutoConfiguration,\
 org.springframework.cloud.gateway.config.GatewayNoLoadBalancerClientAutoConfiguration,\
 org.springframework.cloud.gateway.config.GatewayMetricsAutoConfiguration,\

@@ -21,10 +21,14 @@ import java.util.List;
 import java.util.function.Predicate;
 
 import org.springframework.http.HttpMethod;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.server.ServerWebExchange;
+
+import static java.util.Arrays.stream;
 
 /**
  * @author Spencer Gibb
+ * @author Dennis Menge
  */
 public class MethodRoutePredicateFactory
 		extends AbstractRoutePredicateFactory<MethodRoutePredicateFactory.Config> {
@@ -32,7 +36,13 @@ public class MethodRoutePredicateFactory
 	/**
 	 * Method key.
 	 */
+	@Deprecated
 	public static final String METHOD_KEY = "method";
+
+	/**
+	 * Methods key.
+	 */
+	public static final String METHODS_KEY = "methods";
 
 	public MethodRoutePredicateFactory() {
 		super(Config.class);
@@ -40,7 +50,12 @@ public class MethodRoutePredicateFactory
 
 	@Override
 	public List<String> shortcutFieldOrder() {
-		return Arrays.asList(METHOD_KEY);
+		return Arrays.asList(METHODS_KEY);
+	}
+
+	@Override
+	public ShortcutType shortcutType() {
+		return ShortcutType.GATHER_LIST;
 	}
 
 	@Override
@@ -49,28 +64,42 @@ public class MethodRoutePredicateFactory
 			@Override
 			public boolean test(ServerWebExchange exchange) {
 				HttpMethod requestMethod = exchange.getRequest().getMethod();
-				return requestMethod == config.getMethod();
+				return stream(config.getMethods())
+						.anyMatch(httpMethod -> httpMethod == requestMethod);
 			}
 
 			@Override
 			public String toString() {
-				return String.format("Method: %s", config.getMethod());
+				return String.format("Methods: %s", Arrays.toString(config.getMethods()));
 			}
 		};
 	}
 
+	@Validated
 	public static class Config {
 
-		private HttpMethod method;
+		private HttpMethod[] methods;
 
+		@Deprecated
 		public HttpMethod getMethod() {
-			return method;
+			if (methods != null && methods.length > 0) {
+				return methods[0];
+			}
+			return null;
 		}
 
+		@Deprecated
 		public void setMethod(HttpMethod method) {
-			this.method = method;
+			this.methods = new HttpMethod[] {method};
 		}
 
+		public HttpMethod[] getMethods() {
+			return methods;
+		}
+
+		public void setMethods(HttpMethod... methods) {
+			this.methods = methods;
+		}
 	}
 
 }
