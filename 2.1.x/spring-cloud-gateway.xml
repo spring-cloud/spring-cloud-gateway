@@ -1301,7 +1301,7 @@ This property takes a list of filters</simpara>
 <para>
 <programlisting language="java" linenumbering="unnumbered">@Bean
 public GlobalFilter customFilter() {
-    return CustomGlobalFilter();
+    return new CustomGlobalFilter();
 }
 
 public class CustomGlobalFilter implements GlobalFilter, Ordered {
@@ -1404,7 +1404,7 @@ route URL will override the <literal>ServiceInstance</literal> configuration.</s
 </section>
 <section xml:id="_routetorequesturl_filter">
 <title>RouteToRequestUrl Filter</title>
-<simpara>The <literal>RouteToRequestUrlFilter</literal> runs if there is a <literal>Route</literal> object in the <literal>ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR</literal> exchange attribute. It creates a new URI, based off of the request URI, but updated with the URI attribute of the <literal>Route</literal> object. The new URI is placed in the <literal>ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR</literal> exchange attribute`.</simpara>
+<simpara>The <literal>RouteToRequestUrlFilter</literal> runs if there is a <literal>Route</literal> object in the <literal>ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR</literal> exchange attribute. It creates a new URI, based off of the request URI, but updated with the URI attribute of the <literal>Route</literal> object. The new URI is placed in the <literal>ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR</literal> exchange attribute.</simpara>
 <simpara>If the URI has a scheme prefix, such as <literal>lb:ws://serviceid</literal>, the <literal>lb</literal> scheme is stripped from the URI and placed in the <literal>ServerWebExchangeUtils.GATEWAY_SCHEME_PREFIX_ATTR</literal> for use later in the filter chain.</simpara>
 </section>
 <section xml:id="_websocket_routing_filter">
@@ -1426,7 +1426,7 @@ route URL will override the <literal>ServiceInstance</literal> configuration.</s
         uri: http://localhost:3001
         predicates:
         - Path=/websocket/info/**
-      # Normwal Websocket route
+      # Normal Websocket route
       - id: websocket_route
         uri: ws://localhost:3001
         predicates:
@@ -1540,7 +1540,7 @@ or check if an exchange has already been routed.</simpara>
 </chapter>
 <chapter xml:id="_configuration">
 <title>Configuration</title>
-<simpara>Configuration for Spring Cloud Gateway is driven by a collection of `RouteDefinitionLocator`s.</simpara>
+<simpara>Configuration for Spring Cloud Gateway is driven by a collection of <literal>RouteDefinitionLocator</literal>s.</simpara>
 <formalpara>
 <title>RouteDefinitionLocator.java</title>
 <para>
