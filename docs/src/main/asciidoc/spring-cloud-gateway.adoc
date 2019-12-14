@@ -1052,8 +1052,20 @@ To change the default values set the appropriate property in the `spring.cloud.g
 
 To disable the default values set the property `spring.cloud.gateway.filter.secure-headers.disable` with comma separated values.
 
+NOTE: Need use lowercase and full name of secure headers.
+
+.The following values can use:
+ * `x-xss-protection`
+ * `strict-transport-security`
+ * `x-frame-options`
+ * `x-content-type-options`
+ * `referrer-policy`
+ * `content-security-policy`
+ * `x-download-options`
+ * `x-permitted-cross-domain-policies`
+
 .Example:
-`spring.cloud.gateway.filter.secure-headers.disable=frame-options,download-options`
+`spring.cloud.gateway.filter.secure-headers.disable=x-frame-options,strict-transport-security`
 
 === SetPath GatewayFilter Factory
 The SetPath GatewayFilter Factory takes a path `template` parameter. It offers a simple way to manipulate the request path by allowing templated segments of the path. This uses the uri templates from Spring Framework. Multiple matching segments are allowed.
@@ -1365,7 +1377,7 @@ As Spring Cloud Gateway distinguishes between "pre" and "post" phases for filter
 ----
 @Bean
 public GlobalFilter customFilter() {
-    return CustomGlobalFilter();
+    return new CustomGlobalFilter();
 }
 
 public class CustomGlobalFilter implements GlobalFilter, Ordered {
@@ -1462,7 +1474,7 @@ The `NettyWriteResponseFilter` runs if there is a Netty `HttpClientResponse` in 
 
 === RouteToRequestUrl Filter
 
-The `RouteToRequestUrlFilter` runs if there is a `Route` object in the `ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR` exchange attribute. It creates a new URI, based off of the request URI, but updated with the URI attribute of the `Route` object. The new URI is placed in the `ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR` exchange attribute`.
+The `RouteToRequestUrlFilter` runs if there is a `Route` object in the `ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR` exchange attribute. It creates a new URI, based off of the request URI, but updated with the URI attribute of the `Route` object. The new URI is placed in the `ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR` exchange attribute.
 
 If the URI has a scheme prefix, such as `lb:ws://serviceid`, the `lb` scheme is stripped from the URI and placed in the `ServerWebExchangeUtils.GATEWAY_SCHEME_PREFIX_ATTR` for use later in the filter chain.
 
@@ -1486,7 +1498,7 @@ spring:
         uri: http://localhost:3001
         predicates:
         - Path=/websocket/info/**
-      # Normwal Websocket route
+      # Normal Websocket route
       - id: websocket_route
         uri: ws://localhost:3001
         predicates:
@@ -1582,7 +1594,7 @@ spring:
 
 == Configuration
 
-Configuration for Spring Cloud Gateway is driven by a collection of `RouteDefinitionLocator`s.
+Configuration for Spring Cloud Gateway is driven by a collection of ``RouteDefinitionLocator``s.
 
 .RouteDefinitionLocator.java
 [source,java]
