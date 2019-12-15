@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.gateway.filter.redis.quota;
+package org.springframework.cloud.gateway.filter.quota;
 
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -38,7 +38,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assume.assumeThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
-import static org.springframework.cloud.gateway.filter.redis.quota.QuotaFilter.Response;
+import static org.springframework.cloud.gateway.filter.quota.QuotaFilter.Response;
 
 /**
  * @author Tobias Schug

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.gateway.filter.redis.ratelimit;
+package org.springframework.cloud.gateway.filter.quota;
 
 import java.security.Principal;
 import java.util.Collections;
@@ -78,7 +78,7 @@ public class PrincipalNameKeyResolverIntegrationTests {
 
 	@Before
 	public void setup() {
-		this.baseUri = "http://localhost:" + port;
+		this.baseUri = String.format("%s:%s", "http://localhost", port);
 		this.client = WebTestClient.bindToServer().baseUrl(baseUri).build();
 	}
 
@@ -107,15 +107,15 @@ public class PrincipalNameKeyResolverIntegrationTests {
 		public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes().route(r -> r.path("/myapi/**")
 					.filters(f -> f
-							.requestRateLimiter(c -> c.setRateLimiter(myRateLimiter()))
+							.requestQuotaFilter(c -> c.setQuotaFilter(myQuotaFilter()))
 							.prefixPath("/downstream"))
 					.uri("http://localhost:" + port)).build();
 		}
 
 		@Bean
 		@Primary
-		MyRateLimiter myRateLimiter() {
-			return new MyRateLimiter();
+		MyQuotaFilter myQuotaFilter() {
+			return new MyQuotaFilter();
 		}
 
 		@Bean
@@ -131,13 +131,13 @@ public class PrincipalNameKeyResolverIntegrationTests {
 			return new MapReactiveUserDetailsService(user);
 		}
 
-		class MyRateLimiter implements RateLimiter<Object> {
+		class MyQuotaFilter implements QuotaFilter<Object> {
 
 			private HashMap<String, Object> map = new HashMap<>();
 
 			@Override
 			public Mono<Response> isAllowed(String routeId, String id) {
-				return Mono.just(new RateLimiter.Response(true,
+				return Mono.just(new Response(true,
 						Collections.singletonMap("X-Value", "5000000")));
 			}
 

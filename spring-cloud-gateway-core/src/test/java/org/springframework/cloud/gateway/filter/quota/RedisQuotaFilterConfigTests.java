@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.gateway.filter.redis.quota;
+package org.springframework.cloud.gateway.filter.quota;
 
 import org.junit.Before;
 import org.junit.Test;

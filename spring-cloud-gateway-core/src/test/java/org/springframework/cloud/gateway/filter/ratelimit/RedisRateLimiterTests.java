@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.gateway.filter.redis.ratelimit;
+package org.springframework.cloud.gateway.filter.ratelimit;
 
 import java.util.UUID;
 
@@ -26,7 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.gateway.filter.redis.ratelimit.RateLimiter.Response;
+import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter.Response;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.cloud.gateway.test.support.redis.RedisRule;
 import org.springframework.context.annotation.Import;

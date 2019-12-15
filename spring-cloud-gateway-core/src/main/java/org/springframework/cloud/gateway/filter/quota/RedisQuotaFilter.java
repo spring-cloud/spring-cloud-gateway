@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.gateway.filter.redis.quota;
+package org.springframework.cloud.gateway.filter.quota;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -194,7 +194,7 @@ public class RedisQuotaFilter extends AbstractQuotaLimiter<RedisQuotaFilter.Conf
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
-	public Mono<Response> isAllowed(String routeId, String id) {
+	public Mono<QuotaFilter.Response> isAllowed(String routeId, String id) {
 		if (!this.initialized.get()) {
 			throw new IllegalStateException("RedisRateLimiter is not initialized");
 		}

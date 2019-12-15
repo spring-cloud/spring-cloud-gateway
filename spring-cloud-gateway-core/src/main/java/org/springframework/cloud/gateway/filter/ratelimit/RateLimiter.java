@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.gateway.filter.redis.ratelimit;
+package org.springframework.cloud.gateway.filter.ratelimit;
 
 import java.util.Collections;
 import java.util.Map;

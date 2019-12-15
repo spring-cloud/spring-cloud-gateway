@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.gateway.filter.redis;
+package org.springframework.cloud.gateway.filter;
 
 import reactor.core.publisher.Mono;
 
