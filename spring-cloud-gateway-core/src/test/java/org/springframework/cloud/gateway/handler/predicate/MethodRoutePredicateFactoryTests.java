@@ -74,9 +74,14 @@ public class MethodRoutePredicateFactoryTests extends BaseWebClientTests {
 		testClient.delete().uri("/multivalueheaders").header("Host", "www.method.org")
 				.exchange().expectStatus()
 				.value(integer -> integer.equals(HttpStatus.METHOD_NOT_ALLOWED))
-				.expectHeader().valueEquals(HANDLER_MAPPER_HEADER,
-				RoutePredicateHandlerMapping.class.getSimpleName()).expectHeader()
-				/* Fallback to route with '/**' path predicate matches, see application.yml in test resources */
+				.expectHeader()
+				.valueEquals(HANDLER_MAPPER_HEADER,
+						RoutePredicateHandlerMapping.class.getSimpleName())
+				.expectHeader()
+				/*
+				 * Fallback to route with '/**' path predicate matches, see
+				 * application.yml in test resources
+				 */
 				.valueEquals(ROUTE_ID_HEADER, "default_path_to_httpbin");
 	}
 
