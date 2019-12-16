@@ -16,9 +16,9 @@
 
 package org.springframework.cloud.gateway.route;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import reactor.cache.CacheFlux;
 import reactor.core.publisher.Flux;
@@ -37,7 +37,7 @@ public class CachingRouteLocator
 
 	private final Flux<Route> routes;
 
-	private final Map<String, List> cache = new HashMap<>();
+	private final Map<String, List> cache = new ConcurrentHashMap<>();
 
 	public CachingRouteLocator(RouteLocator delegate) {
 		this.delegate = delegate;

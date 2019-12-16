@@ -31,6 +31,7 @@ import reactor.core.publisher.Mono;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.RequestEntity.BodyBuilder;
 import org.springframework.http.ResponseEntity;
@@ -115,6 +116,8 @@ public class ProxyExchange<T> {
 	public static Set<String> DEFAULT_SENSITIVE = new HashSet<>(
 			Arrays.asList("cookie", "authorization"));
 
+	private HttpMethod httpMethod;
+
 	private URI uri;
 
 	private WebClient rest;
@@ -141,6 +144,7 @@ public class ProxyExchange<T> {
 		this.rest = rest;
 		this.sensitive = new HashSet<>(DEFAULT_SENSITIVE.size());
 		this.sensitive.addAll(DEFAULT_SENSITIVE);
+		this.httpMethod = exchange.getRequest().getMethod();
 	}
 
 	/**
@@ -313,6 +317,49 @@ public class ProxyExchange<T> {
 	public <S> Mono<ResponseEntity<S>> patch(
 			Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
 		return patch().map(converter::apply);
+	}
+
+	public Mono<ResponseEntity<T>> forward() {
+		switch (httpMethod) {
+		case GET:
+			return get();
+		case HEAD:
+			return head();
+		case OPTIONS:
+			return options();
+		case POST:
+			return post();
+		case DELETE:
+			return delete();
+		case PUT:
+			return put();
+		case PATCH:
+			return patch();
+		default:
+			return Mono.empty();
+		}
+	}
+
+	public <S> Mono<ResponseEntity<S>> forward(
+			Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
+		switch (httpMethod) {
+		case GET:
+			return get(converter);
+		case HEAD:
+			return head(converter);
+		case OPTIONS:
+			return options(converter);
+		case POST:
+			return post(converter);
+		case DELETE:
+			return delete(converter);
+		case PUT:
+			return put(converter);
+		case PATCH:
+			return patch(converter);
+		default:
+			return Mono.empty();
+		}
 	}
 
 	private Mono<ResponseEntity<T>> exchange(RequestEntity<?> requestEntity) {

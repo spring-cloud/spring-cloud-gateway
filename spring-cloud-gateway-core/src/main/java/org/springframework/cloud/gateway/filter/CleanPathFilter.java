@@ -25,6 +25,11 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
 
 /**
+ * This filter ensures the path added to the URI of the route is "clean".
+ *
+ * For example if the path was <code>/foo/../bar</code>, the path after running through
+ * this filter would be <code>/bar</code>
+ *
  * @author Ryan Baxter
  */
 public class CleanPathFilter implements GlobalFilter, Ordered {
