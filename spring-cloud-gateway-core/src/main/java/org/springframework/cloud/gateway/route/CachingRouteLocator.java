@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.route;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import reactor.cache.CacheFlux;
 import reactor.core.publisher.Flux;
@@ -33,6 +34,8 @@ import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 public class CachingRouteLocator
 		implements RouteLocator, ApplicationListener<RefreshRoutesEvent> {
 
+	private static final String CACHE_KEY = "routes";
+
 	private final RouteLocator delegate;
 
 	private final Flux<Route> routes;
@@ -41,9 +44,12 @@ public class CachingRouteLocator
 
 	public CachingRouteLocator(RouteLocator delegate) {
 		this.delegate = delegate;
-		routes = CacheFlux.lookup(cache, "routes", Route.class)
-				.onCacheMissResume(() -> this.delegate.getRoutes()
-						.sort(AnnotationAwareOrderComparator.INSTANCE));
+		routes = CacheFlux.lookup(cache, CACHE_KEY, Route.class)
+				.onCacheMissResume(this::fetch);
+	}
+
+	private Flux<Route> fetch() {
+		return this.delegate.getRoutes().sort(AnnotationAwareOrderComparator.INSTANCE);
 	}
 
 	@Override
@@ -62,7 +68,8 @@ public class CachingRouteLocator
 
 	@Override
 	public void onApplicationEvent(RefreshRoutesEvent event) {
-		refresh();
+		fetch().materialize().collect(Collectors.toList())
+				.map(routes -> cache.put(CACHE_KEY, routes)).subscribe();
 	}
 
 	@Deprecated
