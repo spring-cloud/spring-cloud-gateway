@@ -120,7 +120,7 @@ public class HystrixGatewayFilterFactory
 			@Override
 			public Mono<Void> filter(ServerWebExchange exchange,
 					GatewayFilterChain chain) {
-				return Mono.deferWithContext(context -> {
+				return Mono.subscriberContext().flatMap(context -> {
 					RouteHystrixCommand command = new RouteHystrixCommand(config.setter,
 							config.fallbackUri, exchange, chain, context);
 
