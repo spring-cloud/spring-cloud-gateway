@@ -27,6 +27,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.cloud.gateway.filter.CleanPathFilter;
 import org.springframework.cloud.gateway.filter.FilterDefinition;
 import org.springframework.cloud.gateway.route.RouteDefinition;
 import org.springframework.http.MediaType;
@@ -55,6 +56,20 @@ public class GatewayProperties {
 
 	private List<MediaType> streamingMediaTypes = Arrays
 			.asList(MediaType.TEXT_EVENT_STREAM, MediaType.APPLICATION_STREAM_JSON);
+
+	/**
+	 * Flag to clean the path in the path predicate and also enable the
+	 * {@link CleanPathFilter} global filter.
+	 */
+	private boolean cleanPath = false;
+
+	public boolean isCleanPath() {
+		return cleanPath;
+	}
+
+	public void setCleanPath(boolean cleanPath) {
+		this.cleanPath = cleanPath;
+	}
 
 	public List<RouteDefinition> getRoutes() {
 		return routes;

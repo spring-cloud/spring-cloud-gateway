@@ -159,6 +159,17 @@ public class GatewayIntegrationTests extends BaseWebClientTests {
 				.is2xxSuccessful();
 	}
 
+	@Test
+	public void pathNotCleaned() {
+		testClient.get().uri("/anything/../get").exchange().expectStatus().isOk()
+				.expectBody(Map.class).consumeWith(r -> {
+					Map body = r.getResponseBody();
+					String requestUrl = (String) body.get("url");
+					assertThat(requestUrl).contains("/httpbin/anything/../get");
+				});
+
+	}
+
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)

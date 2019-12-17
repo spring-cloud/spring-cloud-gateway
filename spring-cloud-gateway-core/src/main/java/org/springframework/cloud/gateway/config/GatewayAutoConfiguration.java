@@ -294,6 +294,7 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
+	@ConditionalOnProperty("spring.cloud.gateway.cleanPath")
 	public CleanPathFilter cleanPathFilter() {
 		return new CleanPathFilter();
 	}
@@ -364,8 +365,9 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	public PathRoutePredicateFactory pathRoutePredicateFactory() {
-		return new PathRoutePredicateFactory();
+	public PathRoutePredicateFactory pathRoutePredicateFactory(
+			GatewayProperties properties) {
+		return new PathRoutePredicateFactory(properties);
 	}
 
 	@Bean

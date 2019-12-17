@@ -211,6 +211,29 @@ Map<String, String> uriVariables = ServerWebExchangeUtils.getPathPredicateVariab
 String segment = uriVariables.get("segment");
 ----
 
+[[cleaning-the-path]]
+==== Cleaning The Path
+
+Sometimes you might want to "clean the path" before it is matched, and before the Gateway routes
+the request.  For example, a client might issue a request with a path that looks like `/far/../bar`.
+If the Gateway contains a route with a predicate like
+
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: host_route
+        uri: https://example.org
+        predicates:
+        - Path=/foo/**
+----
+
+The Gateway path predicate will match the request path and route the request to `example.org/foo/../bar`.
+If you would like the Gateway to "clean that path" before executing the predicate, and also
+modify the request path before forwarding the request downstream, you can set `spring.cloud.gateway.cleanPath=true`.
+
 === Query Route Predicate Factory
 The Query Route Predicate Factory takes two parameters: a required `param` and an optional `regexp`.
 
@@ -1369,6 +1392,13 @@ To enable Gateway Metrics add spring-boot-starter-actuator as a project dependen
 These metrics are then available to be scraped from ``/actuator/metrics/gateway.requests`` and can be easily integrated with Prometheus to create a link:images/gateway-grafana-dashboard.jpeg[Grafana] link:gateway-grafana-dashboard.json[dashboard].
 
 NOTE: To enable the prometheus endpoint add micrometer-registry-prometheus as a project dependency.
+
+=== Clean Path Filter
+
+This filter is enabled only when `spring.cloud.gateway.cleanPath` is set to `true`.
+This filter works in conjunction with the path predicate filter and will clean the
+path before forwarding the request to the down stream service.
+See the <<cleaning-the-path, path predicate documentation>> for more information.
 
 === Marking An Exchange As Routed
 

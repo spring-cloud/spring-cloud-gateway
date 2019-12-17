@@ -25,6 +25,7 @@ import java.util.function.Predicate;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.cloud.gateway.config.GatewayProperties;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.http.server.PathContainer;
 import org.springframework.util.CollectionUtils;
@@ -50,8 +51,18 @@ public class PathRoutePredicateFactory
 
 	private PathPatternParser pathPatternParser = new PathPatternParser();
 
+	private boolean cleanPath = false;
+
+	/**
+	 * @Deprecated
+	 */
 	public PathRoutePredicateFactory() {
 		super(Config.class);
+	}
+
+	public PathRoutePredicateFactory(GatewayProperties gatewayProperties) {
+		this();
+		this.cleanPath = gatewayProperties.isCleanPath();
 	}
 
 	private static void traceMatch(String prefix, Object desired, Object actual,
@@ -91,8 +102,11 @@ public class PathRoutePredicateFactory
 		return new GatewayPredicate() {
 			@Override
 			public boolean test(ServerWebExchange exchange) {
-				PathContainer path = parsePath(StringUtils
-						.cleanPath(exchange.getRequest().getURI().getRawPath()));
+				String pathString = exchange.getRequest().getURI().getRawPath();
+				if (cleanPath) {
+					pathString = StringUtils.cleanPath(pathString);
+				}
+				PathContainer path = parsePath(pathString);
 
 				Optional<PathPattern> optionalPathPattern = pathPatterns.stream()
 						.filter(pattern -> pattern.matches(path)).findFirst();

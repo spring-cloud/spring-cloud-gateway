@@ -74,7 +74,7 @@ public class HttpBinCompatibleController {
 		return Mono.just(get(exchange)).delayElement(Duration.ofSeconds(delay));
 	}
 
-	@RequestMapping(path = "/anything/{anything}", produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(path = "/anything/{anything}/**", produces = MediaType.APPLICATION_JSON_VALUE)
 	public Map<String, Object> anything(ServerWebExchange exchange,
 			@PathVariable(required = false) String anything) {
 		return get(exchange);
@@ -92,6 +92,7 @@ public class HttpBinCompatibleController {
 		});
 		result.put("args", params);
 		result.put("headers", getHeaders(exchange));
+		result.put("url", exchange.getRequest().getURI().toString());
 		return result;
 	}
 
