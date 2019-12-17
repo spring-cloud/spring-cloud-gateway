@@ -27,6 +27,7 @@ import com.netflix.hystrix.HystrixObservableCommand;
 import com.netflix.hystrix.HystrixObservableCommand.Setter;
 import com.netflix.hystrix.exception.HystrixRuntimeException;
 import reactor.core.publisher.Mono;
+import reactor.util.context.Context;
 import rx.Observable;
 import rx.RxReactiveStreams;
 import rx.Subscription;
@@ -119,45 +120,47 @@ public class HystrixGatewayFilterFactory
 			@Override
 			public Mono<Void> filter(ServerWebExchange exchange,
 					GatewayFilterChain chain) {
-				RouteHystrixCommand command = new RouteHystrixCommand(config.setter,
-						config.fallbackUri, exchange, chain);
+				return Mono.deferWithContext(context -> {
+					RouteHystrixCommand command = new RouteHystrixCommand(config.setter,
+							config.fallbackUri, exchange, chain, context);
 
-				return Mono.create(s -> {
-					Subscription sub = command.toObservable().subscribe(s::success,
-							s::error, s::success);
-					s.onCancel(sub::unsubscribe);
-				}).onErrorResume((Function<Throwable, Mono<Void>>) throwable -> {
-					if (throwable instanceof HystrixRuntimeException) {
-						HystrixRuntimeException e = (HystrixRuntimeException) throwable;
-						HystrixRuntimeException.FailureType failureType = e
-								.getFailureType();
+					return Mono.create(s -> {
+						Subscription sub = command.toObservable().subscribe(s::success,
+								s::error, s::success);
+						s.onCancel(sub::unsubscribe);
+					}).onErrorResume((Function<Throwable, Mono<Void>>) throwable -> {
+						if (throwable instanceof HystrixRuntimeException) {
+							HystrixRuntimeException e = (HystrixRuntimeException) throwable;
+							HystrixRuntimeException.FailureType failureType = e
+									.getFailureType();
 
-						switch (failureType) {
-						case TIMEOUT:
-							return Mono.error(new TimeoutException());
-						case SHORTCIRCUIT:
-							return Mono.error(new ServiceUnavailableException());
-						case COMMAND_EXCEPTION: {
-							Throwable cause = e.getCause();
+							switch (failureType) {
+							case TIMEOUT:
+								return Mono.error(new TimeoutException());
+							case SHORTCIRCUIT:
+								return Mono.error(new ServiceUnavailableException());
+							case COMMAND_EXCEPTION: {
+								Throwable cause = e.getCause();
 
-							/*
-							 * We forsake here the null check for cause as
-							 * HystrixRuntimeException will always have a cause if the
-							 * failure type is COMMAND_EXCEPTION.
-							 */
-							if (cause instanceof ResponseStatusException
-									|| AnnotatedElementUtils.findMergedAnnotation(
-											cause.getClass(),
-											ResponseStatus.class) != null) {
-								return Mono.error(cause);
+								/*
+								 * We forsake here the null check for cause as
+								 * HystrixRuntimeException will always have a cause if the
+								 * failure type is COMMAND_EXCEPTION.
+								 */
+								if (cause instanceof ResponseStatusException
+										|| AnnotatedElementUtils.findMergedAnnotation(
+												cause.getClass(),
+												ResponseStatus.class) != null) {
+									return Mono.error(cause);
+								}
+							}
+							default:
+								break;
 							}
 						}
-						default:
-							break;
-						}
-					}
-					return Mono.error(throwable);
-				}).then();
+						return Mono.error(throwable);
+					}).then();
+				});
 			}
 
 			@Override
@@ -222,17 +225,21 @@ public class HystrixGatewayFilterFactory
 
 		private final GatewayFilterChain chain;
 
+		private final Context context;
+
 		RouteHystrixCommand(Setter setter, URI fallbackUri, ServerWebExchange exchange,
-				GatewayFilterChain chain) {
+				GatewayFilterChain chain, Context context) {
 			super(setter);
 			this.fallbackUri = fallbackUri;
 			this.exchange = exchange;
 			this.chain = chain;
+			this.context = context;
 		}
 
 		@Override
 		protected Observable<Void> construct() {
-			return RxReactiveStreams.toObservable(this.chain.filter(exchange));
+			return RxReactiveStreams
+					.toObservable(this.chain.filter(exchange).subscriberContext(context));
 		}
 
 		@Override
