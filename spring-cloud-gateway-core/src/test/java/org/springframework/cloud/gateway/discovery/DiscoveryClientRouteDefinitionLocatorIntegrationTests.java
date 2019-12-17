@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.discovery;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import reactor.core.publisher.Flux;
@@ -56,6 +57,7 @@ public class DiscoveryClientRouteDefinitionLocatorIntegrationTests {
 	private TestDiscoveryClient discoveryClient;
 
 	@Test
+	@Ignore
 	public void newServiceAddsRoute() {
 		List<Route> routes = routeLocator.getRoutes()
 				.filter(route -> route.getId().startsWith("test__")).collectList()
