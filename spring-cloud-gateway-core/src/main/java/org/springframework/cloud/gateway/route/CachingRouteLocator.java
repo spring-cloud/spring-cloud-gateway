@@ -26,13 +26,14 @@ import reactor.core.publisher.Flux;
 
 import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
 import org.springframework.context.ApplicationListener;
+import org.springframework.core.Ordered;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 
 /**
  * @author Spencer Gibb
  */
 public class CachingRouteLocator
-		implements RouteLocator, ApplicationListener<RefreshRoutesEvent> {
+		implements Ordered, RouteLocator, ApplicationListener<RefreshRoutesEvent> {
 
 	private static final String CACHE_KEY = "routes";
 
@@ -75,6 +76,11 @@ public class CachingRouteLocator
 	@Deprecated
 	/* for testing */ void handleRefresh() {
 		refresh();
+	}
+
+	@Override
+	public int getOrder() {
+		return 0;
 	}
 
 }

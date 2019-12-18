@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.gateway.test;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.logging.Log;
@@ -32,11 +34,17 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.config.GatewayProperties;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
+import org.springframework.cloud.gateway.filter.WeightCalculatorWebFilter;
 import org.springframework.cloud.gateway.filter.headers.ForwardedHeadersFilter;
 import org.springframework.cloud.gateway.filter.headers.XForwardedHeadersFilter;
 import org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping;
+import org.springframework.cloud.gateway.route.CachingRouteLocator;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.support.AbstractApplicationContext;
+import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -59,6 +67,24 @@ public class GatewayIntegrationTests extends BaseWebClientTests {
 
 	@Autowired
 	private GatewayProperties properties;
+
+	@Autowired
+	private ApplicationContext context;
+
+	@Test
+	public void listenersInOrder() {
+		assertThat(context).isInstanceOf(AbstractApplicationContext.class);
+		AbstractApplicationContext ctxt = (AbstractApplicationContext) context;
+		List<ApplicationListener<?>> applicationListeners = new ArrayList<>(
+				ctxt.getApplicationListeners());
+		AnnotationAwareOrderComparator.sort(applicationListeners);
+		int weightFilterIndex = applicationListeners
+				.indexOf(context.getBean(WeightCalculatorWebFilter.class));
+		int routeLocatorIndex = applicationListeners
+				.indexOf(context.getBean(CachingRouteLocator.class));
+		assertThat(weightFilterIndex > routeLocatorIndex)
+				.as("CachingRouteLocator is after WeightCalculatorWebFilter").isTrue();
+	}
 
 	@Test
 	public void complexContentTypeWorks() {
