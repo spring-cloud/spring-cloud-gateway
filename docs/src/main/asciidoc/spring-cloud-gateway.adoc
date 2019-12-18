@@ -1395,7 +1395,7 @@ NOTE: To enable the prometheus endpoint add micrometer-registry-prometheus as a 
 
 === Clean Path Filter
 
-This filter is enabled only when `spring.cloud.gateway.cleanPath` is set to `true`.
+This filter is enabled only when `spring.cloud.gateway.clean-path` is set to `true`.
 This filter works in conjunction with the path predicate filter and will clean the
 path before forwarding the request to the down stream service.
 See the <<cleaning-the-path, path predicate documentation>> for more information.

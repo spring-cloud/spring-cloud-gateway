@@ -294,7 +294,7 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnProperty("spring.cloud.gateway.cleanPath")
+	@ConditionalOnProperty("spring.cloud.gateway.clean-path")
 	public CleanPathFilter cleanPathFilter() {
 		return new CleanPathFilter();
 	}

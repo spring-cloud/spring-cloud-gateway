@@ -36,7 +36,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
  * @author Ryan Baxter
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = RANDOM_PORT, properties = "spring.cloud.gateway.cleanPath: true")
+@SpringBootTest(webEnvironment = RANDOM_PORT, properties = "spring.cloud.gateway.clean-path: true")
 @DirtiesContext
 @SuppressWarnings("unchecked")
 public class CleanPathTests extends BaseWebClientTests {
