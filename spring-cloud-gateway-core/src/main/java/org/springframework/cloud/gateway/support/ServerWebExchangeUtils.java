@@ -172,6 +172,10 @@ public final class ServerWebExchangeUtils {
 		exchange.getAttributes().put(GATEWAY_ALREADY_ROUTED_ATTR, true);
 	}
 
+	public static void removeAlreadyRouted(ServerWebExchange exchange) {
+		exchange.getAttributes().remove(GATEWAY_ALREADY_ROUTED_ATTR);
+	}
+
 	public static boolean isAlreadyRouted(ServerWebExchange exchange) {
 		return exchange.getAttributeOrDefault(GATEWAY_ALREADY_ROUTED_ATTR, false);
 	}
