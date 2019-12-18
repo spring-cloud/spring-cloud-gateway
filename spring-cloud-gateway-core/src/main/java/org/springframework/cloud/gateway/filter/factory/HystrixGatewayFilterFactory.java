@@ -53,6 +53,7 @@ import static org.springframework.cloud.gateway.support.GatewayToStringStyler.fi
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.HYSTRIX_EXECUTION_EXCEPTION_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.containsEncodedParts;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.removeAlreadyRouted;
 
 /**
  * Depends on `spring-cloud-starter-netflix-hystrix`,
@@ -272,6 +273,10 @@ public class HystrixGatewayFilterFactory
 			ServerHttpRequest request = this.exchange.getRequest().mutate()
 					.uri(requestUrl).build();
 			ServerWebExchange mutated = exchange.mutate().request(request).build();
+			// Before we continue on remove the already routed attribute since the
+			// fallback may go back through the route handler if the fallback
+			// is to another route in the Gateway
+			removeAlreadyRouted(mutated);
 			return RxReactiveStreams.toObservable(getDispatcherHandler().handle(mutated));
 		}
 

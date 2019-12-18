@@ -49,7 +49,7 @@ import org.springframework.web.server.ServerWebExchange;
 
 import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.CLIENT_RESPONSE_HEADER_NAMES;
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ALREADY_ROUTED_ATTR;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.removeAlreadyRouted;
 
 public class RetryGatewayFilterFactory
 		extends AbstractGatewayFilterFactory<RetryGatewayFilterFactory.RetryConfig> {
@@ -207,7 +207,7 @@ public class RetryGatewayFilterFactory
 				CLIENT_RESPONSE_HEADER_NAMES, Collections.emptySet());
 		addedHeaders
 				.forEach(header -> exchange.getResponse().getHeaders().remove(header));
-		exchange.getAttributes().remove(GATEWAY_ALREADY_ROUTED_ATTR);
+		removeAlreadyRouted(exchange);
 	}
 
 	@Deprecated
