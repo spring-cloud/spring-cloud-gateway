@@ -50,6 +50,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import static java.util.Collections.singletonList;
 import static java.util.Optional.ofNullable;
 import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ALREADY_ROUTED_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.HYSTRIX_EXECUTION_EXCEPTION_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.containsEncodedParts;
@@ -272,6 +273,10 @@ public class HystrixGatewayFilterFactory
 			ServerHttpRequest request = this.exchange.getRequest().mutate()
 					.uri(requestUrl).build();
 			ServerWebExchange mutated = exchange.mutate().request(request).build();
+			// Before we continue on remove the already routed attribute since the
+			// fallback may go back through the route handler if the fallback
+			// is to another route in the Gateway
+			mutated.getAttributes().remove(GATEWAY_ALREADY_ROUTED_ATTR);
 			return RxReactiveStreams.toObservable(getDispatcherHandler().handle(mutated));
 		}
 
