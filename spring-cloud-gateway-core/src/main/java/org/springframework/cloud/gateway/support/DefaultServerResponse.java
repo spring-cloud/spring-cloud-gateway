@@ -65,6 +65,11 @@ public class DefaultServerResponse<T> implements ServerResponse {
 	}
 
 	@Override
+	public int rawStatusCode() {
+		return response().getStatusCode().value();
+	}
+
+	@Override
 	public final HttpHeaders headers() {
 		return response().getHeaders();
 	}

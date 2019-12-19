@@ -40,6 +40,7 @@ import org.springframework.web.reactive.function.BodyExtractor;
 import org.springframework.web.reactive.function.BodyExtractors;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.ExchangeStrategies;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 /**
  * Default implementation of {@link ClientResponse}.
@@ -118,6 +119,24 @@ public class DefaultClientResponse implements ClientResponse {
 		else {
 			return body(BodyExtractors.toMono(elementClass));
 		}
+	}
+
+	@Override
+	public Mono<Void> releaseBody() {
+		return body(BodyExtractors.toDataBuffers())
+				.map(DataBufferUtils::release)
+				.then();
+	}
+
+	@Override
+	public Mono<ResponseEntity<Void>> toBodilessEntity() {
+		return releaseBody()
+				.then(toEntityInternal(Mono.empty()));
+	}
+
+	@Override
+	public Mono<WebClientResponseException> createException() {
+		throw new UnsupportedOperationException();
 	}
 
 	@SuppressWarnings("unchecked")
