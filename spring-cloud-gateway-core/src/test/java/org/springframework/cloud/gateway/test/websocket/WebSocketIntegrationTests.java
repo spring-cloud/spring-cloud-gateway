@@ -31,6 +31,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
@@ -205,6 +206,7 @@ public class WebSocketIntegrationTests {
 	}
 
 	@Test
+	@Ignore
 	public void subProtocol() throws Exception {
 		String protocol = "echo-v1";
 		String protocol2 = "echo-v2";
@@ -238,6 +240,7 @@ public class WebSocketIntegrationTests {
 	}
 
 	@Test
+	@Ignore
 	public void customHeader() throws Exception {
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("my-header", "my-value");
