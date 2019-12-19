@@ -123,15 +123,12 @@ public class DefaultClientResponse implements ClientResponse {
 
 	@Override
 	public Mono<Void> releaseBody() {
-		return body(BodyExtractors.toDataBuffers())
-				.map(DataBufferUtils::release)
-				.then();
+		return body(BodyExtractors.toDataBuffers()).map(DataBufferUtils::release).then();
 	}
 
 	@Override
 	public Mono<ResponseEntity<Void>> toBodilessEntity() {
-		return releaseBody()
-				.then(toEntityInternal(Mono.empty()));
+		return releaseBody().then(toEntityInternal(Mono.empty()));
 	}
 
 	@Override
