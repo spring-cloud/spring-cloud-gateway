@@ -144,7 +144,11 @@ public class RouteDefinitionRouteLocator
 	@Override
 	public Flux<Route> getRoutes() {
 		return this.routeDefinitionLocator.getRouteDefinitions().map(this::convertToRoute)
-				// TODO: error handling
+				.onErrorContinue((error, obj) -> {
+					if (logger.isWarnEnabled()) {
+						logger.warn("RouteDefinition id " + ((RouteDefinition) obj).getId() + " will be ignored. Definition has invalid configs, " + error.getMessage());
+					}
+				})
 				.map(route -> {
 					if (logger.isDebugEnabled()) {
 						logger.debug("RouteDefinition matched: " + route.getId());
