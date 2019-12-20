@@ -24,8 +24,6 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import reactor.core.publisher.Flux;
-
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -49,6 +47,8 @@ import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.validation.Validator;
 import org.springframework.web.server.ServerWebExchange;
+
+import reactor.core.publisher.Flux;
 
 /**
  * {@link RouteLocator} that loads routes from a {@link RouteDefinitionLocator}.
@@ -144,7 +144,11 @@ public class RouteDefinitionRouteLocator
 	@Override
 	public Flux<Route> getRoutes() {
 		return this.routeDefinitionLocator.getRouteDefinitions().map(this::convertToRoute)
-				// TODO: error handling
+				.onErrorContinue((error, obj) -> {
+					if (logger.isWarnEnabled()) {
+						logger.warn("RouteDefinition id " + ((RouteDefinition) obj).getId() + " will be ignored. Definition has invalid configs, " + error.getMessage());
+					}
+				})
 				.map(route -> {
 					if (logger.isDebugEnabled()) {
 						logger.debug("RouteDefinition matched: " + route.getId());

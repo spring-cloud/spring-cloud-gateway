@@ -16,12 +16,13 @@
 
 package org.springframework.cloud.gateway.route;
 
+import static org.assertj.core.api.Assertions.*;
+
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Test;
-
 import org.springframework.cloud.gateway.config.GatewayProperties;
 import org.springframework.cloud.gateway.config.PropertiesRouteDefinitionLocator;
 import org.springframework.cloud.gateway.filter.FilterDefinition;
@@ -36,8 +37,6 @@ import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
 import org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.util.StringUtils;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Toshiaki Maki
@@ -79,6 +78,59 @@ public class RouteDefinitionRouteLocatorTests {
 		assertThat(getFilterClassName(filters.get(1))).contains("AddResponseHeader");
 		assertThat(getFilterClassName(filters.get(2)))
 				.contains("RouteDefinitionRouteLocatorTests$TestOrderedGateway");
+	}
+
+	@Test
+	public void contextLoadsWithErrorRecovery() {
+		List<RoutePredicateFactory> predicates = Arrays
+				.asList(new HostRoutePredicateFactory());
+		List<GatewayFilterFactory> gatewayFilterFactories = Arrays.asList(
+				new RemoveResponseHeaderGatewayFilterFactory(),
+				new AddResponseHeaderGatewayFilterFactory(),
+				new TestOrderedGatewayFilterFactory());
+		GatewayProperties gatewayProperties = new GatewayProperties();
+		gatewayProperties.setRoutes(containsInvalidRoutes());
+
+		RouteDefinitionRouteLocator routeDefinitionRouteLocator = new RouteDefinitionRouteLocator(
+				new PropertiesRouteDefinitionLocator(gatewayProperties), predicates,
+				gatewayFilterFactories, gatewayProperties,
+				new DefaultConversionService());
+
+		List<Route> routes = routeDefinitionRouteLocator.getRoutes().collectList()
+				.block();
+		List<GatewayFilter> filters = routes.get(0).getFilters();
+		assertThat(filters).hasSize(3);
+		assertThat(getFilterClassName(filters.get(0))).contains("RemoveResponseHeader");
+		assertThat(getFilterClassName(filters.get(1))).contains("AddResponseHeader");
+		assertThat(getFilterClassName(filters.get(2)))
+				.contains("RouteDefinitionRouteLocatorTests$TestOrderedGateway");
+	}
+
+	private List<RouteDefinition> containsInvalidRoutes() {
+		return Arrays.asList(
+				new RouteDefinition() {
+			{
+				setId("foo");
+				setUri(URI.create("https://foo.example.com"));
+				setPredicates(
+						Arrays.asList(new PredicateDefinition("Host=*.example.com")));
+				setFilters(Arrays.asList(
+						new FilterDefinition("RemoveResponseHeader=Server"),
+						new FilterDefinition("TestOrdered="),
+						new FilterDefinition("AddResponseHeader=X-Response-Foo, Bar")));
+			}
+		},
+
+				new RouteDefinition() {
+					{
+						setId("exceptionRaised");
+						setUri(URI.create("https://foo.example.com"));
+						setPredicates(
+								Arrays.asList(new PredicateDefinition("Host=*.example.com")));
+						setFilters(Arrays.asList(new FilterDefinition("Generate exception")));
+					}
+				}
+		                     );
 	}
 
 	private String getFilterClassName(GatewayFilter target) {
