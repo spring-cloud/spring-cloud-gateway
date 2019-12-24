@@ -68,7 +68,7 @@ public class CachingRouteDefinitionLocator
 	@Override
 	public void onApplicationEvent(RefreshRoutesEvent event) {
 		fetch().materialize().collect(Collectors.toList())
-				.map(routes -> cache.put(CACHE_KEY, routes)).subscribe();
+				.doOnNext(routes -> cache.put(CACHE_KEY, routes)).subscribe();
 	}
 
 	@Deprecated

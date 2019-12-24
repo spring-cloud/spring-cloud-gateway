@@ -139,4 +139,11 @@ public class HystrixGatewayFilterFactoryTests extends BaseWebClientTests {
 		assertThat(filter.toString()).contains("myname").contains("forward:/myfallback");
 	}
 
+	@Test
+	public void filterFallbackForward() {
+		testClient.get().uri("/delay/3?a=c").header("Host", "www.hystrixforward.org")
+				.exchange().expectStatus().isOk().expectBody()
+				.json("{\"from\":\"hystrixfallbackcontroller3\"}");
+	}
+
 }

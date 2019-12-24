@@ -2,3 +2,7 @@ test:
   concurrent:
     execution:
       timeInSeconds: 10
+
+logging:
+  level:
+    org.springframework.cloud.gateway.filter.WeightCalculatorWebFilter: INFO

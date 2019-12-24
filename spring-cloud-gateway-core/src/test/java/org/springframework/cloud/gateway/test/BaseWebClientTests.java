@@ -28,6 +28,7 @@ import reactor.core.publisher.Mono;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.netflix.ribbon.RibbonClient;
@@ -41,6 +42,7 @@ import org.springframework.http.client.reactive.ClientHttpConnector;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.server.ServerWebExchange;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_HANDLER_MAPPER_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
@@ -92,15 +94,8 @@ public class BaseWebClientTests {
 		}
 
 		@Bean
-		public GlobalFilter recursiveHttpbinFilter() {
-			return (exchange, chain) -> {
-				if (exchange.getRequest().getPath().toString()
-						.contains("httpbin/httpbin")) {
-					return Mono.error(
-							new IllegalStateException("recursive call to /httpbin"));
-				}
-				return chain.filter(exchange);
-			};
+		public RecursiveHttpbinFilter recursiveHttpbinFilter() {
+			return new RecursiveHttpbinFilter();
 		}
 
 		@Bean
@@ -122,6 +117,19 @@ public class BaseWebClientTests {
 				}
 				return chain.filter(exchange);
 			};
+		}
+
+	}
+
+	public static class RecursiveHttpbinFilter implements GlobalFilter {
+
+		@Override
+		public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+			if (exchange.getRequest().getPath().toString().contains("httpbin/httpbin")) {
+				return Mono
+						.error(new IllegalStateException("recursive call to /httpbin"));
+			}
+			return chain.filter(exchange);
 		}
 
 	}

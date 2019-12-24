@@ -39,6 +39,7 @@ import static org.springframework.cloud.gateway.support.GatewayToStringStyler.fi
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.CIRCUITBREAKER_EXECUTION_EXCEPTION_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.containsEncodedParts;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.removeAlreadyRouted;
 
 /**
  * @author Ryan Baxter
@@ -98,6 +99,11 @@ public abstract class SpringCloudCircuitBreakerFilterFactory extends
 							.build(encoded).toUri();
 					exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, requestUrl);
 					addExceptionDetails(t, exchange);
+
+					// Before we continue on remove the already routed attribute since the
+					// fallback may go back through the route handler if the fallback
+					// is to another route in the Gateway
+					removeAlreadyRouted(exchange);
 
 					ServerHttpRequest request = exchange.getRequest().mutate()
 							.uri(requestUrl).build();

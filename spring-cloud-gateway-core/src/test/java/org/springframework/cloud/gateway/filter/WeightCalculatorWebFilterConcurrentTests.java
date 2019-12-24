@@ -22,6 +22,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import io.netty.util.internal.ThreadLocalRandom;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -58,7 +59,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @DirtiesContext
 public class WeightCalculatorWebFilterConcurrentTests {
 
-	@Value("${test.concurrent.execution.timeInSeconds}")
+	@Value("${test.concurrent.execution.timeInSeconds:5}")
 	private int maxTestTimeSeconds;
 
 	@Autowired
@@ -77,8 +78,13 @@ public class WeightCalculatorWebFilterConcurrentTests {
 		startTime = System.currentTimeMillis();
 	}
 
-	@Ignore
+	@After
+	public void teardown() {
+		executorService.shutdown();
+	}
+
 	@Test
+	@Ignore
 	public void WeightCalculatorWebFilter_threadSafeTest() {
 		generateEvents();
 

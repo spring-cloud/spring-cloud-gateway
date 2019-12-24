@@ -90,7 +90,7 @@ public class MethodRoutePredicateFactory
 
 		@Deprecated
 		public void setMethod(HttpMethod method) {
-			this.methods = new HttpMethod[] {method};
+			this.methods = new HttpMethod[] { method };
 		}
 
 		public HttpMethod[] getMethods() {
@@ -100,6 +100,7 @@ public class MethodRoutePredicateFactory
 		public void setMethods(HttpMethod... methods) {
 			this.methods = methods;
 		}
+
 	}
 
 }

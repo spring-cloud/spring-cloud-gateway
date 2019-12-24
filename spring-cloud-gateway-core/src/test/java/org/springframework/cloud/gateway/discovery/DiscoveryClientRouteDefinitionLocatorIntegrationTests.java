@@ -56,7 +56,7 @@ public class DiscoveryClientRouteDefinitionLocatorIntegrationTests {
 	private TestDiscoveryClient discoveryClient;
 
 	@Test
-	public void newServiceAddsRoute() {
+	public void newServiceAddsRoute() throws Exception {
 		List<Route> routes = routeLocator.getRoutes()
 				.filter(route -> route.getId().startsWith("test__")).collectList()
 				.block();
@@ -65,6 +65,8 @@ public class DiscoveryClientRouteDefinitionLocatorIntegrationTests {
 		discoveryClient.multiple();
 
 		publisher.publishEvent(new HeartbeatEvent(this, 1L));
+
+		Thread.sleep(2000);
 
 		routes = routeLocator.getRoutes()
 				.filter(route -> route.getId().startsWith("test__")).collectList()

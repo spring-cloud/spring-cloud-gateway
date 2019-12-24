@@ -96,4 +96,12 @@ public abstract class SpringCloudCircuitBreakerFilterFactoryTests
 				.isNotEmpty().jsonPath("$.error").isEqualTo("Internal Server Error");
 	}
 
+	@Test
+	public void filterFallbackForward() {
+		testClient.get().uri("/delay/3?a=c")
+				.header("Host", "www.circuitbreakerforward.org").exchange().expectStatus()
+				.isOk().expectBody()
+				.json("{\"from\":\"circuitbreakerfallbackcontroller3\"}");
+	}
+
 }

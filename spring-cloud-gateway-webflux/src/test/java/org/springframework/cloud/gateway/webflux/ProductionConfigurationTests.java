@@ -83,6 +83,12 @@ public class ProductionConfigurationTests {
 	}
 
 	@Test
+	public void forwardGet() throws Exception {
+		assertThat(rest.getForObject("/proxy/forward/0", Foo.class).getName())
+				.isEqualTo("bye");
+	}
+
+	@Test
 	public void path() throws Exception {
 		assertThat(rest.getForObject("/proxy/path/1", Foo.class).getName())
 				.isEqualTo("foo");
@@ -115,6 +121,13 @@ public class ProductionConfigurationTests {
 	public void post() throws Exception {
 		assertThat(rest.postForObject("/proxy/0", Collections.singletonMap("name", "foo"),
 				Bar.class).getName()).isEqualTo("host=localhost:" + port + ";foo");
+	}
+
+	@Test
+	public void forwardPost() throws Exception {
+		assertThat(rest.postForObject("/proxy/forward/0",
+				Collections.singletonMap("name", "foo"), Bar.class).getName())
+						.isEqualTo("host=localhost:" + port + ";foo");
 	}
 
 	@Test
@@ -323,6 +336,21 @@ public class ProductionConfigurationTests {
 				return ResponseEntity.status(response.getStatusCode())
 						.headers(response.getHeaders())
 						.body(response.getBody().iterator().next());
+			}
+
+			@GetMapping("/proxy/forward/{id}")
+			public Mono<ResponseEntity<Object>> proxyForwardFoos(@PathVariable Integer id,
+					ProxyExchange<Object> proxy) throws Exception {
+				return proxy.uri(home.toString() + "/foos/" + id).forward();
+			}
+
+			@PostMapping("/proxy/forward/{id}")
+			public Mono<ResponseEntity<Object>> proxyForwardBars(@PathVariable Integer id,
+					@RequestBody Map<String, Object> body,
+					ProxyExchange<List<Object>> proxy) throws Exception {
+				body.put("id", id);
+				return proxy.uri(home.toString() + "/bars").body(Arrays.asList(body))
+						.post(this::first);
 			}
 
 		}
