@@ -199,8 +199,8 @@ public class GatewayAutoConfiguration {
 
 	@Bean
 	public ConfigurationService gatewayConfigurationService(BeanFactory beanFactory,
-			@Qualifier("webFluxConversionService") ConversionService conversionService,
-			Validator validator) {
+			@Qualifier("webFluxConversionService") ObjectProvider<ConversionService> conversionService,
+			ObjectProvider<Validator> validator) {
 		return new ConfigurationService(beanFactory, conversionService, validator);
 	}
 
