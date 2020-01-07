@@ -219,6 +219,52 @@ spring:
               name: fallbackcmd
               fallbackUri: forward:/circuitbreakerFallbackController
 
+        # =====================================
+      - id: instances_sccb_success_test
+        uri: ${test.uri}
+        predicates:
+          - Host=**.instancessccbsuccess.org
+        filters:
+          - InstancesCircuitBreaker=successcmd
+
+        # =====================================
+      - id: instances_sccb_timeout_test
+        uri: ${test.uri}
+        predicates:
+          - Host=**.instancessccbtimeout.org
+        filters:
+          - InstancesCircuitBreaker=timeoutcmd
+
+        # =====================================
+      - id: instances_sccb_failure_test
+        uri: ${test.uri}
+        predicates:
+          - Host=**.instancessccbfailure.org
+        filters:
+          - InstancesCircuitBreaker=failcmd
+
+        # =====================================
+      - id: instances_circuitbreaker_exception_fallback_test
+        uri: ${test.uri}
+        predicates:
+          - Host=**.instancescircuitbreakerexceptionfallback.org
+        filters:
+          - name: InstancesCircuitBreaker
+            args:
+              name: fallbackcmd
+              fallbackUri: forward:/circuitbreakerExceptionFallback
+
+        # =====================================
+      - id: instances_circuitbreaker_fallback_test
+        uri: ${test.uri}
+        predicates:
+          - Host=**.instancescircuitbreakerfallback.org
+        filters:
+          - name: InstancesCircuitBreaker
+            args:
+              name: fallbackcmd
+              fallbackUri: forward:/circuitbreakerFallbackController
+
       # =====================================
       - id: load_balancer_client_test
         uri: lb://testservice

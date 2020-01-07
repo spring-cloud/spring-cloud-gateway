@@ -16,11 +16,6 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
-import java.util.Collections;
-import java.util.Map;
-
-import reactor.core.publisher.Mono;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -36,6 +31,10 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
+import reactor.core.publisher.Mono;
+
+import java.util.Collections;
+import java.util.Map;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.CIRCUITBREAKER_EXECUTION_EXCEPTION_ATTR;
 import static org.springframework.web.reactive.function.server.RequestPredicates.GET;
@@ -51,79 +50,93 @@ import static org.springframework.web.reactive.function.server.RouterFunctions.r
 @RibbonClient(name = "badservice", configuration = TestBadRibbonConfig.class)
 public class SpringCloudCircuitBreakerTestConfig {
 
-	@Value("${test.uri}")
-	private String uri;
+    @Value("${test.uri}")
+    private String uri;
 
-	@RequestMapping("/circuitbreakerFallbackController")
-	public Map<String, String> fallbackcontroller(@RequestParam("a") String a) {
-		return Collections.singletonMap("from", "circuitbreakerfallbackcontroller");
-	}
+    @RequestMapping("/circuitbreakerFallbackController")
+    public Map<String, String> fallbackcontroller(@RequestParam("a") String a) {
+        return Collections.singletonMap("from", "circuitbreakerfallbackcontroller");
+    }
 
-	@RequestMapping("/circuitbreakerFallbackController2")
-	public Map<String, String> fallbackcontroller2() {
-		return Collections.singletonMap("from", "circuitbreakerfallbackcontroller2");
-	}
+    @RequestMapping("/circuitbreakerFallbackController2")
+    public Map<String, String> fallbackcontroller2() {
+        return Collections.singletonMap("from", "circuitbreakerfallbackcontroller2");
+    }
 
-	@RequestMapping("/circuitbreakerFallbackController3")
-	public Map<String, String> fallbackcontroller3() {
-		return Collections.singletonMap("from", "circuitbreakerfallbackcontroller3");
-	}
+    @RequestMapping("/circuitbreakerFallbackController3")
+    public Map<String, String> fallbackcontroller3() {
+        return Collections.singletonMap("from", "circuitbreakerfallbackcontroller3");
+    }
 
-	@Bean
-	public RouteLocator circuitBreakerRouteLocator(RouteLocatorBuilder builder) {
-		return builder.routes().route("circuitbreaker_fallback_forward",
-				r -> r.host("**.circuitbreakerforward.org")
-						.filters(f -> f.circuitBreaker(
-								config -> config.setFallbackUri("forward:/fallback")))
-						.uri(uri))
-				.route("fallback_controller_3",
-						r -> r.path("/fallback").filters(
-								f -> f.setPath("/circuitbreakerFallbackController3"))
-								.uri(uri))
-				.route("circuitbreaker_java", r -> r.host("**.circuitbreakerjava.org")
-						.filters(f -> f.prefixPath("/httpbin")
-								.circuitBreaker(config -> config.setFallbackUri(
-										"forward:/circuitbreakerFallbackController2")))
-						.uri(uri))
-				.route("circuitbreaker_connection_failure", r -> r
-						.host("**.circuitbreakerconnectfail.org")
-						.filters(f -> f.prefixPath("/httpbin").circuitBreaker(config -> {
-						})).uri("lb:badservice"))
-				/*
-				 * This is a route encapsulated in a circuit breaker that is ready to wait
-				 * for a response far longer than the underpinning WebClient would.
-				 */
-				.route("circuitbreaker_response_stall",
-						r -> r.host("**.circuitbreakerresponsestall.org")
-								.filters(f -> f.prefixPath("/httpbin").circuitBreaker(
-										config -> config.setName("stalling-command")))
-								.uri(uri))
-				.build();
-	}
+    @Bean
+    public RouteLocator circuitBreakerRouteLocator(RouteLocatorBuilder builder) {
+        return builder.routes().route("circuitbreaker_fallback_forward",
+                r -> r.host("**.circuitbreakerforward.org","**.instancescircuitbreakerforward.org")
+                        .filters(f -> f.circuitBreaker(
+                                config -> config.setFallbackUri("forward:/fallback")))
+                        .uri(uri))
+                .route("fallback_controller_3",
+                        r -> r.path("/fallback").filters(
+                                f -> f.setPath("/circuitbreakerFallbackController3"))
+                                .uri(uri))
+                .route("circuitbreaker_java", r -> r.host("**.circuitbreakerjava.org")
+                        .filters(f -> f.prefixPath("/httpbin")
+                                .circuitBreaker(config -> config.setFallbackUri(
+                                        "forward:/circuitbreakerFallbackController2")))
+                        .uri(uri))
+                .route("instances_circuitbreaker_java", r -> r.host("**.instancescircuitbreakerjava.org")
+                        .filters(f -> f.prefixPath("/httpbin")
+                                .circuitBreaker(config -> config.setFallbackUri(
+                                        "forward:/circuitbreakerFallbackController2")))
+                        .uri(uri))
+                .route("circuitbreaker_connection_failure", r -> r
+                        .host("**.circuitbreakerconnectfail.org")
+                        .filters(f -> f.prefixPath("/httpbin").circuitBreaker(config -> {
+                        })).uri("lb:badservice"))
+                .route("circuitbreaker_connection_failure", r -> r
+                        .host("**.instancescircuitbreakerconnectfail.org")
+                        .filters(f -> f.prefixPath("/httpbin").instancesCircuitBreaker(config -> {
+                        })).uri("lb:badservice"))
+                /*
+                 * This is a route encapsulated in a circuit breaker that is ready to wait
+                 * for a response far longer than the underpinning WebClient would.
+                 */
+                .route("circuitbreaker_response_stall",
+                        r -> r.host("**.circuitbreakerresponsestall.org")
+                                .filters(f -> f.prefixPath("/httpbin").circuitBreaker(
+                                        config -> config.setName("stalling-command")))
+                                .uri(uri))
+                .route("instances_circuitbreaker_response_stall",
+                        r -> r.host("**.instancescircuitbreakerresponsestall.org")
+                                .filters(f -> f.prefixPath("/httpbin").circuitBreaker(
+                                        config -> config.setName("stalling-command")))
+                                .uri(uri))
+                .build();
+    }
 
-	@Bean
-	CircuitBreakerExceptionFallbackHandler exceptionFallbackHandler() {
-		return new CircuitBreakerExceptionFallbackHandler();
-	}
+    @Bean
+    CircuitBreakerExceptionFallbackHandler exceptionFallbackHandler() {
+        return new CircuitBreakerExceptionFallbackHandler();
+    }
 
-	@Bean
-	RouterFunction<ServerResponse> routerFunction(
-			CircuitBreakerExceptionFallbackHandler exceptionFallbackHandler) {
-		return route(GET("/circuitbreakerExceptionFallback"),
-				exceptionFallbackHandler::retrieveExceptionInfo);
-	}
+    @Bean
+    RouterFunction<ServerResponse> routerFunction(
+            CircuitBreakerExceptionFallbackHandler exceptionFallbackHandler) {
+        return route(GET("/circuitbreakerExceptionFallback"),
+                exceptionFallbackHandler::retrieveExceptionInfo);
+    }
 
 }
 
 class CircuitBreakerExceptionFallbackHandler {
 
-	static final String RETRIEVED_EXCEPTION = "Retrieved-Exception";
+    static final String RETRIEVED_EXCEPTION = "Retrieved-Exception";
 
-	Mono<ServerResponse> retrieveExceptionInfo(ServerRequest serverRequest) {
-		String exceptionName = serverRequest
-				.attribute(CIRCUITBREAKER_EXECUTION_EXCEPTION_ATTR)
-				.map(exception -> exception.getClass().getName()).orElse("");
-		return ServerResponse.ok().header(RETRIEVED_EXCEPTION, exceptionName).build();
-	}
+    Mono<ServerResponse> retrieveExceptionInfo(ServerRequest serverRequest) {
+        String exceptionName = serverRequest
+                .attribute(CIRCUITBREAKER_EXECUTION_EXCEPTION_ATTR)
+                .map(exception -> exception.getClass().getName()).orElse("");
+        return ServerResponse.ok().header(RETRIEVED_EXCEPTION, exceptionName).build();
+    }
 
 }

@@ -783,6 +783,30 @@ It is added to the `ServerWebExchange` as the `ServerWebExchangeUtils.CIRCUITBRE
 For the external controller/handler scenario, headers can be added with exception details.
 You can find more information on doing so in  the <<fallback-headers, FallbackHeaders GatewayFilter Factory section>>.
 
+[[spring-cloud-instances-circuitbreaker-filter-factory]]
+=== Spring Cloud Instances CircuitBreaker GatewayFilter Factory
+
+When multiple instances use load balancing, only one instance needs to be fused. Please use this fuse
+The following example configures a Spring Cloud Instances CircuitBreaker `GatewayFilter`:
+
+.application.yml
+====
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: circuitbreaker_route
+        uri: https://example.org
+        filters:
+        - InstancesCircuitBreaker=myInstancesCircuitBreaker
+----
+====
+
+Other configuration methods and parameters.
+You can find more information on doing so in  the <<spring-cloud-circuitbreaker-filter-factory, Spring Cloud CircuitBreaker GatewayFilter Factory>>.
+
 [[fallback-headers]]
 === The `FallbackHeaders` `GatewayFilter` Factory
 
