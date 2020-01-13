@@ -23,6 +23,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.support.NotFoundException;
+import org.springframework.util.StringUtils;
 
 import static java.util.Collections.synchronizedMap;
 
@@ -37,6 +38,9 @@ public class InMemoryRouteDefinitionRepository implements RouteDefinitionReposit
 	@Override
 	public Mono<Void> save(Mono<RouteDefinition> route) {
 		return route.flatMap(r -> {
+			if (StringUtils.isEmpty(r.getId())) {
+				return Mono.error(new IllegalArgumentException("id may not be empty"));
+			}
 			routes.put(r.getId(), r);
 			return Mono.empty();
 		});

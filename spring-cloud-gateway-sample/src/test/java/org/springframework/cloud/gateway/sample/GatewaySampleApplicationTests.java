@@ -178,7 +178,7 @@ public class GatewaySampleApplicationTests {
 				});
 	}
 
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	@EnableAutoConfiguration
 	@RibbonClient(name = "httpbin", configuration = RibbonConfig.class)
 	@Import(GatewaySampleApplication.class)

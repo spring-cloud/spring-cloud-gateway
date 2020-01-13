@@ -55,9 +55,9 @@ import org.springframework.cloud.gateway.filter.factory.RequestHeaderToRequestUr
 import org.springframework.cloud.gateway.filter.factory.RequestRateLimiterGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RequestSizeGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RetryGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RewriteLocationResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RewriteLocationResponseHeaderGatewayFilterFactory.StripVersion;
+import org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RewriteResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SaveSessionGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory;
@@ -65,6 +65,7 @@ import org.springframework.cloud.gateway.filter.factory.SetPathGatewayFilterFact
 import org.springframework.cloud.gateway.filter.factory.SetRequestHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SetResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SetStatusGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.SpringCloudCircuitBreakerFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.StripPrefixGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyRequestBodyGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyResponseBodyGatewayFilterFactory;
@@ -73,6 +74,7 @@ import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpStatus;
+import org.springframework.util.StringUtils;
 import org.springframework.util.unit.DataSize;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -216,6 +218,20 @@ public class GatewayFilterSpec extends UriSpec {
 					"This is probably because Hystrix is missing from the classpath, which can be resolved by adding dependency on 'org.springframework.cloud:spring-cloud-starter-netflix-hystrix'");
 		}
 		return filter(factory.apply(this.routeBuilder.getId(), configConsumer));
+	}
+
+	public GatewayFilterSpec circuitBreaker(
+			Consumer<SpringCloudCircuitBreakerFilterFactory.Config> configConsumer) {
+		SpringCloudCircuitBreakerFilterFactory filterFactory;
+		try {
+			filterFactory = getBean(SpringCloudCircuitBreakerFilterFactory.class);
+		}
+		catch (NoSuchBeanDefinitionException e) {
+			throw new NoSuchBeanDefinitionException(
+					SpringCloudCircuitBreakerFilterFactory.class,
+					"There needs to be a circuit breaker implementation on the classpath that supports reactive APIs.");
+		}
+		return filter(filterFactory.apply(this.routeBuilder.getId(), configConsumer));
 	}
 
 	/**
@@ -472,7 +488,7 @@ public class GatewayFilterSpec extends UriSpec {
 	public GatewayFilterSpec requestRateLimiter(
 			Consumer<RequestRateLimiterGatewayFilterFactory.Config> configConsumer) {
 		return filter(getBean(RequestRateLimiterGatewayFilterFactory.class)
-				.apply(configConsumer));
+				.apply(this.routeBuilder.getId(), configConsumer));
 	}
 
 	/**
@@ -628,7 +644,7 @@ public class GatewayFilterSpec extends UriSpec {
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
 	public GatewayFilterSpec setStatus(HttpStatus status) {
-		return setStatus(status.toString());
+		return setStatus(status.name());
 	}
 
 	/**
@@ -790,7 +806,7 @@ public class GatewayFilterSpec extends UriSpec {
 
 		public GatewayFilterSpec configure(
 				Consumer<RequestRateLimiterGatewayFilterFactory.Config> configConsumer) {
-			filter(this.filter.apply(configConsumer));
+			filter(this.filter.apply(routeBuilder.getId(), configConsumer));
 			return GatewayFilterSpec.this;
 		}
 

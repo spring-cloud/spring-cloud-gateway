@@ -66,16 +66,27 @@ public class HystrixTestConfig {
 		return Collections.singletonMap("from", "fallbackcontroller2");
 	}
 
+	@RequestMapping("/hystrixFallbackController3")
+	public Map<String, String> fallbackcontroller3() {
+		return Collections.singletonMap("from", "hystrixfallbackcontroller3");
+	}
+
 	@Bean
 	public RouteLocator hystrixRouteLocator(RouteLocatorBuilder builder) {
 		return builder.routes().route("hystrix_java", r -> r.host("**.hystrixjava.org")
 				.filters(f -> f.prefixPath("/httpbin").hystrix(
 						config -> config.setFallbackUri("forward:/fallbackcontroller2")))
 				.uri(uri))
+				.route("hystrix_fallback_forward", r -> r.host("**.hystrixforward.org")
+						.filters(f -> f.hystrix(
+								config -> config.setFallbackUri("forward:/fallback")))
+						.uri(uri))
+				.route("hystrix_fallback_controller_3", r -> r.path("/fallback")
+						.filters(f -> f.setPath("/hystrixFallbackController3")).uri(uri))
 				.route("hystrix_connection_failure",
 						r -> r.host("**.hystrixconnectfail.org")
 								.filters(f -> f.prefixPath("/httpbin").hystrix(config -> {
-								})).uri("lb:badservice"))
+								})).uri("lb://badservice"))
 				/*
 				 * This is a route encapsulated in a hystrix command that is ready to wait
 				 * for a response far longer than the underpinning WebClient would.
@@ -114,7 +125,7 @@ class ExceptionFallbackHandler {
 
 }
 
-@Configuration
+@Configuration(proxyBeanMethods = false)
 class TestBadRibbonConfig {
 
 	@LocalServerPort

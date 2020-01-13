@@ -31,10 +31,12 @@ import reactor.core.publisher.Mono;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.RequestEntity.BodyBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -114,6 +116,8 @@ public class ProxyExchange<T> {
 	public static Set<String> DEFAULT_SENSITIVE = new HashSet<>(
 			Arrays.asList("cookie", "authorization"));
 
+	private HttpMethod httpMethod;
+
 	private URI uri;
 
 	private WebClient rest;
@@ -140,6 +144,7 @@ public class ProxyExchange<T> {
 		this.rest = rest;
 		this.sensitive = new HashSet<>(DEFAULT_SENSITIVE.size());
 		this.sensitive.addAll(DEFAULT_SENSITIVE);
+		this.httpMethod = exchange.getRequest().getMethod();
 	}
 
 	/**
@@ -314,6 +319,49 @@ public class ProxyExchange<T> {
 		return patch().map(converter::apply);
 	}
 
+	public Mono<ResponseEntity<T>> forward() {
+		switch (httpMethod) {
+		case GET:
+			return get();
+		case HEAD:
+			return head();
+		case OPTIONS:
+			return options();
+		case POST:
+			return post();
+		case DELETE:
+			return delete();
+		case PUT:
+			return put();
+		case PATCH:
+			return patch();
+		default:
+			return Mono.empty();
+		}
+	}
+
+	public <S> Mono<ResponseEntity<S>> forward(
+			Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
+		switch (httpMethod) {
+		case GET:
+			return get(converter);
+		case HEAD:
+			return head(converter);
+		case OPTIONS:
+			return options(converter);
+		case POST:
+			return post(converter);
+		case DELETE:
+			return delete(converter);
+		case PUT:
+			return put(converter);
+		case PATCH:
+			return patch(converter);
+		default:
+			return Mono.empty();
+		}
+	}
+
 	private Mono<ResponseEntity<T>> exchange(RequestEntity<?> requestEntity) {
 		Type type = this.responseType;
 		RequestBodySpec builder = rest.method(requestEntity.getMethod())
@@ -396,11 +444,15 @@ public class ProxyExchange<T> {
 		else {
 			forwarded = "";
 		}
-		forwarded = forwarded + forwarded(uri);
+		forwarded = forwarded
+				+ forwarded(uri, exchange.getRequest().getHeaders().getFirst("host"));
 		headers.set("forwarded", forwarded);
 	}
 
-	private String forwarded(URI uri) {
+	private String forwarded(URI uri, String hostHeader) {
+		if (!StringUtils.isEmpty(hostHeader)) {
+			return "host=" + hostHeader;
+		}
 		if ("http".equals(uri.getScheme())) {
 			return "host=" + uri.getHost();
 		}

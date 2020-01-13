@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.filter.factory;
 import com.netflix.config.ConfigurationManager;
 import com.netflix.hystrix.Hystrix;
 import com.netflix.hystrix.metric.consumer.HealthCountsStream;
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -29,14 +30,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.util.Assert;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.cloud.gateway.filter.factory.ExceptionFallbackHandler.RETRIEVED_EXCEPTION;
-import static org.springframework.http.MediaType.TEXT_HTML;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT, properties = "debug=true")
@@ -126,16 +125,10 @@ public class HystrixGatewayFilterFactoryTests extends BaseWebClientTests {
 	@Test
 	public void hystrixFilterErrorPage() {
 		testClient.get().uri("/delay/3").header("Host", "www.hystrixconnectfail.org")
-				.accept(TEXT_HTML).exchange().expectStatus().is5xxServerError()
-				.expectBody().consumeWith(res -> {
-					final String body = new String(res.getResponseBody(), UTF_8);
-
-					Assert.isTrue(body.contains("<h1>Whitelabel Error Page</h1>"),
-							"Cannot find the expected white-label error page title in the response");
-					Assert.isTrue(
-							body.contains("(type=Internal Server Error, status=500)"),
-							"Cannot find the expected error status report in the response");
-				});
+				.accept(APPLICATION_JSON).exchange().expectStatus().is5xxServerError()
+				.expectBody().jsonPath("$.status")
+				.value(Matchers.greaterThanOrEqualTo(500)).jsonPath("$.message")
+				.isNotEmpty().jsonPath("$.error").isNotEmpty();
 	}
 
 	@Test
@@ -144,6 +137,13 @@ public class HystrixGatewayFilterFactoryTests extends BaseWebClientTests {
 				.setName("myname").setFallbackUri("forward:/myfallback");
 		GatewayFilter filter = new HystrixGatewayFilterFactory(null).apply(config);
 		assertThat(filter.toString()).contains("myname").contains("forward:/myfallback");
+	}
+
+	@Test
+	public void filterFallbackForward() {
+		testClient.get().uri("/delay/3?a=c").header("Host", "www.hystrixforward.org")
+				.exchange().expectStatus().isOk().expectBody()
+				.json("{\"from\":\"hystrixfallbackcontroller3\"}");
 	}
 
 }

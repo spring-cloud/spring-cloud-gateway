@@ -139,6 +139,7 @@ import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.env.Environment;
+import org.springframework.http.codec.ServerCodecConfigurer;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.Validator;
 import org.springframework.web.reactive.DispatcherHandler;
@@ -152,8 +153,9 @@ import static org.springframework.cloud.gateway.config.HttpClientProperties.Pool
 
 /**
  * @author Spencer Gibb
+ * @author Ziemowit Stolarczyk
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty(name = "spring.cloud.gateway.enabled", matchIfMissing = true)
 @EnableConfigurationProperties
 @AutoConfigureBefore({ HttpHandlerAutoConfiguration.class,
@@ -197,23 +199,24 @@ public class GatewayAutoConfiguration {
 
 	@Bean
 	public ConfigurationService gatewayConfigurationService(BeanFactory beanFactory,
-			@Qualifier("webFluxConversionService") ConversionService conversionService,
-			Validator validator) {
+			@Qualifier("webFluxConversionService") ObjectProvider<ConversionService> conversionService,
+			ObjectProvider<Validator> validator) {
 		return new ConfigurationService(beanFactory, conversionService, validator);
 	}
 
 	@Bean
 	public RouteLocator routeDefinitionRouteLocator(GatewayProperties properties,
-			List<GatewayFilterFactory> GatewayFilters,
+			List<GatewayFilterFactory> gatewayFilters,
 			List<RoutePredicateFactory> predicates,
 			RouteDefinitionLocator routeDefinitionLocator,
 			ConfigurationService configurationService) {
 		return new RouteDefinitionRouteLocator(routeDefinitionLocator, predicates,
-				GatewayFilters, properties, configurationService);
+				gatewayFilters, properties, configurationService);
 	}
 
 	@Bean
 	@Primary
+	@ConditionalOnMissingBean(name = "cachedCompositeRouteLocator")
 	// TODO: property to disable composite?
 	public RouteLocator cachedCompositeRouteLocator(List<RouteLocator> routeLocators) {
 		return new CachingRouteLocator(
@@ -435,8 +438,9 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	public ModifyResponseBodyGatewayFilterFactory modifyResponseBodyGatewayFilterFactory() {
-		return new ModifyResponseBodyGatewayFilterFactory();
+	public ModifyResponseBodyGatewayFilterFactory modifyResponseBodyGatewayFilterFactory(
+			ServerCodecConfigurer codecConfigurer) {
+		return new ModifyResponseBodyGatewayFilterFactory(codecConfigurer);
 	}
 
 	@Bean
@@ -554,7 +558,7 @@ public class GatewayAutoConfiguration {
 		return new RequestHeaderSizeGatewayFilterFactory();
 	}
 
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	@ConditionalOnClass(HttpClient.class)
 	protected static class NettyConfiguration {
 
@@ -586,10 +590,12 @@ public class GatewayAutoConfiguration {
 			}
 			else if (pool.getType() == FIXED) {
 				connectionProvider = ConnectionProvider.fixed(pool.getName(),
-						pool.getMaxConnections(), pool.getAcquireTimeout());
+						pool.getMaxConnections(), pool.getAcquireTimeout(),
+						pool.getMaxIdleTime());
 			}
 			else {
-				connectionProvider = ConnectionProvider.elastic(pool.getName());
+				connectionProvider = ConnectionProvider.elastic(pool.getName(),
+						pool.getMaxIdleTime());
 			}
 
 			HttpClient httpClient = HttpClient.create(connectionProvider)
@@ -699,7 +705,7 @@ public class GatewayAutoConfiguration {
 
 	}
 
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	@ConditionalOnClass({ HystrixObservableCommand.class, RxReactiveStreams.class })
 	protected static class HystrixConfiguration {
 
@@ -710,13 +716,14 @@ public class GatewayAutoConfiguration {
 		}
 
 		@Bean
+		@ConditionalOnMissingBean(FallbackHeadersGatewayFilterFactory.class)
 		public FallbackHeadersGatewayFilterFactory fallbackHeadersGatewayFilterFactory() {
 			return new FallbackHeadersGatewayFilterFactory();
 		}
 
 	}
 
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	@ConditionalOnClass(Health.class)
 	protected static class GatewayActuatorConfiguration {
 

@@ -1,0 +1,11 @@
+spring:
+  cloud:
+    gateway:
+      default-filters:
+      - PrefixPath=/httpbin
+      routes:
+      - uri: https://defaultrouteid.example.org
+        order: 10000
+        predicates:
+        - Path=/defaultrouteid/**
+

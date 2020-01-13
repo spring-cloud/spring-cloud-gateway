@@ -27,16 +27,16 @@ import com.netflix.loadbalancer.ServerList;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hamcrest.CoreMatchers;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.rule.OutputCapture;
+import org.springframework.boot.test.system.OutputCaptureRule;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.RetryGatewayFilterFactory.RetryConfig;
@@ -74,12 +74,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTests {
 
 	@Rule
-	public final OutputCapture capture = new OutputCapture();
-
-	@Before
-	public void before() {
-		capture.reset();
-	}
+	public final OutputCaptureRule capture = new OutputCaptureRule();
 
 	@Test
 	public void retryFilterGet() {
@@ -193,19 +188,15 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 		private String uri;
 
 		@RequestMapping("/httpbin/sleep")
-		public ResponseEntity<String> sleep(@RequestParam("key") String key,
+		public Mono<ResponseEntity<String>> sleep(@RequestParam("key") String key,
 				@RequestParam("millis") long millisToSleep) {
 			AtomicInteger num = getCount(key);
 			int retryCount = num.incrementAndGet();
 			log.warn("Retry count: " + retryCount);
-			try {
-				Thread.sleep(millisToSleep);
-			}
-			catch (InterruptedException e) {
-			}
-			return ResponseEntity.status(HttpStatus.OK)
-					.header("X-Retry-Count", String.valueOf(retryCount))
-					.body("slept " + millisToSleep + " ms");
+			return Mono.delay(Duration.ofMillis(millisToSleep))
+					.thenReturn(ResponseEntity.status(HttpStatus.OK)
+							.header("X-Retry-Count", String.valueOf(retryCount))
+							.body("slept " + millisToSleep + " ms"));
 		}
 
 		@RequestMapping("/httpbin/retryalwaysfail")

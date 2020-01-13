@@ -129,6 +129,12 @@ public final class ServerWebExchangeUtils {
 			"hystrixExecutionException");
 
 	/**
+	 * CircuitBreaker execution exception attribute name.
+	 */
+	public static final String CIRCUITBREAKER_EXECUTION_EXCEPTION_ATTR = qualify(
+			"circuitBreakerExecutionException");
+
+	/**
 	 * Used when a routing filter has been successfully called. Allows users to write
 	 * custom routing filters that disable built in routing filters.
 	 */
@@ -164,6 +170,10 @@ public final class ServerWebExchangeUtils {
 
 	public static void setAlreadyRouted(ServerWebExchange exchange) {
 		exchange.getAttributes().put(GATEWAY_ALREADY_ROUTED_ATTR, true);
+	}
+
+	public static void removeAlreadyRouted(ServerWebExchange exchange) {
+		exchange.getAttributes().remove(GATEWAY_ALREADY_ROUTED_ATTR);
 	}
 
 	public static boolean isAlreadyRouted(ServerWebExchange exchange) {

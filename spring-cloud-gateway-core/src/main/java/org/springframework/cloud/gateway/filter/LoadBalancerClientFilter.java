@@ -35,9 +35,11 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.G
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.addOriginalRequestUrl;
 
 /**
+ * @deprecated in favour of {@link ReactiveLoadBalancerClientFilter}
  * @author Spencer Gibb
  * @author Tim Ysewyn
  */
+@Deprecated
 public class LoadBalancerClientFilter implements GlobalFilter, Ordered {
 
 	/**

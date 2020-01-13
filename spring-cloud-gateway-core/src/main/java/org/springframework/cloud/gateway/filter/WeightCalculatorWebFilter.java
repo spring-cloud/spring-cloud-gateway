@@ -48,6 +48,7 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.W
 
 /**
  * @author Spencer Gibb
+ * @author Alexey Nakidkin
  */
 public class WeightCalculatorWebFilter
 		implements WebFilter, Ordered, SmartApplicationListener {
@@ -169,28 +170,38 @@ public class WeightCalculatorWebFilter
 
 	/* for testing */ void addWeightConfig(WeightConfig weightConfig) {
 		String group = weightConfig.getGroup();
-		GroupWeightConfig c = groupWeights.get(group);
-		if (c == null) {
-			c = new GroupWeightConfig(group);
-			groupWeights.put(group, c);
+		GroupWeightConfig config;
+		// only create new GroupWeightConfig rather than modify
+		// and put at end of calculations. This avoids concurency problems
+		// later during filter execution.
+		if (groupWeights.containsKey(group)) {
+			config = new GroupWeightConfig(groupWeights.get(group));
 		}
-		GroupWeightConfig config = c;
+		else {
+			config = new GroupWeightConfig(group);
+		}
+
 		config.weights.put(weightConfig.getRouteId(), weightConfig.getWeight());
 
 		// recalculate
 
 		// normalize weights
-		int weightsSum = config.weights.values().stream().mapToInt(Integer::intValue)
-				.sum();
+		int weightsSum = 0;
+
+		for (Integer weight : config.weights.values()) {
+			weightsSum += weight;
+		}
 
 		final AtomicInteger index = new AtomicInteger(0);
-		config.weights.forEach((routeId, weight) -> {
+		for (Map.Entry<String, Integer> entry : config.weights.entrySet()) {
+			String routeId = entry.getKey();
+			Integer weight = entry.getValue();
 			Double nomalizedWeight = weight / (double) weightsSum;
 			config.normalizedWeights.put(routeId, nomalizedWeight);
 
 			// recalculate rangeIndexes
 			config.rangeIndexes.put(index.getAndIncrement(), routeId);
-		});
+		}
 
 		// TODO: calculate ranges
 		config.ranges.clear();
@@ -208,6 +219,8 @@ public class WeightCalculatorWebFilter
 		if (log.isTraceEnabled()) {
 			log.trace("Recalculated group weight config " + config);
 		}
+		// only update after all calculations
+		groupWeights.put(group, config);
 	}
 
 	/* for testing */ Map<String, GroupWeightConfig> getGroupWeights() {
@@ -267,6 +280,13 @@ public class WeightCalculatorWebFilter
 
 		GroupWeightConfig(String group) {
 			this.group = group;
+		}
+
+		GroupWeightConfig(GroupWeightConfig other) {
+			this.group = other.group;
+			this.weights = new LinkedHashMap<>(other.weights);
+			this.normalizedWeights = new LinkedHashMap<>(other.normalizedWeights);
+			this.rangeIndexes = new LinkedHashMap<>(other.rangeIndexes);
 		}
 
 		@Override
