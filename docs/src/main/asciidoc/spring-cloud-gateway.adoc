@@ -2178,7 +2178,7 @@ spring:
   cloud:
     gateway:
       globalcors:
-        corsConfigurations:
+        cors-configurations:
           '[/**]':
             allowedOrigins: "https://docs.spring.io"
             allowedMethods:
