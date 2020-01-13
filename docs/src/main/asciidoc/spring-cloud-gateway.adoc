@@ -1017,12 +1017,14 @@ spring:
 ----
 ====
 
+
 === The `RedirectTo` `GatewayFilter` Factory
 
 The `RedirectTo` `GatewayFilter` factory takes two parameters, `status` and `url`.
 The `status` parameter should be a 300 series redirect HTTP code, such as 301.
 The `url` parameter should be a valid URL.
 This is the value of the `Location` header.
+For relative redirects, you should use `uri: no://op` as the uri of your route definition.
 The following listing configures a `RedirectTo` `GatewayFilter`:
 
 .application.yml
