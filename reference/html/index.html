@@ -1574,6 +1574,7 @@ The following listing defines a rate limiter that uses the <code>KeyResolver</co
 The <code>status</code> parameter should be a 300 series redirect HTTP code, such as 301.
 The <code>url</code> parameter should be a valid URL.
 This is the value of the <code>Location</code> header.
+For relative redirects, you should use <code>uri: no://op</code> as the uri of your route definition.
 The following listing configures a <code>RedirectTo</code> <code>GatewayFilter</code>:</p>
 </div>
 <div class="exampleblock">
