@@ -572,7 +572,14 @@ public class GatewayAutoConfiguration {
 			}
 
 			HttpClient httpClient = HttpClient.create(connectionProvider)
-					.tcpConfiguration(tcpClient -> {
+					.httpResponseDecoder(spec -> {
+						if (properties.getMaxHeaderSize() != null) {
+							// cast to int is ok, since @Max is Integer.MAX_VALUE
+							spec.maxHeaderSize(
+									(int) properties.getMaxHeaderSize().toBytes());
+						}
+						return spec;
+					}).tcpConfiguration(tcpClient -> {
 
 						if (properties.getConnectTimeout() != null) {
 							tcpClient = tcpClient.option(
