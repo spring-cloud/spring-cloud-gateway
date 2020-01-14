@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
@@ -31,7 +30,6 @@ public abstract class SpringCloudCircuitBreakerFilterFactoryTests
 		extends BaseWebClientTests {
 
 	@Test
-	@Ignore
 	public void cbFilterWorks() {
 		testClient.get().uri("/get").header("Host", "www.sccbsuccess.org").exchange()
 				.expectStatus().isOk().expectHeader()
@@ -39,7 +37,6 @@ public abstract class SpringCloudCircuitBreakerFilterFactoryTests
 	}
 
 	@Test
-	@Ignore
 	public void cbFilterTimesout() {
 		testClient.get().uri("/delay/3").header("Host", "www.sccbtimeout.org").exchange()
 				.expectStatus().isEqualTo(HttpStatus.GATEWAY_TIMEOUT).expectBody()
@@ -55,7 +52,6 @@ public abstract class SpringCloudCircuitBreakerFilterFactoryTests
 	 * CircuitBreaker metrics though)
 	 */
 	@Test
-	@Ignore
 	public void timeoutFromWebClient() {
 		testClient.get().uri("/delay/10")
 				.header("Host", "www.circuitbreakerresponsestall.org").exchange()
@@ -63,7 +59,6 @@ public abstract class SpringCloudCircuitBreakerFilterFactoryTests
 	}
 
 	@Test
-	@Ignore
 	public void filterFallback() {
 		testClient.get().uri("/delay/3?a=b")
 				.header("Host", "www.circuitbreakerfallback.org").exchange()
@@ -72,7 +67,6 @@ public abstract class SpringCloudCircuitBreakerFilterFactoryTests
 	}
 
 	@Test
-	@Ignore
 	public void filterWorksJavaDsl() {
 		testClient.get().uri("/get").header("Host", "www.circuitbreakerjava.org")
 				.exchange().expectStatus().isOk().expectHeader()
@@ -80,7 +74,6 @@ public abstract class SpringCloudCircuitBreakerFilterFactoryTests
 	}
 
 	@Test
-	@Ignore
 	public void filterFallbackJavaDsl() {
 		testClient.get().uri("/delay/3").header("Host", "www.circuitbreakerjava.org")
 				.exchange().expectStatus().isOk().expectBody()
@@ -88,7 +81,6 @@ public abstract class SpringCloudCircuitBreakerFilterFactoryTests
 	}
 
 	@Test
-	@Ignore
 	public void filterConnectFailure() {
 		testClient.get().uri("/delay/3")
 				.header("Host", "www.circuitbreakerconnectfail.org").exchange()
@@ -96,7 +88,6 @@ public abstract class SpringCloudCircuitBreakerFilterFactoryTests
 	}
 
 	@Test
-	@Ignore
 	public void filterErrorPage() {
 		testClient.get().uri("/delay/3")
 				.header("Host", "www.circuitbreakerconnectfail.org")
@@ -106,7 +97,6 @@ public abstract class SpringCloudCircuitBreakerFilterFactoryTests
 	}
 
 	@Test
-	@Ignore
 	public void filterFallbackForward() {
 		testClient.get().uri("/delay/3?a=c")
 				.header("Host", "www.circuitbreakerforward.org").exchange().expectStatus()

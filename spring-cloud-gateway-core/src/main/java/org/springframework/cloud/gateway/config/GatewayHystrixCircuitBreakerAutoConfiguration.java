@@ -26,6 +26,7 @@ import org.springframework.cloud.client.circuitbreaker.ReactiveCircuitBreakerFac
 import org.springframework.cloud.gateway.filter.factory.FallbackHeadersGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SpringCloudCircuitBreakerHystrixFilterFactory;
 import org.springframework.cloud.netflix.hystrix.HystrixCircuitBreakerAutoConfiguration;
+import org.springframework.cloud.netflix.hystrix.ReactiveHystrixCircuitBreakerAutoConfiguration;
 import org.springframework.cloud.netflix.hystrix.ReactiveHystrixCircuitBreakerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -36,7 +37,7 @@ import org.springframework.web.reactive.DispatcherHandler;
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty(name = "spring.cloud.gateway.enabled", matchIfMissing = true)
-@AutoConfigureAfter({ HystrixCircuitBreakerAutoConfiguration.class })
+@AutoConfigureAfter({ ReactiveHystrixCircuitBreakerAutoConfiguration.class })
 @ConditionalOnClass({ DispatcherHandler.class,
 		HystrixCircuitBreakerAutoConfiguration.class, ReactiveCircuitBreakerFactory.class,
 		ReactiveHystrixCircuitBreakerFactory.class })
