@@ -31,6 +31,7 @@ import java.util.Collection;
 import java.util.List;
 
 import javax.net.ssl.KeyManagerFactory;
+import javax.validation.constraints.Max;
 
 import reactor.netty.resources.ConnectionProvider;
 import reactor.netty.tcp.SslProvider;
@@ -40,6 +41,7 @@ import org.springframework.boot.context.properties.DeprecatedConfigurationProper
 import org.springframework.boot.web.server.WebServerException;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.util.ResourceUtils;
+import org.springframework.util.unit.DataSize;
 
 /**
  * Configuration properties for the Netty {@link reactor.netty.http.client.HttpClient}.
@@ -52,6 +54,9 @@ public class HttpClientProperties {
 
 	/** The response timeout. */
 	private Duration responseTimeout;
+
+	/** The max response header size. */
+	private DataSize maxHeaderSize;
 
 	/** Pool configuration for Netty HttpClient. */
 	private Pool pool = new Pool();
@@ -82,6 +87,15 @@ public class HttpClientProperties {
 
 	public void setResponseTimeout(Duration responseTimeout) {
 		this.responseTimeout = responseTimeout;
+	}
+
+	@Max(Integer.MAX_VALUE)
+	public DataSize getMaxHeaderSize() {
+		return maxHeaderSize;
+	}
+
+	public void setMaxHeaderSize(DataSize maxHeaderSize) {
+		this.maxHeaderSize = maxHeaderSize;
 	}
 
 	public Pool getPool() {
@@ -130,6 +144,7 @@ public class HttpClientProperties {
 		return new ToStringCreator(this)
 				.append("connectTimeout", connectTimeout)
 				.append("responseTimeout", responseTimeout)
+				.append("maxHeaderSize", maxHeaderSize)
 				.append("pool", pool)
 				.append("proxy", proxy)
 				.append("ssl", ssl)
