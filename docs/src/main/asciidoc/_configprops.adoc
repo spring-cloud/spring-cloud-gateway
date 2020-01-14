@@ -24,6 +24,7 @@
 |spring.cloud.gateway.filter.secure-headers.strict-transport-security | max-age=631138519 | 
 |spring.cloud.gateway.filter.secure-headers.xss-protection-header | 1 ; mode=block | 
 |spring.cloud.gateway.forwarded.enabled | true | Enables the ForwardedHeadersFilter.
+|spring.cloud.gateway.globalcors.add-to-simple-url-handler-mapping | false | If global CORS config should be added to the URL handler.
 |spring.cloud.gateway.globalcors.cors-configurations |  | 
 |spring.cloud.gateway.httpclient.connect-timeout |  | The connect timeout in millis, the default is 45s.
 |spring.cloud.gateway.httpclient.pool.acquire-timeout |  | Only for type FIXED, the maximum time in millis to wait for aquiring.
