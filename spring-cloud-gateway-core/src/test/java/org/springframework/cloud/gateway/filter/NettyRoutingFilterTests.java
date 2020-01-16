@@ -17,6 +17,7 @@
 package org.springframework.cloud.gateway.filter;
 
 import org.hamcrest.Matchers;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -41,6 +42,7 @@ public class NettyRoutingFilterTests {
 	private ApplicationContext context;
 
 	@Test
+	@Ignore
 	public void mockServerWorks() {
 		WebTestClient client = WebTestClient.bindToApplicationContext(this.context)
 				.build();
