@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xmlns="http://maven.apache.org/POM/4.0.0"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<artifactId>spring-cloud-gateway-samples</artifactId>
+	<packaging>pom</packaging>
+
+	<name>Spring Cloud Gateway Samples</name>
+	<description>Spring Cloud Gateway Samples</description>
+
+	<parent>
+		<groupId>org.springframework.cloud</groupId>
+		<artifactId>spring-cloud-gateway</artifactId>
+		<version>2.2.2.BUILD-SNAPSHOT</version>
+		<relativePath>..</relativePath> <!-- lookup parent from repository -->
+	</parent>
+
+	<modules>
+		<module>spring-cloud-gateway-sample</module>
+	</modules>
+
+	<build>
+		<plugins>
+			<plugin>
+				<!-- Invoke integration tests in the install phase, after the maven-plugin
+					 is available -->
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-invoker-plugin</artifactId>
+				<version>3.2.1</version>
+				<configuration>
+					<settingsFile>src/it/settings.xml</settingsFile>
+					<projectsDirectory>.</projectsDirectory>
+					<pomIncludes>
+						<pomInclude>*/pom.xml</pomInclude>
+					</pomIncludes>
+					<skipInvocation>${skipTests}</skipInvocation>
+					<streamLogs>true</streamLogs>
+					<profiles>
+						<profile>integration</profile>
+					</profiles>
+					<goals>
+						<goal>clean</goal>
+						<goal>install</goal>
+					</goals>
+				</configuration>
+				<executions>
+					<!-- netty will be executed when building the sample project -->
+					<execution>
+						<id>undertow</id>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<profiles>undertow</profiles>
+						</configuration>
+					</execution>
+					<execution>
+						<id>tomcat</id>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<profiles>tomcat</profiles>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-deploy-plugin</artifactId>
+				<configuration>
+					<skip>true</skip>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>
+

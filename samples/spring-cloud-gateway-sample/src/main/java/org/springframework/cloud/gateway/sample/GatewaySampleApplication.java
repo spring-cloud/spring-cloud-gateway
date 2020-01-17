@@ -44,6 +44,9 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 @Import(AdditionalRoutes.class)
 public class GatewaySampleApplication {
 
+	/**
+	 * Response.
+	 */
 	public static final String HELLO_FROM_FAKE_ACTUATOR_METRICS_GATEWAY_REQUESTS = "hello from fake /actuator/metrics/gateway.requests";
 
 	@Value("${test.uri:http://httpbin.org:80}")

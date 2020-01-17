@@ -21,3 +21,5 @@ _site/
 *.swo
 .vscode/
 .flattened-pom.xml
+interpolated-pom.xml
+interpolated-settings.xml
