@@ -172,6 +172,50 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-checkstyle-plugin</artifactId>
 			</plugin>
+			<plugin>
+				<!-- Invoke integration tests in the install phase, after the maven-plugin
+					 is available -->
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-invoker-plugin</artifactId>
+				<version>3.2.1</version>
+				<configuration>
+					<settingsFile>src/it/settings.xml</settingsFile>
+					<projectsDirectory>.</projectsDirectory>
+					<pomIncludes>
+						<pomInclude>*spring-cloud-gateway-core/pom.xml</pomInclude>
+					</pomIncludes>
+					<skipInvocation>${skipTests}</skipInvocation>
+					<streamLogs>true</streamLogs>
+					<profiles>
+						<profile>integration</profile>
+					</profiles>
+					<goals>
+						<goal>clean</goal>
+						<goal>install</goal>
+					</goals>
+				</configuration>
+				<executions>
+					<!-- netty will be executed when building the sample project -->
+					<execution>
+						<id>undertow</id>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<profiles>undertow</profiles>
+						</configuration>
+					</execution>
+					<execution>
+						<id>tomcat</id>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<profiles>tomcat</profiles>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 
