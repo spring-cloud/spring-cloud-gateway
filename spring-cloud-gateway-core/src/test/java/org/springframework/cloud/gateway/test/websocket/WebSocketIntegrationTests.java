@@ -45,6 +45,8 @@ import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.PermitAllSecurityConfiguration;
 import org.springframework.cloud.gateway.test.support.HttpServer;
 import org.springframework.cloud.gateway.test.support.ReactorHttpServer;
+import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
+import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.Lifecycle;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -52,6 +54,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.HttpHandler;
 import org.springframework.util.StringUtils;
@@ -357,8 +360,8 @@ public class WebSocketIntegrationTests {
 	@Configuration(proxyBeanMethods = false)
 	@EnableAutoConfiguration
 	@Import(PermitAllSecurityConfiguration.class)
-	// @RibbonClient(name = "wsservice",
-	// configuration = LocalLoadBalancerClientConfiguration.class)
+	@LoadBalancerClient(name = "wsservice",
+			configuration = LocalLoadBalancerClientConfiguration.class)
 	protected static class GatewayConfig {
 
 		@Bean
@@ -375,10 +378,12 @@ public class WebSocketIntegrationTests {
 		@Value("${ws.server.port}")
 		private int wsPort;
 
-		// @Bean
-		// public ServerList<Server> serverList() {
-		// return new StaticServerList<>(new Server("localhost", this.wsPort));
-		// }
+		@Bean
+		public ServiceInstanceListSupplier staticServiceInstanceListSupplier(
+				Environment env) {
+			return ServiceInstanceListSupplier.fixed(env).instance(wsPort, "wsservice")
+					.build();
+		}
 
 	}
 

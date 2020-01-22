@@ -36,13 +36,17 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.system.OutputCaptureRule;
 import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.cloud.client.DefaultServiceInstance;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.RetryGatewayFilterFactory.RetryConfig;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
+import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
+import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -173,8 +177,8 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
-	// @RibbonClient(name = "badservice2", configuration =
-	// TestBadLoadBalancerConfig.class)
+	@LoadBalancerClient(name = "badservice2",
+			configuration = TestBadLoadBalancerConfig.class)
 	public static class TestConfig {
 
 		Log log = LogFactory.getLog(getClass());
@@ -271,12 +275,14 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 		@LocalServerPort
 		protected int port = 0;
 
-		// @Bean
-		// public ServerList<Server> serverList() {
-		// return new StaticServerList<>(
-		// new Server("https", "localhost.domain.doesnot.exist", this.port),
-		// new Server("localhost", this.port));
-		// }
+		@Bean
+		public ServiceInstanceListSupplier staticServiceInstanceListSupplier(
+				Environment env) {
+			return ServiceInstanceListSupplier.fixed(env)
+					.instance(new DefaultServiceInstance("doesnotexist1", "badservice2",
+							"localhost.domain.doesnot.exist", port, true))
+					.instance(port, "badservice2").build();
+		}
 
 	}
 

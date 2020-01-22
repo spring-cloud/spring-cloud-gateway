@@ -24,9 +24,11 @@ import reactor.core.publisher.Mono;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.cloud.gateway.filter.factory.RetryGatewayFilterFactoryIntegrationTests.TestBadLoadBalancerConfig;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
+import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -47,7 +49,7 @@ import static org.springframework.web.reactive.function.server.RouterFunctions.r
 @SpringBootConfiguration
 @Import(BaseWebClientTests.DefaultTestConfig.class)
 @RestController
-// @RibbonClient(name = "badservice", configuration = TestBadLoadBalancerConfig.class)
+@LoadBalancerClient(name = "badservice", configuration = TestBadLoadBalancerConfig.class)
 public class SpringCloudCircuitBreakerTestConfig {
 
 	@Value("${test.uri}")

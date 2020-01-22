@@ -25,12 +25,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.cloud.gateway.handler.AsyncPredicate;
 import org.springframework.cloud.gateway.handler.predicate.ReadBodyPredicateFactory.Config;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
+import org.springframework.cloud.gateway.test.BaseWebClientTests.TestLoadBalancerConfig;
 import org.springframework.cloud.gateway.test.PermitAllSecurityConfiguration;
+import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
+import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClients;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpMethod;
@@ -85,10 +87,11 @@ public class ReadBodyPredicateFactoryTest {
 
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
-	// @RibbonClients({
-	// @RibbonClient(name = "message", configuration = TestLoadBalancerConfig.class),
-	// @RibbonClient(name = "messageChannel",
-	// configuration = TestLoadBalancerConfig.class) })
+	@LoadBalancerClients({
+			@LoadBalancerClient(name = "message",
+					configuration = TestLoadBalancerConfig.class),
+			@LoadBalancerClient(name = "messageChannel",
+					configuration = TestLoadBalancerConfig.class) })
 	@Import(PermitAllSecurityConfiguration.class)
 	@RestController
 	public static class TestConfig {
@@ -121,18 +124,6 @@ public class ReadBodyPredicateFactoryTest {
 		public String messageChannelEvents(@RequestBody Event e) {
 			return "{\"headers\":{\"World\":\"Hello\"}}";
 		}
-
-	}
-
-	protected static class TestLoadBalancerConfig {
-
-		@LocalServerPort
-		protected int port = 0;
-
-		// @Bean
-		// public ServerList<Server> serverList() {
-		// return new StaticServerList<>(new Server("localhost", this.port));
-		// }
 
 	}
 

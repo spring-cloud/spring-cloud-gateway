@@ -32,9 +32,12 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.cloud.gateway.test.HttpBinCompatibleController;
+import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
+import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.env.Environment;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.util.SocketUtils;
@@ -46,8 +49,8 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
  * @author Spencer Gibb
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = { GatewaySampleApplicationTests.TestConfig.class },
-		webEnvironment = RANDOM_PORT, properties = "management.server.port=${test.port}")
+@SpringBootTest(classes = {
+		GatewaySampleApplicationTests.TestConfig.class }, webEnvironment = RANDOM_PORT, properties = "management.server.port=${test.port}")
 public class GatewaySampleApplicationTests {
 
 	protected static int managementPort;
@@ -175,7 +178,7 @@ public class GatewaySampleApplicationTests {
 
 	@Configuration(proxyBeanMethods = false)
 	@EnableAutoConfiguration
-	//@RibbonClient(name = "httpbin", configuration = LoadBalancerConfig.class)
+	@LoadBalancerClient(name = "httpbin", configuration = LoadBalancerConfig.class)
 	@Import(GatewaySampleApplication.class)
 	protected static class TestConfig {
 
@@ -191,11 +194,10 @@ public class GatewaySampleApplicationTests {
 		@LocalServerPort
 		int port;
 
-		//@Bean
-		//@Primary
-		//public ServerList<Server> serverList() {
-		//	return new StaticServerList<>(new Server("localhost", port));
-		//}
+		@Bean
+		public ServiceInstanceListSupplier fixedServiceInstanceListSupplier(Environment env) {
+			return ServiceInstanceListSupplier.fixed(env).instance("localhost", port, "httpbin").build();
+		}
 
 	}
 
