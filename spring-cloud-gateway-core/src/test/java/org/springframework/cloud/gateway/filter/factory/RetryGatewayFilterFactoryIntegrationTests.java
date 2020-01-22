@@ -115,14 +115,14 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 	public void retryFilterPost() {
 		testClient.post().uri("/retrypost?key=postconfig&expectedbody=HelloConfig")
 				.header(HttpHeaders.HOST, "www.retrypostconfig.org")
-				.syncBody("HelloConfig").exchange().expectStatus().isOk()
+				.bodyValue("HelloConfig").exchange().expectStatus().isOk()
 				.expectBody(String.class).isEqualTo("3");
 	}
 
 	@Test
 	public void retryFilterPostJavaDsl() {
 		testClient.post().uri("/retrypost?key=post&expectedbody=Hello")
-				.header(HttpHeaders.HOST, "www.retryjava.org").syncBody("Hello")
+				.header(HttpHeaders.HOST, "www.retryjava.org").bodyValue("Hello")
 				.exchange().expectStatus().isOk().expectBody(String.class).isEqualTo("3");
 	}
 
@@ -131,7 +131,7 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 		testClient.post().uri(
 				"/retrypost?key=retryFilterPostOneTime&expectedbody=HelloGateway&count=1")
 				.header(HttpHeaders.HOST, "www.retrypostonceconfig.org")
-				.syncBody("HelloGateway").exchange().expectStatus().isOk();
+				.bodyValue("HelloGateway").exchange().expectStatus().isOk();
 		assertThat(this.capture.toString()).contains("setting new iteration in attr 0");
 		assertThat(this.capture.toString())
 				.doesNotContain("setting new iteration in attr 1");

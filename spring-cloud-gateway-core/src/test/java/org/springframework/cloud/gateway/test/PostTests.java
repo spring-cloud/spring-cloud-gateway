@@ -44,7 +44,7 @@ public class PostTests extends BaseWebClientTests {
 	@Test
 	public void postWorks() {
 		Mono<Map> result = webClient.post().uri("/post").header("Host", "www.example.org")
-				.syncBody("testdata").exchange()
+				.bodyValue("testdata").exchange()
 				.flatMap(response -> response.body(toMono(Map.class)));
 
 		StepVerifier.create(result)

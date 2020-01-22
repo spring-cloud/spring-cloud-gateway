@@ -91,7 +91,7 @@ public class GatewaySampleApplicationTests {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void readBodyPredicateStringWorks() {
-		webClient.post().uri("/post").header("Host", "www.readbody.org").syncBody("hi")
+		webClient.post().uri("/post").header("Host", "www.readbody.org").bodyValue("hi")
 				.exchange().expectStatus().isOk().expectHeader()
 				.valueEquals("X-TestHeader", "read_body_pred").expectBody(Map.class)
 				.consumeWith(result -> assertThat(result.getResponseBody())
@@ -102,7 +102,7 @@ public class GatewaySampleApplicationTests {
 	@SuppressWarnings("unchecked")
 	public void rewriteRequestBodyStringWorks() {
 		webClient.post().uri("/post").header("Host", "www.rewriterequestupper.org")
-				.syncBody("hello").exchange().expectStatus().isOk().expectHeader()
+				.bodyValue("hello").exchange().expectStatus().isOk().expectHeader()
 				.valueEquals("X-TestHeader", "rewrite_request_upper")
 				.expectBody(Map.class)
 				.consumeWith(result -> assertThat(result.getResponseBody())
@@ -113,7 +113,7 @@ public class GatewaySampleApplicationTests {
 	@SuppressWarnings("unchecked")
 	public void rewriteRequestBodyObjectWorks() {
 		webClient.post().uri("/post").header("Host", "www.rewriterequestobj.org")
-				.syncBody("hello").exchange().expectStatus().isOk().expectHeader()
+				.bodyValue("hello").exchange().expectStatus().isOk().expectHeader()
 				.valueEquals("X-TestHeader", "rewrite_request").expectBody(Map.class)
 				.consumeWith(result -> assertThat(result.getResponseBody())
 						.containsEntry("data", "{\"message\":\"HELLO\"}"));
@@ -123,7 +123,7 @@ public class GatewaySampleApplicationTests {
 	@SuppressWarnings("unchecked")
 	public void rewriteResponseBodyStringWorks() {
 		webClient.post().uri("/post").header("Host", "www.rewriteresponseupper.org")
-				.syncBody("hello").exchange().expectStatus().isOk().expectHeader()
+				.bodyValue("hello").exchange().expectStatus().isOk().expectHeader()
 				.valueEquals("X-TestHeader", "rewrite_response_upper")
 				.expectBody(Map.class)
 				.consumeWith(result -> assertThat(result.getResponseBody())
@@ -134,7 +134,7 @@ public class GatewaySampleApplicationTests {
 	@SuppressWarnings("unchecked")
 	public void rewriteResponeBodyObjectWorks() {
 		webClient.post().uri("/post").header("Host", "www.rewriteresponseobj.org")
-				.syncBody("hello").exchange().expectStatus().isOk().expectHeader()
+				.bodyValue("hello").exchange().expectStatus().isOk().expectHeader()
 				.valueEquals("X-TestHeader", "rewrite_response_obj")
 				.expectBody(String.class)
 				.consumeWith(result -> assertThat(result.getResponseBody())

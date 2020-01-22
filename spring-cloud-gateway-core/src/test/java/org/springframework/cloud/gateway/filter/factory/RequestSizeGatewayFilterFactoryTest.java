@@ -53,7 +53,7 @@ public class RequestSizeGatewayFilterFactoryTest extends BaseWebClientTests {
 	@Test
 	public void setRequestSizeFilterWorks() {
 		testClient.post().uri("/post").header("Host", "www.setrequestsize.org")
-				.header("content-length", "6").syncBody("123456").exchange()
+				.header("content-length", "6").bodyValue("123456").exchange()
 				.expectStatus().isEqualTo(HttpStatus.PAYLOAD_TOO_LARGE).expectHeader()
 				.valueMatches("errorMessage", responseMesssage);
 	}

@@ -88,14 +88,14 @@ public class GatewayIntegrationTests extends BaseWebClientTests {
 
 	@Test
 	public void complexContentTypeWorks() {
-		testClient.post().uri("/headers").contentType(MediaType.APPLICATION_JSON_UTF8)
-				.syncBody("testdata").header("Host", "www.complexcontenttype.org")
+		testClient.post().uri("/headers").contentType(MediaType.APPLICATION_JSON)
+				.bodyValue("testdata").header("Host", "www.complexcontenttype.org")
 				.exchange().expectStatus().isOk().expectBody(Map.class)
 				.consumeWith(result -> {
 					Map<String, Object> headers = getMap(result.getResponseBody(),
 							"headers");
 					assertThat(headers).containsEntry(HttpHeaders.CONTENT_TYPE,
-							MediaType.APPLICATION_JSON_UTF8_VALUE);
+							MediaType.APPLICATION_JSON_VALUE);
 				});
 	}
 

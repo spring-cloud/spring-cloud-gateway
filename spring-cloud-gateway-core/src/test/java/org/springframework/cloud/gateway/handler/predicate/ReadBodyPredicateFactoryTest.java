@@ -69,13 +69,12 @@ public class ReadBodyPredicateFactoryTest {
 		Event messageEvent = new Event("message", "bar");
 		Event messageChannelEvent = new Event("message.channels", "bar");
 
-		webClient.post().uri("/events").body(BodyInserters.fromObject(messageEvent))
+		webClient.post().uri("/events").body(BodyInserters.fromValue(messageEvent))
 				.exchange().expectStatus().isOk().expectBody().jsonPath("$.headers.Hello")
 				.isEqualTo("World");
 
-		webClient.post().uri("/events")
-				.body(BodyInserters.fromObject(messageChannelEvent)).exchange()
-				.expectStatus().isOk().expectBody().jsonPath("$.headers.World")
+		webClient.post().uri("/events").body(BodyInserters.fromValue(messageChannelEvent))
+				.exchange().expectStatus().isOk().expectBody().jsonPath("$.headers.World")
 				.isEqualTo("Hello");
 
 	}
@@ -117,14 +116,13 @@ public class ReadBodyPredicateFactoryTest {
 			return r -> r.getFoo().equals(type);
 		}
 
-		@PostMapping(path = "message/events",
-				produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+		@PostMapping(path = "message/events", produces = MediaType.APPLICATION_JSON_VALUE)
 		public String messageEvents(@RequestBody Event e) {
 			return "{\"headers\":{\"Hello\":\"World\"}}";
 		}
 
 		@PostMapping(path = "messageChannel/events",
-				produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+				produces = MediaType.APPLICATION_JSON_VALUE)
 		public String messageChannelEvents(@RequestBody Event e) {
 			return "{\"headers\":{\"World\":\"Hello\"}}";
 		}

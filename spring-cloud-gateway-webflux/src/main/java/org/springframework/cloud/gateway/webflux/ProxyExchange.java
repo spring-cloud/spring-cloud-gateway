@@ -374,7 +374,7 @@ public class ProxyExchange<T> {
 			result = builder.body(publisher, Object.class).exchange();
 		}
 		else if (requestEntity.getBody() != null) {
-			result = builder.body(BodyInserters.fromObject(requestEntity.getBody()))
+			result = builder.body(BodyInserters.fromValue(requestEntity.getBody()))
 					.exchange();
 		}
 		else {

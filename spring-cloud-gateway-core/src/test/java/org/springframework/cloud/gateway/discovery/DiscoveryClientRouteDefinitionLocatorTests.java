@@ -107,8 +107,8 @@ public class DiscoveryClientRouteDefinitionLocatorTests {
 
 		private void whenInstance(ReactiveDiscoveryClient discoveryClient,
 				String serviceId, Map<String, String> metadata) {
-			DefaultServiceInstance instance1 = new DefaultServiceInstance(serviceId,
-					"localhost", 8001, false, metadata);
+			DefaultServiceInstance instance1 = new DefaultServiceInstance(
+					serviceId + "8001", serviceId, "localhost", 8001, false, metadata);
 			when(discoveryClient.getInstances(serviceId))
 					.thenReturn(Flux.just(instance1));
 		}

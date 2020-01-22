@@ -49,8 +49,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
@@ -90,7 +90,7 @@ public class LoadBalancerClientFilterTests {
 
 		verify(chain).filter(exchange);
 		verifyNoMoreInteractions(chain);
-		verifyZeroInteractions(loadBalancerClient);
+		verifyNoInteractions(loadBalancerClient);
 	}
 
 	@Test
@@ -102,7 +102,7 @@ public class LoadBalancerClientFilterTests {
 
 		verify(chain).filter(exchange);
 		verifyNoMoreInteractions(chain);
-		verifyZeroInteractions(loadBalancerClient);
+		verifyNoInteractions(loadBalancerClient);
 	}
 
 	@Test
@@ -142,8 +142,8 @@ public class LoadBalancerClientFilterTests {
 		URI url = UriComponentsBuilder.fromUriString("lb://myservice").build().toUri();
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, url);
 
-		ServiceInstance serviceInstance = new DefaultServiceInstance("myservice",
-				"localhost", 8080, true);
+		ServiceInstance serviceInstance = new DefaultServiceInstance("myservice1",
+				"myservice", "localhost", 8080, true);
 		when(loadBalancerClient.choose("myservice")).thenReturn(serviceInstance);
 
 		URI requestUrl = UriComponentsBuilder.fromUriString("https://localhost:8080")
@@ -317,7 +317,7 @@ public class LoadBalancerClientFilterTests {
 
 		verify(chain).filter(exchange);
 		verifyNoMoreInteractions(chain);
-		verifyZeroInteractions(loadBalancerClient);
+		verifyNoInteractions(loadBalancerClient);
 	}
 
 	@Test
