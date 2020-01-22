@@ -49,8 +49,8 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
  * @author Spencer Gibb
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = {
-		GatewaySampleApplicationTests.TestConfig.class }, webEnvironment = RANDOM_PORT, properties = "management.server.port=${test.port}")
+@SpringBootTest(classes = { GatewaySampleApplicationTests.TestConfig.class },
+		webEnvironment = RANDOM_PORT, properties = "management.server.port=${test.port}")
 public class GatewaySampleApplicationTests {
 
 	protected static int managementPort;
@@ -195,8 +195,10 @@ public class GatewaySampleApplicationTests {
 		int port;
 
 		@Bean
-		public ServiceInstanceListSupplier fixedServiceInstanceListSupplier(Environment env) {
-			return ServiceInstanceListSupplier.fixed(env).instance("localhost", port, "httpbin").build();
+		public ServiceInstanceListSupplier fixedServiceInstanceListSupplier(
+				Environment env) {
+			return ServiceInstanceListSupplier.fixed(env)
+					.instance("localhost", port, "httpbin").build();
 		}
 
 	}

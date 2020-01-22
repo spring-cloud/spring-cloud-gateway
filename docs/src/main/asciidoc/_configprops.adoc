@@ -27,6 +27,7 @@
 |spring.cloud.gateway.globalcors.add-to-simple-url-handler-mapping | false | If global CORS config should be added to the URL handler.
 |spring.cloud.gateway.globalcors.cors-configurations |  | 
 |spring.cloud.gateway.httpclient.connect-timeout |  | The connect timeout in millis, the default is 45s.
+|spring.cloud.gateway.httpclient.max-header-size |  | The max response header size.
 |spring.cloud.gateway.httpclient.pool.acquire-timeout |  | Only for type FIXED, the maximum time in millis to wait for aquiring.
 |spring.cloud.gateway.httpclient.pool.max-connections |  | Only for type FIXED, the maximum number of connections before starting pending acquisition on existing ones.
 |spring.cloud.gateway.httpclient.pool.max-idle-time |  | Time in millis after which the channel will be closed. If NULL, there is no max idle time.
