@@ -411,12 +411,6 @@ spring:
         metadata:
           connect-timeout: 5
 
-hystrix.command.successcmd.execution.isolation.thread.timeoutInMilliseconds: 5000
-
-eureka:
-  client:
-    enabled: false
-
 management:
   endpoints:
     web:
