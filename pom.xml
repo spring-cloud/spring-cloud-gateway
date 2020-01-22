@@ -84,21 +84,6 @@
 			</dependency>
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-starter-netflix-ribbon</artifactId>
-				<version>${spring-cloud-netflix.version}</version>
-				<exclusions>
-					<exclusion>
-						<groupId>com.netflix.ribbon</groupId>
-						<artifactId>ribbon-transport</artifactId>
-					</exclusion>
-					<exclusion>
-						<groupId>io.reactivex</groupId>
-						<artifactId>rxnetty</artifactId>
-					</exclusion>
-				</exclusions>
-			</dependency>
-			<dependency>
-				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-test-support</artifactId>
 				<scope>test</scope>
 				<version>${spring-cloud-commons.version}</version>
@@ -106,11 +91,6 @@
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
-				<version>${spring-cloud-netflix.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-starter-netflix-hystrix</artifactId>
 				<version>${spring-cloud-netflix.version}</version>
 			</dependency>
 			<dependency>

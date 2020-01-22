@@ -27,7 +27,6 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
-import org.springframework.cloud.netflix.ribbon.RibbonClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -48,7 +47,7 @@ import static org.springframework.web.reactive.function.server.RouterFunctions.r
 @SpringBootConfiguration
 @Import(BaseWebClientTests.DefaultTestConfig.class)
 @RestController
-@RibbonClient(name = "badservice", configuration = TestBadRibbonConfig.class)
+// @RibbonClient(name = "badservice", configuration = TestBadLoadBalancerConfig.class)
 public class SpringCloudCircuitBreakerTestConfig {
 
 	@Value("${test.uri}")
@@ -113,17 +112,17 @@ public class SpringCloudCircuitBreakerTestConfig {
 				exceptionFallbackHandler::retrieveExceptionInfo);
 	}
 
-}
+	private static class CircuitBreakerExceptionFallbackHandler {
 
-class CircuitBreakerExceptionFallbackHandler {
+		static final String RETRIEVED_EXCEPTION = "Retrieved-Exception";
 
-	static final String RETRIEVED_EXCEPTION = "Retrieved-Exception";
+		Mono<ServerResponse> retrieveExceptionInfo(ServerRequest serverRequest) {
+			String exceptionName = serverRequest
+					.attribute(CIRCUITBREAKER_EXECUTION_EXCEPTION_ATTR)
+					.map(exception -> exception.getClass().getName()).orElse("");
+			return ServerResponse.ok().header(RETRIEVED_EXCEPTION, exceptionName).build();
+		}
 
-	Mono<ServerResponse> retrieveExceptionInfo(ServerRequest serverRequest) {
-		String exceptionName = serverRequest
-				.attribute(CIRCUITBREAKER_EXECUTION_EXCEPTION_ATTR)
-				.map(exception -> exception.getClass().getName()).orElse("");
-		return ServerResponse.ok().header(RETRIEVED_EXCEPTION, exceptionName).build();
 	}
 
 }

@@ -18,8 +18,6 @@ package org.springframework.cloud.gateway.test;
 
 import java.time.Duration;
 
-import com.netflix.loadbalancer.Server;
-import com.netflix.loadbalancer.ServerList;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
@@ -31,9 +29,6 @@ import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.route.Route;
-import org.springframework.cloud.netflix.ribbon.RibbonClient;
-import org.springframework.cloud.netflix.ribbon.RibbonClients;
-import org.springframework.cloud.netflix.ribbon.StaticServerList;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -81,8 +76,9 @@ public class BaseWebClientTests {
 	}
 
 	@Configuration(proxyBeanMethods = false)
-	@RibbonClients({
-			@RibbonClient(name = "testservice", configuration = TestRibbonConfig.class) })
+	// @RibbonClients({
+	// @RibbonClient(name = "testservice", configuration = TestLoadBalancerConfig.class)
+	// })
 	@Import(PermitAllSecurityConfiguration.class)
 	public static class DefaultTestConfig {
 
@@ -141,15 +137,15 @@ public class BaseWebClientTests {
 
 	}
 
-	protected static class TestRibbonConfig {
+	protected static class TestLoadBalancerConfig {
 
 		@LocalServerPort
 		protected int port = 0;
 
-		@Bean
-		public ServerList<Server> ribbonServerList() {
-			return new StaticServerList<>(new Server("localhost", this.port));
-		}
+		// @Bean
+		// public ServerList<Server> serverList() {
+		// return new StaticServerList<>(new Server("localhost", this.port));
+		// }
 
 	}
 

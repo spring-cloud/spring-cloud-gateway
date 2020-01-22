@@ -22,8 +22,6 @@ import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.loadbalancer.Server;
-import com.netflix.loadbalancer.ServerList;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -34,12 +32,9 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.cloud.gateway.test.HttpBinCompatibleController;
-import org.springframework.cloud.netflix.ribbon.RibbonClient;
-import org.springframework.cloud.netflix.ribbon.StaticServerList;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.util.SocketUtils;
@@ -180,7 +175,7 @@ public class GatewaySampleApplicationTests {
 
 	@Configuration(proxyBeanMethods = false)
 	@EnableAutoConfiguration
-	@RibbonClient(name = "httpbin", configuration = RibbonConfig.class)
+	//@RibbonClient(name = "httpbin", configuration = LoadBalancerConfig.class)
 	@Import(GatewaySampleApplication.class)
 	protected static class TestConfig {
 
@@ -191,16 +186,16 @@ public class GatewaySampleApplicationTests {
 
 	}
 
-	protected static class RibbonConfig {
+	protected static class LoadBalancerConfig {
 
 		@LocalServerPort
 		int port;
 
-		@Bean
-		@Primary
-		public ServerList<Server> ribbonServerList() {
-			return new StaticServerList<>(new Server("localhost", port));
-		}
+		//@Bean
+		//@Primary
+		//public ServerList<Server> serverList() {
+		//	return new StaticServerList<>(new Server("localhost", port));
+		//}
 
 	}
 

@@ -25,8 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
-import com.netflix.loadbalancer.Server;
-import com.netflix.loadbalancer.ServerList;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.After;
@@ -47,8 +45,6 @@ import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.PermitAllSecurityConfiguration;
 import org.springframework.cloud.gateway.test.support.HttpServer;
 import org.springframework.cloud.gateway.test.support.ReactorHttpServer;
-import org.springframework.cloud.netflix.ribbon.RibbonClient;
-import org.springframework.cloud.netflix.ribbon.StaticServerList;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.Lifecycle;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -361,8 +357,8 @@ public class WebSocketIntegrationTests {
 	@Configuration(proxyBeanMethods = false)
 	@EnableAutoConfiguration
 	@Import(PermitAllSecurityConfiguration.class)
-	@RibbonClient(name = "wsservice",
-			configuration = LocalRibbonClientConfiguration.class)
+	// @RibbonClient(name = "wsservice",
+	// configuration = LocalLoadBalancerClientConfiguration.class)
 	protected static class GatewayConfig {
 
 		@Bean
@@ -374,15 +370,15 @@ public class WebSocketIntegrationTests {
 
 	}
 
-	public static class LocalRibbonClientConfiguration {
+	public static class LocalLoadBalancerClientConfiguration {
 
 		@Value("${ws.server.port}")
 		private int wsPort;
 
-		@Bean
-		public ServerList<Server> ribbonServerList() {
-			return new StaticServerList<>(new Server("localhost", this.wsPort));
-		}
+		// @Bean
+		// public ServerList<Server> serverList() {
+		// return new StaticServerList<>(new Server("localhost", this.wsPort));
+		// }
 
 	}
 

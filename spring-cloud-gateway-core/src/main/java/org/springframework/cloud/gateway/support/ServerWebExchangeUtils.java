@@ -123,12 +123,6 @@ public final class ServerWebExchangeUtils {
 	public static final String ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR = "original_response_content_type";
 
 	/**
-	 * Hystrix execution exception attribute name.
-	 */
-	public static final String HYSTRIX_EXECUTION_EXCEPTION_ATTR = qualify(
-			"hystrixExecutionException");
-
-	/**
 	 * CircuitBreaker execution exception attribute name.
 	 */
 	public static final String CIRCUITBREAKER_EXECUTION_EXCEPTION_ATTR = qualify(

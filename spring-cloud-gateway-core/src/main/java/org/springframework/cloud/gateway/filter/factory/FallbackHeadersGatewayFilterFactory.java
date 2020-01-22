@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
@@ -23,10 +24,7 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
 
 import static java.util.Collections.singletonList;
-import static java.util.Optional.ofNullable;
-import static org.apache.commons.lang.exception.ExceptionUtils.getRootCause;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.CIRCUITBREAKER_EXECUTION_EXCEPTION_ATTR;
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.HYSTRIX_EXECUTION_EXCEPTION_ATTR;
 
 /**
  * @author Olga Maciaszek-Sharma
@@ -47,39 +45,48 @@ public class FallbackHeadersGatewayFilterFactory
 	@Override
 	public GatewayFilter apply(Config config) {
 		return (exchange, chain) -> {
-			ServerWebExchange filteredExchange = ofNullable(ofNullable(
-					(Throwable) exchange.getAttribute(HYSTRIX_EXECUTION_EXCEPTION_ATTR))
-							.orElseGet(() -> exchange.getAttribute(
-									CIRCUITBREAKER_EXECUTION_EXCEPTION_ATTR)))
-											.map(executionException -> {
-												ServerHttpRequest.Builder requestBuilder = exchange
-														.getRequest().mutate();
-												requestBuilder.header(
-														config.executionExceptionTypeHeaderName,
-														executionException.getClass()
-																.getName());
-												requestBuilder.header(
-														config.executionExceptionMessageHeaderName,
-														executionException.getMessage());
-												ofNullable(
-														getRootCause(executionException))
-																.ifPresent(rootCause -> {
-																	requestBuilder.header(
-																			config.rootCauseExceptionTypeHeaderName,
-																			rootCause
-																					.getClass()
-																					.getName());
-																	requestBuilder.header(
-																			config.rootCauseExceptionMessageHeaderName,
-																			rootCause
-																					.getMessage());
-																});
-												return exchange.mutate()
-														.request(requestBuilder.build())
-														.build();
-											}).orElse(exchange);
+			Throwable exception = exchange
+					.getAttribute(CIRCUITBREAKER_EXECUTION_EXCEPTION_ATTR);
+			ServerWebExchange filteredExchange;
+			if (exception == null) {
+				filteredExchange = exchange;
+			}
+			else {
+				filteredExchange = addFallbackHeaders(config, exchange, exception);
+			}
 			return chain.filter(filteredExchange);
 		};
+	}
+
+	private ServerWebExchange addFallbackHeaders(Config config,
+			ServerWebExchange exchange, Throwable executionException) {
+		ServerHttpRequest.Builder requestBuilder = exchange.getRequest().mutate();
+		requestBuilder.header(config.executionExceptionTypeHeaderName,
+				executionException.getClass().getName());
+		requestBuilder.header(config.executionExceptionMessageHeaderName,
+				executionException.getMessage());
+		Throwable rootCause = getRootCause(executionException);
+		if (rootCause != null) {
+			requestBuilder.header(config.rootCauseExceptionTypeHeaderName,
+					rootCause.getClass().getName());
+			requestBuilder.header(config.rootCauseExceptionMessageHeaderName,
+					rootCause.getMessage());
+		}
+		return exchange.mutate().request(requestBuilder.build()).build();
+	}
+
+	private static Throwable getRootCause(final Throwable throwable) {
+		final List<Throwable> list = getThrowableList(throwable);
+		return list.isEmpty() ? null : list.get(list.size() - 1);
+	}
+
+	private static List<Throwable> getThrowableList(Throwable throwable) {
+		final List<Throwable> list = new ArrayList<>();
+		while (throwable != null && !list.contains(throwable)) {
+			list.add(throwable);
+			throwable = throwable.getCause();
+		}
+		return list;
 	}
 
 	public static class Config {

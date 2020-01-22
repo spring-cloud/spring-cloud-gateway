@@ -22,8 +22,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.netflix.loadbalancer.Server;
-import com.netflix.loadbalancer.ServerList;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hamcrest.CoreMatchers;
@@ -43,8 +41,6 @@ import org.springframework.cloud.gateway.filter.factory.RetryGatewayFilterFactor
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
-import org.springframework.cloud.netflix.ribbon.RibbonClient;
-import org.springframework.cloud.netflix.ribbon.StaticServerList;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
@@ -177,7 +173,8 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
-	@RibbonClient(name = "badservice2", configuration = TestBadRibbonConfig.class)
+	// @RibbonClient(name = "badservice2", configuration =
+	// TestBadLoadBalancerConfig.class)
 	public static class TestConfig {
 
 		Log log = LogFactory.getLog(getClass());
@@ -269,17 +266,17 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 
 	}
 
-	protected static class TestBadRibbonConfig {
+	protected static class TestBadLoadBalancerConfig {
 
 		@LocalServerPort
 		protected int port = 0;
 
-		@Bean
-		public ServerList<Server> ribbonServerList() {
-			return new StaticServerList<>(
-					new Server("https", "localhost.domain.doesnot.exist", this.port),
-					new Server("localhost", this.port));
-		}
+		// @Bean
+		// public ServerList<Server> serverList() {
+		// return new StaticServerList<>(
+		// new Server("https", "localhost.domain.doesnot.exist", this.port),
+		// new Server("localhost", this.port));
+		// }
 
 	}
 

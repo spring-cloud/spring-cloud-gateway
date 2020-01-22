@@ -81,13 +81,6 @@ public class CustomBlockHoundIntegration implements BlockHoundIntegration {
 		builder.allowBlockingCallsInside("io.netty.handler.ssl.SslContext",
 				"newClientContextInternal");
 
-		// Uses
-		// org.springframework.cloud.commons.httpclient.DefaultApacheHttpClientConnectionManagerFactory#newConnectionManager
-		// Uses javax.net.ssl.SSLContext#init
-		builder.allowBlockingCallsInside(
-				"org.springframework.cloud.netflix.ribbon.SpringClientFactory",
-				"getContext");
-
 		// Uses org.springframework.security.crypto.bcrypt.BCrypt#gensalt
 		// Uses java.security.SecureRandom#nextBytes
 		builder.allowBlockingCallsInside(

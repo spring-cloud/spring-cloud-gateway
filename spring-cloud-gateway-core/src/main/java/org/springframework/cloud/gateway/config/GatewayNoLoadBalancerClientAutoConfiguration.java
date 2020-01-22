@@ -24,17 +24,17 @@ import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
+import org.springframework.cloud.client.loadbalancer.reactive.ReactiveLoadBalancer;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
-import org.springframework.cloud.gateway.filter.LoadBalancerClientFilter;
+import org.springframework.cloud.gateway.filter.ReactiveLoadBalancerClientFilter;
 import org.springframework.cloud.gateway.support.NotFoundException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.web.server.ServerWebExchange;
 
-import static org.springframework.cloud.gateway.filter.LoadBalancerClientFilter.LOAD_BALANCER_CLIENT_FILTER_ORDER;
+import static org.springframework.cloud.gateway.filter.ReactiveLoadBalancerClientFilter.LOAD_BALANCER_CLIENT_FILTER_ORDER;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_SCHEME_PREFIX_ATTR;
 
@@ -42,14 +42,14 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.G
  * @author Spencer Gibb
  */
 @Configuration(proxyBeanMethods = false)
-@ConditionalOnMissingClass("org.springframework.cloud.netflix.ribbon.RibbonAutoConfiguration")
-@ConditionalOnMissingBean(LoadBalancerClient.class)
+@ConditionalOnMissingClass("org.springframework.cloud.loadbalancer.core.ReactorLoadBalancer")
+@ConditionalOnMissingBean(ReactiveLoadBalancer.class)
 @EnableConfigurationProperties(LoadBalancerProperties.class)
-@AutoConfigureAfter(GatewayLoadBalancerClientAutoConfiguration.class)
+@AutoConfigureAfter(GatewayReactiveLoadBalancerClientAutoConfiguration.class)
 public class GatewayNoLoadBalancerClientAutoConfiguration {
 
 	@Bean
-	@ConditionalOnMissingBean(LoadBalancerClientFilter.class)
+	@ConditionalOnMissingBean(ReactiveLoadBalancerClientFilter.class)
 	public NoLoadBalancerClientFilter noLoadBalancerClientFilter(
 			LoadBalancerProperties properties) {
 		return new NoLoadBalancerClientFilter(properties.isUse404());
