@@ -359,9 +359,13 @@ public final class ServerWebExchangeUtils {
 							// probably == downstream closed
 							return null;
 						}
-						// TODO: deal with Netty
-						NettyDataBuffer pdb = (NettyDataBuffer) dataBuffer;
-						return pdb.factory().wrap(pdb.getNativeBuffer().retainedSlice());
+						if (dataBuffer instanceof NettyDataBuffer) {
+							NettyDataBuffer buffer = (NettyDataBuffer) dataBuffer;
+							return buffer.factory()
+									.wrap(buffer.getNativeBuffer().retainedSlice());
+						}
+						// FIXME: is this going to be a problem?
+						return dataBuffer;
 					}).flux();
 				}
 			};
