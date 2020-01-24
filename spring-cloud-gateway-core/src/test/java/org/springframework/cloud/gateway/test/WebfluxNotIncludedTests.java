@@ -31,7 +31,7 @@ public class WebfluxNotIncludedTests {
 
 	@Test
 	public void noWebfluxWorks() {
-		new SpringApplication(Config.class).run();
+		new SpringApplication(Config.class).run("--server.port=0");
 	}
 
 	@SpringBootConfiguration
