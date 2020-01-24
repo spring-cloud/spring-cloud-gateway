@@ -178,6 +178,12 @@ public class HttpClientProperties {
 		 */
 		private Duration maxIdleTime = null;
 
+		/**
+		 * Duration after which the channel will be closed. If NULL, there is no max life
+		 * time.
+		 */
+		private Duration maxLifeTime = null;
+
 		public PoolType getType() {
 			return type;
 		}
@@ -218,11 +224,20 @@ public class HttpClientProperties {
 			this.maxIdleTime = maxIdleTime;
 		}
 
+		public Duration getMaxLifeTime() {
+			return maxLifeTime;
+		}
+
+		public void setMaxLifeTime(Duration maxLifeTime) {
+			this.maxLifeTime = maxLifeTime;
+		}
+
 		@Override
 		public String toString() {
 			return "Pool{" + "type=" + type + ", name='" + name + '\''
 					+ ", maxConnections=" + maxConnections + ", acquireTimeout="
-					+ acquireTimeout + '}';
+					+ acquireTimeout + ", maxIdleTime=" + maxIdleTime + ", maxLifeTime="
+					+ maxLifeTime + '}';
 		}
 
 		public enum PoolType {
