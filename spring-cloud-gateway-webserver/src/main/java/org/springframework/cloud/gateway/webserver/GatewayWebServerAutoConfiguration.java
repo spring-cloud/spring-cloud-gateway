@@ -39,6 +39,7 @@ import org.springframework.boot.web.embedded.netty.NettyReactiveWebServerFactory
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
+import org.springframework.web.reactive.DispatcherHandler;
 import org.springframework.web.reactive.socket.client.JettyWebSocketClient;
 import org.springframework.web.reactive.socket.client.TomcatWebSocketClient;
 import org.springframework.web.reactive.socket.client.UndertowWebSocketClient;
@@ -48,6 +49,7 @@ import org.springframework.web.reactive.socket.client.WebSocketClient;
  * @author Spencer Gibb
  */
 @Configuration(proxyBeanMethods = false)
+@ConditionalOnClass(DispatcherHandler.class)
 public class GatewayWebServerAutoConfiguration {
 
 	@Configuration(proxyBeanMethods = false)
