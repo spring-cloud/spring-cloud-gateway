@@ -18,6 +18,7 @@ package org.springframework.cloud.gateway.filter;
 
 import java.util.List;
 
+import io.netty.buffer.ByteBuf;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Flux;
@@ -25,7 +26,8 @@ import reactor.core.publisher.Mono;
 import reactor.netty.Connection;
 
 import org.springframework.core.Ordered;
-import org.springframework.core.io.buffer.NettyDataBuffer;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.core.io.buffer.NettyDataBufferFactory;
 import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpResponse;
@@ -77,16 +79,12 @@ public class NettyWriteResponseFilter implements GlobalFilter, Ordered {
 					}
 					ServerHttpResponse response = exchange.getResponse();
 
-					// TODO: what if it's not netty
-					NettyDataBufferFactory factory = (NettyDataBufferFactory) response
-							.bufferFactory();
-
 					// TODO: needed?
-					final Flux<NettyDataBuffer> body = connection
+					final Flux<DataBuffer> body = connection
 							.inbound()
 							.receive()
 							.retain()
-							.map(factory::wrap);
+							.map(byteBuf -> wrap(byteBuf, response));
 
 					MediaType contentType = null;
 					try {
@@ -102,6 +100,22 @@ public class NettyWriteResponseFilter implements GlobalFilter, Ordered {
 							: response.writeWith(body));
 				})).doOnCancel(() -> cleanup(exchange));
 		// @formatter:on
+	}
+
+	protected DataBuffer wrap(ByteBuf byteBuf, ServerHttpResponse response) {
+		if (response.bufferFactory() instanceof NettyDataBufferFactory) {
+			NettyDataBufferFactory factory = (NettyDataBufferFactory) response
+					.bufferFactory();
+			return factory.wrap(byteBuf);
+		}
+		// MockServerHttpResponse creates these
+		else if (response.bufferFactory() instanceof DefaultDataBufferFactory) {
+			DefaultDataBufferFactory factory = (DefaultDataBufferFactory) response
+					.bufferFactory();
+			return factory.wrap(byteBuf.nioBuffer());
+		}
+		throw new IllegalArgumentException(
+				"Unkown DataBufferFactory type " + response.bufferFactory().getClass());
 	}
 
 	private void cleanup(ServerWebExchange exchange) {

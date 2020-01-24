@@ -20,6 +20,8 @@ import java.net.URI;
 import java.time.Duration;
 import java.util.List;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelOption;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
@@ -37,6 +39,8 @@ import org.springframework.cloud.gateway.filter.headers.HttpHeadersFilter.Type;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.support.TimeoutException;
 import org.springframework.core.Ordered;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DefaultDataBuffer;
 import org.springframework.core.io.buffer.NettyDataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -140,9 +144,7 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 										+ connection.channel().id().asShortText()
 										+ ", inbound: " + exchange.getLogPrefix()));
 					}
-					return nettyOutbound.send(request.getBody()
-							.map(dataBuffer -> ((NettyDataBuffer) dataBuffer)
-									.getNativeBuffer()));
+					return nettyOutbound.send(request.getBody().map(this::getByteBuf));
 				}).responseConnection((res, connection) -> {
 
 					// Defer committing the response until all route filters have run
@@ -201,6 +203,20 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 		}
 
 		return responseFlux.then(chain.filter(exchange));
+	}
+
+	protected ByteBuf getByteBuf(DataBuffer dataBuffer) {
+		if (dataBuffer instanceof NettyDataBuffer) {
+			NettyDataBuffer buffer = (NettyDataBuffer) dataBuffer;
+			return buffer.getNativeBuffer();
+		}
+		// MockServerHttpResponse creates these
+		else if (dataBuffer instanceof DefaultDataBuffer) {
+			DefaultDataBuffer buffer = (DefaultDataBuffer) dataBuffer;
+			return Unpooled.wrappedBuffer(buffer.getNativeBuffer());
+		}
+		throw new IllegalArgumentException(
+				"Unable to handle DataBuffer of type " + dataBuffer.getClass());
 	}
 
 	private void setResponseStatus(HttpClientResponse clientResponse,

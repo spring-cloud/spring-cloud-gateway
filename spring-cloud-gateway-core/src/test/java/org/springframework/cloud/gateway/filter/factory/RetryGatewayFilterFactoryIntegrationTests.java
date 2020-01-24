@@ -22,8 +22,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.netflix.loadbalancer.Server;
-import com.netflix.loadbalancer.ServerList;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hamcrest.CoreMatchers;
@@ -38,15 +36,17 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.system.OutputCaptureRule;
 import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.cloud.client.DefaultServiceInstance;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.RetryGatewayFilterFactory.RetryConfig;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
-import org.springframework.cloud.netflix.ribbon.RibbonClient;
-import org.springframework.cloud.netflix.ribbon.StaticServerList;
+import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
+import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -115,14 +115,14 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 	public void retryFilterPost() {
 		testClient.post().uri("/retrypost?key=postconfig&expectedbody=HelloConfig")
 				.header(HttpHeaders.HOST, "www.retrypostconfig.org")
-				.syncBody("HelloConfig").exchange().expectStatus().isOk()
+				.bodyValue("HelloConfig").exchange().expectStatus().isOk()
 				.expectBody(String.class).isEqualTo("3");
 	}
 
 	@Test
 	public void retryFilterPostJavaDsl() {
 		testClient.post().uri("/retrypost?key=post&expectedbody=Hello")
-				.header(HttpHeaders.HOST, "www.retryjava.org").syncBody("Hello")
+				.header(HttpHeaders.HOST, "www.retryjava.org").bodyValue("Hello")
 				.exchange().expectStatus().isOk().expectBody(String.class).isEqualTo("3");
 	}
 
@@ -131,7 +131,7 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 		testClient.post().uri(
 				"/retrypost?key=retryFilterPostOneTime&expectedbody=HelloGateway&count=1")
 				.header(HttpHeaders.HOST, "www.retrypostonceconfig.org")
-				.syncBody("HelloGateway").exchange().expectStatus().isOk();
+				.bodyValue("HelloGateway").exchange().expectStatus().isOk();
 		assertThat(this.capture.toString()).contains("setting new iteration in attr 0");
 		assertThat(this.capture.toString())
 				.doesNotContain("setting new iteration in attr 1");
@@ -177,7 +177,8 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
-	@RibbonClient(name = "badservice2", configuration = TestBadRibbonConfig.class)
+	@LoadBalancerClient(name = "badservice2",
+			configuration = TestBadLoadBalancerConfig.class)
 	public static class TestConfig {
 
 		Log log = LogFactory.getLog(getClass());
@@ -269,16 +270,18 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 
 	}
 
-	protected static class TestBadRibbonConfig {
+	protected static class TestBadLoadBalancerConfig {
 
 		@LocalServerPort
 		protected int port = 0;
 
 		@Bean
-		public ServerList<Server> ribbonServerList() {
-			return new StaticServerList<>(
-					new Server("https", "localhost.domain.doesnot.exist", this.port),
-					new Server("localhost", this.port));
+		public ServiceInstanceListSupplier staticServiceInstanceListSupplier(
+				Environment env) {
+			return ServiceInstanceListSupplier.fixed(env)
+					.instance(new DefaultServiceInstance("doesnotexist1", "badservice2",
+							"localhost.domain.doesnot.exist", port, true))
+					.instance(port, "badservice2").build();
 		}
 
 	}

@@ -11,7 +11,7 @@ spring:
   cloud:
     gateway:
       globalcors:
-        corsConfigurations:
+        cors-configurations:
           '[/**]':
             maxAge: 10
             allowedOrigins: "*"
@@ -134,44 +134,6 @@ spring:
         uri: ${test.uri}
         predicates:
         - Host=**.hostmulti1.org,**.hostmulti2.org
-
-      # =====================================
-      - id: hystrix_failure_test
-        uri: ${test.uri}
-        predicates:
-        - Host=**.hystrixfailure.org
-        filters:
-        - Hystrix=failcmd
-
-      # =====================================
-      - id: hystrix_fallback_test
-        uri: ${test.uri}
-        predicates:
-        - Host=**.hystrixfallback.org
-        filters:
-        - name: Hystrix
-          args:
-            name: fallbackcmd
-            fallbackUri: forward:/fallbackcontroller
-
-      # =====================================
-      - id: hystrix_exception_fallback_test
-        uri: ${test.uri}
-        predicates:
-        - Host=**.hystrixexceptionfallback.org
-        filters:
-        - name: Hystrix
-          args:
-            name: fallbackcmd
-            fallbackUri: forward:/exceptionFallback
-
-      # =====================================
-      - id: hystrix_success_test
-        uri: ${test.uri}
-        predicates:
-        - Host=**.hystrixsuccess.org
-        filters:
-        - Hystrix=successcmd
 
       # =====================================
       - id: sccb_success_test
@@ -448,12 +410,6 @@ spring:
               pattern: /connect/delay/{timeout}
         metadata:
           connect-timeout: 5
-
-hystrix.command.successcmd.execution.isolation.thread.timeoutInMilliseconds: 5000
-
-eureka:
-  client:
-    enabled: false
 
 management:
   endpoints:

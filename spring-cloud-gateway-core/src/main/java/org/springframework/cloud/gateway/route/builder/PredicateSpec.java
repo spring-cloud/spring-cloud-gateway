@@ -44,7 +44,7 @@ import static java.util.Arrays.stream;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.toAsyncPredicate;
 
 /**
- * Predicates that can be applies to a URI route.
+ * Predicates that can be applied to a URI route.
  */
 public class PredicateSpec extends UriSpec {
 

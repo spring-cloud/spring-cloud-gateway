@@ -154,8 +154,8 @@ public class GatewayControllerEndpointTests {
 
 		testClient.post()
 				.uri("http://localhost:" + port + "/actuator/gateway/routes/test-route")
-				.accept(MediaType.APPLICATION_JSON_UTF8)
-				.body(BodyInserters.fromObject(testRouteDefinition)).exchange()
+				.accept(MediaType.APPLICATION_JSON)
+				.body(BodyInserters.fromValue(testRouteDefinition)).exchange()
 				.expectStatus().isCreated();
 	}
 
@@ -171,8 +171,8 @@ public class GatewayControllerEndpointTests {
 
 		testClient.post()
 				.uri("http://localhost:" + port + "/actuator/gateway/routes/test-route")
-				.accept(MediaType.APPLICATION_JSON_UTF8)
-				.body(BodyInserters.fromObject(testRouteDefinition)).exchange()
+				.accept(MediaType.APPLICATION_JSON)
+				.body(BodyInserters.fromValue(testRouteDefinition)).exchange()
 				.expectStatus().isBadRequest();
 	}
 
@@ -188,8 +188,8 @@ public class GatewayControllerEndpointTests {
 
 		testClient.post()
 				.uri("http://localhost:" + port + "/actuator/gateway/routes/test-route")
-				.accept(MediaType.APPLICATION_JSON_UTF8)
-				.body(BodyInserters.fromObject(testRouteDefinition)).exchange()
+				.accept(MediaType.APPLICATION_JSON)
+				.body(BodyInserters.fromValue(testRouteDefinition)).exchange()
 				.expectStatus().isBadRequest();
 	}
 

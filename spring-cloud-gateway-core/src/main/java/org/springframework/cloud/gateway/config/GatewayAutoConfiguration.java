@@ -19,7 +19,6 @@ package org.springframework.cloud.gateway.config;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
-import com.netflix.hystrix.HystrixObservableCommand;
 import io.netty.channel.ChannelOption;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
@@ -29,7 +28,6 @@ import reactor.core.publisher.Flux;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.resources.ConnectionProvider;
 import reactor.netty.tcp.ProxyProvider;
-import rx.RxReactiveStreams;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.ObjectProvider;
@@ -68,9 +66,7 @@ import org.springframework.cloud.gateway.filter.factory.AddRequestHeaderGatewayF
 import org.springframework.cloud.gateway.filter.factory.AddRequestParameterGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.AddResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.DedupeResponseHeaderGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.FallbackHeadersGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.HystrixGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.MapRequestHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.PrefixPathGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.PreserveHostHeaderGatewayFilterFactory;
@@ -162,7 +158,7 @@ import static org.springframework.cloud.gateway.config.HttpClientProperties.Pool
 @EnableConfigurationProperties
 @AutoConfigureBefore({ HttpHandlerAutoConfiguration.class,
 		WebFluxAutoConfiguration.class })
-@AutoConfigureAfter({ GatewayLoadBalancerClientAutoConfiguration.class,
+@AutoConfigureAfter({ GatewayReactiveLoadBalancerClientAutoConfiguration.class,
 		GatewayClassPathWarningAutoConfiguration.class })
 @ConditionalOnClass(DispatcherHandler.class)
 public class GatewayAutoConfiguration {
@@ -201,8 +197,8 @@ public class GatewayAutoConfiguration {
 
 	@Bean
 	public ConfigurationService gatewayConfigurationService(BeanFactory beanFactory,
-			@Qualifier("webFluxConversionService") ConversionService conversionService,
-			Validator validator) {
+			@Qualifier("webFluxConversionService") ObjectProvider<ConversionService> conversionService,
+			ObjectProvider<Validator> validator) {
 		return new ConfigurationService(beanFactory, conversionService, validator);
 	}
 
@@ -608,7 +604,14 @@ public class GatewayAutoConfiguration {
 			}
 
 			HttpClient httpClient = HttpClient.create(connectionProvider)
-					.tcpConfiguration(tcpClient -> {
+					.httpResponseDecoder(spec -> {
+						if (properties.getMaxHeaderSize() != null) {
+							// cast to int is ok, since @Max is Integer.MAX_VALUE
+							spec.maxHeaderSize(
+									(int) properties.getMaxHeaderSize().toBytes());
+						}
+						return spec;
+					}).tcpConfiguration(tcpClient -> {
 
 						if (properties.getConnectTimeout() != null) {
 							tcpClient = tcpClient.option(
@@ -710,24 +713,6 @@ public class GatewayAutoConfiguration {
 						properties.getWebsocket().getMaxFramePayloadLength());
 			}
 			return webSocketClient;
-		}
-
-	}
-
-	@Configuration(proxyBeanMethods = false)
-	@ConditionalOnClass({ HystrixObservableCommand.class, RxReactiveStreams.class })
-	protected static class HystrixConfiguration {
-
-		@Bean
-		public HystrixGatewayFilterFactory hystrixGatewayFilterFactory(
-				ObjectProvider<DispatcherHandler> dispatcherHandler) {
-			return new HystrixGatewayFilterFactory(dispatcherHandler);
-		}
-
-		@Bean
-		@ConditionalOnMissingBean(FallbackHeadersGatewayFilterFactory.class)
-		public FallbackHeadersGatewayFilterFactory fallbackHeadersGatewayFilterFactory() {
-			return new FallbackHeadersGatewayFilterFactory();
 		}
 
 	}

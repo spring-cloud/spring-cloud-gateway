@@ -21,10 +21,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
+import java.util.function.Supplier;
 
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.context.properties.bind.BindHandler;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
@@ -46,21 +48,32 @@ public class ConfigurationService implements ApplicationEventPublisherAware {
 
 	private BeanFactory beanFactory;
 
-	private ConversionService conversionService;
+	private Supplier<ConversionService> conversionService;
 
 	private SpelExpressionParser parser = new SpelExpressionParser();
 
-	private Validator validator;
+	private Supplier<Validator> validator;
 
 	@Deprecated
 	public ConfigurationService() {
+		this.conversionService = () -> null;
+		this.validator = () -> null;
 	}
 
+	@Deprecated
 	public ConfigurationService(BeanFactory beanFactory,
 			ConversionService conversionService, Validator validator) {
 		this.beanFactory = beanFactory;
-		this.conversionService = conversionService;
-		this.validator = validator;
+		this.conversionService = () -> conversionService;
+		this.validator = () -> validator;
+	}
+
+	public ConfigurationService(BeanFactory beanFactory,
+			ObjectProvider<ConversionService> conversionService,
+			ObjectProvider<Validator> validator) {
+		this.beanFactory = beanFactory;
+		this.conversionService = conversionService::getIfAvailable;
+		this.validator = validator::getIfAvailable;
 	}
 
 	public ApplicationEventPublisher getPublisher() {
@@ -83,7 +96,7 @@ public class ConfigurationService implements ApplicationEventPublisherAware {
 
 	@Deprecated
 	public void setConversionService(ConversionService conversionService) {
-		this.conversionService = conversionService;
+		this.conversionService = () -> conversionService;
 	}
 
 	public void setParser(SpelExpressionParser parser) {
@@ -91,12 +104,12 @@ public class ConfigurationService implements ApplicationEventPublisherAware {
 	}
 
 	public Validator getValidator() {
-		return this.validator;
+		return this.validator.get();
 	}
 
 	@Deprecated
 	public void setValidator(Validator validator) {
-		this.validator = validator;
+		this.validator = () -> validator;
 	}
 
 	public <T, C extends Configurable<T> & ShortcutConfigurable> ConfigurableBuilder<T, C> with(
@@ -174,8 +187,8 @@ public class ConfigurationService implements ApplicationEventPublisherAware {
 			Bindable<T> bindable = Bindable.of(this.configurable.getConfigClass());
 			T bound = bindOrCreate(bindable, this.normalizedProperties,
 					this.configurable.shortcutFieldPrefix(),
-					/* this.name, */this.service.validator,
-					this.service.conversionService);
+					/* this.name, */this.service.validator.get(),
+					this.service.conversionService.get());
 
 			return bound;
 		}
@@ -206,7 +219,7 @@ public class ConfigurationService implements ApplicationEventPublisherAware {
 			T toBind = getTargetObject(this.instance);
 			Bindable<T> bindable = Bindable.ofInstance(toBind);
 			return bindOrCreate(bindable, this.normalizedProperties, this.name,
-					this.service.validator, this.service.conversionService);
+					this.service.validator.get(), this.service.conversionService.get());
 		}
 
 	}

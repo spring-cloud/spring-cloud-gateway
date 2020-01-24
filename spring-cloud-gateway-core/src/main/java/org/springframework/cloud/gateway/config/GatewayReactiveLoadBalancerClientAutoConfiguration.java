@@ -17,20 +17,15 @@
 package org.springframework.cloud.gateway.config;
 
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
-import org.springframework.boot.autoconfigure.AutoConfigureBefore;
-import org.springframework.boot.autoconfigure.condition.AnyNestedCondition;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.client.loadbalancer.reactive.ReactiveLoadBalancer;
 import org.springframework.cloud.gateway.filter.ReactiveLoadBalancerClientFilter;
 import org.springframework.cloud.loadbalancer.config.LoadBalancerAutoConfiguration;
 import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.DispatcherHandler;
 
@@ -43,7 +38,6 @@ import org.springframework.web.reactive.DispatcherHandler;
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnClass({ ReactiveLoadBalancer.class, LoadBalancerAutoConfiguration.class,
 		DispatcherHandler.class })
-@AutoConfigureBefore(GatewayLoadBalancerClientAutoConfiguration.class)
 @AutoConfigureAfter(LoadBalancerAutoConfiguration.class)
 @EnableConfigurationProperties(LoadBalancerProperties.class)
 public class GatewayReactiveLoadBalancerClientAutoConfiguration {
@@ -51,29 +45,9 @@ public class GatewayReactiveLoadBalancerClientAutoConfiguration {
 	@Bean
 	@ConditionalOnBean(LoadBalancerClientFactory.class)
 	@ConditionalOnMissingBean(ReactiveLoadBalancerClientFilter.class)
-	@Conditional(OnNoRibbonDefaultCondition.class)
 	public ReactiveLoadBalancerClientFilter gatewayLoadBalancerClientFilter(
 			LoadBalancerClientFactory clientFactory, LoadBalancerProperties properties) {
 		return new ReactiveLoadBalancerClientFilter(clientFactory, properties);
-	}
-
-	private static final class OnNoRibbonDefaultCondition extends AnyNestedCondition {
-
-		private OnNoRibbonDefaultCondition() {
-			super(ConfigurationPhase.REGISTER_BEAN);
-		}
-
-		@ConditionalOnProperty(value = "spring.cloud.loadbalancer.ribbon.enabled",
-				havingValue = "false")
-		static class RibbonNotEnabled {
-
-		}
-
-		@ConditionalOnMissingClass("org.springframework.cloud.netflix.ribbon.RibbonLoadBalancerClient")
-		static class RibbonLoadBalancerNotPresent {
-
-		}
-
 	}
 
 }
