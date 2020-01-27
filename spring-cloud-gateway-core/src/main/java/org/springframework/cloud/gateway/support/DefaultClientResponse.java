@@ -136,6 +136,11 @@ public class DefaultClientResponse implements ClientResponse {
 		throw new UnsupportedOperationException();
 	}
 
+	@Override
+	public String logPrefix() {
+		return "";
+	}
+
 	@SuppressWarnings("unchecked")
 	private <T> Mono<T> consumeAndCancel() {
 		return (Mono<T>) this.response.getBody().map(buffer -> {

@@ -127,7 +127,12 @@ public class DefaultServerRequest implements ServerRequest {
 
 	@Override
 	public Optional<InetSocketAddress> remoteAddress() {
-		return Optional.of(request().getRemoteAddress());
+		return Optional.ofNullable(request().getRemoteAddress());
+	}
+
+	@Override
+	public Optional<InetSocketAddress> localAddress() {
+		return Optional.ofNullable(request().getLocalAddress());
 	}
 
 	@Override
