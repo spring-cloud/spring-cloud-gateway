@@ -46,13 +46,60 @@ Clients make requests to Spring Cloud Gateway. If the Gateway Handler Mapping de
 
 NOTE: URIs defined in routes without a port will get a default port set to 80 and 443 for HTTP and HTTPS URIs respectively.
 
+== Configuring Route Predicate Factories and Gateway Filter Factories
+
+There are two ways to configure predicates and filters: shortcuts and fully expanded arguments. Most examples below use the shortcut way.
+
+The name and argument names will be listed as `code` in the first sentance or two of the each section. The arguments are typically listed in the order that would be needed for the shortcut configuration.
+
+=== Shortcut Configuration
+
+Shortcut configuration is recognized by the filter name, followed by an equals sign (`=`), followed by argument values separated by commas (`,`).
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: after_route
+        uri: https://example.org
+        predicates:
+        - Cookie=mycookie,mycookievalue
+----
+
+The previous sample defines the `Cookie` Route Predicate Factory with two arguments, the cookie name, `mycookie` and the value to match `mycookievalue`.
+
+=== Fully Expanded Arguments
+
+Fully expanded arguments appear more like standard yaml configuration with name/value pairs. Typically, there will be a `name` key and an `args` key. The `args` key is a map of key value pairs to configure the predicate or filter.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: after_route
+        uri: https://example.org
+        predicates:
+        - name: Cookie
+          args:
+            name: mycookie
+            regexp: mycookievalue
+----
+
+This is the full configuration of the shortcut configuration of the `Cookie` predicate shown above.
+
 [[gateway-request-predicates-factories]]
 == Route Predicate Factories
 
 Spring Cloud Gateway matches routes as part of the Spring WebFlux `HandlerMapping` infrastructure. Spring Cloud Gateway includes many built-in Route Predicate Factories. All of these predicates match on different attributes of the HTTP request. Multiple Route Predicate Factories can be combined and are combined via logical `and`.
 
 === After Route Predicate Factory
-The After Route Predicate Factory takes one parameter, a datetime. This predicate matches requests that happen after the current datetime.
+The `After` Route Predicate Factory takes one parameter, a `datetime` (which is a java `ZonedDateTime`). This predicate matches requests that happen after the current datetime.
 
 .application.yml
 [source,yaml]
@@ -70,7 +117,7 @@ spring:
 This route matches any request after Jan 20, 2017 17:42 Mountain Time (Denver).
 
 === Before Route Predicate Factory
-The Before Route Predicate Factory takes one parameter, a datetime. This predicate matches requests that happen before the current datetime.
+The `Before` Route Predicate Factory takes one parameter, a datetime(which is a java `ZonedDateTime`). This predicate matches requests that happen before the current datetime.
 
 .application.yml
 [source,yaml]
@@ -88,7 +135,7 @@ spring:
 This route matches any request before Jan 20, 2017 17:42 Mountain Time (Denver).
 
 === Between Route Predicate Factory
-The Between Route Predicate Factory takes two parameters, datetime1 and datetime2. This predicate matches requests that happen after datetime1 and before datetime2. The datetime2 parameter must be after datetime1.
+The `Between` Route Predicate Factory takes two parameters, `datetime1` and `datetime2` which are java `ZonedDateTime` objects. This predicate matches requests that happen after datetime1 and before datetime2. The datetime2 parameter must be after datetime1.
 
 .application.yml
 [source,yaml]
@@ -106,7 +153,7 @@ spring:
 This route matches any request after Jan 20, 2017 17:42 Mountain Time (Denver) and before Jan 21, 2017 17:42 Mountain Time (Denver). This could be useful for maintenance windows.
 
 === Cookie Route Predicate Factory
-The Cookie Route Predicate Factory takes two parameters, the cookie name and a regular expression. This predicate matches cookies that have the given name and the value matches the regular expression.
+The `Cookie` Route Predicate Factory takes two parameters, the cookie `name` and a `regexp` (which is a Java regular expression). This predicate matches cookies that have the given name and the value matches the regular expression.
 
 .application.yml
 [source,yaml]
@@ -124,7 +171,7 @@ spring:
 This route matches the request has a cookie named `chocolate` who's value matches the `ch.p` regular expression.
 
 === Header Route Predicate Factory
-The Header Route Predicate Factory takes two parameters, the header name and a regular expression. This predicate matches with a header that has the given name and the value matches the regular expression.
+The `Header` Route Predicate Factory takes two parameters, the header `name` and a `regexp` (which is a Java regular expression). This predicate matches with a header that has the given name and the value matches the regular expression.
 
 .application.yml
 [source,yaml]
@@ -142,7 +189,7 @@ spring:
 This route matches if the request has a header named `X-Request-Id` whos value matches the `\d+` regular expression (has a value of one or more digits).
 
 === Host Route Predicate Factory
-The Host Route Predicate Factory takes one parameter: a list of host name patterns. The pattern is an Ant style pattern with `.` as the separator. This predicates matches the `Host` header that matches the pattern.
+The `Host` Route Predicate Factory takes one parameter: a list of host name `patterns`. The pattern is an Ant style pattern with `.` as the separator. This predicates matches the `Host` header that matches the pattern.
 
 .application.yml
 [source,yaml]
@@ -165,7 +212,7 @@ This predicate extracts the URI template variables (like `sub` defined in the ex
 
 
 === Method Route Predicate Factory
-The Method Route Predicate Factory takes one or more parameters: the HTTP methods to match.
+The `Method` Route Predicate Factory takes a `methods` argument which is one or more HTTP methods to match.
 
 .application.yml
 [source,yaml]
@@ -183,7 +230,7 @@ spring:
 This route would match if the request method was a `GET` or a `POST`.
 
 === Path Route Predicate Factory
-The Path Route Predicate Factory takes two parameter: a list of Spring `PathMatcher` patterns and an optional flag to `matchOptionalTrailingSeparator`.
+The `Path` Route Predicate Factory takes two parameter: a list of Spring `PathMatcher` `patterns` and an optional flag to `matchOptionalTrailingSeparator`.
 
 .application.yml
 [source,yaml]
@@ -212,7 +259,7 @@ String segment = uriVariables.get("segment");
 ----
 
 === Query Route Predicate Factory
-The Query Route Predicate Factory takes two parameters: a required `param` and an optional `regexp`.
+The `Query` Route Predicate Factory takes two parameters: a required `param` and an optional `regexp` (which is a Java regular expression).
 
 .application.yml
 [source,yaml]
@@ -246,7 +293,7 @@ This route would match if the request contained a `foo` query parameter whose va
 
 
 === RemoteAddr Route Predicate Factory
-The RemoteAddr Route Predicate Factory takes a list (min size 1) of CIDR-notation (IPv4 or IPv6) strings, e.g. `192.168.0.1/16` (where `192.168.0.1` is an IP address and `16` is a subnet mask).
+The `RemoteAddr` Route Predicate Factory takes a list (min size 1) of `sources`, which are CIDR-notation (IPv4 or IPv6) strings, e.g. `192.168.0.1/16` (where `192.168.0.1` is an IP address and `16` is a subnet mask).
 
 .application.yml
 [source,yaml]
@@ -264,7 +311,7 @@ spring:
 This route would match if the remote address of the request was, for example, `192.168.1.10`.
 
 === Weight Route Predicate Factory
-The Weight Route Predicate Factory takes two argument group and weight. The weights are calculated per group.
+The `Weight` Route Predicate Factory takes two arguments `group` and `weight` (an int). The weights are calculated per group.
 
 .application.yml
 [source,yaml]
@@ -346,7 +393,7 @@ Route filters allow the modification of the incoming HTTP request or outgoing HT
 NOTE For more detailed examples on how to use any of the following filters, take a look at the https://github.com/spring-cloud/spring-cloud-gateway/tree/master/spring-cloud-gateway-core/src/test/java/org/springframework/cloud/gateway/filter/factory[unit tests].
 
 === AddRequestHeader GatewayFilter Factory
-The AddRequestHeader GatewayFilter Factory takes a name and value parameter.
+The `AddRequestHeader` GatewayFilter Factory takes a `name` and `value` parameter.
 
 .application.yml
 [source,yaml]
@@ -381,7 +428,7 @@ spring:
 ----
 
 === AddRequestParameter GatewayFilter Factory
-The AddRequestParameter GatewayFilter Factory takes a name and value parameter.
+The `AddRequestParameter` GatewayFilter Factory takes a `name` and `value` parameter.
 
 .application.yml
 [source,yaml]
@@ -416,7 +463,7 @@ spring:
 ----
 
 === AddResponseHeader GatewayFilter Factory
-The AddResponseHeader GatewayFilter Factory takes a name and value parameter.
+The `AddResponseHeader` GatewayFilter Factory takes a `name` and `value` parameter.
 
 .application.yml
 [source,yaml]
@@ -451,7 +498,7 @@ spring:
 ----
 
 === DedupeResponseHeader GatewayFilter Factory
-The DedupeResponseHeader GatewayFilter Factory takes a `name` parameter and an optional `strategy` parameter. `name` can contain a list of header names, space separated.
+The `DedupeResponseHeader` GatewayFilter Factory takes a `name` parameter and an optional `strategy` parameter. `name` can contain a list of header names, space separated.
 
 .application.yml
 [source,yaml]
@@ -473,11 +520,11 @@ The DedupeResponseHeader filter also accepts an optional `strategy` parameter. T
 [[hystrix]]
 === Hystrix GatewayFilter Factory
 https://github.com/Netflix/Hystrix[Hystrix] is a library from Netflix that implements the https://martinfowler.com/bliki/CircuitBreaker.html[circuit breaker pattern].
-The Hystrix GatewayFilter allows you to introduce circuit breakers to your gateway routes, protecting your services from cascading failures and allowing you to provide fallback responses in the event of downstream failures.
+The `Hystrix` GatewayFilter allows you to introduce circuit breakers to your gateway routes, protecting your services from cascading failures and allowing you to provide fallback responses in the event of downstream failures.
 
-To enable Hystrix GatewayFilters in your project, add a dependency on `spring-cloud-starter-netflix-hystrix` from https://cloud.spring.io/spring-cloud-netflix/[Spring Cloud Netflix].
+To enable `Hystrix` GatewayFilters in your project, add a dependency on `spring-cloud-starter-netflix-hystrix` from https://cloud.spring.io/spring-cloud-netflix/[Spring Cloud Netflix].
 
-The Hystrix GatewayFilter Factory requires a single `name` parameter, which is the name of the `HystrixCommand`.
+The `Hystrix` GatewayFilter Factory requires a single `name` parameter, which is the name of the `HystrixCommand`.
 
 .application.yml
 [source,yaml]
@@ -608,7 +655,7 @@ their default values:
 You can find more information on how Hystrix works with Gateway in the <<hystrix, Hystrix GatewayFilter Factory section>>.
 
 === MapRequestHeader GatewayFilter Factory
-The MapRequestHeader GatewayFilter Factory takes 'fromHeader' and 'toHeader' parameters. It creates a new named header (toHeader) and the value is extracted out of an existing named header (fromHeader) from the incoming http request. If the input header does not exist then the filter has no impact. If the new named header already exists then it's values will be augmented with the new values.
+The `MapRequestHeader` GatewayFilter Facstory takes 'fromHeader' and 'toHeader' parameters. It creates a new named header (toHeader) and the value is extracted out of an existing named header (fromHeader) from the incoming http request. If the input header does not exist then the filter has no impact. If the new named header already exists then it's values will be augmented with the new values.
 
 .application.yml
 [source,yaml]
@@ -626,7 +673,7 @@ spring:
 This will add `X-Request-Foo:<values>` header to the downstream request's with updated values from the incoming http request `Bar` header.
 
 === PrefixPath GatewayFilter Factory
-The PrefixPath GatewayFilter Factory takes a single `prefix` parameter.
+The `PrefixPath` GatewayFilter Factory takes a single `prefix` parameter.
 
 .application.yml
 [source,yaml]
@@ -644,7 +691,7 @@ spring:
 This will prefix `/mypath` to the path of all matching requests. So a request to `/hello`, would be sent to `/mypath/hello`.
 
 === PreserveHostHeader GatewayFilter Factory
-The PreserveHostHeader GatewayFilter Factory has not parameters. This filter, sets a request attribute that the routing filter will inspect to determine if the original host header should be sent, rather than the host header determined by the http client.
+The `PreserveHostHeader` GatewayFilter Factory has no parameters. This filter, sets a request attribute that the routing filter will inspect to determine if the original host header should be sent, rather than the host header determined by the http client.
 
 .application.yml
 [source,yaml]
@@ -661,7 +708,7 @@ spring:
 
 === RequestRateLimiter GatewayFilter Factory
 
-The RequestRateLimiter GatewayFilter Factory is uses a `RateLimiter` implementation to determine if the current request is allowed to proceed. If it is not, a status of `HTTP 429 - Too Many Requests` (by default) is returned.
+The `RequestRateLimiter` GatewayFilter Factory is uses a `RateLimiter` implementation to determine if the current request is allowed to proceed. If it is not, a status of `HTTP 429 - Too Many Requests` (by default) is returned.
 
 This filter takes an optional `keyResolver` parameter and parameters specific to the rate limiter (see below).
 
@@ -749,7 +796,7 @@ spring:
 ----
 
 === RedirectTo GatewayFilter Factory
-The RedirectTo GatewayFilter Factory takes a `status` and a `url` parameter. The status should be a 300 series redirect http code, such as 301. The url should be a valid url. This will be the value of the `Location` header.
+The `RedirectTo` GatewayFilter Factory takes a `status` and a `url` parameter. The status should be a 300 series redirect http code, such as 301. The url should be a valid url. This will be the value of the `Location` header.
 
 .application.yml
 [source,yaml]
@@ -766,23 +813,8 @@ spring:
 
 This will send a status 302 with a `Location:https://acme.org` header to perform a redirect.
 
-=== RemoveHopByHopHeadersFilter GatewayFilter Factory
-The RemoveHopByHopHeadersFilter GatewayFilter Factory removes headers from forwarded requests. The default list of headers that is removed comes from the https://tools.ietf.org/html/draft-ietf-httpbis-p1-messaging-14#section-7.1.3[IETF].
-
-.The default removed headers are:
- *  Connection
- *  Keep-Alive
- *  Proxy-Authenticate
- *  Proxy-Authorization
- *  TE
- *  Trailer
- *  Transfer-Encoding
- *  Upgrade
-
-To change this, set the `spring.cloud.gateway.filter.remove-non-proxy-headers.headers` property to the list of header names to remove.
-
 === RemoveRequestHeader GatewayFilter Factory
-The RemoveRequestHeader GatewayFilter Factory takes a `name` parameter. It is the name of the header to be removed.
+The `RemoveRequestHeader` GatewayFilter Factory takes a `name` parameter. It is the name of the header to be removed.
 
 .application.yml
 [source,yaml]
@@ -800,7 +832,7 @@ spring:
 This will remove the `X-Request-Foo` header before it is sent downstream.
 
 === RemoveResponseHeader GatewayFilter Factory
-The RemoveResponseHeader GatewayFilter Factory takes a `name` parameter. It is the name of the header to be removed.
+The `RemoveResponseHeader` GatewayFilter Factory takes a `name` parameter. It is the name of the header to be removed.
 
 .application.yml
 [source,yaml]
@@ -822,7 +854,7 @@ want to do so.  In addition you can configure this filter once using `spring.clo
 and have it applied to all routes.
 
 === RewritePath GatewayFilter Factory
-The RewritePath GatewayFilter Factory takes a path `regexp` parameter and a `replacement` parameter. This uses Java regular expressions for a flexible way to rewrite the request path.
+The `RewritePath` GatewayFilter Factory takes a path `regexp` parameter and a `replacement` parameter. This uses Java regular expressions for a flexible way to rewrite the request path.
 
 .application.yml
 [source,yaml]
@@ -842,7 +874,7 @@ spring:
 For a request path of `/foo/bar`, this will set the path to `/bar` before making the downstream request. Notice the `$\` which is replaced with `$` because of the YAML spec.
 
 === RewriteLocationResponseHeader GatewayFilter Factory
-The RewriteLocationResponseHeader GatewayFilter Factory modifies the value of `Location` response header, usually to get rid of backend specific details. It takes `stripVersionMode`, `locationHeaderName`, `hostValue`, and `protocolsRegex` parameters.
+The `RewriteLocationResponseHeader` GatewayFilter Factory modifies the value of `Location` response header, usually to get rid of backend specific details. It takes `stripVersionMode`, `locationHeaderName`, `hostValue`, and `protocolsRegex` parameters.
 
 .application.yml
 [source,yaml]
@@ -870,7 +902,7 @@ Parameter `hostValue`, if provided, will be used to replace the `host:port` port
 Parameter `protocolsRegex` must be a valid regex `String`, against which the protocol name will be matched. If not matched, the filter will do nothing. Default is `http|https|ftp|ftps`.
 
 === RewriteResponseHeader GatewayFilter Factory
-The RewriteResponseHeader GatewayFilter Factory takes `name`, `regexp`, and `replacement` parameters. It uses Java regular expressions for a flexible way to rewrite the response header value.
+The `RewriteResponseHeader` GatewayFilter Factory takes `name`, `regexp`, and `replacement` parameters. It uses Java regular expressions for a flexible way to rewrite the response header value.
 
 .application.yml
 [source,yaml]
@@ -909,7 +941,7 @@ spring:
 If you are integrating https://projects.spring.io/spring-security/[Spring Security] with Spring Session, and want to ensure security details have been forwarded to the remote process, this is critical.
 
 === SecureHeaders GatewayFilter Factory
-The SecureHeaders GatewayFilter Factory adds a number of headers to the response at the recommendation from https://blog.appcanary.com/2017/http-security-headers.html[this blog post].
+The `SecureHeaders` GatewayFilter Factory adds a number of headers to the response at the recommendation from https://blog.appcanary.com/2017/http-security-headers.html[this blog post].
 
 .The following headers are added (along with default values):
  * `X-Xss-Protection:1; mode=block`
@@ -951,7 +983,7 @@ NOTE: Need use lowercase and full name of secure headers.
 `spring.cloud.gateway.filter.secure-headers.disable=x-frame-options,strict-transport-security`
 
 === SetPath GatewayFilter Factory
-The SetPath GatewayFilter Factory takes a path `template` parameter. It offers a simple way to manipulate the request path by allowing templated segments of the path. This uses the uri templates from Spring Framework. Multiple matching segments are allowed.
+The `SetPath` GatewayFilter Factory takes a path `template` parameter. It offers a simple way to manipulate the request path by allowing templated segments of the path. This uses the uri templates from Spring Framework. Multiple matching segments are allowed.
 
 .application.yml
 [source,yaml]
@@ -971,7 +1003,7 @@ spring:
 For a request path of `/foo/bar`, this will set the path to `/bar` before making the downstream request.
 
 === SetRequestHeader GatewayFilter Factory
-The SetRequestHeader GatewayFilter Factory takes `name` and `value` parameters.
+The `SetRequestHeader` GatewayFilter Factory takes `name` and `value` parameters.
 
 .application.yml
 [source,yaml]
@@ -1006,7 +1038,7 @@ spring:
 ----
 
 === SetResponseHeader GatewayFilter Factory
-The SetResponseHeader GatewayFilter Factory takes `name` and `value` parameters.
+The `SetResponseHeader` GatewayFilter Factory takes `name` and `value` parameters.
 
 .application.yml
 [source,yaml]
@@ -1041,7 +1073,7 @@ spring:
 ----
 
 === SetStatus GatewayFilter Factory
-The SetStatus GatewayFilter Factory takes a single `status` parameter. It must be a valid Spring `HttpStatus`. It may be the integer value `404` or the string representation of the enumeration `NOT_FOUND`.
+The `SetStatus` GatewayFilter Factory takes a single `status` parameter. It must be a valid Spring `HttpStatus`. It may be the integer value `404` or the string representation of the enumeration `NOT_FOUND`.
 
 .application.yml
 [source,yaml]
@@ -1084,7 +1116,7 @@ When a request is made through the gateway to `/name/bar/foo` the request made t
 
 === Retry GatewayFilter Factory
 
-The Retry GatewayFilter Factory support following set of parameters:
+The `Retry` GatewayFilter Factory support following set of parameters:
 
 * `retries`: the number of retries that should be attempted
 * `statuses`: the HTTP status codes that should be retried, represented using `org.springframework.http.HttpStatus`
@@ -1132,7 +1164,7 @@ NOTE: When using the retry filter with a `forward:` prefixed URL, the target end
 WARNING: When using the retry filter with any HTTP method with a body, the body will be cached and the gateway will become memory constrained. The body is cached in a request attribute defined by `ServerWebExchangeUtils.CACHED_REQUEST_BODY_ATTR`. The type of the object is a `org.springframework.core.io.buffer.DataBuffer`.
 
 === RequestSize GatewayFilter Factory
-The RequestSize GatewayFilter Factory can restrict a request from reaching the downstream service , when the request size is greater than the permissible limit. The filter takes `RequestSize` as parameter which is the permissible size limit of the request defined in bytes.
+The `RequestSize` GatewayFilter Factory can restrict a request from reaching the downstream service , when the request size is greater than the permissible limit. The filter takes a `maxSize` parameter which is the permissible size limit of the request. The `maxSize is a `DataSize` type, so values can be defined as a number followed by an optional `DataUnit` suffix such as 'KB' or 'MB'. The default is 'B' for bytes.
 
 .application.yml
 [source,yaml]
@@ -1161,7 +1193,7 @@ NOTE: The default Request size will be set to 5 MB if not provided as filter arg
 
 *This filter is considered BETA and the API may change in the future*
 
-This filter can be used to modify the request body before it is sent downstream by the Gateway.
+The `ModifyRequestBody` filter can be used to modify the request body before it is sent downstream by the Gateway.
 
 NOTE: This filter can only be configured using the Java DSL
 
@@ -1200,7 +1232,7 @@ static class Hello {
 
 *This filter is considered BETA and the API may change in the future*
 
-This filter can be used to modify the response body before it is sent back to the Client.
+The `ModifyResponseBody` filter can be used to modify the response body before it is sent back to the Client.
 
 NOTE: This filter can only be configured using the Java DSL
 
@@ -1402,6 +1434,47 @@ or check if an exchange has already been routed.
 
 * `ServerWebExchangeUtils.isAlreadyRouted` takes a `ServerWebExchange` object and checks if it has been "routed"
 * `ServerWebExchangeUtils.setAlreadyRouted` takes a `ServerWebExchange` object and marks it as "routed"
+
+== HttpHeadersFilters
+
+HttpHeadersFilters are applied to requests before sending them downstream, such as in the `NettyRoutingFilter`.
+
+=== Forwarded Headers Filter
+The `Forwarded` Headers Filter creates a `Forwarded` header to send to the downstream service. It adds the `Host` header, scheme and port of the current request to any existing `Forwarded` header.
+
+=== RemoveHopByHop Headers Filter
+The `RemoveHopByHop` Headers Filter removes headers from forwarded requests. The default list of headers that is removed comes from the https://tools.ietf.org/html/draft-ietf-httpbis-p1-messaging-14#section-7.1.3[IETF].
+
+.The default removed headers are:
+*  Connection
+*  Keep-Alive
+*  Proxy-Authenticate
+*  Proxy-Authorization
+*  TE
+*  Trailer
+*  Transfer-Encoding
+*  Upgrade
+
+To change this, set the `spring.cloud.gateway.filter.remove-non-proxy-headers.headers` property to the list of header names to remove.
+
+=== XForwarded Headers Filter
+The `XForwarded` Headers Filter creates various a `X-Forwarded-*` headers to send to the downstream service. It users the `Host` header, scheme, port and path of the current request to create the various headers.
+
+Creating of individual headers can be controlled by the following boolean properties (defaults to true):
+
+- `spring.cloud.gateway.x-forwarded.for.enabled`
+- `spring.cloud.gateway.x-forwarded.host.enabled`
+- `spring.cloud.gateway.x-forwarded.port.enabled`
+- `spring.cloud.gateway.x-forwarded.proto.enabled`
+- `spring.cloud.gateway.x-forwarded.prefix.enabled`
+
+Appending multiple headers can be controlled by the following boolean properties (defaults to true):
+
+- `spring.cloud.gateway.x-forwarded.for.append`
+- `spring.cloud.gateway.x-forwarded.host.append`
+- `spring.cloud.gateway.x-forwarded.port.append`
+- `spring.cloud.gateway.x-forwarded.proto.append`
+- `spring.cloud.gateway.x-forwarded.prefix.append`
 
 == TLS / SSL
 The Gateway can listen for requests on https by following the usual Spring server configuration. Example:
