@@ -1097,6 +1097,7 @@ spring:
           args:
             retries: 3
             statuses: BAD_GATEWAY
+            methods: GET,POST
             backoff:
               firstBackoff: 10ms
               maxBackoff: 50ms
@@ -1104,9 +1105,9 @@ spring:
               basedOnPreviousValue: false
 ----
 
-NOTE: The retry filter does not currently support retrying with a body (e.g. for POST or PUT requests with a body).
-
 NOTE: When using the retry filter with a `forward:` prefixed URL, the target endpoint should be written carefully so that in case of an error it does not do anything that could result in a response being sent to the client and committed. For example, if the target endpoint is an annotated controller, the target controller method should not return `ResponseEntity` with an error status code. Instead it should throw an `Exception`, or signal an error, e.g. via a `Mono.error(ex)` return value, which the retry filter can be configured to handle by retrying.
+
+WARNING: When using the retry filter with any HTTP method with a body, the body will be cached and the gateway will become memory constrained. The body is cached in a request attribute defined by `ServerWebExchangeUtils.CACHED_REQUEST_BODY_ATTR`. The type of the object is a `org.springframework.core.io.buffer.DataBuffer`.
 
 === RequestSize GatewayFilter Factory
 The RequestSize GatewayFilter Factory can restrict a request from reaching the downstream service , when the request size is greater than the permissible limit. The filter takes `RequestSize` as parameter which is the permissible size limit of the request defined in bytes.
