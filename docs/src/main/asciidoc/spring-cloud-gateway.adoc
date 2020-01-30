@@ -1928,12 +1928,40 @@ respectively.
 
 == Developer Guide
 
-TODO: overview of writing custom integrations
+These are basic guides to writing some custom components of the gateway.
 
 === Writing Custom Route Predicate Factories
 
-TODO: document writing Custom Route Predicate Factories
 
+In order to write a Route Predicate you will need to implement `RoutePredicateFactory`.  There is an abstract class called `AbstractRoutePredicateFactory` which you can extend.
+
+.MyRoutePredicateFactory.java
+[source,java]
+----
+public class MyRoutePredicateFactory extends AbstractRoutePredicateFactory<HeaderRoutePredicateFactory.Config> {
+
+    public MyRoutePredicateFactory() {
+        super(Config.class);
+    }
+
+    @Override
+    public Predicate<ServerWebExchange> apply(Config config) {
+        // grab configuration from Config object
+        return exchange -> {
+            //grab the request
+            ServerHttpRequest request = exchange.getRequest();
+            //take information from the request to see if it
+            //matches configuration.
+            return matches(config, request);
+        };
+    }
+
+    public static class Config {
+        //Put the configuration properties for your filter here
+    }
+
+}
+----
 === Writing Custom GatewayFilter Factories
 
 In order to write a GatewayFilter you will need to implement `GatewayFilterFactory`.  There is an abstract class called `AbstractGatewayFilterFactory` which you can extend.
@@ -1951,16 +1979,16 @@ public class PreGatewayFilterFactory extends AbstractGatewayFilterFactory<PreGat
 	public GatewayFilter apply(Config config) {
 		// grab configuration from Config object
 		return (exchange, chain) -> {
-            //If you want to build a "pre" filter you need to manipulate the
-            //request before calling chain.filter
-            ServerHttpRequest.Builder builder = exchange.getRequest().mutate();
-            //use builder to manipulate the request
-            return chain.filter(exchange.mutate().request(request).build());
+			//If you want to build a "pre" filter you need to manipulate the
+			//request before calling chain.filter
+			ServerHttpRequest.Builder builder = exchange.getRequest().mutate();
+			//use builder to manipulate the request
+			return chain.filter(exchange.mutate().request(request).build());
 		};
 	}
 
 	public static class Config {
-        //Put the configuration properties for your filter here
+		//Put the configuration properties for your filter here
 	}
 
 }
@@ -1987,7 +2015,7 @@ public class PostGatewayFilterFactory extends AbstractGatewayFilterFactory<PostG
 	}
 
 	public static class Config {
-        //Put the configuration properties for your filter here
+		//Put the configuration properties for your filter here
 	}
 
 }
@@ -2028,11 +2056,9 @@ public GlobalFilter customGlobalPostFilter() {
 }
 ----
 
-=== Writing Custom Route Locators and Writers
-
-TODO: document writing Custom Route Locators and Writers
-
 == Building a Simple Gateway Using Spring MVC or Webflux
+
+WARNING: The following describes an alternative style gateway. None of the prior documentation applies to what follows.
 
 Spring Cloud Gateway provides a utility object called `ProxyExchange` which you can use inside a regular Spring web handler as a method parameter. It supports basic downstream HTTP exchanges via methods that mirror the HTTP verbs. With MVC it also supports forwarding to a local handler via the `forward()` method. To use the `ProxyExchange` just include the right module in your classpath (either `spring-cloud-gateway-mvc` or `spring-cloud-gateway-webflux`).
 
