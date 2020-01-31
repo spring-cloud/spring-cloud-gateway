@@ -225,8 +225,9 @@ public class RedisQuotaFilter extends AbstractQuotaLimiter<RedisQuotaFilter.Conf
 						longs.addAll(l);
 						return longs;
 					}).map(results -> {
-						Long tokensRemaining = results.get(0);
-						boolean allowed = tokensRemaining >= 0L;
+						final Long resultsTokenRemain = results.get(0);
+						boolean allowed = resultsTokenRemain >= 0L;
+						Long tokensRemaining = resultsTokenRemain >= 0 ? resultsTokenRemain : 0L; //never return a value lower than 0
 
 						QuotaFilter.Response response = new QuotaFilter.Response(allowed,
 								getHeaders(routeConfig, tokensRemaining));

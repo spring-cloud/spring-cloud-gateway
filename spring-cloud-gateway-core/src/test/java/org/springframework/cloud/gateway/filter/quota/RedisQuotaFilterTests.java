@@ -90,6 +90,7 @@ public class RedisQuotaFilterTests extends BaseWebClientTests {
 
 		Response response = quotaFilter.isAllowed(routeId, id).block();
 		assertThat(response.isAllowed()).as("Quota filter has exceeded").isFalse();
+		assertThat(response.getHeaders().get(RedisQuotaFilter.REMAINING_HEADER)).isEqualTo(String.valueOf(0));
 	}
 
 	@Test
