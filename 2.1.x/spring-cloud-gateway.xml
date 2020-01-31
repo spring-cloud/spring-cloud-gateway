@@ -4,7 +4,7 @@
 <book xmlns="http://docbook.org/ns/docbook" xmlns:xl="http://www.w3.org/1999/xlink" version="5.0" xml:lang="en">
 <info>
 <title>Spring Cloud Gateway</title>
-<date>2020-01-30</date>
+<date>2020-01-31</date>
 </info>
 <preface>
 <title></title>
@@ -59,12 +59,56 @@ working with Spring Cloud Gateway.</simpara>
 <simpara>URIs defined in routes without a port will get a default port set to 80 and 443 for HTTP and HTTPS URIs respectively.</simpara>
 </note>
 </chapter>
+<chapter xml:id="_configuring_route_predicate_factories_and_gateway_filter_factories">
+<title>Configuring Route Predicate Factories and Gateway Filter Factories</title>
+<simpara>There are two ways to configure predicates and filters: shortcuts and fully expanded arguments. Most examples below use the shortcut way.</simpara>
+<simpara>The name and argument names will be listed as <literal>code</literal> in the first sentance or two of the each section. The arguments are typically listed in the order that would be needed for the shortcut configuration.</simpara>
+<section xml:id="_shortcut_configuration">
+<title>Shortcut Configuration</title>
+<simpara>Shortcut configuration is recognized by the filter name, followed by an equals sign (<literal>=</literal>), followed by argument values separated by commas (<literal>,</literal>).</simpara>
+<formalpara>
+<title>application.yml</title>
+<para>
+<programlisting language="yaml" linenumbering="unnumbered">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: after_route
+        uri: https://example.org
+        predicates:
+        - Cookie=mycookie,mycookievalue</programlisting>
+</para>
+</formalpara>
+<simpara>The previous sample defines the <literal>Cookie</literal> Route Predicate Factory with two arguments, the cookie name, <literal>mycookie</literal> and the value to match <literal>mycookievalue</literal>.</simpara>
+</section>
+<section xml:id="_fully_expanded_arguments">
+<title>Fully Expanded Arguments</title>
+<simpara>Fully expanded arguments appear more like standard yaml configuration with name/value pairs. Typically, there will be a <literal>name</literal> key and an <literal>args</literal> key. The <literal>args</literal> key is a map of key value pairs to configure the predicate or filter.</simpara>
+<formalpara>
+<title>application.yml</title>
+<para>
+<programlisting language="yaml" linenumbering="unnumbered">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: after_route
+        uri: https://example.org
+        predicates:
+        - name: Cookie
+          args:
+            name: mycookie
+            regexp: mycookievalue</programlisting>
+</para>
+</formalpara>
+<simpara>This is the full configuration of the shortcut configuration of the <literal>Cookie</literal> predicate shown above.</simpara>
+</section>
+</chapter>
 <chapter xml:id="gateway-request-predicates-factories">
 <title>Route Predicate Factories</title>
 <simpara>Spring Cloud Gateway matches routes as part of the Spring WebFlux <literal>HandlerMapping</literal> infrastructure. Spring Cloud Gateway includes many built-in Route Predicate Factories. All of these predicates match on different attributes of the HTTP request. Multiple Route Predicate Factories can be combined and are combined via logical <literal>and</literal>.</simpara>
 <section xml:id="_after_route_predicate_factory">
 <title>After Route Predicate Factory</title>
-<simpara>The After Route Predicate Factory takes one parameter, a datetime. This predicate matches requests that happen after the current datetime.</simpara>
+<simpara>The <literal>After</literal> Route Predicate Factory takes one parameter, a <literal>datetime</literal> (which is a java <literal>ZonedDateTime</literal>). This predicate matches requests that happen after the current datetime.</simpara>
 <formalpara>
 <title>application.yml</title>
 <para>
@@ -82,7 +126,7 @@ working with Spring Cloud Gateway.</simpara>
 </section>
 <section xml:id="_before_route_predicate_factory">
 <title>Before Route Predicate Factory</title>
-<simpara>The Before Route Predicate Factory takes one parameter, a datetime. This predicate matches requests that happen before the current datetime.</simpara>
+<simpara>The <literal>Before</literal> Route Predicate Factory takes one parameter, a datetime(which is a java <literal>ZonedDateTime</literal>). This predicate matches requests that happen before the current datetime.</simpara>
 <formalpara>
 <title>application.yml</title>
 <para>
@@ -100,7 +144,7 @@ working with Spring Cloud Gateway.</simpara>
 </section>
 <section xml:id="_between_route_predicate_factory">
 <title>Between Route Predicate Factory</title>
-<simpara>The Between Route Predicate Factory takes two parameters, datetime1 and datetime2. This predicate matches requests that happen after datetime1 and before datetime2. The datetime2 parameter must be after datetime1.</simpara>
+<simpara>The <literal>Between</literal> Route Predicate Factory takes two parameters, <literal>datetime1</literal> and <literal>datetime2</literal> which are java <literal>ZonedDateTime</literal> objects. This predicate matches requests that happen after datetime1 and before datetime2. The datetime2 parameter must be after datetime1.</simpara>
 <formalpara>
 <title>application.yml</title>
 <para>
@@ -118,7 +162,7 @@ working with Spring Cloud Gateway.</simpara>
 </section>
 <section xml:id="_cookie_route_predicate_factory">
 <title>Cookie Route Predicate Factory</title>
-<simpara>The Cookie Route Predicate Factory takes two parameters, the cookie name and a regular expression. This predicate matches cookies that have the given name and the value matches the regular expression.</simpara>
+<simpara>The <literal>Cookie</literal> Route Predicate Factory takes two parameters, the cookie <literal>name</literal> and a <literal>regexp</literal> (which is a Java regular expression). This predicate matches cookies that have the given name and the value matches the regular expression.</simpara>
 <formalpara>
 <title>application.yml</title>
 <para>
@@ -136,7 +180,7 @@ working with Spring Cloud Gateway.</simpara>
 </section>
 <section xml:id="_header_route_predicate_factory">
 <title>Header Route Predicate Factory</title>
-<simpara>The Header Route Predicate Factory takes two parameters, the header name and a regular expression. This predicate matches with a header that has the given name and the value matches the regular expression.</simpara>
+<simpara>The <literal>Header</literal> Route Predicate Factory takes two parameters, the header <literal>name</literal> and a <literal>regexp</literal> (which is a Java regular expression). This predicate matches with a header that has the given name and the value matches the regular expression.</simpara>
 <formalpara>
 <title>application.yml</title>
 <para>
@@ -154,7 +198,7 @@ working with Spring Cloud Gateway.</simpara>
 </section>
 <section xml:id="_host_route_predicate_factory">
 <title>Host Route Predicate Factory</title>
-<simpara>The Host Route Predicate Factory takes one parameter: a list of host name patterns. The pattern is an Ant style pattern with <literal>.</literal> as the separator. This predicates matches the <literal>Host</literal> header that matches the pattern.</simpara>
+<simpara>The <literal>Host</literal> Route Predicate Factory takes one parameter: a list of host name <literal>patterns</literal>. The pattern is an Ant style pattern with <literal>.</literal> as the separator. This predicates matches the <literal>Host</literal> header that matches the pattern.</simpara>
 <formalpara>
 <title>application.yml</title>
 <para>
@@ -174,7 +218,7 @@ working with Spring Cloud Gateway.</simpara>
 </section>
 <section xml:id="_method_route_predicate_factory">
 <title>Method Route Predicate Factory</title>
-<simpara>The Method Route Predicate Factory takes one or more parameters: the HTTP methods to match.</simpara>
+<simpara>The <literal>Method</literal> Route Predicate Factory takes a <literal>methods</literal> argument which is one or more HTTP methods to match.</simpara>
 <formalpara>
 <title>application.yml</title>
 <para>
@@ -192,7 +236,7 @@ working with Spring Cloud Gateway.</simpara>
 </section>
 <section xml:id="_path_route_predicate_factory">
 <title>Path Route Predicate Factory</title>
-<simpara>The Path Route Predicate Factory takes two parameter: a list of Spring <literal>PathMatcher</literal> patterns and an optional flag to <literal>matchOptionalTrailingSeparator</literal>.</simpara>
+<simpara>The <literal>Path</literal> Route Predicate Factory takes two parameter: a list of Spring <literal>PathMatcher</literal> <literal>patterns</literal> and an optional flag to <literal>matchOptionalTrailingSeparator</literal>.</simpara>
 <formalpara>
 <title>application.yml</title>
 <para>
@@ -215,7 +259,7 @@ String segment = uriVariables.get("segment");</programlisting>
 </section>
 <section xml:id="_query_route_predicate_factory">
 <title>Query Route Predicate Factory</title>
-<simpara>The Query Route Predicate Factory takes two parameters: a required <literal>param</literal> and an optional <literal>regexp</literal>.</simpara>
+<simpara>The <literal>Query</literal> Route Predicate Factory takes two parameters: a required <literal>param</literal> and an optional <literal>regexp</literal> (which is a Java regular expression).</simpara>
 <formalpara>
 <title>application.yml</title>
 <para>
@@ -247,7 +291,7 @@ String segment = uriVariables.get("segment");</programlisting>
 </section>
 <section xml:id="_remoteaddr_route_predicate_factory">
 <title>RemoteAddr Route Predicate Factory</title>
-<simpara>The RemoteAddr Route Predicate Factory takes a list (min size 1) of CIDR-notation (IPv4 or IPv6) strings, e.g. <literal>192.168.0.1/16</literal> (where <literal>192.168.0.1</literal> is an IP address and <literal>16</literal> is a subnet mask).</simpara>
+<simpara>The <literal>RemoteAddr</literal> Route Predicate Factory takes a list (min size 1) of <literal>sources</literal>, which are CIDR-notation (IPv4 or IPv6) strings, e.g. <literal>192.168.0.1/16</literal> (where <literal>192.168.0.1</literal> is an IP address and <literal>16</literal> is a subnet mask).</simpara>
 <formalpara>
 <title>application.yml</title>
 <para>
@@ -262,6 +306,28 @@ String segment = uriVariables.get("segment");</programlisting>
 </para>
 </formalpara>
 <simpara>This route would match if the remote address of the request was, for example, <literal>192.168.1.10</literal>.</simpara>
+</section>
+<section xml:id="_weight_route_predicate_factory">
+<title>Weight Route Predicate Factory</title>
+<simpara>The <literal>Weight</literal> Route Predicate Factory takes two arguments <literal>group</literal> and <literal>weight</literal> (an int). The weights are calculated per group.</simpara>
+<formalpara>
+<title>application.yml</title>
+<para>
+<programlisting language="yaml" linenumbering="unnumbered">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: weight_high
+        uri: https://weighthigh.org
+        predicates:
+        - Weight=group1, 8
+      - id: weight_low
+        uri: https://weightlow.org
+        predicates:
+        - Weight=group1, 2</programlisting>
+</para>
+</formalpara>
+<simpara>This route would forward ~80% of traffic to <link xl:href="https://weighthigh.org">https://weighthigh.org</link> and ~20% of traffic to <link xl:href="https://weighlow.org">https://weighlow.org</link></simpara>
 <section xml:id="_modifying_the_way_remote_addresses_are_resolved">
 <title>Modifying the way remote addresses are resolved</title>
 <simpara>By default the RemoteAddr Route Predicate Factory uses the remote address from the incoming request.
@@ -334,7 +400,7 @@ If two hops of trusted infrastructure are required before Spring Cloud Gateway i
 <simpara>NOTE For more detailed examples on how to use any of the following filters, take a look at the <link xl:href="https://github.com/spring-cloud/spring-cloud-gateway/tree/master/spring-cloud-gateway-core/src/test/java/org/springframework/cloud/gateway/filter/factory">unit tests</link>.</simpara>
 <section xml:id="_addrequestheader_gatewayfilter_factory">
 <title>AddRequestHeader GatewayFilter Factory</title>
-<simpara>The AddRequestHeader GatewayFilter Factory takes a name and value parameter.</simpara>
+<simpara>The <literal>AddRequestHeader</literal> GatewayFilter Factory takes a <literal>name</literal> and <literal>value</literal> parameter.</simpara>
 <formalpara>
 <title>application.yml</title>
 <para>
@@ -368,7 +434,7 @@ If two hops of trusted infrastructure are required before Spring Cloud Gateway i
 </section>
 <section xml:id="_addrequestparameter_gatewayfilter_factory">
 <title>AddRequestParameter GatewayFilter Factory</title>
-<simpara>The AddRequestParameter GatewayFilter Factory takes a name and value parameter.</simpara>
+<simpara>The <literal>AddRequestParameter</literal> GatewayFilter Factory takes a <literal>name</literal> and <literal>value</literal> parameter.</simpara>
 <formalpara>
 <title>application.yml</title>
 <para>
@@ -402,7 +468,7 @@ If two hops of trusted infrastructure are required before Spring Cloud Gateway i
 </section>
 <section xml:id="_addresponseheader_gatewayfilter_factory">
 <title>AddResponseHeader GatewayFilter Factory</title>
-<simpara>The AddResponseHeader GatewayFilter Factory takes a name and value parameter.</simpara>
+<simpara>The <literal>AddResponseHeader</literal> GatewayFilter Factory takes a <literal>name</literal> and <literal>value</literal> parameter.</simpara>
 <formalpara>
 <title>application.yml</title>
 <para>
@@ -436,7 +502,7 @@ If two hops of trusted infrastructure are required before Spring Cloud Gateway i
 </section>
 <section xml:id="_deduperesponseheader_gatewayfilter_factory">
 <title>DedupeResponseHeader GatewayFilter Factory</title>
-<simpara>The DedupeResponseHeader GatewayFilter Factory takes a <literal>name</literal> parameter and an optional <literal>strategy</literal> parameter. <literal>name</literal> can contain a list of header names, space separated.</simpara>
+<simpara>The <literal>DedupeResponseHeader</literal> GatewayFilter Factory takes a <literal>name</literal> parameter and an optional <literal>strategy</literal> parameter. <literal>name</literal> can contain a list of header names, space separated.</simpara>
 <formalpara>
 <title>application.yml</title>
 <para>
@@ -456,9 +522,9 @@ If two hops of trusted infrastructure are required before Spring Cloud Gateway i
 <section xml:id="hystrix">
 <title>Hystrix GatewayFilter Factory</title>
 <simpara><link xl:href="https://github.com/Netflix/Hystrix">Hystrix</link> is a library from Netflix that implements the <link xl:href="https://martinfowler.com/bliki/CircuitBreaker.html">circuit breaker pattern</link>.
-The Hystrix GatewayFilter allows you to introduce circuit breakers to your gateway routes, protecting your services from cascading failures and allowing you to provide fallback responses in the event of downstream failures.</simpara>
-<simpara>To enable Hystrix GatewayFilters in your project, add a dependency on <literal>spring-cloud-starter-netflix-hystrix</literal> from <link xl:href="https://cloud.spring.io/spring-cloud-netflix/">Spring Cloud Netflix</link>.</simpara>
-<simpara>The Hystrix GatewayFilter Factory requires a single <literal>name</literal> parameter, which is the name of the <literal>HystrixCommand</literal>.</simpara>
+The <literal>Hystrix</literal> GatewayFilter allows you to introduce circuit breakers to your gateway routes, protecting your services from cascading failures and allowing you to provide fallback responses in the event of downstream failures.</simpara>
+<simpara>To enable <literal>Hystrix</literal> GatewayFilters in your project, add a dependency on <literal>spring-cloud-starter-netflix-hystrix</literal> from <link xl:href="https://cloud.spring.io/spring-cloud-netflix/">Spring Cloud Netflix</link>.</simpara>
+<simpara>The <literal>Hystrix</literal> GatewayFilter Factory requires a single <literal>name</literal> parameter, which is the name of the <literal>HystrixCommand</literal>.</simpara>
 <formalpara>
 <title>application.yml</title>
 <para>
@@ -588,7 +654,7 @@ their default values:</simpara>
 </section>
 <section xml:id="_maprequestheader_gatewayfilter_factory">
 <title>MapRequestHeader GatewayFilter Factory</title>
-<simpara>The MapRequestHeader GatewayFilter Factory takes 'fromHeader' and 'toHeader' parameters. It creates a new named header (toHeader) and the value is extracted out of an existing named header (fromHeader) from the incoming http request. If the input header does not exist then the filter has no impact. If the new named header already exists then it&#8217;s values will be augmented with the new values.</simpara>
+<simpara>The <literal>MapRequestHeader</literal> GatewayFilter Facstory takes 'fromHeader' and 'toHeader' parameters. It creates a new named header (toHeader) and the value is extracted out of an existing named header (fromHeader) from the incoming http request. If the input header does not exist then the filter has no impact. If the new named header already exists then it&#8217;s values will be augmented with the new values.</simpara>
 <formalpara>
 <title>application.yml</title>
 <para>
@@ -606,7 +672,7 @@ their default values:</simpara>
 </section>
 <section xml:id="_prefixpath_gatewayfilter_factory">
 <title>PrefixPath GatewayFilter Factory</title>
-<simpara>The PrefixPath GatewayFilter Factory takes a single <literal>prefix</literal> parameter.</simpara>
+<simpara>The <literal>PrefixPath</literal> GatewayFilter Factory takes a single <literal>prefix</literal> parameter.</simpara>
 <formalpara>
 <title>application.yml</title>
 <para>
@@ -624,7 +690,7 @@ their default values:</simpara>
 </section>
 <section xml:id="_preservehostheader_gatewayfilter_factory">
 <title>PreserveHostHeader GatewayFilter Factory</title>
-<simpara>The PreserveHostHeader GatewayFilter Factory has not parameters. This filter, sets a request attribute that the routing filter will inspect to determine if the original host header should be sent, rather than the host header determined by the http client.</simpara>
+<simpara>The <literal>PreserveHostHeader</literal> GatewayFilter Factory has no parameters. This filter, sets a request attribute that the routing filter will inspect to determine if the original host header should be sent, rather than the host header determined by the http client.</simpara>
 <formalpara>
 <title>application.yml</title>
 <para>
@@ -641,7 +707,7 @@ their default values:</simpara>
 </section>
 <section xml:id="_requestratelimiter_gatewayfilter_factory">
 <title>RequestRateLimiter GatewayFilter Factory</title>
-<simpara>The RequestRateLimiter GatewayFilter Factory is uses a <literal>RateLimiter</literal> implementation to determine if the current request is allowed to proceed. If it is not, a status of <literal>HTTP 429 - Too Many Requests</literal> (by default) is returned.</simpara>
+<simpara>The <literal>RequestRateLimiter</literal> GatewayFilter Factory is uses a <literal>RateLimiter</literal> implementation to determine if the current request is allowed to proceed. If it is not, a status of <literal>HTTP 429 - Too Many Requests</literal> (by default) is returned.</simpara>
 <simpara>This filter takes an optional <literal>keyResolver</literal> parameter and parameters specific to the rate limiter (see below).</simpara>
 <simpara><literal>keyResolver</literal> is a bean that implements the <literal>KeyResolver</literal> interface. In configuration, reference the bean by name using SpEL. <literal>#{@myKeyResolver}</literal> is a SpEL expression referencing a bean with the name <literal>myKeyResolver</literal>.</simpara>
 <formalpara>
@@ -719,7 +785,7 @@ KeyResolver userKeyResolver() {
 </section>
 <section xml:id="_redirectto_gatewayfilter_factory">
 <title>RedirectTo GatewayFilter Factory</title>
-<simpara>The RedirectTo GatewayFilter Factory takes a <literal>status</literal> and a <literal>url</literal> parameter. The status should be a 300 series redirect http code, such as 301. The url should be a valid url. This will be the value of the <literal>Location</literal> header.</simpara>
+<simpara>The <literal>RedirectTo</literal> GatewayFilter Factory takes a <literal>status</literal> and a <literal>url</literal> parameter. The status should be a 300 series redirect http code, such as 301. The url should be a valid url. This will be the value of the <literal>Location</literal> header.</simpara>
 <formalpara>
 <title>application.yml</title>
 <para>
@@ -735,41 +801,9 @@ KeyResolver userKeyResolver() {
 </formalpara>
 <simpara>This will send a status 302 with a <literal>Location:https://acme.org</literal> header to perform a redirect.</simpara>
 </section>
-<section xml:id="_removehopbyhopheadersfilter_gatewayfilter_factory">
-<title>RemoveHopByHopHeadersFilter GatewayFilter Factory</title>
-<simpara>The RemoveHopByHopHeadersFilter GatewayFilter Factory removes headers from forwarded requests. The default list of headers that is removed comes from the <link xl:href="https://tools.ietf.org/html/draft-ietf-httpbis-p1-messaging-14#section-7.1.3">IETF</link>.</simpara>
-<itemizedlist>
-<title>The default removed headers are:</title>
-<listitem>
-<simpara>Connection</simpara>
-</listitem>
-<listitem>
-<simpara>Keep-Alive</simpara>
-</listitem>
-<listitem>
-<simpara>Proxy-Authenticate</simpara>
-</listitem>
-<listitem>
-<simpara>Proxy-Authorization</simpara>
-</listitem>
-<listitem>
-<simpara>TE</simpara>
-</listitem>
-<listitem>
-<simpara>Trailer</simpara>
-</listitem>
-<listitem>
-<simpara>Transfer-Encoding</simpara>
-</listitem>
-<listitem>
-<simpara>Upgrade</simpara>
-</listitem>
-</itemizedlist>
-<simpara>To change this, set the <literal>spring.cloud.gateway.filter.remove-non-proxy-headers.headers</literal> property to the list of header names to remove.</simpara>
-</section>
 <section xml:id="_removerequestheader_gatewayfilter_factory">
 <title>RemoveRequestHeader GatewayFilter Factory</title>
-<simpara>The RemoveRequestHeader GatewayFilter Factory takes a <literal>name</literal> parameter. It is the name of the header to be removed.</simpara>
+<simpara>The <literal>RemoveRequestHeader</literal> GatewayFilter Factory takes a <literal>name</literal> parameter. It is the name of the header to be removed.</simpara>
 <formalpara>
 <title>application.yml</title>
 <para>
@@ -787,7 +821,7 @@ KeyResolver userKeyResolver() {
 </section>
 <section xml:id="_removeresponseheader_gatewayfilter_factory">
 <title>RemoveResponseHeader GatewayFilter Factory</title>
-<simpara>The RemoveResponseHeader GatewayFilter Factory takes a <literal>name</literal> parameter. It is the name of the header to be removed.</simpara>
+<simpara>The <literal>RemoveResponseHeader</literal> GatewayFilter Factory takes a <literal>name</literal> parameter. It is the name of the header to be removed.</simpara>
 <formalpara>
 <title>application.yml</title>
 <para>
@@ -808,7 +842,7 @@ and have it applied to all routes.</simpara>
 </section>
 <section xml:id="_rewritepath_gatewayfilter_factory">
 <title>RewritePath GatewayFilter Factory</title>
-<simpara>The RewritePath GatewayFilter Factory takes a path <literal>regexp</literal> parameter and a <literal>replacement</literal> parameter. This uses Java regular expressions for a flexible way to rewrite the request path.</simpara>
+<simpara>The <literal>RewritePath</literal> GatewayFilter Factory takes a path <literal>regexp</literal> parameter and a <literal>replacement</literal> parameter. This uses Java regular expressions for a flexible way to rewrite the request path.</simpara>
 <formalpara>
 <title>application.yml</title>
 <para>
@@ -828,7 +862,7 @@ and have it applied to all routes.</simpara>
 </section>
 <section xml:id="_rewritelocationresponseheader_gatewayfilter_factory">
 <title>RewriteLocationResponseHeader GatewayFilter Factory</title>
-<simpara>The RewriteLocationResponseHeader GatewayFilter Factory modifies the value of <literal>Location</literal> response header, usually to get rid of backend specific details. It takes <literal>stripVersionMode</literal>, <literal>locationHeaderName</literal>, <literal>hostValue</literal>, and <literal>protocolsRegex</literal> parameters.</simpara>
+<simpara>The <literal>RewriteLocationResponseHeader</literal> GatewayFilter Factory modifies the value of <literal>Location</literal> response header, usually to get rid of backend specific details. It takes <literal>stripVersionMode</literal>, <literal>locationHeaderName</literal>, <literal>hostValue</literal>, and <literal>protocolsRegex</literal> parameters.</simpara>
 <formalpara>
 <title>application.yml</title>
 <para>
@@ -860,7 +894,7 @@ and have it applied to all routes.</simpara>
 </section>
 <section xml:id="_rewriteresponseheader_gatewayfilter_factory">
 <title>RewriteResponseHeader GatewayFilter Factory</title>
-<simpara>The RewriteResponseHeader GatewayFilter Factory takes <literal>name</literal>, <literal>regexp</literal>, and <literal>replacement</literal> parameters. It uses Java regular expressions for a flexible way to rewrite the response header value.</simpara>
+<simpara>The <literal>RewriteResponseHeader</literal> GatewayFilter Factory takes <literal>name</literal>, <literal>regexp</literal>, and <literal>replacement</literal> parameters. It uses Java regular expressions for a flexible way to rewrite the response header value.</simpara>
 <formalpara>
 <title>application.yml</title>
 <para>
@@ -899,7 +933,7 @@ using something like <link xl:href="https://projects.spring.io/spring-session/">
 </section>
 <section xml:id="_secureheaders_gatewayfilter_factory">
 <title>SecureHeaders GatewayFilter Factory</title>
-<simpara>The SecureHeaders GatewayFilter Factory adds a number of headers to the response at the recommendation from <link xl:href="https://blog.appcanary.com/2017/http-security-headers.html">this blog post</link>.</simpara>
+<simpara>The <literal>SecureHeaders</literal> GatewayFilter Factory adds a number of headers to the response at the recommendation from <link xl:href="https://blog.appcanary.com/2017/http-security-headers.html">this blog post</link>.</simpara>
 <itemizedlist>
 <title>The following headers are added (along with default values):</title>
 <listitem>
@@ -993,7 +1027,7 @@ using something like <link xl:href="https://projects.spring.io/spring-session/">
 </section>
 <section xml:id="_setpath_gatewayfilter_factory">
 <title>SetPath GatewayFilter Factory</title>
-<simpara>The SetPath GatewayFilter Factory takes a path <literal>template</literal> parameter. It offers a simple way to manipulate the request path by allowing templated segments of the path. This uses the uri templates from Spring Framework. Multiple matching segments are allowed.</simpara>
+<simpara>The <literal>SetPath</literal> GatewayFilter Factory takes a path <literal>template</literal> parameter. It offers a simple way to manipulate the request path by allowing templated segments of the path. This uses the uri templates from Spring Framework. Multiple matching segments are allowed.</simpara>
 <formalpara>
 <title>application.yml</title>
 <para>
@@ -1013,7 +1047,7 @@ using something like <link xl:href="https://projects.spring.io/spring-session/">
 </section>
 <section xml:id="_setrequestheader_gatewayfilter_factory">
 <title>SetRequestHeader GatewayFilter Factory</title>
-<simpara>The SetRequestHeader GatewayFilter Factory takes <literal>name</literal> and <literal>value</literal> parameters.</simpara>
+<simpara>The <literal>SetRequestHeader</literal> GatewayFilter Factory takes <literal>name</literal> and <literal>value</literal> parameters.</simpara>
 <formalpara>
 <title>application.yml</title>
 <para>
@@ -1047,7 +1081,7 @@ using something like <link xl:href="https://projects.spring.io/spring-session/">
 </section>
 <section xml:id="_setresponseheader_gatewayfilter_factory">
 <title>SetResponseHeader GatewayFilter Factory</title>
-<simpara>The SetResponseHeader GatewayFilter Factory takes <literal>name</literal> and <literal>value</literal> parameters.</simpara>
+<simpara>The <literal>SetResponseHeader</literal> GatewayFilter Factory takes <literal>name</literal> and <literal>value</literal> parameters.</simpara>
 <formalpara>
 <title>application.yml</title>
 <para>
@@ -1081,7 +1115,7 @@ using something like <link xl:href="https://projects.spring.io/spring-session/">
 </section>
 <section xml:id="_setstatus_gatewayfilter_factory">
 <title>SetStatus GatewayFilter Factory</title>
-<simpara>The SetStatus GatewayFilter Factory takes a single <literal>status</literal> parameter. It must be a valid Spring <literal>HttpStatus</literal>. It may be the integer value <literal>404</literal> or the string representation of the enumeration <literal>NOT_FOUND</literal>.</simpara>
+<simpara>The <literal>SetStatus</literal> GatewayFilter Factory takes a single <literal>status</literal> parameter. It must be a valid Spring <literal>HttpStatus</literal>. It may be the integer value <literal>404</literal> or the string representation of the enumeration <literal>NOT_FOUND</literal>.</simpara>
 <formalpara>
 <title>application.yml</title>
 <para>
@@ -1123,7 +1157,7 @@ using something like <link xl:href="https://projects.spring.io/spring-session/">
 </section>
 <section xml:id="_retry_gatewayfilter_factory">
 <title>Retry GatewayFilter Factory</title>
-<simpara>The Retry GatewayFilter Factory support following set of parameters:</simpara>
+<simpara>The <literal>Retry</literal> GatewayFilter Factory support following set of parameters:</simpara>
 <itemizedlist>
 <listitem>
 <simpara><literal>retries</literal>: the number of retries that should be attempted</simpara>
@@ -1180,6 +1214,7 @@ If <literal>basedOnPreviousValue</literal> is true, backoff will be calculated u
           args:
             retries: 3
             statuses: BAD_GATEWAY
+            methods: GET,POST
             backoff:
               firstBackoff: 10ms
               maxBackoff: 50ms
@@ -1188,15 +1223,15 @@ If <literal>basedOnPreviousValue</literal> is true, backoff will be calculated u
 </para>
 </formalpara>
 <note>
-<simpara>The retry filter does not currently support retrying with a body (e.g. for POST or PUT requests with a body).</simpara>
-</note>
-<note>
 <simpara>When using the retry filter with a <literal>forward:</literal> prefixed URL, the target endpoint should be written carefully so that in case of an error it does not do anything that could result in a response being sent to the client and committed. For example, if the target endpoint is an annotated controller, the target controller method should not return <literal>ResponseEntity</literal> with an error status code. Instead it should throw an <literal>Exception</literal>, or signal an error, e.g. via a <literal>Mono.error(ex)</literal> return value, which the retry filter can be configured to handle by retrying.</simpara>
 </note>
+<warning>
+<simpara>When using the retry filter with any HTTP method with a body, the body will be cached and the gateway will become memory constrained. The body is cached in a request attribute defined by <literal>ServerWebExchangeUtils.CACHED_REQUEST_BODY_ATTR</literal>. The type of the object is a <literal>org.springframework.core.io.buffer.DataBuffer</literal>.</simpara>
+</warning>
 </section>
 <section xml:id="_requestsize_gatewayfilter_factory">
 <title>RequestSize GatewayFilter Factory</title>
-<simpara>The RequestSize GatewayFilter Factory can restrict a request from reaching the downstream service , when the request size is greater than the permissible limit. The filter takes <literal>RequestSize</literal> as parameter which is the permissible size limit of the request defined in bytes.</simpara>
+<simpara>The <literal>RequestSize</literal> GatewayFilter Factory can restrict a request from reaching the downstream service , when the request size is greater than the permissible limit. The filter takes a <literal>maxSize</literal> parameter which is the permissible size limit of the request. The <literal>maxSize is a `DataSize</literal> type, so values can be defined as a number followed by an optional <literal>DataUnit</literal> suffix such as 'KB' or 'MB'. The default is 'B' for bytes.</simpara>
 <formalpara>
 <title>application.yml</title>
 <para>
@@ -1223,7 +1258,7 @@ If <literal>basedOnPreviousValue</literal> is true, backoff will be calculated u
 <section xml:id="_modify_request_body_gatewayfilter_factory">
 <title>Modify Request Body GatewayFilter Factory</title>
 <simpara><emphasis role="strong">This filter is considered BETA and the API may change in the future</emphasis></simpara>
-<simpara>This filter can be used to modify the request body before it is sent downstream by the Gateway.</simpara>
+<simpara>The <literal>ModifyRequestBody</literal> filter can be used to modify the request body before it is sent downstream by the Gateway.</simpara>
 <note>
 <simpara>This filter can only be configured using the Java DSL</simpara>
 </note>
@@ -1258,7 +1293,7 @@ static class Hello {
 <section xml:id="_modify_response_body_gatewayfilter_factory">
 <title>Modify Response Body GatewayFilter Factory</title>
 <simpara><emphasis role="strong">This filter is considered BETA and the API may change in the future</emphasis></simpara>
-<simpara>This filter can be used to modify the response body before it is sent back to the Client.</simpara>
+<simpara>The <literal>ModifyResponseBody</literal> filter can be used to modify the response body before it is sent back to the Client.</simpara>
 <note>
 <simpara>This filter can only be configured using the Java DSL</simpara>
 </note>
@@ -1474,6 +1509,86 @@ or check if an exchange has already been routed.</simpara>
 </listitem>
 <listitem>
 <simpara><literal>ServerWebExchangeUtils.setAlreadyRouted</literal> takes a <literal>ServerWebExchange</literal> object and marks it as "routed"</simpara>
+</listitem>
+</itemizedlist>
+</section>
+</chapter>
+<chapter xml:id="_httpheadersfilters">
+<title>HttpHeadersFilters</title>
+<simpara>HttpHeadersFilters are applied to requests before sending them downstream, such as in the <literal>NettyRoutingFilter</literal>.</simpara>
+<section xml:id="_forwarded_headers_filter">
+<title>Forwarded Headers Filter</title>
+<simpara>The <literal>Forwarded</literal> Headers Filter creates a <literal>Forwarded</literal> header to send to the downstream service. It adds the <literal>Host</literal> header, scheme and port of the current request to any existing <literal>Forwarded</literal> header.</simpara>
+</section>
+<section xml:id="_removehopbyhop_headers_filter">
+<title>RemoveHopByHop Headers Filter</title>
+<simpara>The <literal>RemoveHopByHop</literal> Headers Filter removes headers from forwarded requests. The default list of headers that is removed comes from the <link xl:href="https://tools.ietf.org/html/draft-ietf-httpbis-p1-messaging-14#section-7.1.3">IETF</link>.</simpara>
+<itemizedlist>
+<title>The default removed headers are:</title>
+<listitem>
+<simpara>Connection</simpara>
+</listitem>
+<listitem>
+<simpara>Keep-Alive</simpara>
+</listitem>
+<listitem>
+<simpara>Proxy-Authenticate</simpara>
+</listitem>
+<listitem>
+<simpara>Proxy-Authorization</simpara>
+</listitem>
+<listitem>
+<simpara>TE</simpara>
+</listitem>
+<listitem>
+<simpara>Trailer</simpara>
+</listitem>
+<listitem>
+<simpara>Transfer-Encoding</simpara>
+</listitem>
+<listitem>
+<simpara>Upgrade</simpara>
+</listitem>
+</itemizedlist>
+<simpara>To change this, set the <literal>spring.cloud.gateway.filter.remove-non-proxy-headers.headers</literal> property to the list of header names to remove.</simpara>
+</section>
+<section xml:id="_xforwarded_headers_filter">
+<title>XForwarded Headers Filter</title>
+<simpara>The <literal>XForwarded</literal> Headers Filter creates various a <literal>X-Forwarded-*</literal> headers to send to the downstream service. It users the <literal>Host</literal> header, scheme, port and path of the current request to create the various headers.</simpara>
+<simpara>Creating of individual headers can be controlled by the following boolean properties (defaults to true):</simpara>
+<itemizedlist>
+<listitem>
+<simpara><literal>spring.cloud.gateway.x-forwarded.for.enabled</literal></simpara>
+</listitem>
+<listitem>
+<simpara><literal>spring.cloud.gateway.x-forwarded.host.enabled</literal></simpara>
+</listitem>
+<listitem>
+<simpara><literal>spring.cloud.gateway.x-forwarded.port.enabled</literal></simpara>
+</listitem>
+<listitem>
+<simpara><literal>spring.cloud.gateway.x-forwarded.proto.enabled</literal></simpara>
+</listitem>
+<listitem>
+<simpara><literal>spring.cloud.gateway.x-forwarded.prefix.enabled</literal></simpara>
+</listitem>
+</itemizedlist>
+<simpara>Appending multiple headers can be controlled by the following boolean properties (defaults to true):</simpara>
+<itemizedlist>
+<listitem>
+<simpara><literal>spring.cloud.gateway.x-forwarded.for.append</literal></simpara>
+</listitem>
+<listitem>
+<simpara><literal>spring.cloud.gateway.x-forwarded.host.append</literal></simpara>
+</listitem>
+<listitem>
+<simpara><literal>spring.cloud.gateway.x-forwarded.port.append</literal></simpara>
+</listitem>
+<listitem>
+<simpara><literal>spring.cloud.gateway.x-forwarded.proto.append</literal></simpara>
+</listitem>
+<listitem>
+<simpara><literal>spring.cloud.gateway.x-forwarded.prefix.append</literal></simpara>
 </listitem>
 </itemizedlist>
 </section>
@@ -1963,10 +2078,38 @@ respectively.</simpara>
 </chapter>
 <chapter xml:id="_developer_guide">
 <title>Developer Guide</title>
-<simpara>TODO: overview of writing custom integrations</simpara>
+<simpara>These are basic guides to writing some custom components of the gateway.</simpara>
 <section xml:id="_writing_custom_route_predicate_factories">
 <title>Writing Custom Route Predicate Factories</title>
-<simpara>TODO: document writing Custom Route Predicate Factories</simpara>
+<simpara>In order to write a Route Predicate you will need to implement <literal>RoutePredicateFactory</literal>.  There is an abstract class called <literal>AbstractRoutePredicateFactory</literal> which you can extend.</simpara>
+<formalpara>
+<title>MyRoutePredicateFactory.java</title>
+<para>
+<programlisting language="java" linenumbering="unnumbered">public class MyRoutePredicateFactory extends AbstractRoutePredicateFactory&lt;HeaderRoutePredicateFactory.Config&gt; {
+
+    public MyRoutePredicateFactory() {
+        super(Config.class);
+    }
+
+    @Override
+    public Predicate&lt;ServerWebExchange&gt; apply(Config config) {
+        // grab configuration from Config object
+        return exchange -&gt; {
+            //grab the request
+            ServerHttpRequest request = exchange.getRequest();
+            //take information from the request to see if it
+            //matches configuration.
+            return matches(config, request);
+        };
+    }
+
+    public static class Config {
+        //Put the configuration properties for your filter here
+    }
+
+}</programlisting>
+</para>
+</formalpara>
 </section>
 <section xml:id="_writing_custom_gatewayfilter_factories">
 <title>Writing Custom GatewayFilter Factories</title>
@@ -1984,16 +2127,16 @@ respectively.</simpara>
 	public GatewayFilter apply(Config config) {
 		// grab configuration from Config object
 		return (exchange, chain) -&gt; {
-            //If you want to build a "pre" filter you need to manipulate the
-            //request before calling chain.filter
-            ServerHttpRequest.Builder builder = exchange.getRequest().mutate();
-            //use builder to manipulate the request
-            return chain.filter(exchange.mutate().request(request).build());
+			//If you want to build a "pre" filter you need to manipulate the
+			//request before calling chain.filter
+			ServerHttpRequest.Builder builder = exchange.getRequest().mutate();
+			//use builder to manipulate the request
+			return chain.filter(exchange.mutate().request(request).build());
 		};
 	}
 
 	public static class Config {
-        //Put the configuration properties for your filter here
+		//Put the configuration properties for your filter here
 	}
 
 }</programlisting>
@@ -2020,7 +2163,7 @@ respectively.</simpara>
 	}
 
 	public static class Config {
-        //Put the configuration properties for your filter here
+		//Put the configuration properties for your filter here
 	}
 
 }</programlisting>
@@ -2057,13 +2200,12 @@ public GlobalFilter customGlobalPostFilter() {
         .then();
 }</programlisting>
 </section>
-<section xml:id="_writing_custom_route_locators_and_writers">
-<title>Writing Custom Route Locators and Writers</title>
-<simpara>TODO: document writing Custom Route Locators and Writers</simpara>
-</section>
 </chapter>
 <chapter xml:id="_building_a_simple_gateway_using_spring_mvc_or_webflux">
 <title>Building a Simple Gateway Using Spring MVC or Webflux</title>
+<warning>
+<simpara>The following describes an alternative style gateway. None of the prior documentation applies to what follows.</simpara>
+</warning>
 <simpara>Spring Cloud Gateway provides a utility object called <literal>ProxyExchange</literal> which you can use inside a regular Spring web handler as a method parameter. It supports basic downstream HTTP exchanges via methods that mirror the HTTP verbs. With MVC it also supports forwarding to a local handler via the <literal>forward()</literal> method. To use the <literal>ProxyExchange</literal> just include the right module in your classpath (either <literal>spring-cloud-gateway-mvc</literal> or <literal>spring-cloud-gateway-webflux</literal>).</simpara>
 <simpara>MVC example (proxying a request to "/test" downstream to a remote server):</simpara>
 <programlisting language="java" linenumbering="unnumbered">@RestController
