@@ -22,6 +22,7 @@ import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyResponseBodyGatewayFilterFactory.Config;
 import org.springframework.http.codec.support.DefaultServerCodecConfigurer;
 
+import static java.util.Collections.emptySet;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ModifyResponseBodyGatewayFilterFactoryUnitTests {
@@ -33,7 +34,7 @@ public class ModifyResponseBodyGatewayFilterFactoryUnitTests {
 		config.setOutClass(Integer.class);
 		config.setNewContentType("mycontenttype");
 		GatewayFilter filter = new ModifyResponseBodyGatewayFilterFactory(
-				new DefaultServerCodecConfigurer()).apply(config);
+				new DefaultServerCodecConfigurer(), emptySet(), emptySet()).apply(config);
 		assertThat(filter.toString()).contains("String").contains("Integer")
 				.contains("mycontenttype");
 	}
