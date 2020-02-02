@@ -45,8 +45,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
@@ -89,7 +89,7 @@ public class ReactiveLoadBalancerClientFilterTests {
 
 		verify(chain).filter(exchange);
 		verifyNoMoreInteractions(chain);
-		verifyZeroInteractions(clientFactory);
+		verifyNoInteractions(clientFactory);
 	}
 
 	@Test
@@ -101,7 +101,7 @@ public class ReactiveLoadBalancerClientFilterTests {
 
 		verify(chain).filter(exchange);
 		verifyNoMoreInteractions(chain);
-		verifyZeroInteractions(clientFactory);
+		verifyNoInteractions(clientFactory);
 	}
 
 	@Test(expected = NotFoundException.class)
@@ -118,8 +118,8 @@ public class ReactiveLoadBalancerClientFilterTests {
 		URI url = UriComponentsBuilder.fromUriString("lb://myservice").build().toUri();
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, url);
 
-		ServiceInstance serviceInstance = new DefaultServiceInstance("myservice",
-				"localhost", 8080, true);
+		ServiceInstance serviceInstance = new DefaultServiceInstance("myservice1",
+				"myservice", "localhost", 8080, true);
 
 		when(clientFactory.getInstance("myservice", ReactorLoadBalancer.class,
 				ServiceInstance.class)).thenReturn(new RoundRobinLoadBalancer("myservice",
@@ -239,7 +239,7 @@ public class ReactiveLoadBalancerClientFilterTests {
 
 		verify(chain).filter(exchange);
 		verifyNoMoreInteractions(chain);
-		verifyZeroInteractions(clientFactory);
+		verifyNoInteractions(clientFactory);
 	}
 
 	@Test

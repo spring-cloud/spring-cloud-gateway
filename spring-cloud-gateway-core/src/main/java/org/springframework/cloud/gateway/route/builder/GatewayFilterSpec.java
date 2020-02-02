@@ -42,7 +42,6 @@ import org.springframework.cloud.gateway.filter.factory.AddResponseHeaderGateway
 import org.springframework.cloud.gateway.filter.factory.DedupeResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.DedupeResponseHeaderGatewayFilterFactory.Strategy;
 import org.springframework.cloud.gateway.filter.factory.FallbackHeadersGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.HystrixGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.MapRequestHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.PrefixPathGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.PreserveHostHeaderGatewayFilterFactory;
@@ -74,7 +73,6 @@ import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpStatus;
-import org.springframework.util.StringUtils;
 import org.springframework.util.unit.DataSize;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -197,27 +195,6 @@ public class GatewayFilterSpec extends UriSpec {
 	public GatewayFilterSpec dedupeResponseHeader(String headerName, String strategy) {
 		return filter(getBean(DedupeResponseHeaderGatewayFilterFactory.class).apply(
 				c -> c.setStrategy(Strategy.valueOf(strategy)).setName(headerName)));
-	}
-
-	/**
-	 * Wraps the route in a Hystrix command. Depends on @{code
-	 * org.springframework.cloud::spring-cloud-starter-netflix-hystrix} being on the
-	 * classpath, {@see https://cloud.spring.io/spring-cloud-netflix/}
-	 * @param configConsumer a {@link Consumer} which provides configuration for the
-	 * Hystrix command
-	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
-	 */
-	public GatewayFilterSpec hystrix(
-			Consumer<HystrixGatewayFilterFactory.Config> configConsumer) {
-		HystrixGatewayFilterFactory factory;
-		try {
-			factory = getBean(HystrixGatewayFilterFactory.class);
-		}
-		catch (NoSuchBeanDefinitionException e) {
-			throw new NoSuchBeanDefinitionException(HystrixGatewayFilterFactory.class,
-					"This is probably because Hystrix is missing from the classpath, which can be resolved by adding dependency on 'org.springframework.cloud:spring-cloud-starter-netflix-hystrix'");
-		}
-		return filter(factory.apply(this.routeBuilder.getId(), configConsumer));
 	}
 
 	public GatewayFilterSpec circuitBreaker(

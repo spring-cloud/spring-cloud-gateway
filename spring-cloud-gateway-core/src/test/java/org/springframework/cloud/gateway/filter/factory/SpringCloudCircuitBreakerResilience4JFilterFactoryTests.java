@@ -39,7 +39,6 @@ import org.springframework.web.bind.annotation.RestController;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
-import static org.springframework.cloud.gateway.filter.factory.ExceptionFallbackHandler.RETRIEVED_EXCEPTION;
 
 /**
  * @author Ryan Baxter
@@ -52,6 +51,8 @@ import static org.springframework.cloud.gateway.filter.factory.ExceptionFallback
 @DirtiesContext
 public class SpringCloudCircuitBreakerResilience4JFilterFactoryTests
 		extends SpringCloudCircuitBreakerFilterFactoryTests {
+
+	private static final String RETRIEVED_EXCEPTION = "Retrieved-Exception";
 
 	@Autowired
 	private Resilience4JCircuitBreakerFactory factory;

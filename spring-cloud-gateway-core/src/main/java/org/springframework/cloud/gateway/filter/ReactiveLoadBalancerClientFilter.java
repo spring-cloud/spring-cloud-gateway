@@ -52,7 +52,10 @@ public class ReactiveLoadBalancerClientFilter implements GlobalFilter, Ordered {
 	private static final Log log = LogFactory
 			.getLog(ReactiveLoadBalancerClientFilter.class);
 
-	private static final int LOAD_BALANCER_CLIENT_FILTER_ORDER = 10150;
+	/**
+	 * Order of filter.
+	 */
+	public static final int LOAD_BALANCER_CLIENT_FILTER_ORDER = 10150;
 
 	private final LoadBalancerClientFactory clientFactory;
 

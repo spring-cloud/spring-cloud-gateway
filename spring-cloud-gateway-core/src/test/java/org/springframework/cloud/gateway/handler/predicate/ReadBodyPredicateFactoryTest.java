@@ -18,8 +18,6 @@ package org.springframework.cloud.gateway.handler.predicate;
 
 import java.util.function.Predicate;
 
-import com.netflix.loadbalancer.Server;
-import com.netflix.loadbalancer.ServerList;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -27,15 +25,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.cloud.gateway.handler.AsyncPredicate;
 import org.springframework.cloud.gateway.handler.predicate.ReadBodyPredicateFactory.Config;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
+import org.springframework.cloud.gateway.test.BaseWebClientTests.TestLoadBalancerConfig;
 import org.springframework.cloud.gateway.test.PermitAllSecurityConfiguration;
-import org.springframework.cloud.netflix.ribbon.RibbonClient;
-import org.springframework.cloud.netflix.ribbon.RibbonClients;
-import org.springframework.cloud.netflix.ribbon.StaticServerList;
+import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
+import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClients;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpMethod;
@@ -69,13 +66,12 @@ public class ReadBodyPredicateFactoryTest {
 		Event messageEvent = new Event("message", "bar");
 		Event messageChannelEvent = new Event("message.channels", "bar");
 
-		webClient.post().uri("/events").body(BodyInserters.fromObject(messageEvent))
+		webClient.post().uri("/events").body(BodyInserters.fromValue(messageEvent))
 				.exchange().expectStatus().isOk().expectBody().jsonPath("$.headers.Hello")
 				.isEqualTo("World");
 
-		webClient.post().uri("/events")
-				.body(BodyInserters.fromObject(messageChannelEvent)).exchange()
-				.expectStatus().isOk().expectBody().jsonPath("$.headers.World")
+		webClient.post().uri("/events").body(BodyInserters.fromValue(messageChannelEvent))
+				.exchange().expectStatus().isOk().expectBody().jsonPath("$.headers.World")
 				.isEqualTo("Hello");
 
 	}
@@ -91,10 +87,11 @@ public class ReadBodyPredicateFactoryTest {
 
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
-	@RibbonClients({
-			@RibbonClient(name = "message", configuration = TestRibbonConfig.class),
-			@RibbonClient(name = "messageChannel",
-					configuration = TestRibbonConfig.class) })
+	@LoadBalancerClients({
+			@LoadBalancerClient(name = "message",
+					configuration = TestLoadBalancerConfig.class),
+			@LoadBalancerClient(name = "messageChannel",
+					configuration = TestLoadBalancerConfig.class) })
 	@Import(PermitAllSecurityConfiguration.class)
 	@RestController
 	public static class TestConfig {
@@ -117,28 +114,15 @@ public class ReadBodyPredicateFactoryTest {
 			return r -> r.getFoo().equals(type);
 		}
 
-		@PostMapping(path = "message/events",
-				produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+		@PostMapping(path = "message/events", produces = MediaType.APPLICATION_JSON_VALUE)
 		public String messageEvents(@RequestBody Event e) {
 			return "{\"headers\":{\"Hello\":\"World\"}}";
 		}
 
 		@PostMapping(path = "messageChannel/events",
-				produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+				produces = MediaType.APPLICATION_JSON_VALUE)
 		public String messageChannelEvents(@RequestBody Event e) {
 			return "{\"headers\":{\"World\":\"Hello\"}}";
-		}
-
-	}
-
-	protected static class TestRibbonConfig {
-
-		@LocalServerPort
-		protected int port = 0;
-
-		@Bean
-		public ServerList<Server> ribbonServerList() {
-			return new StaticServerList<>(new Server("localhost", this.port));
 		}
 
 	}

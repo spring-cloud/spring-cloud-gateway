@@ -25,10 +25,15 @@ public class CustomBlockHoundIntegration implements BlockHoundIntegration {
 
 	@Override
 	public void applyTo(BlockHound.Builder builder) {
-		/*
-		 * builder.blockingMethodCallback(it -> { Error error = new Error(it.toString());
-		 * error.printStackTrace(); throw error; });
-		 */
+		// builder.blockingMethodCallback(it -> {
+		// Error error = new Error(it.toString());
+		// error.printStackTrace();
+		// throw error;
+		// });
+
+		// Uses Unsafe#park
+		builder.allowBlockingCallsInside("reactor.core.scheduler.SchedulerTask",
+				"dispose");
 
 		// Uses
 		// ch.qos.logback.classic.spi.PackagingDataCalculator#getImplementationVersion
@@ -69,6 +74,12 @@ public class CustomBlockHoundIntegration implements BlockHoundIntegration {
 				"execute");
 		builder.allowBlockingCallsInside(
 				"io.netty.util.concurrent.SingleThreadEventExecutor$6", "run");
+		// builder.allowBlockingCallsInside("io.netty.util.concurrent.GlobalEventExecutor",
+		// "takeTask");
+		// builder.allowBlockingCallsInside("io.netty.util.concurrent.GlobalEventExecutor",
+		// "addTask");
+		builder.allowBlockingCallsInside(
+				"io.netty.util.concurrent.FastThreadLocalRunnable", "run");
 
 		// SECURITY RELATED
 
@@ -80,13 +91,6 @@ public class CustomBlockHoundIntegration implements BlockHoundIntegration {
 		builder.allowBlockingCallsInside("io.netty.handler.ssl.SslHandler", "unwrap");
 		builder.allowBlockingCallsInside("io.netty.handler.ssl.SslContext",
 				"newClientContextInternal");
-
-		// Uses
-		// org.springframework.cloud.commons.httpclient.DefaultApacheHttpClientConnectionManagerFactory#newConnectionManager
-		// Uses javax.net.ssl.SSLContext#init
-		builder.allowBlockingCallsInside(
-				"org.springframework.cloud.netflix.ribbon.SpringClientFactory",
-				"getContext");
 
 		// Uses org.springframework.security.crypto.bcrypt.BCrypt#gensalt
 		// Uses java.security.SecureRandom#nextBytes

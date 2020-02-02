@@ -134,7 +134,7 @@ public class GatewaySampleApplication {
 	public RouterFunction<ServerResponse> testFunRouterFunction() {
 		RouterFunction<ServerResponse> route = RouterFunctions.route(
 				RequestPredicates.path("/testfun"),
-				request -> ServerResponse.ok().body(BodyInserters.fromObject("hello")));
+				request -> ServerResponse.ok().body(BodyInserters.fromValue("hello")));
 		return route;
 	}
 
@@ -143,7 +143,7 @@ public class GatewaySampleApplication {
 		RouterFunction<ServerResponse> route = RouterFunctions.route(
 				RequestPredicates.path("/actuator/metrics/gateway.requests"),
 				request -> ServerResponse.ok().body(BodyInserters
-						.fromObject(HELLO_FROM_FAKE_ACTUATOR_METRICS_GATEWAY_REQUESTS)));
+						.fromValue(HELLO_FROM_FAKE_ACTUATOR_METRICS_GATEWAY_REQUESTS)));
 		return route;
 	}
 

@@ -36,8 +36,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ALREADY_ROUTED_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
@@ -76,7 +76,7 @@ public class ForwardRoutingFilterTests {
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, uri);
 		forwardRoutingFilter.filter(exchange, chain);
 
-		verifyZeroInteractions(dispatcherHandler);
+		verifyNoInteractions(dispatcherHandler);
 		verify(chain).filter(exchange);
 		verifyNoMoreInteractions(chain);
 	}
@@ -128,7 +128,7 @@ public class ForwardRoutingFilterTests {
 
 		forwardRoutingFilter.filter(exchange, chain);
 
-		verifyZeroInteractions(dispatcherHandler);
+		verifyNoInteractions(dispatcherHandler);
 		verify(chain).filter(exchange);
 		verifyNoMoreInteractions(chain);
 	}

@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-gateway</artifactId>
-		<version>2.2.2.BUILD-SNAPSHOT</version>
+		<version>3.0.0.BUILD-SNAPSHOT</version>
 	</parent>
 	<artifactId>spring-cloud-gateway-docs</artifactId>
 	<packaging>pom</packaging>
@@ -15,7 +15,7 @@
 	<properties>
 		<docs.main>spring-cloud-gateway</docs.main>
 		<main.basedir>${basedir}/..</main.basedir>
-		<docs.whitelisted.branches>1.0.x,2.1.x</docs.whitelisted.branches>
+		<docs.whitelisted.branches>2.1.x,2.2.x</docs.whitelisted.branches>
 		<configprops.inclusionPattern>spring.cloud.gateway.*</configprops.inclusionPattern>
 	</properties>
 	<dependencies>
