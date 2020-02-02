@@ -16,8 +16,14 @@
 
 package org.springframework.cloud.gateway.filter.factory.rewrite;
 
+import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import reactor.core.publisher.Mono;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -31,11 +37,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.util.UriComponentsBuilder;
-import reactor.core.publisher.Mono;
-
-import java.net.URI;
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -50,7 +51,8 @@ public class ModifyResponseBodyGatewayFilterFactoryGzipTests extends BaseWebClie
 				.toUri();
 
 		testClient.get().uri(uri).header("Host", "www.modifyresponsebodyjava.org")
-				.accept(MediaType.APPLICATION_JSON).exchange().expectBody().json("{\"length\":25,\"value\":\"\\\"httpbin compatible home\\\"\"}");
+				.accept(MediaType.APPLICATION_JSON).exchange().expectBody()
+				.json("{\"length\":25,\"value\":\"\\\"httpbin compatible home\\\"\"}");
 	}
 
 	@EnableAutoConfiguration
@@ -65,16 +67,15 @@ public class ModifyResponseBodyGatewayFilterFactoryGzipTests extends BaseWebClie
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes().route("modify_response_java_test_gzip",
 					r -> r.path("/gzip").and().host("www.modifyresponsebodyjava.org")
-							.filters(f -> f.modifyResponseBody(
-									String.class, Map.class,
+							.filters(f -> f.modifyResponseBody(String.class, Map.class,
 									(webExchange, originalResponse) -> {
 										Map<String, Object> modifiedResponse = new HashMap<>();
 										modifiedResponse.put("value", originalResponse);
 										modifiedResponse.put("length",
 												originalResponse.length());
 										return Mono.just(modifiedResponse);
-									})).uri("https://httpbin.org:9090")
-							.uri(uri))
+									}))
+							.uri("https://httpbin.org:9090").uri(uri))
 					.build();
 		}
 

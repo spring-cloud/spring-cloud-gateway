@@ -17,8 +17,8 @@
 package org.springframework.cloud.gateway.filter.factory.rewrite;
 
 import org.junit.Test;
-import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyResponseBodyGatewayFilterFactory.Config;
+import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.http.codec.support.DefaultServerCodecConfigurer;
 
 import static java.util.Collections.emptySet;
