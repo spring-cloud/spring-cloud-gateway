@@ -16,12 +16,7 @@
 
 package org.springframework.cloud.gateway.filter.factory.rewrite;
 
-import java.util.Map;
-
 import org.reactivestreams.Publisher;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.NettyWriteResponseFilter;
@@ -30,6 +25,8 @@ import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
 import org.springframework.cloud.gateway.support.BodyInserterContext;
 import org.springframework.core.Ordered;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferFactory;
+import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -43,7 +40,17 @@ import org.springframework.web.reactive.function.BodyInserter;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static java.util.function.Function.identity;
 import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR;
 
@@ -56,15 +63,26 @@ public class ModifyResponseBodyGatewayFilterFactory extends
 	@Nullable
 	private final ServerCodecConfigurer codecConfigurer;
 
+	private final Map<String, MessageBodyDecoder> messageBodyDecoders;
+	private final Map<String, MessageBodyEncoder> messageBodyEncoders;
+
 	@Deprecated
 	public ModifyResponseBodyGatewayFilterFactory() {
 		super(Config.class);
 		this.codecConfigurer = null;
+		messageBodyDecoders = Collections.emptyMap();
+		messageBodyEncoders = Collections.emptyMap();
 	}
 
-	public ModifyResponseBodyGatewayFilterFactory(ServerCodecConfigurer codecConfigurer) {
+	public ModifyResponseBodyGatewayFilterFactory(ServerCodecConfigurer codecConfigurer,
+			Set<MessageBodyDecoder> messageBodyDecoders,
+			Set<MessageBodyEncoder> messageBodyEncoders) {
 		super(Config.class);
 		this.codecConfigurer = codecConfigurer;
+		this.messageBodyDecoders = messageBodyDecoders.stream()
+				.collect(Collectors.toMap(MessageBodyDecoder::encodingType, identity()));
+		this.messageBodyEncoders = messageBodyEncoders.stream()
+				.collect(Collectors.toMap(MessageBodyEncoder::encodingType, identity()));
 	}
 
 	@Override
@@ -202,7 +220,7 @@ public class ModifyResponseBodyGatewayFilterFactory extends
 							httpHeaders);
 
 					// TODO: flux or mono
-					Mono modifiedBody = clientResponse.bodyToMono(inClass)
+					Mono modifiedBody = extractBody(exchange, clientResponse, inClass)
 							.flatMap(originalBody -> config.rewriteFunction
 									.apply(exchange, originalBody));
 
@@ -212,9 +230,12 @@ public class ModifyResponseBodyGatewayFilterFactory extends
 							exchange, exchange.getResponse().getHeaders());
 					return bodyInserter.insert(outputMessage, new BodyInserterContext())
 							.then(Mono.defer(() -> {
-								Flux<DataBuffer> messageBody = outputMessage.getBody();
+								Mono<DataBuffer> messageBody = writeBody(getDelegate(),
+										outputMessage, outClass);
 								HttpHeaders headers = getDelegate().getHeaders();
-								if (!headers.containsKey(HttpHeaders.TRANSFER_ENCODING)) {
+								if (!headers.containsKey(HttpHeaders.TRANSFER_ENCODING)
+										|| headers.containsKey(
+												HttpHeaders.CONTENT_LENGTH)) {
 									messageBody = messageBody.doOnNext(data -> headers
 											.setContentLength(data.readableByteCount()));
 								}
@@ -245,6 +266,59 @@ public class ModifyResponseBodyGatewayFilterFactory extends
 							.body(Flux.from(body)).build();
 				}
 
+				private <T> Mono<T> extractBody(ServerWebExchange exchange,
+						ClientResponse clientResponse, Class<T> inClass) {
+					// if inClass is byte[] then just return body, otherwise check if
+					// decoding required
+					if (byte[].class.isAssignableFrom(inClass)) {
+						return clientResponse.bodyToMono(inClass);
+					}
+
+					List<String> encodingHeaders = Optional
+							.ofNullable(exchange.getResponse().getHeaders()
+									.get(HttpHeaders.CONTENT_ENCODING))
+							.orElse(Collections.emptyList());
+					for (String encoding : encodingHeaders) {
+						MessageBodyDecoder decoder = messageBodyDecoders.get(encoding);
+						if (decoder != null) {
+							return clientResponse.bodyToMono(byte[].class)
+									.map(decoder::decode)
+									.map(bytes -> exchange.getResponse().bufferFactory()
+											.wrap(bytes))
+									.map(buffer -> prepareClientResponse(
+											Mono.just(buffer),
+											exchange.getResponse().getHeaders()))
+									.flatMap(response -> response.bodyToMono(inClass));
+						}
+					}
+
+					return clientResponse.bodyToMono(inClass);
+				}
+
+				private Mono<DataBuffer> writeBody(ServerHttpResponse httpResponse,
+						CachedBodyOutputMessage message, Class<?> outClass) {
+					Mono<DataBuffer> response = DataBufferUtils.join(message.getBody());
+					if (byte[].class.isAssignableFrom(outClass)) {
+						return response;
+					}
+
+					HttpHeaders headers = httpResponse.getHeaders();
+					List<String> encodingHeaders = Optional
+							.ofNullable(headers.get(HttpHeaders.CONTENT_ENCODING))
+							.orElse(Collections.emptyList());
+					for (String encoding : encodingHeaders) {
+						MessageBodyEncoder encoder = messageBodyEncoders.get(encoding);
+						if (encoder != null) {
+							DataBufferFactory dataBufferFactory = httpResponse
+									.bufferFactory();
+							response = response.map(buffer -> dataBufferFactory
+									.wrap(encoder.encode(buffer)));
+							break;
+						}
+					}
+
+					return response;
+				}
 			};
 		}
 

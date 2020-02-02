@@ -18,6 +18,7 @@ package org.springframework.cloud.gateway.config;
 
 import java.security.cert.X509Certificate;
 import java.util.List;
+import java.util.Set;
 
 import com.netflix.hystrix.HystrixObservableCommand;
 import io.netty.channel.ChannelOption;
@@ -25,6 +26,9 @@ import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.cloud.gateway.filter.factory.rewrite.GzipMessageBodyResolver;
+import org.springframework.cloud.gateway.filter.factory.rewrite.MessageBodyDecoder;
+import org.springframework.cloud.gateway.filter.factory.rewrite.MessageBodyEncoder;
 import reactor.core.publisher.Flux;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.resources.ConnectionProvider;
@@ -439,8 +443,10 @@ public class GatewayAutoConfiguration {
 
 	@Bean
 	public ModifyResponseBodyGatewayFilterFactory modifyResponseBodyGatewayFilterFactory(
-			ServerCodecConfigurer codecConfigurer) {
-		return new ModifyResponseBodyGatewayFilterFactory(codecConfigurer);
+			ServerCodecConfigurer codecConfigurer,
+			Set<MessageBodyDecoder> bodyDecoders,
+			Set<MessageBodyEncoder> bodyEncoders) {
+		return new ModifyResponseBodyGatewayFilterFactory(codecConfigurer, bodyDecoders, bodyEncoders);
 	}
 
 	@Bean
@@ -556,6 +562,11 @@ public class GatewayAutoConfiguration {
 	@Bean
 	public RequestHeaderSizeGatewayFilterFactory requestHeaderSizeGatewayFilterFactory() {
 		return new RequestHeaderSizeGatewayFilterFactory();
+	}
+
+	@Bean
+	public GzipMessageBodyResolver gzipMessageBodyResolver() {
+		return new GzipMessageBodyResolver();
 	}
 
 	@Configuration(proxyBeanMethods = false)
