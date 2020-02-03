@@ -214,13 +214,16 @@ public final class ServerWebExchangeUtils {
 		boolean encoded = (uri.getRawQuery() != null && uri.getRawQuery().contains("%"))
 				|| (uri.getRawPath() != null && uri.getRawPath().contains("%"));
 
-		// Verify if it is really fully encoded. Treat partial encoded as uncoded.
+		// Verify if it is really fully encoded. Treat partial encoded as unencoded.
 		if (encoded) {
 			try {
 				UriComponentsBuilder.fromUri(uri).build(true);
 				return true;
 			}
 			catch (IllegalArgumentException ignore) {
+				if (log.isTraceEnabled()) {
+					log.trace("Error in containsEncodedParts", ignore);
+				}
 			}
 
 			return false;
