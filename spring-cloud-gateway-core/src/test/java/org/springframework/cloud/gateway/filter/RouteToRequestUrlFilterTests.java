@@ -18,7 +18,6 @@ package org.springframework.cloud.gateway.filter;
 
 import java.net.URI;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import reactor.core.publisher.Mono;
@@ -116,7 +115,6 @@ public class RouteToRequestUrlFilterTests {
 	}
 
 	@Test
-	@Ignore // FIXME: gh-1551
 	public void partialEncodedParameters() {
 		URI url = UriComponentsBuilder
 				.fromUriString("http://localhost/get?key[]=test= key&start=1533108081")
@@ -134,10 +132,12 @@ public class RouteToRequestUrlFilterTests {
 		ServerWebExchange webExchange = testFilter(request, "http://myhost");
 		URI uri = webExchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
 		assertThat(uri).hasScheme("http").hasHost("myhost")
-				.hasParameter("key[]", "test= key").hasParameter("start", "1533108081");
+				// since https://github.com/joel-costigliola/assertj-core/issues/1699
+				// assertj uses raw query
+				.hasParameter("key[]", "test=%20key").hasParameter("start", "1533108081");
 
 		// prove that it is double encoded since partial encoded uri is treated as
-		// uncoded.
+		// unencoded.
 		assertThat(uri.getRawQuery()).isEqualTo("key[]=test=%2520key&start=1533108081");
 	}
 
