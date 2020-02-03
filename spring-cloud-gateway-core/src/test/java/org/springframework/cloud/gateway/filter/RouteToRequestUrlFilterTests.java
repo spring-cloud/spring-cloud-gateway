@@ -132,10 +132,12 @@ public class RouteToRequestUrlFilterTests {
 		ServerWebExchange webExchange = testFilter(request, "http://myhost");
 		URI uri = webExchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
 		assertThat(uri).hasScheme("http").hasHost("myhost")
-				.hasParameter("key[]", "test= key").hasParameter("start", "1533108081");
+				// since https://github.com/joel-costigliola/assertj-core/issues/1699
+				// assertj uses raw query
+				.hasParameter("key[]", "test=%20key").hasParameter("start", "1533108081");
 
 		// prove that it is double encoded since partial encoded uri is treated as
-		// uncoded.
+		// unencoded.
 		assertThat(uri.getRawQuery()).isEqualTo("key[]=test=%2520key&start=1533108081");
 	}
 
