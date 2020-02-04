@@ -17,6 +17,7 @@
 package org.springframework.cloud.gateway.discovery;
 
 import java.net.URI;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
@@ -122,9 +123,12 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 				.map(instances -> instances.get(0)).filter(includePredicate)
 				.map(instance -> {
 					String serviceId = instance.getServiceId();
+					Map<String, Object> metadata = new HashMap<>();
+					metadata.putAll(instance.getMetadata());
 
 					RouteDefinition routeDefinition = new RouteDefinition();
 					routeDefinition.setId(this.routeIdPrefix + serviceId);
+					routeDefinition.setMetadata(metadata);
 					String uri = urlExpr.getValue(evalCtxt, instance, String.class);
 					routeDefinition.setUri(URI.create(uri));
 
