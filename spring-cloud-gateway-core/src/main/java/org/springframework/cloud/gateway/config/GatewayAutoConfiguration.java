@@ -609,6 +609,11 @@ public class GatewayAutoConfiguration {
 							spec.maxHeaderSize(
 									(int) properties.getMaxHeaderSize().toBytes());
 						}
+						if (properties.getMaxInitialLineLength() != null) {
+							// cast to int is ok, since @Max is Integer.MAX_VALUE
+							spec.maxInitialLineLength(
+									(int) properties.getMaxInitialLineLength().toBytes());
+						}
 						return spec;
 					}).tcpConfiguration(tcpClient -> {
 
