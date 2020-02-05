@@ -330,11 +330,6 @@ public class GatewayAutoConfiguration {
 		return new WeightCalculatorWebFilter(routeLocator, configurationService);
 	}
 
-	@Bean
-	public AfterRoutePredicateFactory afterRoutePredicateFactory() {
-		return new AfterRoutePredicateFactory();
-	}
-
 	/*
 	 * @Bean //TODO: default over netty? configurable public WebClientHttpRoutingFilter
 	 * webClientHttpRoutingFilter() { //TODO: WebClient bean return new
@@ -345,6 +340,11 @@ public class GatewayAutoConfiguration {
 	 */
 
 	// Predicate Factory beans
+
+	@Bean
+	public AfterRoutePredicateFactory afterRoutePredicateFactory() {
+		return new AfterRoutePredicateFactory();
+	}
 
 	@Bean
 	public BeforeRoutePredicateFactory beforeRoutePredicateFactory() {
