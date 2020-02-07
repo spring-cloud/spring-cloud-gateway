@@ -21,7 +21,7 @@ import java.util.Map;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.KeyResolver;
-import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter;
+import org.springframework.cloud.gateway.filter.quota.QuotaFilter;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.support.HasRouteId;
 import org.springframework.cloud.gateway.support.HttpStatusHolder;
@@ -31,12 +31,11 @@ import org.springframework.http.HttpStatus;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.setResponseStatus;
 
 /**
- * User Request Rate Limiter filter. See https://stripe.com/blog/rate-limiters and
- * https://gist.github.com/ptarjan/e38f45f2dfe601419ca3af937fff574d#file-1-check_request_rate_limiter-rb-L11-L34.
+ * @author Tobias Schug
  */
-@ConfigurationProperties("spring.cloud.gateway.filter.request-rate-limiter")
-public class RequestRateLimiterGatewayFilterFactory extends
-		AbstractGatewayFilterFactory<RequestRateLimiterGatewayFilterFactory.Config> {
+@ConfigurationProperties("spring.cloud.gateway.filter.request-quota-filter")
+public class RequestQuotaGatewayFilterFactory
+		extends AbstractGatewayFilterFactory<RequestQuotaGatewayFilterFactory.Config> {
 
 	/**
 	 * Key-Resolver key.
@@ -45,7 +44,7 @@ public class RequestRateLimiterGatewayFilterFactory extends
 
 	private static final String EMPTY_KEY = "____EMPTY_KEY__";
 
-	private final RateLimiter defaultRateLimiter;
+	private final QuotaFilter defaultQuotaFilter;
 
 	private final KeyResolver defaultKeyResolver;
 
@@ -57,10 +56,10 @@ public class RequestRateLimiterGatewayFilterFactory extends
 	/** HttpStatus to return when denyEmptyKey is true, defaults to FORBIDDEN. */
 	private String emptyKeyStatusCode = HttpStatus.FORBIDDEN.name();
 
-	public RequestRateLimiterGatewayFilterFactory(RateLimiter defaultRateLimiter,
+	public RequestQuotaGatewayFilterFactory(QuotaFilter defaultQuotaFilter,
 			KeyResolver defaultKeyResolver) {
 		super(Config.class);
-		this.defaultRateLimiter = defaultRateLimiter;
+		this.defaultQuotaFilter = defaultQuotaFilter;
 		this.defaultKeyResolver = defaultKeyResolver;
 	}
 
@@ -68,8 +67,8 @@ public class RequestRateLimiterGatewayFilterFactory extends
 		return defaultKeyResolver;
 	}
 
-	public RateLimiter getDefaultRateLimiter() {
-		return defaultRateLimiter;
+	public QuotaFilter getDefaultQuotaFilter() {
+		return defaultQuotaFilter;
 	}
 
 	public boolean isDenyEmptyKey() {
@@ -92,8 +91,8 @@ public class RequestRateLimiterGatewayFilterFactory extends
 	@Override
 	public GatewayFilter apply(Config config) {
 		KeyResolver resolver = getOrDefault(config.keyResolver, defaultKeyResolver);
-		RateLimiter<Object> limiter = getOrDefault(config.rateLimiter,
-				defaultRateLimiter);
+		QuotaFilter<Object> limiter = getOrDefault(config.quotaFilter,
+				defaultQuotaFilter);
 		boolean denyEmpty = getOrDefault(config.denyEmptyKey, this.denyEmptyKey);
 		HttpStatusHolder emptyKeyStatus = HttpStatusHolder
 				.parse(getOrDefault(config.emptyKeyStatus, this.emptyKeyStatusCode));
@@ -114,7 +113,6 @@ public class RequestRateLimiterGatewayFilterFactory extends
 						routeId = route.getId();
 					}
 					return limiter.isAllowed(routeId, key).flatMap(response -> {
-
 						for (Map.Entry<String, String> header : response.getHeaders()
 								.entrySet()) {
 							exchange.getResponse().getHeaders().add(header.getKey(),
@@ -139,7 +137,7 @@ public class RequestRateLimiterGatewayFilterFactory extends
 
 		private KeyResolver keyResolver;
 
-		private RateLimiter rateLimiter;
+		private QuotaFilter quotaFilter;
 
 		private HttpStatus statusCode = HttpStatus.TOO_MANY_REQUESTS;
 
@@ -158,12 +156,12 @@ public class RequestRateLimiterGatewayFilterFactory extends
 			return this;
 		}
 
-		public RateLimiter getRateLimiter() {
-			return rateLimiter;
+		public QuotaFilter getQuotaFilter() {
+			return quotaFilter;
 		}
 
-		public Config setRateLimiter(RateLimiter rateLimiter) {
-			this.rateLimiter = rateLimiter;
+		public Config setQuotaFilter(QuotaFilter quotaFilter) {
+			this.quotaFilter = quotaFilter;
 			return this;
 		}
 

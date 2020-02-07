@@ -51,6 +51,7 @@ import org.springframework.cloud.gateway.filter.factory.RemoveRequestParameterGa
 import org.springframework.cloud.gateway.filter.factory.RemoveResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RequestHeaderSizeGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RequestHeaderToRequestUriGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.RequestQuotaGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RequestRateLimiterGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RequestSizeGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RetryGatewayFilterFactory;
@@ -69,6 +70,7 @@ import org.springframework.cloud.gateway.filter.factory.StripPrefixGatewayFilter
 import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyRequestBodyGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyResponseBodyGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.rewrite.RewriteFunction;
+import org.springframework.cloud.gateway.filter.quota.QuotaFilter;
 import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.core.Ordered;
@@ -478,6 +480,27 @@ public class GatewayFilterSpec extends UriSpec {
 	}
 
 	/**
+	 * A filter that will set up a request quota for a route.
+	 * @param configConsumer a {@link Consumer} that will return configuration for the
+	 * quota filter
+	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
+	 */
+	public GatewayFilterSpec requestQuotaFilter(
+			Consumer<RequestQuotaGatewayFilterFactory.Config> configConsumer) {
+		return filter(
+				getBean(RequestQuotaGatewayFilterFactory.class).apply(configConsumer));
+	}
+
+	/**
+	 * A filter that will set up a request rate limiter for a route.
+	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
+	 */
+	public RequestQuotaFilterSpec requestQuotaFilter() {
+		return new RequestQuotaFilterSpec(
+				getBean(RequestQuotaGatewayFilterFactory.class));
+	}
+
+	/**
 	 * A filter which rewrites the request path before it is routed by the Gateway
 	 * @param regex a Java regular expression to match the path against
 	 * @param replacement the replacement for the path
@@ -788,6 +811,36 @@ public class GatewayFilterSpec extends UriSpec {
 		}
 
 		// useful when nothing to configure
+		public GatewayFilterSpec and() {
+			return configure(config -> {
+			});
+		}
+
+	}
+
+	public class RequestQuotaFilterSpec {
+
+		private final RequestQuotaGatewayFilterFactory filter;
+
+		public RequestQuotaFilterSpec(RequestQuotaGatewayFilterFactory filter) {
+			this.filter = filter;
+		}
+
+		public <C, R extends QuotaFilter<C>> RequestQuotaFilterSpec quotaFilter(
+				Class<R> quotaFilterType, Consumer<C> configConsumer) {
+			R quotaFilter = getBean(quotaFilterType);
+			C config = quotaFilter.newConfig();
+			configConsumer.accept(config);
+			quotaFilter.getConfig().put(routeBuilder.getId(), config);
+			return this;
+		}
+
+		public GatewayFilterSpec configure(
+				Consumer<RequestQuotaGatewayFilterFactory.Config> configConsumer) {
+			filter(this.filter.apply(configConsumer));
+			return GatewayFilterSpec.this;
+		}
+
 		public GatewayFilterSpec and() {
 			return configure(config -> {
 			});

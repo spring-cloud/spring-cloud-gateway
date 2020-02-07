@@ -1,0 +1,14 @@
+spring:
+  cloud:
+    gateway:
+      default-filters:
+        - name: RequestQuota
+          args:
+            redis-quota-filter:
+              limit: 10
+              period: DAYS
+      routes:
+        - id: redis_quota_filter_config_default_test
+          uri: ${test.uri}
+          predicates:
+            - Path=/default

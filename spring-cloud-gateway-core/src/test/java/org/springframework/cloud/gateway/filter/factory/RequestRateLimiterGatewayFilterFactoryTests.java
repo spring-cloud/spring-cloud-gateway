@@ -31,7 +31,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
-import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
+import org.springframework.cloud.gateway.filter.KeyResolver;
 import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter;
 import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter.Response;
 import org.springframework.cloud.gateway.route.Route;

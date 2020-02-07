@@ -1,0 +1,17 @@
+spring:
+  cloud:
+    gateway:
+      default-filters:
+      routes:
+        # =====================================
+        - id: redis_quota_filter_config_test
+          key-resolvers: ipPortLimit
+          uri: ${test.uri}
+          predicates:
+            - Path=/
+          filters:
+            - name: RequestQuota
+              args:
+                redis-quota-filter:
+                  limit: 10
+                  period: DAYS

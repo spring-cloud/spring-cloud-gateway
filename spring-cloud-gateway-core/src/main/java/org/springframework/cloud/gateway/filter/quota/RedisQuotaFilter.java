@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.gateway.filter.ratelimit;
+package org.springframework.cloud.gateway.filter.quota;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.validation.constraints.Min;
@@ -40,64 +42,46 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
-import org.springframework.validation.Validator;
+import org.springframework.util.Assert;
 import org.springframework.validation.annotation.Validated;
 
 /**
- * See https://stripe.com/blog/rate-limiters and
- * https://gist.github.com/ptarjan/e38f45f2dfe601419ca3af937fff574d#file-1-check_request_rate_limiter-rb-L11-L34.
- *
- * @author Spencer Gibb
- * @author Ronny Bräunlich
+ * @author Tobias Schug
  */
-@ConfigurationProperties("spring.cloud.gateway.redis-rate-limiter")
-public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Config>
+@ConfigurationProperties("spring.cloud.gateway.redis-quota-filter")
+public class RedisQuotaFilter extends AbstractQuotaLimiter<RedisQuotaFilter.Config>
 		implements ApplicationContextAware {
 
-	/**
-	 * @deprecated use {@link Config#replenishRate}
-	 */
-	@Deprecated
-	public static final String REPLENISH_RATE_KEY = "replenishRate";
-
-	/**
-	 * @deprecated use {@link Config#burstCapacity}
-	 */
-	@Deprecated
-	public static final String BURST_CAPACITY_KEY = "burstCapacity";
-
-	/**
-	 * Redis Rate Limiter property name.
-	 */
-	public static final String CONFIGURATION_PROPERTY_NAME = "redis-rate-limiter";
+	/** Redis Quota Filter property name. */
+	public static final String CONFIGURATION_PROPERTY_NAME = "redis-quota-filter";
 
 	/**
 	 * Redis Script name.
 	 */
-	public static final String REDIS_SCRIPT_NAME = "redisRequestRateLimiterScript";
+	public static final String REDIS_SCRIPT_NAME = "redisRequestQuotaLimiterScript";
 
 	/**
-	 * Remaining Rate Limit header name.
+	 * Remaining Quota Rate header name.
 	 */
-	public static final String REMAINING_HEADER = "X-RateLimit-Remaining";
+	public static final String REMAINING_HEADER = "X-Quota-Remaining";
 
 	/**
-	 * Replenish Rate Limit header name.
+	 * Quota Limit (count) Header name.
 	 */
-	public static final String REPLENISH_RATE_HEADER = "X-RateLimit-Replenish-Rate";
+	public static final String QUOTA_LIMIT_HEADER = "X-Quota-Limit";
 
 	/**
-	 * Burst Capacity Header name.
+	 * Quota Period Header name.
 	 */
-	public static final String BURST_CAPACITY_HEADER = "X-RateLimit-Burst-Capacity";
+	public static final String QUOTA_PERIOD_HEADER = "X-Quota-Period";
 
 	private Log log = LogFactory.getLog(getClass());
 
 	private ReactiveStringRedisTemplate redisTemplate;
 
-	private RedisScript<List<Long>> script;
-
 	private AtomicBoolean initialized = new AtomicBoolean(false);
+
+	private RedisScript<List<Long>> script;
 
 	private Config defaultConfig;
 
@@ -114,13 +98,13 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 	 */
 	private String remainingHeader = REMAINING_HEADER;
 
-	/** The name of the header that returns the replenish rate configuration. */
-	private String replenishRateHeader = REPLENISH_RATE_HEADER;
+	/** The name of the header that returns the quota limit configuration. */
+	private String limitHeader = QUOTA_LIMIT_HEADER;
 
-	/** The name of the header that returns the burst capacity configuration. */
-	private String burstCapacityHeader = BURST_CAPACITY_HEADER;
+	/** The name of the header that returns the quota period configuration. */
+	private String periodHeader = QUOTA_PERIOD_HEADER;
 
-	public RedisRateLimiter(ReactiveStringRedisTemplate redisTemplate,
+	public RedisQuotaFilter(ReactiveStringRedisTemplate redisTemplate,
 			RedisScript<List<Long>> script, ConfigurationService configurationService) {
 		super(Config.class, CONFIGURATION_PROPERTY_NAME, configurationService);
 		this.redisTemplate = redisTemplate;
@@ -128,38 +112,24 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 		this.initialized.compareAndSet(false, true);
 	}
 
-	@Deprecated
-	public RedisRateLimiter(ReactiveStringRedisTemplate redisTemplate,
-			RedisScript<List<Long>> script, Validator validator) {
-		super(Config.class, CONFIGURATION_PROPERTY_NAME, validator);
-		this.redisTemplate = redisTemplate;
-		this.script = script;
-		this.initialized.compareAndSet(false, true);
-	}
-
 	/**
 	 * This creates an instance with default static configuration, useful in Java DSL.
-	 * @param defaultReplenishRate how many tokens per second in token-bucket algorithm.
-	 * @param defaultBurstCapacity how many tokens the bucket can hold in token-bucket
-	 * alogritm.
+	 * @param limit how many tokens per "Period" can be used.
+	 * @param period where the limit will be checked, after the period the limit starts at
+	 * zero again.
 	 */
-	public RedisRateLimiter(int defaultReplenishRate, int defaultBurstCapacity) {
+	public RedisQuotaFilter(int limit, String period) {
 		super(Config.class, CONFIGURATION_PROPERTY_NAME, (ConfigurationService) null);
-		this.defaultConfig = new Config().setReplenishRate(defaultReplenishRate)
-				.setBurstCapacity(defaultBurstCapacity);
+		this.defaultConfig = new Config().setLimit(limit).setPeriod(period);
 	}
 
-	static List<String> getKeys(String id) {
+	static List<String> getKey(String id) {
 		// use `{}` around keys to use Redis Key hash tags
 		// this allows for using redis cluster
 
 		// Make a unique key per user.
-		String prefix = "request_rate_limiter.{" + id;
-
-		// You need two Redis keys for Token Bucket.
-		String tokenKey = prefix + "}.tokens";
-		String timestampKey = prefix + "}.timestamp";
-		return Arrays.asList(tokenKey, timestampKey);
+		return Collections
+				.singletonList(String.format("request_quota_limiter.{%s}.tokens", id));
 	}
 
 	public boolean isIncludeHeaders() {
@@ -178,20 +148,20 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 		this.remainingHeader = remainingHeader;
 	}
 
-	public String getReplenishRateHeader() {
-		return replenishRateHeader;
+	String getLimitHeader() {
+		return limitHeader;
 	}
 
-	public void setReplenishRateHeader(String replenishRateHeader) {
-		this.replenishRateHeader = replenishRateHeader;
+	void setLimitHeader(String limitHeader) {
+		this.limitHeader = limitHeader;
 	}
 
-	public String getBurstCapacityHeader() {
-		return burstCapacityHeader;
+	String getPeriodHeader() {
+		return periodHeader;
 	}
 
-	public void setBurstCapacityHeader(String burstCapacityHeader) {
-		this.burstCapacityHeader = burstCapacityHeader;
+	void setPeriodHeader(String periodHeader) {
+		this.periodHeader = periodHeader;
 	}
 
 	/**
@@ -224,58 +194,63 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
-	public Mono<Response> isAllowed(String routeId, String id) {
+	public Mono<QuotaFilter.Response> isAllowed(String routeId, String id) {
 		if (!this.initialized.get()) {
 			throw new IllegalStateException("RedisRateLimiter is not initialized");
 		}
 
 		Config routeConfig = loadConfiguration(routeId);
 
-		// How many requests per second do you want a user to be allowed to do?
-		int replenishRate = routeConfig.getReplenishRate();
-
-		// How much bursting do you want to allow?
-		int burstCapacity = routeConfig.getBurstCapacity();
-
+		// How many requests do you allow
+		int limit = routeConfig.getLimit();
+		// How many requests can be done by a period
+		QuotaPeriods period = routeConfig.getPeriod();
+		// load redis keys
+		List<String> keys = getKey(id);
 		try {
-			List<String> keys = getKeys(id);
+			// build arugments to pass to the LUA script, time will passed as unixtime in
+			// seconds
+			Long ttl = -1L; // ABS
+			if (period.getTimeUnit().isPresent()) {
+				ttl = period.getTimeUnit().get().toSeconds(1);
+			}
+			List<String> scriptArgs = Arrays.asList(String.valueOf(limit),
+					String.valueOf(ttl));
 
-			// The arguments to the LUA script. time() returns unixtime in seconds.
-			List<String> scriptArgs = Arrays.asList(replenishRate + "",
-					burstCapacity + "", Instant.now().getEpochSecond() + "", "1");
-			// allowed, tokens_left = redis.eval(SCRIPT, keys, args)
-			Flux<List<Long>> flux = this.redisTemplate.execute(this.script, keys,
+			Flux<List<Long>> redTempExec = this.redisTemplate.execute(this.script, keys,
 					scriptArgs);
-			// .log("redisratelimiter", Level.FINER);
-			return flux.onErrorResume(throwable -> Flux.just(Arrays.asList(1L, -1L)))
+			return redTempExec
+					.onErrorResume(throwable -> Flux.just(Collections.singletonList(-1L)))
 					.reduce(new ArrayList<Long>(), (longs, l) -> {
 						longs.addAll(l);
 						return longs;
 					}).map(results -> {
-						boolean allowed = results.get(0) == 1L;
-						Long tokensLeft = results.get(1);
+						final Long resultsTokenRemain = results.get(0);
+						boolean allowed = resultsTokenRemain >= 0L;
+						Long tokensRemaining = resultsTokenRemain >= 0 ? resultsTokenRemain : 0L; //never return a value lower than 0
 
-						Response response = new Response(allowed,
-								getHeaders(routeConfig, tokensLeft));
+						QuotaFilter.Response response = new QuotaFilter.Response(allowed,
+								getHeaders(routeConfig, tokensRemaining));
 
 						if (log.isDebugEnabled()) {
 							log.debug("response: " + response);
 						}
 						return response;
 					});
+
 		}
 		catch (Exception e) {
 			/*
-			 * We don't want a hard dependency on Redis to allow traffic. Make sure to set
-			 * an alert so you know if this is happening too much. Stripe's observed
-			 * failure rate is 0.01%.
+			 * We don't want a hard dependency on Redis to allow quota traffic.
 			 */
 			log.error("Error determining if user allowed from redis", e);
 		}
-		return Mono.just(new Response(true, getHeaders(routeConfig, -1L)));
+
+		return Mono.just(new QuotaFilter.Response(true, getHeaders(routeConfig, -1L)));
 	}
 
-	/* for testing */ Config loadConfiguration(String routeId) {
+	/* for testing */
+	Config loadConfiguration(String routeId) {
 		Config routeConfig = getConfig().getOrDefault(routeId, defaultConfig);
 
 		if (routeConfig == null) {
@@ -294,10 +269,8 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 		Map<String, String> headers = new HashMap<>();
 		if (isIncludeHeaders()) {
 			headers.put(this.remainingHeader, tokensLeft.toString());
-			headers.put(this.replenishRateHeader,
-					String.valueOf(config.getReplenishRate()));
-			headers.put(this.burstCapacityHeader,
-					String.valueOf(config.getBurstCapacity()));
+			headers.put(this.limitHeader, String.valueOf(config.getLimit()));
+			headers.put(this.periodHeader, String.valueOf(config.getPeriod()));
 		}
 		return headers;
 	}
@@ -306,33 +279,97 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 	public static class Config {
 
 		@Min(1)
-		private int replenishRate;
+		private int limit;
 
-		@Min(1)
-		private int burstCapacity = 1;
+		/* SECOND, MINUTE, DAY, YEAR, ABS */
+		private QuotaPeriods period = QuotaPeriods.SECONDS;
 
-		public int getReplenishRate() {
-			return replenishRate;
+		public int getLimit() {
+			return limit;
 		}
 
-		public Config setReplenishRate(int replenishRate) {
-			this.replenishRate = replenishRate;
+		public Config setLimit(int limit) {
+			this.limit = limit;
 			return this;
 		}
 
-		public int getBurstCapacity() {
-			return burstCapacity;
+		public QuotaPeriods getPeriod() {
+			return period;
 		}
 
-		public Config setBurstCapacity(int burstCapacity) {
-			this.burstCapacity = burstCapacity;
+		public Config setPeriod(String period) {
+			QuotaPeriods quotaPeriods = QuotaPeriods.fromStringWithDefault(period);
+			// Assert thats not null
+			Assert.notNull(quotaPeriods,
+					"The period is wrong, it has to be [ "
+							+ QuotaPeriods.SECONDS.timeUnitName + ", "
+							+ QuotaPeriods.MINUTES.timeUnitName + ", "
+							+ QuotaPeriods.HOURS.timeUnitName + ", "
+							+ QuotaPeriods.DAYS.timeUnitName + " ]");
+			this.period = quotaPeriods;
 			return this;
 		}
 
 		@Override
 		public String toString() {
-			return "Config{" + "replenishRate=" + replenishRate + ", burstCapacity="
-					+ burstCapacity + '}';
+			return "Config{" + "limit=" + limit + ", period=" + period + '}';
+		}
+
+	}
+
+	/**
+	 * QuotaFilter time periods.
+	 */
+	@SuppressWarnings("unchecked")
+	public enum QuotaPeriods {
+
+		/**
+		 * Available Timeunits for creating time bases quotas.
+		 */
+		SECONDS(TimeUnit.SECONDS), MINUTES(TimeUnit.MINUTES), HOURS(TimeUnit.HOURS), DAYS(
+				TimeUnit.DAYS),
+		/**
+		 * ABS have no timeunit, we have vo handle null here.
+		 */
+		ABS(null);
+
+		private TimeUnit timeUnit;
+
+		private String timeUnitName;
+
+		QuotaPeriods(TimeUnit timeUnit) {
+			this.timeUnit = timeUnit;
+			if (this.timeUnit == null) {
+				this.timeUnitName = "ABS";
+			}
+			else {
+				this.timeUnitName = timeUnit.name();
+			}
+		}
+
+		Optional<TimeUnit> getTimeUnit() {
+			return Optional.ofNullable(this.timeUnit);
+		}
+
+		public String getTimeUnitName() {
+			return this.timeUnitName;
+		}
+
+		@Override
+		public String toString() {
+			return this.timeUnitName;
+		}
+
+		/*
+		 * look for description in enums, return seconds as default.
+		 */
+		public static QuotaPeriods fromStringWithDefault(String value) {
+			for (QuotaPeriods quotaPeriod : QuotaPeriods.values()) {
+				if (quotaPeriod.timeUnitName.equalsIgnoreCase(value)) {
+					return quotaPeriod;
+				}
+			}
+			return null;
 		}
 
 	}

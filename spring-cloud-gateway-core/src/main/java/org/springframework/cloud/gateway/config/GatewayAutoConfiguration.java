@@ -54,8 +54,10 @@ import org.springframework.cloud.gateway.filter.AdaptCachedBodyGlobalFilter;
 import org.springframework.cloud.gateway.filter.ForwardPathFilter;
 import org.springframework.cloud.gateway.filter.ForwardRoutingFilter;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
+import org.springframework.cloud.gateway.filter.KeyResolver;
 import org.springframework.cloud.gateway.filter.NettyRoutingFilter;
 import org.springframework.cloud.gateway.filter.NettyWriteResponseFilter;
+import org.springframework.cloud.gateway.filter.PrincipalNameKeyResolver;
 import org.springframework.cloud.gateway.filter.RemoveCachedBodyFilter;
 import org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter;
 import org.springframework.cloud.gateway.filter.WebsocketRoutingFilter;
@@ -74,6 +76,7 @@ import org.springframework.cloud.gateway.filter.factory.RemoveRequestParameterGa
 import org.springframework.cloud.gateway.filter.factory.RemoveResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RequestHeaderSizeGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RequestHeaderToRequestUriGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.RequestQuotaGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RequestRateLimiterGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RequestSizeGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RetryGatewayFilterFactory;
@@ -94,8 +97,7 @@ import org.springframework.cloud.gateway.filter.headers.ForwardedHeadersFilter;
 import org.springframework.cloud.gateway.filter.headers.HttpHeadersFilter;
 import org.springframework.cloud.gateway.filter.headers.RemoveHopByHopHeadersFilter;
 import org.springframework.cloud.gateway.filter.headers.XForwardedHeadersFilter;
-import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
-import org.springframework.cloud.gateway.filter.ratelimit.PrincipalNameKeyResolver;
+import org.springframework.cloud.gateway.filter.quota.QuotaFilter;
 import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter;
 import org.springframework.cloud.gateway.handler.FilteringWebHandler;
 import org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping;
@@ -481,6 +483,13 @@ public class GatewayAutoConfiguration {
 	public RequestRateLimiterGatewayFilterFactory requestRateLimiterGatewayFilterFactory(
 			RateLimiter rateLimiter, KeyResolver resolver) {
 		return new RequestRateLimiterGatewayFilterFactory(rateLimiter, resolver);
+	}
+
+	@Bean
+	@ConditionalOnBean({ QuotaFilter.class, KeyResolver.class })
+	public RequestQuotaGatewayFilterFactory requestQuotaGatewayFilterFactory(
+			QuotaFilter quotaFilter, KeyResolver resolver) {
+		return new RequestQuotaGatewayFilterFactory(quotaFilter, resolver);
 	}
 
 	@Bean

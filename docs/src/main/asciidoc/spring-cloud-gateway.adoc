@@ -1,4 +1,5 @@
 = Spring Cloud Gateway
+
 include::_attributes.adoc[]
 
 *{spring-cloud-version}*
@@ -254,7 +255,6 @@ The following example configures a method route predicate:
 .application.yml
 ====
 [source,yaml]
-----
 spring:
   cloud:
     gateway:
@@ -428,7 +428,6 @@ The following `maxTrustedIndex` values yield the following remote addresses:
 |3                           | 0.0.0.1
 |[4, `Integer.MAX_VALUE`]    | 0.0.0.1
 |===
-[[gateway-route-filters]]
 
 The following example shows how to achieve the same configuration with Java:
 
@@ -959,6 +958,104 @@ spring:
 ----
 ====
 
+
+----
+
+=== RequestQuotaFilter GatewayFilter Factory
+
+The RequestQuotaFilter GatewayFilter Factory is uses a `QuotaFilter` implementation to determine if the current request is allowed to proceed.
+If it is not, a status of `HTTP 429 - Too Many Requests` (by default) is returned.
+
+This filter takes an optional `keyResolver` parameter and parameters specific to the quota filter (see RequestRateLimiter above).
+
+By default, if the `KeyResolver` does not find a key, requests will be denied.
+This behavior can be adjusted with the `spring.cloud.gateway.filter.request-quota-filter.deny-empty-key` (true or false) and `spring.cloud.gateway.filter.request-rate-limiter.empty-key-status-code` properties.
+
+NOTE: The RequestQuotaFilter is not configurable via the "shortcut" notation.
+
+==== Redis QuotaFilter
+
+The redis quota filter requires the use of the `spring-boot-starter-data-redis-reactive` Spring Boot starter.
+
+The `redis-quota-filter.limit` is how many requests a user is allowed to do, without any dropped requests.
+
+The `redis-quota-filter.period` is the period how long the limit will exist.
+The allowed units are:
+`SECONDS, DAYS, HOURS, DAYS or ABS`
+The implementation can be found in the `RedisQuotaFilter.QuotaPeriods.class`.
+The `ABS` filter period will never expire, so the the limit will be not volatile as the other periods.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: request_quota_filter_route
+        uri: https://example.org
+        filters:
+        - name: RequestQuota
+          args:
+            redis-quota-filter.limit: 10
+            redis-quota-filter.period: DAYS
+
+----
+
+This defines a request quota limit of 10 requests per day.
+
+You can use a custom `KeyResolver` where you can specify patterns or request parameter matches where the quota filter will look for.
+
+.Config.java
+[source,java]
+----
+@Bean
+KeyResolver customAuth() {
+    return exchange -> Mono.just(exchange.getRequest().getHeaders().getFirst("X-Authentication"));
+}
+----
+
+The `KeyResolver` is a simple one that gets the first custom header in the request `X-Authentication`.
+
+The defined `KeyResolver` can be uses with the quota filter like:
+.application.yml
+
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: request_quota_filter_route
+        uri: https://example.org
+        filters:
+        - name: RequestQuota
+          args:
+            redis-quota-filter.limit: 10
+            redis-quota-filter.period: DAYS
+            key-resolver: customAuth
+
+----
+
+A quota filter can also be defined as a bean implementing the `QuotaFilter` interface.
+In configuration, reference the bean by name using SpEL. `#{@myQuotaFilter}` is a SpEL expression referencing a bean with the name `myQuotaFilter`.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: requestratelimiter_route
+        uri: https://example.org
+        filters:
+        - name: RequestQuota
+          args:
+            quota-filter: "#{@myQuotaFilter}"
+            key-resolver: "#{@userKeyResolver}"
+
+----
 
 === The `RedirectTo` `GatewayFilter` Factory
 
@@ -2195,7 +2292,8 @@ The following example configures `/actuator/gateway/routes`:
 ----
 ====
 
-This feature is enabled by default. To disable it, set the following property:
+This feature is enabled by default.
+To disable it, set the following property:
 
 .application.properties
 ====
