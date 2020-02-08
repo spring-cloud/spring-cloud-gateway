@@ -105,13 +105,17 @@ public class ReactiveLoadBalancerClientFilter implements GlobalFilter, Ordered {
 			DelegatingServiceInstance serviceInstance = new DelegatingServiceInstance(
 					response.getServer(), overrideScheme);
 
-			URI requestUrl = LoadBalancerUriTools.reconstructURI(serviceInstance, uri);
+			URI requestUrl = reconstructURI(serviceInstance, uri);
 
 			if (log.isTraceEnabled()) {
 				log.trace("LoadBalancerClientFilter url chosen: " + requestUrl);
 			}
 			exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, requestUrl);
 		}).then(chain.filter(exchange));
+	}
+
+	protected URI reconstructURI(ServiceInstance serviceInstance, URI original) {
+		return LoadBalancerUriTools.reconstructURI(serviceInstance, original);
 	}
 
 	private Mono<Response<ServiceInstance>> choose(ServerWebExchange exchange) {
