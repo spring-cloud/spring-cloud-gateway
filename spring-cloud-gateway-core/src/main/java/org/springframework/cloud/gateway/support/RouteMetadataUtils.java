@@ -16,6 +16,9 @@
 
 package org.springframework.cloud.gateway.support;
 
+import java.util.Arrays;
+import java.util.List;
+
 public final class RouteMetadataUtils {
 
 	/**
@@ -27,6 +30,11 @@ public final class RouteMetadataUtils {
 	 * Connect timeout attribute name.
 	 */
 	public static final String CONNECT_TIMEOUT_ATTR = "connect-timeout";
+
+	/**
+	 * Attributes which are expected to have Integer values
+	 */
+	public static final List<String> INTEGER_VALUE_KEYS = Arrays.asList(RESPONSE_TIMEOUT_ATTR, CONNECT_TIMEOUT_ATTR);
 
 	private RouteMetadataUtils() {
 		throw new AssertionError("Must not instantiate utility class.");

@@ -167,9 +167,8 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 		Map<String, Object> metadata = new HashMap<>(serviceInstance.getMetadata());
 		for (Map.Entry<String, Object> entry : metadata.entrySet()) {
 			Object value = entry.getValue();
-			List<String> intKeys = Arrays.asList(RouteMetadataUtils.CONNECT_TIMEOUT_ATTR, RouteMetadataUtils.RESPONSE_TIMEOUT_ATTR);
-			// since ServiceInstance metadata contains all Strings, must parse Strings to Integers
-			if (value != null && intKeys.contains(entry.getKey())) {
+			// since ServiceInstance metadata contains all Strings, must parse some Strings to Integers
+			if (value != null && RouteMetadataUtils.INTEGER_VALUE_KEYS.contains(entry.getKey())) {
 				try {
 					metadata.put(entry.getKey(), Integer.parseInt((String)value));
 				} catch (NumberFormatException ex) {
