@@ -17,6 +17,7 @@
 package org.springframework.cloud.gateway.discovery;
 
 import java.net.URI;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +35,7 @@ import org.springframework.cloud.gateway.filter.FilterDefinition;
 import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
 import org.springframework.cloud.gateway.route.RouteDefinition;
 import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
+import org.springframework.cloud.gateway.support.RouteMetadataUtils;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.expression.EvaluationException;
 import org.springframework.expression.Expression;
@@ -122,15 +124,7 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 		return serviceInstances.filter(instances -> !instances.isEmpty())
 				.map(instances -> instances.get(0)).filter(includePredicate)
 				.map(instance -> {
-					String serviceId = instance.getServiceId();
-					Map<String, Object> metadata = new HashMap<>();
-					metadata.putAll(instance.getMetadata());
-
-					RouteDefinition routeDefinition = new RouteDefinition();
-					routeDefinition.setId(this.routeIdPrefix + serviceId);
-					routeDefinition.setMetadata(metadata);
-					String uri = urlExpr.getValue(evalCtxt, instance, String.class);
-					routeDefinition.setUri(URI.create(uri));
+					RouteDefinition routeDefinition = buildRouteDefinition(urlExpr, instance);
 
 					final ServiceInstance instanceForEval = new DelegatingServiceInstance(
 							instance, properties);
@@ -163,6 +157,31 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 				});
 	}
 
+	protected RouteDefinition buildRouteDefinition(Expression urlExpr, ServiceInstance serviceInstance) {
+		String serviceId = serviceInstance.getServiceId();
+		RouteDefinition routeDefinition = new RouteDefinition();
+		routeDefinition.setId(this.routeIdPrefix + serviceId);
+		String uri = urlExpr.getValue(this.evalCtxt, serviceInstance, String.class);
+		routeDefinition.setUri(URI.create(uri));
+		// add instance metadata
+		Map<String, Object> metadata = new HashMap<>(serviceInstance.getMetadata());
+		for (Map.Entry<String, Object> entry : metadata.entrySet()) {
+			Object value = entry.getValue();
+			List<String> intKeys = Arrays.asList(RouteMetadataUtils.CONNECT_TIMEOUT_ATTR, RouteMetadataUtils.RESPONSE_TIMEOUT_ATTR);
+			// since ServiceInstance metadata contains all Strings, must parse Strings to Integers
+			if (value != null && intKeys.contains(entry.getKey())) {
+				try {
+					metadata.put(entry.getKey(), Integer.parseInt((String)value));
+				} catch (NumberFormatException ex) {
+					// not a valid Integer
+					metadata.remove(entry.getKey());
+				}
+			}
+		}
+		routeDefinition.setMetadata(metadata);
+		return routeDefinition;
+	}
+
 	String getValueFromExpr(SimpleEvaluationContext evalCtxt, SpelExpressionParser parser,
 			ServiceInstance instance, Map.Entry<String, String> entry) {
 		try {
@@ -176,6 +195,8 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 			throw e;
 		}
 	}
+
+
 
 	private static class DelegatingServiceInstance implements ServiceInstance {
 
