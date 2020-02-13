@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.gateway.route;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -29,6 +31,8 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public class RedisRouteDefinitionRepository implements RouteDefinitionRepository {
+
+	private static final Logger log = LoggerFactory.getLogger(RedisRouteDefinitionRepository.class);
 
 	/**
 	 * Key prefix for RouteDefinition queries to redis.
@@ -48,7 +52,12 @@ public class RedisRouteDefinitionRepository implements RouteDefinitionRepository
 	@Override
 	public Flux<RouteDefinition> getRouteDefinitions() {
 		return reactiveRedisTemplate.keys(createKey("*"))
-				.flatMap(key -> reactiveRedisTemplate.opsForValue().get(key));
+				.flatMap(key -> reactiveRedisTemplate.opsForValue().get(key))
+				.onErrorContinue((throwable, routeDefinition) -> {
+					if (log.isErrorEnabled()) {
+						log.error("get routes from redis error cause : {}", throwable.toString(), throwable);
+					}
+				});
 	}
 
 	@Override
