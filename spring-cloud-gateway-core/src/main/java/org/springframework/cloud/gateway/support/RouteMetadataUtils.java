@@ -32,7 +32,7 @@ public final class RouteMetadataUtils {
 	public static final String CONNECT_TIMEOUT_ATTR = "connect-timeout";
 
 	/**
-	 * Attributes which are expected to have Integer values
+	 * Attributes which are expected to have Integer values.
 	 */
 	public static final List<String> INTEGER_VALUE_KEYS = Arrays.asList(RESPONSE_TIMEOUT_ATTR, CONNECT_TIMEOUT_ATTR);
 
