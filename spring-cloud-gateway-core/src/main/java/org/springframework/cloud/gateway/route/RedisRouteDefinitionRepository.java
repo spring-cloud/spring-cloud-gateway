@@ -58,7 +58,7 @@ public class RedisRouteDefinitionRepository implements RouteDefinitionRepository
                         log.error("get routes from redis error cause : {}", throwable.toString(), throwable);
                     }
                     return Flux.empty();
-                });;
+                });
 	}
 
 	@Override
