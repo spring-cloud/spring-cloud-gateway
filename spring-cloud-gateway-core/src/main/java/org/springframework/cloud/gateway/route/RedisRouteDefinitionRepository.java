@@ -23,12 +23,16 @@ import org.springframework.cloud.gateway.support.NotFoundException;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.core.ReactiveValueOperations;
 import org.springframework.stereotype.Repository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Dennis Menge
  */
 @Repository
 public class RedisRouteDefinitionRepository implements RouteDefinitionRepository {
+
+    private static final Logger log = LoggerFactory.getLogger(RedisRouteDefinitionRepository.class);
 
 	/**
 	 * Key prefix for RouteDefinition queries to redis.
@@ -48,7 +52,12 @@ public class RedisRouteDefinitionRepository implements RouteDefinitionRepository
 	@Override
 	public Flux<RouteDefinition> getRouteDefinitions() {
 		return reactiveRedisTemplate.keys(createKey("*"))
-				.flatMap(key -> reactiveRedisTemplate.opsForValue().get(key));
+				.flatMap(key -> reactiveRedisTemplate.opsForValue().get(key))
+				.onErrorContinue((throwable, routeDefinition) -> {
+                    if (log.isErrorEnabled()) {
+                        log.error("get routes from redis error cause : {}", throwable.toString(), throwable);
+                    }
+                });
 	}
 
 	@Override
