@@ -1,0 +1,13 @@
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: verification_route
+          uri: https://google.co.uk/
+          predicates:
+            - Path=/verification/**
+          filters:
+            - name: TestFilter
+              args:
+                  arg1: world
+

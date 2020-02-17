@@ -18,12 +18,10 @@ package org.springframework.cloud.gateway.route;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
-
 import org.springframework.util.AlternativeJdkIdGenerator;
 import org.springframework.util.IdGenerator;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 /**
  * @author Spencer Gibb
@@ -49,10 +47,11 @@ public class CompositeRouteDefinitionLocator implements RouteDefinitionLocator {
 
 	@Override
 	public Flux<RouteDefinition> getRouteDefinitions() {
-		return this.delegates.flatMap(RouteDefinitionLocator::getRouteDefinitions)
+		return this.delegates
+				.flatMap(RouteDefinitionLocator::getRouteDefinitions)
 				.flatMap(routeDefinition -> Mono.justOrEmpty(routeDefinition.getId())
 						.defaultIfEmpty(idGenerator.generateId().toString())
-						.publishOn(Schedulers.elastic()).map(id -> {
+						.map(id -> {
 							if (routeDefinition.getId() == null) {
 								routeDefinition.setId(id);
 								if (log.isDebugEnabled()) {
