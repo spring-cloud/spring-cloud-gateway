@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
 @Repository
 public class RedisRouteDefinitionRepository implements RouteDefinitionRepository {
 
-    private static final Logger log = LoggerFactory.getLogger(RedisRouteDefinitionRepository.class);
+	private static final Logger log = LoggerFactory.getLogger(RedisRouteDefinitionRepository.class);
 
 	/**
 	 * Key prefix for RouteDefinition queries to redis.
@@ -54,10 +54,10 @@ public class RedisRouteDefinitionRepository implements RouteDefinitionRepository
 		return reactiveRedisTemplate.keys(createKey("*"))
 				.flatMap(key -> reactiveRedisTemplate.opsForValue().get(key))
 				.onErrorContinue((throwable, routeDefinition) -> {
-                    if (log.isErrorEnabled()) {
-                        log.error("get routes from redis error cause : {}", throwable.toString(), throwable);
-                    }
-                });
+					if (log.isErrorEnabled()) {
+						log.error("get routes from redis error cause : {}", throwable.toString(), throwable);
+					}
+				});
 	}
 
 	@Override
