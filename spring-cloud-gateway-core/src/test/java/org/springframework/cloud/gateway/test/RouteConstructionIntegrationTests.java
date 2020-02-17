@@ -1,9 +1,27 @@
+/*
+ * Copyright 2013-2020 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.springframework.cloud.gateway.test;
 
-import com.google.common.collect.Sets;
+import java.util.HashSet;
+
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -20,7 +38,9 @@ public class RouteConstructionIntegrationTests {
 	public void routesWithVerificationShouldFail() {
 		final SpringApplication springApplication = new SpringApplication();
 		springApplication.setAdditionalProfiles("verification-route");
-		springApplication.setSources(Sets.newHashSet(RouteConstructionIntegrationTests.TestConfig.class.getName()));
+		final HashSet<String> sources = new HashSet<>();
+		sources.add(RouteConstructionIntegrationTests.TestConfig.class.getName());
+		springApplication.setSources(sources);
 		springApplication.run();
 	}
 
@@ -29,14 +49,16 @@ public class RouteConstructionIntegrationTests {
 	public static class TestConfig {
 
 		@Bean
-		public TestFilterGatewayFilterFactory testFilterGatewayFilterFactory(){
+		public TestFilterGatewayFilterFactory testFilterGatewayFilterFactory() {
 			return new TestFilterGatewayFilterFactory();
 		}
+
 	}
 
-	public static class TestFilterGatewayFilterFactory extends AbstractGatewayFilterFactory<TestFilterGatewayFilterFactory.Config> {
+	public static class TestFilterGatewayFilterFactory
+			extends AbstractGatewayFilterFactory<TestFilterGatewayFilterFactory.Config> {
 
-		public TestFilterGatewayFilterFactory(){
+		public TestFilterGatewayFilterFactory() {
 			super(Config.class);
 		}
 
@@ -46,6 +68,7 @@ public class RouteConstructionIntegrationTests {
 		}
 
 		public static class Config {
+
 			private String arg1;
 
 			public String getArg1() {
@@ -57,5 +80,4 @@ public class RouteConstructionIntegrationTests {
 			}
 		}
 	}
-
 }
