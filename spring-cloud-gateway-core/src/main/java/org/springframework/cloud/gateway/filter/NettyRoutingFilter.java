@@ -128,7 +128,7 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 				.getAttributeOrDefault(PRESERVE_HOST_HEADER_ATTRIBUTE, false);
 		Route route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
 
-		Flux<HttpClientResponse> responseFlux = httpClientWithTimeoutFrom(route)
+		Flux<HttpClientResponse> responseFlux = getHttpClient(route, exchange)
 				.headers(headers -> {
 					headers.add(httpHeaders);
 					// Will either be set below, or later by Netty
@@ -242,7 +242,16 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 		}
 	}
 
-	private HttpClient httpClientWithTimeoutFrom(Route route) {
+	/**
+	 * Creates a new HttpClient with per route timeout configuration. Sub-classes that
+	 * override, should call super.getHttpClient() if they want to honor the per route
+	 * timeout configuration.
+	 * @param route the current route.
+	 * @param exchange the current ServerWebExchange.
+	 * @param chain the current GatewayFilterChain.
+	 * @return
+	 */
+	protected HttpClient getHttpClient(Route route, ServerWebExchange exchange) {
 		Integer connectTimeout = (Integer) route.getMetadata().get(CONNECT_TIMEOUT_ATTR);
 		if (connectTimeout != null) {
 			return this.httpClient.tcpConfiguration((tcpClient) -> tcpClient
