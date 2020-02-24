@@ -102,6 +102,10 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 		return Ordered.LOWEST_PRECEDENCE;
 	}
 
+	private static Route getRoute(ServerWebExchange exchange) {
+		return exchange.getAttribute(GATEWAY_ROUTE_ATTR);
+	}
+
 	@Override
 	@SuppressWarnings("Duplicates")
 	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
@@ -126,9 +130,8 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 
 		boolean preserveHost = exchange
 				.getAttributeOrDefault(PRESERVE_HOST_HEADER_ATTRIBUTE, false);
-		Route route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
 
-		Flux<HttpClientResponse> responseFlux = httpClientWithTimeoutFrom(route)
+		Flux<HttpClientResponse> responseFlux = httpClientWithTimeoutFrom(exchange, chain)
 				.headers(headers -> {
 					headers.add(httpHeaders);
 					// Will either be set below, or later by Netty
@@ -192,7 +195,7 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 					return Mono.just(res);
 				});
 
-		Duration responseTimeout = getResponseTimeout(route);
+		Duration responseTimeout = getResponseTimeout(getRoute(exchange));
 		if (responseTimeout != null) {
 			responseFlux = responseFlux
 					.timeout(responseTimeout, Mono.error(new TimeoutException(
@@ -242,7 +245,9 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 		}
 	}
 
-	private HttpClient httpClientWithTimeoutFrom(Route route) {
+	protected HttpClient httpClientWithTimeoutFrom(ServerWebExchange exchange,
+			GatewayFilterChain chain) {
+		Route route = getRoute(exchange);
 		Integer connectTimeout = (Integer) route.getMetadata().get(CONNECT_TIMEOUT_ATTR);
 		if (connectTimeout != null) {
 			return this.httpClient.tcpConfiguration((tcpClient) -> tcpClient
