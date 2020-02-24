@@ -281,7 +281,7 @@ spring:
   cloud:
     gateway:
       routes:
-      - id: host_route
+      - id: path_route
         uri: https://example.org
         predicates:
         - Path=/red/{segment},/blue/{segment}
