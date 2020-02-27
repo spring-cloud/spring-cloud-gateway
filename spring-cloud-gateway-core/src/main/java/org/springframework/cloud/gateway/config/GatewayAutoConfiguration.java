@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -137,9 +137,11 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Primary;
+import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.env.Environment;
 import org.springframework.http.codec.ServerCodecConfigurer;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.Validator;
 import org.springframework.web.reactive.DispatcherHandler;
@@ -579,7 +581,8 @@ public class GatewayAutoConfiguration {
 
 		@Bean
 		@ConditionalOnMissingBean
-		public HttpClient gatewayHttpClient(HttpClientProperties properties) {
+		public HttpClient gatewayHttpClient(HttpClientProperties properties,
+				List<HttpClientCustomizer> customizers) {
 
 			// configure pool resources
 			HttpClientProperties.Pool pool = properties.getPool();
@@ -599,6 +602,7 @@ public class GatewayAutoConfiguration {
 			}
 
 			HttpClient httpClient = HttpClient.create(connectionProvider)
+					// TODO: move customizations to HttpClientCustomizers
 					.httpResponseDecoder(spec -> {
 						if (properties.getMaxHeaderSize() != null) {
 							// cast to int is ok, since @Max is Integer.MAX_VALUE
@@ -675,6 +679,13 @@ public class GatewayAutoConfiguration {
 
 			if (properties.isWiretap()) {
 				httpClient = httpClient.wiretap(true);
+			}
+
+			if (!CollectionUtils.isEmpty(customizers)) {
+				customizers.sort(AnnotationAwareOrderComparator.INSTANCE);
+				for (HttpClientCustomizer customizer : customizers) {
+					httpClient = customizer.customize(httpClient);
+				}
 			}
 
 			return httpClient;
