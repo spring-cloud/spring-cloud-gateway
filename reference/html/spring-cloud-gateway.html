@@ -627,7 +627,7 @@ The following example configures a path route predicate:</p>
   cloud:
     gateway:
       routes:
-      - id: host_route
+      - id: path_route
         uri: https://example.org
         predicates:
         - Path=/red/{segment},/blue/{segment}</code></pre>
@@ -3115,7 +3115,7 @@ By using the fluent Java API, you can use the <code>and()</code>, <code>or()</co
 <div class="sect3">
 <h4 id="configuring-predicates-and-filters-for-discoveryclient-routes"><a class="anchor" href="#configuring-predicates-and-filters-for-discoveryclient-routes"></a><a class="link" href="#configuring-predicates-and-filters-for-discoveryclient-routes">12.4.1. Configuring Predicates and Filters For <code>DiscoveryClient</code> Routes</a></h4>
 <div class="paragraph">
-<p>By default, the fateway defines a single predicate and filter for routes created with a <code>DiscoveryClient</code>.</p>
+<p>By default, the gateway defines a single predicate and filter for routes created with a <code>DiscoveryClient</code>.</p>
 </div>
 <div class="paragraph">
 <p>The default predicate is a path predicate defined with the pattern <code>/serviceId/**</code>, where <code>serviceId</code> is
