@@ -281,7 +281,7 @@ spring:
   cloud:
     gateway:
       routes:
-      - id: host_route
+      - id: path_route
         uri: https://example.org
         predicates:
         - Path=/red/{segment},/blue/{segment}
@@ -2073,7 +2073,7 @@ To enable this, set `spring.cloud.gateway.discovery.locator.enabled=true` and ma
 
 ==== Configuring Predicates and Filters For `DiscoveryClient` Routes
 
-By default, the fateway defines a single predicate and filter for routes created with a `DiscoveryClient`.
+By default, the gateway defines a single predicate and filter for routes created with a `DiscoveryClient`.
 
 The default predicate is a path predicate defined with the pattern `/serviceId/**`, where `serviceId` is
 the ID of the service from the `DiscoveryClient`.

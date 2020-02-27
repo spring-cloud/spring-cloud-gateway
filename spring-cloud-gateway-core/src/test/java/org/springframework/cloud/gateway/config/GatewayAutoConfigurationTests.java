@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.gateway.config;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.junit.Test;
 import reactor.netty.http.client.HttpClient;
 
@@ -30,6 +32,8 @@ import org.springframework.boot.test.context.runner.ReactiveWebApplicationContex
 import org.springframework.cloud.gateway.actuate.GatewayControllerEndpoint;
 import org.springframework.cloud.gateway.actuate.GatewayLegacyControllerEndpoint;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.web.filter.reactive.HiddenHttpMethodFilter;
 import org.springframework.web.reactive.socket.client.ReactorNettyWebSocketClient;
 
@@ -81,7 +85,7 @@ public class GatewayAutoConfigurationTests {
 				.withConfiguration(AutoConfigurations.of(WebFluxAutoConfiguration.class,
 						MetricsAutoConfiguration.class,
 						SimpleMetricsExportAutoConfiguration.class,
-						GatewayAutoConfiguration.class))
+						GatewayAutoConfiguration.class, HttpClientCustomizedConfig.class))
 				.withPropertyValues(
 						"spring.cloud.gateway.httpclient.ssl.use-insecure-trust-manager=true",
 						"spring.cloud.gateway.httpclient.connect-timeout=10",
@@ -113,6 +117,9 @@ public class GatewayAutoConfigurationTests {
 							.getBean(ReactorNettyWebSocketClient.class);
 					assertThat(webSocketClient.getMaxFramePayloadLength())
 							.isEqualTo(1024);
+					HttpClientCustomizedConfig config = context
+							.getBean(HttpClientCustomizedConfig.class);
+					assertThat(config.called.get()).isTrue();
 				});
 	}
 
@@ -140,6 +147,21 @@ public class GatewayAutoConfigurationTests {
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	protected static class Config {
+
+	}
+
+	@Configuration
+	protected static class HttpClientCustomizedConfig {
+
+		private final AtomicBoolean called = new AtomicBoolean();
+
+		@Bean
+		HttpClientCustomizer myCustomCustomizer() {
+			return httpClient -> {
+				called.compareAndSet(false, true);
+				return httpClient;
+			};
+		}
 
 	}
 
