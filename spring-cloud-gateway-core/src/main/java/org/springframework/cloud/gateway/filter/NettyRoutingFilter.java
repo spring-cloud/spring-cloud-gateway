@@ -252,17 +252,38 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 	 * @return
 	 */
 	protected HttpClient getHttpClient(Route route, ServerWebExchange exchange) {
-		Integer connectTimeout = (Integer) route.getMetadata().get(CONNECT_TIMEOUT_ATTR);
-		if (connectTimeout != null) {
+		Object connectTimeoutAttr = route.getMetadata().get(CONNECT_TIMEOUT_ATTR);
+		if (connectTimeoutAttr != null) {
+			Integer connectTimeout = getInteger(connectTimeoutAttr);
 			return this.httpClient.tcpConfiguration((tcpClient) -> tcpClient
 					.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, connectTimeout));
 		}
 		return httpClient;
 	}
 
+	static Integer getInteger(Object connectTimeoutAttr) {
+		Integer connectTimeout;
+		if (connectTimeoutAttr instanceof Integer) {
+			connectTimeout = (Integer) connectTimeoutAttr;
+		}
+		else {
+			connectTimeout = Integer.parseInt(connectTimeoutAttr.toString());
+		}
+		return connectTimeout;
+	}
+
 	private Duration getResponseTimeout(Route route) {
-		Number responseTimeout = (Number) route.getMetadata().get(RESPONSE_TIMEOUT_ATTR);
-		return responseTimeout != null ? Duration.ofMillis(responseTimeout.longValue())
+		Object responseTimeoutAttr = route.getMetadata().get(RESPONSE_TIMEOUT_ATTR);
+		Long responseTimeout = null;
+		if (responseTimeoutAttr != null) {
+			if (responseTimeoutAttr instanceof Number) {
+				responseTimeout = ((Number) responseTimeoutAttr).longValue();
+			}
+			else {
+				responseTimeout = Long.valueOf(responseTimeoutAttr.toString());
+			}
+		}
+		return responseTimeout != null ? Duration.ofMillis(responseTimeout)
 				: properties.getResponseTimeout();
 	}
 

@@ -143,19 +143,26 @@ public class RouteDefinitionRouteLocator
 
 	@Override
 	public Flux<Route> getRoutes() {
-		return this.routeDefinitionLocator.getRouteDefinitions().map(this::convertToRoute)
-				// TODO: error handling
-				.map(route -> {
-					if (logger.isDebugEnabled()) {
-						logger.debug("RouteDefinition matched: " + route.getId());
-					}
-					return route;
-				});
+		Flux<Route> routes = this.routeDefinitionLocator.getRouteDefinitions()
+				.map(this::convertToRoute);
 
-		/*
-		 * TODO: trace logging if (logger.isTraceEnabled()) {
-		 * logger.trace("RouteDefinition did not match: " + routeDefinition.getId()); }
-		 */
+		if (!gatewayProperties.isFailOnRouteDefinitionError()) {
+			// instead of letting error bubble up, continue
+			routes = routes.onErrorContinue((error, obj) -> {
+				if (logger.isWarnEnabled()) {
+					logger.warn("RouteDefinition id " + ((RouteDefinition) obj).getId()
+							+ " will be ignored. Definition has invalid configs, "
+							+ error.getMessage());
+				}
+			});
+		}
+
+		return routes.map(route -> {
+			if (logger.isDebugEnabled()) {
+				logger.debug("RouteDefinition matched: " + route.getId());
+			}
+			return route;
+		});
 	}
 
 	private Route convertToRoute(RouteDefinition routeDefinition) {

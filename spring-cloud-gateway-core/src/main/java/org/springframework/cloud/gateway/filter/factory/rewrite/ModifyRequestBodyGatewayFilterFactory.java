@@ -71,8 +71,10 @@ public class ModifyRequestBodyGatewayFilterFactory extends
 
 				// TODO: flux or mono
 				Mono<?> modifiedBody = serverRequest.bodyToMono(inClass)
-						// .log("modify_request_mono", Level.INFO)
-						.flatMap(o -> config.rewriteFunction.apply(exchange, o));
+						.flatMap(originalBody -> config.getRewriteFunction()
+								.apply(exchange, originalBody))
+						.switchIfEmpty(Mono.defer(() -> (Mono) config.getRewriteFunction()
+								.apply(exchange, null)));
 
 				BodyInserter bodyInserter = BodyInserters.fromPublisher(modifiedBody,
 						config.getOutClass());
@@ -117,7 +119,7 @@ public class ModifyRequestBodyGatewayFilterFactory extends
 			public HttpHeaders getHeaders() {
 				long contentLength = headers.getContentLength();
 				HttpHeaders httpHeaders = new HttpHeaders();
-				httpHeaders.putAll(super.getHeaders());
+				httpHeaders.putAll(headers);
 				if (contentLength > 0) {
 					httpHeaders.setContentLength(contentLength);
 				}

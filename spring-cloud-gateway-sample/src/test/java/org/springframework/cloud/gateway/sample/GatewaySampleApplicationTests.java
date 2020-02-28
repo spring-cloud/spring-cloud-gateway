@@ -130,6 +130,29 @@ public class GatewaySampleApplicationTests {
 
 	@Test
 	@SuppressWarnings("unchecked")
+	public void rewriteResponseEmptyBodyToStringWorks() {
+		webClient.post().uri("/post/empty").header("Host", "www.rewriteemptyresponse.org")
+				.exchange().expectStatus().isOk().expectHeader()
+				.valueEquals("X-TestHeader", "rewrite_empty_response")
+				.expectBody(String.class)
+				.consumeWith(result -> assertThat(result.getResponseBody())
+						.isEqualTo("emptybody"));
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void emptyBodySupplierNotCalledWhenBodyPresent() {
+		webClient.post().uri("/post")
+				.header("Host", "www.rewriteresponsewithfailsupplier.org")
+				.bodyValue("hello").exchange().expectStatus().isOk().expectHeader()
+				.valueEquals("X-TestHeader", "rewrite_response_fail_supplier")
+				.expectBody(Map.class)
+				.consumeWith(result -> assertThat(result.getResponseBody())
+						.containsEntry("DATA", "HELLO"));
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
 	public void rewriteResponeBodyObjectWorks() {
 		webClient.post().uri("/post").header("Host", "www.rewriteresponseobj.org")
 				.bodyValue("hello").exchange().expectStatus().isOk().expectHeader()

@@ -203,8 +203,10 @@ public class ModifyResponseBodyGatewayFilterFactory extends
 
 					// TODO: flux or mono
 					Mono modifiedBody = clientResponse.bodyToMono(inClass)
-							.flatMap(originalBody -> config.rewriteFunction
-									.apply(exchange, originalBody));
+							.flatMap(originalBody -> config.getRewriteFunction()
+									.apply(exchange, originalBody))
+							.switchIfEmpty(Mono.defer(() -> (Mono) config
+									.getRewriteFunction().apply(exchange, null)));
 
 					BodyInserter bodyInserter = BodyInserters.fromPublisher(modifiedBody,
 							outClass);

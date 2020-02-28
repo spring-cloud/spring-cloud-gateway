@@ -99,6 +99,31 @@ public class GatewaySampleApplication {
 									})
 					).uri(uri)
 				)
+				.route("rewrite_empty_response", r -> r.host("*.rewriteemptyresponse.org")
+					.filters(f -> f.prefixPath("/httpbin")
+							.addResponseHeader("X-TestHeader", "rewrite_empty_response")
+							.modifyResponseBody(String.class, String.class,
+									(exchange, s) -> {
+										if (s == null) {
+											return Mono.just("emptybody");
+										}
+										return Mono.just(s.toUpperCase());
+									})
+
+					).uri(uri)
+				)
+				.route("rewrite_response_fail_supplier", r -> r.host("*.rewriteresponsewithfailsupplier.org")
+					.filters(f -> f.prefixPath("/httpbin")
+							.addResponseHeader("X-TestHeader", "rewrite_response_fail_supplier")
+							.modifyResponseBody(String.class, String.class,
+									(exchange, s) -> {
+										if (s == null) {
+											return Mono.error(new IllegalArgumentException("this should not happen"));
+										}
+										return Mono.just(s.toUpperCase());
+									})
+					).uri(uri)
+				)
 				.route("rewrite_response_obj", r -> r.host("*.rewriteresponseobj.org")
 					.filters(f -> f.prefixPath("/httpbin")
 							.addResponseHeader("X-TestHeader", "rewrite_response_obj")

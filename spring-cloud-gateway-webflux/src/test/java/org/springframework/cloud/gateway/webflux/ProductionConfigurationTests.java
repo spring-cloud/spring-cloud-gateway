@@ -350,7 +350,7 @@ public class ProductionConfigurationTests {
 					ProxyExchange<List<Object>> proxy) throws Exception {
 				body.put("id", id);
 				return proxy.uri(home.toString() + "/bars").body(Arrays.asList(body))
-						.post(this::first);
+						.forward(this::first);
 			}
 
 		}
