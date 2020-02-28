@@ -50,12 +50,10 @@ public class ModifyRequestBodyGatewayFilterFactoryTests extends BaseWebClientTes
 	public void modifyRequestBody() {
 		testClient.post().uri("/post").header("Host", "www.modifyrequestbody.org")
 				.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_XML_VALUE)
-				.body(BodyInserters.fromValue("request"))
-				.exchange()
-				.expectStatus().isEqualTo(HttpStatus.OK)
-				.expectBody()
-				.jsonPath("headers.Content-Type").isEqualTo(MediaType.APPLICATION_JSON_VALUE)
-				.jsonPath("data").isEqualTo("modifyrequest");
+				.body(BodyInserters.fromValue("request")).exchange().expectStatus()
+				.isEqualTo(HttpStatus.OK).expectBody().jsonPath("headers.Content-Type")
+				.isEqualTo(MediaType.APPLICATION_JSON_VALUE).jsonPath("data")
+				.isEqualTo("modifyrequest");
 	}
 
 	@EnableAutoConfiguration
@@ -68,16 +66,17 @@ public class ModifyRequestBodyGatewayFilterFactoryTests extends BaseWebClientTes
 
 		@Bean
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
-			return builder.routes()
-					.route("test_modify_request_body",
-							r -> r.order(-1).host("**.modifyrequestbody.org")
-									.filters(f -> f.modifyRequestBody(String.class, String.class,
-											MediaType.APPLICATION_JSON_VALUE, (serverWebExchange, aVoid) -> {
-												return Mono.just("modifyrequest");
-											})
-									)
-									.uri(uri))
+			return builder.routes().route("test_modify_request_body",
+					r -> r.order(-1).host("**.modifyrequestbody.org")
+							.filters(f -> f.modifyRequestBody(String.class, String.class,
+									MediaType.APPLICATION_JSON_VALUE,
+									(serverWebExchange, aVoid) -> {
+										return Mono.just("modifyrequest");
+									}))
+							.uri(uri))
 					.build();
 		}
+
 	}
+
 }
