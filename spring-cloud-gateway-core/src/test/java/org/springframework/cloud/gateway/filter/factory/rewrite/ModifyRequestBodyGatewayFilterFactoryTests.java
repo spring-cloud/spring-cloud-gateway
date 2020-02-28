@@ -66,7 +66,6 @@ public class ModifyRequestBodyGatewayFilterFactoryTests extends BaseWebClientTes
 				.isEqualTo("modifyrequest");
 	}
 
-
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
@@ -85,17 +84,17 @@ public class ModifyRequestBodyGatewayFilterFactoryTests extends BaseWebClientTes
 										return Mono.just("modifyrequest");
 									}))
 							.uri(uri))
-					.route("test_modify_request_body_empty",
-							r -> r.order(-1).host("**.modifyrequestbodyempty.org")
-									.filters(f -> f.modifyRequestBody(String.class, String.class,
-											MediaType.APPLICATION_JSON_VALUE,
-											(serverWebExchange, body) -> {
-												if (body == null) {
-													return Mono.just("modifyrequest");
-												}
-												return Mono.just(body.toUpperCase());
-											}))
-									.uri(uri))
+					.route("test_modify_request_body_empty", r -> r.order(-1)
+							.host("**.modifyrequestbodyempty.org")
+							.filters(f -> f.modifyRequestBody(String.class, String.class,
+									MediaType.APPLICATION_JSON_VALUE,
+									(serverWebExchange, body) -> {
+										if (body == null) {
+											return Mono.just("modifyrequest");
+										}
+										return Mono.just(body.toUpperCase());
+									}))
+							.uri(uri))
 					.build();
 		}
 
