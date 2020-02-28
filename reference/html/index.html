@@ -1419,19 +1419,26 @@ It requires the use of the <code>spring-boot-starter-data-redis-reactive</code> 
 <p>The algorithm used is the <a href="https://en.wikipedia.org/wiki/Token_bucket">Token Bucket Algorithm</a>.</p>
 </div>
 <div class="paragraph">
-<p>The <code>redis-rate-limiter.replenishRate</code> is how many requests per second you want a user to be allowed to do, without any dropped requests.
+<p>The <code>redis-rate-limiter.replenishRate</code> property is how many requests per second you want a user to be allowed to do, without any dropped requests.
 This is the rate at which the token bucket is filled.</p>
 </div>
 <div class="paragraph">
-<p>The <code>redis-rate-limiter.burstCapacity</code> is the maximum number of requests a user is allowed to do in a single second.
+<p>The <code>redis-rate-limiter.burstCapacity</code> property is the maximum number of requests a user is allowed to do in a single second.
 This is the number of tokens the token bucket can hold.
 Setting this value to zero blocks all requests.</p>
+</div>
+<div class="paragraph">
+<p>The <code>redis-rate-limiter.requestedTokens</code> property is how many tokens a request costs.
+This is the number of tokens taken from the bucket for each request and defaults to <code>1</code>.</p>
 </div>
 <div class="paragraph">
 <p>A steady rate is accomplished by setting the same value in <code>replenishRate</code> and <code>burstCapacity</code>.
 Temporary bursts can be allowed by setting <code>burstCapacity</code> higher than <code>replenishRate</code>.
 In this case, the rate limiter needs to be allowed some time between bursts (according to <code>replenishRate</code>), as two consecutive bursts will result in dropped requests (<code>HTTP 429 - Too Many Requests</code>).
 The following listing configures a <code>redis-rate-limiter</code>:</p>
+</div>
+<div class="paragraph">
+<p>Rate limits bellow <code>1 request/s</code> are accomplished by setting <code>replenishRate</code> to the wanted number of requests, <code>requestedTokens</code> to the timespan in seconds and <code>burstCapacity</code> to the product of <code>replenishRate</code> and <code>requestedTokens</code>, e.g. setting <code>replenishRate=1</code>, <code>requestedTokens=60</code> and <code>burstCapacity=60</code> will result in a limit of <code>1 request/min</code>.</p>
 </div>
 <div class="exampleblock">
 <div class="title">Example 30. application.yml</div>
@@ -1448,7 +1455,8 @@ The following listing configures a <code>redis-rate-limiter</code>:</p>
         - name: RequestRateLimiter
           args:
             redis-rate-limiter.replenishRate: 10
-            redis-rate-limiter.burstCapacity: 20</code></pre>
+            redis-rate-limiter.burstCapacity: 20
+            redis-rate-limiter.requestedTokens: 1</code></pre>
 </div>
 </div>
 </div>
