@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.gateway.webflux.config;
 
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -29,6 +30,7 @@ import org.springframework.http.HttpHeaders;
  * <code>@RequestMapping</code> methods.
  *
  * @author Dave Syer
+ * @author Tim Ysewyn
  *
  */
 @ConfigurationProperties("spring.cloud.gateway.proxy")
@@ -38,6 +40,11 @@ public class ProxyProperties {
 	 * Fixed header values that will be added to all downstream requests.
 	 */
 	private Map<String, String> headers = new LinkedHashMap<>();
+
+	/**
+	 * A set of header names that should be send downstream by default.
+	 */
+	private Set<String> autoForward = new HashSet<>();
 
 	/**
 	 * A set of sensitive header names that will not be sent downstream by default.
@@ -50,6 +57,14 @@ public class ProxyProperties {
 
 	public void setHeaders(Map<String, String> headers) {
 		this.headers = headers;
+	}
+
+	public Set<String> getAutoForward() {
+		return autoForward;
+	}
+
+	public void setAutoForward(Set<String> autoForward) {
+		this.autoForward = autoForward;
 	}
 
 	public Set<String> getSensitive() {

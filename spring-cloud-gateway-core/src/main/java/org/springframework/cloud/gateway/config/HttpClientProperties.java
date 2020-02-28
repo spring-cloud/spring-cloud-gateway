@@ -42,11 +42,13 @@ import org.springframework.boot.web.server.WebServerException;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.util.ResourceUtils;
 import org.springframework.util.unit.DataSize;
+import org.springframework.validation.annotation.Validated;
 
 /**
  * Configuration properties for the Netty {@link reactor.netty.http.client.HttpClient}.
  */
 @ConfigurationProperties("spring.cloud.gateway.httpclient")
+@Validated
 public class HttpClientProperties {
 
 	/** The connect timeout in millis, the default is 45s. */
@@ -57,6 +59,9 @@ public class HttpClientProperties {
 
 	/** The max response header size. */
 	private DataSize maxHeaderSize;
+
+	/** The max initial line length. */
+	private DataSize maxInitialLineLength;
 
 	/** Pool configuration for Netty HttpClient. */
 	private Pool pool = new Pool();
@@ -96,6 +101,15 @@ public class HttpClientProperties {
 
 	public void setMaxHeaderSize(DataSize maxHeaderSize) {
 		this.maxHeaderSize = maxHeaderSize;
+	}
+
+	@Max(Integer.MAX_VALUE)
+	public DataSize getMaxInitialLineLength() {
+		return maxInitialLineLength;
+	}
+
+	public void setMaxInitialLineLength(DataSize maxInitialLineLength) {
+		this.maxInitialLineLength = maxInitialLineLength;
 	}
 
 	public Pool getPool() {
@@ -145,6 +159,7 @@ public class HttpClientProperties {
 				.append("connectTimeout", connectTimeout)
 				.append("responseTimeout", responseTimeout)
 				.append("maxHeaderSize", maxHeaderSize)
+				.append("maxInitialLineLength", maxInitialLineLength)
 				.append("pool", pool)
 				.append("proxy", proxy)
 				.append("ssl", ssl)

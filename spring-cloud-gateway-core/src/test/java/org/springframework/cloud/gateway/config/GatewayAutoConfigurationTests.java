@@ -91,11 +91,17 @@ public class GatewayAutoConfigurationTests {
 						"spring.cloud.gateway.httpclient.connect-timeout=10",
 						"spring.cloud.gateway.httpclient.response-timeout=10s",
 						"spring.cloud.gateway.httpclient.pool.type=fixed",
+						// greather than integer max value
+						"spring.cloud.gateway.httpclient.max-initial-line-length=2147483647",
 						"spring.cloud.gateway.httpclient.proxy.host=myhost",
 						"spring.cloud.gateway.httpclient.websocket.max-frame-payload-length=1024")
 				.run(context -> {
 					assertThat(context).hasSingleBean(HttpClient.class);
 					HttpClient httpClient = context.getBean(HttpClient.class);
+					HttpClientProperties properties = context
+							.getBean(HttpClientProperties.class);
+					assertThat(properties.getMaxInitialLineLength().toBytes())
+							.isLessThanOrEqualTo(Integer.MAX_VALUE);
 					/*
 					 * FIXME: 2.1.0 HttpClientOptions options = httpClient.options();
 					 *

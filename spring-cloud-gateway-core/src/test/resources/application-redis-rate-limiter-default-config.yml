@@ -7,6 +7,7 @@ spring:
           redis-rate-limiter:
             replenish-rate: 70
             burst-capacity: 80
+            requested-tokens: 10
       routes:
       # =====================================
       - id: redis_rate_limiter_config_default_test

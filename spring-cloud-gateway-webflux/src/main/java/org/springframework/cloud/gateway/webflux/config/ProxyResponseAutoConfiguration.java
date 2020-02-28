@@ -37,6 +37,7 @@ import org.springframework.web.reactive.result.method.annotation.ArgumentResolve
  * <code>@RequestMapping</code> methods.
  *
  * @author Dave Syer
+ * @author Tim Ysewyn
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnWebApplication
@@ -56,6 +57,7 @@ public class ProxyResponseAutoConfiguration implements WebFluxConfigurer {
 		ProxyExchangeArgumentResolver resolver = new ProxyExchangeArgumentResolver(
 				template);
 		resolver.setHeaders(proxy.convertHeaders());
+		resolver.setAutoForwardedHeaders(proxy.getAutoForward());
 		resolver.setSensitive(proxy.getSensitive()); // can be null
 		return resolver;
 	}
