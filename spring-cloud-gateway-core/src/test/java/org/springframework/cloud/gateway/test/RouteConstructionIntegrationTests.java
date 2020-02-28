@@ -35,8 +35,7 @@ public class RouteConstructionIntegrationTests {
 	@Test
 	public void routesWithVerificationShouldFail() {
 		exception.expect(Throwable.class);
-		new SpringApplicationBuilder(TestConfig.class)
-				.profiles("verification-route")
+		new SpringApplicationBuilder(TestConfig.class).profiles("verification-route")
 				.run();
 	}
 
@@ -74,6 +73,9 @@ public class RouteConstructionIntegrationTests {
 			public void setArg1(String arg1) {
 				this.arg1 = arg1;
 			}
+
 		}
+
 	}
+
 }

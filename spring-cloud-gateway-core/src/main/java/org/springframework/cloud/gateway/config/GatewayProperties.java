@@ -29,6 +29,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.cloud.gateway.filter.FilterDefinition;
 import org.springframework.cloud.gateway.route.RouteDefinition;
+import org.springframework.core.style.ToStringCreator;
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 
@@ -55,6 +56,12 @@ public class GatewayProperties {
 
 	private List<MediaType> streamingMediaTypes = Arrays
 			.asList(MediaType.TEXT_EVENT_STREAM, MediaType.APPLICATION_STREAM_JSON);
+
+	/**
+	 * Option to fail on route definition errors, defaults to true. Otherwise, a warning
+	 * is logged.
+	 */
+	private boolean failOnRouteDefinitionError = true;
 
 	public List<RouteDefinition> getRoutes() {
 		return routes;
@@ -83,10 +90,22 @@ public class GatewayProperties {
 		this.streamingMediaTypes = streamingMediaTypes;
 	}
 
+	public boolean isFailOnRouteDefinitionError() {
+		return failOnRouteDefinitionError;
+	}
+
+	public void setFailOnRouteDefinitionError(boolean failOnRouteDefinitionError) {
+		this.failOnRouteDefinitionError = failOnRouteDefinitionError;
+	}
+
 	@Override
 	public String toString() {
-		return "GatewayProperties{" + "routes=" + routes + ", defaultFilters="
-				+ defaultFilters + ", streamingMediaTypes=" + streamingMediaTypes + '}';
+		return new ToStringCreator(this).append("routes", routes)
+				.append("defaultFilters", defaultFilters)
+				.append("streamingMediaTypes", streamingMediaTypes)
+				.append("failOnRouteDefinitionError", failOnRouteDefinitionError)
+				.toString();
+
 	}
 
 }

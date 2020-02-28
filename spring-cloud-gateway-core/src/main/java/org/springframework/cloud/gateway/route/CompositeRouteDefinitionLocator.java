@@ -55,7 +55,8 @@ public class CompositeRouteDefinitionLocator implements RouteDefinitionLocator {
 						return randomId().map(id -> {
 							routeDefinition.setId(id);
 							if (log.isDebugEnabled()) {
-								log.debug("Id set on route definition: " + routeDefinition);
+								log.debug(
+										"Id set on route definition: " + routeDefinition);
 							}
 							return routeDefinition;
 						});
@@ -65,6 +66,8 @@ public class CompositeRouteDefinitionLocator implements RouteDefinitionLocator {
 	}
 
 	protected Mono<String> randomId() {
-		return Mono.fromSupplier(idGenerator::toString).publishOn(Schedulers.boundedElastic());
+		return Mono.fromSupplier(idGenerator::toString)
+				.publishOn(Schedulers.boundedElastic());
 	}
+
 }
