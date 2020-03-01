@@ -50,6 +50,7 @@ import org.springframework.web.reactive.function.BodyInserter;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.core.scheduler.Schedulers;
 
 import static java.util.function.Function.identity;
 import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
@@ -283,7 +284,7 @@ public class ModifyResponseBodyGatewayFilterFactory extends
 						MessageBodyDecoder decoder = messageBodyDecoders.get(encoding);
 						if (decoder != null) {
 							return clientResponse.bodyToMono(byte[].class)
-									.map(decoder::decode)
+									.publishOn(Schedulers.parallel()).map(decoder::decode)
 									.map(bytes -> exchange.getResponse().bufferFactory()
 											.wrap(bytes))
 									.map(buffer -> prepareClientResponse(
@@ -312,8 +313,8 @@ public class ModifyResponseBodyGatewayFilterFactory extends
 						if (encoder != null) {
 							DataBufferFactory dataBufferFactory = httpResponse
 									.bufferFactory();
-							response = response.map(buffer -> dataBufferFactory
-									.wrap(encoder.encode(buffer)));
+							response = response.publishOn(Schedulers.parallel())
+									.map(encoder::encode).map(dataBufferFactory::wrap);
 							break;
 						}
 					}
