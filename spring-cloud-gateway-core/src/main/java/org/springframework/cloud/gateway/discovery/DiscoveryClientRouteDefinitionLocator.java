@@ -17,6 +17,7 @@
 package org.springframework.cloud.gateway.discovery;
 
 import java.net.URI;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
@@ -121,12 +122,8 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 		return serviceInstances.filter(instances -> !instances.isEmpty())
 				.map(instances -> instances.get(0)).filter(includePredicate)
 				.map(instance -> {
-					String serviceId = instance.getServiceId();
-
-					RouteDefinition routeDefinition = new RouteDefinition();
-					routeDefinition.setId(this.routeIdPrefix + serviceId);
-					String uri = urlExpr.getValue(evalCtxt, instance, String.class);
-					routeDefinition.setUri(URI.create(uri));
+					RouteDefinition routeDefinition = buildRouteDefinition(urlExpr,
+							instance);
 
 					final ServiceInstance instanceForEval = new DelegatingServiceInstance(
 							instance, properties);
@@ -157,6 +154,18 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 
 					return routeDefinition;
 				});
+	}
+
+	protected RouteDefinition buildRouteDefinition(Expression urlExpr,
+			ServiceInstance serviceInstance) {
+		String serviceId = serviceInstance.getServiceId();
+		RouteDefinition routeDefinition = new RouteDefinition();
+		routeDefinition.setId(this.routeIdPrefix + serviceId);
+		String uri = urlExpr.getValue(this.evalCtxt, serviceInstance, String.class);
+		routeDefinition.setUri(URI.create(uri));
+		// add instance metadata
+		routeDefinition.setMetadata(new LinkedHashMap<>(serviceInstance.getMetadata()));
+		return routeDefinition;
 	}
 
 	String getValueFromExpr(SimpleEvaluationContext evalCtxt, SpelExpressionParser parser,

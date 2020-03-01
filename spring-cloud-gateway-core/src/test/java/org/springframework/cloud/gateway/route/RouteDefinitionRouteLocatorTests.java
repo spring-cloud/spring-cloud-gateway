@@ -21,6 +21,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Test;
+import reactor.core.publisher.Flux;
+import reactor.test.StepVerifier;
 
 import org.springframework.cloud.gateway.config.GatewayProperties;
 import org.springframework.cloud.gateway.config.PropertiesRouteDefinitionLocator;
@@ -34,7 +36,7 @@ import org.springframework.cloud.gateway.filter.factory.RemoveResponseHeaderGate
 import org.springframework.cloud.gateway.handler.predicate.HostRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
 import org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory;
-import org.springframework.core.convert.support.DefaultConversionService;
+import org.springframework.cloud.gateway.support.ConfigurationService;
 import org.springframework.util.StringUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -66,19 +68,70 @@ public class RouteDefinitionRouteLocatorTests {
 			}
 		}));
 
+		PropertiesRouteDefinitionLocator routeDefinitionLocator = new PropertiesRouteDefinitionLocator(
+				gatewayProperties);
+		@SuppressWarnings("deprecation")
 		RouteDefinitionRouteLocator routeDefinitionRouteLocator = new RouteDefinitionRouteLocator(
-				new PropertiesRouteDefinitionLocator(gatewayProperties), predicates,
-				gatewayFilterFactories, gatewayProperties,
-				new DefaultConversionService());
+				new CompositeRouteDefinitionLocator(Flux.just(routeDefinitionLocator)),
+				predicates, gatewayFilterFactories, gatewayProperties,
+				new ConfigurationService());
 
-		List<Route> routes = routeDefinitionRouteLocator.getRoutes().collectList()
-				.block();
-		List<GatewayFilter> filters = routes.get(0).getFilters();
-		assertThat(filters).hasSize(3);
-		assertThat(getFilterClassName(filters.get(0))).contains("RemoveResponseHeader");
-		assertThat(getFilterClassName(filters.get(1))).contains("AddResponseHeader");
-		assertThat(getFilterClassName(filters.get(2)))
-				.contains("RouteDefinitionRouteLocatorTests$TestOrderedGateway");
+		StepVerifier.create(routeDefinitionRouteLocator.getRoutes()).assertNext(route -> {
+			List<GatewayFilter> filters = route.getFilters();
+			assertThat(filters).hasSize(3);
+			assertThat(getFilterClassName(filters.get(0)))
+					.contains("RemoveResponseHeader");
+			assertThat(getFilterClassName(filters.get(1))).contains("AddResponseHeader");
+			assertThat(getFilterClassName(filters.get(2)))
+					.contains("RouteDefinitionRouteLocatorTests$TestOrderedGateway");
+		}).expectComplete().verify();
+	}
+
+	@Test
+	public void contextLoadsWithErrorRecovery() {
+		List<RoutePredicateFactory> predicates = Arrays
+				.asList(new HostRoutePredicateFactory());
+		List<GatewayFilterFactory> gatewayFilterFactories = Arrays.asList(
+				new RemoveResponseHeaderGatewayFilterFactory(),
+				new AddResponseHeaderGatewayFilterFactory(),
+				new TestOrderedGatewayFilterFactory());
+		GatewayProperties gatewayProperties = new GatewayProperties();
+		gatewayProperties.setRoutes(containsInvalidRoutes());
+		gatewayProperties.setFailOnRouteDefinitionError(false);
+
+		PropertiesRouteDefinitionLocator routeDefinitionLocator = new PropertiesRouteDefinitionLocator(
+				gatewayProperties);
+		@SuppressWarnings("deprecation")
+		RouteDefinitionRouteLocator routeDefinitionRouteLocator = new RouteDefinitionRouteLocator(
+				new CompositeRouteDefinitionLocator(Flux.just(routeDefinitionLocator)),
+				predicates, gatewayFilterFactories, gatewayProperties,
+				new ConfigurationService());
+
+		StepVerifier.create(routeDefinitionRouteLocator.getRoutes()).assertNext(route -> {
+			List<GatewayFilter> filters = route.getFilters();
+			assertThat(filters).hasSize(3);
+			assertThat(getFilterClassName(filters.get(0)))
+					.contains("RemoveResponseHeader");
+			assertThat(getFilterClassName(filters.get(1))).contains("AddResponseHeader");
+			assertThat(getFilterClassName(filters.get(2)))
+					.contains("RouteDefinitionRouteLocatorTests$TestOrderedGateway");
+		}).expectComplete().verify();
+	}
+
+	private List<RouteDefinition> containsInvalidRoutes() {
+		RouteDefinition foo = new RouteDefinition();
+		foo.setId("foo");
+		foo.setUri(URI.create("https://foo.example.com"));
+		foo.setPredicates(Arrays.asList(new PredicateDefinition("Host=*.example.com")));
+		foo.setFilters(Arrays.asList(new FilterDefinition("RemoveResponseHeader=Server"),
+				new FilterDefinition("TestOrdered="),
+				new FilterDefinition("AddResponseHeader=X-Response-Foo, Bar")));
+		RouteDefinition bad = new RouteDefinition();
+		bad.setId("exceptionRaised");
+		bad.setUri(URI.create("https://foo.example.com"));
+		bad.setPredicates(Arrays.asList(new PredicateDefinition("Host=*.example.com")));
+		bad.setFilters(Arrays.asList(new FilterDefinition("Generate exception")));
+		return Arrays.asList(foo, bad);
 	}
 
 	private String getFilterClassName(GatewayFilter target) {

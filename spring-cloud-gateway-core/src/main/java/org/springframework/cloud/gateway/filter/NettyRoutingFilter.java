@@ -128,7 +128,7 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 				.getAttributeOrDefault(PRESERVE_HOST_HEADER_ATTRIBUTE, false);
 		Route route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
 
-		Flux<HttpClientResponse> responseFlux = httpClientWithTimeoutFrom(route)
+		Flux<HttpClientResponse> responseFlux = getHttpClient(route, exchange)
 				.headers(headers -> {
 					headers.add(httpHeaders);
 					// Will either be set below, or later by Netty
@@ -242,18 +242,48 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 		}
 	}
 
-	private HttpClient httpClientWithTimeoutFrom(Route route) {
-		Integer connectTimeout = (Integer) route.getMetadata().get(CONNECT_TIMEOUT_ATTR);
-		if (connectTimeout != null) {
+	/**
+	 * Creates a new HttpClient with per route timeout configuration. Sub-classes that
+	 * override, should call super.getHttpClient() if they want to honor the per route
+	 * timeout configuration.
+	 * @param route the current route.
+	 * @param exchange the current ServerWebExchange.
+	 * @param chain the current GatewayFilterChain.
+	 * @return
+	 */
+	protected HttpClient getHttpClient(Route route, ServerWebExchange exchange) {
+		Object connectTimeoutAttr = route.getMetadata().get(CONNECT_TIMEOUT_ATTR);
+		if (connectTimeoutAttr != null) {
+			Integer connectTimeout = getInteger(connectTimeoutAttr);
 			return this.httpClient.tcpConfiguration((tcpClient) -> tcpClient
 					.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, connectTimeout));
 		}
 		return httpClient;
 	}
 
+	static Integer getInteger(Object connectTimeoutAttr) {
+		Integer connectTimeout;
+		if (connectTimeoutAttr instanceof Integer) {
+			connectTimeout = (Integer) connectTimeoutAttr;
+		}
+		else {
+			connectTimeout = Integer.parseInt(connectTimeoutAttr.toString());
+		}
+		return connectTimeout;
+	}
+
 	private Duration getResponseTimeout(Route route) {
-		Number responseTimeout = (Number) route.getMetadata().get(RESPONSE_TIMEOUT_ATTR);
-		return responseTimeout != null ? Duration.ofMillis(responseTimeout.longValue())
+		Object responseTimeoutAttr = route.getMetadata().get(RESPONSE_TIMEOUT_ATTR);
+		Long responseTimeout = null;
+		if (responseTimeoutAttr != null) {
+			if (responseTimeoutAttr instanceof Number) {
+				responseTimeout = ((Number) responseTimeoutAttr).longValue();
+			}
+			else {
+				responseTimeout = Long.valueOf(responseTimeoutAttr.toString());
+			}
+		}
+		return responseTimeout != null ? Duration.ofMillis(responseTimeout)
 				: properties.getResponseTimeout();
 	}
 

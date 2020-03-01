@@ -55,7 +55,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
+@SpringBootTest(properties = {
+		"spring.cloud.gateway.proxy.auto-forward=baz" }, webEnvironment = WebEnvironment.RANDOM_PORT)
 @ContextConfiguration(classes = TestApplication.class)
 public class ProductionConfigurationTests {
 
@@ -247,15 +248,21 @@ public class ProductionConfigurationTests {
 	@Test
 	@SuppressWarnings({ "Duplicates", "unchecked" })
 	public void headers() throws Exception {
-		Map<String, List<String>> headers = rest.exchange(RequestEntity
-				.get(rest.getRestTemplate().getUriTemplateHandler()
-						.expand("/proxy/headers"))
-				.header("foo", "bar").header("abc", "xyz").build(), Map.class).getBody();
+		Map<String, List<String>> headers = rest
+				.exchange(
+						RequestEntity
+								.get(rest.getRestTemplate().getUriTemplateHandler()
+										.expand("/proxy/headers"))
+								.header("foo", "bar").header("abc", "xyz")
+								.header("baz", "fob").build(),
+						Map.class)
+				.getBody();
 		assertThat(headers).doesNotContainKey("foo").doesNotContainKey("hello")
 				.containsKeys("bar", "abc");
 
 		assertThat(headers.get("bar")).containsOnly("hello");
 		assertThat(headers.get("abc")).containsOnly("123");
+		assertThat(headers.get("baz")).containsOnly("fob");
 	}
 
 	@Test

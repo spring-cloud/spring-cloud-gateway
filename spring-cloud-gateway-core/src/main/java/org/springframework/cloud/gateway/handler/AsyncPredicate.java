@@ -20,7 +20,6 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 import org.reactivestreams.Publisher;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.handler.predicate.GatewayPredicate;
@@ -106,8 +105,8 @@ public interface AsyncPredicate<T> extends Function<T, Publisher<Boolean>> {
 
 		@Override
 		public Publisher<Boolean> apply(T t) {
-			return Flux.zip(left.apply(t), right.apply(t))
-					.map(tuple -> tuple.getT1() && tuple.getT2());
+			return Mono.from(left.apply(t)).flatMap(
+					result -> !result ? Mono.just(false) : Mono.from(right.apply(t)));
 		}
 
 		@Override
@@ -133,8 +132,8 @@ public interface AsyncPredicate<T> extends Function<T, Publisher<Boolean>> {
 
 		@Override
 		public Publisher<Boolean> apply(T t) {
-			return Flux.zip(left.apply(t), right.apply(t))
-					.map(tuple -> tuple.getT1() || tuple.getT2());
+			return Mono.from(left.apply(t)).flatMap(
+					result -> result ? Mono.just(true) : Mono.from(right.apply(t)));
 		}
 
 		@Override

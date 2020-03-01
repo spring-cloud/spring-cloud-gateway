@@ -34,6 +34,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Spencer Gibb
+ * @author Denis Cutic
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -49,22 +50,23 @@ public class RedisRateLimiterDefaultFilterConfigTests {
 
 	@Before
 	public void init() {
-		routeLocator.getRoutes().collectList().block(); // prime routes since getRoutes()
-														// no longer blocks
+		// prime routes since getRoutes() no longer blocks
+		routeLocator.getRoutes().collectList().block();
 	}
 
 	@Test
 	public void redisRateConfiguredFromEnvironmentDefaultFilters() {
 		String routeId = "redis_rate_limiter_config_default_test";
 		RedisRateLimiter.Config config = rateLimiter.loadConfiguration(routeId);
-		assertConfigAndRoute(routeId, 70, 80, config);
+		assertConfigAndRoute(routeId, 70, 80, 10, config);
 	}
 
 	private void assertConfigAndRoute(String key, int replenishRate, int burstCapacity,
-			RedisRateLimiter.Config config) {
+			int requestedTokens, RedisRateLimiter.Config config) {
 		assertThat(config).isNotNull();
 		assertThat(config.getReplenishRate()).isEqualTo(replenishRate);
 		assertThat(config.getBurstCapacity()).isEqualTo(burstCapacity);
+		assertThat(config.getRequestedTokens()).isEqualTo(requestedTokens);
 
 		Route route = routeLocator.getRoutes().filter(r -> r.getId().equals(key)).next()
 				.block();

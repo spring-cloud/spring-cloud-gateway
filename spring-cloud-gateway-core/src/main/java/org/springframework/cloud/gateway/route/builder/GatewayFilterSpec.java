@@ -223,8 +223,7 @@ public class GatewayFilterSpec extends UriSpec {
 	}
 
 	/**
-	 * A filter that can be used to modify the request body. This filter is BETA and may
-	 * be subject to change in a future release.
+	 * A filter that can be used to modify the request body.
 	 * @param inClass the class to convert the incoming request body to
 	 * @param outClass the class the Gateway will add to the request before it is routed
 	 * @param rewriteFunction the {@link RewriteFunction} that transforms the request body
@@ -240,8 +239,7 @@ public class GatewayFilterSpec extends UriSpec {
 	}
 
 	/**
-	 * A filter that can be used to modify the request body. This filter is BETA and may
-	 * be subject to change in a future release.
+	 * A filter that can be used to modify the request body.
 	 * @param inClass the class to convert the incoming request body to
 	 * @param outClass the class the Gateway will add to the request before it is routed
 	 * @param newContentType the new Content-Type header to be sent
@@ -258,9 +256,10 @@ public class GatewayFilterSpec extends UriSpec {
 	}
 
 	/**
-	 * A filter that can be used to modify the request body. This filter is BETA and may
-	 * be subject to change in a future release.
+	 * A filter that can be used to modify the request body.
 	 * @param configConsumer request spec for response modification
+	 * @param <T> the original request body class
+	 * @param <R> the new request body class
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 * <pre>
 	 * {@code
@@ -281,8 +280,7 @@ public class GatewayFilterSpec extends UriSpec {
 	}
 
 	/**
-	 * A filter that can be used to modify the response body This filter is BETA and may
-	 * be subject to change in a future release.
+	 * A filter that can be used to modify the response body.
 	 * @param inClass the class to conver the response body to
 	 * @param outClass the class the Gateway will add to the response before it is
 	 * returned to the client
@@ -299,8 +297,7 @@ public class GatewayFilterSpec extends UriSpec {
 	}
 
 	/**
-	 * A filter that can be used to modify the response body This filter is BETA and may
-	 * be subject to change in a future release.
+	 * A filter that can be used to modify the response body.
 	 * @param inClass the class to conver the response body to
 	 * @param outClass the class the Gateway will add to the response before it is
 	 * returned to the client
@@ -321,9 +318,10 @@ public class GatewayFilterSpec extends UriSpec {
 	}
 
 	/**
-	 * A filter that can be used to modify the response body using custom spec. This
-	 * filter is BETA and may be subject to change in a future release.
+	 * A filter that can be used to modify the response body using custom spec.
 	 * @param configConsumer response spec for response modification
+	 * @param <T> the original response body class
+	 * @param <R> the new response body class
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 * <pre>
 	 * {@code
@@ -478,7 +476,7 @@ public class GatewayFilterSpec extends UriSpec {
 	}
 
 	/**
-	 * A filter which rewrites the request path before it is routed by the Gateway
+	 * A filter which rewrites the request path before it is routed by the Gateway.
 	 * @param regex a Java regular expression to match the path against
 	 * @param replacement the replacement for the path
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
