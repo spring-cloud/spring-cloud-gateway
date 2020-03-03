@@ -17,6 +17,7 @@
 package org.springframework.cloud.gateway.filter.factory;
 
 import java.io.IOException;
+import java.net.URI;
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -189,6 +190,19 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 	}
 
 	@Test
+	public void retryWithFallback() {
+		// @formatter:off
+		testClient.mutate().responseTimeout(Duration.ofSeconds(10)).build().get()
+				.uri("/sleep?key=sleepyRequestGetWithFallback&millis=3000")
+				.header(HttpHeaders.HOST, "www.retrywithfallback.org")
+				.exchange()
+				.expectStatus().isOk()
+				.expectBody(String.class).isEqualTo("fallback =(");
+		// @formatter:on
+	}
+
+
+	@Test
 	public void toStringFormat() {
 		RetryConfig config = new RetryConfig();
 		config.setRetries(4);
@@ -268,6 +282,13 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 					.body(body);
 		}
 
+		@RequestMapping("/fallback/test")
+		public Mono<ResponseEntity<String>> fallback() {
+			log.info("Fallback invoked");
+			return Mono.just(ResponseEntity.status(HttpStatus.OK).body("fallback =("));
+		}
+
+
 		AtomicInteger getCount(String key) {
 			return map.computeIfAbsent(key, s -> new AtomicInteger());
 		}
@@ -296,6 +317,12 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 									.filters(f -> f.prefixPath("/httpbin")
 											.retry(config -> config.setRetries(2)))
 									.uri("lb://badservice2"))
+
+					.route("retry_with_fallback", r -> r.host("**.retrywithfallback.org")
+							.filters(f -> f.prefixPath("/httpbin").retry(config -> {
+								config.setRetries(2).setFallbackUri(URI.create("forward:/fallback/test"));
+							})).uri(uri))
+
 					.build();
 		}
 

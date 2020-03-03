@@ -433,8 +433,9 @@ public class RetryGatewayFilterFactory
 			return fallbackUri;
 		}
 
-		public void setFallbackUri(URI fallbackUri) {
+		public RetryConfig setFallbackUri(URI fallbackUri) {
 			this.fallbackUri = fallbackUri;
+			return this;
 		}
 
 	}
