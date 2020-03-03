@@ -54,26 +54,20 @@ public class ConfigurationService implements ApplicationEventPublisherAware {
 
 	private Supplier<Validator> validator;
 
-	@Deprecated
-	public ConfigurationService() {
-		this.conversionService = () -> null;
-		this.validator = () -> null;
-	}
-
-	@Deprecated
-	public ConfigurationService(BeanFactory beanFactory,
-			ConversionService conversionService, Validator validator) {
-		this.beanFactory = beanFactory;
-		this.conversionService = () -> conversionService;
-		this.validator = () -> validator;
-	}
-
 	public ConfigurationService(BeanFactory beanFactory,
 			ObjectProvider<ConversionService> conversionService,
 			ObjectProvider<Validator> validator) {
 		this.beanFactory = beanFactory;
 		this.conversionService = conversionService::getIfAvailable;
 		this.validator = validator::getIfAvailable;
+	}
+
+	public ConfigurationService(BeanFactory beanFactory,
+			Supplier<ConversionService> conversionService,
+			Supplier<Validator> validator) {
+		this.beanFactory = beanFactory;
+		this.conversionService = conversionService;
+		this.validator = validator;
 	}
 
 	public ApplicationEventPublisher getPublisher() {
@@ -85,33 +79,6 @@ public class ConfigurationService implements ApplicationEventPublisherAware {
 		this.publisher = publisher;
 	}
 
-	public BeanFactory getBeanFactory() {
-		return this.beanFactory;
-	}
-
-	@Deprecated
-	public void setBeanFactory(BeanFactory beanFactory) {
-		this.beanFactory = beanFactory;
-	}
-
-	@Deprecated
-	public void setConversionService(ConversionService conversionService) {
-		this.conversionService = () -> conversionService;
-	}
-
-	public void setParser(SpelExpressionParser parser) {
-		this.parser = parser;
-	}
-
-	public Validator getValidator() {
-		return this.validator.get();
-	}
-
-	@Deprecated
-	public void setValidator(Validator validator) {
-		this.validator = () -> validator;
-	}
-
 	public <T, C extends Configurable<T> & ShortcutConfigurable> ConfigurableBuilder<T, C> with(
 			C configurable) {
 		return new ConfigurableBuilder<T, C>(this, configurable);
@@ -121,10 +88,9 @@ public class ConfigurationService implements ApplicationEventPublisherAware {
 		return new InstanceBuilder<T>(this, instance);
 	}
 
-	@Deprecated
-	public static <T> T bindOrCreate(Bindable<T> bindable, Map<String, Object> properties,
-			String configurationPropertyName, Validator validator,
-			ConversionService conversionService) {
+	/* for testing */ static <T> T bindOrCreate(Bindable<T> bindable,
+			Map<String, Object> properties, String configurationPropertyName,
+			Validator validator, ConversionService conversionService) {
 		// see ConfigurationPropertiesBinder from spring boot for this definition.
 		BindHandler handler = new IgnoreTopLevelConverterNotFoundBindHandler();
 
@@ -139,9 +105,8 @@ public class ConfigurationService implements ApplicationEventPublisherAware {
 				.bindOrCreate(configurationPropertyName, bindable, handler);
 	}
 
-	@Deprecated
 	@SuppressWarnings("unchecked")
-	public static <T> T getTargetObject(Object candidate) {
+	/* for testing */ static <T> T getTargetObject(Object candidate) {
 		try {
 			if (AopUtils.isAopProxy(candidate) && (candidate instanceof Advised)) {
 				return (T) ((Advised) candidate).getTargetSource().getTarget();

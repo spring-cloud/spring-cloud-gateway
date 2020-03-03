@@ -73,11 +73,6 @@ public class CachingRouteLocator
 				.doOnNext(routes -> cache.put(CACHE_KEY, routes)).subscribe();
 	}
 
-	@Deprecated
-	/* for testing */ void handleRefresh() {
-		refresh();
-	}
-
 	@Override
 	public int getOrder() {
 		return 0;

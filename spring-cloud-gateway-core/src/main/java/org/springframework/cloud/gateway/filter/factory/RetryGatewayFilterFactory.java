@@ -220,12 +220,6 @@ public class RetryGatewayFilterFactory
 		removeAlreadyRouted(exchange);
 	}
 
-	@Deprecated
-	public GatewayFilter apply(Repeat<ServerWebExchange> repeat,
-			Retry<ServerWebExchange> retry) {
-		return apply(null, repeat, retry);
-	}
-
 	public GatewayFilter apply(String routeId, Repeat<ServerWebExchange> repeat,
 			Retry<ServerWebExchange> retry) {
 		if (routeId != null && getPublisher() != null) {

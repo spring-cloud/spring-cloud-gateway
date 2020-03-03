@@ -37,7 +37,6 @@ import reactor.netty.resources.ConnectionProvider;
 import reactor.netty.tcp.SslProvider;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.DeprecatedConfigurationProperty;
 import org.springframework.boot.web.server.WebServerException;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.util.ResourceUtils;
@@ -537,42 +536,6 @@ public class HttpClientProperties {
 
 		public void setCloseNotifyReadTimeout(Duration closeNotifyReadTimeout) {
 			this.closeNotifyReadTimeout = closeNotifyReadTimeout;
-		}
-
-		@DeprecatedConfigurationProperty(
-				replacement = "spring.cloud.gateway.httpclient.ssl.handshake-timeout")
-		@Deprecated
-		public long getHandshakeTimeoutMillis() {
-			return getHandshakeTimeout().toMillis();
-		}
-
-		@Deprecated
-		public void setHandshakeTimeoutMillis(long handshakeTimeoutMillis) {
-			setHandshakeTimeout(Duration.ofMillis(handshakeTimeoutMillis));
-		}
-
-		@DeprecatedConfigurationProperty(
-				replacement = "spring.cloud.gateway.httpclient.ssl.close-notify-flush-timeout")
-		@Deprecated
-		public long getCloseNotifyFlushTimeoutMillis() {
-			return getCloseNotifyFlushTimeout().toMillis();
-		}
-
-		@Deprecated
-		public void setCloseNotifyFlushTimeoutMillis(long closeNotifyFlushTimeoutMillis) {
-			setCloseNotifyFlushTimeout(Duration.ofMillis(closeNotifyFlushTimeoutMillis));
-		}
-
-		@DeprecatedConfigurationProperty(
-				replacement = "spring.cloud.gateway.httpclient.ssl.close-notify-read-timeout")
-		@Deprecated
-		public long getCloseNotifyReadTimeoutMillis() {
-			return getCloseNotifyReadTimeout().toMillis();
-		}
-
-		@Deprecated
-		public void setCloseNotifyReadTimeoutMillis(long closeNotifyReadTimeoutMillis) {
-			setCloseNotifyFlushTimeout(Duration.ofMillis(closeNotifyReadTimeoutMillis));
 		}
 
 		public SslProvider.DefaultConfigurationType getDefaultConfigurationType() {

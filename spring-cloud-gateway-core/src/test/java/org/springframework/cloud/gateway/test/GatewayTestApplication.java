@@ -19,8 +19,8 @@ package org.springframework.cloud.gateway.test;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
 import org.springframework.cloud.gateway.discovery.DiscoveryClientRouteDefinitionLocator;
 import org.springframework.cloud.gateway.discovery.DiscoveryLocatorProperties;
 import org.springframework.context.annotation.Bean;
@@ -49,7 +49,8 @@ public class GatewayTestApplication {
 
 		@Bean
 		public DiscoveryClientRouteDefinitionLocator discoveryClientRouteLocator(
-				DiscoveryClient discoveryClient, DiscoveryLocatorProperties properties) {
+				ReactiveDiscoveryClient discoveryClient,
+				DiscoveryLocatorProperties properties) {
 			return new DiscoveryClientRouteDefinitionLocator(discoveryClient, properties);
 		}
 

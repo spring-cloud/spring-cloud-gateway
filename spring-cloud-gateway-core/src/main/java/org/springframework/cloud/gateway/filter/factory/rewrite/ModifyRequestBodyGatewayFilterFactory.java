@@ -17,7 +17,6 @@
 package org.springframework.cloud.gateway.filter.factory.rewrite;
 
 import java.util.List;
-import java.util.Map;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -29,7 +28,6 @@ import org.springframework.cloud.gateway.support.BodyInserterContext;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.codec.HttpMessageReader;
-import org.springframework.http.codec.ServerCodecConfigurer;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
 import org.springframework.web.reactive.function.BodyInserter;
@@ -57,11 +55,6 @@ public class ModifyRequestBodyGatewayFilterFactory extends
 			List<HttpMessageReader<?>> messageReaders) {
 		super(Config.class);
 		this.messageReaders = messageReaders;
-	}
-
-	@Deprecated
-	public ModifyRequestBodyGatewayFilterFactory(ServerCodecConfigurer codecConfigurer) {
-		this(codecConfigurer.getReaders());
 	}
 
 	@Override
@@ -152,12 +145,6 @@ public class ModifyRequestBodyGatewayFilterFactory extends
 
 		private String contentType;
 
-		@Deprecated
-		private Map<String, Object> inHints;
-
-		@Deprecated
-		private Map<String, Object> outHints;
-
 		private RewriteFunction rewriteFunction;
 
 		public Class getInClass() {
@@ -175,28 +162,6 @@ public class ModifyRequestBodyGatewayFilterFactory extends
 
 		public Config setOutClass(Class outClass) {
 			this.outClass = outClass;
-			return this;
-		}
-
-		@Deprecated
-		public Map<String, Object> getInHints() {
-			return inHints;
-		}
-
-		@Deprecated
-		public Config setInHints(Map<String, Object> inHints) {
-			this.inHints = inHints;
-			return this;
-		}
-
-		@Deprecated
-		public Map<String, Object> getOutHints() {
-			return outHints;
-		}
-
-		@Deprecated
-		public Config setOutHints(Map<String, Object> outHints) {
-			this.outHints = outHints;
 			return this;
 		}
 

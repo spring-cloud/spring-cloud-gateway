@@ -23,7 +23,6 @@ import org.springframework.cloud.gateway.support.AbstractStatefulConfigurable;
 import org.springframework.cloud.gateway.support.ConfigurationService;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.style.ToStringCreator;
-import org.springframework.validation.Validator;
 
 public abstract class AbstractRateLimiter<C> extends AbstractStatefulConfigurable<C>
 		implements RateLimiter<C>, ApplicationListener<FilterArgsEvent> {
@@ -31,15 +30,6 @@ public abstract class AbstractRateLimiter<C> extends AbstractStatefulConfigurabl
 	private String configurationPropertyName;
 
 	private ConfigurationService configurationService;
-
-	@Deprecated
-	protected AbstractRateLimiter(Class<C> configClass, String configurationPropertyName,
-			Validator validator) {
-		super(configClass);
-		this.configurationPropertyName = configurationPropertyName;
-		this.configurationService = new ConfigurationService();
-		this.configurationService.setValidator(validator);
-	}
 
 	protected AbstractRateLimiter(Class<C> configClass, String configurationPropertyName,
 			ConfigurationService configurationService) {
@@ -50,21 +40,6 @@ public abstract class AbstractRateLimiter<C> extends AbstractStatefulConfigurabl
 
 	protected String getConfigurationPropertyName() {
 		return configurationPropertyName;
-	}
-
-	@Deprecated
-	protected Validator getValidator() {
-		if (this.configurationService != null) {
-			return this.configurationService.getValidator();
-		}
-		return null;
-	}
-
-	@Deprecated
-	public void setValidator(Validator validator) {
-		if (this.configurationService != null) {
-			this.configurationService.setValidator(validator);
-		}
 	}
 
 	protected void setConfigurationService(ConfigurationService configurationService) {

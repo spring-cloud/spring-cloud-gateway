@@ -27,7 +27,6 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.http.server.PathContainer;
-import org.springframework.util.CollectionUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.pattern.PathPattern;
@@ -123,21 +122,6 @@ public class PathRoutePredicateFactory
 		private List<String> patterns = new ArrayList<>();
 
 		private boolean matchOptionalTrailingSeparator = true;
-
-		@Deprecated
-		public String getPattern() {
-			if (!CollectionUtils.isEmpty(this.patterns)) {
-				return patterns.get(0);
-			}
-			return null;
-		}
-
-		@Deprecated
-		public Config setPattern(String pattern) {
-			this.patterns = new ArrayList<>();
-			this.patterns.add(pattern);
-			return this;
-		}
 
 		public List<String> getPatterns() {
 			return patterns;

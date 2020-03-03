@@ -26,7 +26,6 @@ import java.util.function.Predicate;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.util.AntPathMatcher;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.PathMatcher;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.server.ServerWebExchange;
@@ -87,21 +86,6 @@ public class HostRoutePredicateFactory
 	public static class Config {
 
 		private List<String> patterns = new ArrayList<>();
-
-		@Deprecated
-		public String getPattern() {
-			if (!CollectionUtils.isEmpty(this.patterns)) {
-				return patterns.get(0);
-			}
-			return null;
-		}
-
-		@Deprecated
-		public Config setPattern(String pattern) {
-			this.patterns = new ArrayList<>();
-			this.patterns.add(pattern);
-			return this;
-		}
 
 		public List<String> getPatterns() {
 			return patterns;

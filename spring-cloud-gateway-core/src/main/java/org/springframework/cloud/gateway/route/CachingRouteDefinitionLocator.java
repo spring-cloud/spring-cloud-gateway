@@ -71,9 +71,4 @@ public class CachingRouteDefinitionLocator
 				.doOnNext(routes -> cache.put(CACHE_KEY, routes)).subscribe();
 	}
 
-	@Deprecated
-	/* for testing */ void handleRefresh() {
-		refresh();
-	}
-
 }

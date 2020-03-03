@@ -54,13 +54,6 @@ public class Route implements Ordered {
 
 	private final Map<String, Object> metadata;
 
-	@Deprecated
-	private Route(String id, URI uri, int order,
-			AsyncPredicate<ServerWebExchange> predicate,
-			List<GatewayFilter> gatewayFilters) {
-		this(id, uri, order, predicate, gatewayFilters, new HashMap<>());
-	}
-
 	private Route(String id, URI uri, int order,
 			AsyncPredicate<ServerWebExchange> predicate,
 			List<GatewayFilter> gatewayFilters, Map<String, Object> metadata) {

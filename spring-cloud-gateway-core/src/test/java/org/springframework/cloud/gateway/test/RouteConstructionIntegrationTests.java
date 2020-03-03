@@ -16,9 +16,8 @@
 
 package org.springframework.cloud.gateway.test;
 
-import org.junit.Rule;
+import org.junit.Assert;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -29,14 +28,12 @@ import org.springframework.context.annotation.Bean;
 
 public class RouteConstructionIntegrationTests {
 
-	@Rule
-	public ExpectedException exception = ExpectedException.none();
-
 	@Test
 	public void routesWithVerificationShouldFail() {
-		exception.expect(Throwable.class);
-		new SpringApplicationBuilder(TestConfig.class).profiles("verification-route")
-				.run();
+		Assert.assertThrows(Throwable.class, () -> {
+			new SpringApplicationBuilder(TestConfig.class).profiles("verification-route")
+					.run();
+		});
 	}
 
 	@EnableAutoConfiguration

@@ -74,7 +74,7 @@ public class RouteDefinitionRouteLocatorTests {
 		RouteDefinitionRouteLocator routeDefinitionRouteLocator = new RouteDefinitionRouteLocator(
 				new CompositeRouteDefinitionLocator(Flux.just(routeDefinitionLocator)),
 				predicates, gatewayFilterFactories, gatewayProperties,
-				new ConfigurationService());
+				new ConfigurationService(null, () -> null, () -> null));
 
 		StepVerifier.create(routeDefinitionRouteLocator.getRoutes()).assertNext(route -> {
 			List<GatewayFilter> filters = route.getFilters();
@@ -105,7 +105,7 @@ public class RouteDefinitionRouteLocatorTests {
 		RouteDefinitionRouteLocator routeDefinitionRouteLocator = new RouteDefinitionRouteLocator(
 				new CompositeRouteDefinitionLocator(Flux.just(routeDefinitionLocator)),
 				predicates, gatewayFilterFactories, gatewayProperties,
-				new ConfigurationService());
+				new ConfigurationService(null, () -> null, () -> null));
 
 		StepVerifier.create(routeDefinitionRouteLocator.getRoutes()).assertNext(route -> {
 			List<GatewayFilter> filters = route.getFilters();

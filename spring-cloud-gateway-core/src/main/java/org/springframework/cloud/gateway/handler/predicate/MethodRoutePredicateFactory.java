@@ -34,12 +34,6 @@ public class MethodRoutePredicateFactory
 		extends AbstractRoutePredicateFactory<MethodRoutePredicateFactory.Config> {
 
 	/**
-	 * Method key.
-	 */
-	@Deprecated
-	public static final String METHOD_KEY = "method";
-
-	/**
 	 * Methods key.
 	 */
 	public static final String METHODS_KEY = "methods";
@@ -79,19 +73,6 @@ public class MethodRoutePredicateFactory
 	public static class Config {
 
 		private HttpMethod[] methods;
-
-		@Deprecated
-		public HttpMethod getMethod() {
-			if (methods != null && methods.length > 0) {
-				return methods[0];
-			}
-			return null;
-		}
-
-		@Deprecated
-		public void setMethod(HttpMethod method) {
-			this.methods = new HttpMethod[] { method };
-		}
 
 		public HttpMethod[] getMethods() {
 			return methods;

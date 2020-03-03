@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.gateway.filter.factory.rewrite;
 
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.reactivestreams.Publisher;
@@ -73,11 +72,6 @@ public class CachedBodyOutputMessage implements ReactiveHttpOutputMessage {
 	 */
 	public Flux<DataBuffer> getBody() {
 		return this.body;
-	}
-
-	@Deprecated
-	public void setWriteHandler(Function<Flux<DataBuffer>, Mono<Void>> writeHandler) {
-
 	}
 
 	public Mono<Void> writeWith(Publisher<? extends DataBuffer> body) {

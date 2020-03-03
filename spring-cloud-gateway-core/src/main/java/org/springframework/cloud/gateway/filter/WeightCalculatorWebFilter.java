@@ -39,7 +39,6 @@ import org.springframework.context.ApplicationEvent;
 import org.springframework.context.event.SmartApplicationListener;
 import org.springframework.core.Ordered;
 import org.springframework.core.style.ToStringCreator;
-import org.springframework.validation.Validator;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
@@ -69,24 +68,6 @@ public class WeightCalculatorWebFilter
 	private int order = WEIGHT_CALC_FILTER_ORDER;
 
 	private Map<String, GroupWeightConfig> groupWeights = new ConcurrentHashMap<>();
-
-	/* for testing */ WeightCalculatorWebFilter() {
-		this.routeLocator = null;
-		this.configurationService = new ConfigurationService();
-	}
-
-	@Deprecated
-	public WeightCalculatorWebFilter(Validator validator) {
-		this(validator, null);
-	}
-
-	@Deprecated
-	public WeightCalculatorWebFilter(Validator validator,
-			ObjectProvider<RouteLocator> routeLocator) {
-		this.routeLocator = routeLocator;
-		this.configurationService = new ConfigurationService();
-		this.configurationService.setValidator(validator);
-	}
 
 	public WeightCalculatorWebFilter(ObjectProvider<RouteLocator> routeLocator,
 			ConfigurationService configurationService) {

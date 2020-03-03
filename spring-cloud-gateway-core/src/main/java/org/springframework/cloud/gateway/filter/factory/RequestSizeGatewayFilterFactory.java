@@ -105,12 +105,6 @@ public class RequestSizeGatewayFilterFactory extends
 			return maxSize;
 		}
 
-		@Deprecated
-		public RequestSizeGatewayFilterFactory.RequestSizeConfig setMaxSize(
-				Long maxSize) {
-			return this.setMaxSize(DataSize.ofBytes(maxSize));
-		}
-
 		public RequestSizeGatewayFilterFactory.RequestSizeConfig setMaxSize(
 				DataSize maxSize) {
 			this.maxSize = maxSize;

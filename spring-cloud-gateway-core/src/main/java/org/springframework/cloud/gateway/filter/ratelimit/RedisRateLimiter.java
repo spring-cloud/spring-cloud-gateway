@@ -41,7 +41,6 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
-import org.springframework.validation.Validator;
 import org.springframework.validation.annotation.Validated;
 
 /**
@@ -55,18 +54,6 @@ import org.springframework.validation.annotation.Validated;
 @ConfigurationProperties("spring.cloud.gateway.redis-rate-limiter")
 public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Config>
 		implements ApplicationContextAware {
-
-	/**
-	 * @deprecated use {@link Config#replenishRate}
-	 */
-	@Deprecated
-	public static final String REPLENISH_RATE_KEY = "replenishRate";
-
-	/**
-	 * @deprecated use {@link Config#burstCapacity}
-	 */
-	@Deprecated
-	public static final String BURST_CAPACITY_KEY = "burstCapacity";
 
 	/**
 	 * Redis Rate Limiter property name.
@@ -133,15 +120,6 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 	public RedisRateLimiter(ReactiveStringRedisTemplate redisTemplate,
 			RedisScript<List<Long>> script, ConfigurationService configurationService) {
 		super(Config.class, CONFIGURATION_PROPERTY_NAME, configurationService);
-		this.redisTemplate = redisTemplate;
-		this.script = script;
-		this.initialized.compareAndSet(false, true);
-	}
-
-	@Deprecated
-	public RedisRateLimiter(ReactiveStringRedisTemplate redisTemplate,
-			RedisScript<List<Long>> script, Validator validator) {
-		super(Config.class, CONFIGURATION_PROPERTY_NAME, validator);
 		this.redisTemplate = redisTemplate;
 		this.script = script;
 		this.initialized.compareAndSet(false, true);

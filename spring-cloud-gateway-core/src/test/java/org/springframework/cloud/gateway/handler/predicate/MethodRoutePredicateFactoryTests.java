@@ -88,7 +88,7 @@ public class MethodRoutePredicateFactoryTests extends BaseWebClientTests {
 	@Test
 	public void toStringFormatSingleMethod() {
 		Config config = new Config();
-		config.setMethod(HttpMethod.GET);
+		config.setMethods(HttpMethod.GET);
 		Predicate predicate = new MethodRoutePredicateFactory().apply(config);
 		assertThat(predicate.toString()).contains("Methods: [GET]");
 	}

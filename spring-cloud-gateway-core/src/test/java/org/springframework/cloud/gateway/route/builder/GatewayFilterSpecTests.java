@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.gateway.route.builder;
 
+import java.util.Collections;
+
 import org.junit.Test;
 import reactor.core.publisher.Mono;
 
@@ -28,6 +30,7 @@ import org.springframework.cloud.gateway.route.Route;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.Ordered;
 import org.springframework.http.MediaType;
+import org.springframework.web.reactive.function.server.HandlerStrategies;
 import org.springframework.web.server.ServerWebExchange;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -93,7 +96,9 @@ public class GatewayFilterSpecTests {
 				.predicate(exchange -> true);
 
 		when(context.getBean(ModifyResponseBodyGatewayFilterFactory.class))
-				.thenReturn(new ModifyResponseBodyGatewayFilterFactory());
+				.thenReturn(new ModifyResponseBodyGatewayFilterFactory(
+						HandlerStrategies.withDefaults().messageReaders(),
+						Collections.emptySet(), Collections.emptySet()));
 
 		RouteLocatorBuilder.Builder routes = new RouteLocatorBuilder(context).routes();
 		GatewayFilterSpec spec = new GatewayFilterSpec(routeBuilder, routes);
@@ -116,7 +121,9 @@ public class GatewayFilterSpecTests {
 				.predicate(exchange -> true);
 
 		when(context.getBean(ModifyResponseBodyGatewayFilterFactory.class))
-				.thenReturn(new ModifyResponseBodyGatewayFilterFactory());
+				.thenReturn(new ModifyResponseBodyGatewayFilterFactory(
+						HandlerStrategies.withDefaults().messageReaders(),
+						Collections.emptySet(), Collections.emptySet()));
 
 		RouteLocatorBuilder.Builder routes = new RouteLocatorBuilder(context).routes();
 		GatewayFilterSpec spec = new GatewayFilterSpec(routeBuilder, routes);
@@ -139,7 +146,9 @@ public class GatewayFilterSpecTests {
 				.predicate(exchange -> true);
 
 		when(context.getBean(ModifyResponseBodyGatewayFilterFactory.class))
-				.thenReturn(new ModifyResponseBodyGatewayFilterFactory());
+				.thenReturn(new ModifyResponseBodyGatewayFilterFactory(
+						HandlerStrategies.withDefaults().messageReaders(),
+						Collections.emptySet(), Collections.emptySet()));
 
 		RouteLocatorBuilder.Builder routes = new RouteLocatorBuilder(context).routes();
 		GatewayFilterSpec spec = new GatewayFilterSpec(routeBuilder, routes);
@@ -162,7 +171,9 @@ public class GatewayFilterSpecTests {
 				.predicate(exchange -> true);
 
 		when(context.getBean(ModifyResponseBodyGatewayFilterFactory.class))
-				.thenReturn(new ModifyResponseBodyGatewayFilterFactory());
+				.thenReturn(new ModifyResponseBodyGatewayFilterFactory(
+						HandlerStrategies.withDefaults().messageReaders(),
+						Collections.emptySet(), Collections.emptySet()));
 
 		RouteLocatorBuilder.Builder routes = new RouteLocatorBuilder(context).routes();
 		GatewayFilterSpec spec = new GatewayFilterSpec(routeBuilder, routes);

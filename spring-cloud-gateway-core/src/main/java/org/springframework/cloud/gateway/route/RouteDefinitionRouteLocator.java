@@ -26,10 +26,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Flux;
 
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.config.GatewayProperties;
 import org.springframework.cloud.gateway.event.FilterArgsEvent;
 import org.springframework.cloud.gateway.event.PredicateArgsEvent;
@@ -42,12 +38,8 @@ import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
 import org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory;
 import org.springframework.cloud.gateway.support.ConfigurationService;
 import org.springframework.cloud.gateway.support.HasRouteId;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
-import org.springframework.core.convert.ConversionService;
-import org.springframework.validation.Validator;
 import org.springframework.web.server.ServerWebExchange;
 
 /**
@@ -55,8 +47,7 @@ import org.springframework.web.server.ServerWebExchange;
  *
  * @author Spencer Gibb
  */
-public class RouteDefinitionRouteLocator
-		implements RouteLocator, BeanFactoryAware, ApplicationEventPublisherAware {
+public class RouteDefinitionRouteLocator implements RouteLocator {
 
 	/**
 	 * Default filters name.
@@ -75,20 +66,6 @@ public class RouteDefinitionRouteLocator
 
 	private final GatewayProperties gatewayProperties;
 
-	@Deprecated
-	public RouteDefinitionRouteLocator(RouteDefinitionLocator routeDefinitionLocator,
-			List<RoutePredicateFactory> predicates,
-			List<GatewayFilterFactory> gatewayFilterFactories,
-			GatewayProperties gatewayProperties, ConversionService conversionService) {
-		this.routeDefinitionLocator = routeDefinitionLocator;
-		this.configurationService = new ConfigurationService();
-		this.configurationService.setConversionService(conversionService);
-		initFactories(predicates);
-		gatewayFilterFactories.forEach(
-				factory -> this.gatewayFilterFactories.put(factory.name(), factory));
-		this.gatewayProperties = gatewayProperties;
-	}
-
 	public RouteDefinitionRouteLocator(RouteDefinitionLocator routeDefinitionLocator,
 			List<RoutePredicateFactory> predicates,
 			List<GatewayFilterFactory> gatewayFilterFactories,
@@ -100,30 +77,6 @@ public class RouteDefinitionRouteLocator
 		gatewayFilterFactories.forEach(
 				factory -> this.gatewayFilterFactories.put(factory.name(), factory));
 		this.gatewayProperties = gatewayProperties;
-	}
-
-	@Override
-	@Deprecated
-	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-		if (this.configurationService.getBeanFactory() == null) {
-			this.configurationService.setBeanFactory(beanFactory);
-		}
-	}
-
-	@Autowired
-	@Deprecated
-	public void setValidator(Validator validator) {
-		if (this.configurationService.getValidator() == null) {
-			this.configurationService.setValidator(validator);
-		}
-	}
-
-	@Override
-	@Deprecated
-	public void setApplicationEventPublisher(ApplicationEventPublisher publisher) {
-		if (this.configurationService.getPublisher() == null) {
-			this.configurationService.setApplicationEventPublisher(publisher);
-		}
 	}
 
 	private void initFactories(List<RoutePredicateFactory> predicates) {

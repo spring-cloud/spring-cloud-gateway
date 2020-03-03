@@ -183,21 +183,6 @@ public class PredicateSpec extends UriSpec {
 
 	/**
 	 * A predicate that checks if the path of the request matches the given pattern
-	 * @param pattern the pattern to check the path against. The pattern is a
-	 * {@link org.springframework.util.PathMatcher} pattern
-	 * @param matchOptionalTrailingSeparator set to false if you do not want this path to
-	 * match when there is a trailing <code>/</code>
-	 * @return a {@link BooleanSpec} to be used to add logical operators
-	 */
-	@Deprecated
-	public BooleanSpec path(String pattern, boolean matchOptionalTrailingSeparator) {
-		return asyncPredicate(getBean(PathRoutePredicateFactory.class).applyAsync(c -> c
-				.setPatterns(Collections.singletonList(pattern))
-				.setMatchOptionalTrailingSeparator(matchOptionalTrailingSeparator)));
-	}
-
-	/**
-	 * A predicate that checks if the path of the request matches the given pattern
 	 * @param patterns the pattern to check the path against. The pattern is a
 	 * {@link org.springframework.util.PathMatcher} pattern
 	 * @param matchOptionalTrailingSeparator set to false if you do not want this path to
