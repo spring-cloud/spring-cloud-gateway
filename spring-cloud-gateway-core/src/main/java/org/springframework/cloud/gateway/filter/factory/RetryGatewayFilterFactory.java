@@ -103,11 +103,10 @@ public class RetryGatewayFilterFactory
 	public GatewayFilter apply(RetryConfig retryConfig) {
 		retryConfig.validate();
 		if (!StringUtils.isEmpty(retryConfig.getFallbackUri())) {
-			this.onRetryExhaustedFallbackFunctionFactory = exchange -> throwable -> {
+			this.onRetryExhaustedFallbackFunctionFactory = (exchange, dispatcherHandler) -> throwable -> {
 				ServerHttpRequest request = exchange.getRequest().mutate()
 						.uri(retryConfig.getFallbackUri()).build();
-				return getDispatcherHandler()
-						.handle(exchange.mutate().request(request).build());
+				return dispatcherHandler.handle(exchange.mutate().request(request).build());
 			};
 		}
 		// TODO instantiate onRetryExhaustedFallbackFunctionFactory when its bean is present
@@ -302,7 +301,7 @@ public class RetryGatewayFilterFactory
 
 			if (onRetryExhaustedFallbackFunctionFactory != null) {
 				voidMono = voidMono.onErrorResume(onRetryExhaustedFallbackFunctionFactory
-						.makeFallbackFunction(exchange));
+						.makeFallbackFunction(exchange, getDispatcherHandler()));
 			}
 
 			return voidMono;
@@ -506,7 +505,7 @@ public class RetryGatewayFilterFactory
 
 	public interface OnRetryExhaustedFallbackFunctionFactory {
 
-		OnRetryExhaustedFallbackFunction makeFallbackFunction(ServerWebExchange exchange);
+		OnRetryExhaustedFallbackFunction makeFallbackFunction(ServerWebExchange exchange, DispatcherHandler dispatcherHandler);
 
 	}
 
