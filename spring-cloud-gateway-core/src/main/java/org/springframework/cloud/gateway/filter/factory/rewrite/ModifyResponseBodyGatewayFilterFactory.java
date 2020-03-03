@@ -41,6 +41,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.client.reactive.ClientHttpResponse;
+import org.springframework.http.codec.HttpMessageReader;
 import org.springframework.http.codec.ServerCodecConfigurer;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
@@ -49,6 +50,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.BodyInserter;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.ClientResponse;
+import org.springframework.web.reactive.function.server.HandlerStrategies;
 import org.springframework.web.server.ServerWebExchange;
 
 import static java.util.function.Function.identity;
@@ -61,17 +63,16 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.O
 public class ModifyResponseBodyGatewayFilterFactory extends
 		AbstractGatewayFilterFactory<ModifyResponseBodyGatewayFilterFactory.Config> {
 
-	@Nullable
-	private final ServerCodecConfigurer codecConfigurer;
-
 	private final Map<String, MessageBodyDecoder> messageBodyDecoders;
 
 	private final Map<String, MessageBodyEncoder> messageBodyEncoders;
 
+	private final List<HttpMessageReader<?>> messageReaders;
+
 	@Deprecated
 	public ModifyResponseBodyGatewayFilterFactory() {
 		super(Config.class);
-		this.codecConfigurer = null;
+		messageReaders = HandlerStrategies.withDefaults().messageReaders();
 		messageBodyDecoders = Collections.emptyMap();
 		messageBodyEncoders = Collections.emptyMap();
 	}
@@ -79,16 +80,17 @@ public class ModifyResponseBodyGatewayFilterFactory extends
 	@Deprecated
 	public ModifyResponseBodyGatewayFilterFactory(ServerCodecConfigurer codecConfigurer) {
 		super(Config.class);
-		this.codecConfigurer = codecConfigurer;
+		this.messageReaders = codecConfigurer.getReaders();
 		messageBodyDecoders = Collections.emptyMap();
 		messageBodyEncoders = Collections.emptyMap();
 	}
 
-	public ModifyResponseBodyGatewayFilterFactory(ServerCodecConfigurer codecConfigurer,
+	public ModifyResponseBodyGatewayFilterFactory(
+			List<HttpMessageReader<?>> messageReaders,
 			Set<MessageBodyDecoder> messageBodyDecoders,
 			Set<MessageBodyEncoder> messageBodyEncoders) {
 		super(Config.class);
-		this.codecConfigurer = codecConfigurer;
+		this.messageReaders = messageReaders;
 		this.messageBodyDecoders = messageBodyDecoders.stream()
 				.collect(Collectors.toMap(MessageBodyDecoder::encodingType, identity()));
 		this.messageBodyEncoders = messageBodyEncoders.stream()
@@ -98,7 +100,7 @@ public class ModifyResponseBodyGatewayFilterFactory extends
 	@Override
 	public GatewayFilter apply(Config config) {
 		ModifyResponseGatewayFilter gatewayFilter = new ModifyResponseGatewayFilter(
-				config, codecConfigurer);
+				config);
 		gatewayFilter.setFactory(this);
 		return gatewayFilter;
 	}
@@ -185,20 +187,16 @@ public class ModifyResponseBodyGatewayFilterFactory extends
 
 		private final Config config;
 
-		@Nullable
-		private final ServerCodecConfigurer codecConfigurer;
-
 		private GatewayFilterFactory<Config> gatewayFilterFactory;
 
-		@Deprecated
 		public ModifyResponseGatewayFilter(Config config) {
 			this(config, null);
 		}
 
+		@Deprecated
 		public ModifyResponseGatewayFilter(Config config,
 				@Nullable ServerCodecConfigurer codecConfigurer) {
 			this.config = config;
-			this.codecConfigurer = codecConfigurer;
 		}
 
 		@Override
@@ -299,13 +297,8 @@ public class ModifyResponseBodyGatewayFilterFactory extends
 		private ClientResponse prepareClientResponse(Publisher<? extends DataBuffer> body,
 				HttpHeaders httpHeaders) {
 			ClientResponse.Builder builder;
-			if (codecConfigurer != null) {
-				builder = ClientResponse.create(exchange.getResponse().getStatusCode(),
-						codecConfigurer.getReaders());
-			}
-			else {
-				builder = ClientResponse.create(exchange.getResponse().getStatusCode());
-			}
+			builder = ClientResponse.create(exchange.getResponse().getStatusCode(),
+					messageReaders);
 			return builder.headers(headers -> headers.putAll(httpHeaders))
 					.body(Flux.from(body)).build();
 		}
