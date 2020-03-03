@@ -32,6 +32,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import reactor.core.publisher.Mono;
 
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -58,6 +60,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.reactive.DispatcherHandler;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -75,6 +78,9 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 
 	@Rule
 	public final OutputCaptureRule capture = new OutputCaptureRule();
+
+	@Autowired
+	private ObjectProvider<DispatcherHandler> dispatcherHandlerProvider;
 
 	@Test
 	public void retryFilterGet() {
@@ -189,7 +195,8 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 		config.setMethods(HttpMethod.GET);
 		config.setSeries(HttpStatus.Series.SERVER_ERROR);
 		config.setExceptions(IOException.class);
-		GatewayFilter filter = new RetryGatewayFilterFactory().apply(config);
+		GatewayFilter filter = new RetryGatewayFilterFactory(dispatcherHandlerProvider)
+				.apply(config);
 		assertThat(filter.toString()).contains("4").contains("[GET]")
 				.contains("[SERVER_ERROR]").contains("[IOException]");
 	}

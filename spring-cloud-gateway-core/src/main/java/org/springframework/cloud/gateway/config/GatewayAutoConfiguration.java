@@ -495,8 +495,9 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	public RetryGatewayFilterFactory retryGatewayFilterFactory() {
-		return new RetryGatewayFilterFactory();
+	public RetryGatewayFilterFactory retryGatewayFilterFactory(
+			ObjectProvider<DispatcherHandler> dispatcherHandlerProvider) {
+		return new RetryGatewayFilterFactory(dispatcherHandlerProvider);
 	}
 
 	@Bean

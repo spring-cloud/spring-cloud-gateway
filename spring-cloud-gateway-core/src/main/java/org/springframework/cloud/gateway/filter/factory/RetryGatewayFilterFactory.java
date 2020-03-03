@@ -17,12 +17,14 @@
 package org.springframework.cloud.gateway.filter.factory;
 
 import java.io.IOException;
+import java.net.URI;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
@@ -36,15 +38,20 @@ import reactor.retry.RepeatContext;
 import reactor.retry.Retry;
 import reactor.retry.RetryContext;
 
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cloud.gateway.event.EnableBodyCachingEvent;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.support.HasRouteId;
 import org.springframework.cloud.gateway.support.TimeoutException;
+import org.springframework.cloud.loadbalancer.support.SimpleObjectProvider;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatus.Series;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
+import org.springframework.web.reactive.DispatcherHandler;
 import org.springframework.web.server.ServerWebExchange;
 
 import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
@@ -61,17 +68,49 @@ public class RetryGatewayFilterFactory
 
 	private static final Log log = LogFactory.getLog(RetryGatewayFilterFactory.class);
 
+	final private ObjectProvider<DispatcherHandler> dispatcherHandlerProvider;
+
+	private OnRetryExhaustedFallbackFunctionFactory onRetryExhaustedFallbackFunctionFactory = null;
+
+	@Deprecated
 	public RetryGatewayFilterFactory() {
 		super(RetryConfig.class);
+		this.dispatcherHandlerProvider = new SimpleObjectProvider<>(null);
+	}
+
+	public RetryGatewayFilterFactory(
+			ObjectProvider<DispatcherHandler> dispatcherHandlerProvider) {
+		super(RetryConfig.class);
+		this.dispatcherHandlerProvider = dispatcherHandlerProvider;
 	}
 
 	private static <T> List<T> toList(T... items) {
 		return new ArrayList<>(Arrays.asList(items));
 	}
 
+	// do not use this dispatcherHandler directly, use getDispatcherHandler() instead.
+	private volatile DispatcherHandler dispatcherHandler;
+
+	private DispatcherHandler getDispatcherHandler() {
+		if (dispatcherHandler == null) {
+			dispatcherHandler = dispatcherHandlerProvider.getIfAvailable();
+		}
+
+		return dispatcherHandler;
+	}
+
 	@Override
 	public GatewayFilter apply(RetryConfig retryConfig) {
 		retryConfig.validate();
+		if (!StringUtils.isEmpty(retryConfig.getFallbackUri())) {
+			this.onRetryExhaustedFallbackFunctionFactory = exchange -> throwable -> {
+				ServerHttpRequest request = exchange.getRequest().mutate()
+						.uri(retryConfig.getFallbackUri()).build();
+				return getDispatcherHandler()
+						.handle(exchange.mutate().request(request).build());
+			};
+		}
+		// TODO instantiate onRetryExhaustedFallbackFunctionFactory when its bean is present
 
 		Repeat<ServerWebExchange> statusCodeRepeat = null;
 		if (!retryConfig.getStatuses().isEmpty() || !retryConfig.getSeries().isEmpty()) {
@@ -259,7 +298,14 @@ public class RetryGatewayFilterFactory
 						.repeatWhen(repeat.withApplicationContext(exchange));
 			}
 
-			return Mono.fromDirect(publisher);
+			Mono<Void> voidMono = Mono.fromDirect(publisher);
+
+			if (onRetryExhaustedFallbackFunctionFactory != null) {
+				voidMono = voidMono.onErrorResume(onRetryExhaustedFallbackFunctionFactory
+						.makeFallbackFunction(exchange));
+			}
+
+			return voidMono;
 		};
 	}
 
@@ -293,6 +339,8 @@ public class RetryGatewayFilterFactory
 				TimeoutException.class);
 
 		private BackoffConfig backoff;
+
+		private URI fallbackUri;
 
 		public RetryConfig allMethods() {
 			return setMethods(HttpMethod.values());
@@ -381,6 +429,14 @@ public class RetryGatewayFilterFactory
 			return this;
 		}
 
+		public URI getFallbackUri() {
+			return fallbackUri;
+		}
+
+		public void setFallbackUri(URI fallbackUri) {
+			this.fallbackUri = fallbackUri;
+		}
+
 	}
 
 	public static class BackoffConfig {
@@ -439,6 +495,17 @@ public class RetryGatewayFilterFactory
 		public void setBasedOnPreviousValue(boolean basedOnPreviousValue) {
 			this.basedOnPreviousValue = basedOnPreviousValue;
 		}
+
+	}
+
+	public interface OnRetryExhaustedFallbackFunction
+			extends Function<Throwable, Mono<? extends Void>> {
+
+	}
+
+	public interface OnRetryExhaustedFallbackFunctionFactory {
+
+		OnRetryExhaustedFallbackFunction makeFallbackFunction(ServerWebExchange exchange);
 
 	}
 
