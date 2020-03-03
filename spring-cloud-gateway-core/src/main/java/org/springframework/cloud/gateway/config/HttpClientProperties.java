@@ -603,6 +603,9 @@ public class HttpClientProperties {
 		/** Max frame payload length. */
 		private Integer maxFramePayloadLength;
 
+		/** Proxy ping frames to downstream services, defaults to true. */
+		private boolean proxyPing = true;
+
 		public Integer getMaxFramePayloadLength() {
 			return this.maxFramePayloadLength;
 		}
@@ -611,10 +614,19 @@ public class HttpClientProperties {
 			this.maxFramePayloadLength = maxFramePayloadLength;
 		}
 
+		public boolean isProxyPing() {
+			return proxyPing;
+		}
+
+		public void setProxyPing(boolean proxyPing) {
+			this.proxyPing = proxyPing;
+		}
+
 		@Override
 		public String toString() {
 			return new ToStringCreator(this)
-					.append("maxFramePayloadLength", maxFramePayloadLength).toString();
+					.append("maxFramePayloadLength", maxFramePayloadLength)
+					.append("proxyPing", proxyPing).toString();
 		}
 
 	}
