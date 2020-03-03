@@ -33,17 +33,31 @@ import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = RANDOM_PORT)
+@SpringBootTest(webEnvironment = RANDOM_PORT,
+		properties = "spring.codec.max-in-memory-size=40")
 @DirtiesContext
 public class ModifyResponseBodyGatewayFilterFactoryTests extends BaseWebClientTests {
+
+	private static final String toLarge;
+
+	static {
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < 1000; i++) {
+			sb.append("to-large-");
+		}
+		toLarge = sb.toString();
+	}
 
 	@Test
 	public void testModificationOfResponseBody() {
@@ -53,6 +67,17 @@ public class ModifyResponseBodyGatewayFilterFactoryTests extends BaseWebClientTe
 		testClient.get().uri(uri).header("Host", "www.modifyresponsebodyjava.org")
 				.accept(MediaType.APPLICATION_JSON).exchange().expectBody()
 				.json("{\"value\": \"httpbin compatible home\", \"length\": 23}");
+	}
+
+	@Test
+	public void modifyResponeBodyToLarge() {
+		testClient.post().uri("/post")
+				.header("Host", "www.modifyresponsebodyjavatoolarge.org")
+				.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+				.body(BodyInserters.fromValue(toLarge)).exchange().expectStatus()
+				.isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR).expectBody()
+				.jsonPath("message")
+				.isEqualTo("Exceeded limit on max bytes to buffer : 40");
 	}
 
 	@EnableAutoConfiguration
@@ -75,6 +100,14 @@ public class ModifyResponseBodyGatewayFilterFactoryTests extends BaseWebClientTe
 										modifiedResponse.put("length",
 												originalResponse.length());
 										return Mono.just(modifiedResponse);
+									}))
+							.uri(uri))
+			.route("modify_response_java_test_to_large",
+					r -> r.path("/").and().host("www.modifyresponsebodyjavatoolarge.org")
+							.filters(f -> f.prefixPath("/httpbin").modifyResponseBody(
+									String.class, String.class,
+									(webExchange, originalResponse) -> {
+										return Mono.just(toLarge);
 									}))
 							.uri(uri))
 					.build();

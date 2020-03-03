@@ -53,9 +53,15 @@ public class ModifyRequestBodyGatewayFilterFactory extends
 		this.messageReaders = HandlerStrategies.withDefaults().messageReaders();
 	}
 
+	public ModifyRequestBodyGatewayFilterFactory(
+			List<HttpMessageReader<?>> messageReaders) {
+		super(Config.class);
+		this.messageReaders = messageReaders;
+	}
+
 	@Deprecated
 	public ModifyRequestBodyGatewayFilterFactory(ServerCodecConfigurer codecConfigurer) {
-		this();
+		this(codecConfigurer.getReaders());
 	}
 
 	@Override

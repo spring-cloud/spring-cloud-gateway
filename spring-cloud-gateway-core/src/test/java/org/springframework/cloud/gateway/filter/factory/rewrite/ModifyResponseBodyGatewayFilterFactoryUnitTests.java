@@ -34,7 +34,8 @@ public class ModifyResponseBodyGatewayFilterFactoryUnitTests {
 		config.setOutClass(Integer.class);
 		config.setNewContentType("mycontenttype");
 		GatewayFilter filter = new ModifyResponseBodyGatewayFilterFactory(
-				new DefaultServerCodecConfigurer(), emptySet(), emptySet()).apply(config);
+				new DefaultServerCodecConfigurer().getReaders(), emptySet(), emptySet())
+						.apply(config);
 		assertThat(filter.toString()).contains("String").contains("Integer")
 				.contains("mycontenttype");
 	}

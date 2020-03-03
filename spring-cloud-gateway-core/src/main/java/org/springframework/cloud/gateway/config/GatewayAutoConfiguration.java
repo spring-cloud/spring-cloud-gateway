@@ -434,8 +434,9 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	public ModifyRequestBodyGatewayFilterFactory modifyRequestBodyGatewayFilterFactory() {
-		return new ModifyRequestBodyGatewayFilterFactory();
+	public ModifyRequestBodyGatewayFilterFactory modifyRequestBodyGatewayFilterFactory(
+			ServerCodecConfigurer codecConfigurer) {
+		return new ModifyRequestBodyGatewayFilterFactory(codecConfigurer.getReaders());
 	}
 
 	@Bean
@@ -447,8 +448,8 @@ public class GatewayAutoConfiguration {
 	public ModifyResponseBodyGatewayFilterFactory modifyResponseBodyGatewayFilterFactory(
 			ServerCodecConfigurer codecConfigurer, Set<MessageBodyDecoder> bodyDecoders,
 			Set<MessageBodyEncoder> bodyEncoders) {
-		return new ModifyResponseBodyGatewayFilterFactory(codecConfigurer, bodyDecoders,
-				bodyEncoders);
+		return new ModifyResponseBodyGatewayFilterFactory(codecConfigurer.getReaders(),
+				bodyDecoders, bodyEncoders);
 	}
 
 	@Bean
