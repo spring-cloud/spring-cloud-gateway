@@ -25,6 +25,7 @@ import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.cloud.gateway.filter.factory.*;
 import reactor.core.publisher.Flux;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.resources.ConnectionProvider;
@@ -62,36 +63,6 @@ import org.springframework.cloud.gateway.filter.RemoveCachedBodyFilter;
 import org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter;
 import org.springframework.cloud.gateway.filter.WebsocketRoutingFilter;
 import org.springframework.cloud.gateway.filter.WeightCalculatorWebFilter;
-import org.springframework.cloud.gateway.filter.factory.AddRequestHeaderGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.AddRequestParameterGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.AddResponseHeaderGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.DedupeResponseHeaderGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.FallbackHeadersGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.HystrixGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.MapRequestHeaderGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.PrefixPathGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.PreserveHostHeaderGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.RedirectToGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.RemoveRequestHeaderGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.RemoveRequestParameterGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.RemoveResponseHeaderGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.RequestHeaderSizeGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.RequestHeaderToRequestUriGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.RequestRateLimiterGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.RequestSizeGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.RetryGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.RewriteLocationResponseHeaderGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.RewriteResponseHeaderGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.SaveSessionGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.SecureHeadersProperties;
-import org.springframework.cloud.gateway.filter.factory.SetPathGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.SetRequestHeaderGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.SetResponseHeaderGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.SetStatusGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.StripPrefixGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyRequestBodyGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyResponseBodyGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.headers.ForwardedHeadersFilter;
@@ -507,6 +478,11 @@ public class GatewayAutoConfiguration {
 	@Bean
 	public SetRequestHeaderGatewayFilterFactory setRequestHeaderGatewayFilterFactory() {
 		return new SetRequestHeaderGatewayFilterFactory();
+	}
+
+	@Bean
+	public SetRequestHostHeaderGatewayFilterFactory setRequestHostHeaderGatewayFilterFactory() {
+		return new SetRequestHostHeaderGatewayFilterFactory();
 	}
 
 	@Bean
