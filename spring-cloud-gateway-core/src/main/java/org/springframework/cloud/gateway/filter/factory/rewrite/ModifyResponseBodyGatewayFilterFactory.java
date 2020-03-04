@@ -261,7 +261,7 @@ public class ModifyResponseBodyGatewayFilterFactory extends
 		private ClientResponse prepareClientResponse(Publisher<? extends DataBuffer> body,
 				HttpHeaders httpHeaders) {
 			ClientResponse.Builder builder;
-			builder = ClientResponse.create(exchange.getResponse().getStatusCode(),
+				builder = ClientResponse.create(exchange.getResponse().getStatusCode(),
 					messageReaders);
 			return builder.headers(headers -> headers.putAll(httpHeaders))
 					.body(Flux.from(body)).build();

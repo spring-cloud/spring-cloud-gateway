@@ -107,11 +107,6 @@
 				<artifactId>blockhound-junit-platform</artifactId>
 				<version>${blockhound.version}</version>
 			</dependency>
-			<dependency>
-				<groupId>io.projectreactor.tools</groupId>
-				<artifactId>blockhound-junit-platform</artifactId>
-				<version>${blockhound.version}</version>
-			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
