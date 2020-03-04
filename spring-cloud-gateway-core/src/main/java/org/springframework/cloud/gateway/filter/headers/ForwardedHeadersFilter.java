@@ -116,7 +116,10 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 
 		InetSocketAddress remoteAddress = request.getRemoteAddress();
 		if (remoteAddress != null) {
-			String forValue = remoteAddress.getAddress().getHostAddress();
+			// If remoteAddress is unresolved, calling getHostAddress() would cause a
+			// NullPointerException.
+			String forValue = remoteAddress.isUnresolved() ? remoteAddress.getHostName()
+					: remoteAddress.getAddress().getHostAddress();
 			int port = remoteAddress.getPort();
 			if (port >= 0) {
 				forValue = forValue + ":" + port;
