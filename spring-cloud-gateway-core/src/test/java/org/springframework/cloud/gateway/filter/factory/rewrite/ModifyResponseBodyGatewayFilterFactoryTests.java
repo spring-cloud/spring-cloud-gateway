@@ -102,8 +102,8 @@ public class ModifyResponseBodyGatewayFilterFactoryTests extends BaseWebClientTe
 										return Mono.just(modifiedResponse);
 									}))
 							.uri(uri))
-					.route("modify_response_java_test_to_large", r -> r.path("/").and()
-							.host("www.modifyresponsebodyjavatoolarge.org")
+			.route("modify_response_java_test_to_large",
+					r -> r.path("/").and().host("www.modifyresponsebodyjavatoolarge.org")
 							.filters(f -> f.prefixPath("/httpbin").modifyResponseBody(
 									String.class, String.class,
 									(webExchange, originalResponse) -> {
