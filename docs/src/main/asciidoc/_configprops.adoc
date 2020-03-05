@@ -43,12 +43,9 @@
 |spring.cloud.gateway.httpclient.proxy.username |  | Username for proxy configuration of Netty HttpClient.
 |spring.cloud.gateway.httpclient.response-timeout |  | The response timeout.
 |spring.cloud.gateway.httpclient.ssl.close-notify-flush-timeout | 3000ms | SSL close_notify flush timeout. Default to 3000 ms.
-|spring.cloud.gateway.httpclient.ssl.close-notify-flush-timeout-millis |  | 
 |spring.cloud.gateway.httpclient.ssl.close-notify-read-timeout |  | SSL close_notify read timeout. Default to 0 ms.
-|spring.cloud.gateway.httpclient.ssl.close-notify-read-timeout-millis |  | 
 |spring.cloud.gateway.httpclient.ssl.default-configuration-type |  | The default ssl configuration type. Defaults to TCP.
 |spring.cloud.gateway.httpclient.ssl.handshake-timeout | 10000ms | SSL handshake timeout. Default to 10000 ms
-|spring.cloud.gateway.httpclient.ssl.handshake-timeout-millis |  | 
 |spring.cloud.gateway.httpclient.ssl.key-password |  | Key password, default is same as keyStorePassword.
 |spring.cloud.gateway.httpclient.ssl.key-store |  | Keystore path for Netty HttpClient.
 |spring.cloud.gateway.httpclient.ssl.key-store-password |  | Keystore password.
