@@ -16,7 +16,10 @@
 
 package org.springframework.cloud.gateway.handler;
 
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import reactor.core.publisher.Mono;
 
@@ -24,6 +27,8 @@ import org.springframework.cloud.gateway.config.GlobalCorsProperties;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.core.env.Environment;
+import org.springframework.data.util.Pair;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.reactive.handler.AbstractHandlerMapping;
 import org.springframework.web.server.ServerWebExchange;
@@ -142,7 +147,27 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 				// .defaultIfEmpty() put a static Route not found
 				// or .switchIfEmpty()
 				// .switchIfEmpty(Mono.<Route>empty().log("noroute"))
-				.next()
+				.collectList().flatMap(matchingRoutes -> {
+					if (matchingRoutes.isEmpty()) {
+						return Mono.empty();
+					}
+
+					Comparator<String> comparator = new AntPathMatcher()
+							.getPatternComparator(
+									exchange.getRequest().getPath().value());
+					Route highPriorityRoute = matchingRoutes.stream().flatMap(r -> {
+						Collection<String> paths = (Collection<String>) r.getMetadata()
+								.get("order-path");
+						if (paths != null) {
+							return paths.stream().map(path -> Pair.of(path, r));
+						}
+
+						return Stream.empty();
+					}).min((o1, o2) -> comparator.compare(o1.getFirst(), o2.getFirst()))
+							.map(Pair::getSecond).orElse(matchingRoutes.get(0));
+
+					return Mono.just(highPriorityRoute);
+				})
 				// TODO: error handling
 				.map(route -> {
 					if (logger.isDebugEnabled()) {

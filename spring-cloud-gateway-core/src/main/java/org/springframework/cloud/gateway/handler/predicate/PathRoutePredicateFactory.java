@@ -18,6 +18,7 @@ package org.springframework.cloud.gateway.handler.predicate;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -40,7 +41,8 @@ import static org.springframework.http.server.PathContainer.parsePath;
  * @author Spencer Gibb
  */
 public class PathRoutePredicateFactory
-		extends AbstractRoutePredicateFactory<PathRoutePredicateFactory.Config> {
+		extends AbstractRoutePredicateFactory<PathRoutePredicateFactory.Config>
+		implements OrderProviderPredicate<PathRoutePredicateFactory.Config> {
 
 	private static final Log log = LogFactory.getLog(RoutePredicateFactory.class);
 
@@ -50,6 +52,11 @@ public class PathRoutePredicateFactory
 
 	public PathRoutePredicateFactory() {
 		super(Config.class);
+	}
+
+	@Override
+	public Collection<String> getValuesToOrder(PathRoutePredicateFactory.Config config) {
+		return config.getPatterns();
 	}
 
 	private static void traceMatch(String prefix, Object desired, Object actual,

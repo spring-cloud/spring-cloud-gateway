@@ -16,18 +16,23 @@
 
 package org.springframework.cloud.gateway.handler;
 
+import java.util.Collections;
+import java.util.function.Predicate;
+
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.Mockito;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import org.springframework.boot.test.system.OutputCaptureRule;
 import org.springframework.cloud.gateway.config.GlobalCorsProperties;
+import org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFactory;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.mock.env.MockEnvironment;
+import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
+import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 
 import static org.hamcrest.Matchers.containsString;
@@ -55,8 +60,8 @@ public class RoutePredicateHandlerMappingTests {
 		RoutePredicateHandlerMapping mapping = new RoutePredicateHandlerMapping(null,
 				routeLocator, new GlobalCorsProperties(), new MockEnvironment());
 
-		final Mono<Route> routeMono = mapping
-				.lookupRoute(Mockito.mock(ServerWebExchange.class));
+		final Mono<Route> routeMono = mapping.lookupRoute(
+				MockServerWebExchange.from(MockServerHttpRequest.get("/").build()));
 
 		StepVerifier.create(routeMono.map(Route::getId)).expectNext("routeTrue")
 				.verifyComplete();
@@ -84,8 +89,8 @@ public class RoutePredicateHandlerMappingTests {
 		RoutePredicateHandlerMapping mapping = new RoutePredicateHandlerMapping(null,
 				routeLocator, new GlobalCorsProperties(), new MockEnvironment());
 
-		final Mono<Route> routeMono = mapping
-				.lookupRoute(Mockito.mock(ServerWebExchange.class));
+		final Mono<Route> routeMono = mapping.lookupRoute(
+				MockServerWebExchange.from(MockServerHttpRequest.get("/").build()));
 
 		StepVerifier.create(routeMono.map(Route::getId)).expectNext("routeTrue")
 				.verifyComplete();
@@ -97,6 +102,34 @@ public class RoutePredicateHandlerMappingTests {
 		outputCapture
 				.expect(containsString("Error applying predicate for route: routeFail"));
 		outputCapture.expect(containsString("java.lang.IllegalStateException: boom2"));
+	}
+
+	@Test
+	public void lookupRoutePreferSpecificPathPredicate() {
+		Route specificRoute = Route.async().id("specificRoute").uri("http://localhost")
+				.metadata("order-path", Collections.singletonList("/test"))
+				.predicate(getPathPredicate("/test")).build();
+
+		Route genericRoute = Route.async().id("genericRoute").uri("http://localhost")
+				.metadata("order-path", Collections.singletonList("/**"))
+				.predicate(getPathPredicate("/**")).build();
+
+		RouteLocator routeLocator = () -> Flux.just(genericRoute, specificRoute).hide();
+
+		RoutePredicateHandlerMapping mapping = new RoutePredicateHandlerMapping(null,
+				routeLocator, new GlobalCorsProperties(), new MockEnvironment());
+
+		final Mono<Route> routeMono = mapping.lookupRoute(
+				MockServerWebExchange.from(MockServerHttpRequest.get("/test").build()));
+
+		StepVerifier.create(routeMono.map(Route::getId)).expectNext("specificRoute")
+				.verifyComplete();
+	}
+
+	private Predicate<ServerWebExchange> getPathPredicate(String path) {
+		PathRoutePredicateFactory.Config config = new PathRoutePredicateFactory.Config();
+		config.setPatterns(Collections.singletonList(path));
+		return new PathRoutePredicateFactory().apply(config);
 	}
 
 }

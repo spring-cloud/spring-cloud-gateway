@@ -17,6 +17,7 @@
 package org.springframework.cloud.gateway.route;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -34,6 +35,7 @@ import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.OrderedGatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
 import org.springframework.cloud.gateway.handler.AsyncPredicate;
+import org.springframework.cloud.gateway.handler.predicate.OrderProviderPredicate;
 import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
 import org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory;
 import org.springframework.cloud.gateway.support.ConfigurationService;
@@ -121,9 +123,16 @@ public class RouteDefinitionRouteLocator implements RouteLocator {
 	private Route convertToRoute(RouteDefinition routeDefinition) {
 		AsyncPredicate<ServerWebExchange> predicate = combinePredicates(routeDefinition);
 		List<GatewayFilter> gatewayFilters = getFilters(routeDefinition);
+		Iterable<String> paths = getPredicatesPaths(routeDefinition);
 
-		return Route.async(routeDefinition).asyncPredicate(predicate)
-				.replaceFilters(gatewayFilters).build();
+		Route.AsyncBuilder asyncBuilder = Route.async(routeDefinition)
+				.asyncPredicate(predicate).replaceFilters(gatewayFilters);
+
+		if (paths != null && paths.iterator().hasNext()) {
+			asyncBuilder.metadata("order-path", paths);
+		}
+
+		return asyncBuilder.build();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -231,6 +240,28 @@ public class RouteDefinitionRouteLocator implements RouteLocator {
 		// @formatter:on
 
 		return factory.applyAsync(config);
+	}
+
+	private List<String> getPredicatesPaths(RouteDefinition routeDefinition) {
+		List<String> paths = new ArrayList<>(routeDefinition.getPredicates().size());
+		for (PredicateDefinition predicate : routeDefinition.getPredicates()) {
+			RoutePredicateFactory<Object> factory = this.predicates
+					.get(predicate.getName());
+			// @formatter:off
+			Object config = this.configurationService.with(factory).name(predicate.getName())
+				.properties(predicate.getArgs())
+				.eventFunction((bound, properties) -> new PredicateArgsEvent(
+						RouteDefinitionRouteLocator.this, routeDefinition.getId(), properties))
+				.bind();
+			// @formatter:on
+			if (predicate instanceof OrderProviderPredicate) {
+				Collection<String> routeOrderMetadata = ((OrderProviderPredicate) predicate)
+						.getValuesToOrder(config);
+				paths.addAll(routeOrderMetadata);
+			}
+		}
+
+		return paths;
 	}
 
 }
