@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.8">
+<title>Features</title>
+<link rel="stylesheet" href="css/spring.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+<style>
+.hidden {
+	display: none;
+}
+
+.switch {
+	border-width: 1px 1px 0 1px;
+	border-style: solid;
+	border-color: #7a2518;
+	display: inline-block;
+}
+
+.switch--item {
+	padding: 10px;
+	background-color: #ffffff;
+	color: #7a2518;
+	display: inline-block;
+	cursor: pointer;
+}
+
+.switch--item:not(:first-child) {
+	border-width: 0 0 0 1px;
+	border-style: solid;
+	border-color: #7a2518;
+}
+
+.switch--item.selected {
+	background-color: #7a2519;
+	color: #ffffff;
+}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/zepto/1.2.0/zepto.min.js"></script>
+<script type="text/javascript">
+function addBlockSwitches() {
+	$('.primary').each(function() {
+		primary = $(this);
+		createSwitchItem(primary, createBlockSwitch(primary)).item.addClass("selected");
+		primary.children('.title').remove();
+	});
+	$('.secondary').each(function(idx, node) {
+		secondary = $(node);
+		primary = findPrimary(secondary);
+		switchItem = createSwitchItem(secondary, primary.children('.switch'));
+		switchItem.content.addClass('hidden');
+		findPrimary(secondary).append(switchItem.content);
+		secondary.remove();
+	});
+}
+
+function createBlockSwitch(primary) {
+	blockSwitch = $('<div class="switch"></div>');
+	primary.prepend(blockSwitch);
+	return blockSwitch;
+}
+
+function findPrimary(secondary) {
+	candidate = secondary.prev();
+	while (!candidate.is('.primary')) {
+		candidate = candidate.prev();
+	}
+	return candidate;
+}
+
+function createSwitchItem(block, blockSwitch) {
+	blockName = block.children('.title').text();
+	content = block.children('.content').first().append(block.next('.colist'));
+	item = $('<div class="switch--item">' + blockName + '</div>');
+	item.on('click', '', content, function(e) {
+		$(this).addClass('selected');
+		$(this).siblings().removeClass('selected');
+		e.data.siblings('.content').addClass('hidden');
+		e.data.removeClass('hidden');
+	});
+	blockSwitch.append(item);
+	return {'item': item, 'content': content};
+}
+
+$(addBlockSwitches);
+</script>
+
+</head>
+<body class="book toc2 toc-left">
+<div id="header">
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_features">Features</a></li>
+<li><a href="#_getting_started">Getting Started</a></li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>This project provides a library for building an API Gateway on top of Spring MVC. Spring Cloud Gateway aims to provide a simple, yet effective way to route to APIs and provide cross cutting concerns to them such as: security, monitoring/metrics, and resiliency.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_features"><a class="link" href="#_features">Features</a></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Spring Cloud Gateway features:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Built on Spring Framework 5, Project Reactor and Spring Boot 2.0</p>
+</li>
+<li>
+<p>Able to match routes on any request attribute.</p>
+</li>
+<li>
+<p>Predicates and filters are specific to routes.</p>
+</li>
+<li>
+<p>Hystrix Circuit Breaker integration.</p>
+</li>
+<li>
+<p>Spring Cloud DiscoveryClient integration</p>
+</li>
+<li>
+<p>Easy to write Predicates and Filters</p>
+</li>
+<li>
+<p>Request Rate Limiting</p>
+</li>
+<li>
+<p>Path Rewriting</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_getting_started"><a class="link" href="#_getting_started">Getting Started</a></h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@SpringBootApplication
+public class DemogatewayApplication {
+	@Bean
+	public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
+		return builder.routes()
+			.route("path_route", r -&gt; r.path("/get")
+				.uri("http://httpbin.org"))
+			.route("host_route", r -&gt; r.host("*.myhost.org")
+				.uri("http://httpbin.org"))
+			.route("rewrite_route", r -&gt; r.host("*.rewrite.org")
+				.filters(f -&gt; f.rewritePath("/foo/(?&lt;segment&gt;.*)", "/${segment}"))
+				.uri("http://httpbin.org"))
+			.route("hystrix_route", r -&gt; r.host("*.hystrix.org")
+				.filters(f -&gt; f.hystrix(c -&gt; c.setName("slowcmd")))
+				.uri("http://httpbin.org"))
+			.route("hystrix_fallback_route", r -&gt; r.host("*.hystrixfallback.org")
+				.filters(f -&gt; f.hystrix(c -&gt; c.setName("slowcmd").setFallbackUri("forward:/hystrixfallback")))
+				.uri("http://httpbin.org"))
+			.route("limit_route", r -&gt; r
+				.host("*.limited.org").and().path("/anything/**")
+				.filters(f -&gt; f.requestRateLimiter(c -&gt; c.setRateLimiter(redisRateLimiter())))
+				.uri("http://httpbin.org"))
+			.build();
+	}
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To run your own gateway use the <code>spring-cloud-starter-gateway</code> dependency.</p>
+</div>
+</div>
+</div>
+</div>
+<script type="text/javascript" src="js/tocbot/tocbot.min.js"></script>
+<script type="text/javascript" src="js/toc.js"></script>
+<link rel="stylesheet" href="js/highlight/styles/atom-one-dark-reasonable.min.css">
+<script src="js/highlight/highlight.min.js"></script>
+<script>hljs.initHighlighting()</script>
+</body>
+</html>
