@@ -61,7 +61,7 @@ public class RemoveRequestParameterGatewayFilterFactory
 
 				URI newUri = UriComponentsBuilder.fromUri(request.getURI())
 						.replaceQueryParams(unmodifiableMultiValueMap(queryParams))
-						.build(true).toUri();
+						.build().toUri();
 
 				ServerHttpRequest updatedRequest = exchange.getRequest().mutate()
 						.uri(newUri).build();
