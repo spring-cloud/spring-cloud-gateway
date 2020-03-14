@@ -70,9 +70,9 @@ public class GatewayMetricsFilter implements GlobalFilter, Ordered {
 	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 		Sample sample = Timer.start(meterRegistry);
 
-		return chain.filter(exchange).doOnSuccessOrError((aVoid, ex) -> {
-			endTimerRespectingCommit(exchange, sample);
-		});
+		return chain.filter(exchange)
+				.doOnSuccess(aVoid -> endTimerRespectingCommit(exchange, sample))
+				.doOnError(throwable -> endTimerRespectingCommit(exchange, sample));
 	}
 
 	private void endTimerRespectingCommit(ServerWebExchange exchange, Sample sample) {
