@@ -174,8 +174,9 @@ public class WebSocketIntegrationTests {
 					.thenMany(session.receive().take(count)
 							.map(WebSocketMessage::getPayloadAsText))
 					.subscribeWith(output).doOnNext(s -> logger.debug("inbound " + s))
-					.then().doOnSuccessOrError((aVoid, ex) -> logger.debug(
-							"Done with " + (ex != null ? ex.getMessage() : "success")));
+					.then().doOnSuccess(aVoid -> logger.debug("Done with success"))
+					.doOnError(ex -> logger.debug(
+							"Done with " + (ex != null ? ex.getMessage() : "error")));
 		}).block(Duration.ofMillis(5000));
 
 		assertThat(output.collectList().block(Duration.ofMillis(5000)))
@@ -196,8 +197,9 @@ public class WebSocketIntegrationTests {
 					.thenMany(session.receive().take(count)
 							.map(WebSocketMessage::getPayloadAsText))
 					.subscribeWith(output).doOnNext(s -> logger.debug("inbound " + s))
-					.then().doOnSuccessOrError((aVoid, ex) -> logger.debug(
-							"Done with " + (ex != null ? ex.getMessage() : "success")));
+					.then().doOnSuccess(aVoid -> logger.debug("Done with success"))
+					.doOnError(ex -> logger.debug(
+							"Done with " + (ex != null ? ex.getMessage() : "error")));
 		}).block(Duration.ofMillis(5000));
 
 		assertThat(output.collectList().block(Duration.ofMillis(5000)))
