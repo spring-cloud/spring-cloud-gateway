@@ -36,6 +36,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.filter.reactive.HiddenHttpMethodFilter;
 import org.springframework.web.reactive.socket.client.ReactorNettyWebSocketClient;
+import org.springframework.web.reactive.socket.server.upgrade.ReactorNettyRequestUpgradeStrategy;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -118,6 +119,13 @@ public class GatewayAutoConfigurationTests {
 					 * assertThat(sslContext).isNotNull();
 					 */
 					// TODO: howto test SslContext
+					assertThat(context)
+							.hasSingleBean(ReactorNettyRequestUpgradeStrategy.class);
+					ReactorNettyRequestUpgradeStrategy upgradeStrategy = context
+							.getBean(ReactorNettyRequestUpgradeStrategy.class);
+					assertThat(upgradeStrategy.getMaxFramePayloadLength())
+							.isEqualTo(1024);
+					assertThat(upgradeStrategy.getHandlePing()).isTrue();
 					assertThat(context).hasSingleBean(ReactorNettyWebSocketClient.class);
 					ReactorNettyWebSocketClient webSocketClient = context
 							.getBean(ReactorNettyWebSocketClient.class);
