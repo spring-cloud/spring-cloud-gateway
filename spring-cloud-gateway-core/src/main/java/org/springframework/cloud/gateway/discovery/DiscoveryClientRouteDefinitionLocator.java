@@ -102,7 +102,7 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 		}
 
 		return serviceInstances.filter(instances -> !instances.isEmpty())
-				.map(instances -> instances.get(0)).filter(includePredicate)
+				.flatMap(instances -> Flux.fromIterable(instances)).filter(includePredicate)
 				.map(instance -> {
 					RouteDefinition routeDefinition = buildRouteDefinition(urlExpr,
 							instance);
