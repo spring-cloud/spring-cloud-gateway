@@ -92,7 +92,9 @@ public class CachingRouteLocator implements Ordered, RouteLocator,
 	}
 
 	private void handleRefreshError(Throwable throwable) {
-		log.error("Refresh routes error !!!", throwable);
+		if (log.isErrorEnabled()) {
+			log.error("Refresh routes error !!!", throwable);
+		}
 		applicationEventPublisher
 				.publishEvent(new RefreshRoutesResultEvent(this, throwable));
 	}

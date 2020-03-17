@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.gateway.event;
 
-import org.springframework.cloud.gateway.route.CachingRouteLocator;
 import org.springframework.context.ApplicationEvent;
 
 /**
@@ -26,37 +25,21 @@ public class RefreshRoutesResultEvent extends ApplicationEvent {
 
 	private Throwable throwable;
 
-	private RefreshRoutesResult result;
-
 	public RefreshRoutesResultEvent(Object source, Throwable throwable) {
 		super(source);
 		this.throwable = throwable;
-		result = RefreshRoutesResult.ERROR;
 	}
 
 	public RefreshRoutesResultEvent(Object source) {
 		super(source);
-		result = RefreshRoutesResult.SUCCESS;
 	}
 
 	public Throwable getThrowable() {
 		return throwable;
 	}
 
-
-	public enum RefreshRoutesResult {
-		/**
-		 * SUCCESS means when {@link CachingRouteLocator} refresh successful.
-		 */
-		SUCCESS,
-		/**
-		 * fail means when {@link CachingRouteLocator} refresh failed.
-		 */
-		ERROR
-	}
-
-	public RefreshRoutesResult getResult() {
-		return result;
+	public boolean isSuccess() {
+		return throwable == null;
 	}
 
 }

@@ -104,22 +104,19 @@ public class CachingRouteLocatorTests {
 		assertThat(resultEvents).hasSize(1);
 		assertThat(resultEvents.get(0).getThrowable().getCause().getMessage())
 				.isEqualTo("in chain.");
-		assertThat(resultEvents.get(0).getResult())
-				.isEqualTo(RefreshRoutesResultEvent.RefreshRoutesResult.ERROR);
+		assertThat(resultEvents.get(0).isSuccess()).isEqualTo(false);
 		assertThat(locator.getRoutes().collectList().block()).containsExactly(route1);
 
 		waitUntilRefreshFinished(locator, resultEvents);
 		assertThat(resultEvents).hasSize(2);
 		assertThat(resultEvents.get(1).getThrowable().getMessage())
 				.isEqualTo("call getRoutes error.");
-		assertThat(resultEvents.get(1).getResult())
-				.isEqualTo(RefreshRoutesResultEvent.RefreshRoutesResult.ERROR);
+		assertThat(resultEvents.get(1).isSuccess()).isEqualTo(false);
 		assertThat(locator.getRoutes().collectList().block()).containsExactly(route1);
 
 		waitUntilRefreshFinished(locator, resultEvents);
 		assertThat(resultEvents).hasSize(3);
-		assertThat(resultEvents.get(2).getResult())
-				.isEqualTo(RefreshRoutesResultEvent.RefreshRoutesResult.SUCCESS);
+		assertThat(resultEvents.get(2).isSuccess()).isEqualTo(true);
 		assertThat(locator.getRoutes().collectList().block()).containsExactly(route2);
 
 	}
