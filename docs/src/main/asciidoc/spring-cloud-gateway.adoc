@@ -1801,19 +1801,19 @@ The `XForwarded` Headers Filter creates various a `X-Forwarded-*` headers to sen
 
 Creating of individual headers can be controlled by the following boolean properties (defaults to true):
 
-- `spring.cloud.gateway.x-forwarded.for.enabled`
-- `spring.cloud.gateway.x-forwarded.host.enabled`
-- `spring.cloud.gateway.x-forwarded.port.enabled`
-- `spring.cloud.gateway.x-forwarded.proto.enabled`
-- `spring.cloud.gateway.x-forwarded.prefix.enabled`
+- `spring.cloud.gateway.x-forwarded.for-enabled`
+- `spring.cloud.gateway.x-forwarded.host-enabled`
+- `spring.cloud.gateway.x-forwarded.port-enabled`
+- `spring.cloud.gateway.x-forwarded.proto-enabled`
+- `spring.cloud.gateway.x-forwarded.prefix-enabled`
 
 Appending multiple headers can be controlled by the following boolean properties (defaults to true):
 
-- `spring.cloud.gateway.x-forwarded.for.append`
-- `spring.cloud.gateway.x-forwarded.host.append`
-- `spring.cloud.gateway.x-forwarded.port.append`
-- `spring.cloud.gateway.x-forwarded.proto.append`
-- `spring.cloud.gateway.x-forwarded.prefix.append`
+- `spring.cloud.gateway.x-forwarded.for-append`
+- `spring.cloud.gateway.x-forwarded.host-append`
+- `spring.cloud.gateway.x-forwarded.port-append`
+- `spring.cloud.gateway.x-forwarded.proto-append`
+- `spring.cloud.gateway.x-forwarded.prefix-append`
 
 == TLS and SSL
 
