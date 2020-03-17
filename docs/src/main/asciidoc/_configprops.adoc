@@ -10,6 +10,7 @@
 |spring.cloud.gateway.discovery.locator.route-id-prefix |  | The prefix for the routeId, defaults to discoveryClient.getClass().getSimpleName() + "_". Service Id will be appended to create the routeId.
 |spring.cloud.gateway.discovery.locator.url-expression | 'lb://'+serviceId | SpEL expression that create the uri for each route, defaults to: 'lb://'+serviceId.
 |spring.cloud.gateway.enabled | true | Enables gateway functionality.
+|spring.cloud.gateway.fail-on-route-definition-error | true | Option to fail on route definition errors, defaults to true. Otherwise, a warning is logged.
 |spring.cloud.gateway.filter.remove-hop-by-hop.headers |  | 
 |spring.cloud.gateway.filter.remove-hop-by-hop.order |  | 
 |spring.cloud.gateway.filter.request-rate-limiter.deny-empty-key | true | Switch to deny requests if the Key Resolver returns an empty key, defaults to true.
@@ -27,6 +28,8 @@
 |spring.cloud.gateway.globalcors.add-to-simple-url-handler-mapping | false | If global CORS config should be added to the URL handler.
 |spring.cloud.gateway.globalcors.cors-configurations |  | 
 |spring.cloud.gateway.httpclient.connect-timeout |  | The connect timeout in millis, the default is 45s.
+|spring.cloud.gateway.httpclient.max-header-size |  | The max response header size.
+|spring.cloud.gateway.httpclient.max-initial-line-length |  | The max initial line length.
 |spring.cloud.gateway.httpclient.pool.acquire-timeout |  | Only for type FIXED, the maximum time in millis to wait for aquiring.
 |spring.cloud.gateway.httpclient.pool.max-connections |  | Only for type FIXED, the maximum number of connections before starting pending acquisition on existing ones.
 |spring.cloud.gateway.httpclient.pool.max-idle-time |  | Time in millis after which the channel will be closed. If NULL, there is no max idle time.
@@ -54,6 +57,7 @@
 |spring.cloud.gateway.httpclient.ssl.trusted-x509-certificates |  | Trusted certificates for verifying the remote endpoint's certificate.
 |spring.cloud.gateway.httpclient.ssl.use-insecure-trust-manager | false | Installs the netty InsecureTrustManagerFactory. This is insecure and not suitable for production.
 |spring.cloud.gateway.httpclient.websocket.max-frame-payload-length |  | Max frame payload length.
+|spring.cloud.gateway.httpclient.websocket.proxy-ping | true | Proxy ping frames to downstream services, defaults to true.
 |spring.cloud.gateway.httpclient.wiretap | false | Enables wiretap debugging for Netty HttpClient.
 |spring.cloud.gateway.httpserver.wiretap | false | Enables wiretap debugging for Netty HttpServer.
 |spring.cloud.gateway.loadbalancer.use404 | false | 
@@ -64,6 +68,7 @@
 |spring.cloud.gateway.redis-rate-limiter.include-headers | true | Whether or not to include headers containing rate limiter information, defaults to true.
 |spring.cloud.gateway.redis-rate-limiter.remaining-header | X-RateLimit-Remaining | The name of the header that returns number of remaining requests during the current second.
 |spring.cloud.gateway.redis-rate-limiter.replenish-rate-header | X-RateLimit-Replenish-Rate | The name of the header that returns the replenish rate configuration.
+|spring.cloud.gateway.redis-rate-limiter.requested-tokens-header | X-RateLimit-Requested-Tokens | The name of the header that returns the requested tokens configuration.
 |spring.cloud.gateway.routes |  | List of Routes.
 |spring.cloud.gateway.set-status.original-status-header-name |  | The name of the header which contains http code of the proxied request.
 |spring.cloud.gateway.streaming-media-types |  | 
