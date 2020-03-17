@@ -180,6 +180,11 @@ Also, you can define your own properties.
 <td class="tableblock halign-left valign-top"><p class="tableblock">Enables gateway functionality.</p></td>
 </tr>
 <tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">spring.cloud.gateway.fail-on-route-definition-error</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">true</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Option to fail on route definition errors, defaults to true. Otherwise, a warning is logged.</p></td>
+</tr>
+<tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">spring.cloud.gateway.filter.remove-hop-by-hop.headers</p></td>
 <td class="tableblock halign-left valign-top"></td>
 <td class="tableblock halign-left valign-top"></td>
@@ -263,6 +268,16 @@ Also, you can define your own properties.
 <td class="tableblock halign-left valign-top"><p class="tableblock">spring.cloud.gateway.httpclient.connect-timeout</p></td>
 <td class="tableblock halign-left valign-top"></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">The connect timeout in millis, the default is 45s.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">spring.cloud.gateway.httpclient.max-header-size</p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The max response header size.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">spring.cloud.gateway.httpclient.max-initial-line-length</p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The max initial line length.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">spring.cloud.gateway.httpclient.pool.acquire-timeout</p></td>
@@ -400,6 +415,11 @@ Also, you can define your own properties.
 <td class="tableblock halign-left valign-top"><p class="tableblock">Max frame payload length.</p></td>
 </tr>
 <tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">spring.cloud.gateway.httpclient.websocket.proxy-ping</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">true</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Proxy ping frames to downstream services, defaults to true.</p></td>
+</tr>
+<tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">spring.cloud.gateway.httpclient.wiretap</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">false</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Enables wiretap debugging for Netty HttpClient.</p></td>
@@ -448,6 +468,11 @@ Also, you can define your own properties.
 <td class="tableblock halign-left valign-top"><p class="tableblock">spring.cloud.gateway.redis-rate-limiter.replenish-rate-header</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">X-RateLimit-Replenish-Rate</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">The name of the header that returns the replenish rate configuration.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">spring.cloud.gateway.redis-rate-limiter.requested-tokens-header</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">X-RateLimit-Requested-Tokens</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The name of the header that returns the requested tokens configuration.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">spring.cloud.gateway.routes</p></td>
