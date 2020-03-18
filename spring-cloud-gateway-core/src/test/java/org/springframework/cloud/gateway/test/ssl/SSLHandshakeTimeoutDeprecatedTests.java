@@ -45,7 +45,7 @@ public class SSLHandshakeTimeoutDeprecatedTests extends SingleCertSSLTests {
 		ResponseSpec responseSpec = testClient.get().uri("/ssltrust").exchange();
 		responseSpec.expectStatus().is5xxServerError();
 		JsonPathAssertions jsonPath = responseSpec.expectBody().jsonPath("message");
-		jsonPath.isEqualTo("handshake timed out");
+		jsonPath.isEqualTo("handshake timed out after 1ms");
 	}
 
 }
