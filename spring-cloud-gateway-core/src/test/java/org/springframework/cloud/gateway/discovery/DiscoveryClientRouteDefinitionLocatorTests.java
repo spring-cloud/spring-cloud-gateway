@@ -128,10 +128,19 @@ public class DiscoveryClientRouteDefinitionLocatorTests {
 
 		private void whenInstance(ReactiveDiscoveryClient discoveryClient,
 				String serviceId, Map<String, String> metadata) {
-			DefaultServiceInstance instance1 = new DefaultServiceInstance(
-					serviceId + "8001", serviceId, "localhost", 8001, false, metadata);
-			when(discoveryClient.getInstances(serviceId))
-					.thenReturn(Flux.just(instance1));
+			if ("SERVICE1".equals(serviceId) || "Service2".equals(serviceId)) {
+				DefaultServiceInstance instance1 = new DefaultServiceInstance(
+						serviceId + "8001", serviceId, "localhost", 8001, false, metadata);
+				when(discoveryClient.getInstances(serviceId))
+						.thenReturn(Flux.just(instance1));
+			} else {
+				DefaultServiceInstance instance2 = new DefaultServiceInstance(
+						serviceId + "8002", serviceId, "localhost", 8002, false, Collections.emptyMap());
+				DefaultServiceInstance instance3 = new DefaultServiceInstance(
+						serviceId + "8003", serviceId, "localhost", 8003, false, metadata);
+				when(discoveryClient.getInstances(serviceId))
+						.thenReturn(Flux.just(instance2, instance3));
+			}
 		}
 
 	}
