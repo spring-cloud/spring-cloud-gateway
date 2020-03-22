@@ -886,7 +886,7 @@ spring.cloud.gateway.routes[0].filters[0]=RequestRateLimiter=2, 2, #{@userkeyres
 The Redis implementation is based off of work done at https://stripe.com/blog/rate-limiters[Stripe].
 It requires the use of the `spring-boot-starter-data-redis-reactive` Spring Boot starter.
 
-The algorithm used is the https://en.wikipedia.org/wiki/Token_bucket[Token Bucket Algorithm].
+The algorithm used is the https://en.wikipedia.org/wiki/Leaky_bucket[Leaky Bucket Algorithm].
 
 The `redis-rate-limiter.replenishRate` property is how many requests per second you want a user to be allowed to do, without any dropped requests.
 This is the rate at which the token bucket is filled.
