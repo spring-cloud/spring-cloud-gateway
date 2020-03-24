@@ -2172,7 +2172,7 @@ The following listing shows how to do so:
 [source,properties]
 ----
 management.endpoint.gateway.enabled=true # default value
-management.endpoints.web.exposure.include=gateway
+management.endpoint.web.exposure.include=gateway
 ----
 ====
 
