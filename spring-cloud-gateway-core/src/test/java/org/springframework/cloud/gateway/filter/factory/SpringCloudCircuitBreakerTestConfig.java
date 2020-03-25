@@ -70,9 +70,10 @@ public class SpringCloudCircuitBreakerTestConfig {
 		return Collections.singletonMap("from", "circuitbreakerfallbackcontroller3");
 	}
 
-	@RequestMapping("/circuitbreakerFallbackPathVariableController")
+	@RequestMapping("/circuitbreakerFallbackPathVariableController/{id}")
 	public Map<String, String> fallbackControllerPathVariable(@PathVariable String id) {
-		return Collections.singletonMap("from", "circuitbreakerFallbackPathVariableController" + id);
+		return Collections.singletonMap("from",
+				"circuitbreakerFallbackPathVariableController" + id);
 	}
 
 	@Bean
@@ -105,10 +106,11 @@ public class SpringCloudCircuitBreakerTestConfig {
 										config -> config.setName("stalling-command")))
 								.uri(uri))
 				.route("circuitbreaker_fallback_forward_path_variable", r -> r
+						.path("/delay/{id}").and()
 						.host("**.circuitbreakerForwardPathVariable.org")
 						.filters(f -> f.circuitBreaker(config -> config.setFallbackUri(
-								"forward:/circuitbreakerFallbackPathVariableController/{id}"))
-						).uri(uri))
+								"forward:/circuitbreakerFallbackPathVariableController/{id}")))
+						.uri(uri))
 				.build();
 	}
 

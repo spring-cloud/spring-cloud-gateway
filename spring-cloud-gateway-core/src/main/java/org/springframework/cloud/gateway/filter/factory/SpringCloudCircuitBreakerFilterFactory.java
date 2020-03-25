@@ -17,7 +17,9 @@
 package org.springframework.cloud.gateway.filter.factory;
 
 import java.net.URI;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import reactor.core.publisher.Mono;
 
@@ -38,6 +40,7 @@ import static java.util.Optional.ofNullable;
 import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.CIRCUITBREAKER_EXECUTION_EXCEPTION_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.URI_TEMPLATE_VARIABLES_ATTRIBUTE;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.containsEncodedParts;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.removeAlreadyRouted;
 
@@ -94,9 +97,15 @@ public abstract class SpringCloudCircuitBreakerFilterFactory extends
 					URI uri = exchange.getRequest().getURI();
 					// TODO: assume always?
 					boolean encoded = containsEncodedParts(uri);
+					Map<String, String> uriVariables = exchange.getAttributeOrDefault(
+							URI_TEMPLATE_VARIABLES_ATTRIBUTE, Collections.emptyMap());
+
+					URI fallbackUri = UriComponentsBuilder
+							.fromUriString(config.getFallbackUri()).build(uriVariables);
+
 					URI requestUrl = UriComponentsBuilder.fromUri(uri).host(null)
-							.port(null).uri(config.getFallbackUri()).scheme(null)
-							.build(encoded).toUri();
+							.port(null).uri(fallbackUri).scheme(null).build(encoded)
+							.toUri();
 					exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, requestUrl);
 					addExceptionDetails(t, exchange);
 
@@ -137,7 +146,7 @@ public abstract class SpringCloudCircuitBreakerFilterFactory extends
 
 		private String name;
 
-		private URI fallbackUri;
+		private String fallbackUri;
 
 		private String routeId;
 
@@ -150,17 +159,13 @@ public abstract class SpringCloudCircuitBreakerFilterFactory extends
 			return routeId;
 		}
 
-		public URI getFallbackUri() {
+		public String getFallbackUri() {
 			return fallbackUri;
 		}
 
-		public Config setFallbackUri(URI fallbackUri) {
+		public Config setFallbackUri(String fallbackUri) {
 			this.fallbackUri = fallbackUri;
 			return this;
-		}
-
-		public Config setFallbackUri(String fallbackUri) {
-			return setFallbackUri(URI.create(fallbackUri));
 		}
 
 		public String getName() {
