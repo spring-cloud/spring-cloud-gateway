@@ -30,6 +30,7 @@ import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.cloud.netflix.ribbon.RibbonClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -69,6 +70,11 @@ public class SpringCloudCircuitBreakerTestConfig {
 		return Collections.singletonMap("from", "circuitbreakerfallbackcontroller3");
 	}
 
+	@RequestMapping("/circuitbreakerFallbackPathVariableController")
+	public Map<String, String> fallbackControllerPathVariable(@PathVariable String id) {
+		return Collections.singletonMap("from", "circuitbreakerFallbackPathVariableController" + id);
+	}
+
 	@Bean
 	public RouteLocator circuitBreakerRouteLocator(RouteLocatorBuilder builder) {
 		return builder.routes().route("circuitbreaker_fallback_forward",
@@ -98,6 +104,11 @@ public class SpringCloudCircuitBreakerTestConfig {
 								.filters(f -> f.prefixPath("/httpbin").circuitBreaker(
 										config -> config.setName("stalling-command")))
 								.uri(uri))
+				.route("circuitbreaker_fallback_forward_path_variable", r -> r
+						.host("**.circuitbreakerForwardPathVariable.org")
+						.filters(f -> f.circuitBreaker(config -> config.setFallbackUri(
+								"forward:/circuitbreakerFallbackPathVariableController/{id}"))
+						).uri(uri))
 				.build();
 	}
 
