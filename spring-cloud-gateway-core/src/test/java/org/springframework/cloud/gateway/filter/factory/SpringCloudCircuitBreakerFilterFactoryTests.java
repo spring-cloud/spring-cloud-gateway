@@ -104,4 +104,12 @@ public abstract class SpringCloudCircuitBreakerFilterFactoryTests
 				.json("{\"from\":\"circuitbreakerfallbackcontroller3\"}");
 	}
 
+	@Test
+	public void fallbackForwardWithPathVariable() {
+		testClient.get().uri("/delay/2020")
+				.header("Host", "www.circuitbreakerForwardPathVariable.org").exchange()
+				.expectStatus().isOk().expectBody()
+				.json("{\"from\":\"circuitbreakerFallbackPathVariableController2020\"}");
+	}
+
 }
