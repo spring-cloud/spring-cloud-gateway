@@ -107,6 +107,13 @@ spring:
         filters:
           - RequestHeaderToRequestUri=X-CF-Forwarded-Url
 
+        # =====================================
+      - id: cookie_regex_test
+        uri: ${test.uri}
+        predicates:
+          - Host=**.cookieregex.org
+          - Cookie=mycookie, hello.*
+
       # =====================================
       - id: dedupe_response_header_test
         uri: ${test.uri}
