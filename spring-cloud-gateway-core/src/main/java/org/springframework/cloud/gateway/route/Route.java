@@ -29,6 +29,7 @@ import java.util.function.Predicate;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.handler.AsyncPredicate;
+import org.springframework.cloud.gateway.route.builder.Buildable;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.core.Ordered;
 import org.springframework.util.Assert;
@@ -150,7 +151,8 @@ public class Route implements Ordered {
 		return sb.toString();
 	}
 
-	public abstract static class AbstractBuilder<B extends AbstractBuilder<B>> {
+	public abstract static class AbstractBuilder<B extends AbstractBuilder<B>>
+			implements Buildable<Route> {
 
 		protected String id;
 
