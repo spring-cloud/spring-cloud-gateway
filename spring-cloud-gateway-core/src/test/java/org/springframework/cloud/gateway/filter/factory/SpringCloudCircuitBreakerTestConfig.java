@@ -94,17 +94,18 @@ public class SpringCloudCircuitBreakerTestConfig {
 						.uri(uri))
 				.route("circuitbreaker_connection_failure", r -> r
 						.host("**.circuitbreakerconnectfail.org")
-						.filters(f -> f.prefixPath("/httpbin").circuitBreaker(config -> {
-						})).uri("lb:badservice"))
+						.filters(f -> f.prefixPath("/httpbin")
+								.circuitBreaker(config -> { }))
+						.uri("lb:badservice"))
 				/*
 				 * This is a route encapsulated in a circuit breaker that is ready to wait
 				 * for a response far longer than the underpinning WebClient would.
 				 */
-				.route("circuitbreaker_response_stall",
-						r -> r.host("**.circuitbreakerresponsestall.org")
-								.filters(f -> f.prefixPath("/httpbin").circuitBreaker(
-										config -> config.setName("stalling-command")))
-								.uri(uri))
+				.route("circuitbreaker_response_stall", r -> r
+						.host("**.circuitbreakerresponsestall.org")
+						.filters(f -> f.prefixPath("/httpbin").circuitBreaker(
+								config -> config.setName("stalling-command")))
+						.uri(uri))
 				.route("circuitbreaker_fallback_forward_path_variable", r -> r
 						.path("/delay/{id}").and()
 						.host("**.circuitbreakerForwardPathVariable.org")
