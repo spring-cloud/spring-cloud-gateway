@@ -768,7 +768,7 @@ You can overwrite the names of the headers in the configuration by setting the v
 * `rootCauseExceptionTypeHeaderName` (`"Root-Cause-Exception-Type"`)
 * `rootCauseExceptionMessageHeaderName` (`"Root-Cause-Exception-Message"`)
 
-For more information on circuit beakers and the gatewayc see the <<hystrix, Hystrix GatewayFilter Factory section>> or <<spring-cloud-circuitbreaker-filter-factory, Spring Cloud CircuitBreaker Factory section>>.
+For more information on circuit breakers and the gateway see the <<hystrix, Hystrix GatewayFilter Factory section>> or <<spring-cloud-circuitbreaker-filter-factory, Spring Cloud CircuitBreaker Factory section>>.
 
 === The `MapRequestHeader` `GatewayFilter` Factory
 
@@ -1720,7 +1720,7 @@ If the URI has a scheme prefix, such as `lb:ws://serviceid`, the `lb` scheme is 
 
 === The Websocket Routing Filter
 
-If the URL located in the `ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR` exchange attribute has a `ws` or `wss` scheme, the websocket routing rilter runs. It uses the Spring WebSocket infrastructure to forward the websocket request downstream.
+If the URL located in the `ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR` exchange attribute has a `ws` or `wss` scheme, the websocket routing filter runs. It uses the Spring WebSocket infrastructure to forward the websocket request downstream.
 
 You can load-balance websockets by prefixing the URI with `lb`, such as `lb:ws://serviceid`.
 
