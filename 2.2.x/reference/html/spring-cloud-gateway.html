@@ -1401,7 +1401,7 @@ The headers with the exception type, message and (if available) root cause excep
 </ul>
 </div>
 <div class="paragraph">
-<p>For more information on circuit beakers and the gatewayc see the <a href="#hystrix">Hystrix GatewayFilter Factory section</a> or <a href="#spring-cloud-circuitbreaker-filter-factory">Spring Cloud CircuitBreaker Factory section</a>.</p>
+<p>For more information on circuit breakers and the gateway see the <a href="#hystrix">Hystrix GatewayFilter Factory section</a> or <a href="#spring-cloud-circuitbreaker-filter-factory">Spring Cloud CircuitBreaker Factory section</a>.</p>
 </div>
 </div>
 <div class="sect2">
@@ -2736,7 +2736,7 @@ The new URI is placed in the <code>ServerWebExchangeUtils.GATEWAY_REQUEST_URL_AT
 <div class="sect2">
 <h3 id="the-websocket-routing-filter"><a class="anchor" href="#the-websocket-routing-filter"></a><a class="link" href="#the-websocket-routing-filter">7.8. The Websocket Routing Filter</a></h3>
 <div class="paragraph">
-<p>If the URL located in the <code>ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR</code> exchange attribute has a <code>ws</code> or <code>wss</code> scheme, the websocket routing rilter runs. It uses the Spring WebSocket infrastructure to forward the websocket request downstream.</p>
+<p>If the URL located in the <code>ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR</code> exchange attribute has a <code>ws</code> or <code>wss</code> scheme, the websocket routing filter runs. It uses the Spring WebSocket infrastructure to forward the websocket request downstream.</p>
 </div>
 <div class="paragraph">
 <p>You can load-balance websockets by prefixing the URI with <code>lb</code>, such as <code>lb:ws://serviceid</code>.</p>
