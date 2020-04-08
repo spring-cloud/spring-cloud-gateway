@@ -168,44 +168,6 @@ spring:
         - Host=**.hostmulti1.org,**.hostmulti2.org
 
       # =====================================
-      - id: hystrix_failure_test
-        uri: ${test.uri}
-        predicates:
-        - Host=**.hystrixfailure.org
-        filters:
-        - Hystrix=failcmd
-
-      # =====================================
-      - id: hystrix_fallback_test
-        uri: ${test.uri}
-        predicates:
-        - Host=**.hystrixfallback.org
-        filters:
-        - name: Hystrix
-          args:
-            name: fallbackcmd
-            fallbackUri: forward:/fallbackcontroller
-
-      # =====================================
-      - id: hystrix_exception_fallback_test
-        uri: ${test.uri}
-        predicates:
-        - Host=**.hystrixexceptionfallback.org
-        filters:
-        - name: Hystrix
-          args:
-            name: fallbackcmd
-            fallbackUri: forward:/exceptionFallback
-
-      # =====================================
-      - id: hystrix_success_test
-        uri: ${test.uri}
-        predicates:
-        - Host=**.hystrixsuccess.org
-        filters:
-        - Hystrix=successcmd
-
-      # =====================================
       - id: load_balancer_client_test
         uri: lb://testservice
         predicates:
