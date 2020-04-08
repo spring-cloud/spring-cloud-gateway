@@ -247,7 +247,11 @@ $(globalSwitch);
 <li><a href="#developer-guide">17. Developer Guide</a>
 <ul class="sectlevel2">
 <li><a href="#writing-custom-route-predicate-factories">17.1. Writing Custom Route Predicate Factories</a></li>
-<li><a href="#writing-custom-gatewayfilter-factories">17.2. Writing Custom GatewayFilter Factories</a></li>
+<li><a href="#writing-custom-gatewayfilter-factories">17.2. Writing Custom GatewayFilter Factories</a>
+<ul class="sectlevel3">
+<li><a href="#naming-custom-filters-and-references-in-configuration">17.2.1. Naming Custom Filters And References In Configuration</a></li>
+</ul>
+</li>
 <li><a href="#writing-custom-global-filters">17.3. Writing Custom Global Filters</a></li>
 </ul>
 </li>
@@ -3718,7 +3722,7 @@ The following examples show how to do so:</p>
             //request before calling chain.filter
             ServerHttpRequest.Builder builder = exchange.getRequest().mutate();
             //use builder to manipulate the request
-            return chain.filter(exchange.mutate().request(request).build());
+            return chain.filter(exchange.mutate().request(builder.build()).build());
         };
     }
 
@@ -3756,6 +3760,32 @@ The following examples show how to do so:</p>
 }</code></pre>
 </div>
 </div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="naming-custom-filters-and-references-in-configuration"><a class="anchor" href="#naming-custom-filters-and-references-in-configuration"></a><a class="link" href="#naming-custom-filters-and-references-in-configuration">17.2.1. Naming Custom Filters And References In Configuration</a></h4>
+<div class="paragraph">
+<p>Custom filters class names should end in <code>GatewayFilterFactory</code>.</p>
+</div>
+<div class="paragraph">
+<p>For example, to reference a filter named <code>Something</code> in configuration files, the filter
+must be in a class named <code>SomethingGatewayFilterFactory</code>.</p>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+It is possible to create a gateway filter named without the
+<code>GatewayFilterFactory</code> suffix, such as <code>class AnotherThing</code>. This filter could be
+referenced as <code>AnotherThing</code> in configuration files. This is <strong>not</strong> a supported naming
+convention and this syntax may be removed in future releases. Please update the filter
+name to be compliant.
+</td>
+</tr>
+</table>
 </div>
 </div>
 </div>
