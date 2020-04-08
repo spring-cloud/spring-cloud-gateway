@@ -31,7 +31,7 @@ public class CompositeRouteLocator implements RouteLocator {
 
 	@Override
 	public Flux<Route> getRoutes() {
-		return this.delegates.flatMap(RouteLocator::getRoutes);
+		return this.delegates.flatMapSequential(RouteLocator::getRoutes);
 	}
 
 }

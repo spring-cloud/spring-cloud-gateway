@@ -49,7 +49,8 @@ public class CompositeRouteDefinitionLocator implements RouteDefinitionLocator {
 
 	@Override
 	public Flux<RouteDefinition> getRouteDefinitions() {
-		return this.delegates.flatMap(RouteDefinitionLocator::getRouteDefinitions)
+		return this.delegates
+				.flatMapSequential(RouteDefinitionLocator::getRouteDefinitions)
 				.flatMap(routeDefinition -> {
 					if (routeDefinition.getId() == null) {
 						return randomId().map(id -> {
