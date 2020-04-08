@@ -2495,7 +2495,7 @@ public class PreGatewayFilterFactory extends AbstractGatewayFilterFactory<PreGat
 			//request before calling chain.filter
 			ServerHttpRequest.Builder builder = exchange.getRequest().mutate();
 			//use builder to manipulate the request
-			return chain.filter(exchange.mutate().request(request).build());
+			return chain.filter(exchange.mutate().request(builder.build()).build());
 		};
 	}
 
@@ -2533,6 +2533,19 @@ public class PostGatewayFilterFactory extends AbstractGatewayFilterFactory<PostG
 }
 ----
 ====
+
+==== Naming Custom Filters And References In Configuration
+
+Custom filters class names should end in `GatewayFilterFactory`.
+
+For example, to reference a filter named `Something` in configuration files, the filter
+must be in a class named `SomethingGatewayFilterFactory`.
+
+WARNING: It is possible to create a gateway filter named without the
+`GatewayFilterFactory` suffix, such as `class AnotherThing`. This filter could be
+referenced as `AnotherThing` in configuration files. This is **not** a supported naming
+convention and this syntax may be removed in future releases. Please update the filter
+name to be compliant.
 
 === Writing Custom Global Filters
 
