@@ -234,7 +234,6 @@ public class RouteDefinitionRouteLocator
 					new ArrayList<>(routeDefinition.getFilters())));
 		}
 
-		Flux.just().onErrorContinue()
 		AnnotationAwareOrderComparator.sort(filters);
 		return filters;
 	}
