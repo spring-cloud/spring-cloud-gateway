@@ -44,7 +44,10 @@ end
 --redis.log(redis.LOG_WARNING, "allowed_num " .. allowed_num)
 --redis.log(redis.LOG_WARNING, "new_tokens " .. new_tokens)
 
-redis.call("setex", tokens_key, ttl, new_tokens)
-redis.call("setex", timestamp_key, ttl, now)
+if ttl > 0 then
+  redis.call("setex", tokens_key, ttl, new_tokens)
+  redis.call("setex", timestamp_key, ttl, now)
+end
 
+-- return { allowed_num, new_tokens, capacity, filled_tokens, requested, new_tokens }
 return { allowed_num, new_tokens }

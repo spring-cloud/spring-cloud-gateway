@@ -282,22 +282,26 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 			Flux<List<Long>> flux = this.redisTemplate.execute(this.script, keys,
 					scriptArgs);
 			// .log("redisratelimiter", Level.FINER);
-			return flux.onErrorResume(throwable -> Flux.just(Arrays.asList(1L, -1L)))
-					.reduce(new ArrayList<Long>(), (longs, l) -> {
-						longs.addAll(l);
-						return longs;
-					}).map(results -> {
-						boolean allowed = results.get(0) == 1L;
-						Long tokensLeft = results.get(1);
+			return flux.onErrorResume(throwable -> {
+				if (log.isDebugEnabled()) {
+					log.debug("Error calling rate limiter lua", throwable);
+				}
+				return Flux.just(Arrays.asList(1L, -1L));
+			}).reduce(new ArrayList<Long>(), (longs, l) -> {
+				longs.addAll(l);
+				return longs;
+			}).map(results -> {
+				boolean allowed = results.get(0) == 1L;
+				Long tokensLeft = results.get(1);
 
-						Response response = new Response(allowed,
-								getHeaders(routeConfig, tokensLeft));
+				Response response = new Response(allowed,
+						getHeaders(routeConfig, tokensLeft));
 
-						if (log.isDebugEnabled()) {
-							log.debug("response: " + response);
-						}
-						return response;
-					});
+				if (log.isDebugEnabled()) {
+					log.debug("response: " + response);
+				}
+				return response;
+			});
 		}
 		catch (Exception e) {
 			/*
@@ -345,7 +349,7 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 		@Min(1)
 		private int replenishRate;
 
-		@Min(1)
+		@Min(0)
 		private int burstCapacity = 1;
 
 		@Min(1)
