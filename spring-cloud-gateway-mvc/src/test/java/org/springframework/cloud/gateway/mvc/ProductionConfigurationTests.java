@@ -251,16 +251,19 @@ public class ProductionConfigurationTests {
 	@Test
 	public void deleteWithoutBody() throws Exception {
 		ResponseEntity<Void> deleteResponse = rest.exchange("/proxy/{id}/no-body",
-				HttpMethod.DELETE, null, Void.TYPE, Collections.singletonMap("id", "123"));
+				HttpMethod.DELETE, null, Void.TYPE,
+				Collections.singletonMap("id", "123"));
 		assertThat(deleteResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
 	}
 
 	@Test
 	public void deleteWithBody() throws Exception {
 		Foo foo = new Foo("to-be-deleted");
-		ParameterizedTypeReference<Map<String, Foo>> returnType = new ParameterizedTypeReference<Map<String, Foo>>() {};
+		ParameterizedTypeReference<Map<String, Foo>> returnType = new ParameterizedTypeReference<Map<String, Foo>>() {
+		};
 		ResponseEntity<Map<String, Foo>> deleteResponse = rest.exchange("/proxy/{id}",
-				HttpMethod.DELETE, new HttpEntity<Foo>(foo), returnType, Collections.singletonMap("id", "123"));
+				HttpMethod.DELETE, new HttpEntity<Foo>(foo), returnType,
+				Collections.singletonMap("id", "123"));
 		assertThat(deleteResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
 		assertThat(deleteResponse.getBody().get("deleted"))
 				.isEqualToComparingFieldByField(foo);
@@ -415,12 +418,11 @@ public class ProductionConfigurationTests {
 
 			@DeleteMapping("/proxy/{id}")
 			public ResponseEntity<?> deleteWithBody(@PathVariable Integer id,
-					@RequestBody Foo foo,
-					ProxyExchange<?> proxy) throws Exception {
+					@RequestBody Foo foo, ProxyExchange<?> proxy) throws Exception {
 				return proxy.uri(home.toString() + "/foos/" + id).body(foo)
-						.delete(response -> ResponseEntity.status(response.getStatusCode())
-								.headers(response.getHeaders())
-								.body(response.getBody()));
+						.delete(response -> ResponseEntity
+								.status(response.getStatusCode())
+								.headers(response.getHeaders()).body(response.getBody()));
 			}
 
 			@GetMapping("/forward/**")
@@ -502,7 +504,8 @@ public class ProductionConfigurationTests {
 			}
 
 			@DeleteMapping("/foos/{id}")
-			public ResponseEntity<?> deleteFoo(@PathVariable Integer id, @RequestBody Foo foo) {
+			public ResponseEntity<?> deleteFoo(@PathVariable Integer id,
+					@RequestBody Foo foo) {
 				return ResponseEntity.ok().body(Collections.singletonMap("deleted", foo));
 			}
 
