@@ -30,10 +30,11 @@ public class RouteConstructionIntegrationTests {
 
 	@Test
 	public void routesWithVerificationShouldFail() {
-		Assert.assertThrows(Throwable.class, () -> {
-			new SpringApplicationBuilder(TestConfig.class).profiles("verification-route")
-					.run();
-		});
+		Assert.assertThrows("java.lang.AssertionError: Stop right now!", Throwable.class,
+				() -> {
+					new SpringApplicationBuilder(TestConfig.class)
+							.profiles("verification-route").run();
+				});
 	}
 
 	@EnableAutoConfiguration
