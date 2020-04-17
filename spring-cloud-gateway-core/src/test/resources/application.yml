@@ -4,6 +4,10 @@ test:
   #  uri: http://${test.hostport}
   uri: lb://testservice
 
+server:
+  error:
+    include-details: always
+
 spring:
   profiles:
     include: logging
