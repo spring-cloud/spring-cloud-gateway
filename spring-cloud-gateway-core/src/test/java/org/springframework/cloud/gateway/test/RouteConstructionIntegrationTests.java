@@ -17,6 +17,7 @@
 package org.springframework.cloud.gateway.test;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.boot.SpringBootConfiguration;
@@ -29,6 +30,7 @@ import org.springframework.context.annotation.Bean;
 public class RouteConstructionIntegrationTests {
 
 	@Test
+	@Ignore // FIXME: https://github.com/spring-cloud/spring-cloud-gateway/issues/1676
 	public void routesWithVerificationShouldFail() {
 		Assert.assertThrows("java.lang.AssertionError: Stop right now!", Throwable.class,
 				() -> {
