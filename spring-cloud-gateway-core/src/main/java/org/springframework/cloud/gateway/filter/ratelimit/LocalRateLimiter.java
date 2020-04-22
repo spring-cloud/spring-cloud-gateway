@@ -16,16 +16,28 @@
 
 package org.springframework.cloud.gateway.filter.ratelimit;
 
+import java.time.Duration;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.validation.constraints.Min;
 
+import io.github.bucket4j.Bandwidth;
+import io.github.bucket4j.Bucket;
+import io.github.bucket4j.Bucket4j;
+import io.github.bucket4j.Refill;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jetbrains.annotations.NotNull;
 import reactor.core.publisher.Mono;
 
 import org.springframework.beans.BeansException;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.cloud.gateway.route.RouteDefinitionRouteLocator;
 import org.springframework.cloud.gateway.support.ConfigurationService;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -67,6 +79,8 @@ public class LocalRateLimiter extends AbstractRateLimiter<LocalRateLimiter.Confi
 	private Log log = LogFactory.getLog(getClass());
 
 	private AtomicBoolean initialized = new AtomicBoolean(false);
+
+	private Map<String, Bucket> bucketMap = new ConcurrentHashMap<>();
 
 	private Config defaultConfig;
 
@@ -123,15 +137,44 @@ public class LocalRateLimiter extends AbstractRateLimiter<LocalRateLimiter.Confi
 		this.defaultConfig.setRequestedTokens(defaultRequestedTokens);
 	}
 
-	@Override
-	public Mono<Response> isAllowed(String routeId, String id) {
-		if (!this.initialized.get()) {
-			throw new IllegalStateException("RedisRateLimiter is not initialized");
-		}
+	public boolean isIncludeHeaders() {
+		return includeHeaders;
+	}
 
+	public void setIncludeHeaders(boolean includeHeaders) {
+		this.includeHeaders = includeHeaders;
+	}
 
+	public String getRemainingHeader() {
+		return remainingHeader;
+	}
 
-		return null;
+	public void setRemainingHeader(String remainingHeader) {
+		this.remainingHeader = remainingHeader;
+	}
+
+	public String getReplenishRateHeader() {
+		return replenishRateHeader;
+	}
+
+	public void setReplenishRateHeader(String replenishRateHeader) {
+		this.replenishRateHeader = replenishRateHeader;
+	}
+
+	public String getBurstCapacityHeader() {
+		return burstCapacityHeader;
+	}
+
+	public void setBurstCapacityHeader(String burstCapacityHeader) {
+		this.burstCapacityHeader = burstCapacityHeader;
+	}
+
+	public String getRequestedTokensHeader() {
+		return requestedTokensHeader;
+	}
+
+	public void setRequestedTokensHeader(String requestedTokensHeader) {
+		this.requestedTokensHeader = requestedTokensHeader;
 	}
 
 	/**
@@ -147,6 +190,78 @@ public class LocalRateLimiter extends AbstractRateLimiter<LocalRateLimiter.Confi
 				setConfigurationService(context.getBean(ConfigurationService.class));
 			}
 		}
+	}
+
+	private Bucket createBucket(Config config) {
+		//config.getReplenishRate()
+		//Refill refill = Refill.greedy(10, Duration.ofSeconds(1));
+		Bandwidth limit = Bandwidth.simple(config.getReplenishRate(), Duration.ofSeconds(1));
+		Bucket bucket = Bucket4j.builder().addLimit(limit).build();
+		return bucket;
+	}
+
+	/* for testing */ Config getDefaultConfig() {
+		return defaultConfig;
+	}
+
+	/**
+	 * This uses a basic token bucket algorithm and relies on the bucket4j library
+	 * No other operations can run between fetching the count and
+	 * writing the new count.
+	 */
+	@Override
+	@SuppressWarnings("unchecked")
+	public Mono<Response> isAllowed(String routeId, String id) {
+		if (!this.initialized.get()) {
+			throw new IllegalStateException("LocalRateLimiter is not initialized");
+		}
+
+		Config routeConfig = loadConfiguration(routeId);
+
+		// How many requests per second do you want a user to be allowed to do?
+		int replenishRate = routeConfig.getReplenishRate();
+
+		// How much bursting do you want to allow?
+		int burstCapacity = routeConfig.getBurstCapacity();
+
+		// How many tokens are requested per request?
+		int requestedTokens = routeConfig.getRequestedTokens();
+
+		final Bucket bucket = bucketMap.computeIfAbsent(id, (key) -> createBucket(routeConfig));
+
+		final boolean allowed = bucket.tryConsume(1);
+
+		Response response = new Response(true, getHeaders(routeConfig,bucket.getAvailableTokens()));
+		return Mono.just(response);
+	}
+
+	/* for testing */ Config loadConfiguration(String routeId) {
+		Config routeConfig = getConfig().getOrDefault(routeId, defaultConfig);
+
+		if (routeConfig == null) {
+			routeConfig = getConfig().get(RouteDefinitionRouteLocator.DEFAULT_FILTERS);
+		}
+
+		if (routeConfig == null) {
+			throw new IllegalArgumentException(
+					"No Configuration found for route " + routeId + " or defaultFilters");
+		}
+		return routeConfig;
+	}
+
+	@NotNull
+	public Map<String, String> getHeaders(Config config, Long tokensLeft) {
+		Map<String, String> headers = new HashMap<>();
+		if (isIncludeHeaders()) {
+			headers.put(this.remainingHeader, tokensLeft.toString());
+			headers.put(this.replenishRateHeader,
+					String.valueOf(config.getReplenishRate()));
+			headers.put(this.burstCapacityHeader,
+					String.valueOf(config.getBurstCapacity()));
+			headers.put(this.requestedTokensHeader,
+					String.valueOf(config.getRequestedTokens()));
+		}
+		return headers;
 	}
 
 	@Validated
