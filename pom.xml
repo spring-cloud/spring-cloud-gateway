@@ -55,6 +55,7 @@
 		<spring-cloud-commons.version>3.0.0.BUILD-SNAPSHOT</spring-cloud-commons.version>
 		<spring-cloud-circuitbreaker.version>2.0.0.BUILD-SNAPSHOT</spring-cloud-circuitbreaker.version>
 		<embedded-redis.version>0.6</embedded-redis.version>
+		<bucket4j.version>4.10.0</bucket4j.version>
 		<blockhound.version>1.0.1.RELEASE</blockhound.version>
 	</properties>
 
@@ -101,6 +102,11 @@
 				<groupId>com.github.kstyrc</groupId>
 				<artifactId>embedded-redis</artifactId>
 				<version>${embedded-redis.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.github.vladimir-bukhtoyarov</groupId>
+				<artifactId>bucket4j-core</artifactId>
+				<version>4.10.0</version>
 			</dependency>
 			<dependency>
 				<groupId>io.projectreactor.tools</groupId>

@@ -35,14 +35,14 @@ import org.springframework.validation.annotation.Validated;
 /**
  * @author Emmanouil Gkatziouras
  */
-@ConfigurationProperties("spring.cloud.gateway.default-rate-limiter")
-public class DefaultRateLimiter extends AbstractRateLimiter<DefaultRateLimiter.Config>
+@ConfigurationProperties("spring.cloud.gateway.local-rate-limiter")
+public class LocalRateLimiter extends AbstractRateLimiter<LocalRateLimiter.Config>
 		implements ApplicationContextAware {
 
 	/**
-	 * Default Rate Limiter property name.
+	 * Local Rate Limiter property name.
 	 */
-	public static final String CONFIGURATION_PROPERTY_NAME = "default-rate-limiter";
+	public static final String CONFIGURATION_PROPERTY_NAME = "local-rate-limiter";
 
 	/**
 	 * Remaining Rate Limit header name.
@@ -70,7 +70,30 @@ public class DefaultRateLimiter extends AbstractRateLimiter<DefaultRateLimiter.C
 
 	private Config defaultConfig;
 
-	public DefaultRateLimiter(ConfigurationService configurationService) {
+
+	// configuration properties
+	/**
+	 * Whether or not to include headers containing rate limiter information, defaults to
+	 * true.
+	 */
+	private boolean includeHeaders = true;
+
+	/**
+	 * The name of the header that returns number of remaining requests during the current
+	 * second.
+	 */
+	private String remainingHeader = REMAINING_HEADER;
+
+	/** The name of the header that returns the replenish rate configuration. */
+	private String replenishRateHeader = REPLENISH_RATE_HEADER;
+
+	/** The name of the header that returns the burst capacity configuration. */
+	private String burstCapacityHeader = BURST_CAPACITY_HEADER;
+
+	/** The name of the header that returns the requested tokens configuration. */
+	private String requestedTokensHeader = REQUESTED_TOKENS_HEADER;
+
+	public LocalRateLimiter(ConfigurationService configurationService) {
 		super(Config.class, CONFIGURATION_PROPERTY_NAME, configurationService);
 		this.initialized.compareAndSet(false, true);
 	}
@@ -81,7 +104,7 @@ public class DefaultRateLimiter extends AbstractRateLimiter<DefaultRateLimiter.C
 	 * @param defaultBurstCapacity how many tokens the bucket can hold in token-bucket
 	 * algorithm.
 	 */
-	public DefaultRateLimiter(int defaultReplenishRate, int defaultBurstCapacity) {
+	public LocalRateLimiter(int defaultReplenishRate, int defaultBurstCapacity) {
 		super(Config.class, CONFIGURATION_PROPERTY_NAME, (ConfigurationService) null);
 		this.defaultConfig = new Config().setReplenishRate(defaultReplenishRate)
 				.setBurstCapacity(defaultBurstCapacity);
@@ -94,7 +117,7 @@ public class DefaultRateLimiter extends AbstractRateLimiter<DefaultRateLimiter.C
 	 * algorithm.
 	 * @param defaultRequestedTokens how many tokens are requested per request.
 	 */
-	public DefaultRateLimiter(int defaultReplenishRate, int defaultBurstCapacity,
+	public LocalRateLimiter(int defaultReplenishRate, int defaultBurstCapacity,
 			int defaultRequestedTokens) {
 		this(defaultReplenishRate, defaultBurstCapacity);
 		this.defaultConfig.setRequestedTokens(defaultRequestedTokens);
@@ -102,6 +125,12 @@ public class DefaultRateLimiter extends AbstractRateLimiter<DefaultRateLimiter.C
 
 	@Override
 	public Mono<Response> isAllowed(String routeId, String id) {
+		if (!this.initialized.get()) {
+			throw new IllegalStateException("RedisRateLimiter is not initialized");
+		}
+
+
+
 		return null;
 	}
 
@@ -137,7 +166,7 @@ public class DefaultRateLimiter extends AbstractRateLimiter<DefaultRateLimiter.C
 			return replenishRate;
 		}
 
-		public DefaultRateLimiter.Config setReplenishRate(int replenishRate) {
+		public LocalRateLimiter.Config setReplenishRate(int replenishRate) {
 			this.replenishRate = replenishRate;
 			return this;
 		}
@@ -146,7 +175,7 @@ public class DefaultRateLimiter extends AbstractRateLimiter<DefaultRateLimiter.C
 			return burstCapacity;
 		}
 
-		public DefaultRateLimiter.Config setBurstCapacity(int burstCapacity) {
+		public LocalRateLimiter.Config setBurstCapacity(int burstCapacity) {
 			this.burstCapacity = burstCapacity;
 			return this;
 		}
@@ -155,7 +184,7 @@ public class DefaultRateLimiter extends AbstractRateLimiter<DefaultRateLimiter.C
 			return requestedTokens;
 		}
 
-		public DefaultRateLimiter.Config setRequestedTokens(int requestedTokens) {
+		public LocalRateLimiter.Config setRequestedTokens(int requestedTokens) {
 			this.requestedTokens = requestedTokens;
 			return this;
 		}
