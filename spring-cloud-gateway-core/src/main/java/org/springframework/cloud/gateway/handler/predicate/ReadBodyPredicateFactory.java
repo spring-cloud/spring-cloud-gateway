@@ -46,14 +46,19 @@ public class ReadBodyPredicateFactory
 
 	private static final String CACHE_REQUEST_BODY_OBJECT_KEY = "cachedRequestBodyObject";
 
-	private static final List<HttpMessageReader<?>> messageReaders = HandlerStrategies
-			.withDefaults().messageReaders();
+	private final List<HttpMessageReader<?>> messageReaders;
 
 	public ReadBodyPredicateFactory() {
 		super(Config.class);
+		this.messageReaders = HandlerStrategies.withDefaults().messageReaders();
 	}
 
-	@Override
+	public ReadBodyPredicateFactory(List<HttpMessageReader<?>> messageReaders) {
+		super(Config.class);
+		this.messageReaders = messageReaders;
+	}
+
+		@Override
 	@SuppressWarnings("unchecked")
 	public AsyncPredicate<ServerWebExchange> applyAsync(Config config) {
 		return new AsyncPredicate<ServerWebExchange>() {
