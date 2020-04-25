@@ -4,7 +4,8 @@ local timestamp_key = KEYS[2]
 
 local rate = tonumber(ARGV[1])
 local capacity = tonumber(ARGV[2])
-local now = tonumber(ARGV[3])
+--local now = tonumber(ARGV[3])
+local now = tonumber(redis.call(“time”)[1])
 local requested = tonumber(ARGV[4])
 
 local fill_time = capacity/rate
