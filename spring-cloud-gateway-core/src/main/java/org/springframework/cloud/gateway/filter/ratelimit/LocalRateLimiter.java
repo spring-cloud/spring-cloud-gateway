@@ -82,7 +82,6 @@ public class LocalRateLimiter extends AbstractRateLimiter<LocalRateLimiter.Confi
 
 	private Config defaultConfig;
 
-
 	// configuration properties
 	/**
 	 * Whether or not to include headers containing rate limiter information, defaults to
@@ -183,7 +182,7 @@ public class LocalRateLimiter extends AbstractRateLimiter<LocalRateLimiter.Confi
 	@Override
 	@SuppressWarnings("unchecked")
 	public void setApplicationContext(ApplicationContext context) throws BeansException {
-		if(initialized.compareAndSet(false,true)) {
+		if (initialized.compareAndSet(false, true)) {
 			if (context.getBeanNamesForType(ConfigurationService.class).length > 0) {
 				setConfigurationService(context.getBean(ConfigurationService.class));
 			}
@@ -191,8 +190,9 @@ public class LocalRateLimiter extends AbstractRateLimiter<LocalRateLimiter.Confi
 	}
 
 	private Bucket createBucket(Config config) {
-		Refill refill = Refill.intervally(config.getReplenishRate(), Duration.ofSeconds(1));
-		Bandwidth limit = Bandwidth.classic(config.getBurstCapacity(),refill);
+		Refill refill = Refill.intervally(config.getReplenishRate(),
+				Duration.ofSeconds(1));
+		Bandwidth limit = Bandwidth.classic(config.getBurstCapacity(), refill);
 		Bucket bucket = Bucket4j.builder().addLimit(limit).build();
 		return bucket;
 	}
@@ -202,9 +202,8 @@ public class LocalRateLimiter extends AbstractRateLimiter<LocalRateLimiter.Confi
 	}
 
 	/**
-	 * This uses a basic token bucket algorithm and relies on the bucket4j library
-	 * No other operations can run between fetching the count and
-	 * writing the new count.
+	 * This uses a basic token bucket algorithm and relies on the bucket4j library No
+	 * other operations can run between fetching the count and writing the new count.
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
@@ -224,11 +223,13 @@ public class LocalRateLimiter extends AbstractRateLimiter<LocalRateLimiter.Confi
 		// How many tokens are requested per request?
 		int requestedTokens = routeConfig.getRequestedTokens();
 
-		final Bucket bucket = bucketMap.computeIfAbsent(id, (key) -> createBucket(routeConfig));
+		final Bucket bucket = bucketMap.computeIfAbsent(id,
+				(key) -> createBucket(routeConfig));
 
 		final boolean allowed = bucket.tryConsume(routeConfig.getRequestedTokens());
 
-		Response response = new Response(allowed, getHeaders(routeConfig,bucket.getAvailableTokens()));
+		Response response = new Response(allowed,
+				getHeaders(routeConfig, bucket.getAvailableTokens()));
 		return Mono.just(response);
 	}
 
@@ -273,7 +274,6 @@ public class LocalRateLimiter extends AbstractRateLimiter<LocalRateLimiter.Confi
 		@Min(1)
 		private int requestedTokens = 1;
 
-
 		public int getReplenishRate() {
 			return replenishRate;
 		}
@@ -310,4 +310,5 @@ public class LocalRateLimiter extends AbstractRateLimiter<LocalRateLimiter.Confi
 		}
 
 	}
+
 }
