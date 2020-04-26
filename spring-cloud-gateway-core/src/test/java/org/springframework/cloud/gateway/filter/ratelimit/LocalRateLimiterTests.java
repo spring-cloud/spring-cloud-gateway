@@ -77,6 +77,23 @@ public class LocalRateLimiterTests {
 		checkLimitEnforced(id, replenishRate, burstCapacity, requestedTokens, routeId);
 	}
 
+	@Test
+	public void localRateLimiterWorksForLowRates() throws Exception {
+		String id = UUID.randomUUID().toString();
+
+		int replenishRate = 1;
+		int burstCapacity = 3;
+		int requestedTokens = 3;
+
+		String routeId = "low_rate_route";
+		rateLimiter.getConfig().put(routeId,
+				new LocalRateLimiter.Config().setBurstCapacity(burstCapacity)
+						.setReplenishRate(replenishRate)
+						.setRequestedTokens(requestedTokens));
+
+		checkLimitEnforced(id, replenishRate, burstCapacity, requestedTokens, routeId);
+	}
+
 	private void checkLimitEnforced(String id, int replenishRate, int burstCapacity,
 			int requestedTokens, String routeId) throws InterruptedException {
 		// Bursts work
