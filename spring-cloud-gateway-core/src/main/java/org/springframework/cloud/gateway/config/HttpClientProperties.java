@@ -51,7 +51,7 @@ import org.springframework.validation.annotation.Validated;
 public class HttpClientProperties {
 
 	/** The connect timeout in millis, the default is 45s. */
-	private Integer connectTimeout;
+	private Integer connectTimeout = 45000;
 
 	/** The response timeout. */
 	private Duration responseTimeout;
