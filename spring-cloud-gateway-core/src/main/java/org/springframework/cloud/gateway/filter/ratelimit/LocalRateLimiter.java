@@ -17,9 +17,7 @@
 package org.springframework.cloud.gateway.filter.ratelimit;
 
 import java.time.Duration;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -193,9 +191,8 @@ public class LocalRateLimiter extends AbstractRateLimiter<LocalRateLimiter.Confi
 	}
 
 	private Bucket createBucket(Config config) {
-		//config.getReplenishRate()
-		//Refill refill = Refill.greedy(10, Duration.ofSeconds(1));
-		Bandwidth limit = Bandwidth.simple(config.getReplenishRate(), Duration.ofSeconds(1));
+		Refill refill = Refill.intervally(config.getReplenishRate(), Duration.ofSeconds(1));
+		Bandwidth limit = Bandwidth.classic(config.getBurstCapacity(),refill);
 		Bucket bucket = Bucket4j.builder().addLimit(limit).build();
 		return bucket;
 	}
@@ -229,9 +226,9 @@ public class LocalRateLimiter extends AbstractRateLimiter<LocalRateLimiter.Confi
 
 		final Bucket bucket = bucketMap.computeIfAbsent(id, (key) -> createBucket(routeConfig));
 
-		final boolean allowed = bucket.tryConsume(1);
+		final boolean allowed = bucket.tryConsume(routeConfig.getRequestedTokens());
 
-		Response response = new Response(true, getHeaders(routeConfig,bucket.getAvailableTokens()));
+		Response response = new Response(allowed, getHeaders(routeConfig,bucket.getAvailableTokens()));
 		return Mono.just(response);
 	}
 
