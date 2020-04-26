@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter.Response;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
@@ -92,6 +93,25 @@ public class LocalRateLimiterTests {
 						.setRequestedTokens(requestedTokens));
 
 		checkLimitEnforced(id, replenishRate, burstCapacity, requestedTokens, routeId);
+	}
+
+	@Test
+	public void localRateLimiterDoesNotSendHeadersIfDeactivated() throws Exception {
+		String id = UUID.randomUUID().toString();
+		String routeId = "myroute";
+
+		rateLimiter.setIncludeHeaders(false);
+
+		Response response = rateLimiter.isAllowed(routeId, id).block();
+		assertThat(response.isAllowed()).isTrue();
+		assertThat(response.getHeaders())
+				.doesNotContainKey(LocalRateLimiter.REMAINING_HEADER);
+		assertThat(response.getHeaders())
+				.doesNotContainKey(LocalRateLimiter.REPLENISH_RATE_HEADER);
+		assertThat(response.getHeaders())
+				.doesNotContainKey(LocalRateLimiter.BURST_CAPACITY_HEADER);
+		assertThat(response.getHeaders())
+				.doesNotContainKey(LocalRateLimiter.REQUESTED_TOKENS_HEADER);
 	}
 
 	private void checkLimitEnforced(String id, int replenishRate, int burstCapacity,
