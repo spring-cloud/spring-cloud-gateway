@@ -16,7 +16,11 @@
 
 package org.springframework.cloud.gateway.config;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.junit.Test;
+import reactor.netty.http.client.HttpClient;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.actuate.autoconfigure.metrics.MetricsAutoConfiguration;
@@ -33,9 +37,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.filter.reactive.HiddenHttpMethodFilter;
 import org.springframework.web.reactive.socket.client.ReactorNettyWebSocketClient;
 import org.springframework.web.reactive.socket.server.upgrade.ReactorNettyRequestUpgradeStrategy;
-import reactor.netty.http.client.HttpClient;
-
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
