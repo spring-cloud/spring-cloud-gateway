@@ -34,6 +34,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * @author Gkatziouras Emmanouil
+ */
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @DirtiesContext
