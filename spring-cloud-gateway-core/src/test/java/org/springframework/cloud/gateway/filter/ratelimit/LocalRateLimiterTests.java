@@ -69,7 +69,6 @@ public class LocalRateLimiterTests {
 		int requestedTokens = 1;
 
 		String routeId = "myroute";
-
 		rateLimiter.getConfig().put(routeId,
 				new LocalRateLimiter.Config().setBurstCapacity(burstCapacity)
 						.setReplenishRate(replenishRate)
