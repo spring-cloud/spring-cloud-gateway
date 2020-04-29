@@ -55,7 +55,7 @@
 		<spring-cloud-commons.version>3.0.0-SNAPSHOT</spring-cloud-commons.version>
 		<spring-cloud-circuitbreaker.version>2.0.0-SNAPSHOT</spring-cloud-circuitbreaker.version>
 		<embedded-redis.version>0.6</embedded-redis.version>
-		<blockhound.version>1.0.1.RELEASE</blockhound.version>
+		<blockhound.version>1.0.3.RELEASE</blockhound.version>
 	</properties>
 
 	<dependencyManagement>

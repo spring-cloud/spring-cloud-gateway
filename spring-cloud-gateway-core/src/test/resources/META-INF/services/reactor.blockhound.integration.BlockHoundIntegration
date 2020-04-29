@@ -1,1 +1,1 @@
-reactor.blockhound.integration.CustomBlockHoundIntegration
+org.springframework.cloud.gateway.test.CustomBlockHoundIntegration
