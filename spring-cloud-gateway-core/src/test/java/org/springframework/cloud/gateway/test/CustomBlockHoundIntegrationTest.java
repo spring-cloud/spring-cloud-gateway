@@ -16,8 +16,8 @@
 
 package org.springframework.cloud.gateway.test;
 
-import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
@@ -27,7 +27,7 @@ import reactor.core.scheduler.Schedulers;
 public class CustomBlockHoundIntegrationTest {
 
 	@Test
-	// ignore fails on java 13
+	// @EnabledOnJre(JRE.JAVA_8)
 	public void shouldThrowErrorForBlockingCallWithCustomBlockHoundIntegration() {
 		Assertions.assertThrows(RuntimeException.class, () -> Mono.fromCallable(() -> {
 			Thread.sleep(1);
