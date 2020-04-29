@@ -56,7 +56,7 @@
 		<spring-cloud-netflix.version>2.2.3.BUILD-SNAPSHOT</spring-cloud-netflix.version>
 		<spring-cloud-circuitbreaker.version>1.0.3.BUILD-SNAPSHOT</spring-cloud-circuitbreaker.version>
 		<embedded-redis.version>0.6</embedded-redis.version>
-		<blockhound.version>1.0.1.RELEASE</blockhound.version>
+		<blockhound.version>1.0.3.RELEASE</blockhound.version>
 	</properties>
 
 	<dependencyManagement>
