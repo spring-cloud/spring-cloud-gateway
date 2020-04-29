@@ -33,7 +33,7 @@ import org.springframework.context.annotation.Configuration;
 public class GatewayLocalRateLimiterAutoConfiguration {
 
 	@Bean
-	@ConditionalOnMissingBean(RateLimiter.class)
+	@ConditionalOnMissingBean
 	public RateLimiter localRateLimiter(ConfigurationService configurationService) {
 		return new LocalRateLimiter(configurationService);
 	}

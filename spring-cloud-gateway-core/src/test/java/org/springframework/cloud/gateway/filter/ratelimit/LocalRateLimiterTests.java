@@ -45,7 +45,13 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
-public class LocalRateLimiterTests {
+public class LocalRateLimiterTests extends BaseWebClientTests {
+
+	private static final String DEFAULT_ROUTE = "myroute";
+
+	private static final int REPLENISH_RATE = 10;
+	private static final int BURST_CAPACITY = 2 * REPLENISH_RATE;
+	private static final int REQUESTED_TOKENS = 1;
 
 	@Autowired
 	private LocalRateLimiter rateLimiter;
@@ -63,18 +69,15 @@ public class LocalRateLimiterTests {
 	@Test
 	public void localRateLimiterWorks() throws Exception {
 		String id = UUID.randomUUID().toString();
+		addDefaultRoute();
+		checkLimitEnforced(id, REPLENISH_RATE, BURST_CAPACITY, REQUESTED_TOKENS, DEFAULT_ROUTE);
+	}
 
-		int replenishRate = 10;
-		int burstCapacity = 2 * replenishRate;
-		int requestedTokens = 1;
-
-		String routeId = "myroute";
-		rateLimiter.getConfig().put(routeId,
-				new LocalRateLimiter.Config().setBurstCapacity(burstCapacity)
-						.setReplenishRate(replenishRate)
-						.setRequestedTokens(requestedTokens));
-
-		checkLimitEnforced(id, replenishRate, burstCapacity, requestedTokens, routeId);
+	private void addDefaultRoute() {
+		rateLimiter.getConfig().put(DEFAULT_ROUTE,
+				new LocalRateLimiter.Config().setBurstCapacity(BURST_CAPACITY)
+						.setReplenishRate(REPLENISH_RATE)
+						.setRequestedTokens(REQUESTED_TOKENS));
 	}
 
 	@Test
@@ -97,11 +100,10 @@ public class LocalRateLimiterTests {
 	@Test
 	public void localRateLimiterDoesNotSendHeadersIfDeactivated() throws Exception {
 		String id = UUID.randomUUID().toString();
-		String routeId = "myroute";
-
+		addDefaultRoute();
 		rateLimiter.setIncludeHeaders(false);
 
-		Response response = rateLimiter.isAllowed(routeId, id).block();
+		Response response = rateLimiter.isAllowed(DEFAULT_ROUTE, id).block();
 		assertThat(response.isAllowed()).isTrue();
 		assertThat(response.getHeaders())
 				.doesNotContainKey(LocalRateLimiter.REMAINING_HEADER);
