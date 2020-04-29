@@ -28,8 +28,6 @@ import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.Bucket4j;
 import io.github.bucket4j.Refill;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.jetbrains.annotations.NotNull;
 import reactor.core.publisher.Mono;
 
@@ -73,8 +71,6 @@ public class LocalRateLimiter extends AbstractRateLimiter<LocalRateLimiter.Confi
 	 * Requested Tokens header name.
 	 */
 	public static final String REQUESTED_TOKENS_HEADER = "X-RateLimit-Requested-Tokens";
-
-	private Log log = LogFactory.getLog(getClass());
 
 	private AtomicBoolean initialized = new AtomicBoolean(false);
 
@@ -189,10 +185,9 @@ public class LocalRateLimiter extends AbstractRateLimiter<LocalRateLimiter.Confi
 		}
 	}
 
-	private Bucket createBucket(Config config) {
-		Refill refill = Refill.intervally(config.getReplenishRate(),
-				Duration.ofSeconds(1));
-		Bandwidth limit = Bandwidth.classic(config.getBurstCapacity(), refill);
+	private Bucket createBucket(int replenishRate, int burstCapacity) {
+		Refill refill = Refill.intervally(replenishRate, Duration.ofSeconds(1));
+		Bandwidth limit = Bandwidth.classic(burstCapacity, refill);
 		Bucket bucket = Bucket4j.builder().addLimit(limit).build();
 		return bucket;
 	}
@@ -224,9 +219,9 @@ public class LocalRateLimiter extends AbstractRateLimiter<LocalRateLimiter.Confi
 		int requestedTokens = routeConfig.getRequestedTokens();
 
 		final Bucket bucket = bucketMap.computeIfAbsent(id,
-				(key) -> createBucket(routeConfig));
+				(key) -> createBucket(replenishRate, burstCapacity));
 
-		final boolean allowed = bucket.tryConsume(routeConfig.getRequestedTokens());
+		final boolean allowed = bucket.tryConsume(requestedTokens);
 
 		Response response = new Response(allowed,
 				getHeaders(routeConfig, bucket.getAvailableTokens()));
