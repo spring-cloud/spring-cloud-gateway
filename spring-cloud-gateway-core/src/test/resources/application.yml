@@ -6,7 +6,7 @@ test:
 
 server:
   error:
-    include-details: always
+    include-message: always
 
 spring:
   profiles:
