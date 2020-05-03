@@ -50,7 +50,9 @@ public class LocalRateLimiterTests extends BaseWebClientTests {
 	private static final String DEFAULT_ROUTE = "myroute";
 
 	private static final int REPLENISH_RATE = 10;
+
 	private static final int BURST_CAPACITY = 2 * REPLENISH_RATE;
+
 	private static final int REQUESTED_TOKENS = 1;
 
 	@Autowired
@@ -70,7 +72,8 @@ public class LocalRateLimiterTests extends BaseWebClientTests {
 	public void localRateLimiterWorks() throws Exception {
 		String id = UUID.randomUUID().toString();
 		addDefaultRoute();
-		checkLimitEnforced(id, REPLENISH_RATE, BURST_CAPACITY, REQUESTED_TOKENS, DEFAULT_ROUTE);
+		checkLimitEnforced(id, REPLENISH_RATE, BURST_CAPACITY, REQUESTED_TOKENS,
+				DEFAULT_ROUTE);
 	}
 
 	private void addDefaultRoute() {
