@@ -1787,7 +1787,7 @@ The following listing configures a <code>RewritePath</code> <code>GatewayFilter<
       - id: rewritepath_route
         uri: https://example.org
         predicates:
-        - Path=/foo/**
+        - Path=/red/**
         filters:
         - RewritePath=/red(?&lt;segment&gt;/?.*), $\{segment}</code></pre>
 </div>
