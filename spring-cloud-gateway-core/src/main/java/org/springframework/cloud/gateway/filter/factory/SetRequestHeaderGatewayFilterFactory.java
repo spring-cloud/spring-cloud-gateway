@@ -16,9 +16,6 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
-import java.util.Collections;
-import java.util.List;
-
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
@@ -32,22 +29,20 @@ import static org.springframework.cloud.gateway.support.GatewayToStringStyler.fi
 /**
  * @author Spencer Gibb
  */
-public class SetRequestHeaderGatewayFilterFactory extends AbstractNameValueGatewayFilterFactory {
+public class SetRequestHeaderGatewayFilterFactory
+      extends AbstractNameValueGatewayFilterFactory {
 
 	@Override
 	public GatewayFilter apply(NameValueConfig config) {
 		return new GatewayFilter() {
 
 			@Override
-			public List<String> shortcutFieldOrder() {
-				return Collections.singletonList("host");
-			}
-
-			@Override
-			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+			public Mono<Void> filter(ServerWebExchange exchange,
+			        GatewayFilterChain chain) {
 				String value = ServerWebExchangeUtils.expand(exchange, config.getValue());
 				ServerHttpRequest request = exchange.getRequest().mutate()
-						.headers(httpHeaders -> httpHeaders.set(config.name, value)).build();
+						.headers(httpHeaders -> httpHeaders.set(config.name, value))
+						.build();
 
 				return chain.filter(exchange.mutate().request(request).build());
 			}

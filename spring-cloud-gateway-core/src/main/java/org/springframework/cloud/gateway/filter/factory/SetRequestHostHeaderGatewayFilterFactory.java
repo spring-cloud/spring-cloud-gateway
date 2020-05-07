@@ -16,6 +16,9 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
+import java.util.Collections;
+import java.util.List;
+
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
@@ -29,35 +32,37 @@ import static org.springframework.cloud.gateway.support.GatewayToStringStyler.fi
 /**
  * @author Andrew Fitzgerald
  */
-public class SetRequestHostHeaderGatewayFilterFactory extends
-		AbstractGatewayFilterFactory<SetRequestHostHeaderGatewayFilterFactory.Config> {
+public class SetRequestHostHeaderGatewayFilterFactory
+		extends AbstractGatewayFilterFactory<SetRequestHostHeaderGatewayFilterFactory.Config> {
 
 	public SetRequestHostHeaderGatewayFilterFactory() {
 		super(Config.class);
 	}
 
 	@Override
+	public List<String> shortcutFieldOrder() {
+		return Collections.singletonList("host");
+	}
+
+	@Override
 	public GatewayFilter apply(Config config) {
 		return new GatewayFilter() {
 			@Override
-			public Mono<Void> filter(ServerWebExchange exchange,
-					GatewayFilterChain chain) {
+			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 				String value = ServerWebExchangeUtils.expand(exchange, config.getHost());
 
-				ServerHttpRequest request = exchange.getRequest().mutate()
-						.headers(httpHeaders -> {
-							httpHeaders.remove("Host");
-							httpHeaders.add("Host", value);
-						}).build();
+				ServerHttpRequest request = exchange.getRequest().mutate().headers(httpHeaders -> {
+					httpHeaders.remove("Host");
+					httpHeaders.add("Host", value);
+				}).build();
 
 				return chain.filter(exchange.mutate().request(request).build());
 			}
 
 			@Override
 			public String toString() {
-				return filterToStringCreator(
-						SetRequestHostHeaderGatewayFilterFactory.this)
-								.append(config.getHost()).toString();
+				return filterToStringCreator(SetRequestHostHeaderGatewayFilterFactory.this).append(config.getHost())
+						.toString();
 			}
 		};
 	}
