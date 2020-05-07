@@ -30,7 +30,7 @@ import static org.springframework.cloud.gateway.support.GatewayToStringStyler.fi
  * @author Spencer Gibb
  */
 public class SetRequestHeaderGatewayFilterFactory
-      extends AbstractNameValueGatewayFilterFactory {
+		extends AbstractNameValueGatewayFilterFactory {
 
 	@Override
 	public GatewayFilter apply(NameValueConfig config) {
@@ -38,7 +38,7 @@ public class SetRequestHeaderGatewayFilterFactory
 
 			@Override
 			public Mono<Void> filter(ServerWebExchange exchange,
-			        GatewayFilterChain chain) {
+					GatewayFilterChain chain) {
 				String value = ServerWebExchangeUtils.expand(exchange, config.getValue());
 				ServerHttpRequest request = exchange.getRequest().mutate()
 						.headers(httpHeaders -> httpHeaders.set(config.name, value))
