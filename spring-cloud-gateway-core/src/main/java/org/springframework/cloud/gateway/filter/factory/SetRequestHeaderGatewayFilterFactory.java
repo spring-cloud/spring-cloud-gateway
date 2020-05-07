@@ -35,7 +35,6 @@ public class SetRequestHeaderGatewayFilterFactory
 	@Override
 	public GatewayFilter apply(NameValueConfig config) {
 		return new GatewayFilter() {
-
 			@Override
 			public Mono<Void> filter(ServerWebExchange exchange,
 					GatewayFilterChain chain) {
