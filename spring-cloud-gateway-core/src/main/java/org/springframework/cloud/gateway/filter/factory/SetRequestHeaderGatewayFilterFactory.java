@@ -35,6 +35,12 @@ public class SetRequestHeaderGatewayFilterFactory
 	@Override
 	public GatewayFilter apply(NameValueConfig config) {
 		return new GatewayFilter() {
+
+			@Override
+			public List<String> shortcutFieldOrder() {
+				return Collections.singletonList("host");
+			}
+
 			@Override
 			public Mono<Void> filter(ServerWebExchange exchange,
 					GatewayFilterChain chain) {
