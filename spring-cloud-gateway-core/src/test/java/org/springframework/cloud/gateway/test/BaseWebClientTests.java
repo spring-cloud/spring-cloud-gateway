@@ -18,28 +18,29 @@ package org.springframework.cloud.gateway.test;
 
 import java.time.Duration;
 
-import com.netflix.loadbalancer.Server;
-import com.netflix.loadbalancer.ServerList;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
+import reactor.core.publisher.Mono;
 
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.route.Route;
-import org.springframework.cloud.netflix.ribbon.RibbonClient;
-import org.springframework.cloud.netflix.ribbon.RibbonClients;
-import org.springframework.cloud.netflix.ribbon.StaticServerList;
+import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
+import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.annotation.Order;
+import org.springframework.core.env.Environment;
 import org.springframework.http.client.reactive.ClientHttpConnector;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.server.ServerWebExchange;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_HANDLER_MAPPER_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
@@ -54,6 +55,8 @@ public class BaseWebClientTests {
 	protected static final String ROUTE_ID_HEADER = "X-Gateway-RouteDefinition-Id";
 
 	protected static final Duration DURATION = Duration.ofSeconds(5);
+
+	public static final String SERVICE_ID = "testservice";
 
 	@LocalServerPort
 	protected int port = 0;
@@ -77,9 +80,9 @@ public class BaseWebClientTests {
 				.build();
 	}
 
-	@Configuration
-	@RibbonClients({
-			@RibbonClient(name = "testservice", configuration = TestRibbonConfig.class) })
+	@Configuration(proxyBeanMethods = false)
+	@LoadBalancerClient(name = "testservice",
+			configuration = TestLoadBalancerConfig.class)
 	@Import(PermitAllSecurityConfiguration.class)
 	public static class DefaultTestConfig {
 
@@ -88,6 +91,11 @@ public class BaseWebClientTests {
 		@Bean
 		public HttpBinCompatibleController httpBinController() {
 			return new HttpBinCompatibleController();
+		}
+
+		@Bean
+		public RecursiveHttpbinFilter recursiveHttpbinFilter() {
+			return new RecursiveHttpbinFilter();
 		}
 
 		@Bean
@@ -113,6 +121,19 @@ public class BaseWebClientTests {
 
 	}
 
+	public static class RecursiveHttpbinFilter implements GlobalFilter {
+
+		@Override
+		public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+			if (exchange.getRequest().getPath().toString().contains("httpbin/httpbin")) {
+				return Mono
+						.error(new IllegalStateException("recursive call to /httpbin"));
+			}
+			return chain.filter(exchange);
+		}
+
+	}
+
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
@@ -120,14 +141,16 @@ public class BaseWebClientTests {
 
 	}
 
-	protected static class TestRibbonConfig {
+	public static class TestLoadBalancerConfig {
 
 		@LocalServerPort
 		protected int port = 0;
 
 		@Bean
-		public ServerList<Server> ribbonServerList() {
-			return new StaticServerList<>(new Server("localhost", this.port));
+		public ServiceInstanceListSupplier staticServiceInstanceListSupplier(
+				Environment env) {
+			return ServiceInstanceListSupplier.fixed(env).instance(port, SERVICE_ID)
+					.build();
 		}
 
 	}

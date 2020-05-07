@@ -30,7 +30,7 @@ import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 
 import static java.util.Collections.singletonList;
-import static org.assertj.core.api.Java6Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -101,6 +101,29 @@ public class RemoveRequestParameterGatewayFilterFactoryTests {
 		assertThat(actualRequest.getQueryParams()).doesNotContainKey("foo");
 		assertThat(actualRequest.getQueryParams()).containsEntry("abc",
 				singletonList("xyz"));
+	}
+
+	@Test
+	public void removeRequestParameterFilterShouldHandleRemainingParamsWhichRequiringEncoding() {
+		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost")
+				.queryParam("foo", "bar").queryParam("aaa", "abc xyz")
+				.queryParam("bbb", "[xyz").queryParam("ccc", ",xyz").build();
+		exchange = MockServerWebExchange.from(request);
+		NameConfig config = new NameConfig();
+		config.setName("foo");
+		GatewayFilter filter = new RemoveRequestParameterGatewayFilterFactory()
+				.apply(config);
+
+		filter.filter(exchange, filterChain);
+
+		ServerHttpRequest actualRequest = captor.getValue().getRequest();
+		assertThat(actualRequest.getQueryParams()).doesNotContainKey("foo");
+		assertThat(actualRequest.getQueryParams()).containsEntry("aaa",
+				singletonList("abc xyz"));
+		assertThat(actualRequest.getQueryParams()).containsEntry("bbb",
+				singletonList("[xyz"));
+		assertThat(actualRequest.getQueryParams()).containsEntry("ccc",
+				singletonList(",xyz"));
 	}
 
 }

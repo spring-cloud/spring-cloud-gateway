@@ -22,31 +22,32 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.netflix.loadbalancer.Server;
-import com.netflix.loadbalancer.ServerList;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hamcrest.CoreMatchers;
-import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.rule.OutputCapture;
+import org.springframework.boot.test.system.OutputCaptureRule;
 import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.cloud.client.DefaultServiceInstance;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.RetryGatewayFilterFactory.RetryConfig;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
-import org.springframework.cloud.netflix.ribbon.RibbonClient;
-import org.springframework.cloud.netflix.ribbon.StaticServerList;
+import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
+import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -74,12 +75,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTests {
 
 	@Rule
-	public final OutputCapture capture = new OutputCapture();
-
-	@Before
-	public void before() {
-		capture.reset();
-	}
+	public final OutputCaptureRule capture = new OutputCaptureRule();
 
 	@Test
 	public void retryFilterGet() {
@@ -120,14 +116,14 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 	public void retryFilterPost() {
 		testClient.post().uri("/retrypost?key=postconfig&expectedbody=HelloConfig")
 				.header(HttpHeaders.HOST, "www.retrypostconfig.org")
-				.syncBody("HelloConfig").exchange().expectStatus().isOk()
+				.bodyValue("HelloConfig").exchange().expectStatus().isOk()
 				.expectBody(String.class).isEqualTo("3");
 	}
 
 	@Test
 	public void retryFilterPostJavaDsl() {
 		testClient.post().uri("/retrypost?key=post&expectedbody=Hello")
-				.header(HttpHeaders.HOST, "www.retryjava.org").syncBody("Hello")
+				.header(HttpHeaders.HOST, "www.retryjava.org").bodyValue("Hello")
 				.exchange().expectStatus().isOk().expectBody(String.class).isEqualTo("3");
 	}
 
@@ -136,7 +132,7 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 		testClient.post().uri(
 				"/retrypost?key=retryFilterPostOneTime&expectedbody=HelloGateway&count=1")
 				.header(HttpHeaders.HOST, "www.retrypostonceconfig.org")
-				.syncBody("HelloGateway").exchange().expectStatus().isOk();
+				.bodyValue("HelloGateway").exchange().expectStatus().isOk();
 		assertThat(this.capture.toString()).contains("setting new iteration in attr 0");
 		assertThat(this.capture.toString())
 				.doesNotContain("setting new iteration in attr 1");
@@ -150,6 +146,28 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 				.isEqualTo(HttpStatus.GATEWAY_TIMEOUT);
 
 		assertThat(TestConfig.map.get("sleepyRequest")).isNotNull().hasValue(3);
+	}
+
+	@Test
+	@Ignore // FIXME: https://github.com/spring-cloud/spring-cloud-gateway/issues/1675
+	public void shouldNotRetryWhenSleepyRequestPost() throws Exception {
+		testClient.mutate().responseTimeout(Duration.ofSeconds(10)).build().post()
+				.uri("/sleep?key=notRetriesSleepyRequestPost&millis=3000")
+				.header(HttpHeaders.HOST, "www.retry-only-get.org").exchange()
+				.expectStatus().isEqualTo(HttpStatus.GATEWAY_TIMEOUT);
+
+		assertThat(TestConfig.map.get("notRetriesSleepyRequestPost")).isNotNull()
+				.hasValue(1);
+	}
+
+	@Test
+	public void shouldRetryWhenSleepyRequestGet() throws Exception {
+		testClient.mutate().responseTimeout(Duration.ofSeconds(10)).build().get()
+				.uri("/sleep?key=sleepyRequestGet&millis=3000")
+				.header(HttpHeaders.HOST, "www.retry-only-get.org").exchange()
+				.expectStatus().isEqualTo(HttpStatus.GATEWAY_TIMEOUT);
+
+		assertThat(TestConfig.map.get("sleepyRequestGet")).isNotNull().hasValue(3);
 	}
 
 	@Test
@@ -182,7 +200,8 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
-	@RibbonClient(name = "badservice2", configuration = TestBadRibbonConfig.class)
+	@LoadBalancerClient(name = "badservice2",
+			configuration = TestBadLoadBalancerConfig.class)
 	public static class TestConfig {
 
 		Log log = LogFactory.getLog(getClass());
@@ -193,19 +212,15 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 		private String uri;
 
 		@RequestMapping("/httpbin/sleep")
-		public ResponseEntity<String> sleep(@RequestParam("key") String key,
+		public Mono<ResponseEntity<String>> sleep(@RequestParam("key") String key,
 				@RequestParam("millis") long millisToSleep) {
 			AtomicInteger num = getCount(key);
 			int retryCount = num.incrementAndGet();
 			log.warn("Retry count: " + retryCount);
-			try {
-				Thread.sleep(millisToSleep);
-			}
-			catch (InterruptedException e) {
-			}
-			return ResponseEntity.status(HttpStatus.OK)
-					.header("X-Retry-Count", String.valueOf(retryCount))
-					.body("slept " + millisToSleep + " ms");
+			return Mono.delay(Duration.ofMillis(millisToSleep))
+					.thenReturn(ResponseEntity.status(HttpStatus.OK)
+							.header("X-Retry-Count", String.valueOf(retryCount))
+							.body("slept " + millisToSleep + " ms"));
 		}
 
 		@RequestMapping("/httpbin/retryalwaysfail")
@@ -261,7 +276,11 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 									.retry(config -> config.setRetries(2)
 											.setMethods(HttpMethod.POST, HttpMethod.GET)))
 							.uri(uri))
-
+					.route("retry_only_get", r -> r.host("**.retry-only-get.org")
+							.filters(f -> f.prefixPath("/httpbin")
+									.retry(config -> config.setRetries(2)
+											.setMethods(HttpMethod.GET)))
+							.uri(uri))
 					.route("retry_with_backoff", r -> r.host("**.retrywithbackoff.org")
 							.filters(f -> f.prefixPath("/httpbin").retry(config -> {
 								config.setRetries(2).setBackoff(Duration.ofMillis(100),
@@ -278,16 +297,18 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 
 	}
 
-	protected static class TestBadRibbonConfig {
+	protected static class TestBadLoadBalancerConfig {
 
 		@LocalServerPort
 		protected int port = 0;
 
 		@Bean
-		public ServerList<Server> ribbonServerList() {
-			return new StaticServerList<>(
-					new Server("https", "localhost.domain.doesnot.exist", this.port),
-					new Server("localhost", this.port));
+		public ServiceInstanceListSupplier staticServiceInstanceListSupplier(
+				Environment env) {
+			return ServiceInstanceListSupplier.fixed(env)
+					.instance(new DefaultServiceInstance("doesnotexist1", "badservice2",
+							"localhost.domain.doesnot.exist", port, true))
+					.instance(port, "badservice2").build();
 		}
 
 	}

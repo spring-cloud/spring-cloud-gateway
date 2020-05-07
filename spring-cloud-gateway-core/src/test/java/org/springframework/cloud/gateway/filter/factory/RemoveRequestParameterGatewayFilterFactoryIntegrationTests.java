@@ -47,11 +47,12 @@ public class RemoveRequestParameterGatewayFilterFactoryIntegrationTests
 
 	@Test
 	public void removeResponseHeaderFilterWorks() {
-		testClient.get().uri("/get?foo=bar&baz=bam")
+		testClient.get().uri("/get?foo=bar&baz=bam%20bar")
 				.header("Host", "www.removerequestparamjava.org").exchange()
 				.expectStatus().isOk().expectBody(Map.class).consumeWith(result -> {
 					Map<String, Object> params = getMap(result.getResponseBody(), "args");
 					assertThat(params).doesNotContainKey("foo");
+					assertThat(params).containsEntry("baz", "bam%20bar");
 				});
 	}
 

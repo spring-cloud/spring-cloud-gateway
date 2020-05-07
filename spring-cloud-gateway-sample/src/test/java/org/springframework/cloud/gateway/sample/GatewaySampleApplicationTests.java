@@ -22,8 +22,6 @@ import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.loadbalancer.Server;
-import com.netflix.loadbalancer.ServerList;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -34,12 +32,12 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.cloud.gateway.test.HttpBinCompatibleController;
-import org.springframework.cloud.netflix.ribbon.RibbonClient;
-import org.springframework.cloud.netflix.ribbon.StaticServerList;
+import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
+import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Primary;
+import org.springframework.core.env.Environment;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.util.SocketUtils;
@@ -91,7 +89,7 @@ public class GatewaySampleApplicationTests {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void readBodyPredicateStringWorks() {
-		webClient.post().uri("/post").header("Host", "www.readbody.org").syncBody("hi")
+		webClient.post().uri("/post").header("Host", "www.readbody.org").bodyValue("hi")
 				.exchange().expectStatus().isOk().expectHeader()
 				.valueEquals("X-TestHeader", "read_body_pred").expectBody(Map.class)
 				.consumeWith(result -> assertThat(result.getResponseBody())
@@ -102,7 +100,7 @@ public class GatewaySampleApplicationTests {
 	@SuppressWarnings("unchecked")
 	public void rewriteRequestBodyStringWorks() {
 		webClient.post().uri("/post").header("Host", "www.rewriterequestupper.org")
-				.syncBody("hello").exchange().expectStatus().isOk().expectHeader()
+				.bodyValue("hello").exchange().expectStatus().isOk().expectHeader()
 				.valueEquals("X-TestHeader", "rewrite_request_upper")
 				.expectBody(Map.class)
 				.consumeWith(result -> assertThat(result.getResponseBody())
@@ -113,7 +111,7 @@ public class GatewaySampleApplicationTests {
 	@SuppressWarnings("unchecked")
 	public void rewriteRequestBodyObjectWorks() {
 		webClient.post().uri("/post").header("Host", "www.rewriterequestobj.org")
-				.syncBody("hello").exchange().expectStatus().isOk().expectHeader()
+				.bodyValue("hello").exchange().expectStatus().isOk().expectHeader()
 				.valueEquals("X-TestHeader", "rewrite_request").expectBody(Map.class)
 				.consumeWith(result -> assertThat(result.getResponseBody())
 						.containsEntry("data", "{\"message\":\"HELLO\"}"));
@@ -123,8 +121,31 @@ public class GatewaySampleApplicationTests {
 	@SuppressWarnings("unchecked")
 	public void rewriteResponseBodyStringWorks() {
 		webClient.post().uri("/post").header("Host", "www.rewriteresponseupper.org")
-				.syncBody("hello").exchange().expectStatus().isOk().expectHeader()
+				.bodyValue("hello").exchange().expectStatus().isOk().expectHeader()
 				.valueEquals("X-TestHeader", "rewrite_response_upper")
+				.expectBody(Map.class)
+				.consumeWith(result -> assertThat(result.getResponseBody())
+						.containsEntry("DATA", "HELLO"));
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void rewriteResponseEmptyBodyToStringWorks() {
+		webClient.post().uri("/post/empty").header("Host", "www.rewriteemptyresponse.org")
+				.exchange().expectStatus().isOk().expectHeader()
+				.valueEquals("X-TestHeader", "rewrite_empty_response")
+				.expectBody(String.class)
+				.consumeWith(result -> assertThat(result.getResponseBody())
+						.isEqualTo("emptybody"));
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void emptyBodySupplierNotCalledWhenBodyPresent() {
+		webClient.post().uri("/post")
+				.header("Host", "www.rewriteresponsewithfailsupplier.org")
+				.bodyValue("hello").exchange().expectStatus().isOk().expectHeader()
+				.valueEquals("X-TestHeader", "rewrite_response_fail_supplier")
 				.expectBody(Map.class)
 				.consumeWith(result -> assertThat(result.getResponseBody())
 						.containsEntry("DATA", "HELLO"));
@@ -134,7 +155,7 @@ public class GatewaySampleApplicationTests {
 	@SuppressWarnings("unchecked")
 	public void rewriteResponeBodyObjectWorks() {
 		webClient.post().uri("/post").header("Host", "www.rewriteresponseobj.org")
-				.syncBody("hello").exchange().expectStatus().isOk().expectHeader()
+				.bodyValue("hello").exchange().expectStatus().isOk().expectHeader()
 				.valueEquals("X-TestHeader", "rewrite_response_obj")
 				.expectBody(String.class)
 				.consumeWith(result -> assertThat(result.getResponseBody())
@@ -178,9 +199,9 @@ public class GatewaySampleApplicationTests {
 				});
 	}
 
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	@EnableAutoConfiguration
-	@RibbonClient(name = "httpbin", configuration = RibbonConfig.class)
+	@LoadBalancerClient(name = "httpbin", configuration = LoadBalancerConfig.class)
 	@Import(GatewaySampleApplication.class)
 	protected static class TestConfig {
 
@@ -191,15 +212,16 @@ public class GatewaySampleApplicationTests {
 
 	}
 
-	protected static class RibbonConfig {
+	protected static class LoadBalancerConfig {
 
 		@LocalServerPort
 		int port;
 
 		@Bean
-		@Primary
-		public ServerList<Server> ribbonServerList() {
-			return new StaticServerList<>(new Server("localhost", port));
+		public ServiceInstanceListSupplier fixedServiceInstanceListSupplier(
+				Environment env) {
+			return ServiceInstanceListSupplier.fixed(env)
+					.instance("localhost", port, "httpbin").build();
 		}
 
 	}

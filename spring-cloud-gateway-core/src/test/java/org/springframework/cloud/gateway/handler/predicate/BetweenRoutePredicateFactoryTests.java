@@ -44,7 +44,7 @@ public class BetweenRoutePredicateFactoryTests {
 		ApplicationConversionService conversionService = new ApplicationConversionService();
 		conversionService.addConverter(new StringToZonedDateTimeConverter());
 		// @formatter:off
-		T config = new ConfigurationService(null, conversionService, null)
+		T config = new ConfigurationService(null, () -> conversionService, () -> null)
 				.with(factory)
 				.name("myname")
 				.normalizedProperties(properties)

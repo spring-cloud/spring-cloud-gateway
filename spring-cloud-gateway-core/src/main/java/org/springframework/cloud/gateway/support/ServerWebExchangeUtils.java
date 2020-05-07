@@ -123,10 +123,10 @@ public final class ServerWebExchangeUtils {
 	public static final String ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR = "original_response_content_type";
 
 	/**
-	 * Hystrix execution exception attribute name.
+	 * CircuitBreaker execution exception attribute name.
 	 */
-	public static final String HYSTRIX_EXECUTION_EXCEPTION_ATTR = qualify(
-			"hystrixExecutionException");
+	public static final String CIRCUITBREAKER_EXECUTION_EXCEPTION_ATTR = qualify(
+			"circuitBreakerExecutionException");
 
 	/**
 	 * Used when a routing filter has been successfully called. Allows users to write
@@ -164,6 +164,10 @@ public final class ServerWebExchangeUtils {
 
 	public static void setAlreadyRouted(ServerWebExchange exchange) {
 		exchange.getAttributes().put(GATEWAY_ALREADY_ROUTED_ATTR, true);
+	}
+
+	public static void removeAlreadyRouted(ServerWebExchange exchange) {
+		exchange.getAttributes().remove(GATEWAY_ALREADY_ROUTED_ATTR);
 	}
 
 	public static boolean isAlreadyRouted(ServerWebExchange exchange) {
@@ -204,13 +208,16 @@ public final class ServerWebExchangeUtils {
 		boolean encoded = (uri.getRawQuery() != null && uri.getRawQuery().contains("%"))
 				|| (uri.getRawPath() != null && uri.getRawPath().contains("%"));
 
-		// Verify if it is really fully encoded. Treat partial encoded as uncoded.
+		// Verify if it is really fully encoded. Treat partial encoded as unencoded.
 		if (encoded) {
 			try {
 				UriComponentsBuilder.fromUri(uri).build(true);
 				return true;
 			}
 			catch (IllegalArgumentException ignore) {
+				if (log.isTraceEnabled()) {
+					log.trace("Error in containsEncodedParts", ignore);
+				}
 			}
 
 			return false;

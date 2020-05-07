@@ -6,7 +6,7 @@
 
 	<groupId>org.springframework.cloud</groupId>
 	<artifactId>spring-cloud-gateway</artifactId>
-	<version>2.2.0.BUILD-SNAPSHOT</version>
+	<version>3.0.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>Spring Cloud Gateway</name>
@@ -15,7 +15,7 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-build</artifactId>
-		<version>2.2.0.BUILD-SNAPSHOT</version>
+		<version>3.0.0-SNAPSHOT</version>
 		<relativePath/>
 	</parent>
 	<scm>
@@ -52,9 +52,10 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<java.version>1.8</java.version>
-		<spring-cloud-commons.version>2.2.0.BUILD-SNAPSHOT</spring-cloud-commons.version>
-		<spring-cloud-netflix.version>2.2.0.BUILD-SNAPSHOT</spring-cloud-netflix.version>
+		<spring-cloud-commons.version>3.0.0-SNAPSHOT</spring-cloud-commons.version>
+		<spring-cloud-circuitbreaker.version>2.0.0-SNAPSHOT</spring-cloud-circuitbreaker.version>
 		<embedded-redis.version>0.6</embedded-redis.version>
+		<blockhound.version>1.0.3.RELEASE</blockhound.version>
 	</properties>
 
 	<dependencyManagement>
@@ -75,41 +76,21 @@
 			</dependency>
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-netflix-dependencies</artifactId>
-				<version>${spring-cloud-netflix.version}</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
-			<dependency>
-				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-starter-netflix-ribbon</artifactId>
-				<version>${spring-cloud-netflix.version}</version>
-				<exclusions>
-					<exclusion>
-						<groupId>com.netflix.ribbon</groupId>
-						<artifactId>ribbon-transport</artifactId>
-					</exclusion>
-					<exclusion>
-						<groupId>io.reactivex</groupId>
-						<artifactId>rxnetty</artifactId>
-					</exclusion>
-				</exclusions>
-			</dependency>
-			<dependency>
-				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-test-support</artifactId>
 				<scope>test</scope>
 				<version>${spring-cloud-commons.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
-				<version>${spring-cloud-netflix.version}</version>
+				<artifactId>spring-cloud-circuitbreaker-dependencies</artifactId>
+				<version>${spring-cloud-circuitbreaker.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
 			</dependency>
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-starter-netflix-hystrix</artifactId>
-				<version>${spring-cloud-netflix.version}</version>
+				<artifactId>spring-cloud-starter-circuitbreaker-reactor-resilience4j</artifactId>
+				<version>${spring-cloud-circuitbreaker.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.springframework.boot</groupId>
@@ -121,6 +102,11 @@
 				<artifactId>embedded-redis</artifactId>
 				<version>${embedded-redis.version}</version>
 			</dependency>
+			<dependency>
+				<groupId>io.projectreactor.tools</groupId>
+				<artifactId>blockhound-junit-platform</artifactId>
+				<version>${blockhound.version}</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
@@ -129,7 +115,6 @@
 		<module>spring-cloud-gateway-mvc</module>
 		<module>spring-cloud-gateway-webflux</module>
 		<module>spring-cloud-gateway-core</module>
-		<module>spring-cloud-gateway-rsocket</module>
 		<module>spring-cloud-starter-gateway</module>
 		<module>spring-cloud-gateway-sample</module>
 		<module>docs</module>
@@ -137,6 +122,10 @@
 
 	<build>
 		<plugins>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>flatten-maven-plugin</artifactId>
+			</plugin>
 			<plugin>
 				<groupId>io.spring.javaformat</groupId>
 				<artifactId>spring-javaformat-maven-plugin</artifactId>
@@ -177,15 +166,6 @@
 					<url>https://repo.spring.io/release</url>
 					<snapshots>
 						<enabled>false</enabled>
-					</snapshots>
-				</repository>
-				<!-- RSocket Snapshots -->
-				<repository>
-					<id>jfrog-snapshots</id>
-					<name>JFRog Snapshots</name>
-					<url>https://oss.jfrog.org/artifactory/libs-snapshot</url>
-					<snapshots>
-						<enabled>true</enabled>
 					</snapshots>
 				</repository>
 			</repositories>

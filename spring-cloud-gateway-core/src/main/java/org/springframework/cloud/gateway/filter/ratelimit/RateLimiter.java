@@ -46,20 +46,8 @@ public interface RateLimiter<C> extends StatefulConfigurable<C> {
 			this.headers = headers;
 		}
 
-		@Deprecated
-		public Response(boolean allowed, long tokensRemaining) {
-			this.allowed = allowed;
-			this.tokensRemaining = tokensRemaining;
-			this.headers = Collections.emptyMap();
-		}
-
 		public boolean isAllowed() {
 			return allowed;
-		}
-
-		@Deprecated
-		public long getTokensRemaining() {
-			return tokensRemaining;
 		}
 
 		public Map<String, String> getHeaders() {

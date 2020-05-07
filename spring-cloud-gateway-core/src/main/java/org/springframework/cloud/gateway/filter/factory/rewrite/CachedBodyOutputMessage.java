@@ -32,7 +32,7 @@ import org.springframework.web.server.ServerWebExchange;
 /**
  * Implementation of {@link ClientHttpRequest} that saves body as a field.
  */
-class CachedBodyOutputMessage implements ReactiveHttpOutputMessage {
+public class CachedBodyOutputMessage implements ReactiveHttpOutputMessage {
 
 	private final DataBufferFactory bufferFactory;
 
@@ -41,7 +41,7 @@ class CachedBodyOutputMessage implements ReactiveHttpOutputMessage {
 	private Flux<DataBuffer> body = Flux.error(new IllegalStateException(
 			"The body is not set. " + "Did handling complete with success?"));
 
-	CachedBodyOutputMessage(ServerWebExchange exchange, HttpHeaders httpHeaders) {
+	public CachedBodyOutputMessage(ServerWebExchange exchange, HttpHeaders httpHeaders) {
 		this.bufferFactory = exchange.getResponse().bufferFactory();
 		this.httpHeaders = httpHeaders;
 	}

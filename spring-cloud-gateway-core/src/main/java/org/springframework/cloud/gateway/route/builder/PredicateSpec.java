@@ -40,10 +40,11 @@ import org.springframework.cloud.gateway.support.ipresolver.RemoteAddressResolve
 import org.springframework.http.HttpMethod;
 import org.springframework.web.server.ServerWebExchange;
 
+import static java.util.Arrays.stream;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.toAsyncPredicate;
 
 /**
- * Predicates that can be applies to a URI route.
+ * Predicates that can be applied to a URI route.
  */
 public class PredicateSpec extends UriSpec {
 
@@ -147,22 +148,26 @@ public class PredicateSpec extends UriSpec {
 
 	/**
 	 * A predicate that checks if the HTTP method matches
-	 * @param method the name of the HTTP method
+	 * @param methods the name of the HTTP methods
 	 * @return a {@link BooleanSpec} to be used to add logical operators
 	 */
-	public BooleanSpec method(String method) {
-		return asyncPredicate(getBean(MethodRoutePredicateFactory.class)
-				.applyAsync(c -> c.setMethod(HttpMethod.resolve(method))));
+	public BooleanSpec method(String... methods) {
+		return asyncPredicate(getBean(MethodRoutePredicateFactory.class).applyAsync(c -> {
+			HttpMethod[] httpMethods = stream(methods).map(HttpMethod::resolve)
+					.toArray(HttpMethod[]::new);
+			c.setMethods(httpMethods);
+		}));
 	}
 
 	/**
 	 * A predicate that checks if the HTTP method matches
-	 * @param method the HTTP method
+	 * @param methods the HTTP methods
 	 * @return a {@link BooleanSpec} to be used to add logical operators
 	 */
-	public BooleanSpec method(HttpMethod method) {
-		return asyncPredicate(getBean(MethodRoutePredicateFactory.class)
-				.applyAsync(c -> c.setMethod(method)));
+	public BooleanSpec method(HttpMethod... methods) {
+		return asyncPredicate(getBean(MethodRoutePredicateFactory.class).applyAsync(c -> {
+			c.setMethods(methods);
+		}));
 	}
 
 	/**
@@ -174,21 +179,6 @@ public class PredicateSpec extends UriSpec {
 	public BooleanSpec path(String... patterns) {
 		return asyncPredicate(getBean(PathRoutePredicateFactory.class)
 				.applyAsync(c -> c.setPatterns(Arrays.asList(patterns))));
-	}
-
-	/**
-	 * A predicate that checks if the path of the request matches the given pattern
-	 * @param pattern the pattern to check the path against. The pattern is a
-	 * {@link org.springframework.util.PathMatcher} pattern
-	 * @param matchOptionalTrailingSeparator set to false if you do not want this path to
-	 * match when there is a trailing <code>/</code>
-	 * @return a {@link BooleanSpec} to be used to add logical operators
-	 */
-	@Deprecated
-	public BooleanSpec path(String pattern, boolean matchOptionalTrailingSeparator) {
-		return asyncPredicate(getBean(PathRoutePredicateFactory.class).applyAsync(c -> c
-				.setPatterns(Collections.singletonList(pattern))
-				.setMatchOptionalTrailingSeparator(matchOptionalTrailingSeparator)));
 	}
 
 	/**

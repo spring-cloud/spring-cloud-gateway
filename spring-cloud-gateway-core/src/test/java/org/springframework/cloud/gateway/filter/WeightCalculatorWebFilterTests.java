@@ -26,6 +26,7 @@ import org.junit.Test;
 
 import org.springframework.cloud.gateway.event.PredicateArgsEvent;
 import org.springframework.cloud.gateway.filter.WeightCalculatorWebFilter.GroupWeightConfig;
+import org.springframework.cloud.gateway.support.ConfigurationService;
 import org.springframework.cloud.gateway.support.WeightConfig;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -40,7 +41,7 @@ public class WeightCalculatorWebFilterTests {
 
 	@Test
 	public void testWeightCalculation() {
-		WeightCalculatorWebFilter filter = new WeightCalculatorWebFilter();
+		WeightCalculatorWebFilter filter = createFilter();
 
 		String grp1 = "group1";
 		String grp2 = "group2";
@@ -57,6 +58,11 @@ public class WeightCalculatorWebFilterTests {
 				0.5);
 		assertWeightCalculation(filter, grp2, grp2idx++, 4,
 				asList(0.125, 0.125, 0.25, 0.5), 0.125, 0.25, 0.5);
+	}
+
+	private WeightCalculatorWebFilter createFilter() {
+		return new WeightCalculatorWebFilter(null,
+				new ConfigurationService(null, () -> null, () -> null));
 	}
 
 	private void assertWeightCalculation(WeightCalculatorWebFilter filter, String group,
@@ -96,7 +102,7 @@ public class WeightCalculatorWebFilterTests {
 
 	@Test
 	public void testChooseRouteWithRandom() {
-		WeightCalculatorWebFilter filter = new WeightCalculatorWebFilter();
+		WeightCalculatorWebFilter filter = createFilter();
 		filter.addWeightConfig(new WeightConfig("groupa", "route1", 1));
 		filter.addWeightConfig(new WeightConfig("groupa", "route2", 3));
 		filter.addWeightConfig(new WeightConfig("groupa", "route3", 6));
@@ -143,6 +149,10 @@ public class WeightCalculatorWebFilterTests {
 	class TestWeightCalculatorWebFilter extends WeightCalculatorWebFilter {
 
 		private WeightConfig weightConfig;
+
+		TestWeightCalculatorWebFilter() {
+			super(null, new ConfigurationService(null, () -> null, () -> null));
+		}
 
 		@Override
 		void addWeightConfig(WeightConfig weightConfig) {

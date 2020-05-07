@@ -17,7 +17,6 @@
 package org.springframework.cloud.gateway.filter.factory.rewrite;
 
 import java.util.List;
-import java.util.Map;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -29,7 +28,6 @@ import org.springframework.cloud.gateway.support.BodyInserterContext;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.codec.HttpMessageReader;
-import org.springframework.http.codec.ServerCodecConfigurer;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
 import org.springframework.web.reactive.function.BodyInserter;
@@ -53,9 +51,10 @@ public class ModifyRequestBodyGatewayFilterFactory extends
 		this.messageReaders = HandlerStrategies.withDefaults().messageReaders();
 	}
 
-	@Deprecated
-	public ModifyRequestBodyGatewayFilterFactory(ServerCodecConfigurer codecConfigurer) {
-		this();
+	public ModifyRequestBodyGatewayFilterFactory(
+			List<HttpMessageReader<?>> messageReaders) {
+		super(Config.class);
+		this.messageReaders = messageReaders;
 	}
 
 	@Override
@@ -71,8 +70,10 @@ public class ModifyRequestBodyGatewayFilterFactory extends
 
 				// TODO: flux or mono
 				Mono<?> modifiedBody = serverRequest.bodyToMono(inClass)
-						// .log("modify_request_mono", Level.INFO)
-						.flatMap(o -> config.rewriteFunction.apply(exchange, o));
+						.flatMap(originalBody -> config.getRewriteFunction()
+								.apply(exchange, originalBody))
+						.switchIfEmpty(Mono.defer(() -> (Mono) config.getRewriteFunction()
+								.apply(exchange, null)));
 
 				BodyInserter bodyInserter = BodyInserters.fromPublisher(modifiedBody,
 						config.getOutClass());
@@ -117,7 +118,7 @@ public class ModifyRequestBodyGatewayFilterFactory extends
 			public HttpHeaders getHeaders() {
 				long contentLength = headers.getContentLength();
 				HttpHeaders httpHeaders = new HttpHeaders();
-				httpHeaders.putAll(super.getHeaders());
+				httpHeaders.putAll(headers);
 				if (contentLength > 0) {
 					httpHeaders.setContentLength(contentLength);
 				}
@@ -144,12 +145,6 @@ public class ModifyRequestBodyGatewayFilterFactory extends
 
 		private String contentType;
 
-		@Deprecated
-		private Map<String, Object> inHints;
-
-		@Deprecated
-		private Map<String, Object> outHints;
-
 		private RewriteFunction rewriteFunction;
 
 		public Class getInClass() {
@@ -167,28 +162,6 @@ public class ModifyRequestBodyGatewayFilterFactory extends
 
 		public Config setOutClass(Class outClass) {
 			this.outClass = outClass;
-			return this;
-		}
-
-		@Deprecated
-		public Map<String, Object> getInHints() {
-			return inHints;
-		}
-
-		@Deprecated
-		public Config setInHints(Map<String, Object> inHints) {
-			this.inHints = inHints;
-			return this;
-		}
-
-		@Deprecated
-		public Map<String, Object> getOutHints() {
-			return outHints;
-		}
-
-		@Deprecated
-		public Config setOutHints(Map<String, Object> outHints) {
-			this.outHints = outHints;
 			return this;
 		}
 

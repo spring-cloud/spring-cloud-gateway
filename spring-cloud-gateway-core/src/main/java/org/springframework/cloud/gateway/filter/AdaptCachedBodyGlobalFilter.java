@@ -39,12 +39,6 @@ public class AdaptCachedBodyGlobalFilter
 
 	private ConcurrentMap<String, Boolean> routesToCache = new ConcurrentHashMap<>();
 
-	/**
-	 * Cached request body key.
-	 */
-	@Deprecated
-	public static final String CACHED_REQUEST_BODY_KEY = CACHED_REQUEST_BODY_ATTR;
-
 	@Override
 	public void onApplicationEvent(EnableBodyCachingEvent event) {
 		this.routesToCache.putIfAbsent(event.getRouteId(), true);

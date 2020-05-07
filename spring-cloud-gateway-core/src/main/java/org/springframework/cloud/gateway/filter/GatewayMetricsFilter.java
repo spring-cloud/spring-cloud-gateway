@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.gateway.filter;
 
-import java.util.Arrays;
 import java.util.List;
 
 import io.micrometer.core.instrument.MeterRegistry;
@@ -27,8 +26,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Mono;
 
-import org.springframework.cloud.gateway.support.tagsprovider.GatewayHttpTagsProvider;
-import org.springframework.cloud.gateway.support.tagsprovider.GatewayRouteTagsProvider;
 import org.springframework.cloud.gateway.support.tagsprovider.GatewayTagsProvider;
 import org.springframework.core.Ordered;
 import org.springframework.http.server.reactive.ServerHttpResponse;
@@ -53,12 +50,6 @@ public class GatewayMetricsFilter implements GlobalFilter, Ordered {
 				.reduce(exchange -> Tags.empty(), GatewayTagsProvider::and);
 	}
 
-	@Deprecated
-	public GatewayMetricsFilter(MeterRegistry meterRegistry) {
-		this(meterRegistry, Arrays.asList(new GatewayHttpTagsProvider(),
-				new GatewayRouteTagsProvider()));
-	}
-
 	@Override
 	public int getOrder() {
 		// start the timer as soon as possible and report the metric event before we write
@@ -70,9 +61,9 @@ public class GatewayMetricsFilter implements GlobalFilter, Ordered {
 	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 		Sample sample = Timer.start(meterRegistry);
 
-		return chain.filter(exchange).doOnSuccessOrError((aVoid, ex) -> {
-			endTimerRespectingCommit(exchange, sample);
-		});
+		return chain.filter(exchange)
+				.doOnSuccess(aVoid -> endTimerRespectingCommit(exchange, sample))
+				.doOnError(throwable -> endTimerRespectingCommit(exchange, sample));
 	}
 
 	private void endTimerRespectingCommit(ServerWebExchange exchange, Sample sample) {

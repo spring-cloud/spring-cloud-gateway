@@ -36,8 +36,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.util.SocketUtils;
 
 @RunWith(ModifiedClassPathRunner.class)
-@ClassPathExclusions({ "spring-cloud-netflix-ribbon-*.jar",
-		"spring-cloud-loadbalancer-*.jar" })
+@ClassPathExclusions({ "spring-cloud-loadbalancer-*.jar" })
 public class GatewayNoLoadBalancerClientAutoConfigurationTests {
 
 	private static int port;
@@ -65,7 +64,7 @@ public class GatewayNoLoadBalancerClientAutoConfigurationTests {
 	public static class Config {
 
 		@Bean
-		public RouteLocator hystrixRouteLocator(RouteLocatorBuilder builder) {
+		public RouteLocator routeLocator(RouteLocatorBuilder builder) {
 			return builder.routes()
 					.route("lb_fail", r -> r.host("**.lbfail.org").uri("lb://fail"))
 					.build();

@@ -49,7 +49,7 @@ import org.springframework.web.server.ServerWebExchange;
 
 import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.CLIENT_RESPONSE_HEADER_NAMES;
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ALREADY_ROUTED_ATTR;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.removeAlreadyRouted;
 
 public class RetryGatewayFilterFactory
 		extends AbstractGatewayFilterFactory<RetryGatewayFilterFactory.RetryConfig> {
@@ -121,7 +121,10 @@ public class RetryGatewayFilterFactory
 		Retry<ServerWebExchange> exceptionRetry = null;
 		if (!retryConfig.getExceptions().isEmpty()) {
 			Predicate<RetryContext<ServerWebExchange>> retryContextPredicate = context -> {
-				if (exceedsMaxIterations(context.applicationContext(), retryConfig)) {
+
+				ServerWebExchange exchange = context.applicationContext();
+
+				if (exceedsMaxIterations(exchange, retryConfig)) {
 					return false;
 				}
 
@@ -133,7 +136,14 @@ public class RetryGatewayFilterFactory
 						trace("exception or its cause is retryable %s, configured exceptions %s",
 								() -> getExceptionNameWithCause(exception),
 								retryConfig::getExceptions);
-						return true;
+
+						HttpMethod httpMethod = exchange.getRequest().getMethod();
+						boolean retryableMethod = retryConfig.getMethods()
+								.contains(httpMethod);
+						trace("retryableMethod: %b, httpMethod %s, configured methods %s",
+								() -> retryableMethod, () -> httpMethod,
+								retryConfig::getMethods);
+						return retryableMethod;
 					}
 				}
 				trace("exception or its cause is not retryable %s, configured exceptions %s",
@@ -207,13 +217,7 @@ public class RetryGatewayFilterFactory
 				CLIENT_RESPONSE_HEADER_NAMES, Collections.emptySet());
 		addedHeaders
 				.forEach(header -> exchange.getResponse().getHeaders().remove(header));
-		exchange.getAttributes().remove(GATEWAY_ALREADY_ROUTED_ATTR);
-	}
-
-	@Deprecated
-	public GatewayFilter apply(Repeat<ServerWebExchange> repeat,
-			Retry<ServerWebExchange> retry) {
-		return apply(null, repeat, retry);
+		removeAlreadyRouted(exchange);
 	}
 
 	public GatewayFilter apply(String routeId, Repeat<ServerWebExchange> repeat,
@@ -228,13 +232,8 @@ public class RetryGatewayFilterFactory
 			// chain.filter returns a Mono<Void>
 			Publisher<Void> publisher = chain.filter(exchange)
 					// .log("retry-filter", Level.INFO)
-					.doOnSuccessOrError((aVoid, throwable) -> {
-						int iteration = exchange
-								.getAttributeOrDefault(RETRY_ITERATION_KEY, -1);
-						int newIteration = iteration + 1;
-						trace("setting new iteration in attr %d", () -> newIteration);
-						exchange.getAttributes().put(RETRY_ITERATION_KEY, newIteration);
-					});
+					.doOnSuccess(aVoid -> updateIteration(exchange))
+					.doOnError(throwable -> updateIteration(exchange));
 
 			if (retry != null) {
 				// retryWhen returns a Mono<Void>
@@ -251,6 +250,13 @@ public class RetryGatewayFilterFactory
 
 			return Mono.fromDirect(publisher);
 		};
+	}
+
+	private void updateIteration(ServerWebExchange exchange) {
+		int iteration = exchange.getAttributeOrDefault(RETRY_ITERATION_KEY, -1);
+		int newIteration = iteration + 1;
+		trace("setting new iteration in attr %d", () -> newIteration);
+		exchange.getAttributes().put(RETRY_ITERATION_KEY, newIteration);
 	}
 
 	@SafeVarargs

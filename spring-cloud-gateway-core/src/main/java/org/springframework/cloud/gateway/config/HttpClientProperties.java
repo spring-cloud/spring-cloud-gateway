@@ -31,20 +31,23 @@ import java.util.Collection;
 import java.util.List;
 
 import javax.net.ssl.KeyManagerFactory;
+import javax.validation.constraints.Max;
 
 import reactor.netty.resources.ConnectionProvider;
 import reactor.netty.tcp.SslProvider;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.DeprecatedConfigurationProperty;
 import org.springframework.boot.web.server.WebServerException;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.util.ResourceUtils;
+import org.springframework.util.unit.DataSize;
+import org.springframework.validation.annotation.Validated;
 
 /**
  * Configuration properties for the Netty {@link reactor.netty.http.client.HttpClient}.
  */
 @ConfigurationProperties("spring.cloud.gateway.httpclient")
+@Validated
 public class HttpClientProperties {
 
 	/** The connect timeout in millis, the default is 45s. */
@@ -52,6 +55,12 @@ public class HttpClientProperties {
 
 	/** The response timeout. */
 	private Duration responseTimeout;
+
+	/** The max response header size. */
+	private DataSize maxHeaderSize;
+
+	/** The max initial line length. */
+	private DataSize maxInitialLineLength;
 
 	/** Pool configuration for Netty HttpClient. */
 	private Pool pool = new Pool();
@@ -82,6 +91,24 @@ public class HttpClientProperties {
 
 	public void setResponseTimeout(Duration responseTimeout) {
 		this.responseTimeout = responseTimeout;
+	}
+
+	@Max(Integer.MAX_VALUE)
+	public DataSize getMaxHeaderSize() {
+		return maxHeaderSize;
+	}
+
+	public void setMaxHeaderSize(DataSize maxHeaderSize) {
+		this.maxHeaderSize = maxHeaderSize;
+	}
+
+	@Max(Integer.MAX_VALUE)
+	public DataSize getMaxInitialLineLength() {
+		return maxInitialLineLength;
+	}
+
+	public void setMaxInitialLineLength(DataSize maxInitialLineLength) {
+		this.maxInitialLineLength = maxInitialLineLength;
 	}
 
 	public Pool getPool() {
@@ -130,6 +157,8 @@ public class HttpClientProperties {
 		return new ToStringCreator(this)
 				.append("connectTimeout", connectTimeout)
 				.append("responseTimeout", responseTimeout)
+				.append("maxHeaderSize", maxHeaderSize)
+				.append("maxInitialLineLength", maxInitialLineLength)
 				.append("pool", pool)
 				.append("proxy", proxy)
 				.append("ssl", ssl)
@@ -156,6 +185,18 @@ public class HttpClientProperties {
 
 		/** Only for type FIXED, the maximum time in millis to wait for aquiring. */
 		private Long acquireTimeout = ConnectionProvider.DEFAULT_POOL_ACQUIRE_TIMEOUT;
+
+		/**
+		 * Time in millis after which the channel will be closed. If NULL, there is no max
+		 * idle time.
+		 */
+		private Duration maxIdleTime = null;
+
+		/**
+		 * Duration after which the channel will be closed. If NULL, there is no max life
+		 * time.
+		 */
+		private Duration maxLifeTime = null;
 
 		public PoolType getType() {
 			return type;
@@ -189,11 +230,28 @@ public class HttpClientProperties {
 			this.acquireTimeout = acquireTimeout;
 		}
 
+		public Duration getMaxIdleTime() {
+			return maxIdleTime;
+		}
+
+		public void setMaxIdleTime(Duration maxIdleTime) {
+			this.maxIdleTime = maxIdleTime;
+		}
+
+		public Duration getMaxLifeTime() {
+			return maxLifeTime;
+		}
+
+		public void setMaxLifeTime(Duration maxLifeTime) {
+			this.maxLifeTime = maxLifeTime;
+		}
+
 		@Override
 		public String toString() {
 			return "Pool{" + "type=" + type + ", name='" + name + '\''
 					+ ", maxConnections=" + maxConnections + ", acquireTimeout="
-					+ acquireTimeout + '}';
+					+ acquireTimeout + ", maxIdleTime=" + maxIdleTime + ", maxLifeTime="
+					+ maxLifeTime + '}';
 		}
 
 		public enum PoolType {
@@ -480,42 +538,6 @@ public class HttpClientProperties {
 			this.closeNotifyReadTimeout = closeNotifyReadTimeout;
 		}
 
-		@DeprecatedConfigurationProperty(
-				replacement = "spring.cloud.gateway.httpclient.ssl.handshake-timeout")
-		@Deprecated
-		public long getHandshakeTimeoutMillis() {
-			return getHandshakeTimeout().toMillis();
-		}
-
-		@Deprecated
-		public void setHandshakeTimeoutMillis(long handshakeTimeoutMillis) {
-			setHandshakeTimeout(Duration.ofMillis(handshakeTimeoutMillis));
-		}
-
-		@DeprecatedConfigurationProperty(
-				replacement = "spring.cloud.gateway.httpclient.ssl.close-notify-flush-timeout")
-		@Deprecated
-		public long getCloseNotifyFlushTimeoutMillis() {
-			return getCloseNotifyFlushTimeout().toMillis();
-		}
-
-		@Deprecated
-		public void setCloseNotifyFlushTimeoutMillis(long closeNotifyFlushTimeoutMillis) {
-			setCloseNotifyFlushTimeout(Duration.ofMillis(closeNotifyFlushTimeoutMillis));
-		}
-
-		@DeprecatedConfigurationProperty(
-				replacement = "spring.cloud.gateway.httpclient.ssl.close-notify-read-timeout")
-		@Deprecated
-		public long getCloseNotifyReadTimeoutMillis() {
-			return getCloseNotifyReadTimeout().toMillis();
-		}
-
-		@Deprecated
-		public void setCloseNotifyReadTimeoutMillis(long closeNotifyReadTimeoutMillis) {
-			setCloseNotifyFlushTimeout(Duration.ofMillis(closeNotifyReadTimeoutMillis));
-		}
-
 		public SslProvider.DefaultConfigurationType getDefaultConfigurationType() {
 			return defaultConfigurationType;
 		}
@@ -544,6 +566,9 @@ public class HttpClientProperties {
 		/** Max frame payload length. */
 		private Integer maxFramePayloadLength;
 
+		/** Proxy ping frames to downstream services, defaults to true. */
+		private boolean proxyPing = true;
+
 		public Integer getMaxFramePayloadLength() {
 			return this.maxFramePayloadLength;
 		}
@@ -552,10 +577,19 @@ public class HttpClientProperties {
 			this.maxFramePayloadLength = maxFramePayloadLength;
 		}
 
+		public boolean isProxyPing() {
+			return proxyPing;
+		}
+
+		public void setProxyPing(boolean proxyPing) {
+			this.proxyPing = proxyPing;
+		}
+
 		@Override
 		public String toString() {
 			return new ToStringCreator(this)
-					.append("maxFramePayloadLength", maxFramePayloadLength).toString();
+					.append("maxFramePayloadLength", maxFramePayloadLength)
+					.append("proxyPing", proxyPing).toString();
 		}
 
 	}

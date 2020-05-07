@@ -17,6 +17,7 @@
 package org.springframework.cloud.gateway.discovery;
 
 import java.net.URI;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
@@ -24,10 +25,8 @@ import java.util.function.Predicate;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Flux;
-import reactor.core.scheduler.Schedulers;
 
 import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
 import org.springframework.cloud.gateway.filter.FilterDefinition;
 import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
@@ -58,22 +57,6 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 	private final SimpleEvaluationContext evalCtxt;
 
 	private Flux<List<ServiceInstance>> serviceInstances;
-
-	/**
-	 * Kept for backwards compatibility. You should use the reactive discovery client.
-	 * @param discoveryClient the blocking discovery client
-	 * @param properties the configuration properties
-	 * @deprecated kept for backwards compatibility
-	 */
-	@Deprecated
-	public DiscoveryClientRouteDefinitionLocator(DiscoveryClient discoveryClient,
-			DiscoveryLocatorProperties properties) {
-		this(discoveryClient.getClass().getSimpleName(), properties);
-		serviceInstances = Flux
-				.defer(() -> Flux.fromIterable(discoveryClient.getServices()))
-				.map(discoveryClient::getInstances)
-				.subscribeOn(Schedulers.boundedElastic());
-	}
 
 	public DiscoveryClientRouteDefinitionLocator(ReactiveDiscoveryClient discoveryClient,
 			DiscoveryLocatorProperties properties) {
@@ -121,12 +104,8 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 		return serviceInstances.filter(instances -> !instances.isEmpty())
 				.map(instances -> instances.get(0)).filter(includePredicate)
 				.map(instance -> {
-					String serviceId = instance.getServiceId();
-
-					RouteDefinition routeDefinition = new RouteDefinition();
-					routeDefinition.setId(this.routeIdPrefix + serviceId);
-					String uri = urlExpr.getValue(evalCtxt, instance, String.class);
-					routeDefinition.setUri(URI.create(uri));
+					RouteDefinition routeDefinition = buildRouteDefinition(urlExpr,
+							instance);
 
 					final ServiceInstance instanceForEval = new DelegatingServiceInstance(
 							instance, properties);
@@ -157,6 +136,18 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 
 					return routeDefinition;
 				});
+	}
+
+	protected RouteDefinition buildRouteDefinition(Expression urlExpr,
+			ServiceInstance serviceInstance) {
+		String serviceId = serviceInstance.getServiceId();
+		RouteDefinition routeDefinition = new RouteDefinition();
+		routeDefinition.setId(this.routeIdPrefix + serviceId);
+		String uri = urlExpr.getValue(this.evalCtxt, serviceInstance, String.class);
+		routeDefinition.setUri(URI.create(uri));
+		// add instance metadata
+		routeDefinition.setMetadata(new LinkedHashMap<>(serviceInstance.getMetadata()));
+		return routeDefinition;
 	}
 
 	String getValueFromExpr(SimpleEvaluationContext evalCtxt, SpelExpressionParser parser,

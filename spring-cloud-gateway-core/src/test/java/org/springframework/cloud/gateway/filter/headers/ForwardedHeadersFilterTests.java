@@ -132,6 +132,30 @@ public class ForwardedHeadersFilterTests {
 	}
 
 	@Test
+	public void unresolvedRemoteAddressFallsBackToHostName() throws UnknownHostException {
+		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost/get")
+				.remoteAddress(
+						InetSocketAddress.createUnresolved("unresolvable-hostname", 80))
+				.build();
+
+		ForwardedHeadersFilter filter = new ForwardedHeadersFilter();
+
+		HttpHeaders headers = filter.filter(request.getHeaders(),
+				MockServerWebExchange.from(request));
+
+		assertThat(headers.get(FORWARDED_HEADER)).hasSize(1);
+
+		List<Forwarded> forwardeds = ForwardedHeadersFilter
+				.parse(headers.get(FORWARDED_HEADER));
+
+		assertThat(forwardeds).hasSize(1);
+		Forwarded forwarded = forwardeds.get(0);
+
+		assertThat(forwarded.getValues()).containsEntry("proto", "http")
+				.containsEntry("for", "\"unresolvable-hostname:80\"");
+	}
+
+	@Test
 	public void forwardedParsedCorrectly() {
 		String[] valid = new String[] { "for=\"_gazonk\"",
 				"for=192.0.2.60;proto=http;by=203.0.113.43",

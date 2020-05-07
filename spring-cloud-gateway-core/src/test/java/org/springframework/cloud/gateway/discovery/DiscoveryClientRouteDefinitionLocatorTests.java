@@ -75,6 +75,7 @@ public class DiscoveryClientRouteDefinitionLocatorTests {
 		RouteDefinition definition = definitions.get(0);
 		assertThat(definition.getId()).isEqualTo("testedge_SERVICE1");
 		assertThat(definition.getUri()).hasScheme("lb").hasHost("SERVICE1");
+		assertThat(definition.getMetadata()).containsEntry("edge", "true");
 
 		assertThat(definition.getPredicates()).hasSize(1);
 		PredicateDefinition predicate = definition.getPredicates().get(0);
@@ -107,8 +108,8 @@ public class DiscoveryClientRouteDefinitionLocatorTests {
 
 		private void whenInstance(ReactiveDiscoveryClient discoveryClient,
 				String serviceId, Map<String, String> metadata) {
-			DefaultServiceInstance instance1 = new DefaultServiceInstance(serviceId,
-					"localhost", 8001, false, metadata);
+			DefaultServiceInstance instance1 = new DefaultServiceInstance(
+					serviceId + "8001", serviceId, "localhost", 8001, false, metadata);
 			when(discoveryClient.getInstances(serviceId))
 					.thenReturn(Flux.just(instance1));
 		}
