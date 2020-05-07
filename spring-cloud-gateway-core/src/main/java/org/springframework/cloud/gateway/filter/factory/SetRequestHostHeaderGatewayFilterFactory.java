@@ -29,9 +29,8 @@ import static org.springframework.cloud.gateway.support.GatewayToStringStyler.fi
 /**
  * @author Andrew Fitzgerald
  */
-public class SetRequestHostHeaderGatewayFilterFactory
-		extends AbstractGatewayFilterFactory<SetRequestHostHeaderGatewayFilterFactory.Config> {
-
+public class SetRequestHostHeaderGatewayFilterFactory extends
+		AbstractGatewayFilterFactory<SetRequestHostHeaderGatewayFilterFactory.Config> {
 
 	public SetRequestHostHeaderGatewayFilterFactory() {
 		super(Config.class);
@@ -49,16 +48,16 @@ public class SetRequestHostHeaderGatewayFilterFactory
 						.headers(httpHeaders -> {
 							httpHeaders.remove("Host");
 							httpHeaders.add("Host", value);
-						})
-						.build();
+						}).build();
 
 				return chain.filter(exchange.mutate().request(request).build());
 			}
 
 			@Override
 			public String toString() {
-				return filterToStringCreator(SetRequestHostHeaderGatewayFilterFactory.this)
-				.append(config.getHost()).toString();
+				return filterToStringCreator(
+						SetRequestHostHeaderGatewayFilterFactory.this)
+								.append(config.getHost()).toString();
 			}
 		};
 	}

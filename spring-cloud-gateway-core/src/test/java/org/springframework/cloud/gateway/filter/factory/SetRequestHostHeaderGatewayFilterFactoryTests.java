@@ -16,8 +16,11 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
+import java.util.Map;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -26,8 +29,6 @@ import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
-
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -40,12 +41,10 @@ public class SetRequestHostHeaderGatewayFilterFactoryTests extends BaseWebClient
 
 	@Test
 	public void removeRequestHeaderFilterWorks() {
-		testClient.get().uri("/headers").header("Host", "www.setrequesthostheader.org")
-				.exchange().expectStatus().isOk()
+		testClient.get().uri("/headers").header("Host", "www.setrequesthostheader.org").exchange().expectStatus().isOk()
 				.expectBody(Map.class).consumeWith(result -> {
-					Map<String, Object> headers = getMap(result.getResponseBody(),
-							"headers");
-					assertThat(headers).hasEntrySatisfying("Host",val -> assertThat(val).isEqualTo("otherhost.io"));
+					Map<String, Object> headers = getMap(result.getResponseBody(), "headers");
+					assertThat(headers).hasEntrySatisfying("Host", val -> assertThat(val).isEqualTo("otherhost.io"));
 				});
 	}
 
@@ -53,8 +52,7 @@ public class SetRequestHostHeaderGatewayFilterFactoryTests extends BaseWebClient
 	public void toStringFormat() {
 		SetRequestHostHeaderGatewayFilterFactory.Config config = new SetRequestHostHeaderGatewayFilterFactory.Config();
 		config.setHost("myhost");
-		GatewayFilter filter = new SetRequestHostHeaderGatewayFilterFactory()
-				.apply(config);
+		GatewayFilter filter = new SetRequestHostHeaderGatewayFilterFactory().apply(config);
 		assertThat(filter.toString()).contains("myhost");
 	}
 
