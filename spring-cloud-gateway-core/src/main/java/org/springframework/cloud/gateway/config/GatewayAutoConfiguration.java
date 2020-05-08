@@ -44,13 +44,10 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.NoneNestedConditions;
-import org.springframework.boot.autoconfigure.web.ServerProperties;
-import org.springframework.boot.autoconfigure.web.embedded.NettyWebServerFactoryCustomizer;
 import org.springframework.boot.autoconfigure.web.reactive.HttpHandlerAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.reactive.WebFluxAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.context.properties.PropertyMapper;
-import org.springframework.boot.web.embedded.netty.NettyReactiveWebServerFactory;
 import org.springframework.cloud.gateway.actuate.GatewayControllerEndpoint;
 import org.springframework.cloud.gateway.actuate.GatewayLegacyControllerEndpoint;
 import org.springframework.cloud.gateway.filter.AdaptCachedBodyGlobalFilter;
@@ -577,22 +574,9 @@ public class GatewayAutoConfiguration {
 
 	@Configuration(proxyBeanMethods = false)
 	@ConditionalOnClass(HttpClient.class)
-	protected static class NettyConfiguration {
+	protected static class NettyClientConfiguration {
 
 		protected final Log logger = LogFactory.getLog(getClass());
-
-		@Bean
-		@ConditionalOnProperty(name = "spring.cloud.gateway.httpserver.wiretap")
-		public NettyWebServerFactoryCustomizer nettyServerWiretapCustomizer(
-				Environment environment, ServerProperties serverProperties) {
-			return new NettyWebServerFactoryCustomizer(environment, serverProperties) {
-				@Override
-				public void customize(NettyReactiveWebServerFactory factory) {
-					factory.addServerCustomizers(httpServer -> httpServer.wiretap(true));
-					super.customize(factory);
-				}
-			};
-		}
 
 		@Bean
 		@ConditionalOnMissingBean

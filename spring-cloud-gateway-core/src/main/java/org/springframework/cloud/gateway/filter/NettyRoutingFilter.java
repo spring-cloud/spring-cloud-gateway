@@ -40,6 +40,7 @@ import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.support.TimeoutException;
 import org.springframework.core.Ordered;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferWrapper;
 import org.springframework.core.io.buffer.DefaultDataBuffer;
 import org.springframework.core.io.buffer.NettyDataBuffer;
 import org.springframework.http.HttpHeaders;
@@ -214,6 +215,10 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 		else if (dataBuffer instanceof DefaultDataBuffer) {
 			DefaultDataBuffer buffer = (DefaultDataBuffer) dataBuffer;
 			return Unpooled.wrappedBuffer(buffer.getNativeBuffer());
+		}
+		else if (dataBuffer instanceof DataBufferWrapper) {
+			DataBufferWrapper wrapper = (DataBufferWrapper) dataBuffer;
+			return Unpooled.wrappedBuffer(wrapper.asByteBuffer());
 		}
 		throw new IllegalArgumentException(
 				"Unable to handle DataBuffer of type " + dataBuffer.getClass());

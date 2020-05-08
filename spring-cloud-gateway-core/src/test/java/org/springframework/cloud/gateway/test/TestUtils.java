@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.test;
 import java.util.Map;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.util.LinkedCaseInsensitiveMap;
 import org.springframework.web.reactive.function.client.ClientResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -31,7 +32,10 @@ public class TestUtils {
 	@SuppressWarnings("unchecked")
 	public static Map<String, Object> getMap(Map response, String key) {
 		assertThat(response).containsKey(key).isInstanceOf(Map.class);
-		return (Map<String, Object>) response.get(key);
+		Map<String, Object> map = (Map<String, Object>) response.get(key);
+		LinkedCaseInsensitiveMap<Object> caseInsensitiveMap = new LinkedCaseInsensitiveMap<>();
+		caseInsensitiveMap.putAll(map);
+		return caseInsensitiveMap;
 	}
 
 	public static void assertStatus(ClientResponse response, HttpStatus status) {
