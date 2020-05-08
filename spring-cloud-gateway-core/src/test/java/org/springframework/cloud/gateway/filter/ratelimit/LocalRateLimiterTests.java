@@ -51,8 +51,6 @@ public class LocalRateLimiterTests extends BaseWebClientTests {
 
 	private static final int REPLENISH_RATE = 10;
 
-	private static final int BURST_CAPACITY = 2 * REPLENISH_RATE;
-
 	private static final int REQUESTED_TOKENS = 1;
 
 	@Autowired
@@ -72,14 +70,13 @@ public class LocalRateLimiterTests extends BaseWebClientTests {
 	public void localRateLimiterWorks() throws Exception {
 		String id = UUID.randomUUID().toString();
 		addDefaultRoute();
-		checkLimitEnforced(id, REPLENISH_RATE, BURST_CAPACITY, REQUESTED_TOKENS,
+		checkLimitEnforced(id, REPLENISH_RATE, REQUESTED_TOKENS,
 				DEFAULT_ROUTE);
 	}
 
 	private void addDefaultRoute() {
 		rateLimiter.getConfig().put(DEFAULT_ROUTE,
-				new LocalRateLimiter.Config().setBurstCapacity(BURST_CAPACITY)
-						.setReplenishRate(REPLENISH_RATE)
+				new LocalRateLimiter.Config().setReplenishRate(REPLENISH_RATE)
 						.setRequestedTokens(REQUESTED_TOKENS));
 	}
 
@@ -88,16 +85,14 @@ public class LocalRateLimiterTests extends BaseWebClientTests {
 		String id = UUID.randomUUID().toString();
 
 		int replenishRate = 1;
-		int burstCapacity = 3;
 		int requestedTokens = 3;
 
 		String routeId = "low_rate_route";
 		rateLimiter.getConfig().put(routeId,
-				new LocalRateLimiter.Config().setBurstCapacity(burstCapacity)
-						.setReplenishRate(replenishRate)
+				new LocalRateLimiter.Config().setReplenishRate(replenishRate)
 						.setRequestedTokens(requestedTokens));
 
-		checkLimitEnforced(id, replenishRate, burstCapacity, requestedTokens, routeId);
+		checkLimitEnforced(id, replenishRate, requestedTokens, routeId);
 	}
 
 	@Test
@@ -113,22 +108,37 @@ public class LocalRateLimiterTests extends BaseWebClientTests {
 		assertThat(response.getHeaders())
 				.doesNotContainKey(LocalRateLimiter.REPLENISH_RATE_HEADER);
 		assertThat(response.getHeaders())
-				.doesNotContainKey(LocalRateLimiter.BURST_CAPACITY_HEADER);
-		assertThat(response.getHeaders())
 				.doesNotContainKey(LocalRateLimiter.REQUESTED_TOKENS_HEADER);
 	}
 
-	private void checkLimitEnforced(String id, int replenishRate, int burstCapacity,
+	private void checkLimitEnforced(String id, int replenishRate,
 			int requestedTokens, String routeId) throws InterruptedException {
-		// Bursts work
-		simulateBurst(id, replenishRate, burstCapacity, requestedTokens, routeId);
 
-		checkLimitReached(id, burstCapacity, routeId);
+		//Token consumption works
+		simulateRequests(id, replenishRate, requestedTokens, routeId);
 
-		Thread.sleep(Math.max(1, requestedTokens / replenishRate) * 1000);
+		checkLimitReached(id, routeId);
 
-		// # After the burst is done, check the steady state
+		//Thread.sleep(Math.max(1, requestedTokens / replenishRate) * 10000);
+
+		// # After the tokens have been replenished , check the steady state
 		checkSteadyState(id, replenishRate, routeId);
+	}
+
+	private void simulateRequests(String id, int replenishRate,
+			int requestedTokens, String routeId) {
+		for (int i = 0; i < replenishRate / requestedTokens; i++) {
+			RateLimiter.Response response = rateLimiter.isAllowed(routeId, id).block();
+			assertThat(response.isAllowed()).as("Burst # %s is allowed", i).isTrue();
+			assertThat(response.getHeaders())
+					.containsKey(LocalRateLimiter.REMAINING_HEADER);
+			assertThat(response.getHeaders()).containsEntry(
+					LocalRateLimiter.REPLENISH_RATE_HEADER,
+					String.valueOf(replenishRate));
+			assertThat(response.getHeaders()).containsEntry(
+					LocalRateLimiter.REQUESTED_TOKENS_HEADER,
+					String.valueOf(requestedTokens));
+		}
 	}
 
 	private void simulateBurst(String id, int replenishRate, int burstCapacity,
@@ -142,20 +152,17 @@ public class LocalRateLimiterTests extends BaseWebClientTests {
 					LocalRateLimiter.REPLENISH_RATE_HEADER,
 					String.valueOf(replenishRate));
 			assertThat(response.getHeaders()).containsEntry(
-					LocalRateLimiter.BURST_CAPACITY_HEADER,
-					String.valueOf(burstCapacity));
-			assertThat(response.getHeaders()).containsEntry(
 					LocalRateLimiter.REQUESTED_TOKENS_HEADER,
 					String.valueOf(requestedTokens));
 		}
 	}
 
-	private void checkLimitReached(String id, int burstCapacity, String routeId) {
+	private void checkLimitReached(String id, String routeId) {
 		RateLimiter.Response response = rateLimiter.isAllowed(routeId, id).block();
 		if (response.isAllowed()) { // TODO: sometimes there is an off by one error
 			response = rateLimiter.isAllowed(routeId, id).block();
 		}
-		assertThat(response.isAllowed()).as("Burst # %s is not allowed", burstCapacity)
+		assertThat(response.isAllowed()).as("Burst # %s is not allowed")
 				.isFalse();
 	}
 
@@ -163,6 +170,9 @@ public class LocalRateLimiterTests extends BaseWebClientTests {
 		RateLimiter.Response response;
 		for (int i = 0; i < replenishRate; i++) {
 			response = rateLimiter.isAllowed(routeId, id).block();
+			for(String header: response.getHeaders().keySet()) {
+				System.out.println(header+" "+response.getHeaders().get(header));
+			}
 			assertThat(response.isAllowed()).as("steady state # %s is allowed", i)
 					.isTrue();
 		}

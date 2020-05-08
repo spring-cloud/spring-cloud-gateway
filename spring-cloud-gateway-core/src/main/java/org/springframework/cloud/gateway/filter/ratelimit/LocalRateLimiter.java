@@ -24,10 +24,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.validation.constraints.Min;
 
-import io.github.bucket4j.Bandwidth;
-import io.github.bucket4j.Bucket;
-import io.github.bucket4j.Bucket4j;
-import io.github.bucket4j.Refill;
+import io.github.resilience4j.ratelimiter.RateLimiterConfig;
 import org.jetbrains.annotations.NotNull;
 import reactor.core.publisher.Mono;
 
@@ -63,18 +60,13 @@ public class LocalRateLimiter extends AbstractRateLimiter<LocalRateLimiter.Confi
 	public static final String REPLENISH_RATE_HEADER = "X-RateLimit-Replenish-Rate";
 
 	/**
-	 * Burst Capacity header name.
-	 */
-	public static final String BURST_CAPACITY_HEADER = "X-RateLimit-Burst-Capacity";
-
-	/**
 	 * Requested Tokens header name.
 	 */
 	public static final String REQUESTED_TOKENS_HEADER = "X-RateLimit-Requested-Tokens";
 
 	private AtomicBoolean initialized = new AtomicBoolean(false);
 
-	private Map<String, Bucket> bucketMap = new ConcurrentHashMap<>();
+	private Map<String, io.github.resilience4j.ratelimiter.RateLimiter> rateLimiterMap = new ConcurrentHashMap<>();
 
 	private Config defaultConfig;
 
@@ -94,9 +86,6 @@ public class LocalRateLimiter extends AbstractRateLimiter<LocalRateLimiter.Confi
 	/** The name of the header that returns the replenish rate configuration. */
 	private String replenishRateHeader = REPLENISH_RATE_HEADER;
 
-	/** The name of the header that returns the burst capacity configuration. */
-	private String burstCapacityHeader = BURST_CAPACITY_HEADER;
-
 	/** The name of the header that returns the requested tokens configuration. */
 	private String requestedTokensHeader = REQUESTED_TOKENS_HEADER;
 
@@ -108,25 +97,21 @@ public class LocalRateLimiter extends AbstractRateLimiter<LocalRateLimiter.Confi
 	/**
 	 * This creates an instance with default static configuration, useful in Java DSL.
 	 * @param defaultReplenishRate how many tokens per second in token-bucket algorithm.
-	 * @param defaultBurstCapacity how many tokens the bucket can hold in token-bucket
 	 * algorithm.
 	 */
-	public LocalRateLimiter(int defaultReplenishRate, int defaultBurstCapacity) {
+	public LocalRateLimiter(int defaultReplenishRate) {
 		super(Config.class, CONFIGURATION_PROPERTY_NAME, (ConfigurationService) null);
-		this.defaultConfig = new Config().setReplenishRate(defaultReplenishRate)
-				.setBurstCapacity(defaultBurstCapacity);
+		this.defaultConfig = new Config().setReplenishRate(defaultReplenishRate);
 	}
 
 	/**
 	 * This creates an instance with default static configuration, useful in Java DSL.
 	 * @param defaultReplenishRate how many tokens per second in token-bucket algorithm.
-	 * @param defaultBurstCapacity how many tokens the bucket can hold in token-bucket
 	 * algorithm.
 	 * @param defaultRequestedTokens how many tokens are requested per request.
 	 */
-	public LocalRateLimiter(int defaultReplenishRate, int defaultBurstCapacity,
-			int defaultRequestedTokens) {
-		this(defaultReplenishRate, defaultBurstCapacity);
+	public LocalRateLimiter(int defaultReplenishRate, int defaultRequestedTokens) {
+		this(defaultReplenishRate);
 		this.defaultConfig.setRequestedTokens(defaultRequestedTokens);
 	}
 
@@ -154,14 +139,6 @@ public class LocalRateLimiter extends AbstractRateLimiter<LocalRateLimiter.Confi
 		this.replenishRateHeader = replenishRateHeader;
 	}
 
-	public String getBurstCapacityHeader() {
-		return burstCapacityHeader;
-	}
-
-	public void setBurstCapacityHeader(String burstCapacityHeader) {
-		this.burstCapacityHeader = burstCapacityHeader;
-	}
-
 	public String getRequestedTokensHeader() {
 		return requestedTokensHeader;
 	}
@@ -185,11 +162,15 @@ public class LocalRateLimiter extends AbstractRateLimiter<LocalRateLimiter.Confi
 		}
 	}
 
-	private Bucket createBucket(int replenishRate, int burstCapacity) {
-		Refill refill = Refill.intervally(replenishRate, Duration.ofSeconds(1));
-		Bandwidth limit = Bandwidth.classic(burstCapacity, refill);
-		Bucket bucket = Bucket4j.builder().addLimit(limit).build();
-		return bucket;
+	private io.github.resilience4j.ratelimiter.RateLimiter createRateLimiter(int replenishRate) {
+		RateLimiterConfig config = RateLimiterConfig.custom()
+				.timeoutDuration(Duration.ofMillis(0))
+				.limitRefreshPeriod(Duration.ofSeconds(1) )
+				.limitForPeriod(replenishRate)
+				.build();
+		io.github.resilience4j.ratelimiter.RateLimiter rateLimiter =
+				io.github.resilience4j.ratelimiter.RateLimiter.of(CONFIGURATION_PROPERTY_NAME, config);
+		return rateLimiter;
 	}
 
 	/* for testing */ Config getDefaultConfig() {
@@ -197,7 +178,7 @@ public class LocalRateLimiter extends AbstractRateLimiter<LocalRateLimiter.Confi
 	}
 
 	/**
-	 * This uses a basic token bucket algorithm and relies on the bucket4j library No
+	 * This uses a basic token bucket algorithm and relies on the resilience4j-ratelimiter library No
 	 * other operations can run between fetching the count and writing the new count.
 	 */
 	@Override
@@ -212,19 +193,17 @@ public class LocalRateLimiter extends AbstractRateLimiter<LocalRateLimiter.Confi
 		// How many requests per second do you want a user to be allowed to do?
 		int replenishRate = routeConfig.getReplenishRate();
 
-		// How much bursting do you want to allow?
-		int burstCapacity = routeConfig.getBurstCapacity();
-
 		// How many tokens are requested per request?
 		int requestedTokens = routeConfig.getRequestedTokens();
 
-		final Bucket bucket = bucketMap.computeIfAbsent(id,
-				(key) -> createBucket(replenishRate, burstCapacity));
+		final io.github.resilience4j.ratelimiter.RateLimiter rateLimiter = rateLimiterMap.computeIfAbsent(id,
+				(key) -> createRateLimiter(replenishRate));
 
-		final boolean allowed = bucket.tryConsume(requestedTokens);
+		final boolean allowed = rateLimiter.acquirePermission(requestedTokens);
+		final Long tokensLeft = (long) rateLimiter.getMetrics().getAvailablePermissions();
 
 		Response response = new Response(allowed,
-				getHeaders(routeConfig, bucket.getAvailableTokens()));
+				getHeaders(routeConfig, tokensLeft));
 		return Mono.just(response);
 	}
 
@@ -249,8 +228,6 @@ public class LocalRateLimiter extends AbstractRateLimiter<LocalRateLimiter.Confi
 			headers.put(this.remainingHeader, tokensLeft.toString());
 			headers.put(this.replenishRateHeader,
 					String.valueOf(config.getReplenishRate()));
-			headers.put(this.burstCapacityHeader,
-					String.valueOf(config.getBurstCapacity()));
 			headers.put(this.requestedTokensHeader,
 					String.valueOf(config.getRequestedTokens()));
 		}
@@ -264,9 +241,6 @@ public class LocalRateLimiter extends AbstractRateLimiter<LocalRateLimiter.Confi
 		private int replenishRate;
 
 		@Min(1)
-		private int burstCapacity = 1;
-
-		@Min(1)
 		private int requestedTokens = 1;
 
 		public int getReplenishRate() {
@@ -275,15 +249,6 @@ public class LocalRateLimiter extends AbstractRateLimiter<LocalRateLimiter.Confi
 
 		public LocalRateLimiter.Config setReplenishRate(int replenishRate) {
 			this.replenishRate = replenishRate;
-			return this;
-		}
-
-		public int getBurstCapacity() {
-			return burstCapacity;
-		}
-
-		public LocalRateLimiter.Config setBurstCapacity(int burstCapacity) {
-			this.burstCapacity = burstCapacity;
 			return this;
 		}
 
@@ -299,7 +264,6 @@ public class LocalRateLimiter extends AbstractRateLimiter<LocalRateLimiter.Confi
 		@Override
 		public String toString() {
 			return new ToStringCreator(this).append("replenishRate", replenishRate)
-					.append("burstCapacity", burstCapacity)
 					.append("requestedTokens", requestedTokens).toString();
 
 		}

@@ -57,26 +57,26 @@ public class LocalRateLimiterConfigTests {
 
 	@Test
 	public void localRateConfiguredFromEnvironment() {
-		assertFilter("local_rate_limiter_config_test", 10, 20, 1, false);
+		assertFilter("local_rate_limiter_config_test", 10,  1, false);
 	}
 
 	@Test
 	public void localRateConfiguredFromEnvironmentMinimal() {
-		assertFilter("local_rate_limiter_minimal_config_test", 2, 1, 1, false);
+		assertFilter("local_rate_limiter_minimal_config_test", 2,  1, false);
 	}
 
 	@Test
 	public void localRateConfiguredFromJavaAPI() {
-		assertFilter("custom_local_rate_limiter", 20, 40, 10, false);
+		assertFilter("custom_local_rate_limiter", 20,  10, false);
 	}
 
 	@Test
 	public void localRateConfiguredFromJavaAPIDirectBean() {
-		assertFilter("alt_custom_local_rate_limiter", 30, 60, 20, true);
+		assertFilter("alt_custom_local_rate_limiter", 30, 20, true);
 	}
 
-	private void assertFilter(String key, int replenishRate, int burstCapacity,
-			int requestedTokens, boolean useDefaultConfig) {
+	private void assertFilter(String key, int replenishRate, int requestedTokens,
+			boolean useDefaultConfig) {
 		LocalRateLimiter.Config config;
 
 		if (useDefaultConfig) {
@@ -88,7 +88,6 @@ public class LocalRateLimiterConfigTests {
 		}
 		assertThat(config).isNotNull();
 		assertThat(config.getReplenishRate()).isEqualTo(replenishRate);
-		assertThat(config.getBurstCapacity()).isEqualTo(burstCapacity);
 		assertThat(config.getRequestedTokens()).isEqualTo(requestedTokens);
 
 		Route route = routeLocator.getRoutes().filter(r -> r.getId().equals(key)).next()
@@ -107,8 +106,7 @@ public class LocalRateLimiterConfigTests {
 			return builder.routes().route("custom_local_rate_limiter",
 					r -> r.path("/custom").filters(f -> f.requestRateLimiter()
 							.rateLimiter(LocalRateLimiter.class,
-									rl -> rl.setBurstCapacity(40).setReplenishRate(20)
-											.setRequestedTokens(10))
+									rl -> rl.setReplenishRate(20).setRequestedTokens(10))
 							.and()).uri("http://localhost"))
 					.route("alt_custom_local_rate_limiter",
 							r -> r.path("/custom")
@@ -121,7 +119,7 @@ public class LocalRateLimiterConfigTests {
 
 		@Bean
 		public LocalRateLimiter myRateLimiter() {
-			return new LocalRateLimiter(30, 60, 20);
+			return new LocalRateLimiter(30, 20);
 		}
 
 	}

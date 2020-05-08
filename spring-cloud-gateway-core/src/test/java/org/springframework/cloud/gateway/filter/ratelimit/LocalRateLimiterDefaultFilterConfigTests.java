@@ -54,17 +54,16 @@ public class LocalRateLimiterDefaultFilterConfigTests {
 	}
 
 	@Test
-	public void redisRateConfiguredFromEnvironmentDefaultFilters() {
+	public void localRateConfiguredFromEnvironmentDefaultFilters() {
 		String routeId = "local_rate_limiter_config_default_test";
 		LocalRateLimiter.Config config = rateLimiter.loadConfiguration(routeId);
-		assertConfigAndRoute(routeId, 70, 80, 10, config);
+		assertConfigAndRoute(routeId, 70, 10, config);
 	}
 
-	private void assertConfigAndRoute(String key, int replenishRate, int burstCapacity,
+	private void assertConfigAndRoute(String key, int replenishRate,
 			int requestedTokens, LocalRateLimiter.Config config) {
 		assertThat(config).isNotNull();
 		assertThat(config.getReplenishRate()).isEqualTo(replenishRate);
-		assertThat(config.getBurstCapacity()).isEqualTo(burstCapacity);
 		assertThat(config.getRequestedTokens()).isEqualTo(requestedTokens);
 
 		Route route = routeLocator.getRoutes().filter(r -> r.getId().equals(key)).next()

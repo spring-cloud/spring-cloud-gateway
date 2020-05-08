@@ -13,7 +13,6 @@ spring:
           args:
             local-rate-limiter:
               replenish-rate: 10
-              burst-capacity: 20
       - id: local_rate_limiter_minimal_config_test
         uri: ${test.uri}
         predicates:

@@ -54,8 +54,8 @@
 			<optional>true</optional>
 		</dependency>
 		<dependency>
-			<groupId>com.github.vladimir-bukhtoyarov</groupId>
-			<artifactId>bucket4j-core</artifactId>
+			<groupId>io.github.resilience4j</groupId>
+			<artifactId>resilience4j-ratelimiter</artifactId>
 			<optional>true</optional>
 		</dependency>
 		<dependency>
