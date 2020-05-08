@@ -28,6 +28,7 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
 
 import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.PRESERVE_HOST_HEADER_ATTRIBUTE;
 
 /**
  * @author Andrew Fitzgerald
@@ -55,6 +56,9 @@ public class SetRequestHostHeaderGatewayFilterFactory
 					httpHeaders.remove("Host");
 					httpHeaders.add("Host", value);
 				}).build();
+
+				// Make sure the header we just set is preserved
+				exchange.getAttributes().put(PRESERVE_HOST_HEADER_ATTRIBUTE, true);
 
 				return chain.filter(exchange.mutate().request(request).build());
 			}
