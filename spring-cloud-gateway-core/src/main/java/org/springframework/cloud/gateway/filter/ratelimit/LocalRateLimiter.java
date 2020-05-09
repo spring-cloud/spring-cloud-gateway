@@ -162,10 +162,10 @@ public class LocalRateLimiter extends AbstractRateLimiter<LocalRateLimiter.Confi
 		}
 	}
 
-	private io.github.resilience4j.ratelimiter.RateLimiter createRateLimiter(int replenishRate) {
+	private io.github.resilience4j.ratelimiter.RateLimiter createRateLimiter(int refreshPeriod,int replenishRate) {
 		RateLimiterConfig config = RateLimiterConfig.custom()
-				.timeoutDuration(Duration.ofMillis(0))
-				.limitRefreshPeriod(Duration.ofSeconds(1) )
+				.timeoutDuration(Duration.ofSeconds(0))
+				.limitRefreshPeriod(Duration.ofSeconds(refreshPeriod))
 				.limitForPeriod(replenishRate)
 				.build();
 		io.github.resilience4j.ratelimiter.RateLimiter rateLimiter =
@@ -193,11 +193,14 @@ public class LocalRateLimiter extends AbstractRateLimiter<LocalRateLimiter.Confi
 		// How many requests per second do you want a user to be allowed to do?
 		int replenishRate = routeConfig.getReplenishRate();
 
+		// How many seconds for a token refresh?
+		int refreshPeriod = routeConfig.getRefreshPeriod();
+
 		// How many tokens are requested per request?
 		int requestedTokens = routeConfig.getRequestedTokens();
 
 		final io.github.resilience4j.ratelimiter.RateLimiter rateLimiter = rateLimiterMap.computeIfAbsent(id,
-				(key) -> createRateLimiter(replenishRate));
+				(key) -> createRateLimiter(refreshPeriod ,replenishRate));
 
 		final boolean allowed = rateLimiter.acquirePermission(requestedTokens);
 		final Long tokensLeft = (long) rateLimiter.getMetrics().getAvailablePermissions();
@@ -241,6 +244,9 @@ public class LocalRateLimiter extends AbstractRateLimiter<LocalRateLimiter.Confi
 		private int replenishRate;
 
 		@Min(1)
+		private int refreshPeriod = 1;
+
+		@Min(1)
 		private int requestedTokens = 1;
 
 		public int getReplenishRate() {
@@ -249,6 +255,15 @@ public class LocalRateLimiter extends AbstractRateLimiter<LocalRateLimiter.Confi
 
 		public LocalRateLimiter.Config setReplenishRate(int replenishRate) {
 			this.replenishRate = replenishRate;
+			return this;
+		}
+
+		public int getRefreshPeriod() {
+			return refreshPeriod;
+		}
+
+		public LocalRateLimiter.Config setRefreshPeriod(int refreshPeriod) {
+			this.refreshPeriod = refreshPeriod;
 			return this;
 		}
 
@@ -264,6 +279,7 @@ public class LocalRateLimiter extends AbstractRateLimiter<LocalRateLimiter.Confi
 		@Override
 		public String toString() {
 			return new ToStringCreator(this).append("replenishRate", replenishRate)
+					.append("refreshPeriod",refreshPeriod)
 					.append("requestedTokens", requestedTokens).toString();
 
 		}
