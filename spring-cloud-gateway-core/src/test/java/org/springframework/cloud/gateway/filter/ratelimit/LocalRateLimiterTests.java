@@ -81,18 +81,56 @@ public class LocalRateLimiterTests extends BaseWebClientTests {
 	}
 
 	@Test
-	public void localRateLimiterWorksForLowRates() throws Exception {
+	public void localRateLimiterWorksForMultipleTokens() throws Exception {
 		String id = UUID.randomUUID().toString();
 
-		int replenishRate = 1;
+		int replenishRate = 60;
+		int refreshPeriod = 60;
 		int requestedTokens = 3;
 
 		String routeId = "low_rate_route";
 		rateLimiter.getConfig().put(routeId,
 				new LocalRateLimiter.Config().setReplenishRate(replenishRate)
+						.setRefreshPeriod(refreshPeriod)
 						.setRequestedTokens(requestedTokens));
 
-		checkLimitEnforced(id, replenishRate, requestedTokens, routeId);
+		// # Token consumption works
+		simulateRequestsForMultipleTokens(id, replenishRate, requestedTokens, routeId);
+
+		checkLimitReached(id, routeId);
+
+		Thread.sleep(Math.max(1, replenishRate) * 1000);
+
+		// # After the tokens have been replenished , check the steady state
+		checkReadyStateForMultipleTokens(id, replenishRate, requestedTokens, routeId);
+	}
+
+	private void checkReadyStateForMultipleTokens(String id, int replenishRate, int requestedTokens, String routeId) {
+		Response response;
+		for (int i = 0; i < replenishRate/requestedTokens; i++) {
+			response = rateLimiter.isAllowed(routeId, id).block();
+			assertThat(response.isAllowed()).as("steady state # %s is allowed", i)
+					.isTrue();
+		}
+
+		response = rateLimiter.isAllowed(routeId, id).block();
+		assertThat(response.isAllowed()).as("steady state # %s is allowed", replenishRate)
+				.isFalse();
+	}
+
+	private void simulateRequestsForMultipleTokens(String id, int replenishRate, int requestedTokens, String routeId) {
+		for (int i = 0; i < replenishRate/requestedTokens; i++) {
+			Response response = rateLimiter.isAllowed(routeId, id).block();
+			assertThat(response.isAllowed()).as("Burst # %s is allowed", i).isTrue();
+			assertThat(response.getHeaders())
+					.containsKey(LocalRateLimiter.REMAINING_HEADER);
+			assertThat(response.getHeaders()).containsEntry(
+					LocalRateLimiter.REPLENISH_RATE_HEADER,
+					String.valueOf(replenishRate));
+			assertThat(response.getHeaders()).containsEntry(
+					LocalRateLimiter.REQUESTED_TOKENS_HEADER,
+					String.valueOf(requestedTokens));
+		}
 	}
 
 	@Test
@@ -119,7 +157,7 @@ public class LocalRateLimiterTests extends BaseWebClientTests {
 
 		checkLimitReached(id, routeId);
 
-		//Thread.sleep(Math.max(1, requestedTokens / replenishRate) * 10000);
+		Thread.sleep(Math.max(1, requestedTokens / replenishRate) * 1000);
 
 		// # After the tokens have been replenished , check the steady state
 		checkSteadyState(id, replenishRate, routeId);
@@ -128,22 +166,6 @@ public class LocalRateLimiterTests extends BaseWebClientTests {
 	private void simulateRequests(String id, int replenishRate,
 			int requestedTokens, String routeId) {
 		for (int i = 0; i < replenishRate / requestedTokens; i++) {
-			RateLimiter.Response response = rateLimiter.isAllowed(routeId, id).block();
-			assertThat(response.isAllowed()).as("Burst # %s is allowed", i).isTrue();
-			assertThat(response.getHeaders())
-					.containsKey(LocalRateLimiter.REMAINING_HEADER);
-			assertThat(response.getHeaders()).containsEntry(
-					LocalRateLimiter.REPLENISH_RATE_HEADER,
-					String.valueOf(replenishRate));
-			assertThat(response.getHeaders()).containsEntry(
-					LocalRateLimiter.REQUESTED_TOKENS_HEADER,
-					String.valueOf(requestedTokens));
-		}
-	}
-
-	private void simulateBurst(String id, int replenishRate, int burstCapacity,
-			int requestedTokens, String routeId) {
-		for (int i = 0; i < burstCapacity / requestedTokens; i++) {
 			RateLimiter.Response response = rateLimiter.isAllowed(routeId, id).block();
 			assertThat(response.isAllowed()).as("Burst # %s is allowed", i).isTrue();
 			assertThat(response.getHeaders())
@@ -170,9 +192,6 @@ public class LocalRateLimiterTests extends BaseWebClientTests {
 		RateLimiter.Response response;
 		for (int i = 0; i < replenishRate; i++) {
 			response = rateLimiter.isAllowed(routeId, id).block();
-			for(String header: response.getHeaders().keySet()) {
-				System.out.println(header+" "+response.getHeaders().get(header));
-			}
 			assertThat(response.isAllowed()).as("steady state # %s is allowed", i)
 					.isTrue();
 		}
