@@ -60,6 +60,11 @@ public class LocalRateLimiter extends AbstractRateLimiter<LocalRateLimiter.Confi
 	public static final String REPLENISH_RATE_HEADER = "X-RateLimit-Replenish-Rate";
 
 	/**
+	 * Replenish Rate Limit header name.
+	 */
+	public static final String REPLENISH_PERIOD_HEADER = "X-RateLimit-Replenish-Rate";
+
+	/**
 	 * Requested Tokens header name.
 	 */
 	public static final String REQUESTED_TOKENS_HEADER = "X-RateLimit-Requested-Tokens";
@@ -85,6 +90,9 @@ public class LocalRateLimiter extends AbstractRateLimiter<LocalRateLimiter.Confi
 
 	/** The name of the header that returns the replenish rate configuration. */
 	private String replenishRateHeader = REPLENISH_RATE_HEADER;
+
+	/** The name of the header that returns the replenish period configuration. */
+	private String replenishPeriodHeader = REPLENISH_PERIOD_HEADER;
 
 	/** The name of the header that returns the requested tokens configuration. */
 	private String requestedTokensHeader = REQUESTED_TOKENS_HEADER;
@@ -137,6 +145,14 @@ public class LocalRateLimiter extends AbstractRateLimiter<LocalRateLimiter.Confi
 
 	public void setReplenishRateHeader(String replenishRateHeader) {
 		this.replenishRateHeader = replenishRateHeader;
+	}
+
+	public String getReplenishPeriodHeader() {
+		return replenishPeriodHeader;
+	}
+
+	public void setReplenishPeriodHeader(String replenishPeriodHeader) {
+		this.replenishPeriodHeader = replenishPeriodHeader;
 	}
 
 	public String getRequestedTokensHeader() {
