@@ -57,25 +57,25 @@ public class LocalRateLimiterConfigTests {
 
 	@Test
 	public void localRateConfiguredFromEnvironment() {
-		assertFilter("local_rate_limiter_config_test", 10,  1, false);
+		assertFilter("local_rate_limiter_config_test", 10,  4,1, false);
 	}
 
 	@Test
 	public void localRateConfiguredFromEnvironmentMinimal() {
-		assertFilter("local_rate_limiter_minimal_config_test", 2,  1, false);
+		assertFilter("local_rate_limiter_minimal_config_test", 2,  10,1, false);
 	}
 
 	@Test
 	public void localRateConfiguredFromJavaAPI() {
-		assertFilter("custom_local_rate_limiter", 20,  10, false);
+		assertFilter("custom_local_rate_limiter", 20,  1,10, false);
 	}
 
 	@Test
 	public void localRateConfiguredFromJavaAPIDirectBean() {
-		assertFilter("alt_custom_local_rate_limiter", 30, 20, true);
+		assertFilter("alt_custom_local_rate_limiter", 30, 1,20, true);
 	}
 
-	private void assertFilter(String key, int replenishRate, int requestedTokens,
+	private void assertFilter(String key, int replenishRate, int refreshPeriod, int requestedTokens,
 			boolean useDefaultConfig) {
 		LocalRateLimiter.Config config;
 
@@ -88,6 +88,7 @@ public class LocalRateLimiterConfigTests {
 		}
 		assertThat(config).isNotNull();
 		assertThat(config.getReplenishRate()).isEqualTo(replenishRate);
+		assertThat(config.getRefreshPeriod()).isEqualTo(refreshPeriod);
 		assertThat(config.getRequestedTokens()).isEqualTo(requestedTokens);
 
 		Route route = routeLocator.getRoutes().filter(r -> r.getId().equals(key)).next()

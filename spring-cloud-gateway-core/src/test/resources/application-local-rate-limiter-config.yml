@@ -13,6 +13,7 @@ spring:
           args:
             local-rate-limiter:
               replenish-rate: 10
+              refresh_period: 4
       - id: local_rate_limiter_minimal_config_test
         uri: ${test.uri}
         predicates:
@@ -22,4 +23,5 @@ spring:
             args:
               local-rate-limiter:
                 replenish-rate: 2
+                refresh_period: 10
 
