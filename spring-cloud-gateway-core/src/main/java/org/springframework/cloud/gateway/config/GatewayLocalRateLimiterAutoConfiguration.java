@@ -28,7 +28,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration(proxyBeanMethods = false)
 @AutoConfigureBefore(GatewayAutoConfiguration.class)
-@ConditionalOnClass({io.github.resilience4j.ratelimiter.RateLimiter.class})
+@ConditionalOnClass({ io.github.resilience4j.ratelimiter.RateLimiter.class })
 @AutoConfigureAfter(GatewayRedisAutoConfiguration.class)
 public class GatewayLocalRateLimiterAutoConfiguration {
 

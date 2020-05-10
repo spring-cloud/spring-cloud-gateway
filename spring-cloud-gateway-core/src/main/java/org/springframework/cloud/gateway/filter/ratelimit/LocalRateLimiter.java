@@ -190,14 +190,14 @@ public class LocalRateLimiter extends AbstractRateLimiter<LocalRateLimiter.Confi
 		}
 	}
 
-	private io.github.resilience4j.ratelimiter.RateLimiter createRateLimiter(int refreshPeriod,int replenishRate) {
+	private io.github.resilience4j.ratelimiter.RateLimiter createRateLimiter(
+			int refreshPeriod, int replenishRate) {
 		RateLimiterConfig config = RateLimiterConfig.custom()
 				.timeoutDuration(Duration.ofSeconds(0))
 				.limitRefreshPeriod(Duration.ofSeconds(refreshPeriod))
-				.limitForPeriod(replenishRate)
-				.build();
-		io.github.resilience4j.ratelimiter.RateLimiter rateLimiter =
-				io.github.resilience4j.ratelimiter.RateLimiter.of(CONFIGURATION_PROPERTY_NAME, config);
+				.limitForPeriod(replenishRate).build();
+		io.github.resilience4j.ratelimiter.RateLimiter rateLimiter = io.github.resilience4j.ratelimiter.RateLimiter
+				.of(CONFIGURATION_PROPERTY_NAME, config);
 		return rateLimiter;
 	}
 
@@ -206,8 +206,9 @@ public class LocalRateLimiter extends AbstractRateLimiter<LocalRateLimiter.Confi
 	}
 
 	/**
-	 * This uses a basic token bucket algorithm and relies on the resilience4j-ratelimiter library No
-	 * other operations can run between fetching the count and writing the new count.
+	 * This uses a basic token bucket algorithm and relies on the resilience4j-ratelimiter
+	 * library No other operations can run between fetching the count and writing the new
+	 * count.
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
@@ -227,14 +228,14 @@ public class LocalRateLimiter extends AbstractRateLimiter<LocalRateLimiter.Confi
 		// How many tokens are requested per request?
 		int requestedTokens = routeConfig.getRequestedTokens();
 
-		final io.github.resilience4j.ratelimiter.RateLimiter rateLimiter = rateLimiterMap.computeIfAbsent(id,
-				(key) -> createRateLimiter(refreshPeriod ,replenishRate));
+		final io.github.resilience4j.ratelimiter.RateLimiter rateLimiter = rateLimiterMap
+				.computeIfAbsent(id,
+						(key) -> createRateLimiter(refreshPeriod, replenishRate));
 
 		final boolean allowed = rateLimiter.acquirePermission(requestedTokens);
 		final Long tokensLeft = (long) rateLimiter.getMetrics().getAvailablePermissions();
 
-		Response response = new Response(allowed,
-				getHeaders(routeConfig, tokensLeft));
+		Response response = new Response(allowed, getHeaders(routeConfig, tokensLeft));
 		return Mono.just(response);
 	}
 
@@ -309,7 +310,7 @@ public class LocalRateLimiter extends AbstractRateLimiter<LocalRateLimiter.Confi
 		@Override
 		public String toString() {
 			return new ToStringCreator(this).append("replenishRate", replenishRate)
-					.append("refreshPeriod",refreshPeriod)
+					.append("refreshPeriod", refreshPeriod)
 					.append("requestedTokens", requestedTokens).toString();
 
 		}

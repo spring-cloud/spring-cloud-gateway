@@ -60,8 +60,8 @@ public class LocalRateLimiterDefaultFilterConfigTests {
 		assertConfigAndRoute(routeId, 70, 10, config);
 	}
 
-	private void assertConfigAndRoute(String key, int replenishRate,
-			int requestedTokens, LocalRateLimiter.Config config) {
+	private void assertConfigAndRoute(String key, int replenishRate, int requestedTokens,
+			LocalRateLimiter.Config config) {
 		assertThat(config).isNotNull();
 		assertThat(config.getReplenishRate()).isEqualTo(replenishRate);
 		assertThat(config.getRequestedTokens()).isEqualTo(requestedTokens);

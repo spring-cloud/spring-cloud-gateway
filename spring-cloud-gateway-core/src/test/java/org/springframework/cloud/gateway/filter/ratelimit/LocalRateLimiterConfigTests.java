@@ -57,26 +57,26 @@ public class LocalRateLimiterConfigTests {
 
 	@Test
 	public void localRateConfiguredFromEnvironment() {
-		assertFilter("local_rate_limiter_config_test", 10,  4,1, false);
+		assertFilter("local_rate_limiter_config_test", 10, 4, 1, false);
 	}
 
 	@Test
 	public void localRateConfiguredFromEnvironmentMinimal() {
-		assertFilter("local_rate_limiter_minimal_config_test", 2,  10,1, false);
+		assertFilter("local_rate_limiter_minimal_config_test", 2, 10, 1, false);
 	}
 
 	@Test
 	public void localRateConfiguredFromJavaAPI() {
-		assertFilter("custom_local_rate_limiter", 20,  1,10, false);
+		assertFilter("custom_local_rate_limiter", 20, 1, 10, false);
 	}
 
 	@Test
 	public void localRateConfiguredFromJavaAPIDirectBean() {
-		assertFilter("alt_custom_local_rate_limiter", 30, 20,20, true);
+		assertFilter("alt_custom_local_rate_limiter", 30, 20, 20, true);
 	}
 
-	private void assertFilter(String key, int replenishRate, int refreshPeriod, int requestedTokens,
-			boolean useDefaultConfig) {
+	private void assertFilter(String key, int replenishRate, int refreshPeriod,
+			int requestedTokens, boolean useDefaultConfig) {
 		LocalRateLimiter.Config config;
 
 		if (useDefaultConfig) {

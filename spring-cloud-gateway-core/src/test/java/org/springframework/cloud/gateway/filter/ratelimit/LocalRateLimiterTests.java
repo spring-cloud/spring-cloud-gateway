@@ -70,14 +70,12 @@ public class LocalRateLimiterTests extends BaseWebClientTests {
 	public void localRateLimiterWorks() throws Exception {
 		String id = UUID.randomUUID().toString();
 		addDefaultRoute();
-		checkLimitEnforced(id, REPLENISH_RATE, REQUESTED_TOKENS,
-				DEFAULT_ROUTE);
+		checkLimitEnforced(id, REPLENISH_RATE, REQUESTED_TOKENS, DEFAULT_ROUTE);
 	}
 
 	private void addDefaultRoute() {
-		rateLimiter.getConfig().put(DEFAULT_ROUTE,
-				new LocalRateLimiter.Config().setReplenishRate(REPLENISH_RATE)
-						.setRequestedTokens(REQUESTED_TOKENS));
+		rateLimiter.getConfig().put(DEFAULT_ROUTE, new LocalRateLimiter.Config()
+				.setReplenishRate(REPLENISH_RATE).setRequestedTokens(REQUESTED_TOKENS));
 	}
 
 	@Test
@@ -105,9 +103,10 @@ public class LocalRateLimiterTests extends BaseWebClientTests {
 		checkReadyStateForMultipleTokens(id, replenishRate, requestedTokens, routeId);
 	}
 
-	private void checkReadyStateForMultipleTokens(String id, int replenishRate, int requestedTokens, String routeId) {
+	private void checkReadyStateForMultipleTokens(String id, int replenishRate,
+			int requestedTokens, String routeId) {
 		Response response;
-		for (int i = 0; i < replenishRate/requestedTokens; i++) {
+		for (int i = 0; i < replenishRate / requestedTokens; i++) {
 			response = rateLimiter.isAllowed(routeId, id).block();
 			assertThat(response.isAllowed()).as("steady state # %s is allowed", i)
 					.isTrue();
@@ -118,8 +117,9 @@ public class LocalRateLimiterTests extends BaseWebClientTests {
 				.isFalse();
 	}
 
-	private void simulateRequestsForMultipleTokens(String id, int replenishRate, int requestedTokens, String routeId) {
-		for (int i = 0; i < replenishRate/requestedTokens; i++) {
+	private void simulateRequestsForMultipleTokens(String id, int replenishRate,
+			int requestedTokens, String routeId) {
+		for (int i = 0; i < replenishRate / requestedTokens; i++) {
 			Response response = rateLimiter.isAllowed(routeId, id).block();
 			assertThat(response.isAllowed()).as("Burst # %s is allowed", i).isTrue();
 			assertThat(response.getHeaders())
@@ -149,10 +149,10 @@ public class LocalRateLimiterTests extends BaseWebClientTests {
 				.doesNotContainKey(LocalRateLimiter.REQUESTED_TOKENS_HEADER);
 	}
 
-	private void checkLimitEnforced(String id, int replenishRate,
-			int requestedTokens, String routeId) throws InterruptedException {
+	private void checkLimitEnforced(String id, int replenishRate, int requestedTokens,
+			String routeId) throws InterruptedException {
 
-		//Token consumption works
+		// Token consumption works
 		simulateRequests(id, replenishRate, requestedTokens, routeId);
 
 		checkLimitReached(id, routeId);
@@ -163,8 +163,8 @@ public class LocalRateLimiterTests extends BaseWebClientTests {
 		checkSteadyState(id, replenishRate, routeId);
 	}
 
-	private void simulateRequests(String id, int replenishRate,
-			int requestedTokens, String routeId) {
+	private void simulateRequests(String id, int replenishRate, int requestedTokens,
+			String routeId) {
 		for (int i = 0; i < replenishRate / requestedTokens; i++) {
 			RateLimiter.Response response = rateLimiter.isAllowed(routeId, id).block();
 			assertThat(response.isAllowed()).as("Burst # %s is allowed", i).isTrue();
@@ -184,8 +184,7 @@ public class LocalRateLimiterTests extends BaseWebClientTests {
 		if (response.isAllowed()) { // TODO: sometimes there is an off by one error
 			response = rateLimiter.isAllowed(routeId, id).block();
 		}
-		assertThat(response.isAllowed()).as("Burst # %s is not allowed")
-				.isFalse();
+		assertThat(response.isAllowed()).as("Burst # %s is not allowed").isFalse();
 	}
 
 	private void checkSteadyState(String id, int replenishRate, String routeId) {
