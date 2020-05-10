@@ -105,6 +105,24 @@ public class RedisRateLimiterTests extends BaseWebClientTests {
 	}
 
 	@Test
+	public void redisRateLimiterWorksForZeroBurstCapacity() throws Exception {
+		String id = UUID.randomUUID().toString();
+
+		int replenishRate = 1;
+		int burstCapacity = 0;
+		int requestedTokens = 1;
+
+		String routeId = "zero_burst_capacity_route";
+		rateLimiter.getConfig().put(routeId,
+				new RedisRateLimiter.Config().setBurstCapacity(burstCapacity)
+						.setReplenishRate(replenishRate)
+						.setRequestedTokens(requestedTokens));
+
+		Response response = rateLimiter.isAllowed(routeId, id).block();
+		assertThat(response.isAllowed()).isFalse();
+	}
+
+	@Test
 	public void keysUseRedisKeyHashTags() {
 		assertThat(RedisRateLimiter.getKeys("1")).containsExactly(
 				"request_rate_limiter.{1}.tokens", "request_rate_limiter.{1}.timestamp");

@@ -147,8 +147,10 @@ import org.springframework.validation.Validator;
 import org.springframework.web.reactive.DispatcherHandler;
 import org.springframework.web.reactive.socket.client.ReactorNettyWebSocketClient;
 import org.springframework.web.reactive.socket.client.WebSocketClient;
+import org.springframework.web.reactive.socket.server.RequestUpgradeStrategy;
 import org.springframework.web.reactive.socket.server.WebSocketService;
 import org.springframework.web.reactive.socket.server.support.HandshakeWebSocketService;
+import org.springframework.web.reactive.socket.server.upgrade.ReactorNettyRequestUpgradeStrategy;
 
 import static org.springframework.cloud.gateway.config.HttpClientProperties.Pool.PoolType.DISABLED;
 import static org.springframework.cloud.gateway.config.HttpClientProperties.Pool.PoolType.FIXED;
@@ -311,8 +313,9 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	public WebSocketService webSocketService() {
-		return new HandshakeWebSocketService();
+	public WebSocketService webSocketService(
+			RequestUpgradeStrategy requestUpgradeStrategy) {
+		return new HandshakeWebSocketService(requestUpgradeStrategy);
 	}
 
 	@Bean
@@ -733,6 +736,20 @@ public class GatewayAutoConfiguration {
 			}
 			webSocketClient.setHandlePing(properties.getWebsocket().isProxyPing());
 			return webSocketClient;
+		}
+
+		@Bean
+		public ReactorNettyRequestUpgradeStrategy reactorNettyRequestUpgradeStrategy(
+				HttpClientProperties httpClientProperties) {
+			ReactorNettyRequestUpgradeStrategy requestUpgradeStrategy = new ReactorNettyRequestUpgradeStrategy();
+
+			HttpClientProperties.Websocket websocket = httpClientProperties
+					.getWebsocket();
+			PropertyMapper map = PropertyMapper.get();
+			map.from(websocket::getMaxFramePayloadLength).whenNonNull()
+					.to(requestUpgradeStrategy::setMaxFramePayloadLength);
+			map.from(websocket::isProxyPing).to(requestUpgradeStrategy::setHandlePing);
+			return requestUpgradeStrategy;
 		}
 
 	}

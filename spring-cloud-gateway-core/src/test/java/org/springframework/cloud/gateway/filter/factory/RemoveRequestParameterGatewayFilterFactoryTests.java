@@ -103,4 +103,27 @@ public class RemoveRequestParameterGatewayFilterFactoryTests {
 				singletonList("xyz"));
 	}
 
+	@Test
+	public void removeRequestParameterFilterShouldHandleRemainingParamsWhichRequiringEncoding() {
+		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost")
+				.queryParam("foo", "bar").queryParam("aaa", "abc xyz")
+				.queryParam("bbb", "[xyz").queryParam("ccc", ",xyz").build();
+		exchange = MockServerWebExchange.from(request);
+		NameConfig config = new NameConfig();
+		config.setName("foo");
+		GatewayFilter filter = new RemoveRequestParameterGatewayFilterFactory()
+				.apply(config);
+
+		filter.filter(exchange, filterChain);
+
+		ServerHttpRequest actualRequest = captor.getValue().getRequest();
+		assertThat(actualRequest.getQueryParams()).doesNotContainKey("foo");
+		assertThat(actualRequest.getQueryParams()).containsEntry("aaa",
+				singletonList("abc xyz"));
+		assertThat(actualRequest.getQueryParams()).containsEntry("bbb",
+				singletonList("[xyz"));
+		assertThat(actualRequest.getQueryParams()).containsEntry("ccc",
+				singletonList(",xyz"));
+	}
+
 }

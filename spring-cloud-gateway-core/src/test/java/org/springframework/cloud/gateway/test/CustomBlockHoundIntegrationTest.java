@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package reactor.blockhound.integration;
+package org.springframework.cloud.gateway.test;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
@@ -25,8 +26,8 @@ import reactor.core.scheduler.Schedulers;
  */
 public class CustomBlockHoundIntegrationTest {
 
-	// @Test
-	// ignore fails on java 13
+	@Test
+	// @EnabledOnJre(JRE.JAVA_8)
 	public void shouldThrowErrorForBlockingCallWithCustomBlockHoundIntegration() {
 		Assertions.assertThrows(RuntimeException.class, () -> Mono.fromCallable(() -> {
 			Thread.sleep(1);

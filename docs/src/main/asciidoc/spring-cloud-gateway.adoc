@@ -617,10 +617,9 @@ The accepted values are `RETAIN_FIRST` (default), `RETAIN_LAST`, and `RETAIN_UNI
 === Spring Cloud CircuitBreaker GatewayFilter Factory
 
 The Spring Cloud CircuitBreaker GatewayFilter factory uses the Spring Cloud CircuitBreaker APIs to wrap Gateway routes in
-a circuit breaker. Spring Cloud CircuitBreaker supports two libraries that can be used with Spring Cloud Gateway, Hystrix
-and Resilience4J.  Since Netflix has placed Hystrix in maintenance-only mode, we suggest that you use Resilience4J.
+a circuit breaker. Spring Cloud CircuitBreaker supports multiple libraries that can be used with Spring Cloud Gateway. Spring Cloud supports Resilience4J out of the box.
 
-To enable the Spring Cloud CircuitBreaker filter, you need to place either `spring-cloud-starter-circuitbreaker-reactor-resilience4j` or `spring-cloud-starter-netflix-hystrix` on the classpath.
+To enable the Spring Cloud CircuitBreaker filter, you need to place `spring-cloud-starter-circuitbreaker-reactor-resilience4j` on the classpath.
 The following example configures a Spring Cloud CircuitBreaker `GatewayFilter`:
 
 .application.yml
@@ -641,7 +640,6 @@ spring:
 To configure the circuit breaker, see the configuration for the underlying circuit breaker implementation you are using.
 
 * https://cloud.spring.io/spring-cloud-circuitbreaker/reference/html/spring-cloud-circuitbreaker.html[Resilience4J Documentation]
-* https://cloud.spring.io/spring-cloud-netflix/reference/html/[Hystrix Documentation]
 
 The Spring Cloud CircuitBreaker filter can also accept an optional `fallbackUri` parameter.
 Currently, only `forward:` schemed URIs are supported.
@@ -728,7 +726,7 @@ You can find more information on doing so in  the <<fallback-headers, FallbackHe
 [[fallback-headers]]
 === The `FallbackHeaders` `GatewayFilter` Factory
 
-The `FallbackHeaders` factory lets you add Hystrix or Spring Cloud CircuitBreaker execution exception details in the headers of a request forwarded to a `fallbackUri` in an external application, as in the following scenario:
+The `FallbackHeaders` factory lets you add Spring Cloud CircuitBreaker execution exception details in the headers of a request forwarded to a `fallbackUri` in an external application, as in the following scenario:
 
 .application.yml
 ====
@@ -768,7 +766,7 @@ You can overwrite the names of the headers in the configuration by setting the v
 * `rootCauseExceptionTypeHeaderName` (`"Root-Cause-Exception-Type"`)
 * `rootCauseExceptionMessageHeaderName` (`"Root-Cause-Exception-Message"`)
 
-For more information on circuit beakers and the gatewayc see the <<hystrix, Hystrix GatewayFilter Factory section>> or <<spring-cloud-circuitbreaker-filter-factory, Spring Cloud CircuitBreaker Factory section>>.
+For more information on circuit breakers and the gateway see the <<spring-cloud-circuitbreaker-filter-factory, Spring Cloud CircuitBreaker Factory section>>.
 
 === The `MapRequestHeader` `GatewayFilter` Factory
 
@@ -1081,7 +1079,7 @@ spring:
       - id: rewritepath_route
         uri: https://example.org
         predicates:
-        - Path=/foo/**
+        - Path=/red/**
         filters:
         - RewritePath=/red(?<segment>/?.*), $\{segment}
 ----
@@ -1720,7 +1718,7 @@ If the URI has a scheme prefix, such as `lb:ws://serviceid`, the `lb` scheme is 
 
 === The Websocket Routing Filter
 
-If the URL located in the `ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR` exchange attribute has a `ws` or `wss` scheme, the websocket routing rilter runs. It uses the Spring WebSocket infrastructure to forward the websocket request downstream.
+If the URL located in the `ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR` exchange attribute has a `ws` or `wss` scheme, the websocket routing filter runs. It uses the Spring WebSocket infrastructure to forward the websocket request downstream.
 
 You can load-balance websockets by prefixing the URI with `lb`, such as `lb:ws://serviceid`.
 
@@ -1801,19 +1799,19 @@ The `XForwarded` Headers Filter creates various a `X-Forwarded-*` headers to sen
 
 Creating of individual headers can be controlled by the following boolean properties (defaults to true):
 
-- `spring.cloud.gateway.x-forwarded.for.enabled`
-- `spring.cloud.gateway.x-forwarded.host.enabled`
-- `spring.cloud.gateway.x-forwarded.port.enabled`
-- `spring.cloud.gateway.x-forwarded.proto.enabled`
-- `spring.cloud.gateway.x-forwarded.prefix.enabled`
+- `spring.cloud.gateway.x-forwarded.for-enabled`
+- `spring.cloud.gateway.x-forwarded.host-enabled`
+- `spring.cloud.gateway.x-forwarded.port-enabled`
+- `spring.cloud.gateway.x-forwarded.proto-enabled`
+- `spring.cloud.gateway.x-forwarded.prefix-enabled`
 
 Appending multiple headers can be controlled by the following boolean properties (defaults to true):
 
-- `spring.cloud.gateway.x-forwarded.for.append`
-- `spring.cloud.gateway.x-forwarded.host.append`
-- `spring.cloud.gateway.x-forwarded.port.append`
-- `spring.cloud.gateway.x-forwarded.proto.append`
-- `spring.cloud.gateway.x-forwarded.prefix.append`
+- `spring.cloud.gateway.x-forwarded.for-append`
+- `spring.cloud.gateway.x-forwarded.host-append`
+- `spring.cloud.gateway.x-forwarded.port-append`
+- `spring.cloud.gateway.x-forwarded.proto-append`
+- `spring.cloud.gateway.x-forwarded.prefix-append`
 
 == TLS and SSL
 
@@ -2099,7 +2097,7 @@ spring.cloud.gateway.discovery.locator.predicates[0].name: Path
 spring.cloud.gateway.discovery.locator.predicates[0].args[pattern]: "'/'+serviceId+'/**'"
 spring.cloud.gateway.discovery.locator.predicates[1].name: Host
 spring.cloud.gateway.discovery.locator.predicates[1].args[pattern]: "'**.foo.com'"
-spring.cloud.gateway.discovery.locator.filters[0].name: Hystrix
+spring.cloud.gateway.discovery.locator.filters[0].name: CircuitBreaker
 spring.cloud.gateway.discovery.locator.filters[0].args[name]: serviceId
 spring.cloud.gateway.discovery.locator.filters[1].name: RewritePath
 spring.cloud.gateway.discovery.locator.filters[1].args[regexp]: "'/' + serviceId + '/(?<remaining>.*)'"
@@ -2495,7 +2493,7 @@ public class PreGatewayFilterFactory extends AbstractGatewayFilterFactory<PreGat
 			//request before calling chain.filter
 			ServerHttpRequest.Builder builder = exchange.getRequest().mutate();
 			//use builder to manipulate the request
-			return chain.filter(exchange.mutate().request(request).build());
+			return chain.filter(exchange.mutate().request(builder.build()).build());
 		};
 	}
 
@@ -2533,6 +2531,19 @@ public class PostGatewayFilterFactory extends AbstractGatewayFilterFactory<PostG
 }
 ----
 ====
+
+==== Naming Custom Filters And References In Configuration
+
+Custom filters class names should end in `GatewayFilterFactory`.
+
+For example, to reference a filter named `Something` in configuration files, the filter
+must be in a class named `SomethingGatewayFilterFactory`.
+
+WARNING: It is possible to create a gateway filter named without the
+`GatewayFilterFactory` suffix, such as `class AnotherThing`. This filter could be
+referenced as `AnotherThing` in configuration files. This is **not** a supported naming
+convention and this syntax may be removed in future releases. Please update the filter
+name to be compliant.
 
 === Writing Custom Global Filters
 
