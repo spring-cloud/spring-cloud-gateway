@@ -72,7 +72,7 @@ public class LocalRateLimiterConfigTests {
 
 	@Test
 	public void localRateConfiguredFromJavaAPIDirectBean() {
-		assertFilter("alt_custom_local_rate_limiter", 30, 1,20, true);
+		assertFilter("alt_custom_local_rate_limiter", 30, 20,20, true);
 	}
 
 	private void assertFilter(String key, int replenishRate, int refreshPeriod, int requestedTokens,
@@ -120,7 +120,8 @@ public class LocalRateLimiterConfigTests {
 
 		@Bean
 		public LocalRateLimiter myRateLimiter() {
-			return new LocalRateLimiter(30, 20);
+			LocalRateLimiter localRateLimiter = new LocalRateLimiter(30, 20, 20);
+			return localRateLimiter;
 		}
 
 	}

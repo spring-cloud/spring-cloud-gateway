@@ -92,7 +92,7 @@ public class LocalRateLimiter extends AbstractRateLimiter<LocalRateLimiter.Confi
 	private String replenishRateHeader = REPLENISH_RATE_HEADER;
 
 	/** The name of the header that returns the replenish period configuration. */
-	private String replenishPeriodHeader = REPLENISH_PERIOD_HEADER;
+	private String refreshPeriodHeader = REPLENISH_PERIOD_HEADER;
 
 	/** The name of the header that returns the requested tokens configuration. */
 	private String requestedTokensHeader = REQUESTED_TOKENS_HEADER;
@@ -116,10 +116,22 @@ public class LocalRateLimiter extends AbstractRateLimiter<LocalRateLimiter.Confi
 	 * This creates an instance with default static configuration, useful in Java DSL.
 	 * @param defaultReplenishRate how many tokens per second in token-bucket algorithm.
 	 * algorithm.
+	 * @param defaultRefreshPeriod the period that the tokens get replenished.
+	 */
+	public LocalRateLimiter(int defaultReplenishRate, int defaultRefreshPeriod) {
+		this(defaultReplenishRate);
+		this.defaultConfig.setRefreshPeriod(defaultRefreshPeriod);
+	}
+
+	/**
+	 * This creates an instance with default static configuration, useful in Java DSL.
+	 * @param defaultReplenishRate how many tokens per second in token-bucket algorithm.
+	 * @param defaultRefreshPeriod the period that the tokens get replenished.
 	 * @param defaultRequestedTokens how many tokens are requested per request.
 	 */
-	public LocalRateLimiter(int defaultReplenishRate, int defaultRequestedTokens) {
-		this(defaultReplenishRate);
+	public LocalRateLimiter(int defaultReplenishRate, int defaultRefreshPeriod,
+			int defaultRequestedTokens) {
+		this(defaultReplenishRate, defaultRefreshPeriod);
 		this.defaultConfig.setRequestedTokens(defaultRequestedTokens);
 	}
 
@@ -147,12 +159,12 @@ public class LocalRateLimiter extends AbstractRateLimiter<LocalRateLimiter.Confi
 		this.replenishRateHeader = replenishRateHeader;
 	}
 
-	public String getReplenishPeriodHeader() {
-		return replenishPeriodHeader;
+	public String getRefreshPeriodHeader() {
+		return refreshPeriodHeader;
 	}
 
-	public void setReplenishPeriodHeader(String replenishPeriodHeader) {
-		this.replenishPeriodHeader = replenishPeriodHeader;
+	public void setRefreshPeriodHeader(String refreshPeriodHeader) {
+		this.refreshPeriodHeader = refreshPeriodHeader;
 	}
 
 	public String getRequestedTokensHeader() {
@@ -245,6 +257,8 @@ public class LocalRateLimiter extends AbstractRateLimiter<LocalRateLimiter.Confi
 		Map<String, String> headers = new HashMap<>();
 		if (isIncludeHeaders()) {
 			headers.put(this.remainingHeader, tokensLeft.toString());
+			headers.put(this.refreshPeriodHeader,
+					String.valueOf(config.getRefreshPeriod()));
 			headers.put(this.replenishRateHeader,
 					String.valueOf(config.getReplenishRate()));
 			headers.put(this.requestedTokensHeader,
