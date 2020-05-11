@@ -25,10 +25,12 @@ import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter;
 import org.springframework.cloud.gateway.support.ConfigurationService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.reactive.DispatcherHandler;
 
 @Configuration(proxyBeanMethods = false)
 @AutoConfigureBefore(GatewayAutoConfiguration.class)
-@ConditionalOnClass({ io.github.resilience4j.ratelimiter.RateLimiter.class })
+@ConditionalOnClass({ io.github.resilience4j.ratelimiter.RateLimiter.class,
+		DispatcherHandler.class })
 @AutoConfigureAfter(GatewayRedisAutoConfiguration.class)
 public class GatewayLocalRateLimiterAutoConfiguration {
 
