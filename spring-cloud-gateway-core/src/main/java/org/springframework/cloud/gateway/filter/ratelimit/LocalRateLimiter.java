@@ -60,9 +60,9 @@ public class LocalRateLimiter extends AbstractRateLimiter<LocalRateLimiter.Confi
 	public static final String REPLENISH_RATE_HEADER = "X-RateLimit-Replenish-Rate";
 
 	/**
-	 * Replenish Rate Limit header name.
+	 * Refresh period header name.
 	 */
-	public static final String REPLENISH_PERIOD_HEADER = "X-RateLimit-Replenish-Rate";
+	public static final String REFRESH_PERIOD_HEADER = "X-RateLimit-Refresh-Period";
 
 	/**
 	 * Requested Tokens header name.
@@ -92,7 +92,7 @@ public class LocalRateLimiter extends AbstractRateLimiter<LocalRateLimiter.Confi
 	private String replenishRateHeader = REPLENISH_RATE_HEADER;
 
 	/** The name of the header that returns the refresh period configuration. */
-	private String refreshPeriodHeader = REPLENISH_PERIOD_HEADER;
+	private String refreshPeriodHeader = REFRESH_PERIOD_HEADER;
 
 	/** The name of the header that returns the requested tokens configuration. */
 	private String requestedTokensHeader = REQUESTED_TOKENS_HEADER;
