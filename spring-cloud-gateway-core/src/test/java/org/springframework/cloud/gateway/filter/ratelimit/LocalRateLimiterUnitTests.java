@@ -30,8 +30,6 @@ import org.springframework.context.ApplicationContext;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.data.MapEntry.entry;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.when;
 
 /**
@@ -81,7 +79,7 @@ public class LocalRateLimiterUnitTests {
 		assertThat(response.block().getHeaders()).containsOnly(
 				entry(localRateLimiter.getRemainingHeader(), "0"),
 				entry(localRateLimiter.getRefreshPeriodHeader(),
-						DEFAULT_REFRESH_PERIOD+ ""),
+						DEFAULT_REFRESH_PERIOD + ""),
 				entry(localRateLimiter.getReplenishRateHeader(),
 						DEFAULT_REPLENISH_RATE + ""),
 				entry(localRateLimiter.getRequestedTokensHeader(), "1"));
