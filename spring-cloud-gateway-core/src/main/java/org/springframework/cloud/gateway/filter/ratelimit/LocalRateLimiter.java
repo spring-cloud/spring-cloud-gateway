@@ -91,7 +91,7 @@ public class LocalRateLimiter extends AbstractRateLimiter<LocalRateLimiter.Confi
 	/** The name of the header that returns the replenish rate configuration. */
 	private String replenishRateHeader = REPLENISH_RATE_HEADER;
 
-	/** The name of the header that returns the replenish period configuration. */
+	/** The name of the header that returns the refresh period configuration. */
 	private String refreshPeriodHeader = REPLENISH_PERIOD_HEADER;
 
 	/** The name of the header that returns the requested tokens configuration. */

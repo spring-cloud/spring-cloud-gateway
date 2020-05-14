@@ -23,10 +23,15 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
+import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.support.ConfigurationService;
 import org.springframework.context.ApplicationContext;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.data.MapEntry.entry;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.when;
 
 /**
@@ -37,7 +42,7 @@ public class LocalRateLimiterUnitTests {
 
 	private static final int DEFAULT_REPLENISH_RATE = 1;
 
-	private static final int DEFAULT_BURST_CAPACITY = 1;
+	private static final int DEFAULT_REFRESH_PERIOD = 1;
 
 	public static final String ROUTE_ID = "routeId";
 
@@ -55,7 +60,7 @@ public class LocalRateLimiterUnitTests {
 		when(applicationContext.getBeanNamesForType(ConfigurationService.class))
 				.thenReturn(CONFIGURATION_SERVICE_BEANS);
 		localRateLimiter = new LocalRateLimiter(DEFAULT_REPLENISH_RATE,
-				DEFAULT_BURST_CAPACITY);
+				DEFAULT_REFRESH_PERIOD);
 	}
 
 	@After
@@ -66,6 +71,20 @@ public class LocalRateLimiterUnitTests {
 	@Test(expected = IllegalStateException.class)
 	public void shouldThrowWhenNotInitialized() {
 		localRateLimiter.isAllowed(ROUTE_ID, REQUEST_ID);
+	}
+
+	@Test
+	public void shouldReturnHeaders() {
+		localRateLimiter.setApplicationContext(applicationContext);
+		Mono<RateLimiter.Response> response = localRateLimiter.isAllowed(ROUTE_ID,
+				REQUEST_ID);
+		assertThat(response.block().getHeaders()).containsOnly(
+				entry(localRateLimiter.getRemainingHeader(), "0"),
+				entry(localRateLimiter.getRefreshPeriodHeader(),
+						DEFAULT_REFRESH_PERIOD+ ""),
+				entry(localRateLimiter.getReplenishRateHeader(),
+						DEFAULT_REPLENISH_RATE + ""),
+				entry(localRateLimiter.getRequestedTokensHeader(), "1"));
 	}
 
 }
