@@ -25,6 +25,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import javax.validation.constraints.Min;
 
 import io.github.resilience4j.ratelimiter.RateLimiterConfig;
+import io.github.resilience4j.ratelimiter.RateLimiterRegistry;
 import org.jetbrains.annotations.NotNull;
 import reactor.core.publisher.Mono;
 
@@ -71,7 +72,7 @@ public class LocalRateLimiter extends AbstractRateLimiter<LocalRateLimiter.Confi
 
 	private AtomicBoolean initialized = new AtomicBoolean(false);
 
-	private Map<String, io.github.resilience4j.ratelimiter.RateLimiter> rateLimiterMap = new ConcurrentHashMap<>();
+	//private Map<String, io.github.resilience4j.ratelimiter.RateLimiter> rateLimiterMap = new ConcurrentHashMap<>();
 
 	private Config defaultConfig;
 
@@ -190,15 +191,12 @@ public class LocalRateLimiter extends AbstractRateLimiter<LocalRateLimiter.Confi
 		}
 	}
 
-	private io.github.resilience4j.ratelimiter.RateLimiter createRateLimiter(
+	private RateLimiterConfig createRateLimiterConfig(
 			int refreshPeriod, int replenishRate) {
-		RateLimiterConfig config = RateLimiterConfig.custom()
+		return RateLimiterConfig.custom()
 				.timeoutDuration(Duration.ofSeconds(0))
 				.limitRefreshPeriod(Duration.ofSeconds(refreshPeriod))
 				.limitForPeriod(replenishRate).build();
-		io.github.resilience4j.ratelimiter.RateLimiter rateLimiter = io.github.resilience4j.ratelimiter.RateLimiter
-				.of(CONFIGURATION_PROPERTY_NAME, config);
-		return rateLimiter;
 	}
 
 	/* for testing */ Config getDefaultConfig() {
@@ -228,9 +226,7 @@ public class LocalRateLimiter extends AbstractRateLimiter<LocalRateLimiter.Confi
 		// How many tokens are requested per request?
 		int requestedTokens = routeConfig.getRequestedTokens();
 
-		final io.github.resilience4j.ratelimiter.RateLimiter rateLimiter = rateLimiterMap
-				.computeIfAbsent(id,
-						(key) -> createRateLimiter(refreshPeriod, replenishRate));
+		final io.github.resilience4j.ratelimiter.RateLimiter rateLimiter = RateLimiterRegistry.ofDefaults().rateLimiter(id,createRateLimiterConfig(refreshPeriod ,replenishRate));
 
 		final boolean allowed = rateLimiter.acquirePermission(requestedTokens);
 		final Long tokensLeft = (long) rateLimiter.getMetrics().getAvailablePermissions();
