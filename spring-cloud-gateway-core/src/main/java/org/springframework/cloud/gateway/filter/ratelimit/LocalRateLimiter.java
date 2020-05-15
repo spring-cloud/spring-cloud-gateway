@@ -19,7 +19,6 @@ package org.springframework.cloud.gateway.filter.ratelimit;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.validation.constraints.Min;
@@ -72,7 +71,8 @@ public class LocalRateLimiter extends AbstractRateLimiter<LocalRateLimiter.Confi
 
 	private AtomicBoolean initialized = new AtomicBoolean(false);
 
-	//private Map<String, io.github.resilience4j.ratelimiter.RateLimiter> rateLimiterMap = new ConcurrentHashMap<>();
+	// private Map<String, io.github.resilience4j.ratelimiter.RateLimiter> rateLimiterMap
+	// = new ConcurrentHashMap<>();
 
 	private Config defaultConfig;
 
@@ -191,10 +191,9 @@ public class LocalRateLimiter extends AbstractRateLimiter<LocalRateLimiter.Confi
 		}
 	}
 
-	private RateLimiterConfig createRateLimiterConfig(
-			int refreshPeriod, int replenishRate) {
-		return RateLimiterConfig.custom()
-				.timeoutDuration(Duration.ofSeconds(0))
+	private RateLimiterConfig createRateLimiterConfig(int refreshPeriod,
+			int replenishRate) {
+		return RateLimiterConfig.custom().timeoutDuration(Duration.ofSeconds(0))
 				.limitRefreshPeriod(Duration.ofSeconds(refreshPeriod))
 				.limitForPeriod(replenishRate).build();
 	}
@@ -226,7 +225,9 @@ public class LocalRateLimiter extends AbstractRateLimiter<LocalRateLimiter.Confi
 		// How many tokens are requested per request?
 		int requestedTokens = routeConfig.getRequestedTokens();
 
-		final io.github.resilience4j.ratelimiter.RateLimiter rateLimiter = RateLimiterRegistry.ofDefaults().rateLimiter(id,createRateLimiterConfig(refreshPeriod ,replenishRate));
+		final io.github.resilience4j.ratelimiter.RateLimiter rateLimiter = RateLimiterRegistry
+				.ofDefaults()
+				.rateLimiter(id, createRateLimiterConfig(refreshPeriod, replenishRate));
 
 		final boolean allowed = rateLimiter.acquirePermission(requestedTokens);
 		final Long tokensLeft = (long) rateLimiter.getMetrics().getAvailablePermissions();
