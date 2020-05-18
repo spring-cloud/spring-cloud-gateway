@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import io.netty.buffer.EmptyByteBuf;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Flux;
@@ -34,10 +35,12 @@ import org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.core.io.buffer.NettyDataBuffer;
+import org.springframework.core.io.buffer.NettyDataBufferFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.AbstractServerHttpResponse;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
+import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.util.Assert;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -337,38 +340,47 @@ public final class ServerWebExchangeUtils {
 	private static <T> Mono<T> cacheRequestBody(ServerWebExchange exchange,
 			boolean cacheDecoratedRequest,
 			Function<ServerHttpRequest, Mono<T>> function) {
+		ServerHttpResponse response = exchange.getResponse();
+		NettyDataBufferFactory factory = (NettyDataBufferFactory) response
+				.bufferFactory();
 		// Join all the DataBuffers so we have a single DataBuffer for the body
-		return DataBufferUtils.join(exchange.getRequest().getBody()).map(dataBuffer -> {
-			if (dataBuffer.readableByteCount() > 0) {
-				if (log.isTraceEnabled()) {
-					log.trace("retaining body in exchange attribute");
-				}
-				exchange.getAttributes().put(CACHED_REQUEST_BODY_ATTR, dataBuffer);
-			}
+		return DataBufferUtils.join(exchange.getRequest().getBody())
+				.defaultIfEmpty(
+						factory.wrap(new EmptyByteBuf(factory.getByteBufAllocator())))
+				.map(dataBuffer -> decorate(exchange, dataBuffer, cacheDecoratedRequest))
+				.switchIfEmpty(Mono.just(exchange.getRequest())).flatMap(function);
+	}
 
-			ServerHttpRequest decorator = new ServerHttpRequestDecorator(
-					exchange.getRequest()) {
-				@Override
-				public Flux<DataBuffer> getBody() {
-					return Mono.<DataBuffer>fromSupplier(() -> {
-						if (exchange.getAttributeOrDefault(CACHED_REQUEST_BODY_ATTR,
-								null) == null) {
-							// probably == downstream closed
-							return null;
-						}
-						// TODO: deal with Netty
-						NettyDataBuffer pdb = (NettyDataBuffer) dataBuffer;
-						return pdb.factory().wrap(pdb.getNativeBuffer().retainedSlice());
-					}).flux();
-				}
-			};
-			if (cacheDecoratedRequest) {
-				exchange.getAttributes().put(CACHED_SERVER_HTTP_REQUEST_DECORATOR_ATTR,
-						decorator);
+	private static ServerHttpRequest decorate(ServerWebExchange exchange,
+			DataBuffer dataBuffer, boolean cacheDecoratedRequest) {
+		if (dataBuffer.readableByteCount() > 0) {
+			if (log.isTraceEnabled()) {
+				log.trace("retaining body in exchange attribute");
 			}
-			return decorator;
-			// return function.apply(decorator)/*.then(monoVoid())*/;
-		}).switchIfEmpty(Mono.just(exchange.getRequest())).flatMap(function);
+			exchange.getAttributes().put(CACHED_REQUEST_BODY_ATTR, dataBuffer);
+		}
+
+		ServerHttpRequest decorator = new ServerHttpRequestDecorator(
+				exchange.getRequest()) {
+			@Override
+			public Flux<DataBuffer> getBody() {
+				return Mono.<DataBuffer>fromSupplier(() -> {
+					if (exchange.getAttributeOrDefault(CACHED_REQUEST_BODY_ATTR,
+							null) == null) {
+						// probably == downstream closed or no body
+						return null;
+					}
+					// TODO: deal with Netty
+					NettyDataBuffer pdb = (NettyDataBuffer) dataBuffer;
+					return pdb.factory().wrap(pdb.getNativeBuffer().retainedSlice());
+				}).flux();
+			}
+		};
+		if (cacheDecoratedRequest) {
+			exchange.getAttributes().put(CACHED_SERVER_HTTP_REQUEST_DECORATOR_ATTR,
+					decorator);
+		}
+		return decorator;
 	}
 
 }
