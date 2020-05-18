@@ -148,6 +148,7 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 	}
 
 	@Test
+	// @Ignore // FIXME: https://github.com/spring-cloud/spring-cloud-gateway/issues/1675
 	public void shouldNotRetryWhenSleepyRequestPost() throws Exception {
 		testClient.mutate().responseTimeout(Duration.ofSeconds(10)).build().post()
 				.uri("/sleep?key=notRetriesSleepyRequestPost&millis=3000")
@@ -155,6 +156,18 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 				.expectStatus().isEqualTo(HttpStatus.GATEWAY_TIMEOUT);
 
 		assertThat(TestConfig.map.get("notRetriesSleepyRequestPost")).isNotNull()
+				.hasValue(1);
+	}
+
+	@Test
+	public void shouldNotRetryWhenSleepyRequestPostWithBody() throws Exception {
+		testClient.mutate().responseTimeout(Duration.ofSeconds(10)).build().post()
+				.uri("/sleep?key=notRetriesSleepyRequestPostWithBody&millis=3000")
+				.header(HttpHeaders.HOST, "www.retry-only-get.org")
+				.bodyValue("retry sleepy post with body").exchange().expectStatus()
+				.isEqualTo(HttpStatus.GATEWAY_TIMEOUT);
+
+		assertThat(TestConfig.map.get("notRetriesSleepyRequestPostWithBody")).isNotNull()
 				.hasValue(1);
 	}
 
