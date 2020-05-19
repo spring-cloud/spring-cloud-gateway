@@ -62,6 +62,7 @@ import org.springframework.cloud.gateway.filter.factory.SaveSessionGatewayFilter
 import org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SetPathGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SetRequestHeaderGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.SetRequestHostHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SetResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SetStatusGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SpringCloudCircuitBreakerFilterFactory;
@@ -358,6 +359,17 @@ public class GatewayFilterSpec extends UriSpec {
 	 */
 	public GatewayFilterSpec preserveHostHeader() {
 		return filter(getBean(PreserveHostHeaderGatewayFilterFactory.class).apply());
+	}
+
+	/**
+	 * A filter that will set the Host header to
+	 * {@param hostName} on the outgoing request
+	 * @param hostName the updated Host header value
+	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
+	 */
+	public GatewayFilterSpec setHostHeader(String hostName) {
+		return filter(getBean(SetRequestHostHeaderGatewayFilterFactory.class)
+				.apply(c -> c.setHost(hostName)));
 	}
 
 	/**

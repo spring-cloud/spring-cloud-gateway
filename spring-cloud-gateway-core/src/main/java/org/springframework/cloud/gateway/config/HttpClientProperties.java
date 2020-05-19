@@ -275,7 +275,7 @@ public class HttpClientProperties {
 
 	}
 
-	public class Proxy {
+	public static class Proxy {
 
 		/** Hostname for proxy configuration of Netty HttpClient. */
 		private String host;
@@ -344,7 +344,7 @@ public class HttpClientProperties {
 
 	}
 
-	public class Ssl {
+	public static class Ssl {
 
 		/**
 		 * Installs the netty InsecureTrustManagerFactory. This is insecure and not
@@ -436,7 +436,7 @@ public class HttpClientProperties {
 				CertificateFactory certificateFactory = CertificateFactory
 						.getInstance("X.509");
 				ArrayList<Certificate> allCerts = new ArrayList<>();
-				for (String trustedCert : ssl.getTrustedX509Certificates()) {
+				for (String trustedCert : getTrustedX509Certificates()) {
 					try {
 						URL url = ResourceUtils.getURL(trustedCert);
 						Collection<? extends Certificate> certs = certificateFactory
@@ -458,14 +458,14 @@ public class HttpClientProperties {
 
 		public KeyManagerFactory getKeyManagerFactory() {
 			try {
-				if (ssl.getKeyStore() != null && ssl.getKeyStore().length() > 0) {
+				if (getKeyStore() != null && getKeyStore().length() > 0) {
 					KeyManagerFactory keyManagerFactory = KeyManagerFactory
 							.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-					char[] keyPassword = ssl.getKeyPassword() != null
-							? ssl.getKeyPassword().toCharArray() : null;
+					char[] keyPassword = getKeyPassword() != null
+							? getKeyPassword().toCharArray() : null;
 
-					if (keyPassword == null && ssl.getKeyStorePassword() != null) {
-						keyPassword = ssl.getKeyStorePassword().toCharArray();
+					if (keyPassword == null && getKeyStorePassword() != null) {
+						keyPassword = getKeyStorePassword().toCharArray();
 					}
 
 					keyManagerFactory.init(this.createKeyStore(), keyPassword);
@@ -482,18 +482,17 @@ public class HttpClientProperties {
 
 		public KeyStore createKeyStore() {
 			try {
-				KeyStore store = ssl.getKeyStoreProvider() != null
-						? KeyStore.getInstance(ssl.getKeyStoreType(),
-								ssl.getKeyStoreProvider())
-						: KeyStore.getInstance(ssl.getKeyStoreType());
+				KeyStore store = getKeyStoreProvider() != null
+						? KeyStore.getInstance(getKeyStoreType(), getKeyStoreProvider())
+						: KeyStore.getInstance(getKeyStoreType());
 				try {
-					URL url = ResourceUtils.getURL(ssl.getKeyStore());
-					store.load(url.openStream(), ssl.getKeyStorePassword() != null
-							? ssl.getKeyStorePassword().toCharArray() : null);
+					URL url = ResourceUtils.getURL(getKeyStore());
+					store.load(url.openStream(), getKeyStorePassword() != null
+							? getKeyStorePassword().toCharArray() : null);
 				}
 				catch (Exception e) {
 					throw new WebServerException(
-							"Could not load key store ' " + ssl.getKeyStore() + "'", e);
+							"Could not load key store ' " + getKeyStore() + "'", e);
 				}
 
 				return store;
@@ -561,7 +560,7 @@ public class HttpClientProperties {
 
 	}
 
-	public class Websocket {
+	public static class Websocket {
 
 		/** Max frame payload length. */
 		private Integer maxFramePayloadLength;
