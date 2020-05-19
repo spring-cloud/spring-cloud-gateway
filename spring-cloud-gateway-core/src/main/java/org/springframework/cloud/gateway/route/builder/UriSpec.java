@@ -17,6 +17,8 @@
 package org.springframework.cloud.gateway.route.builder;
 
 import java.net.URI;
+import java.util.Map;
+import java.util.function.Consumer;
 
 import org.springframework.cloud.gateway.route.Route;
 
@@ -34,21 +36,41 @@ public class UriSpec {
 		this.builder = builder;
 	}
 
+	public UriSpec customize(Consumer<Route.AsyncBuilder> routeConsumer) {
+		routeConsumer.accept(this.routeBuilder);
+		return this;
+	}
+
+	public UriSpec replaceMetadata(Map<String, Object> metadata) {
+		this.routeBuilder.replaceMetadata(metadata);
+		return this;
+	}
+
+	public UriSpec metadata(Map<String, Object> metadata) {
+		this.routeBuilder.metadata(metadata);
+		return this;
+	}
+
+	public UriSpec metadata(String key, Object value) {
+		this.routeBuilder.metadata(key, value);
+		return this;
+	}
+
 	/**
 	 * Set the URI for the route.
 	 * @param uri the URI for the route
 	 * @return a {@link Route.AsyncBuilder}
 	 */
-	public Route.AsyncBuilder uri(String uri) {
+	public Buildable<Route> uri(String uri) {
 		return this.routeBuilder.uri(uri);
 	}
 
 	/**
 	 * Set the URI for the route.
 	 * @param uri the URI for the route.
-	 * @return a {@link Route.AsyncBuilder}
+	 * @return a {@link Route.AsyncBuilder}S
 	 */
-	public Route.AsyncBuilder uri(URI uri) {
+	public Buildable<Route> uri(URI uri) {
 		return this.routeBuilder.uri(uri);
 	}
 
