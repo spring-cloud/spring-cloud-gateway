@@ -175,9 +175,10 @@ $(globalSwitch);
 <li><a href="#the-stripprefix-gatewayfilter-factory">6.24. The <code>StripPrefix</code> <code>GatewayFilter</code> Factory</a></li>
 <li><a href="#the-retry-gatewayfilter-factory">6.25. The Retry <code>GatewayFilter</code> Factory</a></li>
 <li><a href="#the-requestsize-gatewayfilter-factory">6.26. The <code>RequestSize</code> <code>GatewayFilter</code> Factory</a></li>
-<li><a href="#modify-a-request-body-gatewayfilter-factory">6.27. Modify a Request Body <code>GatewayFilter</code> Factory</a></li>
-<li><a href="#modify-a-response-body-gatewayfilter-factory">6.28. Modify a Response Body <code>GatewayFilter</code> Factory</a></li>
-<li><a href="#default-filters">6.29. Default Filters</a></li>
+<li><a href="#the-setrequesthost-gatewayfilter-factory">6.27. The <code>SetRequestHost</code> <code>GatewayFilter</code> Factory</a></li>
+<li><a href="#modify-a-request-body-gatewayfilter-factory">6.28. Modify a Request Body <code>GatewayFilter</code> Factory</a></li>
+<li><a href="#modify-a-response-body-gatewayfilter-factory">6.29. Modify a Response Body <code>GatewayFilter</code> Factory</a></li>
+<li><a href="#default-filters">6.30. Default Filters</a></li>
 </ul>
 </li>
 <li><a href="#global-filters">7. Global Filters</a>
@@ -2266,7 +2267,39 @@ The default request size is set to five MB if not provided as a filter argument 
 </div>
 </div>
 <div class="sect2">
-<h3 id="modify-a-request-body-gatewayfilter-factory"><a class="anchor" href="#modify-a-request-body-gatewayfilter-factory"></a><a class="link" href="#modify-a-request-body-gatewayfilter-factory">6.27. Modify a Request Body <code>GatewayFilter</code> Factory</a></h3>
+<h3 id="the-setrequesthost-gatewayfilter-factory"><a class="anchor" href="#the-setrequesthost-gatewayfilter-factory"></a><a class="link" href="#the-setrequesthost-gatewayfilter-factory">6.27. The <code>SetRequestHost</code> <code>GatewayFilter</code> Factory</a></h3>
+<div class="paragraph">
+<p>There are certain situation when the host header may need to be overridden. In this situation, the <code>SetRequestHost</code> <code>GatewayFilter</code> factory can replace the existing host header with a specified vaue.
+The filter takes a <code>host</code> parameter.
+The following listing configures a <code>SetRequestHost</code> <code>GatewayFilter</code>:</p>
+</div>
+<div class="exampleblock">
+<div class="title">Example 51. application.yml</div>
+<div class="content">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spring:
+  cloud:
+    gateway:
+      routes:
+      - id: set_request_host_header_route
+        uri: http://localhost:8080/headers
+        predicates:
+        - Path=/headers
+        filters:
+        - name: SetRequestHost
+          args:
+            host: example.org</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>SetRequestHost</code> <code>GatewayFilter</code> factory replaces the value of the host header with <code>example.org</code>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="modify-a-request-body-gatewayfilter-factory"><a class="anchor" href="#modify-a-request-body-gatewayfilter-factory"></a><a class="link" href="#modify-a-request-body-gatewayfilter-factory">6.28. Modify a Request Body <code>GatewayFilter</code> Factory</a></h3>
 <div class="paragraph">
 <p>You can use the <code>ModifyRequestBody</code> filter  filter to modify the request body before it is sent downstream by the gateway.</p>
 </div>
@@ -2322,7 +2355,7 @@ static class Hello {
 </div>
 </div>
 <div class="sect2">
-<h3 id="modify-a-response-body-gatewayfilter-factory"><a class="anchor" href="#modify-a-response-body-gatewayfilter-factory"></a><a class="link" href="#modify-a-response-body-gatewayfilter-factory">6.28. Modify a Response Body <code>GatewayFilter</code> Factory</a></h3>
+<h3 id="modify-a-response-body-gatewayfilter-factory"><a class="anchor" href="#modify-a-response-body-gatewayfilter-factory"></a><a class="link" href="#modify-a-response-body-gatewayfilter-factory">6.29. Modify a Response Body <code>GatewayFilter</code> Factory</a></h3>
 <div class="paragraph">
 <p>You can use the <code>ModifyResponseBody</code> filter to modify the response body before it is sent back to the client.</p>
 </div>
@@ -2360,14 +2393,14 @@ public RouteLocator routes(RouteLocatorBuilder builder) {
 </div>
 </div>
 <div class="sect2">
-<h3 id="default-filters"><a class="anchor" href="#default-filters"></a><a class="link" href="#default-filters">6.29. Default Filters</a></h3>
+<h3 id="default-filters"><a class="anchor" href="#default-filters"></a><a class="link" href="#default-filters">6.30. Default Filters</a></h3>
 <div class="paragraph">
 <p>To add a filter and apply it to all routes, you can use <code>spring.cloud.gateway.default-filters</code>.
 This property takes a list of filters.
 The following listing defines a set of default filters:</p>
 </div>
 <div class="exampleblock">
-<div class="title">Example 51. application.yml</div>
+<div class="title">Example 52. application.yml</div>
 <div class="content">
 <div class="listingblock">
 <div class="content">
@@ -2416,7 +2449,7 @@ This combined filter chain is sorted by the <code>org.springframework.core.Order
 <p>The following listing configures a filter chain:</p>
 </div>
 <div class="exampleblock">
-<div class="title">Example 52. ExampleConfiguration.java</div>
+<div class="title">Example 53. ExampleConfiguration.java</div>
 <div class="content">
 <div class="listingblock">
 <div class="content">
@@ -2463,7 +2496,7 @@ If so, the same rules apply.
 The following listing configures a <code>LoadBalancerClientFilter</code>:</p>
 </div>
 <div class="exampleblock">
-<div class="title">Example 53. application.yml</div>
+<div class="title">Example 54. application.yml</div>
 <div class="content">
 <div class="listingblock">
 <div class="content">
@@ -2538,7 +2571,7 @@ If so, the same rules apply.
 The following listing configures a <code>ReactiveLoadBalancerClientFilter</code>:</p>
 </div>
 <div class="exampleblock">
-<div class="title">Example 54. application.yml</div>
+<div class="title">Example 55. application.yml</div>
 <div class="content">
 <div class="listingblock">
 <div class="content">
@@ -2636,7 +2669,7 @@ If you use <a href="https://github.com/sockjs">SockJS</a> as a fallback over nor
 <p>The following listing configures a websocket routing filter:</p>
 </div>
 <div class="exampleblock">
-<div class="title">Example 55. application.yml</div>
+<div class="title">Example 56. application.yml</div>
 <div class="content">
 <div class="listingblock">
 <div class="content">
@@ -2833,7 +2866,7 @@ or check if an exchange has already been routed.</p>
 The following example shows how to do so:</p>
 </div>
 <div class="exampleblock">
-<div class="title">Example 56. application.yml</div>
+<div class="title">Example 57. application.yml</div>
 <div class="content">
 <div class="listingblock">
 <div class="content">
@@ -2853,7 +2886,7 @@ The following example shows how to do so:</p>
 If you are routing to an HTTPS backend, you can configure the gateway to trust all downstream certificates with the following configuration:</p>
 </div>
 <div class="exampleblock">
-<div class="title">Example 57. application.yml</div>
+<div class="title">Example 58. application.yml</div>
 <div class="content">
 <div class="listingblock">
 <div class="content">
@@ -2872,7 +2905,7 @@ If you are routing to an HTTPS backend, you can configure the gateway to trust a
 For a production deployment, you can configure the gateway with a set of known certificates that it can trust with the following configuration:</p>
 </div>
 <div class="exampleblock">
-<div class="title">Example 58. application.yml</div>
+<div class="title">Example 59. application.yml</div>
 <div class="content">
 <div class="listingblock">
 <div class="content">
@@ -2900,7 +2933,7 @@ A number of timeouts are associated with this handshake.
 You can configure these timeouts can be configured (defaults shown) as follows:</p>
 </div>
 <div class="exampleblock">
-<div class="title">Example 59. application.yml</div>
+<div class="title">Example 60. application.yml</div>
 <div class="content">
 <div class="listingblock">
 <div class="content">
@@ -2927,7 +2960,7 @@ You can configure these timeouts can be configured (defaults shown) as follows:<
 The following listing shows the definition of the <code>RouteDefinitionLocator</code> interface:</p>
 </div>
 <div class="exampleblock">
-<div class="title">Example 60. RouteDefinitionLocator.java</div>
+<div class="title">Example 61. RouteDefinitionLocator.java</div>
 <div class="content">
 <div class="listingblock">
 <div class="content">
@@ -2946,7 +2979,7 @@ The following listing shows the definition of the <code>RouteDefinitionLocator</
 The following two examples are equivalent:</p>
 </div>
 <div class="exampleblock">
-<div class="title">Example 61. application.yml</div>
+<div class="title">Example 62. application.yml</div>
 <div class="content">
 <div class="listingblock">
 <div class="content">
@@ -2980,7 +3013,7 @@ The following two examples are equivalent:</p>
 <p>You can configure additional parameters for each route by using metadata, as follows:</p>
 </div>
 <div class="exampleblock">
-<div class="title">Example 62. application.yml</div>
+<div class="title">Example 63. application.yml</div>
 <div class="content">
 <div class="listingblock">
 <div class="content">
@@ -3091,7 +3124,7 @@ import static org.springframework.cloud.gateway.support.RouteMetadataUtils.RESPO
 The following listing shows how it works:</p>
 </div>
 <div class="exampleblock">
-<div class="title">Example 63. GatewaySampleApplication.java</div>
+<div class="title">Example 64. GatewaySampleApplication.java</div>
 <div class="content">
 <div class="listingblock">
 <div class="content">
@@ -3158,7 +3191,7 @@ When doing so, you need to make sure to include the default predicate and filter
 The following example shows what this looks like:</p>
 </div>
 <div class="exampleblock">
-<div class="title">Example 64. application.properties</div>
+<div class="title">Example 65. application.properties</div>
 <div class="content">
 <div class="listingblock">
 <div class="content">
@@ -3201,7 +3234,7 @@ It must be a Java System Property, not a Spring Boot property.
 <p>You can configure the logging system to have a separate access log file. The following example creates a Logback configuration:</p>
 </div>
 <div class="exampleblock">
-<div class="title">Example 65. logback.xml</div>
+<div class="title">Example 66. logback.xml</div>
 <div class="content">
 <div class="listingblock">
 <div class="content">
@@ -3232,7 +3265,7 @@ It must be a Java System Property, not a Spring Boot property.
 The following example configures CORS:</p>
 </div>
 <div class="exampleblock">
-<div class="title">Example 66. application.yml</div>
+<div class="title">Example 67. application.yml</div>
 <div class="content">
 <div class="listingblock">
 <div class="content">
@@ -3267,7 +3300,7 @@ To be remotely accessible, the endpoint has to be <a href="https://docs.spring.i
 The following listing shows how to do so:</p>
 </div>
 <div class="exampleblock">
-<div class="title">Example 67. application.properties</div>
+<div class="title">Example 68. application.properties</div>
 <div class="content">
 <div class="listingblock">
 <div class="content">
@@ -3309,7 +3342,7 @@ The following example configures <code>/actuator/gateway/routes</code>:</p>
 <p>This feature is enabled by default. To disable it, set the following property:</p>
 </div>
 <div class="exampleblock">
-<div class="title">Example 68. application.properties</div>
+<div class="title">Example 69. application.properties</div>
 <div class="content">
 <div class="listingblock">
 <div class="content">
@@ -3700,7 +3733,7 @@ You can extend an abstract class called <code>AbstractGatewayFilterFactory</code
 The following examples show how to do so:</p>
 </div>
 <div class="exampleblock">
-<div class="title">Example 69. PreGatewayFilterFactory.java</div>
+<div class="title">Example 70. PreGatewayFilterFactory.java</div>
 <div class="content">
 <div class="listingblock">
 <div class="content">
