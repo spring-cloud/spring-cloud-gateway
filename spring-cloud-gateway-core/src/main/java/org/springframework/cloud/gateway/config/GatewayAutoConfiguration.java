@@ -391,7 +391,8 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	public ReadBodyPredicateFactory readBodyPredicateFactory(ServerCodecConfigurer codecConfigurer) {
+	public ReadBodyPredicateFactory readBodyPredicateFactory(
+			ServerCodecConfigurer codecConfigurer) {
 		return new ReadBodyPredicateFactory(codecConfigurer.getReaders());
 	}
 
