@@ -72,6 +72,15 @@ public class SpringCloudCircuitBreakerResilience4JFilterFactoryTests
 	}
 
 	@Test
+	public void cbFilterTimesoutMessage() {
+		testClient.get().uri("/delay/3").header("Host", "www.sccbtimeout.org").exchange()
+				.expectStatus().isEqualTo(HttpStatus.GATEWAY_TIMEOUT).expectBody()
+				.jsonPath("$.status")
+				.isEqualTo(String.valueOf(HttpStatus.GATEWAY_TIMEOUT.value()))
+				.jsonPath("$.message").value(containsString("1000ms"));
+	}
+
+	@Test
 	public void toStringFormat() {
 		SpringCloudCircuitBreakerFilterFactory.Config config = new SpringCloudCircuitBreakerFilterFactory.Config()
 				.setName("myname").setFallbackUri("forward:/myfallback");

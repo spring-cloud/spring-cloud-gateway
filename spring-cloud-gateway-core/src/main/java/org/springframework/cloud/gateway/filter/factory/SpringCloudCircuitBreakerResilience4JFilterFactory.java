@@ -22,8 +22,9 @@ import reactor.core.publisher.Mono;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cloud.client.circuitbreaker.ReactiveCircuitBreakerFactory;
 import org.springframework.cloud.gateway.support.ServiceUnavailableException;
-import org.springframework.cloud.gateway.support.TimeoutException;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.reactive.DispatcherHandler;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
  * @author Ryan Baxter
@@ -40,7 +41,8 @@ public class SpringCloudCircuitBreakerResilience4JFilterFactory
 	@Override
 	protected Mono<Void> handleErrorWithoutFallback(Throwable t) {
 		if (java.util.concurrent.TimeoutException.class.isInstance(t)) {
-			return Mono.error(new TimeoutException());
+			return Mono.error(new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT,
+					t.getMessage(), t));
 		}
 		if (CallNotPermittedException.class.isInstance(t)) {
 			return Mono.error(new ServiceUnavailableException());
