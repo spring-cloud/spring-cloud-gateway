@@ -35,7 +35,7 @@ import org.springframework.cloud.gateway.support.NotFoundException;
 import org.springframework.cloud.loadbalancer.core.ReactorLoadBalancer;
 import org.springframework.cloud.loadbalancer.core.RoundRobinLoadBalancer;
 import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
-import org.springframework.cloud.loadbalancer.support.ServiceInstanceSuppliers;
+import org.springframework.cloud.loadbalancer.support.ServiceInstanceListSuppliers;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
@@ -121,10 +121,11 @@ public class ReactiveLoadBalancerClientFilterTests {
 		ServiceInstance serviceInstance = new DefaultServiceInstance("myservice1",
 				"myservice", "localhost", 8080, true);
 
+		RoundRobinLoadBalancer loadBalancer = new RoundRobinLoadBalancer(
+				ServiceInstanceListSuppliers.toProvider("myservice", serviceInstance),
+				"myservice", -1);
 		when(clientFactory.getInstance("myservice", ReactorLoadBalancer.class,
-				ServiceInstance.class)).thenReturn(new RoundRobinLoadBalancer("myservice",
-						ServiceInstanceSuppliers.toProvider("myservice", serviceInstance),
-						-1));
+				ServiceInstance.class)).thenReturn(loadBalancer);
 
 		when(chain.filter(exchange)).thenReturn(Mono.empty());
 
@@ -246,10 +247,10 @@ public class ReactiveLoadBalancerClientFilterTests {
 	public void shouldThrow4O4ExceptionWhenNoServiceInstanceIsFound() {
 		URI uri = UriComponentsBuilder.fromUriString("lb://service1").build().toUri();
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, uri);
+		RoundRobinLoadBalancer loadBalancer = new RoundRobinLoadBalancer(
+				ServiceInstanceListSuppliers.toProvider("service1"), "service1", -1);
 		when(clientFactory.getInstance("service1", ReactorLoadBalancer.class,
-				ServiceInstance.class))
-						.thenReturn(new RoundRobinLoadBalancer("service1",
-								ServiceInstanceSuppliers.toProvider("service1"), -1));
+				ServiceInstance.class)).thenReturn(loadBalancer);
 		properties.setUse404(true);
 		ReactiveLoadBalancerClientFilter filter = new ReactiveLoadBalancerClientFilter(
 				clientFactory, properties);
@@ -273,14 +274,13 @@ public class ReactiveLoadBalancerClientFilterTests {
 				.forClass(ServerWebExchange.class);
 		when(chain.filter(captor.capture())).thenReturn(Mono.empty());
 
+		RoundRobinLoadBalancer loadBalancer = new RoundRobinLoadBalancer(
+				ServiceInstanceListSuppliers.toProvider("service1",
+						new DefaultServiceInstance("service1_1", "service1",
+								"service1-host1", 8081, false)),
+				"service1", -1);
 		when(clientFactory.getInstance("service1", ReactorLoadBalancer.class,
-				ServiceInstance.class))
-						.thenReturn(new RoundRobinLoadBalancer("service1",
-								ServiceInstanceSuppliers.toProvider("service1",
-										new DefaultServiceInstance("service1_1",
-												"service1", "service1-host1", 8081,
-												false)),
-								-1));
+				ServiceInstance.class)).thenReturn(loadBalancer);
 
 		ReactiveLoadBalancerClientFilter filter = new ReactiveLoadBalancerClientFilter(
 				clientFactory, properties);
