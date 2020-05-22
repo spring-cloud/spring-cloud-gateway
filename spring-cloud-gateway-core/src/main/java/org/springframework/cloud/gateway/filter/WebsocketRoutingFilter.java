@@ -41,12 +41,14 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import static org.springframework.cloud.gateway.filter.headers.HttpHeadersFilter.filterRequest;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.containsEncodedParts;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.isAlreadyRouted;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.setAlreadyRouted;
 import static org.springframework.util.StringUtils.commaDelimitedListToStringArray;
 
 /**
  * @author Spencer Gibb
+ * @author Nikita Konev
  */
 public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 
@@ -132,7 +134,7 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 		return this.headersFilters;
 	}
 
-	private void changeSchemeIfIsWebSocketUpgrade(ServerWebExchange exchange) {
+	static void changeSchemeIfIsWebSocketUpgrade(ServerWebExchange exchange) {
 		// Check the Upgrade
 		URI requestUrl = exchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
 		String scheme = requestUrl.getScheme().toLowerCase();
@@ -141,8 +143,9 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 		if ("WebSocket".equalsIgnoreCase(upgrade)
 				&& ("http".equals(scheme) || "https".equals(scheme))) {
 			String wsScheme = convertHttpToWs(scheme);
+			boolean encoded = containsEncodedParts(requestUrl);
 			URI wsRequestUrl = UriComponentsBuilder.fromUri(requestUrl).scheme(wsScheme)
-					.build().toUri();
+					.build(encoded).toUri();
 			exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, wsRequestUrl);
 			if (log.isTraceEnabled()) {
 				log.trace("changeSchemeTo:[" + wsRequestUrl + "]");
