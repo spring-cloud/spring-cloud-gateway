@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -40,22 +40,24 @@ import static org.springframework.http.HttpStatus.Series.SERVER_ERROR;
  * forced @{@link ResponseStatusException} to gracefully honor
  * the @{@link SpringCloudCircuitBreakerFilterFactory} fallback logic. To be used in
  * conjunction with
+ *
  * @{@link SpringCloudCircuitBreakerFilterFactory} filter. You might need to
  * add @{@link DedupeResponseHeaderGatewayFilterFactory} as well to remove duplicate
  * response headers.
- * 
- * // @formatter:off
- * <p>
- * Usage: 
- *        To translate 4xx errors' to exception, 
+ *
+ * <pre>
+ * Usage:
+ *        To translate 4xx errors' to exception,
+ * {@code
  *         filters:
  *         - name: ErrorStatusCodeToException
  *           args:
  *             name: MeshErrorCodeToException
  *             responseStatusCodeSeries:
  *             - CLIENT_ERROR
- *
- * 		  To translate 4xx and 5xx errors' to exception, 
+ * }
+ * 		  To translate 4xx and 5xx errors' to exception,
+ * {@code
  *         filters:
  *         - name: ErrorStatusCodeToException
  *           args:
@@ -63,9 +65,8 @@ import static org.springframework.http.HttpStatus.Series.SERVER_ERROR;
  *             responseStatusCodeSeries:
  *             - CLIENT_ERROR
  *             - SERVER_ERROR
- * </p>
- * // @formatter:on
- * 
+ * }
+ * </pre>
  * @author Srinivasa Vasu
  */
 public class ErrorStatusCodeToExceptionGatewayFilterFactory extends
@@ -125,12 +126,8 @@ public class ErrorStatusCodeToExceptionGatewayFilterFactory extends
 
 	public static class Config extends AbstractGatewayFilterFactory.NameConfig {
 
-		List<HttpStatus.Series> responseStatusCodeSeries = new ArrayList<HttpStatus.Series>() {
-			{
-				add(SERVER_ERROR);
-				add(CLIENT_ERROR);
-			}
-		};
+		List<HttpStatus.Series> responseStatusCodeSeries = Arrays.asList(SERVER_ERROR,
+				CLIENT_ERROR);
 
 		public List<HttpStatus.Series> getResponseStatusCodeSeries() {
 			return responseStatusCodeSeries;

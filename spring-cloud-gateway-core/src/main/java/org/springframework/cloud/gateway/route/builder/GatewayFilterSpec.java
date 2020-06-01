@@ -264,7 +264,7 @@ public class GatewayFilterSpec extends UriSpec {
 	 * @param <T> the original request body class
 	 * @param <R> the new request body class
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
-	 * 
+	 *
 	 * <pre>
 	 * {@code
 	 * ...
@@ -287,9 +287,9 @@ public class GatewayFilterSpec extends UriSpec {
 	 * A filter that can be used to modify the response body.
 	 * @param inClass the class to conver the response body to
 	 * @param outClass the class the Gateway will add to the response before it is
-	 *     returned to the client
+	 * returned to the client
 	 * @param rewriteFunction the {@link RewriteFunction} that transforms the response
-	 *     body
+	 * body
 	 * @param <T> the original response body class
 	 * @param <R> the new response body class
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
@@ -304,10 +304,10 @@ public class GatewayFilterSpec extends UriSpec {
 	 * A filter that can be used to modify the response body.
 	 * @param inClass the class to conver the response body to
 	 * @param outClass the class the Gateway will add to the response before it is
-	 *     returned to the client
+	 * returned to the client
 	 * @param newContentType the new Content-Type header to be returned
 	 * @param rewriteFunction the {@link RewriteFunction} that transforms the response
-	 *     body
+	 * body
 	 * @param <T> the original response body class
 	 * @param <R> the new response body class
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
@@ -327,7 +327,7 @@ public class GatewayFilterSpec extends UriSpec {
 	 * @param <T> the original response body class
 	 * @param <R> the new response body class
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
-	 * 
+	 *
 	 * <pre>
 	 * {@code
 	 * ...
@@ -366,7 +366,8 @@ public class GatewayFilterSpec extends UriSpec {
 	}
 
 	/**
-	 * A filter that will set the Host header to {@param hostName} on the outgoing request
+	 * A filter that will set the Host header to
+	 * {@param hostName} on the outgoing request
 	 * @param hostName the updated Host header value
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
@@ -379,7 +380,7 @@ public class GatewayFilterSpec extends UriSpec {
 	 * A filter that will return a redirect response back to the client.
 	 * @param status an HTTP status code, should be a {@code 300} series redirect
 	 * @param url the URL to redirect to. This URL will be set in the {@code location}
-	 *     header
+	 * header
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
 	public GatewayFilterSpec redirect(int status, URI url) {
@@ -390,7 +391,7 @@ public class GatewayFilterSpec extends UriSpec {
 	 * A filter that will return a redirect response back to the client.
 	 * @param status an HTTP status code, should be a {@code 300} series redirect
 	 * @param url the URL to redirect to. This URL will be set in the {@code location}
-	 *     header
+	 * header
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
 	public GatewayFilterSpec redirect(int status, String url) {
@@ -401,7 +402,7 @@ public class GatewayFilterSpec extends UriSpec {
 	 * A filter that will return a redirect response back to the client.
 	 * @param status an HTTP status code, should be a {@code 300} series redirect
 	 * @param url the URL to redirect to. This URL will be set in the {@code location}
-	 *     header
+	 * header
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
 	public GatewayFilterSpec redirect(String status, URI url) {
@@ -412,7 +413,7 @@ public class GatewayFilterSpec extends UriSpec {
 	 * A filter that will return a redirect response back to the client.
 	 * @param status an HTTP status code, should be a {@code 300} series redirect
 	 * @param url the URL to redirect to. This URL will be set in the {@code location}
-	 *     header
+	 * header
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
 	public GatewayFilterSpec redirect(String status, String url) {
@@ -423,7 +424,7 @@ public class GatewayFilterSpec extends UriSpec {
 	 * A filter that will return a redirect response back to the client.
 	 * @param status an HTTP status code, should be a {@code 300} series redirect
 	 * @param url the URL to redirect to. This URL will be set in the {@code location}
-	 *     header
+	 * header
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
 	public GatewayFilterSpec redirect(HttpStatus status, URL url) {
@@ -472,7 +473,7 @@ public class GatewayFilterSpec extends UriSpec {
 	/**
 	 * A filter that will set up a request rate limiter for a route.
 	 * @param configConsumer a {@link Consumer} that will return configuration for the
-	 *     rate limiter
+	 * rate limiter
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
 	public GatewayFilterSpec requestRateLimiter(
@@ -516,8 +517,8 @@ public class GatewayFilterSpec extends UriSpec {
 	/**
 	 * A filter that will retry failed requests.
 	 * @param retryConsumer a {@link Consumer} which returns a
-	 *     {@link org.springframework.cloud.gateway.filter.factory.RetryGatewayFilterFactory.RetryConfig}
-	 *     to configure the retry functionality
+	 * {@link org.springframework.cloud.gateway.filter.factory.RetryGatewayFilterFactory.RetryConfig}
+	 * to configure the retry functionality
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
 	public GatewayFilterSpec retry(
@@ -554,7 +555,7 @@ public class GatewayFilterSpec extends UriSpec {
 	/**
 	 * A filter that sets the path of the request before it is routed by the Gateway.
 	 * @param template the path to set on the request, allows multiple matching segments
-	 *     using URI templates from Spring Framework
+	 * using URI templates from Spring Framework
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
 	public GatewayFilterSpec setPath(String template) {
@@ -606,7 +607,7 @@ public class GatewayFilterSpec extends UriSpec {
 	 * @param locationHeaderName a location header name
 	 * @param hostValue host value
 	 * @param protocolsRegex a valid regex String, against which the protocol name will be
-	 *     matched
+	 * matched
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
 	public GatewayFilterSpec rewriteLocationResponseHeader(String stripVersionMode,
@@ -689,7 +690,7 @@ public class GatewayFilterSpec extends UriSpec {
 	/**
 	 * A filter which change the URI the request will be routed to by the Gateway.
 	 * @param determineRequestUri a {@link Function} which takes a
-	 *     {@link ServerWebExchange} and returns a URI to route the request to
+	 * {@link ServerWebExchange} and returns a URI to route the request to
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
 	public GatewayFilterSpec changeRequestUri(
@@ -739,8 +740,8 @@ public class GatewayFilterSpec extends UriSpec {
 	 * org.springframework.cloud::spring-cloud-starter-netflix-hystrix} being on the
 	 * classpath, {@see https://cloud.spring.io/spring-cloud-netflix/}
 	 * @param config a {@link FallbackHeadersGatewayFilterFactory.Config} which provides
-	 *     the header names. If header names arguments are not provided, default values
-	 *     are used.
+	 * the header names. If header names arguments are not provided, default values are
+	 * used.
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
 	public GatewayFilterSpec fallbackHeaders(
@@ -754,8 +755,8 @@ public class GatewayFilterSpec extends UriSpec {
 	 * org.springframework.cloud::spring-cloud-starter-netflix-hystrix} being on the
 	 * classpath, {@see https://cloud.spring.io/spring-cloud-netflix/}
 	 * @param configConsumer a {@link Consumer} which can be used to set up the names of
-	 *     the headers in the config. If header names arguments are not provided, default
-	 *     values are used.
+	 * the headers in the config. If header names arguments are not provided, default
+	 * values are used.
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
 	public GatewayFilterSpec fallbackHeaders(
@@ -771,7 +772,7 @@ public class GatewayFilterSpec extends UriSpec {
 	 * conjunction with
 	 * @{@link SpringCloudCircuitBreakerFilterFactory} filter
 	 * @param responseStatusCodeSeries error response series to be considered to convert
-	 *     to response exception
+	 * to response exception
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
 	public GatewayFilterSpec errorResponseStatusCodeToException(
