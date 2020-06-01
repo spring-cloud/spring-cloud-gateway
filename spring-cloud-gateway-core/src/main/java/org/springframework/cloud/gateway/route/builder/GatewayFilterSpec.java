@@ -29,6 +29,8 @@ import java.util.stream.Stream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import reactor.retry.Repeat;
+import reactor.retry.Retry;
 
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
@@ -75,9 +77,6 @@ import org.springframework.core.Ordered;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.unit.DataSize;
 import org.springframework.web.server.ServerWebExchange;
-
-import reactor.retry.Repeat;
-import reactor.retry.Retry;
 
 /**
  * Applies specific filters to routes.
@@ -264,7 +263,6 @@ public class GatewayFilterSpec extends UriSpec {
 	 * @param <T> the original request body class
 	 * @param <R> the new request body class
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
-	 *
 	 * <pre>
 	 * {@code
 	 * ...
@@ -327,7 +325,6 @@ public class GatewayFilterSpec extends UriSpec {
 	 * @param <T> the original response body class
 	 * @param <R> the new response body class
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
-	 *
 	 * <pre>
 	 * {@code
 	 * ...
