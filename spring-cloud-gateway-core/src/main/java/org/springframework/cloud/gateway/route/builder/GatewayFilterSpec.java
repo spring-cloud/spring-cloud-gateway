@@ -29,8 +29,6 @@ import java.util.stream.Stream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import reactor.retry.Repeat;
-import reactor.retry.Retry;
 
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
@@ -76,8 +74,10 @@ import org.springframework.cloud.gateway.route.Route;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.unit.DataSize;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
+
+import reactor.retry.Repeat;
+import reactor.retry.Retry;
 
 /**
  * Applies specific filters to routes.
@@ -767,12 +767,11 @@ public class GatewayFilterSpec extends UriSpec {
 
 	/**
 	 * A filter that translates the error code from mesh implementations like Istio to a
-	 * forced @{@link ResponseStatusException} to gracefully honor
-	 * the @{@link SpringCloudCircuitBreakerFilterFactory} fallback logic. To be used in
-	 * conjunction with
-	 * @{@link SpringCloudCircuitBreakerFilterFactory} filter
-	 * @param responseStatusCodeSeries error response series to be considered to convert
-	 * to response exception
+	 * forced exception to gracefully support the
+	 * {@link SpringCloudCircuitBreakerFilterFactory} fallback logic. To be used in
+	 * conjunction with {@link SpringCloudCircuitBreakerFilterFactory} filter
+	 * @param responseStatusCodeSeries error response series codes to be checked to
+	 * convert to a response exception
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
 	public GatewayFilterSpec errorResponseStatusCodeToException(
