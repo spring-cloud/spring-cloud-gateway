@@ -65,6 +65,7 @@ import org.springframework.cloud.gateway.filter.factory.AddRequestHeaderGatewayF
 import org.springframework.cloud.gateway.filter.factory.AddRequestParameterGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.AddResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.DedupeResponseHeaderGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.ErrorStatusCodeToExceptionGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.MapRequestHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.PrefixPathGatewayFilterFactory;
@@ -576,6 +577,11 @@ public class GatewayAutoConfiguration {
 	@Bean
 	public GzipMessageBodyResolver gzipMessageBodyResolver() {
 		return new GzipMessageBodyResolver();
+	}
+
+	@Bean
+	public ErrorStatusCodeToExceptionGatewayFilterFactory errorStatusCodeToExceptionGatewayFilterFactory() {
+		return new ErrorStatusCodeToExceptionGatewayFilterFactory();
 	}
 
 	@Configuration(proxyBeanMethods = false)

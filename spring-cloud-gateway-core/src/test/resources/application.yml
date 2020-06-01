@@ -426,6 +426,30 @@ spring:
         - Weight=group1, 8
 
       # =====================================
+      - id: error_status_4xx
+        uri: ${test.uri}
+        predicates:
+          - Path=/errorresponse/status/code/4xx
+        filters:
+        - name: ErrorStatusCodeToException
+          args:
+            name: MeshErrorCodeToException
+            responseStatusCodeSeries:
+              - CLIENT_ERROR
+
+      # =====================================
+      - id: error_status_5xx
+        uri: ${test.uri}
+        predicates:
+          - Path=/errorresponse/status/code/5xx
+        filters:
+        - name: ErrorStatusCodeToException
+          args:
+            name: MeshErrorCodeToException
+            responseStatusCodeSeries:
+              - SERVER_ERROR
+
+      # =====================================
       # should be last and not follow alphabetical order
       - id: default_path_to_httpbin
         uri: ${test.uri}
