@@ -435,7 +435,8 @@ spring:
           args:
             name: MeshErrorCodeToException
             responseStatusCodeSeries:
-              - CLIENT_ERROR
+            - CLIENT_ERROR
+            clearResponseHeader: "true"
 
       # =====================================
       - id: error_status_5xx
@@ -447,7 +448,7 @@ spring:
           args:
             name: MeshErrorCodeToException
             responseStatusCodeSeries:
-              - SERVER_ERROR
+            - SERVER_ERROR
 
       # =====================================
       # should be last and not follow alphabetical order

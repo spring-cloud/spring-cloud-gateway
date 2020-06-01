@@ -36,37 +36,56 @@ import static org.springframework.http.HttpStatus.Series.CLIENT_ERROR;
 import static org.springframework.http.HttpStatus.Series.SERVER_ERROR;
 
 /**
- * A filter that translates the error code from mesh implementations like Istio to a
- * forced @{@link ResponseStatusException} to gracefully honor
- * the @{@link SpringCloudCircuitBreakerFilterFactory} fallback logic. To be used in
- * conjunction with
+ * A filter that translates the error code http response from mesh implementations like
+ * Istio to a forced {@link org.springframework.web.server.ResponseStatusException} to
+ * gracefully honor the {@link SpringCloudCircuitBreakerFilterFactory} fallback logic. To
+ * be used in conjunction with {@link SpringCloudCircuitBreakerFilterFactory} filter.
  *
- * @{@link SpringCloudCircuitBreakerFilterFactory} filter. You might need to
- * add @{@link DedupeResponseHeaderGatewayFilterFactory} as well to remove duplicate
- * response headers.
+ * You might need to add {@link DedupeResponseHeaderGatewayFilterFactory} to remove
+ * duplicate response headers after the fallback call or set clearResponseHeader to avoid
+ * propagating response headers to the fallback proxy call.
  *
  * <pre>
  * Usage:
- *        To translate 4xx errors' to exception,
+ * <u>To translate 4xx errors' to exception,</u>
  * {@code
- *         filters:
- *         - name: ErrorStatusCodeToException
- *           args:
- *             name: MeshErrorCodeToException
- *             responseStatusCodeSeries:
- *             - CLIENT_ERROR
+ *  filters:
+ *  - name: ErrorStatusCodeToException
+ *    args:
+ *      name: MeshErrorCodeToException
+ *      responseStatusCodeSeries:
+ *      - CLIENT_ERROR
+ *      clearResponseHeader: true
  * }
- * 		  To translate 4xx and 5xx errors' to exception,
+ *
+ * <u>To translate 4xx and 5xx errors' to exception,</u>
  * {@code
- *         filters:
- *         - name: ErrorStatusCodeToException
- *           args:
- *             name: MeshErrorCodeToException
- *             responseStatusCodeSeries:
- *             - CLIENT_ERROR
- *             - SERVER_ERROR
+ *  filters:
+ *  - name: ErrorStatusCodeToException
+ *    args:
+ *      name: MeshErrorCodeToException
+ *      responseStatusCodeSeries:
+ *      - CLIENT_ERROR
+ *      - SERVER_ERROR
+ * }
+ *
+ * <u>To use this with CircuitBreaker filter,</u>
+ * {@code
+ *  filters:
+ *  - name: CircuitBreaker
+ *    args:
+ *      name: svc-fallback
+ *      fallbackUri: forward:/fallback
+ *  - name: ErrorStatusCodeToException
+ *    args:
+ *      name: MeshErrorCodeToException
+ *      responseStatusCodeSeries:
+ *      - CLIENT_ERROR
+ *      - SERVER_ERROR
+ *      clearResponseHeader: "true"
  * }
  * </pre>
+ *
  * @author Srinivasa Vasu
  */
 public class ErrorStatusCodeToExceptionGatewayFilterFactory extends
@@ -88,6 +107,9 @@ public class ErrorStatusCodeToExceptionGatewayFilterFactory extends
 					if (response.getStatusCode() != null
 							&& config.getResponseStatusCodeSeries()
 									.contains(response.getStatusCode().series())) {
+						if (config.isClearResponseHeader()) {
+							response.getHeaders().clear();
+						}
 						return Mono.error(
 								new ResponseStatusException(response.getStatusCode(),
 										response.getStatusCode().getReasonPhrase()));
@@ -126,8 +148,10 @@ public class ErrorStatusCodeToExceptionGatewayFilterFactory extends
 
 	public static class Config extends AbstractGatewayFilterFactory.NameConfig {
 
-		List<HttpStatus.Series> responseStatusCodeSeries = Arrays.asList(SERVER_ERROR,
-				CLIENT_ERROR);
+		private List<HttpStatus.Series> responseStatusCodeSeries = Arrays
+				.asList(SERVER_ERROR, CLIENT_ERROR);
+
+		private boolean clearResponseHeader;
 
 		public List<HttpStatus.Series> getResponseStatusCodeSeries() {
 			return responseStatusCodeSeries;
@@ -136,6 +160,15 @@ public class ErrorStatusCodeToExceptionGatewayFilterFactory extends
 		public Config setResponseStatusCodeSeries(
 				List<HttpStatus.Series> responseStatusCodeSeries) {
 			this.responseStatusCodeSeries = responseStatusCodeSeries;
+			return this;
+		}
+
+		public boolean isClearResponseHeader() {
+			return clearResponseHeader;
+		}
+
+		public Config setClearResponseHeader(boolean clearResponseHeader) {
+			this.clearResponseHeader = clearResponseHeader;
 			return this;
 		}
 
