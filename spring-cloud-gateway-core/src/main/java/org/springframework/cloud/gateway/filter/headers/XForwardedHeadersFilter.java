@@ -207,12 +207,7 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 		if (isForEnabled() && request.getRemoteAddress() != null
 				&& request.getRemoteAddress().getAddress() != null) {
 			String remoteAddr = request.getRemoteAddress().getAddress().getHostAddress();
-			List<String> xforwarded = original.get(X_FORWARDED_FOR_HEADER);
-			// prevent duplicates
-			if (remoteAddr != null
-					&& (xforwarded == null || !xforwarded.contains(remoteAddr))) {
-				write(updated, X_FORWARDED_FOR_HEADER, remoteAddr, isForAppend());
-			}
+			write(updated, X_FORWARDED_FOR_HEADER, remoteAddr, isForAppend());
 		}
 
 		String proto = request.getURI().getScheme();
