@@ -331,4 +331,23 @@ public class XForwardedHeadersFilterTests {
 		assertThat(headers).isEmpty();
 	}
 
+	@Test
+	public void allowDuplicateEntriesInXForwardedForHeader() throws Exception {
+		MockServerHttpRequest request = MockServerHttpRequest
+				.get("http://localhost:8080/get")
+				.remoteAddress(
+						new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80))
+				.header(X_FORWARDED_FOR_HEADER, "10.0.0.1")
+				.build();
+
+		XForwardedHeadersFilter filter = new XForwardedHeadersFilter();
+
+		HttpHeaders headers = filter.filter(request.getHeaders(),
+				MockServerWebExchange.from(request));
+
+		assertThat(headers).containsKeys(X_FORWARDED_FOR_HEADER);
+
+		assertThat(headers.getFirst(X_FORWARDED_FOR_HEADER))
+				.isEqualTo("10.0.0.1,10.0.0.1");
+	}
 }
