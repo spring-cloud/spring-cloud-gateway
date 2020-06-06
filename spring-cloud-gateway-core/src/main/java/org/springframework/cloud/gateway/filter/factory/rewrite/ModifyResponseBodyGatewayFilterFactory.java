@@ -306,8 +306,11 @@ public class ModifyResponseBodyGatewayFilterFactory extends
 				MessageBodyEncoder encoder = messageBodyEncoders.get(encoding);
 				if (encoder != null) {
 					DataBufferFactory dataBufferFactory = httpResponse.bufferFactory();
-					response = response.publishOn(Schedulers.parallel())
-							.map(encoder::encode).map(dataBufferFactory::wrap);
+					response = response.publishOn(Schedulers.parallel()).map(buffer -> {
+						byte[] encodedResponse = encoder.encode(buffer);
+						DataBufferUtils.release(buffer);
+						return encodedResponse;
+					}).map(dataBufferFactory::wrap);
 					break;
 				}
 			}
