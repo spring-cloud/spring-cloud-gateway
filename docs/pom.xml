@@ -9,7 +9,7 @@
 		<version>3.0.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>spring-cloud-gateway-docs</artifactId>
-	<packaging>pom</packaging>
+	<packaging>jar</packaging>
 	<name>Spring Cloud Gateway Docs</name>
 	<description>Spring Cloud Docs</description>
 	<properties>
