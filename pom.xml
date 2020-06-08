@@ -56,6 +56,7 @@
 		<spring-cloud-circuitbreaker.version>2.0.0-SNAPSHOT</spring-cloud-circuitbreaker.version>
 		<embedded-redis.version>0.6</embedded-redis.version>
 		<blockhound.version>1.0.3.RELEASE</blockhound.version>
+		<resilience4j-ratelimiter.version>1.4.0</resilience4j-ratelimiter.version>
 	</properties>
 
 	<dependencyManagement>
@@ -101,6 +102,11 @@
 				<groupId>com.github.kstyrc</groupId>
 				<artifactId>embedded-redis</artifactId>
 				<version>${embedded-redis.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.github.resilience4j</groupId>
+				<artifactId>resilience4j-ratelimiter</artifactId>
+				<version>${resilience4j-ratelimiter.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>io.projectreactor.tools</groupId>

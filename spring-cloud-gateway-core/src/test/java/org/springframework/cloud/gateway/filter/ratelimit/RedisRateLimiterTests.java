@@ -201,7 +201,8 @@ public class RedisRateLimiterTests extends BaseWebClientTests {
 				.isFalse();
 	}
 
-	@EnableAutoConfiguration
+	@EnableAutoConfiguration(exclude = {
+			org.springframework.cloud.gateway.config.GatewayLocalRateLimiterAutoConfiguration.class })
 	@SpringBootConfiguration
 	@Import(BaseWebClientTests.DefaultTestConfig.class)
 	public static class TestConfig {
