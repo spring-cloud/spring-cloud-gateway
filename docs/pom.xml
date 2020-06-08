@@ -15,7 +15,6 @@
 	<properties>
 		<docs.main>spring-cloud-gateway</docs.main>
 		<main.basedir>${basedir}/..</main.basedir>
-		<docs.whitelisted.branches>2.1.x,2.2.x</docs.whitelisted.branches>
 		<configprops.inclusionPattern>spring.cloud.gateway.*</configprops.inclusionPattern>
 		<upload-docs-zip.phase>deploy</upload-docs-zip.phase>
 	</properties>
@@ -26,14 +25,7 @@
 		</dependency>
 	</dependencies>
 	<build>
-		<plugins>
-			<plugin>
-				<artifactId>maven-deploy-plugin</artifactId>
-				<configuration>
-					<skip>true</skip>
-				</configuration>
-			</plugin>
-		</plugins>
+		<sourceDirectory>src/main/asciidoc</sourceDirectory>
 	</build>
 	<profiles>
 		<profile>
