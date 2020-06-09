@@ -1730,7 +1730,7 @@ public RouteLocator routes(RouteLocatorBuilder builder) {
         .route("rewrite_response_upper", r -> r.host("*.rewriteresponseupper.org")
             .filters(f -> f.prefixPath("/httpbin")
         		.modifyResponseBody(String.class, String.class,
-        		    (exchange, s) -> Mono.just(s.toUpperCase()))).uri(uri)
+        		    (exchange, s) -> Mono.just(s.toUpperCase()))).uri(uri))
         .build();
 }
 ----
