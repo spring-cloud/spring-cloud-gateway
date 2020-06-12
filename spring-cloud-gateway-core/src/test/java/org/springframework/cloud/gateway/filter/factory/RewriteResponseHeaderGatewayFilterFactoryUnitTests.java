@@ -16,13 +16,21 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
+import java.util.List;
+
 import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.RewriteResponseHeaderGatewayFilterFactory.Config;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.server.reactive.ServerHttpResponse;
+import org.springframework.web.server.ServerWebExchange;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.springframework.http.HttpHeaders.SET_COOKIE;
 
 public class RewriteResponseHeaderGatewayFilterFactoryUnitTests {
 
@@ -43,6 +51,28 @@ public class RewriteResponseHeaderGatewayFilterFactoryUnitTests {
 	public void testRewriteMultiple() {
 		assertThat(filterFactory.rewrite("/foo/bar/wat/bar", "bar", "cafe"))
 				.isEqualTo("/foo/cafe/wat/cafe");
+	}
+
+	@Test
+	public void testRewriteMultipleHeaders() {
+		Config config = new Config();
+		config.setName(SET_COOKIE);
+		config.setRegexp("SameSite[^;]+");
+		config.setReplacement("SameSite=Strict");
+
+		ServerWebExchange exchange = mock(ServerWebExchange.class);
+		ServerHttpResponse response = mock(ServerHttpResponse.class);
+		HttpHeaders headers = new HttpHeaders();
+		headers.add(SET_COOKIE, "TestCookie=Value;SameSite=Lax");
+		headers.add(SET_COOKIE, "OtherCookie=Value;SameSite=Lax");
+		when(response.getHeaders()).thenReturn(headers);
+		when(exchange.getResponse()).thenReturn(response);
+
+		filterFactory.rewriteHeaders(exchange, config);
+		List<String> actualHeaders = headers.get(SET_COOKIE);
+		assertThat(actualHeaders).isNotNull();
+		assertThat(actualHeaders).containsExactly("TestCookie=Value;SameSite=Strict",
+				"OtherCookie=Value;SameSite=Strict");
 	}
 
 	@Test

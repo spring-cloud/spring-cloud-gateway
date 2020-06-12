@@ -18,11 +18,13 @@ package org.springframework.cloud.gateway.filter.factory;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
+import org.springframework.http.HttpHeaders;
 import org.springframework.web.server.ServerWebExchange;
 
 import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
@@ -59,7 +61,7 @@ public class RewriteResponseHeaderGatewayFilterFactory extends
 			public Mono<Void> filter(ServerWebExchange exchange,
 					GatewayFilterChain chain) {
 				return chain.filter(exchange)
-						.then(Mono.fromRunnable(() -> rewriteHeader(exchange, config)));
+						.then(Mono.fromRunnable(() -> rewriteHeaders(exchange, config)));
 			}
 
 			@Override
@@ -74,15 +76,21 @@ public class RewriteResponseHeaderGatewayFilterFactory extends
 		};
 	}
 
+	@Deprecated
 	protected void rewriteHeader(ServerWebExchange exchange, Config config) {
+		rewriteHeaders(exchange, config);
+	}
+
+	protected void rewriteHeaders(ServerWebExchange exchange, Config config) {
 		final String name = config.getName();
-		final String value = exchange.getResponse().getHeaders().getFirst(name);
-		if (value == null) {
-			return;
-		}
-		final String newValue = rewrite(value, config.getRegexp(),
-				config.getReplacement());
-		exchange.getResponse().getHeaders().set(name, newValue);
+		final HttpHeaders responseHeaders = exchange.getResponse().getHeaders();
+		responseHeaders.computeIfPresent(name, (k, v) -> rewriteHeaders(config, v));
+	}
+
+	protected List<String> rewriteHeaders(Config config, List<String> headers) {
+		return headers.stream()
+				.map(val -> rewrite(val, config.getRegexp(), config.getReplacement()))
+				.collect(Collectors.toList());
 	}
 
 	String rewrite(String value, String regexp, String replacement) {
