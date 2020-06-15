@@ -23,6 +23,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junitpioneer.jupiter.RepeatFailedTest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
@@ -71,6 +72,7 @@ public class RedisRateLimiterTests extends BaseWebClientTests {
 	}
 
 	@Test
+	@RepeatFailedTest(3)
 	public void redisRateLimiterWorks() throws Exception {
 		String id = UUID.randomUUID().toString();
 
