@@ -190,7 +190,7 @@ public class HttpClientProperties {
 		 * Time in millis after which the channel will be closed. If NULL, there is no max
 		 * idle time.
 		 */
-		private Duration maxIdleTime = null;
+		private Duration maxIdleTime = Duration.ofSeconds(15);
 
 		/**
 		 * Duration after which the channel will be closed. If NULL, there is no max life
