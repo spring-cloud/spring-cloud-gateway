@@ -48,7 +48,7 @@ public class ReactorHttpServer extends AbstractHttpServer {
 	protected void startInternal() {
 		DisposableServer server = this.reactorServer.handle(this.reactorHandler).bind()
 				.block();
-		setPort(server.address().getPort());
+		setPort(server.port());
 		this.serverRef.set(server);
 	}
 

@@ -17,6 +17,7 @@
 package org.springframework.cloud.gateway.config;
 
 import java.security.cert.X509Certificate;
+import java.time.Duration;
 import java.util.List;
 import java.util.Set;
 
@@ -28,7 +29,7 @@ import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Flux;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.resources.ConnectionProvider;
-import reactor.netty.tcp.ProxyProvider;
+import reactor.netty.transport.ProxyProvider;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.ObjectProvider;
@@ -610,13 +611,30 @@ public class GatewayAutoConfiguration {
 				connectionProvider = ConnectionProvider.newConnection();
 			}
 			else if (pool.getType() == FIXED) {
-				connectionProvider = ConnectionProvider.fixed(pool.getName(),
-						pool.getMaxConnections(), pool.getAcquireTimeout(),
-						pool.getMaxIdleTime(), pool.getMaxLifeTime());
+				ConnectionProvider.Builder builder = ConnectionProvider
+						.builder(pool.getName()).maxConnections(pool.getMaxConnections())
+						.pendingAcquireMaxCount(-1).pendingAcquireTimeout(
+								Duration.ofMillis(pool.getAcquireTimeout()));
+				if (pool.getMaxIdleTime() != null) {
+					builder.maxIdleTime(pool.getMaxIdleTime());
+				}
+				if (pool.getMaxLifeTime() != null) {
+					builder.maxLifeTime(pool.getMaxLifeTime());
+				}
+				connectionProvider = builder.build();
 			}
 			else {
-				connectionProvider = ConnectionProvider.elastic(pool.getName(),
-						pool.getMaxIdleTime(), pool.getMaxLifeTime());
+				ConnectionProvider.Builder builder = ConnectionProvider
+						.builder(pool.getName()).maxConnections(Integer.MAX_VALUE)
+						.pendingAcquireTimeout(Duration.ofMillis(0))
+						.pendingAcquireMaxCount(-1);
+				if (pool.getMaxIdleTime() != null) {
+					builder.maxIdleTime(pool.getMaxIdleTime());
+				}
+				if (pool.getMaxLifeTime() != null) {
+					builder.maxLifeTime(pool.getMaxLifeTime());
+				}
+				connectionProvider = builder.build();
 			}
 
 			HttpClient httpClient = HttpClient.create(connectionProvider)
