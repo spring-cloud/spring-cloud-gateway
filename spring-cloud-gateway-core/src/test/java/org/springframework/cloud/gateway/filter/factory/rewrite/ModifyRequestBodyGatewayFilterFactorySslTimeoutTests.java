@@ -27,6 +27,7 @@ import io.netty.util.internal.PlatformDependent;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junitpioneer.jupiter.RepeatFailedTest;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 
@@ -97,6 +98,7 @@ public class ModifyRequestBodyGatewayFilterFactorySslTimeoutTests
 	}
 
 	@Test
+	@RepeatFailedTest(3)
 	public void modifyRequestBodyRelease() {
 		releaseCount.set(0);
 		// long initialUsedDirectMemory = PlatformDependent.usedDirectMemory();
