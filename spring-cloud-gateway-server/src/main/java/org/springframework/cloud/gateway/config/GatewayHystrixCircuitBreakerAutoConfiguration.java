@@ -23,6 +23,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.client.circuitbreaker.ReactiveCircuitBreakerFactory;
+import org.springframework.cloud.gateway.config.conditional.ConditionalOnEnabledFilter;
 import org.springframework.cloud.gateway.filter.factory.FallbackHeadersGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SpringCloudCircuitBreakerHystrixFilterFactory;
 import org.springframework.cloud.netflix.hystrix.HystrixCircuitBreakerAutoConfiguration;
@@ -53,7 +54,8 @@ public class GatewayHystrixCircuitBreakerAutoConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnMissingBean(FallbackHeadersGatewayFilterFactory.class)
+	@ConditionalOnMissingBean
+	@ConditionalOnEnabledFilter
 	public FallbackHeadersGatewayFilterFactory fallbackHeadersGatewayFilterFactory() {
 		return new FallbackHeadersGatewayFilterFactory();
 	}

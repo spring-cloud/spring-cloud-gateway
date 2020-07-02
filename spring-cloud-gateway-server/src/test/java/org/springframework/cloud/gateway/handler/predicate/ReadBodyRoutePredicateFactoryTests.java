@@ -29,7 +29,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.cloud.gateway.handler.AsyncPredicate;
-import org.springframework.cloud.gateway.handler.predicate.ReadBodyPredicateFactory.Config;
+import org.springframework.cloud.gateway.handler.predicate.ReadBodyRoutePredicateFactory.Config;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.PermitAllSecurityConfiguration;
@@ -58,7 +58,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
-public class ReadBodyPredicateFactoryTest {
+public class ReadBodyRoutePredicateFactoryTests {
 
 	@Autowired
 	private WebTestClient webClient;

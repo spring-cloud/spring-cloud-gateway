@@ -33,7 +33,7 @@ import org.springframework.cloud.gateway.handler.predicate.HostRoutePredicateFac
 import org.springframework.cloud.gateway.handler.predicate.MethodRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.QueryRoutePredicateFactory;
-import org.springframework.cloud.gateway.handler.predicate.ReadBodyPredicateFactory;
+import org.springframework.cloud.gateway.handler.predicate.ReadBodyRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.RemoteAddrRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.WeightRoutePredicateFactory;
 import org.springframework.cloud.gateway.route.Route;
@@ -72,7 +72,7 @@ public class PredicateSpec extends UriSpec {
 	}
 
 	/**
-	 * A predicate to check if a request was made after a specific {@link ZonedDateTime}
+	 * A predicate to check if a request was made after a specific {@link ZonedDateTime}.
 	 * @param datetime requests would only be routed after this {@link ZonedDateTime}
 	 * @return a {@link BooleanSpec} to be used to add logical operators
 	 */
@@ -82,7 +82,7 @@ public class PredicateSpec extends UriSpec {
 	}
 
 	/**
-	 * A predicate to check if a request was made before a specific {@link ZonedDateTime}
+	 * A predicate to check if a request was made before a specific {@link ZonedDateTime}.
 	 * @param datetime requests will only be routed before this {@link ZonedDateTime}
 	 * @return a {@link BooleanSpec} to be used to add logical operators
 	 */
@@ -92,7 +92,7 @@ public class PredicateSpec extends UriSpec {
 	}
 
 	/**
-	 * A predicate to check if a request was made between two {@link ZonedDateTime}s
+	 * A predicate to check if a request was made between two {@link ZonedDateTime}s.
 	 * @param datetime1 the request must have been made after this {@link ZonedDateTime}
 	 * @param datetime2 the request must be made before this {@link ZonedDateTime}
 	 * @return a {@link BooleanSpec} to be used to add logical operators
@@ -103,7 +103,7 @@ public class PredicateSpec extends UriSpec {
 	}
 
 	/**
-	 * A predicate that checks if a cookie matches a given regular expression
+	 * A predicate that checks if a cookie matches a given regular expression.
 	 * @param name the name of the cookie
 	 * @param regex the value of the cookies will be evaluated against this regular
 	 * expression
@@ -115,7 +115,7 @@ public class PredicateSpec extends UriSpec {
 	}
 
 	/**
-	 * A predicate that checks if a given header is present on the request
+	 * A predicate that checks if a given header is present on the request.
 	 * @param header the header name to check
 	 * @return a {@link BooleanSpec} to be used to add logical operators
 	 */
@@ -126,7 +126,7 @@ public class PredicateSpec extends UriSpec {
 
 	/**
 	 * A predicate that checks if a given headers has a value which matches a regular
-	 * expression
+	 * expression.
 	 * @param header the header name to check
 	 * @param regex the regular expression to check against
 	 * @return a {@link BooleanSpec} to be used to add logical operators
@@ -137,7 +137,7 @@ public class PredicateSpec extends UriSpec {
 	}
 
 	/**
-	 * A predicate that checks if the {@code host} header matches a given pattern
+	 * A predicate that checks if the {@code host} header matches a given pattern.
 	 * @param pattern the pattern to check against. The pattern is an Ant style pattern
 	 * with {@code .} as a separator
 	 * @return a {@link BooleanSpec} to be used to add logical operators
@@ -148,7 +148,7 @@ public class PredicateSpec extends UriSpec {
 	}
 
 	/**
-	 * A predicate that checks if the HTTP method matches
+	 * A predicate that checks if the HTTP method matches.
 	 * @param methods the name of the HTTP methods
 	 * @return a {@link BooleanSpec} to be used to add logical operators
 	 */
@@ -161,7 +161,7 @@ public class PredicateSpec extends UriSpec {
 	}
 
 	/**
-	 * A predicate that checks if the HTTP method matches
+	 * A predicate that checks if the HTTP method matches.
 	 * @param methods the HTTP methods
 	 * @return a {@link BooleanSpec} to be used to add logical operators
 	 */
@@ -172,7 +172,7 @@ public class PredicateSpec extends UriSpec {
 	}
 
 	/**
-	 * A predicate that checks if the path of the request matches the given pattern
+	 * A predicate that checks if the path of the request matches the given pattern.
 	 * @param patterns the pattern to check the path against. The pattern is a
 	 * {@link org.springframework.util.PathMatcher} pattern
 	 * @return a {@link BooleanSpec} to be used to add logical operators
@@ -183,7 +183,7 @@ public class PredicateSpec extends UriSpec {
 	}
 
 	/**
-	 * A predicate that checks if the path of the request matches the given pattern
+	 * A predicate that checks if the path of the request matches the given pattern.
 	 * @param pattern the pattern to check the path against. The pattern is a
 	 * {@link org.springframework.util.PathMatcher} pattern
 	 * @param matchOptionalTrailingSeparator set to false if you do not want this path to
@@ -198,7 +198,7 @@ public class PredicateSpec extends UriSpec {
 	}
 
 	/**
-	 * A predicate that checks if the path of the request matches the given pattern
+	 * A predicate that checks if the path of the request matches the given pattern.
 	 * @param patterns the pattern to check the path against. The pattern is a
 	 * {@link org.springframework.util.PathMatcher} pattern
 	 * @param matchOptionalTrailingSeparator set to false if you do not want this path to
@@ -220,12 +220,12 @@ public class PredicateSpec extends UriSpec {
 	 * @return a {@link BooleanSpec} to be used to add logical operators
 	 */
 	public <T> BooleanSpec readBody(Class<T> inClass, Predicate<T> predicate) {
-		return asyncPredicate(getBean(ReadBodyPredicateFactory.class)
+		return asyncPredicate(getBean(ReadBodyRoutePredicateFactory.class)
 				.applyAsync(c -> c.setPredicate(inClass, predicate)));
 	}
 
 	/**
-	 * A predicate that checks if a query parameter matches a regular expression
+	 * A predicate that checks if a query parameter matches a regular expression.
 	 * @param param the query parameter name
 	 * @param regex the regular expression to evaluate the query parameter value against
 	 * @return a {@link BooleanSpec} to be used to add logical operators
@@ -236,7 +236,7 @@ public class PredicateSpec extends UriSpec {
 	}
 
 	/**
-	 * A predicate that checks if a given query parameter is present in the request URL
+	 * A predicate that checks if a given query parameter is present in the request URL.
 	 * @param param the query parameter name
 	 * @return a {@link BooleanSpec} to be used to add logical operators
 	 */
@@ -286,7 +286,7 @@ public class PredicateSpec extends UriSpec {
 	}
 
 	/**
-	 * A predicate which will select a route based on its assigned weight. The
+	 * A predicate which will select a route based on its assigned weight.
 	 * @param group the group the route belongs to
 	 * @param weight the weight for the route
 	 * @return a {@link BooleanSpec} to be used to add logical operators
@@ -303,7 +303,7 @@ public class PredicateSpec extends UriSpec {
 	}
 
 	/**
-	 * A predicate which is always true
+	 * A predicate which is always true.
 	 * @return a {@link BooleanSpec} to be used to add logical operators
 	 */
 	public BooleanSpec alwaysTrue() {

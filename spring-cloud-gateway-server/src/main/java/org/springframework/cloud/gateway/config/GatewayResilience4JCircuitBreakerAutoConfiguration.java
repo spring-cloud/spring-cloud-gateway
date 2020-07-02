@@ -25,6 +25,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.circuitbreaker.resilience4j.ReactiveResilience4JAutoConfiguration;
 import org.springframework.cloud.circuitbreaker.resilience4j.ReactiveResilience4JCircuitBreakerFactory;
 import org.springframework.cloud.client.circuitbreaker.ReactiveCircuitBreakerFactory;
+import org.springframework.cloud.gateway.config.conditional.ConditionalOnEnabledFilter;
 import org.springframework.cloud.gateway.filter.factory.FallbackHeadersGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SpringCloudCircuitBreakerResilience4JFilterFactory;
 import org.springframework.context.annotation.Bean;
@@ -44,6 +45,7 @@ public class GatewayResilience4JCircuitBreakerAutoConfiguration {
 
 	@Bean
 	@ConditionalOnBean(ReactiveResilience4JCircuitBreakerFactory.class)
+	@ConditionalOnEnabledFilter
 	public SpringCloudCircuitBreakerResilience4JFilterFactory springCloudCircuitBreakerResilience4JFilterFactory(
 			ReactiveResilience4JCircuitBreakerFactory reactiveCircuitBreakerFactory,
 			ObjectProvider<DispatcherHandler> dispatcherHandler) {
@@ -52,7 +54,8 @@ public class GatewayResilience4JCircuitBreakerAutoConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnMissingBean(FallbackHeadersGatewayFilterFactory.class)
+	@ConditionalOnMissingBean
+	@ConditionalOnEnabledFilter
 	public FallbackHeadersGatewayFilterFactory fallbackHeadersGatewayFilterFactory() {
 		return new FallbackHeadersGatewayFilterFactory();
 	}

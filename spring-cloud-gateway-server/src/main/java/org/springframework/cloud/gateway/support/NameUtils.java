@@ -16,6 +16,10 @@
 
 package org.springframework.cloud.gateway.support;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
 import org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory;
 
@@ -33,6 +37,8 @@ public final class NameUtils {
 	 */
 	public static final String GENERATED_NAME_PREFIX = "_genkey_";
 
+	private static final Pattern NAME_PATTERN = Pattern.compile("([A-Z][a-z0-9]+)");
+
 	public static String generateName(int i) {
 		return GENERATED_NAME_PREFIX + i;
 	}
@@ -43,10 +49,46 @@ public final class NameUtils {
 				.replace(RoutePredicateFactory.class.getSimpleName(), ""));
 	}
 
+	public static String normalizeRoutePredicateNameAsProperty(
+			Class<? extends RoutePredicateFactory> clazz) {
+		return normalizeToCanonicalPropertyFormat(normalizeRoutePredicateName(clazz));
+	}
+
 	public static String normalizeFilterFactoryName(
 			Class<? extends GatewayFilterFactory> clazz) {
 		return removeGarbage(clazz.getSimpleName()
 				.replace(GatewayFilterFactory.class.getSimpleName(), ""));
+	}
+
+	public static String normalizeGlobalFilterName(Class<? extends GlobalFilter> clazz) {
+		return removeGarbage(
+				clazz.getSimpleName().replace(GlobalFilter.class.getSimpleName(), ""))
+						.replace("Filter", "");
+	}
+
+	public static String normalizeFilterFactoryNameAsProperty(
+			Class<? extends GatewayFilterFactory> clazz) {
+		return normalizeToCanonicalPropertyFormat(normalizeFilterFactoryName(clazz));
+	}
+
+	public static String normalizeGlobalFilterNameAsProperty(
+			Class<? extends GlobalFilter> filterClass) {
+		return normalizeToCanonicalPropertyFormat(normalizeGlobalFilterName(filterClass));
+	}
+
+	public static String normalizeToCanonicalPropertyFormat(String name) {
+		Matcher matcher = NAME_PATTERN.matcher(name);
+		StringBuffer stringBuffer = new StringBuffer();
+		while (matcher.find()) {
+			if (stringBuffer.length() != 0) {
+				matcher.appendReplacement(stringBuffer,
+						"-" + matcher.group(1).toLowerCase());
+			}
+			else {
+				matcher.appendReplacement(stringBuffer, matcher.group(1).toLowerCase());
+			}
+		}
+		return stringBuffer.toString();
 	}
 
 	private static String removeGarbage(String s) {
