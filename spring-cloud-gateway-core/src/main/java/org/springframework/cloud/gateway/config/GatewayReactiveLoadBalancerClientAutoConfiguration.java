@@ -52,6 +52,8 @@ public class GatewayReactiveLoadBalancerClientAutoConfiguration {
 	@ConditionalOnBean(LoadBalancerClientFactory.class)
 	@ConditionalOnMissingBean(ReactiveLoadBalancerClientFilter.class)
 	@Conditional(OnNoRibbonDefaultCondition.class)
+	@ConditionalOnProperty(name = "spring.cloud.gateway.reactive-loadbalancer.enabled",
+			matchIfMissing = true)
 	public ReactiveLoadBalancerClientFilter gatewayLoadBalancerClientFilter(
 			LoadBalancerClientFactory clientFactory, LoadBalancerProperties properties) {
 		return new ReactiveLoadBalancerClientFilter(clientFactory, properties);

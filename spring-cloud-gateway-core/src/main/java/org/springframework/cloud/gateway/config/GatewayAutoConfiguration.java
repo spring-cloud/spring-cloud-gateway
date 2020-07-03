@@ -292,27 +292,37 @@ public class GatewayAutoConfiguration {
 	// GlobalFilter beans
 
 	@Bean
+	@ConditionalOnProperty(name = "spring.cloud.gateway.adapt-cached-body.enabled",
+			matchIfMissing = true)
 	public AdaptCachedBodyGlobalFilter adaptCachedBodyGlobalFilter() {
 		return new AdaptCachedBodyGlobalFilter();
 	}
 
 	@Bean
+	@ConditionalOnProperty(name = "spring.cloud.gateway.remove-cached-body.enabled",
+			matchIfMissing = true)
 	public RemoveCachedBodyFilter removeCachedBodyFilter() {
 		return new RemoveCachedBodyFilter();
 	}
 
 	@Bean
+	@ConditionalOnProperty(name = "spring.cloud.gateway.route-to-request-url.enabled",
+			matchIfMissing = true)
 	public RouteToRequestUrlFilter routeToRequestUrlFilter() {
 		return new RouteToRequestUrlFilter();
 	}
 
 	@Bean
+	@ConditionalOnProperty(name = "spring.cloud.gateway.forward-routing.enabled",
+			matchIfMissing = true)
 	public ForwardRoutingFilter forwardRoutingFilter(
 			ObjectProvider<DispatcherHandler> dispatcherHandler) {
 		return new ForwardRoutingFilter(dispatcherHandler);
 	}
 
 	@Bean
+	@ConditionalOnProperty(name = "spring.cloud.gateway.forward-path.enabled",
+			matchIfMissing = true)
 	public ForwardPathFilter forwardPathFilter() {
 		return new ForwardPathFilter();
 	}
@@ -324,6 +334,8 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
+	@ConditionalOnProperty(name = "spring.cloud.gateway.websocket-routing.enabled",
+			matchIfMissing = true)
 	public WebsocketRoutingFilter websocketRoutingFilter(WebSocketClient webSocketClient,
 			WebSocketService webSocketService,
 			ObjectProvider<List<HttpHeadersFilter>> headersFilters) {
@@ -724,6 +736,8 @@ public class GatewayAutoConfiguration {
 		}
 
 		@Bean
+		@ConditionalOnProperty(name = "spring.cloud.gateway.netty.enabled",
+				matchIfMissing = true)
 		public NettyRoutingFilter routingFilter(HttpClient httpClient,
 				ObjectProvider<List<HttpHeadersFilter>> headersFilters,
 				HttpClientProperties properties) {
@@ -731,6 +745,8 @@ public class GatewayAutoConfiguration {
 		}
 
 		@Bean
+		@ConditionalOnProperty(name = "spring.cloud.gateway.netty.enabled",
+				matchIfMissing = true)
 		public NettyWriteResponseFilter nettyWriteResponseFilter(
 				GatewayProperties properties) {
 			return new NettyWriteResponseFilter(properties.getStreamingMediaTypes());
