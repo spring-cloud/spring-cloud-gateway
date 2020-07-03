@@ -15,7 +15,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(Enclosed.class)
-class EnableDisableBuiltInFiltersTests {
+class EnableDisableBuiltInGlobalFiltersTests {
 
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
@@ -38,8 +38,8 @@ class EnableDisableBuiltInFiltersTests {
 
 	@RunWith(SpringRunner.class)
 	@SpringBootTest(classes = Config.class, properties = {
-		"spring.cloud.gateway.built-in.filters.RemoveCachedBody.enabled=false",
-		"spring.cloud.gateway.built-in.filters.RouteToRequestUrl.enabled=false"
+		"spring.cloud.gateway.remove-cached-body.enabled=false",
+		"spring.cloud.gateway.route-to-requestUrl.enabled=false"
 	})
 	public static class DisableSpecificsFiltersByProperty {
 
@@ -47,12 +47,38 @@ class EnableDisableBuiltInFiltersTests {
 		private List<GlobalFilter> globalFilters;
 
 		@Test
-		public void shouldInjectBuiltInFilters() {
+		public void shouldInjectOnlyEnabledBuiltInFilters() {
+			assertThat(globalFilters).hasSizeGreaterThan(0);
 			assertThat(globalFilters).allSatisfy(filter ->
 					assertThat(filter).isNotInstanceOfAny(
 							RemoveCachedBodyFilter.class, RouteToRequestUrlFilter.class
 					)
 			);
+		}
+
+	}
+
+	@RunWith(SpringRunner.class)
+	@SpringBootTest(classes = Config.class, properties = {
+			"spring.cloud.gateway.adapt-cached-body.enabled=false",
+			"spring.cloud.gateway.remove-cached-body.enabled=false",
+			"spring.cloud.gateway.route-to-request-url.enabled=false",
+			"spring.cloud.gateway.forward-routing.enabled=false",
+			"spring.cloud.gateway.forward-path.enabled=false",
+			"spring.cloud.gateway.websocket-routing.enabled=false",
+			"spring.cloud.gateway.weight.enabled=false",
+			"spring.cloud.gateway.netty.enabled=false",
+			"spring.cloud.gateway.reactive-loadbalancer.enabled=false",
+			"spring.cloud.gateway.metrics.enabled=false"
+	})
+	public static class DisableAllGlobalFiltersByProperty {
+
+		@Autowired(required = false)
+		private List<GlobalFilter> globalFilters;
+
+		@Test
+		public void shouldDisableAllBuiltInFilters() {
+			assertThat(globalFilters).isNull();
 		}
 
 	}
