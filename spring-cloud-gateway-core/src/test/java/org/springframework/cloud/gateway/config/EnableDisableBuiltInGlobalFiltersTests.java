@@ -1,4 +1,4 @@
-package org.springframework.cloud.gateway.filter;
+package org.springframework.cloud.gateway.config;
 
 import java.util.List;
 
@@ -10,6 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.gateway.filter.GlobalFilter;
+import org.springframework.cloud.gateway.filter.RemoveCachedBodyFilter;
+import org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
