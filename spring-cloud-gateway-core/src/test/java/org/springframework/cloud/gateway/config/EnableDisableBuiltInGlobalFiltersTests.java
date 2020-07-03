@@ -34,7 +34,7 @@ class EnableDisableBuiltInGlobalFiltersTests {
 
 		@Test
 		public void shouldInjectBuiltInFilters() {
-			assertThat(globalFilters).hasSize(10);
+			assertThat(globalFilters).hasSizeGreaterThanOrEqualTo(10);
 		}
 
 	}
