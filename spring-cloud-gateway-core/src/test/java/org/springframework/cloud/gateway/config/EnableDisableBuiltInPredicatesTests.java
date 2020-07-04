@@ -13,6 +13,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.handler.predicate.AfterRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.BeforeRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -27,7 +28,7 @@ class EnableDisableBuiltInPredicatesTests {
 
 	@RunWith(SpringRunner.class)
 	@SpringBootTest(classes = Config.class)
-	public static class GlobalFilterDefault {
+	public static class RoutePredicateDefault {
 
 		@Autowired
 		private List<RoutePredicateFactory<?>> predicates;
@@ -44,7 +45,8 @@ class EnableDisableBuiltInPredicatesTests {
 		"spring.cloud.gateway.after-route.enabled=false",
 		"spring.cloud.gateway.before-route.enabled=false"
 	})
-	public static class DisableSpecificsFiltersByProperty {
+	@ActiveProfiles("disable-components")
+	public static class DisableSpecificsPredicatesByProperty {
 
 		@Autowired
 		private List<RoutePredicateFactory<?>> predicates;
@@ -77,7 +79,8 @@ class EnableDisableBuiltInPredicatesTests {
 			"spring.cloud.gateway.weight-route.enabled=false",
 			"spring.cloud.gateway.cloud-foundry-route.enabled=false"
 	})
-	public static class DisableAllGlobalFiltersByProperty {
+	@ActiveProfiles("disable-components")
+	public static class DisableAllPredicatesByProperty {
 
 		@Autowired(required = false)
 		private List<RoutePredicateFactory<?>> predicates;

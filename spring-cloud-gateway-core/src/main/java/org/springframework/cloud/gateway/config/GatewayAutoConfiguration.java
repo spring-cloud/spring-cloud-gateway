@@ -362,68 +362,94 @@ public class GatewayAutoConfiguration {
 	// Predicate Factory beans
 
 	@Bean
+	@ConditionalOnProperty(name = "spring.cloud.gateway.after-route.enabled",
+			matchIfMissing = true)
 	public AfterRoutePredicateFactory afterRoutePredicateFactory() {
 		return new AfterRoutePredicateFactory();
 	}
 
 	@Bean
+	@ConditionalOnProperty(name = "spring.cloud.gateway.before-route.enabled",
+			matchIfMissing = true)
 	public BeforeRoutePredicateFactory beforeRoutePredicateFactory() {
 		return new BeforeRoutePredicateFactory();
 	}
 
 	@Bean
+	@ConditionalOnProperty(name = "spring.cloud.gateway.between-route.enabled",
+			matchIfMissing = true)
 	public BetweenRoutePredicateFactory betweenRoutePredicateFactory() {
 		return new BetweenRoutePredicateFactory();
 	}
 
 	@Bean
+	@ConditionalOnProperty(name = "spring.cloud.gateway.cookie-route.enabled",
+			matchIfMissing = true)
 	public CookieRoutePredicateFactory cookieRoutePredicateFactory() {
 		return new CookieRoutePredicateFactory();
 	}
 
 	@Bean
+	@ConditionalOnProperty(name = "spring.cloud.gateway.header-route.enabled",
+			matchIfMissing = true)
 	public HeaderRoutePredicateFactory headerRoutePredicateFactory() {
 		return new HeaderRoutePredicateFactory();
 	}
 
 	@Bean
+	@ConditionalOnProperty(name = "spring.cloud.gateway.host-route.enabled",
+			matchIfMissing = true)
 	public HostRoutePredicateFactory hostRoutePredicateFactory() {
 		return new HostRoutePredicateFactory();
 	}
 
 	@Bean
+	@ConditionalOnProperty(name = "spring.cloud.gateway.method-route.enabled",
+			matchIfMissing = true)
 	public MethodRoutePredicateFactory methodRoutePredicateFactory() {
 		return new MethodRoutePredicateFactory();
 	}
 
 	@Bean
+	@ConditionalOnProperty(name = "spring.cloud.gateway.path-route.enabled",
+			matchIfMissing = true)
 	public PathRoutePredicateFactory pathRoutePredicateFactory() {
 		return new PathRoutePredicateFactory();
 	}
 
 	@Bean
+	@ConditionalOnProperty(name = "spring.cloud.gateway.query-route.enabled",
+			matchIfMissing = true)
 	public QueryRoutePredicateFactory queryRoutePredicateFactory() {
 		return new QueryRoutePredicateFactory();
 	}
 
 	@Bean
+	@ConditionalOnProperty(name = "spring.cloud.gateway.read-body.enabled",
+			matchIfMissing = true)
 	public ReadBodyPredicateFactory readBodyPredicateFactory(
 			ServerCodecConfigurer codecConfigurer) {
 		return new ReadBodyPredicateFactory(codecConfigurer.getReaders());
 	}
 
 	@Bean
+	@ConditionalOnProperty(name = "spring.cloud.gateway.remote-addr-route.enabled",
+			matchIfMissing = true)
 	public RemoteAddrRoutePredicateFactory remoteAddrRoutePredicateFactory() {
 		return new RemoteAddrRoutePredicateFactory();
 	}
 
 	@Bean
 	@DependsOn("weightCalculatorWebFilter")
+	@ConditionalOnProperty(name = "spring.cloud.gateway.weight-route.enabled",
+			matchIfMissing = true)
 	public WeightRoutePredicateFactory weightRoutePredicateFactory() {
 		return new WeightRoutePredicateFactory();
 	}
 
 	@Bean
+	@ConditionalOnProperty(name = "spring.cloud.gateway.cloud-foundry-route.enabled",
+			matchIfMissing = true)
 	public CloudFoundryRouteServiceRoutePredicateFactory cloudFoundryRouteServiceRoutePredicateFactory() {
 		return new CloudFoundryRouteServiceRoutePredicateFactory();
 	}
