@@ -872,6 +872,8 @@ public class GatewayAutoConfiguration {
 	protected static class HystrixConfiguration {
 
 		@Bean
+		@ConditionalOnProperty(name = "spring.cloud.gateway.Fallback.enabled",
+				matchIfMissing = true)
 		public HystrixGatewayFilterFactory hystrixGatewayFilterFactory(
 				ObjectProvider<DispatcherHandler> dispatcherHandler) {
 			return new HystrixGatewayFilterFactory(dispatcherHandler);
@@ -879,6 +881,8 @@ public class GatewayAutoConfiguration {
 
 		@Bean
 		@ConditionalOnMissingBean(FallbackHeadersGatewayFilterFactory.class)
+		@ConditionalOnProperty(name = "spring.cloud.gateway.FallbackHeaders.enabled",
+				matchIfMissing = true)
 		public FallbackHeadersGatewayFilterFactory fallbackHeadersGatewayFilterFactory() {
 			return new FallbackHeadersGatewayFilterFactory();
 		}
