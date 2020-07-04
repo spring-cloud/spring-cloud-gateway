@@ -85,7 +85,6 @@ public class DisableBuiltInGlobalFiltersTests {
 					"spring.cloud.gateway.forward-routing.enabled=false",
 					"spring.cloud.gateway.forward-path.enabled=false",
 					"spring.cloud.gateway.websocket-routing.enabled=false",
-					"spring.cloud.gateway.weight-route.enabled=false",
 					"spring.cloud.gateway.netty.enabled=false",
 					"spring.cloud.gateway.reactive-loadbalancer.enabled=false",
 					"spring.cloud.gateway.loadbalancer.enabled=false",

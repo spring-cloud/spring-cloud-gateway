@@ -441,7 +441,7 @@ public class GatewayAutoConfiguration {
 
 	@Bean
 	@DependsOn("weightCalculatorWebFilter")
-	@ConditionalOnProperty(name = "spring.cloud.gateway.weight-.enabled",
+	@ConditionalOnProperty(name = "spring.cloud.gateway.Weight.enabled",
 			matchIfMissing = true)
 	public WeightRoutePredicateFactory weightRoutePredicateFactory() {
 		return new WeightRoutePredicateFactory();

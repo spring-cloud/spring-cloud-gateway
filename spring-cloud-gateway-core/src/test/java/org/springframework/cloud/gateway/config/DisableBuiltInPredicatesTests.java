@@ -90,7 +90,7 @@ public class DisableBuiltInPredicatesTests {
 					"spring.cloud.gateway.Query.enabled=false",
 					"spring.cloud.gateway.ReadBody.enabled=false",
 					"spring.cloud.gateway.RemoteAddr.enabled=false",
-					"spring.cloud.gateway.weight-.enabled=false",
+					"spring.cloud.gateway.Weight.enabled=false",
 					"spring.cloud.gateway.CloudFoundry.enabled=false" })
 	@ActiveProfiles("disable-components")
 	public static class DisableAllPredicatesByProperty {
