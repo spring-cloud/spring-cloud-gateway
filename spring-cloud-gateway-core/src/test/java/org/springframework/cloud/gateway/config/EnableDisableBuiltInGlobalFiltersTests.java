@@ -13,6 +13,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.RemoveCachedBodyFilter;
 import org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -44,6 +45,7 @@ class EnableDisableBuiltInGlobalFiltersTests {
 		"spring.cloud.gateway.remove-cached-body.enabled=false",
 		"spring.cloud.gateway.route-to-requestUrl.enabled=false"
 	})
+	@ActiveProfiles("disable-components")
 	public static class DisableSpecificsFiltersByProperty {
 
 		@Autowired
@@ -74,6 +76,7 @@ class EnableDisableBuiltInGlobalFiltersTests {
 			"spring.cloud.gateway.reactive-loadbalancer.enabled=false",
 			"spring.cloud.gateway.metrics.enabled=false"
 	})
+	@ActiveProfiles("disable-components")
 	public static class DisableAllGlobalFiltersByProperty {
 
 		@Autowired(required = false)
