@@ -1,3 +1,19 @@
+/*
+ * Copyright 2013-2019 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.springframework.cloud.gateway.config;
 
 import java.util.List;
@@ -19,11 +35,12 @@ import org.springframework.test.context.junit4.SpringRunner;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(Enclosed.class)
-class DisableBuiltInPredicatesTests {
+public class DisableBuiltInPredicatesTests {
 
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	protected static class Config {
+
 	}
 
 	@RunWith(SpringRunner.class)
@@ -41,10 +58,9 @@ class DisableBuiltInPredicatesTests {
 	}
 
 	@RunWith(SpringRunner.class)
-	@SpringBootTest(classes = Config.class, properties = {
-		"spring.cloud.gateway.AfterRoute.enabled=false",
-		"spring.cloud.gateway.BeforeRoute.enabled=false"
-	})
+	@SpringBootTest(classes = Config.class,
+			properties = { "spring.cloud.gateway.AfterRoute.enabled=false",
+					"spring.cloud.gateway.BeforeRoute.enabled=false" })
 	@ActiveProfiles("disable-components")
 	public static class DisableSpecificsPredicatesByProperty {
 
@@ -54,31 +70,28 @@ class DisableBuiltInPredicatesTests {
 		@Test
 		public void shouldInjectOnlyEnabledBuiltInPredicates() {
 			assertThat(predicates).hasSizeGreaterThan(0);
-			assertThat(predicates).allSatisfy(filter ->
-					assertThat(filter).isNotInstanceOfAny(
-							AfterRoutePredicateFactory.class, BeforeRoutePredicateFactory.class
-					)
-			);
+			assertThat(predicates).allSatisfy(filter -> assertThat(filter)
+					.isNotInstanceOfAny(AfterRoutePredicateFactory.class,
+							BeforeRoutePredicateFactory.class));
 		}
 
 	}
 
 	@RunWith(SpringRunner.class)
-	@SpringBootTest(classes = Config.class, properties = {
-			"spring.cloud.gateway.AfterRoute.enabled=false",
-			"spring.cloud.gateway.BeforeRoute.enabled=false",
-			"spring.cloud.gateway.BetweenRoute.enabled=false",
-			"spring.cloud.gateway.CookieRoute.enabled=false",
-			"spring.cloud.gateway.HeaderRoute.enabled=false",
-			"spring.cloud.gateway.HostRoute.enabled=false",
-			"spring.cloud.gateway.MethodRoute.enabled=false",
-			"spring.cloud.gateway.PathRoute.enabled=false",
-			"spring.cloud.gateway.QueryRoute.enabled=false",
-			"spring.cloud.gateway.ReadBody.enabled=false",
-			"spring.cloud.gateway.RemoteAddrRoute.enabled=false",
-			"spring.cloud.gateway.WeightRoute.enabled=false",
-			"spring.cloud.gateway.CloudFoundryRoute.enabled=false"
-	})
+	@SpringBootTest(classes = Config.class,
+			properties = { "spring.cloud.gateway.AfterRoute.enabled=false",
+					"spring.cloud.gateway.BeforeRoute.enabled=false",
+					"spring.cloud.gateway.BetweenRoute.enabled=false",
+					"spring.cloud.gateway.CookieRoute.enabled=false",
+					"spring.cloud.gateway.HeaderRoute.enabled=false",
+					"spring.cloud.gateway.HostRoute.enabled=false",
+					"spring.cloud.gateway.MethodRoute.enabled=false",
+					"spring.cloud.gateway.PathRoute.enabled=false",
+					"spring.cloud.gateway.QueryRoute.enabled=false",
+					"spring.cloud.gateway.ReadBody.enabled=false",
+					"spring.cloud.gateway.RemoteAddrRoute.enabled=false",
+					"spring.cloud.gateway.WeightRoute.enabled=false",
+					"spring.cloud.gateway.CloudFoundryRoute.enabled=false" })
 	@ActiveProfiles("disable-components")
 	public static class DisableAllPredicatesByProperty {
 
