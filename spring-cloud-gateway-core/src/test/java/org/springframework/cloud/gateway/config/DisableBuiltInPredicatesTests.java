@@ -34,7 +34,7 @@ class DisableBuiltInPredicatesTests {
 		private List<RoutePredicateFactory<?>> predicates;
 
 		@Test
-		public void shouldInjectBuiltInFilters() {
+		public void shouldInjectBuiltInPredicates() {
 			assertThat(predicates).hasSizeGreaterThanOrEqualTo(13);
 		}
 
@@ -52,7 +52,7 @@ class DisableBuiltInPredicatesTests {
 		private List<RoutePredicateFactory<?>> predicates;
 
 		@Test
-		public void shouldInjectOnlyEnabledBuiltInFilters() {
+		public void shouldInjectOnlyEnabledBuiltInPredicates() {
 			assertThat(predicates).hasSizeGreaterThan(0);
 			assertThat(predicates).allSatisfy(filter ->
 					assertThat(filter).isNotInstanceOfAny(
@@ -86,7 +86,7 @@ class DisableBuiltInPredicatesTests {
 		private List<RoutePredicateFactory<?>> predicates;
 
 		@Test
-		public void shouldDisableAllBuiltInFilters() {
+		public void shouldDisableAllBuiltInPredicates() {
 			assertThat(predicates).isNull();
 		}
 
