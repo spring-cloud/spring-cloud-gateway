@@ -292,28 +292,28 @@ public class GatewayAutoConfiguration {
 	// GlobalFilter beans
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.gateway.AdaptCachedBody.enabled",
+	@ConditionalOnProperty(name = "spring.cloud.gateway.adapt-cached-body.enabled",
 			matchIfMissing = true)
 	public AdaptCachedBodyGlobalFilter adaptCachedBodyGlobalFilter() {
 		return new AdaptCachedBodyGlobalFilter();
 	}
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.gateway.RemoveCachedBody.enabled",
+	@ConditionalOnProperty(name = "spring.cloud.gateway.remove-cached-body.enabled",
 			matchIfMissing = true)
 	public RemoveCachedBodyFilter removeCachedBodyFilter() {
 		return new RemoveCachedBodyFilter();
 	}
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.gateway.RouteToRequestUrl.enabled",
+	@ConditionalOnProperty(name = "spring.cloud.gateway.route-to-request-url.enabled",
 			matchIfMissing = true)
 	public RouteToRequestUrlFilter routeToRequestUrlFilter() {
 		return new RouteToRequestUrlFilter();
 	}
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.gateway.ForwardRouting.enabled",
+	@ConditionalOnProperty(name = "spring.cloud.gateway.forward-routing.enabled",
 			matchIfMissing = true)
 	public ForwardRoutingFilter forwardRoutingFilter(
 			ObjectProvider<DispatcherHandler> dispatcherHandler) {
@@ -321,7 +321,7 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.gateway.ForwardPath.enabled",
+	@ConditionalOnProperty(name = "spring.cloud.gateway.forward-path.enabled",
 			matchIfMissing = true)
 	public ForwardPathFilter forwardPathFilter() {
 		return new ForwardPathFilter();
@@ -334,7 +334,7 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.gateway.WebsocketRouting.enabled",
+	@ConditionalOnProperty(name = "spring.cloud.gateway.websocket-routing.enabled",
 			matchIfMissing = true)
 	public WebsocketRoutingFilter websocketRoutingFilter(WebSocketClient webSocketClient,
 			WebSocketService webSocketService,
@@ -362,63 +362,63 @@ public class GatewayAutoConfiguration {
 	// Predicate Factory beans
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.gateway.AfterRoute.enabled",
+	@ConditionalOnProperty(name = "spring.cloud.gateway.After.enabled",
 			matchIfMissing = true)
 	public AfterRoutePredicateFactory afterRoutePredicateFactory() {
 		return new AfterRoutePredicateFactory();
 	}
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.gateway.BeforeRoute.enabled",
+	@ConditionalOnProperty(name = "spring.cloud.gateway.Before.enabled",
 			matchIfMissing = true)
 	public BeforeRoutePredicateFactory beforeRoutePredicateFactory() {
 		return new BeforeRoutePredicateFactory();
 	}
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.gateway.BetweenRoute.enabled",
+	@ConditionalOnProperty(name = "spring.cloud.gateway.Between.enabled",
 			matchIfMissing = true)
 	public BetweenRoutePredicateFactory betweenRoutePredicateFactory() {
 		return new BetweenRoutePredicateFactory();
 	}
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.gateway.CookieRoute.enabled",
+	@ConditionalOnProperty(name = "spring.cloud.gateway.Cookie.enabled",
 			matchIfMissing = true)
 	public CookieRoutePredicateFactory cookieRoutePredicateFactory() {
 		return new CookieRoutePredicateFactory();
 	}
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.gateway.HeaderRoute.enabled",
+	@ConditionalOnProperty(name = "spring.cloud.gateway.Header.enabled",
 			matchIfMissing = true)
 	public HeaderRoutePredicateFactory headerRoutePredicateFactory() {
 		return new HeaderRoutePredicateFactory();
 	}
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.gateway.HostRoute.enabled",
+	@ConditionalOnProperty(name = "spring.cloud.gateway.Host.enabled",
 			matchIfMissing = true)
 	public HostRoutePredicateFactory hostRoutePredicateFactory() {
 		return new HostRoutePredicateFactory();
 	}
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.gateway.MethodRoute.enabled",
+	@ConditionalOnProperty(name = "spring.cloud.gateway.Method.enabled",
 			matchIfMissing = true)
 	public MethodRoutePredicateFactory methodRoutePredicateFactory() {
 		return new MethodRoutePredicateFactory();
 	}
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.gateway.PathRoute.enabled",
+	@ConditionalOnProperty(name = "spring.cloud.gateway.Path.enabled",
 			matchIfMissing = true)
 	public PathRoutePredicateFactory pathRoutePredicateFactory() {
 		return new PathRoutePredicateFactory();
 	}
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.gateway.QueryRoute.enabled",
+	@ConditionalOnProperty(name = "spring.cloud.gateway.Query.enabled",
 			matchIfMissing = true)
 	public QueryRoutePredicateFactory queryRoutePredicateFactory() {
 		return new QueryRoutePredicateFactory();
@@ -433,7 +433,7 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.gateway.RemoteAddrRoute.enabled",
+	@ConditionalOnProperty(name = "spring.cloud.gateway.RemoteAddr.enabled",
 			matchIfMissing = true)
 	public RemoteAddrRoutePredicateFactory remoteAddrRoutePredicateFactory() {
 		return new RemoteAddrRoutePredicateFactory();
@@ -441,14 +441,14 @@ public class GatewayAutoConfiguration {
 
 	@Bean
 	@DependsOn("weightCalculatorWebFilter")
-	@ConditionalOnProperty(name = "spring.cloud.gateway.WeightRoute.enabled",
+	@ConditionalOnProperty(name = "spring.cloud.gateway.weight-.enabled",
 			matchIfMissing = true)
 	public WeightRoutePredicateFactory weightRoutePredicateFactory() {
 		return new WeightRoutePredicateFactory();
 	}
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.gateway.CloudFoundryRoute.enabled",
+	@ConditionalOnProperty(name = "spring.cloud.gateway.CloudFoundry.enabled",
 			matchIfMissing = true)
 	public CloudFoundryRouteServiceRoutePredicateFactory cloudFoundryRouteServiceRoutePredicateFactory() {
 		return new CloudFoundryRouteServiceRoutePredicateFactory();
@@ -822,7 +822,7 @@ public class GatewayAutoConfiguration {
 		}
 
 		@Bean
-		@ConditionalOnProperty(name = "spring.cloud.gateway.Netty.enabled",
+		@ConditionalOnProperty(name = "spring.cloud.gateway.netty.enabled",
 				matchIfMissing = true)
 		public NettyRoutingFilter routingFilter(HttpClient httpClient,
 				ObjectProvider<List<HttpHeadersFilter>> headersFilters,
@@ -831,7 +831,7 @@ public class GatewayAutoConfiguration {
 		}
 
 		@Bean
-		@ConditionalOnProperty(name = "spring.cloud.gateway.Netty.enabled",
+		@ConditionalOnProperty(name = "spring.cloud.gateway.netty.enabled",
 				matchIfMissing = true)
 		public NettyWriteResponseFilter nettyWriteResponseFilter(
 				GatewayProperties properties) {
