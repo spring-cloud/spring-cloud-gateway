@@ -362,70 +362,70 @@ public class GatewayAutoConfiguration {
 	// Predicate Factory beans
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.gateway.after-route.enabled",
+	@ConditionalOnProperty(name = "spring.cloud.gateway.AfterRoute.enabled",
 			matchIfMissing = true)
 	public AfterRoutePredicateFactory afterRoutePredicateFactory() {
 		return new AfterRoutePredicateFactory();
 	}
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.gateway.before-route.enabled",
+	@ConditionalOnProperty(name = "spring.cloud.gateway.BeforeRoute.enabled",
 			matchIfMissing = true)
 	public BeforeRoutePredicateFactory beforeRoutePredicateFactory() {
 		return new BeforeRoutePredicateFactory();
 	}
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.gateway.between-route.enabled",
+	@ConditionalOnProperty(name = "spring.cloud.gateway.BetweenRoute.enabled",
 			matchIfMissing = true)
 	public BetweenRoutePredicateFactory betweenRoutePredicateFactory() {
 		return new BetweenRoutePredicateFactory();
 	}
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.gateway.cookie-route.enabled",
+	@ConditionalOnProperty(name = "spring.cloud.gateway.CookieRoute.enabled",
 			matchIfMissing = true)
 	public CookieRoutePredicateFactory cookieRoutePredicateFactory() {
 		return new CookieRoutePredicateFactory();
 	}
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.gateway.header-route.enabled",
+	@ConditionalOnProperty(name = "spring.cloud.gateway.HeaderRoute.enabled",
 			matchIfMissing = true)
 	public HeaderRoutePredicateFactory headerRoutePredicateFactory() {
 		return new HeaderRoutePredicateFactory();
 	}
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.gateway.host-route.enabled",
+	@ConditionalOnProperty(name = "spring.cloud.gateway.HostRoute.enabled",
 			matchIfMissing = true)
 	public HostRoutePredicateFactory hostRoutePredicateFactory() {
 		return new HostRoutePredicateFactory();
 	}
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.gateway.method-route.enabled",
+	@ConditionalOnProperty(name = "spring.cloud.gateway.MethodRoute.enabled",
 			matchIfMissing = true)
 	public MethodRoutePredicateFactory methodRoutePredicateFactory() {
 		return new MethodRoutePredicateFactory();
 	}
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.gateway.path-route.enabled",
+	@ConditionalOnProperty(name = "spring.cloud.gateway.PathRoute.enabled",
 			matchIfMissing = true)
 	public PathRoutePredicateFactory pathRoutePredicateFactory() {
 		return new PathRoutePredicateFactory();
 	}
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.gateway.query-route.enabled",
+	@ConditionalOnProperty(name = "spring.cloud.gateway.QueryRoute.enabled",
 			matchIfMissing = true)
 	public QueryRoutePredicateFactory queryRoutePredicateFactory() {
 		return new QueryRoutePredicateFactory();
 	}
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.gateway.read-body.enabled",
+	@ConditionalOnProperty(name = "spring.cloud.gateway.ReadBody.enabled",
 			matchIfMissing = true)
 	public ReadBodyPredicateFactory readBodyPredicateFactory(
 			ServerCodecConfigurer codecConfigurer) {
@@ -433,7 +433,7 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.gateway.remote-addr-route.enabled",
+	@ConditionalOnProperty(name = "spring.cloud.gateway.RemoteAddrRoute.enabled",
 			matchIfMissing = true)
 	public RemoteAddrRoutePredicateFactory remoteAddrRoutePredicateFactory() {
 		return new RemoteAddrRoutePredicateFactory();
@@ -448,7 +448,7 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.gateway.cloud-foundry-route.enabled",
+	@ConditionalOnProperty(name = "spring.cloud.gateway.CloudFoundryRoute.enabled",
 			matchIfMissing = true)
 	public CloudFoundryRouteServiceRoutePredicateFactory cloudFoundryRouteServiceRoutePredicateFactory() {
 		return new CloudFoundryRouteServiceRoutePredicateFactory();

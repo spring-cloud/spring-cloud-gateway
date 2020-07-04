@@ -42,8 +42,8 @@ class DisableBuiltInPredicatesTests {
 
 	@RunWith(SpringRunner.class)
 	@SpringBootTest(classes = Config.class, properties = {
-		"spring.cloud.gateway.after-route.enabled=false",
-		"spring.cloud.gateway.before-route.enabled=false"
+		"spring.cloud.gateway.AfterRoute.enabled=false",
+		"spring.cloud.gateway.BeforeRoute.enabled=false"
 	})
 	@ActiveProfiles("disable-components")
 	public static class DisableSpecificsPredicatesByProperty {
@@ -65,19 +65,19 @@ class DisableBuiltInPredicatesTests {
 
 	@RunWith(SpringRunner.class)
 	@SpringBootTest(classes = Config.class, properties = {
-			"spring.cloud.gateway.after-route.enabled=false",
-			"spring.cloud.gateway.before-route.enabled=false",
-			"spring.cloud.gateway.between-route.enabled=false",
-			"spring.cloud.gateway.cookie-route.enabled=false",
-			"spring.cloud.gateway.header-route.enabled=false",
-			"spring.cloud.gateway.host-route.enabled=false",
-			"spring.cloud.gateway.method-route.enabled=false",
-			"spring.cloud.gateway.path-route.enabled=false",
-			"spring.cloud.gateway.query-route.enabled=false",
-			"spring.cloud.gateway.read-body.enabled=false",
-			"spring.cloud.gateway.remote-addr-route.enabled=false",
-			"spring.cloud.gateway.weight-route.enabled=false",
-			"spring.cloud.gateway.cloud-foundry-route.enabled=false"
+			"spring.cloud.gateway.AfterRoute.enabled=false",
+			"spring.cloud.gateway.BeforeRoute.enabled=false",
+			"spring.cloud.gateway.BetweenRoute.enabled=false",
+			"spring.cloud.gateway.CookieRoute.enabled=false",
+			"spring.cloud.gateway.HeaderRoute.enabled=false",
+			"spring.cloud.gateway.HostRoute.enabled=false",
+			"spring.cloud.gateway.MethodRoute.enabled=false",
+			"spring.cloud.gateway.PathRoute.enabled=false",
+			"spring.cloud.gateway.QueryRoute.enabled=false",
+			"spring.cloud.gateway.ReadBody.enabled=false",
+			"spring.cloud.gateway.RemoteAddrRoute.enabled=false",
+			"spring.cloud.gateway.WeightRoute.enabled=false",
+			"spring.cloud.gateway.CloudFoundryRoute.enabled=false"
 	})
 	@ActiveProfiles("disable-components")
 	public static class DisableAllPredicatesByProperty {
