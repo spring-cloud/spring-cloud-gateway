@@ -604,7 +604,7 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.gateway.SetRequestHostHeader.enabled",
+	@ConditionalOnProperty(name = "spring.cloud.gateway.set-request-host-header.enabled",
 			matchIfMissing = true)
 	public SetRequestHostHeaderGatewayFilterFactory setRequestHostHeaderGatewayFilterFactory() {
 		return new SetRequestHostHeaderGatewayFilterFactory();
@@ -626,7 +626,7 @@ public class GatewayAutoConfiguration {
 
 	@Bean
 	@ConditionalOnProperty(
-			name = "spring.cloud.gateway.RewriteLocationResponseHeader.enabled",
+			name = "spring.cloud.gateway.rewrite-location-response-header.enabled",
 			matchIfMissing = true)
 	public RewriteLocationResponseHeaderGatewayFilterFactory rewriteLocationResponseHeaderGatewayFilterFactory() {
 		return new RewriteLocationResponseHeaderGatewayFilterFactory();
@@ -655,7 +655,7 @@ public class GatewayAutoConfiguration {
 
 	@Bean
 	@ConditionalOnProperty(
-			name = "spring.cloud.gateway.RequestHeaderToRequestUri.enabled",
+			name = "spring.cloud.gateway.request-header-to-request-uri.enabled",
 			matchIfMissing = true)
 	public RequestHeaderToRequestUriGatewayFilterFactory requestHeaderToRequestUriGatewayFilterFactory() {
 		return new RequestHeaderToRequestUriGatewayFilterFactory();
