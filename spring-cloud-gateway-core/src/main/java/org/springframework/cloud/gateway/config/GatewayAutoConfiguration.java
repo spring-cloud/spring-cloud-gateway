@@ -457,35 +457,35 @@ public class GatewayAutoConfiguration {
 	// GatewayFilter Factory beans
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.gateway.AddRequestHeader.enabled",
+	@ConditionalOnProperty(name = "spring.cloud.gateway.add-request-header.enabled",
 			matchIfMissing = true)
 	public AddRequestHeaderGatewayFilterFactory addRequestHeaderGatewayFilterFactory() {
 		return new AddRequestHeaderGatewayFilterFactory();
 	}
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.gateway.MapRequestHeader.enabled",
+	@ConditionalOnProperty(name = "spring.cloud.gateway.map-request-header.enabled",
 			matchIfMissing = true)
 	public MapRequestHeaderGatewayFilterFactory mapRequestHeaderGatewayFilterFactory() {
 		return new MapRequestHeaderGatewayFilterFactory();
 	}
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.gateway.AddRequestParameter.enabled",
+	@ConditionalOnProperty(name = "spring.cloud.gateway.add-request-parameter.enabled",
 			matchIfMissing = true)
 	public AddRequestParameterGatewayFilterFactory addRequestParameterGatewayFilterFactory() {
 		return new AddRequestParameterGatewayFilterFactory();
 	}
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.gateway.AddResponseHeader.enabled",
+	@ConditionalOnProperty(name = "spring.cloud.gateway.add-response-header.enabled",
 			matchIfMissing = true)
 	public AddResponseHeaderGatewayFilterFactory addResponseHeaderGatewayFilterFactory() {
 		return new AddResponseHeaderGatewayFilterFactory();
 	}
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.gateway.ModifyRequestBody.enabled",
+	@ConditionalOnProperty(name = "spring.cloud.gateway.modify-request-body.enabled",
 			matchIfMissing = true)
 	public ModifyRequestBodyGatewayFilterFactory modifyRequestBodyGatewayFilterFactory(
 			ServerCodecConfigurer codecConfigurer) {
@@ -493,14 +493,14 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.gateway.DedupeResponseHeader.enabled",
+	@ConditionalOnProperty(name = "spring.cloud.gateway.dedupe-response-header.enabled",
 			matchIfMissing = true)
 	public DedupeResponseHeaderGatewayFilterFactory dedupeResponseHeaderGatewayFilterFactory() {
 		return new DedupeResponseHeaderGatewayFilterFactory();
 	}
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.gateway.ModifyResponseBody.enabled",
+	@ConditionalOnProperty(name = "spring.cloud.gateway.modify-response-body.enabled",
 			matchIfMissing = true)
 	public ModifyResponseBodyGatewayFilterFactory modifyResponseBodyGatewayFilterFactory(
 			ServerCodecConfigurer codecConfigurer, Set<MessageBodyDecoder> bodyDecoders,
@@ -517,7 +517,7 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.gateway.PreserveHostHeader.enabled",
+	@ConditionalOnProperty(name = "spring.cloud.gateway.preserve-host-header.enabled",
 			matchIfMissing = true)
 	public PreserveHostHeaderGatewayFilterFactory preserveHostHeaderGatewayFilterFactory() {
 		return new PreserveHostHeaderGatewayFilterFactory();
@@ -531,21 +531,21 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.gateway.RemoveRequestHeader.enabled",
+	@ConditionalOnProperty(name = "spring.cloud.gateway.remove-request-header.enabled",
 			matchIfMissing = true)
 	public RemoveRequestHeaderGatewayFilterFactory removeRequestHeaderGatewayFilterFactory() {
 		return new RemoveRequestHeaderGatewayFilterFactory();
 	}
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.gateway.RemoveRequestParameter.enabled",
+	@ConditionalOnProperty(name = "spring.cloud.gateway.remove-request-parameter.enabled",
 			matchIfMissing = true)
 	public RemoveRequestParameterGatewayFilterFactory removeRequestParameterGatewayFilterFactory() {
 		return new RemoveRequestParameterGatewayFilterFactory();
 	}
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.gateway.RemoveResponseHeader.enabled",
+	@ConditionalOnProperty(name = "spring.cloud.gateway.remove-response-header.enabled",
 			matchIfMissing = true)
 	public RemoveResponseHeaderGatewayFilterFactory removeResponseHeaderGatewayFilterFactory() {
 		return new RemoveResponseHeaderGatewayFilterFactory();
@@ -560,7 +560,7 @@ public class GatewayAutoConfiguration {
 
 	@Bean
 	@ConditionalOnBean({ RateLimiter.class, KeyResolver.class })
-	@ConditionalOnProperty(name = "spring.cloud.gateway.RequestRateLimiter.enabled",
+	@ConditionalOnProperty(name = "spring.cloud.gateway.request-rate-limiter.enabled",
 			matchIfMissing = true)
 	public RequestRateLimiterGatewayFilterFactory requestRateLimiterGatewayFilterFactory(
 			RateLimiter rateLimiter, KeyResolver resolver) {
@@ -597,7 +597,7 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.gateway.SetRequestHeader.enabled",
+	@ConditionalOnProperty(name = "spring.cloud.gateway.set-request-header.enabled",
 			matchIfMissing = true)
 	public SetRequestHeaderGatewayFilterFactory setRequestHeaderGatewayFilterFactory() {
 		return new SetRequestHeaderGatewayFilterFactory();
@@ -611,14 +611,14 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.gateway.SetResponseHeader.enabled",
+	@ConditionalOnProperty(name = "spring.cloud.gateway.set-response-header.enabled",
 			matchIfMissing = true)
 	public SetResponseHeaderGatewayFilterFactory setResponseHeaderGatewayFilterFactory() {
 		return new SetResponseHeaderGatewayFilterFactory();
 	}
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.gateway.RewriteResponseHeader.enabled",
+	@ConditionalOnProperty(name = "spring.cloud.gateway.rewrite-response-header.enabled",
 			matchIfMissing = true)
 	public RewriteResponseHeaderGatewayFilterFactory rewriteResponseHeaderGatewayFilterFactory() {
 		return new RewriteResponseHeaderGatewayFilterFactory();
@@ -669,7 +669,7 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.gateway.RequestHeaderSize.enabled",
+	@ConditionalOnProperty(name = "spring.cloud.gateway.request-header-size.enabled",
 			matchIfMissing = true)
 	public RequestHeaderSizeGatewayFilterFactory requestHeaderSizeGatewayFilterFactory() {
 		return new RequestHeaderSizeGatewayFilterFactory();

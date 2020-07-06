@@ -59,8 +59,8 @@ public class DisableBuiltInFiltersTests {
 
 	@RunWith(SpringRunner.class)
 	@SpringBootTest(classes = Config.class,
-			properties = { "spring.cloud.gateway.AddRequestHeader.enabled=false",
-					"spring.cloud.gateway.MapRequestHeader.enabled=false" })
+			properties = { "spring.cloud.gateway.add-request-header.enabled=false",
+					"spring.cloud.gateway.map-request-header.enabled=false" })
 	@ActiveProfiles("disable-components")
 	public static class DisableSpecificsFiltersByProperty {
 
@@ -79,28 +79,28 @@ public class DisableBuiltInFiltersTests {
 
 	@RunWith(SpringRunner.class)
 	@SpringBootTest(classes = Config.class,
-			properties = { "spring.cloud.gateway.AddRequestHeader.enabled=false",
-					"spring.cloud.gateway.MapRequestHeader.enabled=false",
-					"spring.cloud.gateway.AddRequestParameter.enabled=false",
-					"spring.cloud.gateway.AddResponseHeader.enabled=false",
-					"spring.cloud.gateway.ModifyRequestBody.enabled=false",
-					"spring.cloud.gateway.DedupeResponseHeader.enabled=false",
-					"spring.cloud.gateway.ModifyResponseBody.enabled=false",
+			properties = { "spring.cloud.gateway.add-request-header.enabled=false",
+					"spring.cloud.gateway.map-request-header.enabled=false",
+					"spring.cloud.gateway.add-request-parameter.enabled=false",
+					"spring.cloud.gateway.add-response-header.enabled=false",
+					"spring.cloud.gateway.modify-request-body.enabled=false",
+					"spring.cloud.gateway.dedupe-response-header.enabled=false",
+					"spring.cloud.gateway.modify-response-body.enabled=false",
 					"spring.cloud.gateway.prefix-path.enabled=false",
-					"spring.cloud.gateway.PreserveHostHeader.enabled=false",
+					"spring.cloud.gateway.preserve-host-header.enabled=false",
 					"spring.cloud.gateway.redirect-to.enabled=false",
-					"spring.cloud.gateway.RemoveRequestHeader.enabled=false",
-					"spring.cloud.gateway.RemoveRequestParameter.enabled=false",
-					"spring.cloud.gateway.RemoveResponseHeader.enabled=false",
-					"spring.cloud.gateway.RequestRateLimiter.enabled=false",
+					"spring.cloud.gateway.remove-request-header.enabled=false",
+					"spring.cloud.gateway.remove-request-parameter.enabled=false",
+					"spring.cloud.gateway.remove-response-header.enabled=false",
+					"spring.cloud.gateway.request-rate-limiter.enabled=false",
 					"spring.cloud.gateway.rewrite-path.enabled=false",
 					"spring.cloud.gateway.retry.enabled=false",
 					"spring.cloud.gateway.set-path.enabled=false",
 					"spring.cloud.gateway.secure-headers.enabled=false",
-					"spring.cloud.gateway.SetRequestHeader.enabled=false",
+					"spring.cloud.gateway.set-request-header.enabled=false",
 					"spring.cloud.gateway.SetRequestHostHeader.enabled=false",
-					"spring.cloud.gateway.SetResponseHeader.enabled=false",
-					"spring.cloud.gateway.RewriteResponseHeader.enabled=false",
+					"spring.cloud.gateway.set-response-header.enabled=false",
+					"spring.cloud.gateway.rewrite-response-header.enabled=false",
 					"spring.cloud.gateway.RewriteLocationResponseHeader.enabled=false",
 					"spring.cloud.gateway.rewrite-location.enabled=false",
 					"spring.cloud.gateway.set-status.enabled=false",
@@ -108,7 +108,7 @@ public class DisableBuiltInFiltersTests {
 					"spring.cloud.gateway.strip-prefix.enabled=false",
 					"spring.cloud.gateway.RequestHeaderToRequestUri.enabled=false",
 					"spring.cloud.gateway.request-size.enabled=false",
-					"spring.cloud.gateway.RequestHeaderSize.enabled=false",
+					"spring.cloud.gateway.request-header-size.enabled=false",
 					"spring.cloud.gateway.fallback.enabled=false",
 					"spring.cloud.gateway.fallback-headers.enabled=false" })
 	@ActiveProfiles("disable-components")
