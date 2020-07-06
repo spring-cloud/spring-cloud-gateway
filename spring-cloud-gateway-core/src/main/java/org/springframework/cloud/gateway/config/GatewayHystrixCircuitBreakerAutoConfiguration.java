@@ -54,7 +54,7 @@ public class GatewayHystrixCircuitBreakerAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean(FallbackHeadersGatewayFilterFactory.class)
-	@ConditionalOnProperty(name = "spring.cloud.gateway.FallbackHeaders.enabled",
+	@ConditionalOnProperty(name = "spring.cloud.gateway.fallback-headers.enabled",
 			matchIfMissing = true)
 	public FallbackHeadersGatewayFilterFactory fallbackHeadersGatewayFilterFactory() {
 		return new FallbackHeadersGatewayFilterFactory();

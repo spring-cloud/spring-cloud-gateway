@@ -59,8 +59,8 @@ public class DisableBuiltInPredicatesTests {
 
 	@RunWith(SpringRunner.class)
 	@SpringBootTest(classes = Config.class,
-			properties = { "spring.cloud.gateway.After.enabled=false",
-					"spring.cloud.gateway.Before.enabled=false" })
+			properties = { "spring.cloud.gateway.after.enabled=false",
+					"spring.cloud.gateway.before.enabled=false" })
 	@ActiveProfiles("disable-components")
 	public static class DisableSpecificsPredicatesByProperty {
 
@@ -79,19 +79,19 @@ public class DisableBuiltInPredicatesTests {
 
 	@RunWith(SpringRunner.class)
 	@SpringBootTest(classes = Config.class,
-			properties = { "spring.cloud.gateway.After.enabled=false",
-					"spring.cloud.gateway.Before.enabled=false",
-					"spring.cloud.gateway.Between.enabled=false",
-					"spring.cloud.gateway.Cookie.enabled=false",
-					"spring.cloud.gateway.Header.enabled=false",
-					"spring.cloud.gateway.Host.enabled=false",
-					"spring.cloud.gateway.Method.enabled=false",
-					"spring.cloud.gateway.Path.enabled=false",
-					"spring.cloud.gateway.Query.enabled=false",
-					"spring.cloud.gateway.ReadBody.enabled=false",
-					"spring.cloud.gateway.RemoteAddr.enabled=false",
-					"spring.cloud.gateway.Weight.enabled=false",
-					"spring.cloud.gateway.CloudFoundry.enabled=false" })
+			properties = { "spring.cloud.gateway.after.enabled=false",
+					"spring.cloud.gateway.before.enabled=false",
+					"spring.cloud.gateway.between.enabled=false",
+					"spring.cloud.gateway.cookie.enabled=false",
+					"spring.cloud.gateway.header.enabled=false",
+					"spring.cloud.gateway.host.enabled=false",
+					"spring.cloud.gateway.method.enabled=false",
+					"spring.cloud.gateway.path.enabled=false",
+					"spring.cloud.gateway.query.enabled=false",
+					"spring.cloud.gateway.read-body.enabled=false",
+					"spring.cloud.gateway.remote-addr.enabled=false",
+					"spring.cloud.gateway.weight.enabled=false",
+					"spring.cloud.gateway.cloud-foundry.enabled=false" })
 	@ActiveProfiles("disable-components")
 	public static class DisableAllPredicatesByProperty {
 

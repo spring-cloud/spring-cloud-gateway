@@ -44,7 +44,7 @@ public class GatewayResilience4JCircuitBreakerAutoConfiguration {
 
 	@Bean
 	@ConditionalOnBean(ReactiveResilience4JCircuitBreakerFactory.class)
-	@ConditionalOnProperty(name = "spring.cloud.gateway.Fallback.enabled",
+	@ConditionalOnProperty(name = "spring.cloud.gateway.fallback.enabled",
 			matchIfMissing = true)
 	public SpringCloudCircuitBreakerResilience4JFilterFactory springCloudCircuitBreakerResilience4JFilterFactory(
 			ReactiveResilience4JCircuitBreakerFactory reactiveCircuitBreakerFactory,
@@ -55,7 +55,7 @@ public class GatewayResilience4JCircuitBreakerAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean(FallbackHeadersGatewayFilterFactory.class)
-	@ConditionalOnProperty(name = "spring.cloud.gateway.FallbackHeaders.enabled",
+	@ConditionalOnProperty(name = "spring.cloud.gateway.fallback-headers.enabled",
 			matchIfMissing = true)
 	public FallbackHeadersGatewayFilterFactory fallbackHeadersGatewayFilterFactory() {
 		return new FallbackHeadersGatewayFilterFactory();
