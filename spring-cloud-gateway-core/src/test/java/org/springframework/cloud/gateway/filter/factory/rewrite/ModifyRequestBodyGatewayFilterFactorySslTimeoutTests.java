@@ -24,9 +24,8 @@ import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import io.netty.util.internal.PlatformDependent;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junitpioneer.jupiter.RepeatFailedTest;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
@@ -50,7 +49,6 @@ import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.http.codec.ServerCodecConfigurer;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -60,7 +58,6 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 /**
  * @author fangfeikun
  */
-@RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT,
 		properties = { "spring.cloud.gateway.httpclient.ssl.handshake-timeout=1ms",
 				"spring.main.allow-bean-definition-overriding=true" })
@@ -72,7 +69,7 @@ public class ModifyRequestBodyGatewayFilterFactorySslTimeoutTests
 	@Autowired
 	AtomicInteger releaseCount;
 
-	@Before
+	@BeforeEach
 	public void setup() {
 		try {
 			SslContext sslContext = SslContextBuilder.forClient()
@@ -97,7 +94,6 @@ public class ModifyRequestBodyGatewayFilterFactorySslTimeoutTests
 				.jsonPath("message").isEqualTo("handshake timed out after 1ms");
 	}
 
-	@Test
 	@RepeatFailedTest(3)
 	public void modifyRequestBodyRelease() {
 		releaseCount.set(0);
