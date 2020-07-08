@@ -24,9 +24,9 @@ import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerUriTools;
+import org.springframework.cloud.client.loadbalancer.Request;
+import org.springframework.cloud.client.loadbalancer.Response;
 import org.springframework.cloud.client.loadbalancer.reactive.ReactiveLoadBalancer;
-import org.springframework.cloud.client.loadbalancer.reactive.Request;
-import org.springframework.cloud.client.loadbalancer.reactive.Response;
 import org.springframework.cloud.gateway.config.LoadBalancerProperties;
 import org.springframework.cloud.gateway.support.DelegatingServiceInstance;
 import org.springframework.cloud.gateway.support.NotFoundException;
