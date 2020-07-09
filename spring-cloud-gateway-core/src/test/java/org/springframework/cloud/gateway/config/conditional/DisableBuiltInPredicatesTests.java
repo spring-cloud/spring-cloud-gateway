@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.gateway.config;
+package org.springframework.cloud.gateway.config.conditional;
 
 import java.util.List;
 
