@@ -43,7 +43,7 @@ class OnEnabledFilterTests {
 	}
 
 	@Test
-	void shouldNormalizePredicatesNames() {
+	void shouldNormalizeFiltersNames() {
 		List<Class<? extends GatewayFilterFactory<?>>> predicates = Arrays.asList(
 				AddRequestHeaderGatewayFilterFactory.class,
 				DedupeResponseHeaderGatewayFilterFactory.class,
