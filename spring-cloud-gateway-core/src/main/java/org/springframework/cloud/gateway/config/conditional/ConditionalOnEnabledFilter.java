@@ -1,4 +1,4 @@
-package org.springframework.cloud.gateway.config;
+package org.springframework.cloud.gateway.config.conditional;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -16,8 +16,8 @@ import org.springframework.context.annotation.Conditional;
 public @interface ConditionalOnEnabledFilter {
 
 	/**
-	 * The classes components to check for.
-	 * @return the classes that must be present
+	 * The class component to check for.
+	 * @return the class that must be enabled
 	 */
-	Class<? extends GatewayFilterFactory<?>>[] value() default {};
+	Class<? extends GatewayFilterFactory<?>> value();
 }
