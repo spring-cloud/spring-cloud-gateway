@@ -12,8 +12,8 @@ jobs:
         - gh-pages # list of branches to ignore
     steps:
       - checkout
-      - restore_cache:
-          key: sc-gateway-{{ .Branch }}
+#      - restore_cache:
+#          key: sc-gateway-{{ .Branch }}
       - run:
           name: "Download dependencies"
           command: |
