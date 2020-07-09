@@ -20,4 +20,5 @@ public @interface ConditionalOnEnabledFilter {
 	 * @return the class that must be enabled
 	 */
 	Class<? extends GatewayFilterFactory<?>> value();
+
 }

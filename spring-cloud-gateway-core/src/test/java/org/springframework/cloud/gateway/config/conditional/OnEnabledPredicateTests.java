@@ -29,19 +29,16 @@ class OnEnabledPredicateTests {
 		List<Class<? extends RoutePredicateFactory<?>>> predicates = Arrays.asList(
 				AfterRoutePredicateFactory.class,
 				CloudFoundryRouteServiceRoutePredicateFactory.class,
-				ReadBodyPredicateFactory.class,
-				RemoteAddrRoutePredicateFactory.class
-		);
+				ReadBodyPredicateFactory.class, RemoteAddrRoutePredicateFactory.class);
 
 		List<String> resultNames = predicates.stream()
 				.map(onEnabledPredicate::normalizeComponentName)
 				.collect(Collectors.toList());
 
-		List<String> expectedNames = Arrays.asList("after",
-				"cloud-foundry-route-service",
-				"read-body-predicate-factory",
-				"remote-addr");
+		List<String> expectedNames = Arrays.asList("after", "cloud-foundry-route-service",
+				"read-body-predicate-factory", "remote-addr");
 
 		assertThat(resultNames).isEqualTo(expectedNames);
 	}
+
 }

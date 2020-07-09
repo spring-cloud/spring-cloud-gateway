@@ -20,4 +20,5 @@ public @interface ConditionalOnEnabledPredicate {
 	 * @return the class that must be enabled
 	 */
 	Class<? extends RoutePredicateFactory<?>> value();
+
 }

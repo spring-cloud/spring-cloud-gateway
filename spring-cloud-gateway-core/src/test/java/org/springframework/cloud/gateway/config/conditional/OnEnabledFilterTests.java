@@ -34,21 +34,17 @@ class OnEnabledFilterTests {
 				FallbackHeadersGatewayFilterFactory.class,
 				HystrixGatewayFilterFactory.class,
 				MapRequestHeaderGatewayFilterFactory.class,
-				SpringCloudCircuitBreakerResilience4JFilterFactory.class
-		);
+				SpringCloudCircuitBreakerResilience4JFilterFactory.class);
 
 		List<String> resultNames = predicates.stream()
 				.map(onEnabledFilter::normalizeComponentName)
 				.collect(Collectors.toList());
 
-		List<String> expectedNames = Arrays.asList(
-				"add-request-header",
-				"dedupe-response-header",
-				"fallback-headers",
-				"hystrix",
-				"map-request-header",
-				"circuit-breaker");
+		List<String> expectedNames = Arrays.asList("add-request-header",
+				"dedupe-response-header", "fallback-headers", "hystrix",
+				"map-request-header", "circuit-breaker");
 
 		assertThat(resultNames).isEqualTo(expectedNames);
 	}
+
 }

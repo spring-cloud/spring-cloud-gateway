@@ -1,6 +1,5 @@
 package org.springframework.cloud.gateway.config.conditional;
 
-
 import java.util.Collections;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -19,7 +18,9 @@ import static org.mockito.Mockito.when;
 class OnEnabledComponentTests {
 
 	private OnEnabledComponent<Object> onEnabledComponent;
+
 	private MockEnvironment environment;
+
 	private ConditionContext conditionContext;
 
 	@BeforeEach
@@ -33,8 +34,8 @@ class OnEnabledComponentTests {
 	public void shouldMatchComponent() {
 		when(conditionContext.getEnvironment()).thenReturn(environment);
 
-		ConditionOutcome outcome = onEnabledComponent.getMatchOutcome(
-				conditionContext, mockMetaData(EnabledComponent.class));
+		ConditionOutcome outcome = onEnabledComponent.getMatchOutcome(conditionContext,
+				mockMetaData(EnabledComponent.class));
 
 		assertThat(outcome.isMatch()).isTrue();
 	}
@@ -44,19 +45,22 @@ class OnEnabledComponentTests {
 		String componentName = "disabled-component";
 		this.onEnabledComponent = createOnEnabledComponent(componentName);
 		when(conditionContext.getEnvironment()).thenReturn(environment);
-		environment.setProperty("spring.cloud.gateway." + componentName + ".enabled", "false");
+		environment.setProperty("spring.cloud.gateway." + componentName + ".enabled",
+				"false");
 
-		ConditionOutcome outcome = onEnabledComponent.getMatchOutcome(
-				conditionContext, mockMetaData(DisabledComponent.class));
+		ConditionOutcome outcome = onEnabledComponent.getMatchOutcome(conditionContext,
+				mockMetaData(DisabledComponent.class));
 
 		assertThat(outcome.isMatch()).isFalse();
-		assertThat(outcome.getMessage()).contains("DisabledComponent").contains("bean is not available");
+		assertThat(outcome.getMessage()).contains("DisabledComponent")
+				.contains("bean is not available");
 	}
 
 	private AnnotatedTypeMetadata mockMetaData(Class<?> value) {
 		AnnotatedTypeMetadata metadata = mock(AnnotatedTypeMetadata.class);
-		when(metadata.getAnnotationAttributes(eq(ConditionalOnEnabledFilter.class.getName())))
-				.thenReturn(Collections.singletonMap("value", value));
+		when(metadata
+				.getAnnotationAttributes(eq(ConditionalOnEnabledFilter.class.getName())))
+						.thenReturn(Collections.singletonMap("value", value));
 		return metadata;
 	}
 

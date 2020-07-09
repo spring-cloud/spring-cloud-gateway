@@ -8,7 +8,8 @@ import org.springframework.cloud.gateway.support.NameUtils;
 public class OnEnabledPredicate extends OnEnabledComponent<RoutePredicateFactory<?>> {
 
 	@Override
-	protected String normalizeComponentName(Class<? extends RoutePredicateFactory<?>> predicateClass) {
+	protected String normalizeComponentName(
+			Class<? extends RoutePredicateFactory<?>> predicateClass) {
 		String filterName = NameUtils.normalizeRoutePredicateName(predicateClass);
 		return CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_HYPHEN, filterName);
 	}
