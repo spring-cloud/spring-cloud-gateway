@@ -237,6 +237,7 @@
 							<excludes>
 								<exclude>**/Abstract*.java</exclude>
 							</excludes>
+							<!-- https://github.com/reactor/BlockHound/issues/33 -->
 							<argLine>-XX:+AllowRedefinitionToAddDeleteMethods</argLine>
 						</configuration>
 					</plugin>
