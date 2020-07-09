@@ -147,6 +147,31 @@
 
 	<profiles>
 		<profile>
+			<id>java14</id>
+			<activation>
+				<jdk>[1.14,)</jdk>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-compiler-plugin</artifactId>
+						<version>${maven-compiler-plugin.version}</version>
+						<configuration>
+							<source>${maven.compiler.source}</source>
+							<target>${maven.compiler.target}</target>
+							<compilerArgument></compilerArgument>
+							<compilerArgs>
+								<arg>-parameters</arg>
+								<!-- https://github.com/reactor/BlockHound/issues/33 -->
+								<arg>-XX:+AllowRedefinitionToAddDeleteMethods</arg>
+							</compilerArgs>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
 			<id>spring</id>
 			<repositories>
 				<repository>
