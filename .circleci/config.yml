@@ -1,9 +1,9 @@
 version: 2
 jobs:
   build:
-    docker:
-      - image: springcloud/pipeline-base
-#        user: appuser
+    machine: true
+#    docker:
+#      - image: springcloud/pipeline-base
     environment:
       _JAVA_OPTIONS: "-Xms1024m -Xmx2048m"
       TERM: dumb
@@ -14,8 +14,6 @@ jobs:
       - checkout
       - restore_cache:
           key: sc-gateway-{{ .Branch }}
-      - run:
-          command: apt-get -y install redis-server
       - run:
           name: "Download dependencies"
           command: |
