@@ -109,7 +109,8 @@ public class DisableBuiltInFiltersTests {
 					"spring.cloud.gateway.request-header-to-request-uri.enabled=false",
 					"spring.cloud.gateway.request-size.enabled=false",
 					"spring.cloud.gateway.request-header-size.enabled=false",
-					"spring.cloud.gateway.fallback.enabled=false",
+					"spring.cloud.gateway.circuit-breaker.enabled=false",
+					"spring.cloud.gateway.hystrix.enabled=false",
 					"spring.cloud.gateway.fallback-headers.enabled=false" })
 	@ActiveProfiles("disable-components")
 	public static class DisableAllFiltersByProperty {

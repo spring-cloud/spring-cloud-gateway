@@ -47,6 +47,8 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.r
 public abstract class SpringCloudCircuitBreakerFilterFactory extends
 		AbstractGatewayFilterFactory<SpringCloudCircuitBreakerFilterFactory.Config> {
 
+	public static final String NAME = "CircuitBreaker";
+
 	private ReactiveCircuitBreakerFactory reactiveCircuitBreakerFactory;
 
 	private ReactiveCircuitBreaker cb;
@@ -130,7 +132,7 @@ public abstract class SpringCloudCircuitBreakerFilterFactory extends
 
 	@Override
 	public String name() {
-		return "CircuitBreaker";
+		return NAME;
 	}
 
 	public static class Config implements HasRouteId {

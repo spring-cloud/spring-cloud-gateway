@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Conditional;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.TYPE, ElementType.METHOD })
 @Documented
-@Conditional(OnEnabledFilter.class)
+@Conditional(OnEnabledPredicate.class)
 public @interface ConditionalOnEnabledPredicate {
 
 	/**
