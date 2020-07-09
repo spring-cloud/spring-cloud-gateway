@@ -40,16 +40,6 @@ class OnEnabledComponentTests {
 	}
 
 	@Test
-	public void shouldIgnoreNullClassAndMatchComponent() {
-		when(conditionContext.getEnvironment()).thenReturn(environment);
-
-		ConditionOutcome outcome = onEnabledComponent.getMatchOutcome(
-				conditionContext, mockMetaData(null));
-
-		assertThat(outcome.isMatch()).isTrue();
-	}
-
-	@Test
 	public void shouldNotMatchDisabledComponent() {
 		String componentName = "disabled-component";
 		this.onEnabledComponent = createOnEnabledComponent(componentName);
@@ -75,6 +65,11 @@ class OnEnabledComponentTests {
 			@Override
 			protected String normalizeComponentName(Class<?> componentClass) {
 				return componentName;
+			}
+
+			@Override
+			protected String annotationName() {
+				return ConditionalOnEnabledFilter.class.getName();
 			}
 		};
 	}

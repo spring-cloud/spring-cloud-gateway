@@ -1,7 +1,5 @@
 package org.springframework.cloud.gateway.config.conditional;
 
-import java.util.Optional;
-
 import org.springframework.boot.autoconfigure.condition.ConditionMessage;
 import org.springframework.boot.autoconfigure.condition.ConditionOutcome;
 import org.springframework.boot.autoconfigure.condition.SpringBootCondition;
@@ -24,21 +22,14 @@ public abstract class OnEnabledComponent<T> extends SpringBootCondition implemen
 
 	@Override
 	public ConditionOutcome getMatchOutcome(ConditionContext context, AnnotatedTypeMetadata metadata) {
-		return getCandidate(metadata)
-				.map(it -> determineOutcome(it, context.getEnvironment()))
-				.orElse(ConditionOutcome.match());
-	}
-
-	private Optional<Class<? extends T>> getCandidate(AnnotatedTypeMetadata metadata) {
-		Object candidate = metadata.getAnnotationAttributes(ConditionalOnEnabledFilter.class.getName())
+		Class<? extends T> candidate = (Class<? extends T>) metadata.getAnnotationAttributes(annotationName())
 				.get("value");
-		return Optional.ofNullable(candidate)
-				.map(it -> (Class<? extends T>) it);
+		return determineOutcome(candidate, context.getEnvironment());
 	}
 
 	private ConditionOutcome determineOutcome(Class<? extends T> componentClass, PropertyResolver resolver) {
 		String key = PREFIX + normalizeComponentName(componentClass) + SUFFIX;
-		ConditionMessage.Builder messageBuilder = forCondition(ConditionalOnEnabledFilter.class, componentClass.getName());
+		ConditionMessage.Builder messageBuilder = forCondition(annotationName(), componentClass.getName());
 		if ("false".equalsIgnoreCase(resolver.getProperty(key))) {
 			return ConditionOutcome.noMatch(messageBuilder.because("bean is not available"));
 		}
@@ -46,5 +37,7 @@ public abstract class OnEnabledComponent<T> extends SpringBootCondition implemen
 	}
 
 	protected abstract String normalizeComponentName(Class<? extends T> componentClass);
+
+	protected abstract String annotationName();
 
 }

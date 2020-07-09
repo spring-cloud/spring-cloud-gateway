@@ -13,4 +13,9 @@ public class OnEnabledPredicate extends OnEnabledComponent<RoutePredicateFactory
 		return CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_HYPHEN, filterName);
 	}
 
+	@Override
+	protected String annotationName() {
+		return ConditionalOnEnabledPredicate.class.getName();
+	}
+
 }

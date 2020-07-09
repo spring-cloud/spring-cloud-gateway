@@ -11,13 +11,17 @@ public class OnEnabledFilter extends OnEnabledComponent<GatewayFilterFactory<?>>
 	@Override
 	protected String normalizeComponentName(Class<? extends GatewayFilterFactory<?>> filterClass) {
 		String filterName = "";
-
 		if (SpringCloudCircuitBreakerFilterFactory.class.isAssignableFrom(filterClass)) {
 			filterName = SpringCloudCircuitBreakerFilterFactory.NAME;
 		} else {
 			filterName = NameUtils.normalizeFilterFactoryName(filterClass);
 		}
 		return CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_HYPHEN, filterName);
+	}
+
+	@Override
+	protected String annotationName() {
+		return ConditionalOnEnabledFilter.class.getName();
 	}
 
 }
