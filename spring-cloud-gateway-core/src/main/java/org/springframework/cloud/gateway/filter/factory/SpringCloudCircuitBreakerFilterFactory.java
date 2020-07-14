@@ -17,7 +17,10 @@
 package org.springframework.cloud.gateway.filter.factory;
 
 import java.net.URI;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import reactor.core.publisher.Mono;
 
@@ -27,8 +30,11 @@ import org.springframework.cloud.client.circuitbreaker.ReactiveCircuitBreakerFac
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.support.HasRouteId;
+import org.springframework.cloud.gateway.support.HttpStatusHolder;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.util.StringUtils;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.reactive.DispatcherHandler;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -40,6 +46,7 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.C
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.containsEncodedParts;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.removeAlreadyRouted;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.reset;
 
 /**
  * @author Ryan Baxter
@@ -85,7 +92,19 @@ public abstract class SpringCloudCircuitBreakerFilterFactory extends
 			@Override
 			public Mono<Void> filter(ServerWebExchange exchange,
 					GatewayFilterChain chain) {
-				return cb.run(chain.filter(exchange), t -> {
+				return cb.run(chain.filter(exchange).doOnSuccess(v -> {
+					Set<HttpStatus> statuses = config.getStatusCodes().stream()
+							.map(HttpStatusHolder::parse)
+							.filter(statusHolder -> statusHolder.getHttpStatus() != null)
+							.map(HttpStatusHolder::getHttpStatus)
+							.collect(Collectors.toSet());
+					if (statuses.contains(exchange.getResponse().getStatusCode())) {
+						HttpStatus status = exchange.getResponse().getStatusCode();
+						exchange.getResponse().setStatusCode(null);
+						reset(exchange);
+						throw new CircuitBreakerStatusCodeException(status);
+					}
+				}), t -> {
 					if (config.getFallbackUri() == null) {
 						return Mono.error(t);
 					}
@@ -141,6 +160,8 @@ public abstract class SpringCloudCircuitBreakerFilterFactory extends
 
 		private String routeId;
 
+		private Set<String> statusCodes = new HashSet<>();
+
 		@Override
 		public void setRouteId(String routeId) {
 			this.routeId = routeId;
@@ -177,6 +198,28 @@ public abstract class SpringCloudCircuitBreakerFilterFactory extends
 				return routeId;
 			}
 			return name;
+		}
+
+		public Set<String> getStatusCodes() {
+			return statusCodes;
+		}
+
+		public Config setStatusCodes(Set<String> statusCodes) {
+			this.statusCodes = statusCodes;
+			return this;
+		}
+
+		public Config addStatusCode(String statusCode) {
+			this.statusCodes.add(statusCode);
+			return this;
+		}
+
+	}
+
+	public class CircuitBreakerStatusCodeException extends HttpStatusCodeException {
+
+		public CircuitBreakerStatusCodeException(HttpStatus statusCode) {
+			super(statusCode);
 		}
 
 	}
