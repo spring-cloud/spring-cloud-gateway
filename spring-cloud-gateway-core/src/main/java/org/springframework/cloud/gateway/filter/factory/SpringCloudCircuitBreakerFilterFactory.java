@@ -87,17 +87,16 @@ public abstract class SpringCloudCircuitBreakerFilterFactory extends
 	@Override
 	public GatewayFilter apply(Config config) {
 		ReactiveCircuitBreaker cb = reactiveCircuitBreakerFactory.create(config.getId());
+		Set<HttpStatus> statuses = config.getStatusCodes().stream()
+				.map(HttpStatusHolder::parse)
+				.filter(statusHolder -> statusHolder.getHttpStatus() != null)
+				.map(HttpStatusHolder::getHttpStatus).collect(Collectors.toSet());
 
 		return new GatewayFilter() {
 			@Override
 			public Mono<Void> filter(ServerWebExchange exchange,
 					GatewayFilterChain chain) {
 				return cb.run(chain.filter(exchange).doOnSuccess(v -> {
-					Set<HttpStatus> statuses = config.getStatusCodes().stream()
-							.map(HttpStatusHolder::parse)
-							.filter(statusHolder -> statusHolder.getHttpStatus() != null)
-							.map(HttpStatusHolder::getHttpStatus)
-							.collect(Collectors.toSet());
 					if (statuses.contains(exchange.getResponse().getStatusCode())) {
 						HttpStatus status = exchange.getResponse().getStatusCode();
 						exchange.getResponse().setStatusCode(null);
