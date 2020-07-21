@@ -94,6 +94,20 @@ spring:
               name: fallbackcmd
               fallbackUri: forward:/circuitbreakerFallbackController
 
+      # =====================================
+      - id: circuitbreaker_fallback_test_statuscode
+        uri: ${test.uri}
+        predicates:
+          - Host=**.circuitbreakerstatuscode.org
+        filters:
+          - name: CircuitBreaker
+            args:
+              name: fallbackcmd
+              statusCodes:
+                - 500
+                - "NOT_FOUND"
+              fallbackUri: forward:/statusCodeFallbackController
+
         # =====================================
       - id: change_uri_test
         uri: ${test.uri}

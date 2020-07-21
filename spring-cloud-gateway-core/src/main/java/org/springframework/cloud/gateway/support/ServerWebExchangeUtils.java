@@ -17,9 +17,11 @@
 package org.springframework.cloud.gateway.support;
 
 import java.net.URI;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -191,6 +193,15 @@ public final class ServerWebExchangeUtils {
 					+ ". Response already committed.");
 		}
 		return response;
+	}
+
+	public static void reset(ServerWebExchange exchange) {
+		// TODO: what else to do to reset exchange?
+		Set<String> addedHeaders = exchange.getAttributeOrDefault(
+				CLIENT_RESPONSE_HEADER_NAMES, Collections.emptySet());
+		addedHeaders
+				.forEach(header -> exchange.getResponse().getHeaders().remove(header));
+		removeAlreadyRouted(exchange);
 	}
 
 	public static boolean setResponseStatus(ServerWebExchange exchange,
