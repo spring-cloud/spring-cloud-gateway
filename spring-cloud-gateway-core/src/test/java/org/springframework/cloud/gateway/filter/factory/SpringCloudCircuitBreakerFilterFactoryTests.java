@@ -104,4 +104,22 @@ public abstract class SpringCloudCircuitBreakerFilterFactoryTests
 				.json("{\"from\":\"circuitbreakerfallbackcontroller3\"}");
 	}
 
+	@Test
+	public void filterStatusCodeFallback() {
+		testClient.get().uri("/status/500")
+				.header("Host", "www.circuitbreakerstatuscode.org").exchange()
+				.expectStatus().isOk().expectBody()
+				.json("{\"from\":\"statusCodeFallbackController\"}");
+
+		testClient.get().uri("/status/404")
+				.header("Host", "www.circuitbreakerstatuscode.org").exchange()
+				.expectStatus().isOk().expectBody()
+				.json("{\"from\":\"statusCodeFallbackController\"}");
+
+		testClient.get().uri("/status/200")
+				.header("Host", "www.circuitbreakerstatuscode.org").exchange()
+				.expectStatus().isOk().expectHeader()
+				.valueEquals(ROUTE_ID_HEADER, "circuitbreaker_fallback_test_statuscode");
+	}
+
 }

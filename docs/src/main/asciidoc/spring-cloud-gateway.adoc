@@ -723,6 +723,55 @@ It is added to the `ServerWebExchange` as the `ServerWebExchangeUtils.CIRCUITBRE
 For the external controller/handler scenario, headers can be added with exception details.
 You can find more information on doing so in  the <<fallback-headers, FallbackHeaders GatewayFilter Factory section>>.
 
+[[circuit-breaker-status-codes]]
+==== Tripping The Circuit Breaker On Status Codes
+
+In some cases you might want to trip a circuit breaker based on the status code
+returned from the route it wraps.  The circuit breaker config object takes a list of
+status codes that if returned will cause the the circuit breaker to be tripped.  When setting the
+status codes you want to trip the circuit breaker you can either use a integer with the status code
+value or the String representation of the `HttpStatus` enumeration.
+
+.application.yml
+====
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: circuitbreaker_route
+        uri: lb://backing-service:8088
+        predicates:
+        - Path=/consumingServiceEndpoint
+        filters:
+        - name: CircuitBreaker
+          args:
+            name: myCircuitBreaker
+            fallbackUri: forward:/inCaseOfFailureUseThis
+            statusCodes:
+              - 500
+              - "NOT_FOUND"
+----
+====
+
+.Application.java
+====
+[source,java]
+----
+@Bean
+public RouteLocator routes(RouteLocatorBuilder builder) {
+    return builder.routes()
+        .route("circuitbreaker_route", r -> r.path("/consumingServiceEndpoint")
+            .filters(f -> f.circuitBreaker(c -> c.name("myCircuitBreaker").fallbackUri("forward:/inCaseOfFailureUseThis").addStatusCode("INTERNAL_SERVER_ERROR"))
+                .rewritePath("/consumingServiceEndpoint", "/backingServiceEndpoint")).uri("lb://backing-service:8088")
+        .build();
+}
+----
+====
+
+
+
 [[fallback-headers]]
 === The `FallbackHeaders` `GatewayFilter` Factory
 

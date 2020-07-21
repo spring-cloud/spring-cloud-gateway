@@ -20,9 +20,7 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
@@ -40,6 +38,7 @@ import org.springframework.cloud.gateway.event.EnableBodyCachingEvent;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.support.HasRouteId;
+import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.cloud.gateway.support.TimeoutException;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -48,8 +47,6 @@ import org.springframework.util.Assert;
 import org.springframework.web.server.ServerWebExchange;
 
 import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.CLIENT_RESPONSE_HEADER_NAMES;
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.removeAlreadyRouted;
 
 public class RetryGatewayFilterFactory
 		extends AbstractGatewayFilterFactory<RetryGatewayFilterFactory.RetryConfig> {
@@ -211,13 +208,12 @@ public class RetryGatewayFilterFactory
 		return exceeds;
 	}
 
+	@Deprecated
+	/**
+	 * Use {@link ServerWebExchangeUtils#reset(ServerWebExchange)}
+	 */
 	public void reset(ServerWebExchange exchange) {
-		// TODO: what else to do to reset exchange?
-		Set<String> addedHeaders = exchange.getAttributeOrDefault(
-				CLIENT_RESPONSE_HEADER_NAMES, Collections.emptySet());
-		addedHeaders
-				.forEach(header -> exchange.getResponse().getHeaders().remove(header));
-		removeAlreadyRouted(exchange);
+		ServerWebExchangeUtils.reset(exchange);
 	}
 
 	public GatewayFilter apply(String routeId, Repeat<ServerWebExchange> repeat,

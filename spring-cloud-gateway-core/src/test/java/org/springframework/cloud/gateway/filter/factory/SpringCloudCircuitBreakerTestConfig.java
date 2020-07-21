@@ -37,6 +37,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
+import org.springframework.web.server.ServerWebExchange;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.CIRCUITBREAKER_EXECUTION_EXCEPTION_ATTR;
 import static org.springframework.web.reactive.function.server.RequestPredicates.GET;
@@ -68,6 +69,11 @@ public class SpringCloudCircuitBreakerTestConfig {
 	@RequestMapping("/circuitbreakerFallbackController3")
 	public Map<String, String> fallbackcontroller3() {
 		return Collections.singletonMap("from", "circuitbreakerfallbackcontroller3");
+	}
+
+	@RequestMapping("/statusCodeFallbackController")
+	public Map<String, String> statusCodeFallbackController(ServerWebExchange exchange) {
+		return Collections.singletonMap("from", "statusCodeFallbackController");
 	}
 
 	@Bean
