@@ -270,7 +270,7 @@ This route matches if the request method was a `GET` or a `POST`.
 
 === The Path Route Predicate Factory
 
-The `Path` Route Predicate Factory takes two parameters: a list of Spring `PathMatcher` `patterns` and an optional flag called `matchOptionalTrailingSeparator`.
+The `Path` Route Predicate Factory takes two parameters: a list of Spring `PathMatcher` `patterns` and an optional flag called `matchTrailingSlash` (defaults to `true`).
 The following example configures a path route predicate:
 
 .application.yml
@@ -288,7 +288,9 @@ spring:
 ----
 ====
 
-This route matches if the request path was, for example: `/red/1` or `/red/blue` or `/blue/green`.
+This route matches if the request path was, for example: `/red/1` or `/red/1/` or `/red/blue` or `/blue/green`.
+
+If `matchTrailingSlash` is set to `false`, then request path `/red/1/` will not be matched.
 
 This predicate extracts the URI template variables (such as `segment`, defined in the preceding example) as a map of names and values and places it in the `ServerWebExchange.getAttributes()` with a key defined in `ServerWebExchangeUtils.URI_TEMPLATE_VARIABLES_ATTRIBUTE`.
 Those values are then available for use by <<gateway-route-filters,`GatewayFilter` factories>>
