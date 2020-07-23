@@ -38,13 +38,14 @@ import static org.springframework.http.server.PathContainer.parsePath;
 
 /**
  * @author Spencer Gibb
+ * @author Dhawal Kapil
  */
 public class PathRoutePredicateFactory
 		extends AbstractRoutePredicateFactory<PathRoutePredicateFactory.Config> {
 
-	private static final Log log = LogFactory.getLog(RoutePredicateFactory.class);
+	private static final Log log = LogFactory.getLog(PathRoutePredicateFactory.class);
 
-	private static final String MATCH_OPTIONAL_TRAILING_SEPARATOR_KEY = "matchOptionalTrailingSeparator";
+	private static final String MATCH_TRAILING_SLASH = "matchTrailingSlash";
 
 	private PathPatternParser pathPatternParser = new PathPatternParser();
 
@@ -67,7 +68,7 @@ public class PathRoutePredicateFactory
 
 	@Override
 	public List<String> shortcutFieldOrder() {
-		return Arrays.asList("patterns", MATCH_OPTIONAL_TRAILING_SEPARATOR_KEY);
+		return Arrays.asList("patterns", MATCH_TRAILING_SLASH);
 	}
 
 	@Override
@@ -79,8 +80,8 @@ public class PathRoutePredicateFactory
 	public Predicate<ServerWebExchange> apply(Config config) {
 		final ArrayList<PathPattern> pathPatterns = new ArrayList<>();
 		synchronized (this.pathPatternParser) {
-			pathPatternParser.setMatchOptionalTrailingSeparator(
-					config.isMatchOptionalTrailingSeparator());
+			pathPatternParser
+					.setMatchOptionalTrailingSeparator(config.isMatchTrailingSlash());
 			config.getPatterns().forEach(pattern -> {
 				PathPattern pathPattern = this.pathPatternParser.parse(pattern);
 				pathPatterns.add(pathPattern);
@@ -111,7 +112,7 @@ public class PathRoutePredicateFactory
 			@Override
 			public String toString() {
 				return String.format("Paths: %s, match trailing slash: %b",
-						config.getPatterns(), config.isMatchOptionalTrailingSeparator());
+						config.getPatterns(), config.isMatchTrailingSlash());
 			}
 		};
 	}
@@ -121,7 +122,7 @@ public class PathRoutePredicateFactory
 
 		private List<String> patterns = new ArrayList<>();
 
-		private boolean matchOptionalTrailingSeparator = true;
+		private boolean matchTrailingSlash = true;
 
 		public List<String> getPatterns() {
 			return patterns;
@@ -132,22 +133,37 @@ public class PathRoutePredicateFactory
 			return this;
 		}
 
+		/**
+		 * @deprecated use {@link #isMatchTrailingSlash()}
+		 */
+		@Deprecated
 		public boolean isMatchOptionalTrailingSeparator() {
-			return matchOptionalTrailingSeparator;
+			return isMatchTrailingSlash();
 		}
 
+		/**
+		 * @deprecated use {@link #setMatchTrailingSlash(boolean)}
+		 */
+		@Deprecated
 		public Config setMatchOptionalTrailingSeparator(
 				boolean matchOptionalTrailingSeparator) {
-			this.matchOptionalTrailingSeparator = matchOptionalTrailingSeparator;
+			setMatchTrailingSlash(matchOptionalTrailingSeparator);
+			return this;
+		}
+
+		public boolean isMatchTrailingSlash() {
+			return matchTrailingSlash;
+		}
+
+		public Config setMatchTrailingSlash(boolean matchTrailingSlash) {
+			this.matchTrailingSlash = matchTrailingSlash;
 			return this;
 		}
 
 		@Override
 		public String toString() {
 			return new ToStringCreator(this).append("patterns", patterns)
-					.append("matchOptionalTrailingSeparator",
-							matchOptionalTrailingSeparator)
-					.toString();
+					.append(MATCH_TRAILING_SLASH, matchTrailingSlash).toString();
 		}
 
 	}

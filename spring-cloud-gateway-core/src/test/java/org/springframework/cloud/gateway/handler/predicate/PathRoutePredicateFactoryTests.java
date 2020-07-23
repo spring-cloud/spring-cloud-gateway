@@ -36,6 +36,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.web.server.ServerWebExchange;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -99,6 +100,13 @@ public class PathRoutePredicateFactoryTests extends BaseWebClientTests {
 	}
 
 	@Test
+	public void matchOptionalTrailingSeparatorCopiedToMatchTrailingSlash() {
+		Config config = new Config().setPatterns(Arrays.asList("patternA", "patternB"))
+				.setMatchOptionalTrailingSeparator(false);
+		assertThat(config.isMatchTrailingSlash()).isEqualTo(false);
+	}
+	
+	@Test
 	public void toStringFormat() {
 		Config config = new Config().setPatterns(Arrays.asList("patternA", "patternB"))
 				.setMatchOptionalTrailingSeparator(false);
@@ -107,6 +115,16 @@ public class PathRoutePredicateFactoryTests extends BaseWebClientTests {
 				.contains("false");
 	}
 
+	@Test
+	public void toStringFormatMatchTrailingSlashTrue() {
+		Config config = new Config().setPatterns(Arrays.asList("patternA", "patternB"))
+				.setMatchTrailingSlash(true);
+		Predicate<ServerWebExchange> predicate = new PathRoutePredicateFactory().apply(config);
+		assertThat(predicate.toString()).contains("patternA").contains("patternB")
+				.contains("true");
+	}
+
+	
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
