@@ -227,7 +227,7 @@ public class RetryGatewayFilterFactory
 	}
 
 	/**
-	 * The retryable body type
+	 * The retryable body type.
 	 */
 	public static final List<MediaType> LEGAL_LOG_MEDIA_TYPES = new ArrayList<MediaType>() {{
 		add(MediaType.APPLICATION_XML);
@@ -238,7 +238,7 @@ public class RetryGatewayFilterFactory
 	}};
 
 	/**
-	 * The retryable body cache key in attribute
+	 * The retryable body cache key in attribute.
 	 */
 	private static final String BODY = "BODY";
 
