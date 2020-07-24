@@ -27,6 +27,26 @@ import java.util.function.Supplier;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.reactivestreams.Publisher;
+import org.springframework.cloud.gateway.event.EnableBodyCachingEvent;
+import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.GatewayFilterChain;
+import org.springframework.cloud.gateway.support.HasRouteId;
+import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
+import org.springframework.cloud.gateway.support.TimeoutException;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferFactory;
+import org.springframework.core.io.buffer.DataBufferUtils;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatus.Series;
+import org.springframework.http.MediaType;
+import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
+import org.springframework.http.server.reactive.ServerHttpResponse;
+import org.springframework.util.Assert;
+import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.retry.Backoff;
 import reactor.retry.Repeat;
@@ -34,17 +54,14 @@ import reactor.retry.RepeatContext;
 import reactor.retry.Retry;
 import reactor.retry.RetryContext;
 
-import org.springframework.cloud.gateway.event.EnableBodyCachingEvent;
-import org.springframework.cloud.gateway.filter.GatewayFilter;
-import org.springframework.cloud.gateway.filter.GatewayFilterChain;
-import org.springframework.cloud.gateway.support.HasRouteId;
-import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
-import org.springframework.cloud.gateway.support.TimeoutException;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatus.Series;
-import org.springframework.util.Assert;
-import org.springframework.web.server.ServerWebExchange;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
 
@@ -216,6 +233,16 @@ public class RetryGatewayFilterFactory
 		ServerWebExchangeUtils.reset(exchange);
 	}
 
+	public static final List<MediaType> LEGAL_LOG_MEDIA_TYPES = new ArrayList<MediaType>() {{
+		add(MediaType.APPLICATION_XML);
+		add(MediaType.APPLICATION_JSON);
+		add(MediaType.APPLICATION_JSON_UTF8);
+		add(MediaType.TEXT_PLAIN);
+		add(MediaType.TEXT_XML);
+	}};
+
+	private static final String BODY = "BODY";
+
 	public GatewayFilter apply(String routeId, Repeat<ServerWebExchange> repeat,
 			Retry<ServerWebExchange> retry) {
 		if (routeId != null && getPublisher() != null) {
@@ -224,9 +251,48 @@ public class RetryGatewayFilterFactory
 		}
 		return (exchange, chain) -> {
 			trace("Entering retry-filter");
-
+			ServerHttpRequest request = exchange.getRequest();
+			ServerHttpResponse response = exchange.getResponse();
+			DataBufferFactory dataBufferFactory = response.bufferFactory();
+			HttpHeaders headers = request.getHeaders();
+			MediaType contentType = headers.getContentType();
 			// chain.filter returns a Mono<Void>
-			Publisher<Void> publisher = chain.filter(exchange)
+			Publisher<Void> publisher = chain.filter(exchange.mutate().request(
+					new ServerHttpRequestDecorator(request) {
+						@Override
+						public Flux<DataBuffer> getBody() {
+							int currentIteration = exchange
+									.getAttributeOrDefault(RETRY_ITERATION_KEY, -1);
+							//If retry, return cached body
+							//If first time, cache the body to attribute
+							return currentIteration > -1 ? Flux.from(Mono.just(dataBufferFactory.wrap(((String) exchange.getAttributes().get(BODY)).getBytes()))) :
+									request.getBody().map(dataBuffer -> {
+										if (LEGAL_LOG_MEDIA_TYPES.contains(contentType)) {
+											try {
+												String body = (String) exchange.getAttributes().get(BODY);
+												if (body == null) {
+													byte[] content = new byte[dataBuffer.readableByteCount()];
+													try {
+														dataBuffer.read(content);
+													} finally {
+														DataBufferUtils.release(dataBuffer);
+													}
+													String s = new String(content, Charset.defaultCharset());
+													exchange.getAttributes().put(BODY, s);
+													dataBuffer = dataBufferFactory.wrap(s.getBytes());
+												} else {
+													dataBuffer = dataBufferFactory.wrap(body.getBytes());
+												}
+
+											} catch (Exception e) {
+												log.error("error read body in retry", e);
+											}
+										}
+										return dataBuffer;
+									});
+						}
+					}
+			).build())
 					// .log("retry-filter", Level.INFO)
 					.doOnSuccess(aVoid -> updateIteration(exchange))
 					.doOnError(throwable -> updateIteration(exchange));
