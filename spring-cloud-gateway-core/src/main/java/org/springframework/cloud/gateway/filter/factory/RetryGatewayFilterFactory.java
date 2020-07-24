@@ -264,7 +264,7 @@ public class RetryGatewayFilterFactory
 									.getAttributeOrDefault(RETRY_ITERATION_KEY, -1);
 							//If retry, return cached body
 							//If first time, cache the body to attribute
-							return currentIteration > -1 ? Flux.from(Mono.just(dataBufferFactory.wrap(((String) exchange.getAttributes().get(BODY)).getBytes()))) :
+							return currentIteration > -1 && exchange.getAttributes().get(BODY) != null ? Flux.from(Mono.just(dataBufferFactory.wrap(((String) exchange.getAttributes().get(BODY)).getBytes()))) :
 									request.getBody().map(dataBuffer -> {
 										if (LEGAL_LOG_MEDIA_TYPES.contains(contentType)) {
 											try {
