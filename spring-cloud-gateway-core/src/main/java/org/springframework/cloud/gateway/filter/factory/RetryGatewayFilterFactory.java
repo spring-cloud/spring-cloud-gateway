@@ -226,6 +226,9 @@ public class RetryGatewayFilterFactory
 		ServerWebExchangeUtils.reset(exchange);
 	}
 
+	/**
+	 * The retryable body type
+	 */
 	public static final List<MediaType> LEGAL_LOG_MEDIA_TYPES = new ArrayList<MediaType>() {{
 		add(MediaType.APPLICATION_XML);
 		add(MediaType.APPLICATION_JSON);
@@ -234,6 +237,9 @@ public class RetryGatewayFilterFactory
 		add(MediaType.TEXT_XML);
 	}};
 
+	/**
+	 * The retryable body cache key in attribute
+	 */
 	private static final String BODY = "BODY";
 
 	public GatewayFilter apply(String routeId, Repeat<ServerWebExchange> repeat,
