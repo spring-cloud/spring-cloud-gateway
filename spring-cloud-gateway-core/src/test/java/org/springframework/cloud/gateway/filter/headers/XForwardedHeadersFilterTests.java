@@ -337,8 +337,7 @@ public class XForwardedHeadersFilterTests {
 				.get("http://localhost:8080/get")
 				.remoteAddress(
 						new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80))
-				.header(X_FORWARDED_FOR_HEADER, "10.0.0.1")
-				.build();
+				.header(X_FORWARDED_FOR_HEADER, "10.0.0.1").build();
 
 		XForwardedHeadersFilter filter = new XForwardedHeadersFilter();
 
@@ -350,4 +349,5 @@ public class XForwardedHeadersFilterTests {
 		assertThat(headers.getFirst(X_FORWARDED_FOR_HEADER))
 				.isEqualTo("10.0.0.1,10.0.0.1");
 	}
+
 }
