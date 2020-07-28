@@ -16,10 +16,19 @@
 
 package org.springframework.cloud.gateway.filter;
 
+import java.net.URI;
+
 import org.junit.Test;
 
+import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
+import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.web.server.ServerWebExchange;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.cloud.gateway.filter.WebsocketRoutingFilter.changeSchemeIfIsWebSocketUpgrade;
 import static org.springframework.cloud.gateway.filter.WebsocketRoutingFilter.convertHttpToWs;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
+import static org.springframework.http.HttpHeaders.UPGRADE;
 
 public class WebsocketRoutingFilterTests {
 
@@ -30,6 +39,19 @@ public class WebsocketRoutingFilterTests {
 		assertThat(convertHttpToWs("https")).isEqualTo("wss");
 		assertThat(convertHttpToWs("HTTPS")).isEqualTo("wss");
 		assertThat(convertHttpToWs("tcp")).isEqualTo("tcp");
+	}
+
+	@Test
+	public void testEncodedUrl() {
+		MockServerHttpRequest request = MockServerHttpRequest
+				.get("http://not-matters-that").header(UPGRADE, "WebSocket").build();
+		ServerWebExchange exchange = MockServerWebExchange.from(request);
+		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR,
+				URI.create("http://microservice/my-service/websocket%20upgrade"));
+		changeSchemeIfIsWebSocketUpgrade(exchange);
+		URI wsRequestUrl = exchange.getAttribute(GATEWAY_REQUEST_URL_ATTR);
+		assertThat(wsRequestUrl).isEqualTo(
+				URI.create("ws://microservice/my-service/websocket%20upgrade"));
 	}
 
 }
