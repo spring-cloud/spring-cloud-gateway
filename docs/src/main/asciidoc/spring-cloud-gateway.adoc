@@ -1870,7 +1870,7 @@ The `RemoveHopByHop` Headers Filter removes headers from forwarded requests. The
 *  Transfer-Encoding
 *  Upgrade
 
-To change this, set the `spring.cloud.gateway.filter.remove-non-proxy-headers.headers` property to the list of header names to remove.
+To change this, set the `spring.cloud.gateway.filter.remove-hop-by-hop.headers` property to the list of header names to remove.
 
 === XForwarded Headers Filter
 The `XForwarded` Headers Filter creates various a `X-Forwarded-*` headers to send to the downstream service. It users the `Host` header, scheme, port and path of the current request to create the various headers.
