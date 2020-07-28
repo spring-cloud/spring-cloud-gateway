@@ -33,13 +33,15 @@ public class RemoveCachedBodyFilter implements GlobalFilter, Ordered {
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 		return chain.filter(exchange).doFinally(s -> {
-			PooledDataBuffer dataBuffer = (PooledDataBuffer) exchange.getAttributes()
-					.remove(CACHED_REQUEST_BODY_ATTR);
-			if (dataBuffer != null && dataBuffer.isAllocated()) {
-				if (log.isTraceEnabled()) {
-					log.trace("releasing cached body in exchange attribute");
+			Object attribute = exchange.getAttributes().remove(CACHED_REQUEST_BODY_ATTR);
+			if (attribute != null && attribute instanceof PooledDataBuffer) {
+				PooledDataBuffer dataBuffer = (PooledDataBuffer) attribute;
+				if (dataBuffer.isAllocated()) {
+					if (log.isTraceEnabled()) {
+						log.trace("releasing cached body in exchange attribute");
+					}
+					dataBuffer.release();
 				}
-				dataBuffer.release();
 			}
 		});
 	}
