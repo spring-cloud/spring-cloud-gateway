@@ -26,7 +26,7 @@ import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import io.netty.util.internal.PlatformDependent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junitpioneer.jupiter.RepeatFailedTest;
+import org.junitpioneer.jupiter.RetryingTest;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 
@@ -94,7 +94,7 @@ public class ModifyRequestBodyGatewayFilterFactorySslTimeoutTests
 				.jsonPath("message").isEqualTo("handshake timed out after 1ms");
 	}
 
-	@RepeatFailedTest(3)
+	@RetryingTest(3)
 	public void modifyRequestBodyRelease() {
 		releaseCount.set(0);
 		// long initialUsedDirectMemory = PlatformDependent.usedDirectMemory();

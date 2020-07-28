@@ -21,7 +21,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junitpioneer.jupiter.RepeatFailedTest;
+import org.junitpioneer.jupiter.RetryingTest;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -71,7 +71,7 @@ public class RedisRateLimiterTests extends BaseWebClientTests {
 		rateLimiter.setIncludeHeaders(true);
 	}
 
-	@RepeatFailedTest(3)
+	@RetryingTest(3)
 	public void redisRateLimiterWorks() throws Exception {
 		String id = UUID.randomUUID().toString();
 

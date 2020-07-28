@@ -105,7 +105,7 @@ public class PathRoutePredicateFactoryTests extends BaseWebClientTests {
 				.setMatchOptionalTrailingSeparator(false);
 		assertThat(config.isMatchTrailingSlash()).isEqualTo(false);
 	}
-	
+
 	@Test
 	public void toStringFormat() {
 		Config config = new Config().setPatterns(Arrays.asList("patternA", "patternB"))
@@ -119,12 +119,12 @@ public class PathRoutePredicateFactoryTests extends BaseWebClientTests {
 	public void toStringFormatMatchTrailingSlashTrue() {
 		Config config = new Config().setPatterns(Arrays.asList("patternA", "patternB"))
 				.setMatchTrailingSlash(true);
-		Predicate<ServerWebExchange> predicate = new PathRoutePredicateFactory().apply(config);
+		Predicate<ServerWebExchange> predicate = new PathRoutePredicateFactory()
+				.apply(config);
 		assertThat(predicate.toString()).contains("patternA").contains("patternB")
 				.contains("true");
 	}
 
-	
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
