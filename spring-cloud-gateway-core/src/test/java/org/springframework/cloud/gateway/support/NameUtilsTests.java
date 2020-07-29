@@ -22,6 +22,10 @@ import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
 
+import org.springframework.cloud.gateway.filter.AdaptCachedBodyGlobalFilter;
+import org.springframework.cloud.gateway.filter.ForwardPathFilter;
+import org.springframework.cloud.gateway.filter.GlobalFilter;
+import org.springframework.cloud.gateway.filter.WebsocketRoutingFilter;
 import org.springframework.cloud.gateway.filter.factory.AddRequestHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.DedupeResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.FallbackHeadersGatewayFilterFactory;
@@ -105,6 +109,37 @@ class NameUtilsTests {
 		List<String> expectedNames = Arrays.asList("add-request-header",
 				"dedupe-response-header", "fallback-headers", "hystrix",
 				"map-request-header");
+
+		assertThat(resultNames).isEqualTo(expectedNames);
+	}
+
+	@Test
+	void shouldNormalizeGlobalFiltersNames() {
+		List<Class<? extends GlobalFilter>> predicates = Arrays.asList(
+				ForwardPathFilter.class, AdaptCachedBodyGlobalFilter.class,
+				WebsocketRoutingFilter.class);
+
+		List<String> resultNames = predicates.stream()
+				.map(NameUtils::normalizeGlobalFilterName).collect(Collectors.toList());
+
+		List<String> expectedNames = Arrays.asList("ForwardPath", "AdaptCachedBody",
+				"WebsocketRouting");
+
+		assertThat(resultNames).isEqualTo(expectedNames);
+	}
+
+	@Test
+	void shouldNormalizeGlobalFiltersNamesAsProperties() {
+		List<Class<? extends GlobalFilter>> predicates = Arrays.asList(
+				ForwardPathFilter.class, AdaptCachedBodyGlobalFilter.class,
+				WebsocketRoutingFilter.class);
+
+		List<String> resultNames = predicates.stream()
+				.map(NameUtils::normalizeGlobalFilterNameAsProperty)
+				.collect(Collectors.toList());
+
+		List<String> expectedNames = Arrays.asList("forward-path", "adapt-cached-body",
+				"websocket-routing");
 
 		assertThat(resultNames).isEqualTo(expectedNames);
 	}

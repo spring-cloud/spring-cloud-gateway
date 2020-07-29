@@ -26,6 +26,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClas
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.client.loadbalancer.reactive.ReactiveLoadBalancer;
+import org.springframework.cloud.gateway.config.conditional.ConditionalOnEnabledGlobalFilter;
 import org.springframework.cloud.gateway.filter.ReactiveLoadBalancerClientFilter;
 import org.springframework.cloud.loadbalancer.config.LoadBalancerAutoConfiguration;
 import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
@@ -52,8 +53,7 @@ public class GatewayReactiveLoadBalancerClientAutoConfiguration {
 	@ConditionalOnBean(LoadBalancerClientFactory.class)
 	@ConditionalOnMissingBean(ReactiveLoadBalancerClientFilter.class)
 	@Conditional(OnNoRibbonDefaultCondition.class)
-	@ConditionalOnProperty(name = "spring.cloud.gateway.reactive-loadbalancer.enabled",
-			matchIfMissing = true)
+	@ConditionalOnEnabledGlobalFilter(ReactiveLoadBalancerClientFilter.class)
 	public ReactiveLoadBalancerClientFilter gatewayLoadBalancerClientFilter(
 			LoadBalancerClientFactory clientFactory, LoadBalancerProperties properties) {
 		return new ReactiveLoadBalancerClientFilter(clientFactory, properties);

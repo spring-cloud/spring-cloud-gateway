@@ -54,6 +54,7 @@ import org.springframework.boot.web.embedded.netty.NettyReactiveWebServerFactory
 import org.springframework.cloud.gateway.actuate.GatewayControllerEndpoint;
 import org.springframework.cloud.gateway.actuate.GatewayLegacyControllerEndpoint;
 import org.springframework.cloud.gateway.config.conditional.ConditionalOnEnabledFilter;
+import org.springframework.cloud.gateway.config.conditional.ConditionalOnEnabledGlobalFilter;
 import org.springframework.cloud.gateway.config.conditional.ConditionalOnEnabledPredicate;
 import org.springframework.cloud.gateway.filter.AdaptCachedBodyGlobalFilter;
 import org.springframework.cloud.gateway.filter.ForwardPathFilter;
@@ -294,37 +295,32 @@ public class GatewayAutoConfiguration {
 	// GlobalFilter beans
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.gateway.adapt-cached-body.enabled",
-			matchIfMissing = true)
+	@ConditionalOnEnabledGlobalFilter(AdaptCachedBodyGlobalFilter.class)
 	public AdaptCachedBodyGlobalFilter adaptCachedBodyGlobalFilter() {
 		return new AdaptCachedBodyGlobalFilter();
 	}
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.gateway.remove-cached-body.enabled",
-			matchIfMissing = true)
+	@ConditionalOnEnabledGlobalFilter(RemoveCachedBodyFilter.class)
 	public RemoveCachedBodyFilter removeCachedBodyFilter() {
 		return new RemoveCachedBodyFilter();
 	}
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.gateway.route-to-request-url.enabled",
-			matchIfMissing = true)
+	@ConditionalOnEnabledGlobalFilter(RouteToRequestUrlFilter.class)
 	public RouteToRequestUrlFilter routeToRequestUrlFilter() {
 		return new RouteToRequestUrlFilter();
 	}
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.gateway.forward-routing.enabled",
-			matchIfMissing = true)
+	@ConditionalOnEnabledGlobalFilter(ForwardRoutingFilter.class)
 	public ForwardRoutingFilter forwardRoutingFilter(
 			ObjectProvider<DispatcherHandler> dispatcherHandler) {
 		return new ForwardRoutingFilter(dispatcherHandler);
 	}
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.gateway.forward-path.enabled",
-			matchIfMissing = true)
+	@ConditionalOnEnabledGlobalFilter(ForwardPathFilter.class)
 	public ForwardPathFilter forwardPathFilter() {
 		return new ForwardPathFilter();
 	}
@@ -336,8 +332,7 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.gateway.websocket-routing.enabled",
-			matchIfMissing = true)
+	@ConditionalOnEnabledGlobalFilter(WebsocketRoutingFilter.class)
 	public WebsocketRoutingFilter websocketRoutingFilter(WebSocketClient webSocketClient,
 			WebSocketService webSocketService,
 			ObjectProvider<List<HttpHeadersFilter>> headersFilters) {
@@ -780,8 +775,7 @@ public class GatewayAutoConfiguration {
 		}
 
 		@Bean
-		@ConditionalOnProperty(name = "spring.cloud.gateway.netty.enabled",
-				matchIfMissing = true)
+		@ConditionalOnEnabledGlobalFilter(NettyRoutingFilter.class)
 		public NettyRoutingFilter routingFilter(HttpClient httpClient,
 				ObjectProvider<List<HttpHeadersFilter>> headersFilters,
 				HttpClientProperties properties) {
@@ -789,8 +783,7 @@ public class GatewayAutoConfiguration {
 		}
 
 		@Bean
-		@ConditionalOnProperty(name = "spring.cloud.gateway.netty.enabled",
-				matchIfMissing = true)
+		@ConditionalOnEnabledGlobalFilter(NettyWriteResponseFilter.class)
 		public NettyWriteResponseFilter nettyWriteResponseFilter(
 				GatewayProperties properties) {
 			return new NettyWriteResponseFilter(properties.getStreamingMediaTypes());

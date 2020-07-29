@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.support;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
 import org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory;
 
@@ -59,9 +60,20 @@ public final class NameUtils {
 				.replace(GatewayFilterFactory.class.getSimpleName(), ""));
 	}
 
+	public static String normalizeGlobalFilterName(Class<? extends GlobalFilter> clazz) {
+		return removeGarbage(
+				clazz.getSimpleName().replace(GlobalFilter.class.getSimpleName(), ""))
+						.replace("Filter", "");
+	}
+
 	public static String normalizeFilterFactoryNameAsProperty(
 			Class<? extends GatewayFilterFactory> clazz) {
 		return normalizeToCanonicalPropertyFormat(normalizeFilterFactoryName(clazz));
+	}
+
+	public static String normalizeGlobalFilterNameAsProperty(
+			Class<? extends GlobalFilter> filterClass) {
+		return normalizeToCanonicalPropertyFormat(normalizeGlobalFilterName(filterClass));
 	}
 
 	public static String normalizeToCanonicalPropertyFormat(String name) {
