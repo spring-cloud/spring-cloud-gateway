@@ -29,6 +29,12 @@
       "type": "java.lang.Boolean",
       "description": "If global CORS config should be added to the URL handler.",
       "defaultValue": "false"
+    },
+    {
+      "name": "spring.cloud.gateway.globalcors.globalcors.preflight.passthrough",
+      "type": "java.lang.Boolean",
+      "description": "Enables CORS preflight requests passthrough by route to backend.",
+      "defaultValue": "false"
     }
   ]
 }
