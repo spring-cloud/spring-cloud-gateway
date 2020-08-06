@@ -234,8 +234,8 @@ public class RetryGatewayFilterFactory
 			if (retry != null) {
 				// retryWhen returns a Mono<Void>
 				// retry needs to go before repeat
-				publisher = ((Mono<Void>) publisher)
-						.retryWhen(retry.withApplicationContext(exchange));
+				publisher = Mono.empty(); // ((Mono<Void>) publisher)
+				// FIXME: .retryWhen(retry.withApplicationContext(exchange));
 			}
 			if (repeat != null) {
 				// repeatWhen returns a Flux<Void>
