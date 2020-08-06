@@ -10,7 +10,8 @@ server:
 
 spring:
   profiles:
-    include: logging
+    group:
+      - logging
 
   cloud:
     gateway:
