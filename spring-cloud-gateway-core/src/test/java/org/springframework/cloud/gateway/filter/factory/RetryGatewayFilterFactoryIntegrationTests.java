@@ -25,7 +25,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hamcrest.CoreMatchers;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -64,9 +63,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = RANDOM_PORT,
-		properties = { "spring.cloud.gateway.httpclient.connect-timeout=500",
-				"spring.cloud.gateway.httpclient.response-timeout=2s" })
+@SpringBootTest(webEnvironment = RANDOM_PORT, properties = {
+		"spring.cloud.gateway.httpclient.connect-timeout=500",
+		"spring.cloud.gateway.httpclient.response-timeout=2s",
+		"logging.level.org.springframework.cloud.gateway.filter.factory.RetryGatewayFilterFactory=TRACE" })
 @DirtiesContext
 // default filter AddResponseHeader suppresses bug
 // https://github.com/spring-cloud/spring-cloud-gateway/issues/1315,
@@ -78,14 +78,12 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 	public final OutputCaptureRule capture = new OutputCaptureRule();
 
 	@Test
-	@Ignore
 	public void retryFilterGet() {
 		testClient.get().uri("/retry?key=get").exchange().expectStatus().isOk()
 				.expectBody(String.class).isEqualTo("3");
 	}
 
 	@Test
-	@Ignore
 	public void retryFilterFailure() {
 		testClient.mutate().responseTimeout(Duration.ofSeconds(10)).build().get()
 				.uri("/retryalwaysfail?key=getjavafailure&count=4")
@@ -96,7 +94,6 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 	}
 
 	@Test
-	@Ignore
 	public void retryWithBackoff() {
 		// @formatter:off
 		testClient.get()
@@ -109,7 +106,6 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 	}
 
 	@Test
-	@Ignore
 	public void retryFilterGetJavaDsl() {
 		testClient.get().uri("/retry?key=getjava&count=2")
 				.header(HttpHeaders.HOST, "www.retryjava.org").exchange().expectStatus()
@@ -117,7 +113,6 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 	}
 
 	@Test
-	@Ignore
 	public void retryFilterPost() {
 		testClient.post().uri("/retrypost?key=postconfig&expectedbody=HelloConfig")
 				.header(HttpHeaders.HOST, "www.retrypostconfig.org")
@@ -126,7 +121,6 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 	}
 
 	@Test
-	@Ignore
 	public void retryFilterPostJavaDsl() {
 		testClient.post().uri("/retrypost?key=post&expectedbody=Hello")
 				.header(HttpHeaders.HOST, "www.retryjava.org").bodyValue("Hello")
@@ -134,7 +128,6 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 	}
 
 	@Test
-	@Ignore
 	public void retryFilterPostOneTime() {
 		testClient.post().uri(
 				"/retrypost?key=retryFilterPostOneTime&expectedbody=HelloGateway&count=1")
@@ -146,7 +139,6 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 	}
 
 	@Test
-	@Ignore
 	public void retriesSleepyRequest() throws Exception {
 		testClient.mutate().responseTimeout(Duration.ofSeconds(10)).build().get()
 				.uri("/sleep?key=sleepyRequest&millis=3000")
@@ -157,7 +149,6 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 	}
 
 	@Test
-	@Ignore
 	public void shouldNotRetryWhenSleepyRequestPost() throws Exception {
 		testClient.mutate().responseTimeout(Duration.ofSeconds(10)).build().post()
 				.uri("/sleep?key=notRetriesSleepyRequestPost&millis=3000")
@@ -169,7 +160,6 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 	}
 
 	@Test
-	@Ignore
 	public void shouldNotRetryWhenSleepyRequestPostWithBody() throws Exception {
 		testClient.mutate().responseTimeout(Duration.ofSeconds(10)).build().post()
 				.uri("/sleep?key=notRetriesSleepyRequestPostWithBody&millis=3000")
@@ -182,7 +172,6 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 	}
 
 	@Test
-	@Ignore
 	public void shouldRetryWhenSleepyRequestGet() throws Exception {
 		testClient.mutate().responseTimeout(Duration.ofSeconds(10)).build().get()
 				.uri("/sleep?key=sleepyRequestGet&millis=3000")
@@ -193,7 +182,6 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 	}
 
 	@Test
-	@Ignore
 	@SuppressWarnings("unchecked")
 	public void retryFilterLoadBalancedWithMultipleServers() {
 		String host = "www.retrywithloadbalancer.org";
@@ -208,7 +196,6 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 	}
 
 	@Test
-	@Ignore
 	public void toStringFormat() {
 		RetryConfig config = new RetryConfig();
 		config.setRetries(4);
