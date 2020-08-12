@@ -42,14 +42,14 @@ public class PreFlightPassThroughTests extends BaseWebClientTests {
 
 	@Test
 	public void testCorsPreFlightPassThrough() {
-		ClientResponse clientResponse = webClient.options().uri("/anything")
+		ClientResponse clientResponse = webClient.options().uri("/get")
 				.header("Origin", "localhost")
 				.header("Access-Control-Request-Method", "GET")
 				.exchange().block();
 
 		assertThat(clientResponse).isNotNull();
 		assertThat(clientResponse.statusCode()).as("PreFlight PassThrough failed.")
-				.isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+				.isEqualTo(HttpStatus.FORBIDDEN);
 	}
 
 
