@@ -16,11 +16,12 @@
 
 package org.springframework.cloud.gateway.filter;
 
+import reactor.core.publisher.Mono;
+
 import org.springframework.web.cors.reactive.CorsWebFilter;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilterChain;
-import reactor.core.publisher.Mono;
 
 /**
  * @author mouxhun
