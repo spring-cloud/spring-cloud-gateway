@@ -25,6 +25,7 @@ import reactor.core.publisher.Mono;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
 
 import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
@@ -96,6 +97,11 @@ Modified (not) Location response header: http://object-service.prod.example.net/
 public class RewriteLocationResponseHeaderGatewayFilterFactory extends
 		AbstractGatewayFilterFactory<RewriteLocationResponseHeaderGatewayFilterFactory.Config> {
 
+	/**
+	 * Prefix key.
+	 */
+	public static final String PREFIX_KEY = "prefix";
+
 	private static final String STRIP_VERSION_KEY = "stripVersion";
 
 	private static final String LOCATION_HEADER_NAME_KEY = "locationHeaderName";
@@ -129,8 +135,8 @@ public class RewriteLocationResponseHeaderGatewayFilterFactory extends
 
 	@Override
 	public List<String> shortcutFieldOrder() {
-		return Arrays.asList(STRIP_VERSION_KEY, LOCATION_HEADER_NAME_KEY, HOST_VALUE_KEY,
-				PROTOCOLS_KEY);
+		return Arrays.asList(PREFIX_KEY, STRIP_VERSION_KEY, LOCATION_HEADER_NAME_KEY,
+				HOST_VALUE_KEY, PROTOCOLS_KEY);
 	}
 
 	@Override
@@ -139,6 +145,19 @@ public class RewriteLocationResponseHeaderGatewayFilterFactory extends
 			@Override
 			public Mono<Void> filter(ServerWebExchange exchange,
 					GatewayFilterChain chain) {
+
+				if (config.prefix != null && !config.prefix.isEmpty()) {
+					ServerHttpRequest req = exchange.getRequest();
+					// addOriginalRequestUrl(exchange, req.getURI());
+					String newPath = config.prefix + req.getURI().getRawPath();
+
+					ServerHttpRequest request = req.mutate().path(newPath).build();
+
+					return chain.filter(exchange.mutate().request(request).build()).then(
+							Mono.fromRunnable(() -> rewriteLocation(exchange, config)));
+
+				}
+
 				return chain.filter(exchange)
 						.then(Mono.fromRunnable(() -> rewriteLocation(exchange, config)));
 			}
@@ -148,6 +167,7 @@ public class RewriteLocationResponseHeaderGatewayFilterFactory extends
 				// @formatter:off
 				return filterToStringCreator(
 						RewriteLocationResponseHeaderGatewayFilterFactory.this)
+						.append("prefix", config.getPrefix())
 						.append("stripVersion", config.stripVersion)
 						.append("locationHeaderName", config.locationHeaderName)
 						.append("hostValue", config.hostValue)
@@ -206,6 +226,8 @@ public class RewriteLocationResponseHeaderGatewayFilterFactory extends
 
 	public static class Config {
 
+		private String prefix;
+
 		private StripVersion stripVersion = StripVersion.AS_IN_REQUEST;
 
 		private String locationHeaderName = HttpHeaders.LOCATION;
@@ -217,6 +239,14 @@ public class RewriteLocationResponseHeaderGatewayFilterFactory extends
 		private Pattern hostPortPattern = DEFAULT_HOST_PORT;
 
 		private Pattern hostPortVersionPattern = DEFAULT_HOST_PORT_VERSION;
+
+		public String getPrefix() {
+			return prefix;
+		}
+
+		public void setPrefix(String prefix) {
+			this.prefix = prefix;
+		}
 
 		public StripVersion getStripVersion() {
 			return stripVersion;
