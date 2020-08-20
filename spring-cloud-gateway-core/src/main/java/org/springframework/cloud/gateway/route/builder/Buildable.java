@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,10 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.gateway.route;
+package org.springframework.cloud.gateway.route.builder;
 
-import reactor.core.publisher.Flux;
+public interface Buildable<T> {
 
-/**
- * @author Spencer Gibb
- */
-public class CompositeRouteLocator implements RouteLocator {
-
-	private final Flux<RouteLocator> delegates;
-
-	public CompositeRouteLocator(Flux<RouteLocator> delegates) {
-		this.delegates = delegates;
-	}
-
-	@Override
-	public Flux<Route> getRoutes() {
-		return this.delegates.flatMapSequential(RouteLocator::getRoutes);
-	}
+	T build();
 
 }

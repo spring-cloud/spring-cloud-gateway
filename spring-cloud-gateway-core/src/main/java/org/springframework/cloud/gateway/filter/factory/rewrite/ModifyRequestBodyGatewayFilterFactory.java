@@ -17,6 +17,7 @@
 package org.springframework.cloud.gateway.filter.factory.rewrite;
 
 import java.util.List;
+import java.util.function.Function;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -26,6 +27,7 @@ import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.cloud.gateway.support.BodyInserterContext;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.codec.HttpMessageReader;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -98,7 +100,9 @@ public class ModifyRequestBodyGatewayFilterFactory extends
 									outputMessage);
 							return chain
 									.filter(exchange.mutate().request(decorator).build());
-						}));
+						})).onErrorResume(
+								(Function<Throwable, Mono<Void>>) throwable -> release(
+										exchange, outputMessage, throwable));
 			}
 
 			@Override
@@ -109,6 +113,15 @@ public class ModifyRequestBodyGatewayFilterFactory extends
 						.append("Out class", config.getOutClass()).toString();
 			}
 		};
+	}
+
+	protected Mono<Void> release(ServerWebExchange exchange,
+			CachedBodyOutputMessage outputMessage, Throwable throwable) {
+		if (outputMessage.isCached()) {
+			return outputMessage.getBody().map(DataBufferUtils::release)
+					.then(Mono.error(throwable));
+		}
+		return Mono.error(throwable);
 	}
 
 	ServerHttpRequestDecorator decorate(ServerWebExchange exchange, HttpHeaders headers,

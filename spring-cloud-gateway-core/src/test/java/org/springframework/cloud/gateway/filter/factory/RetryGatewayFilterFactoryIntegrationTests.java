@@ -63,9 +63,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = RANDOM_PORT,
-		properties = { "spring.cloud.gateway.httpclient.connect-timeout=500",
-				"spring.cloud.gateway.httpclient.response-timeout=2s" })
+@SpringBootTest(webEnvironment = RANDOM_PORT, properties = {
+		"spring.cloud.gateway.httpclient.connect-timeout=500",
+		"spring.cloud.gateway.httpclient.response-timeout=2s",
+		"logging.level.org.springframework.cloud.gateway.filter.factory.RetryGatewayFilterFactory=TRACE" })
 @DirtiesContext
 // default filter AddResponseHeader suppresses bug
 // https://github.com/spring-cloud/spring-cloud-gateway/issues/1315,
@@ -155,6 +156,18 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 				.expectStatus().isEqualTo(HttpStatus.GATEWAY_TIMEOUT);
 
 		assertThat(TestConfig.map.get("notRetriesSleepyRequestPost")).isNotNull()
+				.hasValue(1);
+	}
+
+	@Test
+	public void shouldNotRetryWhenSleepyRequestPostWithBody() throws Exception {
+		testClient.mutate().responseTimeout(Duration.ofSeconds(10)).build().post()
+				.uri("/sleep?key=notRetriesSleepyRequestPostWithBody&millis=3000")
+				.header(HttpHeaders.HOST, "www.retry-only-get.org")
+				.bodyValue("retry sleepy post with body").exchange().expectStatus()
+				.isEqualTo(HttpStatus.GATEWAY_TIMEOUT);
+
+		assertThat(TestConfig.map.get("notRetriesSleepyRequestPostWithBody")).isNotNull()
 				.hasValue(1);
 	}
 

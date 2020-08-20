@@ -51,7 +51,7 @@ public class RouteLocatorBuilder {
 	 */
 	public static class Builder {
 
-		private List<Route.AsyncBuilder> routes = new ArrayList<>();
+		private List<Buildable<Route>> routes = new ArrayList<>();
 
 		private ConfigurableApplicationContext context;
 
@@ -66,8 +66,8 @@ public class RouteLocatorBuilder {
 		 * {@link Route.AsyncBuilder}
 		 * @return a {@link Builder}
 		 */
-		public Builder route(String id, Function<PredicateSpec, Route.AsyncBuilder> fn) {
-			Route.AsyncBuilder routeBuilder = fn.apply(new RouteSpec(this).id(id));
+		public Builder route(String id, Function<PredicateSpec, Buildable<Route>> fn) {
+			Buildable<Route> routeBuilder = fn.apply(new RouteSpec(this).id(id));
 			add(routeBuilder);
 			return this;
 		}
@@ -78,8 +78,8 @@ public class RouteLocatorBuilder {
 		 * {@link Route.AsyncBuilder}
 		 * @return a {@link Builder}
 		 */
-		public Builder route(Function<PredicateSpec, Route.AsyncBuilder> fn) {
-			Route.AsyncBuilder routeBuilder = fn.apply(new RouteSpec(this).randomId());
+		public Builder route(Function<PredicateSpec, Buildable<Route>> fn) {
+			Buildable<Route> routeBuilder = fn.apply(new RouteSpec(this).randomId());
 			add(routeBuilder);
 			return this;
 		}
@@ -97,7 +97,7 @@ public class RouteLocatorBuilder {
 			return context;
 		}
 
-		void add(Route.AsyncBuilder route) {
+		void add(Buildable<Route> route) {
 			routes.add(route);
 		}
 

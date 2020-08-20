@@ -18,11 +18,13 @@ package org.springframework.cloud.gateway.filter.ratelimit;
 
 import java.util.UUID;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junitpioneer.jupiter.RetryingTest;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
@@ -30,10 +32,8 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter.Response;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
-import org.springframework.cloud.gateway.test.support.redis.RedisRule;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -49,28 +49,29 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
  * @author Ronny Bräunlich
  * @author Denis Cutic
  */
-@RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
+@Testcontainers
 public class RedisRateLimiterTests extends BaseWebClientTests {
 
-	@Rule
-	public final RedisRule redis = RedisRule.bindToDefaultPort();
+	@Container
+	public GenericContainer redis = new GenericContainer<>("redis:5.0.9-alpine")
+			.withExposedPorts(6379);
 
 	@Autowired
 	private RedisRateLimiter rateLimiter;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		assumeThat("Ignore on Circle", System.getenv("CIRCLECI"), is(nullValue()));
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() throws Exception {
 		rateLimiter.setIncludeHeaders(true);
 	}
 
-	@Test
+	@RetryingTest(3)
 	public void redisRateLimiterWorks() throws Exception {
 		String id = UUID.randomUUID().toString();
 
@@ -102,6 +103,24 @@ public class RedisRateLimiterTests extends BaseWebClientTests {
 						.setRequestedTokens(requestedTokens));
 
 		checkLimitEnforced(id, replenishRate, burstCapacity, requestedTokens, routeId);
+	}
+
+	@Test
+	public void redisRateLimiterWorksForZeroBurstCapacity() throws Exception {
+		String id = UUID.randomUUID().toString();
+
+		int replenishRate = 1;
+		int burstCapacity = 0;
+		int requestedTokens = 1;
+
+		String routeId = "zero_burst_capacity_route";
+		rateLimiter.getConfig().put(routeId,
+				new RedisRateLimiter.Config().setBurstCapacity(burstCapacity)
+						.setReplenishRate(replenishRate)
+						.setRequestedTokens(requestedTokens));
+
+		Response response = rateLimiter.isAllowed(routeId, id).block();
+		assertThat(response.isAllowed()).isFalse();
 	}
 
 	@Test

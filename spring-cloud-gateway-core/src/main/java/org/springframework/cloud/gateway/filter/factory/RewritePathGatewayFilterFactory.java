@@ -24,6 +24,7 @@ import reactor.core.publisher.Mono;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.util.Assert;
 import org.springframework.web.server.ServerWebExchange;
 
 import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
@@ -93,6 +94,7 @@ public class RewritePathGatewayFilterFactory
 		}
 
 		public Config setRegexp(String regexp) {
+			Assert.hasText(regexp, "regexp must have a value");
 			this.regexp = regexp;
 			return this;
 		}
@@ -102,6 +104,7 @@ public class RewritePathGatewayFilterFactory
 		}
 
 		public Config setReplacement(String replacement) {
+			Assert.notNull(replacement, "replacement must not be null");
 			this.replacement = replacement;
 			return this;
 		}

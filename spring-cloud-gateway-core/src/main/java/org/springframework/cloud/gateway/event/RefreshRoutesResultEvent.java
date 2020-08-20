@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2019 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,32 @@
  * limitations under the License.
  */
 
-package reactor.blockhound.integration;
+package org.springframework.cloud.gateway.event;
 
-import org.junit.jupiter.api.Assertions;
-import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
+import org.springframework.context.ApplicationEvent;
 
 /**
- * @author Tim Ysewyn
+ * @author alvin
  */
-public class CustomBlockHoundIntegrationTest {
+public class RefreshRoutesResultEvent extends ApplicationEvent {
 
-	// @Test
-	// ignore fails on java 13
-	public void shouldThrowErrorForBlockingCallWithCustomBlockHoundIntegration() {
-		Assertions.assertThrows(RuntimeException.class, () -> Mono.fromCallable(() -> {
-			Thread.sleep(1);
-			return null;
-		}).subscribeOn(Schedulers.parallel()).block());
+	private Throwable throwable;
+
+	public RefreshRoutesResultEvent(Object source, Throwable throwable) {
+		super(source);
+		this.throwable = throwable;
+	}
+
+	public RefreshRoutesResultEvent(Object source) {
+		super(source);
+	}
+
+	public Throwable getThrowable() {
+		return throwable;
+	}
+
+	public boolean isSuccess() {
+		return throwable == null;
 	}
 
 }

@@ -49,8 +49,7 @@ public class GatewayNoLoadBalancerClientAutoConfigurationTests {
 	@Test
 	public void noLoadBalancerClientReportsError() {
 		try (ConfigurableApplicationContext context = new SpringApplication(Config.class)
-				.run("--server.port=" + port, "--spring.jmx.enabled=false",
-						"--debug=true")) {
+				.run("--server.port=" + port, "--spring.jmx.enabled=false")) {
 			WebTestClient client = WebTestClient.bindToServer()
 					.baseUrl("http://localhost:" + port).build();
 			client.get().header(HttpHeaders.HOST, "www.lbfail.org").exchange()
