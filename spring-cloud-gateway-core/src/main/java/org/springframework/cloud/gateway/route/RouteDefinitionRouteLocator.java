@@ -241,6 +241,10 @@ public class RouteDefinitionRouteLocator
 	private AsyncPredicate<ServerWebExchange> combinePredicates(
 			RouteDefinition routeDefinition) {
 		List<PredicateDefinition> predicates = routeDefinition.getPredicates();
+		if (predicates == null || predicates.isEmpty()) {
+			// this is a very rare case, but possible, just match all
+			return AsyncPredicate.from(exchange -> true);
+		}
 		AsyncPredicate<ServerWebExchange> predicate = lookup(routeDefinition,
 				predicates.get(0));
 
