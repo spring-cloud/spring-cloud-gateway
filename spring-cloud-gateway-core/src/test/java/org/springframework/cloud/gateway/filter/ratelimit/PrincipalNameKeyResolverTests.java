@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 the original author or authors.
+ * Copyright 2013-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,27 @@
 
 package org.springframework.cloud.gateway.filter.ratelimit;
 
+import java.security.Principal;
+import java.time.Duration;
+
+import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import org.springframework.web.server.ServerWebExchange;
 
-public class PrincipalNameKeyResolver implements KeyResolver {
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-	/**
-	 * {@link PrincipalNameKeyResolver} bean name.
-	 */
-	public static final String BEAN_NAME = "principalNameKeyResolver";
+public class PrincipalNameKeyResolverTests {
 
-	@Override
-	public Mono<String> resolve(ServerWebExchange exchange) {
-		return exchange.getPrincipal().flatMap(p -> Mono.justOrEmpty(p.getName()));
+	@Test
+	public void nullPrincipalNameWorks() {
+		PrincipalNameKeyResolver keyResolver = new PrincipalNameKeyResolver();
+		ServerWebExchange exchange = mock(ServerWebExchange.class);
+		when(exchange.getPrincipal()).thenReturn(Mono.just(mock(Principal.class)));
+		StepVerifier.create(keyResolver.resolve(exchange)).expectComplete()
+				.verify(Duration.ofSeconds(5));
 	}
 
 }
