@@ -33,6 +33,8 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
+import static java.util.stream.Collectors.toSet;
+
 /**
  * @author Dave Syer
  * @author Tim Ysewyn
@@ -56,7 +58,8 @@ public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResol
 	}
 
 	public void setAutoForwardedHeaders(Set<String> autoForwardedHeaders) {
-		this.autoForwardedHeaders = autoForwardedHeaders;
+		this.autoForwardedHeaders = autoForwardedHeaders.stream().map(String::toLowerCase)
+				.collect(toSet());
 	}
 
 	public void setSensitive(Set<String> sensitive) {
@@ -100,7 +103,7 @@ public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResol
 		HttpHeaders headers = new HttpHeaders();
 		while (headerNames.hasMoreElements()) {
 			String header = headerNames.nextElement();
-			if (this.autoForwardedHeaders.contains(header)) {
+			if (this.autoForwardedHeaders.contains(header.toLowerCase())) {
 				headers.addAll(header,
 						Collections.list(nativeRequest.getHeaders(header)));
 			}
