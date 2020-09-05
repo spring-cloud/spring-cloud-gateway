@@ -58,7 +58,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(properties = { "spring.cloud.gateway.proxy.auto-forward=baz" },
+@SpringBootTest(properties = { "spring.cloud.gateway.proxy.auto-forward=Baz" },
 		webEnvironment = WebEnvironment.RANDOM_PORT)
 @ContextConfiguration(classes = TestApplication.class)
 public class ProductionConfigurationTests {
@@ -277,11 +277,14 @@ public class ProductionConfigurationTests {
 						RequestEntity
 								.get(rest.getRestTemplate().getUriTemplateHandler()
 										.expand("/proxy/headers"))
-								.header("foo", "bar").header("abc", "xyz")
+								.header("foo", "bar")
+								.header("abc", "xyz")
 								.header("baz", "fob").build(),
 						Map.class)
 				.getBody();
-		assertThat(headers).doesNotContainKey("foo").doesNotContainKey("hello")
+		assertThat(headers)
+				.doesNotContainKey("foo")
+				.doesNotContainKey("hello")
 				.containsKeys("bar", "abc");
 
 		assertThat(headers.get("bar")).containsOnly("hello");
