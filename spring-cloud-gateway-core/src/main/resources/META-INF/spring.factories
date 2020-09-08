@@ -1,6 +1,0 @@
-# Auto Configure
-org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-org.springframework.cloud.gateway.core.ModuleDeprecatedWarningAutoConfiguration
-
-org.springframework.boot.env.EnvironmentPostProcessor=\
-org.springframework.cloud.gateway.config.GatewayEnvironmentPostProcessor
