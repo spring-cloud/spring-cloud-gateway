@@ -34,7 +34,7 @@ public abstract class AbstractRateLimiter<C> extends AbstractStatefulConfigurabl
 
 	@Deprecated
 	protected AbstractRateLimiter(Class<C> configClass, String configurationPropertyName,
-			Validator validator) {
+								  Validator validator) {
 		super(configClass);
 		this.configurationPropertyName = configurationPropertyName;
 		this.configurationService = new ConfigurationService();
@@ -42,7 +42,7 @@ public abstract class AbstractRateLimiter<C> extends AbstractStatefulConfigurabl
 	}
 
 	protected AbstractRateLimiter(Class<C> configClass, String configurationPropertyName,
-			ConfigurationService configurationService) {
+								  ConfigurationService configurationService) {
 		super(configClass);
 		this.configurationPropertyName = configurationPropertyName;
 		this.configurationService = configurationService;
@@ -80,7 +80,10 @@ public abstract class AbstractRateLimiter<C> extends AbstractStatefulConfigurabl
 		}
 
 		String routeId = event.getRouteId();
-
+		//Add hashcode to the id for support multiple configurations
+		if (event.getArgs().containsKey("key-resolver")) {
+			routeId = routeId + event.getArgs().get("key-resolver").hashCode();
+		}
 		C routeConfig = newConfig();
 		if (this.configurationService != null) {
 			this.configurationService.with(routeConfig)

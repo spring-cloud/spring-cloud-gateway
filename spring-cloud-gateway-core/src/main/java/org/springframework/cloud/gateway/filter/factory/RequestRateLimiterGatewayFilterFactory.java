@@ -108,6 +108,8 @@ public class RequestRateLimiterGatewayFilterFactory extends
 						return chain.filter(exchange);
 					}
 					String routeId = config.getRouteId();
+					//Add hashcode to the id for support multiple configurations
+					routeId = routeId + config.getKeyResolver().hashCode();
 					if (routeId == null) {
 						Route route = exchange
 								.getAttribute(ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR);
