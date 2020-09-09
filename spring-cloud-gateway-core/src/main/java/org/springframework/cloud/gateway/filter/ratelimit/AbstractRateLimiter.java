@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.filter.ratelimit;
 import java.util.Map;
 
 import org.springframework.cloud.gateway.event.FilterArgsEvent;
+import org.springframework.cloud.gateway.filter.factory.RequestRateLimiterGatewayFilterFactory;
 import org.springframework.cloud.gateway.support.AbstractStatefulConfigurable;
 import org.springframework.cloud.gateway.support.ConfigurationService;
 import org.springframework.context.ApplicationListener;
@@ -27,6 +28,11 @@ import org.springframework.validation.Validator;
 
 public abstract class AbstractRateLimiter<C> extends AbstractStatefulConfigurable<C>
 		implements RateLimiter<C>, ApplicationListener<FilterArgsEvent> {
+
+	/**
+	 * Key-Resolver key.
+	 */
+	public static final String KEY_RESOLVER_KEY = "keyResolver";
 
 	private String configurationPropertyName;
 
@@ -81,8 +87,8 @@ public abstract class AbstractRateLimiter<C> extends AbstractStatefulConfigurabl
 
 		String routeId = event.getRouteId();
 		//Add hashcode to the id for support multiple configurations
-		if (event.getArgs().containsKey("key-resolver")) {
-			routeId = routeId + event.getArgs().get("key-resolver").hashCode();
+		if (event.getArgs().containsKey(KEY_RESOLVER_KEY)) {
+			routeId = routeId + event.getArgs().get(KEY_RESOLVER_KEY).hashCode();
 		}
 		C routeConfig = newConfig();
 		if (this.configurationService != null) {

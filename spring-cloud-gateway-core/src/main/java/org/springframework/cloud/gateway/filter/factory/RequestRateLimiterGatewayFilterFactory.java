@@ -38,11 +38,6 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.s
 public class RequestRateLimiterGatewayFilterFactory extends
 		AbstractGatewayFilterFactory<RequestRateLimiterGatewayFilterFactory.Config> {
 
-	/**
-	 * Key-Resolver key.
-	 */
-	public static final String KEY_RESOLVER_KEY = "keyResolver";
-
 	private static final String EMPTY_KEY = "____EMPTY_KEY__";
 
 	private final RateLimiter defaultRateLimiter;
@@ -54,11 +49,13 @@ public class RequestRateLimiterGatewayFilterFactory extends
 	 */
 	private boolean denyEmptyKey = true;
 
-	/** HttpStatus to return when denyEmptyKey is true, defaults to FORBIDDEN. */
+	/**
+	 * HttpStatus to return when denyEmptyKey is true, defaults to FORBIDDEN.
+	 */
 	private String emptyKeyStatusCode = HttpStatus.FORBIDDEN.name();
 
 	public RequestRateLimiterGatewayFilterFactory(RateLimiter defaultRateLimiter,
-			KeyResolver defaultKeyResolver) {
+												  KeyResolver defaultKeyResolver) {
 		super(Config.class);
 		this.defaultRateLimiter = defaultRateLimiter;
 		this.defaultKeyResolver = defaultKeyResolver;
@@ -108,7 +105,7 @@ public class RequestRateLimiterGatewayFilterFactory extends
 						return chain.filter(exchange);
 					}
 					String routeId = config.getRouteId();
-					//Add hashcode to the id for support multiple configurations
+					//Add keyresolver hashcode to the config id for support multiple ratelimiter  configurations
 					routeId = routeId + config.getKeyResolver().hashCode();
 					if (routeId == null) {
 						Route route = exchange
