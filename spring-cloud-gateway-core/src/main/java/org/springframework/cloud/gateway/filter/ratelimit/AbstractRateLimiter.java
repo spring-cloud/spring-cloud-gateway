@@ -19,7 +19,6 @@ package org.springframework.cloud.gateway.filter.ratelimit;
 import java.util.Map;
 
 import org.springframework.cloud.gateway.event.FilterArgsEvent;
-import org.springframework.cloud.gateway.filter.factory.RequestRateLimiterGatewayFilterFactory;
 import org.springframework.cloud.gateway.support.AbstractStatefulConfigurable;
 import org.springframework.cloud.gateway.support.ConfigurationService;
 import org.springframework.context.ApplicationListener;
@@ -32,7 +31,7 @@ public abstract class AbstractRateLimiter<C> extends AbstractStatefulConfigurabl
 	/**
 	 * Key-Resolver key.
 	 */
-	public static final String KEY_RESOLVER_KEY = "keyResolver";
+	public static final String KEY_RESOLVER_KEY = "key-resolver";
 
 	private String configurationPropertyName;
 
