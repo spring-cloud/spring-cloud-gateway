@@ -277,14 +277,11 @@ public class ProductionConfigurationTests {
 						RequestEntity
 								.get(rest.getRestTemplate().getUriTemplateHandler()
 										.expand("/proxy/headers"))
-								.header("foo", "bar")
-								.header("abc", "xyz")
+								.header("foo", "bar").header("abc", "xyz")
 								.header("baz", "fob").build(),
 						Map.class)
 				.getBody();
-		assertThat(headers)
-				.doesNotContainKey("foo")
-				.doesNotContainKey("hello")
+		assertThat(headers).doesNotContainKey("foo").doesNotContainKey("hello")
 				.containsKeys("bar", "abc");
 
 		assertThat(headers.get("bar")).containsOnly("hello");
