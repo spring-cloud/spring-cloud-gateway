@@ -58,8 +58,8 @@ public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResol
 	}
 
 	public void setAutoForwardedHeaders(Set<String> autoForwardedHeaders) {
-		this.autoForwardedHeaders = autoForwardedHeaders.stream().map(String::toLowerCase)
-				.collect(toSet());
+		this.autoForwardedHeaders = autoForwardedHeaders == null ? null
+				: autoForwardedHeaders.stream().map(String::toLowerCase).collect(toSet());
 	}
 
 	public void setSensitive(Set<String> sensitive) {
