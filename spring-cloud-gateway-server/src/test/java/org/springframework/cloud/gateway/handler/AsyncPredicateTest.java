@@ -74,6 +74,20 @@ public class AsyncPredicateTest {
 		right.assertTested();
 	}
 
+	@Test
+	public void negateOperatorWorks() {
+		TestAsyncPredicate<Object> falsePredicate = new TestAsyncPredicate<>(o -> false);
+		TestAsyncPredicate<Object> truePredicate = new TestAsyncPredicate<>(o -> true);
+		Publisher<Boolean> falseNot = falsePredicate.negate().apply(new Object());
+		Publisher<Boolean> trueNot = truePredicate.negate().apply(new Object());
+
+		StepVerifier.create(falseNot).expectNext(true).expectComplete().verify();
+		StepVerifier.create(trueNot).expectNext(false).expectComplete().verify();
+
+		falsePredicate.assertTested();
+		truePredicate.assertTested();
+	}
+
 	/**
 	 * An AsyncPredicate decorator that records if the apply method was called.
 	 */

@@ -113,6 +113,27 @@ public class BooleanSpec extends UriSpec {
 			return new BooleanSpec(this.routeBuilder, this.builder);
 		}
 
+		public BooleanSpec not(Function<PredicateSpec, BooleanSpec> fn) {
+			return fn
+					.apply(new NotOpSpec(this.routeBuilder, this.builder, this.operator));
+		}
+
+	}
+
+	public static class NotOpSpec extends BooleanOpSpec {
+
+		NotOpSpec(Route.AsyncBuilder routeBuilder, RouteLocatorBuilder.Builder builder,
+				Operator operator) {
+			super(routeBuilder, builder, operator);
+		}
+
+		@Override
+		public BooleanSpec asyncPredicate(AsyncPredicate<ServerWebExchange> predicate) {
+			AsyncPredicate<ServerWebExchange> negated = this.routeBuilder.getPredicate()
+					.not(predicate);
+			return super.asyncPredicate(negated);
+		}
+
 	}
 
 }
