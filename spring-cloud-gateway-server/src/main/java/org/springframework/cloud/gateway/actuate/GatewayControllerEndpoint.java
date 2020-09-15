@@ -21,6 +21,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.cloud.gateway.route.RouteDefinition;
+import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -46,9 +48,15 @@ public class GatewayControllerEndpoint extends AbstractGatewayControllerEndpoint
 	public GatewayControllerEndpoint(List<GlobalFilter> globalFilters,
 			List<GatewayFilterFactory> gatewayFilters,
 			List<RoutePredicateFactory> routePredicates,
-			RouteDefinitionWriter routeDefinitionWriter, RouteLocator routeLocator) {
-		super(null, globalFilters, gatewayFilters, routePredicates, routeDefinitionWriter,
-				routeLocator);
+			RouteDefinitionWriter routeDefinitionWriter, RouteLocator routeLocator,
+			RouteDefinitionLocator routeDefinitionLocator) {
+		super(routeDefinitionLocator, globalFilters, gatewayFilters, routePredicates,
+				routeDefinitionWriter, routeLocator);
+	}
+
+	@GetMapping("/routedefinitions")
+	public Flux<RouteDefinition> routesdef() {
+		return this.routeDefinitionLocator.getRouteDefinitions();
 	}
 
 	// TODO: Flush out routes without a definition
