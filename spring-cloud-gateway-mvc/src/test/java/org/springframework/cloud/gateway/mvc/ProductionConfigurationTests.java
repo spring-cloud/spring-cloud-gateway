@@ -58,7 +58,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(properties = { "spring.cloud.gateway.proxy.auto-forward=baz" },
+@SpringBootTest(properties = { "spring.cloud.gateway.proxy.auto-forward=Baz" },
 		webEnvironment = WebEnvironment.RANDOM_PORT)
 @ContextConfiguration(classes = TestApplication.class)
 public class ProductionConfigurationTests {

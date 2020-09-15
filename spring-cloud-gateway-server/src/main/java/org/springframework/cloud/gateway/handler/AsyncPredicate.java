@@ -39,6 +39,10 @@ public interface AsyncPredicate<T> extends Function<T, Publisher<Boolean>> {
 		return new NegateAsyncPredicate<>(this);
 	}
 
+	default AsyncPredicate<T> not(AsyncPredicate<? super T> other) {
+		return new NegateAsyncPredicate<>(other);
+	}
+
 	default AsyncPredicate<T> or(AsyncPredicate<? super T> other) {
 		return new OrAsyncPredicate<>(this, other);
 	}
@@ -84,7 +88,7 @@ public interface AsyncPredicate<T> extends Function<T, Publisher<Boolean>> {
 
 		@Override
 		public String toString() {
-			return String.format("!%s", this.predicate);
+			return String.format("!(%s)", this.predicate);
 		}
 
 	}

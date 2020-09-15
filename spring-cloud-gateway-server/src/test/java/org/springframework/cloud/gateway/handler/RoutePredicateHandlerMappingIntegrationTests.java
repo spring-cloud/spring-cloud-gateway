@@ -21,14 +21,21 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.gateway.route.RouteLocator;
+import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.SocketUtils;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -57,10 +64,50 @@ public class RoutePredicateHandlerMappingIntegrationTests extends BaseWebClientT
 				.uri("/get").exchange().expectStatus().isNotFound();
 	}
 
+	@Test
+	public void andNotWorksWithMissingParameter() {
+		testClient.get().uri("/andnotquery").exchange().expectBody(String.class)
+				.isEqualTo("notsupplied");
+	}
+
+	@Test
+	public void andNotWorksWithParameter() {
+		testClient.get().uri("/andnotquery?myquery=shouldnotsee").exchange()
+				.expectBody(String.class).isEqualTo("hasquery");
+	}
+
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
+	@RestController
 	public static class TestConfig {
+
+		@Value("${test.uri:http://httpbin.org:80}")
+		String uri;
+
+		@GetMapping("/httpbin/andnotquery")
+		String andnotquery(@RequestParam(name = "myquery",
+				defaultValue = "notsupplied") String myquery) {
+			return myquery;
+		}
+
+		@GetMapping("/httpbin/hasquery")
+		String hasquery() {
+			return "hasquery";
+		}
+
+		@Bean
+		RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
+			return builder.routes()
+					.route("and_not_missing_myquery",
+							r -> r.path("/andnotquery").and().not(p -> p.query("myquery"))
+									.filters(f -> f.prefixPath("/httpbin")).uri(uri))
+					.route("and_not_has_myquery",
+							r -> r.path("/andnotquery").and().query("myquery")
+									.filters(f -> f.setPath("/httpbin/hasquery"))
+									.uri(uri))
+					.build();
+		}
 
 	}
 

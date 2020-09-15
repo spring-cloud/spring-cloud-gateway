@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.gateway.route;
 
+import org.springframework.boot.web.context.WebServerApplicationContext;
 import org.springframework.cloud.client.discovery.event.HeartbeatEvent;
 import org.springframework.cloud.client.discovery.event.HeartbeatMonitor;
 import org.springframework.cloud.client.discovery.event.InstanceRegisteredEvent;
@@ -43,8 +44,14 @@ public class RouteRefreshListener implements ApplicationListener<ApplicationEven
 
 	@Override
 	public void onApplicationEvent(ApplicationEvent event) {
-		if (event instanceof ContextRefreshedEvent
-				|| event instanceof RefreshScopeRefreshedEvent
+		if (event instanceof ContextRefreshedEvent) {
+			ContextRefreshedEvent refreshedEvent = (ContextRefreshedEvent) event;
+			if (!WebServerApplicationContext.hasServerNamespace(
+					refreshedEvent.getApplicationContext(), "management")) {
+				reset();
+			}
+		}
+		else if (event instanceof RefreshScopeRefreshedEvent
 				|| event instanceof InstanceRegisteredEvent) {
 			reset();
 		}

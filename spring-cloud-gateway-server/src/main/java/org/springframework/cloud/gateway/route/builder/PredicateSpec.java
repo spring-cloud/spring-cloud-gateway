@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.route.builder;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 import org.springframework.cloud.gateway.handler.AsyncPredicate;
@@ -292,6 +293,10 @@ public class PredicateSpec extends UriSpec {
 	 */
 	public BooleanSpec alwaysTrue() {
 		return predicate(exchange -> true);
+	}
+
+	public BooleanSpec not(Function<PredicateSpec, BooleanSpec> fn) {
+		return alwaysTrue().and().not(fn);
 	}
 
 }
