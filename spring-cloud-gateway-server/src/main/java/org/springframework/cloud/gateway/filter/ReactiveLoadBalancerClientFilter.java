@@ -31,6 +31,7 @@ import org.springframework.cloud.gateway.config.LoadBalancerProperties;
 import org.springframework.cloud.gateway.support.DelegatingServiceInstance;
 import org.springframework.cloud.gateway.support.NotFoundException;
 import org.springframework.cloud.loadbalancer.core.ReactorLoadBalancer;
+import org.springframework.cloud.loadbalancer.core.ReactorServiceInstanceLoadBalancer;
 import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
 import org.springframework.core.Ordered;
 import org.springframework.web.server.ServerWebExchange;
@@ -118,17 +119,18 @@ public class ReactiveLoadBalancerClientFilter implements GlobalFilter, Ordered {
 		return LoadBalancerUriTools.reconstructURI(serviceInstance, original);
 	}
 
+	@SuppressWarnings("deprecation")
 	private Mono<Response<ServiceInstance>> choose(ServerWebExchange exchange) {
 		URI uri = exchange.getAttribute(GATEWAY_REQUEST_URL_ATTR);
 		ReactorLoadBalancer<ServiceInstance> loadBalancer = this.clientFactory
-				.getInstance(uri.getHost(), ReactorLoadBalancer.class,
-						ServiceInstance.class);
+				.getInstance(uri.getHost(), ReactorServiceInstanceLoadBalancer.class);
 		if (loadBalancer == null) {
 			throw new NotFoundException("No loadbalancer available for " + uri.getHost());
 		}
 		return loadBalancer.choose(createRequest());
 	}
 
+	@SuppressWarnings("deprecation")
 	private Request createRequest() {
 		return ReactiveLoadBalancer.REQUEST;
 	}
