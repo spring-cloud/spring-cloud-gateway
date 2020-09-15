@@ -124,7 +124,8 @@ public class ReactiveLoadBalancerClientFilterTests {
 		RoundRobinLoadBalancer loadBalancer = new RoundRobinLoadBalancer(
 				ServiceInstanceListSuppliers.toProvider("myservice", serviceInstance),
 				"myservice", -1);
-		when(clientFactory.getInstance("myservice", ReactorServiceInstanceLoadBalancer.class)).thenReturn(loadBalancer);
+		when(clientFactory.getInstance("myservice",
+				ReactorServiceInstanceLoadBalancer.class)).thenReturn(loadBalancer);
 
 		when(chain.filter(exchange)).thenReturn(Mono.empty());
 
@@ -248,7 +249,8 @@ public class ReactiveLoadBalancerClientFilterTests {
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, uri);
 		RoundRobinLoadBalancer loadBalancer = new RoundRobinLoadBalancer(
 				ServiceInstanceListSuppliers.toProvider("service1"), "service1", -1);
-		when(clientFactory.getInstance("service1", ReactorServiceInstanceLoadBalancer.class)).thenReturn(loadBalancer);
+		when(clientFactory.getInstance("service1",
+				ReactorServiceInstanceLoadBalancer.class)).thenReturn(loadBalancer);
 		properties.setUse404(true);
 		ReactiveLoadBalancerClientFilter filter = new ReactiveLoadBalancerClientFilter(
 				clientFactory, properties);
@@ -277,7 +279,8 @@ public class ReactiveLoadBalancerClientFilterTests {
 						new DefaultServiceInstance("service1_1", "service1",
 								"service1-host1", 8081, false)),
 				"service1", -1);
-		when(clientFactory.getInstance("service1", ReactorServiceInstanceLoadBalancer.class)).thenReturn(loadBalancer);
+		when(clientFactory.getInstance("service1",
+				ReactorServiceInstanceLoadBalancer.class)).thenReturn(loadBalancer);
 
 		ReactiveLoadBalancerClientFilter filter = new ReactiveLoadBalancerClientFilter(
 				clientFactory, properties);
