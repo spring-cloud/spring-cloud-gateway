@@ -39,14 +39,12 @@ public class GatewayHttpTagsProviderTests {
 
 	private static final String ROUTE_URI = "http://gatewaytagsprovider.org:80";
 
-	private static final Tags DEFAULT_TAGS = Tags.of("outcome", OK.series().name(),
-			"status", OK.name(), "httpStatusCode", String.valueOf(OK.value()),
-			"httpMethod", "GET");
+	private static final Tags DEFAULT_TAGS = Tags.of("outcome", OK.series().name(), "status", OK.name(),
+			"httpStatusCode", String.valueOf(OK.value()), "httpMethod", "GET");
 
 	@Test
 	public void httpTags() {
-		ServerWebExchange exchange = MockServerWebExchange
-				.from(MockServerHttpRequest.get(ROUTE_URI).build());
+		ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get(ROUTE_URI).build());
 		exchange.getResponse().setStatusCode(OK);
 
 		Tags tags = tagsProvider.apply(exchange);
@@ -55,23 +53,20 @@ public class GatewayHttpTagsProviderTests {
 
 	@Test
 	public void statusNotChanged() {
-		ServerWebExchange exchange = MockServerWebExchange
-				.from(MockServerHttpRequest.get(ROUTE_URI).build());
+		ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get(ROUTE_URI).build());
 
 		Tags tags = tagsProvider.apply(exchange);
-		assertThat(tags).isEqualTo(Tags.of("outcome", "CUSTOM", "status", "CUSTOM",
-				"httpStatusCode", "NA", "httpMethod", "GET"));
+		assertThat(tags).isEqualTo(
+				Tags.of("outcome", "CUSTOM", "status", "CUSTOM", "httpStatusCode", "NA", "httpMethod", "GET"));
 	}
 
 	@Test
 	public void notAbstractServerHttpResponse() {
 		ServerWebExchange mockExchange = mock(ServerWebExchange.class);
-		ServerHttpResponseDecorator responseDecorator = new ServerHttpResponseDecorator(
-				new MockServerHttpResponse());
+		ServerHttpResponseDecorator responseDecorator = new ServerHttpResponseDecorator(new MockServerHttpResponse());
 		responseDecorator.setStatusCode(OK);
 
-		when(mockExchange.getRequest())
-				.thenReturn(MockServerHttpRequest.get(ROUTE_URI).build());
+		when(mockExchange.getRequest()).thenReturn(MockServerHttpRequest.get(ROUTE_URI).build());
 		when(mockExchange.getResponse()).thenReturn(responseDecorator);
 
 		Tags tags = tagsProvider.apply(mockExchange);

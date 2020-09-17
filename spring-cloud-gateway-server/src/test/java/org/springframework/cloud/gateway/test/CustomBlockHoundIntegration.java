@@ -33,8 +33,7 @@ public class CustomBlockHoundIntegration implements BlockHoundIntegration {
 		// });
 
 		// Uses Unsafe#park
-		builder.allowBlockingCallsInside("reactor.core.scheduler.SchedulerTask",
-				"dispose");
+		builder.allowBlockingCallsInside("reactor.core.scheduler.SchedulerTask", "dispose");
 
 		// Uses
 		// ch.qos.logback.classic.spi.PackagingDataCalculator#getImplementationVersion
@@ -47,51 +46,40 @@ public class CustomBlockHoundIntegration implements BlockHoundIntegration {
 
 		// Uses org.springframework.util.JdkIdGenerator#generateId
 		// Uses UUID#randomUUID
-		builder.allowBlockingCallsInside(
-				"org.springframework.web.server.session.InMemoryWebSessionStore",
+		builder.allowBlockingCallsInside("org.springframework.web.server.session.InMemoryWebSessionStore",
 				"lambda$createWebSession$0");
 
 		// Uses java.util.Random#nextInt
-		builder.allowBlockingCallsInside("org.springframework.util.MimeTypeUtils",
-				"generateMultipartBoundary");
+		builder.allowBlockingCallsInside("org.springframework.util.MimeTypeUtils", "generateMultipartBoundary");
 
 		// SPRING DATA REDIS RELATED
 
 		// Uses Unsafe#park
-		builder.allowBlockingCallsInside(
-				"org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory",
+		builder.allowBlockingCallsInside("org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory",
 				"getReactiveConnection");
 
 		// NETTY RELATED
 
 		// Uses Thread#sleep
-		builder.allowBlockingCallsInside("io.netty.channel.nio.NioEventLoop",
-				"handleLoopException");
-		builder.allowBlockingCallsInside(
-				"io.netty.util.concurrent.SingleThreadEventExecutor", "confirmShutdown");
+		builder.allowBlockingCallsInside("io.netty.channel.nio.NioEventLoop", "handleLoopException");
+		builder.allowBlockingCallsInside("io.netty.util.concurrent.SingleThreadEventExecutor", "confirmShutdown");
 
 		// Uses Unsafe#park
-		builder.allowBlockingCallsInside("io.netty.util.concurrent.GlobalEventExecutor",
-				"execute");
-		builder.allowBlockingCallsInside(
-				"io.netty.util.concurrent.SingleThreadEventExecutor$6", "run");
+		builder.allowBlockingCallsInside("io.netty.util.concurrent.GlobalEventExecutor", "execute");
+		builder.allowBlockingCallsInside("io.netty.util.concurrent.SingleThreadEventExecutor$6", "run");
 		// builder.allowBlockingCallsInside("io.netty.util.concurrent.GlobalEventExecutor",
 		// "takeTask");
 		// builder.allowBlockingCallsInside("io.netty.util.concurrent.GlobalEventExecutor",
 		// "addTask");
-		builder.allowBlockingCallsInside(
-				"io.netty.util.concurrent.FastThreadLocalRunnable", "run");
+		builder.allowBlockingCallsInside("io.netty.util.concurrent.FastThreadLocalRunnable", "run");
 
 		// SECURITY RELATED
 
 		// For HTTPS traffic
-		builder.allowBlockingCallsInside("io.netty.handler.ssl.SslHandler",
-				"channelActive");
-		builder.allowBlockingCallsInside("io.netty.handler.ssl.SslHandler",
-				"channelInactive");
+		builder.allowBlockingCallsInside("io.netty.handler.ssl.SslHandler", "channelActive");
+		builder.allowBlockingCallsInside("io.netty.handler.ssl.SslHandler", "channelInactive");
 		builder.allowBlockingCallsInside("io.netty.handler.ssl.SslHandler", "unwrap");
-		builder.allowBlockingCallsInside("io.netty.handler.ssl.SslContext",
-				"newClientContextInternal");
+		builder.allowBlockingCallsInside("io.netty.handler.ssl.SslContext", "newClientContextInternal");
 
 		// Uses org.springframework.security.crypto.bcrypt.BCrypt#gensalt
 		// Uses java.security.SecureRandom#nextBytes

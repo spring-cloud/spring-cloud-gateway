@@ -54,10 +54,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(
-		properties = { "management.endpoints.web.exposure.include=*",
-				"spring.cloud.gateway.actuator.verbose.enabled=true" },
-		webEnvironment = RANDOM_PORT)
+@SpringBootTest(properties = { "management.endpoints.web.exposure.include=*",
+		"spring.cloud.gateway.actuator.verbose.enabled=true" }, webEnvironment = RANDOM_PORT)
 public class GatewayControllerEndpointTests {
 
 	@Autowired
@@ -68,15 +66,14 @@ public class GatewayControllerEndpointTests {
 
 	@Test
 	public void testRefresh() {
-		testClient.post().uri("http://localhost:" + port + "/actuator/gateway/refresh")
-				.exchange().expectStatus().isOk();
+		testClient.post().uri("http://localhost:" + port + "/actuator/gateway/refresh").exchange().expectStatus()
+				.isOk();
 	}
 
 	@Test
 	public void testRoutes() {
-		testClient.get().uri("http://localhost:" + port + "/actuator/gateway/routes")
-				.exchange().expectStatus().isOk().expectBodyList(Map.class)
-				.consumeWith(result -> {
+		testClient.get().uri("http://localhost:" + port + "/actuator/gateway/routes").exchange().expectStatus().isOk()
+				.expectBodyList(Map.class).consumeWith(result -> {
 					List<Map> responseBody = result.getResponseBody();
 					assertThat(responseBody).isNotEmpty();
 				});
@@ -84,10 +81,8 @@ public class GatewayControllerEndpointTests {
 
 	@Test
 	public void testGetSpecificRoute() {
-		testClient.get()
-				.uri("http://localhost:" + port + "/actuator/gateway/routes/test-service")
-				.exchange().expectStatus().isOk().expectBodyList(Map.class)
-				.consumeWith(result -> {
+		testClient.get().uri("http://localhost:" + port + "/actuator/gateway/routes/test-service").exchange()
+				.expectStatus().isOk().expectBodyList(Map.class).consumeWith(result -> {
 					List<Map> responseBody = result.getResponseBody();
 					assertThat(responseBody).isNotNull();
 					assertThat(responseBody.size()).isEqualTo(1);
@@ -97,22 +92,17 @@ public class GatewayControllerEndpointTests {
 
 	@Test
 	public void testRouteReturnsMetadata() {
-		testClient.get()
-				.uri("http://localhost:" + port
-						+ "/actuator/gateway/routes/route_with_metadata")
-				.exchange().expectStatus().isOk().expectBody().jsonPath("$.metadata")
+		testClient.get().uri("http://localhost:" + port + "/actuator/gateway/routes/route_with_metadata").exchange()
+				.expectStatus().isOk().expectBody().jsonPath("$.metadata")
 				.value(map -> assertThat((Map<String, Object>) map).hasSize(3)
-						.containsEntry("optionName", "OptionValue")
-						.containsEntry("iAmNumber", 1).containsEntry("compositeObject",
-								Maps.newHashMap("name", "value")));
+						.containsEntry("optionName", "OptionValue").containsEntry("iAmNumber", 1)
+						.containsEntry("compositeObject", Maps.newHashMap("name", "value")));
 	}
 
 	@Test
 	public void testRouteFilters() {
-		testClient.get()
-				.uri("http://localhost:" + port + "/actuator/gateway/routefilters")
-				.exchange().expectStatus().isOk().expectBody(Map.class)
-				.consumeWith(result -> {
+		testClient.get().uri("http://localhost:" + port + "/actuator/gateway/routefilters").exchange().expectStatus()
+				.isOk().expectBody(Map.class).consumeWith(result -> {
 					Map<?, ?> responseBody = result.getResponseBody();
 					assertThat(responseBody).isNotEmpty();
 				});
@@ -120,10 +110,8 @@ public class GatewayControllerEndpointTests {
 
 	@Test
 	public void testRoutePredicates() {
-		testClient.get()
-				.uri("http://localhost:" + port + "/actuator/gateway/routepredicates")
-				.exchange().expectStatus().isOk().expectBody(Map.class)
-				.consumeWith(result -> {
+		testClient.get().uri("http://localhost:" + port + "/actuator/gateway/routepredicates").exchange().expectStatus()
+				.isOk().expectBody(Map.class).consumeWith(result -> {
 					Map<?, ?> responseBody = result.getResponseBody();
 					assertThat(responseBody).isNotEmpty();
 				});
@@ -135,27 +123,20 @@ public class GatewayControllerEndpointTests {
 		RouteDefinition testRouteDefinition = new RouteDefinition();
 		testRouteDefinition.setUri(URI.create("http://example.org"));
 
-		FilterDefinition prefixPathFilterDefinition = new FilterDefinition(
-				"PrefixPath=/test-path");
-		FilterDefinition redirectToFilterDefinition = new FilterDefinition(
-				"RemoveResponseHeader=Sensitive-Header");
+		FilterDefinition prefixPathFilterDefinition = new FilterDefinition("PrefixPath=/test-path");
+		FilterDefinition redirectToFilterDefinition = new FilterDefinition("RemoveResponseHeader=Sensitive-Header");
 		FilterDefinition testFilterDefinition = new FilterDefinition("TestFilter");
-		testRouteDefinition.setFilters(Arrays.asList(prefixPathFilterDefinition,
-				redirectToFilterDefinition, testFilterDefinition));
+		testRouteDefinition.setFilters(
+				Arrays.asList(prefixPathFilterDefinition, redirectToFilterDefinition, testFilterDefinition));
 
-		PredicateDefinition hostRoutePredicateDefinition = new PredicateDefinition(
-				"Host=myhost.org");
-		PredicateDefinition methodRoutePredicateDefinition = new PredicateDefinition(
-				"Method=GET");
-		PredicateDefinition testPredicateDefinition = new PredicateDefinition(
-				"Test=value");
-		testRouteDefinition.setPredicates(Arrays.asList(hostRoutePredicateDefinition,
-				methodRoutePredicateDefinition, testPredicateDefinition));
+		PredicateDefinition hostRoutePredicateDefinition = new PredicateDefinition("Host=myhost.org");
+		PredicateDefinition methodRoutePredicateDefinition = new PredicateDefinition("Method=GET");
+		PredicateDefinition testPredicateDefinition = new PredicateDefinition("Test=value");
+		testRouteDefinition.setPredicates(
+				Arrays.asList(hostRoutePredicateDefinition, methodRoutePredicateDefinition, testPredicateDefinition));
 
-		testClient.post()
-				.uri("http://localhost:" + port + "/actuator/gateway/routes/test-route")
-				.accept(MediaType.APPLICATION_JSON)
-				.body(BodyInserters.fromValue(testRouteDefinition)).exchange()
+		testClient.post().uri("http://localhost:" + port + "/actuator/gateway/routes/test-route")
+				.accept(MediaType.APPLICATION_JSON).body(BodyInserters.fromValue(testRouteDefinition)).exchange()
 				.expectStatus().isCreated();
 	}
 
@@ -165,14 +146,11 @@ public class GatewayControllerEndpointTests {
 		RouteDefinition testRouteDefinition = new RouteDefinition();
 		testRouteDefinition.setUri(URI.create("http://example.org"));
 
-		FilterDefinition filterDefinition = new FilterDefinition(
-				"NotExistingFilter=test-config");
+		FilterDefinition filterDefinition = new FilterDefinition("NotExistingFilter=test-config");
 		testRouteDefinition.setFilters(Collections.singletonList(filterDefinition));
 
-		testClient.post()
-				.uri("http://localhost:" + port + "/actuator/gateway/routes/test-route")
-				.accept(MediaType.APPLICATION_JSON)
-				.body(BodyInserters.fromValue(testRouteDefinition)).exchange()
+		testClient.post().uri("http://localhost:" + port + "/actuator/gateway/routes/test-route")
+				.accept(MediaType.APPLICATION_JSON).body(BodyInserters.fromValue(testRouteDefinition)).exchange()
 				.expectStatus().isBadRequest();
 	}
 
@@ -182,14 +160,11 @@ public class GatewayControllerEndpointTests {
 		RouteDefinition testRouteDefinition = new RouteDefinition();
 		testRouteDefinition.setUri(URI.create("http://example.org"));
 
-		PredicateDefinition predicateDefinition = new PredicateDefinition(
-				"NotExistingPredicate=test-config");
+		PredicateDefinition predicateDefinition = new PredicateDefinition("NotExistingPredicate=test-config");
 		testRouteDefinition.setPredicates(Collections.singletonList(predicateDefinition));
 
-		testClient.post()
-				.uri("http://localhost:" + port + "/actuator/gateway/routes/test-route")
-				.accept(MediaType.APPLICATION_JSON)
-				.body(BodyInserters.fromValue(testRouteDefinition)).exchange()
+		testClient.post().uri("http://localhost:" + port + "/actuator/gateway/routes/test-route")
+				.accept(MediaType.APPLICATION_JSON).body(BodyInserters.fromValue(testRouteDefinition)).exchange()
 				.expectStatus().isBadRequest();
 	}
 
@@ -201,9 +176,7 @@ public class GatewayControllerEndpointTests {
 		@Bean
 		RouteLocator testRouteLocator(RouteLocatorBuilder routeLocatorBuilder) {
 			return routeLocatorBuilder.routes()
-					.route("test-service",
-							r -> r.path("/test-service/**").uri("lb://test-service"))
-					.build();
+					.route("test-service", r -> r.path("/test-service/**").uri("lb://test-service")).build();
 		}
 
 		@Bean
@@ -218,8 +191,7 @@ public class GatewayControllerEndpointTests {
 
 	}
 
-	private static class TestFilterGatewayFilterFactory
-			extends AbstractGatewayFilterFactory {
+	private static class TestFilterGatewayFilterFactory extends AbstractGatewayFilterFactory {
 
 		@Override
 		public GatewayFilter apply(Object config) {

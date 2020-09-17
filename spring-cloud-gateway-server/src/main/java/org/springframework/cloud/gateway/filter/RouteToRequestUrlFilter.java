@@ -50,8 +50,8 @@ public class RouteToRequestUrlFilter implements GlobalFilter, Ordered {
 
 	/* for testing */
 	static boolean hasAnotherScheme(URI uri) {
-		return schemePattern.matcher(uri.getSchemeSpecificPart()).matches()
-				&& uri.getHost() == null && uri.getRawPath() == null;
+		return schemePattern.matcher(uri.getSchemeSpecificPart()).matches() && uri.getHost() == null
+				&& uri.getRawPath() == null;
 	}
 
 	@Override
@@ -73,8 +73,7 @@ public class RouteToRequestUrlFilter implements GlobalFilter, Ordered {
 		if (hasAnotherScheme(routeUri)) {
 			// this is a special url, save scheme to special attribute
 			// replace routeUri with schemeSpecificPart
-			exchange.getAttributes().put(GATEWAY_SCHEME_PREFIX_ATTR,
-					routeUri.getScheme());
+			exchange.getAttributes().put(GATEWAY_SCHEME_PREFIX_ATTR, routeUri.getScheme());
 			routeUri = URI.create(routeUri.getSchemeSpecificPart());
 		}
 
@@ -88,8 +87,7 @@ public class RouteToRequestUrlFilter implements GlobalFilter, Ordered {
 
 		URI mergedUrl = UriComponentsBuilder.fromUri(uri)
 				// .uri(routeUri)
-				.scheme(routeUri.getScheme()).host(routeUri.getHost())
-				.port(routeUri.getPort()).build(encoded).toUri();
+				.scheme(routeUri.getScheme()).host(routeUri.getHost()).port(routeUri.getPort()).build(encoded).toUri();
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, mergedUrl);
 		return chain.filter(exchange);
 	}

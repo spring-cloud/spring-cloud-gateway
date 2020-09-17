@@ -93,8 +93,8 @@ Modified (not) Location response header: http://object-service.prod.example.net/
 /**
  * @author Vitaliy Pavlyuk
  */
-public class RewriteLocationResponseHeaderGatewayFilterFactory extends
-		AbstractGatewayFilterFactory<RewriteLocationResponseHeaderGatewayFilterFactory.Config> {
+public class RewriteLocationResponseHeaderGatewayFilterFactory
+		extends AbstractGatewayFilterFactory<RewriteLocationResponseHeaderGatewayFilterFactory.Config> {
 
 	private static final String STRIP_VERSION_KEY = "stripVersion";
 
@@ -108,11 +108,9 @@ public class RewriteLocationResponseHeaderGatewayFilterFactory extends
 
 	private static final String DEFAULT_PROTOCOLS = "https?|ftps?";
 
-	private static final Pattern DEFAULT_HOST_PORT = compileHostPortPattern(
-			DEFAULT_PROTOCOLS);
+	private static final Pattern DEFAULT_HOST_PORT = compileHostPortPattern(DEFAULT_PROTOCOLS);
 
-	private static final Pattern DEFAULT_HOST_PORT_VERSION = compileHostPortVersionPattern(
-			DEFAULT_PROTOCOLS);
+	private static final Pattern DEFAULT_HOST_PORT_VERSION = compileHostPortVersionPattern(DEFAULT_PROTOCOLS);
 
 	public RewriteLocationResponseHeaderGatewayFilterFactory() {
 		super(Config.class);
@@ -123,24 +121,20 @@ public class RewriteLocationResponseHeaderGatewayFilterFactory extends
 	}
 
 	private static Pattern compileHostPortVersionPattern(String protocols) {
-		return Pattern.compile(
-				"(?<=^(?:" + protocols + ")://)[^:/]+(?::\\d+)?(?:/v\\d+)?(?=/)");
+		return Pattern.compile("(?<=^(?:" + protocols + ")://)[^:/]+(?::\\d+)?(?:/v\\d+)?(?=/)");
 	}
 
 	@Override
 	public List<String> shortcutFieldOrder() {
-		return Arrays.asList(STRIP_VERSION_KEY, LOCATION_HEADER_NAME_KEY, HOST_VALUE_KEY,
-				PROTOCOLS_KEY);
+		return Arrays.asList(STRIP_VERSION_KEY, LOCATION_HEADER_NAME_KEY, HOST_VALUE_KEY, PROTOCOLS_KEY);
 	}
 
 	@Override
 	public GatewayFilter apply(Config config) {
 		return new GatewayFilter() {
 			@Override
-			public Mono<Void> filter(ServerWebExchange exchange,
-					GatewayFilterChain chain) {
-				return chain.filter(exchange)
-						.then(Mono.fromRunnable(() -> rewriteLocation(exchange, config)));
+			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+				return chain.filter(exchange).then(Mono.fromRunnable(() -> rewriteLocation(exchange, config)));
 			}
 
 			@Override
@@ -159,26 +153,21 @@ public class RewriteLocationResponseHeaderGatewayFilterFactory extends
 	}
 
 	void rewriteLocation(ServerWebExchange exchange, Config config) {
-		final String location = exchange.getResponse().getHeaders()
-				.getFirst(config.getLocationHeaderName());
+		final String location = exchange.getResponse().getHeaders().getFirst(config.getLocationHeaderName());
 		final String host = config.getHostValue() != null ? config.getHostValue()
 				: exchange.getRequest().getHeaders().getFirst(HttpHeaders.HOST);
 		final String path = exchange.getRequest().getURI().getPath();
 		if (location != null && host != null) {
-			final String fixedLocation = fixedLocation(location, host, path,
-					config.getStripVersion(), config.getHostPortPattern(),
-					config.getHostPortVersionPattern());
-			exchange.getResponse().getHeaders().set(config.getLocationHeaderName(),
-					fixedLocation);
+			final String fixedLocation = fixedLocation(location, host, path, config.getStripVersion(),
+					config.getHostPortPattern(), config.getHostPortVersionPattern());
+			exchange.getResponse().getHeaders().set(config.getLocationHeaderName(), fixedLocation);
 		}
 	}
 
-	String fixedLocation(String location, String host, String path,
-			StripVersion stripVersion, Pattern hostPortPattern,
+	String fixedLocation(String location, String host, String path, StripVersion stripVersion, Pattern hostPortPattern,
 			Pattern hostPortVersionPattern) {
 		final boolean doStrip = StripVersion.ALWAYS_STRIP.equals(stripVersion)
-				|| (StripVersion.AS_IN_REQUEST.equals(stripVersion)
-						&& !VERSIONED_PATH.matcher(path).matches());
+				|| (StripVersion.AS_IN_REQUEST.equals(stripVersion) && !VERSIONED_PATH.matcher(path).matches());
 		final Pattern pattern = doStrip ? hostPortVersionPattern : hostPortPattern;
 		return pattern.matcher(location).replaceFirst(host);
 	}

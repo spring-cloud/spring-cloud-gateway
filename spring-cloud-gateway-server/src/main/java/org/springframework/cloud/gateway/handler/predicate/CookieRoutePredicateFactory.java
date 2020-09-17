@@ -29,8 +29,7 @@ import org.springframework.web.server.ServerWebExchange;
 /**
  * @author Spencer Gibb
  */
-public class CookieRoutePredicateFactory
-		extends AbstractRoutePredicateFactory<CookieRoutePredicateFactory.Config> {
+public class CookieRoutePredicateFactory extends AbstractRoutePredicateFactory<CookieRoutePredicateFactory.Config> {
 
 	/**
 	 * Name key.
@@ -56,8 +55,7 @@ public class CookieRoutePredicateFactory
 		return new GatewayPredicate() {
 			@Override
 			public boolean test(ServerWebExchange exchange) {
-				List<HttpCookie> cookies = exchange.getRequest().getCookies()
-						.get(config.name);
+				List<HttpCookie> cookies = exchange.getRequest().getCookies().get(config.name);
 				if (cookies == null) {
 					return false;
 				}
@@ -71,8 +69,7 @@ public class CookieRoutePredicateFactory
 
 			@Override
 			public String toString() {
-				return String.format("Cookie: name=%s regexp=%s", config.name,
-						config.regexp);
+				return String.format("Cookie: name=%s regexp=%s", config.name, config.regexp);
 			}
 		};
 	}

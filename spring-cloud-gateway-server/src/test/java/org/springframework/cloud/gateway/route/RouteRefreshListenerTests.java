@@ -41,8 +41,7 @@ public class RouteRefreshListenerTests {
 		ApplicationEventPublisher publisher = mock(ApplicationEventPublisher.class);
 		RouteRefreshListener listener = new RouteRefreshListener(publisher);
 
-		WebServerApplicationContext applicationContext = mock(
-				WebServerApplicationContext.class);
+		WebServerApplicationContext applicationContext = mock(WebServerApplicationContext.class);
 		when(applicationContext.getServerNamespace()).thenReturn("management");
 		listener.onApplicationEvent(new ContextRefreshedEvent(applicationContext));
 
@@ -54,8 +53,7 @@ public class RouteRefreshListenerTests {
 		ApplicationEventPublisher publisher = mock(ApplicationEventPublisher.class);
 		RouteRefreshListener listener = new RouteRefreshListener(publisher);
 
-		listener.onApplicationEvent(
-				new ContextRefreshedEvent(mock(ApplicationContext.class)));
+		listener.onApplicationEvent(new ContextRefreshedEvent(mock(ApplicationContext.class)));
 
 		verify(publisher).publishEvent(any(RefreshRoutesEvent.class));
 	}

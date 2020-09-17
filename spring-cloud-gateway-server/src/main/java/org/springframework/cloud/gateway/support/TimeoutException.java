@@ -20,8 +20,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 import static org.springframework.http.HttpStatus.GATEWAY_TIMEOUT;
 
-@ResponseStatus(value = GATEWAY_TIMEOUT,
-		reason = "Response took longer than configured timeout")
+@ResponseStatus(value = GATEWAY_TIMEOUT, reason = "Response took longer than configured timeout")
 public class TimeoutException extends Exception {
 
 	public TimeoutException() {

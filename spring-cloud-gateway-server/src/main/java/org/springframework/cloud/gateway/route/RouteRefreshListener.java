@@ -46,13 +46,11 @@ public class RouteRefreshListener implements ApplicationListener<ApplicationEven
 	public void onApplicationEvent(ApplicationEvent event) {
 		if (event instanceof ContextRefreshedEvent) {
 			ContextRefreshedEvent refreshedEvent = (ContextRefreshedEvent) event;
-			if (!WebServerApplicationContext.hasServerNamespace(
-					refreshedEvent.getApplicationContext(), "management")) {
+			if (!WebServerApplicationContext.hasServerNamespace(refreshedEvent.getApplicationContext(), "management")) {
 				reset();
 			}
 		}
-		else if (event instanceof RefreshScopeRefreshedEvent
-				|| event instanceof InstanceRegisteredEvent) {
+		else if (event instanceof RefreshScopeRefreshedEvent || event instanceof InstanceRegisteredEvent) {
 			reset();
 		}
 		else if (event instanceof ParentHeartbeatEvent) {

@@ -52,9 +52,8 @@ public class RequestSizeGatewayFilterFactoryTest extends BaseWebClientTests {
 
 	@Test
 	public void setRequestSizeFilterWorks() {
-		testClient.post().uri("/post").header("Host", "www.setrequestsize.org")
-				.header("content-length", "6").bodyValue("123456").exchange()
-				.expectStatus().isEqualTo(HttpStatus.PAYLOAD_TOO_LARGE).expectHeader()
+		testClient.post().uri("/post").header("Host", "www.setrequestsize.org").header("content-length", "6")
+				.bodyValue("123456").exchange().expectStatus().isEqualTo(HttpStatus.PAYLOAD_TOO_LARGE).expectHeader()
 				.valueMatches("errorMessage", responseMesssage);
 	}
 
@@ -78,8 +77,7 @@ public class RequestSizeGatewayFilterFactoryTest extends BaseWebClientTests {
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes()
 					.route("test_request_size",
-							r -> r.order(-1).host("**.setrequestsize.org")
-									.filters(f -> f.setRequestSize(5L)).uri(uri))
+							r -> r.order(-1).host("**.setrequestsize.org").filters(f -> f.setRequestSize(5L)).uri(uri))
 					.build();
 		}
 

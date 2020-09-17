@@ -30,8 +30,7 @@ import org.springframework.context.ApplicationListener;
 /**
  * @author Spencer Gibb
  */
-public class CachingRouteDefinitionLocator
-		implements RouteDefinitionLocator, ApplicationListener<RefreshRoutesEvent> {
+public class CachingRouteDefinitionLocator implements RouteDefinitionLocator, ApplicationListener<RefreshRoutesEvent> {
 
 	private static final String CACHE_KEY = "routeDefs";
 
@@ -43,8 +42,7 @@ public class CachingRouteDefinitionLocator
 
 	public CachingRouteDefinitionLocator(RouteDefinitionLocator delegate) {
 		this.delegate = delegate;
-		routeDefinitions = CacheFlux.lookup(cache, CACHE_KEY, RouteDefinition.class)
-				.onCacheMissResume(this::fetch);
+		routeDefinitions = CacheFlux.lookup(cache, CACHE_KEY, RouteDefinition.class).onCacheMissResume(this::fetch);
 	}
 
 	private Flux<RouteDefinition> fetch() {
@@ -67,8 +65,7 @@ public class CachingRouteDefinitionLocator
 
 	@Override
 	public void onApplicationEvent(RefreshRoutesEvent event) {
-		fetch().materialize().collect(Collectors.toList())
-				.doOnNext(routes -> cache.put(CACHE_KEY, routes)).subscribe();
+		fetch().materialize().collect(Collectors.toList()).doOnNext(routes -> cache.put(CACHE_KEY, routes)).subscribe();
 	}
 
 }

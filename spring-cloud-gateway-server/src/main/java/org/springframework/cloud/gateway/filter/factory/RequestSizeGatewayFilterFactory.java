@@ -35,8 +35,8 @@ import static org.springframework.cloud.gateway.support.GatewayToStringStyler.fi
  *
  * @author Arpan
  */
-public class RequestSizeGatewayFilterFactory extends
-		AbstractGatewayFilterFactory<RequestSizeGatewayFilterFactory.RequestSizeConfig> {
+public class RequestSizeGatewayFilterFactory
+		extends AbstractGatewayFilterFactory<RequestSizeGatewayFilterFactory.RequestSizeConfig> {
 
 	private static String PREFIX = "kMGTPE";
 
@@ -48,8 +48,7 @@ public class RequestSizeGatewayFilterFactory extends
 	}
 
 	private static String getErrorMessage(Long currentRequestSize, Long maxSize) {
-		return String.format(ERROR, getReadableByteCount(currentRequestSize),
-				getReadableByteCount(maxSize));
+		return String.format(ERROR, getReadableByteCount(currentRequestSize), getReadableByteCount(maxSize));
 	}
 
 	private static String getReadableByteCount(long bytes) {
@@ -63,24 +62,20 @@ public class RequestSizeGatewayFilterFactory extends
 	}
 
 	@Override
-	public GatewayFilter apply(
-			RequestSizeGatewayFilterFactory.RequestSizeConfig requestSizeConfig) {
+	public GatewayFilter apply(RequestSizeGatewayFilterFactory.RequestSizeConfig requestSizeConfig) {
 		requestSizeConfig.validate();
 		return new GatewayFilter() {
 			@Override
-			public Mono<Void> filter(ServerWebExchange exchange,
-					GatewayFilterChain chain) {
+			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 				ServerHttpRequest request = exchange.getRequest();
 				String contentLength = request.getHeaders().getFirst("content-length");
 				if (!StringUtils.isEmpty(contentLength)) {
 					Long currentRequestSize = Long.valueOf(contentLength);
 					if (currentRequestSize > requestSizeConfig.getMaxSize().toBytes()) {
-						exchange.getResponse()
-								.setStatusCode(HttpStatus.PAYLOAD_TOO_LARGE);
+						exchange.getResponse().setStatusCode(HttpStatus.PAYLOAD_TOO_LARGE);
 						if (!exchange.getResponse().isCommitted()) {
 							exchange.getResponse().getHeaders().add("errorMessage",
-									getErrorMessage(currentRequestSize,
-											requestSizeConfig.getMaxSize().toBytes()));
+									getErrorMessage(currentRequestSize, requestSizeConfig.getMaxSize().toBytes()));
 						}
 						return exchange.getResponse().setComplete();
 					}
@@ -105,8 +100,7 @@ public class RequestSizeGatewayFilterFactory extends
 			return maxSize;
 		}
 
-		public RequestSizeGatewayFilterFactory.RequestSizeConfig setMaxSize(
-				DataSize maxSize) {
+		public RequestSizeGatewayFilterFactory.RequestSizeConfig setMaxSize(DataSize maxSize) {
 			this.maxSize = maxSize;
 			return this;
 		}

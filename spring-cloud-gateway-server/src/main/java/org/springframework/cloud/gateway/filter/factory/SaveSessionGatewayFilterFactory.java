@@ -41,16 +41,13 @@ public class SaveSessionGatewayFilterFactory extends AbstractGatewayFilterFactor
 	public GatewayFilter apply(Object config) {
 		return new GatewayFilter() {
 			@Override
-			public Mono<Void> filter(ServerWebExchange exchange,
-					GatewayFilterChain chain) {
-				return exchange.getSession().map(WebSession::save)
-						.then(chain.filter(exchange));
+			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+				return exchange.getSession().map(WebSession::save).then(chain.filter(exchange));
 			}
 
 			@Override
 			public String toString() {
-				return filterToStringCreator(SaveSessionGatewayFilterFactory.this)
-						.toString();
+				return filterToStringCreator(SaveSessionGatewayFilterFactory.this).toString();
 			}
 		};
 	}

@@ -29,8 +29,7 @@ import org.springframework.web.server.ResponseStatusException;
 /**
  * @author Ryan Baxter
  */
-public class SpringCloudCircuitBreakerResilience4JFilterFactory
-		extends SpringCloudCircuitBreakerFilterFactory {
+public class SpringCloudCircuitBreakerResilience4JFilterFactory extends SpringCloudCircuitBreakerFilterFactory {
 
 	public SpringCloudCircuitBreakerResilience4JFilterFactory(
 			ReactiveCircuitBreakerFactory reactiveCircuitBreakerFactory,
@@ -41,8 +40,7 @@ public class SpringCloudCircuitBreakerResilience4JFilterFactory
 	@Override
 	protected Mono<Void> handleErrorWithoutFallback(Throwable t) {
 		if (java.util.concurrent.TimeoutException.class.isInstance(t)) {
-			return Mono.error(new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT,
-					t.getMessage(), t));
+			return Mono.error(new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT, t.getMessage(), t));
 		}
 		if (CallNotPermittedException.class.isInstance(t)) {
 			return Mono.error(new ServiceUnavailableException());

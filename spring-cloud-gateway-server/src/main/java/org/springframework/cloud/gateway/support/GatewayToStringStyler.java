@@ -26,8 +26,8 @@ import org.springframework.util.ClassUtils;
 
 public class GatewayToStringStyler extends DefaultToStringStyler {
 
-	private static final GatewayToStringStyler FILTER_INSTANCE = new GatewayToStringStyler(
-			GatewayFilterFactory.class, NameUtils::normalizeFilterFactoryName);
+	private static final GatewayToStringStyler FILTER_INSTANCE = new GatewayToStringStyler(GatewayFilterFactory.class,
+			NameUtils::normalizeFilterFactoryName);
 
 	private final Function<Class, String> classNameFormatter;
 
@@ -37,8 +37,7 @@ public class GatewayToStringStyler extends DefaultToStringStyler {
 		return new ToStringCreator(obj, FILTER_INSTANCE);
 	}
 
-	public GatewayToStringStyler(Class instanceClass,
-			Function<Class, String> classNameFormatter) {
+	public GatewayToStringStyler(Class instanceClass, Function<Class, String> classNameFormatter) {
 		super(new DefaultValueStyler());
 		this.classNameFormatter = classNameFormatter;
 		this.instanceClass = instanceClass;

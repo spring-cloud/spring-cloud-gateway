@@ -35,8 +35,7 @@ public class BooleanSpec extends UriSpec {
 
 	final AsyncPredicate<ServerWebExchange> predicate;
 
-	public BooleanSpec(Route.AsyncBuilder routeBuilder,
-			RouteLocatorBuilder.Builder builder) {
+	public BooleanSpec(Route.AsyncBuilder routeBuilder, RouteLocatorBuilder.Builder builder) {
 		super(routeBuilder, builder);
 		// save current predicate useful in kotlin dsl
 		predicate = routeBuilder.getPredicate();
@@ -87,8 +86,7 @@ public class BooleanSpec extends UriSpec {
 
 		private Operator operator;
 
-		BooleanOpSpec(Route.AsyncBuilder routeBuilder,
-				RouteLocatorBuilder.Builder builder, Operator operator) {
+		BooleanOpSpec(Route.AsyncBuilder routeBuilder, RouteLocatorBuilder.Builder builder, Operator operator) {
 			super(routeBuilder, builder);
 			Assert.notNull(operator, "operator may not be null");
 			this.operator = operator;
@@ -114,23 +112,20 @@ public class BooleanSpec extends UriSpec {
 		}
 
 		public BooleanSpec not(Function<PredicateSpec, BooleanSpec> fn) {
-			return fn
-					.apply(new NotOpSpec(this.routeBuilder, this.builder, this.operator));
+			return fn.apply(new NotOpSpec(this.routeBuilder, this.builder, this.operator));
 		}
 
 	}
 
 	public static class NotOpSpec extends BooleanOpSpec {
 
-		NotOpSpec(Route.AsyncBuilder routeBuilder, RouteLocatorBuilder.Builder builder,
-				Operator operator) {
+		NotOpSpec(Route.AsyncBuilder routeBuilder, RouteLocatorBuilder.Builder builder, Operator operator) {
 			super(routeBuilder, builder, operator);
 		}
 
 		@Override
 		public BooleanSpec asyncPredicate(AsyncPredicate<ServerWebExchange> predicate) {
-			AsyncPredicate<ServerWebExchange> negated = this.routeBuilder.getPredicate()
-					.not(predicate);
+			AsyncPredicate<ServerWebExchange> negated = this.routeBuilder.getPredicate().not(predicate);
 			return super.asyncPredicate(negated);
 		}
 

@@ -116,12 +116,10 @@ public class DiscoveryLocatorProperties {
 
 	@Override
 	public String toString() {
-		return new ToStringCreator(this).append("enabled", enabled)
-				.append("routeIdPrefix", routeIdPrefix)
-				.append("includeExpression", includeExpression)
-				.append("urlExpression", urlExpression)
-				.append("lowerCaseServiceId", lowerCaseServiceId)
-				.append("predicates", predicates).append("filters", filters).toString();
+		return new ToStringCreator(this).append("enabled", enabled).append("routeIdPrefix", routeIdPrefix)
+				.append("includeExpression", includeExpression).append("urlExpression", urlExpression)
+				.append("lowerCaseServiceId", lowerCaseServiceId).append("predicates", predicates)
+				.append("filters", filters).toString();
 	}
 
 }

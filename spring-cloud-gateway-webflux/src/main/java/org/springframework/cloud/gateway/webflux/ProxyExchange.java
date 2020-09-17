@@ -113,8 +113,7 @@ public class ProxyExchange<T> {
 	/**
 	 * Contains headers that are considered case-sensitive by default.
 	 */
-	public static Set<String> DEFAULT_SENSITIVE = new HashSet<>(
-			Arrays.asList("cookie", "authorization"));
+	public static Set<String> DEFAULT_SENSITIVE = new HashSet<>(Arrays.asList("cookie", "authorization"));
 
 	private HttpMethod httpMethod;
 
@@ -136,8 +135,7 @@ public class ProxyExchange<T> {
 
 	private Type responseType;
 
-	public ProxyExchange(WebClient rest, ServerWebExchange exchange,
-			BindingContext bindingContext, Type type) {
+	public ProxyExchange(WebClient rest, ServerWebExchange exchange, BindingContext bindingContext, Type type) {
 		this.exchange = exchange;
 		this.bindingContext = bindingContext;
 		this.responseType = type;
@@ -236,86 +234,71 @@ public class ProxyExchange<T> {
 	public String path(String prefix) {
 		String path = path();
 		if (!path.startsWith(prefix)) {
-			throw new IllegalArgumentException(
-					"Path does not start with prefix (" + prefix + "): " + path);
+			throw new IllegalArgumentException("Path does not start with prefix (" + prefix + "): " + path);
 		}
 		return path.substring(prefix.length());
 	}
 
 	public Mono<ResponseEntity<T>> get() {
-		RequestEntity<?> requestEntity = headers((BodyBuilder) RequestEntity.get(uri))
-				.build();
+		RequestEntity<?> requestEntity = headers((BodyBuilder) RequestEntity.get(uri)).build();
 		return exchange(requestEntity);
 	}
 
-	public <S> Mono<ResponseEntity<S>> get(
-			Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
+	public <S> Mono<ResponseEntity<S>> get(Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
 		return get().map(converter::apply);
 	}
 
 	public Mono<ResponseEntity<T>> head() {
-		RequestEntity<?> requestEntity = headers((BodyBuilder) RequestEntity.head(uri))
-				.build();
+		RequestEntity<?> requestEntity = headers((BodyBuilder) RequestEntity.head(uri)).build();
 		return exchange(requestEntity);
 	}
 
-	public <S> Mono<ResponseEntity<S>> head(
-			Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
+	public <S> Mono<ResponseEntity<S>> head(Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
 		return head().map(converter::apply);
 	}
 
 	public Mono<ResponseEntity<T>> options() {
-		RequestEntity<?> requestEntity = headers((BodyBuilder) RequestEntity.options(uri))
-				.build();
+		RequestEntity<?> requestEntity = headers((BodyBuilder) RequestEntity.options(uri)).build();
 		return exchange(requestEntity);
 	}
 
-	public <S> Mono<ResponseEntity<S>> options(
-			Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
+	public <S> Mono<ResponseEntity<S>> options(Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
 		return options().map(converter::apply);
 	}
 
 	public Mono<ResponseEntity<T>> post() {
-		RequestEntity<Object> requestEntity = headers(RequestEntity.post(uri))
-				.body(body());
+		RequestEntity<Object> requestEntity = headers(RequestEntity.post(uri)).body(body());
 		return exchange(requestEntity);
 	}
 
-	public <S> Mono<ResponseEntity<S>> post(
-			Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
+	public <S> Mono<ResponseEntity<S>> post(Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
 		return post().map(converter::apply);
 	}
 
 	public Mono<ResponseEntity<T>> delete() {
-		RequestEntity<Void> requestEntity = headers(
-				(BodyBuilder) RequestEntity.delete(uri)).build();
+		RequestEntity<Void> requestEntity = headers((BodyBuilder) RequestEntity.delete(uri)).build();
 		return exchange(requestEntity);
 	}
 
-	public <S> Mono<ResponseEntity<S>> delete(
-			Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
+	public <S> Mono<ResponseEntity<S>> delete(Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
 		return delete().map(converter::apply);
 	}
 
 	public Mono<ResponseEntity<T>> put() {
-		RequestEntity<Object> requestEntity = headers(RequestEntity.put(uri))
-				.body(body());
+		RequestEntity<Object> requestEntity = headers(RequestEntity.put(uri)).body(body());
 		return exchange(requestEntity);
 	}
 
-	public <S> Mono<ResponseEntity<S>> put(
-			Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
+	public <S> Mono<ResponseEntity<S>> put(Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
 		return put().map(converter::apply);
 	}
 
 	public Mono<ResponseEntity<T>> patch() {
-		RequestEntity<Object> requestEntity = headers(RequestEntity.patch(uri))
-				.body(body());
+		RequestEntity<Object> requestEntity = headers(RequestEntity.patch(uri)).body(body());
 		return exchange(requestEntity);
 	}
 
-	public <S> Mono<ResponseEntity<S>> patch(
-			Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
+	public <S> Mono<ResponseEntity<S>> patch(Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
 		return patch().map(converter::apply);
 	}
 
@@ -340,8 +323,7 @@ public class ProxyExchange<T> {
 		}
 	}
 
-	public <S> Mono<ResponseEntity<S>> forward(
-			Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
+	public <S> Mono<ResponseEntity<S>> forward(Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
 		switch (httpMethod) {
 		case GET:
 			return get(converter);
@@ -364,8 +346,7 @@ public class ProxyExchange<T> {
 
 	private Mono<ResponseEntity<T>> exchange(RequestEntity<?> requestEntity) {
 		Type type = this.responseType;
-		RequestBodySpec builder = rest.method(requestEntity.getMethod())
-				.uri(requestEntity.getUrl())
+		RequestBodySpec builder = rest.method(requestEntity.getMethod()).uri(requestEntity.getUrl())
 				.headers(headers -> addHeaders(headers, requestEntity.getHeaders()));
 		Mono<ClientResponse> result;
 		if (requestEntity.getBody() instanceof Publisher) {
@@ -374,24 +355,18 @@ public class ProxyExchange<T> {
 			result = builder.body(publisher, Object.class).exchange();
 		}
 		else if (requestEntity.getBody() != null) {
-			result = builder.body(BodyInserters.fromValue(requestEntity.getBody()))
-					.exchange();
+			result = builder.body(BodyInserters.fromValue(requestEntity.getBody())).exchange();
 		}
 		else {
 			if (hasBody) {
-				result = builder
-						.headers(headers -> addHeaders(headers,
-								exchange.getRequest().getHeaders()))
-						.body(exchange.getRequest().getBody(), DataBuffer.class)
-						.exchange();
+				result = builder.headers(headers -> addHeaders(headers, exchange.getRequest().getHeaders()))
+						.body(exchange.getRequest().getBody(), DataBuffer.class).exchange();
 			}
 			else {
-				result = builder.headers(headers -> addHeaders(headers,
-						exchange.getRequest().getHeaders())).exchange();
+				result = builder.headers(headers -> addHeaders(headers, exchange.getRequest().getHeaders())).exchange();
 			}
 		}
-		return result.flatMap(
-				response -> response.toEntity(ParameterizedTypeReference.forType(type)));
+		return result.flatMap(response -> response.toEntity(ParameterizedTypeReference.forType(type)));
 	}
 
 	private void addHeaders(HttpHeaders headers, HttpHeaders toAdd) {
@@ -401,8 +376,7 @@ public class ProxyExchange<T> {
 	}
 
 	private Set<String> filterHeaderKeys(HttpHeaders headers) {
-		return headers.keySet().stream()
-				.filter(header -> !sensitive.contains(header.toLowerCase()))
+		return headers.keySet().stream().filter(header -> !sensitive.contains(header.toLowerCase()))
 				.collect(Collectors.toSet());
 	}
 
@@ -444,8 +418,7 @@ public class ProxyExchange<T> {
 		else {
 			forwarded = "";
 		}
-		forwarded = forwarded
-				+ forwarded(uri, exchange.getRequest().getHeaders().getFirst("host"));
+		forwarded = forwarded + forwarded(uri, exchange.getRequest().getHeaders().getFirst("host"));
 		headers.set("forwarded", forwarded);
 	}
 
@@ -478,8 +451,7 @@ public class ProxyExchange<T> {
 	private Mono<Object> getRequestBody() {
 		for (String key : bindingContext.getModel().asMap().keySet()) {
 			if (key.startsWith(BindingResult.MODEL_KEY_PREFIX)) {
-				BindingResult result = (BindingResult) bindingContext.getModel().asMap()
-						.get(key);
+				BindingResult result = (BindingResult) bindingContext.getModel().asMap().get(key);
 				return Mono.just(result.getTarget());
 			}
 		}

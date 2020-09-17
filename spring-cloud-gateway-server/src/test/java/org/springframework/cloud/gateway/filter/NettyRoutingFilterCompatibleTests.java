@@ -48,12 +48,10 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 		"spring.cloud.gateway.routes[0].predicates[0].args[pattern]=/connect/delay/{timeout}",
 		"spring.cloud.gateway.routes[0].metadata[connect-timeout]=5",
 		"spring.cloud.gateway.routes[1].id=route_response_timeout",
-		"spring.cloud.gateway.routes[1].uri=lb://testservice",
-		"spring.cloud.gateway.routes[1].predicates[0].name=Path",
+		"spring.cloud.gateway.routes[1].uri=lb://testservice", "spring.cloud.gateway.routes[1].predicates[0].name=Path",
 		"spring.cloud.gateway.routes[1].predicates[0].args[pattern]=/route/delay/{timeout}",
 		"spring.cloud.gateway.routes[1].filters[0]=StripPrefix=1",
-		"spring.cloud.gateway.routes[1].metadata.response-timeout=1000" },
-		webEnvironment = RANDOM_PORT)
+		"spring.cloud.gateway.routes[1].metadata.response-timeout=1000" }, webEnvironment = RANDOM_PORT)
 @DirtiesContext
 public class NettyRoutingFilterCompatibleTests extends BaseWebClientTests {
 
@@ -65,11 +63,9 @@ public class NettyRoutingFilterCompatibleTests extends BaseWebClientTests {
 
 	@Test
 	public void shouldApplyResponseTimeoutPerRoute() {
-		testClient.get().uri("/route/delay/2").exchange().expectStatus()
-				.isEqualTo(HttpStatus.GATEWAY_TIMEOUT).expectBody().jsonPath("$.status")
-				.isEqualTo(String.valueOf(HttpStatus.GATEWAY_TIMEOUT.value()))
-				.jsonPath("$.message")
-				.isEqualTo("Response took longer than timeout: PT1S");
+		testClient.get().uri("/route/delay/2").exchange().expectStatus().isEqualTo(HttpStatus.GATEWAY_TIMEOUT)
+				.expectBody().jsonPath("$.status").isEqualTo(String.valueOf(HttpStatus.GATEWAY_TIMEOUT.value()))
+				.jsonPath("$.message").isEqualTo("Response took longer than timeout: PT1S");
 	}
 
 	@EnableAutoConfiguration

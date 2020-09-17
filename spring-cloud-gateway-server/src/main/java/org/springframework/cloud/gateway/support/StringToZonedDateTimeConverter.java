@@ -30,8 +30,7 @@ public class StringToZonedDateTimeConverter implements Converter<String, ZonedDa
 		try {
 			long epoch = Long.parseLong(source);
 
-			dateTime = Instant.ofEpochMilli(epoch).atOffset(ZoneOffset.ofTotalSeconds(0))
-					.toZonedDateTime();
+			dateTime = Instant.ofEpochMilli(epoch).atOffset(ZoneOffset.ofTotalSeconds(0)).toZonedDateTime();
 		}
 		catch (NumberFormatException e) {
 			// try ZonedDateTime instead

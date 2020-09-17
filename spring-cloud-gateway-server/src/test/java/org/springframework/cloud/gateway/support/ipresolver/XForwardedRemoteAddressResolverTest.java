@@ -28,14 +28,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class XForwardedRemoteAddressResolverTest {
 
-	private final InetSocketAddress remote0000Address = InetSocketAddress
-			.createUnresolved("0.0.0.0", 1234);
+	private final InetSocketAddress remote0000Address = InetSocketAddress.createUnresolved("0.0.0.0", 1234);
 
-	private final XForwardedRemoteAddressResolver trustOne = XForwardedRemoteAddressResolver
-			.maxTrustedIndex(1);
+	private final XForwardedRemoteAddressResolver trustOne = XForwardedRemoteAddressResolver.maxTrustedIndex(1);
 
-	private final XForwardedRemoteAddressResolver trustAll = XForwardedRemoteAddressResolver
-			.trustAll();
+	private final XForwardedRemoteAddressResolver trustAll = XForwardedRemoteAddressResolver.trustAll();
 
 	@Test
 	public void maxIndexOneReturnsLastForwardedIp() {
@@ -66,8 +63,7 @@ public class XForwardedRemoteAddressResolverTest {
 
 	@Test
 	public void trustOneFallsBackOnEmptyHeader() {
-		ServerWebExchange exchange = buildExchange(
-				remoteAddressOnlyBuilder().header("X-Forwarded-For", ""));
+		ServerWebExchange exchange = buildExchange(remoteAddressOnlyBuilder().header("X-Forwarded-For", ""));
 
 		InetSocketAddress address = trustOne.resolve(exchange);
 
@@ -78,8 +74,7 @@ public class XForwardedRemoteAddressResolverTest {
 	@Test
 	public void trustOneFallsBackOnMultipleHeaders() {
 		ServerWebExchange exchange = buildExchange(
-				remoteAddressOnlyBuilder().header("X-Forwarded-For", "0.0.0.1")
-						.header("X-Forwarded-For", "0.0.0.2"));
+				remoteAddressOnlyBuilder().header("X-Forwarded-For", "0.0.0.1").header("X-Forwarded-For", "0.0.0.2"));
 
 		InetSocketAddress address = trustOne.resolve(exchange);
 
@@ -115,8 +110,7 @@ public class XForwardedRemoteAddressResolverTest {
 
 	@Test
 	public void trustAllFallsBackOnEmptyHeader() {
-		ServerWebExchange exchange = buildExchange(
-				remoteAddressOnlyBuilder().header("X-Forwarded-For", ""));
+		ServerWebExchange exchange = buildExchange(remoteAddressOnlyBuilder().header("X-Forwarded-For", ""));
 
 		InetSocketAddress address = trustAll.resolve(exchange);
 
@@ -127,8 +121,7 @@ public class XForwardedRemoteAddressResolverTest {
 	@Test
 	public void trustAllFallsBackOnMultipleHeaders() {
 		ServerWebExchange exchange = buildExchange(
-				remoteAddressOnlyBuilder().header("X-Forwarded-For", "0.0.0.1")
-						.header("X-Forwarded-For", "0.0.0.2"));
+				remoteAddressOnlyBuilder().header("X-Forwarded-For", "0.0.0.1").header("X-Forwarded-For", "0.0.0.2"));
 
 		InetSocketAddress address = trustAll.resolve(exchange);
 
@@ -144,12 +137,11 @@ public class XForwardedRemoteAddressResolverTest {
 	}
 
 	private MockServerHttpRequest.BaseBuilder oneTwoThreeBuilder() {
-		return MockServerHttpRequest.get("someUrl").remoteAddress(remote0000Address)
-				.header("X-Forwarded-For", "0.0.0.1, 0.0.0.2, 0.0.0.3");
+		return MockServerHttpRequest.get("someUrl").remoteAddress(remote0000Address).header("X-Forwarded-For",
+				"0.0.0.1, 0.0.0.2, 0.0.0.3");
 	}
 
-	private ServerWebExchange buildExchange(
-			MockServerHttpRequest.BaseBuilder requestBuilder) {
+	private ServerWebExchange buildExchange(MockServerHttpRequest.BaseBuilder requestBuilder) {
 		return MockServerWebExchange.from(requestBuilder.build());
 	}
 

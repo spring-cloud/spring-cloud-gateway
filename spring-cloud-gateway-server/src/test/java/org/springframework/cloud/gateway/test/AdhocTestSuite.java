@@ -37,8 +37,7 @@ import static org.junit.Assume.assumeThat;
  * @author Spencer Gibb
  */
 @RunWith(Suite.class)
-@SuiteClasses({
-		org.springframework.cloud.gateway.handler.RoutePredicateHandlerMappingIntegrationTests.class,
+@SuiteClasses({ org.springframework.cloud.gateway.handler.RoutePredicateHandlerMappingIntegrationTests.class,
 		org.springframework.cloud.gateway.handler.predicate.AfterRoutePredicateFactoryTests.class,
 		org.springframework.cloud.gateway.handler.predicate.CloudFoundryRouteServiceRoutePredicateFactoryIntegrationTests.class,
 		org.springframework.cloud.gateway.handler.predicate.HostRoutePredicateFactoryTests.class,
@@ -96,8 +95,7 @@ import static org.junit.Assume.assumeThat;
 		org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiterConfigTests.class,
 		org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiterTests.class,
 		org.springframework.cloud.gateway.filter.NettyRoutingFilterIntegrationTests.class,
-		GatewayMetricsFilterTests.class,
-		org.springframework.cloud.gateway.filter.ForwardRoutingFilterTests.class,
+		GatewayMetricsFilterTests.class, org.springframework.cloud.gateway.filter.ForwardRoutingFilterTests.class,
 		org.springframework.cloud.gateway.route.RouteDefinitionRouteLocatorTests.class,
 		org.springframework.cloud.gateway.route.RouteTests.class,
 		org.springframework.cloud.gateway.route.CachingRouteLocatorTests.class,
@@ -134,8 +132,7 @@ public class AdhocTestSuite {
 
 		@Override
 		public Statement apply(Statement base, Description description) {
-			assumeThat("Adhoc Tests ignored", System.getenv("GATEWAY_ADHOC_ENABLED"),
-					is(equalTo("true")));
+			assumeThat("Adhoc Tests ignored", System.getenv("GATEWAY_ADHOC_ENABLED"), is(equalTo("true")));
 
 			return base;
 		}

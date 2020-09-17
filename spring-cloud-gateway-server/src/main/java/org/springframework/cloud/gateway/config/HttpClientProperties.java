@@ -248,9 +248,8 @@ public class HttpClientProperties {
 
 		@Override
 		public String toString() {
-			return "Pool{" + "type=" + type + ", name='" + name + '\''
-					+ ", maxConnections=" + maxConnections + ", acquireTimeout="
-					+ acquireTimeout + ", maxIdleTime=" + maxIdleTime + ", maxLifeTime="
+			return "Pool{" + "type=" + type + ", name='" + name + '\'' + ", maxConnections=" + maxConnections
+					+ ", acquireTimeout=" + acquireTimeout + ", maxIdleTime=" + maxIdleTime + ", maxLifeTime="
 					+ maxLifeTime + '}';
 		}
 
@@ -337,9 +336,8 @@ public class HttpClientProperties {
 
 		@Override
 		public String toString() {
-			return "Proxy{" + "host='" + host + '\'' + ", port=" + port + ", username='"
-					+ username + '\'' + ", password='" + password + '\''
-					+ ", nonProxyHostsPattern='" + nonProxyHostsPattern + '\'' + '}';
+			return "Proxy{" + "host='" + host + '\'' + ", port=" + port + ", username='" + username + '\''
+					+ ", password='" + password + '\'' + ", nonProxyHostsPattern='" + nonProxyHostsPattern + '\'' + '}';
 		}
 
 	}
@@ -433,8 +431,7 @@ public class HttpClientProperties {
 
 		public X509Certificate[] getTrustedX509CertificatesForTrustManager() {
 			try {
-				CertificateFactory certificateFactory = CertificateFactory
-						.getInstance("X.509");
+				CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
 				ArrayList<Certificate> allCerts = new ArrayList<>();
 				for (String trustedCert : getTrustedX509Certificates()) {
 					try {
@@ -444,15 +441,13 @@ public class HttpClientProperties {
 						allCerts.addAll(certs);
 					}
 					catch (IOException e) {
-						throw new WebServerException(
-								"Could not load certificate '" + trustedCert + "'", e);
+						throw new WebServerException("Could not load certificate '" + trustedCert + "'", e);
 					}
 				}
 				return allCerts.toArray(new X509Certificate[allCerts.size()]);
 			}
 			catch (CertificateException e1) {
-				throw new WebServerException("Could not load CertificateFactory X.509",
-						e1);
+				throw new WebServerException("Could not load CertificateFactory X.509", e1);
 			}
 		}
 
@@ -461,8 +456,7 @@ public class HttpClientProperties {
 				if (getKeyStore() != null && getKeyStore().length() > 0) {
 					KeyManagerFactory keyManagerFactory = KeyManagerFactory
 							.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-					char[] keyPassword = getKeyPassword() != null
-							? getKeyPassword().toCharArray() : null;
+					char[] keyPassword = getKeyPassword() != null ? getKeyPassword().toCharArray() : null;
 
 					if (keyPassword == null && getKeyStorePassword() != null) {
 						keyPassword = getKeyStorePassword().toCharArray();
@@ -487,19 +481,17 @@ public class HttpClientProperties {
 						: KeyStore.getInstance(getKeyStoreType());
 				try {
 					URL url = ResourceUtils.getURL(getKeyStore());
-					store.load(url.openStream(), getKeyStorePassword() != null
-							? getKeyStorePassword().toCharArray() : null);
+					store.load(url.openStream(),
+							getKeyStorePassword() != null ? getKeyStorePassword().toCharArray() : null);
 				}
 				catch (Exception e) {
-					throw new WebServerException(
-							"Could not load key store ' " + getKeyStore() + "'", e);
+					throw new WebServerException("Could not load key store ' " + getKeyStore() + "'", e);
 				}
 
 				return store;
 			}
 			catch (KeyStoreException | NoSuchProviderException e) {
-				throw new WebServerException(
-						"Could not load KeyStore for given type and provider", e);
+				throw new WebServerException("Could not load KeyStore for given type and provider", e);
 			}
 		}
 
@@ -541,21 +533,18 @@ public class HttpClientProperties {
 			return defaultConfigurationType;
 		}
 
-		public void setDefaultConfigurationType(
-				SslProvider.DefaultConfigurationType defaultConfigurationType) {
+		public void setDefaultConfigurationType(SslProvider.DefaultConfigurationType defaultConfigurationType) {
 			this.defaultConfigurationType = defaultConfigurationType;
 		}
 
 		@Override
 		public String toString() {
-			return new ToStringCreator(this)
-					.append("useInsecureTrustManager", useInsecureTrustManager)
+			return new ToStringCreator(this).append("useInsecureTrustManager", useInsecureTrustManager)
 					.append("trustedX509Certificates", trustedX509Certificates)
 					.append("handshakeTimeout", handshakeTimeout)
 					.append("closeNotifyFlushTimeout", closeNotifyFlushTimeout)
 					.append("closeNotifyReadTimeout", closeNotifyReadTimeout)
-					.append("defaultConfigurationType", defaultConfigurationType)
-					.toString();
+					.append("defaultConfigurationType", defaultConfigurationType).toString();
 		}
 
 	}
@@ -586,8 +575,7 @@ public class HttpClientProperties {
 
 		@Override
 		public String toString() {
-			return new ToStringCreator(this)
-					.append("maxFramePayloadLength", maxFramePayloadLength)
+			return new ToStringCreator(this).append("maxFramePayloadLength", maxFramePayloadLength)
 					.append("proxyPing", proxyPing).toString();
 		}
 

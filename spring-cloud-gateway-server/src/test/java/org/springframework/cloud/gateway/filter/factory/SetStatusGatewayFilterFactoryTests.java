@@ -67,9 +67,8 @@ public class SetStatusGatewayFilterFactoryTests extends BaseWebClientTests {
 	public void nonStandardCodeWorks() {
 		HttpHeaders headers = new HttpHeaders();
 		headers.set(HttpHeaders.HOST, "www.setcustomstatus.org");
-		ResponseEntity<String> response = new TestRestTemplate().exchange(
-				baseUri + "/headers", HttpMethod.GET, new HttpEntity<>(headers),
-				String.class);
+		ResponseEntity<String> response = new TestRestTemplate().exchange(baseUri + "/headers", HttpMethod.GET,
+				new HttpEntity<>(headers), String.class);
 		assertThat(response.getStatusCodeValue()).isEqualTo(432);
 
 		// https://jira.spring.io/browse/SPR-16748
@@ -83,8 +82,8 @@ public class SetStatusGatewayFilterFactoryTests extends BaseWebClientTests {
 	public void shouldSetStatusIntAndAddOriginalHeader() {
 		String headerName = "original-http-status";
 		filterFactory.setOriginalStatusHeaderName(headerName);
-		setStatusStringTest("www.setstatusint.org", HttpStatus.UNAUTHORIZED)
-				.expectHeader().value(headerName, Matchers.is("[200]"));
+		setStatusStringTest("www.setstatusint.org", HttpStatus.UNAUTHORIZED).expectHeader().value(headerName,
+				Matchers.is("[200]"));
 
 	}
 
@@ -96,10 +95,8 @@ public class SetStatusGatewayFilterFactoryTests extends BaseWebClientTests {
 		assertThat(filter.toString()).contains("401");
 	}
 
-	private WebTestClient.ResponseSpec setStatusStringTest(String host,
-			HttpStatus status) {
-		return testClient.get().uri("/headers").header("Host", host).exchange()
-				.expectStatus().isEqualTo(status);
+	private WebTestClient.ResponseSpec setStatusStringTest(String host, HttpStatus status) {
+		return testClient.get().uri("/headers").header("Host", host).exchange().expectStatus().isEqualTo(status);
 	}
 
 	@EnableAutoConfiguration
@@ -112,9 +109,8 @@ public class SetStatusGatewayFilterFactoryTests extends BaseWebClientTests {
 
 		@Bean
 		public RouteLocator enumRouteLocator(RouteLocatorBuilder builder) {
-			return builder.routes()
-					.route("test_enum_http_status", r -> r.host("*.setenumstatus.org")
-							.filters(f -> f.setStatus(HttpStatus.UNAUTHORIZED)).uri(uri))
+			return builder.routes().route("test_enum_http_status",
+					r -> r.host("*.setenumstatus.org").filters(f -> f.setStatus(HttpStatus.UNAUTHORIZED)).uri(uri))
 					.build();
 		}
 

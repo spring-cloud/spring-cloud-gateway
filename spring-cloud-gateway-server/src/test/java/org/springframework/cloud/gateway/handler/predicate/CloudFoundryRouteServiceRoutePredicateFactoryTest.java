@@ -43,13 +43,9 @@ public class CloudFoundryRouteServiceRoutePredicateFactoryTest {
 	@Test
 	public void itReturnsTrueWithAllHeadersPresent() {
 		MockServerHttpRequest request = MockServerHttpRequest.get("someurl")
-				.header(CloudFoundryRouteServiceRoutePredicateFactory.X_CF_FORWARDED_URL,
-						"url")
-				.header(CloudFoundryRouteServiceRoutePredicateFactory.X_CF_PROXY_METADATA,
-						"metadata")
-				.header(CloudFoundryRouteServiceRoutePredicateFactory.X_CF_PROXY_SIGNATURE,
-						"signature")
-				.build();
+				.header(CloudFoundryRouteServiceRoutePredicateFactory.X_CF_FORWARDED_URL, "url")
+				.header(CloudFoundryRouteServiceRoutePredicateFactory.X_CF_PROXY_METADATA, "metadata")
+				.header(CloudFoundryRouteServiceRoutePredicateFactory.X_CF_PROXY_SIGNATURE, "signature").build();
 		MockServerWebExchange exchange = MockServerWebExchange.from(request);
 
 		assertThat(predicate.test(exchange)).isTrue();
@@ -58,11 +54,8 @@ public class CloudFoundryRouteServiceRoutePredicateFactoryTest {
 	@Test
 	public void itReturnsFalseWithAHeadersMissing() {
 		MockServerHttpRequest request = MockServerHttpRequest.get("someurl")
-				.header(CloudFoundryRouteServiceRoutePredicateFactory.X_CF_FORWARDED_URL,
-						"url")
-				.header(CloudFoundryRouteServiceRoutePredicateFactory.X_CF_PROXY_METADATA,
-						"metadata")
-				.build();
+				.header(CloudFoundryRouteServiceRoutePredicateFactory.X_CF_FORWARDED_URL, "url")
+				.header(CloudFoundryRouteServiceRoutePredicateFactory.X_CF_PROXY_METADATA, "metadata").build();
 		MockServerWebExchange exchange = MockServerWebExchange.from(request);
 
 		assertThat(predicate.test(exchange)).isFalse();

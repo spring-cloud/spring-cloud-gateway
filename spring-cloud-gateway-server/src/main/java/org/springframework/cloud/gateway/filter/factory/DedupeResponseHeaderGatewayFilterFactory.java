@@ -69,8 +69,8 @@ Modified response header Access-Control-Allow-Credentials: true
 /**
  * @author Vitaliy Pavlyuk
  */
-public class DedupeResponseHeaderGatewayFilterFactory extends
-		AbstractGatewayFilterFactory<DedupeResponseHeaderGatewayFilterFactory.Config> {
+public class DedupeResponseHeaderGatewayFilterFactory
+		extends AbstractGatewayFilterFactory<DedupeResponseHeaderGatewayFilterFactory.Config> {
 
 	private static final String STRATEGY_KEY = "strategy";
 
@@ -87,18 +87,15 @@ public class DedupeResponseHeaderGatewayFilterFactory extends
 	public GatewayFilter apply(Config config) {
 		return new GatewayFilter() {
 			@Override
-			public Mono<Void> filter(ServerWebExchange exchange,
-					GatewayFilterChain chain) {
-				return chain.filter(exchange).then(Mono.fromRunnable(
-						() -> dedupe(exchange.getResponse().getHeaders(), config)));
+			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+				return chain.filter(exchange)
+						.then(Mono.fromRunnable(() -> dedupe(exchange.getResponse().getHeaders(), config)));
 			}
 
 			@Override
 			public String toString() {
-				return filterToStringCreator(
-						DedupeResponseHeaderGatewayFilterFactory.this)
-								.append(config.getName(), config.getStrategy())
-								.toString();
+				return filterToStringCreator(DedupeResponseHeaderGatewayFilterFactory.this)
+						.append(config.getName(), config.getStrategy()).toString();
 			}
 		};
 	}

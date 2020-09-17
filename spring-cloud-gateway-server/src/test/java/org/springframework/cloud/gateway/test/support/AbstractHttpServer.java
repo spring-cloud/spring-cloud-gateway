@@ -86,9 +86,7 @@ public abstract class AbstractHttpServer implements HttpServer {
 	}
 
 	protected HttpHandler resolveHttpHandler() {
-		return (getHttpHandlerMap() != null
-				? new ContextPathCompositeHandler(getHttpHandlerMap())
-				: getHttpHandler());
+		return (getHttpHandlerMap() != null ? new ContextPathCompositeHandler(getHttpHandlerMap()) : getHttpHandler());
 	}
 
 	// InitializingBean
@@ -97,8 +95,7 @@ public abstract class AbstractHttpServer implements HttpServer {
 	public final void afterPropertiesSet() throws Exception {
 		Assert.notNull(this.host, "Host must not be null");
 		Assert.isTrue(this.port >= 0, "Port must not be a negative number");
-		Assert.isTrue(this.httpHandler != null || this.handlerMap != null,
-				"No HttpHandler configured");
+		Assert.isTrue(this.httpHandler != null || this.handlerMap != null, "No HttpHandler configured");
 		Assert.state(!this.running, "Cannot reconfigure while running");
 
 		synchronized (this.lifecycleMonitor) {
@@ -125,8 +122,7 @@ public abstract class AbstractHttpServer implements HttpServer {
 					startInternal();
 					long millis = stopWatch.getTotalTimeMillis();
 					if (logger.isDebugEnabled()) {
-						logger.debug("Server started on port " + getPort() + "(" + millis
-								+ " millis).");
+						logger.debug("Server started on port " + getPort() + "(" + millis + " millis).");
 					}
 				}
 				catch (Throwable ex) {
@@ -150,8 +146,7 @@ public abstract class AbstractHttpServer implements HttpServer {
 					StopWatch stopWatch = new StopWatch();
 					stopWatch.start();
 					stopInternal();
-					logger.debug("Server stopped (" + stopWatch.getTotalTimeMillis()
-							+ " millis).");
+					logger.debug("Server stopped (" + stopWatch.getTotalTimeMillis() + " millis).");
 				}
 				catch (Throwable ex) {
 					throw new IllegalStateException(ex);

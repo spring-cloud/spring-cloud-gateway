@@ -43,8 +43,7 @@ public class ForwardedHeadersFilterTests {
 
 	public static Map<String, String> map(String... values) {
 		if (values.length % 2 != 0) {
-			throw new IllegalArgumentException(
-					"values must have even number of items: " + Arrays.asList(values));
+			throw new IllegalArgumentException("values must have even number of items: " + Arrays.asList(values));
 		}
 		HashMap<String, String> map = new HashMap<>();
 		for (int i = 0; i < values.length; i++) {
@@ -56,125 +55,102 @@ public class ForwardedHeadersFilterTests {
 	@Test
 	public void forwardedHeaderDoesNotExist() throws UnknownHostException {
 		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost/get")
-				.remoteAddress(
-						new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80))
+				.remoteAddress(new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80))
 				.header(HttpHeaders.HOST, "myhost").build();
 
 		ForwardedHeadersFilter filter = new ForwardedHeadersFilter();
 
-		HttpHeaders headers = filter.filter(request.getHeaders(),
-				MockServerWebExchange.from(request));
+		HttpHeaders headers = filter.filter(request.getHeaders(), MockServerWebExchange.from(request));
 
 		assertThat(headers.get(FORWARDED_HEADER)).hasSize(1);
 
-		List<Forwarded> forwardeds = ForwardedHeadersFilter
-				.parse(headers.get(FORWARDED_HEADER));
+		List<Forwarded> forwardeds = ForwardedHeadersFilter.parse(headers.get(FORWARDED_HEADER));
 
 		assertThat(forwardeds).hasSize(1);
 		Forwarded forwarded = forwardeds.get(0);
 
-		assertThat(forwarded.getValues()).containsEntry("host", "myhost")
-				.containsEntry("proto", "http").containsEntry("for", "\"10.0.0.1:80\"");
+		assertThat(forwarded.getValues()).containsEntry("host", "myhost").containsEntry("proto", "http")
+				.containsEntry("for", "\"10.0.0.1:80\"");
 	}
 
 	@Test
 	public void forwardedHeaderExists() throws UnknownHostException {
 		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost/get")
-				.remoteAddress(
-						new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80))
-				.header(FORWARDED_HEADER,
-						"for=12.34.56.78;host=example.com;proto=https; for=23.45.67.89")
-				.build();
+				.remoteAddress(new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80))
+				.header(FORWARDED_HEADER, "for=12.34.56.78;host=example.com;proto=https; for=23.45.67.89").build();
 
 		ForwardedHeadersFilter filter = new ForwardedHeadersFilter();
 
-		HttpHeaders headers = filter.filter(request.getHeaders(),
-				MockServerWebExchange.from(request));
+		HttpHeaders headers = filter.filter(request.getHeaders(), MockServerWebExchange.from(request));
 
 		assertThat(headers.get(FORWARDED_HEADER)).hasSize(2);
 
-		List<Forwarded> forwardeds = ForwardedHeadersFilter
-				.parse(headers.get(FORWARDED_HEADER));
+		List<Forwarded> forwardeds = ForwardedHeadersFilter.parse(headers.get(FORWARDED_HEADER));
 
 		assertThat(forwardeds).hasSize(2);
 		Forwarded addedForwardedHeader = forwardeds.get(0);
 		Forwarded existingForwardedHeader = forwardeds.get(1);
 
-		assertThat(existingForwardedHeader.getValues()).containsEntry("proto", "http")
-				.containsEntry("for", "\"10.0.0.1:80\"");
+		assertThat(existingForwardedHeader.getValues()).containsEntry("proto", "http").containsEntry("for",
+				"\"10.0.0.1:80\"");
 
-		assertThat(addedForwardedHeader.getValues()).containsEntry("proto", "https")
-				.containsEntry("for", "23.45.67.89");
+		assertThat(addedForwardedHeader.getValues()).containsEntry("proto", "https").containsEntry("for",
+				"23.45.67.89");
 	}
 
 	@Test
 	public void noHostHeader() throws UnknownHostException {
 		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost/get")
-				.remoteAddress(
-						new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80))
-				.build();
+				.remoteAddress(new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80)).build();
 
 		ForwardedHeadersFilter filter = new ForwardedHeadersFilter();
 
-		HttpHeaders headers = filter.filter(request.getHeaders(),
-				MockServerWebExchange.from(request));
+		HttpHeaders headers = filter.filter(request.getHeaders(), MockServerWebExchange.from(request));
 
 		assertThat(headers.get(FORWARDED_HEADER)).hasSize(1);
 
-		List<Forwarded> forwardeds = ForwardedHeadersFilter
-				.parse(headers.get(FORWARDED_HEADER));
+		List<Forwarded> forwardeds = ForwardedHeadersFilter.parse(headers.get(FORWARDED_HEADER));
 
 		assertThat(forwardeds).hasSize(1);
 		Forwarded forwarded = forwardeds.get(0);
 
-		assertThat(forwarded.getValues()).containsEntry("proto", "http")
-				.containsEntry("for", "\"10.0.0.1:80\"");
+		assertThat(forwarded.getValues()).containsEntry("proto", "http").containsEntry("for", "\"10.0.0.1:80\"");
 	}
 
 	@Test
 	public void unresolvedRemoteAddressFallsBackToHostName() throws UnknownHostException {
 		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost/get")
-				.remoteAddress(
-						InetSocketAddress.createUnresolved("unresolvable-hostname", 80))
-				.build();
+				.remoteAddress(InetSocketAddress.createUnresolved("unresolvable-hostname", 80)).build();
 
 		ForwardedHeadersFilter filter = new ForwardedHeadersFilter();
 
-		HttpHeaders headers = filter.filter(request.getHeaders(),
-				MockServerWebExchange.from(request));
+		HttpHeaders headers = filter.filter(request.getHeaders(), MockServerWebExchange.from(request));
 
 		assertThat(headers.get(FORWARDED_HEADER)).hasSize(1);
 
-		List<Forwarded> forwardeds = ForwardedHeadersFilter
-				.parse(headers.get(FORWARDED_HEADER));
+		List<Forwarded> forwardeds = ForwardedHeadersFilter.parse(headers.get(FORWARDED_HEADER));
 
 		assertThat(forwardeds).hasSize(1);
 		Forwarded forwarded = forwardeds.get(0);
 
-		assertThat(forwarded.getValues()).containsEntry("proto", "http")
-				.containsEntry("for", "\"unresolvable-hostname:80\"");
+		assertThat(forwarded.getValues()).containsEntry("proto", "http").containsEntry("for",
+				"\"unresolvable-hostname:80\"");
 	}
 
 	@Test
 	public void forwardedParsedCorrectly() {
-		String[] valid = new String[] { "for=\"_gazonk\"",
-				"for=192.0.2.60;proto=http;by=203.0.113.43",
-				"for=192.0.2.43, for=198.51.100.17",
-				"for=12.34.56.78;host=example.com;proto=https, for=23.45.67.89",
+		String[] valid = new String[] { "for=\"_gazonk\"", "for=192.0.2.60;proto=http;by=203.0.113.43",
+				"for=192.0.2.43, for=198.51.100.17", "for=12.34.56.78;host=example.com;proto=https, for=23.45.67.89",
 				"for=12.34.56.78, for=23.45.67.89;secret=egah2CGj55fSJFs, for=10.1.2.3",
 				"For=\"[2001:db8:cafe::17]:4711\"", };
 
 		List<List<Map<String, String>>> expectedFor = new ArrayList<>();
 		expectedFor.add(Arrays.asList(map("for", "\"_gazonk\"")));
-		expectedFor.add(Arrays
-				.asList(map("for", "192.0.2.60", "proto", "http", "by", "203.0.113.43")));
-		expectedFor.add(
-				Arrays.asList(map("for", "192.0.2.43"), map("for", "198.51.100.17")));
-		expectedFor.add(Arrays.asList(
-				map("for", "12.34.56.78", "host", "example.com", "proto", "https"),
+		expectedFor.add(Arrays.asList(map("for", "192.0.2.60", "proto", "http", "by", "203.0.113.43")));
+		expectedFor.add(Arrays.asList(map("for", "192.0.2.43"), map("for", "198.51.100.17")));
+		expectedFor.add(Arrays.asList(map("for", "12.34.56.78", "host", "example.com", "proto", "https"),
 				map("for", "23.45.67.89")));
-		expectedFor.add(Arrays.asList(map("for", "12.34.56.78"),
-				map("for", "23.45.67.89", "secret", "egah2CGj55fSJFs"),
+		expectedFor.add(Arrays.asList(map("for", "12.34.56.78"), map("for", "23.45.67.89", "secret", "egah2CGj55fSJFs"),
 				map("for", "10.1.2.3")));
 		expectedFor.add(Arrays.asList(map("for", "\"[2001:db8:cafe::17]:4711\"")));
 
@@ -194,8 +170,7 @@ public class ForwardedHeadersFilterTests {
 
 			for (int j = 0; j < results.size(); j++) {
 				Forwarded forwarded = results.get(j);
-				assertThat(forwarded.getValues()).hasSize(expected.get(j).size())
-						.containsAllEntriesOf(expected.get(j));
+				assertThat(forwarded.getValues()).hasSize(expected.get(j).size()).containsAllEntriesOf(expected.get(j));
 			}
 		}
 	}

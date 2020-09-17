@@ -44,11 +44,10 @@ public class GatewayAutoConfigurationTests {
 
 	@Test
 	public void noHiddenHttpMethodFilter() {
-		try (ConfigurableApplicationContext ctx = SpringApplication.run(Config.class,
-				"--spring.jmx.enabled=false", "--server.port=0")) {
-			assertThat(ctx.getEnvironment()
-					.getProperty("spring.webflux.hiddenmethod.filter.enabled"))
-							.isEqualTo("false");
+		try (ConfigurableApplicationContext ctx = SpringApplication.run(Config.class, "--spring.jmx.enabled=false",
+				"--server.port=0")) {
+			assertThat(ctx.getEnvironment().getProperty("spring.webflux.hiddenmethod.filter.enabled"))
+					.isEqualTo("false");
 			assertThat(ctx.getBeanNamesForType(HiddenHttpMethodFilter.class)).isEmpty();
 		}
 	}
@@ -56,10 +55,8 @@ public class GatewayAutoConfigurationTests {
 	@Test
 	public void nettyHttpClientDefaults() {
 		new ReactiveWebApplicationContextRunner()
-				.withConfiguration(AutoConfigurations.of(WebFluxAutoConfiguration.class,
-						MetricsAutoConfiguration.class,
-						SimpleMetricsExportAutoConfiguration.class,
-						GatewayAutoConfiguration.class))
+				.withConfiguration(AutoConfigurations.of(WebFluxAutoConfiguration.class, MetricsAutoConfiguration.class,
+						SimpleMetricsExportAutoConfiguration.class, GatewayAutoConfiguration.class))
 				.withPropertyValues("debug=true").run(context -> {
 					assertThat(context).hasSingleBean(HttpClient.class);
 					assertThat(context).hasBean("gatewayHttpClient");
@@ -83,12 +80,10 @@ public class GatewayAutoConfigurationTests {
 	@Test
 	public void nettyHttpClientConfigured() {
 		new ReactiveWebApplicationContextRunner()
-				.withConfiguration(AutoConfigurations.of(WebFluxAutoConfiguration.class,
-						MetricsAutoConfiguration.class,
-						SimpleMetricsExportAutoConfiguration.class,
-						GatewayAutoConfiguration.class, HttpClientCustomizedConfig.class))
-				.withPropertyValues(
-						"spring.cloud.gateway.httpclient.ssl.use-insecure-trust-manager=true",
+				.withConfiguration(AutoConfigurations.of(WebFluxAutoConfiguration.class, MetricsAutoConfiguration.class,
+						SimpleMetricsExportAutoConfiguration.class, GatewayAutoConfiguration.class,
+						HttpClientCustomizedConfig.class))
+				.withPropertyValues("spring.cloud.gateway.httpclient.ssl.use-insecure-trust-manager=true",
 						"spring.cloud.gateway.httpclient.connect-timeout=10",
 						"spring.cloud.gateway.httpclient.response-timeout=10s",
 						"spring.cloud.gateway.httpclient.pool.type=fixed",
@@ -99,10 +94,8 @@ public class GatewayAutoConfigurationTests {
 				.run(context -> {
 					assertThat(context).hasSingleBean(HttpClient.class);
 					HttpClient httpClient = context.getBean(HttpClient.class);
-					HttpClientProperties properties = context
-							.getBean(HttpClientProperties.class);
-					assertThat(properties.getMaxInitialLineLength().toBytes())
-							.isLessThanOrEqualTo(Integer.MAX_VALUE);
+					HttpClientProperties properties = context.getBean(HttpClientProperties.class);
+					assertThat(properties.getMaxInitialLineLength().toBytes()).isLessThanOrEqualTo(Integer.MAX_VALUE);
 					/*
 					 * FIXME: 2.1.0 HttpClientOptions options = httpClient.options();
 					 *
@@ -119,42 +112,33 @@ public class GatewayAutoConfigurationTests {
 					 * assertThat(sslContext).isNotNull();
 					 */
 					// TODO: howto test SslContext
-					assertThat(context)
-							.hasSingleBean(ReactorNettyRequestUpgradeStrategy.class);
+					assertThat(context).hasSingleBean(ReactorNettyRequestUpgradeStrategy.class);
 					ReactorNettyRequestUpgradeStrategy upgradeStrategy = context
 							.getBean(ReactorNettyRequestUpgradeStrategy.class);
-					assertThat(upgradeStrategy.getMaxFramePayloadLength())
-							.isEqualTo(1024);
+					assertThat(upgradeStrategy.getMaxFramePayloadLength()).isEqualTo(1024);
 					assertThat(upgradeStrategy.getHandlePing()).isTrue();
 					assertThat(context).hasSingleBean(ReactorNettyWebSocketClient.class);
-					ReactorNettyWebSocketClient webSocketClient = context
-							.getBean(ReactorNettyWebSocketClient.class);
-					assertThat(webSocketClient.getMaxFramePayloadLength())
-							.isEqualTo(1024);
-					HttpClientCustomizedConfig config = context
-							.getBean(HttpClientCustomizedConfig.class);
+					ReactorNettyWebSocketClient webSocketClient = context.getBean(ReactorNettyWebSocketClient.class);
+					assertThat(webSocketClient.getMaxFramePayloadLength()).isEqualTo(1024);
+					HttpClientCustomizedConfig config = context.getBean(HttpClientCustomizedConfig.class);
 					assertThat(config.called.get()).isTrue();
 				});
 	}
 
 	@Test
 	public void verboseActuatorEnabledByDefault() {
-		try (ConfigurableApplicationContext ctx = SpringApplication.run(Config.class,
-				"--spring.jmx.enabled=false", "--server.port=0")) {
-			assertThat(ctx.getBeanNamesForType(GatewayControllerEndpoint.class))
-					.hasSize(1);
-			assertThat(ctx.getBeanNamesForType(GatewayLegacyControllerEndpoint.class))
-					.isEmpty();
+		try (ConfigurableApplicationContext ctx = SpringApplication.run(Config.class, "--spring.jmx.enabled=false",
+				"--server.port=0")) {
+			assertThat(ctx.getBeanNamesForType(GatewayControllerEndpoint.class)).hasSize(1);
+			assertThat(ctx.getBeanNamesForType(GatewayLegacyControllerEndpoint.class)).isEmpty();
 		}
 	}
 
 	@Test
 	public void verboseActuatorDisabled() {
-		try (ConfigurableApplicationContext ctx = SpringApplication.run(Config.class,
-				"--spring.jmx.enabled=false", "--server.port=0",
-				"--spring.cloud.gateway.actuator.verbose.enabled=false")) {
-			assertThat(ctx.getBeanNamesForType(GatewayLegacyControllerEndpoint.class))
-					.hasSize(1);
+		try (ConfigurableApplicationContext ctx = SpringApplication.run(Config.class, "--spring.jmx.enabled=false",
+				"--server.port=0", "--spring.cloud.gateway.actuator.verbose.enabled=false")) {
+			assertThat(ctx.getBeanNamesForType(GatewayLegacyControllerEndpoint.class)).hasSize(1);
 		}
 	}
 

@@ -42,11 +42,9 @@ public class RemoveRequestHeaderGatewayFilterFactoryTests extends BaseWebClientT
 
 	@Test
 	public void removeRequestHeaderFilterWorks() {
-		testClient.get().uri("/headers").header("Host", "www.removerequestheader.org")
-				.header("X-Request-Foo", "Bar").exchange().expectStatus().isOk()
-				.expectBody(Map.class).consumeWith(result -> {
-					Map<String, Object> headers = getMap(result.getResponseBody(),
-							"headers");
+		testClient.get().uri("/headers").header("Host", "www.removerequestheader.org").header("X-Request-Foo", "Bar")
+				.exchange().expectStatus().isOk().expectBody(Map.class).consumeWith(result -> {
+					Map<String, Object> headers = getMap(result.getResponseBody(), "headers");
 					assertThat(headers).doesNotContainKey("X-Request-Foo");
 				});
 	}
@@ -55,8 +53,7 @@ public class RemoveRequestHeaderGatewayFilterFactoryTests extends BaseWebClientT
 	public void toStringFormat() {
 		NameConfig config = new NameConfig();
 		config.setName("myname");
-		GatewayFilter filter = new RemoveRequestHeaderGatewayFilterFactory()
-				.apply(config);
+		GatewayFilter filter = new RemoveRequestHeaderGatewayFilterFactory().apply(config);
 		assertThat(filter.toString()).contains("myname");
 	}
 

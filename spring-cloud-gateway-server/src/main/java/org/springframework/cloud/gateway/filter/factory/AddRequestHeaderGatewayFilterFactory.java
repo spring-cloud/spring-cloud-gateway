@@ -29,18 +29,15 @@ import static org.springframework.cloud.gateway.support.GatewayToStringStyler.fi
 /**
  * @author Spencer Gibb
  */
-public class AddRequestHeaderGatewayFilterFactory
-		extends AbstractNameValueGatewayFilterFactory {
+public class AddRequestHeaderGatewayFilterFactory extends AbstractNameValueGatewayFilterFactory {
 
 	@Override
 	public GatewayFilter apply(NameValueConfig config) {
 		return new GatewayFilter() {
 			@Override
-			public Mono<Void> filter(ServerWebExchange exchange,
-					GatewayFilterChain chain) {
+			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 				String value = ServerWebExchangeUtils.expand(exchange, config.getValue());
-				ServerHttpRequest request = exchange.getRequest().mutate()
-						.header(config.getName(), value).build();
+				ServerHttpRequest request = exchange.getRequest().mutate().header(config.getName(), value).build();
 
 				return chain.filter(exchange.mutate().request(request).build());
 			}

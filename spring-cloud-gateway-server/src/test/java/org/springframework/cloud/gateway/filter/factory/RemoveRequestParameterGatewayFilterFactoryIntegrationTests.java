@@ -42,13 +42,11 @@ import static org.springframework.cloud.gateway.test.TestUtils.getMap;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
-public class RemoveRequestParameterGatewayFilterFactoryIntegrationTests
-		extends BaseWebClientTests {
+public class RemoveRequestParameterGatewayFilterFactoryIntegrationTests extends BaseWebClientTests {
 
 	@Test
 	public void removeResponseHeaderFilterWorks() {
-		testClient.get().uri("/get?foo=bar&baz=bam%20bar")
-				.header("Host", "www.removerequestparamjava.org").exchange()
+		testClient.get().uri("/get?foo=bar&baz=bam%20bar").header("Host", "www.removerequestparamjava.org").exchange()
 				.expectStatus().isOk().expectBody(Map.class).consumeWith(result -> {
 					Map<String, Object> params = getMap(result.getResponseBody(), "args");
 					assertThat(params).doesNotContainKey("foo");
@@ -60,8 +58,7 @@ public class RemoveRequestParameterGatewayFilterFactoryIntegrationTests
 	public void toStringFormat() {
 		NameConfig config = new NameConfig();
 		config.setName("myname");
-		GatewayFilter filter = new RemoveRequestParameterGatewayFilterFactory()
-				.apply(config);
+		GatewayFilter filter = new RemoveRequestParameterGatewayFilterFactory().apply(config);
 		assertThat(filter.toString()).contains("myname");
 	}
 
@@ -75,10 +72,11 @@ public class RemoveRequestParameterGatewayFilterFactoryIntegrationTests
 
 		@Bean
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
-			return builder.routes().route("removerequestparam_java_test", r -> r
-					.path("/get").and().host("**.removerequestparamjava.org")
-					.filters(f -> f.prefixPath("/httpbin").removeRequestParameter("foo"))
-					.uri(uri)).build();
+			return builder.routes()
+					.route("removerequestparam_java_test",
+							r -> r.path("/get").and().host("**.removerequestparamjava.org")
+									.filters(f -> f.prefixPath("/httpbin").removeRequestParameter("foo")).uri(uri))
+					.build();
 		}
 
 	}

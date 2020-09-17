@@ -38,11 +38,10 @@ import static org.springframework.cloud.gateway.support.GatewayToStringStyler.fi
  *
  * @author Toshiaki Maki
  */
-public class RequestHeaderToRequestUriGatewayFilterFactory extends
-		AbstractChangeRequestUriGatewayFilterFactory<AbstractGatewayFilterFactory.NameConfig> {
+public class RequestHeaderToRequestUriGatewayFilterFactory
+		extends AbstractChangeRequestUriGatewayFilterFactory<AbstractGatewayFilterFactory.NameConfig> {
 
-	private final Logger log = LoggerFactory
-			.getLogger(RequestHeaderToRequestUriGatewayFilterFactory.class);
+	private final Logger log = LoggerFactory.getLogger(RequestHeaderToRequestUriGatewayFilterFactory.class);
 
 	public RequestHeaderToRequestUriGatewayFilterFactory() {
 		super(NameConfig.class);
@@ -61,24 +60,21 @@ public class RequestHeaderToRequestUriGatewayFilterFactory extends
 		return new OrderedGatewayFilter(gatewayFilter, gatewayFilter.getOrder()) {
 			@Override
 			public String toString() {
-				return filterToStringCreator(
-						RequestHeaderToRequestUriGatewayFilterFactory.this)
-								.append("name", config.getName()).toString();
+				return filterToStringCreator(RequestHeaderToRequestUriGatewayFilterFactory.this)
+						.append("name", config.getName()).toString();
 			}
 		};
 	}
 
 	@Override
-	protected Optional<URI> determineRequestUri(ServerWebExchange exchange,
-			NameConfig config) {
+	protected Optional<URI> determineRequestUri(ServerWebExchange exchange, NameConfig config) {
 		String requestUrl = exchange.getRequest().getHeaders().getFirst(config.getName());
 		return Optional.ofNullable(requestUrl).map(url -> {
 			try {
 				return new URL(url).toURI();
 			}
 			catch (MalformedURLException | URISyntaxException e) {
-				log.info("Request url is invalid : url={}, error={}", requestUrl,
-						e.getMessage());
+				log.info("Request url is invalid : url={}, error={}", requestUrl, e.getMessage());
 				return null;
 			}
 		});

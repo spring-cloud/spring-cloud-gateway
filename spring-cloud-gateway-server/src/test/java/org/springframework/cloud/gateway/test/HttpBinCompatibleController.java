@@ -71,8 +71,7 @@ public class HttpBinCompatibleController {
 		return result;
 	}
 
-	@RequestMapping(path = "/multivalueheaders",
-			method = { RequestMethod.GET, RequestMethod.POST },
+	@RequestMapping(path = "/multivalueheaders", method = { RequestMethod.GET, RequestMethod.POST },
 			produces = MediaType.APPLICATION_JSON_VALUE)
 	public Map<String, Object> multiValueHeaders(ServerWebExchange exchange) {
 		Map<String, Object> result = new HashMap<>();
@@ -81,16 +80,14 @@ public class HttpBinCompatibleController {
 	}
 
 	@RequestMapping(path = "/delay/{sec}", produces = MediaType.APPLICATION_JSON_VALUE)
-	public Mono<Map<String, Object>> get(ServerWebExchange exchange,
-			@PathVariable int sec) throws InterruptedException {
+	public Mono<Map<String, Object>> get(ServerWebExchange exchange, @PathVariable int sec)
+			throws InterruptedException {
 		int delay = Math.min(sec, 10);
 		return Mono.just(get(exchange)).delayElement(Duration.ofSeconds(delay));
 	}
 
-	@RequestMapping(path = "/anything/{anything}",
-			produces = MediaType.APPLICATION_JSON_VALUE)
-	public Map<String, Object> anything(ServerWebExchange exchange,
-			@PathVariable(required = false) String anything) {
+	@RequestMapping(path = "/anything/{anything}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public Map<String, Object> anything(ServerWebExchange exchange, @PathVariable(required = false) String anything) {
 		return get(exchange);
 	}
 
@@ -111,33 +108,27 @@ public class HttpBinCompatibleController {
 
 	@RequestMapping(value = "/post", consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
 			produces = MediaType.APPLICATION_JSON_VALUE)
-	public Mono<Map<String, Object>> postFormData(
-			@RequestBody Mono<MultiValueMap<String, Part>> parts) {
+	public Mono<Map<String, Object>> postFormData(@RequestBody Mono<MultiValueMap<String, Part>> parts) {
 		// StringDecoder decoder = StringDecoder.allMimeTypes(true);
-		return parts.flux().flatMap(map -> Flux.fromIterable(map.values()))
-				.flatMap(Flux::fromIterable).filter(part -> part instanceof FilePart)
-				.reduce(new HashMap<String, Object>(), (files, part) -> {
+		return parts.flux().flatMap(map -> Flux.fromIterable(map.values())).flatMap(Flux::fromIterable)
+				.filter(part -> part instanceof FilePart).reduce(new HashMap<String, Object>(), (files, part) -> {
 					MediaType contentType = part.headers().getContentType();
 					long contentLength = part.headers().getContentLength();
 					// TODO: get part data
-					files.put(part.name(),
-							"data:" + contentType + ";base64," + contentLength);
+					files.put(part.name(), "data:" + contentType + ";base64," + contentLength);
 					return files;
 				}).map(files -> Collections.singletonMap("files", files));
 	}
 
-	@RequestMapping(path = "/post",
-			consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+	@RequestMapping(path = "/post", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
 			produces = MediaType.APPLICATION_JSON_VALUE)
-	public Mono<Map<String, Object>> postUrlEncoded(ServerWebExchange exchange)
-			throws IOException {
+	public Mono<Map<String, Object>> postUrlEncoded(ServerWebExchange exchange) throws IOException {
 		return post(exchange, null);
 	}
 
-	@RequestMapping(path = "/post", method = RequestMethod.POST,
-			produces = MediaType.APPLICATION_JSON_VALUE)
-	public Mono<Map<String, Object>> post(ServerWebExchange exchange,
-			@RequestBody(required = false) String body) throws IOException {
+	@RequestMapping(path = "/post", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+	public Mono<Map<String, Object>> post(ServerWebExchange exchange, @RequestBody(required = false) String body)
+			throws IOException {
 		HashMap<String, Object> ret = new HashMap<>();
 		ret.put("headers", getHeaders(exchange));
 		ret.put("data", body);
@@ -159,8 +150,7 @@ public class HttpBinCompatibleController {
 		return ResponseEntity.status(status).body("Failed with " + status);
 	}
 
-	@RequestMapping(path = "/post/empty", method = RequestMethod.POST,
-			produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(path = "/post/empty", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
 	public Mono<String> emptyResponse() {
 		return Mono.empty();
 	}

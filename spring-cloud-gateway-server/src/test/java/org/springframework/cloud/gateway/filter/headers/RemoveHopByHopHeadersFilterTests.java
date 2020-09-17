@@ -36,30 +36,25 @@ public class RemoveHopByHopHeadersFilterTests {
 
 	@Test
 	public void happyPath() {
-		MockServerHttpRequest.BaseBuilder<?> builder = MockServerHttpRequest
-				.get("http://localhost/get");
+		MockServerHttpRequest.BaseBuilder<?> builder = MockServerHttpRequest.get("http://localhost/get");
 
-		HEADERS_REMOVED_ON_REQUEST
-				.forEach(header -> builder.header(header, header + "1"));
+		HEADERS_REMOVED_ON_REQUEST.forEach(header -> builder.header(header, header + "1"));
 
 		testFilter(MockServerWebExchange.from(builder));
 	}
 
 	@Test
 	public void caseInsensitive() {
-		MockServerHttpRequest.BaseBuilder<?> builder = MockServerHttpRequest
-				.get("http://localhost/get");
+		MockServerHttpRequest.BaseBuilder<?> builder = MockServerHttpRequest.get("http://localhost/get");
 
-		HEADERS_REMOVED_ON_REQUEST
-				.forEach(header -> builder.header(header.toLowerCase(), header + "1"));
+		HEADERS_REMOVED_ON_REQUEST.forEach(header -> builder.header(header.toLowerCase(), header + "1"));
 
 		testFilter(MockServerWebExchange.from(builder));
 	}
 
 	@Test
 	public void removesHeadersListedInConnectionHeader() {
-		MockServerHttpRequest.BaseBuilder<?> builder = MockServerHttpRequest
-				.get("http://localhost/get");
+		MockServerHttpRequest.BaseBuilder<?> builder = MockServerHttpRequest.get("http://localhost/get");
 
 		builder.header(HttpHeaders.CONNECTION, "upgrade", "keep-alive");
 		builder.header(HttpHeaders.UPGRADE, "WebSocket");

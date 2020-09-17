@@ -51,8 +51,8 @@ import static org.springframework.http.MediaType.MULTIPART_FORM_DATA;
 @SuppressWarnings("unchecked")
 public class FormIntegrationTests extends BaseWebClientTests {
 
-	public static final MediaType FORM_URL_ENCODED_CONTENT_TYPE = new MediaType(
-			APPLICATION_FORM_URLENCODED, StandardCharsets.UTF_8);
+	public static final MediaType FORM_URL_ENCODED_CONTENT_TYPE = new MediaType(APPLICATION_FORM_URLENCODED,
+			StandardCharsets.UTF_8);
 
 	@Test
 	public void formUrlencodedWorks() {
@@ -93,8 +93,7 @@ public class FormIntegrationTests extends BaseWebClientTests {
 		MultiValueMap<String, HttpEntity<?>> formData = createMultipartData();
 		TestRestTemplate rest = new TestRestTemplate();
 
-		ResponseEntity<Map> response = rest.postForEntity(baseUri + "/post", formData,
-				Map.class);
+		ResponseEntity<Map> response = rest.postForEntity(baseUri + "/post", formData, Map.class);
 
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 		assertMultipartData(response.getBody());

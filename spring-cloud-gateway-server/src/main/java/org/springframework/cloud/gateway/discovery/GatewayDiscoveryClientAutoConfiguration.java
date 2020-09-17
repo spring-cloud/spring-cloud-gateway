@@ -48,8 +48,7 @@ import static org.springframework.cloud.gateway.support.NameUtils.normalizeRoute
 @ConditionalOnProperty(name = "spring.cloud.gateway.enabled", matchIfMissing = true)
 @AutoConfigureBefore(GatewayAutoConfiguration.class)
 @AutoConfigureAfter(CompositeDiscoveryClientAutoConfiguration.class)
-@ConditionalOnClass({ DispatcherHandler.class,
-		CompositeDiscoveryClientAutoConfiguration.class })
+@ConditionalOnClass({ DispatcherHandler.class, CompositeDiscoveryClientAutoConfiguration.class })
 @EnableConfigurationProperties
 public class GatewayDiscoveryClientAutoConfiguration {
 
@@ -89,15 +88,13 @@ public class GatewayDiscoveryClientAutoConfiguration {
 	}
 
 	@Configuration(proxyBeanMethods = false)
-	@ConditionalOnProperty(value = "spring.cloud.discovery.reactive.enabled",
-			matchIfMissing = true)
+	@ConditionalOnProperty(value = "spring.cloud.discovery.reactive.enabled", matchIfMissing = true)
 	public static class ReactiveDiscoveryClientRouteDefinitionLocatorConfiguration {
 
 		@Bean
 		@ConditionalOnProperty(name = "spring.cloud.gateway.discovery.locator.enabled")
 		public DiscoveryClientRouteDefinitionLocator discoveryClientRouteDefinitionLocator(
-				ReactiveDiscoveryClient discoveryClient,
-				DiscoveryLocatorProperties properties) {
+				ReactiveDiscoveryClient discoveryClient, DiscoveryLocatorProperties properties) {
 			return new DiscoveryClientRouteDefinitionLocator(discoveryClient, properties);
 		}
 

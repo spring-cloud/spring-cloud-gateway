@@ -70,12 +70,10 @@ public class GatewayMetricsFilterTests extends BaseWebClientTests {
 
 	@Test
 	public void gatewayRequestsMeterFilterHasTagsForBadTargetUri() {
-		testClient.get().uri("/badtargeturi").exchange().expectStatus()
-				.is5xxServerError();
+		testClient.get().uri("/badtargeturi").exchange().expectStatus().is5xxServerError();
 		assertMetricsContainsTag("outcome", HttpStatus.Series.SERVER_ERROR.name());
 		assertMetricsContainsTag("status", HttpStatus.INTERNAL_SERVER_ERROR.name());
-		assertMetricsContainsTag("httpStatusCode",
-				String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()));
+		assertMetricsContainsTag("httpStatusCode", String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()));
 		assertMetricsContainsTag("httpMethod", HttpMethod.GET.toString());
 		assertMetricsContainsTag("routeId", "default_path_to_httpbin");
 		assertMetricsContainsTag("routeUri", testUri);
@@ -86,9 +84,8 @@ public class GatewayMetricsFilterTests extends BaseWebClientTests {
 		HttpHeaders headers = new HttpHeaders();
 		headers.set(HttpHeaders.HOST, "www.setcustomstatusmetrics.org");
 		// cannot use netty client since we cannot read custom http status
-		ResponseEntity<String> response = new TestRestTemplate().exchange(
-				baseUri + "/headers", HttpMethod.POST, new HttpEntity<>(headers),
-				String.class);
+		ResponseEntity<String> response = new TestRestTemplate().exchange(baseUri + "/headers", HttpMethod.POST,
+				new HttpEntity<>(headers), String.class);
 		assertThat(response.getStatusCodeValue()).isEqualTo(432);
 		assertMetricsContainsTag("outcome", "CUSTOM");
 		assertMetricsContainsTag("status", "432");
@@ -120,8 +117,7 @@ public class GatewayMetricsFilterTests extends BaseWebClientTests {
 		public RouteLocator myRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes()
 					.route("test_custom_http_status_metrics",
-							r -> r.host("*.setcustomstatusmetrics.org")
-									.filters(f -> f.setStatus(432)).uri(testUri))
+							r -> r.host("*.setcustomstatusmetrics.org").filters(f -> f.setStatus(432)).uri(testUri))
 					.build();
 		}
 

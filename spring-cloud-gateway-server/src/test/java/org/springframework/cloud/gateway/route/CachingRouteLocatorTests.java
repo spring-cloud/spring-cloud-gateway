@@ -36,8 +36,7 @@ public class CachingRouteLocatorTests {
 	public void getRoutesWorks() {
 		Route route1 = route(1);
 		Route route2 = route(2);
-		CachingRouteLocator locator = new CachingRouteLocator(
-				() -> Flux.just(route2, route1));
+		CachingRouteLocator locator = new CachingRouteLocator(() -> Flux.just(route2, route1));
 
 		List<Route> routes = locator.getRoutes().collectList().block();
 
@@ -69,8 +68,7 @@ public class CachingRouteLocatorTests {
 
 	@Test
 	@Ignore // FIXME: 3.0.0
-	public void refreshWorksWhenFirstRefreshSuccessAndOtherError()
-			throws InterruptedException {
+	public void refreshWorksWhenFirstRefreshSuccessAndOtherError() throws InterruptedException {
 		Route route1 = route(1);
 		Route route2 = route(2);
 
@@ -104,15 +102,13 @@ public class CachingRouteLocatorTests {
 
 		waitUntilRefreshFinished(locator, resultEvents);
 		assertThat(resultEvents).hasSize(1);
-		assertThat(resultEvents.get(0).getThrowable().getCause().getMessage())
-				.isEqualTo("in chain.");
+		assertThat(resultEvents.get(0).getThrowable().getCause().getMessage()).isEqualTo("in chain.");
 		assertThat(resultEvents.get(0).isSuccess()).isEqualTo(false);
 		assertThat(locator.getRoutes().collectList().block()).containsExactly(route1);
 
 		waitUntilRefreshFinished(locator, resultEvents);
 		assertThat(resultEvents).hasSize(2);
-		assertThat(resultEvents.get(1).getThrowable().getMessage())
-				.isEqualTo("call getRoutes error.");
+		assertThat(resultEvents.get(1).getThrowable().getMessage()).isEqualTo("call getRoutes error.");
 		assertThat(resultEvents.get(1).isSuccess()).isEqualTo(false);
 		assertThat(locator.getRoutes().collectList().block()).containsExactly(route1);
 
@@ -123,8 +119,8 @@ public class CachingRouteLocatorTests {
 
 	}
 
-	private void waitUntilRefreshFinished(CachingRouteLocator locator,
-			List<RefreshRoutesResultEvent> resultEvents) throws InterruptedException {
+	private void waitUntilRefreshFinished(CachingRouteLocator locator, List<RefreshRoutesResultEvent> resultEvents)
+			throws InterruptedException {
 		CountDownLatch cdl = new CountDownLatch(1);
 		locator.setApplicationEventPublisher(o -> {
 			resultEvents.add((RefreshRoutesResultEvent) o);
@@ -136,8 +132,8 @@ public class CachingRouteLocatorTests {
 	}
 
 	Route route(int id) {
-		return Route.async().id(String.valueOf(id)).uri("http://localhost/" + id)
-				.order(id).predicate(exchange -> true).build();
+		return Route.async().id(String.valueOf(id)).uri("http://localhost/" + id).order(id).predicate(exchange -> true)
+				.build();
 	}
 
 }

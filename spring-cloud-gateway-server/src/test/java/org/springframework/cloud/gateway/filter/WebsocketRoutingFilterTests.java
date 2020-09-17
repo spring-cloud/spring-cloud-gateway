@@ -43,15 +43,14 @@ public class WebsocketRoutingFilterTests {
 
 	@Test
 	public void testEncodedUrl() {
-		MockServerHttpRequest request = MockServerHttpRequest
-				.get("http://not-matters-that").header(UPGRADE, "WebSocket").build();
+		MockServerHttpRequest request = MockServerHttpRequest.get("http://not-matters-that")
+				.header(UPGRADE, "WebSocket").build();
 		ServerWebExchange exchange = MockServerWebExchange.from(request);
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR,
 				URI.create("http://microservice/my-service/websocket%20upgrade"));
 		changeSchemeIfIsWebSocketUpgrade(exchange);
 		URI wsRequestUrl = exchange.getAttribute(GATEWAY_REQUEST_URL_ATTR);
-		assertThat(wsRequestUrl).isEqualTo(
-				URI.create("ws://microservice/my-service/websocket%20upgrade"));
+		assertThat(wsRequestUrl).isEqualTo(URI.create("ws://microservice/my-service/websocket%20upgrade"));
 	}
 
 }

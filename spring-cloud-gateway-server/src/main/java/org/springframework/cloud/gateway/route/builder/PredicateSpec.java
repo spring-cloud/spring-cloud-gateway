@@ -77,8 +77,7 @@ public class PredicateSpec extends UriSpec {
 	 * @return a {@link BooleanSpec} to be used to add logical operators
 	 */
 	public BooleanSpec after(ZonedDateTime datetime) {
-		return asyncPredicate(getBean(AfterRoutePredicateFactory.class)
-				.applyAsync(c -> c.setDatetime(datetime)));
+		return asyncPredicate(getBean(AfterRoutePredicateFactory.class).applyAsync(c -> c.setDatetime(datetime)));
 	}
 
 	/**
@@ -87,8 +86,7 @@ public class PredicateSpec extends UriSpec {
 	 * @return a {@link BooleanSpec} to be used to add logical operators
 	 */
 	public BooleanSpec before(ZonedDateTime datetime) {
-		return asyncPredicate(getBean(BeforeRoutePredicateFactory.class)
-				.applyAsync(c -> c.setDatetime(datetime)));
+		return asyncPredicate(getBean(BeforeRoutePredicateFactory.class).applyAsync(c -> c.setDatetime(datetime)));
 	}
 
 	/**
@@ -110,8 +108,8 @@ public class PredicateSpec extends UriSpec {
 	 * @return a {@link BooleanSpec} to be used to add logical operators
 	 */
 	public BooleanSpec cookie(String name, String regex) {
-		return asyncPredicate(getBean(CookieRoutePredicateFactory.class)
-				.applyAsync(c -> c.setName(name).setRegexp(regex)));
+		return asyncPredicate(
+				getBean(CookieRoutePredicateFactory.class).applyAsync(c -> c.setName(name).setRegexp(regex)));
 	}
 
 	/**
@@ -120,8 +118,7 @@ public class PredicateSpec extends UriSpec {
 	 * @return a {@link BooleanSpec} to be used to add logical operators
 	 */
 	public BooleanSpec header(String header) {
-		return asyncPredicate(getBean(HeaderRoutePredicateFactory.class)
-				.applyAsync(c -> c.setHeader(header)));
+		return asyncPredicate(getBean(HeaderRoutePredicateFactory.class).applyAsync(c -> c.setHeader(header)));
 	}
 
 	/**
@@ -132,8 +129,8 @@ public class PredicateSpec extends UriSpec {
 	 * @return a {@link BooleanSpec} to be used to add logical operators
 	 */
 	public BooleanSpec header(String header, String regex) {
-		return asyncPredicate(getBean(HeaderRoutePredicateFactory.class)
-				.applyAsync(c -> c.setHeader(header).setRegexp(regex)));
+		return asyncPredicate(
+				getBean(HeaderRoutePredicateFactory.class).applyAsync(c -> c.setHeader(header).setRegexp(regex)));
 	}
 
 	/**
@@ -143,8 +140,8 @@ public class PredicateSpec extends UriSpec {
 	 * @return a {@link BooleanSpec} to be used to add logical operators
 	 */
 	public BooleanSpec host(String... pattern) {
-		return asyncPredicate(getBean(HostRoutePredicateFactory.class)
-				.applyAsync(c -> c.setPatterns(Arrays.asList(pattern))));
+		return asyncPredicate(
+				getBean(HostRoutePredicateFactory.class).applyAsync(c -> c.setPatterns(Arrays.asList(pattern))));
 	}
 
 	/**
@@ -154,8 +151,7 @@ public class PredicateSpec extends UriSpec {
 	 */
 	public BooleanSpec method(String... methods) {
 		return asyncPredicate(getBean(MethodRoutePredicateFactory.class).applyAsync(c -> {
-			HttpMethod[] httpMethods = stream(methods).map(HttpMethod::resolve)
-					.toArray(HttpMethod[]::new);
+			HttpMethod[] httpMethods = stream(methods).map(HttpMethod::resolve).toArray(HttpMethod[]::new);
 			c.setMethods(httpMethods);
 		}));
 	}
@@ -178,8 +174,8 @@ public class PredicateSpec extends UriSpec {
 	 * @return a {@link BooleanSpec} to be used to add logical operators
 	 */
 	public BooleanSpec path(String... patterns) {
-		return asyncPredicate(getBean(PathRoutePredicateFactory.class)
-				.applyAsync(c -> c.setPatterns(Arrays.asList(patterns))));
+		return asyncPredicate(
+				getBean(PathRoutePredicateFactory.class).applyAsync(c -> c.setPatterns(Arrays.asList(patterns))));
 	}
 
 	/**
@@ -192,8 +188,7 @@ public class PredicateSpec extends UriSpec {
 	 */
 	public BooleanSpec path(boolean matchTrailingSlash, String... patterns) {
 		return asyncPredicate(getBean(PathRoutePredicateFactory.class)
-				.applyAsync(c -> c.setPatterns(Arrays.asList(patterns))
-						.setMatchTrailingSlash(matchTrailingSlash)));
+				.applyAsync(c -> c.setPatterns(Arrays.asList(patterns)).setMatchTrailingSlash(matchTrailingSlash)));
 	}
 
 	/**
@@ -205,8 +200,8 @@ public class PredicateSpec extends UriSpec {
 	 * @return a {@link BooleanSpec} to be used to add logical operators
 	 */
 	public <T> BooleanSpec readBody(Class<T> inClass, Predicate<T> predicate) {
-		return asyncPredicate(getBean(ReadBodyPredicateFactory.class)
-				.applyAsync(c -> c.setPredicate(inClass, predicate)));
+		return asyncPredicate(
+				getBean(ReadBodyPredicateFactory.class).applyAsync(c -> c.setPredicate(inClass, predicate)));
 	}
 
 	/**
@@ -216,8 +211,8 @@ public class PredicateSpec extends UriSpec {
 	 * @return a {@link BooleanSpec} to be used to add logical operators
 	 */
 	public BooleanSpec query(String param, String regex) {
-		return asyncPredicate(getBean(QueryRoutePredicateFactory.class)
-				.applyAsync(c -> c.setParam(param).setRegexp(regex)));
+		return asyncPredicate(
+				getBean(QueryRoutePredicateFactory.class).applyAsync(c -> c.setParam(param).setRegexp(regex)));
 	}
 
 	/**
@@ -226,8 +221,7 @@ public class PredicateSpec extends UriSpec {
 	 * @return a {@link BooleanSpec} to be used to add logical operators
 	 */
 	public BooleanSpec query(String param) {
-		return asyncPredicate(getBean(QueryRoutePredicateFactory.class)
-				.applyAsync(c -> c.setParam(param)));
+		return asyncPredicate(getBean(QueryRoutePredicateFactory.class).applyAsync(c -> c.setParam(param)));
 	}
 
 	/**
@@ -261,13 +255,12 @@ public class PredicateSpec extends UriSpec {
 	 * @return a {@link BooleanSpec} to be used to add logical operators
 	 */
 	public BooleanSpec remoteAddr(RemoteAddressResolver resolver, String... addrs) {
-		return asyncPredicate(
-				getBean(RemoteAddrRoutePredicateFactory.class).applyAsync(c -> {
-					c.setSources(addrs);
-					if (resolver != null) {
-						c.setRemoteAddressResolver(resolver);
-					}
-				}));
+		return asyncPredicate(getBean(RemoteAddrRoutePredicateFactory.class).applyAsync(c -> {
+			c.setSources(addrs);
+			if (resolver != null) {
+				c.setRemoteAddressResolver(resolver);
+			}
+		}));
 	}
 
 	/**
@@ -277,14 +270,13 @@ public class PredicateSpec extends UriSpec {
 	 * @return a {@link BooleanSpec} to be used to add logical operators
 	 */
 	public BooleanSpec weight(String group, int weight) {
-		return asyncPredicate(getBean(WeightRoutePredicateFactory.class).applyAsync(c -> c
-				.setGroup(group).setRouteId(routeBuilder.getId()).setWeight(weight)));
+		return asyncPredicate(getBean(WeightRoutePredicateFactory.class)
+				.applyAsync(c -> c.setGroup(group).setRouteId(routeBuilder.getId()).setWeight(weight)));
 	}
 
 	public BooleanSpec cloudFoundryRouteService() {
-		return predicate(
-				getBean(CloudFoundryRouteServiceRoutePredicateFactory.class).apply(c -> {
-				}));
+		return predicate(getBean(CloudFoundryRouteServiceRoutePredicateFactory.class).apply(c -> {
+		}));
 	}
 
 	/**

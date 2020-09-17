@@ -89,8 +89,7 @@ public class RouteLocatorBuilder {
 		 * @return a {@link RouteLocator}
 		 */
 		public RouteLocator build() {
-			return () -> Flux.fromIterable(this.routes)
-					.map(routeBuilder -> routeBuilder.build());
+			return () -> Flux.fromIterable(this.routes).map(routeBuilder -> routeBuilder.build());
 		}
 
 		ConfigurableApplicationContext getContext() {

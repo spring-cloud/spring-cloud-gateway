@@ -35,8 +35,8 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.s
  * https://gist.github.com/ptarjan/e38f45f2dfe601419ca3af937fff574d#file-1-check_request_rate_limiter-rb-L11-L34.
  */
 @ConfigurationProperties("spring.cloud.gateway.filter.request-rate-limiter")
-public class RequestRateLimiterGatewayFilterFactory extends
-		AbstractGatewayFilterFactory<RequestRateLimiterGatewayFilterFactory.Config> {
+public class RequestRateLimiterGatewayFilterFactory
+		extends AbstractGatewayFilterFactory<RequestRateLimiterGatewayFilterFactory.Config> {
 
 	/**
 	 * Key-Resolver key.
@@ -57,8 +57,7 @@ public class RequestRateLimiterGatewayFilterFactory extends
 	/** HttpStatus to return when denyEmptyKey is true, defaults to FORBIDDEN. */
 	private String emptyKeyStatusCode = HttpStatus.FORBIDDEN.name();
 
-	public RequestRateLimiterGatewayFilterFactory(RateLimiter defaultRateLimiter,
-			KeyResolver defaultKeyResolver) {
+	public RequestRateLimiterGatewayFilterFactory(RateLimiter defaultRateLimiter, KeyResolver defaultKeyResolver) {
 		super(Config.class);
 		this.defaultRateLimiter = defaultRateLimiter;
 		this.defaultKeyResolver = defaultKeyResolver;
@@ -92,43 +91,38 @@ public class RequestRateLimiterGatewayFilterFactory extends
 	@Override
 	public GatewayFilter apply(Config config) {
 		KeyResolver resolver = getOrDefault(config.keyResolver, defaultKeyResolver);
-		RateLimiter<Object> limiter = getOrDefault(config.rateLimiter,
-				defaultRateLimiter);
+		RateLimiter<Object> limiter = getOrDefault(config.rateLimiter, defaultRateLimiter);
 		boolean denyEmpty = getOrDefault(config.denyEmptyKey, this.denyEmptyKey);
 		HttpStatusHolder emptyKeyStatus = HttpStatusHolder
 				.parse(getOrDefault(config.emptyKeyStatus, this.emptyKeyStatusCode));
 
-		return (exchange, chain) -> resolver.resolve(exchange).defaultIfEmpty(EMPTY_KEY)
-				.flatMap(key -> {
-					if (EMPTY_KEY.equals(key)) {
-						if (denyEmpty) {
-							setResponseStatus(exchange, emptyKeyStatus);
-							return exchange.getResponse().setComplete();
-						}
-						return chain.filter(exchange);
-					}
-					String routeId = config.getRouteId();
-					if (routeId == null) {
-						Route route = exchange
-								.getAttribute(ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR);
-						routeId = route.getId();
-					}
-					return limiter.isAllowed(routeId, key).flatMap(response -> {
+		return (exchange, chain) -> resolver.resolve(exchange).defaultIfEmpty(EMPTY_KEY).flatMap(key -> {
+			if (EMPTY_KEY.equals(key)) {
+				if (denyEmpty) {
+					setResponseStatus(exchange, emptyKeyStatus);
+					return exchange.getResponse().setComplete();
+				}
+				return chain.filter(exchange);
+			}
+			String routeId = config.getRouteId();
+			if (routeId == null) {
+				Route route = exchange.getAttribute(ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR);
+				routeId = route.getId();
+			}
+			return limiter.isAllowed(routeId, key).flatMap(response -> {
 
-						for (Map.Entry<String, String> header : response.getHeaders()
-								.entrySet()) {
-							exchange.getResponse().getHeaders().add(header.getKey(),
-									header.getValue());
-						}
+				for (Map.Entry<String, String> header : response.getHeaders().entrySet()) {
+					exchange.getResponse().getHeaders().add(header.getKey(), header.getValue());
+				}
 
-						if (response.isAllowed()) {
-							return chain.filter(exchange);
-						}
+				if (response.isAllowed()) {
+					return chain.filter(exchange);
+				}
 
-						setResponseStatus(exchange, config.getStatusCode());
-						return exchange.getResponse().setComplete();
-					});
-				});
+				setResponseStatus(exchange, config.getStatusCode());
+				return exchange.getResponse().setComplete();
+			});
+		});
 	}
 
 	private <T> T getOrDefault(T configValue, T defaultValue) {

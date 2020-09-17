@@ -33,8 +33,7 @@ import org.springframework.web.server.ServerWebExchange;
 /**
  * @author Spencer Gibb
  */
-public class HostRoutePredicateFactory
-		extends AbstractRoutePredicateFactory<HostRoutePredicateFactory.Config> {
+public class HostRoutePredicateFactory extends AbstractRoutePredicateFactory<HostRoutePredicateFactory.Config> {
 
 	private PathMatcher pathMatcher = new AntPathMatcher(".");
 
@@ -66,8 +65,8 @@ public class HostRoutePredicateFactory
 						.filter(pattern -> pathMatcher.match(pattern, host)).findFirst();
 
 				if (optionalPattern.isPresent()) {
-					Map<String, String> variables = pathMatcher
-							.extractUriTemplateVariables(optionalPattern.get(), host);
+					Map<String, String> variables = pathMatcher.extractUriTemplateVariables(optionalPattern.get(),
+							host);
 					ServerWebExchangeUtils.putUriTemplateVariables(exchange, variables);
 					return true;
 				}

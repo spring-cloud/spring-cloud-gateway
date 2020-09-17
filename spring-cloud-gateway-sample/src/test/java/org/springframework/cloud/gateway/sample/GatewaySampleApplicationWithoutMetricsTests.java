@@ -35,8 +35,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.util.SocketUtils;
 
 @RunWith(ModifiedClassPathRunner.class)
-@ClassPathExclusions({ "micrometer-*.jar", "spring-boot-actuator-*.jar",
-		"spring-boot-actuator-autoconfigure-*.jar" })
+@ClassPathExclusions({ "micrometer-*.jar", "spring-boot-actuator-*.jar", "spring-boot-actuator-autoconfigure-*.jar" })
 @DirtiesContext
 public class GatewaySampleApplicationWithoutMetricsTests {
 
@@ -60,8 +59,7 @@ public class GatewaySampleApplicationWithoutMetricsTests {
 	@Before
 	public void setup() {
 		baseUri = "http://localhost:" + port;
-		this.webClient = WebTestClient.bindToServer()
-				.responseTimeout(Duration.ofSeconds(10)).baseUrl(baseUri).build();
+		this.webClient = WebTestClient.bindToServer().responseTimeout(Duration.ofSeconds(10)).baseUrl(baseUri).build();
 	}
 
 	protected ConfigurableApplicationContext init(Class<?> config) {
@@ -73,10 +71,9 @@ public class GatewaySampleApplicationWithoutMetricsTests {
 	public void actuatorMetrics() {
 		init(TestConfig.class);
 		webClient.get().uri("/get").exchange().expectStatus().isOk();
-		webClient.get()
-				.uri("http://localhost:" + port + "/actuator/metrics/gateway.requests")
-				.exchange().expectStatus().isOk().expectBody(String.class).isEqualTo(
-						GatewaySampleApplication.HELLO_FROM_FAKE_ACTUATOR_METRICS_GATEWAY_REQUESTS);
+		webClient.get().uri("http://localhost:" + port + "/actuator/metrics/gateway.requests").exchange().expectStatus()
+				.isOk().expectBody(String.class)
+				.isEqualTo(GatewaySampleApplication.HELLO_FROM_FAKE_ACTUATOR_METRICS_GATEWAY_REQUESTS);
 	}
 
 }

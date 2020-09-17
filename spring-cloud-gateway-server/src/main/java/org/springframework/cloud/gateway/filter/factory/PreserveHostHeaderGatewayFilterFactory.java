@@ -38,16 +38,14 @@ public class PreserveHostHeaderGatewayFilterFactory extends AbstractGatewayFilte
 	public GatewayFilter apply(Object config) {
 		return new GatewayFilter() {
 			@Override
-			public Mono<Void> filter(ServerWebExchange exchange,
-					GatewayFilterChain chain) {
+			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 				exchange.getAttributes().put(PRESERVE_HOST_HEADER_ATTRIBUTE, true);
 				return chain.filter(exchange);
 			}
 
 			@Override
 			public String toString() {
-				return filterToStringCreator(PreserveHostHeaderGatewayFilterFactory.this)
-						.toString();
+				return filterToStringCreator(PreserveHostHeaderGatewayFilterFactory.this).toString();
 			}
 		};
 	}

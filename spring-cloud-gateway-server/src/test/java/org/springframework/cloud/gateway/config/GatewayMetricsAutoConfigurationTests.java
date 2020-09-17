@@ -60,8 +60,7 @@ public class GatewayMetricsAutoConfigurationTests {
 	}
 
 	@RunWith(SpringRunner.class)
-	@SpringBootTest(classes = Config.class,
-			properties = "spring.cloud.gateway.metrics.enabled=false")
+	@SpringBootTest(classes = Config.class, properties = "spring.cloud.gateway.metrics.enabled=false")
 	public static class DisabledByProperty {
 
 		@Autowired(required = false)
@@ -87,8 +86,7 @@ public class GatewayMetricsAutoConfigurationTests {
 		@Test
 		public void gatewayMetricsBeansExists() {
 			assertThat(filter).isNotNull();
-			assertThat(tagsProviders).extracting("class")
-					.contains(CustomTagsProviderConfig.EmptyTagsProvider.class);
+			assertThat(tagsProviders).extracting("class").contains(CustomTagsProviderConfig.EmptyTagsProvider.class);
 		}
 
 	}

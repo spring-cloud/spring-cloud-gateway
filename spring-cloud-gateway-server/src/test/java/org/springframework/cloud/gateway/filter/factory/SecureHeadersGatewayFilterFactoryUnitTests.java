@@ -58,8 +58,7 @@ public class SecureHeadersGatewayFilterFactoryUnitTests {
 
 	@Before
 	public void setUp() {
-		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost")
-				.build();
+		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost").build();
 		exchange = MockServerWebExchange.from(request);
 		filterChain = mock(GatewayFilterChain.class);
 		captor = ArgumentCaptor.forClass(ServerWebExchange.class);
@@ -78,23 +77,19 @@ public class SecureHeadersGatewayFilterFactoryUnitTests {
 		filter.filter(exchange, filterChain);
 
 		ServerHttpResponse response = captor.getValue().getResponse();
-		assertThat(response.getHeaders()).containsKeys(X_XSS_PROTECTION_HEADER,
-				STRICT_TRANSPORT_SECURITY_HEADER, X_FRAME_OPTIONS_HEADER,
-				X_CONTENT_TYPE_OPTIONS_HEADER, REFERRER_POLICY_HEADER,
-				CONTENT_SECURITY_POLICY_HEADER, X_DOWNLOAD_OPTIONS_HEADER,
-				X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER);
+		assertThat(response.getHeaders()).containsKeys(X_XSS_PROTECTION_HEADER, STRICT_TRANSPORT_SECURITY_HEADER,
+				X_FRAME_OPTIONS_HEADER, X_CONTENT_TYPE_OPTIONS_HEADER, REFERRER_POLICY_HEADER,
+				CONTENT_SECURITY_POLICY_HEADER, X_DOWNLOAD_OPTIONS_HEADER, X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER);
 	}
 
 	@Test
 	public void doNotAddDisabledHeaders() {
 		SecureHeadersProperties properties = new SecureHeadersProperties();
-		properties.setDisable(asList("x-xss-protection", "strict-transport-security",
-				"x-frame-options", "x-content-type-options", "referrer-policy",
-				"content-security-policy", "x-download-options",
+		properties.setDisable(asList("x-xss-protection", "strict-transport-security", "x-frame-options",
+				"x-content-type-options", "referrer-policy", "content-security-policy", "x-download-options",
 				"x-permitted-cross-domain-policies"));
 
-		SecureHeadersGatewayFilterFactory filterFactory = new SecureHeadersGatewayFilterFactory(
-				properties);
+		SecureHeadersGatewayFilterFactory filterFactory = new SecureHeadersGatewayFilterFactory(properties);
 		NameConfig config = new NameConfig();
 		config.setName("SecureHeadersGatewayFilter");
 		filter = filterFactory.apply(config);
@@ -102,18 +97,15 @@ public class SecureHeadersGatewayFilterFactoryUnitTests {
 		filter.filter(exchange, filterChain);
 
 		ServerHttpResponse response = captor.getValue().getResponse();
-		assertThat(response.getHeaders()).doesNotContainKeys(X_XSS_PROTECTION_HEADER,
-				STRICT_TRANSPORT_SECURITY_HEADER, X_FRAME_OPTIONS_HEADER,
-				X_CONTENT_TYPE_OPTIONS_HEADER, REFERRER_POLICY_HEADER,
-				CONTENT_SECURITY_POLICY_HEADER, X_DOWNLOAD_OPTIONS_HEADER,
-				X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER);
+		assertThat(response.getHeaders()).doesNotContainKeys(X_XSS_PROTECTION_HEADER, STRICT_TRANSPORT_SECURITY_HEADER,
+				X_FRAME_OPTIONS_HEADER, X_CONTENT_TYPE_OPTIONS_HEADER, REFERRER_POLICY_HEADER,
+				CONTENT_SECURITY_POLICY_HEADER, X_DOWNLOAD_OPTIONS_HEADER, X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER);
 
 	}
 
 	@Test
 	public void toStringFormat() {
-		GatewayFilter filter = new SecureHeadersGatewayFilterFactory(
-				new SecureHeadersProperties()).apply("");
+		GatewayFilter filter = new SecureHeadersGatewayFilterFactory(new SecureHeadersProperties()).apply("");
 		Assertions.assertThat(filter.toString()).contains("SecureHeaders");
 	}
 

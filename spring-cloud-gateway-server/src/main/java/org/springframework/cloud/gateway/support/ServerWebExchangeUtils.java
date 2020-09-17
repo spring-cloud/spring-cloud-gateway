@@ -57,14 +57,12 @@ public final class ServerWebExchangeUtils {
 	/**
 	 * Preserve-Host header attribute name.
 	 */
-	public static final String PRESERVE_HOST_HEADER_ATTRIBUTE = qualify(
-			"preserveHostHeader");
+	public static final String PRESERVE_HOST_HEADER_ATTRIBUTE = qualify("preserveHostHeader");
 
 	/**
 	 * URI template variables attribute name.
 	 */
-	public static final String URI_TEMPLATE_VARIABLES_ATTRIBUTE = qualify(
-			"uriTemplateVariables");
+	public static final String URI_TEMPLATE_VARIABLES_ATTRIBUTE = qualify("uriTemplateVariables");
 
 	/**
 	 * Client response attribute name.
@@ -74,14 +72,12 @@ public final class ServerWebExchangeUtils {
 	/**
 	 * Client response connection attribute name.
 	 */
-	public static final String CLIENT_RESPONSE_CONN_ATTR = qualify(
-			"gatewayClientResponseConnection");
+	public static final String CLIENT_RESPONSE_CONN_ATTR = qualify("gatewayClientResponseConnection");
 
 	/**
 	 * Client response header names attribute name.
 	 */
-	public static final String CLIENT_RESPONSE_HEADER_NAMES = qualify(
-			"gatewayClientResponseHeaderNames");
+	public static final String CLIENT_RESPONSE_HEADER_NAMES = qualify("gatewayClientResponseHeaderNames");
 
 	/**
 	 * Gateway route attribute name.
@@ -96,26 +92,22 @@ public final class ServerWebExchangeUtils {
 	/**
 	 * Gateway original request URL attribute name.
 	 */
-	public static final String GATEWAY_ORIGINAL_REQUEST_URL_ATTR = qualify(
-			"gatewayOriginalRequestUrl");
+	public static final String GATEWAY_ORIGINAL_REQUEST_URL_ATTR = qualify("gatewayOriginalRequestUrl");
 
 	/**
 	 * Gateway handler mapper attribute name.
 	 */
-	public static final String GATEWAY_HANDLER_MAPPER_ATTR = qualify(
-			"gatewayHandlerMapper");
+	public static final String GATEWAY_HANDLER_MAPPER_ATTR = qualify("gatewayHandlerMapper");
 
 	/**
 	 * Gateway scheme prefix attribute name.
 	 */
-	public static final String GATEWAY_SCHEME_PREFIX_ATTR = qualify(
-			"gatewaySchemePrefix");
+	public static final String GATEWAY_SCHEME_PREFIX_ATTR = qualify("gatewaySchemePrefix");
 
 	/**
 	 * Gateway predicate route attribute name.
 	 */
-	public static final String GATEWAY_PREDICATE_ROUTE_ATTR = qualify(
-			"gatewayPredicateRouteAttr");
+	public static final String GATEWAY_PREDICATE_ROUTE_ATTR = qualify("gatewayPredicateRouteAttr");
 
 	/**
 	 * Weight attribute name.
@@ -130,21 +122,18 @@ public final class ServerWebExchangeUtils {
 	/**
 	 * CircuitBreaker execution exception attribute name.
 	 */
-	public static final String CIRCUITBREAKER_EXECUTION_EXCEPTION_ATTR = qualify(
-			"circuitBreakerExecutionException");
+	public static final String CIRCUITBREAKER_EXECUTION_EXCEPTION_ATTR = qualify("circuitBreakerExecutionException");
 
 	/**
 	 * Used when a routing filter has been successfully called. Allows users to write
 	 * custom routing filters that disable built in routing filters.
 	 */
-	public static final String GATEWAY_ALREADY_ROUTED_ATTR = qualify(
-			"gatewayAlreadyRouted");
+	public static final String GATEWAY_ALREADY_ROUTED_ATTR = qualify("gatewayAlreadyRouted");
 
 	/**
 	 * Gateway already prefixed attribute name.
 	 */
-	public static final String GATEWAY_ALREADY_PREFIXED_ATTR = qualify(
-			"gatewayAlreadyPrefixed");
+	public static final String GATEWAY_ALREADY_PREFIXED_ATTR = qualify("gatewayAlreadyPrefixed");
 
 	/**
 	 * Cached ServerHttpRequestDecorator attribute name. Used when
@@ -179,27 +168,22 @@ public final class ServerWebExchangeUtils {
 		return exchange.getAttributeOrDefault(GATEWAY_ALREADY_ROUTED_ATTR, false);
 	}
 
-	public static boolean setResponseStatus(ServerWebExchange exchange,
-			HttpStatus httpStatus) {
+	public static boolean setResponseStatus(ServerWebExchange exchange, HttpStatus httpStatus) {
 		boolean response = exchange.getResponse().setStatusCode(httpStatus);
 		if (!response && log.isWarnEnabled()) {
-			log.warn("Unable to set status code to " + httpStatus
-					+ ". Response already committed.");
+			log.warn("Unable to set status code to " + httpStatus + ". Response already committed.");
 		}
 		return response;
 	}
 
 	public static void reset(ServerWebExchange exchange) {
 		// TODO: what else to do to reset exchange?
-		Set<String> addedHeaders = exchange.getAttributeOrDefault(
-				CLIENT_RESPONSE_HEADER_NAMES, Collections.emptySet());
-		addedHeaders
-				.forEach(header -> exchange.getResponse().getHeaders().remove(header));
+		Set<String> addedHeaders = exchange.getAttributeOrDefault(CLIENT_RESPONSE_HEADER_NAMES, Collections.emptySet());
+		addedHeaders.forEach(header -> exchange.getResponse().getHeaders().remove(header));
 		removeAlreadyRouted(exchange);
 	}
 
-	public static boolean setResponseStatus(ServerWebExchange exchange,
-			HttpStatusHolder statusHolder) {
+	public static boolean setResponseStatus(ServerWebExchange exchange, HttpStatusHolder statusHolder) {
 		if (exchange.getResponse().isCommitted()) {
 			return false;
 		}
@@ -209,10 +193,8 @@ public final class ServerWebExchangeUtils {
 		if (statusHolder.getHttpStatus() != null) {
 			return setResponseStatus(exchange, statusHolder.getHttpStatus());
 		}
-		if (statusHolder.getStatus() != null
-				&& exchange.getResponse() instanceof AbstractServerHttpResponse) { // non-standard
-			((AbstractServerHttpResponse) exchange.getResponse())
-					.setStatusCodeValue(statusHolder.getStatus());
+		if (statusHolder.getStatus() != null && exchange.getResponse() instanceof AbstractServerHttpResponse) { // non-standard
+			((AbstractServerHttpResponse) exchange.getResponse()).setStatusCodeValue(statusHolder.getStatus());
 			return true;
 		}
 		return false;
@@ -255,15 +237,12 @@ public final class ServerWebExchangeUtils {
 	}
 
 	public static void addOriginalRequestUrl(ServerWebExchange exchange, URI url) {
-		exchange.getAttributes().computeIfAbsent(GATEWAY_ORIGINAL_REQUEST_URL_ATTR,
-				s -> new LinkedHashSet<>());
-		LinkedHashSet<URI> uris = exchange
-				.getRequiredAttribute(GATEWAY_ORIGINAL_REQUEST_URL_ATTR);
+		exchange.getAttributes().computeIfAbsent(GATEWAY_ORIGINAL_REQUEST_URL_ATTR, s -> new LinkedHashSet<>());
+		LinkedHashSet<URI> uris = exchange.getRequiredAttribute(GATEWAY_ORIGINAL_REQUEST_URL_ATTR);
 		uris.add(url);
 	}
 
-	public static AsyncPredicate<ServerWebExchange> toAsyncPredicate(
-			Predicate<? super ServerWebExchange> predicate) {
+	public static AsyncPredicate<ServerWebExchange> toAsyncPredicate(Predicate<? super ServerWebExchange> predicate) {
 		Assert.notNull(predicate, "predicate must not be null");
 		return AsyncPredicate.from(predicate);
 	}
@@ -277,16 +256,14 @@ public final class ServerWebExchangeUtils {
 		}
 
 		Map<String, String> variables = getUriTemplateVariables(exchange);
-		return UriComponentsBuilder.fromPath(template).build().expand(variables)
-				.getPath();
+		return UriComponentsBuilder.fromPath(template).build().expand(variables).getPath();
 	}
 
 	@SuppressWarnings("unchecked")
-	public static void putUriTemplateVariables(ServerWebExchange exchange,
-			Map<String, String> uriVariables) {
+	public static void putUriTemplateVariables(ServerWebExchange exchange, Map<String, String> uriVariables) {
 		if (exchange.getAttributes().containsKey(URI_TEMPLATE_VARIABLES_ATTRIBUTE)) {
-			Map<String, Object> existingVariables = (Map<String, Object>) exchange
-					.getAttributes().get(URI_TEMPLATE_VARIABLES_ATTRIBUTE);
+			Map<String, Object> existingVariables = (Map<String, Object>) exchange.getAttributes()
+					.get(URI_TEMPLATE_VARIABLES_ATTRIBUTE);
 			HashMap<String, Object> newVariables = new HashMap<>();
 			newVariables.putAll(existingVariables);
 			newVariables.putAll(uriVariables);
@@ -297,10 +274,8 @@ public final class ServerWebExchangeUtils {
 		}
 	}
 
-	public static Map<String, String> getUriTemplateVariables(
-			ServerWebExchange exchange) {
-		return exchange.getAttributeOrDefault(URI_TEMPLATE_VARIABLES_ATTRIBUTE,
-				new HashMap<>());
+	public static Map<String, String> getUriTemplateVariables(ServerWebExchange exchange) {
+		return exchange.getAttributeOrDefault(URI_TEMPLATE_VARIABLES_ATTRIBUTE, new HashMap<>());
 	}
 
 	/**
@@ -348,22 +323,19 @@ public final class ServerWebExchangeUtils {
 	 * @param <T> generic type for the return {@link Mono}.
 	 * @return Mono of type T created by the function parameter.
 	 */
-	private static <T> Mono<T> cacheRequestBody(ServerWebExchange exchange,
-			boolean cacheDecoratedRequest,
+	private static <T> Mono<T> cacheRequestBody(ServerWebExchange exchange, boolean cacheDecoratedRequest,
 			Function<ServerHttpRequest, Mono<T>> function) {
 		ServerHttpResponse response = exchange.getResponse();
-		NettyDataBufferFactory factory = (NettyDataBufferFactory) response
-				.bufferFactory();
+		NettyDataBufferFactory factory = (NettyDataBufferFactory) response.bufferFactory();
 		// Join all the DataBuffers so we have a single DataBuffer for the body
 		return DataBufferUtils.join(exchange.getRequest().getBody())
-				.defaultIfEmpty(
-						factory.wrap(new EmptyByteBuf(factory.getByteBufAllocator())))
+				.defaultIfEmpty(factory.wrap(new EmptyByteBuf(factory.getByteBufAllocator())))
 				.map(dataBuffer -> decorate(exchange, dataBuffer, cacheDecoratedRequest))
 				.switchIfEmpty(Mono.just(exchange.getRequest())).flatMap(function);
 	}
 
-	private static ServerHttpRequest decorate(ServerWebExchange exchange,
-			DataBuffer dataBuffer, boolean cacheDecoratedRequest) {
+	private static ServerHttpRequest decorate(ServerWebExchange exchange, DataBuffer dataBuffer,
+			boolean cacheDecoratedRequest) {
 		if (dataBuffer.readableByteCount() > 0) {
 			if (log.isTraceEnabled()) {
 				log.trace("retaining body in exchange attribute");
@@ -371,13 +343,11 @@ public final class ServerWebExchangeUtils {
 			exchange.getAttributes().put(CACHED_REQUEST_BODY_ATTR, dataBuffer);
 		}
 
-		ServerHttpRequest decorator = new ServerHttpRequestDecorator(
-				exchange.getRequest()) {
+		ServerHttpRequest decorator = new ServerHttpRequestDecorator(exchange.getRequest()) {
 			@Override
 			public Flux<DataBuffer> getBody() {
 				return Mono.<DataBuffer>fromSupplier(() -> {
-					if (exchange.getAttributeOrDefault(CACHED_REQUEST_BODY_ATTR,
-							null) == null) {
+					if (exchange.getAttributeOrDefault(CACHED_REQUEST_BODY_ATTR, null) == null) {
 						// probably == downstream closed or no body
 						return null;
 					}
@@ -388,8 +358,7 @@ public final class ServerWebExchangeUtils {
 			}
 		};
 		if (cacheDecoratedRequest) {
-			exchange.getAttributes().put(CACHED_SERVER_HTTP_REQUEST_DECORATOR_ATTR,
-					decorator);
+			exchange.getAttributes().put(CACHED_SERVER_HTTP_REQUEST_DECORATOR_ATTR, decorator);
 		}
 		return decorator;
 	}

@@ -44,19 +44,15 @@ public class BetweenRoutePredicateFactoryIntegrationTests extends BaseWebClientT
 
 	@Test
 	public void betweenPredicateWithValidDates() {
-		testClient.get().uri("/get").header(HttpHeaders.HOST, "www.betweenvalid.org")
-				.exchange().expectStatus().isOk().expectHeader()
-				.valueEquals(HANDLER_MAPPER_HEADER,
-						RoutePredicateHandlerMapping.class.getSimpleName())
+		testClient.get().uri("/get").header(HttpHeaders.HOST, "www.betweenvalid.org").exchange().expectStatus().isOk()
+				.expectHeader().valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName())
 				.expectHeader().valueEquals(ROUTE_ID_HEADER, "test_between_valid");
 	}
 
 	@Test
 	public void notBetweenPredicateWorks() {
-		testClient.get().uri("/get").header(HttpHeaders.HOST, "www.notbetween.org")
-				.exchange().expectStatus().isOk().expectHeader()
-				.valueEquals(HANDLER_MAPPER_HEADER,
-						RoutePredicateHandlerMapping.class.getSimpleName())
+		testClient.get().uri("/get").header(HttpHeaders.HOST, "www.notbetween.org").exchange().expectStatus().isOk()
+				.expectHeader().valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName())
 				// should NOT be not_between_test because Between dates are in the past
 				.expectHeader().valueEquals(ROUTE_ID_HEADER, "default_path_to_httpbin");
 	}
@@ -74,8 +70,7 @@ public class BetweenRoutePredicateFactoryIntegrationTests extends BaseWebClientT
 			return builder.routes()
 					.route("test_between_valid",
 							r -> r.host("**.betweenvalid.org").and()
-									.between(ZonedDateTime.now().minusDays(1),
-											ZonedDateTime.now().plusDays(1))
+									.between(ZonedDateTime.now().minusDays(1), ZonedDateTime.now().plusDays(1))
 									.filters(f -> f.prefixPath("/httpbin")).uri(uri))
 					.build();
 		}

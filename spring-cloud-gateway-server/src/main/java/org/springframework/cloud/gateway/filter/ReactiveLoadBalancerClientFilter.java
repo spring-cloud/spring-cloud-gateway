@@ -50,8 +50,7 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.a
  */
 public class ReactiveLoadBalancerClientFilter implements GlobalFilter, Ordered {
 
-	private static final Log log = LogFactory
-			.getLog(ReactiveLoadBalancerClientFilter.class);
+	private static final Log log = LogFactory.getLog(ReactiveLoadBalancerClientFilter.class);
 
 	/**
 	 * Order of filter.
@@ -78,23 +77,20 @@ public class ReactiveLoadBalancerClientFilter implements GlobalFilter, Ordered {
 	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 		URI url = exchange.getAttribute(GATEWAY_REQUEST_URL_ATTR);
 		String schemePrefix = exchange.getAttribute(GATEWAY_SCHEME_PREFIX_ATTR);
-		if (url == null
-				|| (!"lb".equals(url.getScheme()) && !"lb".equals(schemePrefix))) {
+		if (url == null || (!"lb".equals(url.getScheme()) && !"lb".equals(schemePrefix))) {
 			return chain.filter(exchange);
 		}
 		// preserve the original url
 		addOriginalRequestUrl(exchange, url);
 
 		if (log.isTraceEnabled()) {
-			log.trace(ReactiveLoadBalancerClientFilter.class.getSimpleName()
-					+ " url before: " + url);
+			log.trace(ReactiveLoadBalancerClientFilter.class.getSimpleName() + " url before: " + url);
 		}
 
 		return choose(exchange).doOnNext(response -> {
 
 			if (!response.hasServer()) {
-				throw NotFoundException.create(properties.isUse404(),
-						"Unable to find instance for " + url.getHost());
+				throw NotFoundException.create(properties.isUse404(), "Unable to find instance for " + url.getHost());
 			}
 
 			URI uri = exchange.getRequest().getURI();
@@ -106,8 +102,8 @@ public class ReactiveLoadBalancerClientFilter implements GlobalFilter, Ordered {
 				overrideScheme = url.getScheme();
 			}
 
-			DelegatingServiceInstance serviceInstance = new DelegatingServiceInstance(
-					response.getServer(), overrideScheme);
+			DelegatingServiceInstance serviceInstance = new DelegatingServiceInstance(response.getServer(),
+					overrideScheme);
 
 			URI requestUrl = reconstructURI(serviceInstance, uri);
 
@@ -125,8 +121,8 @@ public class ReactiveLoadBalancerClientFilter implements GlobalFilter, Ordered {
 	@SuppressWarnings("deprecation")
 	private Mono<Response<ServiceInstance>> choose(ServerWebExchange exchange) {
 		URI uri = exchange.getAttribute(GATEWAY_REQUEST_URL_ATTR);
-		ReactorLoadBalancer<ServiceInstance> loadBalancer = this.clientFactory
-				.getInstance(uri.getHost(), ReactorServiceInstanceLoadBalancer.class);
+		ReactorLoadBalancer<ServiceInstance> loadBalancer = this.clientFactory.getInstance(uri.getHost(),
+				ReactorServiceInstanceLoadBalancer.class);
 		if (loadBalancer == null) {
 			throw new NotFoundException("No loadbalancer available for " + uri.getHost());
 		}

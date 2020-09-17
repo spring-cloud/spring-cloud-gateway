@@ -48,12 +48,10 @@ public class GatewayNoLoadBalancerClientAutoConfigurationTests {
 
 	@Test
 	public void noLoadBalancerClientReportsError() {
-		try (ConfigurableApplicationContext context = new SpringApplication(Config.class)
-				.run("--server.port=" + port, "--spring.jmx.enabled=false")) {
-			WebTestClient client = WebTestClient.bindToServer()
-					.baseUrl("http://localhost:" + port).build();
-			client.get().header(HttpHeaders.HOST, "www.lbfail.org").exchange()
-					.expectStatus().is5xxServerError();
+		try (ConfigurableApplicationContext context = new SpringApplication(Config.class).run("--server.port=" + port,
+				"--spring.jmx.enabled=false")) {
+			WebTestClient client = WebTestClient.bindToServer().baseUrl("http://localhost:" + port).build();
+			client.get().header(HttpHeaders.HOST, "www.lbfail.org").exchange().expectStatus().is5xxServerError();
 		}
 	}
 
@@ -64,9 +62,7 @@ public class GatewayNoLoadBalancerClientAutoConfigurationTests {
 
 		@Bean
 		public RouteLocator routeLocator(RouteLocatorBuilder builder) {
-			return builder.routes()
-					.route("lb_fail", r -> r.host("**.lbfail.org").uri("lb://fail"))
-					.build();
+			return builder.routes().route("lb_fail", r -> r.host("**.lbfail.org").uri("lb://fail")).build();
 		}
 
 	}

@@ -50,12 +50,11 @@ public class ProxyResponseAutoConfiguration implements WebFluxConfigurer {
 
 	@Bean
 	@ConditionalOnMissingBean
-	public ProxyExchangeArgumentResolver proxyExchangeArgumentResolver(
-			Optional<WebClient.Builder> optional, ProxyProperties proxy) {
+	public ProxyExchangeArgumentResolver proxyExchangeArgumentResolver(Optional<WebClient.Builder> optional,
+			ProxyProperties proxy) {
 		WebClient.Builder builder = optional.orElse(WebClient.builder());
 		WebClient template = builder.build();
-		ProxyExchangeArgumentResolver resolver = new ProxyExchangeArgumentResolver(
-				template);
+		ProxyExchangeArgumentResolver resolver = new ProxyExchangeArgumentResolver(template);
 		resolver.setHeaders(proxy.convertHeaders());
 		resolver.setAutoForwardedHeaders(proxy.getAutoForward());
 		resolver.setSensitive(proxy.getSensitive()); // can be null
@@ -65,8 +64,7 @@ public class ProxyResponseAutoConfiguration implements WebFluxConfigurer {
 	@Override
 	public void configureArgumentResolvers(ArgumentResolverConfigurer configurer) {
 		WebFluxConfigurer.super.configureArgumentResolvers(configurer);
-		configurer
-				.addCustomResolver(context.getBean(ProxyExchangeArgumentResolver.class));
+		configurer.addCustomResolver(context.getBean(ProxyExchangeArgumentResolver.class));
 	}
 
 }

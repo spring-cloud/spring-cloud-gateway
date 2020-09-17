@@ -76,21 +76,17 @@ public class SetPathGatewayFilterFactoryTests {
 		testFilter("/bar/baz/{id}", "/bar/baz/12 3", variables);
 	}
 
-	private void testFilter(String template, String expectedPath,
-			HashMap<String, String> variables) {
-		GatewayFilter filter = new SetPathGatewayFilterFactory()
-				.apply(c -> c.setTemplate(template));
+	private void testFilter(String template, String expectedPath, HashMap<String, String> variables) {
+		GatewayFilter filter = new SetPathGatewayFilterFactory().apply(c -> c.setTemplate(template));
 
-		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost")
-				.build();
+		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost").build();
 
 		ServerWebExchange exchange = MockServerWebExchange.from(request);
 		ServerWebExchangeUtils.putUriTemplateVariables(exchange, variables);
 
 		GatewayFilterChain filterChain = mock(GatewayFilterChain.class);
 
-		ArgumentCaptor<ServerWebExchange> captor = ArgumentCaptor
-				.forClass(ServerWebExchange.class);
+		ArgumentCaptor<ServerWebExchange> captor = ArgumentCaptor.forClass(ServerWebExchange.class);
 		when(filterChain.filter(captor.capture())).thenReturn(Mono.empty());
 
 		filter.filter(exchange, filterChain);
@@ -98,8 +94,7 @@ public class SetPathGatewayFilterFactoryTests {
 		ServerWebExchange webExchange = captor.getValue();
 
 		assertThat(webExchange.getRequest().getURI()).hasPath(expectedPath);
-		LinkedHashSet<URI> uris = webExchange
-				.getRequiredAttribute(GATEWAY_ORIGINAL_REQUEST_URL_ATTR);
+		LinkedHashSet<URI> uris = webExchange.getRequiredAttribute(GATEWAY_ORIGINAL_REQUEST_URL_ATTR);
 		assertThat(uris).contains(request.getURI());
 	}
 

@@ -67,15 +67,12 @@ public class RouteDefinitionRouteLocator implements RouteLocator {
 	private final GatewayProperties gatewayProperties;
 
 	public RouteDefinitionRouteLocator(RouteDefinitionLocator routeDefinitionLocator,
-			List<RoutePredicateFactory> predicates,
-			List<GatewayFilterFactory> gatewayFilterFactories,
-			GatewayProperties gatewayProperties,
-			ConfigurationService configurationService) {
+			List<RoutePredicateFactory> predicates, List<GatewayFilterFactory> gatewayFilterFactories,
+			GatewayProperties gatewayProperties, ConfigurationService configurationService) {
 		this.routeDefinitionLocator = routeDefinitionLocator;
 		this.configurationService = configurationService;
 		initFactories(predicates);
-		gatewayFilterFactories.forEach(
-				factory -> this.gatewayFilterFactories.put(factory.name(), factory));
+		gatewayFilterFactories.forEach(factory -> this.gatewayFilterFactories.put(factory.name(), factory));
 		this.gatewayProperties = gatewayProperties;
 	}
 
@@ -83,9 +80,8 @@ public class RouteDefinitionRouteLocator implements RouteLocator {
 		predicates.forEach(factory -> {
 			String key = factory.name();
 			if (this.predicates.containsKey(key)) {
-				this.logger.warn("A RoutePredicateFactory named " + key
-						+ " already exists, class: " + this.predicates.get(key)
-						+ ". It will be overwritten.");
+				this.logger.warn("A RoutePredicateFactory named " + key + " already exists, class: "
+						+ this.predicates.get(key) + ". It will be overwritten.");
 			}
 			this.predicates.put(key, factory);
 			if (logger.isInfoEnabled()) {
@@ -96,16 +92,14 @@ public class RouteDefinitionRouteLocator implements RouteLocator {
 
 	@Override
 	public Flux<Route> getRoutes() {
-		Flux<Route> routes = this.routeDefinitionLocator.getRouteDefinitions()
-				.map(this::convertToRoute);
+		Flux<Route> routes = this.routeDefinitionLocator.getRouteDefinitions().map(this::convertToRoute);
 
 		if (!gatewayProperties.isFailOnRouteDefinitionError()) {
 			// instead of letting error bubble up, continue
 			routes = routes.onErrorContinue((error, obj) -> {
 				if (logger.isWarnEnabled()) {
 					logger.warn("RouteDefinition id " + ((RouteDefinition) obj).getId()
-							+ " will be ignored. Definition has invalid configs, "
-							+ error.getMessage());
+							+ " will be ignored. Definition has invalid configs, " + error.getMessage());
 				}
 			});
 		}
@@ -122,26 +116,22 @@ public class RouteDefinitionRouteLocator implements RouteLocator {
 		AsyncPredicate<ServerWebExchange> predicate = combinePredicates(routeDefinition);
 		List<GatewayFilter> gatewayFilters = getFilters(routeDefinition);
 
-		return Route.async(routeDefinition).asyncPredicate(predicate)
-				.replaceFilters(gatewayFilters).build();
+		return Route.async(routeDefinition).asyncPredicate(predicate).replaceFilters(gatewayFilters).build();
 	}
 
 	@SuppressWarnings("unchecked")
-	List<GatewayFilter> loadGatewayFilters(String id,
-			List<FilterDefinition> filterDefinitions) {
+	List<GatewayFilter> loadGatewayFilters(String id, List<FilterDefinition> filterDefinitions) {
 		ArrayList<GatewayFilter> ordered = new ArrayList<>(filterDefinitions.size());
 		for (int i = 0; i < filterDefinitions.size(); i++) {
 			FilterDefinition definition = filterDefinitions.get(i);
-			GatewayFilterFactory factory = this.gatewayFilterFactories
-					.get(definition.getName());
+			GatewayFilterFactory factory = this.gatewayFilterFactories.get(definition.getName());
 			if (factory == null) {
 				throw new IllegalArgumentException(
-						"Unable to find GatewayFilterFactory with name "
-								+ definition.getName());
+						"Unable to find GatewayFilterFactory with name " + definition.getName());
 			}
 			if (logger.isDebugEnabled()) {
-				logger.debug("RouteDefinition " + id + " applying filter "
-						+ definition.getArgs() + " to " + definition.getName());
+				logger.debug("RouteDefinition " + id + " applying filter " + definition.getArgs() + " to "
+						+ definition.getName());
 			}
 
 			// @formatter:off
@@ -178,33 +168,28 @@ public class RouteDefinitionRouteLocator implements RouteLocator {
 
 		// TODO: support option to apply defaults after route specific filters?
 		if (!this.gatewayProperties.getDefaultFilters().isEmpty()) {
-			filters.addAll(loadGatewayFilters(DEFAULT_FILTERS,
-					new ArrayList<>(this.gatewayProperties.getDefaultFilters())));
+			filters.addAll(
+					loadGatewayFilters(DEFAULT_FILTERS, new ArrayList<>(this.gatewayProperties.getDefaultFilters())));
 		}
 
 		if (!routeDefinition.getFilters().isEmpty()) {
-			filters.addAll(loadGatewayFilters(routeDefinition.getId(),
-					new ArrayList<>(routeDefinition.getFilters())));
+			filters.addAll(loadGatewayFilters(routeDefinition.getId(), new ArrayList<>(routeDefinition.getFilters())));
 		}
 
 		AnnotationAwareOrderComparator.sort(filters);
 		return filters;
 	}
 
-	private AsyncPredicate<ServerWebExchange> combinePredicates(
-			RouteDefinition routeDefinition) {
+	private AsyncPredicate<ServerWebExchange> combinePredicates(RouteDefinition routeDefinition) {
 		List<PredicateDefinition> predicates = routeDefinition.getPredicates();
 		if (predicates == null || predicates.isEmpty()) {
 			// this is a very rare case, but possible, just match all
 			return AsyncPredicate.from(exchange -> true);
 		}
-		AsyncPredicate<ServerWebExchange> predicate = lookup(routeDefinition,
-				predicates.get(0));
+		AsyncPredicate<ServerWebExchange> predicate = lookup(routeDefinition, predicates.get(0));
 
-		for (PredicateDefinition andPredicate : predicates.subList(1,
-				predicates.size())) {
-			AsyncPredicate<ServerWebExchange> found = lookup(routeDefinition,
-					andPredicate);
+		for (PredicateDefinition andPredicate : predicates.subList(1, predicates.size())) {
+			AsyncPredicate<ServerWebExchange> found = lookup(routeDefinition, andPredicate);
 			predicate = predicate.and(found);
 		}
 
@@ -212,17 +197,14 @@ public class RouteDefinitionRouteLocator implements RouteLocator {
 	}
 
 	@SuppressWarnings("unchecked")
-	private AsyncPredicate<ServerWebExchange> lookup(RouteDefinition route,
-			PredicateDefinition predicate) {
+	private AsyncPredicate<ServerWebExchange> lookup(RouteDefinition route, PredicateDefinition predicate) {
 		RoutePredicateFactory<Object> factory = this.predicates.get(predicate.getName());
 		if (factory == null) {
-			throw new IllegalArgumentException(
-					"Unable to find RoutePredicateFactory with name "
-							+ predicate.getName());
+			throw new IllegalArgumentException("Unable to find RoutePredicateFactory with name " + predicate.getName());
 		}
 		if (logger.isDebugEnabled()) {
-			logger.debug("RouteDefinition " + route.getId() + " applying "
-					+ predicate.getArgs() + " to " + predicate.getName());
+			logger.debug("RouteDefinition " + route.getId() + " applying " + predicate.getArgs() + " to "
+					+ predicate.getName());
 		}
 
 		// @formatter:off

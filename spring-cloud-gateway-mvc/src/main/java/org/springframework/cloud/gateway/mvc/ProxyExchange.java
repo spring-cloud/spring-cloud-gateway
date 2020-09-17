@@ -137,8 +137,7 @@ public class ProxyExchange<T> {
 	/**
 	 * Contains headers that are considered case-sensitive by default.
 	 */
-	public static Set<String> DEFAULT_SENSITIVE = new HashSet<>(
-			Arrays.asList("cookie", "authorization"));
+	public static Set<String> DEFAULT_SENSITIVE = new HashSet<>(Arrays.asList("cookie", "authorization"));
 
 	private URI uri;
 
@@ -160,16 +159,14 @@ public class ProxyExchange<T> {
 
 	private Type responseType;
 
-	public ProxyExchange(RestTemplate rest, NativeWebRequest webRequest,
-			ModelAndViewContainer mavContainer, WebDataBinderFactory binderFactory,
-			Type type) {
+	public ProxyExchange(RestTemplate rest, NativeWebRequest webRequest, ModelAndViewContainer mavContainer,
+			WebDataBinderFactory binderFactory, Type type) {
 		this.responseType = type;
 		this.rest = rest;
 		this.webRequest = webRequest;
 		this.mavContainer = mavContainer;
 		this.binderFactory = binderFactory;
-		this.delegate = new RequestResponseBodyMethodProcessor(
-				rest.getMessageConverters());
+		this.delegate = new RequestResponseBodyMethodProcessor(rest.getMessageConverters());
 	}
 
 	/**
@@ -249,28 +246,24 @@ public class ProxyExchange<T> {
 	}
 
 	public String path() {
-		return (String) this.webRequest.getAttribute(
-				HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE,
+		return (String) this.webRequest.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE,
 				WebRequest.SCOPE_REQUEST);
 	}
 
 	public String path(String prefix) {
 		String path = path();
 		if (!path.startsWith(prefix)) {
-			throw new IllegalArgumentException(
-					"Path does not start with prefix (" + prefix + "): " + path);
+			throw new IllegalArgumentException("Path does not start with prefix (" + prefix + "): " + path);
 		}
 		return path.substring(prefix.length());
 	}
 
 	public void forward(String path) {
-		HttpServletRequest request = this.webRequest
-				.getNativeRequest(HttpServletRequest.class);
-		HttpServletResponse response = this.webRequest
-				.getNativeResponse(HttpServletResponse.class);
+		HttpServletRequest request = this.webRequest.getNativeRequest(HttpServletRequest.class);
+		HttpServletResponse response = this.webRequest.getNativeResponse(HttpServletResponse.class);
 		try {
-			request.getRequestDispatcher(path).forward(
-					new BodyForwardingHttpServletRequest(request, response), response);
+			request.getRequestDispatcher(path).forward(new BodyForwardingHttpServletRequest(request, response),
+					response);
 		}
 		catch (Exception e) {
 			throw new IllegalStateException("Cannot forward request", e);
@@ -278,79 +271,65 @@ public class ProxyExchange<T> {
 	}
 
 	public ResponseEntity<T> get() {
-		RequestEntity<?> requestEntity = headers((BodyBuilder) RequestEntity.get(uri))
-				.build();
+		RequestEntity<?> requestEntity = headers((BodyBuilder) RequestEntity.get(uri)).build();
 		return exchange(requestEntity);
 	}
 
-	public <S> ResponseEntity<S> get(
-			Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
+	public <S> ResponseEntity<S> get(Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
 		return converter.apply(get());
 	}
 
 	public ResponseEntity<T> head() {
-		RequestEntity<?> requestEntity = headers((BodyBuilder) RequestEntity.head(uri))
-				.build();
+		RequestEntity<?> requestEntity = headers((BodyBuilder) RequestEntity.head(uri)).build();
 		return exchange(requestEntity);
 	}
 
-	public <S> ResponseEntity<S> head(
-			Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
+	public <S> ResponseEntity<S> head(Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
 		return converter.apply(head());
 	}
 
 	public ResponseEntity<T> options() {
-		RequestEntity<?> requestEntity = headers((BodyBuilder) RequestEntity.options(uri))
-				.build();
+		RequestEntity<?> requestEntity = headers((BodyBuilder) RequestEntity.options(uri)).build();
 		return exchange(requestEntity);
 	}
 
-	public <S> ResponseEntity<S> options(
-			Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
+	public <S> ResponseEntity<S> options(Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
 		return converter.apply(options());
 	}
 
 	public ResponseEntity<T> post() {
-		RequestEntity<Object> requestEntity = headers(RequestEntity.post(uri))
-				.body(body());
+		RequestEntity<Object> requestEntity = headers(RequestEntity.post(uri)).body(body());
 		return exchange(requestEntity);
 	}
 
-	public <S> ResponseEntity<S> post(
-			Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
+	public <S> ResponseEntity<S> post(Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
 		return converter.apply(post());
 	}
 
 	public ResponseEntity<T> delete() {
-		RequestEntity<Object> requestEntity = headers(
-				(BodyBuilder) RequestEntity.delete(uri)).body(body());
+		RequestEntity<Object> requestEntity = headers((BodyBuilder) RequestEntity.delete(uri)).body(body());
 		return exchange(requestEntity);
 	}
 
-	public <S> ResponseEntity<S> delete(
-			Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
+	public <S> ResponseEntity<S> delete(Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
 		return converter.apply(delete());
 	}
 
 	public ResponseEntity<T> put() {
-		RequestEntity<Object> requestEntity = headers(RequestEntity.put(uri))
-				.body(body());
+		RequestEntity<Object> requestEntity = headers(RequestEntity.put(uri)).body(body());
 		return exchange(requestEntity);
 	}
 
-	public <S> ResponseEntity<S> put(
-			Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
+	public <S> ResponseEntity<S> put(Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
 		return converter.apply(put());
 	}
 
 	public ResponseEntity<T> patch() {
-		RequestEntity<Object> requestEntity = headers(RequestEntity.patch(uri))
-				.body(body());
+		RequestEntity<Object> requestEntity = headers(RequestEntity.patch(uri)).body(body());
 		return exchange(requestEntity);
 	}
 
-	public <S> ResponseEntity<S> patch(
-			Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
+	public <S> ResponseEntity<S> patch(Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
 		return converter.apply(patch());
 	}
 
@@ -359,8 +338,7 @@ public class ProxyExchange<T> {
 		if (type instanceof TypeVariable || type instanceof WildcardType) {
 			type = Object.class;
 		}
-		return rest.exchange(requestEntity,
-				ParameterizedTypeReference.forType(responseType));
+		return rest.exchange(requestEntity, ParameterizedTypeReference.forType(responseType));
 	}
 
 	private BodyBuilder headers(BodyBuilder builder) {
@@ -380,14 +358,13 @@ public class ProxyExchange<T> {
 
 	private void proxy() {
 		try {
-			URI uri = new URI(webRequest.getNativeRequest(HttpServletRequest.class)
-					.getRequestURL().toString());
+			URI uri = new URI(webRequest.getNativeRequest(HttpServletRequest.class).getRequestURL().toString());
 			appendForwarded(uri);
 			appendXForwarded(uri);
 		}
 		catch (URISyntaxException e) {
-			throw new IllegalStateException("Cannot create URI for request: " + webRequest
-					.getNativeRequest(HttpServletRequest.class).getRequestURL());
+			throw new IllegalStateException("Cannot create URI for request: "
+					+ webRequest.getNativeRequest(HttpServletRequest.class).getRequestURL());
 		}
 	}
 
@@ -450,8 +427,7 @@ public class ProxyExchange<T> {
 				return result.getTarget();
 			}
 		}
-		MethodParameter input = new MethodParameter(
-				ClassUtils.getMethod(BodyGrabber.class, "body", Object.class), 0);
+		MethodParameter input = new MethodParameter(ClassUtils.getMethod(BodyGrabber.class, "body", Object.class), 0);
 		try {
 			delegate.resolveArgument(input, mavContainer, webRequest, binderFactory);
 		}
@@ -459,8 +435,7 @@ public class ProxyExchange<T> {
 			throw new IllegalStateException("Cannot resolve body", e);
 		}
 		String name = Conventions.getVariableNameForParameter(input);
-		BindingResult result = (BindingResult) mavContainer.getModel()
-				.get(BindingResult.MODEL_KEY_PREFIX + name);
+		BindingResult result = (BindingResult) mavContainer.getModel().get(BindingResult.MODEL_KEY_PREFIX + name);
 		return result.getTarget();
 	}
 
@@ -493,8 +468,7 @@ public class ProxyExchange<T> {
 
 		private HttpServletResponse response;
 
-		BodyForwardingHttpServletRequest(HttpServletRequest request,
-				HttpServletResponse response) {
+		BodyForwardingHttpServletRequest(HttpServletRequest request, HttpServletResponse response) {
 			super(request);
 			this.request = request;
 			this.response = response;
@@ -508,16 +482,13 @@ public class ProxyExchange<T> {
 		@Override
 		public ServletInputStream getInputStream() throws IOException {
 			Object body = body();
-			MethodParameter output = new MethodParameter(
-					ClassUtils.getMethod(BodySender.class, "body"), -1);
-			ServletOutputToInputConverter response = new ServletOutputToInputConverter(
-					this.response);
+			MethodParameter output = new MethodParameter(ClassUtils.getMethod(BodySender.class, "body"), -1);
+			ServletOutputToInputConverter response = new ServletOutputToInputConverter(this.response);
 			ServletWebRequest webRequest = new ServletWebRequest(this.request, response);
 			try {
 				delegate.handleReturnValue(body, output, mavContainer, webRequest);
 			}
-			catch (HttpMessageNotWritableException
-					| HttpMediaTypeNotAcceptableException e) {
+			catch (HttpMessageNotWritableException | HttpMediaTypeNotAcceptableException e) {
 				throw new IllegalStateException("Cannot convert body", e);
 			}
 			return response.getInputStream();
@@ -596,8 +567,7 @@ class ServletOutputToInputConverter extends HttpServletResponseWrapper {
 	}
 
 	public ServletInputStream getInputStream() {
-		ByteArrayInputStream body = new ByteArrayInputStream(
-				builder.toString().getBytes());
+		ByteArrayInputStream body = new ByteArrayInputStream(builder.toString().getBytes());
 		return new ServletInputStream() {
 
 			@Override

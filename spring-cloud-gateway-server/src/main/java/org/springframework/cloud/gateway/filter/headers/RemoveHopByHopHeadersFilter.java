@@ -32,9 +32,8 @@ public class RemoveHopByHopHeadersFilter implements HttpHeadersFilter, Ordered {
 	 * Headers to remove as the result of applying the filter.
 	 */
 	public static final Set<String> HEADERS_REMOVED_ON_REQUEST = new HashSet<>(
-			Arrays.asList("connection", "keep-alive", "transfer-encoding", "te",
-					"trailer", "proxy-authorization", "proxy-authenticate",
-					"x-application-context", "upgrade"
+			Arrays.asList("connection", "keep-alive", "transfer-encoding", "te", "trailer", "proxy-authorization",
+					"proxy-authenticate", "x-application-context", "upgrade"
 			// these two are not listed in
 			// https://tools.ietf.org/html/draft-ietf-httpbis-p1-messaging-14#section-7.1.3
 			// "proxy-connection",
@@ -66,8 +65,7 @@ public class RemoveHopByHopHeadersFilter implements HttpHeadersFilter, Ordered {
 	public HttpHeaders filter(HttpHeaders input, ServerWebExchange exchange) {
 		HttpHeaders filtered = new HttpHeaders();
 
-		input.entrySet().stream()
-				.filter(entry -> !this.headers.contains(entry.getKey().toLowerCase()))
+		input.entrySet().stream().filter(entry -> !this.headers.contains(entry.getKey().toLowerCase()))
 				.forEach(entry -> filtered.addAll(entry.getKey(), entry.getValue()));
 
 		return filtered;

@@ -45,8 +45,7 @@ public class FallbackHeadersGatewayFilterFactory
 	@Override
 	public GatewayFilter apply(Config config) {
 		return (exchange, chain) -> {
-			Throwable exception = exchange
-					.getAttribute(CIRCUITBREAKER_EXECUTION_EXCEPTION_ATTR);
+			Throwable exception = exchange.getAttribute(CIRCUITBREAKER_EXECUTION_EXCEPTION_ATTR);
 			ServerWebExchange filteredExchange;
 			if (exception == null) {
 				filteredExchange = exchange;
@@ -58,19 +57,15 @@ public class FallbackHeadersGatewayFilterFactory
 		};
 	}
 
-	private ServerWebExchange addFallbackHeaders(Config config,
-			ServerWebExchange exchange, Throwable executionException) {
+	private ServerWebExchange addFallbackHeaders(Config config, ServerWebExchange exchange,
+			Throwable executionException) {
 		ServerHttpRequest.Builder requestBuilder = exchange.getRequest().mutate();
-		requestBuilder.header(config.executionExceptionTypeHeaderName,
-				executionException.getClass().getName());
-		requestBuilder.header(config.executionExceptionMessageHeaderName,
-				executionException.getMessage());
+		requestBuilder.header(config.executionExceptionTypeHeaderName, executionException.getClass().getName());
+		requestBuilder.header(config.executionExceptionMessageHeaderName, executionException.getMessage());
 		Throwable rootCause = getRootCause(executionException);
 		if (rootCause != null) {
-			requestBuilder.header(config.rootCauseExceptionTypeHeaderName,
-					rootCause.getClass().getName());
-			requestBuilder.header(config.rootCauseExceptionMessageHeaderName,
-					rootCause.getMessage());
+			requestBuilder.header(config.rootCauseExceptionTypeHeaderName, rootCause.getClass().getName());
+			requestBuilder.header(config.rootCauseExceptionMessageHeaderName, rootCause.getMessage());
 		}
 		return exchange.mutate().request(requestBuilder.build()).build();
 	}
@@ -111,8 +106,7 @@ public class FallbackHeadersGatewayFilterFactory
 			return executionExceptionTypeHeaderName;
 		}
 
-		public void setExecutionExceptionTypeHeaderName(
-				String executionExceptionTypeHeaderName) {
+		public void setExecutionExceptionTypeHeaderName(String executionExceptionTypeHeaderName) {
 			this.executionExceptionTypeHeaderName = executionExceptionTypeHeaderName;
 		}
 
@@ -120,8 +114,7 @@ public class FallbackHeadersGatewayFilterFactory
 			return executionExceptionMessageHeaderName;
 		}
 
-		public void setExecutionExceptionMessageHeaderName(
-				String executionExceptionMessageHeaderName) {
+		public void setExecutionExceptionMessageHeaderName(String executionExceptionMessageHeaderName) {
 			this.executionExceptionMessageHeaderName = executionExceptionMessageHeaderName;
 		}
 
@@ -129,8 +122,7 @@ public class FallbackHeadersGatewayFilterFactory
 			return rootCauseExceptionTypeHeaderName;
 		}
 
-		public void setRootCauseExceptionTypeHeaderName(
-				String rootCauseExceptionTypeHeaderName) {
+		public void setRootCauseExceptionTypeHeaderName(String rootCauseExceptionTypeHeaderName) {
 			this.rootCauseExceptionTypeHeaderName = rootCauseExceptionTypeHeaderName;
 		}
 
@@ -138,8 +130,7 @@ public class FallbackHeadersGatewayFilterFactory
 			return rootCauseExceptionMessageHeaderName;
 		}
 
-		public void setCauseExceptionMessageHeaderName(
-				String causeExceptionMessageHeaderName) {
+		public void setCauseExceptionMessageHeaderName(String causeExceptionMessageHeaderName) {
 			this.rootCauseExceptionMessageHeaderName = causeExceptionMessageHeaderName;
 		}
 

@@ -52,8 +52,7 @@ import org.springframework.validation.annotation.Validated;
  * @author Denis Cutic
  */
 @ConfigurationProperties("spring.cloud.gateway.redis-rate-limiter")
-public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Config>
-		implements ApplicationContextAware {
+public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Config> implements ApplicationContextAware {
 
 	/**
 	 * Redis Rate Limiter property name.
@@ -117,8 +116,8 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 	/** The name of the header that returns the requested tokens configuration. */
 	private String requestedTokensHeader = REQUESTED_TOKENS_HEADER;
 
-	public RedisRateLimiter(ReactiveStringRedisTemplate redisTemplate,
-			RedisScript<List<Long>> script, ConfigurationService configurationService) {
+	public RedisRateLimiter(ReactiveStringRedisTemplate redisTemplate, RedisScript<List<Long>> script,
+			ConfigurationService configurationService) {
 		super(Config.class, CONFIGURATION_PROPERTY_NAME, configurationService);
 		this.redisTemplate = redisTemplate;
 		this.script = script;
@@ -133,8 +132,7 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 	 */
 	public RedisRateLimiter(int defaultReplenishRate, int defaultBurstCapacity) {
 		super(Config.class, CONFIGURATION_PROPERTY_NAME, (ConfigurationService) null);
-		this.defaultConfig = new Config().setReplenishRate(defaultReplenishRate)
-				.setBurstCapacity(defaultBurstCapacity);
+		this.defaultConfig = new Config().setReplenishRate(defaultReplenishRate).setBurstCapacity(defaultBurstCapacity);
 	}
 
 	/**
@@ -144,8 +142,7 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 	 * algorithm.
 	 * @param defaultRequestedTokens how many tokens are requested per request.
 	 */
-	public RedisRateLimiter(int defaultReplenishRate, int defaultBurstCapacity,
-			int defaultRequestedTokens) {
+	public RedisRateLimiter(int defaultReplenishRate, int defaultBurstCapacity, int defaultRequestedTokens) {
 		this(defaultReplenishRate, defaultBurstCapacity);
 		this.defaultConfig.setRequestedTokens(defaultRequestedTokens);
 	}
@@ -253,12 +250,10 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 			List<String> keys = getKeys(id);
 
 			// The arguments to the LUA script. time() returns unixtime in seconds.
-			List<String> scriptArgs = Arrays.asList(replenishRate + "",
-					burstCapacity + "", Instant.now().getEpochSecond() + "",
-					requestedTokens + "");
+			List<String> scriptArgs = Arrays.asList(replenishRate + "", burstCapacity + "",
+					Instant.now().getEpochSecond() + "", requestedTokens + "");
 			// allowed, tokens_left = redis.eval(SCRIPT, keys, args)
-			Flux<List<Long>> flux = this.redisTemplate.execute(this.script, keys,
-					scriptArgs);
+			Flux<List<Long>> flux = this.redisTemplate.execute(this.script, keys, scriptArgs);
 			// .log("redisratelimiter", Level.FINER);
 			return flux.onErrorResume(throwable -> {
 				if (log.isDebugEnabled()) {
@@ -272,8 +267,7 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 				boolean allowed = results.get(0) == 1L;
 				Long tokensLeft = results.get(1);
 
-				Response response = new Response(allowed,
-						getHeaders(routeConfig, tokensLeft));
+				Response response = new Response(allowed, getHeaders(routeConfig, tokensLeft));
 
 				if (log.isDebugEnabled()) {
 					log.debug("response: " + response);
@@ -300,8 +294,7 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 		}
 
 		if (routeConfig == null) {
-			throw new IllegalArgumentException(
-					"No Configuration found for route " + routeId + " or defaultFilters");
+			throw new IllegalArgumentException("No Configuration found for route " + routeId + " or defaultFilters");
 		}
 		return routeConfig;
 	}
@@ -311,12 +304,9 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 		Map<String, String> headers = new HashMap<>();
 		if (isIncludeHeaders()) {
 			headers.put(this.remainingHeader, tokensLeft.toString());
-			headers.put(this.replenishRateHeader,
-					String.valueOf(config.getReplenishRate()));
-			headers.put(this.burstCapacityHeader,
-					String.valueOf(config.getBurstCapacity()));
-			headers.put(this.requestedTokensHeader,
-					String.valueOf(config.getRequestedTokens()));
+			headers.put(this.replenishRateHeader, String.valueOf(config.getReplenishRate()));
+			headers.put(this.burstCapacityHeader, String.valueOf(config.getBurstCapacity()));
+			headers.put(this.requestedTokensHeader, String.valueOf(config.getRequestedTokens()));
 		}
 		return headers;
 	}
@@ -363,8 +353,7 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 		@Override
 		public String toString() {
 			return new ToStringCreator(this).append("replenishRate", replenishRate)
-					.append("burstCapacity", burstCapacity)
-					.append("requestedTokens", requestedTokens).toString();
+					.append("burstCapacity", burstCapacity).append("requestedTokens", requestedTokens).toString();
 
 		}
 

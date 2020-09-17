@@ -83,8 +83,7 @@ public class RequestRateLimiterGatewayFilterFactoryTests extends BaseWebClientTe
 
 	@Test
 	public void notAllowedWorks() {
-		assertFilterFactory(resolver2, "notallowedkey", false,
-				HttpStatus.TOO_MANY_REQUESTS);
+		assertFilterFactory(resolver2, "notallowedkey", false, HttpStatus.TOO_MANY_REQUESTS);
 	}
 
 	@Test
@@ -97,30 +96,26 @@ public class RequestRateLimiterGatewayFilterFactoryTests extends BaseWebClientTe
 		assertFilterFactory(exchange -> Mono.empty(), null, true, HttpStatus.OK, false);
 	}
 
-	private void assertFilterFactory(KeyResolver keyResolver, String key, boolean allowed,
-			HttpStatus expectedStatus) {
+	private void assertFilterFactory(KeyResolver keyResolver, String key, boolean allowed, HttpStatus expectedStatus) {
 		assertFilterFactory(keyResolver, key, allowed, expectedStatus, null);
 	}
 
-	private void assertFilterFactory(KeyResolver keyResolver, String key, boolean allowed,
-			HttpStatus expectedStatus, Boolean denyEmptyKey) {
+	private void assertFilterFactory(KeyResolver keyResolver, String key, boolean allowed, HttpStatus expectedStatus,
+			Boolean denyEmptyKey) {
 
 		String tokensRemaining = allowed ? "1" : "0";
 
-		Map<String, String> headers = Collections.singletonMap("X-Tokens-Remaining",
-				tokensRemaining);
+		Map<String, String> headers = Collections.singletonMap("X-Tokens-Remaining", tokensRemaining);
 
 		if (key != null) {
-			when(rateLimiter.isAllowed("myroute", key))
-					.thenReturn(Mono.just(new Response(allowed, headers)));
+			when(rateLimiter.isAllowed("myroute", key)).thenReturn(Mono.just(new Response(allowed, headers)));
 		}
 
 		MockServerHttpRequest request = MockServerHttpRequest.get("/").build();
 		MockServerWebExchange exchange = MockServerWebExchange.from(request);
 		exchange.getResponse().setStatusCode(HttpStatus.OK);
 		exchange.getAttributes().put(ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR,
-				Route.async().id("myroute").predicate(ex -> true).uri("http://localhost")
-						.build());
+				Route.async().id("myroute").predicate(ex -> true).uri("http://localhost").build());
 
 		when(this.filterChain.filter(exchange)).thenReturn(Mono.empty());
 
@@ -137,8 +132,8 @@ public class RequestRateLimiterGatewayFilterFactoryTests extends BaseWebClientTe
 		Mono<Void> response = filter.filter(exchange, this.filterChain);
 		response.subscribe(aVoid -> {
 			assertThat(exchange.getResponse().getStatusCode()).isEqualTo(expectedStatus);
-			assertThat(exchange.getResponse().getHeaders()).containsEntry(
-					"X-Tokens-Remaining", Collections.singletonList(tokensRemaining));
+			assertThat(exchange.getResponse().getHeaders()).containsEntry("X-Tokens-Remaining",
+					Collections.singletonList(tokensRemaining));
 		});
 
 	}

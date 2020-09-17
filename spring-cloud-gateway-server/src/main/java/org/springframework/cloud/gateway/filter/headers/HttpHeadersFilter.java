@@ -23,23 +23,20 @@ import org.springframework.web.server.ServerWebExchange;
 
 public interface HttpHeadersFilter {
 
-	static HttpHeaders filterRequest(List<HttpHeadersFilter> filters,
-			ServerWebExchange exchange) {
+	static HttpHeaders filterRequest(List<HttpHeadersFilter> filters, ServerWebExchange exchange) {
 		HttpHeaders headers = exchange.getRequest().getHeaders();
 		return filter(filters, headers, exchange, Type.REQUEST);
 	}
 
-	static HttpHeaders filter(List<HttpHeadersFilter> filters, HttpHeaders input,
-			ServerWebExchange exchange, Type type) {
+	static HttpHeaders filter(List<HttpHeadersFilter> filters, HttpHeaders input, ServerWebExchange exchange,
+			Type type) {
 		HttpHeaders response = input;
 		if (filters != null) {
-			HttpHeaders reduce = filters.stream()
-					.filter(headersFilter -> headersFilter.supports(type)).reduce(input,
-							(headers, filter) -> filter.filter(headers, exchange),
-							(httpHeaders, httpHeaders2) -> {
-								httpHeaders.addAll(httpHeaders2);
-								return httpHeaders;
-							});
+			HttpHeaders reduce = filters.stream().filter(headersFilter -> headersFilter.supports(type)).reduce(input,
+					(headers, filter) -> filter.filter(headers, exchange), (httpHeaders, httpHeaders2) -> {
+						httpHeaders.addAll(httpHeaders2);
+						return httpHeaders;
+					});
 			return reduce;
 		}
 

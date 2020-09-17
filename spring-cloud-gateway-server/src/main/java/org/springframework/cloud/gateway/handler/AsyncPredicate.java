@@ -47,8 +47,7 @@ public interface AsyncPredicate<T> extends Function<T, Publisher<Boolean>> {
 		return new OrAsyncPredicate<>(this, other);
 	}
 
-	static AsyncPredicate<ServerWebExchange> from(
-			Predicate<? super ServerWebExchange> predicate) {
+	static AsyncPredicate<ServerWebExchange> from(Predicate<? super ServerWebExchange> predicate) {
 		return new DefaultAsyncPredicate<>(GatewayPredicate.wrapIfNeeded(predicate));
 	}
 
@@ -99,8 +98,7 @@ public interface AsyncPredicate<T> extends Function<T, Publisher<Boolean>> {
 
 		private final AsyncPredicate<? super T> right;
 
-		public AndAsyncPredicate(AsyncPredicate<? super T> left,
-				AsyncPredicate<? super T> right) {
+		public AndAsyncPredicate(AsyncPredicate<? super T> left, AsyncPredicate<? super T> right) {
 			Assert.notNull(left, "Left AsyncPredicate must not be null");
 			Assert.notNull(right, "Right AsyncPredicate must not be null");
 			this.left = left;
@@ -109,8 +107,7 @@ public interface AsyncPredicate<T> extends Function<T, Publisher<Boolean>> {
 
 		@Override
 		public Publisher<Boolean> apply(T t) {
-			return Mono.from(left.apply(t)).flatMap(
-					result -> !result ? Mono.just(false) : Mono.from(right.apply(t)));
+			return Mono.from(left.apply(t)).flatMap(result -> !result ? Mono.just(false) : Mono.from(right.apply(t)));
 		}
 
 		@Override
@@ -126,8 +123,7 @@ public interface AsyncPredicate<T> extends Function<T, Publisher<Boolean>> {
 
 		private final AsyncPredicate<? super T> right;
 
-		public OrAsyncPredicate(AsyncPredicate<? super T> left,
-				AsyncPredicate<? super T> right) {
+		public OrAsyncPredicate(AsyncPredicate<? super T> left, AsyncPredicate<? super T> right) {
 			Assert.notNull(left, "Left AsyncPredicate must not be null");
 			Assert.notNull(right, "Right AsyncPredicate must not be null");
 			this.left = left;
@@ -136,8 +132,7 @@ public interface AsyncPredicate<T> extends Function<T, Publisher<Boolean>> {
 
 		@Override
 		public Publisher<Boolean> apply(T t) {
-			return Mono.from(left.apply(t)).flatMap(
-					result -> result ? Mono.just(true) : Mono.from(right.apply(t)));
+			return Mono.from(left.apply(t)).flatMap(result -> result ? Mono.just(true) : Mono.from(right.apply(t)));
 		}
 
 		@Override

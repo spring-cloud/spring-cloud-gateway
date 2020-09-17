@@ -40,8 +40,8 @@ public class CachedBodyOutputMessage implements ReactiveHttpOutputMessage {
 
 	private boolean cached = false;
 
-	private Flux<DataBuffer> body = Flux.error(new IllegalStateException(
-			"The body is not set. " + "Did handling complete with success?"));
+	private Flux<DataBuffer> body = Flux
+			.error(new IllegalStateException("The body is not set. " + "Did handling complete with success?"));
 
 	public CachedBodyOutputMessage(ServerWebExchange exchange, HttpHeaders httpHeaders) {
 		this.bufferFactory = exchange.getResponse().bufferFactory();
@@ -87,8 +87,7 @@ public class CachedBodyOutputMessage implements ReactiveHttpOutputMessage {
 	}
 
 	@Override
-	public Mono<Void> writeAndFlushWith(
-			Publisher<? extends Publisher<? extends DataBuffer>> body) {
+	public Mono<Void> writeAndFlushWith(Publisher<? extends Publisher<? extends DataBuffer>> body) {
 		return writeWith(Flux.from(body).flatMap(p -> p));
 	}
 

@@ -36,15 +36,13 @@ public class SetPathGatewayFilterFactoryIntegrationTests extends BaseWebClientTe
 
 	@Test
 	public void setPathFilterDefaultValuesWork() {
-		testClient.get().uri("/foo/get").header("Host", "www.setpath.org").exchange()
-				.expectStatus().isOk().expectHeader()
-				.valueEquals(ROUTE_ID_HEADER, "set_path_test");
+		testClient.get().uri("/foo/get").header("Host", "www.setpath.org").exchange().expectStatus().isOk()
+				.expectHeader().valueEquals(ROUTE_ID_HEADER, "set_path_test");
 	}
 
 	@Test
 	public void setPathViaHostFilterWork() {
-		testClient.get().uri("/").header("Host", "get.setpathhost.org").exchange()
-				.expectStatus().isOk().expectHeader()
+		testClient.get().uri("/").header("Host", "get.setpathhost.org").exchange().expectStatus().isOk().expectHeader()
 				.valueEquals(ROUTE_ID_HEADER, "set_path_host_test");
 	}
 

@@ -47,8 +47,7 @@ import org.springframework.util.StringUtils;
  */
 public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLocator {
 
-	private static final Log log = LogFactory
-			.getLog(DiscoveryClientRouteDefinitionLocator.class);
+	private static final Log log = LogFactory.getLog(DiscoveryClientRouteDefinitionLocator.class);
 
 	private final DiscoveryLocatorProperties properties;
 
@@ -65,8 +64,7 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 				.flatMap(service -> discoveryClient.getInstances(service).collectList());
 	}
 
-	private DiscoveryClientRouteDefinitionLocator(String discoveryClientName,
-			DiscoveryLocatorProperties properties) {
+	private DiscoveryClientRouteDefinitionLocator(String discoveryClientName, DiscoveryLocatorProperties properties) {
 		this.properties = properties;
 		if (StringUtils.hasText(properties.getRouteIdPrefix())) {
 			routeIdPrefix = properties.getRouteIdPrefix();
@@ -74,21 +72,18 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 		else {
 			routeIdPrefix = discoveryClientName + "_";
 		}
-		evalCtxt = SimpleEvaluationContext.forReadOnlyDataBinding().withInstanceMethods()
-				.build();
+		evalCtxt = SimpleEvaluationContext.forReadOnlyDataBinding().withInstanceMethods().build();
 	}
 
 	@Override
 	public Flux<RouteDefinition> getRouteDefinitions() {
 
 		SpelExpressionParser parser = new SpelExpressionParser();
-		Expression includeExpr = parser
-				.parseExpression(properties.getIncludeExpression());
+		Expression includeExpr = parser.parseExpression(properties.getIncludeExpression());
 		Expression urlExpr = parser.parseExpression(properties.getUrlExpression());
 
 		Predicate<ServiceInstance> includePredicate;
-		if (properties.getIncludeExpression() == null
-				|| "true".equalsIgnoreCase(properties.getIncludeExpression())) {
+		if (properties.getIncludeExpression() == null || "true".equalsIgnoreCase(properties.getIncludeExpression())) {
 			includePredicate = instance -> true;
 		}
 		else {
@@ -101,22 +96,17 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 			};
 		}
 
-		return serviceInstances.filter(instances -> !instances.isEmpty())
-				.map(instances -> instances.get(0)).filter(includePredicate)
-				.map(instance -> {
-					RouteDefinition routeDefinition = buildRouteDefinition(urlExpr,
-							instance);
+		return serviceInstances.filter(instances -> !instances.isEmpty()).map(instances -> instances.get(0))
+				.filter(includePredicate).map(instance -> {
+					RouteDefinition routeDefinition = buildRouteDefinition(urlExpr, instance);
 
-					final ServiceInstance instanceForEval = new DelegatingServiceInstance(
-							instance, properties);
+					final ServiceInstance instanceForEval = new DelegatingServiceInstance(instance, properties);
 
 					for (PredicateDefinition original : this.properties.getPredicates()) {
 						PredicateDefinition predicate = new PredicateDefinition();
 						predicate.setName(original.getName());
-						for (Map.Entry<String, String> entry : original.getArgs()
-								.entrySet()) {
-							String value = getValueFromExpr(evalCtxt, parser,
-									instanceForEval, entry);
+						for (Map.Entry<String, String> entry : original.getArgs().entrySet()) {
+							String value = getValueFromExpr(evalCtxt, parser, instanceForEval, entry);
 							predicate.addArg(entry.getKey(), value);
 						}
 						routeDefinition.getPredicates().add(predicate);
@@ -125,10 +115,8 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 					for (FilterDefinition original : this.properties.getFilters()) {
 						FilterDefinition filter = new FilterDefinition();
 						filter.setName(original.getName());
-						for (Map.Entry<String, String> entry : original.getArgs()
-								.entrySet()) {
-							String value = getValueFromExpr(evalCtxt, parser,
-									instanceForEval, entry);
+						for (Map.Entry<String, String> entry : original.getArgs().entrySet()) {
+							String value = getValueFromExpr(evalCtxt, parser, instanceForEval, entry);
 							filter.addArg(entry.getKey(), value);
 						}
 						routeDefinition.getFilters().add(filter);
@@ -138,8 +126,7 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 				});
 	}
 
-	protected RouteDefinition buildRouteDefinition(Expression urlExpr,
-			ServiceInstance serviceInstance) {
+	protected RouteDefinition buildRouteDefinition(Expression urlExpr, ServiceInstance serviceInstance) {
 		String serviceId = serviceInstance.getServiceId();
 		RouteDefinition routeDefinition = new RouteDefinition();
 		routeDefinition.setId(this.routeIdPrefix + serviceId);
@@ -150,8 +137,8 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 		return routeDefinition;
 	}
 
-	String getValueFromExpr(SimpleEvaluationContext evalCtxt, SpelExpressionParser parser,
-			ServiceInstance instance, Map.Entry<String, String> entry) {
+	String getValueFromExpr(SimpleEvaluationContext evalCtxt, SpelExpressionParser parser, ServiceInstance instance,
+			Map.Entry<String, String> entry) {
 		try {
 			Expression valueExpr = parser.parseExpression(entry.getValue());
 			return valueExpr.getValue(evalCtxt, instance, String.class);
@@ -170,8 +157,7 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 
 		private final DiscoveryLocatorProperties properties;
 
-		private DelegatingServiceInstance(ServiceInstance delegate,
-				DiscoveryLocatorProperties properties) {
+		private DelegatingServiceInstance(ServiceInstance delegate, DiscoveryLocatorProperties properties) {
 			this.delegate = delegate;
 			this.properties = properties;
 		}
@@ -216,8 +202,7 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 
 		@Override
 		public String toString() {
-			return new ToStringCreator(this).append("delegate", delegate)
-					.append("properties", properties).toString();
+			return new ToStringCreator(this).append("delegate", delegate).append("properties", properties).toString();
 		}
 
 	}

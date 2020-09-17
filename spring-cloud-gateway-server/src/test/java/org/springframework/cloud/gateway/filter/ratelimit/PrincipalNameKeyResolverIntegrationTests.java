@@ -67,8 +67,7 @@ public class PrincipalNameKeyResolverIntegrationTests {
 
 	@BeforeClass
 	public static void beforeClass() {
-		System.setProperty("server.port",
-				String.valueOf(SocketUtils.findAvailableTcpPort()));
+		System.setProperty("server.port", String.valueOf(SocketUtils.findAvailableTcpPort()));
 	}
 
 	@AfterClass
@@ -84,9 +83,8 @@ public class PrincipalNameKeyResolverIntegrationTests {
 
 	@Test
 	public void keyResolverWorks() {
-		this.client.mutate().filter(basicAuthentication("user", "password")).build().get()
-				.uri("/myapi/1").exchange().expectStatus().isOk().expectBody()
-				.json("{\"user\":\"1\"}");
+		this.client.mutate().filter(basicAuthentication("user", "password")).build().get().uri("/myapi/1").exchange()
+				.expectStatus().isOk().expectBody().json("{\"user\":\"1\"}");
 	}
 
 	@RestController
@@ -105,11 +103,11 @@ public class PrincipalNameKeyResolverIntegrationTests {
 
 		@Bean
 		public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
-			return builder.routes().route(r -> r.path("/myapi/**")
-					.filters(f -> f
-							.requestRateLimiter(c -> c.setRateLimiter(myRateLimiter()))
-							.prefixPath("/downstream"))
-					.uri("http://localhost:" + port)).build();
+			return builder.routes()
+					.route(r -> r.path("/myapi/**").filters(
+							f -> f.requestRateLimiter(c -> c.setRateLimiter(myRateLimiter())).prefixPath("/downstream"))
+							.uri("http://localhost:" + port))
+					.build();
 		}
 
 		@Bean
@@ -120,14 +118,13 @@ public class PrincipalNameKeyResolverIntegrationTests {
 
 		@Bean
 		SecurityWebFilterChain springWebFilterChain(ServerHttpSecurity http) {
-			return http.httpBasic().and().authorizeExchange().pathMatchers("/myapi/**")
-					.authenticated().anyExchange().permitAll().and().build();
+			return http.httpBasic().and().authorizeExchange().pathMatchers("/myapi/**").authenticated().anyExchange()
+					.permitAll().and().build();
 		}
 
 		@Bean
 		public MapReactiveUserDetailsService reactiveUserDetailsService() {
-			UserDetails user = User.withUsername("user").password("{noop}password")
-					.roles("USER").build();
+			UserDetails user = User.withUsername("user").password("{noop}password").roles("USER").build();
 			return new MapReactiveUserDetailsService(user);
 		}
 
@@ -137,8 +134,7 @@ public class PrincipalNameKeyResolverIntegrationTests {
 
 			@Override
 			public Mono<Response> isAllowed(String routeId, String id) {
-				return Mono.just(new RateLimiter.Response(true,
-						Collections.singletonMap("X-Value", "5000000")));
+				return Mono.just(new RateLimiter.Response(true, Collections.singletonMap("X-Value", "5000000")));
 			}
 
 			@Override

@@ -51,8 +51,7 @@ public class OrderedGatewayFilter implements GatewayFilter, Ordered {
 
 	@Override
 	public String toString() {
-		return new StringBuilder("[").append(delegate).append(", order = ").append(order)
-				.append("]").toString();
+		return new StringBuilder("[").append(delegate).append(", order = ").append(order).append("]").toString();
 	}
 
 }

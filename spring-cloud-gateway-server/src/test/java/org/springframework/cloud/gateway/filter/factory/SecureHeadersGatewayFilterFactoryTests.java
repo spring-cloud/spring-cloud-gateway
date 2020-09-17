@@ -51,28 +51,23 @@ public class SecureHeadersGatewayFilterFactoryTests extends BaseWebClientTests {
 
 	@Test
 	public void secureHeadersFilterWorks() {
-		Mono<ClientResponse> result = webClient.get().uri("/headers")
-				.header("Host", "www.secureheaders.org").exchange();
+		Mono<ClientResponse> result = webClient.get().uri("/headers").header("Host", "www.secureheaders.org")
+				.exchange();
 
 		SecureHeadersProperties defaults = new SecureHeadersProperties();
 
 		StepVerifier.create(result).consumeNextWith(response -> {
 			assertStatus(response, HttpStatus.OK);
 			HttpHeaders httpHeaders = response.headers().asHttpHeaders();
-			assertThat(httpHeaders.getFirst(X_XSS_PROTECTION_HEADER))
-					.isEqualTo(defaults.getXssProtectionHeader());
+			assertThat(httpHeaders.getFirst(X_XSS_PROTECTION_HEADER)).isEqualTo(defaults.getXssProtectionHeader());
 			assertThat(httpHeaders.getFirst(STRICT_TRANSPORT_SECURITY_HEADER))
 					.isEqualTo(defaults.getStrictTransportSecurity());
-			assertThat(httpHeaders.getFirst(X_FRAME_OPTIONS_HEADER))
-					.isEqualTo(defaults.getFrameOptions());
-			assertThat(httpHeaders.getFirst(X_CONTENT_TYPE_OPTIONS_HEADER))
-					.isEqualTo(defaults.getContentTypeOptions());
-			assertThat(httpHeaders.getFirst(REFERRER_POLICY_HEADER))
-					.isEqualTo(defaults.getReferrerPolicy());
+			assertThat(httpHeaders.getFirst(X_FRAME_OPTIONS_HEADER)).isEqualTo(defaults.getFrameOptions());
+			assertThat(httpHeaders.getFirst(X_CONTENT_TYPE_OPTIONS_HEADER)).isEqualTo(defaults.getContentTypeOptions());
+			assertThat(httpHeaders.getFirst(REFERRER_POLICY_HEADER)).isEqualTo(defaults.getReferrerPolicy());
 			assertThat(httpHeaders.getFirst(CONTENT_SECURITY_POLICY_HEADER))
 					.isEqualTo(defaults.getContentSecurityPolicy());
-			assertThat(httpHeaders.getFirst(X_DOWNLOAD_OPTIONS_HEADER))
-					.isEqualTo(defaults.getDownloadOptions());
+			assertThat(httpHeaders.getFirst(X_DOWNLOAD_OPTIONS_HEADER)).isEqualTo(defaults.getDownloadOptions());
 			assertThat(httpHeaders.getFirst(X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER))
 					.isEqualTo(defaults.getPermittedCrossDomainPolicies());
 		}).expectComplete().verify(DURATION);

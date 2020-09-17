@@ -113,8 +113,7 @@ public class FilteringWebHandler implements WebHandler {
 			return Mono.defer(() -> {
 				if (this.index < filters.size()) {
 					GatewayFilter filter = filters.get(this.index);
-					DefaultGatewayFilterChain chain = new DefaultGatewayFilterChain(this,
-							this.index + 1);
+					DefaultGatewayFilterChain chain = new DefaultGatewayFilterChain(this, this.index + 1);
 					return filter.filter(exchange, chain);
 				}
 				else {

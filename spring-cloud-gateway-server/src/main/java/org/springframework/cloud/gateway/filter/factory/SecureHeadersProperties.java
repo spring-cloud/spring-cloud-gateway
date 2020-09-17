@@ -176,15 +176,13 @@ public class SecureHeadersProperties {
 	public String toString() {
 		final StringBuffer sb = new StringBuffer("SecureHeadersProperties{");
 		sb.append("xssProtectionHeader='").append(xssProtectionHeader).append('\'');
-		sb.append(", strictTransportSecurity='").append(strictTransportSecurity)
-				.append('\'');
+		sb.append(", strictTransportSecurity='").append(strictTransportSecurity).append('\'');
 		sb.append(", frameOptions='").append(frameOptions).append('\'');
 		sb.append(", contentTypeOptions='").append(contentTypeOptions).append('\'');
 		sb.append(", referrerPolicy='").append(referrerPolicy).append('\'');
 		sb.append(", contentSecurityPolicy='").append(contentSecurityPolicy).append('\'');
 		sb.append(", downloadOptions='").append(downloadOptions).append('\'');
-		sb.append(", permittedCrossDomainPolicies='").append(permittedCrossDomainPolicies)
-				.append('\'');
+		sb.append(", permittedCrossDomainPolicies='").append(permittedCrossDomainPolicies).append('\'');
 		sb.append(", disabled='").append(disable).append('\'');
 		sb.append('}');
 		return sb.toString();

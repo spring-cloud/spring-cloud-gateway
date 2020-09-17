@@ -36,16 +36,12 @@ public class PropertiesTagsProviderTests {
 
 	@Test
 	public void test() {
-		contextRunner
-				.withConfiguration(
-						AutoConfigurations.of(GatewayMetricsAutoConfiguration.class))
+		contextRunner.withConfiguration(AutoConfigurations.of(GatewayMetricsAutoConfiguration.class))
 				.withPropertyValues("spring.cloud.gateway.metrics.tags.foo1=bar1",
 						"spring.cloud.gateway.metrics.tags.foo2=bar2")
 				.run(context -> {
-					PropertiesTagsProvider provider = context
-							.getBean(PropertiesTagsProvider.class);
-					Tags tags = provider.apply(MockServerWebExchange
-							.from(MockServerHttpRequest.get("").build()));
+					PropertiesTagsProvider provider = context.getBean(PropertiesTagsProvider.class);
+					Tags tags = provider.apply(MockServerWebExchange.from(MockServerHttpRequest.get("").build()));
 					assertThat(tags).isEqualTo(Tags.of("foo1", "bar1", "foo2", "bar2"));
 				});
 

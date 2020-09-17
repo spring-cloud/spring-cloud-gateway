@@ -32,8 +32,7 @@ public class ModifyRequestBodyGatewayFilterFactoryUnitTests {
 		config.setOutClass(Integer.class);
 		config.setContentType("mycontenttype");
 		GatewayFilter filter = new ModifyRequestBodyGatewayFilterFactory().apply(config);
-		assertThat(filter.toString()).contains("String").contains("Integer")
-				.contains("mycontenttype");
+		assertThat(filter.toString()).contains("String").contains("Integer").contains("mycontenttype");
 	}
 
 }

@@ -76,8 +76,7 @@ public class AfterRoutePredicateFactoryTests {
 
 	@Test
 	public void testPredicates() {
-		boolean result = new AfterRoutePredicateFactory()
-				.apply(c -> c.setDatetime(ZonedDateTime.now().minusHours(2)))
+		boolean result = new AfterRoutePredicateFactory().apply(c -> c.setDatetime(ZonedDateTime.now().minusHours(2)))
 				.test(getExchange());
 		assertThat(result).isTrue();
 	}

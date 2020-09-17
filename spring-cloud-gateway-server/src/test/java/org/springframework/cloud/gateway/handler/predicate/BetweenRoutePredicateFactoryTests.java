@@ -39,8 +39,7 @@ import static org.springframework.cloud.gateway.handler.predicate.BetweenRoutePr
  */
 public class BetweenRoutePredicateFactoryTests {
 
-	static <T> T bindConfig(HashMap<String, Object> properties,
-			AbstractRoutePredicateFactory<T> factory) {
+	static <T> T bindConfig(HashMap<String, Object> properties, AbstractRoutePredicateFactory<T> factory) {
 		ApplicationConversionService conversionService = new ApplicationConversionService();
 		conversionService.addConverter(new StringToZonedDateTimeConverter());
 		// @formatter:off
@@ -64,18 +63,15 @@ public class BetweenRoutePredicateFactoryTests {
 	}
 
 	static String minusHours(int hours) {
-		return ZonedDateTime.now().minusHours(hours)
-				.format(DateTimeFormatter.ISO_ZONED_DATE_TIME);
+		return ZonedDateTime.now().minusHours(hours).format(DateTimeFormatter.ISO_ZONED_DATE_TIME);
 	}
 
 	static String plusHours(int hours) {
-		return ZonedDateTime.now().plusHours(hours)
-				.format(DateTimeFormatter.ISO_ZONED_DATE_TIME);
+		return ZonedDateTime.now().plusHours(hours).format(DateTimeFormatter.ISO_ZONED_DATE_TIME);
 	}
 
 	static ServerWebExchange getExchange() {
-		MockServerHttpRequest request = MockServerHttpRequest.get("https://example.com")
-				.build();
+		MockServerHttpRequest request = MockServerHttpRequest.get("https://example.com").build();
 		return MockServerWebExchange.from(request);
 	}
 
@@ -98,8 +94,7 @@ public class BetweenRoutePredicateFactoryTests {
 
 		final boolean result = runPredicate(dateString1, dateString2);
 
-		assertThat(result).as("Now is not between %s and %s", dateString1, dateString2)
-				.isTrue();
+		assertThat(result).as("Now is not between %s and %s", dateString1, dateString2).isTrue();
 	}
 
 	@Test
@@ -129,8 +124,7 @@ public class BetweenRoutePredicateFactoryTests {
 
 		final boolean result = runPredicate(dateString1, dateString2);
 
-		assertThat(result).as("Now is not between %s and %s", dateString1, dateString2)
-				.isTrue();
+		assertThat(result).as("Now is not between %s and %s", dateString1, dateString2).isTrue();
 	}
 
 	@Test
@@ -145,9 +139,8 @@ public class BetweenRoutePredicateFactoryTests {
 
 	@Test
 	public void testPredicates() {
-		boolean result = new BetweenRoutePredicateFactory()
-				.apply(c -> c.setDatetime1(ZonedDateTime.now().minusHours(2))
-						.setDatetime2(ZonedDateTime.now().plusHours(1)))
+		boolean result = new BetweenRoutePredicateFactory().apply(
+				c -> c.setDatetime1(ZonedDateTime.now().minusHours(2)).setDatetime2(ZonedDateTime.now().plusHours(1)))
 				.test(getExchange());
 		assertThat(result).isTrue();
 	}
@@ -170,8 +163,8 @@ public class BetweenRoutePredicateFactoryTests {
 		config.setDatetime1(ZonedDateTime.now());
 		config.setDatetime2(ZonedDateTime.now().plusHours(1));
 		Predicate predicate = new BetweenRoutePredicateFactory().apply(config);
-		assertThat(predicate.toString()).contains(
-				"Between: " + config.getDatetime1() + " and " + config.getDatetime2());
+		assertThat(predicate.toString())
+				.contains("Between: " + config.getDatetime1() + " and " + config.getDatetime2());
 	}
 
 }

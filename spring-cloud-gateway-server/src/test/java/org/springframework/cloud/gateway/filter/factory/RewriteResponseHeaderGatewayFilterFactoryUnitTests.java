@@ -43,14 +43,13 @@ public class RewriteResponseHeaderGatewayFilterFactoryUnitTests {
 
 	@Test
 	public void testRewriteDollarSlash() {
-		assertThat(filterFactory.rewrite("/foo/bar", "/foo/(?<segment>.*)",
-				"/$\\{segment}/$\\{segment}/42")).isEqualTo("/bar/bar/42");
+		assertThat(filterFactory.rewrite("/foo/bar", "/foo/(?<segment>.*)", "/$\\{segment}/$\\{segment}/42"))
+				.isEqualTo("/bar/bar/42");
 	}
 
 	@Test
 	public void testRewriteMultiple() {
-		assertThat(filterFactory.rewrite("/foo/bar/wat/bar", "bar", "cafe"))
-				.isEqualTo("/foo/cafe/wat/cafe");
+		assertThat(filterFactory.rewrite("/foo/bar/wat/bar", "bar", "cafe")).isEqualTo("/foo/cafe/wat/cafe");
 	}
 
 	@Test
@@ -81,10 +80,8 @@ public class RewriteResponseHeaderGatewayFilterFactoryUnitTests {
 		config.setName("myname");
 		config.setRegexp("myregexp");
 		config.setReplacement("myreplacement");
-		GatewayFilter filter = new RewriteResponseHeaderGatewayFilterFactory()
-				.apply(config);
-		assertThat(filter.toString()).contains("myname").contains("myregexp")
-				.contains("myreplacement");
+		GatewayFilter filter = new RewriteResponseHeaderGatewayFilterFactory().apply(config);
+		assertThat(filter.toString()).contains("myname").contains("myregexp").contains("myreplacement");
 	}
 
 }

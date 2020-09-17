@@ -27,8 +27,7 @@ public class HttpStatusHolder {
 	private final Integer status;
 
 	public HttpStatusHolder(HttpStatus httpStatus, Integer status) {
-		Assert.isTrue(httpStatus != null || status != null,
-				"httpStatus and status may not both be null");
+		Assert.isTrue(httpStatus != null || status != null, "httpStatus and status may not both be null");
 		this.httpStatus = httpStatus;
 		this.status = status;
 	}
@@ -121,8 +120,7 @@ public class HttpStatusHolder {
 
 	@Override
 	public String toString() {
-		return new ToStringCreator(this).append("httpStatus", httpStatus)
-				.append("status", status).toString();
+		return new ToStringCreator(this).append("httpStatus", httpStatus).append("status", status).toString();
 	}
 
 }

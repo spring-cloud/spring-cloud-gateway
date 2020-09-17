@@ -37,16 +37,15 @@ public class HttpHeadersFilterMixedTypeTests {
 
 	@Test
 	public void relevantDownstreamFiltersShouldActOnHeaders() {
-		MockServerHttpRequest mockRequest = MockServerHttpRequest.get("/get")
-				.header("header1", "value1").header("header2", "value2")
-				.header("header3", "value3").build();
+		MockServerHttpRequest mockRequest = MockServerHttpRequest.get("/get").header("header1", "value1")
+				.header("header2", "value2").header("header3", "value3").build();
 
 		HttpHeadersFilter filter1 = filterRemovingHeaders(Type.RESPONSE, "header1");
 
 		HttpHeadersFilter filter2 = filterRemovingHeaders(Type.REQUEST, "header2");
 
-		HttpHeaders result = HttpHeadersFilter.filterRequest(
-				Arrays.asList(filter1, filter2), MockServerWebExchange.from(mockRequest));
+		HttpHeaders result = HttpHeadersFilter.filterRequest(Arrays.asList(filter1, filter2),
+				MockServerWebExchange.from(mockRequest));
 
 		assertThat(result).containsOnlyKeys("header1", "header3");
 	}

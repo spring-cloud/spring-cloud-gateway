@@ -62,8 +62,8 @@ public class RouteDefinition {
 	public RouteDefinition(String text) {
 		int eqIdx = text.indexOf('=');
 		if (eqIdx <= 0) {
-			throw new ValidationException("Unable to parse RouteDefinition text '" + text
-					+ "'" + ", must be of the form name=value");
+			throw new ValidationException(
+					"Unable to parse RouteDefinition text '" + text + "'" + ", must be of the form name=value");
 		}
 
 		setId(text.substring(0, eqIdx));
@@ -135,23 +135,19 @@ public class RouteDefinition {
 		}
 		RouteDefinition that = (RouteDefinition) o;
 		return this.order == that.order && Objects.equals(this.id, that.id)
-				&& Objects.equals(this.predicates, that.predicates)
-				&& Objects.equals(this.filters, that.filters)
-				&& Objects.equals(this.uri, that.uri)
-				&& Objects.equals(this.metadata, that.metadata);
+				&& Objects.equals(this.predicates, that.predicates) && Objects.equals(this.filters, that.filters)
+				&& Objects.equals(this.uri, that.uri) && Objects.equals(this.metadata, that.metadata);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(this.id, this.predicates, this.filters, this.uri,
-				this.metadata, this.order);
+		return Objects.hash(this.id, this.predicates, this.filters, this.uri, this.metadata, this.order);
 	}
 
 	@Override
 	public String toString() {
-		return "RouteDefinition{" + "id='" + id + '\'' + ", predicates=" + predicates
-				+ ", filters=" + filters + ", uri=" + uri + ", order=" + order
-				+ ", metadata=" + metadata + '}';
+		return "RouteDefinition{" + "id='" + id + '\'' + ", predicates=" + predicates + ", filters=" + filters
+				+ ", uri=" + uri + ", order=" + order + ", metadata=" + metadata + '}';
 	}
 
 }

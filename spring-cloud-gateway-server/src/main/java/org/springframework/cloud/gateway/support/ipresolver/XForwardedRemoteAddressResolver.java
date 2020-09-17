@@ -47,8 +47,7 @@ public class XForwardedRemoteAddressResolver implements RemoteAddressResolver {
 	 */
 	public static final String X_FORWARDED_FOR = "X-Forwarded-For";
 
-	private static final Logger log = LoggerFactory
-			.getLogger(XForwardedRemoteAddressResolver.class);
+	private static final Logger log = LoggerFactory.getLogger(XForwardedRemoteAddressResolver.class);
 
 	private final RemoteAddressResolver defaultRemoteIpResolver = new RemoteAddressResolver() {
 	};
@@ -119,8 +118,7 @@ public class XForwardedRemoteAddressResolver implements RemoteAddressResolver {
 	}
 
 	private List<String> extractXForwardedValues(ServerWebExchange exchange) {
-		List<String> xForwardedValues = exchange.getRequest().getHeaders()
-				.get(X_FORWARDED_FOR);
+		List<String> xForwardedValues = exchange.getRequest().getHeaders().get(X_FORWARDED_FOR);
 		if (xForwardedValues == null || xForwardedValues.isEmpty()) {
 			return Collections.emptyList();
 		}

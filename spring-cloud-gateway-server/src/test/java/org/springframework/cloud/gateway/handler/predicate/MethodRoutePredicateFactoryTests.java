@@ -47,37 +47,27 @@ public class MethodRoutePredicateFactoryTests extends BaseWebClientTests {
 
 	@Test
 	public void methodRouteWorks() {
-		testClient.get().uri("/get").header("Host", "www.method.org").exchange()
-				.expectStatus().isOk().expectHeader()
-				.valueEquals(HANDLER_MAPPER_HEADER,
-						RoutePredicateHandlerMapping.class.getSimpleName())
-				.expectHeader().valueEquals(ROUTE_ID_HEADER, "method_test_get");
+		testClient.get().uri("/get").header("Host", "www.method.org").exchange().expectStatus().isOk().expectHeader()
+				.valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName()).expectHeader()
+				.valueEquals(ROUTE_ID_HEADER, "method_test_get");
 	}
 
 	@Test
 	public void methodGetAndPostRouteWorks() {
-		testClient.post().uri("/multivalueheaders").header("Host", "www.method.org")
-				.exchange().expectStatus().isOk().expectHeader()
-				.valueEquals(HANDLER_MAPPER_HEADER,
-						RoutePredicateHandlerMapping.class.getSimpleName())
+		testClient.post().uri("/multivalueheaders").header("Host", "www.method.org").exchange().expectStatus().isOk()
+				.expectHeader().valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName())
 				.expectHeader().valueEquals(ROUTE_ID_HEADER, "method_test_get_and_post");
 
-		testClient.get().uri("/multivalueheaders").header("Host", "www.method.org")
-				.exchange().expectStatus().isOk().expectHeader()
-				.valueEquals(HANDLER_MAPPER_HEADER,
-						RoutePredicateHandlerMapping.class.getSimpleName())
+		testClient.get().uri("/multivalueheaders").header("Host", "www.method.org").exchange().expectStatus().isOk()
+				.expectHeader().valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName())
 				.expectHeader().valueEquals(ROUTE_ID_HEADER, "method_test_get_and_post");
 	}
 
 	@Test
 	public void methodRouteNotMatching() {
-		testClient.delete().uri("/multivalueheaders").header("Host", "www.method.org")
-				.exchange().expectStatus()
-				.value(integer -> integer.equals(HttpStatus.METHOD_NOT_ALLOWED))
-				.expectHeader()
-				.valueEquals(HANDLER_MAPPER_HEADER,
-						RoutePredicateHandlerMapping.class.getSimpleName())
-				.expectHeader()
+		testClient.delete().uri("/multivalueheaders").header("Host", "www.method.org").exchange().expectStatus()
+				.value(integer -> integer.equals(HttpStatus.METHOD_NOT_ALLOWED)).expectHeader()
+				.valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName()).expectHeader()
 				/*
 				 * Fallback to route with '/**' path predicate matches, see
 				 * application.yml in test resources
@@ -113,11 +103,9 @@ public class MethodRoutePredicateFactoryTests extends BaseWebClientTests {
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes()
 					.route("method_test_get",
-							r -> r.method("GET").and().path("/get")
-									.filters(f -> f.prefixPath("/httpbin")).uri(uri))
-					.route("method_test_get_and_post",
-							r -> r.method("GET", "POST").and().path("/multivalueheaders")
-									.filters(f -> f.prefixPath("/httpbin")).uri(uri))
+							r -> r.method("GET").and().path("/get").filters(f -> f.prefixPath("/httpbin")).uri(uri))
+					.route("method_test_get_and_post", r -> r.method("GET", "POST").and().path("/multivalueheaders")
+							.filters(f -> f.prefixPath("/httpbin")).uri(uri))
 					.build();
 		}
 

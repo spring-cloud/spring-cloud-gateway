@@ -49,8 +49,7 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.W
  * @author Spencer Gibb
  * @author Alexey Nakidkin
  */
-public class WeightCalculatorWebFilter
-		implements WebFilter, Ordered, SmartApplicationListener {
+public class WeightCalculatorWebFilter implements WebFilter, Ordered, SmartApplicationListener {
 
 	/**
 	 * Order of Weight Calculator Web filter.
@@ -138,15 +137,13 @@ public class WeightCalculatorWebFilter
 
 		WeightConfig config = new WeightConfig(event.getRouteId());
 
-		this.configurationService.with(config).name(WeightConfig.CONFIG_PREFIX)
-				.normalizedProperties(args).bind();
+		this.configurationService.with(config).name(WeightConfig.CONFIG_PREFIX).normalizedProperties(args).bind();
 
 		addWeightConfig(config);
 	}
 
 	private boolean hasRelevantKey(Map<String, Object> args) {
-		return args.keySet().stream()
-				.anyMatch(key -> key.startsWith(WeightConfig.CONFIG_PREFIX + "."));
+		return args.keySet().stream().anyMatch(key -> key.startsWith(WeightConfig.CONFIG_PREFIX + "."));
 	}
 
 	/* for testing */ void addWeightConfig(WeightConfig weightConfig) {
@@ -227,8 +224,7 @@ public class WeightCalculatorWebFilter
 			List<Double> ranges = config.ranges;
 
 			if (log.isTraceEnabled()) {
-				log.trace("Weight for group: " + group + ", ranges: " + ranges + ", r: "
-						+ r);
+				log.trace("Weight for group: " + group + ", ranges: " + ranges + ", r: " + r);
 			}
 
 			for (int i = 0; i < ranges.size() - 1; i++) {
@@ -272,10 +268,8 @@ public class WeightCalculatorWebFilter
 
 		@Override
 		public String toString() {
-			return new ToStringCreator(this).append("group", group)
-					.append("weights", weights)
-					.append("normalizedWeights", normalizedWeights)
-					.append("rangeIndexes", rangeIndexes).toString();
+			return new ToStringCreator(this).append("group", group).append("weights", weights)
+					.append("normalizedWeights", normalizedWeights).append("rangeIndexes", rangeIndexes).toString();
 		}
 
 	}

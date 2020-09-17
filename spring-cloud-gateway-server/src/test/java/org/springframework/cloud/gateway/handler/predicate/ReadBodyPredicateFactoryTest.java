@@ -66,13 +66,11 @@ public class ReadBodyPredicateFactoryTest {
 		Event messageEvent = new Event("message", "bar");
 		Event messageChannelEvent = new Event("message.channels", "bar");
 
-		webClient.post().uri("/events").body(BodyInserters.fromValue(messageEvent))
-				.exchange().expectStatus().isOk().expectBody().jsonPath("$.headers.Hello")
-				.isEqualTo("World");
+		webClient.post().uri("/events").body(BodyInserters.fromValue(messageEvent)).exchange().expectStatus().isOk()
+				.expectBody().jsonPath("$.headers.Hello").isEqualTo("World");
 
-		webClient.post().uri("/events").body(BodyInserters.fromValue(messageChannelEvent))
-				.exchange().expectStatus().isOk().expectBody().jsonPath("$.headers.World")
-				.isEqualTo("Hello");
+		webClient.post().uri("/events").body(BodyInserters.fromValue(messageChannelEvent)).exchange().expectStatus()
+				.isOk().expectBody().jsonPath("$.headers.World").isEqualTo("Hello");
 
 	}
 
@@ -80,18 +78,14 @@ public class ReadBodyPredicateFactoryTest {
 	public void toStringFormat() {
 		Config config = new Config();
 		config.setInClass(String.class);
-		AsyncPredicate<ServerWebExchange> predicate = new ReadBodyPredicateFactory()
-				.applyAsync(config);
+		AsyncPredicate<ServerWebExchange> predicate = new ReadBodyPredicateFactory().applyAsync(config);
 		assertThat(predicate.toString()).contains("ReadBody: " + config.getInClass());
 	}
 
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
-	@LoadBalancerClients({
-			@LoadBalancerClient(name = "message",
-					configuration = TestLoadBalancerConfig.class),
-			@LoadBalancerClient(name = "messageChannel",
-					configuration = TestLoadBalancerConfig.class) })
+	@LoadBalancerClients({ @LoadBalancerClient(name = "message", configuration = TestLoadBalancerConfig.class),
+			@LoadBalancerClient(name = "messageChannel", configuration = TestLoadBalancerConfig.class) })
 	@Import(PermitAllSecurityConfiguration.class)
 	@RestController
 	public static class TestConfig {
@@ -101,11 +95,9 @@ public class ReadBodyPredicateFactoryTest {
 			return builder.routes()
 					.route(p -> p.path("/events").and().method(HttpMethod.POST).and()
 							.readBody(Event.class, eventPredicate("message.channels"))
-							.filters(f -> f.setPath("/messageChannel/events"))
-							.uri("lb://messageChannel"))
+							.filters(f -> f.setPath("/messageChannel/events")).uri("lb://messageChannel"))
 					.route(p -> p.path("/events").and().method(HttpMethod.POST).and()
-							.readBody(Event.class, eventPredicate("message"))
-							.filters(f -> f.setPath("/message/events"))
+							.readBody(Event.class, eventPredicate("message")).filters(f -> f.setPath("/message/events"))
 							.uri("lb://message"))
 					.build();
 		}
@@ -119,8 +111,7 @@ public class ReadBodyPredicateFactoryTest {
 			return "{\"headers\":{\"Hello\":\"World\"}}";
 		}
 
-		@PostMapping(path = "messageChannel/events",
-				produces = MediaType.APPLICATION_JSON_VALUE)
+		@PostMapping(path = "messageChannel/events", produces = MediaType.APPLICATION_JSON_VALUE)
 		public String messageChannelEvents(@RequestBody Event e) {
 			return "{\"headers\":{\"World\":\"Hello\"}}";
 		}

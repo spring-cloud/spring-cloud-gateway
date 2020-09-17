@@ -40,8 +40,7 @@ import org.springframework.web.bind.annotation.RestController;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = RANDOM_PORT,
-		properties = "management.server.port=${test.port}")
+@SpringBootTest(webEnvironment = RANDOM_PORT, properties = "management.server.port=${test.port}")
 @DirtiesContext
 public class RoutePredicateHandlerMappingIntegrationTests extends BaseWebClientTests {
 
@@ -60,20 +59,19 @@ public class RoutePredicateHandlerMappingIntegrationTests extends BaseWebClientT
 
 	@Test
 	public void requestsToManagementPortReturn404() {
-		testClient.mutate().baseUrl("http://localhost:" + managementPort).build().get()
-				.uri("/get").exchange().expectStatus().isNotFound();
+		testClient.mutate().baseUrl("http://localhost:" + managementPort).build().get().uri("/get").exchange()
+				.expectStatus().isNotFound();
 	}
 
 	@Test
 	public void andNotWorksWithMissingParameter() {
-		testClient.get().uri("/andnotquery").exchange().expectBody(String.class)
-				.isEqualTo("notsupplied");
+		testClient.get().uri("/andnotquery").exchange().expectBody(String.class).isEqualTo("notsupplied");
 	}
 
 	@Test
 	public void andNotWorksWithParameter() {
-		testClient.get().uri("/andnotquery?myquery=shouldnotsee").exchange()
-				.expectBody(String.class).isEqualTo("hasquery");
+		testClient.get().uri("/andnotquery?myquery=shouldnotsee").exchange().expectBody(String.class)
+				.isEqualTo("hasquery");
 	}
 
 	@EnableAutoConfiguration
@@ -86,8 +84,7 @@ public class RoutePredicateHandlerMappingIntegrationTests extends BaseWebClientT
 		String uri;
 
 		@GetMapping("/httpbin/andnotquery")
-		String andnotquery(@RequestParam(name = "myquery",
-				defaultValue = "notsupplied") String myquery) {
+		String andnotquery(@RequestParam(name = "myquery", defaultValue = "notsupplied") String myquery) {
 			return myquery;
 		}
 
@@ -102,10 +99,8 @@ public class RoutePredicateHandlerMappingIntegrationTests extends BaseWebClientT
 					.route("and_not_missing_myquery",
 							r -> r.path("/andnotquery").and().not(p -> p.query("myquery"))
 									.filters(f -> f.prefixPath("/httpbin")).uri(uri))
-					.route("and_not_has_myquery",
-							r -> r.path("/andnotquery").and().query("myquery")
-									.filters(f -> f.setPath("/httpbin/hasquery"))
-									.uri(uri))
+					.route("and_not_has_myquery", r -> r.path("/andnotquery").and().query("myquery")
+							.filters(f -> f.setPath("/httpbin/hasquery")).uri(uri))
 					.build();
 		}
 

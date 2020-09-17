@@ -59,27 +59,24 @@ public class StripPrefixGatewayFilterFactory
 	public GatewayFilter apply(Config config) {
 		return new GatewayFilter() {
 			@Override
-			public Mono<Void> filter(ServerWebExchange exchange,
-					GatewayFilterChain chain) {
+			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 				ServerHttpRequest request = exchange.getRequest();
 				addOriginalRequestUrl(exchange, request.getURI());
 				String path = request.getURI().getRawPath();
-				String newPath = "/"
-						+ Arrays.stream(StringUtils.tokenizeToStringArray(path, "/"))
-								.skip(config.parts).collect(Collectors.joining("/"));
+				String newPath = "/" + Arrays.stream(StringUtils.tokenizeToStringArray(path, "/")).skip(config.parts)
+						.collect(Collectors.joining("/"));
 				newPath += (newPath.length() > 1 && path.endsWith("/") ? "/" : "");
 				ServerHttpRequest newRequest = request.mutate().path(newPath).build();
 
-				exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR,
-						newRequest.getURI());
+				exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, newRequest.getURI());
 
 				return chain.filter(exchange.mutate().request(newRequest).build());
 			}
 
 			@Override
 			public String toString() {
-				return filterToStringCreator(StripPrefixGatewayFilterFactory.this)
-						.append("parts", config.getParts()).toString();
+				return filterToStringCreator(StripPrefixGatewayFilterFactory.this).append("parts", config.getParts())
+						.toString();
 			}
 		};
 	}

@@ -42,10 +42,8 @@ import org.springframework.web.reactive.DispatcherHandler;
 @ConditionalOnProperty(name = "spring.cloud.gateway.enabled", matchIfMissing = true)
 @EnableConfigurationProperties(GatewayMetricsProperties.class)
 @AutoConfigureBefore(HttpHandlerAutoConfiguration.class)
-@AutoConfigureAfter({ MetricsAutoConfiguration.class,
-		MeterRegistryAutoConfiguration.class })
-@ConditionalOnClass({ DispatcherHandler.class, MeterRegistry.class,
-		MetricsAutoConfiguration.class })
+@AutoConfigureAfter({ MetricsAutoConfiguration.class, MeterRegistryAutoConfiguration.class })
+@ConditionalOnClass({ DispatcherHandler.class, MeterRegistry.class, MetricsAutoConfiguration.class })
 public class GatewayMetricsAutoConfiguration {
 
 	@Bean
@@ -59,15 +57,13 @@ public class GatewayMetricsAutoConfiguration {
 	}
 
 	@Bean
-	public PropertiesTagsProvider propertiesTagsProvider(
-			GatewayMetricsProperties gatewayMetricsProperties) {
+	public PropertiesTagsProvider propertiesTagsProvider(GatewayMetricsProperties gatewayMetricsProperties) {
 		return new PropertiesTagsProvider(gatewayMetricsProperties.getTags());
 	}
 
 	@Bean
 	@ConditionalOnBean(MeterRegistry.class)
-	@ConditionalOnProperty(name = "spring.cloud.gateway.metrics.enabled",
-			matchIfMissing = true)
+	@ConditionalOnProperty(name = "spring.cloud.gateway.metrics.enabled", matchIfMissing = true)
 	public GatewayMetricsFilter gatewayMetricFilter(MeterRegistry meterRegistry,
 			List<GatewayTagsProvider> tagsProviders) {
 		return new GatewayMetricsFilter(meterRegistry, tagsProviders);

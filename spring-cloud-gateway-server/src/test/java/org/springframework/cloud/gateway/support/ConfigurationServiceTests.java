@@ -44,16 +44,15 @@ public class ConfigurationServiceTests {
 
 		Map<String, Object> map = Collections.singletonMap("config.value", 11);
 
-		ConfigurationService.bindOrCreate(Bindable.of(ValidatedConfig.class), map,
-				"config", getValidator(), null);
+		ConfigurationService.bindOrCreate(Bindable.of(ValidatedConfig.class), map, "config", getValidator(), null);
 	}
 
 	@Test
 	public void createWorks() {
 		Map<String, Object> map = Collections.singletonMap("config.value", 9);
 
-		ValidatedConfig config = ConfigurationService.bindOrCreate(
-				Bindable.of(ValidatedConfig.class), map, "config", getValidator(), null);
+		ValidatedConfig config = ConfigurationService.bindOrCreate(Bindable.of(ValidatedConfig.class), map, "config",
+				getValidator(), null);
 
 		assertThat(config).isNotNull().extracting(ValidatedConfig::getValue).isEqualTo(9);
 	}
@@ -65,8 +64,7 @@ public class ConfigurationServiceTests {
 		Map<String, Object> map = Collections.singletonMap("config.value", 11);
 
 		ValidatedConfig config = new ValidatedConfig();
-		ConfigurationService.bindOrCreate(Bindable.ofInstance(config), map, "config",
-				getValidator(), null);
+		ConfigurationService.bindOrCreate(Bindable.ofInstance(config), map, "config", getValidator(), null);
 	}
 
 	@Test
@@ -74,8 +72,7 @@ public class ConfigurationServiceTests {
 		Map<String, Object> map = Collections.singletonMap("config.value", 9);
 
 		ValidatedConfig config = new ValidatedConfig();
-		ConfigurationService.bindOrCreate(Bindable.ofInstance(config), map, "config",
-				getValidator(), null);
+		ConfigurationService.bindOrCreate(Bindable.ofInstance(config), map, "config", getValidator(), null);
 
 		assertThat(config).isNotNull().extracting(ValidatedConfig::getValue).isEqualTo(9);
 	}

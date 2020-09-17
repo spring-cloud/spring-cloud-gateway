@@ -66,11 +66,10 @@ public class AbstractGatewayControllerEndpoint implements ApplicationEventPublis
 
 	protected ApplicationEventPublisher publisher;
 
-	public AbstractGatewayControllerEndpoint(
-			RouteDefinitionLocator routeDefinitionLocator,
+	public AbstractGatewayControllerEndpoint(RouteDefinitionLocator routeDefinitionLocator,
 			List<GlobalFilter> globalFilters, List<GatewayFilterFactory> gatewayFilters,
-			List<RoutePredicateFactory> routePredicates,
-			RouteDefinitionWriter routeDefinitionWriter, RouteLocator routeLocator) {
+			List<RoutePredicateFactory> routePredicates, RouteDefinitionWriter routeDefinitionWriter,
+			RouteLocator routeLocator) {
 		this.routeDefinitionLocator = routeDefinitionLocator;
 		this.globalFilters = globalFilters;
 		this.GatewayFilters = gatewayFilters;
@@ -128,32 +127,25 @@ public class AbstractGatewayControllerEndpoint implements ApplicationEventPublis
 	 */
 	@PostMapping("/routes/{id}")
 	@SuppressWarnings("unchecked")
-	public Mono<ResponseEntity<Object>> save(@PathVariable String id,
-			@RequestBody RouteDefinition route) {
+	public Mono<ResponseEntity<Object>> save(@PathVariable String id, @RequestBody RouteDefinition route) {
 
 		return Mono.just(route).filter(this::validateRouteDefinition)
-				.flatMap(routeDefinition -> this.routeDefinitionWriter
-						.save(Mono.just(routeDefinition).map(r -> {
-							r.setId(id);
-							log.debug("Saving route: " + route);
-							return r;
-						}))
-						.then(Mono.defer(() -> Mono.just(ResponseEntity
-								.created(URI.create("/routes/" + id)).build()))))
-				.switchIfEmpty(
-						Mono.defer(() -> Mono.just(ResponseEntity.badRequest().build())));
+				.flatMap(routeDefinition -> this.routeDefinitionWriter.save(Mono.just(routeDefinition).map(r -> {
+					r.setId(id);
+					log.debug("Saving route: " + route);
+					return r;
+				})).then(Mono.defer(() -> Mono.just(ResponseEntity.created(URI.create("/routes/" + id)).build()))))
+				.switchIfEmpty(Mono.defer(() -> Mono.just(ResponseEntity.badRequest().build())));
 	}
 
 	private boolean validateRouteDefinition(RouteDefinition routeDefinition) {
 		boolean hasValidFilterDefinitions = routeDefinition.getFilters().stream()
-				.allMatch(filterDefinition -> GatewayFilters.stream()
-						.anyMatch(gatewayFilterFactory -> filterDefinition.getName()
-								.equals(gatewayFilterFactory.name())));
+				.allMatch(filterDefinition -> GatewayFilters.stream().anyMatch(
+						gatewayFilterFactory -> filterDefinition.getName().equals(gatewayFilterFactory.name())));
 
 		boolean hasValidPredicateDefinitions = routeDefinition.getPredicates().stream()
 				.allMatch(predicateDefinition -> routePredicates.stream()
-						.anyMatch(routePredicate -> predicateDefinition.getName()
-								.equals(routePredicate.name())));
+						.anyMatch(routePredicate -> predicateDefinition.getName().equals(routePredicate.name())));
 		log.debug("FilterDefinitions valid: " + hasValidFilterDefinitions);
 		log.debug("PredicateDefinitions valid: " + hasValidPredicateDefinitions);
 		return hasValidFilterDefinitions && hasValidPredicateDefinitions;
@@ -163,15 +155,14 @@ public class AbstractGatewayControllerEndpoint implements ApplicationEventPublis
 	public Mono<ResponseEntity<Object>> delete(@PathVariable String id) {
 		return this.routeDefinitionWriter.delete(Mono.just(id))
 				.then(Mono.defer(() -> Mono.just(ResponseEntity.ok().build())))
-				.onErrorResume(t -> t instanceof NotFoundException,
-						t -> Mono.just(ResponseEntity.notFound().build()));
+				.onErrorResume(t -> t instanceof NotFoundException, t -> Mono.just(ResponseEntity.notFound().build()));
 	}
 
 	@GetMapping("/routes/{id}/combinedfilters")
 	public Mono<HashMap<String, Object>> combinedfilters(@PathVariable String id) {
 		// TODO: missing global filters
-		return this.routeLocator.getRoutes().filter(route -> route.getId().equals(id))
-				.reduce(new HashMap<>(), this::putItem);
+		return this.routeLocator.getRoutes().filter(route -> route.getId().equals(id)).reduce(new HashMap<>(),
+				this::putItem);
 	}
 
 }

@@ -51,8 +51,8 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.r
 /**
  * @author Ryan Baxter
  */
-public abstract class SpringCloudCircuitBreakerFilterFactory extends
-		AbstractGatewayFilterFactory<SpringCloudCircuitBreakerFilterFactory.Config> {
+public abstract class SpringCloudCircuitBreakerFilterFactory
+		extends AbstractGatewayFilterFactory<SpringCloudCircuitBreakerFilterFactory.Config> {
 
 	private ReactiveCircuitBreakerFactory reactiveCircuitBreakerFactory;
 
@@ -63,8 +63,7 @@ public abstract class SpringCloudCircuitBreakerFilterFactory extends
 	// do not use this dispatcherHandler directly, use getDispatcherHandler() instead.
 	private volatile DispatcherHandler dispatcherHandler;
 
-	public SpringCloudCircuitBreakerFilterFactory(
-			ReactiveCircuitBreakerFactory reactiveCircuitBreakerFactory,
+	public SpringCloudCircuitBreakerFilterFactory(ReactiveCircuitBreakerFactory reactiveCircuitBreakerFactory,
 			ObjectProvider<DispatcherHandler> dispatcherHandlerProvider) {
 		super(Config.class);
 		this.reactiveCircuitBreakerFactory = reactiveCircuitBreakerFactory;
@@ -87,15 +86,13 @@ public abstract class SpringCloudCircuitBreakerFilterFactory extends
 	@Override
 	public GatewayFilter apply(Config config) {
 		ReactiveCircuitBreaker cb = reactiveCircuitBreakerFactory.create(config.getId());
-		Set<HttpStatus> statuses = config.getStatusCodes().stream()
-				.map(HttpStatusHolder::parse)
-				.filter(statusHolder -> statusHolder.getHttpStatus() != null)
-				.map(HttpStatusHolder::getHttpStatus).collect(Collectors.toSet());
+		Set<HttpStatus> statuses = config.getStatusCodes().stream().map(HttpStatusHolder::parse)
+				.filter(statusHolder -> statusHolder.getHttpStatus() != null).map(HttpStatusHolder::getHttpStatus)
+				.collect(Collectors.toSet());
 
 		return new GatewayFilter() {
 			@Override
-			public Mono<Void> filter(ServerWebExchange exchange,
-					GatewayFilterChain chain) {
+			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 				return cb.run(chain.filter(exchange).doOnSuccess(v -> {
 					if (statuses.contains(exchange.getResponse().getStatusCode())) {
 						HttpStatus status = exchange.getResponse().getStatusCode();
@@ -112,9 +109,8 @@ public abstract class SpringCloudCircuitBreakerFilterFactory extends
 					URI uri = exchange.getRequest().getURI();
 					// TODO: assume always?
 					boolean encoded = containsEncodedParts(uri);
-					URI requestUrl = UriComponentsBuilder.fromUri(uri).host(null)
-							.port(null).uri(config.getFallbackUri()).scheme(null)
-							.build(encoded).toUri();
+					URI requestUrl = UriComponentsBuilder.fromUri(uri).host(null).port(null)
+							.uri(config.getFallbackUri()).scheme(null).build(encoded).toUri();
 					exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, requestUrl);
 					addExceptionDetails(t, exchange);
 
@@ -123,18 +119,15 @@ public abstract class SpringCloudCircuitBreakerFilterFactory extends
 					// is to another route in the Gateway
 					removeAlreadyRouted(exchange);
 
-					ServerHttpRequest request = exchange.getRequest().mutate()
-							.uri(requestUrl).build();
-					return getDispatcherHandler()
-							.handle(exchange.mutate().request(request).build());
+					ServerHttpRequest request = exchange.getRequest().mutate().uri(requestUrl).build();
+					return getDispatcherHandler().handle(exchange.mutate().request(request).build());
 				}).onErrorResume(t -> handleErrorWithoutFallback(t));
 			}
 
 			@Override
 			public String toString() {
 				return filterToStringCreator(SpringCloudCircuitBreakerFilterFactory.this)
-						.append("name", config.getName())
-						.append("fallback", config.fallbackUri).toString();
+						.append("name", config.getName()).append("fallback", config.fallbackUri).toString();
 			}
 		};
 	}
@@ -142,8 +135,8 @@ public abstract class SpringCloudCircuitBreakerFilterFactory extends
 	protected abstract Mono<Void> handleErrorWithoutFallback(Throwable t);
 
 	private void addExceptionDetails(Throwable t, ServerWebExchange exchange) {
-		ofNullable(t).ifPresent(exception -> exchange.getAttributes()
-				.put(CIRCUITBREAKER_EXECUTION_EXCEPTION_ATTR, exception));
+		ofNullable(t).ifPresent(
+				exception -> exchange.getAttributes().put(CIRCUITBREAKER_EXECUTION_EXCEPTION_ATTR, exception));
 	}
 
 	@Override

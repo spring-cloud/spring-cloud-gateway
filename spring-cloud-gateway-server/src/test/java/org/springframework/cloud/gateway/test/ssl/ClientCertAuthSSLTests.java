@@ -62,18 +62,14 @@ public class ClientCertAuthSSLTests extends SingleCertSSLTests {
 
 		try {
 			URL url = ResourceUtils.getURL(keyStore);
-			store.load(url.openStream(),
-					keyStorePassword != null ? keyStorePassword.toCharArray() : null);
+			store.load(url.openStream(), keyStorePassword != null ? keyStorePassword.toCharArray() : null);
 		}
 		catch (Exception e) {
-			throw new WebServerException("Could not load key store ' " + keyStore + "'",
-					e);
+			throw new WebServerException("Could not load key store ' " + keyStore + "'", e);
 		}
 
-		KeyManagerFactory keyManagerFactory = KeyManagerFactory
-				.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-		char[] keyPasswordCharArray = keyPassword != null ? keyPassword.toCharArray()
-				: null;
+		KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+		char[] keyPasswordCharArray = keyPassword != null ? keyPassword.toCharArray() : null;
 
 		if (keyPasswordCharArray == null && keyStorePassword != null) {
 			keyPasswordCharArray = keyStorePassword.toCharArray();
@@ -82,13 +78,10 @@ public class ClientCertAuthSSLTests extends SingleCertSSLTests {
 		keyManagerFactory.init(store, keyPasswordCharArray);
 
 		try {
-			SslContext sslContext = SslContextBuilder.forClient()
-					.trustManager(InsecureTrustManagerFactory.INSTANCE)
+			SslContext sslContext = SslContextBuilder.forClient().trustManager(InsecureTrustManagerFactory.INSTANCE)
 					.keyManager(keyManagerFactory).build();
-			HttpClient httpClient = HttpClient.create()
-					.secure(ssl -> ssl.sslContext(sslContext));
-			setup(new ReactorClientHttpConnector(httpClient),
-					"https://localhost:" + port);
+			HttpClient httpClient = HttpClient.create().secure(ssl -> ssl.sslContext(sslContext));
+			setup(new ReactorClientHttpConnector(httpClient), "https://localhost:" + port);
 		}
 		catch (SSLException e) {
 			throw new RuntimeException(e);

@@ -56,8 +56,8 @@ public class ProxyResponseAutoConfiguration implements WebMvcConfigurer {
 
 	@Bean
 	@ConditionalOnMissingBean
-	public ProxyExchangeArgumentResolver proxyExchangeArgumentResolver(
-			Optional<RestTemplateBuilder> optional, ProxyProperties proxy) {
+	public ProxyExchangeArgumentResolver proxyExchangeArgumentResolver(Optional<RestTemplateBuilder> optional,
+			ProxyProperties proxy) {
 		RestTemplateBuilder builder = optional.orElse(new RestTemplateBuilder());
 		RestTemplate template = builder.build();
 		template.setErrorHandler(new NoOpResponseErrorHandler());
@@ -67,8 +67,7 @@ public class ProxyResponseAutoConfiguration implements WebMvcConfigurer {
 				return true;
 			}
 		});
-		ProxyExchangeArgumentResolver resolver = new ProxyExchangeArgumentResolver(
-				template);
+		ProxyExchangeArgumentResolver resolver = new ProxyExchangeArgumentResolver(template);
 		resolver.setHeaders(proxy.convertHeaders());
 		resolver.setAutoForwardedHeaders(proxy.getAutoForward());
 		resolver.setSensitive(proxy.getSensitive()); // can be null
@@ -76,8 +75,7 @@ public class ProxyResponseAutoConfiguration implements WebMvcConfigurer {
 	}
 
 	@Override
-	public void addArgumentResolvers(
-			List<HandlerMethodArgumentResolver> argumentResolvers) {
+	public void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
 		argumentResolvers.add(context.getBean(ProxyExchangeArgumentResolver.class));
 	}
 

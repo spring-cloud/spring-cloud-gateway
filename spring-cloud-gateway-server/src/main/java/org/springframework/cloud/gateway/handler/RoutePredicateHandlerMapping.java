@@ -48,9 +48,8 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 
 	private final ManagementPortType managementPortType;
 
-	public RoutePredicateHandlerMapping(FilteringWebHandler webHandler,
-			RouteLocator routeLocator, GlobalCorsProperties globalCorsProperties,
-			Environment environment) {
+	public RoutePredicateHandlerMapping(FilteringWebHandler webHandler, RouteLocator routeLocator,
+			GlobalCorsProperties globalCorsProperties, Environment environment) {
 		this.webHandler = webHandler;
 		this.routeLocator = routeLocator;
 
@@ -65,10 +64,8 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 		if (this.managementPort != null && this.managementPort < 0) {
 			return DISABLED;
 		}
-		return ((this.managementPort == null
-				|| (serverPort == null && this.managementPort.equals(8080))
-				|| (this.managementPort != 0 && this.managementPort.equals(serverPort)))
-						? SAME : DIFFERENT);
+		return ((this.managementPort == null || (serverPort == null && this.managementPort.equals(8080))
+				|| (this.managementPort != 0 && this.managementPort.equals(serverPort))) ? SAME : DIFFERENT);
 	}
 
 	private static Integer getPortProperty(Environment environment, String prefix) {
@@ -89,8 +86,7 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 				.flatMap((Function<Route, Mono<?>>) r -> {
 					exchange.getAttributes().remove(GATEWAY_PREDICATE_ROUTE_ATTR);
 					if (logger.isDebugEnabled()) {
-						logger.debug(
-								"Mapping [" + getExchangeDesc(exchange) + "] to " + r);
+						logger.debug("Mapping [" + getExchangeDesc(exchange) + "] to " + r);
 					}
 
 					exchange.getAttributes().put(GATEWAY_ROUTE_ATTR, r);
@@ -98,15 +94,13 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 				}).switchIfEmpty(Mono.empty().then(Mono.fromRunnable(() -> {
 					exchange.getAttributes().remove(GATEWAY_PREDICATE_ROUTE_ATTR);
 					if (logger.isTraceEnabled()) {
-						logger.trace("No RouteDefinition found for ["
-								+ getExchangeDesc(exchange) + "]");
+						logger.trace("No RouteDefinition found for [" + getExchangeDesc(exchange) + "]");
 					}
 				})));
 	}
 
 	@Override
-	protected CorsConfiguration getCorsConfiguration(Object handler,
-			ServerWebExchange exchange) {
+	protected CorsConfiguration getCorsConfiguration(Object handler, ServerWebExchange exchange) {
 		// TODO: support cors configuration via properties on a route see gh-229
 		// see RequestMappingHandlerMapping.initCorsConfiguration()
 		// also see
@@ -135,9 +129,7 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 				})
 						// instead of immediately stopping main flux due to error, log and
 						// swallow it
-						.doOnError(e -> logger.error(
-								"Error applying predicate for route: " + route.getId(),
-								e))
+						.doOnError(e -> logger.error("Error applying predicate for route: " + route.getId(), e))
 						.onErrorResume(e -> Mono.empty()))
 				// .defaultIfEmpty() put a static Route not found
 				// or .switchIfEmpty()

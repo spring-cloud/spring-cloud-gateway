@@ -157,18 +157,16 @@ public class GatewaySampleApplication {
 
 	@Bean
 	public RouterFunction<ServerResponse> testFunRouterFunction() {
-		RouterFunction<ServerResponse> route = RouterFunctions.route(
-				RequestPredicates.path("/testfun"),
+		RouterFunction<ServerResponse> route = RouterFunctions.route(RequestPredicates.path("/testfun"),
 				request -> ServerResponse.ok().body(BodyInserters.fromValue("hello")));
 		return route;
 	}
 
 	@Bean
 	public RouterFunction<ServerResponse> testWhenMetricPathIsNotMeet() {
-		RouterFunction<ServerResponse> route = RouterFunctions.route(
-				RequestPredicates.path("/actuator/metrics/gateway.requests"),
-				request -> ServerResponse.ok().body(BodyInserters
-						.fromValue(HELLO_FROM_FAKE_ACTUATOR_METRICS_GATEWAY_REQUESTS)));
+		RouterFunction<ServerResponse> route = RouterFunctions
+				.route(RequestPredicates.path("/actuator/metrics/gateway.requests"), request -> ServerResponse.ok()
+						.body(BodyInserters.fromValue(HELLO_FROM_FAKE_ACTUATOR_METRICS_GATEWAY_REQUESTS)));
 		return route;
 	}
 

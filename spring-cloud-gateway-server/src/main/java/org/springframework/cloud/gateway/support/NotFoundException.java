@@ -41,15 +41,12 @@ public class NotFoundException extends ResponseStatusException {
 	}
 
 	public static NotFoundException create(boolean with404, String message) {
-		HttpStatus httpStatus = with404 ? HttpStatus.NOT_FOUND
-				: HttpStatus.SERVICE_UNAVAILABLE;
+		HttpStatus httpStatus = with404 ? HttpStatus.NOT_FOUND : HttpStatus.SERVICE_UNAVAILABLE;
 		return new NotFoundException(httpStatus, message);
 	}
 
-	public static NotFoundException create(boolean with404, String message,
-			Throwable cause) {
-		HttpStatus httpStatus = with404 ? HttpStatus.NOT_FOUND
-				: HttpStatus.SERVICE_UNAVAILABLE;
+	public static NotFoundException create(boolean with404, String message, Throwable cause) {
+		HttpStatus httpStatus = with404 ? HttpStatus.NOT_FOUND : HttpStatus.SERVICE_UNAVAILABLE;
 		return new NotFoundException(httpStatus, message, cause);
 	}
 

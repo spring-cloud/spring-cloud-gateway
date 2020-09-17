@@ -72,11 +72,9 @@ public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResol
 	}
 
 	@Override
-	public Object resolveArgument(MethodParameter parameter,
-			ModelAndViewContainer mavContainer, NativeWebRequest webRequest,
-			WebDataBinderFactory binderFactory) throws Exception {
-		ProxyExchange<?> proxy = new ProxyExchange<>(rest, webRequest, mavContainer,
-				binderFactory, type(parameter));
+	public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
+			NativeWebRequest webRequest, WebDataBinderFactory binderFactory) throws Exception {
+		ProxyExchange<?> proxy = new ProxyExchange<>(rest, webRequest, mavContainer, binderFactory, type(parameter));
 		proxy.headers(headers);
 		if (this.autoForwardedHeaders.size() > 0) {
 			proxy.headers(extractAutoForwardedHeaders(webRequest));
@@ -97,15 +95,13 @@ public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResol
 	}
 
 	private HttpHeaders extractAutoForwardedHeaders(NativeWebRequest webRequest) {
-		HttpServletRequest nativeRequest = webRequest
-				.getNativeRequest(HttpServletRequest.class);
+		HttpServletRequest nativeRequest = webRequest.getNativeRequest(HttpServletRequest.class);
 		Enumeration<String> headerNames = nativeRequest.getHeaderNames();
 		HttpHeaders headers = new HttpHeaders();
 		while (headerNames.hasMoreElements()) {
 			String header = headerNames.nextElement();
 			if (this.autoForwardedHeaders.contains(header.toLowerCase())) {
-				headers.addAll(header,
-						Collections.list(nativeRequest.getHeaders(header)));
+				headers.addAll(header, Collections.list(nativeRequest.getHeaders(header)));
 			}
 		}
 		return headers;

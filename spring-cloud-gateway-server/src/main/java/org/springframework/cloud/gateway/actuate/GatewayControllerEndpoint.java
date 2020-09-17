@@ -45,13 +45,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 @RestControllerEndpoint(id = "gateway")
 public class GatewayControllerEndpoint extends AbstractGatewayControllerEndpoint {
 
-	public GatewayControllerEndpoint(List<GlobalFilter> globalFilters,
-			List<GatewayFilterFactory> gatewayFilters,
-			List<RoutePredicateFactory> routePredicates,
-			RouteDefinitionWriter routeDefinitionWriter, RouteLocator routeLocator,
-			RouteDefinitionLocator routeDefinitionLocator) {
-		super(routeDefinitionLocator, globalFilters, gatewayFilters, routePredicates,
-				routeDefinitionWriter, routeLocator);
+	public GatewayControllerEndpoint(List<GlobalFilter> globalFilters, List<GatewayFilterFactory> gatewayFilters,
+			List<RoutePredicateFactory> routePredicates, RouteDefinitionWriter routeDefinitionWriter,
+			RouteLocator routeLocator, RouteDefinitionLocator routeDefinitionLocator) {
+		super(routeDefinitionLocator, globalFilters, gatewayFilters, routePredicates, routeDefinitionWriter,
+				routeLocator);
 	}
 
 	@GetMapping("/routedefinitions")

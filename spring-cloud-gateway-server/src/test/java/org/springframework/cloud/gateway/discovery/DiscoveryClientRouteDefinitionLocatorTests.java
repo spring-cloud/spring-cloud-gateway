@@ -65,11 +65,9 @@ public class DiscoveryClientRouteDefinitionLocatorTests {
 
 	@Test
 	public void includeExpressionWorks() {
-		assertThat(locator).as("DiscoveryClientRouteDefinitionLocator was null")
-				.isNotNull();
+		assertThat(locator).as("DiscoveryClientRouteDefinitionLocator was null").isNotNull();
 
-		List<RouteDefinition> definitions = locator.getRouteDefinitions().collectList()
-				.block();
+		List<RouteDefinition> definitions = locator.getRouteDefinitions().collectList().block();
 		assertThat(definitions).hasSize(1);
 
 		RouteDefinition definition = definitions.get(0);
@@ -80,14 +78,12 @@ public class DiscoveryClientRouteDefinitionLocatorTests {
 		assertThat(definition.getPredicates()).hasSize(1);
 		PredicateDefinition predicate = definition.getPredicates().get(0);
 		assertThat(predicate.getName()).isEqualTo("Path");
-		assertThat(predicate.getArgs()).hasSize(1).containsEntry(PATTERN_KEY,
-				"/service1/**");
+		assertThat(predicate.getArgs()).hasSize(1).containsEntry(PATTERN_KEY, "/service1/**");
 
 		assertThat(definition.getFilters()).hasSize(1);
 		FilterDefinition filter = definition.getFilters().get(0);
 		assertThat(filter.getName()).isEqualTo("RewritePath");
-		assertThat(filter.getArgs()).hasSize(2)
-				.containsEntry(REGEXP_KEY, "/service1/(?<remaining>.*)")
+		assertThat(filter.getArgs()).hasSize(2).containsEntry(REGEXP_KEY, "/service1/(?<remaining>.*)")
 				.containsEntry(REPLACEMENT_KEY, "/${remaining}");
 	}
 
@@ -98,20 +94,17 @@ public class DiscoveryClientRouteDefinitionLocatorTests {
 		@Bean
 		ReactiveDiscoveryClient discoveryClient() {
 			ReactiveDiscoveryClient discoveryClient = mock(ReactiveDiscoveryClient.class);
-			when(discoveryClient.getServices())
-					.thenReturn(Flux.just("SERVICE1", "Service2"));
-			whenInstance(discoveryClient, "SERVICE1",
-					Collections.singletonMap("edge", "true"));
+			when(discoveryClient.getServices()).thenReturn(Flux.just("SERVICE1", "Service2"));
+			whenInstance(discoveryClient, "SERVICE1", Collections.singletonMap("edge", "true"));
 			whenInstance(discoveryClient, "Service2", Collections.emptyMap());
 			return discoveryClient;
 		}
 
-		private void whenInstance(ReactiveDiscoveryClient discoveryClient,
-				String serviceId, Map<String, String> metadata) {
-			DefaultServiceInstance instance1 = new DefaultServiceInstance(
-					serviceId + "8001", serviceId, "localhost", 8001, false, metadata);
-			when(discoveryClient.getInstances(serviceId))
-					.thenReturn(Flux.just(instance1));
+		private void whenInstance(ReactiveDiscoveryClient discoveryClient, String serviceId,
+				Map<String, String> metadata) {
+			DefaultServiceInstance instance1 = new DefaultServiceInstance(serviceId + "8001", serviceId, "localhost",
+					8001, false, metadata);
+			when(discoveryClient.getInstances(serviceId)).thenReturn(Flux.just(instance1));
 		}
 
 	}

@@ -37,16 +37,12 @@ public final class NameUtils {
 		return GENERATED_NAME_PREFIX + i;
 	}
 
-	public static String normalizeRoutePredicateName(
-			Class<? extends RoutePredicateFactory> clazz) {
-		return removeGarbage(clazz.getSimpleName()
-				.replace(RoutePredicateFactory.class.getSimpleName(), ""));
+	public static String normalizeRoutePredicateName(Class<? extends RoutePredicateFactory> clazz) {
+		return removeGarbage(clazz.getSimpleName().replace(RoutePredicateFactory.class.getSimpleName(), ""));
 	}
 
-	public static String normalizeFilterFactoryName(
-			Class<? extends GatewayFilterFactory> clazz) {
-		return removeGarbage(clazz.getSimpleName()
-				.replace(GatewayFilterFactory.class.getSimpleName(), ""));
+	public static String normalizeFilterFactoryName(Class<? extends GatewayFilterFactory> clazz) {
+		return removeGarbage(clazz.getSimpleName().replace(GatewayFilterFactory.class.getSimpleName(), ""));
 	}
 
 	private static String removeGarbage(String s) {

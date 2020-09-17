@@ -46,28 +46,24 @@ public class AddResponseHeaderGatewayFilterFactoryTests extends BaseWebClientTes
 
 	@Test
 	public void testResposneHeaderFilter() {
-		URI uri = UriComponentsBuilder.fromUriString(this.baseUri + "/headers")
-				.build(true).toUri();
+		URI uri = UriComponentsBuilder.fromUriString(this.baseUri + "/headers").build(true).toUri();
 		String host = "www.addresponseheader.org";
 		String expectedValue = "Bar";
-		testClient.get().uri(uri).header("Host", host).exchange().expectHeader()
-				.valueEquals("X-Request-Foo", expectedValue);
+		testClient.get().uri(uri).header("Host", host).exchange().expectHeader().valueEquals("X-Request-Foo",
+				expectedValue);
 	}
 
 	@Test
 	public void testResposneHeaderFilterJavaDsl() {
-		URI uri = UriComponentsBuilder.fromUriString(this.baseUri + "/get").build(true)
-				.toUri();
+		URI uri = UriComponentsBuilder.fromUriString(this.baseUri + "/get").build(true).toUri();
 		String host = "www.addresponseheaderjava.org";
 		String expectedValue = "myresponsevalue-www";
-		testClient.get().uri(uri).header("Host", host).exchange().expectHeader()
-				.valueEquals("example", expectedValue);
+		testClient.get().uri(uri).header("Host", host).exchange().expectHeader().valueEquals("example", expectedValue);
 	}
 
 	@Test
 	public void toStringFormat() {
-		NameValueConfig config = new NameValueConfig().setName("myname")
-				.setValue("myvalue");
+		NameValueConfig config = new NameValueConfig().setName("myname").setValue("myvalue");
 		GatewayFilter filter = new AddResponseHeaderGatewayFilterFactory().apply(config);
 		assertThat(filter.toString()).contains("myname").contains("myvalue");
 	}
@@ -82,11 +78,11 @@ public class AddResponseHeaderGatewayFilterFactoryTests extends BaseWebClientTes
 
 		@Bean
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
-			return builder.routes().route("add_response_header_java_test",
-					r -> r.path("/get").and().host("{sub}.addresponseheaderjava.org")
-							.filters(f -> f.prefixPath("/httpbin").addResponseHeader(
-									"example", "myresponsevalue-{sub}"))
-							.uri(uri))
+			return builder.routes()
+					.route("add_response_header_java_test",
+							r -> r.path("/get").and().host("{sub}.addresponseheaderjava.org").filters(
+									f -> f.prefixPath("/httpbin").addResponseHeader("example", "myresponsevalue-{sub}"))
+									.uri(uri))
 					.build();
 		}
 

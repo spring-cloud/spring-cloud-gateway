@@ -43,8 +43,8 @@ import static org.springframework.cloud.gateway.support.GatewayToStringStyler.fi
 /**
  * GatewayFilter that modifies the request body.
  */
-public class ModifyRequestBodyGatewayFilterFactory extends
-		AbstractGatewayFilterFactory<ModifyRequestBodyGatewayFilterFactory.Config> {
+public class ModifyRequestBodyGatewayFilterFactory
+		extends AbstractGatewayFilterFactory<ModifyRequestBodyGatewayFilterFactory.Config> {
 
 	private final List<HttpMessageReader<?>> messageReaders;
 
@@ -53,8 +53,7 @@ public class ModifyRequestBodyGatewayFilterFactory extends
 		this.messageReaders = HandlerStrategies.withDefaults().messageReaders();
 	}
 
-	public ModifyRequestBodyGatewayFilterFactory(
-			List<HttpMessageReader<?>> messageReaders) {
+	public ModifyRequestBodyGatewayFilterFactory(List<HttpMessageReader<?>> messageReaders) {
 		super(Config.class);
 		this.messageReaders = messageReaders;
 	}
@@ -64,21 +63,16 @@ public class ModifyRequestBodyGatewayFilterFactory extends
 	public GatewayFilter apply(Config config) {
 		return new GatewayFilter() {
 			@Override
-			public Mono<Void> filter(ServerWebExchange exchange,
-					GatewayFilterChain chain) {
+			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 				Class inClass = config.getInClass();
-				ServerRequest serverRequest = ServerRequest.create(exchange,
-						messageReaders);
+				ServerRequest serverRequest = ServerRequest.create(exchange, messageReaders);
 
 				// TODO: flux or mono
 				Mono<?> modifiedBody = serverRequest.bodyToMono(inClass)
-						.flatMap(originalBody -> config.getRewriteFunction()
-								.apply(exchange, originalBody))
-						.switchIfEmpty(Mono.defer(() -> (Mono) config.getRewriteFunction()
-								.apply(exchange, null)));
+						.flatMap(originalBody -> config.getRewriteFunction().apply(exchange, originalBody))
+						.switchIfEmpty(Mono.defer(() -> (Mono) config.getRewriteFunction().apply(exchange, null)));
 
-				BodyInserter bodyInserter = BodyInserters.fromPublisher(modifiedBody,
-						config.getOutClass());
+				BodyInserter bodyInserter = BodyInserters.fromPublisher(modifiedBody, config.getOutClass());
 				HttpHeaders headers = new HttpHeaders();
 				headers.putAll(exchange.getRequest().getHeaders());
 
@@ -91,35 +85,29 @@ public class ModifyRequestBodyGatewayFilterFactory extends
 				if (config.getContentType() != null) {
 					headers.set(HttpHeaders.CONTENT_TYPE, config.getContentType());
 				}
-				CachedBodyOutputMessage outputMessage = new CachedBodyOutputMessage(
-						exchange, headers);
+				CachedBodyOutputMessage outputMessage = new CachedBodyOutputMessage(exchange, headers);
 				return bodyInserter.insert(outputMessage, new BodyInserterContext())
 						// .log("modify_request", Level.INFO)
 						.then(Mono.defer(() -> {
-							ServerHttpRequest decorator = decorate(exchange, headers,
-									outputMessage);
-							return chain
-									.filter(exchange.mutate().request(decorator).build());
-						})).onErrorResume(
-								(Function<Throwable, Mono<Void>>) throwable -> release(
-										exchange, outputMessage, throwable));
+							ServerHttpRequest decorator = decorate(exchange, headers, outputMessage);
+							return chain.filter(exchange.mutate().request(decorator).build());
+						})).onErrorResume((Function<Throwable, Mono<Void>>) throwable -> release(exchange,
+								outputMessage, throwable));
 			}
 
 			@Override
 			public String toString() {
 				return filterToStringCreator(ModifyRequestBodyGatewayFilterFactory.this)
-						.append("Content type", config.getContentType())
-						.append("In class", config.getInClass())
+						.append("Content type", config.getContentType()).append("In class", config.getInClass())
 						.append("Out class", config.getOutClass()).toString();
 			}
 		};
 	}
 
-	protected Mono<Void> release(ServerWebExchange exchange,
-			CachedBodyOutputMessage outputMessage, Throwable throwable) {
+	protected Mono<Void> release(ServerWebExchange exchange, CachedBodyOutputMessage outputMessage,
+			Throwable throwable) {
 		if (outputMessage.isCached()) {
-			return outputMessage.getBody().map(DataBufferUtils::release)
-					.then(Mono.error(throwable));
+			return outputMessage.getBody().map(DataBufferUtils::release).then(Mono.error(throwable));
 		}
 		return Mono.error(throwable);
 	}

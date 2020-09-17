@@ -33,8 +33,8 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.P
 /**
  * @author Andrew Fitzgerald
  */
-public class SetRequestHostHeaderGatewayFilterFactory extends
-		AbstractGatewayFilterFactory<SetRequestHostHeaderGatewayFilterFactory.Config> {
+public class SetRequestHostHeaderGatewayFilterFactory
+		extends AbstractGatewayFilterFactory<SetRequestHostHeaderGatewayFilterFactory.Config> {
 
 	public SetRequestHostHeaderGatewayFilterFactory() {
 		super(Config.class);
@@ -49,15 +49,13 @@ public class SetRequestHostHeaderGatewayFilterFactory extends
 	public GatewayFilter apply(Config config) {
 		return new GatewayFilter() {
 			@Override
-			public Mono<Void> filter(ServerWebExchange exchange,
-					GatewayFilterChain chain) {
+			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 				String value = ServerWebExchangeUtils.expand(exchange, config.getHost());
 
-				ServerHttpRequest request = exchange.getRequest().mutate()
-						.headers(httpHeaders -> {
-							httpHeaders.remove("Host");
-							httpHeaders.add("Host", value);
-						}).build();
+				ServerHttpRequest request = exchange.getRequest().mutate().headers(httpHeaders -> {
+					httpHeaders.remove("Host");
+					httpHeaders.add("Host", value);
+				}).build();
 
 				// Make sure the header we just set is preserved
 				exchange.getAttributes().put(PRESERVE_HOST_HEADER_ATTRIBUTE, true);
@@ -67,9 +65,8 @@ public class SetRequestHostHeaderGatewayFilterFactory extends
 
 			@Override
 			public String toString() {
-				return filterToStringCreator(
-						SetRequestHostHeaderGatewayFilterFactory.this)
-								.append(config.getHost()).toString();
+				return filterToStringCreator(SetRequestHostHeaderGatewayFilterFactory.this).append(config.getHost())
+						.toString();
 			}
 		};
 	}

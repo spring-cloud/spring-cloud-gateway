@@ -49,8 +49,8 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
  * @author Spencer Gibb
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = { GatewaySampleApplicationTests.TestConfig.class },
-		webEnvironment = RANDOM_PORT, properties = "management.server.port=${test.port}")
+@SpringBootTest(classes = { GatewaySampleApplicationTests.TestConfig.class }, webEnvironment = RANDOM_PORT,
+		properties = "management.server.port=${test.port}")
 public class GatewaySampleApplicationTests {
 
 	protected static int managementPort;
@@ -77,8 +77,7 @@ public class GatewaySampleApplicationTests {
 	@Before
 	public void setup() {
 		baseUri = "http://localhost:" + port;
-		this.webClient = WebTestClient.bindToServer()
-				.responseTimeout(Duration.ofSeconds(10)).baseUrl(baseUri).build();
+		this.webClient = WebTestClient.bindToServer().responseTimeout(Duration.ofSeconds(10)).baseUrl(baseUri).build();
 	}
 
 	@Test
@@ -89,108 +88,88 @@ public class GatewaySampleApplicationTests {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void readBodyPredicateStringWorks() {
-		webClient.post().uri("/post").header("Host", "www.readbody.org").bodyValue("hi")
-				.exchange().expectStatus().isOk().expectHeader()
-				.valueEquals("X-TestHeader", "read_body_pred").expectBody(Map.class)
-				.consumeWith(result -> assertThat(result.getResponseBody())
-						.containsEntry("data", "hi"));
+		webClient.post().uri("/post").header("Host", "www.readbody.org").bodyValue("hi").exchange().expectStatus()
+				.isOk().expectHeader().valueEquals("X-TestHeader", "read_body_pred").expectBody(Map.class)
+				.consumeWith(result -> assertThat(result.getResponseBody()).containsEntry("data", "hi"));
 	}
 
 	@Test
 	@SuppressWarnings("unchecked")
 	public void rewriteRequestBodyStringWorks() {
-		webClient.post().uri("/post").header("Host", "www.rewriterequestupper.org")
-				.bodyValue("hello").exchange().expectStatus().isOk().expectHeader()
-				.valueEquals("X-TestHeader", "rewrite_request_upper")
+		webClient.post().uri("/post").header("Host", "www.rewriterequestupper.org").bodyValue("hello").exchange()
+				.expectStatus().isOk().expectHeader().valueEquals("X-TestHeader", "rewrite_request_upper")
 				.expectBody(Map.class)
-				.consumeWith(result -> assertThat(result.getResponseBody())
-						.containsEntry("data", "HELLOHELLO"));
+				.consumeWith(result -> assertThat(result.getResponseBody()).containsEntry("data", "HELLOHELLO"));
 	}
 
 	@Test
 	@SuppressWarnings("unchecked")
 	public void rewriteRequestBodyObjectWorks() {
-		webClient.post().uri("/post").header("Host", "www.rewriterequestobj.org")
-				.bodyValue("hello").exchange().expectStatus().isOk().expectHeader()
-				.valueEquals("X-TestHeader", "rewrite_request").expectBody(Map.class)
-				.consumeWith(result -> assertThat(result.getResponseBody())
-						.containsEntry("data", "{\"message\":\"HELLO\"}"));
+		webClient.post().uri("/post").header("Host", "www.rewriterequestobj.org").bodyValue("hello").exchange()
+				.expectStatus().isOk().expectHeader().valueEquals("X-TestHeader", "rewrite_request")
+				.expectBody(Map.class).consumeWith(result -> assertThat(result.getResponseBody()).containsEntry("data",
+						"{\"message\":\"HELLO\"}"));
 	}
 
 	@Test
 	@SuppressWarnings("unchecked")
 	public void rewriteResponseBodyStringWorks() {
-		webClient.post().uri("/post").header("Host", "www.rewriteresponseupper.org")
-				.bodyValue("hello").exchange().expectStatus().isOk().expectHeader()
-				.valueEquals("X-TestHeader", "rewrite_response_upper")
+		webClient.post().uri("/post").header("Host", "www.rewriteresponseupper.org").bodyValue("hello").exchange()
+				.expectStatus().isOk().expectHeader().valueEquals("X-TestHeader", "rewrite_response_upper")
 				.expectBody(Map.class)
-				.consumeWith(result -> assertThat(result.getResponseBody())
-						.containsEntry("DATA", "HELLO"));
+				.consumeWith(result -> assertThat(result.getResponseBody()).containsEntry("DATA", "HELLO"));
 	}
 
 	@Test
 	@SuppressWarnings("unchecked")
 	public void rewriteResponseEmptyBodyToStringWorks() {
-		webClient.post().uri("/post/empty").header("Host", "www.rewriteemptyresponse.org")
-				.exchange().expectStatus().isOk().expectHeader()
-				.valueEquals("X-TestHeader", "rewrite_empty_response")
-				.expectBody(String.class)
-				.consumeWith(result -> assertThat(result.getResponseBody())
-						.isEqualTo("emptybody"));
+		webClient.post().uri("/post/empty").header("Host", "www.rewriteemptyresponse.org").exchange().expectStatus()
+				.isOk().expectHeader().valueEquals("X-TestHeader", "rewrite_empty_response").expectBody(String.class)
+				.consumeWith(result -> assertThat(result.getResponseBody()).isEqualTo("emptybody"));
 	}
 
 	@Test
 	@SuppressWarnings("unchecked")
 	public void emptyBodySupplierNotCalledWhenBodyPresent() {
-		webClient.post().uri("/post")
-				.header("Host", "www.rewriteresponsewithfailsupplier.org")
-				.bodyValue("hello").exchange().expectStatus().isOk().expectHeader()
-				.valueEquals("X-TestHeader", "rewrite_response_fail_supplier")
-				.expectBody(Map.class)
-				.consumeWith(result -> assertThat(result.getResponseBody())
-						.containsEntry("DATA", "HELLO"));
+		webClient.post().uri("/post").header("Host", "www.rewriteresponsewithfailsupplier.org").bodyValue("hello")
+				.exchange().expectStatus().isOk().expectHeader()
+				.valueEquals("X-TestHeader", "rewrite_response_fail_supplier").expectBody(Map.class)
+				.consumeWith(result -> assertThat(result.getResponseBody()).containsEntry("DATA", "HELLO"));
 	}
 
 	@Test
 	@SuppressWarnings("unchecked")
 	public void rewriteResponeBodyObjectWorks() {
-		webClient.post().uri("/post").header("Host", "www.rewriteresponseobj.org")
-				.bodyValue("hello").exchange().expectStatus().isOk().expectHeader()
-				.valueEquals("X-TestHeader", "rewrite_response_obj")
+		webClient.post().uri("/post").header("Host", "www.rewriteresponseobj.org").bodyValue("hello").exchange()
+				.expectStatus().isOk().expectHeader().valueEquals("X-TestHeader", "rewrite_response_obj")
 				.expectBody(String.class)
-				.consumeWith(result -> assertThat(result.getResponseBody())
-						.isEqualTo("hello"));
+				.consumeWith(result -> assertThat(result.getResponseBody()).isEqualTo("hello"));
 	}
 
 	@Test
 	public void complexPredicate() {
-		webClient.get().uri("/anything/png").header("Host", "www.abc.org").exchange()
-				.expectHeader().valueEquals("X-TestHeader", "foobar").expectStatus()
-				.isOk();
+		webClient.get().uri("/anything/png").header("Host", "www.abc.org").exchange().expectHeader()
+				.valueEquals("X-TestHeader", "foobar").expectStatus().isOk();
 
 	}
 
 	@Test
 	public void actuatorManagementPort() {
-		webClient.get()
-				.uri("http://localhost:" + managementPort + "/actuator/gateway/routes")
-				.exchange().expectStatus().isOk();
+		webClient.get().uri("http://localhost:" + managementPort + "/actuator/gateway/routes").exchange().expectStatus()
+				.isOk();
 	}
 
 	@Test
 	public void actuatorMetrics() {
 		contextLoads();
-		webClient.get()
-				.uri("http://localhost:" + managementPort
-						+ "/actuator/metrics/gateway.requests")
-				.exchange().expectStatus().isOk().expectBody().consumeWith(i -> {
+		webClient.get().uri("http://localhost:" + managementPort + "/actuator/metrics/gateway.requests").exchange()
+				.expectStatus().isOk().expectBody().consumeWith(i -> {
 					String body = new String(i.getResponseBodyContent());
 					ObjectMapper mapper = new ObjectMapper();
 					try {
 						JsonNode actualObj = mapper.readTree(body);
 						JsonNode findValue = actualObj.findValue("name");
-						assertThat(findValue.asText())
-								.as("Expected to find metric with name gateway.requests")
+						assertThat(findValue.asText()).as("Expected to find metric with name gateway.requests")
 								.isEqualTo("gateway.requests");
 					}
 					catch (IOException e) {
@@ -218,10 +197,8 @@ public class GatewaySampleApplicationTests {
 		int port;
 
 		@Bean
-		public ServiceInstanceListSupplier fixedServiceInstanceListSupplier(
-				Environment env) {
-			return ServiceInstanceListSupplier.fixed(env)
-					.instance("localhost", port, "httpbin").build();
+		public ServiceInstanceListSupplier fixedServiceInstanceListSupplier(Environment env) {
+			return ServiceInstanceListSupplier.fixed(env).instance("localhost", port, "httpbin").build();
 		}
 
 	}

@@ -39,17 +39,15 @@ public class RemoveResponseHeaderGatewayFilterFactoryTests extends BaseWebClient
 
 	@Test
 	public void removeResponseHeaderFilterWorks() {
-		testClient.get().uri("/headers").header("Host", "www.removereresponseheader.org")
-				.exchange().expectStatus().isOk().expectHeader()
-				.doesNotExist("X-Request-Foo");
+		testClient.get().uri("/headers").header("Host", "www.removereresponseheader.org").exchange().expectStatus()
+				.isOk().expectHeader().doesNotExist("X-Request-Foo");
 	}
 
 	@Test
 	public void toStringFormat() {
 		NameConfig config = new NameConfig();
 		config.setName("myname");
-		GatewayFilter filter = new RemoveResponseHeaderGatewayFilterFactory()
-				.apply(config);
+		GatewayFilter filter = new RemoveResponseHeaderGatewayFilterFactory().apply(config);
 		assertThat(filter.toString()).contains("myname");
 	}
 

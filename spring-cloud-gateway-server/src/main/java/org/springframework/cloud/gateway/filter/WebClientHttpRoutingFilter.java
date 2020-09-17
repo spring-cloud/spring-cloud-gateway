@@ -76,8 +76,7 @@ public class WebClientHttpRoutingFilter implements GlobalFilter, Ordered {
 		URI requestUrl = exchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
 
 		String scheme = requestUrl.getScheme();
-		if (isAlreadyRouted(exchange)
-				|| (!"http".equals(scheme) && !"https".equals(scheme))) {
+		if (isAlreadyRouted(exchange) || (!"http".equals(scheme) && !"https".equals(scheme))) {
 			return chain.filter(exchange);
 		}
 		setAlreadyRouted(exchange);
@@ -88,17 +87,15 @@ public class WebClientHttpRoutingFilter implements GlobalFilter, Ordered {
 
 		HttpHeaders filteredHeaders = filterRequest(getHeadersFilters(), exchange);
 
-		boolean preserveHost = exchange
-				.getAttributeOrDefault(PRESERVE_HOST_HEADER_ATTRIBUTE, false);
+		boolean preserveHost = exchange.getAttributeOrDefault(PRESERVE_HOST_HEADER_ATTRIBUTE, false);
 
-		RequestBodySpec bodySpec = this.webClient.method(method).uri(requestUrl)
-				.headers(httpHeaders -> {
-					httpHeaders.addAll(filteredHeaders);
-					// TODO: can this support preserviceHostHeader?
-					if (!preserveHost) {
-						httpHeaders.remove(HttpHeaders.HOST);
-					}
-				});
+		RequestBodySpec bodySpec = this.webClient.method(method).uri(requestUrl).headers(httpHeaders -> {
+			httpHeaders.addAll(filteredHeaders);
+			// TODO: can this support preserviceHostHeader?
+			if (!preserveHost) {
+				httpHeaders.remove(HttpHeaders.HOST);
+			}
+		});
 
 		RequestHeadersSpec<?> headersSpec;
 		if (requiresBody(method)) {

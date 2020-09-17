@@ -68,16 +68,14 @@ public class AddRequestParameterGatewayFilterFactoryTests extends BaseWebClientT
 
 	@Test
 	public void addRequestParameterFilterWorksEncodedQueryJavaDsl() {
-		testRequestParameterFilter("www.addreqparamjava.org", "ValueB-www", "javaname",
-				"%E6%89%8E%E6%A0%B9");
+		testRequestParameterFilter("www.addreqparamjava.org", "ValueB-www", "javaname", "%E6%89%8E%E6%A0%B9");
 	}
 
 	private void testRequestParameterFilter(String name, String value) {
 		testRequestParameterFilter("www.addrequestparameter.org", "ValueA", name, value);
 	}
 
-	private void testRequestParameterFilter(String host, String expectedValue,
-			String name, String value) {
+	private void testRequestParameterFilter(String host, String expectedValue, String name, String value) {
 		String query;
 		if (name != null) {
 			query = "?" + name + "=" + value;
@@ -85,36 +83,31 @@ public class AddRequestParameterGatewayFilterFactoryTests extends BaseWebClientT
 		else {
 			query = "";
 		}
-		URI uri = UriComponentsBuilder.fromUriString(this.baseUri + "/get" + query)
-				.build(true).toUri();
+		URI uri = UriComponentsBuilder.fromUriString(this.baseUri + "/get" + query).build(true).toUri();
 		boolean checkForEncodedValue = containsEncodedParts(uri);
-		testClient.get().uri(uri).header("Host", host).exchange().expectBody(Map.class)
-				.consumeWith(response -> {
-					Map<String, Object> args = getMap(response.getResponseBody(), "args");
-					assertThat(args).containsEntry("example", expectedValue);
-					if (name != null) {
-						if (checkForEncodedValue) {
-							try {
-								assertThat(args).containsEntry(name,
-										URLDecoder.decode(value, "UTF-8"));
-							}
-							catch (UnsupportedEncodingException e) {
-								throw new RuntimeException(e);
-							}
-						}
-						else {
-							assertThat(args).containsEntry(name, value);
-						}
+		testClient.get().uri(uri).header("Host", host).exchange().expectBody(Map.class).consumeWith(response -> {
+			Map<String, Object> args = getMap(response.getResponseBody(), "args");
+			assertThat(args).containsEntry("example", expectedValue);
+			if (name != null) {
+				if (checkForEncodedValue) {
+					try {
+						assertThat(args).containsEntry(name, URLDecoder.decode(value, "UTF-8"));
 					}
-				});
+					catch (UnsupportedEncodingException e) {
+						throw new RuntimeException(e);
+					}
+				}
+				else {
+					assertThat(args).containsEntry(name, value);
+				}
+			}
+		});
 	}
 
 	@Test
 	public void toStringFormat() {
-		NameValueConfig config = new NameValueConfig().setName("myname")
-				.setValue("myvalue");
-		GatewayFilter filter = new AddRequestParameterGatewayFilterFactory()
-				.apply(config);
+		NameValueConfig config = new NameValueConfig().setName("myname").setValue("myvalue");
+		GatewayFilter filter = new AddRequestParameterGatewayFilterFactory().apply(config);
 		assertThat(filter.toString()).contains("myname").contains("myvalue");
 	}
 
@@ -130,8 +123,7 @@ public class AddRequestParameterGatewayFilterFactoryTests extends BaseWebClientT
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes().route("add_request_param_java_test",
 					r -> r.path("/get").and().host("{sub}.addreqparamjava.org")
-							.filters(f -> f.prefixPath("/httpbin")
-									.addRequestParameter("example", "ValueB-{sub}"))
+							.filters(f -> f.prefixPath("/httpbin").addRequestParameter("example", "ValueB-{sub}"))
 							.uri(uri))
 					.build();
 		}

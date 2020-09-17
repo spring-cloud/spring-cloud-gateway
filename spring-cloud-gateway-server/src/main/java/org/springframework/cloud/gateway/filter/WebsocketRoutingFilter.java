@@ -68,8 +68,7 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 	// do not use this headersFilters directly, use getHeadersFilters() instead.
 	private volatile List<HttpHeadersFilter> headersFilters;
 
-	public WebsocketRoutingFilter(WebSocketClient webSocketClient,
-			WebSocketService webSocketService,
+	public WebsocketRoutingFilter(WebSocketClient webSocketClient, WebSocketService webSocketService,
 			ObjectProvider<List<HttpHeadersFilter>> headersFiltersProvider) {
 		this.webSocketClient = webSocketClient;
 		this.webSocketService = webSocketService;
@@ -95,8 +94,7 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 		URI requestUrl = exchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
 		String scheme = requestUrl.getScheme();
 
-		if (isAlreadyRouted(exchange)
-				|| (!"ws".equals(scheme) && !"wss".equals(scheme))) {
+		if (isAlreadyRouted(exchange) || (!"ws".equals(scheme) && !"wss".equals(scheme))) {
 			return chain.filter(exchange);
 		}
 		setAlreadyRouted(exchange);
@@ -106,27 +104,23 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 
 		List<String> protocols = headers.get(SEC_WEBSOCKET_PROTOCOL);
 		if (protocols != null) {
-			protocols = headers.get(SEC_WEBSOCKET_PROTOCOL).stream().flatMap(
-					header -> Arrays.stream(commaDelimitedListToStringArray(header)))
-					.map(String::trim).collect(Collectors.toList());
+			protocols = headers.get(SEC_WEBSOCKET_PROTOCOL).stream()
+					.flatMap(header -> Arrays.stream(commaDelimitedListToStringArray(header))).map(String::trim)
+					.collect(Collectors.toList());
 		}
 
-		return this.webSocketService.handleRequest(exchange, new ProxyWebSocketHandler(
-				requestUrl, this.webSocketClient, filtered, protocols));
+		return this.webSocketService.handleRequest(exchange,
+				new ProxyWebSocketHandler(requestUrl, this.webSocketClient, filtered, protocols));
 	}
 
 	private List<HttpHeadersFilter> getHeadersFilters() {
 		if (this.headersFilters == null) {
-			this.headersFilters = this.headersFiltersProvider
-					.getIfAvailable(ArrayList::new);
+			this.headersFilters = this.headersFiltersProvider.getIfAvailable(ArrayList::new);
 
 			headersFilters.add((headers, exchange) -> {
 				HttpHeaders filtered = new HttpHeaders();
-				headers.entrySet().stream()
-						.filter(entry -> !entry.getKey().toLowerCase()
-								.startsWith("sec-websocket"))
-						.forEach(header -> filtered.addAll(header.getKey(),
-								header.getValue()));
+				headers.entrySet().stream().filter(entry -> !entry.getKey().toLowerCase().startsWith("sec-websocket"))
+						.forEach(header -> filtered.addAll(header.getKey(), header.getValue()));
 				return filtered;
 			});
 		}
@@ -140,12 +134,10 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 		String scheme = requestUrl.getScheme().toLowerCase();
 		String upgrade = exchange.getRequest().getHeaders().getUpgrade();
 		// change the scheme if the socket client send a "http" or "https"
-		if ("WebSocket".equalsIgnoreCase(upgrade)
-				&& ("http".equals(scheme) || "https".equals(scheme))) {
+		if ("WebSocket".equalsIgnoreCase(upgrade) && ("http".equals(scheme) || "https".equals(scheme))) {
 			String wsScheme = convertHttpToWs(scheme);
 			boolean encoded = containsEncodedParts(requestUrl);
-			URI wsRequestUrl = UriComponentsBuilder.fromUri(requestUrl).scheme(wsScheme)
-					.build(encoded).toUri();
+			URI wsRequestUrl = UriComponentsBuilder.fromUri(requestUrl).scheme(wsScheme).build(encoded).toUri();
 			exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, wsRequestUrl);
 			if (log.isTraceEnabled()) {
 				log.trace("changeSchemeTo:[" + wsRequestUrl + "]");
@@ -163,8 +155,7 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 
 		private final List<String> subProtocols;
 
-		ProxyWebSocketHandler(URI url, WebSocketClient client, HttpHeaders headers,
-				List<String> protocols) {
+		ProxyWebSocketHandler(URI url, WebSocketClient client, HttpHeaders headers, List<String> protocols) {
 			this.client = client;
 			this.url = url;
 			this.headers = headers;
@@ -191,8 +182,8 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 					Mono<Void> proxySessionSend = proxySession
 							.send(session.receive().doOnNext(WebSocketMessage::retain));
 					// .log("proxySessionSend", Level.FINE);
-					Mono<Void> serverSessionSend = session.send(
-							proxySession.receive().doOnNext(WebSocketMessage::retain));
+					Mono<Void> serverSessionSend = session
+							.send(proxySession.receive().doOnNext(WebSocketMessage::retain));
 					// .log("sessionSend", Level.FINE);
 					return Mono.zip(proxySessionSend, serverSessionSend).then();
 				}

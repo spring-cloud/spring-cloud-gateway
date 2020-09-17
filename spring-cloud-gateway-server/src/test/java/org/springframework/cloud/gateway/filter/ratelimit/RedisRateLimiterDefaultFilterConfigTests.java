@@ -61,15 +61,14 @@ public class RedisRateLimiterDefaultFilterConfigTests {
 		assertConfigAndRoute(routeId, 70, 80, 10, config);
 	}
 
-	private void assertConfigAndRoute(String key, int replenishRate, int burstCapacity,
-			int requestedTokens, RedisRateLimiter.Config config) {
+	private void assertConfigAndRoute(String key, int replenishRate, int burstCapacity, int requestedTokens,
+			RedisRateLimiter.Config config) {
 		assertThat(config).isNotNull();
 		assertThat(config.getReplenishRate()).isEqualTo(replenishRate);
 		assertThat(config.getBurstCapacity()).isEqualTo(burstCapacity);
 		assertThat(config.getRequestedTokens()).isEqualTo(requestedTokens);
 
-		Route route = routeLocator.getRoutes().filter(r -> r.getId().equals(key)).next()
-				.block();
+		Route route = routeLocator.getRoutes().filter(r -> r.getId().equals(key)).next().block();
 		assertThat(route).isNotNull();
 		assertThat(route.getFilters()).isNotEmpty();
 	}

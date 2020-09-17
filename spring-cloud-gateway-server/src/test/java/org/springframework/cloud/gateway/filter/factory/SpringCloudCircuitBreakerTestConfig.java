@@ -78,22 +78,17 @@ public class SpringCloudCircuitBreakerTestConfig {
 
 	@Bean
 	public RouteLocator circuitBreakerRouteLocator(RouteLocatorBuilder builder) {
-		return builder.routes().route("circuitbreaker_fallback_forward",
-				r -> r.host("**.circuitbreakerforward.org")
-						.filters(f -> f.circuitBreaker(
-								config -> config.setFallbackUri("forward:/fallback")))
-						.uri(uri))
+		return builder.routes()
+				.route("circuitbreaker_fallback_forward", r -> r.host("**.circuitbreakerforward.org")
+						.filters(f -> f.circuitBreaker(config -> config.setFallbackUri("forward:/fallback"))).uri(uri))
 				.route("fallback_controller_3",
-						r -> r.path("/fallback").filters(
-								f -> f.setPath("/circuitbreakerFallbackController3"))
+						r -> r.path("/fallback").filters(f -> f.setPath("/circuitbreakerFallbackController3")).uri(uri))
+				.route("circuitbreaker_java",
+						r -> r.host("**.circuitbreakerjava.org")
+								.filters(f -> f.prefixPath("/httpbin").circuitBreaker(
+										config -> config.setFallbackUri("forward:/circuitbreakerFallbackController2")))
 								.uri(uri))
-				.route("circuitbreaker_java", r -> r.host("**.circuitbreakerjava.org")
-						.filters(f -> f.prefixPath("/httpbin")
-								.circuitBreaker(config -> config.setFallbackUri(
-										"forward:/circuitbreakerFallbackController2")))
-						.uri(uri))
-				.route("circuitbreaker_connection_failure", r -> r
-						.host("**.circuitbreakerconnectfail.org")
+				.route("circuitbreaker_connection_failure", r -> r.host("**.circuitbreakerconnectfail.org")
 						.filters(f -> f.prefixPath("/httpbin").circuitBreaker(config -> {
 						})).uri("lb:badservice"))
 				/*
@@ -102,8 +97,8 @@ public class SpringCloudCircuitBreakerTestConfig {
 				 */
 				.route("circuitbreaker_response_stall",
 						r -> r.host("**.circuitbreakerresponsestall.org")
-								.filters(f -> f.prefixPath("/httpbin").circuitBreaker(
-										config -> config.setName("stalling-command")))
+								.filters(f -> f.prefixPath("/httpbin")
+										.circuitBreaker(config -> config.setName("stalling-command")))
 								.uri(uri))
 				.build();
 	}
@@ -114,10 +109,8 @@ public class SpringCloudCircuitBreakerTestConfig {
 	}
 
 	@Bean
-	RouterFunction<ServerResponse> routerFunction(
-			CircuitBreakerExceptionFallbackHandler exceptionFallbackHandler) {
-		return route(GET("/circuitbreakerExceptionFallback"),
-				exceptionFallbackHandler::retrieveExceptionInfo);
+	RouterFunction<ServerResponse> routerFunction(CircuitBreakerExceptionFallbackHandler exceptionFallbackHandler) {
+		return route(GET("/circuitbreakerExceptionFallback"), exceptionFallbackHandler::retrieveExceptionInfo);
 	}
 
 	private static class CircuitBreakerExceptionFallbackHandler {
@@ -125,8 +118,7 @@ public class SpringCloudCircuitBreakerTestConfig {
 		static final String RETRIEVED_EXCEPTION = "Retrieved-Exception";
 
 		Mono<ServerResponse> retrieveExceptionInfo(ServerRequest serverRequest) {
-			String exceptionName = serverRequest
-					.attribute(CIRCUITBREAKER_EXECUTION_EXCEPTION_ATTR)
+			String exceptionName = serverRequest.attribute(CIRCUITBREAKER_EXECUTION_EXCEPTION_ATTR)
 					.map(exception -> exception.getClass().getName()).orElse("");
 			return ServerResponse.ok().header(RETRIEVED_EXCEPTION, exceptionName).build();
 		}

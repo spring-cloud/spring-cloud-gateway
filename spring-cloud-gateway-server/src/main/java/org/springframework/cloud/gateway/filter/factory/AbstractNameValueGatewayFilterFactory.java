@@ -25,8 +25,8 @@ import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.validation.annotation.Validated;
 
-public abstract class AbstractNameValueGatewayFilterFactory extends
-		AbstractGatewayFilterFactory<AbstractNameValueGatewayFilterFactory.NameValueConfig> {
+public abstract class AbstractNameValueGatewayFilterFactory
+		extends AbstractGatewayFilterFactory<AbstractNameValueGatewayFilterFactory.NameValueConfig> {
 
 	public AbstractNameValueGatewayFilterFactory() {
 		super(NameValueConfig.class);
@@ -65,8 +65,7 @@ public abstract class AbstractNameValueGatewayFilterFactory extends
 
 		@Override
 		public String toString() {
-			return new ToStringCreator(this).append("name", name).append("value", value)
-					.toString();
+			return new ToStringCreator(this).append("name", name).append("value", value).toString();
 		}
 
 	}

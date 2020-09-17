@@ -45,8 +45,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
-public class RequestHeaderToRequestUriGatewayFilterFactoryIntegrationTests
-		extends BaseWebClientTests {
+public class RequestHeaderToRequestUriGatewayFilterFactoryIntegrationTests extends BaseWebClientTests {
 
 	@LocalServerPort
 	int port;
@@ -55,28 +54,22 @@ public class RequestHeaderToRequestUriGatewayFilterFactoryIntegrationTests
 	@Ignore
 	public void changeUriWorkWithProperties() {
 		testClient.get().uri("/").header("Host", "www.changeuri.org")
-				.header("X-CF-Forwarded-Url",
-						"http://localhost:" + port + "/actuator/health")
-				.exchange().expectBody(JsonNode.class)
-				.consumeWith(r -> assertThat(r.getResponseBody().has("status")).isTrue());
+				.header("X-CF-Forwarded-Url", "http://localhost:" + port + "/actuator/health").exchange()
+				.expectBody(JsonNode.class).consumeWith(r -> assertThat(r.getResponseBody().has("status")).isTrue());
 	}
 
 	@Test
 	@Ignore
 	public void changeUriWorkWithDsl() {
 		testClient.get().uri("/").header("Host", "www.changeuri.org")
-				.header("X-Next-Url", "http://localhost:" + port + "/actuator/health")
-				.exchange().expectBody(JsonNode.class)
-				.consumeWith(r -> assertThat(r.getResponseBody().has("status")).isTrue());
+				.header("X-Next-Url", "http://localhost:" + port + "/actuator/health").exchange()
+				.expectBody(JsonNode.class).consumeWith(r -> assertThat(r.getResponseBody().has("status")).isTrue());
 	}
 
 	@Test
 	public void changeUriWorkWithCustomLogic() {
 		testClient.get()
-				.uri(b -> b.path("/")
-						.queryParam("url",
-								"http://localhost:" + port + "/actuator/health")
-						.build())
+				.uri(b -> b.path("/").queryParam("url", "http://localhost:" + port + "/actuator/health").build())
 				.header("Host", "www.changeuri.org").exchange().expectBody(JsonNode.class)
 				.consumeWith(r -> assertThat(r.getResponseBody().has("status")).isTrue());
 	}
@@ -90,11 +83,10 @@ public class RequestHeaderToRequestUriGatewayFilterFactoryIntegrationTests
 		public RouteLocator routeLocator(RouteLocatorBuilder builder) {
 			return builder.routes()
 					.route(r -> r.host("**.changeuri.org").and().header("X-Next-Url")
-							.filters(f -> f.requestHeaderToRequestUri("X-Next-Url"))
-							.uri("https://example.com"))
+							.filters(f -> f.requestHeaderToRequestUri("X-Next-Url")).uri("https://example.com"))
 					.route(r -> r.host("**.changeuri.org").and().query("url")
-							.filters(f -> f.changeRequestUri(e -> Optional.of(URI.create(
-									e.getRequest().getQueryParams().getFirst("url")))))
+							.filters(f -> f.changeRequestUri(
+									e -> Optional.of(URI.create(e.getRequest().getQueryParams().getFirst("url")))))
 							.uri("https://example.com"))
 					.build();
 		}

@@ -38,16 +38,13 @@ public class GatewayRouteTagsProviderTests {
 
 	private static final String ROUTE_ID = "test-route";
 
-	private static final Route ROUTE = Route.async().id(ROUTE_ID).uri(ROUTE_URI)
-			.predicate(swe -> true).build();
+	private static final Route ROUTE = Route.async().id(ROUTE_ID).uri(ROUTE_URI).predicate(swe -> true).build();
 
-	private static final Tags DEFAULT_TAGS = Tags.of("routeId", ROUTE_ID, "routeUri",
-			ROUTE_URI);
+	private static final Tags DEFAULT_TAGS = Tags.of("routeId", ROUTE_ID, "routeUri", ROUTE_URI);
 
 	@Test
 	public void routeTags() {
-		ServerWebExchange exchange = MockServerWebExchange
-				.from(MockServerHttpRequest.get(ROUTE_URI).build());
+		ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get(ROUTE_URI).build());
 		exchange.getAttributes().put(GATEWAY_ROUTE_ATTR, ROUTE);
 
 		Tags tags = tagsProvider.apply(exchange);
@@ -56,8 +53,7 @@ public class GatewayRouteTagsProviderTests {
 
 	@Test
 	public void emptyRoute() {
-		ServerWebExchange exchange = MockServerWebExchange
-				.from(MockServerHttpRequest.get(ROUTE_URI).build());
+		ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get(ROUTE_URI).build());
 
 		Tags tags = tagsProvider.apply(exchange);
 		assertThat(tags).isEqualTo(Tags.empty());

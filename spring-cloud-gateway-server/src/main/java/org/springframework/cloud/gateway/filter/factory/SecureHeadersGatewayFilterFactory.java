@@ -86,20 +86,17 @@ public class SecureHeadersGatewayFilterFactory extends AbstractGatewayFilterFact
 
 		return new GatewayFilter() {
 			@Override
-			public Mono<Void> filter(ServerWebExchange exchange,
-					GatewayFilterChain chain) {
+			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 				HttpHeaders headers = exchange.getResponse().getHeaders();
 
 				List<String> disabled = properties.getDisable();
 
 				if (isEnabled(disabled, X_XSS_PROTECTION_HEADER)) {
-					headers.add(X_XSS_PROTECTION_HEADER,
-							properties.getXssProtectionHeader());
+					headers.add(X_XSS_PROTECTION_HEADER, properties.getXssProtectionHeader());
 				}
 
 				if (isEnabled(disabled, STRICT_TRANSPORT_SECURITY_HEADER)) {
-					headers.add(STRICT_TRANSPORT_SECURITY_HEADER,
-							properties.getStrictTransportSecurity());
+					headers.add(STRICT_TRANSPORT_SECURITY_HEADER, properties.getStrictTransportSecurity());
 				}
 
 				if (isEnabled(disabled, X_FRAME_OPTIONS_HEADER)) {
@@ -107,8 +104,7 @@ public class SecureHeadersGatewayFilterFactory extends AbstractGatewayFilterFact
 				}
 
 				if (isEnabled(disabled, X_CONTENT_TYPE_OPTIONS_HEADER)) {
-					headers.add(X_CONTENT_TYPE_OPTIONS_HEADER,
-							properties.getContentTypeOptions());
+					headers.add(X_CONTENT_TYPE_OPTIONS_HEADER, properties.getContentTypeOptions());
 				}
 
 				if (isEnabled(disabled, REFERRER_POLICY_HEADER)) {
@@ -116,18 +112,15 @@ public class SecureHeadersGatewayFilterFactory extends AbstractGatewayFilterFact
 				}
 
 				if (isEnabled(disabled, CONTENT_SECURITY_POLICY_HEADER)) {
-					headers.add(CONTENT_SECURITY_POLICY_HEADER,
-							properties.getContentSecurityPolicy());
+					headers.add(CONTENT_SECURITY_POLICY_HEADER, properties.getContentSecurityPolicy());
 				}
 
 				if (isEnabled(disabled, X_DOWNLOAD_OPTIONS_HEADER)) {
-					headers.add(X_DOWNLOAD_OPTIONS_HEADER,
-							properties.getDownloadOptions());
+					headers.add(X_DOWNLOAD_OPTIONS_HEADER, properties.getDownloadOptions());
 				}
 
 				if (isEnabled(disabled, X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER)) {
-					headers.add(X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER,
-							properties.getPermittedCrossDomainPolicies());
+					headers.add(X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER, properties.getPermittedCrossDomainPolicies());
 				}
 
 				return chain.filter(exchange);
@@ -135,8 +128,7 @@ public class SecureHeadersGatewayFilterFactory extends AbstractGatewayFilterFact
 
 			@Override
 			public String toString() {
-				return filterToStringCreator(SecureHeadersGatewayFilterFactory.this)
-						.toString();
+				return filterToStringCreator(SecureHeadersGatewayFilterFactory.this).toString();
 			}
 		};
 	}

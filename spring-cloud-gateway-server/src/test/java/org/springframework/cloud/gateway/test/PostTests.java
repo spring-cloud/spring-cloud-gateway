@@ -43,12 +43,10 @@ public class PostTests extends BaseWebClientTests {
 
 	@Test
 	public void postWorks() {
-		Mono<Map> result = webClient.post().uri("/post").header("Host", "www.example.org")
-				.bodyValue("testdata").exchange()
-				.flatMap(response -> response.body(toMono(Map.class)));
+		Mono<Map> result = webClient.post().uri("/post").header("Host", "www.example.org").bodyValue("testdata")
+				.exchange().flatMap(response -> response.body(toMono(Map.class)));
 
-		StepVerifier.create(result)
-				.consumeNextWith(map -> assertThat(map).containsEntry("data", "testdata"))
+		StepVerifier.create(result).consumeNextWith(map -> assertThat(map).containsEntry("data", "testdata"))
 				.expectComplete().verify(DURATION);
 	}
 

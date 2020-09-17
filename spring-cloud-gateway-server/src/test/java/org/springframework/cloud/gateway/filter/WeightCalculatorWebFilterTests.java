@@ -52,21 +52,17 @@ public class WeightCalculatorWebFilterTests {
 		assertWeightCalculation(filter, grp2, grp2idx++, 1, asList(1.0));
 		assertWeightCalculation(filter, grp1, grp1idx++, 3, asList(0.25, 0.75), 0.25);
 		assertWeightCalculation(filter, grp2, grp2idx++, 1, asList(0.5, 0.5), 0.5);
-		assertWeightCalculation(filter, grp1, grp1idx++, 6, asList(0.1, 0.3, 0.6), 0.1,
-				0.4);
-		assertWeightCalculation(filter, grp2, grp2idx++, 2, asList(0.25, 0.25, 0.5), 0.25,
-				0.5);
-		assertWeightCalculation(filter, grp2, grp2idx++, 4,
-				asList(0.125, 0.125, 0.25, 0.5), 0.125, 0.25, 0.5);
+		assertWeightCalculation(filter, grp1, grp1idx++, 6, asList(0.1, 0.3, 0.6), 0.1, 0.4);
+		assertWeightCalculation(filter, grp2, grp2idx++, 2, asList(0.25, 0.25, 0.5), 0.25, 0.5);
+		assertWeightCalculation(filter, grp2, grp2idx++, 4, asList(0.125, 0.125, 0.25, 0.5), 0.125, 0.25, 0.5);
 	}
 
 	private WeightCalculatorWebFilter createFilter() {
-		return new WeightCalculatorWebFilter(null,
-				new ConfigurationService(null, () -> null, () -> null));
+		return new WeightCalculatorWebFilter(null, new ConfigurationService(null, () -> null, () -> null));
 	}
 
-	private void assertWeightCalculation(WeightCalculatorWebFilter filter, String group,
-			int item, int weight, List<Double> normalized, Double... middleRanges) {
+	private void assertWeightCalculation(WeightCalculatorWebFilter filter, String group, int item, int weight,
+			List<Double> normalized, Double... middleRanges) {
 		String routeId = route(item);
 
 		filter.addWeightConfig(new WeightConfig(group, routeId, weight));
@@ -80,8 +76,7 @@ public class WeightCalculatorWebFilterTests {
 		assertThat(config.normalizedWeights).hasSize(item);
 
 		for (int i = 0; i < normalized.size(); i++) {
-			assertThat(config.normalizedWeights).containsEntry(route(i + 1),
-					normalized.get(i));
+			assertThat(config.normalizedWeights).containsEntry(route(i + 1), normalized.get(i));
 		}
 
 		for (int i = 0; i < normalized.size(); i++) {

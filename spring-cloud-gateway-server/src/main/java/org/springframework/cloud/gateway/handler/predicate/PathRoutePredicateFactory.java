@@ -40,8 +40,7 @@ import static org.springframework.http.server.PathContainer.parsePath;
  * @author Spencer Gibb
  * @author Dhawal Kapil
  */
-public class PathRoutePredicateFactory
-		extends AbstractRoutePredicateFactory<PathRoutePredicateFactory.Config> {
+public class PathRoutePredicateFactory extends AbstractRoutePredicateFactory<PathRoutePredicateFactory.Config> {
 
 	private static final Log log = LogFactory.getLog(PathRoutePredicateFactory.class);
 
@@ -53,11 +52,10 @@ public class PathRoutePredicateFactory
 		super(Config.class);
 	}
 
-	private static void traceMatch(String prefix, Object desired, Object actual,
-			boolean match) {
+	private static void traceMatch(String prefix, Object desired, Object actual, boolean match) {
 		if (log.isTraceEnabled()) {
-			String message = String.format("%s \"%s\" %s against value \"%s\"", prefix,
-					desired, match ? "matches" : "does not match", actual);
+			String message = String.format("%s \"%s\" %s against value \"%s\"", prefix, desired,
+					match ? "matches" : "does not match", actual);
 			log.trace(message);
 		}
 	}
@@ -80,8 +78,7 @@ public class PathRoutePredicateFactory
 	public Predicate<ServerWebExchange> apply(Config config) {
 		final ArrayList<PathPattern> pathPatterns = new ArrayList<>();
 		synchronized (this.pathPatternParser) {
-			pathPatternParser
-					.setMatchOptionalTrailingSeparator(config.isMatchTrailingSlash());
+			pathPatternParser.setMatchOptionalTrailingSeparator(config.isMatchTrailingSlash());
 			config.getPatterns().forEach(pattern -> {
 				PathPattern pathPattern = this.pathPatternParser.parse(pattern);
 				pathPatterns.add(pathPattern);
@@ -90,8 +87,7 @@ public class PathRoutePredicateFactory
 		return new GatewayPredicate() {
 			@Override
 			public boolean test(ServerWebExchange exchange) {
-				PathContainer path = parsePath(
-						exchange.getRequest().getURI().getRawPath());
+				PathContainer path = parsePath(exchange.getRequest().getURI().getRawPath());
 
 				Optional<PathPattern> optionalPathPattern = pathPatterns.stream()
 						.filter(pattern -> pattern.matches(path)).findFirst();
@@ -111,8 +107,8 @@ public class PathRoutePredicateFactory
 
 			@Override
 			public String toString() {
-				return String.format("Paths: %s, match trailing slash: %b",
-						config.getPatterns(), config.isMatchTrailingSlash());
+				return String.format("Paths: %s, match trailing slash: %b", config.getPatterns(),
+						config.isMatchTrailingSlash());
 			}
 		};
 	}
@@ -145,8 +141,7 @@ public class PathRoutePredicateFactory
 		 * @deprecated use {@link #setMatchTrailingSlash(boolean)}
 		 */
 		@Deprecated
-		public Config setMatchOptionalTrailingSeparator(
-				boolean matchOptionalTrailingSeparator) {
+		public Config setMatchOptionalTrailingSeparator(boolean matchOptionalTrailingSeparator) {
 			setMatchTrailingSlash(matchOptionalTrailingSeparator);
 			return this;
 		}

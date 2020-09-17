@@ -32,8 +32,8 @@ import static org.springframework.cloud.gateway.support.GatewayToStringStyler.fi
 /**
  * @author Vitaliy Pavlyuk
  */
-public class RewriteResponseHeaderGatewayFilterFactory extends
-		AbstractGatewayFilterFactory<RewriteResponseHeaderGatewayFilterFactory.Config> {
+public class RewriteResponseHeaderGatewayFilterFactory
+		extends AbstractGatewayFilterFactory<RewriteResponseHeaderGatewayFilterFactory.Config> {
 
 	/**
 	 * Regexp key.
@@ -58,20 +58,15 @@ public class RewriteResponseHeaderGatewayFilterFactory extends
 	public GatewayFilter apply(Config config) {
 		return new GatewayFilter() {
 			@Override
-			public Mono<Void> filter(ServerWebExchange exchange,
-					GatewayFilterChain chain) {
-				return chain.filter(exchange)
-						.then(Mono.fromRunnable(() -> rewriteHeaders(exchange, config)));
+			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+				return chain.filter(exchange).then(Mono.fromRunnable(() -> rewriteHeaders(exchange, config)));
 			}
 
 			@Override
 			public String toString() {
-				return filterToStringCreator(
-						RewriteResponseHeaderGatewayFilterFactory.this)
-								.append("name", config.getName())
-								.append("regexp", config.getRegexp())
-								.append("replacement", config.getReplacement())
-								.toString();
+				return filterToStringCreator(RewriteResponseHeaderGatewayFilterFactory.this)
+						.append("name", config.getName()).append("regexp", config.getRegexp())
+						.append("replacement", config.getReplacement()).toString();
 			}
 		};
 	}
@@ -88,8 +83,7 @@ public class RewriteResponseHeaderGatewayFilterFactory extends
 	}
 
 	protected List<String> rewriteHeaders(Config config, List<String> headers) {
-		return headers.stream()
-				.map(val -> rewrite(val, config.getRegexp(), config.getReplacement()))
+		return headers.stream().map(val -> rewrite(val, config.getRegexp(), config.getReplacement()))
 				.collect(Collectors.toList());
 	}
 

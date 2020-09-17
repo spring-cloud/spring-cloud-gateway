@@ -43,22 +43,19 @@ public class SetResponseHeaderGatewayFilterFactoryTests extends BaseWebClientTes
 
 	@Test
 	public void setResponseHeaderFilterWorks() {
-		testClient.get().uri("/headers").header("Host", "www.setreresponseheader.org")
-				.exchange().expectStatus().isOk().expectHeader()
-				.valueEquals("X-Response-Foo", "Bar");
+		testClient.get().uri("/headers").header("Host", "www.setreresponseheader.org").exchange().expectStatus().isOk()
+				.expectHeader().valueEquals("X-Response-Foo", "Bar");
 	}
 
 	@Test
 	public void setResponseHeaderFilterWorksJavaDsl() {
-		testClient.get().uri("/headers").header("Host", "www.setresponseheaderdsl.org")
-				.exchange().expectStatus().isOk().expectHeader()
-				.valueEquals("X-Res-Foo", "Second-www");
+		testClient.get().uri("/headers").header("Host", "www.setresponseheaderdsl.org").exchange().expectStatus().isOk()
+				.expectHeader().valueEquals("X-Res-Foo", "Second-www");
 	}
 
 	@Test
 	public void toStringFormat() {
-		NameValueConfig config = new NameValueConfig().setName("myname")
-				.setValue("myvalue");
+		NameValueConfig config = new NameValueConfig().setName("myname").setValue("myvalue");
 		GatewayFilter filter = new SetResponseHeaderGatewayFilterFactory().apply(config);
 		assertThat(filter.toString()).contains("myname").contains("myvalue");
 	}
@@ -74,10 +71,8 @@ public class SetResponseHeaderGatewayFilterFactoryTests extends BaseWebClientTes
 		@Bean
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes().route("test_set_response_header_dsl",
-					r -> r.order(-1).host("{sub}.setresponseheaderdsl.org")
-							.filters(f -> f.prefixPath("/httpbin")
-									.addResponseHeader("X-Res-Foo", "First")
-									.setResponseHeader("X-Res-Foo", "Second-{sub}"))
+					r -> r.order(-1).host("{sub}.setresponseheaderdsl.org").filters(f -> f.prefixPath("/httpbin")
+							.addResponseHeader("X-Res-Foo", "First").setResponseHeader("X-Res-Foo", "Second-{sub}"))
 							.uri(uri))
 					.build();
 		}

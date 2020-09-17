@@ -38,8 +38,7 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.W
  * @author Spencer Gibb
  */
 // TODO: make this a generic Choose out of group predicate?
-public class WeightRoutePredicateFactory
-		extends AbstractRoutePredicateFactory<WeightConfig>
+public class WeightRoutePredicateFactory extends AbstractRoutePredicateFactory<WeightConfig>
 		implements ApplicationEventPublisherAware {
 
 	/**
@@ -87,8 +86,7 @@ public class WeightRoutePredicateFactory
 		return new GatewayPredicate() {
 			@Override
 			public boolean test(ServerWebExchange exchange) {
-				Map<String, String> weights = exchange.getAttributeOrDefault(WEIGHT_ATTR,
-						Collections.emptyMap());
+				Map<String, String> weights = exchange.getAttributeOrDefault(WEIGHT_ATTR, Collections.emptyMap());
 
 				String routeId = exchange.getAttribute(GATEWAY_PREDICATE_ROUTE_ATTR);
 
@@ -99,15 +97,14 @@ public class WeightRoutePredicateFactory
 
 					String chosenRoute = weights.get(group);
 					if (log.isTraceEnabled()) {
-						log.trace("in group weight: " + group + ", current route: "
-								+ routeId + ", chosen route: " + chosenRoute);
+						log.trace("in group weight: " + group + ", current route: " + routeId + ", chosen route: "
+								+ chosenRoute);
 					}
 
 					return routeId.equals(chosenRoute);
 				}
 				else if (log.isTraceEnabled()) {
-					log.trace("no weights found for group: " + group + ", current route: "
-							+ routeId);
+					log.trace("no weights found for group: " + group + ", current route: " + routeId);
 				}
 
 				return false;
@@ -115,8 +112,7 @@ public class WeightRoutePredicateFactory
 
 			@Override
 			public String toString() {
-				return String.format("Weight: %s %s", config.getGroup(),
-						config.getWeight());
+				return String.format("Weight: %s %s", config.getGroup(), config.getWeight());
 			}
 		};
 	}

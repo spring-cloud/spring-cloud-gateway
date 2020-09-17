@@ -44,10 +44,8 @@ public class NettyRoutingFilterTests {
 	@Test
 	@Ignore
 	public void mockServerWorks() {
-		WebTestClient client = WebTestClient.bindToApplicationContext(this.context)
-				.build();
-		client.get().uri("/mockexample").exchange().expectStatus()
-				.value(Matchers.lessThan(500));
+		WebTestClient client = WebTestClient.bindToApplicationContext(this.context).build();
+		client.get().uri("/mockexample").exchange().expectStatus().value(Matchers.lessThan(500));
 	}
 
 	@SpringBootConfiguration
@@ -58,9 +56,7 @@ public class NettyRoutingFilterTests {
 		@Bean
 		public RouteLocator routes(RouteLocatorBuilder builder) {
 			return builder.routes()
-					.route(p -> p.path("/mockexample")
-							.filters(f -> f.prefixPath("/httpbin"))
-							.uri("http://example.com"))
+					.route(p -> p.path("/mockexample").filters(f -> f.prefixPath("/httpbin")).uri("http://example.com"))
 					.build();
 		}
 

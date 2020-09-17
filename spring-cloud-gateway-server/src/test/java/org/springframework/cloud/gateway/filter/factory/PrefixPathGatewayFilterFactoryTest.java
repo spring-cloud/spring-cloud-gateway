@@ -47,17 +47,14 @@ public class PrefixPathGatewayFilterFactoryTest {
 	}
 
 	private void testPrefixPathFilter(String prefix, String path, String expectedPath) {
-		GatewayFilter filter = new PrefixPathGatewayFilterFactory()
-				.apply(c -> c.setPrefix(prefix));
-		MockServerHttpRequest request = MockServerHttpRequest
-				.get("http://localhost" + path).build();
+		GatewayFilter filter = new PrefixPathGatewayFilterFactory().apply(c -> c.setPrefix(prefix));
+		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost" + path).build();
 
 		ServerWebExchange exchange = MockServerWebExchange.from(request);
 
 		GatewayFilterChain filterChain = mock(GatewayFilterChain.class);
 
-		ArgumentCaptor<ServerWebExchange> captor = ArgumentCaptor
-				.forClass(ServerWebExchange.class);
+		ArgumentCaptor<ServerWebExchange> captor = ArgumentCaptor.forClass(ServerWebExchange.class);
 		when(filterChain.filter(captor.capture())).thenReturn(Mono.empty());
 
 		filter.filter(exchange, filterChain);
@@ -65,8 +62,7 @@ public class PrefixPathGatewayFilterFactoryTest {
 		ServerWebExchange webExchange = captor.getValue();
 
 		assertThat(webExchange.getRequest().getURI()).hasPath(expectedPath);
-		LinkedHashSet<URI> uris = webExchange
-				.getRequiredAttribute(GATEWAY_ORIGINAL_REQUEST_URL_ATTR);
+		LinkedHashSet<URI> uris = webExchange.getRequiredAttribute(GATEWAY_ORIGINAL_REQUEST_URL_ATTR);
 		assertThat(uris).contains(request.getURI());
 	}
 

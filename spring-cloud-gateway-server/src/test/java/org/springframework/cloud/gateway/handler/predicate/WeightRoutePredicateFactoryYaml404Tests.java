@@ -56,9 +56,8 @@ public class WeightRoutePredicateFactoryYaml404Tests extends BaseWebClientTests 
 	public void weightsFromYamlNot404() {
 		filter.setRandom(getRandom(0.5));
 
-		testClient.get().uri("/get").header(HttpHeaders.HOST, "www.weight4041.org")
-				.exchange().expectStatus().isOk().expectHeader()
-				.valueEquals(ROUTE_ID_HEADER, "weight_first_404_test_1");
+		testClient.get().uri("/get").header(HttpHeaders.HOST, "www.weight4041.org").exchange().expectStatus().isOk()
+				.expectHeader().valueEquals(ROUTE_ID_HEADER, "weight_first_404_test_1");
 	}
 
 	@EnableAutoConfiguration

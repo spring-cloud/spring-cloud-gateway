@@ -39,8 +39,7 @@ public class ForwardRoutingFilter implements GlobalFilter, Ordered {
 	// do not use this dispatcherHandler directly, use getDispatcherHandler() instead.
 	private volatile DispatcherHandler dispatcherHandler;
 
-	public ForwardRoutingFilter(
-			ObjectProvider<DispatcherHandler> dispatcherHandlerProvider) {
+	public ForwardRoutingFilter(ObjectProvider<DispatcherHandler> dispatcherHandlerProvider) {
 		this.dispatcherHandlerProvider = dispatcherHandlerProvider;
 	}
 

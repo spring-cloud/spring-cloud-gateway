@@ -74,15 +74,12 @@ public class BaseWebClientTests {
 
 	protected void setup(ClientHttpConnector httpConnector, String baseUri) {
 		this.baseUri = baseUri;
-		this.webClient = WebClient.builder().clientConnector(httpConnector)
-				.baseUrl(this.baseUri).build();
-		this.testClient = WebTestClient.bindToServer(httpConnector).baseUrl(this.baseUri)
-				.build();
+		this.webClient = WebClient.builder().clientConnector(httpConnector).baseUrl(this.baseUri).build();
+		this.testClient = WebTestClient.bindToServer(httpConnector).baseUrl(this.baseUri).build();
 	}
 
 	@Configuration(proxyBeanMethods = false)
-	@LoadBalancerClient(name = "testservice",
-			configuration = TestLoadBalancerConfig.class)
+	@LoadBalancerClient(name = "testservice", configuration = TestLoadBalancerConfig.class)
 	@Import(PermitAllSecurityConfiguration.class)
 	public static class DefaultTestConfig {
 
@@ -103,16 +100,14 @@ public class BaseWebClientTests {
 		public GlobalFilter modifyResponseFilter() {
 			return (exchange, chain) -> {
 				log.info("modifyResponseFilter start");
-				String value = exchange.getAttributeOrDefault(GATEWAY_HANDLER_MAPPER_ATTR,
-						"N/A");
+				String value = exchange.getAttributeOrDefault(GATEWAY_HANDLER_MAPPER_ATTR, "N/A");
 				if (!exchange.getResponse().isCommitted()) {
 					exchange.getResponse().getHeaders().add(HANDLER_MAPPER_HEADER, value);
 				}
 				Route route = exchange.getAttributeOrDefault(GATEWAY_ROUTE_ATTR, null);
 				if (route != null) {
 					if (!exchange.getResponse().isCommitted()) {
-						exchange.getResponse().getHeaders().add(ROUTE_ID_HEADER,
-								route.getId());
+						exchange.getResponse().getHeaders().add(ROUTE_ID_HEADER, route.getId());
 					}
 				}
 				return chain.filter(exchange);
@@ -126,8 +121,7 @@ public class BaseWebClientTests {
 		@Override
 		public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 			if (exchange.getRequest().getPath().toString().contains("httpbin/httpbin")) {
-				return Mono
-						.error(new IllegalStateException("recursive call to /httpbin"));
+				return Mono.error(new IllegalStateException("recursive call to /httpbin"));
 			}
 			return chain.filter(exchange);
 		}
@@ -147,10 +141,8 @@ public class BaseWebClientTests {
 		protected int port = 0;
 
 		@Bean
-		public ServiceInstanceListSupplier staticServiceInstanceListSupplier(
-				Environment env) {
-			return ServiceInstanceListSupplier.fixed(env).instance(port, SERVICE_ID)
-					.build();
+		public ServiceInstanceListSupplier staticServiceInstanceListSupplier(Environment env) {
+			return ServiceInstanceListSupplier.fixed(env).instance(port, SERVICE_ID).build();
 		}
 
 	}

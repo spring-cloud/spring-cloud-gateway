@@ -33,8 +33,7 @@ public class GatewayRouteTagsProvider implements GatewayTagsProvider {
 		Route route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
 
 		if (route != null) {
-			return Tags.of("routeId", route.getId(), "routeUri",
-					route.getUri().toString());
+			return Tags.of("routeId", route.getId(), "routeUri", route.getUri().toString());
 		}
 
 		return Tags.empty();

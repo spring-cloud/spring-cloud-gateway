@@ -46,11 +46,9 @@ public class RequestHeaderToRequestUriGatewayFilterFactoryTests {
 		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost")
 				.header("X-CF-Forwarded-Url", "https://example.com").build();
 		ServerWebExchange exchange = MockServerWebExchange.from(request);
-		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR,
-				URI.create("http://localhost"));
+		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, URI.create("http://localhost"));
 		GatewayFilterChain filterChain = mock(GatewayFilterChain.class);
-		ArgumentCaptor<ServerWebExchange> captor = ArgumentCaptor
-				.forClass(ServerWebExchange.class);
+		ArgumentCaptor<ServerWebExchange> captor = ArgumentCaptor.forClass(ServerWebExchange.class);
 		when(filterChain.filter(captor.capture())).thenReturn(Mono.empty());
 		filter.filter(exchange, filterChain);
 		ServerWebExchange webExchange = captor.getValue();
@@ -63,14 +61,11 @@ public class RequestHeaderToRequestUriGatewayFilterFactoryTests {
 	public void filterDoesNotChangeRequestUriIfHeaderIsAbsent() {
 		RequestHeaderToRequestUriGatewayFilterFactory factory = new RequestHeaderToRequestUriGatewayFilterFactory();
 		GatewayFilter filter = factory.apply(c -> c.setName("X-CF-Forwarded-Url"));
-		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost")
-				.build();
+		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost").build();
 		ServerWebExchange exchange = MockServerWebExchange.from(request);
-		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR,
-				URI.create("http://localhost"));
+		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, URI.create("http://localhost"));
 		GatewayFilterChain filterChain = mock(GatewayFilterChain.class);
-		ArgumentCaptor<ServerWebExchange> captor = ArgumentCaptor
-				.forClass(ServerWebExchange.class);
+		ArgumentCaptor<ServerWebExchange> captor = ArgumentCaptor.forClass(ServerWebExchange.class);
 		when(filterChain.filter(captor.capture())).thenReturn(Mono.empty());
 		filter.filter(exchange, filterChain);
 		ServerWebExchange webExchange = captor.getValue();
@@ -86,11 +81,9 @@ public class RequestHeaderToRequestUriGatewayFilterFactoryTests {
 		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost")
 				.header("X-CF-Forwarded-Url", "example").build();
 		ServerWebExchange exchange = MockServerWebExchange.from(request);
-		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR,
-				URI.create("http://localhost"));
+		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, URI.create("http://localhost"));
 		GatewayFilterChain filterChain = mock(GatewayFilterChain.class);
-		ArgumentCaptor<ServerWebExchange> captor = ArgumentCaptor
-				.forClass(ServerWebExchange.class);
+		ArgumentCaptor<ServerWebExchange> captor = ArgumentCaptor.forClass(ServerWebExchange.class);
 		when(filterChain.filter(captor.capture())).thenReturn(Mono.empty());
 		filter.filter(exchange, filterChain);
 		ServerWebExchange webExchange = captor.getValue();
@@ -103,8 +96,7 @@ public class RequestHeaderToRequestUriGatewayFilterFactoryTests {
 	public void toStringFormat() {
 		NameConfig config = new NameConfig();
 		config.setName("myname");
-		GatewayFilter filter = new RequestHeaderToRequestUriGatewayFilterFactory()
-				.apply(config);
+		GatewayFilter filter = new RequestHeaderToRequestUriGatewayFilterFactory().apply(config);
 		assertThat(filter.toString()).contains("myname");
 	}
 

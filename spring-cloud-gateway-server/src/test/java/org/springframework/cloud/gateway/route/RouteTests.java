@@ -29,51 +29,44 @@ public class RouteTests {
 
 	@Test
 	public void defaultHttpPort() {
-		Route route = Route.async().id("1").predicate(exchange -> true)
-				.uri("http://acme.com").build();
+		Route route = Route.async().id("1").predicate(exchange -> true).uri("http://acme.com").build();
 
 		assertThat(route.getUri()).hasHost("acme.com").hasScheme("http").hasPort(80);
 	}
 
 	@Test
 	public void defaultHttpsPort() {
-		Route route = Route.async().id("1").predicate(exchange -> true)
-				.uri("https://acme.com").build();
+		Route route = Route.async().id("1").predicate(exchange -> true).uri("https://acme.com").build();
 
 		assertThat(route.getUri()).hasHost("acme.com").hasScheme("https").hasPort(443);
 	}
 
 	@Test
 	public void fullUri() {
-		Route route = Route.async().id("1").predicate(exchange -> true)
-				.uri("http://acme.com:8080").build();
+		Route route = Route.async().id("1").predicate(exchange -> true).uri("http://acme.com:8080").build();
 
 		assertThat(route.getUri()).hasHost("acme.com").hasScheme("http").hasPort(8080);
 	}
 
 	@Test
 	public void nullScheme() {
-		assertThatThrownBy(
-				() -> Route.async().id("1").predicate(exchange -> true).uri("/pathonly"))
-						.isInstanceOf(IllegalArgumentException.class);
+		assertThatThrownBy(() -> Route.async().id("1").predicate(exchange -> true).uri("/pathonly"))
+				.isInstanceOf(IllegalArgumentException.class);
 	}
 
 	@Test
 	public void defaultMetadataToEmpty() {
-		Route route = Route.async().id("1").predicate(exchange -> true)
-				.uri("http://acme.com:8080").build();
+		Route route = Route.async().id("1").predicate(exchange -> true).uri("http://acme.com:8080").build();
 
 		assertThat(route.getMetadata()).isEmpty();
 	}
 
 	@Test
 	public void isAbleToAddMetadata() {
-		Route route = Route.async().id("1").predicate(exchange -> true)
-				.uri("http://acme.com:8080").metadata(Maps.newHashMap("key", "value"))
-				.metadata("key2", "value2").build();
+		Route route = Route.async().id("1").predicate(exchange -> true).uri("http://acme.com:8080")
+				.metadata(Maps.newHashMap("key", "value")).metadata("key2", "value2").build();
 
-		assertThat(route.getMetadata()).hasSize(2).containsEntry("key", "value")
-				.containsEntry("key2", "value2");
+		assertThat(route.getMetadata()).hasSize(2).containsEntry("key", "value").containsEntry("key2", "value2");
 	}
 
 	@Test
@@ -87,8 +80,7 @@ public class RouteTests {
 		definition.setMetadata(metadata);
 		Route route = Route.async(definition).predicate(exchange -> true).build();
 
-		assertThat(route.getMetadata()).hasSize(2).containsEntry("key", "value")
-				.containsEntry("key2", "value2");
+		assertThat(route.getMetadata()).hasSize(2).containsEntry("key", "value").containsEntry("key2", "value2");
 	}
 
 }

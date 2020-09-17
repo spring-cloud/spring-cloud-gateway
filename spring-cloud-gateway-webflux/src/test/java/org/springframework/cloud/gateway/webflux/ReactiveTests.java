@@ -67,10 +67,8 @@ public class ReactiveTests {
 
 	@Test
 	public void postBytes() throws Exception {
-		ResponseEntity<List<Foo>> result = rest.exchange(
-				RequestEntity.post(
-						rest.getRestTemplate().getUriTemplateHandler().expand("/bytes"))
-						.body("hello foo".getBytes()),
+		ResponseEntity<List<Foo>> result = rest.exchange(RequestEntity
+				.post(rest.getRestTemplate().getUriTemplateHandler().expand("/bytes")).body("hello foo".getBytes()),
 				new ParameterizedTypeReference<List<Foo>>() {
 				});
 		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -80,11 +78,8 @@ public class ReactiveTests {
 	@Test
 	public void post() throws Exception {
 		ResponseEntity<List<Bar>> result = rest.exchange(
-				RequestEntity
-						.post(rest.getRestTemplate().getUriTemplateHandler()
-								.expand("/bars"))
-						.body(Collections
-								.singletonList(Collections.singletonMap("name", "foo"))),
+				RequestEntity.post(rest.getRestTemplate().getUriTemplateHandler().expand("/bars"))
+						.body(Collections.singletonList(Collections.singletonMap("name", "foo"))),
 				new ParameterizedTypeReference<List<Bar>>() {
 				});
 		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -94,11 +89,8 @@ public class ReactiveTests {
 	@Test
 	public void postFlux() throws Exception {
 		ResponseEntity<List<Bar>> result = rest.exchange(
-				RequestEntity
-						.post(rest.getRestTemplate().getUriTemplateHandler()
-								.expand("/flux/bars"))
-						.body(Collections
-								.singletonList(Collections.singletonMap("name", "foo"))),
+				RequestEntity.post(rest.getRestTemplate().getUriTemplateHandler().expand("/flux/bars"))
+						.body(Collections.singletonList(Collections.singletonMap("name", "foo"))),
 				new ParameterizedTypeReference<List<Bar>>() {
 				});
 		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -107,9 +99,9 @@ public class ReactiveTests {
 
 	@Test
 	public void get() throws Exception {
-		ResponseEntity<List<Foo>> result = rest.exchange(RequestEntity
-				.get(rest.getRestTemplate().getUriTemplateHandler().expand("/foos"))
-				.build(), new ParameterizedTypeReference<List<Foo>>() {
+		ResponseEntity<List<Foo>> result = rest.exchange(
+				RequestEntity.get(rest.getRestTemplate().getUriTemplateHandler().expand("/foos")).build(),
+				new ParameterizedTypeReference<List<Foo>>() {
 				});
 		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
 		assertThat(result.getBody().iterator().next().getName()).isEqualTo("hello");
@@ -118,8 +110,7 @@ public class ReactiveTests {
 	@Test
 	public void forward() throws Exception {
 		ResponseEntity<List<Foo>> result = rest.exchange(
-				RequestEntity.get(rest.getRestTemplate().getUriTemplateHandler()
-						.expand("/forward/foos")).build(),
+				RequestEntity.get(rest.getRestTemplate().getUriTemplateHandler().expand("/forward/foos")).build(),
 				new ParameterizedTypeReference<List<Foo>>() {
 				});
 		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -136,16 +127,13 @@ public class ReactiveTests {
 			private DispatcherHandler handler;
 
 			@PostMapping("/bars")
-			public List<Bar> bars(@RequestBody List<Foo> foos,
-					@RequestHeader HttpHeaders headers) {
+			public List<Bar> bars(@RequestBody List<Foo> foos, @RequestHeader HttpHeaders headers) {
 				String custom = "hello ";
-				return foos.stream().map(foo -> new Bar(custom + foo.getName()))
-						.collect(Collectors.toList());
+				return foos.stream().map(foo -> new Bar(custom + foo.getName())).collect(Collectors.toList());
 			}
 
 			@PostMapping("/flux/bars")
-			public Flux<Bar> fluxbars(@RequestBody Flux<Foo> foos,
-					@RequestHeader HttpHeaders headers) {
+			public Flux<Bar> fluxbars(@RequestBody Flux<Foo> foos, @RequestHeader HttpHeaders headers) {
 				String custom = "hello ";
 				return foos.map(foo -> new Bar(custom + foo.getName()));
 			}
@@ -157,14 +145,12 @@ public class ReactiveTests {
 
 			@GetMapping("/forward/foos")
 			public Mono<Void> forwardFoos(ServerWebExchange exchange) {
-				return handler.handle(exchange.mutate()
-						.request(request -> request.path("/foos").build()).build());
+				return handler.handle(exchange.mutate().request(request -> request.path("/foos").build()).build());
 			}
 
 			@PostMapping("/bytes")
 			public Flux<Foo> forwardBars(@RequestBody Flux<byte[]> body) {
-				return Flux.from(body.reduce(this::concatenate)
-						.map(value -> new Foo(new String(value))));
+				return Flux.from(body.reduce(this::concatenate).map(value -> new Foo(new String(value))));
 			}
 
 			byte[] concatenate(@Nullable byte[] array1, @Nullable byte[] array2) {

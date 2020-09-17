@@ -30,8 +30,7 @@ import org.springframework.util.IdGenerator;
  */
 public class CompositeRouteDefinitionLocator implements RouteDefinitionLocator {
 
-	private static final Log log = LogFactory
-			.getLog(CompositeRouteDefinitionLocator.class);
+	private static final Log log = LogFactory.getLog(CompositeRouteDefinitionLocator.class);
 
 	private final Flux<RouteDefinitionLocator> delegates;
 
@@ -41,23 +40,20 @@ public class CompositeRouteDefinitionLocator implements RouteDefinitionLocator {
 		this(delegates, new AlternativeJdkIdGenerator());
 	}
 
-	public CompositeRouteDefinitionLocator(Flux<RouteDefinitionLocator> delegates,
-			IdGenerator idGenerator) {
+	public CompositeRouteDefinitionLocator(Flux<RouteDefinitionLocator> delegates, IdGenerator idGenerator) {
 		this.delegates = delegates;
 		this.idGenerator = idGenerator;
 	}
 
 	@Override
 	public Flux<RouteDefinition> getRouteDefinitions() {
-		return this.delegates
-				.flatMapSequential(RouteDefinitionLocator::getRouteDefinitions)
+		return this.delegates.flatMapSequential(RouteDefinitionLocator::getRouteDefinitions)
 				.flatMap(routeDefinition -> {
 					if (routeDefinition.getId() == null) {
 						return randomId().map(id -> {
 							routeDefinition.setId(id);
 							if (log.isDebugEnabled()) {
-								log.debug(
-										"Id set on route definition: " + routeDefinition);
+								log.debug("Id set on route definition: " + routeDefinition);
 							}
 							return routeDefinition;
 						});
@@ -67,8 +63,7 @@ public class CompositeRouteDefinitionLocator implements RouteDefinitionLocator {
 	}
 
 	protected Mono<String> randomId() {
-		return Mono.fromSupplier(idGenerator::toString)
-				.publishOn(Schedulers.boundedElastic());
+		return Mono.fromSupplier(idGenerator::toString).publishOn(Schedulers.boundedElastic());
 	}
 
 }

@@ -52,28 +52,23 @@ public class RemoveRequestParameterGatewayFilterFactory
 	public GatewayFilter apply(NameConfig config) {
 		return new GatewayFilter() {
 			@Override
-			public Mono<Void> filter(ServerWebExchange exchange,
-					GatewayFilterChain chain) {
+			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 				ServerHttpRequest request = exchange.getRequest();
-				MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>(
-						request.getQueryParams());
+				MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>(request.getQueryParams());
 				queryParams.remove(config.getName());
 
 				URI newUri = UriComponentsBuilder.fromUri(request.getURI())
-						.replaceQueryParams(unmodifiableMultiValueMap(queryParams))
-						.build().toUri();
+						.replaceQueryParams(unmodifiableMultiValueMap(queryParams)).build().toUri();
 
-				ServerHttpRequest updatedRequest = exchange.getRequest().mutate()
-						.uri(newUri).build();
+				ServerHttpRequest updatedRequest = exchange.getRequest().mutate().uri(newUri).build();
 
 				return chain.filter(exchange.mutate().request(updatedRequest).build());
 			}
 
 			@Override
 			public String toString() {
-				return filterToStringCreator(
-						RemoveRequestParameterGatewayFilterFactory.this)
-								.append("name", config.getName()).toString();
+				return filterToStringCreator(RemoveRequestParameterGatewayFilterFactory.this)
+						.append("name", config.getName()).toString();
 			}
 		};
 	}

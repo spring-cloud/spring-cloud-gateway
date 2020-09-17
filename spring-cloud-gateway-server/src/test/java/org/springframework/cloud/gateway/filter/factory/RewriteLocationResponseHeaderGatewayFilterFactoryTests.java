@@ -32,15 +32,13 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
-public class RewriteLocationResponseHeaderGatewayFilterFactoryTests
-		extends BaseWebClientTests {
+public class RewriteLocationResponseHeaderGatewayFilterFactoryTests extends BaseWebClientTests {
 
 	@Test
 	public void rewriteLocationResponseHeaderFilterWorks() {
-		testClient.post().uri("/headers")
-				.header("Host", "test1.rewritelocationresponseheader.org").exchange()
-				.expectStatus().isOk().expectHeader().valueEquals("Location",
-						"https://test1.rewritelocationresponseheader.org/some/object/id");
+		testClient.post().uri("/headers").header("Host", "test1.rewritelocationresponseheader.org").exchange()
+				.expectStatus().isOk().expectHeader()
+				.valueEquals("Location", "https://test1.rewritelocationresponseheader.org/some/object/id");
 	}
 
 	@EnableAutoConfiguration

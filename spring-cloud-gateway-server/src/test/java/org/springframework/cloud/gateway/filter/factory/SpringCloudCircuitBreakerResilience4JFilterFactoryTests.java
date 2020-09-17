@@ -44,10 +44,9 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
  * @author Ryan Baxter
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = RANDOM_PORT, properties = { "debug=true",
-		"spring.cloud.circuitbreaker.hystrix.enabled=false" })
-@ContextConfiguration(
-		classes = SpringCloudCircuitBreakerResilience4JFilterFactoryTests.Config.class)
+@SpringBootTest(webEnvironment = RANDOM_PORT,
+		properties = { "debug=true", "spring.cloud.circuitbreaker.hystrix.enabled=false" })
+@ContextConfiguration(classes = SpringCloudCircuitBreakerResilience4JFilterFactoryTests.Config.class)
 @DirtiesContext
 public class SpringCloudCircuitBreakerResilience4JFilterFactoryTests
 		extends SpringCloudCircuitBreakerFilterFactoryTests {
@@ -59,25 +58,22 @@ public class SpringCloudCircuitBreakerResilience4JFilterFactoryTests
 
 	@Test
 	public void r4jFilterServiceUnavailable() {
-		testClient.get().uri("/delay/3").header("Host", "www.sccbfailure.org").exchange()
-				.expectStatus().isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
+		testClient.get().uri("/delay/3").header("Host", "www.sccbfailure.org").exchange().expectStatus()
+				.isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
 	}
 
 	@Test
 	public void r4jFilterExceptionFallback() {
-		testClient.get().uri("/delay/3")
-				.header("Host", "www.circuitbreakerexceptionfallback.org").exchange()
-				.expectStatus().isOk().expectHeader()
-				.value(RETRIEVED_EXCEPTION, containsString("TimeoutException"));
+		testClient.get().uri("/delay/3").header("Host", "www.circuitbreakerexceptionfallback.org").exchange()
+				.expectStatus().isOk().expectHeader().value(RETRIEVED_EXCEPTION, containsString("TimeoutException"));
 	}
 
 	@Test
 	public void cbFilterTimesoutMessage() {
-		testClient.get().uri("/delay/3").header("Host", "www.sccbtimeout.org").exchange()
-				.expectStatus().isEqualTo(HttpStatus.GATEWAY_TIMEOUT).expectBody()
-				.jsonPath("$.status")
-				.isEqualTo(String.valueOf(HttpStatus.GATEWAY_TIMEOUT.value()))
-				.jsonPath("$.message").value(containsString("1000ms"));
+		testClient.get().uri("/delay/3").header("Host", "www.sccbtimeout.org").exchange().expectStatus()
+				.isEqualTo(HttpStatus.GATEWAY_TIMEOUT).expectBody().jsonPath("$.status")
+				.isEqualTo(String.valueOf(HttpStatus.GATEWAY_TIMEOUT.value())).jsonPath("$.message")
+				.value(containsString("1000ms"));
 	}
 
 	@Test
@@ -98,8 +94,7 @@ public class SpringCloudCircuitBreakerResilience4JFilterFactoryTests
 		@Bean
 		public Customizer<ReactiveResilience4JCircuitBreakerFactory> slowCusomtizer() {
 			return factory -> {
-				factory.addCircuitBreakerCustomizer(
-						cb -> cb.transitionToForcedOpenState(), "failcmd");
+				factory.addCircuitBreakerCustomizer(cb -> cb.transitionToForcedOpenState(), "failcmd");
 			};
 		}
 

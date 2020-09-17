@@ -52,8 +52,7 @@ public class RedisRateLimiterUnitTests {
 
 	public static final String[] CONFIGURATION_SERVICE_BEANS = new String[0];
 
-	public static final RedisException REDIS_EXCEPTION = new RedisException(
-			"Mocked problem");
+	public static final RedisException REDIS_EXCEPTION = new RedisException("Mocked problem");
 
 	@Mock
 	private ApplicationContext applicationContext;
@@ -65,12 +64,10 @@ public class RedisRateLimiterUnitTests {
 
 	@Before
 	public void setUp() {
-		when(applicationContext.getBean(ReactiveStringRedisTemplate.class))
-				.thenReturn(redisTemplate);
+		when(applicationContext.getBean(ReactiveStringRedisTemplate.class)).thenReturn(redisTemplate);
 		when(applicationContext.getBeanNamesForType(ConfigurationService.class))
 				.thenReturn(CONFIGURATION_SERVICE_BEANS);
-		redisRateLimiter = new RedisRateLimiter(DEFAULT_REPLENISH_RATE,
-				DEFAULT_BURST_CAPACITY);
+		redisRateLimiter = new RedisRateLimiter(DEFAULT_REPLENISH_RATE, DEFAULT_BURST_CAPACITY);
 	}
 
 	@After
@@ -85,28 +82,20 @@ public class RedisRateLimiterUnitTests {
 
 	@Test
 	public void shouldAllowRequestWhenRedisIssueOccurs() {
-		when(redisTemplate.execute(any(), anyList(), anyList()))
-				.thenThrow(REDIS_EXCEPTION);
+		when(redisTemplate.execute(any(), anyList(), anyList())).thenThrow(REDIS_EXCEPTION);
 		redisRateLimiter.setApplicationContext(applicationContext);
-		Mono<RateLimiter.Response> response = redisRateLimiter.isAllowed(ROUTE_ID,
-				REQUEST_ID);
-		assertThat(response.block()).extracting(RateLimiter.Response::isAllowed)
-				.isEqualTo(true);
+		Mono<RateLimiter.Response> response = redisRateLimiter.isAllowed(ROUTE_ID, REQUEST_ID);
+		assertThat(response.block()).extracting(RateLimiter.Response::isAllowed).isEqualTo(true);
 	}
 
 	@Test
 	public void shouldReturnHeadersWhenRedisIssueOccurs() {
-		when(redisTemplate.execute(any(), anyList(), anyList()))
-				.thenThrow(REDIS_EXCEPTION);
+		when(redisTemplate.execute(any(), anyList(), anyList())).thenThrow(REDIS_EXCEPTION);
 		redisRateLimiter.setApplicationContext(applicationContext);
-		Mono<RateLimiter.Response> response = redisRateLimiter.isAllowed(ROUTE_ID,
-				REQUEST_ID);
-		assertThat(response.block().getHeaders()).containsOnly(
-				entry(redisRateLimiter.getRemainingHeader(), "-1"),
-				entry(redisRateLimiter.getBurstCapacityHeader(),
-						DEFAULT_BURST_CAPACITY + ""),
-				entry(redisRateLimiter.getReplenishRateHeader(),
-						DEFAULT_REPLENISH_RATE + ""),
+		Mono<RateLimiter.Response> response = redisRateLimiter.isAllowed(ROUTE_ID, REQUEST_ID);
+		assertThat(response.block().getHeaders()).containsOnly(entry(redisRateLimiter.getRemainingHeader(), "-1"),
+				entry(redisRateLimiter.getBurstCapacityHeader(), DEFAULT_BURST_CAPACITY + ""),
+				entry(redisRateLimiter.getReplenishRateHeader(), DEFAULT_REPLENISH_RATE + ""),
 				entry(redisRateLimiter.getRequestedTokensHeader(), "1"));
 	}
 

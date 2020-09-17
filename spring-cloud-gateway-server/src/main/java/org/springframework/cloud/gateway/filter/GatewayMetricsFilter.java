@@ -43,11 +43,9 @@ public class GatewayMetricsFilter implements GlobalFilter, Ordered {
 
 	private GatewayTagsProvider compositeTagsProvider;
 
-	public GatewayMetricsFilter(MeterRegistry meterRegistry,
-			List<GatewayTagsProvider> tagsProviders) {
+	public GatewayMetricsFilter(MeterRegistry meterRegistry, List<GatewayTagsProvider> tagsProviders) {
 		this.meterRegistry = meterRegistry;
-		this.compositeTagsProvider = tagsProviders.stream()
-				.reduce(exchange -> Tags.empty(), GatewayTagsProvider::and);
+		this.compositeTagsProvider = tagsProviders.stream().reduce(exchange -> Tags.empty(), GatewayTagsProvider::and);
 	}
 
 	@Override
@@ -61,8 +59,7 @@ public class GatewayMetricsFilter implements GlobalFilter, Ordered {
 	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 		Sample sample = Timer.start(meterRegistry);
 
-		return chain.filter(exchange)
-				.doOnSuccess(aVoid -> endTimerRespectingCommit(exchange, sample))
+		return chain.filter(exchange).doOnSuccess(aVoid -> endTimerRespectingCommit(exchange, sample))
 				.doOnError(throwable -> endTimerRespectingCommit(exchange, sample));
 	}
 

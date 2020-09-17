@@ -58,24 +58,20 @@ public abstract class AbstractRateLimiter<C> extends AbstractStatefulConfigurabl
 
 		C routeConfig = newConfig();
 		if (this.configurationService != null) {
-			this.configurationService.with(routeConfig)
-					.name(this.configurationPropertyName).normalizedProperties(args)
+			this.configurationService.with(routeConfig).name(this.configurationPropertyName).normalizedProperties(args)
 					.bind();
 		}
 		getConfig().put(routeId, routeConfig);
 	}
 
 	private boolean hasRelevantKey(Map<String, Object> args) {
-		return args.keySet().stream()
-				.anyMatch(key -> key.startsWith(configurationPropertyName + "."));
+		return args.keySet().stream().anyMatch(key -> key.startsWith(configurationPropertyName + "."));
 	}
 
 	@Override
 	public String toString() {
-		return new ToStringCreator(this)
-				.append("configurationPropertyName", configurationPropertyName)
-				.append("config", getConfig()).append("configClass", getConfigClass())
-				.toString();
+		return new ToStringCreator(this).append("configurationPropertyName", configurationPropertyName)
+				.append("config", getConfig()).append("configClass", getConfigClass()).toString();
 	}
 
 }

@@ -82,8 +82,7 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 	// do not use this headersFilters directly, use getHeadersFilters() instead.
 	private volatile List<HttpHeadersFilter> headersFilters;
 
-	public NettyRoutingFilter(HttpClient httpClient,
-			ObjectProvider<List<HttpHeadersFilter>> headersFiltersProvider,
+	public NettyRoutingFilter(HttpClient httpClient, ObjectProvider<List<HttpHeadersFilter>> headersFiltersProvider,
 			HttpClientProperties properties) {
 		this.httpClient = httpClient;
 		this.headersFiltersProvider = headersFiltersProvider;
@@ -108,8 +107,7 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 		URI requestUrl = exchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
 
 		String scheme = requestUrl.getScheme();
-		if (isAlreadyRouted(exchange)
-				|| (!"http".equals(scheme) && !"https".equals(scheme))) {
+		if (isAlreadyRouted(exchange) || (!"http".equals(scheme) && !"https".equals(scheme))) {
 			return chain.filter(exchange);
 		}
 		setAlreadyRouted(exchange);
@@ -124,82 +122,72 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 		final DefaultHttpHeaders httpHeaders = new DefaultHttpHeaders();
 		filtered.forEach(httpHeaders::set);
 
-		boolean preserveHost = exchange
-				.getAttributeOrDefault(PRESERVE_HOST_HEADER_ATTRIBUTE, false);
+		boolean preserveHost = exchange.getAttributeOrDefault(PRESERVE_HOST_HEADER_ATTRIBUTE, false);
 		Route route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
 
-		Flux<HttpClientResponse> responseFlux = getHttpClient(route, exchange)
-				.headers(headers -> {
-					headers.add(httpHeaders);
-					// Will either be set below, or later by Netty
-					headers.remove(HttpHeaders.HOST);
-					if (preserveHost) {
-						String host = request.getHeaders().getFirst(HttpHeaders.HOST);
-						headers.add(HttpHeaders.HOST, host);
-					}
-				}).request(method).uri(url).send((req, nettyOutbound) -> {
-					if (log.isTraceEnabled()) {
-						nettyOutbound
-								.withConnection(connection -> log.trace("outbound route: "
-										+ connection.channel().id().asShortText()
-										+ ", inbound: " + exchange.getLogPrefix()));
-					}
-					return nettyOutbound.send(request.getBody().map(this::getByteBuf));
-				}).responseConnection((res, connection) -> {
+		Flux<HttpClientResponse> responseFlux = getHttpClient(route, exchange).headers(headers -> {
+			headers.add(httpHeaders);
+			// Will either be set below, or later by Netty
+			headers.remove(HttpHeaders.HOST);
+			if (preserveHost) {
+				String host = request.getHeaders().getFirst(HttpHeaders.HOST);
+				headers.add(HttpHeaders.HOST, host);
+			}
+		}).request(method).uri(url).send((req, nettyOutbound) -> {
+			if (log.isTraceEnabled()) {
+				nettyOutbound.withConnection(connection -> log.trace("outbound route: "
+						+ connection.channel().id().asShortText() + ", inbound: " + exchange.getLogPrefix()));
+			}
+			return nettyOutbound.send(request.getBody().map(this::getByteBuf));
+		}).responseConnection((res, connection) -> {
 
-					// Defer committing the response until all route filters have run
-					// Put client response as ServerWebExchange attribute and write
-					// response later NettyWriteResponseFilter
-					exchange.getAttributes().put(CLIENT_RESPONSE_ATTR, res);
-					exchange.getAttributes().put(CLIENT_RESPONSE_CONN_ATTR, connection);
+			// Defer committing the response until all route filters have run
+			// Put client response as ServerWebExchange attribute and write
+			// response later NettyWriteResponseFilter
+			exchange.getAttributes().put(CLIENT_RESPONSE_ATTR, res);
+			exchange.getAttributes().put(CLIENT_RESPONSE_CONN_ATTR, connection);
 
-					ServerHttpResponse response = exchange.getResponse();
-					// put headers and status so filters can modify the response
-					HttpHeaders headers = new HttpHeaders();
+			ServerHttpResponse response = exchange.getResponse();
+			// put headers and status so filters can modify the response
+			HttpHeaders headers = new HttpHeaders();
 
-					res.responseHeaders().forEach(
-							entry -> headers.add(entry.getKey(), entry.getValue()));
+			res.responseHeaders().forEach(entry -> headers.add(entry.getKey(), entry.getValue()));
 
-					String contentTypeValue = headers.getFirst(HttpHeaders.CONTENT_TYPE);
-					if (StringUtils.hasLength(contentTypeValue)) {
-						exchange.getAttributes().put(ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR,
-								contentTypeValue);
-					}
+			String contentTypeValue = headers.getFirst(HttpHeaders.CONTENT_TYPE);
+			if (StringUtils.hasLength(contentTypeValue)) {
+				exchange.getAttributes().put(ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR, contentTypeValue);
+			}
 
-					setResponseStatus(res, response);
+			setResponseStatus(res, response);
 
-					// make sure headers filters run after setting status so it is
-					// available in response
-					HttpHeaders filteredResponseHeaders = HttpHeadersFilter.filter(
-							getHeadersFilters(), headers, exchange, Type.RESPONSE);
+			// make sure headers filters run after setting status so it is
+			// available in response
+			HttpHeaders filteredResponseHeaders = HttpHeadersFilter.filter(getHeadersFilters(), headers, exchange,
+					Type.RESPONSE);
 
-					if (!filteredResponseHeaders
-							.containsKey(HttpHeaders.TRANSFER_ENCODING)
-							&& filteredResponseHeaders
-									.containsKey(HttpHeaders.CONTENT_LENGTH)) {
-						// It is not valid to have both the transfer-encoding header and
-						// the content-length header.
-						// Remove the transfer-encoding header in the response if the
-						// content-length header is present.
-						response.getHeaders().remove(HttpHeaders.TRANSFER_ENCODING);
-					}
+			if (!filteredResponseHeaders.containsKey(HttpHeaders.TRANSFER_ENCODING)
+					&& filteredResponseHeaders.containsKey(HttpHeaders.CONTENT_LENGTH)) {
+				// It is not valid to have both the transfer-encoding header and
+				// the content-length header.
+				// Remove the transfer-encoding header in the response if the
+				// content-length header is present.
+				response.getHeaders().remove(HttpHeaders.TRANSFER_ENCODING);
+			}
 
-					exchange.getAttributes().put(CLIENT_RESPONSE_HEADER_NAMES,
-							filteredResponseHeaders.keySet());
+			exchange.getAttributes().put(CLIENT_RESPONSE_HEADER_NAMES, filteredResponseHeaders.keySet());
 
-					response.getHeaders().putAll(filteredResponseHeaders);
+			response.getHeaders().putAll(filteredResponseHeaders);
 
-					return Mono.just(res);
-				});
+			return Mono.just(res);
+		});
 
 		Duration responseTimeout = getResponseTimeout(route);
 		if (responseTimeout != null) {
 			responseFlux = responseFlux
-					.timeout(responseTimeout, Mono.error(new TimeoutException(
-							"Response took longer than timeout: " + responseTimeout)))
+					.timeout(responseTimeout,
+							Mono.error(new TimeoutException("Response took longer than timeout: " + responseTimeout)))
 					.onErrorMap(TimeoutException.class,
-							th -> new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT,
-									th.getMessage(), th));
+							th -> new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT, th.getMessage(), th));
 		}
 
 		return responseFlux.then(chain.filter(exchange));
@@ -215,12 +203,10 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 			DefaultDataBuffer buffer = (DefaultDataBuffer) dataBuffer;
 			return Unpooled.wrappedBuffer(buffer.getNativeBuffer());
 		}
-		throw new IllegalArgumentException(
-				"Unable to handle DataBuffer of type " + dataBuffer.getClass());
+		throw new IllegalArgumentException("Unable to handle DataBuffer of type " + dataBuffer.getClass());
 	}
 
-	private void setResponseStatus(HttpClientResponse clientResponse,
-			ServerHttpResponse response) {
+	private void setResponseStatus(HttpClientResponse clientResponse, ServerHttpResponse response) {
 		HttpStatus status = HttpStatus.resolve(clientResponse.status().code());
 		if (status != null) {
 			response.setStatusCode(status);
@@ -230,14 +216,12 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 				response = ((ServerHttpResponseDecorator) response).getDelegate();
 			}
 			if (response instanceof AbstractServerHttpResponse) {
-				((AbstractServerHttpResponse) response)
-						.setStatusCodeValue(clientResponse.status().code());
+				((AbstractServerHttpResponse) response).setStatusCodeValue(clientResponse.status().code());
 			}
 			else {
 				// TODO: log warning here, not throw error?
-				throw new IllegalStateException("Unable to set status code "
-						+ clientResponse.status().code() + " on response of type "
-						+ response.getClass().getName());
+				throw new IllegalStateException("Unable to set status code " + clientResponse.status().code()
+						+ " on response of type " + response.getClass().getName());
 			}
 		}
 	}
@@ -255,8 +239,8 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 		Object connectTimeoutAttr = route.getMetadata().get(CONNECT_TIMEOUT_ATTR);
 		if (connectTimeoutAttr != null) {
 			Integer connectTimeout = getInteger(connectTimeoutAttr);
-			return this.httpClient.tcpConfiguration((tcpClient) -> tcpClient
-					.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, connectTimeout));
+			return this.httpClient.tcpConfiguration(
+					(tcpClient) -> tcpClient.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, connectTimeout));
 		}
 		return httpClient;
 	}
@@ -283,8 +267,7 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 				responseTimeout = Long.valueOf(responseTimeoutAttr.toString());
 			}
 		}
-		return responseTimeout != null ? Duration.ofMillis(responseTimeout)
-				: properties.getResponseTimeout();
+		return responseTimeout != null ? Duration.ofMillis(responseTimeout) : properties.getResponseTimeout();
 	}
 
 }

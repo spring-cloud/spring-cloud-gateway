@@ -33,15 +33,13 @@ import static org.springframework.cloud.gateway.support.GatewayToStringStyler.fi
 /**
  * @author Spencer Gibb
  */
-public class AddRequestParameterGatewayFilterFactory
-		extends AbstractNameValueGatewayFilterFactory {
+public class AddRequestParameterGatewayFilterFactory extends AbstractNameValueGatewayFilterFactory {
 
 	@Override
 	public GatewayFilter apply(NameValueConfig config) {
 		return new GatewayFilter() {
 			@Override
-			public Mono<Void> filter(ServerWebExchange exchange,
-					GatewayFilterChain chain) {
+			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 				URI uri = exchange.getRequest().getURI();
 				StringBuilder query = new StringBuilder();
 				String originalQuery = uri.getRawQuery();
@@ -60,17 +58,14 @@ public class AddRequestParameterGatewayFilterFactory
 				query.append(value);
 
 				try {
-					URI newUri = UriComponentsBuilder.fromUri(uri)
-							.replaceQuery(query.toString()).build(true).toUri();
+					URI newUri = UriComponentsBuilder.fromUri(uri).replaceQuery(query.toString()).build(true).toUri();
 
-					ServerHttpRequest request = exchange.getRequest().mutate().uri(newUri)
-							.build();
+					ServerHttpRequest request = exchange.getRequest().mutate().uri(newUri).build();
 
 					return chain.filter(exchange.mutate().request(request).build());
 				}
 				catch (RuntimeException ex) {
-					throw new IllegalStateException(
-							"Invalid URI query: \"" + query.toString() + "\"");
+					throw new IllegalStateException("Invalid URI query: \"" + query.toString() + "\"");
 				}
 			}
 

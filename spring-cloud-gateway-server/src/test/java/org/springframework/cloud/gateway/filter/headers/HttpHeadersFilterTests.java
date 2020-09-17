@@ -35,16 +35,13 @@ public class HttpHeadersFilterTests {
 
 	@Test
 	public void httpHeadersFilterTests() {
-		MockServerHttpRequest request = MockServerHttpRequest
-				.get("http://localhost:8080/get").header("X-A", "aValue")
+		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost:8080/get").header("X-A", "aValue")
 				.header("X-B", "bValue").header("X-C", "cValue").build();
 
-		List<HttpHeadersFilter> filters = Arrays.asList(
-				(h, e) -> HttpHeadersFilterTests.this.filter(h, "X-A"),
+		List<HttpHeadersFilter> filters = Arrays.asList((h, e) -> HttpHeadersFilterTests.this.filter(h, "X-A"),
 				(h, e) -> HttpHeadersFilterTests.this.filter(h, "X-B"));
 
-		HttpHeaders headers = HttpHeadersFilter.filterRequest(filters,
-				MockServerWebExchange.from(request));
+		HttpHeaders headers = HttpHeadersFilter.filterRequest(filters, MockServerWebExchange.from(request));
 
 		assertThat(headers).containsOnlyKeys("X-C");
 	}

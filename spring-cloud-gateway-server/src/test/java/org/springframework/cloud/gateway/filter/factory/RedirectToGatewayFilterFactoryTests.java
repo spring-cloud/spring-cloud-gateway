@@ -44,16 +44,14 @@ public class RedirectToGatewayFilterFactoryTests extends BaseWebClientTests {
 
 	@Test
 	public void redirectToFilterWorks() {
-		testClient.get().uri("/").header("Host", "www.redirectto.org").exchange()
-				.expectStatus().isEqualTo(HttpStatus.FOUND).expectHeader()
-				.valueEquals(HttpHeaders.LOCATION, "https://example.org");
+		testClient.get().uri("/").header("Host", "www.redirectto.org").exchange().expectStatus()
+				.isEqualTo(HttpStatus.FOUND).expectHeader().valueEquals(HttpHeaders.LOCATION, "https://example.org");
 	}
 
 	@Test
 	public void redirectToRelativeUrlFilterWorks() {
-		testClient.get().uri("/").header("Host", "www.relativeredirect.org").exchange()
-				.expectStatus().isEqualTo(HttpStatus.FOUND).expectHeader()
-				.valueEquals(HttpHeaders.LOCATION, "/index.html#/customers");
+		testClient.get().uri("/").header("Host", "www.relativeredirect.org").exchange().expectStatus()
+				.isEqualTo(HttpStatus.FOUND).expectHeader().valueEquals(HttpHeaders.LOCATION, "/index.html#/customers");
 	}
 
 	@Test
@@ -72,11 +70,8 @@ public class RedirectToGatewayFilterFactoryTests extends BaseWebClientTests {
 
 		@Bean
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
-			return builder.routes().route("relative_redirect",
-					r -> r.host("**.relativeredirect.org")
-							.filters(f -> f.redirect(302, "/index.html#/customers"))
-							.uri("no://op"))
-					.build();
+			return builder.routes().route("relative_redirect", r -> r.host("**.relativeredirect.org")
+					.filters(f -> f.redirect(302, "/index.html#/customers")).uri("no://op")).build();
 		}
 
 	}

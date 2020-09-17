@@ -55,8 +55,7 @@ public class Route implements Ordered {
 
 	private final Map<String, Object> metadata;
 
-	private Route(String id, URI uri, int order,
-			AsyncPredicate<ServerWebExchange> predicate,
+	private Route(String id, URI uri, int order, AsyncPredicate<ServerWebExchange> predicate,
 			List<GatewayFilter> gatewayFilters, Map<String, Object> metadata) {
 		this.id = id;
 		this.uri = uri;
@@ -125,8 +124,7 @@ public class Route implements Ordered {
 			return false;
 		}
 		Route route = (Route) o;
-		return this.order == route.order && Objects.equals(this.id, route.id)
-				&& Objects.equals(this.uri, route.uri)
+		return this.order == route.order && Objects.equals(this.id, route.id) && Objects.equals(this.uri, route.uri)
 				&& Objects.equals(this.predicate, route.predicate)
 				&& Objects.equals(this.gatewayFilters, route.gatewayFilters)
 				&& Objects.equals(this.metadata, route.metadata);
@@ -134,8 +132,7 @@ public class Route implements Ordered {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(this.id, this.uri, this.order, this.predicate,
-				this.gatewayFilters, this.metadata);
+		return Objects.hash(this.id, this.uri, this.order, this.predicate, this.gatewayFilters, this.metadata);
 	}
 
 	@Override
@@ -151,8 +148,7 @@ public class Route implements Ordered {
 		return sb.toString();
 	}
 
-	public abstract static class AbstractBuilder<B extends AbstractBuilder<B>>
-			implements Buildable<Route> {
+	public abstract static class AbstractBuilder<B extends AbstractBuilder<B>> implements Buildable<Route> {
 
 		protected String id;
 
@@ -190,13 +186,11 @@ public class Route implements Ordered {
 		public B uri(URI uri) {
 			this.uri = uri;
 			String scheme = this.uri.getScheme();
-			Assert.hasText(scheme, "The parameter [" + this.uri
-					+ "] format is incorrect, scheme can not be empty");
+			Assert.hasText(scheme, "The parameter [" + this.uri + "] format is incorrect, scheme can not be empty");
 			if (this.uri.getPort() < 0 && scheme.startsWith("http")) {
 				// default known http ports
 				int port = this.uri.getScheme().equals("https") ? 443 : 80;
-				this.uri = UriComponentsBuilder.fromUri(this.uri).port(port).build(false)
-						.toUri();
+				this.uri = UriComponentsBuilder.fromUri(this.uri).port(port).build(false).toUri();
 			}
 			return getThis();
 		}
@@ -243,8 +237,7 @@ public class Route implements Ordered {
 			AsyncPredicate<ServerWebExchange> predicate = getPredicate();
 			Assert.notNull(predicate, "predicate can not be null");
 
-			return new Route(this.id, this.uri, this.order, predicate,
-					this.gatewayFilters, this.metadata);
+			return new Route(this.id, this.uri, this.order, predicate, this.gatewayFilters, this.metadata);
 		}
 
 	}
