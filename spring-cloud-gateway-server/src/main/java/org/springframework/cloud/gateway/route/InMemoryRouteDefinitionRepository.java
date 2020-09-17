@@ -16,8 +16,8 @@
 
 package org.springframework.cloud.gateway.route;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -25,15 +25,12 @@ import reactor.core.publisher.Mono;
 import org.springframework.cloud.gateway.support.NotFoundException;
 import org.springframework.util.StringUtils;
 
-import static java.util.Collections.synchronizedMap;
-
 /**
  * @author Spencer Gibb
  */
 public class InMemoryRouteDefinitionRepository implements RouteDefinitionRepository {
 
-	private final Map<String, RouteDefinition> routes = synchronizedMap(
-			new LinkedHashMap<String, RouteDefinition>());
+	private final Map<String, RouteDefinition> routes = new ConcurrentHashMap<>();
 
 	@Override
 	public Mono<Void> save(Mono<RouteDefinition> route) {
