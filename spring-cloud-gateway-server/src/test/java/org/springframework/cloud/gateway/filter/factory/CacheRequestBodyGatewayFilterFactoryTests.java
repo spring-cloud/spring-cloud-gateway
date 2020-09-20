@@ -105,27 +105,22 @@ public class CacheRequestBodyGatewayFilterFactoryTests
 
 		@Bean
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
-			// TODO: 2020/9/20 make to filter build function and register bean
-			// TODO: 2020/9/20 suite
-			CacheRequestBodyGatewayFilterFactory.Config config = new CacheRequestBodyGatewayFilterFactory.Config();
-			config.setBodyClass(String.class);
-			GatewayFilter cacheRequestBodyFilter = new CacheRequestBodyGatewayFilterFactory().apply(config);
 			return builder.routes()
 					.route("cache_request_body_java_test", r -> r
 							.path("/post").and().host("**.cacherequestbody.org")
-							.filters(f -> f.prefixPath("/httpbin").filter(cacheRequestBodyFilter)
+							.filters(f -> f.prefixPath("/httpbin").cacheRequestBody(String.class)
 									.filter(new AssertCachedRequestBodyGatewayFilter(BODY_VALUE)))
 							.uri(uri))
 					.route("cache_request_body_empty_java_test", r -> r
 							.path("/post").and().host("**.cacherequestbodyempty.org")
-							.filters(f -> f.prefixPath("/httpbin").filter(cacheRequestBodyFilter)
+							.filters(f -> f.prefixPath("/httpbin").cacheRequestBody(String.class)
 									.filter(new AssertCachedRequestBodyGatewayFilter(BODY_EMPTY)))
 							.uri(uri))
 					.route("cache_request_body_exists_java_test", r -> r
 							.path("/post").and().host("**.cacherequestbodyexists.org")
 							.filters(f -> f.prefixPath("/httpbin")
 									.filter(new SetExchangeCachedRequestBodyGatewayFilter(BODY_CACHED_EXISTS))
-									.filter(cacheRequestBodyFilter)
+									.cacheRequestBody(String.class)
 									.filter(new AssertCachedRequestBodyGatewayFilter(BODY_CACHED_EXISTS)))
 							.uri(uri))
 					.build();
