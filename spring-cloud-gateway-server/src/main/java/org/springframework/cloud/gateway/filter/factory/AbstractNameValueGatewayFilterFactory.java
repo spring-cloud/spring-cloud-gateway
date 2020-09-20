@@ -32,6 +32,7 @@ public abstract class AbstractNameValueGatewayFilterFactory
 		super(NameValueConfig.class);
 	}
 
+	@Override
 	public List<String> shortcutFieldOrder() {
 		return Arrays.asList(GatewayFilter.NAME_KEY, GatewayFilter.VALUE_KEY);
 	}
