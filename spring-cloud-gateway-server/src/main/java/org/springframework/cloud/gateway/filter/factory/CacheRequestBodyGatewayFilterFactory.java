@@ -55,10 +55,10 @@ public class CacheRequestBodyGatewayFilterFactory extends
 					GatewayFilterChain chain) {
 				ServerHttpRequest request = exchange.getRequest();
 				URI requestUri = request.getURI();
-				String schema = requestUri.getScheme();
+				String scheme = requestUri.getScheme();
 
 				// Record only http requests (including https)
-				if ((!"http".equals(schema) && !"https".equals(schema))) {
+				if ((!"http".equals(scheme) && !"https".equals(scheme))) {
 					return chain.filter(exchange);
 				}
 
