@@ -117,6 +117,8 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 				.header(HttpHeaders.HOST, "www.retrypostconfig.org")
 				.bodyValue("HelloConfig").exchange().expectStatus().isOk()
 				.expectBody(String.class).isEqualTo("3");
+		assertThat(this.capture.toString())
+				.contains("disposing response connection before next iteration");
 	}
 
 	@Test
@@ -254,7 +256,7 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 				AtomicInteger num = getCount(key);
 				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
 						.header("X-Retry-Count", String.valueOf(num))
-						.body("bodys did not match on try" + num);
+						.body("body did not match on try" + num);
 			}
 			return response;
 		}
