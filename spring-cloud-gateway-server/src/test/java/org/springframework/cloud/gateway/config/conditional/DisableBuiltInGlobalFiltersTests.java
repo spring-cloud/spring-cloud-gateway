@@ -86,9 +86,8 @@ public class DisableBuiltInGlobalFiltersTests {
 					"spring.cloud.gateway.global-filter.websocket-routing.enabled=false",
 					"spring.cloud.gateway.global-filter.netty-write-response.enabled=false",
 					"spring.cloud.gateway.global-filter.netty-routing.enabled=false",
-					"spring.cloud.gateway.global-filter.reactive-load-balancer.enabled=false",
+					"spring.cloud.gateway.global-filter.reactive-load-balancer-client.enabled=false",
 					"spring.cloud.gateway.global-filter.load-balancer-client.enabled=false",
-					// FIXME:
 					"spring.cloud.gateway.metrics.enabled=false" })
 	@ActiveProfiles("disable-components")
 	public static class DisableAllGlobalFiltersByProperty {

@@ -247,21 +247,15 @@
       "defaultValue": "true"
     },
     {
-      "name": "spring.cloud.gateway.global-filter.reactive-load-balancer.enabled",
+      "name": "spring.cloud.gateway.global-filter.reactive-load-balancer-client.enabled",
       "type": "java.lang.Boolean",
-      "description": "Enables the reactive-loadbalancer global filter.",
+      "description": "Enables the reactive-load-balancer-client global filter.",
       "defaultValue": "true"
     },
     {
       "name": "spring.cloud.gateway.global-filter.load-balancer-client.enabled",
       "type": "java.lang.Boolean",
       "description": "Enables the load-balancer-client global filter.",
-      "defaultValue": "true"
-    },
-    {
-      "name": "spring.cloud.gateway.global-filter.metrics.enabled",
-      "type": "java.lang.Boolean",
-      "description": "Enables the metrics global filter.",
       "defaultValue": "true"
     },
     {
