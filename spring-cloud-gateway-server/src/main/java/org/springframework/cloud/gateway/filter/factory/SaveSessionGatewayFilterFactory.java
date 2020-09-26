@@ -35,7 +35,8 @@ import static org.springframework.cloud.gateway.support.GatewayToStringStyler.fi
  *
  * @author Greg Turnquist
  */
-public class SaveSessionGatewayFilterFactory extends AbstractGatewayFilterFactory {
+public class SaveSessionGatewayFilterFactory
+		extends AbstractGatewayFilterFactory<Object> {
 
 	@Override
 	public GatewayFilter apply(Object config) {

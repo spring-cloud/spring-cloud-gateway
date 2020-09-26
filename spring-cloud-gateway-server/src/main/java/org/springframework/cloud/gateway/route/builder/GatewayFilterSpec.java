@@ -75,7 +75,6 @@ import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpStatus;
-import org.springframework.util.StringUtils;
 import org.springframework.util.unit.DataSize;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -386,7 +385,8 @@ public class GatewayFilterSpec extends UriSpec {
 
 	/**
 	 * A filter that will set the Host header to
-	 * {@param hostName} on the outgoing request
+	 * {@param hostName} on the outgoing
+	 * request.
 	 * @param hostName the updated Host header value
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */

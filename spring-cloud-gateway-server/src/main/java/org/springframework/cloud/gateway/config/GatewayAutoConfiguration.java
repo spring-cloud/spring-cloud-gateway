@@ -53,6 +53,9 @@ import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.boot.web.embedded.netty.NettyReactiveWebServerFactory;
 import org.springframework.cloud.gateway.actuate.GatewayControllerEndpoint;
 import org.springframework.cloud.gateway.actuate.GatewayLegacyControllerEndpoint;
+import org.springframework.cloud.gateway.config.conditional.ConditionalOnEnabledFilter;
+import org.springframework.cloud.gateway.config.conditional.ConditionalOnEnabledGlobalFilter;
+import org.springframework.cloud.gateway.config.conditional.ConditionalOnEnabledPredicate;
 import org.springframework.cloud.gateway.filter.AdaptCachedBodyGlobalFilter;
 import org.springframework.cloud.gateway.filter.ForwardPathFilter;
 import org.springframework.cloud.gateway.filter.ForwardRoutingFilter;
@@ -118,7 +121,7 @@ import org.springframework.cloud.gateway.handler.predicate.HostRoutePredicateFac
 import org.springframework.cloud.gateway.handler.predicate.MethodRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.QueryRoutePredicateFactory;
-import org.springframework.cloud.gateway.handler.predicate.ReadBodyPredicateFactory;
+import org.springframework.cloud.gateway.handler.predicate.ReadBodyRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.RemoteAddrRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.WeightRoutePredicateFactory;
@@ -294,27 +297,32 @@ public class GatewayAutoConfiguration {
 	// GlobalFilter beans
 
 	@Bean
+	@ConditionalOnEnabledGlobalFilter
 	public AdaptCachedBodyGlobalFilter adaptCachedBodyGlobalFilter() {
 		return new AdaptCachedBodyGlobalFilter();
 	}
 
 	@Bean
+	@ConditionalOnEnabledGlobalFilter
 	public RemoveCachedBodyFilter removeCachedBodyFilter() {
 		return new RemoveCachedBodyFilter();
 	}
 
 	@Bean
+	@ConditionalOnEnabledGlobalFilter
 	public RouteToRequestUrlFilter routeToRequestUrlFilter() {
 		return new RouteToRequestUrlFilter();
 	}
 
 	@Bean
+	@ConditionalOnEnabledGlobalFilter
 	public ForwardRoutingFilter forwardRoutingFilter(
 			ObjectProvider<DispatcherHandler> dispatcherHandler) {
 		return new ForwardRoutingFilter(dispatcherHandler);
 	}
 
 	@Bean
+	@ConditionalOnEnabledGlobalFilter
 	public ForwardPathFilter forwardPathFilter() {
 		return new ForwardPathFilter();
 	}
@@ -326,6 +334,7 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
+	@ConditionalOnEnabledGlobalFilter
 	public WebsocketRoutingFilter websocketRoutingFilter(WebSocketClient webSocketClient,
 			WebSocketService webSocketService,
 			ObjectProvider<List<HttpHeadersFilter>> headersFilters) {
@@ -352,68 +361,81 @@ public class GatewayAutoConfiguration {
 	// Predicate Factory beans
 
 	@Bean
+	@ConditionalOnEnabledPredicate
 	public AfterRoutePredicateFactory afterRoutePredicateFactory() {
 		return new AfterRoutePredicateFactory();
 	}
 
 	@Bean
+	@ConditionalOnEnabledPredicate
 	public BeforeRoutePredicateFactory beforeRoutePredicateFactory() {
 		return new BeforeRoutePredicateFactory();
 	}
 
 	@Bean
+	@ConditionalOnEnabledPredicate
 	public BetweenRoutePredicateFactory betweenRoutePredicateFactory() {
 		return new BetweenRoutePredicateFactory();
 	}
 
 	@Bean
+	@ConditionalOnEnabledPredicate
 	public CookieRoutePredicateFactory cookieRoutePredicateFactory() {
 		return new CookieRoutePredicateFactory();
 	}
 
 	@Bean
+	@ConditionalOnEnabledPredicate
 	public HeaderRoutePredicateFactory headerRoutePredicateFactory() {
 		return new HeaderRoutePredicateFactory();
 	}
 
 	@Bean
+	@ConditionalOnEnabledPredicate
 	public HostRoutePredicateFactory hostRoutePredicateFactory() {
 		return new HostRoutePredicateFactory();
 	}
 
 	@Bean
+	@ConditionalOnEnabledPredicate
 	public MethodRoutePredicateFactory methodRoutePredicateFactory() {
 		return new MethodRoutePredicateFactory();
 	}
 
 	@Bean
+	@ConditionalOnEnabledPredicate
 	public PathRoutePredicateFactory pathRoutePredicateFactory() {
 		return new PathRoutePredicateFactory();
 	}
 
 	@Bean
+	@ConditionalOnEnabledPredicate
 	public QueryRoutePredicateFactory queryRoutePredicateFactory() {
 		return new QueryRoutePredicateFactory();
 	}
 
 	@Bean
-	public ReadBodyPredicateFactory readBodyPredicateFactory(
+	@ConditionalOnEnabledPredicate
+	public ReadBodyRoutePredicateFactory readBodyRoutePredicateFactory(
 			ServerCodecConfigurer codecConfigurer) {
-		return new ReadBodyPredicateFactory(codecConfigurer.getReaders());
+		return new ReadBodyRoutePredicateFactory(codecConfigurer.getReaders());
 	}
 
 	@Bean
+	@ConditionalOnEnabledPredicate
 	public RemoteAddrRoutePredicateFactory remoteAddrRoutePredicateFactory() {
 		return new RemoteAddrRoutePredicateFactory();
 	}
 
 	@Bean
 	@DependsOn("weightCalculatorWebFilter")
+	@ConditionalOnEnabledPredicate
 	public WeightRoutePredicateFactory weightRoutePredicateFactory() {
 		return new WeightRoutePredicateFactory();
 	}
 
 	@Bean
+	@ConditionalOnEnabledPredicate
 	public CloudFoundryRouteServiceRoutePredicateFactory cloudFoundryRouteServiceRoutePredicateFactory() {
 		return new CloudFoundryRouteServiceRoutePredicateFactory();
 	}
@@ -421,37 +443,44 @@ public class GatewayAutoConfiguration {
 	// GatewayFilter Factory beans
 
 	@Bean
+	@ConditionalOnEnabledFilter
 	public AddRequestHeaderGatewayFilterFactory addRequestHeaderGatewayFilterFactory() {
 		return new AddRequestHeaderGatewayFilterFactory();
 	}
 
 	@Bean
+	@ConditionalOnEnabledFilter
 	public MapRequestHeaderGatewayFilterFactory mapRequestHeaderGatewayFilterFactory() {
 		return new MapRequestHeaderGatewayFilterFactory();
 	}
 
 	@Bean
+	@ConditionalOnEnabledFilter
 	public AddRequestParameterGatewayFilterFactory addRequestParameterGatewayFilterFactory() {
 		return new AddRequestParameterGatewayFilterFactory();
 	}
 
 	@Bean
+	@ConditionalOnEnabledFilter
 	public AddResponseHeaderGatewayFilterFactory addResponseHeaderGatewayFilterFactory() {
 		return new AddResponseHeaderGatewayFilterFactory();
 	}
 
 	@Bean
+	@ConditionalOnEnabledFilter
 	public ModifyRequestBodyGatewayFilterFactory modifyRequestBodyGatewayFilterFactory(
 			ServerCodecConfigurer codecConfigurer) {
 		return new ModifyRequestBodyGatewayFilterFactory(codecConfigurer.getReaders());
 	}
 
 	@Bean
+	@ConditionalOnEnabledFilter
 	public DedupeResponseHeaderGatewayFilterFactory dedupeResponseHeaderGatewayFilterFactory() {
 		return new DedupeResponseHeaderGatewayFilterFactory();
 	}
 
 	@Bean
+	@ConditionalOnEnabledFilter
 	public ModifyResponseBodyGatewayFilterFactory modifyResponseBodyGatewayFilterFactory(
 			ServerCodecConfigurer codecConfigurer, Set<MessageBodyDecoder> bodyDecoders,
 			Set<MessageBodyEncoder> bodyEncoders) {
@@ -460,31 +489,37 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
+	@ConditionalOnEnabledFilter
 	public PrefixPathGatewayFilterFactory prefixPathGatewayFilterFactory() {
 		return new PrefixPathGatewayFilterFactory();
 	}
 
 	@Bean
+	@ConditionalOnEnabledFilter
 	public PreserveHostHeaderGatewayFilterFactory preserveHostHeaderGatewayFilterFactory() {
 		return new PreserveHostHeaderGatewayFilterFactory();
 	}
 
 	@Bean
+	@ConditionalOnEnabledFilter
 	public RedirectToGatewayFilterFactory redirectToGatewayFilterFactory() {
 		return new RedirectToGatewayFilterFactory();
 	}
 
 	@Bean
+	@ConditionalOnEnabledFilter
 	public RemoveRequestHeaderGatewayFilterFactory removeRequestHeaderGatewayFilterFactory() {
 		return new RemoveRequestHeaderGatewayFilterFactory();
 	}
 
 	@Bean
+	@ConditionalOnEnabledFilter
 	public RemoveRequestParameterGatewayFilterFactory removeRequestParameterGatewayFilterFactory() {
 		return new RemoveRequestParameterGatewayFilterFactory();
 	}
 
 	@Bean
+	@ConditionalOnEnabledFilter
 	public RemoveResponseHeaderGatewayFilterFactory removeResponseHeaderGatewayFilterFactory() {
 		return new RemoveResponseHeaderGatewayFilterFactory();
 	}
@@ -498,83 +533,99 @@ public class GatewayAutoConfiguration {
 
 	@Bean
 	@ConditionalOnBean({ RateLimiter.class, KeyResolver.class })
+	@ConditionalOnEnabledFilter
 	public RequestRateLimiterGatewayFilterFactory requestRateLimiterGatewayFilterFactory(
 			RateLimiter rateLimiter, KeyResolver resolver) {
 		return new RequestRateLimiterGatewayFilterFactory(rateLimiter, resolver);
 	}
 
 	@Bean
+	@ConditionalOnEnabledFilter
 	public RewritePathGatewayFilterFactory rewritePathGatewayFilterFactory() {
 		return new RewritePathGatewayFilterFactory();
 	}
 
 	@Bean
+	@ConditionalOnEnabledFilter
 	public RetryGatewayFilterFactory retryGatewayFilterFactory() {
 		return new RetryGatewayFilterFactory();
 	}
 
 	@Bean
+	@ConditionalOnEnabledFilter
 	public SetPathGatewayFilterFactory setPathGatewayFilterFactory() {
 		return new SetPathGatewayFilterFactory();
 	}
 
 	@Bean
+	@ConditionalOnEnabledFilter
 	public SecureHeadersGatewayFilterFactory secureHeadersGatewayFilterFactory(
 			SecureHeadersProperties properties) {
 		return new SecureHeadersGatewayFilterFactory(properties);
 	}
 
 	@Bean
+	@ConditionalOnEnabledFilter
 	public SetRequestHeaderGatewayFilterFactory setRequestHeaderGatewayFilterFactory() {
 		return new SetRequestHeaderGatewayFilterFactory();
 	}
 
 	@Bean
+	@ConditionalOnEnabledFilter
 	public SetRequestHostHeaderGatewayFilterFactory setRequestHostHeaderGatewayFilterFactory() {
 		return new SetRequestHostHeaderGatewayFilterFactory();
 	}
 
 	@Bean
+	@ConditionalOnEnabledFilter
 	public SetResponseHeaderGatewayFilterFactory setResponseHeaderGatewayFilterFactory() {
 		return new SetResponseHeaderGatewayFilterFactory();
 	}
 
 	@Bean
+	@ConditionalOnEnabledFilter
 	public RewriteResponseHeaderGatewayFilterFactory rewriteResponseHeaderGatewayFilterFactory() {
 		return new RewriteResponseHeaderGatewayFilterFactory();
 	}
 
 	@Bean
+	@ConditionalOnEnabledFilter
 	public RewriteLocationResponseHeaderGatewayFilterFactory rewriteLocationResponseHeaderGatewayFilterFactory() {
 		return new RewriteLocationResponseHeaderGatewayFilterFactory();
 	}
 
 	@Bean
+	@ConditionalOnEnabledFilter
 	public SetStatusGatewayFilterFactory setStatusGatewayFilterFactory() {
 		return new SetStatusGatewayFilterFactory();
 	}
 
 	@Bean
+	@ConditionalOnEnabledFilter
 	public SaveSessionGatewayFilterFactory saveSessionGatewayFilterFactory() {
 		return new SaveSessionGatewayFilterFactory();
 	}
 
 	@Bean
+	@ConditionalOnEnabledFilter
 	public StripPrefixGatewayFilterFactory stripPrefixGatewayFilterFactory() {
 		return new StripPrefixGatewayFilterFactory();
 	}
 
 	@Bean
+	@ConditionalOnEnabledFilter
 	public RequestHeaderToRequestUriGatewayFilterFactory requestHeaderToRequestUriGatewayFilterFactory() {
 		return new RequestHeaderToRequestUriGatewayFilterFactory();
 	}
 
 	@Bean
+	@ConditionalOnEnabledFilter
 	public RequestSizeGatewayFilterFactory requestSizeGatewayFilterFactory() {
 		return new RequestSizeGatewayFilterFactory();
 	}
 
 	@Bean
+	@ConditionalOnEnabledFilter
 	public RequestHeaderSizeGatewayFilterFactory requestHeaderSizeGatewayFilterFactory() {
 		return new RequestHeaderSizeGatewayFilterFactory();
 	}
@@ -726,6 +777,7 @@ public class GatewayAutoConfiguration {
 		}
 
 		@Bean
+		@ConditionalOnEnabledGlobalFilter
 		public NettyRoutingFilter routingFilter(HttpClient httpClient,
 				ObjectProvider<List<HttpHeadersFilter>> headersFilters,
 				HttpClientProperties properties) {
@@ -733,6 +785,7 @@ public class GatewayAutoConfiguration {
 		}
 
 		@Bean
+		@ConditionalOnEnabledGlobalFilter
 		public NettyWriteResponseFilter nettyWriteResponseFilter(
 				GatewayProperties properties) {
 			return new NettyWriteResponseFilter(properties.getStreamingMediaTypes());
@@ -772,6 +825,7 @@ public class GatewayAutoConfiguration {
 	protected static class HystrixConfiguration {
 
 		@Bean
+		@ConditionalOnEnabledFilter
 		public HystrixGatewayFilterFactory hystrixGatewayFilterFactory(
 				ObjectProvider<DispatcherHandler> dispatcherHandler) {
 			return new HystrixGatewayFilterFactory(dispatcherHandler);
@@ -779,6 +833,7 @@ public class GatewayAutoConfiguration {
 
 		@Bean
 		@ConditionalOnMissingBean(FallbackHeadersGatewayFilterFactory.class)
+		@ConditionalOnEnabledFilter
 		public FallbackHeadersGatewayFilterFactory fallbackHeadersGatewayFilterFactory() {
 			return new FallbackHeadersGatewayFilterFactory();
 		}
