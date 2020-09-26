@@ -30,7 +30,6 @@ import org.springframework.cloud.gateway.filter.factory.AddRequestHeaderGatewayF
 import org.springframework.cloud.gateway.filter.factory.DedupeResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.FallbackHeadersGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.HystrixGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.MapRequestHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.handler.predicate.AfterRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.CloudFoundryRouteServiceRoutePredicateFactory;
@@ -83,14 +82,13 @@ class NameUtilsTests {
 				AddRequestHeaderGatewayFilterFactory.class,
 				DedupeResponseHeaderGatewayFilterFactory.class,
 				FallbackHeadersGatewayFilterFactory.class,
-				HystrixGatewayFilterFactory.class,
 				MapRequestHeaderGatewayFilterFactory.class);
 
 		List<String> resultNames = predicates.stream()
 				.map(NameUtils::normalizeFilterFactoryName).collect(Collectors.toList());
 
 		List<String> expectedNames = Arrays.asList("AddRequestHeader",
-				"DedupeResponseHeader", "FallbackHeaders", "Hystrix", "MapRequestHeader");
+				"DedupeResponseHeader", "FallbackHeaders", "MapRequestHeader");
 
 		assertThat(resultNames).isEqualTo(expectedNames);
 	}
@@ -101,7 +99,6 @@ class NameUtilsTests {
 				AddRequestHeaderGatewayFilterFactory.class,
 				DedupeResponseHeaderGatewayFilterFactory.class,
 				FallbackHeadersGatewayFilterFactory.class,
-				HystrixGatewayFilterFactory.class,
 				MapRequestHeaderGatewayFilterFactory.class);
 
 		List<String> resultNames = predicates.stream()
@@ -109,7 +106,7 @@ class NameUtilsTests {
 				.collect(Collectors.toList());
 
 		List<String> expectedNames = Arrays.asList("add-request-header",
-				"dedupe-response-header", "fallback-headers", "hystrix",
+				"dedupe-response-header", "fallback-headers",
 				"map-request-header");
 
 		assertThat(resultNames).isEqualTo(expectedNames);

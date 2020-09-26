@@ -28,7 +28,6 @@ import org.springframework.cloud.gateway.filter.factory.AddRequestHeaderGatewayF
 import org.springframework.cloud.gateway.filter.factory.DedupeResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.FallbackHeadersGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.HystrixGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.MapRequestHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SpringCloudCircuitBreakerResilience4JFilterFactory;
 
@@ -49,7 +48,6 @@ class OnEnabledFilterTests {
 				AddRequestHeaderGatewayFilterFactory.class,
 				DedupeResponseHeaderGatewayFilterFactory.class,
 				FallbackHeadersGatewayFilterFactory.class,
-				HystrixGatewayFilterFactory.class,
 				MapRequestHeaderGatewayFilterFactory.class,
 				SpringCloudCircuitBreakerResilience4JFilterFactory.class);
 
@@ -59,7 +57,7 @@ class OnEnabledFilterTests {
 
 		List<String> expectedNames = Stream
 				.of("add-request-header", "dedupe-response-header", "fallback-headers",
-						"hystrix", "map-request-header", "circuit-breaker")
+						"map-request-header", "circuit-breaker")
 				.map(s -> "filter." + s).collect(Collectors.toList());
 
 		assertThat(resultNames).isEqualTo(expectedNames);
