@@ -65,7 +65,7 @@ public class GatewayMetricsAutoConfiguration {
 	@Bean
 	@ConditionalOnBean(MeterRegistry.class)
 	@ConditionalOnProperty(name = "spring.cloud.gateway.metrics.enabled", matchIfMissing = true)
-	@ConditionalOnEnabledGlobalFilter
+	// don't use @ConditionalOnEnabledGlobalFilter
 	public GatewayMetricsFilter gatewayMetricFilter(MeterRegistry meterRegistry,
 			List<GatewayTagsProvider> tagsProviders) {
 		return new GatewayMetricsFilter(meterRegistry, tagsProviders);
