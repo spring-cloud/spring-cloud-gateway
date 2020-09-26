@@ -78,7 +78,7 @@ public class ReadBodyRoutePredicateFactoryTests {
 	public void toStringFormat() {
 		Config config = new Config();
 		config.setInClass(String.class);
-		AsyncPredicate<ServerWebExchange> predicate = new ReadBodyPredicateFactory().applyAsync(config);
+		AsyncPredicate<ServerWebExchange> predicate = new ReadBodyRoutePredicateFactory().applyAsync(config);
 		assertThat(predicate.toString()).contains("ReadBody: " + config.getInClass());
 	}
 
