@@ -28,6 +28,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Flux;
 import reactor.netty.http.client.HttpClient;
+import reactor.netty.http.client.WebsocketClientSpec;
+import reactor.netty.http.server.WebsocketServerSpec;
 import reactor.netty.resources.ConnectionProvider;
 import reactor.netty.transport.ProxyProvider;
 
@@ -310,6 +312,7 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
+	@ConditionalOnEnabledGlobalFilter(WebsocketRoutingFilter.class)
 	public WebSocketService webSocketService(RequestUpgradeStrategy requestUpgradeStrategy) {
 		return new HandshakeWebSocketService(requestUpgradeStrategy);
 	}
@@ -322,19 +325,11 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
+	@ConditionalOnEnabledPredicate(WeightRoutePredicateFactory.class)
 	public WeightCalculatorWebFilter weightCalculatorWebFilter(ConfigurationService configurationService,
 			ObjectProvider<RouteLocator> routeLocator) {
 		return new WeightCalculatorWebFilter(routeLocator, configurationService);
 	}
-
-	/*
-	 * @Bean //TODO: default over netty? configurable public WebClientHttpRoutingFilter
-	 * webClientHttpRoutingFilter() { //TODO: WebClient bean return new
-	 * WebClientHttpRoutingFilter(WebClient.routes().build()); }
-	 *
-	 * @Bean public WebClientWriteResponseFilter webClientWriteResponseFilter() { return
-	 * new WebClientWriteResponseFilter(); }
-	 */
 
 	// Predicate Factory beans
 
@@ -503,13 +498,14 @@ public class GatewayAutoConfiguration {
 	@Bean(name = PrincipalNameKeyResolver.BEAN_NAME)
 	@ConditionalOnBean(RateLimiter.class)
 	@ConditionalOnMissingBean(KeyResolver.class)
+	@ConditionalOnEnabledFilter(RequestRateLimiterGatewayFilterFactory.class)
 	public PrincipalNameKeyResolver principalNameKeyResolver() {
 		return new PrincipalNameKeyResolver();
 	}
 
 	@Bean
 	@ConditionalOnBean({ RateLimiter.class, KeyResolver.class })
-	@ConditionalOnEnabledGlobalFilter
+	@ConditionalOnEnabledFilter
 	public RequestRateLimiterGatewayFilterFactory requestRateLimiterGatewayFilterFactory(RateLimiter rateLimiter,
 			KeyResolver resolver) {
 		return new RequestRateLimiterGatewayFilterFactory(rateLimiter, resolver);
@@ -761,33 +757,35 @@ public class GatewayAutoConfiguration {
 		}
 
 		@Bean
-		@ConditionalOnEnabledGlobalFilter
+		@ConditionalOnEnabledGlobalFilter(NettyRoutingFilter.class)
 		public NettyWriteResponseFilter nettyWriteResponseFilter(GatewayProperties properties) {
 			return new NettyWriteResponseFilter(properties.getStreamingMediaTypes());
 		}
 
 		@Bean
+		@ConditionalOnEnabledGlobalFilter(WebsocketRoutingFilter.class)
 		public ReactorNettyWebSocketClient reactorNettyWebSocketClient(HttpClientProperties properties,
 				HttpClient httpClient) {
-			ReactorNettyWebSocketClient webSocketClient = new ReactorNettyWebSocketClient(httpClient);
+			WebsocketClientSpec.Builder builder = WebsocketClientSpec.builder()
+					.handlePing(properties.getWebsocket().isProxyPing());
 			if (properties.getWebsocket().getMaxFramePayloadLength() != null) {
-				webSocketClient.setMaxFramePayloadLength(properties.getWebsocket().getMaxFramePayloadLength());
+				builder.maxFramePayloadLength(properties.getWebsocket().getMaxFramePayloadLength());
 			}
-			webSocketClient.setHandlePing(properties.getWebsocket().isProxyPing());
-			return webSocketClient;
+			return new ReactorNettyWebSocketClient(httpClient, builder);
 		}
 
 		@Bean
+		@ConditionalOnEnabledGlobalFilter(WebsocketRoutingFilter.class)
 		public ReactorNettyRequestUpgradeStrategy reactorNettyRequestUpgradeStrategy(
 				HttpClientProperties httpClientProperties) {
-			ReactorNettyRequestUpgradeStrategy requestUpgradeStrategy = new ReactorNettyRequestUpgradeStrategy();
 
+			WebsocketServerSpec.Builder builder = WebsocketServerSpec.builder();
 			HttpClientProperties.Websocket websocket = httpClientProperties.getWebsocket();
 			PropertyMapper map = PropertyMapper.get();
-			map.from(websocket::getMaxFramePayloadLength).whenNonNull()
-					.to(requestUpgradeStrategy::setMaxFramePayloadLength);
-			map.from(websocket::isProxyPing).to(requestUpgradeStrategy::setHandlePing);
-			return requestUpgradeStrategy;
+			map.from(websocket::getMaxFramePayloadLength).whenNonNull().to(builder::maxFramePayloadLength);
+			map.from(websocket::isProxyPing).to(builder::handlePing);
+
+			return new ReactorNettyRequestUpgradeStrategy(builder);
 		}
 
 	}
