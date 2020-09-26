@@ -43,18 +43,14 @@ class OnEnabledPredicateTests {
 
 	@Test
 	void shouldNormalizePredicatesNames() {
-		List<Class<? extends RoutePredicateFactory<?>>> predicates = Arrays.asList(
-				AfterRoutePredicateFactory.class,
-				CloudFoundryRouteServiceRoutePredicateFactory.class,
-				ReadBodyRoutePredicateFactory.class,
+		List<Class<? extends RoutePredicateFactory<?>>> predicates = Arrays.asList(AfterRoutePredicateFactory.class,
+				CloudFoundryRouteServiceRoutePredicateFactory.class, ReadBodyRoutePredicateFactory.class,
 				RemoteAddrRoutePredicateFactory.class);
 
-		List<String> resultNames = predicates.stream()
-				.map(onEnabledPredicate::normalizeComponentName)
+		List<String> resultNames = predicates.stream().map(onEnabledPredicate::normalizeComponentName)
 				.collect(Collectors.toList());
 
-		List<String> expectedNames = Stream
-				.of("after", "cloud-foundry-route-service", "read-body", "remote-addr")
+		List<String> expectedNames = Stream.of("after", "cloud-foundry-route-service", "read-body", "remote-addr")
 				.map(s -> "predicate." + s).collect(Collectors.toList());
 
 		assertThat(resultNames).isEqualTo(expectedNames);

@@ -58,9 +58,8 @@ public class DisableBuiltInPredicatesTests {
 	}
 
 	@RunWith(SpringRunner.class)
-	@SpringBootTest(classes = Config.class,
-			properties = { "spring.cloud.gateway.predicate.after.enabled=false",
-					"spring.cloud.gateway.predicate.before.enabled=false" })
+	@SpringBootTest(classes = Config.class, properties = { "spring.cloud.gateway.predicate.after.enabled=false",
+			"spring.cloud.gateway.predicate.before.enabled=false" })
 	@ActiveProfiles("disable-components")
 	public static class DisableSpecificsPredicatesByProperty {
 
@@ -71,22 +70,18 @@ public class DisableBuiltInPredicatesTests {
 		public void shouldInjectOnlyEnabledBuiltInPredicates() {
 			assertThat(predicates).hasSizeGreaterThan(0);
 			assertThat(predicates).allSatisfy(filter -> assertThat(filter)
-					.isNotInstanceOfAny(AfterRoutePredicateFactory.class,
-							BeforeRoutePredicateFactory.class));
+					.isNotInstanceOfAny(AfterRoutePredicateFactory.class, BeforeRoutePredicateFactory.class));
 		}
 
 	}
 
 	@RunWith(SpringRunner.class)
-	@SpringBootTest(classes = Config.class, properties = {
-			"spring.cloud.gateway.predicate.after.enabled=false",
+	@SpringBootTest(classes = Config.class, properties = { "spring.cloud.gateway.predicate.after.enabled=false",
 			"spring.cloud.gateway.predicate.before.enabled=false",
 			"spring.cloud.gateway.predicate.between.enabled=false",
 			"spring.cloud.gateway.predicate.cookie.enabled=false",
-			"spring.cloud.gateway.predicate.header.enabled=false",
-			"spring.cloud.gateway.predicate.host.enabled=false",
-			"spring.cloud.gateway.predicate.method.enabled=false",
-			"spring.cloud.gateway.predicate.path.enabled=false",
+			"spring.cloud.gateway.predicate.header.enabled=false", "spring.cloud.gateway.predicate.host.enabled=false",
+			"spring.cloud.gateway.predicate.method.enabled=false", "spring.cloud.gateway.predicate.path.enabled=false",
 			"spring.cloud.gateway.predicate.query.enabled=false",
 			"spring.cloud.gateway.predicate.read-body.enabled=false",
 			"spring.cloud.gateway.predicate.remote-addr.enabled=false",

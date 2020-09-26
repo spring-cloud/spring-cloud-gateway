@@ -24,15 +24,13 @@ import org.springframework.cloud.gateway.support.NameUtils;
 public class OnEnabledFilter extends OnEnabledComponent<GatewayFilterFactory<?>> {
 
 	@Override
-	protected String normalizeComponentName(
-			Class<? extends GatewayFilterFactory<?>> filterClass) {
+	protected String normalizeComponentName(Class<? extends GatewayFilterFactory<?>> filterClass) {
 		if (SpringCloudCircuitBreakerFilterFactory.class.isAssignableFrom(filterClass)) {
-			return "filter." + NameUtils.normalizeToCanonicalPropertyFormat(
-					SpringCloudCircuitBreakerFilterFactory.NAME);
+			return "filter."
+					+ NameUtils.normalizeToCanonicalPropertyFormat(SpringCloudCircuitBreakerFilterFactory.NAME);
 		}
 		else {
-			return "filter."
-					+ NameUtils.normalizeFilterFactoryNameAsProperty(filterClass);
+			return "filter." + NameUtils.normalizeFilterFactoryNameAsProperty(filterClass);
 		}
 	}
 
@@ -50,8 +48,7 @@ public class OnEnabledFilter extends OnEnabledComponent<GatewayFilterFactory<?>>
 
 		@Override
 		public GatewayFilter apply(Object config) {
-			throw new UnsupportedOperationException(
-					"class DefaultValue is never meant to be intantiated");
+			throw new UnsupportedOperationException("class DefaultValue is never meant to be intantiated");
 		}
 
 	}

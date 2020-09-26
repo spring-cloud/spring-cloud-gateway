@@ -200,13 +200,11 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 	 * Use {@link ServerWebExchangeUtils#reset(ServerWebExchange)}
 	 */
 	public void reset(ServerWebExchange exchange) {
-		Connection conn = exchange
-				.getAttribute(ServerWebExchangeUtils.CLIENT_RESPONSE_CONN_ATTR);
+		Connection conn = exchange.getAttribute(ServerWebExchangeUtils.CLIENT_RESPONSE_CONN_ATTR);
 		if (conn != null) {
 			trace("disposing response connection before next iteration");
 			conn.dispose();
-			exchange.getAttributes()
-					.remove(ServerWebExchangeUtils.CLIENT_RESPONSE_CONN_ATTR);
+			exchange.getAttributes().remove(ServerWebExchangeUtils.CLIENT_RESPONSE_CONN_ATTR);
 		}
 		ServerWebExchangeUtils.reset(exchange);
 	}

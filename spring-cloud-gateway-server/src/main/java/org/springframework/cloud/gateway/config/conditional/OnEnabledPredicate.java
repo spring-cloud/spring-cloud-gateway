@@ -26,10 +26,8 @@ import org.springframework.web.server.ServerWebExchange;
 public class OnEnabledPredicate extends OnEnabledComponent<RoutePredicateFactory<?>> {
 
 	@Override
-	protected String normalizeComponentName(
-			Class<? extends RoutePredicateFactory<?>> predicateClass) {
-		return "predicate."
-				+ NameUtils.normalizeRoutePredicateNameAsProperty(predicateClass);
+	protected String normalizeComponentName(Class<? extends RoutePredicateFactory<?>> predicateClass) {
+		return "predicate." + NameUtils.normalizeRoutePredicateNameAsProperty(predicateClass);
 	}
 
 	@Override
@@ -46,14 +44,12 @@ public class OnEnabledPredicate extends OnEnabledComponent<RoutePredicateFactory
 
 		@Override
 		public Predicate<ServerWebExchange> apply(Consumer<Object> consumer) {
-			throw new UnsupportedOperationException(
-					"class DefaultValue is never meant to be intantiated");
+			throw new UnsupportedOperationException("class DefaultValue is never meant to be intantiated");
 		}
 
 		@Override
 		public Predicate<ServerWebExchange> apply(Object config) {
-			throw new UnsupportedOperationException(
-					"class DefaultValue is never meant to be intantiated");
+			throw new UnsupportedOperationException("class DefaultValue is never meant to be intantiated");
 		}
 
 	}

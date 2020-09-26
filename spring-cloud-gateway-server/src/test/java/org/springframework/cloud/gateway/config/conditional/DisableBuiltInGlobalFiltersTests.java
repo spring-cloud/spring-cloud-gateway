@@ -58,9 +58,9 @@ public class DisableBuiltInGlobalFiltersTests {
 	}
 
 	@RunWith(SpringRunner.class)
-	@SpringBootTest(classes = Config.class, properties = {
-			"spring.cloud.gateway.global-filter.remove-cached-body.enabled=false",
-			"spring.cloud.gateway.global-filter.route-to-request-url.enabled=false" })
+	@SpringBootTest(classes = Config.class,
+			properties = { "spring.cloud.gateway.global-filter.remove-cached-body.enabled=false",
+					"spring.cloud.gateway.global-filter.route-to-request-url.enabled=false" })
 	@ActiveProfiles("disable-components")
 	public static class DisableSpecificsFiltersByProperty {
 
@@ -70,27 +70,26 @@ public class DisableBuiltInGlobalFiltersTests {
 		@Test
 		public void shouldInjectOnlyEnabledBuiltInFilters() {
 			assertThat(globalFilters).hasSizeGreaterThan(0);
-			assertThat(globalFilters)
-					.allSatisfy(filter -> assertThat(filter).isNotInstanceOfAny(
-							RemoveCachedBodyFilter.class, RouteToRequestUrlFilter.class));
+			assertThat(globalFilters).allSatisfy(filter -> assertThat(filter)
+					.isNotInstanceOfAny(RemoveCachedBodyFilter.class, RouteToRequestUrlFilter.class));
 		}
 
 	}
 
 	@RunWith(SpringRunner.class)
-	@SpringBootTest(classes = Config.class, properties = {
-			"spring.cloud.gateway.global-filter.adapt-cached-body.enabled=false",
-			"spring.cloud.gateway.global-filter.remove-cached-body.enabled=false",
-			"spring.cloud.gateway.global-filter.route-to-request-url.enabled=false",
-			"spring.cloud.gateway.global-filter.forward-routing.enabled=false",
-			"spring.cloud.gateway.global-filter.forward-path.enabled=false",
-			"spring.cloud.gateway.global-filter.websocket-routing.enabled=false",
-			"spring.cloud.gateway.global-filter.netty-write-response.enabled=false",
-			"spring.cloud.gateway.global-filter.netty-routing.enabled=false",
-			"spring.cloud.gateway.global-filter.reactive-load-balancer.enabled=false",
-			"spring.cloud.gateway.global-filter.load-balancer-client.enabled=false",
-			// FIXME:
-			"spring.cloud.gateway.metrics.enabled=false" })
+	@SpringBootTest(classes = Config.class,
+			properties = { "spring.cloud.gateway.global-filter.adapt-cached-body.enabled=false",
+					"spring.cloud.gateway.global-filter.remove-cached-body.enabled=false",
+					"spring.cloud.gateway.global-filter.route-to-request-url.enabled=false",
+					"spring.cloud.gateway.global-filter.forward-routing.enabled=false",
+					"spring.cloud.gateway.global-filter.forward-path.enabled=false",
+					"spring.cloud.gateway.global-filter.websocket-routing.enabled=false",
+					"spring.cloud.gateway.global-filter.netty-write-response.enabled=false",
+					"spring.cloud.gateway.global-filter.netty-routing.enabled=false",
+					"spring.cloud.gateway.global-filter.reactive-load-balancer.enabled=false",
+					"spring.cloud.gateway.global-filter.load-balancer-client.enabled=false",
+					// FIXME:
+					"spring.cloud.gateway.metrics.enabled=false" })
 	@ActiveProfiles("disable-components")
 	public static class DisableAllGlobalFiltersByProperty {
 

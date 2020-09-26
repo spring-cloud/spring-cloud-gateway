@@ -32,8 +32,7 @@ import org.springframework.util.ClassUtils;
 
 import static org.springframework.boot.autoconfigure.condition.ConditionMessage.forCondition;
 
-public abstract class OnEnabledComponent<T> extends SpringBootCondition
-		implements ConfigurationCondition {
+public abstract class OnEnabledComponent<T> extends SpringBootCondition implements ConfigurationCondition {
 
 	private static final String PREFIX = "spring.cloud.gateway.";
 
@@ -45,49 +44,39 @@ public abstract class OnEnabledComponent<T> extends SpringBootCondition
 	}
 
 	@Override
-	public ConditionOutcome getMatchOutcome(ConditionContext context,
-			AnnotatedTypeMetadata metadata) {
-		Class<? extends T> candidate = getEndpointType(annotationClass(), context,
-				metadata);
+	public ConditionOutcome getMatchOutcome(ConditionContext context, AnnotatedTypeMetadata metadata) {
+		Class<? extends T> candidate = getEndpointType(annotationClass(), context, metadata);
 		return determineOutcome(candidate, context.getEnvironment());
 	}
 
 	@SuppressWarnings("unchecked")
-	protected Class<? extends T> getEndpointType(Class<?> annotationClass,
-			ConditionContext context, AnnotatedTypeMetadata metadata) {
-		Map<String, Object> attributes = metadata
-				.getAnnotationAttributes(annotationClass.getName());
+	protected Class<? extends T> getEndpointType(Class<?> annotationClass, ConditionContext context,
+			AnnotatedTypeMetadata metadata) {
+		Map<String, Object> attributes = metadata.getAnnotationAttributes(annotationClass.getName());
 		if (attributes != null && attributes.containsKey("value")) {
 			Class<?> target = (Class<?>) attributes.get("value");
 			if (target != defaultValueClass()) {
 				return (Class<? extends T>) target;
 			}
 		}
-		Assert.state(
-				metadata instanceof MethodMetadata
-						&& metadata.isAnnotated(Bean.class.getName()),
-				getClass().getSimpleName()
-						+ " must be used on @Bean methods when the value is not specified");
+		Assert.state(metadata instanceof MethodMetadata && metadata.isAnnotated(Bean.class.getName()),
+				getClass().getSimpleName() + " must be used on @Bean methods when the value is not specified");
 		MethodMetadata methodMetadata = (MethodMetadata) metadata;
 		try {
-			return (Class<? extends T>) ClassUtils.forName(
-					methodMetadata.getReturnTypeName(), context.getClassLoader());
+			return (Class<? extends T>) ClassUtils.forName(methodMetadata.getReturnTypeName(),
+					context.getClassLoader());
 		}
 		catch (Throwable ex) {
 			throw new IllegalStateException("Failed to extract endpoint id for "
-					+ methodMetadata.getDeclaringClassName() + "."
-					+ methodMetadata.getMethodName(), ex);
+					+ methodMetadata.getDeclaringClassName() + "." + methodMetadata.getMethodName(), ex);
 		}
 	}
 
-	private ConditionOutcome determineOutcome(Class<? extends T> componentClass,
-			PropertyResolver resolver) {
+	private ConditionOutcome determineOutcome(Class<? extends T> componentClass, PropertyResolver resolver) {
 		String key = PREFIX + normalizeComponentName(componentClass) + SUFFIX;
-		ConditionMessage.Builder messageBuilder = forCondition(
-				annotationClass().getName(), componentClass.getName());
+		ConditionMessage.Builder messageBuilder = forCondition(annotationClass().getName(), componentClass.getName());
 		if ("false".equalsIgnoreCase(resolver.getProperty(key))) {
-			return ConditionOutcome
-					.noMatch(messageBuilder.because("bean is not available"));
+			return ConditionOutcome.noMatch(messageBuilder.because("bean is not available"));
 		}
 		return ConditionOutcome.match();
 	}

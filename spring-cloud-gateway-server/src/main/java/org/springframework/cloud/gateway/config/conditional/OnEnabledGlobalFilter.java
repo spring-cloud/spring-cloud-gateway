@@ -27,8 +27,7 @@ public class OnEnabledGlobalFilter extends OnEnabledComponent<GlobalFilter> {
 
 	@Override
 	protected String normalizeComponentName(Class<? extends GlobalFilter> filterClass) {
-		return "global-filter."
-				+ NameUtils.normalizeGlobalFilterNameAsProperty(filterClass);
+		return "global-filter." + NameUtils.normalizeGlobalFilterNameAsProperty(filterClass);
 	}
 
 	@Override
@@ -45,8 +44,7 @@ public class OnEnabledGlobalFilter extends OnEnabledComponent<GlobalFilter> {
 
 		@Override
 		public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-			throw new UnsupportedOperationException(
-					"class DefaultValue is never meant to be intantiated");
+			throw new UnsupportedOperationException("class DefaultValue is never meant to be intantiated");
 		}
 
 	}

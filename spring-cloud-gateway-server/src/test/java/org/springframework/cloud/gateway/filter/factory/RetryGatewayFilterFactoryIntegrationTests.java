@@ -114,8 +114,7 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 		testClient.post().uri("/retrypost?key=postconfig&expectedbody=HelloConfig")
 				.header(HttpHeaders.HOST, "www.retrypostconfig.org").bodyValue("HelloConfig").exchange().expectStatus()
 				.isOk().expectBody(String.class).isEqualTo("3");
-		assertThat(this.capture.toString())
-				.contains("disposing response connection before next iteration");
+		assertThat(this.capture.toString()).contains("disposing response connection before next iteration");
 	}
 
 	@Test
