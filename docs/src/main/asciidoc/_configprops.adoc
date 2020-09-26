@@ -11,20 +11,63 @@
 |spring.cloud.gateway.discovery.locator.url-expression | 'lb://'+serviceId | SpEL expression that create the uri for each route, defaults to: 'lb://'+serviceId.
 |spring.cloud.gateway.enabled | true | Enables gateway functionality.
 |spring.cloud.gateway.fail-on-route-definition-error | true | Option to fail on route definition errors, defaults to true. Otherwise, a warning is logged.
+|spring.cloud.gateway.filter.add-request-header.enabled | true | Enables the add-request-header filter.
+|spring.cloud.gateway.filter.add-request-parameter.enabled | true | Enables the add-request-parameter filter.
+|spring.cloud.gateway.filter.add-response-header.enabled | true | Enables the add-response-header filter.
+|spring.cloud.gateway.filter.circuit-breaker.enabled | true | Enables the circuit-breaker filter.
+|spring.cloud.gateway.filter.dedupe-response-header.enabled | true | Enables the dedupe-response-header filter.
+|spring.cloud.gateway.filter.fallback-headers.enabled | true | Enables the fallback-headers filter.
+|spring.cloud.gateway.filter.hystrix.enabled | true | Enables the hystrix filter.
+|spring.cloud.gateway.filter.map-request-header.enabled | true | Enables the map-request-header filter.
+|spring.cloud.gateway.filter.modify-request-body.enabled | true | Enables the modify-request-body filter.
+|spring.cloud.gateway.filter.modify-response-body.enabled | true | Enables the modify-response-body filter.
+|spring.cloud.gateway.filter.prefix-path.enabled | true | Enables the prefix-path filter.
+|spring.cloud.gateway.filter.preserve-host-header.enabled | true | Enables the preserve-host-header filter.
+|spring.cloud.gateway.filter.redirect-to.enabled | true | Enables the redirect-to filter.
 |spring.cloud.gateway.filter.remove-hop-by-hop.headers |  | 
 |spring.cloud.gateway.filter.remove-hop-by-hop.order |  | 
+|spring.cloud.gateway.filter.remove-request-header.enabled | true | Enables the remove-request-header filter.
+|spring.cloud.gateway.filter.remove-request-parameter.enabled | true | Enables the remove-request-parameter filter.
+|spring.cloud.gateway.filter.remove-response-header.enabled | true | Enables the remove-response-header filter.
+|spring.cloud.gateway.filter.request-header-size.enabled | true | Enables the request-header-size filter.
+|spring.cloud.gateway.filter.request-header-to-request-uri.enabled | true | Enables the request-header-to-request-uri filter.
 |spring.cloud.gateway.filter.request-rate-limiter.deny-empty-key | true | Switch to deny requests if the Key Resolver returns an empty key, defaults to true.
 |spring.cloud.gateway.filter.request-rate-limiter.empty-key-status-code |  | HttpStatus to return when denyEmptyKey is true, defaults to FORBIDDEN.
+|spring.cloud.gateway.filter.request-rate-limiter.enabled | true | Enables the request-rate-limiter filter.
+|spring.cloud.gateway.filter.request-size.enabled | true | Enables the request-size filter.
+|spring.cloud.gateway.filter.retry.enabled | true | Enables the retry filter.
+|spring.cloud.gateway.filter.rewrite-location-response-header.enabled | true | Enables the rewrite-location-response-header filter.
+|spring.cloud.gateway.filter.rewrite-location.enabled | true | Enables the rewrite-location filter.
+|spring.cloud.gateway.filter.rewrite-path.enabled | true | Enables the rewrite-path filter.
+|spring.cloud.gateway.filter.rewrite-response-header.enabled | true | Enables the rewrite-response-header filter.
+|spring.cloud.gateway.filter.save-session.enabled | true | Enables the save-session filter.
 |spring.cloud.gateway.filter.secure-headers.content-security-policy | default-src 'self' https:; font-src 'self' https: data:; img-src 'self' https: data:; object-src 'none'; script-src https:; style-src 'self' https: 'unsafe-inline' | 
 |spring.cloud.gateway.filter.secure-headers.content-type-options | nosniff | 
 |spring.cloud.gateway.filter.secure-headers.disable |  | 
 |spring.cloud.gateway.filter.secure-headers.download-options | noopen | 
+|spring.cloud.gateway.filter.secure-headers.enabled | true | Enables the secure-headers filter.
 |spring.cloud.gateway.filter.secure-headers.frame-options | DENY | 
 |spring.cloud.gateway.filter.secure-headers.permitted-cross-domain-policies | none | 
 |spring.cloud.gateway.filter.secure-headers.referrer-policy | no-referrer | 
 |spring.cloud.gateway.filter.secure-headers.strict-transport-security | max-age=631138519 | 
 |spring.cloud.gateway.filter.secure-headers.xss-protection-header | 1 ; mode=block | 
+|spring.cloud.gateway.filter.set-path.enabled | true | Enables the set-path filter.
+|spring.cloud.gateway.filter.set-request-header.enabled | true | Enables the set-request-header filter.
+|spring.cloud.gateway.filter.set-request-host-header.enabled | true | Enables the set-request-host-header filter.
+|spring.cloud.gateway.filter.set-response-header.enabled | true | Enables the set-response-header filter.
+|spring.cloud.gateway.filter.set-status.enabled | true | Enables the set-status filter.
+|spring.cloud.gateway.filter.strip-prefix.enabled | true | Enables the strip-prefix filter.
 |spring.cloud.gateway.forwarded.enabled | true | Enables the ForwardedHeadersFilter.
+|spring.cloud.gateway.global-filter.adapt-cached-body.enabled | true | Enables the adapt-cached-body global filter.
+|spring.cloud.gateway.global-filter.forward-path.enabled | true | Enables the forward-path global filter.
+|spring.cloud.gateway.global-filter.forward-routing.enabled | true | Enables the forward-routing global filter.
+|spring.cloud.gateway.global-filter.load-balancer-client.enabled | true | Enables the load-balancer-client global filter.
+|spring.cloud.gateway.global-filter.netty-routing.enabled | true | Enables the netty-routing global filter.
+|spring.cloud.gateway.global-filter.netty-write-response.enabled | true | Enables the netty-write-response global filter.
+|spring.cloud.gateway.global-filter.reactive-load-balancer-client.enabled | true | Enables the reactive-load-balancer-client global filter.
+|spring.cloud.gateway.global-filter.remove-cached-body.enabled | true | Enables the remove-cached-body global filter.
+|spring.cloud.gateway.global-filter.route-to-request-url.enabled | true | Enables the route-to-request-url global filter.
+|spring.cloud.gateway.global-filter.websocket-routing.enabled | true | Enables the websocket-routing global filter.
 |spring.cloud.gateway.globalcors.add-to-simple-url-handler-mapping | false | If global CORS config should be added to the URL handler.
 |spring.cloud.gateway.globalcors.cors-configurations |  | 
 |spring.cloud.gateway.httpclient.connect-timeout |  | The connect timeout in millis, the default is 45s.
@@ -60,6 +103,19 @@
 |spring.cloud.gateway.loadbalancer.use404 | false | 
 |spring.cloud.gateway.metrics.enabled | true | Enables the collection of metrics data.
 |spring.cloud.gateway.metrics.tags |  | Tags map that added to metrics.
+|spring.cloud.gateway.predicate.after.enabled | true | Enables the after predicate.
+|spring.cloud.gateway.predicate.before.enabled | true | Enables the before predicate.
+|spring.cloud.gateway.predicate.between.enabled | true | Enables the between predicate.
+|spring.cloud.gateway.predicate.cloud-foundry-route-service.enabled | true | Enables the cloud-foundry-route-service predicate.
+|spring.cloud.gateway.predicate.cookie.enabled | true | Enables the cookie predicate.
+|spring.cloud.gateway.predicate.header.enabled | true | Enables the header predicate.
+|spring.cloud.gateway.predicate.host.enabled | true | Enables the host predicate.
+|spring.cloud.gateway.predicate.method.enabled | true | Enables the method predicate.
+|spring.cloud.gateway.predicate.path.enabled | true | Enables the path predicate.
+|spring.cloud.gateway.predicate.query.enabled | true | Enables the query predicate.
+|spring.cloud.gateway.predicate.read-body.enabled | true | Enables the read-body predicate.
+|spring.cloud.gateway.predicate.remote-addr.enabled | true | Enables the remote-addr predicate.
+|spring.cloud.gateway.predicate.weight.enabled | true | Enables the weight predicate.
 |spring.cloud.gateway.redis-rate-limiter.burst-capacity-header | X-RateLimit-Burst-Capacity | The name of the header that returns the burst capacity configuration.
 |spring.cloud.gateway.redis-rate-limiter.config |  | 
 |spring.cloud.gateway.redis-rate-limiter.include-headers | true | Whether or not to include headers containing rate limiter information, defaults to true.
