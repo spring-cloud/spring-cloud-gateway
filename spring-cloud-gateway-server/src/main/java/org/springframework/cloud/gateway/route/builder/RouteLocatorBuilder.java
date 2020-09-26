@@ -28,7 +28,7 @@ import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.context.ConfigurableApplicationContext;
 
 /**
- * Used to build a {@link RouteLocator}
+ * Used to build a {@link RouteLocator}.
  */
 public class RouteLocatorBuilder {
 
@@ -39,15 +39,15 @@ public class RouteLocatorBuilder {
 	}
 
 	/**
-	 * Creates a new {@link Builder}
-	 * @return a new {@link Builder}
+	 * Creates a new {@link Builder}.
+	 * @return a new {@link Builder}.
 	 */
 	public Builder routes() {
 		return new Builder(context);
 	}
 
 	/**
-	 * A class that can be used to construct routes and return a {@link RouteLocator}
+	 * A class that can be used to construct routes and return a {@link RouteLocator}.
 	 */
 	public static class Builder {
 
@@ -60,7 +60,7 @@ public class RouteLocatorBuilder {
 		}
 
 		/**
-		 * Creates a new {@link Route}
+		 * Creates a new {@link Route}.
 		 * @param id the unique id for the route
 		 * @param fn a function which takes in a {@link PredicateSpec} and returns a
 		 * {@link Route.AsyncBuilder}
@@ -73,7 +73,7 @@ public class RouteLocatorBuilder {
 		}
 
 		/**
-		 * Creates a new {@link Route}
+		 * Creates a new {@link Route}.
 		 * @param fn a function which takes in a {@link PredicateSpec} and returns a
 		 * {@link Route.AsyncBuilder}
 		 * @return a {@link Builder}
@@ -85,7 +85,7 @@ public class RouteLocatorBuilder {
 		}
 
 		/**
-		 * Builds and returns a {@link RouteLocator}
+		 * Builds and returns a {@link RouteLocator}.
 		 * @return a {@link RouteLocator}
 		 */
 		public RouteLocator build() {

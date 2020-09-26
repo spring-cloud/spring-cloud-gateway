@@ -28,7 +28,8 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.P
 /**
  * @author Spencer Gibb
  */
-public class PreserveHostHeaderGatewayFilterFactory extends AbstractGatewayFilterFactory {
+public class PreserveHostHeaderGatewayFilterFactory
+		extends AbstractGatewayFilterFactory<Object> {
 
 	public GatewayFilter apply() {
 		return apply(o -> {

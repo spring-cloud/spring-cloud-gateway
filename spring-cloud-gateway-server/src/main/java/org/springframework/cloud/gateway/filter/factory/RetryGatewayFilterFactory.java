@@ -28,6 +28,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Mono;
+import reactor.netty.Connection;
 import reactor.retry.Backoff;
 import reactor.retry.Repeat;
 import reactor.retry.RepeatContext;
@@ -81,9 +82,8 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 
 				boolean retryableStatusCode = retryConfig.getStatuses().contains(statusCode);
 
-				if (!retryableStatusCode && statusCode != null) { // null status code
-																	// might mean a
-																	// network exception?
+				// null status code might mean a network exception?
+				if (!retryableStatusCode && statusCode != null) {
 					// try the series
 					retryableStatusCode = retryConfig.getSeries().stream()
 							.anyMatch(series -> statusCode.series().equals(series));
@@ -200,6 +200,14 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 	 * Use {@link ServerWebExchangeUtils#reset(ServerWebExchange)}
 	 */
 	public void reset(ServerWebExchange exchange) {
+		Connection conn = exchange
+				.getAttribute(ServerWebExchangeUtils.CLIENT_RESPONSE_CONN_ATTR);
+		if (conn != null) {
+			trace("disposing response connection before next iteration");
+			conn.dispose();
+			exchange.getAttributes()
+					.remove(ServerWebExchangeUtils.CLIENT_RESPONSE_CONN_ATTR);
+		}
 		ServerWebExchangeUtils.reset(exchange);
 	}
 

@@ -50,7 +50,7 @@ import static org.junit.Assume.assumeThat;
 		org.springframework.cloud.gateway.handler.predicate.HeaderRoutePredicateFactoryTests.class,
 		org.springframework.cloud.gateway.handler.predicate.BeforeRoutePredicateFactoryTests.class,
 		org.springframework.cloud.gateway.handler.predicate.RemoteAddrRoutePredicateFactoryTests.class,
-		org.springframework.cloud.gateway.handler.predicate.ReadBodyPredicateFactoryTest.class,
+		org.springframework.cloud.gateway.handler.predicate.ReadBodyRoutePredicateFactoryTests.class,
 		org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFactoryTests.class,
 		org.springframework.cloud.gateway.handler.predicate.CloudFoundryRouteServiceRoutePredicateFactoryTest.class,
 		org.springframework.cloud.gateway.handler.RoutePredicateHandlerMappingTests.class,
