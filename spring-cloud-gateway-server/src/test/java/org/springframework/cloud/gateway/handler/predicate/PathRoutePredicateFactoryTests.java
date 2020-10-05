@@ -34,8 +34,11 @@ import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
+import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
+import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.web.server.ServerWebExchange;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -107,6 +110,30 @@ public class PathRoutePredicateFactoryTests extends BaseWebClientTests {
 				.contains("false");
 	}
 
+	@Test
+	public void shouldIgnorePatternCase() {
+		Config config = new Config().setPatterns(Arrays.asList("/pattern"))
+				.setCaseSensitive(false);
+		Predicate<ServerWebExchange> predicate = new PathRoutePredicateFactory().apply(config);
+
+		Arrays.asList("pattern", "Pattern", "PATTERN").forEach(pattern -> {
+			MockServerWebExchange exchange = createExchange(pattern);
+			assertThat(predicate.test(exchange)).isTrue();
+		});
+	}
+
+	@Test
+	public void shouldMatchPatternCase() {
+		Config config = new Config().setPatterns(Arrays.asList("/pattern"))
+				.setCaseSensitive(true);
+		Predicate<ServerWebExchange> predicate = new PathRoutePredicateFactory().apply(config);
+		MockServerWebExchange validPattern = createExchange("pattern");
+		assertThat(predicate.test(validPattern)).isTrue();
+
+		MockServerWebExchange invalidPattern = createExchange("PATTERN");
+		assertThat(predicate.test(invalidPattern)).isFalse();
+	}
+
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
@@ -124,6 +151,12 @@ public class PathRoutePredicateFactoryTests extends BaseWebClientTests {
 					.build();
 		}
 
+	}
+
+	private MockServerWebExchange createExchange(String pattern) {
+		MockServerHttpRequest request = MockServerHttpRequest.get("https://example.com/" + pattern)
+				.build();
+		return MockServerWebExchange.from(request);
 	}
 
 }
