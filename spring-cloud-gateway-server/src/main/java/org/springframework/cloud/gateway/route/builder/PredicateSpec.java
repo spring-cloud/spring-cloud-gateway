@@ -212,6 +212,22 @@ public class PredicateSpec extends UriSpec {
 	}
 
 	/**
+	 * A predicate that checks if the path of the request matches the given pattern.
+	 * @param patterns the pattern to check the path against. The pattern is a
+	 * {@link org.springframework.util.PathMatcher} pattern
+	 * @param matchOptionalTrailingSeparator set to false if you do not want this path to
+	 * match when there is a trailing <code>/</code>
+	 * @param caseSensitive set to false if you want ignore pattern case
+	 * @return a {@link BooleanSpec} to be used to add logical operators
+	 */
+	public BooleanSpec path(boolean matchOptionalTrailingSeparator, boolean caseSensitive, String... patterns) {
+		return asyncPredicate(getBean(PathRoutePredicateFactory.class).applyAsync(c -> c
+				.setPatterns(Arrays.asList(patterns))
+				.setMatchOptionalTrailingSeparator(matchOptionalTrailingSeparator)
+				.setCaseSensitive(caseSensitive)));
+	}
+
+	/**
 	 * This predicate is BETA and may be subject to change in a future release. A
 	 * predicate that checks the contents of the request body
 	 * @param inClass the class to parse the body to

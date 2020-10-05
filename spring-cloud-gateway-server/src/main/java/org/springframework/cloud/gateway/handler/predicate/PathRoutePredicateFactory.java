@@ -82,6 +82,7 @@ public class PathRoutePredicateFactory
 		synchronized (this.pathPatternParser) {
 			pathPatternParser.setMatchOptionalTrailingSeparator(
 					config.isMatchOptionalTrailingSeparator());
+			pathPatternParser.setCaseSensitive(config.isCaseSensitive());
 			config.getPatterns().forEach(pattern -> {
 				PathPattern pathPattern = this.pathPatternParser.parse(pattern);
 				pathPatterns.add(pathPattern);
@@ -124,6 +125,8 @@ public class PathRoutePredicateFactory
 
 		private boolean matchOptionalTrailingSeparator = true;
 
+		private boolean caseSensitive = true;
+
 		@Deprecated
 		public String getPattern() {
 			if (!CollectionUtils.isEmpty(this.patterns)) {
@@ -155,6 +158,15 @@ public class PathRoutePredicateFactory
 		public Config setMatchOptionalTrailingSeparator(
 				boolean matchOptionalTrailingSeparator) {
 			this.matchOptionalTrailingSeparator = matchOptionalTrailingSeparator;
+			return this;
+		}
+
+		public boolean isCaseSensitive() {
+			return this.caseSensitive;
+		}
+
+		public Config setCaseSensitive(boolean caseSensitive) {
+			this.caseSensitive = caseSensitive;
 			return this;
 		}
 
