@@ -114,7 +114,8 @@ public class PathRoutePredicateFactoryTests extends BaseWebClientTests {
 	public void shouldIgnorePatternCase() {
 		Config config = new Config().setPatterns(Arrays.asList("/pattern"))
 				.setCaseSensitive(false);
-		Predicate<ServerWebExchange> predicate = new PathRoutePredicateFactory().apply(config);
+		Predicate<ServerWebExchange> predicate = new PathRoutePredicateFactory()
+				.apply(config);
 
 		Arrays.asList("pattern", "Pattern", "PATTERN").forEach(pattern -> {
 			MockServerWebExchange exchange = createExchange(pattern);
@@ -126,12 +127,19 @@ public class PathRoutePredicateFactoryTests extends BaseWebClientTests {
 	public void shouldMatchPatternCase() {
 		Config config = new Config().setPatterns(Arrays.asList("/pattern"))
 				.setCaseSensitive(true);
-		Predicate<ServerWebExchange> predicate = new PathRoutePredicateFactory().apply(config);
+		Predicate<ServerWebExchange> predicate = new PathRoutePredicateFactory()
+				.apply(config);
 		MockServerWebExchange validPattern = createExchange("pattern");
 		assertThat(predicate.test(validPattern)).isTrue();
 
 		MockServerWebExchange invalidPattern = createExchange("PATTERN");
 		assertThat(predicate.test(invalidPattern)).isFalse();
+	}
+
+	private MockServerWebExchange createExchange(String pattern) {
+		MockServerHttpRequest request = MockServerHttpRequest
+				.get("https://example.com/" + pattern).build();
+		return MockServerWebExchange.from(request);
 	}
 
 	@EnableAutoConfiguration
@@ -151,12 +159,6 @@ public class PathRoutePredicateFactoryTests extends BaseWebClientTests {
 					.build();
 		}
 
-	}
-
-	private MockServerWebExchange createExchange(String pattern) {
-		MockServerHttpRequest request = MockServerHttpRequest.get("https://example.com/" + pattern)
-				.build();
-		return MockServerWebExchange.from(request);
 	}
 
 }

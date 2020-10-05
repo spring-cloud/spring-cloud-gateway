@@ -220,11 +220,12 @@ public class PredicateSpec extends UriSpec {
 	 * @param caseSensitive set to false if you want ignore pattern case
 	 * @return a {@link BooleanSpec} to be used to add logical operators
 	 */
-	public BooleanSpec path(boolean matchOptionalTrailingSeparator, boolean caseSensitive, String... patterns) {
-		return asyncPredicate(getBean(PathRoutePredicateFactory.class).applyAsync(c -> c
-				.setPatterns(Arrays.asList(patterns))
-				.setMatchOptionalTrailingSeparator(matchOptionalTrailingSeparator)
-				.setCaseSensitive(caseSensitive)));
+	public BooleanSpec path(boolean matchOptionalTrailingSeparator, boolean caseSensitive,
+			String... patterns) {
+		return asyncPredicate(getBean(PathRoutePredicateFactory.class)
+				.applyAsync(c -> c.setPatterns(Arrays.asList(patterns))
+						.setMatchOptionalTrailingSeparator(matchOptionalTrailingSeparator)
+						.setCaseSensitive(caseSensitive)));
 	}
 
 	/**
