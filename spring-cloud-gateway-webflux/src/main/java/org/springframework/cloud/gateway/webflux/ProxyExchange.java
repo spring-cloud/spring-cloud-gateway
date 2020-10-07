@@ -21,6 +21,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -140,8 +141,6 @@ public class ProxyExchange<T> {
 		this.bindingContext = bindingContext;
 		this.responseType = type;
 		this.rest = rest;
-		this.sensitive = new HashSet<>(DEFAULT_SENSITIVE.size());
-		this.sensitive.addAll(DEFAULT_SENSITIVE);
 		this.httpMethod = exchange.getRequest().getMethod();
 	}
 
@@ -376,7 +375,8 @@ public class ProxyExchange<T> {
 	}
 
 	private Set<String> filterHeaderKeys(HttpHeaders headers) {
-		return headers.keySet().stream().filter(header -> !sensitive.contains(header.toLowerCase()))
+		final Set<String> sensitiveHeaders = Optional.ofNullable(this.sensitive).orElse(DEFAULT_SENSITIVE);
+		return headers.keySet().stream().filter(header -> !sensitiveHeaders.contains(header.toLowerCase()))
 				.collect(Collectors.toSet());
 	}
 
