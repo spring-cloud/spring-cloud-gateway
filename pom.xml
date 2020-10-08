@@ -56,6 +56,7 @@
 		<junit-pioneer.version>0.9.0</junit-pioneer.version>
 		<spring-cloud-circuitbreaker.version>2.0.0-SNAPSHOT</spring-cloud-circuitbreaker.version>
 		<spring-cloud-commons.version>3.0.0-SNAPSHOT</spring-cloud-commons.version>
+		<spring-security-oauth2-autoconfigure.version>2.3.4.RELEASE</spring-security-oauth2-autoconfigure.version>
 		<testcontainers.version>1.14.3</testcontainers.version>
 	</properties>
 
@@ -99,6 +100,11 @@
 				<version>${spring-boot.version}</version>
 			</dependency>
 			<dependency>
+				<groupId>org.springframework.security.oauth.boot</groupId>
+				<artifactId>spring-security-oauth2-autoconfigure</artifactId>
+				<version>${spring-security-oauth2-autoconfigure.version}</version>
+			</dependency>
+			<dependency>
 				<groupId>io.projectreactor.tools</groupId>
 				<artifactId>blockhound-junit-platform</artifactId>
 				<version>${blockhound.version}</version>
@@ -123,6 +129,7 @@
 		<module>spring-cloud-gateway-mvc</module>
 		<module>spring-cloud-gateway-webflux</module>
 		<module>spring-cloud-gateway-server</module>
+		<module>spring-cloud-gateway-server-security</module>
 		<module>spring-cloud-starter-gateway</module>
 		<module>spring-cloud-gateway-sample</module>
 		<module>docs</module>
