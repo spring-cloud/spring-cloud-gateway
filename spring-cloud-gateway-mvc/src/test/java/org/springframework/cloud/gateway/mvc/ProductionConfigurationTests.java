@@ -429,7 +429,7 @@ public class ProductionConfigurationTests {
 			@GetMapping("/proxy/headers")
 			@SuppressWarnings("Duplicates")
 			public ResponseEntity<Map<String, List<String>>> headers(ProxyExchange<Map<String, List<String>>> proxy) {
-				proxy.sensitive("hello", "hello");
+				proxy.sensitive("foo", "hello");
 				proxy.header("bar", "hello");
 				proxy.header("abc", "123");
 				proxy.header("hello", "world");
