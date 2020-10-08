@@ -21,7 +21,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -205,6 +204,8 @@ public class ProxyExchange<T> {
 		if (this.sensitive == null) {
 			this.sensitive = new HashSet<>();
 		}
+
+		this.sensitive.clear();
 		for (String name : names) {
 			this.sensitive.add(name.toLowerCase());
 		}
@@ -375,7 +376,7 @@ public class ProxyExchange<T> {
 	}
 
 	private Set<String> filterHeaderKeys(HttpHeaders headers) {
-		final Set<String> sensitiveHeaders = Optional.ofNullable(this.sensitive).orElse(DEFAULT_SENSITIVE);
+		final Set<String> sensitiveHeaders = this.sensitive != null ? this.sensitive : DEFAULT_SENSITIVE;
 		return headers.keySet().stream().filter(header -> !sensitiveHeaders.contains(header.toLowerCase()))
 				.collect(Collectors.toSet());
 	}
