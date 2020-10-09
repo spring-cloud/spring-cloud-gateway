@@ -14,24 +14,21 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.gateway.security;
+package org.springframework.cloud.gateway.filter.factory;
 
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
-import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.security.oauth2.client.OAuth2AuthorizeRequest;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
-import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 
 /**
  * @author Joe Grandja
  */
-@Component
 public class TokenRelayGatewayFilterFactory extends AbstractGatewayFilterFactory<Object> {
 
 	private final ReactiveOAuth2AuthorizedClientManager clientManager;

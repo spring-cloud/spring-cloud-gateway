@@ -67,6 +67,7 @@ import org.springframework.cloud.gateway.filter.factory.SetResponseHeaderGateway
 import org.springframework.cloud.gateway.filter.factory.SetStatusGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SpringCloudCircuitBreakerFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.StripPrefixGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.TokenRelayGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyRequestBodyGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyResponseBodyGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.rewrite.RewriteFunction;
@@ -698,6 +699,21 @@ public class GatewayFilterSpec extends UriSpec {
 	 */
 	public GatewayFilterSpec setRequestHeaderSize(DataSize size) {
 		return filter(getBean(RequestHeaderSizeGatewayFilterFactory.class).apply(c -> c.setMaxSize(size)));
+	}
+
+	/**
+	 * A filter that enables token relay.
+	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
+	 */
+	public GatewayFilterSpec tokenRelay() {
+		try {
+			return filter(getBean(TokenRelayGatewayFilterFactory.class).apply(o -> {
+			}));
+		}
+		catch (NoSuchBeanDefinitionException e) {
+			throw new IllegalStateException("No TokenRelayGatewayFilterFactory bean was found. Did you include the "
+					+ "org.springframework.boot:spring-boot-starter-oauth2-client dependency?");
+		}
 	}
 
 	/**

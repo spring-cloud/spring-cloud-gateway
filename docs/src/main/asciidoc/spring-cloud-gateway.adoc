@@ -1644,14 +1644,12 @@ it is proxying. To add this functionlity to gateway you need to add the
 .App.java
 [source,java]
 ----
-@Autowired
-private TokenRelayGatewayFilterFactory filterFactory;
 
 @Bean
 public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
     return builder.routes()
             .route("resource", r -> r.path("/resource")
-                    .filters(f -> f.filter(filterFactory.apply()))
+                    .filters(f -> f.tokenRelay())
                     .uri("http://localhost:9000"))
             .build();
 }
@@ -1680,7 +1678,7 @@ pass the authentication token downstream to the services (in this case
 
 To enable this for Spring Cloud Gateway add the following dependencies
 
-- `org.springframework.cloud:spring-cloud-gateway-server-security`
+- `org.springframework.boot:spring-boot-starter-oauth2-client`
 
 How does it work?  The
 {githubmaster}/src/main/java/org/springframework/cloud/gateway/security/TokenRelayGatewayFilterFactory.java[filter]
@@ -1688,6 +1686,8 @@ extracts an access token from the currently authenticated user,
 and puts it in a request header for the downstream requests.
 
 For a full working sample see https://github.com/spring-cloud-samples/sample-gateway-oauth2login[this project].
+
+NOTE: A `TokenRelayGatewayFilterFactory` bean will only be created if the proper `spring.security.oauth2.client.*` properties are set which will trigger creation of a `ReactiveClientRegistrationRepository` bean.
 
 NOTE: The default implementation of `ReactiveOAuth2AuthorizedClientService` used by `TokenRelayGatewayFilterFactory`
 uses an in-memory data store.  You will need to provide your own implementation `ReactiveOAuth2AuthorizedClientService`

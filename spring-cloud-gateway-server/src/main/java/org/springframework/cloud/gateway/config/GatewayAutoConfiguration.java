@@ -45,6 +45,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.NoneNestedConditions;
+import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.autoconfigure.web.embedded.NettyWebServerFactoryCustomizer;
 import org.springframework.boot.autoconfigure.web.reactive.HttpHandlerAutoConfiguration;
@@ -96,6 +97,7 @@ import org.springframework.cloud.gateway.filter.factory.SetRequestHostHeaderGate
 import org.springframework.cloud.gateway.filter.factory.SetResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SetStatusGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.StripPrefixGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.TokenRelayGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.rewrite.GzipMessageBodyResolver;
 import org.springframework.cloud.gateway.filter.factory.rewrite.MessageBodyDecoder;
 import org.springframework.cloud.gateway.filter.factory.rewrite.MessageBodyEncoder;
@@ -148,6 +150,14 @@ import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.env.Environment;
 import org.springframework.http.codec.ServerCodecConfigurer;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
+import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientManager;
+import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientProvider;
+import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientProviderBuilder;
+import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository;
+import org.springframework.security.oauth2.client.web.DefaultReactiveOAuth2AuthorizedClientManager;
+import org.springframework.security.oauth2.client.web.server.ServerOAuth2AuthorizedClientRepository;
+import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.Validator;
@@ -827,6 +837,33 @@ public class GatewayAutoConfiguration {
 		@ConditionalOnProperty(name = "spring.cloud.gateway.actuator.verbose.enabled", matchIfMissing = true)
 		static class VerboseDisabled {
 
+		}
+
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	@ConditionalOnProperty(name = "spring.cloud.gateway.enabled", matchIfMissing = true)
+	@ConditionalOnClass({ OAuth2AuthorizedClient.class, SecurityWebFilterChain.class, SecurityProperties.class })
+	@ConditionalOnEnabledFilter(TokenRelayGatewayFilterFactory.class)
+	@ConditionalOnBean(ReactiveClientRegistrationRepository.class)
+	protected static class TokenRelayConfiguration {
+
+		@Bean
+		public TokenRelayGatewayFilterFactory tokenRelayGatewayFilterFactory(
+				ReactiveOAuth2AuthorizedClientManager clientManager) {
+			return new TokenRelayGatewayFilterFactory(clientManager);
+		}
+
+		@Bean
+		public ReactiveOAuth2AuthorizedClientManager gatewayReactiveOAuth2AuthorizedClientManager(
+				ReactiveClientRegistrationRepository clientRegistrationRepository,
+				ServerOAuth2AuthorizedClientRepository authorizedClientRepository) {
+			ReactiveOAuth2AuthorizedClientProvider authorizedClientProvider = ReactiveOAuth2AuthorizedClientProviderBuilder
+					.builder().authorizationCode().refreshToken().build();
+			DefaultReactiveOAuth2AuthorizedClientManager authorizedClientManager = new DefaultReactiveOAuth2AuthorizedClientManager(
+					clientRegistrationRepository, authorizedClientRepository);
+			authorizedClientManager.setAuthorizedClientProvider(authorizedClientProvider);
+			return authorizedClientManager;
 		}
 
 	}

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.gateway.security;
+package org.springframework.cloud.gateway.filter.factory;
 
 import java.time.Duration;
 import java.util.Collections;

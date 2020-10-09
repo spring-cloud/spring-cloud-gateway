@@ -27,18 +27,26 @@ import org.springframework.boot.actuate.autoconfigure.metrics.MetricsAutoConfigu
 import org.springframework.boot.actuate.autoconfigure.metrics.export.simple.SimpleMetricsExportAutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.security.oauth2.client.reactive.ReactiveOAuth2ClientAutoConfiguration;
+import org.springframework.boot.autoconfigure.security.reactive.ReactiveSecurityAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.reactive.WebFluxAutoConfiguration;
 import org.springframework.boot.test.context.runner.ReactiveWebApplicationContextRunner;
 import org.springframework.cloud.gateway.actuate.GatewayControllerEndpoint;
 import org.springframework.cloud.gateway.actuate.GatewayLegacyControllerEndpoint;
+import org.springframework.cloud.gateway.filter.factory.TokenRelayGatewayFilterFactory;
+import org.springframework.cloud.gateway.route.RouteLocator;
+import org.springframework.cloud.gateway.route.builder.GatewayFilterSpec;
+import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientManager;
 import org.springframework.web.filter.reactive.HiddenHttpMethodFilter;
 import org.springframework.web.reactive.socket.client.ReactorNettyWebSocketClient;
 import org.springframework.web.reactive.socket.server.upgrade.ReactorNettyRequestUpgradeStrategy;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class GatewayAutoConfigurationTests {
 
@@ -142,9 +150,59 @@ public class GatewayAutoConfigurationTests {
 		}
 	}
 
+	@Test
+	public void metricsBeansAreCreated() {
+		new ReactiveWebApplicationContextRunner()
+				.withConfiguration(AutoConfigurations.of(ReactiveSecurityAutoConfiguration.class,
+						ReactiveOAuth2ClientAutoConfiguration.class,
+						GatewayAutoConfiguration.TokenRelayConfiguration.class))
+				.withPropertyValues(
+						"spring.security.oauth2.client.provider[testprovider].authorization-uri=http://localhost",
+						"spring.security.oauth2.client.provider[testprovider].token-uri=http://localhost/token",
+						"spring.security.oauth2.client.registration[test].provider=testprovider",
+						"spring.security.oauth2.client.registration[test].authorization-grant-type=authorization_code",
+						"spring.security.oauth2.client.registration[test].redirect-uri=http://localhost/redirect",
+						"spring.security.oauth2.client.registration[test].client-id=login-client")
+				.run(context -> {
+					assertThat(context).hasSingleBean(ReactiveOAuth2AuthorizedClientManager.class);
+					assertThat(context).hasSingleBean(TokenRelayGatewayFilterFactory.class);
+				});
+	}
+
+	@Test
+	public void noTokenRelayFilter() {
+		assertThatThrownBy(() -> {
+			try (ConfigurableApplicationContext ctx = SpringApplication.run(RouteLocatorBuilderConfig.class,
+					"--spring.jmx.enabled=false", "--spring.cloud.gateway.filter.token-relay.enabled=false",
+					"--spring.security.oauth2.client.provider[testprovider].authorization-uri=http://localhost",
+					"--spring.security.oauth2.client.provider[testprovider].token-uri=http://localhost/token",
+					"--spring.security.oauth2.client.registration[test].provider=testprovider",
+					"--spring.security.oauth2.client.registration[test].authorization-grant-type=authorization_code",
+					"--spring.security.oauth2.client.registration[test].redirect-uri=http://localhost/redirect",
+					"--spring.security.oauth2.client.registration[test].client-id=login-client", "--server.port=0",
+					"--spring.cloud.gateway.actuator.verbose.enabled=false")) {
+				assertThat(ctx.getBeanNamesForType(GatewayLegacyControllerEndpoint.class)).hasSize(1);
+			}
+		}).hasRootCauseInstanceOf(IllegalStateException.class)
+				.hasMessageContaining("No TokenRelayGatewayFilterFactory bean was found. Did you include");
+	}
+
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	protected static class Config {
+
+	}
+
+	@EnableAutoConfiguration
+	@SpringBootConfiguration
+	protected static class RouteLocatorBuilderConfig {
+
+		@Bean
+		public RouteLocator myRouteLocator(RouteLocatorBuilder builder) {
+			return builder.routes()
+					.route("test", r -> r.alwaysTrue().filters(GatewayFilterSpec::tokenRelay).uri("http://localhost"))
+					.build();
+		}
 
 	}
 
