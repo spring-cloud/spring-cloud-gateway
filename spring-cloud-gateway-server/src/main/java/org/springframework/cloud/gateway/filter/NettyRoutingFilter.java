@@ -232,7 +232,6 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 	 * timeout configuration.
 	 * @param route the current route.
 	 * @param exchange the current ServerWebExchange.
-	 * @param chain the current GatewayFilterChain.
 	 * @return
 	 */
 	protected HttpClient getHttpClient(Route route, ServerWebExchange exchange) {
