@@ -27,9 +27,7 @@ import org.springframework.web.reactive.handler.SimpleUrlHandlerMapping;
 /**
  * This is useful for PreFlight CORS requests. We can add a "global" configuration here so
  * we don't have to modify existing predicates to allow the "options" HTTP method.
- *
  */
-
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnClass(SimpleUrlHandlerMapping.class)
 @ConditionalOnProperty(name = "spring.cloud.gateway.globalcors.add-to-simple-url-handler-mapping",
