@@ -39,8 +39,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.DispatcherHandler;
 
 @Configuration(proxyBeanMethods = false)
-@ConditionalOnProperty(name = GatewayProperties.PREFIX + ".enabled",
-		matchIfMissing = true)
+@ConditionalOnProperty(name = GatewayProperties.PREFIX + ".enabled", matchIfMissing = true)
 @EnableConfigurationProperties(GatewayMetricsProperties.class)
 @AutoConfigureBefore(HttpHandlerAutoConfiguration.class)
 @AutoConfigureAfter({ MetricsAutoConfiguration.class, MeterRegistryAutoConfiguration.class })
@@ -69,8 +68,7 @@ public class GatewayMetricsAutoConfiguration {
 	// encompass more than just the filter
 	public GatewayMetricsFilter gatewayMetricFilter(MeterRegistry meterRegistry,
 			List<GatewayTagsProvider> tagsProviders, GatewayProperties properties) {
-		return new GatewayMetricsFilter(meterRegistry, tagsProviders,
-				properties.getMetrics().getPrefix());
+		return new GatewayMetricsFilter(meterRegistry, tagsProviders, properties.getMetrics().getPrefix());
 	}
 
 }
