@@ -27,6 +27,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Mono;
 
+import org.springframework.cloud.gateway.config.GatewayProperties;
 import org.springframework.cloud.gateway.support.tagsprovider.GatewayHttpTagsProvider;
 import org.springframework.cloud.gateway.support.tagsprovider.GatewayRouteTagsProvider;
 import org.springframework.cloud.gateway.support.tagsprovider.GatewayTagsProvider;
@@ -46,17 +47,35 @@ public class GatewayMetricsFilter implements GlobalFilter, Ordered {
 
 	private GatewayTagsProvider compositeTagsProvider;
 
+	private final String metricsPrefix;
+
+	@Deprecated
 	public GatewayMetricsFilter(MeterRegistry meterRegistry,
 			List<GatewayTagsProvider> tagsProviders) {
+		this(meterRegistry, tagsProviders, GatewayProperties.Metrics.DEFAULT_PREFIX);
+	}
+
+	public GatewayMetricsFilter(MeterRegistry meterRegistry,
+			List<GatewayTagsProvider> tagsProviders, String metricsPrefix) {
 		this.meterRegistry = meterRegistry;
 		this.compositeTagsProvider = tagsProviders.stream()
 				.reduce(exchange -> Tags.empty(), GatewayTagsProvider::and);
+		if (metricsPrefix.endsWith(".")) {
+			this.metricsPrefix = metricsPrefix.substring(0, metricsPrefix.length() - 1);
+		}
+		else {
+			this.metricsPrefix = metricsPrefix;
+		}
 	}
 
 	@Deprecated
 	public GatewayMetricsFilter(MeterRegistry meterRegistry) {
 		this(meterRegistry, Arrays.asList(new GatewayHttpTagsProvider(),
 				new GatewayRouteTagsProvider()));
+	}
+
+	public String getMetricsPrefix() {
+		return metricsPrefix;
 	}
 
 	@Override
@@ -93,9 +112,9 @@ public class GatewayMetricsFilter implements GlobalFilter, Ordered {
 		Tags tags = compositeTagsProvider.apply(exchange);
 
 		if (log.isTraceEnabled()) {
-			log.trace("gateway.requests tags: " + tags);
+			log.trace(metricsPrefix + ".requests tags: " + tags);
 		}
-		sample.stop(meterRegistry.timer("gateway.requests", tags));
+		sample.stop(meterRegistry.timer(metricsPrefix + ".requests", tags));
 	}
 
 }

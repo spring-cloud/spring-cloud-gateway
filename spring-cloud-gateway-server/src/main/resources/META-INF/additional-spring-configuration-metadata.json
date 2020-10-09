@@ -259,12 +259,6 @@
       "defaultValue": "true"
     },
     {
-      "name": "spring.cloud.gateway.global-filter.metrics.enabled",
-      "type": "java.lang.Boolean",
-      "description": "Enables the metrics global filter.",
-      "defaultValue": "true"
-    },
-    {
       "name": "spring.cloud.gateway.predicate.after.enabled",
       "type": "java.lang.Boolean",
       "description": "Enables the after predicate.",
@@ -352,12 +346,6 @@
       "name": "spring.cloud.gateway.forwarded.enabled",
       "type": "java.lang.Boolean",
       "description": "Enables the ForwardedHeadersFilter.",
-      "defaultValue": "true"
-    },
-    {
-      "name": "spring.cloud.gateway.metrics.enabled",
-      "type": "java.lang.Boolean",
-      "description": "Enables the collection of metrics data.",
       "defaultValue": "true"
     },
     {

@@ -54,6 +54,7 @@ public class GatewayMetricsAutoConfigurationTests {
 		@Test
 		public void gatewayMetricsBeansExists() {
 			assertThat(filter).isNotNull();
+			assertThat(filter.getMetricsPrefix()).isEqualTo("gateway");
 			assertThat(tagsProviders).isNotEmpty();
 		}
 
@@ -75,7 +76,8 @@ public class GatewayMetricsAutoConfigurationTests {
 	}
 
 	@RunWith(SpringRunner.class)
-	@SpringBootTest(classes = CustomTagsProviderConfig.class)
+	@SpringBootTest(classes = CustomTagsProviderConfig.class,
+			properties = "spring.cloud.gateway.metrics.prefix=myprefix.")
 	public static class AddCustomTagsProvider {
 
 		@Autowired(required = false)
@@ -87,6 +89,7 @@ public class GatewayMetricsAutoConfigurationTests {
 		@Test
 		public void gatewayMetricsBeansExists() {
 			assertThat(filter).isNotNull();
+			assertThat(filter.getMetricsPrefix()).isEqualTo("myprefix");
 			assertThat(tagsProviders).extracting("class")
 					.contains(CustomTagsProviderConfig.EmptyTagsProvider.class);
 		}
