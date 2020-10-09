@@ -37,6 +37,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
+import static org.springframework.cloud.gateway.config.GatewayProperties.Metrics.DEFAULT_PREFIX;
 
 /**
  * @author Ingyu Hwang
@@ -46,7 +47,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @DirtiesContext
 public class GatewayMetricsFilterCustomTagsTests extends BaseWebClientTests {
 
-	private static final String REQUEST_METRICS_NAME = "gateway.requests";
+	private static final String REQUEST_METRICS_NAME = DEFAULT_PREFIX + ".requests";
 
 	@Autowired
 	private MeterRegistry meterRegistry;

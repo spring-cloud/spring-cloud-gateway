@@ -43,13 +43,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
+import static org.springframework.cloud.gateway.config.GatewayProperties.Metrics.DEFAULT_PREFIX;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
 public class GatewayMetricsFilterTests extends BaseWebClientTests {
 
-	private static final String REQUEST_METRICS_NAME = "gateway.requests";
+	private static final String REQUEST_METRICS_NAME = DEFAULT_PREFIX + ".requests";
 
 	@Autowired
 	private MeterRegistry meterRegistry;
