@@ -35,6 +35,7 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 
 /**
  * @author Dave Syer
+ *
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty(name = "spring.cloud.gateway.enabled", matchIfMissing = true)
