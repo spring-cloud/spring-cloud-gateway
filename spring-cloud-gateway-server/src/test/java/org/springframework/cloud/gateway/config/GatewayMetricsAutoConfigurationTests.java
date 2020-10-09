@@ -54,7 +54,7 @@ public class GatewayMetricsAutoConfigurationTests {
 		@Test
 		public void gatewayMetricsBeansExists() {
 			assertThat(filter).isNotNull();
-			assertThat(filter.getMetricsPrefix()).isEqualTo("gateway");
+			assertThat(filter.getMetricsPrefix()).isEqualTo("spring.cloud.gateway");
 			assertThat(tagsProviders).isNotEmpty();
 		}
 

@@ -127,7 +127,7 @@ public class GatewayProperties {
 		/**
 		 * Default metrics prefix.
 		 */
-		public static final String DEFAULT_PREFIX = "gateway";
+		public static final String DEFAULT_PREFIX = "spring.cloud.gateway";
 
 		/**
 		 * Enables the collection of metrics data.

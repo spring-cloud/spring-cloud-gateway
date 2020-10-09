@@ -26,7 +26,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Mono;
 
-import org.springframework.cloud.gateway.config.GatewayProperties;
 import org.springframework.cloud.gateway.support.tagsprovider.GatewayTagsProvider;
 import org.springframework.core.Ordered;
 import org.springframework.http.server.reactive.ServerHttpResponse;
@@ -46,13 +45,8 @@ public class GatewayMetricsFilter implements GlobalFilter, Ordered {
 
 	private final String metricsPrefix;
 
-	@Deprecated
-	public GatewayMetricsFilter(MeterRegistry meterRegistry, List<GatewayTagsProvider> tagsProviders) {
-		this(meterRegistry, tagsProviders, GatewayProperties.Metrics.DEFAULT_PREFIX);
-	}
-
-	public GatewayMetricsFilter(MeterRegistry meterRegistry,
-			List<GatewayTagsProvider> tagsProviders, String metricsPrefix) {
+	public GatewayMetricsFilter(MeterRegistry meterRegistry, List<GatewayTagsProvider> tagsProviders,
+			String metricsPrefix) {
 		this.meterRegistry = meterRegistry;
 		this.compositeTagsProvider = tagsProviders.stream().reduce(exchange -> Tags.empty(), GatewayTagsProvider::and);
 		if (metricsPrefix.endsWith(".")) {
