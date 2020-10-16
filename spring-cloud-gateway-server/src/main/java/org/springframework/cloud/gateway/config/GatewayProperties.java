@@ -68,8 +68,6 @@ public class GatewayProperties {
 	 */
 	private boolean failOnRouteDefinitionError = true;
 
-	private Metrics metrics = new Metrics();
-
 	public List<RouteDefinition> getRoutes() {
 		return routes;
 	}
@@ -105,60 +103,11 @@ public class GatewayProperties {
 		this.failOnRouteDefinitionError = failOnRouteDefinitionError;
 	}
 
-	public Metrics getMetrics() {
-		return metrics;
-	}
-
-	public void setMetrics(Metrics metrics) {
-		this.metrics = metrics;
-	}
-
 	@Override
 	public String toString() {
 		return new ToStringCreator(this).append("routes", routes).append("defaultFilters", defaultFilters)
 				.append("streamingMediaTypes", streamingMediaTypes)
-				.append("failOnRouteDefinitionError", failOnRouteDefinitionError).append("metrics", metrics).toString();
-
-	}
-
-	public static class Metrics {
-
-		/**
-		 * Default metrics prefix.
-		 */
-		public static final String DEFAULT_PREFIX = "spring.cloud.gateway";
-
-		/**
-		 * Enables the collection of metrics data.
-		 */
-		private boolean enabled;
-
-		/**
-		 * The prefix of all metrics emitted by gateway.
-		 */
-		private String prefix = DEFAULT_PREFIX;
-
-		public boolean isEnabled() {
-			return enabled;
-		}
-
-		public void setEnabled(boolean enabled) {
-			this.enabled = enabled;
-		}
-
-		public String getPrefix() {
-			return prefix;
-		}
-
-		public void setPrefix(String prefix) {
-			this.prefix = prefix;
-		}
-
-		@Override
-		public String toString() {
-			return new ToStringCreator(this).append("enabled", enabled).append("prefix", prefix).toString();
-
-		}
+				.append("failOnRouteDefinitionError", failOnRouteDefinitionError).toString();
 
 	}
 

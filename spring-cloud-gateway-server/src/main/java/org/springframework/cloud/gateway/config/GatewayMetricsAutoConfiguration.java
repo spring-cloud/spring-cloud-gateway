@@ -57,8 +57,8 @@ public class GatewayMetricsAutoConfiguration {
 	}
 
 	@Bean
-	public PropertiesTagsProvider propertiesTagsProvider(GatewayMetricsProperties gatewayMetricsProperties) {
-		return new PropertiesTagsProvider(gatewayMetricsProperties.getTags());
+	public PropertiesTagsProvider propertiesTagsProvider(GatewayMetricsProperties properties) {
+		return new PropertiesTagsProvider(properties.getTags());
 	}
 
 	@Bean
@@ -67,8 +67,8 @@ public class GatewayMetricsAutoConfiguration {
 	// don't use @ConditionalOnEnabledGlobalFilter as the above property may
 	// encompass more than just the filter
 	public GatewayMetricsFilter gatewayMetricFilter(MeterRegistry meterRegistry,
-			List<GatewayTagsProvider> tagsProviders, GatewayProperties properties) {
-		return new GatewayMetricsFilter(meterRegistry, tagsProviders, properties.getMetrics().getPrefix());
+			List<GatewayTagsProvider> tagsProviders, GatewayMetricsProperties properties) {
+		return new GatewayMetricsFilter(meterRegistry, tagsProviders, properties.getPrefix());
 	}
 
 }

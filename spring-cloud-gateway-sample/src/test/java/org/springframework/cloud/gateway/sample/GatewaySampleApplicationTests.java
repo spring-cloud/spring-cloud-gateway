@@ -28,9 +28,11 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.cloud.gateway.config.GatewayMetricsProperties;
 import org.springframework.cloud.gateway.test.HttpBinCompatibleController;
 import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
 import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
@@ -54,6 +56,9 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 public class GatewaySampleApplicationTests {
 
 	protected static int managementPort;
+
+	@Autowired
+	GatewayMetricsProperties metricsProperties;
 
 	@LocalServerPort
 	protected int port = 0;
@@ -162,7 +167,8 @@ public class GatewaySampleApplicationTests {
 	@Test
 	public void actuatorMetrics() {
 		contextLoads();
-		webClient.get().uri("http://localhost:" + managementPort + "/actuator/metrics/gateway.requests").exchange()
+		String metricName = metricsProperties.getPrefix() + ".requests";
+		webClient.get().uri("http://localhost:" + managementPort + "/actuator/metrics/" + metricName).exchange()
 				.expectStatus().isOk().expectBody().consumeWith(i -> {
 					String body = new String(i.getResponseBodyContent());
 					ObjectMapper mapper = new ObjectMapper();
@@ -170,7 +176,7 @@ public class GatewaySampleApplicationTests {
 						JsonNode actualObj = mapper.readTree(body);
 						JsonNode findValue = actualObj.findValue("name");
 						assertThat(findValue.asText()).as("Expected to find metric with name gateway.requests")
-								.isEqualTo("gateway.requests");
+								.isEqualTo(metricName);
 					}
 					catch (IOException e) {
 						throw new IllegalStateException(e);
