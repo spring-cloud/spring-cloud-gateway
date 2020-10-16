@@ -1539,11 +1539,11 @@ errorMessage` : `Request size is larger than permissible limit. Request size is 
 
 NOTE: The default request size is set to five MB if not provided as a filter argument in the route definition.
 
-=== The `SetRequestHost` `GatewayFilter` Factory
+=== The `SetRequestHostHeader` `GatewayFilter` Factory
 
-There are certain situation when the host header may need to be overridden. In this situation, the `SetRequestHost` `GatewayFilter` factory can replace the existing host header with a specified vaue.
+There are certain situation when the host header may need to be overridden. In this situation, the `SetRequestHostHeader` `GatewayFilter` factory can replace the existing host header with a specified vaue.
 The filter takes a `host` parameter.
-The following listing configures a `SetRequestHost` `GatewayFilter`:
+The following listing configures a `SetRequestHostHeader` `GatewayFilter`:
 
 .application.yml
 ====
@@ -1558,13 +1558,13 @@ spring:
         predicates:
         - Path=/headers
         filters:
-        - name: SetRequestHost
+        - name: SetRequestHostHeader
           args:
             host: example.org
 ----
 ====
 
-The `SetRequestHost` `GatewayFilter` factory replaces the value of the host header with `example.org`.
+The `SetRequestHostHeader` `GatewayFilter` factory replaces the value of the host header with `example.org`.
 
 === Modify a Request Body `GatewayFilter` Factory
 
