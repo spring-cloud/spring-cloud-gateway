@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -26,7 +27,11 @@ import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.support.HasRouteId;
 import org.springframework.cloud.gateway.support.HttpStatusHolder;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
+import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.server.reactive.ServerHttpResponse;
+import reactor.core.publisher.Mono;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.setResponseStatus;
 
@@ -120,7 +125,18 @@ public class RequestRateLimiterGatewayFilterFactory
 				}
 
 				setResponseStatus(exchange, config.getStatusCode());
-				return exchange.getResponse().setComplete();
+
+				if (config.getContentType() != null) {
+					exchange.getResponse().getHeaders().setContentType(config.getContentType());
+				}
+
+				if (config.getResponseBody() != null && config.getResponseBody().trim().length() > 0){
+					byte[] bytes = config.getResponseBody().getBytes(StandardCharsets.UTF_8);
+					DataBuffer buffer = exchange.getResponse().bufferFactory().wrap(bytes);
+					return exchange.getResponse().writeWith(Mono.just(buffer));
+				}else {
+					return exchange.getResponse().setComplete();
+				}
 			});
 		});
 	}
@@ -142,6 +158,10 @@ public class RequestRateLimiterGatewayFilterFactory
 		private String emptyKeyStatus;
 
 		private String routeId;
+
+		private String responseBody;
+
+		private MediaType contentType;
 
 		public KeyResolver getKeyResolver() {
 			return keyResolver;
@@ -196,6 +216,24 @@ public class RequestRateLimiterGatewayFilterFactory
 		@Override
 		public String getRouteId() {
 			return this.routeId;
+		}
+
+		public String getResponseBody() {
+			return responseBody;
+		}
+
+		public RequestRateLimiterGatewayFilterFactory.Config setResponseBody(String responseBody) {
+			this.responseBody = responseBody;
+			return this;
+		}
+
+		public MediaType getContentType() {
+			return contentType;
+		}
+
+		public RequestRateLimiterGatewayFilterFactory.Config setContentType(MediaType contentType) {
+			this.contentType = contentType;
+			return this;
 		}
 
 	}
