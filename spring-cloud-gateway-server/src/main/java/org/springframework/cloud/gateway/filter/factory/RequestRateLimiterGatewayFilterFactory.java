@@ -32,8 +32,6 @@ import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.server.reactive.ServerHttpResponse;
-import reactor.core.publisher.Mono;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.setResponseStatus;
 
@@ -132,11 +130,12 @@ public class RequestRateLimiterGatewayFilterFactory
 					exchange.getResponse().getHeaders().setContentType(config.getContentType());
 				}
 
-				if (config.getResponseBody() != null && config.getResponseBody().trim().length() > 0){
+				if (config.getResponseBody() != null && config.getResponseBody().trim().length() > 0) {
 					byte[] bytes = config.getResponseBody().getBytes(StandardCharsets.UTF_8);
 					DataBuffer buffer = exchange.getResponse().bufferFactory().wrap(bytes);
 					return exchange.getResponse().writeWith(Mono.just(buffer));
-				}else {
+				}
+				else {
 					return exchange.getResponse().setComplete();
 				}
 			});
