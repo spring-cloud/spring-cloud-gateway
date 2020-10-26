@@ -42,7 +42,7 @@ import static org.springframework.cloud.gateway.filter.factory.SecureHeadersGate
 import static org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory.X_FRAME_OPTIONS_HEADER;
 import static org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory.X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER;
 import static org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory.X_XSS_PROTECTION_HEADER;
-
+import static org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory.Config;
 /**
  * @author Thirunavukkarasu Ravichandran
  */
@@ -70,8 +70,8 @@ public class SecureHeadersGatewayFilterFactoryUnitTests {
 	public void addAllHeadersIfNothingIsDisabled() {
 		SecureHeadersGatewayFilterFactory filterFactory = new SecureHeadersGatewayFilterFactory(
 				new SecureHeadersProperties());
-		NameConfig config = new NameConfig();
-		config.setName("SecureHeadersGatewayFilter");
+		Config config = new Config();
+		config.setDownloadOptions("no option");
 		filter = filterFactory.apply(config);
 
 		filter.filter(exchange, filterChain);
@@ -80,6 +80,7 @@ public class SecureHeadersGatewayFilterFactoryUnitTests {
 		assertThat(response.getHeaders()).containsKeys(X_XSS_PROTECTION_HEADER, STRICT_TRANSPORT_SECURITY_HEADER,
 				X_FRAME_OPTIONS_HEADER, X_CONTENT_TYPE_OPTIONS_HEADER, REFERRER_POLICY_HEADER,
 				CONTENT_SECURITY_POLICY_HEADER, X_DOWNLOAD_OPTIONS_HEADER, X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER);
+		assertThat(response.getHeaders().get(X_DOWNLOAD_OPTIONS_HEADER)).isEqualTo("no option");
 	}
 
 	@Test
@@ -90,8 +91,7 @@ public class SecureHeadersGatewayFilterFactoryUnitTests {
 				"x-permitted-cross-domain-policies"));
 
 		SecureHeadersGatewayFilterFactory filterFactory = new SecureHeadersGatewayFilterFactory(properties);
-		NameConfig config = new NameConfig();
-		config.setName("SecureHeadersGatewayFilter");
+		Config config = new Config();
 		filter = filterFactory.apply(config);
 
 		filter.filter(exchange, filterChain);
@@ -105,7 +105,7 @@ public class SecureHeadersGatewayFilterFactoryUnitTests {
 
 	@Test
 	public void toStringFormat() {
-		GatewayFilter filter = new SecureHeadersGatewayFilterFactory(new SecureHeadersProperties()).apply("");
+		GatewayFilter filter = new SecureHeadersGatewayFilterFactory(new SecureHeadersProperties()).apply(new Config());
 		Assertions.assertThat(filter.toString()).contains("SecureHeaders");
 	}
 
