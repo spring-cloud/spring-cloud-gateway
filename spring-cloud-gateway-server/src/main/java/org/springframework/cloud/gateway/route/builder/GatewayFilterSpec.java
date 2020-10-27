@@ -29,8 +29,6 @@ import java.util.stream.Stream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import reactor.retry.Repeat;
-import reactor.retry.Retry;
 
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
@@ -77,6 +75,9 @@ import org.springframework.core.Ordered;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.unit.DataSize;
 import org.springframework.web.server.ServerWebExchange;
+
+import reactor.retry.Repeat;
+import reactor.retry.Retry;
 
 /**
  * Applies specific filters to routes.
@@ -521,12 +522,11 @@ public class GatewayFilterSpec extends UriSpec {
 	 * A filter that adds a number of headers to the response at the reccomendation from
 	 * <a href="https://blog.appcanary.com/2017/http-security-headers.html">this blog
 	 * post</a>.
+	 * @param config self secure header config
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
-	@SuppressWarnings("unchecked")
-	public GatewayFilterSpec secureHeaders() {
-		return filter(getBean(SecureHeadersGatewayFilterFactory.class).apply(c -> {
-		}));
+	public GatewayFilterSpec secureHeaders(SecureHeadersGatewayFilterFactory.Config config) {
+		return filter(getBean(SecureHeadersGatewayFilterFactory.class).apply(config));
 	}
 
 	/**

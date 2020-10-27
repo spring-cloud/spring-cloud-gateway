@@ -43,6 +43,7 @@ import static org.springframework.cloud.gateway.filter.factory.SecureHeadersGate
 import static org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory.X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER;
 import static org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory.X_XSS_PROTECTION_HEADER;
 import static org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory.Config;
+
 /**
  * @author Thirunavukkarasu Ravichandran
  */

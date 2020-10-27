@@ -137,6 +137,7 @@ public class SecureHeadersGatewayFilterFactory extends AbstractGatewayFilterFact
 	}
 
 	public static class Config {
+
 		private String xssProtectionHeader = SecureHeadersProperties.X_XSS_PROTECTION_HEADER_DEFAULT;
 
 		private String strictTransportSecurity = SecureHeadersProperties.STRICT_TRANSPORT_SECURITY_HEADER_DEFAULT;
@@ -216,6 +217,7 @@ public class SecureHeadersGatewayFilterFactory extends AbstractGatewayFilterFact
 		void setPermittedCrossDomainPolicies(String permittedCrossDomainPolicies) {
 			this.permittedCrossDomainPolicies = permittedCrossDomainPolicies;
 		}
+
 	}
 
 }
