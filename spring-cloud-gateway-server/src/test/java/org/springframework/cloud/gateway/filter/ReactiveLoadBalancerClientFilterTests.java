@@ -35,6 +35,7 @@ import org.springframework.cloud.gateway.support.NotFoundException;
 import org.springframework.cloud.loadbalancer.core.ReactorServiceInstanceLoadBalancer;
 import org.springframework.cloud.loadbalancer.core.RoundRobinLoadBalancer;
 import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
+import org.springframework.cloud.loadbalancer.support.ServiceInstanceListSuppliers;
 import org.springframework.cloud.loadbalancer.support.ServiceInstanceSuppliers;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -260,6 +261,31 @@ public class ReactiveLoadBalancerClientFilterTests {
 		catch (NotFoundException exception) {
 			assertThat(exception.getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
 		}
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void shouldOverrideSchemeUsingIsSecure() {
+		URI url = UriComponentsBuilder.fromUriString("lb://myservice").build().toUri();
+		ServerWebExchange exchange = MockServerWebExchange
+				.from(MockServerHttpRequest.get("https://localhost:9999/mypath").build());
+		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, url);
+		ServiceInstance serviceInstance = new DefaultServiceInstance("myservice1",
+				"myservice", "localhost", 8080, false);
+		when(clientFactory.getInstance("myservice",
+				ReactorServiceInstanceLoadBalancer.class)).thenReturn(
+				new RoundRobinLoadBalancer(ServiceInstanceListSuppliers
+						.toProvider("myservice", serviceInstance), "myservice", -1));
+		when(chain.filter(exchange)).thenReturn(Mono.empty());
+
+		filter.filter(exchange, chain).block();
+
+		assertThat((LinkedHashSet<URI>) exchange
+				.getAttribute(GATEWAY_ORIGINAL_REQUEST_URL_ATTR)).contains(url);
+		assertThat((URI) exchange.getAttribute(GATEWAY_REQUEST_URL_ATTR))
+				.isEqualTo(URI.create("http://localhost:8080/mypath"));
+		verify(chain).filter(exchange);
+		verifyNoMoreInteractions(chain);
 	}
 
 	private ServerWebExchange testFilter(MockServerHttpRequest request, URI uri) {
