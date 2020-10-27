@@ -93,16 +93,18 @@ public class ReactiveLoadBalancerClientFilter implements GlobalFilter, Ordered {
 				throw NotFoundException.create(properties.isUse404(), "Unable to find instance for " + url.getHost());
 			}
 
+			ServiceInstance retrievedInstance = response.getServer();
+
 			URI uri = exchange.getRequest().getURI();
 
 			// if the `lb:<scheme>` mechanism was used, use `<scheme>` as the default,
 			// if the loadbalancer doesn't provide one.
-			String overrideScheme = null;
+			String overrideScheme = retrievedInstance.isSecure() ? "https" : "http";
 			if (schemePrefix != null) {
 				overrideScheme = url.getScheme();
 			}
 
-			DelegatingServiceInstance serviceInstance = new DelegatingServiceInstance(response.getServer(),
+			DelegatingServiceInstance serviceInstance = new DelegatingServiceInstance(retrievedInstance,
 					overrideScheme);
 
 			URI requestUrl = reconstructURI(serviceInstance, uri);
