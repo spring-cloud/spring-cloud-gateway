@@ -154,67 +154,67 @@ public class SecureHeadersGatewayFilterFactory extends AbstractGatewayFilterFact
 
 		private String permittedCrossDomainPolicies = SecureHeadersProperties.X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER_DEFAULT;
 
-		String getXssProtectionHeader() {
+		public String getXssProtectionHeader() {
 			return xssProtectionHeader;
 		}
 
-		void setXssProtectionHeader(String xssProtectionHeader) {
+		public void setXssProtectionHeader(String xssProtectionHeader) {
 			this.xssProtectionHeader = xssProtectionHeader;
 		}
 
-		String getStrictTransportSecurity() {
+		public String getStrictTransportSecurity() {
 			return strictTransportSecurity;
 		}
 
-		void setStrictTransportSecurity(String strictTransportSecurity) {
+		public void setStrictTransportSecurity(String strictTransportSecurity) {
 			this.strictTransportSecurity = strictTransportSecurity;
 		}
 
-		String getFrameOptions() {
+		public String getFrameOptions() {
 			return frameOptions;
 		}
 
-		void setFrameOptions(String frameOptions) {
+		public void setFrameOptions(String frameOptions) {
 			this.frameOptions = frameOptions;
 		}
 
-		String getContentTypeOptions() {
+		public String getContentTypeOptions() {
 			return contentTypeOptions;
 		}
 
-		void setContentTypeOptions(String contentTypeOptions) {
+		public void setContentTypeOptions(String contentTypeOptions) {
 			this.contentTypeOptions = contentTypeOptions;
 		}
 
-		String getReferrerPolicy() {
+		public String getReferrerPolicy() {
 			return referrerPolicy;
 		}
 
-		void setReferrerPolicy(String referrerPolicy) {
+		public void setReferrerPolicy(String referrerPolicy) {
 			this.referrerPolicy = referrerPolicy;
 		}
 
-		String getContentSecurityPolicy() {
+		public String getContentSecurityPolicy() {
 			return contentSecurityPolicy;
 		}
 
-		void setContentSecurityPolicy(String contentSecurityPolicy) {
+		public void setContentSecurityPolicy(String contentSecurityPolicy) {
 			this.contentSecurityPolicy = contentSecurityPolicy;
 		}
 
-		String getDownloadOptions() {
+		public String getDownloadOptions() {
 			return downloadOptions;
 		}
 
-		void setDownloadOptions(String downloadOptions) {
+		public void setDownloadOptions(String downloadOptions) {
 			this.downloadOptions = downloadOptions;
 		}
 
-		String getPermittedCrossDomainPolicies() {
+		public String getPermittedCrossDomainPolicies() {
 			return permittedCrossDomainPolicies;
 		}
 
-		void setPermittedCrossDomainPolicies(String permittedCrossDomainPolicies) {
+		public void setPermittedCrossDomainPolicies(String permittedCrossDomainPolicies) {
 			this.permittedCrossDomainPolicies = permittedCrossDomainPolicies;
 		}
 
