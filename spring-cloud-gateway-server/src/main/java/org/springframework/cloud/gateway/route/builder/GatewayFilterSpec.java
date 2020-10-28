@@ -565,10 +565,19 @@ public class GatewayFilterSpec extends UriSpec {
 	 * post</a>.
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
-	@SuppressWarnings("unchecked")
 	public GatewayFilterSpec secureHeaders() {
-		return filter(getBean(SecureHeadersGatewayFilterFactory.class).apply(c -> {
-		}));
+		return filter(getBean(SecureHeadersGatewayFilterFactory.class).apply(config -> {}));
+	}
+
+	/**
+	 * A filter that adds a number of headers to the response at the reccomendation from
+	 * <a href="https://blog.appcanary.com/2017/http-security-headers.html">this blog
+	 * post</a>.
+	 * @param configConsumer self define headers
+	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
+	 */
+	public GatewayFilterSpec secureHeaders(Consumer<SecureHeadersGatewayFilterFactory.Config> configConsumer) {
+		return filter(getBean(SecureHeadersGatewayFilterFactory.class).apply(configConsumer));
 	}
 
 	/**
