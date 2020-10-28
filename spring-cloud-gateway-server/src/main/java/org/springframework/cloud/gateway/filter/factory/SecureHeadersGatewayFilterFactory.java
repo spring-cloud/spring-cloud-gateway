@@ -32,7 +32,7 @@ import static org.springframework.cloud.gateway.support.GatewayToStringStyler.fi
  *
  * @author Spencer Gibb, Thirunavukkarasu Ravichandran
  */
-public class SecureHeadersGatewayFilterFactory extends AbstractGatewayFilterFactory {
+public class SecureHeadersGatewayFilterFactory extends AbstractGatewayFilterFactory<SecureHeadersGatewayFilterFactory.Config> {
 
 	/**
 	 * Xss-Protection header name.
@@ -77,50 +77,51 @@ public class SecureHeadersGatewayFilterFactory extends AbstractGatewayFilterFact
 	private final SecureHeadersProperties properties;
 
 	public SecureHeadersGatewayFilterFactory(SecureHeadersProperties properties) {
+		super(Config.class);
 		this.properties = properties;
 	}
 
 	@Override
-	public GatewayFilter apply(Object config) {
-		// TODO: allow args to override properties
-
+	public GatewayFilter apply(Config config) {
 		return new GatewayFilter() {
 			@Override
 			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 				HttpHeaders headers = exchange.getResponse().getHeaders();
 
 				List<String> disabled = properties.getDisable();
+				Config copyConfig = config.copy();
+				copyConfig.modifyConfig(properties);
 
 				if (isEnabled(disabled, X_XSS_PROTECTION_HEADER)) {
-					headers.add(X_XSS_PROTECTION_HEADER, properties.getXssProtectionHeader());
+					headers.add(X_XSS_PROTECTION_HEADER, copyConfig.getXssProtectionHeader());
 				}
 
 				if (isEnabled(disabled, STRICT_TRANSPORT_SECURITY_HEADER)) {
-					headers.add(STRICT_TRANSPORT_SECURITY_HEADER, properties.getStrictTransportSecurity());
+					headers.add(STRICT_TRANSPORT_SECURITY_HEADER, copyConfig.getStrictTransportSecurity());
 				}
 
 				if (isEnabled(disabled, X_FRAME_OPTIONS_HEADER)) {
-					headers.add(X_FRAME_OPTIONS_HEADER, properties.getFrameOptions());
+					headers.add(X_FRAME_OPTIONS_HEADER, copyConfig.getFrameOptions());
 				}
 
 				if (isEnabled(disabled, X_CONTENT_TYPE_OPTIONS_HEADER)) {
-					headers.add(X_CONTENT_TYPE_OPTIONS_HEADER, properties.getContentTypeOptions());
+					headers.add(X_CONTENT_TYPE_OPTIONS_HEADER, copyConfig.getContentTypeOptions());
 				}
 
 				if (isEnabled(disabled, REFERRER_POLICY_HEADER)) {
-					headers.add(REFERRER_POLICY_HEADER, properties.getReferrerPolicy());
+					headers.add(REFERRER_POLICY_HEADER, copyConfig.getReferrerPolicy());
 				}
 
 				if (isEnabled(disabled, CONTENT_SECURITY_POLICY_HEADER)) {
-					headers.add(CONTENT_SECURITY_POLICY_HEADER, properties.getContentSecurityPolicy());
+					headers.add(CONTENT_SECURITY_POLICY_HEADER, copyConfig.getContentSecurityPolicy());
 				}
 
 				if (isEnabled(disabled, X_DOWNLOAD_OPTIONS_HEADER)) {
-					headers.add(X_DOWNLOAD_OPTIONS_HEADER, properties.getDownloadOptions());
+					headers.add(X_DOWNLOAD_OPTIONS_HEADER, copyConfig.getDownloadOptions());
 				}
 
 				if (isEnabled(disabled, X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER)) {
-					headers.add(X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER, properties.getPermittedCrossDomainPolicies());
+					headers.add(X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER, copyConfig.getPermittedCrossDomainPolicies());
 				}
 
 				return chain.filter(exchange);
@@ -137,4 +138,134 @@ public class SecureHeadersGatewayFilterFactory extends AbstractGatewayFilterFact
 		return !disabledHeaders.contains(header.toLowerCase());
 	}
 
+	public static class Config {
+
+		private String xssProtectionHeader;
+
+		private String strictTransportSecurity;
+
+		private String frameOptions;
+
+		private String contentTypeOptions;
+
+		private String referrerPolicy;
+
+		private String contentSecurityPolicy;
+
+		private String downloadOptions;
+
+		private String permittedCrossDomainPolicies;
+
+		public Config copy() {
+			Config config = new Config();
+			config.setXssProtectionHeader(xssProtectionHeader);
+			config.setStrictTransportSecurity(strictTransportSecurity);
+			config.setFrameOptions(frameOptions);
+			config.setContentTypeOptions(contentTypeOptions);
+			config.setReferrerPolicy(referrerPolicy);
+			config.setContentSecurityPolicy(contentSecurityPolicy);
+			config.setDownloadOptions(downloadOptions);
+			config.setPermittedCrossDomainPolicies(permittedCrossDomainPolicies);
+			return config;
+		}
+
+		public void modifyConfig(SecureHeadersProperties properties) {
+			if (xssProtectionHeader == null) {
+				this.xssProtectionHeader = properties.getXssProtectionHeader();
+			}
+
+			if (strictTransportSecurity == null) {
+				this.strictTransportSecurity = properties.getStrictTransportSecurity();
+			}
+
+			if (frameOptions == null) {
+				this.frameOptions = properties.getFrameOptions();
+			}
+
+			if (contentTypeOptions == null) {
+				this.contentTypeOptions = properties.getContentTypeOptions();
+			}
+
+			if (contentTypeOptions == null) {
+				this.referrerPolicy = properties.getReferrerPolicy();
+			}
+
+			if (contentSecurityPolicy == null) {
+				this.contentSecurityPolicy = properties.getContentSecurityPolicy();
+			}
+
+			if (downloadOptions == null) {
+				this.downloadOptions = properties.getDownloadOptions();
+			}
+
+			if (permittedCrossDomainPolicies == null) {
+				this.permittedCrossDomainPolicies = properties.getPermittedCrossDomainPolicies();
+			}
+		}
+
+		public String getXssProtectionHeader() {
+			return xssProtectionHeader;
+		}
+
+		public void setXssProtectionHeader(String xssProtectionHeader) {
+			this.xssProtectionHeader = xssProtectionHeader;
+		}
+
+		public String getStrictTransportSecurity() {
+			return strictTransportSecurity;
+		}
+
+		public void setStrictTransportSecurity(String strictTransportSecurity) {
+			this.strictTransportSecurity = strictTransportSecurity;
+		}
+
+		public String getFrameOptions() {
+			return frameOptions;
+		}
+
+		public void setFrameOptions(String frameOptions) {
+			this.frameOptions = frameOptions;
+		}
+
+		public String getContentTypeOptions() {
+			return contentTypeOptions;
+		}
+
+		public void setContentTypeOptions(String contentTypeOptions) {
+			this.contentTypeOptions = contentTypeOptions;
+		}
+
+		public String getReferrerPolicy() {
+			return referrerPolicy;
+		}
+
+		public void setReferrerPolicy(String referrerPolicy) {
+			this.referrerPolicy = referrerPolicy;
+		}
+
+		public String getContentSecurityPolicy() {
+			return contentSecurityPolicy;
+		}
+
+		public void setContentSecurityPolicy(String contentSecurityPolicy) {
+			this.contentSecurityPolicy = contentSecurityPolicy;
+		}
+
+		public String getDownloadOptions() {
+			return downloadOptions;
+		}
+
+		public void setDownloadOptions(String downloadOptions) {
+			this.downloadOptions = downloadOptions;
+		}
+
+		public String getPermittedCrossDomainPolicies() {
+			return permittedCrossDomainPolicies;
+		}
+
+		public void setPermittedCrossDomainPolicies(String permittedCrossDomainPolicies) {
+			this.permittedCrossDomainPolicies = permittedCrossDomainPolicies;
+		}
+
+	}
 }
