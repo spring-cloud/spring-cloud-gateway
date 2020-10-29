@@ -186,7 +186,7 @@ public class SecureHeadersGatewayFilterFactory extends AbstractGatewayFilterFact
 				this.contentTypeOptions = properties.getContentTypeOptions();
 			}
 
-			if (contentTypeOptions == null) {
+			if (referrerPolicy == null) {
 				this.referrerPolicy = properties.getReferrerPolicy();
 			}
 
