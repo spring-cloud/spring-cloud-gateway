@@ -24,7 +24,6 @@ import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
-import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory.NameConfig;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -35,6 +34,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory.CONTENT_SECURITY_POLICY_HEADER;
+import static org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory.Config;
 import static org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory.REFERRER_POLICY_HEADER;
 import static org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory.STRICT_TRANSPORT_SECURITY_HEADER;
 import static org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory.X_CONTENT_TYPE_OPTIONS_HEADER;
@@ -70,9 +70,7 @@ public class SecureHeadersGatewayFilterFactoryUnitTests {
 	public void addAllHeadersIfNothingIsDisabled() {
 		SecureHeadersGatewayFilterFactory filterFactory = new SecureHeadersGatewayFilterFactory(
 				new SecureHeadersProperties());
-		NameConfig config = new NameConfig();
-		config.setName("SecureHeadersGatewayFilter");
-		filter = filterFactory.apply(config);
+		filter = filterFactory.apply(new Config());
 
 		filter.filter(exchange, filterChain);
 
@@ -89,10 +87,9 @@ public class SecureHeadersGatewayFilterFactoryUnitTests {
 				"x-content-type-options", "referrer-policy", "content-security-policy", "x-download-options",
 				"x-permitted-cross-domain-policies"));
 
-		SecureHeadersGatewayFilterFactory filterFactory = new SecureHeadersGatewayFilterFactory(properties);
-		NameConfig config = new NameConfig();
-		config.setName("SecureHeadersGatewayFilter");
-		filter = filterFactory.apply(config);
+		SecureHeadersGatewayFilterFactory filterFactory = new SecureHeadersGatewayFilterFactory(
+				properties);
+		filter = filterFactory.apply(new Config());
 
 		filter.filter(exchange, filterChain);
 
@@ -104,8 +101,48 @@ public class SecureHeadersGatewayFilterFactoryUnitTests {
 	}
 
 	@Test
+	public void overrideSomeHeaders() {
+		SecureHeadersProperties properties = new SecureHeadersProperties();
+		SecureHeadersGatewayFilterFactory filterFactory = new SecureHeadersGatewayFilterFactory(
+				new SecureHeadersProperties());
+		Config config = new Config();
+		config.setStrictTransportSecurity("max-age=65535");
+		config.setReferrerPolicy("referrer");
+		filter = filterFactory.apply(config);
+
+		filter.filter(exchange, filterChain);
+
+		ServerHttpResponse response = captor.getValue().getResponse();
+		assertThat(response.getHeaders()).containsKeys(X_XSS_PROTECTION_HEADER,
+				STRICT_TRANSPORT_SECURITY_HEADER, X_FRAME_OPTIONS_HEADER,
+				X_CONTENT_TYPE_OPTIONS_HEADER, REFERRER_POLICY_HEADER,
+				CONTENT_SECURITY_POLICY_HEADER, X_DOWNLOAD_OPTIONS_HEADER,
+				X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER);
+
+		assertThat(response.getHeaders().get(STRICT_TRANSPORT_SECURITY_HEADER))
+				.containsOnly("max-age=65535");
+		assertThat(response.getHeaders().get(REFERRER_POLICY_HEADER))
+				.containsOnly("referrer");
+
+		assertThat(response.getHeaders().get(X_XSS_PROTECTION_HEADER))
+				.containsOnly(properties.getXssProtectionHeader());
+		assertThat(response.getHeaders().get(X_FRAME_OPTIONS_HEADER))
+				.containsOnly(properties.getFrameOptions());
+		assertThat(response.getHeaders().get(X_CONTENT_TYPE_OPTIONS_HEADER))
+				.containsOnly(properties.getContentTypeOptions());
+		assertThat(response.getHeaders().get(CONTENT_SECURITY_POLICY_HEADER))
+				.containsOnly(properties.getContentSecurityPolicy());
+		assertThat(response.getHeaders().get(X_DOWNLOAD_OPTIONS_HEADER))
+				.containsOnly(properties.getDownloadOptions());
+		assertThat(response.getHeaders().get(X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER))
+				.containsOnly(properties.getPermittedCrossDomainPolicies());
+
+	}
+
+	@Test
 	public void toStringFormat() {
-		GatewayFilter filter = new SecureHeadersGatewayFilterFactory(new SecureHeadersProperties()).apply("");
+		GatewayFilter filter = new SecureHeadersGatewayFilterFactory(
+				new SecureHeadersProperties()).apply(new Config());
 		Assertions.assertThat(filter.toString()).contains("SecureHeaders");
 	}
 
