@@ -273,9 +273,12 @@ public class ReactiveLoadBalancerClientFilterTests {
 		ServiceInstance serviceInstance = new DefaultServiceInstance("myservice1",
 				"myservice", "localhost", 8080, false);
 		when(clientFactory.getInstance("myservice",
-				ReactorServiceInstanceLoadBalancer.class)).thenReturn(
-				new RoundRobinLoadBalancer(ServiceInstanceListSuppliers
-						.toProvider("myservice", serviceInstance), "myservice", -1));
+				ReactorServiceInstanceLoadBalancer.class))
+						.thenReturn(
+								new RoundRobinLoadBalancer(
+										ServiceInstanceListSuppliers
+												.toProvider("myservice", serviceInstance),
+										"myservice", -1));
 		when(chain.filter(exchange)).thenReturn(Mono.empty());
 
 		filter.filter(exchange, chain).block();

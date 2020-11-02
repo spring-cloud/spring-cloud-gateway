@@ -566,7 +566,8 @@ public class GatewayFilterSpec extends UriSpec {
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
 	public GatewayFilterSpec secureHeaders() {
-		return filter(getBean(SecureHeadersGatewayFilterFactory.class).apply(config -> {}));
+		return filter(getBean(SecureHeadersGatewayFilterFactory.class).apply(config -> {
+		}));
 	}
 
 	/**
@@ -576,8 +577,10 @@ public class GatewayFilterSpec extends UriSpec {
 	 * @param configConsumer self define headers
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
-	public GatewayFilterSpec secureHeaders(Consumer<SecureHeadersGatewayFilterFactory.Config> configConsumer) {
-		return filter(getBean(SecureHeadersGatewayFilterFactory.class).apply(configConsumer));
+	public GatewayFilterSpec secureHeaders(
+			Consumer<SecureHeadersGatewayFilterFactory.Config> configConsumer) {
+		return filter(
+				getBean(SecureHeadersGatewayFilterFactory.class).apply(configConsumer));
 	}
 
 	/**
