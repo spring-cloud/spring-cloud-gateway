@@ -111,8 +111,11 @@ public class NettyWriteResponseFilter implements GlobalFilter, Ordered {
 		}
 		// MockServerHttpResponse creates these
 		else if (bufferFactory instanceof DefaultDataBufferFactory) {
-			DefaultDataBufferFactory factory = (DefaultDataBufferFactory) bufferFactory;
-			return factory.wrap(byteBuf.nioBuffer());
+			DataBuffer buffer = ((DefaultDataBufferFactory) bufferFactory)
+					.allocateBuffer(byteBuf.readableBytes());
+			buffer.write(byteBuf.nioBuffer());
+			byteBuf.release();
+			return buffer;
 		}
 		throw new IllegalArgumentException(
 				"Unkown DataBufferFactory type " + bufferFactory.getClass());
