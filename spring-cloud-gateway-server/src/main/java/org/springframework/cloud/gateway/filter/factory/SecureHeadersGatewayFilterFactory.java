@@ -97,8 +97,7 @@ public class SecureHeadersGatewayFilterFactory
 				}
 
 				if (isEnabled(disabled, STRICT_TRANSPORT_SECURITY_HEADER)) {
-					headers.add(STRICT_TRANSPORT_SECURITY_HEADER,
-							config.getStrictTransportSecurity());
+					headers.add(STRICT_TRANSPORT_SECURITY_HEADER, config.getStrictTransportSecurity());
 				}
 
 				if (isEnabled(disabled, X_FRAME_OPTIONS_HEADER)) {
@@ -106,8 +105,7 @@ public class SecureHeadersGatewayFilterFactory
 				}
 
 				if (isEnabled(disabled, X_CONTENT_TYPE_OPTIONS_HEADER)) {
-					headers.add(X_CONTENT_TYPE_OPTIONS_HEADER,
-							config.getContentTypeOptions());
+					headers.add(X_CONTENT_TYPE_OPTIONS_HEADER, config.getContentTypeOptions());
 				}
 
 				if (isEnabled(disabled, REFERRER_POLICY_HEADER)) {
@@ -115,8 +113,7 @@ public class SecureHeadersGatewayFilterFactory
 				}
 
 				if (isEnabled(disabled, CONTENT_SECURITY_POLICY_HEADER)) {
-					headers.add(CONTENT_SECURITY_POLICY_HEADER,
-							config.getContentSecurityPolicy());
+					headers.add(CONTENT_SECURITY_POLICY_HEADER, config.getContentSecurityPolicy());
 				}
 
 				if (isEnabled(disabled, X_DOWNLOAD_OPTIONS_HEADER)) {
@@ -124,8 +121,7 @@ public class SecureHeadersGatewayFilterFactory
 				}
 
 				if (isEnabled(disabled, X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER)) {
-					headers.add(X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER,
-							config.getPermittedCrossDomainPolicies());
+					headers.add(X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER, config.getPermittedCrossDomainPolicies());
 				}
 
 				return chain.filter(exchange);
@@ -200,8 +196,7 @@ public class SecureHeadersGatewayFilterFactory
 			}
 
 			if (config.permittedCrossDomainPolicies == null) {
-				config.permittedCrossDomainPolicies = properties
-						.getPermittedCrossDomainPolicies();
+				config.permittedCrossDomainPolicies = properties.getPermittedCrossDomainPolicies();
 			}
 			return config;
 		}
