@@ -1605,6 +1605,9 @@ static class Hello {
     }
 }
 ----
+
+NOTE:  if the request has no body, the `RewriteFilter` will be passed `null`. `Mono.empty()` should be returned to assign a missing body in the request.
+
 ====
 
 === Modify a Response Body `GatewayFilter` Factory
@@ -1628,6 +1631,8 @@ public RouteLocator routes(RouteLocatorBuilder builder) {
         .build();
 }
 ----
+
+NOTE:  if the response has no body, the `RewriteFilter` will be passed `null`. `Mono.empty()` should be returned to assign a missing body in the response.
 ====
 
 === Token Relay `GatewayFilter` Factory
