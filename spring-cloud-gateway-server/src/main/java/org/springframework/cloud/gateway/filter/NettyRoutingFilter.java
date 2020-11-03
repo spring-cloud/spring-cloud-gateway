@@ -239,8 +239,7 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 		Object connectTimeoutAttr = route.getMetadata().get(CONNECT_TIMEOUT_ATTR);
 		if (connectTimeoutAttr != null) {
 			Integer connectTimeout = getInteger(connectTimeoutAttr);
-			return this.httpClient.tcpConfiguration(
-					(tcpClient) -> tcpClient.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, connectTimeout));
+			return this.httpClient.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, connectTimeout);
 		}
 		return httpClient;
 	}
