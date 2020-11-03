@@ -45,12 +45,12 @@ public abstract class OnEnabledComponent<T> extends SpringBootCondition implemen
 
 	@Override
 	public ConditionOutcome getMatchOutcome(ConditionContext context, AnnotatedTypeMetadata metadata) {
-		Class<? extends T> candidate = getEndpointType(annotationClass(), context, metadata);
+		Class<? extends T> candidate = getComponentType(annotationClass(), context, metadata);
 		return determineOutcome(candidate, context.getEnvironment());
 	}
 
 	@SuppressWarnings("unchecked")
-	protected Class<? extends T> getEndpointType(Class<?> annotationClass, ConditionContext context,
+	protected Class<? extends T> getComponentType(Class<?> annotationClass, ConditionContext context,
 			AnnotatedTypeMetadata metadata) {
 		Map<String, Object> attributes = metadata.getAnnotationAttributes(annotationClass.getName());
 		if (attributes != null && attributes.containsKey("value")) {
@@ -67,7 +67,7 @@ public abstract class OnEnabledComponent<T> extends SpringBootCondition implemen
 					context.getClassLoader());
 		}
 		catch (Throwable ex) {
-			throw new IllegalStateException("Failed to extract endpoint id for "
+			throw new IllegalStateException("Failed to extract component class for "
 					+ methodMetadata.getDeclaringClassName() + "." + methodMetadata.getMethodName(), ex);
 		}
 	}
