@@ -61,7 +61,8 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 		this.managementPortType = getManagementPortType(environment);
 		setOrder(1);
 		setCorsConfigurations(globalCorsProperties.getCorsConfigurations());
-		this.corsPrefightPassthrough = globalCorsProperties.getPreflight().isPassthrough();
+		this.corsPrefightPassthrough = globalCorsProperties.getPreflight()
+				.isPassthrough();
 	}
 
 	private ManagementPortType getManagementPortType(Environment environment) {
@@ -78,11 +79,12 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 	private static Integer getPortProperty(Environment environment, String prefix) {
 		return environment.getProperty(prefix + "port", Integer.class);
 	}
-	
+
 	@Override
 	public Mono<Object> getHandler(ServerWebExchange exchange) {
-		//to support cors prefight passtrough
-		if(this.corsPrefightPassthrough && CorsUtils.isPreFlightRequest(exchange.getRequest())) {
+		// to support cors prefight passtrough
+		if (this.corsPrefightPassthrough
+				&& CorsUtils.isPreFlightRequest(exchange.getRequest())) {
 			return this.getHandlerInternal(exchange).map((handler) -> {
 				if (this.logger.isDebugEnabled()) {
 					this.logger.debug(exchange.getLogPrefix() + "Mapped to " + handler);
@@ -90,7 +92,8 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 
 				return handler;
 			});
-		}else{
+		}
+		else {
 			return super.getHandler(exchange);
 		}
 	}

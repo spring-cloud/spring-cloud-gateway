@@ -30,4 +30,5 @@ public class PreflightProperties {
 	public void setPassthrough(boolean passthrough) {
 		this.passthrough = passthrough;
 	}
+
 }
