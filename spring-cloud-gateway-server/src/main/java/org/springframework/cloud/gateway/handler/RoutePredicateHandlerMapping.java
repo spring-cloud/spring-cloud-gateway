@@ -18,7 +18,6 @@ package org.springframework.cloud.gateway.handler;
 
 import java.util.function.Function;
 
-import org.springframework.web.cors.reactive.CorsUtils;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.config.GlobalCorsProperties;
@@ -26,6 +25,7 @@ import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.core.env.Environment;
 import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.reactive.CorsUtils;
 import org.springframework.web.reactive.handler.AbstractHandlerMapping;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -38,6 +38,7 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.G
 
 /**
  * @author Spencer Gibb
+ * @author mouxhun
  */
 public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 
