@@ -38,7 +38,6 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.G
 
 /**
  * @author Spencer Gibb
- * @author mouxhun
  */
 public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 
