@@ -1250,6 +1250,26 @@ The following properties are available:
 * `x-download-options`
 * `x-permitted-cross-domain-policies`
 
+.application.yml
+====
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      filter:
+        secure-headers:
+          xssProtectionHeader: 1; mode=block
+          strictTransportSecurity: max-age=16000000; includeSubDomains; preload;
+          frameOptions: sameorigin
+          contentTypeOptions: nosniff
+          referrerPolicy: referrer
+          contentSecurityPolicy: default-src 'self'
+          downloadOptions: noopen
+          permittedCrossDomainPolicies: not none
+----
+====
+
 To disable the default values set the `spring.cloud.gateway.filter.secure-headers.disable` property with comma-separated values.
 The following example shows how to do so:
 
