@@ -18,6 +18,7 @@ package org.springframework.cloud.gateway.handler;
 
 import java.util.function.Function;
 
+import org.springframework.web.cors.reactive.CorsUtils;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.config.GlobalCorsProperties;
@@ -81,7 +82,7 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 	@Override
 	public Mono<Object> getHandler(ServerWebExchange exchange) {
 		//to support cors prefight passtrough
-		if(this.corsPrefightPassthrough) {
+		if(this.corsPrefightPassthrough && CorsUtils.isPreFlightRequest(exchange.getRequest())) {
 			return this.getHandlerInternal(exchange).map((handler) -> {
 				if (this.logger.isDebugEnabled()) {
 					this.logger.debug(exchange.getLogPrefix() + "Mapped to " + handler);
