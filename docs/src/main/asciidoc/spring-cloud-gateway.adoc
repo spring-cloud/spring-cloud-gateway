@@ -1270,6 +1270,30 @@ spring:
 ----
 ====
 
+To change the default value for particular route,you can refer the below sample:
+
+.application.yml
+====
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: save_session
+        uri: https://example.org
+        predicates:
+        - Path=/foo/**
+        filters:
+        - name: SecureHeaders
+          args:
+            frameOptions: sample
+            xssProtectionHeader: none
+
+----
+====
+
+
 To disable the default values set the `spring.cloud.gateway.filter.secure-headers.disable` property with comma-separated values.
 The following example shows how to do so:
 
