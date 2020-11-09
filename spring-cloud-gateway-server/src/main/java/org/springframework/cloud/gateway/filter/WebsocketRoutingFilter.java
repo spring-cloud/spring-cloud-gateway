@@ -41,6 +41,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import static org.springframework.cloud.gateway.filter.headers.HttpHeadersFilter.filterRequest;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.PRESERVE_HOST_HEADER_ATTRIBUTE;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.containsEncodedParts;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.isAlreadyRouted;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.setAlreadyRouted;
@@ -113,9 +114,24 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 				new ProxyWebSocketHandler(requestUrl, this.webSocketClient, filtered, protocols));
 	}
 
-	private List<HttpHeadersFilter> getHeadersFilters() {
+	/* for testing */ List<HttpHeadersFilter> getHeadersFilters() {
 		if (this.headersFilters == null) {
 			this.headersFilters = this.headersFiltersProvider.getIfAvailable(ArrayList::new);
+
+			// remove host header unless specifically asked not to
+			headersFilters.add((headers, exchange) -> {
+				HttpHeaders filtered = new HttpHeaders();
+				filtered.addAll(headers);
+				filtered.remove(HttpHeaders.HOST);
+				boolean preserveHost = exchange
+						.getAttributeOrDefault(PRESERVE_HOST_HEADER_ATTRIBUTE, false);
+				if (preserveHost) {
+					String host = exchange.getRequest().getHeaders()
+							.getFirst(HttpHeaders.HOST);
+					filtered.add(HttpHeaders.HOST, host);
+				}
+				return filtered;
+			});
 
 			headersFilters.add((headers, exchange) -> {
 				HttpHeaders filtered = new HttpHeaders();
