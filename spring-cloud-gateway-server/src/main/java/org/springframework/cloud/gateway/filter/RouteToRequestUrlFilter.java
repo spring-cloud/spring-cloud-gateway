@@ -86,10 +86,12 @@ public class RouteToRequestUrlFilter implements GlobalFilter, Ordered {
 			throw new IllegalStateException("Invalid host: " + routeUri.toString());
 		}
 
-		URI mergedUrl = UriComponentsBuilder.fromUri(uri)
+		//URI mergedUrl = UriComponentsBuilder.fromUri(uri)
 				// .uri(routeUri)
-				.scheme(routeUri.getScheme()).host(routeUri.getHost())
-				.port(routeUri.getPort()).build(encoded).toUri();
+		//		.scheme(routeUri.getScheme()).host(routeUri.getHost())
+		//		.port(routeUri.getPort()).build(encoded).toUri();
+		 URI mergedUrl = UriComponentsBuilder.fromUri(routeUri).port(routeUri.getPort())
+                .path(uri.getPath()).query(uri.getRawQuery()).build(encoded).toUri();
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, mergedUrl);
 		return chain.filter(exchange);
 	}
