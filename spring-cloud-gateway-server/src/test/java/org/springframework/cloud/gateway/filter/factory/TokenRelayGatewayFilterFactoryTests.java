@@ -24,6 +24,7 @@ import org.junit.Before;
 import org.junit.Test;
 import reactor.core.publisher.Mono;
 
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.http.HttpHeaders;
@@ -69,6 +70,7 @@ public class TokenRelayGatewayFilterFactoryTests {
 	}
 
 	@Before
+	@SuppressWarnings("unchecked")
 	public void init() {
 		request = MockServerHttpRequest.get("/hello").build();
 		mockExchange = MockServerWebExchange.from(request);
@@ -76,7 +78,9 @@ public class TokenRelayGatewayFilterFactoryTests {
 		when(filterChain.filter(any(ServerWebExchange.class))).thenReturn(Mono.empty());
 
 		authorizedClientManager = mock(ReactiveOAuth2AuthorizedClientManager.class);
-		filter = new TokenRelayGatewayFilterFactory(authorizedClientManager).apply();
+		ObjectProvider<ReactiveOAuth2AuthorizedClientManager> objectProvider = mock(ObjectProvider.class);
+		when(objectProvider.getIfAvailable()).thenReturn(authorizedClientManager);
+		filter = new TokenRelayGatewayFilterFactory(objectProvider).apply();
 	}
 
 	@After

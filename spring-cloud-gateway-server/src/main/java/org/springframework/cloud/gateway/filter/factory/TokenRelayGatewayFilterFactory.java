@@ -18,6 +18,7 @@ package org.springframework.cloud.gateway.filter.factory;
 
 import reactor.core.publisher.Mono;
 
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.security.oauth2.client.OAuth2AuthorizeRequest;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
@@ -31,11 +32,11 @@ import org.springframework.web.server.ServerWebExchange;
  */
 public class TokenRelayGatewayFilterFactory extends AbstractGatewayFilterFactory<Object> {
 
-	private final ReactiveOAuth2AuthorizedClientManager clientManager;
+	private final ObjectProvider<ReactiveOAuth2AuthorizedClientManager> clientManagerProvider;
 
-	public TokenRelayGatewayFilterFactory(ReactiveOAuth2AuthorizedClientManager clientManager) {
+	public TokenRelayGatewayFilterFactory(ObjectProvider<ReactiveOAuth2AuthorizedClientManager> clientManagerProvider) {
 		super(Object.class);
-		this.clientManager = clientManager;
+		this.clientManagerProvider = clientManagerProvider;
 	}
 
 	public GatewayFilter apply() {
@@ -59,6 +60,12 @@ public class TokenRelayGatewayFilterFactory extends AbstractGatewayFilterFactory
 		String clientRegistrationId = oauth2Authentication.getAuthorizedClientRegistrationId();
 		OAuth2AuthorizeRequest request = OAuth2AuthorizeRequest.withClientRegistrationId(clientRegistrationId)
 				.principal(oauth2Authentication).build();
+		ReactiveOAuth2AuthorizedClientManager clientManager = clientManagerProvider.getIfAvailable();
+		if (clientManager == null) {
+			return Mono.error(
+					new IllegalStateException("No ReactiveOAuth2AuthorizedClientManager bean was found. Did you include the "
+							+ "org.springframework.boot:spring-boot-starter-oauth2-client dependency?"));
+		}
 		// TODO: use Mono.defer() for request above?
 		return clientManager.authorize(request);
 	}

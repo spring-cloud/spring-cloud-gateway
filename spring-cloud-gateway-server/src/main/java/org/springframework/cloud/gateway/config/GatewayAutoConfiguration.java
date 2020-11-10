@@ -845,16 +845,16 @@ public class GatewayAutoConfiguration {
 	@ConditionalOnProperty(name = "spring.cloud.gateway.enabled", matchIfMissing = true)
 	@ConditionalOnClass({ OAuth2AuthorizedClient.class, SecurityWebFilterChain.class, SecurityProperties.class })
 	@ConditionalOnEnabledFilter(TokenRelayGatewayFilterFactory.class)
-	@ConditionalOnBean(ReactiveClientRegistrationRepository.class)
 	protected static class TokenRelayConfiguration {
 
 		@Bean
 		public TokenRelayGatewayFilterFactory tokenRelayGatewayFilterFactory(
-				ReactiveOAuth2AuthorizedClientManager clientManager) {
+				ObjectProvider<ReactiveOAuth2AuthorizedClientManager> clientManager) {
 			return new TokenRelayGatewayFilterFactory(clientManager);
 		}
 
 		@Bean
+		@ConditionalOnBean(ReactiveClientRegistrationRepository.class)
 		public ReactiveOAuth2AuthorizedClientManager gatewayReactiveOAuth2AuthorizedClientManager(
 				ReactiveClientRegistrationRepository clientRegistrationRepository,
 				ServerOAuth2AuthorizedClientRepository authorizedClientRepository) {
