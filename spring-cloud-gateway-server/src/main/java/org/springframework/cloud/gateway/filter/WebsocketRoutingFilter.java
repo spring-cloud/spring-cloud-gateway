@@ -123,11 +123,9 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 				HttpHeaders filtered = new HttpHeaders();
 				filtered.addAll(headers);
 				filtered.remove(HttpHeaders.HOST);
-				boolean preserveHost = exchange
-						.getAttributeOrDefault(PRESERVE_HOST_HEADER_ATTRIBUTE, false);
+				boolean preserveHost = exchange.getAttributeOrDefault(PRESERVE_HOST_HEADER_ATTRIBUTE, false);
 				if (preserveHost) {
-					String host = exchange.getRequest().getHeaders()
-							.getFirst(HttpHeaders.HOST);
+					String host = exchange.getRequest().getHeaders().getFirst(HttpHeaders.HOST);
 					filtered.add(HttpHeaders.HOST, host);
 				}
 				return filtered;

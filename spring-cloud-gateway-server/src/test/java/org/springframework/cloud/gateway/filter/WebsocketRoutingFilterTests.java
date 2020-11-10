@@ -77,21 +77,17 @@ public class WebsocketRoutingFilterTests {
 
 	@SuppressWarnings("unchecked")
 	private void assertDefaultHeadersFilters(boolean preserveHostHeader) {
-		ObjectProvider<List<HttpHeadersFilter>> headersFilters = mock(
-				ObjectProvider.class);
+		ObjectProvider<List<HttpHeadersFilter>> headersFilters = mock(ObjectProvider.class);
 		when(headersFilters.getIfAvailable(any())).thenReturn(new ArrayList<>());
-		WebsocketRoutingFilter filter = new WebsocketRoutingFilter(
-				mock(WebSocketClient.class), mock(WebSocketService.class),
-				headersFilters);
+		WebsocketRoutingFilter filter = new WebsocketRoutingFilter(mock(WebSocketClient.class),
+				mock(WebSocketService.class), headersFilters);
 		List<HttpHeadersFilter> filters = filter.getHeadersFilters();
-		MockServerHttpRequest request = MockServerHttpRequest.get("ws://not-matters-that")
-				.header(HOST, "MyHost").header("Sec-Websocket-Something", "someval")
-				.header("x-foo", "bar").build();
+		MockServerHttpRequest request = MockServerHttpRequest.get("ws://not-matters-that").header(HOST, "MyHost")
+				.header("Sec-Websocket-Something", "someval").header("x-foo", "bar").build();
 		MockServerWebExchange exchange = MockServerWebExchange.from(request);
 		exchange.getAttributes().put(PRESERVE_HOST_HEADER_ATTRIBUTE, preserveHostHeader);
 		HttpHeaders httpHeaders = HttpHeadersFilter.filterRequest(filters, exchange);
-		assertThat(httpHeaders).doesNotContainKeys("Sec-Websocket-Something")
-				.containsKey("x-foo");
+		assertThat(httpHeaders).doesNotContainKeys("Sec-Websocket-Something").containsKey("x-foo");
 		if (preserveHostHeader) {
 			assertThat(httpHeaders).containsKey(HOST);
 		}
