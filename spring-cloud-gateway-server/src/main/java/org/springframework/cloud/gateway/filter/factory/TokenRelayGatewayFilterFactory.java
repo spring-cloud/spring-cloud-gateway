@@ -62,8 +62,8 @@ public class TokenRelayGatewayFilterFactory extends AbstractGatewayFilterFactory
 				.principal(oauth2Authentication).build();
 		ReactiveOAuth2AuthorizedClientManager clientManager = clientManagerProvider.getIfAvailable();
 		if (clientManager == null) {
-			return Mono.error(
-					new IllegalStateException("No ReactiveOAuth2AuthorizedClientManager bean was found. Did you include the "
+			return Mono.error(new IllegalStateException(
+					"No ReactiveOAuth2AuthorizedClientManager bean was found. Did you include the "
 							+ "org.springframework.boot:spring-boot-starter-oauth2-client dependency?"));
 		}
 		// TODO: use Mono.defer() for request above?

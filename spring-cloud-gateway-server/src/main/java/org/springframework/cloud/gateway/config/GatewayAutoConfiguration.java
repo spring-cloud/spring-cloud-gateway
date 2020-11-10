@@ -152,11 +152,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.http.codec.ServerCodecConfigurer;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientManager;
-import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientProvider;
-import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientProviderBuilder;
-import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository;
-import org.springframework.security.oauth2.client.web.DefaultReactiveOAuth2AuthorizedClientManager;
-import org.springframework.security.oauth2.client.web.server.ServerOAuth2AuthorizedClientRepository;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -851,19 +846,6 @@ public class GatewayAutoConfiguration {
 		public TokenRelayGatewayFilterFactory tokenRelayGatewayFilterFactory(
 				ObjectProvider<ReactiveOAuth2AuthorizedClientManager> clientManager) {
 			return new TokenRelayGatewayFilterFactory(clientManager);
-		}
-
-		@Bean
-		@ConditionalOnBean(ReactiveClientRegistrationRepository.class)
-		public ReactiveOAuth2AuthorizedClientManager gatewayReactiveOAuth2AuthorizedClientManager(
-				ReactiveClientRegistrationRepository clientRegistrationRepository,
-				ServerOAuth2AuthorizedClientRepository authorizedClientRepository) {
-			ReactiveOAuth2AuthorizedClientProvider authorizedClientProvider = ReactiveOAuth2AuthorizedClientProviderBuilder
-					.builder().authorizationCode().refreshToken().build();
-			DefaultReactiveOAuth2AuthorizedClientManager authorizedClientManager = new DefaultReactiveOAuth2AuthorizedClientManager(
-					clientRegistrationRepository, authorizedClientRepository);
-			authorizedClientManager.setAuthorizedClientProvider(authorizedClientProvider);
-			return authorizedClientManager;
 		}
 
 	}

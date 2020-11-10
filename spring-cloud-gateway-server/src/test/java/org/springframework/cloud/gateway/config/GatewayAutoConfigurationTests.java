@@ -151,10 +151,10 @@ public class GatewayAutoConfigurationTests {
 	}
 
 	@Test
-	public void metricsBeansAreCreated() {
+	public void tokenRelayBeansAreCreated() {
 		new ReactiveWebApplicationContextRunner()
 				.withConfiguration(AutoConfigurations.of(ReactiveSecurityAutoConfiguration.class,
-						ReactiveOAuth2ClientAutoConfiguration.class,
+						ReactiveOAuth2ClientAutoConfiguration.class, GatewayReactiveOAuth2AutoConfiguration.class,
 						GatewayAutoConfiguration.TokenRelayConfiguration.class))
 				.withPropertyValues(
 						"spring.security.oauth2.client.provider[testprovider].authorization-uri=http://localhost",
