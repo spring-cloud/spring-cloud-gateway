@@ -84,7 +84,7 @@ public class StripPrefixGatewayFilterFactory
 	public static class Config {
 
 		/**
-		 * set default value to 1
+		 * Set default value to 1.
 		 */
 		private int parts = 1;
 
