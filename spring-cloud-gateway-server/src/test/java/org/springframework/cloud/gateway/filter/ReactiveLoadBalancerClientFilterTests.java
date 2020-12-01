@@ -17,8 +17,11 @@
 package org.springframework.cloud.gateway.filter;
 
 import java.net.URI;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.Map;
 
+import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,7 +33,11 @@ import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.client.DefaultServiceInstance;
 import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.gateway.config.LoadBalancerProperties;
+import org.springframework.cloud.client.loadbalancer.DefaultResponse;
+import org.springframework.cloud.client.loadbalancer.Request;
+import org.springframework.cloud.client.loadbalancer.ServerHttpRequestContext;
+import org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerProperties;
+import org.springframework.cloud.gateway.config.GatewayLoadBalancerProperties;
 import org.springframework.cloud.gateway.support.NotFoundException;
 import org.springframework.cloud.loadbalancer.core.ReactorServiceInstanceLoadBalancer;
 import org.springframework.cloud.loadbalancer.core.RoundRobinLoadBalancer;
@@ -44,6 +51,9 @@ import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -65,7 +75,7 @@ public class ReactiveLoadBalancerClientFilterTests {
 
 	private ServerWebExchange exchange;
 
-	private LoadBalancerProperties properties;
+	private GatewayLoadBalancerProperties properties;
 
 	@Mock
 	private GatewayFilterChain chain;
@@ -73,12 +83,15 @@ public class ReactiveLoadBalancerClientFilterTests {
 	@Mock
 	private LoadBalancerClientFactory clientFactory;
 
+	@Mock
+	private LoadBalancerProperties loadBalancerProperties;
+
 	@InjectMocks
 	private ReactiveLoadBalancerClientFilter filter;
 
 	@Before
 	public void setup() {
-		properties = new LoadBalancerProperties();
+		properties = new GatewayLoadBalancerProperties();
 		exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/mypath").build());
 	}
 
@@ -237,7 +250,8 @@ public class ReactiveLoadBalancerClientFilterTests {
 				ServiceInstanceListSuppliers.toProvider("service1"), "service1", -1);
 		when(clientFactory.getInstance("service1", ReactorServiceInstanceLoadBalancer.class)).thenReturn(loadBalancer);
 		properties.setUse404(true);
-		ReactiveLoadBalancerClientFilter filter = new ReactiveLoadBalancerClientFilter(clientFactory, properties);
+		ReactiveLoadBalancerClientFilter filter = new ReactiveLoadBalancerClientFilter(clientFactory, properties,
+				loadBalancerProperties);
 		when(chain.filter(exchange)).thenReturn(Mono.empty());
 		try {
 			filter.filter(exchange, chain).block();
@@ -270,6 +284,40 @@ public class ReactiveLoadBalancerClientFilterTests {
 		verifyNoMoreInteractions(chain);
 	}
 
+	@SuppressWarnings({ "rawtypes" })
+	@Test
+	public void shouldPassRequestToLoadBalancer() {
+		String hint = "test";
+		when(loadBalancerProperties.getHint()).thenReturn(buildHints(hint));
+		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost/get?a=b").build();
+		URI lbUri = URI.create("lb://service1?a=b");
+		ServerWebExchange serverWebExchange = mock(ServerWebExchange.class);
+		when(serverWebExchange.getAttribute(GATEWAY_REQUEST_URL_ATTR)).thenReturn(lbUri);
+		when(serverWebExchange.getRequiredAttribute(GATEWAY_ORIGINAL_REQUEST_URL_ATTR))
+				.thenReturn(new LinkedHashSet<>());
+		when(serverWebExchange.getRequest()).thenReturn(request);
+		RoundRobinLoadBalancer loadBalancer = mock(RoundRobinLoadBalancer.class);
+		when(loadBalancer.choose(any(Request.class))).thenReturn(Mono.just(
+				new DefaultResponse(new DefaultServiceInstance("myservice1", "myservice", "localhost", 8080, false))));
+		when(clientFactory.getInstance("service1", ReactorServiceInstanceLoadBalancer.class)).thenReturn(loadBalancer);
+		when(chain.filter(any())).thenReturn(Mono.empty());
+
+		filter.filter(serverWebExchange, chain);
+
+		verify(loadBalancer)
+				.choose(argThat((Request passedRequest) -> ((ServerHttpRequestContext) passedRequest.getContext())
+						.getClientRequest().equals(request)
+						&& ((ServerHttpRequestContext) passedRequest.getContext()).getHint().equals(hint)));
+
+	}
+
+	@NotNull
+	private Map<String, String> buildHints(String hint) {
+		Map<String, String> hints = new HashMap<>();
+		hints.put("default", hint);
+		return hints;
+	}
+
 	private ServerWebExchange testFilter(MockServerHttpRequest request, URI uri) {
 		return testFilter(MockServerWebExchange.from(request), uri);
 	}
@@ -286,7 +334,8 @@ public class ReactiveLoadBalancerClientFilterTests {
 				"service1", -1);
 		when(clientFactory.getInstance("service1", ReactorServiceInstanceLoadBalancer.class)).thenReturn(loadBalancer);
 
-		ReactiveLoadBalancerClientFilter filter = new ReactiveLoadBalancerClientFilter(clientFactory, properties);
+		ReactiveLoadBalancerClientFilter filter = new ReactiveLoadBalancerClientFilter(clientFactory, properties,
+				loadBalancerProperties);
 		filter.filter(exchange, chain).block();
 
 		return captor.getValue();
