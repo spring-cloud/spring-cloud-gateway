@@ -17,17 +17,19 @@
 package org.springframework.cloud.gateway.filter;
 
 import java.net.URI;
+import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.client.loadbalancer.DefaultRequest;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerUriTools;
-import org.springframework.cloud.client.loadbalancer.Request;
 import org.springframework.cloud.client.loadbalancer.Response;
-import org.springframework.cloud.client.loadbalancer.reactive.ReactiveLoadBalancer;
-import org.springframework.cloud.gateway.config.LoadBalancerProperties;
+import org.springframework.cloud.client.loadbalancer.ServerHttpRequestContext;
+import org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerProperties;
+import org.springframework.cloud.gateway.config.GatewayLoadBalancerProperties;
 import org.springframework.cloud.gateway.support.DelegatingServiceInstance;
 import org.springframework.cloud.gateway.support.NotFoundException;
 import org.springframework.cloud.loadbalancer.core.ReactorLoadBalancer;
@@ -48,6 +50,7 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.a
  * @author Tim Ysewyn
  * @author Olga Maciaszek-Sharma
  */
+@SuppressWarnings("rawtypes")
 public class ReactiveLoadBalancerClientFilter implements GlobalFilter, Ordered {
 
 	private static final Log log = LogFactory.getLog(ReactiveLoadBalancerClientFilter.class);
@@ -59,12 +62,15 @@ public class ReactiveLoadBalancerClientFilter implements GlobalFilter, Ordered {
 
 	private final LoadBalancerClientFactory clientFactory;
 
-	private LoadBalancerProperties properties;
+	private final GatewayLoadBalancerProperties properties;
+
+	private final LoadBalancerProperties loadBalancerProperties;
 
 	public ReactiveLoadBalancerClientFilter(LoadBalancerClientFactory clientFactory,
-			LoadBalancerProperties properties) {
+			GatewayLoadBalancerProperties properties, LoadBalancerProperties loadBalancerProperties) {
 		this.clientFactory = clientFactory;
 		this.properties = properties;
+		this.loadBalancerProperties = loadBalancerProperties;
 	}
 
 	@Override
@@ -120,20 +126,23 @@ public class ReactiveLoadBalancerClientFilter implements GlobalFilter, Ordered {
 		return LoadBalancerUriTools.reconstructURI(serviceInstance, original);
 	}
 
-	@SuppressWarnings("deprecation")
 	private Mono<Response<ServiceInstance>> choose(ServerWebExchange exchange) {
 		URI uri = exchange.getAttribute(GATEWAY_REQUEST_URL_ATTR);
-		ReactorLoadBalancer<ServiceInstance> loadBalancer = this.clientFactory.getInstance(uri.getHost(),
+		String serviceId = uri.getHost();
+		ReactorLoadBalancer<ServiceInstance> loadBalancer = this.clientFactory.getInstance(serviceId,
 				ReactorServiceInstanceLoadBalancer.class);
 		if (loadBalancer == null) {
-			throw new NotFoundException("No loadbalancer available for " + uri.getHost());
+			throw new NotFoundException("No loadbalancer available for " + serviceId);
 		}
-		return loadBalancer.choose(createRequest());
+		DefaultRequest<ServerHttpRequestContext> lbRequest = new DefaultRequest<>(new ServerHttpRequestContext(
+				exchange.getRequest(), getHint(serviceId, loadBalancerProperties.getHint())));
+		return loadBalancer.choose(lbRequest);
 	}
 
-	@SuppressWarnings("deprecation")
-	private Request createRequest() {
-		return ReactiveLoadBalancer.REQUEST;
+	private String getHint(String serviceId, Map<String, String> hints) {
+		String defaultHint = hints.getOrDefault("default", "default");
+		String hintPropertyValue = hints.get(serviceId);
+		return hintPropertyValue != null ? hintPropertyValue : defaultHint;
 	}
 
 }
