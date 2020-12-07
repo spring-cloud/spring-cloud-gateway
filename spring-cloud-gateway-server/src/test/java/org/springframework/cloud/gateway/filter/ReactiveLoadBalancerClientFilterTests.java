@@ -22,13 +22,13 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 
 import org.jetbrains.annotations.NotNull;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.client.DefaultServiceInstance;
@@ -52,6 +52,7 @@ import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
@@ -71,8 +72,8 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.G
  * @author Olga Maciaszek-Sharma
  */
 @SuppressWarnings("UnassignedFluxMonoInstance")
-@RunWith(MockitoJUnitRunner.class)
-public class ReactiveLoadBalancerClientFilterTests {
+@ExtendWith(MockitoExtension.class)
+class ReactiveLoadBalancerClientFilterTests {
 
 	private ServerWebExchange exchange;
 
@@ -90,14 +91,15 @@ public class ReactiveLoadBalancerClientFilterTests {
 	@InjectMocks
 	private ReactiveLoadBalancerClientFilter filter;
 
-	@Before
-	public void setup() {
+	@BeforeEach
+	void setup() {
 		properties = new GatewayLoadBalancerProperties();
-		exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/mypath").build());
+		exchange = MockServerWebExchange
+				.from(MockServerHttpRequest.get("/mypath").build());
 	}
 
 	@Test
-	public void shouldNotFilterWhenGatewayRequestUrlIsMissing() {
+	void shouldNotFilterWhenGatewayRequestUrlIsMissing() {
 		filter.filter(exchange, chain);
 
 		verify(chain).filter(exchange);
@@ -106,7 +108,7 @@ public class ReactiveLoadBalancerClientFilterTests {
 	}
 
 	@Test
-	public void shouldNotFilterWhenGatewayRequestUrlSchemeIsNotLb() {
+	void shouldNotFilterWhenGatewayRequestUrlSchemeIsNotLb() {
 		URI uri = UriComponentsBuilder.fromUriString("http://myservice").build().toUri();
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, uri);
 
@@ -117,17 +119,20 @@ public class ReactiveLoadBalancerClientFilterTests {
 		verifyNoInteractions(clientFactory);
 	}
 
-	@Test(expected = NotFoundException.class)
-	public void shouldThrowExceptionWhenNoServiceInstanceIsFound() {
-		URI uri = UriComponentsBuilder.fromUriString("lb://myservice").build().toUri();
-		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, uri);
+	@Test
+	void shouldThrowExceptionWhenNoServiceInstanceIsFound() {
+		assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> {
+			URI uri = UriComponentsBuilder.fromUriString("lb://myservice").build()
+					.toUri();
+			exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, uri);
 
-		filter.filter(exchange, chain).block();
+			filter.filter(exchange, chain).block();
+		});
 	}
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public void shouldFilter() {
+	void shouldFilter() {
 		URI url = UriComponentsBuilder.fromUriString("lb://myservice").build().toUri();
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, url);
 
@@ -135,8 +140,11 @@ public class ReactiveLoadBalancerClientFilterTests {
 				true);
 
 		RoundRobinLoadBalancer loadBalancer = new RoundRobinLoadBalancer(
-				ServiceInstanceListSuppliers.toProvider("myservice", serviceInstance), "myservice", -1);
-		when(clientFactory.getInstance("myservice", ReactorServiceInstanceLoadBalancer.class)).thenReturn(loadBalancer);
+				ServiceInstanceListSuppliers
+						.toProvider("myservice", serviceInstance), "myservice", -1);
+		when(clientFactory
+				.getInstance("myservice", ReactorServiceInstanceLoadBalancer.class))
+				.thenReturn(loadBalancer);
 
 		when(chain.filter(exchange)).thenReturn(Mono.empty());
 
@@ -158,18 +166,21 @@ public class ReactiveLoadBalancerClientFilterTests {
 	}
 
 	@Test
-	public void happyPath() {
-		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost/get?a=b").build();
+	void happyPath() {
+		MockServerHttpRequest request = MockServerHttpRequest
+				.get("http://localhost/get?a=b").build();
 
 		URI lbUri = URI.create("lb://service1?a=b");
 		ServerWebExchange webExchange = testFilter(request, lbUri);
 		URI uri = webExchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
-		assertThat(uri).hasScheme("http").hasHost("service1-host1").hasParameter("a", "b");
+		assertThat(uri).hasScheme("http").hasHost("service1-host1")
+				.hasParameter("a", "b");
 	}
 
 	@Test
-	public void noQueryParams() {
-		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost/get").build();
+	void noQueryParams() {
+		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost/get")
+				.build();
 
 		ServerWebExchange webExchange = testFilter(request, URI.create("lb://service1"));
 		URI uri = webExchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
@@ -177,13 +188,16 @@ public class ReactiveLoadBalancerClientFilterTests {
 	}
 
 	@Test
-	public void encodedParameters() {
-		URI url = UriComponentsBuilder.fromUriString("http://localhost/get?a=b&c=d[]").buildAndExpand().encode()
+	void encodedParameters() {
+		URI url = UriComponentsBuilder.fromUriString("http://localhost/get?a=b&c=d[]")
+				.buildAndExpand().encode()
 				.toUri();
 
-		MockServerHttpRequest request = MockServerHttpRequest.method(HttpMethod.GET, url).build();
+		MockServerHttpRequest request = MockServerHttpRequest.method(HttpMethod.GET, url)
+				.build();
 
-		URI lbUrl = UriComponentsBuilder.fromUriString("lb://service1?a=b&c=d[]").buildAndExpand().encode().toUri();
+		URI lbUrl = UriComponentsBuilder.fromUriString("lb://service1?a=b&c=d[]")
+				.buildAndExpand().encode().toUri();
 
 		// prove that it is encoded
 		assertThat(lbUrl.getRawQuery()).isEqualTo("a=b&c=d%5B%5D");
@@ -199,10 +213,11 @@ public class ReactiveLoadBalancerClientFilterTests {
 	}
 
 	@Test
-	public void unencodedParameters() {
+	void unencodedParameters() {
 		URI url = URI.create("http://localhost/get?a=b&c=d[]");
 
-		MockServerHttpRequest request = MockServerHttpRequest.method(HttpMethod.GET, url).build();
+		MockServerHttpRequest request = MockServerHttpRequest.method(HttpMethod.GET, url)
+				.build();
 
 		URI lbUrl = URI.create("lb://service1?a=b&c=d[]");
 
@@ -219,8 +234,9 @@ public class ReactiveLoadBalancerClientFilterTests {
 	}
 
 	@Test
-	public void happyPathWithAttributeRatherThanScheme() {
-		MockServerHttpRequest request = MockServerHttpRequest.get("ws://localhost/get?a=b").build();
+	void happyPathWithAttributeRatherThanScheme() {
+		MockServerHttpRequest request = MockServerHttpRequest
+				.get("ws://localhost/get?a=b").build();
 
 		URI lbUri = URI.create("ws://service1?a=b");
 
@@ -233,7 +249,7 @@ public class ReactiveLoadBalancerClientFilterTests {
 	}
 
 	@Test
-	public void shouldNotFilterWhenGatewaySchemePrefixAttrIsNotLb() {
+	void shouldNotFilterWhenGatewaySchemePrefixAttrIsNotLb() {
 		URI uri = UriComponentsBuilder.fromUriString("http://myservice").build().toUri();
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, uri);
 		exchange.getAttributes().put(GATEWAY_SCHEME_PREFIX_ATTR, "xx");
@@ -246,12 +262,14 @@ public class ReactiveLoadBalancerClientFilterTests {
 	}
 
 	@Test
-	public void shouldThrow4O4ExceptionWhenNoServiceInstanceIsFound() {
+	void shouldThrow4O4ExceptionWhenNoServiceInstanceIsFound() {
 		URI uri = UriComponentsBuilder.fromUriString("lb://service1").build().toUri();
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, uri);
 		RoundRobinLoadBalancer loadBalancer = new RoundRobinLoadBalancer(
 				ServiceInstanceListSuppliers.toProvider("service1"), "service1", -1);
-		when(clientFactory.getInstance("service1", ReactorServiceInstanceLoadBalancer.class)).thenReturn(loadBalancer);
+		when(clientFactory
+				.getInstance("service1", ReactorServiceInstanceLoadBalancer.class))
+				.thenReturn(loadBalancer);
 		properties.setUse404(true);
 		ReactiveLoadBalancerClientFilter filter = new ReactiveLoadBalancerClientFilter(clientFactory, properties,
 				loadBalancerProperties);
@@ -266,16 +284,19 @@ public class ReactiveLoadBalancerClientFilterTests {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public void shouldOverrideSchemeUsingIsSecure() {
+	void shouldOverrideSchemeUsingIsSecure() {
 		URI url = UriComponentsBuilder.fromUriString("lb://myservice").build().toUri();
 		ServerWebExchange exchange = MockServerWebExchange
 				.from(MockServerHttpRequest.get("https://localhost:9999/mypath").build());
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, url);
 		ServiceInstance serviceInstance = new DefaultServiceInstance("myservice1", "myservice", "localhost", 8080,
 				false);
-		when(clientFactory.getInstance("myservice", ReactorServiceInstanceLoadBalancer.class)).thenReturn(
-				new RoundRobinLoadBalancer(ServiceInstanceListSuppliers.toProvider("myservice", serviceInstance),
-						"myservice", -1));
+		when(clientFactory
+				.getInstance("myservice", ReactorServiceInstanceLoadBalancer.class))
+				.thenReturn(
+						new RoundRobinLoadBalancer(ServiceInstanceListSuppliers
+								.toProvider("myservice", serviceInstance),
+								"myservice", -1));
 		when(chain.filter(exchange)).thenReturn(Mono.empty());
 
 		filter.filter(exchange, chain).block();
@@ -287,12 +308,13 @@ public class ReactiveLoadBalancerClientFilterTests {
 		verifyNoMoreInteractions(chain);
 	}
 
-	@SuppressWarnings({ "rawtypes" })
+	@SuppressWarnings({"rawtypes"})
 	@Test
-	public void shouldPassRequestToLoadBalancer() {
+	void shouldPassRequestToLoadBalancer() {
 		String hint = "test";
 		when(loadBalancerProperties.getHint()).thenReturn(buildHints(hint));
-		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost/get?a=b").build();
+		MockServerHttpRequest request = MockServerHttpRequest
+				.get("http://localhost/get?a=b").build();
 		URI lbUri = URI.create("lb://service1?a=b");
 		ServerWebExchange serverWebExchange = mock(ServerWebExchange.class);
 		when(serverWebExchange.getAttribute(GATEWAY_REQUEST_URL_ATTR)).thenReturn(lbUri);
