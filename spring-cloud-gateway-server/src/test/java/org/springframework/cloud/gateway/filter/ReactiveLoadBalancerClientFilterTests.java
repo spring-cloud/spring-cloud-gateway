@@ -34,6 +34,7 @@ import reactor.core.publisher.Mono;
 import org.springframework.cloud.client.DefaultServiceInstance;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.loadbalancer.DefaultResponse;
+import org.springframework.cloud.client.loadbalancer.LoadBalancerLifecycle;
 import org.springframework.cloud.client.loadbalancer.Request;
 import org.springframework.cloud.client.loadbalancer.ServerHttpRequestContext;
 import org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerProperties;
@@ -144,6 +145,8 @@ public class ReactiveLoadBalancerClientFilterTests {
 		assertThat((LinkedHashSet<URI>) exchange.getAttribute(GATEWAY_ORIGINAL_REQUEST_URL_ATTR)).contains(url);
 
 		verify(clientFactory).getInstance("myservice", ReactorServiceInstanceLoadBalancer.class);
+
+		verify(clientFactory).getInstances("myservice", LoadBalancerLifecycle.class);
 
 		verifyNoMoreInteractions(clientFactory);
 
