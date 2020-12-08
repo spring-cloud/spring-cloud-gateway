@@ -38,8 +38,8 @@ import org.springframework.cloud.client.loadbalancer.DefaultResponse;
 import org.springframework.cloud.client.loadbalancer.EmptyResponse;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerLifecycle;
 import org.springframework.cloud.client.loadbalancer.Request;
+import org.springframework.cloud.client.loadbalancer.RequestDataContext;
 import org.springframework.cloud.client.loadbalancer.Response;
-import org.springframework.cloud.client.loadbalancer.ServerHttpRequestContext;
 import org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerProperties;
 import org.springframework.cloud.gateway.config.GatewayLoadBalancerProperties;
 import org.springframework.cloud.gateway.support.NotFoundException;
@@ -314,10 +314,9 @@ class ReactiveLoadBalancerClientFilterTests {
 
 		filter.filter(serverWebExchange, chain);
 
-		verify(loadBalancer)
-				.choose(argThat((Request passedRequest) -> ((ServerHttpRequestContext) passedRequest.getContext())
-						.getClientRequest().equals(request)
-						&& ((ServerHttpRequestContext) passedRequest.getContext()).getHint().equals(hint)));
+		verify(loadBalancer).choose(argThat((Request passedRequest) -> ((RequestDataContext) passedRequest.getContext())
+				.getClientRequest().getUrl().equals(request.getURI())
+				&& ((RequestDataContext) passedRequest.getContext()).getHint().equals(hint)));
 
 	}
 

@@ -30,8 +30,9 @@ import org.springframework.cloud.client.loadbalancer.DefaultRequest;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerLifecycle;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerLifecycleValidator;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerUriTools;
+import org.springframework.cloud.client.loadbalancer.RequestData;
+import org.springframework.cloud.client.loadbalancer.RequestDataContext;
 import org.springframework.cloud.client.loadbalancer.Response;
-import org.springframework.cloud.client.loadbalancer.ServerHttpRequestContext;
 import org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerProperties;
 import org.springframework.cloud.gateway.config.GatewayLoadBalancerProperties;
 import org.springframework.cloud.gateway.support.DelegatingServiceInstance;
@@ -154,8 +155,8 @@ public class ReactiveLoadBalancerClientFilter implements GlobalFilter, Ordered {
 		if (loadBalancer == null) {
 			throw new NotFoundException("No loadbalancer available for " + serviceId);
 		}
-		DefaultRequest<ServerHttpRequestContext> lbRequest = new DefaultRequest<>(new ServerHttpRequestContext(
-				exchange.getRequest(), getHint(serviceId, loadBalancerProperties.getHint())));
+		DefaultRequest<RequestDataContext> lbRequest = new DefaultRequest<>(new RequestDataContext(
+				new RequestData(exchange.getRequest()), getHint(serviceId, loadBalancerProperties.getHint())));
 		supportedLifecycleProcessors.forEach(lifecycle -> lifecycle.onStart(lbRequest));
 		return loadBalancer.choose(lbRequest);
 	}
