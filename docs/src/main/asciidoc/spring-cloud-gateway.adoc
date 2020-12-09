@@ -1803,9 +1803,7 @@ However, if `GATEWAY_SCHEME_PREFIX_ATTR` is specified for the
 route in the Gateway configuration, the prefix is stripped and the resulting scheme from the
 route URL overrides the `ServiceInstance` configuration.
 
-WARNING: `LoadBalancerClientFilter` uses a blocking ribbon `LoadBalancerClient` under the hood.
-We suggest you use <<reactive-loadbalancer-client-filter,`ReactiveLoadBalancerClientFilter` instead>>.
-You can switch to it by setting the value of the `spring.cloud.loadbalancer.ribbon.enabled` to `false`.
+TIP: Gateway supports all the LoadBalancer features. You can read more about them in the https://docs.spring.io/spring-cloud-commons/docs/current/reference/html/#spring-cloud-loadbalancer[Spring Cloud Commons documentation].
 
 [[reactive-loadbalancer-client-filter]]
 === The `ReactiveLoadBalancerClientFilter`
