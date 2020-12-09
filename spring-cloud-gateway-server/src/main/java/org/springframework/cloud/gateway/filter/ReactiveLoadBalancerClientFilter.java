@@ -33,6 +33,7 @@ import org.springframework.cloud.client.loadbalancer.LoadBalancerUriTools;
 import org.springframework.cloud.client.loadbalancer.RequestData;
 import org.springframework.cloud.client.loadbalancer.RequestDataContext;
 import org.springframework.cloud.client.loadbalancer.Response;
+import org.springframework.cloud.client.loadbalancer.ResponseData;
 import org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerProperties;
 import org.springframework.cloud.gateway.config.GatewayLoadBalancerProperties;
 import org.springframework.cloud.gateway.support.DelegatingServiceInstance;
@@ -41,9 +42,6 @@ import org.springframework.cloud.loadbalancer.core.ReactorLoadBalancer;
 import org.springframework.cloud.loadbalancer.core.ReactorServiceInstanceLoadBalancer;
 import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
 import org.springframework.core.Ordered;
-import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.http.server.reactive.ServerHttpResponse;
-import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.server.ServerWebExchange;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_LOADBALANCER_RESPONSE_ATTR;
@@ -105,7 +103,7 @@ public class ReactiveLoadBalancerClientFilter implements GlobalFilter, Ordered {
 		String serviceId = requestUri.getHost();
 		Set<LoadBalancerLifecycle> supportedLifecycleProcessors = LoadBalancerLifecycleValidator
 				.getSupportedLifecycleProcessors(clientFactory.getInstances(serviceId, LoadBalancerLifecycle.class),
-						ServerHttpRequest.class, ServerHttpResponse.class, ServiceInstance.class);
+						RequestDataContext.class, ResponseData.class, ServiceInstance.class);
 		return choose(exchange, serviceId, supportedLifecycleProcessors).doOnNext(response -> {
 
 			if (!response.hasServer()) {
@@ -137,11 +135,12 @@ public class ReactiveLoadBalancerClientFilter implements GlobalFilter, Ordered {
 			exchange.getAttributes().put(GATEWAY_LOADBALANCER_RESPONSE_ATTR, response);
 		}).then(chain.filter(exchange))
 				.doOnError(throwable -> supportedLifecycleProcessors.forEach(lifecycle -> lifecycle.onComplete(
-						new CompletionContext<ClientResponse, ServiceInstance>(CompletionContext.Status.FAILED,
-								throwable, exchange.getAttribute(GATEWAY_LOADBALANCER_RESPONSE_ATTR)))))
+						new CompletionContext<ResponseData, ServiceInstance>(CompletionContext.Status.FAILED, throwable,
+								exchange.getAttribute(GATEWAY_LOADBALANCER_RESPONSE_ATTR)))))
 				.doOnSuccess(aVoid -> supportedLifecycleProcessors.forEach(
 						lifecycle -> lifecycle.onComplete(new CompletionContext<>(CompletionContext.Status.SUCCESS,
-								exchange.getAttribute(GATEWAY_LOADBALANCER_RESPONSE_ATTR), exchange.getResponse()))));
+								exchange.getAttribute(GATEWAY_LOADBALANCER_RESPONSE_ATTR),
+								new ResponseData(exchange.getResponse(), new RequestData(exchange.getRequest()))))));
 	}
 
 	protected URI reconstructURI(ServiceInstance serviceInstance, URI original) {
