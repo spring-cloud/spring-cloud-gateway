@@ -32,10 +32,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.cloud.client.DefaultServiceInstance;
 import org.springframework.cloud.gateway.config.GatewayMetricsProperties;
 import org.springframework.cloud.gateway.test.HttpBinCompatibleController;
 import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
 import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
+import org.springframework.cloud.loadbalancer.support.ServiceInstanceListSuppliers;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -204,7 +206,8 @@ public class GatewaySampleApplicationTests {
 
 		@Bean
 		public ServiceInstanceListSupplier fixedServiceInstanceListSupplier(Environment env) {
-			return ServiceInstanceListSupplier.fixed(env).instance("localhost", port, "httpbin").build();
+			return ServiceInstanceListSuppliers.from("httpbin",
+					new DefaultServiceInstance("httpbin-1", "httpbin", "localhost", port, false));
 		}
 
 	}
