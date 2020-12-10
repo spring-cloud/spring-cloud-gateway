@@ -31,20 +31,15 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.config.GatewayProperties;
-import org.springframework.cloud.gateway.event.FilterArgsEvent;
 import org.springframework.cloud.gateway.event.PredicateArgsEvent;
-import org.springframework.cloud.gateway.filter.FilterDefinition;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
-import org.springframework.cloud.gateway.filter.OrderedGatewayFilter;
-import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
 import org.springframework.cloud.gateway.handler.AsyncPredicate;
 import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
 import org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory;
 import org.springframework.cloud.gateway.support.ConfigurationService;
-import org.springframework.cloud.gateway.support.HasRouteId;
+import org.springframework.cloud.gateway.support.GatewayFilterContext;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
-import org.springframework.core.Ordered;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.validation.Validator;
@@ -71,35 +66,32 @@ public class RouteDefinitionRouteLocator
 
 	private final Map<String, RoutePredicateFactory> predicates = new LinkedHashMap<>();
 
-	private final Map<String, GatewayFilterFactory> gatewayFilterFactories = new HashMap<>();
-
 	private final GatewayProperties gatewayProperties;
+
+	private final GatewayFilterContext gatewayFilterContext;
 
 	@Deprecated
 	public RouteDefinitionRouteLocator(RouteDefinitionLocator routeDefinitionLocator,
-			List<RoutePredicateFactory> predicates,
-			List<GatewayFilterFactory> gatewayFilterFactories,
-			GatewayProperties gatewayProperties, ConversionService conversionService) {
+			List<RoutePredicateFactory> predicates, GatewayProperties gatewayProperties,
+			ConversionService conversionService,
+			GatewayFilterContext gatewayFilterContext) {
 		this.routeDefinitionLocator = routeDefinitionLocator;
 		this.configurationService = new ConfigurationService();
 		this.configurationService.setConversionService(conversionService);
 		initFactories(predicates);
-		gatewayFilterFactories.forEach(
-				factory -> this.gatewayFilterFactories.put(factory.name(), factory));
 		this.gatewayProperties = gatewayProperties;
+		this.gatewayFilterContext = gatewayFilterContext;
 	}
 
 	public RouteDefinitionRouteLocator(RouteDefinitionLocator routeDefinitionLocator,
-			List<RoutePredicateFactory> predicates,
-			List<GatewayFilterFactory> gatewayFilterFactories,
-			GatewayProperties gatewayProperties,
-			ConfigurationService configurationService) {
+			List<RoutePredicateFactory> predicates, GatewayProperties gatewayProperties,
+			ConfigurationService configurationService,
+			GatewayFilterContext gatewayFilterContext) {
 		this.routeDefinitionLocator = routeDefinitionLocator;
 		this.configurationService = configurationService;
 		initFactories(predicates);
-		gatewayFilterFactories.forEach(
-				factory -> this.gatewayFilterFactories.put(factory.name(), factory));
 		this.gatewayProperties = gatewayProperties;
+		this.gatewayFilterContext = gatewayFilterContext;
 	}
 
 	@Override
@@ -173,65 +165,16 @@ public class RouteDefinitionRouteLocator
 				.replaceFilters(gatewayFilters).build();
 	}
 
-	@SuppressWarnings("unchecked")
-	List<GatewayFilter> loadGatewayFilters(String id,
-			List<FilterDefinition> filterDefinitions) {
-		ArrayList<GatewayFilter> ordered = new ArrayList<>(filterDefinitions.size());
-		for (int i = 0; i < filterDefinitions.size(); i++) {
-			FilterDefinition definition = filterDefinitions.get(i);
-			GatewayFilterFactory factory = this.gatewayFilterFactories
-					.get(definition.getName());
-			if (factory == null) {
-				throw new IllegalArgumentException(
-						"Unable to find GatewayFilterFactory with name "
-								+ definition.getName());
-			}
-			if (logger.isDebugEnabled()) {
-				logger.debug("RouteDefinition " + id + " applying filter "
-						+ definition.getArgs() + " to " + definition.getName());
-			}
-
-			// @formatter:off
-			Object configuration = this.configurationService.with(factory)
-					.name(definition.getName())
-					.properties(definition.getArgs())
-					.eventFunction((bound, properties) -> new FilterArgsEvent(
-							// TODO: why explicit cast needed or java compile fails
-							RouteDefinitionRouteLocator.this, id, (Map<String, Object>) properties))
-					.bind();
-			// @formatter:on
-
-			// some filters require routeId
-			// TODO: is there a better place to apply this?
-			if (configuration instanceof HasRouteId) {
-				HasRouteId hasRouteId = (HasRouteId) configuration;
-				hasRouteId.setRouteId(id);
-			}
-
-			GatewayFilter gatewayFilter = factory.apply(configuration);
-			if (gatewayFilter instanceof Ordered) {
-				ordered.add(gatewayFilter);
-			}
-			else {
-				ordered.add(new OrderedGatewayFilter(gatewayFilter, i + 1));
-			}
-		}
-
-		return ordered;
-	}
-
 	private List<GatewayFilter> getFilters(RouteDefinition routeDefinition) {
 		List<GatewayFilter> filters = new ArrayList<>();
-
-		// TODO: support option to apply defaults after route specific filters?
-		if (!this.gatewayProperties.getDefaultFilters().isEmpty()) {
-			filters.addAll(loadGatewayFilters(DEFAULT_FILTERS,
-					new ArrayList<>(this.gatewayProperties.getDefaultFilters())));
+		if (routeDefinition.isEnableDefaultFilter()) {
+			filters.addAll(gatewayFilterContext.getDefaultGatewayFilters());
 		}
 
 		if (!routeDefinition.getFilters().isEmpty()) {
-			filters.addAll(loadGatewayFilters(routeDefinition.getId(),
-					new ArrayList<>(routeDefinition.getFilters())));
+			filters.addAll(
+					gatewayFilterContext.loadGatewayFilters(routeDefinition.getId(),
+							new ArrayList<>(routeDefinition.getFilters())));
 		}
 
 		AnnotationAwareOrderComparator.sort(filters);

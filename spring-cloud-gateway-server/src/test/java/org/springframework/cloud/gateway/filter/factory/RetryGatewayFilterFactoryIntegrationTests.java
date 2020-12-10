@@ -111,6 +111,7 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 				.isOk().expectBody(String.class).isEqualTo("2");
 	}
 
+	// log level must be TRACE
 	@Test
 	public void retryFilterPost() {
 		testClient.post().uri("/retrypost?key=postconfig&expectedbody=HelloConfig")
@@ -128,6 +129,7 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 				.exchange().expectStatus().isOk().expectBody(String.class).isEqualTo("3");
 	}
 
+	// log level must be TRACE
 	@Test
 	public void retryFilterPostOneTime() {
 		testClient.post().uri(

@@ -37,6 +37,7 @@ import org.springframework.cloud.gateway.handler.predicate.HostRoutePredicateFac
 import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
 import org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory;
 import org.springframework.cloud.gateway.support.ConfigurationService;
+import org.springframework.cloud.gateway.support.GatewayFilterContext;
 import org.springframework.util.StringUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -70,11 +71,14 @@ public class RouteDefinitionRouteLocatorTests {
 
 		PropertiesRouteDefinitionLocator routeDefinitionLocator = new PropertiesRouteDefinitionLocator(
 				gatewayProperties);
+
+		GatewayFilterContext gatewayFilterContext = new GatewayFilterContext(
+				gatewayProperties, new ConfigurationService(), gatewayFilterFactories);
 		@SuppressWarnings("deprecation")
 		RouteDefinitionRouteLocator routeDefinitionRouteLocator = new RouteDefinitionRouteLocator(
 				new CompositeRouteDefinitionLocator(Flux.just(routeDefinitionLocator)),
-				predicates, gatewayFilterFactories, gatewayProperties,
-				new ConfigurationService());
+				predicates, gatewayProperties, new ConfigurationService(),
+				gatewayFilterContext);
 
 		StepVerifier.create(routeDefinitionRouteLocator.getRoutes()).assertNext(route -> {
 			List<GatewayFilter> filters = route.getFilters();
@@ -101,11 +105,13 @@ public class RouteDefinitionRouteLocatorTests {
 
 		PropertiesRouteDefinitionLocator routeDefinitionLocator = new PropertiesRouteDefinitionLocator(
 				gatewayProperties);
+		GatewayFilterContext gatewayFilterContext = new GatewayFilterContext(
+				gatewayProperties, new ConfigurationService(), gatewayFilterFactories);
 		@SuppressWarnings("deprecation")
 		RouteDefinitionRouteLocator routeDefinitionRouteLocator = new RouteDefinitionRouteLocator(
 				new CompositeRouteDefinitionLocator(Flux.just(routeDefinitionLocator)),
-				predicates, gatewayFilterFactories, gatewayProperties,
-				new ConfigurationService());
+				predicates, gatewayProperties, new ConfigurationService(),
+				gatewayFilterContext);
 
 		StepVerifier.create(routeDefinitionRouteLocator.getRoutes()).assertNext(route -> {
 			List<GatewayFilter> filters = route.getFilters();

@@ -56,6 +56,8 @@ public class RouteDefinition {
 
 	private int order = 0;
 
+	private boolean enableDefaultFilter = true;
+
 	public RouteDefinition() {
 	}
 
@@ -123,6 +125,14 @@ public class RouteDefinition {
 
 	public void setMetadata(Map<String, Object> metadata) {
 		this.metadata = metadata;
+	}
+
+	boolean isEnableDefaultFilter() {
+		return enableDefaultFilter;
+	}
+
+	void setEnableDefaultFilter(boolean enableDefaultFilter) {
+		this.enableDefaultFilter = enableDefaultFilter;
 	}
 
 	@Override

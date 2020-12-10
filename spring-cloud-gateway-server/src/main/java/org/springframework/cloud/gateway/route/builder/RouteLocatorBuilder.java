@@ -23,8 +23,11 @@ import java.util.function.Function;
 
 import reactor.core.publisher.Flux;
 
+import org.springframework.cloud.gateway.config.GatewayProperties;
+import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.route.RouteLocator;
+import org.springframework.cloud.gateway.support.GatewayFilterContext;
 import org.springframework.context.ConfigurableApplicationContext;
 
 /**
@@ -98,6 +101,11 @@ public class RouteLocatorBuilder {
 		}
 
 		void add(Route.AsyncBuilder route) {
+			if (route.isEnableDefaultFilter()) {
+				route.filters(context.getBean(GatewayFilterContext.class)
+						.getDefaultGatewayFilters());
+			}
+
 			routes.add(route);
 		}
 

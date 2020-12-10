@@ -137,6 +137,7 @@ import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.RouteRefreshListener;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.support.ConfigurationService;
+import org.springframework.cloud.gateway.support.GatewayFilterContext;
 import org.springframework.cloud.gateway.support.StringToZonedDateTimeConverter;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -218,12 +219,12 @@ public class GatewayAutoConfiguration {
 
 	@Bean
 	public RouteLocator routeDefinitionRouteLocator(GatewayProperties properties,
-			List<GatewayFilterFactory> gatewayFilters,
 			List<RoutePredicateFactory> predicates,
 			RouteDefinitionLocator routeDefinitionLocator,
-			ConfigurationService configurationService) {
+			ConfigurationService configurationService,
+			GatewayFilterContext gatewayFilterContext) {
 		return new RouteDefinitionRouteLocator(routeDefinitionLocator, predicates,
-				gatewayFilters, properties, configurationService);
+				properties, configurationService, gatewayFilterContext);
 	}
 
 	@Bean
@@ -264,6 +265,14 @@ public class GatewayAutoConfiguration {
 	@Bean
 	public GatewayProperties gatewayProperties() {
 		return new GatewayProperties();
+	}
+
+	@Bean
+	public GatewayFilterContext gatewayFilterContext(GatewayProperties gatewayProperties,
+			ConfigurationService configurationService,
+			List<GatewayFilterFactory> gatewayFilterFactories) {
+		return new GatewayFilterContext(gatewayProperties, configurationService,
+				gatewayFilterFactories);
 	}
 
 	// ConfigurationProperty beans
