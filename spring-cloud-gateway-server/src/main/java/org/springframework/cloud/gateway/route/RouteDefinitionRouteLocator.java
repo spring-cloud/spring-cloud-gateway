@@ -174,7 +174,7 @@ public class RouteDefinitionRouteLocator
 	}
 
 	@SuppressWarnings("unchecked")
-	List<GatewayFilter> loadGatewayFilters(String id,
+	public List<GatewayFilter> loadGatewayFilters(String id,
 			List<FilterDefinition> filterDefinitions) {
 		ArrayList<GatewayFilter> ordered = new ArrayList<>(filterDefinitions.size());
 		for (int i = 0; i < filterDefinitions.size(); i++) {

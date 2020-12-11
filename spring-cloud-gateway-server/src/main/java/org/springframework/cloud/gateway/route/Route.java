@@ -169,6 +169,8 @@ public class Route implements Ordered {
 
 		protected Map<String, Object> metadata = new HashMap<>();
 
+		protected boolean enableDefaultFilters = false;
+
 		protected AbstractBuilder() {
 		}
 
@@ -240,6 +242,15 @@ public class Route implements Ordered {
 
 		public B filters(GatewayFilter... gatewayFilters) {
 			return filters(Arrays.asList(gatewayFilters));
+		}
+
+		public boolean isEnableDefaultFilters() {
+			return enableDefaultFilters;
+		}
+
+		public B setEnableDefaultFilters(boolean enableDefaultFilters) {
+			this.enableDefaultFilters = enableDefaultFilters;
+			return getThis();
 		}
 
 		public Route build() {

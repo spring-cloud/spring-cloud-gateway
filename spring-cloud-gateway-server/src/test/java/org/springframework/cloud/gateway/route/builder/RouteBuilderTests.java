@@ -121,6 +121,23 @@ public class RouteBuilderTests {
 				.expectComplete().verify();
 	}
 
+	@Test
+	public void testRoutesWithDefaultFilters() {
+		RouteLocator routeLocator = this.routeLocatorBuilder.routes()
+				.route("route1", r -> {
+					return r.host("*.somehost.org").and().path("/somepath")
+							.filters(f -> f.addRequestHeader("header1", "header-value-1"))
+							.uri("http://someuri").metadata(RESPONSE_TIMEOUT_ATTR, 1)
+							.metadata(CONNECT_TIMEOUT_ATTR, 1)
+							.setEnableDefaultFilters(true);
+				}).build();
+
+		StepVerifier.create(routeLocator.getRoutes())
+				.expectNextMatches(
+						r -> r.getId().equals("route1") && r.getFilters().size() == 3)
+				.expectComplete().verify();
+	}
+
 	@EnableAutoConfiguration
 	@Configuration(proxyBeanMethods = false)
 	public static class SpringConfig {
