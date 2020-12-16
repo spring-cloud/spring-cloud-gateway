@@ -47,14 +47,25 @@ public class ReadBodyRoutePredicateFactory extends AbstractRoutePredicateFactory
 
 	private final List<HttpMessageReader<?>> messageReaders;
 
+	private final boolean cacheTestResult;
+
 	public ReadBodyRoutePredicateFactory() {
 		super(Config.class);
 		this.messageReaders = HandlerStrategies.withDefaults().messageReaders();
+		this.cacheTestResult = false;
 	}
 
 	public ReadBodyRoutePredicateFactory(List<HttpMessageReader<?>> messageReaders) {
 		super(Config.class);
 		this.messageReaders = messageReaders;
+		this.cacheTestResult = false;
+	}
+
+	// TODO consider using it as default in GatewayAutoConfiguration
+	public ReadBodyRoutePredicateFactory(List<HttpMessageReader<?>> messageReaders, boolean cacheTestResult) {
+		super(Config.class);
+		this.messageReaders = messageReaders;
+		this.cacheTestResult = cacheTestResult;
 	}
 
 	@Override
@@ -66,6 +77,11 @@ public class ReadBodyRoutePredicateFactory extends AbstractRoutePredicateFactory
 				Class inClass = config.getInClass();
 
 				Object cachedBody = exchange.getAttribute(CACHE_REQUEST_BODY_OBJECT_KEY);
+				Boolean cachedTest = null;
+				if (cacheTestResult) {
+					cachedTest = exchange.getAttribute(TEST_ATTRIBUTE);
+				}
+
 				Mono<?> modifiedBody;
 				// We can only read the body from the request once, once that happens if
 				// we try to read the body again an exception will be thrown. The below
@@ -75,8 +91,15 @@ public class ReadBodyRoutePredicateFactory extends AbstractRoutePredicateFactory
 				// multiple times
 				if (cachedBody != null) {
 					try {
+						if (cachedTest != null) {
+							return Mono.just(cachedTest);
+						}
+
 						boolean test = config.predicate.test(cachedBody);
-						exchange.getAttributes().put(TEST_ATTRIBUTE, test);
+						if (cacheTestResult) {
+							exchange.getAttributes().put(TEST_ATTRIBUTE, test);
+						}
+
 						return Mono.just(test);
 					}
 					catch (ClassCastException e) {
