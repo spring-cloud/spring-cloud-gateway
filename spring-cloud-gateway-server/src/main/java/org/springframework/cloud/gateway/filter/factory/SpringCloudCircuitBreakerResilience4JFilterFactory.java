@@ -38,12 +38,15 @@ public class SpringCloudCircuitBreakerResilience4JFilterFactory extends SpringCl
 	}
 
 	@Override
-	protected Mono<Void> handleErrorWithoutFallback(Throwable t) {
+	protected Mono<Void> handleErrorWithoutFallback(Throwable t, boolean resumeWithoutError) {
 		if (java.util.concurrent.TimeoutException.class.isInstance(t)) {
 			return Mono.error(new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT, t.getMessage(), t));
 		}
 		if (CallNotPermittedException.class.isInstance(t)) {
 			return Mono.error(new ServiceUnavailableException());
+		}
+		if (resumeWithoutError) {
+			return Mono.empty();
 		}
 		return Mono.error(t);
 	}
