@@ -331,9 +331,12 @@ class ReactiveLoadBalancerClientFilterTests {
 		filter.filter(serverWebExchange, chain).subscribe();
 
 		verify(lifecycleProcessor).onStart(any(Request.class));
-		verify(lifecycleProcessor).onComplete(
-				argThat(completionContext -> CompletionContext.Status.SUCCESS.equals(completionContext.status())
-						&& completionContext.getLoadBalancerResponse().getServer().equals(serviceInstance)));
+		verify(lifecycleProcessor).onStartRequest(any(Request.class), any(Response.class));
+		verify(lifecycleProcessor).onComplete(argThat(completionContext -> CompletionContext.Status.SUCCESS
+				.equals(completionContext.status())
+				&& completionContext.getLoadBalancerResponse().getServer().equals(serviceInstance)
+				&& HttpMethod.GET.equals(
+						((RequestDataContext) completionContext.getLoadBalancerRequest().getContext()).method())));
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -346,22 +349,28 @@ class ReactiveLoadBalancerClientFilterTests {
 		filter.filter(serverWebExchange, chain).subscribe();
 
 		verify(lifecycleProcessor).onStart(any(Request.class));
-		verify(lifecycleProcessor).onComplete(
-				argThat(completionContext -> CompletionContext.Status.DISCARD.equals(completionContext.status())));
+		verify(lifecycleProcessor).onComplete(argThat(completionContext -> CompletionContext.Status.DISCARD
+				.equals(completionContext.status())
+				&& HttpMethod.GET.equals(
+						((RequestDataContext) completionContext.getLoadBalancerRequest().getContext()).method())));
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
 	void loadBalancerLifecycleCallbacksExecutedForFailed() {
 		LoadBalancerLifecycle lifecycleProcessor = mock(LoadBalancerLifecycle.class);
-		ServiceInstance serviceInstance = null;
+		ServiceInstance serviceInstance = new DefaultServiceInstance("myservice1", "myservice", "localhost", 8080,
+				false);
 		ServerWebExchange serverWebExchange = mockExchange(serviceInstance, lifecycleProcessor, true);
 
 		filter.filter(serverWebExchange, chain).subscribe();
 
 		verify(lifecycleProcessor).onStart(any(Request.class));
-		verify(lifecycleProcessor).onComplete(
-				argThat(completionContext -> CompletionContext.Status.FAILED.equals(completionContext.status())));
+		verify(lifecycleProcessor).onStartRequest(any(Request.class), any(Response.class));
+		verify(lifecycleProcessor).onComplete(argThat(completionContext -> CompletionContext.Status.FAILED
+				.equals(completionContext.status())
+				&& HttpMethod.GET.equals(
+						((RequestDataContext) completionContext.getLoadBalancerRequest().getContext()).method())));
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
