@@ -111,7 +111,7 @@ public class ReactiveLoadBalancerClientFilter implements GlobalFilter, Ordered {
 
 			if (!response.hasServer()) {
 				supportedLifecycleProcessors.forEach(lifecycle -> lifecycle
-						.onComplete(new CompletionContext<>(CompletionContext.Status.DISCARD, response, lbRequest)));
+						.onComplete(new CompletionContext<>(CompletionContext.Status.DISCARD, lbRequest, response)));
 				throw NotFoundException.create(properties.isUse404(), "Unable to find instance for " + url.getHost());
 			}
 
@@ -140,14 +140,13 @@ public class ReactiveLoadBalancerClientFilter implements GlobalFilter, Ordered {
 		}).then(chain.filter(exchange))
 				.doOnError(throwable -> supportedLifecycleProcessors.forEach(lifecycle -> lifecycle
 						.onComplete(new CompletionContext<ResponseData, ServiceInstance, RequestDataContext>(
-								CompletionContext.Status.FAILED, throwable,
-								exchange.getAttribute(GATEWAY_LOADBALANCER_RESPONSE_ATTR), lbRequest))))
+								CompletionContext.Status.FAILED, throwable, lbRequest,
+								exchange.getAttribute(GATEWAY_LOADBALANCER_RESPONSE_ATTR)))))
 				.doOnSuccess(aVoid -> supportedLifecycleProcessors.forEach(lifecycle -> lifecycle
 						.onComplete(new CompletionContext<ResponseData, ServiceInstance, RequestDataContext>(
-								CompletionContext.Status.SUCCESS,
+								CompletionContext.Status.SUCCESS, lbRequest,
 								exchange.getAttribute(GATEWAY_LOADBALANCER_RESPONSE_ATTR),
-								new ResponseData(exchange.getResponse(), new RequestData(exchange.getRequest())),
-								lbRequest))));
+								new ResponseData(exchange.getResponse(), new RequestData(exchange.getRequest()))))));
 	}
 
 	protected URI reconstructURI(ServiceInstance serviceInstance, URI original) {
