@@ -31,6 +31,7 @@ import org.springframework.cloud.client.loadbalancer.LoadBalancerLifecycle;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerLifecycleValidator;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerProperties;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerUriTools;
+import org.springframework.cloud.client.loadbalancer.Request;
 import org.springframework.cloud.client.loadbalancer.RequestData;
 import org.springframework.cloud.client.loadbalancer.RequestDataContext;
 import org.springframework.cloud.client.loadbalancer.Response;
@@ -104,11 +105,13 @@ public class ReactiveLoadBalancerClientFilter implements GlobalFilter, Ordered {
 		Set<LoadBalancerLifecycle> supportedLifecycleProcessors = LoadBalancerLifecycleValidator
 				.getSupportedLifecycleProcessors(clientFactory.getInstances(serviceId, LoadBalancerLifecycle.class),
 						RequestDataContext.class, ResponseData.class, ServiceInstance.class);
-		return choose(exchange, serviceId, supportedLifecycleProcessors).doOnNext(response -> {
+		DefaultRequest<RequestDataContext> lbRequest = new DefaultRequest<>(new RequestDataContext(
+				new RequestData(exchange.getRequest()), getHint(serviceId, loadBalancerProperties.getHint())));
+		return choose(lbRequest, serviceId, supportedLifecycleProcessors).doOnNext(response -> {
 
 			if (!response.hasServer()) {
 				supportedLifecycleProcessors.forEach(lifecycle -> lifecycle
-						.onComplete(new CompletionContext<>(CompletionContext.Status.DISCARD, response)));
+						.onComplete(new CompletionContext<>(CompletionContext.Status.DISCARD, lbRequest, response)));
 				throw NotFoundException.create(properties.isUse404(), "Unable to find instance for " + url.getHost());
 			}
 
@@ -133,12 +136,15 @@ public class ReactiveLoadBalancerClientFilter implements GlobalFilter, Ordered {
 			}
 			exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, requestUrl);
 			exchange.getAttributes().put(GATEWAY_LOADBALANCER_RESPONSE_ATTR, response);
+			supportedLifecycleProcessors.forEach(lifecycle -> lifecycle.onStartRequest(lbRequest, response));
 		}).then(chain.filter(exchange))
-				.doOnError(throwable -> supportedLifecycleProcessors.forEach(lifecycle -> lifecycle.onComplete(
-						new CompletionContext<ResponseData, ServiceInstance>(CompletionContext.Status.FAILED, throwable,
+				.doOnError(throwable -> supportedLifecycleProcessors.forEach(lifecycle -> lifecycle
+						.onComplete(new CompletionContext<ResponseData, ServiceInstance, RequestDataContext>(
+								CompletionContext.Status.FAILED, throwable, lbRequest,
 								exchange.getAttribute(GATEWAY_LOADBALANCER_RESPONSE_ATTR)))))
-				.doOnSuccess(aVoid -> supportedLifecycleProcessors.forEach(
-						lifecycle -> lifecycle.onComplete(new CompletionContext<>(CompletionContext.Status.SUCCESS,
+				.doOnSuccess(aVoid -> supportedLifecycleProcessors.forEach(lifecycle -> lifecycle
+						.onComplete(new CompletionContext<ResponseData, ServiceInstance, RequestDataContext>(
+								CompletionContext.Status.SUCCESS, lbRequest,
 								exchange.getAttribute(GATEWAY_LOADBALANCER_RESPONSE_ATTR),
 								new ResponseData(exchange.getResponse(), new RequestData(exchange.getRequest()))))));
 	}
@@ -147,15 +153,13 @@ public class ReactiveLoadBalancerClientFilter implements GlobalFilter, Ordered {
 		return LoadBalancerUriTools.reconstructURI(serviceInstance, original);
 	}
 
-	private Mono<Response<ServiceInstance>> choose(ServerWebExchange exchange, String serviceId,
+	private Mono<Response<ServiceInstance>> choose(Request<RequestDataContext> lbRequest, String serviceId,
 			Set<LoadBalancerLifecycle> supportedLifecycleProcessors) {
 		ReactorLoadBalancer<ServiceInstance> loadBalancer = this.clientFactory.getInstance(serviceId,
 				ReactorServiceInstanceLoadBalancer.class);
 		if (loadBalancer == null) {
 			throw new NotFoundException("No loadbalancer available for " + serviceId);
 		}
-		DefaultRequest<RequestDataContext> lbRequest = new DefaultRequest<>(new RequestDataContext(
-				new RequestData(exchange.getRequest()), getHint(serviceId, loadBalancerProperties.getHint())));
 		supportedLifecycleProcessors.forEach(lifecycle -> lifecycle.onStart(lbRequest));
 		return loadBalancer.choose(lbRequest);
 	}
