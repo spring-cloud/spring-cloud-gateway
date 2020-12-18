@@ -687,7 +687,7 @@ public RouteLocator routes(RouteLocatorBuilder builder) {
 ====
 
 This example forwards to the `/inCaseofFailureUseThis` URI when the circuit breaker fallback is called.
-Note that this example also demonstrates the (optional) Spring Cloud Netflix Ribbon load-balancing (defined by the `lb` prefix on the destination URI).
+Note that this example also demonstrates the (optional) Spring Cloud LoadBalancer load-balancing (defined by the `lb` prefix on the destination URI).
 
 The primary scenario is to use the `fallbackUri` to define an internal controller or handler within the gateway application.
 However, you can also reroute the request to a controller or handler in an external application, as follows:
