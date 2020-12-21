@@ -6,12 +6,12 @@
 	<parent>
 		<artifactId>spring-cloud-dependencies-parent</artifactId>
 		<groupId>org.springframework.cloud</groupId>
-		<version>3.0.0-SNAPSHOT</version>
+		<version>3.0.0</version>
 		<relativePath/>
 	</parent>
 
 	<artifactId>spring-cloud-gateway-dependencies</artifactId>
-	<version>3.0.0-SNAPSHOT</version>
+	<version>3.0.0</version>
 	<packaging>pom</packaging>
 
 	<name>spring-cloud-gateway-dependencies</name>
