@@ -256,7 +256,7 @@ public class GatewayFilterSpec extends UriSpec {
 	 */
 	// TODO: setup custom spec
 	public <T, R> GatewayFilterSpec modifyRequestBody(Class<T> inClass, Class<R> outClass,
-			RewriteFunction<T, R> rewriteFunction) {
+			RewriteFunction<Optional<T>, Optional<R>> rewriteFunction) {
 		return filter(getBean(ModifyRequestBodyGatewayFilterFactory.class)
 				.apply(c -> c.setRewriteFunction(inClass, outClass, rewriteFunction)));
 	}
@@ -272,7 +272,7 @@ public class GatewayFilterSpec extends UriSpec {
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
 	public <T, R> GatewayFilterSpec modifyRequestBody(Class<T> inClass, Class<R> outClass,
-			String newContentType, RewriteFunction<T, R> rewriteFunction) {
+			String newContentType, RewriteFunction<Optional<T>, Optional<R>> rewriteFunction) {
 		return filter(getBean(ModifyRequestBodyGatewayFilterFactory.class)
 				.apply(c -> c.setRewriteFunction(inClass, outClass, rewriteFunction)
 						.setContentType(newContentType)));

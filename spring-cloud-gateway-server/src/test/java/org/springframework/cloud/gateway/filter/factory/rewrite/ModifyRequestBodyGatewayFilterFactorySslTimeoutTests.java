@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.gateway.filter.factory.rewrite;
 
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.net.ssl.SSLException;
@@ -140,7 +141,7 @@ public class ModifyRequestBodyGatewayFilterFactorySslTimeoutTests
 									MediaType.APPLICATION_JSON_VALUE,
 									(serverWebExchange, aVoid) -> {
 										byte[] largeBody = new byte[10 * 1024 * 1024];
-										return Mono.just(new String(largeBody));
+										return Mono.just(Optional.of(new String(largeBody)));
 									}))
 							.uri(uri))
 					.route("test_modify_request_body_exception", r -> r.order(-1)

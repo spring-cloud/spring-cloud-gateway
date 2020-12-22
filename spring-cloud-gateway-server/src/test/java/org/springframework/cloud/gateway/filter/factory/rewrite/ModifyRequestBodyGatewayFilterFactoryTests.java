@@ -36,6 +36,8 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.reactive.function.BodyInserters;
 
+import java.util.Optional;
+
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 /**
@@ -68,6 +70,16 @@ public class ModifyRequestBodyGatewayFilterFactoryTests extends BaseWebClientTes
 	}
 
 	@Test
+	public void downstreamRequestBodyIsEmpty() {
+		testClient.post().uri("/post").header("Host", "www.modifyrequestbodyreturnempty.org")
+				.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_XML_VALUE)
+				.body(BodyInserters.fromValue("request")).exchange().expectStatus()
+				.isEqualTo(HttpStatus.OK).expectBody().jsonPath("headers.Content-Type")
+				.isEqualTo(MediaType.APPLICATION_JSON_VALUE).jsonPath("data")
+				.isEmpty();
+	}
+
+	@Test
 	public void modifyRequestBodyToLarge() {
 		testClient.post().uri("/post")
 				.header("Host", "www.modifyrequestbodyemptytolarge.org")
@@ -93,7 +105,7 @@ public class ModifyRequestBodyGatewayFilterFactoryTests extends BaseWebClientTes
 							.filters(f -> f.modifyRequestBody(String.class, String.class,
 									MediaType.APPLICATION_JSON_VALUE,
 									(serverWebExchange, aVoid) -> {
-										return Mono.just("modifyrequest");
+										return Mono.just(Optional.of("modifyrequest"));
 									}))
 							.uri(uri))
 					.route("test_modify_request_body_empty", r -> r.order(-1)
@@ -101,10 +113,18 @@ public class ModifyRequestBodyGatewayFilterFactoryTests extends BaseWebClientTes
 							.filters(f -> f.modifyRequestBody(String.class, String.class,
 									MediaType.APPLICATION_JSON_VALUE,
 									(serverWebExchange, body) -> {
-										if (body == null) {
-											return Mono.just("modifyrequest");
+										if (!body.isPresent()) {
+											return Mono.just(Optional.of("modifyrequest"));
 										}
-										return Mono.just(body.toUpperCase());
+										return Mono.just(Optional.of(body.get().toUpperCase()));
+									}))
+							.uri(uri))
+					.route("test_modify_request_body_return_empty", r -> r.order(-1)
+							.host("**.modifyrequestbodyreturnempty.org")
+							.filters(f -> f.modifyRequestBody(String.class, String.class,
+									MediaType.APPLICATION_JSON_VALUE,
+									(serverWebExchange, body) -> {
+										return Mono.just(Optional.empty());
 									}))
 							.uri(uri))
 					.route("test_modify_request_body_to_large", r -> r.order(-1)
@@ -113,7 +133,7 @@ public class ModifyRequestBodyGatewayFilterFactoryTests extends BaseWebClientTes
 									MediaType.APPLICATION_JSON_VALUE,
 									(serverWebExchange, body) -> {
 										return Mono.just(
-												"tolarge-tolarge-tolarge-tolarge-tolarge-tolarge-tolarge-tolarge-tolarge-tolarge-tolarge-tolarge-tolarge-tolarge-tolarge-tolarge");
+												Optional.of("tolarge-tolarge-tolarge-tolarge-tolarge-tolarge-tolarge-tolarge-tolarge-tolarge-tolarge-tolarge-tolarge-tolarge-tolarge-tolarge"));
 									}))
 							.uri(uri))
 					.build();
