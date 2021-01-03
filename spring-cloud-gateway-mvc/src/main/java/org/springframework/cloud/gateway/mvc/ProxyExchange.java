@@ -130,6 +130,7 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestResponseBody
  * </p>
  *
  * @author Dave Syer
+ * @author chentong
  *
  */
 public class ProxyExchange<T> {
@@ -155,6 +156,8 @@ public class ProxyExchange<T> {
 	private WebDataBinderFactory binderFactory;
 
 	private Set<String> sensitive;
+
+	private Set<String> insensitive;
 
 	private HttpHeaders headers = new HttpHeaders();
 
@@ -220,6 +223,29 @@ public class ProxyExchange<T> {
 		}
 		for (String name : names) {
 			this.sensitive.add(name.toLowerCase());
+		}
+		if (this.insensitive != null) {
+			this.sensitive.removeAll(this.insensitive);
+		}
+		return this;
+	}
+
+	/**
+	 * Sets the names of insensitive headers that are passed downstream to the backend
+	 * service.
+	 *
+	 * @param names the names of insensitive headers
+	 * @return this for convenience
+	 */
+	public ProxyExchange<T> insensitive(String... names) {
+		if (this.insensitive == null) {
+			this.insensitive = new HashSet<>();
+		}
+		for (String name : names) {
+			this.insensitive.add(name.toLowerCase());
+		}
+		if (this.sensitive != null) {
+			this.sensitive.removeAll(this.insensitive);
 		}
 		return this;
 	}

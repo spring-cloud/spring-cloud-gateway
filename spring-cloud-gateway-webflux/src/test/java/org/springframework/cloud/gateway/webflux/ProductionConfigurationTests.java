@@ -204,11 +204,12 @@ public class ProductionConfigurationTests {
 						Map.class)
 				.getBody();
 		assertThat(headers).doesNotContainKey("foo").doesNotContainKey("hello")
-				.containsKeys("bar", "abc");
+				.containsKeys("bar", "abc", "Authorization");
 
 		assertThat(headers.get("bar")).containsOnly("hello");
 		assertThat(headers.get("abc")).containsOnly("123");
 		assertThat(headers.get("baz")).containsOnly("fob");
+		assertThat(headers.get("Authorization")).containsOnly("token");
 	}
 
 	@Test
@@ -333,9 +334,11 @@ public class ProductionConfigurationTests {
 					ProxyExchange<Map<String, List<String>>> proxy) {
 				proxy.sensitive("foo");
 				proxy.sensitive("hello");
+				proxy.insensitive("authorization");
 				proxy.header("bar", "hello");
 				proxy.header("abc", "123");
 				proxy.header("hello", "world");
+				proxy.header("Authorization", "token");
 				return proxy.uri(home.toString() + "/headers").get();
 			}
 
