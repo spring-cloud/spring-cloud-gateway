@@ -56,7 +56,7 @@
 		<junit-pioneer.version>0.9.0</junit-pioneer.version>
 		<spring-cloud-circuitbreaker.version>2.0.1-SNAPSHOT</spring-cloud-circuitbreaker.version>
 		<spring-cloud-commons.version>3.0.1-SNAPSHOT</spring-cloud-commons.version>
-		<testcontainers.version>1.14.3</testcontainers.version>
+		<testcontainers.version>1.15.1</testcontainers.version>
 	</properties>
 
 	<dependencyManagement>
