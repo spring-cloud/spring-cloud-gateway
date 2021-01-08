@@ -53,7 +53,7 @@
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<blockhound.version>1.0.4.RELEASE</blockhound.version>
 		<java.version>1.8</java.version>
-		<junit-pioneer.version>0.9.0</junit-pioneer.version>
+		<junit-pioneer.version>1.0.0</junit-pioneer.version>
 		<spring-cloud-circuitbreaker.version>2.0.1-SNAPSHOT</spring-cloud-circuitbreaker.version>
 		<spring-cloud-commons.version>3.0.1-SNAPSHOT</spring-cloud-commons.version>
 		<testcontainers.version>1.15.1</testcontainers.version>
