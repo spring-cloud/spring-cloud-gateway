@@ -20,7 +20,7 @@ import java.util.List;
 
 import io.micrometer.core.instrument.MeterRegistry;
 
-import org.springframework.boot.actuate.autoconfigure.metrics.MeterRegistryAutoConfiguration;
+import org.springframework.boot.actuate.autoconfigure.metrics.CompositeMeterRegistryAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.metrics.MetricsAutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
@@ -39,10 +39,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.DispatcherHandler;
 
 @Configuration(proxyBeanMethods = false)
-@ConditionalOnProperty(name = "spring.cloud.gateway.enabled", matchIfMissing = true)
+@ConditionalOnProperty(name = GatewayProperties.PREFIX + ".enabled", matchIfMissing = true)
 @EnableConfigurationProperties(GatewayMetricsProperties.class)
 @AutoConfigureBefore(HttpHandlerAutoConfiguration.class)
-@AutoConfigureAfter({ MetricsAutoConfiguration.class, MeterRegistryAutoConfiguration.class })
+@AutoConfigureAfter({ MetricsAutoConfiguration.class, CompositeMeterRegistryAutoConfiguration.class })
 @ConditionalOnClass({ DispatcherHandler.class, MeterRegistry.class, MetricsAutoConfiguration.class })
 public class GatewayMetricsAutoConfiguration {
 
@@ -57,17 +57,18 @@ public class GatewayMetricsAutoConfiguration {
 	}
 
 	@Bean
-	public PropertiesTagsProvider propertiesTagsProvider(GatewayMetricsProperties gatewayMetricsProperties) {
-		return new PropertiesTagsProvider(gatewayMetricsProperties.getTags());
+	public PropertiesTagsProvider propertiesTagsProvider(GatewayMetricsProperties properties) {
+		return new PropertiesTagsProvider(properties.getTags());
 	}
 
 	@Bean
 	@ConditionalOnBean(MeterRegistry.class)
-	@ConditionalOnProperty(name = "spring.cloud.gateway.metrics.enabled", matchIfMissing = true)
-	// don't use @ConditionalOnEnabledGlobalFilter
+	@ConditionalOnProperty(name = GatewayProperties.PREFIX + ".metrics.enabled", matchIfMissing = true)
+	// don't use @ConditionalOnEnabledGlobalFilter as the above property may
+	// encompass more than just the filter
 	public GatewayMetricsFilter gatewayMetricFilter(MeterRegistry meterRegistry,
-			List<GatewayTagsProvider> tagsProviders) {
-		return new GatewayMetricsFilter(meterRegistry, tagsProviders);
+			List<GatewayTagsProvider> tagsProviders, GatewayMetricsProperties properties) {
+		return new GatewayMetricsFilter(meterRegistry, tagsProviders, properties.getPrefix());
 	}
 
 }

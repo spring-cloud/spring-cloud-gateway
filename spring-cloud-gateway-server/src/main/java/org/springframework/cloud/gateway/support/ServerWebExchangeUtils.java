@@ -31,6 +31,7 @@ import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import org.springframework.cloud.client.loadbalancer.Response;
 import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
 import org.springframework.cloud.gateway.handler.AsyncPredicate;
 import org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory;
@@ -148,6 +149,11 @@ public final class ServerWebExchangeUtils {
 	 */
 	public static final String CACHED_REQUEST_BODY_ATTR = "cachedRequestBody";
 
+	/**
+	 * Gateway LoadBalancer {@link Response} attribute name.
+	 */
+	public static final String GATEWAY_LOADBALANCER_RESPONSE_ATTR = qualify("gatewayLoadBalancerResponse");
+
 	private ServerWebExchangeUtils() {
 		throw new AssertionError("Must not instantiate utility class.");
 	}
@@ -194,7 +200,7 @@ public final class ServerWebExchangeUtils {
 			return setResponseStatus(exchange, statusHolder.getHttpStatus());
 		}
 		if (statusHolder.getStatus() != null && exchange.getResponse() instanceof AbstractServerHttpResponse) { // non-standard
-			((AbstractServerHttpResponse) exchange.getResponse()).setStatusCodeValue(statusHolder.getStatus());
+			((AbstractServerHttpResponse) exchange.getResponse()).setRawStatusCode(statusHolder.getStatus());
 			return true;
 		}
 		return false;
@@ -210,9 +216,9 @@ public final class ServerWebExchangeUtils {
 				UriComponentsBuilder.fromUri(uri).build(true);
 				return true;
 			}
-			catch (IllegalArgumentException ignore) {
+			catch (IllegalArgumentException ignored) {
 				if (log.isTraceEnabled()) {
-					log.trace("Error in containsEncodedParts", ignore);
+					log.trace("Error in containsEncodedParts", ignored);
 				}
 			}
 

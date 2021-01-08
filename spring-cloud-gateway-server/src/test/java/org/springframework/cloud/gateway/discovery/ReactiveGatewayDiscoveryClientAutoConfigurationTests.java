@@ -26,7 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.gateway.config.LoadBalancerProperties;
+import org.springframework.cloud.gateway.config.GatewayLoadBalancerProperties;
 import org.springframework.cloud.gateway.route.RouteDefinition;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -46,7 +46,7 @@ public class ReactiveGatewayDiscoveryClientAutoConfigurationTests {
 		private DiscoveryClientRouteDefinitionLocator locator;
 
 		@Autowired(required = false)
-		private LoadBalancerProperties properties;
+		private GatewayLoadBalancerProperties properties;
 
 		@Test
 		public void routeLocatorBeanExists() {

@@ -44,13 +44,13 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.G
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnMissingClass("org.springframework.cloud.loadbalancer.core.ReactorLoadBalancer")
 @ConditionalOnMissingBean(ReactiveLoadBalancer.class)
-@EnableConfigurationProperties(LoadBalancerProperties.class)
+@EnableConfigurationProperties(GatewayLoadBalancerProperties.class)
 @AutoConfigureAfter(GatewayReactiveLoadBalancerClientAutoConfiguration.class)
 public class GatewayNoLoadBalancerClientAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean(ReactiveLoadBalancerClientFilter.class)
-	public NoLoadBalancerClientFilter noLoadBalancerClientFilter(LoadBalancerProperties properties) {
+	public NoLoadBalancerClientFilter noLoadBalancerClientFilter(GatewayLoadBalancerProperties properties) {
 		return new NoLoadBalancerClientFilter(properties.isUse404());
 	}
 

@@ -36,9 +36,14 @@ import org.springframework.validation.annotation.Validated;
 /**
  * @author Spencer Gibb
  */
-@ConfigurationProperties("spring.cloud.gateway")
+@ConfigurationProperties(GatewayProperties.PREFIX)
 @Validated
 public class GatewayProperties {
+
+	/**
+	 * Properties prefix.
+	 */
+	public static final String PREFIX = "spring.cloud.gateway";
 
 	private final Log logger = LogFactory.getLog(getClass());
 

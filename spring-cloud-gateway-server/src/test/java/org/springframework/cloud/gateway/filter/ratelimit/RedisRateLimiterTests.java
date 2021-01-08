@@ -61,12 +61,12 @@ public class RedisRateLimiterTests extends BaseWebClientTests {
 	private RedisRateLimiter rateLimiter;
 
 	@BeforeEach
-	public void setUp() throws Exception {
+	public void setUp() {
 		assumeThat("Ignore on Circle", System.getenv("CIRCLECI"), is(nullValue()));
 	}
 
 	@AfterEach
-	public void tearDown() throws Exception {
+	public void tearDown() {
 		rateLimiter.setIncludeHeaders(true);
 	}
 

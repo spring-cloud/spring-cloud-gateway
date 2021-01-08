@@ -26,6 +26,7 @@ import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import reactor.netty.http.client.HttpClient;
@@ -88,6 +89,7 @@ public class ClientCertAuthSSLTests extends SingleCertSSLTests {
 		}
 	}
 
+	@Ignore // see https://github.com/spring-cloud/spring-cloud-gateway/issues/2022
 	@Test
 	public void testSslTrust() {
 		testClient.get().uri("/ssltrust").exchange().expectStatus().is2xxSuccessful();

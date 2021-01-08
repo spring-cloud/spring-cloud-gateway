@@ -44,9 +44,9 @@ import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
 import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
+import org.springframework.cloud.loadbalancer.support.ServiceInstanceListSuppliers;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
-import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -292,9 +292,11 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 		protected int port = 0;
 
 		@Bean
-		public ServiceInstanceListSupplier staticServiceInstanceListSupplier(Environment env) {
-			return ServiceInstanceListSupplier.fixed(env).instance(new DefaultServiceInstance("doesnotexist1",
-					"badservice2", "localhost.domain.doesnot.exist", port, true)).instance(port, "badservice2").build();
+		public ServiceInstanceListSupplier staticServiceInstanceListSupplier() {
+			return ServiceInstanceListSuppliers.from("badservice2",
+					new DefaultServiceInstance("doesnotexist1", "badservice2", "localhost.domain.doesnot.exist", port,
+							true),
+					new DefaultServiceInstance("badservice2-1", "badservice2", "localhost", port, false));
 		}
 
 	}

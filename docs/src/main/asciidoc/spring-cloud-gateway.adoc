@@ -687,7 +687,7 @@ public RouteLocator routes(RouteLocatorBuilder builder) {
 ====
 
 This example forwards to the `/inCaseofFailureUseThis` URI when the circuit breaker fallback is called.
-Note that this example also demonstrates the (optional) Spring Cloud Netflix Ribbon load-balancing (defined by the `lb` prefix on the destination URI).
+Note that this example also demonstrates the (optional) Spring Cloud LoadBalancer load-balancing (defined by the `lb` prefix on the destination URI).
 
 The primary scenario is to use the `fallbackUri` to define an internal controller or handler within the gateway application.
 However, you can also reroute the request to a controller or handler in an external application, as follows:
@@ -1539,11 +1539,11 @@ errorMessage` : `Request size is larger than permissible limit. Request size is 
 
 NOTE: The default request size is set to five MB if not provided as a filter argument in the route definition.
 
-=== The `SetRequestHost` `GatewayFilter` Factory
+=== The `SetRequestHostHeader` `GatewayFilter` Factory
 
-There are certain situation when the host header may need to be overridden. In this situation, the `SetRequestHost` `GatewayFilter` factory can replace the existing host header with a specified vaue.
+There are certain situation when the host header may need to be overridden. In this situation, the `SetRequestHostHeader` `GatewayFilter` factory can replace the existing host header with a specified vaue.
 The filter takes a `host` parameter.
-The following listing configures a `SetRequestHost` `GatewayFilter`:
+The following listing configures a `SetRequestHostHeader` `GatewayFilter`:
 
 .application.yml
 ====
@@ -1558,13 +1558,13 @@ spring:
         predicates:
         - Path=/headers
         filters:
-        - name: SetRequestHost
+        - name: SetRequestHostHeader
           args:
             host: example.org
 ----
 ====
 
-The `SetRequestHost` `GatewayFilter` factory replaces the value of the host header with `example.org`.
+The `SetRequestHostHeader` `GatewayFilter` factory replaces the value of the host header with `example.org`.
 
 === Modify a Request Body `GatewayFilter` Factory
 
@@ -1605,6 +1605,9 @@ static class Hello {
     }
 }
 ----
+
+NOTE:  if the request has no body, the `RewriteFilter` will be passed `null`. `Mono.empty()` should be returned to assign a missing body in the request.
+
 ====
 
 === Modify a Response Body `GatewayFilter` Factory
@@ -1628,7 +1631,72 @@ public RouteLocator routes(RouteLocatorBuilder builder) {
         .build();
 }
 ----
+
+NOTE:  if the response has no body, the `RewriteFilter` will be passed `null`. `Mono.empty()` should be returned to assign a missing body in the response.
 ====
+
+=== Token Relay `GatewayFilter` Factory
+
+A Token Relay is where an OAuth2 consumer acts as a Client and
+forwards the incoming token to outgoing resource requests. The
+consumer can be a pure Client (like an SSO application) or a Resource
+Server.
+
+Spring Cloud Gateway can forward OAuth2 access tokens downstream to the services
+it is proxying. To add this functionlity to gateway you need to add the
+`TokenRelayGatewayFilterFactory` like this:
+
+.App.java
+[source,java]
+----
+
+@Bean
+public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
+    return builder.routes()
+            .route("resource", r -> r.path("/resource")
+                    .filters(f -> f.tokenRelay())
+                    .uri("http://localhost:9000"))
+            .build();
+}
+----
+
+or this
+
+.application.yaml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: resource
+        uri: http://localhost:9000
+        predicates:
+        - Path=/resource
+        filters:
+        - TokenRelay=
+----
+
+and it will (in addition to logging the user in and grabbing a token)
+pass the authentication token downstream to the services (in this case
+`/resource`).
+
+To enable this for Spring Cloud Gateway add the following dependencies
+
+- `org.springframework.boot:spring-boot-starter-oauth2-client`
+
+How does it work?  The
+{githubmaster}/src/main/java/org/springframework/cloud/gateway/security/TokenRelayGatewayFilterFactory.java[filter]
+extracts an access token from the currently authenticated user,
+and puts it in a request header for the downstream requests.
+
+For a full working sample see https://github.com/spring-cloud-samples/sample-gateway-oauth2login[this project].
+
+NOTE: A `TokenRelayGatewayFilterFactory` bean will only be created if the proper `spring.security.oauth2.client.*` properties are set which will trigger creation of a `ReactiveClientRegistrationRepository` bean.
+
+NOTE: The default implementation of `ReactiveOAuth2AuthorizedClientService` used by `TokenRelayGatewayFilterFactory`
+uses an in-memory data store.  You will need to provide your own implementation `ReactiveOAuth2AuthorizedClientService`
+if you need a more robust solution.
 
 === Default Filters
 
@@ -1735,9 +1803,7 @@ However, if `GATEWAY_SCHEME_PREFIX_ATTR` is specified for the
 route in the Gateway configuration, the prefix is stripped and the resulting scheme from the
 route URL overrides the `ServiceInstance` configuration.
 
-WARNING: `LoadBalancerClientFilter` uses a blocking ribbon `LoadBalancerClient` under the hood.
-We suggest you use <<reactive-loadbalancer-client-filter,`ReactiveLoadBalancerClientFilter` instead>>.
-You can switch to it by setting the value of the `spring.cloud.loadbalancer.ribbon.enabled` to `false`.
+TIP: Gateway supports all the LoadBalancer features. You can read more about them in the https://docs.spring.io/spring-cloud-commons/docs/current/reference/html/#spring-cloud-loadbalancer[Spring Cloud Commons documentation].
 
 [[reactive-loadbalancer-client-filter]]
 === The `ReactiveLoadBalancerClientFilter`
