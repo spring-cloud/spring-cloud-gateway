@@ -18,7 +18,6 @@ package org.springframework.cloud.gateway.route.builder;
 
 import java.time.ZonedDateTime;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
