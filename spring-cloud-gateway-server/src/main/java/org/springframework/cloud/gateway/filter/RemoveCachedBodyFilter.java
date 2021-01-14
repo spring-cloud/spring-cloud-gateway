@@ -44,7 +44,7 @@ public class RemoveCachedBodyFilter implements GlobalFilter, Ordered {
 			if (attribute != null && attribute instanceof PooledDataBuffer) {
 				PooledDataBuffer dataBuffer = (PooledDataBuffer) attribute;
 				if (dataBuffer.isAllocated()) {
-					adaptableLogger.traceLog(log, exchange, "releasing cached body in exchange attribute");
+					adaptableLogger.trace(log, exchange, "releasing cached body in exchange attribute");
 					dataBuffer.release();
 				}
 			}

@@ -85,7 +85,7 @@ public class ReadBodyRoutePredicateFactory extends AbstractRoutePredicateFactory
 						return Mono.just(test);
 					}
 					catch (ClassCastException e) {
-						adaptableLogger.debugLog(log, exchange, "Predicate test failed because class in predicate "
+						adaptableLogger.debug(log, exchange, "Predicate test failed because class in predicate "
 								+ "does not match the cached body object", e);
 					}
 					return Mono.just(false);

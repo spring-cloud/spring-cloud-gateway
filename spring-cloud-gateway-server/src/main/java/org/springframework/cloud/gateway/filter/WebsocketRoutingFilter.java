@@ -157,7 +157,7 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 			boolean encoded = containsEncodedParts(requestUrl);
 			URI wsRequestUrl = UriComponentsBuilder.fromUri(requestUrl).scheme(wsScheme).build(encoded).toUri();
 			exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, wsRequestUrl);
-			adaptableLogger.traceLog(log, exchange, "changeSchemeTo:[" + wsRequestUrl + "]");
+			adaptableLogger.trace(log, exchange, "changeSchemeTo:[" + wsRequestUrl + "]");
 		}
 	}
 

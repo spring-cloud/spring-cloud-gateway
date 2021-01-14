@@ -97,7 +97,7 @@ public class GatewayMetricsFilter implements GlobalFilter, Ordered {
 	private void endTimerInner(ServerWebExchange exchange, Sample sample) {
 		Tags tags = compositeTagsProvider.apply(exchange);
 
-		adaptableLogger.traceLog(log, exchange, metricsPrefix + ".requests tags: " + tags);
+		adaptableLogger.trace(log, exchange, metricsPrefix + ".requests tags: " + tags);
 		sample.stop(meterRegistry.timer(metricsPrefix + ".requests", tags));
 	}
 

@@ -139,7 +139,7 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 			}
 		}).request(method).uri(url).send((req, nettyOutbound) -> {
 			if (log.isTraceEnabled()) {
-				nettyOutbound.withConnection(connection -> adaptableLogger.traceLog(log, exchange, "outbound route: "
+				nettyOutbound.withConnection(connection -> adaptableLogger.trace(log, exchange, "outbound route: "
 						+ connection.channel().id().asShortText() + ", inbound: " + exchange.getLogPrefix()));
 			}
 			return nettyOutbound.send(request.getBody().map(this::getByteBuf));

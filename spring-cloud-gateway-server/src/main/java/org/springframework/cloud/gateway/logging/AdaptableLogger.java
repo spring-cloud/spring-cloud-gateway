@@ -11,24 +11,24 @@ import org.springframework.web.server.ServerWebExchange;
  */
 public interface AdaptableLogger {
 
-	void traceLog(Log log, ServerWebExchange exchange, Object message);
+	void trace(Log log, ServerWebExchange exchange, Object message);
 
-	void traceLog(Log log, ServerWebExchange exchange, Object message, Throwable throwable);
+	void trace(Log log, ServerWebExchange exchange, Object message, Throwable throwable);
 
-	void debugLog(Log log, ServerWebExchange exchange, Object message);
+	void debug(Log log, ServerWebExchange exchange, Object message);
 
-	void debugLog(Log log, ServerWebExchange exchange, Object message, Throwable throwable);
+	void debug(Log log, ServerWebExchange exchange, Object message, Throwable throwable);
 
-	void infoLog(Log log, ServerWebExchange exchange, Object message);
+	void info(Log log, ServerWebExchange exchange, Object message);
 
-	void infoLog(Log log, ServerWebExchange exchange, Object message, Throwable throwable);
+	void info(Log log, ServerWebExchange exchange, Object message, Throwable throwable);
 
-	void warnLog(Log log, ServerWebExchange exchange, Object message);
+	void warn(Log log, ServerWebExchange exchange, Object message);
 
-	void warnLog(Log log, ServerWebExchange exchange, Object message, Throwable throwable);
+	void warn(Log log, ServerWebExchange exchange, Object message, Throwable throwable);
 
-	void errorLog(Log log, ServerWebExchange exchange, Object message);
+	void error(Log log, ServerWebExchange exchange, Object message);
 
-	void errorLog(Log log, ServerWebExchange exchange, Object message, Throwable t);
+	void error(Log log, ServerWebExchange exchange, Object message, Throwable t);
 
 }

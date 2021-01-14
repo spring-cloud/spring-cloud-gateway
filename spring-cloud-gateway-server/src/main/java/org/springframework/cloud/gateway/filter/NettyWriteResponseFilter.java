@@ -77,7 +77,7 @@ public class NettyWriteResponseFilter implements GlobalFilter, Ordered {
 					if (connection == null) {
 						return Mono.empty();
 					}
-					adaptableLogger.traceLog(log, exchange, "NettyWriteResponseFilter start inbound: "
+					adaptableLogger.trace(log, exchange, "NettyWriteResponseFilter start inbound: "
 							+ connection.channel().id().asShortText() + ", outbound: "
 							+ exchange.getLogPrefix());
 					ServerHttpResponse response = exchange.getResponse();
@@ -94,7 +94,7 @@ public class NettyWriteResponseFilter implements GlobalFilter, Ordered {
 						contentType = response.getHeaders().getContentType();
 					}
 					catch (Exception e) {
-						adaptableLogger.traceLog(log, exchange, "invalid media type", e);
+						adaptableLogger.trace(log, exchange, "invalid media type", e);
 					}
 					return (isStreamingMediaType(contentType)
 							? response.writeAndFlushWith(body.map(Flux::just))

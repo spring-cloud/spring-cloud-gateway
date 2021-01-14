@@ -71,7 +71,7 @@ public class ForwardRoutingFilter implements GlobalFilter, Ordered {
 		}
 
 		// TODO: translate url?
-		adaptableLogger.traceLog(log, exchange, "Forwarding to URI: " + requestUrl);
+		adaptableLogger.trace(log, exchange, "Forwarding to URI: " + requestUrl);
 
 		return this.getDispatcherHandler().handle(exchange);
 	}

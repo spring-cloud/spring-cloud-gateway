@@ -78,8 +78,7 @@ public class PrefixPathGatewayFilterFactory
 
 				exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, request.getURI());
 
-				adaptableLogger.traceLog(log, exchange,
-						"Prefixed URI with: " + config.prefix + " -> " + request.getURI());
+				adaptableLogger.trace(log, exchange, "Prefixed URI with: " + config.prefix + " -> " + request.getURI());
 
 				return chain.filter(exchange.mutate().request(request).build());
 			}

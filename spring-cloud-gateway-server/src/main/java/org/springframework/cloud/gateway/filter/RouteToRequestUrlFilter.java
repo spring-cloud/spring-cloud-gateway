@@ -72,7 +72,7 @@ public class RouteToRequestUrlFilter implements GlobalFilter, Ordered {
 		if (route == null) {
 			return chain.filter(exchange);
 		}
-		adaptableLogger.traceLog(log, exchange, "RouteToRequestUrlFilter start");
+		adaptableLogger.trace(log, exchange, "RouteToRequestUrlFilter start");
 		URI uri = exchange.getRequest().getURI();
 		boolean encoded = containsEncodedParts(uri);
 		URI routeUri = route.getUri();

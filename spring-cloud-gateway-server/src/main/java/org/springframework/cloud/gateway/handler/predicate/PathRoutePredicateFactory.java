@@ -62,7 +62,7 @@ public class PathRoutePredicateFactory extends AbstractRoutePredicateFactory<Pat
 		if (log.isTraceEnabled()) {
 			String message = String.format("%s \"%s\" %s against value \"%s\"", prefix, desired,
 					match ? "matches" : "does not match", actual);
-			adaptableLogger.traceLog(log, exchange, message);
+			adaptableLogger.trace(log, exchange, message);
 		}
 	}
 

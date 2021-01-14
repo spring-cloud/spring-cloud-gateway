@@ -89,13 +89,13 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 				// .log("route-predicate-handler-mapping", Level.FINER) //name this
 				.flatMap((Function<Route, Mono<?>>) r -> {
 					exchange.getAttributes().remove(GATEWAY_PREDICATE_ROUTE_ATTR);
-					adaptableLogger.debugLog(logger, exchange, "Mapping [" + getExchangeDesc(exchange) + "] to " + r);
+					adaptableLogger.debug(logger, exchange, "Mapping [" + getExchangeDesc(exchange) + "] to " + r);
 
 					exchange.getAttributes().put(GATEWAY_ROUTE_ATTR, r);
 					return Mono.just(webHandler);
 				}).switchIfEmpty(Mono.empty().then(Mono.fromRunnable(() -> {
 					exchange.getAttributes().remove(GATEWAY_PREDICATE_ROUTE_ATTR);
-					adaptableLogger.traceLog(logger, exchange,
+					adaptableLogger.trace(logger, exchange,
 							"No RouteDefinition found for [" + getExchangeDesc(exchange) + "]");
 				})));
 	}
@@ -138,7 +138,7 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 				.next()
 				// TODO: error handling
 				.map(route -> {
-					adaptableLogger.debugLog(logger, exchange, "Route matched: " + route.getId());
+					adaptableLogger.debug(logger, exchange, "Route matched: " + route.getId());
 					validateRoute(route, exchange);
 					return route;
 				});

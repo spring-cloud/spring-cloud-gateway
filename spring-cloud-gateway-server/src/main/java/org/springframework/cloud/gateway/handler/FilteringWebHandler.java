@@ -84,7 +84,7 @@ public class FilteringWebHandler implements WebHandler {
 		combined.addAll(gatewayFilters);
 		// TODO: needed or cached?
 		AnnotationAwareOrderComparator.sort(combined);
-		adaptableLogger.debugLog(logger, exchange, "Sorted gatewayFilterFactories: " + combined);
+		adaptableLogger.debug(logger, exchange, "Sorted gatewayFilterFactories: " + combined);
 
 		return new DefaultGatewayFilterChain(combined).filter(exchange);
 	}

@@ -85,7 +85,7 @@ public class RemoteAddrRoutePredicateFactory
 					String host = exchange.getRequest().getURI().getHost();
 
 					if (log.isDebugEnabled() && !hostAddress.equals(host)) {
-						adaptableLogger.debugLog(log, exchange,
+						adaptableLogger.debug(log, exchange,
 								"Remote addresses didn't match " + hostAddress + " != " + host);
 					}
 

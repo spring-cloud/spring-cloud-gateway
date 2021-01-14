@@ -99,13 +99,13 @@ public class WeightRoutePredicateFactory extends AbstractRoutePredicateFactory<W
 				if (weights.containsKey(group)) {
 
 					String chosenRoute = weights.get(group);
-					adaptableLogger.traceLog(log, exchange, "in group weight: " + group + ", current route: " + routeId
+					adaptableLogger.trace(log, exchange, "in group weight: " + group + ", current route: " + routeId
 							+ "chosen route: " + chosenRoute);
 
 					return routeId.equals(chosenRoute);
 				}
 				else {
-					adaptableLogger.traceLog(log, exchange,
+					adaptableLogger.trace(log, exchange,
 							"no weights found for group: " + group + ", current route: " + routeId);
 				}
 

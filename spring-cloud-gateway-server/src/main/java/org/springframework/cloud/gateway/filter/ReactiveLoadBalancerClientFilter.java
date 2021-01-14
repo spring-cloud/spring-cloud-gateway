@@ -101,7 +101,7 @@ public class ReactiveLoadBalancerClientFilter implements GlobalFilter, Ordered {
 		// preserve the original url
 		addOriginalRequestUrl(exchange, url);
 
-		adaptableLogger.traceLog(log, exchange,
+		adaptableLogger.trace(log, exchange,
 				ReactiveLoadBalancerClientFilter.class.getSimpleName() + " url before: " + url);
 
 		URI requestUri = exchange.getAttribute(GATEWAY_REQUEST_URL_ATTR);
@@ -135,7 +135,7 @@ public class ReactiveLoadBalancerClientFilter implements GlobalFilter, Ordered {
 
 			URI requestUrl = reconstructURI(serviceInstance, uri);
 
-			adaptableLogger.traceLog(log, exchange, "LoadBalancerClientFilter url chosen: " + requestUrl);
+			adaptableLogger.trace(log, exchange, "LoadBalancerClientFilter url chosen: " + requestUrl);
 			exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, requestUrl);
 			exchange.getAttributes().put(GATEWAY_LOADBALANCER_RESPONSE_ATTR, response);
 			supportedLifecycleProcessors.forEach(lifecycle -> lifecycle.onStartRequest(lbRequest, response));

@@ -258,7 +258,7 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 				args[i] = a.get();
 				++i;
 			}
-			adaptableLogger.traceLog(log, exchange, String.format(message, args));
+			adaptableLogger.trace(log, exchange, String.format(message, args));
 		}
 	}
 
