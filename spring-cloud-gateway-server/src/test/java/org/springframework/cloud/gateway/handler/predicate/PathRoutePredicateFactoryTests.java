@@ -28,6 +28,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping;
 import org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFactory.Config;
+import org.springframework.cloud.gateway.logging.PassthroughLogger;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
@@ -102,14 +103,14 @@ public class PathRoutePredicateFactoryTests extends BaseWebClientTests {
 	public void toStringFormat() {
 		Config config = new Config().setPatterns(Arrays.asList("patternA", "patternB"))
 				.setMatchOptionalTrailingSeparator(false);
-		Predicate predicate = new PathRoutePredicateFactory().apply(config);
+		Predicate predicate = new PathRoutePredicateFactory(new PassthroughLogger()).apply(config);
 		assertThat(predicate.toString()).contains("patternA").contains("patternB").contains("false");
 	}
 
 	@Test
 	public void toStringFormatMatchTrailingSlashTrue() {
 		Config config = new Config().setPatterns(Arrays.asList("patternA", "patternB")).setMatchTrailingSlash(true);
-		Predicate<ServerWebExchange> predicate = new PathRoutePredicateFactory().apply(config);
+		Predicate<ServerWebExchange> predicate = new PathRoutePredicateFactory(new PassthroughLogger()).apply(config);
 		assertThat(predicate.toString()).contains("patternA").contains("patternB").contains("true");
 	}
 

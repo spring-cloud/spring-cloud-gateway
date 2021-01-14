@@ -21,6 +21,7 @@ import java.util.function.Predicate;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.cloud.gateway.logging.PassthroughLogger;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -80,7 +81,7 @@ public class RemoteAddrRoutePredicateFactoryTests extends BaseWebClientTests {
 	public void toStringFormat() {
 		Config config = new Config();
 		config.setSources("1.2.3.4", "5.6.7.8");
-		Predicate predicate = new RemoteAddrRoutePredicateFactory().apply(config);
+		Predicate predicate = new RemoteAddrRoutePredicateFactory(new PassthroughLogger()).apply(config);
 		assertThat(predicate.toString()).contains("RemoteAddrs: [1.2.3.4, 5.6.7.8]");
 	}
 

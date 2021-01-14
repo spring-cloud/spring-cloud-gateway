@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.handler;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.springframework.cloud.gateway.logging.PassthroughLogger;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -49,7 +50,7 @@ public class RoutePredicateHandlerMappingTests {
 		Route routeTrue = Route.async().id("routeTrue").uri("http://localhost").predicate(swe -> true).build();
 		RouteLocator routeLocator = () -> Flux.just(routeFalse, routeFail, routeTrue).hide();
 		RoutePredicateHandlerMapping mapping = new RoutePredicateHandlerMapping(null, routeLocator,
-				new GlobalCorsProperties(), new MockEnvironment());
+				new GlobalCorsProperties(), new MockEnvironment(), new PassthroughLogger());
 
 		final Mono<Route> routeMono = mapping.lookupRoute(Mockito.mock(ServerWebExchange.class));
 
@@ -72,7 +73,7 @@ public class RoutePredicateHandlerMappingTests {
 				.build();
 		RouteLocator routeLocator = () -> Flux.just(routeFalse, routeError, routeFail, routeTrue).hide();
 		RoutePredicateHandlerMapping mapping = new RoutePredicateHandlerMapping(null, routeLocator,
-				new GlobalCorsProperties(), new MockEnvironment());
+				new GlobalCorsProperties(), new MockEnvironment(), new PassthroughLogger());
 
 		final Mono<Route> routeMono = mapping.lookupRoute(Mockito.mock(ServerWebExchange.class));
 

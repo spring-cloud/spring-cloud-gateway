@@ -20,6 +20,7 @@ import java.net.URI;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.cloud.gateway.logging.AdaptableLogger;
 import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.ObjectProvider;
@@ -36,11 +37,15 @@ public class ForwardRoutingFilter implements GlobalFilter, Ordered {
 
 	private final ObjectProvider<DispatcherHandler> dispatcherHandlerProvider;
 
+	private final AdaptableLogger adaptableLogger;
+
 	// do not use this dispatcherHandler directly, use getDispatcherHandler() instead.
 	private volatile DispatcherHandler dispatcherHandler;
 
-	public ForwardRoutingFilter(ObjectProvider<DispatcherHandler> dispatcherHandlerProvider) {
+	public ForwardRoutingFilter(ObjectProvider<DispatcherHandler> dispatcherHandlerProvider,
+			AdaptableLogger adaptableLogger) {
 		this.dispatcherHandlerProvider = dispatcherHandlerProvider;
+		this.adaptableLogger = adaptableLogger;
 	}
 
 	private DispatcherHandler getDispatcherHandler() {
@@ -66,10 +71,7 @@ public class ForwardRoutingFilter implements GlobalFilter, Ordered {
 		}
 
 		// TODO: translate url?
-
-		if (log.isTraceEnabled()) {
-			log.trace("Forwarding to URI: " + requestUrl);
-		}
+		adaptableLogger.traceLog(log, exchange, "Forwarding to URI: " + requestUrl);
 
 		return this.getDispatcherHandler().handle(exchange);
 	}

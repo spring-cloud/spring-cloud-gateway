@@ -28,6 +28,7 @@ import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.filter.WeightCalculatorWebFilter;
+import org.springframework.cloud.gateway.logging.AdaptableLogger;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.support.WeightConfig;
@@ -50,6 +51,9 @@ public class WeightRoutePredicateFactoryIntegrationTests extends BaseWebClientTe
 
 	@Autowired
 	private WeightCalculatorWebFilter filter;
+
+	@Autowired
+	private AdaptableLogger adaptableLogger;
 
 	private static Random getRandom(double value) {
 		Random random = mock(Random.class);
@@ -76,7 +80,7 @@ public class WeightRoutePredicateFactoryIntegrationTests extends BaseWebClientTe
 	@Test
 	public void toStringFormat() {
 		WeightConfig config = new WeightConfig("mygroup", "myroute", 5);
-		Predicate predicate = new WeightRoutePredicateFactory().apply(config);
+		Predicate predicate = new WeightRoutePredicateFactory(adaptableLogger).apply(config);
 		assertThat(predicate.toString()).contains("Weight: mygroup 5");
 	}
 

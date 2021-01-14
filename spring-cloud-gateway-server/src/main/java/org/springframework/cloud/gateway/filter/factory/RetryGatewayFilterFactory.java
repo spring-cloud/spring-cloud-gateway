@@ -27,6 +27,7 @@ import java.util.function.Supplier;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.reactivestreams.Publisher;
+import org.springframework.cloud.gateway.logging.AdaptableLogger;
 import reactor.core.publisher.Mono;
 import reactor.netty.Connection;
 import reactor.retry.Backoff;
@@ -58,8 +59,11 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 
 	private static final Log log = LogFactory.getLog(RetryGatewayFilterFactory.class);
 
-	public RetryGatewayFilterFactory() {
+	private AdaptableLogger adaptableLogger;
+
+	public RetryGatewayFilterFactory(AdaptableLogger adaptableLogger) {
 		super(RetryConfig.class);
+		this.adaptableLogger = adaptableLogger;
 	}
 
 	private static <T> List<T> toList(T... items) {
@@ -90,14 +94,14 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 				}
 
 				final boolean finalRetryableStatusCode = retryableStatusCode;
-				trace("retryableStatusCode: %b, statusCode %s, configured statuses %s, configured series %s",
+				trace("retryableStatusCode: %b, statusCode %s, configured statuses %s, configured series %s", exchange,
 						() -> finalRetryableStatusCode, () -> statusCode, retryConfig::getStatuses,
 						retryConfig::getSeries);
 
 				HttpMethod httpMethod = exchange.getRequest().getMethod();
 				boolean retryableMethod = retryConfig.getMethods().contains(httpMethod);
 
-				trace("retryableMethod: %b, httpMethod %s, configured methods %s", () -> retryableMethod,
+				trace("retryableMethod: %b, httpMethod %s, configured methods %s", exchange, () -> retryableMethod,
 						() -> httpMethod, retryConfig::getMethods);
 				return retryableMethod && finalRetryableStatusCode;
 			};
@@ -127,17 +131,17 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 				for (Class<? extends Throwable> retryableClass : retryConfig.getExceptions()) {
 					if (retryableClass.isInstance(exception)
 							|| (exception != null && retryableClass.isInstance(exception.getCause()))) {
-						trace("exception or its cause is retryable %s, configured exceptions %s",
+						trace("exception or its cause is retryable %s, configured exceptions %s", exchange,
 								() -> getExceptionNameWithCause(exception), retryConfig::getExceptions);
 
 						HttpMethod httpMethod = exchange.getRequest().getMethod();
 						boolean retryableMethod = retryConfig.getMethods().contains(httpMethod);
-						trace("retryableMethod: %b, httpMethod %s, configured methods %s", () -> retryableMethod,
-								() -> httpMethod, retryConfig::getMethods);
+						trace("retryableMethod: %b, httpMethod %s, configured methods %s", exchange,
+								() -> retryableMethod, () -> httpMethod, retryConfig::getMethods);
 						return retryableMethod;
 					}
 				}
-				trace("exception or its cause is not retryable %s, configured exceptions %s",
+				trace("exception or its cause is not retryable %s, configured exceptions %s", exchange,
 						() -> getExceptionNameWithCause(exception), retryConfig::getExceptions);
 				return false;
 			};
@@ -190,7 +194,7 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 
 		// TODO: deal with null iteration
 		boolean exceeds = iteration != null && iteration >= retryConfig.getRetries();
-		trace("exceedsMaxIterations %b, iteration %d, configured retries %d", () -> exceeds, () -> iteration,
+		trace("exceedsMaxIterations %b, iteration %d, configured retries %d", exchange, () -> exceeds, () -> iteration,
 				retryConfig::getRetries);
 		return exceeds;
 	}
@@ -202,7 +206,7 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 	public void reset(ServerWebExchange exchange) {
 		Connection conn = exchange.getAttribute(ServerWebExchangeUtils.CLIENT_RESPONSE_CONN_ATTR);
 		if (conn != null) {
-			trace("disposing response connection before next iteration");
+			trace("disposing response connection before next iteration", exchange);
 			conn.dispose();
 			exchange.getAttributes().remove(ServerWebExchangeUtils.CLIENT_RESPONSE_CONN_ATTR);
 		}
@@ -215,7 +219,7 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 			getPublisher().publishEvent(new EnableBodyCachingEvent(this, routeId));
 		}
 		return (exchange, chain) -> {
-			trace("Entering retry-filter");
+			trace("Entering retry-filter", exchange);
 
 			// chain.filter returns a Mono<Void>
 			Publisher<Void> publisher = chain.filter(exchange)
@@ -241,12 +245,12 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 	private void updateIteration(ServerWebExchange exchange) {
 		int iteration = exchange.getAttributeOrDefault(RETRY_ITERATION_KEY, -1);
 		int newIteration = iteration + 1;
-		trace("setting new iteration in attr %d", () -> newIteration);
+		trace("setting new iteration in attr %d", exchange, () -> newIteration);
 		exchange.getAttributes().put(RETRY_ITERATION_KEY, newIteration);
 	}
 
 	@SafeVarargs
-	private final void trace(String message, Supplier<Object>... argSuppliers) {
+	private final void trace(String message, ServerWebExchange exchange, Supplier<Object>... argSuppliers) {
 		if (log.isTraceEnabled()) {
 			Object[] args = new Object[argSuppliers.length];
 			int i = 0;
@@ -254,7 +258,7 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 				args[i] = a.get();
 				++i;
 			}
-			log.trace(String.format(message, args));
+			adaptableLogger.traceLog(log, exchange, String.format(message, args));
 		}
 	}
 

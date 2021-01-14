@@ -16,20 +16,20 @@
 
 package org.springframework.cloud.gateway.handler.predicate;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.cloud.gateway.event.WeightDefinedEvent;
+import org.springframework.cloud.gateway.logging.AdaptableLogger;
+import org.springframework.cloud.gateway.support.WeightConfig;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
+import org.springframework.web.server.ServerWebExchange;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import org.springframework.cloud.gateway.event.WeightDefinedEvent;
-import org.springframework.cloud.gateway.support.WeightConfig;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.ApplicationEventPublisherAware;
-import org.springframework.web.server.ServerWebExchange;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_PREDICATE_ROUTE_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.WEIGHT_ATTR;
@@ -55,8 +55,11 @@ public class WeightRoutePredicateFactory extends AbstractRoutePredicateFactory<W
 
 	private ApplicationEventPublisher publisher;
 
-	public WeightRoutePredicateFactory() {
+	private AdaptableLogger adaptableLogger;
+
+	public WeightRoutePredicateFactory(AdaptableLogger adaptableLogger) {
 		super(WeightConfig.class);
+		this.adaptableLogger = adaptableLogger;
 	}
 
 	@Override
@@ -96,15 +99,14 @@ public class WeightRoutePredicateFactory extends AbstractRoutePredicateFactory<W
 				if (weights.containsKey(group)) {
 
 					String chosenRoute = weights.get(group);
-					if (log.isTraceEnabled()) {
-						log.trace("in group weight: " + group + ", current route: " + routeId + ", chosen route: "
-								+ chosenRoute);
-					}
+					adaptableLogger.traceLog(log, exchange, "in group weight: " + group + ", current route: " + routeId
+							+ "chosen route: " + chosenRoute);
 
 					return routeId.equals(chosenRoute);
 				}
-				else if (log.isTraceEnabled()) {
-					log.trace("no weights found for group: " + group + ", current route: " + routeId);
+				else {
+					adaptableLogger.traceLog(log, exchange,
+							"no weights found for group: " + group + ", current route: " + routeId);
 				}
 
 				return false;

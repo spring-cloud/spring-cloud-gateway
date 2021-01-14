@@ -25,6 +25,7 @@ import org.springframework.cloud.client.loadbalancer.LoadBalancerProperties;
 import org.springframework.cloud.client.loadbalancer.reactive.ReactiveLoadBalancer;
 import org.springframework.cloud.gateway.config.conditional.ConditionalOnEnabledGlobalFilter;
 import org.springframework.cloud.gateway.filter.ReactiveLoadBalancerClientFilter;
+import org.springframework.cloud.gateway.logging.AdaptableLogger;
 import org.springframework.cloud.loadbalancer.config.LoadBalancerAutoConfiguration;
 import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
 import org.springframework.context.annotation.Bean;
@@ -48,8 +49,9 @@ public class GatewayReactiveLoadBalancerClientAutoConfiguration {
 	@ConditionalOnMissingBean(ReactiveLoadBalancerClientFilter.class)
 	@ConditionalOnEnabledGlobalFilter
 	public ReactiveLoadBalancerClientFilter gatewayLoadBalancerClientFilter(LoadBalancerClientFactory clientFactory,
-			GatewayLoadBalancerProperties properties, LoadBalancerProperties loadBalancerProperties) {
-		return new ReactiveLoadBalancerClientFilter(clientFactory, properties, loadBalancerProperties);
+			GatewayLoadBalancerProperties properties, LoadBalancerProperties loadBalancerProperties,
+			AdaptableLogger adaptableLogger) {
+		return new ReactiveLoadBalancerClientFilter(clientFactory, properties, loadBalancerProperties, adaptableLogger);
 	}
 
 }

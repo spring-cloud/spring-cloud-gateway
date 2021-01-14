@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import io.netty.buffer.ByteBuf;
 import org.junit.Test;
 
+import org.springframework.cloud.gateway.logging.PassthroughLogger;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.NettyDataBufferFactory;
 import org.springframework.core.io.buffer.PooledDataBuffer;
@@ -46,7 +47,7 @@ public class NettyWriteResponseFilterTests {
 	}
 
 	private void doTestWrap(MockServerHttpResponse response) {
-		NettyWriteResponseFilter filter = new NettyWriteResponseFilter(new ArrayList<>());
+		NettyWriteResponseFilter filter = new NettyWriteResponseFilter(new ArrayList<>(), new PassthroughLogger());
 
 		ByteBuf buffer = DEFAULT.buffer();
 		buffer.writeCharSequence("test", Charset.defaultCharset());

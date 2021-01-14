@@ -18,6 +18,7 @@ package org.springframework.cloud.gateway.handler;
 
 import java.util.function.Function;
 
+import org.springframework.cloud.gateway.logging.AdaptableLogger;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.config.GlobalCorsProperties;
@@ -48,13 +49,16 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 
 	private final ManagementPortType managementPortType;
 
+	private final AdaptableLogger adaptableLogger;
+
 	public RoutePredicateHandlerMapping(FilteringWebHandler webHandler, RouteLocator routeLocator,
-			GlobalCorsProperties globalCorsProperties, Environment environment) {
+			GlobalCorsProperties globalCorsProperties, Environment environment, AdaptableLogger adaptableLogger) {
 		this.webHandler = webHandler;
 		this.routeLocator = routeLocator;
 
 		this.managementPort = getPortProperty(environment, "management.server.");
 		this.managementPortType = getManagementPortType(environment);
+		this.adaptableLogger = adaptableLogger;
 		setOrder(1);
 		setCorsConfigurations(globalCorsProperties.getCorsConfigurations());
 	}
@@ -85,17 +89,14 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 				// .log("route-predicate-handler-mapping", Level.FINER) //name this
 				.flatMap((Function<Route, Mono<?>>) r -> {
 					exchange.getAttributes().remove(GATEWAY_PREDICATE_ROUTE_ATTR);
-					if (logger.isDebugEnabled()) {
-						logger.debug("Mapping [" + getExchangeDesc(exchange) + "] to " + r);
-					}
+					adaptableLogger.debugLog(logger, exchange, "Mapping [" + getExchangeDesc(exchange) + "] to " + r);
 
 					exchange.getAttributes().put(GATEWAY_ROUTE_ATTR, r);
 					return Mono.just(webHandler);
 				}).switchIfEmpty(Mono.empty().then(Mono.fromRunnable(() -> {
 					exchange.getAttributes().remove(GATEWAY_PREDICATE_ROUTE_ATTR);
-					if (logger.isTraceEnabled()) {
-						logger.trace("No RouteDefinition found for [" + getExchangeDesc(exchange) + "]");
-					}
+					adaptableLogger.traceLog(logger, exchange,
+							"No RouteDefinition found for [" + getExchangeDesc(exchange) + "]");
 				})));
 	}
 
@@ -137,9 +138,7 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 				.next()
 				// TODO: error handling
 				.map(route -> {
-					if (logger.isDebugEnabled()) {
-						logger.debug("Route matched: " + route.getId());
-					}
+					adaptableLogger.debugLog(logger, exchange, "Route matched: " + route.getId());
 					validateRoute(route, exchange);
 					return route;
 				});

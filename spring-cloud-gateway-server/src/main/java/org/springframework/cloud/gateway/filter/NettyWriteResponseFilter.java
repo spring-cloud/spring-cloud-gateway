@@ -21,6 +21,7 @@ import java.util.List;
 import io.netty.buffer.ByteBuf;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.cloud.gateway.logging.AdaptableLogger;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.netty.Connection;
@@ -51,8 +52,11 @@ public class NettyWriteResponseFilter implements GlobalFilter, Ordered {
 
 	private final List<MediaType> streamingMediaTypes;
 
-	public NettyWriteResponseFilter(List<MediaType> streamingMediaTypes) {
+	private final AdaptableLogger adaptableLogger;
+
+	public NettyWriteResponseFilter(List<MediaType> streamingMediaTypes, AdaptableLogger adaptableLogger) {
 		this.streamingMediaTypes = streamingMediaTypes;
+		this.adaptableLogger = adaptableLogger;
 	}
 
 	@Override
@@ -73,11 +77,9 @@ public class NettyWriteResponseFilter implements GlobalFilter, Ordered {
 					if (connection == null) {
 						return Mono.empty();
 					}
-					if (log.isTraceEnabled()) {
-						log.trace("NettyWriteResponseFilter start inbound: "
-								+ connection.channel().id().asShortText() + ", outbound: "
-								+ exchange.getLogPrefix());
-					}
+					adaptableLogger.traceLog(log, exchange, "NettyWriteResponseFilter start inbound: "
+							+ connection.channel().id().asShortText() + ", outbound: "
+							+ exchange.getLogPrefix());
 					ServerHttpResponse response = exchange.getResponse();
 
 					// TODO: needed?
@@ -92,9 +94,7 @@ public class NettyWriteResponseFilter implements GlobalFilter, Ordered {
 						contentType = response.getHeaders().getContentType();
 					}
 					catch (Exception e) {
-						if (log.isTraceEnabled()) {
-							log.trace("invalid media type", e);
-						}
+						adaptableLogger.traceLog(log, exchange, "invalid media type", e);
 					}
 					return (isStreamingMediaType(contentType)
 							? response.writeAndFlushWith(body.map(Flux::just))
@@ -121,8 +121,7 @@ public class NettyWriteResponseFilter implements GlobalFilter, Ordered {
 
 	private void cleanup(ServerWebExchange exchange) {
 		Connection connection = exchange.getAttribute(CLIENT_RESPONSE_CONN_ATTR);
-		if (connection != null && connection.channel().isActive()
-				&& !connection.isPersistent()) {
+		if (connection != null && connection.channel().isActive() && !connection.isPersistent()) {
 			connection.dispose();
 		}
 	}

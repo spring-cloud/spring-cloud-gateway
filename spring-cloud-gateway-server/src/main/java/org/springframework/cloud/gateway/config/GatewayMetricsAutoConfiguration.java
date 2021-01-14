@@ -30,6 +30,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.web.reactive.HttpHandlerAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.gateway.filter.GatewayMetricsFilter;
+import org.springframework.cloud.gateway.logging.AdaptableLogger;
 import org.springframework.cloud.gateway.support.tagsprovider.GatewayHttpTagsProvider;
 import org.springframework.cloud.gateway.support.tagsprovider.GatewayRouteTagsProvider;
 import org.springframework.cloud.gateway.support.tagsprovider.GatewayTagsProvider;
@@ -67,8 +68,9 @@ public class GatewayMetricsAutoConfiguration {
 	// don't use @ConditionalOnEnabledGlobalFilter as the above property may
 	// encompass more than just the filter
 	public GatewayMetricsFilter gatewayMetricFilter(MeterRegistry meterRegistry,
-			List<GatewayTagsProvider> tagsProviders, GatewayMetricsProperties properties) {
-		return new GatewayMetricsFilter(meterRegistry, tagsProviders, properties.getPrefix());
+			List<GatewayTagsProvider> tagsProviders, GatewayMetricsProperties properties,
+			AdaptableLogger adaptableLogger) {
+		return new GatewayMetricsFilter(meterRegistry, tagsProviders, properties.getPrefix(), adaptableLogger);
 	}
 
 }

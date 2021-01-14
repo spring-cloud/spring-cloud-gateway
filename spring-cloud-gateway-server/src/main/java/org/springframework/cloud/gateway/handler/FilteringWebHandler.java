@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.cloud.gateway.logging.AdaptableLogger;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
@@ -51,8 +52,11 @@ public class FilteringWebHandler implements WebHandler {
 
 	private final List<GatewayFilter> globalFilters;
 
-	public FilteringWebHandler(List<GlobalFilter> globalFilters) {
+	private final AdaptableLogger adaptableLogger;
+
+	public FilteringWebHandler(List<GlobalFilter> globalFilters, AdaptableLogger adaptableLogger) {
 		this.globalFilters = loadFilters(globalFilters);
+		this.adaptableLogger = adaptableLogger;
 	}
 
 	private static List<GatewayFilter> loadFilters(List<GlobalFilter> filters) {
@@ -80,10 +84,7 @@ public class FilteringWebHandler implements WebHandler {
 		combined.addAll(gatewayFilters);
 		// TODO: needed or cached?
 		AnnotationAwareOrderComparator.sort(combined);
-
-		if (logger.isDebugEnabled()) {
-			logger.debug("Sorted gatewayFilterFactories: " + combined);
-		}
+		adaptableLogger.debugLog(logger, exchange, "Sorted gatewayFilterFactories: " + combined);
 
 		return new DefaultGatewayFilterChain(combined).filter(exchange);
 	}

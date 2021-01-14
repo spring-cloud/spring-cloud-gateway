@@ -21,6 +21,7 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.cloud.gateway.logging.AdaptableLogger;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.route.Route;
@@ -48,6 +49,12 @@ public class RouteToRequestUrlFilter implements GlobalFilter, Ordered {
 	private static final String SCHEME_REGEX = "[a-zA-Z]([a-zA-Z]|\\d|\\+|\\.|-)*:.*";
 	static final Pattern schemePattern = Pattern.compile(SCHEME_REGEX);
 
+	private final AdaptableLogger adaptableLogger;
+
+	public RouteToRequestUrlFilter(AdaptableLogger adaptableLogger) {
+		this.adaptableLogger = adaptableLogger;
+	}
+
 	/* for testing */
 	static boolean hasAnotherScheme(URI uri) {
 		return schemePattern.matcher(uri.getSchemeSpecificPart()).matches() && uri.getHost() == null
@@ -65,7 +72,7 @@ public class RouteToRequestUrlFilter implements GlobalFilter, Ordered {
 		if (route == null) {
 			return chain.filter(exchange);
 		}
-		log.trace("RouteToRequestUrlFilter start");
+		adaptableLogger.traceLog(log, exchange, "RouteToRequestUrlFilter start");
 		URI uri = exchange.getRequest().getURI();
 		boolean encoded = containsEncodedParts(uri);
 		URI routeUri = route.getUri();

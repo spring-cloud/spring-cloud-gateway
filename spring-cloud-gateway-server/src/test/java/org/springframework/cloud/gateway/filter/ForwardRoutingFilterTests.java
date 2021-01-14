@@ -27,6 +27,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.cloud.gateway.logging.AdaptableLogger;
 import org.springframework.core.Ordered;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -59,6 +60,9 @@ public class ForwardRoutingFilterTests {
 
 	@Mock
 	private DispatcherHandler dispatcherHandler;
+
+	@Mock
+	private AdaptableLogger adaptableLogger;
 
 	@InjectMocks
 	private ForwardRoutingFilter forwardRoutingFilter;

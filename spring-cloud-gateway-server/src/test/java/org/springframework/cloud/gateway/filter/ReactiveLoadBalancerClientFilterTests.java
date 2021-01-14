@@ -29,6 +29,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.cloud.gateway.logging.AdaptableLogger;
+import org.springframework.cloud.gateway.logging.PassthroughLogger;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.client.DefaultServiceInstance;
@@ -91,6 +93,9 @@ class ReactiveLoadBalancerClientFilterTests {
 
 	@Mock
 	private LoadBalancerProperties loadBalancerProperties;
+
+	@Mock
+	private AdaptableLogger adaptableLogger;
 
 	@InjectMocks
 	private ReactiveLoadBalancerClientFilter filter;
@@ -261,7 +266,7 @@ class ReactiveLoadBalancerClientFilterTests {
 		when(clientFactory.getInstance("service1", ReactorServiceInstanceLoadBalancer.class)).thenReturn(loadBalancer);
 		properties.setUse404(true);
 		ReactiveLoadBalancerClientFilter filter = new ReactiveLoadBalancerClientFilter(clientFactory, properties,
-				loadBalancerProperties);
+				loadBalancerProperties, new PassthroughLogger());
 		when(chain.filter(exchange)).thenReturn(Mono.empty());
 		try {
 			filter.filter(exchange, chain).block();
@@ -429,7 +434,7 @@ class ReactiveLoadBalancerClientFilterTests {
 		when(clientFactory.getInstance("service1", ReactorServiceInstanceLoadBalancer.class)).thenReturn(loadBalancer);
 
 		ReactiveLoadBalancerClientFilter filter = new ReactiveLoadBalancerClientFilter(clientFactory, properties,
-				loadBalancerProperties);
+				loadBalancerProperties, new PassthroughLogger());
 		filter.filter(exchange, chain).block();
 
 		return captor.getValue();

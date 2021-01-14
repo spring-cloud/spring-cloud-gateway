@@ -24,6 +24,7 @@ import org.junit.Test;
 
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cloud.gateway.filter.headers.HttpHeadersFilter;
+import org.springframework.cloud.gateway.logging.PassthroughLogger;
 import org.springframework.http.HttpHeaders;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -60,7 +61,7 @@ public class WebsocketRoutingFilterTests {
 		ServerWebExchange exchange = MockServerWebExchange.from(request);
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR,
 				URI.create("http://microservice/my-service/websocket%20upgrade"));
-		changeSchemeIfIsWebSocketUpgrade(exchange);
+		changeSchemeIfIsWebSocketUpgrade(exchange, new PassthroughLogger());
 		URI wsRequestUrl = exchange.getAttribute(GATEWAY_REQUEST_URL_ATTR);
 		assertThat(wsRequestUrl).isEqualTo(URI.create("ws://microservice/my-service/websocket%20upgrade"));
 	}
@@ -80,7 +81,7 @@ public class WebsocketRoutingFilterTests {
 		ObjectProvider<List<HttpHeadersFilter>> headersFilters = mock(ObjectProvider.class);
 		when(headersFilters.getIfAvailable(any())).thenReturn(new ArrayList<>());
 		WebsocketRoutingFilter filter = new WebsocketRoutingFilter(mock(WebSocketClient.class),
-				mock(WebSocketService.class), headersFilters);
+				mock(WebSocketService.class), headersFilters, new PassthroughLogger());
 		List<HttpHeadersFilter> filters = filter.getHeadersFilters();
 		MockServerHttpRequest request = MockServerHttpRequest.get("ws://not-matters-that").header(HOST, "MyHost")
 				.header("Sec-Websocket-Something", "someval").header("x-foo", "bar").build();

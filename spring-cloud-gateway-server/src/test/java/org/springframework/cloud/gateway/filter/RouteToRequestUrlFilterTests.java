@@ -20,6 +20,7 @@ import java.net.URI;
 
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.cloud.gateway.logging.PassthroughLogger;
 import reactor.core.publisher.Mono;
 
 import org.springframework.boot.SpringBootVersion;
@@ -196,7 +197,7 @@ public class RouteToRequestUrlFilterTests {
 		ArgumentCaptor<ServerWebExchange> captor = ArgumentCaptor.forClass(ServerWebExchange.class);
 		when(filterChain.filter(captor.capture())).thenReturn(Mono.empty());
 
-		RouteToRequestUrlFilter filter = new RouteToRequestUrlFilter();
+		RouteToRequestUrlFilter filter = new RouteToRequestUrlFilter(new PassthroughLogger());
 		filter.filter(exchange, filterChain);
 
 		return captor.getValue();

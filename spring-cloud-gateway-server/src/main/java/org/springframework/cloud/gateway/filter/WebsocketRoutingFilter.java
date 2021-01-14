@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.cloud.gateway.logging.AdaptableLogger;
 import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.ObjectProvider;
@@ -69,11 +70,14 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 	// do not use this headersFilters directly, use getHeadersFilters() instead.
 	private volatile List<HttpHeadersFilter> headersFilters;
 
+	private final AdaptableLogger adaptableLogger;
+
 	public WebsocketRoutingFilter(WebSocketClient webSocketClient, WebSocketService webSocketService,
-			ObjectProvider<List<HttpHeadersFilter>> headersFiltersProvider) {
+			ObjectProvider<List<HttpHeadersFilter>> headersFiltersProvider, AdaptableLogger adaptableLogger) {
 		this.webSocketClient = webSocketClient;
 		this.webSocketService = webSocketService;
 		this.headersFiltersProvider = headersFiltersProvider;
+		this.adaptableLogger = adaptableLogger;
 	}
 
 	/* for testing */
@@ -90,7 +94,7 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-		changeSchemeIfIsWebSocketUpgrade(exchange);
+		changeSchemeIfIsWebSocketUpgrade(exchange, adaptableLogger);
 
 		URI requestUrl = exchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
 		String scheme = requestUrl.getScheme();
@@ -142,7 +146,7 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 		return this.headersFilters;
 	}
 
-	static void changeSchemeIfIsWebSocketUpgrade(ServerWebExchange exchange) {
+	static void changeSchemeIfIsWebSocketUpgrade(ServerWebExchange exchange, AdaptableLogger adaptableLogger) {
 		// Check the Upgrade
 		URI requestUrl = exchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
 		String scheme = requestUrl.getScheme().toLowerCase();
@@ -153,9 +157,7 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 			boolean encoded = containsEncodedParts(requestUrl);
 			URI wsRequestUrl = UriComponentsBuilder.fromUri(requestUrl).scheme(wsScheme).build(encoded).toUri();
 			exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, wsRequestUrl);
-			if (log.isTraceEnabled()) {
-				log.trace("changeSchemeTo:[" + wsRequestUrl + "]");
-			}
+			adaptableLogger.traceLog(log, exchange, "changeSchemeTo:[" + wsRequestUrl + "]");
 		}
 	}
 

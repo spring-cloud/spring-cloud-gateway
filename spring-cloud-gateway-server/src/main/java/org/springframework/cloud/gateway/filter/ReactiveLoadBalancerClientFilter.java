@@ -22,6 +22,7 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.cloud.gateway.logging.AdaptableLogger;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.client.ServiceInstance;
@@ -74,11 +75,15 @@ public class ReactiveLoadBalancerClientFilter implements GlobalFilter, Ordered {
 
 	private final LoadBalancerProperties loadBalancerProperties;
 
+	private final AdaptableLogger adaptableLogger;
+
 	public ReactiveLoadBalancerClientFilter(LoadBalancerClientFactory clientFactory,
-			GatewayLoadBalancerProperties properties, LoadBalancerProperties loadBalancerProperties) {
+			GatewayLoadBalancerProperties properties, LoadBalancerProperties loadBalancerProperties,
+			AdaptableLogger adaptableLogger) {
 		this.clientFactory = clientFactory;
 		this.properties = properties;
 		this.loadBalancerProperties = loadBalancerProperties;
+		this.adaptableLogger = adaptableLogger;
 	}
 
 	@Override
@@ -96,9 +101,8 @@ public class ReactiveLoadBalancerClientFilter implements GlobalFilter, Ordered {
 		// preserve the original url
 		addOriginalRequestUrl(exchange, url);
 
-		if (log.isTraceEnabled()) {
-			log.trace(ReactiveLoadBalancerClientFilter.class.getSimpleName() + " url before: " + url);
-		}
+		adaptableLogger.traceLog(log, exchange,
+				ReactiveLoadBalancerClientFilter.class.getSimpleName() + " url before: " + url);
 
 		URI requestUri = exchange.getAttribute(GATEWAY_REQUEST_URL_ATTR);
 		String serviceId = requestUri.getHost();
@@ -131,9 +135,7 @@ public class ReactiveLoadBalancerClientFilter implements GlobalFilter, Ordered {
 
 			URI requestUrl = reconstructURI(serviceInstance, uri);
 
-			if (log.isTraceEnabled()) {
-				log.trace("LoadBalancerClientFilter url chosen: " + requestUrl);
-			}
+			adaptableLogger.traceLog(log, exchange, "LoadBalancerClientFilter url chosen: " + requestUrl);
 			exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, requestUrl);
 			exchange.getAttributes().put(GATEWAY_LOADBALANCER_RESPONSE_ATTR, response);
 			supportedLifecycleProcessors.forEach(lifecycle -> lifecycle.onStartRequest(lbRequest, response));

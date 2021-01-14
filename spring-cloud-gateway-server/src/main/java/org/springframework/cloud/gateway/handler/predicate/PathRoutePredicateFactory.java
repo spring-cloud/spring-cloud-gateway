@@ -25,6 +25,7 @@ import java.util.function.Predicate;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.cloud.gateway.logging.AdaptableLogger;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.http.server.PathContainer;
 import org.springframework.validation.annotation.Validated;
@@ -48,15 +49,20 @@ public class PathRoutePredicateFactory extends AbstractRoutePredicateFactory<Pat
 
 	private PathPatternParser pathPatternParser = new PathPatternParser();
 
-	public PathRoutePredicateFactory() {
+	private final AdaptableLogger adaptableLogger;
+
+	public PathRoutePredicateFactory(AdaptableLogger adaptableLogger) {
 		super(Config.class);
+		this.adaptableLogger = adaptableLogger;
 	}
 
-	private static void traceMatch(String prefix, Object desired, Object actual, boolean match) {
+	private static void traceMatch(String prefix, Object desired, Object actual, boolean match,
+			ServerWebExchange exchange, AdaptableLogger adaptableLogger) {
+
 		if (log.isTraceEnabled()) {
 			String message = String.format("%s \"%s\" %s against value \"%s\"", prefix, desired,
 					match ? "matches" : "does not match", actual);
-			log.trace(message);
+			adaptableLogger.traceLog(log, exchange, message);
 		}
 	}
 
@@ -94,13 +100,13 @@ public class PathRoutePredicateFactory extends AbstractRoutePredicateFactory<Pat
 
 				if (optionalPathPattern.isPresent()) {
 					PathPattern pathPattern = optionalPathPattern.get();
-					traceMatch("Pattern", pathPattern.getPatternString(), path, true);
+					traceMatch("Pattern", pathPattern.getPatternString(), path, true, exchange, adaptableLogger);
 					PathMatchInfo pathMatchInfo = pathPattern.matchAndExtract(path);
 					putUriTemplateVariables(exchange, pathMatchInfo.getUriVariables());
 					return true;
 				}
 				else {
-					traceMatch("Pattern", config.getPatterns(), path, false);
+					traceMatch("Pattern", config.getPatterns(), path, false, exchange, adaptableLogger);
 					return false;
 				}
 			}

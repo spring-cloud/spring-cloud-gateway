@@ -21,6 +21,7 @@ import java.util.LinkedHashSet;
 
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.cloud.gateway.logging.PassthroughLogger;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
@@ -47,7 +48,8 @@ public class PrefixPathGatewayFilterFactoryTest {
 	}
 
 	private void testPrefixPathFilter(String prefix, String path, String expectedPath) {
-		GatewayFilter filter = new PrefixPathGatewayFilterFactory().apply(c -> c.setPrefix(prefix));
+		GatewayFilter filter = new PrefixPathGatewayFilterFactory(new PassthroughLogger())
+				.apply(c -> c.setPrefix(prefix));
 		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost" + path).build();
 
 		ServerWebExchange exchange = MockServerWebExchange.from(request);
@@ -70,7 +72,7 @@ public class PrefixPathGatewayFilterFactoryTest {
 	public void toStringFormat() {
 		Config config = new Config();
 		config.setPrefix("myprefix");
-		GatewayFilter filter = new PrefixPathGatewayFilterFactory().apply(config);
+		GatewayFilter filter = new PrefixPathGatewayFilterFactory(new PassthroughLogger()).apply(config);
 		assertThat(filter.toString()).contains("myprefix");
 	}
 
