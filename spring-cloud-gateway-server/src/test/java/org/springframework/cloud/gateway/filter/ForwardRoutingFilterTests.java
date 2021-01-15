@@ -18,16 +18,24 @@ package org.springframework.cloud.gateway.filter;
 
 import java.net.URI;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatcher;
+import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
+import org.mockito.internal.matchers.Any;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cloud.gateway.logging.AdaptableLogger;
+import org.springframework.cloud.gateway.logging.TestAdaptableLoggerObjectProvider;
 import org.springframework.core.Ordered;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -52,23 +60,24 @@ public class ForwardRoutingFilterTests {
 
 	private ServerWebExchange exchange;
 
+	private Log log = LogFactory.getLog(ForwardRoutingFilterTests.class);
+
 	@Mock
 	private GatewayFilterChain chain;
 
 	@Mock
 	private ObjectProvider<DispatcherHandler> objectProvider;
 
+	private ObjectProvider<AdaptableLogger> adaptableLoggerObjectProvider = new TestAdaptableLoggerObjectProvider(log);
+
 	@Mock
 	private DispatcherHandler dispatcherHandler;
 
-	@Mock
-	private AdaptableLogger adaptableLogger;
-
-	@InjectMocks
 	private ForwardRoutingFilter forwardRoutingFilter;
 
 	@Before
 	public void setup() {
+		forwardRoutingFilter = new ForwardRoutingFilter(objectProvider, adaptableLoggerObjectProvider);
 		exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localendpoint").build());
 		when(objectProvider.getIfAvailable()).thenReturn(this.dispatcherHandler);
 	}

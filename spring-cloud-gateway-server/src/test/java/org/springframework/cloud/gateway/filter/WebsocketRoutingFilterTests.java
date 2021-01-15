@@ -20,11 +20,15 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
 
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cloud.gateway.filter.headers.HttpHeadersFilter;
+import org.springframework.cloud.gateway.logging.AdaptableLogger;
 import org.springframework.cloud.gateway.logging.PassthroughLogger;
+import org.springframework.cloud.gateway.logging.TestAdaptableLoggerObjectProvider;
 import org.springframework.http.HttpHeaders;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -45,6 +49,10 @@ import static org.springframework.http.HttpHeaders.UPGRADE;
 
 public class WebsocketRoutingFilterTests {
 
+	private Log log = LogFactory.getLog(WebsocketRoutingFilterTests.class);
+
+	private ObjectProvider<AdaptableLogger> adaptableLoggerObjectProvider = new TestAdaptableLoggerObjectProvider(log);
+
 	@Test
 	public void testConvertHttpToWs() {
 		assertThat(convertHttpToWs("http")).isEqualTo("ws");
@@ -61,7 +69,7 @@ public class WebsocketRoutingFilterTests {
 		ServerWebExchange exchange = MockServerWebExchange.from(request);
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR,
 				URI.create("http://microservice/my-service/websocket%20upgrade"));
-		changeSchemeIfIsWebSocketUpgrade(exchange, new PassthroughLogger());
+		changeSchemeIfIsWebSocketUpgrade(exchange, adaptableLoggerObjectProvider.getObject(log));
 		URI wsRequestUrl = exchange.getAttribute(GATEWAY_REQUEST_URL_ATTR);
 		assertThat(wsRequestUrl).isEqualTo(URI.create("ws://microservice/my-service/websocket%20upgrade"));
 	}
@@ -81,7 +89,7 @@ public class WebsocketRoutingFilterTests {
 		ObjectProvider<List<HttpHeadersFilter>> headersFilters = mock(ObjectProvider.class);
 		when(headersFilters.getIfAvailable(any())).thenReturn(new ArrayList<>());
 		WebsocketRoutingFilter filter = new WebsocketRoutingFilter(mock(WebSocketClient.class),
-				mock(WebSocketService.class), headersFilters, new PassthroughLogger());
+				mock(WebSocketService.class), headersFilters, adaptableLoggerObjectProvider);
 		List<HttpHeadersFilter> filters = filter.getHeadersFilters();
 		MockServerHttpRequest request = MockServerHttpRequest.get("ws://not-matters-that").header(HOST, "MyHost")
 				.header("Sec-Websocket-Something", "someval").header("x-foo", "bar").build();

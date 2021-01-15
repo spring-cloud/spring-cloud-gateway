@@ -37,15 +37,15 @@ public class ForwardRoutingFilter implements GlobalFilter, Ordered {
 
 	private final ObjectProvider<DispatcherHandler> dispatcherHandlerProvider;
 
-	private final AdaptableLogger adaptableLogger;
+	private AdaptableLogger adaptableLogger;
 
 	// do not use this dispatcherHandler directly, use getDispatcherHandler() instead.
 	private volatile DispatcherHandler dispatcherHandler;
 
 	public ForwardRoutingFilter(ObjectProvider<DispatcherHandler> dispatcherHandlerProvider,
-			AdaptableLogger adaptableLogger) {
+			ObjectProvider<AdaptableLogger> adaptableLoggerObjectProvider) {
 		this.dispatcherHandlerProvider = dispatcherHandlerProvider;
-		this.adaptableLogger = adaptableLogger;
+		this.adaptableLogger = adaptableLoggerObjectProvider.getObject(log);
 	}
 
 	private DispatcherHandler getDispatcherHandler() {
@@ -71,7 +71,7 @@ public class ForwardRoutingFilter implements GlobalFilter, Ordered {
 		}
 
 		// TODO: translate url?
-		adaptableLogger.trace(log, exchange, "Forwarding to URI: " + requestUrl);
+		adaptableLogger.trace(exchange, "Forwarding to URI: " + requestUrl);
 
 		return this.getDispatcherHandler().handle(exchange);
 	}

@@ -28,7 +28,9 @@ import org.hamcrest.CoreMatchers;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.cloud.gateway.logging.PassthroughLogger;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.gateway.logging.AdaptableLogger;
 import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -74,6 +76,9 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 // so we use only PrefixPath filter
 @ActiveProfiles("retrytests")
 public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTests {
+
+	@Autowired
+	private ObjectProvider<AdaptableLogger> adaptableLoggerObjectProvider;
 
 	@Rule
 	public final OutputCaptureRule capture = new OutputCaptureRule();
@@ -191,7 +196,7 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 		config.setMethods(HttpMethod.GET);
 		config.setSeries(HttpStatus.Series.SERVER_ERROR);
 		config.setExceptions(IOException.class);
-		GatewayFilter filter = new RetryGatewayFilterFactory(new PassthroughLogger()).apply(config);
+		GatewayFilter filter = new RetryGatewayFilterFactory(adaptableLoggerObjectProvider).apply(config);
 		assertThat(filter.toString()).contains("4").contains("[GET]").contains("[SERVER_ERROR]")
 				.contains("[IOException]");
 	}

@@ -27,6 +27,7 @@ import java.util.function.Supplier;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.reactivestreams.Publisher;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cloud.gateway.logging.AdaptableLogger;
 import reactor.core.publisher.Mono;
 import reactor.netty.Connection;
@@ -61,9 +62,9 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 
 	private AdaptableLogger adaptableLogger;
 
-	public RetryGatewayFilterFactory(AdaptableLogger adaptableLogger) {
+	public RetryGatewayFilterFactory(ObjectProvider<AdaptableLogger> adaptableLoggerObjectProvider) {
 		super(RetryConfig.class);
-		this.adaptableLogger = adaptableLogger;
+		this.adaptableLogger = adaptableLoggerObjectProvider.getObject(log);
 	}
 
 	private static <T> List<T> toList(T... items) {
@@ -258,7 +259,7 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 				args[i] = a.get();
 				++i;
 			}
-			adaptableLogger.trace(log, exchange, String.format(message, args));
+			adaptableLogger.trace(exchange, String.format(message, args));
 		}
 	}
 

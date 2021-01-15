@@ -16,10 +16,14 @@
 
 package org.springframework.cloud.gateway.handler;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.springframework.cloud.gateway.logging.PassthroughLogger;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.cloud.gateway.logging.AdaptableLogger;
+import org.springframework.cloud.gateway.logging.TestAdaptableLoggerObjectProvider;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -38,6 +42,10 @@ import static org.hamcrest.Matchers.containsString;
  */
 public class RoutePredicateHandlerMappingTests {
 
+	private Log log = LogFactory.getLog(RoutePredicateHandlerMappingTests.class);
+
+	private ObjectProvider<AdaptableLogger> adaptableLoggerObjectProvider = new TestAdaptableLoggerObjectProvider(log);
+
 	@Rule
 	public OutputCaptureRule outputCapture = new OutputCaptureRule();
 
@@ -50,7 +58,7 @@ public class RoutePredicateHandlerMappingTests {
 		Route routeTrue = Route.async().id("routeTrue").uri("http://localhost").predicate(swe -> true).build();
 		RouteLocator routeLocator = () -> Flux.just(routeFalse, routeFail, routeTrue).hide();
 		RoutePredicateHandlerMapping mapping = new RoutePredicateHandlerMapping(null, routeLocator,
-				new GlobalCorsProperties(), new MockEnvironment(), new PassthroughLogger());
+				new GlobalCorsProperties(), new MockEnvironment(), adaptableLoggerObjectProvider);
 
 		final Mono<Route> routeMono = mapping.lookupRoute(Mockito.mock(ServerWebExchange.class));
 
@@ -73,7 +81,7 @@ public class RoutePredicateHandlerMappingTests {
 				.build();
 		RouteLocator routeLocator = () -> Flux.just(routeFalse, routeError, routeFail, routeTrue).hide();
 		RoutePredicateHandlerMapping mapping = new RoutePredicateHandlerMapping(null, routeLocator,
-				new GlobalCorsProperties(), new MockEnvironment(), new PassthroughLogger());
+				new GlobalCorsProperties(), new MockEnvironment(), adaptableLoggerObjectProvider);
 
 		final Mono<Route> routeMono = mapping.lookupRoute(Mockito.mock(ServerWebExchange.class));
 

@@ -18,9 +18,13 @@ package org.springframework.cloud.gateway.filter;
 
 import java.net.URI;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-import org.springframework.cloud.gateway.logging.PassthroughLogger;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.cloud.gateway.logging.AdaptableLogger;
+import org.springframework.cloud.gateway.logging.TestAdaptableLoggerObjectProvider;
 import reactor.core.publisher.Mono;
 
 import org.springframework.boot.SpringBootVersion;
@@ -43,6 +47,10 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.G
  * @author Spencer Gibb
  */
 public class RouteToRequestUrlFilterTests {
+
+	private Log log = LogFactory.getLog(RouteToRequestUrlFilterTests.class);
+
+	private ObjectProvider<AdaptableLogger> adaptableLoggerObjectProvider = new TestAdaptableLoggerObjectProvider(log);
 
 	@Test
 	public void happyPath() {
@@ -197,7 +205,7 @@ public class RouteToRequestUrlFilterTests {
 		ArgumentCaptor<ServerWebExchange> captor = ArgumentCaptor.forClass(ServerWebExchange.class);
 		when(filterChain.filter(captor.capture())).thenReturn(Mono.empty());
 
-		RouteToRequestUrlFilter filter = new RouteToRequestUrlFilter(new PassthroughLogger());
+		RouteToRequestUrlFilter filter = new RouteToRequestUrlFilter(adaptableLoggerObjectProvider);
 		filter.filter(exchange, filterChain);
 
 		return captor.getValue();

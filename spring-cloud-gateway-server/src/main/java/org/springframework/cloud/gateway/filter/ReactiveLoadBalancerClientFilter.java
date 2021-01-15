@@ -22,6 +22,7 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cloud.gateway.logging.AdaptableLogger;
 import reactor.core.publisher.Mono;
 
@@ -79,11 +80,11 @@ public class ReactiveLoadBalancerClientFilter implements GlobalFilter, Ordered {
 
 	public ReactiveLoadBalancerClientFilter(LoadBalancerClientFactory clientFactory,
 			GatewayLoadBalancerProperties properties, LoadBalancerProperties loadBalancerProperties,
-			AdaptableLogger adaptableLogger) {
+			ObjectProvider<AdaptableLogger> adaptableLoggerObjectProvider) {
 		this.clientFactory = clientFactory;
 		this.properties = properties;
 		this.loadBalancerProperties = loadBalancerProperties;
-		this.adaptableLogger = adaptableLogger;
+		this.adaptableLogger = adaptableLoggerObjectProvider.getObject(log);
 	}
 
 	@Override
@@ -101,8 +102,7 @@ public class ReactiveLoadBalancerClientFilter implements GlobalFilter, Ordered {
 		// preserve the original url
 		addOriginalRequestUrl(exchange, url);
 
-		adaptableLogger.trace(log, exchange,
-				ReactiveLoadBalancerClientFilter.class.getSimpleName() + " url before: " + url);
+		adaptableLogger.trace(exchange, ReactiveLoadBalancerClientFilter.class.getSimpleName() + " url before: " + url);
 
 		URI requestUri = exchange.getAttribute(GATEWAY_REQUEST_URL_ATTR);
 		String serviceId = requestUri.getHost();
@@ -135,7 +135,7 @@ public class ReactiveLoadBalancerClientFilter implements GlobalFilter, Ordered {
 
 			URI requestUrl = reconstructURI(serviceInstance, uri);
 
-			adaptableLogger.trace(log, exchange, "LoadBalancerClientFilter url chosen: " + requestUrl);
+			adaptableLogger.trace(exchange, "LoadBalancerClientFilter url chosen: " + requestUrl);
 			exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, requestUrl);
 			exchange.getAttributes().put(GATEWAY_LOADBALANCER_RESPONSE_ATTR, response);
 			supportedLifecycleProcessors.forEach(lifecycle -> lifecycle.onStartRequest(lbRequest, response));

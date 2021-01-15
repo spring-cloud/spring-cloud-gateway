@@ -86,11 +86,11 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 	private final AdaptableLogger adaptableLogger;
 
 	public NettyRoutingFilter(HttpClient httpClient, ObjectProvider<List<HttpHeadersFilter>> headersFiltersProvider,
-			HttpClientProperties properties, AdaptableLogger adaptableLogger) {
+			HttpClientProperties properties, ObjectProvider<AdaptableLogger> adaptableLoggerObjectProvider) {
 		this.httpClient = httpClient;
 		this.headersFiltersProvider = headersFiltersProvider;
 		this.properties = properties;
-		this.adaptableLogger = adaptableLogger;
+		this.adaptableLogger = adaptableLoggerObjectProvider.getObject(log);
 	}
 
 	public List<HttpHeadersFilter> getHeadersFilters() {
@@ -139,7 +139,7 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 			}
 		}).request(method).uri(url).send((req, nettyOutbound) -> {
 			if (log.isTraceEnabled()) {
-				nettyOutbound.withConnection(connection -> adaptableLogger.trace(log, exchange, "outbound route: "
+				nettyOutbound.withConnection(connection -> adaptableLogger.trace(exchange, "outbound route: "
 						+ connection.channel().id().asShortText() + ", inbound: " + exchange.getLogPrefix()));
 			}
 			return nettyOutbound.send(request.getBody().map(this::getByteBuf));

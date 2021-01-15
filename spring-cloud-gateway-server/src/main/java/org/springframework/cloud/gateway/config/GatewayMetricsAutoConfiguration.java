@@ -20,6 +20,7 @@ import java.util.List;
 
 import io.micrometer.core.instrument.MeterRegistry;
 
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.actuate.autoconfigure.metrics.CompositeMeterRegistryAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.metrics.MetricsAutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -69,8 +70,9 @@ public class GatewayMetricsAutoConfiguration {
 	// encompass more than just the filter
 	public GatewayMetricsFilter gatewayMetricFilter(MeterRegistry meterRegistry,
 			List<GatewayTagsProvider> tagsProviders, GatewayMetricsProperties properties,
-			AdaptableLogger adaptableLogger) {
-		return new GatewayMetricsFilter(meterRegistry, tagsProviders, properties.getPrefix(), adaptableLogger);
+			ObjectProvider<AdaptableLogger> adaptableLoggerObjectProvider) {
+		return new GatewayMetricsFilter(meterRegistry, tagsProviders, properties.getPrefix(),
+				adaptableLoggerObjectProvider);
 	}
 
 }

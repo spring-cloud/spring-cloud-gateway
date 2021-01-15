@@ -21,12 +21,14 @@ import java.util.function.Predicate;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.handler.AsyncPredicate;
 import org.springframework.cloud.gateway.handler.predicate.ReadBodyRoutePredicateFactory.Config;
+import org.springframework.cloud.gateway.logging.AdaptableLogger;
 import org.springframework.cloud.gateway.logging.PassthroughLogger;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
@@ -61,6 +63,9 @@ public class ReadBodyRoutePredicateFactoryTests {
 	@Autowired
 	private WebTestClient webClient;
 
+	@Autowired
+	private ObjectProvider<AdaptableLogger> adaptableLoggerObjectProvider;
+
 	@Test
 	public void readBodyWorks() {
 
@@ -79,7 +84,7 @@ public class ReadBodyRoutePredicateFactoryTests {
 	public void toStringFormat() {
 		Config config = new Config();
 		config.setInClass(String.class);
-		AsyncPredicate<ServerWebExchange> predicate = new ReadBodyRoutePredicateFactory(new PassthroughLogger())
+		AsyncPredicate<ServerWebExchange> predicate = new ReadBodyRoutePredicateFactory(adaptableLoggerObjectProvider)
 				.applyAsync(config);
 		assertThat(predicate.toString()).contains("ReadBody: " + config.getInClass());
 	}

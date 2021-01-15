@@ -21,6 +21,7 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cloud.gateway.logging.AdaptableLogger;
 import reactor.core.publisher.Mono;
 
@@ -51,8 +52,8 @@ public class RouteToRequestUrlFilter implements GlobalFilter, Ordered {
 
 	private final AdaptableLogger adaptableLogger;
 
-	public RouteToRequestUrlFilter(AdaptableLogger adaptableLogger) {
-		this.adaptableLogger = adaptableLogger;
+	public RouteToRequestUrlFilter(ObjectProvider<AdaptableLogger> adaptableLoggerObjectProvider) {
+		this.adaptableLogger = adaptableLoggerObjectProvider.getObject(log);
 	}
 
 	/* for testing */
@@ -72,7 +73,7 @@ public class RouteToRequestUrlFilter implements GlobalFilter, Ordered {
 		if (route == null) {
 			return chain.filter(exchange);
 		}
-		adaptableLogger.trace(log, exchange, "RouteToRequestUrlFilter start");
+		adaptableLogger.trace(exchange, "RouteToRequestUrlFilter start");
 		URI uri = exchange.getRequest().getURI();
 		boolean encoded = containsEncodedParts(uri);
 		URI routeUri = route.getUri();

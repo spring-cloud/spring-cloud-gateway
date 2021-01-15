@@ -26,8 +26,10 @@ import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.cloud.gateway.logging.AdaptableLogger;
 import org.springframework.cloud.gateway.logging.PassthroughLogger;
+import org.springframework.context.annotation.Scope;
 import reactor.core.publisher.Flux;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.client.WebsocketClientSpec;
@@ -240,8 +242,9 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	public FilteringWebHandler filteringWebHandler(List<GlobalFilter> globalFilters, AdaptableLogger adaptableLogger) {
-		return new FilteringWebHandler(globalFilters, adaptableLogger);
+	public FilteringWebHandler filteringWebHandler(List<GlobalFilter> globalFilters,
+			ObjectProvider<AdaptableLogger> adaptableLoggerObjectProvider) {
+		return new FilteringWebHandler(globalFilters, adaptableLoggerObjectProvider);
 	}
 
 	@Bean
@@ -252,9 +255,9 @@ public class GatewayAutoConfiguration {
 	@Bean
 	public RoutePredicateHandlerMapping routePredicateHandlerMapping(FilteringWebHandler webHandler,
 			RouteLocator routeLocator, GlobalCorsProperties globalCorsProperties, Environment environment,
-			AdaptableLogger adaptableLogger) {
+			ObjectProvider<AdaptableLogger> adaptableLoggerObjectProvider) {
 		return new RoutePredicateHandlerMapping(webHandler, routeLocator, globalCorsProperties, environment,
-				adaptableLogger);
+				adaptableLoggerObjectProvider);
 	}
 
 	@Bean
@@ -298,21 +301,23 @@ public class GatewayAutoConfiguration {
 
 	@Bean
 	@ConditionalOnEnabledGlobalFilter
-	public RemoveCachedBodyFilter removeCachedBodyFilter(AdaptableLogger adaptableLogger) {
-		return new RemoveCachedBodyFilter(adaptableLogger);
+	public RemoveCachedBodyFilter removeCachedBodyFilter(
+			ObjectProvider<AdaptableLogger> adaptableLoggerObjectProvider) {
+		return new RemoveCachedBodyFilter(adaptableLoggerObjectProvider);
 	}
 
 	@Bean
 	@ConditionalOnEnabledGlobalFilter
-	public RouteToRequestUrlFilter routeToRequestUrlFilter(AdaptableLogger adaptableLogger) {
-		return new RouteToRequestUrlFilter(adaptableLogger);
+	public RouteToRequestUrlFilter routeToRequestUrlFilter(
+			ObjectProvider<AdaptableLogger> adaptableLoggerObjectProvider) {
+		return new RouteToRequestUrlFilter(adaptableLoggerObjectProvider);
 	}
 
 	@Bean
 	@ConditionalOnEnabledGlobalFilter
 	public ForwardRoutingFilter forwardRoutingFilter(ObjectProvider<DispatcherHandler> dispatcherHandler,
-			AdaptableLogger adaptableLogger) {
-		return new ForwardRoutingFilter(dispatcherHandler, adaptableLogger);
+			ObjectProvider<AdaptableLogger> adaptableLoggerObjectProvider) {
+		return new ForwardRoutingFilter(dispatcherHandler, adaptableLoggerObjectProvider);
 	}
 
 	@Bean
@@ -331,8 +336,9 @@ public class GatewayAutoConfiguration {
 	@ConditionalOnEnabledGlobalFilter
 	public WebsocketRoutingFilter websocketRoutingFilter(WebSocketClient webSocketClient,
 			WebSocketService webSocketService, ObjectProvider<List<HttpHeadersFilter>> headersFilters,
-			AdaptableLogger adaptableLogger) {
-		return new WebsocketRoutingFilter(webSocketClient, webSocketService, headersFilters, adaptableLogger);
+			ObjectProvider<AdaptableLogger> adaptableLoggerObjectProvider) {
+		return new WebsocketRoutingFilter(webSocketClient, webSocketService, headersFilters,
+				adaptableLoggerObjectProvider);
 	}
 
 	@Bean
@@ -388,8 +394,9 @@ public class GatewayAutoConfiguration {
 
 	@Bean
 	@ConditionalOnEnabledPredicate
-	public PathRoutePredicateFactory pathRoutePredicateFactory(AdaptableLogger adaptableLogger) {
-		return new PathRoutePredicateFactory(adaptableLogger);
+	public PathRoutePredicateFactory pathRoutePredicateFactory(
+			ObjectProvider<AdaptableLogger> adaptableLoggerObjectProvider) {
+		return new PathRoutePredicateFactory(adaptableLoggerObjectProvider);
 	}
 
 	@Bean
@@ -401,21 +408,23 @@ public class GatewayAutoConfiguration {
 	@Bean
 	@ConditionalOnEnabledPredicate
 	public ReadBodyRoutePredicateFactory readBodyPredicateFactory(ServerCodecConfigurer codecConfigurer,
-			AdaptableLogger adaptableLogger) {
-		return new ReadBodyRoutePredicateFactory(codecConfigurer.getReaders(), adaptableLogger);
+			ObjectProvider<AdaptableLogger> adaptableLoggerObjectProvider) {
+		return new ReadBodyRoutePredicateFactory(codecConfigurer.getReaders(), adaptableLoggerObjectProvider);
 	}
 
 	@Bean
 	@ConditionalOnEnabledPredicate
-	public RemoteAddrRoutePredicateFactory remoteAddrRoutePredicateFactory(AdaptableLogger adaptableLogger) {
-		return new RemoteAddrRoutePredicateFactory(adaptableLogger);
+	public RemoteAddrRoutePredicateFactory remoteAddrRoutePredicateFactory(
+			ObjectProvider<AdaptableLogger> adaptableLoggerObjectProvider) {
+		return new RemoteAddrRoutePredicateFactory(adaptableLoggerObjectProvider);
 	}
 
 	@Bean
 	@DependsOn("weightCalculatorWebFilter")
 	@ConditionalOnEnabledPredicate
-	public WeightRoutePredicateFactory weightRoutePredicateFactory(AdaptableLogger adaptableLogger) {
-		return new WeightRoutePredicateFactory(adaptableLogger);
+	public WeightRoutePredicateFactory weightRoutePredicateFactory(
+			ObjectProvider<AdaptableLogger> adaptableLoggerObjectProvider) {
+		return new WeightRoutePredicateFactory(adaptableLoggerObjectProvider);
 	}
 
 	@Bean
@@ -473,8 +482,9 @@ public class GatewayAutoConfiguration {
 
 	@Bean
 	@ConditionalOnEnabledFilter
-	public PrefixPathGatewayFilterFactory prefixPathGatewayFilterFactory(AdaptableLogger adaptableLogger) {
-		return new PrefixPathGatewayFilterFactory(adaptableLogger);
+	public PrefixPathGatewayFilterFactory prefixPathGatewayFilterFactory(
+			ObjectProvider<AdaptableLogger> adaptableLoggerObjectProvider) {
+		return new PrefixPathGatewayFilterFactory(adaptableLoggerObjectProvider);
 	}
 
 	@Bean
@@ -531,8 +541,9 @@ public class GatewayAutoConfiguration {
 
 	@Bean
 	@ConditionalOnEnabledFilter
-	public RetryGatewayFilterFactory retryGatewayFilterFactory(AdaptableLogger adaptableLogger) {
-		return new RetryGatewayFilterFactory(adaptableLogger);
+	public RetryGatewayFilterFactory retryGatewayFilterFactory(
+			ObjectProvider<AdaptableLogger> adaptableLoggerObjectProvider) {
+		return new RetryGatewayFilterFactory(adaptableLoggerObjectProvider);
 	}
 
 	@Bean
@@ -616,6 +627,13 @@ public class GatewayAutoConfiguration {
 	@Bean
 	public GzipMessageBodyResolver gzipMessageBodyResolver() {
 		return new GzipMessageBodyResolver();
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+	public AdaptableLogger adaptableLogger(Log log) {
+		return new PassthroughLogger(log);
 	}
 
 	@Configuration(proxyBeanMethods = false)
@@ -765,15 +783,15 @@ public class GatewayAutoConfiguration {
 		@ConditionalOnEnabledGlobalFilter
 		public NettyRoutingFilter routingFilter(HttpClient httpClient,
 				ObjectProvider<List<HttpHeadersFilter>> headersFilters, HttpClientProperties properties,
-				AdaptableLogger adaptableLogger) {
-			return new NettyRoutingFilter(httpClient, headersFilters, properties, adaptableLogger);
+				ObjectProvider<AdaptableLogger> adaptableLoggerObjectProvider) {
+			return new NettyRoutingFilter(httpClient, headersFilters, properties, adaptableLoggerObjectProvider);
 		}
 
 		@Bean
 		@ConditionalOnEnabledGlobalFilter(NettyRoutingFilter.class)
 		public NettyWriteResponseFilter nettyWriteResponseFilter(GatewayProperties properties,
-				AdaptableLogger adaptableLogger) {
-			return new NettyWriteResponseFilter(properties.getStreamingMediaTypes(), adaptableLogger);
+				ObjectProvider<AdaptableLogger> adaptableLoggerObjectProvider) {
+			return new NettyWriteResponseFilter(properties.getStreamingMediaTypes(), adaptableLoggerObjectProvider);
 		}
 
 		@Bean
@@ -800,12 +818,6 @@ public class GatewayAutoConfiguration {
 			map.from(websocket::isProxyPing).to(builder::handlePing);
 
 			return new ReactorNettyRequestUpgradeStrategy(builder);
-		}
-
-		@Bean
-		@ConditionalOnMissingBean
-		public AdaptableLogger adaptableLogger() {
-			return new PassthroughLogger();
 		}
 
 	}

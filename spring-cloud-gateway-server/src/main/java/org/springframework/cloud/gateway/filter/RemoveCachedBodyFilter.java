@@ -18,6 +18,7 @@ package org.springframework.cloud.gateway.filter;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cloud.gateway.logging.AdaptableLogger;
 import reactor.core.publisher.Mono;
 
@@ -33,8 +34,8 @@ public class RemoveCachedBodyFilter implements GlobalFilter, Ordered {
 
 	private final AdaptableLogger adaptableLogger;
 
-	public RemoveCachedBodyFilter(AdaptableLogger adaptableLogger) {
-		this.adaptableLogger = adaptableLogger;
+	public RemoveCachedBodyFilter(ObjectProvider<AdaptableLogger> adaptableLoggerObjectProvider) {
+		this.adaptableLogger = adaptableLoggerObjectProvider.getObject(log);
 	}
 
 	@Override
@@ -44,7 +45,7 @@ public class RemoveCachedBodyFilter implements GlobalFilter, Ordered {
 			if (attribute != null && attribute instanceof PooledDataBuffer) {
 				PooledDataBuffer dataBuffer = (PooledDataBuffer) attribute;
 				if (dataBuffer.isAllocated()) {
-					adaptableLogger.trace(log, exchange, "releasing cached body in exchange attribute");
+					adaptableLogger.trace(exchange, "releasing cached body in exchange attribute");
 					dataBuffer.release();
 				}
 			}

@@ -25,6 +25,7 @@ import java.util.function.Predicate;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cloud.gateway.logging.AdaptableLogger;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.http.server.PathContainer;
@@ -51,9 +52,9 @@ public class PathRoutePredicateFactory extends AbstractRoutePredicateFactory<Pat
 
 	private final AdaptableLogger adaptableLogger;
 
-	public PathRoutePredicateFactory(AdaptableLogger adaptableLogger) {
+	public PathRoutePredicateFactory(ObjectProvider<AdaptableLogger> adaptableLoggerObjectProvider) {
 		super(Config.class);
-		this.adaptableLogger = adaptableLogger;
+		this.adaptableLogger = adaptableLoggerObjectProvider.getObject(log);
 	}
 
 	private static void traceMatch(String prefix, Object desired, Object actual, boolean match,
@@ -62,7 +63,7 @@ public class PathRoutePredicateFactory extends AbstractRoutePredicateFactory<Pat
 		if (log.isTraceEnabled()) {
 			String message = String.format("%s \"%s\" %s against value \"%s\"", prefix, desired,
 					match ? "matches" : "does not match", actual);
-			adaptableLogger.trace(log, exchange, message);
+			adaptableLogger.trace(exchange, message);
 		}
 	}
 

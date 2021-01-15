@@ -18,6 +18,7 @@ package org.springframework.cloud.gateway.handler.predicate;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cloud.gateway.event.WeightDefinedEvent;
 import org.springframework.cloud.gateway.logging.AdaptableLogger;
 import org.springframework.cloud.gateway.support.WeightConfig;
@@ -57,9 +58,9 @@ public class WeightRoutePredicateFactory extends AbstractRoutePredicateFactory<W
 
 	private AdaptableLogger adaptableLogger;
 
-	public WeightRoutePredicateFactory(AdaptableLogger adaptableLogger) {
+	public WeightRoutePredicateFactory(ObjectProvider<AdaptableLogger> adaptableLoggerObjectProvider) {
 		super(WeightConfig.class);
-		this.adaptableLogger = adaptableLogger;
+		this.adaptableLogger = adaptableLoggerObjectProvider.getObject(log);
 	}
 
 	@Override
@@ -99,13 +100,13 @@ public class WeightRoutePredicateFactory extends AbstractRoutePredicateFactory<W
 				if (weights.containsKey(group)) {
 
 					String chosenRoute = weights.get(group);
-					adaptableLogger.trace(log, exchange, "in group weight: " + group + ", current route: " + routeId
+					adaptableLogger.trace(exchange, "in group weight: " + group + ", current route: " + routeId
 							+ "chosen route: " + chosenRoute);
 
 					return routeId.equals(chosenRoute);
 				}
 				else {
-					adaptableLogger.trace(log, exchange,
+					adaptableLogger.trace(exchange,
 							"no weights found for group: " + group + ", current route: " + routeId);
 				}
 

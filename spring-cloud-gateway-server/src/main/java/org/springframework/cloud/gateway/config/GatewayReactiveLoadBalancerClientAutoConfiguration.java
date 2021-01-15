@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.gateway.config;
 
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -50,8 +51,9 @@ public class GatewayReactiveLoadBalancerClientAutoConfiguration {
 	@ConditionalOnEnabledGlobalFilter
 	public ReactiveLoadBalancerClientFilter gatewayLoadBalancerClientFilter(LoadBalancerClientFactory clientFactory,
 			GatewayLoadBalancerProperties properties, LoadBalancerProperties loadBalancerProperties,
-			AdaptableLogger adaptableLogger) {
-		return new ReactiveLoadBalancerClientFilter(clientFactory, properties, loadBalancerProperties, adaptableLogger);
+			ObjectProvider<AdaptableLogger> adaptableLoggerObjectProvider) {
+		return new ReactiveLoadBalancerClientFilter(clientFactory, properties, loadBalancerProperties,
+				adaptableLoggerObjectProvider);
 	}
 
 }

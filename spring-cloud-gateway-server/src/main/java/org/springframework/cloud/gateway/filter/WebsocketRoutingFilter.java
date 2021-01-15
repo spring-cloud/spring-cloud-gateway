@@ -73,11 +73,12 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 	private final AdaptableLogger adaptableLogger;
 
 	public WebsocketRoutingFilter(WebSocketClient webSocketClient, WebSocketService webSocketService,
-			ObjectProvider<List<HttpHeadersFilter>> headersFiltersProvider, AdaptableLogger adaptableLogger) {
+			ObjectProvider<List<HttpHeadersFilter>> headersFiltersProvider,
+			ObjectProvider<AdaptableLogger> adaptableLoggerObjectProvider) {
 		this.webSocketClient = webSocketClient;
 		this.webSocketService = webSocketService;
 		this.headersFiltersProvider = headersFiltersProvider;
-		this.adaptableLogger = adaptableLogger;
+		this.adaptableLogger = adaptableLoggerObjectProvider.getObject(log);
 	}
 
 	/* for testing */
@@ -157,7 +158,7 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 			boolean encoded = containsEncodedParts(requestUrl);
 			URI wsRequestUrl = UriComponentsBuilder.fromUri(requestUrl).scheme(wsScheme).build(encoded).toUri();
 			exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, wsRequestUrl);
-			adaptableLogger.trace(log, exchange, "changeSchemeTo:[" + wsRequestUrl + "]");
+			adaptableLogger.trace(exchange, "changeSchemeTo:[" + wsRequestUrl + "]");
 		}
 	}
 

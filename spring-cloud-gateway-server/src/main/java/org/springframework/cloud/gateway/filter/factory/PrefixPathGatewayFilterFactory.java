@@ -21,6 +21,7 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cloud.gateway.logging.AdaptableLogger;
 import reactor.core.publisher.Mono;
 
@@ -49,9 +50,9 @@ public class PrefixPathGatewayFilterFactory
 
 	private final AdaptableLogger adaptableLogger;
 
-	public PrefixPathGatewayFilterFactory(AdaptableLogger adaptableLogger) {
+	public PrefixPathGatewayFilterFactory(ObjectProvider<AdaptableLogger> adaptableLoggerObjectProvider) {
 		super(Config.class);
-		this.adaptableLogger = adaptableLogger;
+		this.adaptableLogger = adaptableLoggerObjectProvider.getObject(log);
 	}
 
 	@Override
@@ -78,7 +79,7 @@ public class PrefixPathGatewayFilterFactory
 
 				exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, request.getURI());
 
-				adaptableLogger.trace(log, exchange, "Prefixed URI with: " + config.prefix + " -> " + request.getURI());
+				adaptableLogger.trace(exchange, "Prefixed URI with: " + config.prefix + " -> " + request.getURI());
 
 				return chain.filter(exchange.mutate().request(request).build());
 			}

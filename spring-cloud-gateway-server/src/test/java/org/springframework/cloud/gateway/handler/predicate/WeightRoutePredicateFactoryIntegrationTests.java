@@ -22,6 +22,7 @@ import java.util.function.Predicate;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
@@ -53,7 +54,7 @@ public class WeightRoutePredicateFactoryIntegrationTests extends BaseWebClientTe
 	private WeightCalculatorWebFilter filter;
 
 	@Autowired
-	private AdaptableLogger adaptableLogger;
+	private ObjectProvider<AdaptableLogger> adaptableLoggerObjectProvider;
 
 	private static Random getRandom(double value) {
 		Random random = mock(Random.class);
@@ -80,7 +81,7 @@ public class WeightRoutePredicateFactoryIntegrationTests extends BaseWebClientTe
 	@Test
 	public void toStringFormat() {
 		WeightConfig config = new WeightConfig("mygroup", "myroute", 5);
-		Predicate predicate = new WeightRoutePredicateFactory(adaptableLogger).apply(config);
+		Predicate predicate = new WeightRoutePredicateFactory(adaptableLoggerObjectProvider).apply(config);
 		assertThat(predicate.toString()).contains("Weight: mygroup 5");
 	}
 

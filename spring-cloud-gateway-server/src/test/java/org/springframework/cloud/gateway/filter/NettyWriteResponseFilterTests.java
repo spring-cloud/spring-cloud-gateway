@@ -16,17 +16,17 @@
 
 package org.springframework.cloud.gateway.filter;
 
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-
 import io.netty.buffer.ByteBuf;
+import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
-
-import org.springframework.cloud.gateway.logging.PassthroughLogger;
+import org.springframework.cloud.gateway.logging.TestAdaptableLoggerObjectProvider;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.NettyDataBufferFactory;
 import org.springframework.core.io.buffer.PooledDataBuffer;
 import org.springframework.mock.http.server.reactive.MockServerHttpResponse;
+
+import java.nio.charset.Charset;
+import java.util.ArrayList;
 
 import static io.netty.buffer.PooledByteBufAllocator.DEFAULT;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -47,7 +47,8 @@ public class NettyWriteResponseFilterTests {
 	}
 
 	private void doTestWrap(MockServerHttpResponse response) {
-		NettyWriteResponseFilter filter = new NettyWriteResponseFilter(new ArrayList<>(), new PassthroughLogger());
+		NettyWriteResponseFilter filter = new NettyWriteResponseFilter(new ArrayList<>(),
+				new TestAdaptableLoggerObjectProvider(LogFactory.getLog(NettyWriteResponseFilterTests.class)));
 
 		ByteBuf buffer = DEFAULT.buffer();
 		buffer.writeCharSequence("test", Charset.defaultCharset());
