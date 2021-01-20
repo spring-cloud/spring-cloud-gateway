@@ -34,7 +34,7 @@ import reactor.core.publisher.Mono;
 
 import org.springframework.beans.BeansException;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.cloud.gateway.route.RouteDefinitionRouteLocator;
+import org.springframework.cloud.gateway.route.DefaultRoutes;
 import org.springframework.cloud.gateway.support.ConfigurationService;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -318,7 +318,7 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 		Config routeConfig = getConfig().getOrDefault(routeId, defaultConfig);
 
 		if (routeConfig == null) {
-			routeConfig = getConfig().get(RouteDefinitionRouteLocator.DEFAULT_FILTERS);
+			routeConfig = getConfig().get(DefaultRoutes.DEFAULT_FILTERS);
 		}
 
 		if (routeConfig == null) {

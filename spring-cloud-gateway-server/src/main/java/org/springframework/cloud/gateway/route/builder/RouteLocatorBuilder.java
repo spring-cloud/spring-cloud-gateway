@@ -23,6 +23,7 @@ import java.util.function.Function;
 
 import reactor.core.publisher.Flux;
 
+import org.springframework.cloud.gateway.route.DefaultRoutes;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -98,7 +99,8 @@ public class RouteLocatorBuilder {
 		}
 
 		void add(Route.AsyncBuilder route) {
-			routes.add(route);
+			DefaultRoutes defaultRoutes = context.getBean(DefaultRoutes.class);
+			routes.add(route.filters(defaultRoutes.getDefaultGatewayFilters()));
 		}
 
 	}

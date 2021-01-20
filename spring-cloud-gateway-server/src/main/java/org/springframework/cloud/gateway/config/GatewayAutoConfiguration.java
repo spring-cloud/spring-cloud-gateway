@@ -128,6 +128,7 @@ import org.springframework.cloud.gateway.handler.predicate.WeightRoutePredicateF
 import org.springframework.cloud.gateway.route.CachingRouteLocator;
 import org.springframework.cloud.gateway.route.CompositeRouteDefinitionLocator;
 import org.springframework.cloud.gateway.route.CompositeRouteLocator;
+import org.springframework.cloud.gateway.route.DefaultRoutes;
 import org.springframework.cloud.gateway.route.InMemoryRouteDefinitionRepository;
 import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
 import org.springframework.cloud.gateway.route.RouteDefinitionRepository;
@@ -217,13 +218,21 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
+	public DefaultRoutes defaultRoutes(GatewayProperties gatewayProperties,
+			List<GatewayFilterFactory> gatewayFilterFactories,
+			ConfigurationService configurationService) {
+		return new DefaultRoutes(gatewayProperties, gatewayFilterFactories,
+				configurationService);
+	}
+
+	@Bean
 	public RouteLocator routeDefinitionRouteLocator(GatewayProperties properties,
 			List<GatewayFilterFactory> gatewayFilters,
 			List<RoutePredicateFactory> predicates,
 			RouteDefinitionLocator routeDefinitionLocator,
-			ConfigurationService configurationService) {
+			ConfigurationService configurationService, DefaultRoutes defaultRoutes) {
 		return new RouteDefinitionRouteLocator(routeDefinitionLocator, predicates,
-				gatewayFilters, properties, configurationService);
+				gatewayFilters, properties, configurationService, defaultRoutes);
 	}
 
 	@Bean
