@@ -125,8 +125,12 @@ public class DedupeResponseHeaderGatewayFilterFactory
 		if (headers == null || names == null || strategy == null) {
 			return;
 		}
-		for (String name : names.split(" ")) {
-			dedupe(headers, name.trim(), strategy);
+		try{
+			for (String name : names.split(" ")) {
+				dedupe(headers, name.trim(), strategy);
+			}
+		}catch (UnsupportedOperationException ex){
+
 		}
 	}
 
