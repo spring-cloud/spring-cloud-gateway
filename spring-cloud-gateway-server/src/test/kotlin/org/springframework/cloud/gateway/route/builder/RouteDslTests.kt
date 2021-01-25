@@ -61,10 +61,10 @@ class RouteDslTests {
         StepVerifier
                 .create(routeLocator.routes)
                 .expectNextMatches({
-                    it.id == "test" && it.filters.size == 1 && it.uri == URI.create("http://httpbin.org:80")
+                    it.id == "test" && it.filters.size == 3 && it.uri == URI.create("http://httpbin.org:80")
                 })
                 .expectNextMatches({
-                    it.id == "test2" && it.filters.size == 2 && it.uri == URI.create("https://httpbin.org:443")
+                    it.id == "test2" && it.filters.size == 4 && it.uri == URI.create("https://httpbin.org:443")
                 })
                 .expectComplete()
                 .verify()
@@ -76,7 +76,7 @@ class RouteDslTests {
 
         StepVerifier.create(filteredRoutes)
                 .expectNextMatches({
-                    it.id == "test2" && it.filters.size == 2 && it.uri == URI.create("https://httpbin.org:443")
+                    it.id == "test2" && it.filters.size == 4 && it.uri == URI.create("https://httpbin.org:443")
                 })
                 .expectComplete()
                 .verify()

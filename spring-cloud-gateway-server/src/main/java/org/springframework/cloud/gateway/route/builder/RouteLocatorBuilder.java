@@ -99,8 +99,12 @@ public class RouteLocatorBuilder {
 		}
 
 		void add(Route.AsyncBuilder route) {
-			DefaultRoutes defaultRoutes = context.getBean(DefaultRoutes.class);
-			routes.add(route.filters(defaultRoutes.getDefaultGatewayFilters()));
+			if (route.isEnableDefaultFilter()) {
+				DefaultRoutes defaultRoutes = context.getBean(DefaultRoutes.class);
+				routes.add(route.filters(defaultRoutes.getDefaultGatewayFilters()));
+			} else {
+				routes.add(route);
+			}
 		}
 
 	}

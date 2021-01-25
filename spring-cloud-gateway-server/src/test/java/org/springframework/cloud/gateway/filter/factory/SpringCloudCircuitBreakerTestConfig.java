@@ -81,11 +81,11 @@ public class SpringCloudCircuitBreakerTestConfig {
 				r -> r.host("**.circuitbreakerforward.org")
 						.filters(f -> f.circuitBreaker(
 								config -> config.setFallbackUri("forward:/fallback")))
-						.uri(uri))
+						.uri(uri).setEnableDefaultFilter(false))
 				.route("fallback_controller_3",
 						r -> r.path("/fallback").filters(
 								f -> f.setPath("/circuitbreakerFallbackController3"))
-								.uri(uri))
+								.uri(uri).setEnableDefaultFilter(false))
 				.route("circuitbreaker_java", r -> r.host("**.circuitbreakerjava.org")
 						.filters(f -> f.prefixPath("/httpbin")
 								.circuitBreaker(config -> config.setFallbackUri(

@@ -80,9 +80,10 @@ public class HystrixTestConfig {
 				.route("hystrix_fallback_forward", r -> r.host("**.hystrixforward.org")
 						.filters(f -> f.hystrix(
 								config -> config.setFallbackUri("forward:/fallback")))
-						.uri(uri))
+						.uri(uri).setEnableDefaultFilter(false))
 				.route("hystrix_fallback_controller_3", r -> r.path("/fallback")
-						.filters(f -> f.setPath("/hystrixFallbackController3")).uri(uri))
+						.filters(f -> f.setPath("/hystrixFallbackController3")).uri(uri)
+						.setEnableDefaultFilter(false))
 				.route("hystrix_connection_failure",
 						r -> r.host("**.hystrixconnectfail.org")
 								.filters(f -> f.prefixPath("/httpbin").hystrix(config -> {

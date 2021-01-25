@@ -105,7 +105,7 @@ public class RoutePredicateHandlerMappingIntegrationTests extends BaseWebClientT
 					.route("and_not_has_myquery",
 							r -> r.path("/andnotquery").and().query("myquery")
 									.filters(f -> f.setPath("/httpbin/hasquery"))
-									.uri(uri))
+									.uri(uri).setEnableDefaultFilter(false))
 					.build();
 		}
 
