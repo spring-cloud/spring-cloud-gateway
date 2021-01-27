@@ -6,7 +6,7 @@
 
 	<groupId>org.springframework.cloud</groupId>
 	<artifactId>spring-cloud-gateway</artifactId>
-	<version>3.0.1</version>
+	<version>3.0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>Spring Cloud Gateway</name>
@@ -15,7 +15,7 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-build</artifactId>
-		<version>3.0.1</version>
+		<version>3.0.1-SNAPSHOT</version>
 		<relativePath/>
 	</parent>
 	<scm>
@@ -54,8 +54,8 @@
 		<blockhound.version>1.0.4.RELEASE</blockhound.version>
 		<java.version>1.8</java.version>
 		<junit-pioneer.version>1.0.0</junit-pioneer.version>
-		<spring-cloud-circuitbreaker.version>2.0.0</spring-cloud-circuitbreaker.version>
-		<spring-cloud-commons.version>3.0.1</spring-cloud-commons.version>
+		<spring-cloud-circuitbreaker.version>2.0.1-SNAPSHOT</spring-cloud-circuitbreaker.version>
+		<spring-cloud-commons.version>3.0.1-SNAPSHOT</spring-cloud-commons.version>
 		<testcontainers.version>1.15.1</testcontainers.version>
 	</properties>
 
