@@ -21,9 +21,8 @@ import java.util.Map;
 
 import javax.validation.constraints.Max;
 
-import org.junit.Rule;
+import org.junit.Assert;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import org.springframework.boot.context.properties.bind.BindException;
 import org.springframework.boot.context.properties.bind.Bindable;
@@ -35,16 +34,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class ConfigurationServiceTests {
 
-	@Rule
-	public ExpectedException thrown = ExpectedException.none();
-
 	@Test
 	public void validationOnCreateWorks() {
-		thrown.expect(BindException.class);
-
 		Map<String, Object> map = Collections.singletonMap("config.value", 11);
 
-		ConfigurationService.bindOrCreate(Bindable.of(ValidatedConfig.class), map, "config", getValidator(), null);
+		Assert.assertThrows(BindException.class, () -> ConfigurationService.bindOrCreate(Bindable.of(ValidatedConfig.class), map, "config", getValidator(), null));
 	}
 
 	@Test
@@ -59,12 +53,12 @@ public class ConfigurationServiceTests {
 
 	@Test
 	public void validationOnBindWorks() {
-		thrown.expect(BindException.class);
-
 		Map<String, Object> map = Collections.singletonMap("config.value", 11);
 
 		ValidatedConfig config = new ValidatedConfig();
-		ConfigurationService.bindOrCreate(Bindable.ofInstance(config), map, "config", getValidator(), null);
+
+		Assert.assertThrows(BindException.class, () -> ConfigurationService.bindOrCreate(Bindable.ofInstance(config), map, "config", getValidator(), null));
+
 	}
 
 	@Test

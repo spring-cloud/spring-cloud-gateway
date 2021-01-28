@@ -43,7 +43,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
-import static org.springframework.web.reactive.function.BodyExtractors.toMono;
 
 /**
  * @author Greg Turnquist
@@ -62,7 +61,7 @@ public class SaveSessionGatewayFilterFactoryTests extends BaseWebClientTests {
 		when(mockWebSession.getAttributes()).thenReturn(new HashMap<>());
 		when(mockWebSession.save()).thenReturn(Mono.empty());
 
-		Mono<Map> result = webClient.get().uri("/get").exchange().flatMap(response -> response.body(toMono(Map.class)));
+		Mono<Map> result = webClient.get().uri("/get").retrieve().bodyToMono(Map.class);
 
 		StepVerifier.create(result).consumeNextWith(response -> {
 			// Don't care about data, just need to catch signal

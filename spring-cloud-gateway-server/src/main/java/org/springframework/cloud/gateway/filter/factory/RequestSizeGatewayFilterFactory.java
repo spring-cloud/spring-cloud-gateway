@@ -23,7 +23,7 @@ import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.unit.DataSize;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -69,7 +69,7 @@ public class RequestSizeGatewayFilterFactory
 			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 				ServerHttpRequest request = exchange.getRequest();
 				String contentLength = request.getHeaders().getFirst("content-length");
-				if (!StringUtils.isEmpty(contentLength)) {
+				if (!ObjectUtils.isEmpty(contentLength)) {
 					Long currentRequestSize = Long.valueOf(contentLength);
 					if (currentRequestSize > requestSizeConfig.getMaxSize().toBytes()) {
 						exchange.getResponse().setStatusCode(HttpStatus.PAYLOAD_TOO_LARGE);
