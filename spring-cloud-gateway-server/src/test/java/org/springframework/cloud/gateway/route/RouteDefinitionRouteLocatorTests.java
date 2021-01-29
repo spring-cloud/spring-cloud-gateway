@@ -37,7 +37,7 @@ import org.springframework.cloud.gateway.handler.predicate.HostRoutePredicateFac
 import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
 import org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory;
 import org.springframework.cloud.gateway.support.ConfigurationService;
-import org.springframework.util.StringUtils;
+import org.springframework.util.ObjectUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -129,7 +129,7 @@ public class RouteDefinitionRouteLocatorTests {
 		}
 		else {
 			String simpleName = target.getClass().getSimpleName();
-			if (StringUtils.isEmpty(simpleName)) {
+			if (ObjectUtils.isEmpty(simpleName)) {
 				// maybe a lambda using new toString methods
 				simpleName = target.toString();
 			}

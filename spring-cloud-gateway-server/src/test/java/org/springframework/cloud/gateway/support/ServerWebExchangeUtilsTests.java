@@ -20,9 +20,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.Rule;
+import org.junit.Assert;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -31,9 +30,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.expand;
 
 public class ServerWebExchangeUtilsTests {
-
-	@Rule
-	public ExpectedException thrown = ExpectedException.none();
 
 	@Test
 	public void expandWorks() {
@@ -53,8 +49,7 @@ public class ServerWebExchangeUtilsTests {
 	@Test
 	public void missingVarThrowsException() {
 		MockServerWebExchange exchange = mockExchange(Collections.emptyMap());
-		thrown.expect(IllegalArgumentException.class);
-		expand(exchange, "my-{foo}-{baz}");
+		Assert.assertThrows(IllegalArgumentException.class, () -> expand(exchange, "my-{foo}-{baz}"));
 	}
 
 	private MockServerWebExchange mockExchange(Map<String, String> vars) {

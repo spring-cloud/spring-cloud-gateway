@@ -24,12 +24,12 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
-import static org.springframework.util.StringUtils.isEmpty;
 
 @ConfigurationProperties("spring.cloud.gateway.x-forwarded")
 public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
@@ -270,7 +270,7 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 	}
 
 	private static String substringBeforeLast(String str, String separator) {
-		if (isEmpty(str) || isEmpty(separator)) {
+		if (ObjectUtils.isEmpty(str) || ObjectUtils.isEmpty(separator)) {
 			return str;
 		}
 		int pos = str.lastIndexOf(separator);

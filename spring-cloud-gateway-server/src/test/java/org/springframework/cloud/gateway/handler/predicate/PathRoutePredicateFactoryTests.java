@@ -94,14 +94,14 @@ public class PathRoutePredicateFactoryTests extends BaseWebClientTests {
 	@Test
 	public void matchOptionalTrailingSeparatorCopiedToMatchTrailingSlash() {
 		Config config = new Config().setPatterns(Arrays.asList("patternA", "patternB"))
-				.setMatchOptionalTrailingSeparator(false);
+				.setMatchTrailingSlash(false);
 		assertThat(config.isMatchTrailingSlash()).isEqualTo(false);
 	}
 
 	@Test
 	public void toStringFormat() {
 		Config config = new Config().setPatterns(Arrays.asList("patternA", "patternB"))
-				.setMatchOptionalTrailingSeparator(false);
+				.setMatchTrailingSlash(false);
 		Predicate predicate = new PathRoutePredicateFactory().apply(config);
 		assertThat(predicate.toString()).contains("patternA").contains("patternB").contains("false");
 	}

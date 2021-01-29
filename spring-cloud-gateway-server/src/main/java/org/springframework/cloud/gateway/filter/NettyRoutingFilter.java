@@ -216,7 +216,7 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 				response = ((ServerHttpResponseDecorator) response).getDelegate();
 			}
 			if (response instanceof AbstractServerHttpResponse) {
-				((AbstractServerHttpResponse) response).setStatusCodeValue(clientResponse.status().code());
+				((AbstractServerHttpResponse) response).setRawStatusCode(clientResponse.status().code());
 			}
 			else {
 				// TODO: log warning here, not throw error?

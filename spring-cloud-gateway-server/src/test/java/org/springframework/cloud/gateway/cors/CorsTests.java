@@ -30,6 +30,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.reactive.function.client.ClientResponse;
@@ -45,7 +46,8 @@ public class CorsTests extends BaseWebClientTests {
 	@Test
 	public void testPreFlightCorsRequest() {
 		ClientResponse clientResponse = webClient.options().uri("/abc/123/function").header("Origin", "domain.com")
-				.header("Access-Control-Request-Method", "GET").exchange().block();
+				.header("Access-Control-Request-Method", "GET")
+				.exchangeToMono(Mono::just).block();
 		HttpHeaders asHttpHeaders = clientResponse.headers().asHttpHeaders();
 		Mono<String> bodyToMono = clientResponse.bodyToMono(String.class);
 		// pre-flight request shouldn't return the response body
@@ -60,14 +62,16 @@ public class CorsTests extends BaseWebClientTests {
 
 	@Test
 	public void testCorsRequest() {
-		ClientResponse clientResponse = webClient.get().uri("/abc/123/function").header("Origin", "domain.com")
-				.header(HttpHeaders.HOST, "www.path.org").exchange().block();
-		HttpHeaders asHttpHeaders = clientResponse.headers().asHttpHeaders();
-		Mono<String> bodyToMono = clientResponse.bodyToMono(String.class);
-		assertThat(bodyToMono.block()).isNotNull();
-		assertThat(asHttpHeaders.getAccessControlAllowOrigin())
+		ResponseEntity<String> response = webClient.get().uri("/abc/123/function").header("Origin", "domain.com")
+				.header(HttpHeaders.HOST, "www.path.org")
+				.retrieve()
+				.toEntity(String.class)
+				.block();
+		assertThat(response).isNotNull();
+		assertThat(response.getBody()).isNotNull();
+		assertThat(response.getHeaders().getAccessControlAllowOrigin())
 				.as("Missing header value in response: " + HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN).isEqualTo("*");
-		assertThat(clientResponse.statusCode()).as("CORS request failed.").isEqualTo(HttpStatus.OK);
+		assertThat(response.getStatusCode()).as("CORS request failed.").isEqualTo(HttpStatus.OK);
 	}
 
 	@EnableAutoConfiguration
