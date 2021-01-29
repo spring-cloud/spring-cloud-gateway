@@ -46,8 +46,7 @@ public class CorsTests extends BaseWebClientTests {
 	@Test
 	public void testPreFlightCorsRequest() {
 		ClientResponse clientResponse = webClient.options().uri("/abc/123/function").header("Origin", "domain.com")
-				.header("Access-Control-Request-Method", "GET")
-				.exchangeToMono(Mono::just).block();
+				.header("Access-Control-Request-Method", "GET").exchangeToMono(Mono::just).block();
 		HttpHeaders asHttpHeaders = clientResponse.headers().asHttpHeaders();
 		Mono<String> bodyToMono = clientResponse.bodyToMono(String.class);
 		// pre-flight request shouldn't return the response body
@@ -63,10 +62,7 @@ public class CorsTests extends BaseWebClientTests {
 	@Test
 	public void testCorsRequest() {
 		ResponseEntity<String> response = webClient.get().uri("/abc/123/function").header("Origin", "domain.com")
-				.header(HttpHeaders.HOST, "www.path.org")
-				.retrieve()
-				.toEntity(String.class)
-				.block();
+				.header(HttpHeaders.HOST, "www.path.org").retrieve().toEntity(String.class).block();
 		assertThat(response).isNotNull();
 		assertThat(response.getBody()).isNotNull();
 		assertThat(response.getHeaders().getAccessControlAllowOrigin())
