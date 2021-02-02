@@ -16,10 +16,6 @@
 
 package org.springframework.cloud.gateway.sample;
 
-import java.io.IOException;
-import java.time.Duration;
-import java.util.Map;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.AfterClass;
@@ -27,7 +23,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -45,6 +40,10 @@ import org.springframework.core.env.Environment;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.util.SocketUtils;
+
+import java.io.IOException;
+import java.time.Duration;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -151,6 +150,18 @@ public class GatewaySampleApplicationTests {
 				.expectStatus().isOk().expectHeader().valueEquals("X-TestHeader", "rewrite_response_obj")
 				.expectBody(String.class)
 				.consumeWith(result -> assertThat(result.getResponseBody()).isEqualTo("hello"));
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void doubleEncoding() {
+		webClient.post().uri("/post?query=key==%27abc%27").header("Host", "www.readbody.org").bodyValue("hi").exchange()
+				.expectStatus().isOk().expectHeader().valueEquals("X-TestHeader", "read_body_pred")
+				.expectBody(Map.class).consumeWith(result -> {
+					assertThat(result.getResponseBody()).containsEntry("data", "hi");
+					assertThat(result.getResponseBody()).containsKey("url");
+					assertThat((String)result.getResponseBody().get("url")).endsWith("/post?query=key==%27abc%27");
+				});
 	}
 
 	@Test

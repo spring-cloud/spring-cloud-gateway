@@ -134,6 +134,7 @@ public class HttpBinCompatibleController {
 		ret.put("data", body);
 		HashMap<String, Object> form = new HashMap<>();
 		ret.put("form", form);
+		ret.put("url", exchange.getRequest().getURI().toASCIIString());
 
 		return exchange.getFormData().flatMap(map -> {
 			for (Map.Entry<String, List<String>> entry : map.entrySet()) {
