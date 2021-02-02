@@ -34,7 +34,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.cloud.client.DefaultServiceInstance;
 import org.springframework.cloud.gateway.config.GatewayMetricsProperties;
-import org.springframework.cloud.gateway.test.HttpBinCompatibleController;
 import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
 import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
 import org.springframework.cloud.loadbalancer.support.ServiceInstanceListSuppliers;
