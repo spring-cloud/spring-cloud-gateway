@@ -3,8 +3,9 @@ package org.springframework.cloud.gateway.logging;
 import org.springframework.web.server.ServerWebExchange;
 
 /**
- * An abstraction over logging. For example, to maintain proper trace context when using manual sleuth
- * instrumentation the log call needs to be wrapped inside a special WebFlux operator.
+ * An abstraction over logging. For example, to maintain proper trace context when using
+ * manual sleuth instrumentation the log call needs to be wrapped inside a special WebFlux
+ * operator.
  */
 public interface AdaptableLogger {
 

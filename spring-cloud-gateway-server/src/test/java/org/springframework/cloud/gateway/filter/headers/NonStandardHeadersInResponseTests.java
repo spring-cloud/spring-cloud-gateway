@@ -55,7 +55,7 @@ public class NonStandardHeadersInResponseTests extends BaseWebClientTests {
 	public void nonStandardHeadersInResponse() {
 		URI uri = UriComponentsBuilder.fromUriString(this.baseUri + "/get-image").build(true).toUri();
 
-		String contentType = WebClient.builder().baseUrl(baseUri).build().get().uri(uri).exchange()
+		String contentType = WebClient.builder().baseUrl(baseUri).build().get().uri(uri).exchangeToMono(Mono::just)
 				.map(clientResponse -> clientResponse.headers().asHttpHeaders().getFirst(HttpHeaders.CONTENT_TYPE))
 				.block();
 

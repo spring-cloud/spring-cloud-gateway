@@ -123,11 +123,11 @@ public class GatewayAutoConfigurationTests {
 					assertThat(context).hasSingleBean(ReactorNettyRequestUpgradeStrategy.class);
 					ReactorNettyRequestUpgradeStrategy upgradeStrategy = context
 							.getBean(ReactorNettyRequestUpgradeStrategy.class);
-					assertThat(upgradeStrategy.getMaxFramePayloadLength()).isEqualTo(1024);
-					assertThat(upgradeStrategy.getHandlePing()).isTrue();
+					assertThat(upgradeStrategy.getWebsocketServerSpec().maxFramePayloadLength()).isEqualTo(1024);
+					assertThat(upgradeStrategy.getWebsocketServerSpec().handlePing()).isTrue();
 					assertThat(context).hasSingleBean(ReactorNettyWebSocketClient.class);
 					ReactorNettyWebSocketClient webSocketClient = context.getBean(ReactorNettyWebSocketClient.class);
-					assertThat(webSocketClient.getMaxFramePayloadLength()).isEqualTo(1024);
+					assertThat(webSocketClient.getWebsocketClientSpec().maxFramePayloadLength()).isEqualTo(1024);
 					HttpClientCustomizedConfig config = context.getBean(HttpClientCustomizedConfig.class);
 					assertThat(config.called.get()).isTrue();
 				});

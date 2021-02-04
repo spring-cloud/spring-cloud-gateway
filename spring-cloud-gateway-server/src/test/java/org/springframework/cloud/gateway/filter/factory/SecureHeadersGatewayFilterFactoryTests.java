@@ -52,7 +52,7 @@ public class SecureHeadersGatewayFilterFactoryTests extends BaseWebClientTests {
 	@Test
 	public void secureHeadersFilterWorks() {
 		Mono<ClientResponse> result = webClient.get().uri("/headers").header("Host", "www.secureheaders.org")
-				.exchange();
+				.exchangeToMono(Mono::just);
 
 		SecureHeadersProperties defaults = new SecureHeadersProperties();
 
