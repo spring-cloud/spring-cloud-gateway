@@ -691,8 +691,7 @@ public class GatewayAutoConfiguration {
 						if (StringUtils.hasText(proxy.getHost())) {
 
 							tcpClient = tcpClient.proxy(proxySpec -> {
-								ProxyProvider.Builder builder = proxySpec.type(ProxyProvider.Proxy.HTTP)
-										.host(proxy.getHost());
+								ProxyProvider.Builder builder = proxySpec.type(proxy.getType()).host(proxy.getHost());
 
 								PropertyMapper map = PropertyMapper.get();
 

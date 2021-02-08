@@ -35,6 +35,7 @@ import javax.validation.constraints.Max;
 
 import reactor.netty.resources.ConnectionProvider;
 import reactor.netty.tcp.SslProvider;
+import reactor.netty.transport.ProxyProvider;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.web.server.WebServerException;
@@ -276,6 +277,9 @@ public class HttpClientProperties {
 
 	public static class Proxy {
 
+		/** proxyType for proxy configuration of Netty HttpClient. */
+		private ProxyProvider.Proxy type = ProxyProvider.Proxy.HTTP;
+
 		/** Hostname for proxy configuration of Netty HttpClient. */
 		private String host;
 
@@ -293,6 +297,14 @@ public class HttpClientProperties {
 		 * reached directly, bypassing the proxy
 		 */
 		private String nonProxyHostsPattern;
+
+		public ProxyProvider.Proxy getType() {
+			return type;
+		}
+
+		public void setType(ProxyProvider.Proxy type) {
+			this.type = type;
+		}
 
 		public String getHost() {
 			return host;
@@ -336,8 +348,9 @@ public class HttpClientProperties {
 
 		@Override
 		public String toString() {
-			return "Proxy{" + "host='" + host + '\'' + ", port=" + port + ", username='" + username + '\''
-					+ ", password='" + password + '\'' + ", nonProxyHostsPattern='" + nonProxyHostsPattern + '\'' + '}';
+			return "Proxy{" + "type='" + type + '\'' + "host='" + host + '\'' + ", port=" + port + ", username='"
+					+ username + '\'' + ", password='" + password + '\'' + ", nonProxyHostsPattern='"
+					+ nonProxyHostsPattern + '\'' + '}';
 		}
 
 	}
