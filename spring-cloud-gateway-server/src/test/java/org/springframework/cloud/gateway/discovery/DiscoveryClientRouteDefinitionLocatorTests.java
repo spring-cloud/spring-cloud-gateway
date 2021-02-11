@@ -83,7 +83,7 @@ public class DiscoveryClientRouteDefinitionLocatorTests {
 		assertThat(definition.getFilters()).hasSize(1);
 		FilterDefinition filter = definition.getFilters().get(0);
 		assertThat(filter.getName()).isEqualTo("RewritePath");
-		assertThat(filter.getArgs()).hasSize(2).containsEntry(REGEXP_KEY, "/service1/(?<remaining>.*)")
+		assertThat(filter.getArgs()).hasSize(2).containsEntry(REGEXP_KEY, "/service1/?(?<remaining>.*)")
 				.containsEntry(REPLACEMENT_KEY, "/${remaining}");
 	}
 

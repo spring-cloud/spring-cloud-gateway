@@ -1132,7 +1132,7 @@ spring:
         predicates:
         - Path=/red/**
         filters:
-        - RewritePath=/red(?<segment>/?.*), $\{segment}
+        - RewritePath=/red/?(?<segment>.*), /$\{segment}
 ----
 ====
 
@@ -2226,7 +2226,7 @@ By default, the gateway defines a single predicate and filter for routes created
 The default predicate is a path predicate defined with the pattern `/serviceId/**`, where `serviceId` is
 the ID of the service from the `DiscoveryClient`.
 
-The default filter is a rewrite path filter with the regex `/serviceId/(?<remaining>.*)` and the replacement `/${remaining}`.
+The default filter is a rewrite path filter with the regex `/serviceId/?(?<remaining>.*)` and the replacement `/${remaining}`.
 This strips the service ID from the path before the request is sent downstream.
 
 If you want to customize the predicates or filters used by the `DiscoveryClient` routes, set `spring.cloud.gateway.discovery.locator.predicates[x]` and `spring.cloud.gateway.discovery.locator.filters[y]`.
@@ -2244,7 +2244,7 @@ spring.cloud.gateway.discovery.locator.predicates[1].args[pattern]: "'**.foo.com
 spring.cloud.gateway.discovery.locator.filters[0].name: CircuitBreaker
 spring.cloud.gateway.discovery.locator.filters[0].args[name]: serviceId
 spring.cloud.gateway.discovery.locator.filters[1].name: RewritePath
-spring.cloud.gateway.discovery.locator.filters[1].args[regexp]: "'/' + serviceId + '/(?<remaining>.*)'"
+spring.cloud.gateway.discovery.locator.filters[1].args[regexp]: "'/' + serviceId + '/?(?<remaining>.*)'"
 spring.cloud.gateway.discovery.locator.filters[1].args[replacement]: "'/${remaining}'"
 ----
 ====
