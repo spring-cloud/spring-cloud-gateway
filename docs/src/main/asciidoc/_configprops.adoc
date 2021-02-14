@@ -98,6 +98,7 @@
 |spring.cloud.gateway.httpclient.ssl.use-insecure-trust-manager | `false` | Installs the netty InsecureTrustManagerFactory. This is insecure and not suitable for production.
 |spring.cloud.gateway.httpclient.websocket.max-frame-payload-length |  | Max frame payload length.
 |spring.cloud.gateway.httpclient.websocket.proxy-ping | `true` | Proxy ping frames to downstream services, defaults to true.
+|spring.cloud.gateway.httpclient.compression | `false` | Enables compression support for Netty HttpClient.
 |spring.cloud.gateway.httpclient.wiretap | `false` | Enables wiretap debugging for Netty HttpClient.
 |spring.cloud.gateway.httpserver.wiretap | `false` | Enables wiretap debugging for Netty HttpServer.
 |spring.cloud.gateway.loadbalancer.use404 | `false` | 

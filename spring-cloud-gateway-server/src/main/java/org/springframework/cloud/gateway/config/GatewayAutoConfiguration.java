@@ -740,7 +740,7 @@ public class GatewayAutoConfiguration {
 				httpClient = httpClient.wiretap(true);
 			}
 
-			if(properties.isCompression()){
+			if (properties.isCompression()) {
 				httpClient = httpClient.compress(true);
 			}
 
