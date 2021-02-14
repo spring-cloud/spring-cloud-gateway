@@ -166,6 +166,7 @@ import static org.springframework.cloud.gateway.config.HttpClientProperties.Pool
 /**
  * @author Spencer Gibb
  * @author Ziemowit Stolarczyk
+ * @author Mete Alpaslan Katırcıoğlu
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty(name = "spring.cloud.gateway.enabled", matchIfMissing = true)
@@ -759,6 +760,10 @@ public class GatewayAutoConfiguration {
 
 			if (properties.isWiretap()) {
 				httpClient = httpClient.wiretap(true);
+			}
+
+			if (properties.isCompression()) {
+				httpClient = httpClient.compress(true);
 			}
 
 			if (!CollectionUtils.isEmpty(customizers)) {
