@@ -77,6 +77,9 @@ public class HttpClientProperties {
 	/** Enables wiretap debugging for Netty HttpClient. */
 	private boolean wiretap;
 
+	/** Enables compression for Netty HttpClient. */
+	private boolean compression;
+
 	public Integer getConnectTimeout() {
 		return connectTimeout;
 	}
@@ -151,6 +154,14 @@ public class HttpClientProperties {
 		this.wiretap = wiretap;
 	}
 
+	public boolean isCompression() {
+		return compression;
+	}
+
+	public void setCompression(boolean compression) {
+		this.compression = compression;
+	}
+
 	@Override
 	public String toString() {
 		// @formatter:off
@@ -164,6 +175,7 @@ public class HttpClientProperties {
 				.append("ssl", ssl)
 				.append("websocket", websocket)
 				.append("wiretap", wiretap)
+				.append("compression", compression)
 				.toString();
 		// @formatter:on
 

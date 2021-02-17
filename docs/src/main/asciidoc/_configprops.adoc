@@ -41,16 +41,16 @@
 |spring.cloud.gateway.filter.rewrite-path.enabled | `true` | Enables the rewrite-path filter.
 |spring.cloud.gateway.filter.rewrite-response-header.enabled | `true` | Enables the rewrite-response-header filter.
 |spring.cloud.gateway.filter.save-session.enabled | `true` | Enables the save-session filter.
-|spring.cloud.gateway.filter.secure-headers.content-security-policy | `default-src 'self' https:; font-src 'self' https: data:; img-src 'self' https: data:; object-src 'none'; script-src https:; style-src 'self' https: 'unsafe-inline'` | 
-|spring.cloud.gateway.filter.secure-headers.content-type-options | `nosniff` | 
+|spring.cloud.gateway.filter.secure-headers.content-security-policy | `default-src 'self' https:; font-src 'self' https: data:; img-src 'self' https: data:; object-src 'none'; script-src https:; style-src 'self' https: 'unsafe-inline'` |
+|spring.cloud.gateway.filter.secure-headers.content-type-options | `nosniff` |
 |spring.cloud.gateway.filter.secure-headers.disable |  | 
-|spring.cloud.gateway.filter.secure-headers.download-options | `noopen` | 
+|spring.cloud.gateway.filter.secure-headers.download-options | `noopen` |
 |spring.cloud.gateway.filter.secure-headers.enabled | `true` | Enables the secure-headers filter.
-|spring.cloud.gateway.filter.secure-headers.frame-options | `DENY` | 
-|spring.cloud.gateway.filter.secure-headers.permitted-cross-domain-policies | `none` | 
-|spring.cloud.gateway.filter.secure-headers.referrer-policy | `no-referrer` | 
-|spring.cloud.gateway.filter.secure-headers.strict-transport-security | `max-age=631138519` | 
-|spring.cloud.gateway.filter.secure-headers.xss-protection-header | `1 ; mode=block` | 
+|spring.cloud.gateway.filter.secure-headers.frame-options | `DENY` |
+|spring.cloud.gateway.filter.secure-headers.permitted-cross-domain-policies | `none` |
+|spring.cloud.gateway.filter.secure-headers.referrer-policy | `no-referrer` |
+|spring.cloud.gateway.filter.secure-headers.strict-transport-security | `max-age=631138519` |
+|spring.cloud.gateway.filter.secure-headers.xss-protection-header | `1 ; mode=block` |
 |spring.cloud.gateway.filter.set-path.enabled | `true` | Enables the set-path filter.
 |spring.cloud.gateway.filter.set-request-header.enabled | `true` | Enables the set-request-header filter.
 |spring.cloud.gateway.filter.set-request-host-header.enabled | `true` | Enables the set-request-host-header filter.
@@ -98,9 +98,10 @@
 |spring.cloud.gateway.httpclient.ssl.use-insecure-trust-manager | `false` | Installs the netty InsecureTrustManagerFactory. This is insecure and not suitable for production.
 |spring.cloud.gateway.httpclient.websocket.max-frame-payload-length |  | Max frame payload length.
 |spring.cloud.gateway.httpclient.websocket.proxy-ping | `true` | Proxy ping frames to downstream services, defaults to true.
+|spring.cloud.gateway.httpclient.compression | `false` | Enables compression support for Netty HttpClient.
 |spring.cloud.gateway.httpclient.wiretap | `false` | Enables wiretap debugging for Netty HttpClient.
 |spring.cloud.gateway.httpserver.wiretap | `false` | Enables wiretap debugging for Netty HttpServer.
-|spring.cloud.gateway.loadbalancer.use404 | `false` | 
+|spring.cloud.gateway.loadbalancer.use404 | `false` |
 |spring.cloud.gateway.metrics.enabled | `false` | Enables the collection of metrics data.
 |spring.cloud.gateway.metrics.prefix | `spring.cloud.gateway` | The prefix of all metrics emitted by gateway.
 |spring.cloud.gateway.metrics.tags |  | Tags map that added to metrics.
