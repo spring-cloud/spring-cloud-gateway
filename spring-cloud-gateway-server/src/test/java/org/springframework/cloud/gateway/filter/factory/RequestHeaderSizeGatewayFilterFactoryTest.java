@@ -53,19 +53,18 @@ public class RequestHeaderSizeGatewayFilterFactoryTest extends BaseWebClientTest
 
 	@Test
 	public void setRequestHeaderSizeFilterWorks() {
-		testClient.get().uri("/headers")
-				.header("Host", "www.testrequestheadersizefilter.org")
-				.header("HeaderName", "Some Very Large Header Name").exchange()
-				.expectStatus().isEqualTo(HttpStatus.REQUEST_HEADER_FIELDS_TOO_LARGE)
-				.expectHeader().valueMatches("errorMessage", responseMesssage);
+		testClient.get().uri("/headers").header("Host", "www.testrequestheadersizefilter.org")
+				.header("HeaderName", "Some Very Large Header Name").exchange().expectStatus()
+				.isEqualTo(HttpStatus.REQUEST_HEADER_FIELDS_TOO_LARGE).expectHeader()
+				.valueMatches("errorMessage", responseMesssage);
 	}
 
 	@Test
 	public void setRequestHeaderSizeFilterShortcutWorks() {
 		testClient.get().uri("/headers").header("Host", "www.requestheadersize.org")
-				.header("HeaderName", "Some Very Large Header Name").exchange()
-				.expectStatus().isEqualTo(HttpStatus.REQUEST_HEADER_FIELDS_TOO_LARGE)
-				.expectHeader().valueMatches("errorMessage", responseMesssage);
+				.header("HeaderName", "Some Very Large Header Name").exchange().expectStatus()
+				.isEqualTo(HttpStatus.REQUEST_HEADER_FIELDS_TOO_LARGE).expectHeader()
+				.valueMatches("errorMessage", responseMesssage);
 	}
 
 	@Test
@@ -86,10 +85,10 @@ public class RequestHeaderSizeGatewayFilterFactoryTest extends BaseWebClientTest
 
 		@Bean
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
-			return builder.routes().route("test_request_header_size",
-					r -> r.order(-1).host("**.testrequestheadersizefilter.org").filters(
-							f -> f.setRequestHeaderSize(DataSize.of(46L, DataUnit.BYTES)))
-							.uri(uri))
+			return builder.routes()
+					.route("test_request_header_size",
+							r -> r.order(-1).host("**.testrequestheadersizefilter.org")
+									.filters(f -> f.setRequestHeaderSize(DataSize.of(46L, DataUnit.BYTES))).uri(uri))
 					.build();
 		}
 
