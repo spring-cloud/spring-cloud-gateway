@@ -73,6 +73,11 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 
 	private static final Log log = LogFactory.getLog(NettyRoutingFilter.class);
 
+	/**
+	 * The order of the NettyRoutingFilter. See {@link Ordered#LOWEST_PRECEDENCE}.
+	 */
+	public static final int ORDER = Ordered.LOWEST_PRECEDENCE;
+
 	private final HttpClient httpClient;
 
 	private final ObjectProvider<List<HttpHeadersFilter>> headersFiltersProvider;
@@ -98,7 +103,7 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 
 	@Override
 	public int getOrder() {
-		return Ordered.LOWEST_PRECEDENCE;
+		return ORDER;
 	}
 
 	@Override
