@@ -325,7 +325,7 @@ public final class ServerWebExchangeUtils {
 	 * @param cacheDecoratedRequest if true, the ServerHttpRequestDecorator will be
 	 * cached.
 	 * @param function a function that accepts a ServerHttpRequest. It can be the created
-	 * ServerHttpRequestDecorator or the originial if there is no body.
+	 * ServerHttpRequestDecorator or the original if there is no body.
 	 * @param <T> generic type for the return {@link Mono}.
 	 * @return Mono of type T created by the function parameter.
 	 */
