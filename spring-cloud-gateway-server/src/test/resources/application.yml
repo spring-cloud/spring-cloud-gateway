@@ -289,6 +289,14 @@ spring:
         - RemoveResponseHeader=X-Request-Foo
 
         # =====================================
+      - id: request_header_size_test
+        uri: ${test.uri}
+        predicates:
+          - Host=**.requestheadersize.org
+        filters:
+          - RequestHeaderSize=4
+
+        # =====================================
       - id: rewrite_location_response_header_test
         uri: ${test.uri}
         predicates:
