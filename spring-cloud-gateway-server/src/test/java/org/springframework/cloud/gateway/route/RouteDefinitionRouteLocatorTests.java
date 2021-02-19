@@ -110,7 +110,7 @@ public class RouteDefinitionRouteLocatorTests {
 	}
 
 	@Test
-	public void contextLoadsAndApplyRouteIdToDefaultFilter() {
+	public void contextLoadsAndApplyRouteIdToRetryFilter() {
 		List<RoutePredicateFactory> predicates = Arrays.asList(new HostRoutePredicateFactory());
 		List<GatewayFilterFactory> gatewayFilterFactories = Arrays.asList(new RetryGatewayFilterFactory(),
 				new AddResponseHeaderGatewayFilterFactory());
