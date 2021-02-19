@@ -33,6 +33,7 @@ import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFac
 import org.springframework.cloud.gateway.filter.factory.AddResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RemoveResponseHeaderGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.RetryGatewayFilterFactory;
 import org.springframework.cloud.gateway.handler.predicate.HostRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
 import org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory;
@@ -115,6 +116,38 @@ public class RouteDefinitionRouteLocatorTests {
 			assertThat(getFilterClassName(filters.get(1))).contains("AddResponseHeader");
 			assertThat(getFilterClassName(filters.get(2)))
 					.contains("RouteDefinitionRouteLocatorTests$TestOrderedGateway");
+		}).expectComplete().verify();
+	}
+
+	@Test
+	public void contextLoadsAndApplyRouteIdToRetryFilter() {
+		List<RoutePredicateFactory> predicates = Arrays.asList(new HostRoutePredicateFactory());
+		List<GatewayFilterFactory> gatewayFilterFactories = Arrays.asList(new RetryGatewayFilterFactory(),
+				new AddResponseHeaderGatewayFilterFactory());
+		GatewayProperties gatewayProperties = new GatewayProperties();
+		gatewayProperties.setDefaultFilters(Arrays.asList(new FilterDefinition("Retry")));
+		gatewayProperties.setRoutes(Arrays.asList(new RouteDefinition() {
+			{
+				setId("foo");
+				setUri(URI.create("https://foo.example.com"));
+				setPredicates(Arrays.asList(new PredicateDefinition("Host=*.example.com")));
+				setFilters(Arrays.asList(new FilterDefinition("AddResponseHeader=X-Response-Foo, Bar")));
+			}
+		}));
+
+		PropertiesRouteDefinitionLocator routeDefinitionLocator = new PropertiesRouteDefinitionLocator(
+				gatewayProperties);
+		@SuppressWarnings("deprecation")
+		RouteDefinitionRouteLocator routeDefinitionRouteLocator = new RouteDefinitionRouteLocator(
+				new CompositeRouteDefinitionLocator(Flux.just(routeDefinitionLocator)), predicates,
+				gatewayFilterFactories, gatewayProperties, new ConfigurationService(null, () -> null, () -> null));
+
+		StepVerifier.create(routeDefinitionRouteLocator.getRoutes()).assertNext(route -> {
+			List<GatewayFilter> filters = route.getFilters();
+			assertThat(filters).hasSize(2);
+			assertThat(filters.get(0).toString()).contains("routeId = 'foo'");
+			assertThat(getFilterClassName(filters.get(0))).contains("Retry");
+			assertThat(getFilterClassName(filters.get(1))).contains("AddResponseHeader");
 		}).expectComplete().verify();
 	}
 

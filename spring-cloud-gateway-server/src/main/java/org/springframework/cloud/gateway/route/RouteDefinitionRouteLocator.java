@@ -225,7 +225,7 @@ public class RouteDefinitionRouteLocator
 
 		// TODO: support option to apply defaults after route specific filters?
 		if (!this.gatewayProperties.getDefaultFilters().isEmpty()) {
-			filters.addAll(loadGatewayFilters(DEFAULT_FILTERS,
+			filters.addAll(loadGatewayFilters(routeDefinition.getId(),
 					new ArrayList<>(this.gatewayProperties.getDefaultFilters())));
 		}
 
