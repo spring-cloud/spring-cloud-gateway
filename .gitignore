@@ -1,3 +1,4 @@
+.DS_Store
 *~
 #*
 *#
@@ -18,3 +19,6 @@ _site/
 .shelf
 *.swp
 *.swo
+.vscode/
+.flattened-pom.xml
+.sdkmanrc

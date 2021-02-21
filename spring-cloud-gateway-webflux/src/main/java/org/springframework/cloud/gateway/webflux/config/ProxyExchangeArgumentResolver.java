@@ -1,11 +1,11 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,6 +22,8 @@ import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
 import java.util.Set;
 
+import reactor.core.publisher.Mono;
+
 import org.springframework.cloud.gateway.webflux.ProxyExchange;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpHeaders;
@@ -30,17 +32,17 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.result.method.HandlerMethodArgumentResolver;
 import org.springframework.web.server.ServerWebExchange;
 
-import reactor.core.publisher.Mono;
-
 /**
  * @author Dave Syer
- *
+ * @author Tim Ysewyn
  */
 public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResolver {
 
 	private WebClient rest;
 
 	private HttpHeaders headers;
+
+	private Set<String> autoForwardedHeaders;
 
 	private Set<String> sensitive;
 
@@ -50,6 +52,10 @@ public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResol
 
 	public void setHeaders(HttpHeaders headers) {
 		this.headers = headers;
+	}
+
+	public void setAutoForwardedHeaders(Set<String> autoForwardedHeaders) {
+		this.autoForwardedHeaders = autoForwardedHeaders;
 	}
 
 	public void setSensitive(Set<String> sensitive) {
@@ -74,15 +80,27 @@ public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResol
 	}
 
 	@Override
-	public Mono<Object> resolveArgument(MethodParameter parameter,
-			BindingContext bindingContext, ServerWebExchange exchange) {
-		ProxyExchange<?> proxy = new ProxyExchange<>(rest, exchange, bindingContext,
-				type(parameter));
+	public Mono<Object> resolveArgument(MethodParameter parameter, BindingContext bindingContext,
+			ServerWebExchange exchange) {
+		ProxyExchange<?> proxy = new ProxyExchange<>(rest, exchange, bindingContext, type(parameter));
 		proxy.headers(headers);
+		if (this.autoForwardedHeaders.size() > 0) {
+			proxy.headers(extractAutoForwardedHeaders(exchange));
+		}
 		if (sensitive != null) {
 			proxy.sensitive(sensitive.toArray(new String[0]));
 		}
 		return Mono.just(proxy);
+	}
+
+	private HttpHeaders extractAutoForwardedHeaders(ServerWebExchange exchange) {
+		HttpHeaders headers = new HttpHeaders();
+		exchange.getRequest().getHeaders().forEach((header, values) -> {
+			if (this.autoForwardedHeaders.contains(header)) {
+				headers.addAll(header, values);
+			}
+		});
+		return headers;
 	}
 
 }

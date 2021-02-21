@@ -1,0 +1,29 @@
+test:
+  uri: lb:https://testservice
+
+server:
+  ssl:
+    enabled: true
+    key-alias: scg
+    key-store-password: scg1234
+    key-store: classpath:scg-keystore.p12
+    key-store-type: PKCS12
+
+spring:
+  cloud:
+    gateway:
+      httpclient:
+        ssl:
+          trustedX509Certificates:
+          - src/test/resources/single-cert.pem
+      default-filters:
+      - PrefixPath=/httpbin
+      routes:
+      - id: default_path_to_httpbin
+        uri: ${test.uri}
+        order: 10000
+        predicates:
+        - name: Path
+          args:
+            pattern: /**
+

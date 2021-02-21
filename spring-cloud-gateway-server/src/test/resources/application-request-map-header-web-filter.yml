@@ -1,0 +1,16 @@
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: map_request_header_test_singleresponse
+        uri: ${test.uri}
+        predicates:
+        - Path=/headers
+        filters:
+        - MapRequestHeader=a, X-Request-Example
+      - id: map_request_header_test_multiresponse
+        uri: ${test.uri}
+        predicates:
+        - Path=/multivalueheaders
+        filters:
+        - MapRequestHeader=a, X-Request-Example

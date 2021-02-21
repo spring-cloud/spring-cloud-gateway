@@ -1,11 +1,11 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -43,8 +43,9 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  * <code>@RequestMapping</code> methods.
  *
  * @author Dave Syer
+ * @author Tim Ysewyn
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @ConditionalOnWebApplication
 @ConditionalOnClass({ HandlerMethodReturnValueHandler.class })
 @EnableConfigurationProperties(ProxyProperties.class)
@@ -55,8 +56,8 @@ public class ProxyResponseAutoConfiguration implements WebMvcConfigurer {
 
 	@Bean
 	@ConditionalOnMissingBean
-	public ProxyExchangeArgumentResolver proxyExchangeArgumentResolver(
-			Optional<RestTemplateBuilder> optional, ProxyProperties proxy) {
+	public ProxyExchangeArgumentResolver proxyExchangeArgumentResolver(Optional<RestTemplateBuilder> optional,
+			ProxyProperties proxy) {
 		RestTemplateBuilder builder = optional.orElse(new RestTemplateBuilder());
 		RestTemplate template = builder.build();
 		template.setErrorHandler(new NoOpResponseErrorHandler());
@@ -66,16 +67,15 @@ public class ProxyResponseAutoConfiguration implements WebMvcConfigurer {
 				return true;
 			}
 		});
-		ProxyExchangeArgumentResolver resolver = new ProxyExchangeArgumentResolver(
-				template);
+		ProxyExchangeArgumentResolver resolver = new ProxyExchangeArgumentResolver(template);
 		resolver.setHeaders(proxy.convertHeaders());
+		resolver.setAutoForwardedHeaders(proxy.getAutoForward());
 		resolver.setSensitive(proxy.getSensitive()); // can be null
 		return resolver;
 	}
 
 	@Override
-	public void addArgumentResolvers(
-			List<HandlerMethodArgumentResolver> argumentResolvers) {
+	public void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
 		argumentResolvers.add(context.getBean(ProxyExchangeArgumentResolver.class));
 	}
 
@@ -86,4 +86,5 @@ public class ProxyResponseAutoConfiguration implements WebMvcConfigurer {
 		}
 
 	}
+
 }

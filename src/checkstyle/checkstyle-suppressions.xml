@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<!DOCTYPE suppressions PUBLIC
+		"-//Puppy Crawl//DTD Suppressions 1.1//EN"
+		"https://www.puppycrawl.com/dtds/suppressions_1_1.dtd">
+<suppressions>
+	<suppress files=".*AbstractFilterChain\.java" checks="LineLengthCheck"/>
+	<suppress files=".*AbstractNameValueGatewayFilterFactory\.java" checks="LineLengthCheck"/>
+	<suppress files=".*AdhocTestSuite\.java" checks="LineLengthCheck"/>
+	<suppress files=".*CloudFoundryRouteServiceRoutePredicateFactory\.java" checks="JavadocTagContinuationIndentationCheck"/>
+	<suppress files=".*CloudFoundryRouteServiceRoutePredicateFactory\.java" checks="LineLengthCheck"/>
+	<suppress files=".*DiscoveryClientRouteDefinitionLocatorTests\.java" checks="LineLengthCheck"/>
+	<suppress files=".*FormIntegrationTests\.java" checks="LineLengthCheck"/>
+	<suppress files=".*GatewayAutoConfiguration\.java" checks="LineLengthCheck"/>
+	<suppress files=".*GatewayClassPathWarningAutoConfiguration\.java" checks="LineLengthCheck"/>
+	<suppress files=".*GatewayControllerEndpoint\.java" checks="LineLengthCheck"/>
+	<suppress files=".*GatewaySampleApplication\.java" checks="LineLengthCheck"/>
+	<suppress files=".*RewriteResponseHeaderGatewayFilterFactory\.java" checks="LineLengthCheck"/>
+	<suppress files=".*HttpBinCompatibleController\.java" checks="LineLengthCheck"/>
+	<suppress files=".*RoutePredicateHandlerMapping\.java" checks="LineLengthCheck"/>
+	<suppress files=".*SSLHandshakeTimeoutDeprecatedTests\.java" checks="LineLengthCheck"/>
+	<suppress files=".*SSLHandshakeTimeoutTests\.java" checks="LineLengthCheck"/>
+	<suppress files=".*SecureHeadersProperties\.java" checks="LineLengthCheck"/>
+	<suppress files=".*WebSocketIntegrationTests\.java" checks="LineLengthCheck"/>
+	<suppress files=".*DefaultServerRequest\.java" checks="LineLengthCheck"/>
+	<suppress files=".*GatewaySampleApplicationTests\.java" checks="LineLengthCheck"/>
+	<suppress files=".*DiscoveryClientRouteDefinitionLocator\.java" checks="FinalClass"/>
+	<suppress files=".*XForwardedRemoteAddressResolver\.java" checks="FinalClass"/>
+	<suppress files=".*Route\.java" checks="FinalClass"/>
+	<suppress files=".*HystrixGatewayFilterFactory\.java" checks="AvoidNestedBlocks"/>
+	<suppress files=".*SpringCloudCircuitBreakerHystrixFilterFactory\.java" checks="AvoidNestedBlocks"/>
+	<suppress files=".*WellKnownKey\.java" checks="JavadocVariable"/>
+	<suppress files=".*MetadataEncoder\.java" checks="JavadocMethod"/>
+</suppressions>

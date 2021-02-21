@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -37,8 +37,9 @@ import org.springframework.web.reactive.result.method.annotation.ArgumentResolve
  * <code>@RequestMapping</code> methods.
  *
  * @author Dave Syer
+ * @author Tim Ysewyn
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @ConditionalOnWebApplication
 @ConditionalOnClass({ HandlerMethodReturnValueHandler.class })
 @EnableConfigurationProperties(ProxyProperties.class)
@@ -49,13 +50,13 @@ public class ProxyResponseAutoConfiguration implements WebFluxConfigurer {
 
 	@Bean
 	@ConditionalOnMissingBean
-	public ProxyExchangeArgumentResolver proxyExchangeArgumentResolver(
-			Optional<WebClient.Builder> optional, ProxyProperties proxy) {
+	public ProxyExchangeArgumentResolver proxyExchangeArgumentResolver(Optional<WebClient.Builder> optional,
+			ProxyProperties proxy) {
 		WebClient.Builder builder = optional.orElse(WebClient.builder());
 		WebClient template = builder.build();
-		ProxyExchangeArgumentResolver resolver = new ProxyExchangeArgumentResolver(
-				template);
+		ProxyExchangeArgumentResolver resolver = new ProxyExchangeArgumentResolver(template);
 		resolver.setHeaders(proxy.convertHeaders());
+		resolver.setAutoForwardedHeaders(proxy.getAutoForward());
 		resolver.setSensitive(proxy.getSensitive()); // can be null
 		return resolver;
 	}
@@ -63,7 +64,7 @@ public class ProxyResponseAutoConfiguration implements WebFluxConfigurer {
 	@Override
 	public void configureArgumentResolvers(ArgumentResolverConfigurer configurer) {
 		WebFluxConfigurer.super.configureArgumentResolvers(configurer);
-		configurer
-				.addCustomResolver(context.getBean(ProxyExchangeArgumentResolver.class));
+		configurer.addCustomResolver(context.getBean(ProxyExchangeArgumentResolver.class));
 	}
+
 }

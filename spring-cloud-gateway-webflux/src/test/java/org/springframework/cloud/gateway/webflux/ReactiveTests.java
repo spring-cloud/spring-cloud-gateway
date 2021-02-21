@@ -1,11 +1,11 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,9 +21,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -53,9 +54,6 @@ import org.springframework.web.server.ServerWebExchange;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @ContextConfiguration(classes = TestApplication.class)
@@ -69,10 +67,8 @@ public class ReactiveTests {
 
 	@Test
 	public void postBytes() throws Exception {
-		ResponseEntity<List<Foo>> result = rest.exchange(
-				RequestEntity.post(
-						rest.getRestTemplate().getUriTemplateHandler().expand("/bytes"))
-						.body("hello foo".getBytes()),
+		ResponseEntity<List<Foo>> result = rest.exchange(RequestEntity
+				.post(rest.getRestTemplate().getUriTemplateHandler().expand("/bytes")).body("hello foo".getBytes()),
 				new ParameterizedTypeReference<List<Foo>>() {
 				});
 		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -82,11 +78,8 @@ public class ReactiveTests {
 	@Test
 	public void post() throws Exception {
 		ResponseEntity<List<Bar>> result = rest.exchange(
-				RequestEntity
-						.post(rest.getRestTemplate().getUriTemplateHandler()
-								.expand("/bars"))
-						.body(Collections
-								.singletonList(Collections.singletonMap("name", "foo"))),
+				RequestEntity.post(rest.getRestTemplate().getUriTemplateHandler().expand("/bars"))
+						.body(Collections.singletonList(Collections.singletonMap("name", "foo"))),
 				new ParameterizedTypeReference<List<Bar>>() {
 				});
 		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -96,11 +89,8 @@ public class ReactiveTests {
 	@Test
 	public void postFlux() throws Exception {
 		ResponseEntity<List<Bar>> result = rest.exchange(
-				RequestEntity
-						.post(rest.getRestTemplate().getUriTemplateHandler()
-								.expand("/flux/bars"))
-						.body(Collections
-								.singletonList(Collections.singletonMap("name", "foo"))),
+				RequestEntity.post(rest.getRestTemplate().getUriTemplateHandler().expand("/flux/bars"))
+						.body(Collections.singletonList(Collections.singletonMap("name", "foo"))),
 				new ParameterizedTypeReference<List<Bar>>() {
 				});
 		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -109,9 +99,9 @@ public class ReactiveTests {
 
 	@Test
 	public void get() throws Exception {
-		ResponseEntity<List<Foo>> result = rest.exchange(RequestEntity
-				.get(rest.getRestTemplate().getUriTemplateHandler().expand("/foos"))
-				.build(), new ParameterizedTypeReference<List<Foo>>() {
+		ResponseEntity<List<Foo>> result = rest.exchange(
+				RequestEntity.get(rest.getRestTemplate().getUriTemplateHandler().expand("/foos")).build(),
+				new ParameterizedTypeReference<List<Foo>>() {
 				});
 		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
 		assertThat(result.getBody().iterator().next().getName()).isEqualTo("hello");
@@ -120,8 +110,7 @@ public class ReactiveTests {
 	@Test
 	public void forward() throws Exception {
 		ResponseEntity<List<Foo>> result = rest.exchange(
-				RequestEntity.get(rest.getRestTemplate().getUriTemplateHandler()
-						.expand("/forward/foos")).build(),
+				RequestEntity.get(rest.getRestTemplate().getUriTemplateHandler().expand("/forward/foos")).build(),
 				new ParameterizedTypeReference<List<Foo>>() {
 				});
 		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -138,16 +127,13 @@ public class ReactiveTests {
 			private DispatcherHandler handler;
 
 			@PostMapping("/bars")
-			public List<Bar> bars(@RequestBody List<Foo> foos,
-					@RequestHeader HttpHeaders headers) {
+			public List<Bar> bars(@RequestBody List<Foo> foos, @RequestHeader HttpHeaders headers) {
 				String custom = "hello ";
-				return foos.stream().map(foo -> new Bar(custom + foo.getName()))
-						.collect(Collectors.toList());
+				return foos.stream().map(foo -> new Bar(custom + foo.getName())).collect(Collectors.toList());
 			}
 
 			@PostMapping("/flux/bars")
-			public Flux<Bar> fluxbars(@RequestBody Flux<Foo> foos,
-					@RequestHeader HttpHeaders headers) {
+			public Flux<Bar> fluxbars(@RequestBody Flux<Foo> foos, @RequestHeader HttpHeaders headers) {
 				String custom = "hello ";
 				return foos.map(foo -> new Bar(custom + foo.getName()));
 			}
@@ -159,14 +145,12 @@ public class ReactiveTests {
 
 			@GetMapping("/forward/foos")
 			public Mono<Void> forwardFoos(ServerWebExchange exchange) {
-				return handler.handle(exchange.mutate()
-						.request(request -> request.path("/foos").build()).build());
+				return handler.handle(exchange.mutate().request(request -> request.path("/foos").build()).build());
 			}
 
 			@PostMapping("/bytes")
 			public Flux<Foo> forwardBars(@RequestBody Flux<byte[]> body) {
-				return Flux.from(body.reduce(this::concatenate)
-						.map(value -> new Foo(new String(value))));
+				return Flux.from(body.reduce(this::concatenate).map(value -> new Foo(new String(value))));
 			}
 
 			byte[] concatenate(@Nullable byte[] array1, @Nullable byte[] array2) {
@@ -187,12 +171,13 @@ public class ReactiveTests {
 
 		@JsonIgnoreProperties(ignoreUnknown = true)
 		static class Foo {
+
 			private String name;
 
-			public Foo() {
+			Foo() {
 			}
 
-			public Foo(String name) {
+			Foo(String name) {
 				this.name = name;
 			}
 
@@ -203,16 +188,18 @@ public class ReactiveTests {
 			public void setName(String name) {
 				this.name = name;
 			}
+
 		}
 
 		@JsonIgnoreProperties(ignoreUnknown = true)
 		static class Bar {
+
 			private String name;
 
-			public Bar() {
+			Bar() {
 			}
 
-			public Bar(String name) {
+			Bar(String name) {
 				this.name = name;
 			}
 
@@ -223,6 +210,7 @@ public class ReactiveTests {
 			public void setName(String name) {
 				this.name = name;
 			}
+
 		}
 
 	}

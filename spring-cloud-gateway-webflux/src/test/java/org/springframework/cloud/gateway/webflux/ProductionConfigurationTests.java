@@ -1,11 +1,11 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2016-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,10 +23,11 @@ import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -56,11 +57,9 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
+@SpringBootTest(properties = { "spring.cloud.gateway.proxy.auto-forward=baz" },
+		webEnvironment = WebEnvironment.RANDOM_PORT)
 @ContextConfiguration(classes = TestApplication.class)
 @DirtiesContext
 public class ProductionConfigurationTests {
@@ -85,27 +84,28 @@ public class ProductionConfigurationTests {
 	}
 
 	@Test
+	public void forwardGet() throws Exception {
+		assertThat(rest.getForObject("/proxy/forward/0", Foo.class).getName()).isEqualTo("bye");
+	}
+
+	@Test
 	public void path() throws Exception {
-		assertThat(rest.getForObject("/proxy/path/1", Foo.class).getName())
-				.isEqualTo("foo");
+		assertThat(rest.getForObject("/proxy/path/1", Foo.class).getName()).isEqualTo("foo");
 	}
 
 	@Test
 	public void resource() throws Exception {
-		assertThat(rest.getForObject("/proxy/html/test.html", String.class))
-				.contains("<body>Test");
+		assertThat(rest.getForObject("/proxy/html/test.html", String.class)).contains("<body>Test");
 	}
 
 	@Test
 	public void resourceWithNoType() throws Exception {
-		assertThat(rest.getForObject("/proxy/typeless/test.html", String.class))
-				.contains("<body>Test");
+		assertThat(rest.getForObject("/proxy/typeless/test.html", String.class)).contains("<body>Test");
 	}
 
 	@Test
 	public void missing() throws Exception {
-		assertThat(rest.getForEntity("/proxy/missing/0", Foo.class).getStatusCode())
-				.isEqualTo(HttpStatus.NOT_FOUND);
+		assertThat(rest.getForEntity("/proxy/missing/0", Foo.class).getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
 	}
 
 	@Test
@@ -115,68 +115,97 @@ public class ProductionConfigurationTests {
 
 	@Test
 	public void post() throws Exception {
-		assertThat(rest.postForObject("/proxy/0", Collections.singletonMap("name", "foo"),
-				Bar.class).getName()).isEqualTo("host=localhost;foo");
+		assertThat(rest.postForObject("/proxy/0", Collections.singletonMap("name", "foo"), Bar.class).getName())
+				.isEqualTo("host=localhost:" + port + ";foo");
+	}
+
+	@Test
+	public void forwardPost() throws Exception {
+		assertThat(rest.postForObject("/proxy/forward/0", Collections.singletonMap("name", "foo"), Bar.class).getName())
+				.isEqualTo("host=localhost:" + port + ";foo");
 	}
 
 	@Test
 	public void list() throws Exception {
 		ResponseEntity<List<Bar>> result = rest.exchange(
-				RequestEntity
-						.post(rest.getRestTemplate().getUriTemplateHandler()
-								.expand("/proxy"))
+				RequestEntity.post(rest.getRestTemplate().getUriTemplateHandler().expand("/proxy"))
 						.contentType(MediaType.APPLICATION_JSON)
-						.body(Collections
-								.singletonList(Collections.singletonMap("name", "foo"))),
+						.body(Collections.singletonList(Collections.singletonMap("name", "foo"))),
 				new ParameterizedTypeReference<List<Bar>>() {
 				});
-		assertThat(result.getBody().iterator().next().getName()).isEqualTo("host=localhost;foo");
+		assertThat(result.getBody().iterator().next().getName()).isEqualTo("host=localhost:" + port + ";foo");
 	}
 
 	@Test
 	public void bodyless() throws Exception {
-		assertThat(rest.postForObject("/proxy/0", Collections.singletonMap("name", "foo"),
-				Bar.class).getName()).isEqualTo("host=localhost;foo");
+		assertThat(rest.postForObject("/proxy/0", Collections.singletonMap("name", "foo"), Bar.class).getName())
+				.isEqualTo("host=localhost:" + port + ";foo");
 	}
 
 	@Test
 	public void entity() throws Exception {
-		assertThat(rest.exchange(
-				RequestEntity
-						.post(rest.getRestTemplate().getUriTemplateHandler()
-								.expand("/proxy/entity"))
-						.body(Collections.singletonMap("name", "foo")),
-				new ParameterizedTypeReference<List<Bar>>() {
-				}).getBody().iterator().next().getName()).isEqualTo("host=localhost;foo");
+		assertThat(
+				rest.exchange(RequestEntity.post(rest.getRestTemplate().getUriTemplateHandler().expand("/proxy/entity"))
+						.body(Collections.singletonMap("name", "foo")), new ParameterizedTypeReference<List<Bar>>() {
+						}).getBody().iterator().next().getName()).isEqualTo("host=localhost:" + port + ";foo");
 	}
 
 	@Test
 	public void entityWithType() throws Exception {
-		assertThat(rest.exchange(
-				RequestEntity
-						.post(rest.getRestTemplate().getUriTemplateHandler()
-								.expand("/proxy/type"))
-						.body(Collections.singletonMap("name", "foo")),
-				new ParameterizedTypeReference<List<Bar>>() {
-				}).getBody().iterator().next().getName()).isEqualTo("host=localhost;foo");
+		assertThat(
+				rest.exchange(RequestEntity.post(rest.getRestTemplate().getUriTemplateHandler().expand("/proxy/type"))
+						.body(Collections.singletonMap("name", "foo")), new ParameterizedTypeReference<List<Bar>>() {
+						}).getBody().iterator().next().getName()).isEqualTo("host=localhost:" + port + ";foo");
 	}
 
 	@Test
 	public void single() throws Exception {
-		assertThat(rest.postForObject("/proxy/single",
-				Collections.singletonMap("name", "foobar"), Bar.class).getName())
-						.isEqualTo("host=localhost;foobar");
+		assertThat(rest.postForObject("/proxy/single", Collections.singletonMap("name", "foobar"), Bar.class).getName())
+				.isEqualTo("host=localhost:" + port + ";foobar");
 	}
 
 	@Test
 	public void converter() throws Exception {
-		assertThat(rest.postForObject("/proxy/converter",
-				Collections.singletonMap("name", "foobar"), Bar.class).getName())
-						.isEqualTo("host=localhost;foobar");
+		assertThat(
+				rest.postForObject("/proxy/converter", Collections.singletonMap("name", "foobar"), Bar.class).getName())
+						.isEqualTo("host=localhost:" + port + ";foobar");
+	}
+
+	@Test
+	@SuppressWarnings({ "Duplicates", "unchecked" })
+	public void headers() throws Exception {
+		Map<String, List<String>> headers = rest
+				.exchange(RequestEntity.get(rest.getRestTemplate().getUriTemplateHandler().expand("/proxy/headers"))
+						.header("foo", "bar").header("abc", "xyz").header("baz", "fob").build(), Map.class)
+				.getBody();
+		assertThat(headers).doesNotContainKey("foo").doesNotContainKey("hello").containsKeys("bar", "abc");
+
+		assertThat(headers.get("bar")).containsOnly("hello");
+		assertThat(headers.get("abc")).containsOnly("123");
+		assertThat(headers.get("baz")).containsOnly("fob");
+	}
+
+	@Test
+	public void forwardedHeaderUsesHost() throws Exception {
+		Map<String, List<String>> headers = rest
+				.exchange(RequestEntity.get(rest.getRestTemplate().getUriTemplateHandler().expand("/proxy/headers"))
+						.header("host", "foo:1234").build(), Map.class)
+				.getBody();
+
+		assertThat(headers).containsKey("forwarded");
+		assertThat(headers.get("forwarded").size()).isEqualTo(1);
+		assertThat(headers.get("forwarded").get(0)).isEqualTo("host=localhost:" + port);
 	}
 
 	@SpringBootApplication
 	static class TestApplication {
+
+		@Autowired
+		private ProxyController controller;
+
+		public void setHome(URI home) {
+			controller.setHome(home);
+		}
 
 		@RestController
 		static class ProxyController {
@@ -201,8 +230,8 @@ public class ProductionConfigurationTests {
 			}
 
 			@GetMapping("/proxy/html/**")
-			public Mono<ResponseEntity<String>> proxyHtml(ProxyExchange<String> proxy,
-					UriComponentsBuilder uri) throws Exception {
+			public Mono<ResponseEntity<String>> proxyHtml(ProxyExchange<String> proxy, UriComponentsBuilder uri)
+					throws Exception {
 				String path = proxy.path("/proxy/html");
 				return proxy.uri(home.toString() + path).get();
 			}
@@ -227,61 +256,72 @@ public class ProductionConfigurationTests {
 
 			@PostMapping("/proxy/{id}")
 			public Mono<ResponseEntity<Object>> proxyBars(@PathVariable Integer id,
-					@RequestBody Map<String, Object> body,
-					ProxyExchange<List<Object>> proxy) throws Exception {
+					@RequestBody Map<String, Object> body, ProxyExchange<List<Object>> proxy) throws Exception {
 				body.put("id", id);
-				return proxy.uri(home.toString() + "/bars").body(Arrays.asList(body))
-						.post(this::first);
+				return proxy.uri(home.toString() + "/bars").body(Arrays.asList(body)).post(this::first);
 			}
 
 			@PostMapping("/proxy")
-			public Mono<ResponseEntity<List<Object>>> barsWithNoBody(ProxyExchange<List<Object>> proxy) throws Exception {
+			public Mono<ResponseEntity<List<Object>>> barsWithNoBody(ProxyExchange<List<Object>> proxy)
+					throws Exception {
 				return proxy.uri(home.toString() + "/bars").post();
 			}
 
 			@PostMapping("/proxy/entity")
-			public Mono<ResponseEntity<Object>> explicitEntity(@RequestBody Mono<Foo> foo,
-					ProxyExchange<Object> proxy) throws Exception {
+			public Mono<ResponseEntity<Object>> explicitEntity(@RequestBody Mono<Foo> foo, ProxyExchange<Object> proxy)
+					throws Exception {
 				return proxy.uri(home.toString() + "/bars").body(Flux.from(foo)).post();
 			}
 
 			@PostMapping("/proxy/type")
-			public Mono<ResponseEntity<List<Bar>>> explicitEntityWithType(
-					@RequestBody Mono<Foo> foo, ProxyExchange<List<Bar>> proxy)
-					throws Exception {
+			public Mono<ResponseEntity<List<Bar>>> explicitEntityWithType(@RequestBody Mono<Foo> foo,
+					ProxyExchange<List<Bar>> proxy) throws Exception {
 				return proxy.uri(home.toString() + "/bars").body(Flux.from(foo)).post();
 			}
 
 			@PostMapping("/proxy/single")
 			public Mono<ResponseEntity<Object>> implicitEntity(@RequestBody Mono<Foo> foo,
 					ProxyExchange<List<Object>> proxy) throws Exception {
-				return proxy.uri(home.toString() + "/bars").body(Flux.from(foo))
-						.post(this::first);
+				return proxy.uri(home.toString() + "/bars").body(Flux.from(foo)).post(this::first);
 			}
 
 			@PostMapping("/proxy/converter")
-			public Mono<ResponseEntity<Bar>> implicitEntityWithConverter(
-					@RequestBody Foo foo, ProxyExchange<List<Bar>> proxy)
-					throws Exception {
+			public Mono<ResponseEntity<Bar>> implicitEntityWithConverter(@RequestBody Foo foo,
+					ProxyExchange<List<Bar>> proxy) throws Exception {
 				return proxy.uri(home.toString() + "/bars").body(Arrays.asList(foo))
-						.post(response -> ResponseEntity.status(response.getStatusCode())
-								.headers(response.getHeaders())
+						.post(response -> ResponseEntity.status(response.getStatusCode()).headers(response.getHeaders())
 								.body(response.getBody().iterator().next()));
 			}
 
+			@GetMapping("/proxy/headers")
+			public Mono<ResponseEntity<Map<String, List<String>>>> headers(
+					ProxyExchange<Map<String, List<String>>> proxy) {
+				proxy.sensitive("foo");
+				proxy.sensitive("hello");
+				proxy.header("bar", "hello");
+				proxy.header("abc", "123");
+				proxy.header("hello", "world");
+				return proxy.uri(home.toString() + "/headers").get();
+			}
+
 			private <T> ResponseEntity<T> first(ResponseEntity<List<T>> response) {
-				return ResponseEntity.status(response.getStatusCode())
-						.headers(response.getHeaders())
+				return ResponseEntity.status(response.getStatusCode()).headers(response.getHeaders())
 						.body(response.getBody().iterator().next());
 			}
 
-		}
+			@GetMapping("/proxy/forward/{id}")
+			public Mono<ResponseEntity<Object>> proxyForwardFoos(@PathVariable Integer id, ProxyExchange<Object> proxy)
+					throws Exception {
+				return proxy.uri(home.toString() + "/foos/" + id).forward();
+			}
 
-		@Autowired
-		private ProxyController controller;
+			@PostMapping("/proxy/forward/{id}")
+			public Mono<ResponseEntity<Object>> proxyForwardBars(@PathVariable Integer id,
+					@RequestBody Map<String, Object> body, ProxyExchange<List<Object>> proxy) throws Exception {
+				body.put("id", id);
+				return proxy.uri(home.toString() + "/bars").body(Arrays.asList(body)).forward(this::first);
+			}
 
-		public void setHome(URI home) {
-			controller.setHome(home);
 		}
 
 		@RestController
@@ -299,25 +339,29 @@ public class ProductionConfigurationTests {
 			}
 
 			@PostMapping("/bars")
-			public List<Bar> bars(@RequestBody List<Foo> foos,
-					@RequestHeader HttpHeaders headers) {
+			public List<Bar> bars(@RequestBody List<Foo> foos, @RequestHeader HttpHeaders headers) {
 				String custom = headers.getFirst("X-Custom");
 				custom = custom == null ? "" : custom;
-				custom = headers.getFirst("forwarded") == null ? custom
-						: headers.getFirst("forwarded") + ";" + custom;
+				custom = headers.getFirst("forwarded") == null ? custom : headers.getFirst("forwarded") + ";" + custom;
 				return Arrays.asList(new Bar(custom + foos.iterator().next().getName()));
+			}
+
+			@GetMapping("/headers")
+			public Map<String, List<String>> headers(@RequestHeader HttpHeaders headers) {
+				return headers;
 			}
 
 		}
 
 		@JsonIgnoreProperties(ignoreUnknown = true)
 		static class Foo {
+
 			private String name;
 
-			public Foo() {
+			Foo() {
 			}
 
-			public Foo(String name) {
+			Foo(String name) {
 				this.name = name;
 			}
 
@@ -328,16 +372,18 @@ public class ProductionConfigurationTests {
 			public void setName(String name) {
 				this.name = name;
 			}
+
 		}
 
 		@JsonIgnoreProperties(ignoreUnknown = true)
 		static class Bar {
+
 			private String name;
 
-			public Bar() {
+			Bar() {
 			}
 
-			public Bar(String name) {
+			Bar(String name) {
 				this.name = name;
 			}
 
@@ -348,6 +394,7 @@ public class ProductionConfigurationTests {
 			public void setName(String name) {
 				this.name = name;
 			}
+
 		}
 
 	}

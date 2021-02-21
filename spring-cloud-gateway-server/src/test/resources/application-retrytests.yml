@@ -1,0 +1,31 @@
+spring:
+  cloud:
+    gateway:
+      default-filters:
+        - PrefixPath=/httpbin
+      routes:
+        # =====================================
+        - id: retry_test
+          uri: ${test.uri}
+          predicates:
+            - Path=/retry
+          filters:
+            - Retry
+        # =====================================
+        - id: retry_post_once_test
+          uri: ${test.uri}
+          predicates:
+            - Host=**.retrypostonceconfig.org
+          filters:
+            - name: Retry
+              args:
+                methods: GET,POST
+        # =====================================
+        - id: retry_post_test
+          uri: ${test.uri}
+          predicates:
+            - Host=**.retrypostconfig.org
+          filters:
+            - name: Retry
+              args:
+                methods: GET,POST

@@ -1,0 +1,364 @@
+{
+  "properties": [
+    {
+      "name": "spring.cloud.gateway.filter.add-request-header.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the add-request-header filter.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.filter.map-request-header.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the map-request-header filter.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.filter.add-request-parameter.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the add-request-parameter filter.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.filter.add-response-header.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the add-response-header filter.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.filter.modify-request-body.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the modify-request-body filter.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.filter.dedupe-response-header.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the dedupe-response-header filter.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.filter.modify-response-body.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the modify-response-body filter.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.filter.prefix-path.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the prefix-path filter.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.filter.preserve-host-header.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the preserve-host-header filter.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.filter.redirect-to.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the redirect-to filter.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.filter.remove-request-header.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the remove-request-header filter.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.filter.remove-request-parameter.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the remove-request-parameter filter.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.filter.remove-response-header.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the remove-response-header filter.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.filter.request-rate-limiter.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the request-rate-limiter filter.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.filter.rewrite-path.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the rewrite-path filter.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.filter.retry.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the retry filter.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.filter.set-path.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the set-path filter.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.filter.secure-headers.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the secure-headers filter.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.filter.set-request-header.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the set-request-header filter.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.filter.set-request-host-header.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the set-request-host-header filter.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.filter.set-response-header.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the set-response-header filter.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.filter.rewrite-response-header.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the rewrite-response-header filter.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.filter.rewrite-location-response-header.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the rewrite-location-response-header filter.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.filter.rewrite-location.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the rewrite-location filter.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.filter.set-status.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the set-status filter.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.filter.save-session.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the save-session filter.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.filter.strip-prefix.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the strip-prefix filter.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.filter.request-header-to-request-uri.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the request-header-to-request-uri filter.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.filter.request-size.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the request-size filter.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.filter.request-header-size.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the request-header-size filter.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.filter.circuit-breaker.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the circuit-breaker filter.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.filter.hystrix.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the hystrix filter.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.filter.fallback-headers.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the fallback-headers filter.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.global-filter.adapt-cached-body.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the adapt-cached-body global filter.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.global-filter.remove-cached-body.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the remove-cached-body global filter.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.global-filter.route-to-request-url.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the route-to-request-url global filter.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.global-filter.forward-routing.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the forward-routing global filter.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.global-filter.forward-path.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the forward-path global filter.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.global-filter.websocket-routing.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the websocket-routing global filter.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.global-filter.netty-write-response.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the netty-write-response global filter.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.global-filter.netty-routing.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the netty-routing global filter.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.global-filter.reactive-load-balancer-client.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the reactive-load-balancer-client global filter.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.global-filter.load-balancer-client.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the load-balancer-client global filter.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.predicate.after.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the after predicate.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.predicate.before.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the before predicate.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.predicate.between.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the between predicate.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.predicate.cookie.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the cookie predicate.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.predicate.header.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the header predicate.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.predicate.host.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the host predicate.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.predicate.method.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the method predicate.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.predicate.path.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the path predicate.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.predicate.query.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the query predicate.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.predicate.read-body.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the read-body predicate.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.predicate.remote-addr.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the remote-addr predicate.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.predicate.weight.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the weight predicate.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.predicate.cloud-foundry-route-service.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the cloud-foundry-route-service predicate.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables gateway functionality.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.forwarded.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the ForwardedHeadersFilter.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.httpserver.wiretap",
+      "type": "java.lang.Boolean",
+      "description": "Enables wiretap debugging for Netty HttpServer.",
+      "defaultValue": "false"
+    },
+    {
+      "name": "spring.cloud.gateway.globalcors.add-to-simple-url-handler-mapping",
+      "type": "java.lang.Boolean",
+      "description": "If global CORS config should be added to the URL handler.",
+      "defaultValue": "false"
+    }
+  ]
+}

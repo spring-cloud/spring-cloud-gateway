@@ -1,0 +1,11 @@
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: add_request_parameter_test
+        uri: ${test.uri}
+        predicates:
+        - Host=**.addrequestparameter.org
+        - Path=/get
+        filters:
+        - AddRequestParameter=example, ValueA
