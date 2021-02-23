@@ -55,14 +55,17 @@ public class Route implements Ordered {
 
 	private final Map<String, Object> metadata;
 
+	protected boolean enableDefaultFilter;
+
 	private Route(String id, URI uri, int order, AsyncPredicate<ServerWebExchange> predicate,
-			List<GatewayFilter> gatewayFilters, Map<String, Object> metadata) {
+			List<GatewayFilter> gatewayFilters, Map<String, Object> metadata, boolean enableDefaultFilter) {
 		this.id = id;
 		this.uri = uri;
 		this.order = order;
 		this.predicate = predicate;
 		this.gatewayFilters = gatewayFilters;
 		this.metadata = metadata;
+		this.enableDefaultFilter = enableDefaultFilter;
 	}
 
 	public static Builder builder() {
@@ -99,6 +102,7 @@ public class Route implements Ordered {
 		return this.uri;
 	}
 
+	@Override
 	public int getOrder() {
 		return order;
 	}
@@ -111,8 +115,16 @@ public class Route implements Ordered {
 		return Collections.unmodifiableList(this.gatewayFilters);
 	}
 
+	public void addDefaultGatewayFilters(List<GatewayFilter> defaultGatewayFilters) {
+		this.gatewayFilters.addAll(defaultGatewayFilters);
+	}
+
 	public Map<String, Object> getMetadata() {
 		return Collections.unmodifiableMap(metadata);
+	}
+
+	public boolean isEnableDefaultFilter() {
+		return enableDefaultFilter;
 	}
 
 	@Override
@@ -159,6 +171,8 @@ public class Route implements Ordered {
 		protected List<GatewayFilter> gatewayFilters = new ArrayList<>();
 
 		protected Map<String, Object> metadata = new HashMap<>();
+
+		protected boolean enableDefaultFilter = true;
 
 		protected AbstractBuilder() {
 		}
@@ -231,13 +245,24 @@ public class Route implements Ordered {
 			return filters(Arrays.asList(gatewayFilters));
 		}
 
+		public boolean isEnableDefaultFilter() {
+			return enableDefaultFilter;
+		}
+
+		public B setEnableDefaultFilter(boolean enableDefaultFilter) {
+			this.enableDefaultFilter = enableDefaultFilter;
+			return getThis();
+		}
+
+		@Override
 		public Route build() {
 			Assert.notNull(this.id, "id can not be null");
 			Assert.notNull(this.uri, "uri can not be null");
 			AsyncPredicate<ServerWebExchange> predicate = getPredicate();
 			Assert.notNull(predicate, "predicate can not be null");
 
-			return new Route(this.id, this.uri, this.order, predicate, this.gatewayFilters, this.metadata);
+			return new Route(this.id, this.uri, this.order, predicate, this.gatewayFilters, this.metadata,
+					this.enableDefaultFilter);
 		}
 
 	}

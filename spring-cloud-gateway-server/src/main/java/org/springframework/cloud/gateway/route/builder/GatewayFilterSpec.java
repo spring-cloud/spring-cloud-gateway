@@ -354,7 +354,8 @@ public class GatewayFilterSpec extends UriSpec {
 
 	/**
 	 * A filter that will set the Host header to
-	 * {@param hostName} on the outgoing request.
+	 * {@param hostName} on the outgoing
+	 * request.
 	 * @param hostName the updated Host header value
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
@@ -763,6 +764,11 @@ public class GatewayFilterSpec extends UriSpec {
 					"This is probably because Hystrix is missing from the classpath, which can be resolved by adding dependency on 'org.springframework.cloud:spring-cloud-starter-netflix-hystrix'");
 		}
 		return factory;
+	}
+
+	public GatewayFilterSpec enableDefaultFilters(boolean enableDefaultFilters) {
+		this.routeBuilder.setEnableDefaultFilter(enableDefaultFilters);
+		return this;
 	}
 
 	public class RequestRateLimiterSpec {

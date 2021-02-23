@@ -275,8 +275,8 @@ public class WebSocketIntegrationTests {
 		@Bean
 		public HandlerMapping handlerMapping() {
 			Map<String, WebSocketHandler> map = new HashMap<>();
-			map.put("/echo", new EchoWebSocketHandler());
-			map.put("/echoForHttp", new EchoWebSocketHandler());
+			map.put("/httpbin/echo", new EchoWebSocketHandler());
+			map.put("/httpbin/echoForHttp", new EchoWebSocketHandler());
 			map.put("/sub-protocol", new SubProtocolWebSocketHandler());
 			map.put("/custom-header", new CustomHeaderHandler());
 			map.put("/close", new SessionClosingHandler());
