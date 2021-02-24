@@ -24,6 +24,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.zip.GZIPOutputStream;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -148,6 +150,17 @@ public class HttpBinCompatibleController {
 	@RequestMapping("/status/{status}")
 	public ResponseEntity<String> status(@PathVariable int status) {
 		return ResponseEntity.status(status).body("Failed with " + status);
+	}
+
+	@RequestMapping(value = "/responseheaders/{status}", method = { RequestMethod.GET, RequestMethod.POST })
+	public ResponseEntity<Map<String, Object>> responseHeaders(@PathVariable int status, ServerWebExchange exchange) {
+		HttpHeaders httpHeaders = exchange.getRequest().getHeaders().entrySet().stream()
+				.filter(entry -> entry.getKey().startsWith("X-Test-"))
+				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
+						(list1, list2) -> Stream.concat(list1.stream(), list2.stream()).collect(Collectors.toList()),
+						HttpHeaders::new));
+
+		return ResponseEntity.status(status).headers(httpHeaders).body(Collections.singletonMap("status", status));
 	}
 
 	@RequestMapping(path = "/post/empty", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
