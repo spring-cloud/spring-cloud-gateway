@@ -16,10 +16,13 @@
 
 package org.springframework.cloud.gateway.config;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Test;
 import reactor.netty.http.client.HttpClient;
+import reactor.netty.http.server.WebsocketServerSpec;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
@@ -158,6 +161,22 @@ public class GatewayAutoConfigurationTests {
 			assertThat(ctx.getBeanNamesForType(GatewayLegacyControllerEndpoint.class))
 					.hasSize(1);
 		}
+	}
+
+	@Test // gh-2159
+	public void reactorNettyRequestUpgradeStrategyWebSocketSpecBuilderIsUniquePerRequest()
+			throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+		ReactorNettyRequestUpgradeStrategy strategy = new GatewayAutoConfiguration.NettyConfiguration()
+				.reactorNettyRequestUpgradeStrategy(new HttpClientProperties());
+
+		// Method "buildSpec" was introduced for Tests, but has only default visiblity
+		Method buildSpec = ReactorNettyRequestUpgradeStrategy.class.getDeclaredMethod("buildSpec", String.class);
+		buildSpec.setAccessible(true);
+		WebsocketServerSpec spec1 = (WebsocketServerSpec) buildSpec.invoke(strategy, "p1");
+		WebsocketServerSpec spec2 = strategy.getWebsocketServerSpec();
+
+		assertThat(spec1.protocols()).isEqualTo("p1");
+		assertThat(spec2.protocols()).isNull();
 	}
 
 	@EnableAutoConfiguration

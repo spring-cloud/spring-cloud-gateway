@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.config;
 import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import com.netflix.hystrix.HystrixObservableCommand;
 import io.netty.channel.ChannelOption;
@@ -28,6 +29,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Flux;
 import reactor.netty.http.client.HttpClient;
+import reactor.netty.http.server.WebsocketServerSpec;
 import reactor.netty.resources.ConnectionProvider;
 import reactor.netty.tcp.ProxyProvider;
 import rx.RxReactiveStreams;
@@ -812,17 +814,17 @@ public class GatewayAutoConfiguration {
 		@Bean
 		public ReactorNettyRequestUpgradeStrategy reactorNettyRequestUpgradeStrategy(
 				HttpClientProperties httpClientProperties) {
-			ReactorNettyRequestUpgradeStrategy requestUpgradeStrategy = new ReactorNettyRequestUpgradeStrategy();
 
-			HttpClientProperties.Websocket websocket = httpClientProperties
-					.getWebsocket();
-			PropertyMapper map = PropertyMapper.get();
-			map.from(websocket::getMaxFramePayloadLength).whenNonNull()
-					.to(requestUpgradeStrategy::setMaxFramePayloadLength);
-			map.from(websocket::isProxyPing).to(requestUpgradeStrategy::setHandlePing);
-			return requestUpgradeStrategy;
-		}
+			Supplier<WebsocketServerSpec.Builder> builderSupplier = () -> {
+				WebsocketServerSpec.Builder builder = WebsocketServerSpec.builder();
+				HttpClientProperties.Websocket websocket = httpClientProperties.getWebsocket();
+				PropertyMapper map = PropertyMapper.get();
+				map.from(websocket::getMaxFramePayloadLength).whenNonNull().to(builder::maxFramePayloadLength);
+				map.from(websocket::isProxyPing).to(builder::handlePing);
+				return builder;
+			};
 
+			return new ReactorNettyRequestUpgradeStrategy(builderSupplier);
 	}
 
 	@Configuration(proxyBeanMethods = false)
