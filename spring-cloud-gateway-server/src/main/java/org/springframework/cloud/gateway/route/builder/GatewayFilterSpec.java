@@ -354,7 +354,8 @@ public class GatewayFilterSpec extends UriSpec {
 
 	/**
 	 * A filter that will set the Host header to
-	 * {@param hostName} on the outgoing request.
+	 * {@param hostName} on the outgoing
+	 * request.
 	 * @param hostName the updated Host header value
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
