@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.gateway.mvc.config;
 
+import static java.util.stream.Collectors.toSet;
+
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Collections;
@@ -33,15 +35,13 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
-import static java.util.stream.Collectors.toSet;
-
 /**
  * @author Dave Syer
  * @author Tim Ysewyn
  */
 public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResolver {
 
-	private RestTemplate rest;
+	private final RestTemplate rest;
 
 	private HttpHeaders headers;
 
@@ -75,13 +75,9 @@ public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResol
 	public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
 			NativeWebRequest webRequest, WebDataBinderFactory binderFactory) throws Exception {
 		ProxyExchange<?> proxy = new ProxyExchange<>(rest, webRequest, mavContainer, binderFactory, type(parameter));
-		proxy.headers(headers);
-		if (this.autoForwardedHeaders.size() > 0) {
-			proxy.headers(extractAutoForwardedHeaders(webRequest));
-		}
-		if (sensitive != null) {
-			proxy.sensitive(sensitive.toArray(new String[0]));
-		}
+		configureHeaders(proxy);
+		configureAutoForwardedHeaders(proxy, webRequest);
+		configureSensitive(proxy);
 		return proxy;
 	}
 
@@ -107,4 +103,22 @@ public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResol
 		return headers;
 	}
 
+	private void configureHeaders(final ProxyExchange<?> proxy) {
+		if (headers != null) {
+			proxy.headers(headers);
+		}
+	}
+
+	private void configureAutoForwardedHeaders(final ProxyExchange<?> proxy,
+			final NativeWebRequest webRequest) {
+		if ((autoForwardedHeaders != null) && (autoForwardedHeaders.size() > 0)) {
+			proxy.headers(extractAutoForwardedHeaders(webRequest));
+		}
+	}
+
+	private void configureSensitive(final ProxyExchange<?> proxy) {
+		if (sensitive != null) {
+			proxy.sensitive(sensitive.toArray(new String[0]));
+		}
+	}
 }
