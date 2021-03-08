@@ -20,10 +20,12 @@ import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerProperties;
 import org.springframework.cloud.client.loadbalancer.reactive.ReactiveLoadBalancer;
 import org.springframework.cloud.gateway.config.conditional.ConditionalOnEnabledGlobalFilter;
+import org.springframework.cloud.gateway.filter.LoadBalancerServiceInstanceCookieFilter;
 import org.springframework.cloud.gateway.filter.ReactiveLoadBalancerClientFilter;
 import org.springframework.cloud.loadbalancer.config.LoadBalancerAutoConfiguration;
 import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
@@ -50,6 +52,17 @@ public class GatewayReactiveLoadBalancerClientAutoConfiguration {
 	public ReactiveLoadBalancerClientFilter gatewayLoadBalancerClientFilter(LoadBalancerClientFactory clientFactory,
 			GatewayLoadBalancerProperties properties, LoadBalancerProperties loadBalancerProperties) {
 		return new ReactiveLoadBalancerClientFilter(clientFactory, properties, loadBalancerProperties);
+	}
+
+	@Bean
+	@ConditionalOnBean(ReactiveLoadBalancerClientFilter.class)
+	@ConditionalOnProperty(value = "spring.cloud.loadbalancer.sticky-session.add-service-instance-cookie",
+			havingValue = "true")
+	@ConditionalOnMissingBean
+	@ConditionalOnEnabledGlobalFilter
+	public LoadBalancerServiceInstanceCookieFilter loadBalancerServiceInstanceCookieFilter(
+			LoadBalancerProperties loadBalancerProperties) {
+		return new LoadBalancerServiceInstanceCookieFilter(loadBalancerProperties);
 	}
 
 }
