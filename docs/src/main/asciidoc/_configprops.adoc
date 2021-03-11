@@ -80,11 +80,11 @@
 |spring.cloud.gateway.httpclient.pool.max-life-time |  | Duration after which the channel will be closed. If NULL, there is no max life time.
 |spring.cloud.gateway.httpclient.pool.name | `proxy` | The channel pool map name, defaults to proxy.
 |spring.cloud.gateway.httpclient.pool.type |  | Type of pool for HttpClient to use, defaults to ELASTIC.
-|spring.cloud.gateway.httpclient.proxy.type | `HTTP` | proxyType for proxy configuration of Netty HttpClient.
 |spring.cloud.gateway.httpclient.proxy.host |  | Hostname for proxy configuration of Netty HttpClient.
 |spring.cloud.gateway.httpclient.proxy.non-proxy-hosts-pattern |  | Regular expression (Java) for a configured list of hosts. that should be reached directly, bypassing the proxy
 |spring.cloud.gateway.httpclient.proxy.password |  | Password for proxy configuration of Netty HttpClient.
 |spring.cloud.gateway.httpclient.proxy.port |  | Port for proxy configuration of Netty HttpClient.
+|spring.cloud.gateway.httpclient.proxy.type |  | proxyType for proxy configuration of Netty HttpClient.
 |spring.cloud.gateway.httpclient.proxy.username |  | Username for proxy configuration of Netty HttpClient.
 |spring.cloud.gateway.httpclient.response-timeout |  | The response timeout.
 |spring.cloud.gateway.httpclient.ssl.close-notify-flush-timeout | `3000ms` | SSL close_notify flush timeout. Default to 3000 ms.

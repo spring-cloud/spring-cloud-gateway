@@ -40,20 +40,21 @@ public class GatewayDiscoveryClientAutoConfigurationTest {
 
 	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
 
-	private static final SimpleEvaluationContext CONTEXT = SimpleEvaluationContext.forReadOnlyDataBinding().withInstanceMethods().build();
+	private static final SimpleEvaluationContext CONTEXT = SimpleEvaluationContext.forReadOnlyDataBinding()
+			.withInstanceMethods().build();
 
 	private static final FilterDefinition DEFAULT_FILTER = GatewayDiscoveryClientAutoConfiguration.initFilters().get(0);
 
 	private ServiceInstance serviceInstance;
-	
+
 	@BeforeEach
-	public void buildServiceInstance(){
+	public void buildServiceInstance() {
 		this.serviceInstance = mock(ServiceInstance.class);
 		when(this.serviceInstance.getServiceId()).thenReturn(SERVICE_ID);
 	}
 
 	@Test
-	public void defaultRewritePathShouldHandleEmptyRemainingWithoutSlash(){
+	public void defaultRewritePathShouldHandleEmptyRemainingWithoutSlash() {
 		String expectedRemotePath = "/";
 
 		final String result = replace(BASE_URI);
@@ -62,7 +63,7 @@ public class GatewayDiscoveryClientAutoConfigurationTest {
 	}
 
 	@Test
-	public void defaultRewritePathShouldHandleEmptyRemainingWithSlash(){
+	public void defaultRewritePathShouldHandleEmptyRemainingWithSlash() {
 		String extraUri = "/";
 
 		final String result = replace(BASE_URI + extraUri);
@@ -70,9 +71,8 @@ public class GatewayDiscoveryClientAutoConfigurationTest {
 		assertThat(result).isEqualTo(extraUri);
 	}
 
-
 	@Test
-	public void defaultRewritePathShouldHandleNonEmptyRemainingPath(){
+	public void defaultRewritePathShouldHandleNonEmptyRemainingPath() {
 		String extraUri = "/some/additional/uri";
 
 		final String result = replace(BASE_URI + extraUri);
@@ -86,8 +86,8 @@ public class GatewayDiscoveryClientAutoConfigurationTest {
 	}
 
 	private String evaluateExpression(String expression) {
-		return Objects.requireNonNull(PARSER.parseExpression(expression)
-				.getValue(CONTEXT, serviceInstance, String.class));
+		return Objects
+				.requireNonNull(PARSER.parseExpression(expression).getValue(CONTEXT, serviceInstance, String.class));
 	}
 
 }
