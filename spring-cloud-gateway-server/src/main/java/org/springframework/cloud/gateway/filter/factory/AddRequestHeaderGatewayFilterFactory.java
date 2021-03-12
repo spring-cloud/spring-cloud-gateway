@@ -40,7 +40,8 @@ public class AddRequestHeaderGatewayFilterFactory
 					GatewayFilterChain chain) {
 				String value = ServerWebExchangeUtils.expand(exchange, config.getValue());
 				ServerHttpRequest request = exchange.getRequest().mutate()
-						.headers(httpHeaders -> httpHeaders.add(config.getName(), value)).build();
+						.headers(httpHeaders -> httpHeaders.add(config.getName(), value))
+						.build();
 
 				return chain.filter(exchange.mutate().request(request).build());
 			}
