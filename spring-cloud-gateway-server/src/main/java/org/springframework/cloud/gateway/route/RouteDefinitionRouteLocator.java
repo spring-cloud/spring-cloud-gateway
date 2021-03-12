@@ -168,8 +168,8 @@ public class RouteDefinitionRouteLocator implements RouteLocator {
 
 		// TODO: support option to apply defaults after route specific filters?
 		if (!this.gatewayProperties.getDefaultFilters().isEmpty()) {
-			filters.addAll(
-					loadGatewayFilters(routeDefinition.getId(), new ArrayList<>(this.gatewayProperties.getDefaultFilters())));
+			filters.addAll(loadGatewayFilters(routeDefinition.getId(),
+					new ArrayList<>(this.gatewayProperties.getDefaultFilters())));
 		}
 
 		if (!routeDefinition.getFilters().isEmpty()) {

@@ -111,10 +111,8 @@ public class RouteDefinitionRouteLocatorTests {
 
 	@Test
 	public void contextLoadsAndApplyRouteIdToRetryFilter() {
-		List<RoutePredicateFactory> predicates = Arrays
-				.asList(new HostRoutePredicateFactory());
-		List<GatewayFilterFactory> gatewayFilterFactories = Arrays.asList(
-				new RetryGatewayFilterFactory(),
+		List<RoutePredicateFactory> predicates = Arrays.asList(new HostRoutePredicateFactory());
+		List<GatewayFilterFactory> gatewayFilterFactories = Arrays.asList(new RetryGatewayFilterFactory(),
 				new AddResponseHeaderGatewayFilterFactory());
 		GatewayProperties gatewayProperties = new GatewayProperties();
 		gatewayProperties.setDefaultFilters(Arrays.asList(new FilterDefinition("Retry")));
@@ -122,10 +120,8 @@ public class RouteDefinitionRouteLocatorTests {
 			{
 				setId("foo");
 				setUri(URI.create("https://foo.example.com"));
-				setPredicates(
-						Arrays.asList(new PredicateDefinition("Host=*.example.com")));
-				setFilters(Arrays.asList(
-						new FilterDefinition("AddResponseHeader=X-Response-Foo, Bar")));
+				setPredicates(Arrays.asList(new PredicateDefinition("Host=*.example.com")));
+				setFilters(Arrays.asList(new FilterDefinition("AddResponseHeader=X-Response-Foo, Bar")));
 			}
 		}));
 
@@ -133,9 +129,8 @@ public class RouteDefinitionRouteLocatorTests {
 				gatewayProperties);
 		@SuppressWarnings("deprecation")
 		RouteDefinitionRouteLocator routeDefinitionRouteLocator = new RouteDefinitionRouteLocator(
-				new CompositeRouteDefinitionLocator(Flux.just(routeDefinitionLocator)),
-				predicates, gatewayFilterFactories, gatewayProperties,
-				new ConfigurationService());
+				new CompositeRouteDefinitionLocator(Flux.just(routeDefinitionLocator)), predicates,
+				gatewayFilterFactories, gatewayProperties, new ConfigurationService(null, () -> null, () -> null));
 
 		StepVerifier.create(routeDefinitionRouteLocator.getRoutes()).assertNext(route -> {
 			List<GatewayFilter> filters = route.getFilters();
