@@ -825,6 +825,8 @@ public class GatewayAutoConfiguration {
 			};
 
 			return new ReactorNettyRequestUpgradeStrategy(builderSupplier);
+		}
+
 	}
 
 	@Configuration(proxyBeanMethods = false)
