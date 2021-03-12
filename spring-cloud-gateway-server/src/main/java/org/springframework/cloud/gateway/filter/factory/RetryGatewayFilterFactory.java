@@ -168,10 +168,13 @@ public class RetryGatewayFilterFactory
 
 			@Override
 			public String toString() {
-				return filterToStringCreator(RetryGatewayFilterFactory.this).append("retries", retryConfig.getRetries())
-						.append("series", retryConfig.getSeries()).append("statuses", retryConfig.getStatuses())
-						.append("methods", retryConfig.getMethods()).append("exceptions", retryConfig.getExceptions())
-						.toString();
+				return filterToStringCreator(RetryGatewayFilterFactory.this)
+						.append("routeId", retryConfig.getRouteId())
+						.append("retries", retryConfig.getRetries())
+						.append("series", retryConfig.getSeries())
+						.append("statuses", retryConfig.getStatuses())
+						.append("methods", retryConfig.getMethods())
+						.append("exceptions", retryConfig.getExceptions()).toString();
 			}
 		};
 	}
