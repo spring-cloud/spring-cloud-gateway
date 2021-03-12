@@ -20,6 +20,7 @@ import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import io.netty.channel.ChannelOption;
 import io.netty.handler.ssl.SslContextBuilder;
@@ -788,13 +789,18 @@ public class GatewayAutoConfiguration {
 		public ReactorNettyRequestUpgradeStrategy reactorNettyRequestUpgradeStrategy(
 				HttpClientProperties httpClientProperties) {
 
-			WebsocketServerSpec.Builder builder = WebsocketServerSpec.builder();
-			HttpClientProperties.Websocket websocket = httpClientProperties.getWebsocket();
-			PropertyMapper map = PropertyMapper.get();
-			map.from(websocket::getMaxFramePayloadLength).whenNonNull().to(builder::maxFramePayloadLength);
-			map.from(websocket::isProxyPing).to(builder::handlePing);
+			Supplier<WebsocketServerSpec.Builder> builderSupplier = () -> {
+				WebsocketServerSpec.Builder builder = WebsocketServerSpec.builder();
+				HttpClientProperties.Websocket websocket = httpClientProperties
+						.getWebsocket();
+				PropertyMapper map = PropertyMapper.get();
+				map.from(websocket::getMaxFramePayloadLength).whenNonNull()
+						.to(builder::maxFramePayloadLength);
+				map.from(websocket::isProxyPing).to(builder::handlePing);
+				return builder;
+			};
 
-			return new ReactorNettyRequestUpgradeStrategy(builder);
+			return new ReactorNettyRequestUpgradeStrategy(builderSupplier);
 		}
 
 	}
