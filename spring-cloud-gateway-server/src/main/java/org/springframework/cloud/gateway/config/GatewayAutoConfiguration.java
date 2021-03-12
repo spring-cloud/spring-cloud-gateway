@@ -791,11 +791,9 @@ public class GatewayAutoConfiguration {
 
 			Supplier<WebsocketServerSpec.Builder> builderSupplier = () -> {
 				WebsocketServerSpec.Builder builder = WebsocketServerSpec.builder();
-				HttpClientProperties.Websocket websocket = httpClientProperties
-						.getWebsocket();
+				HttpClientProperties.Websocket websocket = httpClientProperties.getWebsocket();
 				PropertyMapper map = PropertyMapper.get();
-				map.from(websocket::getMaxFramePayloadLength).whenNonNull()
-						.to(builder::maxFramePayloadLength);
+				map.from(websocket::getMaxFramePayloadLength).whenNonNull().to(builder::maxFramePayloadLength);
 				map.from(websocket::isProxyPing).to(builder::handlePing);
 				return builder;
 			};

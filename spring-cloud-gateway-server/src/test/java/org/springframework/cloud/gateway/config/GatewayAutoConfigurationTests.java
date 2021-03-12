@@ -194,17 +194,14 @@ public class GatewayAutoConfigurationTests {
 
 	@Test // gh-2159
 	public void reactorNettyRequestUpgradeStrategyWebSocketSpecBuilderIsUniquePerRequest()
-			throws NoSuchMethodException, InvocationTargetException,
-			IllegalAccessException {
+			throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
 		ReactorNettyRequestUpgradeStrategy strategy = new GatewayAutoConfiguration.NettyConfiguration()
 				.reactorNettyRequestUpgradeStrategy(new HttpClientProperties());
 
 		// Method "buildSpec" was introduced for Tests, but has only default visiblity
-		Method buildSpec = ReactorNettyRequestUpgradeStrategy.class
-				.getDeclaredMethod("buildSpec", String.class);
+		Method buildSpec = ReactorNettyRequestUpgradeStrategy.class.getDeclaredMethod("buildSpec", String.class);
 		buildSpec.setAccessible(true);
-		WebsocketServerSpec spec1 = (WebsocketServerSpec) buildSpec.invoke(strategy,
-				"p1");
+		WebsocketServerSpec spec1 = (WebsocketServerSpec) buildSpec.invoke(strategy, "p1");
 		WebsocketServerSpec spec2 = strategy.getWebsocketServerSpec();
 
 		assertThat(spec1.protocols()).isEqualTo("p1");
