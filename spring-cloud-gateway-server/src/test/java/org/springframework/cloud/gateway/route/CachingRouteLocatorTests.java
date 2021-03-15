@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import reactor.core.publisher.Flux;
 
@@ -67,7 +66,6 @@ public class CachingRouteLocatorTests {
 	}
 
 	@Test
-	@Ignore // FIXME: 3.0.0
 	public void refreshWorksWhenFirstRefreshSuccessAndOtherError() throws InterruptedException {
 		Route route1 = route(1);
 		Route route2 = route(2);
@@ -102,7 +100,7 @@ public class CachingRouteLocatorTests {
 
 		waitUntilRefreshFinished(locator, resultEvents);
 		assertThat(resultEvents).hasSize(1);
-		assertThat(resultEvents.get(0).getThrowable().getCause().getMessage()).isEqualTo("in chain.");
+		assertThat(resultEvents.get(0).getThrowable().getMessage()).isEqualTo("in chain.");
 		assertThat(resultEvents.get(0).isSuccess()).isEqualTo(false);
 		assertThat(locator.getRoutes().collectList().block()).containsExactly(route1);
 
