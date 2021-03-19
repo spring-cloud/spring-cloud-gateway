@@ -725,8 +725,7 @@ public class GatewayAutoConfiguration {
 			return httpClient;
 		}
 
-		private ConnectionProvider buildConnectionProvider(
-				HttpClientProperties properties) {
+		private ConnectionProvider buildConnectionProvider(HttpClientProperties properties) {
 			HttpClientProperties.Pool pool = properties.getPool();
 
 			ConnectionProvider connectionProvider;
@@ -735,17 +734,14 @@ public class GatewayAutoConfiguration {
 			}
 			else {
 				// create either Fixed or Elastic pool
-				ConnectionProvider.Builder builder = ConnectionProvider
-						.builder(pool.getName());
+				ConnectionProvider.Builder builder = ConnectionProvider.builder(pool.getName());
 				if (pool.getType() == FIXED) {
-					builder.maxConnections(pool.getMaxConnections())
-							.pendingAcquireMaxCount(-1).pendingAcquireTimeout(
-									Duration.ofMillis(pool.getAcquireTimeout()));
+					builder.maxConnections(pool.getMaxConnections()).pendingAcquireMaxCount(-1)
+							.pendingAcquireTimeout(Duration.ofMillis(pool.getAcquireTimeout()));
 				}
 				else {
 					// Elastic
-					builder.maxConnections(Integer.MAX_VALUE)
-							.pendingAcquireTimeout(Duration.ofMillis(0))
+					builder.maxConnections(Integer.MAX_VALUE).pendingAcquireTimeout(Duration.ofMillis(0))
 							.pendingAcquireMaxCount(-1);
 				}
 
