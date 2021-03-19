@@ -118,7 +118,7 @@
 		</dependency>
 		<dependency>
 			<groupId>io.projectreactor.tools</groupId>
-			<artifactId>blockhound-junit-platform</artifactId>
+			<artifactId>blockhound</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -194,6 +194,13 @@
 			<activation>
 				<jdk>(,16)</jdk>
 			</activation>
+			<dependencies>
+				<dependency>
+					<groupId>io.projectreactor.tools</groupId>
+					<artifactId>blockhound-junit-platform</artifactId>
+					<scope>test</scope>
+				</dependency>
+			</dependencies>
 			<build>
 				<plugins>
 					<plugin>
