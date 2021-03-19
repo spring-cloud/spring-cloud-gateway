@@ -93,44 +93,6 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
 			<plugin>
-				<groupId>org.jetbrains.kotlin</groupId>
-				<artifactId>kotlin-maven-plugin</artifactId>
-				<configuration>
-					<args>
-						<arg>-Xjsr305=strict</arg>
-					</args>
-					<jvmTarget>1.8</jvmTarget>
-				</configuration>
-				<executions>
-					<execution>
-						<id>compile</id>
-						<phase>compile</phase>
-						<goals>
-							<goal>compile</goal>
-						</goals>
-						<configuration>
-							<sourceDirs>
-								<source>src/main/java</source>
-								<source>src/main/kotlin</source>
-							</sourceDirs>
-						</configuration>
-					</execution>
-					<execution>
-						<id>test-compile</id>
-						<phase>test-compile</phase>
-						<goals>
-							<goal>test-compile</goal>
-						</goals>
-						<configuration>
-							<sourceDirs>
-								<source>src/test/java</source>
-								<source>src/test/kotlin</source>
-							</sourceDirs>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
@@ -173,5 +135,55 @@
 			</plugin>
 		</plugins>
 	</build>
+	<profiles>
+		<profile>
+			<id>javaLowerThan16</id>
+			<activation>
+				<jdk>(,16)</jdk>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.jetbrains.kotlin</groupId>
+						<artifactId>kotlin-maven-plugin</artifactId>
+						<configuration>
+							<args>
+								<arg>-Xjsr305=strict</arg>
+							</args>
+							<jvmTarget>1.8</jvmTarget>
+						</configuration>
+						<executions>
+							<execution>
+								<id>compile</id>
+								<phase>compile</phase>
+								<goals>
+									<goal>compile</goal>
+								</goals>
+								<configuration>
+									<sourceDirs>
+										<source>src/main/java</source>
+										<source>src/main/kotlin</source>
+									</sourceDirs>
+								</configuration>
+							</execution>
+							<execution>
+								<id>test-compile</id>
+								<phase>test-compile</phase>
+								<goals>
+									<goal>test-compile</goal>
+								</goals>
+								<configuration>
+									<sourceDirs>
+										<source>src/test/java</source>
+										<source>src/test/kotlin</source>
+									</sourceDirs>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 </project>
 
