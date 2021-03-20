@@ -75,6 +75,7 @@
 |spring.cloud.gateway.httpclient.max-header-size |  | The max response header size.
 |spring.cloud.gateway.httpclient.max-initial-line-length |  | The max initial line length.
 |spring.cloud.gateway.httpclient.pool.acquire-timeout |  | Only for type FIXED, the maximum time in millis to wait for aquiring.
+|spring.cloud.gateway.httpclient.pool.eviction-interval | `0` | Perform regular eviction checks in the background at a specified interval. Disabled by default ({@link Duration#ZERO})
 |spring.cloud.gateway.httpclient.pool.max-connections |  | Only for type FIXED, the maximum number of connections before starting pending acquisition on existing ones.
 |spring.cloud.gateway.httpclient.pool.max-idle-time |  | Time in millis after which the channel will be closed. If NULL, there is no max idle time.
 |spring.cloud.gateway.httpclient.pool.max-life-time |  | Duration after which the channel will be closed. If NULL, there is no max life time.
