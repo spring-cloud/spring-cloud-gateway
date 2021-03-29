@@ -51,7 +51,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<blockhound.version>1.0.4.RELEASE</blockhound.version>
+		<blockhound.version>1.0.5.BUILD-SNAPSHOT</blockhound.version>
 		<java.version>1.8</java.version>
 		<junit-pioneer.version>1.0.0</junit-pioneer.version>
 		<spring-cloud-circuitbreaker.version>2.0.2-SNAPSHOT</spring-cloud-circuitbreaker.version>

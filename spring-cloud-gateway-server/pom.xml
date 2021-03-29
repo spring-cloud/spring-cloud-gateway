@@ -122,6 +122,11 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<groupId>io.projectreactor.tools</groupId>
+			<artifactId>blockhound-junit-platform</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
 			<groupId>org.assertj</groupId>
 			<artifactId>assertj-core</artifactId>
 			<scope>test</scope>
@@ -194,13 +199,6 @@
 			<activation>
 				<jdk>(,16)</jdk>
 			</activation>
-			<dependencies>
-				<dependency>
-					<groupId>io.projectreactor.tools</groupId>
-					<artifactId>blockhound-junit-platform</artifactId>
-					<scope>test</scope>
-				</dependency>
-			</dependencies>
 			<build>
 				<plugins>
 					<plugin>
