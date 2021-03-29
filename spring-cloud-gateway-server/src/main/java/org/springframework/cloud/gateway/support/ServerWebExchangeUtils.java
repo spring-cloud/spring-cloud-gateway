@@ -332,10 +332,10 @@ public final class ServerWebExchangeUtils {
 	private static <T> Mono<T> cacheRequestBody(ServerWebExchange exchange, boolean cacheDecoratedRequest,
 			Function<ServerHttpRequest, Mono<T>> function) {
 		ServerHttpResponse response = exchange.getResponse();
-		NettyDataBufferFactory factory = (NettyDataBufferFactory) response.bufferFactory();
+		DataBufferFactory factory = response.bufferFactory();
 		// Join all the DataBuffers so we have a single DataBuffer for the body
 		return DataBufferUtils.join(exchange.getRequest().getBody())
-				.defaultIfEmpty(factory.wrap(new EmptyByteBuf(factory.getByteBufAllocator())))
+				.defaultIfEmpty(factory.wrap(new byte[]{}))
 				.map(dataBuffer -> decorate(exchange, dataBuffer, cacheDecoratedRequest))
 				.switchIfEmpty(Mono.just(exchange.getRequest())).flatMap(function);
 	}
@@ -358,8 +358,15 @@ public final class ServerWebExchangeUtils {
 						return null;
 					}
 					// TODO: deal with Netty
-					NettyDataBuffer pdb = (NettyDataBuffer) dataBuffer;
-					return pdb.factory().wrap(pdb.getNativeBuffer().retainedSlice());
+					if (dataBuffer instanceof NettyDataBuffer) {
+						NettyDataBuffer pdb = (NettyDataBuffer) dataBuffer;
+						return pdb.factory().wrap(pdb.getNativeBuffer().retainedSlice());
+					} else if (dataBuffer instanceof DefaultDataBuffer) {
+						DefaultDataBuffer ddf = (DefaultDataBuffer) dataBuffer;
+						return ddf.factory().wrap(Unpooled.wrappedBuffer(ddf.getNativeBuffer()).nioBuffer());
+					} else {
+						throw new IllegalArgumentException("Unable to handle DataBuffer of type " + dataBuffer.getClass());
+					}
 				}).flux();
 			}
 		};
