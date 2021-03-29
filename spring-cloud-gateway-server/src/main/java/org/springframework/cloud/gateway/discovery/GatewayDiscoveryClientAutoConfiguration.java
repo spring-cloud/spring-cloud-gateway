@@ -70,7 +70,7 @@ public class GatewayDiscoveryClientAutoConfiguration {
 		// add a filter that removes /serviceId by default
 		FilterDefinition filter = new FilterDefinition();
 		filter.setName(normalizeFilterFactoryName(RewritePathGatewayFilterFactory.class));
-		String regex = "'/' + serviceId + '/(?<remaining>.*)'";
+		String regex = "'/' + serviceId + '/?(?<remaining>.*)'";
 		String replacement = "'/${remaining}'";
 		filter.addArg(REGEXP_KEY, regex);
 		filter.addArg(REPLACEMENT_KEY, replacement);

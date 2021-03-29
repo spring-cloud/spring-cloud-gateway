@@ -75,6 +75,7 @@
 |spring.cloud.gateway.httpclient.max-header-size |  | The max response header size.
 |spring.cloud.gateway.httpclient.max-initial-line-length |  | The max initial line length.
 |spring.cloud.gateway.httpclient.pool.acquire-timeout |  | Only for type FIXED, the maximum time in millis to wait for aquiring.
+|spring.cloud.gateway.httpclient.pool.eviction-interval | `0` | Perform regular eviction checks in the background at a specified interval. Disabled by default ({@link Duration#ZERO})
 |spring.cloud.gateway.httpclient.pool.max-connections |  | Only for type FIXED, the maximum number of connections before starting pending acquisition on existing ones.
 |spring.cloud.gateway.httpclient.pool.max-idle-time |  | Time in millis after which the channel will be closed. If NULL, there is no max idle time.
 |spring.cloud.gateway.httpclient.pool.max-life-time |  | Duration after which the channel will be closed. If NULL, there is no max life time.
@@ -84,6 +85,7 @@
 |spring.cloud.gateway.httpclient.proxy.non-proxy-hosts-pattern |  | Regular expression (Java) for a configured list of hosts. that should be reached directly, bypassing the proxy
 |spring.cloud.gateway.httpclient.proxy.password |  | Password for proxy configuration of Netty HttpClient.
 |spring.cloud.gateway.httpclient.proxy.port |  | Port for proxy configuration of Netty HttpClient.
+|spring.cloud.gateway.httpclient.proxy.type |  | proxyType for proxy configuration of Netty HttpClient.
 |spring.cloud.gateway.httpclient.proxy.username |  | Username for proxy configuration of Netty HttpClient.
 |spring.cloud.gateway.httpclient.response-timeout |  | The response timeout.
 |spring.cloud.gateway.httpclient.ssl.close-notify-flush-timeout | `3000ms` | SSL close_notify flush timeout. Default to 3000 ms.

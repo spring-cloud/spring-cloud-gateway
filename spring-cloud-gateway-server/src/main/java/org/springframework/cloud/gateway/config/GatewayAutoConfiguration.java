@@ -20,6 +20,7 @@ import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import io.netty.channel.ChannelOption;
 import io.netty.handler.ssl.SslContextBuilder;
@@ -644,36 +645,7 @@ public class GatewayAutoConfiguration {
 		public HttpClient gatewayHttpClient(HttpClientProperties properties, List<HttpClientCustomizer> customizers) {
 
 			// configure pool resources
-			HttpClientProperties.Pool pool = properties.getPool();
-
-			ConnectionProvider connectionProvider;
-			if (pool.getType() == DISABLED) {
-				connectionProvider = ConnectionProvider.newConnection();
-			}
-			else if (pool.getType() == FIXED) {
-				ConnectionProvider.Builder builder = ConnectionProvider.builder(pool.getName())
-						.maxConnections(pool.getMaxConnections()).pendingAcquireMaxCount(-1)
-						.pendingAcquireTimeout(Duration.ofMillis(pool.getAcquireTimeout()));
-				if (pool.getMaxIdleTime() != null) {
-					builder.maxIdleTime(pool.getMaxIdleTime());
-				}
-				if (pool.getMaxLifeTime() != null) {
-					builder.maxLifeTime(pool.getMaxLifeTime());
-				}
-				connectionProvider = builder.build();
-			}
-			else {
-				ConnectionProvider.Builder builder = ConnectionProvider.builder(pool.getName())
-						.maxConnections(Integer.MAX_VALUE).pendingAcquireTimeout(Duration.ofMillis(0))
-						.pendingAcquireMaxCount(-1);
-				if (pool.getMaxIdleTime() != null) {
-					builder.maxIdleTime(pool.getMaxIdleTime());
-				}
-				if (pool.getMaxLifeTime() != null) {
-					builder.maxLifeTime(pool.getMaxLifeTime());
-				}
-				connectionProvider = builder.build();
-			}
+			ConnectionProvider connectionProvider = buildConnectionProvider(properties);
 
 			HttpClient httpClient = HttpClient.create(connectionProvider)
 					// TODO: move customizations to HttpClientCustomizers
@@ -700,8 +672,7 @@ public class GatewayAutoConfiguration {
 						if (StringUtils.hasText(proxy.getHost())) {
 
 							tcpClient = tcpClient.proxy(proxySpec -> {
-								ProxyProvider.Builder builder = proxySpec.type(ProxyProvider.Proxy.HTTP)
-										.host(proxy.getHost());
+								ProxyProvider.Builder builder = proxySpec.type(proxy.getType()).host(proxy.getHost());
 
 								PropertyMapper map = PropertyMapper.get();
 
@@ -762,6 +733,38 @@ public class GatewayAutoConfiguration {
 			return httpClient;
 		}
 
+		private ConnectionProvider buildConnectionProvider(HttpClientProperties properties) {
+			HttpClientProperties.Pool pool = properties.getPool();
+
+			ConnectionProvider connectionProvider;
+			if (pool.getType() == DISABLED) {
+				connectionProvider = ConnectionProvider.newConnection();
+			}
+			else {
+				// create either Fixed or Elastic pool
+				ConnectionProvider.Builder builder = ConnectionProvider.builder(pool.getName());
+				if (pool.getType() == FIXED) {
+					builder.maxConnections(pool.getMaxConnections()).pendingAcquireMaxCount(-1)
+							.pendingAcquireTimeout(Duration.ofMillis(pool.getAcquireTimeout()));
+				}
+				else {
+					// Elastic
+					builder.maxConnections(Integer.MAX_VALUE).pendingAcquireTimeout(Duration.ofMillis(0))
+							.pendingAcquireMaxCount(-1);
+				}
+
+				if (pool.getMaxIdleTime() != null) {
+					builder.maxIdleTime(pool.getMaxIdleTime());
+				}
+				if (pool.getMaxLifeTime() != null) {
+					builder.maxLifeTime(pool.getMaxLifeTime());
+				}
+				builder.evictInBackground(pool.getEvictionInterval());
+				connectionProvider = builder.build();
+			}
+			return connectionProvider;
+		}
+
 		@Bean
 		public HttpClientProperties httpClientProperties() {
 			return new HttpClientProperties();
@@ -797,13 +800,16 @@ public class GatewayAutoConfiguration {
 		public ReactorNettyRequestUpgradeStrategy reactorNettyRequestUpgradeStrategy(
 				HttpClientProperties httpClientProperties) {
 
-			WebsocketServerSpec.Builder builder = WebsocketServerSpec.builder();
-			HttpClientProperties.Websocket websocket = httpClientProperties.getWebsocket();
-			PropertyMapper map = PropertyMapper.get();
-			map.from(websocket::getMaxFramePayloadLength).whenNonNull().to(builder::maxFramePayloadLength);
-			map.from(websocket::isProxyPing).to(builder::handlePing);
+			Supplier<WebsocketServerSpec.Builder> builderSupplier = () -> {
+				WebsocketServerSpec.Builder builder = WebsocketServerSpec.builder();
+				HttpClientProperties.Websocket websocket = httpClientProperties.getWebsocket();
+				PropertyMapper map = PropertyMapper.get();
+				map.from(websocket::getMaxFramePayloadLength).whenNonNull().to(builder::maxFramePayloadLength);
+				map.from(websocket::isProxyPing).to(builder::handlePing);
+				return builder;
+			};
 
-			return new ReactorNettyRequestUpgradeStrategy(builder);
+			return new ReactorNettyRequestUpgradeStrategy(builderSupplier);
 		}
 
 	}

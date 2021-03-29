@@ -126,12 +126,12 @@ public class FallbackHeadersGatewayFilterFactory
 			this.rootCauseExceptionTypeHeaderName = rootCauseExceptionTypeHeaderName;
 		}
 
-		public String getCauseExceptionMessageHeaderName() {
+		public String getRootCauseExceptionMessageHeaderName() {
 			return rootCauseExceptionMessageHeaderName;
 		}
 
-		public void setCauseExceptionMessageHeaderName(String causeExceptionMessageHeaderName) {
-			this.rootCauseExceptionMessageHeaderName = causeExceptionMessageHeaderName;
+		public void setRootCauseExceptionMessageHeaderName(String rootCauseExceptionMessageHeaderName) {
+			this.rootCauseExceptionMessageHeaderName = rootCauseExceptionMessageHeaderName;
 		}
 
 	}

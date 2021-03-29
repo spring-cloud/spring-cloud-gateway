@@ -22,11 +22,12 @@ import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledForJreRange;
+import org.junit.jupiter.api.condition.JRE;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -42,7 +43,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.util.SocketUtils;
 
@@ -52,7 +52,6 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 /**
  * @author Spencer Gibb
  */
-@RunWith(SpringRunner.class)
 @SpringBootTest(classes = { GatewaySampleApplicationTests.TestConfig.class }, webEnvironment = RANDOM_PORT,
 		properties = "management.server.port=${test.port}")
 public class GatewaySampleApplicationTests {
@@ -69,19 +68,19 @@ public class GatewaySampleApplicationTests {
 
 	protected String baseUri;
 
-	@BeforeClass
+	@BeforeAll
 	public static void beforeClass() {
 		managementPort = SocketUtils.findAvailableTcpPort();
 
 		System.setProperty("test.port", String.valueOf(managementPort));
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void afterClass() {
 		System.clearProperty("test.port");
 	}
 
-	@Before
+	@BeforeEach
 	public void setup() {
 		baseUri = "http://localhost:" + port;
 		this.webClient = WebTestClient.bindToServer().responseTimeout(Duration.ofSeconds(10)).baseUrl(baseUri).build();
@@ -157,7 +156,13 @@ public class GatewaySampleApplicationTests {
 	public void complexPredicate() {
 		webClient.get().uri("/anything/png").header("Host", "www.abc.org").exchange().expectHeader()
 				.valueEquals("X-TestHeader", "foobar").expectStatus().isOk();
+	}
 
+	@Test
+	@DisabledForJreRange(min = JRE.JAVA_16)
+	public void routeFromKotlin() {
+		webClient.get().uri("/anything/kotlinroute").header("Host", "kotlin.abc.org").exchange().expectHeader()
+				.valueEquals("X-TestHeader", "foobar").expectStatus().isOk();
 	}
 
 	@Test

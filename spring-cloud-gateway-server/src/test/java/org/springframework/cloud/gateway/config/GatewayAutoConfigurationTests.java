@@ -16,10 +16,13 @@
 
 package org.springframework.cloud.gateway.config;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Test;
 import reactor.netty.http.client.HttpClient;
+import reactor.netty.http.server.WebsocketServerSpec;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
@@ -94,6 +97,7 @@ public class GatewayAutoConfigurationTests {
 				.withPropertyValues("spring.cloud.gateway.httpclient.ssl.use-insecure-trust-manager=true",
 						"spring.cloud.gateway.httpclient.connect-timeout=10",
 						"spring.cloud.gateway.httpclient.response-timeout=10s",
+						"spring.cloud.gateway.httpclient.pool.eviction-interval=10s",
 						"spring.cloud.gateway.httpclient.pool.type=fixed",
 						"spring.cloud.gateway.httpclient.compression=true",
 						// greather than integer max value
@@ -106,6 +110,7 @@ public class GatewayAutoConfigurationTests {
 					HttpClientProperties properties = context.getBean(HttpClientProperties.class);
 					assertThat(properties.getMaxInitialLineLength().toBytes()).isLessThanOrEqualTo(Integer.MAX_VALUE);
 					assertThat(properties.isCompression()).isEqualTo(true);
+					assertThat(properties.getPool().getEvictionInterval()).hasSeconds(10);
 					/*
 					 * FIXME: 2.1.0 HttpClientOptions options = httpClient.options();
 					 *
@@ -187,6 +192,22 @@ public class GatewayAutoConfigurationTests {
 			}
 		}).hasRootCauseInstanceOf(IllegalStateException.class)
 				.hasMessageContaining("No TokenRelayGatewayFilterFactory bean was found. Did you include");
+	}
+
+	@Test // gh-2159
+	public void reactorNettyRequestUpgradeStrategyWebSocketSpecBuilderIsUniquePerRequest()
+			throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+		ReactorNettyRequestUpgradeStrategy strategy = new GatewayAutoConfiguration.NettyConfiguration()
+				.reactorNettyRequestUpgradeStrategy(new HttpClientProperties());
+
+		// Method "buildSpec" was introduced for Tests, but has only default visiblity
+		Method buildSpec = ReactorNettyRequestUpgradeStrategy.class.getDeclaredMethod("buildSpec", String.class);
+		buildSpec.setAccessible(true);
+		WebsocketServerSpec spec1 = (WebsocketServerSpec) buildSpec.invoke(strategy, "p1");
+		WebsocketServerSpec spec2 = strategy.getWebsocketServerSpec();
+
+		assertThat(spec1.protocols()).isEqualTo("p1");
+		assertThat(spec2.protocols()).isNull();
 	}
 
 	@EnableAutoConfiguration

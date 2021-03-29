@@ -7,7 +7,7 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-gateway</artifactId>
-		<version>3.0.2-SNAPSHOT</version>
+		<version>3.0.3-SNAPSHOT</version>
 		<relativePath>..</relativePath> <!-- lookup parent from repository -->
 	</parent>
 	<artifactId>spring-cloud-gateway-server</artifactId>
@@ -118,7 +118,7 @@
 		</dependency>
 		<dependency>
 			<groupId>io.projectreactor.tools</groupId>
-			<artifactId>blockhound-junit-platform</artifactId>
+			<artifactId>blockhound</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -139,40 +139,6 @@
 	</dependencies>
 	<build>
 		<plugins>
-			<plugin>
-				<!-- Based on instructions here - https://kotlinlang.org/docs/reference/using-maven.html -->
-				<artifactId>kotlin-maven-plugin</artifactId>
-				<groupId>org.jetbrains.kotlin</groupId>
-				<configuration>
-					<jvmTarget>1.8</jvmTarget>
-				</configuration>
-				<executions>
-					<execution>
-						<id>compile</id>
-						<goals>
-							<goal>compile</goal>
-						</goals>
-						<configuration>
-							<sourceDirs>
-								<sourceDir>${project.basedir}/src/main/kotlin</sourceDir>
-								<sourceDir>${project.basedir}/src/main/java</sourceDir>
-							</sourceDirs>
-						</configuration>
-					</execution>
-					<execution>
-						<id>test-compile</id>
-						<goals>
-							<goal>test-compile</goal>
-						</goals>
-						<configuration>
-							<sourceDirs>
-								<sourceDir>${project.basedir}/src/test/kotlin</sourceDir>
-								<sourceDir>${project.basedir}/src/test/java</sourceDir>
-							</sourceDirs>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -223,6 +189,57 @@
 		</plugins>
 	</build>
 	<profiles>
+		<profile>
+			<id>javaLowerThan16</id>
+			<activation>
+				<jdk>(,16)</jdk>
+			</activation>
+			<dependencies>
+				<dependency>
+					<groupId>io.projectreactor.tools</groupId>
+					<artifactId>blockhound-junit-platform</artifactId>
+					<scope>test</scope>
+				</dependency>
+			</dependencies>
+			<build>
+				<plugins>
+					<plugin>
+						<!-- Based on instructions here - https://kotlinlang.org/docs/reference/using-maven.html -->
+						<artifactId>kotlin-maven-plugin</artifactId>
+						<groupId>org.jetbrains.kotlin</groupId>
+						<configuration>
+							<jvmTarget>1.8</jvmTarget>
+						</configuration>
+						<executions>
+							<execution>
+								<id>compile</id>
+								<goals>
+									<goal>compile</goal>
+								</goals>
+								<configuration>
+									<sourceDirs>
+										<sourceDir>${project.basedir}/src/main/kotlin</sourceDir>
+										<sourceDir>${project.basedir}/src/main/java</sourceDir>
+									</sourceDirs>
+								</configuration>
+							</execution>
+							<execution>
+								<id>test-compile</id>
+								<goals>
+									<goal>test-compile</goal>
+								</goals>
+								<configuration>
+									<sourceDirs>
+										<sourceDir>${project.basedir}/src/test/kotlin</sourceDir>
+										<sourceDir>${project.basedir}/src/test/java</sourceDir>
+									</sourceDirs>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
 		<profile>
 			<id>java13plus</id>
 			<activation>
