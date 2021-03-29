@@ -106,12 +106,12 @@ public class ReadBodyRoutePredicateFactoryTests {
 			return r -> r.getFoo().equals(type);
 		}
 
-		@PostMapping(path = "message/events", produces = MediaType.APPLICATION_JSON_VALUE)
+		@PostMapping(path = "httpbin/message/events", produces = MediaType.APPLICATION_JSON_VALUE)
 		public String messageEvents(@RequestBody Event e) {
 			return "{\"headers\":{\"Hello\":\"World\"}}";
 		}
 
-		@PostMapping(path = "messageChannel/events", produces = MediaType.APPLICATION_JSON_VALUE)
+		@PostMapping(path = "httpbin/messageChannel/events", produces = MediaType.APPLICATION_JSON_VALUE)
 		public String messageChannelEvents(@RequestBody Event e) {
 			return "{\"headers\":{\"World\":\"Hello\"}}";
 		}

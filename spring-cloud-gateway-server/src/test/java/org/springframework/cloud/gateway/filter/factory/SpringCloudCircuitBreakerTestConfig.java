@@ -99,9 +99,11 @@ public class SpringCloudCircuitBreakerTestConfig {
 	public RouteLocator circuitBreakerRouteLocator(RouteLocatorBuilder builder) {
 		return builder.routes()
 				.route("circuitbreaker_fallback_forward", r -> r.host("**.circuitbreakerforward.org")
-						.filters(f -> f.circuitBreaker(config -> config.setFallbackUri("forward:/fallback"))).uri(uri))
+						.filters(f -> f.circuitBreaker(config -> config.setFallbackUri("forward:/fallback")).enableDefaultFilters(false))
+						.uri(uri))
 				.route("fallback_controller_3",
-						r -> r.path("/fallback").filters(f -> f.setPath("/circuitbreakerFallbackController3")).uri(uri))
+						r -> r.path("/fallback").filters(f -> f.setPath("/circuitbreakerFallbackController3").enableDefaultFilters(false))
+								.uri(uri))
 				.route("circuitbreaker_java",
 						r -> r.host("**.circuitbreakerjava.org")
 								.filters(f -> f.prefixPath("/httpbin").circuitBreaker(
