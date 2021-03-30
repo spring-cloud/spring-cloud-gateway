@@ -18,6 +18,7 @@ package org.springframework.cloud.gateway.handler;
 
 import java.util.function.Function;
 
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.config.GlobalCorsProperties;
@@ -72,11 +73,20 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 		return environment.getProperty(prefix + "port", Integer.class);
 	}
 
+	private int getPort(ServerWebExchange exchange) {
+		ServerHttpRequest request = exchange.getRequest();
+		if (request.getLocalAddress() != null) {
+			return request.getLocalAddress().getPort();
+		}
+		else {
+			return request.getURI().getPort();
+		}
+	}
 	@Override
 	protected Mono<?> getHandlerInternal(ServerWebExchange exchange) {
 		// don't handle requests on management port if set and different than server port
 		if (this.managementPortType == DIFFERENT && this.managementPort != null
-				&& exchange.getRequest().getURI().getPort() == this.managementPort) {
+				&& getPort(exchange) == this.managementPort) {
 			return Mono.empty();
 		}
 		exchange.getAttributes().put(GATEWAY_HANDLER_MAPPER_ATTR, getSimpleName());
