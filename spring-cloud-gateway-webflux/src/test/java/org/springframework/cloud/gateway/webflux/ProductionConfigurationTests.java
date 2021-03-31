@@ -202,7 +202,8 @@ public class ProductionConfigurationTests {
 
 	@Test
 	public void deleteWithoutBody() throws Exception {
-		ResponseEntity<Void> deleteResponse = rest.exchange("/proxy/{id}/no-body", HttpMethod.DELETE, null, Void.TYPE,
+		ResponseEntity<Void> deleteResponse = rest.exchange("/proxy/{id}/no-body",
+				HttpMethod.DELETE, null, Void.TYPE,
 				Collections.singletonMap("id", "123"));
 		assertThat(deleteResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
 	}
@@ -212,10 +213,12 @@ public class ProductionConfigurationTests {
 		Foo foo = new Foo("to-be-deleted");
 		ParameterizedTypeReference<Map<String, Foo>> returnType = new ParameterizedTypeReference<Map<String, Foo>>() {
 		};
-		ResponseEntity<Map<String, Foo>> deleteResponse = rest.exchange("/proxy/{id}", HttpMethod.DELETE,
-				new HttpEntity<Foo>(foo), returnType, Collections.singletonMap("id", "123"));
+		ResponseEntity<Map<String, Foo>> deleteResponse = rest.exchange("/proxy/{id}",
+				HttpMethod.DELETE, new HttpEntity<Foo>(foo), returnType,
+				Collections.singletonMap("id", "123"));
 		assertThat(deleteResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
-		assertThat(deleteResponse.getBody().get("deleted")).isEqualToComparingFieldByField(foo);
+		assertThat(deleteResponse.getBody().get("deleted"))
+				.isEqualToComparingFieldByField(foo);
 	}
 
 	@SpringBootApplication
@@ -344,16 +347,19 @@ public class ProductionConfigurationTests {
 			}
 
 			@DeleteMapping("/proxy/{id}/no-body")
-			public Mono<ResponseEntity<Object>> deleteWithoutBody(@PathVariable Integer id, ProxyExchange<Object> proxy)
+			public Mono<ResponseEntity<Object>> deleteWithoutBody(
+					@PathVariable Integer id, ProxyExchange<Object> proxy)
 					throws Exception {
 				return proxy.uri(home.toString() + "/foos/" + id + "/no-body").delete();
 			}
 
 			@DeleteMapping("/proxy/{id}")
-			public Mono<ResponseEntity<Object>> deleteWithBody(@PathVariable Integer id, @RequestBody Foo foo,
-					ProxyExchange<Object> proxy) throws Exception {
-				return proxy.uri(home.toString() + "/foos/" + id).body(foo).delete(response -> ResponseEntity
-						.status(response.getStatusCode()).headers(response.getHeaders()).body(response.getBody()));
+			public Mono<ResponseEntity<Object>> deleteWithBody(@PathVariable Integer id,
+					@RequestBody Foo foo, ProxyExchange<Object> proxy) throws Exception {
+				return proxy.uri(home.toString() + "/foos/" + id).body(foo)
+						.delete(response -> ResponseEntity
+								.status(response.getStatusCode())
+								.headers(response.getHeaders()).body(response.getBody()));
 			}
 
 		}
@@ -391,7 +397,8 @@ public class ProductionConfigurationTests {
 			}
 
 			@DeleteMapping("/foos/{id}")
-			public ResponseEntity<?> deleteFoo(@PathVariable Integer id, @RequestBody Foo foo) {
+			public ResponseEntity<?> deleteFoo(@PathVariable Integer id,
+					@RequestBody Foo foo) {
 				return ResponseEntity.ok().body(Collections.singletonMap("deleted", foo));
 			}
 
