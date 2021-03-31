@@ -77,7 +77,7 @@ public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResol
 		ProxyExchange<?> proxy = new ProxyExchange<>(rest, webRequest, mavContainer, binderFactory, type(parameter));
 		configureHeaders(proxy);
 		configureAutoForwardedHeaders(proxy, webRequest);
-		configureSensitive(proxy);}
+		configureSensitive(proxy);
 		return proxy;
 	}
 
@@ -109,8 +109,7 @@ public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResol
 		}
 	}
 
-	private void configureAutoForwardedHeaders(final ProxyExchange<?> proxy,
-			final NativeWebRequest webRequest) {
+	private void configureAutoForwardedHeaders(final ProxyExchange<?> proxy, final NativeWebRequest webRequest) {
 		if ((autoForwardedHeaders != null) && (autoForwardedHeaders.size() > 0)) {
 			proxy.headers(extractAutoForwardedHeaders(webRequest));
 		}

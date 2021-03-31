@@ -46,8 +46,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
-@ContextConfiguration(
-		classes = ProxyExchangeArgumentResolverTest.ProxyExchangeArgumentResolverTestApplication.class)
+@ContextConfiguration(classes = ProxyExchangeArgumentResolverTest.ProxyExchangeArgumentResolverTestApplication.class)
 public class ProxyExchangeArgumentResolverTest {
 
 	@Autowired
