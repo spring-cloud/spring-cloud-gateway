@@ -25,7 +25,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-import io.netty.buffer.EmptyByteBuf;
+import io.netty.buffer.Unpooled;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Flux;
@@ -36,9 +36,10 @@ import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
 import org.springframework.cloud.gateway.handler.AsyncPredicate;
 import org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.core.io.buffer.DataBufferUtils;
+import org.springframework.core.io.buffer.DefaultDataBuffer;
 import org.springframework.core.io.buffer.NettyDataBuffer;
-import org.springframework.core.io.buffer.NettyDataBufferFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.AbstractServerHttpResponse;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -334,8 +335,7 @@ public final class ServerWebExchangeUtils {
 		ServerHttpResponse response = exchange.getResponse();
 		DataBufferFactory factory = response.bufferFactory();
 		// Join all the DataBuffers so we have a single DataBuffer for the body
-		return DataBufferUtils.join(exchange.getRequest().getBody())
-				.defaultIfEmpty(factory.wrap(new byte[]{}))
+		return DataBufferUtils.join(exchange.getRequest().getBody()).defaultIfEmpty(factory.wrap(new byte[] {}))
 				.map(dataBuffer -> decorate(exchange, dataBuffer, cacheDecoratedRequest))
 				.switchIfEmpty(Mono.just(exchange.getRequest())).flatMap(function);
 	}
@@ -361,11 +361,14 @@ public final class ServerWebExchangeUtils {
 					if (dataBuffer instanceof NettyDataBuffer) {
 						NettyDataBuffer pdb = (NettyDataBuffer) dataBuffer;
 						return pdb.factory().wrap(pdb.getNativeBuffer().retainedSlice());
-					} else if (dataBuffer instanceof DefaultDataBuffer) {
+					}
+					else if (dataBuffer instanceof DefaultDataBuffer) {
 						DefaultDataBuffer ddf = (DefaultDataBuffer) dataBuffer;
 						return ddf.factory().wrap(Unpooled.wrappedBuffer(ddf.getNativeBuffer()).nioBuffer());
-					} else {
-						throw new IllegalArgumentException("Unable to handle DataBuffer of type " + dataBuffer.getClass());
+					}
+					else {
+						throw new IllegalArgumentException(
+								"Unable to handle DataBuffer of type " + dataBuffer.getClass());
 					}
 				}).flux();
 			}
