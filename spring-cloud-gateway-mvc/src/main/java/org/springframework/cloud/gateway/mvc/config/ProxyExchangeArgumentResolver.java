@@ -113,7 +113,8 @@ public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResol
 		}
 	}
 
-	private void configureAutoForwardedHeaders(final ProxyExchange<?> proxy, final NativeWebRequest webRequest) {
+	private void configureAutoForwardedHeaders(final ProxyExchange<?> proxy,
+			final NativeWebRequest webRequest) {
 		if ((autoForwardedHeaders != null) && (autoForwardedHeaders.size() > 0)) {
 			proxy.headers(extractAutoForwardedHeaders(webRequest));
 		}
