@@ -45,11 +45,10 @@ public class DefaultRoutesTests {
 		gatewayProperties.setDefaultFilters(Arrays.asList(new FilterDefinition("RemoveResponseHeader=Server"),
 				new FilterDefinition("AddResponseHeader=X-Response-Foo, Bar")));
 
-		@SuppressWarnings("deprecation")
 		DefaultRoutes defaultRoutes = new DefaultRoutes(gatewayProperties, gatewayFilterFactories,
 				new ConfigurationService(null, () -> null, () -> null));
 
-		List<GatewayFilter> defaultGatewayFilters = defaultRoutes.getDefaultGatewayFilters();
+		List<GatewayFilter> defaultGatewayFilters = defaultRoutes.getDefaultGatewayFilters("1");
 		assertThat(defaultGatewayFilters.size()).isEqualTo(2);
 	}
 

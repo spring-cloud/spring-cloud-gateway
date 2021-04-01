@@ -92,10 +92,10 @@ public class RouteLocatorBuilder {
 		 */
 		public RouteLocator build() {
 			DefaultRoutes defaultRoutes = context.getBean(DefaultRoutes.class);
-			List<GatewayFilter> defaultFilters = defaultRoutes.getDefaultGatewayFilters();
 			return () -> Flux.fromIterable(this.routes).map(routeBuildable -> {
 				Route route = routeBuildable.build();
 				if (route.isEnableDefaultFilter()) {
+					List<GatewayFilter> defaultFilters = defaultRoutes.getDefaultGatewayFilters(route.getId());
 					route.addDefaultGatewayFilters(defaultFilters);
 				}
 				return route;

@@ -113,8 +113,8 @@ public class RouteDefinitionRouteLocator extends AbstractRouteLocator implements
 	private List<GatewayFilter> getFilters(RouteDefinition routeDefinition) {
 		List<GatewayFilter> filters = new ArrayList<>();
 
-		if (!this.defaultRoutes.getDefaultGatewayFilters().isEmpty()) {
-			filters.addAll(defaultRoutes.getDefaultGatewayFilters());
+		if (!this.defaultRoutes.getDefaultGatewayFilters(routeDefinition.getId()).isEmpty()) {
+			filters.addAll(defaultRoutes.getDefaultGatewayFilters(routeDefinition.getId()));
 		}
 
 		if (!routeDefinition.getFilters().isEmpty()) {

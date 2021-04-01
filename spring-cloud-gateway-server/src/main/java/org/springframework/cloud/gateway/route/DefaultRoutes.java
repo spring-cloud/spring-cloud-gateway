@@ -46,14 +46,14 @@ public class DefaultRoutes extends AbstractRouteLocator {
 		this.gatewayProperties = gatewayProperties;
 	}
 
-	public List<GatewayFilter> getDefaultGatewayFilters() {
+	public List<GatewayFilter> getDefaultGatewayFilters(String id) {
 		if (defaultGatewayFilters.isEmpty()) {
 			List<FilterDefinition> defaultFilterDefinitions = gatewayProperties.getDefaultFilters();
 			if (defaultFilterDefinitions.isEmpty()) {
 				return new ArrayList<>();
 			}
 
-			defaultGatewayFilters.addAll(loadGatewayFilters(DEFAULT_FILTERS, defaultFilterDefinitions));
+			defaultGatewayFilters.addAll(loadGatewayFilters(id, defaultFilterDefinitions));
 
 		}
 		return Collections.unmodifiableList(defaultGatewayFilters);
