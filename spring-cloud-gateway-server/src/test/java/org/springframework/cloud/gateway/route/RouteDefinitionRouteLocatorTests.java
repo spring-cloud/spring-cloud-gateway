@@ -149,7 +149,7 @@ public class RouteDefinitionRouteLocatorTests {
 		StepVerifier.create(routeDefinitionRouteLocator.getRoutes()).assertNext(route -> {
 			List<GatewayFilter> filters = route.getFilters();
 			assertThat(filters).hasSize(2);
-			assertThat(filters.get(0).toString()).contains("routeId = 'defaultFilters'");
+			assertThat(filters.get(0).toString()).contains("routeId = 'foo'");
 			assertThat(getFilterClassName(filters.get(0))).contains("Retry");
 			assertThat(getFilterClassName(filters.get(1))).contains("AddResponseHeader");
 		}).expectComplete().verify();
