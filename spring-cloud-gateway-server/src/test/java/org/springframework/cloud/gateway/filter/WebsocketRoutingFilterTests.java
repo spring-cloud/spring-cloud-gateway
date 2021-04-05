@@ -18,6 +18,7 @@ package org.springframework.cloud.gateway.filter;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Test;
@@ -35,6 +36,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.springframework.cloud.gateway.filter.WebsocketRoutingFilter.SEC_WEBSOCKET_PROTOCOL;
 import static org.springframework.cloud.gateway.filter.WebsocketRoutingFilter.changeSchemeIfIsWebSocketUpgrade;
 import static org.springframework.cloud.gateway.filter.WebsocketRoutingFilter.convertHttpToWs;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
@@ -43,6 +45,21 @@ import static org.springframework.http.HttpHeaders.HOST;
 import static org.springframework.http.HttpHeaders.UPGRADE;
 
 public class WebsocketRoutingFilterTests {
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testProtocolParsing() {
+		ObjectProvider<List<HttpHeadersFilter>> headersFilters = mock(
+				ObjectProvider.class);
+		WebsocketRoutingFilter filter = new WebsocketRoutingFilter(
+				mock(WebSocketClient.class), mock(WebSocketService.class),
+				headersFilters);
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.put(SEC_WEBSOCKET_PROTOCOL, Arrays.asList(" p1,p2", "p3 , p4 "));
+		List<String> protocols = filter.getProtocols(headers);
+		assertThat(protocols).containsExactly("p1", "p2", "p3", "p4");
+	}
 
 	@Test
 	public void testConvertHttpToWs() {
