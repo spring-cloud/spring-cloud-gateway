@@ -115,8 +115,7 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 			ArrayList<String> updatedProtocols = new ArrayList<>();
 			for (int i = 0; i < protocols.size(); i++) {
 				String protocol = protocols.get(i);
-				updatedProtocols.addAll(
-						Arrays.asList(StringUtils.tokenizeToStringArray(protocol, ",")));
+				updatedProtocols.addAll(Arrays.asList(StringUtils.tokenizeToStringArray(protocol, ",")));
 			}
 			protocols = updatedProtocols;
 		}

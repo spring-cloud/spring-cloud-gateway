@@ -49,11 +49,9 @@ public class WebsocketRoutingFilterTests {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testProtocolParsing() {
-		ObjectProvider<List<HttpHeadersFilter>> headersFilters = mock(
-				ObjectProvider.class);
-		WebsocketRoutingFilter filter = new WebsocketRoutingFilter(
-				mock(WebSocketClient.class), mock(WebSocketService.class),
-				headersFilters);
+		ObjectProvider<List<HttpHeadersFilter>> headersFilters = mock(ObjectProvider.class);
+		WebsocketRoutingFilter filter = new WebsocketRoutingFilter(mock(WebSocketClient.class),
+				mock(WebSocketService.class), headersFilters);
 
 		HttpHeaders headers = new HttpHeaders();
 		headers.put(SEC_WEBSOCKET_PROTOCOL, Arrays.asList(" p1,p2", "p3 , p4 "));

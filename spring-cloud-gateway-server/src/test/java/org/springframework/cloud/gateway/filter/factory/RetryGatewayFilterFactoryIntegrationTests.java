@@ -185,9 +185,8 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 
 	@Test
 	public void retryFilterSeries() {
-		testClient.get().uri("/retry?key=series&failStatus=404")
-				.header(HttpHeaders.HOST, "www.retryseries.org").exchange().expectStatus()
-				.isOk().expectBody(String.class).isEqualTo("3");
+		testClient.get().uri("/retry?key=series&failStatus=404").header(HttpHeaders.HOST, "www.retryseries.org")
+				.exchange().expectStatus().isOk().expectBody(String.class).isEqualTo("3");
 	}
 
 	@Test
@@ -262,8 +261,7 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 				if (failStatus != null) {
 					httpStatus = HttpStatus.resolve(failStatus);
 				}
-				return ResponseEntity.status(httpStatus).header("X-Retry-Count", body)
-						.body("temporarily broken");
+				return ResponseEntity.status(httpStatus).header("X-Retry-Count", body).body("temporarily broken");
 			}
 			return ResponseEntity.status(HttpStatus.OK).header("X-Retry-Count", body).body(body);
 		}
@@ -277,14 +275,13 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 			return builder.routes().route("retry_java",
 					r -> r.host("**.retryjava.org")
 							.filters(f -> f.prefixPath("/httpbin")
-									.retry(config -> config.setRetries(2)
-											.setMethods(HttpMethod.POST, HttpMethod.GET)))
+									.retry(config -> config.setRetries(2).setMethods(HttpMethod.POST, HttpMethod.GET)))
 							.uri(uri))
-					.route("retry_series", r -> r.host("**.retryseries.org")
-							.filters(f -> f.prefixPath("/httpbin")
-									.retry(config -> config.setRetries(2)
-											.setSeries(HttpStatus.Series.CLIENT_ERROR)))
-							.uri(uri))
+					.route("retry_series",
+							r -> r.host("**.retryseries.org")
+									.filters(f -> f.prefixPath("/httpbin").retry(
+											config -> config.setRetries(2).setSeries(HttpStatus.Series.CLIENT_ERROR)))
+									.uri(uri))
 					.route("retry_only_get",
 							r -> r.host("**.retry-only-get.org")
 									.filters(f -> f.prefixPath("/httpbin")

@@ -28,8 +28,8 @@ public interface HttpHeadersFilter {
 		return filter(filters, headers, exchange, Type.REQUEST);
 	}
 
-	static HttpHeaders filter(List<HttpHeadersFilter> filters, HttpHeaders input,
-			ServerWebExchange exchange, Type type) {
+	static HttpHeaders filter(List<HttpHeadersFilter> filters, HttpHeaders input, ServerWebExchange exchange,
+			Type type) {
 		if (filters != null) {
 			HttpHeaders filtered = input;
 			for (int i = 0; i < filters.size(); i++) {

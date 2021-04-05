@@ -70,8 +70,7 @@ public class HostRoutePredicateFactory extends AbstractRoutePredicateFactory<Hos
 				}
 
 				if (match != null) {
-					Map<String, String> variables = pathMatcher
-							.extractUriTemplateVariables(match, host);
+					Map<String, String> variables = pathMatcher.extractUriTemplateVariables(match, host);
 					ServerWebExchangeUtils.putUriTemplateVariables(exchange, variables);
 					return true;
 				}

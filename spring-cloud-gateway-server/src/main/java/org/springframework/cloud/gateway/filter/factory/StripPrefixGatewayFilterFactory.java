@@ -79,8 +79,7 @@ public class StripPrefixGatewayFilterFactory
 					newPath.append('/');
 				}
 
-				ServerHttpRequest newRequest = request.mutate().path(newPath.toString())
-						.build();
+				ServerHttpRequest newRequest = request.mutate().path(newPath.toString()).build();
 
 				exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, newRequest.getURI());
 

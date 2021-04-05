@@ -85,8 +85,7 @@ public class RewriteResponseHeaderGatewayFilterFactory
 	protected List<String> rewriteHeaders(Config config, List<String> headers) {
 		ArrayList<String> rewrittenHeaders = new ArrayList<>();
 		for (int i = 0; i < headers.size(); i++) {
-			String rewriten = rewrite(headers.get(i), config.getRegexp(),
-					config.getReplacement());
+			String rewriten = rewrite(headers.get(i), config.getRegexp(), config.getReplacement());
 			rewrittenHeaders.add(rewriten);
 		}
 		return rewrittenHeaders;
