@@ -98,9 +98,11 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 		HttpHeaders updated = new HttpHeaders();
 
 		// copy all headers except Forwarded
-		original.entrySet().stream().filter(
-				entry -> !entry.getKey().toLowerCase().equalsIgnoreCase(FORWARDED_HEADER))
-				.forEach(entry -> updated.addAll(entry.getKey(), entry.getValue()));
+		for (Map.Entry<String, List<String>> entry : original.entrySet()) {
+			if (!entry.getKey().equalsIgnoreCase(FORWARDED_HEADER)) {
+				updated.addAll(entry.getKey(), entry.getValue());
+			}
+		}
 
 		List<Forwarded> forwardeds = parse(original.get(FORWARDED_HEADER));
 

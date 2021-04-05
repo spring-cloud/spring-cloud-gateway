@@ -31,19 +31,18 @@ public interface HttpHeadersFilter {
 
 	static HttpHeaders filter(List<HttpHeadersFilter> filters, HttpHeaders input,
 			ServerWebExchange exchange, Type type) {
-		HttpHeaders response = input;
 		if (filters != null) {
-			HttpHeaders reduce = filters.stream()
-					.filter(headersFilter -> headersFilter.supports(type)).reduce(input,
-							(headers, filter) -> filter.filter(headers, exchange),
-							(httpHeaders, httpHeaders2) -> {
-								httpHeaders.addAll(httpHeaders2);
-								return httpHeaders;
-							});
-			return reduce;
+			HttpHeaders filtered = input;
+			for (int i = 0; i < filters.size(); i++) {
+				HttpHeadersFilter filter = filters.get(i);
+				if (filter.supports(type)) {
+					filtered = filter.filter(filtered, exchange);
+				}
+			}
+			return filtered;
 		}
 
-		return response;
+		return input;
 	}
 
 	/**

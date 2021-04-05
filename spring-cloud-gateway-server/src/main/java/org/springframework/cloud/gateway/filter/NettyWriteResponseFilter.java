@@ -130,10 +130,15 @@ public class NettyWriteResponseFilter implements GlobalFilter, Ordered {
 	}
 
 	// TODO: use framework if possible
-	// TODO: port to WebClientWriteResponseFilter
 	private boolean isStreamingMediaType(@Nullable MediaType contentType) {
-		return (contentType != null && this.streamingMediaTypes.stream()
-				.anyMatch(contentType::isCompatibleWith));
+		if (contentType != null) {
+			for (int i = 0; i < streamingMediaTypes.size(); i++) {
+				if (streamingMediaTypes.get(i).isCompatibleWith(contentType)) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 }

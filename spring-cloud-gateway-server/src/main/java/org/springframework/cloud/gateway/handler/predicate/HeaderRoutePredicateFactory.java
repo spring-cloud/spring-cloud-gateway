@@ -67,8 +67,13 @@ public class HeaderRoutePredicateFactory
 				// values is now guaranteed to not be empty
 				if (hasRegex) {
 					// check if a header value matches
-					return values.stream()
-							.anyMatch(value -> value.matches(config.regexp));
+					for (int i = 0; i < values.size(); i++) {
+						String value = values.get(i);
+						if (value.matches(config.regexp)) {
+							return true;
+						}
+					}
+					return false;
 				}
 
 				// there is a value and since regexp is empty, we only check existence.

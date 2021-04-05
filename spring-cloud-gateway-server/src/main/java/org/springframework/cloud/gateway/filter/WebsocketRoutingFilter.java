@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -31,6 +31,7 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cloud.gateway.filter.headers.HttpHeadersFilter;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
+import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.socket.WebSocketHandler;
 import org.springframework.web.reactive.socket.WebSocketMessage;
 import org.springframework.web.reactive.socket.WebSocketSession;
@@ -45,7 +46,6 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.P
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.containsEncodedParts;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.isAlreadyRouted;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.setAlreadyRouted;
-import static org.springframework.util.StringUtils.commaDelimitedListToStringArray;
 
 /**
  * @author Spencer Gibb
@@ -105,15 +105,24 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 		HttpHeaders headers = exchange.getRequest().getHeaders();
 		HttpHeaders filtered = filterRequest(getHeadersFilters(), exchange);
 
-		List<String> protocols = headers.get(SEC_WEBSOCKET_PROTOCOL);
-		if (protocols != null) {
-			protocols = headers.get(SEC_WEBSOCKET_PROTOCOL).stream().flatMap(
-					header -> Arrays.stream(commaDelimitedListToStringArray(header)))
-					.map(String::trim).collect(Collectors.toList());
-		}
+		List<String> protocols = getProtocols(headers);
 
 		return this.webSocketService.handleRequest(exchange, new ProxyWebSocketHandler(
 				requestUrl, this.webSocketClient, filtered, protocols));
+	}
+
+	/* for testing */ List<String> getProtocols(HttpHeaders headers) {
+		List<String> protocols = headers.get(SEC_WEBSOCKET_PROTOCOL);
+		if (protocols != null) {
+			ArrayList<String> updatedProtocols = new ArrayList<>();
+			for (int i = 0; i < protocols.size(); i++) {
+				String protocol = protocols.get(i);
+				updatedProtocols.addAll(
+						Arrays.asList(StringUtils.tokenizeToStringArray(protocol, ",")));
+			}
+			protocols = updatedProtocols;
+		}
+		return protocols;
 	}
 
 	/* for testing */ List<HttpHeadersFilter> getHeadersFilters() {
@@ -138,11 +147,11 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 
 			headersFilters.add((headers, exchange) -> {
 				HttpHeaders filtered = new HttpHeaders();
-				headers.entrySet().stream()
-						.filter(entry -> !entry.getKey().toLowerCase()
-								.startsWith("sec-websocket"))
-						.forEach(header -> filtered.addAll(header.getKey(),
-								header.getValue()));
+				for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
+					if (!entry.getKey().toLowerCase().startsWith("sec-websocket")) {
+						filtered.addAll(entry.getKey(), entry.getValue());
+					}
+				}
 				return filtered;
 			});
 		}
