@@ -24,6 +24,7 @@ import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.data.redis.RedisReactiveAutoConfiguration;
 import org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiter;
 import org.springframework.cloud.gateway.support.ConfigurationService;
@@ -43,6 +44,7 @@ import org.springframework.web.reactive.DispatcherHandler;
 @AutoConfigureBefore(GatewayAutoConfiguration.class)
 @ConditionalOnBean(ReactiveRedisTemplate.class)
 @ConditionalOnClass({ RedisTemplate.class, DispatcherHandler.class })
+@ConditionalOnProperty(name = "spring.cloud.gateway.redis-auto-configuration.enabled", matchIfMissing = true)
 class GatewayRedisAutoConfiguration {
 
 	@Bean
