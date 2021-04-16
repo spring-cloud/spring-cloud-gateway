@@ -118,6 +118,26 @@ public class ForwardedHeadersFilterTests {
 	}
 
 	@Test
+	public void correctIPv6RemoteAddressMapping() throws UnknownHostException {
+		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost/get")
+				.remoteAddress(new InetSocketAddress(InetAddress.getByName("2001:db8:cafe:0:0:0:0:17"), 80))
+				.header(HttpHeaders.HOST, "myhost").build();
+
+		ForwardedHeadersFilter filter = new ForwardedHeadersFilter();
+
+		HttpHeaders headers = filter.filter(request.getHeaders(), MockServerWebExchange.from(request));
+
+		assertThat(headers.get(FORWARDED_HEADER)).hasSize(1);
+
+		List<Forwarded> forwardeds = ForwardedHeadersFilter.parse(headers.get(FORWARDED_HEADER));
+
+		assertThat(forwardeds).hasSize(1);
+		Forwarded forwarded = forwardeds.get(0);
+
+		assertThat(forwarded.getValues()).containsEntry("for", "\"[2001:db8:cafe:0:0:0:0:17]:80\"");
+	}
+
+	@Test
 	public void unresolvedRemoteAddressFallsBackToHostName() throws UnknownHostException {
 		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost/get")
 				.remoteAddress(InetSocketAddress.createUnresolved("unresolvable-hostname", 80)).build();
