@@ -779,12 +779,15 @@ public class GatewayAutoConfiguration {
 		@ConditionalOnEnabledGlobalFilter(WebsocketRoutingFilter.class)
 		public ReactorNettyWebSocketClient reactorNettyWebSocketClient(HttpClientProperties properties,
 				HttpClient httpClient) {
-			WebsocketClientSpec.Builder builder = WebsocketClientSpec.builder()
-					.handlePing(properties.getWebsocket().isProxyPing());
-			if (properties.getWebsocket().getMaxFramePayloadLength() != null) {
-				builder.maxFramePayloadLength(properties.getWebsocket().getMaxFramePayloadLength());
-			}
-			return new ReactorNettyWebSocketClient(httpClient, builder);
+			Supplier<WebsocketClientSpec.Builder> builderSupplier = () -> {
+				WebsocketClientSpec.Builder builder = WebsocketClientSpec.builder()
+						.handlePing(properties.getWebsocket().isProxyPing());
+				if (properties.getWebsocket().getMaxFramePayloadLength() != null) {
+					builder.maxFramePayloadLength(properties.getWebsocket().getMaxFramePayloadLength());
+				}
+				return builder;
+			};
+			return new ReactorNettyWebSocketClient(httpClient, builderSupplier);
 		}
 
 		@Bean
