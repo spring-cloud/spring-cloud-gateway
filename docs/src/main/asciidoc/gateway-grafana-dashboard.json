@@ -122,12 +122,12 @@
           "tableColumn": "Value",
           "targets": [
             {
-              "expr": "sum(gateway_requests_seconds_count{job=~\"$gatewayService\"})",
+              "expr": "sum(spring_cloud_gateway_requests_seconds_count{job=~\"$gatewayService\"})",
               "format": "time_series",
               "interval": "",
               "intervalFactor": 2,
               "legendFormat": "",
-              "metric": "gateway_requests_seconds_count",
+              "metric": "spring_cloud_gateway_requests_seconds_count",
               "refId": "A",
               "step": 1200
             }
@@ -210,12 +210,12 @@
           "tableColumn": "Value",
           "targets": [
             {
-              "expr": "sum(gateway_requests_seconds_count{outcome=\"SUCCESSFUL\", job=~\"$gatewayService\"})",
+              "expr": "sum(spring_cloud_gateway_requests_seconds_count{outcome=\"SUCCESSFUL\", job=~\"$gatewayService\"})",
               "format": "time_series",
               "interval": "",
               "intervalFactor": 2,
               "legendFormat": "",
-              "metric": "gateway_requests_seconds_count",
+              "metric": "spring_cloud_gateway_requests_seconds_count",
               "refId": "A",
               "step": 1200
             }
@@ -298,12 +298,12 @@
           "tableColumn": "Value",
           "targets": [
             {
-              "expr": "sum(gateway_requests_seconds_count{outcome!=\"SUCCESSFUL\", job=~\"$gatewayService\"})",
+              "expr": "sum(spring_cloud_gateway_requests_seconds_count{outcome!=\"SUCCESSFUL\", job=~\"$gatewayService\"})",
               "format": "time_series",
               "interval": "",
               "intervalFactor": 2,
               "legendFormat": "",
-              "metric": "gateway_requests_seconds_count",
+              "metric": "spring_cloud_gateway_requests_seconds_count",
               "refId": "A",
               "step": 1200
             }
@@ -383,7 +383,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "gateway_requests_seconds_sum{routeId=~\"$routeId\", job=~\"$gatewayService\"}/gateway_requests_seconds_count{routeId=~\"$routeId\", job=~\"$gatewayService\"}",
+              "expr": "spring_cloud_gateway_requests_seconds_sum{routeId=~\"$routeId\", job=~\"$gatewayService\"}/spring_cloud_gateway_requests_seconds_count{routeId=~\"$routeId\", job=~\"$gatewayService\"}",
               "format": "time_series",
               "interval": "",
               "intervalFactor": 2,
@@ -476,7 +476,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "gateway_requests_seconds_sum{routeId=~\"$routeId\", job=~\"$gatewayService\"}/gateway_requests_seconds_count{routeId=~\"$routeId\", job=~\"$gatewayService\"}",
+              "expr": "spring_cloud_gateway_requests_seconds_sum{routeId=~\"$routeId\", job=~\"$gatewayService\"}/spring_cloud_gateway_requests_seconds_count{routeId=~\"$routeId\", job=~\"$gatewayService\"}",
               "format": "time_series",
               "interval": "",
               "intervalFactor": 2,
@@ -569,7 +569,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "gateway_requests_seconds_sum{routeId=~\"$routeId\", job=~\"$gatewayService\"}/gateway_requests_seconds_count{routeId=~\"$routeId\", job=~\"$gatewayService\"}",
+              "expr": "spring_cloud_gateway_requests_seconds_sum{routeId=~\"$routeId\", job=~\"$gatewayService\"}/spring_cloud_gateway_requests_seconds_count{routeId=~\"$routeId\", job=~\"$gatewayService\"}",
               "format": "time_series",
               "interval": "",
               "intervalFactor": 2,
@@ -662,7 +662,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "gateway_requests_seconds_sum{routeId=~\"$routeId\", job=~\"$gatewayService\"}/gateway_requests_seconds_count{routeId=~\"$routeId\", job=~\"$gatewayService\"}",
+              "expr": "spring_cloud_gateway_requests_seconds_sum{routeId=~\"$routeId\", job=~\"$gatewayService\"}/spring_cloud_gateway_requests_seconds_count{routeId=~\"$routeId\", job=~\"$gatewayService\"}",
               "format": "time_series",
               "interval": "",
               "intervalFactor": 2,
@@ -770,13 +770,13 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "gateway_requests_seconds_count{outcome=\"SUCCESSFUL\", routeId=~\"$routeId\", job=~\"$gatewayService\"}",
+              "expr": "spring_cloud_gateway_requests_seconds_count{outcome=\"SUCCESSFUL\", routeId=~\"$routeId\", job=~\"$gatewayService\"}",
               "format": "time_series",
               "hide": false,
               "interval": "",
               "intervalFactor": 2,
               "legendFormat": "{{ job }} / {{ routeUri }}",
-              "metric": "gateway_requests_seconds_count",
+              "metric": "spring_cloud_gateway_requests_seconds_count",
               "refId": "A",
               "step": 240
             }
@@ -867,13 +867,13 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "gateway_requests_seconds_count{outcome=\"SUCCESSFUL\", routeId=~\"$routeId\", job=~\"$gatewayService\"}",
+              "expr": "spring_cloud_gateway_requests_seconds_count{outcome=\"SUCCESSFUL\", routeId=~\"$routeId\", job=~\"$gatewayService\"}",
               "format": "time_series",
               "hide": false,
               "interval": "",
               "intervalFactor": 2,
               "legendFormat": "{{ job }} / {{ routeUri }}",
-              "metric": "gateway_requests_seconds_count",
+              "metric": "spring_cloud_gateway_requests_seconds_count",
               "refId": "A",
               "step": 240
             }
@@ -964,13 +964,13 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "gateway_requests_seconds_count{outcome=\"SUCCESSFUL\", routeId=~\"$routeId\", job=~\"$gatewayService\"}",
+              "expr": "spring_cloud_gateway_requests_seconds_count{outcome=\"SUCCESSFUL\", routeId=~\"$routeId\", job=~\"$gatewayService\"}",
               "format": "time_series",
               "hide": false,
               "interval": "",
               "intervalFactor": 2,
               "legendFormat": "{{ job }} / {{ routeUri }}",
-              "metric": "gateway_requests_seconds_count",
+              "metric": "spring_cloud_gateway_requests_seconds_count",
               "refId": "A",
               "step": 240
             }
@@ -1061,13 +1061,13 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "gateway_requests_seconds_count{outcome=\"SUCCESSFUL\", routeId=~\"$routeId\", job=~\"$gatewayService\"}",
+              "expr": "spring_cloud_gateway_requests_seconds_count{outcome=\"SUCCESSFUL\", routeId=~\"$routeId\", job=~\"$gatewayService\"}",
               "format": "time_series",
               "hide": false,
               "interval": "",
               "intervalFactor": 2,
               "legendFormat": "{{ job }} / {{ routeUri }}",
-              "metric": "gateway_requests_seconds_count",
+              "metric": "spring_cloud_gateway_requests_seconds_count",
               "refId": "A",
               "step": 240
             }
@@ -1163,12 +1163,12 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "gateway_requests_seconds_count{outcome!=\"SUCCESSFUL\", routeId=~\"$routeId\", job=~\"$gatewayService\"}",
+              "expr": "spring_cloud_gateway_requests_seconds_count{outcome!=\"SUCCESSFUL\", routeId=~\"$routeId\", job=~\"$gatewayService\"}",
               "format": "time_series",
               "interval": "",
               "intervalFactor": 2,
               "legendFormat": "{{ job }} / {{ routeUri }}",
-              "metric": "gateway_requests_seconds_count",
+              "metric": "spring_cloud_gateway_requests_seconds_count",
               "refId": "A",
               "step": 240
             }
@@ -1270,12 +1270,12 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(gateway_requests_seconds_count{routeId=~\"$routeId\", job=~\"$gatewayService\"}) by (job, status)",
+              "expr": "sum(spring_cloud_gateway_requests_seconds_count{routeId=~\"$routeId\", job=~\"$gatewayService\"}) by (job, status)",
               "format": "time_series",
               "interval": "",
               "intervalFactor": 2,
               "legendFormat": "{{ job }} / {{ status }}",
-              "metric": "gateway_requests_seconds_count",
+              "metric": "spring_cloud_gateway_requests_seconds_count",
               "refId": "A",
               "step": 240
             }
@@ -1364,12 +1364,12 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(gateway_requests_seconds_count{routeId=~\"$routeId\", job=~\"$gatewayService\"}) by (job, status)",
+              "expr": "sum(spring_cloud_gateway_requests_seconds_count{routeId=~\"$routeId\", job=~\"$gatewayService\"}) by (job, status)",
               "format": "time_series",
               "interval": "",
               "intervalFactor": 2,
               "legendFormat": "{{ job }} / {{ status }}",
-              "metric": "gateway_requests_seconds_count",
+              "metric": "spring_cloud_gateway_requests_seconds_count",
               "refId": "A",
               "step": 240
             }
@@ -1458,12 +1458,12 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(gateway_requests_seconds_count{routeId=~\"$routeId\", job=~\"$gatewayService\"}) by (job, status)",
+              "expr": "sum(spring_cloud_gateway_requests_seconds_count{routeId=~\"$routeId\", job=~\"$gatewayService\"}) by (job, status)",
               "format": "time_series",
               "interval": "",
               "intervalFactor": 2,
               "legendFormat": "{{ job }} / {{ status }}",
-              "metric": "gateway_requests_seconds_count",
+              "metric": "spring_cloud_gateway_requests_seconds_count",
               "refId": "A",
               "step": 240
             }
@@ -1552,12 +1552,12 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(gateway_requests_seconds_count{routeId=~\"$routeId\", job=~\"$gatewayService\"}) by (job, status)",
+              "expr": "sum(spring_cloud_gateway_requests_seconds_count{routeId=~\"$routeId\", job=~\"$gatewayService\"}) by (job, status)",
               "format": "time_series",
               "interval": "",
               "intervalFactor": 2,
               "legendFormat": "{{ job }} / {{ status }}",
-              "metric": "gateway_requests_seconds_count",
+              "metric": "spring_cloud_gateway_requests_seconds_count",
               "refId": "A",
               "step": 240
             }
@@ -1817,7 +1817,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "jvm_threads_live{job=~\"$gatewayService\"}",
+          "expr": "jvm_threads_live_threads{job=~\"$gatewayService\"}",
           "format": "time_series",
           "hide": false,
           "intervalFactor": 1,
@@ -2000,7 +2000,7 @@
         "multi": true,
         "name": "gatewayService",
         "options": [],
-        "query": "label_values(gateway_requests_seconds_count,job)",
+        "query": "label_values(spring_cloud_gateway_requests_seconds_count,job)",
         "refresh": 1,
         "regex": "",
         "sort": 1,
@@ -2020,7 +2020,7 @@
         "multi": true,
         "name": "routeId",
         "options": [],
-        "query": "label_values(gateway_requests_seconds_count,routeId)",
+        "query": "label_values(spring_cloud_gateway_requests_seconds_count,routeId)",
         "refresh": 1,
         "regex": "",
         "sort": 1,
