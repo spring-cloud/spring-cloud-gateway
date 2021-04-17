@@ -109,7 +109,7 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 
 		String scheme = requestUrl.getScheme();
 		if (isAlreadyRouted(exchange)
-				|| (!"http".equals(scheme) && !"https".equals(scheme))) {
+				|| (!"http".equalsIgnoreCase(scheme) && !"https".equalsIgnoreCase(scheme))) {
 			return chain.filter(exchange);
 		}
 		setAlreadyRouted(exchange);
