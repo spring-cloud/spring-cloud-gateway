@@ -17,9 +17,13 @@
 package org.springframework.cloud.gateway.filter;
 
 import org.hamcrest.Matchers;
+import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import reactor.core.publisher.Mono;
+import reactor.netty.DisposableServer;
+import reactor.netty.http.server.HttpServer;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
@@ -27,6 +31,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
+import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.cloud.gateway.test.PermitAllSecurityConfiguration;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -36,7 +41,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class NettyRoutingFilterTests {
+public class NettyRoutingFilterTests extends BaseWebClientTests {
 
 	@Autowired
 	private ApplicationContext context;
@@ -48,6 +53,27 @@ public class NettyRoutingFilterTests {
 		client.get().uri("/mockexample").exchange().expectStatus().value(Matchers.lessThan(500));
 	}
 
+	@Test
+	public void testIssue2207() {
+		DisposableServer server = HttpServer.create()
+				.port(30669)
+				.host("127.0.0.1")
+				.route(routes -> routes.get("/issue", (request, response) -> response.sendString(Mono.just("issue2207")))).bindNow();
+
+		testClient.get().uri("/issue")
+				.exchange()
+				.expectStatus()
+				.isOk()
+				.expectBody()
+				.consumeWith(entityExchangeResult -> {
+					Assert.assertNotNull(entityExchangeResult);
+					Assert.assertNotNull(entityExchangeResult.getResponseBody());
+					String content = new String(entityExchangeResult.getResponseBody());
+					Assert.assertEquals("issue2207", content);
+				});
+		server.disposeNow();
+	}
+
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	@Import(PermitAllSecurityConfiguration.class)
@@ -57,6 +83,7 @@ public class NettyRoutingFilterTests {
 		public RouteLocator routes(RouteLocatorBuilder builder) {
 			return builder.routes()
 					.route(p -> p.path("/mockexample").filters(f -> f.prefixPath("/httpbin")).uri("http://example.com"))
+					.route(p -> p.path("/issue").uri("HTTP://127.0.0.1:30669"))
 					.build();
 		}
 
