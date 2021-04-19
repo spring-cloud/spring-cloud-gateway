@@ -35,10 +35,8 @@ public class MvcFailureAnalyzerApplicationTests {
 
 	@Test
 	public void contextLoads(CapturedOutput output) {
-		assertThatThrownBy(
-				() -> new SpringApplication(MvcFailureAnalyzerApplication.class)
-						.run("--server.port=0")).hasRootCauseInstanceOf(
-								MvcFoundOnClasspathException.class);
+		assertThatThrownBy(() -> new SpringApplication(MvcFailureAnalyzerApplication.class).run("--server.port=0"))
+				.hasRootCauseInstanceOf(MvcFoundOnClasspathException.class);
 		assertThat(output).contains("Spring MVC found on classpath",
 				"Please remove spring-boot-starter-web dependency");
 	}

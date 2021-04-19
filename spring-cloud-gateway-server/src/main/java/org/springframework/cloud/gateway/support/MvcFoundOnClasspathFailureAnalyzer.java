@@ -19,12 +19,10 @@ package org.springframework.cloud.gateway.support;
 import org.springframework.boot.diagnostics.AbstractFailureAnalyzer;
 import org.springframework.boot.diagnostics.FailureAnalysis;
 
-public class MvcFoundOnClasspathFailureAnalyzer
-		extends AbstractFailureAnalyzer<MvcFoundOnClasspathException> {
+public class MvcFoundOnClasspathFailureAnalyzer extends AbstractFailureAnalyzer<MvcFoundOnClasspathException> {
 
 	@Override
-	protected FailureAnalysis analyze(Throwable rootFailure,
-			MvcFoundOnClasspathException cause) {
+	protected FailureAnalysis analyze(Throwable rootFailure, MvcFoundOnClasspathException cause) {
 		String message = "Spring MVC found on classpath, which is incompatible with Spring Cloud Gateway.";
 		String action = "Please remove spring-boot-starter-web dependency.";
 		return new FailureAnalysis(message, action, cause);
