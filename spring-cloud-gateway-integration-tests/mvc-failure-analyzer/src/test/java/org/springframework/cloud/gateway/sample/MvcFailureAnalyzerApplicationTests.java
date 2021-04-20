@@ -23,6 +23,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.gateway.support.MvcFoundOnClasspathException;
+import org.springframework.cloud.gateway.support.MvcFoundOnClasspathFailureAnalyzer;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.test.web.reactive.server.WebTestClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -36,18 +39,41 @@ public class MvcFailureAnalyzerApplicationTests {
 
 	@Test
 	public void exceptionThrown(CapturedOutput output) {
-		assertThatThrownBy(() -> new SpringApplication(MvcFailureAnalyzerApplication.class).run("--server.port=0"))
-				.hasRootCauseInstanceOf(MvcFoundOnClasspathException.class);
-		assertThat(output).contains("Spring MVC found on classpath",
-				"Please remove spring-boot-starter-web dependency");
+		assertThatThrownBy(
+				() -> new SpringApplication(MvcFailureAnalyzerApplication.class)
+						.run("--server.port=0")).hasRootCauseInstanceOf(
+								MvcFoundOnClasspathException.class);
+		assertThat(output).contains(MvcFoundOnClasspathFailureAnalyzer.MESSAGE,
+				MvcFoundOnClasspathFailureAnalyzer.ACTION);
 	}
 
 	@Test
 	public void exceptionNotThrownWhenDisabled(CapturedOutput output) {
 		assertThatCode(() -> new SpringApplication(MvcFailureAnalyzerApplication.class)
-				.run("--spring.cloud.gateway.enabled=false", "--server.port=0")).doesNotThrowAnyException();
-		assertThat(output).doesNotContain("Spring MVC found on classpath",
-				"Please remove spring-boot-starter-web dependency");
+				.run("--spring.cloud.gateway.enabled=false", "--server.port=0"))
+						.doesNotThrowAnyException();
+		assertThat(output).doesNotContain(MvcFoundOnClasspathFailureAnalyzer.MESSAGE,
+				MvcFoundOnClasspathFailureAnalyzer.ACTION);
+	}
+
+	@Test
+	public void exceptionNotThrownWhenReactiveTypeSet(CapturedOutput output) {
+		assertThatCode(() -> {
+			ConfigurableApplicationContext context = new SpringApplication(
+					MvcFailureAnalyzerApplication.class).run(
+							"--spring.main.web-application-type=reactive",
+							"--server.port=0", "--debug=true");
+			Integer port = context.getEnvironment().getProperty("local.server.port",
+					Integer.class);
+			WebTestClient client = WebTestClient.bindToServer()
+					.baseUrl("http://localhost:" + port).build();
+			client.get().uri("/myprefix/hello").exchange().expectStatus().isOk()
+					.expectBody(String.class).isEqualTo("Hello");
+			context.close();
+		}).doesNotThrowAnyException();
+		assertThat(output).doesNotContain(MvcFoundOnClasspathFailureAnalyzer.MESSAGE,
+				MvcFoundOnClasspathFailureAnalyzer.ACTION);
+
 	}
 
 }
