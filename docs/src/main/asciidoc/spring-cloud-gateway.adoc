@@ -1766,45 +1766,6 @@ If the URL has a `forward` scheme (such as `forward:///localendpoint`), it uses 
 The path part of the request URL is overridden with the path in the forward URL.
 The unmodified original URL is appended to the list in the `ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR` attribute.
 
-=== The `LoadBalancerClient` Filter
-
-The `LoadBalancerClientFilter` looks for a URI in the exchange attribute named `ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR`.
-If the URL has a scheme of `lb` (such as `lb://myservice`), it uses the Spring Cloud `LoadBalancerClient` to resolve the name (`myservice` in this case) to an actual host and port and replaces the URI in the same attribute.
-The unmodified original URL is appended to the list in the `ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR` attribute.
-The filter also looks in the `ServerWebExchangeUtils.GATEWAY_SCHEME_PREFIX_ATTR` attribute to see if it equals `lb`.
-If so, the same rules apply.
-The following listing configures a `LoadBalancerClientFilter`:
-
-.application.yml
-====
-[source,yaml]
-----
-spring:
-  cloud:
-    gateway:
-      routes:
-      - id: myRoute
-        uri: lb://service
-        predicates:
-        - Path=/service/**
-----
-====
-
-NOTE: By default, when a service instance cannot be found in the `LoadBalancer`, a `503` is returned.
-You can configure the Gateway to return a `404` by setting `spring.cloud.gateway.loadbalancer.use404=true`.
-
-NOTE: The `isSecure` value of the `ServiceInstance` returned from the `LoadBalancer` overrides
-the scheme specified in the request made to the Gateway.
-For example, if the request comes into the Gateway over `HTTPS`
-but the `ServiceInstance` indicates it is not secure, the downstream request is made over
-`HTTP`.
-The opposite situation can also apply.
-However, if `GATEWAY_SCHEME_PREFIX_ATTR` is specified for the
-route in the Gateway configuration, the prefix is stripped and the resulting scheme from the
-route URL overrides the `ServiceInstance` configuration.
-
-TIP: Gateway supports all the LoadBalancer features. You can read more about them in the https://docs.spring.io/spring-cloud-commons/docs/current/reference/html/#spring-cloud-loadbalancer[Spring Cloud Commons documentation].
-
 [[reactive-loadbalancer-client-filter]]
 === The `ReactiveLoadBalancerClientFilter`
 
@@ -1838,6 +1799,8 @@ the scheme specified in the request made to the Gateway.
 For example, if the request comes into the Gateway over `HTTPS` but the `ServiceInstance` indicates it is not secure, the downstream request is made over `HTTP`.
 The opposite situation can also apply.
 However, if `GATEWAY_SCHEME_PREFIX_ATTR` is specified for the route in the Gateway configuration, the prefix is stripped and the resulting scheme from the route URL overrides the `ServiceInstance` configuration.
+
+TIP: Gateway supports all the LoadBalancer features. You can read more about them in the https://docs.spring.io/spring-cloud-commons/docs/current/reference/html/#spring-cloud-loadbalancer[Spring Cloud Commons documentation].
 
 === The Netty Routing Filter
 
@@ -2370,7 +2333,7 @@ To retrieve the <<global-filters,global filters>> applied to all routes, make a 
 ====
 ----
 {
-  "org.springframework.cloud.gateway.filter.LoadBalancerClientFilter@77856cc5": 10100,
+  "org.springframework.cloud.gateway.filter.ReactiveLoadBalancerClientFilter@77856cc5": 10100,
   "org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter@4f6fd101": 10000,
   "org.springframework.cloud.gateway.filter.NettyWriteResponseFilter@32d22650": -1,
   "org.springframework.cloud.gateway.filter.ForwardRoutingFilter@106459d9": 2147483647,
@@ -2383,7 +2346,7 @@ To retrieve the <<global-filters,global filters>> applied to all routes, make a 
 ====
 
 The response contains the details of the global filters that are in place.
-For each global filter, there is a string representation of the filter object (for example, `org.springframework.cloud.gateway.filter.LoadBalancerClientFilter@77856cc5`) and the corresponding <<gateway-combined-global-filter-and-gatewayfilter-ordering,order>> in the filter chain.}
+For each global filter, there is a string representation of the filter object (for example, `org.springframework.cloud.gateway.filter.ReactiveLoadBalancerClientFilter@77856cc5`) and the corresponding <<gateway-combined-global-filter-and-gatewayfilter-ordering,order>> in the filter chain.}
 
 [[gateway-route-filters]]
 ==== Route Filters
