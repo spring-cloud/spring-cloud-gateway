@@ -18,12 +18,50 @@ package org.springframework.cloud.gateway.sample;
 
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
+import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.cloud.client.DefaultServiceInstance;
+import org.springframework.cloud.gateway.route.RouteLocator;
+import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
+import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
+import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
+import org.springframework.cloud.loadbalancer.support.ServiceInstanceListSuppliers;
+import org.springframework.context.annotation.Bean;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * @author Spencer Gibb
  */
 @SpringBootConfiguration
 @EnableAutoConfiguration
+@RestController
+@LoadBalancerClient(name = "myservice", configuration = MyServiceConf.class)
 public class MvcFailureAnalyzerApplication {
+
+	@GetMapping("hello")
+	public String hello() {
+		return "Hello";
+	}
+
+	@Bean
+	@ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.REACTIVE)
+	public RouteLocator myRouteLocator(RouteLocatorBuilder builder) {
+		return builder.routes().route(r -> r.path("/myprefix/**")
+				.filters(f -> f.stripPrefix(1)).uri("lb://myservice")).build();
+	}
+
+}
+
+class MyServiceConf {
+
+	@LocalServerPort
+	private int port = 0;
+
+	@Bean
+	public ServiceInstanceListSupplier staticServiceInstanceListSupplier() {
+		return ServiceInstanceListSuppliers.from("myservice", new DefaultServiceInstance(
+				"myservice-1", "myservice", "localhost", port, false));
+	}
 
 }

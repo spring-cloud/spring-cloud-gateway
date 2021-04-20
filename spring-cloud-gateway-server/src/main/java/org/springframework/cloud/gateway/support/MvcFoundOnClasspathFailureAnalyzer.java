@@ -22,12 +22,20 @@ import org.springframework.boot.diagnostics.FailureAnalysis;
 public class MvcFoundOnClasspathFailureAnalyzer
 		extends AbstractFailureAnalyzer<MvcFoundOnClasspathException> {
 
+	/**
+	 * Message for MvcFoundOnClasspathException.
+	 */
+	public static final String MESSAGE = "Spring MVC found on classpath, which is incompatible with Spring Cloud Gateway.";
+
+	/**
+	 * Action for MvcFoundOnClasspathException.
+	 */
+	public static final String ACTION = "Please set spring.main.web-application-type=reactive or remove spring-boot-starter-web dependency.";
+
 	@Override
 	protected FailureAnalysis analyze(Throwable rootFailure,
 			MvcFoundOnClasspathException cause) {
-		String message = "Spring MVC found on classpath, which is incompatible with Spring Cloud Gateway.";
-		String action = "Please remove spring-boot-starter-web dependency.";
-		return new FailureAnalysis(message, action, cause);
+		return new FailureAnalysis(MESSAGE, ACTION, cause);
 	}
 
 }
