@@ -25,6 +25,7 @@ import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.gateway.support.MvcFoundOnClasspathException;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
@@ -34,10 +35,19 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class MvcFailureAnalyzerApplicationTests {
 
 	@Test
-	public void contextLoads(CapturedOutput output) {
+	public void exceptionThrown(CapturedOutput output) {
 		assertThatThrownBy(() -> new SpringApplication(MvcFailureAnalyzerApplication.class).run("--server.port=0"))
 				.hasRootCauseInstanceOf(MvcFoundOnClasspathException.class);
 		assertThat(output).contains("Spring MVC found on classpath",
+				"Please remove spring-boot-starter-web dependency");
+	}
+
+	@Test
+	public void exceptionNotThrownWhenDisabled(CapturedOutput output) {
+		assertThatCode(() -> new SpringApplication(MvcFailureAnalyzerApplication.class)
+				.run("--spring.cloud.gateway.enabled=false", "--server.port=0"))
+						.doesNotThrowAnyException();
+		assertThat(output).doesNotContain("Spring MVC found on classpath",
 				"Please remove spring-boot-starter-web dependency");
 	}
 
