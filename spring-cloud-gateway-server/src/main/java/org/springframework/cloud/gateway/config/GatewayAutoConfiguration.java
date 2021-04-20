@@ -468,6 +468,7 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
+	@ConditionalOnEnabledFilter
 	public CacheRequestBodyGatewayFilterFactory cacheRequestBodyGatewayFilterFactory() {
 		return new CacheRequestBodyGatewayFilterFactory();
 	}

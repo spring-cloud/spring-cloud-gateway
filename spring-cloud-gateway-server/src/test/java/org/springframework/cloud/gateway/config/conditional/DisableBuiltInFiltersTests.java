@@ -110,6 +110,7 @@ public class DisableBuiltInFiltersTests {
 					"spring.cloud.gateway.filter.request-header-size.enabled=false",
 					"spring.cloud.gateway.filter.circuit-breaker.enabled=false",
 					"spring.cloud.gateway.filter.token-relay.enabled=false",
+					"spring.cloud.gateway.filter.cache-request-body.enabled=false",
 					"spring.cloud.gateway.filter.fallback-headers.enabled=false" })
 	@ActiveProfiles("disable-components")
 	public static class DisableAllFiltersByProperty {
