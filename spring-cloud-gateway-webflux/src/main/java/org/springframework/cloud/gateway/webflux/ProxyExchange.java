@@ -86,7 +86,7 @@ import org.springframework.web.server.ServerWebExchange;
  * &#64;PostMapping("/proxy")
  * public Mono&lt;ResponseEntity&lt;Foo&gt;&gt; proxy(ProxyExchange&lt;Foo&gt; proxy) throws Exception {
  * 	return proxy.uri("http://localhost:9000/foos/") //
- * 			.post(response -> ResponseEntity.status(response.getStatusCode()) //
+ * 			.post(response -&gt; ResponseEntity.status(response.getStatusCode()) //
  * 					.headers(response.getHeaders()) //
  * 					.header("X-Custom", "MyCustomHeader") //
  * 					.body(response.getBody()) //
@@ -95,7 +95,6 @@ import org.springframework.web.server.ServerWebExchange;
  *
  * </pre>
  *
- * </p>
  * <p>
  * The full machinery of Spring {@link HttpMessageConverter message converters} is applied
  * to the incoming request and response and also to the backend request. If you need
