@@ -18,6 +18,8 @@ package org.springframework.cloud.gateway.route;
 
 import reactor.core.publisher.Flux;
 
+import java.util.Map;
+
 /**
  * @author Spencer Gibb
  */
@@ -25,5 +27,9 @@ import reactor.core.publisher.Flux;
 public interface RouteLocator {
 
 	Flux<Route> getRoutes();
+
+	default Flux<Map<String, Route>> getRouteMap() {
+		return Flux.empty();
+	}
 
 }

@@ -16,16 +16,8 @@
 
 package org.springframework.cloud.gateway.route;
 
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import reactor.cache.CacheFlux;
-import reactor.core.publisher.Flux;
-
 import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
 import org.springframework.cloud.gateway.event.RefreshRoutesResultEvent;
 import org.springframework.context.ApplicationEventPublisher;
@@ -33,6 +25,15 @@ import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
+import reactor.cache.CacheFlux;
+import reactor.core.publisher.Flux;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 /**
  * @author Spencer Gibb
@@ -50,6 +51,12 @@ public class CachingRouteLocator
 
 	private final Map<String, List> cache = new ConcurrentHashMap<>();
 
+	/**
+	 * A copy of routing information that is specifically served for custom routing resolution
+	 * key-route definition id, value-route
+	 */
+	private final AtomicReference<Map<String, Route>> cacheCopy = new AtomicReference<>(new HashMap<>());
+
 	private ApplicationEventPublisher applicationEventPublisher;
 
 	public CachingRouteLocator(RouteLocator delegate) {
@@ -66,8 +73,15 @@ public class CachingRouteLocator
 		return this.routes;
 	}
 
+	@Override
+	public Flux<Map<String, Route>> getRouteMap() {
+		return Flux.just(cacheCopy.get());
+	}
+
 	/**
 	 * Clears the routes cache.
+	 * This method is only used in the test, and the use of production environment will bring performance risks
+	 *
 	 * @return routes flux
 	 */
 	public Flux<Route> refresh() {
@@ -78,13 +92,14 @@ public class CachingRouteLocator
 	@Override
 	public void onApplicationEvent(RefreshRoutesEvent event) {
 		try {
-			fetch().collect(Collectors.toList()).subscribe(
-					list -> Flux.fromIterable(list).materialize().collect(Collectors.toList()).subscribe(signals -> {
-						applicationEventPublisher.publishEvent(new RefreshRoutesResultEvent(this));
-						cache.put(CACHE_KEY, signals);
-					}, this::handleRefreshError), this::handleRefreshError);
-		}
-		catch (Throwable e) {
+			fetch().collect(Collectors.toList())
+					.doOnSuccess(r -> getRoutes().subscribe(route -> cacheCopy.get().put(route.getId(), route)))
+					.subscribe(
+							list -> Flux.fromIterable(list).materialize().collect(Collectors.toList()).subscribe(signals -> {
+								applicationEventPublisher.publishEvent(new RefreshRoutesResultEvent(this));
+								cache.put(CACHE_KEY, signals);
+							}, this::handleRefreshError), this::handleRefreshError);
+		} catch (Throwable e) {
 			handleRefreshError(e);
 		}
 	}
