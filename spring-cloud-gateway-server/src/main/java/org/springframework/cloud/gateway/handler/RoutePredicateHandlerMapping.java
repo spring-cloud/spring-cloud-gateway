@@ -27,7 +27,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.function.Function;
 
-import static org.springframework.cloud.gateway.handler.CustomizeRouteResolveHandlerMapping.CUSTOMIZE_ROUTE_DEFINITION_ID_KEY;
+import static org.springframework.cloud.gateway.handler.AbstractCustomizeRouteResolveHandlerMapping.CUSTOMIZE_ROUTE_DEFINITION_ID_KEY;
 import static org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping.ManagementPortType.DIFFERENT;
 import static org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping.ManagementPortType.DISABLED;
 import static org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping.ManagementPortType.SAME;

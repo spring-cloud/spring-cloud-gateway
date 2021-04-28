@@ -69,7 +69,7 @@ import org.springframework.cloud.gateway.filter.headers.XForwardedHeadersFilter;
 import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
 import org.springframework.cloud.gateway.filter.ratelimit.PrincipalNameKeyResolver;
 import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter;
-import org.springframework.cloud.gateway.handler.CustomizeRouteResolveHandlerMapping;
+import org.springframework.cloud.gateway.handler.AbstractCustomizeRouteResolveHandlerMapping;
 import org.springframework.cloud.gateway.handler.FilteringWebHandler;
 import org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping;
 import org.springframework.cloud.gateway.handler.predicate.AfterRoutePredicateFactory;
@@ -222,8 +222,8 @@ public class GatewayAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	public CustomizeRouteResolveHandlerMapping customizeRouteResolveHandlerMapping() {
-		return new CustomizeRouteResolveHandlerMapping();
+	public AbstractCustomizeRouteResolveHandlerMapping customizeRouteResolveHandlerMapping() {
+		return new AbstractCustomizeRouteResolveHandlerMapping();
 	}
 
 	@Bean
