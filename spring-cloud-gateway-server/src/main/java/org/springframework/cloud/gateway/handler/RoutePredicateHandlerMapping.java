@@ -16,6 +16,10 @@
 
 package org.springframework.cloud.gateway.handler;
 
+import java.util.function.Function;
+
+import reactor.core.publisher.Mono;
+
 import org.springframework.cloud.gateway.config.GlobalCorsProperties;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.route.RouteLocator;
@@ -23,9 +27,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.reactive.handler.AbstractHandlerMapping;
 import org.springframework.web.server.ServerWebExchange;
-import reactor.core.publisher.Mono;
-
-import java.util.function.Function;
 
 import static org.springframework.cloud.gateway.handler.AbstractCustomizeRouteResolveHandlerMapping.CUSTOMIZE_ROUTE_DEFINITION_ID_KEY;
 import static org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping.ManagementPortType.DIFFERENT;
@@ -49,7 +50,7 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 	private final ManagementPortType managementPortType;
 
 	public RoutePredicateHandlerMapping(FilteringWebHandler webHandler, RouteLocator routeLocator,
-										GlobalCorsProperties globalCorsProperties, Environment environment) {
+			GlobalCorsProperties globalCorsProperties, Environment environment) {
 		this.webHandler = webHandler;
 		this.routeLocator = routeLocator;
 
@@ -173,8 +174,7 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 	 * <p>
 	 * The default implementation is empty. Can be overridden in subclasses, for example
 	 * to enforce specific preconditions expressed in URL mappings.
-	 *
-	 * @param route    the Route object to validate
+	 * @param route the Route object to validate
 	 * @param exchange current exchange
 	 * @throws Exception if validation failed
 	 */
