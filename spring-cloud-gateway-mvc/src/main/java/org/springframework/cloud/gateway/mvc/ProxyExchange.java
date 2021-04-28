@@ -105,7 +105,7 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestResponseBody
  * &#64;PostMapping("/proxy")
  * public ResponseEntity&lt;Foo&gt; proxy(ProxyExchange&lt;Foo&gt; proxy) throws Exception {
  * 	return proxy.uri("http://localhost:9000/foos/") //
- * 			.post(response -> ResponseEntity.status(response.getStatusCode()) //
+ * 			.post(response -&gt ResponseEntity.status(response.getStatusCode()) //
  * 					.headers(response.getHeaders()) //
  * 					.header("X-Custom", "MyCustomHeader") //
  * 					.body(response.getBody()) //
@@ -114,7 +114,6 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestResponseBody
  *
  * </pre>
  *
- * </p>
  * <p>
  * The full machinery of Spring {@link HttpMessageConverter message converters} is applied
  * to the incoming request and response and also to the backend request. If you need
@@ -127,7 +126,6 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestResponseBody
  * As well as the HTTP methods for a backend call you can also use
  * {@link #forward(String)} for a local in-container dispatch.
  * <p>
- * </p>
  *
  * @author Dave Syer
  *
