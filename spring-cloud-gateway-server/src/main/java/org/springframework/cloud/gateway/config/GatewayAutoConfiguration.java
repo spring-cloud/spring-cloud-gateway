@@ -16,11 +16,24 @@
 
 package org.springframework.cloud.gateway.config;
 
+import java.security.cert.X509Certificate;
+import java.time.Duration;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Supplier;
+
 import io.netty.channel.ChannelOption;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import reactor.core.publisher.Flux;
+import reactor.netty.http.client.HttpClient;
+import reactor.netty.http.client.WebsocketClientSpec;
+import reactor.netty.http.server.WebsocketServerSpec;
+import reactor.netty.resources.ConnectionProvider;
+import reactor.netty.transport.ProxyProvider;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -56,7 +69,36 @@ import org.springframework.cloud.gateway.filter.RemoveCachedBodyFilter;
 import org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter;
 import org.springframework.cloud.gateway.filter.WebsocketRoutingFilter;
 import org.springframework.cloud.gateway.filter.WeightCalculatorWebFilter;
-import org.springframework.cloud.gateway.filter.factory.*;
+import org.springframework.cloud.gateway.filter.factory.AddRequestHeaderGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.AddRequestParameterGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.AddResponseHeaderGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.DedupeResponseHeaderGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.MapRequestHeaderGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.PrefixPathGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.PreserveHostHeaderGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.RedirectToGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.RemoveRequestHeaderGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.RemoveRequestParameterGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.RemoveResponseHeaderGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.RequestHeaderSizeGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.RequestHeaderToRequestUriGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.RequestRateLimiterGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.RequestSizeGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.RetryGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.RewriteLocationResponseHeaderGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.RewriteResponseHeaderGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.SaveSessionGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.SecureHeadersProperties;
+import org.springframework.cloud.gateway.filter.factory.SetPathGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.SetRequestHeaderGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.SetRequestHostHeaderGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.SetResponseHeaderGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.SetStatusGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.StripPrefixGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.TokenRelayGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.rewrite.GzipMessageBodyResolver;
 import org.springframework.cloud.gateway.filter.factory.rewrite.MessageBodyDecoder;
 import org.springframework.cloud.gateway.filter.factory.rewrite.MessageBodyEncoder;
@@ -122,18 +164,6 @@ import org.springframework.web.reactive.socket.server.RequestUpgradeStrategy;
 import org.springframework.web.reactive.socket.server.WebSocketService;
 import org.springframework.web.reactive.socket.server.support.HandshakeWebSocketService;
 import org.springframework.web.reactive.socket.server.upgrade.ReactorNettyRequestUpgradeStrategy;
-import reactor.core.publisher.Flux;
-import reactor.netty.http.client.HttpClient;
-import reactor.netty.http.client.WebsocketClientSpec;
-import reactor.netty.http.server.WebsocketServerSpec;
-import reactor.netty.resources.ConnectionProvider;
-import reactor.netty.transport.ProxyProvider;
-
-import java.security.cert.X509Certificate;
-import java.time.Duration;
-import java.util.List;
-import java.util.Set;
-import java.util.function.Supplier;
 
 import static org.springframework.cloud.gateway.config.HttpClientProperties.Pool.PoolType.DISABLED;
 import static org.springframework.cloud.gateway.config.HttpClientProperties.Pool.PoolType.FIXED;
@@ -182,15 +212,15 @@ public class GatewayAutoConfiguration {
 
 	@Bean
 	public ConfigurationService gatewayConfigurationService(BeanFactory beanFactory,
-															@Qualifier("webFluxConversionService") ObjectProvider<ConversionService> conversionService,
-															ObjectProvider<Validator> validator) {
+			@Qualifier("webFluxConversionService") ObjectProvider<ConversionService> conversionService,
+			ObjectProvider<Validator> validator) {
 		return new ConfigurationService(beanFactory, conversionService, validator);
 	}
 
 	@Bean
 	public RouteLocator routeDefinitionRouteLocator(GatewayProperties properties,
-													List<GatewayFilterFactory> gatewayFilters, List<RoutePredicateFactory> predicates,
-													RouteDefinitionLocator routeDefinitionLocator, ConfigurationService configurationService) {
+			List<GatewayFilterFactory> gatewayFilters, List<RoutePredicateFactory> predicates,
+			RouteDefinitionLocator routeDefinitionLocator, ConfigurationService configurationService) {
 		return new RouteDefinitionRouteLocator(routeDefinitionLocator, predicates, gatewayFilters, properties,
 				configurationService);
 	}
@@ -221,7 +251,7 @@ public class GatewayAutoConfiguration {
 
 	@Bean
 	public RoutePredicateHandlerMapping routePredicateHandlerMapping(FilteringWebHandler webHandler,
-																	 RouteLocator routeLocator, GlobalCorsProperties globalCorsProperties, Environment environment) {
+			RouteLocator routeLocator, GlobalCorsProperties globalCorsProperties, Environment environment) {
 		return new RoutePredicateHandlerMapping(webHandler, routeLocator, globalCorsProperties, environment);
 	}
 
@@ -297,14 +327,14 @@ public class GatewayAutoConfiguration {
 	@Bean
 	@ConditionalOnEnabledGlobalFilter
 	public WebsocketRoutingFilter websocketRoutingFilter(WebSocketClient webSocketClient,
-														 WebSocketService webSocketService, ObjectProvider<List<HttpHeadersFilter>> headersFilters) {
+			WebSocketService webSocketService, ObjectProvider<List<HttpHeadersFilter>> headersFilters) {
 		return new WebsocketRoutingFilter(webSocketClient, webSocketService, headersFilters);
 	}
 
 	@Bean
 	@ConditionalOnEnabledPredicate(WeightRoutePredicateFactory.class)
 	public WeightCalculatorWebFilter weightCalculatorWebFilter(ConfigurationService configurationService,
-															   ObjectProvider<RouteLocator> routeLocator) {
+			ObjectProvider<RouteLocator> routeLocator) {
 		return new WeightCalculatorWebFilter(routeLocator, configurationService);
 	}
 
@@ -484,7 +514,7 @@ public class GatewayAutoConfiguration {
 	@ConditionalOnBean({ RateLimiter.class, KeyResolver.class })
 	@ConditionalOnEnabledFilter
 	public RequestRateLimiterGatewayFilterFactory requestRateLimiterGatewayFilterFactory(RateLimiter rateLimiter,
-																						 KeyResolver resolver) {
+			KeyResolver resolver) {
 		return new RequestRateLimiterGatewayFilterFactory(rateLimiter, resolver);
 	}
 
@@ -592,7 +622,7 @@ public class GatewayAutoConfiguration {
 		@Bean
 		@ConditionalOnProperty(name = "spring.cloud.gateway.httpserver.wiretap")
 		public NettyWebServerFactoryCustomizer nettyServerWiretapCustomizer(Environment environment,
-																			ServerProperties serverProperties) {
+				ServerProperties serverProperties) {
 			return new NettyWebServerFactoryCustomizer(environment, serverProperties) {
 				@Override
 				public void customize(NettyReactiveWebServerFactory factory) {
@@ -735,7 +765,7 @@ public class GatewayAutoConfiguration {
 		@Bean
 		@ConditionalOnEnabledGlobalFilter
 		public NettyRoutingFilter routingFilter(HttpClient httpClient,
-												ObjectProvider<List<HttpHeadersFilter>> headersFilters, HttpClientProperties properties) {
+				ObjectProvider<List<HttpHeadersFilter>> headersFilters, HttpClientProperties properties) {
 			return new NettyRoutingFilter(httpClient, headersFilters, properties);
 		}
 
@@ -748,7 +778,7 @@ public class GatewayAutoConfiguration {
 		@Bean
 		@ConditionalOnEnabledGlobalFilter(WebsocketRoutingFilter.class)
 		public ReactorNettyWebSocketClient reactorNettyWebSocketClient(HttpClientProperties properties,
-																	   HttpClient httpClient) {
+				HttpClient httpClient) {
 			WebsocketClientSpec.Builder builder = WebsocketClientSpec.builder()
 					.handlePing(properties.getWebsocket().isProxyPing());
 			if (properties.getWebsocket().getMaxFramePayloadLength() != null) {
@@ -784,9 +814,9 @@ public class GatewayAutoConfiguration {
 		@ConditionalOnProperty(name = "spring.cloud.gateway.actuator.verbose.enabled", matchIfMissing = true)
 		@ConditionalOnAvailableEndpoint
 		public GatewayControllerEndpoint gatewayControllerEndpoint(List<GlobalFilter> globalFilters,
-																   List<GatewayFilterFactory> gatewayFilters, List<RoutePredicateFactory> routePredicates,
-																   RouteDefinitionWriter routeDefinitionWriter, RouteLocator routeLocator,
-																   RouteDefinitionLocator routeDefinitionLocator) {
+				List<GatewayFilterFactory> gatewayFilters, List<RoutePredicateFactory> routePredicates,
+				RouteDefinitionWriter routeDefinitionWriter, RouteLocator routeLocator,
+				RouteDefinitionLocator routeDefinitionLocator) {
 			return new GatewayControllerEndpoint(globalFilters, gatewayFilters, routePredicates, routeDefinitionWriter,
 					routeLocator, routeDefinitionLocator);
 		}
