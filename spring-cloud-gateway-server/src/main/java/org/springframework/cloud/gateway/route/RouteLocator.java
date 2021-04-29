@@ -16,9 +16,9 @@
 
 package org.springframework.cloud.gateway.route;
 
-import reactor.core.publisher.Flux;
-
 import java.util.Map;
+
+import reactor.core.publisher.Flux;
 
 /**
  * @author Spencer Gibb
