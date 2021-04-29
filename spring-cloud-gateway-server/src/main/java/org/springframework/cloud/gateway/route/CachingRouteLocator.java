@@ -16,8 +16,19 @@
 
 package org.springframework.cloud.gateway.route;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
+
+import reactor.cache.CacheFlux;
+import reactor.core.publisher.Flux;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
 import org.springframework.cloud.gateway.event.RefreshRoutesResultEvent;
 import org.springframework.context.ApplicationEventPublisher;
@@ -25,15 +36,6 @@ import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
-import reactor.cache.CacheFlux;
-import reactor.core.publisher.Flux;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 
 /**
  * @author Spencer Gibb
@@ -52,8 +54,8 @@ public class CachingRouteLocator
 	private final Map<String, List> cache = new ConcurrentHashMap<>();
 
 	/**
-	 * A copy of routing information that is specifically served for custom routing resolution
-	 * key-route definition id, value-route
+	 * A copy of routing information that is specifically served for custom routing resolution.
+	 * key-route definition id, value-route.
 	 */
 	private final AtomicReference<Map<String, Route>> cacheCopy = new AtomicReference<>(new HashMap<>());
 
