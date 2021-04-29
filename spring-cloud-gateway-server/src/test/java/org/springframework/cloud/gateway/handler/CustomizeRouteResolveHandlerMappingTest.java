@@ -20,6 +20,7 @@ import java.net.URI;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import reactor.core.publisher.Flux;
 
 import org.springframework.boot.SpringBootConfiguration;
@@ -33,21 +34,15 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.server.ServerWebExchange;
 
-import org.springframework.cloud.gateway.test.BaseWebClientTests.DefaultTestConfig;
-
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT, properties = {})
 @DirtiesContext
-public class CustomizeRouteResolveHandlerMappingTest extends AbstractCustomizeRouteResolveHandlerMapping {
+public class CustomizeRouteResolveHandlerMappingTest extends BaseWebClientTests {
 
 	@Test
 	public void requestsToCustomizeRoute() {
-	}
-
-	protected String resolveRouteId(ServerWebExchange serverWebExchange) {
-		return "one_customize_route";
 	}
 
 	@EnableAutoConfiguration
@@ -56,12 +51,21 @@ public class CustomizeRouteResolveHandlerMappingTest extends AbstractCustomizeRo
 	public static class TestConfig {
 
 		@Bean
+		AbstractCustomizeRouteResolveHandlerMapping myCustomizeRouteResolveHandlerMapping() {
+			return new AbstractCustomizeRouteResolveHandlerMapping() {
+				@Override
+				protected String resolveRouteId(ServerWebExchange serverWebExchange) {
+					return "one_customize_route";
+				}
+			};
+		}
+
+		@Bean
 		RouteDefinitionLocator myRouteDefinitionLocator() {
 			RouteDefinition definition = new RouteDefinition();
 			definition.setId("one_customize_route");
 			definition.setUri(URI.create("https://oneapi"));
 			return () -> Flux.just(definition);
 		}
-
 	}
 }
