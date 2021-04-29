@@ -61,7 +61,7 @@ public abstract class AbstractCustomizeRouteResolveHandlerMapping extends Abstra
 	 * You can use this method again to resolve a routing ID through server webexchange according to your own routing rules.
 	 *
 	 * @param serverWebExchange
-	 * @return Route definition ID resolved according to custom routing rules
+	 * @return Route definition ID resolved according to custom routing rules.
 	 */
 	protected String resolveRouteId(ServerWebExchange serverWebExchange) {
 		return null;
