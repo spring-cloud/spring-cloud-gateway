@@ -21,12 +21,12 @@ import reactor.core.publisher.Mono;
 import org.springframework.web.reactive.handler.AbstractHandlerMapping;
 import org.springframework.web.server.ServerWebExchange;
 
-
 /**
  * Custom route resolution processor
  * <p>
- * In some scenarios, using a user-defined routing resolution strategy will be faster than a general regular resolution strategy,
- * so SCG will provide this ability to customize routing resolution.
+ * In some scenarios, using a user-defined routing resolution strategy will be faster than
+ * a general regular resolution strategy, so SCG will provide this ability to customize
+ * routing resolution.
  *
  * @author: yizhenqiang
  * @date: 2021/4/28 21:24
@@ -40,7 +40,8 @@ public abstract class AbstractCustomizeRouteResolveHandlerMapping extends Abstra
 
 	public AbstractCustomizeRouteResolveHandlerMapping() {
 		/**
-		 * We need to ensure that it is executed before {@link RoutePredicateHandlerMapping}
+		 * We need to ensure that it is executed before
+		 * {@link RoutePredicateHandlerMapping}
 		 */
 		setOrder(0);
 	}
@@ -58,8 +59,8 @@ public abstract class AbstractCustomizeRouteResolveHandlerMapping extends Abstra
 	/**
 	 * The user-defined routing information is parsed through {@link ServerWebExchange}
 	 * <p>
-	 * You can use this method again to resolve a routing ID through server webexchange according to your own routing rules.
-	 *
+	 * You can use this method again to resolve a routing ID through server webexchange
+	 * according to your own routing rules.
 	 * @param serverWebExchange the web server context.
 	 * @return Route definition ID resolved according to custom routing rules.
 	 */

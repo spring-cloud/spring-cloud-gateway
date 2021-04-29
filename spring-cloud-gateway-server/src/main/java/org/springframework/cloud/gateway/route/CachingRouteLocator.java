@@ -53,8 +53,8 @@ public class CachingRouteLocator
 	private final Map<String, List> cache = new ConcurrentHashMap<>();
 
 	/**
-	 * A copy of routing information that is specifically served for custom routing resolution.
-	 * key-route definition id, value-route.
+	 * A copy of routing information that is specifically served for custom routing
+	 * resolution. key-route definition id, value-route.
 	 */
 	private final AtomicReference<Map<String, Route>> cacheCopy = new AtomicReference<>(new HashMap<>());
 
@@ -80,13 +80,13 @@ public class CachingRouteLocator
 	}
 
 	/**
-	 * Clears the routes cache.
-	 * This method is only used in the test, and the use of production environment will bring performance risks
-	 *
+	 * Clears the routes cache. This method is only used in the test, and the use of
+	 * production environment will bring performance risks
 	 * @return routes flux
 	 */
 	public Flux<Route> refresh() {
 		this.cache.clear();
+		this.cacheCopy.get().clear();
 		return this.routes;
 	}
 
@@ -95,12 +95,13 @@ public class CachingRouteLocator
 		try {
 			fetch().collect(Collectors.toList())
 					.doOnSuccess(r -> getRoutes().subscribe(route -> cacheCopy.get().put(route.getId(), route)))
-					.subscribe(
-							list -> Flux.fromIterable(list).materialize().collect(Collectors.toList()).subscribe(signals -> {
+					.subscribe(list -> Flux.fromIterable(list).materialize().collect(Collectors.toList())
+							.subscribe(signals -> {
 								applicationEventPublisher.publishEvent(new RefreshRoutesResultEvent(this));
 								cache.put(CACHE_KEY, signals);
 							}, this::handleRefreshError), this::handleRefreshError);
-		} catch (Throwable e) {
+		}
+		catch (Throwable e) {
 			handleRefreshError(e);
 		}
 	}
