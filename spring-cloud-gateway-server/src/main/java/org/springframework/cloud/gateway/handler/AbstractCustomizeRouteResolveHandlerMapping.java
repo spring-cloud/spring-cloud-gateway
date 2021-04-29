@@ -26,13 +26,16 @@ import org.springframework.web.server.ServerWebExchange;
  * Custom route resolution processor
  * <p>
  * In some scenarios, using a user-defined routing resolution strategy will be faster than a general regular resolution strategy,
- * so SCG will provide this ability to customize routing resolution
+ * so SCG will provide this ability to customize routing resolution.
  *
  * @author: yizhenqiang
- * @date: 2021/4/28 9:24 下午
+ * @date: 2021/4/28 21:24
  */
 public abstract class AbstractCustomizeRouteResolveHandlerMapping extends AbstractHandlerMapping {
 
+	/**
+	 * The key used to store the result of custom routing analysis.
+	 */
 	public static final String CUSTOMIZE_ROUTE_DEFINITION_ID_KEY = "CUSTOMIZE_ROUTE_DEFINITION_ID_KEY";
 
 	public AbstractCustomizeRouteResolveHandlerMapping() {
@@ -55,7 +58,7 @@ public abstract class AbstractCustomizeRouteResolveHandlerMapping extends Abstra
 	/**
 	 * The user-defined routing information is parsed through {@link ServerWebExchange}
 	 * <p>
-	 * You can use this method again to resolve a routing ID through server webexchange according to your own routing rules
+	 * You can use this method again to resolve a routing ID through server webexchange according to your own routing rules.
 	 *
 	 * @param serverWebExchange
 	 * @return Route definition ID resolved according to custom routing rules
