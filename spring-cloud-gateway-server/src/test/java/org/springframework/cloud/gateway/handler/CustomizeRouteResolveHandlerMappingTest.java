@@ -21,6 +21,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -60,10 +61,10 @@ public class CustomizeRouteResolveHandlerMappingTest extends BaseWebClientTests 
 
 	@Test
 	public void requestsToCustomizeRoute() {
-		testClient.get().uri("/openapi?apiName=openapi.trade-order.create&apiVersion=1.0.0&orderId=123456")
+		testClient.get().uri("/trade-order/create?apiName=openapi.trade-order.create&apiVersion=1.0.0&orderId=123456")
 				.exchange().expectBody(String.class).isEqualTo("123456");
 
-		testClient.get().uri("/openapi?apiName=openapi.trade-order.delete&apiVersion=1.0.0&orderId=6666666")
+		testClient.get().uri("/trade-order/delete?apiName=openapi.trade-order.delete&apiVersion=1.0.0&orderId=6666666")
 				.exchange().expectBody(String.class).isEqualTo("6666666");
 	}
 
@@ -72,6 +73,9 @@ public class CustomizeRouteResolveHandlerMappingTest extends BaseWebClientTests 
 	@Import(DefaultTestConfig.class)
 	@RestController
 	public static class TestConfig {
+
+		@Value("${test.uri:http://httpbin.org:80}")
+		String uri;
 
 		@GetMapping("/trade-order/create")
 		String create(@RequestParam(name = "orderId", defaultValue = "123456") String orderId) {
@@ -104,10 +108,10 @@ public class CustomizeRouteResolveHandlerMappingTest extends BaseWebClientTests 
 			return builder.routes()
 					.route("openapi.trade-order.create#1.0.0",
 							r -> r.query("apiName","openapi.trade-order.create").and()
-									.query("apiVersion","1.0.0").uri("/trade-order/create"))
+									.query("apiVersion","1.0.0").uri(uri))
 					.route("openapi.trade-order.delete#1.0.0",
 							r -> r.query("apiName","openapi.trade-order.delete").and()
-									.query("apiVersion","1.0.0").uri("/trade-order/delete"))
+									.query("apiVersion","1.0.0").uri(uri))
 					.build();
 		}
 	}
