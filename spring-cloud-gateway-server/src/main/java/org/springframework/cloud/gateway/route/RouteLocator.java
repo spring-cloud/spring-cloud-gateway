@@ -29,7 +29,7 @@ public interface RouteLocator {
 	Flux<Route> getRoutes();
 
 	default Flux<Map<String, Route>> getRouteMap() {
-		return Flux.empty();
+		return null;
 	}
 
 }
