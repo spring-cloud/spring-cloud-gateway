@@ -53,7 +53,7 @@ public class CustomizeRouteIdResolveHandlerMapping extends AbstractHandlerMappin
 	}
 
 	public CustomizeRouteIdResolveHandlerMapping(CustomizeRouteIdResolver customizeRouteIdResolver) {
-		super();
+		this();
 		this.customizeRouteIdResolver = customizeRouteIdResolver;
 	}
 
