@@ -35,7 +35,7 @@ import org.springframework.web.server.ServerWebExchange;
 public class CustomizeRouteIdResolveHandlerMapping extends AbstractHandlerMapping {
 
 	/**
-	 * Custom routing ID resolution
+	 * Custom routing ID resolution.
 	 */
 	private CustomizeRouteIdResolver customizeRouteIdResolver;
 
