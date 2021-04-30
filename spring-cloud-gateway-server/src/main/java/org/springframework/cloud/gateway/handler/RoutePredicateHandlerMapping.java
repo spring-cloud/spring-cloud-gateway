@@ -18,6 +18,7 @@ package org.springframework.cloud.gateway.handler;
 
 import java.util.Map;
 import java.util.function.Function;
+
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -29,7 +30,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.reactive.handler.AbstractHandlerMapping;
 import org.springframework.web.server.ServerWebExchange;
 
-import static org.springframework.cloud.gateway.handler.AbstractCustomizeRouteResolveHandlerMapping.CUSTOMIZE_ROUTE_DEFINITION_ID_KEY;
+import static org.springframework.cloud.gateway.handler.CustomizeRouteIdResolveHandlerMapping.CUSTOMIZE_ROUTE_DEFINITION_ID_KEY;
 import static org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping.ManagementPortType.DIFFERENT;
 import static org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping.ManagementPortType.DISABLED;
 import static org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping.ManagementPortType.SAME;

@@ -18,6 +18,7 @@ package org.springframework.cloud.gateway.handler;
 
 import reactor.core.publisher.Mono;
 
+import org.springframework.cloud.gateway.route.CustomizeRouteIdResolver;
 import org.springframework.web.reactive.handler.AbstractHandlerMapping;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -31,14 +32,19 @@ import org.springframework.web.server.ServerWebExchange;
  * @author: yizhenqiang
  * @date: 2021/4/28 21:24
  */
-public abstract class AbstractCustomizeRouteResolveHandlerMapping extends AbstractHandlerMapping {
+public class CustomizeRouteIdResolveHandlerMapping extends AbstractHandlerMapping {
+
+	/**
+	 * Custom routing ID resolution
+	 */
+	private CustomizeRouteIdResolver customizeRouteIdResolver;
 
 	/**
 	 * The key used to store the result of custom routing analysis.
 	 */
 	public static final String CUSTOMIZE_ROUTE_DEFINITION_ID_KEY = "CUSTOMIZE_ROUTE_DEFINITION_ID_KEY";
 
-	public AbstractCustomizeRouteResolveHandlerMapping() {
+	public CustomizeRouteIdResolveHandlerMapping() {
 		/**
 		 * We need to ensure that it is executed before
 		 * {@link RoutePredicateHandlerMapping}
@@ -46,25 +52,20 @@ public abstract class AbstractCustomizeRouteResolveHandlerMapping extends Abstra
 		setOrder(0);
 	}
 
+	public CustomizeRouteIdResolveHandlerMapping(CustomizeRouteIdResolver customizeRouteIdResolver) {
+		super();
+		this.customizeRouteIdResolver = customizeRouteIdResolver;
+	}
+
 	@Override
 	protected Mono<?> getHandlerInternal(ServerWebExchange serverWebExchange) {
-		String customizeRouteDefinitionId = resolveRouteId(serverWebExchange);
-		if (customizeRouteDefinitionId != null) {
-			serverWebExchange.getAttributes().put(CUSTOMIZE_ROUTE_DEFINITION_ID_KEY, customizeRouteDefinitionId);
+		if(customizeRouteIdResolver != null) {
+			String customizeRouteDefinitionId = customizeRouteIdResolver.apply(serverWebExchange);
+			if (customizeRouteDefinitionId != null) {
+				serverWebExchange.getAttributes().put(CUSTOMIZE_ROUTE_DEFINITION_ID_KEY, customizeRouteDefinitionId);
+			}
 		}
 
 		return Mono.empty();
-	}
-
-	/**
-	 * The user-defined routing information is parsed through {@link ServerWebExchange}
-	 * <p>
-	 * You can use this method again to resolve a routing ID through server webexchange
-	 * according to your own routing rules.
-	 * @param serverWebExchange the web server context.
-	 * @return Route definition ID resolved according to custom routing rules.
-	 */
-	protected String resolveRouteId(ServerWebExchange serverWebExchange) {
-		return null;
 	}
 }
