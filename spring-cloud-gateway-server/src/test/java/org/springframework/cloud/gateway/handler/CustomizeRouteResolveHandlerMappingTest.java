@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.gateway.route.CustomizeRouteIdResolver;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
@@ -88,10 +89,10 @@ public class CustomizeRouteResolveHandlerMappingTest extends BaseWebClientTests 
 		}
 
 		@Bean
-		AbstractCustomizeRouteResolveHandlerMapping myCustomizeRouteResolveHandlerMapping() {
-			return new AbstractCustomizeRouteResolveHandlerMapping() {
+		CustomizeRouteIdResolver customizeRouteIdResolver() {
+			return new CustomizeRouteIdResolver() {
 				@Override
-				protected String resolveRouteId(ServerWebExchange serverWebExchange) {
+				public String apply(ServerWebExchange serverWebExchange) {
 					MultiValueMap<String, String> queryParams = serverWebExchange.getRequest().getQueryParams();
 					String apiName = queryParams.getFirst("apiName");
 					String apiVersion = queryParams.getFirst("apiVersion");
