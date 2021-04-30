@@ -42,171 +42,177 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.G
  */
 public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 
-	private final FilteringWebHandler webHandler;
+    private final FilteringWebHandler webHandler;
 
-	private final RouteLocator routeLocator;
+    private final RouteLocator routeLocator;
 
-	private final Integer managementPort;
+    private final Integer managementPort;
 
-	private final ManagementPortType managementPortType;
+    private final ManagementPortType managementPortType;
 
-	public RoutePredicateHandlerMapping(FilteringWebHandler webHandler, RouteLocator routeLocator,
-			GlobalCorsProperties globalCorsProperties, Environment environment) {
-		this.webHandler = webHandler;
-		this.routeLocator = routeLocator;
+    public RoutePredicateHandlerMapping(FilteringWebHandler webHandler, RouteLocator routeLocator,
+                                        GlobalCorsProperties globalCorsProperties, Environment environment) {
+        this.webHandler = webHandler;
+        this.routeLocator = routeLocator;
 
-		this.managementPort = getPortProperty(environment, "management.server.");
-		this.managementPortType = getManagementPortType(environment);
-		setOrder(1);
-		setCorsConfigurations(globalCorsProperties.getCorsConfigurations());
-	}
+        this.managementPort = getPortProperty(environment, "management.server.");
+        this.managementPortType = getManagementPortType(environment);
+        setOrder(1);
+        setCorsConfigurations(globalCorsProperties.getCorsConfigurations());
+    }
 
-	private ManagementPortType getManagementPortType(Environment environment) {
-		Integer serverPort = getPortProperty(environment, "server.");
-		if (this.managementPort != null && this.managementPort < 0) {
-			return DISABLED;
-		}
-		return ((this.managementPort == null || (serverPort == null && this.managementPort.equals(8080))
-				|| (this.managementPort != 0 && this.managementPort.equals(serverPort))) ? SAME : DIFFERENT);
-	}
+    private ManagementPortType getManagementPortType(Environment environment) {
+        Integer serverPort = getPortProperty(environment, "server.");
+        if (this.managementPort != null && this.managementPort < 0) {
+            return DISABLED;
+        }
+        return ((this.managementPort == null || (serverPort == null && this.managementPort.equals(8080))
+                || (this.managementPort != 0 && this.managementPort.equals(serverPort))) ? SAME : DIFFERENT);
+    }
 
-	private static Integer getPortProperty(Environment environment, String prefix) {
-		return environment.getProperty(prefix + "port", Integer.class);
-	}
+    private static Integer getPortProperty(Environment environment, String prefix) {
+        return environment.getProperty(prefix + "port", Integer.class);
+    }
 
-	@Override
-	protected Mono<?> getHandlerInternal(ServerWebExchange exchange) {
-		// don't handle requests on management port if set and different than server port
-		if (this.managementPortType == DIFFERENT && this.managementPort != null
-				&& exchange.getRequest().getURI().getPort() == this.managementPort) {
-			return Mono.empty();
-		}
-		exchange.getAttributes().put(GATEWAY_HANDLER_MAPPER_ATTR, getSimpleName());
+    @Override
+    protected Mono<?> getHandlerInternal(ServerWebExchange exchange) {
+        // don't handle requests on management port if set and different than server port
+        if (this.managementPortType == DIFFERENT && this.managementPort != null
+                && exchange.getRequest().getURI().getPort() == this.managementPort) {
+            return Mono.empty();
+        }
+        exchange.getAttributes().put(GATEWAY_HANDLER_MAPPER_ATTR, getSimpleName());
 
-		/**
-		 * A key factor in the speed of custom route resolution is that it can transform the official complex and powerful route resolution ability into a simple HashMap.get(routeid) operation.
-		 * If we cache thousands of route rules, this method will shorten the time we spend on route resolution and adaptation by several times
-		 */
-		String customizeRouteDefinitionId = exchange.getAttribute(CUSTOMIZE_ROUTE_DEFINITION_ID_KEY);
-		if (customizeRouteDefinitionId != null) {
-			Flux<Map<String, Route>> customRouteMap = this.routeLocator.getRouteMap();
-			if(customRouteMap != null) {
-				return customRouteMap.next().flatMap(map -> {
-					Route route = map.get(customizeRouteDefinitionId);
-					// Here, it is guaranteed that if the adaptation fails, the general
-					// routing parsing logic will still be used
-					return route != null ? Mono.just(route) : routeMatch(exchange);
-				});
-			}
-		}
+        /**
+         * A key factor in the speed of custom route resolution is that it can transform the official complex and powerful route resolution ability into a simple HashMap.get(routeid) operation.
+         * If we cache thousands of route rules, this method will shorten the time we spend on route resolution and adaptation by several times
+         */
+        String customizeRouteDefinitionId = exchange.getAttribute(CUSTOMIZE_ROUTE_DEFINITION_ID_KEY);
+        if (customizeRouteDefinitionId != null) {
+            Flux<Map<String, Route>> customRouteMap = this.routeLocator.getRouteMap();
+            if (customRouteMap != null) {
+                return customRouteMap.next().flatMap(map -> {
+                    Route route = map.get(customizeRouteDefinitionId);
+                    // Here, it is guaranteed that if the adaptation fails, the general
+                    // routing parsing logic will still be used
+                    if (route != null) {
+                        exchange.getAttributes().put(GATEWAY_ROUTE_ATTR, route);
+                        return Mono.just(webHandler);
+                    } else {
+                        return routeMatch(exchange);
+                    }
+                });
+            }
+        }
 
-		return routeMatch(exchange);
-	}
+        return routeMatch(exchange);
+    }
 
-	private Mono<?> routeMatch(ServerWebExchange exchange) {
-		return lookupRoute(exchange)
-				// .log("route-predicate-handler-mapping", Level.FINER) //name this
-				.flatMap((Function<Route, Mono<?>>) r -> {
-					exchange.getAttributes().remove(GATEWAY_PREDICATE_ROUTE_ATTR);
-					if (logger.isDebugEnabled()) {
-						logger.debug("Mapping [" + getExchangeDesc(exchange) + "] to " + r);
-					}
+    private Mono<?> routeMatch(ServerWebExchange exchange) {
+        return lookupRoute(exchange)
+                // .log("route-predicate-handler-mapping", Level.FINER) //name this
+                .flatMap((Function<Route, Mono<?>>) r -> {
+                    exchange.getAttributes().remove(GATEWAY_PREDICATE_ROUTE_ATTR);
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Mapping [" + getExchangeDesc(exchange) + "] to " + r);
+                    }
 
-					exchange.getAttributes().put(GATEWAY_ROUTE_ATTR, r);
-					return Mono.just(webHandler);
-				}).switchIfEmpty(Mono.empty().then(Mono.fromRunnable(() -> {
-					exchange.getAttributes().remove(GATEWAY_PREDICATE_ROUTE_ATTR);
-					if (logger.isTraceEnabled()) {
-						logger.trace("No RouteDefinition found for [" + getExchangeDesc(exchange) + "]");
-					}
-				})));
-	}
+                    exchange.getAttributes().put(GATEWAY_ROUTE_ATTR, r);
+                    return Mono.just(webHandler);
+                }).switchIfEmpty(Mono.empty().then(Mono.fromRunnable(() -> {
+                    exchange.getAttributes().remove(GATEWAY_PREDICATE_ROUTE_ATTR);
+                    if (logger.isTraceEnabled()) {
+                        logger.trace("No RouteDefinition found for [" + getExchangeDesc(exchange) + "]");
+                    }
+                })));
+    }
 
-	@Override
-	protected CorsConfiguration getCorsConfiguration(Object handler, ServerWebExchange exchange) {
-		// TODO: support cors configuration via properties on a route see gh-229
-		// see RequestMappingHandlerMapping.initCorsConfiguration()
-		// also see
-		// https://github.com/spring-projects/spring-framework/blob/master/spring-web/src/test/java/org/springframework/web/cors/reactive/CorsWebFilterTests.java
-		return super.getCorsConfiguration(handler, exchange);
-	}
+    @Override
+    protected CorsConfiguration getCorsConfiguration(Object handler, ServerWebExchange exchange) {
+        // TODO: support cors configuration via properties on a route see gh-229
+        // see RequestMappingHandlerMapping.initCorsConfiguration()
+        // also see
+        // https://github.com/spring-projects/spring-framework/blob/master/spring-web/src/test/java/org/springframework/web/cors/reactive/CorsWebFilterTests.java
+        return super.getCorsConfiguration(handler, exchange);
+    }
 
-	// TODO: get desc from factory?
-	private String getExchangeDesc(ServerWebExchange exchange) {
-		StringBuilder out = new StringBuilder();
-		out.append("Exchange: ");
-		out.append(exchange.getRequest().getMethod());
-		out.append(" ");
-		out.append(exchange.getRequest().getURI());
-		return out.toString();
-	}
+    // TODO: get desc from factory?
+    private String getExchangeDesc(ServerWebExchange exchange) {
+        StringBuilder out = new StringBuilder();
+        out.append("Exchange: ");
+        out.append(exchange.getRequest().getMethod());
+        out.append(" ");
+        out.append(exchange.getRequest().getURI());
+        return out.toString();
+    }
 
-	protected Mono<Route> lookupRoute(ServerWebExchange exchange) {
-		return this.routeLocator.getRoutes()
-				// individually filter routes so that filterWhen error delaying is not a
-				// problem
-				.concatMap(route -> Mono.just(route).filterWhen(r -> {
-					// add the current route we are testing
-					exchange.getAttributes().put(GATEWAY_PREDICATE_ROUTE_ATTR, r.getId());
-					return r.getPredicate().apply(exchange);
-				})
-						// instead of immediately stopping main flux due to error, log and
-						// swallow it
-						.doOnError(e -> logger.error("Error applying predicate for route: " + route.getId(), e))
-						.onErrorResume(e -> Mono.empty()))
-				// .defaultIfEmpty() put a static Route not found
-				// or .switchIfEmpty()
-				// .switchIfEmpty(Mono.<Route>empty().log("noroute"))
-				.next()
-				// TODO: error handling
-				.map(route -> {
-					if (logger.isDebugEnabled()) {
-						logger.debug("Route matched: " + route.getId());
-					}
-					validateRoute(route, exchange);
-					return route;
-				});
+    protected Mono<Route> lookupRoute(ServerWebExchange exchange) {
+        return this.routeLocator.getRoutes()
+                // individually filter routes so that filterWhen error delaying is not a
+                // problem
+                .concatMap(route -> Mono.just(route).filterWhen(r -> {
+                    // add the current route we are testing
+                    exchange.getAttributes().put(GATEWAY_PREDICATE_ROUTE_ATTR, r.getId());
+                    return r.getPredicate().apply(exchange);
+                })
+                        // instead of immediately stopping main flux due to error, log and
+                        // swallow it
+                        .doOnError(e -> logger.error("Error applying predicate for route: " + route.getId(), e))
+                        .onErrorResume(e -> Mono.empty()))
+                // .defaultIfEmpty() put a static Route not found
+                // or .switchIfEmpty()
+                // .switchIfEmpty(Mono.<Route>empty().log("noroute"))
+                .next()
+                // TODO: error handling
+                .map(route -> {
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Route matched: " + route.getId());
+                    }
+                    validateRoute(route, exchange);
+                    return route;
+                });
 
-		/*
-		 * TODO: trace logging if (logger.isTraceEnabled()) {
-		 * logger.trace("RouteDefinition did not match: " + routeDefinition.getId()); }
-		 */
-	}
+        /*
+         * TODO: trace logging if (logger.isTraceEnabled()) {
+         * logger.trace("RouteDefinition did not match: " + routeDefinition.getId()); }
+         */
+    }
 
-	/**
-	 * Validate the given handler against the current request.
-	 * <p>
-	 * The default implementation is empty. Can be overridden in subclasses, for example
-	 * to enforce specific preconditions expressed in URL mappings.
-	 * @param route the Route object to validate
-	 * @param exchange current exchange
-	 * @throws Exception if validation failed
-	 */
-	@SuppressWarnings("UnusedParameters")
-	protected void validateRoute(Route route, ServerWebExchange exchange) {
-	}
+    /**
+     * Validate the given handler against the current request.
+     * <p>
+     * The default implementation is empty. Can be overridden in subclasses, for example
+     * to enforce specific preconditions expressed in URL mappings.
+     *
+     * @param route    the Route object to validate
+     * @param exchange current exchange
+     * @throws Exception if validation failed
+     */
+    @SuppressWarnings("UnusedParameters")
+    protected void validateRoute(Route route, ServerWebExchange exchange) {
+    }
 
-	protected String getSimpleName() {
-		return "RoutePredicateHandlerMapping";
-	}
+    protected String getSimpleName() {
+        return "RoutePredicateHandlerMapping";
+    }
 
-	public enum ManagementPortType {
+    public enum ManagementPortType {
 
-		/**
-		 * The management port has been disabled.
-		 */
-		DISABLED,
+        /**
+         * The management port has been disabled.
+         */
+        DISABLED,
 
-		/**
-		 * The management port is the same as the server port.
-		 */
-		SAME,
+        /**
+         * The management port is the same as the server port.
+         */
+        SAME,
 
-		/**
-		 * The management port and server port are different.
-		 */
-		DIFFERENT;
+        /**
+         * The management port and server port are different.
+         */
+        DIFFERENT;
 
-	}
+    }
 
 }
