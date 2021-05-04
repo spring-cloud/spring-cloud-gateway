@@ -68,7 +68,7 @@ public class CustomizeRouteResolveHandlerMappingTest extends BaseWebClientTests 
 		testClient.get().uri("/trade-order/delete?apiName=openapi.trade-order.delete&apiVersion=1.0.0&orderId=6666666")
 				.exchange().expectBody(String.class).isEqualTo("6666666");
 
-		testClient.get().uri("/trade-order/delete?apiName=openapi.trade-order.delete1&apiVersion=1.0.0&orderId=6666666")
+		testClient.get().uri("/trade-order/delete1?apiName=openapi.trade-order.delete&apiVersion=1.0.0&orderId=6666666")
 				.exchange().expectStatus().isNotFound();
 	}
 
