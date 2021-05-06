@@ -73,6 +73,17 @@ public class HttpBinCompatibleController {
 		return result;
 	}
 
+	@RequestMapping(path = "/headers", method = RequestMethod.PATCH)
+	public ResponseEntity<Map<String, Object>> headersPatch(ServerWebExchange exchange,
+			@RequestBody Map<String, String> headersToAdd) {
+		Map<String, Object> result = new HashMap<>();
+		result.put("headers", getHeaders(exchange));
+		ResponseEntity.BodyBuilder responseEntity = ResponseEntity.status(HttpStatus.OK);
+		headersToAdd.forEach(responseEntity::header);
+
+		return responseEntity.body(result);
+	}
+
 	@RequestMapping(path = "/multivalueheaders", method = { RequestMethod.GET, RequestMethod.POST },
 			produces = MediaType.APPLICATION_JSON_VALUE)
 	public Map<String, Object> multiValueHeaders(ServerWebExchange exchange) {
