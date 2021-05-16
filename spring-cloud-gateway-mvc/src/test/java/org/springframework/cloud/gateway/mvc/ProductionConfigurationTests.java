@@ -16,17 +16,17 @@
 
 package org.springframework.cloud.gateway.mvc;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -43,6 +43,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.LinkedMultiValueMap;
@@ -55,7 +56,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(properties = { "spring.cloud.gateway.proxy.auto-forward=Baz" },
@@ -75,6 +76,7 @@ public class ProductionConfigurationTests {
 	@Before
 	public void init() throws Exception {
 		application.setHome(new URI("http://localhost:" + port));
+		rest.getRestTemplate().setRequestFactory(new SimpleClientHttpRequestFactory());
 	}
 
 	@Test
@@ -536,9 +538,6 @@ public class ProductionConfigurationTests {
 			public void setName(String name) {
 				this.name = name;
 			}
-
 		}
-
 	}
-
 }

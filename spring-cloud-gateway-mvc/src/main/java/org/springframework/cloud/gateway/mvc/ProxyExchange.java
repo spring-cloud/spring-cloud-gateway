@@ -277,7 +277,8 @@ public class ProxyExchange<T> {
 	}
 
 	public ResponseEntity<T> get() {
-		RequestEntity<?> requestEntity = headers((BodyBuilder) RequestEntity.get(uri)).build();
+		RequestEntity<?> requestEntity = headers((BodyBuilder) RequestEntity.get(uri))
+				.body(body());
 		return exchange(requestEntity);
 	}
 
