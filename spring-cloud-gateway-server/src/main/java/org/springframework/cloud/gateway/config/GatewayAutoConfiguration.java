@@ -752,6 +752,7 @@ public class GatewayAutoConfiguration {
 					builder.maxLifeTime(pool.getMaxLifeTime());
 				}
 				builder.evictInBackground(pool.getEvictionInterval());
+				builder.metrics(pool.isMetrics());
 				connectionProvider = builder.build();
 			}
 			return connectionProvider;
