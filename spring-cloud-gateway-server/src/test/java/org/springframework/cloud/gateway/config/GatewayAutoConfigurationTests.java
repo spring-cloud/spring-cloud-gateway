@@ -100,8 +100,9 @@ public class GatewayAutoConfigurationTests {
 						"spring.cloud.gateway.httpclient.response-timeout=10s",
 						"spring.cloud.gateway.httpclient.pool.eviction-interval=10s",
 						"spring.cloud.gateway.httpclient.pool.type=fixed",
+						"spring.cloud.gateway.httpclient.pool.metrics=true",
 						"spring.cloud.gateway.httpclient.compression=true",
-						// greather than integer max value
+						// greater than integer max value
 						"spring.cloud.gateway.httpclient.max-initial-line-length=2147483647",
 						"spring.cloud.gateway.httpclient.proxy.host=myhost",
 						"spring.cloud.gateway.httpclient.websocket.max-frame-payload-length=1024")
@@ -112,6 +113,7 @@ public class GatewayAutoConfigurationTests {
 					assertThat(properties.getMaxInitialLineLength().toBytes()).isLessThanOrEqualTo(Integer.MAX_VALUE);
 					assertThat(properties.isCompression()).isEqualTo(true);
 					assertThat(properties.getPool().getEvictionInterval()).hasSeconds(10);
+					assertThat(properties.getPool().isMetrics()).isEqualTo(true);
 					/*
 					 * FIXME: 2.1.0 HttpClientOptions options = httpClient.options();
 					 *
