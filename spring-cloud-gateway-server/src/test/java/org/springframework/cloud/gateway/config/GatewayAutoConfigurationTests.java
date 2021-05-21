@@ -22,6 +22,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Test;
 import reactor.netty.http.client.HttpClient;
+import reactor.netty.http.client.WebsocketClientSpec;
 import reactor.netty.http.server.WebsocketServerSpec;
 
 import org.springframework.boot.SpringApplication;
@@ -207,6 +208,24 @@ public class GatewayAutoConfigurationTests {
 		WebsocketServerSpec spec2 = strategy.getWebsocketServerSpec();
 
 		assertThat(spec1.protocols()).isEqualTo("p1");
+		assertThat(spec2.protocols()).isNull();
+	}
+
+
+	@Test // gh-2215
+	public void webSocketClientSpecBuilderIsUniquePerReactorNettyWebSocketClient()
+			throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+		ReactorNettyWebSocketClient websocketClient = new GatewayAutoConfiguration.NettyConfiguration()
+				.reactorNettyWebSocketClient(new HttpClientProperties(), HttpClient.create());
+
+		// Method "buildSpec" has only private visibility
+		Method buildSpec = ReactorNettyWebSocketClient.class.getDeclaredMethod("buildSpec", String.class);
+		buildSpec.setAccessible(true);
+		WebsocketClientSpec spec1 = (WebsocketClientSpec) buildSpec.invoke(websocketClient, "p1");
+		WebsocketClientSpec spec2 = websocketClient.getWebsocketClientSpec();
+
+		assertThat(spec1.protocols()).isEqualTo("p1");
+		// Protocols should not be cached between requests:
 		assertThat(spec2.protocols()).isNull();
 	}
 
