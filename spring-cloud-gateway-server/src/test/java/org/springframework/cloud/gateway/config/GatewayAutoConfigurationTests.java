@@ -211,7 +211,6 @@ public class GatewayAutoConfigurationTests {
 		assertThat(spec2.protocols()).isNull();
 	}
 
-
 	@Test // gh-2215
 	public void webSocketClientSpecBuilderIsUniquePerReactorNettyWebSocketClient()
 			throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
