@@ -39,6 +39,7 @@ import org.springframework.web.server.ServerWebExchange;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.data.Offset.offset;
+import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -97,7 +98,7 @@ public class NettyRoutingFilterIntegrationTests extends BaseWebClientTests {
 
 		testClient.get().uri("/connect/delay/2").exchange().expectStatus().isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR)
 				.expectBody().jsonPath("$.message")
-				.value(containsString("Connection refused: localhost/127.0.0.1:32167"));
+				.value(allOf(containsString("Connection refused:"), containsString(":32167")));
 
 		// default connect timeout is 45 sec, this test verifies that it is possible to
 		// reduce timeout via config
