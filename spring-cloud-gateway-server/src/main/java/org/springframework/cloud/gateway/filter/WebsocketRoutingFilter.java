@@ -203,6 +203,10 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 			return client.execute(url, this.headers, new WebSocketHandler() {
 				@Override
 				public Mono<Void> handle(WebSocketSession proxySession) {
+					Mono<Void> serverClose = proxySession.closeStatus().filter(__ -> session.isOpen())
+							.flatMap(session::close);
+					Mono<Void> proxyClose = session.closeStatus().filter(__ -> proxySession.isOpen())
+							.flatMap(proxySession::close);
 					// Use retain() for Reactor Netty
 					Mono<Void> proxySessionSend = proxySession
 							.send(session.receive().doOnNext(WebSocketMessage::retain));
@@ -210,7 +214,7 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 					Mono<Void> serverSessionSend = session
 							.send(proxySession.receive().doOnNext(WebSocketMessage::retain));
 					// .log("sessionSend", Level.FINE);
-					return Mono.zip(proxySessionSend, serverSessionSend).then();
+					return Mono.zip(proxySessionSend, serverSessionSend, serverClose, proxyClose).then();
 				}
 
 				/**
