@@ -98,14 +98,15 @@ public abstract class SpringCloudCircuitBreakerFilterFactory
 				return cb.run(chain.filter(exchange).doOnSuccess(v -> {
 					if (statuses.contains(exchange.getResponse().getStatusCode())) {
 						HttpStatus status = exchange.getResponse().getStatusCode();
-						exchange.getResponse().setStatusCode(null);
-						reset(exchange);
 						throw new CircuitBreakerStatusCodeException(status);
 					}
 				}), t -> {
 					if (config.getFallbackUri() == null) {
 						return Mono.error(t);
 					}
+
+					exchange.getResponse().setStatusCode(null);
+					reset(exchange);
 
 					// TODO: copied from RouteToRequestUrlFilter
 					URI uri = exchange.getRequest().getURI();
@@ -121,7 +122,7 @@ public abstract class SpringCloudCircuitBreakerFilterFactory
 
 					ServerHttpRequest request = exchange.getRequest().mutate().uri(requestUrl).build();
 					return getDispatcherHandler().handle(exchange.mutate().request(request).build());
-				}).onErrorResume(t -> handleErrorWithoutFallback(t));
+				}).onErrorResume(t -> handleErrorWithoutFallback(t, config.isResumeWithoutError()));
 			}
 
 			@Override
@@ -132,7 +133,7 @@ public abstract class SpringCloudCircuitBreakerFilterFactory
 		};
 	}
 
-	protected abstract Mono<Void> handleErrorWithoutFallback(Throwable t);
+	protected abstract Mono<Void> handleErrorWithoutFallback(Throwable t, boolean resumeWithoutError);
 
 	private void addExceptionDetails(Throwable t, ServerWebExchange exchange) {
 		ofNullable(t).ifPresent(
@@ -153,6 +154,8 @@ public abstract class SpringCloudCircuitBreakerFilterFactory
 		private String routeId;
 
 		private Set<String> statusCodes = new HashSet<>();
+
+		private boolean resumeWithoutError = false;
 
 		@Override
 		public void setRouteId(String routeId) {
@@ -204,6 +207,14 @@ public abstract class SpringCloudCircuitBreakerFilterFactory
 		public Config addStatusCode(String statusCode) {
 			this.statusCodes.add(statusCode);
 			return this;
+		}
+
+		public boolean isResumeWithoutError() {
+			return resumeWithoutError;
+		}
+
+		public void setResumeWithoutError(boolean resumeWithoutError) {
+			this.resumeWithoutError = resumeWithoutError;
 		}
 
 	}

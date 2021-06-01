@@ -110,6 +110,20 @@ spring:
               fallbackUri: forward:/statusCodeFallbackController
 
         # =====================================
+      - id: circuitbreaker_resume_without_error
+        uri: ${test.uri}
+        predicates:
+          - Host=**.circuitbreakerresumewithouterror.org
+        filters:
+          - name: CircuitBreaker
+            args:
+              name: resumewithouterror
+              statusCodes:
+                - 500
+                - "NOT_FOUND"
+              resume-without-error: true
+
+        # =====================================
       - id: change_uri_test
         uri: ${test.uri}
         predicates:
