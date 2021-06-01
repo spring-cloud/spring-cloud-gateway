@@ -59,7 +59,7 @@ public class GatewayRedisAutoConfigurationTests {
 
 	@RunWith(SpringRunner.class)
 	@SpringBootTest(classes = Config.class,
-			properties = "spring.cloud.gateway.redis-auto-configuration.enabled=false")
+			properties = "spring.cloud.gateway.redis.enabled=false")
 	public static class DisabledByProperty {
 
 		@Autowired(required = false)

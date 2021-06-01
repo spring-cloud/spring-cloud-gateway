@@ -44,7 +44,7 @@ import org.springframework.web.reactive.DispatcherHandler;
 @AutoConfigureBefore(GatewayAutoConfiguration.class)
 @ConditionalOnBean(ReactiveRedisTemplate.class)
 @ConditionalOnClass({ RedisTemplate.class, DispatcherHandler.class })
-@ConditionalOnProperty(name = "spring.cloud.gateway.redis-auto-configuration.enabled",
+@ConditionalOnProperty(name = "spring.cloud.gateway.redis.enabled",
 		matchIfMissing = true)
 class GatewayRedisAutoConfiguration {
 
