@@ -766,11 +766,6 @@ public class GatewayFilterSpec extends UriSpec {
 		return factory;
 	}
 
-	public GatewayFilterSpec enableDefaultFilters(boolean enableDefaultFilters) {
-		this.routeBuilder.setEnableDefaultFilter(enableDefaultFilters);
-		return this;
-	}
-
 	public class RequestRateLimiterSpec {
 
 		private final RequestRateLimiterGatewayFilterFactory filter;
