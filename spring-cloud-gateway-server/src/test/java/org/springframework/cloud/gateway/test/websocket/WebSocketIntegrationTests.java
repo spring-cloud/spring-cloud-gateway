@@ -40,6 +40,7 @@ import reactor.core.publisher.ReplayProcessor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.cloud.client.DefaultServiceInstance;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.PermitAllSecurityConfiguration;
@@ -47,6 +48,7 @@ import org.springframework.cloud.gateway.test.support.HttpServer;
 import org.springframework.cloud.gateway.test.support.ReactorHttpServer;
 import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
 import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
+import org.springframework.cloud.loadbalancer.support.ServiceInstanceListSuppliers;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.Lifecycle;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -362,7 +364,8 @@ public class WebSocketIntegrationTests {
 
 		@Bean
 		public ServiceInstanceListSupplier staticServiceInstanceListSupplier(Environment env) {
-			return ServiceInstanceListSupplier.fixed(env).instance(wsPort, "wsservice").build();
+			return ServiceInstanceListSuppliers.from("wsservice",
+					new DefaultServiceInstance("wsservice-1", "wsservice", "localhost", wsPort, false));
 		}
 
 	}

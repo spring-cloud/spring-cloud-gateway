@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.Log;
@@ -67,6 +68,8 @@ public class WeightCalculatorWebFilter implements WebFilter, Ordered, SmartAppli
 	private int order = WEIGHT_CALC_FILTER_ORDER;
 
 	private Map<String, GroupWeightConfig> groupWeights = new ConcurrentHashMap<>();
+
+	private final AtomicBoolean routeLocatorInitialized = new AtomicBoolean();
 
 	public WeightCalculatorWebFilter(ObjectProvider<RouteLocator> routeLocator,
 			ConfigurationService configurationService) {
@@ -123,7 +126,16 @@ public class WeightCalculatorWebFilter implements WebFilter, Ordered, SmartAppli
 		}
 		else if (event instanceof RefreshRoutesEvent && routeLocator != null) {
 			// forces initialization
-			routeLocator.ifAvailable(locator -> locator.getRoutes().subscribe());
+			if (routeLocatorInitialized.compareAndSet(false, true)) {
+				// on first time, block so that app fails to start if there are errors in
+				// routes
+				// see gh-1574
+				routeLocator.ifAvailable(locator -> locator.getRoutes().blockLast());
+			}
+			else {
+				// this preserves previous behaviour on refresh, this could likely go away
+				routeLocator.ifAvailable(locator -> locator.getRoutes().subscribe());
+			}
 		}
 
 	}

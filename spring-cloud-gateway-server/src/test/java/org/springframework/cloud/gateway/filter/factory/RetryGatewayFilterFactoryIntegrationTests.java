@@ -44,9 +44,9 @@ import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
 import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
+import org.springframework.cloud.loadbalancer.support.ServiceInstanceListSuppliers;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
-import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -184,6 +184,12 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 	}
 
 	@Test
+	public void retryFilterSeries() {
+		testClient.get().uri("/retry?key=series&failStatus=404").header(HttpHeaders.HOST, "www.retryseries.org")
+				.exchange().expectStatus().isOk().expectBody(String.class).isEqualTo("3");
+	}
+
+	@Test
 	public void toStringFormat() {
 		RetryConfig config = new RetryConfig();
 		config.setRetries(4);
@@ -233,7 +239,7 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 		public ResponseEntity<String> retrypost(@RequestParam("key") String key,
 				@RequestParam(name = "count", defaultValue = "3") int count,
 				@RequestParam("expectedbody") String expectedbody, @RequestBody String body) {
-			ResponseEntity<String> response = retry(key, count);
+			ResponseEntity<String> response = retry(key, count, null);
 			if (!expectedbody.equals(body)) {
 				AtomicInteger num = getCount(key);
 				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -244,14 +250,18 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 
 		@RequestMapping("/httpbin/retry")
 		public ResponseEntity<String> retry(@RequestParam("key") String key,
-				@RequestParam(name = "count", defaultValue = "3") int count) {
+				@RequestParam(name = "count", defaultValue = "3") int count,
+				@RequestParam(name = "failStatus", required = false) Integer failStatus) {
 			AtomicInteger num = getCount(key);
 			int i = num.incrementAndGet();
 			log.warn("Retry count: " + i);
 			String body = String.valueOf(i);
 			if (i < count) {
-				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).header("X-Retry-Count", body)
-						.body("temporarily broken");
+				HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+				if (failStatus != null) {
+					httpStatus = HttpStatus.resolve(failStatus);
+				}
+				return ResponseEntity.status(httpStatus).header("X-Retry-Count", body).body("temporarily broken");
 			}
 			return ResponseEntity.status(HttpStatus.OK).header("X-Retry-Count", body).body(body);
 		}
@@ -267,6 +277,11 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 							.filters(f -> f.prefixPath("/httpbin")
 									.retry(config -> config.setRetries(2).setMethods(HttpMethod.POST, HttpMethod.GET)))
 							.uri(uri))
+					.route("retry_series",
+							r -> r.host("**.retryseries.org")
+									.filters(f -> f.prefixPath("/httpbin").retry(
+											config -> config.setRetries(2).setSeries(HttpStatus.Series.CLIENT_ERROR)))
+									.uri(uri))
 					.route("retry_only_get",
 							r -> r.host("**.retry-only-get.org")
 									.filters(f -> f.prefixPath("/httpbin")
@@ -292,9 +307,11 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 		protected int port = 0;
 
 		@Bean
-		public ServiceInstanceListSupplier staticServiceInstanceListSupplier(Environment env) {
-			return ServiceInstanceListSupplier.fixed(env).instance(new DefaultServiceInstance("doesnotexist1",
-					"badservice2", "localhost.domain.doesnot.exist", port, true)).instance(port, "badservice2").build();
+		public ServiceInstanceListSupplier staticServiceInstanceListSupplier() {
+			return ServiceInstanceListSuppliers.from("badservice2",
+					new DefaultServiceInstance("doesnotexist1", "badservice2", "localhost.domain.doesnot.exist", port,
+							true),
+					new DefaultServiceInstance("badservice2-1", "badservice2", "localhost", port, false));
 		}
 
 	}

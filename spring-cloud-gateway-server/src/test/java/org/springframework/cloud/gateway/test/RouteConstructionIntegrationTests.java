@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.gateway.test;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.boot.SpringBootConfiguration;
@@ -31,7 +30,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class RouteConstructionIntegrationTests {
 
 	@Test
-	@Ignore // FIXME: https://github.com/spring-cloud/spring-cloud-gateway/issues/1676
 	public void routesWithVerificationShouldFail() {
 		assertThatThrownBy(() -> new SpringApplicationBuilder(TestConfig.class).profiles("verification-route").run())
 				.hasMessageContaining("Stop right now!");

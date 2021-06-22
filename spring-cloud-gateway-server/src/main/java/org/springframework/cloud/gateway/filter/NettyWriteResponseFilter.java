@@ -27,6 +27,7 @@ import reactor.netty.Connection;
 
 import org.springframework.core.Ordered;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.core.io.buffer.NettyDataBufferFactory;
 import org.springframework.http.MediaType;
@@ -103,29 +104,38 @@ public class NettyWriteResponseFilter implements GlobalFilter, Ordered {
 	}
 
 	protected DataBuffer wrap(ByteBuf byteBuf, ServerHttpResponse response) {
-		if (response.bufferFactory() instanceof NettyDataBufferFactory) {
-			NettyDataBufferFactory factory = (NettyDataBufferFactory) response.bufferFactory();
+		DataBufferFactory bufferFactory = response.bufferFactory();
+		if (bufferFactory instanceof NettyDataBufferFactory) {
+			NettyDataBufferFactory factory = (NettyDataBufferFactory) bufferFactory;
 			return factory.wrap(byteBuf);
 		}
 		// MockServerHttpResponse creates these
-		else if (response.bufferFactory() instanceof DefaultDataBufferFactory) {
-			DefaultDataBufferFactory factory = (DefaultDataBufferFactory) response.bufferFactory();
-			return factory.wrap(byteBuf.nioBuffer());
+		else if (bufferFactory instanceof DefaultDataBufferFactory) {
+			DataBuffer buffer = ((DefaultDataBufferFactory) bufferFactory).allocateBuffer(byteBuf.readableBytes());
+			buffer.write(byteBuf.nioBuffer());
+			byteBuf.release();
+			return buffer;
 		}
-		throw new IllegalArgumentException("Unkown DataBufferFactory type " + response.bufferFactory().getClass());
+		throw new IllegalArgumentException("Unkown DataBufferFactory type " + bufferFactory.getClass());
 	}
 
 	private void cleanup(ServerWebExchange exchange) {
 		Connection connection = exchange.getAttribute(CLIENT_RESPONSE_CONN_ATTR);
-		if (connection != null) {
+		if (connection != null && connection.channel().isActive() && !connection.isPersistent()) {
 			connection.dispose();
 		}
 	}
 
 	// TODO: use framework if possible
-	// TODO: port to WebClientWriteResponseFilter
 	private boolean isStreamingMediaType(@Nullable MediaType contentType) {
-		return (contentType != null && this.streamingMediaTypes.stream().anyMatch(contentType::isCompatibleWith));
+		if (contentType != null) {
+			for (int i = 0; i < streamingMediaTypes.size(); i++) {
+				if (streamingMediaTypes.get(i).isCompatibleWith(contentType)) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 }

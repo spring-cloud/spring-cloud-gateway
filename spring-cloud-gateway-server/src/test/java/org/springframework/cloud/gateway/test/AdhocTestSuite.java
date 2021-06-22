@@ -100,7 +100,7 @@ import static org.junit.Assume.assumeThat;
 		org.springframework.cloud.gateway.route.RouteTests.class,
 		org.springframework.cloud.gateway.route.CachingRouteLocatorTests.class,
 		org.springframework.cloud.gateway.route.RouteRefreshListenerTests.class,
-		org.springframework.cloud.gateway.route.builder.RouteDslTests.class,
+		// org.springframework.cloud.gateway.route.builder.RouteDslTests.class,
 		org.springframework.cloud.gateway.route.builder.RouteBuilderTests.class,
 		org.springframework.cloud.gateway.route.builder.GatewayFilterSpecTests.class,
 		org.springframework.cloud.gateway.route.CachingRouteDefinitionLocatorTests.class,

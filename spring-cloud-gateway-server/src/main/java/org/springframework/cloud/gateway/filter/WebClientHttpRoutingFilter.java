@@ -105,7 +105,7 @@ public class WebClientHttpRoutingFilter implements GlobalFilter, Ordered {
 			headersSpec = bodySpec;
 		}
 
-		return headersSpec.exchange()
+		return headersSpec.exchangeToMono(Mono::just)
 				// .log("webClient route")
 				.flatMap(res -> {
 					ServerHttpResponse response = exchange.getResponse();

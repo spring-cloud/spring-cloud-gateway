@@ -16,10 +16,14 @@
 
 package org.springframework.cloud.gateway.config;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Test;
 import reactor.netty.http.client.HttpClient;
+import reactor.netty.http.client.WebsocketClientSpec;
+import reactor.netty.http.server.WebsocketServerSpec;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
@@ -94,7 +98,9 @@ public class GatewayAutoConfigurationTests {
 				.withPropertyValues("spring.cloud.gateway.httpclient.ssl.use-insecure-trust-manager=true",
 						"spring.cloud.gateway.httpclient.connect-timeout=10",
 						"spring.cloud.gateway.httpclient.response-timeout=10s",
+						"spring.cloud.gateway.httpclient.pool.eviction-interval=10s",
 						"spring.cloud.gateway.httpclient.pool.type=fixed",
+						"spring.cloud.gateway.httpclient.compression=true",
 						// greather than integer max value
 						"spring.cloud.gateway.httpclient.max-initial-line-length=2147483647",
 						"spring.cloud.gateway.httpclient.proxy.host=myhost",
@@ -104,6 +110,8 @@ public class GatewayAutoConfigurationTests {
 					HttpClient httpClient = context.getBean(HttpClient.class);
 					HttpClientProperties properties = context.getBean(HttpClientProperties.class);
 					assertThat(properties.getMaxInitialLineLength().toBytes()).isLessThanOrEqualTo(Integer.MAX_VALUE);
+					assertThat(properties.isCompression()).isEqualTo(true);
+					assertThat(properties.getPool().getEvictionInterval()).hasSeconds(10);
 					/*
 					 * FIXME: 2.1.0 HttpClientOptions options = httpClient.options();
 					 *
@@ -123,11 +131,11 @@ public class GatewayAutoConfigurationTests {
 					assertThat(context).hasSingleBean(ReactorNettyRequestUpgradeStrategy.class);
 					ReactorNettyRequestUpgradeStrategy upgradeStrategy = context
 							.getBean(ReactorNettyRequestUpgradeStrategy.class);
-					assertThat(upgradeStrategy.getMaxFramePayloadLength()).isEqualTo(1024);
-					assertThat(upgradeStrategy.getHandlePing()).isTrue();
+					assertThat(upgradeStrategy.getWebsocketServerSpec().maxFramePayloadLength()).isEqualTo(1024);
+					assertThat(upgradeStrategy.getWebsocketServerSpec().handlePing()).isTrue();
 					assertThat(context).hasSingleBean(ReactorNettyWebSocketClient.class);
 					ReactorNettyWebSocketClient webSocketClient = context.getBean(ReactorNettyWebSocketClient.class);
-					assertThat(webSocketClient.getMaxFramePayloadLength()).isEqualTo(1024);
+					assertThat(webSocketClient.getWebsocketClientSpec().maxFramePayloadLength()).isEqualTo(1024);
 					HttpClientCustomizedConfig config = context.getBean(HttpClientCustomizedConfig.class);
 					assertThat(config.called.get()).isTrue();
 				});
@@ -151,10 +159,10 @@ public class GatewayAutoConfigurationTests {
 	}
 
 	@Test
-	public void metricsBeansAreCreated() {
+	public void tokenRelayBeansAreCreated() {
 		new ReactiveWebApplicationContextRunner()
 				.withConfiguration(AutoConfigurations.of(ReactiveSecurityAutoConfiguration.class,
-						ReactiveOAuth2ClientAutoConfiguration.class,
+						ReactiveOAuth2ClientAutoConfiguration.class, GatewayReactiveOAuth2AutoConfiguration.class,
 						GatewayAutoConfiguration.TokenRelayConfiguration.class))
 				.withPropertyValues(
 						"spring.security.oauth2.client.provider[testprovider].authorization-uri=http://localhost",
@@ -185,6 +193,39 @@ public class GatewayAutoConfigurationTests {
 			}
 		}).hasRootCauseInstanceOf(IllegalStateException.class)
 				.hasMessageContaining("No TokenRelayGatewayFilterFactory bean was found. Did you include");
+	}
+
+	@Test // gh-2159
+	public void reactorNettyRequestUpgradeStrategyWebSocketSpecBuilderIsUniquePerRequest()
+			throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+		ReactorNettyRequestUpgradeStrategy strategy = new GatewayAutoConfiguration.NettyConfiguration()
+				.reactorNettyRequestUpgradeStrategy(new HttpClientProperties());
+
+		// Method "buildSpec" was introduced for Tests, but has only default visiblity
+		Method buildSpec = ReactorNettyRequestUpgradeStrategy.class.getDeclaredMethod("buildSpec", String.class);
+		buildSpec.setAccessible(true);
+		WebsocketServerSpec spec1 = (WebsocketServerSpec) buildSpec.invoke(strategy, "p1");
+		WebsocketServerSpec spec2 = strategy.getWebsocketServerSpec();
+
+		assertThat(spec1.protocols()).isEqualTo("p1");
+		assertThat(spec2.protocols()).isNull();
+	}
+
+	@Test // gh-2215
+	public void webSocketClientSpecBuilderIsUniquePerReactorNettyWebSocketClient()
+			throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+		ReactorNettyWebSocketClient websocketClient = new GatewayAutoConfiguration.NettyConfiguration()
+				.reactorNettyWebSocketClient(new HttpClientProperties(), HttpClient.create());
+
+		// Method "buildSpec" has only private visibility
+		Method buildSpec = ReactorNettyWebSocketClient.class.getDeclaredMethod("buildSpec", String.class);
+		buildSpec.setAccessible(true);
+		WebsocketClientSpec spec1 = (WebsocketClientSpec) buildSpec.invoke(websocketClient, "p1");
+		WebsocketClientSpec spec2 = websocketClient.getWebsocketClientSpec();
+
+		assertThat(spec1.protocols()).isEqualTo("p1");
+		// Protocols should not be cached between requests:
+		assertThat(spec2.protocols()).isNull();
 	}
 
 	@EnableAutoConfiguration

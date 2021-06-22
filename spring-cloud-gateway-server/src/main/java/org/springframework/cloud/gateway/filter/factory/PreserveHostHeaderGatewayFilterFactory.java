@@ -35,6 +35,7 @@ public class PreserveHostHeaderGatewayFilterFactory extends AbstractGatewayFilte
 		});
 	}
 
+	@Override
 	public GatewayFilter apply(Object config) {
 		return new GatewayFilter() {
 			@Override

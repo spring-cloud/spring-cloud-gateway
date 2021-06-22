@@ -103,4 +103,17 @@ public abstract class SpringCloudCircuitBreakerFilterFactoryTests extends BaseWe
 				.isOk().expectHeader().valueEquals(ROUTE_ID_HEADER, "circuitbreaker_fallback_test_statuscode");
 	}
 
+	@Test
+	public void filterStatusCodeResumeWithoutError() {
+		testClient.get().uri("/status/500").header("Host", "www.circuitbreakerresumewithouterror.org").exchange()
+				.expectStatus().isEqualTo(500);
+
+		testClient.get().uri("/status/404").header("Host", "www.circuitbreakerresumewithouterror.org").exchange()
+				.expectStatus().isEqualTo(404);
+
+		testClient.get().uri("/status/200").header("Host", "www.circuitbreakerresumewithouterror.org").exchange()
+				.expectStatus().isOk().expectHeader()
+				.valueEquals(ROUTE_ID_HEADER, "circuitbreaker_resume_without_error");
+	}
+
 }

@@ -23,7 +23,7 @@ import java.util.function.Predicate;
 
 import javax.validation.constraints.NotEmpty;
 
-import org.springframework.util.StringUtils;
+import org.springframework.util.ObjectUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -53,7 +53,7 @@ public class HeaderRoutePredicateFactory extends AbstractRoutePredicateFactory<H
 
 	@Override
 	public Predicate<ServerWebExchange> apply(Config config) {
-		boolean hasRegex = !StringUtils.isEmpty(config.regexp);
+		boolean hasRegex = !ObjectUtils.isEmpty(config.regexp);
 
 		return new GatewayPredicate() {
 			@Override
@@ -66,7 +66,13 @@ public class HeaderRoutePredicateFactory extends AbstractRoutePredicateFactory<H
 				// values is now guaranteed to not be empty
 				if (hasRegex) {
 					// check if a header value matches
-					return values.stream().anyMatch(value -> value.matches(config.regexp));
+					for (int i = 0; i < values.size(); i++) {
+						String value = values.get(i);
+						if (value.matches(config.regexp)) {
+							return true;
+						}
+					}
+					return false;
 				}
 
 				// there is a value and since regexp is empty, we only check existence.

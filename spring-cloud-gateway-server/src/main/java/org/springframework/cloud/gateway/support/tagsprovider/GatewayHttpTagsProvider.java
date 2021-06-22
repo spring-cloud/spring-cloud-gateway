@@ -39,7 +39,7 @@ public class GatewayHttpTagsProvider implements GatewayTagsProvider {
 		// it needs to be checked for first, otherwise the delegate response
 		// who's status DIDN'T change, will be used
 		if (exchange.getResponse() instanceof AbstractServerHttpResponse) {
-			Integer statusInt = ((AbstractServerHttpResponse) exchange.getResponse()).getStatusCodeValue();
+			Integer statusInt = ((AbstractServerHttpResponse) exchange.getResponse()).getRawStatusCode();
 			if (statusInt != null) {
 				status = String.valueOf(statusInt);
 				httpStatusCodeStr = status;

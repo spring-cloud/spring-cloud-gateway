@@ -73,6 +73,11 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 
 	private static final Log log = LogFactory.getLog(NettyRoutingFilter.class);
 
+	/**
+	 * The order of the NettyRoutingFilter. See {@link Ordered#LOWEST_PRECEDENCE}.
+	 */
+	public static final int ORDER = Ordered.LOWEST_PRECEDENCE;
+
 	private final HttpClient httpClient;
 
 	private final ObjectProvider<List<HttpHeadersFilter>> headersFiltersProvider;
@@ -98,7 +103,7 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 
 	@Override
 	public int getOrder() {
-		return Ordered.LOWEST_PRECEDENCE;
+		return ORDER;
 	}
 
 	@Override
@@ -107,7 +112,7 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 		URI requestUrl = exchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
 
 		String scheme = requestUrl.getScheme();
-		if (isAlreadyRouted(exchange) || (!"http".equals(scheme) && !"https".equals(scheme))) {
+		if (isAlreadyRouted(exchange) || (!"http".equalsIgnoreCase(scheme) && !"https".equalsIgnoreCase(scheme))) {
 			return chain.filter(exchange);
 		}
 		setAlreadyRouted(exchange);
@@ -216,7 +221,7 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 				response = ((ServerHttpResponseDecorator) response).getDelegate();
 			}
 			if (response instanceof AbstractServerHttpResponse) {
-				((AbstractServerHttpResponse) response).setStatusCodeValue(clientResponse.status().code());
+				((AbstractServerHttpResponse) response).setRawStatusCode(clientResponse.status().code());
 			}
 			else {
 				// TODO: log warning here, not throw error?
@@ -232,15 +237,13 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 	 * timeout configuration.
 	 * @param route the current route.
 	 * @param exchange the current ServerWebExchange.
-	 * @param chain the current GatewayFilterChain.
 	 * @return
 	 */
 	protected HttpClient getHttpClient(Route route, ServerWebExchange exchange) {
 		Object connectTimeoutAttr = route.getMetadata().get(CONNECT_TIMEOUT_ATTR);
 		if (connectTimeoutAttr != null) {
 			Integer connectTimeout = getInteger(connectTimeoutAttr);
-			return this.httpClient.tcpConfiguration(
-					(tcpClient) -> tcpClient.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, connectTimeout));
+			return this.httpClient.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, connectTimeout);
 		}
 		return httpClient;
 	}

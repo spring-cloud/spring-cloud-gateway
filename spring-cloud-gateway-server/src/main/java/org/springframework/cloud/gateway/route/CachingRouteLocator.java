@@ -82,7 +82,7 @@ public class CachingRouteLocator
 					list -> Flux.fromIterable(list).materialize().collect(Collectors.toList()).subscribe(signals -> {
 						applicationEventPublisher.publishEvent(new RefreshRoutesResultEvent(this));
 						cache.put(CACHE_KEY, signals);
-					}, throwable -> handleRefreshError(throwable)));
+					}, this::handleRefreshError), this::handleRefreshError);
 		}
 		catch (Throwable e) {
 			handleRefreshError(e);

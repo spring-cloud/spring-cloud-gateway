@@ -26,7 +26,7 @@ It does not work in a traditional Servlet Container or when built as a WAR.
 It is defined by an ID, a destination URI, a collection of predicates, and a collection of filters. A route is matched if the aggregate predicate is true.
 * *Predicate*: This is a https://docs.oracle.com/javase/8/docs/api/java/util/function/Predicate.html[Java 8 Function Predicate]. The input type is a https://docs.spring.io/spring/docs/5.0.x/javadoc-api/org/springframework/web/server/ServerWebExchange.html[Spring Framework `ServerWebExchange`].
 This lets you match on anything from the HTTP request, such as headers or parameters.
-* *Filter*: These are instances of https://docs.spring.io/spring/docs/5.0.x/javadoc-api/org/springframework/web/server/GatewayFilter.html[Spring Framework `GatewayFilter`] that have been constructed with a specific factory.
+* *Filter*: These are instances of {github-code}/spring-cloud-gateway-server/src/main/java/org/springframework/cloud/gateway/filter/GatewayFilter.java[`GatewayFilter`] that have been constructed with a specific factory.
 Here, you can modify requests and responses before or after sending the downstream request.
 
 [[gateway-how-it-works]]
@@ -687,7 +687,7 @@ public RouteLocator routes(RouteLocatorBuilder builder) {
 ====
 
 This example forwards to the `/inCaseofFailureUseThis` URI when the circuit breaker fallback is called.
-Note that this example also demonstrates the (optional) Spring Cloud Netflix Ribbon load-balancing (defined by the `lb` prefix on the destination URI).
+Note that this example also demonstrates the (optional) Spring Cloud LoadBalancer load-balancing (defined by the `lb` prefix on the destination URI).
 
 The primary scenario is to use the `fallbackUri` to define an internal controller or handler within the gateway application.
 However, you can also reroute the request to a controller or handler in an external application, as follows:
@@ -1132,7 +1132,7 @@ spring:
         predicates:
         - Path=/red/**
         filters:
-        - RewritePath=/red(?<segment>/?.*), $\{segment}
+        - RewritePath=/red/?(?<segment>.*), /$\{segment}
 ----
 ====
 
@@ -1539,11 +1539,11 @@ errorMessage` : `Request size is larger than permissible limit. Request size is 
 
 NOTE: The default request size is set to five MB if not provided as a filter argument in the route definition.
 
-=== The `SetRequestHost` `GatewayFilter` Factory
+=== The `SetRequestHostHeader` `GatewayFilter` Factory
 
-There are certain situation when the host header may need to be overridden. In this situation, the `SetRequestHost` `GatewayFilter` factory can replace the existing host header with a specified vaue.
+There are certain situation when the host header may need to be overridden. In this situation, the `SetRequestHostHeader` `GatewayFilter` factory can replace the existing host header with a specified vaue.
 The filter takes a `host` parameter.
-The following listing configures a `SetRequestHost` `GatewayFilter`:
+The following listing configures a `SetRequestHostHeader` `GatewayFilter`:
 
 .application.yml
 ====
@@ -1558,13 +1558,13 @@ spring:
         predicates:
         - Path=/headers
         filters:
-        - name: SetRequestHost
+        - name: SetRequestHostHeader
           args:
             host: example.org
 ----
 ====
 
-The `SetRequestHost` `GatewayFilter` factory replaces the value of the host header with `example.org`.
+The `SetRequestHostHeader` `GatewayFilter` factory replaces the value of the host header with `example.org`.
 
 === Modify a Request Body `GatewayFilter` Factory
 
@@ -1605,6 +1605,9 @@ static class Hello {
     }
 }
 ----
+
+NOTE:  if the request has no body, the `RewriteFilter` will be passed `null`. `Mono.empty()` should be returned to assign a missing body in the request.
+
 ====
 
 === Modify a Response Body `GatewayFilter` Factory
@@ -1628,6 +1631,8 @@ public RouteLocator routes(RouteLocatorBuilder builder) {
         .build();
 }
 ----
+
+NOTE:  if the response has no body, the `RewriteFilter` will be passed `null`. `Mono.empty()` should be returned to assign a missing body in the response.
 ====
 
 === Token Relay `GatewayFilter` Factory
@@ -1761,47 +1766,6 @@ If the URL has a `forward` scheme (such as `forward:///localendpoint`), it uses 
 The path part of the request URL is overridden with the path in the forward URL.
 The unmodified original URL is appended to the list in the `ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR` attribute.
 
-=== The `LoadBalancerClient` Filter
-
-The `LoadBalancerClientFilter` looks for a URI in the exchange attribute named `ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR`.
-If the URL has a scheme of `lb` (such as `lb://myservice`), it uses the Spring Cloud `LoadBalancerClient` to resolve the name (`myservice` in this case) to an actual host and port and replaces the URI in the same attribute.
-The unmodified original URL is appended to the list in the `ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR` attribute.
-The filter also looks in the `ServerWebExchangeUtils.GATEWAY_SCHEME_PREFIX_ATTR` attribute to see if it equals `lb`.
-If so, the same rules apply.
-The following listing configures a `LoadBalancerClientFilter`:
-
-.application.yml
-====
-[source,yaml]
-----
-spring:
-  cloud:
-    gateway:
-      routes:
-      - id: myRoute
-        uri: lb://service
-        predicates:
-        - Path=/service/**
-----
-====
-
-NOTE: By default, when a service instance cannot be found in the `LoadBalancer`, a `503` is returned.
-You can configure the Gateway to return a `404` by setting `spring.cloud.gateway.loadbalancer.use404=true`.
-
-NOTE: The `isSecure` value of the `ServiceInstance` returned from the `LoadBalancer` overrides
-the scheme specified in the request made to the Gateway.
-For example, if the request comes into the Gateway over `HTTPS`
-but the `ServiceInstance` indicates it is not secure, the downstream request is made over
-`HTTP`.
-The opposite situation can also apply.
-However, if `GATEWAY_SCHEME_PREFIX_ATTR` is specified for the
-route in the Gateway configuration, the prefix is stripped and the resulting scheme from the
-route URL overrides the `ServiceInstance` configuration.
-
-WARNING: `LoadBalancerClientFilter` uses a blocking ribbon `LoadBalancerClient` under the hood.
-We suggest you use <<reactive-loadbalancer-client-filter,`ReactiveLoadBalancerClientFilter` instead>>.
-You can switch to it by setting the value of the `spring.cloud.loadbalancer.ribbon.enabled` to `false`.
-
 [[reactive-loadbalancer-client-filter]]
 === The `ReactiveLoadBalancerClientFilter`
 
@@ -1835,6 +1799,8 @@ the scheme specified in the request made to the Gateway.
 For example, if the request comes into the Gateway over `HTTPS` but the `ServiceInstance` indicates it is not secure, the downstream request is made over `HTTP`.
 The opposite situation can also apply.
 However, if `GATEWAY_SCHEME_PREFIX_ATTR` is specified for the route in the Gateway configuration, the prefix is stripped and the resulting scheme from the route URL overrides the `ServiceInstance` configuration.
+
+TIP: Gateway supports all the LoadBalancer features. You can read more about them in the https://docs.spring.io/spring-cloud-commons/docs/current/reference/html/#spring-cloud-loadbalancer[Spring Cloud Commons documentation].
 
 === The Netty Routing Filter
 
@@ -2223,7 +2189,7 @@ By default, the gateway defines a single predicate and filter for routes created
 The default predicate is a path predicate defined with the pattern `/serviceId/**`, where `serviceId` is
 the ID of the service from the `DiscoveryClient`.
 
-The default filter is a rewrite path filter with the regex `/serviceId/(?<remaining>.*)` and the replacement `/${remaining}`.
+The default filter is a rewrite path filter with the regex `/serviceId/?(?<remaining>.*)` and the replacement `/${remaining}`.
 This strips the service ID from the path before the request is sent downstream.
 
 If you want to customize the predicates or filters used by the `DiscoveryClient` routes, set `spring.cloud.gateway.discovery.locator.predicates[x]` and `spring.cloud.gateway.discovery.locator.filters[y]`.
@@ -2241,7 +2207,7 @@ spring.cloud.gateway.discovery.locator.predicates[1].args[pattern]: "'**.foo.com
 spring.cloud.gateway.discovery.locator.filters[0].name: CircuitBreaker
 spring.cloud.gateway.discovery.locator.filters[0].args[name]: serviceId
 spring.cloud.gateway.discovery.locator.filters[1].name: RewritePath
-spring.cloud.gateway.discovery.locator.filters[1].args[regexp]: "'/' + serviceId + '/(?<remaining>.*)'"
+spring.cloud.gateway.discovery.locator.filters[1].args[regexp]: "'/' + serviceId + '/?(?<remaining>.*)'"
 spring.cloud.gateway.discovery.locator.filters[1].args[replacement]: "'/${remaining}'"
 ----
 ====
@@ -2367,7 +2333,7 @@ To retrieve the <<global-filters,global filters>> applied to all routes, make a 
 ====
 ----
 {
-  "org.springframework.cloud.gateway.filter.LoadBalancerClientFilter@77856cc5": 10100,
+  "org.springframework.cloud.gateway.filter.ReactiveLoadBalancerClientFilter@77856cc5": 10100,
   "org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter@4f6fd101": 10000,
   "org.springframework.cloud.gateway.filter.NettyWriteResponseFilter@32d22650": -1,
   "org.springframework.cloud.gateway.filter.ForwardRoutingFilter@106459d9": 2147483647,
@@ -2380,7 +2346,7 @@ To retrieve the <<global-filters,global filters>> applied to all routes, make a 
 ====
 
 The response contains the details of the global filters that are in place.
-For each global filter, there is a string representation of the filter object (for example, `org.springframework.cloud.gateway.filter.LoadBalancerClientFilter@77856cc5`) and the corresponding <<gateway-combined-global-filter-and-gatewayfilter-ordering,order>> in the filter chain.}
+For each global filter, there is a string representation of the filter object (for example, `org.springframework.cloud.gateway.filter.ReactiveLoadBalancerClientFilter@77856cc5`) and the corresponding <<gateway-combined-global-filter-and-gatewayfilter-ordering,order>> in the filter chain.}
 
 [[gateway-route-filters]]
 ==== Route Filters

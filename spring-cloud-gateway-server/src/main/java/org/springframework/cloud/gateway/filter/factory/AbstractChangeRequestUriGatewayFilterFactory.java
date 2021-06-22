@@ -48,6 +48,7 @@ public abstract class AbstractChangeRequestUriGatewayFilterFactory<T> extends Ab
 
 	protected abstract Optional<URI> determineRequestUri(ServerWebExchange exchange, T config);
 
+	@Override
 	public GatewayFilter apply(T config) {
 		return new OrderedGatewayFilter((exchange, chain) -> {
 			Optional<URI> uri = this.determineRequestUri(exchange, config);

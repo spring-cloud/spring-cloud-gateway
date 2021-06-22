@@ -49,6 +49,7 @@ public class MapRequestHeaderGatewayFilterFactory
 		super(Config.class);
 	}
 
+	@Override
 	public List<String> shortcutFieldOrder() {
 		return Arrays.asList(FROM_HEADER_KEY, TO_HEADER_KEY);
 	}
