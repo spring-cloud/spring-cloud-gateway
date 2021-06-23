@@ -44,7 +44,7 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 @Import(AdditionalRoutesImportSelector.class)
 public class GatewaySampleApplication {
 
-	public static final String HELLO_FROM_FAKE_ACTUATOR_METRICS_GATEWAY_REQUESTS = "hello from fake /actuator/metrics/gateway.requests";
+	public static final String HELLO_FROM_FAKE_ACTUATOR_METRICS_GATEWAY_REQUESTS = "hello from fake /actuator/metrics/spring.cloud.gateway.requests";
 
 	@Value("${test.uri:http://httpbin.org:80}")
 	String uri;
@@ -165,7 +165,7 @@ public class GatewaySampleApplication {
 	@Bean
 	public RouterFunction<ServerResponse> testWhenMetricPathIsNotMeet() {
 		RouterFunction<ServerResponse> route = RouterFunctions
-				.route(RequestPredicates.path("/actuator/metrics/gateway.requests"), request -> ServerResponse.ok()
+				.route(RequestPredicates.path("/actuator/metrics/spring.cloud.gateway.requests"), request -> ServerResponse.ok()
 						.body(BodyInserters.fromValue(HELLO_FROM_FAKE_ACTUATOR_METRICS_GATEWAY_REQUESTS)));
 		return route;
 	}
