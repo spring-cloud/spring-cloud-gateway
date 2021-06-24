@@ -89,7 +89,7 @@ public class GatewayFilterSpecTests {
 
 		when(context.getBean(ModifyResponseBodyGatewayFilterFactory.class)).thenReturn(
 				new ModifyResponseBodyGatewayFilterFactory(HandlerStrategies.withDefaults().messageReaders(),
-						Collections.emptySet(), Collections.emptySet()));
+						Collections.emptyList()));
 
 		RouteLocatorBuilder.Builder routes = new RouteLocatorBuilder(context).routes();
 		GatewayFilterSpec spec = new GatewayFilterSpec(routeBuilder, routes);
@@ -110,7 +110,7 @@ public class GatewayFilterSpecTests {
 
 		when(context.getBean(ModifyResponseBodyGatewayFilterFactory.class)).thenReturn(
 				new ModifyResponseBodyGatewayFilterFactory(HandlerStrategies.withDefaults().messageReaders(),
-						Collections.emptySet(), Collections.emptySet()));
+						Collections.emptyList()));
 
 		RouteLocatorBuilder.Builder routes = new RouteLocatorBuilder(context).routes();
 		GatewayFilterSpec spec = new GatewayFilterSpec(routeBuilder, routes);
@@ -131,7 +131,7 @@ public class GatewayFilterSpecTests {
 
 		when(context.getBean(ModifyResponseBodyGatewayFilterFactory.class)).thenReturn(
 				new ModifyResponseBodyGatewayFilterFactory(HandlerStrategies.withDefaults().messageReaders(),
-						Collections.emptySet(), Collections.emptySet()));
+						Collections.emptyList()));
 
 		RouteLocatorBuilder.Builder routes = new RouteLocatorBuilder(context).routes();
 		GatewayFilterSpec spec = new GatewayFilterSpec(routeBuilder, routes);
@@ -153,7 +153,7 @@ public class GatewayFilterSpecTests {
 
 		when(context.getBean(ModifyResponseBodyGatewayFilterFactory.class)).thenReturn(
 				new ModifyResponseBodyGatewayFilterFactory(HandlerStrategies.withDefaults().messageReaders(),
-						Collections.emptySet(), Collections.emptySet()));
+						Collections.emptyList()));
 
 		RouteLocatorBuilder.Builder routes = new RouteLocatorBuilder(context).routes();
 		GatewayFilterSpec spec = new GatewayFilterSpec(routeBuilder, routes);

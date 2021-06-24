@@ -40,11 +40,13 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.http.codec.multipart.Part;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -189,6 +191,14 @@ public class HttpBinCompatibleController {
 		byte[] gzippedResponse = bos.toByteArray();
 		DataBuffer wrap = dataBufferFactory.wrap(gzippedResponse);
 		return response.writeWith(Flux.just(wrap));
+	}
+
+	@GetMapping("/sse")
+	public Flux<ServerSentEvent<String>> streamEvents() {
+		return Flux.interval(Duration.ofMillis(100)).take(10).map(sequence -> {
+			return ServerSentEvent.<String>builder().id(String.valueOf(sequence)).event("periodic-event")
+					.data(String.valueOf(sequence)).build();
+		});
 	}
 
 	public Map<String, String> getHeaders(ServerWebExchange exchange) {

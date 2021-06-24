@@ -14,16 +14,28 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.gateway.filter.factory.rewrite;
+package org.springframework.cloud.gateway.util;
 
-/**
- * Decoder that is used to decode message body in case it's encoding from Content-Encoding
- * header matches encoding returned by {@code encodingType()} call.
- */
-public interface MessageBodyDecoder {
+import java.util.List;
 
-	byte[] decode(byte[] encoded);
+import org.springframework.http.MediaType;
+import org.springframework.lang.Nullable;
 
-	String encodingType();
+public final class MediaTypeUtils {
+
+	private MediaTypeUtils() {
+	}
+
+	public static boolean isStreamingMediaType(@Nullable final MediaType mediaType,
+			final List<MediaType> streamingMediaTypes) {
+		if (mediaType != null) {
+			for (int i = 0; i < streamingMediaTypes.size(); i++) {
+				if (streamingMediaTypes.get(i).isCompatibleWith(mediaType)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
 
 }
