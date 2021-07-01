@@ -28,6 +28,7 @@ import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.reactive.function.client.ClientResponse;
@@ -70,6 +71,18 @@ public class SecureHeadersGatewayFilterFactoryTests extends BaseWebClientTests {
 			assertThat(httpHeaders.getFirst(X_DOWNLOAD_OPTIONS_HEADER)).isEqualTo(defaults.getDownloadOptions());
 			assertThat(httpHeaders.getFirst(X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER))
 					.isEqualTo(defaults.getPermittedCrossDomainPolicies());
+		}).expectComplete().verify(DURATION);
+	}
+
+	@Test
+	public void addsSecureHeadersAfterResponseIsReceived() {
+		Mono<ClientResponse> result = webClient.patch().uri("/headers").header("Host", "www.secureheaders.org")
+				.contentType(MediaType.APPLICATION_JSON).bodyValue("{ \"X-Frame-Options\": \"sameorigin\" }")
+				.exchangeToMono(Mono::just);
+
+		StepVerifier.create(result).consumeNextWith(response -> {
+			assertThat(response.statusCode()).isEqualTo(HttpStatus.OK);
+			assertThat(response.headers().header(X_FRAME_OPTIONS_HEADER)).containsOnly("sameorigin");
 		}).expectComplete().verify(DURATION);
 	}
 

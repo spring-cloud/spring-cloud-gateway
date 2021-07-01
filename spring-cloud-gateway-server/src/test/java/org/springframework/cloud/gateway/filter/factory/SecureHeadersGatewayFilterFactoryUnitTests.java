@@ -72,9 +72,9 @@ public class SecureHeadersGatewayFilterFactoryUnitTests {
 				new SecureHeadersProperties());
 		filter = filterFactory.apply(new Config());
 
-		filter.filter(exchange, filterChain);
+		filter.filter(exchange, filterChain).block();
 
-		ServerHttpResponse response = captor.getValue().getResponse();
+		ServerHttpResponse response = exchange.getResponse();
 		assertThat(response.getHeaders()).containsKeys(X_XSS_PROTECTION_HEADER, STRICT_TRANSPORT_SECURITY_HEADER,
 				X_FRAME_OPTIONS_HEADER, X_CONTENT_TYPE_OPTIONS_HEADER, REFERRER_POLICY_HEADER,
 				CONTENT_SECURITY_POLICY_HEADER, X_DOWNLOAD_OPTIONS_HEADER, X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER);
@@ -90,7 +90,7 @@ public class SecureHeadersGatewayFilterFactoryUnitTests {
 		SecureHeadersGatewayFilterFactory filterFactory = new SecureHeadersGatewayFilterFactory(properties);
 		filter = filterFactory.apply(new Config());
 
-		filter.filter(exchange, filterChain);
+		filter.filter(exchange, filterChain).block();
 
 		ServerHttpResponse response = captor.getValue().getResponse();
 		assertThat(response.getHeaders()).doesNotContainKeys(X_XSS_PROTECTION_HEADER, STRICT_TRANSPORT_SECURITY_HEADER,
@@ -109,9 +109,9 @@ public class SecureHeadersGatewayFilterFactoryUnitTests {
 		config.setReferrerPolicy("referrer");
 		filter = filterFactory.apply(config);
 
-		filter.filter(exchange, filterChain);
+		filter.filter(exchange, filterChain).block();
 
-		ServerHttpResponse response = captor.getValue().getResponse();
+		ServerHttpResponse response = exchange.getResponse();
 		assertThat(response.getHeaders()).containsKeys(X_XSS_PROTECTION_HEADER, STRICT_TRANSPORT_SECURITY_HEADER,
 				X_FRAME_OPTIONS_HEADER, X_CONTENT_TYPE_OPTIONS_HEADER, REFERRER_POLICY_HEADER,
 				CONTENT_SECURITY_POLICY_HEADER, X_DOWNLOAD_OPTIONS_HEADER, X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER);
@@ -130,6 +130,31 @@ public class SecureHeadersGatewayFilterFactoryUnitTests {
 		assertThat(response.getHeaders().get(X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER))
 				.containsOnly(properties.getPermittedCrossDomainPolicies());
 
+	}
+
+	@Test
+	public void doesNotDuplicateHeaders() {
+		String originalHeaderValue = "original-header-value";
+		SecureHeadersGatewayFilterFactory filterFactory = new SecureHeadersGatewayFilterFactory(
+				new SecureHeadersProperties());
+		Config config = new Config();
+
+		String[] headers = { X_XSS_PROTECTION_HEADER, STRICT_TRANSPORT_SECURITY_HEADER, X_FRAME_OPTIONS_HEADER,
+				X_CONTENT_TYPE_OPTIONS_HEADER, REFERRER_POLICY_HEADER, CONTENT_SECURITY_POLICY_HEADER,
+				X_DOWNLOAD_OPTIONS_HEADER, X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER };
+
+		for (String header : headers) {
+			filter = filterFactory.apply(config);
+
+			MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost").build();
+			exchange = MockServerWebExchange.from(request);
+			exchange.getResponse().getHeaders().set(header, originalHeaderValue);
+
+			filter.filter(exchange, filterChain).block();
+
+			ServerHttpResponse response = captor.getValue().getResponse();
+			assertThat(response.getHeaders().get(header)).containsOnly(originalHeaderValue);
+		}
 	}
 
 	@Test
