@@ -78,7 +78,7 @@ public class SecureHeadersGatewayFilterFactoryTests extends BaseWebClientTests {
 	public void addsSecureHeadersAfterResponseIsReceived() {
 		Mono<ClientResponse> result = webClient.patch().uri("/headers").header("Host", "www.secureheaders.org")
 				.contentType(MediaType.APPLICATION_JSON).bodyValue("{ \"X-Frame-Options\": \"sameorigin\" }")
-				.exchangeToMono(Mono::just);
+				.exchange();
 
 		StepVerifier.create(result).consumeNextWith(response -> {
 			assertThat(response.statusCode()).isEqualTo(HttpStatus.OK);
