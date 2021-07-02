@@ -122,7 +122,8 @@ public class SecureHeadersGatewayFilterFactory
 					}
 
 					if (isEnabled(disabled, X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER)) {
-						headers.addIfAbsent(X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER, config.getPermittedCrossDomainPolicies());
+						headers.addIfAbsent(X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER,
+								config.getPermittedCrossDomainPolicies());
 					}
 				}));
 			}
