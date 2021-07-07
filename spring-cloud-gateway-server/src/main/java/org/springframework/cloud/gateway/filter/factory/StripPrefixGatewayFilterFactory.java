@@ -96,7 +96,10 @@ public class StripPrefixGatewayFilterFactory
 
 	public static class Config {
 
-		private int parts;
+		/**
+		 * Set default value to 1.
+		 */
+		private int parts = 1;
 
 		public int getParts() {
 			return parts;
