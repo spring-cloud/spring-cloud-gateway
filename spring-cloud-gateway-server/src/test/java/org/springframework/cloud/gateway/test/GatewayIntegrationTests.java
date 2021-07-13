@@ -51,7 +51,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -177,7 +177,7 @@ public class GatewayIntegrationTests extends BaseWebClientTests {
 			return Mono.empty();
 		}
 
-		@RequestMapping("/httpbin/nocontenttype")
+		@GetMapping("/httpbin/nocontenttype")
 		public ResponseEntity<Void> nocontenttype() {
 			return ResponseEntity.status(204).build();
 		}
