@@ -23,6 +23,8 @@ import java.util.function.Function;
 
 import reactor.core.publisher.Flux;
 
+import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.route.DefaultRoutes;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -89,7 +91,13 @@ public class RouteLocatorBuilder {
 		 * @return a {@link RouteLocator}
 		 */
 		public RouteLocator build() {
-			return () -> Flux.fromIterable(this.routes).map(routeBuilder -> routeBuilder.build());
+			DefaultRoutes defaultRoutes = context.getBean(DefaultRoutes.class);
+			return () -> Flux.fromIterable(this.routes).map(routeBuildable -> {
+				Route route = routeBuildable.build();
+				List<GatewayFilter> defaultFilters = defaultRoutes.getDefaultGatewayFilters(route.getId());
+				route.addDefaultGatewayFilters(defaultFilters);
+				return route;
+			});
 		}
 
 		ConfigurableApplicationContext getContext() {

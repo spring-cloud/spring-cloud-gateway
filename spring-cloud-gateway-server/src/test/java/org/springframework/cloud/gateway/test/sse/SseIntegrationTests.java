@@ -189,17 +189,17 @@ public class SseIntegrationTests {
 
 		private static final Flux<Long> INTERVAL = interval(Duration.ofMillis(100), 50);
 
-		@RequestMapping("/sse/string")
+		@RequestMapping("/httpbin/sse/string")
 		Flux<String> string() {
 			return INTERVAL.map(l -> "foo " + l);
 		}
 
-		@RequestMapping("/sse/person")
+		@RequestMapping("/httpbin/sse/person")
 		Flux<Person> person() {
 			return INTERVAL.map(l -> new Person("foo " + l));
 		}
 
-		@RequestMapping("/sse/event")
+		@RequestMapping("/httpbin/sse/event")
 		Flux<ServerSentEvent<String>> sse() {
 			return INTERVAL.map(l -> ServerSentEvent.builder("foo").id(Long.toString(l)).comment("bar").build());
 		}

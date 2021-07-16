@@ -67,10 +67,16 @@ public class RouteDefinitionRouteLocatorTests {
 
 		PropertiesRouteDefinitionLocator routeDefinitionLocator = new PropertiesRouteDefinitionLocator(
 				gatewayProperties);
+
+		@SuppressWarnings("deprecation")
+		DefaultRoutes defaultRoutes = new DefaultRoutes(gatewayProperties, gatewayFilterFactories,
+				new ConfigurationService(null, () -> null, () -> null));
+
 		@SuppressWarnings("deprecation")
 		RouteDefinitionRouteLocator routeDefinitionRouteLocator = new RouteDefinitionRouteLocator(
 				new CompositeRouteDefinitionLocator(Flux.just(routeDefinitionLocator)), predicates,
-				gatewayFilterFactories, gatewayProperties, new ConfigurationService(null, () -> null, () -> null));
+				gatewayFilterFactories, gatewayProperties, new ConfigurationService(null, () -> null, () -> null),
+				defaultRoutes);
 
 		StepVerifier.create(routeDefinitionRouteLocator.getRoutes()).assertNext(route -> {
 			List<GatewayFilter> filters = route.getFilters();
@@ -94,10 +100,16 @@ public class RouteDefinitionRouteLocatorTests {
 
 		PropertiesRouteDefinitionLocator routeDefinitionLocator = new PropertiesRouteDefinitionLocator(
 				gatewayProperties);
+
+		@SuppressWarnings("deprecation")
+		DefaultRoutes defaultRoutes = new DefaultRoutes(gatewayProperties, gatewayFilterFactories,
+				new ConfigurationService(null, () -> null, () -> null));
+
 		@SuppressWarnings("deprecation")
 		RouteDefinitionRouteLocator routeDefinitionRouteLocator = new RouteDefinitionRouteLocator(
 				new CompositeRouteDefinitionLocator(Flux.just(routeDefinitionLocator)), predicates,
-				gatewayFilterFactories, gatewayProperties, new ConfigurationService(null, () -> null, () -> null));
+				gatewayFilterFactories, gatewayProperties, new ConfigurationService(null, () -> null, () -> null),
+				defaultRoutes);
 
 		StepVerifier.create(routeDefinitionRouteLocator.getRoutes()).assertNext(route -> {
 			List<GatewayFilter> filters = route.getFilters();
@@ -127,10 +139,12 @@ public class RouteDefinitionRouteLocatorTests {
 
 		PropertiesRouteDefinitionLocator routeDefinitionLocator = new PropertiesRouteDefinitionLocator(
 				gatewayProperties);
+		ConfigurationService configurationService = new ConfigurationService(null, () -> null, () -> null);
+		DefaultRoutes defaultRoutes = new DefaultRoutes(gatewayProperties, gatewayFilterFactories, configurationService);
 		@SuppressWarnings("deprecation")
 		RouteDefinitionRouteLocator routeDefinitionRouteLocator = new RouteDefinitionRouteLocator(
 				new CompositeRouteDefinitionLocator(Flux.just(routeDefinitionLocator)), predicates,
-				gatewayFilterFactories, gatewayProperties, new ConfigurationService(null, () -> null, () -> null));
+				gatewayFilterFactories, gatewayProperties, configurationService, defaultRoutes);
 
 		StepVerifier.create(routeDefinitionRouteLocator.getRoutes()).assertNext(route -> {
 			List<GatewayFilter> filters = route.getFilters();
