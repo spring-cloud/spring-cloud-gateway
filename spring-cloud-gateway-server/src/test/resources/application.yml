@@ -73,6 +73,15 @@ spring:
         filters:
         - AddResponseHeader=X-Request-Foo, Bar
 
+      - id: cache_request_body_test
+        uri: ${test.uri}
+        predicates:
+          - Host=**.cacherequestbody.org
+        filters:
+          - name: CacheRequestBody
+            args:
+              bodyClass: java.lang.String
+
         # =====================================
       - id: circuitbreaker_exception_fallback_test
         uri: ${test.uri}
