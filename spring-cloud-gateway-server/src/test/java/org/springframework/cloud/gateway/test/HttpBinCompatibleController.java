@@ -45,7 +45,10 @@ import org.springframework.http.codec.multipart.Part;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -60,7 +63,7 @@ public class HttpBinCompatibleController {
 
 	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-	@RequestMapping("/")
+	@GetMapping("/")
 	public String home() {
 		return "httpbin compatible home";
 	}
@@ -73,7 +76,7 @@ public class HttpBinCompatibleController {
 		return result;
 	}
 
-	@RequestMapping(path = "/headers", method = RequestMethod.PATCH)
+	@PatchMapping("/headers")
 	public ResponseEntity<Map<String, Object>> headersPatch(ServerWebExchange exchange,
 			@RequestBody Map<String, String> headersToAdd) {
 		Map<String, Object> result = new HashMap<>();
@@ -92,19 +95,19 @@ public class HttpBinCompatibleController {
 		return result;
 	}
 
-	@RequestMapping(path = "/delay/{sec}", produces = MediaType.APPLICATION_JSON_VALUE)
+	@GetMapping(path = "/delay/{sec}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public Mono<Map<String, Object>> get(ServerWebExchange exchange, @PathVariable int sec)
 			throws InterruptedException {
 		int delay = Math.min(sec, 10);
 		return Mono.just(get(exchange)).delayElement(Duration.ofSeconds(delay));
 	}
 
-	@RequestMapping(path = "/anything/{anything}", produces = MediaType.APPLICATION_JSON_VALUE)
+	@GetMapping(path = "/anything/{anything}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public Map<String, Object> anything(ServerWebExchange exchange, @PathVariable(required = false) String anything) {
 		return get(exchange);
 	}
 
-	@RequestMapping(path = "/get", produces = MediaType.APPLICATION_JSON_VALUE)
+	@GetMapping(path = "/get", produces = MediaType.APPLICATION_JSON_VALUE)
 	public Map<String, Object> get(ServerWebExchange exchange) {
 		if (log.isDebugEnabled()) {
 			log.debug("httpbin /get");
@@ -119,7 +122,7 @@ public class HttpBinCompatibleController {
 		return result;
 	}
 
-	@RequestMapping(value = "/post", consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
+	@GetMapping(value = "/post", consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
 			produces = MediaType.APPLICATION_JSON_VALUE)
 	public Mono<Map<String, Object>> postFormData(@RequestBody Mono<MultiValueMap<String, Part>> parts) {
 		// StringDecoder decoder = StringDecoder.allMimeTypes(true);
@@ -133,13 +136,13 @@ public class HttpBinCompatibleController {
 				}).map(files -> Collections.singletonMap("files", files));
 	}
 
-	@RequestMapping(path = "/post", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+	@GetMapping(path = "/post", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
 			produces = MediaType.APPLICATION_JSON_VALUE)
 	public Mono<Map<String, Object>> postUrlEncoded(ServerWebExchange exchange) throws IOException {
 		return post(exchange, null);
 	}
 
-	@RequestMapping(path = "/post", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+	@PostMapping(path = "/post", produces = MediaType.APPLICATION_JSON_VALUE)
 	public Mono<Map<String, Object>> post(ServerWebExchange exchange, @RequestBody(required = false) String body)
 			throws IOException {
 		HashMap<String, Object> ret = new HashMap<>();
@@ -158,7 +161,7 @@ public class HttpBinCompatibleController {
 		});
 	}
 
-	@RequestMapping("/status/{status}")
+	@GetMapping("/status/{status}")
 	public ResponseEntity<String> status(@PathVariable int status) {
 		return ResponseEntity.status(status).body("Failed with " + status);
 	}
@@ -174,12 +177,12 @@ public class HttpBinCompatibleController {
 		return ResponseEntity.status(status).headers(httpHeaders).body(Collections.singletonMap("status", status));
 	}
 
-	@RequestMapping(path = "/post/empty", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+	@PostMapping(path = "/post/empty", produces = MediaType.APPLICATION_JSON_VALUE)
 	public Mono<String> emptyResponse() {
 		return Mono.empty();
 	}
 
-	@RequestMapping(path = "/gzip", produces = MediaType.APPLICATION_JSON_VALUE)
+	@GetMapping(path = "/gzip", produces = MediaType.APPLICATION_JSON_VALUE)
 	public Mono<Void> gzip(ServerWebExchange exchange) throws IOException {
 		if (log.isDebugEnabled()) {
 			log.debug("httpbin /gzip");

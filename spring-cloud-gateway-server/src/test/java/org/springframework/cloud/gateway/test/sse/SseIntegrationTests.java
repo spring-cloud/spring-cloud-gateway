@@ -44,7 +44,7 @@ import org.springframework.core.ResolvableType;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.http.server.reactive.HttpHandler;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.reactive.DispatcherHandler;
 import org.springframework.web.reactive.config.EnableWebFlux;
@@ -189,17 +189,17 @@ public class SseIntegrationTests {
 
 		private static final Flux<Long> INTERVAL = interval(Duration.ofMillis(100), 50);
 
-		@RequestMapping("/sse/string")
+		@GetMapping("/sse/string")
 		Flux<String> string() {
 			return INTERVAL.map(l -> "foo " + l);
 		}
 
-		@RequestMapping("/sse/person")
+		@GetMapping("/sse/person")
 		Flux<Person> person() {
 			return INTERVAL.map(l -> new Person("foo " + l));
 		}
 
-		@RequestMapping("/sse/event")
+		@GetMapping("/sse/event")
 		Flux<ServerSentEvent<String>> sse() {
 			return INTERVAL.map(l -> ServerSentEvent.builder("foo").id(Long.toString(l)).comment("bar").build());
 		}

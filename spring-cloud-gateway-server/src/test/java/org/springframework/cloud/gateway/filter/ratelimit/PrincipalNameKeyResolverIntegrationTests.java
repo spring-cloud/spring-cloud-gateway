@@ -46,6 +46,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.util.SocketUtils;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -96,7 +97,7 @@ public class PrincipalNameKeyResolverIntegrationTests {
 		@Value("${server.port}")
 		private int port;
 
-		@RequestMapping("/myapi/{id}")
+		@GetMapping("/myapi/{id}")
 		public Map<String, String> myapi(@PathVariable String id, Principal principal) {
 			return Collections.singletonMap(principal.getName(), id);
 		}

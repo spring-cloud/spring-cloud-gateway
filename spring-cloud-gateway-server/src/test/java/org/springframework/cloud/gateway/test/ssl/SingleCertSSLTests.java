@@ -36,7 +36,7 @@ import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -71,7 +71,7 @@ public class SingleCertSSLTests extends BaseWebClientTests {
 	@RestController
 	public static class TestConfig {
 
-		@RequestMapping("/httpbin/ssltrust")
+		@GetMapping("/httpbin/ssltrust")
 		public ResponseEntity<Void> nocontenttype() {
 			return ResponseEntity.status(204).build();
 		}

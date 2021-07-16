@@ -32,7 +32,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.reactive.server.WebTestClient;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -72,7 +72,7 @@ public class ForwardTests {
 	@Import(PermitAllSecurityConfiguration.class)
 	public static class TestConfig {
 
-		@RequestMapping("/httpbin/localcontroller")
+		@GetMapping("/httpbin/localcontroller")
 		public Map<String, String> localController() {
 			return Collections.singletonMap("from", "localcontroller");
 		}

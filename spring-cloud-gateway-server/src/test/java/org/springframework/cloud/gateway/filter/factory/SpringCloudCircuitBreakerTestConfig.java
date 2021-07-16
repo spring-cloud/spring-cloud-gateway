@@ -37,7 +37,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.reactive.function.server.RouterFunction;
@@ -62,27 +62,27 @@ public class SpringCloudCircuitBreakerTestConfig {
 	@Value("${test.uri}")
 	private String uri;
 
-	@RequestMapping("/circuitbreakerFallbackController")
+	@GetMapping("/circuitbreakerFallbackController")
 	public Map<String, String> fallbackcontroller(@RequestParam("a") String a) {
 		return Collections.singletonMap("from", "circuitbreakerfallbackcontroller");
 	}
 
-	@RequestMapping("/circuitbreakerFallbackController2")
+	@GetMapping("/circuitbreakerFallbackController2")
 	public Map<String, String> fallbackcontroller2() {
 		return Collections.singletonMap("from", "circuitbreakerfallbackcontroller2");
 	}
 
-	@RequestMapping("/circuitbreakerFallbackController3")
+	@GetMapping("/circuitbreakerFallbackController3")
 	public Map<String, String> fallbackcontroller3() {
 		return Collections.singletonMap("from", "circuitbreakerfallbackcontroller3");
 	}
 
-	@RequestMapping("/statusCodeFallbackController")
+	@GetMapping("/statusCodeFallbackController")
 	public Map<String, String> statusCodeFallbackController(ServerWebExchange exchange) {
 		return Collections.singletonMap("from", "statusCodeFallbackController");
 	}
 
-	@RequestMapping("/resetExchangeFallbackController")
+	@GetMapping("/resetExchangeFallbackController")
 	public ResponseEntity<Map<String, String>> resetExchangeFallbackController(ServerWebExchange exchange) {
 		return ResponseEntity.status(HttpStatus.OK)
 				.headers((HttpHeaders) exchange.getRequest().getHeaders().entrySet().stream()
