@@ -88,7 +88,8 @@ public class CustomBlockHoundIntegration implements BlockHoundIntegration {
 				"lambda$authenticate$4");
 
 		builder.allowBlockingCallsInside("org.springframework.context.annotation.ConfigurationClassParser", "parse");
-		builder.allowBlockingCallsInside("org.springframework.core.type.classreading.SimpleMetadataReader", "getClassReader");
+		builder.allowBlockingCallsInside("org.springframework.core.type.classreading.SimpleMetadataReader",
+				"getClassReader");
 	}
 
 }
