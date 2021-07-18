@@ -59,7 +59,7 @@ public class InMemoryRouteDefinitionRepositoryTests {
 
 	@Test
 	public void shouldCreateRoute() {
-		StepVerifier.create(repository.save(createRoute("foo"))).expectComplete().verify();
+		StepVerifier.create(repository.save(createRoute("foo"))).verifyComplete();
 
 		StepVerifier.create(repository.getRouteDefinitions()).expectNextCount(1).verifyComplete();
 	}
