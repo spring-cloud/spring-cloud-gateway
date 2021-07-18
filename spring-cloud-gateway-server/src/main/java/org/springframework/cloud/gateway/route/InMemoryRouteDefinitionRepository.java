@@ -58,7 +58,8 @@ public class InMemoryRouteDefinitionRepository implements RouteDefinitionReposit
 
 	@Override
 	public Flux<RouteDefinition> getRouteDefinitions() {
-		return Flux.fromIterable(routes.values());
+		Map<String, RouteDefinition> routesSafeCopy = new LinkedHashMap<>(routes);
+		return Flux.fromIterable(routesSafeCopy.values());
 	}
 
 }
