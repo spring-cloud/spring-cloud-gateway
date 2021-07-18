@@ -25,6 +25,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.netty.Connection;
 
+import org.springframework.cloud.gateway.util.MediaTypeUtils;
 import org.springframework.core.Ordered;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferFactory;
@@ -32,7 +33,6 @@ import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.core.io.buffer.NettyDataBufferFactory;
 import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpResponse;
-import org.springframework.lang.Nullable;
 import org.springframework.web.server.ServerWebExchange;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.CLIENT_RESPONSE_CONN_ATTR;
@@ -96,7 +96,7 @@ public class NettyWriteResponseFilter implements GlobalFilter, Ordered {
 							log.trace("invalid media type", e);
 						}
 					}
-					return (isStreamingMediaType(contentType)
+					return (MediaTypeUtils.isStreamingMediaType(contentType, streamingMediaTypes)
 							? response.writeAndFlushWith(body.map(Flux::just))
 							: response.writeWith(body));
 				})).doOnCancel(() -> cleanup(exchange));
@@ -124,18 +124,6 @@ public class NettyWriteResponseFilter implements GlobalFilter, Ordered {
 		if (connection != null && connection.channel().isActive() && !connection.isPersistent()) {
 			connection.dispose();
 		}
-	}
-
-	// TODO: use framework if possible
-	private boolean isStreamingMediaType(@Nullable MediaType contentType) {
-		if (contentType != null) {
-			for (int i = 0; i < streamingMediaTypes.size(); i++) {
-				if (streamingMediaTypes.get(i).isCompatibleWith(contentType)) {
-					return true;
-				}
-			}
-		}
-		return false;
 	}
 
 }

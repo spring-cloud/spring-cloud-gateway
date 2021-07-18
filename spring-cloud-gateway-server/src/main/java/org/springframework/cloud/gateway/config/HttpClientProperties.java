@@ -79,7 +79,7 @@ public class HttpClientProperties {
 	private boolean wiretap;
 
 	/** Enables compression for Netty HttpClient. */
-	private boolean compression;
+	private boolean compression = true;
 
 	public Integer getConnectTimeout() {
 		return connectTimeout;

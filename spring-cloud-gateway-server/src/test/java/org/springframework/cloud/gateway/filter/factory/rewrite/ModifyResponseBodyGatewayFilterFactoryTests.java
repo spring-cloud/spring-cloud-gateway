@@ -17,12 +17,15 @@
 package org.springframework.cloud.gateway.filter.factory.rewrite;
 
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
@@ -33,14 +36,18 @@ import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.web.reactive.server.FluxExchangeResult;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @RunWith(SpringRunner.class)
@@ -64,6 +71,24 @@ public class ModifyResponseBodyGatewayFilterFactoryTests extends BaseWebClientTe
 
 		testClient.get().uri(uri).header("Host", "www.modifyresponsebodyjava.org").accept(MediaType.APPLICATION_JSON)
 				.exchange().expectBody().json("{\"value\": \"httpbin compatible home\", \"length\": 23}");
+	}
+
+	@Test
+	public void shouldModifySseResponseBody() {
+		URI uri = UriComponentsBuilder.fromUriString(this.baseUri + "/sse").build(true).toUri();
+
+		FluxExchangeResult<ServerSentEvent<String>> result = testClient.get().uri(uri)
+				.header("Host", "www.modifyresponsebodyssejava.org").accept(MediaType.TEXT_EVENT_STREAM).exchange()
+				.expectStatus().isOk().expectHeader().contentType("text/event-stream;charset=UTF-8")
+				.returnResult(new ParameterizedTypeReference<ServerSentEvent<String>>() {
+				});
+
+		StepVerifier.create(result.getResponseBody()).consumeNextWith(event -> assertThat(event.data()).isEqualTo("00"))
+				.consumeNextWith(event -> assertThat(event.data()).isEqualTo("01"))
+				.consumeNextWith(event -> assertThat(event.data()).isEqualTo("02"))
+				.consumeNextWith(event -> assertThat(event.data()).isEqualTo("03")).expectNextCount(6).thenCancel()
+				.verify(Duration.ofSeconds(5L));
+
 	}
 
 	@Test
@@ -100,6 +125,12 @@ public class ModifyResponseBodyGatewayFilterFactoryTests extends BaseWebClientTe
 												return Mono.just(toLarge);
 											}))
 									.uri(uri))
+					.route("modify_response_java_sse", r -> r.host("www.modifyresponsebodyssejava.org").filters(
+							f -> f.modifyResponseBody(byte[].class, byte[].class, (webExchange, originalResponse) -> {
+								String originalEvent = new String(originalResponse);
+								String modifiedEvent = originalEvent.replace("data:", "data:0");
+								return Mono.just(modifiedEvent.getBytes(StandardCharsets.UTF_8));
+							})).uri(uri))
 					.build();
 		}
 

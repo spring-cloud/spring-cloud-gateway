@@ -21,14 +21,26 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.springframework.cloud.gateway.util.MediaTypeUtils;
+import org.springframework.http.MediaType;
 import org.springframework.http.codec.HttpMessageWriter;
+import org.springframework.http.codec.ServerSentEventHttpMessageWriter;
+import org.springframework.http.codec.json.Jackson2JsonEncoder;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.reactive.function.BodyInserter;
 import org.springframework.web.reactive.function.client.ExchangeStrategies;
 
 public class BodyInserterContext implements BodyInserter.Context {
 
+	final static ExchangeStrategies SSE_EXCHANGE_STRATEGIES;
+
 	private final ExchangeStrategies exchangeStrategies;
+
+	static {
+		SSE_EXCHANGE_STRATEGIES = ExchangeStrategies.builder()
+				.codecs(c -> c.customCodecs().register(new ServerSentEventHttpMessageWriter(new Jackson2JsonEncoder())))
+				.build();
+	}
 
 	public BodyInserterContext() {
 		this.exchangeStrategies = ExchangeStrategies.withDefaults();
@@ -36,6 +48,17 @@ public class BodyInserterContext implements BodyInserter.Context {
 
 	public BodyInserterContext(ExchangeStrategies exchangeStrategies) {
 		this.exchangeStrategies = exchangeStrategies; // TODO: support custom strategies
+	}
+
+	public BodyInserterContext(MediaType mediaType, List<MediaType> streamingMediaTypes) {
+		if (MediaTypeUtils.isStreamingMediaType(mediaType, streamingMediaTypes)) {
+			// SSE codec should be on default ExchangeStrategies
+			this.exchangeStrategies = SSE_EXCHANGE_STRATEGIES;
+		}
+		else {
+			this.exchangeStrategies = ExchangeStrategies.withDefaults();
+		}
+
 	}
 
 	@Override

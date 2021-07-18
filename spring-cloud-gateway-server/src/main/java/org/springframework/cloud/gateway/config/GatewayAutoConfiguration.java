@@ -19,7 +19,6 @@ package org.springframework.cloud.gateway.config;
 import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Supplier;
 
 import io.netty.channel.ChannelOption;
@@ -99,9 +98,6 @@ import org.springframework.cloud.gateway.filter.factory.SetResponseHeaderGateway
 import org.springframework.cloud.gateway.filter.factory.SetStatusGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.StripPrefixGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.TokenRelayGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.rewrite.GzipMessageBodyResolver;
-import org.springframework.cloud.gateway.filter.factory.rewrite.MessageBodyDecoder;
-import org.springframework.cloud.gateway.filter.factory.rewrite.MessageBodyEncoder;
 import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyRequestBodyGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyResponseBodyGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.headers.ForwardedHeadersFilter;
@@ -461,9 +457,9 @@ public class GatewayAutoConfiguration {
 	@Bean
 	@ConditionalOnEnabledFilter
 	public ModifyResponseBodyGatewayFilterFactory modifyResponseBodyGatewayFilterFactory(
-			ServerCodecConfigurer codecConfigurer, Set<MessageBodyDecoder> bodyDecoders,
-			Set<MessageBodyEncoder> bodyEncoders) {
-		return new ModifyResponseBodyGatewayFilterFactory(codecConfigurer.getReaders(), bodyDecoders, bodyEncoders);
+			ServerCodecConfigurer codecConfigurer, GatewayProperties gatewayProperties) {
+		return new ModifyResponseBodyGatewayFilterFactory(codecConfigurer.getReaders(),
+				gatewayProperties.getStreamingMediaTypes());
 	}
 
 	@Bean
@@ -606,11 +602,6 @@ public class GatewayAutoConfiguration {
 	@ConditionalOnEnabledFilter
 	public RequestHeaderSizeGatewayFilterFactory requestHeaderSizeGatewayFilterFactory() {
 		return new RequestHeaderSizeGatewayFilterFactory();
-	}
-
-	@Bean
-	public GzipMessageBodyResolver gzipMessageBodyResolver() {
-		return new GzipMessageBodyResolver();
 	}
 
 	@Configuration(proxyBeanMethods = false)
