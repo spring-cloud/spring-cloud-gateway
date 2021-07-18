@@ -24,6 +24,8 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import org.springframework.cloud.gateway.support.NotFoundException;
+
 public class InMemoryRouteDefinitionRepositoryTests {
 
 	private InMemoryRouteDefinitionRepository repository;
@@ -45,8 +47,43 @@ public class InMemoryRouteDefinitionRepositoryTests {
 
 		Mono<Void> createAnotherRoute = repository.save(createRoute("bar"));
 
-		StepVerifier.withVirtualTime(() -> readRoutesWithDelay).expectSubscription().expectNextCount(1)
-				.then(createAnotherRoute::subscribe).thenAwait().expectNextCount(2).verifyComplete();
+		StepVerifier.withVirtualTime(() -> readRoutesWithDelay)
+				.expectSubscription().expectNextCount(1)
+				.then(createAnotherRoute::subscribe)
+				.thenAwait().expectNextCount(2).verifyComplete();
+	}
+
+	@Test
+	public void shouldCreateRoute() {
+		Mono<RouteDefinition> emptyRoute = Mono.just(new RouteDefinition());
+		StepVerifier.create(repository.save(emptyRoute))
+				.verifyError(IllegalArgumentException.class);
+	}
+
+	@Test
+	public void shouldValidateRouteIdOnCreate() {
+		StepVerifier.create(repository.save(createRoute("foo"))).expectComplete().verify();
+
+		StepVerifier.create(repository.getRouteDefinitions()).expectNextCount(1).verifyComplete();
+	}
+
+	@Test
+	public void shouldDeleteRoute() {
+		Flux<Void> createRoutes = Flux.just(createRoute("foo1"), createRoute("foo2"), createRoute("foo3"))
+				.flatMap(repository::save);
+
+		StepVerifier.create(createRoutes).verifyComplete();
+
+		Mono<Void> deleteRoute = repository.delete(Mono.just("foo2"));
+
+		StepVerifier.create(deleteRoute).verifyComplete();
+
+		StepVerifier.create(repository.getRouteDefinitions()).expectNextCount(2).verifyComplete();
+	}
+
+	@Test
+	public void shouldThrownNotFoundWhenDeleteInvalidRoute() {
+		StepVerifier.create(repository.delete(Mono.just("x"))).verifyError(NotFoundException.class);
 	}
 
 	private Mono<RouteDefinition> createRoute(String id) {
