@@ -47,17 +47,14 @@ public class InMemoryRouteDefinitionRepositoryTests {
 
 		Mono<Void> createAnotherRoute = repository.save(createRoute("bar"));
 
-		StepVerifier.withVirtualTime(() -> readRoutesWithDelay)
-				.expectSubscription().expectNextCount(1)
-				.then(createAnotherRoute::subscribe)
-				.thenAwait().expectNextCount(2).verifyComplete();
+		StepVerifier.withVirtualTime(() -> readRoutesWithDelay).expectSubscription().expectNextCount(1)
+				.then(createAnotherRoute::subscribe).thenAwait().expectNextCount(2).verifyComplete();
 	}
 
 	@Test
 	public void shouldCreateRoute() {
 		Mono<RouteDefinition> emptyRoute = Mono.just(new RouteDefinition());
-		StepVerifier.create(repository.save(emptyRoute))
-				.verifyError(IllegalArgumentException.class);
+		StepVerifier.create(repository.save(emptyRoute)).verifyError(IllegalArgumentException.class);
 	}
 
 	@Test
