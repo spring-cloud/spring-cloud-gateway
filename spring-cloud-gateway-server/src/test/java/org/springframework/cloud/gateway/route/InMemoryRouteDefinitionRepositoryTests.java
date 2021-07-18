@@ -52,13 +52,13 @@ public class InMemoryRouteDefinitionRepositoryTests {
 	}
 
 	@Test
-	public void shouldCreateRoute() {
+	public void shouldValidateRouteIdOnCreate() {
 		Mono<RouteDefinition> emptyRoute = Mono.just(new RouteDefinition());
 		StepVerifier.create(repository.save(emptyRoute)).verifyError(IllegalArgumentException.class);
 	}
 
 	@Test
-	public void shouldValidateRouteIdOnCreate() {
+	public void shouldCreateRoute() {
 		StepVerifier.create(repository.save(createRoute("foo"))).expectComplete().verify();
 
 		StepVerifier.create(repository.getRouteDefinitions()).expectNextCount(1).verifyComplete();
