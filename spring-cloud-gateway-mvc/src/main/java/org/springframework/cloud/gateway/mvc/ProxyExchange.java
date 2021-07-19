@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.Vector;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.servlet.ReadListener;
 import javax.servlet.ServletInputStream;
@@ -215,6 +216,8 @@ public class ProxyExchange<T> {
 		if (this.sensitive == null) {
 			this.sensitive = new HashSet<>();
 		}
+
+		this.sensitive.clear();
 		for (String name : names) {
 			this.sensitive.add(name.toLowerCase());
 		}
@@ -342,18 +345,17 @@ public class ProxyExchange<T> {
 	}
 
 	private BodyBuilder headers(BodyBuilder builder) {
-		Set<String> sensitive = this.sensitive;
-		if (sensitive == null) {
-			sensitive = DEFAULT_SENSITIVE;
-		}
 		proxy();
-		for (String name : headers.keySet()) {
-			if (sensitive.contains(name.toLowerCase())) {
-				continue;
-			}
+		for (String name : filterHeaderKeys(headers)) {
 			builder.header(name, headers.get(name).toArray(new String[0]));
 		}
 		return builder;
+	}
+
+	private Set<String> filterHeaderKeys(HttpHeaders headers) {
+		final Set<String> sensitiveHeaders = this.sensitive != null ? this.sensitive : DEFAULT_SENSITIVE;
+		return headers.keySet().stream().filter(header -> !sensitiveHeaders.contains(header.toLowerCase()))
+				.collect(Collectors.toSet());
 	}
 
 	private void proxy() {
