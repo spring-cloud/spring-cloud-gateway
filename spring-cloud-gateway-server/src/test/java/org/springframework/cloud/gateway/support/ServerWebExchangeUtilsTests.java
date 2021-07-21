@@ -23,10 +23,14 @@ import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
 
+import org.springframework.core.io.buffer.DefaultDataBuffer;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.web.reactive.function.server.HandlerStrategies;
+import org.springframework.web.reactive.function.server.ServerRequest;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.CACHED_REQUEST_BODY_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.expand;
 
 public class ServerWebExchangeUtilsTests {
@@ -50,6 +54,17 @@ public class ServerWebExchangeUtilsTests {
 	public void missingVarThrowsException() {
 		MockServerWebExchange exchange = mockExchange(Collections.emptyMap());
 		Assert.assertThrows(IllegalArgumentException.class, () -> expand(exchange, "my-{foo}-{baz}"));
+	}
+
+	@Test
+	public void defaultDataBufferHandling() {
+		MockServerWebExchange exchange = mockExchange(Collections.emptyMap());
+		exchange.getAttributes().put(CACHED_REQUEST_BODY_ATTR, "foo");
+
+		ServerWebExchangeUtils.cacheRequestBodyAndRequest(exchange,
+				(serverHttpRequest) -> ServerRequest
+						.create(exchange.mutate().request(serverHttpRequest).build(), HandlerStrategies.withDefaults().messageReaders())
+						.bodyToMono(DefaultDataBuffer.class)).block();
 	}
 
 	private MockServerWebExchange mockExchange(Map<String, String> vars) {
