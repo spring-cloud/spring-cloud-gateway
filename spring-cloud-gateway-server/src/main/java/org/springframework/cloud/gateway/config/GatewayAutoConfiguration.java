@@ -240,6 +240,7 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
+	@ConditionalOnMissingBean
 	public FilteringWebHandler filteringWebHandler(List<GlobalFilter> globalFilters) {
 		return new FilteringWebHandler(globalFilters);
 	}
