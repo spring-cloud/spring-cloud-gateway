@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.function.Predicate;
 
 import org.assertj.core.util.Maps;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -44,7 +45,9 @@ import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.PermitAllSecurityConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.BodyInserters;
@@ -114,6 +117,26 @@ public class GatewayControllerEndpointTests {
 				.isOk().expectBody(Map.class).consumeWith(result -> {
 					Map<?, ?> responseBody = result.getResponseBody();
 					assertThat(responseBody).isNotEmpty();
+				});
+	}
+
+	@Test
+	public void testRouteDelete() {
+		RouteDefinition testRouteDefinition = new RouteDefinition();
+		testRouteDefinition.setUri(URI.create("http://example.org"));
+
+		PredicateDefinition methodRoutePredicateDefinition = new PredicateDefinition("Method=GET");
+
+		testRouteDefinition.setPredicates(Arrays.asList(methodRoutePredicateDefinition));
+
+		testClient.post().uri("http://localhost:" + port + "/actuator/gateway/routes/test-route-to-be-delete")
+				.accept(MediaType.APPLICATION_JSON).body(BodyInserters.fromValue(testRouteDefinition)).exchange()
+				.expectStatus().isCreated();
+
+		testClient.delete().uri("http://localhost:" + port + "/actuator/gateway/routes/test-route-to-be-delete")
+				.exchange().expectStatus().isOk().expectBody(ResponseEntity.class).consumeWith(result -> {
+					HttpStatus httpStatus = result.getStatus();
+					Assert.assertEquals(HttpStatus.OK, httpStatus);
 				});
 	}
 
