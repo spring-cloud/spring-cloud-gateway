@@ -67,8 +67,7 @@ public class DiscoveryClientRouteDefinitionLocatorTests {
 	public void includeExpressionWorks() {
 		assertThat(locator).as("DiscoveryClientRouteDefinitionLocator was null").isNotNull();
 
-		List<RouteDefinition> definitions = locator.getRouteDefinitions().collectList()
-				.block();
+		List<RouteDefinition> definitions = locator.getRouteDefinitions().collectList().block();
 		assertThat(definitions).hasSize(2);
 
 		RouteDefinition definition = definitions.get(0);
@@ -125,7 +124,7 @@ public class DiscoveryClientRouteDefinitionLocatorTests {
 						"localhost", 8001, false, metadata);
 				when(discoveryClient.getInstances(serviceId)).thenReturn(Flux.just(instance1));
 			}
-			else if ("service3".equalsIgnoreCase(serviceId)){
+			else if ("service3".equalsIgnoreCase(serviceId)) {
 				// given 3 instances, only one routedefinition should be created
 				DefaultServiceInstance instance2 = new DefaultServiceInstance(serviceId + "8002", serviceId,
 						"localhost", 8002, false, Collections.emptyMap());
