@@ -16,40 +16,55 @@
 
 package org.springframework.cloud.gateway.config;
 
-import java.io.IOException;
+import java.util.function.Predicate;
 
-import javax.annotation.PreDestroy;
-
-import org.junit.Test;
-import org.junit.experimental.runners.Enclosed;
-import org.junit.runner.RunWith;
-import redis.embedded.RedisServer;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.junit.jupiter.Container;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiter;
+import org.springframework.cloud.gateway.handler.predicate.AbstractRoutePredicateFactory;
 import org.springframework.cloud.gateway.route.RedisRouteDefinitionRepository;
+import org.springframework.cloud.gateway.route.RedisRouteDefinitionRepositoryTests;
 import org.springframework.context.annotation.Bean;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.data.redis.core.script.RedisScript;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.web.server.ServerWebExchange;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(Enclosed.class)
 public class GatewayRedisAutoConfigurationTests {
 
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	protected static class Config {
+		// TODO: figure out why I need these
+		@Bean
+		RedisRouteDefinitionRepositoryTests.TestGatewayFilterFactory testGatewayFilterFactory() {
+			return new RedisRouteDefinitionRepositoryTests.TestGatewayFilterFactory();
+		}
 
+		@Bean
+		RedisRouteDefinitionRepositoryTests.TestFilterGatewayFilterFactory testFilterGatewayFilterFactory() {
+			return new RedisRouteDefinitionRepositoryTests.TestFilterGatewayFilterFactory();
+		}
+
+		@Bean
+		RedisRouteDefinitionRepositoryTests.TestRoutePredicateFactory testRoutePredicateFactory() {
+			return new RedisRouteDefinitionRepositoryTests.TestRoutePredicateFactory();
+		}
 	}
 
-	@RunWith(SpringRunner.class)
+
+
+	@Nested
 	@SpringBootTest(classes = Config.class)
-	public static class EnabledByDefault {
+	class EnabledByDefault {
 
 		@Autowired(required = false)
 		private RedisScript redisRequestRateLimiterScript;
@@ -65,9 +80,9 @@ public class GatewayRedisAutoConfigurationTests {
 
 	}
 
-	@RunWith(SpringRunner.class)
+	@Nested
 	@SpringBootTest(classes = Config.class, properties = "spring.cloud.gateway.redis.enabled=false")
-	public static class DisabledByProperty {
+	class DisabledByProperty {
 
 		@Autowired(required = false)
 		private RedisScript redisRequestRateLimiterScript;
@@ -86,12 +101,11 @@ public class GatewayRedisAutoConfigurationTests {
 	/**
 	 * @author Dennis Menge
 	 */
-	@RunWith(SpringRunner.class)
-	@SpringBootTest(
-			classes = RedisRouteDefinitionRepositoryDisabledByProperty.TestConfig.class,
+	@Nested
+	@SpringBootTest(classes = GatewayRedisAutoConfigurationTests.Config.class,
 			properties = "spring.cloud.gateway.redis-route-definition-repository.enabled=false")
 	@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-	public static class RedisRouteDefinitionRepositoryDisabledByProperty {
+	class RedisRouteDefinitionRepositoryDisabledByProperty {
 
 		@Autowired(required = false)
 		private RedisRouteDefinitionRepository redisRouteDefinitionRepository;
@@ -101,23 +115,19 @@ public class GatewayRedisAutoConfigurationTests {
 			assertThat(redisRouteDefinitionRepository).isNull();
 		}
 
-		@EnableAutoConfiguration
-		@SpringBootConfiguration
-		public static class TestConfig {
-
-		}
-
 	}
 
 	/**
 	 * @author Dennis Menge
 	 */
-	@RunWith(SpringRunner.class)
-	@SpringBootTest(
-			classes = RedisRouteDefinitionRepositoryEnabledByProperty.TestConfig.class,
+	@Nested
+	@SpringBootTest(classes = GatewayRedisAutoConfigurationTests.Config.class,
 			properties = "spring.cloud.gateway.redis-route-definition-repository.enabled=true")
 	@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-	public static class RedisRouteDefinitionRepositoryEnabledByProperty {
+	class RedisRouteDefinitionRepositoryEnabledByProperty {
+
+		@Container
+		public GenericContainer redis = new GenericContainer<>("redis:5.0.9-alpine").withExposedPorts(6379);
 
 		@Autowired(required = false)
 		private RedisRouteDefinitionRepository redisRouteDefinitionRepository;
@@ -127,25 +137,6 @@ public class GatewayRedisAutoConfigurationTests {
 			assertThat(redisRouteDefinitionRepository).isNotNull();
 		}
 
-		@EnableAutoConfiguration
-		@SpringBootConfiguration
-		public static class TestConfig {
-
-			private RedisServer redisServer;
-
-			@Bean
-			public RedisServer redisServer() throws IOException {
-				redisServer = new RedisServer();
-				redisServer.start();
-				return redisServer;
-			}
-
-			@PreDestroy
-			public void destroy() {
-				redisServer.stop();
-			}
-
-		}
-
 	}
+
 }

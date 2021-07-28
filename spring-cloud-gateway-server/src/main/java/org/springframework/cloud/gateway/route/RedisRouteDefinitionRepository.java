@@ -43,16 +43,14 @@ public class RedisRouteDefinitionRepository implements RouteDefinitionRepository
 
 	private ReactiveValueOperations<String, RouteDefinition> routeDefinitionReactiveValueOperations;
 
-	public RedisRouteDefinitionRepository(
-			ReactiveRedisTemplate<String, RouteDefinition> reactiveRedisTemplate) {
+	public RedisRouteDefinitionRepository(ReactiveRedisTemplate<String, RouteDefinition> reactiveRedisTemplate) {
 		this.reactiveRedisTemplate = reactiveRedisTemplate;
 		this.routeDefinitionReactiveValueOperations = reactiveRedisTemplate.opsForValue();
 	}
 
 	@Override
 	public Flux<RouteDefinition> getRouteDefinitions() {
-		return reactiveRedisTemplate.keys(createKey("*"))
-				.flatMap(key -> reactiveRedisTemplate.opsForValue().get(key))
+		return reactiveRedisTemplate.keys(createKey("*")).flatMap(key -> reactiveRedisTemplate.opsForValue().get(key))
 				.onErrorContinue((throwable, routeDefinition) -> {
 					if (log.isErrorEnabled()) {
 						log.error("get routes from redis error cause : {}", throwable.toString(), throwable);
@@ -63,28 +61,24 @@ public class RedisRouteDefinitionRepository implements RouteDefinitionRepository
 	@Override
 	public Mono<Void> save(Mono<RouteDefinition> route) {
 		return route.flatMap(routeDefinition -> routeDefinitionReactiveValueOperations
-				.set(createKey(routeDefinition.getId()), routeDefinition)
-				.flatMap(success -> {
+				.set(createKey(routeDefinition.getId()), routeDefinition).flatMap(success -> {
 					if (success) {
 						return Mono.empty();
 					}
 					return Mono.defer(() -> Mono.error(new RuntimeException(
-							String.format("Could not add route to redis repository: %s",
-									routeDefinition))));
+							String.format("Could not add route to redis repository: %s", routeDefinition))));
 				}));
 	}
 
 	@Override
 	public Mono<Void> delete(Mono<String> routeId) {
-		return routeId.flatMap(id -> routeDefinitionReactiveValueOperations
-				.delete(createKey(id)).flatMap(success -> {
-					if (success) {
-						return Mono.empty();
-					}
-					return Mono.defer(() -> Mono.error(new NotFoundException(String
-							.format("Could not remove route from redis repository with id: %s",
-									routeId))));
-				}));
+		return routeId.flatMap(id -> routeDefinitionReactiveValueOperations.delete(createKey(id)).flatMap(success -> {
+			if (success) {
+				return Mono.empty();
+			}
+			return Mono.defer(() -> Mono.error(new NotFoundException(
+					String.format("Could not remove route from redis repository with id: %s", routeId))));
+		}));
 	}
 
 	private String createKey(String routeId) {

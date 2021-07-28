@@ -72,8 +72,7 @@ class GatewayRedisAutoConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnProperty(
-			value = "spring.cloud.gateway.redis-route-definition-repository.enabled",
+	@ConditionalOnProperty(value = "spring.cloud.gateway.redis-route-definition-repository.enabled",
 			havingValue = "true")
 	@ConditionalOnClass(ReactiveRedisTemplate.class)
 	public RedisRouteDefinitionRepository redisRouteDefinitionRepository(
@@ -89,8 +88,7 @@ class GatewayRedisAutoConfiguration {
 				RouteDefinition.class);
 		RedisSerializationContext.RedisSerializationContextBuilder<String, RouteDefinition> builder = RedisSerializationContext
 				.newSerializationContext(keySerializer);
-		RedisSerializationContext<String, RouteDefinition> context = builder
-				.value(valueSerializer).build();
+		RedisSerializationContext<String, RouteDefinition> context = builder.value(valueSerializer).build();
 
 		return new ReactiveRedisTemplate<>(factory, context);
 	}
