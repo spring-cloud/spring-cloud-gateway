@@ -16,8 +16,6 @@
 
 package org.springframework.cloud.gateway.config;
 
-import java.util.function.Predicate;
-
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.GenericContainer;
@@ -28,13 +26,11 @@ import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiter;
-import org.springframework.cloud.gateway.handler.predicate.AbstractRoutePredicateFactory;
 import org.springframework.cloud.gateway.route.RedisRouteDefinitionRepository;
 import org.springframework.cloud.gateway.route.RedisRouteDefinitionRepositoryTests;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.web.server.ServerWebExchange;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -43,6 +39,7 @@ public class GatewayRedisAutoConfigurationTests {
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	protected static class Config {
+
 		// TODO: figure out why I need these
 		@Bean
 		RedisRouteDefinitionRepositoryTests.TestGatewayFilterFactory testGatewayFilterFactory() {
@@ -58,9 +55,8 @@ public class GatewayRedisAutoConfigurationTests {
 		RedisRouteDefinitionRepositoryTests.TestRoutePredicateFactory testRoutePredicateFactory() {
 			return new RedisRouteDefinitionRepositoryTests.TestRoutePredicateFactory();
 		}
+
 	}
-
-
 
 	@Nested
 	@SpringBootTest(classes = Config.class)

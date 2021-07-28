@@ -136,13 +136,16 @@ public class RedisRouteDefinitionRepositoryTests {
 		TestRoutePredicateFactory testRoutePredicateFactory() {
 			return new TestRoutePredicateFactory();
 		}
+
 	}
 
 	public static class TestGatewayFilterFactory extends AbstractGatewayFilterFactory<Object> {
+
 		@Override
 		public GatewayFilter apply(Object config) {
 			return (exchange, chain) -> chain.filter(exchange);
 		}
+
 	}
 
 	public static class TestFilterGatewayFilterFactory extends TestGatewayFilterFactory {
@@ -150,6 +153,7 @@ public class RedisRouteDefinitionRepositoryTests {
 	}
 
 	public static class TestRoutePredicateFactory extends AbstractRoutePredicateFactory<Object> {
+
 		public TestRoutePredicateFactory() {
 			super(Object.class);
 		}
@@ -158,5 +162,7 @@ public class RedisRouteDefinitionRepositoryTests {
 		public Predicate<ServerWebExchange> apply(Object config) {
 			return exchange -> true;
 		}
+
 	}
+
 }
