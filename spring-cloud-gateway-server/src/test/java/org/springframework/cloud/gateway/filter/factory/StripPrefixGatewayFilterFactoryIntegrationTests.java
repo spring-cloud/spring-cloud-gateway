@@ -38,8 +38,13 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 public class StripPrefixGatewayFilterFactoryIntegrationTests extends BaseWebClientTests {
 
 	@Test
-	public void stripPrefixFilterDefaultValuesWork() {
+	public void stripPrefixFilterStripMultiplePartsValuesWork() {
 		testClient.get().uri("/foo/bar/get").header("Host", "www.stripprefix.org").exchange().expectStatus().isOk();
+	}
+
+	@Test
+	public void stripPrefixFilterDefaultPartsWork() {
+		testClient.get().uri("/foo/get").header("Host", "www.stripprefixdefault.org").exchange().expectStatus().isOk();
 	}
 
 	@EnableAutoConfiguration

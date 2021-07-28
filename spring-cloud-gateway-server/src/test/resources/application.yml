@@ -429,6 +429,15 @@ spring:
         filters:
           - StripPrefix=2
 
+        # =====================================
+      - id: strip_prefix_default_test
+        uri: ${test.uri}
+        predicates:
+          - Host=**.stripprefixdefault.org
+          - Path=/foo/**
+        filters:
+          - StripPrefix
+
       # =====================================
       - id: rewrite_path_test
         uri: ${test.uri}
