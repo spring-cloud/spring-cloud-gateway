@@ -37,8 +37,8 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.C
 /**
  * @author weizibin
  */
-public class CacheRequestBodyGatewayFilterFactory extends
-		AbstractGatewayFilterFactory<CacheRequestBodyGatewayFilterFactory.Config> {
+public class CacheRequestBodyGatewayFilterFactory
+		extends AbstractGatewayFilterFactory<CacheRequestBodyGatewayFilterFactory.Config> {
 
 	private final List<HttpMessageReader<?>> messageReaders;
 
@@ -51,8 +51,7 @@ public class CacheRequestBodyGatewayFilterFactory extends
 	public GatewayFilter apply(CacheRequestBodyGatewayFilterFactory.Config config) {
 		return new GatewayFilter() {
 			@Override
-			public Mono<Void> filter(ServerWebExchange exchange,
-					GatewayFilterChain chain) {
+			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 				ServerHttpRequest request = exchange.getRequest();
 				URI requestUri = request.getURI();
 				String scheme = requestUri.getScheme();
@@ -68,27 +67,24 @@ public class CacheRequestBodyGatewayFilterFactory extends
 				}
 
 				return ServerWebExchangeUtils.cacheRequestBodyAndRequest(exchange, (serverHttpRequest) -> {
-					final ServerRequest serverRequest = ServerRequest.create(exchange.mutate()
-							.request(serverHttpRequest).build(), messageReaders);
-					return serverRequest.bodyToMono((config.getBodyClass()))
-							.doOnNext(objectValue -> {
-								exchange.getAttributes()
-										.put(ServerWebExchangeUtils.CACHED_REQUEST_BODY_ATTR, objectValue);
-							}).then(Mono.defer(() -> {
-								ServerHttpRequest cachedRequest =
-										exchange.getAttribute(CACHED_SERVER_HTTP_REQUEST_DECORATOR_ATTR);
-								Assert.notNull(cachedRequest, "cache request shouldn't be null");
-								exchange.getAttributes().remove(CACHED_SERVER_HTTP_REQUEST_DECORATOR_ATTR);
-								return chain.filter(exchange.mutate().request(cachedRequest).build());
-							}));
+					final ServerRequest serverRequest = ServerRequest
+							.create(exchange.mutate().request(serverHttpRequest).build(), messageReaders);
+					return serverRequest.bodyToMono((config.getBodyClass())).doOnNext(objectValue -> {
+						exchange.getAttributes().put(ServerWebExchangeUtils.CACHED_REQUEST_BODY_ATTR, objectValue);
+					}).then(Mono.defer(() -> {
+						ServerHttpRequest cachedRequest = exchange
+								.getAttribute(CACHED_SERVER_HTTP_REQUEST_DECORATOR_ATTR);
+						Assert.notNull(cachedRequest, "cache request shouldn't be null");
+						exchange.getAttributes().remove(CACHED_SERVER_HTTP_REQUEST_DECORATOR_ATTR);
+						return chain.filter(exchange.mutate().request(cachedRequest).build());
+					}));
 				});
 			}
 
 			@Override
 			public String toString() {
 				return filterToStringCreator(CacheRequestBodyGatewayFilterFactory.this)
-						.append("Body class", config.getBodyClass())
-						.toString();
+						.append("Body class", config.getBodyClass()).toString();
 			}
 		};
 	}
@@ -104,5 +100,7 @@ public class CacheRequestBodyGatewayFilterFactory extends
 		public void setBodyClass(Class<?> bodyClass) {
 			this.bodyClass = bodyClass;
 		}
+
 	}
+
 }

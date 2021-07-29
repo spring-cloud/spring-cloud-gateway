@@ -255,12 +255,12 @@ public class GatewayFilterSpec extends UriSpec {
 
 	/**
 	 * A filter that can cache the request body.
-	 * @param bodyClass the class to convert the incoming request body to the original request body class
+	 * @param bodyClass the class to convert the incoming request body to the original
+	 * request body class
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
 	public GatewayFilterSpec cacheRequestBody(Class<?> bodyClass) {
-		return filter(getBean(CacheRequestBodyGatewayFilterFactory.class)
-				.apply(c -> c.setBodyClass(bodyClass)));
+		return filter(getBean(CacheRequestBodyGatewayFilterFactory.class).apply(c -> c.setBodyClass(bodyClass)));
 	}
 
 	/**

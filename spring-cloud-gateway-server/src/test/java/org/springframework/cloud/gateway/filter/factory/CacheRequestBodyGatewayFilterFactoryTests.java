@@ -45,46 +45,41 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
-public class CacheRequestBodyGatewayFilterFactoryTests
-		extends BaseWebClientTests {
+public class CacheRequestBodyGatewayFilterFactoryTests extends BaseWebClientTests {
 
 	private static final String BODY_VALUE = "here is request body";
+
 	private static final String BODY_EMPTY = "";
+
 	private static final String BODY_CACHED_EXISTS = "BODY_CACHED_EXISTS";
 
 	@Test
 	public void cacheRequestBodyWorks() {
-		testClient.post().uri("/post")
-				.header("Host", "www.cacherequestbody.org").bodyValue(BODY_VALUE)
-				.exchange()
+		testClient.post().uri("/post").header("Host", "www.cacherequestbody.org").bodyValue(BODY_VALUE).exchange()
 				.expectStatus().isOk().expectBody(Map.class).consumeWith(result -> {
-			Map<?, ?> response = result.getResponseBody();
-			assertThat(response).isNotNull();
+					Map<?, ?> response = result.getResponseBody();
+					assertThat(response).isNotNull();
 
-			String responseBody = (String) response.get("data");
-			assertThat(responseBody).isEqualTo(BODY_VALUE);
-		});
+					String responseBody = (String) response.get("data");
+					assertThat(responseBody).isEqualTo(BODY_VALUE);
+				});
 	}
 
 	@Test
 	public void cacheRequestBodyEmpty() {
-		testClient.post().uri("/post")
-				.header("Host", "www.cacherequestbodyempty.org")
-				.exchange()
-				.expectStatus().isOk().expectBody(Map.class).consumeWith(result -> {
-			Map<?, ?> response = result.getResponseBody();
-			assertThat(response).isNotNull();
+		testClient.post().uri("/post").header("Host", "www.cacherequestbodyempty.org").exchange().expectStatus().isOk()
+				.expectBody(Map.class).consumeWith(result -> {
+					Map<?, ?> response = result.getResponseBody();
+					assertThat(response).isNotNull();
 
-			assertThat(response.get("data")).isNull();
-		});
+					assertThat(response.get("data")).isNull();
+				});
 	}
 
 	@Test
 	public void cacheRequestBodyExists() {
-		testClient.post().uri("/post")
-				.header("Host", "www.cacherequestbodyexists.org")
-				.exchange()
-				.expectStatus().isOk();
+		testClient.post().uri("/post").header("Host", "www.cacherequestbodyexists.org").exchange().expectStatus()
+				.isOk();
 	}
 
 	@Test
@@ -106,30 +101,32 @@ public class CacheRequestBodyGatewayFilterFactoryTests
 		@Bean
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes()
-					.route("cache_request_body_java_test", r -> r
-							.path("/post").and().host("**.cacherequestbody.org")
-							.filters(f -> f.prefixPath("/httpbin").cacheRequestBody(String.class)
-									.filter(new AssertCachedRequestBodyGatewayFilter(BODY_VALUE)))
-							.uri(uri))
-					.route("cache_request_body_empty_java_test", r -> r
-							.path("/post").and().host("**.cacherequestbodyempty.org")
-							.filters(f -> f.prefixPath("/httpbin").cacheRequestBody(String.class)
-									.filter(new AssertCachedRequestBodyGatewayFilter(BODY_EMPTY)))
-							.uri(uri))
-					.route("cache_request_body_exists_java_test", r -> r
-							.path("/post").and().host("**.cacherequestbodyexists.org")
-							.filters(f -> f.prefixPath("/httpbin")
-									.filter(new SetExchangeCachedRequestBodyGatewayFilter(BODY_CACHED_EXISTS))
-									.cacheRequestBody(String.class)
-									.filter(new AssertCachedRequestBodyGatewayFilter(BODY_CACHED_EXISTS)))
-							.uri(uri))
+					.route("cache_request_body_java_test",
+							r -> r.path("/post").and().host("**.cacherequestbody.org")
+									.filters(f -> f.prefixPath("/httpbin").cacheRequestBody(String.class)
+											.filter(new AssertCachedRequestBodyGatewayFilter(BODY_VALUE)))
+									.uri(uri))
+					.route("cache_request_body_empty_java_test",
+							r -> r.path("/post").and().host("**.cacherequestbodyempty.org")
+									.filters(f -> f.prefixPath("/httpbin").cacheRequestBody(String.class)
+											.filter(new AssertCachedRequestBodyGatewayFilter(BODY_EMPTY)))
+									.uri(uri))
+					.route("cache_request_body_exists_java_test",
+							r -> r.path("/post").and().host("**.cacherequestbodyexists.org")
+									.filters(f -> f.prefixPath("/httpbin")
+											.filter(new SetExchangeCachedRequestBodyGatewayFilter(BODY_CACHED_EXISTS))
+											.cacheRequestBody(String.class)
+											.filter(new AssertCachedRequestBodyGatewayFilter(BODY_CACHED_EXISTS)))
+									.uri(uri))
 					.build();
 		}
 
 	}
 
 	private static class AssertCachedRequestBodyGatewayFilter implements GatewayFilter {
+
 		private boolean exceptNullBody;
+
 		private String bodyExcepted;
 
 		AssertCachedRequestBodyGatewayFilter(String body) {
@@ -148,9 +145,11 @@ public class CacheRequestBodyGatewayFilterFactoryTests
 			}
 			return chain.filter(exchange);
 		}
+
 	}
 
 	private static class SetExchangeCachedRequestBodyGatewayFilter implements GatewayFilter {
+
 		private String bodyToSetCache;
 
 		SetExchangeCachedRequestBodyGatewayFilter(String toSet) {
@@ -162,6 +161,7 @@ public class CacheRequestBodyGatewayFilterFactoryTests
 			exchange.getAttributes().put(ServerWebExchangeUtils.CACHED_REQUEST_BODY_ATTR, bodyToSetCache);
 			return chain.filter(exchange);
 		}
+
 	}
 
 }
