@@ -2488,7 +2488,7 @@ The resulting response is similar to the following:
   "filters": [],
   "uri": "https://www.uri-destination.org",
   "order": 0
-}]
+}
 ----
 ====
 
