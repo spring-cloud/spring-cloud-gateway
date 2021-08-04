@@ -1,0 +1,6 @@
+spring:
+  cloud:
+    gateway:
+      mongo-route-definition-repository:
+        enabled: true
+
