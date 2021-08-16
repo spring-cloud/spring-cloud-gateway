@@ -2607,7 +2607,7 @@ In order to write a Route Predicate you will need to implement `RoutePredicateFa
 .MyRoutePredicateFactory.java
 [source,java]
 ----
-public class MyRoutePredicateFactory extends AbstractRoutePredicateFactory<HeaderRoutePredicateFactory.Config> {
+public class MyRoutePredicateFactory extends AbstractRoutePredicateFactory<MyRoutePredicateFactory.Config> {
 
     public MyRoutePredicateFactory() {
         super(Config.class);
