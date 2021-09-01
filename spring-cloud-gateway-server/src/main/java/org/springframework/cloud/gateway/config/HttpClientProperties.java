@@ -217,6 +217,9 @@ public class HttpClientProperties {
 		 */
 		private Duration evictionInterval = Duration.ZERO;
 
+		/** Enables metrics for Netty HttpClient. */
+		private boolean metrics;
+
 		public PoolType getType() {
 			return type;
 		}
@@ -273,11 +276,19 @@ public class HttpClientProperties {
 			this.evictionInterval = evictionInterval;
 		}
 
+		public boolean isMetrics() {
+			return metrics;
+		}
+
+		public void setMetrics(boolean metrics) {
+			this.metrics = metrics;
+		}
+
 		@Override
 		public String toString() {
 			return "Pool{" + "type=" + type + ", name='" + name + '\'' + ", maxConnections=" + maxConnections
 					+ ", acquireTimeout=" + acquireTimeout + ", maxIdleTime=" + maxIdleTime + ", maxLifeTime="
-					+ maxLifeTime + ", evictionInterval=" + evictionInterval + '}';
+					+ maxLifeTime + ", evictionInterval=" + evictionInterval + ", metrics=" + metrics + '}';
 		}
 
 		public enum PoolType {
