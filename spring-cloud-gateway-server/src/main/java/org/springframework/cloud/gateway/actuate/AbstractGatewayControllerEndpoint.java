@@ -136,8 +136,7 @@ public class AbstractGatewayControllerEndpoint implements ApplicationEventPublis
 	public Mono<ResponseEntity<Object>> save(@PathVariable String id, @RequestBody RouteDefinition route) {
 
 		return Mono.just(route).doOnNext(this::validateRouteDefinition)
-				.flatMap(routeDefinition -> this.routeDefinitionWriter
-						.save(Mono.just(routeDefinition).map(r -> {
+				.flatMap(routeDefinition -> this.routeDefinitionWriter.save(Mono.just(routeDefinition).map(r -> {
 					r.setId(id);
 					log.debug("Saving route: " + route);
 					return r;
@@ -146,39 +145,33 @@ public class AbstractGatewayControllerEndpoint implements ApplicationEventPublis
 	}
 
 	private void validateRouteDefinition(RouteDefinition routeDefinition) {
-		Set<String> unavailableFilterDefinitions = routeDefinition.getFilters().stream()
-				.filter(rd -> !isAvailable(rd)).map(FilterDefinition::getName)
-				.collect(Collectors.toSet());
+		Set<String> unavailableFilterDefinitions = routeDefinition.getFilters().stream().filter(rd -> !isAvailable(rd))
+				.map(FilterDefinition::getName).collect(Collectors.toSet());
 
-		Set<String> unavailablePredicatesDefinitions = routeDefinition.getPredicates()
-				.stream().filter(rd -> !isAvailable(rd)).map(PredicateDefinition::getName)
-				.collect(Collectors.toSet());
+		Set<String> unavailablePredicatesDefinitions = routeDefinition.getPredicates().stream()
+				.filter(rd -> !isAvailable(rd)).map(PredicateDefinition::getName).collect(Collectors.toSet());
 		if (!unavailableFilterDefinitions.isEmpty()) {
-			handleUnavailableDefinition(FilterDefinition.class.getSimpleName(),
-					unavailableFilterDefinitions);
+			handleUnavailableDefinition(FilterDefinition.class.getSimpleName(), unavailableFilterDefinitions);
 		}
 		else if (!unavailablePredicatesDefinitions.isEmpty()) {
-			handleUnavailableDefinition(PredicateDefinition.class.getSimpleName(),
-					unavailablePredicatesDefinitions);
+			handleUnavailableDefinition(PredicateDefinition.class.getSimpleName(), unavailablePredicatesDefinitions);
 		}
 	}
 
-	private void handleUnavailableDefinition(String simpleName,
-			Set<String> unavailableDefinitions) {
-		final String errorMessage = String.format("Invalid %s: %s", simpleName,
-				unavailableDefinitions);
+	private void handleUnavailableDefinition(String simpleName, Set<String> unavailableDefinitions) {
+		final String errorMessage = String.format("Invalid %s: %s", simpleName, unavailableDefinitions);
 		log.debug(errorMessage);
 		throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errorMessage);
 	}
 
 	private boolean isAvailable(FilterDefinition filterDefinition) {
-		return GatewayFilters.stream().anyMatch(gatewayFilterFactory -> filterDefinition
-				.getName().equals(gatewayFilterFactory.name()));
+		return GatewayFilters.stream()
+				.anyMatch(gatewayFilterFactory -> filterDefinition.getName().equals(gatewayFilterFactory.name()));
 	}
 
 	private boolean isAvailable(PredicateDefinition predicateDefinition) {
-		return routePredicates.stream().anyMatch(routePredicate -> predicateDefinition
-				.getName().equals(routePredicate.name()));
+		return routePredicates.stream()
+				.anyMatch(routePredicate -> predicateDefinition.getName().equals(routePredicate.name()));
 	}
 
 	@DeleteMapping("/routes/{id}")
