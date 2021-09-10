@@ -174,7 +174,8 @@ public class GatewayControllerEndpointTests {
 
 		testClient.post().uri("http://localhost:" + port + "/actuator/gateway/routes/test-route")
 				.accept(MediaType.APPLICATION_JSON).body(BodyInserters.fromValue(testRouteDefinition)).exchange()
-				.expectStatus().isBadRequest();
+				.expectStatus().isBadRequest().expectBody().jsonPath("$.message")
+				.isEqualTo("Invalid FilterDefinition: [NotExistingFilter]");
 	}
 
 	@Test
@@ -188,7 +189,8 @@ public class GatewayControllerEndpointTests {
 
 		testClient.post().uri("http://localhost:" + port + "/actuator/gateway/routes/test-route")
 				.accept(MediaType.APPLICATION_JSON).body(BodyInserters.fromValue(testRouteDefinition)).exchange()
-				.expectStatus().isBadRequest();
+				.expectStatus().isBadRequest().expectBody().jsonPath("$.message")
+				.isEqualTo("Invalid PredicateDefinition: [NotExistingPredicate]");
 	}
 
 	@SpringBootConfiguration
