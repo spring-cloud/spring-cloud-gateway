@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.gateway.route;
 
+import java.util.UUID;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Flux;
@@ -63,7 +65,7 @@ public class CompositeRouteDefinitionLocator implements RouteDefinitionLocator {
 	}
 
 	protected Mono<String> randomId() {
-		return Mono.fromSupplier(idGenerator::toString).publishOn(Schedulers.boundedElastic());
+		return Mono.fromSupplier(idGenerator::generateId).map(UUID::toString).publishOn(Schedulers.boundedElastic());
 	}
 
 }

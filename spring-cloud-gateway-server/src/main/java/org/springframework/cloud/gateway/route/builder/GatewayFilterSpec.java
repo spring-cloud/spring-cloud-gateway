@@ -39,6 +39,7 @@ import org.springframework.cloud.gateway.filter.factory.AbstractChangeRequestUri
 import org.springframework.cloud.gateway.filter.factory.AddRequestHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.AddRequestParameterGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.AddResponseHeaderGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.CacheRequestBodyGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.DedupeResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.DedupeResponseHeaderGatewayFilterFactory.Strategy;
 import org.springframework.cloud.gateway.filter.factory.FallbackHeadersGatewayFilterFactory;
@@ -250,6 +251,16 @@ public class GatewayFilterSpec extends UriSpec {
 			RewriteFunction<T, R> rewriteFunction) {
 		return filter(getBean(ModifyRequestBodyGatewayFilterFactory.class)
 				.apply(c -> c.setRewriteFunction(inClass, outClass, rewriteFunction).setContentType(newContentType)));
+	}
+
+	/**
+	 * A filter that can cache the request body.
+	 * @param bodyClass the class to convert the incoming request body to the original
+	 * request body class
+	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
+	 */
+	public GatewayFilterSpec cacheRequestBody(Class<?> bodyClass) {
+		return filter(getBean(CacheRequestBodyGatewayFilterFactory.class).apply(c -> c.setBodyClass(bodyClass)));
 	}
 
 	/**
