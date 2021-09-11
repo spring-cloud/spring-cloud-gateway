@@ -99,6 +99,7 @@ public class Route implements Ordered {
 		return this.uri;
 	}
 
+	@Override
 	public int getOrder() {
 		return order;
 	}
@@ -109,6 +110,10 @@ public class Route implements Ordered {
 
 	public List<GatewayFilter> getFilters() {
 		return Collections.unmodifiableList(this.gatewayFilters);
+	}
+
+	public void addDefaultGatewayFilters(List<GatewayFilter> defaultGatewayFilters) {
+		this.gatewayFilters.addAll(defaultGatewayFilters);
 	}
 
 	public Map<String, Object> getMetadata() {
@@ -231,6 +236,7 @@ public class Route implements Ordered {
 			return filters(Arrays.asList(gatewayFilters));
 		}
 
+		@Override
 		public Route build() {
 			Assert.notNull(this.id, "id can not be null");
 			Assert.notNull(this.uri, "uri can not be null");

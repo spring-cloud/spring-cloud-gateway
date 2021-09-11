@@ -18,6 +18,7 @@ package org.springframework.cloud.gateway.handler;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -69,6 +70,7 @@ public class RoutePredicateHandlerMappingIntegrationTests extends BaseWebClientT
 	}
 
 	@Test
+	@Ignore
 	public void andNotWorksWithParameter() {
 		testClient.get().uri("/andnotquery?myquery=shouldnotsee").exchange().expectBody(String.class)
 				.isEqualTo("hasquery");
