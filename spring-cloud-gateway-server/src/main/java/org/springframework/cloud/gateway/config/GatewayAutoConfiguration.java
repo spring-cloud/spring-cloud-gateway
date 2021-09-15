@@ -28,6 +28,7 @@ import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Flux;
+import reactor.netty.http.HttpProtocol;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.client.WebsocketClientSpec;
 import reactor.netty.http.server.WebsocketServerSpec;
@@ -641,7 +642,8 @@ public class GatewayAutoConfiguration {
 
 		@Bean
 		@ConditionalOnMissingBean
-		public HttpClient gatewayHttpClient(HttpClientProperties properties, List<HttpClientCustomizer> customizers) {
+		public HttpClient gatewayHttpClient(HttpClientProperties properties, ServerProperties serverProperties,
+				List<HttpClientCustomizer> customizers) {
 
 			// configure pool resources
 			ConnectionProvider connectionProvider = buildConnectionProvider(properties);
@@ -658,32 +660,31 @@ public class GatewayAutoConfiguration {
 							spec.maxInitialLineLength((int) properties.getMaxInitialLineLength().toBytes());
 						}
 						return spec;
-					}).tcpConfiguration(tcpClient -> {
-
-						if (properties.getConnectTimeout() != null) {
-							tcpClient = tcpClient.option(ChannelOption.CONNECT_TIMEOUT_MILLIS,
-									properties.getConnectTimeout());
-						}
-
-						// configure proxy if proxy host is set.
-						HttpClientProperties.Proxy proxy = properties.getProxy();
-
-						if (StringUtils.hasText(proxy.getHost())) {
-
-							tcpClient = tcpClient.proxy(proxySpec -> {
-								ProxyProvider.Builder builder = proxySpec.type(proxy.getType()).host(proxy.getHost());
-
-								PropertyMapper map = PropertyMapper.get();
-
-								map.from(proxy::getPort).whenNonNull().to(builder::port);
-								map.from(proxy::getUsername).whenHasText().to(builder::username);
-								map.from(proxy::getPassword).whenHasText()
-										.to(password -> builder.password(s -> password));
-								map.from(proxy::getNonProxyHostsPattern).whenHasText().to(builder::nonProxyHosts);
-							});
-						}
-						return tcpClient;
 					});
+
+			if (serverProperties.getHttp2().isEnabled()) {
+				httpClient = httpClient.protocol(HttpProtocol.HTTP11, HttpProtocol.H2);
+			}
+
+			if (properties.getConnectTimeout() != null) {
+				httpClient = httpClient.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, properties.getConnectTimeout());
+			}
+
+			// configure proxy if proxy host is set.
+			if (StringUtils.hasText(properties.getProxy().getHost())) {
+				HttpClientProperties.Proxy proxy = properties.getProxy();
+
+				httpClient = httpClient.proxy(proxySpec -> {
+					ProxyProvider.Builder builder = proxySpec.type(proxy.getType()).host(proxy.getHost());
+
+					PropertyMapper map = PropertyMapper.get();
+
+					map.from(proxy::getPort).whenNonNull().to(builder::port);
+					map.from(proxy::getUsername).whenHasText().to(builder::username);
+					map.from(proxy::getPassword).whenHasText().to(password -> builder.password(s -> password));
+					map.from(proxy::getNonProxyHostsPattern).whenHasText().to(builder::nonProxyHosts);
+				});
+			}
 
 			HttpClientProperties.Ssl ssl = properties.getSsl();
 			if ((ssl.getKeyStore() != null && ssl.getKeyStore().length() > 0)
@@ -707,6 +708,18 @@ public class GatewayAutoConfiguration {
 						logger.error(e);
 					}
 
+					sslContextSpec.sslContext(sslContextBuilder).defaultConfiguration(ssl.getDefaultConfigurationType())
+							.handshakeTimeout(ssl.getHandshakeTimeout())
+							.closeNotifyFlushTimeout(ssl.getCloseNotifyFlushTimeout())
+							.closeNotifyReadTimeout(ssl.getCloseNotifyReadTimeout());
+				});
+			}
+			else if (serverProperties.getHttp2().isEnabled()) {
+				httpClient = httpClient.secure(sslContextSpec -> {
+					SslContextBuilder sslContextBuilder = SslContextBuilder.forClient();
+					if (ssl.isUseInsecureTrustManager()) {
+						sslContextBuilder.trustManager(InsecureTrustManagerFactory.INSTANCE);
+					}
 					sslContextSpec.sslContext(sslContextBuilder).defaultConfiguration(ssl.getDefaultConfigurationType())
 							.handshakeTimeout(ssl.getHandshakeTimeout())
 							.closeNotifyFlushTimeout(ssl.getCloseNotifyFlushTimeout())
