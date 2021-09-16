@@ -18,8 +18,8 @@ package org.springframework.cloud.gateway.handler.predicate;
 
 import java.util.Random;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnJre;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
@@ -31,16 +31,16 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 
+import static org.junit.jupiter.api.condition.JRE.JAVA_17;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("weights-404")
 @DirtiesContext
+@DisabledOnJre(JAVA_17)
 public class WeightRoutePredicateFactoryYaml404Tests extends BaseWebClientTests {
 
 	@Autowired
