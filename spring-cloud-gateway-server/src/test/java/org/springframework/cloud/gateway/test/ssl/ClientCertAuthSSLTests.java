@@ -25,8 +25,8 @@ import javax.net.ssl.SSLException;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import reactor.netty.http.client.HttpClient;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -53,13 +53,14 @@ public class ClientCertAuthSSLTests extends SingleCertSSLTests {
 	@Value("${spring.cloud.gateway.httpclient.ssl.key-password}")
 	private String keyPassword;
 
-	@Before
+	@BeforeEach
 	public void setup() throws Exception {
 		KeyStore store = KeyStore.getInstance("JKS");
 
 		try {
 			URL url = ResourceUtils.getURL(keyStore);
-			store.load(url.openStream(), keyStorePassword != null ? keyStorePassword.toCharArray() : null);
+			store.load(url.openStream(), keyStorePassword != null ? keyStorePassword
+					.toCharArray() : null);
 		}
 		catch (Exception e) {
 			throw new WebServerException("Could not load key store ' " + keyStore + "'", e);
