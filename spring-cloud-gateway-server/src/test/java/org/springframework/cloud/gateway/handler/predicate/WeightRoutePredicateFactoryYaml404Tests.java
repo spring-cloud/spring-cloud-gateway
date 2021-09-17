@@ -41,7 +41,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @ActiveProfiles("weights-404")
 @DirtiesContext
 @DisabledOnJre(JAVA_17)
-public class WeightRoutePredicateFactoryYaml404Tests extends BaseWebClientTests {
+class WeightRoutePredicateFactoryYaml404Tests extends BaseWebClientTests {
 
 	@Autowired
 	private WeightCalculatorWebFilter filter;
@@ -53,7 +53,7 @@ public class WeightRoutePredicateFactoryYaml404Tests extends BaseWebClientTests 
 	}
 
 	@Test
-	public void weightsFromYamlNot404() {
+	void weightsFromYamlNot404() {
 		filter.setRandom(getRandom(0.5));
 
 		testClient.get().uri("/get").header(HttpHeaders.HOST, "www.weight4041.org").exchange().expectStatus().isOk()
@@ -63,9 +63,9 @@ public class WeightRoutePredicateFactoryYaml404Tests extends BaseWebClientTests 
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
-	public static class TestConfig {
+	static class TestConfig {
 
-		public TestConfig(WeightCalculatorWebFilter filter) {
+		TestConfig(WeightCalculatorWebFilter filter) {
 			Random random = getRandom(0.4);
 
 			filter.setRandom(random);

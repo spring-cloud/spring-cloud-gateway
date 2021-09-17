@@ -20,8 +20,7 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -35,18 +34,16 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
-public class ModifyResponseBodyGatewayFilterFactoryGzipTests extends BaseWebClientTests {
+class ModifyResponseBodyGatewayFilterFactoryGzipTests extends BaseWebClientTests {
 
 	@Test
-	public void testModificationOfResponseBody() {
+	void testModificationOfResponseBody() {
 		URI uri = UriComponentsBuilder.fromUriString(this.baseUri + "/gzip").build(true).toUri();
 
 		testClient.get().uri(uri).header("Host", "www.modifyresponsebodyjava.org").accept(MediaType.APPLICATION_JSON)
@@ -56,13 +53,13 @@ public class ModifyResponseBodyGatewayFilterFactoryGzipTests extends BaseWebClie
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
-	public static class TestConfig {
+	static class TestConfig {
 
 		@Value("${test.uri}")
 		String uri;
 
 		@Bean
-		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
+		RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes().route("modify_response_java_test_gzip", r -> r.path("/gzip").and()
 					.host("www.modifyresponsebodyjava.org")
 					.filters(f -> f.modifyResponseBody(String.class, Map.class, (webExchange, originalResponse) -> {
