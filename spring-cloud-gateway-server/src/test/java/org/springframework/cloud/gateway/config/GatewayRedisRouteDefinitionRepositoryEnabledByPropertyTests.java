@@ -24,12 +24,10 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.cloud.gateway.route.RedisRouteDefinitionRepository;
-import org.springframework.context.ApplicationContextInitializer;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -37,8 +35,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 		properties = "spring.cloud.gateway.redis-route-definition-repository.enabled=true")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @Testcontainers
-@ContextConfiguration(
-		initializers = GatewayRedisRouteDefinitionRepositoryEnabledByPropertyTests.RedisDbInitializer.class)
 public class GatewayRedisRouteDefinitionRepositoryEnabledByPropertyTests {
 
 	@Container
@@ -52,19 +48,15 @@ public class GatewayRedisRouteDefinitionRepositoryEnabledByPropertyTests {
 		redis.start();
 	}
 
+	@DynamicPropertySource
+	static void containerProperties(DynamicPropertyRegistry registry) {
+		registry.add("spring.redis.host", redis::getContainerIpAddress);
+		registry.add("spring.redis.port", redis::getFirstMappedPort);
+	}
+
 	@Test
 	public void redisRouteDefinitionRepository() {
 		assertThat(redisRouteDefinitionRepository).isNotNull();
-	}
-
-	public static class RedisDbInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
-
-		@Override
-		public void initialize(ConfigurableApplicationContext configurableApplicationContext) {
-			TestPropertyValues values = TestPropertyValues.of("spring.redis.port=" + redis.getFirstMappedPort());
-			values.applyTo(configurableApplicationContext);
-		}
-
 	}
 
 }

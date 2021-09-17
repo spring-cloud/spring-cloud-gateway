@@ -33,18 +33,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.cloud.gateway.filter.FilterDefinition;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.cloud.gateway.handler.predicate.AbstractRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
-import org.springframework.context.ApplicationContextInitializer;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.web.server.ServerWebExchange;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -52,11 +50,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Dennis Menge
  */
-@SpringBootTest(properties = {"debug=true", "logging.level.org.springframework.cloud.gateway=trace"})
+@SpringBootTest(properties = { "debug=true", "logging.level.org.springframework.cloud.gateway=trace" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @ActiveProfiles("redis-route-repository")
 @Testcontainers
-@ContextConfiguration(initializers = RedisRouteDefinitionRepositoryTests.RedisDbInitializer.class)
 public class RedisRouteDefinitionRepositoryTests {
 
 	@Container
@@ -70,9 +67,14 @@ public class RedisRouteDefinitionRepositoryTests {
 		redis.start();
 	}
 
+	@DynamicPropertySource
+	static void containerProperties(DynamicPropertyRegistry registry) {
+		registry.add("spring.redis.host", redis::getContainerIpAddress);
+		registry.add("spring.redis.port", redis::getFirstMappedPort);
+	}
+
 	@Test
 	public void testAddRouteToRedis() {
-
 		RouteDefinition testRouteDefinition = defaultTestRoute();
 
 		redisRouteDefinitionRepository.save(Mono.just(testRouteDefinition)).block();
@@ -169,16 +171,6 @@ public class RedisRouteDefinitionRepositoryTests {
 		@Override
 		public Predicate<ServerWebExchange> apply(Object config) {
 			return exchange -> true;
-		}
-
-	}
-
-	public static class RedisDbInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
-
-		@Override
-		public void initialize(ConfigurableApplicationContext configurableApplicationContext) {
-			TestPropertyValues values = TestPropertyValues.of("spring.redis.port=" + redis.getFirstMappedPort());
-			values.applyTo(configurableApplicationContext);
 		}
 
 	}
