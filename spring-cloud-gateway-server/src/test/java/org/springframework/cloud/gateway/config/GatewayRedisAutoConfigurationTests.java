@@ -18,8 +18,6 @@ package org.springframework.cloud.gateway.config;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.junit.jupiter.Container;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
@@ -109,28 +107,6 @@ public class GatewayRedisAutoConfigurationTests {
 		@Test
 		public void redisRouteDefinitionRepository() {
 			assertThat(redisRouteDefinitionRepository).isNull();
-		}
-
-	}
-
-	/**
-	 * @author Dennis Menge
-	 */
-	@Nested
-	@SpringBootTest(classes = GatewayRedisAutoConfigurationTests.Config.class,
-			properties = "spring.cloud.gateway.redis-route-definition-repository.enabled=true")
-	@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-	class RedisRouteDefinitionRepositoryEnabledByProperty {
-
-		@Container
-		public GenericContainer redis = new GenericContainer<>("redis:5.0.9-alpine").withExposedPorts(6379);
-
-		@Autowired(required = false)
-		private RedisRouteDefinitionRepository redisRouteDefinitionRepository;
-
-		@Test
-		public void redisRouteDefinitionRepository() {
-			assertThat(redisRouteDefinitionRepository).isNotNull();
 		}
 
 	}
