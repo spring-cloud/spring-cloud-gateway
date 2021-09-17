@@ -52,7 +52,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Dennis Menge
  */
-@SpringBootTest(properties = { "debug=true", "logging.level.org.springframework.cloud.gateway=trace" })
+@SpringBootTest(properties = {"debug=true", "logging.level.org.springframework.cloud.gateway=trace"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @ActiveProfiles("redis-route-repository")
 @Testcontainers
