@@ -16,8 +16,7 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
@@ -32,7 +31,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.unit.DataSize;
 import org.springframework.util.unit.DataUnit;
 
@@ -43,7 +41,6 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
  * @author Sakalya Deshpande
  */
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
 public class RequestHeaderSizeGatewayFilterFactoryTest extends BaseWebClientTests {

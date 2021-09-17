@@ -16,8 +16,7 @@
 
 package org.springframework.cloud.gateway.filter.factory.rewrite;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -33,7 +32,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.reactive.function.BodyInserters;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -41,7 +39,6 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 /**
  * @author Junghoon Song
  */
-@RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT, properties = "spring.codec.max-in-memory-size=13")
 @DirtiesContext
 public class ModifyRequestBodyGatewayFilterFactoryTests extends BaseWebClientTests {

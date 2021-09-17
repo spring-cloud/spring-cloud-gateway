@@ -16,8 +16,7 @@
 
 package org.springframework.cloud.gateway.handler.predicate;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -25,19 +24,17 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
-public class CookieRoutePredicateFactoryIntegrationTests extends BaseWebClientTests {
+class CookieRoutePredicateFactoryIntegrationTests extends BaseWebClientTests {
 
 	@Test
-	public void cookieRegexWorks() {
+	void cookieRegexWorks() {
 		assertCookieValue("helloaaaaa");
 
 		assertCookieValue("hello");
@@ -53,10 +50,10 @@ public class CookieRoutePredicateFactoryIntegrationTests extends BaseWebClientTe
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
 	@RestController
-	public static class TestConfig {
+	static class TestConfig {
 
 		@GetMapping("/httpbin/cookie")
-		public String cookie(@CookieValue("mycookie") String mycookie) {
+		String cookie(@CookieValue("mycookie") String mycookie) {
 			return mycookie;
 		}
 
