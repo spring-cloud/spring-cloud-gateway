@@ -18,7 +18,7 @@ package org.springframework.cloud.gateway.handler.predicate;
 
 import java.util.function.Predicate;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.gateway.handler.predicate.CookieRoutePredicateFactory.Config;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;

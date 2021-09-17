@@ -18,8 +18,7 @@ package org.springframework.cloud.gateway.handler;
 
 import java.net.URI;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
 
 import org.springframework.boot.SpringBootConfiguration;
@@ -31,11 +30,9 @@ import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT, properties = {})
 @DirtiesContext
 public class RoutePredicateHandlerMappingEmptyPredicatesTests extends BaseWebClientTests {
