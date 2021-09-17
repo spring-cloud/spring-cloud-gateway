@@ -567,7 +567,7 @@ spring:
 ----
 ====
 
-This adds `X-Response-Foo:Bar` header to the downstream response's headers for all matching requests.
+This adds `X-Response-Red:Blue` header to the downstream response's headers for all matching requests.
 
 `AddResponseHeader` is aware of URI variables used to match a path or host.
 URI variables may be used in the value and are expanded at runtime.
