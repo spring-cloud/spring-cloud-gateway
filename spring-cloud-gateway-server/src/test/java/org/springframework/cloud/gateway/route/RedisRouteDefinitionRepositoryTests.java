@@ -177,8 +177,7 @@ public class RedisRouteDefinitionRepositoryTests {
 
 		@Override
 		public void initialize(ConfigurableApplicationContext configurableApplicationContext) {
-			TestPropertyValues values = TestPropertyValues.of("spring.redis.host=" + redis.getHost(),
-					"spring.redis.port=" + redis.getFirstMappedPort());
+			TestPropertyValues values = TestPropertyValues.of("spring.redis.port=" + redis.getFirstMappedPort());
 			values.applyTo(configurableApplicationContext);
 		}
 
