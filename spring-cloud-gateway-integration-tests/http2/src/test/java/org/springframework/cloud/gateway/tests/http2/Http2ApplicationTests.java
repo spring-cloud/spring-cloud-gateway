@@ -16,12 +16,33 @@
 
 package org.springframework.cloud.gateway.tests.http2;
 
+import java.time.Duration;
+
+import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.netty.http.Http2SslContextSpec;
+import reactor.netty.http.HttpProtocol;
+import reactor.netty.http.client.HttpClient;
+import reactor.netty.http.client.HttpClientResponse;
+import reactor.netty.resources.ConnectionProvider;
+import reactor.netty.tcp.SslProvider;
+import reactor.test.StepVerifier;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.web.ServerProperties;
+import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
+import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.cloud.gateway.support.MvcFoundOnClasspathException;
 import org.springframework.cloud.gateway.support.MvcFoundOnClasspathFailureAnalyzer;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -30,43 +51,44 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.springframework.boot.test.context.SpringBootTest.*;
 
 /**
  * @author Spencer Gibb
  */
 @ExtendWith(OutputCaptureExtension.class)
+@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 public class Http2ApplicationTests {
 
-	@Test
-	public void exceptionThrown(CapturedOutput output) {
-		assertThatThrownBy(() -> new SpringApplication(Http2Application.class).run("--server.port=0"))
-				.hasRootCauseInstanceOf(MvcFoundOnClasspathException.class);
-		assertThat(output).contains(MvcFoundOnClasspathFailureAnalyzer.MESSAGE,
-				MvcFoundOnClasspathFailureAnalyzer.ACTION);
-	}
+	@Autowired
+	private ServerProperties serverProperties;
+
+	@LocalServerPort
+	int port;
 
 	@Test
-	public void exceptionNotThrownWhenDisabled(CapturedOutput output) {
-		assertThatCode(() -> new SpringApplication(Http2Application.class).run("--spring.cloud.gateway.enabled=false",
-				"--server.port=0")).doesNotThrowAnyException();
-		assertThat(output).doesNotContain(MvcFoundOnClasspathFailureAnalyzer.MESSAGE,
-				MvcFoundOnClasspathFailureAnalyzer.ACTION);
+	public void http2Works(CapturedOutput output) {
+		HttpClient httpClient = HttpClient.create(ConnectionProvider.builder("test").maxConnections(100)
+						.pendingAcquireTimeout(Duration.ofMillis(0))
+						.pendingAcquireMaxCount(-1).build())
+				.protocol(HttpProtocol.HTTP11, HttpProtocol.H2)
+				.secure(sslContextSpec -> {
+					SslContextBuilder sslContextBuilder = SslContextBuilder.forClient();
+					sslContextBuilder.trustManager(InsecureTrustManagerFactory.INSTANCE);
+					sslContextSpec.sslContext(sslContextBuilder)
+							.defaultConfiguration(SslProvider.DefaultConfigurationType.TCP);
+				});
+		Flux<HttpClientResponse> responseFlux = httpClient.request(HttpMethod.GET)
+				.uri("https://localhost:" + port + "/myprefix/hello")
+				.send(Mono.empty())
+				.response((res, byteBufFlux) -> {
+					assertThat(res.status()).isEqualTo(HttpResponseStatus.OK);
+					return Mono.just(res);
+				});
+
+
+		StepVerifier.create(responseFlux).expectNextCount(1).expectComplete().verify();
 	}
 
-	@Test
-	public void exceptionNotThrownWhenReactiveTypeSet(CapturedOutput output) {
-		assertThatCode(() -> {
-			ConfigurableApplicationContext context = new SpringApplication(Http2Application.class)
-					.run("--spring.main.web-application-type=reactive", "--server.port=0", "--debug=true");
-			Integer port = context.getEnvironment().getProperty("local.server.port", Integer.class);
-			WebTestClient client = WebTestClient.bindToServer().baseUrl("http://localhost:" + port).build();
-			client.get().uri("/myprefix/hello").exchange().expectStatus().isOk().expectBody(String.class)
-					.isEqualTo("Hello");
-			context.close();
-		}).doesNotThrowAnyException();
-		assertThat(output).doesNotContain(MvcFoundOnClasspathFailureAnalyzer.MESSAGE,
-				MvcFoundOnClasspathFailureAnalyzer.ACTION);
-
-	}
 
 }

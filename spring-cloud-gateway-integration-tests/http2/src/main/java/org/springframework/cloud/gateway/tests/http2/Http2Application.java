@@ -19,13 +19,14 @@ package org.springframework.cloud.gateway.tests.http2;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.cloud.client.DefaultServiceInstance;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
+import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
 import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
 import org.springframework.cloud.loadbalancer.support.ServiceInstanceListSuppliers;
 import org.springframework.context.annotation.Bean;
+import org.springframework.core.env.Environment;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -36,8 +37,7 @@ import org.springframework.web.bind.annotation.RestController;
 @SpringBootConfiguration
 @EnableAutoConfiguration
 @RestController
-// @LoadBalancerClient(name = "myservice", configuration =
-// Http2Application.MyServiceConf.class)
+@LoadBalancerClient(name = "myservice", configuration = Http2Application.MyServiceConf.class)
 public class Http2Application {
 
 	@GetMapping("hello")
@@ -46,7 +46,6 @@ public class Http2Application {
 	}
 
 	@Bean
-	@ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.REACTIVE)
 	public RouteLocator myRouteLocator(RouteLocatorBuilder builder) {
 		return builder.routes().route(r -> r.path("/myprefix/**").filters(f -> f.stripPrefix(1)).uri("lb://myservice"))
 				.route(r -> r.path("/neverssl/**").filters(f -> f.stripPrefix(1)).uri("http://neverssl.com"))
@@ -59,11 +58,9 @@ public class Http2Application {
 
 	static class MyServiceConf {
 
-		// @LocalServerPort
-		private int port = 8443;
-
 		@Bean
-		public ServiceInstanceListSupplier staticServiceInstanceListSupplier() {
+		public ServiceInstanceListSupplier staticServiceInstanceListSupplier(Environment env) {
+			Integer port = env.getProperty("local.server.port", Integer.class, 8443);
 			return ServiceInstanceListSuppliers.from("myservice",
 					new DefaultServiceInstance("myservice-1", "myservice", "localhost", port, true));
 		}
