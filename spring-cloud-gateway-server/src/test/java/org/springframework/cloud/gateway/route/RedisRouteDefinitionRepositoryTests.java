@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.function.Predicate;
 
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.GenericContainer;
@@ -33,14 +34,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.cloud.gateway.filter.FilterDefinition;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.cloud.gateway.handler.predicate.AbstractRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
+import org.springframework.context.ApplicationContextInitializer;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.web.server.ServerWebExchange;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -52,15 +57,20 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @ActiveProfiles("redis-route-repository")
 @Testcontainers
+@ContextConfiguration(initializers = RedisRouteDefinitionRepositoryTests.RedisDbInitializer.class)
 public class RedisRouteDefinitionRepositoryTests {
 
 	@Container
-	public GenericContainer redis = new GenericContainer<>("redis:5.0.9-alpine").withExposedPorts(6379);
+	public static GenericContainer redis = new GenericContainer<>("redis:5.0.9-alpine").withExposedPorts(6379);
 
 	@Autowired
 	private RedisRouteDefinitionRepository redisRouteDefinitionRepository;
 
-	@Disabled
+	@BeforeAll
+	public static void startRedisContainer() {
+		redis.start();
+	}
+
 	@Test
 	public void testAddRouteToRedis() {
 
@@ -75,7 +85,6 @@ public class RedisRouteDefinitionRepositoryTests {
 		assertThat(routeDefinitions.get(0)).isEqualTo(testRouteDefinition);
 	}
 
-	@Disabled
 	@Test
 	public void testRemoveRouteFromRedis() {
 
@@ -165,4 +174,14 @@ public class RedisRouteDefinitionRepositoryTests {
 
 	}
 
+	public static class RedisDbInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
+		@Override
+		public void initialize(ConfigurableApplicationContext configurableApplicationContext) {
+			TestPropertyValues values = TestPropertyValues.of(
+					"spring.redis.host="+redis.getHost(),
+					"spring.redis.port="+redis.getFirstMappedPort()
+			);
+			values.applyTo(configurableApplicationContext);
+		}
+	}
 }
