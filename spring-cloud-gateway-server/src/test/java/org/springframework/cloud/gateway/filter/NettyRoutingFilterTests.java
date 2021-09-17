@@ -17,8 +17,7 @@
 package org.springframework.cloud.gateway.filter;
 
 import org.hamcrest.Matchers;
-import org.junit.Assert;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
@@ -39,6 +38,8 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.util.SocketUtils;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class NettyRoutingFilterTests extends BaseWebClientTests {
 
@@ -47,7 +48,7 @@ class NettyRoutingFilterTests extends BaseWebClientTests {
 	@Autowired
 	private ApplicationContext context;
 
-	@BeforeClass
+	@BeforeAll
 	public static void beforeAll() {
 		port = SocketUtils.findAvailableTcpPort();
 	}
@@ -55,8 +56,10 @@ class NettyRoutingFilterTests extends BaseWebClientTests {
 	@Test
 	@Disabled
 	void mockServerWorks() {
-		WebTestClient client = WebTestClient.bindToApplicationContext(this.context).build();
-		client.get().uri("/mockexample").exchange().expectStatus().value(Matchers.lessThan(500));
+		WebTestClient client = WebTestClient.bindToApplicationContext(this.context)
+				.build();
+		client.get().uri("/mockexample").exchange().expectStatus()
+				.value(Matchers.lessThan(500));
 	}
 
 	@Test
@@ -69,10 +72,11 @@ class NettyRoutingFilterTests extends BaseWebClientTests {
 		try {
 			testClient.get().uri("/issue").exchange().expectStatus().isOk().expectBody()
 					.consumeWith(entityExchangeResult -> {
-						Assert.assertNotNull(entityExchangeResult);
-						Assert.assertNotNull(entityExchangeResult.getResponseBody());
-						String content = new String(entityExchangeResult.getResponseBody());
-						Assert.assertEquals("issue2207", content);
+						assertThat(entityExchangeResult).isNotNull();
+						assertThat(entityExchangeResult.getResponseBody()).isNotNull();
+						String content = new String(entityExchangeResult
+								.getResponseBody());
+						assertThat(content).isEqualTo("issue2207");
 					});
 		}
 		finally {
