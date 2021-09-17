@@ -23,7 +23,6 @@ import java.util.function.Predicate;
 
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -175,13 +174,14 @@ public class RedisRouteDefinitionRepositoryTests {
 	}
 
 	public static class RedisDbInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
+
 		@Override
 		public void initialize(ConfigurableApplicationContext configurableApplicationContext) {
-			TestPropertyValues values = TestPropertyValues.of(
-					"spring.redis.host="+redis.getHost(),
-					"spring.redis.port="+redis.getFirstMappedPort()
-			);
+			TestPropertyValues values = TestPropertyValues.of("spring.redis.host=" + redis.getHost(),
+					"spring.redis.port=" + redis.getFirstMappedPort());
 			values.applyTo(configurableApplicationContext);
 		}
+
 	}
+
 }
