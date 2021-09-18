@@ -56,10 +56,8 @@ class NettyRoutingFilterTests extends BaseWebClientTests {
 	@Test
 	@Disabled
 	void mockServerWorks() {
-		WebTestClient client = WebTestClient.bindToApplicationContext(this.context)
-				.build();
-		client.get().uri("/mockexample").exchange().expectStatus()
-				.value(Matchers.lessThan(500));
+		WebTestClient client = WebTestClient.bindToApplicationContext(this.context).build();
+		client.get().uri("/mockexample").exchange().expectStatus().value(Matchers.lessThan(500));
 	}
 
 	@Test
@@ -74,8 +72,7 @@ class NettyRoutingFilterTests extends BaseWebClientTests {
 					.consumeWith(entityExchangeResult -> {
 						assertThat(entityExchangeResult).isNotNull();
 						assertThat(entityExchangeResult.getResponseBody()).isNotNull();
-						String content = new String(entityExchangeResult
-								.getResponseBody());
+						String content = new String(entityExchangeResult.getResponseBody());
 						assertThat(content).isEqualTo("issue2207");
 					});
 		}

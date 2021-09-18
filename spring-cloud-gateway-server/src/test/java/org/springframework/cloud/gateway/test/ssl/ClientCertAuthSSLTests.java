@@ -59,8 +59,7 @@ public class ClientCertAuthSSLTests extends SingleCertSSLTests {
 
 		try {
 			URL url = ResourceUtils.getURL(keyStore);
-			store.load(url.openStream(), keyStorePassword != null ? keyStorePassword
-					.toCharArray() : null);
+			store.load(url.openStream(), keyStorePassword != null ? keyStorePassword.toCharArray() : null);
 		}
 		catch (Exception e) {
 			throw new WebServerException("Could not load key store ' " + keyStore + "'", e);

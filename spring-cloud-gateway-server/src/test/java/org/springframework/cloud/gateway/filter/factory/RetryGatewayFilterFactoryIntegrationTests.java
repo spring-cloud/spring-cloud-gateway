@@ -108,11 +108,9 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 	@Test
 	public void retryFilterPost(CapturedOutput output) {
 		testClient.post().uri("/retrypost?key=postconfig&expectedbody=HelloConfig")
-				.header(HttpHeaders.HOST, "www.retrypostconfig.org")
-				.bodyValue("HelloConfig").exchange().expectStatus()
+				.header(HttpHeaders.HOST, "www.retrypostconfig.org").bodyValue("HelloConfig").exchange().expectStatus()
 				.isOk().expectBody(String.class).isEqualTo("3");
-		assertThat(output)
-				.contains("disposing response connection before next iteration");
+		assertThat(output).contains("disposing response connection before next iteration");
 	}
 
 	@Test
@@ -123,10 +121,8 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 
 	@Test
 	public void retryFilterPostOneTime(CapturedOutput output) {
-		testClient.post()
-				.uri("/retrypost?key=retryFilterPostOneTime&expectedbody=HelloGateway&count=1")
-				.header(HttpHeaders.HOST, "www.retrypostonceconfig.org")
-				.bodyValue("HelloGateway").exchange()
+		testClient.post().uri("/retrypost?key=retryFilterPostOneTime&expectedbody=HelloGateway&count=1")
+				.header(HttpHeaders.HOST, "www.retrypostonceconfig.org").bodyValue("HelloGateway").exchange()
 				.expectStatus().isOk();
 		assertThat(output).contains("setting new iteration in attr 0");
 		assertThat(output).doesNotContain("setting new iteration in attr 1");
