@@ -86,6 +86,11 @@ public class CustomBlockHoundIntegration implements BlockHoundIntegration {
 		builder.allowBlockingCallsInside(
 				"org.springframework.security.authentication.AbstractUserDetailsReactiveAuthenticationManager",
 				"lambda$authenticate$4");
+
+		// Uses java.io.RandomAccessFile#readBytes
+		builder.allowBlockingCallsInside("org.springframework.context.annotation.ConfigurationClassParser", "parse");
+		builder.allowBlockingCallsInside(
+				"org.springframework.context.annotation.ConfigurationClassBeanDefinitionReader", "loadBeanDefinitions");
 	}
 
 }
