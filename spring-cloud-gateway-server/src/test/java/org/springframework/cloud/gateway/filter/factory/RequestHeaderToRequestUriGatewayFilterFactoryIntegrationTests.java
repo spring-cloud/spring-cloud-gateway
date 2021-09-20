@@ -20,9 +20,8 @@ import java.net.URI;
 import java.util.Optional;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -34,7 +33,6 @@ import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -42,7 +40,6 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 /**
  * @author Toshiaki Maki
  */
-@RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
 public class RequestHeaderToRequestUriGatewayFilterFactoryIntegrationTests extends BaseWebClientTests {
@@ -51,7 +48,7 @@ public class RequestHeaderToRequestUriGatewayFilterFactoryIntegrationTests exten
 	int port;
 
 	@Test
-	@Ignore
+	@Disabled
 	public void changeUriWorkWithProperties() {
 		testClient.get().uri("/").header("Host", "www.changeuri.org")
 				.header("X-CF-Forwarded-Url", "http://localhost:" + port + "/actuator/health").exchange()
@@ -59,7 +56,7 @@ public class RequestHeaderToRequestUriGatewayFilterFactoryIntegrationTests exten
 	}
 
 	@Test
-	@Ignore
+	@Disabled
 	public void changeUriWorkWithDsl() {
 		testClient.get().uri("/").header("Host", "www.changeuri.org")
 				.header("X-Next-Url", "http://localhost:" + port + "/actuator/health").exchange()

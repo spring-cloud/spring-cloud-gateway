@@ -63,7 +63,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 				"spring.main.allow-bean-definition-overriding=true" })
 @DirtiesContext
 @ActiveProfiles("single-cert-ssl")
-public class ModifyRequestBodyGatewayFilterFactorySslTimeoutTests extends BaseWebClientTests {
+class ModifyRequestBodyGatewayFilterFactorySslTimeoutTests extends BaseWebClientTests {
 
 	@Autowired
 	AtomicInteger releaseCount;
@@ -82,7 +82,7 @@ public class ModifyRequestBodyGatewayFilterFactorySslTimeoutTests extends BaseWe
 	}
 
 	@Test
-	public void modifyRequestBodySSLTimeout() {
+	void modifyRequestBodySSLTimeout() {
 		testClient.post().uri("/post").header("Host", "www.modifyrequestbodyssltimeout.org")
 				.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_XML_VALUE)
 				.body(BodyInserters.fromValue("request")).exchange().expectStatus()
@@ -91,7 +91,7 @@ public class ModifyRequestBodyGatewayFilterFactorySslTimeoutTests extends BaseWe
 	}
 
 	@RetryingTest(3)
-	public void modifyRequestBodyRelease() {
+	void modifyRequestBodyRelease() {
 		releaseCount.set(0);
 		// long initialUsedDirectMemory = PlatformDependent.usedDirectMemory();
 		for (int i = 0; i < 10; i++) {
@@ -107,7 +107,7 @@ public class ModifyRequestBodyGatewayFilterFactorySslTimeoutTests extends BaseWe
 	}
 
 	@Test
-	public void modifyRequestBodyHappenedError() {
+	void modifyRequestBodyHappenedError() {
 		testClient.post().uri("/post").header("Host", "www.modifyrequestbodyexception.org")
 				.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_XML_VALUE)
 				.body(BodyInserters.fromValue("request")).exchange().expectStatus()
@@ -118,14 +118,14 @@ public class ModifyRequestBodyGatewayFilterFactorySslTimeoutTests extends BaseWe
 	@EnableAutoConfiguration
 	@SpringBootConfiguration(proxyBeanMethods = false)
 	@Import(DefaultTestConfig.class)
-	public static class TestConfig {
+	static class TestConfig {
 
 		@Value("${test.uri}")
 		String uri;
 
 		@Bean
 		@DependsOn("testModifyRequestBodyGatewayFilterFactory")
-		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
+		RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes()
 					.route("test_modify_request_body_ssl_timeout",
 							r -> r.order(-1).host("**.modifyrequestbodyssltimeout.org")
@@ -146,13 +146,13 @@ public class ModifyRequestBodyGatewayFilterFactorySslTimeoutTests extends BaseWe
 		}
 
 		@Bean
-		public AtomicInteger count() {
+		AtomicInteger count() {
 			return new AtomicInteger();
 		}
 
 		@Bean
 		@Primary
-		public ModifyRequestBodyGatewayFilterFactory testModifyRequestBodyGatewayFilterFactory(
+		ModifyRequestBodyGatewayFilterFactory testModifyRequestBodyGatewayFilterFactory(
 				ServerCodecConfigurer codecConfigurer, AtomicInteger count) {
 			return new ModifyRequestBodyGatewayFilterFactory(codecConfigurer.getReaders()) {
 				@Override

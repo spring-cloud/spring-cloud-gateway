@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.http.HttpStatus;
