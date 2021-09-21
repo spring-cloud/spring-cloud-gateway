@@ -403,6 +403,7 @@ public class HttpClientProperties {
 		private Duration closeNotifyReadTimeout = Duration.ZERO;
 
 		/** The default ssl configuration type. Defaults to TCP. */
+		@Deprecated
 		private SslProvider.DefaultConfigurationType defaultConfigurationType = SslProvider.DefaultConfigurationType.TCP;
 
 		/** Keystore path for Netty HttpClient. */
@@ -568,10 +569,12 @@ public class HttpClientProperties {
 			this.closeNotifyReadTimeout = closeNotifyReadTimeout;
 		}
 
+		@Deprecated
 		public SslProvider.DefaultConfigurationType getDefaultConfigurationType() {
 			return defaultConfigurationType;
 		}
 
+		@Deprecated
 		public void setDefaultConfigurationType(SslProvider.DefaultConfigurationType defaultConfigurationType) {
 			this.defaultConfigurationType = defaultConfigurationType;
 		}
