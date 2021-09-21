@@ -21,6 +21,7 @@
 	</parent>
 	
 	<modules>
+		<module>http2</module>
 		<module>mvc-failure-analyzer</module>
 	</modules>
 

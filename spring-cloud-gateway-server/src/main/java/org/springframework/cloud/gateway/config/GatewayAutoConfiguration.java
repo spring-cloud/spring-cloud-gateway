@@ -23,15 +23,18 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 import io.netty.channel.ChannelOption;
-import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Flux;
+import reactor.netty.http.Http11SslContextSpec;
+import reactor.netty.http.Http2SslContextSpec;
+import reactor.netty.http.HttpProtocol;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.client.WebsocketClientSpec;
 import reactor.netty.http.server.WebsocketServerSpec;
 import reactor.netty.resources.ConnectionProvider;
+import reactor.netty.tcp.SslProvider.ProtocolSslContextSpec;
 import reactor.netty.transport.ProxyProvider;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -641,7 +644,8 @@ public class GatewayAutoConfiguration {
 
 		@Bean
 		@ConditionalOnMissingBean
-		public HttpClient gatewayHttpClient(HttpClientProperties properties, List<HttpClientCustomizer> customizers) {
+		public HttpClient gatewayHttpClient(HttpClientProperties properties, ServerProperties serverProperties,
+				List<HttpClientCustomizer> customizers) {
 
 			// configure pool resources
 			ConnectionProvider connectionProvider = buildConnectionProvider(properties);
@@ -658,57 +662,66 @@ public class GatewayAutoConfiguration {
 							spec.maxInitialLineLength((int) properties.getMaxInitialLineLength().toBytes());
 						}
 						return spec;
-					}).tcpConfiguration(tcpClient -> {
-
-						if (properties.getConnectTimeout() != null) {
-							tcpClient = tcpClient.option(ChannelOption.CONNECT_TIMEOUT_MILLIS,
-									properties.getConnectTimeout());
-						}
-
-						// configure proxy if proxy host is set.
-						HttpClientProperties.Proxy proxy = properties.getProxy();
-
-						if (StringUtils.hasText(proxy.getHost())) {
-
-							tcpClient = tcpClient.proxy(proxySpec -> {
-								ProxyProvider.Builder builder = proxySpec.type(proxy.getType()).host(proxy.getHost());
-
-								PropertyMapper map = PropertyMapper.get();
-
-								map.from(proxy::getPort).whenNonNull().to(builder::port);
-								map.from(proxy::getUsername).whenHasText().to(builder::username);
-								map.from(proxy::getPassword).whenHasText()
-										.to(password -> builder.password(s -> password));
-								map.from(proxy::getNonProxyHostsPattern).whenHasText().to(builder::nonProxyHosts);
-							});
-						}
-						return tcpClient;
 					});
+
+			if (serverProperties.getHttp2().isEnabled()) {
+				httpClient = httpClient.protocol(HttpProtocol.HTTP11, HttpProtocol.H2);
+			}
+
+			if (properties.getConnectTimeout() != null) {
+				httpClient = httpClient.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, properties.getConnectTimeout());
+			}
+
+			// configure proxy if proxy host is set.
+			if (StringUtils.hasText(properties.getProxy().getHost())) {
+				HttpClientProperties.Proxy proxy = properties.getProxy();
+
+				httpClient = httpClient.proxy(proxySpec -> {
+					ProxyProvider.Builder builder = proxySpec.type(proxy.getType()).host(proxy.getHost());
+
+					PropertyMapper map = PropertyMapper.get();
+
+					map.from(proxy::getPort).whenNonNull().to(builder::port);
+					map.from(proxy::getUsername).whenHasText().to(builder::username);
+					map.from(proxy::getPassword).whenHasText().to(password -> builder.password(s -> password));
+					map.from(proxy::getNonProxyHostsPattern).whenHasText().to(builder::nonProxyHosts);
+				});
+			}
 
 			HttpClientProperties.Ssl ssl = properties.getSsl();
 			if ((ssl.getKeyStore() != null && ssl.getKeyStore().length() > 0)
 					|| ssl.getTrustedX509CertificatesForTrustManager().length > 0 || ssl.isUseInsecureTrustManager()) {
 				httpClient = httpClient.secure(sslContextSpec -> {
 					// configure ssl
-					SslContextBuilder sslContextBuilder = SslContextBuilder.forClient();
+					ProtocolSslContextSpec clientSslContext = (serverProperties.getHttp2().isEnabled())
+							? Http2SslContextSpec.forClient() : Http11SslContextSpec.forClient();
+					clientSslContext.configure(sslContextBuilder -> {
+						X509Certificate[] trustedX509Certificates = ssl.getTrustedX509CertificatesForTrustManager();
+						if (trustedX509Certificates.length > 0) {
+							sslContextBuilder.trustManager(trustedX509Certificates);
+						}
+						else if (ssl.isUseInsecureTrustManager()) {
+							sslContextBuilder.trustManager(InsecureTrustManagerFactory.INSTANCE);
+						}
 
-					X509Certificate[] trustedX509Certificates = ssl.getTrustedX509CertificatesForTrustManager();
-					if (trustedX509Certificates.length > 0) {
-						sslContextBuilder = sslContextBuilder.trustManager(trustedX509Certificates);
-					}
-					else if (ssl.isUseInsecureTrustManager()) {
-						sslContextBuilder = sslContextBuilder.trustManager(InsecureTrustManagerFactory.INSTANCE);
-					}
+						try {
+							sslContextBuilder.keyManager(ssl.getKeyManagerFactory());
+						}
+						catch (Exception e) {
+							logger.error(e);
+						}
+					});
 
-					try {
-						sslContextBuilder = sslContextBuilder.keyManager(ssl.getKeyManagerFactory());
-					}
-					catch (Exception e) {
-						logger.error(e);
-					}
-
-					sslContextSpec.sslContext(sslContextBuilder).defaultConfiguration(ssl.getDefaultConfigurationType())
-							.handshakeTimeout(ssl.getHandshakeTimeout())
+					sslContextSpec.sslContext(clientSslContext).handshakeTimeout(ssl.getHandshakeTimeout())
+							.closeNotifyFlushTimeout(ssl.getCloseNotifyFlushTimeout())
+							.closeNotifyReadTimeout(ssl.getCloseNotifyReadTimeout());
+				});
+			}
+			else if (serverProperties.getHttp2().isEnabled()) {
+				httpClient = httpClient.secure(sslContextSpec -> {
+					Http2SslContextSpec clientSslCtxt = Http2SslContextSpec.forClient()
+							.configure(builder -> builder.trustManager(InsecureTrustManagerFactory.INSTANCE));
+					sslContextSpec.sslContext(clientSslCtxt).handshakeTimeout(ssl.getHandshakeTimeout())
 							.closeNotifyFlushTimeout(ssl.getCloseNotifyFlushTimeout())
 							.closeNotifyReadTimeout(ssl.getCloseNotifyReadTimeout());
 				});
