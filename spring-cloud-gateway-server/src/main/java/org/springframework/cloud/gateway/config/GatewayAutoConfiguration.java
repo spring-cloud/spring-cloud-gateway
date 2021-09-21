@@ -23,16 +23,18 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 import io.netty.channel.ChannelOption;
-import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Flux;
+import reactor.netty.http.Http11SslContextSpec;
+import reactor.netty.http.Http2SslContextSpec;
 import reactor.netty.http.HttpProtocol;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.client.WebsocketClientSpec;
 import reactor.netty.http.server.WebsocketServerSpec;
 import reactor.netty.resources.ConnectionProvider;
+import reactor.netty.tcp.SslProvider.ProtocolSslContextSpec;
 import reactor.netty.transport.ProxyProvider;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -691,37 +693,35 @@ public class GatewayAutoConfiguration {
 					|| ssl.getTrustedX509CertificatesForTrustManager().length > 0 || ssl.isUseInsecureTrustManager()) {
 				httpClient = httpClient.secure(sslContextSpec -> {
 					// configure ssl
-					SslContextBuilder sslContextBuilder = SslContextBuilder.forClient();
+					ProtocolSslContextSpec clientSslContext = (serverProperties.getHttp2().isEnabled())
+							? Http2SslContextSpec.forClient() : Http11SslContextSpec.forClient();
+					clientSslContext.configure(sslContextBuilder -> {
+						X509Certificate[] trustedX509Certificates = ssl.getTrustedX509CertificatesForTrustManager();
+						if (trustedX509Certificates.length > 0) {
+							sslContextBuilder.trustManager(trustedX509Certificates);
+						}
+						else if (ssl.isUseInsecureTrustManager()) {
+							sslContextBuilder.trustManager(InsecureTrustManagerFactory.INSTANCE);
+						}
 
-					X509Certificate[] trustedX509Certificates = ssl.getTrustedX509CertificatesForTrustManager();
-					if (trustedX509Certificates.length > 0) {
-						sslContextBuilder = sslContextBuilder.trustManager(trustedX509Certificates);
-					}
-					else if (ssl.isUseInsecureTrustManager()) {
-						sslContextBuilder = sslContextBuilder.trustManager(InsecureTrustManagerFactory.INSTANCE);
-					}
+						try {
+							sslContextBuilder.keyManager(ssl.getKeyManagerFactory());
+						}
+						catch (Exception e) {
+							logger.error(e);
+						}
+					});
 
-					try {
-						sslContextBuilder = sslContextBuilder.keyManager(ssl.getKeyManagerFactory());
-					}
-					catch (Exception e) {
-						logger.error(e);
-					}
-
-					sslContextSpec.sslContext(sslContextBuilder).defaultConfiguration(ssl.getDefaultConfigurationType())
-							.handshakeTimeout(ssl.getHandshakeTimeout())
+					sslContextSpec.sslContext(clientSslContext).handshakeTimeout(ssl.getHandshakeTimeout())
 							.closeNotifyFlushTimeout(ssl.getCloseNotifyFlushTimeout())
 							.closeNotifyReadTimeout(ssl.getCloseNotifyReadTimeout());
 				});
 			}
 			else if (serverProperties.getHttp2().isEnabled()) {
 				httpClient = httpClient.secure(sslContextSpec -> {
-					SslContextBuilder sslContextBuilder = SslContextBuilder.forClient();
-					if (ssl.isUseInsecureTrustManager()) {
-						sslContextBuilder.trustManager(InsecureTrustManagerFactory.INSTANCE);
-					}
-					sslContextSpec.sslContext(sslContextBuilder).defaultConfiguration(ssl.getDefaultConfigurationType())
-							.handshakeTimeout(ssl.getHandshakeTimeout())
+					Http2SslContextSpec clientSslCtxt = Http2SslContextSpec.forClient()
+							.configure(builder -> builder.trustManager(InsecureTrustManagerFactory.INSTANCE));
+					sslContextSpec.sslContext(clientSslCtxt).handshakeTimeout(ssl.getHandshakeTimeout())
 							.closeNotifyFlushTimeout(ssl.getCloseNotifyFlushTimeout())
 							.closeNotifyReadTimeout(ssl.getCloseNotifyReadTimeout());
 				});

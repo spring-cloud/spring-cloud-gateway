@@ -73,10 +73,10 @@ public class Http2ApplicationTests {
 						.pendingAcquireMaxCount(-1).build())
 				.protocol(HttpProtocol.HTTP11, HttpProtocol.H2)
 				.secure(sslContextSpec -> {
-					SslContextBuilder sslContextBuilder = SslContextBuilder.forClient();
-					sslContextBuilder.trustManager(InsecureTrustManagerFactory.INSTANCE);
-					sslContextSpec.sslContext(sslContextBuilder)
-							.defaultConfiguration(SslProvider.DefaultConfigurationType.TCP);
+					Http2SslContextSpec clientSslCtxt =
+							Http2SslContextSpec.forClient()
+									.configure(builder -> builder.trustManager(InsecureTrustManagerFactory.INSTANCE));
+					sslContextSpec.sslContext(clientSslCtxt);
 				});
 		Flux<HttpClientResponse> responseFlux = httpClient.request(HttpMethod.GET)
 				.uri("https://localhost:" + port + "/myprefix/hello")
@@ -88,6 +88,7 @@ public class Http2ApplicationTests {
 
 
 		StepVerifier.create(responseFlux).expectNextCount(1).expectComplete().verify();
+		Assertions.assertThat(output).contains("Negotiated application-level protocol [h2]", "PRI * HTTP/2.0");
 	}
 
 

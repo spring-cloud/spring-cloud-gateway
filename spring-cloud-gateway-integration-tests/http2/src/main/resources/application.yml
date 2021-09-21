@@ -1,7 +1,7 @@
 logging:
   level:
     org.springframework.cloud.gateway: TRACE
-    reactor.netty: DEBUG
+    reactor.netty.http.client: DEBUG
 
 server:
   ssl:
