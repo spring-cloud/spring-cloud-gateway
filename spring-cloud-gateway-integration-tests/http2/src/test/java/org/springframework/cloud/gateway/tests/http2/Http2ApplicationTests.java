@@ -16,11 +16,12 @@
 
 package org.springframework.cloud.gateway.tests.http2;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 
+import io.netty.buffer.ByteBufAllocator;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpResponseStatus;
-import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -32,26 +33,17 @@ import reactor.netty.http.HttpProtocol;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.client.HttpClientResponse;
 import reactor.netty.resources.ConnectionProvider;
-import reactor.netty.tcp.SslProvider;
 import reactor.test.StepVerifier;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.web.ServerProperties;
-import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.boot.web.server.LocalServerPort;
-import org.springframework.cloud.gateway.support.MvcFoundOnClasspathException;
-import org.springframework.cloud.gateway.support.MvcFoundOnClasspathFailureAnalyzer;
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.test.web.reactive.server.WebTestClient;
+import org.springframework.core.io.buffer.DataBufferUtils;
+import org.springframework.core.io.buffer.NettyDataBufferFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.springframework.boot.test.context.SpringBootTest.*;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 
 /**
  * @author Spencer Gibb
@@ -60,15 +52,37 @@ import static org.springframework.boot.test.context.SpringBootTest.*;
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 public class Http2ApplicationTests {
 
-	@Autowired
-	private ServerProperties serverProperties;
-
 	@LocalServerPort
 	int port;
 
 	@Test
 	public void http2Works(CapturedOutput output) {
-		HttpClient httpClient = HttpClient.create(ConnectionProvider.builder("test").maxConnections(100)
+		String uri = "https://localhost:" + port + "/myprefix/hello";
+		String expected = "Hello";
+		assertResponse(uri, expected);
+		Assertions.assertThat(output).contains("Negotiated application-level protocol [h2]", "PRI * HTTP/2.0");
+	}
+
+	public static void assertResponse(String uri, String expected ) {
+		Flux<HttpClientResponse> responseFlux = getHttpClient().request(HttpMethod.GET)
+				.uri(uri)
+				.send(Mono.empty())
+				.response((res, byteBufFlux) -> {
+					assertThat(res.status()).isEqualTo(HttpResponseStatus.OK);
+					NettyDataBufferFactory bufferFactory = new NettyDataBufferFactory(ByteBufAllocator.DEFAULT);
+					return DataBufferUtils.join(byteBufFlux.map(bufferFactory::wrap))
+							.map(dataBuffer -> dataBuffer.toString(StandardCharsets.UTF_8))
+							.map(s -> {
+								assertThat(s).isEqualTo(expected);
+								return res;
+							});
+				});
+
+		StepVerifier.create(responseFlux).expectNextCount(1).expectComplete().verify();
+	}
+
+	static HttpClient getHttpClient() {
+		return HttpClient.create(ConnectionProvider.builder("test").maxConnections(100)
 						.pendingAcquireTimeout(Duration.ofMillis(0))
 						.pendingAcquireMaxCount(-1).build())
 				.protocol(HttpProtocol.HTTP11, HttpProtocol.H2)
@@ -78,18 +92,6 @@ public class Http2ApplicationTests {
 									.configure(builder -> builder.trustManager(InsecureTrustManagerFactory.INSTANCE));
 					sslContextSpec.sslContext(clientSslCtxt);
 				});
-		Flux<HttpClientResponse> responseFlux = httpClient.request(HttpMethod.GET)
-				.uri("https://localhost:" + port + "/myprefix/hello")
-				.send(Mono.empty())
-				.response((res, byteBufFlux) -> {
-					assertThat(res.status()).isEqualTo(HttpResponseStatus.OK);
-					return Mono.just(res);
-				});
-
-
-		StepVerifier.create(responseFlux).expectNextCount(1).expectComplete().verify();
-		Assertions.assertThat(output).contains("Negotiated application-level protocol [h2]", "PRI * HTTP/2.0");
 	}
-
 
 }
