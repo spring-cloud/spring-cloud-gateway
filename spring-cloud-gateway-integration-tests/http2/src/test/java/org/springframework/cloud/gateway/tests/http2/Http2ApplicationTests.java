@@ -52,7 +52,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
  * @author Spencer Gibb
  */
 @ExtendWith(OutputCaptureExtension.class)
-@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
+@SpringBootTest(classes = Http2Application.class, webEnvironment = WebEnvironment.RANDOM_PORT)
 public class Http2ApplicationTests {
 
 	private static Log log = LogFactory.getLog(Http2ApplicationTests.class);

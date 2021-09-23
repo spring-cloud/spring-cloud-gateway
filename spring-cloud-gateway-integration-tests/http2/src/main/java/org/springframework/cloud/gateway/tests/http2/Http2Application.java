@@ -16,6 +16,9 @@
 
 package org.springframework.cloud.gateway.tests.http2;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -42,6 +45,8 @@ import org.springframework.web.bind.annotation.RestController;
 		@LoadBalancerClient(name = "nossl", configuration = Http2Application.NosslServiceConf.class) })
 public class Http2Application {
 
+	private static Log log = LogFactory.getLog(Http2Application.class);
+
 	@GetMapping("hello")
 	public String hello() {
 		return "Hello";
@@ -64,6 +69,7 @@ public class Http2Application {
 		@Bean
 		public ServiceInstanceListSupplier staticServiceInstanceListSupplier(Environment env) {
 			Integer port = env.getProperty("local.server.port", Integer.class, 8443);
+			log.info("local.server.port = " + port);
 			return ServiceInstanceListSuppliers.from("myservice",
 					new DefaultServiceInstance("myservice-1", "myservice", "localhost", port, true));
 		}
@@ -75,6 +81,7 @@ public class Http2Application {
 		@Bean
 		public ServiceInstanceListSupplier noSslStaticServiceInstanceListSupplier() {
 			int port = Integer.parseInt(System.getProperty("nossl.port", "8080"));
+			log.info("nossl.port = " + port);
 			return ServiceInstanceListSuppliers.from("nossl",
 					new DefaultServiceInstance("nossl-1", "nossl", "localhost", port, false));
 		}
