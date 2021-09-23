@@ -23,10 +23,13 @@ import io.netty.buffer.ByteBufAllocator;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Hooks;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.Http2SslContextSpec;
 import reactor.netty.http.HttpProtocol;
@@ -52,11 +55,14 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 public class Http2ApplicationTests {
 
+	private static Log log = LogFactory.getLog(Http2ApplicationTests.class);
+
 	@LocalServerPort
 	int port;
 
 	@Test
 	public void http2Works(CapturedOutput output) {
+		Hooks.onOperatorDebug();
 		String uri = "https://localhost:" + port + "/myprefix/hello";
 		String expected = "Hello";
 		assertResponse(uri, expected);
@@ -73,7 +79,7 @@ public class Http2ApplicationTests {
 								assertThat(s).isEqualTo(expected);
 								return res;
 							});
-				});
+				}).onErrorContinue((throwable, o) -> log.error("Error connecting to uri " + uri, throwable));
 
 		StepVerifier.create(responseFlux).expectNextCount(1).expectComplete().verify();
 	}
