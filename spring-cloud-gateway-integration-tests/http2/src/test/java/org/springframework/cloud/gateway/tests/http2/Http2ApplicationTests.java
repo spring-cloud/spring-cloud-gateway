@@ -63,16 +63,13 @@ public class Http2ApplicationTests {
 		Assertions.assertThat(output).contains("Negotiated application-level protocol [h2]", "PRI * HTTP/2.0");
 	}
 
-	public static void assertResponse(String uri, String expected ) {
-		Flux<HttpClientResponse> responseFlux = getHttpClient().request(HttpMethod.GET)
-				.uri(uri)
-				.send(Mono.empty())
+	public static void assertResponse(String uri, String expected) {
+		Flux<HttpClientResponse> responseFlux = getHttpClient().request(HttpMethod.GET).uri(uri).send(Mono.empty())
 				.response((res, byteBufFlux) -> {
 					assertThat(res.status()).isEqualTo(HttpResponseStatus.OK);
 					NettyDataBufferFactory bufferFactory = new NettyDataBufferFactory(ByteBufAllocator.DEFAULT);
 					return DataBufferUtils.join(byteBufFlux.map(bufferFactory::wrap))
-							.map(dataBuffer -> dataBuffer.toString(StandardCharsets.UTF_8))
-							.map(s -> {
+							.map(dataBuffer -> dataBuffer.toString(StandardCharsets.UTF_8)).map(s -> {
 								assertThat(s).isEqualTo(expected);
 								return res;
 							});
@@ -82,14 +79,12 @@ public class Http2ApplicationTests {
 	}
 
 	static HttpClient getHttpClient() {
-		return HttpClient.create(ConnectionProvider.builder("test").maxConnections(100)
-						.pendingAcquireTimeout(Duration.ofMillis(0))
-						.pendingAcquireMaxCount(-1).build())
-				.protocol(HttpProtocol.HTTP11, HttpProtocol.H2)
-				.secure(sslContextSpec -> {
-					Http2SslContextSpec clientSslCtxt =
-							Http2SslContextSpec.forClient()
-									.configure(builder -> builder.trustManager(InsecureTrustManagerFactory.INSTANCE));
+		return HttpClient
+				.create(ConnectionProvider.builder("test").maxConnections(100)
+						.pendingAcquireTimeout(Duration.ofMillis(0)).pendingAcquireMaxCount(-1).build())
+				.protocol(HttpProtocol.HTTP11, HttpProtocol.H2).secure(sslContextSpec -> {
+					Http2SslContextSpec clientSslCtxt = Http2SslContextSpec.forClient()
+							.configure(builder -> builder.trustManager(InsecureTrustManagerFactory.INSTANCE));
 					sslContextSpec.sslContext(clientSslCtxt);
 				});
 	}

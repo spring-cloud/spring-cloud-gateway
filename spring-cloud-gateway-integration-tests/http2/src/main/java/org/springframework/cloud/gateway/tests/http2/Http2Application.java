@@ -38,10 +38,8 @@ import org.springframework.web.bind.annotation.RestController;
 @SpringBootConfiguration
 @EnableAutoConfiguration
 @RestController
-@LoadBalancerClients({
-		@LoadBalancerClient(name = "myservice", configuration = Http2Application.MyServiceConf.class),
-		@LoadBalancerClient(name = "nossl", configuration = Http2Application.NosslServiceConf.class)
-})
+@LoadBalancerClients({ @LoadBalancerClient(name = "myservice", configuration = Http2Application.MyServiceConf.class),
+		@LoadBalancerClient(name = "nossl", configuration = Http2Application.NosslServiceConf.class) })
 public class Http2Application {
 
 	@GetMapping("hello")

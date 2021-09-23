@@ -14,19 +14,22 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.gateway.tests.http2.config;
+package org.springframework.cloud.gateway.tests.http2.nossl;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import reactor.core.publisher.Hooks;
 
+import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.cloud.gateway.tests.http2.Http2Application;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.util.SocketUtils;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
@@ -54,12 +57,17 @@ public class NosslTests {
 	}
 
 	@Test
-	public void http2Works(CapturedOutput output) {
-		String uri = "https://localhost:" + port + "/myprefix/hello";
-		String expected = "Hello";
-		assertResponse(uri, expected);
-		Assertions.assertThat(output).contains("Negotiated application-level protocol [h2]", "PRI * HTTP/2.0");
+	public void http2TerminationWorks(CapturedOutput output) {
+		int nosslPort = Integer.parseInt(System.getProperty("nossl.port"));
+		System.err.println("nossl.port = " + nosslPort);
+		Hooks.onOperatorDebug();
+		try (ConfigurableApplicationContext context = new SpringApplicationBuilder(NosslConfiguration.class)
+				.properties("server.port=" + nosslPort).profiles("nossl").run()) {
+			String uri = "https://localhost:" + port + "/nossl";
+			String expected = "nossl";
+			assertResponse(uri, expected);
+			Assertions.assertThat(output).doesNotContain("PRI * HTTP/2.0");
+		}
 	}
-
 
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.gateway.tests.http2.config;
+package org.springframework.cloud.gateway.tests.http2.nossl;
 
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.Configuration;
@@ -30,4 +30,5 @@ public class NosslConfiguration {
 	public String home() {
 		return "nossl";
 	}
+
 }
