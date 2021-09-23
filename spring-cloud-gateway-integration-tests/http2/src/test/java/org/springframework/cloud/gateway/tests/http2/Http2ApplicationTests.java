@@ -16,25 +16,17 @@
 
 package org.springframework.cloud.gateway.tests.http2;
 
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 
-import io.netty.buffer.ByteBufAllocator;
-import io.netty.handler.codec.http.HttpMethod;
-import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Hooks;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.Http2SslContextSpec;
 import reactor.netty.http.HttpProtocol;
 import reactor.netty.http.client.HttpClient;
-import reactor.netty.http.client.HttpClientResponse;
 import reactor.netty.resources.ConnectionProvider;
 import reactor.test.StepVerifier;
 
@@ -42,8 +34,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.boot.web.server.LocalServerPort;
-import org.springframework.core.io.buffer.DataBufferUtils;
-import org.springframework.core.io.buffer.NettyDataBufferFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
@@ -53,9 +48,8 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
  */
 @ExtendWith(OutputCaptureExtension.class)
 @SpringBootTest(classes = Http2Application.class, webEnvironment = WebEnvironment.RANDOM_PORT)
+@DirtiesContext
 public class Http2ApplicationTests {
-
-	private static Log log = LogFactory.getLog(Http2ApplicationTests.class);
 
 	@LocalServerPort
 	int port;
@@ -70,18 +64,12 @@ public class Http2ApplicationTests {
 	}
 
 	public static void assertResponse(String uri, String expected) {
-		Flux<HttpClientResponse> responseFlux = getHttpClient().request(HttpMethod.GET).uri(uri).send(Mono.empty())
-				.response((res, byteBufFlux) -> {
-					assertThat(res.status()).isEqualTo(HttpResponseStatus.OK);
-					NettyDataBufferFactory bufferFactory = new NettyDataBufferFactory(ByteBufAllocator.DEFAULT);
-					return DataBufferUtils.join(byteBufFlux.map(bufferFactory::wrap))
-							.map(dataBuffer -> dataBuffer.toString(StandardCharsets.UTF_8)).map(s -> {
-								assertThat(s).isEqualTo(expected);
-								return res;
-							});
-				}).onErrorContinue((throwable, o) -> log.error("Error connecting to uri " + uri, throwable));
-
-		StepVerifier.create(responseFlux).expectNextCount(1).expectComplete().verify();
+		WebClient client = WebClient.builder().clientConnector(new ReactorClientHttpConnector(getHttpClient())).build();
+		Mono<ResponseEntity<String>> responseEntityMono = client.get().uri(uri).retrieve().toEntity(String.class);
+		StepVerifier.create(responseEntityMono).assertNext(entity -> {
+			assertThat(entity.getStatusCode()).isEqualTo(HttpStatus.OK);
+			assertThat(entity.getBody()).isEqualTo(expected);
+		}).expectComplete().verify();
 	}
 
 	static HttpClient getHttpClient() {

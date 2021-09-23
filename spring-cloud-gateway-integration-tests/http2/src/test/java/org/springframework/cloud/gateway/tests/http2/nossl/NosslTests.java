@@ -30,6 +30,7 @@ import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.cloud.gateway.tests.http2.Http2Application;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.util.SocketUtils;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
@@ -40,6 +41,7 @@ import static org.springframework.cloud.gateway.tests.http2.Http2ApplicationTest
  */
 @ExtendWith(OutputCaptureExtension.class)
 @SpringBootTest(classes = Http2Application.class, webEnvironment = WebEnvironment.RANDOM_PORT)
+@DirtiesContext
 public class NosslTests {
 
 	@LocalServerPort
