@@ -35,6 +35,7 @@ import org.springframework.cloud.gateway.handler.predicate.QueryRoutePredicateFa
 import org.springframework.cloud.gateway.handler.predicate.ReadBodyRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.RemoteAddrRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.WeightRoutePredicateFactory;
+import org.springframework.cloud.gateway.handler.predicate.XForwardedRemoteAddrRoutePredicateFactory;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.support.ipresolver.RemoteAddressResolver;
 import org.springframework.http.HttpMethod;
@@ -259,6 +260,22 @@ public class PredicateSpec extends UriSpec {
 			if (resolver != null) {
 				c.setRemoteAddressResolver(resolver);
 			}
+		}));
+	}
+
+	/**
+	 * A predicate which checks the remote address of the request based off of the
+	 * {@code X-Forwarded-For} header. Useful if Spring Cloud Gateway site behind a proxy
+	 * layer. See
+	 * {@link org.springframework.cloud.gateway.support.ipresolver.XForwardedRemoteAddressResolver}
+	 * for more information.
+	 * @param addrs the remote address to verify. Should use CIDR-notation (IPv4 or IPv6)
+	 * strings.
+	 * @return a {@link BooleanSpec} to be used to add logical operators
+	 */
+	public BooleanSpec xForwardedRemoteAddr(String... addrs) {
+		return asyncPredicate(getBean(XForwardedRemoteAddrRoutePredicateFactory.class).applyAsync(c -> {
+			c.setSources(addrs);
 		}));
 	}
 
