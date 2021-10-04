@@ -21,7 +21,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.function.Predicate;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.convert.ApplicationConversionService;
 import org.springframework.cloud.gateway.support.ConfigurationService;

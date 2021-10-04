@@ -21,7 +21,7 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.LinkedHashSet;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;

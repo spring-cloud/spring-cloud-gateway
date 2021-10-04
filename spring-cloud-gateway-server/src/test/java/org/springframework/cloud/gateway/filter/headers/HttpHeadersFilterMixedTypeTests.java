@@ -20,7 +20,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.gateway.filter.headers.HttpHeadersFilter.Type;
 import org.springframework.http.HttpHeaders;

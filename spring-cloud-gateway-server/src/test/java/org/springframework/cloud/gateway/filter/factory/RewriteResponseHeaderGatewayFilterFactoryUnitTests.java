@@ -18,8 +18,8 @@ package org.springframework.cloud.gateway.filter.factory;
 
 import java.util.List;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.RewriteResponseHeaderGatewayFilterFactory.Config;
@@ -36,7 +36,7 @@ public class RewriteResponseHeaderGatewayFilterFactoryUnitTests {
 
 	private RewriteResponseHeaderGatewayFilterFactory filterFactory;
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 		filterFactory = new RewriteResponseHeaderGatewayFilterFactory();
 	}

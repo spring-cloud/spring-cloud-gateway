@@ -18,8 +18,9 @@ package org.springframework.cloud.gateway.discovery;
 
 import java.util.List;
 
-import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,14 +29,14 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.config.GatewayLoadBalancerProperties;
 import org.springframework.cloud.gateway.route.RouteDefinition;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(Enclosed.class)
 public class ReactiveGatewayDiscoveryClientAutoConfigurationTests {
 
-	@RunWith(SpringRunner.class)
+	@ExtendWith(SpringExtension.class)
 	@SpringBootTest(classes = Config.class,
 			properties = { "spring.cloud.gateway.discovery.locator.enabled=true",
 					"spring.cloud.gateway.loadbalancer.use404=true",
@@ -62,7 +63,7 @@ public class ReactiveGatewayDiscoveryClientAutoConfigurationTests {
 
 	}
 
-	@RunWith(SpringRunner.class)
+	@ExtendWith(SpringExtension.class)
 	@SpringBootTest(classes = Config.class)
 	public static class DisabledByDefault {
 

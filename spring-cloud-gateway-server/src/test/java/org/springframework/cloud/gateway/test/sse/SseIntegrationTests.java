@@ -20,9 +20,9 @@ import java.time.Duration;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
@@ -82,7 +82,7 @@ public class SseIntegrationTests {
 		return Flux.interval(period).take(count).onBackpressureBuffer(2);
 	}
 
-	@Before
+	@BeforeEach
 	public void setup() throws Exception {
 		this.server = new ReactorHttpServer();
 		this.server.setHandler(createHttpHandler());
@@ -104,7 +104,7 @@ public class SseIntegrationTests {
 		logger.info("Gateway Port: " + this.gatewayPort);
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() throws Exception {
 		this.server.stop();
 		this.serverPort = 0;

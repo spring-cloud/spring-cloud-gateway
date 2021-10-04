@@ -18,7 +18,7 @@ package org.springframework.cloud.gateway.filter;
 
 import java.net.URI;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import reactor.core.publisher.Mono;
 
@@ -31,7 +31,8 @@ import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assume.assumeTrue;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
@@ -61,10 +62,12 @@ public class RouteToRequestUrlFilterTests {
 		assertThat(uri).hasScheme("lb").hasHost("myhost");
 	}
 
-	@Test(expected = IllegalStateException.class)
+	@Test
 	public void invalidHost() {
-		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost/getb").build();
-		testFilter(request, "lb://my_host");
+		assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> {
+			MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost/getb").build();
+			testFilter(request, "lb://my_host");
+		});
 	}
 
 	@Test
@@ -109,7 +112,7 @@ public class RouteToRequestUrlFilterTests {
 
 	@Test
 	public void partialEncodedParameters() {
-		assumeTrue("partialEncodedParameters ignored for boot 2.2", SpringBootVersion.getVersion().startsWith("2.3."));
+		assumeTrue(SpringBootVersion.getVersion().startsWith("2.3."), "partialEncodedParameters ignored for boot 2.2");
 
 		URI url = UriComponentsBuilder.fromUriString("http://localhost/get?key[]=test= key&start=1533108081").build()
 				.toUri();

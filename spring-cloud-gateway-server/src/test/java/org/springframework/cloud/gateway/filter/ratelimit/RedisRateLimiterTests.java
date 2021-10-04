@@ -38,9 +38,7 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assume.assumeThat;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 /**
@@ -70,7 +68,7 @@ public class RedisRateLimiterTests extends BaseWebClientTests {
 
 	@BeforeEach
 	public void setUp() {
-		assumeThat("Ignore on Circle", System.getenv("CIRCLECI"), is(nullValue()));
+		assumeTrue(System.getenv("CIRCLECI") == null, "Ignore on Circle");
 	}
 
 	@AfterEach

@@ -19,9 +19,9 @@ package org.springframework.cloud.gateway.filter.factory;
 import java.time.Duration;
 import java.util.Collections;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.ObjectProvider;
@@ -69,7 +69,7 @@ public class TokenRelayGatewayFilterFactoryTests {
 	public TokenRelayGatewayFilterFactoryTests() {
 	}
 
-	@Before
+	@BeforeEach
 	@SuppressWarnings("unchecked")
 	public void init() {
 		request = MockServerHttpRequest.get("/hello").build();
@@ -83,7 +83,7 @@ public class TokenRelayGatewayFilterFactoryTests {
 		filter = new TokenRelayGatewayFilterFactory(objectProvider).apply();
 	}
 
-	@After
+	@AfterEach
 	public void after() {
 	}
 

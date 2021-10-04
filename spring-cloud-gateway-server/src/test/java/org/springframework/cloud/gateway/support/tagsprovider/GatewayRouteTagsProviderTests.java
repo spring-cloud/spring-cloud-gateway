@@ -17,7 +17,7 @@
 package org.springframework.cloud.gateway.support.tagsprovider;
 
 import io.micrometer.core.instrument.Tags;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;

@@ -19,8 +19,8 @@ package org.springframework.cloud.gateway.filter.factory;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
@@ -42,7 +42,7 @@ public class DedupeResponseHeaderGatewayFilterFactoryUnitTests {
 
 	private DedupeResponseHeaderGatewayFilterFactory filter;
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 		headers = Mockito.mock(HttpHeaders.class);
 		config = new Config();

@@ -19,7 +19,7 @@ package org.springframework.cloud.gateway.filter.factory;
 import java.net.URI;
 import java.util.LinkedHashSet;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import reactor.core.publisher.Mono;
 

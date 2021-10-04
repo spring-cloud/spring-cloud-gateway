@@ -18,8 +18,8 @@ package org.springframework.cloud.gateway.route.builder;
 
 import java.util.Collections;
 
-import org.junit.Test;
 import reactor.core.publisher.Mono;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
