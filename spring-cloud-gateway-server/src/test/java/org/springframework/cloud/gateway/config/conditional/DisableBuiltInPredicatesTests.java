@@ -18,9 +18,8 @@ package org.springframework.cloud.gateway.config.conditional;
 
 import java.util.List;
 
+import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +30,7 @@ import org.springframework.cloud.gateway.handler.predicate.AfterRoutePredicateFa
 import org.springframework.cloud.gateway.handler.predicate.BeforeRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -44,7 +43,7 @@ public class DisableBuiltInPredicatesTests {
 
 	}
 
-	@ExtendWith(SpringExtension.class)
+	@RunWith(SpringRunner.class)
 	@SpringBootTest(classes = Config.class)
 	public static class RoutePredicateDefault {
 
@@ -58,7 +57,7 @@ public class DisableBuiltInPredicatesTests {
 
 	}
 
-	@ExtendWith(SpringExtension.class)
+	@RunWith(SpringRunner.class)
 	@SpringBootTest(classes = Config.class, properties = { "spring.cloud.gateway.predicate.after.enabled=false",
 			"spring.cloud.gateway.predicate.before.enabled=false" })
 	@ActiveProfiles("disable-components")
@@ -76,7 +75,7 @@ public class DisableBuiltInPredicatesTests {
 
 	}
 
-	@ExtendWith(SpringExtension.class)
+	@RunWith(SpringRunner.class)
 	@SpringBootTest(classes = Config.class, properties = { "spring.cloud.gateway.predicate.after.enabled=false",
 			"spring.cloud.gateway.predicate.before.enabled=false",
 			"spring.cloud.gateway.predicate.between.enabled=false",

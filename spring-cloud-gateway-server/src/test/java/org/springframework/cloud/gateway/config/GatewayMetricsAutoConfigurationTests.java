@@ -19,9 +19,8 @@ package org.springframework.cloud.gateway.config;
 import java.util.List;
 
 import io.micrometer.core.instrument.Tags;
+import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +30,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.filter.GatewayMetricsFilter;
 import org.springframework.cloud.gateway.support.tagsprovider.GatewayTagsProvider;
 import org.springframework.context.annotation.Bean;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.server.ServerWebExchange;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -42,7 +41,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @RunWith(Enclosed.class)
 public class GatewayMetricsAutoConfigurationTests {
 
-	@ExtendWith(SpringExtension.class)
+	@RunWith(SpringRunner.class)
 	@SpringBootTest(classes = Config.class)
 	public static class EnabledByDefault {
 
@@ -61,7 +60,7 @@ public class GatewayMetricsAutoConfigurationTests {
 
 	}
 
-	@ExtendWith(SpringExtension.class)
+	@RunWith(SpringRunner.class)
 	@SpringBootTest(classes = Config.class, properties = "spring.cloud.gateway.metrics.enabled=false")
 	public static class DisabledByProperty {
 
@@ -75,7 +74,7 @@ public class GatewayMetricsAutoConfigurationTests {
 
 	}
 
-	@ExtendWith(SpringExtension.class)
+	@RunWith(SpringRunner.class)
 	@SpringBootTest(classes = CustomTagsProviderConfig.class,
 			properties = "spring.cloud.gateway.metrics.prefix=myprefix.")
 	public static class AddCustomTagsProvider {
