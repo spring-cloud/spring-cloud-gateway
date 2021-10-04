@@ -35,10 +35,10 @@ import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ALREADY_ROUTED_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
 
@@ -66,7 +66,7 @@ public class ForwardRoutingFilterTests {
 	@BeforeEach
 	public void setup() {
 		exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localendpoint").build());
-		when(objectProvider.getIfAvailable()).thenReturn(this.dispatcherHandler);
+		lenient().when(objectProvider.getIfAvailable()).thenReturn(this.dispatcherHandler);
 	}
 
 	@Test
