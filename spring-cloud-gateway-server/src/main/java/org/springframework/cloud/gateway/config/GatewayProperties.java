@@ -60,7 +60,8 @@ public class GatewayProperties {
 	private List<FilterDefinition> defaultFilters = new ArrayList<>();
 
 	private List<MediaType> streamingMediaTypes = Arrays.asList(MediaType.TEXT_EVENT_STREAM,
-			MediaType.APPLICATION_STREAM_JSON);
+			MediaType.APPLICATION_STREAM_JSON, new MediaType("application", "grpc"),
+			new MediaType("application", "grpc+protobuf"), new MediaType("application", "grpc+json"));
 
 	/**
 	 * Option to fail on route definition errors, defaults to true. Otherwise, a warning
