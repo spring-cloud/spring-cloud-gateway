@@ -367,32 +367,6 @@ spring:
 
 This route matches if the remote address of the request was, for example, `192.168.1.10`.
 
-=== The Weight Route Predicate Factory
-
-The `Weight` route predicate factory takes two arguments: `group` and `weight` (an int). The weights are calculated per group.
-The following example configures a weight route predicate:
-
-.application.yml
-====
-[source,yaml]
-----
-spring:
-  cloud:
-    gateway:
-      routes:
-      - id: weight_high
-        uri: https://weighthigh.org
-        predicates:
-        - Weight=group1, 8
-      - id: weight_low
-        uri: https://weightlow.org
-        predicates:
-        - Weight=group1, 2
-----
-====
-
-This route would forward ~80% of traffic to https://weighthigh.org and ~20% of traffic to https://weighlow.org
-
 ==== Modifying the Way Remote Addresses Are Resolved
 
 By default, the RemoteAddr route predicate factory uses the remote address from the incoming request.
@@ -452,6 +426,32 @@ RemoteAddressResolver resolver = XForwardedRemoteAddressResolver
 )
 ----
 ====
+
+=== The Weight Route Predicate Factory
+
+The `Weight` route predicate factory takes two arguments: `group` and `weight` (an int). The weights are calculated per group.
+The following example configures a weight route predicate:
+
+.application.yml
+====
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: weight_high
+        uri: https://weighthigh.org
+        predicates:
+        - Weight=group1, 8
+      - id: weight_low
+        uri: https://weightlow.org
+        predicates:
+        - Weight=group1, 2
+----
+====
+
+This route would forward ~80% of traffic to https://weighthigh.org and ~20% of traffic to https://weighlow.org
 
 == `GatewayFilter` Factories
 
