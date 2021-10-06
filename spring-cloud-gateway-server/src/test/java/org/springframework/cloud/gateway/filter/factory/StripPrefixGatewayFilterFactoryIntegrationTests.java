@@ -16,8 +16,7 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -25,21 +24,24 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 /**
  * @author Ryan Baxter
  */
-@RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
 public class StripPrefixGatewayFilterFactoryIntegrationTests extends BaseWebClientTests {
 
 	@Test
-	public void stripPrefixFilterDefaultValuesWork() {
+	public void stripPrefixFilterStripMultiplePartsValuesWork() {
 		testClient.get().uri("/foo/bar/get").header("Host", "www.stripprefix.org").exchange().expectStatus().isOk();
+	}
+
+	@Test
+	public void stripPrefixFilterDefaultPartsWork() {
+		testClient.get().uri("/foo/get").header("Host", "www.stripprefixdefault.org").exchange().expectStatus().isOk();
 	}
 
 	@EnableAutoConfiguration

@@ -68,7 +68,7 @@ public class DiscoveryClientRouteDefinitionLocatorTests {
 		assertThat(locator).as("DiscoveryClientRouteDefinitionLocator was null").isNotNull();
 
 		List<RouteDefinition> definitions = locator.getRouteDefinitions().collectList().block();
-		assertThat(definitions).hasSize(1);
+		assertThat(definitions).hasSize(2);
 
 		RouteDefinition definition = definitions.get(0);
 		assertThat(definition.getId()).isEqualTo("testedge_SERVICE1");
@@ -85,6 +85,22 @@ public class DiscoveryClientRouteDefinitionLocatorTests {
 		assertThat(filter.getName()).isEqualTo("RewritePath");
 		assertThat(filter.getArgs()).hasSize(2).containsEntry(REGEXP_KEY, "/service1/?(?<remaining>.*)")
 				.containsEntry(REPLACEMENT_KEY, "/${remaining}");
+
+		RouteDefinition definition2 = definitions.get(1);
+		assertThat(definition2.getId()).isEqualTo("testedge_service3");
+		assertThat(definition2.getUri()).hasScheme("lb").hasHost("service3");
+		assertThat(definition2.getMetadata()).containsEntry("edge", "true");
+
+		assertThat(definition2.getPredicates()).hasSize(1);
+		PredicateDefinition predicate2 = definition2.getPredicates().get(0);
+		assertThat(predicate2.getName()).isEqualTo("Path");
+		assertThat(predicate2.getArgs()).hasSize(1).containsEntry(PATTERN_KEY, "/service3/**");
+
+		assertThat(definition.getFilters()).hasSize(1);
+		FilterDefinition filter2 = definition2.getFilters().get(0);
+		assertThat(filter2.getName()).isEqualTo("RewritePath");
+		assertThat(filter2.getArgs()).hasSize(2).containsEntry(REGEXP_KEY, "/service3/?(?<remaining>.*)")
+				.containsEntry(REPLACEMENT_KEY, "/${remaining}");
 	}
 
 	@SpringBootConfiguration
@@ -94,17 +110,30 @@ public class DiscoveryClientRouteDefinitionLocatorTests {
 		@Bean
 		ReactiveDiscoveryClient discoveryClient() {
 			ReactiveDiscoveryClient discoveryClient = mock(ReactiveDiscoveryClient.class);
-			when(discoveryClient.getServices()).thenReturn(Flux.just("SERVICE1", "Service2"));
+			when(discoveryClient.getServices()).thenReturn(Flux.just("SERVICE1", "Service2", "service3"));
 			whenInstance(discoveryClient, "SERVICE1", Collections.singletonMap("edge", "true"));
 			whenInstance(discoveryClient, "Service2", Collections.emptyMap());
+			whenInstance(discoveryClient, "service3", Collections.singletonMap("edge", "true"));
 			return discoveryClient;
 		}
 
 		private void whenInstance(ReactiveDiscoveryClient discoveryClient, String serviceId,
 				Map<String, String> metadata) {
-			DefaultServiceInstance instance1 = new DefaultServiceInstance(serviceId + "8001", serviceId, "localhost",
-					8001, false, metadata);
-			when(discoveryClient.getInstances(serviceId)).thenReturn(Flux.just(instance1));
+			if ("SERVICE1".equals(serviceId) || "Service2".equals(serviceId)) {
+				DefaultServiceInstance instance1 = new DefaultServiceInstance(serviceId + "8001", serviceId,
+						"localhost", 8001, false, metadata);
+				when(discoveryClient.getInstances(serviceId)).thenReturn(Flux.just(instance1));
+			}
+			else if ("service3".equalsIgnoreCase(serviceId)) {
+				// given 3 instances, only one routedefinition should be created
+				DefaultServiceInstance instance2 = new DefaultServiceInstance(serviceId + "8002", serviceId,
+						"localhost", 8002, false, Collections.emptyMap());
+				DefaultServiceInstance instance3 = new DefaultServiceInstance(serviceId + "8003", serviceId,
+						"localhost", 8003, false, metadata);
+				DefaultServiceInstance instance4 = new DefaultServiceInstance(serviceId + "8004", serviceId,
+						"localhost", 8004, false, metadata);
+				when(discoveryClient.getInstances(serviceId)).thenReturn(Flux.just(instance2, instance3, instance4));
+			}
 		}
 
 	}

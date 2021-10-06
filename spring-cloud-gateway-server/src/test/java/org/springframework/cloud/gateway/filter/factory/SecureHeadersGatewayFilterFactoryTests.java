@@ -16,8 +16,7 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -28,8 +27,8 @@ import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.reactive.function.client.ClientResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -44,7 +43,6 @@ import static org.springframework.cloud.gateway.filter.factory.SecureHeadersGate
 import static org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory.X_XSS_PROTECTION_HEADER;
 import static org.springframework.cloud.gateway.test.TestUtils.assertStatus;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
 public class SecureHeadersGatewayFilterFactoryTests extends BaseWebClientTests {
@@ -70,6 +68,18 @@ public class SecureHeadersGatewayFilterFactoryTests extends BaseWebClientTests {
 			assertThat(httpHeaders.getFirst(X_DOWNLOAD_OPTIONS_HEADER)).isEqualTo(defaults.getDownloadOptions());
 			assertThat(httpHeaders.getFirst(X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER))
 					.isEqualTo(defaults.getPermittedCrossDomainPolicies());
+		}).expectComplete().verify(DURATION);
+	}
+
+	@Test
+	public void addsSecureHeadersAfterResponseIsReceived() {
+		Mono<ClientResponse> result = webClient.patch().uri("/headers").header("Host", "www.secureheaders.org")
+				.contentType(MediaType.APPLICATION_JSON).bodyValue("{ \"X-Frame-Options\": \"sameorigin\" }")
+				.exchange();
+
+		StepVerifier.create(result).consumeNextWith(response -> {
+			assertThat(response.statusCode()).isEqualTo(HttpStatus.OK);
+			assertThat(response.headers().header(X_FRAME_OPTIONS_HEADER)).containsOnly("sameorigin");
 		}).expectComplete().verify(DURATION);
 	}
 

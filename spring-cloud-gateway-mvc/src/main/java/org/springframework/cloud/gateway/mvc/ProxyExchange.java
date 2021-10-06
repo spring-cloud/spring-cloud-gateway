@@ -338,7 +338,7 @@ public class ProxyExchange<T> {
 		if (type instanceof TypeVariable || type instanceof WildcardType) {
 			type = Object.class;
 		}
-		return rest.exchange(requestEntity, ParameterizedTypeReference.forType(responseType));
+		return rest.exchange(requestEntity, ParameterizedTypeReference.forType(type));
 	}
 
 	private BodyBuilder headers(BodyBuilder builder) {

@@ -16,10 +16,9 @@
 
 package org.springframework.cloud.gateway.handler;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -27,26 +26,24 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.SocketUtils;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = DEFINED_PORT)
 @DirtiesContext
 public class RoutePredicateHandlerMappingSameManagementPortIntegrationTests extends BaseWebClientTests {
 
 	private static int samePort;
 
-	@BeforeClass
+	@BeforeAll
 	public static void beforeClass() {
 		samePort = SocketUtils.findAvailableTcpPort();
 		System.setProperty("server.port", String.valueOf(samePort));
 		System.setProperty("management.server.port", String.valueOf(samePort));
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void afterClass() {
 		System.clearProperty("server.port");
 		System.clearProperty("management.server.port");

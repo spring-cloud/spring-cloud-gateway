@@ -16,8 +16,7 @@
 
 package org.springframework.cloud.gateway.filter;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -27,7 +26,6 @@ import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.server.ServerWebExchange;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -41,7 +39,6 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
  *
  * @author echooymxq
  **/
-@RunWith(SpringRunner.class)
 @SpringBootTest(properties = { "spring.cloud.gateway.routes[0].id=route_connect_timeout",
 		"spring.cloud.gateway.routes[0].uri=http://localhost:32167",
 		"spring.cloud.gateway.routes[0].predicates[0].name=Path",
@@ -53,16 +50,16 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 		"spring.cloud.gateway.routes[1].filters[0]=StripPrefix=1",
 		"spring.cloud.gateway.routes[1].metadata.response-timeout=1000" }, webEnvironment = RANDOM_PORT)
 @DirtiesContext
-public class NettyRoutingFilterCompatibleTests extends BaseWebClientTests {
+class NettyRoutingFilterCompatibleTests extends BaseWebClientTests {
 
 	@Test
-	public void shouldApplyConnectTimeoutPerRoute() {
+	void shouldApplyConnectTimeoutPerRoute() {
 		assertThat(NettyRoutingFilter.getInteger("5")).isEqualTo(5);
 		assertThat(NettyRoutingFilter.getInteger(5)).isEqualTo(5);
 	}
 
 	@Test
-	public void shouldApplyResponseTimeoutPerRoute() {
+	void shouldApplyResponseTimeoutPerRoute() {
 		testClient.get().uri("/route/delay/2").exchange().expectStatus().isEqualTo(HttpStatus.GATEWAY_TIMEOUT)
 				.expectBody().jsonPath("$.status").isEqualTo(String.valueOf(HttpStatus.GATEWAY_TIMEOUT.value()))
 				.jsonPath("$.message").isEqualTo("Response took longer than timeout: PT1S");
@@ -71,7 +68,7 @@ public class NettyRoutingFilterCompatibleTests extends BaseWebClientTests {
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
-	public static class TestConfig {
+	static class TestConfig {
 
 	}
 

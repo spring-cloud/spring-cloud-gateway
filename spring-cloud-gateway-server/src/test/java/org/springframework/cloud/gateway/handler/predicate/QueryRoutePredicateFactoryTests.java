@@ -18,15 +18,15 @@ package org.springframework.cloud.gateway.handler.predicate;
 
 import java.util.function.Predicate;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.system.OutputCaptureRule;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.gateway.handler.predicate.QueryRoutePredicateFactory.Config;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
@@ -34,26 +34,20 @@ import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.not;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
+@ExtendWith(OutputCaptureExtension.class)
 public class QueryRoutePredicateFactoryTests extends BaseWebClientTests {
 
-	@Rule
-	public OutputCaptureRule output = new OutputCaptureRule();
-
 	@Test
-	public void noQueryParamWorks() {
+	public void noQueryParamWorks(CapturedOutput output) {
 		testClient.get().uri("/get").exchange().expectStatus().isOk().expectHeader().valueEquals(ROUTE_ID_HEADER,
 				"default_path_to_httpbin");
-		output.expect(not(containsString("Error applying predicate for route: foo_query_param")));
+		assertThat(output).doesNotContain("Error applying predicate for route: foo_query_param");
 	}
 
 	@Test
@@ -63,10 +57,10 @@ public class QueryRoutePredicateFactoryTests extends BaseWebClientTests {
 	}
 
 	@Test
-	public void emptyQueryParamWorks() {
+	public void emptyQueryParamWorks(CapturedOutput output) {
 		testClient.get().uri("/get?foo").exchange().expectStatus().isOk().expectHeader().valueEquals(ROUTE_ID_HEADER,
 				"default_path_to_httpbin");
-		output.expect(not(containsString("Error applying predicate for route: foo_query_param")));
+		assertThat(output).doesNotContain("Error applying predicate for route: foo_query_param");
 	}
 
 	@Test

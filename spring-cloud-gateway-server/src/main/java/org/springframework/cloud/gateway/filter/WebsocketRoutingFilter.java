@@ -215,7 +215,7 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 
 				/**
 				 * Copy subProtocols so they are available downstream.
-				 * @return
+				 * @return available subProtocols.
 				 */
 				@Override
 				public List<String> getSubProtocols() {

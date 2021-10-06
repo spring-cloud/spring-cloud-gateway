@@ -1,1 +1,1 @@
-spring-cloud-gateway.adoc
+include::spring-cloud-gateway.adoc[]

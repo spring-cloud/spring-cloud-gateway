@@ -18,8 +18,8 @@ package org.springframework.cloud.gateway.handler.predicate;
 
 import java.util.Random;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnJre;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
@@ -31,17 +31,17 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 
+import static org.junit.jupiter.api.condition.JRE.JAVA_17;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("weights-404")
 @DirtiesContext
-public class WeightRoutePredicateFactoryYaml404Tests extends BaseWebClientTests {
+@DisabledOnJre(JAVA_17)
+class WeightRoutePredicateFactoryYaml404Tests extends BaseWebClientTests {
 
 	@Autowired
 	private WeightCalculatorWebFilter filter;
@@ -53,7 +53,7 @@ public class WeightRoutePredicateFactoryYaml404Tests extends BaseWebClientTests 
 	}
 
 	@Test
-	public void weightsFromYamlNot404() {
+	void weightsFromYamlNot404() {
 		filter.setRandom(getRandom(0.5));
 
 		testClient.get().uri("/get").header(HttpHeaders.HOST, "www.weight4041.org").exchange().expectStatus().isOk()
@@ -63,9 +63,9 @@ public class WeightRoutePredicateFactoryYaml404Tests extends BaseWebClientTests 
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
-	public static class TestConfig {
+	static class TestConfig {
 
-		public TestConfig(WeightCalculatorWebFilter filter) {
+		TestConfig(WeightCalculatorWebFilter filter) {
 			Random random = getRandom(0.4);
 
 			filter.setRandom(random);

@@ -73,6 +73,15 @@ spring:
         filters:
         - AddResponseHeader=X-Request-Foo, Bar
 
+      - id: cache_request_body_test
+        uri: ${test.uri}
+        predicates:
+          - Host=**.cacherequestbody.org
+        filters:
+          - name: CacheRequestBody
+            args:
+              bodyClass: java.lang.String
+
         # =====================================
       - id: circuitbreaker_exception_fallback_test
         uri: ${test.uri}
@@ -428,6 +437,15 @@ spring:
           - Path=/foo/**
         filters:
           - StripPrefix=2
+
+        # =====================================
+      - id: strip_prefix_default_test
+        uri: ${test.uri}
+        predicates:
+          - Host=**.stripprefixdefault.org
+          - Path=/foo/**
+        filters:
+          - StripPrefix
 
       # =====================================
       - id: rewrite_path_test

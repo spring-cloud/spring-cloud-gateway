@@ -92,39 +92,40 @@ public class SecureHeadersGatewayFilterFactory
 				List<String> disabled = properties.getDisable();
 				Config config = originalConfig.withDefaults(properties);
 
-				if (isEnabled(disabled, X_XSS_PROTECTION_HEADER)) {
-					headers.add(X_XSS_PROTECTION_HEADER, config.getXssProtectionHeader());
-				}
+				return chain.filter(exchange).then(Mono.fromRunnable(() -> {
+					if (isEnabled(disabled, X_XSS_PROTECTION_HEADER)) {
+						headers.addIfAbsent(X_XSS_PROTECTION_HEADER, config.getXssProtectionHeader());
+					}
 
-				if (isEnabled(disabled, STRICT_TRANSPORT_SECURITY_HEADER)) {
-					headers.add(STRICT_TRANSPORT_SECURITY_HEADER, config.getStrictTransportSecurity());
-				}
+					if (isEnabled(disabled, STRICT_TRANSPORT_SECURITY_HEADER)) {
+						headers.addIfAbsent(STRICT_TRANSPORT_SECURITY_HEADER, config.getStrictTransportSecurity());
+					}
 
-				if (isEnabled(disabled, X_FRAME_OPTIONS_HEADER)) {
-					headers.add(X_FRAME_OPTIONS_HEADER, config.getFrameOptions());
-				}
+					if (isEnabled(disabled, X_FRAME_OPTIONS_HEADER)) {
+						headers.addIfAbsent(X_FRAME_OPTIONS_HEADER, config.getFrameOptions());
+					}
 
-				if (isEnabled(disabled, X_CONTENT_TYPE_OPTIONS_HEADER)) {
-					headers.add(X_CONTENT_TYPE_OPTIONS_HEADER, config.getContentTypeOptions());
-				}
+					if (isEnabled(disabled, X_CONTENT_TYPE_OPTIONS_HEADER)) {
+						headers.addIfAbsent(X_CONTENT_TYPE_OPTIONS_HEADER, config.getContentTypeOptions());
+					}
 
-				if (isEnabled(disabled, REFERRER_POLICY_HEADER)) {
-					headers.add(REFERRER_POLICY_HEADER, config.getReferrerPolicy());
-				}
+					if (isEnabled(disabled, REFERRER_POLICY_HEADER)) {
+						headers.addIfAbsent(REFERRER_POLICY_HEADER, config.getReferrerPolicy());
+					}
 
-				if (isEnabled(disabled, CONTENT_SECURITY_POLICY_HEADER)) {
-					headers.add(CONTENT_SECURITY_POLICY_HEADER, config.getContentSecurityPolicy());
-				}
+					if (isEnabled(disabled, CONTENT_SECURITY_POLICY_HEADER)) {
+						headers.addIfAbsent(CONTENT_SECURITY_POLICY_HEADER, config.getContentSecurityPolicy());
+					}
 
-				if (isEnabled(disabled, X_DOWNLOAD_OPTIONS_HEADER)) {
-					headers.add(X_DOWNLOAD_OPTIONS_HEADER, config.getDownloadOptions());
-				}
+					if (isEnabled(disabled, X_DOWNLOAD_OPTIONS_HEADER)) {
+						headers.addIfAbsent(X_DOWNLOAD_OPTIONS_HEADER, config.getDownloadOptions());
+					}
 
-				if (isEnabled(disabled, X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER)) {
-					headers.add(X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER, config.getPermittedCrossDomainPolicies());
-				}
-
-				return chain.filter(exchange);
+					if (isEnabled(disabled, X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER)) {
+						headers.addIfAbsent(X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER,
+								config.getPermittedCrossDomainPolicies());
+					}
+				}));
 			}
 
 			@Override

@@ -19,6 +19,8 @@ package org.springframework.cloud.gateway.actuate;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -26,8 +28,10 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
+import org.springframework.cloud.gateway.filter.FilterDefinition;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
+import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
 import org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory;
 import org.springframework.cloud.gateway.route.RouteDefinition;
 import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
@@ -37,12 +41,14 @@ import org.springframework.cloud.gateway.support.NotFoundException;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.core.Ordered;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
  * @author Spencer Gibb
@@ -129,7 +135,7 @@ public class AbstractGatewayControllerEndpoint implements ApplicationEventPublis
 	@SuppressWarnings("unchecked")
 	public Mono<ResponseEntity<Object>> save(@PathVariable String id, @RequestBody RouteDefinition route) {
 
-		return Mono.just(route).filter(this::validateRouteDefinition)
+		return Mono.just(route).doOnNext(this::validateRouteDefinition)
 				.flatMap(routeDefinition -> this.routeDefinitionWriter.save(Mono.just(routeDefinition).map(r -> {
 					r.setId(id);
 					log.debug("Saving route: " + route);
@@ -138,17 +144,34 @@ public class AbstractGatewayControllerEndpoint implements ApplicationEventPublis
 				.switchIfEmpty(Mono.defer(() -> Mono.just(ResponseEntity.badRequest().build())));
 	}
 
-	private boolean validateRouteDefinition(RouteDefinition routeDefinition) {
-		boolean hasValidFilterDefinitions = routeDefinition.getFilters().stream()
-				.allMatch(filterDefinition -> GatewayFilters.stream().anyMatch(
-						gatewayFilterFactory -> filterDefinition.getName().equals(gatewayFilterFactory.name())));
+	private void validateRouteDefinition(RouteDefinition routeDefinition) {
+		Set<String> unavailableFilterDefinitions = routeDefinition.getFilters().stream().filter(rd -> !isAvailable(rd))
+				.map(FilterDefinition::getName).collect(Collectors.toSet());
 
-		boolean hasValidPredicateDefinitions = routeDefinition.getPredicates().stream()
-				.allMatch(predicateDefinition -> routePredicates.stream()
-						.anyMatch(routePredicate -> predicateDefinition.getName().equals(routePredicate.name())));
-		log.debug("FilterDefinitions valid: " + hasValidFilterDefinitions);
-		log.debug("PredicateDefinitions valid: " + hasValidPredicateDefinitions);
-		return hasValidFilterDefinitions && hasValidPredicateDefinitions;
+		Set<String> unavailablePredicatesDefinitions = routeDefinition.getPredicates().stream()
+				.filter(rd -> !isAvailable(rd)).map(PredicateDefinition::getName).collect(Collectors.toSet());
+		if (!unavailableFilterDefinitions.isEmpty()) {
+			handleUnavailableDefinition(FilterDefinition.class.getSimpleName(), unavailableFilterDefinitions);
+		}
+		else if (!unavailablePredicatesDefinitions.isEmpty()) {
+			handleUnavailableDefinition(PredicateDefinition.class.getSimpleName(), unavailablePredicatesDefinitions);
+		}
+	}
+
+	private void handleUnavailableDefinition(String simpleName, Set<String> unavailableDefinitions) {
+		final String errorMessage = String.format("Invalid %s: %s", simpleName, unavailableDefinitions);
+		log.debug(errorMessage);
+		throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errorMessage);
+	}
+
+	private boolean isAvailable(FilterDefinition filterDefinition) {
+		return GatewayFilters.stream()
+				.anyMatch(gatewayFilterFactory -> filterDefinition.getName().equals(gatewayFilterFactory.name()));
+	}
+
+	private boolean isAvailable(PredicateDefinition predicateDefinition) {
+		return routePredicates.stream()
+				.anyMatch(routePredicate -> predicateDefinition.getName().equals(routePredicate.name()));
 	}
 
 	@DeleteMapping("/routes/{id}")

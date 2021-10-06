@@ -18,8 +18,7 @@ package org.springframework.cloud.gateway.filter.factory;
 
 import java.net.URI;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
@@ -33,19 +32,17 @@ import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
-public class AddResponseHeaderGatewayFilterFactoryTests extends BaseWebClientTests {
+class AddResponseHeaderGatewayFilterFactoryTests extends BaseWebClientTests {
 
 	@Test
-	public void testResposneHeaderFilter() {
+	void testResposneHeaderFilter() {
 		URI uri = UriComponentsBuilder.fromUriString(this.baseUri + "/headers").build(true).toUri();
 		String host = "www.addresponseheader.org";
 		String expectedValue = "Bar";
@@ -54,7 +51,7 @@ public class AddResponseHeaderGatewayFilterFactoryTests extends BaseWebClientTes
 	}
 
 	@Test
-	public void testResposneHeaderFilterJavaDsl() {
+	void testResposneHeaderFilterJavaDsl() {
 		URI uri = UriComponentsBuilder.fromUriString(this.baseUri + "/get").build(true).toUri();
 		String host = "www.addresponseheaderjava.org";
 		String expectedValue = "myresponsevalue-www";
@@ -62,7 +59,7 @@ public class AddResponseHeaderGatewayFilterFactoryTests extends BaseWebClientTes
 	}
 
 	@Test
-	public void toStringFormat() {
+	void toStringFormat() {
 		NameValueConfig config = new NameValueConfig().setName("myname").setValue("myvalue");
 		GatewayFilter filter = new AddResponseHeaderGatewayFilterFactory().apply(config);
 		assertThat(filter.toString()).contains("myname").contains("myvalue");
@@ -71,7 +68,7 @@ public class AddResponseHeaderGatewayFilterFactoryTests extends BaseWebClientTes
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
-	public static class TestConfig {
+	static class TestConfig {
 
 		@Value("${test.uri}")
 		String uri;

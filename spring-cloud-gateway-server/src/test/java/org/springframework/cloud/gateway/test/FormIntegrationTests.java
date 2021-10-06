@@ -19,8 +19,7 @@ package org.springframework.cloud.gateway.test;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -34,7 +33,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.BodyInserters;
@@ -45,17 +43,16 @@ import static org.springframework.cloud.gateway.test.TestUtils.getMap;
 import static org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED;
 import static org.springframework.http.MediaType.MULTIPART_FORM_DATA;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
 @SuppressWarnings("unchecked")
-public class FormIntegrationTests extends BaseWebClientTests {
+class FormIntegrationTests extends BaseWebClientTests {
 
 	public static final MediaType FORM_URL_ENCODED_CONTENT_TYPE = new MediaType(APPLICATION_FORM_URLENCODED,
 			StandardCharsets.UTF_8);
 
 	@Test
-	public void formUrlencodedWorks() {
+	void formUrlencodedWorks() {
 		LinkedMultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
 		formData.add("foo", "bar");
 		formData.add("baz", "bam");
@@ -75,7 +72,7 @@ public class FormIntegrationTests extends BaseWebClientTests {
 	}
 
 	@Test
-	public void multipartFormDataWorksWebClient() {
+	void multipartFormDataWorksWebClient() {
 		MultiValueMap<String, HttpEntity<?>> formData = createMultipartData();
 
 		// @formatter:off
@@ -89,7 +86,7 @@ public class FormIntegrationTests extends BaseWebClientTests {
 	}
 
 	@Test
-	public void multipartFormDataWorksRestTemplate() {
+	void multipartFormDataWorksRestTemplate() {
 		MultiValueMap<String, HttpEntity<?>> formData = createMultipartData();
 		TestRestTemplate rest = new TestRestTemplate();
 
@@ -116,7 +113,7 @@ public class FormIntegrationTests extends BaseWebClientTests {
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
-	public static class TestConfig {
+	static class TestConfig {
 
 	}
 
