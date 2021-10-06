@@ -2602,11 +2602,12 @@ These are basic guides to writing some custom components of the gateway.
 === Writing Custom Route Predicate Factories
 
 
-In order to write a Route Predicate you will need to implement `RoutePredicateFactory`.  There is an abstract class called `AbstractRoutePredicateFactory` which you can extend.
+In order to write a Route Predicate you will need to implement `RoutePredicateFactory` as a bean. There is an abstract class called `AbstractRoutePredicateFactory` which you can extend.
 
 .MyRoutePredicateFactory.java
 [source,java]
 ----
+@Component
 public class MyRoutePredicateFactory extends AbstractRoutePredicateFactory<MyRoutePredicateFactory.Config> {
 
     public MyRoutePredicateFactory() {
@@ -2633,7 +2634,7 @@ public class MyRoutePredicateFactory extends AbstractRoutePredicateFactory<MyRou
 ----
 === Writing Custom GatewayFilter Factories
 
-To write a `GatewayFilter`, you must implement `GatewayFilterFactory`.
+To write a `GatewayFilter`, you must implement `GatewayFilterFactory` as a bean.
 You can extend an abstract class called `AbstractGatewayFilterFactory`.
 The following examples show how to do so:
 
@@ -2641,6 +2642,7 @@ The following examples show how to do so:
 ====
 [source,java]
 ----
+@Component
 public class PreGatewayFilterFactory extends AbstractGatewayFilterFactory<PreGatewayFilterFactory.Config> {
 
 	public PreGatewayFilterFactory() {
@@ -2669,6 +2671,7 @@ public class PreGatewayFilterFactory extends AbstractGatewayFilterFactory<PreGat
 .PostGatewayFilterFactory.java
 [source,java]
 ----
+@Component
 public class PostGatewayFilterFactory extends AbstractGatewayFilterFactory<PostGatewayFilterFactory.Config> {
 
 	public PostGatewayFilterFactory() {
@@ -2709,7 +2712,7 @@ name to be compliant.
 
 === Writing Custom Global Filters
 
-To write a custom global filter, you must implement `GlobalFilter` interface.
+To write a custom global filter, you must implement `GlobalFilter` interface as a bean.
 This applies the filter to all requests.
 
 The following examples show how to set up global pre and post filters, respectively:
