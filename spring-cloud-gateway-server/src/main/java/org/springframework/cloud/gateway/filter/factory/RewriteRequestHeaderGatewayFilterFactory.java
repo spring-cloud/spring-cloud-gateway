@@ -38,8 +38,7 @@ public class RewriteRequestHeaderGatewayFilterFactory
 		return new GatewayFilter() {
 			@Override
 			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-				if (exchange.getRequest().getHeaders().containsKey(config.getName()))
-				{
+				if (exchange.getRequest().getHeaders().containsKey(config.getName())) {
 					return chain.filter(exchange.mutate()
 							.request(request -> request.headers(httpHeaders -> rewriteHeaders(httpHeaders, config)))
 							.build());
@@ -50,16 +49,16 @@ public class RewriteRequestHeaderGatewayFilterFactory
 			@Override
 			public String toString() {
 				return filterToStringCreator(RewriteRequestHeaderGatewayFilterFactory.this)
-						.append("name", config.getName()).append("regexp", config.getRegexp())
-						.append("replacement", config.getReplacement()).toString();
+						.append("name", config.getName())
+						.append("regexp", config.getRegexp())
+						.append("replacement", config.getReplacement())
+						.toString();
 			}
 		};
 	}
 
-	private void rewriteHeaders(HttpHeaders requestHeaders, Config config)
-	{
-		final String name = config.getName();
-		requestHeaders.computeIfPresent(name, (k, v) -> rewriteHeaders(config, v));
+	private void rewriteHeaders(HttpHeaders requestHeaders, Config config) {
+		requestHeaders.computeIfPresent(config.getName(), (k, v) -> rewriteHeaders(config, v));
 	}
 
 	private List<String> rewriteHeaders(Config config, List<String> headers) {

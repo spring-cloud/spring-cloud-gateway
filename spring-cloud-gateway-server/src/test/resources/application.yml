@@ -330,14 +330,24 @@ spring:
           - RewriteLocationResponseHeader
 
         # =====================================
+      - id: rewrite_request_header_test
+        uri: ${test.uri}
+        predicates:
+          - Host=**.rewriterequestheader.org
+          - Path=/headers
+        filters:
+          - AddRequestHeader=X-Request-Foo, /42?user=ford&password=omg!what&flag=true
+          - RewriteRequestHeader=X-Request-Foo, password=[^&]+, password=***
+
+        # =====================================
       - id: rewrite_response_header_test
         uri: ${test.uri}
         predicates:
           - Host=**.rewriteresponseheader.org
           - Path=/headers
         filters:
-          - AddResponseHeader=X-Request-Foo, /42?user=ford&password=omg!what&flag=true
-          - RewriteResponseHeader=X-Request-Foo, password=[^&]+, password=***
+          - AddResponseHeader=X-Response-Foo, /42?user=ford&password=omg!what&flag=true
+          - RewriteResponseHeader=X-Response-Foo, password=[^&]+, password=***
 
         # =====================================
       - id: sccb_failure_test

@@ -71,15 +71,14 @@ public class RewriteRequestHeaderGatewayFilterFactoryUnitTests {
 
 	@Test
 	public void testRewriteMultipleHeaders() {
-		Config config = config(COOKIE, "^Test([^=]+)=","$1=");
+		Config config = config(COOKIE, "^Test([^=]+)=", "$1=");
 		ServerWebExchange exchange = requestHeaders(COOKIE, "TestMyCookie=Value", "TestOtherCookie=Value");
 
 		ServerWebExchange chained = verifyGatewayFilter(filterFactory.apply(config), exchange);
 
 		List<String> actualHeaders = chained.getRequest().getHeaders().get(COOKIE);
 		assertThat(actualHeaders).isNotNull();
-		assertThat(actualHeaders).containsExactly("MyCookie=Value",
-				"OtherCookie=Value");
+		assertThat(actualHeaders).containsExactly("MyCookie=Value", "OtherCookie=Value");
 	}
 
 	@Test
@@ -89,28 +88,24 @@ public class RewriteRequestHeaderGatewayFilterFactoryUnitTests {
 		assertThat(filter.toString()).contains("myname").contains("myregexp").contains("myreplacement");
 	}
 
-	private static ServerWebExchange verifyGatewayFilter(GatewayFilter filter, ServerWebExchange exchange)
-	{
+	private static ServerWebExchange verifyGatewayFilter(GatewayFilter filter, ServerWebExchange exchange) {
 		GatewayFilterChain chain = mock(GatewayFilterChain.class);
 		ArgumentCaptor<ServerWebExchange> chained = ArgumentCaptor.forClass(ServerWebExchange.class);
 		when(chain.filter(any())).thenReturn(Mono.empty());
 
-		StepVerifier.create(filter.filter(exchange, chain))
-				.verifyComplete();
+		StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
 
 		verify(chain).filter(chained.capture());
 		return chained.getValue();
 	}
 
-	private ServerWebExchange requestHeaders(String name, String... values)
-	{
+	private ServerWebExchange requestHeaders(String name, String... values) {
 		MockServerHttpRequest.BaseBuilder<?> builder = MockServerHttpRequest.get("http://localhost/");
 		builder.header(name, values);
 		return new MockServerWebExchange.Builder(builder.build()).build();
 	}
 
-	private Config config(String name, String regexp, String replacement)
-	{
+	private Config config(String name, String regexp, String replacement) {
 		Config config = filterFactory.newConfig();
 		config.setName(name);
 		config.setRegexp(regexp);
