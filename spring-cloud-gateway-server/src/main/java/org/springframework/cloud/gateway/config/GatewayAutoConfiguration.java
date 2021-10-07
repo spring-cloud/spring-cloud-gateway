@@ -26,6 +26,7 @@ import io.netty.channel.ChannelOption;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.cloud.gateway.filter.factory.RewriteRequestHeaderGatewayFilterFactory;
 import reactor.core.publisher.Flux;
 import reactor.netty.http.Http11SslContextSpec;
 import reactor.netty.http.Http2SslContextSpec;
@@ -568,6 +569,12 @@ public class GatewayAutoConfiguration {
 	@ConditionalOnEnabledFilter
 	public SetResponseHeaderGatewayFilterFactory setResponseHeaderGatewayFilterFactory() {
 		return new SetResponseHeaderGatewayFilterFactory();
+	}
+
+	@Bean
+	@ConditionalOnEnabledFilter
+	public RewriteRequestHeaderGatewayFilterFactory rewriteRequestHeaderGatewayFilterFactory() {
+		return new RewriteRequestHeaderGatewayFilterFactory();
 	}
 
 	@Bean
