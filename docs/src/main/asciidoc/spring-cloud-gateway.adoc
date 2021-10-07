@@ -195,7 +195,7 @@ This route matches requests that have a cookie named `chocolate` whose value mat
 
 === The Header Route Predicate Factory
 
-The `Header` route predicate factory takes two parameters, the header `name` and a `regexp` (which is a Java regular expression).
+The `Header` route predicate factory takes two parameters, the `header` and a `regexp` (which is a Java regular expression).
 This predicate matches with a header that has the given name whose value matches the regular expression.
 The following example configures a header route predicate:
 
