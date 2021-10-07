@@ -296,4 +296,17 @@ public class XForwardedHeadersFilterTests {
 		assertThat(headers.getFirst(X_FORWARDED_FOR_HEADER)).isEqualTo("10.0.0.1,10.0.0.1");
 	}
 
+	@Test
+	public void nullValuesSkipped() throws Exception {
+		MockServerHttpRequest request = MockServerHttpRequest.get("/get")
+				.remoteAddress(new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80))
+				.header(X_FORWARDED_FOR_HEADER, "10.0.0.1").build();
+
+		XForwardedHeadersFilter filter = new XForwardedHeadersFilter();
+
+		HttpHeaders headers = filter.filter(request.getHeaders(), MockServerWebExchange.from(request));
+
+		assertThat(headers).doesNotContainKeys(X_FORWARDED_PROTO_HEADER, X_FORWARDED_HOST_HEADER);
+	}
+
 }
