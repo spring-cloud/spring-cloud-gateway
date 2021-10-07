@@ -16,6 +16,21 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
+import java.util.List;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
+
+import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.GatewayFilterChain;
+import org.springframework.cloud.gateway.filter.factory.RewriteRequestHeaderGatewayFilterFactory.Config;
+import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
+import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.web.server.ServerWebExchange;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -23,19 +38,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpHeaders.COOKIE;
 
-import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.springframework.cloud.gateway.filter.GatewayFilter;
-import org.springframework.cloud.gateway.filter.GatewayFilterChain;
-import org.springframework.cloud.gateway.filter.factory.RewriteRequestHeaderGatewayFilterFactory.Config;
-import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
-import org.springframework.mock.web.server.MockServerWebExchange;
-import org.springframework.web.server.ServerWebExchange;
-import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
-
+/**
+ * @author aburmeis
+ */
 public class RewriteRequestHeaderGatewayFilterFactoryUnitTests {
 
 	private RewriteRequestHeaderGatewayFilterFactory filterFactory;
@@ -112,4 +117,5 @@ public class RewriteRequestHeaderGatewayFilterFactoryUnitTests {
 		config.setReplacement(replacement);
 		return config;
 	}
+
 }

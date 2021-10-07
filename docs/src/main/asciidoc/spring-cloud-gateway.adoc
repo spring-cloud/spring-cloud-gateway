@@ -1191,11 +1191,11 @@ spring:
       - id: rewriterequestheader_route
         uri: https://example.org
         filters:
-        - RewriteRequestHeader=X-Request-Red, , password=[^&]+, password=***
+        - RewriteRequestHeader=X-Request-Red, password=[^&]+, password=***
 ----
 ====
 
-For a header value of `/42?user=ford&password=omg!what&flag=true`, it is set to `/42?user=ford&password=\***&flag=true` after making the downstream request.
+For a header value of `/42?user=ford&password=omg!what&flag=true`, it is set to `/42?user=ford&password=\***&flag=true` before making the downstream request.
 You must use `$\` to mean `$` because of the YAML specification.
 
 === The `RewriteResponseHeader` `GatewayFilter` Factory
@@ -1215,7 +1215,7 @@ spring:
       - id: rewriteresponseheader_route
         uri: https://example.org
         filters:
-        - RewriteResponseHeader=X-Response-Red, , password=[^&]+, password=***
+        - RewriteResponseHeader=X-Response-Red, password=[^&]+, password=***
 ----
 ====
 

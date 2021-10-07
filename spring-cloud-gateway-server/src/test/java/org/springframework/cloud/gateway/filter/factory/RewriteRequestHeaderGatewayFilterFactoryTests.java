@@ -16,12 +16,10 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
-import static org.springframework.cloud.gateway.test.TestUtils.getMap;
-
 import java.util.Map;
+
 import org.junit.jupiter.api.Test;
+
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -29,18 +27,20 @@ import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
+import static org.springframework.cloud.gateway.test.TestUtils.getMap;
+
+/**
+ * @author aburmeis
+ */
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
-public class RewriteRequestHeaderGatewayFilterFactoryTests
-		extends BaseWebClientTests {
+public class RewriteRequestHeaderGatewayFilterFactoryTests extends BaseWebClientTests {
 
 	@Test
 	public void rewriteRequestHeaderFilterWorks() {
-		testClient.get()
-				.uri("/headers")
-				.header("Host", "www.rewriterequestheader.org")
-				.exchange()
-				.expectBody(Map.class)
+		testClient.get().uri("/headers").header("Host", "www.rewriterequestheader.org").exchange().expectBody(Map.class)
 				.consumeWith(result -> {
 					Map<String, Object> headers = getMap(result.getResponseBody(), "headers");
 					assertThat(headers).containsEntry("X-Request-Foo", "/42?user=ford&password=***&flag=true");

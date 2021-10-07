@@ -1,16 +1,41 @@
-package org.springframework.cloud.gateway.filter.factory;
+/*
+ * Copyright 2013-2020 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
+package org.springframework.cloud.gateway.filter.factory;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import reactor.core.publisher.Mono;
+
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.server.ServerWebExchange;
-import reactor.core.publisher.Mono;
 
+import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
+
+/**
+ * Rewrite a request header using a regular expression. Each matching part of all header
+ * values is replaced. The config is
+ * {@code RewriteRequestHeader=<HeaderName>, <regexp>, <replacement>}.
+ *
+ * @author aburmeis
+ */
 public class RewriteRequestHeaderGatewayFilterFactory
 		extends AbstractGatewayFilterFactory<RewriteRequestHeaderGatewayFilterFactory.Config> {
 
@@ -49,10 +74,8 @@ public class RewriteRequestHeaderGatewayFilterFactory
 			@Override
 			public String toString() {
 				return filterToStringCreator(RewriteRequestHeaderGatewayFilterFactory.this)
-						.append("name", config.getName())
-						.append("regexp", config.getRegexp())
-						.append("replacement", config.getReplacement())
-						.toString();
+						.append("name", config.getName()).append("regexp", config.getRegexp())
+						.append("replacement", config.getReplacement()).toString();
 			}
 		};
 	}
@@ -62,8 +85,7 @@ public class RewriteRequestHeaderGatewayFilterFactory
 	}
 
 	private List<String> rewriteHeaders(Config config, List<String> headers) {
-		return headers.stream()
-				.map(header -> rewrite(header, config.getRegexp(), config.getReplacement()))
+		return headers.stream().map(header -> rewrite(header, config.getRegexp(), config.getReplacement()))
 				.collect(Collectors.toList());
 	}
 

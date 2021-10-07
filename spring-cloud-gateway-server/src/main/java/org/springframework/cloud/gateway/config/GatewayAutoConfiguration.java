@@ -26,7 +26,6 @@ import io.netty.channel.ChannelOption;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.cloud.gateway.filter.factory.RewriteRequestHeaderGatewayFilterFactory;
 import reactor.core.publisher.Flux;
 import reactor.netty.http.Http11SslContextSpec;
 import reactor.netty.http.Http2SslContextSpec;
@@ -93,6 +92,7 @@ import org.springframework.cloud.gateway.filter.factory.RequestSizeGatewayFilter
 import org.springframework.cloud.gateway.filter.factory.RetryGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RewriteLocationResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.RewriteRequestHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RewriteResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SaveSessionGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory;
