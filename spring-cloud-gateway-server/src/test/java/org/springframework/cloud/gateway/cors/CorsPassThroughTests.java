@@ -34,20 +34,23 @@ import org.springframework.web.reactive.function.client.ClientResponse;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
+/**
+ * @author mouxhun
+ */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT,
-		properties = "spring.cloud.gateway.globalcors.preflight.passthrough=true")
+		properties = "spring.cloud.gateway.globalcors.pass-through=true")
 @DirtiesContext
-public class PreFlightPassThroughTests extends BaseWebClientTests {
+public class CorsPassThroughTests extends BaseWebClientTests {
 
 	@Test
-	public void testCorsPreFlightPassThrough() {
+	public void testCorsPassThrough() {
 		ClientResponse clientResponse = webClient.options().uri("/get")
 				.header("Origin", "localhost")
 				.header("Access-Control-Request-Method", "GET").exchange().block();
 
 		assertThat(clientResponse).isNotNull();
-		assertThat(clientResponse.statusCode()).as("PreFlight PassThrough failed.")
+		assertThat(clientResponse.statusCode()).as("CORS PassThrough failed.")
 				.isEqualTo(HttpStatus.FORBIDDEN);
 	}
 

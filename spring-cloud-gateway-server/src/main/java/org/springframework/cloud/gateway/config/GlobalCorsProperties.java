@@ -32,18 +32,18 @@ public class GlobalCorsProperties {
 
 	private final Map<String, CorsConfiguration> corsConfigurations = new LinkedHashMap<>();
 
-	private PreflightProperties preflight = new PreflightProperties();
+	private boolean passThrough;
 
 	public Map<String, CorsConfiguration> getCorsConfigurations() {
 		return corsConfigurations;
 	}
 
-	public PreflightProperties getPreflight() {
-		return preflight;
+	public boolean isPassThrough() {
+		return passThrough;
 	}
 
-	public void setPreflight(PreflightProperties preflight) {
-		this.preflight = preflight;
+	public void setPassThrough(boolean passThrough) {
+		this.passThrough = passThrough;
 	}
 
 }

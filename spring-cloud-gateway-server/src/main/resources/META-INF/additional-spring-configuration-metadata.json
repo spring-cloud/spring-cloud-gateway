@@ -361,9 +361,9 @@
       "defaultValue": "false"
     },
     {
-      "name": "spring.cloud.gateway.globalcors.preflight.passthrough",
+      "name": "spring.cloud.gateway.globalcors.pass-through",
       "type": "java.lang.Boolean",
-      "description": "Enables CORS preflight requests passthrough by route to backend.",
+      "description": "Enables CORS requests passThrough by route to backend.",
       "defaultValue": "false"
     }
   ]
