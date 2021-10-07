@@ -1174,6 +1174,30 @@ The `protocolsRegex` parameter must be a valid regex `String`, against which the
 If it is not matched, the filter does nothing.
 The default is `http|https|ftp|ftps`.
 
+=== The `RewriteRequestHeader` `GatewayFilter` Factory
+
+The `RewriteRequestHeader` `GatewayFilter` factory takes `name`, `regexp`, and `replacement` parameters.
+It uses Java regular expressions for a flexible way to rewrite the request header value.
+The following example configures a `RewriteRequestHeader` `GatewayFilter`:
+
+.application.yml
+====
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: rewriterequestheader_route
+        uri: https://example.org
+        filters:
+        - RewriteRequestHeader=X-Request-Red, , password=[^&]+, password=***
+----
+====
+
+For a header value of `/42?user=ford&password=omg!what&flag=true`, it is set to `/42?user=ford&password=\***&flag=true` after making the downstream request.
+You must use `$\` to mean `$` because of the YAML specification.
+
 === The `RewriteResponseHeader` `GatewayFilter` Factory
 
 The `RewriteResponseHeader` `GatewayFilter` factory takes `name`, `regexp`, and `replacement` parameters.
