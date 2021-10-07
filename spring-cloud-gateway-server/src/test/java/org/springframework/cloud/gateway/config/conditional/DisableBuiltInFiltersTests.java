@@ -52,7 +52,7 @@ public class DisableBuiltInFiltersTests {
 
 		@Test
 		public void shouldInjectBuiltInFilters() {
-			assertThat(gatewayFilters).hasSizeGreaterThanOrEqualTo(31);
+			assertThat(gatewayFilters).hasSizeGreaterThanOrEqualTo(34);
 		}
 
 	}
@@ -99,6 +99,7 @@ public class DisableBuiltInFiltersTests {
 					"spring.cloud.gateway.filter.set-request-header.enabled=false",
 					"spring.cloud.gateway.filter.set-request-host-header.enabled=false",
 					"spring.cloud.gateway.filter.set-response-header.enabled=false",
+					"spring.cloud.gateway.filter.rewrite-request-header.enabled=false",
 					"spring.cloud.gateway.filter.rewrite-response-header.enabled=false",
 					"spring.cloud.gateway.filter.rewrite-location-response-header.enabled=false",
 					"spring.cloud.gateway.filter.rewrite-location.enabled=false",
