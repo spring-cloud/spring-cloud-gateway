@@ -29,7 +29,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -82,7 +82,7 @@ public class HttpStatusTests extends BaseWebClientTests {
 	@Import(DefaultTestConfig.class)
 	static class TestConfig {
 
-		@RequestMapping("/httpbin/exception")
+		@GetMapping("/httpbin/exception")
 		String exception() {
 			throw new RuntimeException("an error");
 		}

@@ -36,7 +36,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -119,7 +119,7 @@ public class GatewayMetricsFilterTests extends BaseWebClientTests {
 					.build();
 		}
 
-		@RequestMapping("/httpbin/badtargeturi")
+		@GetMapping("/httpbin/badtargeturi")
 		public String exception() {
 			throw new RuntimeException("an error");
 		}
