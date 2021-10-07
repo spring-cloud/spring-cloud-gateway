@@ -31,7 +31,6 @@ import java.util.Collection;
 import java.util.List;
 
 import javax.net.ssl.KeyManagerFactory;
-import javax.validation.constraints.Max;
 
 import reactor.netty.resources.ConnectionProvider;
 import reactor.netty.tcp.SslProvider;
@@ -39,9 +38,11 @@ import reactor.netty.transport.ProxyProvider;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.web.server.WebServerException;
+import org.springframework.cloud.gateway.config.validation.DataSizeMax;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.util.ResourceUtils;
 import org.springframework.util.unit.DataSize;
+import org.springframework.util.unit.DataUnit;
 import org.springframework.validation.annotation.Validated;
 
 /**
@@ -97,7 +98,7 @@ public class HttpClientProperties {
 		this.responseTimeout = responseTimeout;
 	}
 
-	@Max(Integer.MAX_VALUE)
+	@DataSizeMax(value = Integer.MAX_VALUE, unit = DataUnit.BYTES)
 	public DataSize getMaxHeaderSize() {
 		return maxHeaderSize;
 	}
@@ -106,7 +107,7 @@ public class HttpClientProperties {
 		this.maxHeaderSize = maxHeaderSize;
 	}
 
-	@Max(Integer.MAX_VALUE)
+	@DataSizeMax(value = Integer.MAX_VALUE, unit = DataUnit.BYTES)
 	public DataSize getMaxInitialLineLength() {
 		return maxInitialLineLength;
 	}
