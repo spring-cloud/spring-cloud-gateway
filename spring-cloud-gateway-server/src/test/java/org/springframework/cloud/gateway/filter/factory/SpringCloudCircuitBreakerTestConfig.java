@@ -38,6 +38,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.reactive.function.server.RouterFunction;
@@ -82,7 +83,7 @@ public class SpringCloudCircuitBreakerTestConfig {
 		return Collections.singletonMap("from", "statusCodeFallbackController");
 	}
 
-	@GetMapping("/resetExchangeFallbackController")
+	@RequestMapping("/resetExchangeFallbackController")
 	public ResponseEntity<Map<String, String>> resetExchangeFallbackController(ServerWebExchange exchange) {
 		return ResponseEntity.status(HttpStatus.OK)
 				.headers((HttpHeaders) exchange.getRequest().getHeaders().entrySet().stream()
@@ -98,10 +99,10 @@ public class SpringCloudCircuitBreakerTestConfig {
 	@Bean
 	public RouteLocator circuitBreakerRouteLocator(RouteLocatorBuilder builder) {
 		return builder.routes()
-				.route("circuitbreaker_fallback_forward", r -> r.host("**.circuitbreakerforward.org")
-						.filters(f -> f.circuitBreaker(config -> config.setFallbackUri("forward:/fallback"))).uri(uri))
 				.route("fallback_controller_3",
 						r -> r.path("/fallback").filters(f -> f.setPath("/circuitbreakerFallbackController3")).uri(uri))
+				.route("circuitbreaker_fallback_forward", r -> r.host("**.circuitbreakerforward.org")
+						.filters(f -> f.circuitBreaker(config -> config.setFallbackUri("forward:/fallback"))).uri(uri))
 				.route("circuitbreaker_java",
 						r -> r.host("**.circuitbreakerjava.org")
 								.filters(f -> f.prefixPath("/httpbin").circuitBreaker(

@@ -96,7 +96,7 @@ public class HttpBinCompatibleController {
 	}
 
 	@GetMapping(path = "/delay/{sec}", produces = MediaType.APPLICATION_JSON_VALUE)
-	public Mono<Map<String, Object>> get(ServerWebExchange exchange, @PathVariable int sec)
+	public Mono<Map<String, Object>> delay(ServerWebExchange exchange, @PathVariable int sec)
 			throws InterruptedException {
 		int delay = Math.min(sec, 10);
 		return Mono.just(get(exchange)).delayElement(Duration.ofSeconds(delay));
@@ -122,7 +122,7 @@ public class HttpBinCompatibleController {
 		return result;
 	}
 
-	@GetMapping(value = "/post", consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
+	@PostMapping(value = "/post", consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
 			produces = MediaType.APPLICATION_JSON_VALUE)
 	public Mono<Map<String, Object>> postFormData(@RequestBody Mono<MultiValueMap<String, Part>> parts) {
 		// StringDecoder decoder = StringDecoder.allMimeTypes(true);
@@ -136,7 +136,7 @@ public class HttpBinCompatibleController {
 				}).map(files -> Collections.singletonMap("files", files));
 	}
 
-	@GetMapping(path = "/post", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+	@PostMapping(path = "/post", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
 			produces = MediaType.APPLICATION_JSON_VALUE)
 	public Mono<Map<String, Object>> postUrlEncoded(ServerWebExchange exchange) throws IOException {
 		return post(exchange, null);
