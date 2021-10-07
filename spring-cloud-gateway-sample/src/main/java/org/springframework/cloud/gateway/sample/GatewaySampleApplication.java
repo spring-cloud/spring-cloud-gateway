@@ -164,9 +164,9 @@ public class GatewaySampleApplication {
 
 	@Bean
 	public RouterFunction<ServerResponse> testWhenMetricPathIsNotMeet() {
-		RouterFunction<ServerResponse> route = RouterFunctions
-				.route(RequestPredicates.path("/actuator/metrics/spring.cloud.gateway.requests"), request -> ServerResponse.ok()
-						.body(BodyInserters.fromValue(HELLO_FROM_FAKE_ACTUATOR_METRICS_GATEWAY_REQUESTS)));
+		RouterFunction<ServerResponse> route = RouterFunctions.route(
+				RequestPredicates.path("/actuator/metrics/spring.cloud.gateway.requests"), request -> ServerResponse
+						.ok().body(BodyInserters.fromValue(HELLO_FROM_FAKE_ACTUATOR_METRICS_GATEWAY_REQUESTS)));
 		return route;
 	}
 
