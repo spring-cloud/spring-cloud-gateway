@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -51,6 +52,11 @@ public class RequestHeaderSizeGatewayFilterFactory extends
 	}
 
 	@Override
+	public List<String> shortcutFieldOrder() {
+		return Collections.singletonList("maxSize");
+	}
+
+	@Override
 	public GatewayFilter apply(RequestHeaderSizeGatewayFilterFactory.Config config) {
 		return new GatewayFilter() {
 			@Override
@@ -63,7 +69,7 @@ public class RequestHeaderSizeGatewayFilterFactory extends
 				for (Map.Entry<String, List<String>> headerEntry : headers.entrySet()) {
 					List<String> values = headerEntry.getValue();
 					for (String value : values) {
-						headerSizeInBytes += Long.valueOf(value.getBytes().length);
+						headerSizeInBytes += (long) value.getBytes().length;
 					}
 				}
 

@@ -78,6 +78,9 @@ public class HttpClientProperties {
 	/** Enables wiretap debugging for Netty HttpClient. */
 	private boolean wiretap;
 
+	/** Enables compression for Netty HttpClient. */
+	private boolean compression;
+
 	public Integer getConnectTimeout() {
 		return connectTimeout;
 	}
@@ -152,6 +155,14 @@ public class HttpClientProperties {
 		this.wiretap = wiretap;
 	}
 
+	public boolean isCompression() {
+		return compression;
+	}
+
+	public void setCompression(boolean compression) {
+		this.compression = compression;
+	}
+
 	@Override
 	public String toString() {
 		// @formatter:off
@@ -165,6 +176,7 @@ public class HttpClientProperties {
 				.append("ssl", ssl)
 				.append("websocket", websocket)
 				.append("wiretap", wiretap)
+				.append("compression", compression)
 				.toString();
 		// @formatter:on
 
@@ -198,6 +210,12 @@ public class HttpClientProperties {
 		 * time.
 		 */
 		private Duration maxLifeTime = null;
+
+		/**
+		 * Perform regular eviction checks in the background at a specified interval.
+		 * Disabled by default ({@link Duration#ZERO})
+		 */
+		private Duration evictionInterval = Duration.ZERO;
 
 		public PoolType getType() {
 			return type;
@@ -247,12 +265,20 @@ public class HttpClientProperties {
 			this.maxLifeTime = maxLifeTime;
 		}
 
+		public Duration getEvictionInterval() {
+			return evictionInterval;
+		}
+
+		public void setEvictionInterval(Duration evictionInterval) {
+			this.evictionInterval = evictionInterval;
+		}
+
 		@Override
 		public String toString() {
 			return "Pool{" + "type=" + type + ", name='" + name + '\''
 					+ ", maxConnections=" + maxConnections + ", acquireTimeout="
 					+ acquireTimeout + ", maxIdleTime=" + maxIdleTime + ", maxLifeTime="
-					+ maxLifeTime + '}';
+					+ maxLifeTime + ", evictionInterval=" + evictionInterval + '}';
 		}
 
 		public enum PoolType {

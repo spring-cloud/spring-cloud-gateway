@@ -18,7 +18,6 @@ package org.springframework.cloud.gateway.filter.factory;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import reactor.core.publisher.Mono;
 
@@ -64,11 +63,25 @@ public class StripPrefixGatewayFilterFactory
 				ServerHttpRequest request = exchange.getRequest();
 				addOriginalRequestUrl(exchange, request.getURI());
 				String path = request.getURI().getRawPath();
-				String newPath = "/"
-						+ Arrays.stream(StringUtils.tokenizeToStringArray(path, "/"))
-								.skip(config.parts).collect(Collectors.joining("/"));
-				newPath += (newPath.length() > 1 && path.endsWith("/") ? "/" : "");
-				ServerHttpRequest newRequest = request.mutate().path(newPath).build();
+				String[] originalParts = StringUtils.tokenizeToStringArray(path, "/");
+
+				// all new paths start with /
+				StringBuilder newPath = new StringBuilder("/");
+				for (int i = 0; i < originalParts.length; i++) {
+					if (i >= config.getParts()) {
+						// only append slash if this is the second part or greater
+						if (newPath.length() > 1) {
+							newPath.append('/');
+						}
+						newPath.append(originalParts[i]);
+					}
+				}
+				if (newPath.length() > 1 && path.endsWith("/")) {
+					newPath.append('/');
+				}
+
+				ServerHttpRequest newRequest = request.mutate().path(newPath.toString())
+						.build();
 
 				exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR,
 						newRequest.getURI());

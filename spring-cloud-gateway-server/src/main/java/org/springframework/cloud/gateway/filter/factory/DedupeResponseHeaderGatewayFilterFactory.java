@@ -16,9 +16,10 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import reactor.core.publisher.Mono;
 
@@ -146,7 +147,7 @@ public class DedupeResponseHeaderGatewayFilterFactory extends
 			headers.set(name, values.get(values.size() - 1));
 			break;
 		case RETAIN_UNIQUE:
-			headers.put(name, values.stream().distinct().collect(Collectors.toList()));
+			headers.put(name, new ArrayList<>(new LinkedHashSet<>(values)));
 			break;
 		default:
 			break;

@@ -287,8 +287,8 @@ public class ProxyExchange<T> {
 	}
 
 	public Mono<ResponseEntity<T>> delete() {
-		RequestEntity<Void> requestEntity = headers(
-				(BodyBuilder) RequestEntity.delete(uri)).build();
+		RequestEntity<Object> requestEntity = headers(
+				(BodyBuilder) RequestEntity.delete(uri)).body(body());
 		return exchange(requestEntity);
 	}
 

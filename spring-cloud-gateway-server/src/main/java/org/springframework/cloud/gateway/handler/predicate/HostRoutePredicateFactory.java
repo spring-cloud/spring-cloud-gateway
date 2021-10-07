@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Predicate;
 
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
@@ -63,12 +62,18 @@ public class HostRoutePredicateFactory
 			@Override
 			public boolean test(ServerWebExchange exchange) {
 				String host = exchange.getRequest().getHeaders().getFirst("Host");
-				Optional<String> optionalPattern = config.getPatterns().stream()
-						.filter(pattern -> pathMatcher.match(pattern, host)).findFirst();
+				String match = null;
+				for (int i = 0; i < config.getPatterns().size(); i++) {
+					String pattern = config.getPatterns().get(i);
+					if (pathMatcher.match(pattern, host)) {
+						match = pattern;
+						break;
+					}
+				}
 
-				if (optionalPattern.isPresent()) {
+				if (match != null) {
 					Map<String, String> variables = pathMatcher
-							.extractUriTemplateVariables(optionalPattern.get(), host);
+							.extractUriTemplateVariables(match, host);
 					ServerWebExchangeUtils.putUriTemplateVariables(exchange, variables);
 					return true;
 				}

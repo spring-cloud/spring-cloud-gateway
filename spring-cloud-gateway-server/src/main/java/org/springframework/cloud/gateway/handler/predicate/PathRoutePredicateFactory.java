@@ -19,7 +19,6 @@ package org.springframework.cloud.gateway.handler.predicate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Predicate;
 
 import org.apache.commons.logging.Log;
@@ -93,13 +92,18 @@ public class PathRoutePredicateFactory
 				PathContainer path = parsePath(
 						exchange.getRequest().getURI().getRawPath());
 
-				Optional<PathPattern> optionalPathPattern = pathPatterns.stream()
-						.filter(pattern -> pattern.matches(path)).findFirst();
+				PathPattern match = null;
+				for (int i = 0; i < pathPatterns.size(); i++) {
+					PathPattern pathPattern = pathPatterns.get(i);
+					if (pathPattern.matches(path)) {
+						match = pathPattern;
+						break;
+					}
+				}
 
-				if (optionalPathPattern.isPresent()) {
-					PathPattern pathPattern = optionalPathPattern.get();
-					traceMatch("Pattern", pathPattern.getPatternString(), path, true);
-					PathMatchInfo pathMatchInfo = pathPattern.matchAndExtract(path);
+				if (match != null) {
+					traceMatch("Pattern", match.getPatternString(), path, true);
+					PathMatchInfo pathMatchInfo = match.matchAndExtract(path);
 					putUriTemplateVariables(exchange, pathMatchInfo.getUriVariables());
 					return true;
 				}

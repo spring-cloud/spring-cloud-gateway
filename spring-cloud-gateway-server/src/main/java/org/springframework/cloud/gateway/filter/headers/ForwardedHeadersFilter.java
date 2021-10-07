@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.gateway.filter.headers;
 
+import java.net.Inet6Address;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.ArrayList;
@@ -98,9 +100,11 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 		HttpHeaders updated = new HttpHeaders();
 
 		// copy all headers except Forwarded
-		original.entrySet().stream().filter(
-				entry -> !entry.getKey().toLowerCase().equalsIgnoreCase(FORWARDED_HEADER))
-				.forEach(entry -> updated.addAll(entry.getKey(), entry.getValue()));
+		for (Map.Entry<String, List<String>> entry : original.entrySet()) {
+			if (!entry.getKey().equalsIgnoreCase(FORWARDED_HEADER)) {
+				updated.addAll(entry.getKey(), entry.getValue());
+			}
+		}
 
 		List<Forwarded> forwardeds = parse(original.get(FORWARDED_HEADER));
 
@@ -118,8 +122,17 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 		if (remoteAddress != null) {
 			// If remoteAddress is unresolved, calling getHostAddress() would cause a
 			// NullPointerException.
-			String forValue = remoteAddress.isUnresolved() ? remoteAddress.getHostName()
-					: remoteAddress.getAddress().getHostAddress();
+			String forValue;
+			if (remoteAddress.isUnresolved()) {
+				forValue = remoteAddress.getHostName();
+			}
+			else {
+				InetAddress address = remoteAddress.getAddress();
+				forValue = remoteAddress.getAddress().getHostAddress();
+				if (address instanceof Inet6Address) {
+					forValue = "[" + forValue + "]";
+				}
+			}
 			int port = remoteAddress.getPort();
 			if (port >= 0) {
 				forValue = forValue + ":" + port;

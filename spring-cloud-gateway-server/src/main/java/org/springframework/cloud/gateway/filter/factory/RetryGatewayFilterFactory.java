@@ -87,8 +87,13 @@ public class RetryGatewayFilterFactory
 				// null status code might mean a network exception?
 				if (!retryableStatusCode && statusCode != null) {
 					// try the series
-					retryableStatusCode = retryConfig.getSeries().stream()
-							.anyMatch(series -> statusCode.series().equals(series));
+					retryableStatusCode = false;
+					for (int i = 0; i < retryConfig.getSeries().size(); i++) {
+						if (statusCode.series().equals(retryConfig.getSeries().get(i))) {
+							retryableStatusCode = true;
+							break;
+						}
+					}
 				}
 
 				final boolean finalRetryableStatusCode = retryableStatusCode;
@@ -169,6 +174,7 @@ public class RetryGatewayFilterFactory
 			@Override
 			public String toString() {
 				return filterToStringCreator(RetryGatewayFilterFactory.this)
+						.append("routeId", retryConfig.getRouteId())
 						.append("retries", retryConfig.getRetries())
 						.append("series", retryConfig.getSeries())
 						.append("statuses", retryConfig.getStatuses())

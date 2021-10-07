@@ -26,6 +26,7 @@ import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.web.reactive.HttpHandlerAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -41,13 +42,24 @@ import org.springframework.web.reactive.DispatcherHandler;
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty(name = GatewayProperties.PREFIX + ".enabled",
 		matchIfMissing = true)
-@EnableConfigurationProperties(GatewayMetricsProperties.class)
+@EnableConfigurationProperties
 @AutoConfigureBefore(HttpHandlerAutoConfiguration.class)
-@AutoConfigureAfter({ MetricsAutoConfiguration.class,
+@AutoConfigureAfter({ GatewayAutoConfiguration.class, MetricsAutoConfiguration.class,
 		CompositeMeterRegistryAutoConfiguration.class })
 @ConditionalOnClass({ DispatcherHandler.class, MeterRegistry.class,
 		MetricsAutoConfiguration.class })
 public class GatewayMetricsAutoConfiguration {
+
+	@Bean
+	@ConditionalOnMissingBean
+	public GatewayProperties backupGatewayProperties() {
+		return new GatewayProperties();
+	}
+
+	@Bean
+	public GatewayMetricsProperties gatewayMetricsProperties() {
+		return new GatewayMetricsProperties();
+	}
 
 	@Bean
 	public GatewayHttpTagsProvider gatewayHttpTagsProvider() {

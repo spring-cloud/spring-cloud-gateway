@@ -17,8 +17,10 @@
 package org.springframework.cloud.gateway.config;
 
 import java.security.cert.X509Certificate;
+import java.time.Duration;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import com.netflix.hystrix.HystrixObservableCommand;
 import io.netty.channel.ChannelOption;
@@ -28,6 +30,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Flux;
 import reactor.netty.http.client.HttpClient;
+import reactor.netty.http.server.WebsocketServerSpec;
 import reactor.netty.resources.ConnectionProvider;
 import reactor.netty.tcp.ProxyProvider;
 import rx.RxReactiveStreams;
@@ -166,6 +169,7 @@ import static org.springframework.cloud.gateway.config.HttpClientProperties.Pool
 /**
  * @author Spencer Gibb
  * @author Ziemowit Stolarczyk
+ * @author Mete Alpaslan Katırcıoğlu
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty(name = "spring.cloud.gateway.enabled", matchIfMissing = true)
@@ -660,21 +664,7 @@ public class GatewayAutoConfiguration {
 				List<HttpClientCustomizer> customizers) {
 
 			// configure pool resources
-			HttpClientProperties.Pool pool = properties.getPool();
-
-			ConnectionProvider connectionProvider;
-			if (pool.getType() == DISABLED) {
-				connectionProvider = ConnectionProvider.newConnection();
-			}
-			else if (pool.getType() == FIXED) {
-				connectionProvider = ConnectionProvider.fixed(pool.getName(),
-						pool.getMaxConnections(), pool.getAcquireTimeout(),
-						pool.getMaxIdleTime(), pool.getMaxLifeTime());
-			}
-			else {
-				connectionProvider = ConnectionProvider.elastic(pool.getName(),
-						pool.getMaxIdleTime(), pool.getMaxLifeTime());
-			}
+			ConnectionProvider connectionProvider = buildConnectionProvider(properties);
 
 			HttpClient httpClient = HttpClient.create(connectionProvider)
 					// TODO: move customizations to HttpClientCustomizers
@@ -761,6 +751,10 @@ public class GatewayAutoConfiguration {
 				httpClient = httpClient.wiretap(true);
 			}
 
+			if (properties.isCompression()) {
+				httpClient = httpClient.compress(true);
+			}
+
 			if (!CollectionUtils.isEmpty(customizers)) {
 				customizers.sort(AnnotationAwareOrderComparator.INSTANCE);
 				for (HttpClientCustomizer customizer : customizers) {
@@ -769,6 +763,42 @@ public class GatewayAutoConfiguration {
 			}
 
 			return httpClient;
+		}
+
+		private ConnectionProvider buildConnectionProvider(
+				HttpClientProperties properties) {
+			HttpClientProperties.Pool pool = properties.getPool();
+
+			ConnectionProvider connectionProvider;
+			if (pool.getType() == DISABLED) {
+				connectionProvider = ConnectionProvider.newConnection();
+			}
+			else {
+				// create either Fixed or Elastic pool
+				ConnectionProvider.Builder builder = ConnectionProvider
+						.builder(pool.getName());
+				if (pool.getType() == FIXED) {
+					builder.maxConnections(pool.getMaxConnections())
+							.pendingAcquireMaxCount(-1).pendingAcquireTimeout(
+									Duration.ofMillis(pool.getAcquireTimeout()));
+				}
+				else {
+					// Elastic
+					builder.maxConnections(Integer.MAX_VALUE)
+							.pendingAcquireTimeout(Duration.ofMillis(0))
+							.pendingAcquireMaxCount(-1);
+				}
+
+				if (pool.getMaxIdleTime() != null) {
+					builder.maxIdleTime(pool.getMaxIdleTime());
+				}
+				if (pool.getMaxLifeTime() != null) {
+					builder.maxLifeTime(pool.getMaxLifeTime());
+				}
+				builder.evictInBackground(pool.getEvictionInterval());
+				connectionProvider = builder.build();
+			}
+			return connectionProvider;
 		}
 
 		@Bean
@@ -807,15 +837,19 @@ public class GatewayAutoConfiguration {
 		@Bean
 		public ReactorNettyRequestUpgradeStrategy reactorNettyRequestUpgradeStrategy(
 				HttpClientProperties httpClientProperties) {
-			ReactorNettyRequestUpgradeStrategy requestUpgradeStrategy = new ReactorNettyRequestUpgradeStrategy();
 
-			HttpClientProperties.Websocket websocket = httpClientProperties
-					.getWebsocket();
-			PropertyMapper map = PropertyMapper.get();
-			map.from(websocket::getMaxFramePayloadLength).whenNonNull()
-					.to(requestUpgradeStrategy::setMaxFramePayloadLength);
-			map.from(websocket::isProxyPing).to(requestUpgradeStrategy::setHandlePing);
-			return requestUpgradeStrategy;
+			Supplier<WebsocketServerSpec.Builder> builderSupplier = () -> {
+				WebsocketServerSpec.Builder builder = WebsocketServerSpec.builder();
+				HttpClientProperties.Websocket websocket = httpClientProperties
+						.getWebsocket();
+				PropertyMapper map = PropertyMapper.get();
+				map.from(websocket::getMaxFramePayloadLength).whenNonNull()
+						.to(builder::maxFramePayloadLength);
+				map.from(websocket::isProxyPing).to(builder::handlePing);
+				return builder;
+			};
+
+			return new ReactorNettyRequestUpgradeStrategy(builderSupplier);
 		}
 
 	}

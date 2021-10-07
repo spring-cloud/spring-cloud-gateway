@@ -16,9 +16,9 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import reactor.core.publisher.Mono;
 
@@ -88,9 +88,13 @@ public class RewriteResponseHeaderGatewayFilterFactory extends
 	}
 
 	protected List<String> rewriteHeaders(Config config, List<String> headers) {
-		return headers.stream()
-				.map(val -> rewrite(val, config.getRegexp(), config.getReplacement()))
-				.collect(Collectors.toList());
+		ArrayList<String> rewrittenHeaders = new ArrayList<>();
+		for (int i = 0; i < headers.size(); i++) {
+			String rewriten = rewrite(headers.get(i), config.getRegexp(),
+					config.getReplacement());
+			rewrittenHeaders.add(rewriten);
+		}
+		return rewrittenHeaders;
 	}
 
 	String rewrite(String value, String regexp, String replacement) {

@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.filter.headers;
 import java.net.URI;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.core.Ordered;
@@ -201,8 +202,9 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 		HttpHeaders original = input;
 		HttpHeaders updated = new HttpHeaders();
 
-		original.entrySet().stream()
-				.forEach(entry -> updated.addAll(entry.getKey(), entry.getValue()));
+		for (Map.Entry<String, List<String>> entry : original.entrySet()) {
+			updated.addAll(entry.getKey(), entry.getValue());
+		}
 
 		if (isForEnabled() && request.getRemoteAddress() != null
 				&& request.getRemoteAddress().getAddress() != null) {
@@ -229,7 +231,7 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 
 			if (originalUris != null && requestUri != null) {
 
-				originalUris.stream().forEach(originalUri -> {
+				originalUris.forEach(originalUri -> {
 
 					if (originalUri != null && originalUri.getPath() != null) {
 						String prefix = originalUri.getPath();

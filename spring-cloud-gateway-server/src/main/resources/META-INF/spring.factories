@@ -14,3 +14,7 @@ org.springframework.cloud.gateway.config.GatewayReactiveLoadBalancerClientAutoCo
 
 org.springframework.boot.env.EnvironmentPostProcessor=\
 org.springframework.cloud.gateway.config.GatewayEnvironmentPostProcessor
+
+# Failure Analyzers
+org.springframework.boot.diagnostics.FailureAnalyzer=\
+org.springframework.cloud.gateway.support.MvcFoundOnClasspathFailureAnalyzer

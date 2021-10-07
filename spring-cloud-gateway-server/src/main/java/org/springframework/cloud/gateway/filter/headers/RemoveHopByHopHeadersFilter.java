@@ -18,6 +18,8 @@ package org.springframework.cloud.gateway.filter.headers;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -66,9 +68,11 @@ public class RemoveHopByHopHeadersFilter implements HttpHeadersFilter, Ordered {
 	public HttpHeaders filter(HttpHeaders input, ServerWebExchange exchange) {
 		HttpHeaders filtered = new HttpHeaders();
 
-		input.entrySet().stream()
-				.filter(entry -> !this.headers.contains(entry.getKey().toLowerCase()))
-				.forEach(entry -> filtered.addAll(entry.getKey(), entry.getValue()));
+		for (Map.Entry<String, List<String>> entry : input.entrySet()) {
+			if (!this.headers.contains(entry.getKey().toLowerCase())) {
+				filtered.addAll(entry.getKey(), entry.getValue());
+			}
+		}
 
 		return filtered;
 	}

@@ -22,10 +22,14 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
+import org.springframework.cloud.gateway.support.MvcFoundOnClasspathException;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration(proxyBeanMethods = false)
 @AutoConfigureBefore(GatewayAutoConfiguration.class)
+@ConditionalOnProperty(name = "spring.cloud.gateway.enabled", matchIfMissing = true)
 public class GatewayClassPathWarningAutoConfiguration {
 
 	private static final Log log = LogFactory
@@ -35,12 +39,11 @@ public class GatewayClassPathWarningAutoConfiguration {
 
 	@Configuration(proxyBeanMethods = false)
 	@ConditionalOnClass(name = "org.springframework.web.servlet.DispatcherServlet")
+	@ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 	protected static class SpringMvcFoundOnClasspathConfiguration {
 
 		public SpringMvcFoundOnClasspathConfiguration() {
-			log.warn(BORDER
-					+ "Spring MVC found on classpath, which is incompatible with Spring Cloud Gateway at this time. "
-					+ "Please remove spring-boot-starter-web dependency." + BORDER);
+			throw new MvcFoundOnClasspathException();
 		}
 
 	}
