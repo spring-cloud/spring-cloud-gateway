@@ -237,7 +237,7 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 	 * timeout configuration.
 	 * @param route the current route.
 	 * @param exchange the current ServerWebExchange.
-	 * @return
+	 * @return the configured HttpClient.
 	 */
 	protected HttpClient getHttpClient(Route route, ServerWebExchange exchange) {
 		Object connectTimeoutAttr = route.getMetadata().get(CONNECT_TIMEOUT_ATTR);

@@ -96,7 +96,7 @@ public class StripPrefixGatewayFilterFactory
 
 	public static class Config {
 
-		private int parts;
+		private int parts = 1;
 
 		public int getParts() {
 			return parts;

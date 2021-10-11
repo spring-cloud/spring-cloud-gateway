@@ -17,11 +17,9 @@
 package org.springframework.cloud.gateway.filter;
 
 import org.hamcrest.Matchers;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
 import reactor.netty.DisposableServer;
 import reactor.netty.http.server.HttpServer;
@@ -37,33 +35,34 @@ import org.springframework.cloud.gateway.test.PermitAllSecurityConfiguration;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.util.SocketUtils;
 
-@RunWith(SpringRunner.class)
+import static org.assertj.core.api.Assertions.assertThat;
+
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class NettyRoutingFilterTests extends BaseWebClientTests {
+class NettyRoutingFilterTests extends BaseWebClientTests {
 
 	private static int port;
 
 	@Autowired
 	private ApplicationContext context;
 
-	@BeforeClass
+	@BeforeAll
 	public static void beforeAll() {
 		port = SocketUtils.findAvailableTcpPort();
 	}
 
 	@Test
-	@Ignore
-	public void mockServerWorks() {
+	@Disabled
+	void mockServerWorks() {
 		WebTestClient client = WebTestClient.bindToApplicationContext(this.context).build();
 		client.get().uri("/mockexample").exchange().expectStatus().value(Matchers.lessThan(500));
 	}
 
-	@Test // gh-2207
-	public void testCaseInsensitiveScheme() {
+	@Test
+	// gh-2207
+	void testCaseInsensitiveScheme() {
 		DisposableServer server = HttpServer.create().port(port).host("127.0.0.1").route(
 				routes -> routes.get("/issue", (request, response) -> response.sendString(Mono.just("issue2207"))))
 				.bindNow();
@@ -71,10 +70,10 @@ public class NettyRoutingFilterTests extends BaseWebClientTests {
 		try {
 			testClient.get().uri("/issue").exchange().expectStatus().isOk().expectBody()
 					.consumeWith(entityExchangeResult -> {
-						Assert.assertNotNull(entityExchangeResult);
-						Assert.assertNotNull(entityExchangeResult.getResponseBody());
+						assertThat(entityExchangeResult).isNotNull();
+						assertThat(entityExchangeResult.getResponseBody()).isNotNull();
 						String content = new String(entityExchangeResult.getResponseBody());
-						Assert.assertEquals("issue2207", content);
+						assertThat(content).isEqualTo("issue2207");
 					});
 		}
 		finally {

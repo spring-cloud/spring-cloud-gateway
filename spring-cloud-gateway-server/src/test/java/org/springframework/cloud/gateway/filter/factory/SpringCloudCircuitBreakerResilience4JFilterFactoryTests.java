@@ -16,8 +16,7 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
@@ -34,7 +33,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.reactive.function.BodyInserters;
 
@@ -45,9 +43,8 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 /**
  * @author Ryan Baxter
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = RANDOM_PORT,
-		properties = { "debug=true", "spring.cloud.circuitbreaker.hystrix.enabled=false" })
+@SpringBootTest(webEnvironment = RANDOM_PORT, properties = { "logging.level.org.springframework.cloud.gateway=TRACE",
+		"debug=true", "spring.cloud.circuitbreaker.hystrix.enabled=false" })
 @ContextConfiguration(classes = SpringCloudCircuitBreakerResilience4JFilterFactoryTests.Config.class)
 @DirtiesContext
 public class SpringCloudCircuitBreakerResilience4JFilterFactoryTests
