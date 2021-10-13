@@ -20,6 +20,7 @@ import java.time.Duration;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -29,15 +30,17 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
-import org.springframework.cloud.gateway.test.BaseWebClientTests;
+import org.springframework.cloud.gateway.test.BaseWebClientTests.DefaultTestConfig;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -46,7 +49,17 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 		properties = { "spring.cloud.gateway.httpclient.compression=true", "server.compression.enabled=true",
 				"server.compression.min-response-size=1KB", "server.compression.mime-types=text/event-stream" })
 @DirtiesContext
-public class ModifyResponseBodyGatewayFilterFactorySseGzipTests extends BaseWebClientTests {
+public class ModifyResponseBodyGatewayFilterFactorySseGzipTests {
+
+	@LocalServerPort
+	protected int port = 0;
+
+	private WebClient webClient;
+
+	@BeforeEach
+	public void setup() {
+		this.webClient = WebClient.create("http://localhost:" + this.port);
+	}
 
 	@Test
 	public void shouldModifyGzippedSseResponseBodyToSseObject() {
@@ -87,17 +100,15 @@ public class ModifyResponseBodyGatewayFilterFactorySseGzipTests extends BaseWebC
 
 		@Bean
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
-			return builder.routes().route("modify_response_java_sse",
-					r -> r.host("www.modifytoobject.org").filters(f -> f.modifyResponseBody(byte[].class,
-							ServerSentEvent.class, (webExchange, originalResponse) -> {
-								String originalEvent = new String(originalResponse);
+			return builder.routes().route("modify_response_java_sse", r -> r.host("www.modifytoobject.org").filters(
+					f -> f.modifyResponseBody(byte[].class, ServerSentEvent.class, (webExchange, originalResponse) -> {
+						String originalEvent = new String(originalResponse);
 
-								return Mono.just(ServerSentEvent.<String>builder()
-										.event(extractSseEventField("event", originalEvent))
+						return Mono.just(
+								ServerSentEvent.<String>builder().event(extractSseEventField("event", originalEvent))
 										.id(extractSseEventField("id", originalEvent))
 										.data("0" + extractSseEventField("data", originalEvent)).build());
-							})).uri(uri))
-					.build();
+					})).uri(uri)).build();
 		}
 
 	}
