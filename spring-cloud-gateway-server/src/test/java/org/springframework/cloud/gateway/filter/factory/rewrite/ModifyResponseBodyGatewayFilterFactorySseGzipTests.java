@@ -50,25 +50,6 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 public class ModifyResponseBodyGatewayFilterFactorySseGzipTests extends BaseWebClientTests {
 
 	@Test
-	public void shouldModifyGzippedSseResponseBody() {
-		Flux<ServerSentEvent<String>> result = this.webClient.get().uri("/sse")
-				.header(HttpHeaders.HOST, "www.modifyresponsebodyssejava.org")
-				.header(HttpHeaders.ACCEPT_ENCODING, "gzip").retrieve()
-				.bodyToFlux(new ParameterizedTypeReference<ServerSentEvent<String>>() {
-				});
-
-		StepVerifier.create(result).consumeNextWith(event -> {
-			assertThat(event.data()).isEqualTo("00");
-			assertThat(event.event()).isEqualTo("periodic-event");
-		}).consumeNextWith(event -> {
-			assertThat(event.id()).isEqualTo("1");
-			assertThat(event.data()).isEqualTo("01");
-			assertThat(event.event()).isEqualTo("periodic-event");
-		}).expectNextCount(8).thenCancel().verify(Duration.ofSeconds(5L));
-
-	}
-
-	@Test
 	public void shouldModifyGzippedSseResponseBodyToSseObject() {
 		Flux<ServerSentEvent<String>> result = this.webClient.get().uri("/sse")
 				.header(HttpHeaders.HOST, "www.modifytoobject.org").header(HttpHeaders.ACCEPT_ENCODING, "gzip")
@@ -107,25 +88,16 @@ public class ModifyResponseBodyGatewayFilterFactorySseGzipTests extends BaseWebC
 
 		@Bean
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
-			return builder.routes().route("modify_response_java_test_sse", r -> r
-					.host("www.modifyresponsebodyssejava.org")
-					.filters(f -> f.modifyResponseBody(byte[].class, byte[].class, (webExchange, originalResponse) -> {
-						String originalEvent = new String(originalResponse);
-						String modifiedEvent = originalEvent.replace("data:", "data:0");
+			return builder.routes().route("modify_response_java_sse",
+					r -> r.host("www.modifytoobject.org").filters(f -> f.modifyResponseBody(byte[].class,
+							ServerSentEvent.class, (webExchange, originalResponse) -> {
+								String originalEvent = new String(originalResponse);
 
-						return Mono.just(modifiedEvent.getBytes(StandardCharsets.UTF_8));
-					})).uri(uri))
-
-					.route("modify_response_java_sse",
-							r -> r.host("www.modifytoobject.org").filters(f -> f.modifyResponseBody(byte[].class,
-									ServerSentEvent.class, (webExchange, originalResponse) -> {
-										String originalEvent = new String(originalResponse);
-
-										return Mono.just(ServerSentEvent.<String>builder()
-												.event(extractSseEventField("event", originalEvent))
-												.id(extractSseEventField("id", originalEvent))
-												.data("0" + extractSseEventField("data", originalEvent)).build());
-									})).uri(uri))
+								return Mono.just(ServerSentEvent.<String>builder()
+										.event(extractSseEventField("event", originalEvent))
+										.id(extractSseEventField("id", originalEvent))
+										.data("0" + extractSseEventField("data", originalEvent)).build());
+							})).uri(uri))
 					.build();
 		}
 
