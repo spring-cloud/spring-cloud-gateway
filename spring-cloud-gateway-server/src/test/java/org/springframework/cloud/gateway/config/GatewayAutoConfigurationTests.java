@@ -40,6 +40,8 @@ import org.springframework.boot.test.context.runner.ReactiveWebApplicationContex
 import org.springframework.cloud.gateway.actuate.GatewayControllerEndpoint;
 import org.springframework.cloud.gateway.actuate.GatewayLegacyControllerEndpoint;
 import org.springframework.cloud.gateway.filter.factory.TokenRelayGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.headers.GRPCRequestHeadersFilter;
+import org.springframework.cloud.gateway.filter.headers.GRPCResponseHeadersFilter;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.GatewayFilterSpec;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
@@ -229,6 +231,30 @@ public class GatewayAutoConfigurationTests {
 		assertThat(spec1.protocols()).isEqualTo("p1");
 		// Protocols should not be cached between requests:
 		assertThat(spec2.protocols()).isNull();
+	}
+
+	@Test
+	public void gRPCFiltersConfiguredWhenHTTP2Enabled() {
+		new ReactiveWebApplicationContextRunner()
+				.withConfiguration(AutoConfigurations.of(WebFluxAutoConfiguration.class, MetricsAutoConfiguration.class,
+						SimpleMetricsExportAutoConfiguration.class, GatewayAutoConfiguration.class,
+						HttpClientCustomizedConfig.class, ServerPropertiesConfig.class))
+				.withPropertyValues("server.http2.enabled=true").run(context -> {
+					assertThat(context).hasSingleBean(GRPCRequestHeadersFilter.class);
+					assertThat(context).hasSingleBean(GRPCResponseHeadersFilter.class);
+				});
+	}
+
+	@Test
+	public void gRPCFiltersNotConfiguredWhenHTTP2Disabled() {
+		new ReactiveWebApplicationContextRunner()
+				.withConfiguration(AutoConfigurations.of(WebFluxAutoConfiguration.class, MetricsAutoConfiguration.class,
+						SimpleMetricsExportAutoConfiguration.class, GatewayAutoConfiguration.class,
+						HttpClientCustomizedConfig.class, ServerPropertiesConfig.class))
+				.withPropertyValues("server.http2.enabled=false").run(context -> {
+					assertThat(context).doesNotHaveBean(GRPCRequestHeadersFilter.class);
+					assertThat(context).doesNotHaveBean(GRPCResponseHeadersFilter.class);
+				});
 	}
 
 	@Configuration

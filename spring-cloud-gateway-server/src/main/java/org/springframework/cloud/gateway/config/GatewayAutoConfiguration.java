@@ -109,6 +109,8 @@ import org.springframework.cloud.gateway.filter.factory.rewrite.MessageBodyEncod
 import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyRequestBodyGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyResponseBodyGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.headers.ForwardedHeadersFilter;
+import org.springframework.cloud.gateway.filter.headers.GRPCRequestHeadersFilter;
+import org.springframework.cloud.gateway.filter.headers.GRPCResponseHeadersFilter;
 import org.springframework.cloud.gateway.filter.headers.HttpHeadersFilter;
 import org.springframework.cloud.gateway.filter.headers.RemoveHopByHopHeadersFilter;
 import org.springframework.cloud.gateway.filter.headers.XForwardedHeadersFilter;
@@ -176,6 +178,7 @@ import static org.springframework.cloud.gateway.config.HttpClientProperties.Pool
  * @author Spencer Gibb
  * @author Ziemowit Stolarczyk
  * @author Mete Alpaslan Katırcıoğlu
+ * @author Alberto C. Ríos
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty(name = "spring.cloud.gateway.enabled", matchIfMissing = true)
@@ -288,6 +291,18 @@ public class GatewayAutoConfiguration {
 	@ConditionalOnProperty(name = "spring.cloud.gateway.x-forwarded.enabled", matchIfMissing = true)
 	public XForwardedHeadersFilter xForwardedHeadersFilter() {
 		return new XForwardedHeadersFilter();
+	}
+
+	@Bean
+	@ConditionalOnProperty(name = "server.http2.enabled", matchIfMissing = true)
+	public GRPCRequestHeadersFilter gRPCRequestHeadersFilter() {
+		return new GRPCRequestHeadersFilter();
+	}
+
+	@Bean
+	@ConditionalOnProperty(name = "server.http2.enabled", matchIfMissing = true)
+	public GRPCResponseHeadersFilter gRPCResponseHeadersFilter() {
+		return new GRPCResponseHeadersFilter();
 	}
 
 	// GlobalFilter beans
