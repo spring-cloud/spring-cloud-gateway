@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.gateway.filter.factory.rewrite;
 
-import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.regex.Matcher;
@@ -25,7 +24,6 @@ import java.util.regex.Pattern;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.netty.http.client.HttpClient;
 import reactor.test.StepVerifier;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -39,10 +37,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -55,24 +51,20 @@ public class ModifyResponseBodyGatewayFilterFactorySseGzipTests extends BaseWebC
 
 	@Test
 	public void shouldModifyGzippedSseResponseBody() {
-		URI uri = UriComponentsBuilder.fromUriString(this.baseUri + "/sse").build(true).toUri();
+		Flux<ServerSentEvent<String>> result = this.webClient.get().uri("/sse")
+				.header(HttpHeaders.HOST, "www.modifyresponsebodyssejava.org")
+				.header(HttpHeaders.ACCEPT_ENCODING, "gzip").retrieve()
+				.bodyToFlux(new ParameterizedTypeReference<ServerSentEvent<String>>() {
+				});
 
-		HttpClient client = HttpClient.create().compress(true);
-
-		Flux<String> response = client.headers(h -> h.add(HttpHeaders.HOST, "www.modifyresponsebodyssejava.org")
-				.add(HttpHeaders.ACCEPT, MediaType.TEXT_EVENT_STREAM_VALUE).add(HttpHeaders.ACCEPT_ENCODING, "gzip"))
-				.get().uri(uri).responseContent().asString();
-
-		Flux<ServerSentEvent<String>> result = response.map(sse -> {
-			return ServerSentEvent.<String>builder().event(extractSseEventField("event", sse))
-					.id(extractSseEventField("id", sse)).data(extractSseEventField("data", sse)).build();
-		});
-
-		StepVerifier.create(result).consumeNextWith(event -> assertThat(event.data()).isEqualTo("00"))
-				.consumeNextWith(event -> assertThat(event.data()).isEqualTo("01"))
-				.consumeNextWith(event -> assertThat(event.data()).isEqualTo("02"))
-				.consumeNextWith(event -> assertThat(event.data()).isEqualTo("03")).expectNextCount(6).thenCancel()
-				.verify(Duration.ofSeconds(5L));
+		StepVerifier.create(result).consumeNextWith(event -> {
+			assertThat(event.data()).isEqualTo("00");
+			assertThat(event.event()).isEqualTo("periodic-event");
+		}).consumeNextWith(event -> {
+			assertThat(event.id()).isEqualTo("1");
+			assertThat(event.data()).isEqualTo("01");
+			assertThat(event.event()).isEqualTo("periodic-event");
+		}).expectNextCount(8).thenCancel().verify(Duration.ofSeconds(5L));
 
 	}
 
