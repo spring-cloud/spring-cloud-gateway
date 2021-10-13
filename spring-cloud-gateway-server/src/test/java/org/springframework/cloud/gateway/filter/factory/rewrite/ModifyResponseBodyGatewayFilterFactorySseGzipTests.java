@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.gateway.filter.factory.rewrite;
 
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
