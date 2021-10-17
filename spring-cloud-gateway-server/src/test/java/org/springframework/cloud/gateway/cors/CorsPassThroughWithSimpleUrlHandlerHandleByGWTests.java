@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,7 +70,7 @@ public class CorsPassThroughWithSimpleUrlHandlerHandleByGWTests extends BaseWebC
 				.as("Missing header value in response: "
 						+ HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS)
 				.isEqualTo(Arrays.asList(new HttpMethod[] { HttpMethod.GET }));
-		assertThat(clientResponse.statusCode()).as("Pre Flight call failed.")
+		assertThat(clientResponse.statusCode()).as("CORS Preflight request handle by GW failed.")
 				.isEqualTo(HttpStatus.OK);
 	}
 
@@ -89,7 +89,7 @@ public class CorsPassThroughWithSimpleUrlHandlerHandleByGWTests extends BaseWebC
 				.as("Missing header value in response: "
 						+ HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN)
 				.isEqualTo("*");
-		assertThat(clientResponse.statusCode()).as("CORS request failed.")
+		assertThat(clientResponse.statusCode()).as("CORS NonPreflight request handle by GW failed.")
 				.isEqualTo(HttpStatus.NOT_FOUND);
 	}
 

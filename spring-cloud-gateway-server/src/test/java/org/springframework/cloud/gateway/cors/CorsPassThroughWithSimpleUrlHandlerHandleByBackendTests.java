@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,7 +56,7 @@ public class CorsPassThroughWithSimpleUrlHandlerHandleByBackendTests extends Bas
 		Mono<String> bodyToMono = clientResponse.bodyToMono(String.class);
 		// pre-flight request shouldn't return the response body
 		assertThat(bodyToMono.block()).isNull();
-		assertThat(clientResponse.statusCode()).as("CORS Preflight Request PassThrough failed.")
+		assertThat(clientResponse.statusCode()).as("CORS Preflight request PassThrough failed.")
 				.isEqualTo(HttpStatus.FORBIDDEN);
 	}
 
@@ -75,7 +75,7 @@ public class CorsPassThroughWithSimpleUrlHandlerHandleByBackendTests extends Bas
 				.as("Missing header value in response: "
 						+ HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN)
 				.isNotEqualTo("*");
-		assertThat(clientResponse.statusCode()).as(" CORS NonPreflight Request PassThrough failed.")
+		assertThat(clientResponse.statusCode()).as("CORS NonPreflight request PassThrough failed.")
 				.isEqualTo(HttpStatus.OK);
 	}
 
