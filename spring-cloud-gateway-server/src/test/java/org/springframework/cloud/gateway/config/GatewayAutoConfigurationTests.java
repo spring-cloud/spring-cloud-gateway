@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -183,6 +183,25 @@ public class GatewayAutoConfigurationTests {
 	}
 
 	@Test
+	public void gatewayReactiveOAuth2AuthorizedClientManagerBacksOffForCustomBean() {
+		new ReactiveWebApplicationContextRunner()
+				.withConfiguration(AutoConfigurations.of(ReactiveSecurityAutoConfiguration.class,
+						ReactiveOAuth2ClientAutoConfiguration.class, GatewayReactiveOAuth2AutoConfiguration.class))
+				.withUserConfiguration(TestReactiveOAuth2AuthorizedClientManagerConfig.class)
+				.withPropertyValues(
+						"spring.security.oauth2.client.provider[testprovider].authorization-uri=http://localhost",
+						"spring.security.oauth2.client.provider[testprovider].token-uri=http://localhost/token",
+						"spring.security.oauth2.client.registration[test].provider=testprovider",
+						"spring.security.oauth2.client.registration[test].authorization-grant-type=authorization_code",
+						"spring.security.oauth2.client.registration[test].redirect-uri=http://localhost/redirect",
+						"spring.security.oauth2.client.registration[test].client-id=login-client")
+				.run(context -> {
+					assertThat(context).hasSingleBean(ReactiveOAuth2AuthorizedClientManager.class);
+					assertThat(context).hasBean("myReactiveOAuth2AuthorizedClientManager");
+				});
+	}
+
+	@Test
 	public void noTokenRelayFilter() {
 		assertThatThrownBy(() -> {
 			try (ConfigurableApplicationContext ctx = SpringApplication.run(RouteLocatorBuilderConfig.class,
@@ -293,6 +312,16 @@ public class GatewayAutoConfigurationTests {
 				called.compareAndSet(false, true);
 				return httpClient;
 			};
+		}
+
+	}
+
+	@Configuration
+	protected static class TestReactiveOAuth2AuthorizedClientManagerConfig {
+
+		@Bean
+		ReactiveOAuth2AuthorizedClientManager myReactiveOAuth2AuthorizedClientManager() {
+			return authorizeRequest -> null;
 		}
 
 	}
