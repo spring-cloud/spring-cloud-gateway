@@ -2348,7 +2348,8 @@ In the preceding example, CORS requests are allowed from requests that originate
 To provide the same CORS configuration to requests that are not handled by some gateway route predicate, set the `spring.cloud.gateway.globalcors.add-to-simple-url-handler-mapping` property  to `true`.
 This is useful when you try to support CORS preflight requests and your route predicate does not evalute to `true` because the HTTP method is `options`.
 
-To enable CORS requests passThrough by route to backend, set the `spring.cloud.gateway.globalcors.pass-through` property  to `true`.
+To enable CORS requests pass through gateway by route to backend, set the `spring.cloud.gateway.globalcors.pass-through` property  to `true`.
+This is useful when you try to let the backend handle the CORS requests. As when route predicate is evaluated to `true`, CORS requests(both preflight and non-preflight requests) can pass through the gateway and be handled by the backend.
 
 == Actuator API
 

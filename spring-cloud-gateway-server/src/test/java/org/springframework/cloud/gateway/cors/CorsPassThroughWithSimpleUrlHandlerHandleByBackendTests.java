@@ -18,7 +18,6 @@ package org.springframework.cloud.gateway.cors;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -27,30 +26,28 @@ import org.springframework.cloud.gateway.config.GatewayAutoConfiguration;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import reactor.core.publisher.Mono;
-
-import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 /**
+ * Route predicate evaluate to 'true', CORS request handled by Backend
  * @author mouxhun
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT,
-		properties = "spring.cloud.gateway.globalcors.pass-through=true")
+		properties = {"spring.cloud.gateway.globalcors.pass-through=true",
+				"spring.cloud.gateway.globalcors.add-to-simple-url-handler-mapping=true"})
 @DirtiesContext
-public class CorsPassThroughTests extends BaseWebClientTests {
+public class CorsPassThroughWithSimpleUrlHandlerHandleByBackendTests extends BaseWebClientTests {
 
 	@Test
-	public void testCorsPreflightRequestPassThrough() {
+	public void testPreflightCorsRequestPassThrough() {
 		ClientResponse clientResponse = webClient.options().uri("/get")
 				.header("Origin", "remoteHost")
 				.header("Access-Control-Request-Method", "GET").exchange().block();
@@ -64,10 +61,11 @@ public class CorsPassThroughTests extends BaseWebClientTests {
 	}
 
 	@Test
-	public void testCorsNonPreflightRequestPassThrough() {
+	public void testNonPreFlightCorsRequestPassThrough() {
 		ClientResponse clientResponse = webClient.get().uri("/get")
 				.header("Origin", "remoteHost")
-				.header(HttpHeaders.HOST, "localhost").exchange().block();
+				.header(HttpHeaders.HOST, "localhost")
+				.header("Access-Control-Request-Method", "GET").exchange().block();
 
 		HttpHeaders asHttpHeaders = clientResponse.headers().asHttpHeaders();
 		Mono<String> bodyToMono = clientResponse.bodyToMono(String.class);
