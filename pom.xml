@@ -62,6 +62,13 @@
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
+				<groupId>io.projectreactor</groupId>
+				<artifactId>reactor-bom</artifactId>
+				<version>2020.0.12</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<dependency>
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-gateway-dependencies</artifactId>
 				<version>${project.version}</version>
