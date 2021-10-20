@@ -67,6 +67,12 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 	}
 
 	@Override
+	public List<String> shortcutFieldOrder() {
+		return Arrays.asList("retries", "statuses", "methods", "backoff.firstBackoff", "backoff.maxBackoff",
+				"backoff.factor", "backoff.basedOnPreviousValue");
+	}
+
+	@Override
 	public GatewayFilter apply(RetryConfig retryConfig) {
 		retryConfig.validate();
 
