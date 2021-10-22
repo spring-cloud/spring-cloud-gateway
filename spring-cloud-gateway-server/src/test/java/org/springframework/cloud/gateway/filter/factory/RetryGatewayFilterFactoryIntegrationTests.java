@@ -25,16 +25,16 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hamcrest.CoreMatchers;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.system.OutputCaptureRule;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.cloud.client.DefaultServiceInstance;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
@@ -53,7 +53,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -62,7 +63,6 @@ import org.springframework.web.bind.annotation.RestController;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT,
 		properties = { "spring.cloud.gateway.httpclient.connect-timeout=500",
 				"spring.cloud.gateway.httpclient.response-timeout=2s",
@@ -72,10 +72,8 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 // https://github.com/spring-cloud/spring-cloud-gateway/issues/1315,
 // so we use only PrefixPath filter
 @ActiveProfiles("retrytests")
+@ExtendWith(OutputCaptureExtension.class)
 public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTests {
-
-	@Rule
-	public final OutputCaptureRule capture = new OutputCaptureRule();
 
 	@Test
 	public void retryFilterGet() {
@@ -110,11 +108,11 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 	}
 
 	@Test
-	public void retryFilterPost() {
+	public void retryFilterPost(CapturedOutput output) {
 		testClient.post().uri("/retrypost?key=postconfig&expectedbody=HelloConfig")
 				.header(HttpHeaders.HOST, "www.retrypostconfig.org").bodyValue("HelloConfig").exchange().expectStatus()
 				.isOk().expectBody(String.class).isEqualTo("3");
-		assertThat(this.capture.toString()).contains("disposing response connection before next iteration");
+		assertThat(output).contains("disposing response connection before next iteration");
 	}
 
 	@Test
@@ -124,12 +122,12 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 	}
 
 	@Test
-	public void retryFilterPostOneTime() {
+	public void retryFilterPostOneTime(CapturedOutput output) {
 		testClient.post().uri("/retrypost?key=retryFilterPostOneTime&expectedbody=HelloGateway&count=1")
 				.header(HttpHeaders.HOST, "www.retrypostonceconfig.org").bodyValue("HelloGateway").exchange()
 				.expectStatus().isOk();
-		assertThat(this.capture.toString()).contains("setting new iteration in attr 0");
-		assertThat(this.capture.toString()).doesNotContain("setting new iteration in attr 1");
+		assertThat(output).contains("setting new iteration in attr 0");
+		assertThat(output).doesNotContain("setting new iteration in attr 1");
 	}
 
 	@Test
@@ -225,7 +223,7 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 					.header("X-Retry-Count", String.valueOf(retryCount)).body("slept " + millisToSleep + " ms"));
 		}
 
-		@RequestMapping("/httpbin/retryalwaysfail")
+		@GetMapping("/httpbin/retryalwaysfail")
 		public ResponseEntity<String> retryalwaysfail(@RequestParam("key") String key,
 				@RequestParam(name = "count", defaultValue = "3") int count) {
 			AtomicInteger num = getCount(key);
@@ -235,7 +233,7 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 					.body("permanently broken");
 		}
 
-		@RequestMapping("/httpbin/retrypost")
+		@PostMapping("/httpbin/retrypost")
 		public ResponseEntity<String> retrypost(@RequestParam("key") String key,
 				@RequestParam(name = "count", defaultValue = "3") int count,
 				@RequestParam("expectedbody") String expectedbody, @RequestBody String body) {
@@ -248,7 +246,7 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 			return response;
 		}
 
-		@RequestMapping("/httpbin/retry")
+		@GetMapping("/httpbin/retry")
 		public ResponseEntity<String> retry(@RequestParam("key") String key,
 				@RequestParam(name = "count", defaultValue = "3") int count,
 				@RequestParam(name = "failStatus", required = false) Integer failStatus) {

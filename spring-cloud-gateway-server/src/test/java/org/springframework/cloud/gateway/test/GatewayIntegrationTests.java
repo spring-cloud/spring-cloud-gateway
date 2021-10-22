@@ -24,8 +24,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,8 +49,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -59,11 +57,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.cloud.gateway.test.TestUtils.getMap;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
 @SuppressWarnings("unchecked")
-public class GatewayIntegrationTests extends BaseWebClientTests {
+class GatewayIntegrationTests extends BaseWebClientTests {
 
 	@Autowired
 	private GatewayProperties properties;
@@ -72,7 +69,7 @@ public class GatewayIntegrationTests extends BaseWebClientTests {
 	private ApplicationContext context;
 
 	@Test
-	public void listenersInOrder() {
+	void listenersInOrder() {
 		assertThat(context).isInstanceOf(AbstractApplicationContext.class);
 		AbstractApplicationContext ctxt = (AbstractApplicationContext) context;
 		List<ApplicationListener<?>> applicationListeners = new ArrayList<>(ctxt.getApplicationListeners());
@@ -84,7 +81,7 @@ public class GatewayIntegrationTests extends BaseWebClientTests {
 	}
 
 	@Test
-	public void complexContentTypeWorks() {
+	void complexContentTypeWorks() {
 		testClient.post().uri("/headers").contentType(MediaType.APPLICATION_JSON).bodyValue("testdata")
 				.header("Host", "www.complexcontenttype.org").exchange().expectStatus().isOk().expectBody(Map.class)
 				.consumeWith(result -> {
@@ -94,7 +91,7 @@ public class GatewayIntegrationTests extends BaseWebClientTests {
 	}
 
 	@Test
-	public void forwardedHeadersWork() {
+	void forwardedHeadersWork() {
 		testClient.get().uri("/headers").exchange().expectStatus().isOk().expectBody(Map.class).consumeWith(result -> {
 			Map<String, Object> headers = getMap(result.getResponseBody(), "headers");
 			assertThat(headers).containsKeys(ForwardedHeadersFilter.FORWARDED_HEADER,
@@ -111,7 +108,7 @@ public class GatewayIntegrationTests extends BaseWebClientTests {
 	}
 
 	@Test
-	public void compositeRouteWorks() {
+	void compositeRouteWorks() {
 		testClient.get().uri("/headers?foo=bar&baz").header("Host", "www.foo.org").header("X-Request-Id", "123")
 				.cookie("chocolate", "chip").exchange().expectStatus().isOk().expectHeader()
 				.valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName()).expectHeader()
@@ -120,7 +117,7 @@ public class GatewayIntegrationTests extends BaseWebClientTests {
 	}
 
 	@Test
-	public void defaultFiltersWorks() {
+	void defaultFiltersWorks() {
 		assertThat(this.properties.getDefaultFilters()).isNotEmpty();
 
 		testClient.get().uri("/headers").header("Host", "www.addresponseheader.org").exchange().expectStatus().isOk()
@@ -132,13 +129,13 @@ public class GatewayIntegrationTests extends BaseWebClientTests {
 	}
 
 	@Test
-	public void loadBalancerFilterWorks() {
+	void loadBalancerFilterWorks() {
 		testClient.get().uri("/get").header("Host", "www.loadbalancerclient.org").exchange().expectStatus().isOk()
 				.expectHeader().valueEquals(ROUTE_ID_HEADER, "load_balancer_client_test");
 	}
 
 	@Test
-	public void loadBalancerFilterNoClientWorks() {
+	void loadBalancerFilterNoClientWorks() {
 		testClient.get().uri("/get").header("Host", "www.loadbalancerclientempty.org").exchange().expectStatus()
 				.value(new BaseMatcher<Integer>() {
 					@Override
@@ -159,7 +156,7 @@ public class GatewayIntegrationTests extends BaseWebClientTests {
 
 	@Test
 	// gh-374 no content type/empty body causes NPR in NettyRoutingFilter
-	public void noContentType() {
+	void noContentType() {
 		testClient.get().uri("/nocontenttype").exchange().expectStatus().is2xxSuccessful();
 	}
 
@@ -167,7 +164,7 @@ public class GatewayIntegrationTests extends BaseWebClientTests {
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
 	@RestController
-	public static class TestConfig {
+	static class TestConfig {
 
 		private static final Log log = LogFactory.getLog(TestConfig.class);
 
@@ -177,14 +174,14 @@ public class GatewayIntegrationTests extends BaseWebClientTests {
 			return Mono.empty();
 		}
 
-		@RequestMapping("/httpbin/nocontenttype")
-		public ResponseEntity<Void> nocontenttype() {
+		@GetMapping("/httpbin/nocontenttype")
+		ResponseEntity<Void> nocontenttype() {
 			return ResponseEntity.status(204).build();
 		}
 
 		@Bean
 		@Order(-1)
-		public GlobalFilter postFilter() {
+		GlobalFilter postFilter() {
 			return (exchange, chain) -> {
 				log.info("postFilter start");
 				return chain.filter(exchange).then(postFilterWork(exchange));

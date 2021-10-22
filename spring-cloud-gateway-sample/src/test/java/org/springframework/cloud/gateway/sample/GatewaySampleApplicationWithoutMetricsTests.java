@@ -71,8 +71,8 @@ public class GatewaySampleApplicationWithoutMetricsTests {
 	public void actuatorMetrics() {
 		init(TestConfig.class);
 		webClient.get().uri("/get").exchange().expectStatus().isOk();
-		webClient.get().uri("http://localhost:" + port + "/actuator/metrics/gateway.requests").exchange().expectStatus()
-				.isOk().expectBody(String.class)
+		webClient.get().uri("http://localhost:" + port + "/actuator/metrics/spring.cloud.gateway.requests").exchange()
+				.expectStatus().isOk().expectBody(String.class)
 				.isEqualTo(GatewaySampleApplication.HELLO_FROM_FAKE_ACTUATOR_METRICS_GATEWAY_REQUESTS);
 	}
 

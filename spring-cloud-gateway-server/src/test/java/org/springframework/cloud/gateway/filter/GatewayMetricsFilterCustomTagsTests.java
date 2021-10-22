@@ -18,8 +18,7 @@ package org.springframework.cloud.gateway.filter;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,7 +32,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -42,10 +40,9 @@ import static org.springframework.cloud.gateway.config.GatewayMetricsProperties.
 /**
  * @author Ingyu Hwang
  */
-@RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
-public class GatewayMetricsFilterCustomTagsTests extends BaseWebClientTests {
+class GatewayMetricsFilterCustomTagsTests extends BaseWebClientTests {
 
 	private static final String REQUEST_METRICS_NAME = DEFAULT_PREFIX + ".requests";
 
@@ -56,7 +53,7 @@ public class GatewayMetricsFilterCustomTagsTests extends BaseWebClientTests {
 	private String testUri;
 
 	@Test
-	public void gatewayRequestsMeterFilterHasCustomTags() {
+	void gatewayRequestsMeterFilterHasCustomTags() {
 		testClient.get().uri("/headers").exchange().expectStatus().isOk();
 
 		// default tags
@@ -79,10 +76,10 @@ public class GatewayMetricsFilterCustomTagsTests extends BaseWebClientTests {
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
-	public static class CustomConfig {
+	static class CustomConfig {
 
 		@Bean
-		public GatewayTagsProvider customGatewayTagsProvider() {
+		GatewayTagsProvider customGatewayTagsProvider() {
 			return exchange -> Tags.of("custom1", "tag1", "custom2", "tag2");
 		}
 

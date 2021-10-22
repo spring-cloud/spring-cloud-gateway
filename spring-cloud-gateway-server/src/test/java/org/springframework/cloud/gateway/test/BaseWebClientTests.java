@@ -20,7 +20,7 @@ import java.time.Duration;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import reactor.core.publisher.Mono;
 
 import org.springframework.boot.SpringBootConfiguration;
@@ -68,7 +68,7 @@ public class BaseWebClientTests {
 
 	protected String baseUri;
 
-	@Before
+	@BeforeEach
 	public void setup() throws Exception {
 		setup(new ReactorClientHttpConnector(), "http://localhost:" + port);
 	}

@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.function.Predicate;
 
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -41,6 +41,8 @@ import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.web.server.ServerWebExchange;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -55,15 +57,24 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class RedisRouteDefinitionRepositoryTests {
 
 	@Container
-	public GenericContainer redis = new GenericContainer<>("redis:5.0.9-alpine").withExposedPorts(6379);
+	public static GenericContainer redis = new GenericContainer<>("redis:5.0.9-alpine").withExposedPorts(6379);
 
 	@Autowired
 	private RedisRouteDefinitionRepository redisRouteDefinitionRepository;
 
-	@Disabled
+	@BeforeAll
+	public static void startRedisContainer() {
+		redis.start();
+	}
+
+	@DynamicPropertySource
+	static void containerProperties(DynamicPropertyRegistry registry) {
+		registry.add("spring.redis.host", redis::getContainerIpAddress);
+		registry.add("spring.redis.port", redis::getFirstMappedPort);
+	}
+
 	@Test
 	public void testAddRouteToRedis() {
-
 		RouteDefinition testRouteDefinition = defaultTestRoute();
 
 		redisRouteDefinitionRepository.save(Mono.just(testRouteDefinition)).block();
@@ -75,7 +86,6 @@ public class RedisRouteDefinitionRepositoryTests {
 		assertThat(routeDefinitions.get(0)).isEqualTo(testRouteDefinition);
 	}
 
-	@Disabled
 	@Test
 	public void testRemoveRouteFromRedis() {
 

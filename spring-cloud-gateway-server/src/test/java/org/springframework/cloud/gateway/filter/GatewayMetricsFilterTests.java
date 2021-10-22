@@ -17,8 +17,7 @@
 package org.springframework.cloud.gateway.filter;
 
 import io.micrometer.core.instrument.MeterRegistry;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,15 +36,13 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.cloud.gateway.config.GatewayMetricsProperties.DEFAULT_PREFIX;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
 public class GatewayMetricsFilterTests extends BaseWebClientTests {
@@ -122,7 +119,7 @@ public class GatewayMetricsFilterTests extends BaseWebClientTests {
 					.build();
 		}
 
-		@RequestMapping("/httpbin/badtargeturi")
+		@GetMapping("/httpbin/badtargeturi")
 		public String exception() {
 			throw new RuntimeException("an error");
 		}

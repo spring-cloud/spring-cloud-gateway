@@ -33,11 +33,15 @@ import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.security.oauth2.client.reactive.ReactiveOAuth2ClientAutoConfiguration;
 import org.springframework.boot.autoconfigure.security.reactive.ReactiveSecurityAutoConfiguration;
+import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.autoconfigure.web.reactive.WebFluxAutoConfiguration;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.runner.ReactiveWebApplicationContextRunner;
 import org.springframework.cloud.gateway.actuate.GatewayControllerEndpoint;
 import org.springframework.cloud.gateway.actuate.GatewayLegacyControllerEndpoint;
 import org.springframework.cloud.gateway.filter.factory.TokenRelayGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.headers.GRPCRequestHeadersFilter;
+import org.springframework.cloud.gateway.filter.headers.GRPCResponseHeadersFilter;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.GatewayFilterSpec;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
@@ -68,7 +72,8 @@ public class GatewayAutoConfigurationTests {
 	public void nettyHttpClientDefaults() {
 		new ReactiveWebApplicationContextRunner()
 				.withConfiguration(AutoConfigurations.of(WebFluxAutoConfiguration.class, MetricsAutoConfiguration.class,
-						SimpleMetricsExportAutoConfiguration.class, GatewayAutoConfiguration.class))
+						SimpleMetricsExportAutoConfiguration.class, GatewayAutoConfiguration.class,
+						ServerPropertiesConfig.class))
 				.withPropertyValues("debug=true").run(context -> {
 					assertThat(context).hasSingleBean(HttpClient.class);
 					assertThat(context).hasBean("gatewayHttpClient");
@@ -94,7 +99,7 @@ public class GatewayAutoConfigurationTests {
 		new ReactiveWebApplicationContextRunner()
 				.withConfiguration(AutoConfigurations.of(WebFluxAutoConfiguration.class, MetricsAutoConfiguration.class,
 						SimpleMetricsExportAutoConfiguration.class, GatewayAutoConfiguration.class,
-						HttpClientCustomizedConfig.class))
+						HttpClientCustomizedConfig.class, ServerPropertiesConfig.class))
 				.withPropertyValues("spring.cloud.gateway.httpclient.ssl.use-insecure-trust-manager=true",
 						"spring.cloud.gateway.httpclient.connect-timeout=10",
 						"spring.cloud.gateway.httpclient.response-timeout=10s",
@@ -226,6 +231,36 @@ public class GatewayAutoConfigurationTests {
 		assertThat(spec1.protocols()).isEqualTo("p1");
 		// Protocols should not be cached between requests:
 		assertThat(spec2.protocols()).isNull();
+	}
+
+	@Test
+	public void gRPCFiltersConfiguredWhenHTTP2Enabled() {
+		new ReactiveWebApplicationContextRunner()
+				.withConfiguration(AutoConfigurations.of(WebFluxAutoConfiguration.class, MetricsAutoConfiguration.class,
+						SimpleMetricsExportAutoConfiguration.class, GatewayAutoConfiguration.class,
+						HttpClientCustomizedConfig.class, ServerPropertiesConfig.class))
+				.withPropertyValues("server.http2.enabled=true").run(context -> {
+					assertThat(context).hasSingleBean(GRPCRequestHeadersFilter.class);
+					assertThat(context).hasSingleBean(GRPCResponseHeadersFilter.class);
+				});
+	}
+
+	@Test
+	public void gRPCFiltersNotConfiguredWhenHTTP2Disabled() {
+		new ReactiveWebApplicationContextRunner()
+				.withConfiguration(AutoConfigurations.of(WebFluxAutoConfiguration.class, MetricsAutoConfiguration.class,
+						SimpleMetricsExportAutoConfiguration.class, GatewayAutoConfiguration.class,
+						HttpClientCustomizedConfig.class, ServerPropertiesConfig.class))
+				.withPropertyValues("server.http2.enabled=false").run(context -> {
+					assertThat(context).doesNotHaveBean(GRPCRequestHeadersFilter.class);
+					assertThat(context).doesNotHaveBean(GRPCResponseHeadersFilter.class);
+				});
+	}
+
+	@Configuration
+	@EnableConfigurationProperties(ServerProperties.class)
+	protected static class ServerPropertiesConfig {
+
 	}
 
 	@EnableAutoConfiguration

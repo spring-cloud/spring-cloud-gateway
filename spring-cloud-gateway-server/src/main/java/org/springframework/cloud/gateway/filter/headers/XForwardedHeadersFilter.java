@@ -284,6 +284,9 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 	}
 
 	private void write(HttpHeaders headers, String name, String value, boolean append) {
+		if (value == null) {
+			return;
+		}
 		if (append) {
 			headers.add(name, value);
 			// these headers should be treated as a single comma separated header
