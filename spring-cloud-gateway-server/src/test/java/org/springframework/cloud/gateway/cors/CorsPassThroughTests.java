@@ -16,8 +16,11 @@
 
 package org.springframework.cloud.gateway.cors;
 
+import java.util.Arrays;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import reactor.core.publisher.Mono;
 
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
@@ -30,12 +33,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.reactive.function.client.ClientResponse;
-import reactor.core.publisher.Mono;
-
-import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -45,29 +44,39 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT,
-		properties = "spring.cloud.gateway.globalcors.pass-through=true")
+		properties = { "spring.cloud.gateway.globalcors.pass-through=true" })
 @DirtiesContext
 public class CorsPassThroughTests extends BaseWebClientTests {
 
 	@Test
 	public void testCorsPreflightRequestPassThrough() {
-		ClientResponse clientResponse = webClient.options().uri("/get")
-				.header("Origin", "remoteHost")
+		ClientResponse clientResponse = webClient.options().uri("/cors")
+				.header("Host", "cors.example.org").header("Origin", "remoteHost")
 				.header("Access-Control-Request-Method", "GET").exchange().block();
 
 		HttpHeaders asHttpHeaders = clientResponse.headers().asHttpHeaders();
 		Mono<String> bodyToMono = clientResponse.bodyToMono(String.class);
 		// pre-flight request shouldn't return the response body
 		assertThat(bodyToMono.block()).isNull();
-		assertThat(clientResponse.statusCode()).as("CORS Preflight request PassThrough failed.")
-				.isEqualTo(HttpStatus.FORBIDDEN);
+		assertThat(asHttpHeaders.getAccessControlAllowOrigin())
+				.as("Missing header value in response: "
+						+ HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN)
+				.isEqualTo("*");
+		assertThat(asHttpHeaders.getAccessControlAllowMethods())
+				.as("Missing header value in response: "
+						+ HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS)
+				.isEqualTo(Arrays
+						.asList(new HttpMethod[] { HttpMethod.GET, HttpMethod.POST }));
+		assertThat(clientResponse.statusCode())
+				.as("CORS Preflight request PassThrough failed.")
+				.isEqualTo(HttpStatus.OK);
 	}
 
 	@Test
 	public void testCorsNonPreflightRequestPassThrough() {
-		ClientResponse clientResponse = webClient.get().uri("/get")
+		ClientResponse clientResponse = webClient.get().uri("/cors")
 				.header("Origin", "remoteHost")
-				.header(HttpHeaders.HOST, "localhost").exchange().block();
+				.header(HttpHeaders.HOST, "cors.example.org").exchange().block();
 
 		HttpHeaders asHttpHeaders = clientResponse.headers().asHttpHeaders();
 		Mono<String> bodyToMono = clientResponse.bodyToMono(String.class);
@@ -76,8 +85,9 @@ public class CorsPassThroughTests extends BaseWebClientTests {
 		assertThat(asHttpHeaders.getAccessControlAllowOrigin())
 				.as("Missing header value in response: "
 						+ HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN)
-				.isNotEqualTo("*");
-		assertThat(clientResponse.statusCode()).as("CORS NonPreflight request PassThrough failed.")
+				.isEqualTo("*");
+		assertThat(clientResponse.statusCode())
+				.as("CORS NonPreflight request PassThrough failed.")
 				.isEqualTo(HttpStatus.OK);
 	}
 

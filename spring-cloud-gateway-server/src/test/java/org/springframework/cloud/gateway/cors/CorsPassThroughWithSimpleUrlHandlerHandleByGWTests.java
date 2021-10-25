@@ -16,8 +16,12 @@
 
 package org.springframework.cloud.gateway.cors;
 
+import java.util.Arrays;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import reactor.core.publisher.Mono;
+
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -32,9 +36,6 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.reactive.function.client.ClientResponse;
-import reactor.core.publisher.Mono;
-
-import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -45,12 +46,13 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
  * @author mouxhun
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = RANDOM_PORT,
-		properties = {"spring.cloud.gateway.globalcors.pass-through=true",
-				"spring.cloud.gateway.globalcors.add-to-simple-url-handler-mapping=true"})
+@SpringBootTest(webEnvironment = RANDOM_PORT, properties = {
+		"spring.cloud.gateway.globalcors.pass-through=true",
+		"spring.cloud.gateway.globalcors.add-to-simple-url-handler-mapping=true" })
 @DirtiesContext
 @ActiveProfiles("request-header-web-filter")
-public class CorsPassThroughWithSimpleUrlHandlerHandleByGWTests extends BaseWebClientTests {
+public class CorsPassThroughWithSimpleUrlHandlerHandleByGWTests
+		extends BaseWebClientTests {
 
 	@Test
 	public void testPreflightCorsRequestPassThrough() {
@@ -70,15 +72,15 @@ public class CorsPassThroughWithSimpleUrlHandlerHandleByGWTests extends BaseWebC
 				.as("Missing header value in response: "
 						+ HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS)
 				.isEqualTo(Arrays.asList(new HttpMethod[] { HttpMethod.GET }));
-		assertThat(clientResponse.statusCode()).as("CORS Preflight request handle by GW failed.")
+		assertThat(clientResponse.statusCode())
+				.as("CORS Preflight request handle by GW failed.")
 				.isEqualTo(HttpStatus.OK);
 	}
 
 	@Test
 	public void testNonPreFlightCorsRequestPassThrough() {
 		ClientResponse clientResponse = webClient.get().uri("/get")
-				.header("Origin", "remoteHost")
-				.header(HttpHeaders.HOST, "localhost")
+				.header("Origin", "remoteHost").header(HttpHeaders.HOST, "localhost")
 				.header("Access-Control-Request-Method", "GET").exchange().block();
 
 		HttpHeaders asHttpHeaders = clientResponse.headers().asHttpHeaders();
@@ -89,7 +91,8 @@ public class CorsPassThroughWithSimpleUrlHandlerHandleByGWTests extends BaseWebC
 				.as("Missing header value in response: "
 						+ HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN)
 				.isEqualTo("*");
-		assertThat(clientResponse.statusCode()).as("CORS NonPreflight request handle by GW failed.")
+		assertThat(clientResponse.statusCode())
+				.as("CORS NonPreflight request handle by GW failed.")
 				.isEqualTo(HttpStatus.NOT_FOUND);
 	}
 

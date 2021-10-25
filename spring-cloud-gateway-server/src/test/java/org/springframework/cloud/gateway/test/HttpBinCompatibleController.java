@@ -43,6 +43,7 @@ import org.springframework.http.codec.multipart.Part;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -197,6 +198,13 @@ public class HttpBinCompatibleController {
 		byte[] gzippedResponse = bos.toByteArray();
 		DataBuffer wrap = dataBufferFactory.wrap(gzippedResponse);
 		return response.writeWith(Flux.just(wrap));
+	}
+
+	@CrossOrigin(origins = "*", maxAge = 3600)
+	@RequestMapping(path = "/cors", method = { RequestMethod.GET, RequestMethod.POST },
+			produces = MediaType.APPLICATION_JSON_VALUE)
+	public String cors(ServerWebExchange exchange) {
+		return "cors request ok";
 	}
 
 	public Map<String, String> getHeaders(ServerWebExchange exchange) {
