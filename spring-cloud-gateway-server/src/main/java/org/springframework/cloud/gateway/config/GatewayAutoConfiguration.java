@@ -108,6 +108,7 @@ import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyResponseBo
 import org.springframework.cloud.gateway.filter.headers.ForwardedHeadersFilter;
 import org.springframework.cloud.gateway.filter.headers.HttpHeadersFilter;
 import org.springframework.cloud.gateway.filter.headers.RemoveHopByHopHeadersFilter;
+import org.springframework.cloud.gateway.filter.headers.TransferEncodingNormalizationHeadersFilter;
 import org.springframework.cloud.gateway.filter.headers.XForwardedHeadersFilter;
 import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
 import org.springframework.cloud.gateway.filter.ratelimit.PrincipalNameKeyResolver;
@@ -296,6 +297,11 @@ public class GatewayAutoConfiguration {
 			matchIfMissing = true)
 	public XForwardedHeadersFilter xForwardedHeadersFilter() {
 		return new XForwardedHeadersFilter();
+	}
+
+	@Bean
+	public TransferEncodingNormalizationHeadersFilter transferEncodingNormalizationHeadersFilter() {
+		return new TransferEncodingNormalizationHeadersFilter();
 	}
 
 	// GlobalFilter beans
