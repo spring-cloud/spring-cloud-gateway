@@ -28,6 +28,7 @@ import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.filter.GatewayMetricsFilter;
+import org.springframework.cloud.gateway.route.RouteDefinitionMetrics;
 import org.springframework.cloud.gateway.support.tagsprovider.GatewayTagsProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -49,6 +50,9 @@ public class GatewayMetricsAutoConfigurationTests {
 		private GatewayMetricsFilter filter;
 
 		@Autowired(required = false)
+		private RouteDefinitionMetrics routeDefinitionMetrics;
+
+		@Autowired(required = false)
 		private List<GatewayTagsProvider> tagsProviders;
 
 		@Test
@@ -56,6 +60,12 @@ public class GatewayMetricsAutoConfigurationTests {
 			assertThat(filter).isNotNull();
 			assertThat(filter.getMetricsPrefix()).isEqualTo("spring.cloud.gateway");
 			assertThat(tagsProviders).isNotEmpty();
+		}
+
+		@Test
+		public void routeDefinitionMetricsBeanExists() {
+			assertThat(routeDefinitionMetrics).isNotNull();
+			assertThat(routeDefinitionMetrics.getMetricsPrefix()).isEqualTo("spring.cloud.gateway");
 		}
 
 	}
@@ -67,9 +77,17 @@ public class GatewayMetricsAutoConfigurationTests {
 		@Autowired(required = false)
 		private GatewayMetricsFilter filter;
 
+		@Autowired(required = false)
+		private RouteDefinitionMetrics routeDefinitionMetrics;
+
 		@Test
 		public void gatewayMetricsBeanMissing() {
 			assertThat(filter).isNull();
+		}
+
+		@Test
+		public void routeDefinitionMetricsBeanMissing() {
+			assertThat(routeDefinitionMetrics).isNull();
 		}
 
 	}
@@ -83,6 +101,9 @@ public class GatewayMetricsAutoConfigurationTests {
 		private GatewayMetricsFilter filter;
 
 		@Autowired(required = false)
+		private RouteDefinitionMetrics routeDefinitionMetrics;
+
+		@Autowired(required = false)
 		private List<GatewayTagsProvider> tagsProviders;
 
 		@Test
@@ -90,6 +111,12 @@ public class GatewayMetricsAutoConfigurationTests {
 			assertThat(filter).isNotNull();
 			assertThat(filter.getMetricsPrefix()).isEqualTo("myprefix");
 			assertThat(tagsProviders).extracting("class").contains(CustomTagsProviderConfig.EmptyTagsProvider.class);
+		}
+
+		@Test
+		public void routeDefinitionMetricsBeanExists() {
+			assertThat(routeDefinitionMetrics).isNotNull();
+			assertThat(routeDefinitionMetrics.getMetricsPrefix()).isEqualTo("myprefix");
 		}
 
 	}
