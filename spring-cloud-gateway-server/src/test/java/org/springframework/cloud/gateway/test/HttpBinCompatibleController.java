@@ -200,7 +200,7 @@ public class HttpBinCompatibleController {
 		return response.writeWith(Flux.just(wrap));
 	}
 
-	@CrossOrigin(origins = "*", maxAge = 3600)
+	@CrossOrigin(origins = "*")
 	@RequestMapping(path = "/cors", method = { RequestMethod.GET, RequestMethod.POST },
 			produces = MediaType.APPLICATION_JSON_VALUE)
 	public String cors(ServerWebExchange exchange) {
