@@ -30,6 +30,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.web.reactive.HttpHandlerAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.gateway.filter.GatewayMetricsFilter;
+import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
+import org.springframework.cloud.gateway.route.RouteDefinitionMetrics;
 import org.springframework.cloud.gateway.support.tagsprovider.GatewayHttpTagsProvider;
 import org.springframework.cloud.gateway.support.tagsprovider.GatewayRouteTagsProvider;
 import org.springframework.cloud.gateway.support.tagsprovider.GatewayTagsProvider;
@@ -69,6 +71,14 @@ public class GatewayMetricsAutoConfiguration {
 	public GatewayMetricsFilter gatewayMetricFilter(MeterRegistry meterRegistry,
 			List<GatewayTagsProvider> tagsProviders, GatewayMetricsProperties properties) {
 		return new GatewayMetricsFilter(meterRegistry, tagsProviders, properties.getPrefix());
+	}
+
+	@Bean
+	@ConditionalOnBean(MeterRegistry.class)
+	@ConditionalOnProperty(name = GatewayProperties.PREFIX + ".metrics.enabled", matchIfMissing = true)
+	public RouteDefinitionMetrics routeDefinitionMetrics(MeterRegistry meterRegistry,
+			RouteDefinitionLocator routeDefinitionLocator, GatewayMetricsProperties properties) {
+		return new RouteDefinitionMetrics(meterRegistry, routeDefinitionLocator, properties.getPrefix());
 	}
 
 }
