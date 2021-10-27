@@ -2180,6 +2180,19 @@ import static org.springframework.cloud.gateway.support.RouteMetadataUtils.RESPO
       }
 ----
 
+A per-route `response-timeout` with a negative value will disable the global `response-timeout` value.
+
+----
+      - id: per_route_timeouts
+        uri: https://example.org
+        predicates:
+          - name: Path
+            args:
+              pattern: /delay/{timeout}
+        metadata:
+          response-timeout: -1
+----
+
 === Fluent Java Routes API
 
 To allow for simple configuration in Java, the `RouteLocatorBuilder` bean includes a fluent API.
