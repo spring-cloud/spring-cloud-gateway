@@ -53,6 +53,7 @@ public class GatewayMetricsAutoConfiguration {
 	}
 
 	@Bean
+	@ConditionalOnProperty(name = GatewayProperties.PREFIX + ".metrics.tags.path.enabled")
 	public GatewayPathTagsProvider gatewayPathTagsProvider() {
 		return new GatewayPathTagsProvider();
 	}
