@@ -80,6 +80,11 @@ public class HeaderRoutePredicateFactory extends AbstractRoutePredicateFactory<H
 			}
 
 			@Override
+			public Object getConfig() {
+				return config;
+			}
+
+			@Override
 			public String toString() {
 				return String.format("Header: %s regexp=%s", config.header, config.regexp);
 			}

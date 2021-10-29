@@ -68,6 +68,11 @@ public class CookieRoutePredicateFactory extends AbstractRoutePredicateFactory<C
 			}
 
 			@Override
+			public Object getConfig() {
+				return config;
+			}
+
+			@Override
 			public String toString() {
 				return String.format("Cookie: name=%s regexp=%s", config.name, config.regexp);
 			}
