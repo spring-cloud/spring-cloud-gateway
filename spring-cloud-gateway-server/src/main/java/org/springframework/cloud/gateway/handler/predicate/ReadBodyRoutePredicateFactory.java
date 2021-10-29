@@ -98,6 +98,11 @@ public class ReadBodyRoutePredicateFactory extends AbstractRoutePredicateFactory
 			}
 
 			@Override
+			public Object getConfig() {
+				return config;
+			}
+
+			@Override
 			public String toString() {
 				return String.format("ReadBody: %s", config.getInClass());
 			}

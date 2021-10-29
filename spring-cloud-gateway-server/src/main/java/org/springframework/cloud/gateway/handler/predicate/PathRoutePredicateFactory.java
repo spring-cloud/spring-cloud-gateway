@@ -110,6 +110,11 @@ public class PathRoutePredicateFactory extends AbstractRoutePredicateFactory<Pat
 			}
 
 			@Override
+			public Object getConfig() {
+				return config;
+			}
+
+			@Override
 			public String toString() {
 				return String.format("Paths: %s, match trailing slash: %b", config.getPatterns(),
 						config.isMatchTrailingSlash());
