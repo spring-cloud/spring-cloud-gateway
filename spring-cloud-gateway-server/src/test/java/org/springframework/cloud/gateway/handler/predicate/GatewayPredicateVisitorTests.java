@@ -38,7 +38,8 @@ public class GatewayPredicateVisitorTests {
 		HostRoutePredicateFactory hostRoutePredicateFactory = new HostRoutePredicateFactory();
 		ReadBodyRoutePredicateFactory readBodyRoutePredicateFactory1 = new ReadBodyRoutePredicateFactory();
 		ReadBodyRoutePredicateFactory readBodyRoutePredicateFactory2 = new ReadBodyRoutePredicateFactory();
-		AsyncPredicate<ServerWebExchange> predicate = AsyncPredicate.from(pathRoutePredicateFactory.apply(pathRoutePredicateFactory.newConfig()))
+		AsyncPredicate<ServerWebExchange> predicate = AsyncPredicate
+				.from(pathRoutePredicateFactory.apply(pathRoutePredicateFactory.newConfig()))
 				.and(AsyncPredicate.from(hostRoutePredicateFactory.apply(hostRoutePredicateFactory.newConfig())))
 				.and(readBodyRoutePredicateFactory1.applyAsync(readBodyRoutePredicateFactory1.newConfig()))
 				.and(readBodyRoutePredicateFactory2.applyAsync(readBodyRoutePredicateFactory2.newConfig()));
