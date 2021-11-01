@@ -239,18 +239,17 @@ public class ProductionConfigurationTests {
 	@Test
 	@SuppressWarnings({ "Duplicates", "unchecked" })
 	public void testSensitiveHeadersOverride() throws Exception {
-		Map<String, List<String>> headers = rest
-				.exchange(
-						RequestEntity.get(rest.getRestTemplate().getUriTemplateHandler().expand("/proxy/headers"))
-								.header("foo", "bar").header("abc", "xyz").header("cookie", "monster").build(),
-						Map.class)
-				.getBody();
+		RequestEntity<Void> request = RequestEntity
+				.get(rest.getRestTemplate().getUriTemplateHandler().expand("/proxy/headers")).header("foo", "bar")
+				.header("abc", "xyz").header("cookie", "monster").build();
+		Map<String, List<String>> headers = rest.exchange(request, Map.class).getBody();
 		assertThat(headers).doesNotContainKey("foo").doesNotContainKey("hello").containsKeys("bar", "abc");
 
 		assertThat(headers.get("cookie")).containsOnly("monster");
 	}
 
 	@Test
+	@SuppressWarnings({ "Duplicates", "unchecked" })
 	public void testSensitiveHeadersDefault() throws Exception {
 		Map<String, List<String>> headers = rest.exchange(RequestEntity
 				.get(rest.getRestTemplate().getUriTemplateHandler().expand("/proxy/sensitive-headers-default"))
