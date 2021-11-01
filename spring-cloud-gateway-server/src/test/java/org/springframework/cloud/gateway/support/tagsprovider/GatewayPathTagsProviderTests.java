@@ -16,13 +16,13 @@
 
 package org.springframework.cloud.gateway.support.tagsprovider;
 
+import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import io.micrometer.core.instrument.Tags;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.cloud.gateway.handler.predicate.HostRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.MethodRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFactory;
 import org.springframework.cloud.gateway.route.Route;
@@ -32,6 +32,8 @@ import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_PREDICATE_MATCHED_PATH_ATTR;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_PREDICATE_MATCHED_PATH_ROUTE_ID_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
 
 /**
@@ -46,18 +48,45 @@ public class GatewayPathTagsProviderTests {
 
 	@Test
 	void addPathToRoutes() {
-		List<String> pathList = Stream.of("/git/**").collect(Collectors.toList());
+		List<String> pathList = Collections.singletonList("/git/**");
 
-		Route route = Route.async().id("git").uri(ROUTE_URI).predicate(
-				new PathRoutePredicateFactory().apply(new PathRoutePredicateFactory.Config().setPatterns(pathList)))
-				.build();
+		PathRoutePredicateFactory.Config pathConfig = new PathRoutePredicateFactory.Config().setPatterns(pathList);
+		HostRoutePredicateFactory.Config hostConfig = new HostRoutePredicateFactory.Config()
+				.setPatterns(Collections.singletonList("**.myhost.com"));
+		Route route = Route.async().id("git").uri(ROUTE_URI).predicate(new PathRoutePredicateFactory().apply(pathConfig)
+				.and(new HostRoutePredicateFactory().apply(hostConfig))).build();
 
 		ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get(ROUTE_URI).build());
 		exchange.getAttributes().put(GATEWAY_ROUTE_ATTR, route);
+		exchange.getAttributes().put(GATEWAY_PREDICATE_MATCHED_PATH_ATTR, pathList.get(0));
+		exchange.getAttributes().put(GATEWAY_PREDICATE_MATCHED_PATH_ROUTE_ID_ATTR, route.getId());
 
 		Tags tags = pathTagsProvider.apply(exchange);
 		assertThat(tags.stream().count()).isEqualTo(1);
-		assertThat(tags.stream().anyMatch(tag -> "path".equals(tag.getKey()))).isEqualTo(true);
+		assertThat(tags.stream().anyMatch(tag -> "path".equals(tag.getKey()) && tag.getValue().equals(pathList.get(0))))
+				.isEqualTo(true);
+	}
+
+	@Test
+	void addsMultiplePathToRoutes() {
+		List<String> pathList = Collections.singletonList("/git/**");
+		List<String> pathList2 = Collections.singletonList("/git2/**");
+
+		PathRoutePredicateFactory.Config pathConfig = new PathRoutePredicateFactory.Config().setPatterns(pathList);
+		PathRoutePredicateFactory.Config pathConfig2 = new PathRoutePredicateFactory.Config().setPatterns(pathList2);
+		Route route = Route.async().id("git").uri(ROUTE_URI).predicate(new PathRoutePredicateFactory().apply(pathConfig)
+				.or(new PathRoutePredicateFactory().apply(pathConfig2))).build();
+
+		ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get(ROUTE_URI).build());
+		exchange.getAttributes().put(GATEWAY_ROUTE_ATTR, route);
+		exchange.getAttributes().put(GATEWAY_PREDICATE_MATCHED_PATH_ATTR, pathList2.get(0));
+		exchange.getAttributes().put(GATEWAY_PREDICATE_MATCHED_PATH_ROUTE_ID_ATTR, route.getId());
+
+		Tags tags = pathTagsProvider.apply(exchange);
+		assertThat(tags.stream().count()).isEqualTo(1);
+		assertThat(
+				tags.stream().anyMatch(tag -> "path".equals(tag.getKey()) && tag.getValue().equals(pathList2.get(0))))
+						.isEqualTo(true);
 	}
 
 	@Test

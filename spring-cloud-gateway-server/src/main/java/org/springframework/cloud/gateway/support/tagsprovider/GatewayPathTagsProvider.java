@@ -21,6 +21,8 @@ import io.micrometer.core.instrument.Tags;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.web.server.ServerWebExchange;
 
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_PREDICATE_MATCHED_PATH_ATTR;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_PREDICATE_MATCHED_PATH_ROUTE_ID_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
 
 /**
@@ -29,29 +31,22 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.G
  */
 public class GatewayPathTagsProvider implements GatewayTagsProvider {
 
-	private static final String START_PATH_PATTERN = "Paths: [";
-
-	private static final String END_PATH_PATTERN = "], match";
-
 	@Override
 	public Tags apply(ServerWebExchange exchange) {
 		Route route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
 
 		if (route != null) {
-			String rawPredicate = route.getPredicate().toString();
-			if (predicateContainsPath(rawPredicate)) {
-				int beginIndex = rawPredicate.indexOf(START_PATH_PATTERN) + START_PATH_PATTERN.length();
-				String predicate = rawPredicate.substring(beginIndex, rawPredicate.indexOf(END_PATH_PATTERN));
-				return Tags.of("path", predicate);
+			String matchedPathRouteId = exchange.getAttribute(GATEWAY_PREDICATE_MATCHED_PATH_ROUTE_ID_ATTR);
+			String matchedPath = exchange.getAttribute(GATEWAY_PREDICATE_MATCHED_PATH_ATTR);
+
+			// check that the matched path belongs to the route that was actually
+			// selected.
+			if (route.getId().equals(matchedPathRouteId) && matchedPath != null) {
+				return Tags.of("path", matchedPath);
 			}
 		}
 
 		return Tags.empty();
-	}
-
-	private boolean predicateContainsPath(String rawPredicate) {
-		return rawPredicate != null && rawPredicate.contains(START_PATH_PATTERN)
-				&& rawPredicate.contains(END_PATH_PATTERN);
 	}
 
 }
