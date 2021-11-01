@@ -61,10 +61,13 @@ public class ServerWebExchangeUtilsTests {
 		MockServerWebExchange exchange = mockExchange(Collections.emptyMap());
 		exchange.getAttributes().put(CACHED_REQUEST_BODY_ATTR, "foo");
 
-		ServerWebExchangeUtils.cacheRequestBodyAndRequest(exchange,
-				(serverHttpRequest) -> ServerRequest
-						.create(exchange.mutate().request(serverHttpRequest).build(), HandlerStrategies.withDefaults().messageReaders())
-						.bodyToMono(DefaultDataBuffer.class)).block();
+		ServerWebExchangeUtils
+				.cacheRequestBodyAndRequest(exchange,
+						(serverHttpRequest) -> ServerRequest
+								.create(exchange.mutate().request(serverHttpRequest).build(),
+										HandlerStrategies.withDefaults().messageReaders())
+								.bodyToMono(DefaultDataBuffer.class))
+				.block();
 	}
 
 	private MockServerWebExchange mockExchange(Map<String, String> vars) {

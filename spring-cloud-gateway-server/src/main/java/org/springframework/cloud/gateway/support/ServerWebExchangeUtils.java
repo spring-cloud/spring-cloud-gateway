@@ -166,6 +166,8 @@ public final class ServerWebExchangeUtils {
 	 */
 	public static final String GATEWAY_LOADBALANCER_RESPONSE_ATTR = qualify("gatewayLoadBalancerResponse");
 
+	private static final byte[] EMPTY_BYTES = {};
+
 	private ServerWebExchangeUtils() {
 		throw new AssertionError("Must not instantiate utility class.");
 	}
@@ -346,7 +348,7 @@ public final class ServerWebExchangeUtils {
 		ServerHttpResponse response = exchange.getResponse();
 		DataBufferFactory factory = response.bufferFactory();
 		// Join all the DataBuffers so we have a single DataBuffer for the body
-		return DataBufferUtils.join(exchange.getRequest().getBody()).defaultIfEmpty(factory.wrap(new byte[] {}))
+		return DataBufferUtils.join(exchange.getRequest().getBody()).defaultIfEmpty(factory.wrap(EMPTY_BYTES))
 				.map(dataBuffer -> decorate(exchange, dataBuffer, cacheDecoratedRequest))
 				.switchIfEmpty(Mono.just(exchange.getRequest())).flatMap(function);
 	}
@@ -363,12 +365,11 @@ public final class ServerWebExchangeUtils {
 		ServerHttpRequest decorator = new ServerHttpRequestDecorator(exchange.getRequest()) {
 			@Override
 			public Flux<DataBuffer> getBody() {
-				return Mono.<DataBuffer>fromSupplier(() -> {
+				return Mono.fromSupplier(() -> {
 					if (exchange.getAttributeOrDefault(CACHED_REQUEST_BODY_ATTR, null) == null) {
 						// probably == downstream closed or no body
 						return null;
 					}
-					// TODO: deal with Netty
 					if (dataBuffer instanceof NettyDataBuffer) {
 						NettyDataBuffer pdb = (NettyDataBuffer) dataBuffer;
 						return pdb.factory().wrap(pdb.getNativeBuffer().retainedSlice());
