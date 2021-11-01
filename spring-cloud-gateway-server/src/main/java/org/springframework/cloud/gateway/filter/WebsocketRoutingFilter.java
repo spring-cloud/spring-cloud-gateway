@@ -217,7 +217,8 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 					// Ensure closeStatus from one propagates to the other
 					Mono.when(serverClose, proxyClose).subscribe();
 					// Complete when both sessions are done
-					return Mono.zip(proxySessionSend, serverSessionSend).then();				}
+					return Mono.zip(proxySessionSend, serverSessionSend).then();
+				}
 
 				/**
 				 * Copy subProtocols so they are available downstream.
