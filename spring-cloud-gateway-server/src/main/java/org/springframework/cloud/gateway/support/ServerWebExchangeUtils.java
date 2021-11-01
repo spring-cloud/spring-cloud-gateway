@@ -111,6 +111,17 @@ public final class ServerWebExchangeUtils {
 	public static final String GATEWAY_PREDICATE_ROUTE_ATTR = qualify("gatewayPredicateRouteAttr");
 
 	/**
+	 * Gateway predicate matched path attribute name.
+	 */
+	public static final String GATEWAY_PREDICATE_MATCHED_PATH_ATTR = qualify("gatewayPredicateMatchedPathAttr");
+
+	/**
+	 * Gateway predicate matched path route id attribute name.
+	 */
+	public static final String GATEWAY_PREDICATE_MATCHED_PATH_ROUTE_ID_ATTR = qualify(
+			"gatewayPredicateMatchedPathRouteIdAttr");
+
+	/**
 	 * Weight attribute name.
 	 */
 	public static final String WEIGHT_ATTR = qualify("routeWeight");

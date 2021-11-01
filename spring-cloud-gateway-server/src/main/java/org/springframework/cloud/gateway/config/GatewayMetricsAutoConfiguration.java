@@ -33,6 +33,7 @@ import org.springframework.cloud.gateway.filter.GatewayMetricsFilter;
 import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
 import org.springframework.cloud.gateway.route.RouteDefinitionMetrics;
 import org.springframework.cloud.gateway.support.tagsprovider.GatewayHttpTagsProvider;
+import org.springframework.cloud.gateway.support.tagsprovider.GatewayPathTagsProvider;
 import org.springframework.cloud.gateway.support.tagsprovider.GatewayRouteTagsProvider;
 import org.springframework.cloud.gateway.support.tagsprovider.GatewayTagsProvider;
 import org.springframework.cloud.gateway.support.tagsprovider.PropertiesTagsProvider;
@@ -51,6 +52,12 @@ public class GatewayMetricsAutoConfiguration {
 	@Bean
 	public GatewayHttpTagsProvider gatewayHttpTagsProvider() {
 		return new GatewayHttpTagsProvider();
+	}
+
+	@Bean
+	@ConditionalOnProperty(name = GatewayProperties.PREFIX + ".metrics.tags.path.enabled")
+	public GatewayPathTagsProvider gatewayPathTagsProvider() {
+		return new GatewayPathTagsProvider();
 	}
 
 	@Bean
