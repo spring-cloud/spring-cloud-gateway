@@ -25,7 +25,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-import io.netty.buffer.EmptyByteBuf;
+import io.netty.buffer.Unpooled;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Flux;
@@ -36,9 +36,10 @@ import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
 import org.springframework.cloud.gateway.handler.AsyncPredicate;
 import org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.core.io.buffer.DataBufferUtils;
+import org.springframework.core.io.buffer.DefaultDataBuffer;
 import org.springframework.core.io.buffer.NettyDataBuffer;
-import org.springframework.core.io.buffer.NettyDataBufferFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.AbstractServerHttpResponse;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -164,6 +165,8 @@ public final class ServerWebExchangeUtils {
 	 * Gateway LoadBalancer {@link Response} attribute name.
 	 */
 	public static final String GATEWAY_LOADBALANCER_RESPONSE_ATTR = qualify("gatewayLoadBalancerResponse");
+
+	private static final byte[] EMPTY_BYTES = {};
 
 	private ServerWebExchangeUtils() {
 		throw new AssertionError("Must not instantiate utility class.");
@@ -343,10 +346,9 @@ public final class ServerWebExchangeUtils {
 	private static <T> Mono<T> cacheRequestBody(ServerWebExchange exchange, boolean cacheDecoratedRequest,
 			Function<ServerHttpRequest, Mono<T>> function) {
 		ServerHttpResponse response = exchange.getResponse();
-		NettyDataBufferFactory factory = (NettyDataBufferFactory) response.bufferFactory();
+		DataBufferFactory factory = response.bufferFactory();
 		// Join all the DataBuffers so we have a single DataBuffer for the body
-		return DataBufferUtils.join(exchange.getRequest().getBody())
-				.defaultIfEmpty(factory.wrap(new EmptyByteBuf(factory.getByteBufAllocator())))
+		return DataBufferUtils.join(exchange.getRequest().getBody()).defaultIfEmpty(factory.wrap(EMPTY_BYTES))
 				.map(dataBuffer -> decorate(exchange, dataBuffer, cacheDecoratedRequest))
 				.switchIfEmpty(Mono.just(exchange.getRequest())).flatMap(function);
 	}
@@ -363,14 +365,23 @@ public final class ServerWebExchangeUtils {
 		ServerHttpRequest decorator = new ServerHttpRequestDecorator(exchange.getRequest()) {
 			@Override
 			public Flux<DataBuffer> getBody() {
-				return Mono.<DataBuffer>fromSupplier(() -> {
+				return Mono.fromSupplier(() -> {
 					if (exchange.getAttributeOrDefault(CACHED_REQUEST_BODY_ATTR, null) == null) {
 						// probably == downstream closed or no body
 						return null;
 					}
-					// TODO: deal with Netty
-					NettyDataBuffer pdb = (NettyDataBuffer) dataBuffer;
-					return pdb.factory().wrap(pdb.getNativeBuffer().retainedSlice());
+					if (dataBuffer instanceof NettyDataBuffer) {
+						NettyDataBuffer pdb = (NettyDataBuffer) dataBuffer;
+						return pdb.factory().wrap(pdb.getNativeBuffer().retainedSlice());
+					}
+					else if (dataBuffer instanceof DefaultDataBuffer) {
+						DefaultDataBuffer ddf = (DefaultDataBuffer) dataBuffer;
+						return ddf.factory().wrap(Unpooled.wrappedBuffer(ddf.getNativeBuffer()).nioBuffer());
+					}
+					else {
+						throw new IllegalArgumentException(
+								"Unable to handle DataBuffer of type " + dataBuffer.getClass());
+					}
 				}).flux();
 			}
 		};
