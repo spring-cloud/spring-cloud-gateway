@@ -23,7 +23,9 @@ import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashSet;
@@ -344,17 +346,30 @@ public class ProxyExchange<T> {
 		return rest.exchange(requestEntity, ParameterizedTypeReference.forType(type));
 	}
 
+	private void addHeaders(HttpHeaders headers) {
+		ArrayList<String> headerNames = new ArrayList<>();
+		webRequest.getHeaderNames().forEachRemaining(headerNames::add);
+		Set<String> filteredKeys = filterHeaderKeys(headerNames);
+		filteredKeys.stream().filter(key -> !headers.containsKey(key))
+				.forEach(header -> headers.addAll(header, Arrays.asList(webRequest.getHeaderValues(header))));
+	}
+
 	private BodyBuilder headers(BodyBuilder builder) {
 		proxy();
 		for (String name : filterHeaderKeys(headers)) {
 			builder.header(name, headers.get(name).toArray(new String[0]));
 		}
+		builder.headers(this::addHeaders);
 		return builder;
 	}
 
 	private Set<String> filterHeaderKeys(HttpHeaders headers) {
+		return filterHeaderKeys(headers.keySet());
+	}
+
+	private Set<String> filterHeaderKeys(Collection<String> headerNames) {
 		final Set<String> sensitiveHeaders = this.sensitive != null ? this.sensitive : DEFAULT_SENSITIVE;
-		return headers.keySet().stream().filter(header -> !sensitiveHeaders.contains(header.toLowerCase()))
+		return headerNames.stream().filter(header -> !sensitiveHeaders.contains(header.toLowerCase()))
 				.collect(Collectors.toSet());
 	}
 
