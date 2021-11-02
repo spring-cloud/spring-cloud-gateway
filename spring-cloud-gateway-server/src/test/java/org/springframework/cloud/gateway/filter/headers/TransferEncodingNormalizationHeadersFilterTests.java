@@ -27,33 +27,38 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Spencer Gibb
  */
-public class TransferEncodingMarmalizationHeadersFilterTests {
+public class TransferEncodingNormalizationHeadersFilterTests {
 
 	@Test
 	public void noTransferEncodingWithContentLength() {
-		MockServerHttpRequest.BaseBuilder<?> builder = MockServerHttpRequest.post("http://localhost/post")
-				.header(HttpHeaders.CONTENT_LENGTH, "6");
+		MockServerHttpRequest.BaseBuilder<?> builder = MockServerHttpRequest
+				.post("http://localhost/post").header(HttpHeaders.CONTENT_LENGTH, "6");
 
 		HttpHeaders headers = testFilter(MockServerWebExchange.from(builder));
-		assertThat(headers).containsKey(HttpHeaders.CONTENT_LENGTH).doesNotContainKey(HttpHeaders.TRANSFER_ENCODING);
+		assertThat(headers).containsKey(HttpHeaders.CONTENT_LENGTH)
+				.doesNotContainKey(HttpHeaders.TRANSFER_ENCODING);
 	}
 
 	@Test
 	public void transferEncodingWithContentLength() {
-		MockServerHttpRequest.BaseBuilder<?> builder = MockServerHttpRequest.post("http://localhost/post")
-				.header(HttpHeaders.CONTENT_LENGTH, "6").header(HttpHeaders.TRANSFER_ENCODING, "chunked");
+		MockServerHttpRequest.BaseBuilder<?> builder = MockServerHttpRequest
+				.post("http://localhost/post").header(HttpHeaders.CONTENT_LENGTH, "6")
+				.header(HttpHeaders.TRANSFER_ENCODING, "chunked");
 
 		HttpHeaders headers = testFilter(MockServerWebExchange.from(builder));
-		assertThat(headers).doesNotContainKey(HttpHeaders.CONTENT_LENGTH).containsKey(HttpHeaders.TRANSFER_ENCODING);
+		assertThat(headers).doesNotContainKey(HttpHeaders.CONTENT_LENGTH)
+				.containsKey(HttpHeaders.TRANSFER_ENCODING);
 	}
 
 	@Test
 	public void transferEncodingCaseInsensitiveWithContentLength() {
-		MockServerHttpRequest.BaseBuilder<?> builder = MockServerHttpRequest.post("http://localhost/post")
-				.header(HttpHeaders.CONTENT_LENGTH, "6").header(HttpHeaders.TRANSFER_ENCODING, "Chunked ");
+		MockServerHttpRequest.BaseBuilder<?> builder = MockServerHttpRequest
+				.post("http://localhost/post").header(HttpHeaders.CONTENT_LENGTH, "6")
+				.header(HttpHeaders.TRANSFER_ENCODING, "Chunked ");
 
 		HttpHeaders headers = testFilter(MockServerWebExchange.from(builder));
-		assertThat(headers).doesNotContainKey(HttpHeaders.CONTENT_LENGTH).containsKey(HttpHeaders.TRANSFER_ENCODING);
+		assertThat(headers).doesNotContainKey(HttpHeaders.CONTENT_LENGTH)
+				.containsKey(HttpHeaders.TRANSFER_ENCODING);
 	}
 
 	private HttpHeaders testFilter(MockServerWebExchange exchange) {

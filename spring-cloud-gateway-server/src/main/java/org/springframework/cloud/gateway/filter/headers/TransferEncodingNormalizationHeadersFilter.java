@@ -23,7 +23,8 @@ import org.springframework.web.server.ServerWebExchange;
 /**
  * See https://datatracker.ietf.org/doc/html/rfc7230#section-3.3.3 for details.
  */
-public class TransferEncodingNormalizationHeadersFilter implements HttpHeadersFilter, Ordered {
+public class TransferEncodingNormalizationHeadersFilter
+		implements HttpHeadersFilter, Ordered {
 
 	@Override
 	public int getOrder() {
@@ -33,7 +34,8 @@ public class TransferEncodingNormalizationHeadersFilter implements HttpHeadersFi
 	@Override
 	public HttpHeaders filter(HttpHeaders input, ServerWebExchange exchange) {
 		String transferEncoding = input.getFirst(HttpHeaders.TRANSFER_ENCODING);
-		if (transferEncoding != null && "chunked".equalsIgnoreCase(transferEncoding.trim())
+		if (transferEncoding != null
+				&& "chunked".equalsIgnoreCase(transferEncoding.trim())
 				&& input.containsKey(HttpHeaders.CONTENT_LENGTH)) {
 
 			HttpHeaders filtered = new HttpHeaders();

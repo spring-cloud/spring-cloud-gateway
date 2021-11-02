@@ -53,9 +53,10 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 
 @SpringBootTest(properties = {}, webEnvironment = RANDOM_PORT)
 @ActiveProfiles("transferencoding")
-public class TransferEncodingNormalizationHeardsFilterIntegrationTests {
+public class TransferEncodingNormalizationHeadersFilterIntegrationTests {
 
-	private static final Log log = LogFactory.getLog(TransferEncodingNormalizationHeardsFilterIntegrationTests.class);
+	private static final Log log = LogFactory
+			.getLog(TransferEncodingNormalizationHeadersFilterIntegrationTests.class);
 
 	@LocalServerPort
 	private int port;
@@ -65,17 +66,18 @@ public class TransferEncodingNormalizationHeardsFilterIntegrationTests {
 		final ClassLoader classLoader = this.getClass().getClassLoader();
 
 		// Issue a crafted request with smuggling attempt
-		assert200With("Should Fail",
-				StreamUtils.copyToByteArray(classLoader.getResourceAsStream("transfer-encoding/invalid-request.bin")));
+		assert200With("Should Fail", StreamUtils.copyToByteArray(classLoader
+				.getResourceAsStream("transfer-encoding/invalid-request.bin")));
 
 		// Issue a legit request, which should not fail
-		assert200With("Should Not Fail",
-				StreamUtils.copyToByteArray(classLoader.getResourceAsStream("transfer-encoding/valid-request.bin")));
+		assert200With("Should Not Fail", StreamUtils.copyToByteArray(
+				classLoader.getResourceAsStream("transfer-encoding/valid-request.bin")));
 	}
 
 	private void assert200With(String name, byte[] payload) throws Exception {
 		final String response = execute("localhost", port, payload);
-		log.info(LogMessage.format("Request to localhost:%d %s\n%s", port, name, new String(payload)));
+		log.info(LogMessage.format("Request to localhost:%d %s\n%s", port, name,
+				new String(payload)));
 		assertThat(response).isNotNull();
 		log.info(LogMessage.format("Response %s\n%s", name, response));
 		assertThat(response).matches("HTTP/1.\\d 200 OK");
@@ -85,7 +87,8 @@ public class TransferEncodingNormalizationHeardsFilterIntegrationTests {
 		final Socket socket = new Socket(target, port);
 
 		final OutputStream out = socket.getOutputStream();
-		final BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+		final BufferedReader in = new BufferedReader(
+				new InputStreamReader(socket.getInputStream()));
 
 		out.write(payload);
 
@@ -111,9 +114,8 @@ public class TransferEncodingNormalizationHeardsFilterIntegrationTests {
 
 		@Bean
 		public RouteLocator routeLocator(RouteLocatorBuilder builder) {
-			return builder.routes()
-					.route("echo", r -> r.path("/route/echo").filters(f -> f.stripPrefix(1)).uri("lb://xferenc"))
-					.build();
+			return builder.routes().route("echo", r -> r.path("/route/echo")
+					.filters(f -> f.stripPrefix(1)).uri("lb://xferenc")).build();
 		}
 
 	}
@@ -144,7 +146,8 @@ public class TransferEncodingNormalizationHeardsFilterIntegrationTests {
 		@Bean
 		public ServiceInstanceListSupplier staticServiceInstanceListSupplier() {
 			return ServiceInstanceListSuppliers.from("xferenc",
-					new DefaultServiceInstance("xferenc" + "-1", "xferenc", "localhost", port, false));
+					new DefaultServiceInstance("xferenc" + "-1", "xferenc", "localhost",
+							port, false));
 		}
 
 	}
