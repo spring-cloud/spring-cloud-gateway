@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.gateway.filter;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import reactor.core.publisher.Mono;
@@ -53,6 +54,11 @@ class LoadBalancerServiceInstanceCookieFilterTests {
 
 	private final LoadBalancerServiceInstanceCookieFilter filter = new LoadBalancerServiceInstanceCookieFilter(
 			properties);
+
+	@BeforeEach
+	void setUp() {
+		properties.getStickySession().setAddServiceInstanceCookie(true);
+	}
 
 	@Test
 	void shouldAddServiceInstanceCookieHeader() {
