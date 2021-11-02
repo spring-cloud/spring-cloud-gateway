@@ -1,3 +1,5 @@
+redis.replicate_commands()
+
 local tokens_key = KEYS[1]
 local timestamp_key = KEYS[2]
 --redis.log(redis.LOG_WARNING, "tokens_key " .. tokens_key)
