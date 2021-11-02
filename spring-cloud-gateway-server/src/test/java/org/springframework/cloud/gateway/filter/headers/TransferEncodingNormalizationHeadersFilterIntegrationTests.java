@@ -23,6 +23,8 @@ import java.io.OutputStream;
 import java.net.Socket;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.netflix.loadbalancer.Server;
+import com.netflix.loadbalancer.ServerList;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.jupiter.api.Test;
@@ -31,15 +33,14 @@ import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
-import org.springframework.cloud.client.DefaultServiceInstance;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.PermitAllSecurityConfiguration;
-import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
-import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
-import org.springframework.cloud.loadbalancer.support.ServiceInstanceListSuppliers;
+import org.springframework.cloud.netflix.ribbon.RibbonClient;
+import org.springframework.cloud.netflix.ribbon.StaticServerList;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.log.LogMessage;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
@@ -103,7 +104,7 @@ public class TransferEncodingNormalizationHeadersFilterIntegrationTests {
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	@Import(PermitAllSecurityConfiguration.class)
-	@LoadBalancerClient(name = "xferenc", configuration = TestLoadBalancerConfig.class)
+	@RibbonClient(name = "xferenc", configuration = TestLoadBalancerConfig.class)
 	@RestController
 	public static class TestConfig {
 
@@ -144,10 +145,9 @@ public class TransferEncodingNormalizationHeadersFilterIntegrationTests {
 		protected int port = 0;
 
 		@Bean
-		public ServiceInstanceListSupplier staticServiceInstanceListSupplier() {
-			return ServiceInstanceListSuppliers.from("xferenc",
-					new DefaultServiceInstance("xferenc" + "-1", "xferenc", "localhost",
-							port, false));
+		@Primary
+		public ServerList<Server> ribbonServerList() {
+			return new StaticServerList<>(new Server("localhost", port));
 		}
 
 	}
