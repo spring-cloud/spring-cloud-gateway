@@ -113,6 +113,7 @@ import org.springframework.cloud.gateway.filter.headers.GRPCRequestHeadersFilter
 import org.springframework.cloud.gateway.filter.headers.GRPCResponseHeadersFilter;
 import org.springframework.cloud.gateway.filter.headers.HttpHeadersFilter;
 import org.springframework.cloud.gateway.filter.headers.RemoveHopByHopHeadersFilter;
+import org.springframework.cloud.gateway.filter.headers.TransferEncodingNormalizationHeadersFilter;
 import org.springframework.cloud.gateway.filter.headers.XForwardedHeadersFilter;
 import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
 import org.springframework.cloud.gateway.filter.ratelimit.PrincipalNameKeyResolver;
@@ -303,6 +304,11 @@ public class GatewayAutoConfiguration {
 	@ConditionalOnProperty(name = "server.http2.enabled", matchIfMissing = true)
 	public GRPCResponseHeadersFilter gRPCResponseHeadersFilter() {
 		return new GRPCResponseHeadersFilter();
+	}
+
+	@Bean
+	public TransferEncodingNormalizationHeadersFilter transferEncodingNormalizationHeadersFilter() {
+		return new TransferEncodingNormalizationHeadersFilter();
 	}
 
 	// GlobalFilter beans
