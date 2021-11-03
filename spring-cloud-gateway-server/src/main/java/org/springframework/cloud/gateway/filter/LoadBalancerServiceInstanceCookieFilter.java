@@ -24,6 +24,7 @@ import reactor.core.publisher.Mono;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerProperties;
 import org.springframework.cloud.client.loadbalancer.Response;
+import org.springframework.cloud.client.loadbalancer.reactive.ReactiveLoadBalancer;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpCookie;
 import org.springframework.http.HttpHeaders;
@@ -43,10 +44,22 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.G
  */
 public class LoadBalancerServiceInstanceCookieFilter implements GlobalFilter, Ordered {
 
-	private final LoadBalancerProperties loadBalancerProperties;
+	private LoadBalancerProperties loadBalancerProperties;
 
+	private ReactiveLoadBalancer.Factory<ServiceInstance> loadBalancerClientFactory;
+
+	/**
+	 * @deprecated in favour of
+	 * {@link LoadBalancerServiceInstanceCookieFilter#LoadBalancerServiceInstanceCookieFilter(ReactiveLoadBalancer.Factory)}
+	 */
+	@Deprecated
 	public LoadBalancerServiceInstanceCookieFilter(LoadBalancerProperties loadBalancerProperties) {
 		this.loadBalancerProperties = loadBalancerProperties;
+	}
+
+	public LoadBalancerServiceInstanceCookieFilter(
+			ReactiveLoadBalancer.Factory<ServiceInstance> loadBalancerClientFactory) {
+		this.loadBalancerClientFactory = loadBalancerClientFactory;
 	}
 
 	@Override
@@ -55,7 +68,13 @@ public class LoadBalancerServiceInstanceCookieFilter implements GlobalFilter, Or
 		if (serviceInstanceResponse == null || !serviceInstanceResponse.hasServer()) {
 			return chain.filter(exchange);
 		}
-		String instanceIdCookieName = loadBalancerProperties.getStickySession().getInstanceIdCookieName();
+		LoadBalancerProperties properties = loadBalancerClientFactory != null
+				? loadBalancerClientFactory.getProperties(serviceInstanceResponse.getServer().getServiceId())
+				: loadBalancerProperties;
+		if (!properties.getStickySession().isAddServiceInstanceCookie()) {
+			return chain.filter(exchange);
+		}
+		String instanceIdCookieName = properties.getStickySession().getInstanceIdCookieName();
 		if (!StringUtils.hasText(instanceIdCookieName)) {
 			return chain.filter(exchange);
 		}

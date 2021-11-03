@@ -72,13 +72,21 @@ public class ReactiveLoadBalancerClientFilter implements GlobalFilter, Ordered {
 
 	private final GatewayLoadBalancerProperties properties;
 
-	private final LoadBalancerProperties loadBalancerProperties;
-
+	/**
+	 * @deprecated in favour of
+	 * {@link ReactiveLoadBalancerClientFilter#ReactiveLoadBalancerClientFilter(LoadBalancerClientFactory, GatewayLoadBalancerProperties)}
+	 */
+	@Deprecated
 	public ReactiveLoadBalancerClientFilter(LoadBalancerClientFactory clientFactory,
 			GatewayLoadBalancerProperties properties, LoadBalancerProperties loadBalancerProperties) {
 		this.clientFactory = clientFactory;
 		this.properties = properties;
-		this.loadBalancerProperties = loadBalancerProperties;
+	}
+
+	public ReactiveLoadBalancerClientFilter(LoadBalancerClientFactory clientFactory,
+			GatewayLoadBalancerProperties properties) {
+		this.clientFactory = clientFactory;
+		this.properties = properties;
 	}
 
 	@Override
@@ -105,8 +113,8 @@ public class ReactiveLoadBalancerClientFilter implements GlobalFilter, Ordered {
 		Set<LoadBalancerLifecycle> supportedLifecycleProcessors = LoadBalancerLifecycleValidator
 				.getSupportedLifecycleProcessors(clientFactory.getInstances(serviceId, LoadBalancerLifecycle.class),
 						RequestDataContext.class, ResponseData.class, ServiceInstance.class);
-		DefaultRequest<RequestDataContext> lbRequest = new DefaultRequest<>(new RequestDataContext(
-				new RequestData(exchange.getRequest()), getHint(serviceId, loadBalancerProperties.getHint())));
+		DefaultRequest<RequestDataContext> lbRequest = new DefaultRequest<>(
+				new RequestDataContext(new RequestData(exchange.getRequest()), getHint(serviceId)));
 		return choose(lbRequest, serviceId, supportedLifecycleProcessors).doOnNext(response -> {
 
 			if (!response.hasServer()) {
@@ -164,7 +172,9 @@ public class ReactiveLoadBalancerClientFilter implements GlobalFilter, Ordered {
 		return loadBalancer.choose(lbRequest);
 	}
 
-	private String getHint(String serviceId, Map<String, String> hints) {
+	private String getHint(String serviceId) {
+		LoadBalancerProperties loadBalancerProperties = clientFactory.getProperties(serviceId);
+		Map<String, String> hints = loadBalancerProperties.getHint();
 		String defaultHint = hints.getOrDefault("default", "default");
 		String hintPropertyValue = hints.get(serviceId);
 		return hintPropertyValue != null ? hintPropertyValue : defaultHint;
