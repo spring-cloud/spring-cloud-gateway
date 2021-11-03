@@ -108,6 +108,7 @@
 |spring.cloud.gateway.metrics.enabled | `false` | Enables the collection of metrics data.
 |spring.cloud.gateway.metrics.prefix | `spring.cloud.gateway` | The prefix of all metrics emitted by gateway.
 |spring.cloud.gateway.metrics.tags |  | Tags map that added to metrics.
+|spring.cloud.gateway.metrics.tags.path.enabled | `false` | If the collection of metrics data is enabled, enables an extra metric data tag by path.
 |spring.cloud.gateway.predicate.after.enabled | `true` | Enables the after predicate.
 |spring.cloud.gateway.predicate.before.enabled | `true` | Enables the before predicate.
 |spring.cloud.gateway.predicate.between.enabled | `true` | Enables the between predicate.
