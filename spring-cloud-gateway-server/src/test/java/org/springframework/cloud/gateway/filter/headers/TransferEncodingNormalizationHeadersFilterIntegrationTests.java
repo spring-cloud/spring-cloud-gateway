@@ -53,9 +53,9 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 
 @SpringBootTest(properties = {}, webEnvironment = RANDOM_PORT)
 @ActiveProfiles("transferencoding")
-public class TransferEncodingNormalizationHeardsFilterIntegrationTests {
+public class TransferEncodingNormalizationHeadersFilterIntegrationTests {
 
-	private static final Log log = LogFactory.getLog(TransferEncodingNormalizationHeardsFilterIntegrationTests.class);
+	private static final Log log = LogFactory.getLog(TransferEncodingNormalizationHeadersFilterIntegrationTests.class);
 
 	@LocalServerPort
 	private int port;

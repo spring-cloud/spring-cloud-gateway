@@ -27,7 +27,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Spencer Gibb
  */
-public class TransferEncodingMarmalizationHeadersFilterTests {
+public class TransferEncodingNormalizationHeadersFilterTests {
 
 	@Test
 	public void noTransferEncodingWithContentLength() {
