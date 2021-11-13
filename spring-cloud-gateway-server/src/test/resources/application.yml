@@ -163,6 +163,9 @@ spring:
           - Host=**.deduperesponseheader.org
           - Path=/headers
         filters:
+          - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin, RETAIN_FIRST
+          - DedupeResponseHeader=Scout-Cookie, RETAIN_LAST
+          - DedupeResponseHeader=Next-Week-Lottery-Numbers, RETAIN_UNIQUE
           - AddResponseHeader=Access-Control-Allow-Credentials, true
           - AddResponseHeader=Access-Control-Allow-Credentials, false
           - AddResponseHeader=Access-Control-Allow-Origin, https://musk.mars
@@ -173,9 +176,6 @@ spring:
           - AddResponseHeader=Next-Week-Lottery-Numbers, 2
           - AddResponseHeader=Next-Week-Lottery-Numbers, 2
           - AddResponseHeader=Next-Week-Lottery-Numbers, 42
-          - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin, RETAIN_FIRST
-          - DedupeResponseHeader=Scout-Cookie, RETAIN_LAST
-          - DedupeResponseHeader=Next-Week-Lottery-Numbers, RETAIN_UNIQUE
 
       # =====================================
       - id: forward_test
@@ -286,8 +286,8 @@ spring:
         - Host=**.removereresponseheader.org
         - Path=/headers
         filters:
-        - AddResponseHeader=X-Request-Foo, Bar
         - RemoveResponseHeader=X-Request-Foo
+        - AddResponseHeader=X-Request-Foo, Bar
 
         # =====================================
       - id: request_header_size_test
@@ -304,8 +304,8 @@ spring:
           - Host=**.rewritelocationresponseheader.org
           - Path=/headers
         filters:
-          - AddResponseHeader=Location, https://backend.org:443/v1/some/object/id
           - RewriteLocationResponseHeader
+          - AddResponseHeader=Location, https://backend.org:443/v1/some/object/id
 
         # =====================================
       - id: rewrite_response_header_test
@@ -314,8 +314,8 @@ spring:
           - Host=**.rewriteresponseheader.org
           - Path=/headers
         filters:
-          - AddResponseHeader=X-Request-Foo, /42?user=ford&password=omg!what&flag=true
           - RewriteResponseHeader=X-Request-Foo, password=[^&]+, password=***
+          - AddResponseHeader=X-Request-Foo, /42?user=ford&password=omg!what&flag=true
 
         # =====================================
       - id: sccb_failure_test
@@ -383,9 +383,9 @@ spring:
         - Host=**.setreresponseheader.org
         - Path=/headers
         filters:
+        - SetResponseHeader=X-Response-Foo, Bar
         - AddResponseHeader=X-Response-Foo, Bar1
         - AddResponseHeader=X-Response-Foo, Bar2
-        - SetResponseHeader=X-Response-Foo, Bar
 
       # =====================================
       - id: set_status_int_test
