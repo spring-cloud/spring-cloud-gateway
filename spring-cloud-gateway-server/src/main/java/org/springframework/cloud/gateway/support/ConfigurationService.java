@@ -114,7 +114,7 @@ public class ConfigurationService implements ApplicationEventPublisherAware {
 		return (T) candidate;
 	}
 
-	public class ConfigurableBuilder<T, C extends Configurable<T> & ShortcutConfigurable>
+	public static class ConfigurableBuilder<T, C extends Configurable<T> & ShortcutConfigurable>
 			extends AbstractBuilder<T, ConfigurableBuilder<T, C>> {
 
 		private final C configurable;
@@ -154,7 +154,7 @@ public class ConfigurationService implements ApplicationEventPublisherAware {
 
 	}
 
-	public class InstanceBuilder<T> extends AbstractBuilder<T, InstanceBuilder<T>> {
+	public static class InstanceBuilder<T> extends AbstractBuilder<T, InstanceBuilder<T>> {
 
 		private final T instance;
 
@@ -183,7 +183,7 @@ public class ConfigurationService implements ApplicationEventPublisherAware {
 
 	}
 
-	public abstract class AbstractBuilder<T, B extends AbstractBuilder<T, B>> {
+	public static abstract class AbstractBuilder<T, B extends AbstractBuilder<T, B>> {
 
 		protected final ConfigurationService service;
 

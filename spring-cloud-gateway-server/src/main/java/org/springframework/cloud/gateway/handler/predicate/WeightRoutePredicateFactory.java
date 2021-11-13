@@ -111,6 +111,11 @@ public class WeightRoutePredicateFactory extends AbstractRoutePredicateFactory<W
 			}
 
 			@Override
+			public Object getConfig() {
+				return config;
+			}
+
+			@Override
 			public String toString() {
 				return String.format("Weight: %s %s", config.getGroup(), config.getWeight());
 			}

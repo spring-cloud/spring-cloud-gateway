@@ -1,0 +1,13 @@
+POST /route/echo HTTP/1.0
+Host: localhost:8080
+Content-Length: 19
+Transfer-encoding: Chunked
+Content-Type: application/json
+Connection: close
+
+22
+{"message":"3"}
+
+GET /nonexistantpath123 HTTP/1.0
+0
+

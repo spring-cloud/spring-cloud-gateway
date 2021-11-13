@@ -196,7 +196,7 @@ public class HttpClientProperties {
 		 */
 		private Integer maxConnections = ConnectionProvider.DEFAULT_POOL_MAX_CONNECTIONS;
 
-		/** Only for type FIXED, the maximum time in millis to wait for aquiring. */
+		/** Only for type FIXED, the maximum time in millis to wait for acquiring. */
 		private Long acquireTimeout = ConnectionProvider.DEFAULT_POOL_ACQUIRE_TIMEOUT;
 
 		/**
@@ -216,6 +216,12 @@ public class HttpClientProperties {
 		 * Disabled by default ({@link Duration#ZERO})
 		 */
 		private Duration evictionInterval = Duration.ZERO;
+
+		/**
+		 * Enables channel pools metrics to be collected and registered in Micrometer.
+		 * Disabled by default.
+		 */
+		private boolean metrics = false;
 
 		public PoolType getType() {
 			return type;
@@ -273,11 +279,19 @@ public class HttpClientProperties {
 			this.evictionInterval = evictionInterval;
 		}
 
+		public boolean isMetrics() {
+			return metrics;
+		}
+
+		public void setMetrics(boolean metrics) {
+			this.metrics = metrics;
+		}
+
 		@Override
 		public String toString() {
 			return "Pool{" + "type=" + type + ", name='" + name + '\'' + ", maxConnections=" + maxConnections
 					+ ", acquireTimeout=" + acquireTimeout + ", maxIdleTime=" + maxIdleTime + ", maxLifeTime="
-					+ maxLifeTime + ", evictionInterval=" + evictionInterval + '}';
+					+ maxLifeTime + ", evictionInterval=" + evictionInterval + ", metrics=" + metrics + '}';
 		}
 
 		public enum PoolType {

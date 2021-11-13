@@ -43,8 +43,8 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 /**
  * @author Ryan Baxter
  */
-@SpringBootTest(webEnvironment = RANDOM_PORT,
-		properties = { "debug=true", "spring.cloud.circuitbreaker.hystrix.enabled=false" })
+@SpringBootTest(webEnvironment = RANDOM_PORT, properties = { "logging.level.org.springframework.cloud.gateway=TRACE",
+		"debug=true", "spring.cloud.circuitbreaker.hystrix.enabled=false" })
 @ContextConfiguration(classes = SpringCloudCircuitBreakerResilience4JFilterFactoryTests.Config.class)
 @DirtiesContext
 public class SpringCloudCircuitBreakerResilience4JFilterFactoryTests

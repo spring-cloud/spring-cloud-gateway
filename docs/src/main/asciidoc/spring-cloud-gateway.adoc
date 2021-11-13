@@ -195,7 +195,7 @@ This route matches requests that have a cookie named `chocolate` whose value mat
 
 === The Header Route Predicate Factory
 
-The `Header` route predicate factory takes two parameters, the header `name` and a `regexp` (which is a Java regular expression).
+The `Header` route predicate factory takes two parameters, the `header` and a `regexp` (which is a Java regular expression).
 This predicate matches with a header that has the given name whose value matches the regular expression.
 The following example configures a header route predicate:
 
@@ -367,32 +367,6 @@ spring:
 
 This route matches if the remote address of the request was, for example, `192.168.1.10`.
 
-=== The Weight Route Predicate Factory
-
-The `Weight` route predicate factory takes two arguments: `group` and `weight` (an int). The weights are calculated per group.
-The following example configures a weight route predicate:
-
-.application.yml
-====
-[source,yaml]
-----
-spring:
-  cloud:
-    gateway:
-      routes:
-      - id: weight_high
-        uri: https://weighthigh.org
-        predicates:
-        - Weight=group1, 8
-      - id: weight_low
-        uri: https://weightlow.org
-        predicates:
-        - Weight=group1, 2
-----
-====
-
-This route would forward ~80% of traffic to https://weighthigh.org and ~20% of traffic to https://weighlow.org
-
 ==== Modifying the Way Remote Addresses Are Resolved
 
 By default, the RemoteAddr route predicate factory uses the remote address from the incoming request.
@@ -452,6 +426,32 @@ RemoteAddressResolver resolver = XForwardedRemoteAddressResolver
 )
 ----
 ====
+
+=== The Weight Route Predicate Factory
+
+The `Weight` route predicate factory takes two arguments: `group` and `weight` (an int). The weights are calculated per group.
+The following example configures a weight route predicate:
+
+.application.yml
+====
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: weight_high
+        uri: https://weighthigh.org
+        predicates:
+        - Weight=group1, 8
+      - id: weight_low
+        uri: https://weightlow.org
+        predicates:
+        - Weight=group1, 2
+----
+====
+
+This route would forward ~80% of traffic to https://weighthigh.org and ~20% of traffic to https://weighlow.org
 
 == `GatewayFilter` Factories
 
@@ -567,7 +567,7 @@ spring:
 ----
 ====
 
-This adds `X-Response-Foo:Bar` header to the downstream response's headers for all matching requests.
+This adds `X-Response-Red:Blue` header to the downstream response's headers for all matching requests.
 
 `AddResponseHeader` is aware of URI variables used to match a path or host.
 URI variables may be used in the value and are expanded at runtime.
@@ -1501,6 +1501,39 @@ Instead, it should throw an `Exception` or signal an error (for example, through
 
 WARNING: When using the retry filter with any HTTP method with a body, the body will be cached and the gateway will become memory constrained. The body is cached in a request attribute defined by `ServerWebExchangeUtils.CACHED_REQUEST_BODY_ATTR`. The type of the object is a `org.springframework.core.io.buffer.DataBuffer`.
 
+A simplified "shortcut" notation can be added with a single `status` and `method`.
+
+The following two examples are equivalent:
+
+.application.yml
+====
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: retry_route
+        uri: https://example.org
+        filters:
+        - name: Retry
+          args:
+            retries: 3
+            statuses: INTERNAL_SERVER_ERROR
+            methods: GET
+            backoff:
+              firstBackoff: 10ms
+              maxBackoff: 50ms
+              factor: 2
+              basedOnPreviousValue: false
+
+      - id: retryshortcut_route
+        uri: https://example.org
+        filters:
+        - Retry=3,INTERNAL_SERVER_ERROR,GET,10ms,50ms,2,false
+----
+====
+
 === The `RequestSize` `GatewayFilter` Factory
 
 When the request size is greater than the permissible limit, the `RequestSize` `GatewayFilter` factory can restrict a request from reaching the downstream service.
@@ -1902,7 +1935,7 @@ spring:
 
 === The Gateway Metrics Filter
 
-To enable gateway metrics, add spring-boot-starter-actuator as a project dependency. Then, by default, the gateway metrics filter runs as long as the property `spring.cloud.gateway.metrics.enabled` is not set to `false`. This filter adds a timer metric named `gateway.requests` with the following tags:
+To enable gateway metrics, add spring-boot-starter-actuator as a project dependency. Then, by default, the gateway metrics filter runs as long as the property `spring.cloud.gateway.metrics.enabled` is not set to `false`. This filter adds a timer metric named `spring.cloud.gateway.requests` with the following tags:
 
 * `routeId`: The route ID.
 * `routeUri`: The URI to which the API is routed.
@@ -1911,7 +1944,11 @@ To enable gateway metrics, add spring-boot-starter-actuator as a project depende
 * `httpStatusCode`: The HTTP Status of the request returned to the client.
 * `httpMethod`: The HTTP method used for the request.
 
-These metrics are then available to be scraped from `/actuator/metrics/gateway.requests` and can be easily integrated with Prometheus to create a link:images/gateway-grafana-dashboard.jpeg[Grafana] link:gateway-grafana-dashboard.json[dashboard].
+In addition, through the property `spring.cloud.gateway.metrics.tags.path.enabled` (by default, set to false), you can activate an extra metric with the tag:
+
+* `path`: Path of the request.
+
+These metrics are then available to be scraped from `/actuator/metrics/spring.cloud.gateway.requests` and can be easily integrated with Prometheus to create a link:images/gateway-grafana-dashboard.jpeg[Grafana] link:gateway-grafana-dashboard.json[dashboard].
 
 NOTE: To enable the prometheus endpoint, add `micrometer-registry-prometheus` as a project dependency.
 
@@ -2086,6 +2123,10 @@ spring:
 
 For some usages of the gateway, properties are adequate, but some production use cases benefit from loading configuration from an external source, such as a database. Future milestone versions will have `RouteDefinitionLocator` implementations based off of Spring Data Repositories, such as Redis, MongoDB, and Cassandra.
 
+=== RouteDefinition Metrics
+
+To enable `RouteDefinition` metrics, add spring-boot-starter-actuator as a project dependency. Then, by default, the metrics will be available as long as the property `spring.cloud.gateway.metrics.enabled` is set to `true`. A gauge metric named `spring.cloud.gateway.routes.count` will be added, whose value is the number of `RouteDefinitions`. This metric will be available from `/actuator/metrics/spring.cloud.gateway.routes.count`.
+
 == Route Metadata Configuration
 
 You can configure additional parameters for each route by using metadata, as follows:
@@ -2178,6 +2219,19 @@ import static org.springframework.cloud.gateway.support.RouteMetadataUtils.RESPO
                })
                .build();
       }
+----
+
+A per-route `response-timeout` with a negative value will disable the global `response-timeout` value.
+
+----
+      - id: per_route_timeouts
+        uri: https://example.org
+        predicates:
+          - name: Path
+            args:
+              pattern: /delay/{timeout}
+        metadata:
+          response-timeout: -1
 ----
 
 === Fluent Java Routes API
@@ -2602,11 +2656,12 @@ These are basic guides to writing some custom components of the gateway.
 === Writing Custom Route Predicate Factories
 
 
-In order to write a Route Predicate you will need to implement `RoutePredicateFactory`.  There is an abstract class called `AbstractRoutePredicateFactory` which you can extend.
+In order to write a Route Predicate you will need to implement `RoutePredicateFactory` as a bean. There is an abstract class called `AbstractRoutePredicateFactory` which you can extend.
 
 .MyRoutePredicateFactory.java
 [source,java]
 ----
+@Component
 public class MyRoutePredicateFactory extends AbstractRoutePredicateFactory<MyRoutePredicateFactory.Config> {
 
     public MyRoutePredicateFactory() {
@@ -2633,7 +2688,7 @@ public class MyRoutePredicateFactory extends AbstractRoutePredicateFactory<MyRou
 ----
 === Writing Custom GatewayFilter Factories
 
-To write a `GatewayFilter`, you must implement `GatewayFilterFactory`.
+To write a `GatewayFilter`, you must implement `GatewayFilterFactory` as a bean.
 You can extend an abstract class called `AbstractGatewayFilterFactory`.
 The following examples show how to do so:
 
@@ -2641,6 +2696,7 @@ The following examples show how to do so:
 ====
 [source,java]
 ----
+@Component
 public class PreGatewayFilterFactory extends AbstractGatewayFilterFactory<PreGatewayFilterFactory.Config> {
 
 	public PreGatewayFilterFactory() {
@@ -2669,6 +2725,7 @@ public class PreGatewayFilterFactory extends AbstractGatewayFilterFactory<PreGat
 .PostGatewayFilterFactory.java
 [source,java]
 ----
+@Component
 public class PostGatewayFilterFactory extends AbstractGatewayFilterFactory<PostGatewayFilterFactory.Config> {
 
 	public PostGatewayFilterFactory() {
@@ -2709,7 +2766,7 @@ name to be compliant.
 
 === Writing Custom Global Filters
 
-To write a custom global filter, you must implement `GlobalFilter` interface.
+To write a custom global filter, you must implement `GlobalFilter` interface as a bean.
 This applies the filter to all requests.
 
 The following examples show how to set up global pre and post filters, respectively:

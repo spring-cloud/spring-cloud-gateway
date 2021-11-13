@@ -23,7 +23,9 @@ import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashSet;
@@ -32,6 +34,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.Vector;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.servlet.ReadListener;
 import javax.servlet.ServletInputStream;
@@ -215,6 +218,8 @@ public class ProxyExchange<T> {
 		if (this.sensitive == null) {
 			this.sensitive = new HashSet<>();
 		}
+
+		this.sensitive.clear();
 		for (String name : names) {
 			this.sensitive.add(name.toLowerCase());
 		}
@@ -338,22 +343,34 @@ public class ProxyExchange<T> {
 		if (type instanceof TypeVariable || type instanceof WildcardType) {
 			type = Object.class;
 		}
-		return rest.exchange(requestEntity, ParameterizedTypeReference.forType(responseType));
+		return rest.exchange(requestEntity, ParameterizedTypeReference.forType(type));
+	}
+
+	private void addHeaders(HttpHeaders headers) {
+		ArrayList<String> headerNames = new ArrayList<>();
+		webRequest.getHeaderNames().forEachRemaining(headerNames::add);
+		Set<String> filteredKeys = filterHeaderKeys(headerNames);
+		filteredKeys.stream().filter(key -> !headers.containsKey(key))
+				.forEach(header -> headers.addAll(header, Arrays.asList(webRequest.getHeaderValues(header))));
 	}
 
 	private BodyBuilder headers(BodyBuilder builder) {
-		Set<String> sensitive = this.sensitive;
-		if (sensitive == null) {
-			sensitive = DEFAULT_SENSITIVE;
-		}
 		proxy();
-		for (String name : headers.keySet()) {
-			if (sensitive.contains(name.toLowerCase())) {
-				continue;
-			}
+		for (String name : filterHeaderKeys(headers)) {
 			builder.header(name, headers.get(name).toArray(new String[0]));
 		}
+		builder.headers(this::addHeaders);
 		return builder;
+	}
+
+	private Set<String> filterHeaderKeys(HttpHeaders headers) {
+		return filterHeaderKeys(headers.keySet());
+	}
+
+	private Set<String> filterHeaderKeys(Collection<String> headerNames) {
+		final Set<String> sensitiveHeaders = this.sensitive != null ? this.sensitive : DEFAULT_SENSITIVE;
+		return headerNames.stream().filter(header -> !sensitiveHeaders.contains(header.toLowerCase()))
+				.collect(Collectors.toSet());
 	}
 
 	private void proxy() {

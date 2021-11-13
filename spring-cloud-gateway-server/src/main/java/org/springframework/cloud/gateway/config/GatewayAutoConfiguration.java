@@ -109,8 +109,11 @@ import org.springframework.cloud.gateway.filter.factory.rewrite.MessageBodyEncod
 import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyRequestBodyGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyResponseBodyGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.headers.ForwardedHeadersFilter;
+import org.springframework.cloud.gateway.filter.headers.GRPCRequestHeadersFilter;
+import org.springframework.cloud.gateway.filter.headers.GRPCResponseHeadersFilter;
 import org.springframework.cloud.gateway.filter.headers.HttpHeadersFilter;
 import org.springframework.cloud.gateway.filter.headers.RemoveHopByHopHeadersFilter;
+import org.springframework.cloud.gateway.filter.headers.TransferEncodingNormalizationHeadersFilter;
 import org.springframework.cloud.gateway.filter.headers.XForwardedHeadersFilter;
 import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
 import org.springframework.cloud.gateway.filter.ratelimit.PrincipalNameKeyResolver;
@@ -176,6 +179,7 @@ import static org.springframework.cloud.gateway.config.HttpClientProperties.Pool
  * @author Spencer Gibb
  * @author Ziemowit Stolarczyk
  * @author Mete Alpaslan Katırcıoğlu
+ * @author Alberto C. Ríos
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty(name = "spring.cloud.gateway.enabled", matchIfMissing = true)
@@ -288,6 +292,23 @@ public class GatewayAutoConfiguration {
 	@ConditionalOnProperty(name = "spring.cloud.gateway.x-forwarded.enabled", matchIfMissing = true)
 	public XForwardedHeadersFilter xForwardedHeadersFilter() {
 		return new XForwardedHeadersFilter();
+	}
+
+	@Bean
+	@ConditionalOnProperty(name = "server.http2.enabled", matchIfMissing = true)
+	public GRPCRequestHeadersFilter gRPCRequestHeadersFilter() {
+		return new GRPCRequestHeadersFilter();
+	}
+
+	@Bean
+	@ConditionalOnProperty(name = "server.http2.enabled", matchIfMissing = true)
+	public GRPCResponseHeadersFilter gRPCResponseHeadersFilter() {
+		return new GRPCResponseHeadersFilter();
+	}
+
+	@Bean
+	public TransferEncodingNormalizationHeadersFilter transferEncodingNormalizationHeadersFilter() {
+		return new TransferEncodingNormalizationHeadersFilter();
 	}
 
 	// GlobalFilter beans
@@ -772,6 +793,7 @@ public class GatewayAutoConfiguration {
 					builder.maxLifeTime(pool.getMaxLifeTime());
 				}
 				builder.evictInBackground(pool.getEvictionInterval());
+				builder.metrics(pool.isMetrics());
 				connectionProvider = builder.build();
 			}
 			return connectionProvider;

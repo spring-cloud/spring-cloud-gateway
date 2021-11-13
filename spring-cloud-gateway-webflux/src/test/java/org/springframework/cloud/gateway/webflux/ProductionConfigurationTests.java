@@ -173,6 +173,29 @@ public class ProductionConfigurationTests {
 
 	@Test
 	@SuppressWarnings({ "Duplicates", "unchecked" })
+	public void testSensitiveHeadersOverride() throws Exception {
+		Map<String, List<String>> headers = rest
+				.exchange(
+						RequestEntity.get(rest.getRestTemplate().getUriTemplateHandler().expand("/proxy/headers"))
+								.header("foo", "bar").header("abc", "xyz").header("cookie", "monster").build(),
+						Map.class)
+				.getBody();
+		assertThat(headers).doesNotContainKey("foo").doesNotContainKey("hello").containsKeys("bar", "abc");
+
+		assertThat(headers.get("cookie")).containsOnly("monster");
+	}
+
+	@Test
+	public void testSensitiveHeadersDefault() throws Exception {
+		Map<String, List<String>> headers = rest.exchange(RequestEntity
+				.get(rest.getRestTemplate().getUriTemplateHandler().expand("/proxy/sensitive-headers-default"))
+				.header("cookie", "monster").build(), Map.class).getBody();
+
+		assertThat(headers).doesNotContainKey("cookie");
+	}
+
+	@Test
+	@SuppressWarnings({ "Duplicates", "unchecked" })
 	public void headers() throws Exception {
 		Map<String, List<String>> headers = rest
 				.exchange(RequestEntity.get(rest.getRestTemplate().getUriTemplateHandler().expand("/proxy/headers"))
@@ -314,8 +337,16 @@ public class ProductionConfigurationTests {
 			@GetMapping("/proxy/headers")
 			public Mono<ResponseEntity<Map<String, List<String>>>> headers(
 					ProxyExchange<Map<String, List<String>>> proxy) {
-				proxy.sensitive("foo");
-				proxy.sensitive("hello");
+				proxy.sensitive("foo", "hello");
+				proxy.header("bar", "hello");
+				proxy.header("abc", "123");
+				proxy.header("hello", "world");
+				return proxy.uri(home.toString() + "/headers").get();
+			}
+
+			@GetMapping("/proxy/sensitive-headers-default")
+			public Mono<ResponseEntity<Map<String, List<String>>>> defaultSensitiveHeaders(
+					ProxyExchange<Map<String, List<String>>> proxy) {
 				proxy.header("bar", "hello");
 				proxy.header("abc", "123");
 				proxy.header("hello", "world");

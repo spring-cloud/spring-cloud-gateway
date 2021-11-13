@@ -83,6 +83,36 @@ public class RouteDefinitionRouteLocatorTests {
 	}
 
 	@Test
+	public void simpleRetryDefinitionLoads() {
+		List<RoutePredicateFactory> predicates = Arrays.asList(new HostRoutePredicateFactory());
+		List<GatewayFilterFactory> gatewayFilterFactories = Arrays.asList(new RetryGatewayFilterFactory());
+		GatewayProperties gatewayProperties = new GatewayProperties();
+		gatewayProperties.setRoutes(Arrays.asList(new RouteDefinition() {
+			{
+				setId("simple");
+				setUri(URI.create("https://foo.example.com"));
+				setPredicates(Arrays.asList(new PredicateDefinition("Host=*.example.com")));
+				setFilters(Arrays.asList(new FilterDefinition("Retry=3,INTERNAL_SERVER_ERROR,GET")));
+			}
+		}));
+
+		PropertiesRouteDefinitionLocator routeDefinitionLocator = new PropertiesRouteDefinitionLocator(
+				gatewayProperties);
+		RouteDefinitionRouteLocator routeDefinitionRouteLocator = new RouteDefinitionRouteLocator(
+				new CompositeRouteDefinitionLocator(Flux.just(routeDefinitionLocator)), predicates,
+				gatewayFilterFactories, gatewayProperties, new ConfigurationService(null, () -> null, () -> null));
+
+		StepVerifier.create(routeDefinitionRouteLocator.getRoutes()).assertNext(route -> {
+			List<GatewayFilter> filters = route.getFilters();
+			assertThat(filters).hasSize(1);
+			assertThat(getFilterClassName(filters.get(0))).contains("Retry");
+			assertThat(filters.get(0).toString()).contains("retries = 3");
+			assertThat(filters.get(0).toString()).contains("series = list[SERVER_ERROR]");
+			assertThat(filters.get(0).toString()).contains("methods = list[GET]");
+		}).expectComplete().verify();
+	}
+
+	@Test
 	public void contextLoadsWithErrorRecovery() {
 		List<RoutePredicateFactory> predicates = Arrays.asList(new HostRoutePredicateFactory());
 		List<GatewayFilterFactory> gatewayFilterFactories = Arrays.asList(
