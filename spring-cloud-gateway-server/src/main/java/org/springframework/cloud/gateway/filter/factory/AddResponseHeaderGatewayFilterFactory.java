@@ -50,4 +50,5 @@ public class AddResponseHeaderGatewayFilterFactory extends AbstractNameValueGate
 		final String value = ServerWebExchangeUtils.expand(exchange, config.getValue());
 		exchange.getResponse().getHeaders().add(config.getName(), value);
 	}
+
 }
