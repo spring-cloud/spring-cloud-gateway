@@ -69,7 +69,7 @@ public class SetResponseHeaderGatewayFilterFactoryTests extends BaseWebClientTes
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes().route("test_set_response_header_dsl",
 					r -> r.order(-1).host("{sub}.setresponseheaderdsl.org").filters(f -> f.prefixPath("/httpbin")
-							.addResponseHeader("X-Res-Foo", "First").setResponseHeader("X-Res-Foo", "Second-{sub}"))
+							.setResponseHeader("X-Res-Foo", "Second-{sub}").addResponseHeader("X-Res-Foo", "First"))
 							.uri(uri))
 					.build();
 		}

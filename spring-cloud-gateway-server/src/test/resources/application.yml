@@ -314,8 +314,8 @@ spring:
           - Host=**.rewriteresponseheader.org
           - Path=/headers
         filters:
-          - AddResponseHeader=X-Request-Foo, /42?user=ford&password=omg!what&flag=true
           - RewriteResponseHeader=X-Request-Foo, password=[^&]+, password=***
+          - AddResponseHeader=X-Request-Foo, /42?user=ford&password=omg!what&flag=true
 
         # =====================================
       - id: sccb_failure_test
