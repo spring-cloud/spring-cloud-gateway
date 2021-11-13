@@ -286,8 +286,8 @@ spring:
         - Host=**.removereresponseheader.org
         - Path=/headers
         filters:
-        - AddResponseHeader=X-Request-Foo, Bar
         - RemoveResponseHeader=X-Request-Foo
+        - AddResponseHeader=X-Request-Foo, Bar
 
         # =====================================
       - id: request_header_size_test
@@ -304,8 +304,8 @@ spring:
           - Host=**.rewritelocationresponseheader.org
           - Path=/headers
         filters:
-          - AddResponseHeader=Location, https://backend.org:443/v1/some/object/id
           - RewriteLocationResponseHeader
+          - AddResponseHeader=Location, https://backend.org:443/v1/some/object/id
 
         # =====================================
       - id: rewrite_response_header_test
@@ -383,9 +383,9 @@ spring:
         - Host=**.setreresponseheader.org
         - Path=/headers
         filters:
-        - AddResponseHeader=X-Response-Foo, Bar1
-        - AddResponseHeader=X-Response-Foo, Bar2
         - SetResponseHeader=X-Response-Foo, Bar
+        - AddResponseHeader=X-Response-Foo, Bar2
+        - AddResponseHeader=X-Response-Foo, Bar1
 
       # =====================================
       - id: set_status_int_test
