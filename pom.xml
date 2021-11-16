@@ -257,6 +257,19 @@
 				</plugins>
 			</build>
 		</profile>
+		<profile>
+			<id>withoutDockerTests</id>
+			<build>
+				<plugins>
+					<plugin>
+						<artifactId>maven-surefire-plugin</artifactId>
+						<configuration>
+							<excludedGroups>DockerRequired</excludedGroups>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
 	</profiles>
 
 </project>
