@@ -5,7 +5,7 @@
 |spring.cloud.gateway.discovery.locator.enabled | `false` | Flag that enables DiscoveryClient gateway integration.
 |spring.cloud.gateway.discovery.locator.filters |  | 
 |spring.cloud.gateway.discovery.locator.include-expression | `true` | SpEL expression that will evaluate whether to include a service in gateway integration or not, defaults to: true.
-|spring.cloud.gateway.discovery.locator.lower-case-service-id | `false` | Option to lower case serviceId in predicates and filters, defaults to false. Useful with eureka when it automatically uppercases serviceId. so MYSERIVCE, would match /myservice/**
+|spring.cloud.gateway.discovery.locator.lower-case-service-id | `false` | Option to lower case serviceId in predicates and filters, defaults to false. Useful with eureka when it automatically uppercases serviceId. so MYSERVICE, would match /myservice/**
 |spring.cloud.gateway.discovery.locator.predicates |  | 
 |spring.cloud.gateway.discovery.locator.route-id-prefix |  | The prefix for the routeId, defaults to discoveryClient.getClass().getSimpleName() + "_". Service Id will be appended to create the routeId.
 |spring.cloud.gateway.discovery.locator.url-expression | `'lb://'+serviceId` | SpEL expression that create the uri for each route, defaults to: 'lb://'+serviceId.
