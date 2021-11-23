@@ -140,7 +140,8 @@ public class ProxyExchange<T> {
 	/**
 	 * Contains headers that are considered case-sensitive by default.
 	 */
-	public static Set<String> DEFAULT_SENSITIVE = new HashSet<>(Arrays.asList("cookie", "authorization"));
+	public static Set<String> DEFAULT_SENSITIVE = Collections
+			.unmodifiableSet(new HashSet<>(Arrays.asList("cookie", "authorization")));
 
 	private URI uri;
 
