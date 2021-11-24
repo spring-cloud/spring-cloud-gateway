@@ -65,6 +65,7 @@ import org.springframework.cloud.gateway.filter.ForwardRoutingFilter;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.NettyRoutingFilter;
 import org.springframework.cloud.gateway.filter.NettyWriteResponseFilter;
+import org.springframework.cloud.gateway.filter.PreFlightPassThroughWebFilter;
 import org.springframework.cloud.gateway.filter.RemoveCachedBodyFilter;
 import org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter;
 import org.springframework.cloud.gateway.filter.WebsocketRoutingFilter;
@@ -250,6 +251,13 @@ public class GatewayAutoConfiguration {
 	@Bean
 	public FilteringWebHandler filteringWebHandler(List<GlobalFilter> globalFilters) {
 		return new FilteringWebHandler(globalFilters);
+	}
+
+	@Bean
+	@ConditionalOnProperty(name = "spring.cloud.gateway.globalcors.pass-through",
+			matchIfMissing = false)
+	public PreFlightPassThroughWebFilter preFlightPassThroughWebFilter() {
+		return new PreFlightPassThroughWebFilter();
 	}
 
 	@Bean
