@@ -57,12 +57,10 @@ public class RedisRateLimiterConfigTests {
 	}
 
 	@Test
-	public void replenishRateShouldBeEqualToBurstCapacityWhenReplenishRateIsHigherThanBurstCapacity() {
-		RedisRateLimiter redisRateLimiter = new RedisRateLimiter(10, 5);
-		int replenishRate = redisRateLimiter.getDefaultConfig().getReplenishRate();
-		int burstCapacity = redisRateLimiter.getDefaultConfig().getBurstCapacity();
-		Assert.assertEquals(5, burstCapacity);
-		Assert.assertEquals(5, replenishRate);
+	public void shouldThrowAnErrorWhenReplenishRateIsHigherThanBurstCapacity() {
+		Assert.assertThrows(IllegalStateException.class, () -> {
+			new RedisRateLimiter(10, 5);
+		});
 	}
 
 	@Test
