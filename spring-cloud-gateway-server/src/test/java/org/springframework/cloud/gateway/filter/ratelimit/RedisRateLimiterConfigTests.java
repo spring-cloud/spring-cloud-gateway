@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.gateway.filter.ratelimit;
 
+import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -53,6 +54,11 @@ public class RedisRateLimiterConfigTests {
 	public void init() {
 		// prime routes since getRoutes() no longer blocks
 		routeLocator.getRoutes().collectList().block();
+	}
+
+	@Test
+	public void shouldThrowAnErrorWhenReplenishRateIsHigherThanBurstCapacity() {
+		Assertions.assertThatThrownBy(() -> new RedisRateLimiter(10, 5)).isInstanceOf(IllegalArgumentException.class);
 	}
 
 	@Test
