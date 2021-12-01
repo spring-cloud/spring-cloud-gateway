@@ -315,6 +315,8 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 		@Min(1)
 		private int replenishRate;
 
+		private int originalReplenishRate;
+
 		@Min(0)
 		private int burstCapacity = 1;
 
@@ -326,7 +328,13 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 		}
 
 		public Config setReplenishRate(int replenishRate) {
-			this.replenishRate = replenishRate;
+			if (replenishRate <= 2) {
+				this.replenishRate = replenishRate;
+			}
+			else {
+				this.originalReplenishRate = replenishRate;
+				this.replenishRate = Math.min(this.burstCapacity, replenishRate);
+			}
 			return this;
 		}
 
@@ -335,6 +343,9 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 		}
 
 		public Config setBurstCapacity(int burstCapacity) {
+			if (this.originalReplenishRate > 2) {
+				this.replenishRate = Math.min(this.originalReplenishRate, burstCapacity);
+			}
 			this.burstCapacity = burstCapacity;
 			return this;
 		}

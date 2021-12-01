@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.gateway.filter.ratelimit;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -53,6 +54,15 @@ public class RedisRateLimiterConfigTests {
 	public void init() {
 		// prime routes since getRoutes() no longer blocks
 		routeLocator.getRoutes().collectList().block();
+	}
+
+	@Test
+	public void replenishRateShouldBeEqualToBurstCapacityWhenReplenishRateIsHigherThanBurstCapacity() {
+		RedisRateLimiter redisRateLimiter = new RedisRateLimiter(10, 5);
+		int replenishRate = redisRateLimiter.getDefaultConfig().getReplenishRate();
+		int burstCapacity = redisRateLimiter.getDefaultConfig().getBurstCapacity();
+		Assert.assertEquals(5, burstCapacity);
+		Assert.assertEquals(5, replenishRate);
 	}
 
 	@Test
