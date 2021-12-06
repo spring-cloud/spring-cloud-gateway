@@ -21,6 +21,7 @@ import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.cloud.gateway.support.ServerWebExchangeUtils
 import org.springframework.context.annotation.Configuration
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest
 import org.springframework.mock.web.server.MockServerWebExchange
@@ -72,7 +73,10 @@ class RouteDslTests {
         val sampleExchange: ServerWebExchange = MockServerWebExchange.from(MockServerHttpRequest.get("/image/webp")
                 .header("Host", "test.abc.org").build())
 
-        val filteredRoutes = routeLocator.routes.filter({ it.predicate.apply(sampleExchange).toMono().block() })
+        val filteredRoutes = routeLocator.routes.filter({
+            sampleExchange.attributes.put(ServerWebExchangeUtils.GATEWAY_PREDICATE_ROUTE_ATTR, it.id)
+            it.predicate.apply(sampleExchange).toMono().block()
+        })
 
         StepVerifier.create(filteredRoutes)
                 .expectNextMatches({

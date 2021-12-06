@@ -64,6 +64,11 @@ public class BetweenRoutePredicateFactory extends AbstractRoutePredicateFactory<
 			}
 
 			@Override
+			public Object getConfig() {
+				return config;
+			}
+
+			@Override
 			public String toString() {
 				return String.format("Between: %s and %s", config.getDatetime1(), config.getDatetime2());
 			}

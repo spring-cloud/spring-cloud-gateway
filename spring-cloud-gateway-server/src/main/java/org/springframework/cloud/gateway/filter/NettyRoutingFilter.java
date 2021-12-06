@@ -71,12 +71,12 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.s
  */
 public class NettyRoutingFilter implements GlobalFilter, Ordered {
 
-	private static final Log log = LogFactory.getLog(NettyRoutingFilter.class);
-
 	/**
 	 * The order of the NettyRoutingFilter. See {@link Ordered#LOWEST_PRECEDENCE}.
 	 */
 	public static final int ORDER = Ordered.LOWEST_PRECEDENCE;
+
+	private static final Log log = LogFactory.getLog(NettyRoutingFilter.class);
 
 	private final HttpClient httpClient;
 
@@ -261,16 +261,16 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 
 	private Duration getResponseTimeout(Route route) {
 		Object responseTimeoutAttr = route.getMetadata().get(RESPONSE_TIMEOUT_ATTR);
-		Long responseTimeout = null;
-		if (responseTimeoutAttr != null) {
-			if (responseTimeoutAttr instanceof Number) {
-				responseTimeout = ((Number) responseTimeoutAttr).longValue();
+		if (responseTimeoutAttr != null && responseTimeoutAttr instanceof Number) {
+			Long routeResponseTimeout = ((Number) responseTimeoutAttr).longValue();
+			if (routeResponseTimeout >= 0) {
+				return Duration.ofMillis(routeResponseTimeout);
 			}
 			else {
-				responseTimeout = Long.valueOf(responseTimeoutAttr.toString());
+				return null;
 			}
 		}
-		return responseTimeout != null ? Duration.ofMillis(responseTimeout) : properties.getResponseTimeout();
+		return properties.getResponseTimeout();
 	}
 
 }

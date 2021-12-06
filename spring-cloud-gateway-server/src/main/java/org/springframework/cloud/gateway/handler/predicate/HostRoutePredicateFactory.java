@@ -79,6 +79,11 @@ public class HostRoutePredicateFactory extends AbstractRoutePredicateFactory<Hos
 			}
 
 			@Override
+			public Object getConfig() {
+				return config;
+			}
+
+			@Override
 			public String toString() {
 				return String.format("Hosts: %s", config.getPatterns());
 			}

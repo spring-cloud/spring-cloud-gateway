@@ -54,6 +54,11 @@ public class AfterRoutePredicateFactory extends AbstractRoutePredicateFactory<Af
 			}
 
 			@Override
+			public Object getConfig() {
+				return config;
+			}
+
+			@Override
 			public String toString() {
 				return String.format("After: %s", config.getDatetime());
 			}

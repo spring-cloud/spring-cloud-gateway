@@ -40,6 +40,8 @@ import org.springframework.boot.test.context.runner.ReactiveWebApplicationContex
 import org.springframework.cloud.gateway.actuate.GatewayControllerEndpoint;
 import org.springframework.cloud.gateway.actuate.GatewayLegacyControllerEndpoint;
 import org.springframework.cloud.gateway.filter.factory.TokenRelayGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.headers.GRPCRequestHeadersFilter;
+import org.springframework.cloud.gateway.filter.headers.GRPCResponseHeadersFilter;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.GatewayFilterSpec;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
@@ -103,8 +105,9 @@ public class GatewayAutoConfigurationTests {
 						"spring.cloud.gateway.httpclient.response-timeout=10s",
 						"spring.cloud.gateway.httpclient.pool.eviction-interval=10s",
 						"spring.cloud.gateway.httpclient.pool.type=fixed",
+						"spring.cloud.gateway.httpclient.pool.metrics=true",
 						"spring.cloud.gateway.httpclient.compression=true",
-						// greather than integer max value
+						// greater than integer max value
 						"spring.cloud.gateway.httpclient.max-initial-line-length=2147483647",
 						"spring.cloud.gateway.httpclient.proxy.host=myhost",
 						"spring.cloud.gateway.httpclient.websocket.max-frame-payload-length=1024")
@@ -115,6 +118,7 @@ public class GatewayAutoConfigurationTests {
 					assertThat(properties.getMaxInitialLineLength().toBytes()).isLessThanOrEqualTo(Integer.MAX_VALUE);
 					assertThat(properties.isCompression()).isEqualTo(true);
 					assertThat(properties.getPool().getEvictionInterval()).hasSeconds(10);
+					assertThat(properties.getPool().isMetrics()).isEqualTo(true);
 					/*
 					 * FIXME: 2.1.0 HttpClientOptions options = httpClient.options();
 					 *
@@ -229,6 +233,30 @@ public class GatewayAutoConfigurationTests {
 		assertThat(spec1.protocols()).isEqualTo("p1");
 		// Protocols should not be cached between requests:
 		assertThat(spec2.protocols()).isNull();
+	}
+
+	@Test
+	public void gRPCFiltersConfiguredWhenHTTP2Enabled() {
+		new ReactiveWebApplicationContextRunner()
+				.withConfiguration(AutoConfigurations.of(WebFluxAutoConfiguration.class, MetricsAutoConfiguration.class,
+						SimpleMetricsExportAutoConfiguration.class, GatewayAutoConfiguration.class,
+						HttpClientCustomizedConfig.class, ServerPropertiesConfig.class))
+				.withPropertyValues("server.http2.enabled=true").run(context -> {
+					assertThat(context).hasSingleBean(GRPCRequestHeadersFilter.class);
+					assertThat(context).hasSingleBean(GRPCResponseHeadersFilter.class);
+				});
+	}
+
+	@Test
+	public void gRPCFiltersNotConfiguredWhenHTTP2Disabled() {
+		new ReactiveWebApplicationContextRunner()
+				.withConfiguration(AutoConfigurations.of(WebFluxAutoConfiguration.class, MetricsAutoConfiguration.class,
+						SimpleMetricsExportAutoConfiguration.class, GatewayAutoConfiguration.class,
+						HttpClientCustomizedConfig.class, ServerPropertiesConfig.class))
+				.withPropertyValues("server.http2.enabled=false").run(context -> {
+					assertThat(context).doesNotHaveBean(GRPCRequestHeadersFilter.class);
+					assertThat(context).doesNotHaveBean(GRPCResponseHeadersFilter.class);
+				});
 	}
 
 	@Configuration

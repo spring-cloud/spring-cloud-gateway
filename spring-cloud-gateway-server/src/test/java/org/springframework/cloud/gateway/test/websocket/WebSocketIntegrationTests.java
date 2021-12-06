@@ -36,6 +36,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.MonoProcessor;
 import reactor.core.publisher.ReplayProcessor;
+import reactor.core.publisher.Sinks;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -100,6 +101,8 @@ public class WebSocketIntegrationTests {
 	private ConfigurableApplicationContext gatewayContext;
 
 	private int gatewayPort;
+
+	private static final Sinks.One<CloseStatus> serverCloseStatusSink = Sinks.one();
 
 	private static Mono<Void> doSend(WebSocketSession session, Publisher<WebSocketMessage> output) {
 		return session.send(output);
@@ -241,13 +244,25 @@ public class WebSocketIntegrationTests {
 	}
 
 	@Test
-	public void sessionClosing() throws Exception {
-		this.client.execute(getUrl("/close"), session -> {
+	public void serverClosing() throws Exception {
+		AtomicReference<Mono<CloseStatus>> closeStatus = new AtomicReference<>();
+		this.client.execute(getUrl("/server-close"), session -> {
 			logger.debug("Starting..");
+			closeStatus.set(session.closeStatus());
 			return session.receive().doOnNext(s -> logger.debug("inbound " + s)).then().doFinally(signalType -> {
 				logger.debug("Completed with: " + signalType);
 			});
 		}).block(Duration.ofMillis(5000));
+		assertThat(closeStatus.get().block(Duration.ofMillis(5000)))
+				.isEqualTo(CloseStatus.create(4999, "server-close"));
+	}
+
+	@Test
+	public void clientClosing() throws Exception {
+		this.client.execute(getUrl("/client-close"), session -> session.close(CloseStatus.create(4999, "client-close")))
+				.block(Duration.ofMillis(5000));
+		assertThat(serverCloseStatusSink.asMono().block(Duration.ofMillis(5000)))
+				.isEqualTo(CloseStatus.create(4999, "client-close"));
 	}
 
 	@Configuration(proxyBeanMethods = false)
@@ -279,7 +294,8 @@ public class WebSocketIntegrationTests {
 			map.put("/echoForHttp", new EchoWebSocketHandler());
 			map.put("/sub-protocol", new SubProtocolWebSocketHandler());
 			map.put("/custom-header", new CustomHeaderHandler());
-			map.put("/close", new SessionClosingHandler());
+			map.put("/server-close", new ServerClosingHandler());
+			map.put("/client-close", new ClientClosingHandler());
 
 			SimpleUrlHandlerMapping mapping = new SimpleUrlHandlerMapping();
 			mapping.setUrlMap(map);
@@ -334,11 +350,20 @@ public class WebSocketIntegrationTests {
 
 	}
 
-	private static class SessionClosingHandler implements WebSocketHandler {
+	private static class ServerClosingHandler implements WebSocketHandler {
 
 		@Override
 		public Mono<Void> handle(WebSocketSession session) {
-			return Flux.never().mergeWith(session.close(CloseStatus.GOING_AWAY)).then();
+			return Flux.never().mergeWith(session.close(CloseStatus.create(4999, "server-close"))).then();
+		}
+
+	}
+
+	private static class ClientClosingHandler implements WebSocketHandler {
+
+		@Override
+		public Mono<Void> handle(WebSocketSession session) {
+			return session.closeStatus().doOnNext(serverCloseStatusSink::tryEmitValue).then();
 		}
 
 	}

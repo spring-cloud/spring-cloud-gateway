@@ -23,13 +23,15 @@ import org.reactivestreams.Publisher;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.handler.predicate.GatewayPredicate;
+import org.springframework.cloud.gateway.support.HasConfig;
+import org.springframework.cloud.gateway.support.Visitor;
 import org.springframework.util.Assert;
 import org.springframework.web.server.ServerWebExchange;
 
 /**
  * @author Ben Hale
  */
-public interface AsyncPredicate<T> extends Function<T, Publisher<Boolean>> {
+public interface AsyncPredicate<T> extends Function<T, Publisher<Boolean>>, HasConfig {
 
 	default AsyncPredicate<T> and(AsyncPredicate<? super T> other) {
 		return new AndAsyncPredicate<>(this, other);
@@ -45,6 +47,10 @@ public interface AsyncPredicate<T> extends Function<T, Publisher<Boolean>> {
 
 	default AsyncPredicate<T> or(AsyncPredicate<? super T> other) {
 		return new OrAsyncPredicate<>(this, other);
+	}
+
+	default void accept(Visitor visitor) {
+		visitor.visit(this);
 	}
 
 	static AsyncPredicate<ServerWebExchange> from(Predicate<? super ServerWebExchange> predicate) {
@@ -67,6 +73,14 @@ public interface AsyncPredicate<T> extends Function<T, Publisher<Boolean>> {
 		@Override
 		public String toString() {
 			return this.delegate.toString();
+		}
+
+		@Override
+		public void accept(Visitor visitor) {
+			if (delegate instanceof GatewayPredicate) {
+				GatewayPredicate gatewayPredicate = (GatewayPredicate) delegate;
+				gatewayPredicate.accept(visitor);
+			}
 		}
 
 	}
@@ -111,6 +125,12 @@ public interface AsyncPredicate<T> extends Function<T, Publisher<Boolean>> {
 		}
 
 		@Override
+		public void accept(Visitor visitor) {
+			left.accept(visitor);
+			right.accept(visitor);
+		}
+
+		@Override
 		public String toString() {
 			return String.format("(%s && %s)", this.left, this.right);
 		}
@@ -133,6 +153,12 @@ public interface AsyncPredicate<T> extends Function<T, Publisher<Boolean>> {
 		@Override
 		public Publisher<Boolean> apply(T t) {
 			return Mono.from(left.apply(t)).flatMap(result -> result ? Mono.just(true) : Mono.from(right.apply(t)));
+		}
+
+		@Override
+		public void accept(Visitor visitor) {
+			left.accept(visitor);
+			right.accept(visitor);
 		}
 
 		@Override
