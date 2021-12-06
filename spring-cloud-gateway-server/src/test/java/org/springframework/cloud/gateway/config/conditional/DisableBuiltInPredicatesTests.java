@@ -85,7 +85,7 @@ public class DisableBuiltInPredicatesTests {
 			"spring.cloud.gateway.predicate.query.enabled=false",
 			"spring.cloud.gateway.predicate.read-body.enabled=false",
 			"spring.cloud.gateway.predicate.remote-addr.enabled=false",
-			"spring.cloud.gateway.predicate.xforwardedfor.enabled=false",
+			"spring.cloud.gateway.predicate.xforwarded-remote-addr.enabled=false",
 			"spring.cloud.gateway.predicate.weight.enabled=false",
 			"spring.cloud.gateway.predicate.cloud-foundry-route-service.enabled=false" })
 	@ActiveProfiles("disable-components")
@@ -96,6 +96,9 @@ public class DisableBuiltInPredicatesTests {
 
 		@Test
 		public void shouldDisableAllBuiltInPredicates() {
+			// throw new ArithmeticException("XXXXXXXXXXX-" +
+			// org.springframework.cloud.gateway.support.NameUtils
+			// .normalizeToCanonicalPropertyFormat("XForwardedRemoteAddrRoutePredicateFactory"));
 			assertThat(predicates).isNull();
 		}
 

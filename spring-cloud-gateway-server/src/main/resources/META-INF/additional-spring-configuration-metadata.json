@@ -325,9 +325,9 @@
       "defaultValue": "true"
     },
     {
-      "name": "spring.cloud.gateway.predicate.xforwardedfor.enabled",
+      "name": "spring.cloud.gateway.predicate.xforwarded-remote-addr.enabled",
       "type": "java.lang.Boolean",
-      "description": "Enables the xforwardedfor predicate.",
+      "description": "Enables the xforwarded-remote-addr predicate.",
       "defaultValue": "true"
     },
     {
