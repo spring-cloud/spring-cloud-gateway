@@ -96,9 +96,6 @@ public class DisableBuiltInPredicatesTests {
 
 		@Test
 		public void shouldDisableAllBuiltInPredicates() {
-			// throw new ArithmeticException("XXXXXXXXXXX-" +
-			// org.springframework.cloud.gateway.support.NameUtils
-			// .normalizeToCanonicalPropertyFormat("XForwardedRemoteAddrRoutePredicateFactory"));
 			assertThat(predicates).isNull();
 		}
 
