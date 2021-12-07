@@ -1,0 +1,73 @@
+test:
+  hostport: httpbin.org:80
+  uri: lb://testservice
+
+server:
+  error:
+    include-message: always
+
+spring:
+  profiles:
+    group:
+      - logging
+
+  cloud:
+    gateway:
+      routes:
+        # =====================================
+        - id: per_route_connect_timeout
+          uri: http://localhost:32167
+          predicates:
+            - name: Path
+              args:
+                pattern: /connect/delay/{timeout}
+          metadata:
+            connect-timeout: 5
+
+        # =====================================
+        - id: per_route_response_timeout
+          uri: ${test.uri}
+          predicates:
+            - name: Path
+              args:
+                pattern: /route/delay/{timeout}
+          filters:
+            - StripPrefix=1
+          metadata:
+            response-timeout: 1000
+
+        # =====================================
+        - id: per_route_response_timeout_disabled
+          uri: ${test.uri}
+          predicates:
+            - name: Path
+              args:
+                pattern: /disabledRoute/delay/{timeout}
+          filters:
+            - StripPrefix=1
+          metadata:
+            response-timeout: -1
+
+        # =====================================
+        - id: per_route_response_timeout_invalid
+          uri: ${test.uri}
+          predicates:
+            - name: Path
+              args:
+                pattern: /invalidRoute/delay/{timeout}
+          filters:
+            - StripPrefix=1
+          metadata:
+            response-timeout: notANumber
+
+        # =====================================
+        # should be last and not follow alphabetical order
+        - id: default_path_to_httpbin
+          uri: ${test.uri}
+          order: 10000
+          predicates:
+            - name: Path
+              args:
+                pattern: /**
+      httpclient:
+        response-timeout: 3s

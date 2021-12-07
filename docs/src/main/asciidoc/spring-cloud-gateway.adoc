@@ -1501,6 +1501,39 @@ Instead, it should throw an `Exception` or signal an error (for example, through
 
 WARNING: When using the retry filter with any HTTP method with a body, the body will be cached and the gateway will become memory constrained. The body is cached in a request attribute defined by `ServerWebExchangeUtils.CACHED_REQUEST_BODY_ATTR`. The type of the object is a `org.springframework.core.io.buffer.DataBuffer`.
 
+A simplified "shortcut" notation can be added with a single `status` and `method`.
+
+The following two examples are equivalent:
+
+.application.yml
+====
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: retry_route
+        uri: https://example.org
+        filters:
+        - name: Retry
+          args:
+            retries: 3
+            statuses: INTERNAL_SERVER_ERROR
+            methods: GET
+            backoff:
+              firstBackoff: 10ms
+              maxBackoff: 50ms
+              factor: 2
+              basedOnPreviousValue: false
+
+      - id: retryshortcut_route
+        uri: https://example.org
+        filters:
+        - Retry=3,INTERNAL_SERVER_ERROR,GET,10ms,50ms,2,false
+----
+====
+
 === The `RequestSize` `GatewayFilter` Factory
 
 When the request size is greater than the permissible limit, the `RequestSize` `GatewayFilter` factory can restrict a request from reaching the downstream service.
@@ -1911,6 +1944,10 @@ To enable gateway metrics, add spring-boot-starter-actuator as a project depende
 * `httpStatusCode`: The HTTP Status of the request returned to the client.
 * `httpMethod`: The HTTP method used for the request.
 
+In addition, through the property `spring.cloud.gateway.metrics.tags.path.enabled` (by default, set to false), you can activate an extra metric with the tag:
+
+* `path`: Path of the request.
+
 These metrics are then available to be scraped from `/actuator/metrics/spring.cloud.gateway.requests` and can be easily integrated with Prometheus to create a link:images/gateway-grafana-dashboard.jpeg[Grafana] link:gateway-grafana-dashboard.json[dashboard].
 
 NOTE: To enable the prometheus endpoint, add `micrometer-registry-prometheus` as a project dependency.
@@ -2086,6 +2123,10 @@ spring:
 
 For some usages of the gateway, properties are adequate, but some production use cases benefit from loading configuration from an external source, such as a database. Future milestone versions will have `RouteDefinitionLocator` implementations based off of Spring Data Repositories, such as Redis, MongoDB, and Cassandra.
 
+=== RouteDefinition Metrics
+
+To enable `RouteDefinition` metrics, add spring-boot-starter-actuator as a project dependency. Then, by default, the metrics will be available as long as the property `spring.cloud.gateway.metrics.enabled` is set to `true`. A gauge metric named `spring.cloud.gateway.routes.count` will be added, whose value is the number of `RouteDefinitions`. This metric will be available from `/actuator/metrics/spring.cloud.gateway.routes.count`.
+
 == Route Metadata Configuration
 
 You can configure additional parameters for each route by using metadata, as follows:
@@ -2178,6 +2219,19 @@ import static org.springframework.cloud.gateway.support.RouteMetadataUtils.RESPO
                })
                .build();
       }
+----
+
+A per-route `response-timeout` with a negative value will disable the global `response-timeout` value.
+
+----
+      - id: per_route_timeouts
+        uri: https://example.org
+        predicates:
+          - name: Path
+            args:
+              pattern: /delay/{timeout}
+        metadata:
+          response-timeout: -1
 ----
 
 === Fluent Java Routes API

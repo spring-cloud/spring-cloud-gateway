@@ -18,10 +18,12 @@ package org.springframework.cloud.gateway.handler.predicate;
 
 import java.util.function.Predicate;
 
+import org.springframework.cloud.gateway.support.HasConfig;
+import org.springframework.cloud.gateway.support.Visitor;
 import org.springframework.util.Assert;
 import org.springframework.web.server.ServerWebExchange;
 
-public interface GatewayPredicate extends Predicate<ServerWebExchange> {
+public interface GatewayPredicate extends Predicate<ServerWebExchange>, HasConfig {
 
 	@Override
 	default Predicate<ServerWebExchange> and(Predicate<? super ServerWebExchange> other) {
@@ -36,6 +38,10 @@ public interface GatewayPredicate extends Predicate<ServerWebExchange> {
 	@Override
 	default Predicate<ServerWebExchange> or(Predicate<? super ServerWebExchange> other) {
 		return new OrGatewayPredicate(this, wrapIfNeeded(other));
+	}
+
+	default void accept(Visitor visitor) {
+		visitor.visit(this);
 	}
 
 	static GatewayPredicate wrapIfNeeded(Predicate<? super ServerWebExchange> other) {
@@ -65,6 +71,14 @@ public interface GatewayPredicate extends Predicate<ServerWebExchange> {
 		}
 
 		@Override
+		public void accept(Visitor visitor) {
+			if (delegate instanceof GatewayPredicate) {
+				GatewayPredicate gatewayPredicate = (GatewayPredicate) delegate;
+				gatewayPredicate.accept(visitor);
+			}
+		}
+
+		@Override
 		public String toString() {
 			return this.delegate.getClass().getSimpleName();
 		}
@@ -83,6 +97,11 @@ public interface GatewayPredicate extends Predicate<ServerWebExchange> {
 		@Override
 		public boolean test(ServerWebExchange t) {
 			return !this.predicate.test(t);
+		}
+
+		@Override
+		public void accept(Visitor visitor) {
+			predicate.accept(visitor);
 		}
 
 		@Override
@@ -111,6 +130,12 @@ public interface GatewayPredicate extends Predicate<ServerWebExchange> {
 		}
 
 		@Override
+		public void accept(Visitor visitor) {
+			left.accept(visitor);
+			right.accept(visitor);
+		}
+
+		@Override
 		public String toString() {
 			return String.format("(%s && %s)", this.left, this.right);
 		}
@@ -133,6 +158,12 @@ public interface GatewayPredicate extends Predicate<ServerWebExchange> {
 		@Override
 		public boolean test(ServerWebExchange t) {
 			return (this.left.test(t) || this.right.test(t));
+		}
+
+		@Override
+		public void accept(Visitor visitor) {
+			left.accept(visitor);
+			right.accept(visitor);
 		}
 
 		@Override

@@ -20,6 +20,7 @@ import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Function;
@@ -113,7 +114,8 @@ public class ProxyExchange<T> {
 	/**
 	 * Contains headers that are considered case-sensitive by default.
 	 */
-	public static Set<String> DEFAULT_SENSITIVE = new HashSet<>(Arrays.asList("cookie", "authorization"));
+	public static Set<String> DEFAULT_SENSITIVE = Collections
+			.unmodifiableSet(new HashSet<>(Arrays.asList("cookie", "authorization")));
 
 	private HttpMethod httpMethod;
 
@@ -140,8 +142,6 @@ public class ProxyExchange<T> {
 		this.bindingContext = bindingContext;
 		this.responseType = type;
 		this.rest = rest;
-		this.sensitive = new HashSet<>(DEFAULT_SENSITIVE.size());
-		this.sensitive.addAll(DEFAULT_SENSITIVE);
 		this.httpMethod = exchange.getRequest().getMethod();
 	}
 
@@ -206,6 +206,8 @@ public class ProxyExchange<T> {
 		if (this.sensitive == null) {
 			this.sensitive = new HashSet<>();
 		}
+
+		this.sensitive.clear();
 		for (String name : names) {
 			this.sensitive.add(name.toLowerCase());
 		}
@@ -376,7 +378,8 @@ public class ProxyExchange<T> {
 	}
 
 	private Set<String> filterHeaderKeys(HttpHeaders headers) {
-		return headers.keySet().stream().filter(header -> !sensitive.contains(header.toLowerCase()))
+		final Set<String> sensitiveHeaders = this.sensitive != null ? this.sensitive : DEFAULT_SENSITIVE;
+		return headers.keySet().stream().filter(header -> !sensitiveHeaders.contains(header.toLowerCase()))
 				.collect(Collectors.toSet());
 	}
 

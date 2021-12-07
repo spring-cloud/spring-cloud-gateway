@@ -52,6 +52,11 @@ public class BeforeRoutePredicateFactory extends AbstractRoutePredicateFactory<B
 			}
 
 			@Override
+			public Object getConfig() {
+				return config;
+			}
+
+			@Override
 			public String toString() {
 				return String.format("Before: %s", config.getDatetime());
 			}
