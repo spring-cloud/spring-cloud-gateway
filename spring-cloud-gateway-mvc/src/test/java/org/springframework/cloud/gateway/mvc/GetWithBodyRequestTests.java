@@ -31,7 +31,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.boot.web.server.LocalServerPort;
-import org.springframework.cloud.gateway.mvc.GetWithBodyRequestTest.TestApplication.Foo;
+import org.springframework.cloud.gateway.mvc.GetWithBodyRequestTests.TestApplication.Foo;
 import org.springframework.cloud.gateway.mvc.config.ProxyExchangeArgumentResolver;
 import org.springframework.cloud.gateway.mvc.config.ProxyProperties;
 import org.springframework.cloud.gateway.mvc.http.GetWithBodyRequestClientHttpRequestFactory;
@@ -58,8 +58,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ContextConfiguration(classes = GetWithBodyRequestTest.TestApplication.class)
-public class GetWithBodyRequestTest {
+@ContextConfiguration(classes = GetWithBodyRequestTests.TestApplication.class)
+public class GetWithBodyRequestTests {
 
 	@Autowired
 	private TestRestTemplate rest;
