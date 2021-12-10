@@ -25,17 +25,16 @@ import org.springframework.http.client.AbstractClientHttpRequest;
 import org.springframework.http.client.ClientHttpResponse;
 
 abstract class AbstractBufferingClientHttpRequest extends AbstractClientHttpRequest {
+
 	private ByteArrayOutputStream bufferedOutput = new ByteArrayOutputStream(1024);
 
-	protected OutputStream getBodyInternal(final HttpHeaders headers) {
+	protected OutputStream getBodyInternal(HttpHeaders headers) {
 		return bufferedOutput;
 	}
 
-	protected abstract ClientHttpResponse executeInternal(final HttpHeaders headers,
-			final byte[] body) throws IOException;
+	protected abstract ClientHttpResponse executeInternal(HttpHeaders headers, byte[] body) throws IOException;
 
-	protected ClientHttpResponse executeInternal(final HttpHeaders headers)
-			throws IOException {
+	protected ClientHttpResponse executeInternal(HttpHeaders headers) throws IOException {
 		final byte[] bytes = bufferedOutput.toByteArray();
 		if (headers.getContentLength() < 0L) {
 			headers.setContentLength(bytes.length);
@@ -45,4 +44,5 @@ abstract class AbstractBufferingClientHttpRequest extends AbstractClientHttpRequ
 		bufferedOutput = new ByteArrayOutputStream(0);
 		return response;
 	}
+
 }

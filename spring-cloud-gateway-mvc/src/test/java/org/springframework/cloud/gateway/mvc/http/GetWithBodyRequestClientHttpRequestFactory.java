@@ -35,13 +35,14 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.protocol.HttpContext;
+
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpRequestFactory;
 
-public class GetWithBodyRequestClientHttpRequestFactory
-		implements ClientHttpRequestFactory, DisposableBean {
+public class GetWithBodyRequestClientHttpRequestFactory implements ClientHttpRequestFactory, DisposableBean {
+
 	private final HttpClient httpClient;
 
 	public GetWithBodyRequestClientHttpRequestFactory() {
@@ -49,8 +50,7 @@ public class GetWithBodyRequestClientHttpRequestFactory
 	}
 
 	@Override
-	public ClientHttpRequest createRequest(final URI uri, final HttpMethod httpMethod)
-			throws IOException {
+	public ClientHttpRequest createRequest(final URI uri, final HttpMethod httpMethod) throws IOException {
 		final HttpUriRequest httpRequest = createHttpUriRequest(httpMethod, uri);
 		final HttpContext context = HttpClientContext.create();
 
@@ -70,8 +70,7 @@ public class GetWithBodyRequestClientHttpRequestFactory
 		return new HttpComponentsClientHttpRequest(httpClient, httpRequest, context);
 	}
 
-	private HttpUriRequest createHttpUriRequest(final HttpMethod httpMethod,
-			final URI uri) {
+	private HttpUriRequest createHttpUriRequest(final HttpMethod httpMethod, final URI uri) {
 		switch (httpMethod) {
 		case GET:
 			return new GetWithEntity(uri);
@@ -109,6 +108,7 @@ public class GetWithBodyRequestClientHttpRequestFactory
 	}
 
 	public static class GetWithEntity extends HttpEntityEnclosingRequestBase {
+
 		public static final String METHOD_NAME = "GET";
 
 		public GetWithEntity(final URI uri) {
@@ -119,5 +119,7 @@ public class GetWithBodyRequestClientHttpRequestFactory
 		public String getMethod() {
 			return METHOD_NAME;
 		}
+
 	}
+
 }

@@ -16,15 +16,15 @@
 
 package org.springframework.cloud.gateway.mvc;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.io.IOException;
 import java.net.URI;
 import java.util.Collections;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -54,7 +54,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -73,8 +73,7 @@ public class GetWithBodyRequestTest {
 	@Before
 	public void init() throws Exception {
 		testApplication.setHome(new URI("http://localhost:" + port));
-		rest.getRestTemplate()
-				.setRequestFactory(new GetWithBodyRequestClientHttpRequestFactory());
+		rest.getRestTemplate().setRequestFactory(new GetWithBodyRequestClientHttpRequestFactory());
 	}
 
 	@Test
@@ -91,8 +90,8 @@ public class GetWithBodyRequestTest {
 		final Foo bodyRequest = new Foo("hello");
 		final HttpEntity<Foo> entity = new HttpEntity<>(bodyRequest, headers);
 
-		final ResponseEntity<Foo> response = rest.exchange("/proxy/get-with-body-request",
-				HttpMethod.GET, entity, Foo.class);
+		final ResponseEntity<Foo> response = rest.exchange("/proxy/get-with-body-request", HttpMethod.GET, entity,
+				Foo.class);
 
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 		assertThat(response.getBody()).isInstanceOfSatisfying(Foo.class,
@@ -110,8 +109,7 @@ public class GetWithBodyRequestTest {
 		}
 
 		@Bean
-		public ProxyExchangeArgumentResolver proxyExchangeArgumentResolver(
-				final ProxyProperties proxy) {
+		public ProxyExchangeArgumentResolver proxyExchangeArgumentResolver(final ProxyProperties proxy) {
 			ProxyExchangeArgumentResolver resolver = new ProxyExchangeArgumentResolver(
 					generateConfiguredRestTemplate());
 			resolver.setHeaders(proxy.convertHeaders());
@@ -146,16 +144,15 @@ public class GetWithBodyRequestTest {
 			}
 
 			@GetMapping("/proxy/{id}")
-			public ResponseEntity<?> proxyFoos(@PathVariable Integer id,
-					ProxyExchange<?> proxy) throws Exception {
+			public ResponseEntity<?> proxyFoos(@PathVariable Integer id, ProxyExchange<?> proxy) throws Exception {
 				return proxy.uri(home.toString() + "/foos/" + id).get();
 			}
 
 			@GetMapping("/proxy/get-with-body-request")
-			public ResponseEntity<?> proxyFooWithBody(@RequestBody Foo foo,
-					ProxyExchange<?> proxy) throws Exception {
+			public ResponseEntity<?> proxyFooWithBody(@RequestBody Foo foo, ProxyExchange<?> proxy) throws Exception {
 				return proxy.uri(home.toString() + "/foo/get-with-body-request").get();
 			}
+
 		}
 
 		@RestController
@@ -171,10 +168,12 @@ public class GetWithBodyRequestTest {
 			public Foo getWithBody(@RequestBody Foo foo) {
 				return new Foo(foo.getName() + " world");
 			}
+
 		}
 
 		@JsonIgnoreProperties(ignoreUnknown = true)
 		static class Foo {
+
 			private String name;
 
 			Foo() {
@@ -191,13 +190,17 @@ public class GetWithBodyRequestTest {
 			public void setName(final String name) {
 				this.name = name;
 			}
+
 		}
 
-		private static class NoOpResponseErrorHandler
-				extends DefaultResponseErrorHandler {
+		private static class NoOpResponseErrorHandler extends DefaultResponseErrorHandler {
+
 			@Override
 			public void handleError(ClientHttpResponse response) throws IOException {
 			}
+
 		}
+
 	}
+
 }

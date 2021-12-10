@@ -26,21 +26,27 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.protocol.HttpContext;
+
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.util.StringUtils;
 
 final class HttpComponentsClientHttpRequest extends AbstractBufferingClientHttpRequest {
+
 	private static final String COOKIE_HEADER_NAME = "Cookie";
+
 	private static final String CONTENT_LENGTH_HEADER_NAME = "Content-Length";
+
 	private static final String TRANSFER_ENCODING_HEADER_NAME = "Transfer-Encoding";
 
 	private final HttpClient httpClient;
+
 	private final HttpUriRequest httpRequest;
+
 	private final HttpContext httpContext;
 
-	HttpComponentsClientHttpRequest(final HttpClient httpClient,
-			final HttpUriRequest httpRequest, final HttpContext httpContext) {
+	HttpComponentsClientHttpRequest(final HttpClient httpClient, final HttpUriRequest httpRequest,
+			final HttpContext httpContext) {
 		this.httpClient = httpClient;
 		this.httpRequest = httpRequest;
 		this.httpContext = httpContext;
@@ -57,8 +63,8 @@ final class HttpComponentsClientHttpRequest extends AbstractBufferingClientHttpR
 	}
 
 	@Override
-	protected ClientHttpResponse executeInternal(final HttpHeaders headers,
-			final byte[] bufferedOutput) throws IOException {
+	protected ClientHttpResponse executeInternal(final HttpHeaders headers, final byte[] bufferedOutput)
+			throws IOException {
 		addHeaders(headers);
 		attachBodyRequest(bufferedOutput);
 
@@ -69,8 +75,7 @@ final class HttpComponentsClientHttpRequest extends AbstractBufferingClientHttpR
 	private void addHeaders(final HttpHeaders headers) {
 		headers.forEach((headerName, headerValues) -> {
 			if (COOKIE_HEADER_NAME.equalsIgnoreCase(headerName)) {
-				String headerValue = StringUtils.collectionToDelimitedString(headerValues,
-						": ");
+				String headerValue = StringUtils.collectionToDelimitedString(headerValues, ": ");
 				httpRequest.addHeader(headerName, headerValue);
 			}
 			else if (!CONTENT_LENGTH_HEADER_NAME.equalsIgnoreCase(headerName)
@@ -86,8 +91,8 @@ final class HttpComponentsClientHttpRequest extends AbstractBufferingClientHttpR
 
 	private void attachBodyRequest(final byte[] bufferedOutput) {
 		if (httpRequest instanceof HttpEntityEnclosingRequest) {
-			((HttpEntityEnclosingRequest) httpRequest)
-					.setEntity(new ByteArrayEntity(bufferedOutput));
+			((HttpEntityEnclosingRequest) httpRequest).setEntity(new ByteArrayEntity(bufferedOutput));
 		}
 	}
+
 }

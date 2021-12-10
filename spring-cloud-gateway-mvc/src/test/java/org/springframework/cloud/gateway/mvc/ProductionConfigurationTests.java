@@ -16,17 +16,17 @@
 
 package org.springframework.cloud.gateway.mvc;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -56,7 +56,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(properties = { "spring.cloud.gateway.proxy.auto-forward=Baz" },
@@ -538,6 +538,9 @@ public class ProductionConfigurationTests {
 			public void setName(String name) {
 				this.name = name;
 			}
+
 		}
+
 	}
+
 }
