@@ -76,7 +76,7 @@ public class ModifyRequestBodyGatewayFilterFactory
 				HttpHeaders headers = new HttpHeaders();
 				headers.putAll(exchange.getRequest().getHeaders());
 
-				// the new content type will be computed by bodyInserter
+				// the new content length will be computed by bodyInserter
 				// and then set in the request decorator
 				headers.remove(HttpHeaders.CONTENT_LENGTH);
 
