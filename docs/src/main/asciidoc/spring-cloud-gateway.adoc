@@ -15,7 +15,7 @@ If you include the starter, but you do not want the gateway to be enabled, set `
 
 IMPORTANT: Spring Cloud Gateway is built on https://spring.io/projects/spring-boot#learn[Spring Boot 2.x], https://docs.spring.io/spring/docs/current/spring-framework-reference/web-reactive.html[Spring WebFlux], and https://projectreactor.io/docs[Project Reactor].
 As a consequence, many of the familiar synchronous libraries (Spring Data and Spring Security, for example) and patterns you know may not apply when you use Spring Cloud Gateway.
-If you are unfamiliar with these projects, we suggest you begin by reading their documentation to familiarize yourself with some of the new concepts before working with Spring Cloud Gateway.
+If you are unfamiliar with these projects, we suggest you begin by reading their documentation to familiarize yourself with some new concepts before working with Spring Cloud Gateway.
 
 IMPORTANT: Spring Cloud Gateway requires the Netty runtime provided by Spring Boot and Spring Webflux.
 It does not work in a traditional Servlet Container or when built as a WAR.
@@ -47,7 +47,7 @@ NOTE: URIs defined in routes without a port get default port values of 80 and 44
 
 There are two ways to configure predicates and filters: shortcuts and fully expanded arguments. Most examples below use the shortcut way.
 
-The name and argument names will be listed as `code` in the first sentance or two of the each section. The arguments are typically listed in the order that would be needed for the shortcut configuration.
+The name and argument names will be listed as `code` in the first sentence or two of each section. The arguments are typically listed in the order that would be needed for the shortcut configuration.
 
 === Shortcut Configuration
 
@@ -730,8 +730,8 @@ You can find more information on doing so in  the <<fallback-headers, FallbackHe
 
 In some cases you might want to trip a circuit breaker based on the status code
 returned from the route it wraps.  The circuit breaker config object takes a list of
-status codes that if returned will cause the the circuit breaker to be tripped.  When setting the
-status codes you want to trip the circuit breaker you can either use a integer with the status code
+status codes that if returned will cause the circuit breaker to be tripped.  When setting the
+status codes you want to trip the circuit breaker you can either use an integer with the status code
 value or the String representation of the `HttpStatus` enumeration.
 
 .application.yml
@@ -1201,7 +1201,7 @@ You must use `$\` to mean `$` because of the YAML specification.
 === The `SaveSession` `GatewayFilter` Factory
 
 The `SaveSession` `GatewayFilter` factory forces a `WebSession::save` operation _before_ forwarding the call downstream.
-This is of particular use when using something like https://projects.spring.io/spring-session/[Spring Session] with a lazy data store and you need to ensure the session state has been saved before making the forwarded call.
+This is of particular use when using something like https://projects.spring.io/spring-session/[Spring Session] with a lazy data store, and you need to ensure the session state has been saved before making the forwarded call.
 The following example configures a `SaveSession` `GatewayFilter`:
 
 .application.yml
@@ -1310,7 +1310,7 @@ spring:
 ====
 
 This `GatewayFilter` replaces (rather than adding) all headers with the given name.
-So, if the downstream server responded with a `X-Request-Red:1234`, this would be replaced with `X-Request-Red:Blue`, which is what the downstream service would receive.
+So, if the downstream server responded with `X-Request-Red:1234`, it will be replaced with `X-Request-Red:Blue`, which is what the downstream service would receive.
 
 `SetRequestHeader` is aware of URI variables used to match a path or host.
 URI variables may be used in the value and are expanded at runtime.
@@ -1354,7 +1354,7 @@ spring:
 ====
 
 This GatewayFilter replaces (rather than adding) all headers with the given name.
-So, if the downstream server responded with a `X-Response-Red:1234`, this is replaced with `X-Response-Red:Blue`, which is what the gateway client would receive.
+So, if the downstream server responded with `X-Response-Red:1234`, it will be replaced with `X-Response-Red:Blue`, which is what the gateway client would receive.
 
 `SetResponseHeader` is aware of URI variables used to match a path or host.
 URI variables may be used in the value and will be expanded at runtime.
@@ -1457,7 +1457,7 @@ The `Retry` `GatewayFilter` factory supports the following parameters:
 * `backoff`: The configured exponential backoff for the retries.
 Retries are performed after a backoff interval of `firstBackoff * (factor ^ n)`, where `n` is the iteration.
 If `maxBackoff` is configured, the maximum backoff applied is limited to `maxBackoff`.
-If `basedOnPreviousValue` is true, the backoff is calculated byusing `prevBackoff * factor`.
+If `basedOnPreviousValue` is true, the backoff is calculated by using `prevBackoff * factor`.
 
 The following defaults are configured for `Retry` filter, if enabled:
 
@@ -1499,7 +1499,7 @@ NOTE: When using the retry filter with a `forward:` prefixed URL, the target end
 For example, if the target endpoint is an annotated controller, the target controller method should not return `ResponseEntity` with an error status code.
 Instead, it should throw an `Exception` or signal an error (for example, through a `Mono.error(ex)` return value), which the retry filter can be configured to handle by retrying.
 
-WARNING: When using the retry filter with any HTTP method with a body, the body will be cached and the gateway will become memory constrained. The body is cached in a request attribute defined by `ServerWebExchangeUtils.CACHED_REQUEST_BODY_ATTR`. The type of the object is a `org.springframework.core.io.buffer.DataBuffer`.
+WARNING: When using the retry filter with any HTTP method with a body, the body will be cached and the gateway will become memory constrained. The body is cached in a request attribute defined by `ServerWebExchangeUtils.CACHED_REQUEST_BODY_ATTR`. The type of the object is `org.springframework.core.io.buffer.DataBuffer`.
 
 A simplified "shortcut" notation can be added with a single `status` and `method`.
 
@@ -1574,7 +1574,7 @@ NOTE: The default request size is set to five MB if not provided as a filter arg
 
 === The `SetRequestHostHeader` `GatewayFilter` Factory
 
-There are certain situation when the host header may need to be overridden. In this situation, the `SetRequestHostHeader` `GatewayFilter` factory can replace the existing host header with a specified vaue.
+There are certain situation when the host header may need to be overridden. In this situation, the `SetRequestHostHeader` `GatewayFilter` factory can replace the existing host header with a specified value.
 The filter takes a `host` parameter.
 The following listing configures a `SetRequestHostHeader` `GatewayFilter`:
 
@@ -1601,7 +1601,7 @@ The `SetRequestHostHeader` `GatewayFilter` factory replaces the value of the hos
 
 === Modify a Request Body `GatewayFilter` Factory
 
-You can use the `ModifyRequestBody` filter  filter to modify the request body before it is sent downstream by the gateway.
+You can use the `ModifyRequestBody` filter to modify the request body before it is sent downstream by the gateway.
 
 NOTE: This filter can be configured only by using the Java DSL.
 
@@ -1639,7 +1639,7 @@ static class Hello {
 }
 ----
 
-NOTE:  if the request has no body, the `RewriteFilter` will be passed `null`. `Mono.empty()` should be returned to assign a missing body in the request.
+NOTE:  if the request is without body, `RewriteFilter` will be passed `null`. `Mono.empty()` should be returned to assign a missing body in the request.
 
 ====
 
@@ -1665,7 +1665,7 @@ public RouteLocator routes(RouteLocatorBuilder builder) {
 }
 ----
 
-NOTE:  if the response has no body, the `RewriteFilter` will be passed `null`. `Mono.empty()` should be returned to assign a missing body in the response.
+NOTE:  if the response is without body, `RewriteFilter` will be passed `null`. `Mono.empty()` should be returned to assign a missing body in the response.
 ====
 
 === Token Relay `GatewayFilter` Factory
@@ -1676,7 +1676,7 @@ consumer can be a pure Client (like an SSO application) or a Resource
 Server.
 
 Spring Cloud Gateway can forward OAuth2 access tokens downstream to the services
-it is proxying. To add this functionlity to gateway you need to add the
+it is proxying. To add this functionality to gateway you need to add the
 `TokenRelayGatewayFilterFactory` like this:
 
 .App.java
@@ -1734,7 +1734,7 @@ if you need a more robust solution.
 
 === The `CacheRequestBody` `GatewayFilter` Factory
 There are certain situation need to read body.Since the request body stream can only be read once, we need to cache the request body.
-You can use the `CacheRequestBody` filter to cache request body before it send to the downstream and get body from exchagne attribute.
+You can use the `CacheRequestBody` filter to cache request body before it send to the downstream and get body from exchange attribute.
 
 
 The following listing shows how to cache the request body `GatewayFilter`:
@@ -1964,7 +1964,7 @@ or check if an exchange has already been routed.
 
 == HttpHeadersFilters
 
-HttpHeadersFilters are applied to requests before sending them downstream, such as in the `NettyRoutingFilter`.
+`HttpHeadersFilters` are applied to the requests before sending them downstream, such as in the `NettyRoutingFilter`.
 
 === Forwarded Headers Filter
 The `Forwarded` Headers Filter creates a `Forwarded` header to send to the downstream service. It adds the `Host` header, scheme and port of the current request to any existing `Forwarded` header.
@@ -1985,7 +1985,7 @@ The `RemoveHopByHop` Headers Filter removes headers from forwarded requests. The
 To change this, set the `spring.cloud.gateway.filter.remove-hop-by-hop.headers` property to the list of header names to remove.
 
 === XForwarded Headers Filter
-The `XForwarded` Headers Filter creates various a `X-Forwarded-*` headers to send to the downstream service. It users the `Host` header, scheme, port and path of the current request to create the various headers.
+The `XForwarded` Headers Filter creates various `X-Forwarded-*` headers to send to the downstream service. It uses the `Host` header, scheme, port and path of the current request to create the various headers.
 
 Creating of individual headers can be controlled by the following boolean properties (defaults to true):
 
@@ -2446,7 +2446,7 @@ To retrieve the <<global-filters,global filters>> applied to all routes, make a 
 ====
 
 The response contains the details of the global filters that are in place.
-For each global filter, there is a string representation of the filter object (for example, `org.springframework.cloud.gateway.filter.ReactiveLoadBalancerClientFilter@77856cc5`) and the corresponding <<gateway-combined-global-filter-and-gatewayfilter-ordering,order>> in the filter chain.}
+For each global filter, there is a string representation of the filter object (for example, `org.springframework.cloud.gateway.filter.ReactiveLoadBalancerClientFilter@77856cc5`) and the corresponding <<gateway-combined-global-filter-and-gatewayfilter-ordering,order>> in the filter chain.
 
 [[gateway-route-filters]]
 ==== Route Filters
@@ -2582,7 +2582,7 @@ To delete a route, make a `DELETE` request to `/gateway/routes/{id_route_to_dele
 
 === Recap: The List of All endpoints
 
-The folloiwng table below summarizes the Spring Cloud Gateway actuator endpoints (note that each endpoint has `/actuator/gateway` as the base-path):
+The following table below summarizes the Spring Cloud Gateway actuator endpoints (note that each endpoint has `/actuator/gateway` as the base-path):
 
 [cols="2,2,5"]
 |===
@@ -2769,7 +2769,7 @@ name to be compliant.
 To write a custom global filter, you must implement `GlobalFilter` interface as a bean.
 This applies the filter to all requests.
 
-The following examples show how to set up global pre and post filters, respectively:
+The following examples show how to set up global pre- and post-filters, respectively:
 
 ====
 [source,java]
