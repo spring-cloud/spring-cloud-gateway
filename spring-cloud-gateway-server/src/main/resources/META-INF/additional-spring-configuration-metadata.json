@@ -359,6 +359,12 @@
       "type": "java.lang.Boolean",
       "description": "If global CORS config should be added to the URL handler.",
       "defaultValue": "false"
+    },
+    {
+      "name": "spring.cloud.gateway.handler-mapping.order",
+      "type": "java.lang.Integer",
+      "description": "The order of RoutePredicateHandlerMapping.",
+      "defaultValue": "1"
     }
   ]
 }
