@@ -40,6 +40,7 @@ import org.springframework.cloud.gateway.support.ConfigurationService;
 import org.springframework.cloud.gateway.support.HasRouteId;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.server.ServerWebExchange;
 
 /**
@@ -172,8 +173,9 @@ public class RouteDefinitionRouteLocator implements RouteLocator {
 					new ArrayList<>(this.gatewayProperties.getDefaultFilters())));
 		}
 
-		if (!routeDefinition.getFilters().isEmpty()) {
-			filters.addAll(loadGatewayFilters(routeDefinition.getId(), new ArrayList<>(routeDefinition.getFilters())));
+		final List<FilterDefinition> definitionFilters = routeDefinition.getFilters();
+		if (!CollectionUtils.isEmpty(definitionFilters)) {
+			filters.addAll(loadGatewayFilters(routeDefinition.getId(), definitionFilters));
 		}
 
 		AnnotationAwareOrderComparator.sort(filters);
