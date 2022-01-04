@@ -31,8 +31,8 @@ import java.util.Collection;
 import java.util.List;
 
 import javax.net.ssl.KeyManagerFactory;
-import javax.validation.constraints.Max;
 
+import jakarta.validation.constraints.Max;
 import reactor.netty.resources.ConnectionProvider;
 import reactor.netty.tcp.SslProvider;
 import reactor.netty.transport.ProxyProvider;

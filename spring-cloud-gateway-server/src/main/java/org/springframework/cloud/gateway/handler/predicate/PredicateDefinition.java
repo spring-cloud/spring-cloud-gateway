@@ -20,8 +20,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 
-import javax.validation.ValidationException;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.ValidationException;
+import jakarta.validation.constraints.NotNull;
 
 import org.springframework.cloud.gateway.support.NameUtils;
 import org.springframework.validation.annotation.Validated;

@@ -28,6 +28,7 @@ import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.protocol.HttpContext;
 
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.util.StringUtils;
 
@@ -50,6 +51,11 @@ final class HttpComponentsClientHttpRequest extends AbstractBufferingClientHttpR
 		this.httpClient = httpClient;
 		this.httpRequest = httpRequest;
 		this.httpContext = httpContext;
+	}
+
+	@Override
+	public HttpMethod getMethod() {
+		return HttpMethod.valueOf(httpRequest.getMethod());
 	}
 
 	@Override

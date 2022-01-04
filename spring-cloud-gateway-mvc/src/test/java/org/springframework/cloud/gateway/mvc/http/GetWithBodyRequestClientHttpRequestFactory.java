@@ -71,26 +71,32 @@ public class GetWithBodyRequestClientHttpRequestFactory implements ClientHttpReq
 	}
 
 	private HttpUriRequest createHttpUriRequest(final HttpMethod httpMethod, final URI uri) {
-		switch (httpMethod) {
-		case GET:
+		if (httpMethod.equals(HttpMethod.GET)) {
 			return new GetWithEntity(uri);
-		case HEAD:
-			return new HttpHead(uri);
-		case POST:
-			return new HttpPost(uri);
-		case PUT:
-			return new HttpPut(uri);
-		case PATCH:
-			return new HttpPatch(uri);
-		case DELETE:
-			return new HttpDelete(uri);
-		case OPTIONS:
-			return new HttpOptions(uri);
-		case TRACE:
-			return new HttpTrace(uri);
-		default:
-			throw new IllegalArgumentException("Invalid HTTP method: " + httpMethod);
 		}
+		else if (httpMethod.equals(HttpMethod.HEAD)) {
+			return new HttpHead(uri);
+		}
+		else if (httpMethod.equals(HttpMethod.OPTIONS)) {
+			return new HttpOptions(uri);
+		}
+		else if (httpMethod.equals(HttpMethod.POST)) {
+			return new HttpPost(uri);
+		}
+		else if (httpMethod.equals(HttpMethod.DELETE)) {
+			return new HttpDelete(uri);
+		}
+		else if (httpMethod.equals(HttpMethod.PUT)) {
+			return new HttpPut(uri);
+		}
+		else if (httpMethod.equals(HttpMethod.PATCH)) {
+			return new HttpPatch(uri);
+		}
+		else if (httpMethod.equals(HttpMethod.TRACE)) {
+			return new HttpTrace(uri);
+		}
+
+		throw new IllegalArgumentException("Invalid HTTP method: " + httpMethod);
 	}
 
 	private RequestConfig createRequestConfig(final HttpClient client) {

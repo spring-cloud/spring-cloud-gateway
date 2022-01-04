@@ -16,8 +16,8 @@
 
 package org.springframework.cloud.gateway.support;
 
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotEmpty;
 
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.validation.annotation.Validated;

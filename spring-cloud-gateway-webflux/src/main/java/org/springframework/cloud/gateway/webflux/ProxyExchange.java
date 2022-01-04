@@ -305,45 +305,55 @@ public class ProxyExchange<T> {
 	}
 
 	public Mono<ResponseEntity<T>> forward() {
-		switch (httpMethod) {
-		case GET:
+		if (httpMethod.equals(HttpMethod.GET)) {
 			return get();
-		case HEAD:
-			return head();
-		case OPTIONS:
-			return options();
-		case POST:
-			return post();
-		case DELETE:
-			return delete();
-		case PUT:
-			return put();
-		case PATCH:
-			return patch();
-		default:
-			return Mono.empty();
 		}
+		else if (httpMethod.equals(HttpMethod.HEAD)) {
+			return head();
+		}
+		else if (httpMethod.equals(HttpMethod.OPTIONS)) {
+			return options();
+		}
+		else if (httpMethod.equals(HttpMethod.POST)) {
+			return post();
+		}
+		else if (httpMethod.equals(HttpMethod.DELETE)) {
+			return delete();
+		}
+		else if (httpMethod.equals(HttpMethod.PUT)) {
+			return put();
+		}
+		else if (httpMethod.equals(HttpMethod.PATCH)) {
+			return patch();
+		}
+
+		return Mono.empty();
 	}
 
 	public <S> Mono<ResponseEntity<S>> forward(Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
-		switch (httpMethod) {
-		case GET:
+		if (httpMethod.equals(HttpMethod.GET)) {
 			return get(converter);
-		case HEAD:
-			return head(converter);
-		case OPTIONS:
-			return options(converter);
-		case POST:
-			return post(converter);
-		case DELETE:
-			return delete(converter);
-		case PUT:
-			return put(converter);
-		case PATCH:
-			return patch(converter);
-		default:
-			return Mono.empty();
 		}
+		else if (httpMethod.equals(HttpMethod.HEAD)) {
+			return head(converter);
+		}
+		else if (httpMethod.equals(HttpMethod.OPTIONS)) {
+			return options(converter);
+		}
+		else if (httpMethod.equals(HttpMethod.POST)) {
+			return post(converter);
+		}
+		else if (httpMethod.equals(HttpMethod.DELETE)) {
+			return delete(converter);
+		}
+		else if (httpMethod.equals(HttpMethod.PUT)) {
+			return put(converter);
+		}
+		else if (httpMethod.equals(HttpMethod.PATCH)) {
+			return patch(converter);
+		}
+
+		return Mono.empty();
 	}
 
 	private Mono<ResponseEntity<T>> exchange(RequestEntity<?> requestEntity) {
