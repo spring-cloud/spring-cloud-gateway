@@ -29,4 +29,9 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-maven-
     - name: Build with Maven
-      run: ./mvnw clean install -B -U -Pspring -DskipTests
+      run: ./mvnw clean install -B -U -Pspring
+  - name: Publish Test Report
+      uses: mikepenz/action-junit-report@v2
+      if: always() # always run even if the previous step fails
+      with:
+        report_paths: '**/surefire-reports/TEST-*.xml'
