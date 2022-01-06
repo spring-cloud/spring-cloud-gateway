@@ -27,10 +27,10 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -88,6 +88,7 @@ import static org.springframework.cloud.gateway.filter.WebsocketRoutingFilter.SE
  *
  * @author Rossen Stoyanchev
  */
+@DisabledIfEnvironmentVariable(named = "GITHUB_ACTIONS", matches = "true")
 public class WebSocketIntegrationTests {
 
 	private static final Log logger = LogFactory.getLog(WebSocketIntegrationTests.class);
@@ -111,7 +112,7 @@ public class WebSocketIntegrationTests {
 		// return session.send(Mono.delay(Duration.ofMillis(100)).thenMany(output));
 	}
 
-	@Before
+	@BeforeEach
 	public void setup() throws Exception {
 		this.client = new ReactorNettyWebSocketClient();
 
@@ -134,7 +135,7 @@ public class WebSocketIntegrationTests {
 		this.gatewayPort = Integer.valueOf(env.getProperty("local.server.port"));
 	}
 
-	@After
+	@AfterEach
 	public void stop() throws Exception {
 		if (this.client instanceof Lifecycle) {
 			((Lifecycle) this.client).stop();
@@ -200,7 +201,6 @@ public class WebSocketIntegrationTests {
 	}
 
 	@Test
-	@Ignore
 	public void subProtocol() throws Exception {
 		String protocol = "echo-v1";
 		String protocol2 = "echo-v2";
@@ -230,7 +230,6 @@ public class WebSocketIntegrationTests {
 	}
 
 	@Test
-	@Ignore
 	public void customHeader() throws Exception {
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("my-header", "my-value");
