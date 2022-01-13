@@ -19,11 +19,14 @@ package org.springframework.cloud.gateway.filter.factory;
 import java.net.URI;
 import java.util.List;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
+import org.springframework.core.io.buffer.PooledDataBuffer;
 import org.springframework.http.codec.HttpMessageReader;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.util.Assert;
@@ -39,6 +42,8 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.C
  */
 public class CacheRequestBodyGatewayFilterFactory
 		extends AbstractGatewayFilterFactory<CacheRequestBodyGatewayFilterFactory.Config> {
+
+	private static final Log log = LogFactory.getLog(CacheRequestBodyGatewayFilterFactory.class);
 
 	private final List<HttpMessageReader<?>> messageReaders;
 
@@ -70,7 +75,17 @@ public class CacheRequestBodyGatewayFilterFactory
 					final ServerRequest serverRequest = ServerRequest
 							.create(exchange.mutate().request(serverHttpRequest).build(), messageReaders);
 					return serverRequest.bodyToMono((config.getBodyClass())).doOnNext(objectValue -> {
-						exchange.getAttributes().put(ServerWebExchangeUtils.CACHED_REQUEST_BODY_ATTR, objectValue);
+						Object oldAttr = exchange.getAttributes()
+								.put(ServerWebExchangeUtils.CACHED_REQUEST_BODY_ATTR, objectValue);
+						if (oldAttr != null && oldAttr instanceof PooledDataBuffer) {
+							PooledDataBuffer dataBuffer = (PooledDataBuffer) oldAttr;
+							if (dataBuffer.isAllocated()) {
+								if (log.isTraceEnabled()) {
+									log.trace("releasing cached body in exchange attribute");
+								}
+								dataBuffer.release();
+							}
+						}
 					}).then(Mono.defer(() -> {
 						ServerHttpRequest cachedRequest = exchange
 								.getAttribute(CACHED_SERVER_HTTP_REQUEST_DECORATOR_ATTR);
