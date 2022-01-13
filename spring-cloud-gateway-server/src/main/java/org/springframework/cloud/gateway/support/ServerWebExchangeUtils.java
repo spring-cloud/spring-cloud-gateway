@@ -155,11 +155,18 @@ public final class ServerWebExchangeUtils {
 	public static final String CACHED_SERVER_HTTP_REQUEST_DECORATOR_ATTR = "cachedServerHttpRequestDecorator";
 
 	/**
-	 * Cached request body key. Used when
+	 * Cached request body dataBuffer key. Used when
 	 * {@link #cacheRequestBodyAndRequest(ServerWebExchange, Function)} or
 	 * {@link #cacheRequestBody(ServerWebExchange, Function)} are called.
 	 */
 	public static final String CACHED_REQUEST_BODY_ATTR = "cachedRequestBody";
+
+	/**
+	 * Cached request body object key. Used when
+	 * {@link #cacheRequestBodyAndRequest(ServerWebExchange, Function)} or
+	 * {@link #cacheRequestBody(ServerWebExchange, Function)} are called.
+	 */
+	public static final String CACHE_REQUEST_BODY_OBJECT_ATTR = "cachedRequestBodyObject";
 
 	/**
 	 * Gateway LoadBalancer {@link Response} attribute name.
