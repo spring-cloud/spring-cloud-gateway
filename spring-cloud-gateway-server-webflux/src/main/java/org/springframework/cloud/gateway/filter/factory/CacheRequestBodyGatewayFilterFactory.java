@@ -26,8 +26,6 @@ import reactor.core.publisher.Mono;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
-import org.springframework.core.io.buffer.DataBuffer;
-import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.codec.HttpMessageReader;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.reactive.function.server.HandlerStrategies;
@@ -42,8 +40,6 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.C
  */
 public class CacheRequestBodyGatewayFilterFactory
 		extends AbstractGatewayFilterFactory<CacheRequestBodyGatewayFilterFactory.Config> {
-
-	static final String CACHED_ORIGINAL_REQUEST_BODY_BACKUP_ATTR = "cachedOriginalRequestBodyBackup";
 
 	private final List<HttpMessageReader<?>> messageReaders;
 
@@ -71,7 +67,7 @@ public class CacheRequestBodyGatewayFilterFactory
 					return chain.filter(exchange);
 				}
 
-				Object cachedBody = exchange.getAttribute(ServerWebExchangeUtils.CACHED_REQUEST_BODY_ATTR);
+				Object cachedBody = exchange.getAttribute(ServerWebExchangeUtils.CACHE_REQUEST_BODY_OBJECT_ATTR);
 				if (cachedBody != null) {
 					return chain.filter(exchange);
 				}
@@ -80,26 +76,15 @@ public class CacheRequestBodyGatewayFilterFactory
 					final ServerRequest serverRequest = ServerRequest
 						.create(exchange.mutate().request(serverHttpRequest).build(), messageReaders);
 					Class<?> bodyClass = Objects.requireNonNull(config.getBodyClass(), "bodyClass must not be null");
-					return serverRequest.bodyToMono(bodyClass).doOnNext(objectValue -> {
-						Object previousCachedBody = exchange.getAttributes()
-							.put(ServerWebExchangeUtils.CACHED_REQUEST_BODY_ATTR, objectValue);
-						if (previousCachedBody != null) {
-							// store previous cached body
-							exchange.getAttributes().put(CACHED_ORIGINAL_REQUEST_BODY_BACKUP_ATTR, previousCachedBody);
-						}
-					}).then(Mono.defer(() -> {
+					return serverRequest.bodyToMono(bodyClass)
+						.doOnNext(objectValue -> exchange.getAttributes()
+							.put(ServerWebExchangeUtils.CACHE_REQUEST_BODY_OBJECT_ATTR, objectValue))
+						.then(Mono.defer(() -> {
 						ServerHttpRequest cachedRequest = exchange
 							.getAttribute(CACHED_SERVER_HTTP_REQUEST_DECORATOR_ATTR);
 						Objects.requireNonNull(cachedRequest, "cache request shouldn't be null");
 						exchange.getAttributes().remove(CACHED_SERVER_HTTP_REQUEST_DECORATOR_ATTR);
-						return chain.filter(exchange.mutate().request(cachedRequest).build()).doFinally(s -> {
-							//
-							Object backupCachedBody = exchange.getAttributes()
-								.get(CACHED_ORIGINAL_REQUEST_BODY_BACKUP_ATTR);
-							if (backupCachedBody instanceof DataBuffer dataBuffer) {
-								DataBufferUtils.release(dataBuffer);
-							}
-						});
+						return chain.filter(exchange.mutate().request(cachedRequest).build());
 					}));
 				});
 			}
