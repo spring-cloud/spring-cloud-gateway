@@ -15,7 +15,7 @@ This project provides an API Gateway built on top of the Spring Ecosystem, inclu
 
 == Features
 
-* Java 8
+* Java 17
 * Spring Framework 5
 * Spring Boot 2
 * Dynamic routing
@@ -28,7 +28,7 @@ This project provides an API Gateway built on top of the Spring Ecosystem, inclu
 
 == Building
 
-:jdkversion: 1.8
+:jdkversion: 17
 
 === Basic Compile and Test
 
