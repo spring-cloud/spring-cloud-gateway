@@ -5,9 +5,9 @@ name: Build
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, 3.1.x ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, 3.1.x ]
 
 jobs:
   build:
@@ -15,23 +15,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up JDK
-      uses: actions/setup-java@v2
-      with:
-        distribution: 'temurin'
-        java-version: '17'
-    - name: Cache local Maven repository
-      uses: actions/cache@v2
-      with:
-        path: ~/.m2/repository
-        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-        restore-keys: |
-          ${{ runner.os }}-maven-
-    - name: Build with Maven
-      run: ./mvnw clean install -B -U -Pspring -Dmaven.test.redirectTestOutputToFile=true
-    - name: Publish Test Report
-      uses: mikepenz/action-junit-report@v2
-      if: always() # always run even if the previous step fails
-      with:
-        report_paths: '**/surefire-reports/TEST-*.xml'
+      - uses: actions/checkout@v2
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      - name: Cache local Maven repository
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+      - name: Build with Maven
+        run: ./mvnw clean install -B -U -Pspring -Dmaven.test.redirectTestOutputToFile=true
+      - name: Publish Test Report
+        uses: mikepenz/action-junit-report@v2
+        if: always() # always run even if the previous step fails
+        with:
+          report_paths: '**/surefire-reports/TEST-*.xml'
