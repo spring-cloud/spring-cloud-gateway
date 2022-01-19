@@ -66,7 +66,6 @@ public class ReadBodyRoutePredicateFactory extends AbstractRoutePredicateFactory
 				Class inClass = config.getInClass();
 
 				Object cachedBody = exchange.getAttribute(CACHE_REQUEST_BODY_OBJECT_KEY);
-				Mono<?> modifiedBody;
 				// We can only read the body from the request once, once that happens if
 				// we try to read the body again an exception will be thrown. The below
 				// if/else caches the body object as a request attribute in the
