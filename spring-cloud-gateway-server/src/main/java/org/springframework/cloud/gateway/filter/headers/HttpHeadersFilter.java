@@ -58,7 +58,15 @@ public interface HttpHeadersFilter {
 
 	enum Type {
 
-		REQUEST, RESPONSE
+		/**
+		 * Filter for request headers.
+		 */
+		REQUEST,
+
+		/**
+		 * Filter for response headers.
+		 */
+		RESPONSE
 
 	}
 
