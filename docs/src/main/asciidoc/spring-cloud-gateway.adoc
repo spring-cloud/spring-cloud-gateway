@@ -1538,7 +1538,7 @@ spring:
 
 When the request size is greater than the permissible limit, the `RequestSize` `GatewayFilter` factory can restrict a request from reaching the downstream service.
 The filter takes a `maxSize` parameter.
-The `maxSize is a `DataSize` type, so values can be defined as a number followed by an optional `DataUnit` suffix such as 'KB' or 'MB'. The default is 'B' for bytes.
+The `maxSize` is a `DataSize` type, so values can be defined as a number followed by an optional `DataUnit` suffix such as 'KB' or 'MB'. The default is 'B' for bytes.
 It is the permissible size limit of the request defined in bytes.
 The following listing configures a `RequestSize` `GatewayFilter`:
 
@@ -1566,7 +1566,7 @@ The `RequestSize` `GatewayFilter` factory sets the response status as `413 Paylo
 ====
 [source]
 ----
-errorMessage` : `Request size is larger than permissible limit. Request size is 6.0 MB where permissible limit is 5.0 MB
+errorMessage : Request size is larger than permissible limit. Request size is 6.0 MB where permissible limit is 5.0 MB
 ----
 ====
 
@@ -1898,7 +1898,7 @@ It runs after all other filters have completed and writes the proxy response bac
 
 If there is a `Route` object in the `ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR` exchange attribute, the `RouteToRequestUrlFilter` runs.
 It creates a new URI, based off of the request URI but updated with the URI attribute of the `Route` object.
-The new URI is placed in the `ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR` exchange attribute`.
+The new URI is placed in the `ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR` exchange attribute.
 
 If the URI has a scheme prefix, such as `lb:ws://serviceid`, the `lb` scheme is stripped from the URI and placed in the `ServerWebExchangeUtils.GATEWAY_SCHEME_PREFIX_ATTR` for use later in the filter chain.
 
