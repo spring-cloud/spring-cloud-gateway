@@ -7,9 +7,9 @@ include::intro.adoc[]
 
 == Features
 
-* Java 8
-* Spring Framework 5
-* Spring Boot 2
+* Java 17
+* Spring Framework 6
+* Spring Boot 3
 * Dynamic routing
 * Route matching built into Spring Handler Mapping
 * Route matching on HTTP Request (Path, Method, Header, Host, etc...)
