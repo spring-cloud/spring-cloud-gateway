@@ -16,26 +16,16 @@
 
 package org.springframework.cloud.gateway.config;
 
-import java.security.cert.X509Certificate;
-import java.time.Duration;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
 
-import io.netty.channel.ChannelOption;
-import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Flux;
-import reactor.netty.http.Http11SslContextSpec;
-import reactor.netty.http.Http2SslContextSpec;
-import reactor.netty.http.HttpProtocol;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.client.WebsocketClientSpec;
 import reactor.netty.http.server.WebsocketServerSpec;
-import reactor.netty.resources.ConnectionProvider;
-import reactor.netty.tcp.SslProvider.ProtocolSslContextSpec;
-import reactor.netty.transport.ProxyProvider;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.ObjectProvider;
@@ -154,15 +144,12 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Primary;
-import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.env.Environment;
 import org.springframework.http.codec.ServerCodecConfigurer;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientManager;
 import org.springframework.security.web.server.SecurityWebFilterChain;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 import org.springframework.validation.Validator;
 import org.springframework.web.reactive.DispatcherHandler;
 import org.springframework.web.reactive.socket.client.ReactorNettyWebSocketClient;
@@ -171,9 +158,6 @@ import org.springframework.web.reactive.socket.server.RequestUpgradeStrategy;
 import org.springframework.web.reactive.socket.server.WebSocketService;
 import org.springframework.web.reactive.socket.server.support.HandshakeWebSocketService;
 import org.springframework.web.reactive.socket.server.upgrade.ReactorNettyRequestUpgradeStrategy;
-
-import static org.springframework.cloud.gateway.config.HttpClientProperties.Pool.PoolType.DISABLED;
-import static org.springframework.cloud.gateway.config.HttpClientProperties.Pool.PoolType.FIXED;
 
 /**
  * @author Spencer Gibb
@@ -665,139 +649,10 @@ public class GatewayAutoConfiguration {
 		}
 
 		@Bean
-		@ConditionalOnMissingBean
-		public HttpClient gatewayHttpClient(HttpClientProperties properties, ServerProperties serverProperties,
-				List<HttpClientCustomizer> customizers) {
-
-			// configure pool resources
-			ConnectionProvider connectionProvider = buildConnectionProvider(properties);
-
-			HttpClient httpClient = HttpClient.create(connectionProvider)
-					// TODO: move customizations to HttpClientCustomizers
-					.httpResponseDecoder(spec -> {
-						if (properties.getMaxHeaderSize() != null) {
-							// cast to int is ok, since @Max is Integer.MAX_VALUE
-							spec.maxHeaderSize((int) properties.getMaxHeaderSize().toBytes());
-						}
-						if (properties.getMaxInitialLineLength() != null) {
-							// cast to int is ok, since @Max is Integer.MAX_VALUE
-							spec.maxInitialLineLength((int) properties.getMaxInitialLineLength().toBytes());
-						}
-						return spec;
-					});
-
-			if (serverProperties.getHttp2().isEnabled()) {
-				httpClient = httpClient.protocol(HttpProtocol.HTTP11, HttpProtocol.H2);
-			}
-
-			if (properties.getConnectTimeout() != null) {
-				httpClient = httpClient.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, properties.getConnectTimeout());
-			}
-
-			// configure proxy if proxy host is set.
-			if (StringUtils.hasText(properties.getProxy().getHost())) {
-				HttpClientProperties.Proxy proxy = properties.getProxy();
-
-				httpClient = httpClient.proxy(proxySpec -> {
-					ProxyProvider.Builder builder = proxySpec.type(proxy.getType()).host(proxy.getHost());
-
-					PropertyMapper map = PropertyMapper.get();
-
-					map.from(proxy::getPort).whenNonNull().to(builder::port);
-					map.from(proxy::getUsername).whenHasText().to(builder::username);
-					map.from(proxy::getPassword).whenHasText().to(password -> builder.password(s -> password));
-					map.from(proxy::getNonProxyHostsPattern).whenHasText().to(builder::nonProxyHosts);
-				});
-			}
-
-			HttpClientProperties.Ssl ssl = properties.getSsl();
-			if ((ssl.getKeyStore() != null && ssl.getKeyStore().length() > 0)
-					|| ssl.getTrustedX509CertificatesForTrustManager().length > 0 || ssl.isUseInsecureTrustManager()) {
-				httpClient = httpClient.secure(sslContextSpec -> {
-					// configure ssl
-					ProtocolSslContextSpec clientSslContext = (serverProperties.getHttp2().isEnabled())
-							? Http2SslContextSpec.forClient() : Http11SslContextSpec.forClient();
-					clientSslContext.configure(sslContextBuilder -> {
-						X509Certificate[] trustedX509Certificates = ssl.getTrustedX509CertificatesForTrustManager();
-						if (trustedX509Certificates.length > 0) {
-							sslContextBuilder.trustManager(trustedX509Certificates);
-						}
-						else if (ssl.isUseInsecureTrustManager()) {
-							sslContextBuilder.trustManager(InsecureTrustManagerFactory.INSTANCE);
-						}
-
-						try {
-							sslContextBuilder.keyManager(ssl.getKeyManagerFactory());
-						}
-						catch (Exception e) {
-							logger.error(e);
-						}
-					});
-
-					sslContextSpec.sslContext(clientSslContext).handshakeTimeout(ssl.getHandshakeTimeout())
-							.closeNotifyFlushTimeout(ssl.getCloseNotifyFlushTimeout())
-							.closeNotifyReadTimeout(ssl.getCloseNotifyReadTimeout());
-				});
-			}
-			else if (serverProperties.getHttp2().isEnabled()) {
-				httpClient = httpClient.secure(sslContextSpec -> {
-					Http2SslContextSpec clientSslCtxt = Http2SslContextSpec.forClient()
-							.configure(builder -> builder.trustManager(InsecureTrustManagerFactory.INSTANCE));
-					sslContextSpec.sslContext(clientSslCtxt).handshakeTimeout(ssl.getHandshakeTimeout())
-							.closeNotifyFlushTimeout(ssl.getCloseNotifyFlushTimeout())
-							.closeNotifyReadTimeout(ssl.getCloseNotifyReadTimeout());
-				});
-			}
-
-			if (properties.isWiretap()) {
-				httpClient = httpClient.wiretap(true);
-			}
-
-			if (properties.isCompression()) {
-				httpClient = httpClient.compress(true);
-			}
-
-			if (!CollectionUtils.isEmpty(customizers)) {
-				customizers.sort(AnnotationAwareOrderComparator.INSTANCE);
-				for (HttpClientCustomizer customizer : customizers) {
-					httpClient = customizer.customize(httpClient);
-				}
-			}
-
-			return httpClient;
-		}
-
-		private ConnectionProvider buildConnectionProvider(HttpClientProperties properties) {
-			HttpClientProperties.Pool pool = properties.getPool();
-
-			ConnectionProvider connectionProvider;
-			if (pool.getType() == DISABLED) {
-				connectionProvider = ConnectionProvider.newConnection();
-			}
-			else {
-				// create either Fixed or Elastic pool
-				ConnectionProvider.Builder builder = ConnectionProvider.builder(pool.getName());
-				if (pool.getType() == FIXED) {
-					builder.maxConnections(pool.getMaxConnections()).pendingAcquireMaxCount(-1)
-							.pendingAcquireTimeout(Duration.ofMillis(pool.getAcquireTimeout()));
-				}
-				else {
-					// Elastic
-					builder.maxConnections(Integer.MAX_VALUE).pendingAcquireTimeout(Duration.ofMillis(0))
-							.pendingAcquireMaxCount(-1);
-				}
-
-				if (pool.getMaxIdleTime() != null) {
-					builder.maxIdleTime(pool.getMaxIdleTime());
-				}
-				if (pool.getMaxLifeTime() != null) {
-					builder.maxLifeTime(pool.getMaxLifeTime());
-				}
-				builder.evictInBackground(pool.getEvictionInterval());
-				builder.metrics(pool.isMetrics());
-				connectionProvider = builder.build();
-			}
-			return connectionProvider;
+		@ConditionalOnMissingBean({ HttpClient.class, HttpClientFactory.class })
+		public HttpClientFactory gatewayHttpClientFactory(HttpClientProperties properties,
+				ServerProperties serverProperties, List<HttpClientCustomizer> customizers) {
+			return new HttpClientFactory(properties, serverProperties, customizers);
 		}
 
 		@Bean
