@@ -25,10 +25,21 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.expression.BeanFactoryResolver;
+import org.springframework.expression.BeanResolver;
+import org.springframework.expression.ConstructorResolver;
+import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
+import org.springframework.expression.MethodResolver;
+import org.springframework.expression.OperatorOverloader;
+import org.springframework.expression.PropertyAccessor;
+import org.springframework.expression.TypeComparator;
+import org.springframework.expression.TypeConverter;
+import org.springframework.expression.TypeLocator;
+import org.springframework.expression.TypedValue;
 import org.springframework.expression.common.TemplateParserContext;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.expression.spel.support.SimpleEvaluationContext;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -54,8 +65,7 @@ public interface ShortcutConfigurable {
 		}
 		if (rawValue != null && rawValue.startsWith("#{") && entryValue.endsWith("}")) {
 			// assume it's spel
-			StandardEvaluationContext context = new StandardEvaluationContext();
-			context.setBeanResolver(new BeanFactoryResolver(beanFactory));
+			GatewayEvaluationContext context = new GatewayEvaluationContext(new BeanFactoryResolver(beanFactory));
 			Expression expression = parser.parseExpression(entryValue, new TemplateParserContext());
 			value = expression.getValue(context);
 		}
@@ -145,6 +155,75 @@ public interface ShortcutConfigurable {
 
 		public abstract Map<String, Object> normalize(Map<String, String> args, ShortcutConfigurable shortcutConf,
 				SpelExpressionParser parser, BeanFactory beanFactory);
+
+	}
+
+	class GatewayEvaluationContext implements EvaluationContext {
+
+		private final BeanFactoryResolver beanFactoryResolver;
+
+		private SimpleEvaluationContext delegate = SimpleEvaluationContext.forReadOnlyDataBinding().build();
+
+		public GatewayEvaluationContext(BeanFactoryResolver beanFactoryResolver) {
+			this.beanFactoryResolver = beanFactoryResolver;
+		}
+
+		@Override
+		public TypedValue getRootObject() {
+			return delegate.getRootObject();
+		}
+
+		@Override
+		public List<PropertyAccessor> getPropertyAccessors() {
+			return delegate.getPropertyAccessors();
+		}
+
+		@Override
+		public List<ConstructorResolver> getConstructorResolvers() {
+			return delegate.getConstructorResolvers();
+		}
+
+		@Override
+		public List<MethodResolver> getMethodResolvers() {
+			return delegate.getMethodResolvers();
+		}
+
+		@Override
+		@Nullable
+		public BeanResolver getBeanResolver() {
+			return this.beanFactoryResolver;
+		}
+
+		@Override
+		public TypeLocator getTypeLocator() {
+			return delegate.getTypeLocator();
+		}
+
+		@Override
+		public TypeConverter getTypeConverter() {
+			return delegate.getTypeConverter();
+		}
+
+		@Override
+		public TypeComparator getTypeComparator() {
+			return delegate.getTypeComparator();
+		}
+
+		@Override
+		public OperatorOverloader getOperatorOverloader() {
+			return delegate.getOperatorOverloader();
+		}
+
+		@Override
+		public void setVariable(String name, Object value) {
+			delegate.setVariable(name, value);
+		}
+
+		@Override
+		@Nullable
+		public Object lookupVariable(String name) {
+			return delegate.lookupVariable(name);
+		}
 
 	}
 

@@ -30,10 +30,12 @@ import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.support.ShortcutConfigurable.ShortcutType;
 import org.springframework.context.annotation.Bean;
+import org.springframework.expression.spel.SpelEvaluationException;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -43,6 +45,23 @@ public class ShortcutConfigurableTests {
 	BeanFactory beanFactory;
 
 	private SpelExpressionParser parser;
+
+	@Test
+	public void testNormalizeDefaultTypeWithSpelAndInvalidInputFails() {
+		parser = new SpelExpressionParser();
+		ShortcutConfigurable shortcutConfigurable = new ShortcutConfigurable() {
+			@Override
+			public List<String> shortcutFieldOrder() {
+				return Arrays.asList("bean", "arg1");
+			}
+		};
+		Map<String, String> args = new HashMap<>();
+		args.put("bean", "#{T(java.lang.Runtime).getRuntime().exec(\"touch /tmp/x\")}");
+		args.put("arg1", "val1");
+		assertThatThrownBy(() -> {
+			ShortcutType.DEFAULT.normalize(args, shortcutConfigurable, parser, this.beanFactory);
+		}).isInstanceOf(SpelEvaluationException.class);
+	}
 
 	@Test
 	public void testNormalizeDefaultTypeWithSpel() {
