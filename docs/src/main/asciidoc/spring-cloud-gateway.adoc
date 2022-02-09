@@ -1395,7 +1395,7 @@ spring:
       - id: setstatusstring_route
         uri: https://example.org
         filters:
-        - SetStatus=BAD_REQUEST
+        - SetStatus=UNAUTHORIZED
       - id: setstatusint_route
         uri: https://example.org
         filters:
