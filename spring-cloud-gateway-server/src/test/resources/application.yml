@@ -263,6 +263,15 @@ spring:
         - SetPath=/anything/multi{num}
 
       # =====================================
+      - id: path_regex
+        uri: ${test.uri}
+        predicates:
+          - Host=**.pathregex.org
+          - Path=/regex/{digits:\d+}
+        filters:
+          - SetPath=/anything/{digits}
+
+      # =====================================
       - id: redirect_to_test
         uri: ${test.uri}
         predicates:
