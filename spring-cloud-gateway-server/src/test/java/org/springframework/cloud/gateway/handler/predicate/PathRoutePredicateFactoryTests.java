@@ -89,6 +89,14 @@ public class PathRoutePredicateFactoryTests extends BaseWebClientTests {
 	}
 
 	@Test
+	public void pathRouteWorksWithRegex() {
+		testClient.get().uri("/regex/123").header(HttpHeaders.HOST, "www.pathregex.org").exchange().expectStatus()
+				.isOk().expectHeader()
+				.valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName()).expectHeader()
+				.valueEquals(ROUTE_ID_HEADER, "path_regex");
+	}
+
+	@Test
 	public void matchOptionalTrailingSeparatorCopiedToMatchTrailingSlash() {
 		Config config = new Config().setPatterns(Arrays.asList("patternA", "patternB")).setMatchTrailingSlash(false);
 		assertThat(config.isMatchTrailingSlash()).isEqualTo(false);
