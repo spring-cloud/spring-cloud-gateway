@@ -83,6 +83,9 @@ public interface ShortcutConfigurable {
 
 	enum ShortcutType {
 
+		/**
+		 * Default shortcut type.
+		 */
 		DEFAULT {
 			@Override
 			public Map<String, Object> normalize(Map<String, String> args, ShortcutConfigurable shortcutConf,
@@ -100,6 +103,9 @@ public interface ShortcutConfigurable {
 			}
 		},
 
+		/**
+		 * List shortcut type.
+		 */
 		GATHER_LIST {
 			@Override
 			public Map<String, Object> normalize(Map<String, String> args, ShortcutConfigurable shortcutConf,
@@ -116,7 +122,9 @@ public interface ShortcutConfigurable {
 			}
 		},
 
-		// list is all elements except last which is a boolean flag
+		/**
+		 * List is all elements except last which is a boolean flag.
+		 */
 		GATHER_LIST_TAIL_FLAG {
 			@Override
 			public Map<String, Object> normalize(Map<String, String> args, ShortcutConfigurable shortcutConf,
