@@ -84,8 +84,7 @@ public class ThrottleGatewayFilter implements GatewayFilter {
 	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 
 		TokenBucket tokenBucket = TokenBuckets.builder().withCapacity(capacity)
-				.withFixedIntervalRefillStrategy(refillTokens, refillPeriod, refillUnit)
-				.build();
+				.withFixedIntervalRefillStrategy(refillTokens, refillPeriod, refillUnit).build();
 
 		// TODO: get a token bucket for a key
 		log.debug("TokenBucket capacity: " + tokenBucket.getCapacity());

@@ -1,0 +1,22 @@
+logging:
+  level:
+    org.springframework.cloud.gateway: TRACE
+    reactor.netty.http.client: DEBUG
+
+server:
+  ssl:
+    key-store: classpath:sample.jks
+    key-store-password: secret
+    key-password: password
+  http2:
+    enabled: true
+
+spring:
+  cloud:
+    gateway:
+#      httpserver:
+#        wiretap: true
+      httpclient:
+        wiretap: true
+        ssl:
+          use-insecure-trust-manager: true

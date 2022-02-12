@@ -34,13 +34,15 @@ import org.springframework.web.server.ServerWebExchange;
 
 /**
  * @author Dave Syer
- *
+ * @author Tim Ysewyn
  */
 public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResolver {
 
 	private WebClient rest;
 
 	private HttpHeaders headers;
+
+	private Set<String> autoForwardedHeaders;
 
 	private Set<String> sensitive;
 
@@ -50,6 +52,10 @@ public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResol
 
 	public void setHeaders(HttpHeaders headers) {
 		this.headers = headers;
+	}
+
+	public void setAutoForwardedHeaders(Set<String> autoForwardedHeaders) {
+		this.autoForwardedHeaders = autoForwardedHeaders;
 	}
 
 	public void setSensitive(Set<String> sensitive) {
@@ -74,15 +80,27 @@ public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResol
 	}
 
 	@Override
-	public Mono<Object> resolveArgument(MethodParameter parameter,
-			BindingContext bindingContext, ServerWebExchange exchange) {
-		ProxyExchange<?> proxy = new ProxyExchange<>(rest, exchange, bindingContext,
-				type(parameter));
+	public Mono<Object> resolveArgument(MethodParameter parameter, BindingContext bindingContext,
+			ServerWebExchange exchange) {
+		ProxyExchange<?> proxy = new ProxyExchange<>(rest, exchange, bindingContext, type(parameter));
 		proxy.headers(headers);
+		if (this.autoForwardedHeaders.size() > 0) {
+			proxy.headers(extractAutoForwardedHeaders(exchange));
+		}
 		if (sensitive != null) {
 			proxy.sensitive(sensitive.toArray(new String[0]));
 		}
 		return Mono.just(proxy);
+	}
+
+	private HttpHeaders extractAutoForwardedHeaders(ServerWebExchange exchange) {
+		HttpHeaders headers = new HttpHeaders();
+		exchange.getRequest().getHeaders().forEach((header, values) -> {
+			if (this.autoForwardedHeaders.contains(header)) {
+				headers.addAll(header, values);
+			}
+		});
+		return headers;
 	}
 
 }

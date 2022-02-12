@@ -1,0 +1,7 @@
+POST /route/echo HTTP/1.1
+Host: localhost:8080
+Content-Type: application/json
+Content-Length: 15
+Connection: close
+
+{"message":"3"}

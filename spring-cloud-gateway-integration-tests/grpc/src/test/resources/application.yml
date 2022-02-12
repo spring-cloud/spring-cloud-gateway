@@ -1,0 +1,27 @@
+server:
+  http2:
+    enabled: true
+  ssl:
+    key-store-type: PKCS12
+    key-store: classpath:keystore.p12
+    key-store-password: password
+    key-password: password
+    enabled: true
+spring:
+  cloud:
+    gateway:
+      httpserver:
+        wiretap: true
+      httpclient:
+        wiretap: true
+        ssl:
+          key-store-type: PKCS12
+          key-store: classpath:keystore.p12
+          key-store-password: password
+          key-password: password
+          use-insecure-trust-manager: true
+
+logging:
+  level:
+    reactor.netty: DEBUG
+    org.springframework.cloud.gateway.filter: TRACE

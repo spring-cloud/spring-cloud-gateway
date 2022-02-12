@@ -1,0 +1,17 @@
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: add_request_header_test
+        uri: ${test.uri}
+        predicates:
+          - Path=/headers
+        filters:
+          - AddRequestHeader=X-Request-Example, ValueA
+      - id: add_multiple_request_header_test
+        uri: ${test.uri}
+        predicates:
+          - Path=/multivalueheaders
+        filters:
+          - AddRequestHeader=X-Request-Example, ValueA
+          - AddRequestHeader=X-Request-Example, ValueB

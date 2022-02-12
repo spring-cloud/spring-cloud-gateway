@@ -1,0 +1,26 @@
+server:
+  error:
+    include-message: always
+
+spring:
+  config:
+    import: classpath:application-logging.yml
+
+  cloud:
+    gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            maxAge: 10
+            allowedOrigins: "*"
+            allowedMethods:
+            - GET
+      default-filters:
+        #empty to prevent failures in tests disabling components
+      routes:
+        #empty to prevent failures in tests disabling components
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"

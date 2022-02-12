@@ -32,7 +32,7 @@ open class AdditionalRoutes {
     @Bean
     open fun additionalRouteLocator(builder: RouteLocatorBuilder) = builder.routes {
         route(id = "test-kotlin") {
-            host("kotlin.abc.org") and path("/image/png")
+            host("kotlin.abc.org") and path("/anything/kotlinroute")
             filters {
                 prefixPath("/httpbin")
                 addResponseHeader("X-TestHeader", "foobar")

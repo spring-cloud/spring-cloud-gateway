@@ -1,0 +1,11 @@
+spring:
+  cloud:
+    gateway:
+      routes:
+        - uri: https://example.com
+          predicates:
+            - Path=/verification/**
+          filters:
+            - name: TestFilter
+              args:
+                arg1: world

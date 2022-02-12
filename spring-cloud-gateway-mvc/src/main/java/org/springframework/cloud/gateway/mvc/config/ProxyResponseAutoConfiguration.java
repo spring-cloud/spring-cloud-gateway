@@ -43,6 +43,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  * <code>@RequestMapping</code> methods.
  *
  * @author Dave Syer
+ * @author Tim Ysewyn
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnWebApplication
@@ -55,8 +56,8 @@ public class ProxyResponseAutoConfiguration implements WebMvcConfigurer {
 
 	@Bean
 	@ConditionalOnMissingBean
-	public ProxyExchangeArgumentResolver proxyExchangeArgumentResolver(
-			Optional<RestTemplateBuilder> optional, ProxyProperties proxy) {
+	public ProxyExchangeArgumentResolver proxyExchangeArgumentResolver(Optional<RestTemplateBuilder> optional,
+			ProxyProperties proxy) {
 		RestTemplateBuilder builder = optional.orElse(new RestTemplateBuilder());
 		RestTemplate template = builder.build();
 		template.setErrorHandler(new NoOpResponseErrorHandler());
@@ -66,16 +67,15 @@ public class ProxyResponseAutoConfiguration implements WebMvcConfigurer {
 				return true;
 			}
 		});
-		ProxyExchangeArgumentResolver resolver = new ProxyExchangeArgumentResolver(
-				template);
+		ProxyExchangeArgumentResolver resolver = new ProxyExchangeArgumentResolver(template);
 		resolver.setHeaders(proxy.convertHeaders());
+		resolver.setAutoForwardedHeaders(proxy.getAutoForward());
 		resolver.setSensitive(proxy.getSensitive()); // can be null
 		return resolver;
 	}
 
 	@Override
-	public void addArgumentResolvers(
-			List<HandlerMethodArgumentResolver> argumentResolvers) {
+	public void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
 		argumentResolvers.add(context.getBean(ProxyExchangeArgumentResolver.class));
 	}
 

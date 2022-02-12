@@ -1,0 +1,13 @@
+server:
+  ssl:
+    enabled: false
+    key-store: ~
+    key-store-password: ~
+    key-password: ~
+  http2:
+    enabled: false
+
+spring:
+  cloud:
+    gateway:
+      enabled: false

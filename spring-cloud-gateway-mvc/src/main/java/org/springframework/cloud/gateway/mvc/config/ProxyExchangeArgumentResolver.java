@@ -18,7 +18,11 @@ package org.springframework.cloud.gateway.mvc.config;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.Collections;
+import java.util.Enumeration;
 import java.util.Set;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.springframework.cloud.gateway.mvc.ProxyExchange;
 import org.springframework.core.MethodParameter;
@@ -29,15 +33,19 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
+import static java.util.stream.Collectors.toSet;
+
 /**
  * @author Dave Syer
- *
+ * @author Tim Ysewyn
  */
 public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResolver {
 
-	private RestTemplate rest;
+	private final RestTemplate rest;
 
 	private HttpHeaders headers;
+
+	private Set<String> autoForwardedHeaders;
 
 	private Set<String> sensitive;
 
@@ -47,6 +55,11 @@ public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResol
 
 	public void setHeaders(HttpHeaders headers) {
 		this.headers = headers;
+	}
+
+	public void setAutoForwardedHeaders(Set<String> autoForwardedHeaders) {
+		this.autoForwardedHeaders = autoForwardedHeaders == null ? null
+				: autoForwardedHeaders.stream().map(String::toLowerCase).collect(toSet());
 	}
 
 	public void setSensitive(Set<String> sensitive) {
@@ -59,15 +72,12 @@ public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResol
 	}
 
 	@Override
-	public Object resolveArgument(MethodParameter parameter,
-			ModelAndViewContainer mavContainer, NativeWebRequest webRequest,
-			WebDataBinderFactory binderFactory) throws Exception {
-		ProxyExchange<?> proxy = new ProxyExchange<>(rest, webRequest, mavContainer,
-				binderFactory, type(parameter));
-		proxy.headers(headers);
-		if (sensitive != null) {
-			proxy.sensitive(sensitive.toArray(new String[0]));
-		}
+	public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
+			NativeWebRequest webRequest, WebDataBinderFactory binderFactory) throws Exception {
+		ProxyExchange<?> proxy = new ProxyExchange<>(rest, webRequest, mavContainer, binderFactory, type(parameter));
+		configureHeaders(proxy);
+		configureAutoForwardedHeaders(proxy, webRequest);
+		configureSensitive(proxy);
 		return proxy;
 	}
 
@@ -78,6 +88,37 @@ public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResol
 			type = param.getActualTypeArguments()[0];
 		}
 		return type;
+	}
+
+	private HttpHeaders extractAutoForwardedHeaders(NativeWebRequest webRequest) {
+		HttpServletRequest nativeRequest = webRequest.getNativeRequest(HttpServletRequest.class);
+		Enumeration<String> headerNames = nativeRequest.getHeaderNames();
+		HttpHeaders headers = new HttpHeaders();
+		while (headerNames.hasMoreElements()) {
+			String header = headerNames.nextElement();
+			if (this.autoForwardedHeaders.contains(header.toLowerCase())) {
+				headers.addAll(header, Collections.list(nativeRequest.getHeaders(header)));
+			}
+		}
+		return headers;
+	}
+
+	private void configureHeaders(final ProxyExchange<?> proxy) {
+		if (headers != null) {
+			proxy.headers(headers);
+		}
+	}
+
+	private void configureAutoForwardedHeaders(final ProxyExchange<?> proxy, final NativeWebRequest webRequest) {
+		if ((autoForwardedHeaders != null) && (autoForwardedHeaders.size() > 0)) {
+			proxy.headers(extractAutoForwardedHeaders(webRequest));
+		}
+	}
+
+	private void configureSensitive(final ProxyExchange<?> proxy) {
+		if (sensitive != null) {
+			proxy.sensitive(sensitive.toArray(new String[0]));
+		}
 	}
 
 }
