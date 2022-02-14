@@ -40,7 +40,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class GatewayRedisRouteDefinitionRepositoryEnabledByPropertyTests {
 
 	@Container
-	public static GenericContainer redis = new GenericContainer<>("redis:5.0.9-alpine").withExposedPorts(6379);
+	public static GenericContainer redis = new GenericContainer<>("redis:5.0.14-alpine").withExposedPorts(6379);
 
 	@Autowired(required = false)
 	private RedisRouteDefinitionRepository redisRouteDefinitionRepository;

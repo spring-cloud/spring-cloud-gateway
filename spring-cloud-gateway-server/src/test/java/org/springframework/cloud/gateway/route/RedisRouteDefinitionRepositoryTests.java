@@ -59,7 +59,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class RedisRouteDefinitionRepositoryTests {
 
 	@Container
-	public static GenericContainer redis = new GenericContainer<>("redis:5.0.9-alpine").withExposedPorts(6379);
+	public static GenericContainer redis = new GenericContainer<>("redis:5.0.14-alpine").withExposedPorts(6379);
 
 	@Autowired
 	private RedisRouteDefinitionRepository redisRouteDefinitionRepository;
