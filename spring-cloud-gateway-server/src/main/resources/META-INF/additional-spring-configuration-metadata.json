@@ -325,6 +325,12 @@
       "defaultValue": "true"
     },
     {
+      "name": "spring.cloud.gateway.predicate.xforwarded-remote-addr.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the xforwarded-remote-addr predicate.",
+      "defaultValue": "true"
+    },
+    {
       "name": "spring.cloud.gateway.predicate.weight.enabled",
       "type": "java.lang.Boolean",
       "description": "Enables the weight predicate.",

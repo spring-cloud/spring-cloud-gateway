@@ -73,13 +73,13 @@ public final class NameUtils {
 		StringBuffer stringBuffer = new StringBuffer();
 		while (matcher.find()) {
 			if (stringBuffer.length() != 0) {
-				matcher.appendReplacement(stringBuffer, "-" + matcher.group(1).toLowerCase());
+				matcher.appendReplacement(stringBuffer, "-" + matcher.group(1));
 			}
 			else {
-				matcher.appendReplacement(stringBuffer, matcher.group(1).toLowerCase());
+				matcher.appendReplacement(stringBuffer, matcher.group(1));
 			}
 		}
-		return stringBuffer.toString();
+		return stringBuffer.toString().toLowerCase();
 	}
 
 	private static String removeGarbage(String s) {

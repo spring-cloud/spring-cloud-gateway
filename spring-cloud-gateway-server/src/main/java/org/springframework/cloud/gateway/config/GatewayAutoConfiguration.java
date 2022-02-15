@@ -134,6 +134,7 @@ import org.springframework.cloud.gateway.handler.predicate.ReadBodyRoutePredicat
 import org.springframework.cloud.gateway.handler.predicate.RemoteAddrRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.WeightRoutePredicateFactory;
+import org.springframework.cloud.gateway.handler.predicate.XForwardedRemoteAddrRoutePredicateFactory;
 import org.springframework.cloud.gateway.route.CachingRouteLocator;
 import org.springframework.cloud.gateway.route.CompositeRouteDefinitionLocator;
 import org.springframework.cloud.gateway.route.CompositeRouteLocator;
@@ -430,6 +431,12 @@ public class GatewayAutoConfiguration {
 	@ConditionalOnEnabledPredicate
 	public RemoteAddrRoutePredicateFactory remoteAddrRoutePredicateFactory() {
 		return new RemoteAddrRoutePredicateFactory();
+	}
+
+	@Bean
+	@ConditionalOnEnabledPredicate
+	public XForwardedRemoteAddrRoutePredicateFactory xForwardedRemoteAddrRoutePredicateFactory() {
+		return new XForwardedRemoteAddrRoutePredicateFactory();
 	}
 
 	@Bean

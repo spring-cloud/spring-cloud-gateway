@@ -453,6 +453,36 @@ spring:
 
 This route would forward ~80% of traffic to https://weighthigh.org and ~20% of traffic to https://weighlow.org
 
+=== The XForwarded Remote Addr Route Predicate Factory
+
+The `XForwarded Remote Addr` route predicate factory takes a list (min size 1) of `sources`, which are CIDR-notation (IPv4 or IPv6) strings, such as `192.168.0.1/16` (where `192.168.0.1` is an IP address and `16` is a subnet mask).
+
+This route predicate allows requests to be filtered based on the `X-Forwarded-For` HTTP header.
+
+This can be used with reverse proxies such as load balancers or web application firewalls where
+the request should only be allowed if it comes from a trusted list of IP addresses used by those
+reverse proxies.
+
+
+The following example configures a XForwardedRemoteAddr route predicate:
+
+.application.yml
+====
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: xforwarded_remoteaddr_route
+        uri: https://example.org
+        predicates:
+        - XForwardedRemoteAddr=192.168.1.1/24
+----
+====
+
+This route matches if the `X-Forwarded-For` header contains, for example, `192.168.1.10`.
+
 == `GatewayFilter` Factories
 
 Route filters allow the modification of the incoming HTTP request or outgoing HTTP response in some manner.
