@@ -371,6 +371,12 @@
       "type": "java.lang.Integer",
       "description": "The order of RoutePredicateHandlerMapping.",
       "defaultValue": "1"
+    },
+    {
+      "name": "spring.cloud.gateway.restrictive-property-accessor.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Restricts method and property access in SpEL.",
+      "defaultValue": "true"
     }
   ]
 }

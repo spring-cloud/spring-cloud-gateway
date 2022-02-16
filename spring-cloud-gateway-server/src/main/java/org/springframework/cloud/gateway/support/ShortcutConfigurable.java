@@ -25,10 +25,23 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.expression.BeanFactoryResolver;
+import org.springframework.core.env.Environment;
+import org.springframework.expression.BeanResolver;
+import org.springframework.expression.ConstructorResolver;
+import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
+import org.springframework.expression.MethodResolver;
+import org.springframework.expression.OperatorOverloader;
+import org.springframework.expression.PropertyAccessor;
+import org.springframework.expression.TypeComparator;
+import org.springframework.expression.TypeConverter;
+import org.springframework.expression.TypeLocator;
+import org.springframework.expression.TypedValue;
 import org.springframework.expression.common.TemplateParserContext;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.expression.spel.support.ReflectivePropertyAccessor;
+import org.springframework.expression.spel.support.SimpleEvaluationContext;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -54,8 +67,7 @@ public interface ShortcutConfigurable {
 		}
 		if (rawValue != null && rawValue.startsWith("#{") && entryValue.endsWith("}")) {
 			// assume it's spel
-			StandardEvaluationContext context = new StandardEvaluationContext();
-			context.setBeanResolver(new BeanFactoryResolver(beanFactory));
+			GatewayEvaluationContext context = new GatewayEvaluationContext(beanFactory);
 			Expression expression = parser.parseExpression(entryValue, new TemplateParserContext());
 			value = expression.getValue(context);
 		}
@@ -145,6 +157,94 @@ public interface ShortcutConfigurable {
 
 		public abstract Map<String, Object> normalize(Map<String, String> args, ShortcutConfigurable shortcutConf,
 				SpelExpressionParser parser, BeanFactory beanFactory);
+
+	}
+
+	class GatewayEvaluationContext implements EvaluationContext {
+
+		private final BeanFactoryResolver beanFactoryResolver;
+
+		private final SimpleEvaluationContext delegate;
+
+		public GatewayEvaluationContext(BeanFactory beanFactory) {
+			this.beanFactoryResolver = new BeanFactoryResolver(beanFactory);
+			Environment env = beanFactory.getBean(Environment.class);
+			boolean restrictive = env.getProperty("spring.cloud.gateway.restrictive-property-accessor.enabled",
+					Boolean.class, true);
+			if (restrictive) {
+				delegate = SimpleEvaluationContext.forPropertyAccessors(new RestrictivePropertyAccessor())
+						.withMethodResolvers((context, targetObject, name, argumentTypes) -> null).build();
+			}
+			else {
+				delegate = SimpleEvaluationContext.forReadOnlyDataBinding().build();
+			}
+		}
+
+		@Override
+		public TypedValue getRootObject() {
+			return delegate.getRootObject();
+		}
+
+		@Override
+		public List<PropertyAccessor> getPropertyAccessors() {
+			return delegate.getPropertyAccessors();
+		}
+
+		@Override
+		public List<ConstructorResolver> getConstructorResolvers() {
+			return delegate.getConstructorResolvers();
+		}
+
+		@Override
+		public List<MethodResolver> getMethodResolvers() {
+			return delegate.getMethodResolvers();
+		}
+
+		@Override
+		@Nullable
+		public BeanResolver getBeanResolver() {
+			return this.beanFactoryResolver;
+		}
+
+		@Override
+		public TypeLocator getTypeLocator() {
+			return delegate.getTypeLocator();
+		}
+
+		@Override
+		public TypeConverter getTypeConverter() {
+			return delegate.getTypeConverter();
+		}
+
+		@Override
+		public TypeComparator getTypeComparator() {
+			return delegate.getTypeComparator();
+		}
+
+		@Override
+		public OperatorOverloader getOperatorOverloader() {
+			return delegate.getOperatorOverloader();
+		}
+
+		@Override
+		public void setVariable(String name, Object value) {
+			delegate.setVariable(name, value);
+		}
+
+		@Override
+		@Nullable
+		public Object lookupVariable(String name) {
+			return delegate.lookupVariable(name);
+		}
+
+	}
+
+	class RestrictivePropertyAccessor extends ReflectivePropertyAccessor {
+
+		@Override
+		public boolean canRead(EvaluationContext context, Object target, String name) {
+			return false;
+		}
 
 	}
 
