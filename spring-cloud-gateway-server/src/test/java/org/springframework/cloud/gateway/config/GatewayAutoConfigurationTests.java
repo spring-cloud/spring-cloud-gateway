@@ -166,7 +166,7 @@ public class GatewayAutoConfigurationTests {
 	@Test
 	public void verboseActuatorEnabledByDefault() {
 		try (ConfigurableApplicationContext ctx = SpringApplication.run(Config.class, "--spring.jmx.enabled=false",
-				"--server.port=0")) {
+				"--server.port=0", "--management.endpoint.gateway.enabled=true")) {
 			assertThat(ctx.getBeanNamesForType(GatewayControllerEndpoint.class)).hasSize(1);
 			assertThat(ctx.getBeanNamesForType(GatewayLegacyControllerEndpoint.class)).isEmpty();
 		}
@@ -175,7 +175,8 @@ public class GatewayAutoConfigurationTests {
 	@Test
 	public void verboseActuatorDisabled() {
 		try (ConfigurableApplicationContext ctx = SpringApplication.run(Config.class, "--spring.jmx.enabled=false",
-				"--server.port=0", "--spring.cloud.gateway.actuator.verbose.enabled=false")) {
+				"--server.port=0", "--spring.cloud.gateway.actuator.verbose.enabled=false",
+				"--management.endpoint.gateway.enabled=true")) {
 			assertThat(ctx.getBeanNamesForType(GatewayLegacyControllerEndpoint.class)).hasSize(1);
 		}
 	}
