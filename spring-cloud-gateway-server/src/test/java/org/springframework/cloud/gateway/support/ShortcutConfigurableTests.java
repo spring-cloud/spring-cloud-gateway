@@ -28,7 +28,6 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.cloud.gateway.support.ShortcutConfigurable.ShortcutType;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.ConfigurableEnvironment;
@@ -70,7 +69,6 @@ public class ShortcutConfigurableTests {
 
 	@Test
 	public void testNormalizeDefaultTypeWithSpelAndInvalidPropertyReferenceFails() {
-		TestPropertyValues.of("spring.cloud.gateway.restrictive-property-accessor.enabled=true").applyTo(env);
 		parser = new SpelExpressionParser();
 		ShortcutConfigurable shortcutConfigurable = new ShortcutConfigurable() {
 			@Override
@@ -88,7 +86,6 @@ public class ShortcutConfigurableTests {
 
 	@Test
 	public void testNormalizeDefaultTypeWithSpelAndInvalidMethodReferenceFails() {
-		TestPropertyValues.of("ispring.cloud.gateway.restrictve-property-accessor.enabled=true").applyTo(env);
 		parser = new SpelExpressionParser();
 		ShortcutConfigurable shortcutConfigurable = new ShortcutConfigurable() {
 			@Override
@@ -118,40 +115,6 @@ public class ShortcutConfigurableTests {
 		args.put("arg1", "val1");
 		Map<String, Object> map = ShortcutType.DEFAULT.normalize(args, shortcutConfigurable, parser, this.beanFactory);
 		assertThat(map).isNotNull().containsEntry("bean", 42).containsEntry("arg1", "val1");
-	}
-
-	@Test
-	public void testNormalizeDefaultTypeWithSpelAndPropertyReferenceEnabled() {
-		TestPropertyValues.of("spring.cloud.gateway.restrictive-property-accessor.enabled=false").applyTo(env);
-		parser = new SpelExpressionParser();
-		ShortcutConfigurable shortcutConfigurable = new ShortcutConfigurable() {
-			@Override
-			public List<String> shortcutFieldOrder() {
-				return Arrays.asList("bean", "arg1");
-			}
-		};
-		Map<String, String> args = new HashMap<>();
-		args.put("barproperty", "#{@bar.getInt}");
-		args.put("arg1", "val1");
-		Map<String, Object> map = ShortcutType.DEFAULT.normalize(args, shortcutConfigurable, parser, this.beanFactory);
-		assertThat(map).isNotNull().containsEntry("barproperty", 42).containsEntry("arg1", "val1");
-	}
-
-	@Test
-	public void testNormalizeDefaultTypeWithSpelAndMethodReferenceEnabled() {
-		TestPropertyValues.of("spring.cloud.gateway.restrictive-property-accessor.enabled=false").applyTo(env);
-		parser = new SpelExpressionParser();
-		ShortcutConfigurable shortcutConfigurable = new ShortcutConfigurable() {
-			@Override
-			public List<String> shortcutFieldOrder() {
-				return Arrays.asList("bean", "arg1");
-			}
-		};
-		Map<String, String> args = new HashMap<>();
-		args.put("barmethod", "#{@bar.myMethod}");
-		args.put("arg1", "val1");
-		Map<String, Object> map = ShortcutType.DEFAULT.normalize(args, shortcutConfigurable, parser, this.beanFactory);
-		assertThat(map).isNotNull().containsEntry("barmethod", 42).containsEntry("arg1", "val1");
 	}
 
 	@Test
