@@ -122,12 +122,14 @@
 |spring.cloud.gateway.predicate.read-body.enabled | `true` | Enables the read-body predicate.
 |spring.cloud.gateway.predicate.remote-addr.enabled | `true` | Enables the remote-addr predicate.
 |spring.cloud.gateway.predicate.weight.enabled | `true` | Enables the weight predicate.
+|spring.cloud.gateway.predicate.xforwarded-remote-addr.enabled | `true` | Enables the xforwarded-remote-addr predicate.
 |spring.cloud.gateway.redis-rate-limiter.burst-capacity-header | `X-RateLimit-Burst-Capacity` | The name of the header that returns the burst capacity configuration.
 |spring.cloud.gateway.redis-rate-limiter.config |  | 
 |spring.cloud.gateway.redis-rate-limiter.include-headers | `true` | Whether or not to include headers containing rate limiter information, defaults to true.
 |spring.cloud.gateway.redis-rate-limiter.remaining-header | `X-RateLimit-Remaining` | The name of the header that returns number of remaining requests during the current second.
 |spring.cloud.gateway.redis-rate-limiter.replenish-rate-header | `X-RateLimit-Replenish-Rate` | The name of the header that returns the replenish rate configuration.
 |spring.cloud.gateway.redis-rate-limiter.requested-tokens-header | `X-RateLimit-Requested-Tokens` | The name of the header that returns the requested tokens configuration.
+|spring.cloud.gateway.restrictive-property-accessor.enabled | `true` | Restricts method and property access in SpEL.
 |spring.cloud.gateway.routes |  | List of Routes.
 |spring.cloud.gateway.set-status.original-status-header-name |  | The name of the header which contains http code of the proxied request.
 |spring.cloud.gateway.streaming-media-types |  | 

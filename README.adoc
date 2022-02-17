@@ -28,7 +28,8 @@ This project provides an API Gateway built on top of the Spring Ecosystem, inclu
 
 == Building
 
-:jdkversion: 1.8
+
+:jdkversion: 17
 
 === Basic Compile and Test
 
