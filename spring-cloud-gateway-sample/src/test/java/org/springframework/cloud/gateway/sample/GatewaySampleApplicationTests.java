@@ -53,7 +53,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
  * @author Spencer Gibb
  */
 @SpringBootTest(classes = { GatewaySampleApplicationTests.TestConfig.class }, webEnvironment = RANDOM_PORT,
-		properties = "management.server.port=${test.port}")
+		properties = { "management.endpoint.gateway.enabled=true", "management.server.port=${test.port}" })
 public class GatewaySampleApplicationTests {
 
 	protected static int managementPort;
