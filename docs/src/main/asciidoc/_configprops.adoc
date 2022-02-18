@@ -31,8 +31,8 @@
 |spring.cloud.gateway.filter.remove-response-header.enabled | `true` | Enables the remove-response-header filter.
 |spring.cloud.gateway.filter.request-header-size.enabled | `true` | Enables the request-header-size filter.
 |spring.cloud.gateway.filter.request-header-to-request-uri.enabled | `true` | Enables the request-header-to-request-uri filter.
-|spring.cloud.gateway.filter.request-rate-limiter.deny-empty-key | `true` | Switch to deny requests if the Key Resolver returns an empty key, defaults to true.
-|spring.cloud.gateway.filter.request-rate-limiter.empty-key-status-code |  | HttpStatus to return when denyEmptyKey is true, defaults to FORBIDDEN.
+|spring.cloud.gateway.filter.request-rate-limiter.default-key-resolver |  | 
+|spring.cloud.gateway.filter.request-rate-limiter.default-rate-limiter |  | 
 |spring.cloud.gateway.filter.request-rate-limiter.enabled | `true` | Enables the request-rate-limiter filter.
 |spring.cloud.gateway.filter.request-size.enabled | `true` | Enables the request-size filter.
 |spring.cloud.gateway.filter.retry.enabled | `true` | Enables the retry filter.
@@ -129,6 +129,7 @@
 |spring.cloud.gateway.redis-rate-limiter.remaining-header | `X-RateLimit-Remaining` | The name of the header that returns number of remaining requests during the current second.
 |spring.cloud.gateway.redis-rate-limiter.replenish-rate-header | `X-RateLimit-Replenish-Rate` | The name of the header that returns the replenish rate configuration.
 |spring.cloud.gateway.redis-rate-limiter.requested-tokens-header | `X-RateLimit-Requested-Tokens` | The name of the header that returns the requested tokens configuration.
+|spring.cloud.gateway.restrictive-property-accessor.enabled | `true` | Restricts method and property access in SpEL.
 |spring.cloud.gateway.routes |  | List of Routes.
 |spring.cloud.gateway.set-status.original-status-header-name |  | The name of the header which contains http code of the proxied request.
 |spring.cloud.gateway.streaming-media-types |  | 
