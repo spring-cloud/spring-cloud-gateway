@@ -54,7 +54,14 @@ public class RequestRateLimiterGatewayFilterFactory
 	 */
 	private boolean denyEmptyKey = true;
 
-	/** HttpStatus to return when denyEmptyKey is true, defaults to FORBIDDEN. */
+	/**
+	 * Use isolated keys for rate limiting.
+	 */
+	private boolean isolated = false;
+
+	/**
+	 * HttpStatus to return when denyEmptyKey is true, defaults to FORBIDDEN.
+	 */
 	private String emptyKeyStatusCode = HttpStatus.FORBIDDEN.name();
 
 	public RequestRateLimiterGatewayFilterFactory(RateLimiter defaultRateLimiter, KeyResolver defaultKeyResolver) {
@@ -77,6 +84,14 @@ public class RequestRateLimiterGatewayFilterFactory
 
 	public void setDenyEmptyKey(boolean denyEmptyKey) {
 		this.denyEmptyKey = denyEmptyKey;
+	}
+
+	public boolean isIsolated() {
+		return isolated;
+	}
+
+	public void setIsolated(boolean isolated) {
+		this.isolated = isolated;
 	}
 
 	public String getEmptyKeyStatusCode() {
@@ -109,6 +124,15 @@ public class RequestRateLimiterGatewayFilterFactory
 				Route route = exchange.getAttribute(ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR);
 				routeId = route.getId();
 			}
+
+			boolean isolated = getOrDefault(config.isolated, this.isolated);
+			if (isolated) {
+				key = key + "|isolated-" + routeId;
+			}
+			else {
+				key = key + "|shared";
+			}
+
 			return limiter.isAllowed(routeId, key).flatMap(response -> {
 
 				for (Map.Entry<String, String> header : response.getHeaders().entrySet()) {
@@ -142,6 +166,8 @@ public class RequestRateLimiterGatewayFilterFactory
 		private String emptyKeyStatus;
 
 		private String routeId;
+
+		private Boolean isolated;
 
 		public KeyResolver getKeyResolver() {
 			return keyResolver;
@@ -196,6 +222,14 @@ public class RequestRateLimiterGatewayFilterFactory
 		@Override
 		public String getRouteId() {
 			return this.routeId;
+		}
+
+		public Boolean getIsolated() {
+			return isolated;
+		}
+
+		public void setIsolated(Boolean isolated) {
+			this.isolated = isolated;
 		}
 
 	}

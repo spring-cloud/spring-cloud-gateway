@@ -17,9 +17,12 @@
 package org.springframework.cloud.gateway.filter.factory;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +33,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
+import org.springframework.cloud.gateway.filter.factory.RequestRateLimiterGatewayFilterFactory.Config;
 import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
 import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter;
 import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter.Response;
@@ -46,6 +50,7 @@ import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.test.annotation.DirtiesContext;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -93,6 +98,45 @@ public class RequestRateLimiterGatewayFilterFactoryTests extends BaseWebClientTe
 		assertFilterFactory(exchange -> Mono.empty(), null, true, HttpStatus.OK, false);
 	}
 
+	@Test
+	public void differentRouteShared() {
+		Config configA = new Config();
+		configA.setRouteId("routeA");
+		configA.setIsolated(false);
+
+		Config configB = new Config();
+		configB.setRouteId("routeB");
+		configB.setIsolated(false);
+
+		assertIsolation(configA, configB);
+	}
+
+	@Test
+	public void differentRouteHasBothSharedAndIsolated() {
+		Config configA = new Config();
+		configA.setRouteId("routeA");
+		configA.setIsolated(false);
+
+		Config configB = new Config();
+		configB.setRouteId("routeB");
+		configB.setIsolated(true);
+
+		assertIsolation(configA, configB);
+	}
+
+	@Test
+	public void differentRouteAllIsolated() {
+		Config configA = new Config();
+		configA.setRouteId("routeA");
+		configA.setIsolated(true);
+
+		Config configB = new Config();
+		configB.setRouteId("routeB");
+		configB.setIsolated(true);
+
+		assertIsolation(configA, configB);
+	}
+
 	private void assertFilterFactory(KeyResolver keyResolver, String key, boolean allowed, HttpStatus expectedStatus) {
 		assertFilterFactory(keyResolver, key, allowed, expectedStatus, null);
 	}
@@ -133,6 +177,40 @@ public class RequestRateLimiterGatewayFilterFactoryTests extends BaseWebClientTe
 					Collections.singletonList(tokensRemaining));
 		});
 
+	}
+
+	private void assertIsolation(Config configA, Config configB) {
+		KeyResolver keyResolver = exchange -> Mono.just("key"); // always same
+
+		configA.setKeyResolver(keyResolver);
+		configB.setKeyResolver(keyResolver);
+
+		ArgumentCaptor<String> keyCaptor = ArgumentCaptor.forClass(String.class);
+
+		Map<String, String> headers = Collections.emptyMap();
+		when(rateLimiter.isAllowed(any(), keyCaptor.capture())).thenReturn(Mono.just(new Response(true, headers)));
+
+		MockServerHttpRequest request = MockServerHttpRequest.get("/").build();
+		MockServerWebExchange exchange = MockServerWebExchange.from(request);
+
+		when(this.filterChain.filter(exchange)).thenReturn(Mono.empty());
+
+		RequestRateLimiterGatewayFilterFactory factory = this.context
+				.getBean(RequestRateLimiterGatewayFilterFactory.class);
+
+		factory.apply(configA).filter(exchange, this.filterChain).subscribe();
+		factory.apply(configB).filter(exchange, this.filterChain).subscribe();
+
+		List<String> keys = keyCaptor.getAllValues();
+		String keyA = keys.get(0);
+		String keyB = keys.get(1);
+		if ((!configA.getIsolated() && !configB.getIsolated())
+				|| Objects.equals(configA.getRouteId(), configB.getRouteId())) {
+			assertThat(keyA).isEqualTo(keyB);
+		}
+		else {
+			assertThat(keyA).isNotEqualTo(keyB);
+		}
 	}
 
 	@EnableAutoConfiguration
