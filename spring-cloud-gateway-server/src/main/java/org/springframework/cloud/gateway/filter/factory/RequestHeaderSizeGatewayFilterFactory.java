@@ -34,11 +34,12 @@ import org.springframework.web.server.ServerWebExchange;
 import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
 
 /**
- * This filter validates the size of each Request Header in the request. If size of any of
- * the request header is greater than the configured maxSize,it blocks the request.
- * Default max size of request header is 16KB.
+ * This filter validates the size of each Request Header in the request, including the
+ * key. If size of the request header is greater than the configured maxSize, it blocks
+ * the request. Default max size of request header is 16KB.
  *
  * @author Sakalya Deshpande
+ * @author Marta Medio
  */
 
 public class RequestHeaderSizeGatewayFilterFactory
@@ -66,6 +67,7 @@ public class RequestHeaderSizeGatewayFilterFactory
 				Long headerSizeInBytes = 0L;
 
 				for (Map.Entry<String, List<String>> headerEntry : headers.entrySet()) {
+					headerSizeInBytes += (long) headerEntry.getKey().getBytes().length;
 					List<String> values = headerEntry.getValue();
 					for (String value : values) {
 						headerSizeInBytes += (long) value.getBytes().length;
