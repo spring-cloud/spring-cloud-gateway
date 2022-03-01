@@ -39,6 +39,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 
 /**
  * @author Sakalya Deshpande
+ * @author Marta Medio
  */
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -69,7 +70,7 @@ public class RequestHeaderSizeGatewayFilterFactoryTest extends BaseWebClientTest
 		Config config = new Config();
 		config.setMaxSize(DataSize.ofBytes(1000L));
 		GatewayFilter filter = new RequestHeaderSizeGatewayFilterFactory().apply(config);
-		assertThat(filter.toString()).contains("max").contains("1000B");
+		assertThat(filter.toString()).contains("maxSize").contains("1000B");
 	}
 
 	@EnableAutoConfiguration

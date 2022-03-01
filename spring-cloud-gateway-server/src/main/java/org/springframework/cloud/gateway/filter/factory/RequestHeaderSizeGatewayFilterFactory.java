@@ -88,7 +88,7 @@ public class RequestHeaderSizeGatewayFilterFactory
 			@Override
 			public String toString() {
 				return filterToStringCreator(RequestHeaderSizeGatewayFilterFactory.this)
-						.append("max", config.getMaxSize()).toString();
+						.append("maxSize", config.getMaxSize()).toString();
 			}
 		};
 	}
