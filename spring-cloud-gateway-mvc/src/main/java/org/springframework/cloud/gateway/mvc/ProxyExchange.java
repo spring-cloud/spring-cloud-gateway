@@ -415,7 +415,7 @@ public class ProxyExchange<T> {
 	}
 
 	private String forwarded(URI uri, String hostHeader) {
-		if (!StringUtils.isEmpty(hostHeader)) {
+		if (StringUtils.hasText(hostHeader)) {
 			return "host=" + hostHeader;
 		}
 		if ("http".equals(uri.getScheme())) {
@@ -570,7 +570,7 @@ class ServletOutputToInputConverter extends HttpServletResponseWrapper {
 
 			@Override
 			public void write(int b) throws IOException {
-				builder.append(new Character((char) b));
+				builder.append(Character.valueOf((char) b));
 			}
 
 			@Override

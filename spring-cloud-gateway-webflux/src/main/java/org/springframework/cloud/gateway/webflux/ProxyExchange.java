@@ -33,6 +33,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.RequestEntity.BodyBuilder;
 import org.springframework.http.ResponseEntity;
@@ -43,7 +44,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.reactive.BindingContext;
 import org.springframework.web.reactive.function.BodyInserters;
-import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClient.RequestBodySpec;
 import org.springframework.web.server.ServerWebExchange;
@@ -360,25 +360,26 @@ public class ProxyExchange<T> {
 		Type type = this.responseType;
 		RequestBodySpec builder = rest.method(requestEntity.getMethod()).uri(requestEntity.getUrl())
 				.headers(headers -> addHeaders(headers, requestEntity.getHeaders()));
-		Mono<ClientResponse> result;
+		WebClient.ResponseSpec result;
 		if (requestEntity.getBody() instanceof Publisher) {
 			@SuppressWarnings("unchecked")
 			Publisher<Object> publisher = (Publisher<Object>) requestEntity.getBody();
-			result = builder.body(publisher, Object.class).exchange();
+			result = builder.body(publisher, Object.class).retrieve();
 		}
 		else if (requestEntity.getBody() != null) {
-			result = builder.body(BodyInserters.fromValue(requestEntity.getBody())).exchange();
+			result = builder.body(BodyInserters.fromValue(requestEntity.getBody())).retrieve();
 		}
 		else {
 			if (hasBody) {
 				result = builder.headers(headers -> addHeaders(headers, exchange.getRequest().getHeaders()))
-						.body(exchange.getRequest().getBody(), DataBuffer.class).exchange();
+						.body(exchange.getRequest().getBody(), DataBuffer.class).retrieve();
 			}
 			else {
-				result = builder.headers(headers -> addHeaders(headers, exchange.getRequest().getHeaders())).exchange();
+				result = builder.headers(headers -> addHeaders(headers, exchange.getRequest().getHeaders())).retrieve();
 			}
 		}
-		return result.flatMap(response -> response.toEntity(ParameterizedTypeReference.forType(type)));
+		return result.onStatus(HttpStatus::isError, t -> Mono.empty())
+				.toEntity(ParameterizedTypeReference.forType(type));
 	}
 
 	private void addHeaders(HttpHeaders headers, HttpHeaders toAdd) {
@@ -436,7 +437,7 @@ public class ProxyExchange<T> {
 	}
 
 	private String forwarded(URI uri, String hostHeader) {
-		if (!StringUtils.isEmpty(hostHeader)) {
+		if (StringUtils.hasText(hostHeader)) {
 			return "host=" + hostHeader;
 		}
 		if ("http".equals(uri.getScheme())) {
