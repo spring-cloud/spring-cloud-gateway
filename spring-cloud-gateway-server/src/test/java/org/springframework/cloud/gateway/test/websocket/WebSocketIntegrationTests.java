@@ -29,13 +29,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
-import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.core.publisher.MonoProcessor;
-import reactor.core.publisher.ReplayProcessor;
 import reactor.core.publisher.Sinks;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -59,6 +57,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.server.reactive.HttpHandler;
 import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.DispatcherHandler;
@@ -76,6 +75,7 @@ import org.springframework.web.reactive.socket.server.WebSocketService;
 import org.springframework.web.reactive.socket.server.support.HandshakeWebSocketService;
 import org.springframework.web.reactive.socket.server.support.WebSocketHandlerAdapter;
 import org.springframework.web.reactive.socket.server.upgrade.ReactorNettyRequestUpgradeStrategy;
+import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.adapter.WebHttpHandlerBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -91,6 +91,8 @@ import static org.springframework.cloud.gateway.filter.WebsocketRoutingFilter.SE
 @DisabledIfEnvironmentVariable(named = "GITHUB_ACTIONS", matches = "true")
 public class WebSocketIntegrationTests {
 
+	private static final Duration TIMEOUT = Duration.ofMillis(5000);
+
 	private static final Log logger = LogFactory.getLog(WebSocketIntegrationTests.class);
 
 	protected int serverPort;
@@ -104,13 +106,6 @@ public class WebSocketIntegrationTests {
 	private int gatewayPort;
 
 	private static final Sinks.One<CloseStatus> serverCloseStatusSink = Sinks.one();
-
-	private static Mono<Void> doSend(WebSocketSession session, Publisher<WebSocketMessage> output) {
-		return session.send(output);
-		// workaround for suspected RxNetty WebSocket client issue
-		// https://github.com/ReactiveX/RxNetty/issues/560
-		// return session.send(Mono.delay(Duration.ofMillis(100)).thenMany(output));
-	}
 
 	@BeforeEach
 	public void setup() throws Exception {
@@ -166,38 +161,29 @@ public class WebSocketIntegrationTests {
 	public void echo() throws Exception {
 		int count = 100;
 		Flux<String> input = Flux.range(1, count).map(index -> "msg-" + index);
-		ReplayProcessor<Object> output = ReplayProcessor.create(count);
-
-		client.execute(getUrl("/echo"), session -> {
-			logger.debug("Starting to send messages");
-			return session.send(input.doOnNext(s -> logger.debug("outbound " + s)).map(s -> session.textMessage(s)))
-					.thenMany(session.receive().take(count).map(WebSocketMessage::getPayloadAsText))
-					.subscribeWith(output).doOnNext(s -> logger.debug("inbound " + s)).then()
-					.doOnSuccess(aVoid -> logger.debug("Done with success"))
-					.doOnError(ex -> logger.debug("Done with " + (ex != null ? ex.getMessage() : "error")));
-		}).block(Duration.ofMillis(5000));
-
-		assertThat(output.collectList().block(Duration.ofMillis(5000)))
-				.isEqualTo(input.collectList().block(Duration.ofMillis(5000)));
+		AtomicReference<List<String>> actualRef = new AtomicReference<>();
+		this.client.execute(getUrl("/echo"),
+				session -> session.send(input.map(session::textMessage))
+						.thenMany(session.receive().take(count).map(WebSocketMessage::getPayloadAsText)).collectList()
+						.doOnNext(actualRef::set).then())
+				.block(TIMEOUT);
+		assertThat(actualRef.get()).isNotNull();
+		assertThat(actualRef.get()).isEqualTo(input.collectList().block());
 	}
 
 	@Test
 	public void echoForHttp() throws Exception {
 		int count = 100;
 		Flux<String> input = Flux.range(1, count).map(index -> "msg-" + index);
-		ReplayProcessor<Object> output = ReplayProcessor.create(count);
-
-		client.execute(getHttpUrl("/echoForHttp"), session -> {
+		AtomicReference<List<String>> actualRef = new AtomicReference<>();
+		this.client.execute(getHttpUrl("/echoForHttp"), session -> {
 			logger.debug("Starting to send messages");
-			return session.send(input.doOnNext(s -> logger.debug("outbound " + s)).map(s -> session.textMessage(s)))
-					.thenMany(session.receive().take(count).map(WebSocketMessage::getPayloadAsText))
-					.subscribeWith(output).doOnNext(s -> logger.debug("inbound " + s)).then()
-					.doOnSuccess(aVoid -> logger.debug("Done with success"))
-					.doOnError(ex -> logger.debug("Done with " + (ex != null ? ex.getMessage() : "error")));
-		}).block(Duration.ofMillis(5000));
-
-		assertThat(output.collectList().block(Duration.ofMillis(5000)))
-				.isEqualTo(input.collectList().block(Duration.ofMillis(5000)));
+			return session.send(input.doOnNext(s -> logger.debug("outbound " + s)).map(session::textMessage))
+					.thenMany(session.receive().take(count).map(WebSocketMessage::getPayloadAsText)).collectList()
+					.doOnNext(actualRef::set).then();
+		}).block(TIMEOUT);
+		assertThat(actualRef.get()).isNotNull();
+		assertThat(actualRef.get()).isEqualTo(input.collectList().block());
 	}
 
 	@Test
@@ -205,9 +191,9 @@ public class WebSocketIntegrationTests {
 		String protocol = "echo-v1";
 		String protocol2 = "echo-v2";
 		AtomicReference<HandshakeInfo> infoRef = new AtomicReference<>();
-		MonoProcessor<Object> output = MonoProcessor.create();
+		AtomicReference<Object> protocolRef = new AtomicReference<>();
 
-		client.execute(getUrl("/sub-protocol"), new WebSocketHandler() {
+		this.client.execute(getUrl("/sub-protocol"), new WebSocketHandler() {
 			@Override
 			public List<String> getSubProtocols() {
 				return Arrays.asList(protocol, protocol2);
@@ -216,30 +202,29 @@ public class WebSocketIntegrationTests {
 			@Override
 			public Mono<Void> handle(WebSocketSession session) {
 				infoRef.set(session.getHandshakeInfo());
-				return session.receive().map(WebSocketMessage::getPayloadAsText).subscribeWith(output).then();
+				return session.receive().map(WebSocketMessage::getPayloadAsText).doOnNext(protocolRef::set)
+						.doOnError(protocolRef::set).then();
 			}
-		}).block(Duration.ofMillis(5000));
+		}).block(TIMEOUT);
 
 		HandshakeInfo info = infoRef.get();
 		assertThat(info.getHeaders().getFirst("Upgrade")).isEqualToIgnoringCase("websocket");
-
 		assertThat(info.getHeaders().getFirst("Sec-WebSocket-Protocol")).isEqualTo(protocol);
 		assertThat(info.getSubProtocol()).as("Wrong protocol accepted").isEqualTo(protocol);
-		assertThat(output.block(Duration.ofSeconds(5))).as("Wrong protocol detected on the server side")
-				.isEqualTo(protocol);
+		assertThat(protocolRef.get()).as("Wrong protocol detected on the server side").isEqualTo(protocol);
 	}
 
 	@Test
 	public void customHeader() throws Exception {
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("my-header", "my-value");
-		MonoProcessor<Object> output = MonoProcessor.create();
+		AtomicReference<Object> headerRef = new AtomicReference<>();
 
-		client.execute(getUrl("/custom-header"), headers,
-				session -> session.receive().map(WebSocketMessage::getPayloadAsText).subscribeWith(output).then())
-				.block(Duration.ofMillis(5000));
+		this.client.execute(getUrl("/custom-header"), headers, session -> session.receive()
+				.map(WebSocketMessage::getPayloadAsText).doOnNext(headerRef::set).doOnError(headerRef::set).then())
+				.block(TIMEOUT);
 
-		assertThat(output.block(Duration.ofMillis(5000))).isEqualTo("my-header:my-value");
+		assertThat(headerRef.get()).isEqualTo("my-header:my-value");
 	}
 
 	@Test
@@ -262,6 +247,20 @@ public class WebSocketIntegrationTests {
 				.block(Duration.ofMillis(5000));
 		assertThat(serverCloseStatusSink.asMono().block(Duration.ofMillis(5000)))
 				.isEqualTo(CloseStatus.create(4999, "client-close"));
+	}
+
+	@Disabled
+	@Test
+	void cookie() throws Exception {
+		AtomicReference<String> cookie = new AtomicReference<>();
+		AtomicReference<Object> receivedCookieRef = new AtomicReference<>();
+		this.client.execute(getUrl("/cookie"), session -> {
+			cookie.set(session.getHandshakeInfo().getHeaders().getFirst("Set-Cookie"));
+			return session.receive().map(WebSocketMessage::getPayloadAsText).doOnNext(receivedCookieRef::set)
+					.doOnError(receivedCookieRef::set).then();
+		}).block(TIMEOUT);
+		assertThat(receivedCookieRef.get()).isEqualTo("cookie");
+		assertThat(cookie.get()).isEqualTo("project=spring");
 	}
 
 	@Configuration(proxyBeanMethods = false)
@@ -295,10 +294,21 @@ public class WebSocketIntegrationTests {
 			map.put("/custom-header", new CustomHeaderHandler());
 			map.put("/server-close", new ServerClosingHandler());
 			map.put("/client-close", new ClientClosingHandler());
+			map.put("/cookie", new CookieHandler());
 
 			SimpleUrlHandlerMapping mapping = new SimpleUrlHandlerMapping();
 			mapping.setUrlMap(map);
 			return mapping;
+		}
+
+		@Bean
+		public WebFilter cookieWebFilter() {
+			return (exchange, chain) -> {
+				if (exchange.getRequest().getPath().value().startsWith("/cookie")) {
+					exchange.getResponse().addCookie(ResponseCookie.from("project", "spring").build());
+				}
+				return chain.filter(exchange);
+			};
 		}
 
 	}
@@ -328,8 +338,8 @@ public class WebSocketIntegrationTests {
 			}
 			List<String> protocols = session.getHandshakeInfo().getHeaders().get(SEC_WEBSOCKET_PROTOCOL);
 			assertThat(protocols).contains("echo-v1,echo-v2");
-			WebSocketMessage message = session.textMessage(protocol);
-			return doSend(session, Mono.just(message));
+			WebSocketMessage message = session.textMessage(protocol != null ? protocol : "none");
+			return session.send(Mono.just(message));
 		}
 
 	}
@@ -344,7 +354,7 @@ public class WebSocketIntegrationTests {
 			}
 			String payload = "my-header:" + headers.getFirst("my-header");
 			WebSocketMessage message = session.textMessage(payload);
-			return doSend(session, Mono.just(message));
+			return session.send(Mono.just(message));
 		}
 
 	}
@@ -363,6 +373,16 @@ public class WebSocketIntegrationTests {
 		@Override
 		public Mono<Void> handle(WebSocketSession session) {
 			return session.closeStatus().doOnNext(serverCloseStatusSink::tryEmitValue).then();
+		}
+
+	}
+
+	private static class CookieHandler implements WebSocketHandler {
+
+		@Override
+		public Mono<Void> handle(WebSocketSession session) {
+			WebSocketMessage message = session.textMessage("cookie");
+			return session.send(Mono.just(message));
 		}
 
 	}

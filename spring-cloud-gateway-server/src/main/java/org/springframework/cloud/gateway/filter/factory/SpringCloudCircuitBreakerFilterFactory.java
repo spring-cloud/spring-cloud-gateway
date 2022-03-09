@@ -189,7 +189,7 @@ public abstract class SpringCloudCircuitBreakerFilterFactory
 		}
 
 		public String getId() {
-			if (StringUtils.isEmpty(name) && !StringUtils.isEmpty(routeId)) {
+			if (!StringUtils.hasText(name) && StringUtils.hasText(routeId)) {
 				return routeId;
 			}
 			return name;

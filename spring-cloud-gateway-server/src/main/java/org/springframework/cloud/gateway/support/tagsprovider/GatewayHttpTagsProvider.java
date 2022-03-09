@@ -33,7 +33,7 @@ public class GatewayHttpTagsProvider implements GatewayTagsProvider {
 		String status = "CUSTOM";
 		String httpStatusCodeStr = "NA";
 
-		String httpMethod = exchange.getRequest().getMethodValue();
+		String httpMethod = exchange.getRequest().getMethod().name();
 
 		// a non standard HTTPS status could be used. Let's be defensive here
 		// it needs to be checked for first, otherwise the delegate response
