@@ -78,7 +78,6 @@
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-test-support</artifactId>
-				<scope>test</scope>
 				<version>${spring-cloud-commons.version}</version>
 			</dependency>
 			<dependency>
