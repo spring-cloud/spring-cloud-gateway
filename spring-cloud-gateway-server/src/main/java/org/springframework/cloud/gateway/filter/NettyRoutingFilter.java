@@ -181,7 +181,7 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 
 			exchange.getAttributes().put(CLIENT_RESPONSE_HEADER_NAMES, filteredResponseHeaders.keySet());
 
-			response.getHeaders().putAll(filteredResponseHeaders);
+			response.getHeaders().addAll(filteredResponseHeaders);
 
 			return Mono.just(res);
 		});
