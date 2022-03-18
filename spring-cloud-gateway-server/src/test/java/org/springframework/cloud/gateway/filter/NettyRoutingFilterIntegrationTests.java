@@ -132,6 +132,16 @@ public class NettyRoutingFilterIntegrationTests extends BaseWebClientTests {
 		testClient.get().uri("/delay/2").exchange().expectStatus().isEqualTo(HttpStatus.OK);
 	}
 
+	@Test
+	public void testHeadersAreClearedOnFallback() {
+		String header = "X-Test-SHOULD-MERGED-HEADER";
+		String gatewayHeaderValue = "value-from-gateway";
+		String upstreamHeaderValue = "value-from-upstream";
+		testClient.post().uri("/responseheaders/200").header("Host", "www.mergeresponseheader.org")
+				.header(header, upstreamHeaderValue).exchange().expectHeader()
+				.valueEquals(header, gatewayHeaderValue, upstreamHeaderValue);
+	}
+
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
