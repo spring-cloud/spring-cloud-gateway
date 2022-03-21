@@ -66,6 +66,14 @@ public class RequestHeaderSizeGatewayFilterFactoryTest extends BaseWebClientTest
 	}
 
 	@Test
+	public void setRequestHeaderSizeFilterTakesIntoAccountHeaderName() {
+		testClient.get().uri("/headerName").header("Host", "www.testrequestheadersizefiltername.org")
+				.header("HeaderName", "X").exchange().expectStatus()
+				.isEqualTo(HttpStatus.REQUEST_HEADER_FIELDS_TOO_LARGE).expectHeader()
+				.valueMatches("errorMessage", responseMesssage);
+	}
+
+	@Test
 	public void toStringFormat() {
 		Config config = new Config();
 		config.setMaxSize(DataSize.ofBytes(1000L));
@@ -87,6 +95,9 @@ public class RequestHeaderSizeGatewayFilterFactoryTest extends BaseWebClientTest
 					.route("test_request_header_size",
 							r -> r.order(-1).host("**.testrequestheadersizefilter.org")
 									.filters(f -> f.setRequestHeaderSize(DataSize.of(46L, DataUnit.BYTES))).uri(uri))
+					.route("test_request_header_size_name",
+							r -> r.order(1).host("**.testrequestheadersizefiltername.org")
+									.filters(f -> f.setRequestHeaderSize(DataSize.of(1L, DataUnit.BYTES))).uri(uri))
 					.build();
 		}
 
