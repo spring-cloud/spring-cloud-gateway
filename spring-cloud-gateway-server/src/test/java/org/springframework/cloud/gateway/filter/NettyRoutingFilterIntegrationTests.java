@@ -133,7 +133,8 @@ public class NettyRoutingFilterIntegrationTests extends BaseWebClientTests {
 	}
 
 	@Test
-	public void testHeadersAreClearedOnFallback() {
+	// gh-2541
+	public void shouldMergeResponseHeadersFromUpstreamWithCreatedByGateway() {
 		String header = "X-Test-SHOULD-MERGED-HEADER";
 		String gatewayHeaderValue = "value-from-gateway";
 		String upstreamHeaderValue = "value-from-upstream";
