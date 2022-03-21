@@ -128,6 +128,7 @@ public class RequestHeaderSizeGatewayFilterFactory
 		public void setErrorHeaderName(String errorHeaderName) {
 			this.errorHeaderName = errorHeaderName;
 		}
+
 	}
 
 }
