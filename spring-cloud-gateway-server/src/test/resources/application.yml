@@ -304,7 +304,7 @@ spring:
         predicates:
           - Host=**.requestheadersize.org
         filters:
-          - RequestHeaderSize=4
+          - RequestHeaderSize=46
 
         # =====================================
       - id: rewrite_location_response_header_test

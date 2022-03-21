@@ -1145,8 +1145,8 @@ This will remove the `red` parameter before it is sent downstream.
 
 === `RequestHeaderSize` `GatewayFilter` Factory
 
-The `RequestHeaderSize` `GatewayFilter` factory takes a `maxSize` parameter.
-It is the maximum data size allowed of the request header (incuding key and value).
+The `RequestHeaderSize` `GatewayFilter` factory takes `maxSize` and `errorHeaderName` parameters.
+The `maxSize` parameter is the maximum data size allowed of the request header (incuding key and value). The `errorHeaderName` parameter sets the name of the response header containing an error message, by default it is "errorMessage".
 The following listing configures a `RequestHeaderSize` `GatewayFilter`:
 
 .application.yml

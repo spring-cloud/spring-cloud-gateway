@@ -46,31 +46,40 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @DirtiesContext
 public class RequestHeaderSizeGatewayFilterFactoryTest extends BaseWebClientTests {
 
-	private static final String responseMesssage = "Request Header/s size is larger than "
-			+ "permissible limit. Request Header/s size is \\d*B where permissible limit is \\d*B";
+	private static final String longString = "11111111112222222222333333333344444444445555555";
 
 	@Test
 	public void setRequestHeaderSizeFilterWorks() {
+		System.err.println("Here: " + longString.length() + ", " + longString.getBytes().length);
 		testClient.get().uri("/headers").header("Host", "www.testrequestheadersizefilter.org")
-				.header("HeaderName", "Some Very Large Header Name").exchange().expectStatus()
-				.isEqualTo(HttpStatus.REQUEST_HEADER_FIELDS_TOO_LARGE).expectHeader()
-				.valueMatches("errorMessage", responseMesssage);
+				.header("HeaderName", longString).exchange().expectStatus()
+				.isEqualTo(HttpStatus.REQUEST_HEADER_FIELDS_TOO_LARGE).expectHeader().value("errorMessage",
+						header -> assertThat(header).contains("permissible limit (46B)", "'HeaderName' is 57B"));
 	}
 
 	@Test
 	public void setRequestHeaderSizeFilterShortcutWorks() {
-		testClient.get().uri("/headers").header("Host", "www.requestheadersize.org")
-				.header("HeaderName", "Some Very Large Header Name").exchange().expectStatus()
+		testClient.get().uri("/headers").header("Host", "www.requestheadersize.org").header("HeaderName", longString)
+				.exchange().expectStatus().isEqualTo(HttpStatus.REQUEST_HEADER_FIELDS_TOO_LARGE).expectHeader()
+				.value("errorMessage",
+						header -> assertThat(header).contains("permissible limit (46B)", "'HeaderName' is 57B"));
+	}
+
+	@Test
+	public void setRequestHeaderSizeFilterMultipleHeadersWorks() {
+		testClient.get().uri("/headers").header("Host", "www.requestheadersize.org").header("HeaderName", longString)
+				.header("HeaderName2", longString).exchange().expectStatus()
 				.isEqualTo(HttpStatus.REQUEST_HEADER_FIELDS_TOO_LARGE).expectHeader()
-				.valueMatches("errorMessage", responseMesssage);
+				.value("errorMessage", header -> assertThat(header).contains("permissible limit (46B)",
+						"'HeaderName' is 57B", "'HeaderName2' is 58B"));
 	}
 
 	@Test
 	public void setRequestHeaderSizeFilterTakesIntoAccountHeaderName() {
-		testClient.get().uri("/headerName").header("Host", "www.testrequestheadersizefiltername.org")
-				.header("HeaderName", "X").exchange().expectStatus()
-				.isEqualTo(HttpStatus.REQUEST_HEADER_FIELDS_TOO_LARGE).expectHeader()
-				.valueMatches("errorMessage", responseMesssage);
+		testClient.get().uri("/headers").header("Host", "www.testrequestheadersizefiltername.org")
+				.header("HeaderName", longString).exchange().expectStatus()
+				.isEqualTo(HttpStatus.REQUEST_HEADER_FIELDS_TOO_LARGE).expectHeader().value("errorMessage",
+						header -> assertThat(header).contains("permissible limit (47B)", "'HeaderName' is 57B"));
 	}
 
 	@Test
@@ -97,7 +106,7 @@ public class RequestHeaderSizeGatewayFilterFactoryTest extends BaseWebClientTest
 									.filters(f -> f.setRequestHeaderSize(DataSize.of(46L, DataUnit.BYTES))).uri(uri))
 					.route("test_request_header_size_name",
 							r -> r.order(1).host("**.testrequestheadersizefiltername.org")
-									.filters(f -> f.setRequestHeaderSize(DataSize.of(1L, DataUnit.BYTES))).uri(uri))
+									.filters(f -> f.setRequestHeaderSize(DataSize.of(47L, DataUnit.BYTES))).uri(uri))
 					.build();
 		}
 
