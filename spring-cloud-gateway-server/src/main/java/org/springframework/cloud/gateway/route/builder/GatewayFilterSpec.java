@@ -796,13 +796,31 @@ public class GatewayFilterSpec extends UriSpec {
 	}
 
 	/**
-	 * A filter that enables token relay.
+	 * A filter that enables token relay by extracting the access token from the currently
+	 * authenticated user and puts it in a request header for downstream requests.
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
 	public GatewayFilterSpec tokenRelay() {
 		try {
-			return filter(getBean(TokenRelayGatewayFilterFactory.class).apply(o -> {
+			return filter(getBean(TokenRelayGatewayFilterFactory.class).apply(c -> {
 			}));
+		}
+		catch (NoSuchBeanDefinitionException e) {
+			throw new IllegalStateException("No TokenRelayGatewayFilterFactory bean was found. Did you include the "
+					+ "org.springframework.boot:spring-boot-starter-oauth2-client dependency?");
+		}
+	}
+
+	/**
+	 * A filter that enables token relay by extracting the access token of a specified
+	 * {@code ClientRegistration} and puts it in a request header for downstream requests.
+	 * @param clientRegistrationId the client registration id to use for building the
+	 * authorization request
+	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
+	 */
+	public GatewayFilterSpec tokenRelay(String clientRegistrationId) {
+		try {
+			return filter(getBean(TokenRelayGatewayFilterFactory.class).apply(c -> c.setName(clientRegistrationId)));
 		}
 		catch (NoSuchBeanDefinitionException e) {
 			throw new IllegalStateException("No TokenRelayGatewayFilterFactory bean was found. Did you include the "
