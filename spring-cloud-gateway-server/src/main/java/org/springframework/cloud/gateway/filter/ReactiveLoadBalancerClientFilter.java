@@ -115,6 +115,7 @@ public class ReactiveLoadBalancerClientFilter implements GlobalFilter, Ordered {
 						RequestDataContext.class, ResponseData.class, ServiceInstance.class);
 		DefaultRequest<RequestDataContext> lbRequest = new DefaultRequest<>(
 				new RequestDataContext(new RequestData(exchange.getRequest()), getHint(serviceId)));
+		LoadBalancerProperties loadBalancerProperties = clientFactory.getProperties(serviceId);
 		return choose(lbRequest, serviceId, supportedLifecycleProcessors).doOnNext(response -> {
 
 			if (!response.hasServer()) {
@@ -153,8 +154,15 @@ public class ReactiveLoadBalancerClientFilter implements GlobalFilter, Ordered {
 				.doOnSuccess(aVoid -> supportedLifecycleProcessors.forEach(lifecycle -> lifecycle
 						.onComplete(new CompletionContext<ResponseData, ServiceInstance, RequestDataContext>(
 								CompletionContext.Status.SUCCESS, lbRequest,
-								exchange.getAttribute(GATEWAY_LOADBALANCER_RESPONSE_ATTR),
-								new ResponseData(exchange.getResponse(), new RequestData(exchange.getRequest()))))));
+								exchange.getAttribute(GATEWAY_LOADBALANCER_RESPONSE_ATTR), buildResponseData(exchange,
+										loadBalancerProperties.isUseRawStatusCodeInResponseData())))));
+	}
+
+	private ResponseData buildResponseData(ServerWebExchange exchange, boolean useRawStatusCodes) {
+		if (useRawStatusCodes) {
+			return new ResponseData(new RequestData(exchange.getRequest()), exchange.getResponse());
+		}
+		return new ResponseData(exchange.getResponse(), new RequestData(exchange.getRequest()));
 	}
 
 	protected URI reconstructURI(ServiceInstance serviceInstance, URI original) {
