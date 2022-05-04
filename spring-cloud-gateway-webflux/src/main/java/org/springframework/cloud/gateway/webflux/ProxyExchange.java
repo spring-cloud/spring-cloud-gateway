@@ -33,7 +33,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.RequestEntity.BodyBuilder;
 import org.springframework.http.ResponseEntity;
@@ -378,7 +378,7 @@ public class ProxyExchange<T> {
 				result = builder.headers(headers -> addHeaders(headers, exchange.getRequest().getHeaders())).retrieve();
 			}
 		}
-		return result.onStatus(HttpStatus::isError, t -> Mono.empty())
+		return result.onStatus(HttpStatusCode::isError, t -> Mono.empty())
 				.toEntity(ParameterizedTypeReference.forType(type));
 	}
 

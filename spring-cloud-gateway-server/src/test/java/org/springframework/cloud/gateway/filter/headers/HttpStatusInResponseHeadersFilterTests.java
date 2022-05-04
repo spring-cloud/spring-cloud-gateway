@@ -26,6 +26,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -54,7 +55,7 @@ public class HttpStatusInResponseHeadersFilterTests extends BaseWebClientTests {
 			return new HttpHeadersFilter() {
 				@Override
 				public HttpHeaders filter(HttpHeaders input, ServerWebExchange exchange) {
-					HttpStatus statusCode = exchange.getResponse().getStatusCode();
+					HttpStatusCode statusCode = exchange.getResponse().getStatusCode();
 					assertThat(statusCode).isEqualTo(HttpStatus.OK);
 					return input;
 				}

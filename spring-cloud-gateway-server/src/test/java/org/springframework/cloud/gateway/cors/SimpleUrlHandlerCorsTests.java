@@ -31,6 +31,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
@@ -62,8 +63,8 @@ public class SimpleUrlHandlerCorsTests extends BaseWebClientTests {
 	@Test
 	public void testCorsRequestNotHandledByGW() {
 		ResponseEntity<String> responseEntity = webClient.get().uri("/abc/123/function").header("Origin", "domain.com")
-				.header(HttpHeaders.HOST, "www.path.org").retrieve().onStatus(HttpStatus::isError, t -> Mono.empty())
-				.toEntity(String.class).block();
+				.header(HttpHeaders.HOST, "www.path.org").retrieve()
+				.onStatus(HttpStatusCode::isError, t -> Mono.empty()).toEntity(String.class).block();
 		HttpHeaders asHttpHeaders = responseEntity.getHeaders();
 		assertThat(responseEntity.getBody()).isNotNull();
 		assertThat(asHttpHeaders.getAccessControlAllowOrigin())
