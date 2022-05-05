@@ -235,7 +235,7 @@ public class ProductionConfigurationTests {
 		ResponseEntity<Map<String, Foo>> deleteResponse = rest.exchange("/proxy/{id}", HttpMethod.DELETE,
 				new HttpEntity<Foo>(foo), returnType, Collections.singletonMap("id", "123"));
 		assertThat(deleteResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
-		assertThat(deleteResponse.getBody().get("deleted")).isEqualToComparingFieldByField(foo);
+		assertThat(deleteResponse.getBody().get("deleted")).usingRecursiveComparison().isEqualTo(foo);
 	}
 
 	@SpringBootApplication

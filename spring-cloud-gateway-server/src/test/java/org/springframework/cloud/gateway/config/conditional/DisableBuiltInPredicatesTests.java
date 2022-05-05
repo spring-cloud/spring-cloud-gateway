@@ -58,8 +58,9 @@ public class DisableBuiltInPredicatesTests {
 	}
 
 	@RunWith(SpringRunner.class)
-	@SpringBootTest(classes = Config.class, properties = { "spring.cloud.gateway.predicate.after.enabled=false",
-			"spring.cloud.gateway.predicate.before.enabled=false" })
+	@SpringBootTest(classes = Config.class,
+			properties = { "spring.cloud.gateway.predicate.after.enabled=false",
+					"spring.cloud.gateway.predicate.before.enabled=false" })
 	@ActiveProfiles("disable-components")
 	public static class DisableSpecificsPredicatesByProperty {
 
@@ -85,6 +86,7 @@ public class DisableBuiltInPredicatesTests {
 			"spring.cloud.gateway.predicate.query.enabled=false",
 			"spring.cloud.gateway.predicate.read-body.enabled=false",
 			"spring.cloud.gateway.predicate.remote-addr.enabled=false",
+			"spring.cloud.gateway.predicate.xforwarded-remote-addr.enabled=false",
 			"spring.cloud.gateway.predicate.weight.enabled=false",
 			"spring.cloud.gateway.predicate.cloud-foundry-route-service.enabled=false" })
 	@ActiveProfiles("disable-components")

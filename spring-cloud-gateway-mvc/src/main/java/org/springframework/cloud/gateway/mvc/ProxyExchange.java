@@ -36,14 +36,14 @@ import java.util.Vector;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import javax.servlet.ReadListener;
-import javax.servlet.ServletInputStream;
-import javax.servlet.ServletOutputStream;
-import javax.servlet.WriteListener;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletRequestWrapper;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpServletResponseWrapper;
+import jakarta.servlet.ReadListener;
+import jakarta.servlet.ServletInputStream;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.WriteListener;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequestWrapper;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponseWrapper;
 
 import org.springframework.core.Conventions;
 import org.springframework.core.MethodParameter;
@@ -140,7 +140,8 @@ public class ProxyExchange<T> {
 	/**
 	 * Contains headers that are considered case-sensitive by default.
 	 */
-	public static Set<String> DEFAULT_SENSITIVE = new HashSet<>(Arrays.asList("cookie", "authorization"));
+	public static Set<String> DEFAULT_SENSITIVE = Collections
+			.unmodifiableSet(new HashSet<>(Arrays.asList("cookie", "authorization")));
 
 	private URI uri;
 
@@ -276,7 +277,7 @@ public class ProxyExchange<T> {
 	}
 
 	public ResponseEntity<T> get() {
-		RequestEntity<?> requestEntity = headers((BodyBuilder) RequestEntity.get(uri)).build();
+		RequestEntity<?> requestEntity = headers((BodyBuilder) RequestEntity.get(uri)).body(body());
 		return exchange(requestEntity);
 	}
 
@@ -414,7 +415,7 @@ public class ProxyExchange<T> {
 	}
 
 	private String forwarded(URI uri, String hostHeader) {
-		if (!StringUtils.isEmpty(hostHeader)) {
+		if (StringUtils.hasText(hostHeader)) {
 			return "host=" + hostHeader;
 		}
 		if ("http".equals(uri.getScheme())) {
@@ -569,7 +570,7 @@ class ServletOutputToInputConverter extends HttpServletResponseWrapper {
 
 			@Override
 			public void write(int b) throws IOException {
-				builder.append(new Character((char) b));
+				builder.append(Character.valueOf((char) b));
 			}
 
 			@Override

@@ -31,8 +31,8 @@ import java.util.Collection;
 import java.util.List;
 
 import javax.net.ssl.KeyManagerFactory;
-import javax.validation.constraints.Max;
 
+import jakarta.validation.constraints.Max;
 import reactor.netty.resources.ConnectionProvider;
 import reactor.netty.tcp.SslProvider;
 import reactor.netty.transport.ProxyProvider;
@@ -483,6 +483,7 @@ public class HttpClientProperties {
 			this.trustedX509Certificates = trustedX509;
 		}
 
+		@Deprecated
 		public X509Certificate[] getTrustedX509CertificatesForTrustManager() {
 			try {
 				CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
@@ -505,6 +506,7 @@ public class HttpClientProperties {
 			}
 		}
 
+		@Deprecated
 		public KeyManagerFactory getKeyManagerFactory() {
 			try {
 				if (getKeyStore() != null && getKeyStore().length() > 0) {
@@ -528,6 +530,7 @@ public class HttpClientProperties {
 			}
 		}
 
+		@Deprecated
 		public KeyStore createKeyStore() {
 			try {
 				KeyStore store = getKeyStoreProvider() != null

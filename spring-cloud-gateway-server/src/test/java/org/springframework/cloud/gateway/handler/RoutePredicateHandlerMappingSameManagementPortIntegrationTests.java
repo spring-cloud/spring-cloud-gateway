@@ -24,9 +24,9 @@ import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
+import org.springframework.cloud.test.TestSocketUtils;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.util.SocketUtils;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
 
@@ -38,7 +38,7 @@ public class RoutePredicateHandlerMappingSameManagementPortIntegrationTests exte
 
 	@BeforeAll
 	public static void beforeClass() {
-		samePort = SocketUtils.findAvailableTcpPort();
+		samePort = TestSocketUtils.findAvailableTcpPort();
 		System.setProperty("server.port", String.valueOf(samePort));
 		System.setProperty("management.server.port", String.valueOf(samePort));
 	}

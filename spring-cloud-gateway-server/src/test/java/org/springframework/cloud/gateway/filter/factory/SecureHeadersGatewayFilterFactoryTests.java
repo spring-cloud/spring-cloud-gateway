@@ -28,6 +28,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.web.reactive.function.client.ClientResponse;
 
@@ -73,13 +74,13 @@ public class SecureHeadersGatewayFilterFactoryTests extends BaseWebClientTests {
 
 	@Test
 	public void addsSecureHeadersAfterResponseIsReceived() {
-		Mono<ClientResponse> result = webClient.patch().uri("/headers").header("Host", "www.secureheaders.org")
-				.contentType(MediaType.APPLICATION_JSON).bodyValue("{ \"X-Frame-Options\": \"sameorigin\" }")
-				.exchange();
+		Mono<ResponseEntity<String>> responseEntity = webClient.patch().uri("/headers")
+				.header("Host", "www.secureheaders.org").contentType(MediaType.APPLICATION_JSON)
+				.bodyValue("{ \"X-Frame-Options\": \"sameorigin\" }").retrieve().toEntity(String.class);
 
-		StepVerifier.create(result).consumeNextWith(response -> {
-			assertThat(response.statusCode()).isEqualTo(HttpStatus.OK);
-			assertThat(response.headers().header(X_FRAME_OPTIONS_HEADER)).containsOnly("sameorigin");
+		StepVerifier.create(responseEntity).consumeNextWith(response -> {
+			assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+			assertThat(response.getHeaders().get(X_FRAME_OPTIONS_HEADER)).containsOnly("sameorigin");
 		}).expectComplete().verify(DURATION);
 	}
 

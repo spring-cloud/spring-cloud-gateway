@@ -127,7 +127,7 @@ public class CacheRequestBodyGatewayFilterFactoryTests extends BaseWebClientTest
 		private String bodyExcepted;
 
 		AssertCachedRequestBodyGatewayFilter(String body) {
-			this.exceptNullBody = StringUtils.isEmpty(body);
+			this.exceptNullBody = !StringUtils.hasText(body);
 			this.bodyExcepted = body;
 		}
 

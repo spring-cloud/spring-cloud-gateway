@@ -44,6 +44,7 @@ import org.springframework.cloud.gateway.support.TimeoutException;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatus.Series;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.util.Assert;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -84,7 +85,7 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 					return false;
 				}
 
-				HttpStatus statusCode = exchange.getResponse().getStatusCode();
+				HttpStatusCode statusCode = exchange.getResponse().getStatusCode();
 
 				boolean retryableStatusCode = retryConfig.getStatuses().contains(statusCode);
 
@@ -93,9 +94,12 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 					// try the series
 					retryableStatusCode = false;
 					for (int i = 0; i < retryConfig.getSeries().size(); i++) {
-						if (statusCode.series().equals(retryConfig.getSeries().get(i))) {
-							retryableStatusCode = true;
-							break;
+						if (statusCode instanceof HttpStatus) {
+							HttpStatus httpStatus = (HttpStatus) statusCode;
+							if (httpStatus.series().equals(retryConfig.getSeries().get(i))) {
+								retryableStatusCode = true;
+								break;
+							}
 						}
 					}
 				}

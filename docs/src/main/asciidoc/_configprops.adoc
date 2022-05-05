@@ -31,8 +31,8 @@
 |spring.cloud.gateway.filter.remove-response-header.enabled | `true` | Enables the remove-response-header filter.
 |spring.cloud.gateway.filter.request-header-size.enabled | `true` | Enables the request-header-size filter.
 |spring.cloud.gateway.filter.request-header-to-request-uri.enabled | `true` | Enables the request-header-to-request-uri filter.
-|spring.cloud.gateway.filter.request-rate-limiter.deny-empty-key | `true` | Switch to deny requests if the Key Resolver returns an empty key, defaults to true.
-|spring.cloud.gateway.filter.request-rate-limiter.empty-key-status-code |  | HttpStatus to return when denyEmptyKey is true, defaults to FORBIDDEN.
+|spring.cloud.gateway.filter.request-rate-limiter.default-key-resolver |  | 
+|spring.cloud.gateway.filter.request-rate-limiter.default-rate-limiter |  | 
 |spring.cloud.gateway.filter.request-rate-limiter.enabled | `true` | Enables the request-rate-limiter filter.
 |spring.cloud.gateway.filter.request-size.enabled | `true` | Enables the request-size filter.
 |spring.cloud.gateway.filter.retry.enabled | `true` | Enables the retry filter.
@@ -70,6 +70,7 @@
 |spring.cloud.gateway.global-filter.websocket-routing.enabled | `true` | Enables the websocket-routing global filter.
 |spring.cloud.gateway.globalcors.add-to-simple-url-handler-mapping | `false` | If global CORS config should be added to the URL handler.
 |spring.cloud.gateway.globalcors.cors-configurations |  | 
+|spring.cloud.gateway.handler-mapping.order | `1` | The order of RoutePredicateHandlerMapping.
 |spring.cloud.gateway.httpclient.compression | `false` | Enables compression for Netty HttpClient.
 |spring.cloud.gateway.httpclient.connect-timeout |  | The connect timeout in millis, the default is 45s.
 |spring.cloud.gateway.httpclient.max-header-size |  | The max response header size.
@@ -121,12 +122,14 @@
 |spring.cloud.gateway.predicate.read-body.enabled | `true` | Enables the read-body predicate.
 |spring.cloud.gateway.predicate.remote-addr.enabled | `true` | Enables the remote-addr predicate.
 |spring.cloud.gateway.predicate.weight.enabled | `true` | Enables the weight predicate.
+|spring.cloud.gateway.predicate.xforwarded-remote-addr.enabled | `true` | Enables the xforwarded-remote-addr predicate.
 |spring.cloud.gateway.redis-rate-limiter.burst-capacity-header | `X-RateLimit-Burst-Capacity` | The name of the header that returns the burst capacity configuration.
 |spring.cloud.gateway.redis-rate-limiter.config |  | 
 |spring.cloud.gateway.redis-rate-limiter.include-headers | `true` | Whether or not to include headers containing rate limiter information, defaults to true.
 |spring.cloud.gateway.redis-rate-limiter.remaining-header | `X-RateLimit-Remaining` | The name of the header that returns number of remaining requests during the current second.
 |spring.cloud.gateway.redis-rate-limiter.replenish-rate-header | `X-RateLimit-Replenish-Rate` | The name of the header that returns the replenish rate configuration.
 |spring.cloud.gateway.redis-rate-limiter.requested-tokens-header | `X-RateLimit-Requested-Tokens` | The name of the header that returns the requested tokens configuration.
+|spring.cloud.gateway.restrictive-property-accessor.enabled | `true` | Restricts method and property access in SpEL.
 |spring.cloud.gateway.routes |  | List of Routes.
 |spring.cloud.gateway.set-status.original-status-header-name |  | The name of the header which contains http code of the proxied request.
 |spring.cloud.gateway.streaming-media-types |  | 

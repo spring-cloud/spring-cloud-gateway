@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.gateway.cors;
 
-import java.util.Arrays;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
@@ -31,9 +31,10 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.web.reactive.function.client.ClientResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -46,30 +47,29 @@ public class SimpleUrlHandlerCorsTests extends BaseWebClientTests {
 
 	@Test
 	public void testPreFlightCorsRequestNotHandledByGW() {
-		ClientResponse clientResponse = webClient.options().uri("/abc/123/function").header("Origin", "domain.com")
-				.header("Access-Control-Request-Method", "GET").exchange().block();
-		HttpHeaders asHttpHeaders = clientResponse.headers().asHttpHeaders();
-		Mono<String> bodyToMono = clientResponse.bodyToMono(String.class);
+		ResponseEntity<String> response = webClient.options().uri("/abc/123/function").header("Origin", "domain.com")
+				.header("Access-Control-Request-Method", "GET").retrieve().toEntity(String.class).block();
+		HttpHeaders asHttpHeaders = response.getHeaders();
 		// pre-flight request shouldn't return the response body
-		assertThat(bodyToMono.block()).isNull();
+		assertThat(response.getBody()).isNull();
 		assertThat(asHttpHeaders.getAccessControlAllowOrigin())
 				.as("Missing header value in response: " + HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN).isEqualTo("*");
 		assertThat(asHttpHeaders.getAccessControlAllowMethods())
 				.as("Missing header value in response: " + HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS)
-				.isEqualTo(Arrays.asList(new HttpMethod[] { HttpMethod.GET }));
-		assertThat(clientResponse.statusCode()).as("Pre Flight call failed.").isEqualTo(HttpStatus.OK);
+				.isEqualTo(List.of(HttpMethod.GET));
+		assertThat(response.getStatusCode()).as("Pre Flight call failed.").isEqualTo(HttpStatus.OK);
 	}
 
 	@Test
 	public void testCorsRequestNotHandledByGW() {
-		ClientResponse clientResponse = webClient.get().uri("/abc/123/function").header("Origin", "domain.com")
-				.header(HttpHeaders.HOST, "www.path.org").exchange().block();
-		HttpHeaders asHttpHeaders = clientResponse.headers().asHttpHeaders();
-		Mono<String> bodyToMono = clientResponse.bodyToMono(String.class);
-		assertThat(bodyToMono.block()).isNotNull();
+		ResponseEntity<String> responseEntity = webClient.get().uri("/abc/123/function").header("Origin", "domain.com")
+				.header(HttpHeaders.HOST, "www.path.org").retrieve()
+				.onStatus(HttpStatusCode::isError, t -> Mono.empty()).toEntity(String.class).block();
+		HttpHeaders asHttpHeaders = responseEntity.getHeaders();
+		assertThat(responseEntity.getBody()).isNotNull();
 		assertThat(asHttpHeaders.getAccessControlAllowOrigin())
 				.as("Missing header value in response: " + HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN).isEqualTo("*");
-		assertThat(clientResponse.statusCode()).as("CORS request failed.").isEqualTo(HttpStatus.NOT_FOUND);
+		assertThat(responseEntity.getStatusCode()).as("CORS request failed.").isEqualTo(HttpStatus.NOT_FOUND);
 	}
 
 	@EnableAutoConfiguration

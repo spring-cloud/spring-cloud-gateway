@@ -188,6 +188,7 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void toStringFormat() {
 		RetryConfig config = new RetryConfig();
 		config.setRetries(4);

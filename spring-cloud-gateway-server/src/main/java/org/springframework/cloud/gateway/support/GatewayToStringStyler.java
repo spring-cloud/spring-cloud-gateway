@@ -24,6 +24,7 @@ import org.springframework.core.style.DefaultValueStyler;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.util.ClassUtils;
 
+@SuppressWarnings("rawtypes")
 public class GatewayToStringStyler extends DefaultToStringStyler {
 
 	private static final GatewayToStringStyler FILTER_INSTANCE = new GatewayToStringStyler(GatewayFilterFactory.class,
