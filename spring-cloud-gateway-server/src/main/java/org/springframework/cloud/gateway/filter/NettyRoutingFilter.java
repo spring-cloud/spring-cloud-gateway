@@ -261,7 +261,7 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 
 	private Duration getResponseTimeout(Route route) {
 		Object responseTimeoutAttr = route.getMetadata().get(RESPONSE_TIMEOUT_ATTR);
-		if (responseTimeoutAttr != null && responseTimeoutAttr instanceof Number) {
+		if (responseTimeoutAttr != null && responseTimeoutAttr.toString().matches("[0-9]+")) {
 			Long routeResponseTimeout = ((Number) responseTimeoutAttr).longValue();
 			if (routeResponseTimeout >= 0) {
 				return Duration.ofMillis(routeResponseTimeout);
