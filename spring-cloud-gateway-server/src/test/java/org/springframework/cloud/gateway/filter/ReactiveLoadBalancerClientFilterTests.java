@@ -274,7 +274,7 @@ class ReactiveLoadBalancerClientFilterTests {
 			filter.filter(exchange, chain).block();
 		}
 		catch (NotFoundException exception) {
-			assertThat(exception.getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
+			assertThat(exception.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
 		}
 	}
 
