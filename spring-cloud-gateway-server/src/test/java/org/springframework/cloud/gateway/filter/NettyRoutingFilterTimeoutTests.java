@@ -21,33 +21,32 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.web.server.ServerWebExchange;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 /**
- * This test covers the response timeouts set route via placeholder values & hard coded values.
- * These tests ensure that custom response timoeuts set are resolved correctly and effective on the routes.
+ * This test covers the response timeouts set route via placeholder values & hard coded
+ * values. These tests ensure that custom response timoeuts set are resolved correctly and
+ * effective on the routes.
  *
  * @author explorer-fullstack
  **/
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
 @ActiveProfiles("netty-routing-filter-timeout")
-class NettyRoutingFilterCompatibleTests extends BaseWebClientTests {
+class NettyRoutingFilterTimeoutTests extends BaseWebClientTests {
 
 	@Test
 	void shouldApplyResponseTimeoutPerRoute_when_set_as_placeholder_value_valid() {
-		testClient.get().uri("/route/placeholder/validtimeout/3").exchange().expectStatus().isEqualTo(HttpStatus.GATEWAY_TIMEOUT)
-				.expectBody().jsonPath("$.status").isEqualTo(String.valueOf(HttpStatus.GATEWAY_TIMEOUT.value()))
-				.jsonPath("$.message").isEqualTo("Response took longer than timeout: PT3S");
+		testClient.get().uri("/route/placeholder/validtimeout/3").exchange().expectStatus()
+				.isEqualTo(HttpStatus.GATEWAY_TIMEOUT).expectBody().jsonPath("$.status")
+				.isEqualTo(String.valueOf(HttpStatus.GATEWAY_TIMEOUT.value())).jsonPath("$.message")
+				.isEqualTo("Response took longer than timeout: PT3S");
 	}
 
 	@EnableAutoConfiguration
