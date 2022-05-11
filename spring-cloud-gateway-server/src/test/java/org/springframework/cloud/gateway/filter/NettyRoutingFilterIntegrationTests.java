@@ -113,6 +113,13 @@ public class NettyRoutingFilterIntegrationTests extends BaseWebClientTests {
 	}
 
 	@Test
+	void shouldApplyResponseTimeoutPerRoute_placeholderTimeout_valid() {
+		testClient.get().uri("/placeholder/delay/2").exchange().expectStatus().isEqualTo(HttpStatus.GATEWAY_TIMEOUT)
+				.expectBody().jsonPath("$.status").isEqualTo(String.valueOf(HttpStatus.GATEWAY_TIMEOUT.value()))
+				.jsonPath("$.message").isEqualTo("Response took longer than timeout: PT1S");
+	}
+
+	@Test
 	public void shouldNotApplyResponseTimeoutPerRouteWhenNegativeValue() {
 		assertThatThrownBy(() -> {
 			testClient.get().uri("/disabledRoute/delay/10").exchange();
