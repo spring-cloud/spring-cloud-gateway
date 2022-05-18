@@ -16,10 +16,10 @@
 
 package org.springframework.cloud.gateway.sample;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
-import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.cloud.client.DefaultServiceInstance;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
@@ -55,7 +55,7 @@ public class MvcFailureAnalyzerApplication {
 
 class MyServiceConf {
 
-	@LocalServerPort
+	@Value("${local.server.port}")
 	private int port = 0;
 
 	@Bean
