@@ -93,6 +93,9 @@ public class CustomBlockHoundIntegration implements BlockHoundIntegration {
 				"org.springframework.context.annotation.ConfigurationClassBeanDefinitionReader", "loadBeanDefinitions");
 		builder.allowBlockingCallsInside("org.springframework.core.type.classreading.SimpleMetadataReader",
 				"getClassReader");
+		builder.allowBlockingCallsInside("io.micrometer.contextpropagation.ThreadLocalAccessorLoader",
+				"getThreadLocalAccessors");
+		builder.allowBlockingCallsInside("io.micrometer.contextpropagation.PropagatorLoader", "getPropagatorForSet");
 	}
 
 }
