@@ -29,7 +29,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
       - name: Build with Maven
-        run: ./mvnw clean install -B -U -Pspring -Dmaven.test.redirectTestOutputToFile=true -Dmaven.wagon.httpconnectionManager.ttlSeconds=120
+        run: ./mvnw clean install -B -U -Pspring -Dmaven.test.redirectTestOutputToFile=true -Dmaven.wagon.http.pool=false -Dmaven.wagon.httpconnectionManager.ttlSeconds=120
       - name: Publish Test Report
         uses: mikepenz/action-junit-report@v2
         if: always() # always run even if the previous step fails
