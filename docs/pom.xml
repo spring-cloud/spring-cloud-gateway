@@ -17,6 +17,8 @@
 		<main.basedir>${basedir}/..</main.basedir>
 		<configprops.inclusionPattern>spring.cloud.gateway.*</configprops.inclusionPattern>
 		<upload-docs-zip.phase>deploy</upload-docs-zip.phase>
+		<!-- Don't upload docs jar to central / repo.spring.io -->
+		<maven-deploy-plugin-default.phase>none</maven-deploy-plugin-default.phase>
 	</properties>
 	<dependencies>
 		<dependency>
