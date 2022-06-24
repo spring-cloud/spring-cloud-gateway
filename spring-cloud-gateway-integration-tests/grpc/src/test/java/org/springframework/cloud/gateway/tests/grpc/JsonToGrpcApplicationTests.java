@@ -58,6 +58,7 @@ public class JsonToGrpcApplicationTests {
 	@BeforeEach
 	void setUp() {
 		restTemplate = createUnsecureClient();
+//		restTemplate = new RestTemplate();
 	}
 
 	@Test
