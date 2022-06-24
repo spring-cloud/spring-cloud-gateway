@@ -7,6 +7,15 @@ server:
     key-store-password: password
     key-password: password
     enabled: true
+    key-alias: bootapp
+#    key-store-provider: SUN
+#    trust-certificate: classpath:certificate.pem
+#    trust-certificate-private-key: classpath:private.key
+#    trust-store: classpath:keystore.jks
+#    trust-store-password: password
+#    trust-certificate-private-key: classpath:private.key
+#    trust-store-provider: classpath:keystore.jks
+
 spring:
   cloud:
     gateway:
@@ -20,6 +29,22 @@ spring:
           key-store-password: password
           key-password: password
           use-insecure-trust-manager: true
+#          key-store-type: JKS
+#          key-store: classpath:keystore.jks
+#          key-store-password: password
+#          trusted-x509-certificates: classpath:certificate.pem
+#          trust-store: classpath:keystore.jks
+#          trust-store-password: password
+#          trust-certificate-private-key: classpath:private.key
+#          key-store-provider: classpath:keystore.jks
+#          key-password: password
+
+      routes:
+        - uri: https://localhost:8095
+          predicates:
+            - Path=/json/hello
+          filters:
+            - JsonToGrpc=file:src/main/proto/hello.pb,file:src/main/proto/hello.proto,HelloService,hello
 
 logging:
   level:

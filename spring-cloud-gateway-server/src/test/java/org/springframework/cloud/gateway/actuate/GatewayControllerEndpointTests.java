@@ -164,6 +164,50 @@ public class GatewayControllerEndpointTests {
 	}
 
 	@Test
+	public void testPostValidShortcutRouteDefinition() {
+//		04-08-2022 08:41:31.866 [reactor-http-epoll-1] TRACE org.springframework.web.HttpLogging.trace - [0a3d20a5-43] Decoded [RouteDefinition{id='gatewaywithgrpcfiltertest-0-104014-8916263311295787431172436062-test-gateway-tls-client-mapping-0', predicates=[PredicateDefinition{name='Path', args={_genkey_0=/json/hello}}], filters=[FilterDefinition{name='StripPrefix', args={_genkey_0=1}}, FilterDefinition{name='JsonToGrpcGatewayFilterFactory', args={_genkey_0=file:src/main/proto/hello.pb, _genkey_1=file:src/main/proto/hello.proto, _genkey_2=HelloService, _genkey_3=hello}}], uri=https://localhost:8095, order=0, metadata={}}]
+//			04-08-2022 08:41:31.870 [reactor-http-epoll-1] WARN  o.s.c.g.a.GatewayControllerEndpoint.handleUnavailableDefinition - Invalid FilterDefinition: [JsonToGrpcGatewayFilterFactory]
+//			04-08-2022 08:41:31.882 [reactor-http-epoll-1] DEBUG o.s.w.s.h.ResponseStatusExceptionHandler.handle - [0a3d20a5-43] Resolved [ResponseStatusException: "400 BAD_REQUEST "Invalid FilterDefinition: [JsonToGrpcGatewayFilterFactory]""] for HTTP POST /actuator/gateway/routes/gatewaywithgrpcfiltertest-0-104014-8916263311295787431172436062-test-gateway-tls-client-mapping-0
+//			04-08-2022 08:41:31.883 [reactor-http-epoll-1] TRACE o.s.w.s.a.HttpWebHandlerAdapter.traceDebug - [0a3d20a5-43] Completed 400 BAD_REQUEST, headers={masked}
+//
+//[RouteDefinition{id='gatewaywithgrpcfiltertest-0-104014-8916263311295787431172436062-test-gateway-tls-client-mapping-0',
+		// predicates=[PredicateDefinition{name='Path', args={_genkey_0=/json/hello}}],
+		// filters=[FilterDefinition{name='StripPrefix', args={_genkey_0=1}},
+		// FilterDefinition{name='JsonToGrpcGatewayFilterFactory',
+		// args={_genkey_0=file:src/main/proto/hello.pb, _genkey_1=file:src/main/proto/hello.proto, _genkey_2=HelloService, _genkey_3=hello}}],
+
+		// uri=https://localhost:8095, order=0, metadata={}}]
+
+		RouteDefinition testRouteDefinition = new RouteDefinition();
+		testRouteDefinition.setId("gatewaywithgrpcfiltertest-0-104014-8916263311295787431172436062-test-gateway-tls-client-mapping-0");
+		testRouteDefinition.setUri(URI.create("https://localhost:8095"));
+		testRouteDefinition.setOrder(0);
+		testRouteDefinition.setMetadata(Collections.emptyMap());
+
+		FilterDefinition longFilterDefinition = new FilterDefinition();
+		FilterDefinition stripPrefix = new FilterDefinition();
+		stripPrefix.setName("StripPrefix");
+		stripPrefix.addArg("_genkey_0","1");
+
+		longFilterDefinition.setName("JsonToGrpc");
+		longFilterDefinition.addArg("_genkey_0","file:src/main/proto/hello.pb");
+		longFilterDefinition.addArg("_genkey_1","file:src/main/proto/hello.proto");
+		longFilterDefinition.addArg("_genkey_2","HelloService");
+		longFilterDefinition.addArg("_genkey_3","hello");
+		testRouteDefinition.setFilters(Collections.singletonList(longFilterDefinition));
+
+		PredicateDefinition hostRoutePredicateDefinition = new PredicateDefinition();
+		hostRoutePredicateDefinition.setName("Path");
+		hostRoutePredicateDefinition.addArg("_genkey_0","/json/hello");
+		testRouteDefinition.setPredicates(
+				Arrays.asList(hostRoutePredicateDefinition));
+
+		testClient.post().uri("http://localhost:" + port + "/actuator/gateway/routes/test-route")
+				.accept(MediaType.APPLICATION_JSON).body(BodyInserters.fromValue(testRouteDefinition)).exchange()
+				.expectStatus().isCreated();
+	}
+
+	@Test
 	public void testPostRouteWithNotExistingFilter() {
 
 		RouteDefinition testRouteDefinition = new RouteDefinition();
