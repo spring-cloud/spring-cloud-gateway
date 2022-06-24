@@ -18,7 +18,12 @@ package org.springframework.cloud.gateway.tests.grpc;
 
 import java.io.File;
 import java.io.IOException;
+import java.security.cert.X509Certificate;
 import java.util.concurrent.TimeUnit;
+
+import javax.net.ssl.SSLException;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 import io.grpc.Grpc;
 import io.grpc.Server;
@@ -31,6 +36,7 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.cloud.gateway.config.GRPCSSLContext;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
@@ -53,8 +59,31 @@ public class GRPCApplication {
 
 	@Bean
 	public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
-		return builder.routes().route("grpc", r -> r.predicate(p -> true).uri("https://localhost:" + GRPC_SERVER_PORT))
-				.build();
+		return builder.routes().route("json-grpc", r -> r.path("/json/hello").filters(f -> {
+			String protoDescriptor = "file:src/main/proto/hello.pb";
+			String protoFile = "file:src/main/proto/hello.proto";
+			String service = "HelloService";
+			String method = "hello";
+			return f.jsonToGRPC(protoDescriptor, protoFile, service, method);
+		}).uri("https://localhost:" + GRPC_SERVER_PORT))
+				.route("grpc", r -> r.predicate(p -> true).uri("https://localhost:" + GRPC_SERVER_PORT)).build();
+	}
+
+	@Bean
+	public GRPCSSLContext sslContext() throws SSLException {
+		TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
+			public X509Certificate[] getAcceptedIssuers() {
+				return new X509Certificate[0];
+			}
+
+			public void checkClientTrusted(X509Certificate[] certs, String authType) {
+			}
+
+			public void checkServerTrusted(X509Certificate[] certs, String authType) {
+			}
+		} };
+
+		return new GRPCSSLContext(trustAllCerts[0]);
 	}
 
 	@Component
@@ -74,7 +103,7 @@ public class GRPCApplication {
 			server = Grpc.newServerBuilderForPort(GRPC_SERVER_PORT, creds).addService(new HelloService()).build()
 					.start();
 
-			System.out.println("Starting server in port " + GRPC_SERVER_PORT);
+			System.out.println("Starting gRPC server in port " + GRPC_SERVER_PORT);
 
 			Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 				try {
@@ -104,7 +133,7 @@ public class GRPCApplication {
 			public void hello(HelloRequest request, StreamObserver<HelloResponse> responseObserver) {
 
 				String greeting = "Hello, " + request.getFirstName() + " " + request.getLastName();
-				System.out.println(greeting);
+				System.out.println("Sending response: " + greeting);
 
 				HelloResponse response = HelloResponse.newBuilder().setGreeting(greeting).build();
 

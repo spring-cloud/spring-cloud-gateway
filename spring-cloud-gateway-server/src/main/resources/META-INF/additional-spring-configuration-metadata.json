@@ -25,6 +25,12 @@
       "defaultValue": "true"
     },
     {
+      "name": "spring.cloud.gateway.filter.json-to-grpc.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the JSON to gRPC filter.",
+      "defaultValue": "true"
+    },
+    {
       "name": "spring.cloud.gateway.filter.modify-request-body.enabled",
       "type": "java.lang.Boolean",
       "description": "Enables the modify-request-body filter.",

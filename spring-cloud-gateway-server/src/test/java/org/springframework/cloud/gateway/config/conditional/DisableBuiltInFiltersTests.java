@@ -82,6 +82,7 @@ public class DisableBuiltInFiltersTests {
 					"spring.cloud.gateway.filter.map-request-header.enabled=false",
 					"spring.cloud.gateway.filter.add-request-parameter.enabled=false",
 					"spring.cloud.gateway.filter.add-response-header.enabled=false",
+					"spring.cloud.gateway.filter.json-to-grpc.enabled=false",
 					"spring.cloud.gateway.filter.modify-request-body.enabled=false",
 					"spring.cloud.gateway.filter.dedupe-response-header.enabled=false",
 					"spring.cloud.gateway.filter.modify-response-body.enabled=false",
