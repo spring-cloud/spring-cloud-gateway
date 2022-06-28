@@ -160,7 +160,7 @@ public class AbstractGatewayControllerEndpoint implements ApplicationEventPublis
 
 	private void handleUnavailableDefinition(String simpleName, Set<String> unavailableDefinitions) {
 		final String errorMessage = String.format("Invalid %s: %s", simpleName, unavailableDefinitions);
-		log.debug(errorMessage);
+		log.warn(errorMessage);
 		throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errorMessage);
 	}
 
