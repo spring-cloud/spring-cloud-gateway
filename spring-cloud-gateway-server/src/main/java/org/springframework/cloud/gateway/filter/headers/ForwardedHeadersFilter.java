@@ -127,8 +127,7 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 			String forValue;
 			if (remoteAddress.isUnresolved()) {
 				forValue = remoteAddress.getHostName();
-			}
-			else {
+			} else {
 				InetAddress address = remoteAddress.getAddress();
 				forValue = remoteAddress.getAddress().getHostAddress();
 				if (address instanceof Inet6Address) {
@@ -143,21 +142,25 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 		}
 
 		try {
-			String byValue;
-
-			InetAddress address = InetAddress.getLocalHost();
-			byValue = address.getHostAddress();
-			if (address instanceof Inet6Address) {
-				byValue = "[" + byValue + "]";
-			}
-			forwarded.put("by", byValue);
+			addForwardedBy(forwarded, InetAddress.getLocalHost());
 		} catch (UnknownHostException e) {
 			this.logger.warn("Can not resolve host address, skipping Forwarded 'by' header", e);
+
 		}
 
 		updated.add(FORWARDED_HEADER, forwarded.toHeaderValue());
 
 		return updated;
+	}
+
+	/* for testing */ void addForwardedBy(Forwarded forwarded, InetAddress localAddress) {
+		if (localAddress != null) {
+			String byValue = localAddress.getHostAddress();
+			if (localAddress instanceof Inet6Address) {
+				byValue = "[" + byValue + "]";
+			}
+			forwarded.put("by", byValue);
+		}
 	}
 
 	/* for testing */ static class Forwarded {

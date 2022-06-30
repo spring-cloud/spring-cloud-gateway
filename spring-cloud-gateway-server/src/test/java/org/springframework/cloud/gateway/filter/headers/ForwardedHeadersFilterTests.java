@@ -27,7 +27,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
@@ -197,24 +196,30 @@ public class ForwardedHeadersFilterTests {
 	}
 
 	@Test
-	public void forwardedByIsAdded() throws UnknownHostException {
-		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost/get")
-				.remoteAddress(new InetSocketAddress(InetAddress.getByName("2001:db8:cafe:0:0:0:0:17"), 80)).build();
+	public void forwardedByForIpv4AddressIsAdded() throws UnknownHostException {
+		Forwarded forwarded = new Forwarded();
 
-		ForwardedHeadersFilter filter = new ForwardedHeadersFilter();
+		InetAddress ipv4Address = InetAddress.getByName("216.103.69.111");
 
-		HttpHeaders headers = filter.filter(request.getHeaders(), MockServerWebExchange.from(request));
+		ForwardedHeadersFilter forwardedHeadersFilter = new ForwardedHeadersFilter();
 
-		List<Forwarded> result = ForwardedHeadersFilter.parse(headers.get(FORWARDED_HEADER));
+		forwardedHeadersFilter.addForwardedBy(forwarded, ipv4Address);
 
-		Assertions.assertThat(result).hasSize(1);
+		Assertions.assertThat(forwarded.getValues()).containsEntry("by", "216.103.69.111");
 
-		Assertions.assertThat(result.stream()
-				.filter(forwarded -> forwarded.get("by") != null).collect(Collectors.toSet())).hasSize(1);
+	}
 
-		result.stream()
-				.filter(forwarded -> forwarded.get("by") != null)
-				.forEach(forwarded -> assertThat(forwarded.get("by")).isEqualTo("216.103.69.111"));
+	@Test
+	public void forwardedByForIpv6AddressIsAdded() throws UnknownHostException {
+		Forwarded forwarded = new Forwarded();
+
+		InetAddress ipv6Address = InetAddress.getByName("abc4:babf:955f:1724:11bc:0153:275c:d36e");
+
+		ForwardedHeadersFilter forwardedHeadersFilter = new ForwardedHeadersFilter();
+
+		forwardedHeadersFilter.addForwardedBy(forwarded, ipv6Address);
+
+		Assertions.assertThat(forwarded.getValues()).containsEntry("by", "\"[abc4:babf:955f:1724:11bc:153:275c:d36e]\"");
 
 	}
 }
