@@ -20,13 +20,15 @@ import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URI;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.jetbrains.annotations.Nullable;
-
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -42,6 +44,8 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 	 * Forwarded header.
 	 */
 	public static final String FORWARDED_HEADER = "Forwarded";
+	private final Log logger = LogFactory.getLog(getClass());
+
 
 	/* for testing */
 	static List<Forwarded> parse(List<String> values) {
@@ -137,7 +141,19 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 			}
 			forwarded.put("for", forValue);
 		}
-		// TODO: support by?
+
+		try {
+			String byValue;
+
+			InetAddress address = InetAddress.getLocalHost();
+			byValue = address.getHostAddress();
+			if (address instanceof Inet6Address) {
+				byValue = "[" + byValue + "]";
+			}
+			forwarded.put("by", byValue);
+		} catch (UnknownHostException e) {
+			this.logger.warn("Can not resolve host address, skipping Forwarded 'by' header", e);
+		}
 
 		updated.add(FORWARDED_HEADER, forwarded.toHeaderValue());
 

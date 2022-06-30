@@ -16,6 +16,9 @@
 
 package org.springframework.cloud.gateway.filter.headers;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.cloud.gateway.filter.headers.ForwardedHeadersFilter.FORWARDED_HEADER;
+
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
@@ -24,17 +27,15 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+import org.assertj.core.api.Assertions;
 import org.junit.Test;
-
 import org.springframework.cloud.gateway.filter.headers.ForwardedHeadersFilter.Forwarded;
 import org.springframework.http.HttpHeaders;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.util.StringUtils;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.cloud.gateway.filter.headers.ForwardedHeadersFilter.FORWARDED_HEADER;
 
 /**
  * @author Spencer Gibb
@@ -195,4 +196,27 @@ public class ForwardedHeadersFilterTests {
 		}
 	}
 
+	@Test
+	public void forwardedByIsAdded() throws UnknownHostException {
+		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost/get")
+				.remoteAddress(new InetSocketAddress(InetAddress.getByName("2001:db8:cafe:0:0:0:0:17"), 80)).build();
+
+		ForwardedHeadersFilter filter = new ForwardedHeadersFilter();
+
+		HttpHeaders headers = filter.filter(request.getHeaders(), MockServerWebExchange.from(request));
+
+		List<Forwarded> result = ForwardedHeadersFilter.parse(headers.get(FORWARDED_HEADER));
+
+		Assertions.assertThat(result).hasSize(1);
+
+		Assertions.assertThat(result.stream()
+				.filter(forwarded -> forwarded.get("by") != null).collect(Collectors.toSet())).hasSize(1);
+
+		result.stream()
+				.filter(forwarded -> forwarded.get("by") != null)
+				.forEach(forwarded -> assertThat(forwarded.get("by")).isEqualTo("216.103.69.111"));
+
+	}
 }
+
+
