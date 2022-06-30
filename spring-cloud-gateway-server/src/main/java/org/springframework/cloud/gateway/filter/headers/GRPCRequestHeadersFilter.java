@@ -55,7 +55,7 @@ public class GRPCRequestHeadersFilter implements HttpHeadersFilter, Ordered {
 
 	@Override
 	public int getOrder() {
-		return 0;
+		return Ordered.LOWEST_PRECEDENCE;
 	}
 
 }
