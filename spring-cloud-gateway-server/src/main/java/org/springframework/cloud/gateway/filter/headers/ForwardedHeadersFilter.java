@@ -29,6 +29,8 @@ import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jetbrains.annotations.Nullable;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
@@ -45,6 +47,9 @@ import org.springframework.web.server.ServerWebExchange;
  */
 @ConfigurationProperties("spring.cloud.gateway.forwarded")
 public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
+
+	@Value("${server.port}")
+	private int serverPort;
 
 	private final Log logger = LogFactory.getLog(getClass());
 
@@ -172,6 +177,9 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 			String byValue = localAddress.getHostAddress();
 			if (localAddress instanceof Inet6Address) {
 				byValue = "[" + byValue + "]";
+			}
+			if (serverPort > 0) {
+				byValue = byValue + ":" + serverPort;
 			}
 			forwarded.put("by", byValue);
 		}
