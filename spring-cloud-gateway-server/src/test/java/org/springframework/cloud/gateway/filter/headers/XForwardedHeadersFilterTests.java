@@ -16,19 +16,6 @@
 
 package org.springframework.cloud.gateway.filter.headers;
 
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.URI;
-import java.util.LinkedHashSet;
-
-import org.junit.Test;
-
-import org.springframework.http.HttpHeaders;
-import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
-import org.springframework.mock.web.server.MockServerWebExchange;
-import org.springframework.web.server.ServerWebExchange;
-import org.springframework.web.util.UriComponentsBuilder;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.gateway.filter.headers.XForwardedHeadersFilter.X_FORWARDED_FOR_HEADER;
 import static org.springframework.cloud.gateway.filter.headers.XForwardedHeadersFilter.X_FORWARDED_HOST_HEADER;
@@ -38,13 +25,25 @@ import static org.springframework.cloud.gateway.filter.headers.XForwardedHeaders
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
 
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.URI;
+import java.util.LinkedHashSet;
+
+import org.junit.Test;
+import org.springframework.http.HttpHeaders;
+import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
+import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.util.UriComponentsBuilder;
+
 /**
  * @author Spencer Gibb
  */
 public class XForwardedHeadersFilterTests {
 
 	@Test
-	public void remoteAddressIsNull() throws Exception {
+	public void remoteAddressIsNull() {
 		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost:8080/get")
 				.header(HttpHeaders.HOST, "myhost").build();
 

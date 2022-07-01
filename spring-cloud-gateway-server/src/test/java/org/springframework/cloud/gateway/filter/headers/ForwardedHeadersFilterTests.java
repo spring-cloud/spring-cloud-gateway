@@ -198,10 +198,9 @@ public class ForwardedHeadersFilterTests {
 	@Test
 	public void forwardedByForIpv4AddressIsAdded() throws UnknownHostException {
 		Forwarded forwarded = new Forwarded();
-
 		InetAddress ipv4Address = InetAddress.getByName("216.103.69.111");
-
 		ForwardedHeadersFilter forwardedHeadersFilter = new ForwardedHeadersFilter();
+		forwardedHeadersFilter.setByEnabled(true);
 
 		forwardedHeadersFilter.addForwardedBy(forwarded, ipv4Address);
 
@@ -212,16 +211,26 @@ public class ForwardedHeadersFilterTests {
 	@Test
 	public void forwardedByForIpv6AddressIsAdded() throws UnknownHostException {
 		Forwarded forwarded = new Forwarded();
-
 		InetAddress ipv6Address = InetAddress.getByName("abc4:babf:955f:1724:11bc:0153:275c:d36e");
-
 		ForwardedHeadersFilter forwardedHeadersFilter = new ForwardedHeadersFilter();
+		forwardedHeadersFilter.setByEnabled(true);
 
 		forwardedHeadersFilter.addForwardedBy(forwarded, ipv6Address);
 
-		Assertions.assertThat(forwarded.getValues()).containsEntry("by", "\"[abc4:babf:955f:1724:11bc:153:275c:d36e]\"");
+		Assertions.assertThat(forwarded.getValues()).containsEntry("by",
+				"\"[abc4:babf:955f:1724:11bc:153:275c:d36e]\"");
 
 	}
+
+	@Test
+	public void forwardedByIsNotAddedIfFeatureIsDisabled() throws UnknownHostException {
+		Forwarded forwarded = new Forwarded();
+		InetAddress ipv4Address = InetAddress.getByName("216.103.69.111");
+		ForwardedHeadersFilter forwardedHeadersFilter = new ForwardedHeadersFilter();
+		forwardedHeadersFilter.setByEnabled(false);
+
+		forwardedHeadersFilter.addForwardedBy(forwarded, ipv4Address);
+
+		Assertions.assertThat(forwarded.getValues()).containsEntry("by", "216.103.69.111");
+	}
 }
-
-

@@ -29,6 +29,7 @@ import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jetbrains.annotations.Nullable;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -38,14 +39,22 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
 
+/**
+ * @author Olga Maciaszek-Sharma
+ * @author Tillmann Heigel
+ */
+@ConfigurationProperties("spring.cloud.gateway.forwarded")
 public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
+
+	private final Log logger = LogFactory.getLog(getClass());
+
+	/** If Forwarded: by header is enabled. */
+	private boolean byEnabled = true;
 
 	/**
 	 * Forwarded header.
 	 */
 	public static final String FORWARDED_HEADER = "Forwarded";
-	private final Log logger = LogFactory.getLog(getClass());
-
 
 	/* for testing */
 	static List<Forwarded> parse(List<String> values) {
@@ -141,11 +150,8 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 			forwarded.put("for", forValue);
 		}
 
-		try {
-			addForwardedBy(forwarded, InetAddress.getLocalHost());
-		} catch (UnknownHostException e) {
-			this.logger.warn("Can not resolve host address, skipping Forwarded 'by' header", e);
-
+		if (byEnabled) {
+			addForwardedByHeader(forwarded);
 		}
 
 		updated.add(FORWARDED_HEADER, forwarded.toHeaderValue());
@@ -153,7 +159,15 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 		return updated;
 	}
 
-	/* for testing */ void addForwardedBy(Forwarded forwarded, InetAddress localAddress) {
+	private void addForwardedByHeader(Forwarded forwarded) {
+		try {
+			addForwardedBy(forwarded, InetAddress.getLocalHost());
+		} catch (UnknownHostException e) {
+			this.logger.warn("Can not resolve host address, skipping Forwarded 'by' header", e);
+		}
+	}
+
+	/* visible for testing */ void addForwardedBy(Forwarded forwarded, InetAddress localAddress) {
 		if (localAddress != null) {
 			String byValue = localAddress.getHostAddress();
 			if (localAddress instanceof Inet6Address) {
@@ -215,6 +229,14 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 			return builder.toString();
 		}
 
+	}
+
+	public boolean isByEnabled() {
+		return byEnabled;
+	}
+
+	public void setByEnabled(boolean byEnabled) {
+		this.byEnabled = byEnabled;
 	}
 
 }
