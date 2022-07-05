@@ -1,0 +1,10 @@
+SpringCloudGateway研究
+
+
+先通过案例使用来学习 Spring Cloud Gateway
+
+1、gateway源码本地编译运行跑起来
+2、eureka server的搭建
+3、eureka service provider的搭建
+4、httpclient-gateway-serviceProvider联调
+5、gateway各种配置和功能的尝试

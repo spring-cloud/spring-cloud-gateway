@@ -8,8 +8,8 @@
 	<version>2.0.2.RELEASE</version>
 	<packaging>pom</packaging>
 
-	<name>Spring Cloud Gateway</name>
-	<description>Spring Cloud Gateway</description>
+	<name>Super Spring Cloud Gateway</name>
+	<description>Super Spring Cloud Gateway</description>
 
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
