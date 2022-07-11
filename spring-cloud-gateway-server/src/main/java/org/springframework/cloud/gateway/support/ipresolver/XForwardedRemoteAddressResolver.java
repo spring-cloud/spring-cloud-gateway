@@ -20,6 +20,7 @@ import java.net.InetSocketAddress;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,6 +49,11 @@ public class XForwardedRemoteAddressResolver implements RemoteAddressResolver {
 	public static final String X_FORWARDED_FOR = "X-Forwarded-For";
 
 	private static final Logger log = LoggerFactory.getLogger(XForwardedRemoteAddressResolver.class);
+
+	/**
+	 * {@link Pattern} for a comma delimited string that support whitespace characters
+	 */
+	private static final Pattern commaSeparatedValuesPattern = Pattern.compile(", ?");
 
 	private final RemoteAddressResolver defaultRemoteIpResolver = new RemoteAddressResolver() {
 	};
@@ -126,7 +132,7 @@ public class XForwardedRemoteAddressResolver implements RemoteAddressResolver {
 			log.warn("Multiple X-Forwarded-For headers found, discarding all");
 			return Collections.emptyList();
 		}
-		List<String> values = Arrays.asList(xForwardedValues.get(0).split(", "));
+		List<String> values = Arrays.asList(commaSeparatedValuesPattern.split(xForwardedValues.get(0)));
 		if (values.size() == 1 && !StringUtils.hasText(values.get(0))) {
 			return Collections.emptyList();
 		}

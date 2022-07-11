@@ -68,7 +68,6 @@ public class XForwardedRemoteAddressResolverTest {
 		InetSocketAddress address = trustOne.resolve(exchange);
 
 		assertThat(address.getHostName()).isEqualTo("0.0.0.0");
-
 	}
 
 	@Test
@@ -115,7 +114,6 @@ public class XForwardedRemoteAddressResolverTest {
 		InetSocketAddress address = trustAll.resolve(exchange);
 
 		assertThat(address.getHostName()).isEqualTo("0.0.0.0");
-
 	}
 
 	@Test
@@ -126,6 +124,15 @@ public class XForwardedRemoteAddressResolverTest {
 		InetSocketAddress address = trustAll.resolve(exchange);
 
 		assertThat(address.getHostName()).isEqualTo("0.0.0.0");
+	}
+
+	@Test
+    public void onlyCommaSeparatedHeaders() {
+        ServerWebExchange exchange = buildExchange(onlyCommaSeparatedBuilder());
+
+		InetSocketAddress address = trustAll.resolve(exchange);
+
+		assertThat(address.getHostName()).isEqualTo("0.0.0.1");
 	}
 
 	private MockServerHttpRequest.BaseBuilder emptyBuilder() {
@@ -139,6 +146,11 @@ public class XForwardedRemoteAddressResolverTest {
 	private MockServerHttpRequest.BaseBuilder oneTwoThreeBuilder() {
 		return MockServerHttpRequest.get("someUrl").remoteAddress(remote0000Address).header("X-Forwarded-For",
 				"0.0.0.1, 0.0.0.2, 0.0.0.3");
+	}
+
+	private MockServerHttpRequest.BaseBuilder onlyCommaSeparatedBuilder() {
+		return MockServerHttpRequest.get("someUrl").remoteAddress(remote0000Address)
+				.header("X-Forwarded-For", "0.0.0.1,0.0.0.2,0.0.0.3");
 	}
 
 	private ServerWebExchange buildExchange(MockServerHttpRequest.BaseBuilder requestBuilder) {
