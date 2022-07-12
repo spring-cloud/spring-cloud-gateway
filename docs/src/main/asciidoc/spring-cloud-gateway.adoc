@@ -1654,7 +1654,7 @@ The `SetRequestHostHeader` `GatewayFilter` factory replaces the value of the hos
 
 === Modify a Request Body `GatewayFilter` Factory
 
-You can use the `ModifyRequestBody` filter  filter to modify the request body before it is sent downstream by the gateway.
+You can use the `ModifyRequestBody` filter to modify the request body before it is sent downstream by the gateway.
 
 NOTE: This filter can be configured only by using the Java DSL.
 
