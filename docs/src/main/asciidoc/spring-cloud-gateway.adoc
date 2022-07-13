@@ -1786,7 +1786,7 @@ if you need a more robust solution.
 
 
 === The `CacheRequestBody` `GatewayFilter` Factory
-There are certain situation need to read body.Since the request body stream can only be read once, we need to cache the request body.
+There are certain situation need to read body. Since the request body stream can only be read once, we need to cache the request body.
 You can use the `CacheRequestBody` filter to cache request body before it send to the downstream and get body from exchagne attribute.
 
 
