@@ -27,10 +27,8 @@ import io.grpc.netty.shaded.io.grpc.netty.GrpcSslContexts;
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.test.annotation.DirtiesContext;
 
@@ -40,7 +38,6 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 /**
  * @author Alberto C. Ríos
  */
-@ExtendWith(OutputCaptureExtension.class)
 @SpringBootTest(classes = GRPCApplication.class, webEnvironment = WebEnvironment.RANDOM_PORT)
 @DirtiesContext
 public class GRPCApplicationTests {

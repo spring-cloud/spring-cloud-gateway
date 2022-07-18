@@ -16,10 +16,16 @@
 
 package org.springframework.cloud.gateway.config;
 
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
 
+import javax.net.ssl.TrustManagerFactory;
+
+import io.grpc.Channel;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Flux;
@@ -68,6 +74,7 @@ import org.springframework.cloud.gateway.filter.factory.AddResponseHeaderGateway
 import org.springframework.cloud.gateway.filter.factory.CacheRequestBodyGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.DedupeResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.JsonToGrpcGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.MapRequestHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.PrefixPathGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.PreserveHostHeaderGatewayFilterFactory;
@@ -147,6 +154,7 @@ import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.env.Environment;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.codec.ServerCodecConfigurer;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientManager;
@@ -290,6 +298,27 @@ public class GatewayAutoConfiguration {
 	@ConditionalOnProperty(name = "server.http2.enabled", matchIfMissing = true)
 	public GRPCResponseHeadersFilter gRPCResponseHeadersFilter() {
 		return new GRPCResponseHeadersFilter();
+	}
+
+	@Bean
+	@ConditionalOnEnabledFilter
+	@ConditionalOnProperty(name = "server.http2.enabled", matchIfMissing = true)
+	@ConditionalOnClass(Channel.class)
+	public JsonToGrpcGatewayFilterFactory jsonToGRPCFilterFactory(GRPCSSLContext gRPCSSLContext,
+			ResourceLoader resourceLoader) {
+		return new JsonToGrpcGatewayFilterFactory(gRPCSSLContext, resourceLoader);
+	}
+
+	@Bean
+	@ConditionalOnEnabledFilter(JsonToGrpcGatewayFilterFactory.class)
+	@ConditionalOnMissingBean(GRPCSSLContext.class)
+	@ConditionalOnClass(Channel.class)
+	public GRPCSSLContext gRPCSSLContext() throws KeyStoreException, NoSuchAlgorithmException {
+		TrustManagerFactory trustManagerFactory = TrustManagerFactory
+				.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+		trustManagerFactory.init(KeyStore.getInstance(KeyStore.getDefaultType()));
+
+		return new GRPCSSLContext(trustManagerFactory.getTrustManagers()[0]);
 	}
 
 	@Bean

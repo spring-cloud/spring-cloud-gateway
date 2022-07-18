@@ -30,6 +30,7 @@ import org.springframework.cloud.gateway.filter.factory.AddRequestHeaderGatewayF
 import org.springframework.cloud.gateway.filter.factory.DedupeResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.FallbackHeadersGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.JsonToGrpcGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.MapRequestHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.handler.predicate.AfterRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.CloudFoundryRouteServiceRoutePredicateFactory;
@@ -88,13 +89,14 @@ class NameUtilsTests {
 	void shouldNormalizeFiltersNamesAsProperties() {
 		List<Class<? extends GatewayFilterFactory<?>>> predicates = Arrays.asList(
 				AddRequestHeaderGatewayFilterFactory.class, DedupeResponseHeaderGatewayFilterFactory.class,
-				FallbackHeadersGatewayFilterFactory.class, MapRequestHeaderGatewayFilterFactory.class);
+				FallbackHeadersGatewayFilterFactory.class, MapRequestHeaderGatewayFilterFactory.class,
+				JsonToGrpcGatewayFilterFactory.class);
 
 		List<String> resultNames = predicates.stream().map(NameUtils::normalizeFilterFactoryNameAsProperty)
 				.collect(Collectors.toList());
 
 		List<String> expectedNames = Arrays.asList("add-request-header", "dedupe-response-header", "fallback-headers",
-				"map-request-header");
+				"map-request-header", "json-to-grpc");
 
 		assertThat(resultNames).isEqualTo(expectedNames);
 	}
