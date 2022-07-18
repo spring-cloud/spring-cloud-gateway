@@ -24,4 +24,4 @@ spring:
 logging:
   level:
     reactor.netty: DEBUG
-    org.springframework.cloud.gateway.filter: TRACE
+    org.springframework.cloud.gateway.filter: DEBUG

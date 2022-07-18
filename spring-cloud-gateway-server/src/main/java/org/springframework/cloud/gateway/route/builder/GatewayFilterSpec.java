@@ -43,6 +43,7 @@ import org.springframework.cloud.gateway.filter.factory.CacheRequestBodyGatewayF
 import org.springframework.cloud.gateway.filter.factory.DedupeResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.DedupeResponseHeaderGatewayFilterFactory.Strategy;
 import org.springframework.cloud.gateway.filter.factory.FallbackHeadersGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.JsonToGrpcGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.MapRequestHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.PrefixPathGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.PreserveHostHeaderGatewayFilterFactory;
@@ -208,6 +209,18 @@ public class GatewayFilterSpec extends UriSpec {
 					"There needs to be a circuit breaker implementation on the classpath that supports reactive APIs.");
 		}
 		return filter(filterFactory.apply(this.routeBuilder.getId(), configConsumer));
+	}
+
+	/**
+	 * A filter that transforms a JSON request into a gRPC one.
+	 * @param protoDescriptor relative path to the proto descriptor file.
+	 * @param protoFile relative path to the proto definition file.
+	 * @param service fully qualified name of the service that will handle the request.
+	 * @param method method name in the service that will handle the request.
+	 */
+	public GatewayFilterSpec jsonToGRPC(String protoDescriptor, String protoFile, String service, String method) {
+		return filter(getBean(JsonToGrpcGatewayFilterFactory.class).apply(c -> c.setMethod(method)
+				.setProtoDescriptor(protoDescriptor).setProtoFile(protoFile).setService(service)));
 	}
 
 	/**
