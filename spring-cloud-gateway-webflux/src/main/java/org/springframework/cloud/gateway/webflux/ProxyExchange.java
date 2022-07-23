@@ -33,6 +33,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.RequestEntity.BodyBuilder;
 import org.springframework.http.ResponseEntity;
@@ -43,7 +44,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.reactive.BindingContext;
 import org.springframework.web.reactive.function.BodyInserters;
-import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClient.RequestBodySpec;
 import org.springframework.web.server.ServerWebExchange;
@@ -305,70 +305,81 @@ public class ProxyExchange<T> {
 	}
 
 	public Mono<ResponseEntity<T>> forward() {
-		switch (httpMethod) {
-		case GET:
+		if (httpMethod.equals(HttpMethod.GET)) {
 			return get();
-		case HEAD:
-			return head();
-		case OPTIONS:
-			return options();
-		case POST:
-			return post();
-		case DELETE:
-			return delete();
-		case PUT:
-			return put();
-		case PATCH:
-			return patch();
-		default:
-			return Mono.empty();
 		}
+		else if (httpMethod.equals(HttpMethod.HEAD)) {
+			return head();
+		}
+		else if (httpMethod.equals(HttpMethod.OPTIONS)) {
+			return options();
+		}
+		else if (httpMethod.equals(HttpMethod.POST)) {
+			return post();
+		}
+		else if (httpMethod.equals(HttpMethod.DELETE)) {
+			return delete();
+		}
+		else if (httpMethod.equals(HttpMethod.PUT)) {
+			return put();
+		}
+		else if (httpMethod.equals(HttpMethod.PATCH)) {
+			return patch();
+		}
+
+		return Mono.empty();
 	}
 
 	public <S> Mono<ResponseEntity<S>> forward(Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
-		switch (httpMethod) {
-		case GET:
+		if (httpMethod.equals(HttpMethod.GET)) {
 			return get(converter);
-		case HEAD:
-			return head(converter);
-		case OPTIONS:
-			return options(converter);
-		case POST:
-			return post(converter);
-		case DELETE:
-			return delete(converter);
-		case PUT:
-			return put(converter);
-		case PATCH:
-			return patch(converter);
-		default:
-			return Mono.empty();
 		}
+		else if (httpMethod.equals(HttpMethod.HEAD)) {
+			return head(converter);
+		}
+		else if (httpMethod.equals(HttpMethod.OPTIONS)) {
+			return options(converter);
+		}
+		else if (httpMethod.equals(HttpMethod.POST)) {
+			return post(converter);
+		}
+		else if (httpMethod.equals(HttpMethod.DELETE)) {
+			return delete(converter);
+		}
+		else if (httpMethod.equals(HttpMethod.PUT)) {
+			return put(converter);
+		}
+		else if (httpMethod.equals(HttpMethod.PATCH)) {
+			return patch(converter);
+		}
+
+		return Mono.empty();
 	}
 
 	private Mono<ResponseEntity<T>> exchange(RequestEntity<?> requestEntity) {
 		Type type = this.responseType;
 		RequestBodySpec builder = rest.method(requestEntity.getMethod()).uri(requestEntity.getUrl())
 				.headers(headers -> addHeaders(headers, requestEntity.getHeaders()));
-		Mono<ClientResponse> result;
+		WebClient.ResponseSpec result;
 		if (requestEntity.getBody() instanceof Publisher) {
 			@SuppressWarnings("unchecked")
 			Publisher<Object> publisher = (Publisher<Object>) requestEntity.getBody();
-			result = builder.body(publisher, Object.class).exchange();
+			result = builder.body(publisher, Object.class).retrieve();
 		}
 		else if (requestEntity.getBody() != null) {
-			result = builder.body(BodyInserters.fromValue(requestEntity.getBody())).exchange();
+			result = builder.body(BodyInserters.fromValue(requestEntity.getBody())).retrieve();
 		}
 		else {
 			if (hasBody) {
 				result = builder.headers(headers -> addHeaders(headers, exchange.getRequest().getHeaders()))
-						.body(exchange.getRequest().getBody(), DataBuffer.class).exchange();
+						.body(exchange.getRequest().getBody(), DataBuffer.class).retrieve();
 			}
 			else {
-				result = builder.headers(headers -> addHeaders(headers, exchange.getRequest().getHeaders())).exchange();
+				result = builder.headers(headers -> addHeaders(headers, exchange.getRequest().getHeaders())).retrieve();
 			}
 		}
-		return result.flatMap(response -> response.toEntity(ParameterizedTypeReference.forType(type)));
+		return result.onStatus(HttpStatusCode::isError, t -> Mono.empty())
+				.toEntity(ParameterizedTypeReference.forType(type));
 	}
 
 	private void addHeaders(HttpHeaders headers, HttpHeaders toAdd) {
@@ -426,7 +437,7 @@ public class ProxyExchange<T> {
 	}
 
 	private String forwarded(URI uri, String hostHeader) {
-		if (!StringUtils.isEmpty(hostHeader)) {
+		if (StringUtils.hasText(hostHeader)) {
 			return "host=" + hostHeader;
 		}
 		if ("http".equals(uri.getScheme())) {

@@ -20,9 +20,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -60,7 +59,7 @@ public class GatewayProperties {
 	private List<FilterDefinition> defaultFilters = new ArrayList<>();
 
 	private List<MediaType> streamingMediaTypes = Arrays.asList(MediaType.TEXT_EVENT_STREAM,
-			MediaType.APPLICATION_STREAM_JSON, new MediaType("application", "grpc"),
+			new MediaType("application", "stream+json"), new MediaType("application", "grpc"),
 			new MediaType("application", "grpc+protobuf"), new MediaType("application", "grpc+json"));
 
 	/**

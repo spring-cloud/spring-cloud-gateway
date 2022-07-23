@@ -34,7 +34,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.cloud.gateway.webflux.ProductionConfigurationTests.TestApplication;
 import org.springframework.cloud.gateway.webflux.ProductionConfigurationTests.TestApplication.Bar;
 import org.springframework.cloud.gateway.webflux.ProductionConfigurationTests.TestApplication.Foo;
@@ -238,7 +238,7 @@ public class ProductionConfigurationTests {
 		ResponseEntity<Map<String, Foo>> deleteResponse = rest.exchange("/proxy/{id}", HttpMethod.DELETE,
 				new HttpEntity<Foo>(foo), returnType, Collections.singletonMap("id", "123"));
 		assertThat(deleteResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
-		assertThat(deleteResponse.getBody().get("deleted")).isEqualToComparingFieldByField(foo);
+		assertThat(deleteResponse.getBody().get("deleted")).usingRecursiveComparison().isEqualTo(foo);
 	}
 
 	@SpringBootApplication

@@ -61,6 +61,17 @@ spring:
             response-timeout: notANumber
 
         # =====================================
+        - id: per_route_merge_response_headers
+          uri: ${test.uri}
+          predicates:
+            - Host=**.mergeresponseheader.org
+            - Path=/responseheaders/**
+          filters:
+            - AddResponseHeader=X-Test-SHOULD-MERGED-HEADER, value-from-gateway
+          metadata:
+            response-timeout: 1000
+
+        # =====================================
         # should be last and not follow alphabetical order
         - id: default_path_to_httpbin
           uri: ${test.uri}

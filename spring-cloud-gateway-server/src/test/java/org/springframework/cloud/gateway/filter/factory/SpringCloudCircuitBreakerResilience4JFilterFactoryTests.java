@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
+import io.github.resilience4j.timelimiter.TimeLimiterRegistry;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,8 +45,9 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 /**
  * @author Ryan Baxter
  */
-@SpringBootTest(webEnvironment = RANDOM_PORT, properties = { "logging.level.org.springframework.cloud.gateway=TRACE",
-		"debug=true", "spring.cloud.circuitbreaker.hystrix.enabled=false" })
+@SpringBootTest(webEnvironment = RANDOM_PORT,
+		properties = { "logging.level.org.springframework.cloud.gateway=TRACE", "debug=true",
+				"spring.cloud.circuitbreaker.hystrix.enabled=false" })
 @ContextConfiguration(classes = SpringCloudCircuitBreakerResilience4JFilterFactoryTests.Config.class)
 @DirtiesContext
 public class SpringCloudCircuitBreakerResilience4JFilterFactoryTests
@@ -80,7 +83,9 @@ public class SpringCloudCircuitBreakerResilience4JFilterFactoryTests
 		SpringCloudCircuitBreakerFilterFactory.Config config = new SpringCloudCircuitBreakerFilterFactory.Config()
 				.setName("myname").setFallbackUri("forward:/myfallback");
 		GatewayFilter filter = new SpringCloudCircuitBreakerResilience4JFilterFactory(
-				new ReactiveResilience4JCircuitBreakerFactory(), null).apply(config);
+				new ReactiveResilience4JCircuitBreakerFactory(CircuitBreakerRegistry.ofDefaults(),
+						TimeLimiterRegistry.ofDefaults()),
+				null).apply(config);
 		assertThat(filter.toString()).contains("myname").contains("forward:/myfallback");
 	}
 

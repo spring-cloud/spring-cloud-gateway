@@ -27,10 +27,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
+import org.springframework.cloud.test.TestSocketUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.util.SocketUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -45,7 +45,7 @@ public class RoutePredicateHandlerMappingIntegrationTests extends BaseWebClientT
 
 	@BeforeAll
 	public static void beforeClass() {
-		managementPort = SocketUtils.findAvailableTcpPort();
+		managementPort = TestSocketUtils.findAvailableTcpPort();
 		System.setProperty("test.port", String.valueOf(managementPort));
 	}
 

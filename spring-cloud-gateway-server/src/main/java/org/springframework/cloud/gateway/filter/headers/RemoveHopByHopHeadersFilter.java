@@ -42,7 +42,7 @@ public class RemoveHopByHopHeadersFilter implements HttpHeadersFilter, Ordered {
 			// "content-length",
 			));
 
-	private int order = Ordered.LOWEST_PRECEDENCE;
+	private int order = Ordered.LOWEST_PRECEDENCE - 1;
 
 	private Set<String> headers = HEADERS_REMOVED_ON_REQUEST;
 

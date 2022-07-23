@@ -41,7 +41,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 /**
  * @author Spencer Gibb
  */
-@RestControllerEndpoint(id = "gateway")
+@RestControllerEndpoint(id = "gateway", enableByDefault = false)
 public class GatewayLegacyControllerEndpoint extends AbstractGatewayControllerEndpoint {
 
 	public GatewayLegacyControllerEndpoint(RouteDefinitionLocator routeDefinitionLocator,

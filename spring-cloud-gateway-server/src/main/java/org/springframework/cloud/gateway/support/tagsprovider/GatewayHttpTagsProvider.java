@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.support.tagsprovider;
 import io.micrometer.core.instrument.Tags;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.server.reactive.AbstractServerHttpResponse;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -33,7 +34,7 @@ public class GatewayHttpTagsProvider implements GatewayTagsProvider {
 		String status = "CUSTOM";
 		String httpStatusCodeStr = "NA";
 
-		String httpMethod = exchange.getRequest().getMethodValue();
+		String httpMethod = exchange.getRequest().getMethod().name();
 
 		// a non standard HTTPS status could be used. Let's be defensive here
 		// it needs to be checked for first, otherwise the delegate response
@@ -52,11 +53,14 @@ public class GatewayHttpTagsProvider implements GatewayTagsProvider {
 			}
 		}
 		else {
-			HttpStatus statusCode = exchange.getResponse().getStatusCode();
+			HttpStatusCode statusCode = exchange.getResponse().getStatusCode();
 			if (statusCode != null) {
 				httpStatusCodeStr = String.valueOf(statusCode.value());
-				outcome = statusCode.series().name();
-				status = statusCode.name();
+				if (statusCode instanceof HttpStatus) {
+					HttpStatus httpStatus = (HttpStatus) statusCode;
+					outcome = httpStatus.series().name();
+					status = httpStatus.name();
+				}
 			}
 		}
 

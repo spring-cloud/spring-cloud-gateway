@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,10 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
+import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -27,11 +29,13 @@ import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.util.UriTemplate;
 
 import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ALREADY_PREFIXED_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.addOriginalRequestUrl;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.getUriTemplateVariables;
 
 /**
  * @author Spencer Gibb
@@ -58,6 +62,8 @@ public class PrefixPathGatewayFilterFactory
 	@Override
 	public GatewayFilter apply(Config config) {
 		return new GatewayFilter() {
+			final UriTemplate uriTemplate = new UriTemplate(config.prefix);
+
 			@Override
 			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 				boolean alreadyPrefixed = exchange.getAttributeOrDefault(GATEWAY_ALREADY_PREFIXED_ATTR, false);
@@ -68,11 +74,13 @@ public class PrefixPathGatewayFilterFactory
 
 				ServerHttpRequest req = exchange.getRequest();
 				addOriginalRequestUrl(exchange, req.getURI());
-				String newPath = config.prefix + req.getURI().getRawPath();
 
+				Map<String, String> uriVariables = getUriTemplateVariables(exchange);
+				URI uri = uriTemplate.expand(uriVariables);
+
+				String newPath = uri.getRawPath() + req.getURI().getRawPath();
+				exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, uri);
 				ServerHttpRequest request = req.mutate().path(newPath).build();
-
-				exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, request.getURI());
 
 				if (log.isTraceEnabled()) {
 					log.trace("Prefixed URI with: " + config.prefix + " -> " + request.getURI());

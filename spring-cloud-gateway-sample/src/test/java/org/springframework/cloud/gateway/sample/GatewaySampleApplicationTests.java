@@ -32,19 +32,19 @@ import org.junit.jupiter.api.condition.JRE;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.cloud.client.DefaultServiceInstance;
 import org.springframework.cloud.gateway.config.GatewayMetricsProperties;
 import org.springframework.cloud.gateway.test.HttpBinCompatibleController;
 import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
 import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
 import org.springframework.cloud.loadbalancer.support.ServiceInstanceListSuppliers;
+import org.springframework.cloud.test.TestSocketUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
 import org.springframework.test.web.reactive.server.WebTestClient;
-import org.springframework.util.SocketUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -53,7 +53,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
  * @author Spencer Gibb
  */
 @SpringBootTest(classes = { GatewaySampleApplicationTests.TestConfig.class }, webEnvironment = RANDOM_PORT,
-		properties = "management.server.port=${test.port}")
+		properties = { "management.endpoint.gateway.enabled=true", "management.server.port=${test.port}" })
 public class GatewaySampleApplicationTests {
 
 	protected static int managementPort;
@@ -70,7 +70,7 @@ public class GatewaySampleApplicationTests {
 
 	@BeforeAll
 	public static void beforeClass() {
-		managementPort = SocketUtils.findAvailableTcpPort();
+		managementPort = TestSocketUtils.findAvailableTcpPort();
 
 		System.setProperty("test.port", String.valueOf(managementPort));
 	}

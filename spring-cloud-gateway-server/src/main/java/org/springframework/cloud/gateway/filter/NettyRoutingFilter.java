@@ -119,7 +119,7 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 
 		ServerHttpRequest request = exchange.getRequest();
 
-		final HttpMethod method = HttpMethod.valueOf(request.getMethodValue());
+		final HttpMethod method = HttpMethod.valueOf(request.getMethod().name());
 		final String url = requestUrl.toASCIIString();
 
 		HttpHeaders filtered = filterRequest(getHeadersFilters(), exchange);
@@ -181,7 +181,7 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 
 			exchange.getAttributes().put(CLIENT_RESPONSE_HEADER_NAMES, filteredResponseHeaders.keySet());
 
-			response.getHeaders().putAll(filteredResponseHeaders);
+			response.getHeaders().addAll(filteredResponseHeaders);
 
 			return Mono.just(res);
 		});

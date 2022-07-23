@@ -48,12 +48,7 @@ public class LoadBalancerServiceInstanceCookieFilter implements GlobalFilter, Or
 
 	private ReactiveLoadBalancer.Factory<ServiceInstance> loadBalancerClientFactory;
 
-	/**
-	 * @deprecated in favour of
-	 * {@link LoadBalancerServiceInstanceCookieFilter#LoadBalancerServiceInstanceCookieFilter(ReactiveLoadBalancer.Factory)}
-	 */
-	@Deprecated
-	public LoadBalancerServiceInstanceCookieFilter(LoadBalancerProperties loadBalancerProperties) {
+	LoadBalancerServiceInstanceCookieFilter(LoadBalancerProperties loadBalancerProperties) {
 		this.loadBalancerProperties = loadBalancerProperties;
 	}
 

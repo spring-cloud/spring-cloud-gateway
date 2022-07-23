@@ -18,7 +18,7 @@ package org.springframework.cloud.gateway.test;
 
 import java.util.Map;
 
-import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.web.reactive.function.client.ClientResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -34,8 +34,8 @@ public class TestUtils {
 		return (Map<String, Object>) response.get(key);
 	}
 
-	public static void assertStatus(ClientResponse response, HttpStatus status) {
-		HttpStatus statusCode = response.statusCode();
+	public static void assertStatus(ClientResponse response, HttpStatusCode status) {
+		HttpStatusCode statusCode = response.statusCode();
 		assertThat(statusCode).isEqualTo(status);
 	}
 

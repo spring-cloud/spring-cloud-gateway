@@ -6,7 +6,7 @@
 
 	<groupId>org.springframework.cloud</groupId>
 	<artifactId>spring-cloud-gateway</artifactId>
-	<version>3.1.0-SNAPSHOT</version>
+	<version>4.0.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>Spring Cloud Gateway</name>
@@ -15,7 +15,7 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-build</artifactId>
-		<version>3.1.0-SNAPSHOT</version>
+		<version>4.0.0-SNAPSHOT</version>
 		<relativePath/>
 	</parent>
 	<scm>
@@ -52,11 +52,11 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<blockhound.version>1.0.6.RELEASE</blockhound.version>
-		<java.version>1.8</java.version>
-		<junit-pioneer.version>1.0.0</junit-pioneer.version>
-		<spring-cloud-circuitbreaker.version>2.1.0-SNAPSHOT</spring-cloud-circuitbreaker.version>
-		<spring-cloud-commons.version>3.1.0-SNAPSHOT</spring-cloud-commons.version>
-		<testcontainers.version>1.15.1</testcontainers.version>
+		<java.version>17</java.version>
+		<junit-pioneer.version>1.6.1</junit-pioneer.version>
+		<spring-cloud-circuitbreaker.version>3.0.0-SNAPSHOT</spring-cloud-circuitbreaker.version>
+		<spring-cloud-commons.version>4.0.0-SNAPSHOT</spring-cloud-commons.version>
+		<testcontainers.version>1.16.3</testcontainers.version>
 	</properties>
 
 	<dependencyManagement>
@@ -78,7 +78,6 @@
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-test-support</artifactId>
-				<scope>test</scope>
 				<version>${spring-cloud-commons.version}</version>
 			</dependency>
 			<dependency>
@@ -158,7 +157,7 @@
 				<repository>
 					<id>spring-snapshots</id>
 					<name>Spring Snapshots</name>
-					<url>https://repo.spring.io/libs-snapshot-local</url>
+					<url>https://repo.spring.io/snapshot</url>
 					<snapshots>
 						<enabled>true</enabled>
 					</snapshots>
@@ -169,7 +168,7 @@
 				<repository>
 					<id>spring-milestones</id>
 					<name>Spring Milestones</name>
-					<url>https://repo.spring.io/libs-milestone-local</url>
+					<url>https://repo.spring.io/milestone</url>
 					<snapshots>
 						<enabled>false</enabled>
 					</snapshots>
@@ -187,7 +186,7 @@
 				<pluginRepository>
 					<id>spring-snapshots</id>
 					<name>Spring Snapshots</name>
-					<url>https://repo.spring.io/libs-snapshot-local</url>
+					<url>https://repo.spring.io/snapshot</url>
 					<snapshots>
 						<enabled>true</enabled>
 					</snapshots>
@@ -198,7 +197,7 @@
 				<pluginRepository>
 					<id>spring-milestones</id>
 					<name>Spring Milestones</name>
-					<url>https://repo.spring.io/libs-milestone-local</url>
+					<url>https://repo.spring.io/milestone</url>
 					<snapshots>
 						<enabled>false</enabled>
 					</snapshots>
@@ -206,7 +205,7 @@
 				<pluginRepository>
 					<id>spring-releases</id>
 					<name>Spring Releases</name>
-					<url>https://repo.spring.io/libs-release-local</url>
+					<url>https://repo.spring.io/release</url>
 					<snapshots>
 						<enabled>false</enabled>
 					</snapshots>
