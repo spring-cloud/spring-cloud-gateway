@@ -48,6 +48,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
  * @author Alberto C. Ríos
  */
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
+@DirtiesContext
 public class JsonToGrpcApplicationTests {
 
 	@LocalServerPort
