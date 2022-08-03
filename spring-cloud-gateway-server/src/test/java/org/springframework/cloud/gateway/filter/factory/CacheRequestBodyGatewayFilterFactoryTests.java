@@ -38,7 +38,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.util.StringUtils;
-import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.server.ServerWebExchange;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -71,9 +70,8 @@ public class CacheRequestBodyGatewayFilterFactoryTests extends BaseWebClientTest
 	@Test
 	public void cacheRequestBodyDoesntWorkForLargePayload() {
 		testClient.post().uri("/post").header("Host", "www.cacherequestbody.org")
-				.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-				.bodyValue(LARGE_BODY_VALUE).exchange().expectStatus()
-				.isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR).expectBody().jsonPath("message")
+				.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE).bodyValue(LARGE_BODY_VALUE)
+				.exchange().expectStatus().isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR).expectBody().jsonPath("message")
 				.isEqualTo("Exceeded limit on max bytes to buffer : 25");
 	}
 
