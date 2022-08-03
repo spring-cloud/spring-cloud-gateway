@@ -33,14 +33,18 @@ import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.util.StringUtils;
+import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.server.ServerWebExchange;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
-@SpringBootTest(webEnvironment = RANDOM_PORT)
+@SpringBootTest(webEnvironment = RANDOM_PORT, properties = "spring.codec.max-in-memory-size=25")
 @DirtiesContext
 public class CacheRequestBodyGatewayFilterFactoryTests extends BaseWebClientTests {
 
@@ -49,6 +53,8 @@ public class CacheRequestBodyGatewayFilterFactoryTests extends BaseWebClientTest
 	private static final String BODY_EMPTY = "";
 
 	private static final String BODY_CACHED_EXISTS = "BODY_CACHED_EXISTS";
+
+	private static final String LARGE_BODY_VALUE = "here is request body which will cause payload size failure";
 
 	@Test
 	public void cacheRequestBodyWorks() {
@@ -60,6 +66,15 @@ public class CacheRequestBodyGatewayFilterFactoryTests extends BaseWebClientTest
 					String responseBody = (String) response.get("data");
 					assertThat(responseBody).isEqualTo(BODY_VALUE);
 				});
+	}
+
+	@Test
+	public void cacheRequestBodyDoesntWorkForLargePayload() {
+		testClient.post().uri("/post").header("Host", "www.cacherequestbody.org")
+				.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+				.bodyValue(LARGE_BODY_VALUE).exchange().expectStatus()
+				.isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR).expectBody().jsonPath("message")
+				.isEqualTo("Exceeded limit on max bytes to buffer : 25");
 	}
 
 	@Test
