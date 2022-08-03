@@ -51,6 +51,11 @@ public class CacheRequestBodyGatewayFilterFactory
 		this.messageReaders = HandlerStrategies.withDefaults().messageReaders();
 	}
 
+	public CacheRequestBodyGatewayFilterFactory(List<HttpMessageReader<?>> messageReaders) {
+		super(CacheRequestBodyGatewayFilterFactory.Config.class);
+		this.messageReaders = messageReaders;
+	}
+
 	@Override
 	public GatewayFilter apply(CacheRequestBodyGatewayFilterFactory.Config config) {
 		return new GatewayFilter() {
