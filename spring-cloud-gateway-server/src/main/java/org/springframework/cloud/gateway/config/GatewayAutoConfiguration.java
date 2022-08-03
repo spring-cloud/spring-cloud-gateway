@@ -514,8 +514,9 @@ public class GatewayAutoConfiguration {
 
 	@Bean
 	@ConditionalOnEnabledFilter
-	public CacheRequestBodyGatewayFilterFactory cacheRequestBodyGatewayFilterFactory() {
-		return new CacheRequestBodyGatewayFilterFactory();
+	public CacheRequestBodyGatewayFilterFactory cacheRequestBodyGatewayFilterFactory(
+			ServerCodecConfigurer codecConfigurer) {
+		return new CacheRequestBodyGatewayFilterFactory(codecConfigurer.getReaders());
 	}
 
 	@Bean
