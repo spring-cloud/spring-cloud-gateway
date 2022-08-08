@@ -45,8 +45,7 @@ import io.grpc.Channel;
 import io.grpc.ClientCall;
 import io.grpc.ManagedChannel;
 import io.grpc.MethodDescriptor;
-import io.grpc.netty.shaded.io.grpc.netty.GrpcSslContexts;
-import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
+import io.grpc.netty.NettyChannelBuilder;
 import io.grpc.protobuf.ProtoUtils;
 import io.grpc.stub.ClientCalls;
 import io.netty.buffer.PooledByteBufAllocator;
@@ -54,7 +53,7 @@ import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import org.springframework.cloud.gateway.config.GRPCSSLContext;
+import org.springframework.cloud.gateway.config.GrpcSslConfigurer;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.NettyWriteResponseFilter;
@@ -70,7 +69,6 @@ import org.springframework.http.codec.json.Jackson2JsonDecoder;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.web.server.ServerWebExchange;
 
-import static io.grpc.netty.shaded.io.grpc.netty.NegotiationType.TLS;
 import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
 
 /**
@@ -85,13 +83,13 @@ import static org.springframework.cloud.gateway.support.GatewayToStringStyler.fi
 public class JsonToGrpcGatewayFilterFactory
 		extends AbstractGatewayFilterFactory<JsonToGrpcGatewayFilterFactory.Config> {
 
-	private final GRPCSSLContext sslContext;
+	private final GrpcSslConfigurer grpcSslConfigurer;
 
 	private final ResourceLoader resourceLoader;
 
-	public JsonToGrpcGatewayFilterFactory(GRPCSSLContext sslContext, ResourceLoader resourceLoader) {
+	public JsonToGrpcGatewayFilterFactory(GrpcSslConfigurer grpcSslConfigurer, ResourceLoader resourceLoader) {
 		super(Config.class);
-		this.sslContext = sslContext;
+		this.grpcSslConfigurer = grpcSslConfigurer;
 		this.resourceLoader = resourceLoader;
 	}
 
@@ -298,11 +296,11 @@ public class JsonToGrpcGatewayFilterFactory
 			};
 		}
 
+		// We are creating this on every call, should optimize?
 		private ManagedChannel createChannelChannel(String host, int port) {
+			NettyChannelBuilder nettyChannelBuilder = NettyChannelBuilder.forAddress(host, port);
 			try {
-				return NettyChannelBuilder.forAddress(host, port).useTransportSecurity()
-						.sslContext(GrpcSslContexts.forClient().trustManager(sslContext.getTrustManager()).build())
-						.negotiationType(TLS).build();
+				return grpcSslConfigurer.configureSsl(nettyChannelBuilder);
 			}
 			catch (SSLException e) {
 				throw new RuntimeException(e);

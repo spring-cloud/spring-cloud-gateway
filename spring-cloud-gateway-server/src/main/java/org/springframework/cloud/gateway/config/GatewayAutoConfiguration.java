@@ -25,6 +25,7 @@ import java.util.function.Supplier;
 
 import javax.net.ssl.TrustManagerFactory;
 
+import io.grpc.Channel;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Flux;
@@ -302,22 +303,23 @@ public class GatewayAutoConfiguration {
 	@Bean
 	@ConditionalOnEnabledFilter
 	@ConditionalOnProperty(name = "server.http2.enabled", matchIfMissing = true)
-	@ConditionalOnClass(name = "io.grpc.Channel")
-	public JsonToGrpcGatewayFilterFactory jsonToGRPCFilterFactory(GRPCSSLContext gRPCSSLContext,
+	@ConditionalOnClass(Channel.class)
+	public JsonToGrpcGatewayFilterFactory jsonToGRPCFilterFactory(GrpcSslConfigurer gRPCSSLContext,
 			ResourceLoader resourceLoader) {
 		return new JsonToGrpcGatewayFilterFactory(gRPCSSLContext, resourceLoader);
 	}
 
 	@Bean
 	@ConditionalOnEnabledFilter(JsonToGrpcGatewayFilterFactory.class)
-	@ConditionalOnMissingBean(GRPCSSLContext.class)
+	@ConditionalOnMissingBean(GrpcSslConfigurer.class)
 	@ConditionalOnClass(name = "io.grpc.Channel")
-	public GRPCSSLContext gRPCSSLContext() throws KeyStoreException, NoSuchAlgorithmException {
+	public GrpcSslConfigurer grpcSslConfigurer(HttpClientProperties properties)
+			throws KeyStoreException, NoSuchAlgorithmException {
 		TrustManagerFactory trustManagerFactory = TrustManagerFactory
 				.getInstance(TrustManagerFactory.getDefaultAlgorithm());
 		trustManagerFactory.init(KeyStore.getInstance(KeyStore.getDefaultType()));
 
-		return new GRPCSSLContext(trustManagerFactory.getTrustManagers()[0]);
+		return new GrpcSslConfigurer(properties.getSsl());
 	}
 
 	@Bean
@@ -684,10 +686,18 @@ public class GatewayAutoConfiguration {
 		}
 
 		@Bean
+		public HttpClientSslConfigurer httpClientSslConfigurer(ServerProperties serverProperties,
+				HttpClientProperties httpClientProperties) {
+			return new HttpClientSslConfigurer(httpClientProperties.getSsl(), serverProperties) {
+			};
+		}
+
+		@Bean
 		@ConditionalOnMissingBean({ HttpClient.class, HttpClientFactory.class })
 		public HttpClientFactory gatewayHttpClientFactory(HttpClientProperties properties,
-				ServerProperties serverProperties, List<HttpClientCustomizer> customizers) {
-			return new HttpClientFactory(properties, serverProperties, customizers);
+				ServerProperties serverProperties, List<HttpClientCustomizer> customizers,
+				HttpClientSslConfigurer sslConfigurer) {
+			return new HttpClientFactory(properties, serverProperties, sslConfigurer, customizers);
 		}
 
 		@Bean
