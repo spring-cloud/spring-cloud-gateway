@@ -51,6 +51,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.runner.ReactiveWebApplicationContextRunner;
 import org.springframework.cloud.gateway.actuate.GatewayControllerEndpoint;
 import org.springframework.cloud.gateway.actuate.GatewayLegacyControllerEndpoint;
+import org.springframework.cloud.gateway.config.GatewayAutoConfigurationTests.CustomHttpClientFactory.CustomSslContextFactory;
 import org.springframework.cloud.gateway.filter.factory.TokenRelayGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.headers.GRPCRequestHeadersFilter;
 import org.springframework.cloud.gateway.filter.headers.GRPCResponseHeadersFilter;
@@ -96,7 +97,7 @@ public class GatewayAutoConfigurationTests {
 					assertThat(factory.connectionProvider.maxConnections()).isEqualTo(Integer.MAX_VALUE); // elastic
 
 					assertThat(factory.proxyProvider).isNull();
-					assertThat(factory.sslConfigured).isFalse();
+					assertThat(factory.isSslConfigured()).isFalse();
 
 					assertThat(httpClient.configuration().isAcceptGzip()).isFalse();
 					assertThat(httpClient.configuration().loggingHandler()).isNull();
@@ -147,8 +148,8 @@ public class GatewayAutoConfigurationTests {
 					assertThat(factory.proxyProvider).isNotNull();
 					assertThat(factory.proxyProvider.build().getAddress().get().getHostName()).isEqualTo("myhost");
 
-					assertThat(factory.sslConfigured).isTrue();
-					assertThat(factory.insecureTrustManagerSet).isTrue();
+					assertThat(factory.isSslConfigured()).isTrue();
+					assertThat(factory.isInsecureTrustManagerSet()).isTrue();
 
 					assertThat(context).hasSingleBean(ReactorNettyRequestUpgradeStrategy.class);
 					ReactorNettyRequestUpgradeStrategy upgradeStrategy = context
@@ -286,7 +287,7 @@ public class GatewayAutoConfigurationTests {
 				.withPropertyValues("server.http2.enabled=true").run(context -> {
 					assertThat(context).hasSingleBean(HttpClient.class);
 					CustomHttpClientFactory factory = context.getBean(CustomHttpClientFactory.class);
-					assertThat(factory.insecureTrustManagerSet).isFalse();
+					assertThat(factory.isInsecureTrustManagerSet()).isFalse();
 				});
 	}
 
@@ -311,25 +312,32 @@ public class GatewayAutoConfigurationTests {
 		@Bean
 		@Primary
 		CustomHttpClientFactory customHttpClientFactory(HttpClientProperties properties,
-				ServerProperties serverProperties, List<HttpClientCustomizer> customizers) {
-			return new CustomHttpClientFactory(properties, serverProperties, customizers);
+				ServerProperties serverProperties, List<HttpClientCustomizer> customizers,
+				SslContextFactory sslContextFactory) {
+			return new CustomHttpClientFactory(properties, serverProperties, sslContextFactory, customizers);
+		}
+
+		@Bean
+		@Primary
+		CustomSslContextFactory customSslContextFactory (ServerProperties serverProperties,
+				HttpClientProperties httpClientProperties) {
+			return new CustomSslContextFactory(httpClientProperties.getSsl(), serverProperties);
 		}
 
 	}
 
 	protected static class CustomHttpClientFactory extends HttpClientFactory {
 
-		boolean insecureTrustManagerSet;
-
-		boolean sslConfigured;
-
 		private ConnectionProvider connectionProvider;
 
 		private ProxyProvider.Builder proxyProvider;
 
+		private CustomSslContextFactory customSslContextFactory;
+
 		public CustomHttpClientFactory(HttpClientProperties properties, ServerProperties serverProperties,
-				List<HttpClientCustomizer> customizers) {
-			super(properties, serverProperties, customizers);
+				SslContextFactory sslContextFactory, List<HttpClientCustomizer> customizers) {
+			super(properties, serverProperties, sslContextFactory, customizers);
+			this.customSslContextFactory = (CustomSslContextFactory) sslContextFactory;
 		}
 
 		@Override
@@ -345,16 +353,35 @@ public class GatewayAutoConfigurationTests {
 			return proxyProvider;
 		}
 
-		@Override
-		protected void configureSslContext(HttpClientProperties.Ssl ssl, SslProvider.SslContextSpec sslContextSpec) {
-			sslConfigured = true;
-			super.configureSslContext(ssl, sslContextSpec);
+		public boolean isSslConfigured() {
+			return customSslContextFactory.sslConfigured;
 		}
 
-		@Override
-		protected void setTrustManager(SslContextBuilder sslContextBuilder, TrustManagerFactory factory) {
-			insecureTrustManagerSet = factory == InsecureTrustManagerFactory.INSTANCE;
-			super.setTrustManager(sslContextBuilder, factory);
+		public boolean isInsecureTrustManagerSet() {
+			return customSslContextFactory.insecureTrustManagerSet;
+		}
+
+		protected static class CustomSslContextFactory extends SslContextFactory {
+
+			boolean sslConfigured;
+
+			boolean insecureTrustManagerSet;
+
+			protected CustomSslContextFactory(HttpClientProperties.Ssl sslProperties, ServerProperties serverProperties) {
+				super(sslProperties, serverProperties);
+			}
+
+			@Override
+			protected void configureSslContext(SslProvider.SslContextSpec sslContextSpec) {
+				sslConfigured = true;
+				super.configureSslContext(sslContextSpec);
+			}
+
+			@Override
+			protected void setTrustManager(SslContextBuilder sslContextBuilder, TrustManagerFactory factory) {
+				insecureTrustManagerSet = factory == InsecureTrustManagerFactory.INSTANCE;
+				super.setTrustManager(sslContextBuilder, factory);
+			}
 		}
 
 	}
