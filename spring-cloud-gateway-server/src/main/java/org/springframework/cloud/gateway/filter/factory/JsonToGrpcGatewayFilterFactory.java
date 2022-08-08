@@ -16,16 +16,51 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
+import static io.grpc.netty.shaded.io.grpc.netty.NegotiationType.TLS;
+import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.net.URL;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchProviderException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.function.Function;
 
+import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLException;
+
+import io.grpc.netty.shaded.io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
+import org.reactivestreams.Publisher;
+import org.springframework.cloud.gateway.config.GRPCSSLContext;
+import org.springframework.cloud.gateway.config.HttpClientProperties;
+import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.GatewayFilterChain;
+import org.springframework.cloud.gateway.filter.NettyWriteResponseFilter;
+import org.springframework.cloud.gateway.filter.OrderedGatewayFilter;
+import org.springframework.cloud.gateway.route.Route;
+import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
+import org.springframework.core.ResolvableType;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.NettyDataBufferFactory;
+import org.springframework.http.codec.json.Jackson2JsonDecoder;
+import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
+import org.springframework.util.ResourceUtils;
+import org.springframework.web.server.ServerWebExchange;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -40,6 +75,7 @@ import com.fasterxml.jackson.dataformat.protobuf.schema.ProtobufSchemaLoader;
 import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.DynamicMessage;
+
 import io.grpc.CallOptions;
 import io.grpc.Channel;
 import io.grpc.ClientCall;
@@ -50,28 +86,8 @@ import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
 import io.grpc.protobuf.ProtoUtils;
 import io.grpc.stub.ClientCalls;
 import io.netty.buffer.PooledByteBufAllocator;
-import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
-import org.springframework.cloud.gateway.config.GRPCSSLContext;
-import org.springframework.cloud.gateway.filter.GatewayFilter;
-import org.springframework.cloud.gateway.filter.GatewayFilterChain;
-import org.springframework.cloud.gateway.filter.NettyWriteResponseFilter;
-import org.springframework.cloud.gateway.filter.OrderedGatewayFilter;
-import org.springframework.cloud.gateway.route.Route;
-import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
-import org.springframework.core.ResolvableType;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
-import org.springframework.core.io.buffer.DataBuffer;
-import org.springframework.core.io.buffer.NettyDataBufferFactory;
-import org.springframework.http.codec.json.Jackson2JsonDecoder;
-import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
-import org.springframework.web.server.ServerWebExchange;
-
-import static io.grpc.netty.shaded.io.grpc.netty.NegotiationType.TLS;
-import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
 
 /**
  * This filter takes a JSON payload, transform it into a protobuf object, send it to a
@@ -298,17 +314,107 @@ public class JsonToGrpcGatewayFilterFactory
 			};
 		}
 
+		// TODO: refactor, these are copied from 'org.springframework.cloud.gateway.config.HttpClientFactory'
 		private ManagedChannel createChannelChannel(String host, int port) {
 			try {
-				return NettyChannelBuilder.forAddress(host, port).useTransportSecurity()
-						.sslContext(GrpcSslContexts.forClient().trustManager(sslContext.getTrustManager()).build())
-						.negotiationType(TLS).build();
+				HttpClientProperties.Ssl sslProperties = sslContext.getSslProperties();
+				X509Certificate[] trustedX509CertificatesForTrustManager = sslProperties.getTrustedX509CertificatesForTrustManager();
+
+				SslContext sslContextConfig = null;
+				if (sslProperties.isUseInsecureTrustManager()) {
+					sslContextConfig = GrpcSslContexts.forClient()
+													  .trustManager(InsecureTrustManagerFactory.INSTANCE.getTrustManagers()[0])
+													  // TODO: is this necessary?
+//													  .keyManager(getKeyManagerFactory(sslProperties))
+													  .build();
+				}
+
+				if (sslProperties.isUseInsecureTrustManager() == false && trustedX509CertificatesForTrustManager != null) {
+					sslContextConfig = GrpcSslContexts.forClient()
+													  .trustManager(getTrustedX509CertificatesForTrustManager(sslProperties))
+													  // TODO: is this necessary?
+//													  .keyManager(getKeyManagerFactory(sslProperties))
+													  .build();
+				}
+				return NettyChannelBuilder.forAddress(host, port)
+										  .useTransportSecurity()
+										  .sslContext(sslContextConfig)
+										  .negotiationType(TLS)
+										  .build();
 			}
 			catch (SSLException e) {
 				throw new RuntimeException(e);
 			}
 		}
 
+		protected X509Certificate[] getTrustedX509CertificatesForTrustManager(HttpClientProperties.Ssl ssl) {
+//			HttpClientProperties.Ssl ssl = properties.getSsl();
+
+			try {
+				CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
+				ArrayList<Certificate> allCerts = new ArrayList<>();
+				for (String trustedCert : ssl.getTrustedX509Certificates()) {
+					try {
+						URL url = ResourceUtils.getURL(trustedCert);
+						Collection<? extends Certificate> certs = certificateFactory.generateCertificates(url.openStream());
+						allCerts.addAll(certs);
+					}
+					catch (IOException e) {
+						throw new RuntimeException("Could not load certificate '" + trustedCert + "'", e);
+					}
+				}
+				return allCerts.toArray(new X509Certificate[allCerts.size()]);
+			}
+			catch (CertificateException e1) {
+				throw new RuntimeException("Could not load CertificateFactory X.509", e1);
+			}
+		}
+
+		protected KeyManagerFactory getKeyManagerFactory(HttpClientProperties.Ssl ssl) {
+//		HttpClientProperties.Ssl ssl = properties.getSsl();
+			try {
+				if (ssl.getKeyStore() != null && ssl.getKeyStore().length() > 0) {
+					KeyManagerFactory keyManagerFactory = KeyManagerFactory
+							.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+					char[] keyPassword = ssl.getKeyPassword() != null ? ssl.getKeyPassword().toCharArray() : null;
+
+					if (keyPassword == null && ssl.getKeyStorePassword() != null) {
+						keyPassword = ssl.getKeyStorePassword().toCharArray();
+					}
+
+					keyManagerFactory.init(this.createKeyStore(ssl), keyPassword);
+
+					return keyManagerFactory;
+				}
+
+				return null;
+			}
+			catch (Exception e) {
+				throw new IllegalStateException(e);
+			}
+		}
+
+		protected KeyStore createKeyStore(HttpClientProperties.Ssl ssl) {
+//		HttpClientProperties.Ssl ssl = properties.getSsl();
+			try {
+				KeyStore store = ssl.getKeyStoreProvider() != null
+						? KeyStore.getInstance(ssl.getKeyStoreType(), ssl.getKeyStoreProvider())
+						: KeyStore.getInstance(ssl.getKeyStoreType());
+				try {
+					URL url = ResourceUtils.getURL(ssl.getKeyStore());
+					store.load(url.openStream(),
+							ssl.getKeyStorePassword() != null ? ssl.getKeyStorePassword().toCharArray() : null);
+				}
+				catch (Exception e) {
+					throw new RuntimeException("Could not load key store ' " + ssl.getKeyStore() + "'", e);
+				}
+
+				return store;
+			}
+			catch (KeyStoreException | NoSuchProviderException e) {
+				throw new RuntimeException("Could not load KeyStore for given type and provider", e);
+			}
+		}
 	}
 
 }
