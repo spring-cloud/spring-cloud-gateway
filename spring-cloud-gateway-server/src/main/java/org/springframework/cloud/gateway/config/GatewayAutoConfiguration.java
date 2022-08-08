@@ -304,21 +304,21 @@ public class GatewayAutoConfiguration {
 	@ConditionalOnEnabledFilter
 	@ConditionalOnProperty(name = "server.http2.enabled", matchIfMissing = true)
 	@ConditionalOnClass(Channel.class)
-	public JsonToGrpcGatewayFilterFactory jsonToGRPCFilterFactory(GRPCSSLContext gRPCSSLContext,
-			ResourceLoader resourceLoader) {
+	public JsonToGrpcGatewayFilterFactory jsonToGRPCFilterFactory(GRPCSSLContextFactory gRPCSSLContext,
+																  ResourceLoader resourceLoader) {
 		return new JsonToGrpcGatewayFilterFactory(gRPCSSLContext, resourceLoader);
 	}
 
 	@Bean
 	@ConditionalOnEnabledFilter(JsonToGrpcGatewayFilterFactory.class)
-	@ConditionalOnMissingBean(GRPCSSLContext.class)
+	@ConditionalOnMissingBean(GRPCSSLContextFactory.class)
 	@ConditionalOnClass(Channel.class)
-	public GRPCSSLContext gRPCSSLContext(HttpClientProperties properties) throws KeyStoreException, NoSuchAlgorithmException {
+	public GRPCSSLContextFactory gRPCSSLContext(HttpClientProperties properties) throws KeyStoreException, NoSuchAlgorithmException {
 		TrustManagerFactory trustManagerFactory = TrustManagerFactory
 				.getInstance(TrustManagerFactory.getDefaultAlgorithm());
 		trustManagerFactory.init(KeyStore.getInstance(KeyStore.getDefaultType()));
 
-		return new GRPCSSLContext(properties);
+		return new GRPCSSLContextFactory(properties);
 	}
 
 	@Bean
