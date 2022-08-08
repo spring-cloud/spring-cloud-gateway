@@ -56,12 +56,12 @@ public class GRPCSSLContextFactory {
 		}
 
 		return sslContextBuilder
-				// TODO: is this necessary?
-				// .keyManager(getKeyManagerFactory())
+				// TODO: Not sure if this needs to be supported, mutual-auth maybe ?
+				.keyManager(getKeyManagerFactory())
 				.build();
 	}
 
-	protected KeyManagerFactory getKeyManagerFactory() {
+	private KeyManagerFactory getKeyManagerFactory() {
 		try {
 			if (ssl.getKeyStore() != null && ssl.getKeyStore().length() > 0) {
 				KeyManagerFactory keyManagerFactory = KeyManagerFactory
@@ -72,7 +72,7 @@ public class GRPCSSLContextFactory {
 					keyPassword = ssl.getKeyStorePassword().toCharArray();
 				}
 
-				keyManagerFactory.init(this.createKeyStore(ssl), keyPassword);
+				keyManagerFactory.init(this.createKeyStore(), keyPassword);
 
 				return keyManagerFactory;
 			}
@@ -84,8 +84,7 @@ public class GRPCSSLContextFactory {
 		}
 	}
 
-	protected KeyStore createKeyStore(HttpClientProperties.Ssl ssl) {
-//		HttpClientProperties.Ssl ssl = properties.getSsl();
+	private KeyStore createKeyStore() {
 		try {
 			KeyStore store = ssl.getKeyStoreProvider() != null
 					? KeyStore.getInstance(ssl.getKeyStoreType(), ssl.getKeyStoreProvider())

@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
-import static io.grpc.netty.shaded.io.grpc.netty.NegotiationType.TLS;
 import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
 
 import java.io.IOException;
@@ -306,7 +305,6 @@ public class JsonToGrpcGatewayFilterFactory
 				return NettyChannelBuilder.forAddress(host, port)
 										  .useTransportSecurity()
 										  .sslContext(sslContext)
-										  .negotiationType(TLS)
 										  .build();
 			}
 			catch (SSLException e) {
