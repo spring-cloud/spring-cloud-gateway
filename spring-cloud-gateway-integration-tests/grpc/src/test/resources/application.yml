@@ -15,15 +15,16 @@ spring:
       httpclient:
         wiretap: true
         ssl:
-#          use-insecure-trust-manager: true
-          trustedX509Certificates:
-            - classpath:public.cert
-          key-store: classpath:keystore.p12
-          key-store-type: PKCS12
-          key-store-password: password
+          use-insecure-trust-manager: true
+#          trustedX509Certificates:
+#            - classpath:public.cert
+# Unused
+#          key-store: classpath:keystore.p12
+#          key-store-type: PKCS12
+#          key-store-password: password
 
       routes:
-        - uri: https://test-tls-server-service.namespace:8095
+        - uri: https://localhost:8095
           predicates:
             - Path=/json/hello
           filters:

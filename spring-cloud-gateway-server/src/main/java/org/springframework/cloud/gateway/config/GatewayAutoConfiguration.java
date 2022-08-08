@@ -685,10 +685,17 @@ public class GatewayAutoConfiguration {
 		}
 
 		@Bean
+		public SslContextFactory sslContextFactory(ServerProperties serverProperties,
+				HttpClientProperties httpClientProperties) {
+			return new SslContextFactory(httpClientProperties.getSsl(), serverProperties) {};
+		}
+
+		@Bean
 		@ConditionalOnMissingBean({ HttpClient.class, HttpClientFactory.class })
 		public HttpClientFactory gatewayHttpClientFactory(HttpClientProperties properties,
-				ServerProperties serverProperties, List<HttpClientCustomizer> customizers) {
-			return new HttpClientFactory(properties, serverProperties, customizers);
+				ServerProperties serverProperties, List<HttpClientCustomizer> customizers,
+				SslContextFactory sslContextFactory) {
+			return new HttpClientFactory(properties, serverProperties, sslContextFactory, customizers);
 		}
 
 		@Bean
