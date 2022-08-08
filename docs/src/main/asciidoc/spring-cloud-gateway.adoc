@@ -1894,7 +1894,7 @@ spring:
 
 When a request is made through the gateway to `/json/hello` the request will be transformed using the definition provided in `hello.proto`, sent to `com.example.grpcserver.hello.HelloService/hello`, and transform the response back to JSON.
 
-By default, it will create a `NettyChannel` using the default `TrustManagerFactory`. However, this `TrustManager` can be customized by creating a bean of type `GRPCSSLContext`:
+By default, it will create a `NettyChannel` using the default `TrustManagerFactory`. However, this `TrustManager` can be customized by creating a bean of type `GRPCSSLContextFactory`:
 
 [source,java]
 ----
