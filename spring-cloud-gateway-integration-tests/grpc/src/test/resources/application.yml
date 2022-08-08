@@ -3,16 +3,9 @@ server:
     enabled: true
   ssl:
     key-store: classpath:keystore.p12
-    key-store-password: password
     key-store-type: pkcs12
+    key-store-password: password
     key-alias: bootapp
-#    key-store-provider: SUN
-#    trust-certificate: classpath:certificate.pem
-#    trust-certificate-private-key: classpath:private.key
-#    trust-store: classpath:keystore.jks
-#    trust-store-password: password
-#    trust-certificate-private-key: classpath:private.key
-#    trust-store-provider: classpath:keystore.jks
 
 spring:
   cloud:
@@ -25,20 +18,9 @@ spring:
 #          use-insecure-trust-manager: true
           trustedX509Certificates:
             - classpath:public.cert
-#          key-store-type: PKCS12
-#          key-store: classpath:keystore.p12
-#          key-store-password: password
-#          use-insecure-trust-manager: true
-#          key-password: password
-#          key-store-type: JKS
-#          key-store: classpath:keystore.jks
-#          key-store-password: password
-#          trusted-x509-certificates: classpath:certificate.pem
-#          trust-store: classpath:keystore.jks
-#          trust-store-password: password
-#          trust-certificate-private-key: classpath:private.key
-#          key-store-provider: classpath:keystore.jks
-#          key-password: password
+          key-store: classpath:keystore.p12
+          key-store-type: PKCS12
+          key-store-password: password
 
       routes:
         - uri: https://test-tls-server-service.namespace:8095
