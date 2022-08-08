@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.tests.grpc;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
 
 import javax.net.ssl.SSLContext;
 
@@ -58,7 +59,6 @@ public class JsonToGrpcApplicationTests {
 	@BeforeEach
 	void setUp() {
 		restTemplate = createUnsecureClient();
-//		restTemplate = new RestTemplate();
 	}
 
 	@Test

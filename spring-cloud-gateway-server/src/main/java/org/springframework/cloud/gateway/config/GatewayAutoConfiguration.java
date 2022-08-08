@@ -25,6 +25,7 @@ import java.util.function.Supplier;
 
 import javax.net.ssl.TrustManagerFactory;
 
+import io.grpc.Channel;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Flux;
@@ -302,7 +303,7 @@ public class GatewayAutoConfiguration {
 	@Bean
 	@ConditionalOnEnabledFilter
 	@ConditionalOnProperty(name = "server.http2.enabled", matchIfMissing = true)
-	@ConditionalOnClass(name = "io.grpc.Channel")
+	@ConditionalOnClass(Channel.class)
 	public JsonToGrpcGatewayFilterFactory jsonToGRPCFilterFactory(GRPCSSLContext gRPCSSLContext,
 			ResourceLoader resourceLoader) {
 		return new JsonToGrpcGatewayFilterFactory(gRPCSSLContext, resourceLoader);
@@ -311,13 +312,13 @@ public class GatewayAutoConfiguration {
 	@Bean
 	@ConditionalOnEnabledFilter(JsonToGrpcGatewayFilterFactory.class)
 	@ConditionalOnMissingBean(GRPCSSLContext.class)
-	@ConditionalOnClass(name = "io.grpc.Channel")
-	public GRPCSSLContext gRPCSSLContext() throws KeyStoreException, NoSuchAlgorithmException {
+	@ConditionalOnClass(Channel.class)
+	public GRPCSSLContext gRPCSSLContext(HttpClientProperties properties) throws KeyStoreException, NoSuchAlgorithmException {
 		TrustManagerFactory trustManagerFactory = TrustManagerFactory
 				.getInstance(TrustManagerFactory.getDefaultAlgorithm());
 		trustManagerFactory.init(KeyStore.getInstance(KeyStore.getDefaultType()));
 
-		return new GRPCSSLContext(trustManagerFactory.getTrustManagers()[0]);
+		return new GRPCSSLContext(properties);
 	}
 
 	@Bean

@@ -16,21 +16,18 @@
 
 package org.springframework.cloud.gateway.config;
 
-import javax.net.ssl.TrustManager;
-
 /**
  * @author Alberto C. Ríos
  */
 public class GRPCSSLContext {
-
-	private final TrustManager trustManager;
-
-	public GRPCSSLContext(TrustManager trustManager) {
-		this.trustManager = trustManager;
+// TODO remove this class, or make it a true factory that returns SSlContext
+	public HttpClientProperties.Ssl getSslProperties() {
+		return sslProperties;
 	}
 
-	public TrustManager getTrustManager() {
-		return trustManager;
-	}
+	private final HttpClientProperties.Ssl sslProperties;
 
+	public GRPCSSLContext(HttpClientProperties properties) {
+		sslProperties = properties.getSsl();
+	}
 }
