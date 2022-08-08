@@ -51,7 +51,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.runner.ReactiveWebApplicationContextRunner;
 import org.springframework.cloud.gateway.actuate.GatewayControllerEndpoint;
 import org.springframework.cloud.gateway.actuate.GatewayLegacyControllerEndpoint;
-import org.springframework.cloud.gateway.config.GatewayAutoConfigurationTests.CustomHttpClientFactory.CustomSslContextFactory;
+import org.springframework.cloud.gateway.config.GatewayAutoConfigurationTests.CustomHttpClientFactory.CustomSslConfigurer;
 import org.springframework.cloud.gateway.filter.factory.TokenRelayGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.headers.GRPCRequestHeadersFilter;
 import org.springframework.cloud.gateway.filter.headers.GRPCResponseHeadersFilter;
@@ -312,15 +312,15 @@ public class GatewayAutoConfigurationTests {
 		@Primary
 		CustomHttpClientFactory customHttpClientFactory(HttpClientProperties properties,
 				ServerProperties serverProperties, List<HttpClientCustomizer> customizers,
-				SslContextFactory sslContextFactory) {
-			return new CustomHttpClientFactory(properties, serverProperties, sslContextFactory, customizers);
+				HttpClientSslConfigurer sslConfigurer) {
+			return new CustomHttpClientFactory(properties, serverProperties, sslConfigurer, customizers);
 		}
 
 		@Bean
 		@Primary
-		CustomSslContextFactory customSslContextFactory (ServerProperties serverProperties,
-				HttpClientProperties httpClientProperties) {
-			return new CustomSslContextFactory(httpClientProperties.getSsl(), serverProperties);
+		CustomSslConfigurer customSslContextFactory (ServerProperties serverProperties,
+													 HttpClientProperties httpClientProperties) {
+			return new CustomSslConfigurer(httpClientProperties.getSsl(), serverProperties);
 		}
 
 	}
@@ -331,12 +331,12 @@ public class GatewayAutoConfigurationTests {
 
 		private ProxyProvider.Builder proxyProvider;
 
-		private CustomSslContextFactory customSslContextFactory;
+		private CustomSslConfigurer customSslContextFactory;
 
 		public CustomHttpClientFactory(HttpClientProperties properties, ServerProperties serverProperties,
-				SslContextFactory sslContextFactory, List<HttpClientCustomizer> customizers) {
-			super(properties, serverProperties, sslContextFactory, customizers);
-			this.customSslContextFactory = (CustomSslContextFactory) sslContextFactory;
+				HttpClientSslConfigurer sslConfigurer, List<HttpClientCustomizer> customizers) {
+			super(properties, serverProperties, sslConfigurer, customizers);
+			this.customSslContextFactory = (CustomSslConfigurer) sslConfigurer;
 		}
 
 		@Override
@@ -360,13 +360,13 @@ public class GatewayAutoConfigurationTests {
 			return customSslContextFactory.insecureTrustManagerSet;
 		}
 
-		protected static class CustomSslContextFactory extends SslContextFactory {
+		protected static class CustomSslConfigurer extends HttpClientSslConfigurer {
 
 			boolean sslConfigured;
 
 			boolean insecureTrustManagerSet;
 
-			protected CustomSslContextFactory(HttpClientProperties.Ssl sslProperties, ServerProperties serverProperties) {
+			protected CustomSslConfigurer(HttpClientProperties.Ssl sslProperties, ServerProperties serverProperties) {
 				super(sslProperties, serverProperties);
 			}
 

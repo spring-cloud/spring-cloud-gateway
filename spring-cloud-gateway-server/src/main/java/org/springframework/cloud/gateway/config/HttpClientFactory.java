@@ -16,19 +16,14 @@
 
 package org.springframework.cloud.gateway.config;
 
-import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.util.List;
 
 import io.netty.channel.ChannelOption;
-import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
-import reactor.netty.http.Http11SslContextSpec;
-import reactor.netty.http.Http2SslContextSpec;
 import reactor.netty.http.HttpProtocol;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.client.HttpResponseDecoderSpec;
 import reactor.netty.resources.ConnectionProvider;
-import reactor.netty.tcp.SslProvider;
 import reactor.netty.transport.ProxyProvider;
 
 import org.springframework.beans.factory.config.AbstractFactoryBean;
@@ -54,15 +49,15 @@ public class HttpClientFactory extends AbstractFactoryBean<HttpClient> {
 
 	protected final ServerProperties serverProperties;
 
-	protected final SslContextFactory sslContextFactory;
+	protected final HttpClientSslConfigurer sslConfigurer;
 
 	protected final List<HttpClientCustomizer> customizers;
 
 	public HttpClientFactory(HttpClientProperties properties, ServerProperties serverProperties,
-			SslContextFactory sslContextFactory, List<HttpClientCustomizer> customizers) {
+			HttpClientSslConfigurer sslConfigurer, List<HttpClientCustomizer> customizers) {
 		this.properties = properties;
 		this.serverProperties = serverProperties;
-		this.sslContextFactory = sslContextFactory;
+		this.sslConfigurer = sslConfigurer;
 		this.customizers = customizers;
 	}
 
@@ -90,7 +85,7 @@ public class HttpClientFactory extends AbstractFactoryBean<HttpClient> {
 
 		httpClient = configureProxy(httpClient);
 
-		httpClient = sslContextFactory.configureSsl(httpClient);
+		httpClient = sslConfigurer.configureSsl(httpClient);
 
 		if (properties.isWiretap()) {
 			httpClient = httpClient.wiretap(true);
