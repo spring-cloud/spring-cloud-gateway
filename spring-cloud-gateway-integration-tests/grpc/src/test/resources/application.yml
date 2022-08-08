@@ -16,12 +16,9 @@ spring:
         wiretap: true
         ssl:
           use-insecure-trust-manager: true
+# Requires faking domain name (modifying /etc/hosts)
 #          trustedX509Certificates:
 #            - classpath:public.cert
-# Unused
-#          key-store: classpath:keystore.p12
-#          key-store-type: PKCS12
-#          key-store-password: password
 
       routes:
         - uri: https://localhost:8095

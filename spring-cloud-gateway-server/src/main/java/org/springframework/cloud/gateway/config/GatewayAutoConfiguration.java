@@ -304,21 +304,21 @@ public class GatewayAutoConfiguration {
 	@ConditionalOnEnabledFilter
 	@ConditionalOnProperty(name = "server.http2.enabled", matchIfMissing = true)
 	@ConditionalOnClass(Channel.class)
-	public JsonToGrpcGatewayFilterFactory jsonToGRPCFilterFactory(GRPCSSLContextFactory gRPCSSLContext,
-																  ResourceLoader resourceLoader) {
+	public JsonToGrpcGatewayFilterFactory jsonToGRPCFilterFactory(GrpcSslConfigurer gRPCSSLContext,
+			ResourceLoader resourceLoader) {
 		return new JsonToGrpcGatewayFilterFactory(gRPCSSLContext, resourceLoader);
 	}
 
 	@Bean
 	@ConditionalOnEnabledFilter(JsonToGrpcGatewayFilterFactory.class)
-	@ConditionalOnMissingBean(GRPCSSLContextFactory.class)
+	@ConditionalOnMissingBean(GrpcSslConfigurer.class)
 	@ConditionalOnClass(Channel.class)
-	public GRPCSSLContextFactory gRPCSSLContext(HttpClientProperties properties) throws KeyStoreException, NoSuchAlgorithmException {
+	public GrpcSslConfigurer gRPCSSLContext(HttpClientProperties properties) throws KeyStoreException, NoSuchAlgorithmException {
 		TrustManagerFactory trustManagerFactory = TrustManagerFactory
 				.getInstance(TrustManagerFactory.getDefaultAlgorithm());
 		trustManagerFactory.init(KeyStore.getInstance(KeyStore.getDefaultType()));
 
-		return new GRPCSSLContextFactory(properties);
+		return new GrpcSslConfigurer(properties.getSsl());
 	}
 
 	@Bean
@@ -685,17 +685,17 @@ public class GatewayAutoConfiguration {
 		}
 
 		@Bean
-		public SslContextFactory sslContextFactory(ServerProperties serverProperties,
+		public HttpClientSslConfigurer sslContextFactory(ServerProperties serverProperties,
 				HttpClientProperties httpClientProperties) {
-			return new SslContextFactory(httpClientProperties.getSsl(), serverProperties) {};
+			return new HttpClientSslConfigurer(httpClientProperties.getSsl(), serverProperties) {};
 		}
 
 		@Bean
 		@ConditionalOnMissingBean({ HttpClient.class, HttpClientFactory.class })
 		public HttpClientFactory gatewayHttpClientFactory(HttpClientProperties properties,
 				ServerProperties serverProperties, List<HttpClientCustomizer> customizers,
-				SslContextFactory sslContextFactory) {
-			return new HttpClientFactory(properties, serverProperties, sslContextFactory, customizers);
+				HttpClientSslConfigurer sslConfigurer) {
+			return new HttpClientFactory(properties, serverProperties, sslConfigurer, customizers);
 		}
 
 		@Bean

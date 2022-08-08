@@ -53,37 +53,6 @@ public class GRPCApplication {
 		SpringApplication.run(GRPCApplication.class, args);
 	}
 
-	// @Bean
-	// public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
-	// return builder.routes().route("json-grpc", r -> r.path("/json/hello").filters(f ->
-	// {
-	// String protoDescriptor = "file:src/main/proto/hello.pb";
-	// String protoFile = "file:src/main/proto/hello.proto";
-	// String service = "HelloService";
-	// String method = "hello";
-	// return f.jsonToGRPC(protoDescriptor, protoFile, service, method);
-	// }).uri("https://localhost:" + GRPC_SERVER_PORT))
-	// .route("grpc", r -> r.predicate(p -> true).uri("https://localhost:" +
-	// GRPC_SERVER_PORT)).build();
-	// }
-	//
-	// @Bean
-	// public GRPCSSLContext sslContext() throws SSLException {
-	// TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
-	// public X509Certificate[] getAcceptedIssuers() {
-	// return new X509Certificate[0];
-	// }
-	//
-	// public void checkClientTrusted(X509Certificate[] certs, String authType) {
-	// }
-	//
-	// public void checkServerTrusted(X509Certificate[] certs, String authType) {
-	// }
-	// } };
-	//
-	// return new GRPCSSLContext(trustAllCerts[0]);
-	// }
-
 	@Component
 	static class GRPCServer implements ApplicationRunner {
 

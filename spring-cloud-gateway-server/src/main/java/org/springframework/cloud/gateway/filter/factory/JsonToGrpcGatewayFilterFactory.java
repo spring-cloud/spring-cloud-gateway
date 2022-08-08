@@ -30,7 +30,7 @@ import java.util.function.Function;
 import javax.net.ssl.SSLException;
 
 import org.reactivestreams.Publisher;
-import org.springframework.cloud.gateway.config.GRPCSSLContextFactory;
+import org.springframework.cloud.gateway.config.GrpcSslConfigurer;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.NettyWriteResponseFilter;
@@ -66,7 +66,6 @@ import io.grpc.ClientCall;
 import io.grpc.ManagedChannel;
 import io.grpc.MethodDescriptor;
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
-import io.grpc.netty.shaded.io.netty.handler.ssl.SslContext;
 import io.grpc.protobuf.ProtoUtils;
 import io.grpc.stub.ClientCalls;
 import io.netty.buffer.PooledByteBufAllocator;
@@ -85,13 +84,13 @@ import reactor.core.publisher.Mono;
 public class JsonToGrpcGatewayFilterFactory
 		extends AbstractGatewayFilterFactory<JsonToGrpcGatewayFilterFactory.Config> {
 
-	private final GRPCSSLContextFactory sslContextFactory;
+	private final GrpcSslConfigurer grpcSslConfigurer;
 
 	private final ResourceLoader resourceLoader;
 
-	public JsonToGrpcGatewayFilterFactory(GRPCSSLContextFactory sslContextFactory, ResourceLoader resourceLoader) {
+	public JsonToGrpcGatewayFilterFactory(GrpcSslConfigurer grpcSslConfigurer, ResourceLoader resourceLoader) {
 		super(Config.class);
-		this.sslContextFactory = sslContextFactory;
+		this.grpcSslConfigurer = grpcSslConfigurer;
 		this.resourceLoader = resourceLoader;
 	}
 
@@ -298,16 +297,12 @@ public class JsonToGrpcGatewayFilterFactory
 			};
 		}
 
-		// TODO: we are creating this on every call
+		//TODO: we are creating this on every call
 		private ManagedChannel createChannelChannel(String host, int port) {
+			NettyChannelBuilder nettyChannelBuilder = NettyChannelBuilder.forAddress(host, port);
 			try {
-				final SslContext sslContext = sslContextFactory.getSslContext();
-				return NettyChannelBuilder.forAddress(host, port)
-										  .useTransportSecurity()
-										  .sslContext(sslContext)
-										  .build();
-			}
-			catch (SSLException e) {
+				return grpcSslConfigurer.configureSsl(nettyChannelBuilder);
+			} catch (SSLException e) {
 				throw new RuntimeException(e);
 			}
 		}

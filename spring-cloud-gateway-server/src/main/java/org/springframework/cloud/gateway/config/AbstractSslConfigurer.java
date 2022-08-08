@@ -16,52 +16,74 @@
 
 package org.springframework.cloud.gateway.config;
 
+import java.io.IOException;
 import java.net.URL;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchProviderException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Collection;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLException;
+import javax.net.ssl.TrustManagerFactory;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.util.ResourceUtils;
 
-import io.grpc.netty.shaded.io.grpc.netty.GrpcSslContexts;
-import io.grpc.netty.shaded.io.netty.handler.ssl.SslContext;
-import io.grpc.netty.shaded.io.netty.handler.ssl.SslContextBuilder;
-import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
+import io.netty.handler.ssl.SslContextBuilder;
 
 /**
- * @author Alberto C. Ríos
+ * Base class to configure SSL for component T. Returns an instance S
+ * with the resulting configuration (can be the same as T).
+ *
+ * @author Abel Salgado Romero
  */
-public class GRPCSSLContextFactory {
+public abstract class AbstractSslConfigurer<T, S> {
+
+	protected final Log logger = LogFactory.getLog(this.getClass());
 
 	private final HttpClientProperties.Ssl ssl;
 
-	public GRPCSSLContextFactory(HttpClientProperties properties) {
-		ssl = properties.getSsl();
+	protected AbstractSslConfigurer(HttpClientProperties.Ssl sslProperties) {
+		this.ssl = sslProperties;
 	}
 
-	public SslContext getSslContext() throws SSLException {
+	abstract public S configureSsl(T client) throws SSLException;
 
-		SslContextBuilder sslContextBuilder = GrpcSslContexts.forClient();
-
-		if (ssl.isUseInsecureTrustManager()) {
-			sslContextBuilder.trustManager(InsecureTrustManagerFactory.INSTANCE.getTrustManagers()[0]);
-		}
-
-		if (ssl.isUseInsecureTrustManager() == false
-				&& ssl.getTrustedX509Certificates().size() > 0) {
-			sslContextBuilder.trustManager(ssl.getTrustedX509CertificatesForTrustManager());
-		}
-
-		return sslContextBuilder
-				// TODO: Not sure if this needs to be supported, mutual-auth maybe ?
-				.keyManager(getKeyManagerFactory())
-				.build();
+	protected HttpClientProperties.Ssl getSslProperties() {
+		return ssl;
 	}
 
-	private KeyManagerFactory getKeyManagerFactory() {
+	protected X509Certificate[] getTrustedX509CertificatesForTrustManager() {
+
+		try {
+			CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
+			ArrayList<Certificate> allCerts = new ArrayList<>();
+			for (String trustedCert : ssl.getTrustedX509Certificates()) {
+				try {
+					URL url = ResourceUtils.getURL(trustedCert);
+					Collection<? extends Certificate> certs = certificateFactory.generateCertificates(url.openStream());
+					allCerts.addAll(certs);
+				}
+				catch (IOException e) {
+					throw new RuntimeException("Could not load certificate '" + trustedCert + "'", e);
+				}
+			}
+			return allCerts.toArray(new X509Certificate[allCerts.size()]);
+		}
+		catch (CertificateException e1) {
+			throw new RuntimeException("Could not load CertificateFactory X.509", e1);
+		}
+	}
+
+	protected KeyManagerFactory getKeyManagerFactory() {
+
 		try {
 			if (ssl.getKeyStore() != null && ssl.getKeyStore().length() > 0) {
 				KeyManagerFactory keyManagerFactory = KeyManagerFactory
@@ -84,7 +106,8 @@ public class GRPCSSLContextFactory {
 		}
 	}
 
-	private KeyStore createKeyStore() {
+	protected KeyStore createKeyStore() {
+
 		try {
 			KeyStore store = ssl.getKeyStoreProvider() != null
 					? KeyStore.getInstance(ssl.getKeyStoreType(), ssl.getKeyStoreProvider())
@@ -104,4 +127,13 @@ public class GRPCSSLContextFactory {
 			throw new RuntimeException("Could not load KeyStore for given type and provider", e);
 		}
 	}
+
+	protected void setTrustManager(SslContextBuilder sslContextBuilder, X509Certificate... trustedX509Certificates) {
+		sslContextBuilder.trustManager(trustedX509Certificates);
+	}
+
+	protected void setTrustManager(SslContextBuilder sslContextBuilder, TrustManagerFactory factory) {
+		sslContextBuilder.trustManager(factory);
+	}
+
 }
