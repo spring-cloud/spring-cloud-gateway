@@ -166,7 +166,8 @@ public class GatewayControllerEndpointTests {
 	@Test
 	public void testPostValidShortcutRouteDefinition() {
 		RouteDefinition testRouteDefinition = new RouteDefinition();
-		testRouteDefinition.setId("gatewaywithgrpcfiltertest-0-104014-8916263311295787431172436062-test-gateway-tls-client-mapping-0");
+		testRouteDefinition.setId(
+				"gatewaywithgrpcfiltertest-0-104014-8916263311295787431172436062-test-gateway-tls-client-mapping-0");
 		testRouteDefinition.setUri(URI.create("https://localhost:8095"));
 		testRouteDefinition.setOrder(0);
 		testRouteDefinition.setMetadata(Collections.emptyMap());
@@ -174,20 +175,19 @@ public class GatewayControllerEndpointTests {
 		FilterDefinition longFilterDefinition = new FilterDefinition();
 		FilterDefinition stripPrefix = new FilterDefinition();
 		stripPrefix.setName("StripPrefix");
-		stripPrefix.addArg("_genkey_0","1");
+		stripPrefix.addArg("_genkey_0", "1");
 
 		longFilterDefinition.setName("JsonToGrpc");
-		longFilterDefinition.addArg("_genkey_0","file:src/main/proto/hello.pb");
-		longFilterDefinition.addArg("_genkey_1","file:src/main/proto/hello.proto");
-		longFilterDefinition.addArg("_genkey_2","HelloService");
-		longFilterDefinition.addArg("_genkey_3","hello");
+		longFilterDefinition.addArg("_genkey_0", "file:src/main/proto/hello.pb");
+		longFilterDefinition.addArg("_genkey_1", "file:src/main/proto/hello.proto");
+		longFilterDefinition.addArg("_genkey_2", "HelloService");
+		longFilterDefinition.addArg("_genkey_3", "hello");
 		testRouteDefinition.setFilters(Collections.singletonList(longFilterDefinition));
 
 		PredicateDefinition hostRoutePredicateDefinition = new PredicateDefinition();
 		hostRoutePredicateDefinition.setName("Path");
-		hostRoutePredicateDefinition.addArg("_genkey_0","/json/hello");
-		testRouteDefinition.setPredicates(
-				Arrays.asList(hostRoutePredicateDefinition));
+		hostRoutePredicateDefinition.addArg("_genkey_0", "/json/hello");
+		testRouteDefinition.setPredicates(Arrays.asList(hostRoutePredicateDefinition));
 
 		testClient.post().uri("http://localhost:" + port + "/actuator/gateway/routes/test-route")
 				.accept(MediaType.APPLICATION_JSON).body(BodyInserters.fromValue(testRouteDefinition)).exchange()

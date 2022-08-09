@@ -147,7 +147,6 @@ public class HttpClientFactory extends AbstractFactoryBean<HttpClient> {
 		return spec;
 	}
 
-
 	protected ConnectionProvider buildConnectionProvider(HttpClientProperties properties) {
 		HttpClientProperties.Pool pool = properties.getPool();
 

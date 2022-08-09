@@ -16,8 +16,6 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
-import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -29,7 +27,32 @@ import java.util.function.Function;
 
 import javax.net.ssl.SSLException;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.dataformat.protobuf.ProtobufFactory;
+import com.fasterxml.jackson.dataformat.protobuf.schema.ProtobufSchema;
+import com.fasterxml.jackson.dataformat.protobuf.schema.ProtobufSchemaLoader;
+import com.google.protobuf.DescriptorProtos;
+import com.google.protobuf.Descriptors;
+import com.google.protobuf.DynamicMessage;
+import io.grpc.CallOptions;
+import io.grpc.Channel;
+import io.grpc.ClientCall;
+import io.grpc.ManagedChannel;
+import io.grpc.MethodDescriptor;
+import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
+import io.grpc.protobuf.ProtoUtils;
+import io.grpc.stub.ClientCalls;
+import io.netty.buffer.PooledByteBufAllocator;
 import org.reactivestreams.Publisher;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
 import org.springframework.cloud.gateway.config.GrpcSslConfigurer;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -46,31 +69,7 @@ import org.springframework.http.codec.json.Jackson2JsonDecoder;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.web.server.ServerWebExchange;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectReader;
-import com.fasterxml.jackson.databind.ObjectWriter;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.dataformat.protobuf.ProtobufFactory;
-import com.fasterxml.jackson.dataformat.protobuf.schema.ProtobufSchema;
-import com.fasterxml.jackson.dataformat.protobuf.schema.ProtobufSchemaLoader;
-import com.google.protobuf.DescriptorProtos;
-import com.google.protobuf.Descriptors;
-import com.google.protobuf.DynamicMessage;
-
-import io.grpc.CallOptions;
-import io.grpc.Channel;
-import io.grpc.ClientCall;
-import io.grpc.ManagedChannel;
-import io.grpc.MethodDescriptor;
-import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
-import io.grpc.protobuf.ProtoUtils;
-import io.grpc.stub.ClientCalls;
-import io.netty.buffer.PooledByteBufAllocator;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
+import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
 
 /**
  * This filter takes a JSON payload, transform it into a protobuf object, send it to a
@@ -297,15 +296,17 @@ public class JsonToGrpcGatewayFilterFactory
 			};
 		}
 
-		//TODO: we are creating this on every call
+		// We are creating this on every call, should optimize?
 		private ManagedChannel createChannelChannel(String host, int port) {
 			NettyChannelBuilder nettyChannelBuilder = NettyChannelBuilder.forAddress(host, port);
 			try {
 				return grpcSslConfigurer.configureSsl(nettyChannelBuilder);
-			} catch (SSLException e) {
+			}
+			catch (SSLException e) {
 				throw new RuntimeException(e);
 			}
 		}
+
 	}
 
 }

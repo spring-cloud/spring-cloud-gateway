@@ -23,6 +23,7 @@ import reactor.netty.http.Http11SslContextSpec;
 import reactor.netty.http.Http2SslContextSpec;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.tcp.SslProvider;
+
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 
 public class HttpClientSslConfigurer extends AbstractSslConfigurer<HttpClient, HttpClient> {
@@ -70,7 +71,8 @@ public class HttpClientSslConfigurer extends AbstractSslConfigurer<HttpClient, H
 		});
 
 		sslContextSpec.sslContext(clientSslContext).handshakeTimeout(ssl.getHandshakeTimeout())
-					  .closeNotifyFlushTimeout(ssl.getCloseNotifyFlushTimeout())
-					  .closeNotifyReadTimeout(ssl.getCloseNotifyReadTimeout());
+				.closeNotifyFlushTimeout(ssl.getCloseNotifyFlushTimeout())
+				.closeNotifyReadTimeout(ssl.getCloseNotifyReadTimeout());
 	}
+
 }

@@ -44,18 +44,16 @@ public class GrpcSslConfigurer extends AbstractSslConfigurer<NettyChannelBuilder
 		final SslContextBuilder sslContextBuilder = GrpcSslContexts.forClient();
 
 		final HttpClientProperties.Ssl ssl = getSslProperties();
-		if (ssl.isUseInsecureTrustManager()) {
+		boolean useInsecureTrustManager = ssl.isUseInsecureTrustManager();
+		if (useInsecureTrustManager) {
 			sslContextBuilder.trustManager(InsecureTrustManagerFactory.INSTANCE.getTrustManagers()[0]);
 		}
 
-		if (ssl.isUseInsecureTrustManager() == false
-				&& ssl.getTrustedX509Certificates().size() > 0) {
+		if (!useInsecureTrustManager && ssl.getTrustedX509Certificates().size() > 0) {
 			sslContextBuilder.trustManager(getTrustedX509CertificatesForTrustManager());
 		}
 
-		return sslContextBuilder
-				.keyManager(getKeyManagerFactory())
-				.build();
+		return sslContextBuilder.keyManager(getKeyManagerFactory()).build();
 	}
 
 }

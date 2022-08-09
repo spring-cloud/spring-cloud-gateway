@@ -32,15 +32,15 @@ import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.TrustManagerFactory;
 
+import io.netty.handler.ssl.SslContextBuilder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.util.ResourceUtils;
 
-import io.netty.handler.ssl.SslContextBuilder;
-
 /**
- * Base class to configure SSL for component T. Returns an instance S
- * with the resulting configuration (can be the same as T).
+ * Base class to configure SSL for component T. Returns an instance S with the resulting
+ * configuration (can be the same as T).
  *
  * @author Abel Salgado Romero
  */

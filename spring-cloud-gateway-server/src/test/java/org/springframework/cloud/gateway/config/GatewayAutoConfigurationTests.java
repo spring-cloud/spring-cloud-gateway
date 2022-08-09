@@ -318,8 +318,8 @@ public class GatewayAutoConfigurationTests {
 
 		@Bean
 		@Primary
-		CustomSslConfigurer customSslContextFactory (ServerProperties serverProperties,
-													 HttpClientProperties httpClientProperties) {
+		CustomSslConfigurer customSslContextFactory(ServerProperties serverProperties,
+				HttpClientProperties httpClientProperties) {
 			return new CustomSslConfigurer(httpClientProperties.getSsl(), serverProperties);
 		}
 
@@ -381,6 +381,7 @@ public class GatewayAutoConfigurationTests {
 				insecureTrustManagerSet = factory == InsecureTrustManagerFactory.INSTANCE;
 				super.setTrustManager(sslContextBuilder, factory);
 			}
+
 		}
 
 	}
