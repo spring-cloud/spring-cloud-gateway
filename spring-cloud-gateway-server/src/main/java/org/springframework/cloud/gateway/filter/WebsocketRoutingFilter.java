@@ -32,6 +32,7 @@ import org.springframework.cloud.gateway.filter.headers.HttpHeadersFilter;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
 import org.springframework.util.StringUtils;
+import org.springframework.web.reactive.socket.CloseStatus;
 import org.springframework.web.reactive.socket.WebSocketHandler;
 import org.springframework.web.reactive.socket.WebSocketMessage;
 import org.springframework.web.reactive.socket.WebSocketSession;
@@ -201,11 +202,67 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 		public Mono<Void> handle(WebSocketSession session) {
 			// pass headers along so custom headers can be sent through
 			return client.execute(url, this.headers, new WebSocketHandler() {
+
+				private CloseStatus adaptCloseStatus(CloseStatus closeStatus) {
+					int code = closeStatus.getCode();
+					if (code > 2999 && code < 5000) {
+						return closeStatus;
+					}
+					switch (code) {
+						case 1000:
+							return closeStatus;
+						case 1001:
+							return closeStatus;
+						case 1002:
+							return closeStatus;
+						case 1003:
+							return closeStatus;
+						case 1004:
+							// Should not be used in a close frame
+							// RESERVED;
+							return CloseStatus.PROTOCOL_ERROR;
+						case 1005:
+							// Should not be used in a close frame
+							// return CloseStatus.NO_STATUS_CODE;
+							return CloseStatus.PROTOCOL_ERROR;
+						case 1006:
+							// Should not be used in a close frame
+							// return CloseStatus.NO_CLOSE_FRAME;
+							return CloseStatus.PROTOCOL_ERROR;
+						case 1007:
+							return closeStatus;
+						case 1008:
+							return closeStatus;
+						case 1009:
+							return closeStatus;
+						case 1010:
+							return closeStatus;
+						case 1011:
+							return closeStatus;
+						case 1012:
+							// Not in RFC6455
+							// return CloseStatus.SERVICE_RESTARTED;
+							return CloseStatus.PROTOCOL_ERROR;
+						case 1013:
+							// Not in RFC6455
+							// return CloseStatus.SERVICE_OVERLOAD;
+							return CloseStatus.PROTOCOL_ERROR;
+						case 1015:
+							// Should not be used in a close frame
+							// return CloseStatus.TLS_HANDSHAKE_FAILURE;
+							return CloseStatus.PROTOCOL_ERROR;
+						default:
+							return CloseStatus.PROTOCOL_ERROR;
+					}
+				}
+
 				@Override
 				public Mono<Void> handle(WebSocketSession proxySession) {
 					Mono<Void> serverClose = proxySession.closeStatus().filter(__ -> session.isOpen())
+							.map(this::adaptCloseStatus)
 							.flatMap(session::close);
 					Mono<Void> proxyClose = session.closeStatus().filter(__ -> proxySession.isOpen())
+							.map(this::adaptCloseStatus)
 							.flatMap(proxySession::close);
 					// Use retain() for Reactor Netty
 					Mono<Void> proxySessionSend = proxySession
