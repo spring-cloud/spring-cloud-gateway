@@ -54,6 +54,14 @@ public class HttpClientFactory extends AbstractFactoryBean<HttpClient> {
 	protected final List<HttpClientCustomizer> customizers;
 
 	public HttpClientFactory(HttpClientProperties properties, ServerProperties serverProperties,
+			List<HttpClientCustomizer> customizers) {
+		this.properties = properties;
+		this.serverProperties = serverProperties;
+		this.sslConfigurer = new HttpClientSslConfigurer(properties.getSsl(), serverProperties);
+		this.customizers = customizers;
+	}
+
+	public HttpClientFactory(HttpClientProperties properties, ServerProperties serverProperties,
 			HttpClientSslConfigurer sslConfigurer, List<HttpClientCustomizer> customizers) {
 		this.properties = properties;
 		this.serverProperties = serverProperties;
