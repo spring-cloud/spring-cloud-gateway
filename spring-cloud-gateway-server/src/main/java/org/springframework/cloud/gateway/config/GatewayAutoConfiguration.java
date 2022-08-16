@@ -312,8 +312,8 @@ public class GatewayAutoConfiguration {
 	@Bean
 	@ConditionalOnEnabledFilter(JsonToGrpcGatewayFilterFactory.class)
 	@ConditionalOnMissingBean(GrpcSslConfigurer.class)
-	@ConditionalOnClass(Channel.class)
-	public GrpcSslConfigurer gRPCSSLContext(HttpClientProperties properties)
+	@ConditionalOnClass(name = "io.grpc.Channel")
+	public GrpcSslConfigurer grpcSslConfigurer(HttpClientProperties properties)
 			throws KeyStoreException, NoSuchAlgorithmException {
 		TrustManagerFactory trustManagerFactory = TrustManagerFactory
 				.getInstance(TrustManagerFactory.getDefaultAlgorithm());
@@ -686,7 +686,7 @@ public class GatewayAutoConfiguration {
 		}
 
 		@Bean
-		public HttpClientSslConfigurer sslContextFactory(ServerProperties serverProperties,
+		public HttpClientSslConfigurer httpClientSslConfigurer(ServerProperties serverProperties,
 				HttpClientProperties httpClientProperties) {
 			return new HttpClientSslConfigurer(httpClientProperties.getSsl(), serverProperties) {
 			};

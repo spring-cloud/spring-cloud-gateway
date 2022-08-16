@@ -39,6 +39,7 @@ import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
+import org.springframework.util.SocketUtils;
 
 /**
  * @author Alberto C. Ríos
@@ -47,7 +48,7 @@ import org.springframework.stereotype.Component;
 @EnableAutoConfiguration
 public class GRPCApplication {
 
-	private static final int GRPC_SERVER_PORT = 8095;
+	private static final int GRPC_SERVER_PORT = SocketUtils.findAvailableTcpPort();
 
 	public static void main(String[] args) {
 		SpringApplication.run(GRPCApplication.class, args);

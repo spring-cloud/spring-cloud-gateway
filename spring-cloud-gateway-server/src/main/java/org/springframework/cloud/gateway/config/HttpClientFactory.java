@@ -85,7 +85,7 @@ public class HttpClientFactory extends AbstractFactoryBean<HttpClient> {
 
 		httpClient = configureProxy(httpClient);
 
-		httpClient = sslConfigurer.configureSsl(httpClient);
+		httpClient = configureSsl(httpClient);
 
 		if (properties.isWiretap()) {
 			httpClient = httpClient.wiretap(true);
@@ -98,6 +98,10 @@ public class HttpClientFactory extends AbstractFactoryBean<HttpClient> {
 		httpClient = applyCustomizers(httpClient);
 
 		return httpClient;
+	}
+
+	protected HttpClient configureSsl(HttpClient httpClient) {
+		return sslConfigurer.configureSsl(httpClient);
 	}
 
 	private HttpClient applyCustomizers(HttpClient httpClient) {
