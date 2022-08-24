@@ -20,26 +20,22 @@ import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
-import javax.net.ssl.SSLException;
-
 import io.grpc.Grpc;
 import io.grpc.Server;
 import io.grpc.ServerCredentials;
 import io.grpc.TlsServerCredentials;
-import io.grpc.netty.shaded.io.grpc.netty.NettySslContextServerCredentials;
-import io.grpc.netty.shaded.io.netty.handler.ssl.ApplicationProtocolConfig;
-import io.grpc.netty.shaded.io.netty.handler.ssl.ApplicationProtocolNames;
-import io.grpc.netty.shaded.io.netty.handler.ssl.SslContextBuilder;
 import io.grpc.stub.StreamObserver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.core.env.Environment;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
-import org.springframework.util.SocketUtils;
 
 /**
  * @author Alberto C. Ríos
@@ -48,8 +44,6 @@ import org.springframework.util.SocketUtils;
 @EnableAutoConfiguration
 public class GRPCApplication {
 
-	private static final int GRPC_SERVER_PORT = SocketUtils.findAvailableTcpPort();
-
 	public static void main(String[] args) {
 		SpringApplication.run(GRPCApplication.class, args);
 	}
@@ -57,21 +51,32 @@ public class GRPCApplication {
 	@Component
 	static class GRPCServer implements ApplicationRunner {
 
+		private static final Logger log = LoggerFactory.getLogger(GRPCServer.class);
+
+		private final Environment environment;
+
 		private Server server;
+
+		GRPCServer(Environment environment) {
+			this.environment = environment;
+		}
 
 		@Override
 		public void run(ApplicationArguments args) throws Exception {
-			final GRPCServer server = new GRPCServer();
+			final GRPCServer server = new GRPCServer(environment);
 			server.start();
 		}
 
-		private void start() throws Exception {
-			/* The port on which the server should run */
+		private void start() throws IOException {
+			Integer serverPort = environment.getProperty("local.server.port", Integer.class);
+			int grpcPort = serverPort + 1;
+			/*
+			 * The port on which the server should run. We run
+			 */
 			ServerCredentials creds = createServerCredentials();
-			server = Grpc.newServerBuilderForPort(GRPC_SERVER_PORT, creds)
-					.addService(new HelloService()).build().start();
+			server = Grpc.newServerBuilderForPort(grpcPort, creds).addService(new HelloService()).build().start();
 
-			System.out.println("Starting gRPC server in port " + GRPC_SERVER_PORT);
+			log.info("Starting gRPC server in port " + grpcPort);
 
 			Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 				try {
@@ -86,27 +91,8 @@ public class GRPCApplication {
 		private ServerCredentials createServerCredentials() throws IOException {
 			File certChain = new ClassPathResource("public.cert").getFile();
 			File privateKey = new ClassPathResource("private.key").getFile();
-			File keystore = new ClassPathResource("keystore.p12").getFile();
-			// return nettyCredentials(certChain, privateKey);
+
 			return TlsServerCredentials.create(certChain, privateKey);
-		}
-
-		private ServerCredentials nettyCredentials(File certChain, File privateKey)
-				throws SSLException {
-			ApplicationProtocolConfig apn = new ApplicationProtocolConfig(
-					ApplicationProtocolConfig.Protocol.ALPN,
-					// NO_ADVERTISE is currently the only mode supported by both OpenSsl
-					// and JDK providers.
-					ApplicationProtocolConfig.SelectorFailureBehavior.NO_ADVERTISE,
-					// ACCEPT is currently the only mode supported by both OpenSsl and JDK
-					// providers.
-					ApplicationProtocolConfig.SelectedListenerFailureBehavior.ACCEPT,
-					ApplicationProtocolNames.HTTP_2, ApplicationProtocolNames.HTTP_1_1);
-
-			ServerCredentials serverCredentials = NettySslContextServerCredentials
-					.create(SslContextBuilder.forServer(certChain, privateKey)
-							.applicationProtocolConfig(apn).build());
-			return serverCredentials;
 		}
 
 		private void stop() throws InterruptedException {
@@ -118,15 +104,12 @@ public class GRPCApplication {
 		static class HelloService extends HelloServiceGrpc.HelloServiceImplBase {
 
 			@Override
-			public void hello(HelloRequest request,
-					StreamObserver<HelloResponse> responseObserver) {
+			public void hello(HelloRequest request, StreamObserver<HelloResponse> responseObserver) {
 
-				String greeting = "Hello, " + request.getFirstName() + " "
-						+ request.getLastName();
-				System.out.println("Sending response: " + greeting);
+				String greeting = String.format("Hello, %s %s", request.getFirstName(), request.getLastName());
+				log.info("Sending response: " + greeting);
 
-				HelloResponse response = HelloResponse.newBuilder().setGreeting(greeting)
-						.build();
+				HelloResponse response = HelloResponse.newBuilder().setGreeting(greeting).build();
 
 				responseObserver.onNext(response);
 				responseObserver.onCompleted();

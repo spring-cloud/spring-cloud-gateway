@@ -7,6 +7,17 @@ server:
     key-store-password: password
     key-alias: bootapp
 
+management:
+  endpoint:
+    health:
+      show-details: when_authorized
+    gateway:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
 spring:
   cloud:
     gateway:
@@ -19,13 +30,6 @@ spring:
 # Requires faking domain name (modifying /etc/hosts)
 #          trustedX509Certificates:
 #            - classpath:public.cert
-
-      routes:
-        - uri: https://localhost:8095
-          predicates:
-            - Path=/json/hello
-          filters:
-            - JsonToGrpc=file:src/main/proto/hello.pb,file:src/main/proto/hello.proto,HelloService,hello
 
 logging:
   level:

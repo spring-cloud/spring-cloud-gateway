@@ -23,8 +23,8 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
 import io.grpc.ManagedChannel;
-import io.grpc.netty.shaded.io.grpc.netty.GrpcSslContexts;
-import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
+import io.grpc.netty.GrpcSslContexts;
+import io.grpc.netty.NettyChannelBuilder;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -32,7 +32,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.test.annotation.DirtiesContext;
 
-import static io.grpc.netty.shaded.io.grpc.netty.NegotiationType.TLS;
+import static io.grpc.netty.NegotiationType.TLS;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 
 /**
@@ -47,7 +47,7 @@ public class GRPCApplicationTests {
 
 	@Test
 	public void gRPCUnaryCalShouldReturnResponse() throws SSLException {
-		ManagedChannel channel = createSecuredChannel(port);
+		ManagedChannel channel = createSecuredChannel(port + 1);
 
 		final HelloResponse response = HelloServiceGrpc.newBlockingStub(channel)
 				.hello(HelloRequest.newBuilder().setFirstName("Sir").setLastName("FromClient").build());
