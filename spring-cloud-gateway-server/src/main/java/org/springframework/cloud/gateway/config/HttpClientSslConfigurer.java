@@ -42,15 +42,13 @@ public class HttpClientSslConfigurer extends AbstractSslConfigurer<HttpClient, H
 				|| getTrustedX509CertificatesForTrustManager().length > 0 || ssl.isUseInsecureTrustManager()) {
 			client = client.secure(sslContextSpec -> {
 				// configure ssl
-				configureSslContext(sslContextSpec);
+				configureSslContext(ssl, sslContextSpec);
 			});
 		}
 		return client;
 	}
 
-	protected void configureSslContext(SslProvider.SslContextSpec sslContextSpec) {
-		final HttpClientProperties.Ssl ssl = getSslProperties();
-
+	protected void configureSslContext(HttpClientProperties.Ssl ssl, SslProvider.SslContextSpec sslContextSpec) {
 		SslProvider.ProtocolSslContextSpec clientSslContext = (serverProperties.getHttp2().isEnabled())
 				? Http2SslContextSpec.forClient() : Http11SslContextSpec.forClient();
 		clientSslContext.configure(sslContextBuilder -> {

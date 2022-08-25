@@ -371,9 +371,10 @@ public class GatewayAutoConfigurationTests {
 			}
 
 			@Override
-			protected void configureSslContext(SslProvider.SslContextSpec sslContextSpec) {
+			protected void configureSslContext(HttpClientProperties.Ssl ssl,
+					SslProvider.SslContextSpec sslContextSpec) {
 				sslConfigured = true;
-				super.configureSslContext(sslContextSpec);
+				super.configureSslContext(getSslProperties(), sslContextSpec);
 			}
 
 			@Override

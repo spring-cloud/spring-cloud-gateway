@@ -16,14 +16,21 @@
 
 package org.springframework.cloud.gateway.config;
 
+import java.security.KeyStore;
+import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.util.List;
 
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.TrustManagerFactory;
+
 import io.netty.channel.ChannelOption;
+import io.netty.handler.ssl.SslContextBuilder;
 import reactor.netty.http.HttpProtocol;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.client.HttpResponseDecoderSpec;
 import reactor.netty.resources.ConnectionProvider;
+import reactor.netty.tcp.SslProvider;
 import reactor.netty.transport.ProxyProvider;
 
 import org.springframework.beans.factory.config.AbstractFactoryBean;
@@ -110,6 +117,30 @@ public class HttpClientFactory extends AbstractFactoryBean<HttpClient> {
 
 	protected HttpClient configureSsl(HttpClient httpClient) {
 		return sslConfigurer.configureSsl(httpClient);
+	}
+
+	protected void configureSslContext(HttpClientProperties.Ssl ssl, SslProvider.SslContextSpec sslContextSpec) {
+		sslConfigurer.configureSslContext(ssl, sslContextSpec);
+	}
+
+	protected X509Certificate[] getTrustedX509CertificatesForTrustManager() {
+		return sslConfigurer.getTrustedX509CertificatesForTrustManager();
+	}
+
+	protected KeyManagerFactory getKeyManagerFactory() {
+		return sslConfigurer.getKeyManagerFactory();
+	}
+
+	protected KeyStore createKeyStore() {
+		return sslConfigurer.createKeyStore();
+	}
+
+	protected void setTrustManager(SslContextBuilder sslContextBuilder, X509Certificate... trustedX509Certificates) {
+		sslConfigurer.setTrustManager(sslContextBuilder, trustedX509Certificates);
+	}
+
+	protected void setTrustManager(SslContextBuilder sslContextBuilder, TrustManagerFactory factory) {
+		sslConfigurer.setTrustManager(sslContextBuilder, factory);
 	}
 
 	private HttpClient applyCustomizers(HttpClient httpClient) {
