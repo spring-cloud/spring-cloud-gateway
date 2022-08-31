@@ -25,7 +25,6 @@ import java.util.function.Supplier;
 
 import javax.net.ssl.TrustManagerFactory;
 
-import io.grpc.Channel;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Flux;
@@ -303,7 +302,7 @@ public class GatewayAutoConfiguration {
 	@Bean
 	@ConditionalOnEnabledFilter
 	@ConditionalOnProperty(name = "server.http2.enabled", matchIfMissing = true)
-	@ConditionalOnClass(Channel.class)
+	@ConditionalOnClass(name = "io.grpc.Channel")
 	public JsonToGrpcGatewayFilterFactory jsonToGRPCFilterFactory(GrpcSslConfigurer gRPCSSLContext,
 			ResourceLoader resourceLoader) {
 		return new JsonToGrpcGatewayFilterFactory(gRPCSSLContext, resourceLoader);
