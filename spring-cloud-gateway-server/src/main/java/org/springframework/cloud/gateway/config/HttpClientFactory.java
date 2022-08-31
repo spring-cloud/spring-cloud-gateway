@@ -16,33 +16,14 @@
 
 package org.springframework.cloud.gateway.config;
 
-import java.io.IOException;
-import java.net.URL;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchProviderException;
-import java.security.cert.Certificate;
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.TrustManagerFactory;
-
 import io.netty.channel.ChannelOption;
-import io.netty.handler.ssl.SslContextBuilder;
-import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
-import reactor.netty.http.Http11SslContextSpec;
-import reactor.netty.http.Http2SslContextSpec;
 import reactor.netty.http.HttpProtocol;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.client.HttpResponseDecoderSpec;
 import reactor.netty.resources.ConnectionProvider;
-import reactor.netty.tcp.SslProvider;
 import reactor.netty.transport.ProxyProvider;
 
 import org.springframework.beans.factory.config.AbstractFactoryBean;
@@ -50,7 +31,6 @@ import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.ResourceUtils;
 import org.springframework.util.StringUtils;
 
 import static org.springframework.cloud.gateway.config.HttpClientProperties.Pool.PoolType.DISABLED;
@@ -129,45 +109,7 @@ public class HttpClientFactory extends AbstractFactoryBean<HttpClient> {
 	}
 
 	protected HttpClient configureSsl(HttpClient httpClient) {
-		if (sslConfigurer != null) {
-			return sslConfigurer.configureSsl(httpClient);
-		}
-
-		HttpClientProperties.Ssl ssl = properties.getSsl();
-		if ((ssl.getKeyStore() != null && ssl.getKeyStore().length() > 0)
-				|| getTrustedX509CertificatesForTrustManager().length > 0 || ssl.isUseInsecureTrustManager()) {
-			httpClient = httpClient.secure(sslContextSpec -> {
-				// configure ssl
-				configureSslContext(ssl, sslContextSpec);
-			});
-		}
-		return httpClient;
-	}
-
-	@Deprecated
-	protected void configureSslContext(HttpClientProperties.Ssl ssl, SslProvider.SslContextSpec sslContextSpec) {
-		SslProvider.ProtocolSslContextSpec clientSslContext = (serverProperties.getHttp2().isEnabled())
-				? Http2SslContextSpec.forClient() : Http11SslContextSpec.forClient();
-		clientSslContext.configure(sslContextBuilder -> {
-			X509Certificate[] trustedX509Certificates = getTrustedX509CertificatesForTrustManager();
-			if (trustedX509Certificates.length > 0) {
-				setTrustManager(sslContextBuilder, trustedX509Certificates);
-			}
-			else if (ssl.isUseInsecureTrustManager()) {
-				setTrustManager(sslContextBuilder, InsecureTrustManagerFactory.INSTANCE);
-			}
-
-			try {
-				sslContextBuilder.keyManager(getKeyManagerFactory());
-			}
-			catch (Exception e) {
-				logger.error(e);
-			}
-		});
-
-		sslContextSpec.sslContext(clientSslContext).handshakeTimeout(ssl.getHandshakeTimeout())
-				.closeNotifyFlushTimeout(ssl.getCloseNotifyFlushTimeout())
-				.closeNotifyReadTimeout(ssl.getCloseNotifyReadTimeout());
+		return sslConfigurer.configureSsl(httpClient);
 	}
 
 	private HttpClient applyCustomizers(HttpClient httpClient) {
@@ -190,88 +132,6 @@ public class HttpClientFactory extends AbstractFactoryBean<HttpClient> {
 			});
 		}
 		return httpClient;
-	}
-
-	@Deprecated
-	protected X509Certificate[] getTrustedX509CertificatesForTrustManager() {
-		HttpClientProperties.Ssl ssl = properties.getSsl();
-
-		try {
-			CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
-			ArrayList<Certificate> allCerts = new ArrayList<>();
-			for (String trustedCert : ssl.getTrustedX509Certificates()) {
-				try {
-					URL url = ResourceUtils.getURL(trustedCert);
-					Collection<? extends Certificate> certs = certificateFactory.generateCertificates(url.openStream());
-					allCerts.addAll(certs);
-				}
-				catch (IOException e) {
-					throw new RuntimeException("Could not load certificate '" + trustedCert + "'", e);
-				}
-			}
-			return allCerts.toArray(new X509Certificate[allCerts.size()]);
-		}
-		catch (CertificateException e1) {
-			throw new RuntimeException("Could not load CertificateFactory X.509", e1);
-		}
-	}
-
-	@Deprecated
-	protected KeyManagerFactory getKeyManagerFactory() {
-		HttpClientProperties.Ssl ssl = properties.getSsl();
-		try {
-			if (ssl.getKeyStore() != null && ssl.getKeyStore().length() > 0) {
-				KeyManagerFactory keyManagerFactory = KeyManagerFactory
-						.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-				char[] keyPassword = ssl.getKeyPassword() != null ? ssl.getKeyPassword().toCharArray() : null;
-
-				if (keyPassword == null && ssl.getKeyStorePassword() != null) {
-					keyPassword = ssl.getKeyStorePassword().toCharArray();
-				}
-
-				keyManagerFactory.init(this.createKeyStore(), keyPassword);
-
-				return keyManagerFactory;
-			}
-
-			return null;
-		}
-		catch (Exception e) {
-			throw new IllegalStateException(e);
-		}
-	}
-
-	@Deprecated
-	protected KeyStore createKeyStore() {
-		HttpClientProperties.Ssl ssl = properties.getSsl();
-		try {
-			KeyStore store = ssl.getKeyStoreProvider() != null
-					? KeyStore.getInstance(ssl.getKeyStoreType(), ssl.getKeyStoreProvider())
-					: KeyStore.getInstance(ssl.getKeyStoreType());
-			try {
-				URL url = ResourceUtils.getURL(ssl.getKeyStore());
-				store.load(url.openStream(),
-						ssl.getKeyStorePassword() != null ? ssl.getKeyStorePassword().toCharArray() : null);
-			}
-			catch (Exception e) {
-				throw new RuntimeException("Could not load key store ' " + ssl.getKeyStore() + "'", e);
-			}
-
-			return store;
-		}
-		catch (KeyStoreException | NoSuchProviderException e) {
-			throw new RuntimeException("Could not load KeyStore for given type and provider", e);
-		}
-	}
-
-	@Deprecated
-	protected void setTrustManager(SslContextBuilder sslContextBuilder, X509Certificate... trustedX509Certificates) {
-		sslContextBuilder.trustManager(trustedX509Certificates);
-	}
-
-	@Deprecated
-	protected void setTrustManager(SslContextBuilder sslContextBuilder, TrustManagerFactory factory) {
-		sslContextBuilder.trustManager(factory);
 	}
 
 	protected ProxyProvider.Builder configureProxyProvider(HttpClientProperties.Proxy proxy,
