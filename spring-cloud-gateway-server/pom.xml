@@ -94,7 +94,7 @@
 		</dependency>
 		<dependency>
 			<groupId>io.grpc</groupId>
-			<artifactId>grpc-netty-shaded</artifactId>
+			<artifactId>grpc-netty</artifactId>
 			<optional>true</optional>
 			<version>${grpc.version}</version>
 		</dependency>
