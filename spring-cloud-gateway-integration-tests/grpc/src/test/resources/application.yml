@@ -2,11 +2,22 @@ server:
   http2:
     enabled: true
   ssl:
-    key-store-type: PKCS12
     key-store: classpath:keystore.p12
+    key-store-type: pkcs12
     key-store-password: password
-    key-password: password
-    enabled: true
+    key-alias: bootapp
+
+management:
+  endpoint:
+    health:
+      show-details: when_authorized
+    gateway:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
 spring:
   cloud:
     gateway:
@@ -15,11 +26,10 @@ spring:
       httpclient:
         wiretap: true
         ssl:
-          key-store-type: PKCS12
-          key-store: classpath:keystore.p12
-          key-store-password: password
-          key-password: password
           use-insecure-trust-manager: true
+# Requires faking domain name (modifying /etc/hosts)
+#          trustedX509Certificates:
+#            - classpath:public.cert
 
 logging:
   level:
