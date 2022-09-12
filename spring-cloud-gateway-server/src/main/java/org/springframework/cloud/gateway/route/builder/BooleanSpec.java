@@ -99,14 +99,14 @@ public class BooleanSpec extends UriSpec {
 		@Override
 		public BooleanSpec asyncPredicate(AsyncPredicate<ServerWebExchange> predicate) {
 			switch (this.operator) {
-			case AND:
-				this.routeBuilder.and(predicate);
-				break;
-			case OR:
-				this.routeBuilder.or(predicate);
-				break;
-			case NEGATE:
-				this.routeBuilder.negate();
+				case AND:
+					this.routeBuilder.and(predicate);
+					break;
+				case OR:
+					this.routeBuilder.or(predicate);
+					break;
+				case NEGATE:
+					this.routeBuilder.negate();
 			}
 			return new BooleanSpec(this.routeBuilder, this.builder);
 		}
