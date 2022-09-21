@@ -1,2 +1,1 @@
-org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebFlux=\
 org.springframework.cloud.gateway.webflux.config.ProxyResponseAutoConfiguration

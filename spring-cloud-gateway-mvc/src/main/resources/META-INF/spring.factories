@@ -1,5 +1,2 @@
-org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-org.springframework.cloud.gateway.mvc.config.ProxyResponseAutoConfiguration
-
 org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureWebMvc=\
 org.springframework.cloud.gateway.mvc.config.ProxyResponseAutoConfiguration
