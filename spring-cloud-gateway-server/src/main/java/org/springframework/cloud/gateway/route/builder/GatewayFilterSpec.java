@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.route.builder;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -37,6 +38,8 @@ import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.OrderedGatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractChangeRequestUriGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.AddRequestHeaderGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.AddRequestHeadersIfNotPresentGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.AddRequestHeadersIfNotPresentGatewayFilterFactory.KeyValue;
 import org.springframework.cloud.gateway.filter.factory.AddRequestParameterGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.AddResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.CacheRequestBodyGatewayFilterFactory;
@@ -163,6 +166,22 @@ public class GatewayFilterSpec extends UriSpec {
 	public GatewayFilterSpec addRequestHeader(String headerName, String headerValue) {
 		return filter(getBean(AddRequestHeaderGatewayFilterFactory.class)
 				.apply(c -> c.setName(headerName).setValue(headerValue)));
+	}
+
+	/**
+	 * Adds a request header to the request before it is routed by the Gateway.
+	 * @param headers the header name(s) and value(s) as 'name-1:value-1,name-2:value-2,...'
+	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
+	 */
+	public GatewayFilterSpec addRequestHeadersIfNotPresent(String... headers) {
+		return filter(getBean(AddRequestHeadersIfNotPresentGatewayFilterFactory.class)
+				.apply(c -> {
+					KeyValue[] values = Arrays.stream(headers)
+							.map(header -> header.split(":"))
+							.map(parts -> new KeyValue(parts[0], parts[1]))
+							.toArray(size -> new KeyValue[size]);
+					c.setKeyValues(values);
+				}));
 	}
 
 	/**
