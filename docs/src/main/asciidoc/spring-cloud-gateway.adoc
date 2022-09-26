@@ -926,8 +926,22 @@ This filter takes an optional `keyResolver` parameter and parameters specific to
 
 `keyResolver` is a bean that implements the `KeyResolver` interface.
 In configuration, reference the bean by name using SpEL.
-`#{@myKeyResolver}` is a SpEL expression that references a bean named `myKeyResolver`.
+`@myKeyResolver` is a SpEL expression that references a bean named `myKeyResolver`.
 The following listing shows the `KeyResolver` interface:
+
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: limit
+        uri: https://example.org
+        filters:
+        - name: RequestRateLimiter
+          args:
+            key-resolver: "@myKeyResolver"
+
+----
 
 .KeyResolver.java
 ====
