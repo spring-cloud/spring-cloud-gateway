@@ -5,11 +5,13 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
+import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.util.StringUtils;
@@ -60,7 +62,13 @@ public class AddRequestHeadersIfNotPresentGatewayFilterFactory
 						if (requestBuilder == null) {
 							requestBuilder = exchange.getRequest().mutate();
 						}
-						requestBuilder.headers(httpHeaders -> httpHeaders.addAll(headerName, kv.getValue()));
+						ServerWebExchange finalExchange = exchange;
+						requestBuilder.headers(httpHeaders -> {
+							List<String> replacedValues = kv.getValue().stream()
+									.map(value -> ServerWebExchangeUtils.expand(finalExchange, value))
+									.collect(Collectors.toList());
+							httpHeaders.addAll(headerName, replacedValues);
+						});
 					}
 				}
 				if (requestBuilder != null) {

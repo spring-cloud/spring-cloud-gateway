@@ -95,7 +95,7 @@ public class AddRequestHeadersIfNotPresentGatewayFilterFactoryTests extends Base
 		testClient.get().uri("/headers").header("Host", TEST_HOST_HEADER_VALUE).exchange().expectBody(Map.class)
 				.consumeWith(result -> {
 					Map<String, Object> headers = getMap(result.getResponseBody(), "headers");
-					assertThat(headers).containsEntry("X-Request-Acme", "ValueB");
+					assertThat(headers).containsEntry("X-Request-Acme", "ValueB-www");
 				});
 	}
 
@@ -104,7 +104,7 @@ public class AddRequestHeadersIfNotPresentGatewayFilterFactoryTests extends Base
 		testClient.get().uri("/multivalueheaders").header("Host", TEST_HOST_HEADER_VALUE).exchange()
 				.expectBody(Map.class).consumeWith(result -> {
 					Map<String, Object> headers = getMap(result.getResponseBody(), "headers");
-					assertThat(headers).containsEntry("X-Request-Acme", Arrays.asList("ValueX", "ValueY", "ValueZ"));
+					assertThat(headers).containsEntry("X-Request-Acme", Arrays.asList("ValueX", "ValueY", "ValueZ", "www"));
 				});
 	}
 
@@ -134,12 +134,13 @@ public class AddRequestHeadersIfNotPresentGatewayFilterFactoryTests extends Base
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes()
 					.route("add_request_headers_if_not_present_java_test",
-							r -> r.path("/headers").and().host(TEST_HOST_HEADER_VALUE)
-									.filters(f -> f.addRequestHeadersIfNotPresent("X-Request-Acme:ValueB"))
+							r -> r.path("/headers").and().host("{sub}.addrequestheaderjava.org")
+									.filters(f -> f.addRequestHeadersIfNotPresent("X-Request-Acme:ValueB-{sub}"))
 									.uri(uri))
 					.route("add_multiple_request_headers_java_test",
-							r -> r.path("/multivalueheaders").and().host(TEST_HOST_HEADER_VALUE)
-									.filters(f -> f.addRequestHeadersIfNotPresent("X-Request-Acme:ValueX", "X-Request-Acme:ValueY", "X-Request-Acme:ValueZ"))
+							r -> r.path("/multivalueheaders").and().host("{sub}.addrequestheaderjava.org")
+									.filters(f -> f.addRequestHeadersIfNotPresent("X-Request-Acme:ValueX", "X-Request-Acme:ValueY",
+											"X-Request-Acme:ValueZ", "X-Request-Acme:{sub}"))
 									.uri(uri))
 					.build();
 		}
