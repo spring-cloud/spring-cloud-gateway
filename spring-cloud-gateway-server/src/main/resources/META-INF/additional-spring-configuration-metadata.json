@@ -383,6 +383,12 @@
       "type": "java.lang.Boolean",
       "description": "Restricts method and property access in SpEL.",
       "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.observability.enabled",
+      "type": "java.lang.Boolean",
+      "description": "If Micrometer Observability support should be turned on.",
+      "defaultValue": "true"
     }
   ]
 }
