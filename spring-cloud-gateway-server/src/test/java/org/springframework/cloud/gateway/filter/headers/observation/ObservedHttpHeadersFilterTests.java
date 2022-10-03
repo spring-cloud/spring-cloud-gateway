@@ -31,7 +31,6 @@ import io.micrometer.tracing.test.SampleTestRunner;
 import io.micrometer.tracing.test.reporter.BuildingBlocks;
 import io.micrometer.tracing.test.simple.SpansAssert;
 
-import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
@@ -63,8 +62,7 @@ public class ObservedHttpHeadersFilterTests extends SampleTestRunner {
 			MockServerHttpRequest request = builder.build();
 			MockServerWebExchange exchange = MockServerWebExchange.from(request);
 			ServerWebExchangeUtils.putUriTemplateVariables(exchange, Map.of("foo", "get"));
-			Route route = Route.builder().id("id").uri("http://localhost:8080/{foo}").build();
-			exchange.getAttributes().put(ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR, route);
+			exchange.getAttributes().put(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR, "http://localhost:8080/{foo}");
 			// Parent observation
 			exchange.getAttributes().put(ObservationThreadLocalAccessor.KEY,
 					getObservationRegistry().getCurrentObservation());

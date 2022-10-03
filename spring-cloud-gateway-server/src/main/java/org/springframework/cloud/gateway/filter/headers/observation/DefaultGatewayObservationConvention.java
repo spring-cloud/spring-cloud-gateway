@@ -22,7 +22,6 @@ import io.micrometer.common.KeyValues;
 import io.micrometer.common.lang.NonNull;
 import io.micrometer.common.lang.Nullable;
 
-import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.server.ServerWebExchange;
@@ -30,7 +29,6 @@ import org.springframework.web.server.ServerWebExchange;
 import static org.springframework.cloud.gateway.filter.headers.observation.GatewayDocumentedObservation.LowCardinalityKeys.METHOD;
 import static org.springframework.cloud.gateway.filter.headers.observation.GatewayDocumentedObservation.LowCardinalityKeys.STATUS;
 import static org.springframework.cloud.gateway.filter.headers.observation.GatewayDocumentedObservation.LowCardinalityKeys.URI;
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
 
 /**
  * Default implementation of the {@link GatewayObservationConvention}.
@@ -53,9 +51,9 @@ public class DefaultGatewayObservationConvention implements GatewayObservationCo
 		}
 		ServerWebExchange exchange = context.getExchange();
 		Map<String, String> uriTemplateVariables = ServerWebExchangeUtils.getUriTemplateVariables(exchange);
-		Route route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
-		if (!uriTemplateVariables.isEmpty() && route != null) {
-			keyValues = keyValues.and(URI.withValue(route.getUri().toString()));
+		String url = exchange.getAttribute(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR);
+		if (!uriTemplateVariables.isEmpty() && url != null) {
+			keyValues = keyValues.and(URI.withValue(url));
 		}
 		else {
 			keyValues = keyValues.and(URI.withValue("UNKNOWN"));
