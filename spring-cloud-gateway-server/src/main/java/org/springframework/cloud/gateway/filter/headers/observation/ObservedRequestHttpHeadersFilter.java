@@ -66,7 +66,7 @@ public class ObservedRequestHttpHeadersFilter implements HttpHeadersFilter {
 			log.debug("Will instrument the HTTP request headers " + newHeaders);
 		}
 		Observation parentObservation = exchange.getAttribute("micrometer.observation");
-		GatewayContext gatewayContext = new GatewayContext(newHeaders, exchange.getRequest(), exchange);
+		GatewayContext gatewayContext = new GatewayContext(newHeaders, exchange.getRequest());
 		Observation childObservation = GatewayDocumentedObservation.GATEWAY_HTTP_CLIENT_OBSERVATION.observation(
 				this.customGatewayObservationConvention, DefaultGatewayObservationConvention.INSTANCE, gatewayContext,
 				this.observationRegistry);

@@ -81,7 +81,6 @@ class B3BraveObservedHttpHeadersFilterTests {
 			MockServerHttpRequest request = builder.build();
 			MockServerWebExchange exchange = MockServerWebExchange.from(request);
 			ServerWebExchangeUtils.putUriTemplateVariables(exchange, Map.of("foo", "get"));
-			exchange.getAttributes().put(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR, "http://localhost:8080/{foo}");
 			exchange.getResponse().setStatusCode(HttpStatusCode.valueOf(200));
 			// Parent observation
 			exchange.getAttributes().put(ObservationThreadLocalAccessor.KEY,

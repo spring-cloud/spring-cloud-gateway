@@ -16,15 +16,11 @@
 
 package org.springframework.cloud.gateway.filter.headers.observation;
 
-import java.util.Map;
-
 import io.micrometer.common.KeyValues;
 import io.micrometer.common.lang.NonNull;
 import io.micrometer.common.lang.Nullable;
 
-import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.http.server.reactive.ServerHttpResponse;
-import org.springframework.web.server.ServerWebExchange;
 
 import static org.springframework.cloud.gateway.filter.headers.observation.GatewayDocumentedObservation.LowCardinalityKeys.METHOD;
 import static org.springframework.cloud.gateway.filter.headers.observation.GatewayDocumentedObservation.LowCardinalityKeys.STATUS;
@@ -49,16 +45,8 @@ public class DefaultGatewayObservationConvention implements GatewayObservationCo
 		if (context.getCarrier() == null) {
 			return keyValues;
 		}
-		ServerWebExchange exchange = context.getExchange();
-		Map<String, String> uriTemplateVariables = ServerWebExchangeUtils.getUriTemplateVariables(exchange);
-		String url = exchange.getAttribute(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR);
-		if (!uriTemplateVariables.isEmpty() && url != null) {
-			keyValues = keyValues.and(URI.withValue(url));
-		}
-		else {
-			keyValues = keyValues.and(URI.withValue("UNKNOWN"));
-		}
-		keyValues = keyValues.and(METHOD.withValue(context.getRequest().getMethod().name()));
+		keyValues = keyValues.and(URI.withValue(context.getRequest().getURI().toString()),
+				METHOD.withValue(context.getRequest().getMethod().name()));
 		ServerHttpResponse response = context.getResponse();
 		if (response != null && response.getStatusCode() != null) {
 			keyValues = keyValues.and(STATUS.withValue(String.valueOf(response.getStatusCode().value())));

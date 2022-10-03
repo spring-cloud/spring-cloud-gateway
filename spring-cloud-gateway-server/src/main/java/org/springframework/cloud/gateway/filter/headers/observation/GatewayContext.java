@@ -24,7 +24,6 @@ import io.micrometer.observation.transport.RequestReplySenderContext;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
-import org.springframework.web.server.ServerWebExchange;
 
 /**
  * A {@link RequestReplySenderContext} for {@link ServerHttpRequest} and
@@ -37,21 +36,14 @@ public class GatewayContext extends RequestReplySenderContext<HttpHeaders, Serve
 
 	private final ServerHttpRequest request;
 
-	private final ServerWebExchange exchange;
-
-	public GatewayContext(HttpHeaders headers, ServerHttpRequest request, ServerWebExchange exchange) {
+	public GatewayContext(HttpHeaders headers, ServerHttpRequest request) {
 		super((carrier, key, value) -> Objects.requireNonNull(carrier).put(key, Collections.singletonList(value)));
 		this.request = request;
-		this.exchange = exchange;
 		setCarrier(headers);
 	}
 
 	public ServerHttpRequest getRequest() {
 		return this.request;
-	}
-
-	public ServerWebExchange getExchange() {
-		return this.exchange;
 	}
 
 }

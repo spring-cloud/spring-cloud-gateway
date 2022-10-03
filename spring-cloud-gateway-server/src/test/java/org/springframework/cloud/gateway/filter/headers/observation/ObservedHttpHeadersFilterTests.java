@@ -62,7 +62,6 @@ public class ObservedHttpHeadersFilterTests extends SampleTestRunner {
 			MockServerHttpRequest request = builder.build();
 			MockServerWebExchange exchange = MockServerWebExchange.from(request);
 			ServerWebExchangeUtils.putUriTemplateVariables(exchange, Map.of("foo", "get"));
-			exchange.getAttributes().put(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR, "http://localhost:8080/{foo}");
 			// Parent observation
 			exchange.getAttributes().put(ObservationThreadLocalAccessor.KEY,
 					getObservationRegistry().getCurrentObservation());
@@ -86,9 +85,9 @@ public class ObservedHttpHeadersFilterTests extends SampleTestRunner {
 			MeterRegistryAssert.then(meterRegistry)
 					.hasTimerWithNameAndTags("http.client.requests",
 							Tags.of("error", "none", "method", "GET", "status", "200", "uri",
-									"http://localhost:8080/{foo}"))
+									"http://localhost:8080/get"))
 					.hasMeterWithNameAndTags("http.client.requests.active",
-							Tags.of("method", "GET", "uri", "http://localhost:8080/{foo}"));
+							Tags.of("method", "GET", "uri", "http://localhost:8080/get"));
 		};
 	}
 
