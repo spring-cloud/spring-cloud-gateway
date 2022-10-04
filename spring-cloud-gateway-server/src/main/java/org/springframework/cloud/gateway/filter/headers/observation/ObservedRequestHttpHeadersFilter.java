@@ -84,7 +84,8 @@ public class ObservedRequestHttpHeadersFilter implements HttpHeadersFilter {
 	}
 
 	/**
-	 * The "micrometer.observation" key comes from {@link io.micrometer.observation.contextpropagation.ObservationThreadLocalAccessor}
+	 * The "micrometer.observation" key comes from
+	 * {@link io.micrometer.observation.contextpropagation.ObservationThreadLocalAccessor}
 	 * that requires the Context Propagation library on the classpath. Since we don't know
 	 * if it will be there on the classpath we're referencing the key via a String and
 	 * then we're testing its presence in tests via a fixed test dependency to Context
