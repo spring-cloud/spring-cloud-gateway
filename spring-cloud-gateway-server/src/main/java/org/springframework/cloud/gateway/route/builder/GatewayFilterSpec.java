@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.route.builder;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -48,6 +49,7 @@ import org.springframework.cloud.gateway.filter.factory.MapRequestHeaderGatewayF
 import org.springframework.cloud.gateway.filter.factory.PrefixPathGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.PreserveHostHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RedirectToGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.RemoveJsonAttributesResponseBodyGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RemoveRequestHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RemoveRequestParameterGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RemoveResponseHeaderGatewayFilterFactory;
@@ -445,6 +447,27 @@ public class GatewayFilterSpec extends UriSpec {
 		catch (URISyntaxException e) {
 			throw new IllegalArgumentException("Invalid URL", e);
 		}
+	}
+
+	/**
+	 * A filter that can be used to modify the response body.
+	 * @param attributes list of attributes to remove separated by commas, an optional
+	 * last parameter from the list can be a boolean to remove the attributes just at root
+	 * level (false) o recursively (true)
+	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
+	 */
+	public GatewayFilterSpec removeJsonAttributes(String... attributes) {
+		List<String> attributeList = Arrays.asList(attributes);
+		int lastIndex = attributeList.size() - 1;
+
+		if (attributeList.get(lastIndex).equalsIgnoreCase("true")) {
+			return filter(getBean(RemoveJsonAttributesResponseBodyGatewayFilterFactory.class)
+					.apply(c -> c.setFieldList(attributeList.subList(0, lastIndex)).setDeleteRecursively(true)));
+		}
+
+		return filter(getBean(RemoveJsonAttributesResponseBodyGatewayFilterFactory.class)
+				.apply(c -> c.setFieldList(attributeList).setDeleteRecursively(false)));
+
 	}
 
 	/**
