@@ -65,7 +65,7 @@ public class ObservedRequestHttpHeadersFilter implements HttpHeadersFilter {
 		if (log.isDebugEnabled()) {
 			log.debug("Will instrument the HTTP request headers " + newHeaders);
 		}
-		Observation parentObservation = exchange.getAttribute("micrometer.observation");
+		Observation parentObservation = getParentObservation(exchange);
 		GatewayContext gatewayContext = new GatewayContext(newHeaders, exchange.getRequest());
 		Observation childObservation = GatewayDocumentedObservation.GATEWAY_HTTP_CLIENT_OBSERVATION.observation(
 				this.customGatewayObservationConvention, DefaultGatewayObservationConvention.INSTANCE, gatewayContext,
@@ -81,6 +81,19 @@ public class ObservedRequestHttpHeadersFilter implements HttpHeadersFilter {
 		exchange.getAttributes().put(CHILD_OBSERVATION, childObservation);
 		exchange.getAttributes().put(CHILD_OBSERVATION_CONTEXT, gatewayContext);
 		return newHeaders;
+	}
+
+	/**
+	 * The "micrometer.observation" key comes from {@link io.micrometer.observation.contextpropagation.ObservationThreadLocalAccessor}
+	 * that requires the Context Propagation library on the classpath. Since we don't know
+	 * if it will be there on the classpath we're referencing the key via a String and
+	 * then we're testing its presence in tests via a fixed test dependency to Context
+	 * Propagation and {@code ObservationThreadLocalAccessor}.
+	 * @param exchange server web exchange
+	 * @return parent observation or {@code null} when there is none
+	 */
+	private Observation getParentObservation(ServerWebExchange exchange) {
+		return exchange.getAttribute("micrometer.observation");
 	}
 
 	@Override
