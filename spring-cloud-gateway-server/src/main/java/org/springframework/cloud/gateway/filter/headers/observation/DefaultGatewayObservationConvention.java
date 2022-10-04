@@ -50,8 +50,9 @@ public class DefaultGatewayObservationConvention implements GatewayObservationCo
 			return keyValues;
 		}
 		Route route = context.getServerWebExchange().getAttribute(ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR);
-		keyValues = keyValues.and(ROUTE_URI.withValue(route.getUri().toString()),
-				METHOD.withValue(context.getRequest().getMethod().name()))
+		keyValues = keyValues
+				.and(ROUTE_URI.withValue(route.getUri().toString()),
+						METHOD.withValue(context.getRequest().getMethod().name()))
 				.and(ROUTE_ID.withValue(route.getId()));
 		ServerHttpResponse response = context.getResponse();
 		if (response != null && response.getStatusCode() != null) {

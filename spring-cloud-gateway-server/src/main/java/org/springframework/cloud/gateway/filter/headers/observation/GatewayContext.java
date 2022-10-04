@@ -53,4 +53,5 @@ public class GatewayContext extends RequestReplySenderContext<HttpHeaders, Serve
 	public ServerWebExchange getServerWebExchange() {
 		return serverWebExchange;
 	}
+
 }
