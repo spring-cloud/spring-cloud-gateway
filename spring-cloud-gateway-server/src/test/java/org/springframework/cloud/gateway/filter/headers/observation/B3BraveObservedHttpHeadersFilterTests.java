@@ -41,6 +41,7 @@ import io.micrometer.tracing.propagation.Propagator;
 import io.micrometer.tracing.test.simple.SpansAssert;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
@@ -82,6 +83,9 @@ class B3BraveObservedHttpHeadersFilterTests {
 			MockServerWebExchange exchange = MockServerWebExchange.from(request);
 			ServerWebExchangeUtils.putUriTemplateVariables(exchange, Map.of("foo", "get"));
 			exchange.getResponse().setStatusCode(HttpStatusCode.valueOf(200));
+			Route route = Route.async().id("foo").uri("http://localhost:8080/").order(1)
+					.predicate(serverWebExchange -> true).build();
+			exchange.getAttributes().put(ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR, route);
 			// Parent observation
 			exchange.getAttributes().put(ObservationThreadLocalAccessor.KEY,
 					observationRegistry.getCurrentObservation());
@@ -101,7 +105,11 @@ class B3BraveObservedHttpHeadersFilterTests {
 			List<FinishedSpan> finishedSpans = testSpanHandler.spans().stream().map(BraveFinishedSpan::new)
 					.collect(Collectors.toList());
 			SpansAssert.then(finishedSpans).hasASpanWithName("HTTP GET", spanAssert -> spanAssert
-					.hasTag("method", "GET").hasTag("status", "200").hasTag("uri", "http://localhost:8080/get"));
+					.hasTag("spring.cloud.gateway.route.id", "foo")
+					.hasTag("http.method", "GET")
+					.hasTag("http.status_code", "200")
+					.hasTag("spring.cloud.gateway.route.uri", "http://localhost:8080/")
+					.hasTag("http.uri", "http://localhost:8080/get"));
 		});
 	}
 

@@ -20,11 +20,15 @@ import io.micrometer.common.KeyValues;
 import io.micrometer.common.lang.NonNull;
 import io.micrometer.common.lang.Nullable;
 
+import org.springframework.cloud.gateway.route.Route;
+import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 
+import static org.springframework.cloud.gateway.filter.headers.observation.GatewayDocumentedObservation.HighCardinalityKeys.URI;
 import static org.springframework.cloud.gateway.filter.headers.observation.GatewayDocumentedObservation.LowCardinalityKeys.METHOD;
+import static org.springframework.cloud.gateway.filter.headers.observation.GatewayDocumentedObservation.LowCardinalityKeys.ROUTE_ID;
+import static org.springframework.cloud.gateway.filter.headers.observation.GatewayDocumentedObservation.LowCardinalityKeys.ROUTE_URI;
 import static org.springframework.cloud.gateway.filter.headers.observation.GatewayDocumentedObservation.LowCardinalityKeys.STATUS;
-import static org.springframework.cloud.gateway.filter.headers.observation.GatewayDocumentedObservation.LowCardinalityKeys.URI;
 
 /**
  * Default implementation of the {@link GatewayObservationConvention}.
@@ -45,8 +49,10 @@ public class DefaultGatewayObservationConvention implements GatewayObservationCo
 		if (context.getCarrier() == null) {
 			return keyValues;
 		}
-		keyValues = keyValues.and(URI.withValue(context.getRequest().getURI().toString()),
-				METHOD.withValue(context.getRequest().getMethod().name()));
+		Route route = context.getServerWebExchange().getAttribute(ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR);
+		keyValues = keyValues.and(ROUTE_URI.withValue(route.getUri().toString()),
+				METHOD.withValue(context.getRequest().getMethod().name()))
+				.and(ROUTE_ID.withValue(route.getId()));
 		ServerHttpResponse response = context.getResponse();
 		if (response != null && response.getStatusCode() != null) {
 			keyValues = keyValues.and(STATUS.withValue(String.valueOf(response.getStatusCode().value())));

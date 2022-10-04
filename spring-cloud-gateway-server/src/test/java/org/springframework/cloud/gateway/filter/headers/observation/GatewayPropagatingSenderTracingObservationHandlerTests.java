@@ -29,6 +29,7 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
+import org.springframework.mock.web.server.MockServerWebExchange;
 
 import static org.assertj.core.api.BDDAssertions.then;
 
@@ -63,7 +64,8 @@ class GatewayPropagatingSenderTracingObservationHandlerTests {
 		headers.put("bar", Collections.singletonList("bar value"));
 		headers.put("baz", Collections.singletonList("baz value"));
 		MockServerHttpRequest request = MockServerHttpRequest.get("/get").build();
-		GatewayContext gatewayContext = new GatewayContext(headers, request);
+		MockServerWebExchange serverWebExchange = MockServerWebExchange.from(request);
+		GatewayContext gatewayContext = new GatewayContext(headers, request, serverWebExchange);
 
 		handler.onStart(gatewayContext);
 

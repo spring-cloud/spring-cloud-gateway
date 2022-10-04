@@ -38,10 +38,25 @@ enum GatewayDocumentedObservation implements DocumentedObservation {
 			return LowCardinalityKeys.values();
 		}
 
+		@Override
+		public KeyName[] getHighCardinalityKeyNames() {
+			return HighCardinalityKeys.values();
+		}
+
 	};
 
 	@NonNullApi
 	enum LowCardinalityKeys implements KeyName {
+
+		/**
+		 * Route ID.
+		 */
+		ROUTE_ID {
+			@Override
+			public String asString() {
+				return "spring.cloud.gateway.route.id";
+			}
+		},
 
 		/**
 		 * HTTP Method.
@@ -49,7 +64,7 @@ enum GatewayDocumentedObservation implements DocumentedObservation {
 		METHOD {
 			@Override
 			public String asString() {
-				return "method";
+				return "http.method";
 			}
 		},
 
@@ -59,17 +74,32 @@ enum GatewayDocumentedObservation implements DocumentedObservation {
 		STATUS {
 			@Override
 			public String asString() {
-				return "status";
+				return "http.status_code";
 			}
 		},
 
 		/**
-		 * HTTP URI.
+		 * HTTP URI taken from the Route.
+		 */
+		ROUTE_URI {
+			@Override
+			public String asString() {
+				return "spring.cloud.gateway.route.uri";
+			}
+		}
+
+	}
+
+	@NonNullApi
+	enum HighCardinalityKeys implements KeyName {
+
+		/**
+		 * Full HTTP URI.
 		 */
 		URI {
 			@Override
 			public String asString() {
-				return "uri";
+				return "http.uri";
 			}
 		}
 

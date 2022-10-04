@@ -31,6 +31,7 @@ import io.micrometer.tracing.test.SampleTestRunner;
 import io.micrometer.tracing.test.reporter.BuildingBlocks;
 import io.micrometer.tracing.test.simple.SpansAssert;
 
+import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
@@ -62,6 +63,9 @@ public class ObservedHttpHeadersFilterTests extends SampleTestRunner {
 			MockServerHttpRequest request = builder.build();
 			MockServerWebExchange exchange = MockServerWebExchange.from(request);
 			ServerWebExchangeUtils.putUriTemplateVariables(exchange, Map.of("foo", "get"));
+			Route route = Route.async().id("foo").uri("http://localhost:8080/").order(1)
+					.predicate(serverWebExchange -> true).build();
+			exchange.getAttributes().put(ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR, route);
 			// Parent observation
 			exchange.getAttributes().put(ObservationThreadLocalAccessor.KEY,
 					getObservationRegistry().getCurrentObservation());
@@ -81,13 +85,16 @@ public class ObservedHttpHeadersFilterTests extends SampleTestRunner {
 					.doesNotContainEntry("X-B3-SpanId", Collections.singletonList(context.spanId()))
 					.containsKey("X-B3-SpanId");
 			SpansAssert.then(bb.getFinishedSpans()).hasASpanWithName("HTTP GET", spanAssert -> spanAssert
-					.hasTag("method", "GET").hasTag("status", "200").hasTag("uri", "http://localhost:8080/get"));
+					.hasTag("http.method", "GET").hasTag("http.status_code", "200")
+					.hasTag("http.uri", "http://localhost:8080/get")
+					.hasTag("spring.cloud.gateway.route.uri", "http://localhost:8080/")
+					.hasTag("spring.cloud.gateway.route.id", "foo"));
 			MeterRegistryAssert.then(meterRegistry)
 					.hasTimerWithNameAndTags("http.client.requests",
-							Tags.of("error", "none", "method", "GET", "status", "200", "uri",
-									"http://localhost:8080/get"))
+							Tags.of("spring.cloud.gateway.route.id", "foo", "error", "none", "http.method", "GET", "http.status_code", "200", "spring.cloud.gateway.route.uri",
+									"http://localhost:8080/"))
 					.hasMeterWithNameAndTags("http.client.requests.active",
-							Tags.of("method", "GET", "uri", "http://localhost:8080/get"));
+							Tags.of("spring.cloud.gateway.route.id", "foo", "http.method", "GET", "spring.cloud.gateway.route.uri", "http://localhost:8080/"));
 		};
 	}
 
