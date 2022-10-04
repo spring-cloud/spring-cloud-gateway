@@ -104,12 +104,11 @@ class B3BraveObservedHttpHeadersFilterTests {
 			assertThat(headers.get("b3").get(0)).matches("^" + context.traceId() + "-(.*)-1-" + context.spanId() + "$");
 			List<FinishedSpan> finishedSpans = testSpanHandler.spans().stream().map(BraveFinishedSpan::new)
 					.collect(Collectors.toList());
-			SpansAssert.then(finishedSpans).hasASpanWithName("HTTP GET", spanAssert -> spanAssert
-					.hasTag("spring.cloud.gateway.route.id", "foo")
-					.hasTag("http.method", "GET")
-					.hasTag("http.status_code", "200")
-					.hasTag("spring.cloud.gateway.route.uri", "http://localhost:8080/")
-					.hasTag("http.uri", "http://localhost:8080/get"));
+			SpansAssert.then(finishedSpans).hasASpanWithName("HTTP GET",
+					spanAssert -> spanAssert.hasTag("spring.cloud.gateway.route.id", "foo").hasTag("http.method", "GET")
+							.hasTag("http.status_code", "200")
+							.hasTag("spring.cloud.gateway.route.uri", "http://localhost:8080/")
+							.hasTag("http.uri", "http://localhost:8080/get"));
 		});
 	}
 

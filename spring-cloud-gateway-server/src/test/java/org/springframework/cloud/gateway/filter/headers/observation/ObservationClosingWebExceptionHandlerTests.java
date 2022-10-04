@@ -52,8 +52,10 @@ class ObservationClosingWebExceptionHandlerTests {
 	void shouldStopTheObservationIfItWasNotStoppedPreviouslyAndThereWasAnError() {
 		Observation observation = Mockito.mock(Observation.class);
 		exchange.getAttributes().put(ObservedRequestHttpHeadersFilter.CHILD_OBSERVATION, observation);
+		RuntimeException runtimeException = new RuntimeException();
 
-		assertThatNoException().isThrownBy(() -> handler.handle(exchange, new RuntimeException()));
+		assertThatNoException().isThrownBy(() -> handler.handle(exchange, runtimeException));
+		Mockito.verify(observation).error(runtimeException);
 		Mockito.verify(observation).stop();
 	}
 

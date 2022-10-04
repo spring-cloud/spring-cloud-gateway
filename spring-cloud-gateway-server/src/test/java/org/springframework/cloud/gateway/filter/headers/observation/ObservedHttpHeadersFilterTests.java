@@ -84,17 +84,16 @@ public class ObservedHttpHeadersFilterTests extends SampleTestRunner {
 					.containsEntry("X-B3-TraceId", Collections.singletonList(context.traceId()))
 					.doesNotContainEntry("X-B3-SpanId", Collections.singletonList(context.spanId()))
 					.containsKey("X-B3-SpanId");
-			SpansAssert.then(bb.getFinishedSpans()).hasASpanWithName("HTTP GET", spanAssert -> spanAssert
-					.hasTag("http.method", "GET").hasTag("http.status_code", "200")
-					.hasTag("http.uri", "http://localhost:8080/get")
-					.hasTag("spring.cloud.gateway.route.uri", "http://localhost:8080/")
-					.hasTag("spring.cloud.gateway.route.id", "foo"));
-			MeterRegistryAssert.then(meterRegistry)
-					.hasTimerWithNameAndTags("http.client.requests",
-							Tags.of("spring.cloud.gateway.route.id", "foo", "error", "none", "http.method", "GET", "http.status_code", "200", "spring.cloud.gateway.route.uri",
-									"http://localhost:8080/"))
-					.hasMeterWithNameAndTags("http.client.requests.active",
-							Tags.of("spring.cloud.gateway.route.id", "foo", "http.method", "GET", "spring.cloud.gateway.route.uri", "http://localhost:8080/"));
+			SpansAssert.then(bb.getFinishedSpans()).hasASpanWithName("HTTP GET",
+					spanAssert -> spanAssert.hasTag("http.method", "GET").hasTag("http.status_code", "200")
+							.hasTag("http.uri", "http://localhost:8080/get")
+							.hasTag("spring.cloud.gateway.route.uri", "http://localhost:8080/")
+							.hasTag("spring.cloud.gateway.route.id", "foo"));
+			MeterRegistryAssert.then(meterRegistry).hasTimerWithNameAndTags("http.client.requests",
+					Tags.of("spring.cloud.gateway.route.id", "foo", "error", "none", "http.method", "GET",
+							"http.status_code", "200", "spring.cloud.gateway.route.uri", "http://localhost:8080/"))
+					.hasMeterWithNameAndTags("http.client.requests.active", Tags.of("spring.cloud.gateway.route.id",
+							"foo", "http.method", "GET", "spring.cloud.gateway.route.uri", "http://localhost:8080/"));
 		};
 	}
 
