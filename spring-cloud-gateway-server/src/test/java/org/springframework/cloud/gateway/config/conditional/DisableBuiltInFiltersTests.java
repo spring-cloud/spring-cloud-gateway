@@ -90,6 +90,7 @@ public class DisableBuiltInFiltersTests {
 					"spring.cloud.gateway.filter.prefix-path.enabled=false",
 					"spring.cloud.gateway.filter.preserve-host-header.enabled=false",
 					"spring.cloud.gateway.filter.redirect-to.enabled=false",
+					"spring.cloud.gateway.filter.remove-json-attributes-response-body.enabled=false",
 					"spring.cloud.gateway.filter.remove-request-header.enabled=false",
 					"spring.cloud.gateway.filter.remove-request-parameter.enabled=false",
 					"spring.cloud.gateway.filter.remove-response-header.enabled=false",

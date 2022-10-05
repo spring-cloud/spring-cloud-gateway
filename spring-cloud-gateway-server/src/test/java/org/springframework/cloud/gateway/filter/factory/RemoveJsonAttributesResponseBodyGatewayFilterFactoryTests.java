@@ -110,7 +110,7 @@ public class RemoveJsonAttributesResponseBodyGatewayFilterFactoryTests extends B
 									.filters(f -> f.removeJsonAttributes(true, "foo")).uri(uri))
 					.route("remove_json_attributes_no_matches_java_test",
 							r -> r.path("/post").and().host("{sub}.removejsonattributesnomatches.org")
-									.filters(f -> f.removeJsonAttributes(false, "test")).uri(uri))
+									.filters(f -> f.removeJsonAttributes("test")).uri(uri))
 					.build();
 		}
 

@@ -466,10 +466,21 @@ public class GatewayFilterSpec extends UriSpec {
 	}
 
 	/**
+	 * A filter that can be used to modify the response body. By default, this only
+	 * removes root attributes.
+	 * @param attributes list of attributes to remove.
+	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
+	 */
+	public GatewayFilterSpec removeJsonAttributes(String... attributes) {
+		return removeJsonAttributes(false, attributes);
+
+	}
+
+	/**
 	 * A filter that can be used to modify the response body.
-	 * @param attributes list of attributes to remove separated by commas, an optional
-	 * last parameter from the list can be a boolean to remove the attributes just at root
-	 * level (false) o recursively (true)
+	 * @param attributes list of attributes to remove.
+	 * @param deleteRecursively if true, all attributes regardless of nesting will be
+	 * removed.
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
 	public GatewayFilterSpec removeJsonAttributes(boolean deleteRecursively, String... attributes) {
