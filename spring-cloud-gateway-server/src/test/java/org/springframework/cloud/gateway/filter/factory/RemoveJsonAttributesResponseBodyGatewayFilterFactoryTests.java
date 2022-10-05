@@ -104,13 +104,13 @@ public class RemoveJsonAttributesResponseBodyGatewayFilterFactoryTests extends B
 			return builder.routes()
 					.route("remove_json_attributes_root_level_java_test",
 							r -> r.path("/post").and().host("{sub}.removejsonattributes.org")
-									.filters(f -> f.removeJsonAttributes("data", "foo")).uri(uri))
+									.filters(f -> f.removeJsonAttributes(false, "data", "foo")).uri(uri))
 					.route("remove_json_attributes_recursively_java_test",
 							r -> r.path("/post").and().host("{sub}.removejsonattributesrecursively.org")
-									.filters(f -> f.removeJsonAttributes("foo", "true")).uri(uri))
+									.filters(f -> f.removeJsonAttributes(true, "foo")).uri(uri))
 					.route("remove_json_attributes_no_matches_java_test",
 							r -> r.path("/post").and().host("{sub}.removejsonattributesnomatches.org")
-									.filters(f -> f.removeJsonAttributes("test")).uri(uri))
+									.filters(f -> f.removeJsonAttributes(false, "test")).uri(uri))
 					.build();
 		}
 

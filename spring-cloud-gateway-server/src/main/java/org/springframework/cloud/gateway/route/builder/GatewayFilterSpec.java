@@ -456,17 +456,9 @@ public class GatewayFilterSpec extends UriSpec {
 	 * level (false) o recursively (true)
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
-	public GatewayFilterSpec removeJsonAttributes(String... attributes) {
-		List<String> attributeList = Arrays.asList(attributes);
-		int lastIndex = attributeList.size() - 1;
-
-		if (attributeList.get(lastIndex).equalsIgnoreCase("true")) {
-			return filter(getBean(RemoveJsonAttributesResponseBodyGatewayFilterFactory.class)
-					.apply(c -> c.setFieldList(attributeList.subList(0, lastIndex)).setDeleteRecursively(true)));
-		}
-
+	public GatewayFilterSpec removeJsonAttributes(boolean deleteRecursively, String... attributes) {
 		return filter(getBean(RemoveJsonAttributesResponseBodyGatewayFilterFactory.class)
-				.apply(c -> c.setFieldList(attributeList).setDeleteRecursively(false)));
+				.apply(c -> c.setFieldList(Arrays.asList(attributes)).setDeleteRecursively(deleteRecursively)));
 
 	}
 
