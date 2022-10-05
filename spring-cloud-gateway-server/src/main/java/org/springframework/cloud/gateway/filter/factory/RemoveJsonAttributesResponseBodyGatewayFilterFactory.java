@@ -72,7 +72,6 @@ public class RemoveJsonAttributesResponseBodyGatewayFilterFactory extends
 		RewriteFunction<String, String> rewriteFunction = (exchange, body) -> {
 			if (MediaType.APPLICATION_JSON.isCompatibleWith(exchange.getResponse().getHeaders().getContentType())) {
 				try {
-					ObjectMapper mapper = new ObjectMapper();
 					JsonNode jsonBodyContent = mapper.readValue(body, JsonNode.class);
 
 					removeJsonAttribute(jsonBodyContent, config.getFieldList(), config.isDeleteRecursively());
@@ -91,6 +90,8 @@ public class RemoveJsonAttributesResponseBodyGatewayFilterFactory extends
 	}
 
 	private final ModifyResponseBodyGatewayFilterFactory modifyResponseBodyGatewayFilterFactory;
+
+	private ObjectMapper mapper = new ObjectMapper();
 
 	private void removeJsonAttribute(JsonNode jsonBodyContent, List<String> fieldsToRemove, boolean deleteRecursively) {
 		if (deleteRecursively) {
