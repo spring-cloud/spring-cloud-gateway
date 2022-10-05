@@ -80,6 +80,7 @@ public class DisableBuiltInFiltersTests {
 	@SpringBootTest(classes = Config.class,
 			properties = { "spring.cloud.gateway.filter.add-request-header.enabled=false",
 					"spring.cloud.gateway.filter.map-request-header.enabled=false",
+					"spring.cloud.gateway.filter.add-request-headers-if-not-present.enabled=false",
 					"spring.cloud.gateway.filter.add-request-parameter.enabled=false",
 					"spring.cloud.gateway.filter.add-response-header.enabled=false",
 					"spring.cloud.gateway.filter.json-to-grpc.enabled=false",
