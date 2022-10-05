@@ -1,3 +1,19 @@
+/*
+ * Copyright 2013-2022 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.springframework.cloud.gateway.filter.factory;
 
 import java.util.ArrayList;
@@ -20,8 +36,8 @@ import org.springframework.web.server.ServerWebExchange;
 import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
 
 /**
- * Adds one or more headers to the downstream request’s headers without overriding previous values.
- * If the header is are already present, value(s) will not be set.
+ * Adds one or more headers to the downstream request’s headers without overriding
+ * previous values. If the header is are already present, value(s) will not be set.
  *
  * @author Abel Salgado Romero
  */
@@ -53,9 +69,7 @@ public class AddRequestHeadersIfNotPresentGatewayFilterFactory
 				for (Map.Entry<String, List<String>> kv : aggregatedHeaders.entrySet()) {
 					String headerName = kv.getKey();
 
-					boolean headerIsMissingOrBlank = exchange.getRequest().getHeaders()
-							.getOrEmpty(headerName)
-							.stream()
+					boolean headerIsMissingOrBlank = exchange.getRequest().getHeaders().getOrEmpty(headerName).stream()
 							.allMatch(h -> !StringUtils.hasText(h));
 
 					if (headerIsMissingOrBlank) {
@@ -79,7 +93,8 @@ public class AddRequestHeadersIfNotPresentGatewayFilterFactory
 
 			@Override
 			public String toString() {
-				ToStringCreator toStringCreator = filterToStringCreator(AddRequestHeadersIfNotPresentGatewayFilterFactory.this);
+				ToStringCreator toStringCreator = filterToStringCreator(
+						AddRequestHeadersIfNotPresentGatewayFilterFactory.this);
 				for (KeyValue keyValue : config.getKeyValues()) {
 					toStringCreator.append(keyValue.getKey(), keyValue.getValue());
 				}
@@ -124,6 +139,7 @@ public class AddRequestHeadersIfNotPresentGatewayFilterFactory
 	public static class KeyValue {
 
 		private final String key;
+
 		private final String value;
 
 		public KeyValue(String key, String value) {

@@ -170,18 +170,16 @@ public class GatewayFilterSpec extends UriSpec {
 
 	/**
 	 * Adds a request header to the request before it is routed by the Gateway.
-	 * @param headers the header name(s) and value(s) as 'name-1:value-1,name-2:value-2,...'
+	 * @param headers the header name(s) and value(s) as
+	 * 'name-1:value-1,name-2:value-2,...'
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
 	public GatewayFilterSpec addRequestHeadersIfNotPresent(String... headers) {
-		return filter(getBean(AddRequestHeadersIfNotPresentGatewayFilterFactory.class)
-				.apply(c -> {
-					KeyValue[] values = Arrays.stream(headers)
-							.map(header -> header.split(":"))
-							.map(parts -> new KeyValue(parts[0], parts[1]))
-							.toArray(size -> new KeyValue[size]);
-					c.setKeyValues(values);
-				}));
+		return filter(getBean(AddRequestHeadersIfNotPresentGatewayFilterFactory.class).apply(c -> {
+			KeyValue[] values = Arrays.stream(headers).map(header -> header.split(":"))
+					.map(parts -> new KeyValue(parts[0], parts[1])).toArray(size -> new KeyValue[size]);
+			c.setKeyValues(values);
+		}));
 	}
 
 	/**
