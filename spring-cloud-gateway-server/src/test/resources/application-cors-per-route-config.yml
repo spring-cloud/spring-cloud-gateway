@@ -1,0 +1,17 @@
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: cors_preflight_test
+          uri: ${test.uri}
+          predicates:
+            - Path=/abc/**
+          filters:
+            - Cors=[allowedOrigins:*,allowedMethods:GET,allowedHeaders:*,maxAge:30]
+        - id: cors_test
+          uri: ${test.uri}
+          predicates:
+            - Path=/cors/**
+          filters:
+            - StripPrefix=1
+            - Cors=[allowedOrigins:https://test.com,allowedMethods:GET,allowedHeaders:*,maxAge:30]
