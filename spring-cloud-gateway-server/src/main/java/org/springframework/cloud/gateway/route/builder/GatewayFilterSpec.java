@@ -51,6 +51,7 @@ import org.springframework.cloud.gateway.filter.factory.MapRequestHeaderGatewayF
 import org.springframework.cloud.gateway.filter.factory.PrefixPathGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.PreserveHostHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RedirectToGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.RemoveJsonAttributesResponseBodyGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RemoveRequestHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RemoveRequestParameterGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RemoveResponseHeaderGatewayFilterFactory;
@@ -462,6 +463,19 @@ public class GatewayFilterSpec extends UriSpec {
 		catch (URISyntaxException e) {
 			throw new IllegalArgumentException("Invalid URL", e);
 		}
+	}
+
+	/**
+	 * A filter that can be used to modify the response body.
+	 * @param attributes list of attributes to remove separated by commas, an optional
+	 * last parameter from the list can be a boolean to remove the attributes just at root
+	 * level (false) o recursively (true)
+	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
+	 */
+	public GatewayFilterSpec removeJsonAttributes(boolean deleteRecursively, String... attributes) {
+		return filter(getBean(RemoveJsonAttributesResponseBodyGatewayFilterFactory.class)
+				.apply(c -> c.setFieldList(Arrays.asList(attributes)).setDeleteRecursively(deleteRecursively)));
+
 	}
 
 	/**
