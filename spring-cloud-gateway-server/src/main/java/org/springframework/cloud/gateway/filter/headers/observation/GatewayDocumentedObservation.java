@@ -20,9 +20,9 @@ import io.micrometer.common.docs.KeyName;
 import io.micrometer.common.lang.NonNullApi;
 import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationConvention;
-import io.micrometer.observation.docs.DocumentedObservation;
+import io.micrometer.observation.docs.ObservationDocumentation;
 
-enum GatewayDocumentedObservation implements DocumentedObservation {
+enum GatewayDocumentedObservation implements ObservationDocumentation {
 
 	/**
 	 * Observation created when sending a request through the gateway.

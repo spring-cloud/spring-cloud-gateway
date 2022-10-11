@@ -68,8 +68,8 @@ public class ObservedRequestHttpHeadersFilter implements HttpHeadersFilter {
 		Observation parentObservation = getParentObservation(exchange);
 		GatewayContext gatewayContext = new GatewayContext(newHeaders, exchange.getRequest(), exchange);
 		Observation childObservation = GatewayDocumentedObservation.GATEWAY_HTTP_CLIENT_OBSERVATION.observation(
-				this.customGatewayObservationConvention, DefaultGatewayObservationConvention.INSTANCE, gatewayContext,
-				this.observationRegistry);
+				this.customGatewayObservationConvention, DefaultGatewayObservationConvention.INSTANCE,
+				() -> gatewayContext, this.observationRegistry);
 		if (parentObservation != null) {
 			childObservation.parentObservation(parentObservation);
 		}
