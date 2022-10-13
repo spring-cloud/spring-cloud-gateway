@@ -252,9 +252,11 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	public CorsGatewayFilterApplicationListener corsGatewayFilterApplicationListener(GlobalCorsProperties globalCorsProperties,
-			RoutePredicateHandlerMapping routePredicateHandlerMapping, RouteDefinitionLocator routeDefinitionLocator) {
-		return new CorsGatewayFilterApplicationListener(globalCorsProperties, routePredicateHandlerMapping, routeDefinitionLocator);
+	public CorsGatewayFilterApplicationListener corsGatewayFilterApplicationListener(
+			GlobalCorsProperties globalCorsProperties, RoutePredicateHandlerMapping routePredicateHandlerMapping,
+			RouteDefinitionLocator routeDefinitionLocator) {
+		return new CorsGatewayFilterApplicationListener(globalCorsProperties, routePredicateHandlerMapping,
+				routeDefinitionLocator);
 	}
 
 	@Bean

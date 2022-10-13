@@ -47,34 +47,26 @@ public class CorsPerRouteTests extends BaseWebClientTests {
 
 	@Test
 	public void testPreFlightCorsRequest() {
-		testClient.options().uri("/abc")
-				.header("Origin", "domain.com")
-				.header("Access-Control-Request-Method", "GET")
-				.exchange().expectBody(Map.class)
-				.consumeWith(result -> {
+		testClient.options().uri("/abc").header("Origin", "domain.com").header("Access-Control-Request-Method", "GET")
+				.exchange().expectBody(Map.class).consumeWith(result -> {
 					assertThat(result.getResponseBody()).isNull();
 					assertThat(result.getStatus()).isEqualTo(HttpStatus.OK);
 
 					HttpHeaders responseHeaders = result.getResponseHeaders();
 					assertThat(responseHeaders.getAccessControlAllowOrigin())
-							.as(missingHeader(ACCESS_CONTROL_ALLOW_ORIGIN))
-							.isEqualTo("*");
+							.as(missingHeader(ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("*");
 					assertThat(responseHeaders.getAccessControlAllowMethods())
 							.as(missingHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS))
-							.isEqualTo(Arrays.asList(new HttpMethod[] {HttpMethod.GET}));
-					assertThat(responseHeaders.getAccessControlMaxAge())
-							.as(missingHeader(ACCESS_CONTROL_MAX_AGE))
+							.isEqualTo(Arrays.asList(new HttpMethod[] { HttpMethod.GET }));
+					assertThat(responseHeaders.getAccessControlMaxAge()).as(missingHeader(ACCESS_CONTROL_MAX_AGE))
 							.isEqualTo(30L);
 				});
 	}
 
 	@Test
 	public void testPreFlightForbiddenCorsRequest() {
-		testClient.get().uri("/cors")
-				.header("Origin", "domain.com")
-				.header("Access-Control-Request-Method", "GET")
-				.exchange().expectBody(Map.class)
-				.consumeWith(result -> {
+		testClient.get().uri("/cors").header("Origin", "domain.com").header("Access-Control-Request-Method", "GET")
+				.exchange().expectBody(Map.class).consumeWith(result -> {
 					assertThat(result.getResponseBody()).isNull();
 					assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN);
 				});
@@ -82,10 +74,8 @@ public class CorsPerRouteTests extends BaseWebClientTests {
 
 	@Test
 	public void testCorsValidatedRequest() {
-		testClient.get().uri("/cors/status/201")
-				.header("Origin", "https://test.com")
-				.exchange().expectBody(String.class)
-				.consumeWith(result -> {
+		testClient.get().uri("/cors/status/201").header("Origin", "https://test.com").exchange()
+				.expectBody(String.class).consumeWith(result -> {
 					assertThat(result.getResponseBody()).endsWith("201");
 					assertThat(result.getStatus()).isEqualTo(HttpStatus.CREATED);
 				});

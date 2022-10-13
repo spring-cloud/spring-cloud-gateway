@@ -27,6 +27,7 @@ import org.springframework.web.cors.CorsConfiguration;
 public class CorsGatewayFilterConfig {
 
 	private final CorsConfiguration corsConfiguration;
+
 	private String configurationString;
 
 	public CorsGatewayFilterConfig() {
@@ -57,8 +58,7 @@ public class CorsGatewayFilterConfig {
 					.ifPresent(value -> corsConfiguration.setAllowedOrigins(parseList(value)));
 			findValue(token, "exposedHeaders:")
 					.ifPresent(value -> corsConfiguration.setExposedHeaders(parseList(value)));
-			findValue(token, "maxAge:")
-					.ifPresent(value -> corsConfiguration.setMaxAge(Long.valueOf(value)));
+			findValue(token, "maxAge:").ifPresent(value -> corsConfiguration.setMaxAge(Long.valueOf(value)));
 		}
 	}
 

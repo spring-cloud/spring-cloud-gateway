@@ -33,17 +33,19 @@ import org.springframework.web.cors.CorsConfiguration;
 public class CorsGatewayFilterApplicationListener implements ApplicationListener<RefreshRoutesEvent> {
 
 	private final GlobalCorsProperties globalCorsProperties;
+
 	private final RoutePredicateHandlerMapping routePredicateHandlerMapping;
+
 	private final RouteDefinitionLocator routeDefinitionLocator;
 
 	private static final String PATH_PREDICATE_NAME = "Path";
+
 	private static final String CORS_FILTER_NAME = "Cors";
+
 	private static final String ALL_PATHS = "/**";
 
-	public CorsGatewayFilterApplicationListener(
-			GlobalCorsProperties globalCorsProperties,
-			RoutePredicateHandlerMapping routePredicateHandlerMapping,
-			RouteDefinitionLocator routeDefinitionLocator) {
+	public CorsGatewayFilterApplicationListener(GlobalCorsProperties globalCorsProperties,
+			RoutePredicateHandlerMapping routePredicateHandlerMapping, RouteDefinitionLocator routeDefinitionLocator) {
 		this.globalCorsProperties = globalCorsProperties;
 		this.routePredicateHandlerMapping = routePredicateHandlerMapping;
 		this.routeDefinitionLocator = routeDefinitionLocator;
@@ -51,49 +53,33 @@ public class CorsGatewayFilterApplicationListener implements ApplicationListener
 
 	@Override
 	public void onApplicationEvent(RefreshRoutesEvent event) {
-		routeDefinitionLocator
-				.getRouteDefinitions()
-				.collectList()
-				.subscribe(routeDefinitions -> {
-					// pre-populate with pre-existing global cors configurations to combine with.
-					var corsConfigurations = new HashMap<>(globalCorsProperties.getCorsConfigurations());
+		routeDefinitionLocator.getRouteDefinitions().collectList().subscribe(routeDefinitions -> {
+			// pre-populate with pre-existing global cors configurations to combine with.
+			var corsConfigurations = new HashMap<>(globalCorsProperties.getCorsConfigurations());
 
-					routeDefinitions.forEach(routeDefinition -> {
-						var pathPredicate = getPathPredicate(routeDefinition);
-						var corsConfiguration = getCorsConfiguration(routeDefinition);
-						corsConfiguration.ifPresent(configuration ->
-															corsConfigurations.put(pathPredicate, configuration));
-					});
+			routeDefinitions.forEach(routeDefinition -> {
+				var pathPredicate = getPathPredicate(routeDefinition);
+				var corsConfiguration = getCorsConfiguration(routeDefinition);
+				corsConfiguration.ifPresent(configuration -> corsConfigurations.put(pathPredicate, configuration));
+			});
 
-					routePredicateHandlerMapping.setCorsConfigurations(corsConfigurations);
-				});
+			routePredicateHandlerMapping.setCorsConfigurations(corsConfigurations);
+		});
 	}
 
 	private String getPathPredicate(RouteDefinition routeDefinition) {
-		return routeDefinition
-				.getPredicates()
-				.stream()
-				.filter(predicate -> PATH_PREDICATE_NAME.equals(predicate.getName()))
-				.findFirst()
-				.flatMap(predicate -> predicate
-						.getArgs()
-						.values()
-						.stream()
-						.findFirst())
-				.orElse(ALL_PATHS);
+		return routeDefinition.getPredicates().stream()
+				.filter(predicate -> PATH_PREDICATE_NAME.equals(predicate.getName())).findFirst()
+				.flatMap(predicate -> predicate.getArgs().values().stream().findFirst()).orElse(ALL_PATHS);
 	}
 
 	private Optional<CorsConfiguration> getCorsConfiguration(RouteDefinition routeDefinition) {
-		return routeDefinition
-				.getFilters()
-				.stream()
-				.filter(filter -> CORS_FILTER_NAME.equals(filter.getName()))
-				.findFirst()
-				.map(filter -> String.join(",", filter.getArgs().values()))
-				.map(filterArgs -> {
+		return routeDefinition.getFilters().stream().filter(filter -> CORS_FILTER_NAME.equals(filter.getName()))
+				.findFirst().map(filter -> String.join(",", filter.getArgs().values())).map(filterArgs -> {
 					CorsGatewayFilterConfig filterConfig = new CorsGatewayFilterConfig();
 					filterConfig.setCors(filterArgs);
 					return filterConfig.getCorsConfiguration();
 				}).or(Optional::empty);
 	}
+
 }

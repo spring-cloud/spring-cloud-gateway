@@ -30,13 +30,15 @@ import static org.springframework.cloud.gateway.support.GatewayToStringStyler.fi
 
 /**
  * Dummy filter to display order and configuration in actuator endpoints.
+ *
  * @author Fredrich Ombico
  */
 public class CorsGatewayFilterFactory implements GatewayFilterFactory<CorsGatewayFilterConfig> {
 
 	@Override
 	public GatewayFilter apply(CorsGatewayFilterConfig config) {
-		// all the work is taken care of by CorsGatewayFilterApplicationListener before we reach here
+		// all the work is taken care of by CorsGatewayFilterApplicationListener before we
+		// reach here
 		return new GatewayFilter() {
 			@Override
 			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
@@ -45,8 +47,8 @@ public class CorsGatewayFilterFactory implements GatewayFilterFactory<CorsGatewa
 
 			@Override
 			public String toString() {
-				return filterToStringCreator(CorsGatewayFilterFactory.this)
-						.append(cleanBrackets(config.getCors())).toString();
+				return filterToStringCreator(CorsGatewayFilterFactory.this).append(cleanBrackets(config.getCors()))
+						.toString();
 			}
 
 			private String cleanBrackets(String corsConfiguration) {
@@ -71,4 +73,5 @@ public class CorsGatewayFilterFactory implements GatewayFilterFactory<CorsGatewa
 	public List<String> shortcutFieldOrder() {
 		return Collections.singletonList("cors");
 	}
+
 }
