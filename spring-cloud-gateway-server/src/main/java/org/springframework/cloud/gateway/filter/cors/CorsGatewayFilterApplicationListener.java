@@ -16,7 +16,11 @@
 
 package org.springframework.cloud.gateway.filter.cors;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.cloud.gateway.config.GlobalCorsProperties;
@@ -29,6 +33,7 @@ import org.springframework.web.cors.CorsConfiguration;
 
 /**
  * @author Fredrich Ombico
+ * @author Abel Salgado Romero
  */
 public class CorsGatewayFilterApplicationListener implements ApplicationListener<RefreshRoutesEvent> {
 
@@ -40,7 +45,7 @@ public class CorsGatewayFilterApplicationListener implements ApplicationListener
 
 	private static final String PATH_PREDICATE_NAME = "Path";
 
-	private static final String CORS_FILTER_NAME = "Cors";
+	private static final String METADATA_KEY = "cors";
 
 	private static final String ALL_PATHS = "/**";
 
@@ -74,12 +79,55 @@ public class CorsGatewayFilterApplicationListener implements ApplicationListener
 	}
 
 	private Optional<CorsConfiguration> getCorsConfiguration(RouteDefinition routeDefinition) {
-		return routeDefinition.getFilters().stream().filter(filter -> CORS_FILTER_NAME.equals(filter.getName()))
-				.findFirst().map(filter -> String.join(",", filter.getArgs().values())).map(filterArgs -> {
-					CorsGatewayFilterConfig filterConfig = new CorsGatewayFilterConfig();
-					filterConfig.setCors(filterArgs);
-					return filterConfig.getCorsConfiguration();
-				}).or(Optional::empty);
+		Map<String, Object> corsMetadata = (Map<String, Object>) routeDefinition.getMetadata().get(METADATA_KEY);
+		if (corsMetadata != null) {
+			final CorsConfiguration corsConfiguration = new CorsConfiguration();
+
+			findValue(corsMetadata, "allowCredential")
+					.ifPresent(value -> corsConfiguration.setAllowCredentials((Boolean) value));
+			findValue(corsMetadata, "allowedHeaders")
+					.ifPresent(value -> corsConfiguration.setAllowedHeaders(asList(value)));
+			findValue(corsMetadata, "allowedMethods")
+					.ifPresent(value -> corsConfiguration.setAllowedMethods(asList(value)));
+			findValue(corsMetadata, "allowedOriginPatterns")
+					.ifPresent(value -> corsConfiguration.setAllowedOriginPatterns(asList(value)));
+			findValue(corsMetadata, "allowedOrigins")
+					.ifPresent(value -> corsConfiguration.setAllowedOrigins(asList(value)));
+			findValue(corsMetadata, "exposedHeaders")
+					.ifPresent(value -> corsConfiguration.setExposedHeaders(asList(value)));
+			findValue(corsMetadata, "maxAge")
+					.ifPresent(value -> corsConfiguration.setMaxAge(asLong(value)));
+
+			return Optional.of(corsConfiguration);
+		}
+
+		return Optional.empty();
+	}
+
+	private Optional<Object> findValue(Map<String, Object> metadata, String key) {
+		Object value = metadata.get(key);
+		return Optional.ofNullable(value);
+	}
+
+	private List<String> asList(Object value) {
+		if (value instanceof String) {
+			return Arrays.asList((String) value);
+		}
+		if (value instanceof Map) {
+			return new ArrayList<>(((Map<?, String>) value).values());
+		}
+		else {
+			return (List<String>) value;
+		}
+	}
+
+	private Long asLong(Object value) {
+		if (value instanceof Integer) {
+			return ((Integer) value).longValue();
+		}
+		else {
+			return (Long) value;
+		}
 	}
 
 }

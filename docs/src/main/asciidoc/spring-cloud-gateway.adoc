@@ -2507,7 +2507,7 @@ This is useful when you try to support CORS preflight requests and your route pr
 
 === Route CORS Configuration
 
-The "`route`" configuration allows applying CORS directly to a route using a key-value notation.
+The "`route`" configuration allows applying CORS directly to a route as metadata with key `cors`.
 Like in the case of global configuration, the properties belong to {cors-configuration-docs-uri}[Spring Framework `CorsConfiguration`].
 
 NOTE: If no `Path` predicate is present in the route '/**' will be applied.
@@ -2524,8 +2524,14 @@ spring:
         uri: https://example.org
         predicates:
         - Path=/service/**
-        filters:
-        - Cors=[allowedOrigins:*,allowedMethods:GET,allowedHeaders:*,maxAge:30]
+        metadata:
+          cors
+            allowedOrigins: '*'
+            allowedMethods:
+              - GET
+              - POST
+            allowedHeaders: '*'
+            maxAge: 30
 ----
 ====
 

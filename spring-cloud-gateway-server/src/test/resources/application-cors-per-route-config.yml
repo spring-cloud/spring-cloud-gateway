@@ -6,12 +6,22 @@ spring:
           uri: ${test.uri}
           predicates:
             - Path=/abc/**
-          filters:
-            - Cors=[allowedOrigins:*,allowedMethods:GET,allowedHeaders:*,maxAge:30]
+          metadata:
+            cors:
+              allowedOrigins: '*'
+              allowedMethods: [ GET, POST ]
+              allowedHeaders: '*'
+              maxAge: 30
         - id: cors_test
           uri: ${test.uri}
           predicates:
             - Path=/cors/**
           filters:
             - StripPrefix=1
-            - Cors=[allowedOrigins:https://test.com,allowedMethods:GET,allowedHeaders:*,maxAge:30]
+          metadata:
+            cors:
+              allowedOrigins: https://test.com
+              allowedMethods:
+                - GET
+                - PUT
+              allowedHeaders: '*'

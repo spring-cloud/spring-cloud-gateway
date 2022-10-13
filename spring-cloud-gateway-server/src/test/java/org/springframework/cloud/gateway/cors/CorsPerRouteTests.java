@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.gateway.cors;
 
-import java.util.Arrays;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
@@ -24,9 +23,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.gateway.filter.GatewayFilter;
-import org.springframework.cloud.gateway.filter.cors.CorsGatewayFilterConfig;
-import org.springframework.cloud.gateway.filter.cors.CorsGatewayFilterFactory;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
@@ -57,7 +53,7 @@ public class CorsPerRouteTests extends BaseWebClientTests {
 							.as(missingHeader(ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("*");
 					assertThat(responseHeaders.getAccessControlAllowMethods())
 							.as(missingHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS))
-							.isEqualTo(Arrays.asList(new HttpMethod[] { HttpMethod.GET }));
+							.containsExactlyInAnyOrder(HttpMethod.GET, HttpMethod.POST);
 					assertThat(responseHeaders.getAccessControlMaxAge()).as(missingHeader(ACCESS_CONTROL_MAX_AGE))
 							.isEqualTo(30L);
 				});
@@ -79,16 +75,6 @@ public class CorsPerRouteTests extends BaseWebClientTests {
 					assertThat(result.getResponseBody()).endsWith("201");
 					assertThat(result.getStatus()).isEqualTo(HttpStatus.CREATED);
 				});
-	}
-
-	@Test
-	public void toStringFormat() {
-		final String configurationAsText = "allowedOrigins:https://test.com,allowedMethods:GET,allowedHeaders:*,maxAge:30";
-		CorsGatewayFilterConfig config = new CorsGatewayFilterConfig();
-		config.setCors(String.format("[%s]", configurationAsText));
-
-		GatewayFilter filter = new CorsGatewayFilterFactory().apply(config);
-		assertThat(filter.toString()).isEqualTo(String.format("[Cors'%s']", configurationAsText));
 	}
 
 	private String missingHeader(String accessControlAllowOrigin) {
