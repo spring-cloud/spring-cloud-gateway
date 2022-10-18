@@ -80,6 +80,7 @@ public class CorsGatewayFilterApplicationListener implements ApplicationListener
 				.flatMap(predicate -> predicate.getArgs().values().stream().findFirst()).orElse(ALL_PATHS);
 	}
 
+	@SuppressWarnings("unchecked")
 	private Optional<CorsConfiguration> getCorsConfiguration(RouteDefinition routeDefinition) {
 		Map<String, Object> corsMetadata = (Map<String, Object>) routeDefinition.getMetadata().get(METADATA_KEY);
 		if (corsMetadata != null) {
