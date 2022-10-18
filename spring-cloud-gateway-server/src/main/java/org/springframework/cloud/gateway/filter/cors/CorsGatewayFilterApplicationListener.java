@@ -63,9 +63,11 @@ public class CorsGatewayFilterApplicationListener implements ApplicationListener
 			var corsConfigurations = new HashMap<>(globalCorsProperties.getCorsConfigurations());
 
 			routeDefinitions.forEach(routeDefinition -> {
-				var pathPredicate = getPathPredicate(routeDefinition);
 				var corsConfiguration = getCorsConfiguration(routeDefinition);
-				corsConfiguration.ifPresent(configuration -> corsConfigurations.put(pathPredicate, configuration));
+				corsConfiguration.ifPresent(configuration -> {
+					var pathPredicate = getPathPredicate(routeDefinition);
+					corsConfigurations.put(pathPredicate, configuration);
+				});
 			});
 
 			routePredicateHandlerMapping.setCorsConfigurations(corsConfigurations);
@@ -95,8 +97,7 @@ public class CorsGatewayFilterApplicationListener implements ApplicationListener
 					.ifPresent(value -> corsConfiguration.setAllowedOrigins(asList(value)));
 			findValue(corsMetadata, "exposedHeaders")
 					.ifPresent(value -> corsConfiguration.setExposedHeaders(asList(value)));
-			findValue(corsMetadata, "maxAge")
-					.ifPresent(value -> corsConfiguration.setMaxAge(asLong(value)));
+			findValue(corsMetadata, "maxAge").ifPresent(value -> corsConfiguration.setMaxAge(asLong(value)));
 
 			return Optional.of(corsConfiguration);
 		}
