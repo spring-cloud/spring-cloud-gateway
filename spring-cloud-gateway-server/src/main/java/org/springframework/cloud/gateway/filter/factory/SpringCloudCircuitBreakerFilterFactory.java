@@ -115,9 +115,9 @@ public abstract class SpringCloudCircuitBreakerFilterFactory
 					// TODO: assume always?
 					boolean encoded = containsEncodedParts(uri);
 
-					final String expandedFallbackUri = ServerWebExchangeUtils.expand(exchange, config.getFallbackUri().getPath());
-					final String fullFallbackUri = String.format("%s:%s", config.getFallbackUri().getScheme(), expandedFallbackUri);
-					final URI requestUrl = UriComponentsBuilder.fromUri(uri).host(null).port(null)
+					String expandedFallbackUri = ServerWebExchangeUtils.expand(exchange, config.getFallbackUri().getPath());
+					String fullFallbackUri = String.format("%s:%s", config.getFallbackUri().getScheme(), expandedFallbackUri);
+					URI requestUrl = UriComponentsBuilder.fromUri(uri).host(null).port(null)
 							.uri(URI.create(fullFallbackUri)).scheme(null).build(encoded).toUri();
 
 					exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, requestUrl);
