@@ -95,7 +95,7 @@ public class HttpBinCompatibleController {
 		return result;
 	}
 
-	@GetMapping(path = "/delay/{sec}", produces = MediaType.APPLICATION_JSON_VALUE)
+	@GetMapping(path = "/delay/{sec}/**", produces = MediaType.APPLICATION_JSON_VALUE)
 	public Mono<Map<String, Object>> delay(ServerWebExchange exchange, @PathVariable int sec)
 			throws InterruptedException {
 		int delay = Math.min(sec, 10);

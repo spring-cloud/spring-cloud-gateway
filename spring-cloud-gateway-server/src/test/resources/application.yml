@@ -104,6 +104,18 @@ spring:
               name: fallbackcmd
               fallbackUri: forward:/circuitbreakerFallbackController
 
+        # =====================================
+      - id: circuitbreaker_fallback_test_variables
+        uri: ${test.uri}
+        predicates:
+          - Path=/delay/{*segments}
+          - Host={host}.circuitbreakervariables.org
+        filters:
+          - name: CircuitBreaker
+            args:
+              name: fallbackvarscmd
+              fallbackUri: forward:/circuitbreakerUriFallbackController/{segments}/{host}
+
       # =====================================
       - id: circuitbreaker_fallback_test_statuscode
         uri: ${test.uri}
