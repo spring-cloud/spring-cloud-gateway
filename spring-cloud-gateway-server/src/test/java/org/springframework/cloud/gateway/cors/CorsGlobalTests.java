@@ -31,6 +31,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.reactive.function.client.ClientResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -38,7 +39,8 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
-public class CorsTests extends BaseWebClientTests {
+@ActiveProfiles(profiles = "cors-global-config")
+public class CorsGlobalTests extends BaseWebClientTests {
 
 	@Test
 	public void testPreFlightCorsRequest() {

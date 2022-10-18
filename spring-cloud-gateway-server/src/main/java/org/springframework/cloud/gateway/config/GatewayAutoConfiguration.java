@@ -67,6 +67,7 @@ import org.springframework.cloud.gateway.filter.RemoveCachedBodyFilter;
 import org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter;
 import org.springframework.cloud.gateway.filter.WebsocketRoutingFilter;
 import org.springframework.cloud.gateway.filter.WeightCalculatorWebFilter;
+import org.springframework.cloud.gateway.filter.cors.CorsGatewayFilterApplicationListener;
 import org.springframework.cloud.gateway.filter.factory.AddRequestHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.AddRequestHeadersIfNotPresentGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.AddRequestParameterGatewayFilterFactory;
@@ -255,6 +256,14 @@ public class GatewayAutoConfiguration {
 	@Bean
 	public GlobalCorsProperties globalCorsProperties() {
 		return new GlobalCorsProperties();
+	}
+
+	@Bean
+	public CorsGatewayFilterApplicationListener corsGatewayFilterApplicationListener(
+			GlobalCorsProperties globalCorsProperties, RoutePredicateHandlerMapping routePredicateHandlerMapping,
+			RouteDefinitionLocator routeDefinitionLocator) {
+		return new CorsGatewayFilterApplicationListener(globalCorsProperties, routePredicateHandlerMapping,
+				routeDefinitionLocator);
 	}
 
 	@Bean
