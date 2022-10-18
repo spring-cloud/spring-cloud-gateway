@@ -766,6 +766,31 @@ public RouteLocator routes(RouteLocatorBuilder builder) {
 This example forwards to the `/inCaseofFailureUseThis` URI when the circuit breaker fallback is called.
 Note that this example also demonstrates the (optional) Spring Cloud LoadBalancer load-balancing (defined by the `lb` prefix on the destination URI).
 
+CircuitBreaker also supports URI variables in the `fallbackUri`.
+This allows more complex routing options, like forwarding sections of the original host or url path using  https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/web/util/pattern/PathPattern.html[PathPattern expression].
+
+In the example below the call `consumingServiceEndpoint/users/1` will be redirected to `inCaseOfFailureUseThis/users/1`.
+
+.application.yml
+====
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: circuitbreaker_route
+        uri: lb://backing-service:8088
+        predicates:
+        - Path=/consumingServiceEndpoint/{*segments}
+        filters:
+        - name: CircuitBreaker
+          args:
+            name: myCircuitBreaker
+            fallbackUri: forward:/inCaseOfFailureUseThis/{segments}
+----
+====
+
 The primary scenario is to use the `fallbackUri` to define an internal controller or handler within the gateway application.
 However, you can also reroute the request to a controller or handler in an external application, as follows:
 

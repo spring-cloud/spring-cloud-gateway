@@ -31,6 +31,7 @@ import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.support.HasRouteId;
 import org.springframework.cloud.gateway.support.HttpStatusHolder;
+import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -113,8 +114,12 @@ public abstract class SpringCloudCircuitBreakerFilterFactory
 					URI uri = exchange.getRequest().getURI();
 					// TODO: assume always?
 					boolean encoded = containsEncodedParts(uri);
-					URI requestUrl = UriComponentsBuilder.fromUri(uri).host(null).port(null)
-							.uri(config.getFallbackUri()).scheme(null).build(encoded).toUri();
+
+					final String expandedFallbackUri = ServerWebExchangeUtils.expand(exchange, config.getFallbackUri().getPath());
+					final String fullFallbackUri = String.format("%s:%s", config.getFallbackUri().getScheme(), expandedFallbackUri);
+					final URI requestUrl = UriComponentsBuilder.fromUri(uri).host(null).port(null)
+							.uri(URI.create(fullFallbackUri)).scheme(null).build(encoded).toUri();
+
 					exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, requestUrl);
 					addExceptionDetails(t, exchange);
 
