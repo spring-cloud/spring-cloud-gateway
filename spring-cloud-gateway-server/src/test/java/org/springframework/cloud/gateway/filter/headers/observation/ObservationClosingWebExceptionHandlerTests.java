@@ -20,6 +20,7 @@ import io.micrometer.observation.Observation;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
@@ -37,7 +38,7 @@ class ObservationClosingWebExceptionHandlerTests {
 	@Test
 	void shouldDoNothingWhenObservationAlreadyStopped() {
 		exchange.getAttributes().put(ObservedResponseHttpHeadersFilter.OBSERVATION_STOPPED, "true");
-		exchange.getAttributes().put(ObservedRequestHttpHeadersFilter.CHILD_OBSERVATION,
+		exchange.getAttributes().put(ServerWebExchangeUtils.GATEWAY_OBSERVATION_ATTR,
 				"if this attribute will be attempted to be retrieved ClassCast will be thrown");
 
 		assertThatNoException().isThrownBy(() -> handler.handle(exchange, new RuntimeException()));
@@ -51,7 +52,7 @@ class ObservationClosingWebExceptionHandlerTests {
 	@Test
 	void shouldStopTheObservationIfItWasNotStoppedPreviouslyAndThereWasAnError() {
 		Observation observation = Mockito.mock(Observation.class);
-		exchange.getAttributes().put(ObservedRequestHttpHeadersFilter.CHILD_OBSERVATION, observation);
+		exchange.getAttributes().put(ServerWebExchangeUtils.GATEWAY_OBSERVATION_ATTR, observation);
 		RuntimeException runtimeException = new RuntimeException();
 
 		assertThatNoException().isThrownBy(() -> handler.handle(exchange, runtimeException));

@@ -23,6 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.gateway.filter.headers.HttpHeadersFilter;
+import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -38,10 +39,6 @@ import org.springframework.web.server.ServerWebExchange;
 public class ObservedRequestHttpHeadersFilter implements HttpHeadersFilter {
 
 	private static final Log log = LogFactory.getLog(ObservedRequestHttpHeadersFilter.class);
-
-	static final String CHILD_OBSERVATION = "gateway.observation";
-
-	static final String CHILD_OBSERVATION_CONTEXT = "gateway.observation.context";
 
 	private final ObservationRegistry observationRegistry;
 
@@ -78,8 +75,7 @@ public class ObservedRequestHttpHeadersFilter implements HttpHeadersFilter {
 			log.debug("Client observation  " + childObservation + " created for the request. New headers are "
 					+ newHeaders);
 		}
-		exchange.getAttributes().put(CHILD_OBSERVATION, childObservation);
-		exchange.getAttributes().put(CHILD_OBSERVATION_CONTEXT, gatewayContext);
+		exchange.getAttributes().put(ServerWebExchangeUtils.GATEWAY_OBSERVATION_ATTR, childObservation);
 		return newHeaders;
 	}
 

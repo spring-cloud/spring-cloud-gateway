@@ -166,6 +166,11 @@ public final class ServerWebExchangeUtils {
 	 */
 	public static final String GATEWAY_LOADBALANCER_RESPONSE_ATTR = qualify("gatewayLoadBalancerResponse");
 
+	/**
+	 * Gateway Client {@code Observation} attribute name.
+	 */
+	public static final String GATEWAY_OBSERVATION_ATTR = qualify("gateway.observation");
+
 	private static final byte[] EMPTY_BYTES = {};
 
 	private ServerWebExchangeUtils() {
