@@ -40,7 +40,11 @@ public class ObservationClosingWebExceptionHandler implements WebExceptionHandle
 		if (attribute == null) {
 			Observation observation = exchange.getAttribute(ObservedRequestHttpHeadersFilter.CHILD_OBSERVATION);
 			if (observation != null) {
-				log.debug(() -> "Observation was not previously stopped, will stop it.");
+				if (log.isDebugEnabled()) {
+					observation.scoped(() -> log.debug(
+							() -> "An exception occurred and observation was not previously stopped, will stop it. The exception was ["
+									+ ex + "]"));
+				}
 				observation.error(ex);
 				observation.stop();
 			}
