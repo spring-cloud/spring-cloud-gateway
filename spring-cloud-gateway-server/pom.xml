@@ -127,6 +127,11 @@
 			<optional>true</optional>
 		</dependency>
 		<dependency>
+			<groupId>com.github.ben-manes.caffeine</groupId>
+			<artifactId>caffeine</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
 			<groupId>io.micrometer</groupId>
 			<artifactId>context-propagation</artifactId>
 			<version>${context-propagation.version}</version>
