@@ -22,6 +22,9 @@ import org.springframework.cloud.gateway.filter.factory.cache.CachedResponse;
 import org.springframework.web.server.ServerWebExchange;
 
 /**
+ * Marking interface for a {@link BiConsumer} that could alter the
+ * {@link ServerWebExchange} .
+ *
  * @author Marta Medio
  * @author Ignacio Lozano
  */

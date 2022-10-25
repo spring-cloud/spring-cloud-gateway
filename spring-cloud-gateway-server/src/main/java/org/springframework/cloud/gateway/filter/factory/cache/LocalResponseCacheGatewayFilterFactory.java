@@ -25,10 +25,17 @@ import org.springframework.cloud.gateway.config.LocalResponseCacheAutoConfigurat
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.cloud.gateway.support.HasRouteId;
-import org.springframework.util.StringUtils;
+import org.springframework.util.unit.DataSize;
 import org.springframework.validation.annotation.Validated;
 
 /**
+ * {@link org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory} of
+ * {@link ResponseCacheGatewayFilter}.
+ *
+ * By default, a global cache (defined as properties in the application) is used. For
+ * specific route configuration, parameters can be added following
+ * {@link RouteCacheConfiguration} class.
+ *
  * @author Marta Medio
  * @author Ignacio Lozano
  */
@@ -37,14 +44,14 @@ public class LocalResponseCacheGatewayFilterFactory
 
 	private final Cache globalCache;
 
-	ResponseCacheManagerFactory managerFactory;
+	ResponseCacheManagerFactory cacheManagerFactory;
 
 	Duration configuredTimeToLive;
 
-	public LocalResponseCacheGatewayFilterFactory(ResponseCacheManagerFactory managerFactory, Cache globalCache,
-												  Duration configuredTimeToLive) {
+	public LocalResponseCacheGatewayFilterFactory(ResponseCacheManagerFactory cacheManagerFactory, Cache globalCache,
+			Duration configuredTimeToLive) {
 		super(RouteCacheConfiguration.class);
-		this.managerFactory = managerFactory;
+		this.cacheManagerFactory = cacheManagerFactory;
 		this.globalCache = globalCache;
 		this.configuredTimeToLive = configuredTimeToLive;
 	}
@@ -54,17 +61,18 @@ public class LocalResponseCacheGatewayFilterFactory
 		LocalResponseCacheProperties cacheProperties = mapRouteCacheConfig(config);
 
 		if (shouldUseGlobalCacheConfiguration(config)) {
-			return new ResponseCacheGatewayFilter(managerFactory.create(globalCache, configuredTimeToLive));
+			return new ResponseCacheGatewayFilter(cacheManagerFactory.create(globalCache, configuredTimeToLive));
 		}
 		else {
-			Cache routeCache = new LocalResponseCacheAutoConfiguration().concurrentMapCacheManager(cacheProperties)
-																		.getCache(config.getRouteId() + "-cache");
-			return new ResponseCacheGatewayFilter(managerFactory.create(routeCache, cacheProperties.getTimeToLive()));
+			Cache routeCache = LocalResponseCacheAutoConfiguration.concurrentMapCacheManager(cacheProperties)
+					.getCache(config.getRouteId() + "-cache");
+			return new ResponseCacheGatewayFilter(
+					cacheManagerFactory.create(routeCache, cacheProperties.getTimeToLive()));
 		}
 	}
 
 	private boolean shouldUseGlobalCacheConfiguration(RouteCacheConfiguration config) {
-		return Objects.isNull(config.getTimeToLive()) && !StringUtils.hasText(config.getSize());
+		return Objects.isNull(config.getTimeToLive()) && Objects.isNull(config.getSize());
 	}
 
 	private LocalResponseCacheProperties mapRouteCacheConfig(RouteCacheConfiguration config) {
@@ -82,17 +90,17 @@ public class LocalResponseCacheGatewayFilterFactory
 	@Validated
 	public static class RouteCacheConfiguration implements HasRouteId {
 
-		private String size;
+		private DataSize size;
 
 		private Duration timeToLive;
 
 		private String routeId;
 
-		public String getSize() {
+		public DataSize getSize() {
 			return size;
 		}
 
-		public RouteCacheConfiguration setSize(String size) {
+		public RouteCacheConfiguration setSize(DataSize size) {
 			this.size = size;
 			return this;
 		}

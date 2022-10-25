@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.cloud.gateway.filter.factory.cache.CachedResponse;
@@ -31,6 +30,10 @@ import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.server.ServerWebExchange;
 
 /**
+ * It sets the {@link HttpHeaders#CACHE_CONTROL} {@literal max-age} value. The value is
+ * calculated taking the {@link #configuredTimeToLive} cache configuration and the age of
+ * the entry.
+ *
  * @author Marta Medio
  * @author Ignacio Lozano
  */
@@ -52,7 +55,6 @@ public class SetMaxAgeHeaderAfterCacheExchangeMutator implements AfterCacheExcha
 		ServerHttpResponse response = exchange.getResponse();
 		long calculatedMaxAgeInSeconds = calculateMaxAgeInSeconds(cachedResponse, configuredTimeToLive);
 		rewriteCacheControlMaxAge(response.getHeaders(), calculatedMaxAgeInSeconds);
-
 	}
 
 	private long calculateMaxAgeInSeconds(CachedResponse cachedResponse, Duration configuredTimeToLive) {
@@ -72,8 +74,8 @@ public class SetMaxAgeHeaderAfterCacheExchangeMutator implements AfterCacheExcha
 	}
 
 	private static void rewriteCacheControlMaxAge(HttpHeaders headers, long seconds) {
-		boolean isMaxAgePresent = Optional.ofNullable(headers.get(HttpHeaders.CACHE_CONTROL))
-										  .orElse(Collections.emptyList()).stream().anyMatch(v -> v.contains(MAX_AGE_PREFIX));
+		boolean isMaxAgePresent = headers.getCacheControl() != null
+				&& headers.getCacheControl().contains(MAX_AGE_PREFIX);
 
 		if (isMaxAgePresent) {
 			List<String> cacheControlHeaders = headers.get(HttpHeaders.CACHE_CONTROL);
@@ -83,7 +85,7 @@ public class SetMaxAgeHeaderAfterCacheExchangeMutator implements AfterCacheExcha
 				if (value.contains(MAX_AGE_PREFIX)) {
 					if (seconds == -1) {
 						List<String> removedMaxAgeList = Arrays.stream(value.split(","))
-															   .filter(i -> !i.trim().startsWith(MAX_AGE_PREFIX)).collect(Collectors.toList());
+								.filter(i -> !i.trim().startsWith(MAX_AGE_PREFIX)).collect(Collectors.toList());
 						value = String.join(",", removedMaxAgeList);
 					}
 					else {

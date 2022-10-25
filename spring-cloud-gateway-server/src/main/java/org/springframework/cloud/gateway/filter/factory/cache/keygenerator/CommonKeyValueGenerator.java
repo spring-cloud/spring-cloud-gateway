@@ -40,7 +40,7 @@ public class CommonKeyValueGenerator implements KeyValueGenerator {
 	@Override
 	public String apply(ServerHttpRequest request) {
 		return keyValueGenerators.stream().map(generator -> generator.apply(request))
-								 .collect(Collectors.joining(JOINING_DELIMITER));
+				.collect(Collectors.joining(JOINING_DELIMITER));
 	}
 
 }

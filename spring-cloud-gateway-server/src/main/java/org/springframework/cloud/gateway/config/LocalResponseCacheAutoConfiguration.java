@@ -19,8 +19,8 @@ package org.springframework.cloud.gateway.config;
 import java.time.Duration;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -35,28 +35,31 @@ import org.springframework.cloud.gateway.filter.factory.cache.ResponseCacheSizeW
 import org.springframework.cloud.gateway.filter.factory.cache.keygenerator.CacheKeyGenerator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.util.unit.DataSize;
 
 /**
  * @author Ignacio Lozano
  */
 @Configuration
-@EnableConfigurationProperties({LocalResponseCacheProperties.class})
+@EnableConfigurationProperties({ LocalResponseCacheProperties.class })
 @ConditionalOnProperty(name = "spring.cloud.gateway.enabled", matchIfMissing = true)
 @ConditionalOnEnabledFilter(LocalResponseCacheGatewayFilterFactory.class)
 public class LocalResponseCacheAutoConfiguration {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(LocalResponseCacheAutoConfiguration.class);
+	private static final Log LOGGER = LogFactory.getLog(LocalResponseCacheAutoConfiguration.class);
 
 	private static final String RESPONSE_CACHE_NAME = "response-cache";
 
 	@Bean
-	public LocalResponseCacheGatewayFilterFactory localResponseCacheGatewayFilterFactory(CacheManager cacheManager,
-																						 LocalResponseCacheProperties properties) {
-		ResponseCacheManagerFactory responseCacheManagerFactory = new ResponseCacheManagerFactory(
-				new CacheKeyGenerator());
+	public LocalResponseCacheGatewayFilterFactory localResponseCacheGatewayFilterFactory(
+			ResponseCacheManagerFactory responseCacheManagerFactory, CacheManager cacheManager,
+			LocalResponseCacheProperties properties) {
 		return new LocalResponseCacheGatewayFilterFactory(responseCacheManagerFactory, responseCache(cacheManager),
-				configuredTimeToLive(properties));
+				properties.getTimeToLive());
+	}
+
+	@Bean
+	public ResponseCacheManagerFactory responseCacheManagerFactory(CacheKeyGenerator cacheKeyGenerator) {
+		return new ResponseCacheManagerFactory(cacheKeyGenerator);
 	}
 
 	@Bean
@@ -65,43 +68,30 @@ public class LocalResponseCacheAutoConfiguration {
 	}
 
 	@Bean
-	public CacheManager concurrentMapCacheManager(LocalResponseCacheProperties cacheProperties) {
-		Caffeine caffeine = Caffeine.newBuilder();
-		LOGGER.info("Initializing Caffeine");
-		Duration ttlSeconds = getTtlSecondsConfiguration(cacheProperties);
-		caffeine.expireAfterWrite(ttlSeconds);
-
-		Long maxSizeBytes = getSizeBytesConfiguration(cacheProperties);
-		if (maxSizeBytes != null) {
-			caffeine.maximumWeight(maxSizeBytes).weigher(new ResponseCacheSizeWeigher());
-		}
-
+	public static CacheManager concurrentMapCacheManager(LocalResponseCacheProperties cacheProperties) {
 		CaffeineCacheManager caffeineCacheManager = new CaffeineCacheManager();
-		caffeineCacheManager.setCaffeine(caffeine);
+		caffeineCacheManager.setCaffeine(caffeine(cacheProperties));
 		return caffeineCacheManager;
 	}
 
-	@Bean
+	private static Caffeine caffeine(LocalResponseCacheProperties cacheProperties) {
+		Caffeine caffeine = Caffeine.newBuilder();
+		LOGGER.info("Initializing Caffeine");
+		Duration ttlSeconds = cacheProperties.getTimeToLive();
+		caffeine.expireAfterWrite(ttlSeconds);
+
+		if (cacheProperties.getSize() != null) {
+			caffeine.maximumWeight(cacheProperties.getSize().toBytes()).weigher(responseCacheSizeWeigher());
+		}
+		return caffeine;
+	}
+
+	private static ResponseCacheSizeWeigher responseCacheSizeWeigher() {
+		return new ResponseCacheSizeWeigher();
+	}
+
 	Cache responseCache(CacheManager cacheManager) {
 		return cacheManager.getCache(RESPONSE_CACHE_NAME);
-	}
-
-	@Bean
-	Duration configuredTimeToLive(LocalResponseCacheProperties cacheProperties) {
-		return getTtlSecondsConfiguration(cacheProperties);
-	}
-
-	private Long getSizeBytesConfiguration(LocalResponseCacheProperties cacheProperties) {
-		if (cacheProperties.getSize() != null) {
-			return DataSize.parse(cacheProperties.getSize()).toBytes();
-		}
-		else {
-			return null;
-		}
-	}
-
-	private Duration getTtlSecondsConfiguration(LocalResponseCacheProperties cacheProperties) {
-		return cacheProperties.getTimeToLive();
 	}
 
 }

@@ -18,14 +18,9 @@ package org.springframework.cloud.gateway.filter.factory.cache;
 
 import java.nio.Buffer;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import com.github.benmanes.caffeine.cache.Weigher;
-import org.checkerframework.checker.index.qual.NonNegative;
-import org.checkerframework.checker.nullness.qual.NonNull;
-
-import org.springframework.http.HttpHeaders;
 
 /**
  * @author Marta Medio
@@ -34,11 +29,10 @@ import org.springframework.http.HttpHeaders;
 public class ResponseCacheSizeWeigher implements Weigher<String, Object> {
 
 	@Override
-	public @NonNegative int weigh(@NonNull String key, @NonNull Object value) {
+	public int weigh(String key, Object value) {
 		if (value instanceof CachedResponse cached) {
-			return Optional.of(cached).map(CachedResponse::headers).map(HttpHeaders::getContentLength)
-						   .filter(contentLength -> contentLength > -1).map(Long::intValue)
-						   .orElseGet(() -> estimateContentLength(cached));
+			return cached.headers().getContentLength() > -1 ? (int) cached.headers().getContentLength()
+					: estimateContentLength(cached);
 		}
 		else {
 			return 0;

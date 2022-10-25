@@ -47,8 +47,8 @@ class CookiesKeyValueGenerator implements KeyValueGenerator {
 		MultiValueMap<String, HttpCookie> cookies = request.getCookies();
 		if (!CollectionUtils.isEmpty(cookies)) {
 			cookiesData = cookies.values().stream().flatMap(Collection::stream)
-								 .map(c -> String.format("%s=%s", c.getName(), c.getValue())).sorted()
-								 .collect(Collectors.joining(valueSeparator));
+					.map(c -> String.format("%s=%s", c.getName(), c.getValue())).sorted()
+					.collect(Collectors.joining(valueSeparator));
 		}
 		return cookiesData;
 	}

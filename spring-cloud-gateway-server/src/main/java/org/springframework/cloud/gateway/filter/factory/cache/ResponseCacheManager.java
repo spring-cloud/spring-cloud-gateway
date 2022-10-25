@@ -24,8 +24,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -51,7 +51,7 @@ import org.springframework.web.server.ServerWebExchange;
  */
 public class ResponseCacheManager {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(ResponseCacheManager.class);
+	private static final Log LOGGER = LogFactory.getLog(ResponseCacheManager.class);
 
 	private static final List<String> forbiddenCacheControlValues = Arrays.asList("private", "no-store");
 
@@ -87,7 +87,7 @@ public class ResponseCacheManager {
 		final CachedResponseMetadata metadata = new CachedResponseMetadata(response.getHeaders().getVary());
 		final String key = resolveKey(exchange, metadata.varyOnHeaders());
 		CachedResponse.Builder cachedResponseBuilder = CachedResponse.create(response.getStatusCode())
-																	 .headers(response.getHeaders());
+				.headers(response.getHeaders());
 		CachedResponse toProcess = cachedResponseBuilder.build();
 		afterCacheExchangeMutators.forEach(processor -> processor.accept(exchange, toProcess));
 
@@ -159,7 +159,7 @@ public class ResponseCacheManager {
 
 	private boolean isStatusCodeToCache(ServerHttpResponse response) {
 		return Optional.ofNullable(response.getStatusCode()).map(HttpStatusCode::value).map(HttpStatus::resolve)
-					   .map(statusesToCache::contains).orElse(Boolean.FALSE);
+				.map(statusesToCache::contains).orElse(Boolean.FALSE);
 	}
 
 	boolean isRequestCacheable(ServerHttpRequest request) {
@@ -176,7 +176,7 @@ public class ResponseCacheManager {
 	private boolean isCacheControlAllowed(HttpMessage request) {
 		HttpHeaders headers = request.getHeaders();
 		List<String> cacheControlHeader = Optional.ofNullable(headers.get(HttpHeaders.CACHE_CONTROL))
-												  .orElse(Collections.emptyList());
+				.orElse(Collections.emptyList());
 
 		return cacheControlHeader.stream().noneMatch(forbiddenCacheControlValues::contains);
 	}

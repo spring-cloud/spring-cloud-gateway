@@ -51,7 +51,7 @@ class SetStatusCodeAfterCacheExchangeMutatorTest {
 	void statusCodeIs304_whenCacheHitsAndNoCacheHeaderIsPresent() {
 		CachedResponse cachedResponse = CachedResponse.create(HttpStatus.OK).body("some-data").build();
 		MockServerHttpRequest httpRequest = MockServerHttpRequest.get("https://this")
-																 .header("Cache-Control", "no-cache").build();
+				.header("Cache-Control", "no-cache").build();
 
 		inputExchange = MockServerWebExchange.from(httpRequest);
 
@@ -75,7 +75,7 @@ class SetStatusCodeAfterCacheExchangeMutatorTest {
 	void statusCodeIs200_whenNoCacheHitsAndEvenNoCacheHeaderIsPresent() {
 		CachedResponse cachedResponse = CachedResponse.create(HttpStatus.OK).build();
 		MockServerHttpRequest httpRequest = MockServerHttpRequest.get("https://this")
-																 .header("Cache-Control", "no-cache").build();
+				.header("Cache-Control", "no-cache").build();
 
 		inputExchange = MockServerWebExchange.from(httpRequest);
 

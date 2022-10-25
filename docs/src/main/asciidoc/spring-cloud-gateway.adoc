@@ -1826,6 +1826,8 @@ Take into account that this filter to configure local response cache per route o
 
 It accepts the first parameter to override the maximum size of the cache to evict entries for this route, it takes size format in KB, MB and GB; and a second parameter to override the time to expire a cache entry expressed in s for seconds, m for minutes and h for hours.
 
+The following listing shows how to add local response cache `GatewayFilter`:
+
 ====
 [source,java]
 ----
@@ -1838,6 +1840,23 @@ public RouteLocator routes(RouteLocatorBuilder builder) {
             ).uri(uri))
         .build();
 }
+----
+
+or this
+
+.application.yaml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: resource
+        uri: http://localhost:9000
+        predicates:
+        - Path=/resource
+        filters:
+        - LocalResponseCache=30m,500MB
 ----
 
 NOTE:  This filter also implements the automatic calculation of the max-age value in the HTTP Cache-Control header.

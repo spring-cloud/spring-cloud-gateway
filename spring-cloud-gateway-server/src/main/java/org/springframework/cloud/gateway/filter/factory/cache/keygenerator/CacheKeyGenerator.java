@@ -33,9 +33,11 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
  */
 public class CacheKeyGenerator {
 
-	private static final byte[] KEY_SEPARATOR_BYTES = ";" .getBytes();
+	private static final byte[] KEY_SEPARATOR_BYTES = ";".getBytes();
 
 	private final MessageDigest messageDigest;
+
+	private static final CommonKeyValueGenerator COMMON_KEY_VALUE_GENERATOR = new CommonKeyValueGenerator();
 
 	public CacheKeyGenerator() {
 		try {
@@ -62,7 +64,7 @@ public class CacheKeyGenerator {
 	}
 
 	private Stream<KeyValueGenerator> getKeyValueGenerators(List<String> varyHeaders) {
-		return Stream.concat(Stream.of(new CommonKeyValueGenerator()),
+		return Stream.concat(Stream.of(COMMON_KEY_VALUE_GENERATOR),
 				varyHeaders.stream().sorted().map(header -> new HeaderKeyValueGenerator(header, ",")));
 	}
 

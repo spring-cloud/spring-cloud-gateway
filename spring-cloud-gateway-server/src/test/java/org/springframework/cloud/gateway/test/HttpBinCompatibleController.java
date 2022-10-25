@@ -71,7 +71,7 @@ public class HttpBinCompatibleController {
 		return "httpbin compatible home";
 	}
 
-	@RequestMapping(path = "/headers", method = {RequestMethod.GET, RequestMethod.POST},
+	@RequestMapping(path = "/headers", method = { RequestMethod.GET, RequestMethod.POST },
 			produces = MediaType.APPLICATION_JSON_VALUE)
 	public Map<String, Object> headers(ServerWebExchange exchange) {
 		Map<String, Object> result = new HashMap<>();
@@ -210,7 +210,7 @@ public class HttpBinCompatibleController {
 
 	@GetMapping("/vary-on-header/**")
 	public ResponseEntity<Map<String, Object>> varyOnAccept(ServerWebExchange exchange,
-															@RequestHeader(name = HEADER_REQ_VARY, required = false) String headerToVary) {
+			@RequestHeader(name = HEADER_REQ_VARY, required = false) String headerToVary) {
 		if (headerToVary == null) {
 			return ResponseEntity.badRequest().body(Map.of("error", HEADER_REQ_VARY + " header is mandatory"));
 		}

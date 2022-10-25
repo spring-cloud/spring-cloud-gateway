@@ -83,7 +83,6 @@ import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpStatus;
-import org.springframework.lang.Nullable;
 import org.springframework.util.unit.DataSize;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -211,16 +210,15 @@ public class GatewayFilterSpec extends UriSpec {
 	/**
 	 * A filter that adds a local cache for storing response body for repeated requests.
 	 * <p>
-	 * If `timeToLive` and `size` are null, a global cache is used configured by the global configuration
+	 * If `timeToLive` and `size` are null, a global cache is used configured by the
+	 * global configuration
 	 * {@link org.springframework.cloud.gateway.filter.factory.cache.LocalResponseCacheProperties}.
-	 *
-	 * @param timeToLive time an entry is kept in cache.
-	 *                   Default: 5 minutes
-	 * @param size       size expression to limit cache size (See format in {@link DataSize}.
-	 *                   Default: {@code null} (no limit)
+	 * @param timeToLive time an entry is kept in cache. Default: 5 minutes
+	 * @param size size expression to limit cache size (See format in {@link DataSize}.
+	 * Default: {@code null} (no limit)
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
-	public GatewayFilterSpec localResponseCache(@Nullable Duration timeToLive, @Nullable String size) {
+	public GatewayFilterSpec localResponseCache(Duration timeToLive, DataSize size) {
 		return filter(getBean(LocalResponseCacheGatewayFilterFactory.class)
 				.apply(c -> c.setTimeToLive(timeToLive).setSize(size)));
 	}

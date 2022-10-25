@@ -18,10 +18,11 @@ package org.springframework.cloud.gateway.filter.factory.cache;
 
 import java.time.Duration;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.util.unit.DataSize;
 
 /**
  * @author Ignacio Lozano
@@ -29,28 +30,29 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = LocalResponseCacheProperties.PREFIX)
 public class LocalResponseCacheProperties {
 
-	static final String PREFIX = "spring.cloud.gateway.k8s.responsecache.local";
+	static final String PREFIX = "spring.cloud.gateway.filter.local-response-cache";
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(LocalResponseCacheProperties.class);
+	private static final Log LOGGER = LogFactory.getLog(LocalResponseCacheProperties.class);
 
 	private static final Duration DEFAULT_CACHE_TTL_SECONDS = Duration.ofMinutes(5);
 
-	private String size;
+	private DataSize size;
 
 	private Duration timeToLive;
 
-	public String getSize() {
+	public DataSize getSize() {
 		return size;
 	}
 
-	public void setSize(String size) {
+	public void setSize(DataSize size) {
 		this.size = size;
 	}
 
 	public Duration getTimeToLive() {
 		if (timeToLive == null) {
-			LOGGER.info("No TTL configuration found. Default TTL will be applied for cache entries: {} seconds",
-					DEFAULT_CACHE_TTL_SECONDS);
+			LOGGER.debug(String.format(
+					"No TTL configuration found. Default TTL will be applied for cache entries: %s seconds",
+					DEFAULT_CACHE_TTL_SECONDS));
 			return DEFAULT_CACHE_TTL_SECONDS;
 		}
 		else {

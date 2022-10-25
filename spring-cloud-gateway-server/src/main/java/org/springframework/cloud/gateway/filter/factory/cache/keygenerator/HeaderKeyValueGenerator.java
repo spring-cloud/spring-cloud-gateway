@@ -48,7 +48,7 @@ class HeaderKeyValueGenerator implements KeyValueGenerator {
 		if (headers.get(header) != null) {
 			StringBuilder keyVaryHeaders = new StringBuilder();
 			keyVaryHeaders.append(header).append("=")
-						  .append(getHeaderValues(headers).sorted().collect(Collectors.joining(valueSeparator)));
+					.append(getHeaderValues(headers).sorted().collect(Collectors.joining(valueSeparator)));
 			return keyVaryHeaders.toString();
 		}
 		return "";

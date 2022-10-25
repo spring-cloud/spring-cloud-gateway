@@ -21,6 +21,8 @@ import java.util.function.Function;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 
 /**
+ * Function to calculate a key value based on a {@link ServerHttpRequest}.
+ *
  * @author Marta Medio
  * @author Ignacio Lozano
  */

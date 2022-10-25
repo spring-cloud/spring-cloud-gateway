@@ -19,6 +19,8 @@ package org.springframework.cloud.gateway.filter.factory.cache.keygenerator;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 
 /**
+ * It generates key value based on the URI.
+ *
  * @author Marta Medio
  * @author Ignacio Lozano
  */

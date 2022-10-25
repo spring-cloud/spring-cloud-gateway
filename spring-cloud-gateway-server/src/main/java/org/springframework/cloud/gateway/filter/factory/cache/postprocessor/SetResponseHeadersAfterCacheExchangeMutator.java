@@ -21,6 +21,8 @@ import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.server.ServerWebExchange;
 
 /**
+ * It sets HTTP Headers using {@link CachedResponse} values.
+ *
  * @author Marta Medio
  * @author Ignacio Lozano
  */

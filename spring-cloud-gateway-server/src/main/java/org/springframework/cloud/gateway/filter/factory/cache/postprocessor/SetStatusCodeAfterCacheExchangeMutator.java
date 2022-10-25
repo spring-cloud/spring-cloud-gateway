@@ -16,8 +16,6 @@
 
 package org.springframework.cloud.gateway.filter.factory.cache.postprocessor;
 
-import java.util.Optional;
-
 import org.springframework.cloud.gateway.filter.factory.cache.CachedResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -26,6 +24,9 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.server.ServerWebExchange;
 
 /**
+ * It sets HTTP Status Code depending {@literal no-cache}
+ * {@link HttpHeaders#CACHE_CONTROL} header.
+ *
  * @author Marta Medio
  * @author Ignacio Lozano
  */
@@ -47,8 +48,7 @@ public class SetStatusCodeAfterCacheExchangeMutator implements AfterCacheExchang
 	}
 
 	private boolean isRequestNoCache(HttpHeaders requestHeaders) {
-		return Optional.ofNullable(requestHeaders.getCacheControl()).filter(s -> s.contains(NO_CACHE_VALUE))
-					   .isPresent();
+		return requestHeaders.getCacheControl() != null && requestHeaders.getCacheControl().contains(NO_CACHE_VALUE);
 	}
 
 }
