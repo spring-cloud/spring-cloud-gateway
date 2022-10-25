@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.route.builder;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -74,6 +75,7 @@ import org.springframework.cloud.gateway.filter.factory.SetStatusGatewayFilterFa
 import org.springframework.cloud.gateway.filter.factory.SpringCloudCircuitBreakerFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.StripPrefixGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.TokenRelayGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.cache.LocalResponseCacheGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyRequestBodyGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyResponseBodyGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.rewrite.RewriteFunction;
@@ -203,6 +205,22 @@ public class GatewayFilterSpec extends UriSpec {
 	public GatewayFilterSpec addResponseHeader(String headerName, String headerValue) {
 		return filter(getBean(AddResponseHeaderGatewayFilterFactory.class)
 				.apply(c -> c.setName(headerName).setValue(headerValue)));
+	}
+
+	/**
+	 * A filter that adds a local cache for storing response body for repeated requests.
+	 * <p>
+	 * If `timeToLive` and `size` are null, a global cache is used configured by the
+	 * global configuration
+	 * {@link org.springframework.cloud.gateway.filter.factory.cache.LocalResponseCacheProperties}.
+	 * @param timeToLive time an entry is kept in cache. Default: 5 minutes
+	 * @param size size expression to limit cache size (See format in {@link DataSize}.
+	 * Default: {@code null} (no limit)
+	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
+	 */
+	public GatewayFilterSpec localResponseCache(Duration timeToLive, DataSize size) {
+		return filter(getBean(LocalResponseCacheGatewayFilterFactory.class)
+				.apply(c -> c.setTimeToLive(timeToLive).setSize(size)));
 	}
 
 	/**

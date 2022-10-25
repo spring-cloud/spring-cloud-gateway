@@ -1813,6 +1813,56 @@ NOTE:  if the request has no body, the `RewriteFilter` will be passed `null`. `M
 
 ====
 
+=== Local Response Cache `GatewayFilter` Factory
+
+This filter allows to cache response body and headers to follow the next rules:
+
+* It can only cache bodyless GET requests
+* It only caches the response as long has one of the following status codes: HTTP 200 (OK), HTTP 206 (Partial Content) and HTTP 301 (Moved Permanently).
+Response data will not be cached if `Cache-Control` header doesn't allow it (`no-store` present in the request, `no-store` or `private` present in the response).
+* If the response is already cached and a new request is performed with no-cache value in `Cache-Control` header, it will return a bodyless response with 304 (Not Modified).
+
+Take into account that this filter to configure local response cache per route only will be available if the local response global cache is enabled.
+
+It accepts the first parameter to override the maximum size of the cache to evict entries for this route, it takes size format in KB, MB and GB; and a second parameter to override the time to expire a cache entry expressed in s for seconds, m for minutes and h for hours.
+
+The following listing shows how to add local response cache `GatewayFilter`:
+
+====
+[source,java]
+----
+@Bean
+public RouteLocator routes(RouteLocatorBuilder builder) {
+    return builder.routes()
+        .route("rewrite_response_upper", r -> r.host("*.rewriteresponseupper.org")
+            .filters(f -> f.prefixPath("/httpbin")
+        		.localResponseCache(Duration.ofMinutes(30), "500MB")
+            ).uri(uri))
+        .build();
+}
+----
+
+or this
+
+.application.yaml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: resource
+        uri: http://localhost:9000
+        predicates:
+        - Path=/resource
+        filters:
+        - LocalResponseCache=30m,500MB
+----
+
+NOTE:  This filter also implements the automatic calculation of the max-age value in the HTTP Cache-Control header.
+Only if "max-age" is present on the original response the value will be rewritten with the number of seconds set in the timeToLive configuration parameter; and in consecutive calls this value will be recalculated with the number of seconds left until the response expires.
+====
+
 === Modify a Response Body `GatewayFilter` Factory
 
 You can use the `ModifyResponseBody` filter to modify the response body before it is sent back to the client.
