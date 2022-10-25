@@ -19,9 +19,11 @@ package org.springframework.cloud.gateway.config;
 import java.time.Duration;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.Weigher;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cache.Cache;
@@ -39,8 +41,9 @@ import org.springframework.context.annotation.Configuration;
 /**
  * @author Ignacio Lozano
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties({ LocalResponseCacheProperties.class })
+@ConditionalOnClass({ Weigher.class, Caffeine.class })
 @ConditionalOnProperty(name = "spring.cloud.gateway.enabled", matchIfMissing = true)
 @ConditionalOnEnabledFilter(LocalResponseCacheGatewayFilterFactory.class)
 public class LocalResponseCacheAutoConfiguration {
