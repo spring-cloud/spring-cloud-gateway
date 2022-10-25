@@ -78,7 +78,7 @@ public class DisableBuiltInFiltersTests {
 
 	@RunWith(SpringRunner.class)
 	@SpringBootTest(classes = Config.class,
-			properties = {"spring.cloud.gateway.filter.add-request-header.enabled=false",
+			properties = { "spring.cloud.gateway.filter.add-request-header.enabled=false",
 					"spring.cloud.gateway.filter.map-request-header.enabled=false",
 					"spring.cloud.gateway.filter.add-request-headers-if-not-present.enabled=false",
 					"spring.cloud.gateway.filter.add-request-parameter.enabled=false",

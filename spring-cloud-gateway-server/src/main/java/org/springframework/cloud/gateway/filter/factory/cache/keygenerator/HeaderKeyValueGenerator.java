@@ -43,7 +43,7 @@ class HeaderKeyValueGenerator implements KeyValueGenerator {
 	}
 
 	@Override
-	public String apply(ServerHttpRequest request) {
+	public String getKeyValue(ServerHttpRequest request) {
 		HttpHeaders headers = request.getHeaders();
 		if (headers.get(header) != null) {
 			StringBuilder keyVaryHeaders = new StringBuilder();
@@ -51,7 +51,7 @@ class HeaderKeyValueGenerator implements KeyValueGenerator {
 					.append(getHeaderValues(headers).sorted().collect(Collectors.joining(valueSeparator)));
 			return keyVaryHeaders.toString();
 		}
-		return "";
+		return null;
 	}
 
 	private Stream<String> getHeaderValues(HttpHeaders headers) {

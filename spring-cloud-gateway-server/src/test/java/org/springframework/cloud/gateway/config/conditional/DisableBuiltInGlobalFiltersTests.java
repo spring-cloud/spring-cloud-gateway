@@ -59,8 +59,8 @@ public class DisableBuiltInGlobalFiltersTests {
 
 	@RunWith(SpringRunner.class)
 	@SpringBootTest(classes = Config.class,
-			properties = {"spring.cloud.gateway.global-filter.remove-cached-body.enabled=false",
-					"spring.cloud.gateway.global-filter.route-to-request-url.enabled=false"})
+			properties = { "spring.cloud.gateway.global-filter.remove-cached-body.enabled=false",
+					"spring.cloud.gateway.global-filter.route-to-request-url.enabled=false" })
 	@ActiveProfiles("disable-components")
 	public static class DisableSpecificsFiltersByProperty {
 

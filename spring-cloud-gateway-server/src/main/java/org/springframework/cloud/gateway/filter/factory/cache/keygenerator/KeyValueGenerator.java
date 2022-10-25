@@ -16,8 +16,6 @@
 
 package org.springframework.cloud.gateway.filter.factory.cache.keygenerator;
 
-import java.util.function.Function;
-
 import org.springframework.http.server.reactive.ServerHttpRequest;
 
 /**
@@ -26,6 +24,19 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
  * @author Marta Medio
  * @author Ignacio Lozano
  */
-interface KeyValueGenerator extends Function<ServerHttpRequest, String> {
+interface KeyValueGenerator {
+
+	/*
+	 * Calls getKeyValue() and guards against null.
+	 */
+	default String apply(ServerHttpRequest request) {
+		String key = getKeyValue(request);
+		if (key == null) {
+			return "";
+		}
+		return key;
+	}
+
+	String getKeyValue(ServerHttpRequest request);
 
 }

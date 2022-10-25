@@ -37,13 +37,8 @@ class CookiesKeyValueGenerator implements KeyValueGenerator {
 		this.valueSeparator = Objects.requireNonNull(valueSeparator);
 	}
 
-	@Override
-	public String apply(ServerHttpRequest request) {
-		return calculateCookiesData(request);
-	}
-
-	private String calculateCookiesData(ServerHttpRequest request) {
-		String cookiesData = "";
+	public String getKeyValue(ServerHttpRequest request) {
+		String cookiesData = null;
 		MultiValueMap<String, HttpCookie> cookies = request.getCookies();
 		if (!CollectionUtils.isEmpty(cookies)) {
 			cookiesData = cookies.values().stream().flatMap(Collection::stream)

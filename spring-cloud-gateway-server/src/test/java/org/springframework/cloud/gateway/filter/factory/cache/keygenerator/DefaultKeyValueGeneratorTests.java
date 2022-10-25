@@ -16,10 +16,13 @@
 
 package org.springframework.cloud.gateway.filter.factory.cache.keygenerator;
 
+import java.util.stream.Collectors;
+
 import org.junit.jupiter.api.Test;
 
 import org.springframework.http.HttpCookie;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -27,7 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Ignacio Lozano
  */
-class CommonKeyValueGeneratorTest {
+class DefaultKeyValueGeneratorTests {
 
 	@Test
 	void uriAuthorizationAndCookiesArePresent() {
@@ -40,7 +43,7 @@ class CommonKeyValueGeneratorTest {
 		HttpCookie cookie = new HttpCookie(cookieName, cookieValue);
 		MockServerHttpRequest request = MockServerHttpRequest.get(uri).cookie(cookie).headers(headers).build();
 
-		String result = new CommonKeyValueGenerator().apply(request);
+		String result = apply(request);
 
 		assertThat(result).isEqualTo(uri + ";Authorization=" + authorization + ";" + cookieName + "=" + cookieValue);
 	}
@@ -54,7 +57,7 @@ class CommonKeyValueGeneratorTest {
 		HttpCookie cookie = new HttpCookie(cookieName, cookieValue);
 		MockServerHttpRequest request = MockServerHttpRequest.get(uri).cookie(cookie).headers(headers).build();
 
-		String result = new CommonKeyValueGenerator().apply(request);
+		String result = apply(request);
 
 		assertThat(result).isEqualTo(uri + ";" + "" + ";" + cookieName + "=" + cookieValue);
 	}
@@ -64,9 +67,14 @@ class CommonKeyValueGeneratorTest {
 		String uri = "http://myuri";
 		MockServerHttpRequest request = MockServerHttpRequest.get(uri).build();
 
-		String result = new CommonKeyValueGenerator().apply(request);
+		String result = apply(request);
 
 		assertThat(result).isEqualTo(uri + ";" + "" + ";" + "");
+	}
+
+	public String apply(ServerHttpRequest request) {
+		return CacheKeyGenerator.DEFAULT_KEY_VALUE_GENERATORS.stream().map(generator -> generator.apply(request))
+				.collect(Collectors.joining(CacheKeyGenerator.KEY_SEPARATOR));
 	}
 
 }

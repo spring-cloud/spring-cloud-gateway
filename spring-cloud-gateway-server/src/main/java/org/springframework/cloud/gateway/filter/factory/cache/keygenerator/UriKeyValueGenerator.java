@@ -27,7 +27,7 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 public class UriKeyValueGenerator implements KeyValueGenerator {
 
 	@Override
-	public String apply(ServerHttpRequest request) {
+	public String getKeyValue(ServerHttpRequest request) {
 		return request.getURI().toString();
 	}
 

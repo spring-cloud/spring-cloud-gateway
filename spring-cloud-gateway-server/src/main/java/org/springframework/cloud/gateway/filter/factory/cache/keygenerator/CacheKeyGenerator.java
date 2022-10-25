@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 
 /**
@@ -33,11 +34,15 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
  */
 public class CacheKeyGenerator {
 
-	private static final byte[] KEY_SEPARATOR_BYTES = ";".getBytes();
+	/* for testing */ static final String KEY_SEPARATOR = ";";
+
+	private static final byte[] KEY_SEPARATOR_BYTES = KEY_SEPARATOR.getBytes();
 
 	private final MessageDigest messageDigest;
 
-	private static final CommonKeyValueGenerator COMMON_KEY_VALUE_GENERATOR = new CommonKeyValueGenerator();
+	/* for testing */ static final List<KeyValueGenerator> DEFAULT_KEY_VALUE_GENERATORS = List.of(
+			new UriKeyValueGenerator(), new HeaderKeyValueGenerator(HttpHeaders.AUTHORIZATION, KEY_SEPARATOR),
+			new CookiesKeyValueGenerator(KEY_SEPARATOR));
 
 	public CacheKeyGenerator() {
 		try {
@@ -64,7 +69,7 @@ public class CacheKeyGenerator {
 	}
 
 	private Stream<KeyValueGenerator> getKeyValueGenerators(List<String> varyHeaders) {
-		return Stream.concat(Stream.of(COMMON_KEY_VALUE_GENERATOR),
+		return Stream.concat(DEFAULT_KEY_VALUE_GENERATORS.stream(),
 				varyHeaders.stream().sorted().map(header -> new HeaderKeyValueGenerator(header, ",")));
 	}
 
