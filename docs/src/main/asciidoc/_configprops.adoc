@@ -19,9 +19,11 @@
 |spring.cloud.gateway.filter.fallback-headers.enabled | `+++true+++` | Enables the fallback-headers filter.
 |spring.cloud.gateway.filter.hystrix.enabled | `+++true+++` | Enables the hystrix filter.
 |spring.cloud.gateway.filter.json-to-grpc.enabled | `+++true+++` | Enables the JSON to gRPC filter.
+|spring.cloud.gateway.filter.local-response-cache.enabled | `+++true+++` | Enables the local-response-cache filter.
+|spring.cloud.gateway.filter.local-response-cache.size |  | 
+|spring.cloud.gateway.filter.local-response-cache.time-to-live |  | 
 |spring.cloud.gateway.filter.map-request-header.enabled | `+++true+++` | Enables the map-request-header filter.
 |spring.cloud.gateway.filter.modify-request-body.enabled | `+++true+++` | Enables the modify-request-body filter.
-|spring.cloud.gateway.filter.local-response-cache.enabled | `+++true+++` | Enables the local-response-cache filter.
 |spring.cloud.gateway.filter.modify-response-body.enabled | `+++true+++` | Enables the modify-response-body filter.
 |spring.cloud.gateway.filter.prefix-path.enabled | `+++true+++` | Enables the prefix-path filter.
 |spring.cloud.gateway.filter.preserve-host-header.enabled | `+++true+++` | Enables the preserve-host-header filter.
