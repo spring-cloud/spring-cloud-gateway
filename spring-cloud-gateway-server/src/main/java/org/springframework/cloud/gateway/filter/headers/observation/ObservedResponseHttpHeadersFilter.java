@@ -21,6 +21,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.gateway.filter.headers.HttpHeadersFilter;
+import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -39,11 +40,11 @@ public class ObservedResponseHttpHeadersFilter implements HttpHeadersFilter {
 
 	@Override
 	public HttpHeaders filter(HttpHeaders input, ServerWebExchange exchange) {
-		Observation childObservation = exchange.getAttribute(ObservedRequestHttpHeadersFilter.CHILD_OBSERVATION);
+		Observation childObservation = exchange.getAttribute(ServerWebExchangeUtils.GATEWAY_OBSERVATION_ATTR);
 		if (childObservation == null) {
 			return input;
 		}
-		GatewayContext context = exchange.getAttribute(ObservedRequestHttpHeadersFilter.CHILD_OBSERVATION_CONTEXT);
+		GatewayContext context = (GatewayContext) childObservation.getContext();
 		if (log.isDebugEnabled()) {
 			log.debug("Will instrument the response");
 		}

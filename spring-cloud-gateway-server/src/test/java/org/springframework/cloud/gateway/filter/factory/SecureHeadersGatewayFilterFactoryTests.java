@@ -41,7 +41,6 @@ import static org.springframework.cloud.gateway.filter.factory.SecureHeadersGate
 import static org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory.X_DOWNLOAD_OPTIONS_HEADER;
 import static org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory.X_FRAME_OPTIONS_HEADER;
 import static org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory.X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER;
-import static org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory.X_XSS_PROTECTION_HEADER;
 import static org.springframework.cloud.gateway.test.TestUtils.assertStatus;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -58,7 +57,7 @@ public class SecureHeadersGatewayFilterFactoryTests extends BaseWebClientTests {
 		StepVerifier.create(result).consumeNextWith(response -> {
 			assertStatus(response, HttpStatus.OK);
 			HttpHeaders httpHeaders = response.headers().asHttpHeaders();
-			assertThat(httpHeaders.getFirst(X_XSS_PROTECTION_HEADER)).isEqualTo(defaults.getXssProtectionHeader());
+			// assertThat(httpHeaders.getFirst(X_XSS_PROTECTION_HEADER)).isEqualTo(defaults.getXssProtectionHeader());
 			assertThat(httpHeaders.getFirst(STRICT_TRANSPORT_SECURITY_HEADER))
 					.isEqualTo(defaults.getStrictTransportSecurity());
 			assertThat(httpHeaders.getFirst(X_FRAME_OPTIONS_HEADER)).isEqualTo(defaults.getFrameOptions());

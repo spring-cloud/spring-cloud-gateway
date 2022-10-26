@@ -68,6 +68,11 @@ public class SpringCloudCircuitBreakerTestConfig {
 		return Collections.singletonMap("from", "circuitbreakerfallbackcontroller");
 	}
 
+	@GetMapping("/circuitbreakerUriFallbackController/**")
+	public Map<String, String> uriFallbackcontroller(ServerWebExchange exchange, @RequestParam("a") String a) {
+		return Collections.singletonMap("uri", exchange.getRequest().getURI().toString());
+	}
+
 	@GetMapping("/circuitbreakerFallbackController2")
 	public Map<String, String> fallbackcontroller2() {
 		return Collections.singletonMap("from", "circuitbreakerfallbackcontroller2");

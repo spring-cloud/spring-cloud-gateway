@@ -8,3 +8,4 @@ org.springframework.cloud.gateway.discovery.GatewayDiscoveryClientAutoConfigurat
 org.springframework.cloud.gateway.config.SimpleUrlHandlerMappingGlobalCorsAutoConfiguration
 org.springframework.cloud.gateway.config.GatewayReactiveLoadBalancerClientAutoConfiguration
 org.springframework.cloud.gateway.config.GatewayReactiveOAuth2AutoConfiguration
+org.springframework.cloud.gateway.config.LocalResponseCacheAutoConfiguration

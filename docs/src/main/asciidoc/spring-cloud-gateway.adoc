@@ -766,6 +766,31 @@ public RouteLocator routes(RouteLocatorBuilder builder) {
 This example forwards to the `/inCaseofFailureUseThis` URI when the circuit breaker fallback is called.
 Note that this example also demonstrates the (optional) Spring Cloud LoadBalancer load-balancing (defined by the `lb` prefix on the destination URI).
 
+CircuitBreaker also supports URI variables in the `fallbackUri`.
+This allows more complex routing options, like forwarding sections of the original host or url path using  https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/web/util/pattern/PathPattern.html[PathPattern expression].
+
+In the example below the call `consumingServiceEndpoint/users/1` will be redirected to `inCaseOfFailureUseThis/users/1`.
+
+.application.yml
+====
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: circuitbreaker_route
+        uri: lb://backing-service:8088
+        predicates:
+        - Path=/consumingServiceEndpoint/{*segments}
+        filters:
+        - name: CircuitBreaker
+          args:
+            name: myCircuitBreaker
+            fallbackUri: forward:/inCaseOfFailureUseThis/{segments}
+----
+====
+
 The primary scenario is to use the `fallbackUri` to define an internal controller or handler within the gateway application.
 However, you can also reroute the request to a controller or handler in an external application, as follows:
 
@@ -1788,6 +1813,56 @@ NOTE:  if the request has no body, the `RewriteFilter` will be passed `null`. `M
 
 ====
 
+=== Local Response Cache `GatewayFilter` Factory
+
+This filter allows to cache response body and headers to follow the next rules:
+
+* It can only cache bodyless GET requests
+* It only caches the response as long has one of the following status codes: HTTP 200 (OK), HTTP 206 (Partial Content) and HTTP 301 (Moved Permanently).
+Response data will not be cached if `Cache-Control` header doesn't allow it (`no-store` present in the request, `no-store` or `private` present in the response).
+* If the response is already cached and a new request is performed with no-cache value in `Cache-Control` header, it will return a bodyless response with 304 (Not Modified).
+
+Take into account that this filter to configure local response cache per route only will be available if the local response global cache is enabled.
+
+It accepts the first parameter to override the maximum size of the cache to evict entries for this route, it takes size format in KB, MB and GB; and a second parameter to override the time to expire a cache entry expressed in s for seconds, m for minutes and h for hours.
+
+The following listing shows how to add local response cache `GatewayFilter`:
+
+====
+[source,java]
+----
+@Bean
+public RouteLocator routes(RouteLocatorBuilder builder) {
+    return builder.routes()
+        .route("rewrite_response_upper", r -> r.host("*.rewriteresponseupper.org")
+            .filters(f -> f.prefixPath("/httpbin")
+        		.localResponseCache(Duration.ofMinutes(30), "500MB")
+            ).uri(uri))
+        .build();
+}
+----
+
+or this
+
+.application.yaml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: resource
+        uri: http://localhost:9000
+        predicates:
+        - Path=/resource
+        filters:
+        - LocalResponseCache=30m,500MB
+----
+
+NOTE:  This filter also implements the automatic calculation of the max-age value in the HTTP Cache-Control header.
+Only if "max-age" is present on the original response the value will be rewritten with the number of seconds set in the timeToLive configuration parameter; and in consecutive calls this value will be recalculated with the number of seconds left until the response expires.
+====
+
 === Modify a Response Body `GatewayFilter` Factory
 
 You can use the `ModifyResponseBody` filter to modify the response body before it is sent back to the client.
@@ -2566,8 +2641,14 @@ You can configure the logging system to have a separate access log file. The fol
 ====
 
 == CORS Configuration
+:cors-configuration-docs-uri: https://docs.spring.io/spring/docs/5.0.x/javadoc-api/org/springframework/web/cors/CorsConfiguration.html
 
-You can configure the gateway to control CORS behavior. The "`global`" CORS configuration is a map of URL patterns to https://docs.spring.io/spring/docs/5.0.x/javadoc-api/org/springframework/web/cors/CorsConfiguration.html[Spring Framework `CorsConfiguration`].
+You can configure the gateway to control CORS behavior globally or per route.
+Both offer the same possibilities.
+
+=== Global CORS Configuration
+
+The "`global`" CORS configuration is a map of URL patterns to {cors-configuration-docs-uri}[Spring Framework `CorsConfiguration`].
 The following example configures CORS:
 
 .application.yml
@@ -2589,7 +2670,37 @@ spring:
 In the preceding example, CORS requests are allowed from requests that originate from `docs.spring.io` for all GET requested paths.
 
 To provide the same CORS configuration to requests that are not handled by some gateway route predicate, set the `spring.cloud.gateway.globalcors.add-to-simple-url-handler-mapping` property  to `true`.
-This is useful when you try to support CORS preflight requests and your route predicate does not evalute to `true` because the HTTP method is `options`.
+This is useful when you try to support CORS preflight requests and your route predicate does not evaluate to `true` because the HTTP method is `options`.
+
+=== Route CORS Configuration
+
+The "`route`" configuration allows applying CORS directly to a route as metadata with key `cors`.
+Like in the case of global configuration, the properties belong to {cors-configuration-docs-uri}[Spring Framework `CorsConfiguration`].
+
+NOTE: If no `Path` predicate is present in the route '/**' will be applied.
+
+.application.yml
+====
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: cors_route
+        uri: https://example.org
+        predicates:
+        - Path=/service/**
+        metadata:
+          cors
+            allowedOrigins: '*'
+            allowedMethods:
+              - GET
+              - POST
+            allowedHeaders: '*'
+            maxAge: 30
+----
+====
 
 == Actuator API
 
