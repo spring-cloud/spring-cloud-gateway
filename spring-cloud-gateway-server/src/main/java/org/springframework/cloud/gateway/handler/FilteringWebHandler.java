@@ -18,10 +18,12 @@ package org.springframework.cloud.gateway.handler;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.cloud.gateway.config.GatewayProperties;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
@@ -55,8 +57,13 @@ public class FilteringWebHandler implements WebHandler {
 
 	private final List<GatewayFilter> globalFilters;
 
-	public FilteringWebHandler(List<GlobalFilter> globalFilters) {
+	private ConcurrentHashMap<Route,List<GatewayFilter>> RouteFilterMap = new ConcurrentHashMap();
+
+	private GatewayProperties properties;
+
+	public FilteringWebHandler(List<GlobalFilter> globalFilters, GatewayProperties properties) {
 		this.globalFilters = loadFilters(globalFilters);
+		this.properties = properties;
 	}
 
 	private static List<GatewayFilter> loadFilters(List<GlobalFilter> filters) {
@@ -84,18 +91,32 @@ public class FilteringWebHandler implements WebHandler {
 	@Override
 	public Mono<Void> handle(ServerWebExchange exchange) {
 		Route route = exchange.getRequiredAttribute(GATEWAY_ROUTE_ATTR);
-		List<GatewayFilter> gatewayFilters = route.getFilters();
-
-		List<GatewayFilter> combined = new ArrayList<>(this.globalFilters);
-		combined.addAll(gatewayFilters);
-		// TODO: needed or cached?
-		AnnotationAwareOrderComparator.sort(combined);
+		List<GatewayFilter> combined = getCombinedFilters(route);
 
 		if (logger.isDebugEnabled()) {
 			logger.debug("Sorted gatewayFilterFactories: " + combined);
 		}
 
 		return new DefaultGatewayFilterChain(combined).filter(exchange);
+	}
+
+	public List<GatewayFilter> getCombinedFilters(Route route){
+		if (this.properties.isFilterCache()) {
+			if (!this.RouteFilterMap.contains(route)) {
+				RouteFilterMap.put(route,getAllFilters(route));
+			}
+			return RouteFilterMap.get(route);
+		}else {
+			return getAllFilters(route);
+		}
+
+	}
+	public List<GatewayFilter> getAllFilters(Route route){
+		List<GatewayFilter> gatewayFilters = route.getFilters();
+		List<GatewayFilter> combined = new ArrayList<>(this.globalFilters);
+		combined.addAll(gatewayFilters);
+		AnnotationAwareOrderComparator.sort(combined);
+		return combined;
 	}
 
 	private static class DefaultGatewayFilterChain implements GatewayFilterChain {
