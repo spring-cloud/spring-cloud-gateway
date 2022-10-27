@@ -47,7 +47,7 @@ NOTE: URIs defined in routes without a port get default port values of 80 and 44
 
 There are two ways to configure predicates and filters: shortcuts and fully expanded arguments. Most examples below use the shortcut way.
 
-The name and argument names will be listed as `code` in the first sentance or two of the each section. The arguments are typically listed in the order that would be needed for the shortcut configuration.
+The name and argument names will be listed as `code` in the first sentence or two of each section. The arguments are typically listed in the order that would be needed for the shortcut configuration.
 
 === Shortcut Configuration
 
@@ -1263,7 +1263,7 @@ This will remove the `red` parameter before it is sent downstream.
 === `RequestHeaderSize` `GatewayFilter` Factory
 
 The `RequestHeaderSize` `GatewayFilter` factory takes `maxSize` and `errorHeaderName` parameters.
-The `maxSize` parameter is the maximum data size allowed of the request header (incuding key and value). The `errorHeaderName` parameter sets the name of the response header containing an error message, by default it is "errorMessage".
+The `maxSize` parameter is the maximum data size allowed of the request header (including key and value). The `errorHeaderName` parameter sets the name of the response header containing an error message, by default it is "errorMessage".
 The following listing configures a `RequestHeaderSize` `GatewayFilter`:
 
 .application.yml
@@ -1771,7 +1771,7 @@ The `SetRequestHostHeader` `GatewayFilter` factory replaces the value of the hos
 
 === Modify a Request Body `GatewayFilter` Factory
 
-You can use the `ModifyRequestBody` filter  filter to modify the request body before it is sent downstream by the gateway.
+You can use the `ModifyRequestBody` filter to modify the request body before it is sent downstream by the gateway.
 
 NOTE: This filter can be configured only by using the Java DSL.
 
@@ -1896,7 +1896,7 @@ consumer can be a pure Client (like an SSO application) or a Resource
 Server.
 
 Spring Cloud Gateway can forward OAuth2 access tokens downstream to the services
-it is proxying. To add this functionlity to gateway you need to add the
+it is proxying. To add this functionality to gateway you need to add the
 `TokenRelayGatewayFilterFactory` like this:
 
 .App.java
@@ -1953,8 +1953,8 @@ if you need a more robust solution.
 
 
 === The `CacheRequestBody` `GatewayFilter` Factory
-There are certain situation need to read body.Since the request body stream can only be read once, we need to cache the request body.
-You can use the `CacheRequestBody` filter to cache request body before it send to the downstream and get body from exchagne attribute.
+There are certain situation need to read body. Since the request body stream can only be read once, we need to cache the request body.
+You can use the `CacheRequestBody` filter to cache request body before it send to the downstream and get body from exchange attribute.
 
 
 The following listing shows how to cache the request body `GatewayFilter`:
