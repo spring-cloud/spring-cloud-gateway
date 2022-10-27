@@ -2162,9 +2162,9 @@ These metrics are then available to be scraped from `/actuator/metrics/spring.cl
 NOTE: To enable the prometheus endpoint, add `micrometer-registry-prometheus` as a project dependency.
 
 [[local-cache-response-global-filter]]
-=== The Local Cache Response Filter
+=== The Local Response Cache Filter
 
-The `LocalCacheResponseFilter` runs if its associated property is enabled `spring.cloud.gateway.filter.local-response-cache.enabled` and will activate a local cache for all responses that meet the following criteria:
+The `LocalResponseCache` runs if its associated property is enabled `spring.cloud.gateway.filter.local-response-cache.enabled` and will activate a local cache for all responses that meet the following criteria:
 - The request is a bodyless GET
 - The response has one of the following status codes: HTTP 200 (OK), HTTP 206 (Partial Content) or HTTP 301 (Moved Permanently)
 - HTTP `Cache-Control` header allows caching (that means it doesn't have any of the following values: `no-store` present in the request, `no-store` or `private` present in the response)
