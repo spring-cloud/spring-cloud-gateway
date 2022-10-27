@@ -1055,7 +1055,7 @@ This filter allows to cache response body and headers to follow the next rules:
 Response data will not be cached if `Cache-Control` header doesn't allow it (`no-store` present in the request, `no-store` or `private` present in the response).
 * If the response is already cached and a new request is performed with no-cache value in `Cache-Control` header, it will return a bodyless response with 304 (Not Modified).
 
-Take into account that this filter to configure local response cache per route only will be available if the local response global cache is enabled.
+Take into account that this filter to configure local response cache per route only will be available if the <<local-cache-response-global-filter, local response global cache>> is enabled.
 
 It accepts the first parameter to override the maximum size of the cache to evict entries for this route, it takes size format in KB, MB and GB; and a second parameter to override the time to expire a cache entry expressed in s for seconds, m for minutes and h for hours.
 
@@ -2160,6 +2160,19 @@ In addition, through the property `spring.cloud.gateway.metrics.tags.path.enable
 These metrics are then available to be scraped from `/actuator/metrics/spring.cloud.gateway.requests` and can be easily integrated with Prometheus to create a link:images/gateway-grafana-dashboard.jpeg[Grafana] link:gateway-grafana-dashboard.json[dashboard].
 
 NOTE: To enable the prometheus endpoint, add `micrometer-registry-prometheus` as a project dependency.
+
+[[local-cache-response-global-filter]]
+=== The Local Cache Response Filter
+
+The `LocalCacheResponseFilter` runs if its associated property is enabled `spring.cloud.gateway.filter.local-response-cache.enabled` and will activate a local cache for all responses that meet the following criteria:
+- The request is a bodyless GET
+- The response has one of the following status codes: HTTP 200 (OK), HTTP 206 (Partial Content) or HTTP 301 (Moved Permanently)
+- HTTP `Cache-Control` header allows caching (that means it doesn't have any of the following values: `no-store` present in the request, `no-store` or `private` present in the response)
+
+It accepts two configuration parameters: `spring.cloud.gateway.filter.local-response-cache.size` to set the maximum size of the cache to evict entries for this route, it takes size format in KB, MB and GB; and `spring.cloud.gateway.filter.local-response-cache.timeToLive` to set time to expire a cache entry expressed in s for seconds, m for minutes and h for hours.
+If none of these parameters are configured but the global filter is enabled, by default it configured 5 minutes of time to live for the cached response.
+
+This filter also implements the automatic calculation of the `max-age` value in the HTTP `Cache-Control` header, if `max-age` is present on the original response the value will be rewritten with the number of seconds set in the `timeToLive` configuration parameter; and in consecutive calls this value will be recalculated with the number of seconds left until the response expires.
 
 === Forward Routing Filter
 
