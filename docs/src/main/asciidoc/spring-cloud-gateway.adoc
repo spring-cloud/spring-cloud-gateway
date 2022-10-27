@@ -2170,7 +2170,7 @@ The `LocalCacheResponseFilter` runs if its associated property is enabled `sprin
 - HTTP `Cache-Control` header allows caching (that means it doesn't have any of the following values: `no-store` present in the request, `no-store` or `private` present in the response)
 
 It accepts two configuration parameters: `spring.cloud.gateway.filter.local-response-cache.size` to set the maximum size of the cache to evict entries for this route, it takes size format in KB, MB and GB; and `spring.cloud.gateway.filter.local-response-cache.timeToLive` to set time to expire a cache entry expressed in s for seconds, m for minutes and h for hours.
-If none of these parameters are configured but the global filter is enabled, by default it configured 5 minutes of time to live for the cached response.
+If none of these parameters are configured but the global filter is enabled, by default it configures 5 minutes of time to live for the cached response.
 
 This filter also implements the automatic calculation of the `max-age` value in the HTTP `Cache-Control` header, if `max-age` is present on the original response the value will be rewritten with the number of seconds set in the `timeToLive` configuration parameter; and in consecutive calls this value will be recalculated with the number of seconds left until the response expires.
 
