@@ -50,7 +50,7 @@ public class RouteToRequestUrlFilter implements GlobalFilter, Ordered {
 
 	/* for testing */
 	static boolean hasAnotherScheme(URI uri) {
-		return schemePattern.matcher(uri.getSchemeSpecificPart()).matches() && uri.getHost() == null
+		return schemePattern.matcher(uri.getSchemeSpecificPart()).matches() && uri.toURL().getHost() == null
 				&& uri.getRawPath() == null;
 	}
 
@@ -77,7 +77,7 @@ public class RouteToRequestUrlFilter implements GlobalFilter, Ordered {
 			routeUri = URI.create(routeUri.getSchemeSpecificPart());
 		}
 
-		if ("lb".equalsIgnoreCase(routeUri.getScheme()) && routeUri.getHost() == null) {
+		if ("lb".equalsIgnoreCase(routeUri.getScheme()) && routeUri.toURL().getHost() == null) {
 			// Load balanced URIs should always have a host. If the host is null it is
 			// most
 			// likely because the host name was invalid (for example included an
@@ -87,7 +87,7 @@ public class RouteToRequestUrlFilter implements GlobalFilter, Ordered {
 
 		URI mergedUrl = UriComponentsBuilder.fromUri(uri)
 				// .uri(routeUri)
-				.scheme(routeUri.getScheme()).host(routeUri.getHost()).port(routeUri.getPort()).build(encoded).toUri();
+				.scheme(routeUri.getScheme()).host(routeUri.toURL().getHost()).port(routeUri.getPort()).build(encoded).toUri();
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, mergedUrl);
 		return chain.filter(exchange);
 	}
