@@ -55,7 +55,7 @@ class GatewayPropagatingSenderTracingObservationHandlerTests {
 	};
 
 	GatewayPropagatingSenderTracingObservationHandler handler = new GatewayPropagatingSenderTracingObservationHandler(
-			tracer, propagator);
+			tracer, propagator, Collections.singletonList("remote"));
 
 	@Test
 	void shouldRemovePropagationFieldsFromTheRequestBeforePropagating() {
@@ -63,13 +63,15 @@ class GatewayPropagatingSenderTracingObservationHandlerTests {
 		headers.put("foo", Collections.singletonList("foo value"));
 		headers.put("bar", Collections.singletonList("bar value"));
 		headers.put("baz", Collections.singletonList("baz value"));
+		headers.put("remote", Collections.singletonList("remote value"));
 		MockServerHttpRequest request = MockServerHttpRequest.get("/get").build();
 		MockServerWebExchange serverWebExchange = MockServerWebExchange.from(request);
 		GatewayContext gatewayContext = new GatewayContext(headers, request, serverWebExchange);
 
 		handler.onStart(gatewayContext);
 
-		then(headers).doesNotContainKeys("foo", "bar").containsEntry("baz", Collections.singletonList("baz value"));
+		then(headers).doesNotContainKeys("foo", "bar").containsEntry("baz", Collections.singletonList("baz value"))
+				.containsEntry("remote", Collections.singletonList("remote value"));
 	}
 
 }

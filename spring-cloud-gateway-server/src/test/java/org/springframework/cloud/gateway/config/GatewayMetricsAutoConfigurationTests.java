@@ -29,6 +29,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
+import org.springframework.boot.actuate.autoconfigure.tracing.TracingProperties;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.actuate.observability.AutoConfigureObservability;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -176,6 +177,11 @@ public class GatewayMetricsAutoConfigurationTests {
 		@Bean
 		Propagator propagator() {
 			return Mockito.mock(Propagator.class);
+		}
+
+		@Bean
+		TracingProperties tracingProperties() {
+			return new TracingProperties();
 		}
 
 	}

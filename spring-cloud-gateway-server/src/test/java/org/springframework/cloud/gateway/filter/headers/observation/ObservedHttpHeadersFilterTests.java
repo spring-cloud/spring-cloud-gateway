@@ -100,7 +100,8 @@ public class ObservedHttpHeadersFilterTests extends SampleTestRunner {
 	@Override
 	public BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizeObservationHandlers() {
 		return (bb, observationHandlers) -> observationHandlers
-				.addFirst(new GatewayPropagatingSenderTracingObservationHandler(bb.getTracer(), bb.getPropagator()));
+				.addFirst(new GatewayPropagatingSenderTracingObservationHandler(bb.getTracer(), bb.getPropagator(),
+						Collections.emptyList()));
 	}
 
 }

@@ -27,6 +27,7 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.actuate.autoconfigure.metrics.CompositeMeterRegistryAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.metrics.MetricsAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.observation.ObservationAutoConfiguration;
+import org.springframework.boot.actuate.autoconfigure.tracing.TracingProperties;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -134,11 +135,12 @@ public class GatewayMetricsAutoConfiguration {
 
 			@Bean
 			@ConditionalOnMissingBean
-			@ConditionalOnBean(Propagator.class)
+			@ConditionalOnBean({ Propagator.class, TracingProperties.class })
 			@Order(Ordered.HIGHEST_PRECEDENCE + 5)
 			GatewayPropagatingSenderTracingObservationHandler gatewayPropagatingSenderTracingObservationHandler(
-					Tracer tracer, Propagator propagator) {
-				return new GatewayPropagatingSenderTracingObservationHandler(tracer, propagator);
+					Tracer tracer, Propagator propagator, TracingProperties tracingProperties) {
+				return new GatewayPropagatingSenderTracingObservationHandler(tracer, propagator,
+						tracingProperties.getBaggage().getRemoteFields());
 			}
 
 		}
