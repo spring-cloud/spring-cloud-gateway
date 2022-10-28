@@ -1057,7 +1057,7 @@ Response data will not be cached if `Cache-Control` header doesn't allow it (`no
 
 Take into account that this filter to configure local response cache per route only will be available if the <<local-cache-response-global-filter, local response global cache>> is enabled.
 
-It accepts the first parameter to override the maximum size of the cache to evict entries for this route, it takes size format in KB, MB and GB; and a second parameter to override the time to expire a cache entry expressed in s for seconds, m for minutes and h for hours.
+It accepts the first parameter to override the time to expire a cache entry expressed in s for seconds, m for minutes and h for hours, and a second parameter to set the maximum size of the cache to evict entries for this route, it takes size format in KB, MB and GB.
 
 The following listing shows how to add local response cache `GatewayFilter`:
 
