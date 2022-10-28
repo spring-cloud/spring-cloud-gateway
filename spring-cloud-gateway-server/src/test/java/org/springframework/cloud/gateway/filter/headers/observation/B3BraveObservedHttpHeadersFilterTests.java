@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.gateway.filter.headers.observation;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -67,9 +68,11 @@ class B3BraveObservedHttpHeadersFilterTests {
 	void shouldWorkWithB3SingleHeader() {
 		TestObservationRegistry observationRegistry = TestObservationRegistry.create();
 		observationRegistry.observationConfig()
-				.observationHandler(new ObservationHandler.FirstMatchingCompositeObservationHandler(
-						new GatewayPropagatingSenderTracingObservationHandler(tracer, propagator),
-						new DefaultTracingObservationHandler(tracer)));
+				.observationHandler(
+						new ObservationHandler.FirstMatchingCompositeObservationHandler(
+								new GatewayPropagatingSenderTracingObservationHandler(tracer, propagator,
+										Collections.singletonList("X-A")),
+								new DefaultTracingObservationHandler(tracer)));
 
 		Observation.createNotStarted("parent", observationRegistry).observe(() -> {
 			// given
