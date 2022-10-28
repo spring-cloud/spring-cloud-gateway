@@ -135,7 +135,7 @@ public class GatewayMetricsAutoConfiguration {
 
 			@Bean
 			@ConditionalOnMissingBean
-			@ConditionalOnBean(Propagator.class)
+			@ConditionalOnBean({ Propagator.class, TracingProperties.class })
 			@Order(Ordered.HIGHEST_PRECEDENCE + 5)
 			GatewayPropagatingSenderTracingObservationHandler gatewayPropagatingSenderTracingObservationHandler(
 					Tracer tracer, Propagator propagator, TracingProperties tracingProperties) {
