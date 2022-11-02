@@ -3215,6 +3215,12 @@ The mapper is a `Function` that takes the incoming `ResponseEntity` and converts
 
 First-class support is provided for "`sensitive`" headers (by default, `cookie` and `authorization`), which are not passed downstream, and for "`proxy`" (`x-forwarded-*`) headers.
 
+== AOT and Native Image Support
+
+Since `4.0.0`, Spring Cloud Gateway supports Spring AOT transformations and native images.
+
+TIP: If you're using load-balanced routes, you need to explicitly define your `LoadBalancerClient` service IDs. You can do so by using the `value` or `name` attributes of the `@LoadBalancerClient` annotation or as values of the `spring.cloud.loadbalancer.eager-load.clients` property.
+
 == Configuration properties
 
 To see the list of all Spring Cloud Gateway related configuration properties, see link:appendix.html[the appendix].
