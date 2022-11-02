@@ -24,7 +24,6 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.jetbrains.annotations.NotNull;
 
 import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.ReflectionHints;
@@ -53,8 +52,7 @@ class ConfigurableHintsRegistrationProcessor implements BeanFactoryInitializatio
 	private static final String ROOT_GATEWAY_PACKAGE_NAME = "org.springframework.cloud.gateway";
 
 	@Override
-	public BeanFactoryInitializationAotContribution processAheadOfTime(
-			@NotNull ConfigurableListableBeanFactory beanFactory) {
+	public BeanFactoryInitializationAotContribution processAheadOfTime(ConfigurableListableBeanFactory beanFactory) {
 		return (generationContext, beanFactoryInitializationCode) -> {
 			ReflectionHints hints = generationContext.getRuntimeHints().reflection();
 			getConfigurableTypes().forEach(clazz -> hints.registerType(TypeReference.of(clazz),

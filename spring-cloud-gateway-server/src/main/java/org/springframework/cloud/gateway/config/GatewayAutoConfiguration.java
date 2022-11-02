@@ -27,7 +27,6 @@ import javax.net.ssl.TrustManagerFactory;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.jetbrains.annotations.NotNull;
 import reactor.core.publisher.Flux;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.client.WebsocketClientSpec;
@@ -857,7 +856,7 @@ public class GatewayAutoConfiguration {
 class GatewayHints implements RuntimeHintsRegistrar {
 
 	@Override
-	public void registerHints(@NotNull RuntimeHints hints, ClassLoader classLoader) {
+	public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
 		if (!ClassUtils.isPresent("org.springframework.cloud.gateway.route.RouteLocator", classLoader)) {
 			return;
 		}
