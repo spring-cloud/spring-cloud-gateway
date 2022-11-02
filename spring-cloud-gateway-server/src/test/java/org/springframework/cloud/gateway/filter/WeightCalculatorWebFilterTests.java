@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnJre;
 
@@ -92,7 +91,6 @@ public class WeightCalculatorWebFilterTests {
 		}
 	}
 
-	@NotNull
 	private String route(int i) {
 		return "route" + i;
 	}
