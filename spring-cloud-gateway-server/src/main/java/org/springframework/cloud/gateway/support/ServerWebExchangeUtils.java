@@ -87,6 +87,11 @@ public final class ServerWebExchangeUtils {
 	public static final String GATEWAY_ROUTE_ATTR = qualify("gatewayRoute");
 
 	/**
+	 * Original Reactor Context corresponding to the processed request.
+	 */
+	public static final String GATEWAY_REACTOR_CONTEXT_ATTR = qualify("gatewayReactorContext");
+
+	/**
 	 * Gateway request URL attribute name.
 	 */
 	public static final String GATEWAY_REQUEST_URL_ATTR = qualify("gatewayRequestUrl");
