@@ -706,7 +706,7 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	ConfigurableHintsRegistrationProcessor configurableHintsRegistrationProcessor() {
+	static ConfigurableHintsRegistrationProcessor configurableHintsRegistrationProcessor() {
 		return new ConfigurableHintsRegistrationProcessor();
 	}
 
