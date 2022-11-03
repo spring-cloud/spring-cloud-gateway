@@ -30,6 +30,7 @@ import io.micrometer.tracing.TraceContext;
 import io.micrometer.tracing.test.SampleTestRunner;
 import io.micrometer.tracing.test.reporter.BuildingBlocks;
 import io.micrometer.tracing.test.simple.SpansAssert;
+import reactor.util.context.Context;
 
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
@@ -67,8 +68,9 @@ public class ObservedHttpHeadersFilterTests extends SampleTestRunner {
 					.predicate(serverWebExchange -> true).build();
 			exchange.getAttributes().put(ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR, route);
 			// Parent observation
-			exchange.getAttributes().put(ObservationThreadLocalAccessor.KEY,
-					getObservationRegistry().getCurrentObservation());
+			Context ctx = Context
+					.of(Map.of(ObservationThreadLocalAccessor.KEY, getObservationRegistry().getCurrentObservation()));
+			exchange.getAttributes().put(ServerWebExchangeUtils.GATEWAY_REACTOR_CONTEXT_ATTR, ctx);
 			exchange.getResponse().setStatusCode(HttpStatusCode.valueOf(200));
 
 			// when

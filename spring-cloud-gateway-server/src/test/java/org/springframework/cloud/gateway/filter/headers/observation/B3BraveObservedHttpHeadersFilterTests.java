@@ -41,6 +41,7 @@ import io.micrometer.tracing.handler.DefaultTracingObservationHandler;
 import io.micrometer.tracing.propagation.Propagator;
 import io.micrometer.tracing.test.simple.SpansAssert;
 import org.junit.jupiter.api.Test;
+import reactor.util.context.Context;
 
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
@@ -90,8 +91,9 @@ class B3BraveObservedHttpHeadersFilterTests {
 					.predicate(serverWebExchange -> true).build();
 			exchange.getAttributes().put(ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR, route);
 			// Parent observation
-			exchange.getAttributes().put(ObservationThreadLocalAccessor.KEY,
-					observationRegistry.getCurrentObservation());
+			Context ctx = Context
+					.of(Map.of(ObservationThreadLocalAccessor.KEY, observationRegistry.getCurrentObservation()));
+			exchange.getAttributes().put(ServerWebExchangeUtils.GATEWAY_REACTOR_CONTEXT_ATTR, ctx);
 
 			// and
 			ObservedRequestHttpHeadersFilter requestHttpHeadersFilter = new ObservedRequestHttpHeadersFilter(
