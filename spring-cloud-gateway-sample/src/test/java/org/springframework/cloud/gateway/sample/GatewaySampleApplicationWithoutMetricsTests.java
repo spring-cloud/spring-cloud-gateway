@@ -35,7 +35,8 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 @RunWith(ModifiedClassPathRunner.class)
-@ClassPathExclusions({ "micrometer-core.jar", "spring-boot-actuator-*.jar", "spring-boot-actuator-autoconfigure-*.jar" })
+@ClassPathExclusions({ "micrometer-core.jar", "spring-boot-actuator-*.jar",
+		"spring-boot-actuator-autoconfigure-*.jar" })
 @DirtiesContext
 public class GatewaySampleApplicationWithoutMetricsTests {
 
