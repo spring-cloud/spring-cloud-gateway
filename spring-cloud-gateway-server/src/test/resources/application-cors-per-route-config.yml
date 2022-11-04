@@ -8,9 +8,10 @@ spring:
             - Path=/abc/**
           metadata:
             cors:
-              allowedOrigins: '*'
+              allowedOrigins: 'domain.com'
               allowedMethods: [ GET, POST ]
               allowedHeaders: '*'
+              allowCredentials: true
               maxAge: 30
         - id: cors_test
           uri: ${test.uri}
