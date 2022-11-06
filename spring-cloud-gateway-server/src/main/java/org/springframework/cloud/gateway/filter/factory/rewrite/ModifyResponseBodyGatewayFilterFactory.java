@@ -208,17 +208,10 @@ public class ModifyResponseBodyGatewayFilterFactory
 			Class inClass = config.getInClass();
 			Class outClass = config.getOutClass();
 
-			String originalResponseContentType = exchange.getAttribute(ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR);
-			HttpHeaders httpHeaders = new HttpHeaders();
-			// explicitly add it in this way instead of
-			// 'httpHeaders.setContentType(originalResponseContentType)'
-			// this will prevent exception in case of using non-standard media
-			// types like "Content-Type: image"
-			httpHeaders.add(HttpHeaders.CONTENT_TYPE, originalResponseContentType);
+			HttpHeaders httpHeaders = prepareHttpHeaders();
 
 			ClientResponse clientResponse = prepareClientResponse(body, httpHeaders);
 
-			// TODO: flux or mono
 			Mono modifiedBody = extractBody(exchange, clientResponse, inClass)
 					.flatMap(originalBody -> config.getRewriteFunction().apply(exchange, originalBody))
 					.switchIfEmpty(Mono.defer(() -> (Mono) config.getRewriteFunction().apply(exchange, null)));
@@ -233,14 +226,48 @@ public class ModifyResponseBodyGatewayFilterFactory
 						|| headers.containsKey(HttpHeaders.CONTENT_LENGTH)) {
 					messageBody = messageBody.doOnNext(data -> headers.setContentLength(data.readableByteCount()));
 				}
-				// TODO: fail if isStreamingMediaType?
+
 				return getDelegate().writeWith(messageBody);
 			}));
 		}
 
+		@SuppressWarnings({ "unchecked", "rawtypes" })
+		public Mono<Void> writeWithStreamBody(Publisher<? extends DataBuffer> body) {
+
+			Class inClass = config.getInClass();
+			Class outClass = config.getOutClass();
+
+			HttpHeaders httpHeaders = prepareHttpHeaders();
+			ClientResponse clientResponse = prepareClientResponse(body, httpHeaders);
+
+			Flux modifiedBody = clientResponse.bodyToFlux(inClass)
+					.flatMap(b -> config.getRewriteFunction().apply(exchange, b))
+					.switchIfEmpty(Flux.defer(() -> (Flux) config.getRewriteFunction().apply(exchange, null)));
+
+			BodyInserter bodyInserter = BodyInserters.fromPublisher(modifiedBody, outClass);
+			CachedBodyOutputMessage outputMessage = new CachedBodyOutputMessage(exchange,
+					exchange.getResponse().getHeaders());
+
+			return bodyInserter.insert(outputMessage, new BodyInserterContext()).then(Mono.defer(() -> {
+				Flux<DataBuffer> messageBody = outputMessage.getBody();
+				return getDelegate().writeAndFlushWith(messageBody.map(Flux::just));
+			}));
+		}
+
+		private HttpHeaders prepareHttpHeaders() {
+			String originalResponseContentType = exchange.getAttribute(ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR);
+			HttpHeaders httpHeaders = new HttpHeaders();
+			// explicitly add it in this way instead of
+			// 'httpHeaders.setContentType(originalResponseContentType)'
+			// this will prevent exception in case of using non-standard media
+			// types like "Content-Type: image"
+			httpHeaders.add(HttpHeaders.CONTENT_TYPE, originalResponseContentType);
+			return httpHeaders;
+		}
+
 		@Override
 		public Mono<Void> writeAndFlushWith(Publisher<? extends Publisher<? extends DataBuffer>> body) {
-			return writeWith(Flux.from(body).flatMapSequential(p -> p));
+			return writeWithStreamBody(Flux.from(body).flatMapSequential(p -> p));
 		}
 
 		private ClientResponse prepareClientResponse(Publisher<? extends DataBuffer> body, HttpHeaders httpHeaders) {
