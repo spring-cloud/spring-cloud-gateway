@@ -73,6 +73,7 @@ import org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter;
 import org.springframework.cloud.gateway.filter.WebsocketRoutingFilter;
 import org.springframework.cloud.gateway.filter.WeightCalculatorWebFilter;
 import org.springframework.cloud.gateway.filter.cors.CorsGatewayFilterApplicationListener;
+import org.springframework.cloud.gateway.filter.factory.AbstractNameValueGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.AddRequestHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.AddRequestHeadersIfNotPresentGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.AddRequestParameterGatewayFilterFactory;
@@ -864,6 +865,9 @@ class GatewayHints implements RuntimeHintsRegistrar {
 				hint -> hint.withMembers(MemberCategory.DECLARED_FIELDS, MemberCategory.INVOKE_DECLARED_METHODS,
 						MemberCategory.INVOKE_DECLARED_CONSTRUCTORS));
 		hints.reflection().registerType(TypeReference.of(PredicateDefinition.class),
+				hint -> hint.withMembers(MemberCategory.DECLARED_FIELDS, MemberCategory.INVOKE_DECLARED_METHODS,
+						MemberCategory.INVOKE_DECLARED_CONSTRUCTORS));
+		hints.reflection().registerType(TypeReference.of(AbstractNameValueGatewayFilterFactory.NameValueConfig.class),
 				hint -> hint.withMembers(MemberCategory.DECLARED_FIELDS, MemberCategory.INVOKE_DECLARED_METHODS,
 						MemberCategory.INVOKE_DECLARED_CONSTRUCTORS));
 	}
