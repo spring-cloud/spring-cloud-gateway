@@ -86,7 +86,7 @@ public class CorsGatewayFilterApplicationListener implements ApplicationListener
 		if (corsMetadata != null) {
 			final CorsConfiguration corsConfiguration = new CorsConfiguration();
 
-			findValue(corsMetadata, "allowCredential")
+			findValue(corsMetadata, "allowCredentials")
 					.ifPresent(value -> corsConfiguration.setAllowCredentials((Boolean) value));
 			findValue(corsMetadata, "allowedHeaders")
 					.ifPresent(value -> corsConfiguration.setAllowedHeaders(asList(value)));
