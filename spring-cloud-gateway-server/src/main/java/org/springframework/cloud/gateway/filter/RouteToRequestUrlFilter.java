@@ -49,7 +49,7 @@ public class RouteToRequestUrlFilter implements GlobalFilter, Ordered {
 	static final Pattern schemePattern = Pattern.compile(SCHEME_REGEX);
 
 	/* for testing */
-	static boolean hasAnotherScheme(URI uri) {
+	static boolean hasAnotherScheme(URI uri) throws MalformedURLException {
 		return schemePattern.matcher(uri.getSchemeSpecificPart()).matches() && uri.toURL().getHost() == null
 				&& uri.getRawPath() == null;
 	}
@@ -60,7 +60,7 @@ public class RouteToRequestUrlFilter implements GlobalFilter, Ordered {
 	}
 
 	@Override
-	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) throws MalformedURLException {
 		Route route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
 		if (route == null) {
 			return chain.filter(exchange);
@@ -81,7 +81,7 @@ public class RouteToRequestUrlFilter implements GlobalFilter, Ordered {
 			// Load balanced URIs should always have a host. If the host is null it is
 			// most
 			// likely because the host name was invalid (for example included an
-			// underscore)
+			// ^ )
 			throw new IllegalStateException("Invalid host: " + routeUri.toString());
 		}
 

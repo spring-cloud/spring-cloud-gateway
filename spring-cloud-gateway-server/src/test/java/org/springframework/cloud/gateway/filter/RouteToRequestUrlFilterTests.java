@@ -53,6 +53,15 @@ public class RouteToRequestUrlFilterTests {
 	}
 
 	@Test
+	public void happyPathlbSpecialCharsUri() {
+		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost/getb").build();
+
+		ServerWebExchange webExchange = testFilter(request, "lb://myhost_test");
+		URI uri = webExchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
+		assertThat(uri).hasScheme("lb").hasHost("myhost_test");
+	}
+
+	@Test
 	public void happyPathLb() {
 		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost/getb").build();
 
@@ -64,7 +73,7 @@ public class RouteToRequestUrlFilterTests {
 	@Test(expected = IllegalStateException.class)
 	public void invalidHost() {
 		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost/getb").build();
-		testFilter(request, "lb://my_host");
+		testFilter(request, "lb://my^host");
 	}
 
 	@Test
