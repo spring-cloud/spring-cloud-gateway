@@ -57,8 +57,8 @@ public class CorsPerRouteTests extends BaseWebClientTests {
 							.containsExactlyInAnyOrder(HttpMethod.GET, HttpMethod.POST);
 					assertThat(responseHeaders.getAccessControlMaxAge()).as(missingHeader(ACCESS_CONTROL_MAX_AGE))
 							.isEqualTo(30L);
-				  assertThat(responseHeaders.getAccessControlAllowCredentials()).as(missingHeader(ACCESS_CONTROL_ALLOW_CREDENTIALS))
-						    .isEqualTo(true);
+					assertThat(responseHeaders.getAccessControlAllowCredentials())
+							.as(missingHeader(ACCESS_CONTROL_ALLOW_CREDENTIALS)).isEqualTo(true);
 				});
 	}
 
