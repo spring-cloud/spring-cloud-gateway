@@ -47,7 +47,7 @@ NOTE: URIs defined in routes without a port get default port values of 80 and 44
 
 There are two ways to configure predicates and filters: shortcuts and fully expanded arguments. Most examples below use the shortcut way.
 
-The name and argument names will be listed as `code` in the first sentence or two of each section. The arguments are typically listed in the order that would be needed for the shortcut configuration.
+The name and argument names are listed as `code` in the first sentence or two of each section. The arguments are typically listed in the order that are needed for the shortcut configuration.
 
 === Shortcut Configuration
 
@@ -851,9 +851,8 @@ public RouteLocator routes(RouteLocatorBuilder builder) {
 ====
 
 === The `CacheRequestBody` `GatewayFilter` Factory
-There are certain situation need to read body. Since the request body stream can only be read once, we need to cache the request body.
-You can use the `CacheRequestBody` filter to cache request body before it send to the downstream and get body from exchange attribute.
-
+Some situations necessitate reading the request body. Since the request can be read only once, we need to cache the request body.
+You can use the `CacheRequestBody` filter to cache the request body before sending it downstream and getting the body from `exchange` attribute.
 
 The following listing shows how to cache the request body `GatewayFilter`:
 
@@ -890,14 +889,14 @@ spring:
             bodyClass: java.lang.String
 ----
 ====
+`CacheRequestBody` extracts the request body and converts it to a body class (such as `java.lang.String`, defined in the preceding example).
+`CacheRequestBody` then places it in the attributes available from `ServerWebExchange.getAttributes()`, with a key defined in `ServerWebExchangeUtils.CACHED_REQUEST_BODY_ATTR`.
 
-`CacheRequestBody` will extract request body and conver it to body class (such as `java.lang.String`, defined in the preceding example). then places it in the `ServerWebExchange.getAttributes()` with a key defined in `ServerWebExchangeUtils.CACHED_REQUEST_BODY_ATTR`.
-
-NOTE: This filter only works with http request (including https).
+NOTE: This filter works only with HTTP (including HTTPS) requests.
 
 === The `DedupeResponseHeader` `GatewayFilter` Factory
 
-The DedupeResponseHeader GatewayFilter factory takes a `name` parameter and an optional `strategy` parameter. `name` can contain a space-separated list of header names.
+The `DedupeResponseHeader` GatewayFilter factory takes a `name` parameter and an optional `strategy` parameter. `name` can contain a space-separated list of header names.
 The following example configures a `DedupeResponseHeader` `GatewayFilter`:
 
 .application.yml
@@ -972,9 +971,9 @@ The JSONToGRPCFilter GatewayFilter Factory converts a JSON payload to a gRPC req
 
 The filter takes the following arguments:
 
-* `protoDescriptor` Proto descriptor file.
+* `protoDescriptor`: Proto descriptor file.
 
-This file can be generated using `protoc` specifying the `--descriptor_set_out` flag:
+This file can be generated using `protoc` and specifying the `--descriptor_set_out` flag:
 
 [source,bash]
 ----
@@ -983,11 +982,11 @@ protoc --proto_path=src/main/resources/proto/ \
 src/main/resources/proto/hello.proto
 ----
 
-* `protoFile` Proto definition file.
+* `protoFile`: Proto definition file.
 
-* `service` Fully qualified name of the service that will handle the request.
+* `service`: Fully qualified name of the service that handles the request.
 
-* `method` Method name in the service that will handle the request.
+* `method`: Method name in the service that handles the request.
 
 NOTE: `streaming` is not supported.
 
@@ -1028,9 +1027,9 @@ spring:
 
 ----
 
-When a request is made through the gateway to `/json/hello` the request will be transformed using the definition provided in `hello.proto`, sent to `com.example.grpcserver.hello.HelloService/hello`, and transform the response back to JSON.
+When a request is made through the gateway to `/json/hello`, the request is transformed by using the definition provided in `hello.proto`, sent to `com.example.grpcserver.hello.HelloService/hello`, and the response back is transformed to JSON.
 
-By default, it will create a `NettyChannel` using the default `TrustManagerFactory`. However, this `TrustManager` can be customized by creating a bean of type `GrpcSslConfigurer`:
+By default, it creates a `NettyChannel` by using the default `TrustManagerFactory`. However, you can customize this `TrustManager` by creating a bean of type `GrpcSslConfigurer`:
 
 [source,java]
 ----
@@ -1048,16 +1047,16 @@ public class GRPCLocalConfiguration {
 
 === The `LocalResponseCache` `GatewayFilter` Factory
 
-This filter allows to cache response body and headers to follow the next rules:
+This filter allows caching the response body and headers to follow these rules:
 
-* It can only cache bodyless GET requests
-* It only caches the response as long has one of the following status codes: HTTP 200 (OK), HTTP 206 (Partial Content) and HTTP 301 (Moved Permanently).
-Response data will not be cached if `Cache-Control` header doesn't allow it (`no-store` present in the request, `no-store` or `private` present in the response).
-* If the response is already cached and a new request is performed with no-cache value in `Cache-Control` header, it will return a bodyless response with 304 (Not Modified).
+* It can only cache bodiless GET requests.
+* It caches the response only for one of the following status codes: HTTP 200 (OK), HTTP 206 (Partial Content), or HTTP 301 (Moved Permanently).
+* Response data is not cached if `Cache-Control` header does not allow it (`no-store` present in the request or `no-store` or `private` present in the response).
+* If the response is already cached and a new request is performed with no-cache value in `Cache-Control` header, it returns a bodiless response with 304 (Not Modified).
 
-Take into account that this filter to configure local response cache per route only will be available if the <<local-cache-response-global-filter, local response global cache>> is enabled.
+This filter (which configures the local response cache per route) is available only if the <<local-cache-response-global-filter, local response global cache>> is enabled.
 
-It accepts the first parameter to override the time to expire a cache entry expressed in s for seconds, m for minutes and h for hours, and a second parameter to set the maximum size of the cache to evict entries for this route, it takes size format in KB, MB and GB.
+It accepts the first parameter to override the time to expire a cache entry (expressed in `s` for seconds, `m` for minutes, and `h` for hours) and a second parameter to set the maximum size of the cache to evict entries for this route (KB, MB, or GB).
 
 The following listing shows how to add local response cache `GatewayFilter`:
 
@@ -1092,8 +1091,9 @@ spring:
         - LocalResponseCache=30m,500MB
 ----
 
-NOTE:  This filter also implements the automatic calculation of the max-age value in the HTTP Cache-Control header.
-Only if "max-age" is present on the original response the value will be rewritten with the number of seconds set in the timeToLive configuration parameter; and in consecutive calls this value will be recalculated with the number of seconds left until the response expires.
+NOTE: This filter also automatically calculates the `max-age` value in the HTTP `Cache-Control` header.
+Only if `max-age` is present on the original response is the value rewritten with the number of seconds set in the `timeToLive` configuration parameter.
+In consecutive calls, this value is recalculated with the number of seconds left until the response expires.
 ====
 
 === The `MapRequestHeader` `GatewayFilter` Factory
@@ -1119,7 +1119,7 @@ spring:
 ----
 ====
 
-This adds `X-Request-Red:<values>` header to the downstream request with updated values from the incoming HTTP request's `Blue` header.
+This adds the `X-Request-Red:<values>` header to the downstream request with updated values from the incoming HTTP request's `Blue` header.
 
 === The `ModifyRequestBody` `GatewayFilter` Factory
 
@@ -1161,7 +1161,7 @@ static class Hello {
 }
 ----
 
-NOTE:  if the request has no body, the `RewriteFilter` will be passed `null`. `Mono.empty()` should be returned to assign a missing body in the request.
+NOTE: If the request has no body, the `RewriteFilter` is passed `null`. `Mono.empty()` should be returned to assign a missing body in the request.
 
 ====
 
@@ -1188,7 +1188,7 @@ public RouteLocator routes(RouteLocatorBuilder builder) {
 }
 ----
 
-NOTE:  if the response has no body, the `RewriteFilter` will be passed `null`. `Mono.empty()` should be returned to assign a missing body in the response.
+NOTE: If the response has no body, the `RewriteFilter` is passed `null`. `Mono.empty()` should be returned to assign a missing body in the response.
 ====
 
 === The `PrefixPath` `GatewayFilter` Factory
@@ -1211,13 +1211,13 @@ spring:
 ----
 ====
 
-This will prefix `/mypath` to the path of all matching requests.
-So a request to `/hello` would be sent to `/mypath/hello`.
+This prefixes `/mypath` to the path of all matching requests.
+So a request to `/hello` is sent to `/mypath/hello`.
 
 === The `PreserveHostHeader` `GatewayFilter` Factory
 
 The `PreserveHostHeader` `GatewayFilter` factory has no parameters.
-This filter sets a request attribute that the routing filter inspects to determine if the original host header should be sent, rather than the host header determined by the HTTP client.
+This filter sets a request attribute that the routing filter inspects to determine if the original host header should be sent rather than the host header determined by the HTTP client.
 The following example configures a `PreserveHostHeader` `GatewayFilter`:
 
 .application.yml
@@ -1384,7 +1384,7 @@ In addition, you can configure this filter once by using `spring.cloud.gateway.d
 === The `RequestHeaderSize` `GatewayFilter` Factory
 
 The `RequestHeaderSize` `GatewayFilter` factory takes `maxSize` and `errorHeaderName` parameters.
-The `maxSize` parameter is the maximum data size allowed of the request header (including key and value). The `errorHeaderName` parameter sets the name of the response header containing an error message, by default it is "errorMessage".
+The `maxSize` parameter is the maximum data size allowed by the request header (including key and value). The `errorHeaderName` parameter sets the name of the response header containing an error message, by default it is "errorMessage".
 The following listing configures a `RequestHeaderSize` `GatewayFilter`:
 
 .application.yml
@@ -1448,15 +1448,15 @@ spring.cloud.gateway.routes[0].filters[0]=RequestRateLimiter=2, 2, #{@userkeyres
 
 ==== The Redis `RateLimiter`
 
-The Redis implementation is based off of work done at https://stripe.com/blog/rate-limiters[Stripe].
+The Redis implementation is based on work done at https://stripe.com/blog/rate-limiters[Stripe].
 It requires the use of the `spring-boot-starter-data-redis-reactive` Spring Boot starter.
 
 The algorithm used is the https://en.wikipedia.org/wiki/Token_bucket[Token Bucket Algorithm].
 
-The `redis-rate-limiter.replenishRate` property is how many requests per second you want a user to be allowed to do, without any dropped requests.
+The `redis-rate-limiter.replenishRate` property defines how many requests per second to allow (without any dropped requests).
 This is the rate at which the token bucket is filled.
 
-The `redis-rate-limiter.burstCapacity` property is the maximum number of requests a user is allowed to do in a single second.
+The `redis-rate-limiter.burstCapacity` property is the maximum number of requests a user is allowed in a single second (without any dropped requests).
 This is the number of tokens the token bucket can hold.
 Setting this value to zero blocks all requests.
 
@@ -1465,11 +1465,11 @@ This is the number of tokens taken from the bucket for each request and defaults
 
 A steady rate is accomplished by setting the same value in `replenishRate` and `burstCapacity`.
 Temporary bursts can be allowed by setting `burstCapacity` higher than `replenishRate`.
-In this case, the rate limiter needs to be allowed some time between bursts (according to `replenishRate`), as two consecutive bursts will result in dropped requests (`HTTP 429 - Too Many Requests`).
+In this case, the rate limiter needs to be allowed some time between bursts (according to `replenishRate`), as two consecutive bursts results in dropped requests (`HTTP 429 - Too Many Requests`).
 The following listing configures a `redis-rate-limiter`:
 
-Rate limits bellow `1 request/s` are accomplished by setting `replenishRate` to the wanted number of requests, `requestedTokens` to the timespan in seconds and `burstCapacity` to the product of `replenishRate` and `requestedTokens`, e.g. setting `replenishRate=1`, `requestedTokens=60` and `burstCapacity=60` will result in a limit of `1 request/min`.
-
+Rate limits below `1 request/s` are accomplished by setting `replenishRate` to the wanted number of requests, `requestedTokens` to the timespan in seconds, and `burstCapacity` to the product of `replenishRate` and `requestedTokens`.
+For example, setting `replenishRate=1`, `requestedTokens=60`, and `burstCapacity=60` results in a limit of `1 request/min`.
 .application.yml
 ====
 [source,yaml]
@@ -1490,7 +1490,7 @@ spring:
 ----
 ====
 
-The following example configures a KeyResolver in Java:
+The following example configures a `KeyResolver` in Java:
 
 .Config.java
 ====
@@ -1504,7 +1504,8 @@ KeyResolver userKeyResolver() {
 ====
 
 This defines a request rate limit of 10 per user. A burst of 20 is allowed, but, in the next second, only 10 requests are available.
-The `KeyResolver` is a simple one that gets the `user` request parameter (note that this is not recommended for production).
+The `KeyResolver` is a simple one that gets the `user` request parameter
+NOTE: This is not recommended for production
 
 You can also define a rate limiter as a bean that implements the `RateLimiter` interface.
 In configuration, you can reference the bean by name using SpEL.
@@ -1533,7 +1534,7 @@ spring:
 === The `RewriteLocationResponseHeader` `GatewayFilter` Factory
 
 The `RewriteLocationResponseHeader` `GatewayFilter` factory modifies the value of the `Location` response header, usually to get rid of backend-specific details.
-It takes `stripVersionMode`, `locationHeaderName`, `hostValue`, and `protocolsRegex` parameters.
+It takes the `stripVersionMode`, `locationHeaderName`, `hostValue`, and `protocolsRegex` parameters.
 The following listing configures a `RewriteLocationResponseHeader` `GatewayFilter`:
 
 .application.yml
@@ -1556,8 +1557,8 @@ For example, for a request of `POST https://api.example.com/some/object/name`, t
 The `stripVersionMode` parameter has the following possible values: `NEVER_STRIP`, `AS_IN_REQUEST` (default), and `ALWAYS_STRIP`.
 
 * `NEVER_STRIP`: The version is not stripped, even if the original request path contains no version.
-* `AS_IN_REQUEST` The version is stripped only if the original request path contains no version.
-* `ALWAYS_STRIP` The version is always stripped, even if the original request path contains version.
+* `AS_IN_REQUEST`: The version is stripped only if the original request path contains no version.
+* `ALWAYS_STRIP`: The version is always stripped, even if the original request path contains version.
 
 The `hostValue` parameter, if provided, is used to replace the `host:port` portion of the response `Location` header.
 If it is not provided, the value of the `Host` request header is used.
@@ -2025,8 +2026,7 @@ consumer can be a pure Client (like an SSO application) or a Resource
 Server.
 
 Spring Cloud Gateway can forward OAuth2 access tokens downstream to the services
-it is proxying. To add this functionality to gateway you need to add the
-`TokenRelayGatewayFilterFactory` like this:
+it is proxying. To add this functionality to the gateway, you need to add the `TokenRelayGatewayFilterFactory` like this:
 
 .App.java
 [source,java]
@@ -2144,7 +2144,8 @@ public class CustomGlobalFilter implements GlobalFilter, Ordered {
 
 === The Gateway Metrics Filter
 
-To enable gateway metrics, add spring-boot-starter-actuator as a project dependency. Then, by default, the gateway metrics filter runs as long as the property `spring.cloud.gateway.metrics.enabled` is not set to `false`. This filter adds a timer metric named `spring.cloud.gateway.requests` with the following tags:
+To enable gateway metrics, add `spring-boot-starter-actuator` as a project dependency. Then, by default, the gateway metrics filter runs as long as the `spring.cloud.gateway.metrics.enabled` property is not set to `false`.
+This filter adds a timer metric named `spring.cloud.gateway.requests` with the following tags:
 
 * `routeId`: The route ID.
 * `routeUri`: The URI to which the API is routed.
@@ -2153,9 +2154,9 @@ To enable gateway metrics, add spring-boot-starter-actuator as a project depende
 * `httpStatusCode`: The HTTP Status of the request returned to the client.
 * `httpMethod`: The HTTP method used for the request.
 
-In addition, through the property `spring.cloud.gateway.metrics.tags.path.enabled` (by default, set to false), you can activate an extra metric with the tag:
+In addition, through the `spring.cloud.gateway.metrics.tags.path.enabled` property (by default, `false`), you can activate an extra metric with the path tag:
 
-* `path`: Path of the request.
+* `path`: The path of the request.
 
 These metrics are then available to be scraped from `/actuator/metrics/spring.cloud.gateway.requests` and can be easily integrated with Prometheus to create a link:images/gateway-grafana-dashboard.jpeg[Grafana] link:gateway-grafana-dashboard.json[dashboard].
 
@@ -2164,15 +2165,19 @@ NOTE: To enable the prometheus endpoint, add `micrometer-registry-prometheus` as
 [[local-cache-response-global-filter]]
 === The Local Response Cache Filter
 
-The `LocalResponseCache` runs if its associated property is enabled `spring.cloud.gateway.filter.local-response-cache.enabled` and will activate a local cache for all responses that meet the following criteria:
-- The request is a bodyless GET
-- The response has one of the following status codes: HTTP 200 (OK), HTTP 206 (Partial Content) or HTTP 301 (Moved Permanently)
-- HTTP `Cache-Control` header allows caching (that means it doesn't have any of the following values: `no-store` present in the request, `no-store` or `private` present in the response)
+The `LocalResponseCache` runs if its associated property is enabled (`spring.cloud.gateway.filter.local-response-cache.enabled`) and activates a local cache for all responses that meet the following criteria:
+- The request is a bodiless GET.
+- The response has one of the following status codes: HTTP 200 (OK), HTTP 206 (Partial Content), or HTTP 301 (Moved Permanently).
+- The HTTP `Cache-Control` header allows caching (that means it does not have any of the following values: `no-store` present in the request and `no-store` or `private` present in the response).
 
-It accepts two configuration parameters: `spring.cloud.gateway.filter.local-response-cache.size` to set the maximum size of the cache to evict entries for this route, it takes size format in KB, MB and GB; and `spring.cloud.gateway.filter.local-response-cache.timeToLive` to set time to expire a cache entry expressed in s for seconds, m for minutes and h for hours.
-If none of these parameters are configured but the global filter is enabled, by default it configures 5 minutes of time to live for the cached response.
+It accepts two configuration parameters:
+- `spring.cloud.gateway.filter.local-response-cache.size`: Sets the maximum size of the cache to evict entries for this route (in KB, MB and GB).
+- `spring.cloud.gateway.filter.local-response-cache.timeToLive` Sets the time to expire a cache entry (expressed in s for seconds, m for minutes, and h for hours).
+If none of these parameters are configured but the global filter is enabled, by default, it configures 5 minutes of time to live for the cached response.
 
-This filter also implements the automatic calculation of the `max-age` value in the HTTP `Cache-Control` header, if `max-age` is present on the original response the value will be rewritten with the number of seconds set in the `timeToLive` configuration parameter; and in consecutive calls this value will be recalculated with the number of seconds left until the response expires.
+This filter also implements the automatic calculation of the `max-age value in the HTTP `Cache-Control` header.
+If `max-age` is present on the original response, the value is rewritten with the number of seconds set in the `timeToLive` configuration parameter.
+In subsequent calls, this value is recalculated with the number of seconds left until the response expires.
 
 === Forward Routing Filter
 
