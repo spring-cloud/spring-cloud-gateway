@@ -43,8 +43,6 @@ public class ReadBodyRoutePredicateFactory extends AbstractRoutePredicateFactory
 
 	private static final String TEST_ATTRIBUTE = "read_body_predicate_test_attribute";
 
-	private static final String CACHE_REQUEST_BODY_OBJECT_KEY = "cachedRequestBodyObject";
-
 	private final List<HttpMessageReader<?>> messageReaders;
 
 	public ReadBodyRoutePredicateFactory() {
@@ -65,7 +63,7 @@ public class ReadBodyRoutePredicateFactory extends AbstractRoutePredicateFactory
 			public Publisher<Boolean> apply(ServerWebExchange exchange) {
 				Class inClass = config.getInClass();
 
-				Object cachedBody = exchange.getAttribute(CACHE_REQUEST_BODY_OBJECT_KEY);
+				Object cachedBody = exchange.getAttribute(ServerWebExchangeUtils.CACHE_REQUEST_BODY_OBJECT_ATTR);
 				Mono<?> modifiedBody;
 				// We can only read the body from the request once, once that happens if
 				// we try to read the body again an exception will be thrown. The below
@@ -92,7 +90,7 @@ public class ReadBodyRoutePredicateFactory extends AbstractRoutePredicateFactory
 							(serverHttpRequest) -> ServerRequest
 									.create(exchange.mutate().request(serverHttpRequest).build(), messageReaders)
 									.bodyToMono(inClass).doOnNext(objectValue -> exchange.getAttributes()
-											.put(CACHE_REQUEST_BODY_OBJECT_KEY, objectValue))
+											.put(ServerWebExchangeUtils.CACHE_REQUEST_BODY_OBJECT_ATTR, objectValue))
 									.map(objectValue -> config.getPredicate().test(objectValue)));
 				}
 			}

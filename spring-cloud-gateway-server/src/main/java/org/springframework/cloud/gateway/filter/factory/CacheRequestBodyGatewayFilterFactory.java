@@ -61,7 +61,7 @@ public class CacheRequestBodyGatewayFilterFactory
 					return chain.filter(exchange);
 				}
 
-				Object cachedBody = exchange.getAttribute(ServerWebExchangeUtils.CACHED_REQUEST_BODY_ATTR);
+				Object cachedBody = exchange.getAttribute(ServerWebExchangeUtils.CACHE_REQUEST_BODY_OBJECT_ATTR);
 				if (cachedBody != null) {
 					return chain.filter(exchange);
 				}
@@ -70,7 +70,7 @@ public class CacheRequestBodyGatewayFilterFactory
 					final ServerRequest serverRequest = ServerRequest
 							.create(exchange.mutate().request(serverHttpRequest).build(), messageReaders);
 					return serverRequest.bodyToMono((config.getBodyClass())).doOnNext(objectValue -> {
-						exchange.getAttributes().put(ServerWebExchangeUtils.CACHED_REQUEST_BODY_ATTR, objectValue);
+						exchange.getAttributes().put(ServerWebExchangeUtils.CACHE_REQUEST_BODY_OBJECT_ATTR, objectValue);
 					}).then(Mono.defer(() -> {
 						ServerHttpRequest cachedRequest = exchange
 								.getAttribute(CACHED_SERVER_HTTP_REQUEST_DECORATOR_ATTR);

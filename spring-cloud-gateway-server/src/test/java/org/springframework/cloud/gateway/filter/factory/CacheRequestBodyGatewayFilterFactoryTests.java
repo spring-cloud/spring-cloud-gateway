@@ -133,7 +133,7 @@ public class CacheRequestBodyGatewayFilterFactoryTests extends BaseWebClientTest
 
 		@Override
 		public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-			String body = exchange.getAttribute(ServerWebExchangeUtils.CACHED_REQUEST_BODY_ATTR);
+			String body = exchange.getAttribute(ServerWebExchangeUtils.CACHE_REQUEST_BODY_OBJECT_ATTR);
 			if (exceptNullBody) {
 				assertThat(body).isNull();
 			}
@@ -155,7 +155,7 @@ public class CacheRequestBodyGatewayFilterFactoryTests extends BaseWebClientTest
 
 		@Override
 		public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-			exchange.getAttributes().put(ServerWebExchangeUtils.CACHED_REQUEST_BODY_ATTR, bodyToSetCache);
+			exchange.getAttributes().put(ServerWebExchangeUtils.CACHE_REQUEST_BODY_OBJECT_ATTR, bodyToSetCache);
 			return chain.filter(exchange);
 		}
 
