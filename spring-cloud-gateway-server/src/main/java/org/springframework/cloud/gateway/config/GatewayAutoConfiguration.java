@@ -97,6 +97,7 @@ import org.springframework.cloud.gateway.filter.factory.RequestSizeGatewayFilter
 import org.springframework.cloud.gateway.filter.factory.RetryGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RewriteLocationResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.RewriteRequestHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RewriteResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SaveSessionGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory;
@@ -651,6 +652,12 @@ public class GatewayAutoConfiguration {
 	@ConditionalOnEnabledFilter
 	public SetResponseHeaderGatewayFilterFactory setResponseHeaderGatewayFilterFactory() {
 		return new SetResponseHeaderGatewayFilterFactory();
+	}
+
+	@Bean
+	@ConditionalOnEnabledFilter
+	public RewriteRequestHeaderGatewayFilterFactory rewriteRequestHeaderGatewayFilterFactory() {
+		return new RewriteRequestHeaderGatewayFilterFactory();
 	}
 
 	@Bean
