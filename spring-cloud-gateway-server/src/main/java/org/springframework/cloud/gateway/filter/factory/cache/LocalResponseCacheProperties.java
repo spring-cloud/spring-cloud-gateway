@@ -66,7 +66,7 @@ public class LocalResponseCacheProperties {
 
 	@Override
 	public String toString() {
-		return "LocalResponseCacheProperties{" + "size='" + getSize() + '\'' + ", timeToLive=" + getTimeToLive() + '}';
+		return "LocalResponseCacheProperties{" + "timeToLive=" + getTimeToLive() + '\'' + ", size='" + getSize() + '}';
 	}
 
 }
