@@ -17,6 +17,7 @@
 package org.springframework.cloud.gateway.filter;
 
 import java.net.URI;
+import java.net.MalformedURLException;
 import java.util.regex.Pattern;
 
 import org.apache.commons.logging.Log;
