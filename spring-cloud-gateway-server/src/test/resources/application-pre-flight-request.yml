@@ -1,0 +1,45 @@
+spring:
+  cloud:
+    gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            maxAge: 10
+            allowedOrigins: "*"
+            allowedMethods:
+              - GET
+              - POST
+
+      routes:
+      # =====================================
+      - id: pre_flight_request_allowed_by_upstream
+        uri: ${test.uri}
+        handle-preflight-request-by-upstream: true
+        predicates:
+          - Path=/allowedbyupstream/**
+
+      # =====================================
+      - id: pre_flight_request_rejected_by_upstream
+        uri: ${test.uri}
+        handle-preflight-request-by-upstream: true
+        predicates:
+          - Path=/rejectedbyupstream/**
+
+      # =====================================
+      - id: pre_flight_request_rejected_by_not_found_upstream
+        uri: ${test.uri}
+        handle-preflight-request-by-upstream: true
+        predicates:
+          - Path=/rejectedbynotfoundupstream/**
+
+      # =====================================
+      - id: pre_flight_request_allowed_by_gateway
+        uri: ${test.uri}
+        predicates:
+          - Path=/allowedbygateway/**
+
+      # =====================================
+      - id: pre_flight_request_rejected_by_gateway
+        uri: ${test.uri}
+        predicates:
+          - Path=/rejectedbygateway/**

@@ -2396,6 +2396,31 @@ In the preceding example, CORS requests are allowed from requests that originate
 To provide the same CORS configuration to requests that are not handled by some gateway route predicate, set the `spring.cloud.gateway.globalcors.add-to-simple-url-handler-mapping` property  to `true`.
 This is useful when you try to support CORS preflight requests and your route predicate does not evalute to `true` because the HTTP method is `options`.
 
+== Handle CORS Preflight Request By Upstream
+
+You can configure the gateway to pass CORS preflight request to upstream per route configuration.
+The following example shows how to do this:
+
+.application.yml
+====
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: handle_pre_flight_request_by_upstream
+        uri: ${upstream-uri}
+        handle-preflight-request-by-upstream: true
+        predicates:
+          - Path=/some-path/**
+----
+====
+
+In the preceding example, CORS preflight request will be handled by upstream for this route configuration, no matter what `globalcors` is configured.
+
+Route configuration without `handle-preflight-request-by-upstream` or explicitly setting to `false` will obey gateway CORS configuration.
+
 == Actuator API
 
 The `/gateway` actuator endpoint lets you monitor and interact with a Spring Cloud Gateway application.

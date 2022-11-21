@@ -180,4 +180,9 @@ public class ReactiveLoadBalancerClientFilter implements GlobalFilter, Ordered {
 		return hintPropertyValue != null ? hintPropertyValue : defaultHint;
 	}
 
+	@Override
+	public boolean handlePreFlightRequest() {
+		return true;
+	}
+
 }

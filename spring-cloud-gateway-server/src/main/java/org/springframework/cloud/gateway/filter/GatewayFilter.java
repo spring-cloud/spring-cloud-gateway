@@ -31,7 +31,7 @@ import org.springframework.web.server.ServerWebExchange;
  * @author Rossen Stoyanchev
  * @since 5.0
  */
-public interface GatewayFilter extends ShortcutConfigurable {
+public interface GatewayFilter extends PreFlightRequestFilter, ShortcutConfigurable {
 
 	/**
 	 * Name key.
@@ -51,5 +51,10 @@ public interface GatewayFilter extends ShortcutConfigurable {
 	 * @return {@code Mono<Void>} to indicate when request processing is complete
 	 */
 	Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain);
+
+	@Override
+	default boolean handlePreFlightRequest() {
+		return true;
+	}
 
 }

@@ -45,6 +45,11 @@ public class OrderedGatewayFilter implements GatewayFilter, Ordered {
 	}
 
 	@Override
+	public boolean handlePreFlightRequest() {
+		return delegate.handlePreFlightRequest();
+	}
+
+	@Override
 	public int getOrder() {
 		return this.order;
 	}

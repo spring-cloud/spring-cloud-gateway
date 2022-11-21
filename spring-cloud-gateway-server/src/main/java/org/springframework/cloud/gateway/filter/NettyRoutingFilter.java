@@ -69,7 +69,7 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.s
  * @author Spencer Gibb
  * @author Biju Kunjummen
  */
-public class NettyRoutingFilter implements GlobalFilter, Ordered {
+public class NettyRoutingFilter implements GlobalFilter, PreFlightRequestFilter, Ordered {
 
 	/**
 	 * The order of the NettyRoutingFilter. See {@link Ordered#LOWEST_PRECEDENCE}.
@@ -196,6 +196,11 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 		}
 
 		return responseFlux.then(chain.filter(exchange));
+	}
+
+	@Override
+	public boolean handlePreFlightRequest() {
+		return true;
 	}
 
 	protected ByteBuf getByteBuf(DataBuffer dataBuffer) {

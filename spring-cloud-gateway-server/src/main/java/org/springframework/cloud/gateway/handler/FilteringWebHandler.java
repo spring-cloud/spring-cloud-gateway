@@ -51,8 +51,12 @@ public class FilteringWebHandler implements WebHandler {
 
 	private final List<GatewayFilter> globalFilters;
 
+	private final List<GatewayFilter> preflightRequestFilters;
+
 	public FilteringWebHandler(List<GlobalFilter> globalFilters) {
 		this.globalFilters = loadFilters(globalFilters);
+		this.preflightRequestFilters = this.globalFilters.stream().filter(filter -> filter.handlePreFlightRequest())
+				.toList();
 	}
 
 	private static List<GatewayFilter> loadFilters(List<GlobalFilter> filters) {
@@ -83,6 +87,23 @@ public class FilteringWebHandler implements WebHandler {
 
 		if (logger.isDebugEnabled()) {
 			logger.debug("Sorted gatewayFilterFactories: " + combined);
+		}
+
+		return new DefaultGatewayFilterChain(combined).filter(exchange);
+	}
+
+	public Mono<Void> handlePreFlight(ServerWebExchange exchange) {
+		Route route = exchange.getRequiredAttribute(GATEWAY_ROUTE_ATTR);
+		List<GatewayFilter> preflightRequestFilters = route.getFilters().stream()
+				.filter(filter -> filter.handlePreFlightRequest()).toList();
+
+		List<GatewayFilter> combined = new ArrayList<>(this.preflightRequestFilters);
+		combined.addAll(preflightRequestFilters);
+
+		AnnotationAwareOrderComparator.sort(combined);
+
+		if (logger.isDebugEnabled()) {
+			logger.debug("Sorted preflight request filters: " + combined);
 		}
 
 		return new DefaultGatewayFilterChain(combined).filter(exchange);

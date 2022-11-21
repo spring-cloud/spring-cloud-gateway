@@ -55,14 +55,17 @@ public class Route implements Ordered {
 
 	private final Map<String, Object> metadata;
 
+	private boolean handlePreflightRequest;
+
 	private Route(String id, URI uri, int order, AsyncPredicate<ServerWebExchange> predicate,
-			List<GatewayFilter> gatewayFilters, Map<String, Object> metadata) {
+			List<GatewayFilter> gatewayFilters, Map<String, Object> metadata, boolean handlePreflightRequest) {
 		this.id = id;
 		this.uri = uri;
 		this.order = order;
 		this.predicate = predicate;
 		this.gatewayFilters = gatewayFilters;
 		this.metadata = metadata;
+		this.handlePreflightRequest = handlePreflightRequest;
 	}
 
 	public static Builder builder() {
@@ -74,7 +77,8 @@ public class Route implements Ordered {
 		return new Builder().id(routeDefinition.getId())
 				.uri(routeDefinition.getUri())
 				.order(routeDefinition.getOrder())
-				.metadata(routeDefinition.getMetadata());
+				.metadata(routeDefinition.getMetadata())
+				.handlePreflightRequestByUpstream(routeDefinition.isHandlePreflightRequestByUpstream());
 		// @formatter:on
 	}
 
@@ -87,7 +91,8 @@ public class Route implements Ordered {
 		return new AsyncBuilder().id(routeDefinition.getId())
 				.uri(routeDefinition.getUri())
 				.order(routeDefinition.getOrder())
-				.metadata(routeDefinition.getMetadata());
+				.metadata(routeDefinition.getMetadata())
+				.handlePreflightRequestByUpstream(routeDefinition.isHandlePreflightRequestByUpstream());
 		// @formatter:on
 	}
 
@@ -115,6 +120,10 @@ public class Route implements Ordered {
 		return Collections.unmodifiableMap(metadata);
 	}
 
+	public boolean handlePreflightRequest() {
+		return handlePreflightRequest;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) {
@@ -127,12 +136,14 @@ public class Route implements Ordered {
 		return this.order == route.order && Objects.equals(this.id, route.id) && Objects.equals(this.uri, route.uri)
 				&& Objects.equals(this.predicate, route.predicate)
 				&& Objects.equals(this.gatewayFilters, route.gatewayFilters)
-				&& Objects.equals(this.metadata, route.metadata);
+				&& Objects.equals(this.metadata, route.metadata)
+				&& this.handlePreflightRequest == route.handlePreflightRequest;
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(this.id, this.uri, this.order, this.predicate, this.gatewayFilters, this.metadata);
+		return Objects.hash(this.id, this.uri, this.order, this.predicate, this.gatewayFilters, this.metadata,
+				this.handlePreflightRequest);
 	}
 
 	@Override
@@ -144,6 +155,7 @@ public class Route implements Ordered {
 		sb.append(", predicate=").append(predicate);
 		sb.append(", gatewayFilters=").append(gatewayFilters);
 		sb.append(", metadata=").append(metadata);
+		sb.append(", handlePreflightRequest=").append(handlePreflightRequest);
 		sb.append('}');
 		return sb.toString();
 	}
@@ -159,6 +171,8 @@ public class Route implements Ordered {
 		protected List<GatewayFilter> gatewayFilters = new ArrayList<>();
 
 		protected Map<String, Object> metadata = new HashMap<>();
+
+		protected boolean handlePreflightRequestByUpstream;
 
 		protected AbstractBuilder() {
 		}
@@ -210,6 +224,11 @@ public class Route implements Ordered {
 			return getThis();
 		}
 
+		public B handlePreflightRequestByUpstream(boolean handlePreflightRequestByUpstream) {
+			this.handlePreflightRequestByUpstream = handlePreflightRequestByUpstream;
+			return getThis();
+		}
+
 		public abstract AsyncPredicate<ServerWebExchange> getPredicate();
 
 		public B replaceFilters(List<GatewayFilter> gatewayFilters) {
@@ -237,7 +256,8 @@ public class Route implements Ordered {
 			AsyncPredicate<ServerWebExchange> predicate = getPredicate();
 			Assert.notNull(predicate, "predicate can not be null");
 
-			return new Route(this.id, this.uri, this.order, predicate, this.gatewayFilters, this.metadata);
+			return new Route(this.id, this.uri, this.order, predicate, this.gatewayFilters, this.metadata,
+					this.handlePreflightRequestByUpstream);
 		}
 
 	}

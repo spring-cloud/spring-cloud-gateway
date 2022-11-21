@@ -52,4 +52,9 @@ public class ForwardPathFilter implements GlobalFilter, Ordered {
 		return 0;
 	}
 
+	@Override
+	public boolean handlePreFlightRequest() {
+		return true;
+	}
+
 }

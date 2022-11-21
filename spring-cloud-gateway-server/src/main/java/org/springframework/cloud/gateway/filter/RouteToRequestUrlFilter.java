@@ -92,4 +92,9 @@ public class RouteToRequestUrlFilter implements GlobalFilter, Ordered {
 		return chain.filter(exchange);
 	}
 
+	@Override
+	public boolean handlePreFlightRequest() {
+		return true;
+	}
+
 }
