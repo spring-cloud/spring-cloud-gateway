@@ -16,8 +16,8 @@
 
 package org.springframework.cloud.gateway.route.builder
 
-import org.junit.Test
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest
@@ -31,7 +31,7 @@ import reactor.core.publisher.toMono
 import reactor.test.StepVerifier
 import java.net.URI
 
-@RunWith(SpringRunner::class)
+@ExtendWith(SpringExtension::class)
 @SpringBootTest(classes = arrayOf(Config::class))
 class RouteDslTests {
 

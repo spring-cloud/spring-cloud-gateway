@@ -21,9 +21,8 @@ import java.util.List;
 import io.micrometer.core.instrument.Tags;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.propagation.Propagator;
-import org.junit.Test;
-import org.junit.experimental.runners.Enclosed;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -41,7 +40,6 @@ import org.springframework.cloud.gateway.filter.headers.observation.ObservedResp
 import org.springframework.cloud.gateway.route.RouteDefinitionMetrics;
 import org.springframework.cloud.gateway.support.tagsprovider.GatewayTagsProvider;
 import org.springframework.context.annotation.Bean;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.server.ServerWebExchange;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -49,10 +47,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Ingyu Hwang
  */
-@RunWith(Enclosed.class)
 public class GatewayMetricsAutoConfigurationTests {
 
-	@RunWith(SpringRunner.class)
+	@Nested
 	@SpringBootTest(classes = Config.class)
 	public static class EnabledByDefault {
 
@@ -91,7 +88,7 @@ public class GatewayMetricsAutoConfigurationTests {
 
 	}
 
-	@RunWith(SpringRunner.class)
+	@Nested
 	@SpringBootTest(classes = Config.class, properties = "spring.cloud.gateway.metrics.enabled=false")
 	public static class DisabledByProperty {
 
@@ -113,7 +110,7 @@ public class GatewayMetricsAutoConfigurationTests {
 
 	}
 
-	@RunWith(SpringRunner.class)
+	@Nested
 	@SpringBootTest(classes = Config.class, properties = "spring.cloud.gateway.observability.enabled=false")
 	public static class ObservabilityDisabledByProperty {
 
@@ -135,7 +132,7 @@ public class GatewayMetricsAutoConfigurationTests {
 
 	}
 
-	@RunWith(SpringRunner.class)
+	@Nested
 	@SpringBootTest(classes = CustomTagsProviderConfig.class,
 			properties = "spring.cloud.gateway.metrics.prefix=myprefix.")
 	public static class AddCustomTagsProvider {

@@ -20,8 +20,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.core.io.buffer.DefaultDataBuffer;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
@@ -53,7 +53,7 @@ public class ServerWebExchangeUtilsTests {
 	@Test
 	public void missingVarThrowsException() {
 		MockServerWebExchange exchange = mockExchange(Collections.emptyMap());
-		Assert.assertThrows(IllegalArgumentException.class, () -> expand(exchange, "my-{foo}-{baz}"));
+		Assertions.assertThrows(IllegalArgumentException.class, () -> expand(exchange, "my-{foo}-{baz}"));
 	}
 
 	@Test
