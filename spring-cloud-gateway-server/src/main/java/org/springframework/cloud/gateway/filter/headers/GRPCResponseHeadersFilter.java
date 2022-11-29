@@ -22,6 +22,7 @@ import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.AbstractServerHttpResponse;
 import org.springframework.http.server.reactive.ServerHttpResponse;
+import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -41,8 +42,15 @@ public class GRPCResponseHeadersFilter implements HttpHeadersFilter, Ordered {
 				trailerHeaderValue += "," + originalTrailerHeaderValue;
 			}
 			responseHeaders.set(HttpHeaders.TRAILER, trailerHeaderValue);
-			((HttpServerResponse) ((AbstractServerHttpResponse) response).getNativeResponse())
-					.trailerHeaders(h -> h.set("grpc-status", "0"));
+
+			while (response instanceof ServerHttpResponseDecorator) {
+				response = ((ServerHttpResponseDecorator) response).getDelegate();
+			}
+			if (response instanceof AbstractServerHttpResponse) {
+				((HttpServerResponse) ((AbstractServerHttpResponse) response).getNativeResponse())
+						.trailerHeaders(h -> h.set("grpc-status", "0"));
+			}
+
 		}
 		return headers;
 	}
