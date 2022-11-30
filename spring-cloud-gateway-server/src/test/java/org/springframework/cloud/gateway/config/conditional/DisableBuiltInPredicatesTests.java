@@ -42,7 +42,7 @@ public class DisableBuiltInPredicatesTests {
 
 	@Nested
 	@SpringBootTest(classes = Config.class)
-	public static class RoutePredicateDefault {
+	public class RoutePredicateDefault {
 
 		@Autowired
 		private List<RoutePredicateFactory<?>> predicates;
@@ -59,7 +59,7 @@ public class DisableBuiltInPredicatesTests {
 			properties = { "spring.cloud.gateway.predicate.after.enabled=false",
 					"spring.cloud.gateway.predicate.before.enabled=false" })
 	@ActiveProfiles("disable-components")
-	public static class DisableSpecificsPredicatesByProperty {
+	public class DisableSpecificsPredicatesByProperty {
 
 		@Autowired
 		private List<RoutePredicateFactory<?>> predicates;
@@ -87,7 +87,7 @@ public class DisableBuiltInPredicatesTests {
 			"spring.cloud.gateway.predicate.weight.enabled=false",
 			"spring.cloud.gateway.predicate.cloud-foundry-route-service.enabled=false" })
 	@ActiveProfiles("disable-components")
-	public static class DisableAllPredicatesByProperty {
+	public class DisableAllPredicatesByProperty {
 
 		@Autowired(required = false)
 		private List<RoutePredicateFactory<?>> predicates;

@@ -20,7 +20,6 @@ import java.util.List;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
@@ -28,11 +27,10 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.config.GatewayLoadBalancerProperties;
 import org.springframework.cloud.gateway.route.RouteDefinition;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@ExtendWith(SpringExtension.class)
+//@ExtendWith(SpringExtension.class)
 public class ReactiveGatewayDiscoveryClientAutoConfigurationTests {
 
 	@Nested
@@ -40,7 +38,7 @@ public class ReactiveGatewayDiscoveryClientAutoConfigurationTests {
 			properties = { "spring.cloud.gateway.discovery.locator.enabled=true",
 					"spring.cloud.gateway.loadbalancer.use404=true",
 					"spring.cloud.discovery.client.simple.instances.service[0].uri=https://service1:443" })
-	public static class EnabledByProperty {
+	public class EnabledByProperty {
 
 		@Autowired(required = false)
 		private DiscoveryClientRouteDefinitionLocator locator;
@@ -64,7 +62,7 @@ public class ReactiveGatewayDiscoveryClientAutoConfigurationTests {
 
 	@Nested
 	@SpringBootTest(classes = Config.class)
-	public static class DisabledByDefault {
+	public class DisabledByDefault {
 
 		@Autowired(required = false)
 		private DiscoveryClientRouteDefinitionLocator locator;

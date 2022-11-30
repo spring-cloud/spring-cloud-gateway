@@ -42,7 +42,7 @@ public class DisableBuiltInFiltersTests {
 
 	@Nested
 	@SpringBootTest(classes = Config.class)
-	public static class FilterDefault {
+	public class FilterDefault {
 
 		@Autowired
 		private List<GatewayFilterFactory<?>> gatewayFilters;
@@ -59,7 +59,7 @@ public class DisableBuiltInFiltersTests {
 			properties = { "spring.cloud.gateway.filter.add-request-header.enabled=false",
 					"spring.cloud.gateway.filter.map-request-header.enabled=false" })
 	@ActiveProfiles("disable-components")
-	public static class DisableSpecificsFiltersByProperty {
+	public class DisableSpecificsFiltersByProperty {
 
 		@Autowired
 		private List<GatewayFilterFactory<?>> gatewayFilters;
@@ -114,7 +114,7 @@ public class DisableBuiltInFiltersTests {
 					"spring.cloud.gateway.filter.cache-request-body.enabled=false",
 					"spring.cloud.gateway.filter.fallback-headers.enabled=false" })
 	@ActiveProfiles("disable-components")
-	public static class DisableAllFiltersByProperty {
+	public class DisableAllFiltersByProperty {
 
 		@Autowired(required = false)
 		private List<GatewayFilterFactory<?>> gatewayFilters;

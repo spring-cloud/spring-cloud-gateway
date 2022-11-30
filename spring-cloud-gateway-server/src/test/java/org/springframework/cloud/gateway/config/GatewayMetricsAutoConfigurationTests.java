@@ -51,7 +51,7 @@ public class GatewayMetricsAutoConfigurationTests {
 
 	@Nested
 	@SpringBootTest(classes = Config.class)
-	public static class EnabledByDefault {
+	public class EnabledByDefault {
 
 		@Autowired(required = false)
 		private GatewayMetricsFilter filter;
@@ -90,7 +90,7 @@ public class GatewayMetricsAutoConfigurationTests {
 
 	@Nested
 	@SpringBootTest(classes = Config.class, properties = "spring.cloud.gateway.metrics.enabled=false")
-	public static class DisabledByProperty {
+	public class DisabledByProperty {
 
 		@Autowired(required = false)
 		private GatewayMetricsFilter filter;
@@ -112,7 +112,7 @@ public class GatewayMetricsAutoConfigurationTests {
 
 	@Nested
 	@SpringBootTest(classes = Config.class, properties = "spring.cloud.gateway.observability.enabled=false")
-	public static class ObservabilityDisabledByProperty {
+	public class ObservabilityDisabledByProperty {
 
 		@Autowired
 		private BeanFactory beanFactory;
@@ -135,7 +135,7 @@ public class GatewayMetricsAutoConfigurationTests {
 	@Nested
 	@SpringBootTest(classes = CustomTagsProviderConfig.class,
 			properties = "spring.cloud.gateway.metrics.prefix=myprefix.")
-	public static class AddCustomTagsProvider {
+	public class AddCustomTagsProvider {
 
 		@Autowired(required = false)
 		private GatewayMetricsFilter filter;

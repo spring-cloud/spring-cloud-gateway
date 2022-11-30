@@ -32,7 +32,6 @@ import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.mock.env.MockEnvironment;
 import org.springframework.web.server.ServerWebExchange;
 
-
 /**
  * @author Simon Baslé
  */
@@ -41,20 +40,20 @@ public class RoutePredicateHandlerMappingTests {
 
 	@Test
 	public void lookupRouteFromSyncPredicates(CapturedOutput capturedOutput) {
-			Route routeFalse = Route.async().id("routeFalse").uri("http://localhost").predicate(swe -> false).build();
-			Route routeFail = Route.async().id("routeFail").uri("http://localhost").predicate(swe -> {
-				throw new IllegalStateException("boom");
-			}).build();
-			Route routeTrue = Route.async().id("routeTrue").uri("http://localhost").predicate(swe -> true).build();
-			RouteLocator routeLocator = () -> Flux.just(routeFalse, routeFail, routeTrue).hide();
-			RoutePredicateHandlerMapping mapping = new RoutePredicateHandlerMapping(null, routeLocator,
-					new GlobalCorsProperties(), new MockEnvironment());
+		Route routeFalse = Route.async().id("routeFalse").uri("http://localhost").predicate(swe -> false).build();
+		Route routeFail = Route.async().id("routeFail").uri("http://localhost").predicate(swe -> {
+			throw new IllegalStateException("boom");
+		}).build();
+		Route routeTrue = Route.async().id("routeTrue").uri("http://localhost").predicate(swe -> true).build();
+		RouteLocator routeLocator = () -> Flux.just(routeFalse, routeFail, routeTrue).hide();
+		RoutePredicateHandlerMapping mapping = new RoutePredicateHandlerMapping(null, routeLocator,
+				new GlobalCorsProperties(), new MockEnvironment());
 
-			final Mono<Route> routeMono = mapping.lookupRoute(Mockito.mock(ServerWebExchange.class));
+		final Mono<Route> routeMono = mapping.lookupRoute(Mockito.mock(ServerWebExchange.class));
 
-			StepVerifier.create(routeMono.map(Route::getId)).expectNext("routeTrue").verifyComplete();
-			Assertions.assertTrue(capturedOutput.getOut().contains("Error applying predicate for route: routeFail"));
-			Assertions.assertTrue(capturedOutput.getOut().contains("java.lang.IllegalStateException: boom"));
+		StepVerifier.create(routeMono.map(Route::getId)).expectNext("routeTrue").verifyComplete();
+		Assertions.assertTrue(capturedOutput.getOut().contains("Error applying predicate for route: routeFail"));
+		Assertions.assertTrue(capturedOutput.getOut().contains("java.lang.IllegalStateException: boom"));
 	}
 
 	@Test

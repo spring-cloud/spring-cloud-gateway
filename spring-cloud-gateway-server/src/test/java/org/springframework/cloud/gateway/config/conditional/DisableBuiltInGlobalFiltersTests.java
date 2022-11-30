@@ -42,7 +42,7 @@ public class DisableBuiltInGlobalFiltersTests {
 
 	@Nested
 	@SpringBootTest(classes = Config.class)
-	public static class GlobalFilterDefault {
+	public class GlobalFilterDefault {
 
 		@Autowired
 		private List<GlobalFilter> globalFilters;
@@ -59,7 +59,7 @@ public class DisableBuiltInGlobalFiltersTests {
 			properties = { "spring.cloud.gateway.global-filter.remove-cached-body.enabled=false",
 					"spring.cloud.gateway.global-filter.route-to-request-url.enabled=false" })
 	@ActiveProfiles("disable-components")
-	public static class DisableSpecificsFiltersByProperty {
+	public class DisableSpecificsFiltersByProperty {
 
 		@Autowired
 		private List<GlobalFilter> globalFilters;
@@ -88,7 +88,7 @@ public class DisableBuiltInGlobalFiltersTests {
 					"spring.cloud.gateway.global-filter.load-balancer-service-instance-cookie.enabled=false",
 					"spring.cloud.gateway.metrics.enabled=false" })
 	@ActiveProfiles("disable-components")
-	public static class DisableAllGlobalFiltersByProperty {
+	public class DisableAllGlobalFiltersByProperty {
 
 		@Autowired(required = false)
 		private List<GlobalFilter> globalFilters;
