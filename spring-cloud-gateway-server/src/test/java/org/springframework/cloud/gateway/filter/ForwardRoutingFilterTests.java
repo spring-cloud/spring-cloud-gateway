@@ -18,13 +18,15 @@ package org.springframework.cloud.gateway.filter;
 
 import java.net.URI;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.core.Ordered;
@@ -46,7 +48,8 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.G
  * @author Arjun Curat
  */
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class ForwardRoutingFilterTests {
 
 	private ServerWebExchange exchange;
@@ -63,7 +66,7 @@ public class ForwardRoutingFilterTests {
 	@InjectMocks
 	private ForwardRoutingFilter forwardRoutingFilter;
 
-	@Before
+	@BeforeEach
 	public void setup() {
 		exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localendpoint").build());
 		when(objectProvider.getIfAvailable()).thenReturn(this.dispatcherHandler);

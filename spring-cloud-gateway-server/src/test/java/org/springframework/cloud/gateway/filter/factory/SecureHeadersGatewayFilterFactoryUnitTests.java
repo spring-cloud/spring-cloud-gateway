@@ -17,8 +17,8 @@
 package org.springframework.cloud.gateway.filter.factory;
 
 import org.assertj.core.api.Assertions;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import reactor.core.publisher.Mono;
 
@@ -56,7 +56,7 @@ public class SecureHeadersGatewayFilterFactoryUnitTests {
 
 	private ArgumentCaptor<ServerWebExchange> captor;
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost").build();
 		exchange = MockServerWebExchange.from(request);

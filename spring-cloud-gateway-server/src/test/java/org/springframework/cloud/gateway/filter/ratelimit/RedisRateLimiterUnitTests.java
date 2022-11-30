@@ -17,13 +17,14 @@
 package org.springframework.cloud.gateway.filter.ratelimit;
 
 import io.lettuce.core.RedisException;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.support.ConfigurationService;
@@ -39,7 +40,7 @@ import static org.mockito.Mockito.when;
 /**
  * @author Denis Cutic
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class RedisRateLimiterUnitTests {
 
 	private static final int DEFAULT_REPLENISH_RATE = 1;
@@ -62,7 +63,7 @@ public class RedisRateLimiterUnitTests {
 
 	private RedisRateLimiter redisRateLimiter;
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 		when(applicationContext.getBean(ReactiveStringRedisTemplate.class)).thenReturn(redisTemplate);
 		when(applicationContext.getBeanNamesForType(ConfigurationService.class))
@@ -70,14 +71,14 @@ public class RedisRateLimiterUnitTests {
 		redisRateLimiter = new RedisRateLimiter(DEFAULT_REPLENISH_RATE, DEFAULT_BURST_CAPACITY);
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 		Mockito.reset(applicationContext);
 	}
 
-	@Test(expected = IllegalStateException.class)
+	@Test
 	public void shouldThrowWhenNotInitialized() {
-		redisRateLimiter.isAllowed(ROUTE_ID, REQUEST_ID);
+		Assertions.assertThrows(IllegalStateException.class, () -> redisRateLimiter.isAllowed(ROUTE_ID, REQUEST_ID));
 	}
 
 	@Test
