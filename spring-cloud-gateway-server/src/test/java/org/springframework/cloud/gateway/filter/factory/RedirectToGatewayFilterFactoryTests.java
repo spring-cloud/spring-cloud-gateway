@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
+import java.net.URI;
+
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.SpringBootConfiguration;
@@ -52,6 +54,12 @@ public class RedirectToGatewayFilterFactoryTests extends BaseWebClientTests {
 	}
 
 	@Test
+	public void redirectToRelativeUrlFilterWorksWithStrStatusCode() {
+		testClient.get().uri("/").header("Host", "strcode.relativeredirect.org").exchange().expectStatus()
+				.isEqualTo(HttpStatus.FOUND).expectHeader().valueEquals(HttpHeaders.LOCATION, "/index.html#/customers");
+	}
+
+	@Test
 	public void toStringFormat() {
 		Config config = new Config();
 		config.setStatus("301");
@@ -67,8 +75,12 @@ public class RedirectToGatewayFilterFactoryTests extends BaseWebClientTests {
 
 		@Bean
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
-			return builder.routes().route("relative_redirect", r -> r.host("**.relativeredirect.org")
-					.filters(f -> f.redirect(302, "/index.html#/customers")).uri("no://op")).build();
+			return builder.routes()
+					.route("relative_redirect", r -> r.host("strcode.relativeredirect.org")
+							.filters(f -> f.redirect("302", URI.create("/index.html#/customers"))).uri("no://op"))
+					.route("relative_redirect", r -> r.host("**.relativeredirect.org")
+							.filters(f -> f.redirect(302, "/index.html#/customers")).uri("no://op"))
+					.build();
 		}
 
 	}
