@@ -417,7 +417,7 @@ public class GatewayFilterSpec extends UriSpec {
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
 	public GatewayFilterSpec redirect(String status, URI url) {
-		return redirect(status, url);
+		return redirect(status, url.toString());
 	}
 
 	/**
