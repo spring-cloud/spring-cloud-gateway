@@ -43,7 +43,7 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties({ LocalResponseCacheProperties.class })
-@ConditionalOnClass({ Weigher.class, Caffeine.class })
+@ConditionalOnClass({ Weigher.class, Caffeine.class, CaffeineCacheManager.class })
 @ConditionalOnProperty(name = "spring.cloud.gateway.enabled", matchIfMissing = true)
 @ConditionalOnEnabledFilter(LocalResponseCacheGatewayFilterFactory.class)
 public class LocalResponseCacheAutoConfiguration {
