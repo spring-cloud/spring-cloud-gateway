@@ -234,6 +234,7 @@
 						<!-- Based on instructions here - https://kotlinlang.org/docs/reference/using-maven.html -->
 						<artifactId>kotlin-maven-plugin</artifactId>
 						<groupId>org.jetbrains.kotlin</groupId>
+						<version>${kotlin-maven-plugin.version}</version>
 						<configuration>
 							<jvmTarget>1.8</jvmTarget>
 						</configuration>
