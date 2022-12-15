@@ -49,29 +49,13 @@
 						<artifactId>exec-maven-plugin</artifactId>
 						<executions>
 							<execution>
-								<id>generate-metrics-metadata</id>
+								<id>generate-docs</id>
 								<phase>prepare-package</phase>
 								<goals>
 									<goal>java</goal>
 								</goals>
 								<configuration>
-									<mainClass>io.micrometer.docs.metrics.DocsFromSources</mainClass>
-									<includePluginDependencies>true</includePluginDependencies>
-									<arguments>
-										<argument>${micrometer-docs-generator.inputPath}</argument>
-										<argument>${micrometer-docs-generator.inclusionPattern}</argument>
-										<argument>${micrometer-docs-generator.outputPath}</argument>
-									</arguments>
-								</configuration>
-							</execution>
-							<execution>
-								<id>generate-tracing-metadata</id>
-								<phase>prepare-package</phase>
-								<goals>
-									<goal>java</goal>
-								</goals>
-								<configuration>
-									<mainClass>io.micrometer.docs.spans.DocsFromSources</mainClass>
+									<mainClass>io.micrometer.docs.DocsGeneratorCommand</mainClass>
 									<includePluginDependencies>true</includePluginDependencies>
 									<arguments>
 										<argument>${micrometer-docs-generator.inputPath}</argument>
@@ -83,19 +67,9 @@
 						</executions>
 						<dependencies>
 							<dependency>
-								<groupId>io.micrometer
-								</groupId>
-								<artifactId>micrometer-docs-generator-spans</artifactId>
-								<version>${micrometer-docs-generator.version}
-								</version>
-								<type>jar</type>
-							</dependency>
-							<dependency>
-								<groupId>io.micrometer
-								</groupId>
-								<artifactId>micrometer-docs-generator-metrics</artifactId>
-								<version>${micrometer-docs-generator.version}
-								</version>
+								<groupId>io.micrometer</groupId>
+								<artifactId>micrometer-docs-generator</artifactId>
+								<version>${micrometer-docs-generator.version}</version>
 								<type>jar</type>
 							</dependency>
 						</dependencies>
