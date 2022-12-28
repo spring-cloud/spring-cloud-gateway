@@ -89,6 +89,11 @@
 			<artifactId>reactor-extra</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>io.projectreactor.kotlin</groupId>
+			<artifactId>reactor-kotlin-extensions</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
 			<groupId>com.fasterxml.jackson.dataformat</groupId>
 			<artifactId>jackson-dataformat-protobuf</artifactId>
 			<optional>true</optional>
