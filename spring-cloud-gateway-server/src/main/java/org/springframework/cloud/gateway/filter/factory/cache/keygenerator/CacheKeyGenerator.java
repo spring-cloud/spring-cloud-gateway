@@ -31,6 +31,7 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 /**
  * @author Marta Medio
  * @author Ignacio Lozano
+ * @author Simone Gerevini
  */
 public class CacheKeyGenerator {
 
@@ -38,19 +39,21 @@ public class CacheKeyGenerator {
 
 	private static final byte[] KEY_SEPARATOR_BYTES = KEY_SEPARATOR.getBytes();
 
-	private final MessageDigest messageDigest;
+	private final ThreadLocal<MessageDigest> messageDigest;
 
 	/* for testing */ static final List<KeyValueGenerator> DEFAULT_KEY_VALUE_GENERATORS = List.of(
 			new UriKeyValueGenerator(), new HeaderKeyValueGenerator(HttpHeaders.AUTHORIZATION, KEY_SEPARATOR),
 			new CookiesKeyValueGenerator(KEY_SEPARATOR));
 
 	public CacheKeyGenerator() {
-		try {
-			messageDigest = MessageDigest.getInstance("MD5");
-		}
-		catch (NoSuchAlgorithmException e) {
-			throw new RuntimeException("Error creating CacheKeyGenerator", e);
-		}
+		messageDigest = ThreadLocal.withInitial(() -> {
+			try {
+				return MessageDigest.getInstance("MD5");
+			}
+			catch (NoSuchAlgorithmException e) {
+				throw new RuntimeException("Error creating CacheKeyGenerator", e);
+			}
+		});
 	}
 
 	public String generateMetadataKey(ServerHttpRequest request, String... varyHeaders) {
@@ -63,7 +66,7 @@ public class CacheKeyGenerator {
 
 	public String generateKey(ServerHttpRequest request, List<String> varyHeaders) {
 		byte[] rawKey = generateRawKey(request, varyHeaders);
-		byte[] digest = messageDigest.digest(rawKey);
+		byte[] digest = messageDigest.get().digest(rawKey);
 
 		return Base64.getEncoder().encodeToString(digest);
 	}
