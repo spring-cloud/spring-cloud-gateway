@@ -278,6 +278,10 @@ public class ProxyExchange<T> {
 		return path.substring(prefix.length());
 	}
 
+    /**
+	 * Returns the original query parameters.
+	 * @return the query parameters
+	 */
 	public MultiValueMap<String, String> queryParams() {
 		return exchange.getRequest().getQueryParams();
 	}
