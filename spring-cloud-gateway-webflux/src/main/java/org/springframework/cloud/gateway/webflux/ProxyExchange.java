@@ -38,6 +38,7 @@ import org.springframework.http.RequestEntity;
 import org.springframework.http.RequestEntity.BodyBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -107,6 +108,7 @@ import org.springframework.web.server.ServerWebExchange;
  * </p>
  *
  * @author Dave Syer
+ * @author Stefan Berger
  *
  */
 public class ProxyExchange<T> {
@@ -229,16 +231,33 @@ public class ProxyExchange<T> {
 		return this;
 	}
 
+	/**
+	 * Returns the request path without any query parameters.
+	 * @return the URI path
+	 * @see ProxyExchange#path(String)
+	 * @see ProxyExchange#queryParams
+	 */
 	public String path() {
 		return exchange.getRequest().getPath().pathWithinApplication().value();
 	}
 
+    /**
+	 * Returns the request path without the provided path prefix and without any query parameters.
+	 * @param prefix the path prefix to remove
+	 * @return the URI path
+	 * @see ProxyExchange#path(String)
+	 * @see ProxyExchange#queryParams
+	 */
 	public String path(String prefix) {
 		String path = path();
 		if (!path.startsWith(prefix)) {
 			throw new IllegalArgumentException("Path does not start with prefix (" + prefix + "): " + path);
 		}
 		return path.substring(prefix.length());
+	}
+
+	public MultiValueMap<String, String> queryParams() {
+		return exchange.getRequest().getQueryParams();
 	}
 
 	public Mono<ResponseEntity<T>> get() {
