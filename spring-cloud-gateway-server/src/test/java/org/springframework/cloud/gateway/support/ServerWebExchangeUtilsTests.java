@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.gateway.support;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,7 +24,9 @@ import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
 
+import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DefaultDataBuffer;
+import org.springframework.http.HttpMethod;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.reactive.function.server.HandlerStrategies;
@@ -70,8 +73,42 @@ public class ServerWebExchangeUtilsTests {
 				.block();
 	}
 
+	@Test
+	public void duplicatedCachingDataBufferHandling() {
+		MockServerWebExchange exchange = mockExchange(HttpMethod.POST, Collections.emptyMap());
+		DataBuffer dataBufferBeforeCaching = exchange.getResponse().bufferFactory()
+				.wrap("Cached buffer".getBytes(StandardCharsets.UTF_8));
+		exchange.getAttributes().put(CACHED_REQUEST_BODY_ATTR, dataBufferBeforeCaching);
+
+		ServerWebExchangeUtils
+				.cacheRequestBodyAndRequest(exchange,
+						(serverHttpRequest) -> ServerRequest
+								.create(exchange.mutate().request(serverHttpRequest).build(),
+										HandlerStrategies.withDefaults().messageReaders())
+								.bodyToMono(DefaultDataBuffer.class))
+				.block();
+
+		DataBuffer dataBufferAfterCached = exchange.getAttribute(CACHED_REQUEST_BODY_ATTR);
+
+		Assertions.assertEquals(dataBufferBeforeCaching, dataBufferAfterCached);
+	}
+
 	private MockServerWebExchange mockExchange(Map<String, String> vars) {
-		MockServerHttpRequest request = MockServerHttpRequest.get("/get").build();
+		return mockExchange(HttpMethod.GET, vars);
+	}
+
+	private MockServerWebExchange mockExchange(HttpMethod method, Map<String, String> vars) {
+
+		MockServerHttpRequest request = null;
+		if (HttpMethod.GET.equals(method)) {
+			request = MockServerHttpRequest.get("/get").build();
+		}
+		else if (HttpMethod.POST.equals(method)) {
+			request = MockServerHttpRequest.post("/post").body("post body");
+		}
+
+		Assertions.assertNotNull(request, "Method was not one of GET or POST");
+
 		MockServerWebExchange exchange = MockServerWebExchange.from(request);
 		ServerWebExchangeUtils.putUriTemplateVariables(exchange, vars);
 		return exchange;

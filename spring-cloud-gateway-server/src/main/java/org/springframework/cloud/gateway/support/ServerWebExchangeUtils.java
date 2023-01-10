@@ -359,14 +359,19 @@ public final class ServerWebExchangeUtils {
 			if (log.isTraceEnabled()) {
 				log.trace("retaining body in exchange attribute");
 			}
-			exchange.getAttributes().put(CACHED_REQUEST_BODY_ATTR, dataBuffer);
+
+			Object cachedDataBuffer = exchange.getAttribute(CACHED_REQUEST_BODY_ATTR);
+			// don't cache if body is already cached
+			if (!(cachedDataBuffer instanceof DataBuffer)) {
+				exchange.getAttributes().put(CACHED_REQUEST_BODY_ATTR, dataBuffer);
+			}
 		}
 
 		ServerHttpRequest decorator = new ServerHttpRequestDecorator(exchange.getRequest()) {
 			@Override
 			public Flux<DataBuffer> getBody() {
 				return Mono.fromSupplier(() -> {
-					if (exchange.getAttributeOrDefault(CACHED_REQUEST_BODY_ATTR, null) == null) {
+					if (exchange.getAttribute(CACHED_REQUEST_BODY_ATTR) == null) {
 						// probably == downstream closed or no body
 						return null;
 					}
