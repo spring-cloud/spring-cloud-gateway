@@ -26,8 +26,6 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledForJreRange;
-import org.junit.jupiter.api.condition.JRE;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -159,7 +157,6 @@ public class GatewaySampleApplicationTests {
 	}
 
 	@Test
-	@DisabledForJreRange(min = JRE.JAVA_16)
 	public void routeFromKotlin() {
 		webClient.get().uri("/anything/kotlinroute").header("Host", "kotlin.abc.org").exchange().expectHeader()
 				.valueEquals("X-TestHeader", "foobar").expectStatus().isOk();

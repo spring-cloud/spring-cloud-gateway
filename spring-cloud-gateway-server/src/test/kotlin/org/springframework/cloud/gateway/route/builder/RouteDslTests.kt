@@ -24,13 +24,12 @@ import org.springframework.cloud.gateway.support.ServerWebExchangeUtils
 import org.springframework.context.annotation.Configuration
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest
 import org.springframework.mock.web.server.MockServerWebExchange
-import org.springframework.test.context.junit4.SpringRunner
 import org.springframework.web.server.ServerWebExchange
-import reactor.core.publisher.toMono
+import reactor.kotlin.core.publisher.toMono
 import reactor.test.StepVerifier
 import java.net.URI
 
-@SpringBootTest(classes = arrayOf(Config::class))
+@SpringBootTest(classes = [Config::class])
 class RouteDslTests {
 
     @Autowired
