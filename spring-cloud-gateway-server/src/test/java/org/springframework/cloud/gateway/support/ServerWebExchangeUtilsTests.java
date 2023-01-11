@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.assertj.core.api.Assertions;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -90,7 +91,7 @@ public class ServerWebExchangeUtilsTests {
 
 		DataBuffer dataBufferAfterCached = exchange.getAttribute(CACHED_REQUEST_BODY_ATTR);
 
-		Assertions.assertEquals(dataBufferBeforeCaching, dataBufferAfterCached);
+		Assertions.assertThat(dataBufferBeforeCaching).isEqualTo(dataBufferAfterCached);
 	}
 
 	private MockServerWebExchange mockExchange(Map<String, String> vars) {
@@ -107,7 +108,7 @@ public class ServerWebExchangeUtilsTests {
 			request = MockServerHttpRequest.post("/post").body("post body");
 		}
 
-		Assertions.assertNotNull(request, "Method was not one of GET or POST");
+		Assertions.assertThat(request).as("Method was not one of GET or POST").isNotNull();
 
 		MockServerWebExchange exchange = MockServerWebExchange.from(request);
 		ServerWebExchangeUtils.putUriTemplateVariables(exchange, vars);
