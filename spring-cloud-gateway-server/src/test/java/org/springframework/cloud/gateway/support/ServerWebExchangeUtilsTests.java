@@ -56,7 +56,7 @@ public class ServerWebExchangeUtilsTests {
 	@Test
 	public void missingVarThrowsException() {
 		MockServerWebExchange exchange = mockExchange(Collections.emptyMap());
-		Assertions.assertThrows(IllegalArgumentException.class, () -> expand(exchange, "my-{foo}-{baz}"));
+		Assertions.assertThatThrownBy(() -> expand(exchange, "my-{foo}-{baz}")).isInstanceOf(IllegalArgumentException.class);
 	}
 
 	@Test
