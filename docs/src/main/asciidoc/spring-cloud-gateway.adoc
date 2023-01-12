@@ -301,7 +301,7 @@ The following example shows how to use the `get` method:
 ====
 [source,java]
 ----
-Map<String, String> uriVariables = ServerWebExchangeUtils.getPathPredicateVariables(exchange);
+Map<String, String> uriVariables = ServerWebExchangeUtils.getUriTemplateVariables(exchange);
 
 String segment = uriVariables.get("segment");
 ----
