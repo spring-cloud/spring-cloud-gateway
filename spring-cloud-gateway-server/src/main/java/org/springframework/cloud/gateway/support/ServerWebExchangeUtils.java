@@ -328,7 +328,7 @@ public final class ServerWebExchangeUtils {
 	/**
 	 * Caches the request body in a ServerWebExchange attributes. The attribute is
 	 * {@link #CACHED_REQUEST_BODY_ATTR}. This method is useful when the
-	 * {@link ServerWebExchange} can be mutated, such as a {@link GatewayFilterFactory}/
+	 * {@link ServerWebExchange} can be mutated, such as a {@link GatewayFilterFactory}.
 	 * @param exchange the available ServerWebExchange.
 	 * @param function a function that accepts the created ServerHttpRequestDecorator.
 	 * @param <T> generic type for the return {@link Mono}.
