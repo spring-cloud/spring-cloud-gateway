@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -63,7 +64,7 @@ public class WeightCalculatorWebFilter implements WebFilter, Ordered, SmartAppli
 
 	private final ConfigurationService configurationService;
 
-	private Random random = new Random();
+	private Random random = null;
 
 	private int order = WEIGHT_CALC_FILTER_ORDER;
 
@@ -231,7 +232,13 @@ public class WeightCalculatorWebFilter implements WebFilter, Ordered, SmartAppli
 				continue; // nothing we can do, but this is odd
 			}
 
-			double r = this.random.nextDouble();
+			/*
+			 * Usually, multiple threads accessing the same random object will have some
+			 * performance problems, so we can use ThreadLocalRandom by default
+			 */
+			Random useRandom = this.random;
+			useRandom = useRandom == null ? ThreadLocalRandom.current() : useRandom;
+			double r = useRandom.nextDouble();
 
 			List<Double> ranges = config.ranges;
 
