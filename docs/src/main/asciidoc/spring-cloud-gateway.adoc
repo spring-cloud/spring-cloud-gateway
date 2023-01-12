@@ -1662,12 +1662,12 @@ The following properties are available:
 
 * `xss-protection-header`
 * `strict-transport-security`
-* `x-frame-options`
-* `x-content-type-options`
+* `frame-options`
+* `content-type-options`
 * `referrer-policy`
 * `content-security-policy`
-* `x-download-options`
-* `x-permitted-cross-domain-policies`
+* `download-options`
+* `permitted-cross-domain-policies`
 
 To disable the default values set the `spring.cloud.gateway.filter.secure-headers.disable` property with comma-separated values.
 The following example shows how to do so:
