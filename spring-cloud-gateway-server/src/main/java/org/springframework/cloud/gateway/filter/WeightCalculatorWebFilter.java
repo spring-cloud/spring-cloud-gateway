@@ -233,8 +233,8 @@ public class WeightCalculatorWebFilter implements WebFilter, Ordered, SmartAppli
 			}
 
 			/*
-			 * Usually, multiple threads accessing the same random object will have some performance problems,
-			 * so we can use ThreadLocalRandom by default
+			 * Usually, multiple threads accessing the same random object will have some
+			 * performance problems, so we can use ThreadLocalRandom by default
 			 */
 			Random useRandom = this.random;
 			useRandom = useRandom == null ? ThreadLocalRandom.current() : useRandom;
