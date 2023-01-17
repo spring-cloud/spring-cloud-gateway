@@ -16,11 +16,7 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
-import java.util.Map;
-
 import org.junit.jupiter.api.Test;
-import reactor.core.publisher.Mono;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -33,11 +29,19 @@ import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.io.buffer.PooledDataBuffer;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Mono;
+
+import java.lang.reflect.Field;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -101,7 +105,8 @@ public class CacheRequestBodyGatewayFilterFactoryTests extends BaseWebClientTest
 					.route("cache_request_body_java_test",
 							r -> r.path("/post").and().host("**.cacherequestbody.org")
 									.filters(f -> f.prefixPath("/httpbin").cacheRequestBody(String.class)
-											.filter(new AssertCachedRequestBodyGatewayFilter(BODY_VALUE)))
+											.filter(new AssertCachedRequestBodyGatewayFilter(BODY_VALUE))
+											.filter(new CheckCachedRequestBodyReleasedGatewayFilter()))
 									.uri(uri))
 					.route("cache_request_body_empty_java_test",
 							r -> r.path("/post").and().host("**.cacherequestbodyempty.org")
@@ -159,6 +164,27 @@ public class CacheRequestBodyGatewayFilterFactoryTests extends BaseWebClientTest
 			return chain.filter(exchange);
 		}
 
+	}
+
+	private static class CheckCachedRequestBodyReleasedGatewayFilter implements GatewayFilter {
+
+		CheckCachedRequestBodyReleasedGatewayFilter() {
+		}
+
+		@Override
+		public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+			return chain.filter(exchange).doAfterTerminate(() -> {
+				Object o = exchange.getAttributes()
+						.get(CacheRequestBodyGatewayFilterFactory.CACHED_ORIGIN_REQUEST_BODY_BACKUP_ATTR);
+				if (o instanceof PooledDataBuffer dataBuffer) {
+					if (dataBuffer.isAllocated()) {
+						exchange.getResponse()
+								.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
+						fail("DataBuffer is not released");
+					}
+				}
+			});
+		}
 	}
 
 }
