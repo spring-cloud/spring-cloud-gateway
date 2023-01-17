@@ -5,7 +5,7 @@ Edit the files in the src/main/asciidoc/ directory instead.
 ////
 
 
-image::https://circleci.com/gh/spring-cloud/spring-cloud-gateway/tree/main.svg?style=svg["CircleCI", link="https://circleci.com/gh/spring-cloud/spring-cloud-gateway/tree/main"]
+image::https://github.com/spring-cloud/spring-cloud-gateway/workflows/Build/badge.svg?style=svg["Actions Status", link="https://github.com/spring-cloud/spring-cloud-gateway/actions"]
 image::https://codecov.io/gh/spring-cloud/spring-cloud-gateway/branch/main/graph/badge.svg["Codecov", link="https://codecov.io/gh/spring-cloud/spring-cloud-gateway/branch/main"]
 
 
