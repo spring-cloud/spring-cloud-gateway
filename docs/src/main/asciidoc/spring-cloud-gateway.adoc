@@ -2172,8 +2172,10 @@ The `LocalResponseCache` runs if its associated property is enabled (`spring.clo
 - The HTTP `Cache-Control` header allows caching (that means it does not have any of the following values: `no-store` present in the request and `no-store` or `private` present in the response).
 
 It accepts two configuration parameters:
-- `spring.cloud.gateway.filter.local-response-cache.size`: Sets the maximum size of the cache to evict entries for this route (in KB, MB and GB).
-- `spring.cloud.gateway.filter.local-response-cache.timeToLive` Sets the time to expire a cache entry (expressed in s for seconds, m for minutes, and h for hours).
+
+* `spring.cloud.gateway.filter.local-response-cache.size`: Sets the maximum size of the cache to evict entries for this route (in KB, MB and GB).
+* `spring.cloud.gateway.filter.local-response-cache.timeToLive` Sets the time to expire a cache entry (expressed in s for seconds, m for minutes, and h for hours).
+
 If none of these parameters are configured but the global filter is enabled, by default, it configures 5 minutes of time to live for the cached response.
 
 This filter also implements the automatic calculation of the `max-age value in the HTTP `Cache-Control` header.
