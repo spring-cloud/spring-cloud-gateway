@@ -863,15 +863,20 @@ class GatewayHints implements RuntimeHintsRegistrar {
 		if (!ClassUtils.isPresent("org.springframework.cloud.gateway.route.RouteLocator", classLoader)) {
 			return;
 		}
-		hints.reflection().registerType(TypeReference.of(FilterDefinition.class),
-				hint -> hint.withMembers(MemberCategory.DECLARED_FIELDS, MemberCategory.INVOKE_DECLARED_METHODS,
-						MemberCategory.INVOKE_DECLARED_CONSTRUCTORS));
-		hints.reflection().registerType(TypeReference.of(PredicateDefinition.class),
-				hint -> hint.withMembers(MemberCategory.DECLARED_FIELDS, MemberCategory.INVOKE_DECLARED_METHODS,
-						MemberCategory.INVOKE_DECLARED_CONSTRUCTORS));
-		hints.reflection().registerType(TypeReference.of(AbstractNameValueGatewayFilterFactory.NameValueConfig.class),
-				hint -> hint.withMembers(MemberCategory.DECLARED_FIELDS, MemberCategory.INVOKE_DECLARED_METHODS,
-						MemberCategory.INVOKE_DECLARED_CONSTRUCTORS));
+		hints.reflection()
+				.registerType(TypeReference.of(FilterDefinition.class),
+						hint -> hint.withMembers(MemberCategory.DECLARED_FIELDS, MemberCategory.INVOKE_DECLARED_METHODS,
+								MemberCategory.INVOKE_DECLARED_CONSTRUCTORS))
+				.registerType(TypeReference.of(PredicateDefinition.class),
+						hint -> hint.withMembers(MemberCategory.DECLARED_FIELDS, MemberCategory.INVOKE_DECLARED_METHODS,
+								MemberCategory.INVOKE_DECLARED_CONSTRUCTORS))
+				.registerType(TypeReference.of(AbstractNameValueGatewayFilterFactory.NameValueConfig.class),
+						hint -> hint.withMembers(MemberCategory.DECLARED_FIELDS, MemberCategory.INVOKE_DECLARED_METHODS,
+								MemberCategory.INVOKE_DECLARED_CONSTRUCTORS))
+				.registerType(TypeReference.of(
+						"org.springframework.cloud.gateway.discovery.DiscoveryClientRouteDefinitionLocator$DelegatingServiceInstance"),
+						hint -> hint.withMembers(MemberCategory.DECLARED_FIELDS, MemberCategory.INVOKE_DECLARED_METHODS,
+								MemberCategory.INVOKE_DECLARED_CONSTRUCTORS));
 	}
 
 }
