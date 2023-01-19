@@ -64,7 +64,7 @@ public class LocalResponseCacheGatewayFilterFactory
 			return new ResponseCacheGatewayFilter(cacheManagerFactory.create(globalCache, configuredTimeToLive));
 		}
 		else {
-			Cache routeCache = LocalResponseCacheAutoConfiguration.concurrentMapCacheManager(cacheProperties)
+			Cache routeCache = LocalResponseCacheAutoConfiguration.gatewayCacheManager(cacheProperties)
 					.getCache(config.getRouteId() + "-cache");
 			return new ResponseCacheGatewayFilter(
 					cacheManagerFactory.create(routeCache, cacheProperties.getTimeToLive()));

@@ -2182,6 +2182,8 @@ This filter also implements the automatic calculation of the `max-age value in t
 If `max-age` is present on the original response, the value is rewritten with the number of seconds set in the `timeToLive` configuration parameter.
 In subsequent calls, this value is recalculated with the number of seconds left until the response expires.
 
+WARNING: If your project creates custom `CacheManager` beans, it will either need to be marked with `@Primary` or injected using `@Qualifier`.
+
 === Forward Routing Filter
 
 The `ForwardRoutingFilter` looks for a URI in the exchange attribute `ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR`.

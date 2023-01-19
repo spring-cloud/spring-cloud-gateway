@@ -23,6 +23,7 @@ import com.github.benmanes.caffeine.cache.Weigher;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -52,9 +53,12 @@ public class LocalResponseCacheAutoConfiguration {
 
 	private static final String RESPONSE_CACHE_NAME = "response-cache";
 
+	/* for testing */ static final String RESPONSE_CACHE_MANAGER_NAME = "gatewayCacheManager";
+
 	@Bean
 	public LocalResponseCacheGatewayFilterFactory localResponseCacheGatewayFilterFactory(
-			ResponseCacheManagerFactory responseCacheManagerFactory, CacheManager cacheManager,
+			ResponseCacheManagerFactory responseCacheManagerFactory,
+			@Qualifier(RESPONSE_CACHE_MANAGER_NAME) CacheManager cacheManager,
 			LocalResponseCacheProperties properties) {
 		return new LocalResponseCacheGatewayFilterFactory(responseCacheManagerFactory, responseCache(cacheManager),
 				properties.getTimeToLive());
@@ -70,8 +74,8 @@ public class LocalResponseCacheAutoConfiguration {
 		return new CacheKeyGenerator();
 	}
 
-	@Bean
-	public static CacheManager concurrentMapCacheManager(LocalResponseCacheProperties cacheProperties) {
+	@Bean(name = RESPONSE_CACHE_MANAGER_NAME)
+	public static CacheManager gatewayCacheManager(LocalResponseCacheProperties cacheProperties) {
 		CaffeineCacheManager caffeineCacheManager = new CaffeineCacheManager();
 		caffeineCacheManager.setCaffeine(caffeine(cacheProperties));
 		return caffeineCacheManager;
