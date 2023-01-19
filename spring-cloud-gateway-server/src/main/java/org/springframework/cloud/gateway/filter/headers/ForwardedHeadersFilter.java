@@ -25,8 +25,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.jetbrains.annotations.Nullable;
-
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -70,7 +68,6 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 		return forwarded;
 	}
 
-	@Nullable
 	/* for testing */ static LinkedCaseInsensitiveMap<String> splitIntoCaseInsensitiveMap(String[] pairs) {
 		if (ObjectUtils.isEmpty(pairs)) {
 			return null;

@@ -21,7 +21,6 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -419,7 +418,6 @@ class ReactiveLoadBalancerClientFilterTests {
 		return serverWebExchange;
 	}
 
-	@NotNull
 	private Map<String, String> buildHints(String hint) {
 		Map<String, String> hints = new HashMap<>();
 		hints.put("default", hint);

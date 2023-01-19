@@ -21,7 +21,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -109,7 +108,6 @@ public class RedisRouteDefinitionRepositoryTests {
 		assertThat(redisRouteDefinitionRepository.getRouteDefinitions().collectList().block().size()).isEqualTo(0);
 	}
 
-	@NotNull
 	private RouteDefinition defaultTestRoute() {
 		RouteDefinition testRouteDefinition = new RouteDefinition();
 		testRouteDefinition.setId("test-route");

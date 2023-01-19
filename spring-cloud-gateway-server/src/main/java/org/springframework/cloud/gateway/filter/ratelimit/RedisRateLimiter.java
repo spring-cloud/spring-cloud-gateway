@@ -27,7 +27,6 @@ import javax.validation.constraints.Min;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.jetbrains.annotations.NotNull;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -298,7 +297,6 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 		return routeConfig;
 	}
 
-	@NotNull
 	public Map<String, String> getHeaders(Config config, Long tokensLeft) {
 		Map<String, String> headers = new HashMap<>();
 		if (isIncludeHeaders()) {
