@@ -89,8 +89,8 @@ class ConfigurableHintsRegistrationProcessor implements BeanFactoryInitializatio
 				classesToAdd.add(clazz);
 			}
 			catch (NoClassDefFoundError | ClassNotFoundException exception) {
-				if (LOG.isWarnEnabled()) {
-					LOG.warn(exception);
+				if (LOG.isDebugEnabled()) {
+					LOG.debug(exception);
 				}
 			}
 		}
