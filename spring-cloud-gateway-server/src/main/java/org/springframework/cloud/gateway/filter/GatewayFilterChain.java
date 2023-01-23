@@ -19,7 +19,6 @@ package org.springframework.cloud.gateway.filter;
 import reactor.core.publisher.Mono;
 
 import org.springframework.web.server.ServerWebExchange;
-import org.springframework.web.server.WebFilter;
 
 /**
  * Contract to allow a {@link GatewayFilter} to delegate to the next in the chain.
