@@ -73,7 +73,7 @@
 |spring.cloud.gateway.globalcors.cors-configurations |  | 
 |spring.cloud.gateway.handler-mapping.order | `+++1+++` | The order of RoutePredicateHandlerMapping.
 |spring.cloud.gateway.httpclient.compression | `+++false+++` | Enables compression for Netty HttpClient.
-|spring.cloud.gateway.httpclient.connect-timeout |  | The connect timeout in millis, the default is 45s.
+|spring.cloud.gateway.httpclient.connect-timeout |  | The connect timeout in millis, the default is 30s.
 |spring.cloud.gateway.httpclient.max-header-size |  | The max response header size.
 |spring.cloud.gateway.httpclient.max-initial-line-length |  | The max initial line length.
 |spring.cloud.gateway.httpclient.pool.acquire-timeout |  | Only for type FIXED, the maximum time in millis to wait for acquiring.
