@@ -89,8 +89,8 @@ public class CacheRequestBodyGatewayFilterFactory
 							//
 							Object backupCachedBody = exchange.getAttributes()
 									.get(CACHED_ORIGINAL_REQUEST_BODY_BACKUP_ATTR);
-							if (backupCachedBody instanceof DataBuffer) {
-								DataBufferUtils.release((DataBuffer) backupCachedBody);
+							if (backupCachedBody instanceof DataBuffer dataBuffer) {
+								DataBufferUtils.release(dataBuffer);
 							}
 						});
 					}));
