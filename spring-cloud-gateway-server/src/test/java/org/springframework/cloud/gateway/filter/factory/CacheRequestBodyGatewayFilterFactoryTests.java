@@ -174,8 +174,9 @@ public class CacheRequestBodyGatewayFilterFactoryTests extends BaseWebClientTest
 		public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 			return chain.filter(exchange).doAfterTerminate(() -> {
 				Object o = exchange.getAttributes()
-						.get(CacheRequestBodyGatewayFilterFactory.CACHED_ORIGIN_REQUEST_BODY_BACKUP_ATTR);
-				if (o instanceof PooledDataBuffer dataBuffer) {
+						.get(CacheRequestBodyGatewayFilterFactory.CACHED_ORIGINAL_REQUEST_BODY_BACKUP_ATTR);
+				if (o instanceof PooledDataBuffer) {
+					PooledDataBuffer dataBuffer = (PooledDataBuffer) o;
 					if (dataBuffer.isAllocated()) {
 						exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
 						fail("DataBuffer is not released");
