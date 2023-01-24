@@ -38,7 +38,6 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.C
 
 /**
  * @author weizibin
- * @author dg-hong
  */
 public class CacheRequestBodyGatewayFilterFactory
 		extends AbstractGatewayFilterFactory<CacheRequestBodyGatewayFilterFactory.Config> {
