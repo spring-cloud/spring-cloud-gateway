@@ -21,13 +21,14 @@ import reactor.core.publisher.Mono;
 import org.springframework.web.server.ServerWebExchange;
 
 /**
- * Contract for interception-style, chained processing of gateway requests that may be used to
- * implement cross-cutting, application-agnostic requirements such as security, timeouts,
- * and others.
+ * Contract for interception-style, chained processing of gateway requests that may be
+ * used to implement cross-cutting, application-agnostic requirements such as security,
+ * timeouts, and others.
  *
  * Only applies to matched gateway routes.
  *
  * Copied from framework WebFilter
+ *
  * @author Rossen Stoyanchev
  * @since 5.0
  */
