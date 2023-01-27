@@ -61,7 +61,7 @@ public class ResponseCacheGatewayFilter implements GatewayFilter, Ordered {
 
 	@Override
 	public int getOrder() {
-		return NettyWriteResponseFilter.WRITE_RESPONSE_FILTER_ORDER - 1;
+		return NettyWriteResponseFilter.WRITE_RESPONSE_FILTER_ORDER - 3;
 	}
 
 	private Mono<Void> filterWithCache(ServerWebExchange exchange, GatewayFilterChain chain) {

@@ -25,12 +25,12 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.caffeine.CaffeineCacheManager;
-import org.springframework.cloud.gateway.config.conditional.ConditionalOnEnabledFilter;
+import org.springframework.cloud.gateway.filter.factory.cache.GlobalLocalResponseCacheGatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.cache.LocalResponseCacheGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.cache.LocalResponseCacheProperties;
 import org.springframework.cloud.gateway.filter.factory.cache.ResponseCacheManagerFactory;
@@ -41,12 +41,12 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * @author Ignacio Lozano
+ * @author Marta Medio
  */
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties({ LocalResponseCacheProperties.class })
 @ConditionalOnClass({ Weigher.class, Caffeine.class, CaffeineCacheManager.class })
-@ConditionalOnProperty(name = "spring.cloud.gateway.enabled", matchIfMissing = true)
-@ConditionalOnEnabledFilter(LocalResponseCacheGatewayFilterFactory.class)
+@ConditionalOnExpression("${spring.cloud.gateway.enabled:true} && ${spring.cloud.gateway.filter.local-response-cache.enabled:false}")
 public class LocalResponseCacheAutoConfiguration {
 
 	private static final Log LOGGER = LogFactory.getLog(LocalResponseCacheAutoConfiguration.class);
@@ -54,6 +54,15 @@ public class LocalResponseCacheAutoConfiguration {
 	private static final String RESPONSE_CACHE_NAME = "response-cache";
 
 	/* for testing */ static final String RESPONSE_CACHE_MANAGER_NAME = "gatewayCacheManager";
+
+	@Bean
+	public GlobalLocalResponseCacheGatewayFilter globalLocalResponseCacheGatewayFilter(
+			ResponseCacheManagerFactory responseCacheManagerFactory,
+			@Qualifier(RESPONSE_CACHE_MANAGER_NAME) CacheManager cacheManager,
+			LocalResponseCacheProperties properties) {
+		return new GlobalLocalResponseCacheGatewayFilter(responseCacheManagerFactory, responseCache(cacheManager),
+				properties.getTimeToLive());
+	}
 
 	@Bean
 	public LocalResponseCacheGatewayFilterFactory localResponseCacheGatewayFilterFactory(
