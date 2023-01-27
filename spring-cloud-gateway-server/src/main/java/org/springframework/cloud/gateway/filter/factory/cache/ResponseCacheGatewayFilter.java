@@ -31,6 +31,8 @@ import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.web.server.ServerWebExchange;
 
+import static org.springframework.cloud.gateway.filter.factory.cache.LocalResponseCacheGatewayFilterFactory.LOCAL_RESPONSE_CACHE_FILTER_PROCESS;
+
 /**
  * {@literal LocalResponseCache} Gateway Filter that stores HTTP Responses in a cache, so
  * latency and upstream overhead is reduced.
@@ -49,6 +51,7 @@ public class ResponseCacheGatewayFilter implements GatewayFilter, Ordered {
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 		if (responseCacheManager.isRequestCacheable(exchange.getRequest())) {
+			exchange.getAttributes().put(LOCAL_RESPONSE_CACHE_FILTER_PROCESS, true);
 			return filterWithCache(exchange, chain);
 		}
 		else {
