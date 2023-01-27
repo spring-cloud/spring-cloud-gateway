@@ -27,7 +27,7 @@ import org.springframework.cloud.gateway.filter.NettyWriteResponseFilter;
 import org.springframework.core.Ordered;
 import org.springframework.web.server.ServerWebExchange;
 
-import static org.springframework.cloud.gateway.filter.factory.cache.LocalResponseCacheGatewayFilterFactory.LOCAL_RESPONSE_CACHE_FILTER_PROCESS;
+import static org.springframework.cloud.gateway.filter.factory.cache.LocalResponseCacheGatewayFilterFactory.LOCAL_RESPONSE_CACHE_FILTER_APPLIED;
 
 /**
  * @author Ignacio Lozano
@@ -50,7 +50,7 @@ public class GlobalLocalResponseCacheGatewayFilter implements GlobalFilter, Orde
 
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-		if (exchange.getAttributes().get(LOCAL_RESPONSE_CACHE_FILTER_PROCESS) == null) {
+		if (exchange.getAttributes().get(LOCAL_RESPONSE_CACHE_FILTER_APPLIED) == null) {
 			ResponseCacheManager responseCacheManager = cacheManagerFactory.create(globalCache, configuredTimeToLive);
 			return new ResponseCacheGatewayFilter(responseCacheManager).filter(exchange, chain);
 		}

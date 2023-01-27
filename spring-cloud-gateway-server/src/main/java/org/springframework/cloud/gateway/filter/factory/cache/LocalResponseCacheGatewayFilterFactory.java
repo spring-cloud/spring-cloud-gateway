@@ -48,7 +48,7 @@ public class LocalResponseCacheGatewayFilterFactory
 	 * Exchange attribute name to track if the request has been already process by cache
 	 * at route filter level.
 	 */
-	public static final String LOCAL_RESPONSE_CACHE_FILTER_PROCESS = "LocalResponseCacheGatewayFilter-Process";
+	public static final String LOCAL_RESPONSE_CACHE_FILTER_APPLIED = "LocalResponseCacheGatewayFilter-Applied";
 
 	private final Cache globalCache;
 
