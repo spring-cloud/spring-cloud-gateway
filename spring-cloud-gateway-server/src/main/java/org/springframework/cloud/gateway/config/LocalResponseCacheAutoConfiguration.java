@@ -24,8 +24,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.condition.AnyNestedCondition;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
@@ -37,6 +38,7 @@ import org.springframework.cloud.gateway.filter.factory.cache.ResponseCacheManag
 import org.springframework.cloud.gateway.filter.factory.cache.ResponseCacheSizeWeigher;
 import org.springframework.cloud.gateway.filter.factory.cache.keygenerator.CacheKeyGenerator;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 
 /**
@@ -46,7 +48,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties({ LocalResponseCacheProperties.class })
 @ConditionalOnClass({ Weigher.class, Caffeine.class, CaffeineCacheManager.class })
-@ConditionalOnExpression("${spring.cloud.gateway.enabled:true} && ${spring.cloud.gateway.filter.local-response-cache.enabled:false}")
+@Conditional(LocalResponseCacheAutoConfiguration.OnGlobalLocalResponseCacheCondition.class)
 public class LocalResponseCacheAutoConfiguration {
 
 	private static final Log LOGGER = LogFactory.getLog(LocalResponseCacheAutoConfiguration.class);
@@ -108,6 +110,25 @@ public class LocalResponseCacheAutoConfiguration {
 
 	Cache responseCache(CacheManager cacheManager) {
 		return cacheManager.getCache(RESPONSE_CACHE_NAME);
+	}
+
+	public static class OnGlobalLocalResponseCacheCondition extends AnyNestedCondition {
+
+		OnGlobalLocalResponseCacheCondition() {
+			super(ConfigurationPhase.REGISTER_BEAN);
+		}
+
+		@ConditionalOnProperty(value = "spring.cloud.gateway.enabled", havingValue = "true", matchIfMissing = true)
+		static class OnGatewayPropertyEnabled {
+
+		}
+
+		@ConditionalOnProperty(value = "spring.cloud.gateway.filter.local-response-cache.enabled", havingValue = "true",
+				matchIfMissing = false)
+		static class OnLocalResponseCachePropertyEnabled {
+
+		}
+
 	}
 
 }
