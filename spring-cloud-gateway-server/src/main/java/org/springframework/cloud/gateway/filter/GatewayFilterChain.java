@@ -24,6 +24,7 @@ import org.springframework.web.server.ServerWebExchange;
  * Contract to allow a {@link GatewayFilter} to delegate to the next in the chain.
  *
  * Copied from framework WebFilterChain
+ *
  * @author Rossen Stoyanchev
  * @since 5.0
  */
