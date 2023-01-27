@@ -39,7 +39,7 @@
     {
       "name": "spring.cloud.gateway.filter.local-response-cache.enabled",
       "type": "java.lang.Boolean",
-      "description": "Enables the local-response-cache filter.",
+      "description": "Enables the local-response-cache filter for all routes, it allows to add a specific configuration at route level using LocalResponseCache filter.",
       "defaultValue": "false"
     },
     {
