@@ -35,24 +35,18 @@ import static org.springframework.cloud.gateway.filter.factory.cache.LocalRespon
  */
 public class GlobalLocalResponseCacheGatewayFilter implements GlobalFilter, Ordered {
 
-	private final Cache globalCache;
-
-	ResponseCacheManagerFactory cacheManagerFactory;
-
-	Duration configuredTimeToLive;
+	private final ResponseCacheGatewayFilter responseCacheGatewayFilter;
 
 	public GlobalLocalResponseCacheGatewayFilter(ResponseCacheManagerFactory cacheManagerFactory, Cache globalCache,
 			Duration configuredTimeToLive) {
-		this.cacheManagerFactory = cacheManagerFactory;
-		this.globalCache = globalCache;
-		this.configuredTimeToLive = configuredTimeToLive;
+		responseCacheGatewayFilter = new ResponseCacheGatewayFilter(
+				cacheManagerFactory.create(globalCache, configuredTimeToLive));
 	}
 
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 		if (exchange.getAttributes().get(LOCAL_RESPONSE_CACHE_FILTER_APPLIED) == null) {
-			ResponseCacheManager responseCacheManager = cacheManagerFactory.create(globalCache, configuredTimeToLive);
-			return new ResponseCacheGatewayFilter(responseCacheManager).filter(exchange, chain);
+			return responseCacheGatewayFilter.filter(exchange, chain);
 		}
 		return chain.filter(exchange);
 	}
