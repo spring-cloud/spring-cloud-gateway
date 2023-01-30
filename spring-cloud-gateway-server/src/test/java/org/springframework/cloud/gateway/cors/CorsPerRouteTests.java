@@ -20,10 +20,14 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.gateway.route.RouteLocator;
+import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -60,6 +64,21 @@ public class CorsPerRouteTests extends BaseWebClientTests {
 					assertThat(responseHeaders.getAccessControlAllowCredentials())
 							.as(missingHeader(ACCESS_CONTROL_ALLOW_CREDENTIALS)).isEqualTo(true);
 				});
+
+		testClient.options().uri("/route-test").header("Origin", "another-domain.com")
+				.header("Access-Control-Request-Method", "GET").exchange().expectBody(Map.class).consumeWith(result -> {
+					assertThat(result.getResponseBody()).isNull();
+					assertThat(result.getStatus()).isEqualTo(HttpStatus.OK);
+
+					HttpHeaders responseHeaders = result.getResponseHeaders();
+					assertThat(responseHeaders.getAccessControlAllowOrigin())
+							.as(missingHeader(ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("another-domain.com");
+					assertThat(responseHeaders.getAccessControlAllowMethods())
+							.as(missingHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS))
+							.containsExactlyInAnyOrder(HttpMethod.GET);
+					assertThat(responseHeaders.getAccessControlMaxAge()).as(missingHeader(ACCESS_CONTROL_MAX_AGE))
+							.isEqualTo(50L);
+				});
 	}
 
 	@Test
@@ -88,6 +107,20 @@ public class CorsPerRouteTests extends BaseWebClientTests {
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
 	public static class TestConfig {
+
+		@Value("${test.uri}")
+		String uri;
+
+		@Bean
+		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
+			return builder.routes()
+					.route("cors_route_java_test",
+							r -> r.path("/route-test/**").filters(f -> f.stripPrefix(1).prefixPath("/httpbin"))
+									.metadata(Map.of("cors", Map.of("allowedOrigins", "another-domain.com",
+											"allowedMethods", HttpMethod.GET.name(), "maxAge", 50)))
+									.uri(uri))
+					.build();
+		}
 
 	}
 
