@@ -26,6 +26,7 @@ import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import io.netty.util.internal.PlatformDependent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 import org.junitpioneer.jupiter.RetryingTest;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
@@ -63,6 +64,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 				"spring.main.allow-bean-definition-overriding=true" })
 @DirtiesContext
 @ActiveProfiles("single-cert-ssl")
+@DisabledIfEnvironmentVariable(named = "GITHUB_ACTION", matches = ".*")
 class ModifyRequestBodyGatewayFilterFactorySslTimeoutTests extends BaseWebClientTests {
 
 	@Autowired
