@@ -64,7 +64,6 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 				"spring.main.allow-bean-definition-overriding=true" })
 @DirtiesContext
 @ActiveProfiles("single-cert-ssl")
-@DisabledIfEnvironmentVariable(named = "GITHUB_ACTION", matches = ".*")
 class ModifyRequestBodyGatewayFilterFactorySslTimeoutTests extends BaseWebClientTests {
 
 	@Autowired
@@ -73,6 +72,7 @@ class ModifyRequestBodyGatewayFilterFactorySslTimeoutTests extends BaseWebClient
 	@BeforeEach
 	public void setup() {
 		try {
+			System.err.println("in github = " + System.getenv("GITHUB_ACTIONS"));
 			SslContext sslContext = SslContextBuilder.forClient().trustManager(InsecureTrustManagerFactory.INSTANCE)
 					.build();
 			HttpClient httpClient = HttpClient.create().secure(ssl -> ssl.sslContext(sslContext));
@@ -84,6 +84,7 @@ class ModifyRequestBodyGatewayFilterFactorySslTimeoutTests extends BaseWebClient
 	}
 
 	@Test
+	@DisabledIfEnvironmentVariable(named = "GITHUB_ACTIONS", matches = "true")
 	void modifyRequestBodySSLTimeout() {
 		testClient.post().uri("/post").header("Host", "www.modifyrequestbodyssltimeout.org")
 				.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_XML_VALUE)
@@ -92,6 +93,7 @@ class ModifyRequestBodyGatewayFilterFactorySslTimeoutTests extends BaseWebClient
 				.isEqualTo("handshake timed out after 1ms");
 	}
 
+	@DisabledIfEnvironmentVariable(named = "GITHUB_ACTIONS", matches = "true")
 	@RetryingTest(3)
 	void modifyRequestBodyRelease() {
 		releaseCount.set(0);
@@ -109,6 +111,7 @@ class ModifyRequestBodyGatewayFilterFactorySslTimeoutTests extends BaseWebClient
 	}
 
 	@Test
+	@DisabledIfEnvironmentVariable(named = "GITHUB_ACTIONS", matches = "true")
 	void modifyRequestBodyHappenedError() {
 		testClient.post().uri("/post").header("Host", "www.modifyrequestbodyexception.org")
 				.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_XML_VALUE)
