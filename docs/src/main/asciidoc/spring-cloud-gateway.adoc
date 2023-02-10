@@ -1091,6 +1091,11 @@ spring:
         - LocalResponseCache=30m,500MB
 ----
 
+To enable this for Spring Cloud Gateway add the following dependencies
+
+- `com.github.ben-manes.caffeine:caffeine`
+- `org.springframework.boot:spring-boot-starter-cache`
+
 NOTE: This filter also automatically calculates the `max-age` value in the HTTP `Cache-Control` header.
 Only if `max-age` is present on the original response is the value rewritten with the number of seconds set in the `timeToLive` configuration parameter.
 In consecutive calls, this value is recalculated with the number of seconds left until the response expires.
