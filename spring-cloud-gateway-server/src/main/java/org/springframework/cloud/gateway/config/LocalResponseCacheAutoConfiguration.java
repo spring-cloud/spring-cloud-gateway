@@ -24,7 +24,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.condition.AnyNestedCondition;
+import org.springframework.boot.autoconfigure.condition.AllNestedConditions;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -86,13 +86,12 @@ public class LocalResponseCacheAutoConfiguration {
 	}
 
 	@Bean(name = RESPONSE_CACHE_MANAGER_NAME)
-	public static CacheManager gatewayCacheManager(LocalResponseCacheProperties cacheProperties) {
-		CaffeineCacheManager caffeineCacheManager = new CaffeineCacheManager();
-		caffeineCacheManager.setCaffeine(caffeine(cacheProperties));
-		return caffeineCacheManager;
+	public CacheManager gatewayCacheManager(LocalResponseCacheProperties cacheProperties) {
+		return createGatewayCacheManager(cacheProperties);
 	}
 
-	private static Caffeine caffeine(LocalResponseCacheProperties cacheProperties) {
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public static CaffeineCacheManager createGatewayCacheManager(LocalResponseCacheProperties cacheProperties) {
 		Caffeine caffeine = Caffeine.newBuilder();
 		LOGGER.info("Initializing Caffeine");
 		Duration ttlSeconds = cacheProperties.getTimeToLive();
@@ -101,7 +100,9 @@ public class LocalResponseCacheAutoConfiguration {
 		if (cacheProperties.getSize() != null) {
 			caffeine.maximumWeight(cacheProperties.getSize().toBytes()).weigher(responseCacheSizeWeigher());
 		}
-		return caffeine;
+		CaffeineCacheManager caffeineCacheManager = new CaffeineCacheManager();
+		caffeineCacheManager.setCaffeine(caffeine);
+		return caffeineCacheManager;
 	}
 
 	private static ResponseCacheSizeWeigher responseCacheSizeWeigher() {
@@ -112,13 +113,13 @@ public class LocalResponseCacheAutoConfiguration {
 		return cacheManager.getCache(RESPONSE_CACHE_NAME);
 	}
 
-	public static class OnGlobalLocalResponseCacheCondition extends AnyNestedCondition {
+	public static class OnGlobalLocalResponseCacheCondition extends AllNestedConditions {
 
 		OnGlobalLocalResponseCacheCondition() {
 			super(ConfigurationPhase.REGISTER_BEAN);
 		}
 
-		@ConditionalOnProperty(value = "spring.cloud.gateway.enabled", havingValue = "true")
+		@ConditionalOnProperty(value = "spring.cloud.gateway.enabled", havingValue = "true", matchIfMissing = true)
 		static class OnGatewayPropertyEnabled {
 
 		}
