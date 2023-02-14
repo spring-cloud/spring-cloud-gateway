@@ -64,9 +64,13 @@ public class CorsPerRouteTests extends BaseWebClientTests {
 					assertThat(responseHeaders.getAccessControlAllowCredentials())
 							.as(missingHeader(ACCESS_CONTROL_ALLOW_CREDENTIALS)).isEqualTo(true);
 				});
+	}
 
+	@Test
+	public void testPreFlightCorsRequestJavaConfig() {
 		testClient.options().uri("/route-test").header("Origin", "another-domain.com")
-				.header("Access-Control-Request-Method", "GET").exchange().expectBody(Map.class).consumeWith(result -> {
+				.header("Host", "www.javaconfhost.org").header("Access-Control-Request-Method", "GET").exchange()
+				.expectBody(Map.class).consumeWith(result -> {
 					assertThat(result.getResponseBody()).isNull();
 					assertThat(result.getStatus()).isEqualTo(HttpStatus.OK);
 
@@ -115,7 +119,8 @@ public class CorsPerRouteTests extends BaseWebClientTests {
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes()
 					.route("cors_route_java_test",
-							r -> r.path("/route-test/**").filters(f -> f.stripPrefix(1).prefixPath("/httpbin"))
+							r -> r.host("*.javaconfhost.org").and().path("/route-test/**")
+									.filters(f -> f.stripPrefix(1).prefixPath("/httpbin"))
 									.metadata(Map.of("cors", Map.of("allowedOrigins", "another-domain.com",
 											"allowedMethods", HttpMethod.GET.name(), "maxAge", 50)))
 									.uri(uri))

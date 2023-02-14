@@ -22,16 +22,21 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.springframework.cloud.gateway.config.GlobalCorsProperties;
 import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
 import org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping;
+import org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFactory;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.context.ApplicationListener;
 import org.springframework.web.cors.CorsConfiguration;
 
 /**
+ * This class updates Cors configuration each time a {@link RefreshRoutesEvent} is consumed.
+ * The {@link Route}'s predicates are inspected for a {@link PathRoutePredicateFactory} and
+ * the first pattern is used.
  * @author Fredrich Ombico
  * @author Abel Salgado Romero
  */
@@ -42,8 +47,6 @@ public class CorsGatewayFilterApplicationListener implements ApplicationListener
 	private final RoutePredicateHandlerMapping routePredicateHandlerMapping;
 
 	private final RouteLocator routeLocator;
-
-	private static final String PATH_PREDICATE_NAME = "Path";
 
 	private static final String METADATA_KEY = "cors";
 
@@ -74,14 +77,25 @@ public class CorsGatewayFilterApplicationListener implements ApplicationListener
 		});
 	}
 
+	/**
+	 * Finds the first path predicate and first pattern in the config.
+	 * @param route The Route to use.
+	 * @return the first path predicate pattern or /**.
+	 */
 	private String getPathPredicate(Route route) {
-		String predicate = route.getPredicate().toString();
-		try {
-			return predicate.substring(predicate.indexOf("[") + 1, predicate.indexOf("]"));
+		var predicate = route.getPredicate();
+		var pathPatterns = new AtomicReference<String>();
+		predicate.accept(p -> {
+			if (p.getConfig() instanceof PathRoutePredicateFactory.Config pathConfig) {
+				if (!pathConfig.getPatterns().isEmpty()) {
+					pathPatterns.compareAndSet(null, pathConfig.getPatterns().get(0));
+				}
+			}
+		});
+		if (pathPatterns.get() != null) {
+			return pathPatterns.get();
 		}
-		catch (ArrayIndexOutOfBoundsException e) {
-			return ALL_PATHS;
-		}
+		return ALL_PATHS;
 	}
 
 	@SuppressWarnings("unchecked")
