@@ -272,9 +272,9 @@ public class GatewayAutoConfiguration {
 	@ConditionalOnProperty(name = "spring.cloud.gateway.globalcors.enabled", matchIfMissing = true)
 	public CorsGatewayFilterApplicationListener corsGatewayFilterApplicationListener(
 			GlobalCorsProperties globalCorsProperties, RoutePredicateHandlerMapping routePredicateHandlerMapping,
-			RouteDefinitionLocator routeDefinitionLocator) {
+			RouteLocator routeLocator) {
 		return new CorsGatewayFilterApplicationListener(globalCorsProperties, routePredicateHandlerMapping,
-				routeDefinitionLocator);
+				routeLocator);
 	}
 
 	@Bean
