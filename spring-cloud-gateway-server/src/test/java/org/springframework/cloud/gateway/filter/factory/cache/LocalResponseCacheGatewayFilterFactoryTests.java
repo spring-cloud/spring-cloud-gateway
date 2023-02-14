@@ -43,12 +43,13 @@ import org.springframework.util.StringUtils;
 import org.springframework.util.unit.DataSize;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 /**
  * @author Ignacio Lozano
+ * @author Marta Medio
  */
-@SpringBootTest(webEnvironment = RANDOM_PORT)
+@SpringBootTest(properties = { "spring.cloud.gateway.filter.local-response-cache.enabled=true" },
+		webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DirtiesContext
 @ActiveProfiles(profiles = "local-cache-filter")
 public class LocalResponseCacheGatewayFilterFactoryTests extends BaseWebClientTests {
@@ -56,14 +57,14 @@ public class LocalResponseCacheGatewayFilterFactoryTests extends BaseWebClientTe
 	private static final String CUSTOM_HEADER = "X-Custom-Date";
 
 	@Test
-	void shouldNotCacheResponseWhenRouteDoesNotHaveFilter() {
-		String uri = "/" + UUID.randomUUID() + "/no-cache/headers";
+	void shouldGlobalCacheResponseWhenRouteDoesNotHaveFilter() {
+		String uri = "/" + UUID.randomUUID() + "/global-cache/headers";
 
 		testClient.get().uri(uri).header("Host", "www.localresponsecache.org").header(CUSTOM_HEADER, "1").exchange()
 				.expectBody().jsonPath("$.headers." + CUSTOM_HEADER);
 
 		testClient.get().uri(uri).header("Host", "www.localresponsecache.org").header(CUSTOM_HEADER, "2").exchange()
-				.expectBody().jsonPath("$.headers." + CUSTOM_HEADER).isEqualTo("2");
+				.expectBody().jsonPath("$.headers." + CUSTOM_HEADER).isEqualTo("1");
 	}
 
 	@Test
@@ -251,13 +252,13 @@ public class LocalResponseCacheGatewayFilterFactoryTests extends BaseWebClientTe
 		@Bean
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes()
-					.route("no_local_response_cache_java_test",
-							r -> r.path("/{namespace}/no-cache/**").and().host("{sub}.localresponsecache.org")
+					.route("global_local_response_cache_java_test",
+							r -> r.path("/{namespace}/global-cache/**").and().host("{sub}.localresponsecache.org")
 									.filters(f -> f.stripPrefix(2).prefixPath("/httpbin")).uri(uri))
 					.route("local_response_cache_java_test",
 							r -> r.path("/{namespace}/cache/**").and().host("{sub}.localresponsecache.org")
-									.filters(
-											f -> f.stripPrefix(2).prefixPath("/httpbin").localResponseCache(null, null))
+									.filters(f -> f.stripPrefix(2).prefixPath("/httpbin")
+											.localResponseCache(Duration.ofMinutes(2), null))
 									.uri(uri))
 					.route("100_millisec_ephemeral_prefix_local_response_cache_java_test",
 							r -> r.path("/{namespace}/ephemeral-cache/**").and().host("{sub}.localresponsecache.org")
