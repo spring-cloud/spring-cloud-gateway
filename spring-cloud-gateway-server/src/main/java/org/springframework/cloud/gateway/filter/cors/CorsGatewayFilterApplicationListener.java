@@ -34,9 +34,10 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.web.cors.CorsConfiguration;
 
 /**
- * This class updates Cors configuration each time a {@link RefreshRoutesEvent} is consumed.
- * The {@link Route}'s predicates are inspected for a {@link PathRoutePredicateFactory} and
- * the first pattern is used.
+ * This class updates Cors configuration each time a {@link RefreshRoutesEvent} is
+ * consumed. The {@link Route}'s predicates are inspected for a
+ * {@link PathRoutePredicateFactory} and the first pattern is used.
+ *
  * @author Fredrich Ombico
  * @author Abel Salgado Romero
  */

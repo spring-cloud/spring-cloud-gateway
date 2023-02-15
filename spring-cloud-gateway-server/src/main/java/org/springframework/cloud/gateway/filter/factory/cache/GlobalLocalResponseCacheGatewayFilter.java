@@ -30,7 +30,9 @@ import org.springframework.web.server.ServerWebExchange;
 import static org.springframework.cloud.gateway.filter.factory.cache.LocalResponseCacheGatewayFilterFactory.LOCAL_RESPONSE_CACHE_FILTER_APPLIED;
 
 /**
- * Caches responses for routes that don't have the {@link LocalResponseCacheGatewayFilterFactory} configured.
+ * Caches responses for routes that don't have the
+ * {@link LocalResponseCacheGatewayFilterFactory} configured.
+ *
  * @author Ignacio Lozano
  * @author Marta Medio
  */
