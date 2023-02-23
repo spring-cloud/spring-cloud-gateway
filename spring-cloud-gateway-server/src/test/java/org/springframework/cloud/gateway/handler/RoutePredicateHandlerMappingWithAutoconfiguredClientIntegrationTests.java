@@ -31,8 +31,8 @@ import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.util.TestSocketUtils;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import org.springframework.util.SocketUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -47,7 +47,7 @@ public class RoutePredicateHandlerMappingWithAutoconfiguredClientIntegrationTest
 
 	@BeforeAll
 	static void beforeClass() {
-		int managementPort = TestSocketUtils.findAvailableTcpPort();
+		int managementPort = SocketUtils.findAvailableTcpPort();
 		System.setProperty("management.server.port", String.valueOf(managementPort));
 	}
 
