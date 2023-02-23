@@ -1,5 +1,6 @@
 package org.springframework.cloud.gateway.handler;
 
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -29,9 +30,14 @@ public class RoutePredicateHandlerMappingWithAutoconfiguredClientIntegrationTest
 	WebTestClient webTestClient;
 
 	@BeforeAll
-	static void setUp() {
+	static void beforeClass() {
 		int managementPort = TestSocketUtils.findAvailableTcpPort();
 		System.setProperty("management.server.port", String.valueOf(managementPort));
+	}
+
+	@AfterAll
+	static void afterClass() {
+		System.clearProperty("management.server.port");
 	}
 
 	@Test
