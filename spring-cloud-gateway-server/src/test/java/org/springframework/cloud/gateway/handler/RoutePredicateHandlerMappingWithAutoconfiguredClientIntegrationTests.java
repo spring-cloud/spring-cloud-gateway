@@ -33,7 +33,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.util.SocketUtils;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -70,14 +69,9 @@ public class RoutePredicateHandlerMappingWithAutoconfiguredClientIntegrationTest
 		@Value("${test.uri:http://httpbin.org:80}")
 		String uri;
 
-		@GetMapping("/get")
-		String get() {
-			return "hello";
-		}
-
 		@Bean
 		RouteLocator testRoutes(RouteLocatorBuilder builder) {
-			return builder.routes().route(predicateSpec -> predicateSpec.path("/get").uri(uri)).build();
+			return builder.routes().route(r -> r.path("/get").filters(f -> f.prefixPath("/httpbin")).uri(uri)).build();
 		}
 
 	}
