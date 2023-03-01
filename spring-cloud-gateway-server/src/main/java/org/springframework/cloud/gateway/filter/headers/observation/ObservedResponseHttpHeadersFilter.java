@@ -44,13 +44,15 @@ public class ObservedResponseHttpHeadersFilter implements HttpHeadersFilter {
 		if (childObservation == null) {
 			return input;
 		}
-		GatewayContext context = (GatewayContext) childObservation.getContext();
-		if (log.isDebugEnabled()) {
-			log.debug("Will instrument the response");
-		}
-		context.setResponse(exchange.getResponse());
-		if (log.isDebugEnabled()) {
-			log.debug("The response was handled for observation " + childObservation);
+		Observation.Context childObservationContext = childObservation.getContext();
+		if (childObservationContext instanceof GatewayContext context) {
+			if (log.isDebugEnabled()) {
+				log.debug("Will instrument the response");
+			}
+			context.setResponse(exchange.getResponse());
+			if (log.isDebugEnabled()) {
+				log.debug("The response was handled for observation " + childObservation);
+			}
 		}
 		childObservation.stop();
 		exchange.getAttributes().put(OBSERVATION_STOPPED, "true");
