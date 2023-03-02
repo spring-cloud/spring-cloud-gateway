@@ -19,9 +19,12 @@ package org.springframework.cloud.gateway.filter.ratelimit;
 import java.util.UUID;
 
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junitpioneer.jupiter.RetryingTest;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -145,6 +148,55 @@ public class RedisRateLimiterTests extends BaseWebClientTests {
 		assertThat(response.getHeaders()).doesNotContainKey(RedisRateLimiter.REPLENISH_RATE_HEADER);
 		assertThat(response.getHeaders()).doesNotContainKey(RedisRateLimiter.BURST_CAPACITY_HEADER);
 		assertThat(response.getHeaders()).doesNotContainKey(RedisRateLimiter.REQUESTED_TOKENS_HEADER);
+	}
+
+
+	@ParameterizedTest
+	@CsvSource({
+			"2, 20, 20, 1",
+			"5, 20, 20, 1",
+			"2, 30, 30, 1",
+			"3, 10, 10, 2",
+			"6, 10, 10, 3",
+			"5, 1, 5, 1",
+			"5, 10, 5, 2",
+			"2, 20, 20, 10"
+	})
+	public void redisRateLimiterWithNSec(int replenishUnitSec, int replenishRate, int burstCapacity, int requestedTokens) throws Exception {
+		Assertions.assertTrue(replenishUnitSec > 1);  // over 1 sec
+		Assertions.assertTrue(requestedTokens <= burstCapacity);
+		String id = UUID.randomUUID().toString();
+
+		String routeId = "token_refill_N_sec_unit";
+		rateLimiter.getConfig().put(routeId, new RedisRateLimiter.Config().setReplenishUnitSec(replenishUnitSec)
+				.setBurstCapacity(burstCapacity)
+				.setReplenishRate(replenishRate).setRequestedTokens(requestedTokens));
+
+		int releaseExpectedDuration = Math.max(1, requestedTokens / replenishRate) * 1000 * replenishUnitSec;
+
+		// Checking for still blocked during 1/2 of blocking time spent after blocked.
+		// If this time is too short(under 1sec), between 'if condition' and 'blocking test', blocking can be released.
+		// That is not functional issue, just be difficult to check on exact time.
+		int recheckingStillBlocked = releaseExpectedDuration / 2;
+
+		long blockStartTime = System.currentTimeMillis();
+
+		// Bursts work
+		simulateBurst(id, replenishRate, burstCapacity, requestedTokens, routeId);
+
+		long blockingTestTime = blockStartTime + recheckingStillBlocked;
+
+		// Retry to request for blocked duration
+		// blocking must not release before refill time
+		while (System.currentTimeMillis() < blockingTestTime) {
+			checkLimitReached(id, burstCapacity, routeId);
+		}
+
+		// Waiting for being able to request it allowed
+		Thread.sleep(releaseExpectedDuration);
+
+		// # After the burst is done, check the steady state
+		checkSteadyState(id, (int) Math.max(1, Math.floor((float) Math.min(burstCapacity, replenishRate) / requestedTokens)), routeId);
 	}
 
 	private void checkLimitEnforced(String id, int replenishRate, int burstCapacity, int requestedTokens,

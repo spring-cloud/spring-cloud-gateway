@@ -8,9 +8,16 @@ local rate = tonumber(ARGV[1])
 local capacity = tonumber(ARGV[2])
 local now = tonumber(ARGV[3])
 local requested = tonumber(ARGV[4])
+local refill_unit_sec = tonumber(ARGV[5])
 
-local fill_time = capacity / rate
-local ttl = math.floor(fill_time * 2)
+-- default value 1 sec
+if refill_unit_sec == nil then
+  refill_unit_sec = 1
+end
+
+local fill_time = (capacity / rate) * refill_unit_sec
+local ttl = math.floor(fill_time*2)
+local refill_per_sec = rate / refill_unit_sec
 
 -- for testing, it should use redis system time in production
 if now == nil then
@@ -36,8 +43,18 @@ if last_refreshed == nil then
 end
 --redis.log(redis.LOG_WARNING, "last_refreshed " .. last_refreshed)
 
-local delta = math.max(0, now-last_refreshed)
-local filled_tokens = math.min(capacity, last_tokens+(delta*rate))
+local delta = math.max(0, now - last_refreshed)
+-- fill only after refill_unit_sec from last refilled
+local filling_token = 0
+
+local last_filled_time = last_refreshed
+
+if delta >= refill_unit_sec then
+  filling_token = delta * refill_per_sec
+  last_filled_time = now
+end
+
+local filled_tokens = math.min(capacity, last_tokens + filling_token)
 local allowed = filled_tokens >= requested
 local new_tokens = filled_tokens
 local allowed_num = 0
@@ -53,7 +70,7 @@ end
 
 if ttl > 0 then
   redis.call("setex", tokens_key, ttl, new_tokens)
-  redis.call("setex", timestamp_key, ttl, now)
+  redis.call("setex", timestamp_key, ttl, last_filled_time)
 end
 
 -- return { allowed_num, new_tokens, capacity, filled_tokens, requested, new_tokens }
