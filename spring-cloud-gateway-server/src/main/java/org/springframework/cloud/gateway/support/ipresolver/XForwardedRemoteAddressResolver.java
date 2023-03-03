@@ -126,11 +126,11 @@ public class XForwardedRemoteAddressResolver implements RemoteAddressResolver {
 			log.warn("Multiple X-Forwarded-For headers found, discarding all");
 			return Collections.emptyList();
 		}
-		List<String> values = Arrays.asList(xForwardedValues.get(0).split(", "));
-		if (values.size() == 1 && !StringUtils.hasText(values.get(0))) {
+		String[] values = StringUtils.tokenizeToStringArray(xForwardedValues.get(0), ",");
+		if (values.length == 1 && !StringUtils.hasText(values[0])) {
 			return Collections.emptyList();
 		}
-		return values;
+		return Arrays.asList(values);
 	}
 
 }
