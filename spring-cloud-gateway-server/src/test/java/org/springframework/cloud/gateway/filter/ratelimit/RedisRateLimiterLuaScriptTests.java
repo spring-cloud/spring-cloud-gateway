@@ -130,7 +130,7 @@ public class RedisRateLimiterLuaScriptTests {
 			"C, 1, 20, 2, 7, 5, 17",
 			"D, 2, 20, 2, 7, 5, 18",
 			"E, 2, 20, 2, 7, 7, 18",
-			"F, 2, 20, 2, 20, 7, 18",
+			"F, 2, 20, 2, 20, 7, 18"
 	})
 	void testTokenFilledWithNSec(String test_id, long rate, long capacity, long requested, long delaySec,
 			long refillPeriodSec, long expectedRemainedToken) {
