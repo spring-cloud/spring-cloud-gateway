@@ -43,6 +43,7 @@ import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -156,10 +157,27 @@ public class AbstractGatewayControllerEndpoint implements ApplicationEventPublis
 		else if (!unavailablePredicatesDefinitions.isEmpty()) {
 			handleUnavailableDefinition(PredicateDefinition.class.getSimpleName(), unavailablePredicatesDefinitions);
 		}
+
+		validateRouteUri(routeDefinition.getUri());
+	}
+
+	private void validateRouteUri(URI uri) {
+		if (uri == null) {
+			handleError("The URI can not be empty");
+		}
+
+		if (!StringUtils.hasText(uri.getScheme())) {
+			handleError("The URI format [%s] is incorrect, scheme can not be empty".formatted(uri));
+		}
 	}
 
 	private void handleUnavailableDefinition(String simpleName, Set<String> unavailableDefinitions) {
 		final String errorMessage = String.format("Invalid %s: %s", simpleName, unavailableDefinitions);
+		log.warn(errorMessage);
+		throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errorMessage);
+	}
+
+	private void handleError(String errorMessage) {
 		log.warn(errorMessage);
 		throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errorMessage);
 	}
