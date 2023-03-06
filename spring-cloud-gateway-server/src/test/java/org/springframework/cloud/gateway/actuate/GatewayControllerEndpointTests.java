@@ -209,6 +209,30 @@ public class GatewayControllerEndpointTests {
 	}
 
 	@Test
+	public void testPostRouteWithUriWithoutScheme() {
+
+		RouteDefinition testRouteDefinition = new RouteDefinition();
+		testRouteDefinition.setUri(URI.create("example.org"));
+
+		testClient.post().uri("http://localhost:" + port + "/actuator/gateway/routes/no-scheme-test-route")
+				  .accept(MediaType.APPLICATION_JSON).body(BodyInserters.fromValue(testRouteDefinition)).exchange()
+				  .expectStatus().isBadRequest().expectBody().jsonPath("$.message")
+				  .isEqualTo("The URI format [example.org] is incorrect, scheme can not be empty");
+	}
+
+	@Test
+	public void testPostRouteWithUri() {
+
+		RouteDefinition testRouteDefinition = new RouteDefinition();
+		testRouteDefinition.setUri(null);
+
+		testClient.post().uri("http://localhost:" + port + "/actuator/gateway/routes/no-scheme-test-route")
+				  .accept(MediaType.APPLICATION_JSON).body(BodyInserters.fromValue(testRouteDefinition)).exchange()
+				  .expectStatus().isBadRequest().expectBody().jsonPath("$.message")
+				  .isEqualTo("The URI can not be empty");
+	}
+
+	@Test
 	public void testPostRouteWithNotExistingPredicate() {
 
 		RouteDefinition testRouteDefinition = new RouteDefinition();
