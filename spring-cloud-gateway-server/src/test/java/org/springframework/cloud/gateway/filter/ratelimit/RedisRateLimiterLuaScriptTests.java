@@ -16,11 +16,14 @@
 
 package org.springframework.cloud.gateway.filter.ratelimit;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -71,7 +74,11 @@ public class RedisRateLimiterLuaScriptTests {
 	}
 
 	static List<String> getArgs(long rate, long capacity, long now, long requested) {
-		return Arrays.asList(rate + "", capacity + "", now + "", requested + "");
+		return getArgs(rate, capacity, now, requested, 1);
+	}
+
+	static List<String> getArgs(long rate, long capacity, long now, long requested, long refillPeriodSec) {
+		return Arrays.asList(rate + "", capacity + "", now + "", requested + "", refillPeriodSec + "");
 	}
 
 	@Test
@@ -116,6 +123,40 @@ public class RedisRateLimiterLuaScriptTests {
 		}
 	}
 
+	@ParameterizedTest
+	@CsvSource({
+			"A, 1, 10, 3, 3, 2, 5",
+			"B, 1, 20, 2, 3, 5, 16",
+			"C, 1, 20, 2, 7, 5, 17",
+			"D, 2, 20, 2, 7, 5, 18",
+			"E, 2, 20, 2, 7, 7, 18",
+			"F, 2, 20, 2, 20, 7, 18",
+	})
+	void testTokenFilledWithNSec(String test_id, long rate, long capacity, long requested, long delaySec,
+			long refillPeriodSec, long expectedRemainedToken) {
+
+		long now = System.currentTimeMillis();
+
+		List<String> keys = getKeys("token_filled" + test_id);
+		List<String> args = getArgs(rate, capacity, now, requested, refillPeriodSec);
+		redisTemplate.execute(redisScript, keys, args).blockFirst();
+
+		now = now + delaySec;
+		args = getArgs(rate, capacity, now, requested, refillPeriodSec);
+		List<Long> result = redisTemplate.execute(redisScript, keys, args).blockFirst();
+
+		assert result != null;
+		assertThat(result.get(0)).isEqualTo(1);
+		assertThat(result.get(1)).isEqualTo(expectedRemainedToken);
+
+		for (String key : keys) {
+			long ttl = redisTemplate.getExpire(key).map(Duration::getSeconds).blockOptional()
+					.orElse(0L);
+			long fillTime = (capacity / rate);
+			assertThat(ttl).isGreaterThanOrEqualTo(fillTime);
+		}
+	}
+
 	@Test
 	public void testAfterTillTime() {
 		long rate = 1;
@@ -145,6 +186,32 @@ public class RedisRateLimiterLuaScriptTests {
 		List<Long> result = redisTemplate.execute(redisScript, keys, args).blockFirst();
 		assertThat(result.get(0)).isEqualTo(0);
 		assertThat(result.get(1)).isEqualTo(10);
+	}
+
+	@ParameterizedTest
+	@CsvSource({
+			"A, 1, 5, 3, 2, 4",
+			"B, 2, 10, 6, 2, 3",
+			"C, 3, 20, 11, 3, 4",
+			"D, 3, 8, 5, 4, 5"
+	})
+	void testTokensNotEnoughNSec(String test_id, long rate, long capacity, long requested, long delaySec, long refillPeriodSec) {
+
+		long now = System.currentTimeMillis();
+
+		List<String> keys = getKeys("tokens_not_enough" + test_id);
+		List<String> firstArgs = getArgs(rate, capacity, now, requested, refillPeriodSec);
+		List<Long> firstResult = redisTemplate.execute(redisScript, keys, firstArgs).blockFirst();
+
+		assert firstResult != null;
+		assertThat(firstResult.get(0)).isEqualTo(1);
+		assertThat(firstResult.get(1)).isEqualTo(capacity - requested);
+
+		List<String> secondArgs = getArgs(rate, capacity, now + delaySec, requested, refillPeriodSec);
+		List<Long> secondResult = redisTemplate.execute(redisScript, keys, secondArgs).blockFirst();
+		assert secondResult != null;
+		assertThat(secondResult.get(0)).isZero();
+		assertThat(secondResult.get(1)).isEqualTo(capacity - requested);
 	}
 
 	@EnableAutoConfiguration
