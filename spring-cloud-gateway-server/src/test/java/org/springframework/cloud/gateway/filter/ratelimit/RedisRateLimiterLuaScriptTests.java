@@ -132,12 +132,12 @@ public class RedisRateLimiterLuaScriptTests {
 			"E, 2, 20, 2, 7, 7, 18",
 			"F, 2, 20, 2, 20, 7, 18"
 	})
-	void testTokenFilledWithNSec(String test_id, long rate, long capacity, long requested, long delaySec,
+	void testTokenFilledWithNSec(String testId, long rate, long capacity, long requested, long delaySec,
 			long refillPeriodSec, long expectedRemainedToken) {
 
 		long now = System.currentTimeMillis();
 
-		List<String> keys = getKeys("token_filled" + test_id);
+		List<String> keys = getKeys("token_filled" + testId);
 		List<String> args = getArgs(rate, capacity, now, requested, refillPeriodSec);
 		redisTemplate.execute(redisScript, keys, args).blockFirst();
 
@@ -195,11 +195,11 @@ public class RedisRateLimiterLuaScriptTests {
 			"C, 3, 20, 11, 3, 4",
 			"D, 3, 8, 5, 4, 5"
 	})
-	void testTokensNotEnoughNSec(String test_id, long rate, long capacity, long requested, long delaySec, long refillPeriodSec) {
+	void testTokensNotEnoughNSec(String testId, long rate, long capacity, long requested, long delaySec, long refillPeriodSec) {
 
 		long now = System.currentTimeMillis();
 
-		List<String> keys = getKeys("tokens_not_enough" + test_id);
+		List<String> keys = getKeys("tokens_not_enough" + testId);
 		List<String> firstArgs = getArgs(rate, capacity, now, requested, refillPeriodSec);
 		List<Long> firstResult = redisTemplate.execute(redisScript, keys, firstArgs).blockFirst();
 
