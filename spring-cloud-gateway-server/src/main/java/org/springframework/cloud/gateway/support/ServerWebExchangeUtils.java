@@ -123,6 +123,11 @@ public final class ServerWebExchangeUtils {
 			"gatewayPredicateMatchedPathRouteIdAttr");
 
 	/**
+	 * Gateway predicate path container attribute name.
+	 */
+	public static final String GATEWAY_PREDICATE_PATH_CONTAINER_ATTR = qualify("gatewayPredicatePathContainer");
+
+	/**
 	 * Weight attribute name.
 	 */
 	public static final String WEIGHT_ATTR = qualify("routeWeight");
