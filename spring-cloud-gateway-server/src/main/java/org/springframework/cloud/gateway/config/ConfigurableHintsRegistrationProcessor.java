@@ -92,16 +92,33 @@ class ConfigurableHintsRegistrationProcessor implements BeanFactoryInitializatio
 	private static Set<Class<?>> getConfigurableTypes() {
 		Set<Class<?>> classesToAdd = getClassesToAdd();
 		Set<Class<?>> genericsToAdd = new HashSet<>();
+		Set<Class<?>> superTypes = new HashSet<>();
 		for (Class<?> clazz : classesToAdd) {
 			ResolvableType resolvableType = ResolvableType.forType(clazz);
-			if (resolvableType.getSuperType().hasGenerics()) {
-				genericsToAdd.addAll(Arrays.stream(resolvableType.getSuperType().getGenerics())
-						.map(ResolvableType::toClass).collect(Collectors.toSet()));
-			}
+			addGenericsForClass(genericsToAdd, resolvableType);
+			addSuperTypesForClass(resolvableType, superTypes, genericsToAdd);
 		}
 		classesToAdd.addAll(genericsToAdd);
+		classesToAdd.addAll(superTypes);
 		return classesToAdd.stream().filter(Objects::nonNull).collect(Collectors.toSet());
 
+	}
+
+	private static void addGenericsForClass(Set<Class<?>> genericsToAdd, ResolvableType resolvableType) {
+		if (resolvableType.getSuperType().hasGenerics()) {
+			genericsToAdd.addAll(Arrays.stream(resolvableType.getSuperType().getGenerics()).map(ResolvableType::toClass)
+					.collect(Collectors.toSet()));
+		}
+	}
+
+	private static void addSuperTypesForClass(ResolvableType resolvableType, Set<Class<?>> supertypesToAdd,
+			Set<Class<?>> genericsToAdd) {
+		ResolvableType superType = resolvableType.getSuperType();
+		if (!ResolvableType.NONE.equals(superType)) {
+			addGenericsForClass(genericsToAdd, superType);
+			supertypesToAdd.add(superType.toClass());
+			addSuperTypesForClass(superType, supertypesToAdd, genericsToAdd);
+		}
 	}
 
 	@SuppressWarnings({ "rawtypes" })
