@@ -57,7 +57,6 @@
 		<spring-cloud-circuitbreaker.version>3.0.1-SNAPSHOT</spring-cloud-circuitbreaker.version>
 		<spring-cloud-commons.version>4.0.2-SNAPSHOT</spring-cloud-commons.version>
 		<testcontainers.version>1.17.3</testcontainers.version>
-		<kotlin-maven-plugin.version>1.6.21</kotlin-maven-plugin.version>
 	</properties>
 
 	<dependencyManagement>
