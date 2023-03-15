@@ -24,15 +24,14 @@ import java.util.Map;
 import java.util.function.Predicate;
 
 import org.assertj.core.util.Maps;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.cloud.gateway.filter.FilterDefinition;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
@@ -46,9 +45,9 @@ import org.springframework.cloud.gateway.test.PermitAllSecurityConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.server.ServerWebExchange;
@@ -56,9 +55,9 @@ import org.springframework.web.server.ServerWebExchange;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest(properties = { "management.endpoints.web.exposure.include=*",
-		"spring.cloud.gateway.actuator.verbose.enabled=true" }, webEnvironment = RANDOM_PORT)
+@SpringBootTest(properties = { "management.endpoint.gateway.enabled=true",
+		"management.endpoints.web.exposure.include=*", "spring.cloud.gateway.actuator.verbose.enabled=true" },
+		webEnvironment = RANDOM_PORT)
 public class GatewayControllerEndpointTests {
 
 	@Autowired
@@ -135,8 +134,8 @@ public class GatewayControllerEndpointTests {
 
 		testClient.delete().uri("http://localhost:" + port + "/actuator/gateway/routes/test-route-to-be-delete")
 				.exchange().expectStatus().isOk().expectBody(ResponseEntity.class).consumeWith(result -> {
-					HttpStatus httpStatus = result.getStatus();
-					Assert.assertEquals(HttpStatus.OK, httpStatus);
+					HttpStatusCode httpStatus = result.getStatus();
+					Assertions.assertEquals(HttpStatus.OK, httpStatus);
 				});
 	}
 

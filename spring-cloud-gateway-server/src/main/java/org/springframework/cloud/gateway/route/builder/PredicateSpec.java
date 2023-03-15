@@ -151,7 +151,7 @@ public class PredicateSpec extends UriSpec {
 	 */
 	public BooleanSpec method(String... methods) {
 		return asyncPredicate(getBean(MethodRoutePredicateFactory.class).applyAsync(c -> {
-			HttpMethod[] httpMethods = stream(methods).map(HttpMethod::resolve).toArray(HttpMethod[]::new);
+			HttpMethod[] httpMethods = stream(methods).map(HttpMethod::valueOf).toArray(HttpMethod[]::new);
 			c.setMethods(httpMethods);
 		}));
 	}

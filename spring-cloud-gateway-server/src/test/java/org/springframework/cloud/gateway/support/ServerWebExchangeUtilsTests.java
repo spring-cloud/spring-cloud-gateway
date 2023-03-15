@@ -22,7 +22,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.assertj.core.api.Assertions;
-import org.junit.Assert;
 import org.junit.Test;
 
 import org.springframework.core.io.buffer.DataBuffer;
@@ -57,7 +56,8 @@ public class ServerWebExchangeUtilsTests {
 	@Test
 	public void missingVarThrowsException() {
 		MockServerWebExchange exchange = mockExchange(Collections.emptyMap());
-		Assert.assertThrows(IllegalArgumentException.class, () -> expand(exchange, "my-{foo}-{baz}"));
+		Assertions.assertThatThrownBy(() -> expand(exchange, "my-{foo}-{baz}"))
+				.isInstanceOf(IllegalArgumentException.class);
 	}
 
 	@Test

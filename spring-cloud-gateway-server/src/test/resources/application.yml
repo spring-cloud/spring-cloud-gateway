@@ -104,6 +104,18 @@ spring:
               name: fallbackcmd
               fallbackUri: forward:/circuitbreakerFallbackController
 
+        # =====================================
+      - id: circuitbreaker_fallback_test_variables
+        uri: ${test.uri}
+        predicates:
+          - Path=/delay/{*segments}
+          - Host={host}.circuitbreakervariables.org
+        filters:
+          - name: CircuitBreaker
+            args:
+              name: fallbackvarscmd
+              fallbackUri: forward:/circuitbreakerUriFallbackController/{segments}/{host}
+
       # =====================================
       - id: circuitbreaker_fallback_test_statuscode
         uri: ${test.uri}
@@ -163,19 +175,19 @@ spring:
           - Host=**.deduperesponseheader.org
           - Path=/headers
         filters:
-          - AddResponseHeader=Access-Control-Allow-Credentials, true
-          - AddResponseHeader=Access-Control-Allow-Credentials, false
-          - AddResponseHeader=Access-Control-Allow-Origin, https://musk.mars
-          - AddResponseHeader=Access-Control-Allow-Origin, *
-          - AddResponseHeader=Scout-Cookie, Thin Mints
-          - AddResponseHeader=Scout-Cookie, S'mores
-          - AddResponseHeader=Next-Week-Lottery-Numbers, 4
-          - AddResponseHeader=Next-Week-Lottery-Numbers, 2
-          - AddResponseHeader=Next-Week-Lottery-Numbers, 2
-          - AddResponseHeader=Next-Week-Lottery-Numbers, 42
           - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin, RETAIN_FIRST
           - DedupeResponseHeader=Scout-Cookie, RETAIN_LAST
           - DedupeResponseHeader=Next-Week-Lottery-Numbers, RETAIN_UNIQUE
+          - AddResponseHeader=Access-Control-Allow-Credentials, false
+          - AddResponseHeader=Access-Control-Allow-Credentials, true
+          - AddResponseHeader=Access-Control-Allow-Origin, *
+          - AddResponseHeader=Access-Control-Allow-Origin, https://musk.mars
+          - AddResponseHeader=Scout-Cookie, S'mores
+          - AddResponseHeader=Scout-Cookie, Thin Mints
+          - AddResponseHeader=Next-Week-Lottery-Numbers, 42
+          - AddResponseHeader=Next-Week-Lottery-Numbers, 2
+          - AddResponseHeader=Next-Week-Lottery-Numbers, 2
+          - AddResponseHeader=Next-Week-Lottery-Numbers, 4
 
       # =====================================
       - id: forward_test
@@ -295,8 +307,8 @@ spring:
         - Host=**.removereresponseheader.org
         - Path=/headers
         filters:
-        - AddResponseHeader=X-Request-Foo, Bar
         - RemoveResponseHeader=X-Request-Foo
+        - AddResponseHeader=X-Request-Foo, Bar
 
         # =====================================
       - id: request_header_size_test
@@ -313,8 +325,8 @@ spring:
           - Host=**.rewritelocationresponseheader.org
           - Path=/headers
         filters:
-          - AddResponseHeader=Location, https://backend.org:443/v1/some/object/id
           - RewriteLocationResponseHeader
+          - AddResponseHeader=Location, https://backend.org:443/v1/some/object/id
 
         # =====================================
       - id: rewrite_response_header_test
@@ -323,8 +335,8 @@ spring:
           - Host=**.rewriteresponseheader.org
           - Path=/headers
         filters:
-          - AddResponseHeader=X-Request-Foo, /42?user=ford&password=omg!what&flag=true
           - RewriteResponseHeader=X-Request-Foo, password=[^&]+, password=***
+          - AddResponseHeader=X-Request-Foo, /42?user=ford&password=omg!what&flag=true
 
         # =====================================
       - id: sccb_failure_test
@@ -392,9 +404,9 @@ spring:
         - Host=**.setreresponseheader.org
         - Path=/headers
         filters:
-        - AddResponseHeader=X-Response-Foo, Bar1
-        - AddResponseHeader=X-Response-Foo, Bar2
         - SetResponseHeader=X-Response-Foo, Bar
+        - AddResponseHeader=X-Response-Foo, Bar2
+        - AddResponseHeader=X-Response-Foo, Bar1
 
       # =====================================
       - id: set_status_int_test

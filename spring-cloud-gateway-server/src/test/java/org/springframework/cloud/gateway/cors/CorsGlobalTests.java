@@ -19,11 +19,14 @@ package org.springframework.cloud.gateway.cors;
 import java.util.Arrays;
 
 import org.junit.jupiter.api.Test;
+import org.junit.runner.RunWith;
 import reactor.core.publisher.Mono;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.gateway.filter.cors.CorsGatewayFilterApplicationListener;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
@@ -31,6 +34,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.reactive.function.client.ClientResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -38,7 +43,8 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
-public class CorsTests extends BaseWebClientTests {
+@ActiveProfiles(profiles = "cors-global-config")
+public class CorsGlobalTests extends BaseWebClientTests {
 
 	@Test
 	public void testPreFlightCorsRequest() {
@@ -71,6 +77,20 @@ public class CorsTests extends BaseWebClientTests {
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
 	public static class TestConfig {
+
+	}
+
+	@RunWith(SpringRunner.class)
+	@SpringBootTest(classes = TestConfig.class, properties = "spring.cloud.gateway.globalcors.enabled=false")
+	public static class DisabledByProperty {
+
+		@Autowired(required = false)
+		private CorsGatewayFilterApplicationListener listener;
+
+		@org.junit.Test
+		public void corsGatewayFilterApplicationListenerIsMissing() {
+			assertThat(listener).isNull();
+		}
 
 	}
 

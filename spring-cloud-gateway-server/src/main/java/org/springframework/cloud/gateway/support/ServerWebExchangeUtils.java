@@ -87,6 +87,11 @@ public final class ServerWebExchangeUtils {
 	public static final String GATEWAY_ROUTE_ATTR = qualify("gatewayRoute");
 
 	/**
+	 * Original Reactor Context corresponding to the processed request.
+	 */
+	public static final String GATEWAY_REACTOR_CONTEXT_ATTR = qualify("gatewayReactorContext");
+
+	/**
 	 * Gateway request URL attribute name.
 	 */
 	public static final String GATEWAY_REQUEST_URL_ATTR = qualify("gatewayRequestUrl");
@@ -165,6 +170,11 @@ public final class ServerWebExchangeUtils {
 	 * Gateway LoadBalancer {@link Response} attribute name.
 	 */
 	public static final String GATEWAY_LOADBALANCER_RESPONSE_ATTR = qualify("gatewayLoadBalancerResponse");
+
+	/**
+	 * Gateway Client {@code Observation} attribute name.
+	 */
+	public static final String GATEWAY_OBSERVATION_ATTR = qualify("gateway.observation");
 
 	private static final byte[] EMPTY_BYTES = {};
 
@@ -318,7 +328,7 @@ public final class ServerWebExchangeUtils {
 	/**
 	 * Caches the request body in a ServerWebExchange attributes. The attribute is
 	 * {@link #CACHED_REQUEST_BODY_ATTR}. This method is useful when the
-	 * {@link ServerWebExchange} can be mutated, such as a {@link GatewayFilterFactory}/
+	 * {@link ServerWebExchange} can be mutated, such as a {@link GatewayFilterFactory}.
 	 * @param exchange the available ServerWebExchange.
 	 * @param function a function that accepts the created ServerHttpRequestDecorator.
 	 * @param <T> generic type for the return {@link Mono}.

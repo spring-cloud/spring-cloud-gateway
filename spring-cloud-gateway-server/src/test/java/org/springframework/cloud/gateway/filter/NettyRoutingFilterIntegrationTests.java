@@ -140,7 +140,7 @@ public class NettyRoutingFilterIntegrationTests extends BaseWebClientTests {
 		String upstreamHeaderValue = "value-from-upstream";
 		testClient.post().uri("/responseheaders/200").header("Host", "www.mergeresponseheader.org")
 				.header(header, upstreamHeaderValue).exchange().expectHeader()
-				.valueEquals(header, gatewayHeaderValue, upstreamHeaderValue);
+				.valueEquals(header, upstreamHeaderValue, gatewayHeaderValue);
 	}
 
 	@EnableAutoConfiguration

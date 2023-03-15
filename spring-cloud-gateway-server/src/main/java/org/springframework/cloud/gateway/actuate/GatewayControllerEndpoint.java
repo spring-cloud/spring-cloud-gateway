@@ -42,7 +42,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 /**
  * @author Spencer Gibb
  */
-@RestControllerEndpoint(id = "gateway")
+@RestControllerEndpoint(id = "gateway", enableByDefault = false)
 public class GatewayControllerEndpoint extends AbstractGatewayControllerEndpoint {
 
 	public GatewayControllerEndpoint(List<GlobalFilter> globalFilters, List<GatewayFilterFactory> gatewayFilters,

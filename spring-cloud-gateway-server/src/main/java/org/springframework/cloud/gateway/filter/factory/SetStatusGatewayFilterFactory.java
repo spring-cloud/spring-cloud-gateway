@@ -25,7 +25,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.support.HttpStatusHolder;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.web.server.ServerWebExchange;
 
 import static java.util.Collections.singletonList;
@@ -75,7 +75,7 @@ public class SetStatusGatewayFilterFactory extends AbstractGatewayFilterFactory<
 				return chain.filter(exchange).then(Mono.fromRunnable(() -> {
 					// check not really needed, since it is guarded in setStatusCode,
 					// but it's a good example
-					HttpStatus statusCode = exchange.getResponse().getStatusCode();
+					HttpStatusCode statusCode = exchange.getResponse().getStatusCode();
 					boolean isStatusCodeUpdated = setResponseStatus(exchange, statusHolder);
 					if (isStatusCodeUpdated && originalStatusHeaderName != null) {
 						exchange.getResponse().getHeaders().set(originalStatusHeaderName,

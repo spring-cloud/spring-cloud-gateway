@@ -18,9 +18,8 @@ package org.springframework.cloud.gateway.config.conditional;
 
 import java.util.List;
 
-import org.junit.Test;
-import org.junit.experimental.runners.Enclosed;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
@@ -30,11 +29,9 @@ import org.springframework.cloud.gateway.handler.predicate.AfterRoutePredicateFa
 import org.springframework.cloud.gateway.handler.predicate.BeforeRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(Enclosed.class)
 public class DisableBuiltInPredicatesTests {
 
 	@EnableAutoConfiguration
@@ -43,9 +40,9 @@ public class DisableBuiltInPredicatesTests {
 
 	}
 
-	@RunWith(SpringRunner.class)
+	@Nested
 	@SpringBootTest(classes = Config.class)
-	public static class RoutePredicateDefault {
+	public class RoutePredicateDefault {
 
 		@Autowired
 		private List<RoutePredicateFactory<?>> predicates;
@@ -57,11 +54,12 @@ public class DisableBuiltInPredicatesTests {
 
 	}
 
-	@RunWith(SpringRunner.class)
-	@SpringBootTest(classes = Config.class, properties = { "spring.cloud.gateway.predicate.after.enabled=false",
-			"spring.cloud.gateway.predicate.before.enabled=false" })
+	@Nested
+	@SpringBootTest(classes = Config.class,
+			properties = { "spring.cloud.gateway.predicate.after.enabled=false",
+					"spring.cloud.gateway.predicate.before.enabled=false" })
 	@ActiveProfiles("disable-components")
-	public static class DisableSpecificsPredicatesByProperty {
+	public class DisableSpecificsPredicatesByProperty {
 
 		@Autowired
 		private List<RoutePredicateFactory<?>> predicates;
@@ -75,7 +73,7 @@ public class DisableBuiltInPredicatesTests {
 
 	}
 
-	@RunWith(SpringRunner.class)
+	@Nested
 	@SpringBootTest(classes = Config.class, properties = { "spring.cloud.gateway.predicate.after.enabled=false",
 			"spring.cloud.gateway.predicate.before.enabled=false",
 			"spring.cloud.gateway.predicate.between.enabled=false",
@@ -89,7 +87,7 @@ public class DisableBuiltInPredicatesTests {
 			"spring.cloud.gateway.predicate.weight.enabled=false",
 			"spring.cloud.gateway.predicate.cloud-foundry-route-service.enabled=false" })
 	@ActiveProfiles("disable-components")
-	public static class DisableAllPredicatesByProperty {
+	public class DisableAllPredicatesByProperty {
 
 		@Autowired(required = false)
 		private List<RoutePredicateFactory<?>> predicates;

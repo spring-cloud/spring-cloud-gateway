@@ -29,8 +29,7 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.web.server.LocalServerPort;
-import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.boot.test.web.server.LocalServerPort;
 
 import static io.grpc.netty.NegotiationType.TLS;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
@@ -38,8 +37,8 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 /**
  * @author Alberto C. Ríos
  */
-@SpringBootTest(classes = GRPCApplication.class, webEnvironment = WebEnvironment.RANDOM_PORT)
-@DirtiesContext
+@SpringBootTest(classes = org.springframework.cloud.gateway.tests.grpc.GRPCApplication.class,
+		webEnvironment = WebEnvironment.RANDOM_PORT)
 public class GRPCApplicationTests {
 
 	@LocalServerPort

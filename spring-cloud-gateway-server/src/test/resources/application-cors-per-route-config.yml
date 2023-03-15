@@ -1,0 +1,28 @@
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: cors_preflight_test
+          uri: ${test.uri}
+          predicates:
+            - Path=/abc/**
+          metadata:
+            cors:
+              allowedOrigins: 'domain.com'
+              allowedMethods: [ GET, POST ]
+              allowedHeaders: '*'
+              allowCredentials: true
+              maxAge: 30
+        - id: cors_test
+          uri: ${test.uri}
+          predicates:
+            - Path=/cors/**
+          filters:
+            - StripPrefix=1
+          metadata:
+            cors:
+              allowedOrigins: https://test.com
+              allowedMethods:
+                - GET
+                - PUT
+              allowedHeaders: '*'

@@ -19,6 +19,10 @@
 |spring.cloud.gateway.filter.fallback-headers.enabled | `+++true+++` | Enables the fallback-headers filter.
 |spring.cloud.gateway.filter.hystrix.enabled | `+++true+++` | Enables the hystrix filter.
 |spring.cloud.gateway.filter.json-to-grpc.enabled | `+++true+++` | Enables the JSON to gRPC filter.
+|spring.cloud.gateway.filter.local-response-cache.enabled | `+++false+++` | Enables the local-response-cache filter for all routes, it allows to add a specific configuration at route level using LocalResponseCache filter.
+|spring.cloud.gateway.filter.local-response-cache.size | `+++5m+++` | Maximum size of the cache to evict entries for this route (in KB, MB and GB).
+|spring.cloud.gateway.filter.local-response-cache.time-to-live |  | 
+|spring.cloud.gateway.filter.local-response-cache.timeToLive |  | Time to expire a cache entry (expressed in s for seconds, m for minutes, and h for hours).
 |spring.cloud.gateway.filter.map-request-header.enabled | `+++true+++` | Enables the map-request-header filter.
 |spring.cloud.gateway.filter.modify-request-body.enabled | `+++true+++` | Enables the modify-request-body filter.
 |spring.cloud.gateway.filter.modify-response-body.enabled | `+++true+++` | Enables the modify-response-body filter.
@@ -32,8 +36,8 @@
 |spring.cloud.gateway.filter.remove-response-header.enabled | `+++true+++` | Enables the remove-response-header filter.
 |spring.cloud.gateway.filter.request-header-size.enabled | `+++true+++` | Enables the request-header-size filter.
 |spring.cloud.gateway.filter.request-header-to-request-uri.enabled | `+++true+++` | Enables the request-header-to-request-uri filter.
-|spring.cloud.gateway.filter.request-rate-limiter.deny-empty-key | `+++true+++` | Switch to deny requests if the Key Resolver returns an empty key, defaults to true.
-|spring.cloud.gateway.filter.request-rate-limiter.empty-key-status-code |  | HttpStatus to return when denyEmptyKey is true, defaults to FORBIDDEN.
+|spring.cloud.gateway.filter.request-rate-limiter.default-key-resolver |  | 
+|spring.cloud.gateway.filter.request-rate-limiter.default-rate-limiter |  | 
 |spring.cloud.gateway.filter.request-rate-limiter.enabled | `+++true+++` | Enables the request-rate-limiter filter.
 |spring.cloud.gateway.filter.request-size.enabled | `+++true+++` | Enables the request-size filter.
 |spring.cloud.gateway.filter.retry.enabled | `+++true+++` | Enables the retry filter.
@@ -93,7 +97,6 @@
 |spring.cloud.gateway.httpclient.response-timeout |  | The response timeout.
 |spring.cloud.gateway.httpclient.ssl.close-notify-flush-timeout | `+++3000ms+++` | SSL close_notify flush timeout. Default to 3000 ms.
 |spring.cloud.gateway.httpclient.ssl.close-notify-read-timeout | `+++0+++` | SSL close_notify read timeout. Default to 0 ms.
-|spring.cloud.gateway.httpclient.ssl.default-configuration-type |  | The default ssl configuration type. Defaults to TCP.
 |spring.cloud.gateway.httpclient.ssl.handshake-timeout | `+++10000ms+++` | SSL handshake timeout. Default to 10000 ms
 |spring.cloud.gateway.httpclient.ssl.key-password |  | Key password, default is same as keyStorePassword.
 |spring.cloud.gateway.httpclient.ssl.key-store |  | Keystore path for Netty HttpClient.
@@ -110,6 +113,7 @@
 |spring.cloud.gateway.metrics.enabled | `+++false+++` | Enables the collection of metrics data.
 |spring.cloud.gateway.metrics.prefix | `+++spring.cloud.gateway+++` | The prefix of all metrics emitted by gateway.
 |spring.cloud.gateway.metrics.tags |  | Tags map that added to metrics.
+|spring.cloud.gateway.observability.enabled | `+++true+++` | If Micrometer Observability support should be turned on.
 |spring.cloud.gateway.predicate.after.enabled | `+++true+++` | Enables the after predicate.
 |spring.cloud.gateway.predicate.before.enabled | `+++true+++` | Enables the before predicate.
 |spring.cloud.gateway.predicate.between.enabled | `+++true+++` | Enables the between predicate.

@@ -19,19 +19,27 @@ package org.springframework.cloud.gateway.config;
 import java.util.List;
 
 import io.micrometer.core.instrument.Tags;
-import org.junit.Test;
-import org.junit.experimental.runners.Enclosed;
-import org.junit.runner.RunWith;
+import io.micrometer.tracing.Tracer;
+import io.micrometer.tracing.propagation.Propagator;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
+import org.springframework.boot.actuate.autoconfigure.tracing.TracingProperties;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.test.autoconfigure.actuate.observability.AutoConfigureObservability;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.filter.GatewayMetricsFilter;
+import org.springframework.cloud.gateway.filter.headers.observation.GatewayPropagatingSenderTracingObservationHandler;
+import org.springframework.cloud.gateway.filter.headers.observation.ObservationClosingWebExceptionHandler;
+import org.springframework.cloud.gateway.filter.headers.observation.ObservedRequestHttpHeadersFilter;
+import org.springframework.cloud.gateway.filter.headers.observation.ObservedResponseHttpHeadersFilter;
 import org.springframework.cloud.gateway.route.RouteDefinitionMetrics;
 import org.springframework.cloud.gateway.support.tagsprovider.GatewayTagsProvider;
 import org.springframework.context.annotation.Bean;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.server.ServerWebExchange;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -39,12 +47,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Ingyu Hwang
  */
-@RunWith(Enclosed.class)
 public class GatewayMetricsAutoConfigurationTests {
 
-	@RunWith(SpringRunner.class)
+	@Nested
 	@SpringBootTest(classes = Config.class)
-	public static class EnabledByDefault {
+	public class EnabledByDefault {
 
 		@Autowired(required = false)
 		private GatewayMetricsFilter filter;
@@ -54,6 +61,9 @@ public class GatewayMetricsAutoConfigurationTests {
 
 		@Autowired(required = false)
 		private List<GatewayTagsProvider> tagsProviders;
+
+		@Autowired
+		private BeanFactory beanFactory;
 
 		@Test
 		public void gatewayMetricsBeansExists() {
@@ -68,11 +78,19 @@ public class GatewayMetricsAutoConfigurationTests {
 			assertThat(routeDefinitionMetrics.getMetricsPrefix()).isEqualTo("spring.cloud.gateway");
 		}
 
+		@Test
+		public void observabilityBeansExist() {
+			assertThat(beanFactory.getBean(ObservedRequestHttpHeadersFilter.class)).isNotNull();
+			assertThat(beanFactory.getBean(ObservedResponseHttpHeadersFilter.class)).isNotNull();
+			assertThat(beanFactory.getBean(ObservationClosingWebExceptionHandler.class)).isNotNull();
+			assertThat(beanFactory.getBean(GatewayPropagatingSenderTracingObservationHandler.class)).isNotNull();
+		}
+
 	}
 
-	@RunWith(SpringRunner.class)
+	@Nested
 	@SpringBootTest(classes = Config.class, properties = "spring.cloud.gateway.metrics.enabled=false")
-	public static class DisabledByProperty {
+	public class DisabledByProperty {
 
 		@Autowired(required = false)
 		private GatewayMetricsFilter filter;
@@ -92,10 +110,32 @@ public class GatewayMetricsAutoConfigurationTests {
 
 	}
 
-	@RunWith(SpringRunner.class)
+	@Nested
+	@SpringBootTest(classes = Config.class, properties = "spring.cloud.gateway.observability.enabled=false")
+	public class ObservabilityDisabledByProperty {
+
+		@Autowired
+		private BeanFactory beanFactory;
+
+		@Test
+		public void observabilityBeansMissing() {
+			assertThat(beanFactory.getBeanProvider(ObservedRequestHttpHeadersFilter.class).getIfAvailable(() -> null))
+					.isNull();
+			assertThat(beanFactory.getBeanProvider(ObservedResponseHttpHeadersFilter.class).getIfAvailable(() -> null))
+					.isNull();
+			assertThat(
+					beanFactory.getBeanProvider(ObservationClosingWebExceptionHandler.class).getIfAvailable(() -> null))
+							.isNull();
+			assertThat(beanFactory.getBeanProvider(GatewayPropagatingSenderTracingObservationHandler.class)
+					.getIfAvailable(() -> null)).isNull();
+		}
+
+	}
+
+	@Nested
 	@SpringBootTest(classes = CustomTagsProviderConfig.class,
 			properties = "spring.cloud.gateway.metrics.prefix=myprefix.")
-	public static class AddCustomTagsProvider {
+	public class AddCustomTagsProvider {
 
 		@Autowired(required = false)
 		private GatewayMetricsFilter filter;
@@ -123,7 +163,23 @@ public class GatewayMetricsAutoConfigurationTests {
 
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
+	@AutoConfigureObservability
 	protected static class Config {
+
+		@Bean
+		Tracer tracer() {
+			return Mockito.mock(Tracer.class);
+		}
+
+		@Bean
+		Propagator propagator() {
+			return Mockito.mock(Propagator.class);
+		}
+
+		@Bean
+		TracingProperties tracingProperties() {
+			return new TracingProperties();
+		}
 
 	}
 

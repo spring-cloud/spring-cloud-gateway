@@ -35,8 +35,8 @@ import org.springframework.cloud.gateway.test.PermitAllSecurityConfiguration;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.util.TestSocketUtils;
 import org.springframework.test.web.reactive.server.WebTestClient;
-import org.springframework.util.SocketUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -50,7 +50,7 @@ class NettyRoutingFilterTests extends BaseWebClientTests {
 
 	@BeforeAll
 	public static void beforeAll() {
-		port = SocketUtils.findAvailableTcpPort();
+		port = TestSocketUtils.findAvailableTcpPort();
 	}
 
 	@Test

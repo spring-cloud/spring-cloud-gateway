@@ -20,7 +20,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 
-import javax.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotEmpty;
 
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;

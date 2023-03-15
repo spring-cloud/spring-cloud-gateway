@@ -16,32 +16,30 @@
 
 package org.springframework.cloud.gateway.handler;
 
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import org.springframework.boot.test.system.OutputCaptureRule;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.gateway.config.GlobalCorsProperties;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.mock.env.MockEnvironment;
 import org.springframework.web.server.ServerWebExchange;
 
-import static org.hamcrest.Matchers.containsString;
-
 /**
  * @author Simon Baslé
  */
+@ExtendWith(OutputCaptureExtension.class)
 public class RoutePredicateHandlerMappingTests {
 
-	@Rule
-	public OutputCaptureRule outputCapture = new OutputCaptureRule();
-
 	@Test
-	public void lookupRouteFromSyncPredicates() {
+	public void lookupRouteFromSyncPredicates(CapturedOutput capturedOutput) {
 		Route routeFalse = Route.async().id("routeFalse").uri("http://localhost").predicate(swe -> false).build();
 		Route routeFail = Route.async().id("routeFail").uri("http://localhost").predicate(swe -> {
 			throw new IllegalStateException("boom");
@@ -54,13 +52,12 @@ public class RoutePredicateHandlerMappingTests {
 		final Mono<Route> routeMono = mapping.lookupRoute(Mockito.mock(ServerWebExchange.class));
 
 		StepVerifier.create(routeMono.map(Route::getId)).expectNext("routeTrue").verifyComplete();
-
-		outputCapture.expect(containsString("Error applying predicate for route: routeFail"));
-		outputCapture.expect(containsString("java.lang.IllegalStateException: boom"));
+		Assertions.assertTrue(capturedOutput.getOut().contains("Error applying predicate for route: routeFail"));
+		Assertions.assertTrue(capturedOutput.getOut().contains("java.lang.IllegalStateException: boom"));
 	}
 
 	@Test
-	public void lookupRouteFromAsyncPredicates() {
+	public void lookupRouteFromAsyncPredicates(CapturedOutput capturedOutput) {
 		Route routeFalse = Route.async().id("routeFalse").uri("http://localhost")
 				.asyncPredicate(swe -> Mono.just(false)).build();
 		Route routeError = Route.async().id("routeError").uri("http://localhost")
@@ -78,11 +75,11 @@ public class RoutePredicateHandlerMappingTests {
 
 		StepVerifier.create(routeMono.map(Route::getId)).expectNext("routeTrue").verifyComplete();
 
-		outputCapture.expect(containsString("Error applying predicate for route: routeError"));
-		outputCapture.expect(containsString("java.lang.IllegalStateException: boom1"));
+		Assertions.assertTrue(capturedOutput.getOut().contains("Error applying predicate for route: routeError"));
+		Assertions.assertTrue(capturedOutput.getOut().contains("java.lang.IllegalStateException: boom1"));
 
-		outputCapture.expect(containsString("Error applying predicate for route: routeFail"));
-		outputCapture.expect(containsString("java.lang.IllegalStateException: boom2"));
+		Assertions.assertTrue(capturedOutput.getOut().contains("Error applying predicate for route: routeFail"));
+		Assertions.assertTrue(capturedOutput.getOut().contains("java.lang.IllegalStateException: boom2"));
 	}
 
 }

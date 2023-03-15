@@ -267,14 +267,13 @@ class ReactiveLoadBalancerClientFilterTests {
 				ServiceInstanceListSuppliers.toProvider("service1"), "service1", -1);
 		when(clientFactory.getInstance("service1", ReactorServiceInstanceLoadBalancer.class)).thenReturn(loadBalancer);
 		properties.setUse404(true);
-		ReactiveLoadBalancerClientFilter filter = new ReactiveLoadBalancerClientFilter(clientFactory, properties,
-				loadBalancerProperties);
+		ReactiveLoadBalancerClientFilter filter = new ReactiveLoadBalancerClientFilter(clientFactory, properties);
 		when(chain.filter(exchange)).thenReturn(Mono.empty());
 		try {
 			filter.filter(exchange, chain).block();
 		}
 		catch (NotFoundException exception) {
-			assertThat(exception.getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
+			assertThat(exception.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
 		}
 	}
 
@@ -440,8 +439,7 @@ class ReactiveLoadBalancerClientFilterTests {
 				"service1", -1);
 		when(clientFactory.getInstance("service1", ReactorServiceInstanceLoadBalancer.class)).thenReturn(loadBalancer);
 
-		ReactiveLoadBalancerClientFilter filter = new ReactiveLoadBalancerClientFilter(clientFactory, properties,
-				loadBalancerProperties);
+		ReactiveLoadBalancerClientFilter filter = new ReactiveLoadBalancerClientFilter(clientFactory, properties);
 		filter.filter(exchange, chain).block();
 
 		return captor.getValue();

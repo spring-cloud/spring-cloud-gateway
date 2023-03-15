@@ -35,7 +35,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
-import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.cloud.client.DefaultServiceInstance;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.RetryGatewayFilterFactory.RetryConfig;
@@ -188,6 +188,7 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void toStringFormat() {
 		RetryConfig config = new RetryConfig();
 		config.setRetries(4);

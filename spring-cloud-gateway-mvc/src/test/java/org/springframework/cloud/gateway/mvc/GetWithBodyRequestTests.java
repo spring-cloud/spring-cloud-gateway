@@ -21,16 +21,15 @@ import java.net.URI;
 import java.util.Collections;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.cloud.gateway.mvc.GetWithBodyRequestTests.TestApplication.Foo;
 import org.springframework.cloud.gateway.mvc.config.ProxyExchangeArgumentResolver;
 import org.springframework.cloud.gateway.mvc.config.ProxyProperties;
@@ -45,7 +44,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -56,7 +54,6 @@ import org.springframework.web.client.RestTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ContextConfiguration(classes = GetWithBodyRequestTests.TestApplication.class)
 public class GetWithBodyRequestTests {
@@ -70,7 +67,7 @@ public class GetWithBodyRequestTests {
 	@LocalServerPort
 	private int port;
 
-	@Before
+	@BeforeEach
 	public void init() throws Exception {
 		testApplication.setHome(new URI("http://localhost:" + port));
 		rest.getRestTemplate().setRequestFactory(new GetWithBodyRequestClientHttpRequestFactory());

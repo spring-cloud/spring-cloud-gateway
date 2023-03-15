@@ -20,17 +20,16 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.cloud.gateway.mvc.ProxyExchange;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
@@ -38,14 +37,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.DefaultResponseErrorHandler;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @ContextConfiguration(classes = ProxyExchangeArgumentResolverTest.ProxyExchangeArgumentResolverTestApplication.class)
 public class ProxyExchangeArgumentResolverTest {
@@ -59,7 +56,7 @@ public class ProxyExchangeArgumentResolverTest {
 	@LocalServerPort
 	private int port;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		application.setHome(new URI("http://localhost:" + port));
 		rest.getRestTemplate().setRequestFactory(new SimpleClientHttpRequestFactory());

@@ -209,36 +209,36 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 						return closeStatus;
 					}
 					switch (code) {
-					case 1000:
-					case 1001:
-					case 1002:
-					case 1003:
-					case 1007:
-					case 1008:
-					case 1009:
-					case 1010:
-					case 1011:
-						return closeStatus;
-					case 1004:
-						// Should not be used in a close frame
-						// RESERVED;
-					case 1005:
-						// Should not be used in a close frame
-						// return CloseStatus.NO_STATUS_CODE;
-					case 1006:
-						// Should not be used in a close frame
-						// return CloseStatus.NO_CLOSE_FRAME;
-					case 1012:
-						// Not in RFC6455
-						// return CloseStatus.SERVICE_RESTARTED;
-					case 1013:
-						// Not in RFC6455
-						// return CloseStatus.SERVICE_OVERLOAD;
-					case 1015:
-						// Should not be used in a close frame
-						// return CloseStatus.TLS_HANDSHAKE_FAILURE;
-					default:
-						return CloseStatus.PROTOCOL_ERROR;
+						case 1000:
+						case 1001:
+						case 1002:
+						case 1003:
+						case 1007:
+						case 1008:
+						case 1009:
+						case 1010:
+						case 1011:
+							return closeStatus;
+						case 1004:
+							// Should not be used in a close frame
+							// RESERVED;
+						case 1005:
+							// Should not be used in a close frame
+							// return CloseStatus.NO_STATUS_CODE;
+						case 1006:
+							// Should not be used in a close frame
+							// return CloseStatus.NO_CLOSE_FRAME;
+						case 1012:
+							// Not in RFC6455
+							// return CloseStatus.SERVICE_RESTARTED;
+						case 1013:
+							// Not in RFC6455
+							// return CloseStatus.SERVICE_OVERLOAD;
+						case 1015:
+							// Should not be used in a close frame
+							// return CloseStatus.TLS_HANDSHAKE_FAILURE;
+						default:
+							return CloseStatus.PROTOCOL_ERROR;
 					}
 				}
 
@@ -250,10 +250,22 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 							.map(this::adaptCloseStatus).flatMap(proxySession::close);
 					// Use retain() for Reactor Netty
 					Mono<Void> proxySessionSend = proxySession
-							.send(session.receive().doOnNext(WebSocketMessage::retain));
+							.send(session.receive().doOnNext(WebSocketMessage::retain).doOnNext(webSocketMessage -> {
+								if (log.isTraceEnabled()) {
+									log.trace("proxySession(send from client): " + proxySession.getId()
+											+ ", corresponding session:" + session.getId() + ", packet: "
+											+ webSocketMessage.getPayloadAsText());
+								}
+							}));
 					// .log("proxySessionSend", Level.FINE);
-					Mono<Void> serverSessionSend = session
-							.send(proxySession.receive().doOnNext(WebSocketMessage::retain));
+					Mono<Void> serverSessionSend = session.send(
+							proxySession.receive().doOnNext(WebSocketMessage::retain).doOnNext(webSocketMessage -> {
+								if (log.isTraceEnabled()) {
+									log.trace("session(send from backend): " + session.getId()
+											+ ", corresponding proxySession:" + proxySession.getId() + " packet: "
+											+ webSocketMessage.getPayloadAsText());
+								}
+							}));
 					// .log("sessionSend", Level.FINE);
 					// Ensure closeStatus from one propagates to the other
 					Mono.when(serverClose, proxyClose).subscribe();

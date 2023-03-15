@@ -21,6 +21,7 @@ import reactor.core.publisher.Mono;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
+import org.springframework.http.HttpHeaders;
 import org.springframework.web.server.ServerWebExchange;
 
 import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
@@ -35,10 +36,7 @@ public class AddResponseHeaderGatewayFilterFactory extends AbstractNameValueGate
 		return new GatewayFilter() {
 			@Override
 			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-				String value = ServerWebExchangeUtils.expand(exchange, config.getValue());
-				exchange.getResponse().getHeaders().add(config.getName(), value);
-
-				return chain.filter(exchange);
+				return chain.filter(exchange).then(Mono.fromRunnable(() -> addHeader(exchange, config)));
 			}
 
 			@Override
@@ -47,6 +45,15 @@ public class AddResponseHeaderGatewayFilterFactory extends AbstractNameValueGate
 						.append(config.getName(), config.getValue()).toString();
 			}
 		};
+	}
+
+	void addHeader(ServerWebExchange exchange, NameValueConfig config) {
+		final String value = ServerWebExchangeUtils.expand(exchange, config.getValue());
+		HttpHeaders headers = exchange.getResponse().getHeaders();
+		// if response has been commited, no more response headers will bee added.
+		if (!exchange.getResponse().isCommitted()) {
+			headers.add(config.getName(), value);
+		}
 	}
 
 }

@@ -131,7 +131,7 @@ public class CacheRequestBodyGatewayFilterFactoryTests extends BaseWebClientTest
 		private String bodyExcepted;
 
 		AssertCachedRequestBodyGatewayFilter(String body) {
-			this.exceptNullBody = StringUtils.isEmpty(body);
+			this.exceptNullBody = !StringUtils.hasText(body);
 			this.bodyExcepted = body;
 		}
 
@@ -175,8 +175,7 @@ public class CacheRequestBodyGatewayFilterFactoryTests extends BaseWebClientTest
 			return chain.filter(exchange).doAfterTerminate(() -> {
 				Object o = exchange.getAttributes()
 						.get(CacheRequestBodyGatewayFilterFactory.CACHED_ORIGINAL_REQUEST_BODY_BACKUP_ATTR);
-				if (o instanceof PooledDataBuffer) {
-					PooledDataBuffer dataBuffer = (PooledDataBuffer) o;
+				if (o instanceof PooledDataBuffer dataBuffer) {
 					if (dataBuffer.isAllocated()) {
 						exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
 						fail("DataBuffer is not released");

@@ -16,7 +16,7 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-gateway-integration-tests</artifactId>
-		<version>3.1.7-SNAPSHOT</version>
+		<version>4.0.4-SNAPSHOT</version>
 		<relativePath>..</relativePath> <!-- lookup parent from repository -->
 	</parent>
 
@@ -41,6 +41,10 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-test-support</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>io.projectreactor</groupId>

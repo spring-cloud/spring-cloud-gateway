@@ -31,7 +31,9 @@ import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.support.HasRouteId;
 import org.springframework.cloud.gateway.support.HttpStatusHolder;
+import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.HttpStatusCodeException;
@@ -97,7 +99,7 @@ public abstract class SpringCloudCircuitBreakerFilterFactory
 			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 				return cb.run(chain.filter(exchange).doOnSuccess(v -> {
 					if (statuses.contains(exchange.getResponse().getStatusCode())) {
-						HttpStatus status = exchange.getResponse().getStatusCode();
+						HttpStatusCode status = exchange.getResponse().getStatusCode();
 						throw new CircuitBreakerStatusCodeException(status);
 					}
 				}), t -> {
@@ -112,8 +114,14 @@ public abstract class SpringCloudCircuitBreakerFilterFactory
 					URI uri = exchange.getRequest().getURI();
 					// TODO: assume always?
 					boolean encoded = containsEncodedParts(uri);
+
+					String expandedFallbackUri = ServerWebExchangeUtils.expand(exchange,
+							config.getFallbackUri().getPath());
+					String fullFallbackUri = String.format("%s:%s", config.getFallbackUri().getScheme(),
+							expandedFallbackUri);
 					URI requestUrl = UriComponentsBuilder.fromUri(uri).host(null).port(null)
-							.uri(config.getFallbackUri()).scheme(null).build(encoded).toUri();
+							.uri(URI.create(fullFallbackUri)).scheme(null).build(encoded).toUri();
+
 					exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, requestUrl);
 					addExceptionDetails(t, exchange);
 
@@ -189,7 +197,7 @@ public abstract class SpringCloudCircuitBreakerFilterFactory
 		}
 
 		public String getId() {
-			if (StringUtils.isEmpty(name) && !StringUtils.isEmpty(routeId)) {
+			if (!StringUtils.hasText(name) && StringUtils.hasText(routeId)) {
 				return routeId;
 			}
 			return name;
@@ -221,7 +229,7 @@ public abstract class SpringCloudCircuitBreakerFilterFactory
 
 	public class CircuitBreakerStatusCodeException extends HttpStatusCodeException {
 
-		public CircuitBreakerStatusCodeException(HttpStatus statusCode) {
+		public CircuitBreakerStatusCodeException(HttpStatusCode statusCode) {
 			super(statusCode);
 		}
 

@@ -22,11 +22,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import io.netty.util.internal.ThreadLocalRandom;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import reactor.core.publisher.Mono;
 
@@ -42,7 +41,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilterChain;
 
@@ -53,7 +51,6 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
  *
  * @author Alexey Nakidkin
  */
-@RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("weights-concurrent")
 @DirtiesContext
@@ -72,19 +69,19 @@ public class WeightCalculatorWebFilterConcurrentTests {
 
 	private long startTime;
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 		executorService = Executors.newSingleThreadExecutor();
 		startTime = System.currentTimeMillis();
 	}
 
-	@After
+	@AfterEach
 	public void teardown() {
 		executorService.shutdown();
 	}
 
 	@Test
-	@Ignore
+	@Disabled
 	public void WeightCalculatorWebFilter_threadSafeTest() {
 		generateEvents();
 

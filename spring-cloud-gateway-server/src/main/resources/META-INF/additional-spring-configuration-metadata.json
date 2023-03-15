@@ -37,6 +37,23 @@
       "defaultValue": "true"
     },
     {
+      "name": "spring.cloud.gateway.filter.local-response-cache.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the local-response-cache filter for all routes, it allows to add a specific configuration at route level using LocalResponseCache filter.",
+      "defaultValue": "false"
+    },
+    {
+      "name": "spring.cloud.gateway.filter.local-response-cache.size",
+      "type": "org.springframework.util.unit.DataSize",
+      "description": "Maximum size of the cache to evict entries for this route (in KB, MB and GB).",
+      "defaultValue": "5m"
+    },
+    {
+      "name": "spring.cloud.gateway.filter.local-response-cache.timeToLive",
+      "type": "java.time.Duration",
+      "description": "Time to expire a cache entry (expressed in s for seconds, m for minutes, and h for hours)."
+    },
+    {
       "name": "spring.cloud.gateway.filter.dedupe-response-header.enabled",
       "type": "java.lang.Boolean",
       "description": "Enables the dedupe-response-header filter.",
@@ -382,6 +399,12 @@
       "name": "spring.cloud.gateway.restrictive-property-accessor.enabled",
       "type": "java.lang.Boolean",
       "description": "Restricts method and property access in SpEL.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.observability.enabled",
+      "type": "java.lang.Boolean",
+      "description": "If Micrometer Observability support should be turned on.",
       "defaultValue": "true"
     }
   ]

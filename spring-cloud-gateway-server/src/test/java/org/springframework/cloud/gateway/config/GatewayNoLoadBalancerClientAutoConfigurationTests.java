@@ -32,8 +32,8 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
+import org.springframework.test.util.TestSocketUtils;
 import org.springframework.test.web.reactive.server.WebTestClient;
-import org.springframework.util.SocketUtils;
 
 @RunWith(ModifiedClassPathRunner.class)
 @ClassPathExclusions({ "spring-cloud-loadbalancer-*.jar" })
@@ -43,7 +43,7 @@ public class GatewayNoLoadBalancerClientAutoConfigurationTests {
 
 	@BeforeClass
 	public static void init() {
-		port = SocketUtils.findAvailableTcpPort();
+		port = TestSocketUtils.findAvailableTcpPort();
 	}
 
 	@Test

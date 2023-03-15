@@ -31,11 +31,12 @@ import org.springframework.cloud.test.ClassPathExclusions;
 import org.springframework.cloud.test.ModifiedClassPathRunner;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.util.TestSocketUtils;
 import org.springframework.test.web.reactive.server.WebTestClient;
-import org.springframework.util.SocketUtils;
 
 @RunWith(ModifiedClassPathRunner.class)
-@ClassPathExclusions({ "micrometer-*.jar", "spring-boot-actuator-*.jar", "spring-boot-actuator-autoconfigure-*.jar" })
+@ClassPathExclusions({ "micrometer-core.jar", "spring-boot-actuator-*.jar",
+		"spring-boot-actuator-autoconfigure-*.jar" })
 @DirtiesContext
 public class GatewaySampleApplicationWithoutMetricsTests {
 
@@ -47,7 +48,7 @@ public class GatewaySampleApplicationWithoutMetricsTests {
 
 	@BeforeClass
 	public static void beforeClass() {
-		port = SocketUtils.findAvailableTcpPort();
+		port = TestSocketUtils.findAvailableTcpPort();
 		System.setProperty("server.port", Integer.toString(port));
 	}
 

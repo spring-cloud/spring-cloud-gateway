@@ -18,18 +18,15 @@ package org.springframework.cloud.gateway.config;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.security.KeyStore;
-import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.TrustManagerFactory;
 
 import io.netty.channel.ChannelOption;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import reactor.netty.http.HttpProtocol;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.client.HttpClientConfig;
@@ -168,31 +165,9 @@ public class GatewayAutoConfigurationTests {
 	}
 
 	@Test
-	@Deprecated
-	public void nettyHttpClientNoSslConfigurerIsBackwardsCompatible() {
-		new ReactiveWebApplicationContextRunner()
-				.withConfiguration(AutoConfigurations.of(WebFluxAutoConfiguration.class, MetricsAutoConfiguration.class,
-						SimpleMetricsExportAutoConfiguration.class, GatewayAutoConfiguration.class,
-						NoSslConfigurerCustomHttpClientFactoryConfig.class))
-				.withPropertyValues("spring.cloud.gateway.httpclient.ssl.use-insecure-trust-manager=true")
-				.run(context -> {
-					assertThat(context).hasSingleBean(HttpClient.class);
-					NoSslConfigurerHttpClientFactory factory = context.getBean(NoSslConfigurerHttpClientFactory.class);
-
-					assertThat(factory.configureSslCalled).isTrue();
-					assertThat(factory.configureSslContextCalled).isTrue();
-					assertThat(factory.getTrustedX509CertificatesForTrustManagerCalled).isTrue();
-					assertThat(factory.getKeyManagerFactoryCalled).isTrue();
-					assertThat(factory.createKeyStoreCalled).isFalse();
-					assertThat(factory.setTrustManagerCertCalled).isFalse();
-					assertThat(factory.setTrustManagerFactoryCalled).isTrue();
-				});
-	}
-
-	@Test
 	public void verboseActuatorEnabledByDefault() {
 		try (ConfigurableApplicationContext ctx = SpringApplication.run(Config.class, "--spring.jmx.enabled=false",
-				"--server.port=0")) {
+				"--server.port=0", "--management.endpoint.gateway.enabled=true")) {
 			assertThat(ctx.getBeanNamesForType(GatewayControllerEndpoint.class)).hasSize(1);
 			assertThat(ctx.getBeanNamesForType(GatewayLegacyControllerEndpoint.class)).isEmpty();
 		}
@@ -201,7 +176,8 @@ public class GatewayAutoConfigurationTests {
 	@Test
 	public void verboseActuatorDisabled() {
 		try (ConfigurableApplicationContext ctx = SpringApplication.run(Config.class, "--spring.jmx.enabled=false",
-				"--server.port=0", "--spring.cloud.gateway.actuator.verbose.enabled=false")) {
+				"--server.port=0", "--spring.cloud.gateway.actuator.verbose.enabled=false",
+				"--management.endpoint.gateway.enabled=true")) {
 			assertThat(ctx.getBeanNamesForType(GatewayLegacyControllerEndpoint.class)).hasSize(1);
 		}
 	}
@@ -369,21 +345,6 @@ public class GatewayAutoConfigurationTests {
 
 	}
 
-	@Configuration
-	@EnableConfigurationProperties(ServerProperties.class)
-	@AutoConfigureBefore(GatewayAutoConfiguration.class)
-	@Deprecated
-	protected static class NoSslConfigurerCustomHttpClientFactoryConfig {
-
-		@Bean
-		@Primary
-		NoSslConfigurerHttpClientFactory noSslConfigurerHttpClientFactory(HttpClientProperties properties,
-				ServerProperties serverProperties, List<HttpClientCustomizer> customizers) {
-			return new NoSslConfigurerHttpClientFactory(properties, serverProperties, customizers);
-		}
-
-	}
-
 	protected static class CustomHttpClientFactory extends HttpClientFactory {
 
 		private ConnectionProvider connectionProvider;
@@ -442,76 +403,6 @@ public class GatewayAutoConfigurationTests {
 				super.setTrustManager(sslContextBuilder, factory);
 			}
 
-		}
-
-	}
-
-	/*
-	 * Class to test backwards compatibility if no `SslConfigurer` used.
-	 */
-	@Deprecated
-	protected static class NoSslConfigurerHttpClientFactory extends HttpClientFactory {
-
-		boolean configureSslCalled;
-
-		boolean configureSslContextCalled;
-
-		boolean getTrustedX509CertificatesForTrustManagerCalled;
-
-		boolean getKeyManagerFactoryCalled;
-
-		boolean createKeyStoreCalled;
-
-		boolean setTrustManagerCertCalled;
-
-		boolean setTrustManagerFactoryCalled;
-
-		public NoSslConfigurerHttpClientFactory(HttpClientProperties properties, ServerProperties serverProperties,
-				List<HttpClientCustomizer> customizers) {
-			super(properties, serverProperties, customizers);
-		}
-
-		@Override
-		protected HttpClient configureSsl(HttpClient httpClient) {
-			configureSslCalled = true;
-			return super.configureSsl(httpClient);
-		}
-
-		@Override
-		protected void configureSslContext(HttpClientProperties.Ssl ssl, SslProvider.SslContextSpec sslContextSpec) {
-			configureSslContextCalled = true;
-			super.configureSslContext(ssl, sslContextSpec);
-		}
-
-		@Override
-		protected X509Certificate[] getTrustedX509CertificatesForTrustManager() {
-			getTrustedX509CertificatesForTrustManagerCalled = true;
-			return super.getTrustedX509CertificatesForTrustManager();
-		}
-
-		@Override
-		protected KeyManagerFactory getKeyManagerFactory() {
-			getKeyManagerFactoryCalled = true;
-			return super.getKeyManagerFactory();
-		}
-
-		@Override
-		protected KeyStore createKeyStore() {
-			createKeyStoreCalled = true;
-			return super.createKeyStore();
-		}
-
-		@Override
-		protected void setTrustManager(SslContextBuilder sslContextBuilder,
-				X509Certificate... trustedX509Certificates) {
-			setTrustManagerCertCalled = true;
-			super.setTrustManager(sslContextBuilder, trustedX509Certificates);
-		}
-
-		@Override
-		protected void setTrustManager(SslContextBuilder sslContextBuilder, TrustManagerFactory factory) {
-			setTrustManagerFactoryCalled = true;
-			super.setTrustManager(sslContextBuilder, factory);
 		}
 
 	}

@@ -119,7 +119,7 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 
 		ServerHttpRequest request = exchange.getRequest();
 
-		final HttpMethod method = HttpMethod.valueOf(request.getMethodValue());
+		final HttpMethod method = HttpMethod.valueOf(request.getMethod().name());
 		final String url = requestUrl.toASCIIString();
 
 		HttpHeaders filtered = filterRequest(getHeadersFilters(), exchange);

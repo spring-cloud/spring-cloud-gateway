@@ -27,11 +27,11 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
-import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.cloud.gateway.tests.http2.Http2Application;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.util.SocketUtils;
+import org.springframework.test.util.TestSocketUtils;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import static org.springframework.cloud.gateway.tests.http2.Http2ApplicationTests.assertResponse;
@@ -49,7 +49,7 @@ public class NosslTests {
 
 	@BeforeAll
 	static void beforeAll() {
-		int noSslPort = SocketUtils.findAvailableTcpPort();
+		int noSslPort = TestSocketUtils.findAvailableTcpPort();
 		System.setProperty("nossl.port", String.valueOf(noSslPort));
 	}
 

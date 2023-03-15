@@ -9,14 +9,14 @@ image::https://github.com/spring-cloud/spring-cloud-gateway/workflows/Build/badg
 image::https://codecov.io/gh/spring-cloud/spring-cloud-gateway/branch/main/graph/badge.svg["Codecov", link="https://codecov.io/gh/spring-cloud/spring-cloud-gateway/branch/main"]
 
 
-This project provides an API Gateway built on top of the Spring Ecosystem, including: Spring 5, Spring Boot 2 and Project Reactor. Spring Cloud Gateway aims to provide a simple, yet effective way to route to APIs and provide cross cutting concerns to them such as: security, monitoring/metrics, and resiliency.
+This project provides an API Gateway built on top of the Spring Ecosystem, including: Spring 6, Spring Boot 3 and Project Reactor. Spring Cloud Gateway aims to provide a simple, yet effective way to route to APIs and provide cross cutting concerns to them such as: security, monitoring/metrics, and resiliency.
 
 
 == Features
 
-* Java 8
-* Spring Framework 5
-* Spring Boot 2
+* Java 17
+* Spring Framework 6
+* Spring Boot 3
 * Dynamic routing
 * Route matching built into Spring Handler Mapping
 * Route matching on HTTP Request (Path, Method, Header, Host, etc...)
@@ -26,7 +26,6 @@ This project provides an API Gateway built on top of the Spring Ecosystem, inclu
 * Supports Spring Cloud `DiscoveryClient` for configuring Routes
 
 == Building
-
 
 :jdkversion: 17
 
@@ -106,7 +105,6 @@ following command:
 
 The generated eclipse projects can be imported by selecting `import existing projects`
 from the `file` menu.
-
 
 
 == Contributing

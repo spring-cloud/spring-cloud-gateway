@@ -20,7 +20,7 @@ import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.function.Predicate;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.gateway.handler.predicate.BeforeRoutePredicateFactory.DATETIME_KEY;
