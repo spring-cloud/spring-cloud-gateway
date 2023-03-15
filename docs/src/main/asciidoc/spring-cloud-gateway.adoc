@@ -2429,9 +2429,9 @@ If you want to customize the predicates or filters used by the `DiscoveryClient`
 When doing so, you need to make sure to include the default predicate and filter shown earlier, if you want to retain that functionality.
 The following example shows what this looks like:
 
-.application.properties
+.application.yml
 ====
-[soure,properties]
+[soure,yaml]
 ----
 spring.cloud.gateway.discovery.locator.predicates[0].name: Path
 spring.cloud.gateway.discovery.locator.predicates[0].args[pattern]: "'/'+serviceId+'/**'"
