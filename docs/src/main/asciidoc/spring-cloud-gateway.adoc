@@ -1044,7 +1044,7 @@ public class GRPCLocalConfiguration {
 }
 ----
 
-
+[[local-cache-response-filter]]
 === The `LocalResponseCache` `GatewayFilter` Factory
 
 This filter allows caching the response body and headers to follow these rules:
@@ -1054,9 +1054,9 @@ This filter allows caching the response body and headers to follow these rules:
 * Response data is not cached if `Cache-Control` header does not allow it (`no-store` present in the request or `no-store` or `private` present in the response).
 * If the response is already cached and a new request is performed with no-cache value in `Cache-Control` header, it returns a bodiless response with 304 (Not Modified).
 
-This filter (which configures the local response cache per route) is available only if the <<local-cache-response-global-filter, local response global cache>> is enabled.
+This filter configures the local response cache per route and is available only if the `spring.cloud.gateway.filter.local-response-cache.enabled` property is enabled. And a <<local-cache-response-global-filter, local response cache configured globally>> is also available as feature.
 
-It accepts the first parameter to override the time to expire a cache entry (expressed in `s` for seconds, `m` for minutes, and `h` for hours) and a second parameter to set the maximum size of the cache to evict entries for this route (KB, MB, or GB).
+It accepts the first parameter to override the time to expire a cache entry (expressed in `s` for seconds, `m` for minutes, and `h` for hours) and a second parameter to set the maximum size of the cache to evict entries for this route (`KB`, `MB`, or `GB`).
 
 The following listing shows how to add local response cache `GatewayFilter`:
 
@@ -1090,11 +1090,16 @@ spring:
         filters:
         - LocalResponseCache=30m,500MB
 ----
+====
 
 NOTE: This filter also automatically calculates the `max-age` value in the HTTP `Cache-Control` header.
 Only if `max-age` is present on the original response is the value rewritten with the number of seconds set in the `timeToLive` configuration parameter.
 In consecutive calls, this value is recalculated with the number of seconds left until the response expires.
-====
+
+NOTE: To enable this feature, add `com.github.ben-manes.caffeine:caffeine` and `spring-boot-starter-cache` as project dependencies.
+
+WARNING: If your project creates custom `CacheManager` beans, it will either need to be marked with `@Primary` or injected using `@Qualifier`.
+
 
 === The `MapRequestHeader` `GatewayFilter` Factory
 
@@ -2166,7 +2171,12 @@ NOTE: To enable the prometheus endpoint, add `micrometer-registry-prometheus` as
 [[local-cache-response-global-filter]]
 === The Local Response Cache Filter
 
-The `LocalResponseCache` runs if its associated property is enabled (`spring.cloud.gateway.filter.local-response-cache.enabled`) and activates a local cache using Caffeine for all responses that meet the following criteria:
+The `LocalResponseCache` runs if associated properties are enabled:
+
+* `spring.cloud.gateway.global-filter.local-response-cache.enabled`: Activates the global cache for all routes
+* `spring.cloud.gateway.filter.local-response-cache.enabled`: Activates the associated filter to use at route level
+
+This feature enables a local cache using Caffeine for all responses that meet the following criteria:
 
 * The request is a bodiless GET.
 * The response has one of the following status codes: HTTP 200 (OK), HTTP 206 (Partial Content), or HTTP 301 (Moved Permanently).
@@ -2175,13 +2185,15 @@ The `LocalResponseCache` runs if its associated property is enabled (`spring.clo
 It accepts two configuration parameters:
 
 * `spring.cloud.gateway.filter.local-response-cache.size`: Sets the maximum size of the cache to evict entries for this route (in KB, MB and GB).
-* `spring.cloud.gateway.filter.local-response-cache.timeToLive` Sets the time to expire a cache entry (expressed in s for seconds, m for minutes, and h for hours).
+* `spring.cloud.gateway.filter.local-response-cache.time-to-live` Sets the time to expire a cache entry (expressed in s for seconds, m for minutes, and h for hours).
 
 If none of these parameters are configured but the global filter is enabled, by default, it configures 5 minutes of time to live for the cached response.
 
 This filter also implements the automatic calculation of the `max-age` value in the HTTP `Cache-Control` header.
 If `max-age` is present on the original response, the value is rewritten with the number of seconds set in the `timeToLive` configuration parameter.
 In subsequent calls, this value is recalculated with the number of seconds left until the response expires.
+
+Setting `spring.cloud.gateway.global-filter.local-response-cache.enabled` to `false` deactivate the local response cache for all routes, the <<local-cache-response-filter, LocalResponseCache filter>> allows to use this functionality at route level.
 
 NOTE: To enable this feature, add `com.github.ben-manes.caffeine:caffeine` and `spring-boot-starter-cache` as project dependencies.
 
