@@ -36,11 +36,11 @@ import static org.springframework.cloud.gateway.filter.factory.cache.LocalRespon
  * @author Ignacio Lozano
  * @author Marta Medio
  */
-public class GlobalLocalResponseCacheGatewayFilter implements GlobalFilter, Ordered {
+public class LocalResponseCacheFilter implements GlobalFilter, Ordered {
 
 	private final ResponseCacheGatewayFilter responseCacheGatewayFilter;
 
-	public GlobalLocalResponseCacheGatewayFilter(ResponseCacheManagerFactory cacheManagerFactory, Cache globalCache,
+	public LocalResponseCacheFilter(ResponseCacheManagerFactory cacheManagerFactory, Cache globalCache,
 			Duration configuredTimeToLive) {
 		responseCacheGatewayFilter = new ResponseCacheGatewayFilter(
 				cacheManagerFactory.create(globalCache, configuredTimeToLive));
