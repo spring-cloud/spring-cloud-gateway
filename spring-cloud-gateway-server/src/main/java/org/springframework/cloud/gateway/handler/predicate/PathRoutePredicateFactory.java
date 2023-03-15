@@ -90,12 +90,9 @@ public class PathRoutePredicateFactory extends AbstractRoutePredicateFactory<Pat
 		return new GatewayPredicate() {
 			@Override
 			public boolean test(ServerWebExchange exchange) {
-				PathContainer path = (PathContainer) exchange.getAttributes()
-						.get(GATEWAY_PREDICATE_PATH_CONTAINER_ATTR);
-				if (path == null) {
-					path = parsePath(exchange.getRequest().getURI().getRawPath());
-					exchange.getAttributes().put(GATEWAY_PREDICATE_PATH_CONTAINER_ATTR, path);
-				}
+				PathContainer path = (PathContainer) exchange.getAttributes().computeIfAbsent(
+						GATEWAY_PREDICATE_PATH_CONTAINER_ATTR,
+						s -> parsePath(exchange.getRequest().getURI().getRawPath()));
 
 				PathPattern match = null;
 				for (int i = 0; i < pathPatterns.size(); i++) {
