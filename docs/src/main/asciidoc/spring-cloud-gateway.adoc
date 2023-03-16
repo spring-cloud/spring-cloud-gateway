@@ -2630,15 +2630,26 @@ The following example shows what this looks like:
 ====
 [source,yaml]
 ----
-spring.cloud.gateway.discovery.locator.predicates[0].name: Path
-spring.cloud.gateway.discovery.locator.predicates[0].args[pattern]: "'/'+serviceId+'/**'"
-spring.cloud.gateway.discovery.locator.predicates[1].name: Host
-spring.cloud.gateway.discovery.locator.predicates[1].args[pattern]: "'**.foo.com'"
-spring.cloud.gateway.discovery.locator.filters[0].name: CircuitBreaker
-spring.cloud.gateway.discovery.locator.filters[0].args[name]: serviceId
-spring.cloud.gateway.discovery.locator.filters[1].name: RewritePath
-spring.cloud.gateway.discovery.locator.filters[1].args[regexp]: "'/' + serviceId + '/?(?<remaining>.*)'"
-spring.cloud.gateway.discovery.locator.filters[1].args[replacement]: "'/${remaining}'"
+spring:
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          predicates:
+          - name: Host
+            args:
+              pattern: "'**.foo.com'"
+          - name: Path
+            args:
+              pattern: "'/'+serviceId+'/**'"
+          filters:
+          - name: CircuitBreaker
+            args:
+              name: serviceId
+          - name: RewritePath
+            args:
+              regexp: "'/' + serviceId + '/?(?<remaining>.*)'"
+              replacement: "'/${remaining}'"
 ----
 ====
 
