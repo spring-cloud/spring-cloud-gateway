@@ -32,7 +32,7 @@ import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.caffeine.CaffeineCacheManager;
 import org.springframework.cloud.gateway.config.conditional.ConditionalOnEnabledFilter;
-import org.springframework.cloud.gateway.filter.factory.cache.LocalResponseCacheFilter;
+import org.springframework.cloud.gateway.filter.factory.cache.GlobalLocalResponseCacheGatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.cache.LocalResponseCacheGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.cache.LocalResponseCacheProperties;
 import org.springframework.cloud.gateway.filter.factory.cache.ResponseCacheManagerFactory;
@@ -60,11 +60,11 @@ public class LocalResponseCacheAutoConfiguration {
 
 	@Bean
 	@Conditional(LocalResponseCacheAutoConfiguration.OnGlobalLocalResponseCacheCondition.class)
-	public LocalResponseCacheFilter globalLocalResponseCacheGatewayFilter(
+	public GlobalLocalResponseCacheGatewayFilter globalLocalResponseCacheGatewayFilter(
 			ResponseCacheManagerFactory responseCacheManagerFactory,
 			@Qualifier(RESPONSE_CACHE_MANAGER_NAME) CacheManager cacheManager,
 			LocalResponseCacheProperties properties) {
-		return new LocalResponseCacheFilter(responseCacheManagerFactory, responseCache(cacheManager),
+		return new GlobalLocalResponseCacheGatewayFilter(responseCacheManagerFactory, responseCache(cacheManager),
 				properties.getTimeToLive());
 	}
 
