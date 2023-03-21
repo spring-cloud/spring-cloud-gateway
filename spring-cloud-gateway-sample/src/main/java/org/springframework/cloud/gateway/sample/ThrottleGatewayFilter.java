@@ -16,18 +16,17 @@
 
 package org.springframework.cloud.gateway.sample;
 
-import java.util.concurrent.TimeUnit;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.isomorphism.util.TokenBucket;
 import org.isomorphism.util.TokenBuckets;
-import reactor.core.publisher.Mono;
-
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Mono;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * Sample throttling filter. See https://github.com/bbeck/token-bucket
@@ -36,6 +35,8 @@ public class ThrottleGatewayFilter implements GatewayFilter {
 
 	private static final Log log = LogFactory.getLog(ThrottleGatewayFilter.class);
 
+	private volatile TokenBucket tokenBucket;
+
 	int capacity;
 
 	int refillTokens;
@@ -43,6 +44,20 @@ public class ThrottleGatewayFilter implements GatewayFilter {
 	int refillPeriod;
 
 	TimeUnit refillUnit;
+
+
+	private TokenBucket getTokenBucket() {
+		if (tokenBucket != null) {
+			return tokenBucket;
+		}
+		synchronized (this) {
+			if (tokenBucket == null) {
+				tokenBucket = TokenBuckets.builder().withCapacity(capacity)
+						.withFixedIntervalRefillStrategy(refillTokens, refillPeriod, refillUnit).build();
+			}
+		}
+		return tokenBucket;
+	}
 
 	public int getCapacity() {
 		return capacity;
@@ -82,9 +97,7 @@ public class ThrottleGatewayFilter implements GatewayFilter {
 
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-
-		TokenBucket tokenBucket = TokenBuckets.builder().withCapacity(capacity)
-				.withFixedIntervalRefillStrategy(refillTokens, refillPeriod, refillUnit).build();
+		TokenBucket tokenBucket = getTokenBucket();
 
 		// TODO: get a token bucket for a key
 		log.debug("TokenBucket capacity: " + tokenBucket.getCapacity());
