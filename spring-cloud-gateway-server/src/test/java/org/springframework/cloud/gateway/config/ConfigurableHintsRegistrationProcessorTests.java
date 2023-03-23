@@ -25,7 +25,7 @@ import org.springframework.aot.generate.GeneratedClass;
 import org.springframework.aot.generate.GeneratedMethods;
 import org.springframework.aot.generate.GenerationContext;
 import org.springframework.aot.generate.MethodReference;
-import org.springframework.aot.hint.ReflectionHints;
+import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.test.generate.TestGenerationContext;
 import org.springframework.beans.factory.aot.BeanFactoryInitializationAotContribution;
 import org.springframework.beans.factory.aot.BeanFactoryInitializationCode;
@@ -37,6 +37,7 @@ import org.springframework.cloud.gateway.filter.factory.SpringCloudCircuitBreake
 import org.springframework.javapoet.TypeSpec;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.aot.hint.predicate.RuntimeHintsPredicates.reflection;
 
 /**
  * Tests for {@link ConfigurableHintsRegistrationProcessor}.
@@ -64,10 +65,10 @@ class ConfigurableHintsRegistrationProcessorTests {
 		assertThat(contribution).isNotNull();
 		contribution.applyTo(generationContext, beanFactoryInitializationCode);
 
-		ReflectionHints reflectionHints = generationContext.getRuntimeHints().reflection();
-		assertThat(reflectionHints.getTypeHint(SpringCloudCircuitBreakerResilience4JFilterFactory.class)).isNotNull();
-		assertThat(reflectionHints.getTypeHint(SpringCloudCircuitBreakerFilterFactory.class)).isNotNull();
-		assertThat(reflectionHints.getTypeHint(SpringCloudCircuitBreakerFilterFactory.Config.class)).isNotNull();
+		RuntimeHints hints = generationContext.getRuntimeHints();
+		assertThat(reflection().onType(SpringCloudCircuitBreakerResilience4JFilterFactory.class)).accepts(hints);
+		assertThat(reflection().onType(SpringCloudCircuitBreakerFilterFactory.class)).accepts(hints);
+		assertThat(reflection().onType(SpringCloudCircuitBreakerFilterFactory.Config.class)).accepts(hints);
 	}
 
 	@SuppressWarnings("NullableProblems")
