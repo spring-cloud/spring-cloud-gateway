@@ -18,14 +18,14 @@ package org.springframework.cloud.gateway.config;
 
 import java.security.cert.X509Certificate;
 
-import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
+import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.util.CollectionUtils;
+
+import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import reactor.netty.http.Http11SslContextSpec;
 import reactor.netty.http.Http2SslContextSpec;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.tcp.SslProvider;
-
-import org.springframework.boot.autoconfigure.web.ServerProperties;
 
 public class HttpClientSslConfigurer extends AbstractSslConfigurer<HttpClient, HttpClient> {
 
