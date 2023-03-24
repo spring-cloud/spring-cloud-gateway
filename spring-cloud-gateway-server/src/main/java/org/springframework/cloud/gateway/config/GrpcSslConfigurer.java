@@ -18,14 +18,14 @@ package org.springframework.cloud.gateway.config;
 
 import javax.net.ssl.SSLException;
 
-import org.springframework.util.CollectionUtils;
-
 import io.grpc.ManagedChannel;
 import io.grpc.netty.GrpcSslContexts;
 import io.grpc.netty.NettyChannelBuilder;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
+
+import org.springframework.util.CollectionUtils;
 
 /**
  * @author Alberto C. Ríos
@@ -55,11 +55,11 @@ public class GrpcSslConfigurer extends AbstractSslConfigurer<NettyChannelBuilder
 			sslContextBuilder.trustManager(getTrustedX509CertificatesForTrustManager());
 		}
 
-		if(!CollectionUtils.isEmpty(ssl.getProtocols())) {
+		if (!CollectionUtils.isEmpty(ssl.getProtocols())) {
 			sslContextBuilder.protocols(ssl.getProtocols());
 		}
 
-		if(!CollectionUtils.isEmpty(ssl.getCiphers())) {
+		if (!CollectionUtils.isEmpty(ssl.getCiphers())) {
 			sslContextBuilder.ciphers(ssl.getCiphers());
 		}
 
