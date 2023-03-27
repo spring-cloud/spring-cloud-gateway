@@ -98,7 +98,7 @@ public class ResponseCacheManager {
 		return body.map(dataBuffer -> {
 			ByteBuffer byteBuffer = dataBuffer.toByteBuffer().asReadOnlyBuffer();
 			cachedResponseBuilder.appendToBody(byteBuffer);
-			return response.bufferFactory().wrap(byteBuffer);
+			return dataBuffer;
 		}).doOnComplete(() -> {
 			CachedResponse responseToCache = cachedResponseBuilder.timestamp(toProcess.timestamp()).build();
 			saveMetadataInCache(metadataKey, metadata);
