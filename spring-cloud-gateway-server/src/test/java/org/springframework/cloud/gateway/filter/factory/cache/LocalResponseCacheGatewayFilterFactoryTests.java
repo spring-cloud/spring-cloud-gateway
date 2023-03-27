@@ -57,17 +57,6 @@ public class LocalResponseCacheGatewayFilterFactoryTests extends BaseWebClientTe
 	private static final String CUSTOM_HEADER = "X-Custom-Date";
 
 	@Test
-	void shouldGlobalCacheResponseWhenRouteDoesNotHaveFilter() {
-		String uri = "/" + UUID.randomUUID() + "/global-cache/headers";
-
-		testClient.get().uri(uri).header("Host", "www.localresponsecache.org").header(CUSTOM_HEADER, "1").exchange()
-				.expectBody().jsonPath("$.headers." + CUSTOM_HEADER);
-
-		testClient.get().uri(uri).header("Host", "www.localresponsecache.org").header(CUSTOM_HEADER, "2").exchange()
-				.expectBody().jsonPath("$.headers." + CUSTOM_HEADER).isEqualTo("1");
-	}
-
-	@Test
 	void shouldNotCacheResponseWhenGetRequestHasBody() {
 		String uri = "/" + UUID.randomUUID() + "/cache/headers";
 
@@ -252,9 +241,6 @@ public class LocalResponseCacheGatewayFilterFactoryTests extends BaseWebClientTe
 		@Bean
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes()
-					.route("global_local_response_cache_java_test",
-							r -> r.path("/{namespace}/global-cache/**").and().host("{sub}.localresponsecache.org")
-									.filters(f -> f.stripPrefix(2).prefixPath("/httpbin")).uri(uri))
 					.route("local_response_cache_java_test",
 							r -> r.path("/{namespace}/cache/**").and().host("{sub}.localresponsecache.org")
 									.filters(f -> f.stripPrefix(2).prefixPath("/httpbin")

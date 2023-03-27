@@ -18,7 +18,6 @@ package org.springframework.cloud.gateway.filter.factory.cache;
 
 import java.time.Duration;
 import java.util.List;
-import java.util.Objects;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cache.Cache;
@@ -50,17 +49,14 @@ public class LocalResponseCacheGatewayFilterFactory
 	 */
 	public static final String LOCAL_RESPONSE_CACHE_FILTER_APPLIED = "LocalResponseCacheGatewayFilter-Applied";
 
-	private final Cache globalCache;
-
 	ResponseCacheManagerFactory cacheManagerFactory;
 
 	Duration configuredTimeToLive;
 
-	public LocalResponseCacheGatewayFilterFactory(ResponseCacheManagerFactory cacheManagerFactory, Cache globalCache,
+	public LocalResponseCacheGatewayFilterFactory(ResponseCacheManagerFactory cacheManagerFactory,
 			Duration configuredTimeToLive) {
 		super(RouteCacheConfiguration.class);
 		this.cacheManagerFactory = cacheManagerFactory;
-		this.globalCache = globalCache;
 		this.configuredTimeToLive = configuredTimeToLive;
 	}
 
@@ -68,19 +64,10 @@ public class LocalResponseCacheGatewayFilterFactory
 	public GatewayFilter apply(RouteCacheConfiguration config) {
 		LocalResponseCacheProperties cacheProperties = mapRouteCacheConfig(config);
 
-		if (shouldUseGlobalCacheConfiguration(config)) {
-			return new ResponseCacheGatewayFilter(cacheManagerFactory.create(globalCache, configuredTimeToLive));
-		}
-		else {
-			Cache routeCache = LocalResponseCacheAutoConfiguration.createGatewayCacheManager(cacheProperties)
-					.getCache(config.getRouteId() + "-cache");
-			return new ResponseCacheGatewayFilter(
-					cacheManagerFactory.create(routeCache, cacheProperties.getTimeToLive()));
-		}
-	}
+		Cache routeCache = LocalResponseCacheAutoConfiguration.createGatewayCacheManager(cacheProperties)
+				.getCache(config.getRouteId() + "-cache");
+		return new ResponseCacheGatewayFilter(cacheManagerFactory.create(routeCache, cacheProperties.getTimeToLive()));
 
-	private boolean shouldUseGlobalCacheConfiguration(RouteCacheConfiguration config) {
-		return Objects.isNull(config.getTimeToLive()) && Objects.isNull(config.getSize());
 	}
 
 	private LocalResponseCacheProperties mapRouteCacheConfig(RouteCacheConfiguration config) {

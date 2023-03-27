@@ -39,7 +39,7 @@
     {
       "name": "spring.cloud.gateway.filter.local-response-cache.enabled",
       "type": "java.lang.Boolean",
-      "description": "Enables the local-response-cache filter for all routes, it allows to add a specific configuration at route level using LocalResponseCache filter.",
+      "description": "Enables the local-response-cache filter.",
       "defaultValue": "false"
     },
     {
@@ -49,7 +49,7 @@
       "defaultValue": "5m"
     },
     {
-      "name": "spring.cloud.gateway.filter.local-response-cache.timeToLive",
+      "name": "spring.cloud.gateway.filter.local-response-cache.time-to-live",
       "type": "java.time.Duration",
       "description": "Time to expire a cache entry (expressed in s for seconds, m for minutes, and h for hours)."
     },
@@ -279,6 +279,12 @@
       "name": "spring.cloud.gateway.global-filter.load-balancer-client.enabled",
       "type": "java.lang.Boolean",
       "description": "Enables the load-balancer-client global filter.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.global-filter.local-response-cache.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the local-response-cache filter for all routes, it allows to add a specific configuration at route level using LocalResponseCache filter.",
       "defaultValue": "true"
     },
     {
