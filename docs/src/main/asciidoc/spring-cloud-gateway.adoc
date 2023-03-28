@@ -2952,11 +2952,17 @@ The following table describes the structure of the response:
 
 |===
 
-=== Creating and Deleting a Particular Route
+=== Creating and Deleting a Particular Route Definition
 
-To create a route, make a `POST` request to `/gateway/routes/{id_route_to_create}` with a JSON body that specifies the fields of the route (see <<gateway-retrieving-information-about-a-particular-route>>).
+To create a route definition, make a `POST` request to `/gateway/routes/{id_route_to_create}` with a JSON body that specifies the fields of the route (see <<gateway-retrieving-information-about-a-particular-route>>).
 
-To delete a route, make a `DELETE` request to `/gateway/routes/{id_route_to_delete}`.
+To delete a route definition, make a `DELETE` request to `/gateway/routes/{id_route_to_delete}`.
+
+=== Creating multiple Route Definitions
+
+To create multiple route definitions in a single request, make a `POST` request to `/gateway/routes` with a JSON body that specifies the fields of the route, including the route id (see <<gateway-retrieving-information-about-a-particular-route>>).
+
+The route definitions will be discarded if any route raises an error during the creation of the routes.
 
 === Recap: The List of All endpoints
 
