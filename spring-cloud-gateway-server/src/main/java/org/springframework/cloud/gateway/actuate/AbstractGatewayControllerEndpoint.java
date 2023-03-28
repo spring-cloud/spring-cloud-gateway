@@ -167,7 +167,7 @@ public class AbstractGatewayControllerEndpoint implements ApplicationEventPublis
 		}
 
 		if (!StringUtils.hasText(uri.getScheme())) {
-			handleError("The URI format [%s] is incorrect, scheme can not be empty".formatted(uri));
+			handleError(String.format("The URI format [%s] is incorrect, scheme can not be empty", uri));
 		}
 	}
 
