@@ -34,6 +34,7 @@ import org.springframework.web.util.pattern.PathPatternParser;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_PREDICATE_MATCHED_PATH_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_PREDICATE_MATCHED_PATH_ROUTE_ID_ATTR;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_PREDICATE_PATH_CONTAINER_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_PREDICATE_ROUTE_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.putUriTemplateVariables;
 import static org.springframework.http.server.PathContainer.parsePath;
@@ -89,7 +90,9 @@ public class PathRoutePredicateFactory extends AbstractRoutePredicateFactory<Pat
 		return new GatewayPredicate() {
 			@Override
 			public boolean test(ServerWebExchange exchange) {
-				PathContainer path = parsePath(exchange.getRequest().getURI().getRawPath());
+				PathContainer path = (PathContainer) exchange.getAttributes().computeIfAbsent(
+						GATEWAY_PREDICATE_PATH_CONTAINER_ATTR,
+						s -> parsePath(exchange.getRequest().getURI().getRawPath()));
 
 				PathPattern match = null;
 				for (int i = 0; i < pathPatterns.size(); i++) {

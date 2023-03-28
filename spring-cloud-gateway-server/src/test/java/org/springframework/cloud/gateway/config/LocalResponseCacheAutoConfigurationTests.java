@@ -22,6 +22,7 @@ import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.caffeine.CaffeineCacheManager;
+import org.springframework.cloud.gateway.filter.factory.cache.GlobalLocalResponseCacheGatewayFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -32,16 +33,21 @@ public class LocalResponseCacheAutoConfigurationTests {
 	void onlyOneCacheManagerBeanCreated() {
 		new ApplicationContextRunner()
 				.withConfiguration(AutoConfigurations.of(LocalResponseCacheAutoConfiguration.class))
-				.run(context -> context.containsBean(LocalResponseCacheAutoConfiguration.RESPONSE_CACHE_MANAGER_NAME));
+				.withPropertyValues("spring.cloud.gateway.filter.local-response-cache.enabled=true").run(context -> {
+					context.containsBean(LocalResponseCacheAutoConfiguration.RESPONSE_CACHE_MANAGER_NAME);
+					context.assertThat().hasSingleBean(GlobalLocalResponseCacheGatewayFilter.class);
+				});
 	}
 
 	@Test
 	void twoCacheManagerBeans() {
-		new ApplicationContextRunner().withConfiguration(
-				AutoConfigurations.of(CustomCacheManagerConfig.class, LocalResponseCacheAutoConfiguration.class))
-				.run(context -> {
+		new ApplicationContextRunner()
+				.withConfiguration(AutoConfigurations.of(CustomCacheManagerConfig.class,
+						LocalResponseCacheAutoConfiguration.class))
+				.withPropertyValues("spring.cloud.gateway.filter.local-response-cache.enabled=true").run(context -> {
 					context.containsBean(LocalResponseCacheAutoConfiguration.RESPONSE_CACHE_MANAGER_NAME);
 					context.containsBean("myCacheManager");
+					context.assertThat().hasSingleBean(GlobalLocalResponseCacheGatewayFilter.class);
 				});
 	}
 

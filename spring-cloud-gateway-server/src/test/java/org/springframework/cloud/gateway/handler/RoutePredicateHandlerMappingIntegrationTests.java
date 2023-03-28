@@ -61,6 +61,13 @@ public class RoutePredicateHandlerMappingIntegrationTests extends BaseWebClientT
 	}
 
 	@Test
+	public void requestsToManagementPortAndHostHeaderReturn404() {
+		String host = "example.com:8888";
+		testClient.mutate().baseUrl("http://localhost:" + managementPort).build().get().uri("/get").header("host", host)
+				.exchange().expectStatus().isNotFound();
+	}
+
+	@Test
 	public void andNotWorksWithMissingParameter() {
 		testClient.get().uri("/andnotquery").exchange().expectBody(String.class).isEqualTo("notsupplied");
 	}

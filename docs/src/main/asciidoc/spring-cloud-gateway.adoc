@@ -13,7 +13,7 @@ See the https://projects.spring.io/spring-cloud/[Spring Cloud Project page] for 
 
 If you include the starter, but you do not want the gateway to be enabled, set `spring.cloud.gateway.enabled=false`.
 
-IMPORTANT: Spring Cloud Gateway is built on https://spring.io/projects/spring-boot#learn[Spring Boot 2.x], https://docs.spring.io/spring/docs/current/spring-framework-reference/web-reactive.html[Spring WebFlux], and https://projectreactor.io/docs[Project Reactor].
+IMPORTANT: Spring Cloud Gateway is built on https://spring.io/projects/spring-boot#learn[Spring Boot], https://docs.spring.io/spring/docs/current/spring-framework-reference/web-reactive.html[Spring WebFlux], and https://projectreactor.io/docs[Project Reactor].
 As a consequence, many of the familiar synchronous libraries (Spring Data and Spring Security, for example) and patterns you know may not apply when you use Spring Cloud Gateway.
 If you are unfamiliar with these projects, we suggest you begin by reading their documentation to familiarize yourself with some new concepts before working with Spring Cloud Gateway.
 
@@ -2166,10 +2166,11 @@ NOTE: To enable the prometheus endpoint, add `micrometer-registry-prometheus` as
 [[local-cache-response-global-filter]]
 === The Local Response Cache Filter
 
-The `LocalResponseCache` runs if its associated property is enabled (`spring.cloud.gateway.filter.local-response-cache.enabled`) and activates a local cache for all responses that meet the following criteria:
-- The request is a bodiless GET.
-- The response has one of the following status codes: HTTP 200 (OK), HTTP 206 (Partial Content), or HTTP 301 (Moved Permanently).
-- The HTTP `Cache-Control` header allows caching (that means it does not have any of the following values: `no-store` present in the request and `no-store` or `private` present in the response).
+The `LocalResponseCache` runs if its associated property is enabled (`spring.cloud.gateway.filter.local-response-cache.enabled`) and activates a local cache using Caffeine for all responses that meet the following criteria:
+
+* The request is a bodiless GET.
+* The response has one of the following status codes: HTTP 200 (OK), HTTP 206 (Partial Content), or HTTP 301 (Moved Permanently).
+* The HTTP `Cache-Control` header allows caching (that means it does not have any of the following values: `no-store` present in the request and `no-store` or `private` present in the response).
 
 It accepts two configuration parameters:
 
@@ -2178,9 +2179,11 @@ It accepts two configuration parameters:
 
 If none of these parameters are configured but the global filter is enabled, by default, it configures 5 minutes of time to live for the cached response.
 
-This filter also implements the automatic calculation of the `max-age value in the HTTP `Cache-Control` header.
+This filter also implements the automatic calculation of the `max-age` value in the HTTP `Cache-Control` header.
 If `max-age` is present on the original response, the value is rewritten with the number of seconds set in the `timeToLive` configuration parameter.
 In subsequent calls, this value is recalculated with the number of seconds left until the response expires.
+
+NOTE: To enable this feature, add `com.github.ben-manes.caffeine:caffeine` and `spring-boot-starter-cache` as project dependencies.
 
 WARNING: If your project creates custom `CacheManager` beans, it will either need to be marked with `@Primary` or injected using `@Qualifier`.
 
@@ -2561,7 +2564,7 @@ A per-route `response-timeout` with a negative value will disable the global `re
           response-timeout: -1
 ----
 
-=== Fluent Java Routes API
+== Fluent Java Routes API
 
 To allow for simple configuration in Java, the `RouteLocatorBuilder` bean includes a fluent API.
 The following listing shows how it works:
@@ -2603,13 +2606,13 @@ This style also allows for more custom predicate assertions.
 The predicates defined by `RouteDefinitionLocator` beans are combined using logical `and`.
 By using the fluent Java API, you can use the `and()`, `or()`, and `negate()` operators on the `Predicate` class.
 
-=== The `DiscoveryClient` Route Definition Locator
+== The `DiscoveryClient` Route Definition Locator
 
 You can configure the gateway to create routes based on services registered with a `DiscoveryClient` compatible service registry.
 
 To enable this, set `spring.cloud.gateway.discovery.locator.enabled=true` and make sure a `DiscoveryClient` implementation (such as Netflix Eureka, Consul, or Zookeeper) is on the classpath and enabled.
 
-==== Configuring Predicates and Filters For `DiscoveryClient` Routes
+=== Configuring Predicates and Filters For `DiscoveryClient` Routes
 
 By default, the gateway defines a single predicate and filter for routes created with a `DiscoveryClient`.
 

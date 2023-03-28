@@ -16,7 +16,7 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-gateway</artifactId>
-		<version>4.0.2-SNAPSHOT</version>
+		<version>4.0.4-SNAPSHOT</version>
 		<relativePath>..</relativePath> <!-- lookup parent from repository -->
 	</parent>
 
@@ -95,7 +95,6 @@
 			<plugin>
 				<groupId>org.jetbrains.kotlin</groupId>
 				<artifactId>kotlin-maven-plugin</artifactId>
-				<version>${kotlin-maven-plugin.version}</version>
 				<configuration>
 					<args>
 						<arg>-Xjsr305=strict</arg>

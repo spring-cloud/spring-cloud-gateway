@@ -78,7 +78,8 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 	protected Mono<?> getHandlerInternal(ServerWebExchange exchange) {
 		// don't handle requests on management port if set and different than server port
 		if (this.managementPortType == DIFFERENT && this.managementPort != null
-				&& exchange.getRequest().getURI().getPort() == this.managementPort) {
+				&& exchange.getRequest().getLocalAddress() != null
+				&& exchange.getRequest().getLocalAddress().getPort() == this.managementPort) {
 			return Mono.empty();
 		}
 		exchange.getAttributes().put(GATEWAY_HANDLER_MAPPER_ATTR, getSimpleName());
