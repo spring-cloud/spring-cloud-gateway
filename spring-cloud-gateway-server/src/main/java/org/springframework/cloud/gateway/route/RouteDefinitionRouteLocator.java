@@ -91,9 +91,23 @@ public class RouteDefinitionRouteLocator implements RouteLocator {
 		});
 	}
 
+	/**
+	 * Filtering is done via {@link RouteDefinition} instead of {@link Route} to prevent
+	 * creating Route instances that will be discarded.
+	 */
+	@Override
+	public Flux<Route> getRoutesByIds(List<String> ids) {
+		return getRoutes(this.routeDefinitionLocator.getRouteDefinitions()
+				.filter(routeDef -> !CollectionUtils.isEmpty(ids) && ids.contains(routeDef.getId())));
+	}
+
 	@Override
 	public Flux<Route> getRoutes() {
-		Flux<Route> routes = this.routeDefinitionLocator.getRouteDefinitions().map(this::convertToRoute);
+		return getRoutes(this.routeDefinitionLocator.getRouteDefinitions());
+	}
+
+	private Flux<Route> getRoutes(Flux<RouteDefinition> routeDefinitions) {
+		Flux<Route> routes = routeDefinitions.map(this::convertToRoute);
 
 		if (!gatewayProperties.isFailOnRouteDefinitionError()) {
 			// instead of letting error bubble up, continue

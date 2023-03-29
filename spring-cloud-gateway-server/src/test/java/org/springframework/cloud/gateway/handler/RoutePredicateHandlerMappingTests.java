@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.gateway.handler;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,6 +32,7 @@ import org.springframework.cloud.gateway.config.GlobalCorsProperties;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.mock.env.MockEnvironment;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.server.ServerWebExchange;
 
 /**
@@ -45,7 +48,17 @@ public class RoutePredicateHandlerMappingTests {
 			throw new IllegalStateException("boom");
 		}).build();
 		Route routeTrue = Route.async().id("routeTrue").uri("http://localhost").predicate(swe -> true).build();
-		RouteLocator routeLocator = () -> Flux.just(routeFalse, routeFail, routeTrue).hide();
+		RouteLocator routeLocator = new RouteLocator() {
+			@Override
+			public Flux<Route> getRoutes() {
+				return Flux.just(routeFalse, routeFail, routeTrue).hide();
+			}
+
+			@Override
+			public Flux<Route> getRoutesByIds(List<String> ids) {
+				return getRoutes().filter(route -> !CollectionUtils.isEmpty(ids) && ids.contains(route.getId()));
+			}
+		};
 		RoutePredicateHandlerMapping mapping = new RoutePredicateHandlerMapping(null, routeLocator,
 				new GlobalCorsProperties(), new MockEnvironment());
 

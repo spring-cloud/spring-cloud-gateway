@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.actuate;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -28,6 +29,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
+import org.springframework.cloud.gateway.event.ScopedRefreshRoutesEvent;
 import org.springframework.cloud.gateway.filter.FilterDefinition;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
@@ -43,12 +45,14 @@ import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
 
 /**
@@ -93,9 +97,46 @@ public class AbstractGatewayControllerEndpoint implements ApplicationEventPublis
 	// TODO: Add uncommited or new but not active routes endpoint
 
 	@PostMapping("/refresh")
-	public Mono<Void> refresh() {
-		this.publisher.publishEvent(new RefreshRoutesEvent(this));
+	public Mono<Void> refresh(@RequestParam(value = "metadata", required = false) List<String> byMetadata) {
+		publishRefreshEvent(byMetadata);
 		return Mono.empty();
+	}
+
+	private void publishRefreshEvent(List<String> byMetadata) {
+		if (!CollectionUtils.isEmpty(byMetadata)) {
+			routeDefinitionLocator.getRouteDefinitions().filter(routeDef -> matchMetadata(routeDef, byMetadata))
+					.map(this::toIds).collectList().subscribe(listOfRoutes -> {
+						RefreshRoutesEvent event = new ScopedRefreshRoutesEvent(this, listOfRoutes);
+						this.publisher.publishEvent(event);
+					});
+		}
+		else {
+			RefreshRoutesEvent event = new RefreshRoutesEvent(this);
+			this.publisher.publishEvent(event);
+		}
+	}
+
+	private boolean matchMetadata(RouteDefinition routeDef, List<String> byMetadata) {
+		Map<String, Object> routeDefMetadata = routeDef.getMetadata();
+		if (CollectionUtils.isEmpty(byMetadata)) {
+			return true;
+		}
+		else if (CollectionUtils.isEmpty(routeDefMetadata)) {
+			return false;
+		}
+		else {
+			return byMetadata.stream().map(keyValue -> keyValue.split(":"))
+					.allMatch(keyValue -> matchMetadata(routeDefMetadata, keyValue));
+		}
+	}
+
+	private boolean matchMetadata(Map<String, Object> metadata, String[] keyValue) {
+		return keyValue.length > 0 && metadata.containsKey(keyValue[0])
+				&& (keyValue.length < 2 || metadata.get(keyValue[0]).equals(keyValue[1]));
+	}
+
+	private String toIds(RouteDefinition routeDefinition) {
+		return routeDefinition.getId();
 	}
 
 	@GetMapping("/globalfilters")
@@ -145,28 +186,24 @@ public class AbstractGatewayControllerEndpoint implements ApplicationEventPublis
 				.switchIfEmpty(Mono.defer(() -> Mono.just(ResponseEntity.badRequest().build())));
 	}
 
-	@PostMapping("/batch/routes")
+	@PostMapping("/routes")
 	@SuppressWarnings("unchecked")
 	public Mono<ResponseEntity<Object>> save(@RequestBody List<RouteDefinition> routes) {
-		routes.stream()
-			  .forEach(routeDef -> {
-				  validateRouteDefinition(routeDef);
-				  validateRouteId(routeDef);
-			  });
+		routes.stream().forEach(routeDef -> {
+			validateRouteDefinition(routeDef);
+			validateRouteId(routeDef);
+		});
 
 		return Flux.fromIterable(routes)
-				   .flatMap(routeDefinition ->
-						   this.routeDefinitionWriter.save(Mono.just(routeDefinition).map(r -> {
-							   log.debug("Saving route: " + routeDefinition);
-							   return r;
-						   })))
-				   // TODO Check
-				   .then(Mono.defer(() -> Mono.just(ResponseEntity.created(URI.create("/routes/" + routes.get(0).getId())).build())))
-				   .switchIfEmpty(Mono.defer(() -> Mono.just(ResponseEntity.badRequest().build())));
+				.flatMap(routeDefinition -> this.routeDefinitionWriter.save(Mono.just(routeDefinition).map(r -> {
+					log.debug("Saving route: " + routeDefinition);
+					return r;
+				}))).then(Mono.defer(() -> Mono.just(ResponseEntity.ok().build())))
+				.switchIfEmpty(Mono.defer(() -> Mono.just(ResponseEntity.badRequest().build())));
 	}
 
 	private void validateRouteId(RouteDefinition routeDefinition) {
-		if(routeDefinition.getId() == null) {
+		if (routeDefinition.getId() == null) {
 			handleError("Saving multiple routes require specifying the ID for every route");
 		}
 	}
