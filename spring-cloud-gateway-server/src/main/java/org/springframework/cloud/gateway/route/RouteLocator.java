@@ -16,7 +16,11 @@
 
 package org.springframework.cloud.gateway.route;
 
+import java.util.List;
+
 import reactor.core.publisher.Flux;
+
+import org.springframework.util.CollectionUtils;
 
 /**
  * @author Spencer Gibb
@@ -25,5 +29,13 @@ import reactor.core.publisher.Flux;
 public interface RouteLocator {
 
 	Flux<Route> getRoutes();
+
+	/**
+	 * Gets routes whose {@link Route#getId()} matches with any of the ids passed by
+	 * parameters. If an ID cannot be found, it will not return a route for that ID.
+	 */
+	default Flux<Route> getRoutesByIds(List<String> ids) {
+		return getRoutes().filter(route -> !CollectionUtils.isEmpty(ids) && ids.contains(route.getId()));
+	}
 
 }

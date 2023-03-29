@@ -14,31 +14,26 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.gateway.route;
+package org.springframework.cloud.gateway.event;
 
 import java.util.List;
 
-import reactor.core.publisher.Flux;
-
 /**
- * @author Spencer Gibb
+ * Specialization of {@link RefreshRoutesEvent} to scope refresh by {@link #ids}.
+ *
+ * @author Ignacio Lozano
  */
-public class CompositeRouteLocator implements RouteLocator {
+public class ScopedRefreshRoutesEvent extends RefreshRoutesEvent {
 
-	private final Flux<RouteLocator> delegates;
+	private final List<String> ids;
 
-	public CompositeRouteLocator(Flux<RouteLocator> delegates) {
-		this.delegates = delegates;
+	public ScopedRefreshRoutesEvent(Object source, List<String> ids) {
+		super(source);
+		this.ids = ids;
 	}
 
-	@Override
-	public Flux<Route> getRoutes() {
-		return this.delegates.flatMapSequential(RouteLocator::getRoutes);
-	}
-
-	@Override
-	public Flux<Route> getRoutesByIds(List<String> ids) {
-		return this.delegates.flatMapSequential(routeLocator -> routeLocator.getRoutesByIds(ids));
+	public List<String> getIds() {
+		return ids;
 	}
 
 }

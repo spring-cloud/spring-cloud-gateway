@@ -25,14 +25,17 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import reactor.cache.CacheFlux;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
 import org.springframework.cloud.gateway.event.RefreshRoutesResultEvent;
+import org.springframework.cloud.gateway.event.ScopedRefreshRoutesEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
+import org.springframework.util.CollectionUtils;
 
 /**
  * @author Spencer Gibb
@@ -61,6 +64,10 @@ public class CachingRouteLocator
 		return this.delegate.getRoutes().sort(AnnotationAwareOrderComparator.INSTANCE);
 	}
 
+	private Flux<Route> fetch(List<String> ids) {
+		return this.delegate.getRoutesByIds(ids).sort(AnnotationAwareOrderComparator.INSTANCE);
+	}
+
 	@Override
 	public Flux<Route> getRoutes() {
 		return this.routes;
@@ -71,22 +78,41 @@ public class CachingRouteLocator
 	 * @return routes flux
 	 */
 	public Flux<Route> refresh() {
-		this.cache.clear();
+		this.cache.remove(CACHE_KEY);
 		return this.routes;
 	}
 
 	@Override
 	public void onApplicationEvent(RefreshRoutesEvent event) {
 		try {
-			fetch().collect(Collectors.toList()).subscribe(
-					list -> Flux.fromIterable(list).materialize().collect(Collectors.toList()).subscribe(signals -> {
-						applicationEventPublisher.publishEvent(new RefreshRoutesResultEvent(this));
-						cache.put(CACHE_KEY, signals);
-					}, this::handleRefreshError), this::handleRefreshError);
+			if (this.cache.containsKey(CACHE_KEY) && event instanceof ScopedRefreshRoutesEvent) {
+				ScopedRefreshRoutesEvent scopedEvent = (ScopedRefreshRoutesEvent) event;
+
+				fetch(scopedEvent.getIds()).collect(Collectors.toList()).onErrorResume(s -> Mono.just(List.of()))
+						.subscribe(routeDefs -> {
+							Flux.concat(Flux.fromIterable(routeDefs),
+									this.getRoutes().filter(route -> !matchAnyId(route.getId(), scopedEvent.getIds())))
+									.materialize().collect(Collectors.toList()).subscribe(signals -> {
+										applicationEventPublisher.publishEvent(new RefreshRoutesResultEvent(this));
+										cache.put(CACHE_KEY, signals);
+									}, this::handleRefreshError);
+						}, this::handleRefreshError);
+			}
+			else {
+				fetch().collect(Collectors.toList()).subscribe(list -> Flux.fromIterable(list).materialize()
+						.collect(Collectors.toList()).subscribe(signals -> {
+							applicationEventPublisher.publishEvent(new RefreshRoutesResultEvent(this));
+							cache.put(CACHE_KEY, signals);
+						}, this::handleRefreshError), this::handleRefreshError);
+			}
 		}
 		catch (Throwable e) {
 			handleRefreshError(e);
 		}
+	}
+
+	private boolean matchAnyId(String id, List<String> ids) {
+		return !CollectionUtils.isEmpty(ids) && ids.contains(id);
 	}
 
 	private void handleRefreshError(Throwable throwable) {
