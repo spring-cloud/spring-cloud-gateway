@@ -223,9 +223,7 @@ public class JsonToGrpcGatewayFilterFactory
 		}
 
 		private ClientCall<DynamicMessage, DynamicMessage> createClientCallForType(Config config,
-																				   Descriptors.ServiceDescriptor
-																						   serviceDescriptor,
-																				   Descriptors.Descriptor outputType) {
+				Descriptors.ServiceDescriptor serviceDescriptor, Descriptors.Descriptor outputType) {
 			MethodDescriptor.Marshaller<DynamicMessage> marshaller = ProtoUtils
 					.marshaller(DynamicMessage.newBuilder(outputType).build());
 			MethodDescriptor<DynamicMessage, DynamicMessage> methodDescriptor = MethodDescriptor
