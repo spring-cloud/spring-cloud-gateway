@@ -984,7 +984,7 @@ src/main/resources/proto/hello.proto
 
 * `protoFile`: Proto definition file.
 
-* `service`: Fully qualified name of the service that handles the request.
+* `service`: Short name of the service that handles the request.
 
 * `method`: Method name in the service that handles the request.
 
@@ -1022,12 +1022,12 @@ spring:
               args:
                 protoDescriptor: file:proto/hello.pb
                 protoFile: file:proto/hello.proto
-                service: com.example.grpcserver.hello.HelloService
+                service: HelloService
                 method: hello
 
 ----
 
-When a request is made through the gateway to `/json/hello`, the request is transformed by using the definition provided in `hello.proto`, sent to `com.example.grpcserver.hello.HelloService/hello`, and the response back is transformed to JSON.
+When a request is made through the gateway to `/json/hello`, the request is transformed by using the definition provided in `hello.proto`, sent to `HelloService/hello`, and the response back is transformed to JSON.
 
 By default, it creates a `NettyChannel` by using the default `TrustManagerFactory`. However, you can customize this `TrustManager` by creating a bean of type `GrpcSslConfigurer`:
 
