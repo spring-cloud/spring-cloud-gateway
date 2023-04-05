@@ -62,8 +62,8 @@ public abstract class SpringCloudCircuitBreakerFilterFactoryTests extends BaseWe
 
 	@Test
 	public void filterFallbackPath() {
-		testClient.get().uri("/status/200").header("Host", "www.circuitbreakerfallbackpath.org").exchange().expectStatus()
-				.isOk().expectBody().jsonPath("$.headers").exists();
+		testClient.get().uri("/status/200").header("Host", "www.circuitbreakerfallbackpath.org").exchange()
+				.expectStatus().isOk().expectBody().jsonPath("$.headers").exists();
 	}
 
 	@Test
