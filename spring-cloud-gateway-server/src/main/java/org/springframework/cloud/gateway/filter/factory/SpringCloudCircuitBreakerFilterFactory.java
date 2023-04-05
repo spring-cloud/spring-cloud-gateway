@@ -45,6 +45,7 @@ import static java.util.Collections.singletonList;
 import static java.util.Optional.ofNullable;
 import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.CIRCUITBREAKER_EXECUTION_EXCEPTION_ATTR;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_PREDICATE_PATH_CONTAINER_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.containsEncodedParts;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.reset;
@@ -123,6 +124,7 @@ public abstract class SpringCloudCircuitBreakerFilterFactory
 							.uri(URI.create(fullFallbackUri)).scheme(null).build(encoded).toUri();
 
 					exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, requestUrl);
+					exchange.getAttributes().remove(GATEWAY_PREDICATE_PATH_CONTAINER_ATTR);
 					addExceptionDetails(t, exchange);
 
 					// Reset the exchange
