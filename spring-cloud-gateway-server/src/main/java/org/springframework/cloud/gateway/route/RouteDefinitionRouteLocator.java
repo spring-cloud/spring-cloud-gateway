@@ -96,9 +96,9 @@ public class RouteDefinitionRouteLocator implements RouteLocator {
 	 * creating Route instances that will be discarded.
 	 */
 	@Override
-	public Flux<Route> getRoutesByIds(List<String> ids) {
+	public Flux<Route> getRoutesByMetadata(Map<String, Object> metadata) {
 		return getRoutes(this.routeDefinitionLocator.getRouteDefinitions()
-				.filter(routeDef -> !CollectionUtils.isEmpty(ids) && ids.contains(routeDef.getId())));
+				.filter(routeDef -> RouteLocator.matchMetadata(routeDef.getMetadata(), metadata)));
 	}
 
 	@Override

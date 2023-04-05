@@ -29,7 +29,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
-import org.springframework.cloud.gateway.event.ScopedRefreshRoutesEvent;
 import org.springframework.cloud.gateway.filter.FilterDefinition;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
@@ -103,40 +102,20 @@ public class AbstractGatewayControllerEndpoint implements ApplicationEventPublis
 	}
 
 	private void publishRefreshEvent(List<String> byMetadata) {
+		RefreshRoutesEvent event;
 		if (!CollectionUtils.isEmpty(byMetadata)) {
-			routeDefinitionLocator.getRouteDefinitions().filter(routeDef -> matchMetadata(routeDef, byMetadata))
-					.map(this::toIds).collectList().subscribe(listOfRoutes -> {
-						RefreshRoutesEvent event = new ScopedRefreshRoutesEvent(this, listOfRoutes);
-						this.publisher.publishEvent(event);
-					});
+			event = new RefreshRoutesEvent(this, convertToMap(byMetadata));
 		}
 		else {
-			RefreshRoutesEvent event = new RefreshRoutesEvent(this);
-			this.publisher.publishEvent(event);
+			event = new RefreshRoutesEvent(this);
 		}
+
+		this.publisher.publishEvent(event);
 	}
 
-	private boolean matchMetadata(RouteDefinition routeDef, List<String> byMetadata) {
-		Map<String, Object> routeDefMetadata = routeDef.getMetadata();
-		if (CollectionUtils.isEmpty(byMetadata)) {
-			return true;
-		}
-		else if (CollectionUtils.isEmpty(routeDefMetadata)) {
-			return false;
-		}
-		else {
-			return byMetadata.stream().map(keyValue -> keyValue.split(":"))
-					.allMatch(keyValue -> matchMetadata(routeDefMetadata, keyValue));
-		}
-	}
-
-	private boolean matchMetadata(Map<String, Object> metadata, String[] keyValue) {
-		return keyValue.length > 0 && metadata.containsKey(keyValue[0])
-				&& (keyValue.length < 2 || metadata.get(keyValue[0]).equals(keyValue[1]));
-	}
-
-	private String toIds(RouteDefinition routeDefinition) {
-		return routeDefinition.getId();
+	private Map<String, Object> convertToMap(List<String> byMetadata) {
+		return byMetadata.stream().map(keyValueStr -> keyValueStr.split(":"))
+				.collect(Collectors.toMap(kv -> kv[0], kv -> kv.length > 1 ? kv[1] : null));
 	}
 
 	@GetMapping("/globalfilters")
