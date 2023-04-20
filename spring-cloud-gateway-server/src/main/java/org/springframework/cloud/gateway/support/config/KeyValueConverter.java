@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.gateway.support;
+package org.springframework.cloud.gateway.support.config;
 
-import org.springframework.cloud.gateway.filter.factory.AddRequestHeadersIfNotPresentGatewayFilterFactory.KeyValue;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.util.StringUtils;
 
+/**
+ * @author Marta Medio
+ */
 public class KeyValueConverter implements Converter<String, KeyValue> {
 
 	private static final String INVALID_CONFIGURATION_MESSAGE = "Invalid configuration, expected format is: 'key:value'";
