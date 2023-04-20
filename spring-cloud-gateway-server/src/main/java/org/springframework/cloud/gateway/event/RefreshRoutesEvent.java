@@ -25,6 +25,7 @@ import org.springframework.util.CollectionUtils;
  * @author Spencer Gibb
  */
 public class RefreshRoutesEvent extends ApplicationEvent {
+
 	private final Map<String, Object> metadata;
 
 	/**
@@ -38,7 +39,8 @@ public class RefreshRoutesEvent extends ApplicationEvent {
 	/**
 	 * Create a new ApplicationEvent that should refresh filtering by {@link #metadata}.
 	 * @param source the object on which the event initially occurred (never {@code null})
-	 * @param metadata map of metadata the routes should match ({code null} is considered a global refresh)
+	 * @param metadata map of metadata the routes should match ({code null} is considered
+	 * a global refresh)
 	 */
 	public RefreshRoutesEvent(Object source, Map<String, Object> metadata) {
 		super(source);
@@ -52,4 +54,5 @@ public class RefreshRoutesEvent extends ApplicationEvent {
 	public Map<String, Object> getMetadata() {
 		return metadata;
 	}
+
 }
