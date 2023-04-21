@@ -95,11 +95,10 @@ public class ResponseCacheGatewayFilter implements GatewayFilter, Ordered {
 
 			Flux<DataBuffer> decoratedBody;
 			if (responseCacheManager.isResponseCacheable(response)) {
-				decoratedBody = responseCacheManager.processFromUpstream(metadataKey, exchange,
-						(Flux<DataBuffer>) body);
+				decoratedBody = responseCacheManager.processFromUpstream(metadataKey, exchange, Flux.from(body));
 			}
 			else {
-				decoratedBody = (Flux<DataBuffer>) body;
+				decoratedBody = Flux.from(body);
 			}
 
 			return super.writeWith(decoratedBody);
