@@ -211,10 +211,10 @@ public class LocalResponseCacheGatewayFilterFactoryTests extends BaseWebClientTe
 	void shouldWorkInCombinationWithRemoveJsonAttributes() {
 		String uri = "/" + UUID.randomUUID() + "/cache-and-remove-jsonattrs/headers";
 
-		testClient.method(HttpMethod.GET).uri(uri).header("Host", "www.localresponsecache.org")
-				 .exchange().expectBody(String.class).consumeWith(body -> {
-					 assertThat(body.getResponseBody()).doesNotContain("headers");
-				  });
+		testClient.method(HttpMethod.GET).uri(uri).header("Host", "www.localresponsecache.org").exchange()
+				.expectBody(String.class).consumeWith(body -> {
+					assertThat(body.getResponseBody()).doesNotContain("headers");
+				});
 	}
 
 	private Long parseMaxAge(String cacheControlValue) {
@@ -250,14 +250,11 @@ public class LocalResponseCacheGatewayFilterFactoryTests extends BaseWebClientTe
 
 		@Bean
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
-			return builder.routes()
-				    .route("local_response_cache_combined_remove_json_attrs",
-						    r -> r.path("/{namespace}/cache-and-remove-jsonattrs/**").and().host("{sub}.localresponsecache.org")
-							  		.filters(f -> f.stripPrefix(2).prefixPath("/httpbin")
-											   .localResponseCache(Duration.ofMinutes(2), null)
-											   .removeJsonAttributes("headers")
-									)
-									.uri(uri))
+			return builder.routes().route("local_response_cache_combined_remove_json_attrs",
+					r -> r.path("/{namespace}/cache-and-remove-jsonattrs/**").and().host("{sub}.localresponsecache.org")
+							.filters(f -> f.stripPrefix(2).prefixPath("/httpbin")
+									.localResponseCache(Duration.ofMinutes(2), null).removeJsonAttributes("headers"))
+							.uri(uri))
 					.route("local_response_cache_java_test",
 							r -> r.path("/{namespace}/cache/**").and().host("{sub}.localresponsecache.org")
 									.filters(f -> f.stripPrefix(2).prefixPath("/httpbin")
