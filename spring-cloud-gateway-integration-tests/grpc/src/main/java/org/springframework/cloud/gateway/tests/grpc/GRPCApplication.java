@@ -23,6 +23,8 @@ import java.util.concurrent.TimeUnit;
 import io.grpc.Grpc;
 import io.grpc.Server;
 import io.grpc.ServerCredentials;
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
 import io.grpc.TlsServerCredentials;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
@@ -70,9 +72,6 @@ public class GRPCApplication {
 		private void start() throws IOException {
 			Integer serverPort = environment.getProperty("local.server.port", Integer.class);
 			int grpcPort = serverPort + 1;
-			/*
-			 * The port on which the server should run. We run
-			 */
 			ServerCredentials creds = createServerCredentials();
 			server = Grpc.newServerBuilderForPort(grpcPort, creds).addService(new HelloService()).build().start();
 
@@ -105,6 +104,13 @@ public class GRPCApplication {
 
 			@Override
 			public void hello(HelloRequest request, StreamObserver<HelloResponse> responseObserver) {
+				if ("failWithRuntimeException!".equals(request.getFirstName())) {
+					StatusRuntimeException exception = Status.FAILED_PRECONDITION.withDescription("Invalid firstName")
+							.asRuntimeException();
+					responseObserver.onError(exception);
+					responseObserver.onCompleted();
+					return;
+				}
 
 				String greeting = String.format("Hello, %s %s", request.getFirstName(), request.getLastName());
 				log.info("Sending response: " + greeting);

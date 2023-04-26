@@ -31,12 +31,16 @@ import org.springframework.web.server.ServerWebExchange;
  */
 public class GRPCResponseHeadersFilter implements HttpHeadersFilter, Ordered {
 
+	private static final String GRPC_STATUS_HEADER = "grpc-status";
+
+	private static final String GRPC_MESSAGE_HEADER = "grpc-message";
+
 	@Override
 	public HttpHeaders filter(HttpHeaders headers, ServerWebExchange exchange) {
 		ServerHttpResponse response = exchange.getResponse();
 		HttpHeaders responseHeaders = response.getHeaders();
 		if (isGRPC(exchange)) {
-			String trailerHeaderValue = "grpc-status";
+			String trailerHeaderValue = GRPC_STATUS_HEADER + "," + GRPC_MESSAGE_HEADER;
 			String originalTrailerHeaderValue = responseHeaders.getFirst(HttpHeaders.TRAILER);
 			if (originalTrailerHeaderValue != null) {
 				trailerHeaderValue += "," + originalTrailerHeaderValue;
@@ -47,8 +51,12 @@ public class GRPCResponseHeadersFilter implements HttpHeadersFilter, Ordered {
 				response = ((ServerHttpResponseDecorator) response).getDelegate();
 			}
 			if (response instanceof AbstractServerHttpResponse) {
-				((HttpServerResponse) ((AbstractServerHttpResponse) response).getNativeResponse())
-						.trailerHeaders(h -> h.set("grpc-status", "0"));
+				String grpcStatus = getGrpcStatus(headers);
+				String grpcMessage = getGrpcMessage(headers);
+				((HttpServerResponse) ((AbstractServerHttpResponse) response).getNativeResponse()).trailerHeaders(h -> {
+					h.set(GRPC_STATUS_HEADER, grpcStatus);
+					h.set(GRPC_MESSAGE_HEADER, grpcMessage);
+				});
 			}
 
 		}
@@ -58,6 +66,16 @@ public class GRPCResponseHeadersFilter implements HttpHeadersFilter, Ordered {
 	private boolean isGRPC(ServerWebExchange exchange) {
 		String contentTypeValue = exchange.getRequest().getHeaders().getFirst(HttpHeaders.CONTENT_TYPE);
 		return StringUtils.startsWithIgnoreCase(contentTypeValue, "application/grpc");
+	}
+
+	private String getGrpcStatus(HttpHeaders headers) {
+		final String grpcStatusValue = headers.getFirst(GRPC_STATUS_HEADER);
+		return StringUtils.hasText(grpcStatusValue) ? grpcStatusValue : "0";
+	}
+
+	private String getGrpcMessage(HttpHeaders headers) {
+		final String grpcStatusValue = headers.getFirst(GRPC_MESSAGE_HEADER);
+		return StringUtils.hasText(grpcStatusValue) ? grpcStatusValue : "";
 	}
 
 	@Override
