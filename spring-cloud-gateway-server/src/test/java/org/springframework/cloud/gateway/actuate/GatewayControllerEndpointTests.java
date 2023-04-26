@@ -163,6 +163,150 @@ public class GatewayControllerEndpointTests {
 	}
 
 	@Test
+	public void testRefreshByGroup() {
+		RouteDefinition testRouteDefinition = new RouteDefinition();
+		testRouteDefinition.setUri(URI.create("http://example.org"));
+		String group1 = "group-1_" + UUID.randomUUID();
+		testRouteDefinition.setMetadata(Map.of("groupBy", group1));
+
+		String routeId1 = "route-1_" + UUID.randomUUID();
+		testClient.post().uri("http://localhost:" + port + "/actuator/gateway/routes/" + routeId1)
+				.accept(MediaType.APPLICATION_JSON).body(BodyInserters.fromValue(testRouteDefinition)).exchange()
+				.expectStatus().isCreated();
+
+		RouteDefinition testRouteDefinition2 = new RouteDefinition();
+		testRouteDefinition2.setUri(URI.create("http://example.org"));
+		String group2 = "group-2_" + UUID.randomUUID();
+		testRouteDefinition2.setMetadata(Map.of("groupBy", group2));
+		String routeId2 = "route-2_" + UUID.randomUUID();
+		testClient.post().uri("http://localhost:" + port + "/actuator/gateway/routes/" + routeId2)
+				.accept(MediaType.APPLICATION_JSON).body(BodyInserters.fromValue(testRouteDefinition2)).exchange()
+				.expectStatus().isCreated();
+
+		testClient.post().uri("http://localhost:" + port + "/actuator/gateway/refresh?metadata=groupBy:" + group1)
+				.exchange().expectStatus().isOk();
+
+		testClient.get().uri("http://localhost:" + port + "/actuator/gateway/routes").exchange().expectStatus().isOk()
+				.expectBodyList(Map.class).consumeWith(result -> {
+					List<Map> responseBody = result.getResponseBody();
+					assertThat(responseBody).extracting("route_id").contains(routeId1).doesNotContain(routeId2);
+				});
+	}
+
+	@Test
+	public void testRefreshByGroup_whenRouteDefinitionsAreDeleted() {
+		RouteDefinition testRouteDefinition = new RouteDefinition();
+		testRouteDefinition.setUri(URI.create("http://example.org"));
+		String group1 = "group-1_" + UUID.randomUUID();
+		testRouteDefinition.setMetadata(Map.of("groupBy", group1));
+
+		String routeId1 = "route-1_" + UUID.randomUUID();
+		testClient.post().uri("http://localhost:" + port + "/actuator/gateway/routes/" + routeId1)
+				.accept(MediaType.APPLICATION_JSON).body(BodyInserters.fromValue(testRouteDefinition)).exchange()
+				.expectStatus().isCreated();
+
+		testClient.post().uri("http://localhost:" + port + "/actuator/gateway/refresh?metadata=groupBy:" + group1)
+				.exchange().expectStatus().isOk();
+
+		testClient.delete().uri("http://localhost:" + port + "/actuator/gateway/routes/" + routeId1).exchange()
+				.expectStatus().isOk();
+
+		testClient.post().uri("http://localhost:" + port + "/actuator/gateway/refresh?metadata=groupBy:" + group1)
+				.exchange().expectStatus().isOk();
+
+		testClient.get().uri("http://localhost:" + port + "/actuator/gateway/routes").exchange().expectStatus().isOk()
+				.expectBodyList(Map.class).consumeWith(result -> {
+					List<Map> responseBody = result.getResponseBody();
+					assertThat(responseBody).extracting("route_id").doesNotContain(routeId1);
+				});
+	}
+
+	@Test
+	public void testRefreshByGroupWithOneWrongFilterInSameGroup() {
+		RouteDefinition testRouteDefinition = new RouteDefinition();
+		testRouteDefinition.setUri(URI.create("http://wrong.route"));
+		String group1 = "group-1_" + UUID.randomUUID();
+		testRouteDefinition.setMetadata(Map.of("groupBy", group1));
+		testRouteDefinition.setFilters(List.of(new FilterDefinition("StripPrefix=wrong")));
+
+		String routeId1 = UUID.randomUUID().toString();
+		testClient.post().uri("http://localhost:" + port + "/actuator/gateway/routes/" + routeId1)
+				.accept(MediaType.APPLICATION_JSON).body(BodyInserters.fromValue(testRouteDefinition)).exchange()
+				.expectStatus().isCreated();
+
+		RouteDefinition testRouteDefinition2 = new RouteDefinition();
+		testRouteDefinition2.setUri(URI.create("http://valid.route"));
+		testRouteDefinition2.setMetadata(Map.of("groupBy", group1));
+		String routeId2 = UUID.randomUUID().toString();
+		testClient.post().uri("http://localhost:" + port + "/actuator/gateway/routes/" + routeId2)
+				.accept(MediaType.APPLICATION_JSON).body(BodyInserters.fromValue(testRouteDefinition2)).exchange()
+				.expectStatus().isCreated();
+
+		testClient.post().uri("http://localhost:" + port + "/actuator/gateway/refresh?metadata=groupBy:" + group1)
+				.exchange().expectStatus().isOk();
+
+		testClient.get().uri("http://localhost:" + port + "/actuator/gateway/routes").exchange().expectStatus().isOk()
+				.expectBodyList(Map.class).consumeWith(result -> {
+					List<Map> responseBody = result.getResponseBody();
+					assertThat(responseBody).extracting("route_id").doesNotContain(routeId1, routeId2);
+				});
+	}
+
+	@Test
+	public void testRefreshByGroupDoesntImpactOthers() {
+		RouteDefinition testRouteDefinition = new RouteDefinition();
+		String routeId1 = UUID.randomUUID().toString();
+		testRouteDefinition.setId(routeId1);
+		testRouteDefinition.setUri(URI.create("http://wrong-group-1.route"));
+		String group1 = "group-1_" + UUID.randomUUID();
+		testRouteDefinition.setMetadata(Map.of("groupBy", group1));
+		testRouteDefinition.setFilters(List.of(new FilterDefinition("StripPrefix=wrong")));
+		RouteDefinition testRouteDefinition2 = new RouteDefinition();
+		String routeId2 = UUID.randomUUID().toString();
+		testRouteDefinition2.setId(routeId2);
+		testRouteDefinition2.setUri(URI.create("http://valid-group-1.route"));
+		testRouteDefinition2.setMetadata(Map.of("groupBy", group1));
+		testClient.post().uri("http://localhost:" + port + "/actuator/gateway/routes/" + routeId1)
+				.accept(MediaType.APPLICATION_JSON).body(BodyInserters.fromValue(testRouteDefinition)).exchange()
+				.expectStatus().isCreated();
+		testClient.post().uri("http://localhost:" + port + "/actuator/gateway/routes/" + routeId2)
+				.accept(MediaType.APPLICATION_JSON).body(BodyInserters.fromValue(testRouteDefinition2)).exchange()
+				.expectStatus().isCreated();
+
+		RouteDefinition testRouteDefinition3 = new RouteDefinition();
+		String routeId3 = UUID.randomUUID().toString();
+		testRouteDefinition3.setId(routeId3);
+		testRouteDefinition3.setUri(URI.create("http://valid-group-2.route"));
+		String group2 = "group-2_" + UUID.randomUUID();
+		testRouteDefinition3.setMetadata(Map.of("groupBy", group2));
+		RouteDefinition testRouteDefinition4 = new RouteDefinition();
+		String routeId4 = UUID.randomUUID().toString();
+		testRouteDefinition4.setId(routeId4);
+		testRouteDefinition4.setUri(URI.create("http://valid-group-2.route"));
+		testRouteDefinition4.setMetadata(Map.of("groupBy", group2));
+		testClient.post().uri("http://localhost:" + port + "/actuator/gateway/routes/" + routeId3)
+				.accept(MediaType.APPLICATION_JSON).body(BodyInserters.fromValue(testRouteDefinition3)).exchange()
+				.expectStatus().isCreated();
+		testClient.post().uri("http://localhost:" + port + "/actuator/gateway/routes/" + routeId4)
+				.accept(MediaType.APPLICATION_JSON).body(BodyInserters.fromValue(testRouteDefinition4)).exchange()
+				.expectStatus().isCreated();
+
+		// When
+		testClient.post().uri("http://localhost:" + port + "/actuator/gateway/refresh?metadata=groupBy:" + group1)
+				.exchange().expectStatus().isOk();
+		testClient.post().uri("http://localhost:" + port + "/actuator/gateway/refresh?metadata=groupBy:" + group2)
+				.exchange().expectStatus().isOk();
+
+		// Then
+		testClient.get().uri("http://localhost:" + port + "/actuator/gateway/routes").exchange().expectStatus().isOk()
+				.expectBodyList(Map.class).consumeWith(result -> {
+					List<Map> responseBody = result.getResponseBody();
+					assertThat(responseBody).extracting("route_id").doesNotContain(routeId1, routeId2)
+							.contains(routeId3, routeId4);
+
+				});
+	}
+
 	public void testPostMultipleValidRouteDefinitions() {
 		RouteDefinition testRouteDefinition = new RouteDefinition();
 		testRouteDefinition.setUri(URI.create("http://example.org"));

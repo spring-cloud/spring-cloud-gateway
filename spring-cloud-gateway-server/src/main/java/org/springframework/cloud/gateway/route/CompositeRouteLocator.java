@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.gateway.route;
 
+import java.util.Map;
+
 import reactor.core.publisher.Flux;
 
 /**
@@ -32,6 +34,11 @@ public class CompositeRouteLocator implements RouteLocator {
 	@Override
 	public Flux<Route> getRoutes() {
 		return this.delegates.flatMapSequential(RouteLocator::getRoutes);
+	}
+
+	@Override
+	public Flux<Route> getRoutesByMetadata(Map<String, Object> metadata) {
+		return this.delegates.flatMapSequential(routeLocator -> routeLocator.getRoutesByMetadata(metadata));
 	}
 
 }

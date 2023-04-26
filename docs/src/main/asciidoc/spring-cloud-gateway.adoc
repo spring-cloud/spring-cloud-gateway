@@ -2850,6 +2850,37 @@ Note that the `null` value is due to an incomplete implementation of the endpoin
 To clear the routes cache, make a `POST` request to `/actuator/gateway/refresh`.
 The request returns a 200 without a response body.
 
+To clear the routes with specific metadata values, add the Query parameter `metadata` specifying the `key:value` pairs that the routes to be cleared should match.
+If an error is produced during the asynchronous refresh, the refresh will not modify the existing routes.
+
+Sending `POST` request to `/actuator/gateway/refresh?metadata=group:group-1` will only refresh the routes whose `group` metadata is `group-1`: `first_route` and `third_route`.
+====
+[source,json]
+----
+[{
+  "route_id": "first_route",
+  "route_object": {
+    "predicate": "...",
+  },
+  "metadata": { "group": "group-1" }
+},
+{
+  "route_id": "second_route",
+  "route_object": {
+    "predicate": "...",
+  },
+  "metadata": { "group": "group-2" }
+},
+{
+  "route_id": "third_route",
+  "route_object": {
+    "predicate": "...",
+  },
+  "metadata": { "group": "group-1" }
+}]
+----
+====
+
 === Retrieving the Routes Defined in the Gateway
 
 To retrieve the routes defined in the gateway, make a `GET` request to `/actuator/gateway/routes`.

@@ -16,7 +16,11 @@
 
 package org.springframework.cloud.gateway.route;
 
+import java.util.Map;
+
 import reactor.core.publisher.Flux;
+
+import org.springframework.util.CollectionUtils;
 
 /**
  * @author Spencer Gibb
@@ -25,5 +29,24 @@ import reactor.core.publisher.Flux;
 public interface RouteLocator {
 
 	Flux<Route> getRoutes();
+
+	/**
+	 * Gets routes whose {@link Route#getId()} matches with any of the ids passed by
+	 * parameters. If an ID cannot be found, it will not return a route for that ID.
+	 */
+	default Flux<Route> getRoutesByMetadata(Map<String, Object> metadata) {
+		return getRoutes().filter(route -> matchMetadata(route.getMetadata(), metadata));
+	}
+
+	static boolean matchMetadata(Map<String, Object> toCheck, Map<String, Object> expectedMetadata) {
+		if (CollectionUtils.isEmpty(expectedMetadata)) {
+			return true;
+		}
+		else {
+			return toCheck != null
+					&& expectedMetadata.entrySet().stream().allMatch(keyValue -> toCheck.containsKey(keyValue.getKey())
+							&& toCheck.get(keyValue.getKey()).equals(keyValue.getValue()));
+		}
+	}
 
 }

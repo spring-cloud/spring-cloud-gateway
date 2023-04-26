@@ -45,7 +45,12 @@ public class RoutePredicateHandlerMappingTests {
 			throw new IllegalStateException("boom");
 		}).build();
 		Route routeTrue = Route.async().id("routeTrue").uri("http://localhost").predicate(swe -> true).build();
-		RouteLocator routeLocator = () -> Flux.just(routeFalse, routeFail, routeTrue).hide();
+		RouteLocator routeLocator = new RouteLocator() {
+			@Override
+			public Flux<Route> getRoutes() {
+				return Flux.just(routeFalse, routeFail, routeTrue).hide();
+			}
+		};
 		RoutePredicateHandlerMapping mapping = new RoutePredicateHandlerMapping(null, routeLocator,
 				new GlobalCorsProperties(), new MockEnvironment());
 
