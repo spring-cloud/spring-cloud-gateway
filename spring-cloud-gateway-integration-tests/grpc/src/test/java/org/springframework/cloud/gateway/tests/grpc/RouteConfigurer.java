@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,17 @@ package org.springframework.cloud.gateway.tests.grpc;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 import javax.net.ssl.SSLContext;
 
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
@@ -33,49 +39,53 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 import org.apache.http.ssl.SSLContexts;
-import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+public class RouteConfigurer {
 
-/**
- * @author Alberto C. Ríos
- * @author Abel Salgado Romero
- */
-@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
-public class JsonToGrpcApplicationTests {
+	private final int actuatorPort;
 
-	@LocalServerPort
-	private int gatewayPort;
+	private final RestTemplate restTemplate;
 
-	private RestTemplate restTemplate;
-
-	@BeforeEach
-	void setUp() {
-		restTemplate = createUnsecureClient();
+	RouteConfigurer(int actuatorPort) {
+		this.actuatorPort = actuatorPort;
+		this.restTemplate = createUnsecureClient();
 	}
 
-	@Test
-	public void shouldConvertFromJSONToGRPC() {
-		// Since GRPC server and GW run in same instance and don't know server port until
-		// test starts,
-		// we need to configure route dynamically using the actuator endpoint.
-		final RouteConfigurer configurer = new RouteConfigurer(gatewayPort);
-		int grpcServerPort = gatewayPort + 1;
-		configurer.addRoute(grpcServerPort, "/json/hello",
-				"JsonToGrpc=file:src/main/proto/hello.pb,file:src/main/proto/hello.proto,HelloService,hello");
+	public void addRoute(int grpcServerPort, String path, String filter) {
+		final String routeId = "test-route-" + UUID.randomUUID();
 
-		String response = restTemplate.postForEntity("https://localhost:" + this.gatewayPort + "/json/hello",
-				"{\"firstName\":\"Duff\", \"lastName\":\"McKagan\"}", String.class).getBody();
+		Map<String, Object> route = new HashMap<>();
+		route.put("id", routeId);
+		route.put("uri", "https://localhost:" + grpcServerPort);
+		route.put("predicates", Collections.singletonList("Path=" + path));
+		if (filter != null) {
+			route.put("filters", Arrays.asList(filter));
+		}
 
-		Assertions.assertThat(response).isNotNull();
-		Assertions.assertThat(response).contains("{\"greeting\":\"Hello, Duff McKagan\"}");
+		ResponseEntity<String> exchange = restTemplate.exchange(url("/actuator/gateway/routes/" + routeId),
+				HttpMethod.POST, new HttpEntity<>(route), String.class);
+
+		assert exchange.getStatusCode() == HttpStatus.CREATED;
+
+		refreshRoutes();
+	}
+
+	private void refreshRoutes() {
+		ResponseEntity<String> exchange = restTemplate.exchange(url("/actuator/gateway/refresh"), HttpMethod.POST,
+				new HttpEntity<>(""), String.class);
+
+		assert exchange.getStatusCode() == HttpStatus.OK;
+	}
+
+	private String url(String context) {
+		return String.format("https://localhost:%s%s", this.actuatorPort, context);
 	}
 
 	private RestTemplate createUnsecureClient() {
@@ -93,10 +103,8 @@ public class JsonToGrpcApplicationTests {
 		Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create()
 				.register("https", sslSocketFactory).register("http", new PlainConnectionSocketFactory()).build();
 
-		BasicHttpClientConnectionManager connectionManager = new BasicHttpClientConnectionManager(
-				socketFactoryRegistry);
-		CloseableHttpClient httpClient = HttpClients.custom().setSSLSocketFactory(sslSocketFactory)
-				.setConnectionManager(connectionManager).build();
+		HttpClientConnectionManager connectionManager = new BasicHttpClientConnectionManager(socketFactoryRegistry);
+		CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(connectionManager).build();
 
 		HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory(httpClient);
 

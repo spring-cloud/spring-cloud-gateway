@@ -23,15 +23,18 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
 import io.grpc.ManagedChannel;
+import io.grpc.StatusRuntimeException;
 import io.grpc.netty.GrpcSslContexts;
 import io.grpc.netty.NettyChannelBuilder;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.test.annotation.DirtiesContext;
 
+import static io.grpc.Status.FAILED_PRECONDITION;
 import static io.grpc.netty.NegotiationType.TLS;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 
@@ -43,11 +46,18 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 public class GRPCApplicationTests {
 
 	@LocalServerPort
-	private int port;
+	private int gatewayPort;
+
+	@BeforeEach
+	void setUp() {
+		int grpcServerPort = gatewayPort + 1;
+		final RouteConfigurer configurer = new RouteConfigurer(gatewayPort);
+		configurer.addRoute(grpcServerPort, "/**", null);
+	}
 
 	@Test
-	public void gRPCUnaryCalShouldReturnResponse() throws SSLException {
-		ManagedChannel channel = createSecuredChannel(port + 1);
+	public void gRPCUnaryCallShouldReturnResponse() throws SSLException {
+		ManagedChannel channel = createSecuredChannel(gatewayPort);
 
 		final HelloResponse response = HelloServiceGrpc.newBlockingStub(channel)
 				.hello(HelloRequest.newBuilder().setFirstName("Sir").setLastName("FromClient").build());
@@ -61,6 +71,20 @@ public class GRPCApplicationTests {
 		return NettyChannelBuilder.forAddress("localhost", port).useTransportSecurity()
 				.sslContext(GrpcSslContexts.forClient().trustManager(trustAllCerts[0]).build()).negotiationType(TLS)
 				.build();
+	}
+
+	@Test
+	public void gRPCUnaryCallShouldHandleRuntimeException() throws SSLException {
+		ManagedChannel channel = createSecuredChannel(gatewayPort);
+
+		try {
+			HelloServiceGrpc.newBlockingStub(channel)
+					.hello(HelloRequest.newBuilder().setFirstName("failWithRuntimeException!").build());
+		}
+		catch (StatusRuntimeException e) {
+			Assertions.assertThat(FAILED_PRECONDITION.getCode()).isEqualTo(e.getStatus().getCode());
+			Assertions.assertThat("Invalid firstName").isEqualTo(e.getStatus().getDescription());
+		}
 	}
 
 	private TrustManager[] createTrustAllTrustManager() {
