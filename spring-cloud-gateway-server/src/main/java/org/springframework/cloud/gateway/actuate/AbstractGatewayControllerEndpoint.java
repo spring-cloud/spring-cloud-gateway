@@ -165,6 +165,28 @@ public class AbstractGatewayControllerEndpoint implements ApplicationEventPublis
 				.switchIfEmpty(Mono.defer(() -> Mono.just(ResponseEntity.badRequest().build())));
 	}
 
+	@PostMapping("/routes")
+	@SuppressWarnings("unchecked")
+	public Mono<ResponseEntity<Object>> save(@RequestBody List<RouteDefinition> routes) {
+		routes.stream().forEach(routeDef -> {
+			validateRouteDefinition(routeDef);
+			validateRouteId(routeDef);
+		});
+
+		return Flux.fromIterable(routes)
+				   .flatMap(routeDefinition -> this.routeDefinitionWriter.save(Mono.just(routeDefinition).map(r -> {
+					   log.debug("Saving route: " + routeDefinition);
+					   return r;
+				   }))).then(Mono.defer(() -> Mono.just(ResponseEntity.ok().build())))
+				   .switchIfEmpty(Mono.defer(() -> Mono.just(ResponseEntity.badRequest().build())));
+	}
+
+	private void validateRouteId(RouteDefinition routeDefinition) {
+		if(routeDefinition.getId() == null) {
+			handleError("Saving multiple routes require specifying the ID for every route");
+		}
+	}
+
 	private void validateRouteDefinition(RouteDefinition routeDefinition) {
 		Set<String> unavailableFilterDefinitions = routeDefinition.getFilters().stream().filter(rd -> !isAvailable(rd))
 				.map(FilterDefinition::getName).collect(Collectors.toSet());

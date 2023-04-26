@@ -984,7 +984,7 @@ src/main/resources/proto/hello.proto
 
 * `protoFile`: Proto definition file.
 
-* `service`: Fully qualified name of the service that handles the request.
+* `service`: Short name of the service that handles the request.
 
 * `method`: Method name in the service that handles the request.
 
@@ -1022,12 +1022,12 @@ spring:
               args:
                 protoDescriptor: file:proto/hello.pb
                 protoFile: file:proto/hello.proto
-                service: com.example.grpcserver.hello.HelloService
+                service: HelloService
                 method: hello
 
 ----
 
-When a request is made through the gateway to `/json/hello`, the request is transformed by using the definition provided in `hello.proto`, sent to `com.example.grpcserver.hello.HelloService/hello`, and the response back is transformed to JSON.
+When a request is made through the gateway to `/json/hello`, the request is transformed by using the definition provided in `hello.proto`, sent to `HelloService/hello`, and the response back is transformed to JSON.
 
 By default, it creates a `NettyChannel` by using the default `TrustManagerFactory`. However, you can customize this `TrustManager` by creating a bean of type `GrpcSslConfigurer`:
 
@@ -2983,11 +2983,17 @@ The following table describes the structure of the response:
 
 |===
 
-=== Creating and Deleting a Particular Route
+=== Creating and Deleting a Particular Route Definition
 
-To create a route, make a `POST` request to `/gateway/routes/{id_route_to_create}` with a JSON body that specifies the fields of the route (see <<gateway-retrieving-information-about-a-particular-route>>).
+To create a route definition, make a `POST` request to `/gateway/routes/{id_route_to_create}` with a JSON body that specifies the fields of the route (see <<gateway-retrieving-information-about-a-particular-route>>).
 
-To delete a route, make a `DELETE` request to `/gateway/routes/{id_route_to_delete}`.
+To delete a route definition, make a `DELETE` request to `/gateway/routes/{id_route_to_delete}`.
+
+=== Creating multiple Route Definitions
+
+To create multiple route definitions in a single request, make a `POST` request to `/gateway/routes` with a JSON body that specifies the fields of the route, including the route id (see <<gateway-retrieving-information-about-a-particular-route>>).
+
+The route definitions will be discarded if any route raises an error during the creation of the routes.
 
 === Recap: The List of All endpoints
 

@@ -142,7 +142,6 @@ public class GatewayControllerEndpointTests {
 
 	@Test
 	public void testPostValidRouteDefinition() {
-
 		RouteDefinition testRouteDefinition = new RouteDefinition();
 		testRouteDefinition.setUri(URI.create("http://example.org"));
 
@@ -308,6 +307,90 @@ public class GatewayControllerEndpointTests {
 				});
 	}
 
+	public void testPostMultipleValidRouteDefinitions() {
+		RouteDefinition testRouteDefinition = new RouteDefinition();
+		testRouteDefinition.setUri(URI.create("http://example.org"));
+		String routeId1 = UUID.randomUUID().toString();
+		testRouteDefinition.setId(routeId1);
+
+		FilterDefinition prefixPathFilterDefinition = new FilterDefinition("PrefixPath=/test-path");
+		FilterDefinition redirectToFilterDefinition = new FilterDefinition("RemoveResponseHeader=Sensitive-Header");
+		FilterDefinition testFilterDefinition = new FilterDefinition("TestFilter");
+		testRouteDefinition.setFilters(
+				Arrays.asList(prefixPathFilterDefinition, redirectToFilterDefinition, testFilterDefinition));
+
+		PredicateDefinition hostRoutePredicateDefinition = new PredicateDefinition("Host=myhost.org");
+		PredicateDefinition methodRoutePredicateDefinition = new PredicateDefinition("Method=GET");
+		PredicateDefinition testPredicateDefinition = new PredicateDefinition("Test=value");
+		testRouteDefinition.setPredicates(
+				Arrays.asList(hostRoutePredicateDefinition, methodRoutePredicateDefinition, testPredicateDefinition));
+
+		RouteDefinition testRouteDefinition2 = new RouteDefinition();
+		testRouteDefinition2.setUri(URI.create("http://example-2.org"));
+		String routeId2 = UUID.randomUUID().toString();
+		testRouteDefinition2.setId(routeId2);
+
+		FilterDefinition prefixPathFilterDefinition2 = new FilterDefinition("PrefixPath=/test-path-2");
+		FilterDefinition redirectToFilterDefinition2 = new FilterDefinition("RemoveResponseHeader=Sensitive-Header-2");
+		FilterDefinition testFilterDefinition2 = new FilterDefinition("TestFilter");
+		testRouteDefinition2.setFilters(
+				Arrays.asList(prefixPathFilterDefinition2, redirectToFilterDefinition2, testFilterDefinition2));
+
+		PredicateDefinition hostRoutePredicateDefinition2 = new PredicateDefinition("Host=myhost-2.org");
+		PredicateDefinition methodRoutePredicateDefinition2 = new PredicateDefinition("Method=GET");
+		PredicateDefinition testPredicateDefinition2 = new PredicateDefinition("Test=value-2");
+		testRouteDefinition2.setPredicates(
+				Arrays.asList(hostRoutePredicateDefinition2, methodRoutePredicateDefinition2, testPredicateDefinition2)
+		);
+
+		List<RouteDefinition> multipleRouteDefs = List.of(testRouteDefinition, testRouteDefinition2);
+
+		testClient.post().uri("http://localhost:" + port + "/actuator/gateway/routes")
+				  .accept(MediaType.APPLICATION_JSON).body(BodyInserters.fromValue(multipleRouteDefs)).exchange()
+				  .expectStatus().isOk();
+		testClient.get().uri("http://localhost:" + port + "/actuator/gateway/routedefinitions")
+				  .accept(MediaType.APPLICATION_JSON).exchange()
+				  .expectBody()
+				  .jsonPath("[?(@.id in ['%s','%s'])].id".formatted(routeId1, routeId2)).exists();
+	}
+
+	@Test
+	public void testPostMultipleRoutesWithOneWrong_doesntPersistRouteDefinitions() {
+
+		RouteDefinition testRouteDefinition = new RouteDefinition();
+		testRouteDefinition.setUri(URI.create("http://example.org"));
+		String routeId1 = UUID.randomUUID().toString();
+		testRouteDefinition.setId(routeId1);
+
+		FilterDefinition prefixPathFilterDefinition = new FilterDefinition("PrefixPath=/test-path");
+		FilterDefinition redirectToFilterDefinition = new FilterDefinition("RemoveResponseHeader=Sensitive-Header");
+		FilterDefinition testFilterDefinition = new FilterDefinition("TestFilter");
+		testRouteDefinition.setFilters(
+				Arrays.asList(prefixPathFilterDefinition, redirectToFilterDefinition, testFilterDefinition));
+
+		PredicateDefinition hostRoutePredicateDefinition = new PredicateDefinition("Host=myhost.org");
+		PredicateDefinition methodRoutePredicateDefinition = new PredicateDefinition("Method=GET");
+		PredicateDefinition testPredicateDefinition = new PredicateDefinition("Test=value");
+		testRouteDefinition.setPredicates(
+				Arrays.asList(hostRoutePredicateDefinition, methodRoutePredicateDefinition, testPredicateDefinition));
+
+		RouteDefinition testRouteDefinition2 = new RouteDefinition();
+		testRouteDefinition2.setUri(URI.create("this-is-wrong"));
+		String routeId2 = UUID.randomUUID().toString();
+		testRouteDefinition2.setId(routeId2);
+
+		List<RouteDefinition> multipleRouteDefs = List.of(testRouteDefinition, testRouteDefinition2);
+
+		testClient.post().uri("http://localhost:" + port + "/actuator/gateway/routes")
+				  .accept(MediaType.APPLICATION_JSON).body(BodyInserters.fromValue(multipleRouteDefs)).exchange()
+				  .expectStatus().is4xxClientError();
+
+		testClient.get().uri("http://localhost:" + port + "/actuator/gateway/routedefinitions")
+				  .accept(MediaType.APPLICATION_JSON).exchange()
+				  .expectBody()
+				  .jsonPath("[?(@.id in ['%s','%s'])].id".formatted(routeId1, routeId2)).doesNotExist();
+	}
+	
 	@Test
 	public void testPostValidShortcutRouteDefinition() {
 		RouteDefinition testRouteDefinition = new RouteDefinition();
