@@ -339,19 +339,17 @@ public class GatewayControllerEndpointTests {
 		PredicateDefinition hostRoutePredicateDefinition2 = new PredicateDefinition("Host=myhost-2.org");
 		PredicateDefinition methodRoutePredicateDefinition2 = new PredicateDefinition("Method=GET");
 		PredicateDefinition testPredicateDefinition2 = new PredicateDefinition("Test=value-2");
-		testRouteDefinition2.setPredicates(
-				Arrays.asList(hostRoutePredicateDefinition2, methodRoutePredicateDefinition2, testPredicateDefinition2)
-		);
+		testRouteDefinition2.setPredicates(Arrays.asList(hostRoutePredicateDefinition2, methodRoutePredicateDefinition2,
+				testPredicateDefinition2));
 
 		List<RouteDefinition> multipleRouteDefs = List.of(testRouteDefinition, testRouteDefinition2);
 
 		testClient.post().uri("http://localhost:" + port + "/actuator/gateway/routes")
-				  .accept(MediaType.APPLICATION_JSON).body(BodyInserters.fromValue(multipleRouteDefs)).exchange()
-				  .expectStatus().isOk();
+				.accept(MediaType.APPLICATION_JSON).body(BodyInserters.fromValue(multipleRouteDefs)).exchange()
+				.expectStatus().isOk();
 		testClient.get().uri("http://localhost:" + port + "/actuator/gateway/routedefinitions")
-				  .accept(MediaType.APPLICATION_JSON).exchange()
-				  .expectBody()
-				  .jsonPath("[?(@.id in ['%s','%s'])].id".formatted(routeId1, routeId2)).exists();
+				.accept(MediaType.APPLICATION_JSON).exchange().expectBody()
+				.jsonPath("[?(@.id in ['%s','%s'])].id".formatted(routeId1, routeId2)).exists();
 	}
 
 	@Test
@@ -382,15 +380,14 @@ public class GatewayControllerEndpointTests {
 		List<RouteDefinition> multipleRouteDefs = List.of(testRouteDefinition, testRouteDefinition2);
 
 		testClient.post().uri("http://localhost:" + port + "/actuator/gateway/routes")
-				  .accept(MediaType.APPLICATION_JSON).body(BodyInserters.fromValue(multipleRouteDefs)).exchange()
-				  .expectStatus().is4xxClientError();
+				.accept(MediaType.APPLICATION_JSON).body(BodyInserters.fromValue(multipleRouteDefs)).exchange()
+				.expectStatus().is4xxClientError();
 
 		testClient.get().uri("http://localhost:" + port + "/actuator/gateway/routedefinitions")
-				  .accept(MediaType.APPLICATION_JSON).exchange()
-				  .expectBody()
-				  .jsonPath("[?(@.id in ['%s','%s'])].id".formatted(routeId1, routeId2)).doesNotExist();
+				.accept(MediaType.APPLICATION_JSON).exchange().expectBody()
+				.jsonPath("[?(@.id in ['%s','%s'])].id".formatted(routeId1, routeId2)).doesNotExist();
 	}
-	
+
 	@Test
 	public void testPostValidShortcutRouteDefinition() {
 		RouteDefinition testRouteDefinition = new RouteDefinition();

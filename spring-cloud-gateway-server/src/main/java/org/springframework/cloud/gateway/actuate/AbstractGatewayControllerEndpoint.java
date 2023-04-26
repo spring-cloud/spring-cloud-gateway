@@ -174,15 +174,15 @@ public class AbstractGatewayControllerEndpoint implements ApplicationEventPublis
 		});
 
 		return Flux.fromIterable(routes)
-				   .flatMap(routeDefinition -> this.routeDefinitionWriter.save(Mono.just(routeDefinition).map(r -> {
-					   log.debug("Saving route: " + routeDefinition);
-					   return r;
-				   }))).then(Mono.defer(() -> Mono.just(ResponseEntity.ok().build())))
-				   .switchIfEmpty(Mono.defer(() -> Mono.just(ResponseEntity.badRequest().build())));
+				.flatMap(routeDefinition -> this.routeDefinitionWriter.save(Mono.just(routeDefinition).map(r -> {
+					log.debug("Saving route: " + routeDefinition);
+					return r;
+				}))).then(Mono.defer(() -> Mono.just(ResponseEntity.ok().build())))
+				.switchIfEmpty(Mono.defer(() -> Mono.just(ResponseEntity.badRequest().build())));
 	}
 
 	private void validateRouteId(RouteDefinition routeDefinition) {
-		if(routeDefinition.getId() == null) {
+		if (routeDefinition.getId() == null) {
 			handleError("Saving multiple routes require specifying the ID for every route");
 		}
 	}
