@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,16 +63,17 @@ public class HttpBinCompatibleController {
 		return result;
 	}
 
-	/*@PatchMapping("/headers")
-	public ResponseEntity<Map<String, Object>> headersPatch(ServerWebExchange exchange,
-															@RequestBody Map<String, String> headersToAdd) {
-		Map<String, Object> result = new HashMap<>();
-		result.put("headers", getHeaders(exchange));
-		ResponseEntity.BodyBuilder responseEntity = ResponseEntity.status(HttpStatus.OK);
-		headersToAdd.forEach(responseEntity::header);
-
-		return responseEntity.body(result);
-	}*/
+	/*
+	 * @PatchMapping("/headers") public ResponseEntity<Map<String, Object>>
+	 * headersPatch(ServerWebExchange exchange,
+	 *
+	 * @RequestBody Map<String, String> headersToAdd) { Map<String, Object> result = new
+	 * HashMap<>(); result.put("headers", getHeaders(exchange));
+	 * ResponseEntity.BodyBuilder responseEntity = ResponseEntity.status(HttpStatus.OK);
+	 * headersToAdd.forEach(responseEntity::header);
+	 *
+	 * return responseEntity.body(result); }
+	 */
 
 	@RequestMapping(path = "/multivalueheaders", method = { RequestMethod.GET, RequestMethod.POST },
 			produces = MediaType.APPLICATION_JSON_VALUE)
@@ -82,12 +83,12 @@ public class HttpBinCompatibleController {
 		return result;
 	}
 
-	/*@GetMapping(path = "/delay/{sec}/**", produces = MediaType.APPLICATION_JSON_VALUE)
-	public Mono<Map<String, Object>> delay(ServerWebExchange exchange, @PathVariable int sec)
-			throws InterruptedException {
-		int delay = Math.min(sec, 10);
-		return Mono.just(get(exchange)).delayElement(Duration.ofSeconds(delay));
-	}*/
+	/*
+	 * @GetMapping(path = "/delay/{sec}/**", produces = MediaType.APPLICATION_JSON_VALUE)
+	 * public Mono<Map<String, Object>> delay(ServerWebExchange exchange, @PathVariable
+	 * int sec) throws InterruptedException { int delay = Math.min(sec, 10); return
+	 * Mono.just(get(exchange)).delayElement(Duration.ofSeconds(delay)); }
+	 */
 
 	@GetMapping(path = "/anything/{anything}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public Map<String, Object> anything(HttpServletRequest request, @PathVariable(required = false) String anything) {
@@ -106,44 +107,39 @@ public class HttpBinCompatibleController {
 		return result;
 	}
 
-	/*@PostMapping(value = "/post", consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
-			produces = MediaType.APPLICATION_JSON_VALUE)
-	public Mono<Map<String, Object>> postFormData(@RequestBody Mono<MultiValueMap<String, Part>> parts) {
-		// StringDecoder decoder = StringDecoder.allMimeTypes(true);
-		return parts.flux().flatMap(map -> Flux.fromIterable(map.values())).flatMap(Flux::fromIterable)
-				.filter(part -> part instanceof FilePart).reduce(new HashMap<String, Object>(), (files, part) -> {
-					MediaType contentType = part.headers().getContentType();
-					long contentLength = part.headers().getContentLength();
-					// TODO: get part data
-					files.put(part.name(), "data:" + contentType + ";base64," + contentLength);
-					return files;
-				}).map(files -> Collections.singletonMap("files", files));
-	}*/
+	/*
+	 * @PostMapping(value = "/post", consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
+	 * produces = MediaType.APPLICATION_JSON_VALUE) public Mono<Map<String, Object>>
+	 * postFormData(@RequestBody Mono<MultiValueMap<String, Part>> parts) { //
+	 * StringDecoder decoder = StringDecoder.allMimeTypes(true); return
+	 * parts.flux().flatMap(map ->
+	 * Flux.fromIterable(map.values())).flatMap(Flux::fromIterable) .filter(part -> part
+	 * instanceof FilePart).reduce(new HashMap<String, Object>(), (files, part) -> {
+	 * MediaType contentType = part.headers().getContentType(); long contentLength =
+	 * part.headers().getContentLength(); // TODO: get part data files.put(part.name(),
+	 * "data:" + contentType + ";base64," + contentLength); return files; }).map(files ->
+	 * Collections.singletonMap("files", files)); }
+	 */
 
-	/*@PostMapping(path = "/post", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-			produces = MediaType.APPLICATION_JSON_VALUE)
-	public Mono<Map<String, Object>> postUrlEncoded(ServerWebExchange exchange) throws IOException {
-		return post(exchange, null);
-	}*/
+	/*
+	 * @PostMapping(path = "/post", consumes =
+	 * MediaType.APPLICATION_FORM_URLENCODED_VALUE, produces =
+	 * MediaType.APPLICATION_JSON_VALUE) public Mono<Map<String, Object>>
+	 * postUrlEncoded(ServerWebExchange exchange) throws IOException { return
+	 * post(exchange, null); }
+	 */
 
-	/*@PostMapping(path = "/post", produces = MediaType.APPLICATION_JSON_VALUE)
-	public Mono<Map<String, Object>> post(ServerWebExchange exchange, @RequestBody(required = false) String body)
-			throws IOException {
-		HashMap<String, Object> ret = new HashMap<>();
-		ret.put("headers", getHeaders(exchange));
-		ret.put("data", body);
-		HashMap<String, Object> form = new HashMap<>();
-		ret.put("form", form);
-
-		return exchange.getFormData().flatMap(map -> {
-			for (Map.Entry<String, List<String>> entry : map.entrySet()) {
-				for (String value : entry.getValue()) {
-					form.put(entry.getKey(), value);
-				}
-			}
-			return Mono.just(ret);
-		});
-	}*/
+	/*
+	 * @PostMapping(path = "/post", produces = MediaType.APPLICATION_JSON_VALUE) public
+	 * Mono<Map<String, Object>> post(ServerWebExchange exchange, @RequestBody(required =
+	 * false) String body) throws IOException { HashMap<String, Object> ret = new
+	 * HashMap<>(); ret.put("headers", getHeaders(exchange)); ret.put("data", body);
+	 * HashMap<String, Object> form = new HashMap<>(); ret.put("form", form);
+	 *
+	 * return exchange.getFormData().flatMap(map -> { for (Map.Entry<String, List<String>>
+	 * entry : map.entrySet()) { for (String value : entry.getValue()) {
+	 * form.put(entry.getKey(), value); } } return Mono.just(ret); }); }
+	 */
 
 	@GetMapping("/status/{status}")
 	public ResponseEntity<String> status(@PathVariable int status) {
@@ -166,32 +162,30 @@ public class HttpBinCompatibleController {
 		return null;
 	}
 
-	/*@GetMapping(path = "/gzip", produces = MediaType.APPLICATION_JSON_VALUE)
-	public Mono<Void> gzip(ServerWebExchange exchange) throws IOException {
-		if (log.isDebugEnabled()) {
-			log.debug("httpbin /gzip");
-		}
-
-		String jsonResponse = OBJECT_MAPPER.writeValueAsString("httpbin compatible home");
-		byte[] bytes = jsonResponse.getBytes(StandardCharsets.UTF_8);
-
-		ServerHttpResponse response = exchange.getResponse();
-		response.getHeaders().add(HttpHeaders.CONTENT_ENCODING, "gzip");
-		DataBufferFactory dataBufferFactory = response.bufferFactory();
-		response.setStatusCode(HttpStatus.OK);
-
-		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		GZIPOutputStream is = new GZIPOutputStream(bos);
-		FileCopyUtils.copy(bytes, is);
-
-		byte[] gzippedResponse = bos.toByteArray();
-		DataBuffer wrap = dataBufferFactory.wrap(gzippedResponse);
-		return response.writeWith(Flux.just(wrap));
-	}*/
+	/*
+	 * @GetMapping(path = "/gzip", produces = MediaType.APPLICATION_JSON_VALUE) public
+	 * Mono<Void> gzip(ServerWebExchange exchange) throws IOException { if
+	 * (log.isDebugEnabled()) { log.debug("httpbin /gzip"); }
+	 *
+	 * String jsonResponse = OBJECT_MAPPER.writeValueAsString("httpbin compatible home");
+	 * byte[] bytes = jsonResponse.getBytes(StandardCharsets.UTF_8);
+	 *
+	 * ServerHttpResponse response = exchange.getResponse();
+	 * response.getHeaders().add(HttpHeaders.CONTENT_ENCODING, "gzip"); DataBufferFactory
+	 * dataBufferFactory = response.bufferFactory();
+	 * response.setStatusCode(HttpStatus.OK);
+	 *
+	 * ByteArrayOutputStream bos = new ByteArrayOutputStream(); GZIPOutputStream is = new
+	 * GZIPOutputStream(bos); FileCopyUtils.copy(bytes, is);
+	 *
+	 * byte[] gzippedResponse = bos.toByteArray(); DataBuffer wrap =
+	 * dataBufferFactory.wrap(gzippedResponse); return
+	 * response.writeWith(Flux.just(wrap)); }
+	 */
 
 	@GetMapping("/vary-on-header/**")
 	public ResponseEntity<Map<String, Object>> varyOnAccept(HttpServletRequest request,
-															@RequestHeader(name = HEADER_REQ_VARY, required = false) String headerToVary) {
+			@RequestHeader(name = HEADER_REQ_VARY, required = false) String headerToVary) {
 		if (headerToVary == null) {
 			return ResponseEntity.badRequest().body(Map.of("error", HEADER_REQ_VARY + " header is mandatory"));
 		}

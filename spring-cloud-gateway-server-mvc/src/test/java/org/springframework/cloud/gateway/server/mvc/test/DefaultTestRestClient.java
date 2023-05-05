@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,6 @@ import org.hamcrest.MatcherAssert;
 
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -63,10 +62,10 @@ public class DefaultTestRestClient implements TestRestClient {
 
 	private final Consumer<EntityExchangeResult<?>> entityResultConsumer;
 
-
 	private final AtomicLong requestIndex = new AtomicLong();
 
-	public DefaultTestRestClient(TestRestTemplate testRestTemplate, UriBuilderFactory uriBuilderFactory, Consumer<EntityExchangeResult<?>> entityResultConsumer) {
+	public DefaultTestRestClient(TestRestTemplate testRestTemplate, UriBuilderFactory uriBuilderFactory,
+			Consumer<EntityExchangeResult<?>> entityResultConsumer) {
 		this.uriBuilderFactory = uriBuilderFactory;
 		this.testRestTemplate = testRestTemplate;
 		this.entityResultConsumer = entityResultConsumer;
@@ -112,6 +111,7 @@ public class DefaultTestRestClient implements TestRestClient {
 	}
 
 	private class DefaultRequestBodyUriSpec implements RequestBodyUriSpec {
+
 		private final HttpMethod httpMethod;
 
 		@Nullable
@@ -131,6 +131,7 @@ public class DefaultTestRestClient implements TestRestClient {
 		private String uriTemplate;
 
 		private final String requestId;
+
 		private Object body;
 
 		DefaultRequestBodyUriSpec(HttpMethod httpMethod) {
@@ -280,10 +281,11 @@ public class DefaultTestRestClient implements TestRestClient {
 		private final ExchangeResult exchangeResult;
 
 		private final ResponseEntity<byte[]> responseEntity;
+
 		private final Consumer<EntityExchangeResult<?>> entityResultConsumer;
 
-		DefaultResponseSpec(ExchangeResult exchangeResult,
-							ResponseEntity<byte[]> responseEntity, Consumer<EntityExchangeResult<?>> entityResultConsumer) {
+		DefaultResponseSpec(ExchangeResult exchangeResult, ResponseEntity<byte[]> responseEntity,
+				Consumer<EntityExchangeResult<?>> entityResultConsumer) {
 			this.exchangeResult = exchangeResult;
 			this.responseEntity = responseEntity;
 			this.entityResultConsumer = entityResultConsumer;
@@ -304,17 +306,19 @@ public class DefaultTestRestClient implements TestRestClient {
 			return new CookieAssertions(this.exchangeResult, this);
 		}
 
-
 		@Override
 		public <B> BodySpec<B, ?> expectBody(Class<B> bodyType) {
-			HttpMessageConverterExtractor<B> httpMessageConverterExtractor = new HttpMessageConverterExtractor<>(bodyType, DefaultTestRestClient.this.testRestTemplate.getRestTemplate().getMessageConverters());
+			HttpMessageConverterExtractor<B> httpMessageConverterExtractor = new HttpMessageConverterExtractor<>(
+					bodyType, DefaultTestRestClient.this.testRestTemplate.getRestTemplate().getMessageConverters());
 			try {
-				MockClientHttpResponse mockResponse = new MockClientHttpResponse(this.responseEntity.getBody(), this.responseEntity.getStatusCode());
+				MockClientHttpResponse mockResponse = new MockClientHttpResponse(this.responseEntity.getBody(),
+						this.responseEntity.getStatusCode());
 				mockResponse.getHeaders().putAll(this.responseEntity.getHeaders());
 				B body = httpMessageConverterExtractor.extractData(mockResponse);
 				EntityExchangeResult<B> entityResult = initEntityExchangeResult(body);
 				return new DefaultBodySpec<>(entityResult);
-			} catch (IOException e) {
+			}
+			catch (IOException e) {
 				throw new RuntimeException(e);
 			}
 		}
@@ -322,12 +326,15 @@ public class DefaultTestRestClient implements TestRestClient {
 		@Override
 		public <B> BodySpec<B, ?> expectBody(ParameterizedTypeReference<B> bodyType) {
 			throw new UnsupportedOperationException("expectBody(ParameterizedTypeReference<B> bodyType)");
-			/*B body = DefaultConversionService.getSharedInstance().convert(this.responseEntity.getBody(), bodyType);
-			EntityExchangeResult<B> entityResult = initEntityExchangeResult(body);
-			return new DefaultBodySpec<>(entityResult);*/
+			/*
+			 * B body =
+			 * DefaultConversionService.getSharedInstance().convert(this.responseEntity.
+			 * getBody(), bodyType); EntityExchangeResult<B> entityResult =
+			 * initEntityExchangeResult(body); return new DefaultBodySpec<>(entityResult);
+			 */
 		}
 
-		private  <B> EntityExchangeResult<B> initEntityExchangeResult(@Nullable B body) {
+		private <B> EntityExchangeResult<B> initEntityExchangeResult(@Nullable B body) {
 			EntityExchangeResult<B> result = new EntityExchangeResult<>(this.exchangeResult, body);
 			result.assertWithDiagnostics(() -> this.entityResultConsumer.accept(result));
 			return result;
@@ -348,15 +355,13 @@ public class DefaultTestRestClient implements TestRestClient {
 			return new DefaultBodyContentSpec(null);
 		}
 
-		/*@Override
-		public <T> FluxExchangeResult<T> returnResult(Class<T> elementClass) {
-			return null;
-		}
-
-		@Override
-		public <T> FluxExchangeResult<T> returnResult(ParameterizedTypeReference<T> elementTypeRef) {
-			return null;
-		}*/
+		/*
+		 * @Override public <T> FluxExchangeResult<T> returnResult(Class<T> elementClass)
+		 * { return null; }
+		 *
+		 * @Override public <T> FluxExchangeResult<T>
+		 * returnResult(ParameterizedTypeReference<T> elementTypeRef) { return null; }
+		 */
 
 		@Override
 		public TestRestClient.ResponseSpec expectAll(TestRestClient.ResponseSpec.ResponseSpecConsumer... consumers) {
@@ -381,10 +386,11 @@ public class DefaultTestRestClient implements TestRestClient {
 			}
 			return this;
 		}
+
 	}
 
-
-	private static class DefaultBodySpec<B, S extends TestRestClient.BodySpec<B, S>> implements TestRestClient.BodySpec<B, S> {
+	private static class DefaultBodySpec<B, S extends TestRestClient.BodySpec<B, S>>
+			implements TestRestClient.BodySpec<B, S> {
 
 		private final EntityExchangeResult<B> result;
 
@@ -398,8 +404,8 @@ public class DefaultTestRestClient implements TestRestClient {
 
 		@Override
 		public <T extends S> T isEqualTo(B expected) {
-			this.result.assertWithDiagnostics(() ->
-					AssertionErrors.assertEquals("Response body", expected, this.result.getResponseBody()));
+			this.result.assertWithDiagnostics(
+					() -> AssertionErrors.assertEquals("Response body", expected, this.result.getResponseBody()));
 			return self();
 		}
 
@@ -439,10 +445,11 @@ public class DefaultTestRestClient implements TestRestClient {
 		public EntityExchangeResult<B> returnResult() {
 			return this.result;
 		}
+
 	}
 
-
-	private static class DefaultListBodySpec<E> extends DefaultTestRestClient.DefaultBodySpec<List<E>, TestRestClient.ListBodySpec<E>>
+	private static class DefaultListBodySpec<E>
+			extends DefaultTestRestClient.DefaultBodySpec<List<E>, TestRestClient.ListBodySpec<E>>
 			implements TestRestClient.ListBodySpec<E> {
 
 		DefaultListBodySpec(EntityExchangeResult<List<E>> result) {
@@ -453,8 +460,8 @@ public class DefaultTestRestClient implements TestRestClient {
 		public TestRestClient.ListBodySpec<E> hasSize(int size) {
 			List<E> actual = getResult().getResponseBody();
 			String message = "Response body does not contain " + size + " elements";
-			getResult().assertWithDiagnostics(() ->
-					AssertionErrors.assertEquals(message, size, (actual != null ? actual.size() : 0)));
+			getResult().assertWithDiagnostics(
+					() -> AssertionErrors.assertEquals(message, size, (actual != null ? actual.size() : 0)));
 			return this;
 		}
 
@@ -464,8 +471,8 @@ public class DefaultTestRestClient implements TestRestClient {
 			List<E> expected = Arrays.asList(elements);
 			List<E> actual = getResult().getResponseBody();
 			String message = "Response body does not contain " + expected;
-			getResult().assertWithDiagnostics(() ->
-					AssertionErrors.assertTrue(message, (actual != null && actual.containsAll(expected))));
+			getResult().assertWithDiagnostics(
+					() -> AssertionErrors.assertTrue(message, (actual != null && actual.containsAll(expected))));
 			return this;
 		}
 
@@ -475,8 +482,8 @@ public class DefaultTestRestClient implements TestRestClient {
 			List<E> expected = Arrays.asList(elements);
 			List<E> actual = getResult().getResponseBody();
 			String message = "Response body should not have contained " + expected;
-			getResult().assertWithDiagnostics(() ->
-					AssertionErrors.assertTrue(message, (actual == null || !actual.containsAll(expected))));
+			getResult().assertWithDiagnostics(
+					() -> AssertionErrors.assertTrue(message, (actual == null || !actual.containsAll(expected))));
 			return this;
 		}
 
@@ -484,8 +491,8 @@ public class DefaultTestRestClient implements TestRestClient {
 		public EntityExchangeResult<List<E>> returnResult() {
 			return getResult();
 		}
-	}
 
+	}
 
 	private static class DefaultBodyContentSpec implements TestRestClient.BodyContentSpec {
 
@@ -500,8 +507,7 @@ public class DefaultTestRestClient implements TestRestClient {
 
 		@Override
 		public EntityExchangeResult<Void> isEmpty() {
-			this.result.assertWithDiagnostics(() ->
-					AssertionErrors.assertTrue("Expected empty body", this.isEmpty));
+			this.result.assertWithDiagnostics(() -> AssertionErrors.assertTrue("Expected empty body", this.isEmpty));
 			return new EntityExchangeResult<>(this.result, null);
 		}
 
@@ -561,6 +567,7 @@ public class DefaultTestRestClient implements TestRestClient {
 		public EntityExchangeResult<byte[]> returnResult() {
 			return this.result;
 		}
+
 	}
 
 }

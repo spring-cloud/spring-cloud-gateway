@@ -16,32 +16,19 @@
 
 package org.springframework.cloud.gateway.server.mvc.test;
 
-import org.springframework.lang.Nullable;
+import java.net.URI;
 
-/**
- * {@code ExchangeResult} sub-class that exposes the response body fully extracted to a
- * representation of type {@code <T>}.
- *
- * @param <T> the response body type
- * @author Rossen Stoyanchev
- * @since 5.0
- */
-public class EntityExchangeResult<T> extends ExchangeResult {
+import org.springframework.cloud.gateway.server.mvc.HandlerFunctions;
+import org.springframework.context.ApplicationContext;
+import org.springframework.web.servlet.function.ServerRequest;
 
-	@Nullable
-	private final T body;
+public class LocalServerPortUriResolver implements HandlerFunctions.URIResolver {
 
-	EntityExchangeResult(ExchangeResult result, @Nullable T body) {
-		super(result);
-		this.body = body;
-	}
-
-	/**
-	 * Return the entity extracted from the response body.
-	 */
-	@Nullable
-	public T getResponseBody() {
-		return this.body;
+	@Override
+	public URI apply(ServerRequest request) {
+		ApplicationContext context = HandlerFunctions.getApplicationContext(request);
+		Integer port = context.getEnvironment().getProperty("local.server.port", Integer.class);
+		return URI.create("http://localhost:" + port);
 	}
 
 }

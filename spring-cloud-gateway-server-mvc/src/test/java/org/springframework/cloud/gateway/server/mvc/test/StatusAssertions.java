@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.gateway.server.mvc.test;
 
-
 import java.util.function.Consumer;
 
 import org.hamcrest.Matcher;
@@ -25,19 +24,17 @@ import org.hamcrest.MatcherAssert;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.test.util.AssertionErrors;
-import org.springframework.test.web.reactive.server.WebTestClient;
 
 public class StatusAssertions {
+
 	private final ExchangeResult exchangeResult;
 
 	private final TestRestClient.ResponseSpec responseSpec;
-
 
 	StatusAssertions(ExchangeResult result, TestRestClient.ResponseSpec spec) {
 		this.exchangeResult = result;
 		this.responseSpec = spec;
 	}
-
 
 	/**
 	 * Assert the response status as an {@link HttpStatusCode}.
@@ -152,8 +149,8 @@ public class StatusAssertions {
 	 */
 	public TestRestClient.ResponseSpec reasonEquals(String reason) {
 		String actual = getReasonPhrase(this.exchangeResult.getStatus());
-		this.exchangeResult.assertWithDiagnostics(() ->
-				AssertionErrors.assertEquals("Response status reason", reason, actual));
+		this.exchangeResult
+				.assertWithDiagnostics(() -> AssertionErrors.assertEquals("Response status reason", reason, actual));
 		return this.responseSpec;
 	}
 
@@ -165,7 +162,6 @@ public class StatusAssertions {
 			return "";
 		}
 	}
-
 
 	/**
 	 * Assert the response status code is in the 1xx range.
@@ -224,7 +220,6 @@ public class StatusAssertions {
 		return this.responseSpec;
 	}
 
-
 	private TestRestClient.ResponseSpec assertStatusAndReturn(HttpStatusCode expected) {
 		HttpStatusCode actual = this.exchangeResult.getStatus();
 		this.exchangeResult.assertWithDiagnostics(() -> AssertionErrors.assertEquals("Status", expected, actual));
@@ -234,8 +229,8 @@ public class StatusAssertions {
 	private TestRestClient.ResponseSpec assertSeriesAndReturn(HttpStatus.Series expected) {
 		HttpStatusCode status = this.exchangeResult.getStatus();
 		HttpStatus.Series series = HttpStatus.Series.resolve(status.value());
-		this.exchangeResult.assertWithDiagnostics(() ->
-				AssertionErrors.assertEquals("Range for response status value " + status, expected, series));
+		this.exchangeResult.assertWithDiagnostics(
+				() -> AssertionErrors.assertEquals("Range for response status value " + status, expected, series));
 		return this.responseSpec;
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,9 +23,14 @@ import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 import org.springframework.web.util.UriComponentsBuilder;
 
-public class FilterFunctions {
+public abstract class FilterFunctions {
+
+	private FilterFunctions() {
+
+	}
+
 	public static HandlerFilterFunction<ServerResponse, ServerResponse> addRequestHeader(String name,
-																						 String... values) {
+			String... values) {
 		return (request, next) -> {
 			ServerRequest modified = new GatewayServerRequestBuilder(request).header(name, values).build();
 			return next.handle(modified);
@@ -34,7 +39,7 @@ public class FilterFunctions {
 
 	public static HandlerFilterFunction<ServerResponse, ServerResponse> prefixPath(String prefix) {
 		return (request, next) -> {
-			//TODO: template vars
+			// TODO: template vars
 			String newPath = prefix + request.uri().getRawPath();
 
 			URI prefixedUri = UriComponentsBuilder.fromUri(request.uri()).replacePath(newPath).build().toUri();
@@ -42,4 +47,5 @@ public class FilterFunctions {
 			return next.handle(modified);
 		};
 	}
+
 }

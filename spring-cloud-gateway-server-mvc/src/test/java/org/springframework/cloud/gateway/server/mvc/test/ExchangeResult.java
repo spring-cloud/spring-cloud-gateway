@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,8 +34,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.reactive.ClientHttpRequest;
-import org.springframework.http.client.reactive.ClientHttpResponse;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.LinkedMultiValueMap;
@@ -45,11 +43,11 @@ import org.springframework.util.MultiValueMap;
  * Container for request and response details for exchanges performed through
  * {@link WebTestClient}.
  *
- * <p>Note that a decoded response body is not exposed at this level since the
- * body may not have been decoded and consumed yet. Subtypes
- * {@link EntityExchangeResult} and {@link FluxExchangeResult} provide access
- * to a decoded response entity and a decoded (but not consumed) response body
- * respectively.
+ * <p>
+ * Note that a decoded response body is not exposed at this level since the body may not
+ * have been decoded and consumed yet. Subtypes {@link EntityExchangeResult} and
+ * {@link FluxExchangeResult} provide access to a decoded response entity and a decoded
+ * (but not consumed) response body respectively.
  *
  * @author Rossen Stoyanchev
  * @author Sam Brannen
@@ -61,10 +59,8 @@ public class ExchangeResult {
 
 	private static final Log logger = LogFactory.getLog(ExchangeResult.class);
 
-	private static final List<MediaType> PRINTABLE_MEDIA_TYPES = List.of(
-			MediaType.parseMediaType("application/*+json"), MediaType.APPLICATION_XML,
-			MediaType.parseMediaType("text/*"), MediaType.APPLICATION_FORM_URLENCODED);
-
+	private static final List<MediaType> PRINTABLE_MEDIA_TYPES = List.of(MediaType.parseMediaType("application/*+json"),
+			MediaType.APPLICATION_XML, MediaType.parseMediaType("text/*"), MediaType.APPLICATION_FORM_URLENCODED);
 
 	private final RequestEntity request;
 
@@ -86,9 +82,8 @@ public class ExchangeResult {
 	private boolean diagnosticsLogged;
 
 	/**
-	 * Create an instance with an HTTP request and response along with promises
-	 * for the serialized request and response body content.
-	 *
+	 * Create an instance with an HTTP request and response along with promises for the
+	 * serialized request and response body content.
 	 * @param request the HTTP request
 	 * @param response the HTTP response
 	 */
@@ -97,9 +92,8 @@ public class ExchangeResult {
 	}
 
 	/**
-	 * Create an instance with an HTTP request and response along with promises
-	 * for the serialized request and response body content.
-	 *
+	 * Create an instance with an HTTP request and response along with promises for the
+	 * serialized request and response body content.
 	 * @param request the HTTP request
 	 * @param response the HTTP response
 	 * @param requestBody capture of serialized request body content
@@ -108,9 +102,8 @@ public class ExchangeResult {
 	 * @param uriTemplate the URI template used to set up the request, if any
 	 * @param serverResult the result of a mock server exchange if applicable.
 	 */
-	ExchangeResult(RequestEntity request, ResponseEntity response,
-				   byte[] requestBody, byte[] responseBody, Duration timeout, @Nullable String uriTemplate,
-				   @Nullable Object serverResult) {
+	ExchangeResult(RequestEntity request, ResponseEntity response, byte[] requestBody, byte[] responseBody,
+			Duration timeout, @Nullable String uriTemplate, @Nullable Object serverResult) {
 
 		Assert.notNull(request, "ClientHttpRequest is required");
 		Assert.notNull(response, "ClientHttpResponse is required");
@@ -139,7 +132,6 @@ public class ExchangeResult {
 		this.mockServerResult = other.mockServerResult;
 		this.diagnosticsLogged = other.diagnosticsLogged;
 	}
-
 
 	/**
 	 * Return the method of the request.
@@ -172,8 +164,9 @@ public class ExchangeResult {
 
 	/**
 	 * Return the raw request body content written through the request.
-	 * <p><strong>Note:</strong> If the request content has not been consumed
-	 * for any reason yet, use of this method will trigger consumption.
+	 * <p>
+	 * <strong>Note:</strong> If the request content has not been consumed for any reason
+	 * yet, use of this method will trigger consumption.
 	 * @throws IllegalStateException if the request body has not been fully written.
 	 */
 	@Nullable
@@ -214,8 +207,9 @@ public class ExchangeResult {
 
 	/**
 	 * Return the raw request body content written to the response.
-	 * <p><strong>Note:</strong> If the response content has not been consumed
-	 * yet, use of this method will trigger consumption.
+	 * <p>
+	 * <strong>Note:</strong> If the response content has not been consumed yet, use of
+	 * this method will trigger consumption.
 	 * @throws IllegalStateException if the response has not been fully read.
 	 */
 	@Nullable
@@ -224,8 +218,8 @@ public class ExchangeResult {
 	}
 
 	/**
-	 * Return the result from the mock server exchange, if applicable, for
-	 * further assertions on the state of the server response.
+	 * Return the result from the mock server exchange, if applicable, for further
+	 * assertions on the state of the server response.
 	 * @since 5.3
 	 * @see org.springframework.test.web.servlet.client.MockMvcWebTestClient#resultActionsFor(ExchangeResult)
 	 */
@@ -235,9 +229,9 @@ public class ExchangeResult {
 	}
 
 	/**
-	 * Execute the given Runnable, catch any {@link AssertionError}, log details
-	 * about the request and response at ERROR level under the class log
-	 * category, and after that re-throw the error.
+	 * Execute the given Runnable, catch any {@link AssertionError}, log details about the
+	 * request and response at ERROR level under the class log category, and after that
+	 * re-throw the error.
 	 */
 	public void assertWithDiagnostics(Runnable assertion) {
 		try {
@@ -252,20 +246,13 @@ public class ExchangeResult {
 		}
 	}
 
-
 	@Override
 	public String toString() {
-		return "\n" +
-				"> " + getMethod() + " " + getUrl() + "\n" +
-				"> " + formatHeaders(getRequestHeaders(), "\n> ") + "\n" +
-				"\n" +
-				formatBody(getRequestHeaders().getContentType(), this.requestBody) + "\n" +
-				"\n" +
-				"< " + formatStatus(getStatus()) + "\n" +
-				"< " + formatHeaders(getResponseHeaders(), "\n< ") + "\n" +
-				"\n" +
-				formatBody(getResponseHeaders().getContentType(), this.responseBody) +"\n" +
-				formatMockServerResult();
+		return "\n" + "> " + getMethod() + " " + getUrl() + "\n" + "> " + formatHeaders(getRequestHeaders(), "\n> ")
+				+ "\n" + "\n" + formatBody(getRequestHeaders().getContentType(), this.requestBody) + "\n" + "\n" + "< "
+				+ formatStatus(getStatus()) + "\n" + "< " + formatHeaders(getResponseHeaders(), "\n< ") + "\n" + "\n"
+				+ formatBody(getResponseHeaders().getContentType(), this.responseBody) + "\n"
+				+ formatMockServerResult();
 	}
 
 	private String formatStatus(HttpStatusCode statusCode) {
@@ -277,8 +264,7 @@ public class ExchangeResult {
 	}
 
 	private String formatHeaders(HttpHeaders headers, String delimiter) {
-		return headers.entrySet().stream()
-				.map(entry -> entry.getKey() + ": " + entry.getValue())
+		return headers.entrySet().stream().map(entry -> entry.getKey() + ": " + entry.getValue())
 				.collect(Collectors.joining(delimiter));
 	}
 
@@ -301,9 +287,10 @@ public class ExchangeResult {
 	}
 
 	private String formatMockServerResult() {
-		return (this.mockServerResult != null ?
-				"\n======================  MockMvc (Server) ===============================\n" +
-						this.mockServerResult + "\n" : "");
+		return (this.mockServerResult != null
+				? "\n======================  MockMvc (Server) ===============================\n" + this.mockServerResult
+						+ "\n"
+				: "");
 	}
 
 }

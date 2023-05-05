@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -92,8 +92,7 @@ class GatewayServerRequestBuilder implements ServerRequest.Builder {
 
 	private byte[] body = new byte[0];
 
-
-	public GatewayServerRequestBuilder(ServerRequest other) {
+	GatewayServerRequestBuilder(ServerRequest other) {
 		Assert.notNull(other, "ServerRequest must not be null");
 		this.servletRequest = other.servletRequest();
 		this.messageConverters = new ArrayList<>(other.messageConverters());
@@ -201,7 +200,6 @@ class GatewayServerRequestBuilder implements ServerRequest.Builder {
 		return this;
 	}
 
-
 	@Override
 	public ServerRequest build() {
 		return new BuiltServerRequest(this.servletRequest, this.method, this.uri, this.headers, this.cookies,
@@ -212,8 +210,8 @@ class GatewayServerRequestBuilder implements ServerRequest.Builder {
 		if (type instanceof Class<?> clazz) {
 			return clazz;
 		}
-		if (type instanceof ParameterizedType parameterizedType &&
-				parameterizedType.getRawType() instanceof Class<?> rawType) {
+		if (type instanceof ParameterizedType parameterizedType
+				&& parameterizedType.getRawType() instanceof Class<?> rawType) {
 			return rawType;
 		}
 		return Object.class;
@@ -242,10 +240,10 @@ class GatewayServerRequestBuilder implements ServerRequest.Builder {
 		@Nullable
 		private final InetSocketAddress remoteAddress;
 
-		public BuiltServerRequest(HttpServletRequest servletRequest, HttpMethod method, URI uri,
-								  HttpHeaders headers, MultiValueMap<String, Cookie> cookies,
-								  Map<String, Object> attributes, MultiValueMap<String, String> params,
-								  @Nullable InetSocketAddress remoteAddress, byte[] body, List<HttpMessageConverter<?>> messageConverters) {
+		BuiltServerRequest(HttpServletRequest servletRequest, HttpMethod method, URI uri, HttpHeaders headers,
+				MultiValueMap<String, Cookie> cookies, Map<String, Object> attributes,
+				MultiValueMap<String, String> params, @Nullable InetSocketAddress remoteAddress, byte[] body,
+				List<HttpMessageConverter<?>> messageConverters) {
 
 			this.servletRequest = servletRequest;
 			this.method = method;
@@ -273,9 +271,7 @@ class GatewayServerRequestBuilder implements ServerRequest.Builder {
 		@Override
 		public MultiValueMap<String, Part> multipartData() throws IOException, ServletException {
 			return servletRequest().getParts().stream()
-					.collect(Collectors.groupingBy(Part::getName,
-							LinkedMultiValueMap::new,
-							Collectors.toList()));
+					.collect(Collectors.groupingBy(Part::getName, LinkedMultiValueMap::new, Collectors.toList()));
 		}
 
 		@Override
@@ -331,8 +327,7 @@ class GatewayServerRequestBuilder implements ServerRequest.Builder {
 					}
 				}
 				if (messageConverter.canRead(bodyClass, contentType)) {
-					HttpMessageConverter<T> theConverter =
-							(HttpMessageConverter<T>) messageConverter;
+					HttpMessageConverter<T> theConverter = (HttpMessageConverter<T>) messageConverter;
 					Class<? extends T> clazz = (Class<? extends T>) bodyClass;
 					return theConverter.read(clazz, inputMessage);
 				}
@@ -378,7 +373,6 @@ class GatewayServerRequestBuilder implements ServerRequest.Builder {
 			return this.servletRequest;
 		}
 
-
 		private class BuiltInputMessage implements HttpInputMessage {
 
 			@Override
@@ -390,15 +384,16 @@ class GatewayServerRequestBuilder implements ServerRequest.Builder {
 			public HttpHeaders getHeaders() {
 				return headers;
 			}
-		}
-	}
 
+		}
+
+	}
 
 	private static class BodyInputStream extends ServletInputStream {
 
 		private final InputStream delegate;
 
-		public BodyInputStream(byte[] body) {
+		BodyInputStream(byte[] body) {
 			this.delegate = new ByteArrayInputStream(body);
 		}
 
@@ -461,6 +456,7 @@ class GatewayServerRequestBuilder implements ServerRequest.Builder {
 		public boolean markSupported() {
 			return this.delegate.markSupported();
 		}
+
 	}
 
 	/**
@@ -470,7 +466,7 @@ class GatewayServerRequestBuilder implements ServerRequest.Builder {
 
 		private final HttpHeaders httpHeaders;
 
-		public DefaultRequestHeaders(HttpHeaders httpHeaders) {
+		DefaultRequestHeaders(HttpHeaders httpHeaders) {
 			this.httpHeaders = HttpHeaders.readOnlyHttpHeaders(httpHeaders);
 		}
 
@@ -525,6 +521,7 @@ class GatewayServerRequestBuilder implements ServerRequest.Builder {
 		public String toString() {
 			return this.httpHeaders.toString();
 		}
+
 	}
 
 }

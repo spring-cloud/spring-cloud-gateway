@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.gateway.server.mvc;
 
-import java.net.URI;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
@@ -32,8 +31,8 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cloud.gateway.server.mvc.test.DefaultTestRestClient;
 import org.springframework.cloud.gateway.server.mvc.test.HttpBinCompatibleController;
 import org.springframework.cloud.gateway.server.mvc.test.LocalHostUriBuilderFactory;
+import org.springframework.cloud.gateway.server.mvc.test.LocalServerPortUriResolver;
 import org.springframework.cloud.gateway.server.mvc.test.TestRestClient;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
@@ -89,19 +88,27 @@ public class ServerMvcIntegrationTests {
 	@EnableAutoConfiguration
 	protected static class TestConfiguration {
 
+		// TODO: move to auto config
+		@Bean
+		public RestTemplate gatewayRestTemplate(RestTemplateBuilder builder) {
+			return builder.build();
+		}
+
+		@Bean
+		public RestTemplateProxyExchange restTemplateProxyExchange(RestTemplate restTemplate) {
+			return new RestTemplateProxyExchange(restTemplate);
+		}
+
+		// TODO: move to auto config
 		@Bean
 		public DefaultTestRestClient testRestClient(TestRestTemplate testRestTemplate, Environment env) {
-			return new DefaultTestRestClient(testRestTemplate, new LocalHostUriBuilderFactory(env), result -> {});
+			return new DefaultTestRestClient(testRestTemplate, new LocalHostUriBuilderFactory(env), result -> {
+			});
 		}
 
 		@Bean
 		public HttpBinCompatibleController httpBinCompatibleController() {
 			return new HttpBinCompatibleController();
-		}
-
-		@Bean
-		public RestTemplate gatewayRestTemplate(RestTemplateBuilder builder) {
-			return builder.build();
 		}
 
 		@Bean
@@ -116,10 +123,10 @@ public class ServerMvcIntegrationTests {
 
 		@Bean
 		public RouterFunction<ServerResponse> gatewayRouterFunctions() {
-			return route(GET("/get"), http(new LocalServerPortUriResolver()))
-					.filter(addRequestHeader("X-Foo", "Bar"))
+			return route(GET("/get"), http(new LocalServerPortUriResolver())).filter(addRequestHeader("X-Foo", "Bar"))
 					.filter(prefixPath("/httpbin"));
 		}
+
 	}
 
 	protected static class TestHandler {
@@ -130,11 +137,4 @@ public class ServerMvcIntegrationTests {
 
 	}
 
-	static class LocalServerPortUriResolver implements HandlerFunctions.URIResolver {
-		@Override
-		public URI apply(ServerRequest request) {
-			ApplicationContext context = HandlerFunctions.getApplicationContext(request);
-			Integer port = context.getEnvironment().getProperty("local.server.port", Integer.class);
-			return URI.create("http://localhost:" + port);		}
-	}
 }

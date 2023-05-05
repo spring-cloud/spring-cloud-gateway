@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@ import javax.xml.xpath.XPathExpressionException;
 
 import org.hamcrest.Matcher;
 
-import org.springframework.cloud.gateway.server.mvc.test.TestRestClient;
 import org.springframework.http.HttpHeaders;
 import org.springframework.lang.Nullable;
 import org.springframework.test.util.XpathExpectationsHelper;
@@ -45,16 +44,15 @@ public class XpathAssertions {
 
 	private final XpathExpectationsHelper xpathHelper;
 
-
-	XpathAssertions(TestRestClient.BodyContentSpec spec,
-					String expression, @Nullable Map<String, String> namespaces, Object... args) {
+	XpathAssertions(TestRestClient.BodyContentSpec spec, String expression, @Nullable Map<String, String> namespaces,
+			Object... args) {
 
 		this.bodySpec = spec;
 		this.xpathHelper = initXpathHelper(expression, namespaces, args);
 	}
 
-	private static XpathExpectationsHelper initXpathHelper(
-			String expression, @Nullable Map<String, String> namespaces, Object[] args) {
+	private static XpathExpectationsHelper initXpathHelper(String expression, @Nullable Map<String, String> namespaces,
+			Object[] args) {
 
 		try {
 			return new XpathExpectationsHelper(expression, namespaces, args);
@@ -63,7 +61,6 @@ public class XpathAssertions {
 			throw new AssertionError("XML parsing error", ex);
 		}
 	}
-
 
 	/**
 	 * Delegates to {@link XpathExpectationsHelper#assertString(byte[], String, String)}.
@@ -80,7 +77,8 @@ public class XpathAssertions {
 	}
 
 	/**
-	 * Delegates to {@link XpathExpectationsHelper#assertBoolean(byte[], String, boolean)}.
+	 * Delegates to
+	 * {@link XpathExpectationsHelper#assertBoolean(byte[], String, boolean)}.
 	 */
 	public TestRestClient.BodyContentSpec isEqualTo(boolean expectedValue) {
 		return assertWith(() -> this.xpathHelper.assertBoolean(getContent(), getCharset(), expectedValue));
@@ -111,7 +109,7 @@ public class XpathAssertions {
 	 * Delegates to {@link XpathExpectationsHelper#assertString(byte[], String, Matcher)}.
 	 * @since 5.1
 	 */
-	public TestRestClient.BodyContentSpec string(Matcher<? super String> matcher){
+	public TestRestClient.BodyContentSpec string(Matcher<? super String> matcher) {
 		return assertWith(() -> this.xpathHelper.assertString(getContent(), getCharset(), matcher));
 	}
 
@@ -119,15 +117,16 @@ public class XpathAssertions {
 	 * Delegates to {@link XpathExpectationsHelper#assertNumber(byte[], String, Matcher)}.
 	 * @since 5.1
 	 */
-	public TestRestClient.BodyContentSpec number(Matcher<? super Double> matcher){
+	public TestRestClient.BodyContentSpec number(Matcher<? super Double> matcher) {
 		return assertWith(() -> this.xpathHelper.assertNumber(getContent(), getCharset(), matcher));
 	}
 
 	/**
-	 * Delegates to {@link XpathExpectationsHelper#assertNodeCount(byte[], String, Matcher)}.
+	 * Delegates to
+	 * {@link XpathExpectationsHelper#assertNodeCount(byte[], String, Matcher)}.
 	 * @since 5.1
 	 */
-	public TestRestClient.BodyContentSpec nodeCount(Matcher<? super Integer> matcher){
+	public TestRestClient.BodyContentSpec nodeCount(Matcher<? super Integer> matcher) {
 		return assertWith(() -> this.xpathHelper.assertNodeCount(getContent(), getCharset(), matcher));
 	}
 
@@ -135,7 +134,7 @@ public class XpathAssertions {
 	 * Consume the result of the XPath evaluation as a String.
 	 * @since 5.1
 	 */
-	public TestRestClient.BodyContentSpec string(Consumer<String> consumer){
+	public TestRestClient.BodyContentSpec string(Consumer<String> consumer) {
 		return assertWith(() -> {
 			String value = this.xpathHelper.evaluateXpath(getContent(), getCharset(), String.class);
 			consumer.accept(value);
@@ -146,7 +145,7 @@ public class XpathAssertions {
 	 * Consume the result of the XPath evaluation as a Double.
 	 * @since 5.1
 	 */
-	public TestRestClient.BodyContentSpec number(Consumer<Double> consumer){
+	public TestRestClient.BodyContentSpec number(Consumer<Double> consumer) {
 		return assertWith(() -> {
 			Double value = this.xpathHelper.evaluateXpath(getContent(), getCharset(), Double.class);
 			consumer.accept(value);
@@ -157,7 +156,7 @@ public class XpathAssertions {
 	 * Consume the count of nodes as result of the XPath evaluation.
 	 * @since 5.1
 	 */
-	public TestRestClient.BodyContentSpec nodeCount(Consumer<Integer> consumer){
+	public TestRestClient.BodyContentSpec nodeCount(Consumer<Integer> consumer) {
 		return assertWith(() -> {
 			Integer value = this.xpathHelper.evaluateXpath(getContent(), getCharset(), Integer.class);
 			consumer.accept(value);
@@ -181,19 +180,14 @@ public class XpathAssertions {
 	}
 
 	private String getCharset() {
-		return Optional.of(this.bodySpec.returnResult())
-				.map(EntityExchangeResult::getResponseHeaders)
-				.map(HttpHeaders::getContentType)
-				.map(MimeType::getCharset)
-				.orElse(StandardCharsets.UTF_8)
-				.name();
+		return Optional.of(this.bodySpec.returnResult()).map(EntityExchangeResult::getResponseHeaders)
+				.map(HttpHeaders::getContentType).map(MimeType::getCharset).orElse(StandardCharsets.UTF_8).name();
 	}
-
 
 	@Override
 	public boolean equals(@Nullable Object obj) {
-		throw new AssertionError("Object#equals is disabled " +
-				"to avoid being used in error instead of XPathAssertions#isEqualTo(String).");
+		throw new AssertionError("Object#equals is disabled "
+				+ "to avoid being used in error instead of XPathAssertions#isEqualTo(String).");
 	}
 
 	@Override
@@ -201,14 +195,14 @@ public class XpathAssertions {
 		return super.hashCode();
 	}
 
-
 	/**
-	 * Lets us be able to use lambda expressions that could throw checked exceptions, since
-	 * {@link XpathExpectationsHelper} throws {@link Exception} on its methods.
+	 * Lets us be able to use lambda expressions that could throw checked exceptions,
+	 * since {@link XpathExpectationsHelper} throws {@link Exception} on its methods.
 	 */
 	private interface CheckedExceptionTask {
 
 		void run() throws Exception;
 
 	}
+
 }

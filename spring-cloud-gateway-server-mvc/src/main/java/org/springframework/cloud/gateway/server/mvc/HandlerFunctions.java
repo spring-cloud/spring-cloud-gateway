@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,16 +22,18 @@ import java.util.function.Function;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.RequestEntity;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.DispatcherServlet;
 import org.springframework.web.servlet.function.HandlerFunction;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 import org.springframework.web.util.UriComponentsBuilder;
 
-public class HandlerFunctions {
+public abstract class HandlerFunctions {
+
+	protected HandlerFunctions() {
+
+	}
+
 	public static HandlerFunction<ServerResponse> http(String uri) {
 		return http(URI.create(uri));
 	}
@@ -44,60 +46,15 @@ public class HandlerFunctions {
 		return new ProxyHandlerFunction(uriResolver);
 	}
 
-	interface URIResolver extends Function<ServerRequest, URI> {
-
-	}
-
-	static class ProxyHandlerFunction implements HandlerFunction<ServerResponse> {
-
-		private RestTemplate restTemplate;
-
-		private final URIResolver uriResolver;
-
-		ProxyHandlerFunction(URIResolver uriResolver) {
-			this.uriResolver = uriResolver;
-		}
-
-
-		@Override
-		public ServerResponse handle(ServerRequest request) {
-			RestTemplate restTemplate = getRestTemplate(request);
-			if (restTemplate != null) {
-				URI uri = uriResolver.apply(request);
-				boolean encoded = containsEncodedQuery(request.uri());
-				URI url = UriComponentsBuilder.fromUri(request.uri())
-						// .uri(routeUri)
-						.scheme(uri.getScheme()).host(uri.getHost()).port(uri.getPort()).build(encoded).toUri();
-
-				RequestEntity<Void> entity = RequestEntity.method(request.method(), url)
-						.headers(request.headers().asHttpHeaders())
-						.build();
-				ResponseEntity<Object> response = restTemplate.exchange(entity, Object.class);
-				return ServerResponse.status(response.getStatusCode())
-						.headers(httpHeaders -> httpHeaders.putAll(response.getHeaders()))
-						.body(response.getBody());
-			}
-			return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-		}
-
-		private RestTemplate getRestTemplate(ServerRequest request) {
-			if (this.restTemplate == null) {
-				this.restTemplate = getBean(request, RestTemplate.class);
-			}
-			return this.restTemplate;
-		}
-
-	}
-
-	static ApplicationContext getApplicationContext(ServerRequest request) {
+	public static ApplicationContext getApplicationContext(ServerRequest request) {
 		Optional<Object> contextAttr = request.attribute(DispatcherServlet.WEB_APPLICATION_CONTEXT_ATTRIBUTE);
 		if (contextAttr.isEmpty()) {
 			throw new IllegalStateException("No Application Context in request attributes");
 		}
-		return  (ApplicationContext) contextAttr.get();
+		return (ApplicationContext) contextAttr.get();
 	}
 
-	static <T> T getBean(ServerRequest request, Class<T> type) {
+	public static <T> T getBean(ServerRequest request, Class<T> type) {
 		return getApplicationContext(request).getBean(type);
 	}
 
@@ -112,9 +69,10 @@ public class HandlerFunctions {
 				return true;
 			}
 			catch (IllegalArgumentException ignored) {
-				/*if (log.isTraceEnabled()) {
-					log.trace("Error in containsEncodedParts", ignored);
-				}*/
+				/*
+				 * if (log.isTraceEnabled()) { log.trace("Error in containsEncodedParts",
+				 * ignored); }
+				 */
 			}
 
 			return false;
@@ -122,4 +80,45 @@ public class HandlerFunctions {
 
 		return encoded;
 	}
+
+	public interface URIResolver extends Function<ServerRequest, URI> {
+
+	}
+
+	static class ProxyHandlerFunction implements HandlerFunction<ServerResponse> {
+
+		private ProxyExchange proxyExchange;
+
+		private final URIResolver uriResolver;
+
+		ProxyHandlerFunction(URIResolver uriResolver) {
+			this.uriResolver = uriResolver;
+		}
+
+		@Override
+		public ServerResponse handle(ServerRequest serverRequest) {
+			ProxyExchange proxyExchange = getProxyExchange(serverRequest);
+			if (proxyExchange != null) {
+				URI uri = uriResolver.apply(serverRequest);
+				boolean encoded = containsEncodedQuery(serverRequest.uri());
+				URI url = UriComponentsBuilder.fromUri(serverRequest.uri())
+						// .uri(routeUri)
+						.scheme(uri.getScheme()).host(uri.getHost()).port(uri.getPort()).build(encoded).toUri();
+
+				ProxyExchange.Request proxyRequest = proxyExchange.request(serverRequest).uri(url)
+						.headers(serverRequest.headers().asHttpHeaders()).build();
+				return proxyExchange.exchange(proxyRequest);
+			}
+			return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+		}
+
+		private ProxyExchange getProxyExchange(ServerRequest request) {
+			if (this.proxyExchange == null) {
+				this.proxyExchange = getBean(request, ProxyExchange.class);
+			}
+			return this.proxyExchange;
+		}
+
+	}
+
 }

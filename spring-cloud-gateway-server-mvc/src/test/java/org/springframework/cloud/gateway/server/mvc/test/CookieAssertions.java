@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,12 +40,10 @@ public class CookieAssertions {
 
 	private final TestRestClient.ResponseSpec responseSpec;
 
-
 	public CookieAssertions(ExchangeResult exchangeResult, TestRestClient.ResponseSpec responseSpec) {
 		this.exchangeResult = exchangeResult;
 		this.responseSpec = responseSpec;
 	}
-
 
 	/**
 	 * Expect a header with the given name to match the specified values.
@@ -207,12 +205,10 @@ public class CookieAssertions {
 		return this.responseSpec;
 	}
 
-
 	private ResponseCookie getCookie(String name) {
 		ResponseCookie cookie = this.exchangeResult.getResponseCookies().getFirst(name);
 		if (cookie == null) {
-			this.exchangeResult.assertWithDiagnostics(() ->
-					AssertionErrors.fail("No cookie with name '" + name + "'"));
+			this.exchangeResult.assertWithDiagnostics(() -> AssertionErrors.fail("No cookie with name '" + name + "'"));
 		}
 		return Objects.requireNonNull(cookie);
 	}

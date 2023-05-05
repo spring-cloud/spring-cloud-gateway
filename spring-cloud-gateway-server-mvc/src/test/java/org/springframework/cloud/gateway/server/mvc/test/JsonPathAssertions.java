@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import java.util.function.Consumer;
 
 import org.hamcrest.Matcher;
 
-import org.springframework.cloud.gateway.server.mvc.test.TestRestClient;
 import org.springframework.lang.Nullable;
 import org.springframework.test.util.JsonPathExpectationsHelper;
 
@@ -29,7 +28,8 @@ import org.springframework.test.util.JsonPathExpectationsHelper;
  *
  * @author Rossen Stoyanchev
  * @since 5.0
- * @see <a href="https://github.com/jayway/JsonPath">https://github.com/jayway/JsonPath</a>
+ * @see <a href=
+ * "https://github.com/jayway/JsonPath">https://github.com/jayway/JsonPath</a>
  * @see JsonPathExpectationsHelper
  */
 public class JsonPathAssertions {
@@ -40,13 +40,11 @@ public class JsonPathAssertions {
 
 	private final JsonPathExpectationsHelper pathHelper;
 
-
 	JsonPathAssertions(TestRestClient.BodyContentSpec spec, String content, String expression, Object... args) {
 		this.bodySpec = spec;
 		this.content = content;
 		this.pathHelper = new JsonPathExpectationsHelper(expression, args);
 	}
-
 
 	/**
 	 * Applies {@link JsonPathExpectationsHelper#assertValue(String, Object)}.
@@ -148,7 +146,8 @@ public class JsonPathAssertions {
 	}
 
 	/**
-	 * Delegates to {@link JsonPathExpectationsHelper#assertValue(String, Matcher, Class)}.
+	 * Delegates to
+	 * {@link JsonPathExpectationsHelper#assertValue(String, Matcher, Class)}.
 	 * @since 5.1
 	 */
 	public <T> TestRestClient.BodyContentSpec value(Matcher<? super T> matcher, Class<T> targetType) {
@@ -178,11 +177,10 @@ public class JsonPathAssertions {
 		return this.bodySpec;
 	}
 
-
 	@Override
 	public boolean equals(@Nullable Object obj) {
-		throw new AssertionError("Object#equals is disabled " +
-				"to avoid being used in error instead of JsonPathAssertions#isEqualTo(String).");
+		throw new AssertionError("Object#equals is disabled "
+				+ "to avoid being used in error instead of JsonPathAssertions#isEqualTo(String).");
 	}
 
 	@Override

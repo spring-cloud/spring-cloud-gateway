@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,6 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 import org.springframework.web.util.UriBuilder;
 import org.springframework.web.util.UriBuilderFactory;
@@ -37,6 +36,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UriUtils;
 
 public class LocalHostUriBuilderFactory implements UriBuilderFactory {
+
 	private static final String PREFIX = "server.servlet.";
 
 	private final Environment environment;
@@ -52,7 +52,6 @@ public class LocalHostUriBuilderFactory implements UriBuilderFactory {
 	/**
 	 * Create a new {@code LocalHostUriTemplateHandler} that will generate {@code http}
 	 * URIs using the given {@code environment} to determine the context path and port.
-	 *
 	 * @param environment the environment used to determine the port
 	 */
 	public LocalHostUriBuilderFactory(Environment environment) {
@@ -63,9 +62,8 @@ public class LocalHostUriBuilderFactory implements UriBuilderFactory {
 	 * Create a new {@code LocalHostUriTemplateHandler} that will generate URIs with the
 	 * given {@code scheme} and use the given {@code environment} to determine the
 	 * context-path and port.
-	 *
 	 * @param environment the environment used to determine the port
-	 * @param scheme      the scheme of the root uri
+	 * @param scheme the scheme of the root uri
 	 * @since 1.4.1
 	 */
 	public LocalHostUriBuilderFactory(Environment environment, String scheme) {
@@ -89,12 +87,15 @@ public class LocalHostUriBuilderFactory implements UriBuilderFactory {
 
 	/**
 	 * Set the {@link DefaultUriBuilderFactory.EncodingMode encoding mode} to use.
-	 * <p>By default this is set to {@link DefaultUriBuilderFactory.EncodingMode#TEMPLATE_AND_VALUES
+	 * <p>
+	 * By default this is set to
+	 * {@link DefaultUriBuilderFactory.EncodingMode#TEMPLATE_AND_VALUES
 	 * EncodingMode.TEMPLATE_AND_VALUES}.
-	 * <p><strong>Note:</strong> Prior to 5.1 the default was
-	 * {@link DefaultUriBuilderFactory.EncodingMode#URI_COMPONENT EncodingMode.URI_COMPONENT}
-	 * therefore the {@code WebClient} {@code RestTemplate} have switched their
-	 * default behavior.
+	 * <p>
+	 * <strong>Note:</strong> Prior to 5.1 the default was
+	 * {@link DefaultUriBuilderFactory.EncodingMode#URI_COMPONENT
+	 * EncodingMode.URI_COMPONENT} therefore the {@code WebClient} {@code RestTemplate}
+	 * have switched their default behavior.
 	 * @param encodingMode the encoding mode to use
 	 */
 	public void setEncodingMode(DefaultUriBuilderFactory.EncodingMode encodingMode) {
@@ -109,8 +110,8 @@ public class LocalHostUriBuilderFactory implements UriBuilderFactory {
 	}
 
 	/**
-	 * Provide default URI variable values to use when expanding URI templates
-	 * with a Map of variables.
+	 * Provide default URI variable values to use when expanding URI templates with a Map
+	 * of variables.
 	 * @param defaultUriVariables default URI variable values
 	 */
 	public void setDefaultUriVariables(@Nullable Map<String, ?> defaultUriVariables) {
@@ -128,11 +129,12 @@ public class LocalHostUriBuilderFactory implements UriBuilderFactory {
 	}
 
 	/**
-	 * Whether to parse the input path into path segments if the encoding mode
-	 * is set to {@link DefaultUriBuilderFactory.EncodingMode#URI_COMPONENT EncodingMode.URI_COMPONENT},
-	 * which ensures that URI variables in the path are encoded according to
-	 * path segment rules and for example a '/' is encoded.
-	 * <p>By default this is set to {@code true}.
+	 * Whether to parse the input path into path segments if the encoding mode is set to
+	 * {@link DefaultUriBuilderFactory.EncodingMode#URI_COMPONENT
+	 * EncodingMode.URI_COMPONENT}, which ensures that URI variables in the path are
+	 * encoded according to path segment rules and for example a '/' is encoded.
+	 * <p>
+	 * By default this is set to {@code true}.
 	 * @param parsePath whether to parse the path into path segments
 	 */
 	public void setParsePath(boolean parsePath) {
@@ -140,8 +142,9 @@ public class LocalHostUriBuilderFactory implements UriBuilderFactory {
 	}
 
 	/**
-	 * Whether to parse the path into path segments if the encoding mode is set
-	 * to {@link DefaultUriBuilderFactory.EncodingMode#URI_COMPONENT EncodingMode.URI_COMPONENT}.
+	 * Whether to parse the path into path segments if the encoding mode is set to
+	 * {@link DefaultUriBuilderFactory.EncodingMode#URI_COMPONENT
+	 * EncodingMode.URI_COMPONENT}.
 	 */
 	public boolean shouldParsePath() {
 		return this.parsePath;
@@ -168,7 +171,6 @@ public class LocalHostUriBuilderFactory implements UriBuilderFactory {
 		return uriString(uriTemplate).build(uriVars);
 	}
 
-
 	/**
 	 * {@link DefaultUriBuilderFactory} specific implementation of UriBuilder.
 	 */
@@ -176,7 +178,7 @@ public class LocalHostUriBuilderFactory implements UriBuilderFactory {
 
 		private final UriComponentsBuilder uriComponentsBuilder;
 
-		public DefaultUriBuilder(String uriTemplate) {
+		DefaultUriBuilder(String uriTemplate) {
 			this.uriComponentsBuilder = initUriComponentsBuilder(uriTemplate);
 		}
 
@@ -202,7 +204,6 @@ public class LocalHostUriBuilderFactory implements UriBuilderFactory {
 				}
 			}
 		}
-
 
 		@Override
 		public DefaultUriBuilder scheme(@Nullable String scheme) {
@@ -349,6 +350,7 @@ public class LocalHostUriBuilderFactory implements UriBuilderFactory {
 			}
 			return URI.create(uric.toString());
 		}
+
 	}
 
 }
