@@ -68,6 +68,8 @@ public class GatewayProperties {
 	 */
 	private boolean failOnRouteDefinitionError = true;
 
+	private boolean useBasePath = true;
+
 	public List<RouteDefinition> getRoutes() {
 		return routes;
 	}
@@ -101,6 +103,14 @@ public class GatewayProperties {
 
 	public void setFailOnRouteDefinitionError(boolean failOnRouteDefinitionError) {
 		this.failOnRouteDefinitionError = failOnRouteDefinitionError;
+	}
+
+	public boolean isUseBasePath() {
+		return useBasePath;
+	}
+
+	public void setUseBasePath(boolean useBasePath) {
+		this.useBasePath = useBasePath;
 	}
 
 	@Override

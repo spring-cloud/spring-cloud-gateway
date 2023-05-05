@@ -50,6 +50,12 @@ public class PathRoutePredicateFactory extends AbstractRoutePredicateFactory<Pat
 
 	private PathPatternParser pathPatternParser = new PathPatternParser();
 
+	@Autowired
+	private WebFluxProperties webFluxProperties;
+
+	@Autowired
+	private GatewayProperties gatewayProperties;
+
 	public PathRoutePredicateFactory() {
 		super(Config.class);
 	}
@@ -81,10 +87,12 @@ public class PathRoutePredicateFactory extends AbstractRoutePredicateFactory<Pat
 		final ArrayList<PathPattern> pathPatterns = new ArrayList<>();
 		synchronized (this.pathPatternParser) {
 			pathPatternParser.setMatchOptionalTrailingSeparator(config.isMatchTrailingSlash());
-			config.getPatterns().forEach(pattern -> {
-				PathPattern pathPattern = this.pathPatternParser.parse(pattern);
-				pathPatterns.add(pathPattern);
-			});
+			config.getPatterns()
+					.map(pattern -> gatewayProperties.isUseBasePath() ? webFluxProperties.getBasePath() + pattern : pattern)
+					.forEach(pattern -> {
+						PathPattern pathPattern = this.pathPatternParser.parse(pattern);
+						pathPatterns.add(pathPattern);
+					});
 		}
 		return new GatewayPredicate() {
 			@Override
