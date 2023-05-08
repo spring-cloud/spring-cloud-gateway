@@ -77,7 +77,8 @@ public class LocalResponseCacheAutoConfiguration {
 	@Bean
 	public LocalResponseCacheGatewayFilterFactory localResponseCacheGatewayFilterFactory(
 			ResponseCacheManagerFactory responseCacheManagerFactory, LocalResponseCacheProperties properties) {
-		return new LocalResponseCacheGatewayFilterFactory(responseCacheManagerFactory, properties.getTimeToLive());
+		return new LocalResponseCacheGatewayFilterFactory(responseCacheManagerFactory, properties.getTimeToLive(),
+				properties.getSize());
 	}
 
 	@Bean
