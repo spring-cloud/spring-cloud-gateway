@@ -112,16 +112,6 @@ public class ServerMvcIntegrationTests {
 
 		// TODO: move to auto config
 		@Bean
-		public RestTemplate gatewayRestTemplate(RestTemplateBuilder builder) {
-			return builder.build();
-		}
-
-		/*
-		 * @Bean public RestTemplateProxyExchange restTemplateProxyExchange(RestTemplate
-		 * restTemplate) { return new RestTemplateProxyExchange(restTemplate); }
-		 */
-
-		@Bean
 		public ClientHttpRequestFactory gatewayClientHttpRequestFactory(RestTemplateBuilder builder) {
 			return builder.buildRequestFactory();
 		}
