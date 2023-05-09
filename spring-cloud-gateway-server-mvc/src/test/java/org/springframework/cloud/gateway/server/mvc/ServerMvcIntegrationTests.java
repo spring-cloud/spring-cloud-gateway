@@ -149,7 +149,6 @@ public class ServerMvcIntegrationTests {
 					.filter(addRequestHeader("X-Foo", "Bar")).filter(prefixPath("/httpbin"));
 		}
 
-		// TODO: should be about to combine with above
 		@Bean
 		public RouterFunction<ServerResponse> gatewayRouterFunctions2() {
 			// @formatter:off
@@ -169,8 +168,12 @@ public class ServerMvcIntegrationTests {
 
 		@Bean
 		public RouterFunction<ServerResponse> gatewayRouterFunctions3() {
-			return route(GET("/anything/addresheader"), http()).filter(new LocalServerPortUriResolver())
-					.filter(prefixPath("/httpbin")).filter(addResponseHeader("X-Bar", "val1"));
+			// @formatter:off
+			return route(GET("/anything/addresheader"), http())
+					.filter(new LocalServerPortUriResolver())
+					.filter(prefixPath("/httpbin"))
+					.filter(addResponseHeader("X-Bar", "val1"));
+			// @formatter:on
 		}
 
 	}
