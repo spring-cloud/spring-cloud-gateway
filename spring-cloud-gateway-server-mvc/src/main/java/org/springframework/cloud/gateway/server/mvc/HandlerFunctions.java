@@ -34,6 +34,13 @@ public abstract class HandlerFunctions {
 
 	}
 
+	public static HandlerFunction<ServerResponse> http() {
+		return new ProxyExchangeHandlerFunction(request -> {
+			// TODO: rename request attr
+			return (URI) request.attribute("routeUri").orElseThrow();
+		});
+	}
+
 	public static HandlerFunction<ServerResponse> http(String uri) {
 		return http(URI.create(uri));
 	}

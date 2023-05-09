@@ -39,7 +39,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpRequestFactory;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.function.RouterFunction;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
@@ -146,20 +145,31 @@ public class ServerMvcIntegrationTests {
 
 		@Bean
 		public RouterFunction<ServerResponse> gatewayRouterFunctions() {
-			return route(GET("/get"), http(new LocalServerPortUriResolver())).filter(addRequestHeader("X-Foo", "Bar"))
-					.filter(prefixPath("/httpbin"));
+			return route(GET("/get"), http()).filter(new LocalServerPortUriResolver())
+					.filter(addRequestHeader("X-Foo", "Bar")).filter(prefixPath("/httpbin"));
 		}
 
 		// TODO: should be about to combine with above
 		@Bean
 		public RouterFunction<ServerResponse> gatewayRouterFunctions2() {
-			return route(GET("/status/{status}"), http(new LocalServerPortUriResolver())).filter(prefixPath("/httpbin"))
-					.filter(setStatus(HttpStatus.TOO_MANY_REQUESTS));
+			// @formatter:off
+			return route()
+					.GET("/status/{status}", http())
+						.filter(new LocalServerPortUriResolver())
+						.filter(prefixPath("/httpbin"))
+						.filter(setStatus(HttpStatus.TOO_MANY_REQUESTS))
+					// TODO: Filters apply to all routes in a builder
+					//.GET("/anything/addresheader", http())
+					//	.filter(new LocalServerPortUriResolver())
+					//	.filter(prefixPath("/httpbin"))
+					//	.filter(addResponseHeader("X-Bar", "val1"))
+					.build();
+			// @formatter:on
 		}
 
 		@Bean
 		public RouterFunction<ServerResponse> gatewayRouterFunctions3() {
-			return route(GET("/anything/addresheader"), http(new LocalServerPortUriResolver()))
+			return route(GET("/anything/addresheader"), http()).filter(new LocalServerPortUriResolver())
 					.filter(prefixPath("/httpbin")).filter(addResponseHeader("X-Bar", "val1"));
 		}
 

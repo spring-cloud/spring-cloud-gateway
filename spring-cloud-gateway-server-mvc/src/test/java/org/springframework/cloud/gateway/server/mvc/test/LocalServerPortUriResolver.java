@@ -20,15 +20,26 @@ import java.net.URI;
 
 import org.springframework.cloud.gateway.server.mvc.HandlerFunctions;
 import org.springframework.context.ApplicationContext;
+import org.springframework.web.servlet.function.HandlerFilterFunction;
+import org.springframework.web.servlet.function.HandlerFunction;
 import org.springframework.web.servlet.function.ServerRequest;
+import org.springframework.web.servlet.function.ServerResponse;
 
-public class LocalServerPortUriResolver implements HandlerFunctions.URIResolver {
+public class LocalServerPortUriResolver
+		implements HandlerFunctions.URIResolver, HandlerFilterFunction<ServerResponse, ServerResponse> {
 
 	@Override
 	public URI apply(ServerRequest request) {
 		ApplicationContext context = HandlerFunctions.getApplicationContext(request);
 		Integer port = context.getEnvironment().getProperty("local.server.port", Integer.class);
 		return URI.create("http://localhost:" + port);
+	}
+
+	@Override
+	public ServerResponse filter(ServerRequest request, HandlerFunction<ServerResponse> next) throws Exception {
+		URI uri = apply(request);
+		request.attributes().put("routeUri", uri);
+		return next.handle(request);
 	}
 
 }
