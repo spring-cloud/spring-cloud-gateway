@@ -28,7 +28,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cloud.gateway.server.mvc.test.DefaultTestRestClient;
 import org.springframework.cloud.gateway.server.mvc.test.HttpBinCompatibleController;
 import org.springframework.cloud.gateway.server.mvc.test.LocalHostUriBuilderFactory;
@@ -38,7 +37,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.web.servlet.function.RouterFunction;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
@@ -109,19 +107,7 @@ public class ServerMvcIntegrationTests {
 	@EnableAutoConfiguration
 	protected static class TestConfiguration {
 
-		// TODO: move to auto config
-		@Bean
-		public ClientHttpRequestFactory gatewayClientHttpRequestFactory(RestTemplateBuilder builder) {
-			return builder.buildRequestFactory();
-		}
-
-		@Bean
-		public ClientHttpRequestFactoryProxyExchange clientHttpRequestFactoryProxyExchange(
-				ClientHttpRequestFactory requestFactory) {
-			return new ClientHttpRequestFactoryProxyExchange(requestFactory);
-		}
-
-		// TODO: move to auto config
+		// TODO: move to test auto config
 		@Bean
 		public DefaultTestRestClient testRestClient(TestRestTemplate testRestTemplate, Environment env) {
 			return new DefaultTestRestClient(testRestTemplate, new LocalHostUriBuilderFactory(env), result -> {
