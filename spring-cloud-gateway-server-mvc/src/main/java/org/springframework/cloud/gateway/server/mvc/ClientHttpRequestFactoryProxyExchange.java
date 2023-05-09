@@ -16,43 +16,57 @@
 
 package org.springframework.cloud.gateway.server.mvc;
 
+import java.io.IOException;
 import java.net.URI;
 
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.RequestEntity;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.http.client.ClientHttpRequest;
+import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.util.StreamUtils;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 
-public class RestTemplateProxyExchange implements ProxyExchange {
+public class ClientHttpRequestFactoryProxyExchange implements ProxyExchange {
 
-	ParameterizedTypeReference<Object> objectRef = new ParameterizedTypeReference<>() {
-	};
+	private final ClientHttpRequestFactory requestFactory;
 
-	private final RestTemplate restTemplate;
-
-	public RestTemplateProxyExchange(RestTemplate restTemplate) {
-		this.restTemplate = restTemplate;
+	public ClientHttpRequestFactoryProxyExchange(ClientHttpRequestFactory requestFactory) {
+		this.requestFactory = requestFactory;
 	}
 
 	@Override
 	public RequestBuilder request(ServerRequest serverRequest) {
-		return new RestTemplateRequestBuilder(serverRequest).method(serverRequest.method());
+		return new ClientHttpRequestBuilder(serverRequest).method(serverRequest.method());
 	}
 
 	@Override
 	public ServerResponse exchange(Request request) {
-		RequestEntity<Void> entity = RequestEntity.method(request.getMethod(), request.getUri())
-				.headers(request.getHttpHeaders()).build();
-		ResponseEntity<Object> response = restTemplate.exchange(entity, Object.class);
-		return ServerResponse.status(response.getStatusCode())
-				.headers(httpHeaders -> httpHeaders.putAll(response.getHeaders())).body(response.getBody());
+		try {
+			ClientHttpRequest clientHttpRequest = requestFactory.createRequest(request.getUri(), request.getMethod());
+			clientHttpRequest.getHeaders().putAll(request.getHttpHeaders());
+			// TODO: copy body from request to clientHttpRequest.getBody()
+			ClientHttpResponse clientHttpResponse = clientHttpRequest.execute();
+			return GatewayServerResponse.status(clientHttpResponse.getStatusCode())
+					.headers(httpHeaders -> httpHeaders.putAll(clientHttpResponse.getHeaders()))
+					.build((req, httpServletResponse) -> {
+						try {
+							StreamUtils.copy(clientHttpResponse.getBody(), httpServletResponse.getOutputStream());
+						}
+						catch (IOException e) {
+							throw new RuntimeException(e);
+						}
+						return null;
+					});
+		}
+		catch (IOException e) {
+			// TODO: log error?
+			throw new RuntimeException(e);
+		}
 	}
 
-	public static class RestTemplateRequestBuilder implements RequestBuilder, Request {
+	public static class ClientHttpRequestBuilder implements RequestBuilder, Request {
 
 		final ServerRequest serverRequest;
 
@@ -62,7 +76,7 @@ public class RestTemplateProxyExchange implements ProxyExchange {
 
 		private URI uri;
 
-		public RestTemplateRequestBuilder(ServerRequest serverRequest) {
+		public ClientHttpRequestBuilder(ServerRequest serverRequest) {
 			this.serverRequest = serverRequest;
 		}
 

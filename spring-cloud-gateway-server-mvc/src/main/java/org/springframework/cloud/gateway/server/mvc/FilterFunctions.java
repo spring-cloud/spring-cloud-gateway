@@ -17,27 +17,25 @@
 package org.springframework.cloud.gateway.server.mvc;
 
 import java.net.URI;
+import java.util.Arrays;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.web.servlet.function.HandlerFilterFunction;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 import org.springframework.web.util.UriComponentsBuilder;
 
-public abstract class FilterFunctions {
+public interface FilterFunctions {
 
-	private FilterFunctions() {
-
-	}
-
-	public static HandlerFilterFunction<ServerResponse, ServerResponse> addRequestHeader(String name,
-			String... values) {
+	static HandlerFilterFunction<ServerResponse, ServerResponse> addRequestHeader(String name, String... values) {
 		return (request, next) -> {
 			ServerRequest modified = new GatewayServerRequestBuilder(request).header(name, values).build();
 			return next.handle(modified);
 		};
 	}
 
-	public static HandlerFilterFunction<ServerResponse, ServerResponse> prefixPath(String prefix) {
+	static HandlerFilterFunction<ServerResponse, ServerResponse> prefixPath(String prefix) {
 		return (request, next) -> {
 			// TODO: template vars
 			String newPath = prefix + request.uri().getRawPath();
@@ -45,6 +43,32 @@ public abstract class FilterFunctions {
 			URI prefixedUri = UriComponentsBuilder.fromUri(request.uri()).replacePath(newPath).build().toUri();
 			ServerRequest modified = new GatewayServerRequestBuilder(request).uri(prefixedUri).build();
 			return next.handle(modified);
+		};
+	}
+
+	static HandlerFilterFunction<ServerResponse, ServerResponse> setStatus(int statusCode) {
+		return setStatus(HttpStatus.valueOf(statusCode));
+	}
+
+	static HandlerFilterFunction<ServerResponse, ServerResponse> setStatus(HttpStatusCode statusCode) {
+		return (request, next) -> {
+			ServerResponse response = next.handle(request);
+			if (response instanceof GatewayServerResponse) {
+				GatewayServerResponse res = (GatewayServerResponse) response;
+				res.setStatusCode(statusCode);
+			}
+			return response;
+		};
+	}
+
+	static HandlerFilterFunction<ServerResponse, ServerResponse> addResponseHeader(String name, String... values) {
+		return (request, next) -> {
+			ServerResponse response = next.handle(request);
+			if (response instanceof GatewayServerResponse) {
+				GatewayServerResponse res = (GatewayServerResponse) response;
+				res.headers().addAll(name, Arrays.asList(values));
+			}
+			return response;
 		};
 	}
 

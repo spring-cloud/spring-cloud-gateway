@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.gateway.server.mvc;
 
+import java.util.Collections;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
@@ -37,6 +38,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.function.RouterFunction;
 import org.springframework.web.servlet.function.ServerRequest;
@@ -44,7 +46,9 @@ import org.springframework.web.servlet.function.ServerResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.gateway.server.mvc.FilterFunctions.addRequestHeader;
+import static org.springframework.cloud.gateway.server.mvc.FilterFunctions.addResponseHeader;
 import static org.springframework.cloud.gateway.server.mvc.FilterFunctions.prefixPath;
+import static org.springframework.cloud.gateway.server.mvc.FilterFunctions.setStatus;
 import static org.springframework.cloud.gateway.server.mvc.HandlerFunctions.http;
 import static org.springframework.web.servlet.function.RequestPredicates.GET;
 import static org.springframework.web.servlet.function.RouterFunctions.route;
@@ -84,6 +88,24 @@ public class ServerMvcIntegrationTests {
 		});
 	}
 
+	@Test
+	public void setStatusGatewayRouterFunctionWorks() {
+		restClient.get().uri("/status/201").exchange().expectStatus().isEqualTo(HttpStatus.TOO_MANY_REQUESTS)
+				.expectBody(String.class).isEqualTo("Failed with 201");
+	}
+
+	@Test
+	public void addResponseHeaderWorks() {
+		restClient.get().uri("/anything/addresheader").exchange().expectStatus().isOk().expectBody(Map.class)
+				.consumeWith(res -> {
+					Map<String, Object> map = res.getResponseBody();
+					assertThat(map).isNotEmpty().containsKey("headers");
+					Map<String, Object> headers = (Map<String, Object>) map.get("headers");
+					assertThat(headers).doesNotContainKey("x-bar");
+					assertThat(res.getResponseHeaders()).containsEntry("x-bar", Collections.singletonList("val1"));
+				});
+	}
+
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	protected static class TestConfiguration {
@@ -94,9 +116,20 @@ public class ServerMvcIntegrationTests {
 			return builder.build();
 		}
 
+		/*
+		 * @Bean public RestTemplateProxyExchange restTemplateProxyExchange(RestTemplate
+		 * restTemplate) { return new RestTemplateProxyExchange(restTemplate); }
+		 */
+
 		@Bean
-		public RestTemplateProxyExchange restTemplateProxyExchange(RestTemplate restTemplate) {
-			return new RestTemplateProxyExchange(restTemplate);
+		public ClientHttpRequestFactory gatewayClientHttpRequestFactory(RestTemplateBuilder builder) {
+			return builder.buildRequestFactory();
+		}
+
+		@Bean
+		public ClientHttpRequestFactoryProxyExchange clientHttpRequestFactoryProxyExchange(
+				ClientHttpRequestFactory requestFactory) {
+			return new ClientHttpRequestFactoryProxyExchange(requestFactory);
 		}
 
 		// TODO: move to auto config
@@ -125,6 +158,19 @@ public class ServerMvcIntegrationTests {
 		public RouterFunction<ServerResponse> gatewayRouterFunctions() {
 			return route(GET("/get"), http(new LocalServerPortUriResolver())).filter(addRequestHeader("X-Foo", "Bar"))
 					.filter(prefixPath("/httpbin"));
+		}
+
+		// TODO: should be about to combine with above
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctions2() {
+			return route(GET("/status/{status}"), http(new LocalServerPortUriResolver())).filter(prefixPath("/httpbin"))
+					.filter(setStatus(HttpStatus.TOO_MANY_REQUESTS));
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctions3() {
+			return route(GET("/anything/addresheader"), http(new LocalServerPortUriResolver()))
+					.filter(prefixPath("/httpbin")).filter(addResponseHeader("X-Bar", "val1"));
 		}
 
 	}

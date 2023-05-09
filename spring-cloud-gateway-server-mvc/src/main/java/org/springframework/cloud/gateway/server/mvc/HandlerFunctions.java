@@ -39,11 +39,11 @@ public abstract class HandlerFunctions {
 	}
 
 	public static HandlerFunction<ServerResponse> http(URI uri) {
-		return new ProxyHandlerFunction(req -> uri);
+		return new ProxyExchangeHandlerFunction(req -> uri);
 	}
 
 	public static HandlerFunction<ServerResponse> http(URIResolver uriResolver) {
-		return new ProxyHandlerFunction(uriResolver);
+		return new ProxyExchangeHandlerFunction(uriResolver);
 	}
 
 	public static ApplicationContext getApplicationContext(ServerRequest request) {
@@ -81,17 +81,18 @@ public abstract class HandlerFunctions {
 		return encoded;
 	}
 
+	// TODO: move from URIResolver to filter that sets url in request attribute
 	public interface URIResolver extends Function<ServerRequest, URI> {
 
 	}
 
-	static class ProxyHandlerFunction implements HandlerFunction<ServerResponse> {
+	static class ProxyExchangeHandlerFunction implements HandlerFunction<ServerResponse> {
 
 		private ProxyExchange proxyExchange;
 
 		private final URIResolver uriResolver;
 
-		ProxyHandlerFunction(URIResolver uriResolver) {
+		ProxyExchangeHandlerFunction(URIResolver uriResolver) {
 			this.uriResolver = uriResolver;
 		}
 
