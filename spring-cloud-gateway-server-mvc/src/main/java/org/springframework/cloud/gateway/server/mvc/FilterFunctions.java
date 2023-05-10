@@ -82,6 +82,7 @@ public interface FilterFunctions {
 		return (request, next) -> {
 			// TODO: gateway url attributes
 			String path = request.uri().getRawPath();
+			// TODO: begin duplicate code from StripPrefixGatewayFilterFactory
 			String[] originalParts = StringUtils.tokenizeToStringArray(path, "/");
 
 			// all new paths start with /
@@ -98,6 +99,7 @@ public interface FilterFunctions {
 			if (newPath.length() > 1 && path.endsWith("/")) {
 				newPath.append('/');
 			}
+			// TODO: end duplicate code from StripPrefixGatewayFilterFactory
 
 			URI prefixedUri = UriComponentsBuilder.fromUri(request.uri()).replacePath(newPath.toString()).build()
 					.toUri();

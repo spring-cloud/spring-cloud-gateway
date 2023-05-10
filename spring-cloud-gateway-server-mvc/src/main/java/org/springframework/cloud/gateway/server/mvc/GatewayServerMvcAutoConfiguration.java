@@ -17,6 +17,7 @@
 package org.springframework.cloud.gateway.server.mvc;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.web.client.RestTemplateAutoConfiguration;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
@@ -26,14 +27,22 @@ import org.springframework.http.client.ClientHttpRequestFactory;
 public class GatewayServerMvcAutoConfiguration {
 
 	@Bean
+	@ConditionalOnMissingBean
 	public ClientHttpRequestFactory gatewayClientHttpRequestFactory(RestTemplateBuilder builder) {
 		return builder.buildRequestFactory();
 	}
 
 	@Bean
+	@ConditionalOnMissingBean
 	public ClientHttpRequestFactoryProxyExchange clientHttpRequestFactoryProxyExchange(
 			ClientHttpRequestFactory requestFactory) {
 		return new ClientHttpRequestFactoryProxyExchange(requestFactory);
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	public ProxyExchangeHandlerFunction proxyExchangeHandlerFunction(ProxyExchange proxyExchange) {
+		return new ProxyExchangeHandlerFunction(proxyExchange);
 	}
 
 }
