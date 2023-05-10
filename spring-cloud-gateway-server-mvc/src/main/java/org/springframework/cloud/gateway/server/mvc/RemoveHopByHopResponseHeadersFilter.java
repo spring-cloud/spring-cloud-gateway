@@ -16,20 +16,15 @@
 
 package org.springframework.cloud.gateway.server.mvc;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
-import org.springframework.cloud.gateway.server.mvc.HttpHeadersFilter.RequestHttpHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.HttpHeadersFilter.ResponseHttpHeadersFilter;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
-import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 
 public class RemoveHopByHopResponseHeadersFilter implements ResponseHttpHeadersFilter, Ordered {
+
 	// TODO: configurable
 
 	private int order = Ordered.LOWEST_PRECEDENCE - 1;
@@ -45,4 +40,5 @@ public class RemoveHopByHopResponseHeadersFilter implements ResponseHttpHeadersF
 	public int getOrder() {
 		return order;
 	}
+
 }

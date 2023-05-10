@@ -28,6 +28,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.web.servlet.function.ServerRequest;
 
 public class RemoveHopByHopRequestHeadersFilter implements RequestHttpHeadersFilter, Ordered {
+
 	// TODO: configurable
 	/**
 	 * Headers to remove as the result of applying the filter.
@@ -35,10 +36,10 @@ public class RemoveHopByHopRequestHeadersFilter implements RequestHttpHeadersFil
 	public static final Set<String> HEADERS_REMOVED_ON_REQUEST = new HashSet<>(
 			Arrays.asList("connection", "keep-alive", "transfer-encoding", "te", "trailer", "proxy-authorization",
 					"proxy-authenticate", "x-application-context", "upgrade"
-					// these two are not listed in
-					// https://tools.ietf.org/html/draft-ietf-httpbis-p1-messaging-14#section-7.1.3
-					// "proxy-connection",
-					// "content-length",
+			// these two are not listed in
+			// https://tools.ietf.org/html/draft-ietf-httpbis-p1-messaging-14#section-7.1.3
+			// "proxy-connection",
+			// "content-length",
 			));
 
 	private int order = Ordered.LOWEST_PRECEDENCE - 1;
@@ -66,4 +67,5 @@ public class RemoveHopByHopRequestHeadersFilter implements RequestHttpHeadersFil
 	public int getOrder() {
 		return order;
 	}
+
 }

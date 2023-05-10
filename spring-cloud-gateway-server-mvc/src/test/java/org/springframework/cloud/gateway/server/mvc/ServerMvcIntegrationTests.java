@@ -102,8 +102,8 @@ public class ServerMvcIntegrationTests {
 
 	@Test
 	public void removeHopByHopRequestHeadersFilterWorks() {
-		restClient.get().uri("/anything/removehopbyhoprequestheaders").exchange().expectStatus().isOk().expectBody(Map.class)
-				.consumeWith(res -> {
+		restClient.get().uri("/anything/removehopbyhoprequestheaders").exchange().expectStatus().isOk()
+				.expectBody(Map.class).consumeWith(res -> {
 					Map<String, Object> map = res.getResponseBody();
 					assertThat(map).isNotEmpty().containsKey("headers");
 					Map<String, Object> headers = (Map<String, Object>) map.get("headers");
