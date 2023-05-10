@@ -30,7 +30,7 @@ public interface FilterFunctions {
 
 	static HandlerFilterFunction<ServerResponse, ServerResponse> addRequestHeader(String name, String... values) {
 		return (request, next) -> {
-			ServerRequest modified = new GatewayServerRequestBuilder(request).header(name, values).build();
+			ServerRequest modified = ServerRequest.from(request).header(name, values).build();
 			return next.handle(modified);
 		};
 	}
@@ -41,7 +41,7 @@ public interface FilterFunctions {
 			String newPath = prefix + request.uri().getRawPath();
 
 			URI prefixedUri = UriComponentsBuilder.fromUri(request.uri()).replacePath(newPath).build().toUri();
-			ServerRequest modified = new GatewayServerRequestBuilder(request).uri(prefixedUri).build();
+			ServerRequest modified = ServerRequest.from(request).uri(prefixedUri).build();
 			return next.handle(modified);
 		};
 	}
