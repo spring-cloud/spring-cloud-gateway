@@ -109,9 +109,16 @@ public abstract class HandlerFunctions {
 			if (proxyExchange != null) {
 				URI uri = uriResolver.apply(serverRequest);
 				boolean encoded = containsEncodedQuery(serverRequest.uri());
+				// @formatter:off
 				URI url = UriComponentsBuilder.fromUri(serverRequest.uri())
 						// .uri(routeUri)
-						.scheme(uri.getScheme()).host(uri.getHost()).port(uri.getPort()).build(encoded).toUri();
+						.scheme(uri.getScheme())
+						.host(uri.getHost())
+						.port(uri.getPort())
+						.queryParams(serverRequest.params())
+						.build(encoded)
+						.toUri();
+				// @formatter:on
 
 				ProxyExchange.Request proxyRequest = proxyExchange.request(serverRequest).uri(url)
 						.headers(serverRequest.headers().asHttpHeaders()).build();

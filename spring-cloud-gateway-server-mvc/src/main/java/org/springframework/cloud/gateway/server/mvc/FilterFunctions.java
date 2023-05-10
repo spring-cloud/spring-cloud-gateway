@@ -35,6 +35,13 @@ public interface FilterFunctions {
 		};
 	}
 
+	static HandlerFilterFunction<ServerResponse, ServerResponse> addRequestParameter(String name, String... values) {
+		return (request, next) -> {
+			ServerRequest modified = ServerRequest.from(request).param(name, values).build();
+			return next.handle(modified);
+		};
+	}
+
 	static HandlerFilterFunction<ServerResponse, ServerResponse> prefixPath(String prefix) {
 		return (request, next) -> {
 			// TODO: template vars

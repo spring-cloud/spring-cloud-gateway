@@ -43,6 +43,7 @@ import org.springframework.web.servlet.function.ServerResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.gateway.server.mvc.FilterFunctions.addRequestHeader;
+import static org.springframework.cloud.gateway.server.mvc.FilterFunctions.addRequestParameter;
 import static org.springframework.cloud.gateway.server.mvc.FilterFunctions.addResponseHeader;
 import static org.springframework.cloud.gateway.server.mvc.FilterFunctions.prefixPath;
 import static org.springframework.cloud.gateway.server.mvc.FilterFunctions.setStatus;
@@ -50,6 +51,7 @@ import static org.springframework.cloud.gateway.server.mvc.HandlerFunctions.http
 import static org.springframework.web.servlet.function.RequestPredicates.GET;
 import static org.springframework.web.servlet.function.RouterFunctions.route;
 
+@SuppressWarnings("unchecked")
 @SpringBootTest(properties = {}, webEnvironment = WebEnvironment.RANDOM_PORT)
 public class ServerMvcIntegrationTests {
 
@@ -83,6 +85,17 @@ public class ServerMvcIntegrationTests {
 			Map<String, Object> headers = (Map<String, Object>) map.get("headers");
 			assertThat(headers).containsEntry("x-foo", "Bar");
 		});
+	}
+
+	@Test
+	public void addRequestParameterWorks() {
+		restClient.get().uri("/anything/addrequestparam").exchange().expectStatus().isOk().expectBody(Map.class)
+				.consumeWith(res -> {
+					Map<String, Object> map = res.getResponseBody();
+					assertThat(map).isNotEmpty().containsKey("args");
+					Map<String, Object> args = (Map<String, Object>) map.get("args");
+					assertThat(args).containsEntry("param1", Collections.singletonList("param1val"));
+				});
 	}
 
 	@Test
@@ -159,6 +172,16 @@ public class ServerMvcIntegrationTests {
 					.filter(new LocalServerPortUriResolver())
 					.filter(prefixPath("/httpbin"))
 					.filter(addResponseHeader("X-Bar", "val1"));
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctions4() {
+			// @formatter:off
+			return route(GET("/anything/addrequestparam"), http())
+					.filter(new LocalServerPortUriResolver())
+					.filter(prefixPath("/httpbin"))
+					.filter(addRequestParameter("param1", "param1val"));
 			// @formatter:on
 		}
 
