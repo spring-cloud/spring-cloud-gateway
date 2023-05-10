@@ -16,47 +16,33 @@
 
 package org.springframework.cloud.gateway.server.mvc;
 
-import java.net.URI;
-import java.util.function.BiFunction;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
+import org.springframework.cloud.gateway.server.mvc.HttpHeadersFilter.RequestHttpHeadersFilter;
+import org.springframework.cloud.gateway.server.mvc.HttpHeadersFilter.ResponseHttpHeadersFilter;
+import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 
-public interface ProxyExchange {
+public class RemoveHopByHopResponseHeadersFilter implements ResponseHttpHeadersFilter, Ordered {
+	// TODO: configurable
 
-	RequestBuilder request(ServerRequest serverRequest);
+	private int order = Ordered.LOWEST_PRECEDENCE - 1;
 
-	ServerResponse exchange(Request request);
+	private Set<String> headers = RemoveHopByHopRequestHeadersFilter.HEADERS_REMOVED_ON_REQUEST;
 
-	interface Request {
-
-		HttpHeaders getHttpHeaders();
-
-		HttpMethod getMethod();
-
-		URI getUri();
-
-		ServerRequest getServerRequest();
-
-		BiFunction<HttpHeaders, ServerResponse, HttpHeaders> getResponseHeadersFilter();
-
+	@Override
+	public HttpHeaders apply(HttpHeaders input, ServerResponse serverResponse) {
+		return RemoveHopByHopRequestHeadersFilter.filter(input, headers);
 	}
 
-	interface RequestBuilder {
-
-		RequestBuilder headers(HttpHeaders httpHeaders);
-
-		RequestBuilder method(HttpMethod method);
-
-		RequestBuilder uri(URI uri);
-
-		RequestBuilder responseHeadersFilter(
-				BiFunction<HttpHeaders, ServerResponse, HttpHeaders> responseHeadersFilter);
-
-		Request build();
-
+	@Override
+	public int getOrder() {
+		return order;
 	}
-
 }

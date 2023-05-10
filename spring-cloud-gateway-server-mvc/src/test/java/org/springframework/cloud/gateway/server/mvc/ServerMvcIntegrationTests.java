@@ -72,7 +72,7 @@ public class ServerMvcIntegrationTests {
 	}
 
 	@Test
-	public void getGatewayRouterFunctionWorks() {
+	public void addRequestHeaderWorks() {
 		ResponseEntity<Map> response = restTemplate.getForEntity("/get", Map.class);
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 		Map<String, Object> map0 = response.getBody();
@@ -97,6 +97,17 @@ public class ServerMvcIntegrationTests {
 					assertThat(map).isNotEmpty().containsKey("args");
 					Map<String, Object> args = (Map<String, Object>) map.get("args");
 					assertThat(args).containsEntry("param1", Collections.singletonList("param1val"));
+				});
+	}
+
+	@Test
+	public void removeHopByHopRequestHeadersFilterWorks() {
+		restClient.get().uri("/anything/removehopbyhoprequestheaders").exchange().expectStatus().isOk().expectBody(Map.class)
+				.consumeWith(res -> {
+					Map<String, Object> map = res.getResponseBody();
+					assertThat(map).isNotEmpty().containsKey("headers");
+					Map<String, Object> headers = (Map<String, Object>) map.get("headers");
+					assertThat(headers).doesNotContainKeys("x-application-context");
 				});
 	}
 
@@ -227,6 +238,16 @@ public class ServerMvcIntegrationTests {
 					.filter(prefixPath("/httpbin"))
 					.filter(stripPrefix(3))
 					.filter(addRequestHeader("X-Test", "stripPrefix"));
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsRemoveHopByHopRequestHeaders() {
+			// @formatter:off
+			return route(GET("/anything/removehopbyhoprequestheaders"), http())
+					.filter(new LocalServerPortUriResolver())
+					.filter(prefixPath("/httpbin"))
+					.filter(addRequestHeader("x-application-context", "context-id1"));
 			// @formatter:on
 		}
 

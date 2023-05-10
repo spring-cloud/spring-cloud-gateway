@@ -18,7 +18,12 @@ package org.springframework.cloud.gateway.server.mvc;
 
 import java.net.URI;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.cloud.gateway.server.mvc.HttpHeadersFilter.RequestHttpHeadersFilter;
+import org.springframework.cloud.gateway.server.mvc.HttpHeadersFilter.ResponseHttpHeadersFilter;
+import org.springframework.http.HttpHeaders;
 import org.springframework.web.servlet.function.HandlerFunction;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
@@ -28,17 +33,27 @@ public class ProxyExchangeHandlerFunction implements HandlerFunction<ServerRespo
 
 	private final ProxyExchange proxyExchange;
 
+	private final ObjectProvider<RequestHttpHeadersFilter> requestHttpHeadersFilters;
+
+	private final ObjectProvider<ResponseHttpHeadersFilter> responseHttpHeadersFilters;
+
 	private final URIResolver uriResolver;
 
-	public ProxyExchangeHandlerFunction(ProxyExchange proxyExchange) {
-		this(proxyExchange, request -> {
+	public ProxyExchangeHandlerFunction(ProxyExchange proxyExchange,
+			ObjectProvider<RequestHttpHeadersFilter> requestHttpHeadersFilters,
+			ObjectProvider<ResponseHttpHeadersFilter> responseHttpHeadersFilters) {
+		this(proxyExchange, requestHttpHeadersFilters, responseHttpHeadersFilters, request -> {
 			// TODO: rename request attr
 			return (URI) request.attribute("routeUri").orElseThrow();
 		});
 	}
 
-	public ProxyExchangeHandlerFunction(ProxyExchange proxyExchange, URIResolver uriResolver) {
+	public ProxyExchangeHandlerFunction(ProxyExchange proxyExchange,
+			ObjectProvider<RequestHttpHeadersFilter> requestHttpHeadersFilters,
+			ObjectProvider<ResponseHttpHeadersFilter> responseHttpHeadersFilters, URIResolver uriResolver) {
 		this.proxyExchange = proxyExchange;
+		this.requestHttpHeadersFilters = requestHttpHeadersFilters;
+		this.responseHttpHeadersFilters = responseHttpHeadersFilters;
 		this.uriResolver = uriResolver;
 	}
 
@@ -57,9 +72,27 @@ public class ProxyExchangeHandlerFunction implements HandlerFunction<ServerRespo
 				.toUri();
 		// @formatter:on
 
+		// TODO: Streams.collect()?
+		HttpHeaders filteredRequestHeaders = filterHeaders(
+				this.requestHttpHeadersFilters.orderedStream().map(Function.identity()),
+				serverRequest.headers().asHttpHeaders(), serverRequest);
+
+		// @formatter:off
 		ProxyExchange.Request proxyRequest = proxyExchange.request(serverRequest).uri(url)
-				.headers(serverRequest.headers().asHttpHeaders()).build();
+				.headers(filteredRequestHeaders)
+				.responseHeadersFilter((httpHeaders, serverResponse) -> filterHeaders(this.responseHttpHeadersFilters.orderedStream().map(Function.identity()),
+						httpHeaders, serverResponse))
+				.build();
+		// @formatter:on
 		return proxyExchange.exchange(proxyRequest);
+	}
+
+	private <TYPE> HttpHeaders filterHeaders(Stream<HttpHeadersFilter<TYPE>> filters, HttpHeaders original, TYPE type) {
+		HttpHeaders filtered = original;
+		for (var filter : filters.toList()) {
+			filtered = filter.apply(filtered, type);
+		}
+		return filtered;
 	}
 
 	private static boolean containsEncodedQuery(URI uri) {

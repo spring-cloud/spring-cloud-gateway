@@ -16,46 +16,19 @@
 
 package org.springframework.cloud.gateway.server.mvc;
 
-import java.net.URI;
 import java.util.function.BiFunction;
 
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 
-public interface ProxyExchange {
+public interface HttpHeadersFilter<TYPE> extends BiFunction<HttpHeaders, TYPE, HttpHeaders> {
 
-	RequestBuilder request(ServerRequest serverRequest);
-
-	ServerResponse exchange(Request request);
-
-	interface Request {
-
-		HttpHeaders getHttpHeaders();
-
-		HttpMethod getMethod();
-
-		URI getUri();
-
-		ServerRequest getServerRequest();
-
-		BiFunction<HttpHeaders, ServerResponse, HttpHeaders> getResponseHeadersFilter();
+	interface RequestHttpHeadersFilter extends HttpHeadersFilter<ServerRequest> {
 
 	}
 
-	interface RequestBuilder {
-
-		RequestBuilder headers(HttpHeaders httpHeaders);
-
-		RequestBuilder method(HttpMethod method);
-
-		RequestBuilder uri(URI uri);
-
-		RequestBuilder responseHeadersFilter(
-				BiFunction<HttpHeaders, ServerResponse, HttpHeaders> responseHeadersFilter);
-
-		Request build();
+	interface ResponseHttpHeadersFilter extends HttpHeadersFilter<ServerResponse> {
 
 	}
 

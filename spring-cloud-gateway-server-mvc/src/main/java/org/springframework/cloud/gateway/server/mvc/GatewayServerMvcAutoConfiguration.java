@@ -16,10 +16,13 @@
 
 package org.springframework.cloud.gateway.server.mvc;
 
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.web.client.RestTemplateAutoConfiguration;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.cloud.gateway.server.mvc.HttpHeadersFilter.RequestHttpHeadersFilter;
+import org.springframework.cloud.gateway.server.mvc.HttpHeadersFilter.ResponseHttpHeadersFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.client.ClientHttpRequestFactory;
 
@@ -41,8 +44,22 @@ public class GatewayServerMvcAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	public ProxyExchangeHandlerFunction proxyExchangeHandlerFunction(ProxyExchange proxyExchange) {
-		return new ProxyExchangeHandlerFunction(proxyExchange);
+	public ProxyExchangeHandlerFunction proxyExchangeHandlerFunction(ProxyExchange proxyExchange,
+			ObjectProvider<RequestHttpHeadersFilter> requestHttpHeadersFilters,
+			ObjectProvider<ResponseHttpHeadersFilter> responseHttpHeadersFilters) {
+		return new ProxyExchangeHandlerFunction(proxyExchange, requestHttpHeadersFilters, responseHttpHeadersFilters);
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	public RemoveHopByHopRequestHeadersFilter removeHopByHopRequestHeadersFilter() {
+		return new RemoveHopByHopRequestHeadersFilter();
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	public RemoveHopByHopResponseHeadersFilter removeHopByHopResponseHeadersFilter() {
+		return new RemoveHopByHopResponseHeadersFilter();
 	}
 
 }

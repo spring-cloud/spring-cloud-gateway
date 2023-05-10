@@ -18,6 +18,7 @@ package org.springframework.cloud.gateway.server.mvc;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.function.BiFunction;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -48,8 +49,7 @@ public class ClientHttpRequestFactoryProxyExchange implements ProxyExchange {
 			clientHttpRequest.getHeaders().putAll(request.getHttpHeaders());
 			// TODO: copy body from request to clientHttpRequest.getBody()
 			ClientHttpResponse clientHttpResponse = clientHttpRequest.execute();
-			return GatewayServerResponse.status(clientHttpResponse.getStatusCode())
-					.headers(httpHeaders -> httpHeaders.putAll(clientHttpResponse.getHeaders()))
+			ServerResponse serverResponse = GatewayServerResponse.status(clientHttpResponse.getStatusCode())
 					.build((req, httpServletResponse) -> {
 						try {
 							StreamUtils.copy(clientHttpResponse.getBody(), httpServletResponse.getOutputStream());
@@ -59,6 +59,9 @@ public class ClientHttpRequestFactoryProxyExchange implements ProxyExchange {
 						}
 						return null;
 					});
+			serverResponse.headers()
+					.putAll(request.getResponseHeadersFilter().apply(clientHttpResponse.getHeaders(), serverResponse));
+			return serverResponse;
 		}
 		catch (IOException e) {
 			// TODO: log error?
@@ -75,6 +78,8 @@ public class ClientHttpRequestFactoryProxyExchange implements ProxyExchange {
 		private HttpMethod method;
 
 		private URI uri;
+
+		private BiFunction<HttpHeaders, ServerResponse, HttpHeaders> responseHeadersFilter;
 
 		public ClientHttpRequestBuilder(ServerRequest serverRequest) {
 			this.serverRequest = serverRequest;
@@ -95,6 +100,13 @@ public class ClientHttpRequestFactoryProxyExchange implements ProxyExchange {
 		@Override
 		public RequestBuilder uri(URI uri) {
 			this.uri = uri;
+			return this;
+		}
+
+		@Override
+		public RequestBuilder responseHeadersFilter(
+				BiFunction<HttpHeaders, ServerResponse, HttpHeaders> responseHeadersFilter) {
+			this.responseHeadersFilter = responseHeadersFilter;
 			return this;
 		}
 
@@ -122,6 +134,10 @@ public class ClientHttpRequestFactoryProxyExchange implements ProxyExchange {
 		@Override
 		public ServerRequest getServerRequest() {
 			return serverRequest;
+		}
+
+		public BiFunction<HttpHeaders, ServerResponse, HttpHeaders> getResponseHeadersFilter() {
+			return responseHeadersFilter;
 		}
 
 	}
