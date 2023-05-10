@@ -48,6 +48,7 @@ import static org.springframework.cloud.gateway.server.mvc.FilterFunctions.addRe
 import static org.springframework.cloud.gateway.server.mvc.FilterFunctions.prefixPath;
 import static org.springframework.cloud.gateway.server.mvc.FilterFunctions.setPath;
 import static org.springframework.cloud.gateway.server.mvc.FilterFunctions.setStatus;
+import static org.springframework.cloud.gateway.server.mvc.FilterFunctions.stripPrefix;
 import static org.springframework.cloud.gateway.server.mvc.HandlerFunctions.http;
 import static org.springframework.web.servlet.function.RequestPredicates.GET;
 import static org.springframework.web.servlet.function.RouterFunctions.route;
@@ -107,6 +108,17 @@ public class ServerMvcIntegrationTests {
 					assertThat(map).isNotEmpty().containsKey("args");
 					Map<String, Object> args = (Map<String, Object>) map.get("args");
 					assertThat(args).containsEntry("param1", Collections.singletonList("param1val"));
+				});
+	}
+
+	@Test
+	public void stripPathWorks() {
+		restClient.get().uri("/long/path/to/get").exchange().expectStatus().isOk().expectBody(Map.class)
+				.consumeWith(res -> {
+					Map<String, Object> map = res.getResponseBody();
+					assertThat(map).isNotEmpty().containsKey("headers");
+					Map<String, Object> headers = (Map<String, Object>) map.get("headers");
+					assertThat(headers).containsEntry("x-test", "stripPrefix");
 				});
 	}
 
@@ -204,6 +216,17 @@ public class ServerMvcIntegrationTests {
 					.filter(new LocalServerPortUriResolver())
 					.filter(setPath("/httpbin/anything/mycustompath"))
 					.filter(addRequestParameter("param1", "param1val"));
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsStripPath() {
+			// @formatter:off
+			return route(GET("/long/path/to/get"), http())
+					.filter(new LocalServerPortUriResolver())
+					.filter(prefixPath("/httpbin"))
+					.filter(stripPrefix(3))
+					.filter(addRequestHeader("X-Test", "stripPrefix"));
 			// @formatter:on
 		}
 

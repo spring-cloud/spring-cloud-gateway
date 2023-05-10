@@ -21,6 +21,7 @@ import java.util.Arrays;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.function.HandlerFilterFunction;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
@@ -68,6 +69,38 @@ public interface FilterFunctions {
 		return (request, next) -> {
 			// TODO: template vars
 			URI prefixedUri = UriComponentsBuilder.fromUri(request.uri()).replacePath(path).build().toUri();
+			ServerRequest modified = ServerRequest.from(request).uri(prefixedUri).build();
+			return next.handle(modified);
+		};
+	}
+
+	static HandlerFilterFunction<ServerResponse, ServerResponse> stripPrefix() {
+		return stripPrefix(1);
+	}
+
+	static HandlerFilterFunction<ServerResponse, ServerResponse> stripPrefix(int parts) {
+		return (request, next) -> {
+			// TODO: gateway url attributes
+			String path = request.uri().getRawPath();
+			String[] originalParts = StringUtils.tokenizeToStringArray(path, "/");
+
+			// all new paths start with /
+			StringBuilder newPath = new StringBuilder("/");
+			for (int i = 0; i < originalParts.length; i++) {
+				if (i >= parts) {
+					// only append slash if this is the second part or greater
+					if (newPath.length() > 1) {
+						newPath.append('/');
+					}
+					newPath.append(originalParts[i]);
+				}
+			}
+			if (newPath.length() > 1 && path.endsWith("/")) {
+				newPath.append('/');
+			}
+
+			URI prefixedUri = UriComponentsBuilder.fromUri(request.uri()).replacePath(newPath.toString()).build()
+					.toUri();
 			ServerRequest modified = ServerRequest.from(request).uri(prefixedUri).build();
 			return next.handle(modified);
 		};
