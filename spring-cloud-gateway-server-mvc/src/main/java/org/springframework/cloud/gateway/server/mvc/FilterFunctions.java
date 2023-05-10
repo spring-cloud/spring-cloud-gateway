@@ -42,6 +42,17 @@ public interface FilterFunctions {
 		};
 	}
 
+	static HandlerFilterFunction<ServerResponse, ServerResponse> addResponseHeader(String name, String... values) {
+		return (request, next) -> {
+			ServerResponse response = next.handle(request);
+			if (response instanceof GatewayServerResponse) {
+				GatewayServerResponse res = (GatewayServerResponse) response;
+				res.headers().addAll(name, Arrays.asList(values));
+			}
+			return response;
+		};
+	}
+
 	static HandlerFilterFunction<ServerResponse, ServerResponse> prefixPath(String prefix) {
 		return (request, next) -> {
 			// TODO: template vars
@@ -72,17 +83,6 @@ public interface FilterFunctions {
 			if (response instanceof GatewayServerResponse) {
 				GatewayServerResponse res = (GatewayServerResponse) response;
 				res.setStatusCode(statusCode);
-			}
-			return response;
-		};
-	}
-
-	static HandlerFilterFunction<ServerResponse, ServerResponse> addResponseHeader(String name, String... values) {
-		return (request, next) -> {
-			ServerResponse response = next.handle(request);
-			if (response instanceof GatewayServerResponse) {
-				GatewayServerResponse res = (GatewayServerResponse) response;
-				res.headers().addAll(name, Arrays.asList(values));
 			}
 			return response;
 		};
