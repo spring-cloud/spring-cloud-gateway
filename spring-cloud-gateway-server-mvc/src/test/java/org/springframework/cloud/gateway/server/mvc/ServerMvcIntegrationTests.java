@@ -46,6 +46,7 @@ import static org.springframework.cloud.gateway.server.mvc.FilterFunctions.addRe
 import static org.springframework.cloud.gateway.server.mvc.FilterFunctions.addRequestParameter;
 import static org.springframework.cloud.gateway.server.mvc.FilterFunctions.addResponseHeader;
 import static org.springframework.cloud.gateway.server.mvc.FilterFunctions.prefixPath;
+import static org.springframework.cloud.gateway.server.mvc.FilterFunctions.setPath;
 import static org.springframework.cloud.gateway.server.mvc.FilterFunctions.setStatus;
 import static org.springframework.cloud.gateway.server.mvc.HandlerFunctions.http;
 import static org.springframework.web.servlet.function.RequestPredicates.GET;
@@ -99,6 +100,17 @@ public class ServerMvcIntegrationTests {
 	}
 
 	@Test
+	public void setPathWorks() {
+		restClient.get().uri("/mycustompath").exchange().expectStatus().isOk().expectBody(Map.class)
+				.consumeWith(res -> {
+					Map<String, Object> map = res.getResponseBody();
+					assertThat(map).isNotEmpty().containsKey("args");
+					Map<String, Object> args = (Map<String, Object>) map.get("args");
+					assertThat(args).containsEntry("param1", Collections.singletonList("param1val"));
+				});
+	}
+
+	@Test
 	public void setStatusGatewayRouterFunctionWorks() {
 		restClient.get().uri("/status/201").exchange().expectStatus().isEqualTo(HttpStatus.TOO_MANY_REQUESTS)
 				.expectBody(String.class).isEqualTo("Failed with 201");
@@ -143,13 +155,13 @@ public class ServerMvcIntegrationTests {
 		}
 
 		@Bean
-		public RouterFunction<ServerResponse> gatewayRouterFunctions() {
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsAddReqHeader() {
 			return route(GET("/get"), http()).filter(new LocalServerPortUriResolver())
 					.filter(addRequestHeader("X-Foo", "Bar")).filter(prefixPath("/httpbin"));
 		}
 
 		@Bean
-		public RouterFunction<ServerResponse> gatewayRouterFunctions2() {
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsSetStatus() {
 			// @formatter:off
 			return route()
 					.GET("/status/{status}", http())
@@ -166,7 +178,7 @@ public class ServerMvcIntegrationTests {
 		}
 
 		@Bean
-		public RouterFunction<ServerResponse> gatewayRouterFunctions3() {
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsAddResponseHeader() {
 			// @formatter:off
 			return route(GET("/anything/addresheader"), http())
 					.filter(new LocalServerPortUriResolver())
@@ -176,11 +188,21 @@ public class ServerMvcIntegrationTests {
 		}
 
 		@Bean
-		public RouterFunction<ServerResponse> gatewayRouterFunctions4() {
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsAddRequestParam() {
 			// @formatter:off
 			return route(GET("/anything/addrequestparam"), http())
 					.filter(new LocalServerPortUriResolver())
 					.filter(prefixPath("/httpbin"))
+					.filter(addRequestParameter("param1", "param1val"));
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsSetPath() {
+			// @formatter:off
+			return route(GET("/mycustompath"), http())
+					.filter(new LocalServerPortUriResolver())
+					.filter(setPath("/httpbin/anything/mycustompath"))
 					.filter(addRequestParameter("param1", "param1val"));
 			// @formatter:on
 		}

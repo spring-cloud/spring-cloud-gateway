@@ -53,6 +53,15 @@ public interface FilterFunctions {
 		};
 	}
 
+	static HandlerFilterFunction<ServerResponse, ServerResponse> setPath(String path) {
+		return (request, next) -> {
+			// TODO: template vars
+			URI prefixedUri = UriComponentsBuilder.fromUri(request.uri()).replacePath(path).build().toUri();
+			ServerRequest modified = ServerRequest.from(request).uri(prefixedUri).build();
+			return next.handle(modified);
+		};
+	}
+
 	static HandlerFilterFunction<ServerResponse, ServerResponse> setStatus(int statusCode) {
 		return setStatus(HttpStatus.valueOf(statusCode));
 	}
