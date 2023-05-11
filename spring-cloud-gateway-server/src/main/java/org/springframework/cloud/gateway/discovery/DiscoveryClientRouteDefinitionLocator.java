@@ -100,7 +100,14 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 				.filter(includePredicate).collectMap(ServiceInstance::getServiceId)
 				// remove duplicates
 				.flatMapMany(map -> Flux.fromIterable(map.values())).map(instance -> {
-					RouteDefinition routeDefinition = buildRouteDefinition(urlExpr, instance);
+					try {
+                        routeDefinition = buildRouteDefinition(urlExpr, instance);
+                    } catch (IllegalArgumentException e) {
+                        if (log.isDebugEnabled()) {
+                            log.debug("Illegal uri" + instance.getServiceId(), e);
+                        }
+                        return null;
+                    }
 
 					final ServiceInstance instanceForEval = new DelegatingServiceInstance(instance, properties);
 
@@ -125,7 +132,8 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 					}
 
 					return routeDefinition;
-				});
+				})
+				.filter(Objects::nonNull);
 	}
 
 	protected RouteDefinition buildRouteDefinition(Expression urlExpr, ServiceInstance serviceInstance) {
