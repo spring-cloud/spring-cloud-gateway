@@ -99,6 +99,8 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 		return serviceInstances.filter(instances -> !instances.isEmpty()).flatMap(Flux::fromIterable)
 				.filter(includePredicate).collectMap(ServiceInstance::getServiceId)
 				// remove duplicates
+                .filter(instance ->  !instance.getServiceId().startsWith(" "))
+				// filter out illegal serviceIds
 				.flatMapMany(map -> Flux.fromIterable(map.values())).map(instance -> {
 					RouteDefinition routeDefinition = buildRouteDefinition(urlExpr, instance);
 
