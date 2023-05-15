@@ -17,6 +17,8 @@
 	<properties>
 		<main.basedir>${basedir}/..</main.basedir>
 		<grpc.version>1.68.1</grpc.version>
+		<context-propagation.version>1.0.0</context-propagation.version>
+		<bucket4j-core.version>8.3.0</bucket4j-core.version>
 	</properties>
 
 	<dependencies>
@@ -134,6 +136,16 @@
 			<groupId>com.github.ben-manes.caffeine</groupId>
 			<artifactId>caffeine</artifactId>
 			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>com.bucket4j</groupId>
+			<artifactId>bucket4j-core</artifactId>
+			<version>${bucket4j-core.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.bucket4j</groupId>
+			<artifactId>bucket4j-caffeine</artifactId>
+			<version>${bucket4j-core.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.micrometer</groupId>
