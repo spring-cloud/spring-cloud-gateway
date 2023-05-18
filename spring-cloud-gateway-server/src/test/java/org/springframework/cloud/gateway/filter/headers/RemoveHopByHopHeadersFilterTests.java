@@ -63,8 +63,35 @@ public class RemoveHopByHopHeadersFilterTests {
 		testFilter(MockServerWebExchange.from(builder), "upgrade", "keep-alive");
 	}
 
+	@Test
+	public void changeCustomHeaderListOnFilter() {
+		MockServerHttpRequest.BaseBuilder<?> builder = MockServerHttpRequest.get("http://localhost/get");
+
+		builder.header(HttpHeaders.CONNECTION, "upgrade", "keep-alive");
+		builder.header(HttpHeaders.UPGRADE, "WebSocket");
+		builder.header("Keep-Alive", "timeout:5");
+
+		Set<String> customHeaders = new HashSet<>() {
+			{
+				add("Connection");
+				add("Upgrade");
+				add("Keep-Alive");
+			}
+		};
+
+		testFilter(MockServerWebExchange.from(builder), customHeaders, "upgrade", "keep-alive");
+	}
+
 	private void testFilter(MockServerWebExchange exchange, String... additionalHeaders) {
+		testFilter(exchange, null, additionalHeaders);
+	}
+
+	private void testFilter(MockServerWebExchange exchange, Set<String> newHeaders, String... additionalHeaders) {
 		RemoveHopByHopHeadersFilter filter = new RemoveHopByHopHeadersFilter();
+		if (newHeaders != null) {
+			filter.setHeaders(newHeaders);
+		}
+
 		HttpHeaders headers = filter.filter(exchange.getRequest().getHeaders(), exchange);
 
 		Set<String> toRemove = new HashSet<>(HEADERS_REMOVED_ON_REQUEST);
