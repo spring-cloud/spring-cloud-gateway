@@ -37,10 +37,10 @@ public class RemoveHopByHopHeadersFilter implements HttpHeadersFilter, Ordered {
 	public static final Set<String> HEADERS_REMOVED_ON_REQUEST = new HashSet<>(
 			Arrays.asList("connection", "keep-alive", "transfer-encoding", "te", "trailer", "proxy-authorization",
 					"proxy-authenticate", "x-application-context", "upgrade"
-					// these two are not listed in
-					// https://tools.ietf.org/html/draft-ietf-httpbis-p1-messaging-14#section-7.1.3
-					// "proxy-connection",
-					// "content-length",
+			// these two are not listed in
+			// https://tools.ietf.org/html/draft-ietf-httpbis-p1-messaging-14#section-7.1.3
+			// "proxy-connection",
+			// "content-length",
 			));
 
 	private int order = Ordered.LOWEST_PRECEDENCE - 1;
