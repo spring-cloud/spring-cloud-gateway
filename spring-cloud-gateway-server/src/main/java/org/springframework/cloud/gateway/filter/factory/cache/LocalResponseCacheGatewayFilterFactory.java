@@ -49,11 +49,16 @@ public class LocalResponseCacheGatewayFilterFactory
 	 */
 	public static final String LOCAL_RESPONSE_CACHE_FILTER_APPLIED = "LocalResponseCacheGatewayFilter-Applied";
 
-	ResponseCacheManagerFactory cacheManagerFactory;
+	private ResponseCacheManagerFactory cacheManagerFactory;
 
-	Duration defaultTimeToLive;
+	private Duration defaultTimeToLive;
 
-	DataSize defaultSize;
+	private DataSize defaultSize;
+
+	public LocalResponseCacheGatewayFilterFactory(ResponseCacheManagerFactory cacheManagerFactory,
+			Duration defaultTimeToLive) {
+		this(cacheManagerFactory, defaultTimeToLive, null);
+	}
 
 	public LocalResponseCacheGatewayFilterFactory(ResponseCacheManagerFactory cacheManagerFactory,
 			Duration defaultTimeToLive, DataSize defaultSize) {
