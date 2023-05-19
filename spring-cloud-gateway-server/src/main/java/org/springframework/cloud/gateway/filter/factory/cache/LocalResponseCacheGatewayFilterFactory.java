@@ -51,13 +51,16 @@ public class LocalResponseCacheGatewayFilterFactory
 
 	ResponseCacheManagerFactory cacheManagerFactory;
 
-	Duration configuredTimeToLive;
+	Duration defaultTimeToLive;
+
+	DataSize defaultSize;
 
 	public LocalResponseCacheGatewayFilterFactory(ResponseCacheManagerFactory cacheManagerFactory,
-			Duration configuredTimeToLive) {
+			Duration defaultTimeToLive, DataSize defaultSize) {
 		super(RouteCacheConfiguration.class);
 		this.cacheManagerFactory = cacheManagerFactory;
-		this.configuredTimeToLive = configuredTimeToLive;
+		this.defaultTimeToLive = defaultTimeToLive;
+		this.defaultSize = defaultSize;
 	}
 
 	@Override
@@ -71,9 +74,12 @@ public class LocalResponseCacheGatewayFilterFactory
 	}
 
 	private LocalResponseCacheProperties mapRouteCacheConfig(RouteCacheConfiguration config) {
+		Duration timeToLive = config.getTimeToLive() != null ? config.getTimeToLive() : defaultTimeToLive;
+		DataSize size = config.getSize() != null ? config.getSize() : defaultSize;
+
 		LocalResponseCacheProperties responseCacheProperties = new LocalResponseCacheProperties();
-		responseCacheProperties.setSize(config.getSize());
-		responseCacheProperties.setTimeToLive(config.getTimeToLive());
+		responseCacheProperties.setTimeToLive(timeToLive);
+		responseCacheProperties.setSize(size);
 		return responseCacheProperties;
 	}
 
