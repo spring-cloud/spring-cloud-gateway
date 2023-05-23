@@ -21,6 +21,9 @@ import reactor.core.publisher.Mono;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.server.reactive.ServerHttpResponse;
+import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.web.server.ServerWebExchange;
 
 import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
@@ -36,8 +39,26 @@ public class SetResponseHeaderGatewayFilterFactory extends AbstractNameValueGate
 			@Override
 			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 				String value = ServerWebExchangeUtils.expand(exchange, config.getValue());
-				return chain.filter(exchange)
-						.then(Mono.fromRunnable(() -> exchange.getResponse().getHeaders().set(config.name, value)));
+				return chain.filter(exchange).then(Mono.fromRunnable(() -> {
+					ServerHttpResponse response = exchange.getResponse();
+					HttpHeaders headers = response.getHeaders();
+					try {
+						headers.set(config.name, value);
+					}
+					catch (UnsupportedOperationException e) {
+						// ReadOnlyHttpHeaders
+						HttpHeaders modified = new HttpHeaders();
+						modified.putAll(headers);
+						modified.set(config.name, value);
+						ServerHttpResponse wrapped = new ServerHttpResponseDecorator(response) {
+							@Override
+							public HttpHeaders getHeaders() {
+								return modified;
+							}
+						};
+						exchange.mutate().response(wrapped);
+					}
+				}));
 			}
 
 			@Override
