@@ -22,6 +22,8 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.core.annotation.Order;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
@@ -62,7 +64,11 @@ public class FilteringWebHandler implements WebHandler {
 				int order = ((Ordered) filter).getOrder();
 				return new OrderedGatewayFilter(gatewayFilter, order);
 			}
-			return gatewayFilter;
+			Order order = AnnotationUtils.findAnnotation(filter.getClass(), Order.class);
+			if (order == null) {
+				return gatewayFilter;
+			}
+			return new OrderedGatewayFilter(gatewayFilter, order.value());
 		}).collect(Collectors.toList());
 	}
 
