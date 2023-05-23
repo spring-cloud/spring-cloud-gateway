@@ -58,15 +58,15 @@ public class RouteConfigurer {
 		this.restTemplate = createUnsecureClient();
 	}
 
-	public void addRoute(int grpcServerPort, String path, String filter) {
+	public void addRoute(int grpcServerPort, String path, String... filters) {
 		final String routeId = "test-route-" + UUID.randomUUID();
 
 		Map<String, Object> route = new HashMap<>();
 		route.put("id", routeId);
 		route.put("uri", "https://localhost:" + grpcServerPort);
 		route.put("predicates", Collections.singletonList("Path=" + path));
-		if (filter != null) {
-			route.put("filters", Arrays.asList(filter));
+		if (filters != null && filters.length > 0) {
+			route.put("filters", Arrays.asList(filters));
 		}
 
 		ResponseEntity<String> exchange = restTemplate.exchange(url("/actuator/gateway/routes/" + routeId),
@@ -88,7 +88,7 @@ public class RouteConfigurer {
 		return String.format("https://localhost:%s%s", this.actuatorPort, context);
 	}
 
-	private RestTemplate createUnsecureClient() {
+	static RestTemplate createUnsecureClient() {
 		TrustStrategy acceptingTrustStrategy = (cert, authType) -> true;
 		SSLContext sslContext;
 		try {

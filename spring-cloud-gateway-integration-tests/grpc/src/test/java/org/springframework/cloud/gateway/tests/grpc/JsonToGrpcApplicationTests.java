@@ -16,31 +16,14 @@
 
 package org.springframework.cloud.gateway.tests.grpc;
 
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-
-import javax.net.ssl.SSLContext;
-
-import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.HttpClients;
-import org.apache.hc.client5.http.impl.io.BasicHttpClientConnectionManager;
-import org.apache.hc.client5.http.io.HttpClientConnectionManager;
-import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
-import org.apache.hc.client5.http.socket.PlainConnectionSocketFactory;
-import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
-import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
-import org.apache.hc.core5.http.config.Registry;
-import org.apache.hc.core5.http.config.RegistryBuilder;
-import org.apache.hc.core5.ssl.SSLContexts;
-import org.apache.hc.core5.ssl.TrustStrategy;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
@@ -59,7 +42,7 @@ public class JsonToGrpcApplicationTests {
 
 	@BeforeEach
 	void setUp() {
-		restTemplate = createUnsecureClient();
+		restTemplate = RouteConfigurer.createUnsecureClient();
 	}
 
 	@Test
@@ -70,36 +53,17 @@ public class JsonToGrpcApplicationTests {
 		final RouteConfigurer configurer = new RouteConfigurer(gatewayPort);
 		int grpcServerPort = gatewayPort + 1;
 		configurer.addRoute(grpcServerPort, "/json/hello",
-				"JsonToGrpc=file:src/main/proto/hello.pb,file:src/main/proto/hello.proto,HelloService,hello");
+				"JsonToGrpc=file:src/main/proto/hello.pb,file:src/main/proto/hello.proto,HelloService,hello",
+				"SetResponseHeader=Content-Type,application/json");
 
-		String response = restTemplate.postForEntity("https://localhost:" + this.gatewayPort + "/json/hello",
-				"{\"firstName\":\"Duff\", \"lastName\":\"McKagan\"}", String.class).getBody();
+		ResponseEntity<String> responseEntity = restTemplate.postForEntity(
+				"https://localhost:" + this.gatewayPort + "/json/hello",
+				"{\"firstName\":\"Duff\", \"lastName\":\"McKagan\"}", String.class);
+		Assertions.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+		String response = responseEntity.getBody();
 
 		Assertions.assertThat(response).isNotNull();
 		Assertions.assertThat(response).contains("{\"greeting\":\"Hello, Duff McKagan\"}");
-	}
-
-	private RestTemplate createUnsecureClient() {
-		TrustStrategy acceptingTrustStrategy = (cert, authType) -> true;
-		SSLContext sslContext;
-		try {
-			sslContext = SSLContexts.custom().loadTrustMaterial(null, acceptingTrustStrategy).build();
-		}
-		catch (NoSuchAlgorithmException | KeyStoreException | KeyManagementException e) {
-			throw new RuntimeException(e);
-		}
-		SSLConnectionSocketFactory sslSocketFactory = new SSLConnectionSocketFactory(sslContext,
-				NoopHostnameVerifier.INSTANCE);
-
-		Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create()
-				.register("https", sslSocketFactory).register("http", new PlainConnectionSocketFactory()).build();
-
-		HttpClientConnectionManager connectionManager = new BasicHttpClientConnectionManager(socketFactoryRegistry);
-		CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(connectionManager).build();
-
-		HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory(httpClient);
-
-		return new RestTemplate(requestFactory);
 	}
 
 }
