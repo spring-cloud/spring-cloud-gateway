@@ -43,7 +43,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -166,7 +165,7 @@ public class AbstractGatewayControllerEndpoint implements ApplicationEventPublis
 				.switchIfEmpty(Mono.defer(() -> Mono.just(ResponseEntity.badRequest().build())));
 	}
 
-	@PostMapping(value = "/routes", produces = MediaType.APPLICATION_JSON_VALUE)
+	@PostMapping("/routes")
 	@SuppressWarnings("unchecked")
 	public Mono<ResponseEntity<Object>> save(@RequestBody List<RouteDefinition> routes) {
 		routes.stream().forEach(routeDef -> {
