@@ -13,16 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.factory.rewrite;
 
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -35,41 +32,34 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.web.util.UriComponentsBuilder;
-
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
 class ModifyResponseBodyGatewayFilterFactoryGzipTests extends BaseWebClientTests {
 
-	@Test
-	void testModificationOfResponseBody() {
-		URI uri = UriComponentsBuilder.fromUriString(this.baseUri + "/gzip").build(true).toUri();
+    @Test
+    void testModificationOfResponseBody() {
+        URI uri = UriComponentsBuilder.fromUriString(this.baseUri + "/gzip").build(true).toUri();
+        testClient.get().uri(uri).header("Host", "www.modifyresponsebodyjava.org").accept(MediaType.APPLICATION_JSON).exchange().expectBody().json("{\"length\":25,\"value\":\"\\\"httpbin compatible home\\\"\"}");
+    }
 
-		testClient.get().uri(uri).header("Host", "www.modifyresponsebodyjava.org").accept(MediaType.APPLICATION_JSON)
-				.exchange().expectBody().json("{\"length\":25,\"value\":\"\\\"httpbin compatible home\\\"\"}");
-	}
+    @EnableAutoConfiguration
+    @SpringBootConfiguration
+    @Import(DefaultTestConfig.class)
+    static class TestConfig {
 
-	@EnableAutoConfiguration
-	@SpringBootConfiguration
-	@Import(DefaultTestConfig.class)
-	static class TestConfig {
+        @Value("${test.uri}")
+        String uri;
 
-		@Value("${test.uri}")
-		String uri;
-
-		@Bean
-		RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
-			return builder.routes().route("modify_response_java_test_gzip", r -> r.path("/gzip").and()
-					.host("www.modifyresponsebodyjava.org")
-					.filters(f -> f.modifyResponseBody(String.class, Map.class, (webExchange, originalResponse) -> {
-						Map<String, Object> modifiedResponse = new HashMap<>();
-						modifiedResponse.put("value", originalResponse);
-						modifiedResponse.put("length", originalResponse.length());
-						return Mono.just(modifiedResponse);
-					})).uri(uri)).build();
-		}
-
-	}
-
+        @Bean
+        RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
+            return builder.routes().route("modify_response_java_test_gzip", r -> r.path("/gzip").and().host("www.modifyresponsebodyjava.org").filters(f -> f.modifyResponseBody(String.class, Map.class, (webExchange, originalResponse) -> {
+                Map<String, Object> modifiedResponse = new HashMap<>();
+                modifiedResponse.put("value", originalResponse);
+                modifiedResponse.put("length", originalResponse.length());
+                return Mono.just(modifiedResponse);
+            })).uri(uri)).build();
+        }
+    }
 }

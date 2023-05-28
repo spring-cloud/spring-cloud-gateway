@@ -13,45 +13,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.config.conditional;
 
 import java.util.function.Consumer;
 import java.util.function.Predicate;
-
 import org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory;
 import org.springframework.cloud.gateway.support.NameUtils;
 import org.springframework.web.server.ServerWebExchange;
 
 public class OnEnabledPredicate extends OnEnabledComponent<RoutePredicateFactory<?>> {
 
-	@Override
-	protected String normalizeComponentName(Class<? extends RoutePredicateFactory<?>> predicateClass) {
-		return "predicate." + NameUtils.normalizeRoutePredicateNameAsProperty(predicateClass);
-	}
+    @Override
+    protected String normalizeComponentName(Class<? extends RoutePredicateFactory<?>> predicateClass) {
+        return "predicate." + NameUtils.normalizeRoutePredicateNameAsProperty(predicateClass);
+    }
 
-	@Override
-	protected Class<?> annotationClass() {
-		return ConditionalOnEnabledPredicate.class;
-	}
+    @Override
+    protected Class<?> annotationClass() {
+        return ConditionalOnEnabledPredicate.class;
+    }
 
-	@Override
-	protected Class<? extends RoutePredicateFactory<?>> defaultValueClass() {
-		return DefaultValue.class;
-	}
+    @Override
+    protected Class<? extends RoutePredicateFactory<?>> defaultValueClass() {
+        return DefaultValue.class;
+    }
 
-	static class DefaultValue implements RoutePredicateFactory<Object> {
+    static class DefaultValue implements RoutePredicateFactory<Object> {
 
-		@Override
-		public Predicate<ServerWebExchange> apply(Consumer<Object> consumer) {
-			throw new UnsupportedOperationException("class DefaultValue is never meant to be intantiated");
-		}
+        @Override
+        public Predicate<ServerWebExchange> apply(Consumer<Object> consumer) {
+            throw new UnsupportedOperationException("class DefaultValue is never meant to be intantiated");
+        }
 
-		@Override
-		public Predicate<ServerWebExchange> apply(Object config) {
-			throw new UnsupportedOperationException("class DefaultValue is never meant to be intantiated");
-		}
-
-	}
-
+        @Override
+        public Predicate<ServerWebExchange> apply(Object config) {
+            throw new UnsupportedOperationException("class DefaultValue is never meant to be intantiated");
+        }
+    }
 }

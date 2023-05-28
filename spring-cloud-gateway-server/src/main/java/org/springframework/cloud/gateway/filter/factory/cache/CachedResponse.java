@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.factory.cache;
 
 import java.io.ByteArrayInputStream;
@@ -33,7 +32,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
-
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.util.FileCopyUtils;
@@ -44,121 +42,119 @@ import org.springframework.util.FileCopyUtils;
  */
 public final class CachedResponse implements Serializable {
 
-	private HttpStatusCode statusCode;
+    private HttpStatusCode statusCode;
 
-	private HttpHeaders headers;
+    private HttpHeaders headers;
 
-	private List<ByteBuffer> body;
+    private List<ByteBuffer> body;
 
-	private Date timestamp;
+    private Date timestamp;
 
-	private CachedResponse(HttpStatusCode statusCode, HttpHeaders headers, List<ByteBuffer> body, Date timestamp) {
-		this.statusCode = statusCode;
-		this.headers = headers;
-		this.body = body;
-		this.timestamp = timestamp;
-	}
+    private CachedResponse(HttpStatusCode statusCode, HttpHeaders headers, List<ByteBuffer> body, Date timestamp) {
+        this.statusCode = statusCode;
+        this.headers = headers;
+        this.body = body;
+        this.timestamp = timestamp;
+    }
 
-	@Serial
-	private void readObject(ObjectInputStream aInputStream) throws ClassNotFoundException, IOException {
-		statusCode = (HttpStatusCode) aInputStream.readObject();
-		headers = (HttpHeaders) aInputStream.readObject();
-		body = List.of(ByteBuffer.wrap(aInputStream.readAllBytes()).asReadOnlyBuffer());
-		timestamp = (Date) aInputStream.readObject();
-	}
+    @Serial
+    private void readObject(ObjectInputStream aInputStream) throws ClassNotFoundException, IOException {
+        statusCode = (HttpStatusCode) aInputStream.readObject();
+        headers = (HttpHeaders) aInputStream.readObject();
+        body = List.of(ByteBuffer.wrap(aInputStream.readAllBytes()).asReadOnlyBuffer());
+        timestamp = (Date) aInputStream.readObject();
+    }
 
-	@Serial
-	private void writeObject(ObjectOutputStream aOutputStream) throws IOException {
-		aOutputStream.writeObject(statusCode);
-		aOutputStream.writeObject(headers);
-		aOutputStream.write(this.bodyAsByteArray());
-		aOutputStream.writeObject(timestamp);
-	}
+    @Serial
+    private void writeObject(ObjectOutputStream aOutputStream) throws IOException {
+        aOutputStream.writeObject(statusCode);
+        aOutputStream.writeObject(headers);
+        aOutputStream.write(this.bodyAsByteArray());
+        aOutputStream.writeObject(timestamp);
+    }
 
-	public static Builder create(HttpStatusCode statusCode) {
-		return new Builder(statusCode);
-	}
+    public static Builder create(HttpStatusCode statusCode) {
+        return new Builder(statusCode);
+    }
 
-	public HttpStatusCode statusCode() {
-		return this.statusCode;
-	}
+    public HttpStatusCode statusCode() {
+        return this.statusCode;
+    }
 
-	public HttpHeaders headers() {
-		return this.headers;
-	}
+    public HttpHeaders headers() {
+        return this.headers;
+    }
 
-	public List<ByteBuffer> body() {
-		return Collections.unmodifiableList(body);
-	}
+    public List<ByteBuffer> body() {
+        return Collections.unmodifiableList(body);
+    }
 
-	public Date timestamp() {
-		return this.timestamp;
-	}
+    public Date timestamp() {
+        return this.timestamp;
+    }
 
-	byte[] bodyAsByteArray() throws IOException {
-		var bodyStream = new ByteArrayOutputStream();
-		var channel = Channels.newChannel(bodyStream);
-		for (ByteBuffer byteBuffer : body()) {
-			channel.write(byteBuffer);
-		}
-		return bodyStream.toByteArray();
-	}
+    byte[] bodyAsByteArray() throws IOException {
+        var bodyStream = new ByteArrayOutputStream();
+        var channel = Channels.newChannel(bodyStream);
+        for (ByteBuffer byteBuffer : body()) {
+            channel.write(byteBuffer);
+        }
+        return bodyStream.toByteArray();
+    }
 
-	String bodyAsString() throws IOException {
-		InputStream byteStream = new ByteArrayInputStream(bodyAsByteArray());
-		if (headers.getOrEmpty(HttpHeaders.CONTENT_ENCODING).contains("gzip")) {
-			byteStream = new GZIPInputStream(byteStream);
-		}
-		return new String(FileCopyUtils.copyToByteArray(byteStream));
-	}
+    String bodyAsString() throws IOException {
+        InputStream byteStream = new ByteArrayInputStream(bodyAsByteArray());
+        if (headers.getOrEmpty(HttpHeaders.CONTENT_ENCODING).contains("gzip")) {
+            byteStream = new GZIPInputStream(byteStream);
+        }
+        return new String(FileCopyUtils.copyToByteArray(byteStream));
+    }
 
-	public static class Builder {
+    public static class Builder {
 
-		private final HttpStatusCode statusCode;
+        private final HttpStatusCode statusCode;
 
-		private final HttpHeaders headers = new HttpHeaders();
+        private final HttpHeaders headers = new HttpHeaders();
 
-		private final List<ByteBuffer> body = new ArrayList<>();
+        private final List<ByteBuffer> body = new ArrayList<>();
 
-		private Instant timestamp;
+        private Instant timestamp;
 
-		public Builder(HttpStatusCode statusCode) {
-			this.statusCode = statusCode;
-		}
+        public Builder(HttpStatusCode statusCode) {
+            this.statusCode = statusCode;
+        }
 
-		public Builder header(String name, String value) {
-			this.headers.add(name, value);
-			return this;
-		}
+        public Builder header(String name, String value) {
+            this.headers.add(name, value);
+            return this;
+        }
 
-		public Builder headers(HttpHeaders headers) {
-			this.headers.addAll(headers);
-			return this;
-		}
+        public Builder headers(HttpHeaders headers) {
+            this.headers.addAll(headers);
+            return this;
+        }
 
-		public Builder timestamp(Instant timestamp) {
-			this.timestamp = timestamp;
-			return this;
-		}
+        public Builder timestamp(Instant timestamp) {
+            this.timestamp = timestamp;
+            return this;
+        }
 
-		public Builder timestamp(Date timestamp) {
-			this.timestamp = timestamp.toInstant();
-			return this;
-		}
+        public Builder timestamp(Date timestamp) {
+            this.timestamp = timestamp.toInstant();
+            return this;
+        }
 
-		public Builder body(String data) {
-			return appendToBody(ByteBuffer.wrap(data.getBytes(StandardCharsets.UTF_8)));
-		}
+        public Builder body(String data) {
+            return appendToBody(ByteBuffer.wrap(data.getBytes(StandardCharsets.UTF_8)));
+        }
 
-		public Builder appendToBody(ByteBuffer byteBuffer) {
-			this.body.add(byteBuffer);
-			return this;
-		}
+        public Builder appendToBody(ByteBuffer byteBuffer) {
+            this.body.add(byteBuffer);
+            return this;
+        }
 
-		public CachedResponse build() {
-			return new CachedResponse(statusCode, headers, body, timestamp == null ? new Date() : Date.from(timestamp));
-		}
-
-	}
-
+        public CachedResponse build() {
+            return new CachedResponse(statusCode, headers, body, timestamp == null ? new Date() : Date.from(timestamp));
+        }
+    }
 }

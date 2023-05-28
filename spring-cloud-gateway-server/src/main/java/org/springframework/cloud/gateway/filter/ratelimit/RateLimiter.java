@@ -13,14 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.ratelimit;
 
 import java.util.Collections;
 import java.util.Map;
-
 import reactor.core.publisher.Mono;
-
 import org.springframework.cloud.gateway.support.StatefulConfigurable;
 import org.springframework.util.Assert;
 
@@ -29,41 +26,39 @@ import org.springframework.util.Assert;
  */
 public interface RateLimiter<C> extends StatefulConfigurable<C> {
 
-	Mono<Response> isAllowed(String routeId, String id);
+    Mono<Response> isAllowed(String routeId, String id);
 
-	class Response {
+    class Response {
 
-		private final boolean allowed;
+        private final boolean allowed;
 
-		private final long tokensRemaining;
+        private final long tokensRemaining;
 
-		private final Map<String, String> headers;
+        private final Map<String, String> headers;
 
-		public Response(boolean allowed, Map<String, String> headers) {
-			this.allowed = allowed;
-			this.tokensRemaining = -1;
-			Assert.notNull(headers, "headers may not be null");
-			this.headers = headers;
-		}
+        public Response(boolean allowed, Map<String, String> headers) {
+            this.allowed = allowed;
+            this.tokensRemaining = -1;
+            Assert.notNull(headers, "headers may not be null");
+            this.headers = headers;
+        }
 
-		public boolean isAllowed() {
-			return allowed;
-		}
+        public boolean isAllowed() {
+            return allowed;
+        }
 
-		public Map<String, String> getHeaders() {
-			return Collections.unmodifiableMap(headers);
-		}
+        public Map<String, String> getHeaders() {
+            return Collections.unmodifiableMap(headers);
+        }
 
-		@Override
-		public String toString() {
-			final StringBuffer sb = new StringBuffer("Response{");
-			sb.append("allowed=").append(allowed);
-			sb.append(", headers=").append(headers);
-			sb.append(", tokensRemaining=").append(tokensRemaining);
-			sb.append('}');
-			return sb.toString();
-		}
-
-	}
-
+        @Override
+        public String toString() {
+            final StringBuffer sb = new StringBuffer("Response{");
+            sb.append("allowed=").append(allowed);
+            sb.append(", headers=").append(headers);
+            sb.append(", tokensRemaining=").append(tokensRemaining);
+            sb.append('}');
+            return sb.toString();
+        }
+    }
 }

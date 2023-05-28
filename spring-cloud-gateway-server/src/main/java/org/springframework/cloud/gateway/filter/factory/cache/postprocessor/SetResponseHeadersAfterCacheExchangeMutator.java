@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.factory.cache.postprocessor;
 
 import org.springframework.cloud.gateway.filter.factory.cache.CachedResponse;
@@ -28,11 +27,10 @@ import org.springframework.web.server.ServerWebExchange;
  */
 public class SetResponseHeadersAfterCacheExchangeMutator implements AfterCacheExchangeMutator {
 
-	@Override
-	public void accept(ServerWebExchange exchange, CachedResponse cachedResponse) {
-		ServerHttpResponse response = exchange.getResponse();
-		response.getHeaders().clear();
-		response.getHeaders().addAll(cachedResponse.headers());
-	}
-
+    @Override
+    public void accept(ServerWebExchange exchange, CachedResponse cachedResponse) {
+        ServerHttpResponse response = exchange.getResponse();
+        response.getHeaders().clear();
+        response.getHeaders().addAll(cachedResponse.headers());
+    }
 }

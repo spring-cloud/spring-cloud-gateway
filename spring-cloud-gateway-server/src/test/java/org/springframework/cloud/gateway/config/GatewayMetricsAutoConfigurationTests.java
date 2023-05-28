@@ -13,18 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.config;
 
 import java.util.List;
-
 import io.micrometer.core.instrument.Tags;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.propagation.Propagator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
@@ -41,7 +38,6 @@ import org.springframework.cloud.gateway.route.RouteDefinitionMetrics;
 import org.springframework.cloud.gateway.support.tagsprovider.GatewayTagsProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.server.ServerWebExchange;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -49,158 +45,144 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class GatewayMetricsAutoConfigurationTests {
 
-	@Nested
-	@SpringBootTest(classes = Config.class)
-	public class EnabledByDefault {
+    @Nested
+    @SpringBootTest(classes = Config.class)
+    public class EnabledByDefault {
 
-		@Autowired(required = false)
-		private GatewayMetricsFilter filter;
+        @Autowired(required = false)
+        private GatewayMetricsFilter filter;
 
-		@Autowired(required = false)
-		private RouteDefinitionMetrics routeDefinitionMetrics;
+        @Autowired(required = false)
+        private RouteDefinitionMetrics routeDefinitionMetrics;
 
-		@Autowired(required = false)
-		private List<GatewayTagsProvider> tagsProviders;
+        @Autowired(required = false)
+        private List<GatewayTagsProvider> tagsProviders;
 
-		@Autowired
-		private BeanFactory beanFactory;
+        @Autowired
+        private BeanFactory beanFactory;
 
-		@Test
-		public void gatewayMetricsBeansExists() {
-			assertThat(filter).isNotNull();
-			assertThat(filter.getMetricsPrefix()).isEqualTo("spring.cloud.gateway");
-			assertThat(tagsProviders).isNotEmpty();
-		}
+        @Test
+        public void gatewayMetricsBeansExists() {
+            assertThat(filter).isNotNull();
+            assertThat(filter.getMetricsPrefix()).isEqualTo("spring.cloud.gateway");
+            assertThat(tagsProviders).isNotEmpty();
+        }
 
-		@Test
-		public void routeDefinitionMetricsBeanExists() {
-			assertThat(routeDefinitionMetrics).isNotNull();
-			assertThat(routeDefinitionMetrics.getMetricsPrefix()).isEqualTo("spring.cloud.gateway");
-		}
+        @Test
+        public void routeDefinitionMetricsBeanExists() {
+            assertThat(routeDefinitionMetrics).isNotNull();
+            assertThat(routeDefinitionMetrics.getMetricsPrefix()).isEqualTo("spring.cloud.gateway");
+        }
 
-		@Test
-		public void observabilityBeansExist() {
-			assertThat(beanFactory.getBean(ObservedRequestHttpHeadersFilter.class)).isNotNull();
-			assertThat(beanFactory.getBean(ObservedResponseHttpHeadersFilter.class)).isNotNull();
-			assertThat(beanFactory.getBean(ObservationClosingWebExceptionHandler.class)).isNotNull();
-			assertThat(beanFactory.getBean(GatewayPropagatingSenderTracingObservationHandler.class)).isNotNull();
-		}
+        @Test
+        public void observabilityBeansExist() {
+            assertThat(beanFactory.getBean(ObservedRequestHttpHeadersFilter.class)).isNotNull();
+            assertThat(beanFactory.getBean(ObservedResponseHttpHeadersFilter.class)).isNotNull();
+            assertThat(beanFactory.getBean(ObservationClosingWebExceptionHandler.class)).isNotNull();
+            assertThat(beanFactory.getBean(GatewayPropagatingSenderTracingObservationHandler.class)).isNotNull();
+        }
+    }
 
-	}
+    @Nested
+    @SpringBootTest(classes = Config.class, properties = "spring.cloud.gateway.metrics.enabled=false")
+    public class DisabledByProperty {
 
-	@Nested
-	@SpringBootTest(classes = Config.class, properties = "spring.cloud.gateway.metrics.enabled=false")
-	public class DisabledByProperty {
+        @Autowired(required = false)
+        private GatewayMetricsFilter filter;
 
-		@Autowired(required = false)
-		private GatewayMetricsFilter filter;
+        @Autowired(required = false)
+        private RouteDefinitionMetrics routeDefinitionMetrics;
 
-		@Autowired(required = false)
-		private RouteDefinitionMetrics routeDefinitionMetrics;
+        @Test
+        public void gatewayMetricsBeanMissing() {
+            assertThat(filter).isNull();
+        }
 
-		@Test
-		public void gatewayMetricsBeanMissing() {
-			assertThat(filter).isNull();
-		}
+        @Test
+        public void routeDefinitionMetricsBeanMissing() {
+            assertThat(routeDefinitionMetrics).isNull();
+        }
+    }
 
-		@Test
-		public void routeDefinitionMetricsBeanMissing() {
-			assertThat(routeDefinitionMetrics).isNull();
-		}
+    @Nested
+    @SpringBootTest(classes = Config.class, properties = "spring.cloud.gateway.observability.enabled=false")
+    public class ObservabilityDisabledByProperty {
 
-	}
+        @Autowired
+        private BeanFactory beanFactory;
 
-	@Nested
-	@SpringBootTest(classes = Config.class, properties = "spring.cloud.gateway.observability.enabled=false")
-	public class ObservabilityDisabledByProperty {
+        @Test
+        public void observabilityBeansMissing() {
+            assertThat(beanFactory.getBeanProvider(ObservedRequestHttpHeadersFilter.class).getIfAvailable(() -> null)).isNull();
+            assertThat(beanFactory.getBeanProvider(ObservedResponseHttpHeadersFilter.class).getIfAvailable(() -> null)).isNull();
+            assertThat(beanFactory.getBeanProvider(ObservationClosingWebExceptionHandler.class).getIfAvailable(() -> null)).isNull();
+            assertThat(beanFactory.getBeanProvider(GatewayPropagatingSenderTracingObservationHandler.class).getIfAvailable(() -> null)).isNull();
+        }
+    }
 
-		@Autowired
-		private BeanFactory beanFactory;
+    @Nested
+    @SpringBootTest(classes = CustomTagsProviderConfig.class, properties = "spring.cloud.gateway.metrics.prefix=myprefix.")
+    public class AddCustomTagsProvider {
 
-		@Test
-		public void observabilityBeansMissing() {
-			assertThat(beanFactory.getBeanProvider(ObservedRequestHttpHeadersFilter.class).getIfAvailable(() -> null))
-					.isNull();
-			assertThat(beanFactory.getBeanProvider(ObservedResponseHttpHeadersFilter.class).getIfAvailable(() -> null))
-					.isNull();
-			assertThat(
-					beanFactory.getBeanProvider(ObservationClosingWebExceptionHandler.class).getIfAvailable(() -> null))
-							.isNull();
-			assertThat(beanFactory.getBeanProvider(GatewayPropagatingSenderTracingObservationHandler.class)
-					.getIfAvailable(() -> null)).isNull();
-		}
+        @Autowired(required = false)
+        private GatewayMetricsFilter filter;
 
-	}
+        @Autowired(required = false)
+        private RouteDefinitionMetrics routeDefinitionMetrics;
 
-	@Nested
-	@SpringBootTest(classes = CustomTagsProviderConfig.class,
-			properties = "spring.cloud.gateway.metrics.prefix=myprefix.")
-	public class AddCustomTagsProvider {
+        @Autowired(required = false)
+        private List<GatewayTagsProvider> tagsProviders;
 
-		@Autowired(required = false)
-		private GatewayMetricsFilter filter;
+        @Test
+        public void gatewayMetricsBeansExists() {
+            assertThat(filter).isNotNull();
+            assertThat(filter.getMetricsPrefix()).isEqualTo("myprefix");
+            assertThat(tagsProviders).extracting("class").contains(CustomTagsProviderConfig.EmptyTagsProvider.class);
+        }
 
-		@Autowired(required = false)
-		private RouteDefinitionMetrics routeDefinitionMetrics;
+        @Test
+        public void routeDefinitionMetricsBeanExists() {
+            assertThat(routeDefinitionMetrics).isNotNull();
+            assertThat(routeDefinitionMetrics.getMetricsPrefix()).isEqualTo("myprefix");
+        }
+    }
 
-		@Autowired(required = false)
-		private List<GatewayTagsProvider> tagsProviders;
+    @SpringBootConfiguration
+    @EnableAutoConfiguration
+    @AutoConfigureObservability
+    protected static class Config {
 
-		@Test
-		public void gatewayMetricsBeansExists() {
-			assertThat(filter).isNotNull();
-			assertThat(filter.getMetricsPrefix()).isEqualTo("myprefix");
-			assertThat(tagsProviders).extracting("class").contains(CustomTagsProviderConfig.EmptyTagsProvider.class);
-		}
+        @Bean
+        Tracer tracer() {
+            return Mockito.mock(Tracer.class);
+        }
 
-		@Test
-		public void routeDefinitionMetricsBeanExists() {
-			assertThat(routeDefinitionMetrics).isNotNull();
-			assertThat(routeDefinitionMetrics.getMetricsPrefix()).isEqualTo("myprefix");
-		}
+        @Bean
+        Propagator propagator() {
+            return Mockito.mock(Propagator.class);
+        }
 
-	}
+        @Bean
+        TracingProperties tracingProperties() {
+            return new TracingProperties();
+        }
+    }
 
-	@SpringBootConfiguration
-	@EnableAutoConfiguration
-	@AutoConfigureObservability
-	protected static class Config {
+    @SpringBootConfiguration
+    @EnableAutoConfiguration
+    protected static class CustomTagsProviderConfig {
 
-		@Bean
-		Tracer tracer() {
-			return Mockito.mock(Tracer.class);
-		}
+        @Bean
+        public GatewayTagsProvider emptyTagsProvider() {
+            return new EmptyTagsProvider();
+        }
 
-		@Bean
-		Propagator propagator() {
-			return Mockito.mock(Propagator.class);
-		}
+        protected static class EmptyTagsProvider implements GatewayTagsProvider {
 
-		@Bean
-		TracingProperties tracingProperties() {
-			return new TracingProperties();
-		}
-
-	}
-
-	@SpringBootConfiguration
-	@EnableAutoConfiguration
-	protected static class CustomTagsProviderConfig {
-
-		@Bean
-		public GatewayTagsProvider emptyTagsProvider() {
-			return new EmptyTagsProvider();
-		}
-
-		protected static class EmptyTagsProvider implements GatewayTagsProvider {
-
-			@Override
-			public Tags apply(ServerWebExchange exchange) {
-				return Tags.empty();
-			}
-
-		}
-
-	}
-
+            @Override
+            public Tags apply(ServerWebExchange exchange) {
+                return Tags.empty();
+            }
+        }
+    }
 }

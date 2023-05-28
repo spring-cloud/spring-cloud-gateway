@@ -13,13 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.handler.predicate;
 
 import java.util.function.Predicate;
-
 import org.junit.jupiter.api.Test;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -34,7 +31,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.annotation.DirtiesContext;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -42,70 +38,53 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @DirtiesContext
 public class MethodRoutePredicateFactoryTests extends BaseWebClientTests {
 
-	@Test
-	public void methodRouteWorks() {
-		testClient.get().uri("/get").header("Host", "www.method.org").exchange().expectStatus().isOk().expectHeader()
-				.valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName()).expectHeader()
-				.valueEquals(ROUTE_ID_HEADER, "method_test_get");
-	}
+    @Test
+    public void methodRouteWorks() {
+        testClient.get().uri("/get").header("Host", "www.method.org").exchange().expectStatus().isOk().expectHeader().valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName()).expectHeader().valueEquals(ROUTE_ID_HEADER, "method_test_get");
+    }
 
-	@Test
-	public void methodGetAndPostRouteWorks() {
-		testClient.post().uri("/multivalueheaders").header("Host", "www.method.org").exchange().expectStatus().isOk()
-				.expectHeader().valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName())
-				.expectHeader().valueEquals(ROUTE_ID_HEADER, "method_test_get_and_post");
+    @Test
+    public void methodGetAndPostRouteWorks() {
+        testClient.post().uri("/multivalueheaders").header("Host", "www.method.org").exchange().expectStatus().isOk().expectHeader().valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName()).expectHeader().valueEquals(ROUTE_ID_HEADER, "method_test_get_and_post");
+        testClient.get().uri("/multivalueheaders").header("Host", "www.method.org").exchange().expectStatus().isOk().expectHeader().valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName()).expectHeader().valueEquals(ROUTE_ID_HEADER, "method_test_get_and_post");
+    }
 
-		testClient.get().uri("/multivalueheaders").header("Host", "www.method.org").exchange().expectStatus().isOk()
-				.expectHeader().valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName())
-				.expectHeader().valueEquals(ROUTE_ID_HEADER, "method_test_get_and_post");
-	}
-
-	@Test
-	public void methodRouteNotMatching() {
-		testClient.delete().uri("/multivalueheaders").header("Host", "www.method.org").exchange().expectStatus()
-				.value(integer -> integer.equals(HttpStatus.METHOD_NOT_ALLOWED)).expectHeader()
-				.valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName()).expectHeader()
-				/*
+    @Test
+    public void methodRouteNotMatching() {
+        testClient.delete().uri("/multivalueheaders").header("Host", "www.method.org").exchange().expectStatus().value(integer -> integer.equals(HttpStatus.METHOD_NOT_ALLOWED)).expectHeader().valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName()).expectHeader()./*
 				 * Fallback to route with '/**' path predicate matches, see
 				 * application.yml in test resources
 				 */
-				.valueEquals(ROUTE_ID_HEADER, "default_path_to_httpbin");
-	}
+        valueEquals(ROUTE_ID_HEADER, "default_path_to_httpbin");
+    }
 
-	@Test
-	public void toStringFormatSingleMethod() {
-		Config config = new Config();
-		config.setMethods(HttpMethod.GET);
-		Predicate predicate = new MethodRoutePredicateFactory().apply(config);
-		assertThat(predicate.toString()).contains("Methods: [GET]");
-	}
+    @Test
+    public void toStringFormatSingleMethod() {
+        Config config = new Config();
+        config.setMethods(HttpMethod.GET);
+        Predicate predicate = new MethodRoutePredicateFactory().apply(config);
+        assertThat(predicate.toString()).contains("Methods: [GET]");
+    }
 
-	@Test
-	public void toStringFormatMultipleMethods() {
-		Config config = new Config();
-		config.setMethods(HttpMethod.GET, HttpMethod.PUT);
-		Predicate predicate = new MethodRoutePredicateFactory().apply(config);
-		assertThat(predicate.toString()).contains("Methods: [GET, PUT]");
-	}
+    @Test
+    public void toStringFormatMultipleMethods() {
+        Config config = new Config();
+        config.setMethods(HttpMethod.GET, HttpMethod.PUT);
+        Predicate predicate = new MethodRoutePredicateFactory().apply(config);
+        assertThat(predicate.toString()).contains("Methods: [GET, PUT]");
+    }
 
-	@EnableAutoConfiguration
-	@SpringBootConfiguration
-	@Import(DefaultTestConfig.class)
-	public static class TestConfig {
+    @EnableAutoConfiguration
+    @SpringBootConfiguration
+    @Import(DefaultTestConfig.class)
+    public static class TestConfig {
 
-		@Value("${test.uri}")
-		String uri;
+        @Value("${test.uri}")
+        String uri;
 
-		@Bean
-		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
-			return builder.routes()
-					.route("method_test_get",
-							r -> r.method("GET").and().path("/get").filters(f -> f.prefixPath("/httpbin")).uri(uri))
-					.route("method_test_get_and_post", r -> r.method("GET", "POST").and().path("/multivalueheaders")
-							.filters(f -> f.prefixPath("/httpbin")).uri(uri))
-					.build();
-		}
-
-	}
-
+        @Bean
+        public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
+            return builder.routes().route("method_test_get", r -> r.method("GET").and().path("/get").filters(f -> f.prefixPath("/httpbin")).uri(uri)).route("method_test_get_and_post", r -> r.method("GET", "POST").and().path("/multivalueheaders").filters(f -> f.prefixPath("/httpbin")).uri(uri)).build();
+        }
+    }
 }

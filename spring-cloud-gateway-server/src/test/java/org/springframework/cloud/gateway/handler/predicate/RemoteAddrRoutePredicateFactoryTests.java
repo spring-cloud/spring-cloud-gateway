@@ -13,16 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.handler.predicate;
 
 import java.time.Duration;
 import java.util.function.Predicate;
-
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -38,7 +35,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.reactive.function.client.ClientResponse;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.cloud.gateway.test.TestUtils.assertStatus;
@@ -48,57 +44,43 @@ import static org.springframework.cloud.gateway.test.TestUtils.assertStatus;
 @ActiveProfiles({ "remote-address" })
 public class RemoteAddrRoutePredicateFactoryTests extends BaseWebClientTests {
 
-	@Test
-	public void remoteAddrWorks() {
-		Mono<ClientResponse> result = webClient.get().uri("/ok/httpbin/").exchangeToMono(Mono::just);
+    @Test
+    public void remoteAddrWorks() {
+        Mono<ClientResponse> result = webClient.get().uri("/ok/httpbin/").exchangeToMono(Mono::just);
+        StepVerifier.create(result).consumeNextWith(response -> assertStatus(response, HttpStatus.OK)).expectComplete().verify(DURATION);
+    }
 
-		StepVerifier.create(result).consumeNextWith(response -> assertStatus(response, HttpStatus.OK)).expectComplete()
-				.verify(DURATION);
-	}
+    @Test
+    public void remoteAddrRejects() {
+        Mono<ClientResponse> result = webClient.get().uri("/nok/httpbin/").exchangeToMono(Mono::just);
+        StepVerifier.create(result).consumeNextWith(response -> assertStatus(response, HttpStatus.NOT_FOUND)).expectComplete().verify(DURATION);
+    }
 
-	@Test
-	public void remoteAddrRejects() {
-		Mono<ClientResponse> result = webClient.get().uri("/nok/httpbin/").exchangeToMono(Mono::just);
+    @Test
+    public void remoteAddrWorksWithXForwardedRemoteAddress() {
+        Mono<ClientResponse> result = webClient.get().uri("/xforwardfor").header("X-Forwarded-For", "12.34.56.78").exchangeToMono(Mono::just);
+        StepVerifier.create(result).consumeNextWith(response -> assertStatus(response, HttpStatus.OK)).expectComplete().verify(Duration.ofSeconds(20));
+    }
 
-		StepVerifier.create(result).consumeNextWith(response -> assertStatus(response, HttpStatus.NOT_FOUND))
-				.expectComplete().verify(DURATION);
-	}
+    @Test
+    public void toStringFormat() {
+        Config config = new Config();
+        config.setSources("1.2.3.4", "5.6.7.8");
+        Predicate predicate = new RemoteAddrRoutePredicateFactory().apply(config);
+        assertThat(predicate.toString()).contains("RemoteAddrs: [1.2.3.4, 5.6.7.8]");
+    }
 
-	@Test
-	public void remoteAddrWorksWithXForwardedRemoteAddress() {
-		Mono<ClientResponse> result = webClient.get().uri("/xforwardfor").header("X-Forwarded-For", "12.34.56.78")
-				.exchangeToMono(Mono::just);
+    @EnableAutoConfiguration
+    @SpringBootConfiguration
+    @Import(DefaultTestConfig.class)
+    public static class TestConfig {
 
-		StepVerifier.create(result).consumeNextWith(response -> assertStatus(response, HttpStatus.OK)).expectComplete()
-				.verify(Duration.ofSeconds(20));
-	}
+        @Value("${test.uri}")
+        String uri;
 
-	@Test
-	public void toStringFormat() {
-		Config config = new Config();
-		config.setSources("1.2.3.4", "5.6.7.8");
-		Predicate predicate = new RemoteAddrRoutePredicateFactory().apply(config);
-		assertThat(predicate.toString()).contains("RemoteAddrs: [1.2.3.4, 5.6.7.8]");
-	}
-
-	@EnableAutoConfiguration
-	@SpringBootConfiguration
-	@Import(DefaultTestConfig.class)
-	public static class TestConfig {
-
-		@Value("${test.uri}")
-		String uri;
-
-		@Bean
-		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
-			return builder.routes()
-					.route("x_forwarded_for_test",
-							r -> r.path("/xforwardfor").and()
-									.remoteAddr(XForwardedRemoteAddressResolver.maxTrustedIndex(1), "12.34.56.78")
-									.filters(f -> f.setStatus(200)).uri(uri))
-					.build();
-		}
-
-	}
-
+        @Bean
+        public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
+            return builder.routes().route("x_forwarded_for_test", r -> r.path("/xforwardfor").and().remoteAddr(XForwardedRemoteAddressResolver.maxTrustedIndex(1), "12.34.56.78").filters(f -> f.setStatus(200)).uri(uri)).build();
+        }
+    }
 }

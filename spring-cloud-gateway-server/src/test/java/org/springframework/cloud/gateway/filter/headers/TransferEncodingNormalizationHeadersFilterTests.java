@@ -13,15 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.headers;
 
 import org.junit.jupiter.api.Test;
-
 import org.springframework.http.HttpHeaders;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -29,36 +26,29 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class TransferEncodingNormalizationHeadersFilterTests {
 
-	@Test
-	public void noTransferEncodingWithContentLength() {
-		MockServerHttpRequest.BaseBuilder<?> builder = MockServerHttpRequest.post("http://localhost/post")
-				.header(HttpHeaders.CONTENT_LENGTH, "6");
+    @Test
+    public void noTransferEncodingWithContentLength() {
+        MockServerHttpRequest.BaseBuilder<?> builder = MockServerHttpRequest.post("http://localhost/post").header(HttpHeaders.CONTENT_LENGTH, "6");
+        HttpHeaders headers = testFilter(MockServerWebExchange.from(builder));
+        assertThat(headers).containsKey(HttpHeaders.CONTENT_LENGTH).doesNotContainKey(HttpHeaders.TRANSFER_ENCODING);
+    }
 
-		HttpHeaders headers = testFilter(MockServerWebExchange.from(builder));
-		assertThat(headers).containsKey(HttpHeaders.CONTENT_LENGTH).doesNotContainKey(HttpHeaders.TRANSFER_ENCODING);
-	}
+    @Test
+    public void transferEncodingWithContentLength() {
+        MockServerHttpRequest.BaseBuilder<?> builder = MockServerHttpRequest.post("http://localhost/post").header(HttpHeaders.CONTENT_LENGTH, "6").header(HttpHeaders.TRANSFER_ENCODING, "chunked");
+        HttpHeaders headers = testFilter(MockServerWebExchange.from(builder));
+        assertThat(headers).doesNotContainKey(HttpHeaders.CONTENT_LENGTH).containsKey(HttpHeaders.TRANSFER_ENCODING);
+    }
 
-	@Test
-	public void transferEncodingWithContentLength() {
-		MockServerHttpRequest.BaseBuilder<?> builder = MockServerHttpRequest.post("http://localhost/post")
-				.header(HttpHeaders.CONTENT_LENGTH, "6").header(HttpHeaders.TRANSFER_ENCODING, "chunked");
+    @Test
+    public void transferEncodingCaseInsensitiveWithContentLength() {
+        MockServerHttpRequest.BaseBuilder<?> builder = MockServerHttpRequest.post("http://localhost/post").header(HttpHeaders.CONTENT_LENGTH, "6").header(HttpHeaders.TRANSFER_ENCODING, "Chunked ");
+        HttpHeaders headers = testFilter(MockServerWebExchange.from(builder));
+        assertThat(headers).doesNotContainKey(HttpHeaders.CONTENT_LENGTH).containsKey(HttpHeaders.TRANSFER_ENCODING);
+    }
 
-		HttpHeaders headers = testFilter(MockServerWebExchange.from(builder));
-		assertThat(headers).doesNotContainKey(HttpHeaders.CONTENT_LENGTH).containsKey(HttpHeaders.TRANSFER_ENCODING);
-	}
-
-	@Test
-	public void transferEncodingCaseInsensitiveWithContentLength() {
-		MockServerHttpRequest.BaseBuilder<?> builder = MockServerHttpRequest.post("http://localhost/post")
-				.header(HttpHeaders.CONTENT_LENGTH, "6").header(HttpHeaders.TRANSFER_ENCODING, "Chunked ");
-
-		HttpHeaders headers = testFilter(MockServerWebExchange.from(builder));
-		assertThat(headers).doesNotContainKey(HttpHeaders.CONTENT_LENGTH).containsKey(HttpHeaders.TRANSFER_ENCODING);
-	}
-
-	private HttpHeaders testFilter(MockServerWebExchange exchange) {
-		TransferEncodingNormalizationHeadersFilter filter = new TransferEncodingNormalizationHeadersFilter();
-		return filter.filter(exchange.getRequest().getHeaders(), exchange);
-	}
-
+    private HttpHeaders testFilter(MockServerWebExchange exchange) {
+        TransferEncodingNormalizationHeadersFilter filter = new TransferEncodingNormalizationHeadersFilter();
+        return filter.filter(exchange.getRequest().getHeaders(), exchange);
+    }
 }

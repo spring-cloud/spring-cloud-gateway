@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.route;
 
 import java.util.Map;
-
 import reactor.core.publisher.Flux;
 
 /**
@@ -25,20 +23,19 @@ import reactor.core.publisher.Flux;
  */
 public class CompositeRouteLocator implements RouteLocator {
 
-	private final Flux<RouteLocator> delegates;
+    private final Flux<RouteLocator> delegates;
 
-	public CompositeRouteLocator(Flux<RouteLocator> delegates) {
-		this.delegates = delegates;
-	}
+    public CompositeRouteLocator(Flux<RouteLocator> delegates) {
+        this.delegates = delegates;
+    }
 
-	@Override
-	public Flux<Route> getRoutes() {
-		return this.delegates.flatMapSequential(RouteLocator::getRoutes);
-	}
+    @Override
+    public Flux<Route> getRoutes() {
+        return this.delegates.flatMapSequential(RouteLocator::getRoutes);
+    }
 
-	@Override
-	public Flux<Route> getRoutesByMetadata(Map<String, Object> metadata) {
-		return this.delegates.flatMapSequential(routeLocator -> routeLocator.getRoutesByMetadata(metadata));
-	}
-
+    @Override
+    public Flux<Route> getRoutesByMetadata(Map<String, Object> metadata) {
+        return this.delegates.flatMapSequential(routeLocator -> routeLocator.getRoutesByMetadata(metadata));
+    }
 }

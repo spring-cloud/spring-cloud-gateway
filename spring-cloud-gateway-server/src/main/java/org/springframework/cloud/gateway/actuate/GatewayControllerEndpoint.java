@@ -13,17 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.actuate;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
 import org.springframework.boot.actuate.endpoint.web.annotation.RestControllerEndpoint;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
@@ -45,55 +42,43 @@ import org.springframework.web.bind.annotation.PathVariable;
 @RestControllerEndpoint(id = "gateway", enableByDefault = false)
 public class GatewayControllerEndpoint extends AbstractGatewayControllerEndpoint {
 
-	public GatewayControllerEndpoint(List<GlobalFilter> globalFilters, List<GatewayFilterFactory> gatewayFilters,
-			List<RoutePredicateFactory> routePredicates, RouteDefinitionWriter routeDefinitionWriter,
-			RouteLocator routeLocator, RouteDefinitionLocator routeDefinitionLocator) {
-		super(routeDefinitionLocator, globalFilters, gatewayFilters, routePredicates, routeDefinitionWriter,
-				routeLocator);
-	}
+    public GatewayControllerEndpoint(List<GlobalFilter> globalFilters, List<GatewayFilterFactory> gatewayFilters, List<RoutePredicateFactory> routePredicates, RouteDefinitionWriter routeDefinitionWriter, RouteLocator routeLocator, RouteDefinitionLocator routeDefinitionLocator) {
+        super(routeDefinitionLocator, globalFilters, gatewayFilters, routePredicates, routeDefinitionWriter, routeLocator);
+    }
 
-	@GetMapping("/routedefinitions")
-	public Flux<RouteDefinition> routesdef() {
-		return this.routeDefinitionLocator.getRouteDefinitions();
-	}
+    @GetMapping("/routedefinitions")
+    public Flux<RouteDefinition> routesdef() {
+        return this.routeDefinitionLocator.getRouteDefinitions();
+    }
 
-	// TODO: Flush out routes without a definition
-	@GetMapping("/routes")
-	public Flux<Map<String, Object>> routes() {
-		return this.routeLocator.getRoutes().map(this::serialize);
-	}
+    // TODO: Flush out routes without a definition
+    @GetMapping("/routes")
+    public Flux<Map<String, Object>> routes() {
+        return this.routeLocator.getRoutes().map(this::serialize);
+    }
 
-	Map<String, Object> serialize(Route route) {
-		HashMap<String, Object> r = new HashMap<>();
-		r.put("route_id", route.getId());
-		r.put("uri", route.getUri().toString());
-		r.put("order", route.getOrder());
-		r.put("predicate", route.getPredicate().toString());
-		if (!CollectionUtils.isEmpty(route.getMetadata())) {
-			r.put("metadata", route.getMetadata());
-		}
+    Map<String, Object> serialize(Route route) {
+        HashMap<String, Object> r = new HashMap<>();
+        r.put("route_id", route.getId());
+        r.put("uri", route.getUri().toString());
+        r.put("order", route.getOrder());
+        r.put("predicate", route.getPredicate().toString());
+        if (!CollectionUtils.isEmpty(route.getMetadata())) {
+            r.put("metadata", route.getMetadata());
+        }
+        ArrayList<String> filters = new ArrayList<>();
+        for (int i = 0; i < route.getFilters().size(); i++) {
+            GatewayFilter gatewayFilter = route.getFilters().get(i);
+            filters.add(gatewayFilter.toString());
+        }
+        r.put("filters", filters);
+        return r;
+    }
 
-		ArrayList<String> filters = new ArrayList<>();
-
-		for (int i = 0; i < route.getFilters().size(); i++) {
-			GatewayFilter gatewayFilter = route.getFilters().get(i);
-			filters.add(gatewayFilter.toString());
-		}
-
-		r.put("filters", filters);
-		return r;
-	}
-
-	@GetMapping("/routes/{id}")
-	public Mono<ResponseEntity<Map<String, Object>>> route(@PathVariable String id) {
-		// @formatter:off
-		return this.routeLocator.getRoutes()
-				.filter(route -> route.getId().equals(id))
-				.singleOrEmpty()
-				.map(this::serialize)
-				.map(ResponseEntity::ok)
-				.switchIfEmpty(Mono.just(ResponseEntity.notFound().build()));
-		// @formatter:on
-	}
-
+    @GetMapping("/routes/{id}")
+    public Mono<ResponseEntity<Map<String, Object>>> route(@PathVariable String id) {
+        // @formatter:off
+        return this.routeLocator.getRoutes().filter(route -> route.getId().equals(id)).singleOrEmpty().map(this::serialize).map(ResponseEntity::ok).switchIfEmpty(Mono.just(ResponseEntity.notFound().build()));
+        // @formatter:on
+    }
 }

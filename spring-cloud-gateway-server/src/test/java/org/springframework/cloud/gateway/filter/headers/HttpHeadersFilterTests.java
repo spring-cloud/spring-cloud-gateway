@@ -13,18 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.headers;
 
 import java.util.Arrays;
 import java.util.List;
-
 import org.junit.jupiter.api.Test;
-
 import org.springframework.http.HttpHeaders;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -33,26 +29,17 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class HttpHeadersFilterTests {
 
-	@Test
-	public void httpHeadersFilterTests() {
-		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost:8080/get").header("X-A", "aValue")
-				.header("X-B", "bValue").header("X-C", "cValue").build();
+    @Test
+    public void httpHeadersFilterTests() {
+        MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost:8080/get").header("X-A", "aValue").header("X-B", "bValue").header("X-C", "cValue").build();
+        List<HttpHeadersFilter> filters = Arrays.asList((h, e) -> HttpHeadersFilterTests.this.filter(h, "X-A"), (h, e) -> HttpHeadersFilterTests.this.filter(h, "X-B"));
+        HttpHeaders headers = HttpHeadersFilter.filterRequest(filters, MockServerWebExchange.from(request));
+        assertThat(headers).containsOnlyKeys("X-C");
+    }
 
-		List<HttpHeadersFilter> filters = Arrays.asList((h, e) -> HttpHeadersFilterTests.this.filter(h, "X-A"),
-				(h, e) -> HttpHeadersFilterTests.this.filter(h, "X-B"));
-
-		HttpHeaders headers = HttpHeadersFilter.filterRequest(filters, MockServerWebExchange.from(request));
-
-		assertThat(headers).containsOnlyKeys("X-C");
-	}
-
-	private HttpHeaders filter(HttpHeaders input, String keyToFilter) {
-		HttpHeaders filtered = new HttpHeaders();
-
-		input.entrySet().stream().filter(entry -> !entry.getKey().equals(keyToFilter))
-				.forEach(entry -> filtered.addAll(entry.getKey(), entry.getValue()));
-
-		return filtered;
-	}
-
+    private HttpHeaders filter(HttpHeaders input, String keyToFilter) {
+        HttpHeaders filtered = new HttpHeaders();
+        input.entrySet().stream().filter(entry -> !entry.getKey().equals(keyToFilter)).forEach(entry -> filtered.addAll(entry.getKey(), entry.getValue()));
+        return filtered;
+    }
 }

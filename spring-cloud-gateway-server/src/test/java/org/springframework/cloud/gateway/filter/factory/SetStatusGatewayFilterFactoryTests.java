@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.factory;
 
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
@@ -39,7 +37,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.reactive.server.WebTestClient;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -47,92 +44,78 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @DirtiesContext
 public class SetStatusGatewayFilterFactoryTests extends BaseWebClientTests {
 
-	@Autowired
-	private SetStatusGatewayFilterFactory filterFactory;
+    @Autowired
+    private SetStatusGatewayFilterFactory filterFactory;
 
-	@Test
-	public void setStatusIntWorks() {
-		setStatusStringTest("www.setstatusint.org", HttpStatus.UNAUTHORIZED);
-	}
+    @Test
+    public void setStatusIntWorks() {
+        setStatusStringTest("www.setstatusint.org", HttpStatus.UNAUTHORIZED);
+    }
 
-	@Test
-	public void setStatusStringWorks() {
-		setStatusStringTest("www.setstatusstring.org", HttpStatus.BAD_REQUEST);
-	}
+    @Test
+    public void setStatusStringWorks() {
+        setStatusStringTest("www.setstatusstring.org", HttpStatus.BAD_REQUEST);
+    }
 
-	@Test
-	public void nonStandardCodeWorks() {
-		HttpHeaders headers = new HttpHeaders();
-		headers.set(HttpHeaders.HOST, "www.setcustomstatus.org");
-		ResponseEntity<String> response = new TestRestTemplate().exchange(baseUri + "/headers", HttpMethod.GET,
-				new HttpEntity<>(headers), String.class);
-		assertThat(response.getStatusCodeValue()).isEqualTo(432);
-
-		// https://jira.spring.io/browse/SPR-16748
-		/*
+    @Test
+    public void nonStandardCodeWorks() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set(HttpHeaders.HOST, "www.setcustomstatus.org");
+        ResponseEntity<String> response = new TestRestTemplate().exchange(baseUri + "/headers", HttpMethod.GET, new HttpEntity<>(headers), String.class);
+        assertThat(response.getStatusCodeValue()).isEqualTo(432);
+        // https://jira.spring.io/browse/SPR-16748
+        /*
 		 * testClient.get() .uri("/status/432") .exchange() .expectStatus().isEqualTo(432)
 		 * .expectBody(String.class).isEqualTo("Failed with 432");
 		 */
-	}
+    }
 
-	@Test
-	public void shouldSetStatusIntAndAddOriginalHeader() {
-		String headerName = "original-http-status";
-		filterFactory.setOriginalStatusHeaderName(headerName);
-		setStatusStringTest("www.setstatusint.org", HttpStatus.UNAUTHORIZED).expectHeader().value(headerName,
-				Matchers.is("[200]"));
+    @Test
+    public void shouldSetStatusIntAndAddOriginalHeader() {
+        String headerName = "original-http-status";
+        filterFactory.setOriginalStatusHeaderName(headerName);
+        setStatusStringTest("www.setstatusint.org", HttpStatus.UNAUTHORIZED).expectHeader().value(headerName, Matchers.is("[200]"));
+    }
 
-	}
+    @Test
+    public void toStringFormat() {
+        Config config = new Config();
+        config.setStatus("401");
+        GatewayFilter filter = new SetStatusGatewayFilterFactory().apply(config);
+        assertThat(filter.toString()).contains("401");
+    }
 
-	@Test
-	public void toStringFormat() {
-		Config config = new Config();
-		config.setStatus("401");
-		GatewayFilter filter = new SetStatusGatewayFilterFactory().apply(config);
-		assertThat(filter.toString()).contains("401");
-	}
+    private WebTestClient.ResponseSpec setStatusStringTest(String host, HttpStatus status) {
+        return testClient.get().uri("/headers").header("Host", host).exchange().expectStatus().isEqualTo(status);
+    }
 
-	private WebTestClient.ResponseSpec setStatusStringTest(String host, HttpStatus status) {
-		return testClient.get().uri("/headers").header("Host", host).exchange().expectStatus().isEqualTo(status);
-	}
+    @EnableAutoConfiguration
+    @SpringBootConfiguration
+    @Import(DefaultTestConfig.class)
+    public static class TestEnumConfig {
 
-	@EnableAutoConfiguration
-	@SpringBootConfiguration
-	@Import(DefaultTestConfig.class)
-	public static class TestEnumConfig {
+        @Value("${test.uri}")
+        String uri;
 
-		@Value("${test.uri}")
-		String uri;
+        @Bean
+        public RouteLocator enumRouteLocator(RouteLocatorBuilder builder) {
+            return builder.routes().route("test_enum_http_status", r -> r.host("*.setenumstatus.org").filters(f -> f.setStatus(HttpStatus.UNAUTHORIZED)).uri(uri)).build();
+        }
+    }
 
-		@Bean
-		public RouteLocator enumRouteLocator(RouteLocatorBuilder builder) {
-			return builder.routes().route("test_enum_http_status",
-					r -> r.host("*.setenumstatus.org").filters(f -> f.setStatus(HttpStatus.UNAUTHORIZED)).uri(uri))
-					.build();
-		}
+    @EnableAutoConfiguration
+    @SpringBootConfiguration
+    @Import(DefaultTestConfig.class)
+    public static class TestConfig {
 
-	}
+        @Value("${test.uri}")
+        String uri;
 
-	@EnableAutoConfiguration
-	@SpringBootConfiguration
-	@Import(DefaultTestConfig.class)
-	public static class TestConfig {
-
-		@Value("${test.uri}")
-		String uri;
-
-		@Bean
-		public RouteLocator myRouteLocator(RouteLocatorBuilder builder) {
-			// @formatter:off
-			return builder.routes()
-					.route("test_custom_http_status",
-							r -> r.host("*.setcustomstatus.org")
-									.filters(f -> f.setStatus(432))
-									.uri(uri))
-					.build();
-			// @formatter:on
-		}
-
-	}
-
+        @Bean
+        public RouteLocator myRouteLocator(RouteLocatorBuilder builder) {
+            // @formatter:off
+            return builder.routes().route("test_custom_http_status", r -> r.host("*.setcustomstatus.org").filters(f -> f.setStatus(432)).uri(uri)).build();
+            // @formatter:on
+        }
+    }
 }

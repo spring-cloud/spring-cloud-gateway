@@ -13,61 +13,54 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.headers;
 
 import java.util.List;
-
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.server.ServerWebExchange;
 
 public interface HttpHeadersFilter {
 
-	static HttpHeaders filterRequest(List<HttpHeadersFilter> filters, ServerWebExchange exchange) {
-		HttpHeaders headers = exchange.getRequest().getHeaders();
-		return filter(filters, headers, exchange, Type.REQUEST);
-	}
+    static HttpHeaders filterRequest(List<HttpHeadersFilter> filters, ServerWebExchange exchange) {
+        HttpHeaders headers = exchange.getRequest().getHeaders();
+        return filter(filters, headers, exchange, Type.REQUEST);
+    }
 
-	static HttpHeaders filter(List<HttpHeadersFilter> filters, HttpHeaders input, ServerWebExchange exchange,
-			Type type) {
-		if (filters != null) {
-			HttpHeaders filtered = input;
-			for (int i = 0; i < filters.size(); i++) {
-				HttpHeadersFilter filter = filters.get(i);
-				if (filter.supports(type)) {
-					filtered = filter.filter(filtered, exchange);
-				}
-			}
-			return filtered;
-		}
+    static HttpHeaders filter(List<HttpHeadersFilter> filters, HttpHeaders input, ServerWebExchange exchange, Type type) {
+        if (filters != null) {
+            HttpHeaders filtered = input;
+            for (int i = 0; i < filters.size(); i++) {
+                HttpHeadersFilter filter = filters.get(i);
+                if (filter.supports(type)) {
+                    filtered = filter.filter(filtered, exchange);
+                }
+            }
+            return filtered;
+        }
+        return input;
+    }
 
-		return input;
-	}
+    /**
+     * Filters a set of Http Headers.
+     * @param input Http Headers
+     * @param exchange a {@link ServerWebExchange} that should be filtered
+     * @return filtered Http Headers
+     */
+    HttpHeaders filter(HttpHeaders input, ServerWebExchange exchange);
 
-	/**
-	 * Filters a set of Http Headers.
-	 * @param input Http Headers
-	 * @param exchange a {@link ServerWebExchange} that should be filtered
-	 * @return filtered Http Headers
-	 */
-	HttpHeaders filter(HttpHeaders input, ServerWebExchange exchange);
+    default boolean supports(Type type) {
+        return type.equals(Type.REQUEST);
+    }
 
-	default boolean supports(Type type) {
-		return type.equals(Type.REQUEST);
-	}
+    enum Type {
 
-	enum Type {
-
-		/**
-		 * Filter for request headers.
-		 */
-		REQUEST,
-
-		/**
-		 * Filter for response headers.
-		 */
-		RESPONSE
-
-	}
-
+        /**
+         * Filter for request headers.
+         */
+        REQUEST,
+        /**
+         * Filter for response headers.
+         */
+        RESPONSE
+    }
 }

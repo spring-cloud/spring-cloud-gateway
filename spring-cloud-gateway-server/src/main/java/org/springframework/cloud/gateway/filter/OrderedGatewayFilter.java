@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter;
 
 import reactor.core.publisher.Mono;
-
 import org.springframework.core.Ordered;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -26,32 +24,31 @@ import org.springframework.web.server.ServerWebExchange;
  */
 public class OrderedGatewayFilter implements GatewayFilter, Ordered {
 
-	private final GatewayFilter delegate;
+    private final GatewayFilter delegate;
 
-	private final int order;
+    private final int order;
 
-	public OrderedGatewayFilter(GatewayFilter delegate, int order) {
-		this.delegate = delegate;
-		this.order = order;
-	}
+    public OrderedGatewayFilter(GatewayFilter delegate, int order) {
+        this.delegate = delegate;
+        this.order = order;
+    }
 
-	public GatewayFilter getDelegate() {
-		return delegate;
-	}
+    public GatewayFilter getDelegate() {
+        return delegate;
+    }
 
-	@Override
-	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-		return this.delegate.filter(exchange, chain);
-	}
+    @Override
+    public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        return this.delegate.filter(exchange, chain);
+    }
 
-	@Override
-	public int getOrder() {
-		return this.order;
-	}
+    @Override
+    public int getOrder() {
+        return this.order;
+    }
 
-	@Override
-	public String toString() {
-		return new StringBuilder("[").append(delegate).append(", order = ").append(order).append("]").toString();
-	}
-
+    @Override
+    public String toString() {
+        return new StringBuilder("[").append(delegate).append(", order = ").append(order).append("]").toString();
+    }
 }

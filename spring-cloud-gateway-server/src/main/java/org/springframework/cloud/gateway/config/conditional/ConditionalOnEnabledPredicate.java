@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.config.conditional;
 
 import java.lang.annotation.Documented;
@@ -21,7 +20,6 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
 import org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory;
 import org.springframework.context.annotation.Conditional;
 
@@ -31,10 +29,9 @@ import org.springframework.context.annotation.Conditional;
 @Conditional(OnEnabledPredicate.class)
 public @interface ConditionalOnEnabledPredicate {
 
-	/**
-	 * The class components to check for.
-	 * @return the class that must be enabled
-	 */
-	Class<? extends RoutePredicateFactory<?>> value() default OnEnabledPredicate.DefaultValue.class;
-
+    /**
+     * The class components to check for.
+     * @return the class that must be enabled
+     */
+    Class<? extends RoutePredicateFactory<?>> value() default OnEnabledPredicate.DefaultValue.class;
 }

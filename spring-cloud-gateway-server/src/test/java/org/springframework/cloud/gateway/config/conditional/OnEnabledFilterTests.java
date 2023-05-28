@@ -13,49 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.config.conditional;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import org.springframework.cloud.gateway.filter.factory.AddRequestHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.DedupeResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.FallbackHeadersGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.MapRequestHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SpringCloudCircuitBreakerResilience4JFilterFactory;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 class OnEnabledFilterTests {
 
-	private OnEnabledFilter onEnabledFilter;
+    private OnEnabledFilter onEnabledFilter;
 
-	@BeforeEach
-	void setUp() {
-		this.onEnabledFilter = new OnEnabledFilter();
-	}
+    @BeforeEach
+    void setUp() {
+        this.onEnabledFilter = new OnEnabledFilter();
+    }
 
-	@Test
-	void shouldNormalizeFiltersNames() {
-		List<Class<? extends GatewayFilterFactory<?>>> predicates = Arrays.asList(
-				AddRequestHeaderGatewayFilterFactory.class, DedupeResponseHeaderGatewayFilterFactory.class,
-				FallbackHeadersGatewayFilterFactory.class, MapRequestHeaderGatewayFilterFactory.class,
-				SpringCloudCircuitBreakerResilience4JFilterFactory.class);
-
-		List<String> resultNames = predicates.stream().map(onEnabledFilter::normalizeComponentName)
-				.collect(Collectors.toList());
-
-		List<String> expectedNames = Stream.of("add-request-header", "dedupe-response-header", "fallback-headers",
-				"map-request-header", "circuit-breaker").map(s -> "filter." + s).collect(Collectors.toList());
-
-		assertThat(resultNames).isEqualTo(expectedNames);
-	}
-
+    @Test
+    void shouldNormalizeFiltersNames() {
+        List<Class<? extends GatewayFilterFactory<?>>> predicates = Arrays.asList(AddRequestHeaderGatewayFilterFactory.class, DedupeResponseHeaderGatewayFilterFactory.class, FallbackHeadersGatewayFilterFactory.class, MapRequestHeaderGatewayFilterFactory.class, SpringCloudCircuitBreakerResilience4JFilterFactory.class);
+        List<String> resultNames = predicates.stream().map(onEnabledFilter::normalizeComponentName).collect(Collectors.toList());
+        List<String> expectedNames = Stream.of("add-request-header", "dedupe-response-header", "fallback-headers", "map-request-header", "circuit-breaker").map(s -> "filter." + s).collect(Collectors.toList());
+        assertThat(resultNames).isEqualTo(expectedNames);
+    }
 }

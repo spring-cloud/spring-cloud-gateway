@@ -13,22 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.event;
 
 import org.springframework.context.ApplicationEvent;
 
 public class EnableBodyCachingEvent extends ApplicationEvent {
 
-	private final String routeId;
+    private final String routeId;
 
-	public EnableBodyCachingEvent(Object source, String routeId) {
-		super(source);
-		this.routeId = routeId;
-	}
+    public EnableBodyCachingEvent(Object source, String routeId) {
+        super(source);
+        this.routeId = routeId;
+    }
 
-	public String getRouteId() {
-		return this.routeId;
-	}
-
+    public String getRouteId() {
+        return this.routeId;
+    }
 }

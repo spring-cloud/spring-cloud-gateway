@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.test;
 
 import org.junit.jupiter.api.Assertions;
@@ -28,13 +27,12 @@ import reactor.core.scheduler.Schedulers;
  */
 public class CustomBlockHoundIntegrationTest {
 
-	@Test
-	@DisabledForJreRange(min = JRE.JAVA_16)
-	public void shouldThrowErrorForBlockingCallWithCustomBlockHoundIntegration() {
-		Assertions.assertThrows(RuntimeException.class, () -> Mono.fromCallable(() -> {
-			Thread.sleep(1);
-			return null;
-		}).subscribeOn(Schedulers.parallel()).block());
-	}
-
+    @Test
+    @DisabledForJreRange(min = JRE.JAVA_16)
+    public void shouldThrowErrorForBlockingCallWithCustomBlockHoundIntegration() {
+        Assertions.assertThrows(RuntimeException.class, () -> Mono.fromCallable(() -> {
+            Thread.sleep(1);
+            return null;
+        }).subscribeOn(Schedulers.parallel()).block());
+    }
 }

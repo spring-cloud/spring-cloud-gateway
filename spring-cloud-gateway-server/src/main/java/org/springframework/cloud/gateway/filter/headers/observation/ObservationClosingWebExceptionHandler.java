@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.headers.observation;
 
 import io.micrometer.observation.Observation;
 import reactor.core.publisher.Mono;
-
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.web.server.ServerWebExchange;
@@ -33,24 +31,21 @@ import org.springframework.web.server.WebExceptionHandler;
  */
 public class ObservationClosingWebExceptionHandler implements WebExceptionHandler {
 
-	private static final LogAccessor log = new LogAccessor(ObservationClosingWebExceptionHandler.class);
+    private static final LogAccessor log = new LogAccessor(ObservationClosingWebExceptionHandler.class);
 
-	@Override
-	public Mono<Void> handle(ServerWebExchange exchange, Throwable ex) {
-		Object attribute = exchange.getAttribute(ObservedResponseHttpHeadersFilter.OBSERVATION_STOPPED);
-		if (attribute == null) {
-			Observation observation = exchange.getAttribute(ServerWebExchangeUtils.GATEWAY_OBSERVATION_ATTR);
-			if (observation != null) {
-				if (log.isDebugEnabled()) {
-					observation.scoped(() -> log.debug(
-							() -> "An exception occurred and observation was not previously stopped, will stop it. The exception was ["
-									+ ex + "]"));
-				}
-				observation.error(ex);
-				observation.stop();
-			}
-		}
-		return Mono.error(ex);
-	}
-
+    @Override
+    public Mono<Void> handle(ServerWebExchange exchange, Throwable ex) {
+        Object attribute = exchange.getAttribute(ObservedResponseHttpHeadersFilter.OBSERVATION_STOPPED);
+        if (attribute == null) {
+            Observation observation = exchange.getAttribute(ServerWebExchangeUtils.GATEWAY_OBSERVATION_ATTR);
+            if (observation != null) {
+                if (log.isDebugEnabled()) {
+                    observation.scoped(() -> log.debug(() -> "An exception occurred and observation was not previously stopped, will stop it. The exception was [" + ex + "]"));
+                }
+                observation.error(ex);
+                observation.stop();
+            }
+        }
+        return Mono.error(ex);
+    }
 }

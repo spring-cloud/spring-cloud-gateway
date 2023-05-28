@@ -13,14 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.factory.cache;
 
 import java.util.UUID;
-
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -41,83 +38,57 @@ import org.springframework.test.context.ActiveProfiles;
 @ActiveProfiles(profiles = "local-cache-filter")
 public class LocalResponseCacheGlobalFilterTests {
 
-	private static final String CUSTOM_HEADER = "X-Custom-Date";
+    private static final String CUSTOM_HEADER = "X-Custom-Date";
 
-	@Nested
-	@SpringBootTest(
-			properties = { "spring.cloud.gateway.filter.local-response-cache.enabled=true",
-					"spring.cloud.gateway.global-filter.local-response-cache.enabled=false" },
-			webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-	public class GlobalCacheNotEnabled extends BaseWebClientTests {
+    @Nested
+    @SpringBootTest(properties = { "spring.cloud.gateway.filter.local-response-cache.enabled=true", "spring.cloud.gateway.global-filter.local-response-cache.enabled=false" }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+    public class GlobalCacheNotEnabled extends BaseWebClientTests {
 
-		@Test
-		void shouldNotCacheResponseWhenGlobalIsNotEnabled() {
-			String uri = "/" + UUID.randomUUID() + "/global-cache-deactivated/headers";
+        @Test
+        void shouldNotCacheResponseWhenGlobalIsNotEnabled() {
+            String uri = "/" + UUID.randomUUID() + "/global-cache-deactivated/headers";
+            testClient.get().uri(uri).header("Host", "www.localresponsecache.org").header(CUSTOM_HEADER, "1").exchange().expectBody().jsonPath("$.headers." + CUSTOM_HEADER);
+            testClient.get().uri(uri).header("Host", "www.localresponsecache.org").header(CUSTOM_HEADER, "2").exchange().expectBody().jsonPath("$.headers." + CUSTOM_HEADER).isEqualTo("2");
+        }
 
-			testClient.get().uri(uri).header("Host", "www.localresponsecache.org").header(CUSTOM_HEADER, "1").exchange()
-					.expectBody().jsonPath("$.headers." + CUSTOM_HEADER);
+        @EnableAutoConfiguration
+        @SpringBootConfiguration
+        @Import(DefaultTestConfig.class)
+        public static class TestConfig {
 
-			testClient.get().uri(uri).header("Host", "www.localresponsecache.org").header(CUSTOM_HEADER, "2").exchange()
-					.expectBody().jsonPath("$.headers." + CUSTOM_HEADER).isEqualTo("2");
-		}
+            @Value("${test.uri}")
+            String uri;
 
-		@EnableAutoConfiguration
-		@SpringBootConfiguration
-		@Import(DefaultTestConfig.class)
-		public static class TestConfig {
+            @Bean
+            public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
+                return builder.routes().route("global_local_response_cache_deactivated_java_test", r -> r.path("/{namespace}/global-cache-deactivated/**").and().host("{sub}.localresponsecache.org").filters(f -> f.stripPrefix(2).prefixPath("/httpbin")).uri(uri)).build();
+            }
+        }
+    }
 
-			@Value("${test.uri}")
-			String uri;
+    @Nested
+    @SpringBootTest(properties = { "spring.cloud.gateway.filter.local-response-cache.enabled=true" }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+    public class GlobalCacheEnabled extends BaseWebClientTests {
 
-			@Bean
-			public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
-				return builder.routes()
-						.route("global_local_response_cache_deactivated_java_test",
-								r -> r.path("/{namespace}/global-cache-deactivated/**").and()
-										.host("{sub}.localresponsecache.org")
-										.filters(f -> f.stripPrefix(2).prefixPath("/httpbin")).uri(uri))
-						.build();
-			}
+        @Test
+        void shouldGlobalCacheResponseWhenRouteDoesNotHaveFilter() {
+            String uri = "/" + UUID.randomUUID() + "/global-cache/headers";
+            testClient.get().uri(uri).header("Host", "www.localresponsecache.org").header(CUSTOM_HEADER, "1").exchange().expectBody().jsonPath("$.headers." + CUSTOM_HEADER);
+            testClient.get().uri(uri).header("Host", "www.localresponsecache.org").header(CUSTOM_HEADER, "2").exchange().expectBody().jsonPath("$.headers." + CUSTOM_HEADER).isEqualTo("1");
+        }
 
-		}
+        @EnableAutoConfiguration
+        @SpringBootConfiguration
+        @Import(DefaultTestConfig.class)
+        public static class TestConfig {
 
-	}
+            @Value("${test.uri}")
+            String uri;
 
-	@Nested
-	@SpringBootTest(properties = { "spring.cloud.gateway.filter.local-response-cache.enabled=true" },
-			webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-	public class GlobalCacheEnabled extends BaseWebClientTests {
-
-		@Test
-		void shouldGlobalCacheResponseWhenRouteDoesNotHaveFilter() {
-			String uri = "/" + UUID.randomUUID() + "/global-cache/headers";
-
-			testClient.get().uri(uri).header("Host", "www.localresponsecache.org").header(CUSTOM_HEADER, "1").exchange()
-					.expectBody().jsonPath("$.headers." + CUSTOM_HEADER);
-
-			testClient.get().uri(uri).header("Host", "www.localresponsecache.org").header(CUSTOM_HEADER, "2").exchange()
-					.expectBody().jsonPath("$.headers." + CUSTOM_HEADER).isEqualTo("1");
-		}
-
-		@EnableAutoConfiguration
-		@SpringBootConfiguration
-		@Import(DefaultTestConfig.class)
-		public static class TestConfig {
-
-			@Value("${test.uri}")
-			String uri;
-
-			@Bean
-			public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
-				return builder.routes()
-						.route("global_local_response_cache_java_test",
-								r -> r.path("/{namespace}/global-cache/**").and().host("{sub}.localresponsecache.org")
-										.filters(f -> f.stripPrefix(2).prefixPath("/httpbin")).uri(uri))
-						.build();
-			}
-
-		}
-
-	}
-
+            @Bean
+            public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
+                return builder.routes().route("global_local_response_cache_java_test", r -> r.path("/{namespace}/global-cache/**").and().host("{sub}.localresponsecache.org").filters(f -> f.stripPrefix(2).prefixPath("/httpbin")).uri(uri)).build();
+            }
+        }
+    }
 }

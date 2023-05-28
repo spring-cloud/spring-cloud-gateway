@@ -13,15 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.tests.grpc;
 
 import java.security.cert.X509Certificate;
-
 import javax.net.ssl.SSLException;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
-
 import io.grpc.ManagedChannel;
 import io.grpc.StatusRuntimeException;
 import io.grpc.netty.GrpcSslContexts;
@@ -29,10 +26,8 @@ import io.grpc.netty.NettyChannelBuilder;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
-
 import static io.grpc.Status.FAILED_PRECONDITION;
 import static io.grpc.netty.NegotiationType.TLS;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
@@ -40,64 +35,54 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 /**
  * @author Alberto C. Ríos
  */
-@SpringBootTest(classes = org.springframework.cloud.gateway.tests.grpc.GRPCApplication.class,
-		webEnvironment = WebEnvironment.RANDOM_PORT)
+@SpringBootTest(classes = org.springframework.cloud.gateway.tests.grpc.GRPCApplication.class, webEnvironment = WebEnvironment.RANDOM_PORT)
 public class GRPCApplicationTests {
 
-	@LocalServerPort
-	private int gatewayPort;
+    @LocalServerPort
+    private int gatewayPort;
 
-	@BeforeEach
-	void setUp() {
-		int grpcServerPort = gatewayPort + 1;
-		final RouteConfigurer configurer = new RouteConfigurer(gatewayPort);
-		configurer.addRoute(grpcServerPort, "/**", null);
-	}
+    @BeforeEach
+    void setUp() {
+        int grpcServerPort = gatewayPort + 1;
+        final RouteConfigurer configurer = new RouteConfigurer(gatewayPort);
+        configurer.addRoute(grpcServerPort, "/**", null);
+    }
 
-	@Test
-	public void gRPCUnaryCallShouldReturnResponse() throws SSLException {
-		ManagedChannel channel = createSecuredChannel(gatewayPort);
+    @Test
+    public void gRPCUnaryCallShouldReturnResponse() throws SSLException {
+        ManagedChannel channel = createSecuredChannel(gatewayPort);
+        final HelloResponse response = HelloServiceGrpc.newBlockingStub(channel).hello(HelloRequest.newBuilder().setFirstName("Sir").setLastName("FromClient").build());
+        Assertions.assertThat(response.getGreeting()).isEqualTo("Hello, Sir FromClient");
+    }
 
-		final HelloResponse response = HelloServiceGrpc.newBlockingStub(channel)
-				.hello(HelloRequest.newBuilder().setFirstName("Sir").setLastName("FromClient").build());
+    private ManagedChannel createSecuredChannel(int port) throws SSLException {
+        TrustManager[] trustAllCerts = createTrustAllTrustManager();
+        return NettyChannelBuilder.forAddress("localhost", port).useTransportSecurity().sslContext(GrpcSslContexts.forClient().trustManager(trustAllCerts[0]).build()).negotiationType(TLS).build();
+    }
 
-		Assertions.assertThat(response.getGreeting()).isEqualTo("Hello, Sir FromClient");
-	}
+    @Test
+    public void gRPCUnaryCallShouldHandleRuntimeException() throws SSLException {
+        ManagedChannel channel = createSecuredChannel(gatewayPort);
+        try {
+            HelloServiceGrpc.newBlockingStub(channel).hello(HelloRequest.newBuilder().setFirstName("failWithRuntimeException!").build());
+        } catch (StatusRuntimeException e) {
+            Assertions.assertThat(FAILED_PRECONDITION.getCode()).isEqualTo(e.getStatus().getCode());
+            Assertions.assertThat("Invalid firstName").isEqualTo(e.getStatus().getDescription());
+        }
+    }
 
-	private ManagedChannel createSecuredChannel(int port) throws SSLException {
-		TrustManager[] trustAllCerts = createTrustAllTrustManager();
+    private TrustManager[] createTrustAllTrustManager() {
+        return new TrustManager[] { new X509TrustManager() {
 
-		return NettyChannelBuilder.forAddress("localhost", port).useTransportSecurity()
-				.sslContext(GrpcSslContexts.forClient().trustManager(trustAllCerts[0]).build()).negotiationType(TLS)
-				.build();
-	}
+            public X509Certificate[] getAcceptedIssuers() {
+                return new X509Certificate[0];
+            }
 
-	@Test
-	public void gRPCUnaryCallShouldHandleRuntimeException() throws SSLException {
-		ManagedChannel channel = createSecuredChannel(gatewayPort);
+            public void checkClientTrusted(X509Certificate[] certs, String authType) {
+            }
 
-		try {
-			HelloServiceGrpc.newBlockingStub(channel)
-					.hello(HelloRequest.newBuilder().setFirstName("failWithRuntimeException!").build());
-		}
-		catch (StatusRuntimeException e) {
-			Assertions.assertThat(FAILED_PRECONDITION.getCode()).isEqualTo(e.getStatus().getCode());
-			Assertions.assertThat("Invalid firstName").isEqualTo(e.getStatus().getDescription());
-		}
-	}
-
-	private TrustManager[] createTrustAllTrustManager() {
-		return new TrustManager[] { new X509TrustManager() {
-			public X509Certificate[] getAcceptedIssuers() {
-				return new X509Certificate[0];
-			}
-
-			public void checkClientTrusted(X509Certificate[] certs, String authType) {
-			}
-
-			public void checkServerTrusted(X509Certificate[] certs, String authType) {
-			}
-		} };
-	}
-
+            public void checkServerTrusted(X509Certificate[] certs, String authType) {
+            }
+        } };
+    }
 }

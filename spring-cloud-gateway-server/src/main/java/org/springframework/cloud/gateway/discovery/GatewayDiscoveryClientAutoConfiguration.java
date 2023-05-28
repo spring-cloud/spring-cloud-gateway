@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.discovery;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -34,7 +32,6 @@ import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.DispatcherHandler;
-
 import static org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactory.REGEXP_KEY;
 import static org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactory.REPLACEMENT_KEY;
 import static org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory.PATTERN_KEY;
@@ -52,52 +49,46 @@ import static org.springframework.cloud.gateway.support.NameUtils.normalizeRoute
 @EnableConfigurationProperties
 public class GatewayDiscoveryClientAutoConfiguration {
 
-	public static List<PredicateDefinition> initPredicates() {
-		ArrayList<PredicateDefinition> definitions = new ArrayList<>();
-		// TODO: add a predicate that matches the url at /serviceId?
+    public static List<PredicateDefinition> initPredicates() {
+        ArrayList<PredicateDefinition> definitions = new ArrayList<>();
+        // TODO: add a predicate that matches the url at /serviceId?
+        // add a predicate that matches the url at /serviceId/**
+        PredicateDefinition predicate = new PredicateDefinition();
+        predicate.setName(normalizeRoutePredicateName(PathRoutePredicateFactory.class));
+        predicate.addArg(PATTERN_KEY, "'/'+serviceId+'/**'");
+        definitions.add(predicate);
+        return definitions;
+    }
 
-		// add a predicate that matches the url at /serviceId/**
-		PredicateDefinition predicate = new PredicateDefinition();
-		predicate.setName(normalizeRoutePredicateName(PathRoutePredicateFactory.class));
-		predicate.addArg(PATTERN_KEY, "'/'+serviceId+'/**'");
-		definitions.add(predicate);
-		return definitions;
-	}
+    public static List<FilterDefinition> initFilters() {
+        ArrayList<FilterDefinition> definitions = new ArrayList<>();
+        // add a filter that removes /serviceId by default
+        FilterDefinition filter = new FilterDefinition();
+        filter.setName(normalizeFilterFactoryName(RewritePathGatewayFilterFactory.class));
+        String regex = "'/' + serviceId + '/?(?<remaining>.*)'";
+        String replacement = "'/${remaining}'";
+        filter.addArg(REGEXP_KEY, regex);
+        filter.addArg(REPLACEMENT_KEY, replacement);
+        definitions.add(filter);
+        return definitions;
+    }
 
-	public static List<FilterDefinition> initFilters() {
-		ArrayList<FilterDefinition> definitions = new ArrayList<>();
+    @Bean
+    public DiscoveryLocatorProperties discoveryLocatorProperties() {
+        DiscoveryLocatorProperties properties = new DiscoveryLocatorProperties();
+        properties.setPredicates(initPredicates());
+        properties.setFilters(initFilters());
+        return properties;
+    }
 
-		// add a filter that removes /serviceId by default
-		FilterDefinition filter = new FilterDefinition();
-		filter.setName(normalizeFilterFactoryName(RewritePathGatewayFilterFactory.class));
-		String regex = "'/' + serviceId + '/?(?<remaining>.*)'";
-		String replacement = "'/${remaining}'";
-		filter.addArg(REGEXP_KEY, regex);
-		filter.addArg(REPLACEMENT_KEY, replacement);
-		definitions.add(filter);
+    @Configuration(proxyBeanMethods = false)
+    @ConditionalOnProperty(value = "spring.cloud.discovery.reactive.enabled", matchIfMissing = true)
+    public static class ReactiveDiscoveryClientRouteDefinitionLocatorConfiguration {
 
-		return definitions;
-	}
-
-	@Bean
-	public DiscoveryLocatorProperties discoveryLocatorProperties() {
-		DiscoveryLocatorProperties properties = new DiscoveryLocatorProperties();
-		properties.setPredicates(initPredicates());
-		properties.setFilters(initFilters());
-		return properties;
-	}
-
-	@Configuration(proxyBeanMethods = false)
-	@ConditionalOnProperty(value = "spring.cloud.discovery.reactive.enabled", matchIfMissing = true)
-	public static class ReactiveDiscoveryClientRouteDefinitionLocatorConfiguration {
-
-		@Bean
-		@ConditionalOnProperty(name = "spring.cloud.gateway.discovery.locator.enabled")
-		public DiscoveryClientRouteDefinitionLocator discoveryClientRouteDefinitionLocator(
-				ReactiveDiscoveryClient discoveryClient, DiscoveryLocatorProperties properties) {
-			return new DiscoveryClientRouteDefinitionLocator(discoveryClient, properties);
-		}
-
-	}
-
+        @Bean
+        @ConditionalOnProperty(name = "spring.cloud.gateway.discovery.locator.enabled")
+        public DiscoveryClientRouteDefinitionLocator discoveryClientRouteDefinitionLocator(ReactiveDiscoveryClient discoveryClient, DiscoveryLocatorProperties properties) {
+            return new DiscoveryClientRouteDefinitionLocator(discoveryClient, properties);
+        }
+    }
 }

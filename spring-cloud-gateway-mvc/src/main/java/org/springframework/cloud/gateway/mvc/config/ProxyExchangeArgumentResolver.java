@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.mvc.config;
 
 import java.lang.reflect.ParameterizedType;
@@ -21,9 +20,7 @@ import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Set;
-
 import jakarta.servlet.http.HttpServletRequest;
-
 import org.springframework.cloud.gateway.mvc.ProxyExchange;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpHeaders;
@@ -32,7 +29,6 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
-
 import static java.util.stream.Collectors.toSet;
 
 /**
@@ -41,84 +37,81 @@ import static java.util.stream.Collectors.toSet;
  */
 public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResolver {
 
-	private final RestTemplate rest;
+    private final RestTemplate rest;
 
-	private HttpHeaders headers;
+    private HttpHeaders headers;
 
-	private Set<String> autoForwardedHeaders;
+    private Set<String> autoForwardedHeaders;
 
-	private Set<String> sensitive;
+    private Set<String> sensitive;
 
-	public ProxyExchangeArgumentResolver(RestTemplate builder) {
-		this.rest = builder;
-	}
+    public ProxyExchangeArgumentResolver(RestTemplate builder) {
+        this.rest = builder;
+    }
 
-	public void setHeaders(HttpHeaders headers) {
-		this.headers = headers;
-	}
+    public void setHeaders(HttpHeaders headers) {
+        this.headers = headers;
+    }
 
-	public void setAutoForwardedHeaders(Set<String> autoForwardedHeaders) {
-		this.autoForwardedHeaders = autoForwardedHeaders == null ? null
-				: autoForwardedHeaders.stream().map(String::toLowerCase).collect(toSet());
-	}
+    public void setAutoForwardedHeaders(Set<String> autoForwardedHeaders) {
+        this.autoForwardedHeaders = autoForwardedHeaders == null ? null : autoForwardedHeaders.stream().map(String::toLowerCase).collect(toSet());
+    }
 
-	public void setSensitive(Set<String> sensitive) {
-		this.sensitive = sensitive;
-	}
+    public void setSensitive(Set<String> sensitive) {
+        this.sensitive = sensitive;
+    }
 
-	@Override
-	public boolean supportsParameter(MethodParameter parameter) {
-		return ProxyExchange.class.isAssignableFrom(parameter.getParameterType());
-	}
+    @Override
+    public boolean supportsParameter(MethodParameter parameter) {
+        return ProxyExchange.class.isAssignableFrom(parameter.getParameterType());
+    }
 
-	@Override
-	public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
-			NativeWebRequest webRequest, WebDataBinderFactory binderFactory) throws Exception {
-		ProxyExchange<?> proxy = new ProxyExchange<>(rest, webRequest, mavContainer, binderFactory, type(parameter));
-		configureHeaders(proxy);
-		configureAutoForwardedHeaders(proxy, webRequest);
-		configureSensitive(proxy);
-		return proxy;
-	}
+    @Override
+    public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer, NativeWebRequest webRequest, WebDataBinderFactory binderFactory) throws Exception {
+        ProxyExchange<?> proxy = new ProxyExchange<>(rest, webRequest, mavContainer, binderFactory, type(parameter));
+        configureHeaders(proxy);
+        configureAutoForwardedHeaders(proxy, webRequest);
+        configureSensitive(proxy);
+        return proxy;
+    }
 
-	private Type type(MethodParameter parameter) {
-		Type type = parameter.getGenericParameterType();
-		if (type instanceof ParameterizedType) {
-			ParameterizedType param = (ParameterizedType) type;
-			type = param.getActualTypeArguments()[0];
-		}
-		return type;
-	}
+    private Type type(MethodParameter parameter) {
+        Type type = parameter.getGenericParameterType();
+        if (type instanceof ParameterizedType) {
+            ParameterizedType param = (ParameterizedType) type;
+            type = param.getActualTypeArguments()[0];
+        }
+        return type;
+    }
 
-	private HttpHeaders extractAutoForwardedHeaders(NativeWebRequest webRequest) {
-		HttpServletRequest nativeRequest = webRequest.getNativeRequest(HttpServletRequest.class);
-		Enumeration<String> headerNames = nativeRequest.getHeaderNames();
-		HttpHeaders headers = new HttpHeaders();
-		while (headerNames.hasMoreElements()) {
-			String header = headerNames.nextElement();
-			if (this.autoForwardedHeaders.contains(header.toLowerCase())) {
-				headers.addAll(header, Collections.list(nativeRequest.getHeaders(header)));
-			}
-		}
-		return headers;
-	}
+    private HttpHeaders extractAutoForwardedHeaders(NativeWebRequest webRequest) {
+        HttpServletRequest nativeRequest = webRequest.getNativeRequest(HttpServletRequest.class);
+        Enumeration<String> headerNames = nativeRequest.getHeaderNames();
+        HttpHeaders headers = new HttpHeaders();
+        while (headerNames.hasMoreElements()) {
+            String header = headerNames.nextElement();
+            if (this.autoForwardedHeaders.contains(header.toLowerCase())) {
+                headers.addAll(header, Collections.list(nativeRequest.getHeaders(header)));
+            }
+        }
+        return headers;
+    }
 
-	private void configureHeaders(final ProxyExchange<?> proxy) {
-		if (headers != null) {
-			proxy.headers(headers);
-		}
-	}
+    private void configureHeaders(final ProxyExchange<?> proxy) {
+        if (headers != null) {
+            proxy.headers(headers);
+        }
+    }
 
-	private void configureAutoForwardedHeaders(final ProxyExchange<?> proxy, final NativeWebRequest webRequest) {
-		if ((autoForwardedHeaders != null) && (autoForwardedHeaders.size() > 0)) {
-			proxy.headers(extractAutoForwardedHeaders(webRequest));
-		}
-	}
+    private void configureAutoForwardedHeaders(final ProxyExchange<?> proxy, final NativeWebRequest webRequest) {
+        if ((autoForwardedHeaders != null) && (autoForwardedHeaders.size() > 0)) {
+            proxy.headers(extractAutoForwardedHeaders(webRequest));
+        }
+    }
 
-	private void configureSensitive(final ProxyExchange<?> proxy) {
-		if (sensitive != null) {
-			proxy.sensitive(sensitive.toArray(new String[0]));
-		}
-	}
-
+    private void configureSensitive(final ProxyExchange<?> proxy) {
+        if (sensitive != null) {
+            proxy.sensitive(sensitive.toArray(new String[0]));
+        }
+    }
 }

@@ -13,44 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.test;
 
 import java.util.Map;
-
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
-
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
 @SuppressWarnings("unchecked")
-// TODO: why does this have to be in a separate test?
-class PostTests extends BaseWebClientTests {
+class // TODO: why does this have to be in a separate test?
+PostTests extends BaseWebClientTests {
 
-	@Test
-	void postWorks() {
-		Mono<Map> result = webClient.post().uri("/post").header("Host", "www.example.org").bodyValue("testdata")
-				.retrieve().bodyToMono(Map.class);
+    @Test
+    void postWorks() {
+        Mono<Map> result = webClient.post().uri("/post").header("Host", "www.example.org").bodyValue("testdata").retrieve().bodyToMono(Map.class);
+        StepVerifier.create(result).consumeNextWith(map -> assertThat(map).containsEntry("data", "testdata")).expectComplete().verify(DURATION);
+    }
 
-		StepVerifier.create(result).consumeNextWith(map -> assertThat(map).containsEntry("data", "testdata"))
-				.expectComplete().verify(DURATION);
-	}
-
-	@EnableAutoConfiguration
-	@SpringBootConfiguration
-	@Import(DefaultTestConfig.class)
-	static class TestConfig {
-
-	}
-
+    @EnableAutoConfiguration
+    @SpringBootConfiguration
+    @Import(DefaultTestConfig.class)
+    static class TestConfig {
+    }
 }

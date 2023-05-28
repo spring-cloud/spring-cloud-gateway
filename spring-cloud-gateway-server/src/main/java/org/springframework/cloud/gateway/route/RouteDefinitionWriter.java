@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.route;
 
 import reactor.core.publisher.Mono;
@@ -23,8 +22,7 @@ import reactor.core.publisher.Mono;
  */
 public interface RouteDefinitionWriter {
 
-	Mono<Void> save(Mono<RouteDefinition> route);
+    Mono<Void> save(Mono<RouteDefinition> route);
 
-	Mono<Void> delete(Mono<String> routeId);
-
+    Mono<Void> delete(Mono<String> routeId);
 }

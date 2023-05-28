@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.factory.rewrite;
 
 /**
@@ -22,8 +21,7 @@ package org.springframework.cloud.gateway.filter.factory.rewrite;
  */
 public interface MessageBodyDecoder {
 
-	byte[] decode(byte[] encoded);
+    byte[] decode(byte[] encoded);
 
-	String encodingType();
-
+    String encodingType();
 }

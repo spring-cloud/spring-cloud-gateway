@@ -13,15 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.discovery;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
-
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -34,88 +31,75 @@ import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest(classes = DiscoveryClientRouteDefinitionLocatorIntegrationTests.Config.class,
-		properties = { "spring.cloud.gateway.discovery.locator.enabled=true",
-				"spring.cloud.gateway.discovery.locator.route-id-prefix=test__" })
+@SpringBootTest(classes = DiscoveryClientRouteDefinitionLocatorIntegrationTests.Config.class, properties = { "spring.cloud.gateway.discovery.locator.enabled=true", "spring.cloud.gateway.discovery.locator.route-id-prefix=test__" })
 public class DiscoveryClientRouteDefinitionLocatorIntegrationTests {
 
-	@Autowired
-	private RouteLocator routeLocator;
+    @Autowired
+    private RouteLocator routeLocator;
 
-	@Autowired
-	private ApplicationEventPublisher publisher;
+    @Autowired
+    private ApplicationEventPublisher publisher;
 
-	@Autowired
-	private TestDiscoveryClient discoveryClient;
+    @Autowired
+    private TestDiscoveryClient discoveryClient;
 
-	@Test
-	public void newServiceAddsRoute() throws Exception {
-		List<Route> routes = routeLocator.getRoutes().filter(route -> route.getId().startsWith("test__")).collectList()
-				.block();
-		assertThat(routes).hasSize(1);
+    @Test
+    public void newServiceAddsRoute() throws Exception {
+        List<Route> routes = routeLocator.getRoutes().filter(route -> route.getId().startsWith("test__")).collectList().block();
+        assertThat(routes).hasSize(1);
+        discoveryClient.multiple();
+        publisher.publishEvent(new HeartbeatEvent(this, 1L));
+        Thread.sleep(2000);
+        routes = routeLocator.getRoutes().filter(route -> route.getId().startsWith("test__")).collectList().block();
+        assertThat(routes).hasSize(2);
+    }
 
-		discoveryClient.multiple();
+    @SpringBootConfiguration
+    @EnableAutoConfiguration
+    protected static class Config {
 
-		publisher.publishEvent(new HeartbeatEvent(this, 1L));
+        @Bean
+        TestDiscoveryClient discoveryClient() {
+            return new TestDiscoveryClient();
+        }
+    }
 
-		Thread.sleep(2000);
+    private static class TestDiscoveryClient implements ReactiveDiscoveryClient {
 
-		routes = routeLocator.getRoutes().filter(route -> route.getId().startsWith("test__")).collectList().block();
-		assertThat(routes).hasSize(2);
-	}
+        AtomicBoolean single = new AtomicBoolean(true);
 
-	@SpringBootConfiguration
-	@EnableAutoConfiguration
-	protected static class Config {
+        DefaultServiceInstance instance1 = new DefaultServiceInstance("service1_1", "service1", "localhost", 8001, false);
 
-		@Bean
-		TestDiscoveryClient discoveryClient() {
-			return new TestDiscoveryClient();
-		}
+        DefaultServiceInstance instance2 = new DefaultServiceInstance("service2_1", "service2", "localhost", 8001, false);
 
-	}
+        public void multiple() {
+            single.set(false);
+        }
 
-	private static class TestDiscoveryClient implements ReactiveDiscoveryClient {
+        @Override
+        public String description() {
+            return null;
+        }
 
-		AtomicBoolean single = new AtomicBoolean(true);
+        @Override
+        public Flux<ServiceInstance> getInstances(String serviceId) {
+            if (serviceId.equals("service1")) {
+                return Flux.just(instance1);
+            }
+            if (serviceId.equals("service2")) {
+                return Flux.just(instance2);
+            }
+            return Flux.empty();
+        }
 
-		DefaultServiceInstance instance1 = new DefaultServiceInstance("service1_1", "service1", "localhost", 8001,
-				false);
-
-		DefaultServiceInstance instance2 = new DefaultServiceInstance("service2_1", "service2", "localhost", 8001,
-				false);
-
-		public void multiple() {
-			single.set(false);
-		}
-
-		@Override
-		public String description() {
-			return null;
-		}
-
-		@Override
-		public Flux<ServiceInstance> getInstances(String serviceId) {
-			if (serviceId.equals("service1")) {
-				return Flux.just(instance1);
-			}
-			if (serviceId.equals("service2")) {
-				return Flux.just(instance2);
-			}
-			return Flux.empty();
-		}
-
-		@Override
-		public Flux<String> getServices() {
-			if (single.get()) {
-				return Flux.just("service1");
-			}
-			return Flux.just("service1", "service2");
-		}
-
-	}
-
+        @Override
+        public Flux<String> getServices() {
+            if (single.get()) {
+                return Flux.just("service1");
+            }
+            return Flux.just("service1", "service2");
+        }
+    }
 }

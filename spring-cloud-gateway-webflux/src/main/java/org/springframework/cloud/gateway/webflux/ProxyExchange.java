@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.webflux;
 
 import java.lang.reflect.Type;
@@ -25,10 +24,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Mono;
-
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
@@ -107,386 +104,357 @@ import org.springframework.web.server.ServerWebExchange;
  * </p>
  *
  * @author Dave Syer
- *
  */
 public class ProxyExchange<T> {
 
-	/**
-	 * Contains headers that are considered case-sensitive by default.
-	 */
-	public static Set<String> DEFAULT_SENSITIVE = Collections
-			.unmodifiableSet(new HashSet<>(Arrays.asList("cookie", "authorization")));
+    /**
+     * Contains headers that are considered case-sensitive by default.
+     */
+    public static Set<String> DEFAULT_SENSITIVE = Collections.unmodifiableSet(new HashSet<>(Arrays.asList("cookie", "authorization")));
 
-	private HttpMethod httpMethod;
+    private HttpMethod httpMethod;
 
-	private URI uri;
+    private URI uri;
 
-	private WebClient rest;
+    private WebClient rest;
 
-	private Publisher<Object> body;
+    private Publisher<Object> body;
 
-	private boolean hasBody = false;
+    private boolean hasBody = false;
 
-	private ServerWebExchange exchange;
+    private ServerWebExchange exchange;
 
-	private BindingContext bindingContext;
+    private BindingContext bindingContext;
 
-	private Set<String> sensitive;
+    private Set<String> sensitive;
 
-	private HttpHeaders headers = new HttpHeaders();
+    private HttpHeaders headers = new HttpHeaders();
 
-	private Type responseType;
+    private Type responseType;
 
-	public ProxyExchange(WebClient rest, ServerWebExchange exchange, BindingContext bindingContext, Type type) {
-		this.exchange = exchange;
-		this.bindingContext = bindingContext;
-		this.responseType = type;
-		this.rest = rest;
-		this.httpMethod = exchange.getRequest().getMethod();
-	}
+    public ProxyExchange(WebClient rest, ServerWebExchange exchange, BindingContext bindingContext, Type type) {
+        this.exchange = exchange;
+        this.bindingContext = bindingContext;
+        this.responseType = type;
+        this.rest = rest;
+        this.httpMethod = exchange.getRequest().getMethod();
+    }
 
-	/**
-	 * Sets the body for the downstream request (if using {@link #post()}, {@link #put()}
-	 * or {@link #patch()}). The body can be omitted if you just want to pass the incoming
-	 * request downstream without changing it. If you want to transform the incoming
-	 * request you can declare it as a <code>@RequestBody</code> in your
-	 * <code>@RequestMapping</code> in the usual Spring MVC way.
-	 * @param body the request body to send downstream
-	 * @return this for convenience
-	 */
-	public ProxyExchange<T> body(Object body) {
-		this.body = Mono.just(body);
-		return this;
-	}
+    /**
+     * Sets the body for the downstream request (if using {@link #post()}, {@link #put()}
+     * or {@link #patch()}). The body can be omitted if you just want to pass the incoming
+     * request downstream without changing it. If you want to transform the incoming
+     * request you can declare it as a <code>@RequestBody</code> in your
+     * <code>@RequestMapping</code> in the usual Spring MVC way.
+     * @param body the request body to send downstream
+     * @return this for convenience
+     */
+    public ProxyExchange<T> body(Object body) {
+        this.body = Mono.just(body);
+        return this;
+    }
 
-	/**
-	 * Sets the body for the downstream request (if using {@link #post()}, {@link #put()}
-	 * or {@link #patch()}). The body can be omitted if you just want to pass the incoming
-	 * request downstream without changing it. If you want to transform the incoming
-	 * request you can declare it as a <code>@RequestBody</code> in your
-	 * <code>@RequestMapping</code> in the usual Spring MVC way.
-	 * @param body the request body to send downstream
-	 * @return this for convenience
-	 */
-	@SuppressWarnings("unchecked")
-	public ProxyExchange<T> body(Publisher<?> body) {
-		this.body = (Publisher<Object>) body;
-		return this;
-	}
+    /**
+     * Sets the body for the downstream request (if using {@link #post()}, {@link #put()}
+     * or {@link #patch()}). The body can be omitted if you just want to pass the incoming
+     * request downstream without changing it. If you want to transform the incoming
+     * request you can declare it as a <code>@RequestBody</code> in your
+     * <code>@RequestMapping</code> in the usual Spring MVC way.
+     * @param body the request body to send downstream
+     * @return this for convenience
+     */
+    @SuppressWarnings("unchecked")
+    public ProxyExchange<T> body(Publisher<?> body) {
+        this.body = (Publisher<Object>) body;
+        return this;
+    }
 
-	/**
-	 * Sets a header for the downstream call.
-	 * @param name Header name
-	 * @param value Header values
-	 * @return this for convenience
-	 */
-	public ProxyExchange<T> header(String name, String... value) {
-		this.headers.put(name, Arrays.asList(value));
-		return this;
-	}
+    /**
+     * Sets a header for the downstream call.
+     * @param name Header name
+     * @param value Header values
+     * @return this for convenience
+     */
+    public ProxyExchange<T> header(String name, String... value) {
+        this.headers.put(name, Arrays.asList(value));
+        return this;
+    }
 
-	/**
-	 * Additional headers, or overrides of the incoming ones, to be used in the downstream
-	 * call.
-	 * @param headers the http headers to use in the downstream call
-	 * @return this for convenience
-	 */
-	public ProxyExchange<T> headers(HttpHeaders headers) {
-		this.headers.putAll(headers);
-		return this;
-	}
+    /**
+     * Additional headers, or overrides of the incoming ones, to be used in the downstream
+     * call.
+     * @param headers the http headers to use in the downstream call
+     * @return this for convenience
+     */
+    public ProxyExchange<T> headers(HttpHeaders headers) {
+        this.headers.putAll(headers);
+        return this;
+    }
 
-	/**
-	 * Sets the names of sensitive headers that are not passed downstream to the backend
-	 * service.
-	 * @param names the names of sensitive headers
-	 * @return this for convenience
-	 */
-	public ProxyExchange<T> sensitive(String... names) {
-		if (this.sensitive == null) {
-			this.sensitive = new HashSet<>();
-		}
+    /**
+     * Sets the names of sensitive headers that are not passed downstream to the backend
+     * service.
+     * @param names the names of sensitive headers
+     * @return this for convenience
+     */
+    public ProxyExchange<T> sensitive(String... names) {
+        if (this.sensitive == null) {
+            this.sensitive = new HashSet<>();
+        }
+        this.sensitive.clear();
+        for (String name : names) {
+            this.sensitive.add(name.toLowerCase());
+        }
+        return this;
+    }
 
-		this.sensitive.clear();
-		for (String name : names) {
-			this.sensitive.add(name.toLowerCase());
-		}
-		return this;
-	}
+    /**
+     * Sets the uri for the backend call when triggered by the HTTP methods.
+     * @param uri the backend uri to send the request to
+     * @return this for convenience
+     */
+    public ProxyExchange<T> uri(String uri) {
+        try {
+            this.uri = new URI(uri);
+        } catch (URISyntaxException e) {
+            throw new IllegalStateException("Cannot create URI", e);
+        }
+        return this;
+    }
 
-	/**
-	 * Sets the uri for the backend call when triggered by the HTTP methods.
-	 * @param uri the backend uri to send the request to
-	 * @return this for convenience
-	 */
-	public ProxyExchange<T> uri(String uri) {
-		try {
-			this.uri = new URI(uri);
-		}
-		catch (URISyntaxException e) {
-			throw new IllegalStateException("Cannot create URI", e);
-		}
-		return this;
-	}
+    public String path() {
+        return exchange.getRequest().getPath().pathWithinApplication().value();
+    }
 
-	public String path() {
-		return exchange.getRequest().getPath().pathWithinApplication().value();
-	}
+    public String path(String prefix) {
+        String path = path();
+        if (!path.startsWith(prefix)) {
+            throw new IllegalArgumentException("Path does not start with prefix (" + prefix + "): " + path);
+        }
+        return path.substring(prefix.length());
+    }
 
-	public String path(String prefix) {
-		String path = path();
-		if (!path.startsWith(prefix)) {
-			throw new IllegalArgumentException("Path does not start with prefix (" + prefix + "): " + path);
-		}
-		return path.substring(prefix.length());
-	}
+    public Mono<ResponseEntity<T>> get() {
+        RequestEntity<?> requestEntity = headers((BodyBuilder) RequestEntity.get(uri)).build();
+        return exchange(requestEntity);
+    }
 
-	public Mono<ResponseEntity<T>> get() {
-		RequestEntity<?> requestEntity = headers((BodyBuilder) RequestEntity.get(uri)).build();
-		return exchange(requestEntity);
-	}
+    public <S> Mono<ResponseEntity<S>> get(Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
+        return get().map(converter::apply);
+    }
 
-	public <S> Mono<ResponseEntity<S>> get(Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
-		return get().map(converter::apply);
-	}
+    public Mono<ResponseEntity<T>> head() {
+        RequestEntity<?> requestEntity = headers((BodyBuilder) RequestEntity.head(uri)).build();
+        return exchange(requestEntity);
+    }
 
-	public Mono<ResponseEntity<T>> head() {
-		RequestEntity<?> requestEntity = headers((BodyBuilder) RequestEntity.head(uri)).build();
-		return exchange(requestEntity);
-	}
+    public <S> Mono<ResponseEntity<S>> head(Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
+        return head().map(converter::apply);
+    }
 
-	public <S> Mono<ResponseEntity<S>> head(Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
-		return head().map(converter::apply);
-	}
+    public Mono<ResponseEntity<T>> options() {
+        RequestEntity<?> requestEntity = headers((BodyBuilder) RequestEntity.options(uri)).build();
+        return exchange(requestEntity);
+    }
 
-	public Mono<ResponseEntity<T>> options() {
-		RequestEntity<?> requestEntity = headers((BodyBuilder) RequestEntity.options(uri)).build();
-		return exchange(requestEntity);
-	}
+    public <S> Mono<ResponseEntity<S>> options(Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
+        return options().map(converter::apply);
+    }
 
-	public <S> Mono<ResponseEntity<S>> options(Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
-		return options().map(converter::apply);
-	}
+    public Mono<ResponseEntity<T>> post() {
+        RequestEntity<Object> requestEntity = headers(RequestEntity.post(uri)).body(body());
+        return exchange(requestEntity);
+    }
 
-	public Mono<ResponseEntity<T>> post() {
-		RequestEntity<Object> requestEntity = headers(RequestEntity.post(uri)).body(body());
-		return exchange(requestEntity);
-	}
+    public <S> Mono<ResponseEntity<S>> post(Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
+        return post().map(converter::apply);
+    }
 
-	public <S> Mono<ResponseEntity<S>> post(Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
-		return post().map(converter::apply);
-	}
+    public Mono<ResponseEntity<T>> delete() {
+        RequestEntity<Object> requestEntity = headers((BodyBuilder) RequestEntity.delete(uri)).body(body());
+        return exchange(requestEntity);
+    }
 
-	public Mono<ResponseEntity<T>> delete() {
-		RequestEntity<Object> requestEntity = headers((BodyBuilder) RequestEntity.delete(uri)).body(body());
-		return exchange(requestEntity);
-	}
+    public <S> Mono<ResponseEntity<S>> delete(Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
+        return delete().map(converter::apply);
+    }
 
-	public <S> Mono<ResponseEntity<S>> delete(Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
-		return delete().map(converter::apply);
-	}
+    public Mono<ResponseEntity<T>> put() {
+        RequestEntity<Object> requestEntity = headers(RequestEntity.put(uri)).body(body());
+        return exchange(requestEntity);
+    }
 
-	public Mono<ResponseEntity<T>> put() {
-		RequestEntity<Object> requestEntity = headers(RequestEntity.put(uri)).body(body());
-		return exchange(requestEntity);
-	}
+    public <S> Mono<ResponseEntity<S>> put(Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
+        return put().map(converter::apply);
+    }
 
-	public <S> Mono<ResponseEntity<S>> put(Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
-		return put().map(converter::apply);
-	}
+    public Mono<ResponseEntity<T>> patch() {
+        RequestEntity<Object> requestEntity = headers(RequestEntity.patch(uri)).body(body());
+        return exchange(requestEntity);
+    }
 
-	public Mono<ResponseEntity<T>> patch() {
-		RequestEntity<Object> requestEntity = headers(RequestEntity.patch(uri)).body(body());
-		return exchange(requestEntity);
-	}
+    public <S> Mono<ResponseEntity<S>> patch(Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
+        return patch().map(converter::apply);
+    }
 
-	public <S> Mono<ResponseEntity<S>> patch(Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
-		return patch().map(converter::apply);
-	}
+    public Mono<ResponseEntity<T>> forward() {
+        if (httpMethod.equals(HttpMethod.GET)) {
+            return get();
+        } else if (httpMethod.equals(HttpMethod.HEAD)) {
+            return head();
+        } else if (httpMethod.equals(HttpMethod.OPTIONS)) {
+            return options();
+        } else if (httpMethod.equals(HttpMethod.POST)) {
+            return post();
+        } else if (httpMethod.equals(HttpMethod.DELETE)) {
+            return delete();
+        } else if (httpMethod.equals(HttpMethod.PUT)) {
+            return put();
+        } else if (httpMethod.equals(HttpMethod.PATCH)) {
+            return patch();
+        }
+        return Mono.empty();
+    }
 
-	public Mono<ResponseEntity<T>> forward() {
-		if (httpMethod.equals(HttpMethod.GET)) {
-			return get();
-		}
-		else if (httpMethod.equals(HttpMethod.HEAD)) {
-			return head();
-		}
-		else if (httpMethod.equals(HttpMethod.OPTIONS)) {
-			return options();
-		}
-		else if (httpMethod.equals(HttpMethod.POST)) {
-			return post();
-		}
-		else if (httpMethod.equals(HttpMethod.DELETE)) {
-			return delete();
-		}
-		else if (httpMethod.equals(HttpMethod.PUT)) {
-			return put();
-		}
-		else if (httpMethod.equals(HttpMethod.PATCH)) {
-			return patch();
-		}
+    public <S> Mono<ResponseEntity<S>> forward(Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
+        if (httpMethod.equals(HttpMethod.GET)) {
+            return get(converter);
+        } else if (httpMethod.equals(HttpMethod.HEAD)) {
+            return head(converter);
+        } else if (httpMethod.equals(HttpMethod.OPTIONS)) {
+            return options(converter);
+        } else if (httpMethod.equals(HttpMethod.POST)) {
+            return post(converter);
+        } else if (httpMethod.equals(HttpMethod.DELETE)) {
+            return delete(converter);
+        } else if (httpMethod.equals(HttpMethod.PUT)) {
+            return put(converter);
+        } else if (httpMethod.equals(HttpMethod.PATCH)) {
+            return patch(converter);
+        }
+        return Mono.empty();
+    }
 
-		return Mono.empty();
-	}
+    private Mono<ResponseEntity<T>> exchange(RequestEntity<?> requestEntity) {
+        Type type = this.responseType;
+        RequestBodySpec builder = rest.method(requestEntity.getMethod()).uri(requestEntity.getUrl()).headers(headers -> addHeaders(headers, requestEntity.getHeaders()));
+        WebClient.ResponseSpec result;
+        if (requestEntity.getBody() instanceof Publisher) {
+            @SuppressWarnings("unchecked")
+            Publisher<Object> publisher = (Publisher<Object>) requestEntity.getBody();
+            result = builder.body(publisher, Object.class).retrieve();
+        } else if (requestEntity.getBody() != null) {
+            result = builder.body(BodyInserters.fromValue(requestEntity.getBody())).retrieve();
+        } else {
+            if (hasBody) {
+                result = builder.headers(headers -> addHeaders(headers, exchange.getRequest().getHeaders())).body(exchange.getRequest().getBody(), DataBuffer.class).retrieve();
+            } else {
+                result = builder.headers(headers -> addHeaders(headers, exchange.getRequest().getHeaders())).retrieve();
+            }
+        }
+        return result.onStatus(HttpStatusCode::isError, t -> Mono.empty()).toEntity(ParameterizedTypeReference.forType(type));
+    }
 
-	public <S> Mono<ResponseEntity<S>> forward(Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
-		if (httpMethod.equals(HttpMethod.GET)) {
-			return get(converter);
-		}
-		else if (httpMethod.equals(HttpMethod.HEAD)) {
-			return head(converter);
-		}
-		else if (httpMethod.equals(HttpMethod.OPTIONS)) {
-			return options(converter);
-		}
-		else if (httpMethod.equals(HttpMethod.POST)) {
-			return post(converter);
-		}
-		else if (httpMethod.equals(HttpMethod.DELETE)) {
-			return delete(converter);
-		}
-		else if (httpMethod.equals(HttpMethod.PUT)) {
-			return put(converter);
-		}
-		else if (httpMethod.equals(HttpMethod.PATCH)) {
-			return patch(converter);
-		}
+    private void addHeaders(HttpHeaders headers, HttpHeaders toAdd) {
+        Set<String> filteredKeys = filterHeaderKeys(toAdd);
+        filteredKeys.stream().filter(key -> !headers.containsKey(key)).forEach(header -> headers.addAll(header, toAdd.get(header)));
+    }
 
-		return Mono.empty();
-	}
+    private Set<String> filterHeaderKeys(HttpHeaders headers) {
+        final Set<String> sensitiveHeaders = this.sensitive != null ? this.sensitive : DEFAULT_SENSITIVE;
+        return headers.keySet().stream().filter(header -> !sensitiveHeaders.contains(header.toLowerCase())).collect(Collectors.toSet());
+    }
 
-	private Mono<ResponseEntity<T>> exchange(RequestEntity<?> requestEntity) {
-		Type type = this.responseType;
-		RequestBodySpec builder = rest.method(requestEntity.getMethod()).uri(requestEntity.getUrl())
-				.headers(headers -> addHeaders(headers, requestEntity.getHeaders()));
-		WebClient.ResponseSpec result;
-		if (requestEntity.getBody() instanceof Publisher) {
-			@SuppressWarnings("unchecked")
-			Publisher<Object> publisher = (Publisher<Object>) requestEntity.getBody();
-			result = builder.body(publisher, Object.class).retrieve();
-		}
-		else if (requestEntity.getBody() != null) {
-			result = builder.body(BodyInserters.fromValue(requestEntity.getBody())).retrieve();
-		}
-		else {
-			if (hasBody) {
-				result = builder.headers(headers -> addHeaders(headers, exchange.getRequest().getHeaders()))
-						.body(exchange.getRequest().getBody(), DataBuffer.class).retrieve();
-			}
-			else {
-				result = builder.headers(headers -> addHeaders(headers, exchange.getRequest().getHeaders())).retrieve();
-			}
-		}
-		return result.onStatus(HttpStatusCode::isError, t -> Mono.empty())
-				.toEntity(ParameterizedTypeReference.forType(type));
-	}
+    private BodyBuilder headers(BodyBuilder builder) {
+        proxy();
+        for (String name : filterHeaderKeys(headers)) {
+            builder.header(name, headers.get(name).toArray(new String[0]));
+        }
+        return builder;
+    }
 
-	private void addHeaders(HttpHeaders headers, HttpHeaders toAdd) {
-		Set<String> filteredKeys = filterHeaderKeys(toAdd);
-		filteredKeys.stream().filter(key -> !headers.containsKey(key))
-				.forEach(header -> headers.addAll(header, toAdd.get(header)));
-	}
+    private void proxy() {
+        URI uri = exchange.getRequest().getURI();
+        appendForwarded(uri);
+        appendXForwarded(uri);
+    }
 
-	private Set<String> filterHeaderKeys(HttpHeaders headers) {
-		final Set<String> sensitiveHeaders = this.sensitive != null ? this.sensitive : DEFAULT_SENSITIVE;
-		return headers.keySet().stream().filter(header -> !sensitiveHeaders.contains(header.toLowerCase()))
-				.collect(Collectors.toSet());
-	}
+    private void appendXForwarded(URI uri) {
+        // Append the legacy headers if they were already added upstream
+        String host = headers.getFirst("x-forwarded-host");
+        if (host == null) {
+            return;
+        }
+        host = host + "," + uri.getHost();
+        headers.set("x-forwarded-host", host);
+        String proto = headers.getFirst("x-forwarded-proto");
+        if (proto == null) {
+            return;
+        }
+        proto = proto + "," + uri.getScheme();
+        headers.set("x-forwarded-proto", proto);
+    }
 
-	private BodyBuilder headers(BodyBuilder builder) {
-		proxy();
-		for (String name : filterHeaderKeys(headers)) {
-			builder.header(name, headers.get(name).toArray(new String[0]));
-		}
-		return builder;
-	}
+    private void appendForwarded(URI uri) {
+        String forwarded = headers.getFirst("forwarded");
+        if (forwarded != null) {
+            forwarded = forwarded + ",";
+        } else {
+            forwarded = "";
+        }
+        forwarded = forwarded + forwarded(uri, exchange.getRequest().getHeaders().getFirst("host"));
+        headers.set("forwarded", forwarded);
+    }
 
-	private void proxy() {
-		URI uri = exchange.getRequest().getURI();
-		appendForwarded(uri);
-		appendXForwarded(uri);
-	}
+    private String forwarded(URI uri, String hostHeader) {
+        if (StringUtils.hasText(hostHeader)) {
+            return "host=" + hostHeader;
+        }
+        if ("http".equals(uri.getScheme())) {
+            return "host=" + uri.getHost();
+        }
+        return String.format("host=%s;proto=%s", uri.getHost(), uri.getScheme());
+    }
 
-	private void appendXForwarded(URI uri) {
-		// Append the legacy headers if they were already added upstream
-		String host = headers.getFirst("x-forwarded-host");
-		if (host == null) {
-			return;
-		}
-		host = host + "," + uri.getHost();
-		headers.set("x-forwarded-host", host);
-		String proto = headers.getFirst("x-forwarded-proto");
-		if (proto == null) {
-			return;
-		}
-		proto = proto + "," + uri.getScheme();
-		headers.set("x-forwarded-proto", proto);
-	}
+    private Publisher<?> body() {
+        Publisher<?> body = this.body;
+        if (body != null) {
+            return body;
+        }
+        body = getRequestBody();
+        // even if it's null
+        hasBody = true;
+        return body;
+    }
 
-	private void appendForwarded(URI uri) {
-		String forwarded = headers.getFirst("forwarded");
-		if (forwarded != null) {
-			forwarded = forwarded + ",";
-		}
-		else {
-			forwarded = "";
-		}
-		forwarded = forwarded + forwarded(uri, exchange.getRequest().getHeaders().getFirst("host"));
-		headers.set("forwarded", forwarded);
-	}
+    /**
+     * Search for the request body if it was already deserialized using
+     * <code>@RequestBody</code>. If it is not found then deserialize it in the same way
+     * that it would have been for a <code>@RequestBody</code>.
+     * @return the request body
+     */
+    private Mono<Object> getRequestBody() {
+        for (String key : bindingContext.getModel().asMap().keySet()) {
+            if (key.startsWith(BindingResult.MODEL_KEY_PREFIX)) {
+                BindingResult result = (BindingResult) bindingContext.getModel().asMap().get(key);
+                return Mono.just(result.getTarget());
+            }
+        }
+        return null;
+    }
 
-	private String forwarded(URI uri, String hostHeader) {
-		if (StringUtils.hasText(hostHeader)) {
-			return "host=" + hostHeader;
-		}
-		if ("http".equals(uri.getScheme())) {
-			return "host=" + uri.getHost();
-		}
-		return String.format("host=%s;proto=%s", uri.getHost(), uri.getScheme());
-	}
+    protected static class BodyGrabber {
 
-	private Publisher<?> body() {
-		Publisher<?> body = this.body;
-		if (body != null) {
-			return body;
-		}
-		body = getRequestBody();
-		hasBody = true; // even if it's null
-		return body;
-	}
+        public Publisher<Object> body(@RequestBody Publisher<Object> body) {
+            return body;
+        }
+    }
 
-	/**
-	 * Search for the request body if it was already deserialized using
-	 * <code>@RequestBody</code>. If it is not found then deserialize it in the same way
-	 * that it would have been for a <code>@RequestBody</code>.
-	 * @return the request body
-	 */
-	private Mono<Object> getRequestBody() {
-		for (String key : bindingContext.getModel().asMap().keySet()) {
-			if (key.startsWith(BindingResult.MODEL_KEY_PREFIX)) {
-				BindingResult result = (BindingResult) bindingContext.getModel().asMap().get(key);
-				return Mono.just(result.getTarget());
-			}
-		}
-		return null;
-	}
+    protected static class BodySender {
 
-	protected static class BodyGrabber {
-
-		public Publisher<Object> body(@RequestBody Publisher<Object> body) {
-			return body;
-		}
-
-	}
-
-	protected static class BodySender {
-
-		@ResponseBody
-		public Publisher<Object> body() {
-			return null;
-		}
-
-	}
-
+        @ResponseBody
+        public Publisher<Object> body() {
+            return null;
+        }
+    }
 }

@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.config;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -29,86 +27,79 @@ import org.springframework.cloud.gateway.route.RedisRouteDefinitionRepositoryTes
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.test.annotation.DirtiesContext;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class GatewayRedisAutoConfigurationTests {
 
-	@SpringBootConfiguration
-	@EnableAutoConfiguration
-	protected static class Config {
+    @SpringBootConfiguration
+    @EnableAutoConfiguration
+    protected static class Config {
 
-		// TODO: figure out why I need these
-		@Bean
-		RedisRouteDefinitionRepositoryTests.TestGatewayFilterFactory testGatewayFilterFactory() {
-			return new RedisRouteDefinitionRepositoryTests.TestGatewayFilterFactory();
-		}
+        // TODO: figure out why I need these
+        @Bean
+        RedisRouteDefinitionRepositoryTests.TestGatewayFilterFactory testGatewayFilterFactory() {
+            return new RedisRouteDefinitionRepositoryTests.TestGatewayFilterFactory();
+        }
 
-		@Bean
-		RedisRouteDefinitionRepositoryTests.TestFilterGatewayFilterFactory testFilterGatewayFilterFactory() {
-			return new RedisRouteDefinitionRepositoryTests.TestFilterGatewayFilterFactory();
-		}
+        @Bean
+        RedisRouteDefinitionRepositoryTests.TestFilterGatewayFilterFactory testFilterGatewayFilterFactory() {
+            return new RedisRouteDefinitionRepositoryTests.TestFilterGatewayFilterFactory();
+        }
 
-		@Bean
-		RedisRouteDefinitionRepositoryTests.TestRoutePredicateFactory testRoutePredicateFactory() {
-			return new RedisRouteDefinitionRepositoryTests.TestRoutePredicateFactory();
-		}
+        @Bean
+        RedisRouteDefinitionRepositoryTests.TestRoutePredicateFactory testRoutePredicateFactory() {
+            return new RedisRouteDefinitionRepositoryTests.TestRoutePredicateFactory();
+        }
+    }
 
-	}
+    @Nested
+    @SpringBootTest(classes = Config.class)
+    class EnabledByDefault {
 
-	@Nested
-	@SpringBootTest(classes = Config.class)
-	class EnabledByDefault {
+        @Autowired(required = false)
+        private RedisScript redisRequestRateLimiterScript;
 
-		@Autowired(required = false)
-		private RedisScript redisRequestRateLimiterScript;
+        @Autowired(required = false)
+        private RedisRateLimiter redisRateLimiter;
 
-		@Autowired(required = false)
-		private RedisRateLimiter redisRateLimiter;
+        @Test
+        public void shouldInjectRedisBeans() {
+            assertThat(redisRequestRateLimiterScript).isNotNull();
+            assertThat(redisRateLimiter).isNotNull();
+        }
+    }
 
-		@Test
-		public void shouldInjectRedisBeans() {
-			assertThat(redisRequestRateLimiterScript).isNotNull();
-			assertThat(redisRateLimiter).isNotNull();
-		}
+    @Nested
+    @SpringBootTest(classes = Config.class, properties = "spring.cloud.gateway.redis.enabled=false")
+    class DisabledByProperty {
 
-	}
+        @Autowired(required = false)
+        private RedisScript redisRequestRateLimiterScript;
 
-	@Nested
-	@SpringBootTest(classes = Config.class, properties = "spring.cloud.gateway.redis.enabled=false")
-	class DisabledByProperty {
+        @Autowired(required = false)
+        private RedisRateLimiter redisRateLimiter;
 
-		@Autowired(required = false)
-		private RedisScript redisRequestRateLimiterScript;
+        @Test
+        public void shouldDisableRedisBeans() {
+            assertThat(redisRequestRateLimiterScript).isNull();
+            assertThat(redisRateLimiter).isNull();
+        }
+    }
 
-		@Autowired(required = false)
-		private RedisRateLimiter redisRateLimiter;
+    /**
+     * @author Dennis Menge
+     */
+    @Nested
+    @SpringBootTest(classes = GatewayRedisAutoConfigurationTests.Config.class, properties = "spring.cloud.gateway.redis-route-definition-repository.enabled=false")
+    @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+    class RedisRouteDefinitionRepositoryDisabledByProperty {
 
-		@Test
-		public void shouldDisableRedisBeans() {
-			assertThat(redisRequestRateLimiterScript).isNull();
-			assertThat(redisRateLimiter).isNull();
-		}
+        @Autowired(required = false)
+        private RedisRouteDefinitionRepository redisRouteDefinitionRepository;
 
-	}
-
-	/**
-	 * @author Dennis Menge
-	 */
-	@Nested
-	@SpringBootTest(classes = GatewayRedisAutoConfigurationTests.Config.class,
-			properties = "spring.cloud.gateway.redis-route-definition-repository.enabled=false")
-	@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-	class RedisRouteDefinitionRepositoryDisabledByProperty {
-
-		@Autowired(required = false)
-		private RedisRouteDefinitionRepository redisRouteDefinitionRepository;
-
-		@Test
-		public void redisRouteDefinitionRepository() {
-			assertThat(redisRouteDefinitionRepository).isNull();
-		}
-
-	}
-
+        @Test
+        public void redisRouteDefinitionRepository() {
+            assertThat(redisRouteDefinitionRepository).isNull();
+        }
+    }
 }

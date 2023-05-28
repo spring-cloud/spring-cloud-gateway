@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.route;
 
 import reactor.core.publisher.Flux;
@@ -23,6 +22,5 @@ import reactor.core.publisher.Flux;
  */
 public interface RouteDefinitionLocator {
 
-	Flux<RouteDefinition> getRouteDefinitions();
-
+    Flux<RouteDefinition> getRouteDefinitions();
 }

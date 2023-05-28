@@ -13,15 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.factory;
 
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
-
 import reactor.core.publisher.Mono;
-
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -29,48 +26,41 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriComponentsBuilder;
-
 import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
 import static org.springframework.util.CollectionUtils.unmodifiableMultiValueMap;
 
 /**
  * @author Thirunavukkarasu Ravichandran
  */
-public class RemoveRequestParameterGatewayFilterFactory
-		extends AbstractGatewayFilterFactory<AbstractGatewayFilterFactory.NameConfig> {
+public class RemoveRequestParameterGatewayFilterFactory extends AbstractGatewayFilterFactory<AbstractGatewayFilterFactory.NameConfig> {
 
-	public RemoveRequestParameterGatewayFilterFactory() {
-		super(NameConfig.class);
-	}
+    public RemoveRequestParameterGatewayFilterFactory() {
+        super(NameConfig.class);
+    }
 
-	@Override
-	public List<String> shortcutFieldOrder() {
-		return Arrays.asList(NAME_KEY);
-	}
+    @Override
+    public List<String> shortcutFieldOrder() {
+        return Arrays.asList(NAME_KEY);
+    }
 
-	@Override
-	public GatewayFilter apply(NameConfig config) {
-		return new GatewayFilter() {
-			@Override
-			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-				ServerHttpRequest request = exchange.getRequest();
-				MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>(request.getQueryParams());
-				queryParams.remove(config.getName());
+    @Override
+    public GatewayFilter apply(NameConfig config) {
+        return new GatewayFilter() {
 
-				URI newUri = UriComponentsBuilder.fromUri(request.getURI())
-						.replaceQueryParams(unmodifiableMultiValueMap(queryParams)).build().toUri();
+            @Override
+            public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+                ServerHttpRequest request = exchange.getRequest();
+                MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>(request.getQueryParams());
+                queryParams.remove(config.getName());
+                URI newUri = UriComponentsBuilder.fromUri(request.getURI()).replaceQueryParams(unmodifiableMultiValueMap(queryParams)).build().toUri();
+                ServerHttpRequest updatedRequest = exchange.getRequest().mutate().uri(newUri).build();
+                return chain.filter(exchange.mutate().request(updatedRequest).build());
+            }
 
-				ServerHttpRequest updatedRequest = exchange.getRequest().mutate().uri(newUri).build();
-
-				return chain.filter(exchange.mutate().request(updatedRequest).build());
-			}
-
-			@Override
-			public String toString() {
-				return filterToStringCreator(RemoveRequestParameterGatewayFilterFactory.this)
-						.append("name", config.getName()).toString();
-			}
-		};
-	}
-
+            @Override
+            public String toString() {
+                return filterToStringCreator(RemoveRequestParameterGatewayFilterFactory.this).append("name", config.getName()).toString();
+            }
+        };
+    }
 }

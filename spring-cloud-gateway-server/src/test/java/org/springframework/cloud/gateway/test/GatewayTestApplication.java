@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.test;
 
 import org.springframework.boot.SpringApplication;
@@ -33,26 +32,23 @@ import org.springframework.context.annotation.Profile;
 @Import(PermitAllSecurityConfiguration.class)
 public class GatewayTestApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(GatewayTestApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(GatewayTestApplication.class, args);
+    }
 
-	/*
+    /*
 	 * TO test run `spring cloud configserver eureka`, then run this app with
 	 * `--spring.profiles.active=discovery` should be able to hit
 	 * http://localhost:8008/configserver/foo/default a normal configserver api
 	 */
-	@Configuration(proxyBeanMethods = false)
-	@EnableDiscoveryClient
-	@Profile("discovery")
-	protected static class GatewayDiscoveryConfiguration {
+    @Configuration(proxyBeanMethods = false)
+    @EnableDiscoveryClient
+    @Profile("discovery")
+    protected static class GatewayDiscoveryConfiguration {
 
-		@Bean
-		public DiscoveryClientRouteDefinitionLocator discoveryClientRouteLocator(
-				ReactiveDiscoveryClient discoveryClient, DiscoveryLocatorProperties properties) {
-			return new DiscoveryClientRouteDefinitionLocator(discoveryClient, properties);
-		}
-
-	}
-
+        @Bean
+        public DiscoveryClientRouteDefinitionLocator discoveryClientRouteLocator(ReactiveDiscoveryClient discoveryClient, DiscoveryLocatorProperties properties) {
+            return new DiscoveryClientRouteDefinitionLocator(discoveryClient, properties);
+        }
+    }
 }

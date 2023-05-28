@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.config;
 
 import javax.net.ssl.SSLException;
-
 import io.grpc.ManagedChannel;
 import io.grpc.netty.GrpcSslContexts;
 import io.grpc.netty.NettyChannelBuilder;
@@ -30,30 +28,25 @@ import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
  */
 public class GrpcSslConfigurer extends AbstractSslConfigurer<NettyChannelBuilder, ManagedChannel> {
 
-	public GrpcSslConfigurer(HttpClientProperties.Ssl sslProperties) {
-		super(sslProperties);
-	}
+    public GrpcSslConfigurer(HttpClientProperties.Ssl sslProperties) {
+        super(sslProperties);
+    }
 
-	@Override
-	public ManagedChannel configureSsl(NettyChannelBuilder NettyChannelBuilder) throws SSLException {
-		return NettyChannelBuilder.useTransportSecurity().sslContext(getSslContext()).build();
-	}
+    @Override
+    public ManagedChannel configureSsl(NettyChannelBuilder NettyChannelBuilder) throws SSLException {
+        return NettyChannelBuilder.useTransportSecurity().sslContext(getSslContext()).build();
+    }
 
-	private SslContext getSslContext() throws SSLException {
-
-		final SslContextBuilder sslContextBuilder = GrpcSslContexts.forClient();
-
-		final HttpClientProperties.Ssl ssl = getSslProperties();
-		boolean useInsecureTrustManager = ssl.isUseInsecureTrustManager();
-		if (useInsecureTrustManager) {
-			sslContextBuilder.trustManager(InsecureTrustManagerFactory.INSTANCE.getTrustManagers()[0]);
-		}
-
-		if (!useInsecureTrustManager && ssl.getTrustedX509Certificates().size() > 0) {
-			sslContextBuilder.trustManager(getTrustedX509CertificatesForTrustManager());
-		}
-
-		return sslContextBuilder.keyManager(getKeyManagerFactory()).build();
-	}
-
+    private SslContext getSslContext() throws SSLException {
+        final SslContextBuilder sslContextBuilder = GrpcSslContexts.forClient();
+        final HttpClientProperties.Ssl ssl = getSslProperties();
+        boolean useInsecureTrustManager = ssl.isUseInsecureTrustManager();
+        if (useInsecureTrustManager) {
+            sslContextBuilder.trustManager(InsecureTrustManagerFactory.INSTANCE.getTrustManagers()[0]);
+        }
+        if (!useInsecureTrustManager && ssl.getTrustedX509Certificates().size() > 0) {
+            sslContextBuilder.trustManager(getTrustedX509CertificatesForTrustManager());
+        }
+        return sslContextBuilder.keyManager(getKeyManagerFactory()).build();
+    }
 }

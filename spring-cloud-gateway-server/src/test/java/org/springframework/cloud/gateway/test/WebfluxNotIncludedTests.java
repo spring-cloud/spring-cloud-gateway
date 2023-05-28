@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.test;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -29,15 +27,13 @@ import org.springframework.cloud.test.ModifiedClassPathRunner;
 @ClassPathExclusions({ "spring-webflux-*.jar" })
 public class WebfluxNotIncludedTests {
 
-	@Test
-	public void noWebfluxWorks() {
-		new SpringApplication(Config.class).run();
-	}
+    @Test
+    public void noWebfluxWorks() {
+        new SpringApplication(Config.class).run();
+    }
 
-	@SpringBootConfiguration
-	@EnableAutoConfiguration
-	public static class Config {
-
-	}
-
+    @SpringBootConfiguration
+    @EnableAutoConfiguration
+    public static class Config {
+    }
 }

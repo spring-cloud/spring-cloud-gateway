@@ -13,20 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.factory;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
-
 import reactor.core.publisher.Mono;
-
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.server.ServerWebExchange;
-
 import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
 
 /*
@@ -89,170 +85,154 @@ Modified Location response header: https://api.example.com/v1/some/object/id
 Location response header: http://object-service.prod.example.net/v1/some/object/id
 Modified (not) Location response header: http://object-service.prod.example.net/v1/some/object/id
  */
-
 /**
  * @author Vitaliy Pavlyuk
  */
-public class RewriteLocationResponseHeaderGatewayFilterFactory
-		extends AbstractGatewayFilterFactory<RewriteLocationResponseHeaderGatewayFilterFactory.Config> {
+public class RewriteLocationResponseHeaderGatewayFilterFactory extends AbstractGatewayFilterFactory<RewriteLocationResponseHeaderGatewayFilterFactory.Config> {
 
-	private static final String STRIP_VERSION_KEY = "stripVersion";
+    private static final String STRIP_VERSION_KEY = "stripVersion";
 
-	private static final String LOCATION_HEADER_NAME_KEY = "locationHeaderName";
+    private static final String LOCATION_HEADER_NAME_KEY = "locationHeaderName";
 
-	private static final String HOST_VALUE_KEY = "hostValue";
+    private static final String HOST_VALUE_KEY = "hostValue";
 
-	private static final String PROTOCOLS_KEY = "protocols";
+    private static final String PROTOCOLS_KEY = "protocols";
 
-	private static final Pattern VERSIONED_PATH = Pattern.compile("^/v\\d+/.*");
+    private static final Pattern VERSIONED_PATH = Pattern.compile("^/v\\d+/.*");
 
-	private static final String DEFAULT_PROTOCOLS = "https?|ftps?";
+    private static final String DEFAULT_PROTOCOLS = "https?|ftps?";
 
-	private static final Pattern DEFAULT_HOST_PORT = compileHostPortPattern(DEFAULT_PROTOCOLS);
+    private static final Pattern DEFAULT_HOST_PORT = compileHostPortPattern(DEFAULT_PROTOCOLS);
 
-	private static final Pattern DEFAULT_HOST_PORT_VERSION = compileHostPortVersionPattern(DEFAULT_PROTOCOLS);
+    private static final Pattern DEFAULT_HOST_PORT_VERSION = compileHostPortVersionPattern(DEFAULT_PROTOCOLS);
 
-	public RewriteLocationResponseHeaderGatewayFilterFactory() {
-		super(Config.class);
-	}
+    public RewriteLocationResponseHeaderGatewayFilterFactory() {
+        super(Config.class);
+    }
 
-	private static Pattern compileHostPortPattern(String protocols) {
-		return Pattern.compile("(?<=^(?:" + protocols + ")://)[^:/]+(?::\\d+)?(?=/)");
-	}
+    private static Pattern compileHostPortPattern(String protocols) {
+        return Pattern.compile("(?<=^(?:" + protocols + ")://)[^:/]+(?::\\d+)?(?=/)");
+    }
 
-	private static Pattern compileHostPortVersionPattern(String protocols) {
-		return Pattern.compile("(?<=^(?:" + protocols + ")://)[^:/]+(?::\\d+)?(?:/v\\d+)?(?=/)");
-	}
+    private static Pattern compileHostPortVersionPattern(String protocols) {
+        return Pattern.compile("(?<=^(?:" + protocols + ")://)[^:/]+(?::\\d+)?(?:/v\\d+)?(?=/)");
+    }
 
-	@Override
-	public List<String> shortcutFieldOrder() {
-		return Arrays.asList(STRIP_VERSION_KEY, LOCATION_HEADER_NAME_KEY, HOST_VALUE_KEY, PROTOCOLS_KEY);
-	}
+    @Override
+    public List<String> shortcutFieldOrder() {
+        return Arrays.asList(STRIP_VERSION_KEY, LOCATION_HEADER_NAME_KEY, HOST_VALUE_KEY, PROTOCOLS_KEY);
+    }
 
-	@Override
-	public GatewayFilter apply(Config config) {
-		return new GatewayFilter() {
-			@Override
-			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-				return chain.filter(exchange).then(Mono.fromRunnable(() -> rewriteLocation(exchange, config)));
-			}
+    @Override
+    public GatewayFilter apply(Config config) {
+        return new GatewayFilter() {
 
-			@Override
-			public String toString() {
-				// @formatter:off
-				return filterToStringCreator(
-						RewriteLocationResponseHeaderGatewayFilterFactory.this)
-						.append("stripVersion", config.stripVersion)
-						.append("locationHeaderName", config.locationHeaderName)
-						.append("hostValue", config.hostValue)
-						.append("protocols", config.protocols)
-						.toString();
-				// @formatter:on
-			}
-		};
-	}
+            @Override
+            public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+                return chain.filter(exchange).then(Mono.fromRunnable(() -> rewriteLocation(exchange, config)));
+            }
 
-	void rewriteLocation(ServerWebExchange exchange, Config config) {
-		final String location = exchange.getResponse().getHeaders().getFirst(config.getLocationHeaderName());
-		final String host = config.getHostValue() != null ? config.getHostValue()
-				: exchange.getRequest().getHeaders().getFirst(HttpHeaders.HOST);
-		final String path = exchange.getRequest().getURI().getPath();
-		if (location != null && host != null) {
-			final String fixedLocation = fixedLocation(location, host, path, config.getStripVersion(),
-					config.getHostPortPattern(), config.getHostPortVersionPattern());
-			exchange.getResponse().getHeaders().set(config.getLocationHeaderName(), fixedLocation);
-		}
-	}
+            @Override
+            public String toString() {
+                // @formatter:off
+                return filterToStringCreator(RewriteLocationResponseHeaderGatewayFilterFactory.this).append("stripVersion", config.stripVersion).append("locationHeaderName", config.locationHeaderName).append("hostValue", config.hostValue).append("protocols", config.protocols).toString();
+                // @formatter:on
+            }
+        };
+    }
 
-	String fixedLocation(String location, String host, String path, StripVersion stripVersion, Pattern hostPortPattern,
-			Pattern hostPortVersionPattern) {
-		final boolean doStrip = StripVersion.ALWAYS_STRIP.equals(stripVersion)
-				|| (StripVersion.AS_IN_REQUEST.equals(stripVersion) && !VERSIONED_PATH.matcher(path).matches());
-		final Pattern pattern = doStrip ? hostPortVersionPattern : hostPortPattern;
-		return pattern.matcher(location).replaceFirst(host);
-	}
+    void rewriteLocation(ServerWebExchange exchange, Config config) {
+        final String location = exchange.getResponse().getHeaders().getFirst(config.getLocationHeaderName());
+        final String host = config.getHostValue() != null ? config.getHostValue() : exchange.getRequest().getHeaders().getFirst(HttpHeaders.HOST);
+        final String path = exchange.getRequest().getURI().getPath();
+        if (location != null && host != null) {
+            final String fixedLocation = fixedLocation(location, host, path, config.getStripVersion(), config.getHostPortPattern(), config.getHostPortVersionPattern());
+            exchange.getResponse().getHeaders().set(config.getLocationHeaderName(), fixedLocation);
+        }
+    }
 
-	public enum StripVersion {
+    String fixedLocation(String location, String host, String path, StripVersion stripVersion, Pattern hostPortPattern, Pattern hostPortVersionPattern) {
+        final boolean doStrip = StripVersion.ALWAYS_STRIP.equals(stripVersion) || (StripVersion.AS_IN_REQUEST.equals(stripVersion) && !VERSIONED_PATH.matcher(path).matches());
+        final Pattern pattern = doStrip ? hostPortVersionPattern : hostPortPattern;
+        return pattern.matcher(location).replaceFirst(host);
+    }
 
-		/**
-		 * Version will not be stripped, even if the original request path contains no
-		 * version.
-		 */
-		NEVER_STRIP,
+    public enum StripVersion {
 
-		/**
-		 * Version will be stripped only if the original request path contains no version.
-		 * This is the Default.
-		 */
-		AS_IN_REQUEST,
+        /**
+         * Version will not be stripped, even if the original request path contains no
+         * version.
+         */
+        NEVER_STRIP,
+        /**
+         * Version will be stripped only if the original request path contains no version.
+         * This is the Default.
+         */
+        AS_IN_REQUEST,
+        /**
+         * Version will be stripped, even if the original request path contains version.
+         */
+        ALWAYS_STRIP
+    }
 
-		/**
-		 * Version will be stripped, even if the original request path contains version.
-		 */
-		ALWAYS_STRIP
+    public static class Config {
 
-	}
+        private StripVersion stripVersion = StripVersion.AS_IN_REQUEST;
 
-	public static class Config {
+        private String locationHeaderName = HttpHeaders.LOCATION;
 
-		private StripVersion stripVersion = StripVersion.AS_IN_REQUEST;
+        private String hostValue;
 
-		private String locationHeaderName = HttpHeaders.LOCATION;
+        private String protocols = DEFAULT_PROTOCOLS;
 
-		private String hostValue;
+        private Pattern hostPortPattern = DEFAULT_HOST_PORT;
 
-		private String protocols = DEFAULT_PROTOCOLS;
+        private Pattern hostPortVersionPattern = DEFAULT_HOST_PORT_VERSION;
 
-		private Pattern hostPortPattern = DEFAULT_HOST_PORT;
+        public StripVersion getStripVersion() {
+            return stripVersion;
+        }
 
-		private Pattern hostPortVersionPattern = DEFAULT_HOST_PORT_VERSION;
+        public Config setStripVersion(StripVersion stripVersion) {
+            this.stripVersion = stripVersion;
+            return this;
+        }
 
-		public StripVersion getStripVersion() {
-			return stripVersion;
-		}
+        public String getLocationHeaderName() {
+            return locationHeaderName;
+        }
 
-		public Config setStripVersion(StripVersion stripVersion) {
-			this.stripVersion = stripVersion;
-			return this;
-		}
+        public Config setLocationHeaderName(String locationHeaderName) {
+            this.locationHeaderName = locationHeaderName;
+            return this;
+        }
 
-		public String getLocationHeaderName() {
-			return locationHeaderName;
-		}
+        public String getHostValue() {
+            return hostValue;
+        }
 
-		public Config setLocationHeaderName(String locationHeaderName) {
-			this.locationHeaderName = locationHeaderName;
-			return this;
-		}
+        public Config setHostValue(String hostValue) {
+            this.hostValue = hostValue;
+            return this;
+        }
 
-		public String getHostValue() {
-			return hostValue;
-		}
+        public String getProtocols() {
+            return protocols;
+        }
 
-		public Config setHostValue(String hostValue) {
-			this.hostValue = hostValue;
-			return this;
-		}
+        public Config setProtocols(String protocols) {
+            this.protocols = protocols;
+            this.hostPortPattern = compileHostPortPattern(protocols);
+            this.hostPortVersionPattern = compileHostPortVersionPattern(protocols);
+            return this;
+        }
 
-		public String getProtocols() {
-			return protocols;
-		}
+        public Pattern getHostPortPattern() {
+            return hostPortPattern;
+        }
 
-		public Config setProtocols(String protocols) {
-			this.protocols = protocols;
-			this.hostPortPattern = compileHostPortPattern(protocols);
-			this.hostPortVersionPattern = compileHostPortVersionPattern(protocols);
-			return this;
-		}
-
-		public Pattern getHostPortPattern() {
-			return hostPortPattern;
-		}
-
-		public Pattern getHostPortVersionPattern() {
-			return hostPortVersionPattern;
-		}
-
-	}
-
+        public Pattern getHostPortVersionPattern() {
+            return hostPortVersionPattern;
+        }
+    }
 }

@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.sample;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -39,29 +38,25 @@ import org.springframework.web.bind.annotation.RestController;
 @LoadBalancerClient(name = "myservice", configuration = MyServiceConf.class)
 public class MvcFailureAnalyzerApplication {
 
-	@GetMapping("hello")
-	public String hello() {
-		return "Hello";
-	}
+    @GetMapping("hello")
+    public String hello() {
+        return "Hello";
+    }
 
-	@Bean
-	@ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.REACTIVE)
-	public RouteLocator myRouteLocator(RouteLocatorBuilder builder) {
-		return builder.routes().route(r -> r.path("/myprefix/**").filters(f -> f.stripPrefix(1)).uri("lb://myservice"))
-				.build();
-	}
-
+    @Bean
+    @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.REACTIVE)
+    public RouteLocator myRouteLocator(RouteLocatorBuilder builder) {
+        return builder.routes().route(r -> r.path("/myprefix/**").filters(f -> f.stripPrefix(1)).uri("lb://myservice")).build();
+    }
 }
 
 class MyServiceConf {
 
-	@Value("${local.server.port}")
-	private int port = 0;
+    @Value("${local.server.port}")
+    private int port = 0;
 
-	@Bean
-	public ServiceInstanceListSupplier staticServiceInstanceListSupplier() {
-		return ServiceInstanceListSuppliers.from("myservice",
-				new DefaultServiceInstance("myservice-1", "myservice", "localhost", port, false));
-	}
-
+    @Bean
+    public ServiceInstanceListSupplier staticServiceInstanceListSupplier() {
+        return ServiceInstanceListSuppliers.from("myservice", new DefaultServiceInstance("myservice-1", "myservice", "localhost", port, false));
+    }
 }

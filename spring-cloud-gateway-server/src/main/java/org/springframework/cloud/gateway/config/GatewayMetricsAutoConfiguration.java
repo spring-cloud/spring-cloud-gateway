@@ -13,16 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.config;
 
 import java.util.List;
-
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.observation.ObservationRegistry;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.propagation.Propagator;
-
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.actuate.autoconfigure.metrics.CompositeMeterRegistryAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.metrics.MetricsAutoConfiguration;
@@ -59,92 +56,81 @@ import org.springframework.web.reactive.DispatcherHandler;
 @ConditionalOnProperty(name = GatewayProperties.PREFIX + ".enabled", matchIfMissing = true)
 @EnableConfigurationProperties(GatewayMetricsProperties.class)
 @AutoConfigureBefore(HttpHandlerAutoConfiguration.class)
-@AutoConfigureAfter({ MetricsAutoConfiguration.class, CompositeMeterRegistryAutoConfiguration.class,
-		ObservationAutoConfiguration.class })
+@AutoConfigureAfter({ MetricsAutoConfiguration.class, CompositeMeterRegistryAutoConfiguration.class, ObservationAutoConfiguration.class })
 @ConditionalOnClass({ DispatcherHandler.class, MeterRegistry.class, MetricsAutoConfiguration.class })
 public class GatewayMetricsAutoConfiguration {
 
-	@Bean
-	public GatewayHttpTagsProvider gatewayHttpTagsProvider() {
-		return new GatewayHttpTagsProvider();
-	}
+    @Bean
+    public GatewayHttpTagsProvider gatewayHttpTagsProvider() {
+        return new GatewayHttpTagsProvider();
+    }
 
-	@Bean
-	@ConditionalOnProperty(name = GatewayProperties.PREFIX + ".metrics.tags.path.enabled")
-	public GatewayPathTagsProvider gatewayPathTagsProvider() {
-		return new GatewayPathTagsProvider();
-	}
+    @Bean
+    @ConditionalOnProperty(name = GatewayProperties.PREFIX + ".metrics.tags.path.enabled")
+    public GatewayPathTagsProvider gatewayPathTagsProvider() {
+        return new GatewayPathTagsProvider();
+    }
 
-	@Bean
-	public GatewayRouteTagsProvider gatewayRouteTagsProvider() {
-		return new GatewayRouteTagsProvider();
-	}
+    @Bean
+    public GatewayRouteTagsProvider gatewayRouteTagsProvider() {
+        return new GatewayRouteTagsProvider();
+    }
 
-	@Bean
-	public PropertiesTagsProvider propertiesTagsProvider(GatewayMetricsProperties properties) {
-		return new PropertiesTagsProvider(properties.getTags());
-	}
+    @Bean
+    public PropertiesTagsProvider propertiesTagsProvider(GatewayMetricsProperties properties) {
+        return new PropertiesTagsProvider(properties.getTags());
+    }
 
-	@Bean
-	@ConditionalOnBean(MeterRegistry.class)
-	@ConditionalOnProperty(name = GatewayProperties.PREFIX + ".metrics.enabled", matchIfMissing = true)
-	// don't use @ConditionalOnEnabledGlobalFilter as the above property may
-	// encompass more than just the filter
-	public GatewayMetricsFilter gatewayMetricFilter(MeterRegistry meterRegistry,
-			List<GatewayTagsProvider> tagsProviders, GatewayMetricsProperties properties) {
-		return new GatewayMetricsFilter(meterRegistry, tagsProviders, properties.getPrefix());
-	}
+    @Bean
+    @ConditionalOnBean(MeterRegistry.class)
+    @ConditionalOnProperty(name = GatewayProperties.PREFIX + ".metrics.enabled", matchIfMissing = true)
+    public // encompass more than just the filter
+    GatewayMetricsFilter gatewayMetricFilter(MeterRegistry meterRegistry, List<GatewayTagsProvider> tagsProviders, GatewayMetricsProperties properties) {
+        return new GatewayMetricsFilter(meterRegistry, tagsProviders, properties.getPrefix());
+    }
 
-	@Bean
-	@ConditionalOnBean(MeterRegistry.class)
-	@ConditionalOnProperty(name = GatewayProperties.PREFIX + ".metrics.enabled", matchIfMissing = true)
-	public RouteDefinitionMetrics routeDefinitionMetrics(MeterRegistry meterRegistry,
-			RouteDefinitionLocator routeDefinitionLocator, GatewayMetricsProperties properties) {
-		return new RouteDefinitionMetrics(meterRegistry, routeDefinitionLocator, properties.getPrefix());
-	}
+    @Bean
+    @ConditionalOnBean(MeterRegistry.class)
+    @ConditionalOnProperty(name = GatewayProperties.PREFIX + ".metrics.enabled", matchIfMissing = true)
+    public RouteDefinitionMetrics routeDefinitionMetrics(MeterRegistry meterRegistry, RouteDefinitionLocator routeDefinitionLocator, GatewayMetricsProperties properties) {
+        return new RouteDefinitionMetrics(meterRegistry, routeDefinitionLocator, properties.getPrefix());
+    }
 
-	@Configuration(proxyBeanMethods = false)
-	@ConditionalOnBean(ObservationRegistry.class)
-	@ConditionalOnProperty(name = GatewayProperties.PREFIX + ".observability.enabled", matchIfMissing = true)
-	static class ObservabilityConfiguration {
+    @Configuration(proxyBeanMethods = false)
+    @ConditionalOnBean(ObservationRegistry.class)
+    @ConditionalOnProperty(name = GatewayProperties.PREFIX + ".observability.enabled", matchIfMissing = true)
+    static class ObservabilityConfiguration {
 
-		@Bean
-		@ConditionalOnMissingBean
-		ObservedRequestHttpHeadersFilter observedRequestHttpHeadersFilter(ObservationRegistry observationRegistry,
-				ObjectProvider<GatewayObservationConvention> gatewayObservationConvention) {
-			return new ObservedRequestHttpHeadersFilter(observationRegistry,
-					gatewayObservationConvention.getIfAvailable(() -> null));
-		}
+        @Bean
+        @ConditionalOnMissingBean
+        ObservedRequestHttpHeadersFilter observedRequestHttpHeadersFilter(ObservationRegistry observationRegistry, ObjectProvider<GatewayObservationConvention> gatewayObservationConvention) {
+            return new ObservedRequestHttpHeadersFilter(observationRegistry, gatewayObservationConvention.getIfAvailable(() -> null));
+        }
 
-		@Bean
-		@ConditionalOnMissingBean
-		ObservedResponseHttpHeadersFilter observedResponseHttpHeadersFilter() {
-			return new ObservedResponseHttpHeadersFilter();
-		}
+        @Bean
+        @ConditionalOnMissingBean
+        ObservedResponseHttpHeadersFilter observedResponseHttpHeadersFilter() {
+            return new ObservedResponseHttpHeadersFilter();
+        }
 
-		@Bean
-		@Order(Ordered.HIGHEST_PRECEDENCE)
-		ObservationClosingWebExceptionHandler observationClosingWebExceptionHandler() {
-			return new ObservationClosingWebExceptionHandler();
-		}
+        @Bean
+        @Order(Ordered.HIGHEST_PRECEDENCE)
+        ObservationClosingWebExceptionHandler observationClosingWebExceptionHandler() {
+            return new ObservationClosingWebExceptionHandler();
+        }
 
-		@Configuration(proxyBeanMethods = false)
-		@ConditionalOnClass(Tracer.class)
-		@ConditionalOnBean(Tracer.class)
-		static class GatewayTracingConfiguration {
+        @Configuration(proxyBeanMethods = false)
+        @ConditionalOnClass(Tracer.class)
+        @ConditionalOnBean(Tracer.class)
+        static class GatewayTracingConfiguration {
 
-			@Bean
-			@ConditionalOnMissingBean
-			@ConditionalOnBean({ Propagator.class, TracingProperties.class })
-			@Order(Ordered.HIGHEST_PRECEDENCE + 5)
-			GatewayPropagatingSenderTracingObservationHandler gatewayPropagatingSenderTracingObservationHandler(
-					Tracer tracer, Propagator propagator, TracingProperties tracingProperties) {
-				return new GatewayPropagatingSenderTracingObservationHandler(tracer, propagator,
-						tracingProperties.getBaggage().getRemoteFields());
-			}
-
-		}
-
-	}
-
+            @Bean
+            @ConditionalOnMissingBean
+            @ConditionalOnBean({ Propagator.class, TracingProperties.class })
+            @Order(Ordered.HIGHEST_PRECEDENCE + 5)
+            GatewayPropagatingSenderTracingObservationHandler gatewayPropagatingSenderTracingObservationHandler(Tracer tracer, Propagator propagator, TracingProperties tracingProperties) {
+                return new GatewayPropagatingSenderTracingObservationHandler(tracer, propagator, tracingProperties.getBaggage().getRemoteFields());
+            }
+        }
+    }
 }

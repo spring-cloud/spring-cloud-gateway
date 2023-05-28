@@ -13,15 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.factory.cache;
 
 import java.util.Optional;
-
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.NettyWriteResponseFilter;
@@ -30,7 +27,6 @@ import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.web.server.ServerWebExchange;
-
 import static org.springframework.cloud.gateway.filter.factory.cache.LocalResponseCacheGatewayFilterFactory.LOCAL_RESPONSE_CACHE_FILTER_APPLIED;
 
 /**
@@ -42,68 +38,59 @@ import static org.springframework.cloud.gateway.filter.factory.cache.LocalRespon
  */
 public class ResponseCacheGatewayFilter implements GatewayFilter, Ordered {
 
-	private final ResponseCacheManager responseCacheManager;
+    private final ResponseCacheManager responseCacheManager;
 
-	public ResponseCacheGatewayFilter(ResponseCacheManager responseCacheManager) {
-		this.responseCacheManager = responseCacheManager;
-	}
+    public ResponseCacheGatewayFilter(ResponseCacheManager responseCacheManager) {
+        this.responseCacheManager = responseCacheManager;
+    }
 
-	@Override
-	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-		if (responseCacheManager.isRequestCacheable(exchange.getRequest())) {
-			exchange.getAttributes().put(LOCAL_RESPONSE_CACHE_FILTER_APPLIED, true);
-			return filterWithCache(exchange, chain);
-		}
-		else {
-			return chain.filter(exchange);
-		}
-	}
+    @Override
+    public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        if (responseCacheManager.isRequestCacheable(exchange.getRequest())) {
+            exchange.getAttributes().put(LOCAL_RESPONSE_CACHE_FILTER_APPLIED, true);
+            return filterWithCache(exchange, chain);
+        } else {
+            return chain.filter(exchange);
+        }
+    }
 
-	@Override
-	public int getOrder() {
-		return NettyWriteResponseFilter.WRITE_RESPONSE_FILTER_ORDER - 3;
-	}
+    @Override
+    public int getOrder() {
+        return NettyWriteResponseFilter.WRITE_RESPONSE_FILTER_ORDER - 3;
+    }
 
-	private Mono<Void> filterWithCache(ServerWebExchange exchange, GatewayFilterChain chain) {
-		final String metadataKey = responseCacheManager.resolveMetadataKey(exchange);
-		Optional<CachedResponse> cached = responseCacheManager.getFromCache(exchange.getRequest(), metadataKey);
+    private Mono<Void> filterWithCache(ServerWebExchange exchange, GatewayFilterChain chain) {
+        final String metadataKey = responseCacheManager.resolveMetadataKey(exchange);
+        Optional<CachedResponse> cached = responseCacheManager.getFromCache(exchange.getRequest(), metadataKey);
+        if (cached.isPresent()) {
+            return responseCacheManager.processFromCache(exchange, metadataKey, cached.get());
+        } else {
+            return chain.filter(exchange.mutate().response(new CachingResponseDecorator(metadataKey, exchange)).build());
+        }
+    }
 
-		if (cached.isPresent()) {
-			return responseCacheManager.processFromCache(exchange, metadataKey, cached.get());
-		}
-		else {
-			return chain
-					.filter(exchange.mutate().response(new CachingResponseDecorator(metadataKey, exchange)).build());
-		}
-	}
+    private class CachingResponseDecorator extends ServerHttpResponseDecorator {
 
-	private class CachingResponseDecorator extends ServerHttpResponseDecorator {
+        private final String metadataKey;
 
-		private final String metadataKey;
+        private final ServerWebExchange exchange;
 
-		private final ServerWebExchange exchange;
+        CachingResponseDecorator(String metadataKey, ServerWebExchange exchange) {
+            super(exchange.getResponse());
+            this.metadataKey = metadataKey;
+            this.exchange = exchange;
+        }
 
-		CachingResponseDecorator(String metadataKey, ServerWebExchange exchange) {
-			super(exchange.getResponse());
-			this.metadataKey = metadataKey;
-			this.exchange = exchange;
-		}
-
-		@Override
-		public Mono<Void> writeWith(Publisher<? extends DataBuffer> body) {
-			final ServerHttpResponse response = exchange.getResponse();
-
-			Flux<DataBuffer> decoratedBody;
-			if (responseCacheManager.isResponseCacheable(response)) {
-				decoratedBody = responseCacheManager.processFromUpstream(metadataKey, exchange, Flux.from(body));
-			}
-			else {
-				decoratedBody = Flux.from(body);
-			}
-
-			return super.writeWith(decoratedBody);
-		}
-
-	}
-
+        @Override
+        public Mono<Void> writeWith(Publisher<? extends DataBuffer> body) {
+            final ServerHttpResponse response = exchange.getResponse();
+            Flux<DataBuffer> decoratedBody;
+            if (responseCacheManager.isResponseCacheable(response)) {
+                decoratedBody = responseCacheManager.processFromUpstream(metadataKey, exchange, Flux.from(body));
+            } else {
+                decoratedBody = Flux.from(body);
+            }
+            return super.writeWith(decoratedBody);
+        }
+    }
 }

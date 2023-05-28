@@ -13,80 +13,63 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.route;
 
 import java.time.Duration;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
-
 import org.springframework.cloud.gateway.support.NotFoundException;
 
 public class InMemoryRouteDefinitionRepositoryTests {
 
-	private InMemoryRouteDefinitionRepository repository;
+    private InMemoryRouteDefinitionRepository repository;
 
-	@BeforeEach
-	public void setUp() throws Exception {
-		repository = new InMemoryRouteDefinitionRepository();
-	}
+    @BeforeEach
+    public void setUp() throws Exception {
+        repository = new InMemoryRouteDefinitionRepository();
+    }
 
-	@Test
-	public void shouldProtectRoutesAgainstConcurrentModificationException() {
-		Flux<Void> createRoutes = Flux.just(createRoute("foo1"), createRoute("foo2"), createRoute("foo3"))
-				.flatMap(repository::save);
+    @Test
+    public void shouldProtectRoutesAgainstConcurrentModificationException() {
+        Flux<Void> createRoutes = Flux.just(createRoute("foo1"), createRoute("foo2"), createRoute("foo3")).flatMap(repository::save);
+        StepVerifier.create(createRoutes).verifyComplete();
+        Flux<RouteDefinition> readRoutesWithDelay = repository.getRouteDefinitions().delayElements(Duration.ofMillis(100));
+        Mono<Void> createAnotherRoute = repository.save(createRoute("bar"));
+        StepVerifier.withVirtualTime(() -> readRoutesWithDelay).expectSubscription().expectNextCount(1).then(createAnotherRoute::subscribe).thenAwait().expectNextCount(2).verifyComplete();
+    }
 
-		StepVerifier.create(createRoutes).verifyComplete();
+    @Test
+    public void shouldValidateRouteIdOnCreate() {
+        Mono<RouteDefinition> emptyRoute = Mono.just(new RouteDefinition());
+        StepVerifier.create(repository.save(emptyRoute)).verifyError(IllegalArgumentException.class);
+    }
 
-		Flux<RouteDefinition> readRoutesWithDelay = repository.getRouteDefinitions()
-				.delayElements(Duration.ofMillis(100));
+    @Test
+    public void shouldCreateRoute() {
+        StepVerifier.create(repository.save(createRoute("foo"))).verifyComplete();
+        StepVerifier.create(repository.getRouteDefinitions()).expectNextCount(1).verifyComplete();
+    }
 
-		Mono<Void> createAnotherRoute = repository.save(createRoute("bar"));
+    @Test
+    public void shouldDeleteRoute() {
+        Flux<Void> createRoutes = Flux.just(createRoute("foo1"), createRoute("foo2"), createRoute("foo3")).flatMap(repository::save);
+        StepVerifier.create(createRoutes).verifyComplete();
+        Mono<Void> deleteRoute = repository.delete(Mono.just("foo2"));
+        StepVerifier.create(deleteRoute).verifyComplete();
+        StepVerifier.create(repository.getRouteDefinitions()).expectNextCount(2).verifyComplete();
+    }
 
-		StepVerifier.withVirtualTime(() -> readRoutesWithDelay).expectSubscription().expectNextCount(1)
-				.then(createAnotherRoute::subscribe).thenAwait().expectNextCount(2).verifyComplete();
-	}
+    @Test
+    public void shouldThrownNotFoundWhenDeleteInvalidRoute() {
+        StepVerifier.create(repository.delete(Mono.just("x"))).verifyError(NotFoundException.class);
+    }
 
-	@Test
-	public void shouldValidateRouteIdOnCreate() {
-		Mono<RouteDefinition> emptyRoute = Mono.just(new RouteDefinition());
-		StepVerifier.create(repository.save(emptyRoute)).verifyError(IllegalArgumentException.class);
-	}
-
-	@Test
-	public void shouldCreateRoute() {
-		StepVerifier.create(repository.save(createRoute("foo"))).verifyComplete();
-
-		StepVerifier.create(repository.getRouteDefinitions()).expectNextCount(1).verifyComplete();
-	}
-
-	@Test
-	public void shouldDeleteRoute() {
-		Flux<Void> createRoutes = Flux.just(createRoute("foo1"), createRoute("foo2"), createRoute("foo3"))
-				.flatMap(repository::save);
-
-		StepVerifier.create(createRoutes).verifyComplete();
-
-		Mono<Void> deleteRoute = repository.delete(Mono.just("foo2"));
-
-		StepVerifier.create(deleteRoute).verifyComplete();
-
-		StepVerifier.create(repository.getRouteDefinitions()).expectNextCount(2).verifyComplete();
-	}
-
-	@Test
-	public void shouldThrownNotFoundWhenDeleteInvalidRoute() {
-		StepVerifier.create(repository.delete(Mono.just("x"))).verifyError(NotFoundException.class);
-	}
-
-	private Mono<RouteDefinition> createRoute(String id) {
-		RouteDefinition routeDefinition = new RouteDefinition();
-		routeDefinition.setId(id);
-		return Mono.just(routeDefinition);
-	}
-
+    private Mono<RouteDefinition> createRoute(String id) {
+        RouteDefinition routeDefinition = new RouteDefinition();
+        routeDefinition.setId(id);
+        return Mono.just(routeDefinition);
+    }
 }

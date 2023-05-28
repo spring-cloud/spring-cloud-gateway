@@ -13,51 +13,44 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.headers.observation;
 
 import io.micrometer.observation.Observation;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
-
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
 class ObservationClosingWebExceptionHandlerTests {
 
-	ObservationClosingWebExceptionHandler handler = new ObservationClosingWebExceptionHandler();
+    ObservationClosingWebExceptionHandler handler = new ObservationClosingWebExceptionHandler();
 
-	MockServerHttpRequest request = MockServerHttpRequest.get("/get").build();
+    MockServerHttpRequest request = MockServerHttpRequest.get("/get").build();
 
-	ServerWebExchange exchange = MockServerWebExchange.from(request);
+    ServerWebExchange exchange = MockServerWebExchange.from(request);
 
-	@Test
-	void shouldDoNothingWhenObservationAlreadyStopped() {
-		exchange.getAttributes().put(ObservedResponseHttpHeadersFilter.OBSERVATION_STOPPED, "true");
-		exchange.getAttributes().put(ServerWebExchangeUtils.GATEWAY_OBSERVATION_ATTR,
-				"if this attribute will be attempted to be retrieved ClassCast will be thrown");
+    @Test
+    void shouldDoNothingWhenObservationAlreadyStopped() {
+        exchange.getAttributes().put(ObservedResponseHttpHeadersFilter.OBSERVATION_STOPPED, "true");
+        exchange.getAttributes().put(ServerWebExchangeUtils.GATEWAY_OBSERVATION_ATTR, "if this attribute will be attempted to be retrieved ClassCast will be thrown");
+        assertThatNoException().isThrownBy(() -> handler.handle(exchange, new RuntimeException()));
+    }
 
-		assertThatNoException().isThrownBy(() -> handler.handle(exchange, new RuntimeException()));
-	}
+    @Test
+    void shouldDoNothingWhenThereIsNoObservation() {
+        assertThatNoException().isThrownBy(() -> handler.handle(exchange, new RuntimeException()));
+    }
 
-	@Test
-	void shouldDoNothingWhenThereIsNoObservation() {
-		assertThatNoException().isThrownBy(() -> handler.handle(exchange, new RuntimeException()));
-	}
-
-	@Test
-	void shouldStopTheObservationIfItWasNotStoppedPreviouslyAndThereWasAnError() {
-		Observation observation = Mockito.mock(Observation.class);
-		exchange.getAttributes().put(ServerWebExchangeUtils.GATEWAY_OBSERVATION_ATTR, observation);
-		RuntimeException runtimeException = new RuntimeException();
-
-		assertThatNoException().isThrownBy(() -> handler.handle(exchange, runtimeException));
-		Mockito.verify(observation).error(runtimeException);
-		Mockito.verify(observation).stop();
-	}
-
+    @Test
+    void shouldStopTheObservationIfItWasNotStoppedPreviouslyAndThereWasAnError() {
+        Observation observation = Mockito.mock(Observation.class);
+        exchange.getAttributes().put(ServerWebExchangeUtils.GATEWAY_OBSERVATION_ATTR, observation);
+        RuntimeException runtimeException = new RuntimeException();
+        assertThatNoException().isThrownBy(() -> handler.handle(exchange, runtimeException));
+        Mockito.verify(observation).error(runtimeException);
+        Mockito.verify(observation).stop();
+    }
 }

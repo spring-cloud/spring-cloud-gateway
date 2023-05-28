@@ -13,23 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.support;
 
 public final class RouteMetadataUtils {
 
-	/**
-	 * Response timeout attribute name.
-	 */
-	public static final String RESPONSE_TIMEOUT_ATTR = "response-timeout";
+    /**
+     * Response timeout attribute name.
+     */
+    public static final String RESPONSE_TIMEOUT_ATTR = "response-timeout";
 
-	/**
-	 * Connect timeout attribute name.
-	 */
-	public static final String CONNECT_TIMEOUT_ATTR = "connect-timeout";
+    /**
+     * Connect timeout attribute name.
+     */
+    public static final String CONNECT_TIMEOUT_ATTR = "connect-timeout";
 
-	private RouteMetadataUtils() {
-		throw new AssertionError("Must not instantiate utility class.");
-	}
-
+    private RouteMetadataUtils() {
+        throw new AssertionError("Must not instantiate utility class.");
+    }
 }

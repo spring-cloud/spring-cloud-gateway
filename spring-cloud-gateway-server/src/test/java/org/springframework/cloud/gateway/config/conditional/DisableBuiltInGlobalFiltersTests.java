@@ -13,14 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.config.conditional;
 
 import java.util.List;
-
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -29,75 +26,54 @@ import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.RemoveCachedBodyFilter;
 import org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter;
 import org.springframework.test.context.ActiveProfiles;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class DisableBuiltInGlobalFiltersTests {
 
-	@EnableAutoConfiguration
-	@SpringBootConfiguration
-	protected static class Config {
+    @EnableAutoConfiguration
+    @SpringBootConfiguration
+    protected static class Config {
+    }
 
-	}
+    @Nested
+    @SpringBootTest(classes = Config.class)
+    public class GlobalFilterDefault {
 
-	@Nested
-	@SpringBootTest(classes = Config.class)
-	public class GlobalFilterDefault {
+        @Autowired
+        private List<GlobalFilter> globalFilters;
 
-		@Autowired
-		private List<GlobalFilter> globalFilters;
+        @Test
+        public void shouldInjectBuiltInFilters() {
+            assertThat(globalFilters).hasSizeGreaterThanOrEqualTo(10);
+        }
+    }
 
-		@Test
-		public void shouldInjectBuiltInFilters() {
-			assertThat(globalFilters).hasSizeGreaterThanOrEqualTo(10);
-		}
+    @Nested
+    @SpringBootTest(classes = Config.class, properties = { "spring.cloud.gateway.global-filter.remove-cached-body.enabled=false", "spring.cloud.gateway.global-filter.route-to-request-url.enabled=false" })
+    @ActiveProfiles("disable-components")
+    public class DisableSpecificsFiltersByProperty {
 
-	}
+        @Autowired
+        private List<GlobalFilter> globalFilters;
 
-	@Nested
-	@SpringBootTest(classes = Config.class,
-			properties = { "spring.cloud.gateway.global-filter.remove-cached-body.enabled=false",
-					"spring.cloud.gateway.global-filter.route-to-request-url.enabled=false" })
-	@ActiveProfiles("disable-components")
-	public class DisableSpecificsFiltersByProperty {
+        @Test
+        public void shouldInjectOnlyEnabledBuiltInFilters() {
+            assertThat(globalFilters).hasSizeGreaterThan(0);
+            assertThat(globalFilters).allSatisfy(filter -> assertThat(filter).isNotInstanceOfAny(RemoveCachedBodyFilter.class, RouteToRequestUrlFilter.class));
+        }
+    }
 
-		@Autowired
-		private List<GlobalFilter> globalFilters;
+    @Nested
+    @SpringBootTest(classes = Config.class, properties = { "spring.cloud.gateway.global-filter.adapt-cached-body.enabled=false", "spring.cloud.gateway.global-filter.remove-cached-body.enabled=false", "spring.cloud.gateway.global-filter.route-to-request-url.enabled=false", "spring.cloud.gateway.global-filter.forward-routing.enabled=false", "spring.cloud.gateway.global-filter.forward-path.enabled=false", "spring.cloud.gateway.global-filter.websocket-routing.enabled=false", "spring.cloud.gateway.global-filter.netty-write-response.enabled=false", "spring.cloud.gateway.global-filter.netty-routing.enabled=false", "spring.cloud.gateway.global-filter.reactive-load-balancer-client.enabled=false", "spring.cloud.gateway.global-filter.load-balancer-client.enabled=false", "spring.cloud.gateway.global-filter.load-balancer-service-instance-cookie.enabled=false", "spring.cloud.gateway.metrics.enabled=false" })
+    @ActiveProfiles("disable-components")
+    public class DisableAllGlobalFiltersByProperty {
 
-		@Test
-		public void shouldInjectOnlyEnabledBuiltInFilters() {
-			assertThat(globalFilters).hasSizeGreaterThan(0);
-			assertThat(globalFilters).allSatisfy(filter -> assertThat(filter)
-					.isNotInstanceOfAny(RemoveCachedBodyFilter.class, RouteToRequestUrlFilter.class));
-		}
+        @Autowired(required = false)
+        private List<GlobalFilter> globalFilters;
 
-	}
-
-	@Nested
-	@SpringBootTest(classes = Config.class,
-			properties = { "spring.cloud.gateway.global-filter.adapt-cached-body.enabled=false",
-					"spring.cloud.gateway.global-filter.remove-cached-body.enabled=false",
-					"spring.cloud.gateway.global-filter.route-to-request-url.enabled=false",
-					"spring.cloud.gateway.global-filter.forward-routing.enabled=false",
-					"spring.cloud.gateway.global-filter.forward-path.enabled=false",
-					"spring.cloud.gateway.global-filter.websocket-routing.enabled=false",
-					"spring.cloud.gateway.global-filter.netty-write-response.enabled=false",
-					"spring.cloud.gateway.global-filter.netty-routing.enabled=false",
-					"spring.cloud.gateway.global-filter.reactive-load-balancer-client.enabled=false",
-					"spring.cloud.gateway.global-filter.load-balancer-client.enabled=false",
-					"spring.cloud.gateway.global-filter.load-balancer-service-instance-cookie.enabled=false",
-					"spring.cloud.gateway.metrics.enabled=false" })
-	@ActiveProfiles("disable-components")
-	public class DisableAllGlobalFiltersByProperty {
-
-		@Autowired(required = false)
-		private List<GlobalFilter> globalFilters;
-
-		@Test
-		public void shouldDisableAllBuiltInFilters() {
-			assertThat(globalFilters).isNull();
-		}
-
-	}
-
+        @Test
+        public void shouldDisableAllBuiltInFilters() {
+            assertThat(globalFilters).isNull();
+        }
+    }
 }

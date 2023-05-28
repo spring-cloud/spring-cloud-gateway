@@ -13,13 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.handler.predicate;
 
 import java.util.function.Predicate;
-
 import org.junit.jupiter.api.Test;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -43,7 +40,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.server.ServerWebExchange;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -54,97 +50,80 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @DirtiesContext
 public class ReadBodyRoutePredicateFactoryTests {
 
-	@Autowired
-	private WebTestClient webClient;
+    @Autowired
+    private WebTestClient webClient;
 
-	@Test
-	public void readBodyWorks() {
+    @Test
+    public void readBodyWorks() {
+        Event messageEvent = new Event("message", "bar");
+        Event messageChannelEvent = new Event("message.channels", "bar");
+        webClient.post().uri("/events").body(BodyInserters.fromValue(messageEvent)).exchange().expectStatus().isOk().expectBody().jsonPath("$.headers.Hello").isEqualTo("World");
+        webClient.post().uri("/events").body(BodyInserters.fromValue(messageChannelEvent)).exchange().expectStatus().isOk().expectBody().jsonPath("$.headers.World").isEqualTo("Hello");
+    }
 
-		Event messageEvent = new Event("message", "bar");
-		Event messageChannelEvent = new Event("message.channels", "bar");
+    @Test
+    public void toStringFormat() {
+        Config config = new Config();
+        config.setInClass(String.class);
+        AsyncPredicate<ServerWebExchange> predicate = new ReadBodyRoutePredicateFactory().applyAsync(config);
+        assertThat(predicate.toString()).contains("ReadBody: " + config.getInClass());
+    }
 
-		webClient.post().uri("/events").body(BodyInserters.fromValue(messageEvent)).exchange().expectStatus().isOk()
-				.expectBody().jsonPath("$.headers.Hello").isEqualTo("World");
+    @EnableAutoConfiguration
+    @SpringBootConfiguration
+    @LoadBalancerClients({ @LoadBalancerClient(name = "message", configuration = TestLoadBalancerConfig.class), @LoadBalancerClient(name = "messageChannel", configuration = TestLoadBalancerConfig.class) })
+    @Import(PermitAllSecurityConfiguration.class)
+    @RestController
+    public static class TestConfig {
 
-		webClient.post().uri("/events").body(BodyInserters.fromValue(messageChannelEvent)).exchange().expectStatus()
-				.isOk().expectBody().jsonPath("$.headers.World").isEqualTo("Hello");
+        @Bean
+        public RouteLocator routeLocator(RouteLocatorBuilder builder) {
+            return builder.routes().route(p -> p.path("/events").and().method(HttpMethod.POST).and().readBody(Event.class, eventPredicate("message.channels")).filters(f -> f.setPath("/messageChannel/events")).uri("lb://messageChannel")).route(p -> p.path("/events").and().method(HttpMethod.POST).and().readBody(Event.class, eventPredicate("message")).filters(f -> f.setPath("/message/events")).uri("lb://message")).build();
+        }
 
-	}
+        private Predicate<Event> eventPredicate(String type) {
+            return r -> r.getFoo().equals(type);
+        }
 
-	@Test
-	public void toStringFormat() {
-		Config config = new Config();
-		config.setInClass(String.class);
-		AsyncPredicate<ServerWebExchange> predicate = new ReadBodyRoutePredicateFactory().applyAsync(config);
-		assertThat(predicate.toString()).contains("ReadBody: " + config.getInClass());
-	}
+        @PostMapping(path = "message/events", produces = MediaType.APPLICATION_JSON_VALUE)
+        public String messageEvents(@RequestBody Event e) {
+            return "{\"headers\":{\"Hello\":\"World\"}}";
+        }
 
-	@EnableAutoConfiguration
-	@SpringBootConfiguration
-	@LoadBalancerClients({ @LoadBalancerClient(name = "message", configuration = TestLoadBalancerConfig.class),
-			@LoadBalancerClient(name = "messageChannel", configuration = TestLoadBalancerConfig.class) })
-	@Import(PermitAllSecurityConfiguration.class)
-	@RestController
-	public static class TestConfig {
+        @PostMapping(path = "messageChannel/events", produces = MediaType.APPLICATION_JSON_VALUE)
+        public String messageChannelEvents(@RequestBody Event e) {
+            return "{\"headers\":{\"World\":\"Hello\"}}";
+        }
+    }
 
-		@Bean
-		public RouteLocator routeLocator(RouteLocatorBuilder builder) {
-			return builder.routes()
-					.route(p -> p.path("/events").and().method(HttpMethod.POST).and()
-							.readBody(Event.class, eventPredicate("message.channels"))
-							.filters(f -> f.setPath("/messageChannel/events")).uri("lb://messageChannel"))
-					.route(p -> p.path("/events").and().method(HttpMethod.POST).and()
-							.readBody(Event.class, eventPredicate("message")).filters(f -> f.setPath("/message/events"))
-							.uri("lb://message"))
-					.build();
-		}
+    static class Event {
 
-		private Predicate<Event> eventPredicate(String type) {
-			return r -> r.getFoo().equals(type);
-		}
+        private String foo;
 
-		@PostMapping(path = "message/events", produces = MediaType.APPLICATION_JSON_VALUE)
-		public String messageEvents(@RequestBody Event e) {
-			return "{\"headers\":{\"Hello\":\"World\"}}";
-		}
+        private String bar;
 
-		@PostMapping(path = "messageChannel/events", produces = MediaType.APPLICATION_JSON_VALUE)
-		public String messageChannelEvents(@RequestBody Event e) {
-			return "{\"headers\":{\"World\":\"Hello\"}}";
-		}
+        Event() {
+        }
 
-	}
+        Event(String foo, String bar) {
+            this.foo = foo;
+            this.bar = bar;
+        }
 
-	static class Event {
+        public String getFoo() {
+            return foo;
+        }
 
-		private String foo;
+        public void setFoo(String foo) {
+            this.foo = foo;
+        }
 
-		private String bar;
+        public String getBar() {
+            return bar;
+        }
 
-		Event() {
-		}
-
-		Event(String foo, String bar) {
-			this.foo = foo;
-			this.bar = bar;
-		}
-
-		public String getFoo() {
-			return foo;
-		}
-
-		public void setFoo(String foo) {
-			this.foo = foo;
-		}
-
-		public String getBar() {
-			return bar;
-		}
-
-		public void setBar(String bar) {
-			this.bar = bar;
-		}
-
-	}
-
+        public void setBar(String bar) {
+            this.bar = bar;
+        }
+    }
 }

@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.headers.observation;
 
 import io.micrometer.observation.Observation;
@@ -27,9 +26,8 @@ import io.micrometer.observation.ObservationConvention;
  */
 public interface GatewayObservationConvention extends ObservationConvention<GatewayContext> {
 
-	@Override
-	default boolean supportsContext(Observation.Context context) {
-		return context instanceof GatewayContext;
-	}
-
+    @Override
+    default boolean supportsContext(Observation.Context context) {
+        return context instanceof GatewayContext;
+    }
 }

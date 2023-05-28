@@ -13,31 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.event;
 
 import java.util.Map;
-
 import org.springframework.context.ApplicationEvent;
 
 public class PredicateArgsEvent extends ApplicationEvent {
 
-	private final Map<String, Object> args;
+    private final Map<String, Object> args;
 
-	private String routeId;
+    private String routeId;
 
-	public PredicateArgsEvent(Object source, String routeId, Map<String, Object> args) {
-		super(source);
-		this.routeId = routeId;
-		this.args = args;
-	}
+    public PredicateArgsEvent(Object source, String routeId, Map<String, Object> args) {
+        super(source);
+        this.routeId = routeId;
+        this.args = args;
+    }
 
-	public String getRouteId() {
-		return routeId;
-	}
+    public String getRouteId() {
+        return routeId;
+    }
 
-	public Map<String, Object> getArgs() {
-		return args;
-	}
-
+    public Map<String, Object> getArgs() {
+        return args;
+    }
 }

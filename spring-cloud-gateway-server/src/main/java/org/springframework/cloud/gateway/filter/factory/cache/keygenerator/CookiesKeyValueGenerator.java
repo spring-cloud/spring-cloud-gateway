@@ -13,13 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.factory.cache.keygenerator;
 
 import java.util.Collection;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
 import org.springframework.http.HttpCookie;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.util.CollectionUtils;
@@ -31,21 +29,18 @@ import org.springframework.util.MultiValueMap;
  */
 class CookiesKeyValueGenerator implements KeyValueGenerator {
 
-	private final String valueSeparator;
+    private final String valueSeparator;
 
-	CookiesKeyValueGenerator(String valueSeparator) {
-		this.valueSeparator = Objects.requireNonNull(valueSeparator);
-	}
+    CookiesKeyValueGenerator(String valueSeparator) {
+        this.valueSeparator = Objects.requireNonNull(valueSeparator);
+    }
 
-	public String getKeyValue(ServerHttpRequest request) {
-		String cookiesData = null;
-		MultiValueMap<String, HttpCookie> cookies = request.getCookies();
-		if (!CollectionUtils.isEmpty(cookies)) {
-			cookiesData = cookies.values().stream().flatMap(Collection::stream)
-					.map(c -> String.format("%s=%s", c.getName(), c.getValue())).sorted()
-					.collect(Collectors.joining(valueSeparator));
-		}
-		return cookiesData;
-	}
-
+    public String getKeyValue(ServerHttpRequest request) {
+        String cookiesData = null;
+        MultiValueMap<String, HttpCookie> cookies = request.getCookies();
+        if (!CollectionUtils.isEmpty(cookies)) {
+            cookiesData = cookies.values().stream().flatMap(Collection::stream).map(c -> String.format("%s=%s", c.getName(), c.getValue())).sorted().collect(Collectors.joining(valueSeparator));
+        }
+        return cookiesData;
+    }
 }

@@ -13,15 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.handler.predicate;
 
 import java.util.Random;
 import java.util.function.Predicate;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnJre;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
@@ -36,7 +33,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.annotation.DirtiesContext;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.condition.JRE.JAVA_17;
 import static org.mockito.Mockito.mock;
@@ -48,58 +44,50 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @DisabledOnJre(JAVA_17)
 public class WeightRoutePredicateFactoryIntegrationTests extends BaseWebClientTests {
 
-	@Autowired
-	private WeightCalculatorWebFilter filter;
+    @Autowired
+    private WeightCalculatorWebFilter filter;
 
-	private static Random getRandom(double value) {
-		Random random = mock(Random.class);
-		when(random.nextDouble()).thenReturn(value);
-		return random;
-	}
+    private static Random getRandom(double value) {
+        Random random = mock(Random.class);
+        when(random.nextDouble()).thenReturn(value);
+        return random;
+    }
 
-	@Test
-	public void highWeight() {
-		filter.setRandom(getRandom(0.9));
+    @Test
+    public void highWeight() {
+        filter.setRandom(getRandom(0.9));
+        testClient.get().uri("/get").header(HttpHeaders.HOST, "www.weighthigh.org").exchange().expectStatus().isOk().expectHeader().valueEquals(ROUTE_ID_HEADER, "weight_high_test");
+    }
 
-		testClient.get().uri("/get").header(HttpHeaders.HOST, "www.weighthigh.org").exchange().expectStatus().isOk()
-				.expectHeader().valueEquals(ROUTE_ID_HEADER, "weight_high_test");
-	}
+    @Test
+    public void lowWeight() {
+        filter.setRandom(getRandom(0.1));
+        testClient.get().uri("/get").header(HttpHeaders.HOST, "www.weightlow.org").exchange().expectStatus().isOk().expectHeader().valueEquals(ROUTE_ID_HEADER, "weight_low_test");
+    }
 
-	@Test
-	public void lowWeight() {
-		filter.setRandom(getRandom(0.1));
+    @Test
+    public void toStringFormat() {
+        WeightConfig config = new WeightConfig("mygroup", "myroute", 5);
+        Predicate predicate = new WeightRoutePredicateFactory().apply(config);
+        assertThat(predicate.toString()).contains("Weight: mygroup 5");
+    }
 
-		testClient.get().uri("/get").header(HttpHeaders.HOST, "www.weightlow.org").exchange().expectStatus().isOk()
-				.expectHeader().valueEquals(ROUTE_ID_HEADER, "weight_low_test");
-	}
+    @EnableAutoConfiguration
+    @SpringBootConfiguration
+    @Import(DefaultTestConfig.class)
+    public static class TestConfig {
 
-	@Test
-	public void toStringFormat() {
-		WeightConfig config = new WeightConfig("mygroup", "myroute", 5);
-		Predicate predicate = new WeightRoutePredicateFactory().apply(config);
-		assertThat(predicate.toString()).contains("Weight: mygroup 5");
-	}
+        @Value("${test.uri}")
+        private String uri;
 
-	@EnableAutoConfiguration
-	@SpringBootConfiguration
-	@Import(DefaultTestConfig.class)
-	public static class TestConfig {
+        public TestConfig(WeightCalculatorWebFilter filter) {
+            Random random = getRandom(0.4);
+            filter.setRandom(random);
+        }
 
-		@Value("${test.uri}")
-		private String uri;
-
-		public TestConfig(WeightCalculatorWebFilter filter) {
-			Random random = getRandom(0.4);
-
-			filter.setRandom(random);
-		}
-
-		@Bean
-		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
-			return builder.routes().route("weight_low_test", r -> r.weight("group1", 2).and().host("**.weightlow.org")
-					.filters(f -> f.prefixPath("/httpbin")).uri(this.uri)).build();
-		}
-
-	}
-
+        @Bean
+        public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
+            return builder.routes().route("weight_low_test", r -> r.weight("group1", 2).and().host("**.weightlow.org").filters(f -> f.prefixPath("/httpbin")).uri(this.uri)).build();
+        }
+    }
 }

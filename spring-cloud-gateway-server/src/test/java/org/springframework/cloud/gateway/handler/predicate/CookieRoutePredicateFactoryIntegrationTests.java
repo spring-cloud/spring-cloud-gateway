@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.handler.predicate;
 
 import org.junit.jupiter.api.Test;
-
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -27,36 +25,30 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
-
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 class CookieRoutePredicateFactoryIntegrationTests extends BaseWebClientTests {
 
-	@Test
-	void cookieRegexWorks() {
-		assertCookieValue("helloaaaaa");
+    @Test
+    void cookieRegexWorks() {
+        assertCookieValue("helloaaaaa");
+        assertCookieValue("hello");
+    }
 
-		assertCookieValue("hello");
-	}
+    private void assertCookieValue(String value) {
+        testClient.get().uri("/cookie").header(HttpHeaders.HOST, "www.cookieregex.org").cookie("mycookie", value).exchange().expectStatus().isOk().expectHeader().valueEquals(ROUTE_ID_HEADER, "cookie_regex_test").expectBody(String.class).isEqualTo(value);
+    }
 
-	private void assertCookieValue(String value) {
-		testClient.get().uri("/cookie").header(HttpHeaders.HOST, "www.cookieregex.org").cookie("mycookie", value)
-				.exchange().expectStatus().isOk().expectHeader().valueEquals(ROUTE_ID_HEADER, "cookie_regex_test")
-				.expectBody(String.class).isEqualTo(value);
-	}
+    @EnableAutoConfiguration
+    @SpringBootConfiguration
+    @Import(DefaultTestConfig.class)
+    @RestController
+    static class TestConfig {
 
-	@EnableAutoConfiguration
-	@SpringBootConfiguration
-	@Import(DefaultTestConfig.class)
-	@RestController
-	static class TestConfig {
-
-		@GetMapping("/httpbin/cookie")
-		String cookie(@CookieValue("mycookie") String mycookie) {
-			return mycookie;
-		}
-
-	}
-
+        @GetMapping("/httpbin/cookie")
+        String cookie(@CookieValue("mycookie") String mycookie) {
+            return mycookie;
+        }
+    }
 }

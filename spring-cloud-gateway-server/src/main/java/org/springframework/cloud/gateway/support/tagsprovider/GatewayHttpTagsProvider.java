@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.support.tagsprovider;
 
 import io.micrometer.core.instrument.Tags;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.server.reactive.AbstractServerHttpResponse;
@@ -28,44 +26,38 @@ import org.springframework.web.server.ServerWebExchange;
  */
 public class GatewayHttpTagsProvider implements GatewayTagsProvider {
 
-	@Override
-	public Tags apply(ServerWebExchange exchange) {
-		String outcome = "CUSTOM";
-		String status = "CUSTOM";
-		String httpStatusCodeStr = "NA";
-
-		String httpMethod = exchange.getRequest().getMethod().name();
-
-		// a non standard HTTPS status could be used. Let's be defensive here
-		// it needs to be checked for first, otherwise the delegate response
-		// who's status DIDN'T change, will be used
-		if (exchange.getResponse() instanceof AbstractServerHttpResponse) {
-			Integer statusInt = ((AbstractServerHttpResponse) exchange.getResponse()).getRawStatusCode();
-			if (statusInt != null) {
-				status = String.valueOf(statusInt);
-				httpStatusCodeStr = status;
-				HttpStatus resolved = HttpStatus.resolve(statusInt);
-				if (resolved != null) {
-					// this is not a CUSTOM status, so use series here.
-					outcome = resolved.series().name();
-					status = resolved.name();
-				}
-			}
-		}
-		else {
-			HttpStatusCode statusCode = exchange.getResponse().getStatusCode();
-			if (statusCode != null) {
-				httpStatusCodeStr = String.valueOf(statusCode.value());
-				if (statusCode instanceof HttpStatus) {
-					HttpStatus httpStatus = (HttpStatus) statusCode;
-					outcome = httpStatus.series().name();
-					status = httpStatus.name();
-				}
-			}
-		}
-
-		return Tags.of("outcome", outcome, "status", status, "httpStatusCode", httpStatusCodeStr, "httpMethod",
-				httpMethod);
-	}
-
+    @Override
+    public Tags apply(ServerWebExchange exchange) {
+        String outcome = "CUSTOM";
+        String status = "CUSTOM";
+        String httpStatusCodeStr = "NA";
+        String httpMethod = exchange.getRequest().getMethod().name();
+        // a non standard HTTPS status could be used. Let's be defensive here
+        // it needs to be checked for first, otherwise the delegate response
+        // who's status DIDN'T change, will be used
+        if (exchange.getResponse() instanceof AbstractServerHttpResponse) {
+            Integer statusInt = ((AbstractServerHttpResponse) exchange.getResponse()).getRawStatusCode();
+            if (statusInt != null) {
+                status = String.valueOf(statusInt);
+                httpStatusCodeStr = status;
+                HttpStatus resolved = HttpStatus.resolve(statusInt);
+                if (resolved != null) {
+                    // this is not a CUSTOM status, so use series here.
+                    outcome = resolved.series().name();
+                    status = resolved.name();
+                }
+            }
+        } else {
+            HttpStatusCode statusCode = exchange.getResponse().getStatusCode();
+            if (statusCode != null) {
+                httpStatusCodeStr = String.valueOf(statusCode.value());
+                if (statusCode instanceof HttpStatus) {
+                    HttpStatus httpStatus = (HttpStatus) statusCode;
+                    outcome = httpStatus.series().name();
+                    status = httpStatus.name();
+                }
+            }
+        }
+        return Tags.of("outcome", outcome, "status", status, "httpStatusCode", httpStatusCodeStr, "httpMethod", httpMethod);
+    }
 }

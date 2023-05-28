@@ -13,13 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.factory;
 
 import java.net.URI;
-
 import org.junit.jupiter.api.Test;
-
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -33,7 +30,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.annotation.DirtiesContext;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -41,48 +37,38 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @DirtiesContext
 public class RedirectToGatewayFilterFactoryTests extends BaseWebClientTests {
 
-	@Test
-	public void redirectToFilterWorks() {
-		testClient.get().uri("/").header("Host", "www.redirectto.org").exchange().expectStatus()
-				.isEqualTo(HttpStatus.FOUND).expectHeader().valueEquals(HttpHeaders.LOCATION, "https://example.org");
-	}
+    @Test
+    public void redirectToFilterWorks() {
+        testClient.get().uri("/").header("Host", "www.redirectto.org").exchange().expectStatus().isEqualTo(HttpStatus.FOUND).expectHeader().valueEquals(HttpHeaders.LOCATION, "https://example.org");
+    }
 
-	@Test
-	public void redirectToRelativeUrlFilterWorks() {
-		testClient.get().uri("/").header("Host", "www.relativeredirect.org").exchange().expectStatus()
-				.isEqualTo(HttpStatus.FOUND).expectHeader().valueEquals(HttpHeaders.LOCATION, "/index.html#/customers");
-	}
+    @Test
+    public void redirectToRelativeUrlFilterWorks() {
+        testClient.get().uri("/").header("Host", "www.relativeredirect.org").exchange().expectStatus().isEqualTo(HttpStatus.FOUND).expectHeader().valueEquals(HttpHeaders.LOCATION, "/index.html#/customers");
+    }
 
-	@Test
-	public void redirectToRelativeUrlFilterWorksWithStrStatusCode() {
-		testClient.get().uri("/").header("Host", "strcode.relativeredirect.org").exchange().expectStatus()
-				.isEqualTo(HttpStatus.FOUND).expectHeader().valueEquals(HttpHeaders.LOCATION, "/index.html#/customers");
-	}
+    @Test
+    public void redirectToRelativeUrlFilterWorksWithStrStatusCode() {
+        testClient.get().uri("/").header("Host", "strcode.relativeredirect.org").exchange().expectStatus().isEqualTo(HttpStatus.FOUND).expectHeader().valueEquals(HttpHeaders.LOCATION, "/index.html#/customers");
+    }
 
-	@Test
-	public void toStringFormat() {
-		Config config = new Config();
-		config.setStatus("301");
-		config.setUrl("http://newurl");
-		GatewayFilter filter = new RedirectToGatewayFilterFactory().apply(config);
-		assertThat(filter.toString()).contains("301").contains("http://newurl");
-	}
+    @Test
+    public void toStringFormat() {
+        Config config = new Config();
+        config.setStatus("301");
+        config.setUrl("http://newurl");
+        GatewayFilter filter = new RedirectToGatewayFilterFactory().apply(config);
+        assertThat(filter.toString()).contains("301").contains("http://newurl");
+    }
 
-	@EnableAutoConfiguration
-	@SpringBootConfiguration
-	@Import(DefaultTestConfig.class)
-	public static class TestConfig {
+    @EnableAutoConfiguration
+    @SpringBootConfiguration
+    @Import(DefaultTestConfig.class)
+    public static class TestConfig {
 
-		@Bean
-		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
-			return builder.routes()
-					.route("relative_redirect_uri_object", r -> r.host("strcode.relativeredirect.org")
-							.filters(f -> f.redirect("302", URI.create("/index.html#/customers"))).uri("no://op"))
-					.route("relative_redirect", r -> r.host("**.relativeredirect.org")
-							.filters(f -> f.redirect(302, "/index.html#/customers")).uri("no://op"))
-					.build();
-		}
-
-	}
-
+        @Bean
+        public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
+            return builder.routes().route("relative_redirect_uri_object", r -> r.host("strcode.relativeredirect.org").filters(f -> f.redirect("302", URI.create("/index.html#/customers"))).uri("no://op")).route("relative_redirect", r -> r.host("**.relativeredirect.org").filters(f -> f.redirect(302, "/index.html#/customers")).uri("no://op")).build();
+        }
+    }
 }

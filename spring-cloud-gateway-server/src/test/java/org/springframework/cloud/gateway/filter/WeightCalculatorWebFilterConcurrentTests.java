@@ -13,14 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter;
 
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-
 import io.netty.util.internal.ThreadLocalRandom;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,7 +26,6 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import reactor.core.publisher.Mono;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
@@ -43,7 +40,6 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilterChain;
-
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 /**
@@ -56,66 +52,62 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @DirtiesContext
 public class WeightCalculatorWebFilterConcurrentTests {
 
-	@Value("${test.concurrent.execution.timeInSeconds:5}")
-	private int maxTestTimeSeconds;
+    @Value("${test.concurrent.execution.timeInSeconds:5}")
+    private int maxTestTimeSeconds;
 
-	@Autowired
-	private ApplicationEventPublisher eventPublisher;
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
 
-	@Autowired
-	private WeightCalculatorWebFilter weightCalculatorWebFilter;
+    @Autowired
+    private WeightCalculatorWebFilter weightCalculatorWebFilter;
 
-	private ExecutorService executorService;
+    private ExecutorService executorService;
 
-	private long startTime;
+    private long startTime;
 
-	@BeforeEach
-	public void setUp() {
-		executorService = Executors.newSingleThreadExecutor();
-		startTime = System.currentTimeMillis();
-	}
+    @BeforeEach
+    public void setUp() {
+        executorService = Executors.newSingleThreadExecutor();
+        startTime = System.currentTimeMillis();
+    }
 
-	@AfterEach
-	public void teardown() {
-		executorService.shutdown();
-	}
+    @AfterEach
+    public void teardown() {
+        executorService.shutdown();
+    }
 
-	@Test
-	@Disabled
-	public void WeightCalculatorWebFilter_threadSafeTest() {
-		generateEvents();
+    @Test
+    @Disabled
+    public void WeightCalculatorWebFilter_threadSafeTest() {
+        generateEvents();
+        ServerWebExchange serverWebExchangeMock = Mockito.mock(ServerWebExchange.class);
+        WebFilterChain emptyWebFilterChain = serverWebExchange -> Mono.empty();
+        while (isContinue()) {
+            weightCalculatorWebFilter.filter(serverWebExchangeMock, emptyWebFilterChain);
+        }
+    }
 
-		ServerWebExchange serverWebExchangeMock = Mockito.mock(ServerWebExchange.class);
-		WebFilterChain emptyWebFilterChain = serverWebExchange -> Mono.empty();
+    private boolean isContinue() {
+        return (System.currentTimeMillis() - startTime) < TimeUnit.SECONDS.toMillis(maxTestTimeSeconds);
+    }
 
-		while (isContinue()) {
-			weightCalculatorWebFilter.filter(serverWebExchangeMock, emptyWebFilterChain);
-		}
-	}
+    private void generateEvents() {
+        executorService.execute(() -> {
+            while (isContinue()) {
+                eventPublisher.publishEvent(createWeightDefinedEvent());
+            }
+        });
+    }
 
-	private boolean isContinue() {
-		return (System.currentTimeMillis() - startTime) < TimeUnit.SECONDS.toMillis(maxTestTimeSeconds);
-	}
+    private WeightDefinedEvent createWeightDefinedEvent() {
+        int weight = ThreadLocalRandom.current().nextInt() & Integer.MAX_VALUE;
+        WeightConfig config = new WeightConfig("group_1", UUID.randomUUID().toString(), weight);
+        return new WeightDefinedEvent(new Object(), config);
+    }
 
-	private void generateEvents() {
-		executorService.execute(() -> {
-			while (isContinue()) {
-				eventPublisher.publishEvent(createWeightDefinedEvent());
-			}
-		});
-	}
-
-	private WeightDefinedEvent createWeightDefinedEvent() {
-		int weight = ThreadLocalRandom.current().nextInt() & Integer.MAX_VALUE;
-		WeightConfig config = new WeightConfig("group_1", UUID.randomUUID().toString(), weight);
-		return new WeightDefinedEvent(new Object(), config);
-	}
-
-	@EnableAutoConfiguration
-	@SpringBootConfiguration
-	@Import(BaseWebClientTests.DefaultTestConfig.class)
-	public static class CustomConfig {
-
-	}
-
+    @EnableAutoConfiguration
+    @SpringBootConfiguration
+    @Import(BaseWebClientTests.DefaultTestConfig.class)
+    public static class CustomConfig {
+    }
 }

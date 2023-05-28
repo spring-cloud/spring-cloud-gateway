@@ -13,14 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.headers.observation;
 
 import java.util.Collections;
 import java.util.Objects;
-
 import io.micrometer.observation.transport.RequestReplySenderContext;
-
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
@@ -35,23 +32,22 @@ import org.springframework.web.server.ServerWebExchange;
  */
 public class GatewayContext extends RequestReplySenderContext<HttpHeaders, ServerHttpResponse> {
 
-	private final ServerHttpRequest request;
+    private final ServerHttpRequest request;
 
-	private final ServerWebExchange serverWebExchange;
+    private final ServerWebExchange serverWebExchange;
 
-	public GatewayContext(HttpHeaders headers, ServerHttpRequest request, ServerWebExchange serverWebExchange) {
-		super((carrier, key, value) -> Objects.requireNonNull(carrier).put(key, Collections.singletonList(value)));
-		this.request = request;
-		this.serverWebExchange = serverWebExchange;
-		setCarrier(headers);
-	}
+    public GatewayContext(HttpHeaders headers, ServerHttpRequest request, ServerWebExchange serverWebExchange) {
+        super((carrier, key, value) -> Objects.requireNonNull(carrier).put(key, Collections.singletonList(value)));
+        this.request = request;
+        this.serverWebExchange = serverWebExchange;
+        setCarrier(headers);
+    }
 
-	public ServerHttpRequest getRequest() {
-		return this.request;
-	}
+    public ServerHttpRequest getRequest() {
+        return this.request;
+    }
 
-	public ServerWebExchange getServerWebExchange() {
-		return serverWebExchange;
-	}
-
+    public ServerWebExchange getServerWebExchange() {
+        return serverWebExchange;
+    }
 }

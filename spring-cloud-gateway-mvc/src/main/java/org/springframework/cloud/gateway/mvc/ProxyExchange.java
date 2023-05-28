@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.mvc;
 
 import java.io.ByteArrayInputStream;
@@ -35,7 +34,6 @@ import java.util.Set;
 import java.util.Vector;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import jakarta.servlet.ReadListener;
 import jakarta.servlet.ServletInputStream;
 import jakarta.servlet.ServletOutputStream;
@@ -44,7 +42,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequestWrapper;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpServletResponseWrapper;
-
 import org.springframework.core.Conventions;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.ParameterizedTypeReference;
@@ -133,416 +130,396 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestResponseBody
  * </p>
  *
  * @author Dave Syer
- *
  */
 public class ProxyExchange<T> {
 
-	/**
-	 * Contains headers that are considered case-sensitive by default.
-	 */
-	public static Set<String> DEFAULT_SENSITIVE = Collections
-			.unmodifiableSet(new HashSet<>(Arrays.asList("cookie", "authorization")));
+    /**
+     * Contains headers that are considered case-sensitive by default.
+     */
+    public static Set<String> DEFAULT_SENSITIVE = Collections.unmodifiableSet(new HashSet<>(Arrays.asList("cookie", "authorization")));
 
-	private URI uri;
+    private URI uri;
 
-	private RestTemplate rest;
+    private RestTemplate rest;
 
-	private Object body;
+    private Object body;
 
-	private RequestResponseBodyMethodProcessor delegate;
+    private RequestResponseBodyMethodProcessor delegate;
 
-	private NativeWebRequest webRequest;
+    private NativeWebRequest webRequest;
 
-	private ModelAndViewContainer mavContainer;
+    private ModelAndViewContainer mavContainer;
 
-	private WebDataBinderFactory binderFactory;
+    private WebDataBinderFactory binderFactory;
 
-	private Set<String> sensitive;
+    private Set<String> sensitive;
 
-	private HttpHeaders headers = new HttpHeaders();
+    private HttpHeaders headers = new HttpHeaders();
 
-	private Type responseType;
+    private Type responseType;
 
-	public ProxyExchange(RestTemplate rest, NativeWebRequest webRequest, ModelAndViewContainer mavContainer,
-			WebDataBinderFactory binderFactory, Type type) {
-		this.responseType = type;
-		this.rest = rest;
-		this.webRequest = webRequest;
-		this.mavContainer = mavContainer;
-		this.binderFactory = binderFactory;
-		this.delegate = new RequestResponseBodyMethodProcessor(rest.getMessageConverters());
-	}
+    public ProxyExchange(RestTemplate rest, NativeWebRequest webRequest, ModelAndViewContainer mavContainer, WebDataBinderFactory binderFactory, Type type) {
+        this.responseType = type;
+        this.rest = rest;
+        this.webRequest = webRequest;
+        this.mavContainer = mavContainer;
+        this.binderFactory = binderFactory;
+        this.delegate = new RequestResponseBodyMethodProcessor(rest.getMessageConverters());
+    }
 
-	/**
-	 * Sets the body for the downstream request (if using {@link #post()}, {@link #put()}
-	 * or {@link #patch()}). The body can be omitted if you just want to pass the incoming
-	 * request downstream without changing it. If you want to transform the incoming
-	 * request you can declare it as a <code>@RequestBody</code> in your
-	 * <code>@RequestMapping</code> in the usual Spring MVC way.
-	 * @param body the request body to send downstream
-	 * @return this for convenience
-	 */
-	public ProxyExchange<T> body(Object body) {
-		this.body = body;
-		return this;
-	}
+    /**
+     * Sets the body for the downstream request (if using {@link #post()}, {@link #put()}
+     * or {@link #patch()}). The body can be omitted if you just want to pass the incoming
+     * request downstream without changing it. If you want to transform the incoming
+     * request you can declare it as a <code>@RequestBody</code> in your
+     * <code>@RequestMapping</code> in the usual Spring MVC way.
+     * @param body the request body to send downstream
+     * @return this for convenience
+     */
+    public ProxyExchange<T> body(Object body) {
+        this.body = body;
+        return this;
+    }
 
-	/**
-	 * Sets a header for the downstream call.
-	 * @param name Header name
-	 * @param value Header values
-	 * @return this for convenience
-	 */
-	public ProxyExchange<T> header(String name, String... value) {
-		this.headers.put(name, Arrays.asList(value));
-		return this;
-	}
+    /**
+     * Sets a header for the downstream call.
+     * @param name Header name
+     * @param value Header values
+     * @return this for convenience
+     */
+    public ProxyExchange<T> header(String name, String... value) {
+        this.headers.put(name, Arrays.asList(value));
+        return this;
+    }
 
-	/**
-	 * Additional headers, or overrides of the incoming ones, to be used in the downstream
-	 * call.
-	 * @param headers the http headers to use in the downstream call
-	 * @return this for convenience
-	 */
-	public ProxyExchange<T> headers(HttpHeaders headers) {
-		this.headers.putAll(headers);
-		return this;
-	}
+    /**
+     * Additional headers, or overrides of the incoming ones, to be used in the downstream
+     * call.
+     * @param headers the http headers to use in the downstream call
+     * @return this for convenience
+     */
+    public ProxyExchange<T> headers(HttpHeaders headers) {
+        this.headers.putAll(headers);
+        return this;
+    }
 
-	/**
-	 * Sets the names of sensitive headers that are not passed downstream to the backend
-	 * service.
-	 * @param names the names of sensitive headers
-	 * @return this for convenience
-	 */
-	public ProxyExchange<T> sensitive(String... names) {
-		if (this.sensitive == null) {
-			this.sensitive = new HashSet<>();
-		}
+    /**
+     * Sets the names of sensitive headers that are not passed downstream to the backend
+     * service.
+     * @param names the names of sensitive headers
+     * @return this for convenience
+     */
+    public ProxyExchange<T> sensitive(String... names) {
+        if (this.sensitive == null) {
+            this.sensitive = new HashSet<>();
+        }
+        this.sensitive.clear();
+        for (String name : names) {
+            this.sensitive.add(name.toLowerCase());
+        }
+        return this;
+    }
 
-		this.sensitive.clear();
-		for (String name : names) {
-			this.sensitive.add(name.toLowerCase());
-		}
-		return this;
-	}
+    /**
+     * Sets the uri for the backend call when triggered by the HTTP methods.
+     * @param uri the backend uri to send the request to
+     * @return this for convenience
+     */
+    public ProxyExchange<T> uri(URI uri) {
+        this.uri = uri;
+        return this;
+    }
 
-	/**
-	 * Sets the uri for the backend call when triggered by the HTTP methods.
-	 * @param uri the backend uri to send the request to
-	 * @return this for convenience
-	 */
-	public ProxyExchange<T> uri(URI uri) {
-		this.uri = uri;
-		return this;
-	}
+    /**
+     * Sets the uri for the backend call when triggered by the HTTP methods.
+     * @param uri the backend uri to send the request to
+     * @return this for convenience
+     */
+    public ProxyExchange<T> uri(String uri) {
+        try {
+            return this.uri(new URI(uri));
+        } catch (URISyntaxException e) {
+            throw new IllegalStateException("Cannot create URI", e);
+        }
+    }
 
-	/**
-	 * Sets the uri for the backend call when triggered by the HTTP methods.
-	 * @param uri the backend uri to send the request to
-	 * @return this for convenience
-	 */
-	public ProxyExchange<T> uri(String uri) {
-		try {
-			return this.uri(new URI(uri));
-		}
-		catch (URISyntaxException e) {
-			throw new IllegalStateException("Cannot create URI", e);
-		}
-	}
+    public String path() {
+        return (String) this.webRequest.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE, WebRequest.SCOPE_REQUEST);
+    }
 
-	public String path() {
-		return (String) this.webRequest.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE,
-				WebRequest.SCOPE_REQUEST);
-	}
+    public String path(String prefix) {
+        String path = path();
+        if (!path.startsWith(prefix)) {
+            throw new IllegalArgumentException("Path does not start with prefix (" + prefix + "): " + path);
+        }
+        return path.substring(prefix.length());
+    }
 
-	public String path(String prefix) {
-		String path = path();
-		if (!path.startsWith(prefix)) {
-			throw new IllegalArgumentException("Path does not start with prefix (" + prefix + "): " + path);
-		}
-		return path.substring(prefix.length());
-	}
+    public void forward(String path) {
+        HttpServletRequest request = this.webRequest.getNativeRequest(HttpServletRequest.class);
+        HttpServletResponse response = this.webRequest.getNativeResponse(HttpServletResponse.class);
+        try {
+            request.getRequestDispatcher(path).forward(new BodyForwardingHttpServletRequest(request, response), response);
+        } catch (Exception e) {
+            throw new IllegalStateException("Cannot forward request", e);
+        }
+    }
 
-	public void forward(String path) {
-		HttpServletRequest request = this.webRequest.getNativeRequest(HttpServletRequest.class);
-		HttpServletResponse response = this.webRequest.getNativeResponse(HttpServletResponse.class);
-		try {
-			request.getRequestDispatcher(path).forward(new BodyForwardingHttpServletRequest(request, response),
-					response);
-		}
-		catch (Exception e) {
-			throw new IllegalStateException("Cannot forward request", e);
-		}
-	}
+    public ResponseEntity<T> get() {
+        RequestEntity<?> requestEntity = headers((BodyBuilder) RequestEntity.get(uri)).body(body());
+        return exchange(requestEntity);
+    }
 
-	public ResponseEntity<T> get() {
-		RequestEntity<?> requestEntity = headers((BodyBuilder) RequestEntity.get(uri)).body(body());
-		return exchange(requestEntity);
-	}
+    public <S> ResponseEntity<S> get(Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
+        return converter.apply(get());
+    }
 
-	public <S> ResponseEntity<S> get(Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
-		return converter.apply(get());
-	}
+    public ResponseEntity<T> head() {
+        RequestEntity<?> requestEntity = headers((BodyBuilder) RequestEntity.head(uri)).build();
+        return exchange(requestEntity);
+    }
 
-	public ResponseEntity<T> head() {
-		RequestEntity<?> requestEntity = headers((BodyBuilder) RequestEntity.head(uri)).build();
-		return exchange(requestEntity);
-	}
+    public <S> ResponseEntity<S> head(Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
+        return converter.apply(head());
+    }
 
-	public <S> ResponseEntity<S> head(Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
-		return converter.apply(head());
-	}
+    public ResponseEntity<T> options() {
+        RequestEntity<?> requestEntity = headers((BodyBuilder) RequestEntity.options(uri)).build();
+        return exchange(requestEntity);
+    }
 
-	public ResponseEntity<T> options() {
-		RequestEntity<?> requestEntity = headers((BodyBuilder) RequestEntity.options(uri)).build();
-		return exchange(requestEntity);
-	}
+    public <S> ResponseEntity<S> options(Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
+        return converter.apply(options());
+    }
 
-	public <S> ResponseEntity<S> options(Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
-		return converter.apply(options());
-	}
+    public ResponseEntity<T> post() {
+        RequestEntity<Object> requestEntity = headers(RequestEntity.post(uri)).body(body());
+        return exchange(requestEntity);
+    }
 
-	public ResponseEntity<T> post() {
-		RequestEntity<Object> requestEntity = headers(RequestEntity.post(uri)).body(body());
-		return exchange(requestEntity);
-	}
+    public <S> ResponseEntity<S> post(Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
+        return converter.apply(post());
+    }
 
-	public <S> ResponseEntity<S> post(Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
-		return converter.apply(post());
-	}
+    public ResponseEntity<T> delete() {
+        RequestEntity<Object> requestEntity = headers((BodyBuilder) RequestEntity.delete(uri)).body(body());
+        return exchange(requestEntity);
+    }
 
-	public ResponseEntity<T> delete() {
-		RequestEntity<Object> requestEntity = headers((BodyBuilder) RequestEntity.delete(uri)).body(body());
-		return exchange(requestEntity);
-	}
+    public <S> ResponseEntity<S> delete(Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
+        return converter.apply(delete());
+    }
 
-	public <S> ResponseEntity<S> delete(Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
-		return converter.apply(delete());
-	}
+    public ResponseEntity<T> put() {
+        RequestEntity<Object> requestEntity = headers(RequestEntity.put(uri)).body(body());
+        return exchange(requestEntity);
+    }
 
-	public ResponseEntity<T> put() {
-		RequestEntity<Object> requestEntity = headers(RequestEntity.put(uri)).body(body());
-		return exchange(requestEntity);
-	}
+    public <S> ResponseEntity<S> put(Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
+        return converter.apply(put());
+    }
 
-	public <S> ResponseEntity<S> put(Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
-		return converter.apply(put());
-	}
+    public ResponseEntity<T> patch() {
+        RequestEntity<Object> requestEntity = headers(RequestEntity.patch(uri)).body(body());
+        return exchange(requestEntity);
+    }
 
-	public ResponseEntity<T> patch() {
-		RequestEntity<Object> requestEntity = headers(RequestEntity.patch(uri)).body(body());
-		return exchange(requestEntity);
-	}
+    public <S> ResponseEntity<S> patch(Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
+        return converter.apply(patch());
+    }
 
-	public <S> ResponseEntity<S> patch(Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
-		return converter.apply(patch());
-	}
+    private ResponseEntity<T> exchange(RequestEntity<?> requestEntity) {
+        Type type = this.responseType;
+        if (type instanceof TypeVariable || type instanceof WildcardType) {
+            type = Object.class;
+        }
+        return rest.exchange(requestEntity, ParameterizedTypeReference.forType(type));
+    }
 
-	private ResponseEntity<T> exchange(RequestEntity<?> requestEntity) {
-		Type type = this.responseType;
-		if (type instanceof TypeVariable || type instanceof WildcardType) {
-			type = Object.class;
-		}
-		return rest.exchange(requestEntity, ParameterizedTypeReference.forType(type));
-	}
+    private void addHeaders(HttpHeaders headers) {
+        ArrayList<String> headerNames = new ArrayList<>();
+        webRequest.getHeaderNames().forEachRemaining(headerNames::add);
+        Set<String> filteredKeys = filterHeaderKeys(headerNames);
+        filteredKeys.stream().filter(key -> !headers.containsKey(key)).forEach(header -> headers.addAll(header, Arrays.asList(webRequest.getHeaderValues(header))));
+    }
 
-	private void addHeaders(HttpHeaders headers) {
-		ArrayList<String> headerNames = new ArrayList<>();
-		webRequest.getHeaderNames().forEachRemaining(headerNames::add);
-		Set<String> filteredKeys = filterHeaderKeys(headerNames);
-		filteredKeys.stream().filter(key -> !headers.containsKey(key))
-				.forEach(header -> headers.addAll(header, Arrays.asList(webRequest.getHeaderValues(header))));
-	}
+    private BodyBuilder headers(BodyBuilder builder) {
+        proxy();
+        for (String name : filterHeaderKeys(headers)) {
+            builder.header(name, headers.get(name).toArray(new String[0]));
+        }
+        builder.headers(this::addHeaders);
+        return builder;
+    }
 
-	private BodyBuilder headers(BodyBuilder builder) {
-		proxy();
-		for (String name : filterHeaderKeys(headers)) {
-			builder.header(name, headers.get(name).toArray(new String[0]));
-		}
-		builder.headers(this::addHeaders);
-		return builder;
-	}
+    private Set<String> filterHeaderKeys(HttpHeaders headers) {
+        return filterHeaderKeys(headers.keySet());
+    }
 
-	private Set<String> filterHeaderKeys(HttpHeaders headers) {
-		return filterHeaderKeys(headers.keySet());
-	}
+    private Set<String> filterHeaderKeys(Collection<String> headerNames) {
+        final Set<String> sensitiveHeaders = this.sensitive != null ? this.sensitive : DEFAULT_SENSITIVE;
+        return headerNames.stream().filter(header -> !sensitiveHeaders.contains(header.toLowerCase())).collect(Collectors.toSet());
+    }
 
-	private Set<String> filterHeaderKeys(Collection<String> headerNames) {
-		final Set<String> sensitiveHeaders = this.sensitive != null ? this.sensitive : DEFAULT_SENSITIVE;
-		return headerNames.stream().filter(header -> !sensitiveHeaders.contains(header.toLowerCase()))
-				.collect(Collectors.toSet());
-	}
+    private void proxy() {
+        try {
+            URI uri = new URI(webRequest.getNativeRequest(HttpServletRequest.class).getRequestURL().toString());
+            appendForwarded(uri);
+            appendXForwarded(uri);
+        } catch (URISyntaxException e) {
+            throw new IllegalStateException("Cannot create URI for request: " + webRequest.getNativeRequest(HttpServletRequest.class).getRequestURL());
+        }
+    }
 
-	private void proxy() {
-		try {
-			URI uri = new URI(webRequest.getNativeRequest(HttpServletRequest.class).getRequestURL().toString());
-			appendForwarded(uri);
-			appendXForwarded(uri);
-		}
-		catch (URISyntaxException e) {
-			throw new IllegalStateException("Cannot create URI for request: "
-					+ webRequest.getNativeRequest(HttpServletRequest.class).getRequestURL());
-		}
-	}
+    private void appendXForwarded(URI uri) {
+        // Append the legacy headers if they were already added upstream
+        String host = headers.getFirst("x-forwarded-host");
+        if (host == null) {
+            return;
+        }
+        host = host + "," + uri.getHost();
+        headers.set("x-forwarded-host", host);
+        String proto = headers.getFirst("x-forwarded-proto");
+        if (proto == null) {
+            return;
+        }
+        proto = proto + "," + uri.getScheme();
+        headers.set("x-forwarded-proto", proto);
+    }
 
-	private void appendXForwarded(URI uri) {
-		// Append the legacy headers if they were already added upstream
-		String host = headers.getFirst("x-forwarded-host");
-		if (host == null) {
-			return;
-		}
-		host = host + "," + uri.getHost();
-		headers.set("x-forwarded-host", host);
-		String proto = headers.getFirst("x-forwarded-proto");
-		if (proto == null) {
-			return;
-		}
-		proto = proto + "," + uri.getScheme();
-		headers.set("x-forwarded-proto", proto);
-	}
+    private void appendForwarded(URI uri) {
+        String forwarded = headers.getFirst("forwarded");
+        if (forwarded != null) {
+            forwarded = forwarded + ",";
+        } else {
+            forwarded = "";
+        }
+        forwarded = forwarded + forwarded(uri, webRequest.getHeader("host"));
+        headers.set("forwarded", forwarded);
+    }
 
-	private void appendForwarded(URI uri) {
-		String forwarded = headers.getFirst("forwarded");
-		if (forwarded != null) {
-			forwarded = forwarded + ",";
-		}
-		else {
-			forwarded = "";
-		}
-		forwarded = forwarded + forwarded(uri, webRequest.getHeader("host"));
-		headers.set("forwarded", forwarded);
-	}
+    private String forwarded(URI uri, String hostHeader) {
+        if (StringUtils.hasText(hostHeader)) {
+            return "host=" + hostHeader;
+        }
+        if ("http".equals(uri.getScheme())) {
+            return "host=" + uri.getHost();
+        }
+        return String.format("host=%s;proto=%s", uri.getHost(), uri.getScheme());
+    }
 
-	private String forwarded(URI uri, String hostHeader) {
-		if (StringUtils.hasText(hostHeader)) {
-			return "host=" + hostHeader;
-		}
-		if ("http".equals(uri.getScheme())) {
-			return "host=" + uri.getHost();
-		}
-		return String.format("host=%s;proto=%s", uri.getHost(), uri.getScheme());
-	}
+    private Object body() {
+        if (body != null) {
+            return body;
+        }
+        body = getRequestBody();
+        return body;
+    }
 
-	private Object body() {
-		if (body != null) {
-			return body;
-		}
-		body = getRequestBody();
-		return body;
-	}
+    /**
+     * Search for the request body if it was already deserialized using
+     * <code>@RequestBody</code>. If it is not found then deserialize it in the same way
+     * that it would have been for a <code>@RequestBody</code>.
+     * @return the request body
+     */
+    private Object getRequestBody() {
+        for (String key : mavContainer.getModel().keySet()) {
+            if (key.startsWith(BindingResult.MODEL_KEY_PREFIX)) {
+                BindingResult result = (BindingResult) mavContainer.getModel().get(key);
+                return result.getTarget();
+            }
+        }
+        MethodParameter input = new MethodParameter(ClassUtils.getMethod(BodyGrabber.class, "body", Object.class), 0);
+        try {
+            delegate.resolveArgument(input, mavContainer, webRequest, binderFactory);
+        } catch (Exception e) {
+            throw new IllegalStateException("Cannot resolve body", e);
+        }
+        String name = Conventions.getVariableNameForParameter(input);
+        BindingResult result = (BindingResult) mavContainer.getModel().get(BindingResult.MODEL_KEY_PREFIX + name);
+        return result.getTarget();
+    }
 
-	/**
-	 * Search for the request body if it was already deserialized using
-	 * <code>@RequestBody</code>. If it is not found then deserialize it in the same way
-	 * that it would have been for a <code>@RequestBody</code>.
-	 * @return the request body
-	 */
-	private Object getRequestBody() {
-		for (String key : mavContainer.getModel().keySet()) {
-			if (key.startsWith(BindingResult.MODEL_KEY_PREFIX)) {
-				BindingResult result = (BindingResult) mavContainer.getModel().get(key);
-				return result.getTarget();
-			}
-		}
-		MethodParameter input = new MethodParameter(ClassUtils.getMethod(BodyGrabber.class, "body", Object.class), 0);
-		try {
-			delegate.resolveArgument(input, mavContainer, webRequest, binderFactory);
-		}
-		catch (Exception e) {
-			throw new IllegalStateException("Cannot resolve body", e);
-		}
-		String name = Conventions.getVariableNameForParameter(input);
-		BindingResult result = (BindingResult) mavContainer.getModel().get(BindingResult.MODEL_KEY_PREFIX + name);
-		return result.getTarget();
-	}
+    protected static class BodyGrabber {
 
-	protected static class BodyGrabber {
+        public Object body(@RequestBody(required = false) Object body) {
+            return body;
+        }
+    }
 
-		public Object body(@RequestBody(required = false) Object body) {
-			return body;
-		}
+    protected static class BodySender {
 
-	}
+        @ResponseBody
+        public Object body() {
+            return null;
+        }
+    }
 
-	protected static class BodySender {
+    /**
+     * A servlet request wrapper that can be safely passed downstream to an internal
+     * forward dispatch, caching its body, and making it available in converted form using
+     * Spring message converters.
+     */
+    class BodyForwardingHttpServletRequest extends HttpServletRequestWrapper {
 
-		@ResponseBody
-		public Object body() {
-			return null;
-		}
+        private HttpServletRequest request;
 
-	}
+        private HttpServletResponse response;
 
-	/**
-	 * A servlet request wrapper that can be safely passed downstream to an internal
-	 * forward dispatch, caching its body, and making it available in converted form using
-	 * Spring message converters.
-	 *
-	 */
-	class BodyForwardingHttpServletRequest extends HttpServletRequestWrapper {
+        BodyForwardingHttpServletRequest(HttpServletRequest request, HttpServletResponse response) {
+            super(request);
+            this.request = request;
+            this.response = response;
+        }
 
-		private HttpServletRequest request;
+        private List<String> header(String name) {
+            List<String> list = headers.get(name);
+            return list;
+        }
 
-		private HttpServletResponse response;
+        @Override
+        public ServletInputStream getInputStream() throws IOException {
+            Object body = body();
+            MethodParameter output = new MethodParameter(ClassUtils.getMethod(BodySender.class, "body"), -1);
+            ServletOutputToInputConverter response = new ServletOutputToInputConverter(this.response);
+            ServletWebRequest webRequest = new ServletWebRequest(this.request, response);
+            try {
+                delegate.handleReturnValue(body, output, mavContainer, webRequest);
+            } catch (HttpMessageNotWritableException | HttpMediaTypeNotAcceptableException e) {
+                throw new IllegalStateException("Cannot convert body", e);
+            }
+            return response.getInputStream();
+        }
 
-		BodyForwardingHttpServletRequest(HttpServletRequest request, HttpServletResponse response) {
-			super(request);
-			this.request = request;
-			this.response = response;
-		}
+        @Override
+        public Enumeration<String> getHeaderNames() {
+            Set<String> names = headers.keySet();
+            if (names.isEmpty()) {
+                return super.getHeaderNames();
+            }
+            Set<String> result = new LinkedHashSet<>(names);
+            result.addAll(Collections.list(super.getHeaderNames()));
+            return new Vector<String>(result).elements();
+        }
 
-		private List<String> header(String name) {
-			List<String> list = headers.get(name);
-			return list;
-		}
+        @Override
+        public Enumeration<String> getHeaders(String name) {
+            List<String> list = header(name);
+            if (list != null) {
+                return new Vector<String>(list).elements();
+            }
+            return super.getHeaders(name);
+        }
 
-		@Override
-		public ServletInputStream getInputStream() throws IOException {
-			Object body = body();
-			MethodParameter output = new MethodParameter(ClassUtils.getMethod(BodySender.class, "body"), -1);
-			ServletOutputToInputConverter response = new ServletOutputToInputConverter(this.response);
-			ServletWebRequest webRequest = new ServletWebRequest(this.request, response);
-			try {
-				delegate.handleReturnValue(body, output, mavContainer, webRequest);
-			}
-			catch (HttpMessageNotWritableException | HttpMediaTypeNotAcceptableException e) {
-				throw new IllegalStateException("Cannot convert body", e);
-			}
-			return response.getInputStream();
-		}
-
-		@Override
-		public Enumeration<String> getHeaderNames() {
-			Set<String> names = headers.keySet();
-			if (names.isEmpty()) {
-				return super.getHeaderNames();
-			}
-			Set<String> result = new LinkedHashSet<>(names);
-			result.addAll(Collections.list(super.getHeaderNames()));
-			return new Vector<String>(result).elements();
-		}
-
-		@Override
-		public Enumeration<String> getHeaders(String name) {
-			List<String> list = header(name);
-			if (list != null) {
-				return new Vector<String>(list).elements();
-			}
-			return super.getHeaders(name);
-		}
-
-		@Override
-		public String getHeader(String name) {
-			List<String> list = header(name);
-			if (list != null && !list.isEmpty()) {
-				return list.iterator().next();
-			}
-			return super.getHeader(name);
-		}
-
-	}
-
+        @Override
+        public String getHeader(String name) {
+            List<String> list = header(name);
+            if (list != null && !list.isEmpty()) {
+                return list.iterator().next();
+            }
+            return super.getHeader(name);
+        }
+    }
 }
 
 /**
@@ -554,59 +531,57 @@ public class ProxyExchange<T> {
  * can be read repeatedly as necessary.
  *
  * @author Dave Syer
- *
  */
 class ServletOutputToInputConverter extends HttpServletResponseWrapper {
 
-	private StringBuilder builder = new StringBuilder();
+    private StringBuilder builder = new StringBuilder();
 
-	ServletOutputToInputConverter(HttpServletResponse response) {
-		super(response);
-	}
+    ServletOutputToInputConverter(HttpServletResponse response) {
+        super(response);
+    }
 
-	@Override
-	public ServletOutputStream getOutputStream() throws IOException {
-		return new ServletOutputStream() {
+    @Override
+    public ServletOutputStream getOutputStream() throws IOException {
+        return new ServletOutputStream() {
 
-			@Override
-			public void write(int b) throws IOException {
-				builder.append(Character.valueOf((char) b));
-			}
+            @Override
+            public void write(int b) throws IOException {
+                builder.append(Character.valueOf((char) b));
+            }
 
-			@Override
-			public void setWriteListener(WriteListener listener) {
-			}
+            @Override
+            public void setWriteListener(WriteListener listener) {
+            }
 
-			@Override
-			public boolean isReady() {
-				return true;
-			}
-		};
-	}
+            @Override
+            public boolean isReady() {
+                return true;
+            }
+        };
+    }
 
-	public ServletInputStream getInputStream() {
-		ByteArrayInputStream body = new ByteArrayInputStream(builder.toString().getBytes());
-		return new ServletInputStream() {
+    public ServletInputStream getInputStream() {
+        ByteArrayInputStream body = new ByteArrayInputStream(builder.toString().getBytes());
+        return new ServletInputStream() {
 
-			@Override
-			public int read() throws IOException {
-				return body.read();
-			}
+            @Override
+            public int read() throws IOException {
+                return body.read();
+            }
 
-			@Override
-			public void setReadListener(ReadListener listener) {
-			}
+            @Override
+            public void setReadListener(ReadListener listener) {
+            }
 
-			@Override
-			public boolean isReady() {
-				return true;
-			}
+            @Override
+            public boolean isReady() {
+                return true;
+            }
 
-			@Override
-			public boolean isFinished() {
-				return body.available() <= 0;
-			}
-		};
-	}
-
+            @Override
+            public boolean isFinished() {
+                return body.available() <= 0;
+            }
+        };
+    }
 }

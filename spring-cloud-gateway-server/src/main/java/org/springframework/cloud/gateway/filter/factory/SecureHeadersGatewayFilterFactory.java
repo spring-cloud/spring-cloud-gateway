@@ -13,18 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.factory;
 
 import java.util.List;
-
 import reactor.core.publisher.Mono;
-
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.server.ServerWebExchange;
-
 import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
 
 /**
@@ -32,240 +28,220 @@ import static org.springframework.cloud.gateway.support.GatewayToStringStyler.fi
  *
  * @author Spencer Gibb, Thirunavukkarasu Ravichandran
  */
-public class SecureHeadersGatewayFilterFactory
-		extends AbstractGatewayFilterFactory<SecureHeadersGatewayFilterFactory.Config> {
+public class SecureHeadersGatewayFilterFactory extends AbstractGatewayFilterFactory<SecureHeadersGatewayFilterFactory.Config> {
 
-	/**
-	 * Xss-Protection header name.
-	 */
-	public static final String X_XSS_PROTECTION_HEADER = "X-Xss-Protection";
+    /**
+     * Xss-Protection header name.
+     */
+    public static final String X_XSS_PROTECTION_HEADER = "X-Xss-Protection";
 
-	/**
-	 * Strict transport security header name.
-	 */
-	public static final String STRICT_TRANSPORT_SECURITY_HEADER = "Strict-Transport-Security";
+    /**
+     * Strict transport security header name.
+     */
+    public static final String STRICT_TRANSPORT_SECURITY_HEADER = "Strict-Transport-Security";
 
-	/**
-	 * Frame options header name.
-	 */
-	public static final String X_FRAME_OPTIONS_HEADER = "X-Frame-Options";
+    /**
+     * Frame options header name.
+     */
+    public static final String X_FRAME_OPTIONS_HEADER = "X-Frame-Options";
 
-	/**
-	 * Content-Type Options header name.
-	 */
-	public static final String X_CONTENT_TYPE_OPTIONS_HEADER = "X-Content-Type-Options";
+    /**
+     * Content-Type Options header name.
+     */
+    public static final String X_CONTENT_TYPE_OPTIONS_HEADER = "X-Content-Type-Options";
 
-	/**
-	 * Referrer Policy header name.
-	 */
-	public static final String REFERRER_POLICY_HEADER = "Referrer-Policy";
+    /**
+     * Referrer Policy header name.
+     */
+    public static final String REFERRER_POLICY_HEADER = "Referrer-Policy";
 
-	/**
-	 * Content-Security Policy header name.
-	 */
-	public static final String CONTENT_SECURITY_POLICY_HEADER = "Content-Security-Policy";
+    /**
+     * Content-Security Policy header name.
+     */
+    public static final String CONTENT_SECURITY_POLICY_HEADER = "Content-Security-Policy";
 
-	/**
-	 * Download Options header name.
-	 */
-	public static final String X_DOWNLOAD_OPTIONS_HEADER = "X-Download-Options";
+    /**
+     * Download Options header name.
+     */
+    public static final String X_DOWNLOAD_OPTIONS_HEADER = "X-Download-Options";
 
-	/**
-	 * Permitted Cross-Domain Policies header name.
-	 */
-	public static final String X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER = "X-Permitted-Cross-Domain-Policies";
+    /**
+     * Permitted Cross-Domain Policies header name.
+     */
+    public static final String X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER = "X-Permitted-Cross-Domain-Policies";
 
-	private final SecureHeadersProperties properties;
+    private final SecureHeadersProperties properties;
 
-	public SecureHeadersGatewayFilterFactory(SecureHeadersProperties properties) {
-		super(Config.class);
-		this.properties = properties;
-	}
+    public SecureHeadersGatewayFilterFactory(SecureHeadersProperties properties) {
+        super(Config.class);
+        this.properties = properties;
+    }
 
-	@Override
-	public GatewayFilter apply(Config originalConfig) {
-		return new GatewayFilter() {
-			@Override
-			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-				HttpHeaders headers = exchange.getResponse().getHeaders();
+    @Override
+    public GatewayFilter apply(Config originalConfig) {
+        return new GatewayFilter() {
 
-				List<String> disabled = properties.getDisable();
-				Config config = originalConfig.withDefaults(properties);
+            @Override
+            public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+                HttpHeaders headers = exchange.getResponse().getHeaders();
+                List<String> disabled = properties.getDisable();
+                Config config = originalConfig.withDefaults(properties);
+                return chain.filter(exchange).then(Mono.fromRunnable(() -> {
+                    if (isEnabled(disabled, X_XSS_PROTECTION_HEADER)) {
+                        headers.addIfAbsent(X_XSS_PROTECTION_HEADER, config.getXssProtectionHeader());
+                    }
+                    if (isEnabled(disabled, STRICT_TRANSPORT_SECURITY_HEADER)) {
+                        headers.addIfAbsent(STRICT_TRANSPORT_SECURITY_HEADER, config.getStrictTransportSecurity());
+                    }
+                    if (isEnabled(disabled, X_FRAME_OPTIONS_HEADER)) {
+                        headers.addIfAbsent(X_FRAME_OPTIONS_HEADER, config.getFrameOptions());
+                    }
+                    if (isEnabled(disabled, X_CONTENT_TYPE_OPTIONS_HEADER)) {
+                        headers.addIfAbsent(X_CONTENT_TYPE_OPTIONS_HEADER, config.getContentTypeOptions());
+                    }
+                    if (isEnabled(disabled, REFERRER_POLICY_HEADER)) {
+                        headers.addIfAbsent(REFERRER_POLICY_HEADER, config.getReferrerPolicy());
+                    }
+                    if (isEnabled(disabled, CONTENT_SECURITY_POLICY_HEADER)) {
+                        headers.addIfAbsent(CONTENT_SECURITY_POLICY_HEADER, config.getContentSecurityPolicy());
+                    }
+                    if (isEnabled(disabled, X_DOWNLOAD_OPTIONS_HEADER)) {
+                        headers.addIfAbsent(X_DOWNLOAD_OPTIONS_HEADER, config.getDownloadOptions());
+                    }
+                    if (isEnabled(disabled, X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER)) {
+                        headers.addIfAbsent(X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER, config.getPermittedCrossDomainPolicies());
+                    }
+                }));
+            }
 
-				return chain.filter(exchange).then(Mono.fromRunnable(() -> {
-					if (isEnabled(disabled, X_XSS_PROTECTION_HEADER)) {
-						headers.addIfAbsent(X_XSS_PROTECTION_HEADER, config.getXssProtectionHeader());
-					}
+            @Override
+            public String toString() {
+                return filterToStringCreator(SecureHeadersGatewayFilterFactory.this).toString();
+            }
+        };
+    }
 
-					if (isEnabled(disabled, STRICT_TRANSPORT_SECURITY_HEADER)) {
-						headers.addIfAbsent(STRICT_TRANSPORT_SECURITY_HEADER, config.getStrictTransportSecurity());
-					}
+    private boolean isEnabled(List<String> disabledHeaders, String header) {
+        return !disabledHeaders.contains(header.toLowerCase());
+    }
 
-					if (isEnabled(disabled, X_FRAME_OPTIONS_HEADER)) {
-						headers.addIfAbsent(X_FRAME_OPTIONS_HEADER, config.getFrameOptions());
-					}
+    public static class Config {
 
-					if (isEnabled(disabled, X_CONTENT_TYPE_OPTIONS_HEADER)) {
-						headers.addIfAbsent(X_CONTENT_TYPE_OPTIONS_HEADER, config.getContentTypeOptions());
-					}
+        private String xssProtectionHeader;
 
-					if (isEnabled(disabled, REFERRER_POLICY_HEADER)) {
-						headers.addIfAbsent(REFERRER_POLICY_HEADER, config.getReferrerPolicy());
-					}
+        private String strictTransportSecurity;
 
-					if (isEnabled(disabled, CONTENT_SECURITY_POLICY_HEADER)) {
-						headers.addIfAbsent(CONTENT_SECURITY_POLICY_HEADER, config.getContentSecurityPolicy());
-					}
+        private String frameOptions;
 
-					if (isEnabled(disabled, X_DOWNLOAD_OPTIONS_HEADER)) {
-						headers.addIfAbsent(X_DOWNLOAD_OPTIONS_HEADER, config.getDownloadOptions());
-					}
+        private String contentTypeOptions;
 
-					if (isEnabled(disabled, X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER)) {
-						headers.addIfAbsent(X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER,
-								config.getPermittedCrossDomainPolicies());
-					}
-				}));
-			}
+        private String referrerPolicy;
 
-			@Override
-			public String toString() {
-				return filterToStringCreator(SecureHeadersGatewayFilterFactory.this).toString();
-			}
-		};
-	}
+        private String contentSecurityPolicy;
 
-	private boolean isEnabled(List<String> disabledHeaders, String header) {
-		return !disabledHeaders.contains(header.toLowerCase());
-	}
+        private String downloadOptions;
 
-	public static class Config {
+        private String permittedCrossDomainPolicies;
 
-		private String xssProtectionHeader;
+        public Config withDefaults(SecureHeadersProperties properties) {
+            Config config = new Config();
+            config.setXssProtectionHeader(xssProtectionHeader);
+            config.setStrictTransportSecurity(strictTransportSecurity);
+            config.setFrameOptions(frameOptions);
+            config.setContentTypeOptions(contentTypeOptions);
+            config.setReferrerPolicy(referrerPolicy);
+            config.setContentSecurityPolicy(contentSecurityPolicy);
+            config.setDownloadOptions(downloadOptions);
+            config.setPermittedCrossDomainPolicies(permittedCrossDomainPolicies);
+            if (config.xssProtectionHeader == null) {
+                config.xssProtectionHeader = properties.getXssProtectionHeader();
+            }
+            if (config.strictTransportSecurity == null) {
+                config.strictTransportSecurity = properties.getStrictTransportSecurity();
+            }
+            if (config.frameOptions == null) {
+                config.frameOptions = properties.getFrameOptions();
+            }
+            if (config.contentTypeOptions == null) {
+                config.contentTypeOptions = properties.getContentTypeOptions();
+            }
+            if (config.referrerPolicy == null) {
+                config.referrerPolicy = properties.getReferrerPolicy();
+            }
+            if (config.contentSecurityPolicy == null) {
+                config.contentSecurityPolicy = properties.getContentSecurityPolicy();
+            }
+            if (config.downloadOptions == null) {
+                config.downloadOptions = properties.getDownloadOptions();
+            }
+            if (config.permittedCrossDomainPolicies == null) {
+                config.permittedCrossDomainPolicies = properties.getPermittedCrossDomainPolicies();
+            }
+            return config;
+        }
 
-		private String strictTransportSecurity;
+        public String getXssProtectionHeader() {
+            return xssProtectionHeader;
+        }
 
-		private String frameOptions;
+        public void setXssProtectionHeader(String xssProtectionHeader) {
+            this.xssProtectionHeader = xssProtectionHeader;
+        }
 
-		private String contentTypeOptions;
+        public String getStrictTransportSecurity() {
+            return strictTransportSecurity;
+        }
 
-		private String referrerPolicy;
+        public void setStrictTransportSecurity(String strictTransportSecurity) {
+            this.strictTransportSecurity = strictTransportSecurity;
+        }
 
-		private String contentSecurityPolicy;
+        public String getFrameOptions() {
+            return frameOptions;
+        }
 
-		private String downloadOptions;
+        public void setFrameOptions(String frameOptions) {
+            this.frameOptions = frameOptions;
+        }
 
-		private String permittedCrossDomainPolicies;
+        public String getContentTypeOptions() {
+            return contentTypeOptions;
+        }
 
-		public Config withDefaults(SecureHeadersProperties properties) {
-			Config config = new Config();
-			config.setXssProtectionHeader(xssProtectionHeader);
-			config.setStrictTransportSecurity(strictTransportSecurity);
-			config.setFrameOptions(frameOptions);
-			config.setContentTypeOptions(contentTypeOptions);
-			config.setReferrerPolicy(referrerPolicy);
-			config.setContentSecurityPolicy(contentSecurityPolicy);
-			config.setDownloadOptions(downloadOptions);
-			config.setPermittedCrossDomainPolicies(permittedCrossDomainPolicies);
+        public void setContentTypeOptions(String contentTypeOptions) {
+            this.contentTypeOptions = contentTypeOptions;
+        }
 
-			if (config.xssProtectionHeader == null) {
-				config.xssProtectionHeader = properties.getXssProtectionHeader();
-			}
+        public String getReferrerPolicy() {
+            return referrerPolicy;
+        }
 
-			if (config.strictTransportSecurity == null) {
-				config.strictTransportSecurity = properties.getStrictTransportSecurity();
-			}
+        public void setReferrerPolicy(String referrerPolicy) {
+            this.referrerPolicy = referrerPolicy;
+        }
 
-			if (config.frameOptions == null) {
-				config.frameOptions = properties.getFrameOptions();
-			}
+        public String getContentSecurityPolicy() {
+            return contentSecurityPolicy;
+        }
 
-			if (config.contentTypeOptions == null) {
-				config.contentTypeOptions = properties.getContentTypeOptions();
-			}
+        public void setContentSecurityPolicy(String contentSecurityPolicy) {
+            this.contentSecurityPolicy = contentSecurityPolicy;
+        }
 
-			if (config.referrerPolicy == null) {
-				config.referrerPolicy = properties.getReferrerPolicy();
-			}
+        public String getDownloadOptions() {
+            return downloadOptions;
+        }
 
-			if (config.contentSecurityPolicy == null) {
-				config.contentSecurityPolicy = properties.getContentSecurityPolicy();
-			}
+        public void setDownloadOptions(String downloadOptions) {
+            this.downloadOptions = downloadOptions;
+        }
 
-			if (config.downloadOptions == null) {
-				config.downloadOptions = properties.getDownloadOptions();
-			}
+        public String getPermittedCrossDomainPolicies() {
+            return permittedCrossDomainPolicies;
+        }
 
-			if (config.permittedCrossDomainPolicies == null) {
-				config.permittedCrossDomainPolicies = properties.getPermittedCrossDomainPolicies();
-			}
-			return config;
-		}
-
-		public String getXssProtectionHeader() {
-			return xssProtectionHeader;
-		}
-
-		public void setXssProtectionHeader(String xssProtectionHeader) {
-			this.xssProtectionHeader = xssProtectionHeader;
-		}
-
-		public String getStrictTransportSecurity() {
-			return strictTransportSecurity;
-		}
-
-		public void setStrictTransportSecurity(String strictTransportSecurity) {
-			this.strictTransportSecurity = strictTransportSecurity;
-		}
-
-		public String getFrameOptions() {
-			return frameOptions;
-		}
-
-		public void setFrameOptions(String frameOptions) {
-			this.frameOptions = frameOptions;
-		}
-
-		public String getContentTypeOptions() {
-			return contentTypeOptions;
-		}
-
-		public void setContentTypeOptions(String contentTypeOptions) {
-			this.contentTypeOptions = contentTypeOptions;
-		}
-
-		public String getReferrerPolicy() {
-			return referrerPolicy;
-		}
-
-		public void setReferrerPolicy(String referrerPolicy) {
-			this.referrerPolicy = referrerPolicy;
-		}
-
-		public String getContentSecurityPolicy() {
-			return contentSecurityPolicy;
-		}
-
-		public void setContentSecurityPolicy(String contentSecurityPolicy) {
-			this.contentSecurityPolicy = contentSecurityPolicy;
-		}
-
-		public String getDownloadOptions() {
-			return downloadOptions;
-		}
-
-		public void setDownloadOptions(String downloadOptions) {
-			this.downloadOptions = downloadOptions;
-		}
-
-		public String getPermittedCrossDomainPolicies() {
-			return permittedCrossDomainPolicies;
-		}
-
-		public void setPermittedCrossDomainPolicies(String permittedCrossDomainPolicies) {
-			this.permittedCrossDomainPolicies = permittedCrossDomainPolicies;
-		}
-
-	}
-
+        public void setPermittedCrossDomainPolicies(String permittedCrossDomainPolicies) {
+            this.permittedCrossDomainPolicies = permittedCrossDomainPolicies;
+        }
+    }
 }

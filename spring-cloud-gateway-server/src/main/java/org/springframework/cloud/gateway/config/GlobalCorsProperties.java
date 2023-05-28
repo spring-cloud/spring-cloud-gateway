@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.config;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping;
 import org.springframework.web.cors.CorsConfiguration;
@@ -30,10 +28,9 @@ import org.springframework.web.cors.CorsConfiguration;
 @ConfigurationProperties("spring.cloud.gateway.globalcors")
 public class GlobalCorsProperties {
 
-	private final Map<String, CorsConfiguration> corsConfigurations = new LinkedHashMap<>();
+    private final Map<String, CorsConfiguration> corsConfigurations = new LinkedHashMap<>();
 
-	public Map<String, CorsConfiguration> getCorsConfigurations() {
-		return corsConfigurations;
-	}
-
+    public Map<String, CorsConfiguration> getCorsConfigurations() {
+        return corsConfigurations;
+    }
 }

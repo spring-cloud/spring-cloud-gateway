@@ -13,16 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.headers;
 
 import java.net.URI;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -38,7 +35,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponentsBuilder;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
 
@@ -46,53 +42,43 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @DirtiesContext
 public class NonStandardHeadersInResponseTests extends BaseWebClientTests {
 
-	public static final String CONTENT_TYPE_IMAGE = "image";
+    public static final String CONTENT_TYPE_IMAGE = "image";
 
-	@Test
-	public void nonStandardHeadersInResponse() {
-		URI uri = UriComponentsBuilder.fromUriString(this.baseUri + "/get-image").build(true).toUri();
+    @Test
+    public void nonStandardHeadersInResponse() {
+        URI uri = UriComponentsBuilder.fromUriString(this.baseUri + "/get-image").build(true).toUri();
+        String contentType = WebClient.builder().baseUrl(baseUri).build().get().uri(uri).exchangeToMono(Mono::just).map(clientResponse -> clientResponse.headers().asHttpHeaders().getFirst(HttpHeaders.CONTENT_TYPE)).block();
+        assertThat(contentType).isEqualTo(CONTENT_TYPE_IMAGE);
+    }
 
-		String contentType = WebClient.builder().baseUrl(baseUri).build().get().uri(uri).exchangeToMono(Mono::just)
-				.map(clientResponse -> clientResponse.headers().asHttpHeaders().getFirst(HttpHeaders.CONTENT_TYPE))
-				.block();
+    @EnableAutoConfiguration
+    @SpringBootConfiguration
+    @Import(DefaultTestConfig.class)
+    public static class TestConfig {
 
-		assertThat(contentType).isEqualTo(CONTENT_TYPE_IMAGE);
-	}
+        private static final Log log = LogFactory.getLog(TestConfig.class);
 
-	@EnableAutoConfiguration
-	@SpringBootConfiguration
-	@Import(DefaultTestConfig.class)
-	public static class TestConfig {
+        @Value("${test.uri}")
+        String uri;
 
-		private static final Log log = LogFactory.getLog(TestConfig.class);
+        @Value("${server.port}")
+        int port;
 
-		@Value("${test.uri}")
-		String uri;
+        @Bean
+        @Order(5001)
+        public GlobalFilter addNonStandardHeaderFilter() {
+            return (exchange, chain) -> {
+                log.info("addNonStandardHeaderFilter pre phase");
+                return chain.filter(exchange).then(Mono.fromRunnable(() -> {
+                    log.info("addNonStandardHeaderFilter post phase");
+                    exchange.getResponse().getHeaders().set(HttpHeaders.CONTENT_TYPE, CONTENT_TYPE_IMAGE);
+                }));
+            };
+        }
 
-		@Value("${server.port}")
-		int port;
-
-		@Bean
-		@Order(5001)
-		public GlobalFilter addNonStandardHeaderFilter() {
-			return (exchange, chain) -> {
-				log.info("addNonStandardHeaderFilter pre phase");
-				return chain.filter(exchange).then(Mono.fromRunnable(() -> {
-					log.info("addNonStandardHeaderFilter post phase");
-					exchange.getResponse().getHeaders().set(HttpHeaders.CONTENT_TYPE, CONTENT_TYPE_IMAGE);
-				}));
-			};
-		}
-
-		@Bean
-		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
-			return builder.routes().route("non_standard_header_route", r -> r.path("/get-image/**")
-					.filters(f -> f.addRequestHeader(HttpHeaders.HOST, "www.addrequestparameter.org").stripPrefix(1))
-					.uri("http://localhost:" + port + "/get"))
-					.route("internal_route", r -> r.path("/get/**").filters(f -> f.prefixPath("/httpbin")).uri(uri))
-					.build();
-		}
-
-	}
-
+        @Bean
+        public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
+            return builder.routes().route("non_standard_header_route", r -> r.path("/get-image/**").filters(f -> f.addRequestHeader(HttpHeaders.HOST, "www.addrequestparameter.org").stripPrefix(1)).uri("http://localhost:" + port + "/get")).route("internal_route", r -> r.path("/get/**").filters(f -> f.prefixPath("/httpbin")).uri(uri)).build();
+        }
+    }
 }

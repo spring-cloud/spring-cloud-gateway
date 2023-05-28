@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.config;
 
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -43,22 +42,19 @@ import org.springframework.web.reactive.DispatcherHandler;
 @EnableConfigurationProperties(GatewayLoadBalancerProperties.class)
 public class GatewayReactiveLoadBalancerClientAutoConfiguration {
 
-	@Bean
-	@ConditionalOnBean(LoadBalancerClientFactory.class)
-	@ConditionalOnMissingBean(ReactiveLoadBalancerClientFilter.class)
-	@ConditionalOnEnabledGlobalFilter
-	public ReactiveLoadBalancerClientFilter gatewayLoadBalancerClientFilter(LoadBalancerClientFactory clientFactory,
-			GatewayLoadBalancerProperties properties) {
-		return new ReactiveLoadBalancerClientFilter(clientFactory, properties);
-	}
+    @Bean
+    @ConditionalOnBean(LoadBalancerClientFactory.class)
+    @ConditionalOnMissingBean(ReactiveLoadBalancerClientFilter.class)
+    @ConditionalOnEnabledGlobalFilter
+    public ReactiveLoadBalancerClientFilter gatewayLoadBalancerClientFilter(LoadBalancerClientFactory clientFactory, GatewayLoadBalancerProperties properties) {
+        return new ReactiveLoadBalancerClientFilter(clientFactory, properties);
+    }
 
-	@Bean
-	@ConditionalOnBean({ ReactiveLoadBalancerClientFilter.class, LoadBalancerClientFactory.class })
-	@ConditionalOnMissingBean
-	@ConditionalOnEnabledGlobalFilter
-	public LoadBalancerServiceInstanceCookieFilter loadBalancerServiceInstanceCookieFilter(
-			LoadBalancerClientFactory loadBalancerClientFactory) {
-		return new LoadBalancerServiceInstanceCookieFilter(loadBalancerClientFactory);
-	}
-
+    @Bean
+    @ConditionalOnBean({ ReactiveLoadBalancerClientFilter.class, LoadBalancerClientFactory.class })
+    @ConditionalOnMissingBean
+    @ConditionalOnEnabledGlobalFilter
+    public LoadBalancerServiceInstanceCookieFilter loadBalancerServiceInstanceCookieFilter(LoadBalancerClientFactory loadBalancerClientFactory) {
+        return new LoadBalancerServiceInstanceCookieFilter(loadBalancerClientFactory);
+    }
 }

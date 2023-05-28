@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.factory.cache.postprocessor;
 
 import java.util.function.BiConsumer;
-
 import org.springframework.cloud.gateway.filter.factory.cache.CachedResponse;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -29,5 +27,4 @@ import org.springframework.web.server.ServerWebExchange;
  * @author Ignacio Lozano
  */
 public interface AfterCacheExchangeMutator extends BiConsumer<ServerWebExchange, CachedResponse> {
-
 }

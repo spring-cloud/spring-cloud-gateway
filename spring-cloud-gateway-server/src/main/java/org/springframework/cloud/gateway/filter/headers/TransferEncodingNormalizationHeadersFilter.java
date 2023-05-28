@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.headers;
 
 import org.springframework.core.Ordered;
@@ -25,25 +24,21 @@ import org.springframework.web.server.ServerWebExchange;
  */
 public class TransferEncodingNormalizationHeadersFilter implements HttpHeadersFilter, Ordered {
 
-	@Override
-	public int getOrder() {
-		return 1000;
-	}
+    @Override
+    public int getOrder() {
+        return 1000;
+    }
 
-	@Override
-	public HttpHeaders filter(HttpHeaders input, ServerWebExchange exchange) {
-		String transferEncoding = input.getFirst(HttpHeaders.TRANSFER_ENCODING);
-		if (transferEncoding != null && "chunked".equalsIgnoreCase(transferEncoding.trim())
-				&& input.containsKey(HttpHeaders.CONTENT_LENGTH)) {
-
-			HttpHeaders filtered = new HttpHeaders();
-			// avoids read only if input is read only
-			filtered.addAll(input);
-			filtered.remove(HttpHeaders.CONTENT_LENGTH);
-			return filtered;
-		}
-
-		return input;
-	}
-
+    @Override
+    public HttpHeaders filter(HttpHeaders input, ServerWebExchange exchange) {
+        String transferEncoding = input.getFirst(HttpHeaders.TRANSFER_ENCODING);
+        if (transferEncoding != null && "chunked".equalsIgnoreCase(transferEncoding.trim()) && input.containsKey(HttpHeaders.CONTENT_LENGTH)) {
+            HttpHeaders filtered = new HttpHeaders();
+            // avoids read only if input is read only
+            filtered.addAll(input);
+            filtered.remove(HttpHeaders.CONTENT_LENGTH);
+            return filtered;
+        }
+        return input;
+    }
 }

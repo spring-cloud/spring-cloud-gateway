@@ -13,18 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.test.ssl;
 
 import javax.net.ssl.SSLException;
-
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import reactor.netty.http.client.HttpClient;
-
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -36,7 +33,6 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
-
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -44,35 +40,31 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @ActiveProfiles("single-cert-ssl")
 public class SingleCertSSLTests extends BaseWebClientTests {
 
-	@BeforeEach
-	public void setup() throws Exception {
-		try {
-			SslContext sslContext = SslContextBuilder.forClient().trustManager(InsecureTrustManagerFactory.INSTANCE)
-					.build();
-			HttpClient httpClient = HttpClient.create().secure(ssl -> ssl.sslContext(sslContext));
-			setup(new ReactorClientHttpConnector(httpClient), "https://localhost:" + port);
-		}
-		catch (SSLException e) {
-			throw new RuntimeException(e);
-		}
-	}
+    @BeforeEach
+    public void setup() throws Exception {
+        try {
+            SslContext sslContext = SslContextBuilder.forClient().trustManager(InsecureTrustManagerFactory.INSTANCE).build();
+            HttpClient httpClient = HttpClient.create().secure(ssl -> ssl.sslContext(sslContext));
+            setup(new ReactorClientHttpConnector(httpClient), "https://localhost:" + port);
+        } catch (SSLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-	@Test
-	public void testSslTrust() {
-		testClient.get().uri("/ssltrust").exchange().expectStatus().is2xxSuccessful();
-	}
+    @Test
+    public void testSslTrust() {
+        testClient.get().uri("/ssltrust").exchange().expectStatus().is2xxSuccessful();
+    }
 
-	@EnableAutoConfiguration
-	@SpringBootConfiguration
-	@Import(DefaultTestConfig.class)
-	@RestController
-	public static class TestConfig {
+    @EnableAutoConfiguration
+    @SpringBootConfiguration
+    @Import(DefaultTestConfig.class)
+    @RestController
+    public static class TestConfig {
 
-		@GetMapping("/httpbin/ssltrust")
-		public ResponseEntity<Void> nocontenttype() {
-			return ResponseEntity.status(204).build();
-		}
-
-	}
-
+        @GetMapping("/httpbin/ssltrust")
+        public ResponseEntity<Void> nocontenttype() {
+            return ResponseEntity.status(204).build();
+        }
+    }
 }

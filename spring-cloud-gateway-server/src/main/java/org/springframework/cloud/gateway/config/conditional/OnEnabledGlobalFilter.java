@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.config.conditional;
 
 import reactor.core.publisher.Mono;
-
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.support.NameUtils;
@@ -25,28 +23,26 @@ import org.springframework.web.server.ServerWebExchange;
 
 public class OnEnabledGlobalFilter extends OnEnabledComponent<GlobalFilter> {
 
-	@Override
-	protected String normalizeComponentName(Class<? extends GlobalFilter> filterClass) {
-		return "global-filter." + NameUtils.normalizeGlobalFilterNameAsProperty(filterClass);
-	}
+    @Override
+    protected String normalizeComponentName(Class<? extends GlobalFilter> filterClass) {
+        return "global-filter." + NameUtils.normalizeGlobalFilterNameAsProperty(filterClass);
+    }
 
-	@Override
-	protected Class<?> annotationClass() {
-		return ConditionalOnEnabledGlobalFilter.class;
-	}
+    @Override
+    protected Class<?> annotationClass() {
+        return ConditionalOnEnabledGlobalFilter.class;
+    }
 
-	@Override
-	protected Class<? extends GlobalFilter> defaultValueClass() {
-		return DefaultValue.class;
-	}
+    @Override
+    protected Class<? extends GlobalFilter> defaultValueClass() {
+        return DefaultValue.class;
+    }
 
-	static class DefaultValue implements GlobalFilter {
+    static class DefaultValue implements GlobalFilter {
 
-		@Override
-		public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-			throw new UnsupportedOperationException("class DefaultValue is never meant to be intantiated");
-		}
-
-	}
-
+        @Override
+        public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+            throw new UnsupportedOperationException("class DefaultValue is never meant to be intantiated");
+        }
+    }
 }

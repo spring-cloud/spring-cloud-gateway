@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.tests.http2.nossl;
 
 import org.assertj.core.api.Assertions;
@@ -22,7 +21,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import reactor.core.publisher.Hooks;
-
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.system.CapturedOutput;
@@ -32,7 +30,6 @@ import org.springframework.cloud.gateway.tests.http2.Http2Application;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.util.TestSocketUtils;
-
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import static org.springframework.cloud.gateway.tests.http2.Http2ApplicationTests.assertResponse;
 
@@ -44,32 +41,30 @@ import static org.springframework.cloud.gateway.tests.http2.Http2ApplicationTest
 @DirtiesContext
 public class NosslTests {
 
-	@LocalServerPort
-	int port;
+    @LocalServerPort
+    int port;
 
-	@BeforeAll
-	static void beforeAll() {
-		int noSslPort = TestSocketUtils.findAvailableTcpPort();
-		System.setProperty("nossl.port", String.valueOf(noSslPort));
-	}
+    @BeforeAll
+    static void beforeAll() {
+        int noSslPort = TestSocketUtils.findAvailableTcpPort();
+        System.setProperty("nossl.port", String.valueOf(noSslPort));
+    }
 
-	@AfterAll
-	static void afterAll() {
-		System.clearProperty("nossl.port");
-	}
+    @AfterAll
+    static void afterAll() {
+        System.clearProperty("nossl.port");
+    }
 
-	@Test
-	public void http2TerminationWorks(CapturedOutput output) {
-		int nosslPort = Integer.parseInt(System.getProperty("nossl.port"));
-		System.err.println("nossl.port = " + nosslPort);
-		Hooks.onOperatorDebug();
-		try (ConfigurableApplicationContext context = new SpringApplicationBuilder(NosslConfiguration.class)
-				.properties("server.port=" + nosslPort).profiles("nossl").run()) {
-			String uri = "https://localhost:" + port + "/nossl";
-			String expected = "nossl";
-			assertResponse(uri, expected);
-			Assertions.assertThat(output).doesNotContain("PRI * HTTP/2.0");
-		}
-	}
-
+    @Test
+    public void http2TerminationWorks(CapturedOutput output) {
+        int nosslPort = Integer.parseInt(System.getProperty("nossl.port"));
+        System.err.println("nossl.port = " + nosslPort);
+        Hooks.onOperatorDebug();
+        try (ConfigurableApplicationContext context = new SpringApplicationBuilder(NosslConfiguration.class).properties("server.port=" + nosslPort).profiles("nossl").run()) {
+            String uri = "https://localhost:" + port + "/nossl";
+            String expected = "nossl";
+            assertResponse(uri, expected);
+            Assertions.assertThat(output).doesNotContain("PRI * HTTP/2.0");
+        }
+    }
 }

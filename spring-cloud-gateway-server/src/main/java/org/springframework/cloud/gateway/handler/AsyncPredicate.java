@@ -13,15 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.handler;
 
 import java.util.function.Function;
 import java.util.function.Predicate;
-
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Mono;
-
 import org.springframework.cloud.gateway.handler.predicate.GatewayPredicate;
 import org.springframework.cloud.gateway.support.HasConfig;
 import org.springframework.cloud.gateway.support.Visitor;
@@ -33,139 +30,134 @@ import org.springframework.web.server.ServerWebExchange;
  */
 public interface AsyncPredicate<T> extends Function<T, Publisher<Boolean>>, HasConfig {
 
-	default AsyncPredicate<T> and(AsyncPredicate<? super T> other) {
-		return new AndAsyncPredicate<>(this, other);
-	}
+    default AsyncPredicate<T> and(AsyncPredicate<? super T> other) {
+        return new AndAsyncPredicate<>(this, other);
+    }
 
-	default AsyncPredicate<T> negate() {
-		return new NegateAsyncPredicate<>(this);
-	}
+    default AsyncPredicate<T> negate() {
+        return new NegateAsyncPredicate<>(this);
+    }
 
-	default AsyncPredicate<T> not(AsyncPredicate<? super T> other) {
-		return new NegateAsyncPredicate<>(other);
-	}
+    default AsyncPredicate<T> not(AsyncPredicate<? super T> other) {
+        return new NegateAsyncPredicate<>(other);
+    }
 
-	default AsyncPredicate<T> or(AsyncPredicate<? super T> other) {
-		return new OrAsyncPredicate<>(this, other);
-	}
+    default AsyncPredicate<T> or(AsyncPredicate<? super T> other) {
+        return new OrAsyncPredicate<>(this, other);
+    }
 
-	default void accept(Visitor visitor) {
-		visitor.visit(this);
-	}
+    default void accept(Visitor visitor) {
+        visitor.visit(this);
+    }
 
-	static AsyncPredicate<ServerWebExchange> from(Predicate<? super ServerWebExchange> predicate) {
-		return new DefaultAsyncPredicate<>(GatewayPredicate.wrapIfNeeded(predicate));
-	}
+    static AsyncPredicate<ServerWebExchange> from(Predicate<? super ServerWebExchange> predicate) {
+        return new DefaultAsyncPredicate<>(GatewayPredicate.wrapIfNeeded(predicate));
+    }
 
-	class DefaultAsyncPredicate<T> implements AsyncPredicate<T> {
+    class DefaultAsyncPredicate<T> implements AsyncPredicate<T> {
 
-		private final Predicate<T> delegate;
+        private final Predicate<T> delegate;
 
-		public DefaultAsyncPredicate(Predicate<T> delegate) {
-			this.delegate = delegate;
-		}
+        public DefaultAsyncPredicate(Predicate<T> delegate) {
+            this.delegate = delegate;
+        }
 
-		@Override
-		public Publisher<Boolean> apply(T t) {
-			return Mono.just(delegate.test(t));
-		}
+        @Override
+        public Publisher<Boolean> apply(T t) {
+            return Mono.just(delegate.test(t));
+        }
 
-		@Override
-		public String toString() {
-			return this.delegate.toString();
-		}
+        @Override
+        public String toString() {
+            return this.delegate.toString();
+        }
 
-		@Override
-		public void accept(Visitor visitor) {
-			if (delegate instanceof GatewayPredicate) {
-				GatewayPredicate gatewayPredicate = (GatewayPredicate) delegate;
-				gatewayPredicate.accept(visitor);
-			}
-		}
+        @Override
+        public void accept(Visitor visitor) {
+            if (delegate instanceof GatewayPredicate) {
+                GatewayPredicate gatewayPredicate = (GatewayPredicate) delegate;
+                gatewayPredicate.accept(visitor);
+            }
+        }
+    }
 
-	}
+    class NegateAsyncPredicate<T> implements AsyncPredicate<T> {
 
-	class NegateAsyncPredicate<T> implements AsyncPredicate<T> {
+        private final AsyncPredicate<? super T> predicate;
 
-		private final AsyncPredicate<? super T> predicate;
+        public NegateAsyncPredicate(AsyncPredicate<? super T> predicate) {
+            Assert.notNull(predicate, "predicate AsyncPredicate must not be null");
+            this.predicate = predicate;
+        }
 
-		public NegateAsyncPredicate(AsyncPredicate<? super T> predicate) {
-			Assert.notNull(predicate, "predicate AsyncPredicate must not be null");
-			this.predicate = predicate;
-		}
+        @Override
+        public Publisher<Boolean> apply(T t) {
+            return Mono.from(predicate.apply(t)).map(b -> !b);
+        }
 
-		@Override
-		public Publisher<Boolean> apply(T t) {
-			return Mono.from(predicate.apply(t)).map(b -> !b);
-		}
+        @Override
+        public String toString() {
+            return String.format("!(%s)", this.predicate);
+        }
+    }
 
-		@Override
-		public String toString() {
-			return String.format("!(%s)", this.predicate);
-		}
+    class AndAsyncPredicate<T> implements AsyncPredicate<T> {
 
-	}
+        private final AsyncPredicate<? super T> left;
 
-	class AndAsyncPredicate<T> implements AsyncPredicate<T> {
+        private final AsyncPredicate<? super T> right;
 
-		private final AsyncPredicate<? super T> left;
+        public AndAsyncPredicate(AsyncPredicate<? super T> left, AsyncPredicate<? super T> right) {
+            Assert.notNull(left, "Left AsyncPredicate must not be null");
+            Assert.notNull(right, "Right AsyncPredicate must not be null");
+            this.left = left;
+            this.right = right;
+        }
 
-		private final AsyncPredicate<? super T> right;
+        @Override
+        public Publisher<Boolean> apply(T t) {
+            return Mono.from(left.apply(t)).flatMap(result -> !result ? Mono.just(false) : Mono.from(right.apply(t)));
+        }
 
-		public AndAsyncPredicate(AsyncPredicate<? super T> left, AsyncPredicate<? super T> right) {
-			Assert.notNull(left, "Left AsyncPredicate must not be null");
-			Assert.notNull(right, "Right AsyncPredicate must not be null");
-			this.left = left;
-			this.right = right;
-		}
+        @Override
+        public void accept(Visitor visitor) {
+            left.accept(visitor);
+            right.accept(visitor);
+        }
 
-		@Override
-		public Publisher<Boolean> apply(T t) {
-			return Mono.from(left.apply(t)).flatMap(result -> !result ? Mono.just(false) : Mono.from(right.apply(t)));
-		}
+        @Override
+        public String toString() {
+            return String.format("(%s && %s)", this.left, this.right);
+        }
+    }
 
-		@Override
-		public void accept(Visitor visitor) {
-			left.accept(visitor);
-			right.accept(visitor);
-		}
+    class OrAsyncPredicate<T> implements AsyncPredicate<T> {
 
-		@Override
-		public String toString() {
-			return String.format("(%s && %s)", this.left, this.right);
-		}
+        private final AsyncPredicate<? super T> left;
 
-	}
+        private final AsyncPredicate<? super T> right;
 
-	class OrAsyncPredicate<T> implements AsyncPredicate<T> {
+        public OrAsyncPredicate(AsyncPredicate<? super T> left, AsyncPredicate<? super T> right) {
+            Assert.notNull(left, "Left AsyncPredicate must not be null");
+            Assert.notNull(right, "Right AsyncPredicate must not be null");
+            this.left = left;
+            this.right = right;
+        }
 
-		private final AsyncPredicate<? super T> left;
+        @Override
+        public Publisher<Boolean> apply(T t) {
+            return Mono.from(left.apply(t)).flatMap(result -> result ? Mono.just(true) : Mono.from(right.apply(t)));
+        }
 
-		private final AsyncPredicate<? super T> right;
+        @Override
+        public void accept(Visitor visitor) {
+            left.accept(visitor);
+            right.accept(visitor);
+        }
 
-		public OrAsyncPredicate(AsyncPredicate<? super T> left, AsyncPredicate<? super T> right) {
-			Assert.notNull(left, "Left AsyncPredicate must not be null");
-			Assert.notNull(right, "Right AsyncPredicate must not be null");
-			this.left = left;
-			this.right = right;
-		}
-
-		@Override
-		public Publisher<Boolean> apply(T t) {
-			return Mono.from(left.apply(t)).flatMap(result -> result ? Mono.just(true) : Mono.from(right.apply(t)));
-		}
-
-		@Override
-		public void accept(Visitor visitor) {
-			left.accept(visitor);
-			right.accept(visitor);
-		}
-
-		@Override
-		public String toString() {
-			return String.format("(%s || %s)", this.left, this.right);
-		}
-
-	}
-
+        @Override
+        public String toString() {
+            return String.format("(%s || %s)", this.left, this.right);
+        }
+    }
 }

@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.factory.cache.keygenerator;
 
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -26,17 +25,16 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
  */
 interface KeyValueGenerator {
 
-	/*
+    /*
 	 * Calls getKeyValue() and guards against null.
 	 */
-	default String apply(ServerHttpRequest request) {
-		String key = getKeyValue(request);
-		if (key == null) {
-			return "";
-		}
-		return key;
-	}
+    default String apply(ServerHttpRequest request) {
+        String key = getKeyValue(request);
+        if (key == null) {
+            return "";
+        }
+        return key;
+    }
 
-	String getKeyValue(ServerHttpRequest request);
-
+    String getKeyValue(ServerHttpRequest request);
 }

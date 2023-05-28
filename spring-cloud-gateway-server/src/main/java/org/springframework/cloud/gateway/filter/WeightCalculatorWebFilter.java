@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter;
 
 import java.util.ArrayList;
@@ -25,11 +24,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Mono;
-
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cloud.gateway.event.PredicateArgsEvent;
 import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
@@ -44,7 +41,6 @@ import org.springframework.core.style.ToStringCreator;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
-
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.WEIGHT_ATTR;
 
 /**
@@ -53,244 +49,214 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.W
  */
 public class WeightCalculatorWebFilter implements WebFilter, Ordered, SmartApplicationListener {
 
-	/**
-	 * Order of Weight Calculator Web filter.
-	 */
-	public static final int WEIGHT_CALC_FILTER_ORDER = 10001;
+    /**
+     * Order of Weight Calculator Web filter.
+     */
+    public static final int WEIGHT_CALC_FILTER_ORDER = 10001;
 
-	private static final Log log = LogFactory.getLog(WeightCalculatorWebFilter.class);
+    private static final Log log = LogFactory.getLog(WeightCalculatorWebFilter.class);
 
-	private final ObjectProvider<RouteLocator> routeLocator;
+    private final ObjectProvider<RouteLocator> routeLocator;
 
-	private final ConfigurationService configurationService;
+    private final ConfigurationService configurationService;
 
-	private Random random = null;
+    private Random random = null;
 
-	private int order = WEIGHT_CALC_FILTER_ORDER;
+    private int order = WEIGHT_CALC_FILTER_ORDER;
 
-	private Map<String, GroupWeightConfig> groupWeights = new ConcurrentHashMap<>();
+    private Map<String, GroupWeightConfig> groupWeights = new ConcurrentHashMap<>();
 
-	private final AtomicBoolean routeLocatorInitialized = new AtomicBoolean();
+    private final AtomicBoolean routeLocatorInitialized = new AtomicBoolean();
 
-	public WeightCalculatorWebFilter(ObjectProvider<RouteLocator> routeLocator,
-			ConfigurationService configurationService) {
-		this.routeLocator = routeLocator;
-		this.configurationService = configurationService;
-	}
+    public WeightCalculatorWebFilter(ObjectProvider<RouteLocator> routeLocator, ConfigurationService configurationService) {
+        this.routeLocator = routeLocator;
+        this.configurationService = configurationService;
+    }
 
-	/* for testing */
-	static Map<String, String> getWeights(ServerWebExchange exchange) {
-		Map<String, String> weights = exchange.getAttribute(WEIGHT_ATTR);
+    /* for testing */
+    static Map<String, String> getWeights(ServerWebExchange exchange) {
+        Map<String, String> weights = exchange.getAttribute(WEIGHT_ATTR);
+        if (weights == null) {
+            weights = new ConcurrentHashMap<>();
+            exchange.getAttributes().put(WEIGHT_ATTR, weights);
+        }
+        return weights;
+    }
 
-		if (weights == null) {
-			weights = new ConcurrentHashMap<>();
-			exchange.getAttributes().put(WEIGHT_ATTR, weights);
-		}
-		return weights;
-	}
+    @Override
+    public int getOrder() {
+        return order;
+    }
 
-	@Override
-	public int getOrder() {
-		return order;
-	}
+    public void setOrder(int order) {
+        this.order = order;
+    }
 
-	public void setOrder(int order) {
-		this.order = order;
-	}
+    public void setRandom(Random random) {
+        this.random = random;
+    }
 
-	public void setRandom(Random random) {
-		this.random = random;
-	}
+    @Override
+    public boolean supportsEventType(Class<? extends ApplicationEvent> eventType) {
+        // from config file
+        return PredicateArgsEvent.class.isAssignableFrom(eventType) || // from java dsl
+        WeightDefinedEvent.class.isAssignableFrom(eventType) || // force initialization
+        RefreshRoutesEvent.class.isAssignableFrom(eventType);
+    }
 
-	@Override
-	public boolean supportsEventType(Class<? extends ApplicationEvent> eventType) {
-		// from config file
-		return PredicateArgsEvent.class.isAssignableFrom(eventType) ||
-		// from java dsl
-				WeightDefinedEvent.class.isAssignableFrom(eventType) ||
-				// force initialization
-				RefreshRoutesEvent.class.isAssignableFrom(eventType);
-	}
+    @Override
+    public boolean supportsSourceType(Class<?> sourceType) {
+        return true;
+    }
 
-	@Override
-	public boolean supportsSourceType(Class<?> sourceType) {
-		return true;
-	}
+    @Override
+    public void onApplicationEvent(ApplicationEvent event) {
+        if (event instanceof PredicateArgsEvent) {
+            handle((PredicateArgsEvent) event);
+        } else if (event instanceof WeightDefinedEvent) {
+            addWeightConfig(((WeightDefinedEvent) event).getWeightConfig());
+        } else if (event instanceof RefreshRoutesEvent && routeLocator != null) {
+            // forces initialization
+            if (routeLocatorInitialized.compareAndSet(false, true)) {
+                // on first time, block so that app fails to start if there are errors in
+                // routes
+                // see gh-1574
+                routeLocator.ifAvailable(locator -> locator.getRoutes().blockLast());
+            } else {
+                // this preserves previous behaviour on refresh, this could likely go away
+                routeLocator.ifAvailable(locator -> locator.getRoutes().subscribe());
+            }
+        }
+    }
 
-	@Override
-	public void onApplicationEvent(ApplicationEvent event) {
-		if (event instanceof PredicateArgsEvent) {
-			handle((PredicateArgsEvent) event);
-		}
-		else if (event instanceof WeightDefinedEvent) {
-			addWeightConfig(((WeightDefinedEvent) event).getWeightConfig());
-		}
-		else if (event instanceof RefreshRoutesEvent && routeLocator != null) {
-			// forces initialization
-			if (routeLocatorInitialized.compareAndSet(false, true)) {
-				// on first time, block so that app fails to start if there are errors in
-				// routes
-				// see gh-1574
-				routeLocator.ifAvailable(locator -> locator.getRoutes().blockLast());
-			}
-			else {
-				// this preserves previous behaviour on refresh, this could likely go away
-				routeLocator.ifAvailable(locator -> locator.getRoutes().subscribe());
-			}
-		}
+    public void handle(PredicateArgsEvent event) {
+        Map<String, Object> args = event.getArgs();
+        if (args.isEmpty() || !hasRelevantKey(args)) {
+            return;
+        }
+        WeightConfig config = new WeightConfig(event.getRouteId());
+        this.configurationService.with(config).name(WeightConfig.CONFIG_PREFIX).normalizedProperties(args).bind();
+        addWeightConfig(config);
+    }
 
-	}
+    private boolean hasRelevantKey(Map<String, Object> args) {
+        return args.keySet().stream().anyMatch(key -> key.startsWith(WeightConfig.CONFIG_PREFIX + "."));
+    }
 
-	public void handle(PredicateArgsEvent event) {
-		Map<String, Object> args = event.getArgs();
+    /* for testing */
+    void addWeightConfig(WeightConfig weightConfig) {
+        String group = weightConfig.getGroup();
+        GroupWeightConfig config;
+        // only create new GroupWeightConfig rather than modify
+        // and put at end of calculations. This avoids concurency problems
+        // later during filter execution.
+        if (groupWeights.containsKey(group)) {
+            config = new GroupWeightConfig(groupWeights.get(group));
+        } else {
+            config = new GroupWeightConfig(group);
+        }
+        config.weights.put(weightConfig.getRouteId(), weightConfig.getWeight());
+        // recalculate
+        // normalize weights
+        int weightsSum = 0;
+        for (Integer weight : config.weights.values()) {
+            weightsSum += weight;
+        }
+        final AtomicInteger index = new AtomicInteger(0);
+        for (Map.Entry<String, Integer> entry : config.weights.entrySet()) {
+            String routeId = entry.getKey();
+            Integer weight = entry.getValue();
+            Double nomalizedWeight = weight / (double) weightsSum;
+            config.normalizedWeights.put(routeId, nomalizedWeight);
+            // recalculate rangeIndexes
+            config.rangeIndexes.put(index.getAndIncrement(), routeId);
+        }
+        // TODO: calculate ranges
+        config.ranges.clear();
+        config.ranges.add(0.0);
+        List<Double> values = new ArrayList<>(config.normalizedWeights.values());
+        for (int i = 0; i < values.size(); i++) {
+            Double currentWeight = values.get(i);
+            Double previousRange = config.ranges.get(i);
+            Double range = previousRange + currentWeight;
+            config.ranges.add(range);
+        }
+        if (log.isTraceEnabled()) {
+            log.trace("Recalculated group weight config " + config);
+        }
+        // only update after all calculations
+        groupWeights.put(group, config);
+    }
 
-		if (args.isEmpty() || !hasRelevantKey(args)) {
-			return;
-		}
+    /* for testing */
+    Map<String, GroupWeightConfig> getGroupWeights() {
+        return groupWeights;
+    }
 
-		WeightConfig config = new WeightConfig(event.getRouteId());
-
-		this.configurationService.with(config).name(WeightConfig.CONFIG_PREFIX).normalizedProperties(args).bind();
-
-		addWeightConfig(config);
-	}
-
-	private boolean hasRelevantKey(Map<String, Object> args) {
-		return args.keySet().stream().anyMatch(key -> key.startsWith(WeightConfig.CONFIG_PREFIX + "."));
-	}
-
-	/* for testing */ void addWeightConfig(WeightConfig weightConfig) {
-		String group = weightConfig.getGroup();
-		GroupWeightConfig config;
-		// only create new GroupWeightConfig rather than modify
-		// and put at end of calculations. This avoids concurency problems
-		// later during filter execution.
-		if (groupWeights.containsKey(group)) {
-			config = new GroupWeightConfig(groupWeights.get(group));
-		}
-		else {
-			config = new GroupWeightConfig(group);
-		}
-
-		config.weights.put(weightConfig.getRouteId(), weightConfig.getWeight());
-
-		// recalculate
-
-		// normalize weights
-		int weightsSum = 0;
-
-		for (Integer weight : config.weights.values()) {
-			weightsSum += weight;
-		}
-
-		final AtomicInteger index = new AtomicInteger(0);
-		for (Map.Entry<String, Integer> entry : config.weights.entrySet()) {
-			String routeId = entry.getKey();
-			Integer weight = entry.getValue();
-			Double nomalizedWeight = weight / (double) weightsSum;
-			config.normalizedWeights.put(routeId, nomalizedWeight);
-
-			// recalculate rangeIndexes
-			config.rangeIndexes.put(index.getAndIncrement(), routeId);
-		}
-
-		// TODO: calculate ranges
-		config.ranges.clear();
-
-		config.ranges.add(0.0);
-
-		List<Double> values = new ArrayList<>(config.normalizedWeights.values());
-		for (int i = 0; i < values.size(); i++) {
-			Double currentWeight = values.get(i);
-			Double previousRange = config.ranges.get(i);
-			Double range = previousRange + currentWeight;
-			config.ranges.add(range);
-		}
-
-		if (log.isTraceEnabled()) {
-			log.trace("Recalculated group weight config " + config);
-		}
-		// only update after all calculations
-		groupWeights.put(group, config);
-	}
-
-	/* for testing */ Map<String, GroupWeightConfig> getGroupWeights() {
-		return groupWeights;
-	}
-
-	@Override
-	public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
-		Map<String, String> weights = getWeights(exchange);
-
-		for (String group : groupWeights.keySet()) {
-			GroupWeightConfig config = groupWeights.get(group);
-
-			if (config == null) {
-				if (log.isDebugEnabled()) {
-					log.debug("No GroupWeightConfig found for group: " + group);
-				}
-				continue; // nothing we can do, but this is odd
-			}
-
-			/*
+    @Override
+    public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
+        Map<String, String> weights = getWeights(exchange);
+        for (String group : groupWeights.keySet()) {
+            GroupWeightConfig config = groupWeights.get(group);
+            if (config == null) {
+                if (log.isDebugEnabled()) {
+                    log.debug("No GroupWeightConfig found for group: " + group);
+                }
+                // nothing we can do, but this is odd
+                continue;
+            }
+            /*
 			 * Usually, multiple threads accessing the same random object will have some
 			 * performance problems, so we can use ThreadLocalRandom by default
 			 */
-			Random useRandom = this.random;
-			useRandom = useRandom == null ? ThreadLocalRandom.current() : useRandom;
-			double r = useRandom.nextDouble();
+            Random useRandom = this.random;
+            useRandom = useRandom == null ? ThreadLocalRandom.current() : useRandom;
+            double r = useRandom.nextDouble();
+            List<Double> ranges = config.ranges;
+            if (log.isTraceEnabled()) {
+                log.trace("Weight for group: " + group + ", ranges: " + ranges + ", r: " + r);
+            }
+            for (int i = 0; i < ranges.size() - 1; i++) {
+                if (r >= ranges.get(i) && r < ranges.get(i + 1)) {
+                    String routeId = config.rangeIndexes.get(i);
+                    weights.put(group, routeId);
+                    break;
+                }
+            }
+        }
+        if (log.isTraceEnabled()) {
+            log.trace("Weights attr: " + weights);
+        }
+        return chain.filter(exchange);
+    }
 
-			List<Double> ranges = config.ranges;
+    /* for testing */
+    static class GroupWeightConfig {
 
-			if (log.isTraceEnabled()) {
-				log.trace("Weight for group: " + group + ", ranges: " + ranges + ", r: " + r);
-			}
+        String group;
 
-			for (int i = 0; i < ranges.size() - 1; i++) {
-				if (r >= ranges.get(i) && r < ranges.get(i + 1)) {
-					String routeId = config.rangeIndexes.get(i);
-					weights.put(group, routeId);
-					break;
-				}
-			}
-		}
+        LinkedHashMap<String, Integer> weights = new LinkedHashMap<>();
 
-		if (log.isTraceEnabled()) {
-			log.trace("Weights attr: " + weights);
-		}
+        LinkedHashMap<String, Double> normalizedWeights = new LinkedHashMap<>();
 
-		return chain.filter(exchange);
-	}
+        LinkedHashMap<Integer, String> rangeIndexes = new LinkedHashMap<>();
 
-	/* for testing */ static class GroupWeightConfig {
+        List<Double> ranges = new ArrayList<>();
 
-		String group;
+        GroupWeightConfig(String group) {
+            this.group = group;
+        }
 
-		LinkedHashMap<String, Integer> weights = new LinkedHashMap<>();
+        GroupWeightConfig(GroupWeightConfig other) {
+            this.group = other.group;
+            this.weights = new LinkedHashMap<>(other.weights);
+            this.normalizedWeights = new LinkedHashMap<>(other.normalizedWeights);
+            this.rangeIndexes = new LinkedHashMap<>(other.rangeIndexes);
+        }
 
-		LinkedHashMap<String, Double> normalizedWeights = new LinkedHashMap<>();
-
-		LinkedHashMap<Integer, String> rangeIndexes = new LinkedHashMap<>();
-
-		List<Double> ranges = new ArrayList<>();
-
-		GroupWeightConfig(String group) {
-			this.group = group;
-		}
-
-		GroupWeightConfig(GroupWeightConfig other) {
-			this.group = other.group;
-			this.weights = new LinkedHashMap<>(other.weights);
-			this.normalizedWeights = new LinkedHashMap<>(other.normalizedWeights);
-			this.rangeIndexes = new LinkedHashMap<>(other.rangeIndexes);
-		}
-
-		@Override
-		public String toString() {
-			return new ToStringCreator(this).append("group", group).append("weights", weights)
-					.append("normalizedWeights", normalizedWeights).append("rangeIndexes", rangeIndexes).toString();
-		}
-
-	}
-
+        @Override
+        public String toString() {
+            return new ToStringCreator(this).append("group", group).append("weights", weights).append("normalizedWeights", normalizedWeights).append("rangeIndexes", rangeIndexes).toString();
+        }
+    }
 }

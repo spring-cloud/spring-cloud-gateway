@@ -13,13 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.factory;
 
 import java.util.Map;
-
 import org.junit.jupiter.api.Test;
-
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -27,7 +24,6 @@ import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.cloud.gateway.test.TestUtils.getMap;
@@ -36,28 +32,25 @@ import static org.springframework.cloud.gateway.test.TestUtils.getMap;
 @DirtiesContext
 public class SetRequestHostHeaderGatewayFilterFactoryTests extends BaseWebClientTests {
 
-	@Test
-	public void setRequestHostHeaderFilterWorks() {
-		testClient.get().uri("/headers").header("Host", "www.setrequesthostheader.org").exchange().expectStatus().isOk()
-				.expectBody(Map.class).consumeWith(result -> {
-					Map<String, Object> headers = getMap(result.getResponseBody(), "headers");
-					assertThat(headers).hasEntrySatisfying("Host", val -> assertThat(val).isEqualTo("otherhost.io"));
-				});
-	}
+    @Test
+    public void setRequestHostHeaderFilterWorks() {
+        testClient.get().uri("/headers").header("Host", "www.setrequesthostheader.org").exchange().expectStatus().isOk().expectBody(Map.class).consumeWith(result -> {
+            Map<String, Object> headers = getMap(result.getResponseBody(), "headers");
+            assertThat(headers).hasEntrySatisfying("Host", val -> assertThat(val).isEqualTo("otherhost.io"));
+        });
+    }
 
-	@Test
-	public void toStringFormat() {
-		SetRequestHostHeaderGatewayFilterFactory.Config config = new SetRequestHostHeaderGatewayFilterFactory.Config();
-		config.setHost("myhost");
-		GatewayFilter filter = new SetRequestHostHeaderGatewayFilterFactory().apply(config);
-		assertThat(filter.toString()).contains("myhost");
-	}
+    @Test
+    public void toStringFormat() {
+        SetRequestHostHeaderGatewayFilterFactory.Config config = new SetRequestHostHeaderGatewayFilterFactory.Config();
+        config.setHost("myhost");
+        GatewayFilter filter = new SetRequestHostHeaderGatewayFilterFactory().apply(config);
+        assertThat(filter.toString()).contains("myhost");
+    }
 
-	@EnableAutoConfiguration
-	@SpringBootConfiguration
-	@Import(DefaultTestConfig.class)
-	public static class TestConfig {
-
-	}
-
+    @EnableAutoConfiguration
+    @SpringBootConfiguration
+    @Import(DefaultTestConfig.class)
+    public static class TestConfig {
+    }
 }

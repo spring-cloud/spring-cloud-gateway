@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.webflux.config;
 
 import java.lang.reflect.ParameterizedType;
@@ -21,9 +20,7 @@ import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
 import java.util.Set;
-
 import reactor.core.publisher.Mono;
-
 import org.springframework.cloud.gateway.webflux.ProxyExchange;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpHeaders;
@@ -38,69 +35,67 @@ import org.springframework.web.server.ServerWebExchange;
  */
 public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResolver {
 
-	private WebClient rest;
+    private WebClient rest;
 
-	private HttpHeaders headers;
+    private HttpHeaders headers;
 
-	private Set<String> autoForwardedHeaders;
+    private Set<String> autoForwardedHeaders;
 
-	private Set<String> sensitive;
+    private Set<String> sensitive;
 
-	public ProxyExchangeArgumentResolver(WebClient builder) {
-		this.rest = builder;
-	}
+    public ProxyExchangeArgumentResolver(WebClient builder) {
+        this.rest = builder;
+    }
 
-	public void setHeaders(HttpHeaders headers) {
-		this.headers = headers;
-	}
+    public void setHeaders(HttpHeaders headers) {
+        this.headers = headers;
+    }
 
-	public void setAutoForwardedHeaders(Set<String> autoForwardedHeaders) {
-		this.autoForwardedHeaders = autoForwardedHeaders;
-	}
+    public void setAutoForwardedHeaders(Set<String> autoForwardedHeaders) {
+        this.autoForwardedHeaders = autoForwardedHeaders;
+    }
 
-	public void setSensitive(Set<String> sensitive) {
-		this.sensitive = sensitive;
-	}
+    public void setSensitive(Set<String> sensitive) {
+        this.sensitive = sensitive;
+    }
 
-	@Override
-	public boolean supportsParameter(MethodParameter parameter) {
-		return ProxyExchange.class.isAssignableFrom(parameter.getParameterType());
-	}
+    @Override
+    public boolean supportsParameter(MethodParameter parameter) {
+        return ProxyExchange.class.isAssignableFrom(parameter.getParameterType());
+    }
 
-	private Type type(MethodParameter parameter) {
-		Type type = parameter.getGenericParameterType();
-		if (type instanceof ParameterizedType) {
-			ParameterizedType param = (ParameterizedType) type;
-			type = param.getActualTypeArguments()[0];
-		}
-		if (type instanceof TypeVariable || type instanceof WildcardType) {
-			type = Object.class;
-		}
-		return type;
-	}
+    private Type type(MethodParameter parameter) {
+        Type type = parameter.getGenericParameterType();
+        if (type instanceof ParameterizedType) {
+            ParameterizedType param = (ParameterizedType) type;
+            type = param.getActualTypeArguments()[0];
+        }
+        if (type instanceof TypeVariable || type instanceof WildcardType) {
+            type = Object.class;
+        }
+        return type;
+    }
 
-	@Override
-	public Mono<Object> resolveArgument(MethodParameter parameter, BindingContext bindingContext,
-			ServerWebExchange exchange) {
-		ProxyExchange<?> proxy = new ProxyExchange<>(rest, exchange, bindingContext, type(parameter));
-		proxy.headers(headers);
-		if (this.autoForwardedHeaders.size() > 0) {
-			proxy.headers(extractAutoForwardedHeaders(exchange));
-		}
-		if (sensitive != null) {
-			proxy.sensitive(sensitive.toArray(new String[0]));
-		}
-		return Mono.just(proxy);
-	}
+    @Override
+    public Mono<Object> resolveArgument(MethodParameter parameter, BindingContext bindingContext, ServerWebExchange exchange) {
+        ProxyExchange<?> proxy = new ProxyExchange<>(rest, exchange, bindingContext, type(parameter));
+        proxy.headers(headers);
+        if (this.autoForwardedHeaders.size() > 0) {
+            proxy.headers(extractAutoForwardedHeaders(exchange));
+        }
+        if (sensitive != null) {
+            proxy.sensitive(sensitive.toArray(new String[0]));
+        }
+        return Mono.just(proxy);
+    }
 
-	private HttpHeaders extractAutoForwardedHeaders(ServerWebExchange exchange) {
-		HttpHeaders headers = new HttpHeaders();
-		exchange.getRequest().getHeaders().forEach((header, values) -> {
-			if (this.autoForwardedHeaders.contains(header)) {
-				headers.addAll(header, values);
-			}
-		});
-		return headers;
-	}
-
+    private HttpHeaders extractAutoForwardedHeaders(ServerWebExchange exchange) {
+        HttpHeaders headers = new HttpHeaders();
+        exchange.getRequest().getHeaders().forEach((header, values) -> {
+            if (this.autoForwardedHeaders.contains(header)) {
+                headers.addAll(header, values);
+            }
+        });
+        return headers;
+    }
 }

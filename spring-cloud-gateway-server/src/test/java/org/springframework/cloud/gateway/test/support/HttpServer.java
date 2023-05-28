@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.test.support;
 
 import org.springframework.beans.factory.InitializingBean;
@@ -25,12 +24,11 @@ import org.springframework.http.server.reactive.HttpHandler;
  */
 public interface HttpServer extends InitializingBean, Lifecycle {
 
-	void setHost(String host);
+    void setHost(String host);
 
-	int getPort();
+    int getPort();
 
-	void setPort(int port);
+    void setPort(int port);
 
-	void setHandler(HttpHandler handler);
-
+    void setHandler(HttpHandler handler);
 }

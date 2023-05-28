@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.headers;
 
 import java.util.List;
 import java.util.Map;
-
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
 import org.springframework.util.StringUtils;
@@ -29,33 +27,30 @@ import org.springframework.web.server.ServerWebExchange;
  */
 public class GRPCRequestHeadersFilter implements HttpHeadersFilter, Ordered {
 
-	@Override
-	public HttpHeaders filter(HttpHeaders headers, ServerWebExchange exchange) {
-		HttpHeaders updated = new HttpHeaders();
+    @Override
+    public HttpHeaders filter(HttpHeaders headers, ServerWebExchange exchange) {
+        HttpHeaders updated = new HttpHeaders();
+        for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
+            updated.addAll(entry.getKey(), entry.getValue());
+        }
+        // https://datatracker.ietf.org/doc/html/rfc7540#section-8.1.2.2
+        if (isGRPC(headers.getFirst(HttpHeaders.CONTENT_TYPE))) {
+            updated.add("te", "trailers");
+        }
+        return updated;
+    }
 
-		for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
-			updated.addAll(entry.getKey(), entry.getValue());
-		}
+    private boolean isGRPC(String contentTypeValue) {
+        return StringUtils.startsWithIgnoreCase(contentTypeValue, "application/grpc");
+    }
 
-		// https://datatracker.ietf.org/doc/html/rfc7540#section-8.1.2.2
-		if (isGRPC(headers.getFirst(HttpHeaders.CONTENT_TYPE))) {
-			updated.add("te", "trailers");
-		}
-		return updated;
-	}
+    @Override
+    public boolean supports(Type type) {
+        return Type.REQUEST.equals(type);
+    }
 
-	private boolean isGRPC(String contentTypeValue) {
-		return StringUtils.startsWithIgnoreCase(contentTypeValue, "application/grpc");
-	}
-
-	@Override
-	public boolean supports(Type type) {
-		return Type.REQUEST.equals(type);
-	}
-
-	@Override
-	public int getOrder() {
-		return Ordered.LOWEST_PRECEDENCE;
-	}
-
+    @Override
+    public int getOrder() {
+        return Ordered.LOWEST_PRECEDENCE;
+    }
 }

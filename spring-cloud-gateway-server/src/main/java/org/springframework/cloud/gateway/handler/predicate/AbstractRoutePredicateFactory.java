@@ -13,16 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.handler.predicate;
 
 import org.springframework.cloud.gateway.support.AbstractConfigurable;
 
-public abstract class AbstractRoutePredicateFactory<C> extends AbstractConfigurable<C>
-		implements RoutePredicateFactory<C> {
+public abstract class AbstractRoutePredicateFactory<C> extends AbstractConfigurable<C> implements RoutePredicateFactory<C> {
 
-	public AbstractRoutePredicateFactory(Class<C> configClass) {
-		super(configClass);
-	}
-
+    public AbstractRoutePredicateFactory(Class<C> configClass) {
+        super(configClass);
+    }
 }

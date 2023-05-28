@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.route;
 
 import org.springframework.boot.web.context.WebServerApplicationContext;
@@ -33,44 +32,40 @@ import org.springframework.util.Assert;
 // TODO: make abstract class in commons?
 public class RouteRefreshListener implements ApplicationListener<ApplicationEvent> {
 
-	private final ApplicationEventPublisher publisher;
+    private final ApplicationEventPublisher publisher;
 
-	private HeartbeatMonitor monitor = new HeartbeatMonitor();
+    private HeartbeatMonitor monitor = new HeartbeatMonitor();
 
-	public RouteRefreshListener(ApplicationEventPublisher publisher) {
-		Assert.notNull(publisher, "publisher may not be null");
-		this.publisher = publisher;
-	}
+    public RouteRefreshListener(ApplicationEventPublisher publisher) {
+        Assert.notNull(publisher, "publisher may not be null");
+        this.publisher = publisher;
+    }
 
-	@Override
-	public void onApplicationEvent(ApplicationEvent event) {
-		if (event instanceof ContextRefreshedEvent) {
-			ContextRefreshedEvent refreshedEvent = (ContextRefreshedEvent) event;
-			if (!WebServerApplicationContext.hasServerNamespace(refreshedEvent.getApplicationContext(), "management")) {
-				reset();
-			}
-		}
-		else if (event instanceof RefreshScopeRefreshedEvent || event instanceof InstanceRegisteredEvent) {
-			reset();
-		}
-		else if (event instanceof ParentHeartbeatEvent) {
-			ParentHeartbeatEvent e = (ParentHeartbeatEvent) event;
-			resetIfNeeded(e.getValue());
-		}
-		else if (event instanceof HeartbeatEvent) {
-			HeartbeatEvent e = (HeartbeatEvent) event;
-			resetIfNeeded(e.getValue());
-		}
-	}
+    @Override
+    public void onApplicationEvent(ApplicationEvent event) {
+        if (event instanceof ContextRefreshedEvent) {
+            ContextRefreshedEvent refreshedEvent = (ContextRefreshedEvent) event;
+            if (!WebServerApplicationContext.hasServerNamespace(refreshedEvent.getApplicationContext(), "management")) {
+                reset();
+            }
+        } else if (event instanceof RefreshScopeRefreshedEvent || event instanceof InstanceRegisteredEvent) {
+            reset();
+        } else if (event instanceof ParentHeartbeatEvent) {
+            ParentHeartbeatEvent e = (ParentHeartbeatEvent) event;
+            resetIfNeeded(e.getValue());
+        } else if (event instanceof HeartbeatEvent) {
+            HeartbeatEvent e = (HeartbeatEvent) event;
+            resetIfNeeded(e.getValue());
+        }
+    }
 
-	private void resetIfNeeded(Object value) {
-		if (this.monitor.update(value)) {
-			reset();
-		}
-	}
+    private void resetIfNeeded(Object value) {
+        if (this.monitor.update(value)) {
+            reset();
+        }
+    }
 
-	private void reset() {
-		this.publisher.publishEvent(new RefreshRoutesEvent(this));
-	}
-
+    private void reset() {
+        this.publisher.publishEvent(new RefreshRoutesEvent(this));
+    }
 }

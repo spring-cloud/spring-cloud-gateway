@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.factory.cache.postprocessor;
 
 import org.springframework.cloud.gateway.filter.factory.cache.CachedResponse;
@@ -32,23 +31,20 @@ import org.springframework.web.server.ServerWebExchange;
  */
 public class SetStatusCodeAfterCacheExchangeMutator implements AfterCacheExchangeMutator {
 
-	private static final String NO_CACHE_VALUE = "no-cache";
+    private static final String NO_CACHE_VALUE = "no-cache";
 
-	@Override
-	public void accept(ServerWebExchange exchange, CachedResponse cachedResponse) {
-		HttpHeaders requestHeaders = exchange.getRequest().getHeaders();
-		ServerHttpResponse response = exchange.getResponse();
+    @Override
+    public void accept(ServerWebExchange exchange, CachedResponse cachedResponse) {
+        HttpHeaders requestHeaders = exchange.getRequest().getHeaders();
+        ServerHttpResponse response = exchange.getResponse();
+        if (!CollectionUtils.isEmpty(cachedResponse.body()) && isRequestNoCache(requestHeaders)) {
+            response.setStatusCode(HttpStatus.NOT_MODIFIED);
+        } else {
+            response.setStatusCode(cachedResponse.statusCode());
+        }
+    }
 
-		if (!CollectionUtils.isEmpty(cachedResponse.body()) && isRequestNoCache(requestHeaders)) {
-			response.setStatusCode(HttpStatus.NOT_MODIFIED);
-		}
-		else {
-			response.setStatusCode(cachedResponse.statusCode());
-		}
-	}
-
-	private boolean isRequestNoCache(HttpHeaders requestHeaders) {
-		return requestHeaders.getCacheControl() != null && requestHeaders.getCacheControl().contains(NO_CACHE_VALUE);
-	}
-
+    private boolean isRequestNoCache(HttpHeaders requestHeaders) {
+        return requestHeaders.getCacheControl() != null && requestHeaders.getCacheControl().contains(NO_CACHE_VALUE);
+    }
 }

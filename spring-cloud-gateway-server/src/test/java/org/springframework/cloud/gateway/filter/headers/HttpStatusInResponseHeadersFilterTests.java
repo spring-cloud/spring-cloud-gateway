@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.headers;
 
 import org.junit.jupiter.api.Test;
-
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -29,7 +27,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.web.server.ServerWebExchange;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -40,33 +37,32 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @DirtiesContext
 public class HttpStatusInResponseHeadersFilterTests extends BaseWebClientTests {
 
-	@Test
-	public void statusCodeAvailableInResponseHttpHeadersFilter() {
-		testClient.get().uri("/get").exchange().expectStatus().isOk();
-	}
+    @Test
+    public void statusCodeAvailableInResponseHttpHeadersFilter() {
+        testClient.get().uri("/get").exchange().expectStatus().isOk();
+    }
 
-	@EnableAutoConfiguration
-	@SpringBootConfiguration
-	@Import(DefaultTestConfig.class)
-	public static class TestConfig {
+    @EnableAutoConfiguration
+    @SpringBootConfiguration
+    @Import(DefaultTestConfig.class)
+    public static class TestConfig {
 
-		@Bean
-		public HttpHeadersFilter checkStatusFilter() {
-			return new HttpHeadersFilter() {
-				@Override
-				public HttpHeaders filter(HttpHeaders input, ServerWebExchange exchange) {
-					HttpStatusCode statusCode = exchange.getResponse().getStatusCode();
-					assertThat(statusCode).isEqualTo(HttpStatus.OK);
-					return input;
-				}
+        @Bean
+        public HttpHeadersFilter checkStatusFilter() {
+            return new HttpHeadersFilter() {
 
-				@Override
-				public boolean supports(Type type) {
-					return type == Type.RESPONSE;
-				}
-			};
-		}
+                @Override
+                public HttpHeaders filter(HttpHeaders input, ServerWebExchange exchange) {
+                    HttpStatusCode statusCode = exchange.getResponse().getStatusCode();
+                    assertThat(statusCode).isEqualTo(HttpStatus.OK);
+                    return input;
+                }
 
-	}
-
+                @Override
+                public boolean supports(Type type) {
+                    return type == Type.RESPONSE;
+                }
+            };
+        }
+    }
 }

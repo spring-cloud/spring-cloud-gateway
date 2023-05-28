@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.config.conditional;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
@@ -23,34 +22,30 @@ import org.springframework.cloud.gateway.support.NameUtils;
 
 public class OnEnabledFilter extends OnEnabledComponent<GatewayFilterFactory<?>> {
 
-	@Override
-	protected String normalizeComponentName(Class<? extends GatewayFilterFactory<?>> filterClass) {
-		if (SpringCloudCircuitBreakerFilterFactory.class.isAssignableFrom(filterClass)) {
-			return "filter."
-					+ NameUtils.normalizeToCanonicalPropertyFormat(SpringCloudCircuitBreakerFilterFactory.NAME);
-		}
-		else {
-			return "filter." + NameUtils.normalizeFilterFactoryNameAsProperty(filterClass);
-		}
-	}
+    @Override
+    protected String normalizeComponentName(Class<? extends GatewayFilterFactory<?>> filterClass) {
+        if (SpringCloudCircuitBreakerFilterFactory.class.isAssignableFrom(filterClass)) {
+            return "filter." + NameUtils.normalizeToCanonicalPropertyFormat(SpringCloudCircuitBreakerFilterFactory.NAME);
+        } else {
+            return "filter." + NameUtils.normalizeFilterFactoryNameAsProperty(filterClass);
+        }
+    }
 
-	@Override
-	protected Class<?> annotationClass() {
-		return ConditionalOnEnabledFilter.class;
-	}
+    @Override
+    protected Class<?> annotationClass() {
+        return ConditionalOnEnabledFilter.class;
+    }
 
-	@Override
-	protected Class<? extends GatewayFilterFactory<?>> defaultValueClass() {
-		return DefaultValue.class;
-	}
+    @Override
+    protected Class<? extends GatewayFilterFactory<?>> defaultValueClass() {
+        return DefaultValue.class;
+    }
 
-	static class DefaultValue implements GatewayFilterFactory<Object> {
+    static class DefaultValue implements GatewayFilterFactory<Object> {
 
-		@Override
-		public GatewayFilter apply(Object config) {
-			throw new UnsupportedOperationException("class DefaultValue is never meant to be intantiated");
-		}
-
-	}
-
+        @Override
+        public GatewayFilter apply(Object config) {
+            throw new UnsupportedOperationException("class DefaultValue is never meant to be intantiated");
+        }
+    }
 }

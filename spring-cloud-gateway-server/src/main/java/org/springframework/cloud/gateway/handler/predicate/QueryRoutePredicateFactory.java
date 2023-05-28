@@ -13,15 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.handler.predicate;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
-
 import jakarta.validation.constraints.NotEmpty;
-
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.server.ServerWebExchange;
@@ -31,85 +28,83 @@ import org.springframework.web.server.ServerWebExchange;
  */
 public class QueryRoutePredicateFactory extends AbstractRoutePredicateFactory<QueryRoutePredicateFactory.Config> {
 
-	/**
-	 * Param key.
-	 */
-	public static final String PARAM_KEY = "param";
+    /**
+     * Param key.
+     */
+    public static final String PARAM_KEY = "param";
 
-	/**
-	 * Regexp key.
-	 */
-	public static final String REGEXP_KEY = "regexp";
+    /**
+     * Regexp key.
+     */
+    public static final String REGEXP_KEY = "regexp";
 
-	public QueryRoutePredicateFactory() {
-		super(Config.class);
-	}
+    public QueryRoutePredicateFactory() {
+        super(Config.class);
+    }
 
-	@Override
-	public List<String> shortcutFieldOrder() {
-		return Arrays.asList(PARAM_KEY, REGEXP_KEY);
-	}
+    @Override
+    public List<String> shortcutFieldOrder() {
+        return Arrays.asList(PARAM_KEY, REGEXP_KEY);
+    }
 
-	@Override
-	public Predicate<ServerWebExchange> apply(Config config) {
-		return new GatewayPredicate() {
-			@Override
-			public boolean test(ServerWebExchange exchange) {
-				if (!StringUtils.hasText(config.regexp)) {
-					// check existence of header
-					return exchange.getRequest().getQueryParams().containsKey(config.param);
-				}
+    @Override
+    public Predicate<ServerWebExchange> apply(Config config) {
+        return new GatewayPredicate() {
 
-				List<String> values = exchange.getRequest().getQueryParams().get(config.param);
-				if (values == null) {
-					return false;
-				}
-				for (String value : values) {
-					if (value != null && value.matches(config.regexp)) {
-						return true;
-					}
-				}
-				return false;
-			}
+            @Override
+            public boolean test(ServerWebExchange exchange) {
+                if (!StringUtils.hasText(config.regexp)) {
+                    // check existence of header
+                    return exchange.getRequest().getQueryParams().containsKey(config.param);
+                }
+                List<String> values = exchange.getRequest().getQueryParams().get(config.param);
+                if (values == null) {
+                    return false;
+                }
+                for (String value : values) {
+                    if (value != null && value.matches(config.regexp)) {
+                        return true;
+                    }
+                }
+                return false;
+            }
 
-			@Override
-			public Object getConfig() {
-				return config;
-			}
+            @Override
+            public Object getConfig() {
+                return config;
+            }
 
-			@Override
-			public String toString() {
-				return String.format("Query: param=%s regexp=%s", config.getParam(), config.getRegexp());
-			}
-		};
-	}
+            @Override
+            public String toString() {
+                return String.format("Query: param=%s regexp=%s", config.getParam(), config.getRegexp());
+            }
+        };
+    }
 
-	@Validated
-	public static class Config {
+    @Validated
+    public static class Config {
 
-		@NotEmpty
-		private String param;
+        @NotEmpty
+        private String param;
 
-		private String regexp;
+        private String regexp;
 
-		public String getParam() {
-			return param;
-		}
+        public String getParam() {
+            return param;
+        }
 
-		public Config setParam(String param) {
-			this.param = param;
-			return this;
-		}
+        public Config setParam(String param) {
+            this.param = param;
+            return this;
+        }
 
-		public String getRegexp() {
-			return regexp;
-		}
+        public String getRegexp() {
+            return regexp;
+        }
 
-		public Config setRegexp(String regexp) {
-			this.regexp = regexp;
-			return this;
-		}
-
-	}
-
+        public Config setRegexp(String regexp) {
+            this.regexp = regexp;
+            return this;
+        }
+    }
 }

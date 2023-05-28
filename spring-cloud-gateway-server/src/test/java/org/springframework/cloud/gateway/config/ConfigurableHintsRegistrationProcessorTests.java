@@ -13,14 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.config;
 
 import java.util.ArrayList;
 import java.util.function.Consumer;
-
 import org.junit.jupiter.api.Test;
-
 import org.springframework.aot.generate.GeneratedClass;
 import org.springframework.aot.generate.GeneratedMethods;
 import org.springframework.aot.generate.GenerationContext;
@@ -35,7 +32,6 @@ import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.cloud.gateway.filter.factory.SpringCloudCircuitBreakerFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SpringCloudCircuitBreakerResilience4JFilterFactory;
 import org.springframework.javapoet.TypeSpec;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.aot.hint.predicate.RuntimeHintsPredicates.reflection;
 
@@ -46,53 +42,47 @@ import static org.springframework.aot.hint.predicate.RuntimeHintsPredicates.refl
  */
 class ConfigurableHintsRegistrationProcessorTests {
 
-	private final ConfigurableHintsRegistrationProcessor processor = new ConfigurableHintsRegistrationProcessor();
+    private final ConfigurableHintsRegistrationProcessor processor = new ConfigurableHintsRegistrationProcessor();
 
-	private final TestGenerationContext generationContext = new TestGenerationContext();
+    private final TestGenerationContext generationContext = new TestGenerationContext();
 
-	private final BeanFactoryInitializationCode beanFactoryInitializationCode = new MockBeanFactoryInitializationCode(
-			generationContext);
+    private final BeanFactoryInitializationCode beanFactoryInitializationCode = new MockBeanFactoryInitializationCode(generationContext);
 
-	private final DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+    private final DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 
-	@Test
-	void shouldRegisterReflectionHintsForTypeAndSuperTypesAndGenerics() {
-		BeanDefinition beanDefinition = BeanDefinitionBuilder
-				.rootBeanDefinition(SpringCloudCircuitBreakerResilience4JFilterFactory.class).getBeanDefinition();
-		beanFactory.registerBeanDefinition("test", beanDefinition);
+    @Test
+    void shouldRegisterReflectionHintsForTypeAndSuperTypesAndGenerics() {
+        BeanDefinition beanDefinition = BeanDefinitionBuilder.rootBeanDefinition(SpringCloudCircuitBreakerResilience4JFilterFactory.class).getBeanDefinition();
+        beanFactory.registerBeanDefinition("test", beanDefinition);
+        BeanFactoryInitializationAotContribution contribution = processor.processAheadOfTime(beanFactory);
+        assertThat(contribution).isNotNull();
+        contribution.applyTo(generationContext, beanFactoryInitializationCode);
+        RuntimeHints hints = generationContext.getRuntimeHints();
+        assertThat(reflection().onType(SpringCloudCircuitBreakerResilience4JFilterFactory.class)).accepts(hints);
+        assertThat(reflection().onType(SpringCloudCircuitBreakerFilterFactory.class)).accepts(hints);
+        assertThat(reflection().onType(SpringCloudCircuitBreakerFilterFactory.Config.class)).accepts(hints);
+    }
 
-		BeanFactoryInitializationAotContribution contribution = processor.processAheadOfTime(beanFactory);
-		assertThat(contribution).isNotNull();
-		contribution.applyTo(generationContext, beanFactoryInitializationCode);
+    @SuppressWarnings("NullableProblems")
+    static class MockBeanFactoryInitializationCode implements BeanFactoryInitializationCode {
 
-		RuntimeHints hints = generationContext.getRuntimeHints();
-		assertThat(reflection().onType(SpringCloudCircuitBreakerResilience4JFilterFactory.class)).accepts(hints);
-		assertThat(reflection().onType(SpringCloudCircuitBreakerFilterFactory.class)).accepts(hints);
-		assertThat(reflection().onType(SpringCloudCircuitBreakerFilterFactory.Config.class)).accepts(hints);
-	}
+        private static final Consumer<TypeSpec.Builder> emptyTypeCustomizer = type -> {
+        };
 
-	@SuppressWarnings("NullableProblems")
-	static class MockBeanFactoryInitializationCode implements BeanFactoryInitializationCode {
+        private final GeneratedClass generatedClass;
 
-		private static final Consumer<TypeSpec.Builder> emptyTypeCustomizer = type -> {
-		};
+        MockBeanFactoryInitializationCode(GenerationContext generationContext) {
+            generatedClass = generationContext.getGeneratedClasses().addForFeature("Test", emptyTypeCustomizer);
+        }
 
-		private final GeneratedClass generatedClass;
+        @Override
+        public GeneratedMethods getMethods() {
+            return generatedClass.getMethods();
+        }
 
-		MockBeanFactoryInitializationCode(GenerationContext generationContext) {
-			generatedClass = generationContext.getGeneratedClasses().addForFeature("Test", emptyTypeCustomizer);
-		}
-
-		@Override
-		public GeneratedMethods getMethods() {
-			return generatedClass.getMethods();
-		}
-
-		@Override
-		public void addInitializer(MethodReference methodReference) {
-			new ArrayList<>();
-		}
-
-	}
-
+        @Override
+        public void addInitializer(MethodReference methodReference) {
+            new ArrayList<>();
+        }
+    }
 }

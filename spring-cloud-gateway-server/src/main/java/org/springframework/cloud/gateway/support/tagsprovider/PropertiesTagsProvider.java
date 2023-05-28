@@ -13,15 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.support.tagsprovider;
 
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
-
 import org.springframework.web.server.ServerWebExchange;
 
 /**
@@ -29,16 +26,14 @@ import org.springframework.web.server.ServerWebExchange;
  */
 public class PropertiesTagsProvider implements GatewayTagsProvider {
 
-	private final Tags propertiesTags;
+    private final Tags propertiesTags;
 
-	public PropertiesTagsProvider(Map<String, String> tagsMap) {
-		this.propertiesTags = Tags.of(tagsMap.entrySet().stream().map(entry -> Tag.of(entry.getKey(), entry.getValue()))
-				.collect(Collectors.toList()));
-	}
+    public PropertiesTagsProvider(Map<String, String> tagsMap) {
+        this.propertiesTags = Tags.of(tagsMap.entrySet().stream().map(entry -> Tag.of(entry.getKey(), entry.getValue())).collect(Collectors.toList()));
+    }
 
-	@Override
-	public Tags apply(ServerWebExchange serverWebExchange) {
-		return propertiesTags;
-	}
-
+    @Override
+    public Tags apply(ServerWebExchange serverWebExchange) {
+        return propertiesTags;
+    }
 }

@@ -13,13 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.factory;
 
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
-
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -31,7 +29,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.web.reactive.function.client.ClientResponse;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory.CONTENT_SECURITY_POLICY_HEADER;
@@ -47,47 +44,36 @@ import static org.springframework.cloud.gateway.test.TestUtils.assertStatus;
 @DirtiesContext
 public class SecureHeadersGatewayFilterFactoryTests extends BaseWebClientTests {
 
-	@Test
-	public void secureHeadersFilterWorks() {
-		Mono<ClientResponse> result = webClient.get().uri("/headers").header("Host", "www.secureheaders.org")
-				.exchangeToMono(Mono::just);
+    @Test
+    public void secureHeadersFilterWorks() {
+        Mono<ClientResponse> result = webClient.get().uri("/headers").header("Host", "www.secureheaders.org").exchangeToMono(Mono::just);
+        SecureHeadersProperties defaults = new SecureHeadersProperties();
+        StepVerifier.create(result).consumeNextWith(response -> {
+            assertStatus(response, HttpStatus.OK);
+            HttpHeaders httpHeaders = response.headers().asHttpHeaders();
+            // assertThat(httpHeaders.getFirst(X_XSS_PROTECTION_HEADER)).isEqualTo(defaults.getXssProtectionHeader());
+            assertThat(httpHeaders.getFirst(STRICT_TRANSPORT_SECURITY_HEADER)).isEqualTo(defaults.getStrictTransportSecurity());
+            assertThat(httpHeaders.getFirst(X_FRAME_OPTIONS_HEADER)).isEqualTo(defaults.getFrameOptions());
+            assertThat(httpHeaders.getFirst(X_CONTENT_TYPE_OPTIONS_HEADER)).isEqualTo(defaults.getContentTypeOptions());
+            assertThat(httpHeaders.getFirst(REFERRER_POLICY_HEADER)).isEqualTo(defaults.getReferrerPolicy());
+            assertThat(httpHeaders.getFirst(CONTENT_SECURITY_POLICY_HEADER)).isEqualTo(defaults.getContentSecurityPolicy());
+            assertThat(httpHeaders.getFirst(X_DOWNLOAD_OPTIONS_HEADER)).isEqualTo(defaults.getDownloadOptions());
+            assertThat(httpHeaders.getFirst(X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER)).isEqualTo(defaults.getPermittedCrossDomainPolicies());
+        }).expectComplete().verify(DURATION);
+    }
 
-		SecureHeadersProperties defaults = new SecureHeadersProperties();
+    @Test
+    public void addsSecureHeadersAfterResponseIsReceived() {
+        Mono<ResponseEntity<String>> responseEntity = webClient.patch().uri("/headers").header("Host", "www.secureheaders.org").contentType(MediaType.APPLICATION_JSON).bodyValue("{ \"X-Frame-Options\": \"sameorigin\" }").retrieve().toEntity(String.class);
+        StepVerifier.create(responseEntity).consumeNextWith(response -> {
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+            assertThat(response.getHeaders().get(X_FRAME_OPTIONS_HEADER)).containsOnly("sameorigin");
+        }).expectComplete().verify(DURATION);
+    }
 
-		StepVerifier.create(result).consumeNextWith(response -> {
-			assertStatus(response, HttpStatus.OK);
-			HttpHeaders httpHeaders = response.headers().asHttpHeaders();
-			// assertThat(httpHeaders.getFirst(X_XSS_PROTECTION_HEADER)).isEqualTo(defaults.getXssProtectionHeader());
-			assertThat(httpHeaders.getFirst(STRICT_TRANSPORT_SECURITY_HEADER))
-					.isEqualTo(defaults.getStrictTransportSecurity());
-			assertThat(httpHeaders.getFirst(X_FRAME_OPTIONS_HEADER)).isEqualTo(defaults.getFrameOptions());
-			assertThat(httpHeaders.getFirst(X_CONTENT_TYPE_OPTIONS_HEADER)).isEqualTo(defaults.getContentTypeOptions());
-			assertThat(httpHeaders.getFirst(REFERRER_POLICY_HEADER)).isEqualTo(defaults.getReferrerPolicy());
-			assertThat(httpHeaders.getFirst(CONTENT_SECURITY_POLICY_HEADER))
-					.isEqualTo(defaults.getContentSecurityPolicy());
-			assertThat(httpHeaders.getFirst(X_DOWNLOAD_OPTIONS_HEADER)).isEqualTo(defaults.getDownloadOptions());
-			assertThat(httpHeaders.getFirst(X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER))
-					.isEqualTo(defaults.getPermittedCrossDomainPolicies());
-		}).expectComplete().verify(DURATION);
-	}
-
-	@Test
-	public void addsSecureHeadersAfterResponseIsReceived() {
-		Mono<ResponseEntity<String>> responseEntity = webClient.patch().uri("/headers")
-				.header("Host", "www.secureheaders.org").contentType(MediaType.APPLICATION_JSON)
-				.bodyValue("{ \"X-Frame-Options\": \"sameorigin\" }").retrieve().toEntity(String.class);
-
-		StepVerifier.create(responseEntity).consumeNextWith(response -> {
-			assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-			assertThat(response.getHeaders().get(X_FRAME_OPTIONS_HEADER)).containsOnly("sameorigin");
-		}).expectComplete().verify(DURATION);
-	}
-
-	@EnableAutoConfiguration
-	@SpringBootConfiguration
-	@Import(DefaultTestConfig.class)
-	public static class TestConfig {
-
-	}
-
+    @EnableAutoConfiguration
+    @SpringBootConfiguration
+    @Import(DefaultTestConfig.class)
+    public static class TestConfig {
+    }
 }

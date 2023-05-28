@@ -13,14 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.support.tagsprovider;
 
 import io.micrometer.core.instrument.Tags;
-
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.web.server.ServerWebExchange;
-
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_PREDICATE_MATCHED_PATH_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_PREDICATE_MATCHED_PATH_ROUTE_ID_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
@@ -31,22 +28,18 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.G
  */
 public class GatewayPathTagsProvider implements GatewayTagsProvider {
 
-	@Override
-	public Tags apply(ServerWebExchange exchange) {
-		Route route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
-
-		if (route != null) {
-			String matchedPathRouteId = exchange.getAttribute(GATEWAY_PREDICATE_MATCHED_PATH_ROUTE_ID_ATTR);
-			String matchedPath = exchange.getAttribute(GATEWAY_PREDICATE_MATCHED_PATH_ATTR);
-
-			// check that the matched path belongs to the route that was actually
-			// selected.
-			if (route.getId().equals(matchedPathRouteId) && matchedPath != null) {
-				return Tags.of("path", matchedPath);
-			}
-		}
-
-		return Tags.empty();
-	}
-
+    @Override
+    public Tags apply(ServerWebExchange exchange) {
+        Route route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
+        if (route != null) {
+            String matchedPathRouteId = exchange.getAttribute(GATEWAY_PREDICATE_MATCHED_PATH_ROUTE_ID_ATTR);
+            String matchedPath = exchange.getAttribute(GATEWAY_PREDICATE_MATCHED_PATH_ATTR);
+            // check that the matched path belongs to the route that was actually
+            // selected.
+            if (route.getId().equals(matchedPathRouteId) && matchedPath != null) {
+                return Tags.of("path", matchedPath);
+            }
+        }
+        return Tags.empty();
+    }
 }

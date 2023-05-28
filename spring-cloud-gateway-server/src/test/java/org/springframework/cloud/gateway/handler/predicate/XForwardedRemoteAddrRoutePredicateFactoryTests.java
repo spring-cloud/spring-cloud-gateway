@@ -13,15 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.handler.predicate;
 
 import java.time.Duration;
-
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -35,7 +32,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.reactive.function.client.ClientResponse;
-
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.cloud.gateway.test.TestUtils.assertStatus;
 
@@ -44,47 +40,35 @@ import static org.springframework.cloud.gateway.test.TestUtils.assertStatus;
 @ActiveProfiles({ "remote-address" })
 public class XForwardedRemoteAddrRoutePredicateFactoryTests extends BaseWebClientTests {
 
-	@Test
-	public void xForwardedRemoteAddrWorks() {
-		Mono<ClientResponse> result = webClient.get().uri("/xforwardfor").header("X-Forwarded-For", "12.34.56.78")
-				.exchangeToMono(Mono::just);
+    @Test
+    public void xForwardedRemoteAddrWorks() {
+        Mono<ClientResponse> result = webClient.get().uri("/xforwardfor").header("X-Forwarded-For", "12.34.56.78").exchangeToMono(Mono::just);
+        StepVerifier.create(result).consumeNextWith(response -> assertStatus(response, HttpStatus.OK)).expectComplete().verify(Duration.ofSeconds(20));
+    }
 
-		StepVerifier.create(result).consumeNextWith(response -> assertStatus(response, HttpStatus.OK)).expectComplete()
-				.verify(Duration.ofSeconds(20));
-	}
+    @Test
+    public void xForwardedRemoteAddrWorksUsingRightMostValueByDefault() {
+        Mono<ClientResponse> result = webClient.get().uri("/xforwardfor").header("X-Forwarded-For", "99.99.99.99,12.34.56.78").exchangeToMono(Mono::just);
+        StepVerifier.create(result).consumeNextWith(response -> assertStatus(response, HttpStatus.OK)).expectComplete().verify(Duration.ofSeconds(20));
+    }
 
-	@Test
-	public void xForwardedRemoteAddrWorksUsingRightMostValueByDefault() {
-		Mono<ClientResponse> result = webClient.get().uri("/xforwardfor")
-				.header("X-Forwarded-For", "99.99.99.99,12.34.56.78").exchangeToMono(Mono::just);
+    @Test
+    public void xForwardedRemoteAddrRejects() {
+        Mono<ClientResponse> result = webClient.get().uri("/xforwardfor").header("X-Forwarded-For", "99.99.99.99").exchangeToMono(Mono::just);
+        StepVerifier.create(result).consumeNextWith(response -> assertStatus(response, HttpStatus.NOT_FOUND)).expectComplete().verify(Duration.ofSeconds(20));
+    }
 
-		StepVerifier.create(result).consumeNextWith(response -> assertStatus(response, HttpStatus.OK)).expectComplete()
-				.verify(Duration.ofSeconds(20));
-	}
+    @EnableAutoConfiguration
+    @SpringBootConfiguration
+    @Import(DefaultTestConfig.class)
+    public static class TestConfig {
 
-	@Test
-	public void xForwardedRemoteAddrRejects() {
-		Mono<ClientResponse> result = webClient.get().uri("/xforwardfor").header("X-Forwarded-For", "99.99.99.99")
-				.exchangeToMono(Mono::just);
+        @Value("${test.uri}")
+        String uri;
 
-		StepVerifier.create(result).consumeNextWith(response -> assertStatus(response, HttpStatus.NOT_FOUND))
-				.expectComplete().verify(Duration.ofSeconds(20));
-	}
-
-	@EnableAutoConfiguration
-	@SpringBootConfiguration
-	@Import(DefaultTestConfig.class)
-	public static class TestConfig {
-
-		@Value("${test.uri}")
-		String uri;
-
-		@Bean
-		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
-			return builder.routes().route("x_forwarded_for_test", r -> r.path("/xforwardfor").and()
-					.xForwardedRemoteAddr("12.34.56.78").filters(f -> f.setStatus(200)).uri(uri)).build();
-		}
-
-	}
-
+        @Bean
+        public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
+            return builder.routes().route("x_forwarded_for_test", r -> r.path("/xforwardfor").and().xForwardedRemoteAddr("12.34.56.78").filters(f -> f.setStatus(200)).uri(uri)).build();
+        }
+    }
 }

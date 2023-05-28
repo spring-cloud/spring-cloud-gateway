@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.event;
 
 import org.springframework.cloud.gateway.support.WeightConfig;
@@ -21,15 +20,14 @@ import org.springframework.context.ApplicationEvent;
 
 public class WeightDefinedEvent extends ApplicationEvent {
 
-	private final WeightConfig weightConfig;
+    private final WeightConfig weightConfig;
 
-	public WeightDefinedEvent(Object source, WeightConfig weightConfig) {
-		super(source);
-		this.weightConfig = weightConfig;
-	}
+    public WeightDefinedEvent(Object source, WeightConfig weightConfig) {
+        super(source);
+        this.weightConfig = weightConfig;
+    }
 
-	public WeightConfig getWeightConfig() {
-		return weightConfig;
-	}
-
+    public WeightConfig getWeightConfig() {
+        return weightConfig;
+    }
 }

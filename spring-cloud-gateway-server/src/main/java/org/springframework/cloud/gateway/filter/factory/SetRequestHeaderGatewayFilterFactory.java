@@ -13,17 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.factory;
 
 import reactor.core.publisher.Mono;
-
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
-
 import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
 
 /**
@@ -31,24 +28,21 @@ import static org.springframework.cloud.gateway.support.GatewayToStringStyler.fi
  */
 public class SetRequestHeaderGatewayFilterFactory extends AbstractNameValueGatewayFilterFactory {
 
-	@Override
-	public GatewayFilter apply(NameValueConfig config) {
-		return new GatewayFilter() {
-			@Override
-			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-				String value = ServerWebExchangeUtils.expand(exchange, config.getValue());
-				ServerHttpRequest request = exchange.getRequest().mutate()
-						.headers(httpHeaders -> httpHeaders.set(config.name, value)).build();
+    @Override
+    public GatewayFilter apply(NameValueConfig config) {
+        return new GatewayFilter() {
 
-				return chain.filter(exchange.mutate().request(request).build());
-			}
+            @Override
+            public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+                String value = ServerWebExchangeUtils.expand(exchange, config.getValue());
+                ServerHttpRequest request = exchange.getRequest().mutate().headers(httpHeaders -> httpHeaders.set(config.name, value)).build();
+                return chain.filter(exchange.mutate().request(request).build());
+            }
 
-			@Override
-			public String toString() {
-				return filterToStringCreator(SetRequestHeaderGatewayFilterFactory.this)
-						.append(config.getName(), config.getValue()).toString();
-			}
-		};
-	}
-
+            @Override
+            public String toString() {
+                return filterToStringCreator(SetRequestHeaderGatewayFilterFactory.this).append(config.getName(), config.getValue()).toString();
+            }
+        };
+    }
 }

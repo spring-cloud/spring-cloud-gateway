@@ -13,13 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.handler;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -27,39 +25,35 @@ import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.util.TestSocketUtils;
-
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
 
 @SpringBootTest(webEnvironment = DEFINED_PORT)
 @DirtiesContext
 public class RoutePredicateHandlerMappingSameManagementPortIntegrationTests extends BaseWebClientTests {
 
-	private static int samePort;
+    private static int samePort;
 
-	@BeforeAll
-	public static void beforeClass() {
-		samePort = TestSocketUtils.findAvailableTcpPort();
-		System.setProperty("server.port", String.valueOf(samePort));
-		System.setProperty("management.server.port", String.valueOf(samePort));
-	}
+    @BeforeAll
+    public static void beforeClass() {
+        samePort = TestSocketUtils.findAvailableTcpPort();
+        System.setProperty("server.port", String.valueOf(samePort));
+        System.setProperty("management.server.port", String.valueOf(samePort));
+    }
 
-	@AfterAll
-	public static void afterClass() {
-		System.clearProperty("server.port");
-		System.clearProperty("management.server.port");
-	}
+    @AfterAll
+    public static void afterClass() {
+        System.clearProperty("server.port");
+        System.clearProperty("management.server.port");
+    }
 
-	@Test
-	public void requestsToGatewaySucceed() {
-		testClient.mutate().baseUrl("http://localhost:" + samePort).build().get().uri("/get").exchange().expectStatus()
-				.isOk();
-	}
+    @Test
+    public void requestsToGatewaySucceed() {
+        testClient.mutate().baseUrl("http://localhost:" + samePort).build().get().uri("/get").exchange().expectStatus().isOk();
+    }
 
-	@EnableAutoConfiguration
-	@SpringBootConfiguration
-	@Import(DefaultTestConfig.class)
-	public static class TestConfig {
-
-	}
-
+    @EnableAutoConfiguration
+    @SpringBootConfiguration
+    @Import(DefaultTestConfig.class)
+    public static class TestConfig {
+    }
 }

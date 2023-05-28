@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.handler.predicate;
 
 import java.util.function.Predicate;
-
 import org.springframework.cloud.gateway.support.HasConfig;
 import org.springframework.cloud.gateway.support.Visitor;
 import org.springframework.util.Assert;
@@ -25,152 +23,145 @@ import org.springframework.web.server.ServerWebExchange;
 
 public interface GatewayPredicate extends Predicate<ServerWebExchange>, HasConfig {
 
-	@Override
-	default Predicate<ServerWebExchange> and(Predicate<? super ServerWebExchange> other) {
-		return new AndGatewayPredicate(this, wrapIfNeeded(other));
-	}
+    @Override
+    default Predicate<ServerWebExchange> and(Predicate<? super ServerWebExchange> other) {
+        return new AndGatewayPredicate(this, wrapIfNeeded(other));
+    }
 
-	@Override
-	default Predicate<ServerWebExchange> negate() {
-		return new NegateGatewayPredicate(this);
-	}
+    @Override
+    default Predicate<ServerWebExchange> negate() {
+        return new NegateGatewayPredicate(this);
+    }
 
-	@Override
-	default Predicate<ServerWebExchange> or(Predicate<? super ServerWebExchange> other) {
-		return new OrGatewayPredicate(this, wrapIfNeeded(other));
-	}
+    @Override
+    default Predicate<ServerWebExchange> or(Predicate<? super ServerWebExchange> other) {
+        return new OrGatewayPredicate(this, wrapIfNeeded(other));
+    }
 
-	default void accept(Visitor visitor) {
-		visitor.visit(this);
-	}
+    default void accept(Visitor visitor) {
+        visitor.visit(this);
+    }
 
-	static GatewayPredicate wrapIfNeeded(Predicate<? super ServerWebExchange> other) {
-		GatewayPredicate right;
+    static GatewayPredicate wrapIfNeeded(Predicate<? super ServerWebExchange> other) {
+        GatewayPredicate right;
+        if (other instanceof GatewayPredicate) {
+            right = (GatewayPredicate) other;
+        } else {
+            right = new GatewayPredicateWrapper(other);
+        }
+        return right;
+    }
 
-		if (other instanceof GatewayPredicate) {
-			right = (GatewayPredicate) other;
-		}
-		else {
-			right = new GatewayPredicateWrapper(other);
-		}
-		return right;
-	}
+    class GatewayPredicateWrapper implements GatewayPredicate {
 
-	class GatewayPredicateWrapper implements GatewayPredicate {
+        private final Predicate<? super ServerWebExchange> delegate;
 
-		private final Predicate<? super ServerWebExchange> delegate;
+        public GatewayPredicateWrapper(Predicate<? super ServerWebExchange> delegate) {
+            Assert.notNull(delegate, "delegate GatewayPredicate must not be null");
+            this.delegate = delegate;
+        }
 
-		public GatewayPredicateWrapper(Predicate<? super ServerWebExchange> delegate) {
-			Assert.notNull(delegate, "delegate GatewayPredicate must not be null");
-			this.delegate = delegate;
-		}
+        @Override
+        public boolean test(ServerWebExchange exchange) {
+            return this.delegate.test(exchange);
+        }
 
-		@Override
-		public boolean test(ServerWebExchange exchange) {
-			return this.delegate.test(exchange);
-		}
+        @Override
+        public void accept(Visitor visitor) {
+            if (delegate instanceof GatewayPredicate) {
+                GatewayPredicate gatewayPredicate = (GatewayPredicate) delegate;
+                gatewayPredicate.accept(visitor);
+            }
+        }
 
-		@Override
-		public void accept(Visitor visitor) {
-			if (delegate instanceof GatewayPredicate) {
-				GatewayPredicate gatewayPredicate = (GatewayPredicate) delegate;
-				gatewayPredicate.accept(visitor);
-			}
-		}
+        @Override
+        public String toString() {
+            return this.delegate.getClass().getSimpleName();
+        }
+    }
 
-		@Override
-		public String toString() {
-			return this.delegate.getClass().getSimpleName();
-		}
+    class NegateGatewayPredicate implements GatewayPredicate {
 
-	}
+        private final GatewayPredicate predicate;
 
-	class NegateGatewayPredicate implements GatewayPredicate {
+        public NegateGatewayPredicate(GatewayPredicate predicate) {
+            Assert.notNull(predicate, "predicate GatewayPredicate must not be null");
+            this.predicate = predicate;
+        }
 
-		private final GatewayPredicate predicate;
+        @Override
+        public boolean test(ServerWebExchange t) {
+            return !this.predicate.test(t);
+        }
 
-		public NegateGatewayPredicate(GatewayPredicate predicate) {
-			Assert.notNull(predicate, "predicate GatewayPredicate must not be null");
-			this.predicate = predicate;
-		}
+        @Override
+        public void accept(Visitor visitor) {
+            predicate.accept(visitor);
+        }
 
-		@Override
-		public boolean test(ServerWebExchange t) {
-			return !this.predicate.test(t);
-		}
+        @Override
+        public String toString() {
+            return String.format("!%s", this.predicate);
+        }
+    }
 
-		@Override
-		public void accept(Visitor visitor) {
-			predicate.accept(visitor);
-		}
+    class AndGatewayPredicate implements GatewayPredicate {
 
-		@Override
-		public String toString() {
-			return String.format("!%s", this.predicate);
-		}
+        private final GatewayPredicate left;
 
-	}
+        private final GatewayPredicate right;
 
-	class AndGatewayPredicate implements GatewayPredicate {
+        public AndGatewayPredicate(GatewayPredicate left, GatewayPredicate right) {
+            Assert.notNull(left, "Left GatewayPredicate must not be null");
+            Assert.notNull(right, "Right GatewayPredicate must not be null");
+            this.left = left;
+            this.right = right;
+        }
 
-		private final GatewayPredicate left;
+        @Override
+        public boolean test(ServerWebExchange t) {
+            return (this.left.test(t) && this.right.test(t));
+        }
 
-		private final GatewayPredicate right;
+        @Override
+        public void accept(Visitor visitor) {
+            left.accept(visitor);
+            right.accept(visitor);
+        }
 
-		public AndGatewayPredicate(GatewayPredicate left, GatewayPredicate right) {
-			Assert.notNull(left, "Left GatewayPredicate must not be null");
-			Assert.notNull(right, "Right GatewayPredicate must not be null");
-			this.left = left;
-			this.right = right;
-		}
+        @Override
+        public String toString() {
+            return String.format("(%s && %s)", this.left, this.right);
+        }
+    }
 
-		@Override
-		public boolean test(ServerWebExchange t) {
-			return (this.left.test(t) && this.right.test(t));
-		}
+    class OrGatewayPredicate implements GatewayPredicate {
 
-		@Override
-		public void accept(Visitor visitor) {
-			left.accept(visitor);
-			right.accept(visitor);
-		}
+        private final GatewayPredicate left;
 
-		@Override
-		public String toString() {
-			return String.format("(%s && %s)", this.left, this.right);
-		}
+        private final GatewayPredicate right;
 
-	}
+        public OrGatewayPredicate(GatewayPredicate left, GatewayPredicate right) {
+            Assert.notNull(left, "Left GatewayPredicate must not be null");
+            Assert.notNull(right, "Right GatewayPredicate must not be null");
+            this.left = left;
+            this.right = right;
+        }
 
-	class OrGatewayPredicate implements GatewayPredicate {
+        @Override
+        public boolean test(ServerWebExchange t) {
+            return (this.left.test(t) || this.right.test(t));
+        }
 
-		private final GatewayPredicate left;
+        @Override
+        public void accept(Visitor visitor) {
+            left.accept(visitor);
+            right.accept(visitor);
+        }
 
-		private final GatewayPredicate right;
-
-		public OrGatewayPredicate(GatewayPredicate left, GatewayPredicate right) {
-			Assert.notNull(left, "Left GatewayPredicate must not be null");
-			Assert.notNull(right, "Right GatewayPredicate must not be null");
-			this.left = left;
-			this.right = right;
-		}
-
-		@Override
-		public boolean test(ServerWebExchange t) {
-			return (this.left.test(t) || this.right.test(t));
-		}
-
-		@Override
-		public void accept(Visitor visitor) {
-			left.accept(visitor);
-			right.accept(visitor);
-		}
-
-		@Override
-		public String toString() {
-			return String.format("(%s || %s)", this.left, this.right);
-		}
-
-	}
-
+        @Override
+        public String toString() {
+            return String.format("(%s || %s)", this.left, this.right);
+        }
+    }
 }

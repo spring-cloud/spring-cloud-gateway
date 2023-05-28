@@ -13,18 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.handler.predicate;
 
 import java.util.ArrayList;
 import java.util.function.Predicate;
-
 import org.junit.jupiter.api.Test;
-
 import org.springframework.cloud.gateway.handler.AsyncPredicate;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.web.server.ServerWebExchange;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -32,40 +28,27 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class GatewayPredicateVisitorTests {
 
-	@Test
-	public void asyncPredicateVisitVisitsEachNode() {
-		PathRoutePredicateFactory pathRoutePredicateFactory = new PathRoutePredicateFactory();
-		HostRoutePredicateFactory hostRoutePredicateFactory = new HostRoutePredicateFactory();
-		ReadBodyRoutePredicateFactory readBodyRoutePredicateFactory1 = new ReadBodyRoutePredicateFactory();
-		ReadBodyRoutePredicateFactory readBodyRoutePredicateFactory2 = new ReadBodyRoutePredicateFactory();
-		AsyncPredicate<ServerWebExchange> predicate = AsyncPredicate
-				.from(pathRoutePredicateFactory.apply(pathRoutePredicateFactory.newConfig()))
-				.and(AsyncPredicate.from(hostRoutePredicateFactory.apply(hostRoutePredicateFactory.newConfig())))
-				.and(readBodyRoutePredicateFactory1.applyAsync(readBodyRoutePredicateFactory1.newConfig()))
-				.and(readBodyRoutePredicateFactory2.applyAsync(readBodyRoutePredicateFactory2.newConfig()));
+    @Test
+    public void asyncPredicateVisitVisitsEachNode() {
+        PathRoutePredicateFactory pathRoutePredicateFactory = new PathRoutePredicateFactory();
+        HostRoutePredicateFactory hostRoutePredicateFactory = new HostRoutePredicateFactory();
+        ReadBodyRoutePredicateFactory readBodyRoutePredicateFactory1 = new ReadBodyRoutePredicateFactory();
+        ReadBodyRoutePredicateFactory readBodyRoutePredicateFactory2 = new ReadBodyRoutePredicateFactory();
+        AsyncPredicate<ServerWebExchange> predicate = AsyncPredicate.from(pathRoutePredicateFactory.apply(pathRoutePredicateFactory.newConfig())).and(AsyncPredicate.from(hostRoutePredicateFactory.apply(hostRoutePredicateFactory.newConfig()))).and(readBodyRoutePredicateFactory1.applyAsync(readBodyRoutePredicateFactory1.newConfig())).and(readBodyRoutePredicateFactory2.applyAsync(readBodyRoutePredicateFactory2.newConfig()));
+        Route route = Route.async().id("git").uri("http://myuri").asyncPredicate(predicate).build();
+        ArrayList<Object> configs = new ArrayList<>();
+        route.getPredicate().accept(p -> configs.add(p.getConfig()));
+        assertThat(configs).hasSize(4).hasExactlyElementsOfTypes(PathRoutePredicateFactory.Config.class, HostRoutePredicateFactory.Config.class, ReadBodyRoutePredicateFactory.Config.class, ReadBodyRoutePredicateFactory.Config.class);
+    }
 
-		Route route = Route.async().id("git").uri("http://myuri").asyncPredicate(predicate).build();
-		ArrayList<Object> configs = new ArrayList<>();
-		route.getPredicate().accept(p -> configs.add(p.getConfig()));
-
-		assertThat(configs).hasSize(4).hasExactlyElementsOfTypes(PathRoutePredicateFactory.Config.class,
-				HostRoutePredicateFactory.Config.class, ReadBodyRoutePredicateFactory.Config.class,
-				ReadBodyRoutePredicateFactory.Config.class);
-	}
-
-	@Test
-	public void predicateVisitVisitsEachNode() {
-		PathRoutePredicateFactory pathRoutePredicateFactory = new PathRoutePredicateFactory();
-		HostRoutePredicateFactory hostRoutePredicateFactory = new HostRoutePredicateFactory();
-		Predicate<ServerWebExchange> predicate = pathRoutePredicateFactory.apply(pathRoutePredicateFactory.newConfig())
-				.and(hostRoutePredicateFactory.apply(hostRoutePredicateFactory.newConfig()));
-
-		Route route = Route.async().id("git").uri("http://myuri").predicate(predicate).build();
-		ArrayList<Object> configs = new ArrayList<>();
-		route.getPredicate().accept(p -> configs.add(p.getConfig()));
-
-		assertThat(configs).hasSize(2).hasExactlyElementsOfTypes(PathRoutePredicateFactory.Config.class,
-				HostRoutePredicateFactory.Config.class);
-	}
-
+    @Test
+    public void predicateVisitVisitsEachNode() {
+        PathRoutePredicateFactory pathRoutePredicateFactory = new PathRoutePredicateFactory();
+        HostRoutePredicateFactory hostRoutePredicateFactory = new HostRoutePredicateFactory();
+        Predicate<ServerWebExchange> predicate = pathRoutePredicateFactory.apply(pathRoutePredicateFactory.newConfig()).and(hostRoutePredicateFactory.apply(hostRoutePredicateFactory.newConfig()));
+        Route route = Route.async().id("git").uri("http://myuri").predicate(predicate).build();
+        ArrayList<Object> configs = new ArrayList<>();
+        route.getPredicate().accept(p -> configs.add(p.getConfig()));
+        assertThat(configs).hasSize(2).hasExactlyElementsOfTypes(PathRoutePredicateFactory.Config.class, HostRoutePredicateFactory.Config.class);
+    }
 }

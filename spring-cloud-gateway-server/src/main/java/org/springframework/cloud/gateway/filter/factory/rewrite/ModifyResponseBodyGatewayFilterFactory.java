@@ -13,19 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.factory.rewrite;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
-
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.NettyWriteResponseFilter;
@@ -44,7 +41,6 @@ import org.springframework.web.reactive.function.BodyInserter;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.server.ServerWebExchange;
-
 import static java.util.function.Function.identity;
 import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR;
@@ -52,249 +48,221 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.O
 /**
  * GatewayFilter that modifies the response body.
  */
-public class ModifyResponseBodyGatewayFilterFactory
-		extends AbstractGatewayFilterFactory<ModifyResponseBodyGatewayFilterFactory.Config> {
+public class ModifyResponseBodyGatewayFilterFactory extends AbstractGatewayFilterFactory<ModifyResponseBodyGatewayFilterFactory.Config> {
 
-	private final Map<String, MessageBodyDecoder> messageBodyDecoders;
+    private final Map<String, MessageBodyDecoder> messageBodyDecoders;
 
-	private final Map<String, MessageBodyEncoder> messageBodyEncoders;
+    private final Map<String, MessageBodyEncoder> messageBodyEncoders;
 
-	private final List<HttpMessageReader<?>> messageReaders;
+    private final List<HttpMessageReader<?>> messageReaders;
 
-	public ModifyResponseBodyGatewayFilterFactory(List<HttpMessageReader<?>> messageReaders,
-			Set<MessageBodyDecoder> messageBodyDecoders, Set<MessageBodyEncoder> messageBodyEncoders) {
-		super(Config.class);
-		this.messageReaders = messageReaders;
-		this.messageBodyDecoders = messageBodyDecoders.stream()
-				.collect(Collectors.toMap(MessageBodyDecoder::encodingType, identity()));
-		this.messageBodyEncoders = messageBodyEncoders.stream()
-				.collect(Collectors.toMap(MessageBodyEncoder::encodingType, identity()));
-	}
+    public ModifyResponseBodyGatewayFilterFactory(List<HttpMessageReader<?>> messageReaders, Set<MessageBodyDecoder> messageBodyDecoders, Set<MessageBodyEncoder> messageBodyEncoders) {
+        super(Config.class);
+        this.messageReaders = messageReaders;
+        this.messageBodyDecoders = messageBodyDecoders.stream().collect(Collectors.toMap(MessageBodyDecoder::encodingType, identity()));
+        this.messageBodyEncoders = messageBodyEncoders.stream().collect(Collectors.toMap(MessageBodyEncoder::encodingType, identity()));
+    }
 
-	@Override
-	public GatewayFilter apply(Config config) {
-		ModifyResponseGatewayFilter gatewayFilter = new ModifyResponseGatewayFilter(config);
-		gatewayFilter.setFactory(this);
-		return gatewayFilter;
-	}
+    @Override
+    public GatewayFilter apply(Config config) {
+        ModifyResponseGatewayFilter gatewayFilter = new ModifyResponseGatewayFilter(config);
+        gatewayFilter.setFactory(this);
+        return gatewayFilter;
+    }
 
-	public static class Config {
+    public static class Config {
 
-		private Class inClass;
+        private Class inClass;
 
-		private Class outClass;
+        private Class outClass;
 
-		private Map<String, Object> inHints;
+        private Map<String, Object> inHints;
 
-		private Map<String, Object> outHints;
+        private Map<String, Object> outHints;
 
-		private String newContentType;
+        private String newContentType;
 
-		private RewriteFunction rewriteFunction;
+        private RewriteFunction rewriteFunction;
 
-		public Class getInClass() {
-			return inClass;
-		}
+        public Class getInClass() {
+            return inClass;
+        }
 
-		public Config setInClass(Class inClass) {
-			this.inClass = inClass;
-			return this;
-		}
+        public Config setInClass(Class inClass) {
+            this.inClass = inClass;
+            return this;
+        }
 
-		public Class getOutClass() {
-			return outClass;
-		}
+        public Class getOutClass() {
+            return outClass;
+        }
 
-		public Config setOutClass(Class outClass) {
-			this.outClass = outClass;
-			return this;
-		}
+        public Config setOutClass(Class outClass) {
+            this.outClass = outClass;
+            return this;
+        }
 
-		public Map<String, Object> getInHints() {
-			return inHints;
-		}
+        public Map<String, Object> getInHints() {
+            return inHints;
+        }
 
-		public Config setInHints(Map<String, Object> inHints) {
-			this.inHints = inHints;
-			return this;
-		}
+        public Config setInHints(Map<String, Object> inHints) {
+            this.inHints = inHints;
+            return this;
+        }
 
-		public Map<String, Object> getOutHints() {
-			return outHints;
-		}
+        public Map<String, Object> getOutHints() {
+            return outHints;
+        }
 
-		public Config setOutHints(Map<String, Object> outHints) {
-			this.outHints = outHints;
-			return this;
-		}
+        public Config setOutHints(Map<String, Object> outHints) {
+            this.outHints = outHints;
+            return this;
+        }
 
-		public String getNewContentType() {
-			return newContentType;
-		}
+        public String getNewContentType() {
+            return newContentType;
+        }
 
-		public Config setNewContentType(String newContentType) {
-			this.newContentType = newContentType;
-			return this;
-		}
+        public Config setNewContentType(String newContentType) {
+            this.newContentType = newContentType;
+            return this;
+        }
 
-		public RewriteFunction getRewriteFunction() {
-			return rewriteFunction;
-		}
+        public RewriteFunction getRewriteFunction() {
+            return rewriteFunction;
+        }
 
-		public Config setRewriteFunction(RewriteFunction rewriteFunction) {
-			this.rewriteFunction = rewriteFunction;
-			return this;
-		}
+        public Config setRewriteFunction(RewriteFunction rewriteFunction) {
+            this.rewriteFunction = rewriteFunction;
+            return this;
+        }
 
-		public <T, R> Config setRewriteFunction(Class<T> inClass, Class<R> outClass,
-				RewriteFunction<T, R> rewriteFunction) {
-			setInClass(inClass);
-			setOutClass(outClass);
-			setRewriteFunction(rewriteFunction);
-			return this;
-		}
+        public <T, R> Config setRewriteFunction(Class<T> inClass, Class<R> outClass, RewriteFunction<T, R> rewriteFunction) {
+            setInClass(inClass);
+            setOutClass(outClass);
+            setRewriteFunction(rewriteFunction);
+            return this;
+        }
+    }
 
-	}
+    public class ModifyResponseGatewayFilter implements GatewayFilter, Ordered {
 
-	public class ModifyResponseGatewayFilter implements GatewayFilter, Ordered {
+        private final Config config;
 
-		private final Config config;
+        private GatewayFilterFactory<Config> gatewayFilterFactory;
 
-		private GatewayFilterFactory<Config> gatewayFilterFactory;
+        public ModifyResponseGatewayFilter(Config config) {
+            this.config = config;
+        }
 
-		public ModifyResponseGatewayFilter(Config config) {
-			this.config = config;
-		}
+        @Override
+        public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+            return chain.filter(exchange.mutate().response(new ModifiedServerHttpResponse(exchange, config)).build());
+        }
 
-		@Override
-		public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-			return chain.filter(exchange.mutate().response(new ModifiedServerHttpResponse(exchange, config)).build());
-		}
+        @Override
+        public int getOrder() {
+            return NettyWriteResponseFilter.WRITE_RESPONSE_FILTER_ORDER - 1;
+        }
 
-		@Override
-		public int getOrder() {
-			return NettyWriteResponseFilter.WRITE_RESPONSE_FILTER_ORDER - 1;
-		}
+        @Override
+        public String toString() {
+            Object obj = (this.gatewayFilterFactory != null) ? this.gatewayFilterFactory : this;
+            return filterToStringCreator(obj).append("New content type", config.getNewContentType()).append("In class", config.getInClass()).append("Out class", config.getOutClass()).toString();
+        }
 
-		@Override
-		public String toString() {
-			Object obj = (this.gatewayFilterFactory != null) ? this.gatewayFilterFactory : this;
-			return filterToStringCreator(obj).append("New content type", config.getNewContentType())
-					.append("In class", config.getInClass()).append("Out class", config.getOutClass()).toString();
-		}
+        public void setFactory(GatewayFilterFactory<Config> gatewayFilterFactory) {
+            this.gatewayFilterFactory = gatewayFilterFactory;
+        }
+    }
 
-		public void setFactory(GatewayFilterFactory<Config> gatewayFilterFactory) {
-			this.gatewayFilterFactory = gatewayFilterFactory;
-		}
+    protected class ModifiedServerHttpResponse extends ServerHttpResponseDecorator {
 
-	}
+        private final ServerWebExchange exchange;
 
-	protected class ModifiedServerHttpResponse extends ServerHttpResponseDecorator {
+        private final Config config;
 
-		private final ServerWebExchange exchange;
+        public ModifiedServerHttpResponse(ServerWebExchange exchange, Config config) {
+            super(exchange.getResponse());
+            this.exchange = exchange;
+            this.config = config;
+        }
 
-		private final Config config;
+        @SuppressWarnings("unchecked")
+        @Override
+        public Mono<Void> writeWith(Publisher<? extends DataBuffer> body) {
+            Class inClass = config.getInClass();
+            Class outClass = config.getOutClass();
+            String originalResponseContentType = exchange.getAttribute(ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR);
+            HttpHeaders httpHeaders = new HttpHeaders();
+            // explicitly add it in this way instead of
+            // 'httpHeaders.setContentType(originalResponseContentType)'
+            // this will prevent exception in case of using non-standard media
+            // types like "Content-Type: image"
+            httpHeaders.add(HttpHeaders.CONTENT_TYPE, originalResponseContentType);
+            ClientResponse clientResponse = prepareClientResponse(body, httpHeaders);
+            // TODO: flux or mono
+            Mono modifiedBody = extractBody(exchange, clientResponse, inClass).flatMap(originalBody -> config.getRewriteFunction().apply(exchange, originalBody)).switchIfEmpty(Mono.defer(() -> (Mono) config.getRewriteFunction().apply(exchange, null)));
+            BodyInserter bodyInserter = BodyInserters.fromPublisher(modifiedBody, outClass);
+            CachedBodyOutputMessage outputMessage = new CachedBodyOutputMessage(exchange, exchange.getResponse().getHeaders());
+            return bodyInserter.insert(outputMessage, new BodyInserterContext()).then(Mono.defer(() -> {
+                Mono<DataBuffer> messageBody = writeBody(getDelegate(), outputMessage, outClass);
+                HttpHeaders headers = getDelegate().getHeaders();
+                if (!headers.containsKey(HttpHeaders.TRANSFER_ENCODING) || headers.containsKey(HttpHeaders.CONTENT_LENGTH)) {
+                    messageBody = messageBody.doOnNext(data -> headers.setContentLength(data.readableByteCount()));
+                }
+                // TODO: fail if isStreamingMediaType?
+                return getDelegate().writeWith(messageBody);
+            }));
+        }
 
-		public ModifiedServerHttpResponse(ServerWebExchange exchange, Config config) {
-			super(exchange.getResponse());
-			this.exchange = exchange;
-			this.config = config;
-		}
+        @Override
+        public Mono<Void> writeAndFlushWith(Publisher<? extends Publisher<? extends DataBuffer>> body) {
+            return writeWith(Flux.from(body).flatMapSequential(p -> p));
+        }
 
-		@SuppressWarnings("unchecked")
-		@Override
-		public Mono<Void> writeWith(Publisher<? extends DataBuffer> body) {
+        private ClientResponse prepareClientResponse(Publisher<? extends DataBuffer> body, HttpHeaders httpHeaders) {
+            ClientResponse.Builder builder;
+            builder = ClientResponse.create(exchange.getResponse().getStatusCode(), messageReaders);
+            return builder.headers(headers -> headers.putAll(httpHeaders)).body(Flux.from(body)).build();
+        }
 
-			Class inClass = config.getInClass();
-			Class outClass = config.getOutClass();
+        private <T> Mono<T> extractBody(ServerWebExchange exchange, ClientResponse clientResponse, Class<T> inClass) {
+            // if inClass is byte[] then just return body, otherwise check if
+            // decoding required
+            if (byte[].class.isAssignableFrom(inClass)) {
+                return clientResponse.bodyToMono(inClass);
+            }
+            List<String> encodingHeaders = exchange.getResponse().getHeaders().getOrEmpty(HttpHeaders.CONTENT_ENCODING);
+            for (String encoding : encodingHeaders) {
+                MessageBodyDecoder decoder = messageBodyDecoders.get(encoding);
+                if (decoder != null) {
+                    return clientResponse.bodyToMono(byte[].class).publishOn(Schedulers.parallel()).map(decoder::decode).map(bytes -> exchange.getResponse().bufferFactory().wrap(bytes)).map(buffer -> prepareClientResponse(Mono.just(buffer), exchange.getResponse().getHeaders())).flatMap(response -> response.bodyToMono(inClass));
+                }
+            }
+            return clientResponse.bodyToMono(inClass);
+        }
 
-			String originalResponseContentType = exchange.getAttribute(ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR);
-			HttpHeaders httpHeaders = new HttpHeaders();
-			// explicitly add it in this way instead of
-			// 'httpHeaders.setContentType(originalResponseContentType)'
-			// this will prevent exception in case of using non-standard media
-			// types like "Content-Type: image"
-			httpHeaders.add(HttpHeaders.CONTENT_TYPE, originalResponseContentType);
-
-			ClientResponse clientResponse = prepareClientResponse(body, httpHeaders);
-
-			// TODO: flux or mono
-			Mono modifiedBody = extractBody(exchange, clientResponse, inClass)
-					.flatMap(originalBody -> config.getRewriteFunction().apply(exchange, originalBody))
-					.switchIfEmpty(Mono.defer(() -> (Mono) config.getRewriteFunction().apply(exchange, null)));
-
-			BodyInserter bodyInserter = BodyInserters.fromPublisher(modifiedBody, outClass);
-			CachedBodyOutputMessage outputMessage = new CachedBodyOutputMessage(exchange,
-					exchange.getResponse().getHeaders());
-			return bodyInserter.insert(outputMessage, new BodyInserterContext()).then(Mono.defer(() -> {
-				Mono<DataBuffer> messageBody = writeBody(getDelegate(), outputMessage, outClass);
-				HttpHeaders headers = getDelegate().getHeaders();
-				if (!headers.containsKey(HttpHeaders.TRANSFER_ENCODING)
-						|| headers.containsKey(HttpHeaders.CONTENT_LENGTH)) {
-					messageBody = messageBody.doOnNext(data -> headers.setContentLength(data.readableByteCount()));
-				}
-				// TODO: fail if isStreamingMediaType?
-				return getDelegate().writeWith(messageBody);
-			}));
-		}
-
-		@Override
-		public Mono<Void> writeAndFlushWith(Publisher<? extends Publisher<? extends DataBuffer>> body) {
-			return writeWith(Flux.from(body).flatMapSequential(p -> p));
-		}
-
-		private ClientResponse prepareClientResponse(Publisher<? extends DataBuffer> body, HttpHeaders httpHeaders) {
-			ClientResponse.Builder builder;
-			builder = ClientResponse.create(exchange.getResponse().getStatusCode(), messageReaders);
-			return builder.headers(headers -> headers.putAll(httpHeaders)).body(Flux.from(body)).build();
-		}
-
-		private <T> Mono<T> extractBody(ServerWebExchange exchange, ClientResponse clientResponse, Class<T> inClass) {
-			// if inClass is byte[] then just return body, otherwise check if
-			// decoding required
-			if (byte[].class.isAssignableFrom(inClass)) {
-				return clientResponse.bodyToMono(inClass);
-			}
-
-			List<String> encodingHeaders = exchange.getResponse().getHeaders().getOrEmpty(HttpHeaders.CONTENT_ENCODING);
-			for (String encoding : encodingHeaders) {
-				MessageBodyDecoder decoder = messageBodyDecoders.get(encoding);
-				if (decoder != null) {
-					return clientResponse.bodyToMono(byte[].class).publishOn(Schedulers.parallel()).map(decoder::decode)
-							.map(bytes -> exchange.getResponse().bufferFactory().wrap(bytes))
-							.map(buffer -> prepareClientResponse(Mono.just(buffer),
-									exchange.getResponse().getHeaders()))
-							.flatMap(response -> response.bodyToMono(inClass));
-				}
-			}
-
-			return clientResponse.bodyToMono(inClass);
-		}
-
-		private Mono<DataBuffer> writeBody(ServerHttpResponse httpResponse, CachedBodyOutputMessage message,
-				Class<?> outClass) {
-			Mono<DataBuffer> response = DataBufferUtils.join(message.getBody());
-			if (byte[].class.isAssignableFrom(outClass)) {
-				return response;
-			}
-
-			List<String> encodingHeaders = httpResponse.getHeaders().getOrEmpty(HttpHeaders.CONTENT_ENCODING);
-			for (String encoding : encodingHeaders) {
-				MessageBodyEncoder encoder = messageBodyEncoders.get(encoding);
-				if (encoder != null) {
-					DataBufferFactory dataBufferFactory = httpResponse.bufferFactory();
-					response = response.publishOn(Schedulers.parallel()).map(buffer -> {
-						byte[] encodedResponse = encoder.encode(buffer);
-						DataBufferUtils.release(buffer);
-						return encodedResponse;
-					}).map(dataBufferFactory::wrap);
-					break;
-				}
-			}
-
-			return response;
-		}
-
-	}
-
+        private Mono<DataBuffer> writeBody(ServerHttpResponse httpResponse, CachedBodyOutputMessage message, Class<?> outClass) {
+            Mono<DataBuffer> response = DataBufferUtils.join(message.getBody());
+            if (byte[].class.isAssignableFrom(outClass)) {
+                return response;
+            }
+            List<String> encodingHeaders = httpResponse.getHeaders().getOrEmpty(HttpHeaders.CONTENT_ENCODING);
+            for (String encoding : encodingHeaders) {
+                MessageBodyEncoder encoder = messageBodyEncoders.get(encoding);
+                if (encoder != null) {
+                    DataBufferFactory dataBufferFactory = httpResponse.bufferFactory();
+                    response = response.publishOn(Schedulers.parallel()).map(buffer -> {
+                        byte[] encodedResponse = encoder.encode(buffer);
+                        DataBufferUtils.release(buffer);
+                        return encodedResponse;
+                    }).map(dataBufferFactory::wrap);
+                    break;
+                }
+            }
+            return response;
+        }
+    }
 }

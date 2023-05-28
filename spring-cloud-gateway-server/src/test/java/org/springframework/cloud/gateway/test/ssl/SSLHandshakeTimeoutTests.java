@@ -13,34 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.test.ssl;
 
 import org.junit.jupiter.api.Test;
-
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.reactive.server.JsonPathAssertions;
 import org.springframework.test.web.reactive.server.WebTestClient.ResponseSpec;
-
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 // this test works because it assumes TLS hand shake cannot be done in 1ms. It takes
 // closer to 80ms
-@SpringBootTest(webEnvironment = RANDOM_PORT,
-		properties = { "spring.cloud.gateway.httpclient.ssl.handshake-timeout=1ms" })
+@SpringBootTest(webEnvironment = RANDOM_PORT, properties = { "spring.cloud.gateway.httpclient.ssl.handshake-timeout=1ms" })
 @DirtiesContext
 @ActiveProfiles("ssl")
 public class SSLHandshakeTimeoutTests extends SingleCertSSLTests {
 
-	@Test
-	@Override // here we validate that it the handshake times out
-	public void testSslTrust() {
-		ResponseSpec responseSpec = testClient.get().uri("/ssltrust").exchange();
-		responseSpec.expectStatus().is5xxServerError();
-		JsonPathAssertions jsonPath = responseSpec.expectBody().jsonPath("message");
-		jsonPath.isEqualTo("handshake timed out after 1ms");
-	}
-
+    @Test
+    // here we validate that it the handshake times out
+    @Override
+    public void testSslTrust() {
+        ResponseSpec responseSpec = testClient.get().uri("/ssltrust").exchange();
+        responseSpec.expectStatus().is5xxServerError();
+        JsonPathAssertions jsonPath = responseSpec.expectBody().jsonPath("message");
+        jsonPath.isEqualTo("handshake timed out after 1ms");
+    }
 }

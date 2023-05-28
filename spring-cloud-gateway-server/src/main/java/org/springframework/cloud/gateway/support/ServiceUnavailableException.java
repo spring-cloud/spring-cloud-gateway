@@ -13,30 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.support;
 
 import org.springframework.web.bind.annotation.ResponseStatus;
-
 import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
 
 @ResponseStatus(value = SERVICE_UNAVAILABLE, reason = "Upstream service is temporarily unavailable")
 public class ServiceUnavailableException extends Exception {
 
-	public ServiceUnavailableException() {
-	}
+    public ServiceUnavailableException() {
+    }
 
-	public ServiceUnavailableException(String message) {
-		super(message);
-	}
+    public ServiceUnavailableException(String message) {
+        super(message);
+    }
 
-	/**
-	 * Disables fillInStackTrace for performance reasons.
-	 * @return this
-	 */
-	@Override
-	public synchronized Throwable fillInStackTrace() {
-		return this;
-	}
-
+    /**
+     * Disables fillInStackTrace for performance reasons.
+     * @return this
+     */
+    @Override
+    public synchronized Throwable fillInStackTrace() {
+        return this;
+    }
 }

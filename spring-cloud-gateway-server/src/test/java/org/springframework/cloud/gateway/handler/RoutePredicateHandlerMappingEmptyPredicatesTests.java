@@ -13,14 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.handler;
 
 import java.net.URI;
-
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
-
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -30,30 +27,27 @@ import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
-
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT, properties = {})
 @DirtiesContext
 public class RoutePredicateHandlerMappingEmptyPredicatesTests extends BaseWebClientTests {
 
-	@Test
-	public void requestsToManagementPortReturn404() {
-	}
+    @Test
+    public void requestsToManagementPortReturn404() {
+    }
 
-	@EnableAutoConfiguration
-	@SpringBootConfiguration
-	@Import(DefaultTestConfig.class)
-	public static class TestConfig {
+    @EnableAutoConfiguration
+    @SpringBootConfiguration
+    @Import(DefaultTestConfig.class)
+    public static class TestConfig {
 
-		@Bean
-		RouteDefinitionLocator myRouteDefinitionLocator() {
-			RouteDefinition definition = new RouteDefinition();
-			definition.setId("empty_route");
-			definition.setUri(URI.create("https://example"));
-			return () -> Flux.just(definition);
-		}
-
-	}
-
+        @Bean
+        RouteDefinitionLocator myRouteDefinitionLocator() {
+            RouteDefinition definition = new RouteDefinition();
+            definition.setId("empty_route");
+            definition.setUri(URI.create("https://example"));
+            return () -> Flux.just(definition);
+        }
+    }
 }

@@ -13,18 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.factory;
 
 import org.junit.jupiter.api.Test;
-
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
-
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 /**
@@ -34,21 +31,19 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @DirtiesContext
 public class StripPrefixGatewayFilterFactoryIntegrationTests extends BaseWebClientTests {
 
-	@Test
-	public void stripPrefixFilterStripMultiplePartsValuesWork() {
-		testClient.get().uri("/foo/bar/get").header("Host", "www.stripprefix.org").exchange().expectStatus().isOk();
-	}
+    @Test
+    public void stripPrefixFilterStripMultiplePartsValuesWork() {
+        testClient.get().uri("/foo/bar/get").header("Host", "www.stripprefix.org").exchange().expectStatus().isOk();
+    }
 
-	@Test
-	public void stripPrefixFilterDefaultPartsWork() {
-		testClient.get().uri("/foo/get").header("Host", "www.stripprefixdefault.org").exchange().expectStatus().isOk();
-	}
+    @Test
+    public void stripPrefixFilterDefaultPartsWork() {
+        testClient.get().uri("/foo/get").header("Host", "www.stripprefixdefault.org").exchange().expectStatus().isOk();
+    }
 
-	@EnableAutoConfiguration
-	@SpringBootConfiguration
-	@Import(DefaultTestConfig.class)
-	public static class TestConfig {
-
-	}
-
+    @EnableAutoConfiguration
+    @SpringBootConfiguration
+    @Import(DefaultTestConfig.class)
+    public static class TestConfig {
+    }
 }

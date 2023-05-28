@@ -13,16 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.factory;
 
 import reactor.core.publisher.Mono;
-
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebSession;
-
 import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
 
 /**
@@ -37,19 +34,19 @@ import static org.springframework.cloud.gateway.support.GatewayToStringStyler.fi
  */
 public class SaveSessionGatewayFilterFactory extends AbstractGatewayFilterFactory<Object> {
 
-	@Override
-	public GatewayFilter apply(Object config) {
-		return new GatewayFilter() {
-			@Override
-			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-				return exchange.getSession().map(WebSession::save).then(chain.filter(exchange));
-			}
+    @Override
+    public GatewayFilter apply(Object config) {
+        return new GatewayFilter() {
 
-			@Override
-			public String toString() {
-				return filterToStringCreator(SaveSessionGatewayFilterFactory.this).toString();
-			}
-		};
-	}
+            @Override
+            public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+                return exchange.getSession().map(WebSession::save).then(chain.filter(exchange));
+            }
 
+            @Override
+            public String toString() {
+                return filterToStringCreator(SaveSessionGatewayFilterFactory.this).toString();
+            }
+        };
+    }
 }

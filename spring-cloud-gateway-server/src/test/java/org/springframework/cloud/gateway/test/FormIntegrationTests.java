@@ -13,14 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.test;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
-
 import org.junit.jupiter.api.Test;
-
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -36,7 +33,6 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.BodyInserters;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.cloud.gateway.test.TestUtils.getMap;
@@ -48,73 +44,57 @@ import static org.springframework.http.MediaType.MULTIPART_FORM_DATA;
 @SuppressWarnings("unchecked")
 class FormIntegrationTests extends BaseWebClientTests {
 
-	public static final MediaType FORM_URL_ENCODED_CONTENT_TYPE = new MediaType(APPLICATION_FORM_URLENCODED,
-			StandardCharsets.UTF_8);
+    public static final MediaType FORM_URL_ENCODED_CONTENT_TYPE = new MediaType(APPLICATION_FORM_URLENCODED, StandardCharsets.UTF_8);
 
-	@Test
-	void formUrlencodedWorks() {
-		LinkedMultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-		formData.add("foo", "bar");
-		formData.add("baz", "bam");
+    @Test
+    void formUrlencodedWorks() {
+        LinkedMultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+        formData.add("foo", "bar");
+        formData.add("baz", "bam");
+        // @formatter:off
+        testClient.post().uri("/post").contentType(FORM_URL_ENCODED_CONTENT_TYPE).body(BodyInserters.fromFormData(formData)).exchange().expectStatus().isOk().expectBody(Map.class).consumeWith(result -> {
+            Map map = result.getResponseBody();
+            Map<String, Object> form = getMap(map, "form");
+            assertThat(form).containsEntry("foo", "bar");
+            assertThat(form).containsEntry("baz", "bam");
+        });
+        // @formatter:on
+    }
 
-		// @formatter:off
-		testClient.post().uri("/post").contentType(FORM_URL_ENCODED_CONTENT_TYPE)
-				.body(BodyInserters.fromFormData(formData))
-				.exchange()
-				.expectStatus().isOk()
-				.expectBody(Map.class).consumeWith(result -> {
-					Map map = result.getResponseBody();
-					Map<String, Object> form = getMap(map, "form");
-					assertThat(form).containsEntry("foo", "bar");
-					assertThat(form).containsEntry("baz", "bam");
-				});
-		// @formatter:on
-	}
+    @Test
+    void multipartFormDataWorksWebClient() {
+        MultiValueMap<String, HttpEntity<?>> formData = createMultipartData();
+        // @formatter:off
+        testClient.post().uri("/post").contentType(MULTIPART_FORM_DATA).bodyValue(formData).exchange().expectStatus().isOk().expectBody(Map.class).consumeWith(result -> assertMultipartData(result.getResponseBody()));
+        // @formatter:on
+    }
 
-	@Test
-	void multipartFormDataWorksWebClient() {
-		MultiValueMap<String, HttpEntity<?>> formData = createMultipartData();
+    @Test
+    void multipartFormDataWorksRestTemplate() {
+        MultiValueMap<String, HttpEntity<?>> formData = createMultipartData();
+        TestRestTemplate rest = new TestRestTemplate();
+        ResponseEntity<Map> response = rest.postForEntity(baseUri + "/post", formData, Map.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertMultipartData(response.getBody());
+    }
 
-		// @formatter:off
-		testClient.post().uri("/post").contentType(MULTIPART_FORM_DATA)
-				.bodyValue(formData)
-				.exchange()
-				.expectStatus().isOk()
-				.expectBody(Map.class)
-				.consumeWith(result -> assertMultipartData(result.getResponseBody()));
-		// @formatter:on
-	}
+    private MultiValueMap<String, HttpEntity<?>> createMultipartData() {
+        ClassPathResource part = new ClassPathResource("1x1.png");
+        MultipartBodyBuilder builder = new MultipartBodyBuilder();
+        builder.part("imgpart", part, MediaType.IMAGE_PNG);
+        return builder.build();
+    }
 
-	@Test
-	void multipartFormDataWorksRestTemplate() {
-		MultiValueMap<String, HttpEntity<?>> formData = createMultipartData();
-		TestRestTemplate rest = new TestRestTemplate();
+    private void assertMultipartData(Map responseBody) {
+        Map<String, Object> files = getMap(responseBody, "files");
+        assertThat(files).containsKey("imgpart");
+        String file = (String) files.get("imgpart");
+        assertThat(file).startsWith("data:").contains(";base64,");
+    }
 
-		ResponseEntity<Map> response = rest.postForEntity(baseUri + "/post", formData, Map.class);
-
-		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-		assertMultipartData(response.getBody());
-	}
-
-	private MultiValueMap<String, HttpEntity<?>> createMultipartData() {
-		ClassPathResource part = new ClassPathResource("1x1.png");
-		MultipartBodyBuilder builder = new MultipartBodyBuilder();
-		builder.part("imgpart", part, MediaType.IMAGE_PNG);
-		return builder.build();
-	}
-
-	private void assertMultipartData(Map responseBody) {
-		Map<String, Object> files = getMap(responseBody, "files");
-		assertThat(files).containsKey("imgpart");
-		String file = (String) files.get("imgpart");
-		assertThat(file).startsWith("data:").contains(";base64,");
-	}
-
-	@EnableAutoConfiguration
-	@SpringBootConfiguration
-	@Import(DefaultTestConfig.class)
-	static class TestConfig {
-
-	}
-
+    @EnableAutoConfiguration
+    @SpringBootConfiguration
+    @Import(DefaultTestConfig.class)
+    static class TestConfig {
+    }
 }

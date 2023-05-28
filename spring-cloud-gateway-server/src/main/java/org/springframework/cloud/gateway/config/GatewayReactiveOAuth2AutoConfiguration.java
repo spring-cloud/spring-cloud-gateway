@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.config;
 
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -43,18 +42,13 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 @AutoConfigureAfter(ReactiveSecurityAutoConfiguration.class)
 public class GatewayReactiveOAuth2AutoConfiguration {
 
-	@Bean
-	@ConditionalOnMissingBean
-	@ConditionalOnBean(ReactiveClientRegistrationRepository.class)
-	public ReactiveOAuth2AuthorizedClientManager gatewayReactiveOAuth2AuthorizedClientManager(
-			ReactiveClientRegistrationRepository clientRegistrationRepository,
-			ServerOAuth2AuthorizedClientRepository authorizedClientRepository) {
-		ReactiveOAuth2AuthorizedClientProvider authorizedClientProvider = ReactiveOAuth2AuthorizedClientProviderBuilder
-				.builder().authorizationCode().refreshToken().build();
-		DefaultReactiveOAuth2AuthorizedClientManager authorizedClientManager = new DefaultReactiveOAuth2AuthorizedClientManager(
-				clientRegistrationRepository, authorizedClientRepository);
-		authorizedClientManager.setAuthorizedClientProvider(authorizedClientProvider);
-		return authorizedClientManager;
-	}
-
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnBean(ReactiveClientRegistrationRepository.class)
+    public ReactiveOAuth2AuthorizedClientManager gatewayReactiveOAuth2AuthorizedClientManager(ReactiveClientRegistrationRepository clientRegistrationRepository, ServerOAuth2AuthorizedClientRepository authorizedClientRepository) {
+        ReactiveOAuth2AuthorizedClientProvider authorizedClientProvider = ReactiveOAuth2AuthorizedClientProviderBuilder.builder().authorizationCode().refreshToken().build();
+        DefaultReactiveOAuth2AuthorizedClientManager authorizedClientManager = new DefaultReactiveOAuth2AuthorizedClientManager(clientRegistrationRepository, authorizedClientRepository);
+        authorizedClientManager.setAuthorizedClientProvider(authorizedClientProvider);
+        return authorizedClientManager;
+    }
 }

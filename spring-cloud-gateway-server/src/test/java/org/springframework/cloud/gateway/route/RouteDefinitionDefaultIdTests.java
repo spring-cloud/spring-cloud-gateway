@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.route;
 
 import org.junit.jupiter.api.Test;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -28,7 +26,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.bind.annotation.RestController;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -37,22 +34,20 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @ActiveProfiles("defaultid")
 public class RouteDefinitionDefaultIdTests {
 
-	@Autowired
-	private GatewayProperties properties;
+    @Autowired
+    private GatewayProperties properties;
 
-	@Test
-	public void testDefaultIdWorks() {
-		assertThat(properties.getRoutes()).hasSize(1);
-		RouteDefinition routeDefinition = properties.getRoutes().get(0);
-		assertThat(routeDefinition.getId()).isNotNull();
-	}
+    @Test
+    public void testDefaultIdWorks() {
+        assertThat(properties.getRoutes()).hasSize(1);
+        RouteDefinition routeDefinition = properties.getRoutes().get(0);
+        assertThat(routeDefinition.getId()).isNotNull();
+    }
 
-	@EnableAutoConfiguration
-	@SpringBootConfiguration
-	@Import(BaseWebClientTests.DefaultTestConfig.class)
-	@RestController
-	public static class TestConfig {
-
-	}
-
+    @EnableAutoConfiguration
+    @SpringBootConfiguration
+    @Import(BaseWebClientTests.DefaultTestConfig.class)
+    @RestController
+    public static class TestConfig {
+    }
 }

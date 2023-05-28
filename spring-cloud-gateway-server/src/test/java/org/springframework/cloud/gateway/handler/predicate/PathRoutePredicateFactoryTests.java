@@ -13,14 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.handler.predicate;
 
 import java.util.Arrays;
 import java.util.function.Predicate;
-
 import org.junit.jupiter.api.Test;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -35,7 +32,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.web.server.ServerWebExchange;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -43,97 +39,81 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @DirtiesContext
 public class PathRoutePredicateFactoryTests extends BaseWebClientTests {
 
-	@Test
-	public void pathRouteWorks() {
-		expectPathRoute("/abc/123/function", "www.path.org", "path_test");
-	}
+    @Test
+    public void pathRouteWorks() {
+        expectPathRoute("/abc/123/function", "www.path.org", "path_test");
+    }
 
-	@Test
-	public void trailingSlashReturns404() {
-		// since the configuration does not allow the trailing / to match this should fail
-		testClient.get().uri("/abc/123/function/").header(HttpHeaders.HOST, "www.path.org").exchange().expectStatus()
-				.isNotFound();
-	}
+    @Test
+    public void trailingSlashReturns404() {
+        // since the configuration does not allow the trailing / to match this should fail
+        testClient.get().uri("/abc/123/function/").header(HttpHeaders.HOST, "www.path.org").exchange().expectStatus().isNotFound();
+    }
 
-	@Test
-	public void defaultPathRouteWorks() {
-		expectPathRoute("/get", "www.thispathshouldnotmatch.org", "default_path_to_httpbin");
-	}
+    @Test
+    public void defaultPathRouteWorks() {
+        expectPathRoute("/get", "www.thispathshouldnotmatch.org", "default_path_to_httpbin");
+    }
 
-	private void expectPathRoute(String uri, String host, String routeId) {
-		testClient.get().uri(uri).header(HttpHeaders.HOST, host).exchange().expectStatus().isOk().expectHeader()
-				.valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName()).expectHeader()
-				.valueEquals(ROUTE_ID_HEADER, routeId);
-	}
+    private void expectPathRoute(String uri, String host, String routeId) {
+        testClient.get().uri(uri).header(HttpHeaders.HOST, host).exchange().expectStatus().isOk().expectHeader().valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName()).expectHeader().valueEquals(ROUTE_ID_HEADER, routeId);
+    }
 
-	@Test
-	public void mulitPathRouteWorks() {
-		expectPathRoute("/anything/multi11", "www.pathmulti.org", "path_multi");
-		expectPathRoute("/anything/multi22", "www.pathmulti.org", "path_multi");
-		expectPathRoute("/anything/multi33", "www.pathmulti.org", "default_path_to_httpbin");
-	}
+    @Test
+    public void mulitPathRouteWorks() {
+        expectPathRoute("/anything/multi11", "www.pathmulti.org", "path_multi");
+        expectPathRoute("/anything/multi22", "www.pathmulti.org", "path_multi");
+        expectPathRoute("/anything/multi33", "www.pathmulti.org", "default_path_to_httpbin");
+    }
 
-	@Test
-	public void mulitPathDslRouteWorks() {
-		expectPathRoute("/anything/multidsl1", "www.pathmultidsl.org", "path_multi_dsl");
-		expectPathRoute("/anything/multidsl2", "www.pathmultidsl.org", "default_path_to_httpbin");
-		expectPathRoute("/anything/multidsl3", "www.pathmultidsl.org", "path_multi_dsl");
-	}
+    @Test
+    public void mulitPathDslRouteWorks() {
+        expectPathRoute("/anything/multidsl1", "www.pathmultidsl.org", "path_multi_dsl");
+        expectPathRoute("/anything/multidsl2", "www.pathmultidsl.org", "default_path_to_httpbin");
+        expectPathRoute("/anything/multidsl3", "www.pathmultidsl.org", "path_multi_dsl");
+    }
 
-	@Test
-	public void pathRouteWorksWithPercent() {
-		testClient.get().uri("/abc/123%/function").header(HttpHeaders.HOST, "www.path.org").exchange().expectStatus()
-				.isOk().expectHeader()
-				.valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName()).expectHeader()
-				.valueEquals(ROUTE_ID_HEADER, "path_test");
-	}
+    @Test
+    public void pathRouteWorksWithPercent() {
+        testClient.get().uri("/abc/123%/function").header(HttpHeaders.HOST, "www.path.org").exchange().expectStatus().isOk().expectHeader().valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName()).expectHeader().valueEquals(ROUTE_ID_HEADER, "path_test");
+    }
 
-	@Test
-	public void pathRouteWorksWithRegex() {
-		testClient.get().uri("/regex/123").header(HttpHeaders.HOST, "www.pathregex.org").exchange().expectStatus()
-				.isOk().expectHeader()
-				.valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName()).expectHeader()
-				.valueEquals(ROUTE_ID_HEADER, "path_regex");
-	}
+    @Test
+    public void pathRouteWorksWithRegex() {
+        testClient.get().uri("/regex/123").header(HttpHeaders.HOST, "www.pathregex.org").exchange().expectStatus().isOk().expectHeader().valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName()).expectHeader().valueEquals(ROUTE_ID_HEADER, "path_regex");
+    }
 
-	@Test
-	public void matchOptionalTrailingSeparatorCopiedToMatchTrailingSlash() {
-		Config config = new Config().setPatterns(Arrays.asList("patternA", "patternB")).setMatchTrailingSlash(false);
-		assertThat(config.isMatchTrailingSlash()).isEqualTo(false);
-	}
+    @Test
+    public void matchOptionalTrailingSeparatorCopiedToMatchTrailingSlash() {
+        Config config = new Config().setPatterns(Arrays.asList("patternA", "patternB")).setMatchTrailingSlash(false);
+        assertThat(config.isMatchTrailingSlash()).isEqualTo(false);
+    }
 
-	@Test
-	public void toStringFormat() {
-		Config config = new Config().setPatterns(Arrays.asList("patternA", "patternB")).setMatchTrailingSlash(false);
-		Predicate predicate = new PathRoutePredicateFactory().apply(config);
-		assertThat(predicate.toString()).contains("patternA").contains("patternB").contains("false");
-	}
+    @Test
+    public void toStringFormat() {
+        Config config = new Config().setPatterns(Arrays.asList("patternA", "patternB")).setMatchTrailingSlash(false);
+        Predicate predicate = new PathRoutePredicateFactory().apply(config);
+        assertThat(predicate.toString()).contains("patternA").contains("patternB").contains("false");
+    }
 
-	@Test
-	public void toStringFormatMatchTrailingSlashTrue() {
-		Config config = new Config().setPatterns(Arrays.asList("patternA", "patternB")).setMatchTrailingSlash(true);
-		Predicate<ServerWebExchange> predicate = new PathRoutePredicateFactory().apply(config);
-		assertThat(predicate.toString()).contains("patternA").contains("patternB").contains("true");
-	}
+    @Test
+    public void toStringFormatMatchTrailingSlashTrue() {
+        Config config = new Config().setPatterns(Arrays.asList("patternA", "patternB")).setMatchTrailingSlash(true);
+        Predicate<ServerWebExchange> predicate = new PathRoutePredicateFactory().apply(config);
+        assertThat(predicate.toString()).contains("patternA").contains("patternB").contains("true");
+    }
 
-	@EnableAutoConfiguration
-	@SpringBootConfiguration
-	@Import(DefaultTestConfig.class)
-	public static class TestConfig {
+    @EnableAutoConfiguration
+    @SpringBootConfiguration
+    @Import(DefaultTestConfig.class)
+    public static class TestConfig {
 
-		@Value("${test.uri}")
-		String uri;
+        @Value("${test.uri}")
+        String uri;
 
-		@Bean
-		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
-			return builder.routes()
-					.route("path_multi_dsl",
-							r -> r.host("**.pathmultidsl.org").and()
-									.path(false, "/anything/multidsl1", "/anything/multidsl3")
-									.filters(f -> f.prefixPath("/httpbin")).uri(uri))
-					.build();
-		}
-
-	}
-
+        @Bean
+        public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
+            return builder.routes().route("path_multi_dsl", r -> r.host("**.pathmultidsl.org").and().path(false, "/anything/multidsl1", "/anything/multidsl3").filters(f -> f.prefixPath("/httpbin")).uri(uri)).build();
+        }
+    }
 }

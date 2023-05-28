@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.support;
 
 import org.springframework.boot.diagnostics.AbstractFailureAnalyzer;
@@ -21,19 +20,18 @@ import org.springframework.boot.diagnostics.FailureAnalysis;
 
 public class MvcFoundOnClasspathFailureAnalyzer extends AbstractFailureAnalyzer<MvcFoundOnClasspathException> {
 
-	/**
-	 * Message for MvcFoundOnClasspathException.
-	 */
-	public static final String MESSAGE = "Spring MVC found on classpath, which is incompatible with Spring Cloud Gateway.";
+    /**
+     * Message for MvcFoundOnClasspathException.
+     */
+    public static final String MESSAGE = "Spring MVC found on classpath, which is incompatible with Spring Cloud Gateway.";
 
-	/**
-	 * Action for MvcFoundOnClasspathException.
-	 */
-	public static final String ACTION = "Please set spring.main.web-application-type=reactive or remove spring-boot-starter-web dependency.";
+    /**
+     * Action for MvcFoundOnClasspathException.
+     */
+    public static final String ACTION = "Please set spring.main.web-application-type=reactive or remove spring-boot-starter-web dependency.";
 
-	@Override
-	protected FailureAnalysis analyze(Throwable rootFailure, MvcFoundOnClasspathException cause) {
-		return new FailureAnalysis(MESSAGE, ACTION, cause);
-	}
-
+    @Override
+    protected FailureAnalysis analyze(Throwable rootFailure, MvcFoundOnClasspathException cause) {
+        return new FailureAnalysis(MESSAGE, ACTION, cause);
+    }
 }

@@ -13,21 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.factory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
-
 import reactor.core.publisher.Mono;
-
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.server.ServerWebExchange;
-
 import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
 
 /*
@@ -66,104 +62,96 @@ Example 3
 Response header Access-Control-Allow-Credentials: true, true
 Modified response header Access-Control-Allow-Credentials: true
  */
-
 /**
  * @author Vitaliy Pavlyuk
  */
-public class DedupeResponseHeaderGatewayFilterFactory
-		extends AbstractGatewayFilterFactory<DedupeResponseHeaderGatewayFilterFactory.Config> {
+public class DedupeResponseHeaderGatewayFilterFactory extends AbstractGatewayFilterFactory<DedupeResponseHeaderGatewayFilterFactory.Config> {
 
-	private static final String STRATEGY_KEY = "strategy";
+    private static final String STRATEGY_KEY = "strategy";
 
-	public DedupeResponseHeaderGatewayFilterFactory() {
-		super(Config.class);
-	}
+    public DedupeResponseHeaderGatewayFilterFactory() {
+        super(Config.class);
+    }
 
-	@Override
-	public List<String> shortcutFieldOrder() {
-		return Arrays.asList(NAME_KEY, STRATEGY_KEY);
-	}
+    @Override
+    public List<String> shortcutFieldOrder() {
+        return Arrays.asList(NAME_KEY, STRATEGY_KEY);
+    }
 
-	@Override
-	public GatewayFilter apply(Config config) {
-		return new GatewayFilter() {
-			@Override
-			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-				return chain.filter(exchange)
-						.then(Mono.fromRunnable(() -> dedupe(exchange.getResponse().getHeaders(), config)));
-			}
+    @Override
+    public GatewayFilter apply(Config config) {
+        return new GatewayFilter() {
 
-			@Override
-			public String toString() {
-				return filterToStringCreator(DedupeResponseHeaderGatewayFilterFactory.this)
-						.append(config.getName(), config.getStrategy()).toString();
-			}
-		};
-	}
+            @Override
+            public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+                return chain.filter(exchange).then(Mono.fromRunnable(() -> dedupe(exchange.getResponse().getHeaders(), config)));
+            }
 
-	public enum Strategy {
+            @Override
+            public String toString() {
+                return filterToStringCreator(DedupeResponseHeaderGatewayFilterFactory.this).append(config.getName(), config.getStrategy()).toString();
+            }
+        };
+    }
 
-		/**
-		 * Default: Retain the first value only.
-		 */
-		RETAIN_FIRST,
+    public enum Strategy {
 
-		/**
-		 * Retain the last value only.
-		 */
-		RETAIN_LAST,
+        /**
+         * Default: Retain the first value only.
+         */
+        RETAIN_FIRST,
+        /**
+         * Retain the last value only.
+         */
+        RETAIN_LAST,
+        /**
+         * Retain all unique values in the order of their first encounter.
+         */
+        RETAIN_UNIQUE
+    }
 
-		/**
-		 * Retain all unique values in the order of their first encounter.
-		 */
-		RETAIN_UNIQUE
+    void dedupe(HttpHeaders headers, Config config) {
+        String names = config.getName();
+        Strategy strategy = config.getStrategy();
+        if (headers == null || names == null || strategy == null) {
+            return;
+        }
+        for (String name : names.split(" ")) {
+            dedupe(headers, name.trim(), strategy);
+        }
+    }
 
-	}
+    private void dedupe(HttpHeaders headers, String name, Strategy strategy) {
+        List<String> values = headers.get(name);
+        if (values == null || values.size() <= 1) {
+            return;
+        }
+        switch(strategy) {
+            case RETAIN_FIRST:
+                headers.set(name, values.get(0));
+                break;
+            case RETAIN_LAST:
+                headers.set(name, values.get(values.size() - 1));
+                break;
+            case RETAIN_UNIQUE:
+                headers.put(name, new ArrayList<>(new LinkedHashSet<>(values)));
+                break;
+            default:
+                break;
+        }
+    }
 
-	void dedupe(HttpHeaders headers, Config config) {
-		String names = config.getName();
-		Strategy strategy = config.getStrategy();
-		if (headers == null || names == null || strategy == null) {
-			return;
-		}
-		for (String name : names.split(" ")) {
-			dedupe(headers, name.trim(), strategy);
-		}
-	}
+    public static class Config extends AbstractGatewayFilterFactory.NameConfig {
 
-	private void dedupe(HttpHeaders headers, String name, Strategy strategy) {
-		List<String> values = headers.get(name);
-		if (values == null || values.size() <= 1) {
-			return;
-		}
-		switch (strategy) {
-			case RETAIN_FIRST:
-				headers.set(name, values.get(0));
-				break;
-			case RETAIN_LAST:
-				headers.set(name, values.get(values.size() - 1));
-				break;
-			case RETAIN_UNIQUE:
-				headers.put(name, new ArrayList<>(new LinkedHashSet<>(values)));
-				break;
-			default:
-				break;
-		}
-	}
+        private Strategy strategy = Strategy.RETAIN_FIRST;
 
-	public static class Config extends AbstractGatewayFilterFactory.NameConfig {
+        public Strategy getStrategy() {
+            return strategy;
+        }
 
-		private Strategy strategy = Strategy.RETAIN_FIRST;
-
-		public Strategy getStrategy() {
-			return strategy;
-		}
-
-		public Config setStrategy(Strategy strategy) {
-			this.strategy = strategy;
-			return this;
-		}
-
-	}
-
+        public Config setStrategy(Strategy strategy) {
+            this.strategy = strategy;
+            return this;
+        }
+    }
 }

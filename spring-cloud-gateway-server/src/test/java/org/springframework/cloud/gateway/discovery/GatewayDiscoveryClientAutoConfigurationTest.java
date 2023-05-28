@@ -13,19 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.discovery;
 
 import java.util.Objects;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.gateway.filter.FilterDefinition;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.SimpleEvaluationContext;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -34,60 +30,50 @@ import static org.springframework.cloud.gateway.filter.factory.RewritePathGatewa
 
 public class GatewayDiscoveryClientAutoConfigurationTest {
 
-	private static final String SERVICE_ID = "foo";
+    private static final String SERVICE_ID = "foo";
 
-	private static final String BASE_URI = "/" + SERVICE_ID;
+    private static final String BASE_URI = "/" + SERVICE_ID;
 
-	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
+    private static final SpelExpressionParser PARSER = new SpelExpressionParser();
 
-	private static final SimpleEvaluationContext CONTEXT = SimpleEvaluationContext.forReadOnlyDataBinding()
-			.withInstanceMethods().build();
+    private static final SimpleEvaluationContext CONTEXT = SimpleEvaluationContext.forReadOnlyDataBinding().withInstanceMethods().build();
 
-	private static final FilterDefinition DEFAULT_FILTER = GatewayDiscoveryClientAutoConfiguration.initFilters().get(0);
+    private static final FilterDefinition DEFAULT_FILTER = GatewayDiscoveryClientAutoConfiguration.initFilters().get(0);
 
-	private ServiceInstance serviceInstance;
+    private ServiceInstance serviceInstance;
 
-	@BeforeEach
-	public void buildServiceInstance() {
-		this.serviceInstance = mock(ServiceInstance.class);
-		when(this.serviceInstance.getServiceId()).thenReturn(SERVICE_ID);
-	}
+    @BeforeEach
+    public void buildServiceInstance() {
+        this.serviceInstance = mock(ServiceInstance.class);
+        when(this.serviceInstance.getServiceId()).thenReturn(SERVICE_ID);
+    }
 
-	@Test
-	public void defaultRewritePathShouldHandleEmptyRemainingWithoutSlash() {
-		String expectedRemotePath = "/";
+    @Test
+    public void defaultRewritePathShouldHandleEmptyRemainingWithoutSlash() {
+        String expectedRemotePath = "/";
+        final String result = replace(BASE_URI);
+        assertThat(result).isEqualTo(expectedRemotePath);
+    }
 
-		final String result = replace(BASE_URI);
+    @Test
+    public void defaultRewritePathShouldHandleEmptyRemainingWithSlash() {
+        String extraUri = "/";
+        final String result = replace(BASE_URI + extraUri);
+        assertThat(result).isEqualTo(extraUri);
+    }
 
-		assertThat(result).isEqualTo(expectedRemotePath);
-	}
+    @Test
+    public void defaultRewritePathShouldHandleNonEmptyRemainingPath() {
+        String extraUri = "/some/additional/uri";
+        final String result = replace(BASE_URI + extraUri);
+        assertThat(result).isEqualTo(extraUri);
+    }
 
-	@Test
-	public void defaultRewritePathShouldHandleEmptyRemainingWithSlash() {
-		String extraUri = "/";
+    private String replace(String enteringPath) {
+        return enteringPath.replaceAll(evaluateExpression(DEFAULT_FILTER.getArgs().get(REGEXP_KEY)), evaluateExpression(DEFAULT_FILTER.getArgs().get(REPLACEMENT_KEY)));
+    }
 
-		final String result = replace(BASE_URI + extraUri);
-
-		assertThat(result).isEqualTo(extraUri);
-	}
-
-	@Test
-	public void defaultRewritePathShouldHandleNonEmptyRemainingPath() {
-		String extraUri = "/some/additional/uri";
-
-		final String result = replace(BASE_URI + extraUri);
-
-		assertThat(result).isEqualTo(extraUri);
-	}
-
-	private String replace(String enteringPath) {
-		return enteringPath.replaceAll(evaluateExpression(DEFAULT_FILTER.getArgs().get(REGEXP_KEY)),
-				evaluateExpression(DEFAULT_FILTER.getArgs().get(REPLACEMENT_KEY)));
-	}
-
-	private String evaluateExpression(String expression) {
-		return Objects
-				.requireNonNull(PARSER.parseExpression(expression).getValue(CONTEXT, serviceInstance, String.class));
-	}
-
+    private String evaluateExpression(String expression) {
+        return Objects.requireNonNull(PARSER.parseExpression(expression).getValue(CONTEXT, serviceInstance, String.class));
+    }
 }

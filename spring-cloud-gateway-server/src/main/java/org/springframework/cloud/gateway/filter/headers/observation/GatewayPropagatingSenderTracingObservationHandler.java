@@ -13,13 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.headers.observation;
 
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
-
 import io.micrometer.observation.Observation;
 import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.handler.PropagatingSenderTracingObservationHandler;
@@ -31,37 +29,32 @@ import io.micrometer.tracing.propagation.Propagator;
  * @author Marcin Grzejszczak
  * @since 4.0.0
  */
-public class GatewayPropagatingSenderTracingObservationHandler
-		extends PropagatingSenderTracingObservationHandler<GatewayContext> {
+public class GatewayPropagatingSenderTracingObservationHandler extends PropagatingSenderTracingObservationHandler<GatewayContext> {
 
-	private final Propagator propagator;
+    private final Propagator propagator;
 
-	private final List<String> remoteFieldsLowerCase;
+    private final List<String> remoteFieldsLowerCase;
 
-	/**
-	 * Creates a new instance of {@link PropagatingSenderTracingObservationHandler}.
-	 * @param tracer the tracer to use to record events
-	 * @param propagator the mechanism to propagate tracing information into the carrier
-	 * @param remoteFields remote fields to be propagated over the wire
-	 */
-	public GatewayPropagatingSenderTracingObservationHandler(Tracer tracer, Propagator propagator,
-			List<String> remoteFields) {
-		super(tracer, propagator);
-		this.propagator = propagator;
-		this.remoteFieldsLowerCase = remoteFields.stream().map(s -> s.toLowerCase(Locale.ROOT)).toList();
-	}
+    /**
+     * Creates a new instance of {@link PropagatingSenderTracingObservationHandler}.
+     * @param tracer the tracer to use to record events
+     * @param propagator the mechanism to propagate tracing information into the carrier
+     * @param remoteFields remote fields to be propagated over the wire
+     */
+    public GatewayPropagatingSenderTracingObservationHandler(Tracer tracer, Propagator propagator, List<String> remoteFields) {
+        super(tracer, propagator);
+        this.propagator = propagator;
+        this.remoteFieldsLowerCase = remoteFields.stream().map(s -> s.toLowerCase(Locale.ROOT)).toList();
+    }
 
-	@Override
-	public void onStart(GatewayContext context) {
-		this.propagator.fields().stream()
-				.filter(field -> !remoteFieldsLowerCase.contains(field.toLowerCase(Locale.ROOT)))
-				.forEach(s -> Objects.requireNonNull(context.getCarrier()).remove(s));
-		super.onStart(context);
-	}
+    @Override
+    public void onStart(GatewayContext context) {
+        this.propagator.fields().stream().filter(field -> !remoteFieldsLowerCase.contains(field.toLowerCase(Locale.ROOT))).forEach(s -> Objects.requireNonNull(context.getCarrier()).remove(s));
+        super.onStart(context);
+    }
 
-	@Override
-	public boolean supportsContext(Observation.Context context) {
-		return context instanceof GatewayContext;
-	}
-
+    @Override
+    public boolean supportsContext(Observation.Context context) {
+        return context instanceof GatewayContext;
+    }
 }

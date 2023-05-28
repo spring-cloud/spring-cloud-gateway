@@ -13,13 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.handler.predicate;
 
 import java.util.function.Predicate;
-
 import org.junit.jupiter.api.Test;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -32,7 +29,6 @@ import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -40,54 +36,43 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @DirtiesContext
 public class HeaderRoutePredicateFactoryTests extends BaseWebClientTests {
 
-	@Test
-	public void headerRouteWorks() {
-		testClient.get().uri("/get").header("Foo", "bar").exchange().expectStatus().isOk().expectHeader()
-				.valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName()).expectHeader()
-				.valueEquals(ROUTE_ID_HEADER, "header_test");
-	}
+    @Test
+    public void headerRouteWorks() {
+        testClient.get().uri("/get").header("Foo", "bar").exchange().expectStatus().isOk().expectHeader().valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName()).expectHeader().valueEquals(ROUTE_ID_HEADER, "header_test");
+    }
 
-	@Test
-	@SuppressWarnings("Duplicates")
-	public void headerRouteIgnoredWhenHeaderMissing() {
-		testClient.get().uri("/get")
-				// no headers set. Test used to throw a null pointer exception.
-				.exchange().expectStatus().isOk().expectHeader()
-				.valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName()).expectHeader()
-				.valueEquals(ROUTE_ID_HEADER, "default_path_to_httpbin");
-	}
+    @Test
+    @SuppressWarnings("Duplicates")
+    public void headerRouteIgnoredWhenHeaderMissing() {
+        testClient.get().uri("/get").// no headers set. Test used to throw a null pointer exception.
+        exchange().expectStatus().isOk().expectHeader().valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName()).expectHeader().valueEquals(ROUTE_ID_HEADER, "default_path_to_httpbin");
+    }
 
-	@Test
-	public void headerExistsWorksWithDsl() {
-		testClient.get().uri("/get").header("X-Foo", "bar").exchange().expectStatus().isOk().expectHeader()
-				.valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName()).expectHeader()
-				.valueEquals(ROUTE_ID_HEADER, "header_exists_dsl");
-	}
+    @Test
+    public void headerExistsWorksWithDsl() {
+        testClient.get().uri("/get").header("X-Foo", "bar").exchange().expectStatus().isOk().expectHeader().valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName()).expectHeader().valueEquals(ROUTE_ID_HEADER, "header_exists_dsl");
+    }
 
-	@Test
-	public void toStringFormat() {
-		Config config = new Config();
-		config.setHeader("myheader");
-		config.setRegexp("myregexp");
-		Predicate predicate = new HeaderRoutePredicateFactory().apply(config);
-		assertThat(predicate.toString()).contains("Header: myheader regexp=myregexp");
-	}
+    @Test
+    public void toStringFormat() {
+        Config config = new Config();
+        config.setHeader("myheader");
+        config.setRegexp("myregexp");
+        Predicate predicate = new HeaderRoutePredicateFactory().apply(config);
+        assertThat(predicate.toString()).contains("Header: myheader regexp=myregexp");
+    }
 
-	@EnableAutoConfiguration
-	@SpringBootConfiguration
-	@Import(DefaultTestConfig.class)
-	public static class TestConfig {
+    @EnableAutoConfiguration
+    @SpringBootConfiguration
+    @Import(DefaultTestConfig.class)
+    public static class TestConfig {
 
-		@Value("${test.uri}")
-		private String uri;
+        @Value("${test.uri}")
+        private String uri;
 
-		@Bean
-		RouteLocator queryRouteLocator(RouteLocatorBuilder builder) {
-			return builder.routes()
-					.route("header_exists_dsl", r -> r.header("X-Foo").filters(f -> f.prefixPath("/httpbin")).uri(uri))
-					.build();
-		}
-
-	}
-
+        @Bean
+        RouteLocator queryRouteLocator(RouteLocatorBuilder builder) {
+            return builder.routes().route("header_exists_dsl", r -> r.header("X-Foo").filters(f -> f.prefixPath("/httpbin")).uri(uri)).build();
+        }
+    }
 }

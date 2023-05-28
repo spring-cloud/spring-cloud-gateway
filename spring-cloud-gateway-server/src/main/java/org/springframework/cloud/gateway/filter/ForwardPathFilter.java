@@ -13,17 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter;
 
 import java.net.URI;
-
 import reactor.core.publisher.Mono;
-
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.core.Ordered;
 import org.springframework.web.server.ServerWebExchange;
-
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.isAlreadyRouted;
 
@@ -35,21 +31,20 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.i
  */
 public class ForwardPathFilter implements GlobalFilter, Ordered {
 
-	@Override
-	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-		Route route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
-		URI routeUri = route.getUri();
-		String scheme = routeUri.getScheme();
-		if (isAlreadyRouted(exchange) || !"forward".equals(scheme)) {
-			return chain.filter(exchange);
-		}
-		exchange = exchange.mutate().request(exchange.getRequest().mutate().path(routeUri.getPath()).build()).build();
-		return chain.filter(exchange);
-	}
+    @Override
+    public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        Route route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
+        URI routeUri = route.getUri();
+        String scheme = routeUri.getScheme();
+        if (isAlreadyRouted(exchange) || !"forward".equals(scheme)) {
+            return chain.filter(exchange);
+        }
+        exchange = exchange.mutate().request(exchange.getRequest().mutate().path(routeUri.getPath()).build()).build();
+        return chain.filter(exchange);
+    }
 
-	@Override
-	public int getOrder() {
-		return 0;
-	}
-
+    @Override
+    public int getOrder() {
+        return 0;
+    }
 }

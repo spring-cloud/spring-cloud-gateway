@@ -13,13 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.mvc.http;
 
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.URI;
-
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.Configurable;
@@ -35,7 +33,6 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.protocol.HttpContext;
-
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequest;
@@ -43,89 +40,77 @@ import org.springframework.http.client.ClientHttpRequestFactory;
 
 public class GetWithBodyRequestClientHttpRequestFactory implements ClientHttpRequestFactory, DisposableBean {
 
-	private final HttpClient httpClient;
+    private final HttpClient httpClient;
 
-	public GetWithBodyRequestClientHttpRequestFactory() {
-		this.httpClient = HttpClients.createSystem();
-	}
+    public GetWithBodyRequestClientHttpRequestFactory() {
+        this.httpClient = HttpClients.createSystem();
+    }
 
-	@Override
-	public ClientHttpRequest createRequest(final URI uri, final HttpMethod httpMethod) throws IOException {
-		final HttpUriRequest httpRequest = createHttpUriRequest(httpMethod, uri);
-		final HttpContext context = HttpClientContext.create();
+    @Override
+    public ClientHttpRequest createRequest(final URI uri, final HttpMethod httpMethod) throws IOException {
+        final HttpUriRequest httpRequest = createHttpUriRequest(httpMethod, uri);
+        final HttpContext context = HttpClientContext.create();
+        if (context.getAttribute("http.request-config") == null) {
+            RequestConfig config = null;
+            if (httpRequest instanceof Configurable) {
+                config = ((Configurable) httpRequest).getConfig();
+            }
+            if (config == null) {
+                config = createRequestConfig(httpClient);
+            }
+            if (config != null) {
+                context.setAttribute("http.request-config", config);
+            }
+        }
+        return new HttpComponentsClientHttpRequest(httpClient, httpRequest, context);
+    }
 
-		if (context.getAttribute("http.request-config") == null) {
-			RequestConfig config = null;
-			if (httpRequest instanceof Configurable) {
-				config = ((Configurable) httpRequest).getConfig();
-			}
-			if (config == null) {
-				config = createRequestConfig(httpClient);
-			}
-			if (config != null) {
-				context.setAttribute("http.request-config", config);
-			}
-		}
+    private HttpUriRequest createHttpUriRequest(final HttpMethod httpMethod, final URI uri) {
+        if (httpMethod.equals(HttpMethod.GET)) {
+            return new GetWithEntity(uri);
+        } else if (httpMethod.equals(HttpMethod.HEAD)) {
+            return new HttpHead(uri);
+        } else if (httpMethod.equals(HttpMethod.OPTIONS)) {
+            return new HttpOptions(uri);
+        } else if (httpMethod.equals(HttpMethod.POST)) {
+            return new HttpPost(uri);
+        } else if (httpMethod.equals(HttpMethod.DELETE)) {
+            return new HttpDelete(uri);
+        } else if (httpMethod.equals(HttpMethod.PUT)) {
+            return new HttpPut(uri);
+        } else if (httpMethod.equals(HttpMethod.PATCH)) {
+            return new HttpPatch(uri);
+        } else if (httpMethod.equals(HttpMethod.TRACE)) {
+            return new HttpTrace(uri);
+        }
+        throw new IllegalArgumentException("Invalid HTTP method: " + httpMethod);
+    }
 
-		return new HttpComponentsClientHttpRequest(httpClient, httpRequest, context);
-	}
+    private RequestConfig createRequestConfig(final HttpClient client) {
+        if (client instanceof Configurable) {
+            return ((Configurable) client).getConfig();
+        }
+        return null;
+    }
 
-	private HttpUriRequest createHttpUriRequest(final HttpMethod httpMethod, final URI uri) {
-		if (httpMethod.equals(HttpMethod.GET)) {
-			return new GetWithEntity(uri);
-		}
-		else if (httpMethod.equals(HttpMethod.HEAD)) {
-			return new HttpHead(uri);
-		}
-		else if (httpMethod.equals(HttpMethod.OPTIONS)) {
-			return new HttpOptions(uri);
-		}
-		else if (httpMethod.equals(HttpMethod.POST)) {
-			return new HttpPost(uri);
-		}
-		else if (httpMethod.equals(HttpMethod.DELETE)) {
-			return new HttpDelete(uri);
-		}
-		else if (httpMethod.equals(HttpMethod.PUT)) {
-			return new HttpPut(uri);
-		}
-		else if (httpMethod.equals(HttpMethod.PATCH)) {
-			return new HttpPatch(uri);
-		}
-		else if (httpMethod.equals(HttpMethod.TRACE)) {
-			return new HttpTrace(uri);
-		}
+    @Override
+    public void destroy() throws Exception {
+        if (httpClient instanceof Closeable) {
+            ((Closeable) httpClient).close();
+        }
+    }
 
-		throw new IllegalArgumentException("Invalid HTTP method: " + httpMethod);
-	}
+    public static class GetWithEntity extends HttpEntityEnclosingRequestBase {
 
-	private RequestConfig createRequestConfig(final HttpClient client) {
-		if (client instanceof Configurable) {
-			return ((Configurable) client).getConfig();
-		}
-		return null;
-	}
+        public static final String METHOD_NAME = "GET";
 
-	@Override
-	public void destroy() throws Exception {
-		if (httpClient instanceof Closeable) {
-			((Closeable) httpClient).close();
-		}
-	}
+        public GetWithEntity(final URI uri) {
+            setURI(uri);
+        }
 
-	public static class GetWithEntity extends HttpEntityEnclosingRequestBase {
-
-		public static final String METHOD_NAME = "GET";
-
-		public GetWithEntity(final URI uri) {
-			setURI(uri);
-		}
-
-		@Override
-		public String getMethod() {
-			return METHOD_NAME;
-		}
-
-	}
-
+        @Override
+        public String getMethod() {
+            return METHOD_NAME;
+        }
+    }
 }

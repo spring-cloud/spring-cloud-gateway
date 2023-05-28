@@ -13,17 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.sample;
 
 import java.time.Duration;
-
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.cloud.gateway.sample.GatewaySampleApplicationTests.TestConfig;
@@ -35,46 +32,41 @@ import org.springframework.test.util.TestSocketUtils;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 @RunWith(ModifiedClassPathRunner.class)
-@ClassPathExclusions({ "micrometer-core.jar", "spring-boot-actuator-*.jar",
-		"spring-boot-actuator-autoconfigure-*.jar" })
+@ClassPathExclusions({ "micrometer-core.jar", "spring-boot-actuator-*.jar", "spring-boot-actuator-autoconfigure-*.jar" })
 @DirtiesContext
 public class GatewaySampleApplicationWithoutMetricsTests {
 
-	static protected int port;
+    static protected int port;
 
-	protected WebTestClient webClient;
+    protected WebTestClient webClient;
 
-	protected String baseUri;
+    protected String baseUri;
 
-	@BeforeClass
-	public static void beforeClass() {
-		port = TestSocketUtils.findAvailableTcpPort();
-		System.setProperty("server.port", Integer.toString(port));
-	}
+    @BeforeClass
+    public static void beforeClass() {
+        port = TestSocketUtils.findAvailableTcpPort();
+        System.setProperty("server.port", Integer.toString(port));
+    }
 
-	@AfterClass
-	public static void afterClass() {
-		System.clearProperty("server.port");
-	}
+    @AfterClass
+    public static void afterClass() {
+        System.clearProperty("server.port");
+    }
 
-	@Before
-	public void setup() {
-		baseUri = "http://localhost:" + port;
-		this.webClient = WebTestClient.bindToServer().responseTimeout(Duration.ofSeconds(10)).baseUrl(baseUri).build();
-	}
+    @Before
+    public void setup() {
+        baseUri = "http://localhost:" + port;
+        this.webClient = WebTestClient.bindToServer().responseTimeout(Duration.ofSeconds(10)).baseUrl(baseUri).build();
+    }
 
-	protected ConfigurableApplicationContext init(Class<?> config) {
-		return new SpringApplicationBuilder().web(WebApplicationType.REACTIVE)
-				.sources(GatewaySampleApplication.class, config).run();
-	}
+    protected ConfigurableApplicationContext init(Class<?> config) {
+        return new SpringApplicationBuilder().web(WebApplicationType.REACTIVE).sources(GatewaySampleApplication.class, config).run();
+    }
 
-	@Test
-	public void actuatorMetrics() {
-		init(TestConfig.class);
-		webClient.get().uri("/get").exchange().expectStatus().isOk();
-		webClient.get().uri("http://localhost:" + port + "/actuator/metrics/spring.cloud.gateway.requests").exchange()
-				.expectStatus().isOk().expectBody(String.class)
-				.isEqualTo(GatewaySampleApplication.HELLO_FROM_FAKE_ACTUATOR_METRICS_GATEWAY_REQUESTS);
-	}
-
+    @Test
+    public void actuatorMetrics() {
+        init(TestConfig.class);
+        webClient.get().uri("/get").exchange().expectStatus().isOk();
+        webClient.get().uri("http://localhost:" + port + "/actuator/metrics/spring.cloud.gateway.requests").exchange().expectStatus().isOk().expectBody(String.class).isEqualTo(GatewaySampleApplication.HELLO_FROM_FAKE_ACTUATOR_METRICS_GATEWAY_REQUESTS);
+    }
 }

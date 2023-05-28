@@ -13,30 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.headers.observation;
 
 import io.micrometer.observation.Observation;
 import org.junit.jupiter.api.Test;
-
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
-
 import static org.assertj.core.api.BDDAssertions.thenNoException;
 
 class ObservedResponseHttpHeadersFilterTests {
 
-	@Test
-	void shouldDoNothingWhenObservationIsNoOp() {
-		MockServerHttpRequest request = MockServerHttpRequest.get("/get").build();
-		ServerWebExchange exchange = MockServerWebExchange.from(request);
-		exchange.getAttributes().put(ServerWebExchangeUtils.GATEWAY_OBSERVATION_ATTR, Observation.NOOP);
-		ObservedResponseHttpHeadersFilter filter = new ObservedResponseHttpHeadersFilter();
-
-		thenNoException().isThrownBy(() -> filter.filter(new HttpHeaders(), exchange));
-	}
-
+    @Test
+    void shouldDoNothingWhenObservationIsNoOp() {
+        MockServerHttpRequest request = MockServerHttpRequest.get("/get").build();
+        ServerWebExchange exchange = MockServerWebExchange.from(request);
+        exchange.getAttributes().put(ServerWebExchangeUtils.GATEWAY_OBSERVATION_ATTR, Observation.NOOP);
+        ObservedResponseHttpHeadersFilter filter = new ObservedResponseHttpHeadersFilter();
+        thenNoException().isThrownBy(() -> filter.filter(new HttpHeaders(), exchange));
+    }
 }

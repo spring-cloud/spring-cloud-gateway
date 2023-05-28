@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.factory;
 
 import org.junit.jupiter.api.Test;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -32,52 +30,42 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.util.unit.DataSize;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 /**
  * @author Arpan Das
  */
-
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
 public class RequestSizeGatewayFilterFactoryTest extends BaseWebClientTests {
 
-	private static final String responseMesssage = "Request size is larger than permissible limit. Request size is . . "
-			+ "where permissible limit is .*";
+    private static final String responseMesssage = "Request size is larger than permissible limit. Request size is . . " + "where permissible limit is .*";
 
-	@Test
-	public void setRequestSizeFilterWorks() {
-		testClient.post().uri("/post").header("Host", "www.setrequestsize.org").header("content-length", "6")
-				.bodyValue("123456").exchange().expectStatus().isEqualTo(HttpStatus.PAYLOAD_TOO_LARGE).expectHeader()
-				.valueMatches("errorMessage", responseMesssage);
-	}
+    @Test
+    public void setRequestSizeFilterWorks() {
+        testClient.post().uri("/post").header("Host", "www.setrequestsize.org").header("content-length", "6").bodyValue("123456").exchange().expectStatus().isEqualTo(HttpStatus.PAYLOAD_TOO_LARGE).expectHeader().valueMatches("errorMessage", responseMesssage);
+    }
 
-	@Test
-	public void toStringFormat() {
-		RequestSizeConfig config = new RequestSizeConfig();
-		config.setMaxSize(DataSize.ofBytes(1000L));
-		GatewayFilter filter = new RequestSizeGatewayFilterFactory().apply(config);
-		assertThat(filter.toString()).contains("max").contains("1000");
-	}
+    @Test
+    public void toStringFormat() {
+        RequestSizeConfig config = new RequestSizeConfig();
+        config.setMaxSize(DataSize.ofBytes(1000L));
+        GatewayFilter filter = new RequestSizeGatewayFilterFactory().apply(config);
+        assertThat(filter.toString()).contains("max").contains("1000");
+    }
 
-	@EnableAutoConfiguration
-	@SpringBootConfiguration
-	@Import(DefaultTestConfig.class)
-	public static class TestConfig {
+    @EnableAutoConfiguration
+    @SpringBootConfiguration
+    @Import(DefaultTestConfig.class)
+    public static class TestConfig {
 
-		@Value("${test.uri}")
-		String uri;
+        @Value("${test.uri}")
+        String uri;
 
-		@Bean
-		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
-			return builder.routes()
-					.route("test_request_size",
-							r -> r.order(-1).host("**.setrequestsize.org").filters(f -> f.setRequestSize(5L)).uri(uri))
-					.build();
-		}
-
-	}
-
+        @Bean
+        public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
+            return builder.routes().route("test_request_size", r -> r.order(-1).host("**.setrequestsize.org").filters(f -> f.setRequestSize(5L)).uri(uri)).build();
+        }
+    }
 }

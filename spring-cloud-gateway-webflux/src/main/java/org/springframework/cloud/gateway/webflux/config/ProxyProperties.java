@@ -13,14 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.webflux.config;
 
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
-
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.cloud.gateway.webflux.ProxyExchange;
 import org.springframework.http.HttpHeaders;
@@ -31,56 +29,54 @@ import org.springframework.http.HttpHeaders;
  *
  * @author Dave Syer
  * @author Tim Ysewyn
- *
  */
 @ConfigurationProperties("spring.cloud.gateway.proxy")
 public class ProxyProperties {
 
-	/**
-	 * Fixed header values that will be added to all downstream requests.
-	 */
-	private Map<String, String> headers = new LinkedHashMap<>();
+    /**
+     * Fixed header values that will be added to all downstream requests.
+     */
+    private Map<String, String> headers = new LinkedHashMap<>();
 
-	/**
-	 * A set of header names that should be send downstream by default.
-	 */
-	private Set<String> autoForward = new HashSet<>();
+    /**
+     * A set of header names that should be send downstream by default.
+     */
+    private Set<String> autoForward = new HashSet<>();
 
-	/**
-	 * A set of sensitive header names that will not be sent downstream by default.
-	 */
-	private Set<String> sensitive = null;
+    /**
+     * A set of sensitive header names that will not be sent downstream by default.
+     */
+    private Set<String> sensitive = null;
 
-	public Map<String, String> getHeaders() {
-		return headers;
-	}
+    public Map<String, String> getHeaders() {
+        return headers;
+    }
 
-	public void setHeaders(Map<String, String> headers) {
-		this.headers = headers;
-	}
+    public void setHeaders(Map<String, String> headers) {
+        this.headers = headers;
+    }
 
-	public Set<String> getAutoForward() {
-		return autoForward;
-	}
+    public Set<String> getAutoForward() {
+        return autoForward;
+    }
 
-	public void setAutoForward(Set<String> autoForward) {
-		this.autoForward = autoForward;
-	}
+    public void setAutoForward(Set<String> autoForward) {
+        this.autoForward = autoForward;
+    }
 
-	public Set<String> getSensitive() {
-		return sensitive;
-	}
+    public Set<String> getSensitive() {
+        return sensitive;
+    }
 
-	public void setSensitive(Set<String> sensitive) {
-		this.sensitive = sensitive;
-	}
+    public void setSensitive(Set<String> sensitive) {
+        this.sensitive = sensitive;
+    }
 
-	public HttpHeaders convertHeaders() {
-		HttpHeaders headers = new HttpHeaders();
-		for (String key : this.headers.keySet()) {
-			headers.set(key, this.headers.get(key));
-		}
-		return headers;
-	}
-
+    public HttpHeaders convertHeaders() {
+        HttpHeaders headers = new HttpHeaders();
+        for (String key : this.headers.keySet()) {
+            headers.set(key, this.headers.get(key));
+        }
+        return headers;
+    }
 }

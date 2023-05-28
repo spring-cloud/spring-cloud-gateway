@@ -13,13 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
 import org.junit.jupiter.api.Test;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
@@ -32,7 +30,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.annotation.DirtiesContext;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.cloud.gateway.config.GatewayMetricsProperties.DEFAULT_PREFIX;
@@ -44,45 +41,41 @@ import static org.springframework.cloud.gateway.config.GatewayMetricsProperties.
 @DirtiesContext
 class GatewayMetricsFilterCustomTagsTests extends BaseWebClientTests {
 
-	private static final String REQUEST_METRICS_NAME = DEFAULT_PREFIX + ".requests";
+    private static final String REQUEST_METRICS_NAME = DEFAULT_PREFIX + ".requests";
 
-	@Autowired
-	private MeterRegistry meterRegistry;
+    @Autowired
+    private MeterRegistry meterRegistry;
 
-	@Value("${test.uri}")
-	private String testUri;
+    @Value("${test.uri}")
+    private String testUri;
 
-	@Test
-	void gatewayRequestsMeterFilterHasCustomTags() {
-		testClient.get().uri("/headers").exchange().expectStatus().isOk();
+    @Test
+    void gatewayRequestsMeterFilterHasCustomTags() {
+        testClient.get().uri("/headers").exchange().expectStatus().isOk();
+        // default tags
+        assertMetricsContainsTag("outcome", HttpStatus.Series.SUCCESSFUL.name());
+        assertMetricsContainsTag("status", HttpStatus.OK.name());
+        assertMetricsContainsTag("httpStatusCode", String.valueOf(HttpStatus.OK.value()));
+        assertMetricsContainsTag("httpMethod", HttpMethod.GET.toString());
+        assertMetricsContainsTag("routeId", "default_path_to_httpbin");
+        assertMetricsContainsTag("routeUri", testUri);
+        // custom tags
+        assertMetricsContainsTag("custom1", "tag1");
+        assertMetricsContainsTag("custom2", "tag2");
+    }
 
-		// default tags
-		assertMetricsContainsTag("outcome", HttpStatus.Series.SUCCESSFUL.name());
-		assertMetricsContainsTag("status", HttpStatus.OK.name());
-		assertMetricsContainsTag("httpStatusCode", String.valueOf(HttpStatus.OK.value()));
-		assertMetricsContainsTag("httpMethod", HttpMethod.GET.toString());
-		assertMetricsContainsTag("routeId", "default_path_to_httpbin");
-		assertMetricsContainsTag("routeUri", testUri);
+    private void assertMetricsContainsTag(String tagKey, String tagValue) {
+        assertThat(this.meterRegistry.get(REQUEST_METRICS_NAME).tag(tagKey, tagValue).timer().count()).isEqualTo(1);
+    }
 
-		// custom tags
-		assertMetricsContainsTag("custom1", "tag1");
-		assertMetricsContainsTag("custom2", "tag2");
-	}
+    @EnableAutoConfiguration
+    @SpringBootConfiguration
+    @Import(DefaultTestConfig.class)
+    static class CustomConfig {
 
-	private void assertMetricsContainsTag(String tagKey, String tagValue) {
-		assertThat(this.meterRegistry.get(REQUEST_METRICS_NAME).tag(tagKey, tagValue).timer().count()).isEqualTo(1);
-	}
-
-	@EnableAutoConfiguration
-	@SpringBootConfiguration
-	@Import(DefaultTestConfig.class)
-	static class CustomConfig {
-
-		@Bean
-		GatewayTagsProvider customGatewayTagsProvider() {
-			return exchange -> Tags.of("custom1", "tag1", "custom2", "tag2");
-		}
-
-	}
-
+        @Bean
+        GatewayTagsProvider customGatewayTagsProvider() {
+            return exchange -> Tags.of("custom1", "tag1", "custom2", "tag2");
+        }
+    }
 }

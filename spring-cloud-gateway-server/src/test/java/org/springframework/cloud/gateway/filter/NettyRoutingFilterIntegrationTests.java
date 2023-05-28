@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter;
 
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -35,7 +33,6 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.server.ServerWebExchange;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.data.Offset.offset;
@@ -48,142 +45,121 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @ActiveProfiles("netty-routing-filter")
 public class NettyRoutingFilterIntegrationTests extends BaseWebClientTests {
 
-	@Autowired
-	private ResponseDecoratingFilter responseDecorator;
+    @Autowired
+    private ResponseDecoratingFilter responseDecorator;
 
-	@Test
-	public void responseTimeoutWorks() {
-		testClient.get().uri("/delay/5").exchange().expectStatus().isEqualTo(HttpStatus.GATEWAY_TIMEOUT).expectBody()
-				.jsonPath("$.status").isEqualTo(String.valueOf(HttpStatus.GATEWAY_TIMEOUT.value()))
-				.jsonPath("$.message").isEqualTo("Response took longer than timeout: PT3S");
-	}
+    @Test
+    public void responseTimeoutWorks() {
+        testClient.get().uri("/delay/5").exchange().expectStatus().isEqualTo(HttpStatus.GATEWAY_TIMEOUT).expectBody().jsonPath("$.status").isEqualTo(String.valueOf(HttpStatus.GATEWAY_TIMEOUT.value())).jsonPath("$.message").isEqualTo("Response took longer than timeout: PT3S");
+    }
 
-	@Test
-	public void outboundHostHeaderNotOverwrittenByInbound() {
-		// different base url to have different host header in inbound / outbound requests
-		// Host: 127.0.0.1 -> request to Gateway, Host: localhost -> request from Gateway,
-		// resolved from lb://testservice
-		WebTestClient client = testClient.mutate().baseUrl("http://127.0.0.1:" + port).build();
+    @Test
+    public void outboundHostHeaderNotOverwrittenByInbound() {
+        // different base url to have different host header in inbound / outbound requests
+        // Host: 127.0.0.1 -> request to Gateway, Host: localhost -> request from Gateway,
+        // resolved from lb://testservice
+        WebTestClient client = testClient.mutate().baseUrl("http://127.0.0.1:" + port).build();
+        client.get().uri("/headers").exchange().expectBody().jsonPath("$.headers.host").isEqualTo("localhost:" + port);
+    }
 
-		client.get().uri("/headers").exchange().expectBody().jsonPath("$.headers.host").isEqualTo("localhost:" + port);
-	}
+    @Test
+    public void canHandleDecoratedResponseWithNonStandardStatusValue() {
+        final int NON_STANDARD_STATUS = 480;
+        responseDecorator.decorateResponseTimes(1);
+        testClient.mutate().baseUrl("http://localhost:" + port).build().get().uri("/status/" + NON_STANDARD_STATUS).exchange().expectStatus().isEqualTo(NON_STANDARD_STATUS);
+    }
 
-	@Test
-	public void canHandleDecoratedResponseWithNonStandardStatusValue() {
-		final int NON_STANDARD_STATUS = 480;
-		responseDecorator.decorateResponseTimes(1);
-		testClient.mutate().baseUrl("http://localhost:" + port).build().get().uri("/status/" + NON_STANDARD_STATUS)
-				.exchange().expectStatus().isEqualTo(NON_STANDARD_STATUS);
-	}
+    @Test
+    public void canHandleUndecoratedResponseWithNonStandardStatusValue() {
+        final int NON_STANDARD_STATUS = 480;
+        responseDecorator.decorateResponseTimes(0);
+        testClient.mutate().baseUrl("http://localhost:" + port).build().get().uri("/status/" + NON_STANDARD_STATUS).exchange().expectStatus().isEqualTo(NON_STANDARD_STATUS);
+    }
 
-	@Test
-	public void canHandleUndecoratedResponseWithNonStandardStatusValue() {
-		final int NON_STANDARD_STATUS = 480;
-		responseDecorator.decorateResponseTimes(0);
-		testClient.mutate().baseUrl("http://localhost:" + port).build().get().uri("/status/" + NON_STANDARD_STATUS)
-				.exchange().expectStatus().isEqualTo(NON_STANDARD_STATUS);
-	}
+    @Test
+    public void canHandleMultiplyDecoratedResponseWithNonStandardStatusValue() {
+        final int NON_STANDARD_STATUS = 142;
+        responseDecorator.decorateResponseTimes(14);
+        testClient.mutate().baseUrl("http://localhost:" + port).build().get().uri("/status/" + NON_STANDARD_STATUS).exchange().expectStatus().isEqualTo(NON_STANDARD_STATUS);
+    }
 
-	@Test
-	public void canHandleMultiplyDecoratedResponseWithNonStandardStatusValue() {
-		final int NON_STANDARD_STATUS = 142;
-		responseDecorator.decorateResponseTimes(14);
-		testClient.mutate().baseUrl("http://localhost:" + port).build().get().uri("/status/" + NON_STANDARD_STATUS)
-				.exchange().expectStatus().isEqualTo(NON_STANDARD_STATUS);
-	}
+    @Test
+    public void shouldApplyConnectTimeoutPerRoute() {
+        long currentTimeMillisBeforeCall = System.currentTimeMillis();
+        testClient.get().uri("/connect/delay/2").exchange().expectStatus().isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR).expectBody().jsonPath("$.message").value(allOf(containsString("Connection refused:"), containsString(":32167")));
+        // default connect timeout is 45 sec, this test verifies that it is possible to
+        // reduce timeout via config
+        assertThat(System.currentTimeMillis() - currentTimeMillisBeforeCall).isCloseTo(5, offset(100L));
+    }
 
-	@Test
-	public void shouldApplyConnectTimeoutPerRoute() {
-		long currentTimeMillisBeforeCall = System.currentTimeMillis();
+    @Test
+    public void shouldApplyResponseTimeoutPerRoute() {
+        testClient.get().uri("/route/delay/2").exchange().expectStatus().isEqualTo(HttpStatus.GATEWAY_TIMEOUT).expectBody().jsonPath("$.status").isEqualTo(String.valueOf(HttpStatus.GATEWAY_TIMEOUT.value())).jsonPath("$.message").isEqualTo("Response took longer than timeout: PT1S");
+    }
 
-		testClient.get().uri("/connect/delay/2").exchange().expectStatus().isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR)
-				.expectBody().jsonPath("$.message")
-				.value(allOf(containsString("Connection refused:"), containsString(":32167")));
+    @Test
+    public void shouldNotApplyResponseTimeoutPerRouteWhenNegativeValue() {
+        assertThatThrownBy(() -> {
+            testClient.get().uri("/disabledRoute/delay/10").exchange();
+        }).isInstanceOf(IllegalStateException.class).hasMessageContaining("Timeout on blocking read for 5000000000 NANOSECONDS");
+    }
 
-		// default connect timeout is 45 sec, this test verifies that it is possible to
-		// reduce timeout via config
-		assertThat(System.currentTimeMillis() - currentTimeMillisBeforeCall).isCloseTo(5, offset(100L));
-	}
+    @Test
+    public void shouldApplyResponseTimeoutForPlaceholder() {
+        testClient.get().uri("/responseheaders/200").header("Host", "www.responsetimeoutplaceholder.org").exchange().expectStatus().isEqualTo(HttpStatus.OK);
+    }
 
-	@Test
-	public void shouldApplyResponseTimeoutPerRoute() {
-		testClient.get().uri("/route/delay/2").exchange().expectStatus().isEqualTo(HttpStatus.GATEWAY_TIMEOUT)
-				.expectBody().jsonPath("$.status").isEqualTo(String.valueOf(HttpStatus.GATEWAY_TIMEOUT.value()))
-				.jsonPath("$.message").isEqualTo("Response took longer than timeout: PT1S");
-	}
+    @Test
+    public void shouldApplyGlobalResponseTimeoutForInvalidRouteTimeoutValue() {
+        testClient.get().uri("/invalidRoute/delay/5").exchange().expectStatus().isEqualTo(HttpStatus.GATEWAY_TIMEOUT).expectBody().jsonPath("$.status").isEqualTo(String.valueOf(HttpStatus.GATEWAY_TIMEOUT.value())).jsonPath("$.message").isEqualTo("Response took longer than timeout: PT3S");
+    }
 
-	@Test
-	public void shouldNotApplyResponseTimeoutPerRouteWhenNegativeValue() {
-		assertThatThrownBy(() -> {
-			testClient.get().uri("/disabledRoute/delay/10").exchange();
-		}).isInstanceOf(IllegalStateException.class)
-				.hasMessageContaining("Timeout on blocking read for 5000000000 NANOSECONDS");
-	}
+    @Test
+    public void shouldNotApplyPerRouteTimeoutWhenItIsNotConfigured() {
+        testClient.get().uri("/delay/2").exchange().expectStatus().isEqualTo(HttpStatus.OK);
+    }
 
-	@Test
-	public void shouldApplyResponseTimeoutForPlaceholder() {
-		testClient.get().uri("/responseheaders/200").header("Host", "www.responsetimeoutplaceholder.org").exchange()
-				.expectStatus().isEqualTo(HttpStatus.OK);
-	}
+    @Test
+    public // gh-2541
+    void shouldMergeResponseHeadersFromUpstreamWithCreatedByGateway() {
+        String header = "X-Test-SHOULD-MERGED-HEADER";
+        String gatewayHeaderValue = "value-from-gateway";
+        String upstreamHeaderValue = "value-from-upstream";
+        testClient.post().uri("/responseheaders/200").header("Host", "www.mergeresponseheader.org").header(header, upstreamHeaderValue).exchange().expectHeader().valueEquals(header, upstreamHeaderValue, gatewayHeaderValue);
+    }
 
-	@Test
-	public void shouldApplyGlobalResponseTimeoutForInvalidRouteTimeoutValue() {
-		testClient.get().uri("/invalidRoute/delay/5").exchange().expectStatus().isEqualTo(HttpStatus.GATEWAY_TIMEOUT)
-				.expectBody().jsonPath("$.status").isEqualTo(String.valueOf(HttpStatus.GATEWAY_TIMEOUT.value()))
-				.jsonPath("$.message").isEqualTo("Response took longer than timeout: PT3S");
-	}
+    @EnableAutoConfiguration
+    @SpringBootConfiguration
+    @Import(DefaultTestConfig.class)
+    public static class TestConfig {
 
-	@Test
-	public void shouldNotApplyPerRouteTimeoutWhenItIsNotConfigured() {
-		testClient.get().uri("/delay/2").exchange().expectStatus().isEqualTo(HttpStatus.OK);
-	}
+        @Bean
+        @Order(RouteToRequestUrlFilter.HIGHEST_PRECEDENCE)
+        public ResponseDecoratingFilter decoratingFilter() {
+            return new ResponseDecoratingFilter();
+        }
+    }
 
-	@Test
-	// gh-2541
-	public void shouldMergeResponseHeadersFromUpstreamWithCreatedByGateway() {
-		String header = "X-Test-SHOULD-MERGED-HEADER";
-		String gatewayHeaderValue = "value-from-gateway";
-		String upstreamHeaderValue = "value-from-upstream";
-		testClient.post().uri("/responseheaders/200").header("Host", "www.mergeresponseheader.org")
-				.header(header, upstreamHeaderValue).exchange().expectHeader()
-				.valueEquals(header, upstreamHeaderValue, gatewayHeaderValue);
-	}
+    public static final class ResponseDecoratingFilter implements GlobalFilter, Ordered {
 
-	@EnableAutoConfiguration
-	@SpringBootConfiguration
-	@Import(DefaultTestConfig.class)
-	public static class TestConfig {
+        int decorationIterations = 1;
 
-		@Bean
-		@Order(RouteToRequestUrlFilter.HIGHEST_PRECEDENCE)
-		public ResponseDecoratingFilter decoratingFilter() {
-			return new ResponseDecoratingFilter();
-		}
+        public void decorateResponseTimes(int times) {
+            decorationIterations = times;
+        }
 
-	}
+        @Override
+        public int getOrder() {
+            return RouteToRequestUrlFilter.HIGHEST_PRECEDENCE;
+        }
 
-	public static final class ResponseDecoratingFilter implements GlobalFilter, Ordered {
-
-		int decorationIterations = 1;
-
-		public void decorateResponseTimes(int times) {
-			decorationIterations = times;
-		}
-
-		@Override
-		public int getOrder() {
-			return RouteToRequestUrlFilter.HIGHEST_PRECEDENCE;
-		}
-
-		@Override
-		public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-			ServerHttpResponse decorator = exchange.getResponse();
-			for (int counter = 0; counter < decorationIterations; counter++) {
-				decorator = new ServerHttpResponseDecorator(decorator);
-			}
-			return chain.filter(exchange.mutate().response(decorator).build());
-		}
-
-	}
-
+        @Override
+        public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+            ServerHttpResponse decorator = exchange.getResponse();
+            for (int counter = 0; counter < decorationIterations; counter++) {
+                decorator = new ServerHttpResponseDecorator(decorator);
+            }
+            return chain.filter(exchange.mutate().response(decorator).build());
+        }
+    }
 }

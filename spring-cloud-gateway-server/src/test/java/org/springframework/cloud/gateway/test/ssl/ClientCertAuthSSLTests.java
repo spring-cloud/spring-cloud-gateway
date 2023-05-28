@@ -13,22 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.test.ssl;
 
 import java.net.URL;
 import java.security.KeyStore;
-
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLException;
-
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import reactor.netty.http.client.HttpClient;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.WebServerException;
@@ -36,7 +32,6 @@ import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.util.ResourceUtils;
-
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -44,50 +39,41 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @ActiveProfiles("client-auth-ssl")
 public class ClientCertAuthSSLTests extends SingleCertSSLTests {
 
-	@Value("${spring.cloud.gateway.httpclient.ssl.key-store}")
-	private String keyStore;
+    @Value("${spring.cloud.gateway.httpclient.ssl.key-store}")
+    private String keyStore;
 
-	@Value("${spring.cloud.gateway.httpclient.ssl.key-store-password}")
-	private String keyStorePassword;
+    @Value("${spring.cloud.gateway.httpclient.ssl.key-store-password}")
+    private String keyStorePassword;
 
-	@Value("${spring.cloud.gateway.httpclient.ssl.key-password}")
-	private String keyPassword;
+    @Value("${spring.cloud.gateway.httpclient.ssl.key-password}")
+    private String keyPassword;
 
-	@BeforeEach
-	public void setup() throws Exception {
-		KeyStore store = KeyStore.getInstance("JKS");
+    @BeforeEach
+    public void setup() throws Exception {
+        KeyStore store = KeyStore.getInstance("JKS");
+        try {
+            URL url = ResourceUtils.getURL(keyStore);
+            store.load(url.openStream(), keyStorePassword != null ? keyStorePassword.toCharArray() : null);
+        } catch (Exception e) {
+            throw new WebServerException("Could not load key store ' " + keyStore + "'", e);
+        }
+        KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+        char[] keyPasswordCharArray = keyPassword != null ? keyPassword.toCharArray() : null;
+        if (keyPasswordCharArray == null && keyStorePassword != null) {
+            keyPasswordCharArray = keyStorePassword.toCharArray();
+        }
+        keyManagerFactory.init(store, keyPasswordCharArray);
+        try {
+            SslContext sslContext = SslContextBuilder.forClient().trustManager(InsecureTrustManagerFactory.INSTANCE).keyManager(keyManagerFactory).build();
+            HttpClient httpClient = HttpClient.create().secure(ssl -> ssl.sslContext(sslContext));
+            setup(new ReactorClientHttpConnector(httpClient), "https://localhost:" + port);
+        } catch (SSLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-		try {
-			URL url = ResourceUtils.getURL(keyStore);
-			store.load(url.openStream(), keyStorePassword != null ? keyStorePassword.toCharArray() : null);
-		}
-		catch (Exception e) {
-			throw new WebServerException("Could not load key store ' " + keyStore + "'", e);
-		}
-
-		KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-		char[] keyPasswordCharArray = keyPassword != null ? keyPassword.toCharArray() : null;
-
-		if (keyPasswordCharArray == null && keyStorePassword != null) {
-			keyPasswordCharArray = keyStorePassword.toCharArray();
-		}
-
-		keyManagerFactory.init(store, keyPasswordCharArray);
-
-		try {
-			SslContext sslContext = SslContextBuilder.forClient().trustManager(InsecureTrustManagerFactory.INSTANCE)
-					.keyManager(keyManagerFactory).build();
-			HttpClient httpClient = HttpClient.create().secure(ssl -> ssl.sslContext(sslContext));
-			setup(new ReactorClientHttpConnector(httpClient), "https://localhost:" + port);
-		}
-		catch (SSLException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	@Test
-	public void testSslTrust() {
-		testClient.get().uri("/ssltrust").exchange().expectStatus().is2xxSuccessful();
-	}
-
+    @Test
+    public void testSslTrust() {
+        testClient.get().uri("/ssltrust").exchange().expectStatus().is2xxSuccessful();
+    }
 }

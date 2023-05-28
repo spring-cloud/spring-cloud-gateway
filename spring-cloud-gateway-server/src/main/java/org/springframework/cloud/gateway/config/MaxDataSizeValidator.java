@@ -13,32 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.config;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import jakarta.validation.constraints.Max;
-
 import org.springframework.util.unit.DataSize;
 
 // https://in.relation.to/2017/03/02/adding-custom-constraint-definitions-via-the-java-service-loader/
 public class MaxDataSizeValidator implements ConstraintValidator<Max, DataSize> {
 
-	private long maxValue;
+    private long maxValue;
 
-	@Override
-	public boolean isValid(DataSize value, ConstraintValidatorContext context) {
-		// null values are valid
-		if (value == null) {
-			return true;
-		}
-		return value.toBytes() <= maxValue;
-	}
+    @Override
+    public boolean isValid(DataSize value, ConstraintValidatorContext context) {
+        // null values are valid
+        if (value == null) {
+            return true;
+        }
+        return value.toBytes() <= maxValue;
+    }
 
-	@Override
-	public void initialize(Max maxValue) {
-		this.maxValue = maxValue.value();
-	}
-
+    @Override
+    public void initialize(Max maxValue) {
+        this.maxValue = maxValue.value();
+    }
 }

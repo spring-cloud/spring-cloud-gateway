@@ -13,14 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.support.tagsprovider;
 
 import io.micrometer.core.instrument.Tags;
-
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.web.server.ServerWebExchange;
-
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
 
 /**
@@ -28,15 +25,12 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.G
  */
 public class GatewayRouteTagsProvider implements GatewayTagsProvider {
 
-	@Override
-	public Tags apply(ServerWebExchange exchange) {
-		Route route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
-
-		if (route != null) {
-			return Tags.of("routeId", route.getId(), "routeUri", route.getUri().toString());
-		}
-
-		return Tags.empty();
-	}
-
+    @Override
+    public Tags apply(ServerWebExchange exchange) {
+        Route route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
+        if (route != null) {
+            return Tags.of("routeId", route.getId(), "routeUri", route.getUri().toString());
+        }
+        return Tags.empty();
+    }
 }

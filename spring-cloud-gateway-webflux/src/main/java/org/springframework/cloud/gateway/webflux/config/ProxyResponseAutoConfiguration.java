@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.webflux.config;
 
 import java.util.Optional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -45,26 +43,25 @@ import org.springframework.web.reactive.result.method.annotation.ArgumentResolve
 @EnableConfigurationProperties(ProxyProperties.class)
 public class ProxyResponseAutoConfiguration implements WebFluxConfigurer {
 
-	@Autowired
-	private ApplicationContext context;
+    @Autowired
+    private ApplicationContext context;
 
-	@Bean
-	@ConditionalOnMissingBean
-	public ProxyExchangeArgumentResolver proxyExchangeArgumentResolver(Optional<WebClient.Builder> optional,
-			ProxyProperties proxy) {
-		WebClient.Builder builder = optional.orElse(WebClient.builder());
-		WebClient template = builder.build();
-		ProxyExchangeArgumentResolver resolver = new ProxyExchangeArgumentResolver(template);
-		resolver.setHeaders(proxy.convertHeaders());
-		resolver.setAutoForwardedHeaders(proxy.getAutoForward());
-		resolver.setSensitive(proxy.getSensitive()); // can be null
-		return resolver;
-	}
+    @Bean
+    @ConditionalOnMissingBean
+    public ProxyExchangeArgumentResolver proxyExchangeArgumentResolver(Optional<WebClient.Builder> optional, ProxyProperties proxy) {
+        WebClient.Builder builder = optional.orElse(WebClient.builder());
+        WebClient template = builder.build();
+        ProxyExchangeArgumentResolver resolver = new ProxyExchangeArgumentResolver(template);
+        resolver.setHeaders(proxy.convertHeaders());
+        resolver.setAutoForwardedHeaders(proxy.getAutoForward());
+        // can be null
+        resolver.setSensitive(proxy.getSensitive());
+        return resolver;
+    }
 
-	@Override
-	public void configureArgumentResolvers(ArgumentResolverConfigurer configurer) {
-		WebFluxConfigurer.super.configureArgumentResolvers(configurer);
-		configurer.addCustomResolver(context.getBean(ProxyExchangeArgumentResolver.class));
-	}
-
+    @Override
+    public void configureArgumentResolvers(ArgumentResolverConfigurer configurer) {
+        WebFluxConfigurer.super.configureArgumentResolvers(configurer);
+        configurer.addCustomResolver(context.getBean(ProxyExchangeArgumentResolver.class));
+    }
 }

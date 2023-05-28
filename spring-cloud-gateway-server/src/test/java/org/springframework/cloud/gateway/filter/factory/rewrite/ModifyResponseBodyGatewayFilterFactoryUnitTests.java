@@ -13,29 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.factory.rewrite;
 
 import org.junit.jupiter.api.Test;
-
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyResponseBodyGatewayFilterFactory.Config;
 import org.springframework.http.codec.support.DefaultServerCodecConfigurer;
-
 import static java.util.Collections.emptySet;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ModifyResponseBodyGatewayFilterFactoryUnitTests {
 
-	@Test
-	public void toStringFormat() {
-		Config config = new Config();
-		config.setInClass(String.class);
-		config.setOutClass(Integer.class);
-		config.setNewContentType("mycontenttype");
-		GatewayFilter filter = new ModifyResponseBodyGatewayFilterFactory(
-				new DefaultServerCodecConfigurer().getReaders(), emptySet(), emptySet()).apply(config);
-		assertThat(filter.toString()).contains("String").contains("Integer").contains("mycontenttype");
-	}
-
+    @Test
+    public void toStringFormat() {
+        Config config = new Config();
+        config.setInClass(String.class);
+        config.setOutClass(Integer.class);
+        config.setNewContentType("mycontenttype");
+        GatewayFilter filter = new ModifyResponseBodyGatewayFilterFactory(new DefaultServerCodecConfigurer().getReaders(), emptySet(), emptySet()).apply(config);
+        assertThat(filter.toString()).contains("String").contains("Integer").contains("mycontenttype");
+    }
 }

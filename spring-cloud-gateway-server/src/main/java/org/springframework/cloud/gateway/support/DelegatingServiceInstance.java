@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.support;
 
 import java.net.URI;
 import java.util.Map;
-
 import org.springframework.cloud.client.ServiceInstance;
 
 /**
@@ -28,56 +26,55 @@ import org.springframework.cloud.client.ServiceInstance;
  */
 public class DelegatingServiceInstance implements ServiceInstance {
 
-	final ServiceInstance delegate;
+    final ServiceInstance delegate;
 
-	private String overrideScheme;
+    private String overrideScheme;
 
-	public DelegatingServiceInstance(ServiceInstance delegate, String overrideScheme) {
-		this.delegate = delegate;
-		this.overrideScheme = overrideScheme;
-	}
+    public DelegatingServiceInstance(ServiceInstance delegate, String overrideScheme) {
+        this.delegate = delegate;
+        this.overrideScheme = overrideScheme;
+    }
 
-	@Override
-	public String getServiceId() {
-		return delegate.getServiceId();
-	}
+    @Override
+    public String getServiceId() {
+        return delegate.getServiceId();
+    }
 
-	@Override
-	public String getHost() {
-		return delegate.getHost();
-	}
+    @Override
+    public String getHost() {
+        return delegate.getHost();
+    }
 
-	@Override
-	public int getPort() {
-		return delegate.getPort();
-	}
+    @Override
+    public int getPort() {
+        return delegate.getPort();
+    }
 
-	@Override
-	public boolean isSecure() {
-		// TODO: move to map
-		if ("https".equals(this.overrideScheme) || "wss".equals(this.overrideScheme)) {
-			return true;
-		}
-		return delegate.isSecure();
-	}
+    @Override
+    public boolean isSecure() {
+        // TODO: move to map
+        if ("https".equals(this.overrideScheme) || "wss".equals(this.overrideScheme)) {
+            return true;
+        }
+        return delegate.isSecure();
+    }
 
-	@Override
-	public URI getUri() {
-		return delegate.getUri();
-	}
+    @Override
+    public URI getUri() {
+        return delegate.getUri();
+    }
 
-	@Override
-	public Map<String, String> getMetadata() {
-		return delegate.getMetadata();
-	}
+    @Override
+    public Map<String, String> getMetadata() {
+        return delegate.getMetadata();
+    }
 
-	@Override
-	public String getScheme() {
-		String scheme = delegate.getScheme();
-		if (scheme != null) {
-			return scheme;
-		}
-		return this.overrideScheme;
-	}
-
+    @Override
+    public String getScheme() {
+        String scheme = delegate.getScheme();
+        if (scheme != null) {
+            return scheme;
+        }
+        return this.overrideScheme;
+    }
 }

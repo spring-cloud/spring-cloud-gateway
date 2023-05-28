@@ -13,17 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.mvc;
 
 import java.io.IOException;
 import java.net.URI;
 import java.util.Collections;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -51,153 +48,139 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ContextConfiguration(classes = GetWithBodyRequestTests.TestApplication.class)
 public class GetWithBodyRequestTests {
 
-	@Autowired
-	private TestRestTemplate rest;
+    @Autowired
+    private TestRestTemplate rest;
 
-	@Autowired
-	private TestApplication testApplication;
+    @Autowired
+    private TestApplication testApplication;
 
-	@LocalServerPort
-	private int port;
+    @LocalServerPort
+    private int port;
 
-	@BeforeEach
-	public void init() throws Exception {
-		testApplication.setHome(new URI("http://localhost:" + port));
-		rest.getRestTemplate().setRequestFactory(new GetWithBodyRequestClientHttpRequestFactory());
-	}
+    @BeforeEach
+    public void init() throws Exception {
+        testApplication.setHome(new URI("http://localhost:" + port));
+        rest.getRestTemplate().setRequestFactory(new GetWithBodyRequestClientHttpRequestFactory());
+    }
 
-	@Test
-	public void get() {
-		assertThat(rest.getForObject("/proxy/0", Foo.class).getName()).isEqualTo("bye");
-	}
+    @Test
+    public void get() {
+        assertThat(rest.getForObject("/proxy/0", Foo.class).getName()).isEqualTo("bye");
+    }
 
-	@Test
-	public void getWithBodyRequest() {
-		final HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(MediaType.APPLICATION_JSON);
-		headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+    @Test
+    public void getWithBodyRequest() {
+        final HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+        final Foo bodyRequest = new Foo("hello");
+        final HttpEntity<Foo> entity = new HttpEntity<>(bodyRequest, headers);
+        final ResponseEntity<Foo> response = rest.exchange("/proxy/get-with-body-request", HttpMethod.GET, entity, Foo.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isInstanceOfSatisfying(Foo.class, foo -> assertThat(foo.getName()).isEqualTo("hello world"));
+    }
 
-		final Foo bodyRequest = new Foo("hello");
-		final HttpEntity<Foo> entity = new HttpEntity<>(bodyRequest, headers);
+    @SpringBootApplication
+    static class TestApplication {
 
-		final ResponseEntity<Foo> response = rest.exchange("/proxy/get-with-body-request", HttpMethod.GET, entity,
-				Foo.class);
+        @Autowired
+        private ProxyController proxyController;
 
-		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-		assertThat(response.getBody()).isInstanceOfSatisfying(Foo.class,
-				foo -> assertThat(foo.getName()).isEqualTo("hello world"));
-	}
+        public void setHome(URI home) {
+            proxyController.setHome(home);
+        }
 
-	@SpringBootApplication
-	static class TestApplication {
+        @Bean
+        public ProxyExchangeArgumentResolver proxyExchangeArgumentResolver(final ProxyProperties proxy) {
+            ProxyExchangeArgumentResolver resolver = new ProxyExchangeArgumentResolver(generateConfiguredRestTemplate());
+            resolver.setHeaders(proxy.convertHeaders());
+            resolver.setAutoForwardedHeaders(proxy.getAutoForward());
+            resolver.setSensitive(proxy.getSensitive());
+            return resolver;
+        }
 
-		@Autowired
-		private ProxyController proxyController;
+        private RestTemplate generateConfiguredRestTemplate() {
+            final RestTemplateBuilder builder = new RestTemplateBuilder();
+            final RestTemplate template = builder.build();
+            template.setRequestFactory(new GetWithBodyRequestClientHttpRequestFactory());
+            template.setErrorHandler(new NoOpResponseErrorHandler());
+            template.getMessageConverters().add(new ByteArrayHttpMessageConverter() {
 
-		public void setHome(URI home) {
-			proxyController.setHome(home);
-		}
+                @Override
+                public boolean supports(Class<?> clazz) {
+                    return true;
+                }
+            });
+            return template;
+        }
 
-		@Bean
-		public ProxyExchangeArgumentResolver proxyExchangeArgumentResolver(final ProxyProperties proxy) {
-			ProxyExchangeArgumentResolver resolver = new ProxyExchangeArgumentResolver(
-					generateConfiguredRestTemplate());
-			resolver.setHeaders(proxy.convertHeaders());
-			resolver.setAutoForwardedHeaders(proxy.getAutoForward());
-			resolver.setSensitive(proxy.getSensitive());
-			return resolver;
-		}
+        @RestController
+        static class ProxyController {
 
-		private RestTemplate generateConfiguredRestTemplate() {
-			final RestTemplateBuilder builder = new RestTemplateBuilder();
-			final RestTemplate template = builder.build();
+            private URI home;
 
-			template.setRequestFactory(new GetWithBodyRequestClientHttpRequestFactory());
-			template.setErrorHandler(new NoOpResponseErrorHandler());
-			template.getMessageConverters().add(new ByteArrayHttpMessageConverter() {
-				@Override
-				public boolean supports(Class<?> clazz) {
-					return true;
-				}
-			});
+            public void setHome(URI home) {
+                this.home = home;
+            }
 
-			return template;
-		}
+            @GetMapping("/proxy/{id}")
+            public ResponseEntity<?> proxyFoos(@PathVariable Integer id, ProxyExchange<?> proxy) throws Exception {
+                return proxy.uri(home.toString() + "/foos/" + id).get();
+            }
 
-		@RestController
-		static class ProxyController {
+            @GetMapping("/proxy/get-with-body-request")
+            public ResponseEntity<?> proxyFooWithBody(@RequestBody Foo foo, ProxyExchange<?> proxy) throws Exception {
+                return proxy.uri(home.toString() + "/foo/get-with-body-request").get();
+            }
+        }
 
-			private URI home;
+        @RestController
+        static class TestController {
 
-			public void setHome(URI home) {
-				this.home = home;
-			}
+            @GetMapping("/foos/{id}")
+            public Foo foo(@PathVariable Integer id, @RequestHeader HttpHeaders headers) {
+                String custom = headers.getFirst("X-Custom");
+                return new Foo(id == 1 ? "foo" : custom != null ? custom : "bye");
+            }
 
-			@GetMapping("/proxy/{id}")
-			public ResponseEntity<?> proxyFoos(@PathVariable Integer id, ProxyExchange<?> proxy) throws Exception {
-				return proxy.uri(home.toString() + "/foos/" + id).get();
-			}
+            @GetMapping("/foo/get-with-body-request")
+            public Foo getWithBody(@RequestBody Foo foo) {
+                return new Foo(foo.getName() + " world");
+            }
+        }
 
-			@GetMapping("/proxy/get-with-body-request")
-			public ResponseEntity<?> proxyFooWithBody(@RequestBody Foo foo, ProxyExchange<?> proxy) throws Exception {
-				return proxy.uri(home.toString() + "/foo/get-with-body-request").get();
-			}
+        @JsonIgnoreProperties(ignoreUnknown = true)
+        static class Foo {
 
-		}
+            private String name;
 
-		@RestController
-		static class TestController {
+            Foo() {
+            }
 
-			@GetMapping("/foos/{id}")
-			public Foo foo(@PathVariable Integer id, @RequestHeader HttpHeaders headers) {
-				String custom = headers.getFirst("X-Custom");
-				return new Foo(id == 1 ? "foo" : custom != null ? custom : "bye");
-			}
+            Foo(String name) {
+                this.name = name;
+            }
 
-			@GetMapping("/foo/get-with-body-request")
-			public Foo getWithBody(@RequestBody Foo foo) {
-				return new Foo(foo.getName() + " world");
-			}
+            public String getName() {
+                return name;
+            }
 
-		}
+            public void setName(final String name) {
+                this.name = name;
+            }
+        }
 
-		@JsonIgnoreProperties(ignoreUnknown = true)
-		static class Foo {
+        private static class NoOpResponseErrorHandler extends DefaultResponseErrorHandler {
 
-			private String name;
-
-			Foo() {
-			}
-
-			Foo(String name) {
-				this.name = name;
-			}
-
-			public String getName() {
-				return name;
-			}
-
-			public void setName(final String name) {
-				this.name = name;
-			}
-
-		}
-
-		private static class NoOpResponseErrorHandler extends DefaultResponseErrorHandler {
-
-			@Override
-			public void handleError(ClientHttpResponse response) throws IOException {
-			}
-
-		}
-
-	}
-
+            @Override
+            public void handleError(ClientHttpResponse response) throws IOException {
+            }
+        }
+    }
 }

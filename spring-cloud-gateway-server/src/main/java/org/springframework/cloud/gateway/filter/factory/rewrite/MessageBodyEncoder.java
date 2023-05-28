@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.factory.rewrite;
 
 import org.springframework.core.io.buffer.DataBuffer;
@@ -24,8 +23,7 @@ import org.springframework.core.io.buffer.DataBuffer;
  */
 public interface MessageBodyEncoder {
 
-	byte[] encode(DataBuffer original);
+    byte[] encode(DataBuffer original);
 
-	String encodingType();
-
+    String encodingType();
 }

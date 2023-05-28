@@ -13,17 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.route;
 
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-
 import reactor.cache.CacheFlux;
 import reactor.core.publisher.Flux;
-
 import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
 import org.springframework.context.ApplicationListener;
 
@@ -32,40 +29,39 @@ import org.springframework.context.ApplicationListener;
  */
 public class CachingRouteDefinitionLocator implements RouteDefinitionLocator, ApplicationListener<RefreshRoutesEvent> {
 
-	private static final String CACHE_KEY = "routeDefs";
+    private static final String CACHE_KEY = "routeDefs";
 
-	private final RouteDefinitionLocator delegate;
+    private final RouteDefinitionLocator delegate;
 
-	private final Flux<RouteDefinition> routeDefinitions;
+    private final Flux<RouteDefinition> routeDefinitions;
 
-	private final Map<String, List> cache = new ConcurrentHashMap<>();
+    private final Map<String, List> cache = new ConcurrentHashMap<>();
 
-	public CachingRouteDefinitionLocator(RouteDefinitionLocator delegate) {
-		this.delegate = delegate;
-		routeDefinitions = CacheFlux.lookup(cache, CACHE_KEY, RouteDefinition.class).onCacheMissResume(this::fetch);
-	}
+    public CachingRouteDefinitionLocator(RouteDefinitionLocator delegate) {
+        this.delegate = delegate;
+        routeDefinitions = CacheFlux.lookup(cache, CACHE_KEY, RouteDefinition.class).onCacheMissResume(this::fetch);
+    }
 
-	private Flux<RouteDefinition> fetch() {
-		return this.delegate.getRouteDefinitions();
-	}
+    private Flux<RouteDefinition> fetch() {
+        return this.delegate.getRouteDefinitions();
+    }
 
-	@Override
-	public Flux<RouteDefinition> getRouteDefinitions() {
-		return this.routeDefinitions;
-	}
+    @Override
+    public Flux<RouteDefinition> getRouteDefinitions() {
+        return this.routeDefinitions;
+    }
 
-	/**
-	 * Clears the cache of routeDefinitions.
-	 * @return routeDefinitions flux
-	 */
-	public Flux<RouteDefinition> refresh() {
-		this.cache.clear();
-		return this.routeDefinitions;
-	}
+    /**
+     * Clears the cache of routeDefinitions.
+     * @return routeDefinitions flux
+     */
+    public Flux<RouteDefinition> refresh() {
+        this.cache.clear();
+        return this.routeDefinitions;
+    }
 
-	@Override
-	public void onApplicationEvent(RefreshRoutesEvent event) {
-		fetch().materialize().collect(Collectors.toList()).doOnNext(routes -> cache.put(CACHE_KEY, routes)).subscribe();
-	}
-
+    @Override
+    public void onApplicationEvent(RefreshRoutesEvent event) {
+        fetch().materialize().collect(Collectors.toList()).doOnNext(routes -> cache.put(CACHE_KEY, routes)).subscribe();
+    }
 }

@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.headers.observation;
 
 import io.micrometer.common.docs.KeyName;
@@ -24,85 +23,90 @@ import io.micrometer.observation.docs.ObservationDocumentation;
 
 enum GatewayDocumentedObservation implements ObservationDocumentation {
 
-	/**
-	 * Observation created when sending a request through the gateway.
-	 */
-	GATEWAY_HTTP_CLIENT_OBSERVATION {
-		@Override
-		public Class<? extends ObservationConvention<? extends Observation.Context>> getDefaultConvention() {
-			return DefaultGatewayObservationConvention.class;
-		}
+    /**
+     * Observation created when sending a request through the gateway.
+     */
+    GATEWAY_HTTP_CLIENT_OBSERVATION {
 
-		@Override
-		public KeyName[] getLowCardinalityKeyNames() {
-			return LowCardinalityKeys.values();
-		}
+        @Override
+        public Class<? extends ObservationConvention<? extends Observation.Context>> getDefaultConvention() {
+            return DefaultGatewayObservationConvention.class;
+        }
 
-		@Override
-		public KeyName[] getHighCardinalityKeyNames() {
-			return HighCardinalityKeys.values();
-		}
+        @Override
+        public KeyName[] getLowCardinalityKeyNames() {
+            return LowCardinalityKeys.values();
+        }
 
-	};
+        @Override
+        public KeyName[] getHighCardinalityKeyNames() {
+            return HighCardinalityKeys.values();
+        }
+    }
+    ;
 
-	@NonNullApi
-	enum LowCardinalityKeys implements KeyName {
+    @NonNullApi
+    enum LowCardinalityKeys implements KeyName {
 
-		/**
-		 * Route ID.
-		 */
-		ROUTE_ID {
-			@Override
-			public String asString() {
-				return "spring.cloud.gateway.route.id";
-			}
-		},
+        /**
+         * Route ID.
+         */
+        ROUTE_ID {
 
-		/**
-		 * HTTP Method.
-		 */
-		METHOD {
-			@Override
-			public String asString() {
-				return "http.method";
-			}
-		},
+            @Override
+            public String asString() {
+                return "spring.cloud.gateway.route.id";
+            }
+        }
+        ,
+        /**
+         * HTTP Method.
+         */
+        METHOD {
 
-		/**
-		 * HTTP Status.
-		 */
-		STATUS {
-			@Override
-			public String asString() {
-				return "http.status_code";
-			}
-		},
+            @Override
+            public String asString() {
+                return "http.method";
+            }
+        }
+        ,
+        /**
+         * HTTP Status.
+         */
+        STATUS {
 
-		/**
-		 * HTTP URI taken from the Route.
-		 */
-		ROUTE_URI {
-			@Override
-			public String asString() {
-				return "spring.cloud.gateway.route.uri";
-			}
-		}
+            @Override
+            public String asString() {
+                return "http.status_code";
+            }
+        }
+        ,
+        /**
+         * HTTP URI taken from the Route.
+         */
+        ROUTE_URI {
 
-	}
+            @Override
+            public String asString() {
+                return "spring.cloud.gateway.route.uri";
+            }
+        }
 
-	@NonNullApi
-	enum HighCardinalityKeys implements KeyName {
+    }
 
-		/**
-		 * Full HTTP URI.
-		 */
-		URI {
-			@Override
-			public String asString() {
-				return "http.uri";
-			}
-		}
+    @NonNullApi
+    enum HighCardinalityKeys implements KeyName {
 
-	}
+        /**
+         * Full HTTP URI.
+         */
+        URI {
 
+            @Override
+            public String asString() {
+                return "http.uri";
+            }
+        }
+
+    }
 }

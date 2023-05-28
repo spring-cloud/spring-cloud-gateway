@@ -13,15 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.handler.predicate;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
-
 import jakarta.validation.constraints.NotEmpty;
-
 import org.springframework.http.HttpCookie;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.server.ServerWebExchange;
@@ -31,81 +28,80 @@ import org.springframework.web.server.ServerWebExchange;
  */
 public class CookieRoutePredicateFactory extends AbstractRoutePredicateFactory<CookieRoutePredicateFactory.Config> {
 
-	/**
-	 * Name key.
-	 */
-	public static final String NAME_KEY = "name";
+    /**
+     * Name key.
+     */
+    public static final String NAME_KEY = "name";
 
-	/**
-	 * Regexp key.
-	 */
-	public static final String REGEXP_KEY = "regexp";
+    /**
+     * Regexp key.
+     */
+    public static final String REGEXP_KEY = "regexp";
 
-	public CookieRoutePredicateFactory() {
-		super(Config.class);
-	}
+    public CookieRoutePredicateFactory() {
+        super(Config.class);
+    }
 
-	@Override
-	public List<String> shortcutFieldOrder() {
-		return Arrays.asList(NAME_KEY, REGEXP_KEY);
-	}
+    @Override
+    public List<String> shortcutFieldOrder() {
+        return Arrays.asList(NAME_KEY, REGEXP_KEY);
+    }
 
-	@Override
-	public Predicate<ServerWebExchange> apply(Config config) {
-		return new GatewayPredicate() {
-			@Override
-			public boolean test(ServerWebExchange exchange) {
-				List<HttpCookie> cookies = exchange.getRequest().getCookies().get(config.name);
-				if (cookies == null) {
-					return false;
-				}
-				for (HttpCookie cookie : cookies) {
-					if (cookie.getValue().matches(config.regexp)) {
-						return true;
-					}
-				}
-				return false;
-			}
+    @Override
+    public Predicate<ServerWebExchange> apply(Config config) {
+        return new GatewayPredicate() {
 
-			@Override
-			public Object getConfig() {
-				return config;
-			}
+            @Override
+            public boolean test(ServerWebExchange exchange) {
+                List<HttpCookie> cookies = exchange.getRequest().getCookies().get(config.name);
+                if (cookies == null) {
+                    return false;
+                }
+                for (HttpCookie cookie : cookies) {
+                    if (cookie.getValue().matches(config.regexp)) {
+                        return true;
+                    }
+                }
+                return false;
+            }
 
-			@Override
-			public String toString() {
-				return String.format("Cookie: name=%s regexp=%s", config.name, config.regexp);
-			}
-		};
-	}
+            @Override
+            public Object getConfig() {
+                return config;
+            }
 
-	@Validated
-	public static class Config {
+            @Override
+            public String toString() {
+                return String.format("Cookie: name=%s regexp=%s", config.name, config.regexp);
+            }
+        };
+    }
 
-		@NotEmpty
-		private String name;
+    @Validated
+    public static class Config {
 
-		@NotEmpty
-		private String regexp;
+        @NotEmpty
+        private String name;
 
-		public String getName() {
-			return name;
-		}
+        @NotEmpty
+        private String regexp;
 
-		public Config setName(String name) {
-			this.name = name;
-			return this;
-		}
+        public String getName() {
+            return name;
+        }
 
-		public String getRegexp() {
-			return regexp;
-		}
+        public Config setName(String name) {
+            this.name = name;
+            return this;
+        }
 
-		public Config setRegexp(String regexp) {
-			this.regexp = regexp;
-			return this;
-		}
+        public String getRegexp() {
+            return regexp;
+        }
 
-	}
-
+        public Config setRegexp(String regexp) {
+            this.regexp = regexp;
+            return this;
+        }
+    }
 }

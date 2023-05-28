@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.factory;
 
 import org.junit.jupiter.api.Test;
-
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -26,7 +24,6 @@ import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFac
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -34,25 +31,22 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @DirtiesContext
 public class RemoveResponseHeaderGatewayFilterFactoryTests extends BaseWebClientTests {
 
-	@Test
-	public void removeResponseHeaderFilterWorks() {
-		testClient.get().uri("/headers").header("Host", "www.removereresponseheader.org").exchange().expectStatus()
-				.isOk().expectHeader().doesNotExist("X-Request-Foo");
-	}
+    @Test
+    public void removeResponseHeaderFilterWorks() {
+        testClient.get().uri("/headers").header("Host", "www.removereresponseheader.org").exchange().expectStatus().isOk().expectHeader().doesNotExist("X-Request-Foo");
+    }
 
-	@Test
-	public void toStringFormat() {
-		NameConfig config = new NameConfig();
-		config.setName("myname");
-		GatewayFilter filter = new RemoveResponseHeaderGatewayFilterFactory().apply(config);
-		assertThat(filter.toString()).contains("myname");
-	}
+    @Test
+    public void toStringFormat() {
+        NameConfig config = new NameConfig();
+        config.setName("myname");
+        GatewayFilter filter = new RemoveResponseHeaderGatewayFilterFactory().apply(config);
+        assertThat(filter.toString()).contains("myname");
+    }
 
-	@EnableAutoConfiguration
-	@SpringBootConfiguration
-	@Import(DefaultTestConfig.class)
-	public static class TestConfig {
-
-	}
-
+    @EnableAutoConfiguration
+    @SpringBootConfiguration
+    @Import(DefaultTestConfig.class)
+    public static class TestConfig {
+    }
 }

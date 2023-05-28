@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.factory.cache.keygenerator;
 
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -26,9 +25,8 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
  */
 public class UriKeyValueGenerator implements KeyValueGenerator {
 
-	@Override
-	public String getKeyValue(ServerHttpRequest request) {
-		return request.getURI().toString();
-	}
-
+    @Override
+    public String getKeyValue(ServerHttpRequest request) {
+        return request.getURI().toString();
+    }
 }

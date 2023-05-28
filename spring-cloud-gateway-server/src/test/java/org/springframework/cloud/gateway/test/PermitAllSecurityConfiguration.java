@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.test;
 
 import org.springframework.context.annotation.Bean;
@@ -24,9 +23,8 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 @Configuration(proxyBeanMethods = false)
 public class PermitAllSecurityConfiguration {
 
-	@Bean
-	SecurityWebFilterChain springWebFilterChain(ServerHttpSecurity http) throws Exception {
-		return http.authorizeExchange().anyExchange().permitAll().and().csrf().disable().build();
-	}
-
+    @Bean
+    SecurityWebFilterChain springWebFilterChain(ServerHttpSecurity http) throws Exception {
+        return http.authorizeExchange().anyExchange().permitAll().and().csrf().disable().build();
+    }
 }

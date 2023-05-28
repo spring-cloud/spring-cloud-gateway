@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.config;
 
 import org.springframework.beans.factory.ObjectProvider;
@@ -38,24 +37,20 @@ import org.springframework.web.reactive.DispatcherHandler;
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty(name = "spring.cloud.gateway.enabled", matchIfMissing = true)
 @AutoConfigureAfter({ ReactiveResilience4JAutoConfiguration.class })
-@ConditionalOnClass({ DispatcherHandler.class, ReactiveResilience4JAutoConfiguration.class,
-		ReactiveCircuitBreakerFactory.class, ReactiveResilience4JCircuitBreakerFactory.class })
+@ConditionalOnClass({ DispatcherHandler.class, ReactiveResilience4JAutoConfiguration.class, ReactiveCircuitBreakerFactory.class, ReactiveResilience4JCircuitBreakerFactory.class })
 public class GatewayResilience4JCircuitBreakerAutoConfiguration {
 
-	@Bean
-	@ConditionalOnBean(ReactiveResilience4JCircuitBreakerFactory.class)
-	@ConditionalOnEnabledFilter
-	public SpringCloudCircuitBreakerResilience4JFilterFactory springCloudCircuitBreakerResilience4JFilterFactory(
-			ReactiveResilience4JCircuitBreakerFactory reactiveCircuitBreakerFactory,
-			ObjectProvider<DispatcherHandler> dispatcherHandler) {
-		return new SpringCloudCircuitBreakerResilience4JFilterFactory(reactiveCircuitBreakerFactory, dispatcherHandler);
-	}
+    @Bean
+    @ConditionalOnBean(ReactiveResilience4JCircuitBreakerFactory.class)
+    @ConditionalOnEnabledFilter
+    public SpringCloudCircuitBreakerResilience4JFilterFactory springCloudCircuitBreakerResilience4JFilterFactory(ReactiveResilience4JCircuitBreakerFactory reactiveCircuitBreakerFactory, ObjectProvider<DispatcherHandler> dispatcherHandler) {
+        return new SpringCloudCircuitBreakerResilience4JFilterFactory(reactiveCircuitBreakerFactory, dispatcherHandler);
+    }
 
-	@Bean
-	@ConditionalOnMissingBean
-	@ConditionalOnEnabledFilter
-	public FallbackHeadersGatewayFilterFactory fallbackHeadersGatewayFilterFactory() {
-		return new FallbackHeadersGatewayFilterFactory();
-	}
-
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnEnabledFilter
+    public FallbackHeadersGatewayFilterFactory fallbackHeadersGatewayFilterFactory() {
+        return new FallbackHeadersGatewayFilterFactory();
+    }
 }

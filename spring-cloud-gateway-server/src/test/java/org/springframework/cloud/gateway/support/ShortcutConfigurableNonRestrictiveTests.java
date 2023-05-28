@@ -13,16 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.support;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.junit.jupiter.api.Test;
-
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
@@ -31,77 +28,75 @@ import org.springframework.cloud.gateway.support.ShortcutConfigurable.ShortcutTy
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(properties = "spring.cloud.gateway.restrictive-property-accessor.enabled=false")
 public class ShortcutConfigurableNonRestrictiveTests {
 
-	@Autowired
-	BeanFactory beanFactory;
+    @Autowired
+    BeanFactory beanFactory;
 
-	@Autowired
-	ConfigurableEnvironment env;
+    @Autowired
+    ConfigurableEnvironment env;
 
-	private SpelExpressionParser parser;
+    private SpelExpressionParser parser;
 
-	@Test
-	public void testNormalizeDefaultTypeWithSpelAndPropertyReferenceEnabled() {
-		parser = new SpelExpressionParser();
-		ShortcutConfigurable shortcutConfigurable = new ShortcutConfigurable() {
-			@Override
-			public List<String> shortcutFieldOrder() {
-				return Arrays.asList("bean", "arg1");
-			}
-		};
-		Map<String, String> args = new HashMap<>();
-		args.put("barproperty", "#{@bar.getInt}");
-		args.put("arg1", "val1");
-		Map<String, Object> map = ShortcutType.DEFAULT.normalize(args, shortcutConfigurable, parser, this.beanFactory);
-		assertThat(map).isNotNull().containsEntry("barproperty", 42).containsEntry("arg1", "val1");
-	}
+    @Test
+    public void testNormalizeDefaultTypeWithSpelAndPropertyReferenceEnabled() {
+        parser = new SpelExpressionParser();
+        ShortcutConfigurable shortcutConfigurable = new ShortcutConfigurable() {
 
-	@Test
-	public void testNormalizeDefaultTypeWithSpelAndMethodReferenceEnabled() {
-		parser = new SpelExpressionParser();
-		ShortcutConfigurable shortcutConfigurable = new ShortcutConfigurable() {
-			@Override
-			public List<String> shortcutFieldOrder() {
-				return Arrays.asList("bean", "arg1");
-			}
-		};
-		Map<String, String> args = new HashMap<>();
-		args.put("barmethod", "#{@bar.myMethod}");
-		args.put("arg1", "val1");
-		Map<String, Object> map = ShortcutType.DEFAULT.normalize(args, shortcutConfigurable, parser, this.beanFactory);
-		assertThat(map).isNotNull().containsEntry("barmethod", 42).containsEntry("arg1", "val1");
-	}
+            @Override
+            public List<String> shortcutFieldOrder() {
+                return Arrays.asList("bean", "arg1");
+            }
+        };
+        Map<String, String> args = new HashMap<>();
+        args.put("barproperty", "#{@bar.getInt}");
+        args.put("arg1", "val1");
+        Map<String, Object> map = ShortcutType.DEFAULT.normalize(args, shortcutConfigurable, parser, this.beanFactory);
+        assertThat(map).isNotNull().containsEntry("barproperty", 42).containsEntry("arg1", "val1");
+    }
 
-	@SpringBootConfiguration
-	protected static class TestConfig {
+    @Test
+    public void testNormalizeDefaultTypeWithSpelAndMethodReferenceEnabled() {
+        parser = new SpelExpressionParser();
+        ShortcutConfigurable shortcutConfigurable = new ShortcutConfigurable() {
 
-		@Bean
-		public Integer foo() {
-			return 42;
-		}
+            @Override
+            public List<String> shortcutFieldOrder() {
+                return Arrays.asList("bean", "arg1");
+            }
+        };
+        Map<String, String> args = new HashMap<>();
+        args.put("barmethod", "#{@bar.myMethod}");
+        args.put("arg1", "val1");
+        Map<String, Object> map = ShortcutType.DEFAULT.normalize(args, shortcutConfigurable, parser, this.beanFactory);
+        assertThat(map).isNotNull().containsEntry("barmethod", 42).containsEntry("arg1", "val1");
+    }
 
-		@Bean
-		public Bar bar() {
-			return new Bar();
-		}
+    @SpringBootConfiguration
+    protected static class TestConfig {
 
-	}
+        @Bean
+        public Integer foo() {
+            return 42;
+        }
 
-	protected static class Bar {
+        @Bean
+        public Bar bar() {
+            return new Bar();
+        }
+    }
 
-		public int getInt() {
-			return 42;
-		}
+    protected static class Bar {
 
-		public int myMethod() {
-			return 42;
-		}
+        public int getInt() {
+            return 42;
+        }
 
-	}
-
+        public int myMethod() {
+            return 42;
+        }
+    }
 }

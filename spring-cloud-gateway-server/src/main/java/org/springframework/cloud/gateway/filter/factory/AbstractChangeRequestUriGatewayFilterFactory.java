@@ -13,18 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.factory;
 
 import java.net.URI;
 import java.util.Map;
 import java.util.Optional;
-
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.OrderedGatewayFilter;
 import org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter;
 import org.springframework.web.server.ServerWebExchange;
-
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
 
 /**
@@ -35,29 +32,28 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.G
  */
 public abstract class AbstractChangeRequestUriGatewayFilterFactory<T> extends AbstractGatewayFilterFactory<T> {
 
-	private final int order;
+    private final int order;
 
-	public AbstractChangeRequestUriGatewayFilterFactory(Class<T> clazz, int order) {
-		super(clazz);
-		this.order = order;
-	}
+    public AbstractChangeRequestUriGatewayFilterFactory(Class<T> clazz, int order) {
+        super(clazz);
+        this.order = order;
+    }
 
-	public AbstractChangeRequestUriGatewayFilterFactory(Class<T> clazz) {
-		this(clazz, RouteToRequestUrlFilter.ROUTE_TO_URL_FILTER_ORDER + 1);
-	}
+    public AbstractChangeRequestUriGatewayFilterFactory(Class<T> clazz) {
+        this(clazz, RouteToRequestUrlFilter.ROUTE_TO_URL_FILTER_ORDER + 1);
+    }
 
-	protected abstract Optional<URI> determineRequestUri(ServerWebExchange exchange, T config);
+    protected abstract Optional<URI> determineRequestUri(ServerWebExchange exchange, T config);
 
-	@Override
-	public GatewayFilter apply(T config) {
-		return new OrderedGatewayFilter((exchange, chain) -> {
-			Optional<URI> uri = this.determineRequestUri(exchange, config);
-			uri.ifPresent(u -> {
-				Map<String, Object> attributes = exchange.getAttributes();
-				attributes.put(GATEWAY_REQUEST_URL_ATTR, u);
-			});
-			return chain.filter(exchange);
-		}, this.order);
-	}
-
+    @Override
+    public GatewayFilter apply(T config) {
+        return new OrderedGatewayFilter((exchange, chain) -> {
+            Optional<URI> uri = this.determineRequestUri(exchange, config);
+            uri.ifPresent(u -> {
+                Map<String, Object> attributes = exchange.getAttributes();
+                attributes.put(GATEWAY_REQUEST_URL_ATTR, u);
+            });
+            return chain.filter(exchange);
+        }, this.order);
+    }
 }

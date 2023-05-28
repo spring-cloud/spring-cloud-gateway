@@ -13,16 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.factory.cache;
 
 import org.junit.jupiter.api.Test;
-
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.http.server.reactive.MockServerHttpResponse;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -30,78 +27,65 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class ResponseCacheGatewayFilterTest {
 
-	ResponseCacheManager cacheManagerToTest = new ResponseCacheManager(null, null, null);
+    ResponseCacheManager cacheManagerToTest = new ResponseCacheManager(null, null, null);
 
-	@Test
-	void requestShouldBeCacheable() {
-		var uri = "http://test.com";
-		HttpHeaders httpHeaders = new HttpHeaders();
-		httpHeaders.add(HttpHeaders.CACHE_CONTROL, "no-transform");
-		var request = MockServerHttpRequest.get(uri).headers(httpHeaders).build();
+    @Test
+    void requestShouldBeCacheable() {
+        var uri = "http://test.com";
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.add(HttpHeaders.CACHE_CONTROL, "no-transform");
+        var request = MockServerHttpRequest.get(uri).headers(httpHeaders).build();
+        assertThat(cacheManagerToTest.isRequestCacheable(request)).isTrue();
+    }
 
-		assertThat(cacheManagerToTest.isRequestCacheable(request)).isTrue();
-	}
+    @Test
+    void requestShouldNotBeCacheable() {
+        var uri = "http://test.com";
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.add(HttpHeaders.CACHE_CONTROL, "no-store");
+        var request = MockServerHttpRequest.get(uri).headers(httpHeaders).build();
+        assertThat(cacheManagerToTest.isRequestCacheable(request)).isFalse();
+        httpHeaders = new HttpHeaders();
+        httpHeaders.add(HttpHeaders.CACHE_CONTROL, "no-transform");
+        request = MockServerHttpRequest.post(uri).headers(httpHeaders).build();
+        assertThat(cacheManagerToTest.isRequestCacheable(request)).isFalse();
+    }
 
-	@Test
-	void requestShouldNotBeCacheable() {
-		var uri = "http://test.com";
-		HttpHeaders httpHeaders = new HttpHeaders();
-		httpHeaders.add(HttpHeaders.CACHE_CONTROL, "no-store");
-		var request = MockServerHttpRequest.get(uri).headers(httpHeaders).build();
+    @Test
+    void responseShouldBeCacheable() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.CACHE_CONTROL, "public");
+        var response = new MockServerHttpResponse();
+        response.getHeaders().putAll(headers);
+        response.setStatusCode(HttpStatus.OK);
+        assertThat(cacheManagerToTest.isResponseCacheable(response)).isTrue();
+        headers = new HttpHeaders();
+        headers.add(HttpHeaders.CACHE_CONTROL, "public");
+        response = new MockServerHttpResponse();
+        response.getHeaders().putAll(headers);
+        response.setStatusCode(HttpStatus.PARTIAL_CONTENT);
+        assertThat(cacheManagerToTest.isResponseCacheable(response)).isTrue();
+    }
 
-		assertThat(cacheManagerToTest.isRequestCacheable(request)).isFalse();
-
-		httpHeaders = new HttpHeaders();
-		httpHeaders.add(HttpHeaders.CACHE_CONTROL, "no-transform");
-		request = MockServerHttpRequest.post(uri).headers(httpHeaders).build();
-
-		assertThat(cacheManagerToTest.isRequestCacheable(request)).isFalse();
-	}
-
-	@Test
-	void responseShouldBeCacheable() {
-		HttpHeaders headers = new HttpHeaders();
-		headers.add(HttpHeaders.CACHE_CONTROL, "public");
-		var response = new MockServerHttpResponse();
-		response.getHeaders().putAll(headers);
-		response.setStatusCode(HttpStatus.OK);
-
-		assertThat(cacheManagerToTest.isResponseCacheable(response)).isTrue();
-
-		headers = new HttpHeaders();
-		headers.add(HttpHeaders.CACHE_CONTROL, "public");
-		response = new MockServerHttpResponse();
-		response.getHeaders().putAll(headers);
-		response.setStatusCode(HttpStatus.PARTIAL_CONTENT);
-
-		assertThat(cacheManagerToTest.isResponseCacheable(response)).isTrue();
-	}
-
-	@Test
-	void responseShouldNotBeCacheable() {
-		HttpHeaders headers = new HttpHeaders();
-		headers.add(HttpHeaders.CACHE_CONTROL, "public");
-		var response = new MockServerHttpResponse();
-		response.getHeaders().putAll(headers);
-		response.setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
-
-		assertThat(cacheManagerToTest.isResponseCacheable(response)).isFalse();
-
-		headers = new HttpHeaders();
-		headers.add(HttpHeaders.CACHE_CONTROL, "private");
-		response = new MockServerHttpResponse();
-		response.getHeaders().putAll(headers);
-		response.setStatusCode(HttpStatus.OK);
-
-		assertThat(cacheManagerToTest.isResponseCacheable(response)).isFalse();
-
-		headers = new HttpHeaders();
-		headers.add(HttpHeaders.CACHE_CONTROL, "no-store");
-		response = new MockServerHttpResponse();
-		response.getHeaders().putAll(headers);
-		response.setStatusCode(HttpStatus.OK);
-
-		assertThat(cacheManagerToTest.isResponseCacheable(response)).isFalse();
-	}
-
+    @Test
+    void responseShouldNotBeCacheable() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.CACHE_CONTROL, "public");
+        var response = new MockServerHttpResponse();
+        response.getHeaders().putAll(headers);
+        response.setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
+        assertThat(cacheManagerToTest.isResponseCacheable(response)).isFalse();
+        headers = new HttpHeaders();
+        headers.add(HttpHeaders.CACHE_CONTROL, "private");
+        response = new MockServerHttpResponse();
+        response.getHeaders().putAll(headers);
+        response.setStatusCode(HttpStatus.OK);
+        assertThat(cacheManagerToTest.isResponseCacheable(response)).isFalse();
+        headers = new HttpHeaders();
+        headers.add(HttpHeaders.CACHE_CONTROL, "no-store");
+        response = new MockServerHttpResponse();
+        response.getHeaders().putAll(headers);
+        response.setStatusCode(HttpStatus.OK);
+        assertThat(cacheManagerToTest.isResponseCacheable(response)).isFalse();
+    }
 }

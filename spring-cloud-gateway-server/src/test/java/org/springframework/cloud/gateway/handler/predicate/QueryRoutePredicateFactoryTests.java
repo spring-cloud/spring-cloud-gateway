@@ -13,14 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.handler.predicate;
 
 import java.util.function.Predicate;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -34,7 +31,6 @@ import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -43,49 +39,43 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @ExtendWith(OutputCaptureExtension.class)
 public class QueryRoutePredicateFactoryTests extends BaseWebClientTests {
 
-	@Test
-	public void noQueryParamWorks(CapturedOutput output) {
-		testClient.get().uri("/get").exchange().expectStatus().isOk().expectHeader().valueEquals(ROUTE_ID_HEADER,
-				"default_path_to_httpbin");
-		assertThat(output).doesNotContain("Error applying predicate for route: foo_query_param");
-	}
+    @Test
+    public void noQueryParamWorks(CapturedOutput output) {
+        testClient.get().uri("/get").exchange().expectStatus().isOk().expectHeader().valueEquals(ROUTE_ID_HEADER, "default_path_to_httpbin");
+        assertThat(output).doesNotContain("Error applying predicate for route: foo_query_param");
+    }
 
-	@Test
-	public void queryParamWorks() {
-		testClient.get().uri("/get?foo=bar").exchange().expectStatus().isOk().expectHeader()
-				.valueEquals(ROUTE_ID_HEADER, "foo_query_param");
-	}
+    @Test
+    public void queryParamWorks() {
+        testClient.get().uri("/get?foo=bar").exchange().expectStatus().isOk().expectHeader().valueEquals(ROUTE_ID_HEADER, "foo_query_param");
+    }
 
-	@Test
-	public void emptyQueryParamWorks(CapturedOutput output) {
-		testClient.get().uri("/get?foo").exchange().expectStatus().isOk().expectHeader().valueEquals(ROUTE_ID_HEADER,
-				"default_path_to_httpbin");
-		assertThat(output).doesNotContain("Error applying predicate for route: foo_query_param");
-	}
+    @Test
+    public void emptyQueryParamWorks(CapturedOutput output) {
+        testClient.get().uri("/get?foo").exchange().expectStatus().isOk().expectHeader().valueEquals(ROUTE_ID_HEADER, "default_path_to_httpbin");
+        assertThat(output).doesNotContain("Error applying predicate for route: foo_query_param");
+    }
 
-	@Test
-	public void toStringFormat() {
-		Config config = new Config();
-		config.setParam("myparam");
-		config.setRegexp("myregexp");
-		Predicate predicate = new QueryRoutePredicateFactory().apply(config);
-		assertThat(predicate.toString()).contains("Query: param=myparam regexp=myregexp");
-	}
+    @Test
+    public void toStringFormat() {
+        Config config = new Config();
+        config.setParam("myparam");
+        config.setRegexp("myregexp");
+        Predicate predicate = new QueryRoutePredicateFactory().apply(config);
+        assertThat(predicate.toString()).contains("Query: param=myparam regexp=myregexp");
+    }
 
-	@EnableAutoConfiguration
-	@SpringBootConfiguration
-	@Import(DefaultTestConfig.class)
-	public static class TestConfig {
+    @EnableAutoConfiguration
+    @SpringBootConfiguration
+    @Import(DefaultTestConfig.class)
+    public static class TestConfig {
 
-		@Value("${test.uri}")
-		private String uri;
+        @Value("${test.uri}")
+        private String uri;
 
-		@Bean
-		RouteLocator queryRouteLocator(RouteLocatorBuilder builder) {
-			return builder.routes().route("foo_query_param",
-					r -> r.query("foo", "bar").filters(f -> f.prefixPath("/httpbin")).uri(uri)).build();
-		}
-
-	}
-
+        @Bean
+        RouteLocator queryRouteLocator(RouteLocatorBuilder builder) {
+            return builder.routes().route("foo_query_param", r -> r.query("foo", "bar").filters(f -> f.prefixPath("/httpbin")).uri(uri)).build();
+        }
+    }
 }

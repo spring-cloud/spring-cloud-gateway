@@ -13,15 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.factory;
 
 import java.net.URI;
 import java.util.Optional;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.Test;
-
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -32,7 +29,6 @@ import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -43,48 +39,32 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @DirtiesContext
 public class RequestHeaderToRequestUriGatewayFilterFactoryIntegrationTests extends BaseWebClientTests {
 
-	@LocalServerPort
-	int port;
+    @LocalServerPort
+    int port;
 
-	@Test
-	public void changeUriWorkWithProperties() {
-		testClient.get().uri("/").header("Host", "www.changeuri.org")
-				.header("X-CF-Forwarded-Url", "http://localhost:" + port + "/actuator/health").exchange()
-				.expectBody(JsonNode.class).consumeWith(r -> assertThat(r.getResponseBody().has("status")).isTrue());
-	}
+    @Test
+    public void changeUriWorkWithProperties() {
+        testClient.get().uri("/").header("Host", "www.changeuri.org").header("X-CF-Forwarded-Url", "http://localhost:" + port + "/actuator/health").exchange().expectBody(JsonNode.class).consumeWith(r -> assertThat(r.getResponseBody().has("status")).isTrue());
+    }
 
-	@Test
-	public void changeUriWorkWithDsl() {
-		testClient.get().uri("/").header("Host", "www.changeuri.org")
-				.header("X-Next-Url", "http://localhost:" + port + "/actuator/health").exchange()
-				.expectBody(JsonNode.class).consumeWith(r -> assertThat(r.getResponseBody().has("status")).isTrue());
-	}
+    @Test
+    public void changeUriWorkWithDsl() {
+        testClient.get().uri("/").header("Host", "www.changeuri.org").header("X-Next-Url", "http://localhost:" + port + "/actuator/health").exchange().expectBody(JsonNode.class).consumeWith(r -> assertThat(r.getResponseBody().has("status")).isTrue());
+    }
 
-	@Test
-	public void changeUriWorkWithCustomLogic() {
-		testClient.get()
-				.uri(b -> b.path("/").queryParam("url", "http://localhost:" + port + "/actuator/health").build())
-				.header("Host", "www.changeuri.org").exchange().expectBody(JsonNode.class)
-				.consumeWith(r -> assertThat(r.getResponseBody().has("status")).isTrue());
-	}
+    @Test
+    public void changeUriWorkWithCustomLogic() {
+        testClient.get().uri(b -> b.path("/").queryParam("url", "http://localhost:" + port + "/actuator/health").build()).header("Host", "www.changeuri.org").exchange().expectBody(JsonNode.class).consumeWith(r -> assertThat(r.getResponseBody().has("status")).isTrue());
+    }
 
-	@EnableAutoConfiguration
-	@SpringBootConfiguration
-	@Import(DefaultTestConfig.class)
-	public static class TestConfig {
+    @EnableAutoConfiguration
+    @SpringBootConfiguration
+    @Import(DefaultTestConfig.class)
+    public static class TestConfig {
 
-		@Bean
-		public RouteLocator routeLocator(RouteLocatorBuilder builder) {
-			return builder.routes()
-					.route(r -> r.host("**.changeuri.org").and().header("X-Next-Url")
-							.filters(f -> f.requestHeaderToRequestUri("X-Next-Url")).uri("https://example.com"))
-					.route(r -> r.host("**.changeuri.org").and().query("url")
-							.filters(f -> f.changeRequestUri(
-									e -> Optional.of(URI.create(e.getRequest().getQueryParams().getFirst("url")))))
-							.uri("https://example.com"))
-					.build();
-		}
-
-	}
-
+        @Bean
+        public RouteLocator routeLocator(RouteLocatorBuilder builder) {
+            return builder.routes().route(r -> r.host("**.changeuri.org").and().header("X-Next-Url").filters(f -> f.requestHeaderToRequestUri("X-Next-Url")).uri("https://example.com")).route(r -> r.host("**.changeuri.org").and().query("url").filters(f -> f.changeRequestUri(e -> Optional.of(URI.create(e.getRequest().getQueryParams().getFirst("url"))))).uri("https://example.com")).build();
+        }
+    }
 }

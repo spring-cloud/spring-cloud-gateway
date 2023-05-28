@@ -13,13 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.handler;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
@@ -34,46 +32,43 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.util.TestSocketUtils;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.bind.annotation.RestController;
-
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @AutoConfigureWebTestClient
 public class RoutePredicateHandlerMappingWithAutoconfiguredClientIntegrationTests {
 
-	@Autowired
-	WebTestClient webTestClient;
+    @Autowired
+    WebTestClient webTestClient;
 
-	@BeforeAll
-	static void beforeClass() {
-		int managementPort = TestSocketUtils.findAvailableTcpPort();
-		System.setProperty("management.server.port", String.valueOf(managementPort));
-	}
+    @BeforeAll
+    static void beforeClass() {
+        int managementPort = TestSocketUtils.findAvailableTcpPort();
+        System.setProperty("management.server.port", String.valueOf(managementPort));
+    }
 
-	@AfterAll
-	static void afterClass() {
-		System.clearProperty("management.server.port");
-	}
+    @AfterAll
+    static void afterClass() {
+        System.clearProperty("management.server.port");
+    }
 
-	@Test
-	void shouldReturnOk() {
-		this.webTestClient.get().uri("/get").exchange().expectStatus().isOk();
-	}
+    @Test
+    void shouldReturnOk() {
+        this.webTestClient.get().uri("/get").exchange().expectStatus().isOk();
+    }
 
-	@EnableAutoConfiguration
-	@SpringBootConfiguration
-	@Import(BaseWebClientTests.DefaultTestConfig.class)
-	@RestController
-	public static class TestConfig {
+    @EnableAutoConfiguration
+    @SpringBootConfiguration
+    @Import(BaseWebClientTests.DefaultTestConfig.class)
+    @RestController
+    public static class TestConfig {
 
-		@Value("${test.uri:http://httpbin.org:80}")
-		String uri;
+        @Value("${test.uri:http://httpbin.org:80}")
+        String uri;
 
-		@Bean
-		RouteLocator testRoutes(RouteLocatorBuilder builder) {
-			return builder.routes().route(r -> r.path("/get").filters(f -> f.prefixPath("/httpbin")).uri(uri)).build();
-		}
-
-	}
-
+        @Bean
+        RouteLocator testRoutes(RouteLocatorBuilder builder) {
+            return builder.routes().route(r -> r.path("/get").filters(f -> f.prefixPath("/httpbin")).uri(uri)).build();
+        }
+    }
 }

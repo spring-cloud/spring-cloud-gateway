@@ -13,20 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.factory.cache;
 
 import java.time.Duration;
-
 import reactor.core.publisher.Mono;
-
 import org.springframework.cache.Cache;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.NettyWriteResponseFilter;
 import org.springframework.core.Ordered;
 import org.springframework.web.server.ServerWebExchange;
-
 import static org.springframework.cloud.gateway.filter.factory.cache.LocalResponseCacheGatewayFilterFactory.LOCAL_RESPONSE_CACHE_FILTER_APPLIED;
 
 /**
@@ -38,25 +34,22 @@ import static org.springframework.cloud.gateway.filter.factory.cache.LocalRespon
  */
 public class GlobalLocalResponseCacheGatewayFilter implements GlobalFilter, Ordered {
 
-	private final ResponseCacheGatewayFilter responseCacheGatewayFilter;
+    private final ResponseCacheGatewayFilter responseCacheGatewayFilter;
 
-	public GlobalLocalResponseCacheGatewayFilter(ResponseCacheManagerFactory cacheManagerFactory, Cache globalCache,
-			Duration configuredTimeToLive) {
-		responseCacheGatewayFilter = new ResponseCacheGatewayFilter(
-				cacheManagerFactory.create(globalCache, configuredTimeToLive));
-	}
+    public GlobalLocalResponseCacheGatewayFilter(ResponseCacheManagerFactory cacheManagerFactory, Cache globalCache, Duration configuredTimeToLive) {
+        responseCacheGatewayFilter = new ResponseCacheGatewayFilter(cacheManagerFactory.create(globalCache, configuredTimeToLive));
+    }
 
-	@Override
-	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-		if (exchange.getAttributes().get(LOCAL_RESPONSE_CACHE_FILTER_APPLIED) == null) {
-			return responseCacheGatewayFilter.filter(exchange, chain);
-		}
-		return chain.filter(exchange);
-	}
+    @Override
+    public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        if (exchange.getAttributes().get(LOCAL_RESPONSE_CACHE_FILTER_APPLIED) == null) {
+            return responseCacheGatewayFilter.filter(exchange, chain);
+        }
+        return chain.filter(exchange);
+    }
 
-	@Override
-	public int getOrder() {
-		return NettyWriteResponseFilter.WRITE_RESPONSE_FILTER_ORDER - 2;
-	}
-
+    @Override
+    public int getOrder() {
+        return NettyWriteResponseFilter.WRITE_RESPONSE_FILTER_ORDER - 2;
+    }
 }

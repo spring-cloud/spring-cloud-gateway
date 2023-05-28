@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.handler.predicate;
 
 import java.util.ArrayList;
@@ -21,7 +20,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
-
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.util.AntPathMatcher;
@@ -34,81 +32,78 @@ import org.springframework.web.server.ServerWebExchange;
  */
 public class HostRoutePredicateFactory extends AbstractRoutePredicateFactory<HostRoutePredicateFactory.Config> {
 
-	private PathMatcher pathMatcher = new AntPathMatcher(".");
+    private PathMatcher pathMatcher = new AntPathMatcher(".");
 
-	public HostRoutePredicateFactory() {
-		super(Config.class);
-	}
+    public HostRoutePredicateFactory() {
+        super(Config.class);
+    }
 
-	public void setPathMatcher(PathMatcher pathMatcher) {
-		this.pathMatcher = pathMatcher;
-	}
+    public void setPathMatcher(PathMatcher pathMatcher) {
+        this.pathMatcher = pathMatcher;
+    }
 
-	@Override
-	public List<String> shortcutFieldOrder() {
-		return Collections.singletonList("patterns");
-	}
+    @Override
+    public List<String> shortcutFieldOrder() {
+        return Collections.singletonList("patterns");
+    }
 
-	@Override
-	public ShortcutType shortcutType() {
-		return ShortcutType.GATHER_LIST;
-	}
+    @Override
+    public ShortcutType shortcutType() {
+        return ShortcutType.GATHER_LIST;
+    }
 
-	@Override
-	public Predicate<ServerWebExchange> apply(Config config) {
-		return new GatewayPredicate() {
-			@Override
-			public boolean test(ServerWebExchange exchange) {
-				String host = exchange.getRequest().getHeaders().getFirst("Host");
-				String match = null;
-				for (int i = 0; i < config.getPatterns().size(); i++) {
-					String pattern = config.getPatterns().get(i);
-					if (pathMatcher.match(pattern, host)) {
-						match = pattern;
-						break;
-					}
-				}
+    @Override
+    public Predicate<ServerWebExchange> apply(Config config) {
+        return new GatewayPredicate() {
 
-				if (match != null) {
-					Map<String, String> variables = pathMatcher.extractUriTemplateVariables(match, host);
-					ServerWebExchangeUtils.putUriTemplateVariables(exchange, variables);
-					return true;
-				}
+            @Override
+            public boolean test(ServerWebExchange exchange) {
+                String host = exchange.getRequest().getHeaders().getFirst("Host");
+                String match = null;
+                for (int i = 0; i < config.getPatterns().size(); i++) {
+                    String pattern = config.getPatterns().get(i);
+                    if (pathMatcher.match(pattern, host)) {
+                        match = pattern;
+                        break;
+                    }
+                }
+                if (match != null) {
+                    Map<String, String> variables = pathMatcher.extractUriTemplateVariables(match, host);
+                    ServerWebExchangeUtils.putUriTemplateVariables(exchange, variables);
+                    return true;
+                }
+                return false;
+            }
 
-				return false;
-			}
+            @Override
+            public Object getConfig() {
+                return config;
+            }
 
-			@Override
-			public Object getConfig() {
-				return config;
-			}
+            @Override
+            public String toString() {
+                return String.format("Hosts: %s", config.getPatterns());
+            }
+        };
+    }
 
-			@Override
-			public String toString() {
-				return String.format("Hosts: %s", config.getPatterns());
-			}
-		};
-	}
+    @Validated
+    public static class Config {
 
-	@Validated
-	public static class Config {
+        private List<String> patterns = new ArrayList<>();
 
-		private List<String> patterns = new ArrayList<>();
+        public List<String> getPatterns() {
+            return patterns;
+        }
 
-		public List<String> getPatterns() {
-			return patterns;
-		}
+        public Config setPatterns(List<String> patterns) {
+            this.patterns = patterns;
+            return this;
+        }
 
-		public Config setPatterns(List<String> patterns) {
-			this.patterns = patterns;
-			return this;
-		}
-
-		@Override
-		public String toString() {
-			return new ToStringCreator(this).append("patterns", patterns).toString();
-		}
-
-	}
-
+        @Override
+        public String toString() {
+            return new ToStringCreator(this).append("patterns", patterns).toString();
+        }
+    }
 }

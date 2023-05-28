@@ -13,45 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.config.conditional;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import org.springframework.cloud.gateway.filter.AdaptCachedBodyGlobalFilter;
 import org.springframework.cloud.gateway.filter.ForwardPathFilter;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.WebsocketRoutingFilter;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 class OnEnabledGlobalFilterTests {
 
-	private OnEnabledGlobalFilter onEnabledGlobalFilter;
+    private OnEnabledGlobalFilter onEnabledGlobalFilter;
 
-	@BeforeEach
-	void setUp() {
-		this.onEnabledGlobalFilter = new OnEnabledGlobalFilter();
-	}
+    @BeforeEach
+    void setUp() {
+        this.onEnabledGlobalFilter = new OnEnabledGlobalFilter();
+    }
 
-	@Test
-	void shouldNormalizeGlobalFiltersNames() {
-		List<Class<? extends GlobalFilter>> predicates = Arrays.asList(ForwardPathFilter.class,
-				AdaptCachedBodyGlobalFilter.class, WebsocketRoutingFilter.class);
-
-		List<String> resultNames = predicates.stream().map(onEnabledGlobalFilter::normalizeComponentName)
-				.collect(Collectors.toList());
-
-		List<String> expectedNames = Stream.of("forward-path", "adapt-cached-body", "websocket-routing")
-				.map(s -> "global-filter." + s).collect(Collectors.toList());
-
-		assertThat(resultNames).isEqualTo(expectedNames);
-	}
-
+    @Test
+    void shouldNormalizeGlobalFiltersNames() {
+        List<Class<? extends GlobalFilter>> predicates = Arrays.asList(ForwardPathFilter.class, AdaptCachedBodyGlobalFilter.class, WebsocketRoutingFilter.class);
+        List<String> resultNames = predicates.stream().map(onEnabledGlobalFilter::normalizeComponentName).collect(Collectors.toList());
+        List<String> expectedNames = Stream.of("forward-path", "adapt-cached-body", "websocket-routing").map(s -> "global-filter." + s).collect(Collectors.toList());
+        assertThat(resultNames).isEqualTo(expectedNames);
+    }
 }

@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.support.ipresolver;
 
 import java.net.InetSocketAddress;
-
 import org.springframework.web.server.ServerWebExchange;
 
 /**
@@ -25,8 +23,7 @@ import org.springframework.web.server.ServerWebExchange;
  */
 public interface RemoteAddressResolver {
 
-	default InetSocketAddress resolve(ServerWebExchange exchange) {
-		return exchange.getRequest().getRemoteAddress();
-	}
-
+    default InetSocketAddress resolve(ServerWebExchange exchange) {
+        return exchange.getRequest().getRemoteAddress();
+    }
 }

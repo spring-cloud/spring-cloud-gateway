@@ -13,38 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.factory;
 
 import org.junit.jupiter.api.Test;
-
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
-
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
 class DedupeResponseHeaderGatewayFilterFactoryTests extends BaseWebClientTests {
 
-	@Test
-	void dedupeResponseHeaderFilterWorks() {
-		testClient.get().uri("/headers").header("Host", "www.deduperesponseheader.org").exchange().expectStatus().isOk()
-				.expectHeader().valueEquals("Access-Control-Allow-Credentials", "true").expectHeader()
-				.valueEquals("Access-Control-Allow-Origin", "https://musk.mars").expectHeader()
-				.valueEquals("Scout-Cookie", "S'mores").expectHeader()
-				.valueEquals("Next-Week-Lottery-Numbers", "4", "2", "42");
-	}
+    @Test
+    void dedupeResponseHeaderFilterWorks() {
+        testClient.get().uri("/headers").header("Host", "www.deduperesponseheader.org").exchange().expectStatus().isOk().expectHeader().valueEquals("Access-Control-Allow-Credentials", "true").expectHeader().valueEquals("Access-Control-Allow-Origin", "https://musk.mars").expectHeader().valueEquals("Scout-Cookie", "S'mores").expectHeader().valueEquals("Next-Week-Lottery-Numbers", "4", "2", "42");
+    }
 
-	@EnableAutoConfiguration
-	@SpringBootConfiguration
-	@Import(DefaultTestConfig.class)
-	static class TestConfig {
-
-	}
-
+    @EnableAutoConfiguration
+    @SpringBootConfiguration
+    @Import(DefaultTestConfig.class)
+    static class TestConfig {
+    }
 }

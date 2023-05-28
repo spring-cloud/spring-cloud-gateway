@@ -13,13 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.factory;
 
 import java.util.Map;
-
 import org.junit.jupiter.api.Test;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -32,7 +29,6 @@ import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.cloud.gateway.test.TestUtils.getMap;
@@ -45,41 +41,34 @@ import static org.springframework.cloud.gateway.test.TestUtils.getMap;
 @DirtiesContext
 public class SetRequestHeaderGatewayFilterFactoryTests extends BaseWebClientTests {
 
-	@Test
-	public void setRequestHeaderFilterWorks() {
-		testClient.get().uri("/headers").header("Host", "www.setrequestheader.org").exchange().expectStatus().isOk()
-				.expectBody(Map.class).consumeWith(result -> {
-					Map<String, Object> headers = getMap(result.getResponseBody(), "headers");
-					// add was called first, so sets will overwrite
-					assertThat(headers).doesNotContainEntry("X-Req-Foo", "First");
-					assertThat(headers).containsEntry("X-Req-Foo", "Second-www");
-				});
-	}
+    @Test
+    public void setRequestHeaderFilterWorks() {
+        testClient.get().uri("/headers").header("Host", "www.setrequestheader.org").exchange().expectStatus().isOk().expectBody(Map.class).consumeWith(result -> {
+            Map<String, Object> headers = getMap(result.getResponseBody(), "headers");
+            // add was called first, so sets will overwrite
+            assertThat(headers).doesNotContainEntry("X-Req-Foo", "First");
+            assertThat(headers).containsEntry("X-Req-Foo", "Second-www");
+        });
+    }
 
-	@Test
-	public void toStringFormat() {
-		NameValueConfig config = new NameValueConfig().setName("myname").setValue("myvalue");
-		GatewayFilter filter = new SetRequestHeaderGatewayFilterFactory().apply(config);
-		assertThat(filter.toString()).contains("myname").contains("myvalue");
-	}
+    @Test
+    public void toStringFormat() {
+        NameValueConfig config = new NameValueConfig().setName("myname").setValue("myvalue");
+        GatewayFilter filter = new SetRequestHeaderGatewayFilterFactory().apply(config);
+        assertThat(filter.toString()).contains("myname").contains("myvalue");
+    }
 
-	@EnableAutoConfiguration
-	@SpringBootConfiguration
-	@Import(DefaultTestConfig.class)
-	public static class TestConfig {
+    @EnableAutoConfiguration
+    @SpringBootConfiguration
+    @Import(DefaultTestConfig.class)
+    public static class TestConfig {
 
-		@Value("${test.uri}")
-		String uri;
+        @Value("${test.uri}")
+        String uri;
 
-		@Bean
-		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
-			return builder.routes().route("test_set_request_header",
-					r -> r.order(-1).host("{sub}.setrequestheader.org").filters(f -> f.prefixPath("/httpbin")
-							.addRequestHeader("X-Req-Foo", "First").setRequestHeader("X-Req-Foo", "Second-{sub}"))
-							.uri(uri))
-					.build();
-		}
-
-	}
-
+        @Bean
+        public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
+            return builder.routes().route("test_set_request_header", r -> r.order(-1).host("{sub}.setrequestheader.org").filters(f -> f.prefixPath("/httpbin").addRequestHeader("X-Req-Foo", "First").setRequestHeader("X-Req-Foo", "Second-{sub}")).uri(uri)).build();
+        }
+    }
 }

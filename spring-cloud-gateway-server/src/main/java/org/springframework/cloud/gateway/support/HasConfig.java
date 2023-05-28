@@ -13,13 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.support;
 
 public interface HasConfig {
 
-	default Object getConfig() {
-		return null;
-	}
-
+    default Object getConfig() {
+        return null;
+    }
 }

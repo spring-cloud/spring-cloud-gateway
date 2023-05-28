@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.factory;
 
 import org.junit.jupiter.api.Test;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -30,7 +28,6 @@ import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -38,42 +35,34 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @DirtiesContext
 public class SetResponseHeaderGatewayFilterFactoryTests extends BaseWebClientTests {
 
-	@Test
-	public void setResponseHeaderFilterWorks() {
-		testClient.get().uri("/headers").header("Host", "www.setreresponseheader.org").exchange().expectStatus().isOk()
-				.expectHeader().valueEquals("X-Response-Foo", "Bar");
-	}
+    @Test
+    public void setResponseHeaderFilterWorks() {
+        testClient.get().uri("/headers").header("Host", "www.setreresponseheader.org").exchange().expectStatus().isOk().expectHeader().valueEquals("X-Response-Foo", "Bar");
+    }
 
-	@Test
-	public void setResponseHeaderFilterWorksJavaDsl() {
-		testClient.get().uri("/headers").header("Host", "www.setresponseheaderdsl.org").exchange().expectStatus().isOk()
-				.expectHeader().valueEquals("X-Res-Foo", "Second-www");
-	}
+    @Test
+    public void setResponseHeaderFilterWorksJavaDsl() {
+        testClient.get().uri("/headers").header("Host", "www.setresponseheaderdsl.org").exchange().expectStatus().isOk().expectHeader().valueEquals("X-Res-Foo", "Second-www");
+    }
 
-	@Test
-	public void toStringFormat() {
-		NameValueConfig config = new NameValueConfig().setName("myname").setValue("myvalue");
-		GatewayFilter filter = new SetResponseHeaderGatewayFilterFactory().apply(config);
-		assertThat(filter.toString()).contains("myname").contains("myvalue");
-	}
+    @Test
+    public void toStringFormat() {
+        NameValueConfig config = new NameValueConfig().setName("myname").setValue("myvalue");
+        GatewayFilter filter = new SetResponseHeaderGatewayFilterFactory().apply(config);
+        assertThat(filter.toString()).contains("myname").contains("myvalue");
+    }
 
-	@EnableAutoConfiguration
-	@SpringBootConfiguration
-	@Import(DefaultTestConfig.class)
-	public static class TestConfig {
+    @EnableAutoConfiguration
+    @SpringBootConfiguration
+    @Import(DefaultTestConfig.class)
+    public static class TestConfig {
 
-		@Value("${test.uri}")
-		String uri;
+        @Value("${test.uri}")
+        String uri;
 
-		@Bean
-		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
-			return builder.routes().route("test_set_response_header_dsl",
-					r -> r.order(-1).host("{sub}.setresponseheaderdsl.org").filters(f -> f.prefixPath("/httpbin")
-							.setResponseHeader("X-Res-Foo", "Second-{sub}").addResponseHeader("X-Res-Foo", "First"))
-							.uri(uri))
-					.build();
-		}
-
-	}
-
+        @Bean
+        public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
+            return builder.routes().route("test_set_response_header_dsl", r -> r.order(-1).host("{sub}.setresponseheaderdsl.org").filters(f -> f.prefixPath("/httpbin").setResponseHeader("X-Res-Foo", "Second-{sub}").addResponseHeader("X-Res-Foo", "First")).uri(uri)).build();
+        }
+    }
 }

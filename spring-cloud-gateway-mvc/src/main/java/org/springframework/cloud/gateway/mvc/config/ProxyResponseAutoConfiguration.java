@@ -13,13 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.mvc.config;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -51,40 +49,39 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @EnableConfigurationProperties(ProxyProperties.class)
 public class ProxyResponseAutoConfiguration implements WebMvcConfigurer {
 
-	@Autowired
-	private ApplicationContext context;
+    @Autowired
+    private ApplicationContext context;
 
-	@Bean
-	@ConditionalOnMissingBean
-	public ProxyExchangeArgumentResolver proxyExchangeArgumentResolver(Optional<RestTemplateBuilder> optional,
-			ProxyProperties proxy) {
-		RestTemplateBuilder builder = optional.orElse(new RestTemplateBuilder());
-		RestTemplate template = builder.build();
-		template.setErrorHandler(new NoOpResponseErrorHandler());
-		template.getMessageConverters().add(new ByteArrayHttpMessageConverter() {
-			@Override
-			public boolean supports(Class<?> clazz) {
-				return true;
-			}
-		});
-		ProxyExchangeArgumentResolver resolver = new ProxyExchangeArgumentResolver(template);
-		resolver.setHeaders(proxy.convertHeaders());
-		resolver.setAutoForwardedHeaders(proxy.getAutoForward());
-		resolver.setSensitive(proxy.getSensitive()); // can be null
-		return resolver;
-	}
+    @Bean
+    @ConditionalOnMissingBean
+    public ProxyExchangeArgumentResolver proxyExchangeArgumentResolver(Optional<RestTemplateBuilder> optional, ProxyProperties proxy) {
+        RestTemplateBuilder builder = optional.orElse(new RestTemplateBuilder());
+        RestTemplate template = builder.build();
+        template.setErrorHandler(new NoOpResponseErrorHandler());
+        template.getMessageConverters().add(new ByteArrayHttpMessageConverter() {
 
-	@Override
-	public void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
-		argumentResolvers.add(context.getBean(ProxyExchangeArgumentResolver.class));
-	}
+            @Override
+            public boolean supports(Class<?> clazz) {
+                return true;
+            }
+        });
+        ProxyExchangeArgumentResolver resolver = new ProxyExchangeArgumentResolver(template);
+        resolver.setHeaders(proxy.convertHeaders());
+        resolver.setAutoForwardedHeaders(proxy.getAutoForward());
+        // can be null
+        resolver.setSensitive(proxy.getSensitive());
+        return resolver;
+    }
 
-	private static class NoOpResponseErrorHandler extends DefaultResponseErrorHandler {
+    @Override
+    public void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
+        argumentResolvers.add(context.getBean(ProxyExchangeArgumentResolver.class));
+    }
 
-		@Override
-		public void handleError(ClientHttpResponse response) throws IOException {
-		}
+    private static class NoOpResponseErrorHandler extends DefaultResponseErrorHandler {
 
-	}
-
+        @Override
+        public void handleError(ClientHttpResponse response) throws IOException {
+        }
+    }
 }

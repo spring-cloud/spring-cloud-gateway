@@ -13,16 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.mvc.config;
 
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -40,79 +37,74 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.DefaultResponseErrorHandler;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @ContextConfiguration(classes = ProxyExchangeArgumentResolverTest.ProxyExchangeArgumentResolverTestApplication.class)
 public class ProxyExchangeArgumentResolverTest {
 
-	@Autowired
-	private TestRestTemplate rest;
+    @Autowired
+    private TestRestTemplate rest;
 
-	@Autowired
-	private ProxyExchangeArgumentResolverTestApplication application;
+    @Autowired
+    private ProxyExchangeArgumentResolverTestApplication application;
 
-	@LocalServerPort
-	private int port;
+    @LocalServerPort
+    private int port;
 
-	@BeforeEach
-	public void setUp() throws Exception {
-		application.setHome(new URI("http://localhost:" + port));
-		rest.getRestTemplate().setRequestFactory(new SimpleClientHttpRequestFactory());
-	}
+    @BeforeEach
+    public void setUp() throws Exception {
+        application.setHome(new URI("http://localhost:" + port));
+        rest.getRestTemplate().setRequestFactory(new SimpleClientHttpRequestFactory());
+    }
 
-	@Test
-	public void shouldProxyRequestWhenProxyExchangeArgumentResolverIsNotConfigured() {
-		final ResponseEntity<String> response = rest.getForEntity("/proxy", String.class);
-		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-		assertThat(response.getBody()).contains("Hello World");
-	}
+    @Test
+    public void shouldProxyRequestWhenProxyExchangeArgumentResolverIsNotConfigured() {
+        final ResponseEntity<String> response = rest.getForEntity("/proxy", String.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).contains("Hello World");
+    }
 
-	@SpringBootApplication
-	static class ProxyExchangeArgumentResolverTestApplication {
+    @SpringBootApplication
+    static class ProxyExchangeArgumentResolverTestApplication {
 
-		@Autowired
-		private ProxyController controller;
+        @Autowired
+        private ProxyController controller;
 
-		@Bean
-		public ProxyExchangeArgumentResolver proxyExchangeArgumentResolver() {
-			RestTemplateBuilder builder = new RestTemplateBuilder();
-			builder.errorHandler(new DefaultResponseErrorHandler());
-			builder.messageConverters(new ByteArrayHttpMessageConverter());
-			return new ProxyExchangeArgumentResolver(builder.build());
-		}
+        @Bean
+        public ProxyExchangeArgumentResolver proxyExchangeArgumentResolver() {
+            RestTemplateBuilder builder = new RestTemplateBuilder();
+            builder.errorHandler(new DefaultResponseErrorHandler());
+            builder.messageConverters(new ByteArrayHttpMessageConverter());
+            return new ProxyExchangeArgumentResolver(builder.build());
+        }
 
-		public void setHome(final URI home) {
-			controller.setHome(home);
-		}
+        public void setHome(final URI home) {
+            controller.setHome(home);
+        }
 
-		@RestController
-		static class ProxyController {
+        @RestController
+        static class ProxyController {
 
-			private URI home;
+            private URI home;
 
-			public void setHome(URI home) {
-				this.home = home;
-			}
+            public void setHome(URI home) {
+                this.home = home;
+            }
 
-			@GetMapping("/proxy")
-			public ResponseEntity<?> proxyFoo(ProxyExchange<?> proxy) {
-				return proxy.uri(home.toString() + "/foo").get();
-			}
+            @GetMapping("/proxy")
+            public ResponseEntity<?> proxyFoo(ProxyExchange<?> proxy) {
+                return proxy.uri(home.toString() + "/foo").get();
+            }
+        }
 
-		}
+        @RestController
+        static class TestController {
 
-		@RestController
-		static class TestController {
-
-			@GetMapping("/foo")
-			public List<String> foo() {
-				return Collections.singletonList("Hello World");
-			}
-
-		}
-
-	}
-
+            @GetMapping("/foo")
+            public List<String> foo() {
+                return Collections.singletonList("Hello World");
+            }
+        }
+    }
 }

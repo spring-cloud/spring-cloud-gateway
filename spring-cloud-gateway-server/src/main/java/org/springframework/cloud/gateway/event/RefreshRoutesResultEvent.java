@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.event;
 
 import org.springframework.context.ApplicationEvent;
@@ -23,23 +22,22 @@ import org.springframework.context.ApplicationEvent;
  */
 public class RefreshRoutesResultEvent extends ApplicationEvent {
 
-	private Throwable throwable;
+    private Throwable throwable;
 
-	public RefreshRoutesResultEvent(Object source, Throwable throwable) {
-		super(source);
-		this.throwable = throwable;
-	}
+    public RefreshRoutesResultEvent(Object source, Throwable throwable) {
+        super(source);
+        this.throwable = throwable;
+    }
 
-	public RefreshRoutesResultEvent(Object source) {
-		super(source);
-	}
+    public RefreshRoutesResultEvent(Object source) {
+        super(source);
+    }
 
-	public Throwable getThrowable() {
-		return throwable;
-	}
+    public Throwable getThrowable() {
+        return throwable;
+    }
 
-	public boolean isSuccess() {
-		return throwable == null;
-	}
-
+    public boolean isSuccess() {
+        return throwable == null;
+    }
 }

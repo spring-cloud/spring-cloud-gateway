@@ -13,13 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.test.support;
 
 import java.util.concurrent.atomic.AtomicReference;
-
 import reactor.netty.DisposableServer;
-
 import org.springframework.http.server.reactive.ReactorHttpHandlerAdapter;
 
 /**
@@ -27,40 +24,38 @@ import org.springframework.http.server.reactive.ReactorHttpHandlerAdapter;
  */
 public class ReactorHttpServer extends AbstractHttpServer {
 
-	private ReactorHttpHandlerAdapter reactorHandler;
+    private ReactorHttpHandlerAdapter reactorHandler;
 
-	private reactor.netty.http.server.HttpServer reactorServer;
+    private reactor.netty.http.server.HttpServer reactorServer;
 
-	private AtomicReference<DisposableServer> serverRef = new AtomicReference<>();
+    private AtomicReference<DisposableServer> serverRef = new AtomicReference<>();
 
-	@Override
-	protected void initServer() {
-		this.reactorHandler = createHttpHandlerAdapter();
-		this.reactorServer = reactor.netty.http.server.HttpServer.create().host(getHost()).port(getPort());
+    @Override
+    protected void initServer() {
+        this.reactorHandler = createHttpHandlerAdapter();
+        this.reactorServer = reactor.netty.http.server.HttpServer.create().host(getHost()).port(getPort());
+    }
 
-	}
+    private ReactorHttpHandlerAdapter createHttpHandlerAdapter() {
+        return new ReactorHttpHandlerAdapter(resolveHttpHandler());
+    }
 
-	private ReactorHttpHandlerAdapter createHttpHandlerAdapter() {
-		return new ReactorHttpHandlerAdapter(resolveHttpHandler());
-	}
+    @Override
+    protected void startInternal() {
+        DisposableServer server = this.reactorServer.handle(this.reactorHandler).bind().block();
+        setPort(server.port());
+        this.serverRef.set(server);
+    }
 
-	@Override
-	protected void startInternal() {
-		DisposableServer server = this.reactorServer.handle(this.reactorHandler).bind().block();
-		setPort(server.port());
-		this.serverRef.set(server);
-	}
+    @Override
+    protected void stopInternal() {
+        this.serverRef.get().dispose();
+    }
 
-	@Override
-	protected void stopInternal() {
-		this.serverRef.get().dispose();
-	}
-
-	@Override
-	protected void resetInternal() {
-		this.reactorServer = null;
-		this.reactorHandler = null;
-		this.serverRef.set(null);
-	}
-
+    @Override
+    protected void resetInternal() {
+        this.reactorServer = null;
+        this.reactorHandler = null;
+        this.serverRef.set(null);
+    }
 }

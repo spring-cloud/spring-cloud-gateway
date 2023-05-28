@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.support;
 
 /**
@@ -25,6 +24,5 @@ package org.springframework.cloud.gateway.support;
 @FunctionalInterface
 public interface Visitor {
 
-	void visit(HasConfig hasConfig);
-
+    void visit(HasConfig hasConfig);
 }

@@ -13,31 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.support;
 
 import java.util.HashMap;
 import java.util.Map;
-
 import org.springframework.core.style.ToStringCreator;
 
-public abstract class AbstractStatefulConfigurable<C> extends AbstractConfigurable<C>
-		implements StatefulConfigurable<C> {
+public abstract class AbstractStatefulConfigurable<C> extends AbstractConfigurable<C> implements StatefulConfigurable<C> {
 
-	private Map<String, C> config = new HashMap<>();
+    private Map<String, C> config = new HashMap<>();
 
-	protected AbstractStatefulConfigurable(Class<C> configClass) {
-		super(configClass);
-	}
+    protected AbstractStatefulConfigurable(Class<C> configClass) {
+        super(configClass);
+    }
 
-	@Override
-	public Map<String, C> getConfig() {
-		return this.config;
-	}
+    @Override
+    public Map<String, C> getConfig() {
+        return this.config;
+    }
 
-	@Override
-	public String toString() {
-		return new ToStringCreator(this).append("config", config).append("configClass", getConfigClass()).toString();
-	}
-
+    @Override
+    public String toString() {
+        return new ToStringCreator(this).append("config", config).append("configClass", getConfigClass()).toString();
+    }
 }

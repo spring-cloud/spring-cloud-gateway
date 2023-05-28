@@ -13,14 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.handler.predicate;
 
 import java.util.Random;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnJre;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -31,7 +28,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
-
 import static org.junit.jupiter.api.condition.JRE.JAVA_17;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -43,34 +39,29 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @DisabledOnJre(JAVA_17)
 class WeightRoutePredicateFactoryYaml404Tests extends BaseWebClientTests {
 
-	@Autowired
-	private WeightCalculatorWebFilter filter;
+    @Autowired
+    private WeightCalculatorWebFilter filter;
 
-	private static Random getRandom(double value) {
-		Random random = mock(Random.class);
-		when(random.nextDouble()).thenReturn(value);
-		return random;
-	}
+    private static Random getRandom(double value) {
+        Random random = mock(Random.class);
+        when(random.nextDouble()).thenReturn(value);
+        return random;
+    }
 
-	@Test
-	void weightsFromYamlNot404() {
-		filter.setRandom(getRandom(0.5));
+    @Test
+    void weightsFromYamlNot404() {
+        filter.setRandom(getRandom(0.5));
+        testClient.get().uri("/get").header(HttpHeaders.HOST, "www.weight4041.org").exchange().expectStatus().isOk().expectHeader().valueEquals(ROUTE_ID_HEADER, "weight_first_404_test_1");
+    }
 
-		testClient.get().uri("/get").header(HttpHeaders.HOST, "www.weight4041.org").exchange().expectStatus().isOk()
-				.expectHeader().valueEquals(ROUTE_ID_HEADER, "weight_first_404_test_1");
-	}
+    @EnableAutoConfiguration
+    @SpringBootConfiguration
+    @Import(DefaultTestConfig.class)
+    static class TestConfig {
 
-	@EnableAutoConfiguration
-	@SpringBootConfiguration
-	@Import(DefaultTestConfig.class)
-	static class TestConfig {
-
-		TestConfig(WeightCalculatorWebFilter filter) {
-			Random random = getRandom(0.4);
-
-			filter.setRandom(random);
-		}
-
-	}
-
+        TestConfig(WeightCalculatorWebFilter filter) {
+            Random random = getRandom(0.4);
+            filter.setRandom(random);
+        }
+    }
 }

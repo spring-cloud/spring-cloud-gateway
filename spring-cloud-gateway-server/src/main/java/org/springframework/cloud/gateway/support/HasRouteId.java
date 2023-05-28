@@ -13,13 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.support;
 
 public interface HasRouteId {
 
-	void setRouteId(String routeId);
+    void setRouteId(String routeId);
 
-	String getRouteId();
-
+    String getRouteId();
 }

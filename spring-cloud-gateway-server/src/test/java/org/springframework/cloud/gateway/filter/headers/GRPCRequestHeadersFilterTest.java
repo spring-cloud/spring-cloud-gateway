@@ -13,15 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.headers;
 
 import org.junit.jupiter.api.Test;
-
 import org.springframework.http.HttpHeaders;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -29,30 +26,20 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class GRPCRequestHeadersFilterTest {
 
-	@Test
-	public void shouldIncludeTrailersHeaderIfGRPC() {
-		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost:8080/get")
-				.header(HttpHeaders.CONTENT_TYPE, "application/grpc").build();
+    @Test
+    public void shouldIncludeTrailersHeaderIfGRPC() {
+        MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost:8080/get").header(HttpHeaders.CONTENT_TYPE, "application/grpc").build();
+        GRPCRequestHeadersFilter filter = new GRPCRequestHeadersFilter();
+        HttpHeaders headers = filter.filter(request.getHeaders(), MockServerWebExchange.from(request));
+        assertThat(headers).containsKeys("te");
+        assertThat(headers.getFirst("te")).isEqualTo("trailers");
+    }
 
-		GRPCRequestHeadersFilter filter = new GRPCRequestHeadersFilter();
-
-		HttpHeaders headers = filter.filter(request.getHeaders(), MockServerWebExchange.from(request));
-
-		assertThat(headers).containsKeys("te");
-
-		assertThat(headers.getFirst("te")).isEqualTo("trailers");
-	}
-
-	@Test
-	public void shouldNotIncludeTrailersHeaderIfNotGRPC() {
-		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost:8080/get")
-				.header(HttpHeaders.CONTENT_TYPE, "application/json").build();
-
-		GRPCRequestHeadersFilter filter = new GRPCRequestHeadersFilter();
-
-		HttpHeaders headers = filter.filter(request.getHeaders(), MockServerWebExchange.from(request));
-
-		assertThat(headers).doesNotContainKeys("te");
-	}
-
+    @Test
+    public void shouldNotIncludeTrailersHeaderIfNotGRPC() {
+        MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost:8080/get").header(HttpHeaders.CONTENT_TYPE, "application/json").build();
+        GRPCRequestHeadersFilter filter = new GRPCRequestHeadersFilter();
+        HttpHeaders headers = filter.filter(request.getHeaders(), MockServerWebExchange.from(request));
+        assertThat(headers).doesNotContainKeys("te");
+    }
 }

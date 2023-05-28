@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.factory;
 
 import java.net.URI;
@@ -21,9 +20,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import reactor.core.publisher.Mono;
-
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cloud.client.circuitbreaker.ReactiveCircuitBreaker;
 import org.springframework.cloud.client.circuitbreaker.ReactiveCircuitBreakerFactory;
@@ -40,7 +37,6 @@ import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.reactive.DispatcherHandler;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriComponentsBuilder;
-
 import static java.util.Collections.singletonList;
 import static java.util.Optional.ofNullable;
 import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
@@ -53,188 +49,171 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.r
 /**
  * @author Ryan Baxter
  */
-public abstract class SpringCloudCircuitBreakerFilterFactory
-		extends AbstractGatewayFilterFactory<SpringCloudCircuitBreakerFilterFactory.Config> {
+public abstract class SpringCloudCircuitBreakerFilterFactory extends AbstractGatewayFilterFactory<SpringCloudCircuitBreakerFilterFactory.Config> {
 
-	/** CircuitBreaker component name. */
-	public static final String NAME = "CircuitBreaker";
+    /**
+     * CircuitBreaker component name.
+     */
+    public static final String NAME = "CircuitBreaker";
 
-	private ReactiveCircuitBreakerFactory reactiveCircuitBreakerFactory;
+    private ReactiveCircuitBreakerFactory reactiveCircuitBreakerFactory;
 
-	private ReactiveCircuitBreaker cb;
+    private ReactiveCircuitBreaker cb;
 
-	private final ObjectProvider<DispatcherHandler> dispatcherHandlerProvider;
+    private final ObjectProvider<DispatcherHandler> dispatcherHandlerProvider;
 
-	// do not use this dispatcherHandler directly, use getDispatcherHandler() instead.
-	private volatile DispatcherHandler dispatcherHandler;
+    // do not use this dispatcherHandler directly, use getDispatcherHandler() instead.
+    private volatile DispatcherHandler dispatcherHandler;
 
-	public SpringCloudCircuitBreakerFilterFactory(ReactiveCircuitBreakerFactory reactiveCircuitBreakerFactory,
-			ObjectProvider<DispatcherHandler> dispatcherHandlerProvider) {
-		super(Config.class);
-		this.reactiveCircuitBreakerFactory = reactiveCircuitBreakerFactory;
-		this.dispatcherHandlerProvider = dispatcherHandlerProvider;
-	}
+    public SpringCloudCircuitBreakerFilterFactory(ReactiveCircuitBreakerFactory reactiveCircuitBreakerFactory, ObjectProvider<DispatcherHandler> dispatcherHandlerProvider) {
+        super(Config.class);
+        this.reactiveCircuitBreakerFactory = reactiveCircuitBreakerFactory;
+        this.dispatcherHandlerProvider = dispatcherHandlerProvider;
+    }
 
-	private DispatcherHandler getDispatcherHandler() {
-		if (dispatcherHandler == null) {
-			dispatcherHandler = dispatcherHandlerProvider.getIfAvailable();
-		}
+    private DispatcherHandler getDispatcherHandler() {
+        if (dispatcherHandler == null) {
+            dispatcherHandler = dispatcherHandlerProvider.getIfAvailable();
+        }
+        return dispatcherHandler;
+    }
 
-		return dispatcherHandler;
-	}
+    @Override
+    public List<String> shortcutFieldOrder() {
+        return singletonList(NAME_KEY);
+    }
 
-	@Override
-	public List<String> shortcutFieldOrder() {
-		return singletonList(NAME_KEY);
-	}
+    @Override
+    public GatewayFilter apply(Config config) {
+        ReactiveCircuitBreaker cb = reactiveCircuitBreakerFactory.create(config.getId());
+        Set<HttpStatus> statuses = config.getStatusCodes().stream().map(HttpStatusHolder::parse).filter(statusHolder -> statusHolder.getHttpStatus() != null).map(HttpStatusHolder::getHttpStatus).collect(Collectors.toSet());
+        return new GatewayFilter() {
 
-	@Override
-	public GatewayFilter apply(Config config) {
-		ReactiveCircuitBreaker cb = reactiveCircuitBreakerFactory.create(config.getId());
-		Set<HttpStatus> statuses = config.getStatusCodes().stream().map(HttpStatusHolder::parse)
-				.filter(statusHolder -> statusHolder.getHttpStatus() != null).map(HttpStatusHolder::getHttpStatus)
-				.collect(Collectors.toSet());
+            @Override
+            public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+                return cb.run(chain.filter(exchange).doOnSuccess(v -> {
+                    if (statuses.contains(exchange.getResponse().getStatusCode())) {
+                        HttpStatusCode status = exchange.getResponse().getStatusCode();
+                        throw new CircuitBreakerStatusCodeException(status);
+                    }
+                }), t -> {
+                    if (config.getFallbackUri() == null) {
+                        return Mono.error(t);
+                    }
+                    exchange.getResponse().setStatusCode(null);
+                    reset(exchange);
+                    // TODO: copied from RouteToRequestUrlFilter
+                    URI uri = exchange.getRequest().getURI();
+                    // TODO: assume always?
+                    boolean encoded = containsEncodedParts(uri);
+                    String expandedFallbackUri = ServerWebExchangeUtils.expand(exchange, config.getFallbackUri().getPath());
+                    String fullFallbackUri = String.format("%s:%s", config.getFallbackUri().getScheme(), expandedFallbackUri);
+                    URI requestUrl = UriComponentsBuilder.fromUri(uri).host(null).port(null).uri(URI.create(fullFallbackUri)).scheme(null).build(encoded).toUri();
+                    exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, requestUrl);
+                    exchange.getAttributes().remove(GATEWAY_PREDICATE_PATH_CONTAINER_ATTR);
+                    addExceptionDetails(t, exchange);
+                    // Reset the exchange
+                    reset(exchange);
+                    ServerHttpRequest request = exchange.getRequest().mutate().uri(requestUrl).build();
+                    return getDispatcherHandler().handle(exchange.mutate().request(request).build());
+                }).onErrorResume(t -> handleErrorWithoutFallback(t, config.isResumeWithoutError()));
+            }
 
-		return new GatewayFilter() {
-			@Override
-			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-				return cb.run(chain.filter(exchange).doOnSuccess(v -> {
-					if (statuses.contains(exchange.getResponse().getStatusCode())) {
-						HttpStatusCode status = exchange.getResponse().getStatusCode();
-						throw new CircuitBreakerStatusCodeException(status);
-					}
-				}), t -> {
-					if (config.getFallbackUri() == null) {
-						return Mono.error(t);
-					}
+            @Override
+            public String toString() {
+                return filterToStringCreator(SpringCloudCircuitBreakerFilterFactory.this).append("name", config.getName()).append("fallback", config.fallbackUri).toString();
+            }
+        };
+    }
 
-					exchange.getResponse().setStatusCode(null);
-					reset(exchange);
+    protected abstract Mono<Void> handleErrorWithoutFallback(Throwable t, boolean resumeWithoutError);
 
-					// TODO: copied from RouteToRequestUrlFilter
-					URI uri = exchange.getRequest().getURI();
-					// TODO: assume always?
-					boolean encoded = containsEncodedParts(uri);
+    private void addExceptionDetails(Throwable t, ServerWebExchange exchange) {
+        ofNullable(t).ifPresent(exception -> exchange.getAttributes().put(CIRCUITBREAKER_EXECUTION_EXCEPTION_ATTR, exception));
+    }
 
-					String expandedFallbackUri = ServerWebExchangeUtils.expand(exchange,
-							config.getFallbackUri().getPath());
-					String fullFallbackUri = String.format("%s:%s", config.getFallbackUri().getScheme(),
-							expandedFallbackUri);
-					URI requestUrl = UriComponentsBuilder.fromUri(uri).host(null).port(null)
-							.uri(URI.create(fullFallbackUri)).scheme(null).build(encoded).toUri();
+    @Override
+    public String name() {
+        return NAME;
+    }
 
-					exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, requestUrl);
-					exchange.getAttributes().remove(GATEWAY_PREDICATE_PATH_CONTAINER_ATTR);
-					addExceptionDetails(t, exchange);
+    public static class Config implements HasRouteId {
 
-					// Reset the exchange
-					reset(exchange);
+        private String name;
 
-					ServerHttpRequest request = exchange.getRequest().mutate().uri(requestUrl).build();
-					return getDispatcherHandler().handle(exchange.mutate().request(request).build());
-				}).onErrorResume(t -> handleErrorWithoutFallback(t, config.isResumeWithoutError()));
-			}
+        private URI fallbackUri;
 
-			@Override
-			public String toString() {
-				return filterToStringCreator(SpringCloudCircuitBreakerFilterFactory.this)
-						.append("name", config.getName()).append("fallback", config.fallbackUri).toString();
-			}
-		};
-	}
+        private String routeId;
 
-	protected abstract Mono<Void> handleErrorWithoutFallback(Throwable t, boolean resumeWithoutError);
+        private Set<String> statusCodes = new HashSet<>();
 
-	private void addExceptionDetails(Throwable t, ServerWebExchange exchange) {
-		ofNullable(t).ifPresent(
-				exception -> exchange.getAttributes().put(CIRCUITBREAKER_EXECUTION_EXCEPTION_ATTR, exception));
-	}
+        private boolean resumeWithoutError = false;
 
-	@Override
-	public String name() {
-		return NAME;
-	}
+        @Override
+        public void setRouteId(String routeId) {
+            this.routeId = routeId;
+        }
 
-	public static class Config implements HasRouteId {
+        public String getRouteId() {
+            return routeId;
+        }
 
-		private String name;
+        public URI getFallbackUri() {
+            return fallbackUri;
+        }
 
-		private URI fallbackUri;
+        public Config setFallbackUri(URI fallbackUri) {
+            this.fallbackUri = fallbackUri;
+            return this;
+        }
 
-		private String routeId;
+        public Config setFallbackUri(String fallbackUri) {
+            return setFallbackUri(URI.create(fallbackUri));
+        }
 
-		private Set<String> statusCodes = new HashSet<>();
+        public String getName() {
+            return name;
+        }
 
-		private boolean resumeWithoutError = false;
+        public Config setName(String name) {
+            this.name = name;
+            return this;
+        }
 
-		@Override
-		public void setRouteId(String routeId) {
-			this.routeId = routeId;
-		}
+        public String getId() {
+            if (!StringUtils.hasText(name) && StringUtils.hasText(routeId)) {
+                return routeId;
+            }
+            return name;
+        }
 
-		public String getRouteId() {
-			return routeId;
-		}
+        public Set<String> getStatusCodes() {
+            return statusCodes;
+        }
 
-		public URI getFallbackUri() {
-			return fallbackUri;
-		}
+        public Config setStatusCodes(Set<String> statusCodes) {
+            this.statusCodes = statusCodes;
+            return this;
+        }
 
-		public Config setFallbackUri(URI fallbackUri) {
-			this.fallbackUri = fallbackUri;
-			return this;
-		}
+        public Config addStatusCode(String statusCode) {
+            this.statusCodes.add(statusCode);
+            return this;
+        }
 
-		public Config setFallbackUri(String fallbackUri) {
-			return setFallbackUri(URI.create(fallbackUri));
-		}
+        public boolean isResumeWithoutError() {
+            return resumeWithoutError;
+        }
 
-		public String getName() {
-			return name;
-		}
+        public void setResumeWithoutError(boolean resumeWithoutError) {
+            this.resumeWithoutError = resumeWithoutError;
+        }
+    }
 
-		public Config setName(String name) {
-			this.name = name;
-			return this;
-		}
+    public class CircuitBreakerStatusCodeException extends HttpStatusCodeException {
 
-		public String getId() {
-			if (!StringUtils.hasText(name) && StringUtils.hasText(routeId)) {
-				return routeId;
-			}
-			return name;
-		}
-
-		public Set<String> getStatusCodes() {
-			return statusCodes;
-		}
-
-		public Config setStatusCodes(Set<String> statusCodes) {
-			this.statusCodes = statusCodes;
-			return this;
-		}
-
-		public Config addStatusCode(String statusCode) {
-			this.statusCodes.add(statusCode);
-			return this;
-		}
-
-		public boolean isResumeWithoutError() {
-			return resumeWithoutError;
-		}
-
-		public void setResumeWithoutError(boolean resumeWithoutError) {
-			this.resumeWithoutError = resumeWithoutError;
-		}
-
-	}
-
-	public class CircuitBreakerStatusCodeException extends HttpStatusCodeException {
-
-		public CircuitBreakerStatusCodeException(HttpStatusCode statusCode) {
-			super(statusCode);
-		}
-
-	}
-
+        public CircuitBreakerStatusCodeException(HttpStatusCode statusCode) {
+            super(statusCode);
+        }
+    }
 }

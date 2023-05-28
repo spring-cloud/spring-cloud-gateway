@@ -13,62 +13,56 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.factory;
 
 import java.util.Arrays;
 import java.util.List;
-
 import jakarta.validation.constraints.NotEmpty;
-
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.validation.annotation.Validated;
 
-public abstract class AbstractNameValueGatewayFilterFactory
-		extends AbstractGatewayFilterFactory<AbstractNameValueGatewayFilterFactory.NameValueConfig> {
+public abstract class AbstractNameValueGatewayFilterFactory extends AbstractGatewayFilterFactory<AbstractNameValueGatewayFilterFactory.NameValueConfig> {
 
-	public AbstractNameValueGatewayFilterFactory() {
-		super(NameValueConfig.class);
-	}
+    public AbstractNameValueGatewayFilterFactory() {
+        super(NameValueConfig.class);
+    }
 
-	@Override
-	public List<String> shortcutFieldOrder() {
-		return Arrays.asList(GatewayFilter.NAME_KEY, GatewayFilter.VALUE_KEY);
-	}
+    @Override
+    public List<String> shortcutFieldOrder() {
+        return Arrays.asList(GatewayFilter.NAME_KEY, GatewayFilter.VALUE_KEY);
+    }
 
-	@Validated
-	public static class NameValueConfig {
+    @Validated
+    public static class NameValueConfig {
 
-		@NotEmpty
-		protected String name;
+        @NotEmpty
+        protected String name;
 
-		@NotEmpty
-		protected String value;
+        @NotEmpty
+        protected String value;
 
-		public String getName() {
-			return name;
-		}
+        public String getName() {
+            return name;
+        }
 
-		public NameValueConfig setName(String name) {
-			this.name = name;
-			return this;
-		}
+        public NameValueConfig setName(String name) {
+            this.name = name;
+            return this;
+        }
 
-		public String getValue() {
-			return value;
-		}
+        public String getValue() {
+            return value;
+        }
 
-		public NameValueConfig setValue(String value) {
-			this.value = value;
-			return this;
-		}
+        public NameValueConfig setValue(String value) {
+            this.value = value;
+            return this;
+        }
 
-		@Override
-		public String toString() {
-			return new ToStringCreator(this).append("name", name).append("value", value).toString();
-		}
-
-	}
-
+        @Override
+        public String toString() {
+            return new ToStringCreator(this).append("name", name).append("value", value).toString();
+        }
+    }
 }

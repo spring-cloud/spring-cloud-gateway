@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.tests.http2.nossl;
 
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -26,9 +25,8 @@ import org.springframework.web.bind.annotation.RestController;
 @EnableAutoConfiguration
 public class NosslConfiguration {
 
-	@GetMapping("/")
-	public String home() {
-		return "nossl";
-	}
-
+    @GetMapping("/")
+    public String home() {
+        return "nossl";
+    }
 }

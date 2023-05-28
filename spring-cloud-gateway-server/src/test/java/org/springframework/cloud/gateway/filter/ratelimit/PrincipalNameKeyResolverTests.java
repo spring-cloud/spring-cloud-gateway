@@ -13,29 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.ratelimit;
 
 import java.security.Principal;
 import java.time.Duration;
-
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
-
 import org.springframework.web.server.ServerWebExchange;
-
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class PrincipalNameKeyResolverTests {
 
-	@Test
-	public void nullPrincipalNameWorks() {
-		PrincipalNameKeyResolver keyResolver = new PrincipalNameKeyResolver();
-		ServerWebExchange exchange = mock(ServerWebExchange.class);
-		when(exchange.getPrincipal()).thenReturn(Mono.just(mock(Principal.class)));
-		StepVerifier.create(keyResolver.resolve(exchange)).expectComplete().verify(Duration.ofSeconds(5));
-	}
-
+    @Test
+    public void nullPrincipalNameWorks() {
+        PrincipalNameKeyResolver keyResolver = new PrincipalNameKeyResolver();
+        ServerWebExchange exchange = mock(ServerWebExchange.class);
+        when(exchange.getPrincipal()).thenReturn(Mono.just(mock(Principal.class)));
+        StepVerifier.create(keyResolver.resolve(exchange)).expectComplete().verify(Duration.ofSeconds(5));
+    }
 }

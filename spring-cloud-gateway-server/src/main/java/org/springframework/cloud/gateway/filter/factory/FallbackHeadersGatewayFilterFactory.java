@@ -13,16 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.factory;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
-
 import static java.util.Collections.singletonList;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.CIRCUITBREAKER_EXECUTION_EXCEPTION_ATTR;
 
@@ -30,110 +27,105 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.C
  * @author Olga Maciaszek-Sharma
  * @author Ryan Baxter
  */
-public class FallbackHeadersGatewayFilterFactory
-		extends AbstractGatewayFilterFactory<FallbackHeadersGatewayFilterFactory.Config> {
+public class FallbackHeadersGatewayFilterFactory extends AbstractGatewayFilterFactory<FallbackHeadersGatewayFilterFactory.Config> {
 
-	public FallbackHeadersGatewayFilterFactory() {
-		super(Config.class);
-	}
+    public FallbackHeadersGatewayFilterFactory() {
+        super(Config.class);
+    }
 
-	@Override
-	public List<String> shortcutFieldOrder() {
-		return singletonList(NAME_KEY);
-	}
+    @Override
+    public List<String> shortcutFieldOrder() {
+        return singletonList(NAME_KEY);
+    }
 
-	@Override
-	public GatewayFilter apply(Config config) {
-		return (exchange, chain) -> {
-			Throwable exception = exchange.getAttribute(CIRCUITBREAKER_EXECUTION_EXCEPTION_ATTR);
-			ServerWebExchange filteredExchange;
-			if (exception == null) {
-				filteredExchange = exchange;
-			}
-			else {
-				filteredExchange = addFallbackHeaders(config, exchange, exception);
-			}
-			return chain.filter(filteredExchange);
-		};
-	}
+    @Override
+    public GatewayFilter apply(Config config) {
+        return (exchange, chain) -> {
+            Throwable exception = exchange.getAttribute(CIRCUITBREAKER_EXECUTION_EXCEPTION_ATTR);
+            ServerWebExchange filteredExchange;
+            if (exception == null) {
+                filteredExchange = exchange;
+            } else {
+                filteredExchange = addFallbackHeaders(config, exchange, exception);
+            }
+            return chain.filter(filteredExchange);
+        };
+    }
 
-	private ServerWebExchange addFallbackHeaders(Config config, ServerWebExchange exchange,
-			Throwable executionException) {
-		ServerHttpRequest.Builder requestBuilder = exchange.getRequest().mutate();
-		requestBuilder.header(config.executionExceptionTypeHeaderName, executionException.getClass().getName());
-		requestBuilder.header(config.executionExceptionMessageHeaderName, executionException.getMessage());
-		Throwable rootCause = getRootCause(executionException);
-		if (rootCause != null) {
-			requestBuilder.header(config.rootCauseExceptionTypeHeaderName, rootCause.getClass().getName());
-			requestBuilder.header(config.rootCauseExceptionMessageHeaderName, rootCause.getMessage());
-		}
-		return exchange.mutate().request(requestBuilder.build()).build();
-	}
+    private ServerWebExchange addFallbackHeaders(Config config, ServerWebExchange exchange, Throwable executionException) {
+        ServerHttpRequest.Builder requestBuilder = exchange.getRequest().mutate();
+        requestBuilder.header(config.executionExceptionTypeHeaderName, executionException.getClass().getName());
+        requestBuilder.header(config.executionExceptionMessageHeaderName, executionException.getMessage());
+        Throwable rootCause = getRootCause(executionException);
+        if (rootCause != null) {
+            requestBuilder.header(config.rootCauseExceptionTypeHeaderName, rootCause.getClass().getName());
+            requestBuilder.header(config.rootCauseExceptionMessageHeaderName, rootCause.getMessage());
+        }
+        return exchange.mutate().request(requestBuilder.build()).build();
+    }
 
-	private static Throwable getRootCause(final Throwable throwable) {
-		final List<Throwable> list = getThrowableList(throwable);
-		return list.isEmpty() ? null : list.get(list.size() - 1);
-	}
+    private static Throwable getRootCause(final Throwable throwable) {
+        final List<Throwable> list = getThrowableList(throwable);
+        return list.isEmpty() ? null : list.get(list.size() - 1);
+    }
 
-	private static List<Throwable> getThrowableList(Throwable throwable) {
-		final List<Throwable> list = new ArrayList<>();
-		while (throwable != null && !list.contains(throwable)) {
-			list.add(throwable);
-			throwable = throwable.getCause();
-		}
-		return list;
-	}
+    private static List<Throwable> getThrowableList(Throwable throwable) {
+        final List<Throwable> list = new ArrayList<>();
+        while (throwable != null && !list.contains(throwable)) {
+            list.add(throwable);
+            throwable = throwable.getCause();
+        }
+        return list;
+    }
 
-	public static class Config {
+    public static class Config {
 
-		private static final String EXECUTION_EXCEPTION_TYPE = "Execution-Exception-Type";
+        private static final String EXECUTION_EXCEPTION_TYPE = "Execution-Exception-Type";
 
-		private static final String EXECUTION_EXCEPTION_MESSAGE = "Execution-Exception-Message";
+        private static final String EXECUTION_EXCEPTION_MESSAGE = "Execution-Exception-Message";
 
-		private static final String ROOT_CAUSE_EXCEPTION_TYPE = "Root-Cause-Exception-Type";
+        private static final String ROOT_CAUSE_EXCEPTION_TYPE = "Root-Cause-Exception-Type";
 
-		private static final String ROOT_CAUSE_EXCEPTION_MESSAGE = "Root-Cause-Exception-Message";
+        private static final String ROOT_CAUSE_EXCEPTION_MESSAGE = "Root-Cause-Exception-Message";
 
-		private String executionExceptionTypeHeaderName = EXECUTION_EXCEPTION_TYPE;
+        private String executionExceptionTypeHeaderName = EXECUTION_EXCEPTION_TYPE;
 
-		private String executionExceptionMessageHeaderName = EXECUTION_EXCEPTION_MESSAGE;
+        private String executionExceptionMessageHeaderName = EXECUTION_EXCEPTION_MESSAGE;
 
-		private String rootCauseExceptionTypeHeaderName = ROOT_CAUSE_EXCEPTION_TYPE;
+        private String rootCauseExceptionTypeHeaderName = ROOT_CAUSE_EXCEPTION_TYPE;
 
-		private String rootCauseExceptionMessageHeaderName = ROOT_CAUSE_EXCEPTION_MESSAGE;
+        private String rootCauseExceptionMessageHeaderName = ROOT_CAUSE_EXCEPTION_MESSAGE;
 
-		public String getExecutionExceptionTypeHeaderName() {
-			return executionExceptionTypeHeaderName;
-		}
+        public String getExecutionExceptionTypeHeaderName() {
+            return executionExceptionTypeHeaderName;
+        }
 
-		public void setExecutionExceptionTypeHeaderName(String executionExceptionTypeHeaderName) {
-			this.executionExceptionTypeHeaderName = executionExceptionTypeHeaderName;
-		}
+        public void setExecutionExceptionTypeHeaderName(String executionExceptionTypeHeaderName) {
+            this.executionExceptionTypeHeaderName = executionExceptionTypeHeaderName;
+        }
 
-		public String getExecutionExceptionMessageHeaderName() {
-			return executionExceptionMessageHeaderName;
-		}
+        public String getExecutionExceptionMessageHeaderName() {
+            return executionExceptionMessageHeaderName;
+        }
 
-		public void setExecutionExceptionMessageHeaderName(String executionExceptionMessageHeaderName) {
-			this.executionExceptionMessageHeaderName = executionExceptionMessageHeaderName;
-		}
+        public void setExecutionExceptionMessageHeaderName(String executionExceptionMessageHeaderName) {
+            this.executionExceptionMessageHeaderName = executionExceptionMessageHeaderName;
+        }
 
-		public String getRootCauseExceptionTypeHeaderName() {
-			return rootCauseExceptionTypeHeaderName;
-		}
+        public String getRootCauseExceptionTypeHeaderName() {
+            return rootCauseExceptionTypeHeaderName;
+        }
 
-		public void setRootCauseExceptionTypeHeaderName(String rootCauseExceptionTypeHeaderName) {
-			this.rootCauseExceptionTypeHeaderName = rootCauseExceptionTypeHeaderName;
-		}
+        public void setRootCauseExceptionTypeHeaderName(String rootCauseExceptionTypeHeaderName) {
+            this.rootCauseExceptionTypeHeaderName = rootCauseExceptionTypeHeaderName;
+        }
 
-		public String getRootCauseExceptionMessageHeaderName() {
-			return rootCauseExceptionMessageHeaderName;
-		}
+        public String getRootCauseExceptionMessageHeaderName() {
+            return rootCauseExceptionMessageHeaderName;
+        }
 
-		public void setRootCauseExceptionMessageHeaderName(String rootCauseExceptionMessageHeaderName) {
-			this.rootCauseExceptionMessageHeaderName = rootCauseExceptionMessageHeaderName;
-		}
-
-	}
-
+        public void setRootCauseExceptionMessageHeaderName(String rootCauseExceptionMessageHeaderName) {
+            this.rootCauseExceptionMessageHeaderName = rootCauseExceptionMessageHeaderName;
+        }
+    }
 }

@@ -13,15 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.factory.rewrite;
 
 import java.util.function.Supplier;
-
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.http.HttpHeaders;
@@ -34,69 +31,66 @@ import org.springframework.web.server.ServerWebExchange;
  */
 public class CachedBodyOutputMessage implements ReactiveHttpOutputMessage {
 
-	private final DataBufferFactory bufferFactory;
+    private final DataBufferFactory bufferFactory;
 
-	private final HttpHeaders httpHeaders;
+    private final HttpHeaders httpHeaders;
 
-	private boolean cached = false;
+    private boolean cached = false;
 
-	private Flux<DataBuffer> body = null;
+    private Flux<DataBuffer> body = null;
 
-	public CachedBodyOutputMessage(ServerWebExchange exchange, HttpHeaders httpHeaders) {
-		this.bufferFactory = exchange.getResponse().bufferFactory();
-		this.httpHeaders = httpHeaders;
-	}
+    public CachedBodyOutputMessage(ServerWebExchange exchange, HttpHeaders httpHeaders) {
+        this.bufferFactory = exchange.getResponse().bufferFactory();
+        this.httpHeaders = httpHeaders;
+    }
 
-	@Override
-	public void beforeCommit(Supplier<? extends Mono<Void>> action) {
+    @Override
+    public void beforeCommit(Supplier<? extends Mono<Void>> action) {
+    }
 
-	}
+    @Override
+    public boolean isCommitted() {
+        return false;
+    }
 
-	@Override
-	public boolean isCommitted() {
-		return false;
-	}
+    boolean isCached() {
+        return this.cached;
+    }
 
-	boolean isCached() {
-		return this.cached;
-	}
+    @Override
+    public HttpHeaders getHeaders() {
+        return this.httpHeaders;
+    }
 
-	@Override
-	public HttpHeaders getHeaders() {
-		return this.httpHeaders;
-	}
+    @Override
+    public DataBufferFactory bufferFactory() {
+        return this.bufferFactory;
+    }
 
-	@Override
-	public DataBufferFactory bufferFactory() {
-		return this.bufferFactory;
-	}
+    /**
+     * Return the request body, or an error stream if the body was never set or when.
+     * @return body as {@link Flux}
+     */
+    public Flux<DataBuffer> getBody() {
+        if (body == null) {
+            return Flux.error(new IllegalStateException("The body is not set. " + "Did handling complete with success?"));
+        }
+        return this.body;
+    }
 
-	/**
-	 * Return the request body, or an error stream if the body was never set or when.
-	 * @return body as {@link Flux}
-	 */
-	public Flux<DataBuffer> getBody() {
-		if (body == null) {
-			return Flux
-					.error(new IllegalStateException("The body is not set. " + "Did handling complete with success?"));
-		}
-		return this.body;
-	}
+    public Mono<Void> writeWith(Publisher<? extends DataBuffer> body) {
+        this.body = Flux.from(body);
+        this.cached = true;
+        return Mono.empty();
+    }
 
-	public Mono<Void> writeWith(Publisher<? extends DataBuffer> body) {
-		this.body = Flux.from(body);
-		this.cached = true;
-		return Mono.empty();
-	}
+    @Override
+    public Mono<Void> writeAndFlushWith(Publisher<? extends Publisher<? extends DataBuffer>> body) {
+        return writeWith(Flux.from(body).flatMap(p -> p));
+    }
 
-	@Override
-	public Mono<Void> writeAndFlushWith(Publisher<? extends Publisher<? extends DataBuffer>> body) {
-		return writeWith(Flux.from(body).flatMap(p -> p));
-	}
-
-	@Override
-	public Mono<Void> setComplete() {
-		return writeWith(Flux.empty());
-	}
-
+    @Override
+    public Mono<Void> setComplete() {
+        return writeWith(Flux.empty());
+    }
 }

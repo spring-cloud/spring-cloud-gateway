@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.ratelimit;
 
 import reactor.core.publisher.Mono;
-
 import org.springframework.web.server.ServerWebExchange;
 
 /**
@@ -25,6 +23,5 @@ import org.springframework.web.server.ServerWebExchange;
  */
 public interface KeyResolver {
 
-	Mono<String> resolve(ServerWebExchange exchange);
-
+    Mono<String> resolve(ServerWebExchange exchange);
 }

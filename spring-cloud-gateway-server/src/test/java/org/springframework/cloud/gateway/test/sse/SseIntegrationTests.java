@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.test.sse;
 
 import java.time.Duration;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.jupiter.api.AfterEach;
@@ -25,7 +23,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -50,7 +47,6 @@ import org.springframework.web.reactive.DispatcherHandler;
 import org.springframework.web.reactive.config.EnableWebFlux;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.adapter.WebHttpHandlerBuilder;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.core.ResolvableType.forClassWithGenerics;
 import static org.springframework.http.MediaType.TEXT_EVENT_STREAM;
@@ -60,222 +56,200 @@ import static org.springframework.http.MediaType.TEXT_EVENT_STREAM;
  */
 public class SseIntegrationTests {
 
-	public HttpServer server;
+    public HttpServer server;
 
-	protected Log logger = LogFactory.getLog(getClass());
+    protected Log logger = LogFactory.getLog(getClass());
 
-	protected int serverPort;
+    protected int serverPort;
 
-	private AnnotationConfigApplicationContext wac;
+    private AnnotationConfigApplicationContext wac;
 
-	private WebClient webClient;
+    private WebClient webClient;
 
-	private ConfigurableApplicationContext gatewayContext;
+    private ConfigurableApplicationContext gatewayContext;
 
-	private int gatewayPort;
+    private int gatewayPort;
 
-	/**
-	 * Return an interval stream of with n number of ticks and buffer the emissions to
-	 * avoid back pressure failures (e.g. on slow CI server).
-	 */
-	public static Flux<Long> interval(Duration period, int count) {
-		return Flux.interval(period).take(count).onBackpressureBuffer(2);
-	}
+    /**
+     * Return an interval stream of with n number of ticks and buffer the emissions to
+     * avoid back pressure failures (e.g. on slow CI server).
+     */
+    public static Flux<Long> interval(Duration period, int count) {
+        return Flux.interval(period).take(count).onBackpressureBuffer(2);
+    }
 
-	@BeforeEach
-	public void setup() throws Exception {
-		this.server = new ReactorHttpServer();
-		this.server.setHandler(createHttpHandler());
-		this.server.afterPropertiesSet();
-		this.server.start();
+    @BeforeEach
+    public void setup() throws Exception {
+        this.server = new ReactorHttpServer();
+        this.server.setHandler(createHttpHandler());
+        this.server.afterPropertiesSet();
+        this.server.start();
+        // Set dynamically chosen port
+        this.serverPort = this.server.getPort();
+        logger.info("SSE Port: " + this.serverPort);
+        this.gatewayContext = new SpringApplicationBuilder(GatewayConfig.class).properties("sse.server.port:" + this.serverPort, "server.port=0", "spring.jmx.enabled=false").run();
+        ConfigurableEnvironment env = this.gatewayContext.getBean(ConfigurableEnvironment.class);
+        this.gatewayPort = Integer.valueOf(env.getProperty("local.server.port"));
+        this.webClient = WebClient.create("http://localhost:" + this.gatewayPort + "/sse");
+        logger.info("Gateway Port: " + this.gatewayPort);
+    }
 
-		// Set dynamically chosen port
-		this.serverPort = this.server.getPort();
-		logger.info("SSE Port: " + this.serverPort);
+    @AfterEach
+    public void tearDown() throws Exception {
+        this.server.stop();
+        this.serverPort = 0;
+        this.gatewayPort = 0;
+        this.gatewayContext.close();
+        this.wac.close();
+    }
 
-		this.gatewayContext = new SpringApplicationBuilder(GatewayConfig.class)
-				.properties("sse.server.port:" + this.serverPort, "server.port=0", "spring.jmx.enabled=false").run();
+    private HttpHandler createHttpHandler() {
+        this.wac = new AnnotationConfigApplicationContext();
+        this.wac.register(TestConfiguration.class);
+        this.wac.refresh();
+        return WebHttpHandlerBuilder.webHandler(new DispatcherHandler(this.wac)).build();
+    }
 
-		ConfigurableEnvironment env = this.gatewayContext.getBean(ConfigurableEnvironment.class);
-		this.gatewayPort = Integer.valueOf(env.getProperty("local.server.port"));
+    @Test
+    public void sseAsString() {
+        Flux<String> result = this.webClient.get().uri("/string").accept(TEXT_EVENT_STREAM).retrieve().bodyToFlux(String.class);
+        StepVerifier.create(result).expectNext("foo 0").expectNext("foo 1").thenCancel().verify(Duration.ofSeconds(5L));
+    }
 
-		this.webClient = WebClient.create("http://localhost:" + this.gatewayPort + "/sse");
+    @Test
+    public void sseAsPerson() {
+        Flux<Person> result = this.webClient.get().uri("/person").accept(TEXT_EVENT_STREAM).retrieve().bodyToFlux(Person.class);
+        StepVerifier.create(result).expectNext(new Person("foo 0")).expectNext(new Person("foo 1")).thenCancel().verify(Duration.ofSeconds(5L));
+    }
 
-		logger.info("Gateway Port: " + this.gatewayPort);
-	}
+    @Test
+    @SuppressWarnings("Duplicates")
+    public void sseAsEvent() {
+        ResolvableType type = forClassWithGenerics(ServerSentEvent.class, String.class);
+        Flux<ServerSentEvent<String>> result = this.webClient.get().uri("/event").accept(TEXT_EVENT_STREAM).retrieve().bodyToFlux(new ParameterizedTypeReference<ServerSentEvent<String>>() {
+        });
+        StepVerifier.create(result).consumeNextWith(event -> {
+            assertThat(event.id()).isEqualTo("0");
+            assertThat(event.data()).isEqualTo("foo");
+            assertThat(event.comment()).isEqualTo("bar");
+            assertThat(event.event()).isNull();
+            assertThat(event.retry()).isNull();
+        }).consumeNextWith(event -> {
+            assertThat(event.id()).isEqualTo("1");
+            assertThat(event.data()).isEqualTo("foo");
+            assertThat(event.comment()).isEqualTo("bar");
+            assertThat(event.event()).isNull();
+            assertThat(event.retry()).isNull();
+        }).thenCancel().verify(Duration.ofSeconds(5L));
+    }
 
-	@AfterEach
-	public void tearDown() throws Exception {
-		this.server.stop();
-		this.serverPort = 0;
-		this.gatewayPort = 0;
-		this.gatewayContext.close();
-		this.wac.close();
-	}
+    @Test
+    @SuppressWarnings("Duplicates")
+    public void sseAsEventWithoutAcceptHeader() {
+        Flux<ServerSentEvent<String>> result = this.webClient.get().uri("/event").accept(TEXT_EVENT_STREAM).retrieve().bodyToFlux(new ParameterizedTypeReference<ServerSentEvent<String>>() {
+        });
+        StepVerifier.create(result).consumeNextWith(event -> {
+            assertThat(event.id()).isEqualTo("0");
+            assertThat(event.data()).isEqualTo("foo");
+            assertThat(event.comment()).isEqualTo("bar");
+            assertThat(event.event()).isNull();
+            assertThat(event.retry()).isNull();
+        }).consumeNextWith(event -> {
+            assertThat(event.id()).isEqualTo("1");
+            assertThat(event.data()).isEqualTo("foo");
+            assertThat(event.comment()).isEqualTo("bar");
+            assertThat(event.event()).isNull();
+            assertThat(event.retry()).isNull();
+        }).thenCancel().verify(Duration.ofSeconds(5L));
+    }
 
-	private HttpHandler createHttpHandler() {
-		this.wac = new AnnotationConfigApplicationContext();
-		this.wac.register(TestConfiguration.class);
-		this.wac.refresh();
+    @RestController
+    @SuppressWarnings("unused")
+    static class SseController {
 
-		return WebHttpHandlerBuilder.webHandler(new DispatcherHandler(this.wac)).build();
-	}
+        private static final Flux<Long> INTERVAL = interval(Duration.ofMillis(100), 50);
 
-	@Test
-	public void sseAsString() {
-		Flux<String> result = this.webClient.get().uri("/string").accept(TEXT_EVENT_STREAM).retrieve()
-				.bodyToFlux(String.class);
+        @GetMapping("/sse/string")
+        Flux<String> string() {
+            return INTERVAL.map(l -> "foo " + l);
+        }
 
-		StepVerifier.create(result).expectNext("foo 0").expectNext("foo 1").thenCancel().verify(Duration.ofSeconds(5L));
-	}
+        @GetMapping("/sse/person")
+        Flux<Person> person() {
+            return INTERVAL.map(l -> new Person("foo " + l));
+        }
 
-	@Test
-	public void sseAsPerson() {
-		Flux<Person> result = this.webClient.get().uri("/person").accept(TEXT_EVENT_STREAM).retrieve()
-				.bodyToFlux(Person.class);
+        @GetMapping("/sse/event")
+        Flux<ServerSentEvent<String>> sse() {
+            return INTERVAL.map(l -> ServerSentEvent.builder("foo").id(Long.toString(l)).comment("bar").build());
+        }
+    }
 
-		StepVerifier.create(result).expectNext(new Person("foo 0")).expectNext(new Person("foo 1")).thenCancel()
-				.verify(Duration.ofSeconds(5L));
-	}
+    @Configuration(proxyBeanMethods = false)
+    @EnableWebFlux
+    @SuppressWarnings("unused")
+    static class TestConfiguration {
 
-	@Test
-	@SuppressWarnings("Duplicates")
-	public void sseAsEvent() {
-		ResolvableType type = forClassWithGenerics(ServerSentEvent.class, String.class);
-		Flux<ServerSentEvent<String>> result = this.webClient.get().uri("/event").accept(TEXT_EVENT_STREAM).retrieve()
-				.bodyToFlux(new ParameterizedTypeReference<ServerSentEvent<String>>() {
-				});
+        @Bean
+        public SseController sseController() {
+            return new SseController();
+        }
+    }
 
-		StepVerifier.create(result).consumeNextWith(event -> {
-			assertThat(event.id()).isEqualTo("0");
-			assertThat(event.data()).isEqualTo("foo");
-			assertThat(event.comment()).isEqualTo("bar");
-			assertThat(event.event()).isNull();
-			assertThat(event.retry()).isNull();
-		}).consumeNextWith(event -> {
-			assertThat(event.id()).isEqualTo("1");
-			assertThat(event.data()).isEqualTo("foo");
-			assertThat(event.comment()).isEqualTo("bar");
-			assertThat(event.event()).isNull();
-			assertThat(event.retry()).isNull();
-		}).thenCancel().verify(Duration.ofSeconds(5L));
-	}
+    @Configuration(proxyBeanMethods = false)
+    @EnableAutoConfiguration
+    @Import(PermitAllSecurityConfiguration.class)
+    protected static class GatewayConfig {
 
-	@Test
-	@SuppressWarnings("Duplicates")
-	public void sseAsEventWithoutAcceptHeader() {
-		Flux<ServerSentEvent<String>> result = this.webClient.get().uri("/event").accept(TEXT_EVENT_STREAM).retrieve()
-				.bodyToFlux(new ParameterizedTypeReference<ServerSentEvent<String>>() {
-				});
+        @Value("${sse.server.port}")
+        private int port;
 
-		StepVerifier.create(result).consumeNextWith(event -> {
-			assertThat(event.id()).isEqualTo("0");
-			assertThat(event.data()).isEqualTo("foo");
-			assertThat(event.comment()).isEqualTo("bar");
-			assertThat(event.event()).isNull();
-			assertThat(event.retry()).isNull();
-		}).consumeNextWith(event -> {
-			assertThat(event.id()).isEqualTo("1");
-			assertThat(event.data()).isEqualTo("foo");
-			assertThat(event.comment()).isEqualTo("bar");
-			assertThat(event.event()).isNull();
-			assertThat(event.retry()).isNull();
-		}).thenCancel().verify(Duration.ofSeconds(5L));
-	}
+        @Bean
+        public RouteLocator sseRouteLocator(RouteLocatorBuilder builder) {
+            return builder.routes().route("sse_route", r -> r.alwaysTrue().uri("http://localhost:" + this.port)).build();
+        }
+    }
 
-	@RestController
-	@SuppressWarnings("unused")
-	static class SseController {
+    @SuppressWarnings("unused")
+    private static class Person {
 
-		private static final Flux<Long> INTERVAL = interval(Duration.ofMillis(100), 50);
+        private String name;
 
-		@GetMapping("/sse/string")
-		Flux<String> string() {
-			return INTERVAL.map(l -> "foo " + l);
-		}
+        Person() {
+        }
 
-		@GetMapping("/sse/person")
-		Flux<Person> person() {
-			return INTERVAL.map(l -> new Person("foo " + l));
-		}
+        Person(String name) {
+            this.name = name;
+        }
 
-		@GetMapping("/sse/event")
-		Flux<ServerSentEvent<String>> sse() {
-			return INTERVAL.map(l -> ServerSentEvent.builder("foo").id(Long.toString(l)).comment("bar").build());
-		}
+        public String getName() {
+            return name;
+        }
 
-	}
+        public void setName(String name) {
+            this.name = name;
+        }
 
-	@Configuration(proxyBeanMethods = false)
-	@EnableWebFlux
-	@SuppressWarnings("unused")
-	static class TestConfiguration {
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            Person person = (Person) o;
+            return !(this.name != null ? !this.name.equals(person.name) : person.name != null);
+        }
 
-		@Bean
-		public SseController sseController() {
-			return new SseController();
-		}
+        @Override
+        public int hashCode() {
+            return this.name != null ? this.name.hashCode() : 0;
+        }
 
-	}
-
-	@Configuration(proxyBeanMethods = false)
-	@EnableAutoConfiguration
-	@Import(PermitAllSecurityConfiguration.class)
-	protected static class GatewayConfig {
-
-		@Value("${sse.server.port}")
-		private int port;
-
-		@Bean
-		public RouteLocator sseRouteLocator(RouteLocatorBuilder builder) {
-			return builder.routes().route("sse_route", r -> r.alwaysTrue().uri("http://localhost:" + this.port))
-					.build();
-		}
-
-	}
-
-	@SuppressWarnings("unused")
-	private static class Person {
-
-		private String name;
-
-		Person() {
-		}
-
-		Person(String name) {
-			this.name = name;
-		}
-
-		public String getName() {
-			return name;
-		}
-
-		public void setName(String name) {
-			this.name = name;
-		}
-
-		@Override
-		public boolean equals(Object o) {
-			if (this == o) {
-				return true;
-			}
-			if (o == null || getClass() != o.getClass()) {
-				return false;
-			}
-			Person person = (Person) o;
-			return !(this.name != null ? !this.name.equals(person.name) : person.name != null);
-		}
-
-		@Override
-		public int hashCode() {
-			return this.name != null ? this.name.hashCode() : 0;
-		}
-
-		@Override
-		public String toString() {
-			return "Person{name='" + this.name + '\'' + '}';
-		}
-
-	}
-
+        @Override
+        public String toString() {
+            return "Person{name='" + this.name + '\'' + '}';
+        }
+    }
 }

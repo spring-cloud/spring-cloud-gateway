@@ -13,17 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.factory;
 
 import java.time.Duration;
 import java.util.Collections;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
-
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -42,7 +39,6 @@ import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.server.context.SecurityContextServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -50,83 +46,66 @@ import static org.mockito.Mockito.when;
 
 /**
  * @author Spencer Gibb
- *
  */
 public class TokenRelayGatewayFilterFactoryTests {
 
-	private static final Duration TIMEOUT = Duration.ofSeconds(30);
+    private static final Duration TIMEOUT = Duration.ofSeconds(30);
 
-	private ReactiveOAuth2AuthorizedClientManager authorizedClientManager;
+    private ReactiveOAuth2AuthorizedClientManager authorizedClientManager;
 
-	private MockServerHttpRequest request;
+    private MockServerHttpRequest request;
 
-	private MockServerWebExchange mockExchange;
+    private MockServerWebExchange mockExchange;
 
-	private GatewayFilterChain filterChain;
+    private GatewayFilterChain filterChain;
 
-	private GatewayFilter filter;
+    private GatewayFilter filter;
 
-	public TokenRelayGatewayFilterFactoryTests() {
-	}
+    public TokenRelayGatewayFilterFactoryTests() {
+    }
 
-	@BeforeEach
-	@SuppressWarnings("unchecked")
-	public void init() {
-		request = MockServerHttpRequest.get("/hello").build();
-		mockExchange = MockServerWebExchange.from(request);
-		filterChain = mock(GatewayFilterChain.class);
-		when(filterChain.filter(any(ServerWebExchange.class))).thenReturn(Mono.empty());
+    @BeforeEach
+    @SuppressWarnings("unchecked")
+    public void init() {
+        request = MockServerHttpRequest.get("/hello").build();
+        mockExchange = MockServerWebExchange.from(request);
+        filterChain = mock(GatewayFilterChain.class);
+        when(filterChain.filter(any(ServerWebExchange.class))).thenReturn(Mono.empty());
+        authorizedClientManager = mock(ReactiveOAuth2AuthorizedClientManager.class);
+        ObjectProvider<ReactiveOAuth2AuthorizedClientManager> objectProvider = mock(ObjectProvider.class);
+        when(objectProvider.getIfAvailable()).thenReturn(authorizedClientManager);
+        filter = new TokenRelayGatewayFilterFactory(objectProvider).apply();
+    }
 
-		authorizedClientManager = mock(ReactiveOAuth2AuthorizedClientManager.class);
-		ObjectProvider<ReactiveOAuth2AuthorizedClientManager> objectProvider = mock(ObjectProvider.class);
-		when(objectProvider.getIfAvailable()).thenReturn(authorizedClientManager);
-		filter = new TokenRelayGatewayFilterFactory(objectProvider).apply();
-	}
+    @AfterEach
+    public void after() {
+    }
 
-	@AfterEach
-	public void after() {
-	}
+    @Test
+    public void emptyPrincipal() {
+        filter.filter(mockExchange, filterChain).block(TIMEOUT);
+        assertThat(request.getHeaders()).doesNotContainKeys(HttpHeaders.AUTHORIZATION);
+    }
 
-	@Test
-	public void emptyPrincipal() {
-		filter.filter(mockExchange, filterChain).block(TIMEOUT);
-		assertThat(request.getHeaders()).doesNotContainKeys(HttpHeaders.AUTHORIZATION);
-	}
+    @Test
+    public void whenPrincipalExistsAuthorizationHeaderAdded() {
+        OAuth2AccessToken accessToken = mock(OAuth2AccessToken.class);
+        when(accessToken.getTokenValue()).thenReturn("mytoken");
+        ClientRegistration clientRegistration = ClientRegistration.withRegistrationId("myregistrationid").authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS).clientId("myclientid").tokenUri("mytokenuri").build();
+        OAuth2AuthorizedClient authorizedClient = new OAuth2AuthorizedClient(clientRegistration, "joe", accessToken);
+        when(authorizedClientManager.authorize(any(OAuth2AuthorizeRequest.class))).thenReturn(Mono.just(authorizedClient));
+        OAuth2AuthenticationToken authenticationToken = new OAuth2AuthenticationToken(mock(OAuth2User.class), Collections.emptyList(), "myId");
+        SecurityContextImpl securityContext = new SecurityContextImpl(authenticationToken);
+        SecurityContextServerWebExchange exchange = new SecurityContextServerWebExchange(mockExchange, Mono.just(securityContext));
+        filter.filter(exchange, filterChain).block(TIMEOUT);
+        assertThat(request.getHeaders()).containsEntry(HttpHeaders.AUTHORIZATION, Collections.singletonList("Bearer mytoken"));
+    }
 
-	@Test
-	public void whenPrincipalExistsAuthorizationHeaderAdded() {
-		OAuth2AccessToken accessToken = mock(OAuth2AccessToken.class);
-		when(accessToken.getTokenValue()).thenReturn("mytoken");
-
-		ClientRegistration clientRegistration = ClientRegistration.withRegistrationId("myregistrationid")
-				.authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS).clientId("myclientid")
-				.tokenUri("mytokenuri").build();
-		OAuth2AuthorizedClient authorizedClient = new OAuth2AuthorizedClient(clientRegistration, "joe", accessToken);
-
-		when(authorizedClientManager.authorize(any(OAuth2AuthorizeRequest.class)))
-				.thenReturn(Mono.just(authorizedClient));
-
-		OAuth2AuthenticationToken authenticationToken = new OAuth2AuthenticationToken(mock(OAuth2User.class),
-				Collections.emptyList(), "myId");
-		SecurityContextImpl securityContext = new SecurityContextImpl(authenticationToken);
-		SecurityContextServerWebExchange exchange = new SecurityContextServerWebExchange(mockExchange,
-				Mono.just(securityContext));
-
-		filter.filter(exchange, filterChain).block(TIMEOUT);
-
-		assertThat(request.getHeaders()).containsEntry(HttpHeaders.AUTHORIZATION,
-				Collections.singletonList("Bearer mytoken"));
-	}
-
-	@Test
-	public void principalIsNotOAuth2AuthenticationToken() {
-		SecurityContextImpl securityContext = new SecurityContextImpl(new TestingAuthenticationToken("my", null));
-		SecurityContextServerWebExchange exchange = new SecurityContextServerWebExchange(mockExchange,
-				Mono.just(securityContext));
-
-		filter.filter(exchange, filterChain).block(TIMEOUT);
-
-		assertThat(request.getHeaders()).doesNotContainKeys(HttpHeaders.AUTHORIZATION);
-	}
-
+    @Test
+    public void principalIsNotOAuth2AuthenticationToken() {
+        SecurityContextImpl securityContext = new SecurityContextImpl(new TestingAuthenticationToken("my", null));
+        SecurityContextServerWebExchange exchange = new SecurityContextServerWebExchange(mockExchange, Mono.just(securityContext));
+        filter.filter(exchange, filterChain).block(TIMEOUT);
+        assertThat(request.getHeaders()).doesNotContainKeys(HttpHeaders.AUTHORIZATION);
+    }
 }

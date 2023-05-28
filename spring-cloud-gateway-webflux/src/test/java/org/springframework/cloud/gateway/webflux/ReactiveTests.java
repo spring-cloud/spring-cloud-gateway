@@ -13,18 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.webflux;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -49,167 +46,148 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.reactive.DispatcherHandler;
 import org.springframework.web.server.ServerWebExchange;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @ContextConfiguration(classes = TestApplication.class)
 public class ReactiveTests {
 
-	@Autowired
-	private TestRestTemplate rest;
+    @Autowired
+    private TestRestTemplate rest;
 
-	@LocalServerPort
-	private int port;
+    @LocalServerPort
+    private int port;
 
-	@Test
-	public void postBytes() throws Exception {
-		ResponseEntity<List<Foo>> result = rest.exchange(RequestEntity
-				.post(rest.getRestTemplate().getUriTemplateHandler().expand("/bytes")).body("hello foo".getBytes()),
-				new ParameterizedTypeReference<List<Foo>>() {
-				});
-		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-		assertThat(result.getBody().iterator().next().getName()).isEqualTo("hello foo");
-	}
+    @Test
+    public void postBytes() throws Exception {
+        ResponseEntity<List<Foo>> result = rest.exchange(RequestEntity.post(rest.getRestTemplate().getUriTemplateHandler().expand("/bytes")).body("hello foo".getBytes()), new ParameterizedTypeReference<List<Foo>>() {
+        });
+        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(result.getBody().iterator().next().getName()).isEqualTo("hello foo");
+    }
 
-	@Test
-	public void post() throws Exception {
-		ResponseEntity<List<Bar>> result = rest.exchange(
-				RequestEntity.post(rest.getRestTemplate().getUriTemplateHandler().expand("/bars"))
-						.body(Collections.singletonList(Collections.singletonMap("name", "foo"))),
-				new ParameterizedTypeReference<List<Bar>>() {
-				});
-		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-		assertThat(result.getBody().iterator().next().getName()).isEqualTo("hello foo");
-	}
+    @Test
+    public void post() throws Exception {
+        ResponseEntity<List<Bar>> result = rest.exchange(RequestEntity.post(rest.getRestTemplate().getUriTemplateHandler().expand("/bars")).body(Collections.singletonList(Collections.singletonMap("name", "foo"))), new ParameterizedTypeReference<List<Bar>>() {
+        });
+        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(result.getBody().iterator().next().getName()).isEqualTo("hello foo");
+    }
 
-	@Test
-	public void postFlux() throws Exception {
-		ResponseEntity<List<Bar>> result = rest.exchange(
-				RequestEntity.post(rest.getRestTemplate().getUriTemplateHandler().expand("/flux/bars"))
-						.body(Collections.singletonList(Collections.singletonMap("name", "foo"))),
-				new ParameterizedTypeReference<List<Bar>>() {
-				});
-		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-		assertThat(result.getBody().iterator().next().getName()).isEqualTo("hello foo");
-	}
+    @Test
+    public void postFlux() throws Exception {
+        ResponseEntity<List<Bar>> result = rest.exchange(RequestEntity.post(rest.getRestTemplate().getUriTemplateHandler().expand("/flux/bars")).body(Collections.singletonList(Collections.singletonMap("name", "foo"))), new ParameterizedTypeReference<List<Bar>>() {
+        });
+        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(result.getBody().iterator().next().getName()).isEqualTo("hello foo");
+    }
 
-	@Test
-	public void get() throws Exception {
-		ResponseEntity<List<Foo>> result = rest.exchange(
-				RequestEntity.get(rest.getRestTemplate().getUriTemplateHandler().expand("/foos")).build(),
-				new ParameterizedTypeReference<List<Foo>>() {
-				});
-		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-		assertThat(result.getBody().iterator().next().getName()).isEqualTo("hello");
-	}
+    @Test
+    public void get() throws Exception {
+        ResponseEntity<List<Foo>> result = rest.exchange(RequestEntity.get(rest.getRestTemplate().getUriTemplateHandler().expand("/foos")).build(), new ParameterizedTypeReference<List<Foo>>() {
+        });
+        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(result.getBody().iterator().next().getName()).isEqualTo("hello");
+    }
 
-	@Test
-	public void forward() throws Exception {
-		ResponseEntity<List<Foo>> result = rest.exchange(
-				RequestEntity.get(rest.getRestTemplate().getUriTemplateHandler().expand("/forward/foos")).build(),
-				new ParameterizedTypeReference<List<Foo>>() {
-				});
-		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-		assertThat(result.getBody().iterator().next().getName()).isEqualTo("hello");
-	}
+    @Test
+    public void forward() throws Exception {
+        ResponseEntity<List<Foo>> result = rest.exchange(RequestEntity.get(rest.getRestTemplate().getUriTemplateHandler().expand("/forward/foos")).build(), new ParameterizedTypeReference<List<Foo>>() {
+        });
+        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(result.getBody().iterator().next().getName()).isEqualTo("hello");
+    }
 
-	@SpringBootApplication
-	static class TestApplication {
+    @SpringBootApplication
+    static class TestApplication {
 
-		@RestController
-		static class TestController {
+        @RestController
+        static class TestController {
 
-			@Autowired
-			private DispatcherHandler handler;
+            @Autowired
+            private DispatcherHandler handler;
 
-			@PostMapping("/bars")
-			public List<Bar> bars(@RequestBody List<Foo> foos, @RequestHeader HttpHeaders headers) {
-				String custom = "hello ";
-				return foos.stream().map(foo -> new Bar(custom + foo.getName())).collect(Collectors.toList());
-			}
+            @PostMapping("/bars")
+            public List<Bar> bars(@RequestBody List<Foo> foos, @RequestHeader HttpHeaders headers) {
+                String custom = "hello ";
+                return foos.stream().map(foo -> new Bar(custom + foo.getName())).collect(Collectors.toList());
+            }
 
-			@PostMapping("/flux/bars")
-			public Flux<Bar> fluxbars(@RequestBody Flux<Foo> foos, @RequestHeader HttpHeaders headers) {
-				String custom = "hello ";
-				return foos.map(foo -> new Bar(custom + foo.getName()));
-			}
+            @PostMapping("/flux/bars")
+            public Flux<Bar> fluxbars(@RequestBody Flux<Foo> foos, @RequestHeader HttpHeaders headers) {
+                String custom = "hello ";
+                return foos.map(foo -> new Bar(custom + foo.getName()));
+            }
 
-			@GetMapping("/foos")
-			public Flux<Foo> foos() {
-				return Flux.just(new Foo("hello"));
-			}
+            @GetMapping("/foos")
+            public Flux<Foo> foos() {
+                return Flux.just(new Foo("hello"));
+            }
 
-			@GetMapping("/forward/foos")
-			public Mono<Void> forwardFoos(ServerWebExchange exchange) {
-				return handler.handle(exchange.mutate().request(request -> request.path("/foos").build()).build());
-			}
+            @GetMapping("/forward/foos")
+            public Mono<Void> forwardFoos(ServerWebExchange exchange) {
+                return handler.handle(exchange.mutate().request(request -> request.path("/foos").build()).build());
+            }
 
-			@PostMapping("/bytes")
-			public Flux<Foo> forwardBars(@RequestBody Flux<byte[]> body) {
-				return Flux.from(body.reduce(this::concatenate).map(value -> new Foo(new String(value))));
-			}
+            @PostMapping("/bytes")
+            public Flux<Foo> forwardBars(@RequestBody Flux<byte[]> body) {
+                return Flux.from(body.reduce(this::concatenate).map(value -> new Foo(new String(value))));
+            }
 
-			byte[] concatenate(@Nullable byte[] array1, @Nullable byte[] array2) {
-				if (ObjectUtils.isEmpty(array1)) {
-					return array2;
-				}
-				if (ObjectUtils.isEmpty(array2)) {
-					return array1;
-				}
+            byte[] concatenate(@Nullable byte[] array1, @Nullable byte[] array2) {
+                if (ObjectUtils.isEmpty(array1)) {
+                    return array2;
+                }
+                if (ObjectUtils.isEmpty(array2)) {
+                    return array1;
+                }
+                byte[] newArr = new byte[array1.length + array2.length];
+                System.arraycopy(array1, 0, newArr, 0, array1.length);
+                System.arraycopy(array2, 0, newArr, array1.length, array2.length);
+                return newArr;
+            }
+        }
 
-				byte[] newArr = new byte[array1.length + array2.length];
-				System.arraycopy(array1, 0, newArr, 0, array1.length);
-				System.arraycopy(array2, 0, newArr, array1.length, array2.length);
-				return newArr;
-			}
+        @JsonIgnoreProperties(ignoreUnknown = true)
+        static class Foo {
 
-		}
+            private String name;
 
-		@JsonIgnoreProperties(ignoreUnknown = true)
-		static class Foo {
+            Foo() {
+            }
 
-			private String name;
+            Foo(String name) {
+                this.name = name;
+            }
 
-			Foo() {
-			}
+            public String getName() {
+                return name;
+            }
 
-			Foo(String name) {
-				this.name = name;
-			}
+            public void setName(String name) {
+                this.name = name;
+            }
+        }
 
-			public String getName() {
-				return name;
-			}
+        @JsonIgnoreProperties(ignoreUnknown = true)
+        static class Bar {
 
-			public void setName(String name) {
-				this.name = name;
-			}
+            private String name;
 
-		}
+            Bar() {
+            }
 
-		@JsonIgnoreProperties(ignoreUnknown = true)
-		static class Bar {
+            Bar(String name) {
+                this.name = name;
+            }
 
-			private String name;
+            public String getName() {
+                return name;
+            }
 
-			Bar() {
-			}
-
-			Bar(String name) {
-				this.name = name;
-			}
-
-			public String getName() {
-				return name;
-			}
-
-			public void setName(String name) {
-				this.name = name;
-			}
-
-		}
-
-	}
-
+            public void setName(String name) {
+                this.name = name;
+            }
+        }
+    }
 }

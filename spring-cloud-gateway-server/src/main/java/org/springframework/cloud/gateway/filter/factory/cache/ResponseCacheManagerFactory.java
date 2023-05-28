@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.factory.cache;
 
 import java.time.Duration;
-
 import org.springframework.cache.Cache;
 import org.springframework.cloud.gateway.filter.factory.cache.keygenerator.CacheKeyGenerator;
 
@@ -27,14 +25,13 @@ import org.springframework.cloud.gateway.filter.factory.cache.keygenerator.Cache
  */
 public class ResponseCacheManagerFactory {
 
-	private final CacheKeyGenerator cacheKeyGenerator;
+    private final CacheKeyGenerator cacheKeyGenerator;
 
-	public ResponseCacheManagerFactory(CacheKeyGenerator cacheKeyGenerator) {
-		this.cacheKeyGenerator = cacheKeyGenerator;
-	}
+    public ResponseCacheManagerFactory(CacheKeyGenerator cacheKeyGenerator) {
+        this.cacheKeyGenerator = cacheKeyGenerator;
+    }
 
-	public ResponseCacheManager create(Cache cache, Duration timeToLive) {
-		return new ResponseCacheManager(cacheKeyGenerator, cache, timeToLive);
-	}
-
+    public ResponseCacheManager create(Cache cache, Duration timeToLive) {
+        return new ResponseCacheManager(cacheKeyGenerator, cache, timeToLive);
+    }
 }

@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.headers;
 
 import java.util.Arrays;
@@ -21,7 +20,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
@@ -30,55 +28,45 @@ import org.springframework.web.server.ServerWebExchange;
 @ConfigurationProperties("spring.cloud.gateway.filter.remove-hop-by-hop")
 public class RemoveHopByHopHeadersFilter implements HttpHeadersFilter, Ordered {
 
-	/**
-	 * Headers to remove as the result of applying the filter.
-	 */
-	public static final Set<String> HEADERS_REMOVED_ON_REQUEST = new HashSet<>(
-			Arrays.asList("connection", "keep-alive", "transfer-encoding", "te", "trailer", "proxy-authorization",
-					"proxy-authenticate", "x-application-context", "upgrade"
-			// these two are not listed in
-			// https://tools.ietf.org/html/draft-ietf-httpbis-p1-messaging-14#section-7.1.3
-			// "proxy-connection",
-			// "content-length",
-			));
+    /**
+     * Headers to remove as the result of applying the filter.
+     */
+    public static final Set<String> HEADERS_REMOVED_ON_REQUEST = new HashSet<>(Arrays.asList("connection", "keep-alive", "transfer-encoding", "te", "trailer", "proxy-authorization", "proxy-authenticate", "x-application-context", "upgrade"));
 
-	private int order = Ordered.LOWEST_PRECEDENCE - 1;
+    private int order = Ordered.LOWEST_PRECEDENCE - 1;
 
-	private Set<String> headers = HEADERS_REMOVED_ON_REQUEST;
+    private Set<String> headers = HEADERS_REMOVED_ON_REQUEST;
 
-	public Set<String> getHeaders() {
-		return headers;
-	}
+    public Set<String> getHeaders() {
+        return headers;
+    }
 
-	public void setHeaders(Set<String> headers) {
-		this.headers = headers;
-	}
+    public void setHeaders(Set<String> headers) {
+        this.headers = headers;
+    }
 
-	@Override
-	public int getOrder() {
-		return order;
-	}
+    @Override
+    public int getOrder() {
+        return order;
+    }
 
-	public void setOrder(int order) {
-		this.order = order;
-	}
+    public void setOrder(int order) {
+        this.order = order;
+    }
 
-	@Override
-	public HttpHeaders filter(HttpHeaders input, ServerWebExchange exchange) {
-		HttpHeaders filtered = new HttpHeaders();
+    @Override
+    public HttpHeaders filter(HttpHeaders input, ServerWebExchange exchange) {
+        HttpHeaders filtered = new HttpHeaders();
+        for (Map.Entry<String, List<String>> entry : input.entrySet()) {
+            if (!this.headers.contains(entry.getKey().toLowerCase())) {
+                filtered.addAll(entry.getKey(), entry.getValue());
+            }
+        }
+        return filtered;
+    }
 
-		for (Map.Entry<String, List<String>> entry : input.entrySet()) {
-			if (!this.headers.contains(entry.getKey().toLowerCase())) {
-				filtered.addAll(entry.getKey(), entry.getValue());
-			}
-		}
-
-		return filtered;
-	}
-
-	@Override
-	public boolean supports(Type type) {
-		return type.equals(Type.REQUEST) || type.equals(Type.RESPONSE);
-	}
-
+    @Override
+    public boolean supports(Type type) {
+        return type.equals(Type.REQUEST) || type.equals(Type.RESPONSE);
+    }
 }

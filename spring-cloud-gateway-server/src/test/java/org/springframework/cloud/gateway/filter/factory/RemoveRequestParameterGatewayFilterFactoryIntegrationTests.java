@@ -13,13 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.factory;
 
 import java.util.Map;
-
 import org.junit.jupiter.api.Test;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -32,7 +29,6 @@ import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.cloud.gateway.test.TestUtils.getMap;
@@ -41,41 +37,34 @@ import static org.springframework.cloud.gateway.test.TestUtils.getMap;
 @DirtiesContext
 public class RemoveRequestParameterGatewayFilterFactoryIntegrationTests extends BaseWebClientTests {
 
-	@Test
-	public void removeResponseHeaderFilterWorks() {
-		testClient.get().uri("/get?foo=bar&baz=bam%20bar").header("Host", "www.removerequestparamjava.org").exchange()
-				.expectStatus().isOk().expectBody(Map.class).consumeWith(result -> {
-					Map<String, Object> params = getMap(result.getResponseBody(), "args");
-					assertThat(params).doesNotContainKey("foo");
-					assertThat(params).containsEntry("baz", "bam%20bar");
-				});
-	}
+    @Test
+    public void removeResponseHeaderFilterWorks() {
+        testClient.get().uri("/get?foo=bar&baz=bam%20bar").header("Host", "www.removerequestparamjava.org").exchange().expectStatus().isOk().expectBody(Map.class).consumeWith(result -> {
+            Map<String, Object> params = getMap(result.getResponseBody(), "args");
+            assertThat(params).doesNotContainKey("foo");
+            assertThat(params).containsEntry("baz", "bam%20bar");
+        });
+    }
 
-	@Test
-	public void toStringFormat() {
-		NameConfig config = new NameConfig();
-		config.setName("myname");
-		GatewayFilter filter = new RemoveRequestParameterGatewayFilterFactory().apply(config);
-		assertThat(filter.toString()).contains("myname");
-	}
+    @Test
+    public void toStringFormat() {
+        NameConfig config = new NameConfig();
+        config.setName("myname");
+        GatewayFilter filter = new RemoveRequestParameterGatewayFilterFactory().apply(config);
+        assertThat(filter.toString()).contains("myname");
+    }
 
-	@EnableAutoConfiguration
-	@SpringBootConfiguration
-	@Import(DefaultTestConfig.class)
-	public static class TestConfig {
+    @EnableAutoConfiguration
+    @SpringBootConfiguration
+    @Import(DefaultTestConfig.class)
+    public static class TestConfig {
 
-		@Value("${test.uri}")
-		String uri;
+        @Value("${test.uri}")
+        String uri;
 
-		@Bean
-		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
-			return builder.routes()
-					.route("removerequestparam_java_test",
-							r -> r.path("/get").and().host("**.removerequestparamjava.org")
-									.filters(f -> f.prefixPath("/httpbin").removeRequestParameter("foo")).uri(uri))
-					.build();
-		}
-
-	}
-
+        @Bean
+        public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
+            return builder.routes().route("removerequestparam_java_test", r -> r.path("/get").and().host("**.removerequestparamjava.org").filters(f -> f.prefixPath("/httpbin").removeRequestParameter("foo")).uri(uri)).build();
+        }
+    }
 }

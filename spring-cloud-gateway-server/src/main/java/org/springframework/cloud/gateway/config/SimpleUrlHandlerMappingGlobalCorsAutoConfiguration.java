@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.config;
 
 import jakarta.annotation.PostConstruct;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -30,19 +28,17 @@ import org.springframework.web.reactive.handler.SimpleUrlHandlerMapping;
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnClass(SimpleUrlHandlerMapping.class)
-@ConditionalOnProperty(name = "spring.cloud.gateway.globalcors.add-to-simple-url-handler-mapping",
-		matchIfMissing = false)
+@ConditionalOnProperty(name = "spring.cloud.gateway.globalcors.add-to-simple-url-handler-mapping", matchIfMissing = false)
 public class SimpleUrlHandlerMappingGlobalCorsAutoConfiguration {
 
-	@Autowired
-	private GlobalCorsProperties globalCorsProperties;
+    @Autowired
+    private GlobalCorsProperties globalCorsProperties;
 
-	@Autowired
-	private SimpleUrlHandlerMapping simpleUrlHandlerMapping;
+    @Autowired
+    private SimpleUrlHandlerMapping simpleUrlHandlerMapping;
 
-	@PostConstruct
-	void config() {
-		simpleUrlHandlerMapping.setCorsConfigurations(globalCorsProperties.getCorsConfigurations());
-	}
-
+    @PostConstruct
+    void config() {
+        simpleUrlHandlerMapping.setCorsConfigurations(globalCorsProperties.getCorsConfigurations());
+    }
 }

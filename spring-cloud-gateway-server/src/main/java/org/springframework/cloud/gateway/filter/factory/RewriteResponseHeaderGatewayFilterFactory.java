@@ -13,112 +13,104 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.factory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
 import reactor.core.publisher.Mono;
-
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.server.ServerWebExchange;
-
 import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
 
 /**
  * @author Vitaliy Pavlyuk
  */
-public class RewriteResponseHeaderGatewayFilterFactory
-		extends AbstractGatewayFilterFactory<RewriteResponseHeaderGatewayFilterFactory.Config> {
+public class RewriteResponseHeaderGatewayFilterFactory extends AbstractGatewayFilterFactory<RewriteResponseHeaderGatewayFilterFactory.Config> {
 
-	/**
-	 * Regexp key.
-	 */
-	public static final String REGEXP_KEY = "regexp";
+    /**
+     * Regexp key.
+     */
+    public static final String REGEXP_KEY = "regexp";
 
-	/**
-	 * Replacement key.
-	 */
-	public static final String REPLACEMENT_KEY = "replacement";
+    /**
+     * Replacement key.
+     */
+    public static final String REPLACEMENT_KEY = "replacement";
 
-	public RewriteResponseHeaderGatewayFilterFactory() {
-		super(Config.class);
-	}
+    public RewriteResponseHeaderGatewayFilterFactory() {
+        super(Config.class);
+    }
 
-	@Override
-	public List<String> shortcutFieldOrder() {
-		return Arrays.asList(NAME_KEY, REGEXP_KEY, REPLACEMENT_KEY);
-	}
+    @Override
+    public List<String> shortcutFieldOrder() {
+        return Arrays.asList(NAME_KEY, REGEXP_KEY, REPLACEMENT_KEY);
+    }
 
-	@Override
-	public GatewayFilter apply(Config config) {
-		return new GatewayFilter() {
-			@Override
-			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-				return chain.filter(exchange).then(Mono.fromRunnable(() -> rewriteHeaders(exchange, config)));
-			}
+    @Override
+    public GatewayFilter apply(Config config) {
+        return new GatewayFilter() {
 
-			@Override
-			public String toString() {
-				return filterToStringCreator(RewriteResponseHeaderGatewayFilterFactory.this)
-						.append("name", config.getName()).append("regexp", config.getRegexp())
-						.append("replacement", config.getReplacement()).toString();
-			}
-		};
-	}
+            @Override
+            public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+                return chain.filter(exchange).then(Mono.fromRunnable(() -> rewriteHeaders(exchange, config)));
+            }
 
-	@Deprecated
-	protected void rewriteHeader(ServerWebExchange exchange, Config config) {
-		rewriteHeaders(exchange, config);
-	}
+            @Override
+            public String toString() {
+                return filterToStringCreator(RewriteResponseHeaderGatewayFilterFactory.this).append("name", config.getName()).append("regexp", config.getRegexp()).append("replacement", config.getReplacement()).toString();
+            }
+        };
+    }
 
-	protected void rewriteHeaders(ServerWebExchange exchange, Config config) {
-		final String name = config.getName();
-		final HttpHeaders responseHeaders = exchange.getResponse().getHeaders();
-		responseHeaders.computeIfPresent(name, (k, v) -> rewriteHeaders(config, v));
-	}
+    @Deprecated
+    protected void rewriteHeader(ServerWebExchange exchange, Config config) {
+        rewriteHeaders(exchange, config);
+    }
 
-	protected List<String> rewriteHeaders(Config config, List<String> headers) {
-		ArrayList<String> rewrittenHeaders = new ArrayList<>();
-		for (int i = 0; i < headers.size(); i++) {
-			String rewriten = rewrite(headers.get(i), config.getRegexp(), config.getReplacement());
-			rewrittenHeaders.add(rewriten);
-		}
-		return rewrittenHeaders;
-	}
+    protected void rewriteHeaders(ServerWebExchange exchange, Config config) {
+        final String name = config.getName();
+        final HttpHeaders responseHeaders = exchange.getResponse().getHeaders();
+        responseHeaders.computeIfPresent(name, (k, v) -> rewriteHeaders(config, v));
+    }
 
-	String rewrite(String value, String regexp, String replacement) {
-		return value.replaceAll(regexp, replacement.replace("$\\", "$"));
-	}
+    protected List<String> rewriteHeaders(Config config, List<String> headers) {
+        ArrayList<String> rewrittenHeaders = new ArrayList<>();
+        for (int i = 0; i < headers.size(); i++) {
+            String rewriten = rewrite(headers.get(i), config.getRegexp(), config.getReplacement());
+            rewrittenHeaders.add(rewriten);
+        }
+        return rewrittenHeaders;
+    }
 
-	public static class Config extends AbstractGatewayFilterFactory.NameConfig {
+    String rewrite(String value, String regexp, String replacement) {
+        return value.replaceAll(regexp, replacement.replace("$\\", "$"));
+    }
 
-		private String regexp;
+    public static class Config extends AbstractGatewayFilterFactory.NameConfig {
 
-		private String replacement;
+        private String regexp;
 
-		public String getRegexp() {
-			return regexp;
-		}
+        private String replacement;
 
-		public Config setRegexp(String regexp) {
-			this.regexp = regexp;
-			return this;
-		}
+        public String getRegexp() {
+            return regexp;
+        }
 
-		public String getReplacement() {
-			return replacement;
-		}
+        public Config setRegexp(String regexp) {
+            this.regexp = regexp;
+            return this;
+        }
 
-		public Config setReplacement(String replacement) {
-			this.replacement = replacement;
-			return this;
-		}
+        public String getReplacement() {
+            return replacement;
+        }
 
-	}
-
+        public Config setReplacement(String replacement) {
+            this.replacement = replacement;
+            return this;
+        }
+    }
 }

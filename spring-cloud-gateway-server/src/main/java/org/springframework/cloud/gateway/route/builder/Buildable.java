@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.route.builder;
 
 public interface Buildable<T> {
 
-	T build();
-
+    T build();
 }

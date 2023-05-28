@@ -13,13 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.support;
 
 public interface Configurable<C> {
 
-	Class<C> getConfigClass();
+    Class<C> getConfigClass();
 
-	C newConfig();
-
+    C newConfig();
 }

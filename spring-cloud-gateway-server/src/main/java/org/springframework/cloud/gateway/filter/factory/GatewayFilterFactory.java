@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.factory;
 
 import java.util.function.Consumer;
-
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.support.Configurable;
 import org.springframework.cloud.gateway.support.HasRouteId;
@@ -30,51 +28,50 @@ import org.springframework.cloud.gateway.support.ShortcutConfigurable;
 @FunctionalInterface
 public interface GatewayFilterFactory<C> extends ShortcutConfigurable, Configurable<C> {
 
-	/**
-	 * Name key.
-	 */
-	String NAME_KEY = "name";
+    /**
+     * Name key.
+     */
+    String NAME_KEY = "name";
 
-	/**
-	 * Value key.
-	 */
-	String VALUE_KEY = "value";
+    /**
+     * Value key.
+     */
+    String VALUE_KEY = "value";
 
-	// useful for javadsl
-	default GatewayFilter apply(String routeId, Consumer<C> consumer) {
-		C config = newConfig();
-		consumer.accept(config);
-		return apply(routeId, config);
-	}
+    // useful for javadsl
+    default GatewayFilter apply(String routeId, Consumer<C> consumer) {
+        C config = newConfig();
+        consumer.accept(config);
+        return apply(routeId, config);
+    }
 
-	default GatewayFilter apply(Consumer<C> consumer) {
-		C config = newConfig();
-		consumer.accept(config);
-		return apply(config);
-	}
+    default GatewayFilter apply(Consumer<C> consumer) {
+        C config = newConfig();
+        consumer.accept(config);
+        return apply(config);
+    }
 
-	default Class<C> getConfigClass() {
-		throw new UnsupportedOperationException("getConfigClass() not implemented");
-	}
+    default Class<C> getConfigClass() {
+        throw new UnsupportedOperationException("getConfigClass() not implemented");
+    }
 
-	@Override
-	default C newConfig() {
-		throw new UnsupportedOperationException("newConfig() not implemented");
-	}
+    @Override
+    default C newConfig() {
+        throw new UnsupportedOperationException("newConfig() not implemented");
+    }
 
-	GatewayFilter apply(C config);
+    GatewayFilter apply(C config);
 
-	default GatewayFilter apply(String routeId, C config) {
-		if (config instanceof HasRouteId) {
-			HasRouteId hasRouteId = (HasRouteId) config;
-			hasRouteId.setRouteId(routeId);
-		}
-		return apply(config);
-	}
+    default GatewayFilter apply(String routeId, C config) {
+        if (config instanceof HasRouteId) {
+            HasRouteId hasRouteId = (HasRouteId) config;
+            hasRouteId.setRouteId(routeId);
+        }
+        return apply(config);
+    }
 
-	default String name() {
-		// TODO: deal with proxys
-		return NameUtils.normalizeFilterFactoryName(getClass());
-	}
-
+    default String name() {
+        // TODO: deal with proxys
+        return NameUtils.normalizeFilterFactoryName(getClass());
+    }
 }

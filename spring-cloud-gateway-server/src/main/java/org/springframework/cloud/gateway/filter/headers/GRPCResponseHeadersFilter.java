@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.headers;
 
 import reactor.netty.http.server.HttpServerResponse;
-
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.AbstractServerHttpResponse;
@@ -31,61 +29,58 @@ import org.springframework.web.server.ServerWebExchange;
  */
 public class GRPCResponseHeadersFilter implements HttpHeadersFilter, Ordered {
 
-	private static final String GRPC_STATUS_HEADER = "grpc-status";
+    private static final String GRPC_STATUS_HEADER = "grpc-status";
 
-	private static final String GRPC_MESSAGE_HEADER = "grpc-message";
+    private static final String GRPC_MESSAGE_HEADER = "grpc-message";
 
-	@Override
-	public HttpHeaders filter(HttpHeaders headers, ServerWebExchange exchange) {
-		ServerHttpResponse response = exchange.getResponse();
-		HttpHeaders responseHeaders = response.getHeaders();
-		if (isGRPC(exchange)) {
-			String trailerHeaderValue = GRPC_STATUS_HEADER + "," + GRPC_MESSAGE_HEADER;
-			String originalTrailerHeaderValue = responseHeaders.getFirst(HttpHeaders.TRAILER);
-			if (originalTrailerHeaderValue != null) {
-				trailerHeaderValue += "," + originalTrailerHeaderValue;
-			}
-			responseHeaders.set(HttpHeaders.TRAILER, trailerHeaderValue);
+    @Override
+    public HttpHeaders filter(HttpHeaders headers, ServerWebExchange exchange) {
+        ServerHttpResponse response = exchange.getResponse();
+        HttpHeaders responseHeaders = response.getHeaders();
+        if (isGRPC(exchange)) {
+            String trailerHeaderValue = GRPC_STATUS_HEADER + "," + GRPC_MESSAGE_HEADER;
+            String originalTrailerHeaderValue = responseHeaders.getFirst(HttpHeaders.TRAILER);
+            if (originalTrailerHeaderValue != null) {
+                trailerHeaderValue += "," + originalTrailerHeaderValue;
+            }
+            responseHeaders.set(HttpHeaders.TRAILER, trailerHeaderValue);
+            while (response instanceof ServerHttpResponseDecorator) {
+                response = ((ServerHttpResponseDecorator) response).getDelegate();
+            }
+            if (response instanceof AbstractServerHttpResponse) {
+                String grpcStatus = getGrpcStatus(headers);
+                String grpcMessage = getGrpcMessage(headers);
+                ((HttpServerResponse) ((AbstractServerHttpResponse) response).getNativeResponse()).trailerHeaders(h -> {
+                    h.set(GRPC_STATUS_HEADER, grpcStatus);
+                    h.set(GRPC_MESSAGE_HEADER, grpcMessage);
+                });
+            }
+        }
+        return headers;
+    }
 
-			while (response instanceof ServerHttpResponseDecorator) {
-				response = ((ServerHttpResponseDecorator) response).getDelegate();
-			}
-			if (response instanceof AbstractServerHttpResponse) {
-				String grpcStatus = getGrpcStatus(headers);
-				String grpcMessage = getGrpcMessage(headers);
-				((HttpServerResponse) ((AbstractServerHttpResponse) response).getNativeResponse()).trailerHeaders(h -> {
-					h.set(GRPC_STATUS_HEADER, grpcStatus);
-					h.set(GRPC_MESSAGE_HEADER, grpcMessage);
-				});
-			}
+    private boolean isGRPC(ServerWebExchange exchange) {
+        String contentTypeValue = exchange.getRequest().getHeaders().getFirst(HttpHeaders.CONTENT_TYPE);
+        return StringUtils.startsWithIgnoreCase(contentTypeValue, "application/grpc");
+    }
 
-		}
-		return headers;
-	}
+    private String getGrpcStatus(HttpHeaders headers) {
+        final String grpcStatusValue = headers.getFirst(GRPC_STATUS_HEADER);
+        return StringUtils.hasText(grpcStatusValue) ? grpcStatusValue : "0";
+    }
 
-	private boolean isGRPC(ServerWebExchange exchange) {
-		String contentTypeValue = exchange.getRequest().getHeaders().getFirst(HttpHeaders.CONTENT_TYPE);
-		return StringUtils.startsWithIgnoreCase(contentTypeValue, "application/grpc");
-	}
+    private String getGrpcMessage(HttpHeaders headers) {
+        final String grpcStatusValue = headers.getFirst(GRPC_MESSAGE_HEADER);
+        return StringUtils.hasText(grpcStatusValue) ? grpcStatusValue : "";
+    }
 
-	private String getGrpcStatus(HttpHeaders headers) {
-		final String grpcStatusValue = headers.getFirst(GRPC_STATUS_HEADER);
-		return StringUtils.hasText(grpcStatusValue) ? grpcStatusValue : "0";
-	}
+    @Override
+    public boolean supports(Type type) {
+        return Type.RESPONSE.equals(type);
+    }
 
-	private String getGrpcMessage(HttpHeaders headers) {
-		final String grpcStatusValue = headers.getFirst(GRPC_MESSAGE_HEADER);
-		return StringUtils.hasText(grpcStatusValue) ? grpcStatusValue : "";
-	}
-
-	@Override
-	public boolean supports(Type type) {
-		return Type.RESPONSE.equals(type);
-	}
-
-	@Override
-	public int getOrder() {
-		return 0;
-	}
-
+    @Override
+    public int getOrder() {
+        return 0;
+    }
 }

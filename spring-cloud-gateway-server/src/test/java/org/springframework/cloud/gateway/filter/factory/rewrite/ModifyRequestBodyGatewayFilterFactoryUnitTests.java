@@ -13,26 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.factory.rewrite;
 
 import org.junit.jupiter.api.Test;
-
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyRequestBodyGatewayFilterFactory.Config;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ModifyRequestBodyGatewayFilterFactoryUnitTests {
 
-	@Test
-	public void toStringFormat() {
-		Config config = new Config();
-		config.setInClass(String.class);
-		config.setOutClass(Integer.class);
-		config.setContentType("mycontenttype");
-		GatewayFilter filter = new ModifyRequestBodyGatewayFilterFactory().apply(config);
-		assertThat(filter.toString()).contains("String").contains("Integer").contains("mycontenttype");
-	}
-
+    @Test
+    public void toStringFormat() {
+        Config config = new Config();
+        config.setInClass(String.class);
+        config.setOutClass(Integer.class);
+        config.setContentType("mycontenttype");
+        GatewayFilter filter = new ModifyRequestBodyGatewayFilterFactory().apply(config);
+        assertThat(filter.toString()).contains("String").contains("Integer").contains("mycontenttype");
+    }
 }

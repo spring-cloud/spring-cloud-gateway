@@ -13,88 +13,71 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.support;
 
 import java.util.Collections;
 import java.util.Map;
-
 import jakarta.validation.constraints.Max;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-
 import org.springframework.boot.context.properties.bind.BindException;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.validation.MessageInterpolatorFactory;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ConfigurationServiceTests {
 
-	@Test
-	public void validationOnCreateWorks() {
-		Map<String, Object> map = Collections.singletonMap("config.value", 11);
+    @Test
+    public void validationOnCreateWorks() {
+        Map<String, Object> map = Collections.singletonMap("config.value", 11);
+        Assertions.assertThrows(BindException.class, () -> ConfigurationService.bindOrCreate(Bindable.of(ValidatedConfig.class), map, "config", getValidator(), null));
+    }
 
-		Assertions.assertThrows(BindException.class, () -> ConfigurationService
-				.bindOrCreate(Bindable.of(ValidatedConfig.class), map, "config", getValidator(), null));
-	}
+    @Test
+    public void createWorks() {
+        Map<String, Object> map = Collections.singletonMap("config.value", 9);
+        ValidatedConfig config = ConfigurationService.bindOrCreate(Bindable.of(ValidatedConfig.class), map, "config", getValidator(), null);
+        assertThat(config).isNotNull().extracting(ValidatedConfig::getValue).isEqualTo(9);
+    }
 
-	@Test
-	public void createWorks() {
-		Map<String, Object> map = Collections.singletonMap("config.value", 9);
+    @Test
+    public void validationOnBindWorks() {
+        Map<String, Object> map = Collections.singletonMap("config.value", 11);
+        ValidatedConfig config = new ValidatedConfig();
+        Assertions.assertThrows(BindException.class, () -> ConfigurationService.bindOrCreate(Bindable.ofInstance(config), map, "config", getValidator(), null));
+    }
 
-		ValidatedConfig config = ConfigurationService.bindOrCreate(Bindable.of(ValidatedConfig.class), map, "config",
-				getValidator(), null);
+    @Test
+    public void bindWorks() {
+        Map<String, Object> map = Collections.singletonMap("config.value", 9);
+        ValidatedConfig config = new ValidatedConfig();
+        ConfigurationService.bindOrCreate(Bindable.ofInstance(config), map, "config", getValidator(), null);
+        assertThat(config).isNotNull().extracting(ValidatedConfig::getValue).isEqualTo(9);
+    }
 
-		assertThat(config).isNotNull().extracting(ValidatedConfig::getValue).isEqualTo(9);
-	}
+    LocalValidatorFactoryBean getValidator() {
+        GenericApplicationContext context = new GenericApplicationContext();
+        context.refresh();
+        LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
+        validator.setApplicationContext(context);
+        validator.setMessageInterpolator(new MessageInterpolatorFactory().getObject());
+        validator.afterPropertiesSet();
+        return validator;
+    }
 
-	@Test
-	public void validationOnBindWorks() {
-		Map<String, Object> map = Collections.singletonMap("config.value", 11);
+    public static class ValidatedConfig {
 
-		ValidatedConfig config = new ValidatedConfig();
+        @Max(10)
+        private int value;
 
-		Assertions.assertThrows(BindException.class, () -> ConfigurationService
-				.bindOrCreate(Bindable.ofInstance(config), map, "config", getValidator(), null));
+        public int getValue() {
+            return this.value;
+        }
 
-	}
-
-	@Test
-	public void bindWorks() {
-		Map<String, Object> map = Collections.singletonMap("config.value", 9);
-
-		ValidatedConfig config = new ValidatedConfig();
-		ConfigurationService.bindOrCreate(Bindable.ofInstance(config), map, "config", getValidator(), null);
-
-		assertThat(config).isNotNull().extracting(ValidatedConfig::getValue).isEqualTo(9);
-	}
-
-	LocalValidatorFactoryBean getValidator() {
-		GenericApplicationContext context = new GenericApplicationContext();
-		context.refresh();
-		LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
-		validator.setApplicationContext(context);
-		validator.setMessageInterpolator(new MessageInterpolatorFactory().getObject());
-		validator.afterPropertiesSet();
-		return validator;
-	}
-
-	public static class ValidatedConfig {
-
-		@Max(10)
-		private int value;
-
-		public int getValue() {
-			return this.value;
-		}
-
-		public void setValue(int value) {
-			this.value = value;
-		}
-
-	}
-
+        public void setValue(int value) {
+            this.value = value;
+        }
+    }
 }

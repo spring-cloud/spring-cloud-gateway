@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.headers;
 
 import java.io.BufferedReader;
@@ -21,12 +20,10 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.Socket;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.jupiter.api.Test;
-
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -47,7 +44,6 @@ import org.springframework.util.StreamUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -55,98 +51,82 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @ActiveProfiles("transferencoding")
 public class TransferEncodingNormalizationHeadersFilterIntegrationTests {
 
-	private static final Log log = LogFactory.getLog(TransferEncodingNormalizationHeadersFilterIntegrationTests.class);
+    private static final Log log = LogFactory.getLog(TransferEncodingNormalizationHeadersFilterIntegrationTests.class);
 
-	@LocalServerPort
-	private int port;
+    @LocalServerPort
+    private int port;
 
-	@Test
-	void legitRequestShouldNotFail() throws Exception {
-		final ClassLoader classLoader = this.getClass().getClassLoader();
+    @Test
+    void legitRequestShouldNotFail() throws Exception {
+        final ClassLoader classLoader = this.getClass().getClassLoader();
+        // Issue a crafted request with smuggling attempt
+        assert200With("Should Fail", StreamUtils.copyToByteArray(classLoader.getResourceAsStream("transfer-encoding/invalid-request.bin")));
+        // Issue a legit request, which should not fail
+        assert200With("Should Not Fail", StreamUtils.copyToByteArray(classLoader.getResourceAsStream("transfer-encoding/valid-request.bin")));
+    }
 
-		// Issue a crafted request with smuggling attempt
-		assert200With("Should Fail",
-				StreamUtils.copyToByteArray(classLoader.getResourceAsStream("transfer-encoding/invalid-request.bin")));
+    private void assert200With(String name, byte[] payload) throws Exception {
+        final String response = execute("localhost", port, payload);
+        log.info(LogMessage.format("Request to localhost:%d %s\n%s", port, name, new String(payload)));
+        assertThat(response).isNotNull();
+        log.info(LogMessage.format("Response %s\n%s", name, response));
+        assertThat(response).matches("HTTP/1.\\d 200 OK");
+    }
 
-		// Issue a legit request, which should not fail
-		assert200With("Should Not Fail",
-				StreamUtils.copyToByteArray(classLoader.getResourceAsStream("transfer-encoding/valid-request.bin")));
-	}
+    private String execute(String target, int port, byte[] payload) throws IOException {
+        final Socket socket = new Socket(target, port);
+        final OutputStream out = socket.getOutputStream();
+        final BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        out.write(payload);
+        final String headResponse = in.readLine();
+        out.close();
+        in.close();
+        return headResponse;
+    }
 
-	private void assert200With(String name, byte[] payload) throws Exception {
-		final String response = execute("localhost", port, payload);
-		log.info(LogMessage.format("Request to localhost:%d %s\n%s", port, name, new String(payload)));
-		assertThat(response).isNotNull();
-		log.info(LogMessage.format("Response %s\n%s", name, response));
-		assertThat(response).matches("HTTP/1.\\d 200 OK");
-	}
+    @EnableAutoConfiguration
+    @SpringBootConfiguration
+    @Import(PermitAllSecurityConfiguration.class)
+    @LoadBalancerClient(name = "xferenc", configuration = TestLoadBalancerConfig.class)
+    @RestController
+    public static class TestConfig {
 
-	private String execute(String target, int port, byte[] payload) throws IOException {
-		final Socket socket = new Socket(target, port);
+        @PostMapping(value = "/echo", produces = { MediaType.APPLICATION_JSON_VALUE })
+        public Message message(@RequestBody Message message) throws IOException {
+            return message;
+        }
 
-		final OutputStream out = socket.getOutputStream();
-		final BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        @Bean
+        public RouteLocator routeLocator(RouteLocatorBuilder builder) {
+            return builder.routes().route("echo", r -> r.path("/route/echo").filters(f -> f.stripPrefix(1)).uri("lb://xferenc")).build();
+        }
+    }
 
-		out.write(payload);
+    public static class Message {
 
-		final String headResponse = in.readLine();
+        private String message;
 
-		out.close();
-		in.close();
+        public Message(@JsonProperty("message") String message) {
+            this.message = message;
+        }
 
-		return headResponse;
-	}
+        public String getMessage() {
+            return message;
+        }
 
-	@EnableAutoConfiguration
-	@SpringBootConfiguration
-	@Import(PermitAllSecurityConfiguration.class)
-	@LoadBalancerClient(name = "xferenc", configuration = TestLoadBalancerConfig.class)
-	@RestController
-	public static class TestConfig {
+        public void setMessage(String message) {
+            this.message = message;
+        }
+    }
 
-		@PostMapping(value = "/echo", produces = { MediaType.APPLICATION_JSON_VALUE })
-		public Message message(@RequestBody Message message) throws IOException {
-			return message;
-		}
+    public static class TestLoadBalancerConfig {
 
-		@Bean
-		public RouteLocator routeLocator(RouteLocatorBuilder builder) {
-			return builder.routes()
-					.route("echo", r -> r.path("/route/echo").filters(f -> f.stripPrefix(1)).uri("lb://xferenc"))
-					.build();
-		}
+        @LocalServerPort
+        protected int port = 0;
 
-	}
-
-	public static class Message {
-
-		private String message;
-
-		public Message(@JsonProperty("message") String message) {
-			this.message = message;
-		}
-
-		public String getMessage() {
-			return message;
-		}
-
-		public void setMessage(String message) {
-			this.message = message;
-		}
-
-	}
-
-	public static class TestLoadBalancerConfig {
-
-		@LocalServerPort
-		protected int port = 0;
-
-		@Bean
-		public ServiceInstanceListSupplier staticServiceInstanceListSupplier() {
-			return ServiceInstanceListSuppliers.from("xferenc",
-					new DefaultServiceInstance("xferenc" + "-1", "xferenc", "localhost", port, false));
-		}
-
-	}
-
+        @Bean
+        public ServiceInstanceListSupplier staticServiceInstanceListSupplier() {
+            return ServiceInstanceListSuppliers.from("xferenc", new DefaultServiceInstance("xferenc" + "-1", "xferenc", "localhost", port, false));
+        }
+    }
 }

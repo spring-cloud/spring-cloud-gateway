@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter;
 
 import reactor.core.publisher.Mono;
-
 import org.springframework.web.server.ServerWebExchange;
 
 /**
@@ -34,13 +32,12 @@ import org.springframework.web.server.ServerWebExchange;
  */
 public interface GlobalFilter {
 
-	/**
-	 * Process the Web request and (optionally) delegate to the next {@code GatewayFilter}
-	 * through the given {@link GatewayFilterChain}.
-	 * @param exchange the current server exchange
-	 * @param chain provides a way to delegate to the next filter
-	 * @return {@code Mono<Void>} to indicate when request processing is complete
-	 */
-	Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain);
-
+    /**
+     * Process the Web request and (optionally) delegate to the next {@code GatewayFilter}
+     * through the given {@link GatewayFilterChain}.
+     * @param exchange the current server exchange
+     * @param chain provides a way to delegate to the next filter
+     * @return {@code Mono<Void>} to indicate when request processing is complete
+     */
+    Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain);
 }

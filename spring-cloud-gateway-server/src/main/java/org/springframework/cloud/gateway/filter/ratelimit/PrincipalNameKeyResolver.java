@@ -13,23 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.ratelimit;
 
 import reactor.core.publisher.Mono;
-
 import org.springframework.web.server.ServerWebExchange;
 
 public class PrincipalNameKeyResolver implements KeyResolver {
 
-	/**
-	 * {@link PrincipalNameKeyResolver} bean name.
-	 */
-	public static final String BEAN_NAME = "principalNameKeyResolver";
+    /**
+     * {@link PrincipalNameKeyResolver} bean name.
+     */
+    public static final String BEAN_NAME = "principalNameKeyResolver";
 
-	@Override
-	public Mono<String> resolve(ServerWebExchange exchange) {
-		return exchange.getPrincipal().flatMap(p -> Mono.justOrEmpty(p.getName()));
-	}
-
+    @Override
+    public Mono<String> resolve(ServerWebExchange exchange) {
+        return exchange.getPrincipal().flatMap(p -> Mono.justOrEmpty(p.getName()));
+    }
 }

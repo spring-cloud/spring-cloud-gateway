@@ -13,17 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.handler.predicate;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
-
 import org.springframework.http.HttpMethod;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.server.ServerWebExchange;
-
 import static java.util.Arrays.stream;
 
 /**
@@ -32,54 +29,53 @@ import static java.util.Arrays.stream;
  */
 public class MethodRoutePredicateFactory extends AbstractRoutePredicateFactory<MethodRoutePredicateFactory.Config> {
 
-	/**
-	 * Methods key.
-	 */
-	public static final String METHODS_KEY = "methods";
+    /**
+     * Methods key.
+     */
+    public static final String METHODS_KEY = "methods";
 
-	public MethodRoutePredicateFactory() {
-		super(Config.class);
-	}
+    public MethodRoutePredicateFactory() {
+        super(Config.class);
+    }
 
-	@Override
-	public List<String> shortcutFieldOrder() {
-		return Arrays.asList(METHODS_KEY);
-	}
+    @Override
+    public List<String> shortcutFieldOrder() {
+        return Arrays.asList(METHODS_KEY);
+    }
 
-	@Override
-	public ShortcutType shortcutType() {
-		return ShortcutType.GATHER_LIST;
-	}
+    @Override
+    public ShortcutType shortcutType() {
+        return ShortcutType.GATHER_LIST;
+    }
 
-	@Override
-	public Predicate<ServerWebExchange> apply(Config config) {
-		return new GatewayPredicate() {
-			@Override
-			public boolean test(ServerWebExchange exchange) {
-				HttpMethod requestMethod = exchange.getRequest().getMethod();
-				return stream(config.getMethods()).anyMatch(httpMethod -> httpMethod == requestMethod);
-			}
+    @Override
+    public Predicate<ServerWebExchange> apply(Config config) {
+        return new GatewayPredicate() {
 
-			@Override
-			public String toString() {
-				return String.format("Methods: %s", Arrays.toString(config.getMethods()));
-			}
-		};
-	}
+            @Override
+            public boolean test(ServerWebExchange exchange) {
+                HttpMethod requestMethod = exchange.getRequest().getMethod();
+                return stream(config.getMethods()).anyMatch(httpMethod -> httpMethod == requestMethod);
+            }
 
-	@Validated
-	public static class Config {
+            @Override
+            public String toString() {
+                return String.format("Methods: %s", Arrays.toString(config.getMethods()));
+            }
+        };
+    }
 
-		private HttpMethod[] methods;
+    @Validated
+    public static class Config {
 
-		public HttpMethod[] getMethods() {
-			return methods;
-		}
+        private HttpMethod[] methods;
 
-		public void setMethods(HttpMethod... methods) {
-			this.methods = methods;
-		}
+        public HttpMethod[] getMethods() {
+            return methods;
+        }
 
-	}
-
+        public void setMethods(HttpMethod... methods) {
+            this.methods = methods;
+        }
+    }
 }

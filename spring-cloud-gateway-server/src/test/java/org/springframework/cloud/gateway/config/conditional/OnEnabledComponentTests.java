@@ -13,19 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.config.conditional;
 
 import java.util.Collections;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import org.springframework.boot.autoconfigure.condition.ConditionOutcome;
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 import org.springframework.mock.env.MockEnvironment;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -33,75 +29,66 @@ import static org.mockito.Mockito.when;
 
 class OnEnabledComponentTests {
 
-	private OnEnabledComponent<Object> onEnabledComponent;
+    private OnEnabledComponent<Object> onEnabledComponent;
 
-	private MockEnvironment environment;
+    private MockEnvironment environment;
 
-	private ConditionContext conditionContext;
+    private ConditionContext conditionContext;
 
-	@BeforeEach
-	void setUp() {
-		this.onEnabledComponent = createOnEnabledComponent("test-class");
-		this.environment = new MockEnvironment();
-		this.conditionContext = mock(ConditionContext.class);
-	}
+    @BeforeEach
+    void setUp() {
+        this.onEnabledComponent = createOnEnabledComponent("test-class");
+        this.environment = new MockEnvironment();
+        this.conditionContext = mock(ConditionContext.class);
+    }
 
-	@Test
-	public void shouldMatchComponent() {
-		when(conditionContext.getEnvironment()).thenReturn(environment);
+    @Test
+    public void shouldMatchComponent() {
+        when(conditionContext.getEnvironment()).thenReturn(environment);
+        ConditionOutcome outcome = onEnabledComponent.getMatchOutcome(conditionContext, mockMetaData(EnabledComponent.class));
+        assertThat(outcome.isMatch()).isTrue();
+    }
 
-		ConditionOutcome outcome = onEnabledComponent.getMatchOutcome(conditionContext,
-				mockMetaData(EnabledComponent.class));
+    @Test
+    public void shouldNotMatchDisabledComponent() {
+        String componentName = "disabled-component";
+        this.onEnabledComponent = createOnEnabledComponent(componentName);
+        when(conditionContext.getEnvironment()).thenReturn(environment);
+        environment.setProperty("spring.cloud.gateway." + componentName + ".enabled", "false");
+        ConditionOutcome outcome = onEnabledComponent.getMatchOutcome(conditionContext, mockMetaData(DisabledComponent.class));
+        assertThat(outcome.isMatch()).isFalse();
+        assertThat(outcome.getMessage()).contains("DisabledComponent").contains("bean is not available");
+    }
 
-		assertThat(outcome.isMatch()).isTrue();
-	}
+    private AnnotatedTypeMetadata mockMetaData(Class<?> value) {
+        AnnotatedTypeMetadata metadata = mock(AnnotatedTypeMetadata.class);
+        when(metadata.getAnnotationAttributes(eq(ConditionalOnEnabledFilter.class.getName()))).thenReturn(Collections.singletonMap("value", value));
+        return metadata;
+    }
 
-	@Test
-	public void shouldNotMatchDisabledComponent() {
-		String componentName = "disabled-component";
-		this.onEnabledComponent = createOnEnabledComponent(componentName);
-		when(conditionContext.getEnvironment()).thenReturn(environment);
-		environment.setProperty("spring.cloud.gateway." + componentName + ".enabled", "false");
+    private OnEnabledComponent<Object> createOnEnabledComponent(String componentName) {
+        return new OnEnabledComponent<Object>() {
 
-		ConditionOutcome outcome = onEnabledComponent.getMatchOutcome(conditionContext,
-				mockMetaData(DisabledComponent.class));
+            @Override
+            protected String normalizeComponentName(Class<?> componentClass) {
+                return componentName;
+            }
 
-		assertThat(outcome.isMatch()).isFalse();
-		assertThat(outcome.getMessage()).contains("DisabledComponent").contains("bean is not available");
-	}
+            @Override
+            protected Class<?> annotationClass() {
+                return ConditionalOnEnabledFilter.class;
+            }
 
-	private AnnotatedTypeMetadata mockMetaData(Class<?> value) {
-		AnnotatedTypeMetadata metadata = mock(AnnotatedTypeMetadata.class);
-		when(metadata.getAnnotationAttributes(eq(ConditionalOnEnabledFilter.class.getName())))
-				.thenReturn(Collections.singletonMap("value", value));
-		return metadata;
-	}
+            @Override
+            protected Class<?> defaultValueClass() {
+                return Object.class;
+            }
+        };
+    }
 
-	private OnEnabledComponent<Object> createOnEnabledComponent(String componentName) {
-		return new OnEnabledComponent<Object>() {
-			@Override
-			protected String normalizeComponentName(Class<?> componentClass) {
-				return componentName;
-			}
+    protected static class EnabledComponent {
+    }
 
-			@Override
-			protected Class<?> annotationClass() {
-				return ConditionalOnEnabledFilter.class;
-			}
-
-			@Override
-			protected Class<?> defaultValueClass() {
-				return Object.class;
-			}
-		};
-	}
-
-	protected static class EnabledComponent {
-
-	}
-
-	protected static class DisabledComponent {
-
-	}
-
+    protected static class DisabledComponent {
+    }
 }

@@ -13,19 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.filter.factory;
 
 import java.util.Arrays;
 import java.util.List;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import reactor.core.publisher.Mono;
-
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyResponseBodyGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.rewrite.RewriteFunction;
@@ -35,113 +32,103 @@ import org.springframework.http.MediaType;
 /**
  * @author Marta Medio
  */
-public class RemoveJsonAttributesResponseBodyGatewayFilterFactory extends
-		AbstractGatewayFilterFactory<RemoveJsonAttributesResponseBodyGatewayFilterFactory.FieldListConfiguration> {
+public class RemoveJsonAttributesResponseBodyGatewayFilterFactory extends AbstractGatewayFilterFactory<RemoveJsonAttributesResponseBodyGatewayFilterFactory.FieldListConfiguration> {
 
-	public RemoveJsonAttributesResponseBodyGatewayFilterFactory(
-			ModifyResponseBodyGatewayFilterFactory modifyResponseBodyGatewayFilterFactory) {
-		this.modifyResponseBodyGatewayFilterFactory = modifyResponseBodyGatewayFilterFactory;
-	}
+    public RemoveJsonAttributesResponseBodyGatewayFilterFactory(ModifyResponseBodyGatewayFilterFactory modifyResponseBodyGatewayFilterFactory) {
+        this.modifyResponseBodyGatewayFilterFactory = modifyResponseBodyGatewayFilterFactory;
+    }
 
-	@Override
-	public ShortcutType shortcutType() {
-		return ShortcutType.GATHER_LIST_TAIL_FLAG;
-	}
+    @Override
+    public ShortcutType shortcutType() {
+        return ShortcutType.GATHER_LIST_TAIL_FLAG;
+    }
 
-	@Override
-	public List<String> shortcutFieldOrder() {
-		return Arrays.asList("fieldList", "deleteRecursively");
-	}
+    @Override
+    public List<String> shortcutFieldOrder() {
+        return Arrays.asList("fieldList", "deleteRecursively");
+    }
 
-	@Override
-	public FieldListConfiguration newConfig() {
-		return new FieldListConfiguration();
-	}
+    @Override
+    public FieldListConfiguration newConfig() {
+        return new FieldListConfiguration();
+    }
 
-	@Override
-	public Class<FieldListConfiguration> getConfigClass() {
-		return FieldListConfiguration.class;
-	}
+    @Override
+    public Class<FieldListConfiguration> getConfigClass() {
+        return FieldListConfiguration.class;
+    }
 
-	@Override
-	public GatewayFilter apply(FieldListConfiguration config) {
-		ModifyResponseBodyGatewayFilterFactory.Config modifyResponseBodyConfig = new ModifyResponseBodyGatewayFilterFactory.Config();
-		modifyResponseBodyConfig.setInClass(String.class);
-		modifyResponseBodyConfig.setOutClass(String.class);
+    @Override
+    public GatewayFilter apply(FieldListConfiguration config) {
+        ModifyResponseBodyGatewayFilterFactory.Config modifyResponseBodyConfig = new ModifyResponseBodyGatewayFilterFactory.Config();
+        modifyResponseBodyConfig.setInClass(String.class);
+        modifyResponseBodyConfig.setOutClass(String.class);
+        RewriteFunction<String, String> rewriteFunction = (exchange, body) -> {
+            if (MediaType.APPLICATION_JSON.isCompatibleWith(exchange.getResponse().getHeaders().getContentType())) {
+                try {
+                    JsonNode jsonBodyContent = mapper.readValue(body, JsonNode.class);
+                    removeJsonAttribute(jsonBodyContent, config.getFieldList(), config.isDeleteRecursively());
+                    body = mapper.writeValueAsString(jsonBodyContent);
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            return Mono.just(body);
+        };
+        modifyResponseBodyConfig.setRewriteFunction(rewriteFunction);
+        return modifyResponseBodyGatewayFilterFactory.apply(modifyResponseBodyConfig);
+    }
 
-		RewriteFunction<String, String> rewriteFunction = (exchange, body) -> {
-			if (MediaType.APPLICATION_JSON.isCompatibleWith(exchange.getResponse().getHeaders().getContentType())) {
-				try {
-					JsonNode jsonBodyContent = mapper.readValue(body, JsonNode.class);
+    private final ModifyResponseBodyGatewayFilterFactory modifyResponseBodyGatewayFilterFactory;
 
-					removeJsonAttribute(jsonBodyContent, config.getFieldList(), config.isDeleteRecursively());
+    private ObjectMapper mapper = new ObjectMapper();
 
-					body = mapper.writeValueAsString(jsonBodyContent);
-				}
-				catch (JsonProcessingException e) {
-					throw new RuntimeException(e);
-				}
-			}
-			return Mono.just(body);
-		};
-		modifyResponseBodyConfig.setRewriteFunction(rewriteFunction);
+    private void removeJsonAttribute(JsonNode jsonBodyContent, List<String> fieldsToRemove, boolean deleteRecursively) {
+        if (deleteRecursively) {
+            for (JsonNode jsonNode : jsonBodyContent) {
+                if (jsonNode instanceof ObjectNode) {
+                    ((ObjectNode) jsonNode).remove(fieldsToRemove);
+                    removeJsonAttribute(jsonNode, fieldsToRemove, true);
+                }
+                if (jsonNode instanceof ArrayNode) {
+                    for (JsonNode node : jsonNode) {
+                        removeJsonAttribute(node, fieldsToRemove, true);
+                    }
+                }
+            }
+        }
+        if (jsonBodyContent instanceof ObjectNode) {
+            ((ObjectNode) jsonBodyContent).remove(fieldsToRemove);
+        }
+    }
 
-		return modifyResponseBodyGatewayFilterFactory.apply(modifyResponseBodyConfig);
-	}
+    public static class FieldListConfiguration {
 
-	private final ModifyResponseBodyGatewayFilterFactory modifyResponseBodyGatewayFilterFactory;
+        private List<String> fieldList;
 
-	private ObjectMapper mapper = new ObjectMapper();
+        private boolean deleteRecursively;
 
-	private void removeJsonAttribute(JsonNode jsonBodyContent, List<String> fieldsToRemove, boolean deleteRecursively) {
-		if (deleteRecursively) {
-			for (JsonNode jsonNode : jsonBodyContent) {
-				if (jsonNode instanceof ObjectNode) {
-					((ObjectNode) jsonNode).remove(fieldsToRemove);
-					removeJsonAttribute(jsonNode, fieldsToRemove, true);
-				}
-				if (jsonNode instanceof ArrayNode) {
-					for (JsonNode node : jsonNode) {
-						removeJsonAttribute(node, fieldsToRemove, true);
-					}
-				}
-			}
-		}
-		if (jsonBodyContent instanceof ObjectNode) {
-			((ObjectNode) jsonBodyContent).remove(fieldsToRemove);
-		}
-	}
+        public boolean isDeleteRecursively() {
+            return deleteRecursively;
+        }
 
-	public static class FieldListConfiguration {
+        public FieldListConfiguration setDeleteRecursively(boolean deleteRecursively) {
+            this.deleteRecursively = deleteRecursively;
+            return this;
+        }
 
-		private List<String> fieldList;
+        List<String> getFieldList() {
+            return fieldList;
+        }
 
-		private boolean deleteRecursively;
+        public FieldListConfiguration setFieldList(List<String> fieldList) {
+            this.fieldList = fieldList;
+            return this;
+        }
 
-		public boolean isDeleteRecursively() {
-			return deleteRecursively;
-		}
-
-		public FieldListConfiguration setDeleteRecursively(boolean deleteRecursively) {
-			this.deleteRecursively = deleteRecursively;
-			return this;
-		}
-
-		List<String> getFieldList() {
-			return fieldList;
-		}
-
-		public FieldListConfiguration setFieldList(List<String> fieldList) {
-			this.fieldList = fieldList;
-			return this;
-		}
-
-		@Override
-		public String toString() {
-			return new ToStringCreator(this).append("fieldList", fieldList)
-					.append("deleteRecursively", deleteRecursively).toString();
-		}
-
-	}
-
+        @Override
+        public String toString() {
+            return new ToStringCreator(this).append("fieldList", fieldList).append("deleteRecursively", deleteRecursively).toString();
+        }
+    }
 }

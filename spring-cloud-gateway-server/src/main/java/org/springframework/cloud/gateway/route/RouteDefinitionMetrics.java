@@ -13,15 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.cloud.gateway.route;
 
 import java.util.concurrent.atomic.AtomicInteger;
-
 import io.micrometer.core.instrument.MeterRegistry;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
 import org.springframework.cloud.gateway.filter.GatewayMetricsFilter;
 import org.springframework.context.ApplicationListener;
@@ -33,39 +30,35 @@ import org.springframework.context.ApplicationListener;
  */
 public class RouteDefinitionMetrics implements ApplicationListener<RefreshRoutesEvent> {
 
-	private static final Log log = LogFactory.getLog(GatewayMetricsFilter.class);
+    private static final Log log = LogFactory.getLog(GatewayMetricsFilter.class);
 
-	private final RouteDefinitionLocator routeLocator;
+    private final RouteDefinitionLocator routeLocator;
 
-	private final AtomicInteger routeDefinitionCount;
+    private final AtomicInteger routeDefinitionCount;
 
-	private final String metricsPrefix;
+    private final String metricsPrefix;
 
-	public RouteDefinitionMetrics(MeterRegistry meterRegistry, RouteDefinitionLocator routeLocator,
-			String metricsPrefix) {
-		this.routeLocator = routeLocator;
+    public RouteDefinitionMetrics(MeterRegistry meterRegistry, RouteDefinitionLocator routeLocator, String metricsPrefix) {
+        this.routeLocator = routeLocator;
+        if (metricsPrefix.endsWith(".")) {
+            this.metricsPrefix = metricsPrefix.substring(0, metricsPrefix.length() - 1);
+        } else {
+            this.metricsPrefix = metricsPrefix;
+        }
+        routeDefinitionCount = meterRegistry.gauge(this.metricsPrefix + ".routes.count", new AtomicInteger(0));
+    }
 
-		if (metricsPrefix.endsWith(".")) {
-			this.metricsPrefix = metricsPrefix.substring(0, metricsPrefix.length() - 1);
-		}
-		else {
-			this.metricsPrefix = metricsPrefix;
-		}
-		routeDefinitionCount = meterRegistry.gauge(this.metricsPrefix + ".routes.count", new AtomicInteger(0));
-	}
+    public String getMetricsPrefix() {
+        return metricsPrefix;
+    }
 
-	public String getMetricsPrefix() {
-		return metricsPrefix;
-	}
-
-	@Override
-	public void onApplicationEvent(RefreshRoutesEvent event) {
-		routeLocator.getRouteDefinitions().count().subscribe(count -> {
-			routeDefinitionCount.set(count.intValue());
-			if (log.isDebugEnabled()) {
-				log.debug("New routes count: " + routeDefinitionCount);
-			}
-		});
-	}
-
+    @Override
+    public void onApplicationEvent(RefreshRoutesEvent event) {
+        routeLocator.getRouteDefinitions().count().subscribe(count -> {
+            routeDefinitionCount.set(count.intValue());
+            if (log.isDebugEnabled()) {
+                log.debug("New routes count: " + routeDefinitionCount);
+            }
+        });
+    }
 }
