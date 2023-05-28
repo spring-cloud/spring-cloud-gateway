@@ -102,10 +102,8 @@ public class BaseWebClientTests {
                     exchange.getResponse().getHeaders().add(HANDLER_MAPPER_HEADER, value);
                 }
                 Route route = exchange.getAttributeOrDefault(GATEWAY_ROUTE_ATTR, null);
-                if (route != null) {
-                    if (!exchange.getResponse().isCommitted()) {
-                        exchange.getResponse().getHeaders().add(ROUTE_ID_HEADER, route.getId());
-                    }
+                if (route != null && !exchange.getResponse().isCommitted()) {
+                    exchange.getResponse().getHeaders().add(ROUTE_ID_HEADER, route.getId());
                 }
                 return chain.filter(exchange);
             };
