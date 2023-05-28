@@ -73,7 +73,7 @@ public class ProductionConfigurationTests {
 
     @Test
     public void get() {
-        assertThat(rest.getForObject("/proxy/0", Foo.class).getName()).isEqualTo("bye");
+        assertFooNameEqualsBye();
     }
 
     @Test
@@ -98,12 +98,12 @@ public class ProductionConfigurationTests {
 
     @Test
     public void uri() {
-        assertThat(rest.getForObject("/proxy/0", Foo.class).getName()).isEqualTo("bye");
+        assertFooNameEqualsBye();
     }
 
     @Test
     public void post() {
-        assertThat(rest.postForObject("/proxy/0", Collections.singletonMap("name", "foo"), Bar.class).getName()).isEqualTo("host=localhost:" + port + ";foo");
+        assertPostForObjectName();
     }
 
     @Test
@@ -156,7 +156,7 @@ public class ProductionConfigurationTests {
 
     @Test
     public void bodyless() {
-        assertThat(rest.postForObject("/proxy/0", Collections.singletonMap("name", "foo"), Bar.class).getName()).isEqualTo("host=localhost:" + port + ";foo");
+        assertPostForObjectName();
     }
 
     @Test
@@ -337,22 +337,12 @@ public class ProductionConfigurationTests {
 
             @GetMapping("/forward/**")
             public void forward(ProxyExchange<?> proxy) {
-                String path = proxy.path("/forward");
-                if (path.startsWith("/special")) {
-                    proxy.header("X-Custom", "FOO");
-                    path = proxy.path("/forward/special");
-                }
-                proxy.forward(path);
+                pathAndForward(proxy);
             }
 
             @PostMapping("/forward/**")
             public void postForward(ProxyExchange<?> proxy) {
-                String path = proxy.path("/forward");
-                if (path.startsWith("/special")) {
-                    proxy.header("X-Custom", "FOO");
-                    path = proxy.path("/forward/special");
-                }
-                proxy.forward(path);
+                pathAndForward(proxy);
             }
 
             @PostMapping("/forward/body/**")
@@ -388,6 +378,15 @@ public class ProductionConfigurationTests {
 
             private <T> ResponseEntity<T> first(ResponseEntity<List<T>> response) {
                 return ResponseEntity.status(response.getStatusCode()).headers(response.getHeaders()).body(response.getBody().iterator().next());
+            }
+
+            private void pathAndForward(ProxyExchange<?> proxy) {
+                String path = proxy.path("/forward");
+                if (path.startsWith("/special")) {
+                    proxy.header("X-Custom", "FOO");
+                    path = proxy.path("/forward/special");
+                }
+                proxy.forward(path);
             }
         }
 
@@ -475,5 +474,13 @@ public class ProductionConfigurationTests {
                 this.name = name;
             }
         }
+    }
+
+    private void assertFooNameEqualsBye() {
+        assertThat(rest.getForObject("/proxy/0", Foo.class).getName()).isEqualTo("bye");
+    }
+
+    private void assertPostForObjectName() {
+        assertThat(rest.postForObject("/proxy/0", Collections.singletonMap("name", "foo"), Bar.class).getName()).isEqualTo("host=localhost:" + port + ";foo");
     }
 }

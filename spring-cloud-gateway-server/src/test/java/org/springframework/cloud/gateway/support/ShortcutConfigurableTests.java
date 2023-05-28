@@ -50,7 +50,7 @@ public class ShortcutConfigurableTests {
 
             @Override
             public List<String> shortcutFieldOrder() {
-                return Arrays.asList("bean", "arg1");
+                return getBeanArgList();
             }
         };
         Map<String, String> args = new HashMap<>();
@@ -68,7 +68,7 @@ public class ShortcutConfigurableTests {
 
             @Override
             public List<String> shortcutFieldOrder() {
-                return Arrays.asList("bean", "arg1");
+                return getBeanArgList();
             }
         };
         Map<String, String> args = new HashMap<>();
@@ -86,7 +86,7 @@ public class ShortcutConfigurableTests {
 
             @Override
             public List<String> shortcutFieldOrder() {
-                return Arrays.asList("bean", "arg1");
+                return getBeanArgList();
             }
         };
         Map<String, String> args = new HashMap<>();
@@ -104,7 +104,7 @@ public class ShortcutConfigurableTests {
 
             @Override
             public List<String> shortcutFieldOrder() {
-                return Arrays.asList("bean", "arg1");
+                return getBeanArgList();
             }
         };
         Map<String, String> args = new HashMap<>();
@@ -198,11 +198,19 @@ public class ShortcutConfigurableTests {
     protected static class Bar {
 
         public int getInt() {
-            return 42;
+            return generateMethodNames();
         }
 
         public int myMethod() {
+            return generateMethodNames();
+        }
+
+        private int generateMethodNames() {
             return 42;
         }
+    }
+
+    private List<String> getBeanArgList() {
+        return Arrays.asList("bean", "arg1");
     }
 }

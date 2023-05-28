@@ -48,7 +48,7 @@ public class ShortcutConfigurableNonRestrictiveTests {
 
             @Override
             public List<String> shortcutFieldOrder() {
-                return Arrays.asList("bean", "arg1");
+                return beanArgList();
             }
         };
         Map<String, String> args = new HashMap<>();
@@ -65,7 +65,7 @@ public class ShortcutConfigurableNonRestrictiveTests {
 
             @Override
             public List<String> shortcutFieldOrder() {
-                return Arrays.asList("bean", "arg1");
+                return beanArgList();
             }
         };
         Map<String, String> args = new HashMap<>();
@@ -92,11 +92,19 @@ public class ShortcutConfigurableNonRestrictiveTests {
     protected static class Bar {
 
         public int getInt() {
-            return 42;
+            return getAnswerToLife();
         }
 
         public int myMethod() {
+            return getAnswerToLife();
+        }
+
+        private int getAnswerToLife() {
             return 42;
         }
+    }
+
+    private List<String> beanArgList() {
+        return Arrays.asList("bean", "arg1");
     }
 }

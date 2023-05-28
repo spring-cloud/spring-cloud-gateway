@@ -75,7 +75,7 @@ public class ProductionConfigurationTests {
 
     @Test
     public void get() throws Exception {
-        assertThat(rest.getForObject("/proxy/0", Foo.class).getName()).isEqualTo("bye");
+        assertThatIsEqualTo();
     }
 
     @Test
@@ -105,12 +105,12 @@ public class ProductionConfigurationTests {
 
     @Test
     public void uri() throws Exception {
-        assertThat(rest.getForObject("/proxy/0", Foo.class).getName()).isEqualTo("bye");
+        assertThatIsEqualTo();
     }
 
     @Test
     public void post() throws Exception {
-        assertThat(rest.postForObject("/proxy/0", Collections.singletonMap("name", "foo"), Bar.class).getName()).isEqualTo("host=localhost:" + port + ";foo");
+        assertProxyResponseEquals();
     }
 
     @Test
@@ -127,7 +127,7 @@ public class ProductionConfigurationTests {
 
     @Test
     public void bodyless() throws Exception {
-        assertThat(rest.postForObject("/proxy/0", Collections.singletonMap("name", "foo"), Bar.class).getName()).isEqualTo("host=localhost:" + port + ";foo");
+        assertProxyResponseEquals();
     }
 
     @Test
@@ -405,5 +405,13 @@ public class ProductionConfigurationTests {
                 this.name = name;
             }
         }
+    }
+
+    private void assertThatIsEqualTo() throws Exception {
+        assertThat(rest.getForObject("/proxy/0", Foo.class).getName()).isEqualTo("bye");
+    }
+
+    private void assertProxyResponseEquals() throws Exception {
+        assertThat(rest.postForObject("/proxy/0", Collections.singletonMap("name", "foo"), Bar.class).getName()).isEqualTo("host=localhost:" + port + ";foo");
     }
 }

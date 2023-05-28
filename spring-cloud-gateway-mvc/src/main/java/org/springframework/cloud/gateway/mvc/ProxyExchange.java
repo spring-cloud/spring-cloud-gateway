@@ -555,7 +555,7 @@ class ServletOutputToInputConverter extends HttpServletResponseWrapper {
 
             @Override
             public boolean isReady() {
-                return true;
+                return verifySuccess();
             }
         };
     }
@@ -575,7 +575,7 @@ class ServletOutputToInputConverter extends HttpServletResponseWrapper {
 
             @Override
             public boolean isReady() {
-                return true;
+                return verifySuccess();
             }
 
             @Override
@@ -583,5 +583,9 @@ class ServletOutputToInputConverter extends HttpServletResponseWrapper {
                 return body.available() <= 0;
             }
         };
+    }
+
+    private boolean verifySuccess() {
+        return true;
     }
 }
