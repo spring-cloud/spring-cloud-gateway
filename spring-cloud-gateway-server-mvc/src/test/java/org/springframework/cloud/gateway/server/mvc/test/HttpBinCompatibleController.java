@@ -34,6 +34,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -129,17 +130,19 @@ public class HttpBinCompatibleController {
 	 * post(exchange, null); }
 	 */
 
-	/*
-	 * @PostMapping(path = "/post", produces = MediaType.APPLICATION_JSON_VALUE) public
-	 * Mono<Map<String, Object>> post(ServerWebExchange exchange, @RequestBody(required =
-	 * false) String body) throws IOException { HashMap<String, Object> ret = new
-	 * HashMap<>(); ret.put("headers", getHeaders(exchange)); ret.put("data", body);
-	 * HashMap<String, Object> form = new HashMap<>(); ret.put("form", form);
-	 *
-	 * return exchange.getFormData().flatMap(map -> { for (Map.Entry<String, List<String>>
-	 * entry : map.entrySet()) { for (String value : entry.getValue()) {
-	 * form.put(entry.getKey(), value); } } return Mono.just(ret); }); }
-	 */
+	@PostMapping(path = "/post", produces = MediaType.APPLICATION_JSON_VALUE)
+	public Map<String, Object> post(HttpServletRequest request, @RequestBody(required = false) String body) {
+		HashMap<String, Object> ret = new HashMap<>();
+		ret.put("headers", getHeaders(request));
+		ret.put("data", body);
+		HashMap<String, Object> form = new HashMap<>();
+		ret.put("form", form);
+		return ret;
+		// return exchange.getFormData().flatMap(map -> { for (Map.Entry<String,
+		// List<String>>
+		// entry : map.entrySet()) { for (String value : entry.getValue()) {
+		// form.put(entry.getKey(), value); } } return Mono.just(ret); });
+	}
 
 	@GetMapping("/status/{status}")
 	public ResponseEntity<String> status(@PathVariable int status) {

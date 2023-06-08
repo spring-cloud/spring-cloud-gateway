@@ -147,6 +147,15 @@ public class ServerMvcIntegrationTests {
 				});
 	}
 
+	@Test
+	public void postWorks() {
+		restClient.post().uri("/post").bodyValue("Post Value").exchange().expectStatus().isOk().expectBody(Map.class)
+				.consumeWith(res -> {
+					Map<String, Object> map = res.getResponseBody();
+					assertThat(map).isNotEmpty().containsEntry("data", "Post Value");
+				});
+	}
+
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	protected static class TestConfiguration {
@@ -232,6 +241,17 @@ public class ServerMvcIntegrationTests {
 					.filter(new LocalServerPortUriResolver())
 					.filter(prefixPath("/httpbin"))
 					.filter(addRequestHeader("x-application-context", "context-id1"));
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsPost() {
+			// @formatter:off
+			return route()
+					.POST("/post", http())
+					.filter(new LocalServerPortUriResolver())
+					.filter(prefixPath("/httpbin"))
+					.build();
 			// @formatter:on
 		}
 
