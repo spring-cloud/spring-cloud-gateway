@@ -17,14 +17,14 @@
 package org.springframework.cloud.gateway.server.mvc;
 
 import java.net.URI;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.springframework.context.ApplicationContext;
-import org.springframework.web.servlet.DispatcherServlet;
+import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.servlet.function.HandlerFunction;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
+import org.springframework.web.servlet.support.RequestContextUtils;
 
 public abstract class HandlerFunctions {
 
@@ -51,11 +51,12 @@ public abstract class HandlerFunctions {
 	}
 
 	public static ApplicationContext getApplicationContext(ServerRequest request) {
-		Optional<Object> contextAttr = request.attribute(DispatcherServlet.WEB_APPLICATION_CONTEXT_ATTRIBUTE);
-		if (contextAttr.isEmpty()) {
+		WebApplicationContext webApplicationContext = RequestContextUtils
+				.findWebApplicationContext(request.servletRequest());
+		if (webApplicationContext == null) {
 			throw new IllegalStateException("No Application Context in request attributes");
 		}
-		return (ApplicationContext) contextAttr.get();
+		return webApplicationContext;
 	}
 
 	static class LookupProxyExchangeHandlerFunction implements HandlerFunction<ServerResponse> {
