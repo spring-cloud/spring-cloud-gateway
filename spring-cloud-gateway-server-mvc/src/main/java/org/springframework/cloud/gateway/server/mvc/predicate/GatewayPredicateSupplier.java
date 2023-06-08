@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.gateway.server.mvc;
+package org.springframework.cloud.gateway.server.mvc.predicate;
 
-import org.springframework.web.servlet.function.RequestPredicate;
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.Collection;
 
-public class PredicateDiscoverer extends AbstractGatewayDiscoverer {
+public class GatewayPredicateSupplier implements PredicateSupplier {
 
 	@Override
-	public void discover() {
-		doDiscover(PredicateSupplier.class, RequestPredicate.class);
+	public Collection<Method> get() {
+		return Arrays.asList(GatewayRequestPredicates.class.getMethods());
 	}
 
 }

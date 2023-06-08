@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.gateway.server.mvc;
+package org.springframework.cloud.gateway.server.mvc.filter;
 
-import org.springframework.http.HttpMethod;
-import org.springframework.web.servlet.function.RequestPredicate;
-import org.springframework.web.servlet.function.RequestPredicates;
+import org.springframework.cloud.gateway.server.mvc.common.AbstractGatewayDiscoverer;
+import org.springframework.web.servlet.function.HandlerFilterFunction;
 
-public interface GatewayRequestPredicates {
+public class FilterDiscoverer extends AbstractGatewayDiscoverer {
 
-	static RequestPredicate method(HttpMethod method) {
-		return RequestPredicates.method(method);
+	@Override
+	public void discover() {
+		doDiscover(FilterSupplier.class, HandlerFilterFunction.class);
 	}
 
 }

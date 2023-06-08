@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.gateway.server.mvc;
+package org.springframework.cloud.gateway.server.mvc.config;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;

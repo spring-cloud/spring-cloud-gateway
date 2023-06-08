@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.gateway.server.mvc;
+package org.springframework.cloud.gateway.server.mvc.common;
 
-import java.lang.reflect.Method;
-import java.util.Collection;
-import java.util.function.Supplier;
+public abstract class NameUtils {
 
-public interface FilterSupplier extends Supplier<Collection<Method>> {
+	private NameUtils() {
+	}
+
+	public static String generateName(int i) {
+		return null;
+	}
 
 }

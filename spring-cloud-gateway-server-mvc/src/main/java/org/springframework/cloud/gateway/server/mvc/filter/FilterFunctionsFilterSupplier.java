@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.gateway.server.mvc;
+package org.springframework.cloud.gateway.server.mvc.filter;
 
-public abstract class NameUtils {
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.Collection;
 
-	private NameUtils() {
-	}
+public class FilterFunctionsFilterSupplier implements FilterSupplier {
 
-	public static String generateName(int i) {
-		return null;
+	@Override
+	public Collection<Method> get() {
+		return Arrays.asList(FilterFunctions.class.getMethods());
 	}
 
 }

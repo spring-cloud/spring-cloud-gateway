@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.gateway.server.mvc;
+package org.springframework.cloud.gateway.server.mvc.predicate;
 
-import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.Collection;
+import org.springframework.http.HttpMethod;
+import org.springframework.web.servlet.function.RequestPredicate;
+import org.springframework.web.servlet.function.RequestPredicates;
 
-public class GatewayPredicateSupplier implements PredicateSupplier {
+public interface GatewayRequestPredicates {
 
-	@Override
-	public Collection<Method> get() {
-		return Arrays.asList(GatewayRequestPredicates.class.getMethods());
+	static RequestPredicate method(HttpMethod method) {
+		return RequestPredicates.method(method);
 	}
 
 }

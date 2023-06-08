@@ -21,8 +21,9 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.cloud.gateway.server.mvc.HttpHeadersFilter.RequestHttpHeadersFilter;
-import org.springframework.cloud.gateway.server.mvc.HttpHeadersFilter.ResponseHttpHeadersFilter;
+import org.springframework.cloud.gateway.server.mvc.filter.HttpHeadersFilter;
+import org.springframework.cloud.gateway.server.mvc.filter.HttpHeadersFilter.RequestHttpHeadersFilter;
+import org.springframework.cloud.gateway.server.mvc.filter.HttpHeadersFilter.ResponseHttpHeadersFilter;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.servlet.function.HandlerFunction;
 import org.springframework.web.servlet.function.ServerRequest;

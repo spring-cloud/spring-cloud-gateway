@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.gateway.server.mvc;
+package org.springframework.cloud.gateway.server.mvc.filter;
 
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.function.Supplier;
 
-public interface PredicateSupplier extends Supplier<Collection<Method>> {
+public interface FilterSupplier extends Supplier<Collection<Method>> {
 
 }

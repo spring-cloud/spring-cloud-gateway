@@ -38,14 +38,14 @@ import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.cloud.gateway.server.mvc.FilterFunctions.addRequestHeader;
-import static org.springframework.cloud.gateway.server.mvc.FilterFunctions.addRequestParameter;
-import static org.springframework.cloud.gateway.server.mvc.FilterFunctions.addResponseHeader;
-import static org.springframework.cloud.gateway.server.mvc.FilterFunctions.prefixPath;
-import static org.springframework.cloud.gateway.server.mvc.FilterFunctions.setPath;
-import static org.springframework.cloud.gateway.server.mvc.FilterFunctions.setStatus;
-import static org.springframework.cloud.gateway.server.mvc.FilterFunctions.stripPrefix;
 import static org.springframework.cloud.gateway.server.mvc.HandlerFunctions.http;
+import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.addRequestHeader;
+import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.addRequestParameter;
+import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.addResponseHeader;
+import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.prefixPath;
+import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.setPath;
+import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.setStatus;
+import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.stripPrefix;
 import static org.springframework.web.servlet.function.RequestPredicates.GET;
 import static org.springframework.web.servlet.function.RouterFunctions.route;
 

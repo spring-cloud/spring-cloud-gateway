@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.gateway.server.mvc;
+package org.springframework.cloud.gateway.server.mvc.config;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -24,12 +24,15 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.boot.context.properties.bind.Binder;
+import org.springframework.cloud.gateway.server.mvc.HandlerFunctions;
+import org.springframework.cloud.gateway.server.mvc.filter.FilterDiscoverer;
 import org.springframework.cloud.gateway.server.mvc.invoke.InvocationContext;
 import org.springframework.cloud.gateway.server.mvc.invoke.OperationArgumentResolver;
 import org.springframework.cloud.gateway.server.mvc.invoke.ParameterValueMapper;
 import org.springframework.cloud.gateway.server.mvc.invoke.convert.ConversionServiceParameterValueMapper;
 import org.springframework.cloud.gateway.server.mvc.invoke.reflect.OperationMethod;
 import org.springframework.cloud.gateway.server.mvc.invoke.reflect.ReflectiveOperationInvoker;
+import org.springframework.cloud.gateway.server.mvc.predicate.PredicateDiscoverer;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
 import org.springframework.core.env.Environment;
 import org.springframework.core.type.AnnotationMetadata;

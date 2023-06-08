@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.gateway.server.mvc;
+package org.springframework.cloud.gateway.server.mvc.common;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;

@@ -20,7 +20,7 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Collections;
 
-import org.springframework.cloud.gateway.server.mvc.FilterSupplier;
+import org.springframework.cloud.gateway.server.mvc.filter.FilterSupplier;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.web.servlet.function.HandlerFilterFunction;
 import org.springframework.web.servlet.function.ServerResponse;

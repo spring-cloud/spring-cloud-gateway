@@ -14,22 +14,12 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.gateway.server.mvc;
+package org.springframework.cloud.gateway.server.mvc.predicate;
 
-import java.util.function.BiFunction;
+import java.lang.reflect.Method;
+import java.util.Collection;
+import java.util.function.Supplier;
 
-import org.springframework.http.HttpHeaders;
-import org.springframework.web.servlet.function.ServerRequest;
-import org.springframework.web.servlet.function.ServerResponse;
-
-public interface HttpHeadersFilter<TYPE> extends BiFunction<HttpHeaders, TYPE, HttpHeaders> {
-
-	interface RequestHttpHeadersFilter extends HttpHeadersFilter<ServerRequest> {
-
-	}
-
-	interface ResponseHttpHeadersFilter extends HttpHeadersFilter<ServerResponse> {
-
-	}
+public interface PredicateSupplier extends Supplier<Collection<Method>> {
 
 }

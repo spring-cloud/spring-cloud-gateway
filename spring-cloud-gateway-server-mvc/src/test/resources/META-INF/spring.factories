@@ -1,2 +1,2 @@
-org.springframework.cloud.gateway.server.mvc.FilterSupplier=\
+org.springframework.cloud.gateway.server.mvc.filter.FilterSupplier=\
   org.springframework.cloud.gateway.server.mvc.test.TestFilterSupplier

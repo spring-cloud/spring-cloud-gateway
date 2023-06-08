@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.gateway.server.mvc;
+package org.springframework.cloud.gateway.server.mvc.config;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import jakarta.validation.ValidationException;
 import jakarta.validation.constraints.NotNull;
 
+import org.springframework.cloud.gateway.server.mvc.common.NameUtils;
 import org.springframework.validation.annotation.Validated;
 
 import static org.springframework.util.StringUtils.tokenizeToStringArray;
@@ -30,21 +32,21 @@ import static org.springframework.util.StringUtils.tokenizeToStringArray;
  * @author Spencer Gibb
  */
 @Validated
-public class FilterProperties {
+public class PredicateProperties {
 
 	@NotNull
 	private String name;
 
 	private Map<String, String> args = new LinkedHashMap<>();
 
-	public FilterProperties() {
+	public PredicateProperties() {
 	}
 
-	public FilterProperties(String text) {
+	public PredicateProperties(String text) {
 		int eqIdx = text.indexOf('=');
 		if (eqIdx <= 0) {
-			setName(text);
-			return;
+			throw new ValidationException(
+					"Unable to parse PredicateDefinition text '" + text + "'" + ", must be of the form name=value");
 		}
 		setName(text.substring(0, eqIdx));
 
@@ -83,7 +85,7 @@ public class FilterProperties {
 		if (o == null || getClass() != o.getClass()) {
 			return false;
 		}
-		FilterProperties that = (FilterProperties) o;
+		PredicateProperties that = (PredicateProperties) o;
 		return Objects.equals(name, that.name) && Objects.equals(args, that.args);
 	}
 
@@ -94,7 +96,7 @@ public class FilterProperties {
 
 	@Override
 	public String toString() {
-		final StringBuilder sb = new StringBuilder("FilterDefinition{");
+		final StringBuilder sb = new StringBuilder("PredicateDefinition{");
 		sb.append("name='").append(name).append('\'');
 		sb.append(", args=").append(args);
 		sb.append('}');
