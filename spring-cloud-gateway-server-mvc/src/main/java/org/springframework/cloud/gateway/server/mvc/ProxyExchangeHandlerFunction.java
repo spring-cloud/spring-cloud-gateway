@@ -44,7 +44,8 @@ public class ProxyExchangeHandlerFunction implements HandlerFunction<ServerRespo
 			ObjectProvider<ResponseHttpHeadersFilter> responseHttpHeadersFilters) {
 		this(proxyExchange, requestHttpHeadersFilters, responseHttpHeadersFilters, request -> {
 			// TODO: rename request attr
-			return (URI) request.attribute("routeUri").orElseThrow();
+			return (URI) request.attribute("routeUri")
+					.orElseThrow(() -> new IllegalStateException("No routeUri resolved"));
 		});
 	}
 

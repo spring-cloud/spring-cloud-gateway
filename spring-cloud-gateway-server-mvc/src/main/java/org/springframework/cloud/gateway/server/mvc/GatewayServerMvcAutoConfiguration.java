@@ -24,10 +24,19 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cloud.gateway.server.mvc.HttpHeadersFilter.RequestHttpHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.HttpHeadersFilter.ResponseHttpHeadersFilter;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.client.ClientHttpRequestFactory;
 
 @AutoConfiguration(after = RestTemplateAutoConfiguration.class)
+@Import(GatewayMvcPropertiesBeanDefinitionRegistrar.class)
 public class GatewayServerMvcAutoConfiguration {
+
+	@Bean
+	@ConditionalOnMissingBean
+	public ClientHttpRequestFactoryProxyExchange clientHttpRequestFactoryProxyExchange(
+			ClientHttpRequestFactory requestFactory) {
+		return new ClientHttpRequestFactoryProxyExchange(requestFactory);
+	}
 
 	@Bean
 	@ConditionalOnMissingBean
@@ -37,9 +46,13 @@ public class GatewayServerMvcAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	public ClientHttpRequestFactoryProxyExchange clientHttpRequestFactoryProxyExchange(
-			ClientHttpRequestFactory requestFactory) {
-		return new ClientHttpRequestFactoryProxyExchange(requestFactory);
+	public GatewayMvcProperties gatewayMvcProperties() {
+		return new GatewayMvcProperties();
+	}
+
+	@Bean
+	public PredicateDiscoverer predicateDiscoverer() {
+		return new PredicateDiscoverer();
 	}
 
 	@Bean

@@ -28,13 +28,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.cloud.gateway.server.mvc.test.DefaultTestRestClient;
-import org.springframework.cloud.gateway.server.mvc.test.HttpBinCompatibleController;
-import org.springframework.cloud.gateway.server.mvc.test.LocalHostUriBuilderFactory;
 import org.springframework.cloud.gateway.server.mvc.test.LocalServerPortUriResolver;
 import org.springframework.cloud.gateway.server.mvc.test.TestRestClient;
 import org.springframework.context.annotation.Bean;
-import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.function.RouterFunction;
@@ -154,18 +150,6 @@ public class ServerMvcIntegrationTests {
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	protected static class TestConfiguration {
-
-		// TODO: move to test auto config
-		@Bean
-		public DefaultTestRestClient testRestClient(TestRestTemplate testRestTemplate, Environment env) {
-			return new DefaultTestRestClient(testRestTemplate, new LocalHostUriBuilderFactory(env), result -> {
-			});
-		}
-
-		@Bean
-		public HttpBinCompatibleController httpBinCompatibleController() {
-			return new HttpBinCompatibleController();
-		}
 
 		@Bean
 		TestHandler testHandler() {

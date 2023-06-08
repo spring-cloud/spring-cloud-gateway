@@ -1,0 +1,44 @@
+spring.cloud.gateway.mvc:
+  routesMap:
+    route1:
+      uri: https://example1.com
+      predicates:
+        - name: Path
+          args:
+            pattern: /anything/example1
+    route2:
+      id: route2CustomId
+      uri: https://example2.com
+      predicates:
+        - name: Path
+          args:
+            pattern: /anything/example2
+  routes:
+    - id: listRoute1
+      uri: https://examplel1.com
+      predicates:
+        # TODO: implement shortcut config
+        #- Method=GET
+        - name: Method
+          args:
+            # TODO: implement aliases?
+            method: GET
+        #- Path="/status/{status}
+        - name: Path
+          args:
+            pattern: /anything/{anything}
+      filters:
+        #- LocalServerPortUriResolver=
+        #- PrefixPath=/httpbin
+        - name: LocalServerPortUriResolver
+        - name: PrefixPath
+          args:
+            prefix: /httpbin
+        - name: AddRequestHeader
+          args:
+            name: X-Test
+            values: listRoute1
+
+logging:
+  level:
+    org.springframework.cloud.gateway.server.mvc: DEBUG

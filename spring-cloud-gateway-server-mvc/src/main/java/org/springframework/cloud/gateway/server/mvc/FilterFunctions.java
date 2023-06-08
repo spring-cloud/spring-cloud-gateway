@@ -108,6 +108,8 @@ public interface FilterFunctions {
 		};
 	}
 
+	// TODO: current discovery only goes by method name
+	// so last one wins, so put int first for now
 	static HandlerFilterFunction<ServerResponse, ServerResponse> setStatus(int statusCode) {
 		return setStatus(HttpStatus.valueOf(statusCode));
 	}
