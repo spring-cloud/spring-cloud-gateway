@@ -16,8 +16,6 @@
 
 package org.springframework.cloud.gateway.server.mvc.predicate;
 
-import java.util.Map;
-
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +24,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.cloud.gateway.server.mvc.invoke.reflect.OperationMethod;
+import org.springframework.util.MultiValueMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -37,7 +36,7 @@ public class PredicateDiscovererTests {
 
 	@Test
 	void contextLoads() {
-		Map<String, OperationMethod> operations = discoverer.getOperations();
+		MultiValueMap<String, OperationMethod> operations = discoverer.getOperations();
 		assertThat(operations).isNotEmpty();
 	}
 

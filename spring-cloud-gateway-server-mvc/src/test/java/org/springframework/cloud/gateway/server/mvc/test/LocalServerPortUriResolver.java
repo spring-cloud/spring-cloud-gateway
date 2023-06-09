@@ -40,7 +40,7 @@ public class LocalServerPortUriResolver
 	@Override
 	public ServerResponse filter(ServerRequest request, HandlerFunction<ServerResponse> next) throws Exception {
 		URI uri = apply(request);
-		request.attributes().put(MvcUtils.GATEWAY_REQUEST_URL_ATTR, uri);
+		MvcUtils.setRequestUrl(request, uri);
 		return next.handle(request);
 	}
 

@@ -55,4 +55,4 @@ spring.cloud.gateway.mvc:
             values: listRoute1
 logging:
   level:
-    org.springframework.cloud.gateway.server.mvc: DEBUG
+    org.springframework.cloud.gateway.server.mvc: TRACE

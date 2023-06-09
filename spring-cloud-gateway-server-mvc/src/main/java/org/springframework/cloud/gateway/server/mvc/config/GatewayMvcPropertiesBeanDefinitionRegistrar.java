@@ -19,6 +19,12 @@ package org.springframework.cloud.gateway.server.mvc.config;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -29,6 +35,7 @@ import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.cloud.gateway.server.mvc.filter.FilterDiscoverer;
 import org.springframework.cloud.gateway.server.mvc.invoke.InvocationContext;
 import org.springframework.cloud.gateway.server.mvc.invoke.OperationArgumentResolver;
+import org.springframework.cloud.gateway.server.mvc.invoke.OperationParameters;
 import org.springframework.cloud.gateway.server.mvc.invoke.ParameterValueMapper;
 import org.springframework.cloud.gateway.server.mvc.invoke.convert.ConversionServiceParameterValueMapper;
 import org.springframework.cloud.gateway.server.mvc.invoke.reflect.OperationMethod;
@@ -36,7 +43,9 @@ import org.springframework.cloud.gateway.server.mvc.invoke.reflect.ReflectiveOpe
 import org.springframework.cloud.gateway.server.mvc.predicate.PredicateDiscoverer;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
 import org.springframework.core.env.Environment;
+import org.springframework.core.log.LogMessage;
 import org.springframework.core.type.AnnotationMetadata;
+import org.springframework.util.MultiValueMap;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.function.HandlerFilterFunction;
@@ -49,6 +58,8 @@ import org.springframework.web.servlet.function.ServerResponse;
 import static org.springframework.web.servlet.function.RouterFunctions.route;
 
 public class GatewayMvcPropertiesBeanDefinitionRegistrar implements ImportBeanDefinitionRegistrar {
+
+	protected final Log log = LogFactory.getLog(getClass());
 
 	private final TrueNullOperationArgumentResolver trueNullOperationArgumentResolver = new TrueNullOperationArgumentResolver();
 
@@ -93,65 +104,80 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrar implements ImportBeanDe
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private RouterFunction getRouterFunctionSupplier(RouteProperties routeProperties) {
 		RouterFunctions.Builder builder = route();
-		String scheme = routeProperties.getUri().getScheme();
+
 		// TODO: cache, externalize?
+		// translate handlerFunction
+		String scheme = routeProperties.getUri().getScheme();
 		Method handlerFunctionMethod = ReflectionUtils.findMethod(HandlerFunctions.class, scheme);
 		if (handlerFunctionMethod == null) {
 			throw new IllegalStateException("Unable to find HandlerFunction for scheme: " + scheme);
 		}
 		HandlerFunction<ServerResponse> handlerFunction = (HandlerFunction) ReflectionUtils
 				.invokeMethod(handlerFunctionMethod, null);
-		// TODO: translate predicates
-		Map<String, OperationMethod> predicateOperations = predicateDiscoverer.getOperations();
-		RequestPredicate predicate = null;
 
-		for (PredicateProperties predicateProperties : routeProperties.getPredicates()) {
-			String predicateName = StringUtils.uncapitalize(predicateProperties.getName());
-			// TODO: match by name, the number of parameters, then param name
-			OperationMethod operationMethod = predicateOperations.get(predicateName);
-			if (operationMethod != null) {
-				ReflectiveOperationInvoker operationInvoker = new ReflectiveOperationInvoker(operationMethod,
-						this.parameterValueMapper);
-				Map<String, Object> args = new HashMap<>();
-				args.putAll(predicateProperties.getArgs());
-				InvocationContext context = new InvocationContext(args, trueNullOperationArgumentResolver);
-				RequestPredicate requestPredicate = operationInvoker.invoke(context);
-				if (predicate == null) {
-					predicate = requestPredicate;
-				}
-				else {
-					predicate.and(requestPredicate);
-				}
-			}
-		}
-		builder.route(predicate, handlerFunction);
+		// translate predicates
+		MultiValueMap<String, OperationMethod> predicateOperations = predicateDiscoverer.getOperations();
+		final AtomicReference<RequestPredicate> predicate = new AtomicReference<>();
 
+		routeProperties.getPredicates()
+				.forEach(predicateProperties -> translate(predicateOperations, predicateProperties.getName(),
+						predicateProperties.getArgs(), RequestPredicate.class, requestPredicate -> {
+							if (predicate.get() == null) {
+								predicate.set(requestPredicate);
+							}
+							else {
+								predicate.get().and(requestPredicate);
+							}
+						}));
+
+		// combine predicate and handlerFunction
+		builder.route(predicate.get(), handlerFunction);
+
+		// MVC.fn users won't need this anonymous filter as url will be set directly
 		builder.filter((request, next) -> {
-			request.attributes().put(MvcUtils.GATEWAY_REQUEST_URL_ATTR, routeProperties.getUri());
+			MvcUtils.setRequestUrl(request, routeProperties.getUri());
 			return next.handle(request);
 		});
 
-		Map<String, OperationMethod> filterOperations = filterDiscoverer.getOperations();
 		// translate filters
-		for (FilterProperties filterProperties : routeProperties.getFilters()) {
-			String filterName = StringUtils.uncapitalize(filterProperties.getName());
-			OperationMethod operationMethod = filterOperations.get(filterName);
-			if (operationMethod != null) {
-				ReflectiveOperationInvoker operationInvoker = new ReflectiveOperationInvoker(operationMethod,
-						this.parameterValueMapper);
-				Map<String, Object> args = new HashMap<>();
-				args.putAll(filterProperties.getArgs());
-				InvocationContext context = new InvocationContext(args, trueNullOperationArgumentResolver);
-				HandlerFilterFunction handlerFilterFunction = operationInvoker.invoke(context);
-				if (handlerFilterFunction != null) {
-					builder.filter(handlerFilterFunction);
-				}
-			}
-			else {
-				System.err.println("Unable to find filter for " + filterProperties);
+		MultiValueMap<String, OperationMethod> filterOperations = filterDiscoverer.getOperations();
+		routeProperties.getFilters().forEach(filterProperties -> translate(filterOperations, filterProperties.getName(),
+				filterProperties.getArgs(), HandlerFilterFunction.class, builder::filter));
+
+		return builder.build();
+	}
+
+	private <T> void translate(MultiValueMap<String, OperationMethod> operations, String operationName,
+			Map<String, String> operationArgs, Class<T> returnType, Consumer<T> operationHandler) {
+		String normalizedName = StringUtils.uncapitalize(operationName);
+		Optional<OperationMethod> filterOperationMethod = operations.get(normalizedName).stream()
+				.filter(operationMethod -> matchOperation(operationMethod, operationArgs)).findFirst();
+		if (filterOperationMethod.isPresent()) {
+			ReflectiveOperationInvoker operationInvoker = new ReflectiveOperationInvoker(filterOperationMethod.get(),
+					this.parameterValueMapper);
+			Map<String, Object> args = new HashMap<>();
+			args.putAll(operationArgs);
+			InvocationContext context = new InvocationContext(args, trueNullOperationArgumentResolver);
+			T handlerFilterFunction = operationInvoker.invoke(context);
+			if (handlerFilterFunction != null) {
+				operationHandler.accept(handlerFilterFunction);
 			}
 		}
-		return builder.build();
+		else {
+			log.error(LogMessage.format("Unable to find operation %s for %s with args %s", returnType, normalizedName,
+					operationArgs));
+		}
+	}
+
+	private static boolean matchOperation(OperationMethod operationMethod, Map<String, String> args) {
+		OperationParameters parameters = operationMethod.getParameters();
+		for (int i = 0; i < parameters.getParameterCount(); i++) {
+			if (!args.containsKey(parameters.get(i).getName())) {
+				return false;
+			}
+		}
+		// args contains all parameter names
+		return true;
 	}
 
 	static class TrueNullOperationArgumentResolver implements OperationArgumentResolver {

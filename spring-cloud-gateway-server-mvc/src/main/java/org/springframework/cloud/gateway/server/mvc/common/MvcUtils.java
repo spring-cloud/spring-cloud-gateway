@@ -16,6 +16,10 @@
 
 package org.springframework.cloud.gateway.server.mvc.common;
 
+import java.net.URI;
+
+import org.springframework.web.servlet.function.ServerRequest;
+
 public abstract class MvcUtils {
 
 	/**
@@ -28,6 +32,10 @@ public abstract class MvcUtils {
 
 	private static String qualify(String attr) {
 		return "GatewayServerMvc." + attr;
+	}
+
+	public static void setRequestUrl(ServerRequest request, URI url) {
+		request.attributes().put(GATEWAY_REQUEST_URL_ATTR, url);
 	}
 
 }

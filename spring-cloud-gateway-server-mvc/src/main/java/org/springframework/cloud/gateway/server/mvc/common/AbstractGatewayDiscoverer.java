@@ -19,17 +19,23 @@ package org.springframework.cloud.gateway.server.mvc.common;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Supplier;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.gateway.server.mvc.invoke.reflect.OperationMethod;
 import org.springframework.core.io.support.SpringFactoriesLoader;
+import org.springframework.core.log.LogMessage;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 public abstract class AbstractGatewayDiscoverer {
 
-	protected volatile Map<String, OperationMethod> operations;
+	protected final Log log = LogFactory.getLog(getClass());
+
+	protected volatile MultiValueMap<String, OperationMethod> operations;
 
 	public <T extends Supplier<Collection<Method>>, R> void doDiscover(Class<T> supplierClass, Class<R> returnType) {
 		List<T> suppliers = loadSuppliers(supplierClass);
@@ -39,23 +45,20 @@ public abstract class AbstractGatewayDiscoverer {
 			methods.addAll(supplier.get());
 		}
 
-		operations = new HashMap<>();
+		operations = new LinkedMultiValueMap<>();
 		for (Method method : methods) {
 			// TODO: replace with a BiPredicate of some kind
 			if (method.getReturnType().isAssignableFrom(returnType)) {
-				addOperationMethod(operations, method);
+				addOperationMethod(method);
 			}
 		}
 	}
 
-	protected void addOperationMethod(Map<String, OperationMethod> predicateOperations, Method method) {
+	protected void addOperationMethod(Method method) {
 		OperationMethod operationMethod = new OperationMethod(method);
 		String key = method.getName();
-		if (predicateOperations.containsKey(key)) {
-			System.err.println("Replacing factory: " + key);
-		}
-		predicateOperations.put(key, operationMethod);
-		System.err.println("OperationMethod " + operationMethod);
+		operations.add(key, operationMethod);
+		log.trace(LogMessage.format("Discovered %s", operationMethod));
 	}
 
 	public abstract void discover();
@@ -67,7 +70,7 @@ public abstract class AbstractGatewayDiscoverer {
 		return suppliers;
 	}
 
-	public Map<String, OperationMethod> getOperations() {
+	public MultiValueMap<String, OperationMethod> getOperations() {
 		if (operations == null || operations.isEmpty()) {
 			discover();
 		}
