@@ -17,16 +17,31 @@ spring.cloud.gateway.mvc:
     - id: listRoute1
       uri: https://examplel1.com
       predicates:
-        # TODO: implement shortcut config
-        #- Method=GET
         - name: Method
           args:
             # TODO: implement aliases?
             method: GET
-        #- Path="/status/{status}
         - name: Path
           args:
-            pattern: /anything/{anything}
+            pattern: /anything/listRoute1
+      filters:
+        - name: LocalServerPortUriResolver
+        - name: PrefixPath
+          args:
+            prefix: /httpbin
+        - name: AddRequestHeader
+          args:
+            name: X-Test
+            values: listRoute1
+    - id: listRoute2
+      uri: https://examplel2.com
+      predicates:
+        # TODO: implement shortcut config
+        - name: Method
+          args:
+            method: GET
+        # - Method=GET
+        # - Path=/anything/listRoute2
       filters:
         #- LocalServerPortUriResolver=
         #- PrefixPath=/httpbin
@@ -38,7 +53,6 @@ spring.cloud.gateway.mvc:
           args:
             name: X-Test
             values: listRoute1
-
 logging:
   level:
     org.springframework.cloud.gateway.server.mvc: DEBUG

@@ -20,6 +20,7 @@ import java.net.URI;
 
 import org.springframework.cloud.gateway.server.mvc.HandlerFunctions;
 import org.springframework.cloud.gateway.server.mvc.ProxyExchangeHandlerFunction;
+import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.web.servlet.function.HandlerFilterFunction;
 import org.springframework.web.servlet.function.HandlerFunction;
@@ -39,7 +40,7 @@ public class LocalServerPortUriResolver
 	@Override
 	public ServerResponse filter(ServerRequest request, HandlerFunction<ServerResponse> next) throws Exception {
 		URI uri = apply(request);
-		request.attributes().put("routeUri", uri);
+		request.attributes().put(MvcUtils.GATEWAY_REQUEST_URL_ATTR, uri);
 		return next.handle(request);
 	}
 

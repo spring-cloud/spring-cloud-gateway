@@ -21,6 +21,7 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.cloud.gateway.server.mvc.filter.HttpHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.HttpHeadersFilter.RequestHttpHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.HttpHeadersFilter.ResponseHttpHeadersFilter;
@@ -44,8 +45,7 @@ public class ProxyExchangeHandlerFunction implements HandlerFunction<ServerRespo
 			ObjectProvider<RequestHttpHeadersFilter> requestHttpHeadersFilters,
 			ObjectProvider<ResponseHttpHeadersFilter> responseHttpHeadersFilters) {
 		this(proxyExchange, requestHttpHeadersFilters, responseHttpHeadersFilters, request -> {
-			// TODO: rename request attr
-			return (URI) request.attribute("routeUri")
+			return (URI) request.attribute(MvcUtils.GATEWAY_REQUEST_URL_ATTR)
 					.orElseThrow(() -> new IllegalStateException("No routeUri resolved"));
 		});
 	}

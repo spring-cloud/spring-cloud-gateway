@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.server.mvc;
 import java.net.URI;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.servlet.function.HandlerFunction;
@@ -78,7 +79,7 @@ public abstract class HandlerFunctions {
 			if (uri != null) {
 				// TODO: in 2 places now, here and
 				// GatewayMvcPropertiesBeanDefinitionRegistrar
-				serverRequest.attributes().put("routeUri", uri);
+				serverRequest.attributes().put(MvcUtils.GATEWAY_REQUEST_URL_ATTR, uri);
 			}
 			this.proxyExchangeHandlerFunction.compareAndSet(null, lookup(serverRequest));
 			return proxyExchangeHandlerFunction.get().handle(serverRequest);

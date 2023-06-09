@@ -49,8 +49,8 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrarTests {
 	@Test
 	void contextLoads(ApplicationContext context) {
 		Map<String, RouterFunction> routerFunctions = context.getBeansOfType(RouterFunction.class);
-		assertThat(routerFunctions).hasSize(3).containsKeys("listRoute1RouterFunction", "route1RouterFunction",
-				"route2CustomIdRouterFunction");
+		assertThat(routerFunctions).hasSizeGreaterThanOrEqualTo(3).containsKeys("listRoute1RouterFunction",
+				"route1RouterFunction", "route2CustomIdRouterFunction");
 		RouterFunction listRoute1RouterFunction = routerFunctions.get("listRoute1RouterFunction");
 		listRoute1RouterFunction.accept(new RouterFunctions.Visitor() {
 			@Override

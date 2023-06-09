@@ -67,6 +67,7 @@ public class ServerMvcIntegrationTests {
 		restClient.get().uri("/hello").exchange().expectStatus().isOk().expectBody(String.class).isEqualTo("Hello");
 	}
 
+	@SuppressWarnings("rawtypes")
 	@Test
 	public void addRequestHeaderWorks() {
 		ResponseEntity<Map> response = restTemplate.getForEntity("/get", Map.class);

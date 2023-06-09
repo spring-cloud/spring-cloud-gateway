@@ -25,6 +25,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.cloud.gateway.server.mvc.HandlerFunctions;
+import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.cloud.gateway.server.mvc.filter.FilterDiscoverer;
 import org.springframework.cloud.gateway.server.mvc.invoke.InvocationContext;
 import org.springframework.cloud.gateway.server.mvc.invoke.OperationArgumentResolver;
@@ -126,7 +127,7 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrar implements ImportBeanDe
 		builder.route(predicate, handlerFunction);
 
 		builder.filter((request, next) -> {
-			request.attributes().put("routeUri", routeProperties.getUri());
+			request.attributes().put(MvcUtils.GATEWAY_REQUEST_URL_ATTR, routeProperties.getUri());
 			return next.handle(request);
 		});
 
