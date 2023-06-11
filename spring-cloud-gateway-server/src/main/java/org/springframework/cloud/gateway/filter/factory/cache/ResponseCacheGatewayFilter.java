@@ -31,6 +31,8 @@ import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.web.server.ServerWebExchange;
 
+import static org.springframework.cloud.gateway.filter.factory.cache.LocalResponseCacheGatewayFilterFactory.LOCAL_RESPONSE_CACHE_FILTER_APPLIED;
+
 /**
  * {@literal LocalResponseCache} Gateway Filter that stores HTTP Responses in a cache, so
  * latency and upstream overhead is reduced.
@@ -49,6 +51,7 @@ public class ResponseCacheGatewayFilter implements GatewayFilter, Ordered {
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 		if (responseCacheManager.isRequestCacheable(exchange.getRequest())) {
+			exchange.getAttributes().put(LOCAL_RESPONSE_CACHE_FILTER_APPLIED, true);
 			return filterWithCache(exchange, chain);
 		}
 		else {
@@ -58,7 +61,7 @@ public class ResponseCacheGatewayFilter implements GatewayFilter, Ordered {
 
 	@Override
 	public int getOrder() {
-		return NettyWriteResponseFilter.WRITE_RESPONSE_FILTER_ORDER - 1;
+		return NettyWriteResponseFilter.WRITE_RESPONSE_FILTER_ORDER - 3;
 	}
 
 	private Mono<Void> filterWithCache(ServerWebExchange exchange, GatewayFilterChain chain) {
@@ -92,11 +95,10 @@ public class ResponseCacheGatewayFilter implements GatewayFilter, Ordered {
 
 			Flux<DataBuffer> decoratedBody;
 			if (responseCacheManager.isResponseCacheable(response)) {
-				decoratedBody = responseCacheManager.processFromUpstream(metadataKey, exchange,
-						(Flux<DataBuffer>) body);
+				decoratedBody = responseCacheManager.processFromUpstream(metadataKey, exchange, Flux.from(body));
 			}
 			else {
-				decoratedBody = (Flux<DataBuffer>) body;
+				decoratedBody = Flux.from(body);
 			}
 
 			return super.writeWith(decoratedBody);

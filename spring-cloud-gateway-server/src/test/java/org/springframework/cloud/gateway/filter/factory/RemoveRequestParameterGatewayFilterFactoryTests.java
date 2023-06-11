@@ -16,8 +16,8 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import reactor.core.publisher.Mono;
 
@@ -45,7 +45,7 @@ public class RemoveRequestParameterGatewayFilterFactoryTests {
 
 	private ArgumentCaptor<ServerWebExchange> captor;
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 		filterChain = mock(GatewayFilterChain.class);
 		captor = ArgumentCaptor.forClass(ServerWebExchange.class);

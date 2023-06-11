@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.gateway.filter.headers.observation;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -40,6 +41,7 @@ import io.micrometer.tracing.handler.DefaultTracingObservationHandler;
 import io.micrometer.tracing.propagation.Propagator;
 import io.micrometer.tracing.test.simple.SpansAssert;
 import org.junit.jupiter.api.Test;
+import reactor.util.context.Context;
 
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
@@ -67,9 +69,11 @@ class B3BraveObservedHttpHeadersFilterTests {
 	void shouldWorkWithB3SingleHeader() {
 		TestObservationRegistry observationRegistry = TestObservationRegistry.create();
 		observationRegistry.observationConfig()
-				.observationHandler(new ObservationHandler.FirstMatchingCompositeObservationHandler(
-						new GatewayPropagatingSenderTracingObservationHandler(tracer, propagator),
-						new DefaultTracingObservationHandler(tracer)));
+				.observationHandler(
+						new ObservationHandler.FirstMatchingCompositeObservationHandler(
+								new GatewayPropagatingSenderTracingObservationHandler(tracer, propagator,
+										Collections.singletonList("X-A")),
+								new DefaultTracingObservationHandler(tracer)));
 
 		Observation.createNotStarted("parent", observationRegistry).observe(() -> {
 			// given
@@ -87,8 +91,9 @@ class B3BraveObservedHttpHeadersFilterTests {
 					.predicate(serverWebExchange -> true).build();
 			exchange.getAttributes().put(ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR, route);
 			// Parent observation
-			exchange.getAttributes().put(ObservationThreadLocalAccessor.KEY,
-					observationRegistry.getCurrentObservation());
+			Context ctx = Context
+					.of(Map.of(ObservationThreadLocalAccessor.KEY, observationRegistry.getCurrentObservation()));
+			exchange.getAttributes().put(ServerWebExchangeUtils.GATEWAY_REACTOR_CONTEXT_ATTR, ctx);
 
 			// and
 			ObservedRequestHttpHeadersFilter requestHttpHeadersFilter = new ObservedRequestHttpHeadersFilter(

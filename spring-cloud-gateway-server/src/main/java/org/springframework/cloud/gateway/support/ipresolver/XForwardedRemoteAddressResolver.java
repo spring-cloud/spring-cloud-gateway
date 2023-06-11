@@ -109,9 +109,8 @@ public class XForwardedRemoteAddressResolver implements RemoteAddressResolver {
 	@Override
 	public InetSocketAddress resolve(ServerWebExchange exchange) {
 		List<String> xForwardedValues = extractXForwardedValues(exchange);
-		Collections.reverse(xForwardedValues);
 		if (!xForwardedValues.isEmpty()) {
-			int index = Math.min(xForwardedValues.size(), maxTrustedIndex) - 1;
+			int index = Math.max(0, xForwardedValues.size() - maxTrustedIndex);
 			return new InetSocketAddress(xForwardedValues.get(index), 0);
 		}
 		return defaultRemoteIpResolver.resolve(exchange);
@@ -126,11 +125,11 @@ public class XForwardedRemoteAddressResolver implements RemoteAddressResolver {
 			log.warn("Multiple X-Forwarded-For headers found, discarding all");
 			return Collections.emptyList();
 		}
-		List<String> values = Arrays.asList(xForwardedValues.get(0).split(", "));
-		if (values.size() == 1 && !StringUtils.hasText(values.get(0))) {
+		String[] values = StringUtils.tokenizeToStringArray(xForwardedValues.get(0), ",");
+		if (values.length == 1 && !StringUtils.hasText(values[0])) {
 			return Collections.emptyList();
 		}
-		return values;
+		return Arrays.asList(values);
 	}
 
 }

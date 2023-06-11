@@ -87,6 +87,11 @@ public final class ServerWebExchangeUtils {
 	public static final String GATEWAY_ROUTE_ATTR = qualify("gatewayRoute");
 
 	/**
+	 * Original Reactor Context corresponding to the processed request.
+	 */
+	public static final String GATEWAY_REACTOR_CONTEXT_ATTR = qualify("gatewayReactorContext");
+
+	/**
 	 * Gateway request URL attribute name.
 	 */
 	public static final String GATEWAY_REQUEST_URL_ATTR = qualify("gatewayRequestUrl");
@@ -121,6 +126,11 @@ public final class ServerWebExchangeUtils {
 	 */
 	public static final String GATEWAY_PREDICATE_MATCHED_PATH_ROUTE_ID_ATTR = qualify(
 			"gatewayPredicateMatchedPathRouteIdAttr");
+
+	/**
+	 * Gateway predicate path container attribute name.
+	 */
+	public static final String GATEWAY_PREDICATE_PATH_CONTAINER_ATTR = qualify("gatewayPredicatePathContainer");
 
 	/**
 	 * Weight attribute name.
@@ -323,7 +333,7 @@ public final class ServerWebExchangeUtils {
 	/**
 	 * Caches the request body in a ServerWebExchange attributes. The attribute is
 	 * {@link #CACHED_REQUEST_BODY_ATTR}. This method is useful when the
-	 * {@link ServerWebExchange} can be mutated, such as a {@link GatewayFilterFactory}/
+	 * {@link ServerWebExchange} can be mutated, such as a {@link GatewayFilterFactory}.
 	 * @param exchange the available ServerWebExchange.
 	 * @param function a function that accepts the created ServerHttpRequestDecorator.
 	 * @param <T> generic type for the return {@link Mono}.
@@ -364,14 +374,19 @@ public final class ServerWebExchangeUtils {
 			if (log.isTraceEnabled()) {
 				log.trace("retaining body in exchange attribute");
 			}
-			exchange.getAttributes().put(CACHED_REQUEST_BODY_ATTR, dataBuffer);
+
+			Object cachedDataBuffer = exchange.getAttribute(CACHED_REQUEST_BODY_ATTR);
+			// don't cache if body is already cached
+			if (!(cachedDataBuffer instanceof DataBuffer)) {
+				exchange.getAttributes().put(CACHED_REQUEST_BODY_ATTR, dataBuffer);
+			}
 		}
 
 		ServerHttpRequest decorator = new ServerHttpRequestDecorator(exchange.getRequest()) {
 			@Override
 			public Flux<DataBuffer> getBody() {
 				return Mono.fromSupplier(() -> {
-					if (exchange.getAttributeOrDefault(CACHED_REQUEST_BODY_ATTR, null) == null) {
+					if (exchange.getAttribute(CACHED_REQUEST_BODY_ATTR) == null) {
 						// probably == downstream closed or no body
 						return null;
 					}

@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.gateway.filter.headers.observation;
 
+import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 
 import io.micrometer.observation.Observation;
@@ -34,19 +36,26 @@ public class GatewayPropagatingSenderTracingObservationHandler
 
 	private final Propagator propagator;
 
+	private final List<String> remoteFieldsLowerCase;
+
 	/**
 	 * Creates a new instance of {@link PropagatingSenderTracingObservationHandler}.
 	 * @param tracer the tracer to use to record events
 	 * @param propagator the mechanism to propagate tracing information into the carrier
+	 * @param remoteFields remote fields to be propagated over the wire
 	 */
-	public GatewayPropagatingSenderTracingObservationHandler(Tracer tracer, Propagator propagator) {
+	public GatewayPropagatingSenderTracingObservationHandler(Tracer tracer, Propagator propagator,
+			List<String> remoteFields) {
 		super(tracer, propagator);
 		this.propagator = propagator;
+		this.remoteFieldsLowerCase = remoteFields.stream().map(s -> s.toLowerCase(Locale.ROOT)).toList();
 	}
 
 	@Override
 	public void onStart(GatewayContext context) {
-		this.propagator.fields().forEach(s -> Objects.requireNonNull(context.getCarrier()).remove(s));
+		this.propagator.fields().stream()
+				.filter(field -> !remoteFieldsLowerCase.contains(field.toLowerCase(Locale.ROOT)))
+				.forEach(s -> Objects.requireNonNull(context.getCarrier()).remove(s));
 		super.onStart(context);
 	}
 

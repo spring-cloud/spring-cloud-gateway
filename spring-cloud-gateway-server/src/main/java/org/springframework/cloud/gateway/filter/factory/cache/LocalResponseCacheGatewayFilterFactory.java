@@ -18,8 +18,8 @@ package org.springframework.cloud.gateway.filter.factory.cache;
 
 import java.time.Duration;
 import java.util.List;
-import java.util.Objects;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cache.Cache;
 import org.springframework.cloud.gateway.config.LocalResponseCacheAutoConfiguration;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
@@ -39,46 +39,52 @@ import org.springframework.validation.annotation.Validated;
  * @author Marta Medio
  * @author Ignacio Lozano
  */
+@ConditionalOnProperty(value = "spring.cloud.gateway.filter.local-response-cache.enabled", havingValue = "true")
 public class LocalResponseCacheGatewayFilterFactory
 		extends AbstractGatewayFilterFactory<LocalResponseCacheGatewayFilterFactory.RouteCacheConfiguration> {
 
-	private final Cache globalCache;
+	/**
+	 * Exchange attribute name to track if the request has been already process by cache
+	 * at route filter level.
+	 */
+	public static final String LOCAL_RESPONSE_CACHE_FILTER_APPLIED = "LocalResponseCacheGatewayFilter-Applied";
 
-	ResponseCacheManagerFactory cacheManagerFactory;
+	private ResponseCacheManagerFactory cacheManagerFactory;
 
-	Duration configuredTimeToLive;
+	private Duration defaultTimeToLive;
 
-	public LocalResponseCacheGatewayFilterFactory(ResponseCacheManagerFactory cacheManagerFactory, Cache globalCache,
-			Duration configuredTimeToLive) {
+	private DataSize defaultSize;
+
+	public LocalResponseCacheGatewayFilterFactory(ResponseCacheManagerFactory cacheManagerFactory,
+			Duration defaultTimeToLive) {
+		this(cacheManagerFactory, defaultTimeToLive, null);
+	}
+
+	public LocalResponseCacheGatewayFilterFactory(ResponseCacheManagerFactory cacheManagerFactory,
+			Duration defaultTimeToLive, DataSize defaultSize) {
 		super(RouteCacheConfiguration.class);
 		this.cacheManagerFactory = cacheManagerFactory;
-		this.globalCache = globalCache;
-		this.configuredTimeToLive = configuredTimeToLive;
+		this.defaultTimeToLive = defaultTimeToLive;
+		this.defaultSize = defaultSize;
 	}
 
 	@Override
 	public GatewayFilter apply(RouteCacheConfiguration config) {
 		LocalResponseCacheProperties cacheProperties = mapRouteCacheConfig(config);
 
-		if (shouldUseGlobalCacheConfiguration(config)) {
-			return new ResponseCacheGatewayFilter(cacheManagerFactory.create(globalCache, configuredTimeToLive));
-		}
-		else {
-			Cache routeCache = LocalResponseCacheAutoConfiguration.concurrentMapCacheManager(cacheProperties)
-					.getCache(config.getRouteId() + "-cache");
-			return new ResponseCacheGatewayFilter(
-					cacheManagerFactory.create(routeCache, cacheProperties.getTimeToLive()));
-		}
-	}
+		Cache routeCache = LocalResponseCacheAutoConfiguration.createGatewayCacheManager(cacheProperties)
+				.getCache(config.getRouteId() + "-cache");
+		return new ResponseCacheGatewayFilter(cacheManagerFactory.create(routeCache, cacheProperties.getTimeToLive()));
 
-	private boolean shouldUseGlobalCacheConfiguration(RouteCacheConfiguration config) {
-		return Objects.isNull(config.getTimeToLive()) && Objects.isNull(config.getSize());
 	}
 
 	private LocalResponseCacheProperties mapRouteCacheConfig(RouteCacheConfiguration config) {
+		Duration timeToLive = config.getTimeToLive() != null ? config.getTimeToLive() : defaultTimeToLive;
+		DataSize size = config.getSize() != null ? config.getSize() : defaultSize;
+
 		LocalResponseCacheProperties responseCacheProperties = new LocalResponseCacheProperties();
-		responseCacheProperties.setSize(config.getSize());
-		responseCacheProperties.setTimeToLive(config.getTimeToLive());
+		responseCacheProperties.setTimeToLive(timeToLive);
+		responseCacheProperties.setSize(size);
 		return responseCacheProperties;
 	}
 

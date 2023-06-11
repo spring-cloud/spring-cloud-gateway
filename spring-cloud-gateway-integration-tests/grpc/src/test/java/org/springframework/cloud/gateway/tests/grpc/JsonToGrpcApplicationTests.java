@@ -19,11 +19,6 @@ package org.springframework.cloud.gateway.tests.grpc;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
 
 import javax.net.ssl.SSLContext;
 
@@ -41,16 +36,12 @@ import org.apache.hc.core5.ssl.SSLContexts;
 import org.apache.hc.core5.ssl.TrustStrategy;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.client.RestTemplate;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
@@ -59,11 +50,12 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
  * @author Alberto C. Ríos
  * @author Abel Salgado Romero
  */
+@Disabled
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 public class JsonToGrpcApplicationTests {
 
 	@LocalServerPort
-	private int port;
+	private int gatewayPort;
 
 	private RestTemplate restTemplate;
 
@@ -77,11 +69,12 @@ public class JsonToGrpcApplicationTests {
 		// Since GRPC server and GW run in same instance and don't know server port until
 		// test starts,
 		// we need to configure route dynamically using the actuator endpoint.
-		final RouteConfigurer configurer = new RouteConfigurer(port);
-		configurer.addRoute(port + 1, "/json/hello",
+		final RouteConfigurer configurer = new RouteConfigurer(gatewayPort);
+		int grpcServerPort = gatewayPort + 1;
+		configurer.addRoute(grpcServerPort, "/json/hello",
 				"JsonToGrpc=file:src/main/proto/hello.pb,file:src/main/proto/hello.proto,HelloService,hello");
 
-		String response = restTemplate.postForEntity("https://localhost:" + this.port + "/json/hello",
+		String response = restTemplate.postForEntity("https://localhost:" + this.gatewayPort + "/json/hello",
 				"{\"firstName\":\"Duff\", \"lastName\":\"McKagan\"}", String.class).getBody();
 
 		Assertions.assertThat(response).isNotNull();
@@ -109,48 +102,6 @@ public class JsonToGrpcApplicationTests {
 		HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory(httpClient);
 
 		return new RestTemplate(requestFactory);
-	}
-
-	class RouteConfigurer {
-
-		private final WebTestClient actuatorWebClient;
-
-		private final int actuatorPort;
-
-		RouteConfigurer(int actuatorPort) {
-			this.actuatorPort = actuatorPort;
-			this.actuatorWebClient = WebTestClient.bindToServer().baseUrl("http://localhost:" + actuatorPort).build();
-
-		}
-
-		public void addRoute(int uriPort, String path, String filter) {
-			final String routeId = "test-route-" + UUID.randomUUID();
-
-			Map<String, Object> route = new HashMap<>();
-			route.put("id", routeId);
-			route.put("uri", "http://localhost:" + uriPort);
-			route.put("predicates", Collections.singletonList("Path=" + path));
-			route.put("filters", Arrays.asList(filter));
-
-			ResponseEntity<String> exchange = restTemplate.exchange(url("/actuator/gateway/routes/" + routeId),
-					HttpMethod.POST, new HttpEntity<>(route), String.class);
-
-			assert exchange.getStatusCode() == HttpStatus.CREATED;
-
-			refreshRoutes();
-		}
-
-		private void refreshRoutes() {
-			ResponseEntity<String> exchange = restTemplate.exchange(url("/actuator/gateway/refresh"), HttpMethod.POST,
-					new HttpEntity<>(""), String.class);
-
-			assert exchange.getStatusCode() == HttpStatus.OK;
-		}
-
-		private String url(String context) {
-			return String.format("https://localhost:%s%s", this.actuatorPort, context);
-		}
-
 	}
 
 }

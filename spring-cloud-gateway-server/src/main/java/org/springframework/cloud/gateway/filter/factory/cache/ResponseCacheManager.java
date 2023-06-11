@@ -71,7 +71,7 @@ public class ResponseCacheManager {
 				new SetMaxAgeHeaderAfterCacheExchangeMutator(configuredTimeToLive, Clock.systemDefaultZone()));
 	}
 
-	private static final List<HttpStatus> statusesToCache = Arrays.asList(HttpStatus.OK, HttpStatus.PARTIAL_CONTENT,
+	private static final List<HttpStatusCode> statusesToCache = Arrays.asList(HttpStatus.OK, HttpStatus.PARTIAL_CONTENT,
 			HttpStatus.MOVED_PERMANENTLY);
 
 	public Optional<CachedResponse> getFromCache(ServerHttpRequest request, String metadataKey) {
@@ -98,7 +98,7 @@ public class ResponseCacheManager {
 		return body.map(dataBuffer -> {
 			ByteBuffer byteBuffer = dataBuffer.toByteBuffer().asReadOnlyBuffer();
 			cachedResponseBuilder.appendToBody(byteBuffer);
-			return response.bufferFactory().wrap(byteBuffer);
+			return dataBuffer;
 		}).doOnComplete(() -> {
 			CachedResponse responseToCache = cachedResponseBuilder.timestamp(toProcess.timestamp()).build();
 			saveMetadataInCache(metadataKey, metadata);
@@ -158,8 +158,7 @@ public class ResponseCacheManager {
 	}
 
 	private boolean isStatusCodeToCache(ServerHttpResponse response) {
-		return Optional.ofNullable(response.getStatusCode()).map(HttpStatusCode::value).map(HttpStatus::resolve)
-				.map(statusesToCache::contains).orElse(Boolean.FALSE);
+		return statusesToCache.contains(response.getStatusCode());
 	}
 
 	boolean isRequestCacheable(ServerHttpRequest request) {
@@ -168,15 +167,14 @@ public class ResponseCacheManager {
 
 	private boolean isVaryWildcard(ServerHttpResponse response) {
 		HttpHeaders headers = response.getHeaders();
-		List<String> varyValues = Optional.ofNullable(headers.get(HttpHeaders.VARY)).orElse(Collections.emptyList());
+		List<String> varyValues = headers.getOrEmpty(HttpHeaders.VARY);
 
 		return varyValues.stream().anyMatch(VARY_WILDCARD::equals);
 	}
 
 	private boolean isCacheControlAllowed(HttpMessage request) {
 		HttpHeaders headers = request.getHeaders();
-		List<String> cacheControlHeader = Optional.ofNullable(headers.get(HttpHeaders.CACHE_CONTROL))
-				.orElse(Collections.emptyList());
+		List<String> cacheControlHeader = headers.getOrEmpty(HttpHeaders.CACHE_CONTROL);
 
 		return cacheControlHeader.stream().noneMatch(forbiddenCacheControlValues::contains);
 	}

@@ -19,9 +19,9 @@
 |spring.cloud.gateway.filter.fallback-headers.enabled | `+++true+++` | Enables the fallback-headers filter.
 |spring.cloud.gateway.filter.hystrix.enabled | `+++true+++` | Enables the hystrix filter.
 |spring.cloud.gateway.filter.json-to-grpc.enabled | `+++true+++` | Enables the JSON to gRPC filter.
-|spring.cloud.gateway.filter.local-response-cache.enabled | `+++true+++` | Enables the local-response-cache filter.
-|spring.cloud.gateway.filter.local-response-cache.size |  | 
-|spring.cloud.gateway.filter.local-response-cache.time-to-live |  | 
+|spring.cloud.gateway.filter.local-response-cache.enabled | `+++false+++` | Enables the local-response-cache filter.
+|spring.cloud.gateway.filter.local-response-cache.size | `+++5m+++` | Maximum size of the cache to evict entries for this route (in KB, MB and GB).
+|spring.cloud.gateway.filter.local-response-cache.time-to-live |  | Time to expire a cache entry (expressed in s for seconds, m for minutes, and h for hours).
 |spring.cloud.gateway.filter.map-request-header.enabled | `+++true+++` | Enables the map-request-header filter.
 |spring.cloud.gateway.filter.modify-request-body.enabled | `+++true+++` | Enables the modify-request-body filter.
 |spring.cloud.gateway.filter.modify-response-body.enabled | `+++true+++` | Enables the modify-response-body filter.
@@ -66,6 +66,7 @@
 |spring.cloud.gateway.global-filter.forward-path.enabled | `+++true+++` | Enables the forward-path global filter.
 |spring.cloud.gateway.global-filter.forward-routing.enabled | `+++true+++` | Enables the forward-routing global filter.
 |spring.cloud.gateway.global-filter.load-balancer-client.enabled | `+++true+++` | Enables the load-balancer-client global filter.
+|spring.cloud.gateway.global-filter.local-response-cache.enabled | `+++true+++` | Enables the local-response-cache filter for all routes, it allows to add a specific configuration at route level using LocalResponseCache filter.
 |spring.cloud.gateway.global-filter.netty-routing.enabled | `+++true+++` | Enables the netty-routing global filter.
 |spring.cloud.gateway.global-filter.netty-write-response.enabled | `+++true+++` | Enables the netty-write-response global filter.
 |spring.cloud.gateway.global-filter.reactive-load-balancer-client.enabled | `+++true+++` | Enables the reactive-load-balancer-client global filter.
@@ -76,7 +77,7 @@
 |spring.cloud.gateway.globalcors.cors-configurations |  | 
 |spring.cloud.gateway.handler-mapping.order | `+++1+++` | The order of RoutePredicateHandlerMapping.
 |spring.cloud.gateway.httpclient.compression | `+++false+++` | Enables compression for Netty HttpClient.
-|spring.cloud.gateway.httpclient.connect-timeout |  | The connect timeout in millis, the default is 45s.
+|spring.cloud.gateway.httpclient.connect-timeout |  | The connect timeout in millis, the default is 30s.
 |spring.cloud.gateway.httpclient.max-header-size |  | The max response header size.
 |spring.cloud.gateway.httpclient.max-initial-line-length |  | The max initial line length.
 |spring.cloud.gateway.httpclient.pool.acquire-timeout |  | Only for type FIXED, the maximum time in millis to wait for acquiring.
@@ -96,7 +97,6 @@
 |spring.cloud.gateway.httpclient.response-timeout |  | The response timeout.
 |spring.cloud.gateway.httpclient.ssl.close-notify-flush-timeout | `+++3000ms+++` | SSL close_notify flush timeout. Default to 3000 ms.
 |spring.cloud.gateway.httpclient.ssl.close-notify-read-timeout | `+++0+++` | SSL close_notify read timeout. Default to 0 ms.
-|spring.cloud.gateway.httpclient.ssl.default-configuration-type |  | The default ssl configuration type. Defaults to TCP.
 |spring.cloud.gateway.httpclient.ssl.handshake-timeout | `+++10000ms+++` | SSL handshake timeout. Default to 10000 ms
 |spring.cloud.gateway.httpclient.ssl.key-password |  | Key password, default is same as keyStorePassword.
 |spring.cloud.gateway.httpclient.ssl.key-store |  | Keystore path for Netty HttpClient.

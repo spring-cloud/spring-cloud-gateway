@@ -34,6 +34,7 @@ import static org.springframework.cloud.gateway.handler.RoutePredicateHandlerMap
 import static org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping.ManagementPortType.SAME;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_HANDLER_MAPPER_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_PREDICATE_ROUTE_ATTR;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REACTOR_CONTEXT_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
 
 /**
@@ -77,27 +78,31 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 	protected Mono<?> getHandlerInternal(ServerWebExchange exchange) {
 		// don't handle requests on management port if set and different than server port
 		if (this.managementPortType == DIFFERENT && this.managementPort != null
-				&& exchange.getRequest().getURI().getPort() == this.managementPort) {
+				&& exchange.getRequest().getLocalAddress() != null
+				&& exchange.getRequest().getLocalAddress().getPort() == this.managementPort) {
 			return Mono.empty();
 		}
 		exchange.getAttributes().put(GATEWAY_HANDLER_MAPPER_ATTR, getSimpleName());
 
-		return lookupRoute(exchange)
-				// .log("route-predicate-handler-mapping", Level.FINER) //name this
-				.flatMap((Function<Route, Mono<?>>) r -> {
-					exchange.getAttributes().remove(GATEWAY_PREDICATE_ROUTE_ATTR);
-					if (logger.isDebugEnabled()) {
-						logger.debug("Mapping [" + getExchangeDesc(exchange) + "] to " + r);
-					}
+		return Mono.deferContextual(contextView -> {
+			exchange.getAttributes().put(GATEWAY_REACTOR_CONTEXT_ATTR, contextView);
+			return lookupRoute(exchange)
+					// .log("route-predicate-handler-mapping", Level.FINER) //name this
+					.flatMap((Function<Route, Mono<?>>) r -> {
+						exchange.getAttributes().remove(GATEWAY_PREDICATE_ROUTE_ATTR);
+						if (logger.isDebugEnabled()) {
+							logger.debug("Mapping [" + getExchangeDesc(exchange) + "] to " + r);
+						}
 
-					exchange.getAttributes().put(GATEWAY_ROUTE_ATTR, r);
-					return Mono.just(webHandler);
-				}).switchIfEmpty(Mono.empty().then(Mono.fromRunnable(() -> {
-					exchange.getAttributes().remove(GATEWAY_PREDICATE_ROUTE_ATTR);
-					if (logger.isTraceEnabled()) {
-						logger.trace("No RouteDefinition found for [" + getExchangeDesc(exchange) + "]");
-					}
-				})));
+						exchange.getAttributes().put(GATEWAY_ROUTE_ATTR, r);
+						return Mono.just(webHandler);
+					}).switchIfEmpty(Mono.empty().then(Mono.fromRunnable(() -> {
+						exchange.getAttributes().remove(GATEWAY_PREDICATE_ROUTE_ATTR);
+						if (logger.isTraceEnabled()) {
+							logger.trace("No RouteDefinition found for [" + getExchangeDesc(exchange) + "]");
+						}
+					})));
+		});
 	}
 
 	@Override

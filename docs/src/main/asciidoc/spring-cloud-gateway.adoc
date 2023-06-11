@@ -13,9 +13,9 @@ See the https://projects.spring.io/spring-cloud/[Spring Cloud Project page] for 
 
 If you include the starter, but you do not want the gateway to be enabled, set `spring.cloud.gateway.enabled=false`.
 
-IMPORTANT: Spring Cloud Gateway is built on https://spring.io/projects/spring-boot#learn[Spring Boot 2.x], https://docs.spring.io/spring/docs/current/spring-framework-reference/web-reactive.html[Spring WebFlux], and https://projectreactor.io/docs[Project Reactor].
+IMPORTANT: Spring Cloud Gateway is built on https://spring.io/projects/spring-boot#learn[Spring Boot], https://docs.spring.io/spring/docs/current/spring-framework-reference/web-reactive.html[Spring WebFlux], and https://projectreactor.io/docs[Project Reactor].
 As a consequence, many of the familiar synchronous libraries (Spring Data and Spring Security, for example) and patterns you know may not apply when you use Spring Cloud Gateway.
-If you are unfamiliar with these projects, we suggest you begin by reading their documentation to familiarize yourself with some of the new concepts before working with Spring Cloud Gateway.
+If you are unfamiliar with these projects, we suggest you begin by reading their documentation to familiarize yourself with some new concepts before working with Spring Cloud Gateway.
 
 IMPORTANT: Spring Cloud Gateway requires the Netty runtime provided by Spring Boot and Spring Webflux.
 It does not work in a traditional Servlet Container or when built as a WAR.
@@ -47,7 +47,7 @@ NOTE: URIs defined in routes without a port get default port values of 80 and 44
 
 There are two ways to configure predicates and filters: shortcuts and fully expanded arguments. Most examples below use the shortcut way.
 
-The name and argument names will be listed as `code` in the first sentance or two of the each section. The arguments are typically listed in the order that would be needed for the shortcut configuration.
+The name and argument names are listed as `code` in the first sentence or two of each section. The arguments are typically listed in the order that are needed for the shortcut configuration.
 
 === Shortcut Configuration
 
@@ -301,7 +301,7 @@ The following example shows how to use the `get` method:
 ====
 [source,java]
 ----
-Map<String, String> uriVariables = ServerWebExchangeUtils.getPathPredicateVariables(exchange);
+Map<String, String> uriVariables = ServerWebExchangeUtils.getUriTemplateVariables(exchange);
 
 String segment = uriVariables.get("segment");
 ----
@@ -667,33 +667,9 @@ spring:
 ----
 ====
 
-=== The `DedupeResponseHeader` `GatewayFilter` Factory
-
-The DedupeResponseHeader GatewayFilter factory takes a `name` parameter and an optional `strategy` parameter. `name` can contain a space-separated list of header names.
-The following example configures a `DedupeResponseHeader` `GatewayFilter`:
-
-.application.yml
-====
-[source,yaml]
-----
-spring:
-  cloud:
-    gateway:
-      routes:
-      - id: dedupe_response_header_route
-        uri: https://example.org
-        filters:
-        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
-----
-====
-
-This removes duplicate values of `Access-Control-Allow-Credentials` and `Access-Control-Allow-Origin` response headers in cases when both the gateway CORS logic and the downstream logic add them.
-
-The `DedupeResponseHeader` filter also accepts an optional `strategy` parameter.
-The accepted values are `RETAIN_FIRST` (default), `RETAIN_LAST`, and `RETAIN_UNIQUE`.
 
 [[spring-cloud-circuitbreaker-filter-factory]]
-=== Spring Cloud CircuitBreaker GatewayFilter Factory
+=== The `CircuitBreaker` `GatewayFilter` Factory
 
 The Spring Cloud CircuitBreaker GatewayFilter factory uses the Spring Cloud CircuitBreaker APIs to wrap Gateway routes in
 a circuit breaker. Spring Cloud CircuitBreaker supports multiple libraries that can be used with Spring Cloud Gateway. Spring Cloud supports Resilience4J out of the box.
@@ -832,8 +808,8 @@ You can find more information on doing so in  the <<fallback-headers, FallbackHe
 
 In some cases you might want to trip a circuit breaker based on the status code
 returned from the route it wraps.  The circuit breaker config object takes a list of
-status codes that if returned will cause the the circuit breaker to be tripped.  When setting the
-status codes you want to trip the circuit breaker you can either use a integer with the status code
+status codes that if returned will cause the circuit breaker to be tripped.  When setting the
+status codes you want to trip the circuit breaker you can either use an integer with the status code
 value or the String representation of the `HttpStatus` enumeration.
 
 .application.yml
@@ -874,6 +850,74 @@ public RouteLocator routes(RouteLocatorBuilder builder) {
 ----
 ====
 
+=== The `CacheRequestBody` `GatewayFilter` Factory
+Some situations necessitate reading the request body. Since the request can be read only once, we need to cache the request body.
+You can use the `CacheRequestBody` filter to cache the request body before sending it downstream and getting the body from `exchange` attribute.
+
+The following listing shows how to cache the request body `GatewayFilter`:
+
+====
+[source,java]
+----
+@Bean
+public RouteLocator routes(RouteLocatorBuilder builder) {
+    return builder.routes()
+        .route("cache_request_body_route", r -> r.path("/downstream/**")
+            .filters(f -> f.prefixPath("/httpbin")
+        		.cacheRequestBody(String.class).uri(uri))
+        .build();
+}
+----
+====
+
+
+.application.yml
+====
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: cache_request_body_route
+        uri: lb://downstream
+        predicates:
+        - Path=/downstream/**
+        filters:
+        - name: CacheRequestBody
+          args:
+            bodyClass: java.lang.String
+----
+====
+`CacheRequestBody` extracts the request body and converts it to a body class (such as `java.lang.String`, defined in the preceding example).
+`CacheRequestBody` then places it in the attributes available from `ServerWebExchange.getAttributes()`, with a key defined in `ServerWebExchangeUtils.CACHED_REQUEST_BODY_ATTR`.
+
+NOTE: This filter works only with HTTP (including HTTPS) requests.
+
+=== The `DedupeResponseHeader` `GatewayFilter` Factory
+
+The `DedupeResponseHeader` GatewayFilter factory takes a `name` parameter and an optional `strategy` parameter. `name` can contain a space-separated list of header names.
+The following example configures a `DedupeResponseHeader` `GatewayFilter`:
+
+.application.yml
+====
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: dedupe_response_header_route
+        uri: https://example.org
+        filters:
+        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+----
+====
+
+This removes duplicate values of `Access-Control-Allow-Credentials` and `Access-Control-Allow-Origin` response headers in cases when both the gateway CORS logic and the downstream logic add them.
+
+The `DedupeResponseHeader` filter also accepts an optional `strategy` parameter.
+The accepted values are `RETAIN_FIRST` (default), `RETAIN_LAST`, and `RETAIN_UNIQUE`.
 
 
 [[fallback-headers]]
@@ -921,6 +965,142 @@ You can overwrite the names of the headers in the configuration by setting the v
 
 For more information on circuit breakers and the gateway see the <<spring-cloud-circuitbreaker-filter-factory, Spring Cloud CircuitBreaker Factory section>>.
 
+=== The `JsonToGrpc` `GatewayFilter` Factory
+
+The JSONToGRPCFilter GatewayFilter Factory converts a JSON payload to a gRPC request.
+
+The filter takes the following arguments:
+
+* `protoDescriptor`: Proto descriptor file.
+
+This file can be generated using `protoc` and specifying the `--descriptor_set_out` flag:
+
+[source,bash]
+----
+protoc --proto_path=src/main/resources/proto/ \
+--descriptor_set_out=src/main/resources/proto/hello.pb  \
+src/main/resources/proto/hello.proto
+----
+
+* `protoFile`: Proto definition file.
+
+* `service`: Short name of the service that handles the request.
+
+* `method`: Method name in the service that handles the request.
+
+NOTE: `streaming` is not supported.
+
+
+*application.yml.*
+
+[source,java]
+----
+@Bean
+public RouteLocator routes(RouteLocatorBuilder builder) {
+    return builder.routes()
+            .route("json-grpc", r -> r.path("/json/hello").filters(f -> {
+                String protoDescriptor = "file:src/main/proto/hello.pb";
+                String protoFile = "file:src/main/proto/hello.proto";
+                String service = "HelloService";
+                String method = "hello";
+                return f.jsonToGRPC(protoDescriptor, protoFile, service, method);
+            }).uri(uri))
+----
+
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: json-grpc
+          uri: https://localhost:6565/testhello
+          predicates:
+            - Path=/json/**
+          filters:
+            - name: JsonToGrpc
+              args:
+                protoDescriptor: file:proto/hello.pb
+                protoFile: file:proto/hello.proto
+                service: HelloService
+                method: hello
+
+----
+
+When a request is made through the gateway to `/json/hello`, the request is transformed by using the definition provided in `hello.proto`, sent to `HelloService/hello`, and the response back is transformed to JSON.
+
+By default, it creates a `NettyChannel` by using the default `TrustManagerFactory`. However, you can customize this `TrustManager` by creating a bean of type `GrpcSslConfigurer`:
+
+[source,java]
+----
+
+@Configuration
+public class GRPCLocalConfiguration {
+    @Bean
+    public GRPCSSLContext sslContext() {
+		TrustManager trustManager = trustAllCerts();
+        return new GRPCSSLContext(trustManager);
+    }
+}
+----
+
+[[local-cache-response-filter]]
+=== The `LocalResponseCache` `GatewayFilter` Factory
+
+This filter allows caching the response body and headers to follow these rules:
+
+* It can only cache bodiless GET requests.
+* It caches the response only for one of the following status codes: HTTP 200 (OK), HTTP 206 (Partial Content), or HTTP 301 (Moved Permanently).
+* Response data is not cached if `Cache-Control` header does not allow it (`no-store` present in the request or `no-store` or `private` present in the response).
+* If the response is already cached and a new request is performed with no-cache value in `Cache-Control` header, it returns a bodiless response with 304 (Not Modified).
+
+This filter configures the local response cache per route and is available only if the `spring.cloud.gateway.filter.local-response-cache.enabled` property is enabled. And a <<local-cache-response-global-filter, local response cache configured globally>> is also available as feature.
+
+It accepts the first parameter to override the time to expire a cache entry (expressed in `s` for seconds, `m` for minutes, and `h` for hours) and a second parameter to set the maximum size of the cache to evict entries for this route (`KB`, `MB`, or `GB`).
+
+The following listing shows how to add local response cache `GatewayFilter`:
+
+====
+[source,java]
+----
+@Bean
+public RouteLocator routes(RouteLocatorBuilder builder) {
+    return builder.routes()
+        .route("rewrite_response_upper", r -> r.host("*.rewriteresponseupper.org")
+            .filters(f -> f.prefixPath("/httpbin")
+        		.localResponseCache(Duration.ofMinutes(30), "500MB")
+            ).uri(uri))
+        .build();
+}
+----
+
+or this
+
+.application.yaml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: resource
+        uri: http://localhost:9000
+        predicates:
+        - Path=/resource
+        filters:
+        - LocalResponseCache=30m,500MB
+----
+====
+
+NOTE: This filter also automatically calculates the `max-age` value in the HTTP `Cache-Control` header.
+Only if `max-age` is present on the original response is the value rewritten with the number of seconds set in the `timeToLive` configuration parameter.
+In consecutive calls, this value is recalculated with the number of seconds left until the response expires.
+
+NOTE: To enable this feature, add `com.github.ben-manes.caffeine:caffeine` and `spring-boot-starter-cache` as project dependencies.
+
+WARNING: If your project creates custom `CacheManager` beans, it will either need to be marked with `@Primary` or injected using `@Qualifier`.
+
+
 === The `MapRequestHeader` `GatewayFilter` Factory
 
 The `MapRequestHeader` `GatewayFilter` factory takes `fromHeader` and `toHeader` parameters.
@@ -944,7 +1124,77 @@ spring:
 ----
 ====
 
-This adds `X-Request-Red:<values>` header to the downstream request with updated values from the incoming HTTP request's `Blue` header.
+This adds the `X-Request-Red:<values>` header to the downstream request with updated values from the incoming HTTP request's `Blue` header.
+
+=== The `ModifyRequestBody` `GatewayFilter` Factory
+
+You can use the `ModifyRequestBody` filter to modify the request body before it is sent downstream by the gateway.
+
+NOTE: This filter can be configured only by using the Java DSL.
+
+The following listing shows how to modify a request body `GatewayFilter`:
+
+====
+[source,java]
+----
+@Bean
+public RouteLocator routes(RouteLocatorBuilder builder) {
+    return builder.routes()
+        .route("rewrite_request_obj", r -> r.host("*.rewriterequestobj.org")
+            .filters(f -> f.prefixPath("/httpbin")
+                .modifyRequestBody(String.class, Hello.class, MediaType.APPLICATION_JSON_VALUE,
+                    (exchange, s) -> Mono.just(new Hello(s.toUpperCase())))).uri(uri))
+        .build();
+}
+
+static class Hello {
+    String message;
+
+    public Hello() { }
+
+    public Hello(String message) {
+        this.message = message;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+}
+----
+
+NOTE: If the request has no body, the `RewriteFilter` is passed `null`. `Mono.empty()` should be returned to assign a missing body in the request.
+
+====
+
+
+=== The `ModifyResponseBody` `GatewayFilter` Factory
+
+You can use the `ModifyResponseBody` filter to modify the response body before it is sent back to the client.
+
+NOTE: This filter can be configured only by using the Java DSL.
+
+The following listing shows how to modify a response body `GatewayFilter`:
+
+====
+[source,java]
+----
+@Bean
+public RouteLocator routes(RouteLocatorBuilder builder) {
+    return builder.routes()
+        .route("rewrite_response_upper", r -> r.host("*.rewriteresponseupper.org")
+            .filters(f -> f.prefixPath("/httpbin")
+        		.modifyResponseBody(String.class, String.class,
+        		    (exchange, s) -> Mono.just(s.toUpperCase()))).uri(uri))
+        .build();
+}
+----
+
+NOTE: If the response has no body, the `RewriteFilter` is passed `null`. `Mono.empty()` should be returned to assign a missing body in the response.
+====
 
 === The `PrefixPath` `GatewayFilter` Factory
 
@@ -966,13 +1216,13 @@ spring:
 ----
 ====
 
-This will prefix `/mypath` to the path of all matching requests.
-So a request to `/hello` would be sent to `/mypath/hello`.
+This prefixes `/mypath` to the path of all matching requests.
+So a request to `/hello` is sent to `/mypath/hello`.
 
 === The `PreserveHostHeader` `GatewayFilter` Factory
 
 The `PreserveHostHeader` `GatewayFilter` factory has no parameters.
-This filter sets a request attribute that the routing filter inspects to determine if the original host header should be sent, rather than the host header determined by the HTTP client.
+This filter sets a request attribute that the routing filter inspects to determine if the original host header should be sent rather than the host header determined by the HTTP client.
 The following example configures a `PreserveHostHeader` `GatewayFilter`:
 
 .application.yml
@@ -989,133 +1239,6 @@ spring:
         - PreserveHostHeader
 ----
 ====
-
-=== The `RequestRateLimiter` `GatewayFilter` Factory
-
-The `RequestRateLimiter` `GatewayFilter` factory uses a `RateLimiter` implementation to determine if the current request is allowed to proceed. If it is not, a status of `HTTP 429 - Too Many Requests` (by default) is returned.
-
-This filter takes an optional `keyResolver` parameter and parameters specific to the rate limiter (described later in this section).
-
-`keyResolver` is a bean that implements the `KeyResolver` interface.
-In configuration, reference the bean by name using SpEL.
-`#{@myKeyResolver}` is a SpEL expression that references a bean named `myKeyResolver`.
-The following listing shows the `KeyResolver` interface:
-
-.KeyResolver.java
-====
-[source,java]
-----
-public interface KeyResolver {
-	Mono<String> resolve(ServerWebExchange exchange);
-}
-----
-====
-
-The `KeyResolver` interface lets pluggable strategies derive the key for limiting requests.
-In future milestone releases, there will be some `KeyResolver` implementations.
-
-The default implementation of `KeyResolver` is the `PrincipalNameKeyResolver`, which retrieves the `Principal` from the `ServerWebExchange` and calls `Principal.getName()`.
-
-By default, if the `KeyResolver` does not find a key, requests are denied.
-You can adjust this behavior by setting the `spring.cloud.gateway.filter.request-rate-limiter.deny-empty-key` (`true` or `false`) and `spring.cloud.gateway.filter.request-rate-limiter.empty-key-status-code` properties.
-
-[NOTE]
-=====
-The `RequestRateLimiter` is not configurable with the "shortcut" notation. The following example below is _invalid_:
-
-.application.properties
-====
-----
-# INVALID SHORTCUT CONFIGURATION
-spring.cloud.gateway.routes[0].filters[0]=RequestRateLimiter=2, 2, #{@userkeyresolver}
-----
-====
-=====
-
-==== The Redis `RateLimiter`
-
-The Redis implementation is based off of work done at https://stripe.com/blog/rate-limiters[Stripe].
-It requires the use of the `spring-boot-starter-data-redis-reactive` Spring Boot starter.
-
-The algorithm used is the https://en.wikipedia.org/wiki/Token_bucket[Token Bucket Algorithm].
-
-The `redis-rate-limiter.replenishRate` property is how many requests per second you want a user to be allowed to do, without any dropped requests.
-This is the rate at which the token bucket is filled.
-
-The `redis-rate-limiter.burstCapacity` property is the maximum number of requests a user is allowed to do in a single second.
-This is the number of tokens the token bucket can hold.
-Setting this value to zero blocks all requests.
-
-The `redis-rate-limiter.requestedTokens` property is how many tokens a request costs.
-This is the number of tokens taken from the bucket for each request and defaults to `1`.
-
-A steady rate is accomplished by setting the same value in `replenishRate` and `burstCapacity`.
-Temporary bursts can be allowed by setting `burstCapacity` higher than `replenishRate`.
-In this case, the rate limiter needs to be allowed some time between bursts (according to `replenishRate`), as two consecutive bursts will result in dropped requests (`HTTP 429 - Too Many Requests`).
-The following listing configures a `redis-rate-limiter`:
-
-Rate limits bellow `1 request/s` are accomplished by setting `replenishRate` to the wanted number of requests, `requestedTokens` to the timespan in seconds and `burstCapacity` to the product of `replenishRate` and `requestedTokens`, e.g. setting `replenishRate=1`, `requestedTokens=60` and `burstCapacity=60` will result in a limit of `1 request/min`.
-
-.application.yml
-====
-[source,yaml]
-----
-spring:
-  cloud:
-    gateway:
-      routes:
-      - id: requestratelimiter_route
-        uri: https://example.org
-        filters:
-        - name: RequestRateLimiter
-          args:
-            redis-rate-limiter.replenishRate: 10
-            redis-rate-limiter.burstCapacity: 20
-            redis-rate-limiter.requestedTokens: 1
-
-----
-====
-
-The following example configures a KeyResolver in Java:
-
-.Config.java
-====
-[source,java]
-----
-@Bean
-KeyResolver userKeyResolver() {
-    return exchange -> Mono.just(exchange.getRequest().getQueryParams().getFirst("user"));
-}
-----
-====
-
-This defines a request rate limit of 10 per user. A burst of 20 is allowed, but, in the next second, only 10 requests are available.
-The `KeyResolver` is a simple one that gets the `user` request parameter (note that this is not recommended for production).
-
-You can also define a rate limiter as a bean that implements the `RateLimiter` interface.
-In configuration, you can reference the bean by name using SpEL.
-`#{@myRateLimiter}` is a SpEL expression that references a bean with named `myRateLimiter`.
-The following listing defines a rate limiter that uses the `KeyResolver` defined in the previous listing:
-
-.application.yml
-====
-[source,yaml]
-----
-spring:
-  cloud:
-    gateway:
-      routes:
-      - id: requestratelimiter_route
-        uri: https://example.org
-        filters:
-        - name: RequestRateLimiter
-          args:
-            rate-limiter: "#{@myRateLimiter}"
-            key-resolver: "#{@userKeyResolver}"
-
-----
-====
-
 
 === The `RedirectTo` `GatewayFilter` Factory
 
@@ -1142,6 +1265,7 @@ spring:
 ====
 
 This will send a status 302 with a `Location:https://acme.org` header to perform a redirect.
+
 
 === `RemoveJsonAttributesResponseBody` `GatewayFilter` Factory
 
@@ -1211,7 +1335,31 @@ spring:
 
 This removes the `X-Request-Foo` header before it is sent downstream.
 
-=== `RemoveResponseHeader` `GatewayFilter` Factory
+=== The `RemoveRequestParameter` `GatewayFilter` Factory
+
+The `RemoveRequestParameter` `GatewayFilter` factory takes a `name` parameter.
+It is the name of the query parameter to be removed.
+The following example configures a `RemoveRequestParameter` `GatewayFilter`:
+
+.application.yml
+====
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: removerequestparameter_route
+        uri: https://example.org
+        filters:
+        - RemoveRequestParameter=red
+----
+====
+
+This will remove the `red` parameter before it is sent downstream.
+
+
+=== The `RemoveResponseHeader` `GatewayFilter` Factory
 
 The `RemoveResponseHeader` `GatewayFilter` factory takes a `name` parameter.
 It is the name of the header to be removed.
@@ -1237,33 +1385,11 @@ This will remove the `X-Response-Foo` header from the response before it is retu
 To remove any kind of sensitive header, you should configure this filter for any routes for which you may want to do so.
 In addition, you can configure this filter once by using `spring.cloud.gateway.default-filters` and have it applied to all routes.
 
-=== The `RemoveRequestParameter` `GatewayFilter` Factory
 
-The `RemoveRequestParameter` `GatewayFilter` factory takes a `name` parameter.
-It is the name of the query parameter to be removed.
-The following example configures a `RemoveRequestParameter` `GatewayFilter`:
-
-.application.yml
-====
-[source,yaml]
-----
-spring:
-  cloud:
-    gateway:
-      routes:
-      - id: removerequestparameter_route
-        uri: https://example.org
-        filters:
-        - RemoveRequestParameter=red
-----
-====
-
-This will remove the `red` parameter before it is sent downstream.
-
-=== `RequestHeaderSize` `GatewayFilter` Factory
+=== The `RequestHeaderSize` `GatewayFilter` Factory
 
 The `RequestHeaderSize` `GatewayFilter` factory takes `maxSize` and `errorHeaderName` parameters.
-The `maxSize` parameter is the maximum data size allowed of the request header (incuding key and value). The `errorHeaderName` parameter sets the name of the response header containing an error message, by default it is "errorMessage".
+The `maxSize` parameter is the maximum data size allowed by the request header (including key and value). The `errorHeaderName` parameter sets the name of the response header containing an error message, by default it is "errorMessage".
 The following listing configures a `RequestHeaderSize` `GatewayFilter`:
 
 .application.yml
@@ -1282,6 +1408,170 @@ spring:
 ====
 
 This will send a status 431 if size of any request header is greater than 1000 Bytes.
+
+=== The `RequestRateLimiter` `GatewayFilter` Factory
+
+The `RequestRateLimiter` `GatewayFilter` factory uses a `RateLimiter` implementation to determine if the current request is allowed to proceed. If it is not, a status of `HTTP 429 - Too Many Requests` (by default) is returned.
+
+This filter takes an optional `keyResolver` parameter and parameters specific to the rate limiter (described <<key-resolver-section, later in this section>>).
+
+`keyResolver` is a bean that implements the `KeyResolver` interface.
+In configuration, reference the bean by name using SpEL.
+`#{@myKeyResolver}` is a SpEL expression that references a bean named `myKeyResolver`.
+The following listing shows the `KeyResolver` interface:
+
+.KeyResolver.java
+====
+[source,java]
+----
+public interface KeyResolver {
+	Mono<String> resolve(ServerWebExchange exchange);
+}
+----
+====
+
+[[key-resolver-section]]
+The `KeyResolver` interface lets pluggable strategies derive the key for limiting requests.
+In future milestone releases, there will be some `KeyResolver` implementations.
+
+The default implementation of `KeyResolver` is the `PrincipalNameKeyResolver`, which retrieves the `Principal` from the `ServerWebExchange` and calls `Principal.getName()`.
+
+By default, if the `KeyResolver` does not find a key, requests are denied.
+You can adjust this behavior by setting the `spring.cloud.gateway.filter.request-rate-limiter.deny-empty-key` (`true` or `false`) and `spring.cloud.gateway.filter.request-rate-limiter.empty-key-status-code` properties.
+
+[NOTE]
+=====
+The `RequestRateLimiter` is not configurable with the "shortcut" notation. The following example below is _invalid_:
+
+.application.properties
+====
+----
+# INVALID SHORTCUT CONFIGURATION
+spring.cloud.gateway.routes[0].filters[0]=RequestRateLimiter=2, 2, #{@userkeyresolver}
+----
+====
+=====
+
+==== The Redis `RateLimiter`
+
+The Redis implementation is based on work done at https://stripe.com/blog/rate-limiters[Stripe].
+It requires the use of the `spring-boot-starter-data-redis-reactive` Spring Boot starter.
+
+The algorithm used is the https://en.wikipedia.org/wiki/Token_bucket[Token Bucket Algorithm].
+
+The `redis-rate-limiter.replenishRate` property defines how many requests per second to allow (without any dropped requests).
+This is the rate at which the token bucket is filled.
+
+The `redis-rate-limiter.burstCapacity` property is the maximum number of requests a user is allowed in a single second (without any dropped requests).
+This is the number of tokens the token bucket can hold.
+Setting this value to zero blocks all requests.
+
+The `redis-rate-limiter.requestedTokens` property is how many tokens a request costs.
+This is the number of tokens taken from the bucket for each request and defaults to `1`.
+
+A steady rate is accomplished by setting the same value in `replenishRate` and `burstCapacity`.
+Temporary bursts can be allowed by setting `burstCapacity` higher than `replenishRate`.
+In this case, the rate limiter needs to be allowed some time between bursts (according to `replenishRate`), as two consecutive bursts results in dropped requests (`HTTP 429 - Too Many Requests`).
+The following listing configures a `redis-rate-limiter`:
+
+Rate limits below `1 request/s` are accomplished by setting `replenishRate` to the wanted number of requests, `requestedTokens` to the timespan in seconds, and `burstCapacity` to the product of `replenishRate` and `requestedTokens`.
+For example, setting `replenishRate=1`, `requestedTokens=60`, and `burstCapacity=60` results in a limit of `1 request/min`.
+.application.yml
+====
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: requestratelimiter_route
+        uri: https://example.org
+        filters:
+        - name: RequestRateLimiter
+          args:
+            redis-rate-limiter.replenishRate: 10
+            redis-rate-limiter.burstCapacity: 20
+            redis-rate-limiter.requestedTokens: 1
+
+----
+====
+
+The following example configures a `KeyResolver` in Java:
+
+.Config.java
+====
+[source,java]
+----
+@Bean
+KeyResolver userKeyResolver() {
+    return exchange -> Mono.just(exchange.getRequest().getQueryParams().getFirst("user"));
+}
+----
+====
+
+This defines a request rate limit of 10 per user. A burst of 20 is allowed, but, in the next second, only 10 requests are available.
+The `KeyResolver` is a simple one that gets the `user` request parameter
+NOTE: This is not recommended for production
+
+You can also define a rate limiter as a bean that implements the `RateLimiter` interface.
+In configuration, you can reference the bean by name using SpEL.
+`#{@myRateLimiter}` is a SpEL expression that references a bean with named `myRateLimiter`.
+The following listing defines a rate limiter that uses the `KeyResolver` defined in the previous listing:
+
+.application.yml
+====
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: requestratelimiter_route
+        uri: https://example.org
+        filters:
+        - name: RequestRateLimiter
+          args:
+            rate-limiter: "#{@myRateLimiter}"
+            key-resolver: "#{@userKeyResolver}"
+
+----
+====
+
+=== The `RewriteLocationResponseHeader` `GatewayFilter` Factory
+
+The `RewriteLocationResponseHeader` `GatewayFilter` factory modifies the value of the `Location` response header, usually to get rid of backend-specific details.
+It takes the `stripVersionMode`, `locationHeaderName`, `hostValue`, and `protocolsRegex` parameters.
+The following listing configures a `RewriteLocationResponseHeader` `GatewayFilter`:
+
+.application.yml
+====
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: rewritelocationresponseheader_route
+        uri: http://example.org
+        filters:
+        - RewriteLocationResponseHeader=AS_IN_REQUEST, Location, ,
+----
+====
+
+For example, for a request of `POST https://api.example.com/some/object/name`, the `Location` response header value of `https://object-service.prod.example.net/v2/some/object/id` is rewritten as `https://api.example.com/some/object/id`.
+
+The `stripVersionMode` parameter has the following possible values: `NEVER_STRIP`, `AS_IN_REQUEST` (default), and `ALWAYS_STRIP`.
+
+* `NEVER_STRIP`: The version is not stripped, even if the original request path contains no version.
+* `AS_IN_REQUEST`: The version is stripped only if the original request path contains no version.
+* `ALWAYS_STRIP`: The version is always stripped, even if the original request path contains version.
+
+The `hostValue` parameter, if provided, is used to replace the `host:port` portion of the response `Location` header.
+If it is not provided, the value of the `Host` request header is used.
+
+The `protocolsRegex` parameter must be a valid regex `String`, against which the protocol name is matched.
+If it is not matched, the filter does nothing.
+The default is `http|https|ftp|ftps`.
 
 === The `RewritePath` `GatewayFilter` Factory
 
@@ -1307,42 +1597,6 @@ spring:
 ====
 
 For a request path of `/red/blue`, this sets the path to `/blue` before making the downstream request. Note that the `$` should be replaced with `$\` because of the YAML specification.
-
-=== `RewriteLocationResponseHeader` `GatewayFilter` Factory
-
-The `RewriteLocationResponseHeader` `GatewayFilter` factory modifies the value of the `Location` response header, usually to get rid of backend-specific details.
-It takes `stripVersionMode`, `locationHeaderName`, `hostValue`, and `protocolsRegex` parameters.
-The following listing configures a `RewriteLocationResponseHeader` `GatewayFilter`:
-
-.application.yml
-====
-[source,yaml]
-----
-spring:
-  cloud:
-    gateway:
-      routes:
-      - id: rewritelocationresponseheader_route
-        uri: http://example.org
-        filters:
-        - RewriteLocationResponseHeader=AS_IN_REQUEST, Location, ,
-----
-====
-
-For example, for a request of `POST https://api.example.com/some/object/name`, the `Location` response header value of `https://object-service.prod.example.net/v2/some/object/id` is rewritten as `https://api.example.com/some/object/id`.
-
-The `stripVersionMode` parameter has the following possible values: `NEVER_STRIP`, `AS_IN_REQUEST` (default), and `ALWAYS_STRIP`.
-
- * `NEVER_STRIP`: The version is not stripped, even if the original request path contains no version.
- * `AS_IN_REQUEST` The version is stripped only if the original request path contains no version.
- * `ALWAYS_STRIP` The version is always stripped, even if the original request path contains version.
-
-The `hostValue` parameter, if provided, is used to replace the `host:port` portion of the response `Location` header.
-If it is not provided, the value of the `Host` request header is used.
-
-The `protocolsRegex` parameter must be a valid regex `String`, against which the protocol name is matched.
-If it is not matched, the filter does nothing.
-The default is `http|https|ftp|ftps`.
 
 === The `RewriteResponseHeader` `GatewayFilter` Factory
 
@@ -1371,7 +1625,7 @@ You must use `$\` to mean `$` because of the YAML specification.
 === The `SaveSession` `GatewayFilter` Factory
 
 The `SaveSession` `GatewayFilter` factory forces a `WebSession::save` operation _before_ forwarding the call downstream.
-This is of particular use when using something like https://projects.spring.io/spring-session/[Spring Session] with a lazy data store and you need to ensure the session state has been saved before making the forwarded call.
+This is of particular use when using something like https://projects.spring.io/spring-session/[Spring Session] with a lazy data store, and you need to ensure the session state has been saved before making the forwarded call.
 The following example configures a `SaveSession` `GatewayFilter`:
 
 .application.yml
@@ -1413,12 +1667,12 @@ The following properties are available:
 
 * `xss-protection-header`
 * `strict-transport-security`
-* `x-frame-options`
-* `x-content-type-options`
+* `frame-options`
+* `content-type-options`
 * `referrer-policy`
 * `content-security-policy`
-* `x-download-options`
-* `x-permitted-cross-domain-policies`
+* `download-options`
+* `permitted-cross-domain-policies`
 
 To disable the default values set the `spring.cloud.gateway.filter.secure-headers.disable` property with comma-separated values.
 The following example shows how to do so:
@@ -1480,7 +1734,7 @@ spring:
 ====
 
 This `GatewayFilter` replaces (rather than adding) all headers with the given name.
-So, if the downstream server responded with a `X-Request-Red:1234`, this would be replaced with `X-Request-Red:Blue`, which is what the downstream service would receive.
+So, if the downstream server responded with `X-Request-Red:1234`, it will be replaced with `X-Request-Red:Blue`, which is what the downstream service would receive.
 
 `SetRequestHeader` is aware of URI variables used to match a path or host.
 URI variables may be used in the value and are expanded at runtime.
@@ -1524,7 +1778,7 @@ spring:
 ====
 
 This GatewayFilter replaces (rather than adding) all headers with the given name.
-So, if the downstream server responded with a `X-Response-Red:1234`, this is replaced with `X-Response-Red:Blue`, which is what the gateway client would receive.
+So, if the downstream server responded with `X-Response-Red:1234`, it will be replaced with `X-Response-Red:Blue`, which is what the gateway client would receive.
 
 `SetResponseHeader` is aware of URI variables used to match a path or host.
 URI variables may be used in the value and will be expanded at runtime.
@@ -1615,7 +1869,7 @@ spring:
 
 When a request is made through the gateway to `/name/blue/red`, the request made to `nameservice` looks like `https://nameservice/red`.
 
-=== The Retry `GatewayFilter` Factory
+=== The `Retry` `GatewayFilter` Factory
 
 The `Retry` `GatewayFilter` factory supports the following parameters:
 
@@ -1627,7 +1881,7 @@ The `Retry` `GatewayFilter` factory supports the following parameters:
 * `backoff`: The configured exponential backoff for the retries.
 Retries are performed after a backoff interval of `firstBackoff * (factor ^ n)`, where `n` is the iteration.
 If `maxBackoff` is configured, the maximum backoff applied is limited to `maxBackoff`.
-If `basedOnPreviousValue` is true, the backoff is calculated byusing `prevBackoff * factor`.
+If `basedOnPreviousValue` is true, the backoff is calculated by using `prevBackoff * factor`.
 
 The following defaults are configured for `Retry` filter, if enabled:
 
@@ -1669,7 +1923,7 @@ NOTE: When using the retry filter with a `forward:` prefixed URL, the target end
 For example, if the target endpoint is an annotated controller, the target controller method should not return `ResponseEntity` with an error status code.
 Instead, it should throw an `Exception` or signal an error (for example, through a `Mono.error(ex)` return value), which the retry filter can be configured to handle by retrying.
 
-WARNING: When using the retry filter with any HTTP method with a body, the body will be cached and the gateway will become memory constrained. The body is cached in a request attribute defined by `ServerWebExchangeUtils.CACHED_REQUEST_BODY_ATTR`. The type of the object is a `org.springframework.core.io.buffer.DataBuffer`.
+WARNING: When using the retry filter with any HTTP method with a body, the body will be cached and the gateway will become memory constrained. The body is cached in a request attribute defined by `ServerWebExchangeUtils.CACHED_REQUEST_BODY_ATTR`. The type of the object is `org.springframework.core.io.buffer.DataBuffer`.
 
 A simplified "shortcut" notation can be added with a single `status` and `method`.
 
@@ -1744,7 +1998,7 @@ NOTE: The default request size is set to five MB if not provided as a filter arg
 
 === The `SetRequestHostHeader` `GatewayFilter` Factory
 
-There are certain situation when the host header may need to be overridden. In this situation, the `SetRequestHostHeader` `GatewayFilter` factory can replace the existing host header with a specified vaue.
+There are certain situation when the host header may need to be overridden. In this situation, the `SetRequestHostHeader` `GatewayFilter` factory can replace the existing host header with a specified value.
 The filter takes a `host` parameter.
 The following listing configures a `SetRequestHostHeader` `GatewayFilter`:
 
@@ -1769,126 +2023,8 @@ spring:
 
 The `SetRequestHostHeader` `GatewayFilter` factory replaces the value of the host header with `example.org`.
 
-=== Modify a Request Body `GatewayFilter` Factory
 
-You can use the `ModifyRequestBody` filter  filter to modify the request body before it is sent downstream by the gateway.
-
-NOTE: This filter can be configured only by using the Java DSL.
-
-The following listing shows how to modify a request body `GatewayFilter`:
-
-====
-[source,java]
-----
-@Bean
-public RouteLocator routes(RouteLocatorBuilder builder) {
-    return builder.routes()
-        .route("rewrite_request_obj", r -> r.host("*.rewriterequestobj.org")
-            .filters(f -> f.prefixPath("/httpbin")
-                .modifyRequestBody(String.class, Hello.class, MediaType.APPLICATION_JSON_VALUE,
-                    (exchange, s) -> return Mono.just(new Hello(s.toUpperCase())))).uri(uri))
-        .build();
-}
-
-static class Hello {
-    String message;
-
-    public Hello() { }
-
-    public Hello(String message) {
-        this.message = message;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-}
-----
-
-NOTE:  if the request has no body, the `RewriteFilter` will be passed `null`. `Mono.empty()` should be returned to assign a missing body in the request.
-
-====
-
-=== Local Response Cache `GatewayFilter` Factory
-
-This filter allows to cache response body and headers to follow the next rules:
-
-* It can only cache bodyless GET requests
-* It only caches the response as long has one of the following status codes: HTTP 200 (OK), HTTP 206 (Partial Content) and HTTP 301 (Moved Permanently).
-Response data will not be cached if `Cache-Control` header doesn't allow it (`no-store` present in the request, `no-store` or `private` present in the response).
-* If the response is already cached and a new request is performed with no-cache value in `Cache-Control` header, it will return a bodyless response with 304 (Not Modified).
-
-Take into account that this filter to configure local response cache per route only will be available if the local response global cache is enabled.
-
-It accepts the first parameter to override the maximum size of the cache to evict entries for this route, it takes size format in KB, MB and GB; and a second parameter to override the time to expire a cache entry expressed in s for seconds, m for minutes and h for hours.
-
-The following listing shows how to add local response cache `GatewayFilter`:
-
-====
-[source,java]
-----
-@Bean
-public RouteLocator routes(RouteLocatorBuilder builder) {
-    return builder.routes()
-        .route("rewrite_response_upper", r -> r.host("*.rewriteresponseupper.org")
-            .filters(f -> f.prefixPath("/httpbin")
-        		.localResponseCache(Duration.ofMinutes(30), "500MB")
-            ).uri(uri))
-        .build();
-}
-----
-
-or this
-
-.application.yaml
-[source,yaml]
-----
-spring:
-  cloud:
-    gateway:
-      routes:
-      - id: resource
-        uri: http://localhost:9000
-        predicates:
-        - Path=/resource
-        filters:
-        - LocalResponseCache=30m,500MB
-----
-
-NOTE:  This filter also implements the automatic calculation of the max-age value in the HTTP Cache-Control header.
-Only if "max-age" is present on the original response the value will be rewritten with the number of seconds set in the timeToLive configuration parameter; and in consecutive calls this value will be recalculated with the number of seconds left until the response expires.
-====
-
-=== Modify a Response Body `GatewayFilter` Factory
-
-You can use the `ModifyResponseBody` filter to modify the response body before it is sent back to the client.
-
-NOTE: This filter can be configured only by using the Java DSL.
-
-The following listing shows how to modify a response body `GatewayFilter`:
-
-====
-[source,java]
-----
-@Bean
-public RouteLocator routes(RouteLocatorBuilder builder) {
-    return builder.routes()
-        .route("rewrite_response_upper", r -> r.host("*.rewriteresponseupper.org")
-            .filters(f -> f.prefixPath("/httpbin")
-        		.modifyResponseBody(String.class, String.class,
-        		    (exchange, s) -> Mono.just(s.toUpperCase()))).uri(uri))
-        .build();
-}
-----
-
-NOTE:  if the response has no body, the `RewriteFilter` will be passed `null`. `Mono.empty()` should be returned to assign a missing body in the response.
-====
-
-=== Token Relay `GatewayFilter` Factory
+=== The `TokenRelay` `GatewayFilter` Factory
 
 A Token Relay is where an OAuth2 consumer acts as a Client and
 forwards the incoming token to outgoing resource requests. The
@@ -1896,8 +2032,7 @@ consumer can be a pure Client (like an SSO application) or a Resource
 Server.
 
 Spring Cloud Gateway can forward OAuth2 access tokens downstream to the services
-it is proxying. To add this functionlity to gateway you need to add the
-`TokenRelayGatewayFilterFactory` like this:
+it is proxying. To add this functionality to the gateway, you need to add the `TokenRelayGatewayFilterFactory` like this:
 
 .App.java
 [source,java]
@@ -1950,131 +2085,6 @@ NOTE: A `TokenRelayGatewayFilterFactory` bean will only be created if the proper
 NOTE: The default implementation of `ReactiveOAuth2AuthorizedClientService` used by `TokenRelayGatewayFilterFactory`
 uses an in-memory data store.  You will need to provide your own implementation `ReactiveOAuth2AuthorizedClientService`
 if you need a more robust solution.
-
-
-=== The `CacheRequestBody` `GatewayFilter` Factory
-There are certain situation need to read body.Since the request body stream can only be read once, we need to cache the request body.
-You can use the `CacheRequestBody` filter to cache request body before it send to the downstream and get body from exchagne attribute.
-
-
-The following listing shows how to cache the request body `GatewayFilter`:
-
-====
-[source,java]
-----
-@Bean
-public RouteLocator routes(RouteLocatorBuilder builder) {
-    return builder.routes()
-        .route("cache_request_body_route", r -> r.path("/downstream/**")
-            .filters(f -> f.prefixPath("/httpbin")
-        		.cacheRequestBody(String.class).uri(uri))
-        .build();
-}
-----
-====
-
-
-.application.yml
-====
-[source,yaml]
-----
-spring:
-  cloud:
-    gateway:
-      routes:
-      - id: cache_request_body_route
-        uri: lb://downstream
-        predicates:
-        - Path=/downstream/**
-        filters:
-        - name: CacheRequestBody
-          args:
-            bodyClass: java.lang.String
-----
-====
-
-`CacheRequestBody` will extract request body and conver it to body class (such as `java.lang.String`, defined in the preceding example). then places it in the `ServerWebExchange.getAttributes()` with a key defined in `ServerWebExchangeUtils.CACHED_REQUEST_BODY_ATTR`.
-
-NOTE: This filter only works with http request (including https).
-
-=== The `JsonToGrpc` `GatewayFilter` Factory
-
-The JSONToGRPCFilter GatewayFilter Factory converts a JSON payload to a gRPC request.
-
-The filter takes the following arguments:
-
-* `protoDescriptor` Proto descriptor file.
-
-This file can be generated using `protoc` specifying the `--descriptor_set_out` flag:
-
-[source,bash]
-----
-protoc --proto_path=src/main/resources/proto/ \
---descriptor_set_out=src/main/resources/proto/hello.pb  \
-src/main/resources/proto/hello.proto
-----
-
-* `protoFile` Proto definition file.
-
-* `service` Fully qualified name of the service that will handle the request.
-
-* `method` Method name in the service that will handle the request.
-
-NOTE: `streaming` is not supported.
-
-
-*application.yml.*
-
-[source,java]
-----
-@Bean
-public RouteLocator routes(RouteLocatorBuilder builder) {
-    return builder.routes()
-            .route("json-grpc", r -> r.path("/json/hello").filters(f -> {
-                String protoDescriptor = "file:src/main/proto/hello.pb";
-                String protoFile = "file:src/main/proto/hello.proto";
-                String service = "HelloService";
-                String method = "hello";
-                return f.jsonToGRPC(protoDescriptor, protoFile, service, method);
-            }).uri(uri))
-----
-
-[source,yaml]
-----
-spring:
-  cloud:
-    gateway:
-      routes:
-        - id: json-grpc
-          uri: https://localhost:6565/testhello
-          predicates:
-            - Path=/json/**
-          filters:
-            - name: JsonToGrpc
-              args:
-                protoDescriptor: file:proto/hello.pb
-                protoFile: file:proto/hello.proto
-                service: com.example.grpcserver.hello.HelloService
-                method: hello
-
-----
-
-When a request is made through the gateway to `/json/hello` the request will be transformed using the definition provided in `hello.proto`, sent to `com.example.grpcserver.hello.HelloService/hello`, and transform the response back to JSON.
-
-By default, it will create a `NettyChannel` using the default `TrustManagerFactory`. However, this `TrustManager` can be customized by creating a bean of type `GrpcSslConfigurer`:
-
-[source,java]
-----
-
-@Configuration
-public class GRPCLocalConfiguration {
-    @Bean
-    public GRPCSSLContext sslContext() {
-		TrustManager trustManager = trustAllCerts();
-        return new GRPCSSLContext(trustManager);
-    }
-}
-----
 
 
 === Default Filters
@@ -2138,12 +2148,76 @@ public class CustomGlobalFilter implements GlobalFilter, Ordered {
 ----
 ====
 
+=== The Gateway Metrics Filter
+
+To enable gateway metrics, add `spring-boot-starter-actuator` as a project dependency. Then, by default, the gateway metrics filter runs as long as the `spring.cloud.gateway.metrics.enabled` property is not set to `false`.
+This filter adds a timer metric named `spring.cloud.gateway.requests` with the following tags:
+
+* `routeId`: The route ID.
+* `routeUri`: The URI to which the API is routed.
+* `outcome`: The outcome, as classified by link:https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/http/HttpStatus.Series.html[HttpStatus.Series].
+* `status`: The HTTP status of the request returned to the client.
+* `httpStatusCode`: The HTTP Status of the request returned to the client.
+* `httpMethod`: The HTTP method used for the request.
+
+In addition, through the `spring.cloud.gateway.metrics.tags.path.enabled` property (by default, `false`), you can activate an extra metric with the path tag:
+
+* `path`: The path of the request.
+
+These metrics are then available to be scraped from `/actuator/metrics/spring.cloud.gateway.requests` and can be easily integrated with Prometheus to create a link:images/gateway-grafana-dashboard.jpeg[Grafana] link:gateway-grafana-dashboard.json[dashboard].
+
+NOTE: To enable the prometheus endpoint, add `micrometer-registry-prometheus` as a project dependency.
+
+[[local-cache-response-global-filter]]
+=== The Local Response Cache Filter
+
+The `LocalResponseCache` runs if associated properties are enabled:
+
+* `spring.cloud.gateway.global-filter.local-response-cache.enabled`: Activates the global cache for all routes
+* `spring.cloud.gateway.filter.local-response-cache.enabled`: Activates the associated filter to use at route level
+
+This feature enables a local cache using Caffeine for all responses that meet the following criteria:
+
+* The request is a bodiless GET.
+* The response has one of the following status codes: HTTP 200 (OK), HTTP 206 (Partial Content), or HTTP 301 (Moved Permanently).
+* The HTTP `Cache-Control` header allows caching (that means it does not have any of the following values: `no-store` present in the request and `no-store` or `private` present in the response).
+
+It accepts two configuration parameters:
+
+* `spring.cloud.gateway.filter.local-response-cache.size`: Sets the maximum size of the cache to evict entries for this route (in KB, MB and GB).
+* `spring.cloud.gateway.filter.local-response-cache.time-to-live` Sets the time to expire a cache entry (expressed in s for seconds, m for minutes, and h for hours).
+
+If none of these parameters are configured but the global filter is enabled, by default, it configures 5 minutes of time to live for the cached response.
+
+This filter also implements the automatic calculation of the `max-age` value in the HTTP `Cache-Control` header.
+If `max-age` is present on the original response, the value is rewritten with the number of seconds set in the `timeToLive` configuration parameter.
+In subsequent calls, this value is recalculated with the number of seconds left until the response expires.
+
+Setting `spring.cloud.gateway.global-filter.local-response-cache.enabled` to `false` deactivate the local response cache for all routes, the <<local-cache-response-filter, LocalResponseCache filter>> allows to use this functionality at route level.
+
+NOTE: To enable this feature, add `com.github.ben-manes.caffeine:caffeine` and `spring-boot-starter-cache` as project dependencies.
+
+WARNING: If your project creates custom `CacheManager` beans, it will either need to be marked with `@Primary` or injected using `@Qualifier`.
+
 === Forward Routing Filter
 
 The `ForwardRoutingFilter` looks for a URI in the exchange attribute `ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR`.
 If the URL has a `forward` scheme (such as `forward:///localendpoint`), it uses the Spring `DispatcherHandler` to handle the request.
 The path part of the request URL is overridden with the path in the forward URL.
 The unmodified original URL is appended to the list in the `ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR` attribute.
+
+=== The Netty Routing Filter
+
+The Netty routing filter runs if the URL located in the `ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR` exchange attribute has a `http` or `https` scheme.
+It uses the Netty `HttpClient` to make the downstream proxy request.
+The response is put in the `ServerWebExchangeUtils.CLIENT_RESPONSE_ATTR` exchange attribute for use in a later filter.
+(There is also an experimental `WebClientHttpRoutingFilter` that performs the same function but does not require Netty.)
+
+=== The Netty Write Response Filter
+
+The `NettyWriteResponseFilter` runs if there is a Netty `HttpClientResponse` in the `ServerWebExchangeUtils.CLIENT_RESPONSE_ATTR` exchange attribute.
+It runs after all other filters have completed and writes the proxy response back to the gateway client response.
+(There is also an experimental `WebClientWriteResponseFilter` that performs the same function but does not require Netty.)
 
 [[reactive-loadbalancer-client-filter]]
 === The `ReactiveLoadBalancerClientFilter`
@@ -2180,19 +2254,6 @@ The opposite situation can also apply.
 However, if `GATEWAY_SCHEME_PREFIX_ATTR` is specified for the route in the Gateway configuration, the prefix is stripped and the resulting scheme from the route URL overrides the `ServiceInstance` configuration.
 
 TIP: Gateway supports all the LoadBalancer features. You can read more about them in the https://docs.spring.io/spring-cloud-commons/docs/current/reference/html/#spring-cloud-loadbalancer[Spring Cloud Commons documentation].
-
-=== The Netty Routing Filter
-
-The Netty routing filter runs if the URL located in the `ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR` exchange attribute has a `http` or `https` scheme.
-It uses the Netty `HttpClient` to make the downstream proxy request.
-The response is put in the `ServerWebExchangeUtils.CLIENT_RESPONSE_ATTR` exchange attribute for use in a later filter.
-(There is also an experimental `WebClientHttpRoutingFilter` that performs the same function but does not require Netty.)
-
-=== The Netty Write Response Filter
-
-The `NettyWriteResponseFilter` runs if there is a Netty `HttpClientResponse` in the `ServerWebExchangeUtils.CLIENT_RESPONSE_ATTR` exchange attribute.
-It runs after all other filters have completed and writes the proxy response back to the gateway client response.
-(There is also an experimental `WebClientWriteResponseFilter` that performs the same function but does not require Netty.)
 
 === The `RouteToRequestUrl` Filter
 
@@ -2233,25 +2294,6 @@ spring:
 ----
 ====
 
-=== The Gateway Metrics Filter
-
-To enable gateway metrics, add spring-boot-starter-actuator as a project dependency. Then, by default, the gateway metrics filter runs as long as the property `spring.cloud.gateway.metrics.enabled` is not set to `false`. This filter adds a timer metric named `spring.cloud.gateway.requests` with the following tags:
-
-* `routeId`: The route ID.
-* `routeUri`: The URI to which the API is routed.
-* `outcome`: The outcome, as classified by link:https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/http/HttpStatus.Series.html[HttpStatus.Series].
-* `status`: The HTTP status of the request returned to the client.
-* `httpStatusCode`: The HTTP Status of the request returned to the client.
-* `httpMethod`: The HTTP method used for the request.
-
-In addition, through the property `spring.cloud.gateway.metrics.tags.path.enabled` (by default, set to false), you can activate an extra metric with the tag:
-
-* `path`: Path of the request.
-
-These metrics are then available to be scraped from `/actuator/metrics/spring.cloud.gateway.requests` and can be easily integrated with Prometheus to create a link:images/gateway-grafana-dashboard.jpeg[Grafana] link:gateway-grafana-dashboard.json[dashboard].
-
-NOTE: To enable the prometheus endpoint, add `micrometer-registry-prometheus` as a project dependency.
-
 === Marking An Exchange As Routed
 
 After the gateway has routed a `ServerWebExchange`, it marks that exchange as "`routed`" by adding `gatewayAlreadyRouted`
@@ -2264,7 +2306,7 @@ or check if an exchange has already been routed.
 
 == HttpHeadersFilters
 
-HttpHeadersFilters are applied to requests before sending them downstream, such as in the `NettyRoutingFilter`.
+`HttpHeadersFilters` are applied to the requests before sending them downstream, such as in the `NettyRoutingFilter`.
 
 === Forwarded Headers Filter
 The `Forwarded` Headers Filter creates a `Forwarded` header to send to the downstream service. It adds the `Host` header, scheme and port of the current request to any existing `Forwarded` header.
@@ -2285,7 +2327,7 @@ The `RemoveHopByHop` Headers Filter removes headers from forwarded requests. The
 To change this, set the `spring.cloud.gateway.filter.remove-hop-by-hop.headers` property to the list of header names to remove.
 
 === XForwarded Headers Filter
-The `XForwarded` Headers Filter creates various a `X-Forwarded-*` headers to send to the downstream service. It users the `Host` header, scheme, port and path of the current request to create the various headers.
+The `XForwarded` Headers Filter creates various `X-Forwarded-*` headers to send to the downstream service. It uses the `Host` header, scheme, port and path of the current request to create the various headers.
 
 Creating of individual headers can be controlled by the following boolean properties (defaults to true):
 
@@ -2534,7 +2576,7 @@ A per-route `response-timeout` with a negative value will disable the global `re
           response-timeout: -1
 ----
 
-=== Fluent Java Routes API
+== Fluent Java Routes API
 
 To allow for simple configuration in Java, the `RouteLocatorBuilder` bean includes a fluent API.
 The following listing shows how it works:
@@ -2576,13 +2618,13 @@ This style also allows for more custom predicate assertions.
 The predicates defined by `RouteDefinitionLocator` beans are combined using logical `and`.
 By using the fluent Java API, you can use the `and()`, `or()`, and `negate()` operators on the `Predicate` class.
 
-=== The `DiscoveryClient` Route Definition Locator
+== The `DiscoveryClient` Route Definition Locator
 
 You can configure the gateway to create routes based on services registered with a `DiscoveryClient` compatible service registry.
 
 To enable this, set `spring.cloud.gateway.discovery.locator.enabled=true` and make sure a `DiscoveryClient` implementation (such as Netflix Eureka, Consul, or Zookeeper) is on the classpath and enabled.
 
-==== Configuring Predicates and Filters For `DiscoveryClient` Routes
+=== Configuring Predicates and Filters For `DiscoveryClient` Routes
 
 By default, the gateway defines a single predicate and filter for routes created with a `DiscoveryClient`.
 
@@ -2782,7 +2824,7 @@ To retrieve the <<global-filters,global filters>> applied to all routes, make a 
 ====
 
 The response contains the details of the global filters that are in place.
-For each global filter, there is a string representation of the filter object (for example, `org.springframework.cloud.gateway.filter.ReactiveLoadBalancerClientFilter@77856cc5`) and the corresponding <<gateway-combined-global-filter-and-gatewayfilter-ordering,order>> in the filter chain.}
+For each global filter, there is a string representation of the filter object (for example, `org.springframework.cloud.gateway.filter.ReactiveLoadBalancerClientFilter@77856cc5`) and the corresponding <<gateway-combined-global-filter-and-gatewayfilter-ordering,order>> in the filter chain.
 
 [[gateway-route-filters]]
 ==== Route Filters
@@ -2807,6 +2849,37 @@ Note that the `null` value is due to an incomplete implementation of the endpoin
 
 To clear the routes cache, make a `POST` request to `/actuator/gateway/refresh`.
 The request returns a 200 without a response body.
+
+To clear the routes with specific metadata values, add the Query parameter `metadata` specifying the `key:value` pairs that the routes to be cleared should match.
+If an error is produced during the asynchronous refresh, the refresh will not modify the existing routes.
+
+Sending `POST` request to `/actuator/gateway/refresh?metadata=group:group-1` will only refresh the routes whose `group` metadata is `group-1`: `first_route` and `third_route`.
+====
+[source,json]
+----
+[{
+  "route_id": "first_route",
+  "route_object": {
+    "predicate": "...",
+  },
+  "metadata": { "group": "group-1" }
+},
+{
+  "route_id": "second_route",
+  "route_object": {
+    "predicate": "...",
+  },
+  "metadata": { "group": "group-2" }
+},
+{
+  "route_id": "third_route",
+  "route_object": {
+    "predicate": "...",
+  },
+  "metadata": { "group": "group-1" }
+}]
+----
+====
 
 === Retrieving the Routes Defined in the Gateway
 
@@ -2910,15 +2983,21 @@ The following table describes the structure of the response:
 
 |===
 
-=== Creating and Deleting a Particular Route
+=== Creating and Deleting a Particular Route Definition
 
-To create a route, make a `POST` request to `/gateway/routes/{id_route_to_create}` with a JSON body that specifies the fields of the route (see <<gateway-retrieving-information-about-a-particular-route>>).
+To create a route definition, make a `POST` request to `/gateway/routes/{id_route_to_create}` with a JSON body that specifies the fields of the route (see <<gateway-retrieving-information-about-a-particular-route>>).
 
-To delete a route, make a `DELETE` request to `/gateway/routes/{id_route_to_delete}`.
+To delete a route definition, make a `DELETE` request to `/gateway/routes/{id_route_to_delete}`.
+
+=== Creating multiple Route Definitions
+
+To create multiple route definitions in a single request, make a `POST` request to `/gateway/routes` with a JSON body that specifies the fields of the route, including the route id (see <<gateway-retrieving-information-about-a-particular-route>>).
+
+The route definitions will be discarded if any route raises an error during the creation of the routes.
 
 === Recap: The List of All endpoints
 
-The folloiwng table below summarizes the Spring Cloud Gateway actuator endpoints (note that each endpoint has `/actuator/gateway` as the base-path):
+The following table below summarizes the Spring Cloud Gateway actuator endpoints (note that each endpoint has `/actuator/gateway` as the base-path):
 
 [cols="2,2,5"]
 |===
@@ -3105,7 +3184,7 @@ name to be compliant.
 To write a custom global filter, you must implement `GlobalFilter` interface as a bean.
 This applies the filter to all requests.
 
-The following examples show how to set up global pre and post filters, respectively:
+The following examples show how to set up global pre- and post-filters, respectively:
 
 ====
 [source,java]
@@ -3214,6 +3293,12 @@ You can also manipulate response headers (and anything else you like in the resp
 The mapper is a `Function` that takes the incoming `ResponseEntity` and converts it to an outgoing one.
 
 First-class support is provided for "`sensitive`" headers (by default, `cookie` and `authorization`), which are not passed downstream, and for "`proxy`" (`x-forwarded-*`) headers.
+
+== AOT and Native Image Support
+
+Since `4.0.0`, Spring Cloud Gateway supports Spring AOT transformations and native images.
+
+TIP: If you're using load-balanced routes, you need to explicitly define your `LoadBalancerClient` service IDs. You can do so by using the `value` or `name` attributes of the `@LoadBalancerClient` annotation or as values of the `spring.cloud.loadbalancer.eager-load.clients` property.
 
 == Configuration properties
 

@@ -121,6 +121,12 @@ public class NettyRoutingFilterIntegrationTests extends BaseWebClientTests {
 	}
 
 	@Test
+	public void shouldApplyResponseTimeoutForPlaceholder() {
+		testClient.get().uri("/responseheaders/200").header("Host", "www.responsetimeoutplaceholder.org").exchange()
+				.expectStatus().isEqualTo(HttpStatus.OK);
+	}
+
+	@Test
 	public void shouldApplyGlobalResponseTimeoutForInvalidRouteTimeoutValue() {
 		testClient.get().uri("/invalidRoute/delay/5").exchange().expectStatus().isEqualTo(HttpStatus.GATEWAY_TIMEOUT)
 				.expectBody().jsonPath("$.status").isEqualTo(String.valueOf(HttpStatus.GATEWAY_TIMEOUT.value()))
@@ -133,13 +139,14 @@ public class NettyRoutingFilterIntegrationTests extends BaseWebClientTests {
 	}
 
 	@Test
-	public void testHeadersAreClearedOnFallback() {
+	// gh-2541
+	public void shouldMergeResponseHeadersFromUpstreamWithCreatedByGateway() {
 		String header = "X-Test-SHOULD-MERGED-HEADER";
 		String gatewayHeaderValue = "value-from-gateway";
 		String upstreamHeaderValue = "value-from-upstream";
 		testClient.post().uri("/responseheaders/200").header("Host", "www.mergeresponseheader.org")
 				.header(header, upstreamHeaderValue).exchange().expectHeader()
-				.valueEquals(header, gatewayHeaderValue, upstreamHeaderValue);
+				.valueEquals(header, upstreamHeaderValue, gatewayHeaderValue);
 	}
 
 	@EnableAutoConfiguration

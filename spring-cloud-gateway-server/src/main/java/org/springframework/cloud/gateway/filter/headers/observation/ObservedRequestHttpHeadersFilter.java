@@ -21,6 +21,7 @@ import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationRegistry;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import reactor.util.context.ContextView;
 
 import org.springframework.cloud.gateway.filter.headers.HttpHeadersFilter;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
@@ -90,7 +91,11 @@ public class ObservedRequestHttpHeadersFilter implements HttpHeadersFilter {
 	 * @return parent observation or {@code null} when there is none
 	 */
 	private Observation getParentObservation(ServerWebExchange exchange) {
-		return exchange.getAttribute("micrometer.observation");
+		ContextView contextView = exchange.getAttribute(ServerWebExchangeUtils.GATEWAY_REACTOR_CONTEXT_ATTR);
+		if (contextView == null) {
+			return null;
+		}
+		return contextView.getOrDefault("micrometer.observation", null);
 	}
 
 	@Override

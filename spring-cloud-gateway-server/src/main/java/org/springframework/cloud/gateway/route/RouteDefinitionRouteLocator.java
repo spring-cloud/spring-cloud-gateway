@@ -40,6 +40,7 @@ import org.springframework.cloud.gateway.support.ConfigurationService;
 import org.springframework.cloud.gateway.support.HasRouteId;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.server.ServerWebExchange;
 
 /**
@@ -90,9 +91,23 @@ public class RouteDefinitionRouteLocator implements RouteLocator {
 		});
 	}
 
+	/**
+	 * Filtering is done via {@link RouteDefinition} instead of {@link Route} to prevent
+	 * creating Route instances that will be discarded.
+	 */
+	@Override
+	public Flux<Route> getRoutesByMetadata(Map<String, Object> metadata) {
+		return getRoutes(this.routeDefinitionLocator.getRouteDefinitions()
+				.filter(routeDef -> RouteLocator.matchMetadata(routeDef.getMetadata(), metadata)));
+	}
+
 	@Override
 	public Flux<Route> getRoutes() {
-		Flux<Route> routes = this.routeDefinitionLocator.getRouteDefinitions().map(this::convertToRoute);
+		return getRoutes(this.routeDefinitionLocator.getRouteDefinitions());
+	}
+
+	private Flux<Route> getRoutes(Flux<RouteDefinition> routeDefinitions) {
+		Flux<Route> routes = routeDefinitions.map(this::convertToRoute);
 
 		if (!gatewayProperties.isFailOnRouteDefinitionError()) {
 			// instead of letting error bubble up, continue
@@ -172,8 +187,9 @@ public class RouteDefinitionRouteLocator implements RouteLocator {
 					new ArrayList<>(this.gatewayProperties.getDefaultFilters())));
 		}
 
-		if (!routeDefinition.getFilters().isEmpty()) {
-			filters.addAll(loadGatewayFilters(routeDefinition.getId(), new ArrayList<>(routeDefinition.getFilters())));
+		final List<FilterDefinition> definitionFilters = routeDefinition.getFilters();
+		if (!CollectionUtils.isEmpty(definitionFilters)) {
+			filters.addAll(loadGatewayFilters(routeDefinition.getId(), definitionFilters));
 		}
 
 		AnnotationAwareOrderComparator.sort(filters);

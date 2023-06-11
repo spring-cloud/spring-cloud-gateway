@@ -18,8 +18,8 @@ package org.springframework.cloud.gateway.handler.predicate;
 
 import java.util.function.Predicate;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -34,7 +34,7 @@ public class CloudFoundryRouteServiceRoutePredicateFactoryTest {
 
 	private Predicate<ServerWebExchange> predicate;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		CloudFoundryRouteServiceRoutePredicateFactory factory = new CloudFoundryRouteServiceRoutePredicateFactory();
 		predicate = factory.apply(factory.newConfig());

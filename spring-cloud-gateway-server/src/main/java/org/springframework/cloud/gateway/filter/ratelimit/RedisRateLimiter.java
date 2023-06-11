@@ -26,7 +26,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import jakarta.validation.constraints.Min;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.jetbrains.annotations.NotNull;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -39,6 +38,7 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
+import org.springframework.util.Assert;
 import org.springframework.validation.annotation.Validated;
 
 /**
@@ -296,7 +296,6 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 		return routeConfig;
 	}
 
-	@NotNull
 	public Map<String, String> getHeaders(Config config, Long tokensLeft) {
 		Map<String, String> headers = new HashMap<>();
 		if (isIncludeHeaders()) {
@@ -334,6 +333,8 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 		}
 
 		public Config setBurstCapacity(int burstCapacity) {
+			Assert.isTrue(burstCapacity >= this.replenishRate, "BurstCapacity(" + burstCapacity
+					+ ") must be greater than or equal than replenishRate(" + this.replenishRate + ")");
 			this.burstCapacity = burstCapacity;
 			return this;
 		}
