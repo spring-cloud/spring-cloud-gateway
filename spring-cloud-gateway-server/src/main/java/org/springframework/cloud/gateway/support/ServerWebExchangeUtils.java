@@ -46,6 +46,7 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.util.Assert;
+import org.springframework.web.reactive.DispatcherHandler;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -409,6 +410,20 @@ public final class ServerWebExchangeUtils {
 			exchange.getAttributes().put(CACHED_SERVER_HTTP_REQUEST_DECORATOR_ATTR, decorator);
 		}
 		return decorator;
+	}
+
+	/**
+	 * One place to handle forwarding using DispatcherHandler. Allows for common code to
+	 * be reused.
+	 * @param handler The DispatcherHandler.
+	 * @param exchange The ServerWebExchange.
+	 * @return value from handler.
+	 */
+	public static Mono<Void> handle(DispatcherHandler handler, ServerWebExchange exchange) {
+		// remove attributes that may disrupt the forwarded request
+		exchange.getAttributes().remove(GATEWAY_PREDICATE_PATH_CONTAINER_ATTR);
+
+		return handler.handle(exchange);
 	}
 
 }
