@@ -31,8 +31,8 @@ public class RouteConstructionIntegrationTests {
 
 	@Test
 	public void routesWithVerificationShouldFail() {
-		assertThatThrownBy(() -> new SpringApplicationBuilder(TestConfig.class).profiles("verification-route").run())
-				.hasMessageContaining("Stop right now!");
+		assertThatThrownBy(() -> new SpringApplicationBuilder(TestConfig.class).profiles("verification-route")
+				.run("--server.port=0")).hasMessageContaining("Stop right now!");
 	}
 
 	@EnableAutoConfiguration
