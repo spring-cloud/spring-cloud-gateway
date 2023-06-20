@@ -95,14 +95,15 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrar implements ImportBeanDe
 
 	private void registerRoute(BeanDefinitionRegistry registry, RouteProperties routeProperties,
 			String beanNamePrefix) {
-		AbstractBeanDefinition beanDefinition = BeanDefinitionBuilder
-				.genericBeanDefinition(RouterFunction.class, () -> getRouterFunctionSupplier(routeProperties))
-				.getBeanDefinition();
+		AbstractBeanDefinition beanDefinition = BeanDefinitionBuilder.genericBeanDefinition(RouterFunction.class,
+				() -> getRouterFunctionSupplier(routeProperties, beanNamePrefix)).getBeanDefinition();
 		registry.registerBeanDefinition(beanNamePrefix + "RouterFunction", beanDefinition);
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private RouterFunction getRouterFunctionSupplier(RouteProperties routeProperties) {
+	private RouterFunction getRouterFunctionSupplier(RouteProperties routeProperties, String beanNamePrefix) {
+		log.trace(LogMessage.format("Creating route for : %s", routeProperties));
+
 		RouterFunctions.Builder builder = route();
 
 		// TODO: cache, externalize?
@@ -122,16 +123,22 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrar implements ImportBeanDe
 		routeProperties.getPredicates()
 				.forEach(predicateProperties -> translate(predicateOperations, predicateProperties.getName(),
 						predicateProperties.getArgs(), RequestPredicate.class, requestPredicate -> {
+							log.trace(LogMessage.format("Adding predicate to route %s - %s", beanNamePrefix,
+									predicateProperties));
 							if (predicate.get() == null) {
 								predicate.set(requestPredicate);
 							}
 							else {
-								predicate.get().and(requestPredicate);
+								RequestPredicate combined = predicate.get().and(requestPredicate);
+								predicate.set(combined);
 							}
+							log.trace(LogMessage.format("Combined predicate for route %s - %s", beanNamePrefix,
+									predicate.get()));
 						}));
 
 		// combine predicate and handlerFunction
 		builder.route(predicate.get(), handlerFunction);
+		predicate.set(null);
 
 		// MVC.fn users won't need this anonymous filter as url will be set directly
 		builder.filter((request, next) -> {

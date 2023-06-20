@@ -63,7 +63,7 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrarTests {
 
 			@Override
 			public void route(RequestPredicate predicate, HandlerFunction<?> handlerFunction) {
-				assertThat(predicate.toString()).isEqualTo("GET");
+				assertThat(predicate.toString()).isEqualTo("(GET && /anything/listRoute1)");
 			}
 
 			@Override
