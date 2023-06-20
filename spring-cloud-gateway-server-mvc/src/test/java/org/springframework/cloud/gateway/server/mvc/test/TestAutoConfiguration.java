@@ -18,6 +18,7 @@ package org.springframework.cloud.gateway.server.mvc.test;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.cloud.gateway.server.mvc.test.client.DefaultTestRestClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 

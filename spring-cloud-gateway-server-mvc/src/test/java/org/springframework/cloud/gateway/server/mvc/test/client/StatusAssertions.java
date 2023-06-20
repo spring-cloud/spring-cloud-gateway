@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.gateway.server.mvc.test;
+package org.springframework.cloud.gateway.server.mvc.test.client;
 
 import java.util.function.Consumer;
 

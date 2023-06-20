@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.gateway.server.mvc.test;
+package org.springframework.cloud.gateway.server.mvc.test.client;
 
 import org.springframework.lang.Nullable;
 
