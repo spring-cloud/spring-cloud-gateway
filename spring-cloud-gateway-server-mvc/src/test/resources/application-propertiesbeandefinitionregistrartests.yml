@@ -42,6 +42,9 @@ spring.cloud.gateway.mvc:
             method: GET
         # - Method=GET
         # - Path=/anything/listRoute2
+        - name: Path
+          args:
+            pattern: /anything/listRoute2
       filters:
         #- LocalServerPortUriResolver=
         #- PrefixPath=/httpbin
