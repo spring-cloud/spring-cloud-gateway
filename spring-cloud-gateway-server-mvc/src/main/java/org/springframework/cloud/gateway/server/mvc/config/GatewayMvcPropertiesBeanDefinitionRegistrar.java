@@ -165,7 +165,7 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrar implements ImportBeanDe
 	private <T> void translate(MultiValueMap<String, OperationMethod> operations, String operationName,
 			Map<String, String> operationArgs, Class<T> returnType, Consumer<T> operationHandler) {
 		String normalizedName = StringUtils.uncapitalize(operationName);
-		Optional<OperationMethod> operationMethod = operations.get(normalizedName).stream()
+		Optional<OperationMethod> operationMethod = operations.getOrDefault(normalizedName, Collections.emptyList()).stream()
 				.filter(opeMethod -> matchOperation(opeMethod, operationArgs)).findFirst();
 		if (operationMethod.isPresent()) {
 			ReflectiveOperationInvoker operationInvoker = new ReflectiveOperationInvoker(operationMethod.get(),
