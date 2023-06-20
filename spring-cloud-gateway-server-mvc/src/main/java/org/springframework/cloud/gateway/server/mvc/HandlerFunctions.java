@@ -20,12 +20,9 @@ import java.net.URI;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
-import org.springframework.context.ApplicationContext;
-import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.servlet.function.HandlerFunction;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
-import org.springframework.web.servlet.support.RequestContextUtils;
 
 public abstract class HandlerFunctions {
 
@@ -49,15 +46,6 @@ public abstract class HandlerFunctions {
 
 	public static HandlerFunction<ServerResponse> http() {
 		return new LookupProxyExchangeHandlerFunction();
-	}
-
-	public static ApplicationContext getApplicationContext(ServerRequest request) {
-		WebApplicationContext webApplicationContext = RequestContextUtils
-				.findWebApplicationContext(request.servletRequest());
-		if (webApplicationContext == null) {
-			throw new IllegalStateException("No Application Context in request attributes");
-		}
-		return webApplicationContext;
 	}
 
 	static class LookupProxyExchangeHandlerFunction implements HandlerFunction<ServerResponse> {
@@ -86,7 +74,7 @@ public abstract class HandlerFunctions {
 		}
 
 		private static ProxyExchangeHandlerFunction lookup(ServerRequest request) {
-			return getApplicationContext(request).getBean(ProxyExchangeHandlerFunction.class);
+			return MvcUtils.getApplicationContext(request).getBean(ProxyExchangeHandlerFunction.class);
 		}
 
 	}

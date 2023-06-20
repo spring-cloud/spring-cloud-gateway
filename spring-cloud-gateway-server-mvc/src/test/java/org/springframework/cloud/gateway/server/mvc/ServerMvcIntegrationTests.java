@@ -28,8 +28,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.cloud.client.DefaultServiceInstance;
 import org.springframework.cloud.gateway.server.mvc.test.LocalServerPortUriResolver;
 import org.springframework.cloud.gateway.server.mvc.test.TestRestClient;
+import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
+import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
+import org.springframework.cloud.loadbalancer.support.ServiceInstanceListSuppliers;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -46,6 +50,7 @@ import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunction
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.setPath;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.setStatus;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.stripPrefix;
+import static org.springframework.cloud.gateway.server.mvc.filter.LoadBalancerFilterFunctions.lb;
 import static org.springframework.web.servlet.function.RequestPredicates.GET;
 import static org.springframework.web.servlet.function.RouterFunctions.route;
 
@@ -157,8 +162,20 @@ public class ServerMvcIntegrationTests {
 				});
 	}
 
+	@Test
+	public void loadbalancerWorks() {
+		restClient.get().uri("/anything/loadbalancer").exchange().expectStatus().isOk().expectBody(Map.class)
+				.consumeWith(res -> {
+					Map<String, Object> map = res.getResponseBody();
+					assertThat(map).isNotEmpty().containsKey("headers");
+					Map<String, Object> headers = (Map<String, Object>) map.get("headers");
+					assertThat(headers).containsEntry("x-test", "loadbalancer");
+				});
+	}
+
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
+	@LoadBalancerClient(name = "testservice", configuration = TestLoadBalancerConfig.class)
 	protected static class TestConfiguration {
 
 		@Bean
@@ -256,12 +273,37 @@ public class ServerMvcIntegrationTests {
 			// @formatter:on
 		}
 
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsLoadBalancer() {
+			// @formatter:off
+			return route()
+					.GET("/anything/loadbalancer", http())
+					.filter(lb("testservice"))
+					.filter(prefixPath("/httpbin"))
+					.filter(addRequestHeader("X-Test", "loadbalancer"))
+					.build();
+			// @formatter:on
+		}
+
 	}
 
 	protected static class TestHandler {
 
 		public ServerResponse hello(ServerRequest request) {
 			return ServerResponse.ok().body("Hello");
+		}
+
+	}
+
+	public static class TestLoadBalancerConfig {
+
+		@LocalServerPort
+		protected int port = 0;
+
+		@Bean
+		public ServiceInstanceListSupplier staticServiceInstanceListSupplier() {
+			return ServiceInstanceListSuppliers.from("testservice",
+					new DefaultServiceInstance("testservice" + "-1", "testservice", "localhost", port, false));
 		}
 
 	}

@@ -18,7 +18,6 @@ package org.springframework.cloud.gateway.server.mvc.test;
 
 import java.net.URI;
 
-import org.springframework.cloud.gateway.server.mvc.HandlerFunctions;
 import org.springframework.cloud.gateway.server.mvc.ProxyExchangeHandlerFunction;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.context.ApplicationContext;
@@ -32,7 +31,7 @@ public class LocalServerPortUriResolver
 
 	@Override
 	public URI apply(ServerRequest request) {
-		ApplicationContext context = HandlerFunctions.getApplicationContext(request);
+		ApplicationContext context = MvcUtils.getApplicationContext(request);
 		Integer port = context.getEnvironment().getProperty("local.server.port", Integer.class);
 		return URI.create("http://localhost:" + port);
 	}

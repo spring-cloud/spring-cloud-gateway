@@ -18,7 +18,10 @@ package org.springframework.cloud.gateway.server.mvc.common;
 
 import java.net.URI;
 
+import org.springframework.context.ApplicationContext;
+import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.servlet.function.ServerRequest;
+import org.springframework.web.servlet.support.RequestContextUtils;
 
 public abstract class MvcUtils {
 
@@ -36,6 +39,15 @@ public abstract class MvcUtils {
 
 	public static void setRequestUrl(ServerRequest request, URI url) {
 		request.attributes().put(GATEWAY_REQUEST_URL_ATTR, url);
+	}
+
+	public static ApplicationContext getApplicationContext(ServerRequest request) {
+		WebApplicationContext webApplicationContext = RequestContextUtils
+				.findWebApplicationContext(request.servletRequest());
+		if (webApplicationContext == null) {
+			throw new IllegalStateException("No Application Context in request attributes");
+		}
+		return webApplicationContext;
 	}
 
 }
