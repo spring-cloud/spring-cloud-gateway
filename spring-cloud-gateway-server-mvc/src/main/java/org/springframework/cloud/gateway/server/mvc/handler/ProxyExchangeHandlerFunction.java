@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.gateway.server.mvc;
+package org.springframework.cloud.gateway.server.mvc.handler;
 
 import java.net.URI;
 import java.util.function.Function;
@@ -44,10 +44,9 @@ public class ProxyExchangeHandlerFunction implements HandlerFunction<ServerRespo
 	public ProxyExchangeHandlerFunction(ProxyExchange proxyExchange,
 			ObjectProvider<RequestHttpHeadersFilter> requestHttpHeadersFilters,
 			ObjectProvider<ResponseHttpHeadersFilter> responseHttpHeadersFilters) {
-		this(proxyExchange, requestHttpHeadersFilters, responseHttpHeadersFilters, request -> {
-			return (URI) request.attribute(MvcUtils.GATEWAY_REQUEST_URL_ATTR)
-					.orElseThrow(() -> new IllegalStateException("No routeUri resolved"));
-		});
+		this(proxyExchange, requestHttpHeadersFilters, responseHttpHeadersFilters,
+				request -> (URI) request.attribute(MvcUtils.GATEWAY_REQUEST_URL_ATTR)
+						.orElseThrow(() -> new IllegalStateException("No routeUri resolved")));
 	}
 
 	public ProxyExchangeHandlerFunction(ProxyExchange proxyExchange,

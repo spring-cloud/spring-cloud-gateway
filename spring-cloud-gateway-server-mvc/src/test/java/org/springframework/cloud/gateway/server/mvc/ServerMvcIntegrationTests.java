@@ -42,7 +42,6 @@ import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.cloud.gateway.server.mvc.HandlerFunctions.http;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.addRequestHeader;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.addRequestParameter;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.addResponseHeader;
@@ -51,6 +50,7 @@ import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunction
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.setStatus;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.stripPrefix;
 import static org.springframework.cloud.gateway.server.mvc.filter.LoadBalancerFilterFunctions.lb;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
 import static org.springframework.web.servlet.function.RequestPredicates.GET;
 import static org.springframework.web.servlet.function.RouterFunctions.route;
 

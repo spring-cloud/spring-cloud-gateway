@@ -19,7 +19,7 @@ package org.springframework.cloud.gateway.server.mvc.filter;
 import java.net.URI;
 import java.util.Arrays;
 
-import org.springframework.cloud.gateway.server.mvc.GatewayServerResponse;
+import org.springframework.cloud.gateway.server.mvc.handler.GatewayServerResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.util.StringUtils;

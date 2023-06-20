@@ -18,8 +18,8 @@ package org.springframework.cloud.gateway.server.mvc.test;
 
 import java.net.URI;
 
-import org.springframework.cloud.gateway.server.mvc.ProxyExchangeHandlerFunction;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
+import org.springframework.cloud.gateway.server.mvc.handler.ProxyExchangeHandlerFunction;
 import org.springframework.context.ApplicationContext;
 import org.springframework.web.servlet.function.HandlerFilterFunction;
 import org.springframework.web.servlet.function.HandlerFunction;

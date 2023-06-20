@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.gateway.server.mvc;
+package org.springframework.cloud.gateway.server.mvc.handler;
 
 import java.net.URI;
 import java.time.Instant;

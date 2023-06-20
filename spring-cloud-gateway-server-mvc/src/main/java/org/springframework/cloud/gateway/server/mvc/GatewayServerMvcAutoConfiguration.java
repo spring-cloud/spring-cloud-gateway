@@ -27,6 +27,9 @@ import org.springframework.cloud.gateway.server.mvc.filter.HttpHeadersFilter.Req
 import org.springframework.cloud.gateway.server.mvc.filter.HttpHeadersFilter.ResponseHttpHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.RemoveHopByHopRequestHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.RemoveHopByHopResponseHeadersFilter;
+import org.springframework.cloud.gateway.server.mvc.handler.ClientHttpRequestFactoryProxyExchange;
+import org.springframework.cloud.gateway.server.mvc.handler.ProxyExchange;
+import org.springframework.cloud.gateway.server.mvc.handler.ProxyExchangeHandlerFunction;
 import org.springframework.cloud.gateway.server.mvc.predicate.PredicateDiscoverer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
